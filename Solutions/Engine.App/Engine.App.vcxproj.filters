@@ -990,6 +990,9 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptsystem.cpp">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">

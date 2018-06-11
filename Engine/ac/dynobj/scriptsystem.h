@@ -12,22 +12,27 @@
 //
 //=============================================================================
 //
-//
+// Wrapper around script "System" struct, managing access to its variables.
 //
 //=============================================================================
 #ifndef __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H
 #define __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H
 
+#include "ac/statobj/agsstaticobject.h"
+
 // The text script's "system" struct
-struct ScriptSystem {
+struct ScriptSystem : public AGSStaticObject
+{
     int width,height;
     int coldepth;
     int os;
     int windowed;
     int vsync;
-    int viewport_width, viewport_height;
-    char aci_version[10]; // FIXME this when possible, version format is different now
-    int reserved[5];  // so that future scripts don't overwrite data
+    int viewport_width;
+    int viewport_height;
+
+    virtual int32_t ReadInt32(const char *address, intptr_t offset) override;
+    virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val) override;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H

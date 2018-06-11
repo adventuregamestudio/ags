@@ -191,6 +191,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptsystem.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\event.cpp" />

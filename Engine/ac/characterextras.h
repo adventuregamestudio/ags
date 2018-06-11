@@ -24,9 +24,8 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
+// TODO: now safe to merge with CharacterInfo into one class
 struct CharacterExtras {
-    // UGLY UGLY UGLY!! The CharacterInfo struct size is fixed because it's
-    // used in the scripts, therefore overflowing stuff has to go here
     short invorder[MAX_INVORDER];
     short invorder_count;
     short width;

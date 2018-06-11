@@ -270,13 +270,26 @@ void InitAndRegisterRegions()
 // Registers static entity arrays in the script system
 void RegisterStaticArrays()
 {
-    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo), sizeof(CharacterInfo));
-    StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject), sizeof(ScriptObject));
-    StaticGUIArray.Create(&ccDynamicGUI, sizeof(ScriptGUI), sizeof(ScriptGUI));
-    StaticHotspotArray.Create(&ccDynamicHotspot, sizeof(ScriptHotspot), sizeof(ScriptHotspot));
-    StaticRegionArray.Create(&ccDynamicRegion, sizeof(ScriptRegion), sizeof(ScriptRegion));
-    StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem), sizeof(ScriptInvItem));
-    StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog), sizeof(ScriptDialog));
+    // We need to know sizes of related script structs to convert memory offsets into object indexes.
+    // These sized are calculated by the compiler based on script struct declaration.
+    // Note, that only regular variables count to the struct size, NOT properties and NOT methods.
+    // Currently there is no way to read the type sizes from script, so we have to define them by hand.
+    // If the struct size changes in script, we must change the numbers here.
+    // If we are going to support multiple different versions of same struct, then the "script size"
+    // should be chosen depending on the script api version.
+    const int charScriptSize = sizeof(int32_t) * 28 + sizeof(int16_t) * MAX_INV + sizeof(int32_t) + 61;
+    const int dummyScriptSize = sizeof(int32_t) * 2; // 32-bit id + reserved int32
+
+    // The current implementation of the StaticArray assumes we are dealing with regular C-arrays.
+    // Therefore we need to know real struct size too. If we will change to std containers, then
+    // (templated) telling real size will no longer be necessary.
+    StaticCharacterArray.Create(&ccDynamicCharacter, charScriptSize, sizeof(CharacterInfo));
+    StaticObjectArray.Create(&ccDynamicObject, dummyScriptSize, sizeof(ScriptObject));
+    StaticGUIArray.Create(&ccDynamicGUI, dummyScriptSize, sizeof(ScriptGUI));
+    StaticHotspotArray.Create(&ccDynamicHotspot, dummyScriptSize, sizeof(ScriptHotspot));
+    StaticRegionArray.Create(&ccDynamicRegion, dummyScriptSize, sizeof(ScriptRegion));
+    StaticInventoryArray.Create(&ccDynamicInv, dummyScriptSize, sizeof(ScriptInvItem));
+    StaticDialogArray.Create(&ccDynamicDialog, dummyScriptSize, sizeof(ScriptDialog));
 
     ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
     ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);

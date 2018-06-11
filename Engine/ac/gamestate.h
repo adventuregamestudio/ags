@@ -33,7 +33,7 @@ struct GameState {
     int  disabled_user_interface;  // >0 while in cutscene/etc
     int  gscript_timer;    // obsolete
     int  debug_mode;       // whether we're in debug mode
-    int  globalvars[MAXGLOBALVARS];  // obsolete
+    int  globalvars[MAXGLOBALVARS];  // [OBSOLETE]
     int  messagetime;      // time left for auto-remove messages
     int  usedinv;          // inventory item last used
     int  inv_top,inv_numdisp,obsolete_inv_numorder,inv_numinline;
@@ -145,7 +145,7 @@ struct GameState {
     char  bad_parsed_word[100];
     int   raw_color;
     int   raw_modified[MAX_BSCENE];
-    short filenumbers[MAXSAVEGAMES];
+    short filenumbers[MAXSAVEGAMES]; // [OBSOLETE]
     int   room_changes;
     int   mouse_cursor_hidden;
     int   silent_midi;

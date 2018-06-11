@@ -2491,9 +2491,10 @@ void RegisterGameAPI()
 void RegisterStaticObjects()
 {
     ccAddExternalStaticObject("game",&play, &GameStaticManager);
-	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
 	ccAddExternalStaticObject("mouse",&scmouse, &scmouse);
-	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
+	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager); // TODO: proper manager
 	ccAddExternalStaticObject("system",&scsystem, &scsystem);
+    // [OBSOLETE] legacy arrays
+    ccAddExternalStaticObject("gs_globals", &play.globalvars[0], &GlobalStaticManager);
 	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
 }

@@ -1904,9 +1904,10 @@ import Mouse mouse;
 import System system;
 import GameState  game;
 import Object object[MAX_ROOM_OBJECTS];
+import ColorType palette[PALETTE_SIZE];
+// [OBSOLETE]
 import int   gs_globals[MAX_LEGACY_GLOBAL_VARS];
 import short savegameindex[MAX_LISTBOX_SAVED_GAMES];
-import ColorType palette[PALETTE_SIZE];
 
 #undef CursorMode
 #undef FontType

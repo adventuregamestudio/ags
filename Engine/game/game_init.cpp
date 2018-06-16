@@ -277,7 +277,8 @@ void RegisterStaticArrays()
     // If the struct size changes in script, we must change the numbers here.
     // If we are going to support multiple different versions of same struct, then the "script size"
     // should be chosen depending on the script api version.
-    const int charScriptSize = sizeof(int32_t) * 28 + sizeof(int16_t) * MAX_INV + sizeof(int32_t) + 61;
+    const int charScriptSize = sizeof(int32_t) * 28 + sizeof(int16_t) * MAX_INV + sizeof(int32_t) + 61
+        + 1; // + 1 for mem align
     const int dummyScriptSize = sizeof(int32_t) * 2; // 32-bit id + reserved int32
 
     // The current implementation of the StaticArray assumes we are dealing with regular C-arrays.

@@ -788,7 +788,7 @@ builtin managed struct File {
   import int Seek(int offset, FileSeek origin = eSeekCurrent);
   /// Gets current cursor position inside the file.
   readonly import attribute int Position;
-  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 builtin managed struct InventoryItem {
@@ -814,7 +814,7 @@ builtin managed struct InventoryItem {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this item.
   import bool SetTextProperty(const string property, const string value);
-  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 builtin managed struct Overlay {
@@ -1194,7 +1194,7 @@ builtin managed struct GUI {
   import void Click(MouseButton);
   /// Performs default processing of a mouse click at the specified co-ordinates.
   import static void ProcessClick(int x, int y, MouseButton);
-  int   reserved[2];   // $AUTOCOMPLETEIGNORE$
+  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 builtin managed struct Hotspot {
@@ -1222,7 +1222,7 @@ builtin managed struct Hotspot {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this hotspot.
   import bool SetTextProperty(const string property, const string value);
-  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 builtin managed struct Region {
@@ -1250,7 +1250,7 @@ builtin managed struct Region {
   readonly import attribute int  TintSaturation;
   /// Gets the Luminance of this region's colour tint.
   readonly import attribute int  TintLuminance;
-  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 builtin managed struct Dialog {
@@ -1275,7 +1275,7 @@ builtin managed struct Dialog {
   /// Manually marks whether the option was chosen before or not.
   import void SetHasOptionBeenChosen(int option, bool chosen);
   
-  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 #define IsSpeechVoxAvailable IsVoxAvailable
@@ -1570,7 +1570,7 @@ builtin managed struct Object {
   /// Gets the Luminance of this object's colour tint.
   readonly import attribute int  TintLuminance;
 
-  int reserved[2];  // $AUTOCOMPLETEIGNORE$
+  readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
 
 enum StopMovementStyle
@@ -1778,8 +1778,9 @@ builtin managed struct Character {
   readonly int reserved_a[28];   // $AUTOCOMPLETEIGNORE$
   readonly short reserved_f[MAX_INV];  // $AUTOCOMPLETEIGNORE$
   readonly int   reserved_e;   // $AUTOCOMPLETEIGNORE$
-  char  reserved_g[40];   // $AUTOCOMPLETEIGNORE$
-  readonly char  scrname[20];
+  readonly char  reserved_g[40];   // $AUTOCOMPLETEIGNORE$
+  readonly char  reserved_h[20];   // $AUTOCOMPLETEIGNORE$
+  // TODO: find out if Visible property may work as a proper analogue, otherwise add new one
   char  on;  // $AUTOCOMPLETEIGNORE$
   };
 
@@ -1904,9 +1905,10 @@ import Mouse mouse;
 import System system;
 import GameState  game;
 import Object object[MAX_ROOM_OBJECTS];
+import ColorType palette[PALETTE_SIZE];
+// [OBSOLETE]
 import int   gs_globals[MAX_LEGACY_GLOBAL_VARS];
 import short savegameindex[MAX_LISTBOX_SAVED_GAMES];
-import ColorType palette[PALETTE_SIZE];
 
 #undef CursorMode
 #undef FontType

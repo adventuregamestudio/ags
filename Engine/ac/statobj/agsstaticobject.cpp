@@ -1,10 +1,8 @@
 
 #include <string.h>
 #include "ac/statobj/agsstaticobject.h"
-#include "ac/game.h"
 
 AGSStaticObject GlobalStaticManager;
-StaticGame      GameStaticManager;
 
 void AGSStaticObject::Read(const char *address, intptr_t offset, void *dest, int size)
 {
@@ -54,16 +52,4 @@ void AGSStaticObject::WriteInt32(const char *address, intptr_t offset, int32_t v
 void AGSStaticObject::WriteFloat(const char *address, intptr_t offset, float val)
 {
     *(float*)(address + offset) = val;
-}
-
-void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
-{
-    if (offset == 4 * sizeof(int32_t))
-    { // game.debug_mode
-        set_debug_mode(val != 0);
-    }
-    else
-    {
-        *(int32_t*)(address + offset) = val;
-    }
 }

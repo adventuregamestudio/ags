@@ -26,9 +26,9 @@ struct StaticArray : public ICCStaticObject {
 public:
     virtual ~StaticArray(){}
 
-    void Create(int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
-    void Create(ICCStaticObject *stcmgr, int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
-    void Create(ICCDynamicObject *dynmgr, int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
+    void Create(int elem_script_size, int elem_real_size, int elem_count = -1 /*unknown*/);
+    void Create(ICCStaticObject *stcmgr, int elem_script_size, int elem_real_size, int elem_count = -1 /*unknown*/);
+    void Create(ICCDynamicObject *dynmgr, int elem_script_size, int elem_real_size, int elem_count = -1 /*unknown*/);
 
     inline ICCStaticObject *GetStaticManager() const
     {
@@ -55,7 +55,7 @@ public:
 private:
     ICCStaticObject     *_staticMgr;
     ICCDynamicObject    *_dynamicMgr;
-    int                 _elemLegacySize;
+    int                 _elemScriptSize;
     int                 _elemRealSize;
     int                 _elemCount;
 };

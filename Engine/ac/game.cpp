@@ -59,6 +59,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/statobj/staticgame.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -2490,9 +2491,10 @@ void RegisterGameAPI()
 void RegisterStaticObjects()
 {
     ccAddExternalStaticObject("game",&play, &GameStaticManager);
-	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
-	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
-	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
-	ccAddExternalStaticObject("system",&scsystem, &GlobalStaticManager);
+	ccAddExternalStaticObject("mouse",&scmouse, &scmouse);
+	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager); // TODO: proper manager
+	ccAddExternalStaticObject("system",&scsystem, &scsystem);
+    // [OBSOLETE] legacy arrays
+    ccAddExternalStaticObject("gs_globals", &play.globalvars[0], &GlobalStaticManager);
 	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
 }

@@ -27,14 +27,13 @@ using namespace AGS; // FIXME later
 
 #define GAME_STATE_RESERVED_INTS 5
 
-// Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
 struct GameState {
     int  score;      // player's current score
     int  usedmode;   // set by ProcessClick to last cursor mode used
     int  disabled_user_interface;  // >0 while in cutscene/etc
     int  gscript_timer;    // obsolete
     int  debug_mode;       // whether we're in debug mode
-    int  globalvars[MAXGLOBALVARS];  // obsolete
+    int  globalvars[MAXGLOBALVARS];  // [OBSOLETE]
     int  messagetime;      // time left for auto-remove messages
     int  usedinv;          // inventory item last used
     int  inv_top,inv_numdisp,obsolete_inv_numorder,inv_numinline;
@@ -109,7 +108,6 @@ struct GameState {
                                       // no speech animation is supposed to be played at this time
     int  dialog_options_highlight_color; // The colour used for highlighted (hovered over) text in dialog options
     int  reserved[GAME_STATE_RESERVED_INTS];  // make sure if a future version adds a var, it doesn't mess anything up
-    // ** up to here is referenced in the script "game." object
     int   recording;   // user is recording their moves
     int   playback;    // playing back recording
     short gamestep;    // step number for matching recordings
@@ -147,7 +145,7 @@ struct GameState {
     char  bad_parsed_word[100];
     int   raw_color;
     int   raw_modified[MAX_BSCENE];
-    short filenumbers[MAXSAVEGAMES];
+    short filenumbers[MAXSAVEGAMES]; // [OBSOLETE]
     int   room_changes;
     int   mouse_cursor_hidden;
     int   silent_midi;

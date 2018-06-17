@@ -12,27 +12,20 @@
 //
 //=============================================================================
 //
-// Wrapper around script "System" struct, managing access to its variables.
+// Wrapper around script "GameState" struct, managing access to its variables.
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H
-#define __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H
+#ifndef __AGS_EE_STATOBJ__STATICGAME_H
+#define __AGS_EE_STATOBJ__STATICGAME_H
 
 #include "ac/statobj/agsstaticobject.h"
 
-// The text script's "system" struct
-struct ScriptSystem : public AGSStaticObject
+struct StaticGame : public AGSStaticObject
 {
-    int width,height;
-    int coldepth;
-    int os;
-    int windowed;
-    int vsync;
-    int viewport_width;
-    int viewport_height;
-
     virtual int32_t ReadInt32(const char *address, intptr_t offset) override;
     virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val) override;
 };
 
-#endif // __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H
+extern StaticGame GameStaticManager;
+
+#endif // __AGS_EE_STATOBJ__STATICGAME_H

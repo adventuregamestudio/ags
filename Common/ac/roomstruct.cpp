@@ -165,6 +165,21 @@ void room_file_header::WriteFromFile(Common::Stream *out)
 
 int usesmisccond = 0;
 
+// CLNUP only for importing from 341 format, could be removed in the future
+// this is necessary because we no longer use the "resolution" and the mask might be low res while the room high res
+// there's a similar routine on ags.native so the editor can import and resize masks
+void fix_mask_area_size(RoomStruct *rstruc, Common::Bitmap *&mask) {
+    if (mask == NULL) return;
+    if (mask->GetWidth() != rstruc->width || mask->GetHeight() != rstruc->height) {
+        int oldw = mask->GetWidth(), oldh = mask->GetHeight();
+        Common::Bitmap *resized = Common::BitmapHelper::CreateBitmap(rstruc->width, rstruc->height, 8);
+        resized->Clear();
+        resized->StretchBlt(mask, RectWH(0, 0, oldw, oldh), RectWH(0, 0, resized->GetWidth(), resized->GetHeight()));
+        delete mask;
+        mask = resized;
+    }
+}
+
 void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_file_header rfh) {
   int   f;
   char  buffer[3000];
@@ -421,6 +436,12 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
 
   for (f = 0; f < 11; f++)
     rstruc->password[f] += passwencstring[f];
+
+  // CLNUP ensure masks are correct size so we can test 3.4.1 games that haven't been upgraded by the editor (which fixes them upon importing the project)
+  fix_mask_area_size(rstruc, rstruc->regions);
+  fix_mask_area_size(rstruc, rstruc->walls);
+  fix_mask_area_size(rstruc, rstruc->object);
+  fix_mask_area_size(rstruc, rstruc->lookat);
 
 }
 

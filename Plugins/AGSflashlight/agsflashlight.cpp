@@ -79,6 +79,14 @@ AGSCharacter* g_FollowCharacter = NULL;
 
 BITMAP* g_LightBitmap = NULL;
 
+// Imported script functions
+typedef int (*SCAPI_CHARACTER_GETX)(AGSCharacter *ch);
+typedef int (*SCAPI_CHARACTER_GETY)(AGSCharacter *ch);
+typedef int (*SCAPI_CHARACTER_GETLOOP)(AGSCharacter *ch);
+
+SCAPI_CHARACTER_GETX    Character_GetX = NULL;
+SCAPI_CHARACTER_GETY    Character_GetY = NULL;
+SCAPI_CHARACTER_GETLOOP Character_GetLoop = NULL;
 
 // This function is from Allegro, split for more performance.
 
@@ -425,12 +433,14 @@ void CreateLightBitmap()
    }
    else if (g_FollowCharacter != NULL)
    {
-     g_FlashlightX = g_FollowCharacter->x + g_FollowCharacterDx;
-     g_FlashlightY = g_FollowCharacter->y + g_FollowCharacterDy;
+     int char_x = Character_GetX(g_FollowCharacter);
+     int char_y = Character_GetY(g_FollowCharacter);
+     g_FlashlightX = char_x + g_FollowCharacterDx;
+     g_FlashlightY = char_y + g_FollowCharacterDy;
 
 	   if ((g_FollowCharacterHorz != 0) || (g_FollowCharacterVert != 0))
 	   {
-	     switch (g_FollowCharacter->loop)
+	     switch (Character_GetLoop(g_FollowCharacter))
 	     {
 	       // Down
 	       case 0:
@@ -760,6 +770,10 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   
   if (engine->version < 13) 
     engine->AbortGame("Engine interface is too old, need newer version of AGS.");
+
+  Character_GetX = (SCAPI_CHARACTER_GETX)engine->GetScriptFunctionAddress("Character::get_X");
+  Character_GetY = (SCAPI_CHARACTER_GETY)engine->GetScriptFunctionAddress("Character::get_Y");
+  Character_GetLoop = (SCAPI_CHARACTER_GETLOOP)engine->GetScriptFunctionAddress("Character::get_Loop");
 
   engine->RegisterScriptFunction("SetFlashlightTint", (void*)&SetFlashlightTint);
   engine->RegisterScriptFunction("GetFlashlightTintRed", (void*)&GetFlashlightTintRed);

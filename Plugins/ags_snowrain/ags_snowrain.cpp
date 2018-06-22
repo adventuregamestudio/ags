@@ -36,6 +36,13 @@ namespace ags_snowrain {
 //#define DEBUG
 //#define AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY
 
+// Imported script functions
+typedef AGSViewFrame* (*SCAPI_GAME_GETVIEWFRAME)(int view, int loop, int frame);
+typedef int (*SCAPI_VIEWFRAME_GETGRAPHIC)(AGSViewFrame *ch);
+
+SCAPI_GAME_GETVIEWFRAME Game_GetViewFrame = NULL;
+SCAPI_VIEWFRAME_GETGRAPHIC ViewFrame_GetGraphic = NULL;
+
 #define signum(x) ((x > 0) ? 1 : -1)
 
 const unsigned int Magic = 0xCAFE0000;
@@ -336,8 +343,8 @@ bool Weather::ReinitializeViews()
   if ((mViews[4].view == -1) || (mViews[4].loop == -1))
     return false;
 
-  AGSViewFrame* view_frame = engine->GetViewFrame(mViews[4].view, mViews[4].loop, 0);
-  BITMAP* default_bitmap = engine->GetSpriteGraphic(view_frame->pic);
+  AGSViewFrame* view_frame = Game_GetViewFrame(mViews[4].view, mViews[4].loop, 0);
+  BITMAP* default_bitmap = engine->GetSpriteGraphic(ViewFrame_GetGraphic(view_frame));
 
   int i;
   for (i = 0; i < 5; i++)
@@ -348,8 +355,8 @@ bool Weather::ReinitializeViews()
         mViews[i].bitmap = default_bitmap;
       else
       {
-        view_frame = engine->GetViewFrame(mViews[i].view, mViews[i].loop, 0);
-        mViews[i].bitmap = engine->GetSpriteGraphic(view_frame->pic);
+        view_frame = Game_GetViewFrame(mViews[i].view, mViews[i].loop, 0);
+        mViews[i].bitmap = engine->GetSpriteGraphic(ViewFrame_GetGraphic(view_frame));
       }
     }
   }
@@ -496,8 +503,8 @@ void Weather::SetView(int kind_id, int event, int view, int loop)
   engine->PrintDebugConsole(buffer);
 #endif
 
-  AGSViewFrame* view_frame = engine->GetViewFrame(view, loop, 0);
-  mViews[kind_id].bitmap = engine->GetSpriteGraphic(view_frame->pic);
+  AGSViewFrame* view_frame = Game_GetViewFrame(view, loop, 0);
+  mViews[kind_id].bitmap = engine->GetSpriteGraphic(ViewFrame_GetGraphic(view_frame));
   mViews[kind_id].is_default = false;  
   mViews[kind_id].view = view;
   mViews[kind_id].loop = loop;
@@ -515,8 +522,8 @@ void Weather::SetDefaultView(int view, int loop)
   engine->PrintDebugConsole(buffer);
 #endif
 
-  AGSViewFrame* view_frame = engine->GetViewFrame(view, loop, 0);
-  BITMAP* bitmap = engine->GetSpriteGraphic(view_frame->pic);
+  AGSViewFrame* view_frame = Game_GetViewFrame(view, loop, 0);
+  BITMAP* bitmap = engine->GetSpriteGraphic(ViewFrame_GetGraphic(view_frame));
   
   mViewsInitialized = true;
 
@@ -768,6 +775,9 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   
   if (engine->version < 13) 
     engine->AbortGame("Engine interface is too old, need newer version of AGS.");
+
+  Game_GetViewFrame = (SCAPI_GAME_GETVIEWFRAME)engine->GetScriptFunctionAddress("Game::GetViewFrame^3");
+  ViewFrame_GetGraphic = (SCAPI_VIEWFRAME_GETGRAPHIC)engine->GetScriptFunctionAddress("ViewFrame::get_Graphic");
 
   engine->RegisterScriptFunction("srSetSnowDriftRange", (void*)&srSetSnowDriftRange);
   engine->RegisterScriptFunction("srSetSnowDriftSpeed", (void*)&srSetSnowDriftSpeed);

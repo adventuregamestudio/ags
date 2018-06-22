@@ -79,126 +79,17 @@ struct AGSColor {
   unsigned char padding;
 };
 
-struct AGSGameOptions {
-  int32 score;      // player's current score
-  int32 usedmode;   // set by ProcessClick to last cursor mode used
-  int32 disabled_user_interface;  // >0 while in cutscene/etc
-  int32 gscript_timer;    // obsolete
-  int32 debug_mode;       // whether we're in debug mode
-  int32 globalvars[50];   // obsolete
-  int32 messagetime;      // time left for auto-remove messages
-  int32 usedinv;          // inventory item last used
-  int32 inv_top,inv_numdisp,inv_numorder,inv_numinline;
-  int32 text_speed;       // how quickly text is removed
-  int32 sierra_inv_color; // background used to paint defualt inv window
-  int32 talkanim_speed;   // animation speed of talking anims
-  int32 inv_item_wid,inv_item_hit;  // set by SetInvDimensions
-  int32 speech_text_shadow;         // colour of outline fonts (default black)
-  int32 swap_portrait_side;         // sierra-style speech swap sides
-  int32 speech_textwindow_gui;      // textwindow used for sierra-style speech
-  int32 follow_change_room_timer;   // delay before moving following characters into new room
-  int32 totalscore;           // maximum possible score
-  int32 skip_display;         // how the user can skip normal Display windows
-  int32 no_multiloop_repeat;  // for backwards compatibility
-  int32 roomscript_finished;  // on_call finished in room
-  int32 used_inv_on;          // inv item they clicked on
-  int32 no_textbg_when_voice; // no textwindow bgrnd when voice speech is used
-  int32 max_dialogoption_width; // max width of dialog options text window
-  int32 no_hicolor_fadein;      // fade out but instant in for hi-color
-  int32 bgspeech_game_speed;    // is background speech relative to game speed
-  int32 bgspeech_stay_on_display; // whether to remove bg speech when DisplaySpeech is used
-  int32 unfactor_speech_from_textlength; // remove "&10" when calculating time for text to stay
-  int32 mp3_loop_before_end;    // loop this time before end of track (ms)
-  int32 speech_music_drop;      // how much to drop music volume by when speech is played
-  int32 in_cutscene;            // we are between a StartCutscene and EndCutscene
-  int32 fast_forward;           // player has elected to skip cutscene
-  int32 room_width;      // width of current room (320-res co-ordinates)
-  int32 room_height;     // height of current room (320-res co-ordinates)
-};
+// These are pointer types returned from the engine, to be used only as
+// arguments when calling script functions. The contents of these types are
+// sealed from plugins. You do not need to know what is inside these structs,
+// nor try to access their data in your plugin code, because it may be
+// a subject of change in any future engine update.
+struct AGSGameOptions;
+struct AGSCharacter;
+struct AGSObject;
+struct AGSViewFrame;
+struct AGSMouseCursor;
 
-// AGSCharacter.flags
-#define CHF_NOSCALING       1
-#define CHF_FIXVIEW         2     // between SetCharView and ReleaseCharView
-#define CHF_NOINTERACT      4
-#define CHF_NODIAGONAL      8
-#define CHF_ALWAYSIDLE      0x10
-#define CHF_NOLIGHTING      0x20
-#define CHF_NOTURNING       0x40
-#define CHF_NOWALKBEHINDS   0x80
-
-struct AGSCharacter {
-  int32 defview;
-  int32 talkview;
-  int32 view;
-  int32 room, prevroom;
-  int32 x, y, wait;
-  int32 flags;
-  short following;
-  short followinfo;
-  int32 idleview;           // the loop will be randomly picked
-  short idletime, idleleft; // num seconds idle before playing anim
-  short transparency;       // if character is transparent
-  short baseline;
-  int32 activeinv;
-  int32 talkcolor;
-  int32 thinkview;
-  int32 reserved[2];
-  short walkspeed_y, pic_yoffs;
-  int32 z;
-  int32 reserved2[5];
-  short loop, frame;
-  short walking, animating;
-  short walkspeed, animspeed;
-  short inv[301];
-  short actx, acty;
-  char  name[40];
-  char  scrname[20];
-  char  on;
-};
-
-// AGSObject.flags
-#define OBJF_NOINTERACT 1     // not clickable
-#define OBJF_NOWALKBEHINDS 2  // ignore walk-behinds
-
-struct AGSObject {
-  int32 x,y;
-  int32 transparent;    // current transparency setting
-  int32 reserved[4];
-  short num;            // sprite slot number
-  short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
-  short view,loop,frame; // only used to track animation - 'num' holds the current sprite
-  short wait,moving;
-  char  cycling;        // is it currently animating?
-  char  overall_speed;
-  char  on;
-  char  flags;
-};
-
-// AGSViewFrame.flags
-#define FRAF_MIRRORED  1  // flipped left to right
-
-struct AGSViewFrame {
-  int32 pic;            // sprite slot number
-  short xoffs, yoffs;
-  short speed;
-  int32 flags;
-  int32 sound;          // play sound when this frame comes round
-  int32 reserved_for_future[2];
-};
-
-// AGSMouseCursor.flags
-#define MCF_ANIMATEMOVE 1
-#define MCF_DISABLED    2
-#define MCF_STANDARD    4
-#define MCF_ONLYANIMOVERHOTSPOT 8
-
-struct AGSMouseCursor {
-  int32 pic;            // sprite slot number
-  short hotx, hoty;     // x,y hotspot co-ordinates
-  short view;           // view (for animating cursors) or -1
-  char  name[10];       // name of cursor mode
-  char  flags;          // MCF_flags above
-};
 
 // The editor-to-plugin interface
 class IAGSEditor {

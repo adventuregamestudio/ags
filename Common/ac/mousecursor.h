@@ -22,7 +22,7 @@ using namespace AGS; // FIXME later
 #define MCF_DISABLED 2
 #define MCF_STANDARD 4
 #define MCF_HOTSPOT  8  // only animate when over hotspot
-// this struct is also in the plugin header file
+
 struct MouseCursor {
     int   pic;
     short hotx, hoty;

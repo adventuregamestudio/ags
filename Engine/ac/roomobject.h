@@ -23,8 +23,6 @@
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-// This struct is only used in save games and by plugins
-// [IKM] Not really.... used in update loop
 struct RoomObject {
     int   x,y;
     int   transparent;    // current transparency setting

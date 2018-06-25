@@ -687,6 +687,7 @@
     <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h" />
     <ClInclude Include="..\..\Engine\plugin\agsplugin.h" />
     <ClInclude Include="..\..\Engine\plugin\pluginobjectreader.h" />
+    <ClInclude Include="..\..\Engine\plugin\plugin_builtin.h" />
     <ClInclude Include="..\..\Engine\plugin\plugin_engine.h" />
     <ClInclude Include="..\..\Engine\resource\resource.h" />
     <ClInclude Include="..\..\Engine\script\cc_instance.h" />

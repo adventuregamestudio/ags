@@ -46,6 +46,7 @@
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 #include "plugin/agsplugin.h"
+#include "plugin/plugin_builtin.h"
 #include "plugin/plugin_engine.h"
 #include "plugin/pluginobjectreader.h"
 #include "script/script.h"
@@ -60,6 +61,7 @@
 #include "ac/dynobj/scriptstring.h"
 #include "main/graphics_mode.h"
 #include "gfx/gfx_util.h"
+#include "ac/dynobj/scriptobject.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -118,6 +120,7 @@ extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
 extern RuntimeScriptValue GlobalReturnValue;
 extern ScriptString myScriptStringImpl;
+extern ScriptObject scrObj[MAX_INIT_SPR];
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
@@ -361,11 +364,13 @@ void IAGSEngine::PollSystem () {
 AGSCharacter* IAGSEngine::GetCharacter (int32 charnum) {
     if (charnum >= game.numcharacters)
         quit("!AGSEngine::GetCharacter: invalid character request");
-
+    // IMPORTANT: if we change the script functions object argument type, we must change this return value too!
     return (AGSCharacter*)&game.chars[charnum];
 }
 AGSGameOptions* IAGSEngine::GetGameOptions () {
-    return (AGSGameOptions*)&play;
+    // We should not return anything, because script functions do not require passing actual instance of GameState
+    quit("!AGSEngine::GetGameOptions() is no longer supported. Use related script API instead.");
+    return NULL;
 }
 AGSColor* IAGSEngine::GetPalette () {
     return (AGSColor*)&palette[0];
@@ -397,8 +402,8 @@ int IAGSEngine::GetNumObjects () {
 AGSObject *IAGSEngine::GetObject (int32 num) {
     if (num >= croom->numobj)
         quit("!IAGSEngine::GetObject: invalid object");
-
-    return (AGSObject*)&croom->obj[num];
+    // IMPORTANT: if we change the script functions object argument type, we must change this return value too!
+    return (AGSObject*)&scrObj[num];
 }
 BITMAP *IAGSEngine::CreateBlankBitmap (int32 width, int32 height, int32 coldep) {
 	// [IKM] We should not create Bitmap object here, because
@@ -428,16 +433,10 @@ BITMAP *IAGSEngine::GetRoomMask (int32 index) {
         quit("!IAGSEngine::GetRoomMask: invalid mask requested");
     return NULL;
 }
+// [DEPRECATED]
 AGSViewFrame *IAGSEngine::GetViewFrame (int32 view, int32 loop, int32 frame) {
-    view--;
-    if ((view < 0) || (view >= game.numviews))
-        quit("!IAGSEngine::GetViewFrame: invalid view");
-    if ((loop < 0) || (loop >= views[view].numLoops))
-        quit("!IAGSEngine::GetViewFrame: invalid loop");
-    if ((frame < 0) || (frame >= views[view].loops[loop].numFrames))
-        return NULL;
-
-    return (AGSViewFrame*)&views[view].loops[loop].frames[frame];
+    quit("!AGSEngine::GetViewFrame() is no longer supported. Use Game_GetViewFrame() of the script API instead.");
+    return NULL;
 }
 int IAGSEngine::GetRawPixelColor (int32 color) {
     // Convert the standardized colour to the local gfx mode color
@@ -534,10 +533,9 @@ void IAGSEngine::MarkRegionDirty(int32 left, int32 top, int32 right, int32 botto
     plugins[this->pluginId].invalidatedRegion++;
 }
 AGSMouseCursor * IAGSEngine::GetMouseCursor(int32 cursor) {
-    if ((cursor < 0) || (cursor >= game.numcursors))
-        return NULL;
-
-    return (AGSMouseCursor*)&game.mcurs[cursor];
+    // We should not return anything, because (at this time) script functions do not require actual cursor instance
+    quit("!AGSEngine::GetMouseCursor() is no longer supported. Use related script API instead.");
+    return NULL;
 }
 void IAGSEngine::GetRawColorComponents(int32 coldepth, int32 color, int32 *red, int32 *green, int32 *blue, int32 *alpha) {
     if (red)

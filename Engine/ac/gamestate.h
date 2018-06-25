@@ -62,7 +62,6 @@ struct GameState {
     int  fast_forward;           // player has elected to skip cutscene
     int  room_width;      // width of current room (320-res co-ordinates)
     int  room_height;     // height of current room (320-res co-ordinates)
-    // ** up to here is referenced in the plugin interface
     int  game_speed_modifier;
     int  score_sound;
     int  takeover_data;  // value passed to RunAGSGame in previous game

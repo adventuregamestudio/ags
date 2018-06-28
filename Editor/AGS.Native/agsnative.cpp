@@ -3736,13 +3736,6 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 	for (i = 0; i < thisgame.numcharacters; i++) 
 	{
-		char jibbledScriptName[50] = "\0";
-		if (strlen(thisgame.chars[i].scrname) > 0) 
-		{
-			sprintf(jibbledScriptName, "c%s", thisgame.chars[i].scrname);
-			strlwr(jibbledScriptName);
-			jibbledScriptName[1] = toupper(jibbledScriptName[1]);
-		}
 		AGS::Types::Character ^character = gcnew AGS::Types::Character();
 		character->AdjustSpeedWithScaling = ((thisgame.chars[i].flags & CHF_SCALEMOVESPEED) != 0);
 		character->AdjustVolumeWithScaling = ((thisgame.chars[i].flags & CHF_SCALEVOLUME) != 0);
@@ -3757,7 +3750,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 		character->MovementSpeedY = thisgame.chars[i].walkspeed_y;
 		character->NormalView = thisgame.chars[i].defview + 1;
 		character->RealName = gcnew String(thisgame.chars[i].name);
-		character->ScriptName = gcnew String(jibbledScriptName);
+		character->ScriptName = gcnew String(thisgame.chars[i].scrname);
 		character->Solid = !(thisgame.chars[i].flags & CHF_NOBLOCKING);
 		character->SpeechColor = thisgame.chars[i].talkcolor;
 		character->SpeechView = (thisgame.chars[i].talkview < 1) ? 0 : (thisgame.chars[i].talkview + 1);

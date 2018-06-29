@@ -357,8 +357,8 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 // could copy them to texture without additional changes.
 // AGS own OpenGL renderer tries to sync its behavior with the former one.
 //
-// TODO: find out if we may safely move software-driver only related parts
-// to ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth()
+// TODO: make gfxDriver->GetCompatibleBitmapFormat describe all necessary
+// conversions, so that we did not have to guess.
 //
 Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
 {
@@ -409,7 +409,7 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
 
 Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
 {
-    Bitmap *new_bitmap = gfxDriver->ConvertBitmapToSupportedColourDepth(bitmap);
+    Bitmap *new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;

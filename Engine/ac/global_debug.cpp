@@ -66,10 +66,10 @@ String GetRuntimeInfo()
     PGfxFilter filter = gfxDriver->GetGraphicsFilter();
     String runtimeInfo = String::FromFormat(
         "Adventure Game Studio run-time engine[ACI version %s"
-        "[Game resolution %d x %d"
+        "[Game resolution %d x %d (%d-bit)"
         "[Running %d x %d at %d-bit%s%s[GFX: %s; %s[Draw frame %d x %d["
         "Sprite cache size: %d KB (limit %d KB; %d locked)",
-        EngineVersion.LongString.GetCStr(), game.size.Width, game.size.Height,
+        EngineVersion.LongString.GetCStr(), game.size.Width, game.size.Height, game.GetColorDepth(),
         mode.Width, mode.Height, mode.ColorDepth, (convert_16bit_bgr) ? " BGR" : "",
         mode.Windowed ? " W" : "",
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),

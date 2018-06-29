@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_GFX__GFXDRIVERBASE_H
 #define __AGS_EE_GFX__GFXDRIVERBASE_H
 
+#include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "util/scaling.h"
 
@@ -115,6 +116,28 @@ protected:
 };
 
 
+
+// Generic TextureTile base
+struct TextureTile
+{
+    int x, y;
+    int width, height;
+};
+
+// Parent class for the video memory DDBs
+class VideoMemDDB : public IDriverDependantBitmap
+{
+public:
+    virtual int GetWidth() { return _width; }
+    virtual int GetHeight() { return _height; }
+    virtual int GetColorDepth() { return _colDepth; }
+
+    int _width, _height;
+    int _colDepth;
+    bool _opaque;
+};
+
+
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
 // which drawing method is based on passing the sprite stack into GPU,
 // rather than blitting to flat screen bitmap.
@@ -135,6 +158,10 @@ protected:
     // returns true if the sprite was provided onto the virtual screen,
     // and false if this entry should be skipped.
     bool DoNullSpriteCallback(int x, int y);
+
+    // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
+    void BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
+                            char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
 
     // Stage virtual screen is used to let plugins draw custom graphics
     // in between render stages (between room and GUI, after GUI, and so on)

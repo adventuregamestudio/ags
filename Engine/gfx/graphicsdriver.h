@@ -93,7 +93,9 @@ public:
   // process.
   virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) = 0;
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) = 0;
-  virtual Common::Bitmap *ConvertBitmapToSupportedColourDepth(Common::Bitmap *bitmap) = 0;
+  // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
+  // Engine needs to have game bitmaps brought to the certain range of formats, easing conversion into the video bitmaps.
+  virtual int  GetCompatibleBitmapFormat(int color_depth) = 0;
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool hasAlpha, bool opaque = false) = 0;
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::Bitmap *bitmap, bool hasAlpha) = 0;
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;

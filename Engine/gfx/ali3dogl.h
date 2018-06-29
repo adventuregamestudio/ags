@@ -55,14 +55,12 @@ struct OGLCUSTOMVERTEX
     float tv;
 };
 
-struct TextureTile
+struct OGLTextureTile : public TextureTile
 {
-    int x, y;
-    int width, height;
     unsigned int texture;
 };
 
-class OGLBitmap : public IDriverDependantBitmap
+class OGLBitmap : public VideoMemDDB
 {
 public:
     // Transparency is a bit counter-intuitive
@@ -75,9 +73,6 @@ public:
         _stretchToHeight = height;
         _useResampler = useResampler;
     }
-    virtual int GetWidth() { return _width; }
-    virtual int GetHeight() { return _height; }
-    virtual int GetColorDepth() { return _colDepth; }
     virtual void SetLightLevel(int lightLevel)  { _lightLevel = lightLevel; }
     virtual void SetTint(int red, int green, int blue, int tintSaturation) 
     {
@@ -87,19 +82,16 @@ public:
         _tintSaturation = tintSaturation;
     }
 
-    int _width, _height;
-    int _colDepth;
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
     bool _useResampler;
     int _red, _green, _blue;
     int _tintSaturation;
     int _lightLevel;
-    bool _opaque;
     bool _hasAlpha;
     int _transparency;
     OGLCUSTOMVERTEX* _vertex;
-    TextureTile *_tiles;
+    OGLTextureTile *_tiles;
     int _numTiles;
 
     OGLBitmap(int width, int height, int colDepth, bool opaque)
@@ -179,7 +171,7 @@ public:
     virtual PGfxFilter GetGraphicsFilter() const;
     virtual void UnInit();
     virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-    virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
+    virtual int  GetCompatibleBitmapFormat(int color_depth);
     virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
     virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
     virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
@@ -313,7 +305,7 @@ private:
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-    void UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
+    void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void create_screen_tint_bitmap();

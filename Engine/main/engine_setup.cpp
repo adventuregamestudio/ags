@@ -320,7 +320,7 @@ void engine_setup_color_conversions(int coldepth)
 #endif
     }
 
-    set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256 | COLORCONV_REDUCE_16_TO_15);
+    set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256);
 }
 
 // Create blank (black) images used to repaint borders around game frame

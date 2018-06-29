@@ -135,6 +135,11 @@ VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
     , _stageVirtualScreenDDB(NULL)
     , _stageScreenDirty(false)
 {
+    // Only to have something meaningful as default
+    _vmem_a_shift_32 = 24;
+    _vmem_r_shift_32 = 16;
+    _vmem_g_shift_32 = 8;
+    _vmem_b_shift_32 = 0;
 }
 
 VideoMemoryGraphicsDriver::~VideoMemoryGraphicsDriver()
@@ -202,14 +207,14 @@ bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
     return false;
 }
 
-#define algetr32(xx) getr32(xx)
-#define algetg32(xx) getg32(xx)
-#define algetb32(xx) getb32(xx)
-#define algeta32(xx) geta32(xx)
+#define algetr32(c) getr32(c)
+#define algetg32(c) getg32(c)
+#define algetb32(c) getb32(c)
+#define algeta32(c) geta32(c)
 
-#define algetr16(xx) getr16(xx)
-#define algetg16(xx) getg16(xx)
-#define algetb16(xx) getb16(xx)
+#define algetr16(c) getr16(c)
+#define algetg16(c) getg16(c)
+#define algetb16(c) getb16(c)
 
 
 __inline void get_pixel_if_not_transparent16(unsigned short *pixel, unsigned short *red, unsigned short *green, unsigned short *blue, unsigned short *divisor)
@@ -234,15 +239,9 @@ __inline void get_pixel_if_not_transparent32(unsigned int *pixel, unsigned int *
   }
 }
 
-// OPENGL:
-/*
-#define D3DCOLOR_RGBA(r,g,b,a) \
-  (((((a)&0xff)<<24)|(((b)&0xff)<<16)|(((g)&0xff)<<8)|((r)&0xff)))
-*/
-// D3D9:
-#define D3DCOLOR_ARGB(a,r,g,b) \
-    (((((a)&0xff)<<24)|(((r)&0xff)<<16)|(((g)&0xff)<<8)|((b)&0xff)))
-#define D3DCOLOR_RGBA(r,g,b,a) D3DCOLOR_ARGB(a,r,g,b)
+
+#define VMEMCOLOR_RGBA(r,g,b,a) \
+    ( (((a) & 0xFF) << _vmem_a_shift_32) | (((r) & 0xFF) << _vmem_r_shift_32) | (((g) & 0xFF) << _vmem_g_shift_32) | (((b) & 0xFF) << _vmem_b_shift_32) )
 
 
 void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
@@ -282,7 +281,7 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
             if (y < tile->height - 1)
               get_pixel_if_not_transparent16((unsigned short*)&scanline_after[(x + tile->x) * sizeof(short)], &red, &green, &blue, &divisor);
             if (divisor > 0)
-              memPtrLong[x] = D3DCOLOR_RGBA(red / divisor, green / divisor, blue / divisor, 0);
+              memPtrLong[x] = VMEMCOLOR_RGBA(red / divisor, green / divisor, blue / divisor, 0);
             else
               memPtrLong[x] = 0;
           }
@@ -290,7 +289,7 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
         }
         else
         {
-          memPtrLong[x] = D3DCOLOR_RGBA(algetr16(*srcData), algetg16(*srcData), algetb16(*srcData), 0xff);
+          memPtrLong[x] = VMEMCOLOR_RGBA(algetr16(*srcData), algetg16(*srcData), algetb16(*srcData), 0xff);
           if (lastPixelWasTransparent)
           {
             // update the colour of the previous tranparent pixel, to
@@ -324,7 +323,7 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
             if (y < tile->height - 1)
               get_pixel_if_not_transparent32((unsigned int*)&scanline_after[(x + tile->x) * sizeof(int)], &red, &green, &blue, &divisor);
             if (divisor > 0)
-              memPtrLong[x] = D3DCOLOR_RGBA(red / divisor, green / divisor, blue / divisor, 0);
+              memPtrLong[x] = VMEMCOLOR_RGBA(red / divisor, green / divisor, blue / divisor, 0);
             else
               memPtrLong[x] = 0;
           }
@@ -332,11 +331,11 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
         }
         else if (has_alpha)
         {
-          memPtrLong[x] = D3DCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData), algeta32(*srcData));
+          memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData), algeta32(*srcData));
         }
         else
         {
-          memPtrLong[x] = D3DCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData), 0xff);
+          memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData), 0xff);
           if (lastPixelWasTransparent)
           {
             // update the colour of the previous tranparent pixel, to

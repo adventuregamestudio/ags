@@ -247,6 +247,12 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _do_render_to_texture = false;
   _super_sampling = 1;
   SetupDefaultVertices();
+
+  // Shifts comply to GL_RGBA
+  _vmem_r_shift_32 = 0;
+  _vmem_g_shift_32 = 8;
+  _vmem_b_shift_32 = 16;
+  _vmem_a_shift_32 = 24;
 }
 
 

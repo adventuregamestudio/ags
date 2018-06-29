@@ -168,6 +168,12 @@ protected:
     Bitmap *_stageVirtualScreen;
     IDriverDependantBitmap *_stageVirtualScreenDDB;
 
+    // Color component shifts in video bitmap format (set by implementations)
+    int _vmem_a_shift_32;
+    int _vmem_r_shift_32;
+    int _vmem_g_shift_32;
+    int _vmem_b_shift_32;
+
 private:
     // Flag which indicates whether stage screen was drawn upon during engine
     // callback and has to be inserted into sprite stack.

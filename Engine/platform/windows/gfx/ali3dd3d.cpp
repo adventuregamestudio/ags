@@ -197,6 +197,12 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _pixelRenderYOffset = 0;
   _renderSprAtScreenRes = false;
   flipTypeLastTime = kFlip_None;
+
+  // Shifts comply to D3DFMT_A8R8G8B8
+  _vmem_a_shift_32 = 24;
+  _vmem_r_shift_32 = 16;
+  _vmem_g_shift_32 = 8;
+  _vmem_b_shift_32 = 0;
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()

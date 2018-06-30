@@ -1738,11 +1738,10 @@ const char* load_room_file(const char*rtlo) {
   //thisroom.numhotspots = MAX_HOTSPOTS;
 
   // Allocate enough memory to add extra variables
-  InteractionVariable *ivv = (InteractionVariable*)malloc (sizeof(InteractionVariable) * MAX_GLOBAL_VARIABLES);
-  if (thisroom.numLocalVars > 0) {
-    memcpy (ivv, thisroom.localvars, sizeof(InteractionVariable) * thisroom.numLocalVars);
-    free (thisroom.localvars);
-  }
+  InteractionVariable *ivv = new InteractionVariable[MAX_GLOBAL_VARIABLES];
+  for (int i = 0; i < thisroom.numLocalVars; ++i)
+    ivv[i] = thisroom.localvars[i];
+  delete [] thisroom.localvars;
   thisroom.localvars = ivv;
 
   // Update room palette with gamewide colours
@@ -1861,8 +1860,8 @@ void save_room(const char *files, roomstruct rstruc) {
   opty->WriteArray(&rstruc.sprs[0], sizeof(sprstruc), rstruc.numsprs);
 
   opty->WriteInt32 (rstruc.numLocalVars);
-  if (rstruc.numLocalVars > 0) 
-    opty->WriteArray (&rstruc.localvars[0], sizeof(InteractionVariable), rstruc.numLocalVars);
+  for (int i = 0; i < rstruc.numLocalVars; ++i)
+    rstruc.localvars[i].Write(opty);
 /*
   for (f = 0; f < rstruc.numhotspots; f++)
     serialize_new_interaction (rstruc.intrHotspot[f]);

@@ -1417,6 +1417,8 @@ void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
 
 int D3DGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
 {
+  if (color_depth == 8)
+    return 8;
   if (color_depth > 8 && color_depth <= 16)
     return 16;
   return 32;
@@ -1480,10 +1482,8 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 {
   int allocatedWidth = bitmap->GetWidth();
   int allocatedHeight = bitmap->GetHeight();
-  // NOTE: original bitmap object is not modified in this function
-  Bitmap *old_bitmap = bitmap;
-  Bitmap *tempBmp = GfxUtil::ConvertBitmap(bitmap, GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
-  bitmap = tempBmp;
+  if (bitmap->GetColorDepth() != GetCompatibleBitmapFormat(bitmap->GetColorDepth()))
+    throw Ali3DException("CreateDDBFromBitmap: bitmap colour depth not supported");
   int colourDepth = bitmap->GetColorDepth();
 
   D3DBitmap *ddb = new D3DBitmap(bitmap->GetWidth(), bitmap->GetHeight(), colourDepth, opaque);
@@ -1608,9 +1608,6 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   ddb->_tiles = tiles;
 
   UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
-
-  if (old_bitmap != tempBmp)
-    delete tempBmp;
 
   return ddb;
 }

@@ -1739,7 +1739,6 @@ void OGLGraphicsDriver::create_screen_tint_bitmap()
     return;
   
   _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
-  _screenTintLayer = ReplaceBitmapWithSupportedFormat(_screenTintLayer);
   _screenTintLayerDDB = (OGLBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;
 }

@@ -121,14 +121,6 @@ void GraphicsDriverBase::OnSetFilter()
     _filterRect = GetGraphicsFilter()->SetTranslation(Size(_srcRect.GetSize()), _dstRect);
 }
 
-Bitmap *GraphicsDriverBase::ReplaceBitmapWithSupportedFormat(Bitmap *old_bmp)
-{
-    Bitmap *new_bitmap = GfxUtil::ConvertBitmap(old_bmp, GetCompatibleBitmapFormat(old_bmp->GetColorDepth()));
-    if (new_bitmap != old_bmp)
-        delete old_bmp;
-    return new_bitmap;
-}
-
 
 VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
     : _stageVirtualScreen(NULL)
@@ -172,8 +164,7 @@ void VideoMemoryGraphicsDriver::CreateStageScreen()
         this->DestroyDDB(_stageVirtualScreenDDB);
     _stageVirtualScreenDDB = NULL;
     delete _stageVirtualScreen;
-    _stageVirtualScreen = ReplaceBitmapWithSupportedFormat(
-    BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth));
+    _stageVirtualScreen = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth);
     BitmapHelper::SetScreenBitmap(_stageVirtualScreen);
 }
 

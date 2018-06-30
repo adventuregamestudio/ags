@@ -1743,7 +1743,6 @@ void D3DGraphicsDriver::create_screen_tint_bitmap()
     return;
 
   _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_mode.ColorDepth);
-  _screenTintLayer = ReplaceBitmapWithSupportedFormat(_screenTintLayer);
   _screenTintLayerDDB = (D3DBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;
 }

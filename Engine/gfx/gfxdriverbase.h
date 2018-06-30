@@ -94,9 +94,6 @@ protected:
     virtual void OnSetFilter();
 
     void    OnScalingChanged();
-    // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
-    // had to be created
-    Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *old_bmp);
 
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect

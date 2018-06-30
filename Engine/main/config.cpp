@@ -464,8 +464,6 @@ void apply_config(const ConfigTree &cfg)
         usetup.Supersampling = INIreadint(cfg, "graphics", "supersampling", 1);
 
         usetup.enable_antialiasing = INIreadint(cfg, "misc", "antialias") > 0;
-        if (!usetup.force_hicolor_mode)
-            usetup.force_hicolor_mode = INIreadint(cfg, "misc", "notruecolor") > 0;
 
         // This option is backwards (usevox is 0 if no_speech_pack)
         usetup.no_speech_pack = INIreadint(cfg, "sound", "usespeech", 1) == 0;

@@ -49,7 +49,6 @@ extern Bitmap *_old_screen;
 extern Bitmap *_sub_screen;
 extern Bitmap *virtual_screen;
 
-int debug_15bit_mode = 0, debug_24bit_mode = 0;
 int convert_16bit_bgr = 0;
 
 int ff; // whatever!
@@ -164,27 +163,11 @@ void engine_init_resolution_settings(const Size game_size)
         play.native_size.Height *= 2;
     }
 
-    // don't allow them to force a 256-col game to hi-color
-    if (game.color_depth < 2)
-        usetup.force_hicolor_mode = false;
-
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
 
     adjust_sizes_for_resolution(loaded_game_file_version);
     engine_setup_system_gamesize();
-}
-
-ColorDepthOption engine_get_color_depth()
-{
-    if (debug_15bit_mode)
-        return ColorDepthOption(15, true);
-    else if (debug_24bit_mode)
-        return ColorDepthOption(24, true);
-    else if (usetup.force_hicolor_mode)
-        return ColorDepthOption(16, true);
-    else
-        return ColorDepthOption(game.color_depth * 8);
 }
 
 // Setup gfx driver callbacks and options

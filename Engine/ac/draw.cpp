@@ -936,7 +936,7 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
 }
 
 
-IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha) {
+IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha, bool opaque) {
     if (bimp != NULL) {
         // same colour depth, width and height -> reuse
         if (((bimp->GetColorDepth() + 1) / 8 == source->GetBPP()) && 
@@ -948,7 +948,7 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap 
 
         gfxDriver->DestroyDDB(bimp);
     }
-    bimp = gfxDriver->CreateDDBFromBitmap(source, hasAlpha, false);
+    bimp = gfxDriver->CreateDDBFromBitmap(source, hasAlpha, opaque);
     return bimp;
 }
 

@@ -68,7 +68,7 @@ void prepare_gui_screen(int x, int y, int width, int height, bool opaque)
         windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, GetVirtualScreen()->GetColorDepth());
         windowBuffer = ReplaceBitmapWithSupportedFormat(windowBuffer);
     }
-    dialogBmp = recycle_ddb_bitmap(dialogBmp, windowBuffer, false);
+    dialogBmp = recycle_ddb_bitmap(dialogBmp, windowBuffer, false, opaque);
 }
 
 void clear_gui_screen()

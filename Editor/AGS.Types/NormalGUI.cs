@@ -11,14 +11,14 @@ namespace AGS.Types
     {
         public const string XML_ELEMENT_NAME = "NormalGUI";
 
-        public NormalGUI() : base()
+        public NormalGUI(int width, int height) : base()
         {
-            _width = 300;
-            _height = 200;
+            _width = width;
+            _height = height;
             _x = 0;
             _y = 0;
-			_bordercol = 2;
-		}
+            _bordercol = 2;
+        }
 
         private int _width;
         private int _height;

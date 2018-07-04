@@ -60,7 +60,8 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_GUI)
             {
-                GUI newGUI = new NormalGUI();
+                Size gameRes = _agsEditor.CurrentGame.Settings.CustomResolution;
+                GUI newGUI = new NormalGUI(gameRes.Width, gameRes.Height);
                 AddNewGUI(newGUI);
                 _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
             }

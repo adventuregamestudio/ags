@@ -3912,7 +3912,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 		}
 		else 
 		{
-			newGui = gcnew NormalGUI();
+			newGui = gcnew NormalGUI(1, 1);
 			((NormalGUI^)newGui)->Clickable = ((guis[i].Flags & Common::kGUIMain_NoClick) == 0);
 			((NormalGUI^)newGui)->Top = guis[i].Y;
 			((NormalGUI^)newGui)->Left = guis[i].X;

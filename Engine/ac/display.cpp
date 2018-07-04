@@ -287,11 +287,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 if (skip_setting & SKIP_MOUSECLICK)
                     break;
             }
-            if (kbhit()) {
-                // discard keypress, and don't leave extended keys over
-                int kp = getch();
-                if (kp == 0) getch();
-
+            int kp;
+            if (run_service_key_controls(kp)) {
                 // let them press ESC to skip the cutscene
                 check_skip_cutscene_keypress (kp);
                 if (play.fast_forward)

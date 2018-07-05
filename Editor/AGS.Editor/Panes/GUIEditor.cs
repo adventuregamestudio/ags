@@ -228,11 +228,7 @@ namespace AGS.Editor
         private void UpdateScrollableWindowSize()
         {
             bgPanel.AutoScroll = true;
-            NormalGUI ngui = _gui as NormalGUI;
-            if (ngui == null)
-                lblDummyScrollSizer.Location = new Point(1, 1);
-            else
-                lblDummyScrollSizer.Location = new Point(_state.GUISizeToWindow(ngui.Width), _state.GUISizeToWindow(ngui.Height));
+            lblDummyScrollSizer.Location = new Point(_state.GUISizeToWindow(_gui.EditorWidth), _state.GUISizeToWindow(_gui.EditorHeight));
         }
 
         private void bgPanel_Paint(object sender, PaintEventArgs e)
@@ -241,9 +237,7 @@ namespace AGS.Editor
             {
                 _state.UpdateScroll(bgPanel.AutoScrollPosition);
 
-                NormalGUI ngui = _gui as NormalGUI;
-                if (ngui != null)
-                    e.Graphics.SetClip(new Rectangle(0, 0, _state.GUISizeToWindow(ngui.Width), _state.GUISizeToWindow(ngui.Height)));
+                e.Graphics.SetClip(new Rectangle(0, 0, _state.GUISizeToWindow(_gui.EditorWidth), _state.GUISizeToWindow(_gui.EditorHeight)));
 
                 int drawOffsX = _state.GUIXToWindow(0);
                 int drawOffsY = _state.GUIYToWindow(0);

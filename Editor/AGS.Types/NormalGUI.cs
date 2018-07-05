@@ -32,6 +32,26 @@ namespace AGS.Types
         private int _transparency = 0;
 		private string _clickEventHandler = string.Empty;
 
+        /// <summary>
+        /// Width of the GUI, as displayed in the Editor.
+        /// </summary>
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public override int EditorWidth
+        {
+            get { return Width; }
+        }
+
+        /// <summary>
+        /// Height of the GUI, as displayed in the Editor.
+        /// </summary>
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public override int EditorHeight
+        {
+            get { return Height; }
+        }
+
         [Description("Script function to run when the GUI is clicked")]
         [Category("Events")]
         [Browsable(false)]

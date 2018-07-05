@@ -3106,8 +3106,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   else
   {
     TextWindowGUI^ twGui = dynamic_cast<TextWindowGUI^>(guiObj);
-	gui->Width = 200;
-	gui->Height = 100;
+	gui->Width = twGui->EditorWidth;
+	gui->Height = twGui->EditorHeight;
     gui->Flags = Common::kGUIMain_TextWindow;
     gui->PopupStyle = Common::kGUIPopupModal;
 	gui->Padding = twGui->Padding;

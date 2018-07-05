@@ -29,11 +29,15 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.bgPanel = new AGS.Editor.BufferedPanel();
+            this.lblDummyScrollSizer = new System.Windows.Forms.Label();
+            this.bgPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // bgPanel
             // 
+            this.bgPanel.AutoScroll = true;
             this.bgPanel.BackColor = System.Drawing.Color.Transparent;
+            this.bgPanel.Controls.Add(this.lblDummyScrollSizer);
             this.bgPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.bgPanel.Location = new System.Drawing.Point(0, 0);
             this.bgPanel.Name = "bgPanel";
@@ -47,6 +51,14 @@ namespace AGS.Editor
             this.bgPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.bgPanel_Paint);
             this.bgPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.bgPanel_MouseUp);
             // 
+            // lblDummyScrollSizer
+            // 
+            this.lblDummyScrollSizer.AutoSize = true;
+            this.lblDummyScrollSizer.Location = new System.Drawing.Point(351, 223);
+            this.lblDummyScrollSizer.Name = "lblDummyScrollSizer";
+            this.lblDummyScrollSizer.Size = new System.Drawing.Size(0, 13);
+            this.lblDummyScrollSizer.TabIndex = 1;
+            // 
             // GUIEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -54,6 +66,8 @@ namespace AGS.Editor
             this.Controls.Add(this.bgPanel);
             this.Name = "GUIEditor";
             this.Size = new System.Drawing.Size(702, 459);
+            this.bgPanel.ResumeLayout(false);
+            this.bgPanel.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -61,5 +75,6 @@ namespace AGS.Editor
         #endregion
 
         private BufferedPanel bgPanel;
+        private System.Windows.Forms.Label lblDummyScrollSizer;
     }
 }

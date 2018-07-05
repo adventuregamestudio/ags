@@ -43,6 +43,8 @@ namespace AGS.Editor
         private List<GUIControl> _selected;
         private List<GUIControlGroup> _groups;
 
+        private int ZOOM_STEP_VALUE = 25;
+        private int ZOOM_MAX_VALUE = 600;
         private GUIEditorState _state = new GUIEditorState();
 
 
@@ -53,13 +55,16 @@ namespace AGS.Editor
             _groups = new List<GUIControlGroup>();
 
             _toolbarIcons = toolbarIcons;
+            sldZoomLevel.Maximum = ZOOM_MAX_VALUE / ZOOM_STEP_VALUE;
+            sldZoomLevel.Value = 100 / ZOOM_STEP_VALUE;
             
             PreviewKeyDown += new PreviewKeyDownEventHandler(GUIEditor_PreviewKeyDown);
+            MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
+            bgPanel.MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
             
             _drawSnapPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
 
-            _state.ScaleFactor = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
-
+            SetZoomSliderToDefault();
             UpdateScrollableWindowSize();
         }
 
@@ -76,6 +81,26 @@ namespace AGS.Editor
                     break;
             }
 
+        }
+
+        private void GUIEditor_MouseWheel(object sender, MouseEventArgs e)
+        {
+            int movement = e.Delta;
+            if (movement > 0)
+            {
+                if (sldZoomLevel.Value < sldZoomLevel.Maximum)
+                {
+                    sldZoomLevel.Value++;
+                }
+            }
+            else
+            {
+                if (sldZoomLevel.Value > sldZoomLevel.Minimum)
+                {
+                    sldZoomLevel.Value--;
+                }
+            }
+            sldZoomLevel_Scroll(null, null);
         }
 
         public GUIEditor()
@@ -225,6 +250,13 @@ namespace AGS.Editor
             Factory.ToolBarManager.RefreshCurrentPane();
         }
 
+        private void SetZoomSliderToDefault()
+        {
+            // For low res games, set larger default zoom (x2)
+            sldZoomLevel.Value = (100 * Factory.AGSEditor.CurrentGame.GUIScaleFactor) / ZOOM_STEP_VALUE;
+            sldZoomLevel_Scroll(null, null);
+        }
+
         private void UpdateScrollableWindowSize()
         {
             bgPanel.AutoScroll = true;
@@ -244,7 +276,7 @@ namespace AGS.Editor
 
                 IntPtr hdc = e.Graphics.GetHdc();
                 //Factory.NativeProxy.DrawGUI(hdc, 0, 0, _gui, _state.ScaleFactor, (_selectedControl == null) ? -1 : _selectedControl.ID);
-                Factory.NativeProxy.DrawGUI(hdc, drawOffsX, drawOffsY, _gui, _state.ScaleFactor, -1);
+                Factory.NativeProxy.DrawGUI(hdc, drawOffsX, drawOffsY, _gui, Factory.AGSEditor.CurrentGame.GUIScaleFactor, _state.Scale, -1);
                 e.Graphics.ReleaseHdc(hdc);
                 
                 if (_addingControl)
@@ -932,6 +964,14 @@ namespace AGS.Editor
                     ShowContextMenu(e.X, e.Y, _selectedControl);
                 }
             }
+
+            SetFocusToAllowArrowKeysToWork();
+        }
+
+        // Ugly hack: this is because Panel does not keep focus when keys are getting pressed
+        private void SetFocusToAllowArrowKeysToWork()
+        {
+            sldZoomLevel.Focus();
         }
 
         private void bgPanel_MouseLeave(object sender, EventArgs e)
@@ -1044,11 +1084,21 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged -= new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
         }
 
-        protected override void OnKeyPressed(Keys keyData)
+        private bool DoesThisPanelHaveFocus()
         {
+            return this.ActiveControl != null && this.ActiveControl.Focused;
+        }
 
+        protected override bool HandleKeyPress(Keys keyData)
+        {
+            if (!DoesThisPanelHaveFocus())
+                return false;
+            return ProcessGUIEditControl(keyData);
+        }
 
-            if (_selectedControl != null && (this.Focused))
+        protected bool ProcessGUIEditControl(Keys keyData)
+        {
+            if (_selectedControl != null)
             {
                 switch (keyData)
             {
@@ -1085,13 +1135,14 @@ namespace AGS.Editor
                             _gc.Top++;
                         }
                         break;
-
-
+                    default:
+                        return false;
                 }
                 bgPanel.Invalidate();
                 RaiseOnControlsChanged();
+                return true;
             }
-
+            return false;
         }
 
         private void bgPanel_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -1141,61 +1192,80 @@ namespace AGS.Editor
 			}
 		}
 
+        private void sldZoomLevel_Scroll(object sender, EventArgs e)
+        {
+            float oldScale = _state.Scale;
+            _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
+
+            int newValue = (int)((bgPanel.VerticalScroll.Value / oldScale) * _state.Scale);
+            bgPanel.VerticalScroll.Value = Math.Min(newValue, bgPanel.VerticalScroll.Maximum);
+            newValue = (int)((bgPanel.HorizontalScroll.Value / oldScale) * _state.Scale);
+            bgPanel.HorizontalScroll.Value = Math.Min(newValue, bgPanel.HorizontalScroll.Maximum);
+
+            lblZoomInfo.Text = String.Format("{0}%", sldZoomLevel.Value * ZOOM_STEP_VALUE);
+
+            UpdateScrollableWindowSize();
+            bgPanel.Invalidate();
+        }
+
     }
 
     // TODO: perhaps we need a shared editor class (at least for GUI and rooms) that supports scaling and coordinate conversions.
     public class GUIEditorState
     {
         // Multiplier, defining convertion between GUI and editor coords.
-        private int _scaleFactor;
+        private float _scale;
         // Offsets, in window coordinates.
         private int _scrollOffsetX;
         private int _scrollOffsetY;
 
         internal GUIEditorState()
         {
-            _scaleFactor = 1;
+            Scale = 1f;
         }
 
         internal int WindowXToGUI(int x)
         {
-            return (x + _scrollOffsetX) / _scaleFactor;
+            return (int)((x + _scrollOffsetX) / _scale);
         }
 
         internal int WindowYToGUI(int y)
         {
-            return (y + _scrollOffsetY) / _scaleFactor;
+            return (int)((y + _scrollOffsetY) / _scale);
         }
 
         internal int GUIXToWindow(int x)
         {
-            return x * _scaleFactor - _scrollOffsetX;
+            return (int)(x * _scale - _scrollOffsetX);
         }
 
         internal int GUIYToWindow(int y)
         {
-            return y * _scaleFactor - _scrollOffsetY;
+            return (int)(y * _scale - _scrollOffsetY);
         }
 
         internal int GUISizeToWindow(int sz)
         {
-            return sz * _scaleFactor;
+            return (int)(sz * _scale);
         }
 
         internal int WindowSizeToGUI(int sz)
         {
-            return sz / _scaleFactor;
+            return (int)(sz / _scale);
         }
 
-        public int ScaleFactor
+        /// <summary>
+        /// Scale of the GUI image on screen.
+        /// </summary>
+        public float Scale
         {
-            get { return _scaleFactor; }
+            get { return _scale; }
             set
             {
-                int oldScaleFactor = _scaleFactor;
-                _scaleFactor = value;
-                _scrollOffsetX = -(_scrollOffsetX / oldScaleFactor) * _scaleFactor;
-                _scrollOffsetY = -(_scrollOffsetY / oldScaleFactor) * _scaleFactor;
+                float oldScale = _scale;
+                _scale = value;
+                _scrollOffsetX = (int)(-(_scrollOffsetX / oldScale) * _scale);
+                _scrollOffsetY = (int)(-(_scrollOffsetY / oldScale) * _scale);
             }
         }
 
@@ -1205,9 +1275,8 @@ namespace AGS.Editor
         /// <param name="scrollPt">Scroll position in window coordinates.</param>
         internal void UpdateScroll(Point scrollPt)
         {
-            _scrollOffsetX = -(scrollPt.X / _scaleFactor) * _scaleFactor;
-            _scrollOffsetY = -(scrollPt.Y / _scaleFactor) * _scaleFactor;
+            _scrollOffsetX = (int)(-(scrollPt.X / _scale) * _scale);
+            _scrollOffsetY = (int)(-(scrollPt.Y / _scale) * _scale);
         }
-
     }
 }

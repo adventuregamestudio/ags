@@ -115,7 +115,7 @@ int BaseColorDepth;
 
 
 bool reload_font(int curFont);
-void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor);
+void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
 
@@ -1265,7 +1265,7 @@ void shutdown_native()
     Common::AssetManager::DestroyInstance();
 }
 
-void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor) {
+void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor) {
   if (todraw->GetColorDepth () == 8)
     set_palette_to_hdc ((HDC)hdc, palette);
 
@@ -1314,21 +1314,17 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
   delete tempBlock;
 }
 
-void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFactor) {
+void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolutionFactor, float scale) {
 
   if ((tempgui.Width < 1) || (tempgui.Height < 1))
     return;
 
-  //update_font_sizes();
-
-  if (scaleFactor == 1) {
+  if (resolutionFactor == 1) {
     dsc_want_hires = 1;
   }
 
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth*8);
   tempblock->Clear(tempblock->GetMaskColor ());
-  //Common::Bitmap *abufWas = abuf;
-  //abuf = tempblock;
 
   tempgui.DrawAt (tempblock, 0, 0);
 
@@ -1337,10 +1333,8 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
   if (x1 >= 0) {
     tempblock->DrawRect(Rect (x1, y1, x2, y2), 14);
   }
-  //abuf = abufWas;
 
-  drawBlockScaledAt (hdc, tempblock, x, y, scaleFactor);
-  //drawBlockDoubleAt (hdc, tempblock, x, y);
+  drawBlockScaledAt(hdc, tempblock, x, y, scale);
   delete tempblock;
 }
 
@@ -3257,7 +3251,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   gui->ResortZOrder();
 }
 
-void drawGUI(int hdc, int x,int y, GUI^ guiObj, int scaleFactor, int selectedControl) {
+void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scale, int selectedControl) {
   numguibuts = 0;
   numguilabels = 0;
   numguitext = 0;
@@ -3275,7 +3269,7 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int scaleFactor, int selectedCon
 
   tempgui.HighlightCtrl = selectedControl;
 
-  drawGUIAt(hdc, x, y, -1, -1, -1, -1, scaleFactor);
+  drawGUIAt(hdc, x, y, -1, -1, -1, -1, resolutionFactor, scale);
 }
 
 Dictionary<int, Sprite^>^ load_sprite_dimensions()

@@ -29,12 +29,6 @@ using namespace AGS; // FIXME later
 
 #define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
 
-// Allegro 4 has switched 15-bit colour to BGR instead of RGB, so
-// in this case we need to convert the graphics on load
-#if ALLEGRO_DATE > 19991010
-#define USE_15BIT_FIX
-#endif
-
 // [IKM] WARNING: these definitions has to be made AFTER Allegro headers
 // were included, because they override few Allegro function names;
 // otherwise Allegro headers should not be included at all to the same

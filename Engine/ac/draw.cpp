@@ -207,9 +207,6 @@ void setpal() {
     set_palette_range(palette, 0, 255, 0);
 }
 
-
-#ifdef USE_15BIT_FIX
-
 int _places_r = 3, _places_g = 2, _places_b = 3;
 
 // convert RGB to BGR for strange graphics cards
@@ -238,9 +235,6 @@ Bitmap *convert_16_to_16bgr(Bitmap *tempbl) {
 
     return tempbl;
 }
-#endif
-
-
 
 // PSP: convert 32 bit RGB to BGR.
 Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
@@ -324,13 +318,11 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
         else // else simply convert bitmap
             new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, game_col_depth);
     }
-#ifdef USE_15BIT_FIX
     // Special case when we must convert 16-bit RGB to BGR
     else if (convert_16bit_bgr == 1 && bmp_col_depth == 16)
     {
         new_bitmap = convert_16_to_16bgr(bitmap);
     }
-#endif
     return new_bitmap;
 }
 

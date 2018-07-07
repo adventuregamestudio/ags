@@ -1482,9 +1482,9 @@ void create_savegame_screenshot(Bitmap *&screenShot)
         {
             // FIXME this weird stuff! (related to incomplete OpenGL renderer)
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION)
-            int color_depth = (psp_gfx_renderer > 0) ? 32 : System_GetColorDepth();
+            int color_depth = (psp_gfx_renderer > 0) ? 32 : game.GetColorDepth();
 #else
-            int color_depth = System_GetColorDepth();
+            int color_depth = game.GetColorDepth();
 #endif
             Bitmap *tempBlock = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(), virtual_screen->GetHeight(), color_depth);
             gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
@@ -2134,7 +2134,7 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
     if (err != kSvgErr_NoError)
         return err;
     // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
-    else if (desc.ColorDepth != System_GetColorDepth())
+    else if (desc.ColorDepth != game.GetColorDepth())
         return kSvgErr_DifferentColorDepth;
     else if (!src.InputStream.get())
         return kSvgErr_NoStream;

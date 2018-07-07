@@ -170,7 +170,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     if (blocking < 2)
         remove_screen_overlay(OVER_TEXTMSG);
 
-    Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, disp.fulltxtheight + extraHeight, System_GetColorDepth());
+    Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, disp.fulltxtheight + extraHeight, game.GetColorDepth());
     SetVirtualScreen(text_window_ds);
 
     // inform draw_text_window to free the old bitmap
@@ -200,7 +200,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 alphaChannel = guis[usingGui].HasAlphaChannel();
             }
         }
-        else if ((ShouldAntiAliasText()) && (System_GetColorDepth() >= 24))
+        else if ((ShouldAntiAliasText()) && (game.GetColorDepth() >= 24))
             alphaChannel = true;
 
         for (ee=0;ee<numlines;ee++) {
@@ -690,7 +690,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         if (should_free_ds)
             delete *text_window_ds;
         int padding = get_textwindow_padding(ifnum);
-        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+spriteheight[tbnum]*2,System_GetColorDepth());
+        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+spriteheight[tbnum]*2,game.GetColorDepth());
         ds = SetVirtualScreen(*text_window_ds);
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
@@ -711,7 +711,7 @@ void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
         // top bar on the dialog window with character's name
         // create an enlarged window, then free the old one
         Bitmap *ds = *text_window_ds;
-        Bitmap *newScreenop = BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topBar.height, System_GetColorDepth());
+        Bitmap *newScreenop = BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topBar.height, game.GetColorDepth());
         newScreenop->Blit(ds, 0, 0, 0, topBar.height, ds->GetWidth(), ds->GetHeight());
         delete *text_window_ds;
         *text_window_ds = newScreenop;

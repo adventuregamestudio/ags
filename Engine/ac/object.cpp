@@ -395,7 +395,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     set_route_move_speed(spee, spee);
     set_color_depth(8);
     int mslot=find_route(objX, objY, tox, toy, prepare_walkable_areas(-1), objj+1, 1, ignwal);
-    set_color_depth(System_GetColorDepth());
+    set_color_depth(game.GetColorDepth());
     if (mslot>0) {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;

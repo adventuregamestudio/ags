@@ -142,13 +142,10 @@ BEGIN
     GROUPBOX        "Graphics options",IDC_STATIC,264,7,247,81
     CONTROL         "Vertical sync",IDC_VSYNC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,271,20,135,9
     CONTROL         "Use 85 Hz display (CRT monitors only)",IDC_REFRESH_85HZ,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,271,34,138,8
-    CONTROL         "Smooth scaled sprites (fast CPUs only)",IDC_ANTIALIAS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,271,47,138,8
-    CONTROL         "Downgrade 32-bit graphics to 16-bit",IDC_REDUCE32TO16,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,271,59,135,9
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,271,33,138,9
+    CONTROL         "Smooth scaled sprites",IDC_ANTIALIAS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,271,46,138,9
     CONTROL         "Render sprites at screen resolution",IDC_RENDERATSCREENRES,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFT | BS_VCENTER | WS_TABSTOP,271,72,172,9
+                    "Button",BS_AUTOCHECKBOX | BS_LEFT | BS_VCENTER | WS_TABSTOP,271,59,172,9
     GROUPBOX        "Sound options",IDC_STATIC,264,91,247,64
     LTEXT           "Digital Sound:",IDC_STATIC,271,106,46,9
     COMBOBOX        IDC_DIGISOUND,320,104,176,70,CBS_DROPDOWNLIST | WS_GROUP | WS_TABSTOP

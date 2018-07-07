@@ -320,14 +320,14 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     if (!gfxDriver->UsesMemoryBackBuffer()) 
     {
         // D3D driver
-        Bitmap *scrndump = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), System_GetColorDepth());
+        Bitmap *scrndump = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), game.GetColorDepth());
         gfxDriver->GetCopyOfScreenIntoBitmap(scrndump);
 
         update_polled_stuff_if_runtime();
 
         if ((play.viewport.GetWidth() != width) || (play.viewport.GetHeight() != height))
         {
-            newPic = BitmapHelper::CreateBitmap(width, height, System_GetColorDepth());
+            newPic = BitmapHelper::CreateBitmap(width, height, game.GetColorDepth());
             newPic->StretchBlt(scrndump,
                 RectWH(0, 0, scrndump->GetWidth(), scrndump->GetHeight()),
                 RectWH(0, 0, width, height));
@@ -413,11 +413,11 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
     if (gotSlot <= 0)
         return NULL;
 
-    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, System_GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, game.GetColorDepth());
     if (newPic == NULL)
         return NULL;
 
-    if ((alphaChannel) && (System_GetColorDepth() < 32))
+    if ((alphaChannel) && (game.GetColorDepth() < 32))
         alphaChannel = false;
 
     add_dynamic_sprite(gotSlot, ReplaceBitmapWithSupportedFormat(newPic), alphaChannel != 0);

@@ -19,6 +19,7 @@
 #include "gfx/ali3dogl.h"
 #include "gfx/gfxfilter_ogl.h"
 #include "gfx/gfxfilter_aaogl.h"
+#include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 
@@ -150,14 +151,6 @@ using namespace AGS::Common;
 
 void ogl_dummy_vsync() { }
 
-#define algetr32(xx) ((xx >> _rgb_r_shift_32) & 0xFF)
-#define algetg32(xx) ((xx >> _rgb_g_shift_32) & 0xFF)
-#define algetb32(xx) ((xx >> _rgb_b_shift_32) & 0xFF)
-#define algeta32(xx) ((xx >> _rgb_a_shift_32) & 0xFF)
-#define algetr15(xx) ((xx >> _rgb_r_shift_15) & 0x1F)
-#define algetg15(xx) ((xx >> _rgb_g_shift_15) & 0x1F)
-#define algetb15(xx) ((xx >> _rgb_b_shift_15) & 0x1F)
-
 #define GFX_OPENGL  AL_ID('O','G','L',' ')
 
 GFX_DRIVER gfx_opengl =
@@ -254,6 +247,12 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _do_render_to_texture = false;
   _super_sampling = 1;
   SetupDefaultVertices();
+
+  // Shifts comply to GL_RGBA
+  _vmem_r_shift_32 = 0;
+  _vmem_g_shift_32 = 8;
+  _vmem_b_shift_32 = 16;
+  _vmem_a_shift_32 = 24;
 }
 
 
@@ -1397,37 +1396,14 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
   delete bitmap;
 }
 
-__inline void get_pixel_if_not_transparent15(unsigned short *pixel, unsigned short *red, unsigned short *green, unsigned short *blue, unsigned short *divisor)
-{
-  if (pixel[0] != MASK_COLOR_15)
-  {
-    *red += algetr15(pixel[0]);
-    *green += algetg15(pixel[0]);
-    *blue += algetb15(pixel[0]);
-    divisor[0]++;
-  }
-}
 
-__inline void get_pixel_if_not_transparent32(unsigned int *pixel, unsigned int *red, unsigned int *green, unsigned int *blue, unsigned int *divisor)
-{
-  if (pixel[0] != MASK_COLOR_32)
-  {
-    *red += algetr32(pixel[0]);
-    *green += algetg32(pixel[0]);
-    *blue += algetb32(pixel[0]);
-    divisor[0]++;
-  }
-}
-
-#define D3DCOLOR_RGBA(r,g,b,a) \
-  (((((a)&0xff)<<24)|(((b)&0xff)<<16)|(((g)&0xff)<<8)|((r)&0xff)))
-
-
-void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha)
 {
   int textureHeight = tile->height;
   int textureWidth = tile->width;
 
+  // TODO: this seem to be tad overcomplicated, these conversions were made
+  // when texture is just created. Check later if this operation here may be removed.
   AdjustSizeToNearestSupportedByCard(&textureWidth, &textureHeight);
 
   int tileWidth = (textureWidth > tile->width) ? tile->width + 1 : tile->width;
@@ -1435,128 +1411,25 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
 
   bool usingLinearFiltering = _filter->UseLinearFiltering();
   bool lastPixelWasTransparent = false;
-  char *origPtr = (char*)malloc(4 * tileWidth * tileHeight);
+  char *origPtr = (char*)malloc(sizeof(int) * tileWidth * tileHeight);
   char *memPtr = origPtr;
-  for (int y = 0; y < tileHeight; y++)
+
+  TextureTile fixedTile;
+  fixedTile.x = tile->x;
+  fixedTile.y = tile->y;
+  fixedTile.width = Math::Min(tile->width, tileWidth);
+  fixedTile.height = Math::Min(tile->height, tileHeight);
+  int pitch = tileWidth * sizeof(int);
+  BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, target, memPtr, pitch, usingLinearFiltering);
+
+  // Mimic the behaviour of GL_CLAMP_EDGE for the bottom line
+  if (tile->height < tileHeight)
   {
-    // Mimic the behaviour of GL_CLAMP_EDGE for the bottom line
-    if (y == tile->height)
-    {
-      unsigned int* memPtrLong = (unsigned int*)memPtr;
-      unsigned int* memPtrLong_previous = (unsigned int*)(memPtr - tileWidth * 4);
+    unsigned int* memPtrLong = (unsigned int*)(memPtr + pitch * tile->height);
+    unsigned int* memPtrLong_previous = (unsigned int*)(memPtr + pitch * (tile->height - 1));
 
       for (int x = 0; x < tileWidth; x++)
         memPtrLong[x] = memPtrLong_previous[x] & 0x00FFFFFF;
-
-      continue;
-    }
-
-    lastPixelWasTransparent = false;
-    const uint8_t *scanline_before = bitmap->GetScanLine(y + tile->y - 1);
-    const uint8_t *scanline_at     = bitmap->GetScanLine(y + tile->y);
-    const uint8_t *scanline_after  = bitmap->GetScanLine(y + tile->y + 1);
-    for (int x = 0; x < tileWidth; x++)
-    {
-
-/*    if (target->_colDepth == 15)
-      {
-        unsigned short* memPtrShort = (unsigned short*)memPtr;
-        unsigned short* srcData = (unsigned short*)&bitmap->GetScanLine[y + tile->y][(x + tile->x) * 2];
-        if (*srcData == MASK_COLOR_15) 
-        {
-          if (target->_opaque)  // set to black if opaque
-            memPtrShort[x] = 0x8000;
-          else if (!usingLinearFiltering)
-            memPtrShort[x] = 0;
-          // set to transparent, but use the colour from the neighbouring 
-          // pixel to stop the linear filter doing black outlines
-          else
-          {
-            unsigned short red = 0, green = 0, blue = 0, divisor = 0;
-            if (x > 0)
-              get_pixel_if_not_transparent15(&srcData[-1], &red, &green, &blue, &divisor);
-            if (x < tile->width - 1)
-              get_pixel_if_not_transparent15(&srcData[1], &red, &green, &blue, &divisor);
-            if (y > 0)
-              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine[y + tile->y - 1][(x + tile->x) * 2], &red, &green, &blue, &divisor);
-            if (y < tile->height - 1)
-              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine[y + tile->y + 1][(x + tile->x) * 2], &red, &green, &blue, &divisor);
-            if (divisor > 0)
-              memPtrShort[x] = ((red / divisor) << 10) | ((green / divisor) << 5) | (blue / divisor);
-            else
-              memPtrShort[x] = 0;
-          }
-          lastPixelWasTransparent = true;
-        }
-        else
-        {
-          memPtrShort[x] = 0x8000 | (algetr15(*srcData) << 10) | (algetg15(*srcData) << 5) | algetb15(*srcData);
-          if (lastPixelWasTransparent)
-          {
-            // update the colour of the previous tranparent pixel, to
-            // stop black outlines when linear filtering
-            memPtrShort[x - 1] = memPtrShort[x] & 0x7FFF;
-            lastPixelWasTransparent = false;
-          }
-        }
-      }
-      else if (target->_colDepth == 32)
-*/
-      {
-        unsigned int* memPtrLong = (unsigned int*)memPtr;
-
-        if (x == tile->width)
-        {
-          memPtrLong[x] = memPtrLong[x - 1] & 0x00FFFFFF;
-          continue;
-        }
-
-        unsigned int* srcData = (unsigned int*)&scanline_at[(x + tile->x) << 2];
-        if (*srcData == MASK_COLOR_32)
-        {
-          if (target->_opaque)  // set to black if opaque
-            memPtrLong[x] = 0xFF000000;
-          else if (!usingLinearFiltering)
-            memPtrLong[x] = 0;
-          // set to transparent, but use the colour from the neighbouring 
-          // pixel to stop the linear filter doing black outlines
-          else
-          {
-            unsigned int red = 0, green = 0, blue = 0, divisor = 0;
-            if (x > 0)
-              get_pixel_if_not_transparent32(&srcData[-1], &red, &green, &blue, &divisor);
-            if (x < tile->width - 1)
-              get_pixel_if_not_transparent32(&srcData[1], &red, &green, &blue, &divisor);
-            if (y > 0)
-              get_pixel_if_not_transparent32((unsigned int*)&scanline_before[(x + tile->x) << 2], &red, &green, &blue, &divisor);
-            if (y < tile->height - 1)
-              get_pixel_if_not_transparent32((unsigned int*)&scanline_after[(x + tile->x) << 2], &red, &green, &blue, &divisor);
-            if (divisor > 0)
-              memPtrLong[x] = ((red / divisor) << 16) | ((green / divisor) << 8) | (blue / divisor);
-            else
-              memPtrLong[x] = 0;
-          }
-          lastPixelWasTransparent = true;
-        }
-        else if (hasAlpha)
-        {
-          memPtrLong[x] = D3DCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData), algeta32(*srcData));
-        }
-        else
-        {
-          memPtrLong[x] = D3DCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData), 0xff);
-          if (lastPixelWasTransparent)
-          {
-            // update the colour of the previous tranparent pixel, to
-            // stop black outlines when linear filtering
-            memPtrLong[x - 1] = memPtrLong[x] & 0x00FFFFFF;
-            lastPixelWasTransparent = false;
-          }
-        }
-      }
-    }
-
-    memPtr += tileWidth * 4;
   }
 
   glBindTexture(GL_TEXTURE_2D, tile->texture);
@@ -1568,36 +1441,25 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
 void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
-  if ((target->_width == bitmap->GetWidth()) &&
-     (target->_height == bitmap->GetHeight()))
+  if (target->_width != bitmap->GetWidth() || target->_height != bitmap->GetHeight())
+    throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
+  if (bitmap->GetColorDepth() != target->_colDepth)
+    throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
+
+  target->_hasAlpha = hasAlpha;
+  for (int i = 0; i < target->_numTiles; i++)
   {
-    if (bitmap->GetColorDepth() != target->_colDepth)
-    {
-      throw Ali3DException("Mismatched colour depths");
-    }
-
-    target->_hasAlpha = hasAlpha;
-
-    for (int i = 0; i < target->_numTiles; i++)
-    {
-      UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
-    }
+    UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
   }
 }
 
-Bitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
+int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
 {
-   int colourDepth = bitmap->GetColorDepth();
-   if (colourDepth != 32)
-   {
-     int old_conv = get_color_conversion();
-     set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
-     // we need 32-bit colour
-     Bitmap *tempBmp = BitmapHelper::CreateBitmapCopy(bitmap, 32);
-     set_color_conversion(old_conv);
-     return tempBmp;
-   }
-   return bitmap;
+  if (color_depth == 8)
+    return 8;
+  if (color_depth > 8 && color_depth <= 16)
+    return 16;
+  return 32;
 }
 
 void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
@@ -1634,8 +1496,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   int allocatedWidth = bitmap->GetWidth();
   int allocatedHeight = bitmap->GetHeight();
   // NOTE: original bitmap object is not modified in this function
-  Bitmap *tempBmp = ConvertBitmapToSupportedColourDepth(bitmap);
-  bitmap = tempBmp;
+  if (bitmap->GetColorDepth() != GetCompatibleBitmapFormat(bitmap->GetColorDepth()))
+    throw Ali3DException("CreateDDBFromBitmap: bitmap colour depth not supported");
   int colourDepth = bitmap->GetColorDepth();
 
   OGLBitmap *ddb = new OGLBitmap(bitmap->GetWidth(), bitmap->GetHeight(), colourDepth, opaque);
@@ -1668,8 +1530,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
 
   int numTiles = tilesAcross * tilesDown;
-  TextureTile *tiles = (TextureTile*)malloc(sizeof(TextureTile) * numTiles);
-  memset(tiles, 0, sizeof(TextureTile) * numTiles);
+  OGLTextureTile *tiles = (OGLTextureTile*)malloc(sizeof(OGLTextureTile) * numTiles);
+  memset(tiles, 0, sizeof(OGLTextureTile) * numTiles);
 
   OGLCUSTOMVERTEX *vertices = NULL;
 
@@ -1692,7 +1554,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   {
     for (int y = 0; y < tilesDown; y++)
     {
-      TextureTile *thisTile = &tiles[y * tilesAcross + x];
+      OGLTextureTile *thisTile = &tiles[y * tilesAcross + x];
       int thisAllocatedWidth = tileAllocatedWidth;
       int thisAllocatedHeight = tileAllocatedHeight;
       thisTile->x = x * tileWidth;
@@ -1735,6 +1597,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+      // NOTE: pay attention that the texture format depends on the **display mode**'s format,
+      // rather than source bitmap's color depth!
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     }
   }
@@ -1743,9 +1607,6 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   ddb->_tiles = tiles;
 
   UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
-
-  if (tempBmp != bitmap)
-    delete tempBmp;
 
   return ddb;
 }
@@ -1878,7 +1739,6 @@ void OGLGraphicsDriver::create_screen_tint_bitmap()
     return;
   
   _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
-  _screenTintLayer = ReplaceBitmapWithSupportedFormat(_screenTintLayer);
   _screenTintLayerDDB = (OGLBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;
 }

@@ -79,6 +79,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     // TODO: find out why OPT_SCORESOUND option cannot be used to store this in >=3.2 games
     int               scoreClipID;
 
+    // Get game's native color depth
+    inline int GetColorDepth() const { return color_depth * 8; }
 
 
     // [IKM] Game struct loading code is moved here from Engine's load_game_file

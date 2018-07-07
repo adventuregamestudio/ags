@@ -2319,9 +2319,11 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     return winner;
 }
 
+// Called whenever game looses input focus
 void display_switch_out()
 {
     switched_away = true;
+    clear_input_buffer();
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
     platform->DisplaySwitchOut();
@@ -2357,6 +2359,7 @@ void display_switch_out_suspend()
     switching_away_from_game--;
 }
 
+// Called whenever game gets input focus
 void display_switch_in()
 {
     switched_away = false;
@@ -2367,6 +2370,7 @@ void display_switch_in()
             platform->EnterFullscreenMode(mode);
     }
     platform->DisplaySwitchIn();
+    clear_input_buffer();
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();

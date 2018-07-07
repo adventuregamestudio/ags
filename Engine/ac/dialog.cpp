@@ -879,8 +879,8 @@ bool DialogOptions::Run()
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
       }
 
-      if (kbhit()) {
-        int gkey = getch();
+      int gkey;
+      if (run_service_key_controls(gkey)) {
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 

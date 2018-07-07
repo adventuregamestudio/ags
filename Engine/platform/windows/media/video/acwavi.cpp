@@ -31,6 +31,7 @@
 //#include <dsound.h>
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
+#include "main/game_run.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -41,8 +42,6 @@ using namespace AGS::Engine;
 extern void update_polled_audio_and_crossfade();
 extern void update_polled_stuff_if_runtime();
 extern int rec_mgetbutton();
-extern int rec_kbhit();
-extern int rec_getch();
 extern void NextIteration();
 extern void update_music_volume();
 extern void render_to_screen(Bitmap *toRender, int atx, int aty);
@@ -391,9 +390,8 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
     NextIteration();
     RenderToSurface(vscreen);
     //Sleep(0);
-    if (rec_kbhit()) {
-      int key = rec_getch();
-      
+    int key;
+    if (run_service_key_controls(key)) {
       if ((canskip == 1) && (key == 27))
         break;
       if (canskip >= 2)

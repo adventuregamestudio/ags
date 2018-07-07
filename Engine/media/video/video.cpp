@@ -32,6 +32,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "util/stream.h"
 
@@ -64,8 +65,9 @@ int fliTargetWidth, fliTargetHeight;
 int check_if_user_input_should_cancel_video()
 {
     NEXT_ITERATION();
-    if (kbhit()) {
-        if ((getch()==27) && (canabort==1))
+    int key;
+    if (run_service_key_controls(key)) {
+        if ((key==27) && (canabort==1))
             return 1;
         if (canabort >= 2)
             return 1;  // skip on any key

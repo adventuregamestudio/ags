@@ -120,8 +120,7 @@ void script_debug(int cmdd,int dataa) {
         delete tempw;
         delete stretched;
         gfxDriver->DestroyDDB(ddb);
-        while (!kbhit()) ;
-        getch();
+        clear_input_buffer();
         invalidate_screen();
     }
     else if (cmdd==3) 
@@ -172,8 +171,7 @@ void script_debug(int cmdd,int dataa) {
 			Common::kBitmap_Transparency);
         render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);
         delete tempw;
-        while (!kbhit()) ;
-        getch();
+        clear_input_buffer();
     }
     else if (cmdd == 99)
         ccSetOption(SCOPT_DEBUGRUN, dataa);

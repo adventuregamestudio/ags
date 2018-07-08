@@ -61,6 +61,7 @@ namespace AGS.Editor
             PreviewKeyDown += new PreviewKeyDownEventHandler(GUIEditor_PreviewKeyDown);
             MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
             bgPanel.MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
+            sldZoomLevel.MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
             
             _drawSnapPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
 
@@ -101,6 +102,10 @@ namespace AGS.Editor
                 }
             }
             sldZoomLevel_Scroll(null, null);
+            // Ridiculous solution, found on stackoverflow.com
+            // TODO: check again later, how reliable this is?!
+            HandledMouseEventArgs ee = (HandledMouseEventArgs)e;
+            ee.Handled = true;
         }
 
         public GUIEditor()

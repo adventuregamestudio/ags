@@ -1036,7 +1036,7 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   int blockSize = (!thisgame.IsHiRes()) ? 1 : 2;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
-  int char_height = thisgame.fontflags[fontnum] & FFLG_SIZEMASK;
+  int char_height = thisgame.fonts[fontnum].SizePt;
   int grid_size   = max(10, char_height);
   int grid_margin = max(4, grid_size / 4);
   grid_size += grid_margin * 2;
@@ -1212,10 +1212,7 @@ void NewInteractionCommand::remove ()
 void new_font () {
   FontInfo fi;
   wloadfont_size(thisgame.numfonts, fi);
-  thisgame.fontflags[thisgame.numfonts] = 0;
-  thisgame.fontoutline[thisgame.numfonts] = -1;
-  thisgame.fontvoffset[thisgame.numfonts] = 0;
-  thisgame.fontlnspace[thisgame.numfonts] = 0;
+  thisgame.fonts.push_back(FontInfo());
   thisgame.numfonts++;
 }
 
@@ -1431,8 +1428,7 @@ bool reload_font(int curFont)
 {
   wfreefont(curFont);
 
-  FontInfo fi;
-  make_fontinfo(thisgame, curFont, fi);
+  FontInfo fi = thisgame.fonts[curFont];
 
   // TODO: for some reason these compat fixes are different in the engine, investigate
   // if the font is designed for 640x400, half it
@@ -1493,7 +1489,7 @@ const char *init_game_after_import(const AGS::Common::LoadedGameEntities &ents, 
     if (!reset_sprite_file())
         return "The sprite file could not be loaded. Ensure that all your game files are intact and not corrupt. The game may require a newer version of AGS.";
 
-    for (int i = 0; i < MAX_FONTS; ++i)
+    for (int i = 0; i < thisgame.numfonts; ++i)
         wfreefont(i);
     for (int i = 0; i < thisgame.numfonts; ++i)
         reload_font(i);
@@ -2592,12 +2588,12 @@ void GameUpdated(Game ^game) {
 
   // Reload native fonts and update font information in the managed component
   thisgame.numfonts = game->Fonts->Count;
+  thisgame.fonts.resize(thisgame.numfonts);
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
-	  thisgame.fontflags[i] &= ~FFLG_SIZEMASK;
-	  thisgame.fontflags[i] |= game->Fonts[i]->PointSize;
-      thisgame.fontvoffset[i] = game->Fonts[i]->VerticalOffset;
-      thisgame.fontlnspace[i] = game->Fonts[i]->LineSpacing;
+	  thisgame.fonts[i].SizePt = game->Fonts[i]->PointSize;
+      thisgame.fonts[i].YOffset = game->Fonts[i]->VerticalOffset;
+      thisgame.fonts[i].LineSpacing = game->Fonts[i]->LineSpacing;
 	  reload_font(i);
 	  game->Fonts[i]->Height = getfontheight(i);
   }
@@ -2605,11 +2601,9 @@ void GameUpdated(Game ^game) {
 
 void GameFontUpdated(Game ^game, int fontNumber)
 {
-    thisgame.fontvoffset[fontNumber] = game->Fonts[fontNumber]->VerticalOffset;
-    thisgame.fontlnspace[fontNumber] = game->Fonts[fontNumber]->LineSpacing;
-    FontInfo fi;
-    make_fontinfo(thisgame, fontNumber, fi);
-    set_fontinfo(fontNumber, fi);
+    thisgame.fonts[fontNumber].YOffset = game->Fonts[fontNumber]->VerticalOffset;
+    thisgame.fonts[fontNumber].LineSpacing = game->Fonts[fontNumber]->LineSpacing;
+    set_fontinfo(fontNumber, thisgame.fonts[fontNumber]);
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)
@@ -3846,12 +3840,12 @@ Game^ import_compiled_game_dta(const char *fileName)
 	{
 		AGS::Types::Font ^font = gcnew AGS::Types::Font();
 		font->ID = i;
-		font->OutlineFont = (thisgame.fontoutline[i] >= 0) ? thisgame.fontoutline[i] : 0;
-		if (thisgame.fontoutline[i] == -1) 
+		font->OutlineFont = (thisgame.fonts[i].Outline >= 0) ? thisgame.fonts[i].Outline : 0;
+		if (thisgame.fonts[i].Outline == -1)
 		{
 			font->OutlineStyle = FontOutlineStyle::None;
 		}
-		else if (thisgame.fontoutline[i] == FONT_OUTLINE_AUTO)
+		else if (thisgame.fonts[i].Outline == FONT_OUTLINE_AUTO)
 		{
 			font->OutlineStyle = FontOutlineStyle::Automatic;
 		}
@@ -3859,7 +3853,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 		{
 			font->OutlineStyle = FontOutlineStyle::UseOutlineFont;
 		}
-		font->PointSize = thisgame.fontflags[i] & FFLG_SIZEMASK;
+		font->PointSize = thisgame.fonts[i].SizePt;
 		font->Name = gcnew String(String::Format("Font {0}", i));
 
 		game->Fonts->Add(font);

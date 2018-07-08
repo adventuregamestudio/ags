@@ -53,7 +53,6 @@ enum MainGameFileErrorType
     kMGFErr_FormatVersionNotSupported,
     kMGFErr_CapsNotSupported,
     kMGFErr_InvalidNativeResolution,
-    kMGFErr_TooManyFonts,
     kMGFErr_TooManySprites,
     kMGFErr_TooManyCursors,
     kMGFErr_InvalidPropertySchema,

@@ -1356,11 +1356,6 @@ namespace AGS.Editor
             WriteString(game.Settings.GUIDAsString, NativeConstants.MAX_GUID_LENGTH, writer);
             WriteString(game.Settings.SaveGameFileExtension, NativeConstants.MAX_SG_EXT_LENGTH, writer);
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
-            if (game.Fonts.Count > NativeConstants.MAX_FONTS)
-            {
-                errors.Add(new CompileError("Too many fonts"));
-                return false;
-            }
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
                 writer.Write((byte)(game.Fonts[i].PointSize & NativeConstants.FFLG_SIZEMASK));

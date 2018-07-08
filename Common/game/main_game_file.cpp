@@ -59,8 +59,6 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
         return "Required engine caps are not supported.";
     case kMGFErr_InvalidNativeResolution:
         return "Unable to determine native game resolution.";
-    case kMGFErr_TooManyFonts:
-        return "Too many fonts for this engine to handle.";
     case kMGFErr_TooManySprites:
         return "Too many sprites for this engine to handle.";
     case kMGFErr_TooManyCursors:
@@ -643,8 +641,6 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 
     if (game.size.IsNull())
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);
-    if (game.numfonts > MAX_FONTS)
-        return new MainGameFileError(kMGFErr_TooManyFonts, String::FromFormat("Count: %d, max: %d", game.numfonts, MAX_FONTS));
 
     game.read_savegame_info(in, data_ver);
     game.read_font_flags(in, data_ver);

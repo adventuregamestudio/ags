@@ -23,6 +23,13 @@
 
 using namespace AGS::Common;
 
+// Assigns font info parameters using flags value read from the game data
+void SetFontInfoFromSerializedFlags(FontInfo &finfo, char flags)
+{
+    finfo.Flags = flags & ~FFLG_SIZEMASK;
+    finfo.SizePt = flags &  FFLG_SIZEMASK;
+}
+
 ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num)
 {
     String clip_name;
@@ -54,20 +61,19 @@ void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion dat
 
 void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_ver)
 {
-    in->Read(&fontflags[0], numfonts);
-    in->Read(&fontoutline[0], numfonts);
+    fonts.resize(numfonts);
+    for (int i = 0; i < numfonts; ++i)
+        SetFontInfoFromSerializedFlags(fonts[i], in->ReadInt8());
+    for (int i = 0; i < numfonts; ++i)
+        fonts[i].Outline = in->ReadInt8(); // size of char
     if (data_ver < kGameVersion_341)
-    {
-        memset(fontvoffset, 0, sizeof(fontvoffset));
-        memset(fontlnspace, 0, sizeof(fontlnspace));
         return;
-    }
     // Extended font parameters
     for (int i = 0; i < numfonts; ++i)
     {
-        fontvoffset[i] = in->ReadInt32();
+        fonts[i].YOffset = in->ReadInt32();
         if (data_ver >= kGameVersion_341_2)
-            fontlnspace[i] = in->ReadInt32();
+            fonts[i].LineSpacing = Math::Max(0, in->ReadInt32());
     }
 }
 
@@ -372,9 +378,8 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
 //=============================================================================
 
 void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {
-    int i;
     strcpy (gss->gamename, ogss->gamename);
-    for (i = 0; i < 20; i++)
+    for (int i = 0; i < 20; i++)
         gss->options[i] = ogss->options[i];
     memcpy (&gss->paluses[0], &ogss->paluses[0], 256);
     memcpy (&gss->defpal[0],  &ogss->defpal[0],  256 * sizeof(color));
@@ -393,12 +398,15 @@ void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {
     gss->hotdotouter = ogss->hotdotouter;
     gss->uniqueid = ogss->uniqueid;
     gss->numgui = ogss->numgui;
-    memcpy (&gss->fontflags[0], &ogss->fontflags[0], 10);
-    memcpy (&gss->fontoutline[0], &ogss->fontoutline[0], 10);
+    for (int i = 0; i < 10; ++i)
+    {
+        SetFontInfoFromSerializedFlags(gss->fonts[i], ogss->fontflags[i]);
+        gss->fonts[i].Outline = ogss->fontoutline[i];
+    }
     memcpy (&gss->spriteflags[0], &ogss->spriteflags[0], 6000);
     memcpy (&gss->invinfo[0], &ogss->invinfo[0], 100 * sizeof(InventoryItemInfo));
     memcpy (&gss->mcurs[0], &ogss->mcurs[0], 10 * sizeof(MouseCursor));
-    for (i = 0; i < MAXGLOBALMES; i++)
+    for (int i = 0; i < MAXGLOBALMES; i++)
         gss->messages[i] = ogss->messages[i];
     gss->dict = ogss->dict;
     gss->globalscript = ogss->globalscript;

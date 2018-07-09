@@ -43,6 +43,10 @@ namespace AGS.Editor
         private List<GUIControl> _selected;
         private List<GUIControlGroup> _groups;
 
+        private int ZOOM_STEP_VALUE = 25;
+        private int ZOOM_MAX_VALUE = 600;
+        private GUIEditorState _state = new GUIEditorState();
+
 
         public GUIEditor(GUI guiToEdit, List<MenuCommand> toolbarIcons) : this() 
         {
@@ -51,10 +55,18 @@ namespace AGS.Editor
             _groups = new List<GUIControlGroup>();
 
             _toolbarIcons = toolbarIcons;
+            sldZoomLevel.Maximum = ZOOM_MAX_VALUE / ZOOM_STEP_VALUE;
+            sldZoomLevel.Value = 100 / ZOOM_STEP_VALUE;
             
             PreviewKeyDown += new PreviewKeyDownEventHandler(GUIEditor_PreviewKeyDown);
+            MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
+            bgPanel.MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
+            sldZoomLevel.MouseWheel += new MouseEventHandler(GUIEditor_MouseWheel);
             
             _drawSnapPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
+
+            SetZoomSliderToDefault();
+            UpdateScrollableWindowSize();
         }
 
 
@@ -70,6 +82,30 @@ namespace AGS.Editor
                     break;
             }
 
+        }
+
+        private void GUIEditor_MouseWheel(object sender, MouseEventArgs e)
+        {
+            int movement = e.Delta;
+            if (movement > 0)
+            {
+                if (sldZoomLevel.Value < sldZoomLevel.Maximum)
+                {
+                    sldZoomLevel.Value++;
+                }
+            }
+            else
+            {
+                if (sldZoomLevel.Value > sldZoomLevel.Minimum)
+                {
+                    sldZoomLevel.Value--;
+                }
+            }
+            sldZoomLevel_Scroll(null, null);
+            // Ridiculous solution, found on stackoverflow.com
+            // TODO: check again later, how reliable this is?!
+            HandledMouseEventArgs ee = (HandledMouseEventArgs)e;
+            ee.Handled = true;
         }
 
         public GUIEditor()
@@ -219,13 +255,33 @@ namespace AGS.Editor
             Factory.ToolBarManager.RefreshCurrentPane();
         }
 
+        private void SetZoomSliderToDefault()
+        {
+            // For low res games, set larger default zoom (x2)
+            sldZoomLevel.Value = (100 * Factory.AGSEditor.CurrentGame.GUIScaleFactor) / ZOOM_STEP_VALUE;
+            sldZoomLevel_Scroll(null, null);
+        }
+
+        private void UpdateScrollableWindowSize()
+        {
+            bgPanel.AutoScroll = true;
+            lblDummyScrollSizer.Location = new Point(_state.GUISizeToWindow(_gui.EditorWidth), _state.GUISizeToWindow(_gui.EditorHeight));
+        }
+
         private void bgPanel_Paint(object sender, PaintEventArgs e)
         {
             if (_gui != null)
             {
+                _state.UpdateScroll(bgPanel.AutoScrollPosition);
+
+                e.Graphics.SetClip(new Rectangle(0, 0, _state.GUISizeToWindow(_gui.EditorWidth), _state.GUISizeToWindow(_gui.EditorHeight)));
+
+                int drawOffsX = _state.GUIXToWindow(0);
+                int drawOffsY = _state.GUIYToWindow(0);
+
                 IntPtr hdc = e.Graphics.GetHdc();
-                //Factory.NativeProxy.DrawGUI(hdc, 0, 0, _gui, Factory.AGSEditor.CurrentGame.GUIScaleFactor, (_selectedControl == null) ? -1 : _selectedControl.ID);
-                Factory.NativeProxy.DrawGUI(hdc, 0, 0, _gui, Factory.AGSEditor.CurrentGame.GUIScaleFactor, -1);
+                //Factory.NativeProxy.DrawGUI(hdc, 0, 0, _gui, _state.ScaleFactor, (_selectedControl == null) ? -1 : _selectedControl.ID);
+                Factory.NativeProxy.DrawGUI(hdc, drawOffsX, drawOffsY, _gui, Factory.AGSEditor.CurrentGame.GUIScaleFactor, _state.Scale, -1);
                 e.Graphics.ReleaseHdc(hdc);
                 
                 if (_addingControl)
@@ -235,10 +291,10 @@ namespace AGS.Editor
 
                 if (_drawingSelectionBox)
                 {
-                    Rectangle _rectToDraw = new Rectangle(_selectionRect.X * Factory.AGSEditor.CurrentGame.GUIScaleFactor,
-                                                           _selectionRect.Y * Factory.AGSEditor.CurrentGame.GUIScaleFactor,
-                                                           _selectionRect.Width * Factory.AGSEditor.CurrentGame.GUIScaleFactor,
-                                                           _selectionRect.Height * Factory.AGSEditor.CurrentGame.GUIScaleFactor);
+                    Rectangle _rectToDraw = new Rectangle(_state.GUIXToWindow(_selectionRect.X),
+                                                           _state.GUIYToWindow(_selectionRect.Y),
+                                                           _state.GUISizeToWindow(_selectionRect.Width),
+                                                           _state.GUISizeToWindow(_selectionRect.Height));
                     
                     e.Graphics.DrawRectangle(_drawRectanglePen, _rectToDraw);
 
@@ -248,10 +304,10 @@ namespace AGS.Editor
                 {
                     foreach (GUIControl _gc in _selected)
                     {
-                        Rectangle _topleft = new Rectangle(_gc.Left * Factory.AGSEditor.CurrentGame.GUIScaleFactor, _gc.Top * Factory.AGSEditor.CurrentGame.GUIScaleFactor, 2, 2);
-                        Rectangle _topright = new Rectangle((_gc.Left + _gc.Width - 1) * Factory.AGSEditor.CurrentGame.GUIScaleFactor, _gc.Top * Factory.AGSEditor.CurrentGame.GUIScaleFactor, 2, 2);
-                        Rectangle _bottomleft = new Rectangle(_gc.Left * Factory.AGSEditor.CurrentGame.GUIScaleFactor, (_gc.Top + _gc.Height - 1) * Factory.AGSEditor.CurrentGame.GUIScaleFactor, 2, 2);
-                        Rectangle _bottomright = new Rectangle((_gc.Left + _gc.Width - 1) * Factory.AGSEditor.CurrentGame.GUIScaleFactor, (_gc.Top + _gc.Height - 1) * Factory.AGSEditor.CurrentGame.GUIScaleFactor, 2, 2);
+                        Rectangle _topleft = new Rectangle(_state.GUIXToWindow(_gc.Left), _state.GUIYToWindow(_gc.Top), 2, 2);
+                        Rectangle _topright = new Rectangle(_state.GUIXToWindow(_gc.Left + _gc.Width - 1), _state.GUIYToWindow(_gc.Top), 2, 2);
+                        Rectangle _bottomleft = new Rectangle(_state.GUIXToWindow(_gc.Left), _state.GUIYToWindow(_gc.Top + _gc.Height - 1), 2, 2);
+                        Rectangle _bottomright = new Rectangle(_state.GUIXToWindow(_gc.Left + _gc.Width - 1), _state.GUIYToWindow(_gc.Top + _gc.Height - 1), 2, 2);
                         Pen _pen;
                         if (_gc == _selectedControl) _pen = _drawSelectedPen;
                         else _pen = _drawRectanglePen;
@@ -264,8 +320,8 @@ namespace AGS.Editor
                         if (_gc.Locked)
                         {
                             Point center = new Point(_gc.Left + (_gc.Width / 2), _gc.Top + (_gc.Height / 2));
-                            center.X *= Factory.AGSEditor.CurrentGame.GUIScaleFactor;
-                            center.Y *= Factory.AGSEditor.CurrentGame.GUIScaleFactor;
+                            center.X = _state.GUIXToWindow(center.X);
+                            center.Y = _state.GUIYToWindow(center.Y);
 
                             e.Graphics.DrawLine(_pen, center.X - 3, center.Y - 3, center.X + 3, center.Y + 3);
                             e.Graphics.DrawLine(_pen, center.X - 3, center.Y + 3, center.X + 3, center.Y - 3);
@@ -278,27 +334,27 @@ namespace AGS.Editor
                 if (_snappedx != -1)
                 {
                     NormalGUI g = (NormalGUI)_gui;
-                    e.Graphics.DrawLine(_drawSnapPen, _snappedx * Factory.AGSEditor.CurrentGame.GUIScaleFactor, 0, _snappedx * Factory.AGSEditor.CurrentGame.GUIScaleFactor, g.Height * Factory.AGSEditor.CurrentGame.GUIScaleFactor);
+                    e.Graphics.DrawLine(_drawSnapPen, _state.GUIXToWindow(_snappedx), _state.GUIYToWindow(0), _state.GUIXToWindow(_snappedx), _state.GUIYToWindow(g.Height));
                     string snapxstring = String.Format("{0}px", _snappedx);
 
                     e.Graphics.DrawString(snapxstring,
                         DefaultFont,
                         _drawSnapPen.Brush,
-                        _snappedx * Factory.AGSEditor.CurrentGame.GUIScaleFactor - e.Graphics.MeasureString(snapxstring, DefaultFont).Width,
-                        _selectedControl.Top * Factory.AGSEditor.CurrentGame.GUIScaleFactor
+                        _state.GUIXToWindow(_snappedx) - e.Graphics.MeasureString(snapxstring, DefaultFont).Width,
+                        _state.GUIYToWindow(_selectedControl.Top)
                         );
                 }
                 if (_snappedy != -1)
                 {
                     NormalGUI g = (NormalGUI)_gui;
                     string snapystring = String.Format("{0}px", _snappedy);
-                    e.Graphics.DrawLine(_drawSnapPen, 0, _snappedy * Factory.AGSEditor.CurrentGame.GUIScaleFactor, g.Width * Factory.AGSEditor.CurrentGame.GUIScaleFactor, _snappedy * Factory.AGSEditor.CurrentGame.GUIScaleFactor);
+                    e.Graphics.DrawLine(_drawSnapPen, _state.GUIXToWindow(0), _state.GUIYToWindow(_snappedy), _state.GUIXToWindow(g.Width), _state.GUIYToWindow(_snappedy));
 
                     e.Graphics.DrawString(snapystring,
                    DefaultFont,
                    _drawSnapPen.Brush,
-                   _selectedControl.Left * Factory.AGSEditor.CurrentGame.GUIScaleFactor,
-                   _selectedControl.Top * Factory.AGSEditor.CurrentGame.GUIScaleFactor - e.Graphics.MeasureString(snapystring, DefaultFont).Height
+                   _state.GUIXToWindow(_selectedControl.Left),
+                   _state.GUIYToWindow(_selectedControl.Top) - e.Graphics.MeasureString(snapystring, DefaultFont).Height
                    );
                 }
 
@@ -311,17 +367,11 @@ namespace AGS.Editor
             return (_controlAddMode > 0);
         }
 
-        private void GetCoordinatesAtGameResolution(MouseEventArgs e, out int mouseX, out int mouseY)
-        {
-            mouseX = e.X / Factory.AGSEditor.CurrentGame.GUIScaleFactor;
-            mouseY = e.Y / Factory.AGSEditor.CurrentGame.GUIScaleFactor;
-        }
-
         private void bgPanel_MouseDown(object sender, MouseEventArgs e)
         {
 			this.Focus();
-            int mouseX, mouseY;
-            GetCoordinatesAtGameResolution(e, out mouseX, out mouseY);
+            int mouseX = _state.WindowXToGUI(e.X);
+            int mouseY = _state.WindowYToGUI(e.Y);
 
             if (_gui is TextWindowGUI)
             {
@@ -425,8 +475,8 @@ namespace AGS.Editor
         private void bgPanel_MouseMove(object sender, MouseEventArgs e)
         {
             _inResizingArea = false;
-            int mouseX, mouseY;
-            GetCoordinatesAtGameResolution(e, out mouseX, out mouseY);
+            int mouseX = _state.WindowXToGUI(e.X);
+            int mouseY = _state.WindowYToGUI(e.Y);
             _currentMouseX = e.X;
             _currentMouseY = e.Y;
 
@@ -763,8 +813,8 @@ namespace AGS.Editor
                 newControl.ID = _gui.Controls.Count;
                 newControl.MemberOf = null;
 
-                newControl.Left = _currentMouseX / Factory.AGSEditor.CurrentGame.GUIScaleFactor;
-                newControl.Top = _currentMouseY / Factory.AGSEditor.CurrentGame.GUIScaleFactor;
+                newControl.Left = _state.WindowXToGUI(_currentMouseX);
+                newControl.Top = _state.WindowYToGUI(_currentMouseY);
                 _gui.Controls.Add(newControl);
                 _selected.Clear();
                 _selectedControl = newControl;
@@ -919,6 +969,14 @@ namespace AGS.Editor
                     ShowContextMenu(e.X, e.Y, _selectedControl);
                 }
             }
+
+            SetFocusToAllowArrowKeysToWork();
+        }
+
+        // Ugly hack: this is because Panel does not keep focus when keys are getting pressed
+        private void SetFocusToAllowArrowKeysToWork()
+        {
+            sldZoomLevel.Focus();
         }
 
         private void bgPanel_MouseLeave(object sender, EventArgs e)
@@ -951,19 +1009,14 @@ namespace AGS.Editor
             }
         }
 
-        private void ConvertCoordinatesToGameUnits(ref int left, ref int top, ref int width, ref int height)
-        {
-            int guiScaleFactor = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
-            left /= guiScaleFactor;
-            top /= guiScaleFactor;
-            width /= guiScaleFactor;
-            height /= guiScaleFactor;
-        }
         private void CreateNewControl()
         {
             int left, top, width, height;
             GetSelectionRectangle(out left, out top, out width, out height);
-            ConvertCoordinatesToGameUnits(ref left, ref top, ref width, ref height);
+            left = _state.WindowXToGUI(left);
+            top = _state.WindowYToGUI(top);
+            width = _state.WindowSizeToGUI(width);
+            height = _state.WindowSizeToGUI(height);
 
             if ((width < 2) || (height < 2))
             {
@@ -1036,11 +1089,21 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged -= new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
         }
 
-        protected override void OnKeyPressed(Keys keyData)
+        private bool DoesThisPanelHaveFocus()
         {
+            return this.ActiveControl != null && this.ActiveControl.Focused;
+        }
 
+        protected override bool HandleKeyPress(Keys keyData)
+        {
+            if (!DoesThisPanelHaveFocus())
+                return false;
+            return ProcessGUIEditControl(keyData);
+        }
 
-            if (_selectedControl != null && (this.Focused))
+        protected bool ProcessGUIEditControl(Keys keyData)
+        {
+            if (_selectedControl != null)
             {
                 switch (keyData)
             {
@@ -1077,13 +1140,14 @@ namespace AGS.Editor
                             _gc.Top++;
                         }
                         break;
-
-
+                    default:
+                        return false;
                 }
                 bgPanel.Invalidate();
                 RaiseOnControlsChanged();
+                return true;
             }
-
+            return false;
         }
 
         private void bgPanel_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -1133,5 +1197,91 @@ namespace AGS.Editor
 			}
 		}
 
+        private void sldZoomLevel_Scroll(object sender, EventArgs e)
+        {
+            float oldScale = _state.Scale;
+            _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
+
+            int newValue = (int)((bgPanel.VerticalScroll.Value / oldScale) * _state.Scale);
+            bgPanel.VerticalScroll.Value = Math.Min(newValue, bgPanel.VerticalScroll.Maximum);
+            newValue = (int)((bgPanel.HorizontalScroll.Value / oldScale) * _state.Scale);
+            bgPanel.HorizontalScroll.Value = Math.Min(newValue, bgPanel.HorizontalScroll.Maximum);
+
+            lblZoomInfo.Text = String.Format("{0}%", sldZoomLevel.Value * ZOOM_STEP_VALUE);
+
+            UpdateScrollableWindowSize();
+            bgPanel.Invalidate();
+        }
+
+    }
+
+    // TODO: perhaps we need a shared editor class (at least for GUI and rooms) that supports scaling and coordinate conversions.
+    public class GUIEditorState
+    {
+        // Multiplier, defining convertion between GUI and editor coords.
+        private float _scale;
+        // Offsets, in window coordinates.
+        private int _scrollOffsetX;
+        private int _scrollOffsetY;
+
+        internal GUIEditorState()
+        {
+            Scale = 1f;
+        }
+
+        internal int WindowXToGUI(int x)
+        {
+            return (int)((x + _scrollOffsetX) / _scale);
+        }
+
+        internal int WindowYToGUI(int y)
+        {
+            return (int)((y + _scrollOffsetY) / _scale);
+        }
+
+        internal int GUIXToWindow(int x)
+        {
+            return (int)(x * _scale - _scrollOffsetX);
+        }
+
+        internal int GUIYToWindow(int y)
+        {
+            return (int)(y * _scale - _scrollOffsetY);
+        }
+
+        internal int GUISizeToWindow(int sz)
+        {
+            return (int)(sz * _scale);
+        }
+
+        internal int WindowSizeToGUI(int sz)
+        {
+            return (int)(sz / _scale);
+        }
+
+        /// <summary>
+        /// Scale of the GUI image on screen.
+        /// </summary>
+        public float Scale
+        {
+            get { return _scale; }
+            set
+            {
+                float oldScale = _scale;
+                _scale = value;
+                _scrollOffsetX = (int)(-(_scrollOffsetX / oldScale) * _scale);
+                _scrollOffsetY = (int)(-(_scrollOffsetY / oldScale) * _scale);
+            }
+        }
+
+        /// <summary>
+        /// Updates offset using current scrollbar position.
+        /// </summary>
+        /// <param name="scrollPt">Scroll position in window coordinates.</param>
+        internal void UpdateScroll(Point scrollPt)
+        {
+            _scrollOffsetX = (int)(-(scrollPt.X / _scale) * _scale);
+            _scrollOffsetY = (int)(-(scrollPt.Y / _scale) * _scale);
+        }
     }
 }

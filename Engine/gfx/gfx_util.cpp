@@ -30,6 +30,22 @@ using namespace Common;
 namespace GfxUtil
 {
 
+Bitmap *ConvertBitmap(Bitmap *src, int dst_color_depth)
+{
+    int src_col_depth = src->GetColorDepth();
+    if (src_col_depth != dst_color_depth)
+    {
+        int old_conv = get_color_conversion();
+        // TODO: find out what is this, and why do we need to call this every time (do we?)
+        set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
+        Bitmap *dst = BitmapHelper::CreateBitmapCopy(src, dst_color_depth);
+        set_color_conversion(old_conv);
+        return dst;
+    }
+    return src;
+}
+
+
 typedef BLENDER_FUNC PfnBlenderCb;
 
 struct BlendModeSetter

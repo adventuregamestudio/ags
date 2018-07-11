@@ -107,7 +107,7 @@ int BaseColorDepth;
 
 
 bool reload_font(int curFont);
-void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor);
+void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
 SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel);
@@ -1253,7 +1253,7 @@ void shutdown_native()
     Common::AssetManager::DestroyInstance();
 }
 
-void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor) {
+void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor) {
   if (todraw->GetColorDepth () == 8)
     set_palette_to_hdc ((HDC)hdc, palette);
 
@@ -1302,21 +1302,17 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
   delete tempBlock;
 }
 
-void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFactor) {
+void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolutionFactor, float scale) {
 
   if ((tempgui.Width < 1) || (tempgui.Height < 1))
     return;
 
-  //update_font_sizes();
-
-  if (scaleFactor == 1) {
+  if (resolutionFactor == 1) {
     dsc_want_hires = 1;
   }
 
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth*8);
   tempblock->Clear(tempblock->GetMaskColor ());
-  //Common::Bitmap *abufWas = abuf;
-  //abuf = tempblock;
 
   tempgui.DrawAt (tempblock, 0, 0);
 
@@ -1325,10 +1321,8 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
   if (x1 >= 0) {
     tempblock->DrawRect(Rect (x1, y1, x2, y2), 14);
   }
-  //abuf = abufWas;
 
-  drawBlockScaledAt (hdc, tempblock, x, y, scaleFactor);
-  //drawBlockDoubleAt (hdc, tempblock, x, y);
+  drawBlockScaledAt(hdc, tempblock, x, y, scale);
   delete tempblock;
 }
 
@@ -1726,11 +1720,10 @@ const char* load_room_file(const char*rtlo) {
   //thisroom.numhotspots = MAX_HOTSPOTS;
 
   // Allocate enough memory to add extra variables
-  InteractionVariable *ivv = (InteractionVariable*)malloc (sizeof(InteractionVariable) * MAX_GLOBAL_VARIABLES);
-  if (thisroom.numLocalVars > 0) {
-    memcpy (ivv, thisroom.localvars, sizeof(InteractionVariable) * thisroom.numLocalVars);
-    free (thisroom.localvars);
-  }
+  InteractionVariable *ivv = new InteractionVariable[MAX_GLOBAL_VARIABLES];
+  for (int i = 0; i < thisroom.numLocalVars; ++i)
+    ivv[i] = thisroom.localvars[i];
+  delete [] thisroom.localvars;
   thisroom.localvars = ivv;
 
   // Update room palette with gamewide colours
@@ -1849,8 +1842,8 @@ void save_room(const char *files, roomstruct rstruc) {
   opty->WriteArray(&rstruc.sprs[0], sizeof(sprstruc), rstruc.numsprs);
 
   opty->WriteInt32 (rstruc.numLocalVars);
-  if (rstruc.numLocalVars > 0) 
-    opty->WriteArray (&rstruc.localvars[0], sizeof(InteractionVariable), rstruc.numLocalVars);
+  for (int i = 0; i < rstruc.numLocalVars; ++i)
+    rstruc.localvars[i].Write(opty);
 /*
   for (f = 0; f < rstruc.numhotspots; f++)
     serialize_new_interaction (rstruc.intrHotspot[f]);
@@ -3101,8 +3094,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   else
   {
     TextWindowGUI^ twGui = dynamic_cast<TextWindowGUI^>(guiObj);
-	gui->Width = 200;
-	gui->Height = 100;
+	gui->Width = twGui->EditorWidth;
+	gui->Height = twGui->EditorHeight;
     gui->Flags = Common::kGUIMain_TextWindow;
     gui->PopupStyle = Common::kGUIPopupModal;
 	gui->Padding = twGui->Padding;
@@ -3250,7 +3243,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   gui->ResortZOrder();
 }
 
-void drawGUI(int hdc, int x,int y, GUI^ guiObj, int scaleFactor, int selectedControl) {
+void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scale, int selectedControl) {
   numguibuts = 0;
   numguilabels = 0;
   numguitext = 0;
@@ -3268,7 +3261,7 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int scaleFactor, int selectedCon
 
   tempgui.HighlightCtrl = selectedControl;
 
-  drawGUIAt(hdc, x, y, -1, -1, -1, -1, scaleFactor);
+  drawGUIAt(hdc, x, y, -1, -1, -1, -1, resolutionFactor, scale);
 }
 
 Dictionary<int, Sprite^>^ load_sprite_dimensions()
@@ -3728,13 +3721,6 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 	for (i = 0; i < thisgame.numcharacters; i++) 
 	{
-		char jibbledScriptName[50] = "\0";
-		if (strlen(thisgame.chars[i].scrname) > 0) 
-		{
-			sprintf(jibbledScriptName, "c%s", thisgame.chars[i].scrname);
-			strlwr(jibbledScriptName);
-			jibbledScriptName[1] = toupper(jibbledScriptName[1]);
-		}
 		AGS::Types::Character ^character = gcnew AGS::Types::Character();
 		character->AdjustSpeedWithScaling = ((thisgame.chars[i].flags & CHF_SCALEMOVESPEED) != 0);
 		character->AdjustVolumeWithScaling = ((thisgame.chars[i].flags & CHF_SCALEVOLUME) != 0);
@@ -3749,7 +3735,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 		character->MovementSpeedY = thisgame.chars[i].walkspeed_y;
 		character->NormalView = thisgame.chars[i].defview + 1;
 		character->RealName = gcnew String(thisgame.chars[i].name);
-		character->ScriptName = gcnew String(jibbledScriptName);
+		character->ScriptName = gcnew String(thisgame.chars[i].scrname);
 		character->Solid = !(thisgame.chars[i].flags & CHF_NOBLOCKING);
 		character->SpeechColor = thisgame.chars[i].talkcolor;
 		character->SpeechView = (thisgame.chars[i].talkview < 1) ? 0 : (thisgame.chars[i].talkview + 1);
@@ -3912,7 +3898,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 		}
 		else 
 		{
-			newGui = gcnew NormalGUI();
+			newGui = gcnew NormalGUI(1, 1);
 			((NormalGUI^)newGui)->Clickable = ((guis[i].Flags & Common::kGUIMain_NoClick) == 0);
 			((NormalGUI^)newGui)->Top = guis[i].Y;
 			((NormalGUI^)newGui)->Left = guis[i].X;

@@ -205,6 +205,68 @@ void toggle_mouse_lock()
     }
 }
 
+// Runs default mouse button handling
+void check_mouse_controls()
+{
+    int mongu=-1;
+    
+    mongu = gui_on_mouse_move();
+
+    mouse_on_iface=mongu;
+    if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].Y+guis[ifacepopped].Height))
+        remove_popup_interface(ifacepopped);
+
+    // check mouse clicks on GUIs
+    static int wasbutdown=0,wasongui=0;
+
+    if ((wasbutdown>0) && (misbuttondown(wasbutdown-1))) {
+        gui_on_mouse_hold(wasongui, wasbutdown);
+    }
+    else if ((wasbutdown>0) && (!misbuttondown(wasbutdown-1))) {
+        gui_on_mouse_up(wasongui, wasbutdown);
+        wasbutdown=0;
+    }
+
+    int mbut =mgetbutton();
+    if (mbut>NONE) {
+        lock_mouse_on_click();
+
+        if ((play.in_cutscene == 3) || (play.in_cutscene == 4))
+            start_skipping_cutscene();
+        if ((play.in_cutscene == 5) && (mbut == RIGHT))
+            start_skipping_cutscene();
+
+        if (play.fast_forward) { }
+        else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
+            play.wait_counter = -1;
+        else if (is_text_overlay > 0) {
+            if (play.cant_skip_speech & SKIP_MOUSECLICK)
+                remove_screen_overlay(OVER_TEXTMSG);
+        }
+        else if (!IsInterfaceEnabled()) ;  // blocking cutscene, ignore mouse
+        else if (pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut+1)) {
+            // plugin took the click
+            debug_script_log("Plugin handled mouse button %d", mbut+1);
+        }
+        else if (mongu>=0) {
+            if (wasbutdown==0) {
+                gui_on_mouse_down(mongu, mbut+1);
+            }            
+            wasongui=mongu;
+            wasbutdown=mbut+1;
+        }
+        else setevent(EV_TEXTSCRIPT,TS_MCLICK,mbut+1);
+        //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
+    }
+    mbut = check_mouse_wheel();
+    if (mbut !=0)
+        lock_mouse_on_click();
+    if (mbut < 0)
+        setevent (EV_TEXTSCRIPT, TS_MCLICK, 9);
+    else if (mbut > 0)
+        setevent (EV_TEXTSCRIPT, TS_MCLICK, 8);
+}
+
 // Returns current key modifiers;
 // NOTE: annoyingly enough, on Windows (not sure about other platforms)
 // Allegro API's 'key_shifts' variable seem to be always one step behind real
@@ -226,72 +288,14 @@ int get_active_shifts()
 // Shifts key combination already fired (wait until full shifts release)
 #define KEY_SHIFTS_FIRED      0x80000000
 
-// check_controls: checks mouse & keyboard interface
-void check_controls() {
-    our_eip = 1007;
-    NEXT_ITERATION();
-
-    int aa,mongu=-1;
-    
-    mongu = gui_on_mouse_move();
-
-    mouse_on_iface=mongu;
-    if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].Y+guis[ifacepopped].Height))
-        remove_popup_interface(ifacepopped);
-
-    // check mouse clicks on GUIs
-    static int wasbutdown=0,wasongui=0;
-
-    if ((wasbutdown>0) && (misbuttondown(wasbutdown-1))) {
-        gui_on_mouse_hold(wasongui, wasbutdown);
-    }
-    else if ((wasbutdown>0) && (!misbuttondown(wasbutdown-1))) {
-        gui_on_mouse_up(wasongui, wasbutdown);
-        wasbutdown=0;
-    }
-
-    aa=mgetbutton();
-    if (aa>NONE) {
-        lock_mouse_on_click();
-
-        if ((play.in_cutscene == 3) || (play.in_cutscene == 4))
-            start_skipping_cutscene();
-        if ((play.in_cutscene == 5) && (aa == RIGHT))
-            start_skipping_cutscene();
-
-        if (play.fast_forward) { }
-        else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
-            play.wait_counter = -1;
-        else if (is_text_overlay > 0) {
-            if (play.cant_skip_speech & SKIP_MOUSECLICK)
-                remove_screen_overlay(OVER_TEXTMSG);
-        }
-        else if (!IsInterfaceEnabled()) ;  // blocking cutscene, ignore mouse
-        else if (pl_run_plugin_hooks(AGSE_MOUSECLICK, aa+1)) {
-            // plugin took the click
-            debug_script_log("Plugin handled mouse button %d", aa+1);
-        }
-        else if (mongu>=0) {
-            if (wasbutdown==0) {
-                gui_on_mouse_down(mongu, aa+1);
-            }            
-            wasongui=mongu;
-            wasbutdown=aa+1;
-        }
-        else setevent(EV_TEXTSCRIPT,TS_MCLICK,aa+1);
-        //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
-    }
-    aa = check_mouse_wheel();
-    if (aa !=0)
-        lock_mouse_on_click();
-    if (aa < 0)
-        setevent (EV_TEXTSCRIPT, TS_MCLICK, 9);
-    else if (aa > 0)
-        setevent (EV_TEXTSCRIPT, TS_MCLICK, 8);
-
+// Runs service key controls, returns false if service key combinations were handled
+// and no more processing required, otherwise returns true and provides current keycode and key shifts.
+bool run_service_key_controls(int &kgn)
+{
     // check keypresses
     static int old_key_shifts = 0; // for saving shift modes
 
+    bool handled = false;
     int kbhit_res = kbhit();
     // First, check shifts
     const int act_shifts = get_active_shifts();
@@ -322,17 +326,46 @@ void check_controls() {
         {
             // Toggle mouse lock on Ctrl + Alt
             if (old_key_shifts == (KB_ALT_FLAG | KB_CTRL_FLAG))
+            {
                 toggle_mouse_lock();
+                handled = true;
+            }
             old_key_shifts |= KEY_SHIFTS_FIRED;
         }
     }
-    
-    if (kbhit_res) {
+
+    if (!kbhit_res || handled)
+        return false;
+
+    int keycode = getch();
+    if (keycode == 0)
+        keycode = getch() + AGS_EXT_KEY_SHIFT;
+
+    // LAlt or RAlt + Enter
+    // NOTE: for some reason LAlt + Enter produces same code as F9
+    if (act_shifts == KB_ALT_FLAG && ((keycode == 367 && !key[KEY_F9]) || keycode == 13))
+    {
+        engine_try_switch_windowed_gfxmode();
+        return false;
+    }
+
+    // No service operation triggered? return active keypress and shifts to caller
+    kgn = keycode;
+    return true;
+}
+
+// Runs default keyboard handling
+void check_keyboard_controls()
+{
+    int kgn;
+    // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
+    if (!run_service_key_controls(kgn))
+        return;
+    // Now check for in-game controls
+    {
         // in case they press the finish-recording button, make sure we know
         int was_playing = play.playback;
-
-        int kgn = getch();
-        if (kgn==0) kgn=getch()+AGS_EXT_KEY_SHIFT;
+        
         //    if (kgn==367) restart_game();
         //    if (kgn==2) Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed);
         //    if (kgn==2) CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear");
@@ -341,14 +374,6 @@ void check_controls() {
         //if (kgn == 2) SetCharacterIdle (game.playercharacter, 5, 0);
         //if (kgn == 2) Display("Some for?ign text");
         //if (kgn == 2) do_conversation(5);
-
-        // LAlt or RAlt + Enter
-        // NOTE: for some reason LAlt + Enter produces same code as F9
-        if (act_shifts == KB_ALT_FLAG && ((kgn == 367 && !key[KEY_F9]) || kgn == 13))
-        {
-            engine_try_switch_windowed_gfxmode();
-            return;
-        }
 
         if (kgn == play.replay_hotkey) {
             // start/stop recording
@@ -492,7 +517,16 @@ void check_controls() {
         }
         //    RunTextScriptIParam(gameinst,"on_key_press",kgn);
     }
-}  // end check_controls
+}
+
+// check_controls: checks mouse & keyboard interface
+void check_controls() {
+    our_eip = 1007;
+    NEXT_ITERATION();
+
+    check_mouse_controls();
+    check_keyboard_controls();
+}
 
 void check_room_edges(int numevents_was)
 {

@@ -582,7 +582,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     thisroom.object = fix_bitmap_size(thisroom.object);
     update_polled_stuff_if_runtime();
 
-    set_color_depth(System_GetColorDepth());
+    set_color_depth(game.GetColorDepth());
     // convert backgrounds to current res
     if (thisroom.resolution != get_fixed_pixel_size(1)) {
         for (cc=0;cc<thisroom.num_bscenes;cc++)

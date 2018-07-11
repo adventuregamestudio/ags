@@ -592,7 +592,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     for (int i = 0; i < game.numgui; ++i)
     {
-        guibg[i] = BitmapHelper::CreateBitmap(guis[i].Width, guis[i].Height, System_GetColorDepth());
+        guibg[i] = BitmapHelper::CreateBitmap(guis[i].Width, guis[i].Height, game.GetColorDepth());
         guibg[i] = ReplaceBitmapWithSupportedFormat(guibg[i]);
     }
 
@@ -669,7 +669,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     StrUtil::WriteString(game.guid, out);
     StrUtil::WriteString(game.gamename, out);
     StrUtil::WriteString(usetup.main_data_filename, out);
-    out->WriteInt32(System_GetColorDepth());
+    out->WriteInt32(game.GetColorDepth());
     // User description
     StrUtil::WriteString(user_text, out);
     WriteSaveImage(out, user_image);

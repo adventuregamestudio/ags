@@ -60,7 +60,7 @@ bool GUIMain::HasAlphaChannel() const
         return false;
     }
     // transparent background, enable alpha blending
-    return System_GetColorDepth() >= 24 &&
+    return game.GetColorDepth() >= 24 &&
         // transparent background have alpha channel only since 3.2.0;
         // "classic" gui rendering mode historically had non-alpha transparent backgrounds
         // (3.2.0 broke the compatibility, now we restore it)

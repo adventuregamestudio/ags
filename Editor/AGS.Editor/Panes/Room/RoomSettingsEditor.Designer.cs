@@ -226,7 +226,7 @@ namespace AGS.Editor
             // 
             this.sldZoomLevel.LargeChange = 1;
             this.sldZoomLevel.Location = new System.Drawing.Point(478, 37);
-            this.sldZoomLevel.Maximum = 5;
+            this.sldZoomLevel.Maximum = 6;
             this.sldZoomLevel.Minimum = 1;
             this.sldZoomLevel.Name = "sldZoomLevel";
             this.sldZoomLevel.Size = new System.Drawing.Size(84, 45);

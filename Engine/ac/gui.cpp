@@ -499,7 +499,7 @@ void recreate_guibg_image(GUIMain *tehgui)
 {
   int ifn = tehgui->Id;
   delete guibg[ifn];
-  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, System_GetColorDepth());
+  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, game.GetColorDepth());
   if (guibg[ifn] == NULL)
     quit("SetGUISize: internal error: unable to reallocate gui cache");
   guibg[ifn] = ReplaceBitmapWithSupportedFormat(guibg[ifn]);

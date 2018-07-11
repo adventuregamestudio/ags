@@ -75,17 +75,17 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
 {
     if (!buffer || buf_length == 0)
     {
-        cc_error("internal error in ScriptSprintf: buffer is null");
+        cc_error("Internal error in ScriptSprintf: buffer is null");
         return "";
     }
     if (!format)
-    {
-        cc_error("internal error in ScriptSprintf: format string is null");
+    {// NOTE: interpreter (usually) catches null-pointer sent as format at some stage earlier
+        cc_error("Internal error in ScriptSprintf: format string is null");
         return "";
     }
     if (!varg_ptr && sc_argc > 0 && !sc_args)
     {
-        cc_error("internal error in ScriptSprintf: args pointer is null");
+        cc_error("Internal error in ScriptSprintf: args pointer is null");
         return "";
     }
 
@@ -206,13 +206,13 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                         }
                         else
                         {
-                            cc_error("ScriptSprintf: argument %d is expected to be a string, but it is null pointer", arg_idx);
+                            cc_error("!ScriptSprintf: formatting argument %d is expected to be a string, but it is a null pointer", arg_idx + 1);
                             return "";
                         }
                     }
                     else if (fmt_done == kFormatParseArgString && p == buffer)
                     {
-                        cc_error("ScriptSprintf: argument %d is a pointer to output buffer", arg_idx);
+                        cc_error("!ScriptSprintf: formatting argument %d is a pointer to output buffer", arg_idx + 1);
                         return "";
                     }
                     snprintf_res = snprintf(out_ptr, avail_outbuf + 1, fmtbuf, p);

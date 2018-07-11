@@ -347,9 +347,9 @@ void ALSoftwareGraphicsDriver::SetGamma(int newGamma)
 #endif
 }
 
-Bitmap *ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
+int ALSoftwareGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
 {
-  return bitmap;
+  return color_depth;
 }
 
 IDriverDependantBitmap* ALSoftwareGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)

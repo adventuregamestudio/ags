@@ -33,6 +33,29 @@ Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.
 
 
+VERSION 3.4.1 - Patch 3, July 2018
+
+Editor:
+ - Added scrollbars and zoom slider to the GUI editor.
+ - Added one extra zoom step to the Room editor and fixed mouse wheel scrolling
+   zoom slider by 3 steps at once instead of 1.
+ - Fixed Undo history getting lost after saving the script.
+ - Fixed crash when importing old game's rooms with interaction variables.
+ - Fixed incorrect character names appearing after old game's import.
+
+Engine:
+ - Reverted conversion of all graphics on load to 32-bit, made the game run in its
+   native color again, but correctly convert to 32-bit display instead.
+   This fixes certain bugs found in 16-bit games since the first 3.4.1 release.
+ - Fixed pressing ALT+ combination on Windows sometimes caused another key to "stuck",
+   endlessly triggering key events in game.
+ - Fixed service key shortcuts (switching display mode, (un)locking mouse in window)
+   did not work at particular stages of the game, like video playback and dialog options.
+ - Fixed unwanted transparency on built-in GUI in 8-bit games.
+ - Fixed engine was reporting string format errors as internal ones and not script's.
+ - Fixed crash when loading an old game's room with interaction variables.
+
+
 VERSION 3.4.1 - Patch 2, May 2018
 
 Editor:
@@ -92,10 +115,6 @@ Editor:
  - New application icon to comply with 3.4.0 splash screen.
  - Fixed crash when importing old games which have extended editor version
    string saved in the project files.
- - Fixed unhandled exception occuring when user types "#under", "#idef" or "#ifndef"
-   on the last line of the script.
- - Fixed #ifver and #ifnver not working properly if version number had only one
-   component (major version).
  - Few improvements to the game compilation made in hope to reduce occasional
    data corruption.
 
@@ -106,6 +125,10 @@ Script:
    (that is - struct without any variables in it).
  - Fixed few cases of possible compiler crashing when there is an unfinished
    statement in the end of the script.
+ - Fixed unhandled exception occuring when user types "#undef", "#ifdef" or "#ifndef"
+   on the last line of the script.
+ - Fixed #ifver and #ifnver not working properly if version number had only one
+   component (major version).
 
 Script API:
  - A new parameter StopMovementStyle is added to following functions: LockView,

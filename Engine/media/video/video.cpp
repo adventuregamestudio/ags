@@ -32,6 +32,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "util/stream.h"
 
@@ -64,8 +65,9 @@ int fliTargetWidth, fliTargetHeight;
 int check_if_user_input_should_cancel_video()
 {
     NEXT_ITERATION();
-    if (kbhit()) {
-        if ((getch()==27) && (canabort==1))
+    int key;
+    if (run_service_key_controls(key)) {
+        if ((key==27) && (canabort==1))
             return 1;
         if (canabort >= 2)
             return 1;  // skip on any key
@@ -147,7 +149,7 @@ void play_flc_file(int numb,int playflags) {
     delete in;
 
     if (game.color_depth > 1) {
-        hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,System_GetColorDepth());
+        hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,game.GetColorDepth());
         hicol_buf->Clear();
     }
     // override the stretch option if necessary
@@ -167,7 +169,7 @@ void play_flc_file(int numb,int playflags) {
     }
 
     video_type = kVideoFlic;
-    fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), System_GetColorDepth());
+    fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), game.GetColorDepth());
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
     // TODO: find a better solution.
@@ -405,7 +407,7 @@ void play_theora_video(const char *name, int skip, int flags)
 
     if ((stretch_flc) && (!gfxDriver->HasAcceleratedStretchAndFlip()))
     {
-        fli_target = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), System_GetColorDepth());
+        fli_target = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), game.GetColorDepth());
         fli_target->Clear();
         fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
     }

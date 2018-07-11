@@ -152,11 +152,8 @@ int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
         cscim->id = -1;
         cscim->code = 0;
         smcode = 0;
-        if (kbhit()) {
-            int keywas = getch();
-            if (keywas == 0)
-                keywas = getch() + AGS_EXT_KEY_SHIFT;
-
+        int keywas;
+        if (run_service_key_controls(keywas)) {
             if (keywas == 13) {
                 cscim->id = finddefaultcontrol(CNF_DEFAULT);
                 cscim->code = CM_COMMAND;

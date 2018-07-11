@@ -206,90 +206,6 @@ void setpal() {
     set_palette_range(palette, 0, 255, 0);
 }
 
-
-#ifdef USE_15BIT_FIX
-
-extern "C" {
-    AL_FUNC(GFX_VTABLE *, _get_vtable, (int color_depth));
-}
-
-Bitmap *convert_16_to_15(Bitmap *iii) {
-    //  int xx,yy,rpix;
-    int iwid = iii->GetWidth(), ihit = iii->GetHeight();
-    int x,y;
-
-    if (iii->GetColorDepth() > 16) {
-        // we want a 32-to-24 conversion
-        Bitmap *tempbl = BitmapHelper::CreateBitmap(iwid,ihit,System_GetColorDepth());
-        if (System_GetColorDepth() < 24) {
-            // 32-to-16
-            tempbl->Blit(iii, 0, 0, 0, 0, iwid, ihit);
-            return tempbl;
-        }
-
-        GFX_VTABLE *vtable = _get_vtable(System_GetColorDepth());
-        if (vtable == NULL) {
-            quit("unable to get 24-bit bitmap vtable");
-        }
-
-		// TODO
-        ((BITMAP*)tempbl->GetAllegroBitmap())->vtable = vtable;
-
-        for (y=0; y < tempbl->GetHeight(); y++) {
-            unsigned char*p32 = (unsigned char *)iii->GetScanLine(y);
-            unsigned char*p24 = (unsigned char *)tempbl->GetScanLine(y);
-
-            // strip out the alpha channel bit and copy the rest across
-            for (x=0; x < tempbl->GetWidth(); x++) {
-                memcpy(&p24[x * 3], &p32[x * 4], 3);
-            }
-        }
-
-        return tempbl;
-    }
-
-    // we want a 16-to-15 converstion
-
-    unsigned short c,r,ds,b;
-    // we do this process manually - no allegro color conversion
-    // because we store the RGB in a particular order in the data files
-    Bitmap *tempbl = BitmapHelper::CreateBitmap(iwid,ihit,15);
-
-    GFX_VTABLE *vtable = _get_vtable(15);
-
-    if (vtable == NULL) {
-        quit("unable to get 15-bit bitmap vtable");
-    }
-
-	// TODO
-    ((BITMAP*)tempbl->GetAllegroBitmap())->vtable = vtable;
-
-    for (y=0; y < tempbl->GetHeight(); y++) {
-        unsigned short*p16 = (unsigned short *)iii->GetScanLine(y);
-        unsigned short*p15 = (unsigned short *)tempbl->GetScanLine(y);
-
-        for (x=0; x < tempbl->GetWidth(); x++) {
-            c = p16[x];
-            b = _rgb_scale_5[c & 0x1F];
-            ds = _rgb_scale_6[(c >> 5) & 0x3F];
-            r = _rgb_scale_5[(c >> 11) & 0x1F];
-            p15[x] = makecol15(r, ds, b);
-        }
-    }
-    /*
-    // the auto color conversion doesn't seem to work
-    for (xx=0;xx<iwid;xx++) {
-    for (yy=0;yy<ihit;yy++) {
-    rpix = _getpixel16(iii,xx,yy);
-    rpix = (rpix & 0x001f) | ((rpix >> 1) & 0x7fe0);
-    // again putpixel16 because the dest is actually 16bit
-    _putpixel15(tempbl,xx,yy,rpix);
-    }
-    }*/
-
-    return tempbl;
-}
-
 int _places_r = 3, _places_g = 2, _places_b = 3;
 
 // convert RGB to BGR for strange graphics cards
@@ -318,9 +234,6 @@ Bitmap *convert_16_to_16bgr(Bitmap *tempbl) {
 
     return tempbl;
 }
-#endif
-
-
 
 // PSP: convert 32 bit RGB to BGR.
 Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
@@ -350,65 +263,71 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 // D3D and OpenGL rendering, for two reasons:
 // 1) certain raw drawing operations are still performed by software
 // Allegro methods, hence bitmaps should be kept compatible to any native
-// software operations.
+// software operations, such as blitting two bitmaps of different formats.
 // 2) mobile ports feature an OpenGL renderer built in Allegro library,
 // that assumes native bitmaps are in OpenGL-compatible format, so that it
 // could copy them to texture without additional changes.
 // AGS own OpenGL renderer tries to sync its behavior with the former one.
 //
-// TODO: find out if we may safely move software-driver only related parts
-// to ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth()
+// TODO: make gfxDriver->GetCompatibleBitmapFormat describe all necessary
+// conversions, so that we did not have to guess.
 //
 Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
 {
-    const bool software_driver = !gfxDriver->HasAcceleratedStretchAndFlip();
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int sys_col_depth = System_GetColorDepth();
-    const int game_col_depth = game.color_depth * 8;
+    const int game_col_depth = game.GetColorDepth();
     Bitmap *new_bitmap = bitmap;
 
-    if ((bmp_col_depth == 32) && (sys_col_depth == 32))
-    {
+    //
+    // The only special case when bitmap needs to be prepared for graphics driver
+    //
+    // In 32-bit display mode, 32-bit bitmaps may require component conversion
+    // to match graphics driver expectation about pixel format.
+    // TODO: make GetCompatibleBitmapFormat tell this somehow
 #if defined (AGS_INVERTED_COLOR_ORDER)
-        // Convert RGB to BGR color order.
+    if (sys_col_depth > 16 && bmp_col_depth == 32)
+    {
+        // Convert RGB to BGR.
         new_bitmap = convert_32_to_32bgr(bitmap);
+    }
 #endif
-        if (has_alpha) // this adjustment is probably needed for DrawingSurface ops
+
+    //
+    // The rest is about bringing bitmaps to the native game's format
+    // (has no dependency on display mode).
+    //
+    // In 32-bit game 32-bit bitmaps should have transparent pixels marked
+    // (this adjustment is probably needed for DrawingSurface ops)
+    if (game_col_depth == 32 && bmp_col_depth == 32)
+    {
+        if (has_alpha) 
             set_rgb_mask_using_alpha_channel(new_bitmap);
     }
-    else if (((bmp_col_depth > 16) && (sys_col_depth <= 16)) ||
-             ((bmp_col_depth == 16) && (sys_col_depth > 16)))
+    // In 32-bit game hicolor bitmaps must be converted to the true color
+    else if (game_col_depth == 32 && (bmp_col_depth > 8 && bmp_col_depth <= 16))
     {
-            // 16-bit sprite in 32-bit game or vice versa - convert
-            // so that scaling and blit calls work properly
-            if (has_alpha) // 32-bit source only
-                new_bitmap = remove_alpha_channel(bitmap);
-            else if (software_driver) // non-software drivers do this on their own
-                new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, sys_col_depth);
+        new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, game_col_depth);
     }
-#ifdef USE_15BIT_FIX
-    // TODO: review this later, it may also happen e.g. when running 32-bit game in 24-bit mode
-    // This is software driver only fix
-    else if ((sys_col_depth != game_col_depth) && (bmp_col_depth == game_col_depth))
+    // In non-32-bit game truecolor bitmaps must be downgraded
+    else if (game_col_depth <= 16 && bmp_col_depth > 16)
     {
-        // running in 15-bit mode with a 16-bit game, convert sprites
-        if (has_alpha)
-            // 32-to-24 with alpha channel
+        if (has_alpha) // if has valid alpha channel, convert it to regular transparency mask
             new_bitmap = remove_alpha_channel(bitmap);
-        else
-            new_bitmap = convert_16_to_15(bitmap);
+        else // else simply convert bitmap
+            new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, game_col_depth);
     }
-    else if ((convert_16bit_bgr == 1) && (bmp_col_depth == 16))
+    // Special case when we must convert 16-bit RGB to BGR
+    else if (convert_16bit_bgr == 1 && bmp_col_depth == 16)
     {
         new_bitmap = convert_16_to_16bgr(bitmap);
     }
-#endif
     return new_bitmap;
 }
 
 Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
 {
-    Bitmap *new_bitmap = gfxDriver->ConvertBitmapToSupportedColourDepth(bitmap);
+    Bitmap *new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;
@@ -416,7 +335,7 @@ Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
 
 Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
 {
-    bool must_switch_palette = bitmap->GetColorDepth() == 8 && System_GetColorDepth() > 8;
+    bool must_switch_palette = bitmap->GetColorDepth() == 8 && game.GetColorDepth() > 8;
     if (must_switch_palette)
         select_palette(palette);
 
@@ -935,7 +854,7 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
 }
 
 
-IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha) {
+IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha, bool opaque) {
     if (bimp != NULL) {
         // same colour depth, width and height -> reuse
         if (((bimp->GetColorDepth() + 1) / 8 == source->GetBPP()) && 
@@ -947,7 +866,7 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap 
 
         gfxDriver->DestroyDDB(bimp);
     }
-    bimp = gfxDriver->CreateDDBFromBitmap(source, hasAlpha, false);
+    bimp = gfxDriver->CreateDDBFromBitmap(source, hasAlpha, opaque);
     return bimp;
 }
 
@@ -1373,7 +1292,7 @@ void apply_tint_or_light(int actspsindex, int light_level,
  }
 
  // we can only do tint/light if the colour depths match
- if (System_GetColorDepth() == actsps[actspsindex]->GetColorDepth()) {
+ if (game.GetColorDepth() == actsps[actspsindex]->GetColorDepth()) {
      Bitmap *oldwas;
      // if the caller supplied a source bitmap, ->Blit from it
      // (used as a speed optimisation where possible)
@@ -2188,7 +2107,7 @@ void draw_fps()
 
     if (fpsDisplay == NULL)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), System_GetColorDepth());
+        fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), game.GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
@@ -2483,7 +2402,7 @@ void update_screen() {
 
         if (debugConsoleBuffer == NULL)
         {
-            debugConsoleBuffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), barheight,System_GetColorDepth());
+            debugConsoleBuffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), barheight,game.GetColorDepth());
             debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
         }
 

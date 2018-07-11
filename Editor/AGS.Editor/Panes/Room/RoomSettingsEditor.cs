@@ -72,6 +72,7 @@ namespace AGS.Editor
             UpdateScrollableWindowSize();
 			this.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
 			this.bufferedPanel1.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
+            this.sldZoomLevel.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
 
             _editorConstructed = true;
         }
@@ -198,6 +199,10 @@ namespace AGS.Editor
 				}
 			}
 			sldZoomLevel_Scroll(null, null);
+            // Ridiculous solution, found on stackoverflow.com
+            // TODO: check again later, how reliable this is?!
+            HandledMouseEventArgs ee = (HandledMouseEventArgs)e;
+            ee.Handled = true;
 		}
 
 		private void UpdateScrollableWindowSize()

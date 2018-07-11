@@ -1126,9 +1126,9 @@ void create_savegame_screenshot(Bitmap *&screenShot)
         {
             // FIXME this weird stuff! (related to incomplete OpenGL renderer)
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION)
-            int color_depth = (psp_gfx_renderer > 0) ? 32 : System_GetColorDepth();
+            int color_depth = (psp_gfx_renderer > 0) ? 32 : game.GetColorDepth();
 #else
-            int color_depth = System_GetColorDepth();
+            int color_depth = game.GetColorDepth();
 #endif
             Bitmap *tempBlock = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(), virtual_screen->GetHeight(), color_depth);
             gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
@@ -1759,8 +1759,8 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     if (!err)
         return err;
     // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
-    else if (desc.ColorDepth != System_GetColorDepth())
-        return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", System_GetColorDepth(), desc.ColorDepth));
+    else if (desc.ColorDepth != game.GetColorDepth())
+        return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth));
     else if (!src.InputStream.get())
         return new SavegameError(kSvgErr_NoStream);
 
@@ -1945,9 +1945,11 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     return winner;
 }
 
+// Called whenever game looses input focus
 void display_switch_out()
 {
     switched_away = true;
+    clear_input_buffer();
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
     platform->DisplaySwitchOut();
@@ -1983,6 +1985,7 @@ void display_switch_out_suspend()
     switching_away_from_game--;
 }
 
+// Called whenever game gets input focus
 void display_switch_in()
 {
     switched_away = false;
@@ -1993,6 +1996,7 @@ void display_switch_in()
             platform->EnterFullscreenMode(mode);
     }
     platform->DisplaySwitchIn();
+    clear_input_buffer();
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();

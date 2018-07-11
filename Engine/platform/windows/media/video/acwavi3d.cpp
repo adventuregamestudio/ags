@@ -30,6 +30,7 @@
 #define _D3DTYPES_H_
 #define _STRSAFE_H_INCLUDED_
 typedef float D3DVALUE, *LPD3DVALUE;
+#include "main/game_run.h"
 #include "media/video/VMR9Graph.h"
 #include "platform/base/agsplatformdriver.h"
 //#include <atlbase.h>
@@ -64,8 +65,6 @@ inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars)
 // Interface from main game
 
 extern int rec_mgetbutton();
-extern int rec_kbhit();
-extern int rec_getch();
 extern void update_polled_audio_and_crossfade();
 extern volatile char want_exit;
 extern volatile int timerloop;
@@ -123,9 +122,8 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
     NextIteration();
     filterState = graph->GetState();
 
-    if (rec_kbhit()) {
-      int key = rec_getch();
-      
+    int key;
+    if (run_service_key_controls(key)) {
       if ((canskip == 1) && (key == 27))
         break;
       if (canskip >= 2)

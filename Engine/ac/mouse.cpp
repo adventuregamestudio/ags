@@ -353,7 +353,7 @@ void set_new_cursor_graphic (int spriteslot) {
     {
         if (blank_mouse_cursor == NULL)
         {
-            blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, System_GetColorDepth());
+            blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, game.GetColorDepth());
         }
         mousecurs[0] = blank_mouse_cursor;
     }

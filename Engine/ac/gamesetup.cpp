@@ -22,7 +22,6 @@ GameSetup::GameSetup()
     mod_player=1;
     no_speech_pack = false;
     enable_antialiasing = false;
-    force_hicolor_mode = false;
     disable_exception_handling = false;
     mouse_auto_lock = false;
     override_script_os = -1;

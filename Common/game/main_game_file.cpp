@@ -524,14 +524,13 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
     // Fixup charakter script names for 2.x (EGO -> cEgo)
     if (data_ver <= kGameVersion_272)
     {
-        char tempbuffer[200];
+        String tempbuffer;
         for (int i = 0; i < numcharacters; i++)
         {
-            memset(tempbuffer, 0, 200);
-            tempbuffer[0] = 'c';
-            tempbuffer[1] = chars[i].scrname[0];
-            strcat(&tempbuffer[2], strlwr(&chars[i].scrname[1]));
-            strcpy(chars[i].scrname, tempbuffer);
+            if (chars[i].scrname[0] == 0)
+                continue;
+            tempbuffer.Format("c%c%s", chars[i].scrname[0], strlwr(&chars[i].scrname[1]));
+            snprintf(chars[i].scrname, MAX_SCRIPT_NAME_LEN, "%s", tempbuffer.GetCStr());
         }
     }
 

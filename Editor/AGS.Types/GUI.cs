@@ -26,6 +26,26 @@ namespace AGS.Types
         protected int _bgimage;
         protected List<GUIControl> _controls = new List<GUIControl>();
 
+        /// <summary>
+        /// Width of the GUI, as displayed in the Editor.
+        /// </summary>
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public virtual int EditorWidth
+        {
+            get { return 0; }
+        }
+
+        /// <summary>
+        /// Height of the GUI, as displayed in the Editor.
+        /// </summary>
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public virtual int EditorHeight
+        {
+            get { return 0; }
+        }
+
         [Description("Background color of the GUI (0 for transparent)")]
         [Category("Appearance")]
         [DisplayName("BackgroundColourNumber")]

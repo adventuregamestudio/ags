@@ -80,9 +80,9 @@ namespace AGS.Editor
 			}
         }
 
-        public void DrawGUI(IntPtr hdc, int x, int y, GUI gui, int scaleFactor, int selectedControl)
+        public void DrawGUI(IntPtr hdc, int x, int y, GUI gui, int resolutionFactor, float scale, int selectedControl)
         {
-            _native.DrawGUI((int)hdc, x, y, gui, scaleFactor, selectedControl);
+            _native.DrawGUI((int)hdc, x, y, gui, resolutionFactor, scale, selectedControl);
         }
 
         public void DrawSprite(IntPtr hdc, int x, int y, int spriteNum)

@@ -1,5 +1,5 @@
 diff --git a/include/allegro/fli.h b/include/allegro/fli.h
-index dda652e..3ed3c62 100644
+index dda652edd..3ed3c62d5 100644
 --- a/include/allegro/fli.h
 +++ b/include/allegro/fli.h
 @@ -20,6 +20,7 @@
@@ -23,7 +23,7 @@ index dda652e..3ed3c62 100644
  AL_FUNC(void, close_fli, (void));
  AL_FUNC(int, next_fli_frame, (int loop));
 diff --git a/include/allegro/platform/almsvc.h b/include/allegro/platform/almsvc.h
-index 063e98d..2098fa9 100644
+index 063e98dc7..2098fa9ab 100644
 --- a/include/allegro/platform/almsvc.h
 +++ b/include/allegro/platform/almsvc.h
 @@ -78,8 +78,12 @@
@@ -42,7 +42,7 @@ index 063e98d..2098fa9 100644
  #define AL_CONST     const
  
 diff --git a/src/fli.c b/src/fli.c
-index d719159..a26feda 100644
+index d71915929..a26fedaf5 100644
 --- a/src/fli.c
 +++ b/src/fli.c
 @@ -908,6 +908,24 @@ int play_fli(AL_CONST char *filename, BITMAP *bmp, int loop, int (*callback)(voi
@@ -128,7 +128,7 @@ index d719159..a26feda 100644
        return fli_status;
  
 diff --git a/src/win/wdsound.c b/src/win/wdsound.c
-index 6f33a22..485c340 100644
+index 6f33a229f..485c340c5 100644
 --- a/src/win/wdsound.c
 +++ b/src/win/wdsound.c
 @@ -151,7 +151,7 @@ static DIGI_DRIVER digi_directsound =
@@ -141,7 +141,7 @@ index 6f33a22..485c340 100644
  static long int initial_volume;
  static int _freq, _bits, _stereo;
 diff --git a/src/win/wkeybd.c b/src/win/wkeybd.c
-index d85f079..174cf94 100644
+index d85f07915..d4936e90b 100644
 --- a/src/win/wkeybd.c
 +++ b/src/win/wkeybd.c
 @@ -40,12 +40,12 @@
@@ -159,8 +159,20 @@ index d85f079..174cf94 100644
     /* 0x00 */ 0, KEY_ESC, KEY_1, KEY_2,
     /* 0x04 */ KEY_3, KEY_4, KEY_5, KEY_6,
     /* 0x08 */ KEY_7, KEY_8, KEY_9, KEY_0,
+@@ -326,7 +326,11 @@ static void key_dinput_handle_scancode(unsigned char scancode, int pressed)
+    if (((scancode == DIK_TAB) && (_key_shifts & KB_ALT_FLAG))
+        || ((scancode == DIK_SPACE) && (_key_shifts & KB_ALT_FLAG))
+        || ((scancode == DIK_ESCAPE) && (_key_shifts & (KB_CTRL_FLAG | KB_ALT_FLAG))))
++   {
++      /* force key release to make sure it does not get 'stuck' if held before ALT */
++      handle_key_release(scancode);
+       return;
++   }
+ 
+    /* alt+F4 triggers a WM_CLOSE under Windows */
+    if ((scancode == DIK_F4) && (_key_shifts & KB_ALT_FLAG)) {
 diff --git a/src/win/wmouse.c b/src/win/wmouse.c
-index ff85b73..346012f 100644
+index ff85b734a..346012f7a 100644
 --- a/src/win/wmouse.c
 +++ b/src/win/wmouse.c
 @@ -82,7 +82,7 @@ HCURSOR _win_hcursor = NULL;	/* Hardware cursor to display */

@@ -750,9 +750,9 @@ int SaveScreenShot(const char*namm) {
     {
         // FIXME this weird stuff! (related to incomplete OpenGL renderer)
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION)
-        int color_depth = (psp_gfx_renderer > 0) ? 32 : System_GetColorDepth();
+        int color_depth = (psp_gfx_renderer > 0) ? 32 : game.GetColorDepth();
 #else
-        int color_depth = System_GetColorDepth();
+        int color_depth = game.GetColorDepth();
 #endif
         Bitmap *buffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), color_depth);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);

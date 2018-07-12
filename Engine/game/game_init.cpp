@@ -316,8 +316,7 @@ void LoadFonts()
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
-        FontInfo finfo;
-        make_fontinfo(game, i, finfo);
+        FontInfo finfo = game.fonts[i];
 
         // Apply compatibility adjustments
         if (finfo.SizePt == 0)

@@ -20,7 +20,7 @@
 #include "alfont.h"
 
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
+#include "ac/gamestructdefines.h"
 #include "font/fonts.h"
 #include "font/agsfontrenderer.h"
 #include "font/ttffontrenderer.h"
@@ -54,7 +54,7 @@ Font::Font()
 } // Common
 } // AGS
 
-static AGS::Common::Font fonts[MAX_FONTS];
+static std::vector<Font> fonts;
 static TTFFontRenderer ttfRenderer;
 static WFNFontRenderer wfnRenderer;
 
@@ -62,7 +62,7 @@ static WFNFontRenderer wfnRenderer;
 FontInfo::FontInfo()
     : Flags(0)
     , SizePt(0)
-    , Outline(-1)
+    , Outline(FONT_OUTLINE_NONE)
     , YOffset(0)
     , LineSpacing(0)
 {}
@@ -166,15 +166,6 @@ void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t te
   }
 }
 
-void make_fontinfo(const GameSetupStruct &game, int fontNumber, FontInfo &finfo)
-{
-    finfo.Flags   = game.fontflags[fontNumber] & ~FFLG_SIZEMASK;
-    finfo.SizePt  = game.fontflags[fontNumber] &  FFLG_SIZEMASK;
-    finfo.Outline = game.fontoutline[fontNumber];
-    finfo.YOffset = game.fontvoffset[fontNumber];
-    finfo.LineSpacing = Math::Max(0, game.fontlnspace[fontNumber]);
-}
-
 void set_fontinfo(int fontNumber, const FontInfo &finfo)
 {
     if (fonts[fontNumber].Renderer)
@@ -184,6 +175,7 @@ void set_fontinfo(int fontNumber, const FontInfo &finfo)
 // Loads a font from disk
 bool wloadfont_size(int fontNumber, const FontInfo &font_info, const FontRenderParams *params)
 {
+  fonts.resize(fontNumber + 1);
   if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, params))
   {
     fonts[fontNumber].Renderer  = &ttfRenderer;
@@ -216,6 +208,8 @@ void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t tex
 
 void wfreefont(int fontNumber)
 {
+  if (fontNumber < 0 || fonts.size() <= (size_t)fontNumber)
+    return;
   if (fonts[fontNumber].Renderer != NULL)
     fonts[fontNumber].Renderer->FreeMemory(fontNumber);
 

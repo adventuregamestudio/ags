@@ -14,7 +14,7 @@ Both Editor and Engine are licensed under the Artistic License 2.0; for more det
 To get started building the AGS engine, see the platform specific instructions or forum threads:
 
 -    [Linux](debian/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46152.0))
--    [Windows](Windows/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46847.0)) ([wiki](http://www.adventuregamestudio.co.uk/wiki/Compiling_AGS))
+-    [Windows](Windows/README.md)
 -    [Android](Android/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=44768.0))
 -    [iOS](iOS/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46040.0))
 -    [PSP](PSP/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=43998.0))

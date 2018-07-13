@@ -104,8 +104,8 @@ namespace AGS.Editor
 			ContextMenuStrip menu = new ContextMenuStrip();
 			menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
 
-			_menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-			_menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+			_menuClickX = state.WindowXToRoom(e.X);
+			_menuClickY = state.WindowYToRoom(e.Y);
 
             if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
                 (_room.Resolution == RoomResolution.HighRes))

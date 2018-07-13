@@ -27,10 +27,13 @@ namespace AGS.Editor
         private IRoomEditorFilter _layer;
         private RoomEditNode _layersRoot;
         private List<IRoomEditorFilter> _layers = new List<IRoomEditorFilter>();
-        private RoomEditorState _state = new RoomEditorState();
         private bool _editorConstructed = false;
         private int _lastX, _lastY;
         private bool _mouseIsDown = false;
+
+        private int ZOOM_STEP_VALUE = 25;
+        private int ZOOM_MAX_VALUE = 600;
+        private RoomEditorState _state = new RoomEditorState();
 
         public RoomSettingsEditor(Room room)
         {
@@ -39,17 +42,13 @@ namespace AGS.Editor
             InitializeComponent();
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _room = room;
+            sldZoomLevel.Maximum = ZOOM_MAX_VALUE / ZOOM_STEP_VALUE;
+            sldZoomLevel.Value = 100 / ZOOM_STEP_VALUE;
+            // For low res games, set larger default zoom (x2)
+            int factor = 1;
             if (_room.Resolution == RoomResolution.LowRes)
-            {
-                _state.ScaleFactor = 2;
-            }
-            else
-            {
-                _state.ScaleFactor = 1;
-            }
-            sldZoomLevel.Value = _state.ScaleFactor;
-            _state.ScrollOffsetX = 0;
-            _state.ScrollOffsetY = 0;            
+                factor = 2;
+            SetZoomSliderToMultiplier(factor);
 
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
             _layers.Add(new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame));
@@ -205,10 +204,16 @@ namespace AGS.Editor
             ee.Handled = true;
 		}
 
-		private void UpdateScrollableWindowSize()
+        private void SetZoomSliderToMultiplier(int factor)
+        {
+            sldZoomLevel.Value = (100 * factor) / ZOOM_STEP_VALUE;
+            sldZoomLevel_Scroll(null, null);
+        }
+
+        private void UpdateScrollableWindowSize()
         {
             bufferedPanel1.AutoScroll = true;
-			lblDummyScrollSizer.Location = new Point(_room.Width * _state.ScaleFactor, _room.Height * _state.ScaleFactor);
+			lblDummyScrollSizer.Location = new Point(_state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height));
         }
 
         private void RepopulateBackgroundList(int selectIndex) 
@@ -234,32 +239,31 @@ namespace AGS.Editor
 
         private void bufferedPanel1_Paint(object sender, PaintEventArgs e)
         {
-            _state.ScrollOffsetX = -(bufferedPanel1.AutoScrollPosition.X / _state.ScaleFactor) * _state.ScaleFactor;
-            _state.ScrollOffsetY = -(bufferedPanel1.AutoScrollPosition.Y / _state.ScaleFactor) * _state.ScaleFactor;
+            _state.UpdateScroll(bufferedPanel1.AutoScrollPosition);
 
-			int scaleFactor = _state.ScaleFactor;
+            int scaleFactor = 1;
             if ((_room.Resolution == RoomResolution.LowRes) &&
                 (Factory.AGSEditor.CurrentGame.IsHighResolution))
             {
                 // low-res room in high-res game, scale up since object
                 // co-ordinates will be high-res
-                scaleFactor *= 2;
+                scaleFactor = 2;
             }
 
             int backgroundNumber = cmbBackgrounds.SelectedIndex;
             if (backgroundNumber < _room.BackgroundCount)
             {
-				e.Graphics.SetClip(new Rectangle(0, 0, _room.Width * _state.ScaleFactor, _room.Height * _state.ScaleFactor));
+				e.Graphics.SetClip(new Rectangle(0, 0, _state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height)));
                 IntPtr hdc = e.Graphics.GetHdc();
 				Factory.NativeProxy.CreateBuffer(bufferedPanel1.ClientSize.Width, bufferedPanel1.ClientSize.Height);
 				// Adjust co-ordinates using original scale factor so that it lines
 				// up with objects, etc
-				int drawOffsX = -(_state.ScrollOffsetX / _state.ScaleFactor) * _state.ScaleFactor;
-				int drawOffsY = -(_state.ScrollOffsetY / _state.ScaleFactor) * _state.ScaleFactor;
+				int drawOffsX = _state.RoomXToWindow(0);
+                int drawOffsY = _state.RoomYToWindow(0);
                 IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
 				lock (_room)
 				{
-					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, scaleFactor,
+					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, _state.Scale * scaleFactor,
                         maskFilter == null ? RoomAreaMaskType.None : maskFilter.MaskToDraw, 
                         maskFilter == null ? 0 : maskFilter.SelectedArea, sldTransparency.Value);
 				}
@@ -476,7 +480,7 @@ namespace AGS.Editor
                             }
                         }
 
-						sldZoomLevel.Value = 3 - (int)_room.Resolution;
+                        SetZoomSliderToMultiplier(3 - (int)_room.Resolution);
 						sldZoomLevel_Scroll(null, null);
 						UpdateScrollableWindowSize();
                     }
@@ -581,8 +585,8 @@ namespace AGS.Editor
             _lastX = e.X;
             _lastY = e.Y;            
 
-            int mouseXPos = ((e.X + _state.ScrollOffsetX) / _state.ScaleFactor);
-            int mouseYPos = ((e.Y + _state.ScrollOffsetY) / _state.ScaleFactor);
+            int mouseXPos = _state.WindowXToRoom(e.X);
+            int mouseYPos = _state.WindowYToRoom(e.Y);
             string xPosText = mouseXPos.ToString();
             string yPosText = mouseYPos.ToString();
             if ((mouseXPos < 0) || (mouseXPos >= _room.Width))
@@ -821,14 +825,14 @@ namespace AGS.Editor
 
 			if (this.Width >= 200)
 			{
-				int requiredRoomWidth = _room.Width * _state.ScaleFactor + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Left;
+				int requiredRoomWidth = (int)(_room.Width * _state.Scale) + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Left;
 				mainFrame.Width = this.Width - 10;
 				mainFrame.Width = Math.Min(mainFrame.Width, requiredRoomWidth);
 				mainFrame.Width = Math.Max(mainFrame.Width, lblTransparency.Right + 10);
 			}
 			if (this.Height >= 200)
 			{
-				int requiredRoomHeight = _room.Height * _state.ScaleFactor + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Top;
+				int requiredRoomHeight = (int)(_room.Height * _state.Scale) + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Top;
 				mainFrame.Height = this.Height - 10;
 				mainFrame.Height = Math.Min(mainFrame.Height, requiredRoomHeight);
 			}
@@ -844,15 +848,16 @@ namespace AGS.Editor
 
 		private void sldZoomLevel_Scroll(object sender, EventArgs e)
 		{
-			int currentScaleFactor = _state.ScaleFactor;
-            int newScaleFactor = sldZoomLevel.Value;// *(int)_room.Resolution;
+            float oldScale = _state.Scale;
+            _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
 
-			int newValue = (bufferedPanel1.VerticalScroll.Value / currentScaleFactor) * newScaleFactor;
+            int newValue = (int)((bufferedPanel1.VerticalScroll.Value / oldScale) * _state.Scale);
 			bufferedPanel1.VerticalScroll.Value = Math.Min(newValue, bufferedPanel1.VerticalScroll.Maximum);
-			newValue = (bufferedPanel1.HorizontalScroll.Value / currentScaleFactor) * newScaleFactor;
+			newValue = (int)((bufferedPanel1.HorizontalScroll.Value / oldScale) * _state.Scale);
 			bufferedPanel1.HorizontalScroll.Value = Math.Min(newValue, bufferedPanel1.HorizontalScroll.Maximum);
 
-			_state.ScaleFactor = newScaleFactor;
+            lblZoomInfo.Text = String.Format("{0}%", sldZoomLevel.Value * ZOOM_STEP_VALUE);
+            
 			ResizePaneToMatchWindowAndRoomSize();
 			UpdateScrollableWindowSize();
 			bufferedPanel1.Invalidate();
@@ -900,12 +905,74 @@ namespace AGS.Editor
         }
     }
 
+    // TODO: refactor this to make code shared with the GUI Editor
     public class RoomEditorState
     {
-        internal int ScaleFactor;
-        internal int ScrollOffsetX;
-        internal int ScrollOffsetY;
+        // Multiplier, defining convertion between room and editor coords.
+        private float _scale;
+        // Offsets, in window coordinates.
+        private int _scrollOffsetX;
+        private int _scrollOffsetY;
+
         internal Cursor CurrentCursor;
         internal bool DragFromCenter;
+
+        internal RoomEditorState()
+        {
+            Scale = 1f;
+        }
+
+        internal int WindowXToRoom(int x)
+        {
+            return (int)((x + _scrollOffsetX) / _scale);
+        }
+
+        internal int WindowYToRoom(int y)
+        {
+            return (int)((y + _scrollOffsetY) / _scale);
+        }
+        internal int RoomXToWindow(int x)
+        {
+            return (int)(x * _scale - _scrollOffsetX);
+        }
+
+        internal int RoomYToWindow(int y)
+        {
+            return (int)(y * _scale - _scrollOffsetY);
+        }
+
+        internal int RoomSizeToWindow(int sz)
+        {
+            return (int)(sz * _scale);
+        }
+
+        internal int WindowSizeToRoom(int sz)
+        {
+            return (int)(sz / _scale);
+        }
+        /// <summary>
+        /// Scale of the Room image on screen.
+        /// </summary>
+        public float Scale
+        {
+            get { return _scale; }
+            set
+            {
+                float oldScale = _scale;
+                _scale = value;
+                _scrollOffsetX = (int)(-(_scrollOffsetX / oldScale) * _scale);
+                _scrollOffsetY = (int)(-(_scrollOffsetY / oldScale) * _scale);
+            }
+        }
+
+        /// <summary>
+        /// Updates offset using current scrollbar position.
+        /// </summary>
+        /// <param name="scrollPt">Scroll position in window coordinates.</param>
+        internal void UpdateScroll(Point scrollPt)
+        {
+            _scrollOffsetX = (int)(-(scrollPt.X / _scale) * _scale);
+            _scrollOffsetY = (int)(-(scrollPt.Y / _scale) * _scale);
+        }
     }
 }

@@ -38,7 +38,7 @@ namespace AGS.Editor
 			Pen pen = (Pen)GetPenForArea(SelectedArea).Clone();
 			pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
 
-			for (int i = 0; i < state.ScaleFactor; i++)
+			for (int i = 0; i < (int)state.Scale; i++)
 			{
 				graphics.DrawLine(pen, 0, lineYPos + i, graphics.VisibleClipBounds.Right, lineYPos + i);
 			}
@@ -60,7 +60,7 @@ namespace AGS.Editor
 		{
 			if (_draggingBaseline)
 			{
-				int newBaseline = (y + state.ScrollOffsetY) / state.ScaleFactor;
+				int newBaseline = state.WindowYToRoom(y);
 				if (newBaseline < 0)
 				{
 					newBaseline = 0;
@@ -121,12 +121,12 @@ namespace AGS.Editor
 
 		private int GetCurrentAreaBaselineScreenY(RoomEditorState state)
 		{
-			return (_room.WalkBehinds[SelectedArea].Baseline * state.ScaleFactor) - state.ScrollOffsetY;
+			return state.RoomYToWindow(_room.WalkBehinds[SelectedArea].Baseline);
 		}
 
 		private bool IsCursorOnHorizontalEdge(int cursorY, int edgeY, RoomEditorState state)
 		{
-			return ((cursorY >= edgeY - 1) && (cursorY <= edgeY + state.ScaleFactor));
+			return ((cursorY >= edgeY - 1) && (cursorY <= edgeY + (int)state.Scale));
 		}
 
         protected override void SelectedAreaChanged(int areaNumber)

@@ -45,8 +45,8 @@ namespace AGS.Editor
 
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
-            int xClick = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            int yClick = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            int xClick = state.WindowXToRoom(e.X);
+            int yClick = state.WindowYToRoom(e.Y);
             Character character = GetCharacter(xClick, yClick, state);
             if (character != null) SelectCharacter(character, xClick, yClick, state);
             
@@ -113,8 +113,8 @@ namespace AGS.Editor
         {
             if (!_movingCharacterWithMouse) return false;
             
-            int newX = (x + state.ScrollOffsetX) / state.ScaleFactor - _mouseOffsetX;
-            int newY = (y + state.ScrollOffsetY) / state.ScaleFactor - _mouseOffsetY;
+            int newX = state.WindowXToRoom(x) - _mouseOffsetX;
+            int newY = state.WindowYToRoom(y) - _mouseOffsetY;
             return MoveCharacter(newX, newY);                     
         }
 
@@ -152,8 +152,8 @@ namespace AGS.Editor
             ContextMenuStrip menu = new ContextMenuStrip();
             menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
 
-            _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            _menuClickX = state.WindowXToRoom(e.X);
+            _menuClickY = state.WindowYToRoom(e.Y);
 
             menu.Show(_panel, e.X, e.Y);
         }
@@ -185,8 +185,8 @@ namespace AGS.Editor
                 ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.Add(new ToolStripMenuItem("Copy Character coordinates to clipboard", null, onClick, MENU_ITEM_COPY_CHAR_COORDS));
 
-                _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-                _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+                _menuClickX = state.WindowXToRoom(e.X);
+                _menuClickY = state.WindowYToRoom(e.Y);
 
                 menu.Show(_panel, e.X, e.Y);
             }
@@ -258,8 +258,7 @@ namespace AGS.Editor
 
             if (_selectedCharacter != null)
             {
-                int scale = state.ScaleFactor;
-                Rectangle rect = GetCharacterRect(_selectedCharacter, scale, state);
+                Rectangle rect = GetCharacterRect(_selectedCharacter, state);
                 graphics.DrawRectangle(pen, rect);
 
                 if (_movingCharacterWithMouse)
@@ -272,19 +271,9 @@ namespace AGS.Editor
                     if (scaledx < 0) scaledx = 0;
                     if (scaledy < 0) scaledy = 0;
 
-                    graphics.DrawString(toDraw, font, pen.Brush, (float)scaledx, (float)scaledy);
+                    graphics.DrawString(toDraw, font, pen.Brush, scaledx, scaledy);
                 }
             }
-        }
-
-        private int AdjustXCoordinateForWindowScroll(int x, RoomEditorState state)
-        {
-            return (x - (state.ScrollOffsetX / state.ScaleFactor)) * state.ScaleFactor;
-        }
-
-        private int AdjustYCoordinateForWindowScroll(int y, RoomEditorState state)
-        {
-            return (y - (state.ScrollOffsetY / state.ScaleFactor)) * state.ScaleFactor;
         }
 
         private void DrawCharacter(Character character, RoomEditorState state)
@@ -293,8 +282,6 @@ namespace AGS.Editor
 
             if (view != null && view.Loops.Count > 0)
             {
-                int scale = state.ScaleFactor;
-
                 int spriteNum = 0;
 
                 //this is a check to make certain that loop 0 frame 0 of the character normalview has an image;
@@ -304,20 +291,20 @@ namespace AGS.Editor
                     ViewFrame thisFrame = view.Loops[0].Frames[0];
                     spriteNum = thisFrame.Image;
                 }
-                int xPos = AdjustXCoordinateForWindowScroll(character.StartX, state);// character.StartX* scale;
-                int yPos = AdjustYCoordinateForWindowScroll(character.StartY, state);// character.StartY* scale;
-                int spriteWidth = GetSpriteWidthForGameResolution(spriteNum) * scale;// Factory.NativeProxy.GetRelativeSpriteWidth(spriteNum) * scale;
-                int spriteHeight = GetSpriteHeightForGameResolution(spriteNum) * scale; // Factory.NativeProxy.GetRelativeSpriteHeight(spriteNum) * scale;
+                int xPos = state.RoomXToWindow(character.StartX);
+                int yPos = state.RoomYToWindow(character.StartY);
+                int spriteWidth = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(spriteNum));
+                int spriteHeight = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(spriteNum));
 
-                Factory.NativeProxy.DrawSpriteToBuffer(spriteNum, xPos - spriteWidth / 2, yPos - spriteHeight, scale);
+                Factory.NativeProxy.DrawSpriteToBuffer(spriteNum, xPos - spriteWidth / 2, yPos - spriteHeight, state.Scale);
             }
         }
 
-        private Rectangle GetCharacterRect(Character character, int scale, RoomEditorState state)
+        private Rectangle GetCharacterRect(Character character, RoomEditorState state)
         {
             AgsView view = _game.FindViewByID(character.NormalView);
-            int xPos = AdjustXCoordinateForWindowScroll(character.StartX, state);// character.StartX* scale;
-            int yPos = AdjustYCoordinateForWindowScroll(character.StartY, state);// character.StartY* scale;
+            int xPos = state.RoomXToWindow(character.StartX);
+            int yPos = state.RoomYToWindow(character.StartY);
 
             if (view == null || view.Loops.Count == 0)
             {
@@ -327,8 +314,8 @@ namespace AGS.Editor
             int spriteNum = 0;
             if (view.Loops[0].Frames.Count > 0)
                 spriteNum = _game.FindViewByID(character.NormalView).Loops[0].Frames[0].Image;
-            int spriteWidth = GetSpriteWidthForGameResolution(spriteNum) * scale;// Factory.NativeProxy.GetRelativeSpriteWidth(spriteNum) * scale;
-            int spriteHeight = GetSpriteHeightForGameResolution(spriteNum) * scale; // Factory.NativeProxy.GetRelativeSpriteHeight(spriteNum) * scale;
+            int spriteWidth = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(spriteNum));
+            int spriteHeight = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(spriteNum));
             return new Rectangle(xPos - spriteWidth / 2, yPos - spriteHeight, spriteWidth, spriteHeight);
         }
 
@@ -481,8 +468,8 @@ namespace AGS.Editor
         public Cursor GetCursor(int x, int y, RoomEditorState state)
         {
             if (_movingCharacterWithMouse) return Cursors.Hand;
-            x = (x + state.ScrollOffsetX) / state.ScaleFactor;
-            y = (y + state.ScrollOffsetY) / state.ScaleFactor;
+            x = state.WindowXToRoom(x);
+            y = state.WindowYToRoom(y);
             if (GetCharacter(x, y, state) != null) return Cursors.Default;
             return null;
         }

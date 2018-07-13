@@ -2469,7 +2469,7 @@ void CreateBuffer(int width, int height)
 	drawBuffer->Clear(0x00D0D0D0);
 }
 
-void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
+void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	Common::Bitmap *todraw = spriteset[sprNum];
 	if (todraw == NULL)
 	  todraw = spriteset[0];
@@ -2477,7 +2477,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 	if (((thisgame.spriteflags[sprNum] & SPF_640x400) == 0) &&
 		thisgame.IsHiRes())
 	{
-		scaleFactor *= 2;
+		scale *= 2.0f;
 	}
 
 	Common::Bitmap *imageToDraw = todraw;
@@ -2492,12 +2492,12 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 		imageToDraw = depthConverted;
 	}
 
-	int drawWidth = imageToDraw->GetWidth() * scaleFactor;
-	int drawHeight = imageToDraw->GetHeight() * scaleFactor;
+	int drawWidth = imageToDraw->GetWidth() * scale;
+	int drawHeight = imageToDraw->GetHeight() * scale;
 
 	if ((thisgame.spriteflags[sprNum] & SPF_ALPHACHANNEL) != 0)
 	{
-		if (scaleFactor > 1)
+		if (scale > 1.0f)
 		{
 			Common::Bitmap *resizedImage = Common::BitmapHelper::CreateBitmap(drawWidth, drawHeight, imageToDraw->GetColorDepth());
 			resizedImage->StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),

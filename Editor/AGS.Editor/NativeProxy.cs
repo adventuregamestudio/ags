@@ -299,9 +299,9 @@ namespace AGS.Editor
             _native.RenderBufferToHDC((int)hDC);
         }
 
-        public void DrawSpriteToBuffer(int spriteNum, int x, int y, int scaleFactor)
+        public void DrawSpriteToBuffer(int spriteNum, int x, int y, float scale)
         {
-            _native.DrawSpriteToBuffer(spriteNum, x, y, scaleFactor);
+            _native.DrawSpriteToBuffer(spriteNum, x, y, scale);
         }
 
         public void DrawLineOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int x2, int y2, int color)

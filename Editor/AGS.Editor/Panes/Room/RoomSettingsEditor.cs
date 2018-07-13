@@ -253,9 +253,11 @@ namespace AGS.Editor
             int backgroundNumber = cmbBackgrounds.SelectedIndex;
             if (backgroundNumber < _room.BackgroundCount)
             {
-				e.Graphics.SetClip(new Rectangle(0, 0, _state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height)));
+                int bufWidth = _state.RoomSizeToWindow(_room.Width);
+                int bufHeight = _state.RoomSizeToWindow(_room.Height);
+                e.Graphics.SetClip(new Rectangle(0, 0, bufWidth, bufHeight));
                 IntPtr hdc = e.Graphics.GetHdc();
-				Factory.NativeProxy.CreateBuffer(bufferedPanel1.ClientSize.Width, bufferedPanel1.ClientSize.Height);
+				Factory.NativeProxy.CreateBuffer(bufWidth, bufHeight);
 				// Adjust co-ordinates using original scale factor so that it lines
 				// up with objects, etc
 				int drawOffsX = _state.RoomXToWindow(0);
@@ -281,6 +283,7 @@ namespace AGS.Editor
                     layer.Paint(e.Graphics, _state);
                 }
             }
+            base.OnPaint(e);
         }
 
         private IRoomEditorFilter GetCurrentMaskFilter()
@@ -847,6 +850,8 @@ namespace AGS.Editor
             ForeColor = t.GetColor("room-editor/foreground");
             mainFrame.BackColor = t.GetColor("room-editor/box/background");
             mainFrame.ForeColor = t.GetColor("room-editor/box/foreground");
+            bufferedPanel1.BackColor = mainFrame.BackColor;
+            bufferedPanel1.ForeColor = mainFrame.ForeColor;
             btnChangeImage.BackColor = t.GetColor("room-editor/btn-change-image/background");
             btnChangeImage.ForeColor = t.GetColor("room-editor/btn-change-image/foreground");
             btnChangeImage.FlatStyle = (FlatStyle)t.GetInt("room-editor/btn-change-image/flat/style");

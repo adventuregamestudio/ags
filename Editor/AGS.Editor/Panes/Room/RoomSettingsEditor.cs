@@ -501,7 +501,6 @@ namespace AGS.Editor
             ImportBackground(cmbBackgrounds.SelectedIndex);
             bufferedPanel1.Invalidate();
             Factory.GUIController.RefreshPropertyGrid();
-			ResizePaneToMatchWindowAndRoomSize();
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
@@ -816,37 +815,7 @@ namespace AGS.Editor
             }
         }
 
-		private void ResizePaneToMatchWindowAndRoomSize()
-		{
-            if (_room == null)
-            {
-                return;
-            }
-
-			if (this.Width >= 200)
-			{
-				int requiredRoomWidth = (int)(_room.Width * _state.Scale) + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Left;
-				mainFrame.Width = this.Width - 10;
-				mainFrame.Width = Math.Min(mainFrame.Width, requiredRoomWidth);
-				mainFrame.Width = Math.Max(mainFrame.Width, lblTransparency.Right + 10);
-			}
-			if (this.Height >= 200)
-			{
-				int requiredRoomHeight = (int)(_room.Height * _state.Scale) + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Top;
-				mainFrame.Height = this.Height - 10;
-				mainFrame.Height = Math.Min(mainFrame.Height, requiredRoomHeight);
-			}
-			bufferedPanel1.Size = new Size(mainFrame.DisplayRectangle.Width - bufferedPanel1.Left,
-										   mainFrame.DisplayRectangle.Height - bufferedPanel1.Top);
-
-		}
-
-        private void RoomSettingsEditor_Resize(object sender, EventArgs e)
-        {
-			ResizePaneToMatchWindowAndRoomSize();
-        }
-
-		private void sldZoomLevel_Scroll(object sender, EventArgs e)
+        private void sldZoomLevel_Scroll(object sender, EventArgs e)
 		{
             float oldScale = _state.Scale;
             _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
@@ -858,7 +827,6 @@ namespace AGS.Editor
 
             lblZoomInfo.Text = String.Format("{0}%", sldZoomLevel.Value * ZOOM_STEP_VALUE);
             
-			ResizePaneToMatchWindowAndRoomSize();
 			UpdateScrollableWindowSize();
 			bufferedPanel1.Invalidate();
 		}

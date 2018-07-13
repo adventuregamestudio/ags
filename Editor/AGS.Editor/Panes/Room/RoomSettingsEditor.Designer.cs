@@ -54,6 +54,9 @@ namespace AGS.Editor
             // 
             // mainFrame
             // 
+            this.mainFrame.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.mainFrame.Controls.Add(this.lblZoomInfo);
             this.mainFrame.Controls.Add(this._editAddressBar);
             this.mainFrame.Controls.Add(this.chkCharacterOffset);
@@ -72,7 +75,7 @@ namespace AGS.Editor
             this.mainFrame.Controls.Add(this.sldTransparency);
             this.mainFrame.Location = new System.Drawing.Point(3, 3);
             this.mainFrame.Name = "mainFrame";
-            this.mainFrame.Size = new System.Drawing.Size(769, 593);
+            this.mainFrame.Size = new System.Drawing.Size(759, 485);
             this.mainFrame.TabIndex = 4;
             this.mainFrame.TabStop = false;
             this.mainFrame.Text = "Room details";
@@ -204,11 +207,15 @@ namespace AGS.Editor
             // 
             // bufferedPanel1
             // 
+            this.bufferedPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.bufferedPanel1.AutoScroll = true;
+            this.bufferedPanel1.BackColor = System.Drawing.SystemColors.Control;
             this.bufferedPanel1.Controls.Add(this.lblDummyScrollSizer);
             this.bufferedPanel1.Location = new System.Drawing.Point(12, 93);
             this.bufferedPanel1.Name = "bufferedPanel1";
-            this.bufferedPanel1.Size = new System.Drawing.Size(640, 480);
+            this.bufferedPanel1.Size = new System.Drawing.Size(741, 384);
             this.bufferedPanel1.TabIndex = 1;
             this.bufferedPanel1.TabStop = true;
             this.bufferedPanel1.Paint += new System.Windows.Forms.PaintEventHandler(this.bufferedPanel1_Paint);
@@ -268,8 +275,7 @@ namespace AGS.Editor
             this.Controls.Add(this.mainFrame);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "RoomSettingsEditor";
-            this.Size = new System.Drawing.Size(780, 614);
-            this.Resize += new System.EventHandler(this.RoomSettingsEditor_Resize);
+            this.Size = new System.Drawing.Size(768, 491);
             this.mainFrame.ResumeLayout(false);
             this.mainFrame.PerformLayout();
             this.bufferedPanel1.ResumeLayout(false);

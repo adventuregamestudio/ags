@@ -181,7 +181,7 @@ namespace AGS.Editor
             {
                 return true;
             }
-            return (File.GetLastWriteTime(sourceFile) > File.GetLastWriteTime(destinationFile));
+            return (File.GetLastWriteTime(sourceFile) >= File.GetLastWriteTime(destinationFile));
         }
 
         public static void DeleteFileIfExists(string fileName)

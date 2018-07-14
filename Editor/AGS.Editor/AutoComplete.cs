@@ -60,9 +60,7 @@ namespace AGS.Editor
                     try
                     {
                         OnBackgroundCacheUpdateStatusChanged(BackgroundAutoCompleteStatus.Processing, null);
-
-                        ConstructCache(scriptToUpdate, true);
-
+                        ConstructCache(scriptToUpdate);
                         OnBackgroundCacheUpdateStatusChanged(BackgroundAutoCompleteStatus.Finished, null);
                     }
                     catch (Exception ex)
@@ -71,11 +69,6 @@ namespace AGS.Editor
                     }
                 }
             }
-        }
-
-        public static void ConstructCache(Script scriptToCache)
-        {
-            ConstructCache(scriptToCache, false);
         }
 
         private static bool IncrementIndexToSkipAnyComments(FastString script, ref int index)
@@ -146,7 +139,7 @@ namespace AGS.Editor
             script = script.Substring(index);
         }
 
-        private static void ConstructCache(Script scriptToCache, bool isBackgroundThread)
+        public static void ConstructCache(Script scriptToCache)
         {
             string originalText = scriptToCache.Text;
             ScriptAutoCompleteData newCache = new ScriptAutoCompleteData();
@@ -163,18 +156,9 @@ namespace AGS.Editor
             FastString script = originalText;
             AutoCompleteParserState state = new AutoCompleteParserState();
             ScriptFunction lastFunction = null;
-            int counter = 0;
 
             while (script.Length > 0)
             {
-                if (isBackgroundThread)
-                {
-                    counter++;
-                    if (counter % 20 == 0)
-                    {
-                        Thread.Sleep(2);
-                    }
-                }
                 SkipWhitespace(ref script);
                 state.CurrentScriptCharacterIndex = originalText.Length - script.Length;
 

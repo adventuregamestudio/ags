@@ -20,7 +20,9 @@ namespace AGS.Editor
         private RoomObject _selectedObject;
 		private RoomObject _lastSelectedObject;
         private bool _movingObjectWithMouse;
+        // mouse offset in ROOM's coordinates
         private int _mouseOffsetX, _mouseOffsetY;
+        // mouse click location in ROOM's coordinates
         private int _menuClickX, _menuClickY;
         private List<RoomObject> _objectBaselines = new List<RoomObject>();
 
@@ -388,7 +390,7 @@ namespace AGS.Editor
         {
             if (!_movingObjectWithMouse) return false;
             int realX = state.WindowXToRoom(x);
-            int realY = state.WindowXToRoom(y);
+            int realY = state.WindowYToRoom(y);
 
             if ((_movingObjectWithMouse) && (realY < _room.Height) &&
                 (realX < _room.Width) && (realY >= 0) && (realX >= 0))

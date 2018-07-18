@@ -160,26 +160,26 @@ namespace AGS.Editor
         {
             if ((_mouseDown) && (_drawMode == AreaDrawMode.Line))
             {
-                int penWidth = GetScaleFactor(state);
+                int penWidth = (int)GetScaleFactor(state);
                 int extraOffset = penWidth / 2;
                 Pen pen = GetPenForArea(_drawingWithArea);
                 pen = new Pen(pen.Color, penWidth);
-                graphics.DrawLine(pen, GameToScreenX(_mouseDownX, state) + extraOffset, 
-                    GameToScreenY(_mouseDownY, state) + extraOffset, 
-                    GameToScreenX(_currentMouseX, state) + extraOffset, 
-                    GameToScreenY(_currentMouseY, state) + extraOffset);
+                graphics.DrawLine(pen, state.RoomXToWindow(_mouseDownX) + extraOffset,
+                    state.RoomYToWindow(_mouseDownY) + extraOffset,
+                    state.RoomXToWindow(_currentMouseX) + extraOffset,
+                    state.RoomYToWindow(_currentMouseY) + extraOffset);
                 pen.Dispose();
             }
 			else if ((_mouseDown) && (_drawMode == AreaDrawMode.Rectangle))
 			{
-				int mousePressedAtX = GameToScreenX(_mouseDownX, state);
-				int mousePressedAtY = GameToScreenY(_mouseDownY, state);
-				int mouseNowAtX = GameToScreenX(_currentMouseX, state);
-				int mouseNowAtY = GameToScreenY(_currentMouseY, state);
+				int mousePressedAtX = state.RoomXToWindow(_mouseDownX);
+				int mousePressedAtY = state.RoomYToWindow(_mouseDownY);
+				int mouseNowAtX = state.RoomXToWindow(_currentMouseX);
+				int mouseNowAtY = state.RoomYToWindow(_currentMouseY);
 				EnsureSmallestNumberIsFirst(ref mousePressedAtX, ref mouseNowAtX);
 				EnsureSmallestNumberIsFirst(ref mousePressedAtY, ref mouseNowAtY);
-                mouseNowAtX += GetScaleFactor(state) - 1;
-                mouseNowAtY += GetScaleFactor(state) - 1;
+                mouseNowAtX += (int)GetScaleFactor(state) - 1;
+                mouseNowAtY += (int)GetScaleFactor(state) - 1;
 
 				graphics.FillRectangle(GetBrushForArea(_drawingWithArea), mousePressedAtX, mousePressedAtY, mouseNowAtX - mousePressedAtX + 1, mouseNowAtY - mousePressedAtY + 1);
 			}
@@ -213,45 +213,25 @@ namespace AGS.Editor
 			return Pens.Red;
 		}
 
-        private int GetScaleFactor(RoomEditorState state)
+        private float GetScaleFactor(RoomEditorState state)
         {
             if (_room.Resolution == RoomResolution.HighRes)
             {
                 if (_highResMask)
                 {
-                    return state.ScaleFactor;
+                    return state.Scale;
                 }
-                return state.ScaleFactor * 2;
+                return state.Scale * 2f;
             }
             else if (Factory.AGSEditor.CurrentGame.IsHighResolution)
             {
                 // Low-res room in hi-res game
-                return state.ScaleFactor * 2;
+                return state.Scale * 2f;
             }
             else
             {
-                return state.ScaleFactor;
+                return state.Scale;
             }
-        }
-
-        protected int GameToScreenX(int gameX, RoomEditorState state)
-        {
-            return (gameX * GetScaleFactor(state)) - state.ScrollOffsetX;
-        }
-
-        protected int GameToScreenY(int gameY, RoomEditorState state)
-        {
-            return (gameY * GetScaleFactor(state)) - state.ScrollOffsetY;
-        }
-
-        protected int ScreenToGameX(int screenX, RoomEditorState state)
-        {
-            return (screenX + state.ScrollOffsetX) / GetScaleFactor(state);
-        }
-
-        protected int ScreenToGameY(int screenY, RoomEditorState state)
-        {
-            return (screenY + state.ScrollOffsetY) / GetScaleFactor(state);
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
@@ -271,8 +251,8 @@ namespace AGS.Editor
                 return false;
             }
             
-            int x = ScreenToGameX(e.X, state);
-            int y = ScreenToGameY(e.Y, state);
+            int x = state.WindowXToRoom(e.X);
+            int y = state.WindowYToRoom(e.Y);
 
             AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;
 
@@ -389,16 +369,16 @@ namespace AGS.Editor
             ContextMenuStrip menu = new ContextMenuStrip();
             menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
 
-            _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            _menuClickX = state.WindowXToRoom(e.X);
+            _menuClickY = state.WindowYToRoom(e.Y);
 
             menu.Show(_panel, e.X, e.Y);
         }
 
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {
-            _currentMouseX = ScreenToGameX(x, state);
-            _currentMouseY = ScreenToGameY(y, state);
+            _currentMouseX = state.WindowXToRoom(x);
+            _currentMouseY = state.WindowYToRoom(y);
 
             AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;            
 
@@ -662,8 +642,8 @@ namespace AGS.Editor
             }
             if (state.CurrentCursor == null)
             {
-                x = ScreenToGameX(x, state);
-                y = ScreenToGameY(y, state);
+                x = state.WindowXToRoom(x);
+                y = state.WindowYToRoom(y);
                 int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);
                 if (area != 0 && !IsLocked(area))
                 {

@@ -41,8 +41,8 @@ namespace AGS.Editor
             {
                 if ((hotspot.WalkToPoint.X > 0) && (hotspot.WalkToPoint.Y > 0))
                 {
-                    int x = (hotspot.WalkToPoint.X * state.ScaleFactor) - state.ScrollOffsetX;
-                    int y = (hotspot.WalkToPoint.Y * state.ScaleFactor) - state.ScrollOffsetY;
+                    int x = state.RoomXToWindow(hotspot.WalkToPoint.X);
+                    int y = state.RoomYToWindow(hotspot.WalkToPoint.Y);
                     graphics.DrawLine(Pens.Red, x - 4, y - 4, x + 4, y + 4);
                     graphics.DrawLine(Pens.RosyBrown, x - 4, y + 4, x + 4, y - 4);
                     graphics.DrawString(hotspot.ID.ToString(), new System.Drawing.Font(FontFamily.GenericSansSerif, 10, FontStyle.Bold), Brushes.Gold, x + 4, y - 7);

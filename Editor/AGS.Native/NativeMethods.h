@@ -78,7 +78,7 @@ namespace AGS
       void RestoreFromUndoBuffer(Room ^room, RoomAreaMaskType maskType);
       void SetGreyedOutMasksEnabled(bool enabled);
 			void CreateBuffer(int width, int height) ;
-			void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) ;
+			void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) ;
 			void RenderBufferToHDC(int hDC) ;
 			String ^LoadRoomScript(String ^roomFileName);
 			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, bool isRoomScript);

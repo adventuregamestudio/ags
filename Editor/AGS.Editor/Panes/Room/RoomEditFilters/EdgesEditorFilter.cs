@@ -68,16 +68,16 @@ namespace AGS.Editor
 			get { return false; }
 		}
 
-        private void DrawDoubleWidthVerticalLine(Graphics graphics, int x, int scaleFactor)
+        private void DrawDoubleWidthVerticalLine(Graphics graphics, int x, float scale)
         {
-            graphics.DrawLine(Pens.Yellow, x, 0, x, _room.Height * scaleFactor);
-            graphics.DrawLine(Pens.Yellow, x + 1, 0, x + 1, _room.Height * scaleFactor);
+            graphics.DrawLine(Pens.Yellow, x, 0, x, _room.Height * scale);
+            graphics.DrawLine(Pens.Yellow, x + 1, 0, x + 1, _room.Height * scale);
         }
 
-        private void DrawDoubleHeightHorizontalLine(Graphics graphics, int y, int scaleFactor)
+        private void DrawDoubleHeightHorizontalLine(Graphics graphics, int y, float scale)
         {
-            graphics.DrawLine(Pens.Yellow, 0, y, _room.Width * scaleFactor, y);
-            graphics.DrawLine(Pens.Yellow, 0, y + 1, _room.Width * scaleFactor, y + 1);
+            graphics.DrawLine(Pens.Yellow, 0, y, _room.Width * scale, y);
+            graphics.DrawLine(Pens.Yellow, 0, y + 1, _room.Width * scale, y + 1);
         }
 
         public void Invalidate() { _panel.Invalidate(); }
@@ -104,16 +104,16 @@ namespace AGS.Editor
 
         public void Paint(Graphics graphics, RoomEditorState state)
         {
-            int scaleFactor = state.ScaleFactor;
+            float scale = state.Scale;
 
             if (VisibleItems.Contains(SelectedEdge.Left.ToString())) 
-                DrawDoubleWidthVerticalLine(graphics, _room.LeftEdgeX * scaleFactor - state.ScrollOffsetX, scaleFactor);
+                DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.LeftEdgeX), scale);
             if (VisibleItems.Contains(SelectedEdge.Right.ToString()))
-                DrawDoubleWidthVerticalLine(graphics, _room.RightEdgeX * scaleFactor - state.ScrollOffsetX, scaleFactor);
+                DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.RightEdgeX), scale);
             if (VisibleItems.Contains(SelectedEdge.Top.ToString()))
-                DrawDoubleHeightHorizontalLine(graphics, _room.TopEdgeY * scaleFactor - state.ScrollOffsetY, scaleFactor);
+                DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.TopEdgeY), scale);
             if (VisibleItems.Contains(SelectedEdge.Bottom.ToString()))
-                DrawDoubleHeightHorizontalLine(graphics, _room.BottomEdgeY * scaleFactor - state.ScrollOffsetY, scaleFactor);
+                DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.BottomEdgeY), scale);
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state)
@@ -124,8 +124,8 @@ namespace AGS.Editor
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             _mouseDown = true;
-            int x = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            int y = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            int x = state.WindowXToRoom(e.X);
+            int y = state.WindowYToRoom(e.Y);
 
             if (IsCursorOnVerticalEdge(x, _room.LeftEdgeX, SelectedEdge.Left) && SetSelectedEdge(SelectedEdge.Left)) {}            
             else if (IsCursorOnVerticalEdge(x, _room.RightEdgeX, SelectedEdge.Right) && SetSelectedEdge(SelectedEdge.Right)) {}            
@@ -152,11 +152,9 @@ namespace AGS.Editor
         {
             if (_selectedEdge != SelectedEdge.None && _mouseDown)
             {
-                x += state.ScrollOffsetX;
-                y += state.ScrollOffsetY;
-                int scaleFactor = state.ScaleFactor;            
-            
-                MoveEdgeWithMouse(x / scaleFactor, y / scaleFactor);
+                x = state.WindowXToRoom(x);
+                y = state.WindowYToRoom(y);
+                MoveEdgeWithMouse(x, y);
                 _room.Modified = true;
                 return true;
             }
@@ -304,27 +302,26 @@ namespace AGS.Editor
 
         public Cursor GetCursor(int x, int y, RoomEditorState state)
         {
-            x += state.ScrollOffsetX;
-            y += state.ScrollOffsetY;
-            int scaleFactor = state.ScaleFactor;
+            int roomX = state.WindowXToRoom(x);
+            int roomY = state.WindowYToRoom(y);
             string toolTipText = null;
             Cursor cursor = null;
-            if (IsCursorOnVerticalEdge(x / scaleFactor, _room.LeftEdgeX, SelectedEdge.Left))
+            if (IsCursorOnVerticalEdge(roomX, _room.LeftEdgeX, SelectedEdge.Left))
             {
                 cursor = Cursors.VSplit;
                 toolTipText = "Left edge";
             }
-            else if (IsCursorOnVerticalEdge(x / scaleFactor, _room.RightEdgeX, SelectedEdge.Right))
+            else if (IsCursorOnVerticalEdge(roomX, _room.RightEdgeX, SelectedEdge.Right))
             {
                 cursor = Cursors.VSplit;
                 toolTipText = "Right edge";
             }
-            else if (IsCursorOnHorizontalEdge(y / scaleFactor, _room.TopEdgeY, SelectedEdge.Top))
+            else if (IsCursorOnHorizontalEdge(roomY, _room.TopEdgeY, SelectedEdge.Top))
             {
                 cursor = Cursors.HSplit;
                 toolTipText = "Top edge";
             }
-            else if (IsCursorOnHorizontalEdge(y / scaleFactor, _room.BottomEdgeY, SelectedEdge.Bottom))
+            else if (IsCursorOnHorizontalEdge(roomY, _room.BottomEdgeY, SelectedEdge.Bottom))
             {
                 cursor = Cursors.HSplit;
                 toolTipText = "Bottom edge";
@@ -341,7 +338,7 @@ namespace AGS.Editor
                 if ((Math.Abs(x - _tooltipX) > 5) || (Math.Abs(y - _tooltipY) > 5) ||
                     (_tooltipText != toolTipText) || (!_tooltip.Active))
                 {
-                    _tooltip.Show(toolTipText, _panel, (x - state.ScrollOffsetX) - 10, (y - state.ScrollOffsetY) + 5);
+                    _tooltip.Show(toolTipText, _panel, x - 10, y + 5);
                     _tooltipX = x;
                     _tooltipY = y;
                     _tooltipText = toolTipText;

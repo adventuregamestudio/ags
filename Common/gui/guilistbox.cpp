@@ -192,9 +192,9 @@ void GUIListBox::RemoveItem(int index)
     guis_need_update = 1;
 }
 
-void GUIListBox::SetFont(int Font)
+void GUIListBox::SetFont(int font)
 {
-    Font = Font;
+    Font = font;
     RowHeight = getfontheight(Font) + get_fixed_pixel_size(2);
     VisibleItemCount = Height / RowHeight;
 }

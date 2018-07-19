@@ -95,20 +95,19 @@ namespace AGS.Editor
             _panel = displayPanel;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             UpdateUndoButtonEnabledState();
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            DesignItems = new Dictionary<string, Editor.DesignTimeProperties>();
+            InitGameEntities();
         }
 
         public abstract string DisplayName { get; }
         public abstract bool VisibleByDefault { get; }
 
+        public Dictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+
         public abstract RoomAreaMaskType MaskToDraw
         {
             get;
         }
-
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
 
         public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -304,8 +303,7 @@ namespace AGS.Editor
 
         private bool IsLocked(int area)
         {
-            string areaName = GetItemName(area);
-            return LockedItems.Contains(areaName);
+            return DesignItems[GetItemName(area)].Locked;
         }
 
         public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
@@ -670,6 +668,7 @@ namespace AGS.Editor
 
         private string GetItemName(int id)
         {
+            // TODO: optimise this!
             Dictionary<string, int> items = GetItems();
             foreach (KeyValuePair<string, int> pair in items)
             {
@@ -695,6 +694,13 @@ namespace AGS.Editor
         protected abstract void SetPropertyGridList();
         protected abstract void SelectedAreaChanged(int areaNumber);
         protected abstract void GUIController_OnPropertyObjectChanged(object newPropertyObject);
-    }
 
+        private void InitGameEntities()
+        {
+            // TODO: load last design settings
+            DesignItems.Clear();
+            foreach (string s in GetItemsNames())
+                DesignItems.Add(s, new DesignTimeProperties(VisibleByDefault, false));
+        }
+    }
 }

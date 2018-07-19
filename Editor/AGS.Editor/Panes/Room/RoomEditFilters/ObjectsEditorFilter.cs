@@ -32,8 +32,8 @@ namespace AGS.Editor
             _panel = displayPanel;
             _selectedObject = null;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            DesignItems = new Dictionary<string, Editor.DesignTimeProperties>();
+            InitGameEntities();
         }
 
         public string DisplayName { get { return "Objects"; } }
@@ -47,8 +47,7 @@ namespace AGS.Editor
 
         public bool SupportVisibleItems { get { return true; } }
 
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
+        public Dictionary<string, DesignTimeProperties> DesignItems { get; private set; }
 
         public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -115,7 +114,7 @@ namespace AGS.Editor
 
             foreach (RoomObject obj in _objectBaselines)
             {
-                if (!VisibleItems.Contains(GetUniqueName(obj))) continue;
+                if (!DesignItems[GetUniqueName(obj)].Visible) continue;
                 int height = GetSpriteHeightForGameResolution(obj.Image);
                 int ypos = state.RoomYToWindow(obj.StartY - height);
 				Factory.NativeProxy.DrawSpriteToBuffer(obj.Image, state.RoomXToWindow(obj.StartX), ypos, state.Scale);
@@ -158,7 +157,7 @@ namespace AGS.Editor
             int xPos;
             int yPos;
 
-            if (_selectedObject != null && VisibleItems.Contains(GetUniqueName(_selectedObject)))
+            if (_selectedObject != null && DesignItems[GetUniqueName(_selectedObject)].Visible)
             {
                 int width = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(_selectedObject.Image));
 				int height = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(_selectedObject.Image));
@@ -239,8 +238,8 @@ namespace AGS.Editor
             for (int i = _objectBaselines.Count - 1; i >= 0; i--)
             {
                 RoomObject obj = _objectBaselines[i];
-                string name = GetUniqueName(obj);
-                if (!VisibleItems.Contains(name) || LockedItems.Contains(name)) continue;
+                DesignTimeProperties p = DesignItems[GetUniqueName(obj)];
+                if (!p.Visible || p.Locked) continue;
                 if (HitTest(obj, x, y)) return obj;
             }
             return null;
@@ -543,6 +542,12 @@ namespace AGS.Editor
             return obj.PropertyGridTitle;
         }
 
+        private void InitGameEntities()
+        {
+            // TODO: load last design settings
+            DesignItems.Clear();
+            foreach (string s in GetItemsNames())
+                DesignItems.Add(s, new DesignTimeProperties(VisibleByDefault, false));
+        }
     }
-
 }

@@ -160,6 +160,7 @@
       <DependentUpon>NumberEntryDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\Room\RoomEditFilters\CharactersEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\DesignTimeProperties.cs" />
     <Compile Include="Plugins\IAGSEditor.cs" />
     <Compile Include="Plugins\NativePlugin.cs" />
     <Compile Include="Panes\BufferedPanel.cs">

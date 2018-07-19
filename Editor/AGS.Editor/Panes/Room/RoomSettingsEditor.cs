@@ -790,12 +790,13 @@ namespace AGS.Editor
 			{
                 if (_layer != null)
                 {
-                    // Force the layer to refresh its property list with the new name                
+                    // Force the layer to refresh its property list with the new name   
+                    // TODO: find out if this hack can be avoided             
                     _layer.FilterOff();
                     _layer.FilterOn();
                 }
-                RefreshLayersTree();          
-			}            
+                RefreshLayersTree();
+			}
 		}
 
 		protected override void OnWindowActivated()
@@ -903,7 +904,8 @@ namespace AGS.Editor
         internal int WindowYToRoom(int y)
         {
             return (int)((y + _scrollOffsetY) / _scale);
-        }
+        }
+
         internal int RoomXToWindow(int x)
         {
             return (int)(x * _scale - _scrollOffsetX);
@@ -922,7 +924,8 @@ namespace AGS.Editor
         internal int WindowSizeToRoom(int sz)
         {
             return (int)(sz / _scale);
-        }
+        }
+
         /// <summary>
         /// Scale of the Room image on screen.
         /// </summary>

@@ -97,8 +97,10 @@ namespace AGS.Editor.Panes.Room
             }
             else
             {
-                Layer.VisibleItems.Clear();
-                Layer.VisibleItems.AddRange(Layer.GetItemsNames());
+                foreach (string n in Layer.GetItemsNames())
+                {
+                    Layer.DesignItems[n].Visible = true;
+                }
             }
             return host;
             //return new ToolStripMenuItem(DisplayName, null, nodeClicked);
@@ -109,7 +111,7 @@ namespace AGS.Editor.Panes.Room
             IRoomEditorFilter parentFilter = FindFilter();
             if (parentFilter != null)
             {
-                if (Layer == null) UpdateList(parentFilter.VisibleItems, DisplayName, _control.IsVisible);
+                if (Layer == null) parentFilter.DesignItems[DisplayName].Visible = _control.IsVisible;
                 parentFilter.Invalidate();
             }
         }
@@ -118,17 +120,7 @@ namespace AGS.Editor.Panes.Room
         {
             if (Layer != null) return;
             IRoomEditorFilter parentFilter = FindFilter();
-            if (parentFilter != null) UpdateList(parentFilter.LockedItems, DisplayName, _control.IsLocked);            
-        }
-
-        private void UpdateList(List<string> list, string name, bool add)
-        {
-            if (add)
-            {
-                if (list.Contains(name)) return;
-                list.Add(name);
-            }
-            else list.Remove(name);
+            if (parentFilter != null) parentFilter.DesignItems[DisplayName].Locked = _control.IsLocked;            
         }
 
         private IRoomEditorFilter FindFilter()

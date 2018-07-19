@@ -32,8 +32,8 @@ namespace AGS.Editor
             _room = room;
             _panel = displayPanel;
             _tooltip = new ToolTip();
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            DesignItems = new Dictionary<string, Editor.DesignTimeProperties>();
+            InitGameEntities();
         }
 
         public string DisplayName { get { return "Edges"; } }
@@ -45,8 +45,7 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.None; }
         }
 
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
+        public Dictionary<string, DesignTimeProperties> DesignItems { get; private set; }
 
         public bool SupportVisibleItems { get { return true; } }
 
@@ -106,13 +105,13 @@ namespace AGS.Editor
         {
             float scale = state.Scale;
 
-            if (VisibleItems.Contains(SelectedEdge.Left.ToString())) 
+            if (DesignItems[SelectedEdge.Left.ToString()].Visible) 
                 DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.LeftEdgeX), scale);
-            if (VisibleItems.Contains(SelectedEdge.Right.ToString()))
+            if (DesignItems[SelectedEdge.Right.ToString()].Visible)
                 DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.RightEdgeX), scale);
-            if (VisibleItems.Contains(SelectedEdge.Top.ToString()))
+            if (DesignItems[SelectedEdge.Top.ToString()].Visible)
                 DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.TopEdgeY), scale);
-            if (VisibleItems.Contains(SelectedEdge.Bottom.ToString()))
+            if (DesignItems[SelectedEdge.Bottom.ToString()].Visible)
                 DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.BottomEdgeY), scale);
         }
 
@@ -267,7 +266,8 @@ namespace AGS.Editor
 
         private bool IsMoveable(SelectedEdge edge)
         {
-            if (!VisibleItems.Contains(edge.ToString()) || LockedItems.Contains(edge.ToString())) return false;
+            DesignTimeProperties p = DesignItems[edge.ToString()];
+            if (!p.Visible || p.Locked) return false;
             return true;
         }
 
@@ -365,6 +365,14 @@ namespace AGS.Editor
                 OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(edge.ToString()));
             }
             return true;
+        }
+
+        private void InitGameEntities()
+        {
+            // TODO: load last design settings
+            DesignItems.Clear();
+            foreach (string s in GetItemsNames())
+                DesignItems.Add(s, new DesignTimeProperties(VisibleByDefault, false));
         }
     }
 

@@ -34,8 +34,8 @@ namespace AGS.Editor
             _panel = displayPanel;
             _game = game;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            DesignItems = new Dictionary<string, Editor.DesignTimeProperties>();
+            InitGameEntities();
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
@@ -80,7 +80,8 @@ namespace AGS.Editor
             {
                 if (_room.Number != character.StartingRoom) continue;
 
-                if (!VisibleItems.Contains(character.ScriptName) || LockedItems.Contains(character.ScriptName)) continue;
+                DesignTimeProperties p = DesignItems[character.ScriptName];
+                if (!p.Visible || p.Locked) continue;
 
                 AgsView view = _game.FindViewByID(character.NormalView);
 
@@ -214,7 +215,7 @@ namespace AGS.Editor
         {
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
-                if (_room.Number == character.StartingRoom && VisibleItems.Contains(character.ScriptName))
+                if (_room.Number == character.StartingRoom && DesignItems[character.ScriptName].Visible)
                 {
                     DrawCharacter(character, state);
                 }
@@ -367,9 +368,8 @@ namespace AGS.Editor
 
         public bool SupportVisibleItems { get { return true; } }
 
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
-        
+        public Dictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
 
@@ -488,5 +488,12 @@ namespace AGS.Editor
             }
         }
 
+        private void InitGameEntities()
+        {
+            // TODO: load last design settings
+            DesignItems.Clear();
+            foreach (string s in GetItemsNames())
+                DesignItems.Add(s, new DesignTimeProperties(VisibleByDefault, false));
+        }
     }
 }

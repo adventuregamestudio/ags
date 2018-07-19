@@ -16,10 +16,12 @@ namespace AGS.Editor
         string HelpKeyword { get; }
         bool ShowTransparencySlider { get; }
         bool VisibleByDefault { get; }
-        List<string> LockedItems { get; }
-        List<string> VisibleItems { get; }
         bool SupportVisibleItems { get; }
-        
+
+        /// <summary>
+        /// The dictionary that maps an object ID to its design-time properties.
+        /// </summary>
+        Dictionary<string, DesignTimeProperties> DesignItems { get; }
         void PaintToHDC(IntPtr hDC, RoomEditorState state);
         void Paint(Graphics graphics, RoomEditorState state);
         void MouseDownAlways(MouseEventArgs e, RoomEditorState state);

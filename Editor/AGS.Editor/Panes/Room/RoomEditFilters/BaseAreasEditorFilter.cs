@@ -105,7 +105,8 @@ namespace AGS.Editor
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
         /// <summary>
-        /// A dictionary where the keys are area IDs and values are area indexes.
+        /// A lookup table for getting game object reference by they key.
+        /// the keys are area IDs and values are area indexes.
         /// </summary>
         private SortedDictionary<string, int> RoomItemRefs { get; set; }
 

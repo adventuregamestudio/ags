@@ -48,7 +48,7 @@ namespace AGS.Editor
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
         /// <summary>
-        /// A dictionary where the keys are edge IDs and values are related numeric constants.
+        /// A lookup table for getting game object reference by they key.
         /// </summary>
         private SortedDictionary<string, SelectedEdge> RoomItemRefs { get; set; }
 

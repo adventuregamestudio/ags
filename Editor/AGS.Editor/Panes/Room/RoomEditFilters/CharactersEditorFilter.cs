@@ -371,7 +371,7 @@ namespace AGS.Editor
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
         /// <summary>
-        /// A dictionary where the keys are character IDs and values are characters.
+        /// A lookup table for getting game object reference by they key.
         /// </summary>
         private SortedDictionary<string, Character> RoomItemRefs { get; set; }
 
@@ -433,7 +433,7 @@ namespace AGS.Editor
 
         private string GetItemID(Character c)
         {
-            // Use numeric character's ID as a "unique identifier", for now
+            // Use numeric character's ID as a "unique identifier", for now (script name is optional!)
             return c.ID.ToString();
         }
 

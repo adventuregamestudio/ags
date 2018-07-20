@@ -50,7 +50,7 @@ namespace AGS.Editor
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
         /// <summary>
-        /// A dictionary where the keys are character IDs and values are characters.
+        /// A lookup table for getting game object reference by they key.
         /// </summary>
         private SortedDictionary<string, RoomObject> RoomItemRefs { get; set; }
 
@@ -294,17 +294,21 @@ namespace AGS.Editor
                 if (Factory.GUIController.ShowQuestion("Are you sure you want to delete this object?") == DialogResult.Yes)
                 {
                     _room.Objects.Remove(_selectedObject);
+                    RemoveObjectRef(_selectedObject);
                     foreach (RoomObject obj in _room.Objects)
                     {
                         if (obj.ID >= _selectedObject.ID)
                         {
+                            string oldID = GetItemID(obj);
                             obj.ID--;
+                            UpdateObjectRef(obj, oldID);
                         }
                     }
                     _selectedObject = null;
                     Factory.GUIController.SetPropertyGridObject(_room);
                     SetPropertyGridList();
                     _room.Modified = true;
+                    OnItemsChanged(this, null);
                     _panel.Invalidate();
                 }
             }
@@ -320,6 +324,7 @@ namespace AGS.Editor
                 newObj.StartX = SetObjectCoordinate(_menuClickX);
                 newObj.StartY = SetObjectCoordinate(_menuClickY);
                 _room.Objects.Add(newObj);
+                AddObjectRef(newObj);
                 SetSelectedObject(newObj);
                 SetPropertyGridList();
                 Factory.GUIController.SetPropertyGridObject(newObj);
@@ -556,7 +561,7 @@ namespace AGS.Editor
 
         private string GetItemID(RoomObject obj)
         {
-            // Use numeric object's ID as a "unique identifier", for now
+            // Use numeric object's ID as a "unique identifier", for now (script name is optional!)
             return obj.ID.ToString();
         }
 
@@ -569,6 +574,34 @@ namespace AGS.Editor
             DesignItems.Clear();
             foreach (var item in RoomItemRefs)
                 DesignItems.Add(item.Key, new DesignTimeProperties(VisibleByDefault, false));
+        }
+
+        private void AddObjectRef(RoomObject obj)
+        {
+            string id = GetItemID(obj);
+            if (RoomItemRefs.ContainsKey(id))
+                return;
+            RoomItemRefs.Add(id, obj);
+            DesignItems.Add(id, new DesignTimeProperties(VisibleByDefault, false));
+        }
+
+        private void RemoveObjectRef(RoomObject obj)
+        {
+            string id = GetItemID(obj);
+            RoomItemRefs.Remove(id);
+            DesignItems.Remove(id);
+        }
+
+        private void UpdateObjectRef(RoomObject obj, string oldID)
+        {
+            if (!RoomItemRefs.ContainsKey(oldID))
+                return;
+            string newID = GetItemID(obj);
+            RoomItemRefs.Remove(oldID);
+            RoomItemRefs.Add(newID, obj);
+            // We must keep DesignTimeProperties!
+            DesignItems.Add(newID, DesignItems[oldID]);
+            DesignItems.Remove(oldID);
         }
     }
 }

@@ -32,7 +32,8 @@ namespace AGS.Editor
             _room = room;
             _panel = displayPanel;
             _tooltip = new ToolTip();
-            DesignItems = new Dictionary<string, Editor.DesignTimeProperties>();
+            RoomItemRefs = new SortedDictionary<string, SelectedEdge>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
             InitGameEntities();
         }
 
@@ -45,7 +46,11 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.None; }
         }
 
-        public Dictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        /// <summary>
+        /// A dictionary where the keys are edge IDs and values are related numeric constants.
+        /// </summary>
+        private SortedDictionary<string, SelectedEdge> RoomItemRefs { get; set; }
 
         public bool SupportVisibleItems { get { return true; } }
 
@@ -105,13 +110,13 @@ namespace AGS.Editor
         {
             float scale = state.Scale;
 
-            if (DesignItems[SelectedEdge.Left.ToString()].Visible) 
+            if (DesignItems[GetItemID(SelectedEdge.Left)].Visible) 
                 DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.LeftEdgeX), scale);
-            if (DesignItems[SelectedEdge.Right.ToString()].Visible)
+            if (DesignItems[GetItemID(SelectedEdge.Right)].Visible)
                 DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.RightEdgeX), scale);
-            if (DesignItems[SelectedEdge.Top.ToString()].Visible)
+            if (DesignItems[GetItemID(SelectedEdge.Top)].Visible)
                 DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.TopEdgeY), scale);
-            if (DesignItems[SelectedEdge.Bottom.ToString()].Visible)
+            if (DesignItems[GetItemID(SelectedEdge.Bottom)].Visible)
                 DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.BottomEdgeY), scale);
         }
 
@@ -266,7 +271,7 @@ namespace AGS.Editor
 
         private bool IsMoveable(SelectedEdge edge)
         {
-            DesignTimeProperties p = DesignItems[edge.ToString()];
+            DesignTimeProperties p = DesignItems[GetItemID(edge)];
             if (!p.Visible || p.Locked) return false;
             return true;
         }
@@ -280,23 +285,43 @@ namespace AGS.Editor
             _tooltip.Dispose();
         }
 
-        public List<string> GetItemsNames()
+        private string GetItemID(SelectedEdge e)
         {
-            return new List<string> { SelectedEdge.Left.ToString(), SelectedEdge.Right.ToString(),
-                SelectedEdge.Top.ToString(), SelectedEdge.Bottom.ToString()};
+            // Use edge's name as a "unique identifier", for now
+            return e.ToString();
         }
 
-        public void SelectItem(string name)
+        /// <summary>
+        /// Initialize dictionary of current item references.
+        /// </summary>
+        /// <returns></returns>
+        private SortedDictionary<string, SelectedEdge> InitItemRefs()
         {
-            if (name == SelectedEdge.Bottom.ToString()) _selectedEdge = SelectedEdge.Bottom;
-            else if (name == SelectedEdge.Top.ToString()) _selectedEdge = SelectedEdge.Top;
-            else if (name == SelectedEdge.Right.ToString()) _selectedEdge = SelectedEdge.Right;
-            else if (name == SelectedEdge.Left.ToString()) _selectedEdge = SelectedEdge.Left;
-            else
+            return new SortedDictionary<string, SelectedEdge> {
+                { GetItemID(SelectedEdge.Left), SelectedEdge.Left },
+                { GetItemID(SelectedEdge.Right), SelectedEdge.Right },
+                { GetItemID(SelectedEdge.Top), SelectedEdge.Top },
+                { GetItemID(SelectedEdge.Bottom), SelectedEdge.Bottom }
+            };
+        }
+
+        public string GetItemName(string id)
+        {
+            SelectedEdge edge;
+            if (id != null && RoomItemRefs.TryGetValue(id, out edge))
+                return edge.ToString();
+            return null;
+        }
+
+        public void SelectItem(string id)
+        {
+            SelectedEdge edge;
+            if (id == null || !RoomItemRefs.TryGetValue(id, out edge))
             {
                 _selectedEdge = SelectedEdge.None;                
                 return;
             }
+            _selectedEdge = edge;
             _lastSelectedEdge = _selectedEdge;            
         }
 
@@ -369,11 +394,13 @@ namespace AGS.Editor
 
         private void InitGameEntities()
         {
+            // Initialize item reference
+            RoomItemRefs = InitItemRefs();
+            // Initialize design-time properties
             // TODO: load last design settings
             DesignItems.Clear();
-            foreach (string s in GetItemsNames())
-                DesignItems.Add(s, new DesignTimeProperties(VisibleByDefault, false));
+            foreach (var item in RoomItemRefs)
+                DesignItems.Add(item.Key, new DesignTimeProperties(VisibleByDefault, false));
         }
     }
-
 }

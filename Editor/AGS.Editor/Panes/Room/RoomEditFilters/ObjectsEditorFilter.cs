@@ -32,7 +32,8 @@ namespace AGS.Editor
             _panel = displayPanel;
             _selectedObject = null;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
-            DesignItems = new Dictionary<string, Editor.DesignTimeProperties>();
+            RoomItemRefs = new SortedDictionary<string, RoomObject>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
             InitGameEntities();
         }
 
@@ -47,7 +48,11 @@ namespace AGS.Editor
 
         public bool SupportVisibleItems { get { return true; } }
 
-        public Dictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        /// <summary>
+        /// A dictionary where the keys are character IDs and values are characters.
+        /// </summary>
+        private SortedDictionary<string, RoomObject> RoomItemRefs { get; set; }
 
         public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -114,7 +119,7 @@ namespace AGS.Editor
 
             foreach (RoomObject obj in _objectBaselines)
             {
-                if (!DesignItems[GetUniqueName(obj)].Visible) continue;
+                if (!DesignItems[GetItemID(obj)].Visible) continue;
                 int height = GetSpriteHeightForGameResolution(obj.Image);
                 int ypos = state.RoomYToWindow(obj.StartY - height);
 				Factory.NativeProxy.DrawSpriteToBuffer(obj.Image, state.RoomXToWindow(obj.StartX), ypos, state.Scale);
@@ -157,7 +162,7 @@ namespace AGS.Editor
             int xPos;
             int yPos;
 
-            if (_selectedObject != null && DesignItems[GetUniqueName(_selectedObject)].Visible)
+            if (_selectedObject != null && DesignItems[GetItemID(_selectedObject)].Visible)
             {
                 int width = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(_selectedObject.Image));
 				int height = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(_selectedObject.Image));
@@ -238,7 +243,7 @@ namespace AGS.Editor
             for (int i = _objectBaselines.Count - 1; i >= 0; i--)
             {
                 RoomObject obj = _objectBaselines[i];
-                DesignTimeProperties p = DesignItems[GetUniqueName(obj)];
+                DesignTimeProperties p = DesignItems[GetItemID(obj)];
                 if (!p.Visible || p.Locked) continue;
                 if (HitTest(obj, x, y)) return obj;
             }
@@ -461,23 +466,35 @@ namespace AGS.Editor
         {
         }
 
-        public List<string> GetItemsNames()
+        /// <summary>
+        /// Initialize dictionary of current item references.
+        /// </summary>
+        /// <returns></returns>
+        private SortedDictionary<string, RoomObject> InitItemRefs()
         {
-            List<string> names = new List<string>(_room.Objects.Count);
+            SortedDictionary<string, RoomObject> items = new SortedDictionary<string, RoomObject>();
             foreach (RoomObject obj in _room.Objects)
             {
-                names.Add(GetUniqueName(obj));
+                items.Add(GetItemID(obj), obj);
             }
-            return names;
+            return items;
         }
 
-        public void SelectItem(string name)
+        public string GetItemName(string id)
         {
-            if (name != null)
+            RoomObject obj;
+            if (id != null && RoomItemRefs.TryGetValue(id, out obj))
+                return obj.PropertyGridTitle;
+            return null;
+        }
+
+        public void SelectItem(string id)
+        {
+            if (id != null)
             {
-                foreach (RoomObject obj in _room.Objects)
+                RoomObject obj;
+                if (RoomItemRefs.TryGetValue(id, out obj))
                 {
-                    if (GetUniqueName(obj) != name) continue;
                     _selectedObject = obj;
                     Factory.GUIController.SetPropertyGridObject(obj);                    
                     return;
@@ -507,7 +524,7 @@ namespace AGS.Editor
             _selectedObject = roomObject;
             if (OnSelectedItemChanged != null)
             {
-                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetUniqueName(roomObject)));
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(roomObject.PropertyGridTitle));
             }
         }
 
@@ -537,17 +554,21 @@ namespace AGS.Editor
             }
         }
 
-        private string GetUniqueName(RoomObject obj)
+        private string GetItemID(RoomObject obj)
         {
-            return obj.PropertyGridTitle;
+            // Use numeric object's ID as a "unique identifier", for now
+            return obj.ID.ToString();
         }
 
         private void InitGameEntities()
         {
+            // Initialize item reference
+            RoomItemRefs = InitItemRefs();
+            // Initialize design-time properties
             // TODO: load last design settings
             DesignItems.Clear();
-            foreach (string s in GetItemsNames())
-                DesignItems.Add(s, new DesignTimeProperties(VisibleByDefault, false));
+            foreach (var item in RoomItemRefs)
+                DesignItems.Add(item.Key, new DesignTimeProperties(VisibleByDefault, false));
         }
     }
 }

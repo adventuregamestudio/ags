@@ -19,7 +19,7 @@ namespace AGS.Editor
         {
 			_panel = displayPanel;
             _room = room;
-            DesignItems = new Dictionary<string, Editor.DesignTimeProperties>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
         }
 
         public string DisplayName { get { return "Nothing"; } }
@@ -31,7 +31,7 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.None; }
         }
 
-        public Dictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
 
         public bool SupportVisibleItems { get { return false; } }
 
@@ -141,12 +141,12 @@ namespace AGS.Editor
         {
         }
 
-        public List<string> GetItemsNames() 
-        { 
-            return new List<string>(); 
+        public string GetItemName(string id)
+        {
+            return null;
         }
 
-        public void SelectItem(string name) 
+        public void SelectItem(string id) 
         {
         }
 

@@ -134,12 +134,17 @@ namespace AGS.Editor
             Factory.GUIController.SetPropertyGridObject(_room.WalkBehinds[areaNumber]);
         }
 
-        protected override Dictionary<string, int> GetItems()
+        protected override string GetItemName(int id)
         {
-            Dictionary<string, int> items = new Dictionary<string, int>(_room.WalkBehinds.Count);
+            return _room.WalkBehinds[id].PropertyGridTitle;
+        }
+
+        protected override SortedDictionary<string, int> InitItemRefs()
+        {
+            SortedDictionary<string, int> items = new SortedDictionary<string, int>();
             foreach (RoomWalkBehind area in _room.WalkBehinds)
             {
-                items.Add(GetItemName(area.ID, area.PropertyGridTitle), area.ID);
+                items.Add(GetItemID(area.ID), area.ID);
             }
             return items;
         }

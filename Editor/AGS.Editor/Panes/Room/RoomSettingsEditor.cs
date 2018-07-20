@@ -84,14 +84,14 @@ namespace AGS.Editor
             for (int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
             {
                 IRoomEditorFilter layer = _layers[layerIndex];                
-                List<string> names = layer.GetItemsNames();
-                IAddressNode[] children = new IAddressNode[names.Count];
-                for (int index = 0; index < names.Count; index++)
+                IAddressNode[] children = new IAddressNode[layer.DesignItems.Count];
+                int index = 0;
+                foreach (var item in layer.DesignItems)
                 {
-                    string name = names[index];
-                    children[index] = new RoomEditNode(GetLayerItemUniqueID(layer, name), name, new IAddressNode[0], true, false)
-                    {
-                    };
+                    string id = item.Key;
+                    string name = layer.GetItemName(id);
+                    children[index++] = new RoomEditNode(GetLayerItemUniqueID(layer, name), name, id,
+                        new IAddressNode[0], true, false);
                 }
                 RoomEditNode node = new RoomEditNode(layer.DisplayName, children, layer.VisibleByDefault);
                 node.Layer = layer;
@@ -652,7 +652,7 @@ namespace AGS.Editor
 
             layerNode.IsVisible = true;
             SelectLayer(layerNode.Layer);
-            layerNode.Layer.SelectItem(node == layerNode ? null : node.DisplayName);
+            layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
         }
 
         private void SelectLayer(IRoomEditorFilter layer)

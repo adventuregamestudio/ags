@@ -12,16 +12,32 @@ namespace AGS.Editor.Panes.Room
         private RoomNodeControl _control;
         private bool _visibleByDefault, _shouldHideCheckboxes;
 
+        /// <summary>
+        /// Constructor creates a node, associated with a namespace rather than particular room item.
+        /// </summary>
+        /// <param name="uniqueID"></param>
+        /// <param name="children"></param>
+        /// <param name="visibleByDefault"></param>
         public RoomEditNode(string uniqueID, IAddressNode[] children, bool visibleByDefault)
-            :this(uniqueID, uniqueID, children, visibleByDefault, false)
+            :this(uniqueID, uniqueID, null, children, visibleByDefault, false)
         { 
         }
 
-        public RoomEditNode(string uniqueID, string displayName, IAddressNode[] children, bool visibleByDefault,
-            bool shouldHideCheckboxes)
+        /// <summary>
+        /// Constructor creates a node, associated with particular room item.
+        /// </summary>
+        /// <param name="uniqueID"></param>
+        /// <param name="displayName"></param>
+        /// <param name="roomItemID"></param>
+        /// <param name="children"></param>
+        /// <param name="visibleByDefault"></param>
+        /// <param name="shouldHideCheckboxes"></param>
+        public RoomEditNode(string uniqueID, string displayName, string roomItemID, IAddressNode[] children,
+            bool visibleByDefault, bool shouldHideCheckboxes)
         {
             UniqueID = uniqueID;
             DisplayName = displayName;
+            RoomItemID = roomItemID;
             Children = children;
             _visibleByDefault = visibleByDefault;
             _shouldHideCheckboxes = shouldHideCheckboxes;
@@ -34,6 +50,11 @@ namespace AGS.Editor.Panes.Room
         public Icon Icon { get { return null; } }
 
         public object UniqueID { get; private set; }
+
+        /// <summary>
+        /// Gets the ID of the room item, associated with this node.
+        /// </summary>
+        public string RoomItemID { get { return Tag as string; } private set { Tag = value; } }
 
         public object Tag { get; set; }
 
@@ -97,9 +118,9 @@ namespace AGS.Editor.Panes.Room
             }
             else
             {
-                foreach (string n in Layer.GetItemsNames())
+                foreach (var item in Layer.DesignItems)
                 {
-                    Layer.DesignItems[n].Visible = true;
+                    item.Value.Visible = true;
                 }
             }
             return host;
@@ -111,7 +132,7 @@ namespace AGS.Editor.Panes.Room
             IRoomEditorFilter parentFilter = FindFilter();
             if (parentFilter != null)
             {
-                if (Layer == null) parentFilter.DesignItems[DisplayName].Visible = _control.IsVisible;
+                if (Layer == null) parentFilter.DesignItems[RoomItemID].Visible = _control.IsVisible;
                 parentFilter.Invalidate();
             }
         }
@@ -120,7 +141,7 @@ namespace AGS.Editor.Panes.Room
         {
             if (Layer != null) return;
             IRoomEditorFilter parentFilter = FindFilter();
-            if (parentFilter != null) parentFilter.DesignItems[DisplayName].Locked = _control.IsLocked;            
+            if (parentFilter != null) parentFilter.DesignItems[RoomItemID].Locked = _control.IsLocked;            
         }
 
         private IRoomEditorFilter FindFilter()

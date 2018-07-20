@@ -21,7 +21,7 @@ namespace AGS.Editor
         /// <summary>
         /// The dictionary that maps an object ID to its design-time properties.
         /// </summary>
-        Dictionary<string, DesignTimeProperties> DesignItems { get; }
+        SortedDictionary<string, DesignTimeProperties> DesignItems { get; }
         void PaintToHDC(IntPtr hDC, RoomEditorState state);
         void Paint(Graphics graphics, RoomEditorState state);
         void MouseDownAlways(MouseEventArgs e, RoomEditorState state);
@@ -33,8 +33,16 @@ namespace AGS.Editor
         void FilterOff();
         void CommandClick(string command);
         bool KeyPressed(Keys keyData);
-        List<string> GetItemsNames();
-        void SelectItem(string name);
+        /// <summary>
+        /// Gets a human-readable area name.
+        /// </summary>
+        /// <param name="id"></param>
+        string GetItemName(string id);
+        /// <summary>
+        /// Selects room item by its ID.
+        /// </summary>
+        /// <param name="id"></param>
+        void SelectItem(string id);
         void Invalidate();
         Cursor GetCursor(int x, int y, RoomEditorState state);
         bool AllowClicksInterception();

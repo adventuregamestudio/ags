@@ -34,7 +34,8 @@ namespace AGS.Editor
             _panel = displayPanel;
             _game = game;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
-            DesignItems = new Dictionary<string, Editor.DesignTimeProperties>();
+            RoomItemRefs = new SortedDictionary<string, Character>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
             InitGameEntities();
         }
 
@@ -80,7 +81,7 @@ namespace AGS.Editor
             {
                 if (_room.Number != character.StartingRoom) continue;
 
-                DesignTimeProperties p = DesignItems[character.ScriptName];
+                DesignTimeProperties p = DesignItems[GetItemID(character)];
                 if (!p.Visible || p.Locked) continue;
 
                 AgsView view = _game.FindViewByID(character.NormalView);
@@ -215,7 +216,7 @@ namespace AGS.Editor
         {
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
-                if (_room.Number == character.StartingRoom && DesignItems[character.ScriptName].Visible)
+                if (_room.Number == character.StartingRoom && DesignItems[GetItemID(character)].Visible)
                 {
                     DrawCharacter(character, state);
                 }
@@ -335,9 +336,9 @@ namespace AGS.Editor
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
             defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
-            foreach (Character character in GetItems())
+            foreach (var item in RoomItemRefs)
             {
-                defaultPropertyObjectList.Add(character.PropertyGridTitle, character);                
+                defaultPropertyObjectList.Add(item.Value.PropertyGridTitle, item.Value);
             }
 
             Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
@@ -368,20 +369,23 @@ namespace AGS.Editor
 
         public bool SupportVisibleItems { get { return true; } }
 
-        public Dictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        /// <summary>
+        /// A dictionary where the keys are character IDs and values are characters.
+        /// </summary>
+        private SortedDictionary<string, Character> RoomItemRefs { get; set; }
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
 
-	public int ItemCount
-	{
+        public int ItemCount
+	    {
             get 
             {
-                int count = 0;
-                foreach (Character character in GetItems()) count++;
-                return count;
+                return RoomItemRefs.Count;
             }
         }
+
 		public int SelectedArea
 		{
 			get { return 0; }
@@ -427,34 +431,42 @@ namespace AGS.Editor
         {
         }
 
-        public List<string> GetItemsNames()
+        private string GetItemID(Character c)
         {
-            List<string> names = new List<string>();
-            foreach (Character character in GetItems())
-            {
-                names.Add(character.ScriptName);
-            }
-            return names;
+            // Use numeric character's ID as a "unique identifier", for now
+            return c.ID.ToString();
         }
 
-        private IEnumerable<Character> GetItems()
+        /// <summary>
+        /// Initialize dictionary of current item references.
+        /// </summary>
+        /// <returns></returns>
+        private SortedDictionary<string, Character> InitItemRefs()
         {
+            SortedDictionary<string, Character> items = new SortedDictionary<string, Character>();
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
                 if (character.StartingRoom == _room.Number)
-                {
-                    yield return character;
-                }
+                    items.Add(GetItemID(character), character);
             }
+            return items;
         }
 
-        public void SelectItem(string name)
+        public string GetItemName(string id)
         {
-            if (name != null)
+            Character character;
+            if (id != null && RoomItemRefs.TryGetValue(id, out character))
+                return character.ScriptName;
+            return null;
+        }
+
+        public void SelectItem(string id)
+        {
+            if (id != null)
             {
-                foreach (Character character in GetItems())
+                Character character;
+                if (RoomItemRefs.TryGetValue(id, out character))
                 {
-                    if (character.ScriptName != name) continue;
                     _selectedCharacter = character;
                     Factory.GUIController.SetPropertyGridObject(character);                    
                     return;
@@ -490,10 +502,13 @@ namespace AGS.Editor
 
         private void InitGameEntities()
         {
+            // Initialize item reference
+            RoomItemRefs = InitItemRefs();
+            // Initialize design-time properties
             // TODO: load last design settings
             DesignItems.Clear();
-            foreach (string s in GetItemsNames())
-                DesignItems.Add(s, new DesignTimeProperties(VisibleByDefault, false));
+            foreach (var item in RoomItemRefs)
+                DesignItems.Add(item.Key, new DesignTimeProperties(VisibleByDefault, false));
         }
     }
 }

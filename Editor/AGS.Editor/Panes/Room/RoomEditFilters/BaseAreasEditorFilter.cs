@@ -95,14 +95,19 @@ namespace AGS.Editor
             _panel = displayPanel;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             UpdateUndoButtonEnabledState();
-            DesignItems = new Dictionary<string, Editor.DesignTimeProperties>();
+            RoomItemRefs = new SortedDictionary<string, int>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
             InitGameEntities();
         }
 
         public abstract string DisplayName { get; }
         public abstract bool VisibleByDefault { get; }
 
-        public Dictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        /// <summary>
+        /// A dictionary where the keys are area IDs and values are area indexes.
+        /// </summary>
+        private SortedDictionary<string, int> RoomItemRefs { get; set; }
 
         public abstract RoomAreaMaskType MaskToDraw
         {
@@ -121,9 +126,8 @@ namespace AGS.Editor
             { 
                 _selectedArea = value;
                 if (OnSelectedItemChanged != null)
-                {                    
-                    OnSelectedItemChanged(this, 
-                        new SelectedRoomItemEventArgs(GetItemName(_selectedArea, GetItemsNames()[_selectedArea])));
+                {
+                    OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetValidItemName(_selectedArea)));
                 }
             }
 		}
@@ -303,7 +307,7 @@ namespace AGS.Editor
 
         private bool IsLocked(int area)
         {
-            return DesignItems[GetItemName(area)].Locked;
+            return DesignItems[GetItemID(area)].Locked;
         }
 
         public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
@@ -609,21 +613,18 @@ namespace AGS.Editor
             _tooltip.Dispose();
         }
 
-        public List<string> GetItemsNames()
+        public string GetItemName(string id)
         {
-            Dictionary<string, int> items = GetItems();
-            List<string> names = new List<string>(items.Count);
-            foreach (string item in items.Keys)
-            {
-                names.Add(item);
-            }
-            return names;
+            int area;
+            if (id != null && RoomItemRefs.TryGetValue(id, out area))
+                return GetValidItemName(area);
+            return null;
         }
 
-        public void SelectItem(string name)
+        public void SelectItem(string id)
         { 
             int area;
-            if (name != null && GetItems().TryGetValue(name, out area))
+            if (id != null && RoomItemRefs.TryGetValue(id, out area))
             {
                 _selectedArea = area;
                 SelectedAreaChanged(area);                
@@ -661,20 +662,21 @@ namespace AGS.Editor
             _selectedArea = 0;
         }
 
-        protected string GetItemName(int id, string name)
+        protected string GetItemID(int id)
         {
-            return id == 0 ? ERASER : name;
+            // Use numeric area ID as a "unique identifier", for now
+            return id.ToString();
         }
 
-        private string GetItemName(int id)
+        /// <summary>
+        /// Gets a human-readable area name.
+        /// </summary>
+        /// <param name="id"></param>
+        protected abstract string GetItemName(int id);
+        
+        protected string GetValidItemName(int id)
         {
-            // TODO: optimise this!
-            Dictionary<string, int> items = GetItems();
-            foreach (KeyValuePair<string, int> pair in items)
-            {
-                if (pair.Value == id) return pair.Key;
-            }
-            return null;
+            return id == 0 ? ERASER : GetItemName(id);
         }
 
         private void SetDrawMode()
@@ -690,17 +692,24 @@ namespace AGS.Editor
             }
         }
 
-        protected abstract Dictionary<string, int> GetItems();
+        /// <summary>
+        /// Initialize dictionary of current item references.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract SortedDictionary<string, int> InitItemRefs();
         protected abstract void SetPropertyGridList();
         protected abstract void SelectedAreaChanged(int areaNumber);
         protected abstract void GUIController_OnPropertyObjectChanged(object newPropertyObject);
 
         private void InitGameEntities()
         {
+            // Initialize item reference
+            RoomItemRefs = InitItemRefs();
+            // Initialize design-time properties
             // TODO: load last design settings
             DesignItems.Clear();
-            foreach (string s in GetItemsNames())
-                DesignItems.Add(s, new DesignTimeProperties(VisibleByDefault, false));
+            foreach (var item in RoomItemRefs)
+                DesignItems.Add(item.Key, new DesignTimeProperties(VisibleByDefault, false));
         }
     }
 }

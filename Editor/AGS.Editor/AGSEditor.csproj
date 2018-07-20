@@ -89,6 +89,8 @@
     </Compile>
     <Compile Include="ColorThemes\Controls\MainMenuColorTable.cs" />
     <Compile Include="ColorThemes\Controls\ToolStripColorTable.cs" />
+    <Compile Include="Components\CharacterIDChangedEventArgs.cs" />
+    <Compile Include="Components\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
     <Compile Include="Components\CursorsComponent.cs" />
     <Compile Include="Components\DialogsComponent.cs" />

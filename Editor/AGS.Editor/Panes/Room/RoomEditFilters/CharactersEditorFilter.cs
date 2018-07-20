@@ -28,6 +28,8 @@ namespace AGS.Editor
         private int _menuClickY = 0;
         private int _mouseOffsetX, _mouseOffsetY;
 
+        public Character SelectedCharacter { get { return _selectedCharacter; } }
+
         public CharactersEditorFilter(Panel displayPanel, Room room, Game game)
         {
             _room = room;
@@ -37,6 +39,13 @@ namespace AGS.Editor
             RoomItemRefs = new SortedDictionary<string, Character>();
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
             InitGameEntities();
+
+            Components.CharactersComponent cmp = ComponentController.Instance.FindComponent<Components.CharactersComponent>();
+            if (cmp != null)
+            {
+                cmp.OnCharacterIDChanged += OnCharacterIDChanged;
+                cmp.OnCharacterRoomChanged += OnCharacterRoomChanged;
+            }
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
@@ -332,6 +341,14 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
         }
 
+        public void UpdateCharactersRoom(Character character, int oldRoom)
+        {
+            if (character.StartingRoom == _room.Number)
+                AddCharacterRef(character);
+            else if (oldRoom == _room.Number && character.StartingRoom != _room.Number)
+                RemoveCharacterRef(character);
+        }
+
         private void SetPropertyGridList()
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
@@ -375,7 +392,7 @@ namespace AGS.Editor
         /// </summary>
         private SortedDictionary<string, Character> RoomItemRefs { get; set; }
 
-        public event EventHandler OnItemsChanged { add { } remove { } }
+        public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
 
         public int ItemCount
@@ -434,7 +451,12 @@ namespace AGS.Editor
         private string GetItemID(Character c)
         {
             // Use numeric character's ID as a "unique identifier", for now (script name is optional!)
-            return c.ID.ToString();
+            return GetItemID(c.ID);
+        }
+
+        private string GetItemID(int numID)
+        {
+            return numID.ToString();
         }
 
         /// <summary>
@@ -509,6 +531,46 @@ namespace AGS.Editor
             DesignItems.Clear();
             foreach (var item in RoomItemRefs)
                 DesignItems.Add(item.Key, new DesignTimeProperties(VisibleByDefault, false));
+        }
+
+        private void OnCharacterIDChanged(object sender, CharacterIDChangedEventArgs e)
+        {
+            UpdateCharacterRef(e.Character, GetItemID(e.OldID));
+            OnItemsChanged(this, null);
+        }
+
+        private void OnCharacterRoomChanged(object sender, CharacterRoomChangedEventArgs e)
+        {
+            UpdateCharactersRoom(e.Character, e.PreviousRoom);
+            OnItemsChanged(this, null);
+        }
+
+        private void AddCharacterRef(Character c)
+        {
+            string id = GetItemID(c);
+            if (RoomItemRefs.ContainsKey(id))
+                return;
+            RoomItemRefs.Add(id, c);
+            DesignItems.Add(id, new DesignTimeProperties(VisibleByDefault, false));
+        }
+
+        private void RemoveCharacterRef(Character c)
+        {
+            string id = GetItemID(c);
+            RoomItemRefs.Remove(id);
+            DesignItems.Remove(id);
+        }
+
+        private void UpdateCharacterRef(Character c, string oldID)
+        {
+            if (!RoomItemRefs.ContainsKey(oldID))
+                return;
+            string newID = GetItemID(c);
+            RoomItemRefs.Remove(oldID);
+            RoomItemRefs.Add(newID, c);
+            // We must keep DesignTimeProperties!
+            DesignItems.Add(newID, DesignItems[oldID]);
+            DesignItems.Remove(oldID);
         }
     }
 }

@@ -27,6 +27,7 @@ namespace AGS.Editor
         private IRoomEditorFilter _layer;
         private RoomEditNode _layersRoot;
         private List<IRoomEditorFilter> _layers = new List<IRoomEditorFilter>();
+        private CharactersEditorFilter _characterLayer; // need to store the reference for special processing
         private bool _editorConstructed = false;
         private int _lastX, _lastY;
         private bool _mouseIsDown = false;
@@ -51,7 +52,8 @@ namespace AGS.Editor
             SetZoomSliderToMultiplier(factor);
 
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame));
+            _characterLayer = new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame);
+            _layers.Add(_characterLayer);
             _layers.Add(new ObjectsEditorFilter(bufferedPanel1, _room));
             _layers.Add(new HotspotsEditorFilter(bufferedPanel1, _room));
             _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, _room));
@@ -785,8 +787,24 @@ namespace AGS.Editor
 		{
 			_room.Modified = true;
 
-			if ((propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME) ||
-				(propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME))
+            bool needRefresh = false;
+            // TODO: unfortunately had to duplicate handling of property change here;
+            // cannot forward event to the CharacterComponent.OnPropertyChanged,
+            // because its implementation relies on it being active Pane!
+            if (propertyName == Character.PROPERTY_NAME_STARTINGROOM)
+            {
+                if (_characterLayer != null)
+                {
+                    int oldRoom = (int)oldValue;
+                    _characterLayer.UpdateCharactersRoom(_characterLayer.SelectedCharacter, oldRoom);
+                    needRefresh = true;
+                }
+            }
+
+            if (propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME ||
+				propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME ||
+                propertyName == Character.PROPERTY_NAME_SCRIPTNAME ||
+                needRefresh)
 			{
                 if (_layer != null)
                 {
@@ -797,7 +815,7 @@ namespace AGS.Editor
                 }
                 RefreshLayersTree();
 			}
-		}
+        }
 
 		protected override void OnWindowActivated()
 		{

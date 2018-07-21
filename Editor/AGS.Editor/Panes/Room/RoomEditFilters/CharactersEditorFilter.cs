@@ -378,14 +378,14 @@ namespace AGS.Editor
 
         public string DisplayName { get { return "Characters"; } }
 
-        public bool VisibleByDefault { get { return true; } }
-
         public RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.None; }
         }
 
         public bool SupportVisibleItems { get { return true; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
         /// <summary>
@@ -531,7 +531,7 @@ namespace AGS.Editor
             // TODO: load last design settings
             DesignItems.Clear();
             foreach (var item in RoomItemRefs)
-                DesignItems.Add(item.Key, new DesignTimeProperties(VisibleByDefault, false));
+                DesignItems.Add(item.Key, new DesignTimeProperties());
         }
 
         private void OnCharacterIDChanged(object sender, CharacterIDChangedEventArgs e)
@@ -553,7 +553,7 @@ namespace AGS.Editor
             if (RoomItemRefs.ContainsKey(id))
                 return;
             RoomItemRefs.Add(id, c);
-            DesignItems.Add(id, new DesignTimeProperties(VisibleByDefault, false));
+            DesignItems.Add(id, new DesignTimeProperties());
         }
 
         private void RemoveCharacterRef(Character c)

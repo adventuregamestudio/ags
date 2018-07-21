@@ -101,7 +101,6 @@ namespace AGS.Editor
         }
 
         public abstract string DisplayName { get; }
-        public abstract bool VisibleByDefault { get; }
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
         /// <summary>
@@ -144,8 +143,10 @@ namespace AGS.Editor
 		}
 
         public bool SupportVisibleItems { get { return false; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
-		protected virtual void FilterActivated()
+        protected virtual void FilterActivated()
 		{
 		}
 
@@ -710,7 +711,7 @@ namespace AGS.Editor
             // TODO: load last design settings
             DesignItems.Clear();
             foreach (var item in RoomItemRefs)
-                DesignItems.Add(item.Key, new DesignTimeProperties(VisibleByDefault, false));
+                DesignItems.Add(item.Key, new DesignTimeProperties());
         }
     }
 }

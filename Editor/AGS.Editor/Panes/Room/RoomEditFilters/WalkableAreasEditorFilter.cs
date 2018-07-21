@@ -17,8 +17,6 @@ namespace AGS.Editor
 
         public override string DisplayName { get { return "Walkable areas"; } }
 
-        public override bool VisibleByDefault { get { return true; } }
-
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.WalkableAreas; }

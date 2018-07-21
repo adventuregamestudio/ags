@@ -24,8 +24,6 @@ namespace AGS.Editor
 
         public string DisplayName { get { return "Nothing"; } }
 
-        public bool VisibleByDefault { get { return false; } }
-
         public RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.None; }
@@ -34,6 +32,8 @@ namespace AGS.Editor
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
 
         public bool SupportVisibleItems { get { return false; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged { add { } remove { } }

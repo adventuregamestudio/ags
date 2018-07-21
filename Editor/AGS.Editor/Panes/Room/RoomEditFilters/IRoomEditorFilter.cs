@@ -15,8 +15,16 @@ namespace AGS.Editor
         int SelectedArea { get; }
         string HelpKeyword { get; }
         bool ShowTransparencySlider { get; }
-        bool VisibleByDefault { get; }
         bool SupportVisibleItems { get; }
+
+        /// <summary>
+        /// Gets/sets if this layer is visible.
+        /// </summary>
+        bool Visible { get; set; }
+        /// <summary>
+        /// Gets/sets if this layer is locked (cannot be modified).
+        /// </summary>
+        bool Locked { get; set; }
 
         /// <summary>
         /// The dictionary that maps an object ID to its design-time properties.

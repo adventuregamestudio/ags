@@ -16,8 +16,6 @@ namespace AGS.Editor
 
         public override string DisplayName { get { return "Hotspots"; } }
 
-        public override bool VisibleByDefault { get { return false; } }
-
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.Hotspots; }

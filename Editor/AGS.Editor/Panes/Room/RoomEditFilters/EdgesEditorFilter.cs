@@ -39,8 +39,6 @@ namespace AGS.Editor
 
         public string DisplayName { get { return "Edges"; } }
 
-        public bool VisibleByDefault { get { return false; } }
-
         public RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.None; }
@@ -53,6 +51,8 @@ namespace AGS.Editor
         private SortedDictionary<string, SelectedEdge> RoomItemRefs { get; set; }
 
         public bool SupportVisibleItems { get { return true; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -400,7 +400,7 @@ namespace AGS.Editor
             // TODO: load last design settings
             DesignItems.Clear();
             foreach (var item in RoomItemRefs)
-                DesignItems.Add(item.Key, new DesignTimeProperties(VisibleByDefault, false));
+                DesignItems.Add(item.Key, new DesignTimeProperties());
         }
     }
 }

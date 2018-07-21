@@ -10,7 +10,7 @@ namespace AGS.Editor.Panes.Room
     public class RoomEditNode : IAddressNode
     {
         private RoomNodeControl _control;
-        private bool _visibleByDefault, _shouldHideCheckboxes;
+        private bool _initVisible, _initLocked, _shouldHideCheckboxes;
 
         /// <summary>
         /// Constructor creates a node, associated with a namespace rather than particular room item.
@@ -18,8 +18,8 @@ namespace AGS.Editor.Panes.Room
         /// <param name="uniqueID"></param>
         /// <param name="children"></param>
         /// <param name="visibleByDefault"></param>
-        public RoomEditNode(string uniqueID, IAddressNode[] children, bool visibleByDefault)
-            :this(uniqueID, uniqueID, null, children, visibleByDefault, false)
+        public RoomEditNode(string uniqueID, IAddressNode[] children, bool visible, bool locked)
+            :this(uniqueID, uniqueID, null, children, visible, locked, false)
         { 
         }
 
@@ -33,13 +33,14 @@ namespace AGS.Editor.Panes.Room
         /// <param name="visibleByDefault"></param>
         /// <param name="shouldHideCheckboxes"></param>
         public RoomEditNode(string uniqueID, string displayName, string roomItemID, IAddressNode[] children,
-            bool visibleByDefault, bool shouldHideCheckboxes)
+            bool visible, bool locked, bool shouldHideCheckboxes)
         {
             UniqueID = uniqueID;
             DisplayName = displayName;
             RoomItemID = roomItemID;
             Children = children;
-            _visibleByDefault = visibleByDefault;
+            _initVisible = visible;
+            _initLocked = locked;
             _shouldHideCheckboxes = shouldHideCheckboxes;
         }
 
@@ -95,7 +96,8 @@ namespace AGS.Editor.Panes.Room
             RoomNodeControl control = new RoomNodeControl 
             { 
                 DisplayName = DisplayName, 
-                IsVisible = _visibleByDefault
+                IsVisible = _initVisible,
+                IsLocked = _initLocked
             };
             if (_shouldHideCheckboxes) control.HideCheckBoxes(true);
             if (_control != null)
@@ -132,16 +134,24 @@ namespace AGS.Editor.Panes.Room
             IRoomEditorFilter parentFilter = FindFilter();
             if (parentFilter != null)
             {
-                if (Layer == null) parentFilter.DesignItems[RoomItemID].Visible = _control.IsVisible;
+                if (Layer == null)
+                    parentFilter.DesignItems[RoomItemID].Visible = _control.IsVisible;
+                else
+                    Layer.Visible = _control.IsVisible;
                 parentFilter.Invalidate();
             }
         }
 
         private void control_OnLockedChanged(object sender, EventArgs e)
         {
-            if (Layer != null) return;
             IRoomEditorFilter parentFilter = FindFilter();
-            if (parentFilter != null) parentFilter.DesignItems[RoomItemID].Locked = _control.IsLocked;            
+            if (parentFilter != null)
+            {
+                if (Layer == null)
+                    parentFilter.DesignItems[RoomItemID].Locked = _control.IsLocked;
+                else
+                    Layer.Locked = _control.IsLocked;
+            }
         }
 
         private IRoomEditorFilter FindFilter()

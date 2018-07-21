@@ -20,8 +20,6 @@ namespace AGS.Editor
 
         public override string DisplayName { get { return "Walk-behinds"; } }
 
-        public override bool VisibleByDefault { get { return false; } }
-
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.WalkBehinds; }

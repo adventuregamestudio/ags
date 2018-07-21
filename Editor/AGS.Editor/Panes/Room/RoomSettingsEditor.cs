@@ -93,9 +93,9 @@ namespace AGS.Editor
                     string id = item.Key;
                     string name = layer.GetItemName(id);
                     children[index++] = new RoomEditNode(GetLayerItemUniqueID(layer, name), name, id,
-                        new IAddressNode[0], true, false);
+                        new IAddressNode[0], item.Value.Visible, item.Value.Locked, false);
                 }
-                RoomEditNode node = new RoomEditNode(layer.DisplayName, children, layer.VisibleByDefault);
+                RoomEditNode node = new RoomEditNode(layer.DisplayName, children, layer.Visible, layer.Locked);
                 node.Layer = layer;
                 if (layer is BaseAreasEditorFilter)
                 {
@@ -107,7 +107,7 @@ namespace AGS.Editor
                 }
                 layers[layerIndex] = node;
             }
-            _layersRoot = new RoomEditNode("Room", layers, true);
+            _layersRoot = new RoomEditNode("Room", layers, true, false);
             foreach (IAddressNode layer in layers)
             {
                 layer.Parent = _layersRoot;
@@ -300,18 +300,14 @@ namespace AGS.Editor
 
         private bool IsVisible(IRoomEditorFilter layer)
         {
-            RoomEditNode node = _editAddressBar.RootNode.GetChild(layer.DisplayName, true) as RoomEditNode;
-            if (node == null) return true;
-            return node.IsVisible;
+            return layer.Visible;
         }
 
         private bool IsLocked(IRoomEditorFilter layer)
-        {            
-            RoomEditNode node = _editAddressBar.RootNode.GetChild(layer.DisplayName, true) as RoomEditNode;
-            if (node == null) return false;
-            if (!node.IsVisible) return true;
+        {
+            if (!layer.Visible) return true;
             if (_layer != null && !_layer.AllowClicksInterception() && _layer != layer) return true;
-            return node.IsLocked;
+            return layer.Locked;
         }
 
         private void cmbBackgrounds_SelectedIndexChanged(object sender, EventArgs e)

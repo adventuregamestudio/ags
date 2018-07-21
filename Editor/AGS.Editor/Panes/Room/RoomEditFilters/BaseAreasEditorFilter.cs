@@ -666,7 +666,7 @@ namespace AGS.Editor
         protected string GetItemID(int id)
         {
             // Use numeric area ID as a "unique identifier", for now
-            return id.ToString();
+            return id.ToString("D4");
         }
 
         /// <summary>

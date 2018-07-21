@@ -456,7 +456,7 @@ namespace AGS.Editor
 
         private string GetItemID(int numID)
         {
-            return numID.ToString();
+            return numID.ToString("D4");
         }
 
         /// <summary>

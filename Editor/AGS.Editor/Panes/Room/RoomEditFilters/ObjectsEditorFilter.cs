@@ -562,7 +562,7 @@ namespace AGS.Editor
         private string GetItemID(RoomObject obj)
         {
             // Use numeric object's ID as a "unique identifier", for now (script name is optional!)
-            return obj.ID.ToString();
+            return obj.ID.ToString("D4");
         }
 
         private void InitGameEntities()

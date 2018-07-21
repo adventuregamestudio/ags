@@ -543,6 +543,7 @@ namespace AGS.Editor
         {
             UpdateCharactersRoom(e.Character, e.PreviousRoom);
             OnItemsChanged(this, null);
+            Invalidate();
         }
 
         private void AddCharacterRef(Character c)

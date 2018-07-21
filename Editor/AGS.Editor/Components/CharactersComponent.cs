@@ -235,6 +235,8 @@ namespace AGS.Editor.Components
 
                 character.ID = _agsEditor.CurrentGame.RootCharacterFolder.GetAllItemsCount();
                 AddSingleItem(character);
+                // Pretend that character has just changed into the new room
+                OnCharacterRoomChanged?.Invoke(this, new CharacterRoomChangedEventArgs(character, -1));
             }
             catch (ApplicationException ex)
             {

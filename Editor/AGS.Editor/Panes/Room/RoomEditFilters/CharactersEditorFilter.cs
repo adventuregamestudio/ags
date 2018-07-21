@@ -88,9 +88,9 @@ namespace AGS.Editor
         {
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
-                if (_room.Number != character.StartingRoom) continue;
-
-                DesignTimeProperties p = DesignItems[GetItemID(character)];
+                DesignTimeProperties p;
+                if (!DesignItems.TryGetValue(GetItemID(character), out p))
+                    continue; // character is not in the room
                 if (!p.Visible || p.Locked) continue;
 
                 AgsView view = _game.FindViewByID(character.NormalView);
@@ -225,7 +225,8 @@ namespace AGS.Editor
         {
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
-                if (_room.Number == character.StartingRoom && DesignItems[GetItemID(character)].Visible)
+                DesignTimeProperties p;
+                if (DesignItems.TryGetValue(GetItemID(character), out p) && p.Visible)
                 {
                     DrawCharacter(character, state);
                 }

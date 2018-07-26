@@ -82,7 +82,7 @@ struct MainGameSource
 
     // Name of the asset file
     String              Filename;
-    // Savegame format version
+    // Game file format version
     GameDataVersion     DataVersion;
     // Tool identifier (like version) this game was compiled with
     String              CompiledWith;

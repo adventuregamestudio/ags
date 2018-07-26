@@ -119,10 +119,8 @@ String GetSavegameErrorText(SavegameErrorType err)
     {
     case kSvgErr_NoError:
         return "No error.";
-    case kSvgErr_FileNotFound:
-        return "File not found.";
-    case kSvgErr_NoStream:
-        return "Failed to open input stream.";
+    case kSvgErr_FileOpenFailed:
+        return "File not found or could not be opened.";
     case kSvgErr_SignatureFailed:
         return "Not an AGS saved game or unsupported format.";
     case kSvgErr_FormatVersionNotSupported:
@@ -268,7 +266,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
 {
     UStream in(File::OpenFileRead(filename));
     if (!in.get())
-        return new SavegameError(kSvgErr_FileNotFound, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
+        return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
 
     // Skip MS Windows Vista rich media header
     RICH_GAME_MEDIA_HEADER rich_media_header;

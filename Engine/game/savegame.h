@@ -57,8 +57,7 @@ enum SavegameVersion
 enum SavegameErrorType
 {
     kSvgErr_NoError,
-    kSvgErr_FileNotFound,
-    kSvgErr_NoStream,
+    kSvgErr_FileOpenFailed,
     kSvgErr_SignatureFailed,
     kSvgErr_FormatVersionNotSupported,
     kSvgErr_IncompatibleEngine,

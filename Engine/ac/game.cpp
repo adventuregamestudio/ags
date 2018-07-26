@@ -1761,8 +1761,6 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
     else if (desc.ColorDepth != game.GetColorDepth())
         return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth));
-    else if (!src.InputStream.get())
-        return new SavegameError(kSvgErr_NoStream);
 
     // saved with different game file
     if (Path::ComparePaths(desc.MainDataFilename, usetup.main_data_filename))

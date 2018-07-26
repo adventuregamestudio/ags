@@ -45,10 +45,8 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     {
     case kMGFErr_NoError:
         return "No error.";
-    case kMGFErr_FileNotFound:
-        return "Main game file not found.";
-    case kMGFErr_NoStream:
-        return "Failed to open input stream.";
+    case kMGFErr_FileOpenFailed:
+        return "Main game file not found or could not be opened.";
     case kMGFErr_SignatureFailed:
         return "Not an AGS main game file or unsupported format.";
     case kMGFErr_FormatVersionTooOld:
@@ -113,8 +111,6 @@ bool IsMainGameLibrary(const String &filename)
 // Begins reading main game file from a generic stream
 HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
 {
-    if (!in)
-        return HGameFileError::None();
     // Check data signature
     String data_sig = String::FromStreamCount(in.get(), MainGameSource::Signature.GetLength());
     if (data_sig.Compare(MainGameSource::Signature))
@@ -151,7 +147,7 @@ HGameFileError OpenMainGameFile(const String &filename, MainGameSource &src)
     // Try to open given file
     PStream in(File::OpenFileRead(filename));
     if (!in)
-        return new MainGameFileError(kMGFErr_FileNotFound, String::FromFormat("Filename: %s.", filename.GetCStr()));
+        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
     return OpenMainGameFileBase(in, src);
 }
@@ -169,7 +165,7 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src)
         in = PStream(AssetManager::OpenAsset(filename));
     }
     if (!in)
-        return new MainGameFileError(kMGFErr_FileNotFound, String::FromFormat("Filename: %s.", filename.GetCStr()));
+        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
     return OpenMainGameFileBase(in, src);
 }

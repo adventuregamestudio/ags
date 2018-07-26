@@ -52,6 +52,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
+#include "game/room_version.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"

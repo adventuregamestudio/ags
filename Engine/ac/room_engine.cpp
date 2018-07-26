@@ -20,12 +20,3 @@
 
 #include "util/misc.h"
 #include "ac/roomstruct.h"
-
-//=============================================================================
-// Engine-specific implementation split out of acroom.cpp
-//=============================================================================
-
-bool load_room_is_version_bad(RoomStruct *rstruc)
-{
-  return ((rstruc->wasversion < kRoomVersion_303b) || (rstruc->wasversion > kRoomVersion_Current));
-}

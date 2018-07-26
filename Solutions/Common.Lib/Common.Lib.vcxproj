@@ -235,6 +235,7 @@
     <ClCompile Include="..\..\Common\game\customproperties.cpp" />
     <ClCompile Include="..\..\Common\game\interactions.cpp" />
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
+    <ClCompile Include="..\..\Common\game\room_file.cpp" />
     <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />
     <ClCompile Include="..\..\Common\gui\guibutton.cpp" />
@@ -316,6 +317,8 @@
     <ClInclude Include="..\..\Common\game\interactions.h" />
     <ClInclude Include="..\..\Common\game\main_game_file.h" />
     <ClInclude Include="..\..\Common\game\plugininfo.h" />
+    <ClInclude Include="..\..\Common\game\room_version.h" />
+    <ClInclude Include="..\..\Common\game\room_file.h" />
     <ClInclude Include="..\..\Common\gfx\allegrobitmap.h" />
     <ClInclude Include="..\..\Common\gfx\bitmap.h" />
     <ClInclude Include="..\..\common\gfx\gfx_def.h" />

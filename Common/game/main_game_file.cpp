@@ -62,17 +62,17 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     case kMGFErr_TooManyCursors:
         return "Too many cursors for this engine to handle.";
     case kMGFErr_InvalidPropertySchema:
-        return "load room: unable to deserialize properties schema.";
+        return "Failed to deserialize custom properties schema.";
     case kMGFErr_InvalidPropertyValues:
         return "Errors encountered when reading custom properties.";
     case kMGFErr_NoGlobalScript:
         return "No global script in game.";
     case kMGFErr_CreateGlobalScriptFailed:
-        return String::FromFormat("Failed to load global script.");
+        return "Failed to load global script.";
     case kMGFErr_CreateDialogScriptFailed:
-        return String::FromFormat("Failed to load dialog script.");
+        return "Failed to load dialog script.";
     case kMGFErr_CreateScriptModuleFailed:
-        return String::FromFormat("Failed to load script module.");
+        return "Failed to load script module.";
     case kMGFErr_PluginDataFmtNotSupported:
         return "Format version of plugin data is not supported.";
     case kMGFErr_PluginDataSizeTooLarge:

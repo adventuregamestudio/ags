@@ -312,7 +312,7 @@ HRoomFileError ReadMainBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion dat
     }
 
     for (f = 0; f < rstruc->nummes; f++) {
-        read_string_decrypt(in, buffer);
+        read_string_decrypt(in, buffer, sizeof(buffer));
 
         int buffer_length = strlen(buffer);
 

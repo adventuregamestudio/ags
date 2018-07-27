@@ -321,7 +321,6 @@ int cunpackbitl32(unsigned int *line, int size, Stream *in)
 //=============================================================================
 
 char *lztempfnm = "~aclzw.tmp";
-Bitmap *recalced = NULL;
 
 // returns bytes per pixel for bitmap's color depth
 int bmp_bpp(Bitmap*bmpt) {
@@ -364,18 +363,11 @@ long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
   return toret;
 }
 
-/*long load_lzw(char*fnn,Bitmap*bmm,color*pall,long ooff) {
-  recalced=bmm;
-  FILE*iii=clibfopen(fnn,"rb");
-  Seek(iii,ooff,SEEK_SET);*/
-
-long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
+long load_lzw(Stream *in, Common::Bitmap **dst_bmp, int dst_bpp, color *pall) {
   int          uncompsiz, *loptr;
   unsigned char *membuffer;
   int           arin;
 
-  recalced = bmm;
-  // MACPORT FIX (HACK REALLY)
   in->Read(&pall[0], sizeof(color)*256);
   maxsize = in->ReadInt32();
   uncompsiz = in->ReadInt32();
@@ -392,8 +384,8 @@ long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
 #if defined(AGS_BIG_ENDIAN)
   loptr[0] = AGS::Common::BBOp::SwapBytesInt32(loptr[0]);
   loptr[1] = AGS::Common::BBOp::SwapBytesInt32(loptr[1]);
-  int bitmapNumPixels = loptr[0]*loptr[1]/_acroom_bpp;
-  switch (_acroom_bpp) // bytes per pixel!
+  int bitmapNumPixels = loptr[0]*loptr[1]/ dst_bpp;
+  switch (dst_bpp) // bytes per pixel!
   {
     case 1:
     {
@@ -423,18 +415,15 @@ long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
   }
 #endif // defined(AGS_BIG_ENDIAN)
 
-  delete bmm;
-
   update_polled_stuff_if_runtime();
 
-  bmm = BitmapHelper::CreateBitmap((loptr[0] / _acroom_bpp), loptr[1], _acroom_bpp * 8);
+  Bitmap *bmm = BitmapHelper::CreateBitmap((loptr[0] / dst_bpp), loptr[1], dst_bpp * 8);
   if (bmm == NULL)
     quit("!load_room: not enough memory to load room background");
 
   update_polled_stuff_if_runtime();
 
   bmm->Acquire ();
-  recalced = bmm;
 
   for (arin = 0; arin < loptr[1]; arin++)
     memcpy(&bmm->GetScanLineForWriting(arin)[0], &membuffer[arin * loptr[0]], loptr[0]);
@@ -450,6 +439,7 @@ long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
 
   update_polled_stuff_if_runtime();
 
+  *dst_bmp = bmm;
   return uncompsiz;
 }
 

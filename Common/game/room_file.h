@@ -74,7 +74,11 @@ struct RoomDataSource
 
 // Opens room file for reading from an arbitrary file
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
+// Reads room data
 HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver);
+// Applies necessary updates, conversions and fixups to the loaded data
+// making it compatible with current engine
+HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver);
 
 } // namespace Common
 } // namespace AGS

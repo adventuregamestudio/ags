@@ -98,11 +98,12 @@ struct RoomStruct {
     MessageInfo   msgi[MAXMESS];
     short         wasversion;                     // when loaded from file
     short         flagstates[MAX_FLAGS]; // unused!
-    FullAnimation anims[MAXANIMS];
+    FullAnimation anims[MAXANIMS]; // no longer supported
     short         numanims;
     short         shadinginfo[16];    // walkable area-specific view number
     // new version 2 roommake stuff below
-    int           numwalkareas;
+    // CLNUP very old polygonal walkable areas (unknown version)
+    int           numpolyareas;
     PolyPoints    wallpoints[MAX_WALK_AREAS];
     int           numhotspots;
     _Point        hswalkto[MAX_HOTSPOTS];
@@ -120,6 +121,7 @@ struct RoomStruct {
     int           regionTintLevel[MAX_REGIONS];
     short         width,height;                             // in 320x200 terms (scrolling room size)
     //short         resolution;                               // [DEPRECATED] 1 = 320x200, 2 = 640x400
+    int           numwalkareas;
     short         walk_area_zoom[MAX_WALK_AREAS + 1];       // 0 = 100%, 1 = 101%, -1 = 99%
     short         walk_area_zoom2[MAX_WALK_AREAS + 1];      // for vector scaled areas
     short         walk_area_light[MAX_WALK_AREAS + 1];      // 0 = normal, + lighter, - darker
@@ -152,8 +154,6 @@ struct RoomStruct {
     // Gets region's tint luminance in 0 to 100 range value; returns 0 if region's light level is set
     int  get_region_tintluminance(int id) const;
 };
-
-extern int _acroom_bpp;  // bytes per pixel of currently loading room
 
 extern void load_room(const char *files, RoomStruct *rstruc);
 

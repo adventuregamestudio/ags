@@ -23,11 +23,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "ac/roomstruct.h"
 #include "util/filestream.h"
 #include "script/cc_instance.h"
 #include "script/cc_error.h"
 
+namespace AGS { namespace Common { class RoomStruct; } }
 using namespace AGS::Common;
 
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";

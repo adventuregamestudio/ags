@@ -43,6 +43,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
+extern RoomStruct thisroom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int our_eip;
 extern GameSetup usetup;
@@ -187,10 +188,13 @@ void quit_message_on_exit(const char *qmsg, String &alertis, QuitReason qreason)
 void quit_release_data()
 {
     resetRoomStatuses();
+    thisroom.Free();
 
     /*  _CrtMemState memstart;
     _CrtMemCheckpoint(&memstart);
     _CrtMemDumpStatistics( &memstart );*/
+
+    Common::AssetManager::DestroyInstance();
 }
 
 void quit_delete_temp_files()
@@ -280,18 +284,18 @@ void quit(const char *quitmsg)
 
     quit_message_on_exit(qmsg, alertis, qreason);
 
-    // remove the game window
+    quit_release_data();
+
+    // release backed library
+    // WARNING: no Allegro objects should remain in memory after this,
+    // if their destruction is called later, program will crash!
     allegro_exit();
 
     platform->PostAllegroExit();
 
     our_eip = 9903;
 
-    quit_release_data();
-
     quit_delete_temp_files();
-
-    Common::AssetManager::DestroyInstance();
 
     proper_exit=1;
 

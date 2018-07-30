@@ -20,7 +20,7 @@
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/characterinfo.h"
-#include "ac/roomstruct.h"
+#include "game/roomstruct.h"
 
 ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber);
 int Room_GetObjectCount();
@@ -39,7 +39,6 @@ RuntimeScriptValue Sc_Room_GetProperty(const RuntimeScriptValue *params, int32_t
 
 //=============================================================================
 
-Common::Bitmap *fix_bitmap_size(Common::Bitmap *todubl);
 void  save_room_data_segment ();
 void  unload_old_room();
 void  load_new_room(int newnum,CharacterInfo*forchar);
@@ -52,6 +51,6 @@ void  on_background_frame_change ();
 // Clear the current room pointer if room status is no longer valid
 void  croom_ptr_clear();
 
-extern RoomStruct thisroom;
+extern AGS::Common::RoomStruct thisroom;
 
 #endif // __AGS_EE_AC__ROOM_H

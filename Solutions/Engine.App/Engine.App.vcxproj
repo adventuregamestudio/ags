@@ -259,7 +259,6 @@
     <ClCompile Include="..\..\Engine\ac\room.cpp" />
     <ClCompile Include="..\..\Engine\ac\roomobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\roomstatus.cpp" />
-    <ClCompile Include="..\..\Engine\ac\room_engine.cpp" />
     <ClCompile Include="..\..\Engine\ac\route_finder.cpp" />
     <ClCompile Include="..\..\Engine\ac\screen.cpp" />
     <ClCompile Include="..\..\Engine\ac\screenoverlay.cpp" />

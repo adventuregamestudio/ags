@@ -15,7 +15,6 @@
 #include <string.h>
 #include "script/script.h"
 #include "ac/common.h"
-#include "ac/roomstruct.h"
 #include "ac/character.h"
 #include "ac/dialog.h"
 #include "ac/event.h"
@@ -47,7 +46,6 @@
 
 extern GameSetupStruct game;
 extern GameState play;
-extern RoomStruct thisroom;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;
@@ -87,7 +85,7 @@ std::vector<RuntimeScriptValue> moduleRepExecAddr;
 int numScriptModules = 0;
 
 std::vector<String> characterScriptObjNames;
-String              objectScriptObjNames[MAX_INIT_SPR];
+String              objectScriptObjNames[MAX_ROOM_OBJECTS];
 std::vector<String> guiScriptObjNames;
 
 

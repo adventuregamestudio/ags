@@ -307,7 +307,7 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
 
     // restore pointer members
     globalscript=gswas;
-    compiled_script=compsc;
+    CompiledScript=compsc;
     chars=chwas;
     dict = olddict;
     for (int vv=0;vv<MAXGLOBALMES;vv++) messages[vv]=mesbk[vv];

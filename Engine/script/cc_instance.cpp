@@ -17,7 +17,6 @@
 #include "ac/common.h"
 #include "ac/event.h"
 #include "ac/mouse.h"
-#include "ac/roomstruct.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "gui/guidefines.h"
@@ -1517,7 +1516,7 @@ void ccInstance::GetScriptName(char *curScrName) {
         strcpy (curScrName, "Not in a script");
     else if (instanceof == gamescript)
         strcpy (curScrName, "Global script");
-    else if (instanceof == thisroom.compiled_script)
+    else if (instanceof == thisroom.CompiledScript)
         sprintf (curScrName, "Room %d script", displayed_room);
     else
         strcpy (curScrName, "Unknown script");

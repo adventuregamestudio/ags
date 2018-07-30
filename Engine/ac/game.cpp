@@ -47,7 +47,6 @@
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
@@ -178,17 +177,17 @@ ScriptString myScriptStringImpl;
 // until we implement safe management of such containers in script exports
 // system. Noteably we would need an alternate to StaticArray class to track
 // access to their elements.
-ScriptObject scrObj[MAX_INIT_SPR];
+ScriptObject scrObj[MAX_ROOM_OBJECTS];
 ScriptGUI    *scrGui = NULL;
-ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-ScriptRegion scrRegion[MAX_REGIONS];
+ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
+ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 ScriptInvItem scrInv[MAX_INV];
 ScriptDialog *scrDialog;
 
 ViewStruct*views=NULL;
 
 CharacterCache *charcache = NULL;
-ObjectCache objcache[MAX_INIT_SPR];
+ObjectCache objcache[MAX_ROOM_OBJECTS];
 
 MoveList *mls = NULL;
 
@@ -472,7 +471,7 @@ const char* Game_GetSaveSlotDescription(int slnum) {
 
 void restore_game_dialog() {
     can_run_delayed_command();
-    if (thisroom.options[ST_SAVELOAD] == 1) {
+    if (thisroom.Options.SaveLoadDisabled == 1) {
         DisplayMessage (983);
         return;
     }
@@ -489,7 +488,7 @@ void restore_game_dialog() {
 }
 
 void save_game_dialog() {
-    if (thisroom.options[ST_SAVELOAD] == 1) {
+    if (thisroom.Options.SaveLoadDisabled == 1) {
         DisplayMessage (983);
         return;
     }
@@ -1316,7 +1315,7 @@ void restore_game_play(Stream *in)
 void ReadMoveList_Aligned(Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
+    for (int i = 0; i < game.numcharacters + MAX_ROOM_OBJECTS + 1; ++i)
     {
         mls[i].ReadFromFile_Legacy(&align_s);
 
@@ -1401,8 +1400,8 @@ HSaveError restore_game_audiocliptypes(Stream *in)
 
 void restore_game_thisroom(Stream *in, RestoredData &r_data)
 {
-    in->ReadArrayOfInt16(r_data.RoomLightLevels, MAX_REGIONS);
-    in->ReadArrayOfInt32(r_data.RoomTintLevels, MAX_REGIONS);
+    in->ReadArrayOfInt16(r_data.RoomLightLevels, MAX_ROOM_REGIONS);
+    in->ReadArrayOfInt32(r_data.RoomTintLevels, MAX_ROOM_REGIONS);
     in->ReadArrayOfInt16(r_data.RoomZoomLevels1, MAX_WALK_AREAS + 1);
     in->ReadArrayOfInt16(r_data.RoomZoomLevels2, MAX_WALK_AREAS + 1);
 }
@@ -1467,15 +1466,15 @@ void restore_game_dynamic_surfaces(Stream *in, RestoredData &r_data)
 void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
 {
     int bb;
-    for (bb = 0; bb < MAX_BSCENE; bb++)
-        r_data.RoomBkgScene[bb] = NULL;
+    for (bb = 0; bb < MAX_ROOM_BGFRAMES; bb++)
+        r_data.RoomBkgScene[bb].reset();
 
     if (displayed_room >= 0) {
 
-        for (bb = 0; bb < MAX_BSCENE; bb++) {
+        for (bb = 0; bb < MAX_ROOM_BGFRAMES; bb++) {
             r_data.RoomBkgScene[bb] = NULL;
             if (play.raw_modified[bb]) {
-                r_data.RoomBkgScene[bb] = read_serialized_bitmap (in);
+                r_data.RoomBkgScene[bb].reset(read_serialized_bitmap(in));
             }
         }
         bb = in->ReadInt32();
@@ -1587,7 +1586,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
 
     // save pointer members before reading
     char* gswas=game.globalscript;
-    ccScript* compsc=game.compiled_script;
+    ccScript* compsc=game.CompiledScript;
     CharacterInfo* chwas=game.chars;
     WordsDictionary *olddict = game.dict;
     char* mesbk[MAXGLOBALMES];
@@ -1670,7 +1669,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
         return new SavegameError(kSvgErr_InconsistentPlugin);
 
     // save the new room music vol for later use
-    r_data.RoomVolume = in->ReadInt32();
+    r_data.RoomVolume = (RoomVolumeMod)in->ReadInt32();
 
     if (ccUnserializeAllObjects(in, &ccUnserializer))
     {
@@ -1859,7 +1858,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     xxx += offsetx;
     yyy += offsety;
-    if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
+    if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return 0;
 
     // check characters, objects and walkbehinds, work out which is
@@ -1868,7 +1867,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     int hsat = get_hotspot_at(xxx,yyy);
     int objat = GetObjectAt(xxx - offsetx, yyy - offsety);
 
-    int wbat = thisroom.object->GetPixel(xxx, yyy);
+    int wbat = thisroom.WalkBehindMask->GetPixel(xxx, yyy);
 
     if (wbat <= 0) wbat = 0;
     else wbat = croom->walkbehind_base[wbat];
@@ -2062,7 +2061,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
         replace_tokens(get_translation(game.messages[msnum-500]), buffer, maxlen);
         return;
     }
-    else if (msnum >= thisroom.nummes) {
+    else if (msnum < 0 || (size_t)msnum >= thisroom.MessageCount) {
         if (giveErr)
             quit("!DisplayMessage: Invalid message number to display");
         buffer[0] = 0;
@@ -2070,7 +2069,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     }
 
     buffer[0]=0;
-    replace_tokens(get_translation(thisroom.message[msnum]), buffer, maxlen);
+    replace_tokens(get_translation(thisroom.Messages[msnum]), buffer, maxlen);
 }
 
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize)

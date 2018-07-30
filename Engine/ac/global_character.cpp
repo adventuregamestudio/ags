@@ -31,12 +31,14 @@
 #include "ac/object.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
-#include "ac/roomstruct.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "game/roomstruct.h"
 #include "main/game_run.h"
 #include "script/script.h"
+
+using namespace AGS::Common;
 
 
 extern GameSetupStruct game;
@@ -45,7 +47,7 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern RoomObject*objs;
 extern RoomStruct thisroom;
 extern GameState play;
-extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern ScriptInvItem scrInv[MAX_INV];
 extern int offsetx, offsety;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
@@ -362,10 +364,10 @@ void MoveCharacterToObject(int chaa,int obbj) {
 */
 
 void MoveCharacterToHotspot(int chaa,int hotsp) {
-    if ((hotsp<0) || (hotsp>=MAX_HOTSPOTS))
+    if ((hotsp<0) || (hotsp>=MAX_ROOM_HOTSPOTS))
         quit("!MovecharacterToHotspot: invalid hotspot");
-    if (thisroom.hswalkto[hotsp].x<1) return;
-    walk_character(chaa,thisroom.hswalkto[hotsp].x,thisroom.hswalkto[hotsp].y,0, true);
+    if (thisroom.Hotspots[hotsp].WalkTo.X<1) return;
+    walk_character(chaa,thisroom.Hotspots[hotsp].WalkTo.X,thisroom.Hotspots[hotsp].WalkTo.Y,0, true);
     GameLoopUntilEvent(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
 }
 

@@ -58,7 +58,7 @@ struct GameSetupStructBase {
     WordsDictionary  *dict;
     char             *globalscript;
     CharacterInfo    *chars;
-    ccScript         *compiled_script;
+    ccScript         *CompiledScript;
     Size              size;                 // native game size in pixels
     Size              altsize;              // alternate, lesser, game size for letterbox-by-design games
 
@@ -66,7 +66,7 @@ struct GameSetupStructBase {
     bool             load_dictionary;
     bool             load_compiled_script;
     // [IKM] 2013-03-30
-    // NOTE: it looks like nor 'globalscript', not 'compiled_script' are used
+    // NOTE: it looks like nor 'globalscript', not 'CompiledScript' are used
     // to store actual script data anytime; 'ccScript* gamescript' global
     // pointer is used for that instead.
 

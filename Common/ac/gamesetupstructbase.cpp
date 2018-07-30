@@ -22,7 +22,7 @@ GameSetupStructBase::GameSetupStructBase()
     : dict(NULL)
     , globalscript(NULL)
     , chars(NULL)
-    , compiled_script(NULL)
+    , CompiledScript(NULL)
     , load_messages(NULL)
     , load_dictionary(false)
     , load_compiled_script(false)
@@ -137,7 +137,7 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteInt32(dict ? 1 : 0);
     out->WriteInt32(0); // globalscript
     out->WriteInt32(0); // chars
-    out->WriteInt32(compiled_script ? 1 : 0);
+    out->WriteInt32(CompiledScript ? 1 : 0);
 }
 
 Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox)

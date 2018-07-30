@@ -140,13 +140,14 @@ void encrypt_text(char *toenc) {
   }
 }
 
-void write_string_encrypt(Stream *out, char *sss) {
-  int stlent = (int)strlen(sss) + 1;
+void write_string_encrypt(Stream *out, const char *s) {
+  int stlent = (int)strlen(s) + 1;
 
   out->WriteInt32(stlent);
-  encrypt_text(sss);
-  out->WriteArray(sss, stlent, 1);
-  decrypt_text(sss);
+  char *enc = strdup(s);
+  encrypt_text(enc);
+  out->WriteArray(enc, stlent, 1);
+  free(enc);
 }
 
 void write_dictionary (WordsDictionary *dict, Stream *out) {

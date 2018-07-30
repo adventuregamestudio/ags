@@ -28,7 +28,6 @@
 #include "ac/record.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "main/mainheader.h"
 #include "main/update.h"
 #include "ac/screenoverlay.h"
@@ -206,10 +205,10 @@ void update_shadow_areas()
   int onwalkarea = get_walkable_area_at_character (game.playercharacter);
   if (onwalkarea<0) ;
   else if (playerchar->flags & CHF_FIXVIEW) ;
-  else { onwalkarea=thisroom.shadinginfo[onwalkarea];
+  else { onwalkarea=thisroom.WalkAreas[onwalkarea].Light;
     if (onwalkarea>0) playerchar->view=onwalkarea-1;
-    else if (thisroom.options[ST_MANVIEW]==0) playerchar->view=playerchar->defview;
-    else playerchar->view=thisroom.options[ST_MANVIEW]-1;
+    else if (thisroom.Options.PlayerView==0) playerchar->view=playerchar->defview;
+    else playerchar->view=thisroom.Options.PlayerView-1;
   }
 }
 

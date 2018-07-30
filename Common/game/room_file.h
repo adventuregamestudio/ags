@@ -29,12 +29,12 @@
 #include "util/stream.h"
 #include "util/string.h"
 
-struct RoomStruct;
-
 namespace AGS
 {
 namespace Common
 {
+
+class RoomStruct;
 
 enum RoomFileErrorType
 {
@@ -84,7 +84,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver);
 // Historically, text sources were kept inside packed room files before AGS 3.*.
 HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion data_ver);
 
-HRoomFileError WriteRoomData(const RoomStruct &room, Stream *out, RoomFileVersion data_ver);
+HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver);
 
 } // namespace Common
 } // namespace AGS

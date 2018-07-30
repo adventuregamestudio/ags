@@ -80,7 +80,7 @@ void RoomStruct::freescripts()
 {
     if (scripts != NULL)
     {
-        free(scripts);
+        delete scripts;
         scripts = NULL;
     }
 

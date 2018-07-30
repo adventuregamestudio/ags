@@ -21,13 +21,7 @@
 namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
 
-// MACPORT FIX 9/6/05: removed far and put space after *
-#ifdef __block
-#undef __block
-#endif
-typedef unsigned char * __block;
-
-long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto);
+void csavecompressed(Common::Stream *out, const unsigned char * tobesaved, const color pala[256]);
 
 void cpackbitl(unsigned char *line, int size, Common::Stream *out);
 void cpackbitl16(unsigned short *line, int size, Common::Stream *out);
@@ -38,10 +32,9 @@ int  cunpackbitl32(unsigned int *line, int size, Common::Stream *in);
 
 //=============================================================================
 
-long save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, long offe);
-
+void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const color *pall);
 long load_lzw(Common::Stream *in, Common::Bitmap **bmm, int dst_bpp, color *pall);
-long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long write_at);
+void savecompressed_allegro(Common::Stream *out, const Common::Bitmap *bmpp, const color *pall);
 long loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall, long read_at);
 
 #endif // __AC_COMPRESS_H

@@ -90,6 +90,8 @@ AGSString editorVersionNumber;
 
 AGSString ConvertStringToNativeString(System::String^ clrString)
 {
+    if (clrString == nullptr)
+        return AGSString();
     char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
     AGSString str = stringPointer;
     Marshal::FreeHGlobal(IntPtr(stringPointer));
@@ -98,6 +100,8 @@ AGSString ConvertStringToNativeString(System::String^ clrString)
 
 AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len)
 {
+    if (clrString == nullptr)
+        return AGSString();
     char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
     AGSString str = stringPointer;
     Marshal::FreeHGlobal(IntPtr(stringPointer));
@@ -106,6 +110,8 @@ AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len)
 
 AGSString ConvertFileNameToNativeString(System::String^ clrString)
 {
+    if (clrString == nullptr)
+        return AGSString();
     AGSString str = ConvertStringToNativeString(clrString);
     if (str.FindChar('?') != -1)
         throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clrString));

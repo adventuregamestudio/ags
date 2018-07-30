@@ -29,6 +29,9 @@
 #define ROOM_PASSWORD_LENGTH 11
 #define ROOM_MESSAGE_FLAG_DISPLAYNEXT 200
 
+// Necessary for the room upgrade (see UpdateRoomData)
+extern int spriteheight[];
+
 namespace AGS
 {
 namespace Common
@@ -65,6 +68,8 @@ String GetRoomFileErrorText(RoomFileErrorType err)
         return "Unknown format of the custom properties block.";
     case kRoomFileErr_InvalidPropertyValues:
         return "Errors encountered when reading custom properties.";
+    case kRoomFileErr_BlockNotFound:
+        return "Required block was not found.";
     }
     return "Unknown error.";
 }
@@ -91,15 +96,24 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
 enum RoomFileBlock
 {
     kRoomFblk_None              = 0,
+    // Main room data
     kRoomFblk_Main              = 1,
+    // Room script text source (was present in older room formats)
     kRoomFblk_Script            = 2,
+    // Old versions of compiled script (no longer supported)
     kRoomFblk_CompScript        = 3,
     kRoomFblk_CompScript2       = 4,
+    // Names of the room objects
     kRoomFblk_ObjectNames       = 5,
+    // Secondary room backgrounds
     kRoomFblk_AnimBg            = 6,
+    // Contemporary compiled script
     kRoomFblk_CompScript3       = 7,
+    // Custom properties
     kRoomFblk_Properties        = 8,
+    // Script names of the room objects
     kRoomFblk_ObjectScNames     = 9,
+    // End of room data tag
     kRoomFile_EOF               = 0xFF
 };
 
@@ -298,18 +312,23 @@ HRoomFileError ReadMainBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion dat
     return HRoomFileError::None();
 }
 
-// Room script sources (original text); only attached in the old pre-3.* games.
-HRoomFileError ReadScriptBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion data_ver)
+// Room script sources (original text)
+HRoomFileError ReadScriptBlock(char *&buf, Stream *in, RoomFileVersion data_ver)
 {
     size_t len = in->ReadInt32();
-    rstruc->scripts = (char *)malloc(len + 1);
-    in->Read(rstruc->scripts, len);
-    rstruc->scripts[len] = 0;
+    buf = new char[len + 1];
+    in->Read(buf, len);
+    buf[len] = 0;
 
     for (size_t i = 0; i < len; ++i)
-        rstruc->scripts[i] += passwencstring[i % 11];
-
+        buf[i] += passwencstring[i % 11];
     return HRoomFileError::None();
+}
+
+// Room script sources (original text)
+HRoomFileError ReadScriptBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion data_ver)
+{
+    return ReadScriptBlock(rstruc->scripts, in, data_ver);
 }
 
 // Compiled room script
@@ -366,7 +385,7 @@ HRoomFileError ReadAnimBgBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion d
     rstruc->bscene_anim_speed = in->ReadByte();
     in->Read(rstruc->ebpalShared, rstruc->num_bscenes);
 
-    for (size_t i = 1; i < rstruc->num_bscenes; ++i)
+    for (size_t i = 1; i < (size_t)rstruc->num_bscenes; ++i)
     {
         update_polled_stuff_if_runtime();
         load_lzw(in, &rstruc->ebscene[i], rstruc->bytes_per_pixel, rstruc->bpalettes[i]);
@@ -449,6 +468,12 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
     return HRoomFileError::None();
 }
 
+void SkipRoomBlock(Stream *in, RoomFileVersion data_ver)
+{
+    size_t block_len = in->ReadInt32();
+    in->Seek(block_len, Common::kSeekCurrent);
+}
+
 
 HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
@@ -475,6 +500,25 @@ HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_v
 
 HRoomFileError UpdateRoomData(RoomStruct *rstruc, RoomFileVersion data_ver)
 {
+    // Upgade object script names
+    if (data_ver < kRoomVersion_300a)
+    {
+        for (size_t i = 0; i < (size_t)rstruc->numsprs; ++i)
+        {
+            if (rstruc->objectscriptnames[i].GetLength() > 0)
+            {
+                String jibbledScriptName;
+                jibbledScriptName.Format("o%s", rstruc->objectscriptnames[i].GetCStr());
+                jibbledScriptName.MakeLower();
+                jibbledScriptName.SetAt(1, toupper(jibbledScriptName[1u]));
+                rstruc->objectscriptnames[i] = jibbledScriptName;
+            }
+            // Upgrade object Y coordinate
+            // NOTE: this is impossible to do without game sprite information loaded beforehand
+            rstruc->sprs[i].y += spriteheight[rstruc->sprs[i].sprnum];
+        }
+    }
+
     // if they set a continiously scaled area where the top
     // and bottom zoom levels are identical, set it as a normal
     // scaled area
@@ -508,6 +552,203 @@ HRoomFileError UpdateRoomData(RoomStruct *rstruc, RoomFileVersion data_ver)
 
     // sync bpalettes[0] with room.pal
     memcpy(rstruc->bpalettes, rstruc->pal, sizeof(color) * 256);
+    return HRoomFileError::None();
+}
+
+HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion data_ver)
+{
+    RoomFileBlock block;
+    do
+    {
+        int b = in->ReadByte();
+        if (b < 0)
+            return new RoomFileError(kRoomFileErr_UnexpectedEOF);
+        block = (RoomFileBlock)b;
+        if (block == kRoomFblk_Script)
+        {
+            char *buf = NULL;
+            HRoomFileError err = ReadScriptBlock(buf, in, data_ver);
+            if (err)
+            {
+                script = buf;
+                delete buf;
+            }
+            return err;
+        }
+        if (block != kRoomFile_EOF)
+            SkipRoomBlock(in, data_ver);
+    } while (block != kRoomFile_EOF);
+    return new RoomFileError(kRoomFileErr_BlockNotFound);
+}
+
+
+// Type of function that writes single room block.
+typedef void(*PfnWriteBlock)(const RoomStruct &room, Stream *out);
+// Generic function that saves a block and automatically adds its size into header
+void WriteBlock(const RoomStruct &room, RoomFileBlock block, PfnWriteBlock writer, Stream *out)
+{
+    // Write block's header
+    out->WriteByte(block);
+    size_t sz_at = out->GetPosition();
+    out->WriteInt32(0); // block size placeholder
+    // Call writer to save actual block contents
+    writer(room, out);
+
+    // Now calculate the block's size...
+    size_t end_at = out->GetPosition();
+    size_t block_size = (end_at - sz_at) - sizeof(int32_t);
+    // ...return back and write block's size in the placeholder
+    out->Seek(sz_at, Common::kSeekBegin);
+    out->WriteInt32(block_size);
+    // ...and get back to the end of the file
+    out->Seek(0, Common::kSeekEnd);
+}
+
+void WriteInteractionScripts(const InteractionScripts *interactions, Stream *out)
+{
+    out->WriteInt32(interactions->ScriptFuncNames.size());
+    for (size_t i = 0; i < interactions->ScriptFuncNames.size(); ++i)
+        interactions->ScriptFuncNames[i].Write(out);
+}
+
+void WriteMainBlock(const RoomStruct &room, Stream *out)
+{
+    out->WriteInt32(room.bytes_per_pixel);  // colour depth bytes per pixel
+    out->WriteInt16(room.numobj);
+    out->WriteArrayOfInt16(&room.objyval[0], room.numobj);
+
+    out->WriteInt32(room.numhotspots);
+    out->WriteArray(&room.hswalkto[0], sizeof(_Point), room.numhotspots);
+    for (size_t i = 0; i < (size_t)room.numhotspots; ++i)
+        Common::StrUtil::WriteString(room.hotspotnames[i], out);
+
+    for (size_t i = 0; i < (size_t)room.numhotspots; ++i)
+        Common::StrUtil::WriteString(room.hotspotScriptNames[i], out);
+
+    out->WriteInt32(0); // legacy poly-point areas
+
+    out->WriteInt16(room.top);
+    out->WriteInt16(room.bottom);
+    out->WriteInt16(room.left);
+    out->WriteInt16(room.right);
+    out->WriteInt16(room.numsprs);
+    out->WriteArray(&room.sprs[0], sizeof(sprstruc), room.numsprs);
+
+    out->WriteInt32(0); // legacy interaction vars
+
+    out->WriteInt32(MAX_REGIONS);
+    WriteInteractionScripts(room.roomScripts, out);
+    for (size_t i = 0; i < (size_t)room.numhotspots; ++i)
+        WriteInteractionScripts(room.hotspotScripts[i], out);
+    for (size_t i = 0; i < (size_t)room.numsprs; ++i)
+        WriteInteractionScripts(room.objectScripts[i], out);
+    for (size_t i = 0; i < (size_t)room.numRegions; ++i)
+        WriteInteractionScripts(room.regionScripts[i], out);
+
+    out->WriteArrayOfInt32(&room.objbaseline[0], room.numsprs);
+    out->WriteInt16(room.width);
+    out->WriteInt16(room.height);
+
+    out->WriteArrayOfInt16(&room.objectFlags[0], room.numsprs);
+
+    out->WriteInt16(1); // CLNUP remove this after gamedata format change (room.resolution)
+
+    // write the zoom and light levels
+    out->WriteInt32(MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&room.walk_area_zoom[0], MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&room.walk_area_light[0], MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&room.walk_area_zoom2[0], MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&room.walk_area_top[0], MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&room.walk_area_bottom[0], MAX_WALK_AREAS + 1);
+
+    out->Write(&room.password[0], 11);
+    out->Write(&room.options[0], 10);
+    out->WriteInt16(room.nummes);
+
+    out->WriteInt32(room.gameId);
+
+    out->WriteArray(&room.msgi[0], sizeof(MessageInfo), room.nummes);
+
+    for (size_t i = 0; i < (size_t)room.nummes; ++i)
+        write_string_encrypt(out, room.message[i]);
+
+    out->WriteInt16(0); // legacy room animations
+
+    out->WriteArrayOfInt16(&room.shadinginfo[0], 16);
+
+    out->WriteArrayOfInt16(&room.regionLightLevel[0], MAX_REGIONS);
+    out->WriteArrayOfInt32(&room.regionTintLevel[0], MAX_REGIONS);
+
+    save_lzw(out, room.ebscene[0], room.pal);
+
+    savecompressed_allegro(out, room.regions, room.pal);
+    savecompressed_allegro(out, room.walls, room.pal);
+    savecompressed_allegro(out, room.object, room.pal);
+    savecompressed_allegro(out, room.lookat, room.pal);
+}
+
+void WriteCompSc3Block(const RoomStruct &room, Stream *out)
+{
+    room.compiled_script->Write(out);
+}
+
+void WriteObjNamesBlock(const RoomStruct &room, Stream *out)
+{
+    out->WriteByte(room.numsprs);
+    for (int i = 0; i < room.numsprs; ++i)
+        Common::StrUtil::WriteString(room.objectnames[i], out);
+}
+
+void WriteObjScNamesBlock(const RoomStruct &room, Stream *out)
+{
+    out->WriteByte(room.numsprs);
+    for (int i = 0; i < room.numsprs; ++i)
+        Common::StrUtil::WriteString(room.objectscriptnames[i], out);
+}
+
+void WriteAnimBgBlock(const RoomStruct &room, Stream *out)
+{
+    out->WriteByte(room.num_bscenes);
+    out->WriteByte(room.bscene_anim_speed);
+
+    out->WriteArrayOfInt8((int8_t*)&room.ebpalShared[0], room.num_bscenes);
+    for (size_t i = 1; i < room.num_bscenes; ++i)
+        save_lzw(out, room.ebscene[i], room.bpalettes[i]);
+}
+
+void WritePropertiesBlock(const RoomStruct &room, Stream *out)
+{
+    out->WriteInt32(1);  // Version 1 of properties block
+    Properties::WriteValues(room.roomProps, out);
+    for (size_t i = 0; i < room.numhotspots; ++i)
+        Properties::WriteValues(room.hsProps[i], out);
+    for (size_t i = 0; i < room.numsprs; ++i)
+        Properties::WriteValues(room.objProps[i], out);
+}
+
+HRoomFileError WriteRoomData(const RoomStruct &room, Stream *out, RoomFileVersion data_ver)
+{
+    if (data_ver < kRoomVersion_Current)
+        return new RoomFileError(kRoomFileErr_FormatNotSupported, "We no longer support saving room in the older format.");
+
+    // Header
+    out->WriteInt16(data_ver);
+    // Main data
+    WriteBlock(room, kRoomFblk_Main, WriteMainBlock, out);
+    // Compiled script
+    if (room.compiled_script != NULL)
+        WriteBlock(room, kRoomFblk_CompScript3, WriteCompSc3Block, out);
+    // Object names
+    if (room.numsprs > 0)
+    {
+        WriteBlock(room, kRoomFblk_ObjectNames, WriteObjNamesBlock, out);
+        WriteBlock(room, kRoomFblk_ObjectScNames, WriteObjScNamesBlock, out);
+    }
+    // Secondary background frames
+    if (room.num_bscenes > 1)
+        WriteBlock(room, kRoomFblk_AnimBg, WriteAnimBgBlock, out);
+    // Custom properties
+    WriteBlock(room, kRoomFblk_Properties, WritePropertiesBlock, out);
     return HRoomFileError::None();
 }
 

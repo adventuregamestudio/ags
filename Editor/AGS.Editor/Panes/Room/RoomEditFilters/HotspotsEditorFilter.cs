@@ -16,8 +16,6 @@ namespace AGS.Editor
 
         public override string DisplayName { get { return "Hotspots"; } }
 
-        public override bool VisibleByDefault { get { return false; } }
-
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.Hotspots; }
@@ -50,12 +48,17 @@ namespace AGS.Editor
             }
         }
 
-        protected override Dictionary<string, int> GetItems()
+        protected override string GetItemName(int id)
         {
-            Dictionary<string, int> items = new Dictionary<string, int>(_room.Hotspots.Count);
+            return _room.Hotspots[id].Name;
+        }
+
+        protected override SortedDictionary<string, int> InitItemRefs()
+        {
+            SortedDictionary<string, int> items = new SortedDictionary<string, int>();
             foreach (RoomHotspot hotspot in _room.Hotspots)
             {
-                items.Add(GetItemName(hotspot.ID, hotspot.Name), hotspot.ID);
+                items.Add(GetItemID(hotspot.ID), hotspot.ID);
             }
             return items;
         }

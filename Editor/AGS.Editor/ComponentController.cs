@@ -186,7 +186,26 @@ namespace AGS.Editor
 					return component;
 				}
 			}
+            // TODO: should we really throw here? Perhaps better throw in the caller's code where applicable?
 			throw new AGSEditorException("No component found that implements " + interfaceType.Name);
 		}
+
+        /// <summary>
+        /// Searches for the Editor's component of the given type and returns its instance,
+        /// or null if one does not exist.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="componentType"></param>
+        /// <returns></returns>
+        public T FindComponent<T>()
+            where T : class, IEditorComponent
+        {
+            foreach (IEditorComponent component in _components)
+            {
+                if (component is T)
+                    return component as T;
+            }
+            return null;
+        }
 	}
 }

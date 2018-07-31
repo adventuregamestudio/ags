@@ -996,6 +996,8 @@ namespace AGS.Editor.Components
 				RenameRoom(_loadedRoom.Number, numberRequested);
 			}
 
+            // TODO: wish we could forward event to the CharacterComponent.OnPropertyChanged,
+            // but its implementation relies on it being active Pane!
             if ((_guiController.ActivePane.SelectedPropertyGridObject is Character) &&
                 (propertyName == Character.PROPERTY_NAME_SCRIPTNAME))
             {

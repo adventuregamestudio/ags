@@ -32,13 +32,12 @@ namespace AGS.Editor
             _panel = displayPanel;
             _selectedObject = null;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            RoomItemRefs = new SortedDictionary<string, RoomObject>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
+            InitGameEntities();
         }
 
         public string DisplayName { get { return "Objects"; } }
-
-        public bool VisibleByDefault { get { return true; } }
 
         public RoomAreaMaskType MaskToDraw
         {
@@ -46,9 +45,14 @@ namespace AGS.Editor
         }
 
         public bool SupportVisibleItems { get { return true; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        /// <summary>
+        /// A lookup table for getting game object reference by they key.
+        /// </summary>
+        private SortedDictionary<string, RoomObject> RoomItemRefs { get; set; }
 
         public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -115,7 +119,7 @@ namespace AGS.Editor
 
             foreach (RoomObject obj in _objectBaselines)
             {
-                if (!VisibleItems.Contains(GetUniqueName(obj))) continue;
+                if (!DesignItems[GetItemID(obj)].Visible) continue;
                 int height = GetSpriteHeightForGameResolution(obj.Image);
                 int ypos = state.RoomYToWindow(obj.StartY - height);
 				Factory.NativeProxy.DrawSpriteToBuffer(obj.Image, state.RoomXToWindow(obj.StartX), ypos, state.Scale);
@@ -158,7 +162,7 @@ namespace AGS.Editor
             int xPos;
             int yPos;
 
-            if (_selectedObject != null && VisibleItems.Contains(GetUniqueName(_selectedObject)))
+            if (_selectedObject != null && DesignItems[GetItemID(_selectedObject)].Visible)
             {
                 int width = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(_selectedObject.Image));
 				int height = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(_selectedObject.Image));
@@ -239,8 +243,8 @@ namespace AGS.Editor
             for (int i = _objectBaselines.Count - 1; i >= 0; i--)
             {
                 RoomObject obj = _objectBaselines[i];
-                string name = GetUniqueName(obj);
-                if (!VisibleItems.Contains(name) || LockedItems.Contains(name)) continue;
+                DesignTimeProperties p = DesignItems[GetItemID(obj)];
+                if (!p.Visible || p.Locked) continue;
                 if (HitTest(obj, x, y)) return obj;
             }
             return null;
@@ -290,17 +294,21 @@ namespace AGS.Editor
                 if (Factory.GUIController.ShowQuestion("Are you sure you want to delete this object?") == DialogResult.Yes)
                 {
                     _room.Objects.Remove(_selectedObject);
+                    RemoveObjectRef(_selectedObject);
                     foreach (RoomObject obj in _room.Objects)
                     {
                         if (obj.ID >= _selectedObject.ID)
                         {
+                            string oldID = GetItemID(obj);
                             obj.ID--;
+                            UpdateObjectRef(obj, oldID);
                         }
                     }
                     _selectedObject = null;
                     Factory.GUIController.SetPropertyGridObject(_room);
                     SetPropertyGridList();
                     _room.Modified = true;
+                    OnItemsChanged(this, null);
                     _panel.Invalidate();
                 }
             }
@@ -316,6 +324,7 @@ namespace AGS.Editor
                 newObj.StartX = SetObjectCoordinate(_menuClickX);
                 newObj.StartY = SetObjectCoordinate(_menuClickY);
                 _room.Objects.Add(newObj);
+                AddObjectRef(newObj);
                 SetSelectedObject(newObj);
                 SetPropertyGridList();
                 Factory.GUIController.SetPropertyGridObject(newObj);
@@ -462,23 +471,35 @@ namespace AGS.Editor
         {
         }
 
-        public List<string> GetItemsNames()
+        /// <summary>
+        /// Initialize dictionary of current item references.
+        /// </summary>
+        /// <returns></returns>
+        private SortedDictionary<string, RoomObject> InitItemRefs()
         {
-            List<string> names = new List<string>(_room.Objects.Count);
+            SortedDictionary<string, RoomObject> items = new SortedDictionary<string, RoomObject>();
             foreach (RoomObject obj in _room.Objects)
             {
-                names.Add(GetUniqueName(obj));
+                items.Add(GetItemID(obj), obj);
             }
-            return names;
+            return items;
         }
 
-        public void SelectItem(string name)
+        public string GetItemName(string id)
         {
-            if (name != null)
+            RoomObject obj;
+            if (id != null && RoomItemRefs.TryGetValue(id, out obj))
+                return obj.PropertyGridTitle;
+            return null;
+        }
+
+        public void SelectItem(string id)
+        {
+            if (id != null)
             {
-                foreach (RoomObject obj in _room.Objects)
+                RoomObject obj;
+                if (RoomItemRefs.TryGetValue(id, out obj))
                 {
-                    if (GetUniqueName(obj) != name) continue;
                     _selectedObject = obj;
                     Factory.GUIController.SetPropertyGridObject(obj);                    
                     return;
@@ -508,7 +529,7 @@ namespace AGS.Editor
             _selectedObject = roomObject;
             if (OnSelectedItemChanged != null)
             {
-                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetUniqueName(roomObject)));
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(roomObject.PropertyGridTitle));
             }
         }
 
@@ -538,11 +559,49 @@ namespace AGS.Editor
             }
         }
 
-        private string GetUniqueName(RoomObject obj)
+        private string GetItemID(RoomObject obj)
         {
-            return obj.PropertyGridTitle;
+            // Use numeric object's ID as a "unique identifier", for now (script name is optional!)
+            return obj.ID.ToString("D4");
         }
 
-    }
+        private void InitGameEntities()
+        {
+            // Initialize item reference
+            RoomItemRefs = InitItemRefs();
+            // Initialize design-time properties
+            // TODO: load last design settings
+            DesignItems.Clear();
+            foreach (var item in RoomItemRefs)
+                DesignItems.Add(item.Key, new DesignTimeProperties());
+        }
 
+        private void AddObjectRef(RoomObject obj)
+        {
+            string id = GetItemID(obj);
+            if (RoomItemRefs.ContainsKey(id))
+                return;
+            RoomItemRefs.Add(id, obj);
+            DesignItems.Add(id, new DesignTimeProperties());
+        }
+
+        private void RemoveObjectRef(RoomObject obj)
+        {
+            string id = GetItemID(obj);
+            RoomItemRefs.Remove(id);
+            DesignItems.Remove(id);
+        }
+
+        private void UpdateObjectRef(RoomObject obj, string oldID)
+        {
+            if (!RoomItemRefs.ContainsKey(oldID))
+                return;
+            string newID = GetItemID(obj);
+            RoomItemRefs.Remove(oldID);
+            RoomItemRefs.Add(newID, obj);
+            // We must keep DesignTimeProperties!
+            DesignItems.Add(newID, DesignItems[oldID]);
+            DesignItems.Remove(oldID);
+        }
+    }
 }

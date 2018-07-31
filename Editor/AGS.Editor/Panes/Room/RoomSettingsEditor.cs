@@ -27,6 +27,7 @@ namespace AGS.Editor
         private IRoomEditorFilter _layer;
         private RoomEditNode _layersRoot;
         private List<IRoomEditorFilter> _layers = new List<IRoomEditorFilter>();
+        private CharactersEditorFilter _characterLayer; // need to store the reference for special processing
         private bool _editorConstructed = false;
         private int _lastX, _lastY;
         private bool _mouseIsDown = false;
@@ -51,7 +52,8 @@ namespace AGS.Editor
             SetZoomSliderToMultiplier(factor);
 
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame));
+            _characterLayer = new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame);
+            _layers.Add(_characterLayer);
             _layers.Add(new ObjectsEditorFilter(bufferedPanel1, _room));
             _layers.Add(new HotspotsEditorFilter(bufferedPanel1, _room));
             _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, _room));
@@ -84,16 +86,16 @@ namespace AGS.Editor
             for (int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
             {
                 IRoomEditorFilter layer = _layers[layerIndex];                
-                List<string> names = layer.GetItemsNames();
-                IAddressNode[] children = new IAddressNode[names.Count];
-                for (int index = 0; index < names.Count; index++)
+                IAddressNode[] children = new IAddressNode[layer.DesignItems.Count];
+                int index = 0;
+                foreach (var item in layer.DesignItems)
                 {
-                    string name = names[index];
-                    children[index] = new RoomEditNode(GetLayerItemUniqueID(layer, name), name, new IAddressNode[0], true, false)
-                    {
-                    };
+                    string id = item.Key;
+                    string name = layer.GetItemName(id);
+                    children[index++] = new RoomEditNode(GetLayerItemUniqueID(layer, name), name, id,
+                        new IAddressNode[0], item.Value.Visible, item.Value.Locked, false);
                 }
-                RoomEditNode node = new RoomEditNode(layer.DisplayName, children, layer.VisibleByDefault);
+                RoomEditNode node = new RoomEditNode(layer.DisplayName, children, layer.Visible, layer.Locked);
                 node.Layer = layer;
                 if (layer is BaseAreasEditorFilter)
                 {
@@ -105,7 +107,7 @@ namespace AGS.Editor
                 }
                 layers[layerIndex] = node;
             }
-            _layersRoot = new RoomEditNode("Room", layers, true);
+            _layersRoot = new RoomEditNode("Room", layers, true, false);
             foreach (IAddressNode layer in layers)
             {
                 layer.Parent = _layersRoot;
@@ -298,18 +300,14 @@ namespace AGS.Editor
 
         private bool IsVisible(IRoomEditorFilter layer)
         {
-            RoomEditNode node = _editAddressBar.RootNode.GetChild(layer.DisplayName, true) as RoomEditNode;
-            if (node == null) return true;
-            return node.IsVisible;
+            return layer.Visible;
         }
 
         private bool IsLocked(IRoomEditorFilter layer)
-        {            
-            RoomEditNode node = _editAddressBar.RootNode.GetChild(layer.DisplayName, true) as RoomEditNode;
-            if (node == null) return false;
-            if (!node.IsVisible) return true;
+        {
+            if (!layer.Visible) return true;
             if (_layer != null && !_layer.AllowClicksInterception() && _layer != layer) return true;
-            return node.IsLocked;
+            return layer.Locked;
         }
 
         private void cmbBackgrounds_SelectedIndexChanged(object sender, EventArgs e)
@@ -652,7 +650,7 @@ namespace AGS.Editor
 
             layerNode.IsVisible = true;
             SelectLayer(layerNode.Layer);
-            layerNode.Layer.SelectItem(node == layerNode ? null : node.DisplayName);
+            layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
         }
 
         private void SelectLayer(IRoomEditorFilter layer)
@@ -785,18 +783,35 @@ namespace AGS.Editor
 		{
 			_room.Modified = true;
 
-			if ((propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME) ||
-				(propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME))
+            bool needRefresh = false;
+            // TODO: unfortunately had to duplicate handling of property change here;
+            // cannot forward event to the CharacterComponent.OnPropertyChanged,
+            // because its implementation relies on it being active Pane!
+            if (propertyName == Character.PROPERTY_NAME_STARTINGROOM)
+            {
+                if (_characterLayer != null)
+                {
+                    int oldRoom = (int)oldValue;
+                    _characterLayer.UpdateCharactersRoom(_characterLayer.SelectedCharacter, oldRoom);
+                    needRefresh = true;
+                }
+            }
+
+            if (propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME ||
+				propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME ||
+                propertyName == Character.PROPERTY_NAME_SCRIPTNAME ||
+                needRefresh)
 			{
                 if (_layer != null)
                 {
-                    // Force the layer to refresh its property list with the new name                
+                    // Force the layer to refresh its property list with the new name   
+                    // TODO: find out if this hack can be avoided             
                     _layer.FilterOff();
                     _layer.FilterOn();
                 }
-                RefreshLayersTree();          
-			}            
-		}
+                RefreshLayersTree();
+			}
+        }
 
 		protected override void OnWindowActivated()
 		{
@@ -903,7 +918,8 @@ namespace AGS.Editor
         internal int WindowYToRoom(int y)
         {
             return (int)((y + _scrollOffsetY) / _scale);
-        }
+        }
+
         internal int RoomXToWindow(int x)
         {
             return (int)(x * _scale - _scrollOffsetX);
@@ -922,7 +938,8 @@ namespace AGS.Editor
         internal int WindowSizeToRoom(int sz)
         {
             return (int)(sz / _scale);
-        }
+        }
+
         /// <summary>
         /// Scale of the Room image on screen.
         /// </summary>

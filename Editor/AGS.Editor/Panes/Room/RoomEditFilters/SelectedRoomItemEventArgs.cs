@@ -11,6 +11,9 @@ namespace AGS.Editor
             Item = item;
         }
 
+        /// <summary>
+        /// Room item's human-readable name.
+        /// </summary>
         public string Item { get; private set; }
     }
 }

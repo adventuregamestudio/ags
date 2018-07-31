@@ -10,20 +10,37 @@ namespace AGS.Editor.Panes.Room
     public class RoomEditNode : IAddressNode
     {
         private RoomNodeControl _control;
-        private bool _visibleByDefault, _shouldHideCheckboxes;
+        private bool _initVisible, _initLocked, _shouldHideCheckboxes;
 
-        public RoomEditNode(string uniqueID, IAddressNode[] children, bool visibleByDefault)
-            :this(uniqueID, uniqueID, children, visibleByDefault, false)
+        /// <summary>
+        /// Constructor creates a node, associated with a namespace rather than particular room item.
+        /// </summary>
+        /// <param name="uniqueID"></param>
+        /// <param name="children"></param>
+        /// <param name="visibleByDefault"></param>
+        public RoomEditNode(string uniqueID, IAddressNode[] children, bool visible, bool locked)
+            :this(uniqueID, uniqueID, null, children, visible, locked, false)
         { 
         }
 
-        public RoomEditNode(string uniqueID, string displayName, IAddressNode[] children, bool visibleByDefault,
-            bool shouldHideCheckboxes)
+        /// <summary>
+        /// Constructor creates a node, associated with particular room item.
+        /// </summary>
+        /// <param name="uniqueID"></param>
+        /// <param name="displayName"></param>
+        /// <param name="roomItemID"></param>
+        /// <param name="children"></param>
+        /// <param name="visibleByDefault"></param>
+        /// <param name="shouldHideCheckboxes"></param>
+        public RoomEditNode(string uniqueID, string displayName, string roomItemID, IAddressNode[] children,
+            bool visible, bool locked, bool shouldHideCheckboxes)
         {
             UniqueID = uniqueID;
             DisplayName = displayName;
+            RoomItemID = roomItemID;
             Children = children;
-            _visibleByDefault = visibleByDefault;
+            _initVisible = visible;
+            _initLocked = locked;
             _shouldHideCheckboxes = shouldHideCheckboxes;
         }
 
@@ -34,6 +51,11 @@ namespace AGS.Editor.Panes.Room
         public Icon Icon { get { return null; } }
 
         public object UniqueID { get; private set; }
+
+        /// <summary>
+        /// Gets the ID of the room item, associated with this node.
+        /// </summary>
+        public string RoomItemID { get { return Tag as string; } private set { Tag = value; } }
 
         public object Tag { get; set; }
 
@@ -74,7 +96,8 @@ namespace AGS.Editor.Panes.Room
             RoomNodeControl control = new RoomNodeControl 
             { 
                 DisplayName = DisplayName, 
-                IsVisible = _visibleByDefault
+                IsVisible = _initVisible,
+                IsLocked = _initLocked
             };
             if (_shouldHideCheckboxes) control.HideCheckBoxes(true);
             if (_control != null)
@@ -97,8 +120,10 @@ namespace AGS.Editor.Panes.Room
             }
             else
             {
-                Layer.VisibleItems.Clear();
-                Layer.VisibleItems.AddRange(Layer.GetItemsNames());
+                foreach (var item in Layer.DesignItems)
+                {
+                    item.Value.Visible = true;
+                }
             }
             return host;
             //return new ToolStripMenuItem(DisplayName, null, nodeClicked);
@@ -109,26 +134,24 @@ namespace AGS.Editor.Panes.Room
             IRoomEditorFilter parentFilter = FindFilter();
             if (parentFilter != null)
             {
-                if (Layer == null) UpdateList(parentFilter.VisibleItems, DisplayName, _control.IsVisible);
+                if (Layer == null)
+                    parentFilter.DesignItems[RoomItemID].Visible = _control.IsVisible;
+                else
+                    Layer.Visible = _control.IsVisible;
                 parentFilter.Invalidate();
             }
         }
 
         private void control_OnLockedChanged(object sender, EventArgs e)
         {
-            if (Layer != null) return;
             IRoomEditorFilter parentFilter = FindFilter();
-            if (parentFilter != null) UpdateList(parentFilter.LockedItems, DisplayName, _control.IsLocked);            
-        }
-
-        private void UpdateList(List<string> list, string name, bool add)
-        {
-            if (add)
+            if (parentFilter != null)
             {
-                if (list.Contains(name)) return;
-                list.Add(name);
+                if (Layer == null)
+                    parentFilter.DesignItems[RoomItemID].Locked = _control.IsLocked;
+                else
+                    Layer.Locked = _control.IsLocked;
             }
-            else list.Remove(name);
         }
 
         private IRoomEditorFilter FindFilter()

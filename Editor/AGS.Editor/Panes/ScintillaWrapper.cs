@@ -607,7 +607,11 @@ namespace AGS.Editor
 
         public bool CanUndo()
         {
-            return this.scintillaControl1.CanUndo;
+            bool shouldBeReadOnly = scintillaControl1.IsReadOnly;
+            scintillaControl1.IsReadOnly = false;
+            bool res = scintillaControl1.CanUndo;
+            scintillaControl1.IsReadOnly = shouldBeReadOnly;
+            return res;
         }
 
         public void Undo()
@@ -617,7 +621,11 @@ namespace AGS.Editor
 
         public bool CanRedo()
         {
-            return this.scintillaControl1.CanRedo;
+            bool shouldBeReadOnly = scintillaControl1.IsReadOnly;
+            scintillaControl1.IsReadOnly = false;
+            bool res = scintillaControl1.CanRedo;
+            scintillaControl1.IsReadOnly = shouldBeReadOnly;
+            return res;
         }
 
         public void Redo()

@@ -119,10 +119,8 @@ String GetSavegameErrorText(SavegameErrorType err)
     {
     case kSvgErr_NoError:
         return "No error.";
-    case kSvgErr_FileNotFound:
-        return "File not found.";
-    case kSvgErr_NoStream:
-        return "Failed to open input stream.";
+    case kSvgErr_FileOpenFailed:
+        return "File not found or could not be opened.";
     case kSvgErr_SignatureFailed:
         return "Not an AGS saved game or unsupported format.";
     case kSvgErr_FormatVersionNotSupported:
@@ -268,7 +266,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
 {
     UStream in(File::OpenFileRead(filename));
     if (!in.get())
-        return new SavegameError(kSvgErr_FileNotFound, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
+        return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
 
     // Skip MS Windows Vista rich media header
     RICH_GAME_MEDIA_HEADER rich_media_header;
@@ -587,7 +585,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     for (int i = 0; i < game.numgui; ++i)
     {
-        guibg[i] = BitmapHelper::CreateBitmap(guis[i].Width, guis[i].Height, System_GetColorDepth());
+        guibg[i] = BitmapHelper::CreateBitmap(guis[i].Width, guis[i].Height, game.GetColorDepth());
         guibg[i] = ReplaceBitmapWithSupportedFormat(guibg[i]);
     }
 
@@ -664,7 +662,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     StrUtil::WriteString(game.guid, out);
     StrUtil::WriteString(game.gamename, out);
     StrUtil::WriteString(usetup.main_data_filename, out);
-    out->WriteInt32(System_GetColorDepth());
+    out->WriteInt32(game.GetColorDepth());
     // User description
     StrUtil::WriteString(user_text, out);
     WriteSaveImage(out, user_image);

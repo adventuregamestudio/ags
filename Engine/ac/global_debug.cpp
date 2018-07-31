@@ -66,10 +66,10 @@ String GetRuntimeInfo()
     PGfxFilter filter = gfxDriver->GetGraphicsFilter();
     String runtimeInfo = String::FromFormat(
         "Adventure Game Studio run-time engine[ACI version %s"
-        "[Game resolution %d x %d"
+        "[Game resolution %d x %d (%d-bit)"
         "[Running %d x %d at %d-bit%s%s[GFX: %s; %s[Draw frame %d x %d["
         "Sprite cache size: %d KB (limit %d KB; %d locked)",
-        EngineVersion.LongString.GetCStr(), game.size.Width, game.size.Height,
+        EngineVersion.LongString.GetCStr(), game.size.Width, game.size.Height, game.GetColorDepth(),
         mode.Width, mode.Height, mode.ColorDepth, (convert_16bit_bgr) ? " BGR" : "",
         mode.Windowed ? " W" : "",
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
@@ -120,8 +120,7 @@ void script_debug(int cmdd,int dataa) {
         delete tempw;
         delete stretched;
         gfxDriver->DestroyDDB(ddb);
-        while (!kbhit()) ;
-        getch();
+        clear_input_buffer();
         invalidate_screen();
     }
     else if (cmdd==3) 
@@ -172,8 +171,7 @@ void script_debug(int cmdd,int dataa) {
 			Common::kBitmap_Transparency);
         render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);
         delete tempw;
-        while (!kbhit()) ;
-        getch();
+        clear_input_buffer();
     }
     else if (cmdd == 99)
         ccSetOption(SCOPT_DEBUGRUN, dataa);

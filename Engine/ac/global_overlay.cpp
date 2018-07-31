@@ -46,7 +46,7 @@ void RemoveOverlay(int ovrid) {
 }
 
 int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
-    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(spritewidth[slott],spriteheight[slott], System_GetColorDepth());
+    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(spritewidth[slott],spriteheight[slott], game.GetColorDepth());
     Bitmap *ds = SetVirtualScreen(screeno);
     wputblock(ds, 0,0,spriteset[slott],trans);
 

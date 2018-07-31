@@ -91,7 +91,6 @@ struct WinConfig
     bool   Windowed;
     bool   VSync;
     bool   RenderAtScreenRes;
-    bool   Reduce32to16;
     bool   AntialiasSprites;
 
     int    DigiWinIdx;
@@ -133,7 +132,6 @@ void WinConfig::SetDefaults()
     VSync = false;
     RenderAtScreenRes = false;
     AntialiasSprites = false;
-    Reduce32to16 = false;
 
     MouseAutoLock = false;
     MouseSpeed = 1.f;
@@ -174,7 +172,6 @@ void WinConfig::Load(const ConfigTree &cfg)
     VSync = INIreadint(cfg, "graphics", "vsync", VSync ? 1 : 0) != 0;
     RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
 
-    Reduce32to16 = INIreadint(cfg, "misc","notruecolor", Reduce32to16 ? 1 : 0) != 0;
     AntialiasSprites = INIreadint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
     DigiWinIdx = INIreadint(cfg, "sound", "digiwinindx", DigiWinIdx);
@@ -209,7 +206,6 @@ void WinConfig::Save(ConfigTree &cfg)
     INIwriteint(cfg, "graphics", "vsync", VSync ? 1 : 0);
     INIwriteint(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0);
 
-    INIwriteint(cfg, "misc", "notruecolor", Reduce32to16 ? 1 : 0);
     INIwriteint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
 
     INIwriteint(cfg, "sound", "digiwinindx", DigiWinIdx);
@@ -517,7 +513,6 @@ private:
     HWND _hRenderAtScreenRes;
     HWND _hRefresh85Hz;
     HWND _hAntialiasSprites;
-    HWND _hReduce32to16;
     HWND _hUseVoicePack;
     HWND _hAdvanced;
     HWND _hGameResolutionText;
@@ -580,7 +575,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _hRenderAtScreenRes     = GetDlgItem(_hwnd, IDC_RENDERATSCREENRES);
     _hRefresh85Hz           = GetDlgItem(_hwnd, IDC_REFRESH_85HZ);
     _hAntialiasSprites      = GetDlgItem(_hwnd, IDC_ANTIALIAS);
-    _hReduce32to16          = GetDlgItem(_hwnd, IDC_REDUCE32TO16);
     _hUseVoicePack          = GetDlgItem(_hwnd, IDC_VOICEPACK);
     _hAdvanced              = GetDlgItem(_hwnd, IDC_ADVANCED);
     _hGameResolutionText    = GetDlgItem(_hwnd, IDC_RESOLUTION);
@@ -696,11 +690,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
     SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
 
-    if (_winCfg.GameColourDepth < 32)
-        EnableWindow(_hReduce32to16, FALSE);
-    else
-        SetCheck(_hReduce32to16, _winCfg.Reduce32to16);
-
     if (!File::TestReadFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
     else
@@ -708,8 +697,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     if (INIreadint(_cfgIn, "disabled", "speechvox", 0) != 0)
         EnableWindow(_hUseVoicePack, FALSE);
-    if (INIreadint(_cfgIn, "disabled", "16bit", 0) != 0)
-        EnableWindow(_hReduce32to16, FALSE);
     if (INIreadint(_cfgIn, "disabled", "filters", 0) != 0)
         EnableWindow(_hGfxFilterList, FALSE);
 
@@ -1184,7 +1171,6 @@ void WinSetupDialog::SaveSetup()
     _winCfg.RenderAtScreenRes = GetCheck(_hRenderAtScreenRes);
     _winCfg.AntialiasSprites = GetCheck(_hAntialiasSprites);
     _winCfg.RefreshRate = GetCheck(_hRefresh85Hz) ? 85 : 0;
-    _winCfg.Reduce32to16 = GetCheck(_hReduce32to16);
     _winCfg.GfxFilterId = (LPCTSTR)GetCurItemData(_hGfxFilterList);
 
     _winCfg.MouseAutoLock = GetCheck(_hMouseLock);

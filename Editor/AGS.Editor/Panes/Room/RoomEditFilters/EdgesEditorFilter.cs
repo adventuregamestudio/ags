@@ -32,23 +32,27 @@ namespace AGS.Editor
             _room = room;
             _panel = displayPanel;
             _tooltip = new ToolTip();
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            RoomItemRefs = new SortedDictionary<string, SelectedEdge>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
+            InitGameEntities();
         }
 
         public string DisplayName { get { return "Edges"; } }
-
-        public bool VisibleByDefault { get { return false; } }
 
         public RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.None; }
         }
 
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        /// <summary>
+        /// A lookup table for getting game object reference by they key.
+        /// </summary>
+        private SortedDictionary<string, SelectedEdge> RoomItemRefs { get; set; }
 
         public bool SupportVisibleItems { get { return true; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -68,16 +72,16 @@ namespace AGS.Editor
 			get { return false; }
 		}
 
-        private void DrawDoubleWidthVerticalLine(Graphics graphics, int x, int scaleFactor)
+        private void DrawDoubleWidthVerticalLine(Graphics graphics, int x, float scale)
         {
-            graphics.DrawLine(Pens.Yellow, x, 0, x, _room.Height * scaleFactor);
-            graphics.DrawLine(Pens.Yellow, x + 1, 0, x + 1, _room.Height * scaleFactor);
+            graphics.DrawLine(Pens.Yellow, x, 0, x, _room.Height * scale);
+            graphics.DrawLine(Pens.Yellow, x + 1, 0, x + 1, _room.Height * scale);
         }
 
-        private void DrawDoubleHeightHorizontalLine(Graphics graphics, int y, int scaleFactor)
+        private void DrawDoubleHeightHorizontalLine(Graphics graphics, int y, float scale)
         {
-            graphics.DrawLine(Pens.Yellow, 0, y, _room.Width * scaleFactor, y);
-            graphics.DrawLine(Pens.Yellow, 0, y + 1, _room.Width * scaleFactor, y + 1);
+            graphics.DrawLine(Pens.Yellow, 0, y, _room.Width * scale, y);
+            graphics.DrawLine(Pens.Yellow, 0, y + 1, _room.Width * scale, y + 1);
         }
 
         public void Invalidate() { _panel.Invalidate(); }
@@ -104,16 +108,16 @@ namespace AGS.Editor
 
         public void Paint(Graphics graphics, RoomEditorState state)
         {
-            int scaleFactor = state.ScaleFactor;
+            float scale = state.Scale;
 
-            if (VisibleItems.Contains(SelectedEdge.Left.ToString())) 
-                DrawDoubleWidthVerticalLine(graphics, _room.LeftEdgeX * scaleFactor - state.ScrollOffsetX, scaleFactor);
-            if (VisibleItems.Contains(SelectedEdge.Right.ToString()))
-                DrawDoubleWidthVerticalLine(graphics, _room.RightEdgeX * scaleFactor - state.ScrollOffsetX, scaleFactor);
-            if (VisibleItems.Contains(SelectedEdge.Top.ToString()))
-                DrawDoubleHeightHorizontalLine(graphics, _room.TopEdgeY * scaleFactor - state.ScrollOffsetY, scaleFactor);
-            if (VisibleItems.Contains(SelectedEdge.Bottom.ToString()))
-                DrawDoubleHeightHorizontalLine(graphics, _room.BottomEdgeY * scaleFactor - state.ScrollOffsetY, scaleFactor);
+            if (DesignItems[GetItemID(SelectedEdge.Left)].Visible) 
+                DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.LeftEdgeX), scale);
+            if (DesignItems[GetItemID(SelectedEdge.Right)].Visible)
+                DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.RightEdgeX), scale);
+            if (DesignItems[GetItemID(SelectedEdge.Top)].Visible)
+                DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.TopEdgeY), scale);
+            if (DesignItems[GetItemID(SelectedEdge.Bottom)].Visible)
+                DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.BottomEdgeY), scale);
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state)
@@ -124,8 +128,8 @@ namespace AGS.Editor
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             _mouseDown = true;
-            int x = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            int y = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            int x = state.WindowXToRoom(e.X);
+            int y = state.WindowYToRoom(e.Y);
 
             if (IsCursorOnVerticalEdge(x, _room.LeftEdgeX, SelectedEdge.Left) && SetSelectedEdge(SelectedEdge.Left)) {}            
             else if (IsCursorOnVerticalEdge(x, _room.RightEdgeX, SelectedEdge.Right) && SetSelectedEdge(SelectedEdge.Right)) {}            
@@ -152,11 +156,9 @@ namespace AGS.Editor
         {
             if (_selectedEdge != SelectedEdge.None && _mouseDown)
             {
-                x += state.ScrollOffsetX;
-                y += state.ScrollOffsetY;
-                int scaleFactor = state.ScaleFactor;            
-            
-                MoveEdgeWithMouse(x / scaleFactor, y / scaleFactor);
+                x = state.WindowXToRoom(x);
+                y = state.WindowYToRoom(y);
+                MoveEdgeWithMouse(x, y);
                 _room.Modified = true;
                 return true;
             }
@@ -269,7 +271,8 @@ namespace AGS.Editor
 
         private bool IsMoveable(SelectedEdge edge)
         {
-            if (!VisibleItems.Contains(edge.ToString()) || LockedItems.Contains(edge.ToString())) return false;
+            DesignTimeProperties p = DesignItems[GetItemID(edge)];
+            if (!p.Visible || p.Locked) return false;
             return true;
         }
 
@@ -282,49 +285,68 @@ namespace AGS.Editor
             _tooltip.Dispose();
         }
 
-        public List<string> GetItemsNames()
+        private string GetItemID(SelectedEdge e)
         {
-            return new List<string> { SelectedEdge.Left.ToString(), SelectedEdge.Right.ToString(),
-                SelectedEdge.Top.ToString(), SelectedEdge.Bottom.ToString()};
+            // Use edge's name as a "unique identifier", for now
+            return e.ToString();
         }
 
-        public void SelectItem(string name)
+        /// <summary>
+        /// Initialize dictionary of current item references.
+        /// </summary>
+        /// <returns></returns>
+        private SortedDictionary<string, SelectedEdge> InitItemRefs()
         {
-            if (name == SelectedEdge.Bottom.ToString()) _selectedEdge = SelectedEdge.Bottom;
-            else if (name == SelectedEdge.Top.ToString()) _selectedEdge = SelectedEdge.Top;
-            else if (name == SelectedEdge.Right.ToString()) _selectedEdge = SelectedEdge.Right;
-            else if (name == SelectedEdge.Left.ToString()) _selectedEdge = SelectedEdge.Left;
-            else
+            return new SortedDictionary<string, SelectedEdge> {
+                { GetItemID(SelectedEdge.Left), SelectedEdge.Left },
+                { GetItemID(SelectedEdge.Right), SelectedEdge.Right },
+                { GetItemID(SelectedEdge.Top), SelectedEdge.Top },
+                { GetItemID(SelectedEdge.Bottom), SelectedEdge.Bottom }
+            };
+        }
+
+        public string GetItemName(string id)
+        {
+            SelectedEdge edge;
+            if (id != null && RoomItemRefs.TryGetValue(id, out edge))
+                return edge.ToString();
+            return null;
+        }
+
+        public void SelectItem(string id)
+        {
+            SelectedEdge edge;
+            if (id == null || !RoomItemRefs.TryGetValue(id, out edge))
             {
                 _selectedEdge = SelectedEdge.None;                
                 return;
             }
+            _selectedEdge = edge;
             _lastSelectedEdge = _selectedEdge;            
         }
 
         public Cursor GetCursor(int x, int y, RoomEditorState state)
         {
-            x += state.ScrollOffsetX;
-            y += state.ScrollOffsetY;
-            int scaleFactor = state.ScaleFactor;
+            int roomX = state.WindowXToRoom(x);
+            int roomY = state.WindowYToRoom(y);
             string toolTipText = null;
             Cursor cursor = null;
-            if (IsCursorOnVerticalEdge(x / scaleFactor, _room.LeftEdgeX, SelectedEdge.Left))
+            if (IsCursorOnVerticalEdge(roomX, _room.LeftEdgeX, SelectedEdge.Left))
             {
                 cursor = Cursors.VSplit;
                 toolTipText = "Left edge";
             }
-            else if (IsCursorOnVerticalEdge(x / scaleFactor, _room.RightEdgeX, SelectedEdge.Right))
+            else if (IsCursorOnVerticalEdge(roomX, _room.RightEdgeX, SelectedEdge.Right))
             {
                 cursor = Cursors.VSplit;
                 toolTipText = "Right edge";
             }
-            else if (IsCursorOnHorizontalEdge(y / scaleFactor, _room.TopEdgeY, SelectedEdge.Top))
+            else if (IsCursorOnHorizontalEdge(roomY, _room.TopEdgeY, SelectedEdge.Top))
             {
                 cursor = Cursors.HSplit;
                 toolTipText = "Top edge";
             }
-            else if (IsCursorOnHorizontalEdge(y / scaleFactor, _room.BottomEdgeY, SelectedEdge.Bottom))
+            else if (IsCursorOnHorizontalEdge(roomY, _room.BottomEdgeY, SelectedEdge.Bottom))
             {
                 cursor = Cursors.HSplit;
                 toolTipText = "Bottom edge";
@@ -341,7 +363,7 @@ namespace AGS.Editor
                 if ((Math.Abs(x - _tooltipX) > 5) || (Math.Abs(y - _tooltipY) > 5) ||
                     (_tooltipText != toolTipText) || (!_tooltip.Active))
                 {
-                    _tooltip.Show(toolTipText, _panel, (x - state.ScrollOffsetX) - 10, (y - state.ScrollOffsetY) + 5);
+                    _tooltip.Show(toolTipText, _panel, x - 10, y + 5);
                     _tooltipX = x;
                     _tooltipY = y;
                     _tooltipText = toolTipText;
@@ -369,6 +391,16 @@ namespace AGS.Editor
             }
             return true;
         }
-    }
 
+        private void InitGameEntities()
+        {
+            // Initialize item reference
+            RoomItemRefs = InitItemRefs();
+            // Initialize design-time properties
+            // TODO: load last design settings
+            DesignItems.Clear();
+            foreach (var item in RoomItemRefs)
+                DesignItems.Add(item.Key, new DesignTimeProperties());
+        }
+    }
 }

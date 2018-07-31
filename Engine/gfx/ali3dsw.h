@@ -138,7 +138,7 @@ public:
     virtual PGfxFilter GetGraphicsFilter() const;
     virtual void UnInit();
     virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-    virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
+    virtual int  GetCompatibleBitmapFormat(int color_depth);
     virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
     virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
     virtual void DestroyDDB(IDriverDependantBitmap* bitmap);

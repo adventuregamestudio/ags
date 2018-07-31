@@ -20,7 +20,9 @@ namespace AGS.Editor
         private RoomObject _selectedObject;
 		private RoomObject _lastSelectedObject;
         private bool _movingObjectWithMouse;
+        // mouse offset in ROOM's coordinates
         private int _mouseOffsetX, _mouseOffsetY;
+        // mouse click location in ROOM's coordinates
         private int _menuClickX, _menuClickY;
         private List<RoomObject> _objectBaselines = new List<RoomObject>();
 
@@ -30,13 +32,12 @@ namespace AGS.Editor
             _panel = displayPanel;
             _selectedObject = null;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            RoomItemRefs = new SortedDictionary<string, RoomObject>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
+            InitGameEntities();
         }
 
         public string DisplayName { get { return "Objects"; } }
-
-        public bool VisibleByDefault { get { return true; } }
 
         public RoomAreaMaskType MaskToDraw
         {
@@ -44,9 +45,14 @@ namespace AGS.Editor
         }
 
         public bool SupportVisibleItems { get { return true; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        /// <summary>
+        /// A lookup table for getting game object reference by they key.
+        /// </summary>
+        private SortedDictionary<string, RoomObject> RoomItemRefs { get; set; }
 
         public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -113,10 +119,10 @@ namespace AGS.Editor
 
             foreach (RoomObject obj in _objectBaselines)
             {
-                if (!VisibleItems.Contains(GetUniqueName(obj))) continue;
+                if (!DesignItems[GetItemID(obj)].Visible) continue;
                 int height = GetSpriteHeightForGameResolution(obj.Image);
-                int ypos = AdjustYCoordinateForWindowScroll(obj.StartY, state) - (height * state.ScaleFactor);
-				Factory.NativeProxy.DrawSpriteToBuffer(obj.Image, AdjustXCoordinateForWindowScroll(obj.StartX, state), ypos, state.ScaleFactor);
+                int ypos = state.RoomYToWindow(obj.StartY - height);
+				Factory.NativeProxy.DrawSpriteToBuffer(obj.Image, state.RoomXToWindow(obj.StartX), ypos, state.Scale);
             }
             
         }
@@ -138,22 +144,22 @@ namespace AGS.Editor
             int xPos;
             int yPos;
 
-            if (_selectedObject != null && VisibleItems.Contains(GetUniqueName(_selectedObject)))
+            if (_selectedObject != null && DesignItems[GetItemID(_selectedObject)].Visible)
             {
-                int width = GetSpriteWidthForGameResolution(_selectedObject.Image);
-				int height = GetSpriteHeightForGameResolution(_selectedObject.Image);
-				xPos = AdjustXCoordinateForWindowScroll(_selectedObject.StartX, state);
-				yPos = AdjustYCoordinateForWindowScroll(_selectedObject.StartY, state) - (height * state.ScaleFactor);
+                int width = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(_selectedObject.Image));
+				int height = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(_selectedObject.Image));
+				xPos = state.RoomXToWindow(_selectedObject.StartX);
+				yPos = state.RoomYToWindow(_selectedObject.StartY) - height;
                 Pen pen = new Pen(Color.Goldenrod);
                 pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
-                graphics.DrawRectangle(pen, xPos, yPos, width * state.ScaleFactor, height * state.ScaleFactor);
+                graphics.DrawRectangle(pen, xPos, yPos, width, height);
 
                 if (_movingObjectWithMouse)
                 {
                     System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
                     string toDraw = String.Format("X:{0}, Y:{1}", _selectedObject.StartX, _selectedObject.StartY);
 
-                    int scaledx = xPos + (width * state.ScaleFactor / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
+                    int scaledx = xPos + (width / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
                     int scaledy = yPos - (int)graphics.MeasureString(toDraw, font).Height;
                     if (scaledx < 0) scaledx = 0;
                     if (scaledy < 0) scaledy = 0;
@@ -164,8 +170,8 @@ namespace AGS.Editor
                     if (_selectedObject.Locked)
                     {
                         pen = new Pen(Color.Goldenrod, 2);
-                        xPos = AdjustXCoordinateForWindowScroll(_selectedObject.StartX, state) + (GetSpriteWidthForGameResolution(_selectedObject.Image) / 2 * state.ScaleFactor);
-                        yPos = AdjustYCoordinateForWindowScroll(_selectedObject.StartY, state) - (GetSpriteHeightForGameResolution(_selectedObject.Image) / 2 * state.ScaleFactor);
+                        xPos = state.RoomXToWindow(_selectedObject.StartX) + (width / 2);
+                        yPos = state.RoomYToWindow(_selectedObject.StartY) - (height / 2);
                         Point center = new Point(xPos, yPos);
 
                         graphics.DrawLine(pen, center.X - 3, center.Y - 3, center.X + 3, center.Y + 3);
@@ -175,16 +181,6 @@ namespace AGS.Editor
             }
         }
 
-		private int AdjustXCoordinateForWindowScroll(int x, RoomEditorState state)
-		{
-			return (x - (state.ScrollOffsetX / state.ScaleFactor)) * state.ScaleFactor;
-		}
-
-		private int AdjustYCoordinateForWindowScroll(int y, RoomEditorState state)
-		{
-			return (y - (state.ScrollOffsetY / state.ScaleFactor)) * state.ScaleFactor;
-		}
-
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state)
         {
             _selectedObject = null;
@@ -192,8 +188,8 @@ namespace AGS.Editor
 
         public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
-            int x = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            int y = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            int x = state.WindowXToRoom(e.X);
+            int y = state.WindowYToRoom(e.Y);
             RoomObject obj = GetObject(x, y);
             
             if (obj != null)
@@ -229,8 +225,8 @@ namespace AGS.Editor
             for (int i = _objectBaselines.Count - 1; i >= 0; i--)
             {
                 RoomObject obj = _objectBaselines[i];
-                string name = GetUniqueName(obj);
-                if (!VisibleItems.Contains(name) || LockedItems.Contains(name)) continue;
+                DesignTimeProperties p = DesignItems[GetItemID(obj)];
+                if (!p.Visible || p.Locked) continue;
                 if (HitTest(obj, x, y)) return obj;
             }
             return null;
@@ -259,8 +255,8 @@ namespace AGS.Editor
             ContextMenuStrip menu = new ContextMenuStrip();
             menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
 
-            _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            _menuClickX = state.WindowXToRoom(e.X);
+            _menuClickY = state.WindowYToRoom(e.Y);
 
             menu.Show(_panel, e.X, e.Y);
         }
@@ -273,17 +269,21 @@ namespace AGS.Editor
                 if (Factory.GUIController.ShowQuestion("Are you sure you want to delete this object?") == DialogResult.Yes)
                 {
                     _room.Objects.Remove(_selectedObject);
+                    RemoveObjectRef(_selectedObject);
                     foreach (RoomObject obj in _room.Objects)
                     {
                         if (obj.ID >= _selectedObject.ID)
                         {
+                            string oldID = GetItemID(obj);
                             obj.ID--;
+                            UpdateObjectRef(obj, oldID);
                         }
                     }
                     _selectedObject = null;
                     Factory.GUIController.SetPropertyGridObject(_room);
                     SetPropertyGridList();
                     _room.Modified = true;
+                    OnItemsChanged(this, null);
                     _panel.Invalidate();
                 }
             }
@@ -299,6 +299,7 @@ namespace AGS.Editor
                 newObj.StartX = SetObjectCoordinate(_menuClickX);
                 newObj.StartY = SetObjectCoordinate(_menuClickY);
                 _room.Objects.Add(newObj);
+                AddObjectRef(newObj);
                 SetSelectedObject(newObj);
                 SetPropertyGridList();
                 Factory.GUIController.SetPropertyGridObject(newObj);
@@ -330,8 +331,8 @@ namespace AGS.Editor
             {
                 menu.Items.Add(new ToolStripMenuItem("Copy Object Coordinates to Clipboard", null, onClick, MENU_ITEM_OBJECT_COORDS));
             }
-            _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            _menuClickX = state.WindowXToRoom(e.X);
+            _menuClickY = state.WindowYToRoom(e.Y);
 
             menu.Show(_panel, e.X, e.Y);
         }
@@ -365,8 +366,8 @@ namespace AGS.Editor
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {
             if (!_movingObjectWithMouse) return false;
-            int realX = (x + state.ScrollOffsetX) / state.ScaleFactor;
-            int realY = (y + state.ScrollOffsetY) / state.ScaleFactor;
+            int realX = state.WindowXToRoom(x);
+            int realY = state.WindowYToRoom(y);
 
             if ((_movingObjectWithMouse) && (realY < _room.Height) &&
                 (realX < _room.Width) && (realY >= 0) && (realX >= 0))
@@ -426,23 +427,35 @@ namespace AGS.Editor
         {
         }
 
-        public List<string> GetItemsNames()
+        /// <summary>
+        /// Initialize dictionary of current item references.
+        /// </summary>
+        /// <returns></returns>
+        private SortedDictionary<string, RoomObject> InitItemRefs()
         {
-            List<string> names = new List<string>(_room.Objects.Count);
+            SortedDictionary<string, RoomObject> items = new SortedDictionary<string, RoomObject>();
             foreach (RoomObject obj in _room.Objects)
             {
-                names.Add(GetUniqueName(obj));
+                items.Add(GetItemID(obj), obj);
             }
-            return names;
+            return items;
         }
 
-        public void SelectItem(string name)
+        public string GetItemName(string id)
         {
-            if (name != null)
+            RoomObject obj;
+            if (id != null && RoomItemRefs.TryGetValue(id, out obj))
+                return obj.PropertyGridTitle;
+            return null;
+        }
+
+        public void SelectItem(string id)
+        {
+            if (id != null)
             {
-                foreach (RoomObject obj in _room.Objects)
+                RoomObject obj;
+                if (RoomItemRefs.TryGetValue(id, out obj))
                 {
-                    if (GetUniqueName(obj) != name) continue;
                     _selectedObject = obj;
                     Factory.GUIController.SetPropertyGridObject(obj);                    
                     return;
@@ -456,8 +469,8 @@ namespace AGS.Editor
         public Cursor GetCursor(int x, int y, RoomEditorState state)
         {
             if (_movingObjectWithMouse) return Cursors.Hand;
-            x = (x + state.ScrollOffsetX) / state.ScaleFactor;
-            y = (y + state.ScrollOffsetY) / state.ScaleFactor;
+            x = state.WindowXToRoom(x);
+            y = state.WindowYToRoom(y);
             if (GetObject(x, y) != null) return Cursors.Default;
             return null;
         }
@@ -472,7 +485,7 @@ namespace AGS.Editor
             _selectedObject = roomObject;
             if (OnSelectedItemChanged != null)
             {
-                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetUniqueName(roomObject)));
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(roomObject.PropertyGridTitle));
             }
         }
 
@@ -502,11 +515,49 @@ namespace AGS.Editor
             }
         }
 
-        private string GetUniqueName(RoomObject obj)
+        private string GetItemID(RoomObject obj)
         {
-            return obj.PropertyGridTitle;
+            // Use numeric object's ID as a "unique identifier", for now (script name is optional!)
+            return obj.ID.ToString("D4");
         }
 
-    }
+        private void InitGameEntities()
+        {
+            // Initialize item reference
+            RoomItemRefs = InitItemRefs();
+            // Initialize design-time properties
+            // TODO: load last design settings
+            DesignItems.Clear();
+            foreach (var item in RoomItemRefs)
+                DesignItems.Add(item.Key, new DesignTimeProperties());
+        }
 
+        private void AddObjectRef(RoomObject obj)
+        {
+            string id = GetItemID(obj);
+            if (RoomItemRefs.ContainsKey(id))
+                return;
+            RoomItemRefs.Add(id, obj);
+            DesignItems.Add(id, new DesignTimeProperties());
+        }
+
+        private void RemoveObjectRef(RoomObject obj)
+        {
+            string id = GetItemID(obj);
+            RoomItemRefs.Remove(id);
+            DesignItems.Remove(id);
+        }
+
+        private void UpdateObjectRef(RoomObject obj, string oldID)
+        {
+            if (!RoomItemRefs.ContainsKey(oldID))
+                return;
+            string newID = GetItemID(obj);
+            RoomItemRefs.Remove(oldID);
+            RoomItemRefs.Add(newID, obj);
+            // We must keep DesignTimeProperties!
+            DesignItems.Add(newID, DesignItems[oldID]);
+            DesignItems.Remove(oldID);
+        }
+    }
 }

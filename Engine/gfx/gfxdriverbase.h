@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_GFX__GFXDRIVERBASE_H
 #define __AGS_EE_GFX__GFXDRIVERBASE_H
 
+#include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "util/scaling.h"
 
@@ -93,9 +94,6 @@ protected:
     virtual void OnSetFilter();
 
     void    OnScalingChanged();
-    // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
-    // had to be created
-    Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *old_bmp);
 
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect
@@ -112,6 +110,28 @@ protected:
     GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
     GFXDRV_CLIENTCALLBACKSURFACEUPDATE _initSurfaceUpdateCallback;
+};
+
+
+
+// Generic TextureTile base
+struct TextureTile
+{
+    int x, y;
+    int width, height;
+};
+
+// Parent class for the video memory DDBs
+class VideoMemDDB : public IDriverDependantBitmap
+{
+public:
+    virtual int GetWidth() { return _width; }
+    virtual int GetHeight() { return _height; }
+    virtual int GetColorDepth() { return _colDepth; }
+
+    int _width, _height;
+    int _colDepth;
+    bool _opaque;
 };
 
 
@@ -136,10 +156,20 @@ protected:
     // and false if this entry should be skipped.
     bool DoNullSpriteCallback(int x, int y);
 
+    // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
+    void BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
+                            char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
+
     // Stage virtual screen is used to let plugins draw custom graphics
     // in between render stages (between room and GUI, after GUI, and so on)
     Bitmap *_stageVirtualScreen;
     IDriverDependantBitmap *_stageVirtualScreenDDB;
+
+    // Color component shifts in video bitmap format (set by implementations)
+    int _vmem_a_shift_32;
+    int _vmem_r_shift_32;
+    int _vmem_g_shift_32;
+    int _vmem_b_shift_32;
 
 private:
     // Flag which indicates whether stage screen was drawn upon during engine

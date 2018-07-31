@@ -29,12 +29,6 @@ using namespace AGS; // FIXME later
 
 #define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
 
-// Allegro 4 has switched 15-bit colour to BGR instead of RGB, so
-// in this case we need to convert the graphics on load
-#if ALLEGRO_DATE > 19991010
-#define USE_15BIT_FIX
-#endif
-
 // [IKM] WARNING: these definitions has to be made AFTER Allegro headers
 // were included, because they override few Allegro function names;
 // otherwise Allegro headers should not be included at all to the same
@@ -58,7 +52,7 @@ void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
 // Avoid freeing and reallocating the memory if possible
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
-Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *bimp, Common::Bitmap *source, bool hasAlpha = false);
+Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *bimp, Common::Bitmap *source, bool hasAlpha = false, bool opaque = false);
 void push_screen (Common::Bitmap *ds);
 Common::Bitmap *pop_screen();
 void update_screen();

@@ -42,6 +42,7 @@
 #include "debug/debugger.h"
 #include "device/mousew32.h"
 #include "gui/guidefines.h"
+#include "main/game_run.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
@@ -354,9 +355,8 @@ void IAGSEngine::PollSystem () {
     if (mbut > NONE)
         pl_run_plugin_hooks (AGSE_MOUSECLICK, mbut);
 
-    if (rec_kbhit()) {
-        int kp = rec_getch();
-        if (kp == 0) kp = rec_getch()+AGS_EXT_KEY_SHIFT;
+    int kp;
+    if (run_service_key_controls(kp)) {
         pl_run_plugin_hooks (AGSE_KEYPRESS, kp);
     }
 

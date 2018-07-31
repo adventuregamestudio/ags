@@ -89,6 +89,8 @@
     </Compile>
     <Compile Include="ColorThemes\Controls\MainMenuColorTable.cs" />
     <Compile Include="ColorThemes\Controls\ToolStripColorTable.cs" />
+    <Compile Include="Components\CharacterIDChangedEventArgs.cs" />
+    <Compile Include="Components\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
     <Compile Include="Components\CursorsComponent.cs" />
     <Compile Include="Components\DialogsComponent.cs" />
@@ -160,6 +162,7 @@
       <DependentUpon>NumberEntryDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\Room\RoomEditFilters\CharactersEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\DesignTimeProperties.cs" />
     <Compile Include="Plugins\IAGSEditor.cs" />
     <Compile Include="Plugins\NativePlugin.cs" />
     <Compile Include="Panes\BufferedPanel.cs">

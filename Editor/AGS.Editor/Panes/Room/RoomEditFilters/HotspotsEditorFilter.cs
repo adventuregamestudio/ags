@@ -16,8 +16,6 @@ namespace AGS.Editor
 
         public override string DisplayName { get { return "Hotspots"; } }
 
-        public override bool VisibleByDefault { get { return false; } }
-
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.Hotspots; }
@@ -41,8 +39,8 @@ namespace AGS.Editor
             {
                 if ((hotspot.WalkToPoint.X > 0) && (hotspot.WalkToPoint.Y > 0))
                 {
-                    int x = (hotspot.WalkToPoint.X * state.ScaleFactor) - state.ScrollOffsetX;
-                    int y = (hotspot.WalkToPoint.Y * state.ScaleFactor) - state.ScrollOffsetY;
+                    int x = state.RoomXToWindow(hotspot.WalkToPoint.X);
+                    int y = state.RoomYToWindow(hotspot.WalkToPoint.Y);
                     graphics.DrawLine(Pens.Red, x - 4, y - 4, x + 4, y + 4);
                     graphics.DrawLine(Pens.RosyBrown, x - 4, y + 4, x + 4, y - 4);
                     graphics.DrawString(hotspot.ID.ToString(), new System.Drawing.Font(FontFamily.GenericSansSerif, 10, FontStyle.Bold), Brushes.Gold, x + 4, y - 7);
@@ -50,12 +48,17 @@ namespace AGS.Editor
             }
         }
 
-        protected override Dictionary<string, int> GetItems()
+        protected override string GetItemName(int id)
         {
-            Dictionary<string, int> items = new Dictionary<string, int>(_room.Hotspots.Count);
+            return _room.Hotspots[id].Name;
+        }
+
+        protected override SortedDictionary<string, int> InitItemRefs()
+        {
+            SortedDictionary<string, int> items = new SortedDictionary<string, int>();
             foreach (RoomHotspot hotspot in _room.Hotspots)
             {
-                items.Add(GetItemName(hotspot.ID, hotspot.Name), hotspot.ID);
+                items.Add(GetItemID(hotspot.ID), hotspot.ID);
             }
             return items;
         }

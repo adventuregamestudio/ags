@@ -26,6 +26,9 @@ namespace AGS.Editor.Components
         private Dictionary<Character, ContentDocument> _documents;
         private Character _itemRightClicked = null;
 
+        public event EventHandler<CharacterIDChangedEventArgs> OnCharacterIDChanged;
+        public event EventHandler<CharacterRoomChangedEventArgs> OnCharacterRoomChanged;
+
         public CharactersComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor, CHARACTERS_COMMAND_ID)
         {
@@ -79,6 +82,11 @@ namespace AGS.Editor.Components
             {
                 if (MessageBox.Show("Are you sure you want to delete this character? Doing so could break any scripts that refer to characters by number.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
+                    Character c = _itemRightClicked;
+                    // For a lack of better solution at the moment, pretend that character leaves current room before being deleted
+                    int oldRoom = c.StartingRoom;
+                    c.StartingRoom = -1;
+                    OnCharacterRoomChanged?.Invoke(this, new CharacterRoomChangedEventArgs(c, oldRoom));
                     DeleteSingleItem(_itemRightClicked);
                 }
             }
@@ -98,6 +106,7 @@ namespace AGS.Editor.Components
                 if (item.ID > removingID)
                 {
                     item.ID--;
+                    OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(item, item.ID + 1));
                 }
             }
 
@@ -151,6 +160,14 @@ namespace AGS.Editor.Components
                     {
                         doc.Name = ((CharacterEditor)doc.Control).ItemToEdit.WindowTitle;
                     }
+                }
+            }
+            else if (propertyName == Character.PROPERTY_NAME_STARTINGROOM)
+            {
+                if (OnCharacterRoomChanged != null)
+                {
+                    int oldRoom = (int)oldValue;
+                    OnCharacterRoomChanged(this, new CharacterRoomChangedEventArgs(itemBeingEdited, oldRoom));
                 }
             }
         }
@@ -218,6 +235,8 @@ namespace AGS.Editor.Components
 
                 character.ID = _agsEditor.CurrentGame.RootCharacterFolder.GetAllItemsCount();
                 AddSingleItem(character);
+                // Pretend that character has just changed into the new room
+                OnCharacterRoomChanged?.Invoke(this, new CharacterRoomChangedEventArgs(character, -1));
             }
             catch (ApplicationException ex)
             {

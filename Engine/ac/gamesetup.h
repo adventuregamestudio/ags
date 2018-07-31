@@ -42,7 +42,6 @@ struct GameSetup {
     int textheight; // text height used on the certain built-in GUI
     bool  no_speech_pack;
     bool  enable_antialiasing;
-    bool  force_hicolor_mode;
     bool  disable_exception_handling;
     AGS::Common::String data_files_dir;
     AGS::Common::String main_data_filename;

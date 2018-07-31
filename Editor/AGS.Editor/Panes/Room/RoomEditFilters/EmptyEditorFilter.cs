@@ -19,23 +19,21 @@ namespace AGS.Editor
         {
 			_panel = displayPanel;
             _room = room;
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
         }
 
         public string DisplayName { get { return "Nothing"; } }
-
-        public bool VisibleByDefault { get { return false; } }
 
         public RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.None; }
         }
 
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
 
         public bool SupportVisibleItems { get { return false; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged { add { } remove { } }
@@ -104,8 +102,8 @@ namespace AGS.Editor
 			ContextMenuStrip menu = new ContextMenuStrip();
 			menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
 
-			_menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-			_menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+			_menuClickX = state.WindowXToRoom(e.X);
+			_menuClickY = state.WindowYToRoom(e.Y);
 
 			menu.Show(_panel, e.X, e.Y);
 		}
@@ -136,12 +134,12 @@ namespace AGS.Editor
         {
         }
 
-        public List<string> GetItemsNames() 
-        { 
-            return new List<string>(); 
+        public string GetItemName(string id)
+        {
+            return null;
         }
 
-        public void SelectItem(string name) 
+        public void SelectItem(string id) 
         {
         }
 

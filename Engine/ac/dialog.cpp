@@ -393,7 +393,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 
   update_polled_stuff_if_runtime();
 
-  tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), System_GetColorDepth());
+  tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), game.GetColorDepth());
 
   set_mouse_cursor(CURS_ARROW);
 
@@ -524,7 +524,7 @@ void DialogOptions::Redraw()
 
     if (usingCustomRendering)
     {
-      tempScrn = recycle_bitmap(tempScrn, System_GetColorDepth(), 
+      tempScrn = recycle_bitmap(tempScrn, game.GetColorDepth(), 
         ccDialogOptionsRendering.width, 
         ccDialogOptionsRendering.height);
     }
@@ -759,8 +759,8 @@ bool DialogOptions::Run()
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
       }
 
-      if (kbhit()) {
-        int gkey = getch();
+      int gkey;
+      if (run_service_key_controls(gkey)) {
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 

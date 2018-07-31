@@ -45,10 +45,8 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     {
     case kMGFErr_NoError:
         return "No error.";
-    case kMGFErr_FileNotFound:
-        return "Main game file not found.";
-    case kMGFErr_NoStream:
-        return "Failed to open input stream.";
+    case kMGFErr_FileOpenFailed:
+        return "Main game file not found or could not be opened.";
     case kMGFErr_SignatureFailed:
         return "Not an AGS main game file or unsupported format.";
     case kMGFErr_FormatVersionTooOld:
@@ -59,24 +57,22 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
         return "Required engine caps are not supported.";
     case kMGFErr_InvalidNativeResolution:
         return "Unable to determine native game resolution.";
-    case kMGFErr_TooManyFonts:
-        return "Too many fonts for this engine to handle.";
     case kMGFErr_TooManySprites:
         return "Too many sprites for this engine to handle.";
     case kMGFErr_TooManyCursors:
         return "Too many cursors for this engine to handle.";
     case kMGFErr_InvalidPropertySchema:
-        return "load room: unable to deserialize properties schema.";
+        return "Failed to deserialize custom properties schema.";
     case kMGFErr_InvalidPropertyValues:
         return "Errors encountered when reading custom properties.";
     case kMGFErr_NoGlobalScript:
         return "No global script in game.";
     case kMGFErr_CreateGlobalScriptFailed:
-        return String::FromFormat("Failed to load global script.");
+        return "Failed to load global script.";
     case kMGFErr_CreateDialogScriptFailed:
-        return String::FromFormat("Failed to load dialog script.");
+        return "Failed to load dialog script.";
     case kMGFErr_CreateScriptModuleFailed:
-        return String::FromFormat("Failed to load script module.");
+        return "Failed to load script module.";
     case kMGFErr_PluginDataFmtNotSupported:
         return "Format version of plugin data is not supported.";
     case kMGFErr_PluginDataSizeTooLarge:
@@ -115,8 +111,6 @@ bool IsMainGameLibrary(const String &filename)
 // Begins reading main game file from a generic stream
 HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
 {
-    if (!in)
-        return HGameFileError::None();
     // Check data signature
     String data_sig = String::FromStreamCount(in.get(), MainGameSource::Signature.GetLength());
     if (data_sig.Compare(MainGameSource::Signature))
@@ -153,7 +147,7 @@ HGameFileError OpenMainGameFile(const String &filename, MainGameSource &src)
     // Try to open given file
     PStream in(File::OpenFileRead(filename));
     if (!in)
-        return new MainGameFileError(kMGFErr_FileNotFound, String::FromFormat("Filename: %s.", filename.GetCStr()));
+        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
     return OpenMainGameFileBase(in, src);
 }
@@ -171,7 +165,7 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src)
         in = PStream(AssetManager::OpenAsset(filename));
     }
     if (!in)
-        return new MainGameFileError(kMGFErr_FileNotFound, String::FromFormat("Filename: %s.", filename.GetCStr()));
+        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
     return OpenMainGameFileBase(in, src);
 }
@@ -456,8 +450,6 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 
     if (game.size.IsNull())
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);
-    if (game.numfonts > MAX_FONTS)
-        return new MainGameFileError(kMGFErr_TooManyFonts, String::FromFormat("Count: %d, max: %d", game.numfonts, MAX_FONTS));
 
     game.read_savegame_info(in, data_ver);
     game.read_font_flags(in, data_ver);

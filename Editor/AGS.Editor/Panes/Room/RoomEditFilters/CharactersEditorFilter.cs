@@ -28,14 +28,24 @@ namespace AGS.Editor
         private int _menuClickY = 0;
         private int _mouseOffsetX, _mouseOffsetY;
 
+        public Character SelectedCharacter { get { return _selectedCharacter; } }
+
         public CharactersEditorFilter(Panel displayPanel, Room room, Game game)
         {
             _room = room;
             _panel = displayPanel;
             _game = game;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            RoomItemRefs = new SortedDictionary<string, Character>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
+            InitGameEntities();
+
+            Components.CharactersComponent cmp = ComponentController.Instance.FindComponent<Components.CharactersComponent>();
+            if (cmp != null)
+            {
+                cmp.OnCharacterIDChanged += OnCharacterIDChanged;
+                cmp.OnCharacterRoomChanged += OnCharacterRoomChanged;
+            }
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
@@ -45,8 +55,8 @@ namespace AGS.Editor
 
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
-            int xClick = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            int yClick = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            int xClick = state.WindowXToRoom(e.X);
+            int yClick = state.WindowYToRoom(e.Y);
             Character character = GetCharacter(xClick, yClick, state);
             if (character != null) SelectCharacter(character, xClick, yClick, state);
             
@@ -78,9 +88,10 @@ namespace AGS.Editor
         {
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
-                if (_room.Number != character.StartingRoom) continue;
-
-                if (!VisibleItems.Contains(character.ScriptName) || LockedItems.Contains(character.ScriptName)) continue;
+                DesignTimeProperties p;
+                if (!DesignItems.TryGetValue(GetItemID(character), out p))
+                    continue; // character is not in the room
+                if (!p.Visible || p.Locked) continue;
 
                 AgsView view = _game.FindViewByID(character.NormalView);
 
@@ -113,8 +124,8 @@ namespace AGS.Editor
         {
             if (!_movingCharacterWithMouse) return false;
             
-            int newX = (x + state.ScrollOffsetX) / state.ScaleFactor - _mouseOffsetX;
-            int newY = (y + state.ScrollOffsetY) / state.ScaleFactor - _mouseOffsetY;
+            int newX = state.WindowXToRoom(x) - _mouseOffsetX;
+            int newY = state.WindowYToRoom(y) - _mouseOffsetY;
             return MoveCharacter(newX, newY);                     
         }
 
@@ -145,8 +156,8 @@ namespace AGS.Editor
             ContextMenuStrip menu = new ContextMenuStrip();
             menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
 
-            _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            _menuClickX = state.WindowXToRoom(e.X);
+            _menuClickY = state.WindowYToRoom(e.Y);
 
             menu.Show(_panel, e.X, e.Y);
         }
@@ -168,8 +179,8 @@ namespace AGS.Editor
                 ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.Add(new ToolStripMenuItem("Copy Character coordinates to clipboard", null, onClick, MENU_ITEM_COPY_CHAR_COORDS));
 
-                _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-                _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+                _menuClickX = state.WindowXToRoom(e.X);
+                _menuClickY = state.WindowYToRoom(e.Y);
 
                 menu.Show(_panel, e.X, e.Y);
             }
@@ -197,7 +208,8 @@ namespace AGS.Editor
         {
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
-                if (_room.Number == character.StartingRoom && VisibleItems.Contains(character.ScriptName))
+                DesignTimeProperties p;
+                if (DesignItems.TryGetValue(GetItemID(character), out p) && p.Visible)
                 {
                     DrawCharacter(character, state);
                 }
@@ -223,8 +235,7 @@ namespace AGS.Editor
 
             if (_selectedCharacter != null)
             {
-                int scale = state.ScaleFactor;
-                Rectangle rect = GetCharacterRect(_selectedCharacter, scale, state);
+                Rectangle rect = GetCharacterRect(_selectedCharacter, state);
                 graphics.DrawRectangle(pen, rect);
 
                 if (_movingCharacterWithMouse)
@@ -237,19 +248,9 @@ namespace AGS.Editor
                     if (scaledx < 0) scaledx = 0;
                     if (scaledy < 0) scaledy = 0;
 
-                    graphics.DrawString(toDraw, font, pen.Brush, (float)scaledx, (float)scaledy);
+                    graphics.DrawString(toDraw, font, pen.Brush, scaledx, scaledy);
                 }
             }
-        }
-
-        private int AdjustXCoordinateForWindowScroll(int x, RoomEditorState state)
-        {
-            return (x - (state.ScrollOffsetX / state.ScaleFactor)) * state.ScaleFactor;
-        }
-
-        private int AdjustYCoordinateForWindowScroll(int y, RoomEditorState state)
-        {
-            return (y - (state.ScrollOffsetY / state.ScaleFactor)) * state.ScaleFactor;
         }
 
         private void DrawCharacter(Character character, RoomEditorState state)
@@ -258,8 +259,6 @@ namespace AGS.Editor
 
             if (view != null && view.Loops.Count > 0)
             {
-                int scale = state.ScaleFactor; // ScaleFactor is from the slider in the room tab
-
                 int spriteNum = 0;
 
                 //this is a check to make certain that loop 0 frame 0 of the character normalview has an image;
@@ -269,20 +268,20 @@ namespace AGS.Editor
                     ViewFrame thisFrame = view.Loops[0].Frames[0];
                     spriteNum = thisFrame.Image;
                 }
-                int xPos = AdjustXCoordinateForWindowScroll(character.StartX, state);// character.StartX* scale;
-                int yPos = AdjustYCoordinateForWindowScroll(character.StartY, state);// character.StartY* scale;
-                int spriteWidth = GetSpriteWidthForGameResolution(spriteNum) * scale;// Factory.NativeProxy.GetRelativeSpriteWidth(spriteNum) * scale;
-                int spriteHeight = GetSpriteHeightForGameResolution(spriteNum) * scale; // Factory.NativeProxy.GetRelativeSpriteHeight(spriteNum) * scale;
+                int xPos = state.RoomXToWindow(character.StartX);
+                int yPos = state.RoomYToWindow(character.StartY);
+                int spriteWidth = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(spriteNum));
+                int spriteHeight = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(spriteNum));
 
-                Factory.NativeProxy.DrawSpriteToBuffer(spriteNum, xPos - spriteWidth / 2, yPos - spriteHeight, scale);
+                Factory.NativeProxy.DrawSpriteToBuffer(spriteNum, xPos - spriteWidth / 2, yPos - spriteHeight, state.Scale);
             }
         }
 
-        private Rectangle GetCharacterRect(Character character, int scale, RoomEditorState state)
+        private Rectangle GetCharacterRect(Character character, RoomEditorState state)
         {
             AgsView view = _game.FindViewByID(character.NormalView);
-            int xPos = AdjustXCoordinateForWindowScroll(character.StartX, state);// character.StartX* scale;
-            int yPos = AdjustYCoordinateForWindowScroll(character.StartY, state);// character.StartY* scale;
+            int xPos = state.RoomXToWindow(character.StartX);
+            int yPos = state.RoomYToWindow(character.StartY);
 
             if (view == null || view.Loops.Count == 0)
             {
@@ -292,8 +291,8 @@ namespace AGS.Editor
             int spriteNum = 0;
             if (view.Loops[0].Frames.Count > 0)
                 spriteNum = _game.FindViewByID(character.NormalView).Loops[0].Frames[0].Image;
-            int spriteWidth = GetSpriteWidthForGameResolution(spriteNum) * scale;// Factory.NativeProxy.GetRelativeSpriteWidth(spriteNum) * scale;
-            int spriteHeight = GetSpriteHeightForGameResolution(spriteNum) * scale; // Factory.NativeProxy.GetRelativeSpriteHeight(spriteNum) * scale;
+            int spriteWidth = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(spriteNum));
+            int spriteHeight = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(spriteNum));
             return new Rectangle(xPos - spriteWidth / 2, yPos - spriteHeight, spriteWidth, spriteHeight);
         }
 
@@ -308,13 +307,21 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
         }
 
+        public void UpdateCharactersRoom(Character character, int oldRoom)
+        {
+            if (character.StartingRoom == _room.Number)
+                AddCharacterRef(character);
+            else if (oldRoom == _room.Number && character.StartingRoom != _room.Number)
+                RemoveCharacterRef(character);
+        }
+
         private void SetPropertyGridList()
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
             defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
-            foreach (Character character in GetItems())
+            foreach (var item in RoomItemRefs)
             {
-                defaultPropertyObjectList.Add(character.PropertyGridTitle, character);                
+                defaultPropertyObjectList.Add(item.Value.PropertyGridTitle, item.Value);
             }
 
             Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
@@ -336,30 +343,32 @@ namespace AGS.Editor
 
         public string DisplayName { get { return "Characters"; } }
 
-        public bool VisibleByDefault { get { return true; } }
-
         public RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.None; }
         }
 
         public bool SupportVisibleItems { get { return true; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
-        
-        public event EventHandler OnItemsChanged { add { } remove { } }
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        /// <summary>
+        /// A lookup table for getting game object reference by they key.
+        /// </summary>
+        private SortedDictionary<string, Character> RoomItemRefs { get; set; }
+
+        public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
 
-	public int ItemCount
-	{
+        public int ItemCount
+	    {
             get 
             {
-                int count = 0;
-                foreach (Character character in GetItems()) count++;
-                return count;
+                return RoomItemRefs.Count;
             }
         }
+
 		public int SelectedArea
 		{
 			get { return 0; }
@@ -405,34 +414,47 @@ namespace AGS.Editor
         {
         }
 
-        public List<string> GetItemsNames()
+        private string GetItemID(Character c)
         {
-            List<string> names = new List<string>();
-            foreach (Character character in GetItems())
-            {
-                names.Add(character.ScriptName);
-            }
-            return names;
+            // Use numeric character's ID as a "unique identifier", for now (script name is optional!)
+            return GetItemID(c.ID);
         }
 
-        private IEnumerable<Character> GetItems()
+        private string GetItemID(int numID)
         {
+            return numID.ToString("D4");
+        }
+
+        /// <summary>
+        /// Initialize dictionary of current item references.
+        /// </summary>
+        /// <returns></returns>
+        private SortedDictionary<string, Character> InitItemRefs()
+        {
+            SortedDictionary<string, Character> items = new SortedDictionary<string, Character>();
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
                 if (character.StartingRoom == _room.Number)
-                {
-                    yield return character;
-                }
+                    items.Add(GetItemID(character), character);
             }
+            return items;
         }
 
-        public void SelectItem(string name)
+        public string GetItemName(string id)
         {
-            if (name != null)
+            Character character;
+            if (id != null && RoomItemRefs.TryGetValue(id, out character))
+                return character.ScriptName;
+            return null;
+        }
+
+        public void SelectItem(string id)
+        {
+            if (id != null)
             {
-                foreach (Character character in GetItems())
+                Character character;
+                if (RoomItemRefs.TryGetValue(id, out character))
                 {
-                    if (character.ScriptName != name) continue;
                     _selectedCharacter = character;
                     Factory.GUIController.SetPropertyGridObject(character);                    
                     return;
@@ -446,8 +468,8 @@ namespace AGS.Editor
         public Cursor GetCursor(int x, int y, RoomEditorState state)
         {
             if (_movingCharacterWithMouse) return Cursors.Hand;
-            x = (x + state.ScrollOffsetX) / state.ScaleFactor;
-            y = (y + state.ScrollOffsetY) / state.ScaleFactor;
+            x = state.WindowXToRoom(x);
+            y = state.WindowYToRoom(y);
             if (GetCharacter(x, y, state) != null) return Cursors.Default;
             return null;
         }
@@ -466,5 +488,56 @@ namespace AGS.Editor
             }
         }
 
+        private void InitGameEntities()
+        {
+            // Initialize item reference
+            RoomItemRefs = InitItemRefs();
+            // Initialize design-time properties
+            // TODO: load last design settings
+            DesignItems.Clear();
+            foreach (var item in RoomItemRefs)
+                DesignItems.Add(item.Key, new DesignTimeProperties());
+        }
+
+        private void OnCharacterIDChanged(object sender, CharacterIDChangedEventArgs e)
+        {
+            UpdateCharacterRef(e.Character, GetItemID(e.OldID));
+            OnItemsChanged(this, null);
+        }
+
+        private void OnCharacterRoomChanged(object sender, CharacterRoomChangedEventArgs e)
+        {
+            UpdateCharactersRoom(e.Character, e.PreviousRoom);
+            OnItemsChanged(this, null);
+            Invalidate();
+        }
+
+        private void AddCharacterRef(Character c)
+        {
+            string id = GetItemID(c);
+            if (RoomItemRefs.ContainsKey(id))
+                return;
+            RoomItemRefs.Add(id, c);
+            DesignItems.Add(id, new DesignTimeProperties());
+        }
+
+        private void RemoveCharacterRef(Character c)
+        {
+            string id = GetItemID(c);
+            RoomItemRefs.Remove(id);
+            DesignItems.Remove(id);
+        }
+
+        private void UpdateCharacterRef(Character c, string oldID)
+        {
+            if (!RoomItemRefs.ContainsKey(oldID))
+                return;
+            string newID = GetItemID(c);
+            RoomItemRefs.Remove(oldID);
+            RoomItemRefs.Add(newID, c);
+            // We must keep DesignTimeProperties!
+            DesignItems.Add(newID, DesignItems[oldID]);
+            DesignItems.Remove(oldID);
+        }
     }
 }

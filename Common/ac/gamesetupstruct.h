@@ -37,12 +37,9 @@ using AGS::Common::HGameFileError;
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
 struct GameSetupStruct: public GameSetupStructBase {
-    // These arrays are used only to read data into;
+    // This array is used only to read data into;
     // font parameters are then put and queried in the fonts module
-    unsigned char     fontflags[MAX_FONTS];
-    char              fontoutline[MAX_FONTS];
-    int               fontvoffset[MAX_FONTS]; // vertical font offset
-    int               fontlnspace[MAX_FONTS]; // font's line spacing (0 = default)
+    std::vector<FontInfo> fonts;
     //
     unsigned char     spriteflags[MAX_SPRITES];
     InventoryItemInfo invinfo[MAX_INV];
@@ -79,6 +76,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     // TODO: find out why OPT_SCORESOUND option cannot be used to store this in >=3.2 games
     int               scoreClipID;
 
+    // Get game's native color depth
+    inline int GetColorDepth() const { return color_depth * 8; }
 
 
     // [IKM] Game struct loading code is moved here from Engine's load_game_file
@@ -134,7 +133,6 @@ struct GameSetupStruct: public GameSetupStructBase {
 };
 
 //=============================================================================
-
 // Finds an audio clip using legacy convention index
 ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num);
 

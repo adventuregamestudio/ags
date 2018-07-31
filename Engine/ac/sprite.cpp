@@ -62,7 +62,7 @@ void set_rgb_mask_using_alpha_channel(Bitmap *image)
 // CLNUP remove 15-16 bit support
 // from is a 32-bit RGBA image, to is a 15/16/24-bit destination image
 Bitmap *remove_alpha_channel(Bitmap *from) {
-    int depth = System_GetColorDepth();
+    int depth = game.GetColorDepth();
 
     Bitmap *to = BitmapHelper::CreateBitmap(from->GetWidth(), from->GetHeight(),depth);
     int maskcol = to->GetMaskColor();
@@ -154,7 +154,7 @@ void initialize_sprite (int ee) {
 
         spriteset.set(ee, PrepareSpriteForUse(spriteset[ee], (game.spriteflags[ee] & SPF_ALPHACHANNEL) != 0));
 
-        if (System_GetColorDepth() < 32) {
+        if (game.GetColorDepth() < 32) {
             game.spriteflags[ee] &= ~SPF_ALPHACHANNEL;
             // save the fact that it had one for the next time this
             // is re-loaded from disk

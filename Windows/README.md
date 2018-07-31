@@ -3,10 +3,13 @@
 ## Build Requirements
 
 * In common:
-  * Microsoft Visual Studio 2015 (Community) or higher - currently the only supported IDE for making Engine and Editor, but in theory you may try other tools, using MSVS project for the reference.
+  * Microsoft Visual Studio 2015 or higher - currently the only supported IDE for making Engine and Editor. The free Community edition is sufficient and is available for download at the Microsoft's site:
+    * https://visualstudio.microsoft.com/downloads/
+    * https://visualstudio.microsoft.com/vs/older-downloads/
+  * In theory you may try other tools, using MSVS project for the reference.
 * To work with Engine code and Editor's full solution (see elaboration in related section):
   * Allegro 4.4.2 library *patched sources*: clone [our own Allegro repository](https://github.com/adventuregamestudio/lib-allegro.git) and checkout allegro-4.4.2-agspatch branch which already has necessary patch applied and MSVC projects created.
-    * **OR**, alternatively, you may get original sources and patch yourself (look for instructions below): clone [official git repository](https://github.com/liballeg/allegro5)) and checkout 4.4.2 tag, ([download from sourceforge.net](https://sourceforge.net/projects/alleg/files/allegro/4.4.2/allegro-4.4.2.zip/download), or [download from gna.org](http://download.gna.org/allegro/allegro/4.4.2/allegro-4.4.2.zip).
+    * **OR**, alternatively, you may get original sources and patch yourself (look for instructions below): clone [official git repository](https://github.com/liballeg/allegro5)) and checkout 4.4.2 tag.
   * Alfont 1.9.1 library *patched sources*: clone [our own Alfont repository](https://github.com/adventuregamestudio/lib-alfont) and checkout alfont-1.9.1-agspatch branch which already has necessary patch applied and MSVC projects created.
     * **OR**, alternatively, you may get original sources and patch yourself: ([checkout or download from SVN repository](https://sourceforge.net/p/alfont/code/HEAD/tree/trunk/)).
 * Specifically for the Engine:
@@ -20,6 +23,14 @@
 * To make manual and/or Windows installer:
   * Python 2.7 with PyWin32 extension ([Download](http://www.activestate.com/activepython/downloads))
   * InnoSetup 5.5 ([Download](http://www.jrsoftware.org/isdl.php))
+
+
+**NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the following archive:
+  * https://www.dropbox.com/s/4p6nw6waqwat6co/ags-prebuilt-libs.zip?dl=0
+
+You still have to download library sources though, because you'd need header files.
+If you go this way, then skip **"Patching libraries"** and **"Building libraries"** sections altogether.
+
 
 ## Installing SDKs
 
@@ -50,8 +61,6 @@ The reason for having both configurations is explained in the latter section bel
 ### DirectX
 
 DirectX is linked dynamically. You should not be building DirectX libraries, but using the reference libs from DirectX SDK.
-
-If you are building from MSVS 2015 or higher it is important to make sure that DirectX SDK headers path is mentioned **not before** Windows Kits headers path in the include locations list, otherwise you will get obscure compilation errors. It is possible to omit DirectX SDK headers path from the list of locations completely and let compiler use related headers from Windows Kits. You still need to link against DirectX SDK libs though.
 
 ### Allegro
 
@@ -98,6 +107,8 @@ Build following libraries:
 
 Engine MSVS solution is Solutions\Engine.sln.
 Depending on the version of MSVS you are using you need to setup paths to compiled libraries and their headers either in IDE options (older) or project property pages (newer). Then build the solution.
+
+If you are building from MSVS 2015 or higher it is important to make sure that DirectX SDK headers path is mentioned **after** Windows Kits headers path in the "Include directories", otherwise you will get obscure compilation errors. It is possible to omit DirectX SDK headers path from the "Include directories" completely and let compiler use related headers from Windows Kits. You still need to link against DirectX SDK libs though.
 
 ### For the Editor:
 

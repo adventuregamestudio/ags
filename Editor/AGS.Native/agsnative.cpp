@@ -102,7 +102,7 @@ int BaseColorDepth;
 
 
 bool reload_font(int curFont);
-void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor);
+void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
 SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel);
@@ -1001,7 +1001,7 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   int blockSize = 1;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
-  int char_height = thisgame.fontflags[fontnum] & FFLG_SIZEMASK;
+  int char_height = thisgame.fonts[fontnum].SizePt;
   int grid_size   = max(10, char_height);
   int grid_margin = max(4, grid_size / 4);
   grid_size += grid_margin * 2;
@@ -1181,10 +1181,7 @@ void NewInteractionCommand::remove ()
 void new_font () {
   FontInfo fi;
   wloadfont_size(thisgame.numfonts, fi);
-  thisgame.fontflags[thisgame.numfonts] = 0;
-  thisgame.fontoutline[thisgame.numfonts] = -1;
-  thisgame.fontvoffset[thisgame.numfonts] = 0;
-  thisgame.fontlnspace[thisgame.numfonts] = 0;
+  thisgame.fonts.push_back(FontInfo());
   thisgame.numfonts++;
 }
 
@@ -1222,7 +1219,7 @@ void shutdown_native()
     Common::AssetManager::DestroyInstance();
 }
 
-void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor) {
+void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor) {
   if (todraw->GetColorDepth () == 8)
     set_palette_to_hdc ((HDC)hdc, palette);
 
@@ -1273,34 +1270,21 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
   delete tempBlock;
 }
 
-void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFactor) {
+void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolutionFactor, float scale) {
 
   if ((tempgui.Width < 1) || (tempgui.Height < 1))
     return;
-
-  //update_font_sizes();
-  
-  // CLNUP dsc_want_hires was used by draw_gui_sprite to double the size
-  /*if (scaleFactor == 1) {
-    dsc_want_hires = 1;
-  }*/
   
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth*8);
   tempblock->Clear(tempblock->GetMaskColor ());
-  //Common::Bitmap *abufWas = abuf;
-  //abuf = tempblock;
 
   tempgui.DrawAt (tempblock, 0, 0);
-
-  //dsc_want_hires = 0;
 
   if (x1 >= 0) {
     tempblock->DrawRect(Rect (x1, y1, x2, y2), 14);
   }
-  //abuf = abufWas;
 
-  drawBlockScaledAt (hdc, tempblock, x, y, scaleFactor);
-  //drawBlockDoubleAt (hdc, tempblock, x, y);
+  drawBlockScaledAt(hdc, tempblock, x, y, scale);
   delete tempblock;
 }
 
@@ -1403,8 +1387,7 @@ bool reload_font(int curFont)
 {
   wfreefont(curFont);
 
-  FontInfo fi;
-  make_fontinfo(thisgame, curFont, fi);
+  FontInfo fi = thisgame.fonts[curFont];
 
   // TODO: for some reason these compat fixes are different in the engine, investigate
 
@@ -1456,7 +1439,7 @@ const char *init_game_after_import(const AGS::Common::LoadedGameEntities &ents, 
     if (!reset_sprite_file())
         return "The sprite file could not be loaded. Ensure that all your game files are intact and not corrupt. The game may require a newer version of AGS.";
 
-    for (int i = 0; i < MAX_FONTS; ++i)
+    for (int i = 0; i < thisgame.numfonts; ++i)
         wfreefont(i);
     for (int i = 0; i < thisgame.numfonts; ++i)
         reload_font(i);
@@ -2448,7 +2431,7 @@ void CreateBuffer(int width, int height)
 	drawBuffer->Clear(0x00D0D0D0);
 }
 
-void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
+void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	Common::Bitmap *todraw = spriteset[sprNum];
 	if (todraw == NULL)
 	  todraw = spriteset[0];
@@ -2465,12 +2448,12 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 		imageToDraw = depthConverted;
 	}
 
-	int drawWidth = imageToDraw->GetWidth() * scaleFactor;
-	int drawHeight = imageToDraw->GetHeight() * scaleFactor;
+	int drawWidth = imageToDraw->GetWidth() * scale;
+	int drawHeight = imageToDraw->GetHeight() * scale;
 
 	if ((thisgame.spriteflags[sprNum] & SPF_ALPHACHANNEL) != 0)
 	{
-		if (scaleFactor > 1)
+		if (scale > 1.0f)
 		{
 			Common::Bitmap *resizedImage = Common::BitmapHelper::CreateBitmap(drawWidth, drawHeight, imageToDraw->GetColorDepth());
 			resizedImage->StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),
@@ -2552,12 +2535,12 @@ void GameUpdated(Game ^game) {
 
   // Reload native fonts and update font information in the managed component
   thisgame.numfonts = game->Fonts->Count;
+  thisgame.fonts.resize(thisgame.numfonts);
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
-	  thisgame.fontflags[i] &= ~FFLG_SIZEMASK;
-	  thisgame.fontflags[i] |= game->Fonts[i]->PointSize;
-      thisgame.fontvoffset[i] = game->Fonts[i]->VerticalOffset;
-      thisgame.fontlnspace[i] = game->Fonts[i]->LineSpacing;
+	  thisgame.fonts[i].SizePt = game->Fonts[i]->PointSize;
+      thisgame.fonts[i].YOffset = game->Fonts[i]->VerticalOffset;
+      thisgame.fonts[i].LineSpacing = game->Fonts[i]->LineSpacing;
 	  reload_font(i);
 	  game->Fonts[i]->Height = getfontheight(i);
   }
@@ -2565,11 +2548,9 @@ void GameUpdated(Game ^game) {
 
 void GameFontUpdated(Game ^game, int fontNumber)
 {
-    thisgame.fontvoffset[fontNumber] = game->Fonts[fontNumber]->VerticalOffset;
-    thisgame.fontlnspace[fontNumber] = game->Fonts[fontNumber]->LineSpacing;
-    FontInfo fi;
-    make_fontinfo(thisgame, fontNumber, fi);
-    set_fontinfo(fontNumber, fi);
+    thisgame.fonts[fontNumber].YOffset = game->Fonts[fontNumber]->VerticalOffset;
+    thisgame.fonts[fontNumber].LineSpacing = game->Fonts[fontNumber]->LineSpacing;
+    set_fontinfo(fontNumber, thisgame.fonts[fontNumber]);
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)
@@ -3055,8 +3036,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   else
   {
     TextWindowGUI^ twGui = dynamic_cast<TextWindowGUI^>(guiObj);
-	gui->Width = 200;
-	gui->Height = 100;
+	gui->Width = twGui->EditorWidth;
+	gui->Height = twGui->EditorHeight;
     gui->Flags = Common::kGUIMain_TextWindow;
     gui->PopupStyle = Common::kGUIPopupModal;
 	gui->Padding = twGui->Padding;
@@ -3204,7 +3185,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   gui->ResortZOrder();
 }
 
-void drawGUI(int hdc, int x,int y, GUI^ guiObj, int scaleFactor, int selectedControl) {
+void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scale, int selectedControl) {
   numguibuts = 0;
   numguilabels = 0;
   numguitext = 0;
@@ -3222,7 +3203,7 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int scaleFactor, int selectedCon
 
   tempgui.HighlightCtrl = selectedControl;
 
-  drawGUIAt(hdc, x, y, -1, -1, -1, -1, scaleFactor);
+  drawGUIAt(hdc, x, y, -1, -1, -1, -1, resolutionFactor, scale);
 }
 
 Dictionary<int, Sprite^>^ load_sprite_dimensions()
@@ -3437,13 +3418,6 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 	for (i = 0; i < thisgame.numcharacters; i++) 
 	{
-		char jibbledScriptName[50] = "\0";
-		if (strlen(thisgame.chars[i].scrname) > 0) 
-		{
-			sprintf(jibbledScriptName, "c%s", thisgame.chars[i].scrname);
-			strlwr(jibbledScriptName);
-			jibbledScriptName[1] = toupper(jibbledScriptName[1]);
-		}
 		AGS::Types::Character ^character = gcnew AGS::Types::Character();
 		character->AdjustSpeedWithScaling = ((thisgame.chars[i].flags & CHF_SCALEMOVESPEED) != 0);
 		character->AdjustVolumeWithScaling = ((thisgame.chars[i].flags & CHF_SCALEVOLUME) != 0);
@@ -3458,7 +3432,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 		character->MovementSpeedY = thisgame.chars[i].walkspeed_y;
 		character->NormalView = thisgame.chars[i].defview + 1;
 		character->RealName = gcnew String(thisgame.chars[i].name);
-		character->ScriptName = gcnew String(jibbledScriptName);
+		character->ScriptName = gcnew String(thisgame.chars[i].scrname);
 		character->Solid = !(thisgame.chars[i].flags & CHF_NOBLOCKING);
 		character->SpeechColor = thisgame.chars[i].talkcolor;
 		character->SpeechView = (thisgame.chars[i].talkview < 1) ? 0 : (thisgame.chars[i].talkview + 1);
@@ -3550,12 +3524,12 @@ Game^ import_compiled_game_dta(const char *fileName)
 	{
 		AGS::Types::Font ^font = gcnew AGS::Types::Font();
 		font->ID = i;
-		font->OutlineFont = (thisgame.fontoutline[i] >= 0) ? thisgame.fontoutline[i] : 0;
-		if (thisgame.fontoutline[i] == -1) 
+		font->OutlineFont = (thisgame.fonts[i].Outline >= 0) ? thisgame.fonts[i].Outline : 0;
+		if (thisgame.fonts[i].Outline == -1)
 		{
 			font->OutlineStyle = FontOutlineStyle::None;
 		}
-		else if (thisgame.fontoutline[i] == FONT_OUTLINE_AUTO)
+		else if (thisgame.fonts[i].Outline == FONT_OUTLINE_AUTO)
 		{
 			font->OutlineStyle = FontOutlineStyle::Automatic;
 		}
@@ -3563,7 +3537,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 		{
 			font->OutlineStyle = FontOutlineStyle::UseOutlineFont;
 		}
-		font->PointSize = thisgame.fontflags[i] & FFLG_SIZEMASK;
+		font->PointSize = thisgame.fonts[i].SizePt;
 		font->Name = gcnew String(String::Format("Font {0}", i));
 
 		game->Fonts->Add(font);
@@ -3612,7 +3586,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 		}
 		else 
 		{
-			newGui = gcnew NormalGUI();
+			newGui = gcnew NormalGUI(1, 1);
 			((NormalGUI^)newGui)->Clickable = ((guis[i].Flags & Common::kGUIMain_NoClick) == 0);
 			((NormalGUI^)newGui)->Top = guis[i].Y;
 			((NormalGUI^)newGui)->Left = guis[i].X;

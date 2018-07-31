@@ -93,20 +93,24 @@ namespace AGS.Editor
             _panel = displayPanel;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             UpdateUndoButtonEnabledState();
-            VisibleItems = new List<string>();
-            LockedItems = new List<string>();
+            RoomItemRefs = new SortedDictionary<string, int>();
+            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
+            InitGameEntities();
         }
 
         public abstract string DisplayName { get; }
-        public abstract bool VisibleByDefault { get; }
+
+        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        /// <summary>
+        /// A lookup table for getting game object reference by they key.
+        /// the keys are area IDs and values are area indexes.
+        /// </summary>
+        private SortedDictionary<string, int> RoomItemRefs { get; set; }
 
         public abstract RoomAreaMaskType MaskToDraw
         {
             get;
         }
-
-        public List<string> VisibleItems { get; private set; }
-        public List<string> LockedItems { get; private set; }
 
         public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -120,9 +124,8 @@ namespace AGS.Editor
             { 
                 _selectedArea = value;
                 if (OnSelectedItemChanged != null)
-                {                    
-                    OnSelectedItemChanged(this, 
-                        new SelectedRoomItemEventArgs(GetItemName(_selectedArea, GetItemsNames()[_selectedArea])));
+                {
+                    OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetValidItemName(_selectedArea)));
                 }
             }
 		}
@@ -138,8 +141,10 @@ namespace AGS.Editor
 		}
 
         public bool SupportVisibleItems { get { return false; } }
+        public bool Visible { get; set; }
+        public bool Locked { get; set; }
 
-		protected virtual void FilterActivated()
+        protected virtual void FilterActivated()
 		{
 		}
 
@@ -158,26 +163,26 @@ namespace AGS.Editor
         {
             if ((_mouseDown) && (_drawMode == AreaDrawMode.Line))
             {
-                int penWidth = GetScaleFactor(state);
+                int penWidth = (int)GetScaleFactor(state);
                 int extraOffset = penWidth / 2;
                 Pen pen = GetPenForArea(_drawingWithArea);
                 pen = new Pen(pen.Color, penWidth);
-                graphics.DrawLine(pen, GameToScreenX(_mouseDownX, state) + extraOffset, 
-                    GameToScreenY(_mouseDownY, state) + extraOffset, 
-                    GameToScreenX(_currentMouseX, state) + extraOffset, 
-                    GameToScreenY(_currentMouseY, state) + extraOffset);
+                graphics.DrawLine(pen, state.RoomXToWindow(_mouseDownX) + extraOffset,
+                    state.RoomYToWindow(_mouseDownY) + extraOffset,
+                    state.RoomXToWindow(_currentMouseX) + extraOffset,
+                    state.RoomYToWindow(_currentMouseY) + extraOffset);
                 pen.Dispose();
             }
 			else if ((_mouseDown) && (_drawMode == AreaDrawMode.Rectangle))
 			{
-				int mousePressedAtX = GameToScreenX(_mouseDownX, state);
-				int mousePressedAtY = GameToScreenY(_mouseDownY, state);
-				int mouseNowAtX = GameToScreenX(_currentMouseX, state);
-				int mouseNowAtY = GameToScreenY(_currentMouseY, state);
+				int mousePressedAtX = state.RoomXToWindow(_mouseDownX);
+				int mousePressedAtY = state.RoomYToWindow(_mouseDownY);
+				int mouseNowAtX = state.RoomXToWindow(_currentMouseX);
+				int mouseNowAtY = state.RoomYToWindow(_currentMouseY);
 				EnsureSmallestNumberIsFirst(ref mousePressedAtX, ref mouseNowAtX);
 				EnsureSmallestNumberIsFirst(ref mousePressedAtY, ref mouseNowAtY);
-                mouseNowAtX += GetScaleFactor(state) - 1;
-                mouseNowAtY += GetScaleFactor(state) - 1;
+                mouseNowAtX += (int)GetScaleFactor(state) - 1;
+                mouseNowAtY += (int)GetScaleFactor(state) - 1;
 
 				graphics.FillRectangle(GetBrushForArea(_drawingWithArea), mousePressedAtX, mousePressedAtY, mouseNowAtX - mousePressedAtX + 1, mouseNowAtY - mousePressedAtY + 1);
 			}
@@ -211,29 +216,9 @@ namespace AGS.Editor
 			return Pens.Red;
 		}
 
-        private int GetScaleFactor(RoomEditorState state)
+        private float GetScaleFactor(RoomEditorState state)
         {
-            return state.ScaleFactor;
-        }
-
-        protected int GameToScreenX(int gameX, RoomEditorState state)
-        {
-            return (gameX * GetScaleFactor(state)) - state.ScrollOffsetX;
-        }
-
-        protected int GameToScreenY(int gameY, RoomEditorState state)
-        {
-            return (gameY * GetScaleFactor(state)) - state.ScrollOffsetY;
-        }
-
-        protected int ScreenToGameX(int screenX, RoomEditorState state)
-        {
-            return (screenX + state.ScrollOffsetX) / GetScaleFactor(state);
-        }
-
-        protected int ScreenToGameY(int screenY, RoomEditorState state)
-        {
-            return (screenY + state.ScrollOffsetY) / GetScaleFactor(state);
+            return state.Scale;
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
@@ -253,8 +238,8 @@ namespace AGS.Editor
                 return false;
             }
             
-            int x = ScreenToGameX(e.X, state);
-            int y = ScreenToGameY(e.Y, state);
+            int x = state.WindowXToRoom(e.X);
+            int y = state.WindowYToRoom(e.Y);
 
             AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;
 
@@ -306,8 +291,7 @@ namespace AGS.Editor
 
         private bool IsLocked(int area)
         {
-            string areaName = GetItemName(area);
-            return LockedItems.Contains(areaName);
+            return DesignItems[GetItemID(area)].Locked;
         }
 
         public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
@@ -364,16 +348,16 @@ namespace AGS.Editor
             ContextMenuStrip menu = new ContextMenuStrip();
             menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
 
-            _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-            _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            _menuClickX = state.WindowXToRoom(e.X);
+            _menuClickY = state.WindowYToRoom(e.Y);
 
             menu.Show(_panel, e.X, e.Y);
         }
 
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {
-            _currentMouseX = ScreenToGameX(x, state);
-            _currentMouseY = ScreenToGameY(y, state);
+            _currentMouseX = state.WindowXToRoom(x);
+            _currentMouseY = state.WindowYToRoom(y);
 
             AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;            
 
@@ -605,21 +589,18 @@ namespace AGS.Editor
             _tooltip.Dispose();
         }
 
-        public List<string> GetItemsNames()
+        public string GetItemName(string id)
         {
-            Dictionary<string, int> items = GetItems();
-            List<string> names = new List<string>(items.Count);
-            foreach (string item in items.Keys)
-            {
-                names.Add(item);
-            }
-            return names;
+            int area;
+            if (id != null && RoomItemRefs.TryGetValue(id, out area))
+                return GetValidItemName(area);
+            return null;
         }
 
-        public void SelectItem(string name)
+        public void SelectItem(string id)
         { 
             int area;
-            if (name != null && GetItems().TryGetValue(name, out area))
+            if (id != null && RoomItemRefs.TryGetValue(id, out area))
             {
                 _selectedArea = area;
                 SelectedAreaChanged(area);                
@@ -636,8 +617,8 @@ namespace AGS.Editor
             }
             if (state.CurrentCursor == null)
             {
-                x = ScreenToGameX(x, state);
-                y = ScreenToGameY(y, state);
+                x = state.WindowXToRoom(x);
+                y = state.WindowYToRoom(y);
                 int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);
                 if (area != 0 && !IsLocked(area))
                 {
@@ -657,19 +638,21 @@ namespace AGS.Editor
             _selectedArea = 0;
         }
 
-        protected string GetItemName(int id, string name)
+        protected string GetItemID(int id)
         {
-            return id == 0 ? ERASER : name;
+            // Use numeric area ID as a "unique identifier", for now
+            return id.ToString("D4");
         }
 
-        private string GetItemName(int id)
+        /// <summary>
+        /// Gets a human-readable area name.
+        /// </summary>
+        /// <param name="id"></param>
+        protected abstract string GetItemName(int id);
+        
+        protected string GetValidItemName(int id)
         {
-            Dictionary<string, int> items = GetItems();
-            foreach (KeyValuePair<string, int> pair in items)
-            {
-                if (pair.Value == id) return pair.Key;
-            }
-            return null;
+            return id == 0 ? ERASER : GetItemName(id);
         }
 
         private void SetDrawMode()
@@ -685,10 +668,24 @@ namespace AGS.Editor
             }
         }
 
-        protected abstract Dictionary<string, int> GetItems();
+        /// <summary>
+        /// Initialize dictionary of current item references.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract SortedDictionary<string, int> InitItemRefs();
         protected abstract void SetPropertyGridList();
         protected abstract void SelectedAreaChanged(int areaNumber);
         protected abstract void GUIController_OnPropertyObjectChanged(object newPropertyObject);
-    }
 
+        private void InitGameEntities()
+        {
+            // Initialize item reference
+            RoomItemRefs = InitItemRefs();
+            // Initialize design-time properties
+            // TODO: load last design settings
+            DesignItems.Clear();
+            foreach (var item in RoomItemRefs)
+                DesignItems.Add(item.Key, new DesignTimeProperties());
+        }
+    }
 }

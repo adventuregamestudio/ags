@@ -29,7 +29,7 @@ namespace AGS
 			void SaveGame(Game^ game);
 			void GameSettingsChanged(Game^ game);
 			void PaletteColoursUpdated(Game ^game);
-			void DrawGUI(int hDC, int x, int y, GUI^ gui, int scaleFactor, int selectedControl);
+			void DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl);
 			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum);
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);
 			// Draws font char sheet on the provided context and returns the height of drawn object;
@@ -76,7 +76,7 @@ namespace AGS
       void RestoreFromUndoBuffer(Room ^room, RoomAreaMaskType maskType);
       void SetGreyedOutMasksEnabled(bool enabled);
 			void CreateBuffer(int width, int height) ;
-			void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) ;
+			void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) ;
 			void RenderBufferToHDC(int hDC) ;
 			String ^LoadRoomScript(String ^roomFileName);
 			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, bool isRoomScript);

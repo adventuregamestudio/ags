@@ -12,6 +12,8 @@ namespace AGS.Editor.Components
     class GuiComponent : BaseComponentWithFolders<GUI, GUIFolder>
     {
         private const string GUI_FILE_FILTER = "AGS exported GUIs (*.guf)|*.guf";
+        private const int    GUI_DEFAULT_WIDTH_MAX = 640;
+        private const int    GUI_DEFAULT_HEIGHT_MAX = 480;
 
         private const string GUIS_COMMAND_ID = "GUI";
         private const string COMMAND_NEW_GUI = "NewGUI";
@@ -60,7 +62,8 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_GUI)
             {
-                GUI newGUI = new NormalGUI();
+                Size gameRes = _agsEditor.CurrentGame.Settings.CustomResolution;
+                GUI newGUI = new NormalGUI(Math.Min(gameRes.Width, GUI_DEFAULT_WIDTH_MAX), Math.Min(gameRes.Height, GUI_DEFAULT_HEIGHT_MAX));
                 AddNewGUI(newGUI);
                 _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
             }

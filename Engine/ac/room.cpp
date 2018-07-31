@@ -532,7 +532,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     thisroom.object = fix_bitmap_size(thisroom.object); // CLNUP check this fix_bitmap_size
     update_polled_stuff_if_runtime();
 
-    set_color_depth(System_GetColorDepth());
+    set_color_depth(game.GetColorDepth());
 
     if ((thisroom.ebscene[0]->GetWidth() < play.viewport.GetWidth()) ||
         (thisroom.ebscene[0]->GetHeight() < play.viewport.GetHeight()))

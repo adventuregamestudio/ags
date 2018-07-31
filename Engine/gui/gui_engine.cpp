@@ -60,7 +60,7 @@ bool GUIMain::HasAlphaChannel() const
         return false;
     }
     // transparent background, enable alpha blending
-    return System_GetColorDepth() >= 24;
+    return game.GetColorDepth() >= 24;
 }
 
 //=============================================================================

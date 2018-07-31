@@ -26,7 +26,7 @@
 #define PAL_BACKGROUND      2
 #define MAXGLOBALMES        500
 #define MAXLANGUAGE         5
-#define MAX_FONTS           30
+#define LEGACY_MAX_FONTS    30
 #define OPT_DEBUGMODE       0
 #define OPT_SCORESOUND      1
 #define OPT_WALKONLOOK      2
@@ -97,6 +97,7 @@
 #define SPF_HADALPHACHANNEL 0x80  // the saved sprite on disk has one
 //#define FFLG_NOSCALE        1
 #define FFLG_SIZEMASK 0x003f
+#define FONT_OUTLINE_NONE -1
 #define FONT_OUTLINE_AUTO -10
 #define MAX_FONT_SIZE 63
 #define DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT  14 // Yellow
@@ -161,6 +162,27 @@ enum RenderAtScreenRes
     kRenderAtScreenRes_UserDefined  = 0,
     kRenderAtScreenRes_Enabled      = 1,
     kRenderAtScreenRes_Disabled     = 2,
+};
+
+// Various font parameters, defining and extending font rendering behavior.
+// While FontRenderer object's main goal is to render single line of text at
+// the strictly determined position on canvas, FontInfo may additionally
+// provide instructions on adjusting drawing position, as well as arranging
+// multiple lines, and similar cases.
+struct FontInfo
+{
+    // General font's loading and rendering flags
+    unsigned char Flags;
+    // Font size, in points (basically means pixels in AGS)
+    int           SizePt;
+    // Outlining font index, or auto-outline flag
+    char          Outline;
+    // Custom vertical render offset, used mainly for fixing broken fonts
+    int           YOffset;
+    // custom line spacing between two lines of text (0 = use font height)
+    int           LineSpacing;
+
+    FontInfo();
 };
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

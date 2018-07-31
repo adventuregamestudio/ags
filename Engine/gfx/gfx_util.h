@@ -36,6 +36,9 @@ using Common::Bitmap;
 
 namespace GfxUtil
 {
+    // Creates a COPY of the source bitmap, converted to the given format.
+    Bitmap *ConvertBitmap(Bitmap *src, int dst_color_depth);
+
     // Considers the given information about source and destination surfaces,
     // then draws a bimtap over another either using requested blending mode,
     // or fallbacks to common "magic pink" transparency mode;

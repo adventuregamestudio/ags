@@ -72,7 +72,6 @@ extern GameState play;
 extern int our_eip;
 extern AGSPlatformDriver *platform;
 extern int debug_flags;
-extern int debug_15bit_mode, debug_24bit_mode; // CLNUP most likely remove
 extern int convert_16bit_bgr; // CLNUP most likely remove
 extern int display_fps;
 extern int editor_debugging_enabled;
@@ -229,8 +228,6 @@ int main_process_cmdline(int argc,char*argv[])
             force_window = 1;
         else if (stricmp(argv[ee],"-fullscreen") == 0 || stricmp(argv[ee],"--fullscreen") == 0)
             force_window = 2;
-        else if (stricmp(argv[ee],"-hicolor") == 0 || stricmp(argv[ee],"--hicolor") == 0)
-            usetup.force_hicolor_mode = true;
         else if (stricmp(argv[ee],"-record") == 0)
             play.recording = 1;
         else if (stricmp(argv[ee],"-playback") == 0)
@@ -262,8 +259,6 @@ int main_process_cmdline(int argc,char*argv[])
             ee+=2;
         }
 		// CLNUP most likely remove xxbit_mode flags
-        else if (stricmp(argv[ee],"--15bit")==0) debug_15bit_mode = 1;
-        else if (stricmp(argv[ee],"--24bit")==0) debug_24bit_mode = 1;
         else if (stricmp(argv[ee],"--fps")==0) display_fps = 2;
         else if (stricmp(argv[ee],"--test")==0) debug_flags|=DBG_DEBUGMODE;
         else if (stricmp(argv[ee],"-noiface")==0) debug_flags|=DBG_NOIFACE;

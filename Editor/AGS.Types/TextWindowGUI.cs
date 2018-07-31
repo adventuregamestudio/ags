@@ -12,6 +12,26 @@ namespace AGS.Types
 		private int _textColor;
 		private int _padding = 3;
 
+        /// <summary>
+        /// Width of the GUI, as displayed in the Editor.
+        /// </summary>
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public override int EditorWidth
+        {
+            get { return 200; }
+        }
+
+        /// <summary>
+        /// Height of the GUI, as displayed in the Editor.
+        /// </summary>
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public override int EditorHeight
+        {
+            get { return 100; }
+        }
+
 		[Description("Colour of the text when drawn on this text window")]
 		[Category("Appearance")]
 		public int TextColor

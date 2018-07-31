@@ -23,6 +23,13 @@
 
 using namespace AGS::Common;
 
+// Assigns font info parameters using flags value read from the game data
+void SetFontInfoFromSerializedFlags(FontInfo &finfo, char flags)
+{
+    finfo.Flags = flags & ~FFLG_SIZEMASK;
+    finfo.SizePt = flags &  FFLG_SIZEMASK;
+}
+
 ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num)
 {
     String clip_name;
@@ -51,20 +58,19 @@ void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion dat
 
 void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_ver)
 {
-    in->Read(&fontflags[0], numfonts);
-    in->Read(&fontoutline[0], numfonts);
+    fonts.resize(numfonts);
+    for (int i = 0; i < numfonts; ++i)
+        SetFontInfoFromSerializedFlags(fonts[i], in->ReadInt8());
+    for (int i = 0; i < numfonts; ++i)
+        fonts[i].Outline = in->ReadInt8(); // size of char
     if (data_ver < kGameVersion_341)
-    {
-        memset(fontvoffset, 0, sizeof(fontvoffset));
-        memset(fontlnspace, 0, sizeof(fontlnspace));
         return;
-    }
     // Extended font parameters
     for (int i = 0; i < numfonts; ++i)
     {
-        fontvoffset[i] = in->ReadInt32();
+        fonts[i].YOffset = in->ReadInt32();
         if (data_ver >= kGameVersion_341_2)
-            fontlnspace[i] = in->ReadInt32();
+            fonts[i].LineSpacing = Math::Max(0, in->ReadInt32());
     }
 }
 

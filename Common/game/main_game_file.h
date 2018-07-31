@@ -45,15 +45,13 @@ namespace Common
 enum MainGameFileErrorType
 {
     kMGFErr_NoError,
-    kMGFErr_FileNotFound,
-    kMGFErr_NoStream,
+    kMGFErr_FileOpenFailed,
     kMGFErr_SignatureFailed,
     // separate error given for "too old" format to provide clarifying message
     kMGFErr_FormatVersionTooOld,
     kMGFErr_FormatVersionNotSupported,
     kMGFErr_CapsNotSupported,
     kMGFErr_InvalidNativeResolution,
-    kMGFErr_TooManyFonts,
     kMGFErr_TooManySprites,
     kMGFErr_TooManyCursors,
     kMGFErr_InvalidPropertySchema,
@@ -83,7 +81,7 @@ struct MainGameSource
 
     // Name of the asset file
     String              Filename;
-    // Savegame format version
+    // Game file format version
     GameDataVersion     DataVersion;
     // Tool identifier (like version) this game was compiled with
     String              CompiledWith;

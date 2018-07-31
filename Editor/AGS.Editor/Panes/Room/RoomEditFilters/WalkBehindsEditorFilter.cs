@@ -20,8 +20,6 @@ namespace AGS.Editor
 
         public override string DisplayName { get { return "Walk-behinds"; } }
 
-        public override bool VisibleByDefault { get { return false; } }
-
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.WalkBehinds; }
@@ -38,7 +36,7 @@ namespace AGS.Editor
 			Pen pen = (Pen)GetPenForArea(SelectedArea).Clone();
 			pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
 
-			for (int i = 0; i < state.ScaleFactor; i++)
+			for (int i = 0; i < (int)state.Scale; i++)
 			{
 				graphics.DrawLine(pen, 0, lineYPos + i, graphics.VisibleClipBounds.Right, lineYPos + i);
 			}
@@ -60,7 +58,7 @@ namespace AGS.Editor
 		{
 			if (_draggingBaseline)
 			{
-				int newBaseline = (y + state.ScrollOffsetY) / state.ScaleFactor;
+				int newBaseline = state.WindowYToRoom(y);
 				if (newBaseline < 0)
 				{
 					newBaseline = 0;
@@ -121,12 +119,12 @@ namespace AGS.Editor
 
 		private int GetCurrentAreaBaselineScreenY(RoomEditorState state)
 		{
-			return (_room.WalkBehinds[SelectedArea].Baseline * state.ScaleFactor) - state.ScrollOffsetY;
+			return state.RoomYToWindow(_room.WalkBehinds[SelectedArea].Baseline);
 		}
 
 		private bool IsCursorOnHorizontalEdge(int cursorY, int edgeY, RoomEditorState state)
 		{
-			return ((cursorY >= edgeY - 1) && (cursorY <= edgeY + state.ScaleFactor));
+			return ((cursorY >= edgeY - 1) && (cursorY <= edgeY + (int)state.Scale));
 		}
 
         protected override void SelectedAreaChanged(int areaNumber)
@@ -134,12 +132,17 @@ namespace AGS.Editor
             Factory.GUIController.SetPropertyGridObject(_room.WalkBehinds[areaNumber]);
         }
 
-        protected override Dictionary<string, int> GetItems()
+        protected override string GetItemName(int id)
         {
-            Dictionary<string, int> items = new Dictionary<string, int>(_room.WalkBehinds.Count);
+            return _room.WalkBehinds[id].PropertyGridTitle;
+        }
+
+        protected override SortedDictionary<string, int> InitItemRefs()
+        {
+            SortedDictionary<string, int> items = new SortedDictionary<string, int>();
             foreach (RoomWalkBehind area in _room.WalkBehinds)
             {
-                items.Add(GetItemName(area.ID, area.PropertyGridTitle), area.ID);
+                items.Add(GetItemID(area.ID), area.ID);
             }
             return items;
         }

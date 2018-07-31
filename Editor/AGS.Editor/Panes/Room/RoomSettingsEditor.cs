@@ -27,10 +27,14 @@ namespace AGS.Editor
         private IRoomEditorFilter _layer;
         private RoomEditNode _layersRoot;
         private List<IRoomEditorFilter> _layers = new List<IRoomEditorFilter>();
-        private RoomEditorState _state = new RoomEditorState();
+        private CharactersEditorFilter _characterLayer; // need to store the reference for special processing
         private bool _editorConstructed = false;
         private int _lastX, _lastY;
         private bool _mouseIsDown = false;
+
+        private int ZOOM_STEP_VALUE = 25;
+        private int ZOOM_MAX_VALUE = 600;
+        private RoomEditorState _state = new RoomEditorState();
 
         public RoomSettingsEditor(Room room)
         {
@@ -39,24 +43,18 @@ namespace AGS.Editor
             InitializeComponent();
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _room = room;
-            // CLNUP adjust the default ScaleFactor value
-            _state.ScaleFactor = 1;
-            /*
-            if (_room.Resolution == RoomResolution.LowRes)
-            {
-                _state.ScaleFactor = 2;
-            }
+            sldZoomLevel.Maximum = ZOOM_MAX_VALUE / ZOOM_STEP_VALUE;
+            sldZoomLevel.Value = 100 / ZOOM_STEP_VALUE;
+            // If the room is very small, we will display it with x2 zoom by default
+            // TODO: implement some option in preferences, and/or relative to the desktop size?
+            if (_room.Width < 640 || _room.Height < 400)
+                SetZoomSliderToMultiplier(2);
             else
-            {
-                _state.ScaleFactor = 1;
-            }
-            */
-            sldZoomLevel.Value = _state.ScaleFactor;
-            _state.ScrollOffsetX = 0;
-            _state.ScrollOffsetY = 0;            
+                SetZoomSliderToMultiplier(1);
 
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame));
+            _characterLayer = new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame);
+            _layers.Add(_characterLayer);
             _layers.Add(new ObjectsEditorFilter(bufferedPanel1, _room));
             _layers.Add(new HotspotsEditorFilter(bufferedPanel1, _room));
             _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, _room));
@@ -76,6 +74,7 @@ namespace AGS.Editor
             UpdateScrollableWindowSize();
 			this.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
 			this.bufferedPanel1.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
+            this.sldZoomLevel.MouseWheel += new MouseEventHandler(RoomSettingsEditor_MouseWheel);
 
             _editorConstructed = true;
         }
@@ -88,16 +87,16 @@ namespace AGS.Editor
             for (int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
             {
                 IRoomEditorFilter layer = _layers[layerIndex];                
-                List<string> names = layer.GetItemsNames();
-                IAddressNode[] children = new IAddressNode[names.Count];
-                for (int index = 0; index < names.Count; index++)
+                IAddressNode[] children = new IAddressNode[layer.DesignItems.Count];
+                int index = 0;
+                foreach (var item in layer.DesignItems)
                 {
-                    string name = names[index];
-                    children[index] = new RoomEditNode(GetLayerItemUniqueID(layer, name), name, new IAddressNode[0], true, false)
-                    {
-                    };
+                    string id = item.Key;
+                    string name = layer.GetItemName(id);
+                    children[index++] = new RoomEditNode(GetLayerItemUniqueID(layer, name), name, id,
+                        new IAddressNode[0], item.Value.Visible, item.Value.Locked, false);
                 }
-                RoomEditNode node = new RoomEditNode(layer.DisplayName, children, layer.VisibleByDefault);
+                RoomEditNode node = new RoomEditNode(layer.DisplayName, children, layer.Visible, layer.Locked);
                 node.Layer = layer;
                 if (layer is BaseAreasEditorFilter)
                 {
@@ -109,7 +108,7 @@ namespace AGS.Editor
                 }
                 layers[layerIndex] = node;
             }
-            _layersRoot = new RoomEditNode("Room", layers, true);
+            _layersRoot = new RoomEditNode("Room", layers, true, false);
             foreach (IAddressNode layer in layers)
             {
                 layer.Parent = _layersRoot;
@@ -202,12 +201,22 @@ namespace AGS.Editor
 				}
 			}
 			sldZoomLevel_Scroll(null, null);
+            // Ridiculous solution, found on stackoverflow.com
+            // TODO: check again later, how reliable this is?!
+            HandledMouseEventArgs ee = (HandledMouseEventArgs)e;
+            ee.Handled = true;
 		}
 
-		private void UpdateScrollableWindowSize()
+        private void SetZoomSliderToMultiplier(int factor)
+        {
+            sldZoomLevel.Value = (100 * factor) / ZOOM_STEP_VALUE;
+            sldZoomLevel_Scroll(null, null);
+        }
+
+        private void UpdateScrollableWindowSize()
         {
             bufferedPanel1.AutoScroll = true;
-			lblDummyScrollSizer.Location = new Point(_room.Width * _state.ScaleFactor, _room.Height * _state.ScaleFactor);
+			lblDummyScrollSizer.Location = new Point(_state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height));
         }
 
         private void RepopulateBackgroundList(int selectIndex) 
@@ -233,32 +242,32 @@ namespace AGS.Editor
 
         private void bufferedPanel1_Paint(object sender, PaintEventArgs e)
         {
-            _state.ScrollOffsetX = -(bufferedPanel1.AutoScrollPosition.X / _state.ScaleFactor) * _state.ScaleFactor;
-            _state.ScrollOffsetY = -(bufferedPanel1.AutoScrollPosition.Y / _state.ScaleFactor) * _state.ScaleFactor;
+            _state.UpdateScroll(bufferedPanel1.AutoScrollPosition);
 
-			int scaleFactor = _state.ScaleFactor;
+            int scaleFactor = 1;
 
             int backgroundNumber = cmbBackgrounds.SelectedIndex;
             if (backgroundNumber < _room.BackgroundCount)
             {
-				e.Graphics.SetClip(new Rectangle(0, 0, _room.Width * _state.ScaleFactor, _room.Height * _state.ScaleFactor));
+                int bufWidth = _state.RoomSizeToWindow(_room.Width);
+                int bufHeight = _state.RoomSizeToWindow(_room.Height);
+                e.Graphics.SetClip(new Rectangle(0, 0, bufWidth, bufHeight));
                 IntPtr hdc = e.Graphics.GetHdc();
-				Factory.NativeProxy.CreateBuffer(bufferedPanel1.ClientSize.Width, bufferedPanel1.ClientSize.Height);
+				Factory.NativeProxy.CreateBuffer(bufWidth, bufHeight);
 				// Adjust co-ordinates using original scale factor so that it lines
 				// up with objects, etc
-				int drawOffsX = -(_state.ScrollOffsetX / _state.ScaleFactor) * _state.ScaleFactor;
-				int drawOffsY = -(_state.ScrollOffsetY / _state.ScaleFactor) * _state.ScaleFactor;
+				int drawOffsX = _state.RoomXToWindow(0);
+                int drawOffsY = _state.RoomYToWindow(0);
                 IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
 				lock (_room)
 				{
-					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, scaleFactor,
+					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, _state.Scale * scaleFactor,
                         maskFilter == null ? RoomAreaMaskType.None : maskFilter.MaskToDraw, 
                         maskFilter == null ? 0 : maskFilter.SelectedArea, sldTransparency.Value);
 				}
                 foreach (IRoomEditorFilter layer in _layers)
                 {                    
                     if (!IsVisible(layer)) continue;
-                    //_filter.PaintToHDC(hdc, _state);
                     layer.PaintToHDC(hdc, _state);
                 }
                 Factory.NativeProxy.RenderBufferToHDC(hdc);
@@ -269,6 +278,7 @@ namespace AGS.Editor
                     layer.Paint(e.Graphics, _state);
                 }
             }
+            base.OnPaint(e);
         }
 
         private IRoomEditorFilter GetCurrentMaskFilter()
@@ -283,18 +293,14 @@ namespace AGS.Editor
 
         private bool IsVisible(IRoomEditorFilter layer)
         {
-            RoomEditNode node = _editAddressBar.RootNode.GetChild(layer.DisplayName, true) as RoomEditNode;
-            if (node == null) return true;
-            return node.IsVisible;
+            return layer.Visible;
         }
 
         private bool IsLocked(IRoomEditorFilter layer)
-        {            
-            RoomEditNode node = _editAddressBar.RootNode.GetChild(layer.DisplayName, true) as RoomEditNode;
-            if (node == null) return false;
-            if (!node.IsVisible) return true;
+        {
+            if (!layer.Visible) return true;
             if (_layer != null && !_layer.AllowClicksInterception() && _layer != layer) return true;
-            return node.IsLocked;
+            return layer.Locked;
         }
 
         private void cmbBackgrounds_SelectedIndexChanged(object sender, EventArgs e)
@@ -451,8 +457,13 @@ namespace AGS.Editor
                             }
                         }
 
-						sldZoomLevel.Value = 2; // CLNUP check this: "3 - (int)_room.Resolution;" performs a reset to the default scale ?
-						sldZoomLevel_Scroll(null, null);
+                        // If the room is very small, we will display it with x2 zoom by default
+                        // TODO: implement some option in preferences, and/or relative to the desktop size?
+                        if (_room.Width < 640 || _room.Height < 400)
+                            SetZoomSliderToMultiplier(2);
+                        else
+                            SetZoomSliderToMultiplier(1);
+                        sldZoomLevel_Scroll(null, null);
 						UpdateScrollableWindowSize();
                     }
                 }
@@ -472,7 +483,6 @@ namespace AGS.Editor
             ImportBackground(cmbBackgrounds.SelectedIndex);
             bufferedPanel1.Invalidate();
             Factory.GUIController.RefreshPropertyGrid();
-			ResizePaneToMatchWindowAndRoomSize();
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
@@ -556,8 +566,8 @@ namespace AGS.Editor
             _lastX = e.X;
             _lastY = e.Y;            
 
-            int mouseXPos = ((e.X + _state.ScrollOffsetX) / _state.ScaleFactor);
-            int mouseYPos = ((e.Y + _state.ScrollOffsetY) / _state.ScaleFactor);
+            int mouseXPos = _state.WindowXToRoom(e.X);
+            int mouseYPos = _state.WindowYToRoom(e.Y);
             string xPosText = mouseXPos.ToString();
             string yPosText = mouseYPos.ToString();
             if ((mouseXPos < 0) || (mouseXPos >= _room.Width))
@@ -621,7 +631,7 @@ namespace AGS.Editor
 
             layerNode.IsVisible = true;
             SelectLayer(layerNode.Layer);
-            layerNode.Layer.SelectItem(node == layerNode ? null : node.DisplayName);
+            layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
         }
 
         private void SelectLayer(IRoomEditorFilter layer)
@@ -754,18 +764,35 @@ namespace AGS.Editor
 		{
 			_room.Modified = true;
 
-			if ((propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME) ||
-				(propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME))
+            bool needRefresh = false;
+            // TODO: unfortunately had to duplicate handling of property change here;
+            // cannot forward event to the CharacterComponent.OnPropertyChanged,
+            // because its implementation relies on it being active Pane!
+            if (propertyName == Character.PROPERTY_NAME_STARTINGROOM)
+            {
+                if (_characterLayer != null)
+                {
+                    int oldRoom = (int)oldValue;
+                    _characterLayer.UpdateCharactersRoom(_characterLayer.SelectedCharacter, oldRoom);
+                    needRefresh = true;
+                }
+            }
+
+            if (propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME ||
+				propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME ||
+                propertyName == Character.PROPERTY_NAME_SCRIPTNAME ||
+                needRefresh)
 			{
                 if (_layer != null)
                 {
-                    // Force the layer to refresh its property list with the new name                
+                    // Force the layer to refresh its property list with the new name   
+                    // TODO: find out if this hack can be avoided             
                     _layer.FilterOff();
                     _layer.FilterOn();
                 }
-                RefreshLayersTree();          
-			}            
-		}
+                RefreshLayersTree();
+			}
+        }
 
 		protected override void OnWindowActivated()
 		{
@@ -787,48 +814,18 @@ namespace AGS.Editor
             }
         }
 
-		private void ResizePaneToMatchWindowAndRoomSize()
+        private void sldZoomLevel_Scroll(object sender, EventArgs e)
 		{
-            if (_room == null)
-            {
-                return;
-            }
+            float oldScale = _state.Scale;
+            _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
 
-			if (this.Width >= 200)
-			{
-				int requiredRoomWidth = _room.Width * _state.ScaleFactor + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Left;
-				mainFrame.Width = this.Width - 10;
-				mainFrame.Width = Math.Min(mainFrame.Width, requiredRoomWidth);
-				mainFrame.Width = Math.Max(mainFrame.Width, lblTransparency.Right + 10);
-			}
-			if (this.Height >= 200)
-			{
-				int requiredRoomHeight = _room.Height * _state.ScaleFactor + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Top;
-				mainFrame.Height = this.Height - 10;
-				mainFrame.Height = Math.Min(mainFrame.Height, requiredRoomHeight);
-			}
-			bufferedPanel1.Size = new Size(mainFrame.DisplayRectangle.Width - bufferedPanel1.Left,
-										   mainFrame.DisplayRectangle.Height - bufferedPanel1.Top);
-
-		}
-
-        private void RoomSettingsEditor_Resize(object sender, EventArgs e)
-        {
-			ResizePaneToMatchWindowAndRoomSize();
-        }
-
-		private void sldZoomLevel_Scroll(object sender, EventArgs e)
-		{
-			int currentScaleFactor = _state.ScaleFactor;
-            int newScaleFactor = sldZoomLevel.Value;// *(int)_room.Resolution;
-
-			int newValue = (bufferedPanel1.VerticalScroll.Value / currentScaleFactor) * newScaleFactor;
+            int newValue = (int)((bufferedPanel1.VerticalScroll.Value / oldScale) * _state.Scale);
 			bufferedPanel1.VerticalScroll.Value = Math.Min(newValue, bufferedPanel1.VerticalScroll.Maximum);
-			newValue = (bufferedPanel1.HorizontalScroll.Value / currentScaleFactor) * newScaleFactor;
+			newValue = (int)((bufferedPanel1.HorizontalScroll.Value / oldScale) * _state.Scale);
 			bufferedPanel1.HorizontalScroll.Value = Math.Min(newValue, bufferedPanel1.HorizontalScroll.Maximum);
 
-			_state.ScaleFactor = newScaleFactor;
-			ResizePaneToMatchWindowAndRoomSize();
+            lblZoomInfo.Text = String.Format("{0}%", sldZoomLevel.Value * ZOOM_STEP_VALUE);
+            
 			UpdateScrollableWindowSize();
 			bufferedPanel1.Invalidate();
 		}
@@ -849,6 +846,8 @@ namespace AGS.Editor
             ForeColor = t.GetColor("room-editor/foreground");
             mainFrame.BackColor = t.GetColor("room-editor/box/background");
             mainFrame.ForeColor = t.GetColor("room-editor/box/foreground");
+            bufferedPanel1.BackColor = mainFrame.BackColor;
+            bufferedPanel1.ForeColor = mainFrame.ForeColor;
             btnChangeImage.BackColor = t.GetColor("room-editor/btn-change-image/background");
             btnChangeImage.ForeColor = t.GetColor("room-editor/btn-change-image/foreground");
             btnChangeImage.FlatStyle = (FlatStyle)t.GetInt("room-editor/btn-change-image/flat/style");
@@ -875,12 +874,76 @@ namespace AGS.Editor
         }
     }
 
+    // TODO: refactor this to make code shared with the GUI Editor
     public class RoomEditorState
     {
-        internal int ScaleFactor;
-        internal int ScrollOffsetX;
-        internal int ScrollOffsetY;
+        // Multiplier, defining convertion between room and editor coords.
+        private float _scale;
+        // Offsets, in window coordinates.
+        private int _scrollOffsetX;
+        private int _scrollOffsetY;
+
         internal Cursor CurrentCursor;
         internal bool DragFromCenter;
+
+        internal RoomEditorState()
+        {
+            Scale = 1f;
+        }
+
+        internal int WindowXToRoom(int x)
+        {
+            return (int)((x + _scrollOffsetX) / _scale);
+        }
+
+        internal int WindowYToRoom(int y)
+        {
+            return (int)((y + _scrollOffsetY) / _scale);
+        }
+
+        internal int RoomXToWindow(int x)
+        {
+            return (int)(x * _scale - _scrollOffsetX);
+        }
+
+        internal int RoomYToWindow(int y)
+        {
+            return (int)(y * _scale - _scrollOffsetY);
+        }
+
+        internal int RoomSizeToWindow(int sz)
+        {
+            return (int)(sz * _scale);
+        }
+
+        internal int WindowSizeToRoom(int sz)
+        {
+            return (int)(sz / _scale);
+        }
+
+        /// <summary>
+        /// Scale of the Room image on screen.
+        /// </summary>
+        public float Scale
+        {
+            get { return _scale; }
+            set
+            {
+                float oldScale = _scale;
+                _scale = value;
+                _scrollOffsetX = (int)(-(_scrollOffsetX / oldScale) * _scale);
+                _scrollOffsetY = (int)(-(_scrollOffsetY / oldScale) * _scale);
+            }
+        }
+
+        /// <summary>
+        /// Updates offset using current scrollbar position.
+        /// </summary>
+        /// <param name="scrollPt">Scroll position in window coordinates.</param>
+        internal void UpdateScroll(Point scrollPt)
+        {
+            _scrollOffsetX = (int)(-(scrollPt.X / _scale) * _scale);
+            _scrollOffsetY = (int)(-(scrollPt.Y / _scale) * _scale);
+        }
     }
 }

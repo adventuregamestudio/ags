@@ -1667,7 +1667,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     set_route_move_speed(move_speed_x, move_speed_y);
     set_color_depth(8);
     int mslot=find_route(charX, charY, tox, toy, prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
-    set_color_depth(System_GetColorDepth());
+    set_color_depth(game.GetColorDepth());
     if (mslot>0) {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;

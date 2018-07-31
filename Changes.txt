@@ -32,7 +32,7 @@ Engine:
  - Implemented new savegame format. Much cleaner than the old one, and easier to
    extend, it should also reduce the size of the save files.
    The engine is still capable of loading older saves, temporarily.
- - Prevent game from crashing if there was an attempt to draw with non-existing font.
+ - Prevent game from crashing if there was an attempt to draw text with a non-existing font.
  - Expanded some of the error messages providing more information to end-user and developers.
  - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
 

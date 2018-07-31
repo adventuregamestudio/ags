@@ -274,7 +274,6 @@ namespace AGS.Editor
                 foreach (IRoomEditorFilter layer in _layers)
                 {                    
                     if (!IsVisible(layer)) continue;
-                    //_filter.PaintToHDC(hdc, _state);
                     layer.PaintToHDC(hdc, _state);
                 }
                 Factory.NativeProxy.RenderBufferToHDC(hdc);

@@ -118,15 +118,7 @@ namespace AGS.Editor.Panes.Room
                 IRoomEditorFilter parentFilter = FindFilter();
                 if (parentFilter != null && !parentFilter.SupportVisibleItems) control.HideCheckBoxes(false);
             }
-            else
-            {
-                foreach (var item in Layer.DesignItems)
-                {
-                    item.Value.Visible = true;
-                }
-            }
             return host;
-            //return new ToolStripMenuItem(DisplayName, null, nodeClicked);
         }
 
         private void control_OnVisibleChanged(object sender, EventArgs e)

@@ -2,6 +2,9 @@ REVISION HISTORY
 ================
 VERSION 3.4.2 - Alpha
 
+Common features:
+ - Removed font limit.
+
 Editor:
  - Editor requires .NET Framework 4.0 to run.
  - Editor preferences are now stored using .NET configuration model, instead of the
@@ -9,10 +12,12 @@ Editor:
  - Added support for custom UI color themes.
  - New navigation bar in the room editor, which allows to select any room object
    or region for editing, show/hide and lock room objects and regions in any combination.
+ - Improved how Room zoom slider works, now supports downscale.
  - Added "Export mask to file" tool button to the Room Editor.
  - Added "Always"choice to "Popup message on compile" preference. Successful compilation
    popup will only be displayed if "Always" choice is selected.
  - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
+ - Build autocomplete table a little faster.
  - Don't modify filesystem permissions in Compiled directory when compiling the game.
    Editor no longer requires non-standard "takeown.exe" utility.
  - Corrected .NET version query for the anonymous statistics report.
@@ -20,12 +25,14 @@ Editor:
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
  - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key controls.
+ - Fixed rooms not being rebuilt when running game just created from a template.
 
 Engine:
  - New pathfinder based on the A* jump point search.
  - Implemented new savegame format. Much cleaner than the old one, and easier to
    extend, it should also reduce the size of the save files.
    The engine is still capable of loading older saves, temporarily.
+ - Prevent game from crashing if there was an attempt to draw with non-existing font.
  - Expanded some of the error messages providing more information to end-user and developers.
  - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
 

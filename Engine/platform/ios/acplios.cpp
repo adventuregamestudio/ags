@@ -113,9 +113,8 @@ const int CONFIG_MOUSE_LONGCLICK = 20;
 
 
 
-struct AGSIOS : AGSPlatformDriver {
-
-  virtual int  CDPlayerCommand(int cmdd, int datt);
+struct AGSIOS : AGSPlatformDriver
+{
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetAppOutputDirectory();
@@ -123,11 +122,9 @@ struct AGSIOS : AGSPlatformDriver {
   virtual const char* GetNoMouseErrorString();
   virtual bool IsBackendResponsibleForMouseScaling() { return true; }
   virtual eScriptSystemOSID GetSystemOSID();
-  virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
-  virtual void ShutdownCDPlayer();
 };
 
 
@@ -575,15 +572,6 @@ void startEngine(char* filename, char* directory, int loadLastSave)
   exit(0);
 }
 
-
-
-
-int AGSIOS::CDPlayerCommand(int cmdd, int datt) {
-  return 0;//cd_player_control(cmdd, datt);
-}
-
-
-
 void AGSIOS::DisplayAlert(const char *text, ...) {
   char displbuf[2000];
   va_list ap;
@@ -614,10 +602,6 @@ eScriptSystemOSID AGSIOS::GetSystemOSID() {
   return eOS_iOS;
 }
 
-int AGSIOS::InitializeCDPlayer() {
-  return 0;//cd_player_init();
-}
-
 void AGSIOS::PlayVideo(const char *name, int skip, int flags) {
   // do nothing
 }
@@ -628,12 +612,6 @@ void AGSIOS::PostAllegroExit() {
 
 void AGSIOS::SetGameWindowIcon() {
   // do nothing
-}
-
-
-
-void AGSIOS::ShutdownCDPlayer() {
-  //cd_exit();
 }
 
 const char *AGSIOS::GetAppOutputDirectory()

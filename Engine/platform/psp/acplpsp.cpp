@@ -59,20 +59,17 @@ extern "C" void gprof_cleanup();
 #define PSP_CONFIG_FILENAME "psp.cfg"
 
 
-struct AGSPSP : AGSPlatformDriver {
-
-  virtual int  CDPlayerCommand(int cmdd, int datt);
+struct AGSPSP : AGSPlatformDriver
+{
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual eScriptSystemOSID GetSystemOSID();
-  virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
-  virtual void ShutdownCDPlayer();
 };
 
 
@@ -458,13 +455,6 @@ void psp_initialize()
     malloc_p5_init();
 }
 
-
-
-
-int AGSPSP::CDPlayerCommand(int cmdd, int datt) {
-  return 1;//cd_player_control(cmdd, datt);
-}
-
 void AGSPSP::DisplayAlert(const char *text, ...) {
   // Print to debug screen, then wait for key press.
   char displbuf[2000];
@@ -504,10 +494,6 @@ eScriptSystemOSID AGSPSP::GetSystemOSID() {
   return eOS_PSP;
 }
 
-int AGSPSP::InitializeCDPlayer() {
-  return 1;//cd_player_init();
-}
-
 void AGSPSP::PlayVideo(const char *name, int skip, int flags) {
   // do nothing
 }
@@ -518,10 +504,6 @@ void AGSPSP::PostAllegroExit() {
 
 void AGSPSP::SetGameWindowIcon() {
   // do nothing
-}
-
-void AGSPSP::ShutdownCDPlayer() {
-  //cd_exit();
 }
 
 const char *AGSPSP::GetAppOutputDirectory()

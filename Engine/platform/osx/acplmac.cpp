@@ -54,20 +54,17 @@ char psp_game_file_name[256];
 static char libraryApplicationSupport[PATH_MAX];
 static char commonDataPath[PATH_MAX];
 
-struct AGSMac : AGSPlatformDriver {
+struct AGSMac : AGSPlatformDriver
+{
   AGSMac();
-
-  virtual int  CDPlayerCommand(int cmdd, int datt) override;
   virtual void Delay(int millis) override;
   virtual void DisplayAlert(const char*, ...) override;
   virtual unsigned long GetDiskFreeSpaceMB() override;
   virtual const char* GetNoMouseErrorString() override;
   virtual eScriptSystemOSID GetSystemOSID() override;
-  virtual int  InitializeCDPlayer() override;
   virtual void PlayVideo(const char* name, int skip, int flags) override;
   virtual void PostAllegroExit() override;
   virtual void SetGameWindowIcon() override;
-  virtual void ShutdownCDPlayer() override;
     
   virtual const char *GetUserSavedgamesDirectory() override;
   virtual const char *GetAllUsersDataDirectory() override;
@@ -84,10 +81,6 @@ AGSMac::AGSMac()
   AGS::Common::Directory::CreateDirectory(commonDataPath);
 
   strcpy(psp_translation, "default");
-}
-
-int AGSMac::CDPlayerCommand(int cmdd, int datt) {
-  return 0;//cd_player_control(cmdd, datt);
 }
 
 void AGSMac::DisplayAlert(const char *text, ...) {
@@ -123,11 +116,6 @@ eScriptSystemOSID AGSMac::GetSystemOSID() {
   return eOS_Mac;
 }
 
-int AGSMac::InitializeCDPlayer() {
-  //return cd_player_init();
-  return 0;
-}
-
 void AGSMac::PlayVideo(const char *name, int skip, int flags) {
 /*
   if (!PlayMovie(name, skip))
@@ -145,10 +133,6 @@ void AGSMac::PostAllegroExit() {
 
 void AGSMac::SetGameWindowIcon() {
   // do nothing
-}
-
-void AGSMac::ShutdownCDPlayer() {
-  //cd_exit();
 }
 
 const char* AGSMac::GetAllUsersDataDirectory()

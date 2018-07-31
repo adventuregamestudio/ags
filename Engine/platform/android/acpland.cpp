@@ -41,9 +41,8 @@ using namespace AGS::Common;
 bool ReadConfiguration(char* filename, bool read_everything);
 void ResetConfiguration();
 
-struct AGSAndroid : AGSPlatformDriver {
-
-  virtual int  CDPlayerCommand(int cmdd, int datt);
+struct AGSAndroid : AGSPlatformDriver
+{
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetAppOutputDirectory();
@@ -51,11 +50,9 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual const char* GetNoMouseErrorString();
   virtual bool IsBackendResponsibleForMouseScaling() { return true; }
   virtual eScriptSystemOSID GetSystemOSID();
-  virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
-  virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
 };
 
@@ -656,12 +653,6 @@ bool ReadConfiguration(char* filename, bool read_everything)
   return false;
 }
 
-
-
-int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {
-  return 1;//cd_player_control(cmdd, datt);
-}
-
 void AGSAndroid::DisplayAlert(const char *text, ...) {
   char displbuf[2000];
   va_list ap;
@@ -701,10 +692,6 @@ eScriptSystemOSID AGSAndroid::GetSystemOSID() {
   return eOS_Android;
 }
 
-int AGSAndroid::InitializeCDPlayer() {
-  return 1;//cd_player_init();
-}
-
 void AGSAndroid::PlayVideo(const char *name, int skip, int flags) {
   // do nothing
 }
@@ -728,10 +715,6 @@ void AGSAndroid::WriteStdOut(const char *fmt, ...)
     // NOTE: __android_log_* functions add trailing '\n'
     va_end(args);
   }
-}
-
-void AGSAndroid::ShutdownCDPlayer() {
-  //cd_exit();
 }
 
 const char *AGSAndroid::GetAppOutputDirectory()

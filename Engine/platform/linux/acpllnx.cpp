@@ -39,9 +39,8 @@ using AGS::Common::String;
 void* allegro_icon = icon_xpm;
 String LinuxOutputDirectory;
 
-struct AGSLinux : AGSPlatformDriver {
-
-  virtual int  CDPlayerCommand(int cmdd, int datt);
+struct AGSLinux : AGSPlatformDriver
+{
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetUserSavedgamesDirectory();
@@ -53,19 +52,13 @@ struct AGSLinux : AGSPlatformDriver {
   virtual bool IsMouseControlSupported(bool windowed);
   virtual const char* GetAllegroFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
-  virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
-  virtual void ShutdownCDPlayer();
   virtual bool LockMouseToWindow();
   virtual void UnlockMouse();
 };
 
-
-int AGSLinux::CDPlayerCommand(int cmdd, int datt) {
-  return cd_player_control(cmdd, datt);
-}
 
 void AGSLinux::DisplayAlert(const char *text, ...) {
   char displbuf[2000];
@@ -168,10 +161,6 @@ eScriptSystemOSID AGSLinux::GetSystemOSID() {
   return eOS_Linux;
 }
 
-int AGSLinux::InitializeCDPlayer() {
-  return cd_player_init();
-}
-
 void AGSLinux::PlayVideo(const char *name, int skip, int flags) {
   // do nothing
 }
@@ -182,10 +171,6 @@ void AGSLinux::PostAllegroExit() {
 
 void AGSLinux::SetGameWindowIcon() {
   // do nothing
-}
-
-void AGSLinux::ShutdownCDPlayer() {
-  cd_exit();
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

@@ -41,22 +41,22 @@ String LinuxOutputDirectory;
 
 struct AGSLinux : AGSPlatformDriver
 {
-  virtual void Delay(int millis);
-  virtual void DisplayAlert(const char*, ...);
-  virtual const char *GetUserSavedgamesDirectory();
-  virtual const char *GetUserConfigDirectory();
-  virtual const char *GetUserGlobalConfigDirectory();
-  virtual const char *GetAppOutputDirectory();
-  virtual unsigned long GetDiskFreeSpaceMB();
-  virtual const char* GetNoMouseErrorString();
-  virtual bool IsMouseControlSupported(bool windowed);
-  virtual const char* GetAllegroFailUserHint();
-  virtual eScriptSystemOSID GetSystemOSID();
-  virtual void PlayVideo(const char* name, int skip, int flags);
-  virtual void PostAllegroExit();
-  virtual void SetGameWindowIcon();
-  virtual bool LockMouseToWindow();
-  virtual void UnlockMouse();
+  virtual void Delay(int millis) override;
+  virtual void DisplayAlert(const char*, ...) override;
+  virtual const char *GetUserSavedgamesDirectory() override;
+  virtual const char *GetUserConfigDirectory() override;
+  virtual const char *GetUserGlobalConfigDirectory() override;
+  virtual const char *GetAppOutputDirectory() override;
+  virtual unsigned long GetDiskFreeSpaceMB() override;
+  virtual const char* GetNoMouseErrorString() override;
+  virtual bool IsMouseControlSupported(bool windowed) override;
+  virtual const char* GetAllegroFailUserHint() override;
+  virtual eScriptSystemOSID GetSystemOSID() override;
+  virtual void PlayVideo(const char* name, int skip, int flags) override;
+  virtual void PostAllegroExit() override;
+  virtual void SetGameWindowIcon() override;
+  virtual bool LockMouseToWindow() override;
+  virtual void UnlockMouse() override;
 };
 
 

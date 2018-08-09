@@ -12,7 +12,8 @@ namespace AGS.Types
 		bool StateSaving { get; }
 		string ScriptFileName { get; }
 		Script Script { get; }
-		void LoadScript();
+        string UserFileName { get; }
+        void LoadScript();
         void UnloadScript();
 	}
 }

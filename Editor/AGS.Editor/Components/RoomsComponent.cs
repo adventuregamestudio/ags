@@ -216,6 +216,10 @@ namespace AGS.Editor.Components
             {
                 filesToDelete.Add(roomToDelete.ScriptFileName);
             }
+            if (File.Exists(roomToDelete.UserFileName))
+            {
+                filesToDelete.Add(roomToDelete.UserFileName);
+            }
 
             try
             {

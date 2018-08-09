@@ -99,6 +99,7 @@
     <Compile Include="Components\LipSyncComponent.cs" />
     <Compile Include="Components\PaletteComponent.cs" />
     <Compile Include="Components\PluginsComponent.cs" />
+    <Compile Include="Components\RoomDesignData.cs" />
     <Compile Include="Components\ScriptsComponent.cs" />
     <Compile Include="Components\SpriteManagerComponent.cs" />
     <Compile Include="Components\TextParserComponent.cs" />

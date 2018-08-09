@@ -376,6 +376,7 @@ namespace AGS.Editor
             }
         }
 
+        public string Name { get { return "Characters"; } }
         public string DisplayName { get { return "Characters"; } }
 
         public RoomAreaMaskType MaskToDraw

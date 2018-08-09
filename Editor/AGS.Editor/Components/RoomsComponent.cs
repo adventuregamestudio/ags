@@ -153,7 +153,7 @@ namespace AGS.Editor.Components
 			{
 				if (_loadedRoom != null)
 				{
-					SaveRoomAndShowAnyErrors(_loadedRoom);
+                    SaveRoomAndShowAnyErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor);
 				}
 			}
 			else if (controlID.StartsWith(TREE_PREFIX_ROOM_NODE))
@@ -234,7 +234,7 @@ namespace AGS.Editor.Components
 			UnloadedRoom roomToTemplatize = FindRoomByID(roomNumber);
 			if ((_loadedRoom != null) && (_loadedRoom.Modified))
 			{
-				if (!SaveRoomAndShowAnyErrors(_loadedRoom))
+				if (!SaveRoomAndShowAnyErrors(_loadedRoom, null))
 				{
 					return;
 				}
@@ -500,9 +500,14 @@ namespace AGS.Editor.Components
 			}
         }
 
-        private bool SaveRoomAndShowAnyErrors(Room room)
+        private bool SaveRoomAndShowAnyErrors(Room room, RoomSettingsEditor editor)
         {
             CompileMessages errors = new CompileMessages();
+
+            // Save design-time room preferences. Currently they are stored directly
+            // in the editor class, therefore we need an instance on one to do this.
+            if (editor != null)
+                RoomDesignData.SaveToUserFile(_loadedRoom, editor);
 
             if (_roomScriptEditors.ContainsKey(room.Number))
             {
@@ -933,15 +938,18 @@ namespace AGS.Editor.Components
         {
             string paneTitle = "Room " + _loadedRoom.Number + (_loadedRoom.Modified ? " *" : "");
 
-            _roomSettings = new ContentDocument(new RoomSettingsEditor(_loadedRoom),
+            RoomSettingsEditor editor = new RoomSettingsEditor(_loadedRoom);
+            _roomSettings = new ContentDocument(editor,
                 paneTitle, this, ROOM_ICON_LOADED, ConstructPropertyObjectList(_loadedRoom));
             if (previousDockData != null && previousDockData.DockState != DockingState.Document)
             {
                 _roomSettings.PreferredDockData = previousDockData;
             }
             _roomSettings.SelectedPropertyGridObject = _loadedRoom;
-            ((RoomSettingsEditor)_roomSettings.Control).SaveRoom += new RoomSettingsEditor.SaveRoomHandler(RoomEditor_SaveRoom);
-            ((RoomSettingsEditor)_roomSettings.Control).AbandonChanges += new RoomSettingsEditor.AbandonChangesHandler(RoomsComponent_AbandonChanges);
+            editor.SaveRoom += new RoomSettingsEditor.SaveRoomHandler(RoomEditor_SaveRoom);
+            editor.AbandonChanges += new RoomSettingsEditor.AbandonChangesHandler(RoomsComponent_AbandonChanges);
+            RoomDesignData.LoadFromUserFile(_loadedRoom, editor);
+            editor.RefreshLayersTree();
         }
 
         private void RoomsComponent_AbandonChanges(Room room)
@@ -952,9 +960,9 @@ namespace AGS.Editor.Components
             }
         }
 
-        private bool RoomEditor_SaveRoom(Room room)
+        private bool RoomEditor_SaveRoom(Room room, RoomSettingsEditor editor)
         {
-            return SaveRoomAndShowAnyErrors(room);
+            return SaveRoomAndShowAnyErrors(room, editor);
         }
 
         private void _loadedRoom_RoomModifiedChanged(bool isModified)
@@ -1022,7 +1030,7 @@ namespace AGS.Editor.Components
 			{
 				_guiController.ShowMessage("Your game directory already has an existing file with the target room number.", MessageBoxIcon.Warning);
 			}
-			else if (SaveRoomAndShowAnyErrors(_loadedRoom))
+			else if (SaveRoomAndShowAnyErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor))
 			{
 				UnloadedRoom oldRoom = FindRoomByID(currentNumber);
 				UnloadedRoom tempNewRoom = new UnloadedRoom(numberRequested);
@@ -1030,7 +1038,8 @@ namespace AGS.Editor.Components
 				UnloadCurrentRoom();
 
 				_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.FileName, tempNewRoom.FileName);
-				_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.ScriptFileName, tempNewRoom.ScriptFileName);
+                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.UserFileName, tempNewRoom.UserFileName);
+                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.ScriptFileName, tempNewRoom.ScriptFileName);
 
 				oldRoom.Number = numberRequested;
 
@@ -1291,7 +1300,7 @@ namespace AGS.Editor.Components
         {
             if ((_loadedRoom != null) && (_loadedRoom.Modified))
             {
-                evArgs.AllowCompilation = SaveRoomAndShowAnyErrors(_loadedRoom);
+                evArgs.AllowCompilation = SaveRoomAndShowAnyErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor);
             }
 
             if (evArgs.AllowCompilation)
@@ -1304,7 +1313,7 @@ namespace AGS.Editor.Components
         {
             if ((_loadedRoom != null) && (_loadedRoom.Modified))
             {
-				if (!SaveRoomAndShowAnyErrors(_loadedRoom))
+				if (!SaveRoomAndShowAnyErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor))
 				{
 					evArgs.SaveSucceeded = false;
 				}

@@ -94,8 +94,8 @@ namespace AGS.Editor
         private const string XML_USER_DATA_ROOT_NODE_NAME = "AGSEditorUserData";
         private const string XML_ROOT_NODE_NAME = "AGSEditorDocument";
         private const string XML_ATTRIBUTE_VERSION = "Version";
-        private const string XML_ATTRIBUTE_VERSION_INDEX = "VersionIndex";
-        private const string XML_ATTRIBUTE_EDITOR_VERSION = "EditorVersion";
+        public const string XML_ATTRIBUTE_VERSION_INDEX = "VersionIndex";
+        public const string XML_ATTRIBUTE_EDITOR_VERSION = "EditorVersion";
         public const string COMPILED_DTA_FILE_NAME = "game28.dta";
         public const string CONFIG_FILE_NAME = "acsetup.cfg";
         public const string ENGINE_EXE_FILE_NAME = "acwin.exe";

@@ -18,7 +18,7 @@ namespace AGS.Editor
     {
         private const int SCROLLBAR_WIDTH_BUFFER = 40;
 
-        public delegate bool SaveRoomHandler(Room room);
+        public delegate bool SaveRoomHandler(Room room, RoomSettingsEditor editor);
         public event SaveRoomHandler SaveRoom;
         public delegate void AbandonChangesHandler(Room room);
         public event AbandonChangesHandler AbandonChanges;
@@ -35,6 +35,12 @@ namespace AGS.Editor
         private int ZOOM_STEP_VALUE = 25;
         private int ZOOM_MAX_VALUE = 600;
         private RoomEditorState _state = new RoomEditorState();
+
+        /// <summary>
+        /// Room editor item layers.
+        /// </summary>
+        public IEnumerable<IRoomEditorFilter> Layers { get { return _layers; } }
+
 
         public RoomSettingsEditor(Room room)
         {
@@ -78,7 +84,13 @@ namespace AGS.Editor
             _editorConstructed = true;
         }
 
-        private void RefreshLayersTree()
+        /// <summary>
+        /// Update the breadcrumb navigation bar, make all nodes correspond to the design-time state
+        /// of the room layers and items.
+        /// </summary>
+        /// TODO: currently this is the only way to sync navbar with the design-time properties.
+        /// find a better solution, perhaps tie each DesignTimeProperties object to a bar node.
+        public void RefreshLayersTree()
         {
             IAddressNode currentNode = _editAddressBar.CurrentNode;
             IAddressNode[] layers = new IAddressNode[_layers.Count];
@@ -768,7 +780,7 @@ namespace AGS.Editor
                 {
                     if (SaveRoom != null)
                     {
-                        cancelClose = !SaveRoom(_room);
+                        cancelClose = !SaveRoom(_room, this);
                     }
                 }
                 else if (AbandonChanges != null)

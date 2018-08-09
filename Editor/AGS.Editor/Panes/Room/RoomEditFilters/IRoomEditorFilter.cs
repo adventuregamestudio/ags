@@ -9,6 +9,13 @@ namespace AGS.Editor
 {
     public interface IRoomEditorFilter : IDisposable
     {
+        /// <summary>
+        /// Internal ID of the filter.
+        /// </summary>
+        string Name { get; }
+        /// <summary>
+        /// Displayed name of the filter.
+        /// </summary>
         string DisplayName { get; }
         RoomAreaMaskType MaskToDraw { get; }
         int ItemCount { get; }

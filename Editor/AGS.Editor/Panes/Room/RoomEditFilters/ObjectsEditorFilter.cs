@@ -37,6 +37,7 @@ namespace AGS.Editor
             InitGameEntities();
         }
 
+        public string Name { get { return "Objects"; } }
         public string DisplayName { get { return "Objects"; } }
 
         public RoomAreaMaskType MaskToDraw

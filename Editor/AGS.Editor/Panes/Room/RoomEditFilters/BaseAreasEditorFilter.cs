@@ -100,6 +100,7 @@ namespace AGS.Editor
             InitGameEntities();
         }
 
+        public abstract string Name { get; }
         public abstract string DisplayName { get; }
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }

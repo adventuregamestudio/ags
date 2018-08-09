@@ -15,6 +15,7 @@ namespace AGS.Editor
         {
         }
 
+        public override string Name { get { return "WalkableAreas"; } }
         public override string DisplayName { get { return "Walkable areas"; } }
 
         public override RoomAreaMaskType MaskToDraw

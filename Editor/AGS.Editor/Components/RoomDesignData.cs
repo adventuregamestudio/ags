@@ -58,15 +58,14 @@ namespace AGS.Editor.Components
                         + " of AGS or an unsupported beta version. Please check the AGS website for a newer version of the editor.");
                 }
                 docNode = doc.DocumentElement;
+
+                // Now parse actual data
+                LoadDataFromXML(room, editor, docNode);
             }
             catch (Exception ex)
             {
                 Factory.GUIController.ShowMessage("Unable to read the room design-time preferences. This SHOULD NOT affect the actual game data, but the design-time state of all room items will be reset." + Environment.NewLine + Environment.NewLine + "The error was: " + ex.Message, MessageBoxIcon.Warning);
-                return;
             }
-
-            // Now do load data
-            LoadDataFromXML(room, editor, docNode);
         }
 
         private static void LoadDataFromXML(Room room, RoomSettingsEditor editor, XmlNode node)

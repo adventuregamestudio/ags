@@ -130,7 +130,8 @@ namespace AGS.Editor.Panes.Room
                     parentFilter.DesignItems[RoomItemID].Visible = _control.IsVisible;
                 else
                     Layer.Visible = _control.IsVisible;
-                parentFilter.Invalidate();
+                parentFilter.Modified = true;
+                parentFilter.Invalidate(); // repaint, since visibility changed
             }
         }
 
@@ -143,6 +144,7 @@ namespace AGS.Editor.Panes.Room
                     parentFilter.DesignItems[RoomItemID].Locked = _control.IsLocked;
                 else
                     Layer.Locked = _control.IsLocked;
+                parentFilter.Modified = true;
             }
         }
 

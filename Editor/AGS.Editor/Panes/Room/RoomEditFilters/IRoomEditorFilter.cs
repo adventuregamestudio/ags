@@ -25,6 +25,11 @@ namespace AGS.Editor
         bool SupportVisibleItems { get; }
 
         /// <summary>
+        /// Tells that the design-time properties of the layer or items were modified.
+        /// </summary>
+        bool Modified { get; set; }
+
+        /// <summary>
         /// Gets/sets if this layer is visible.
         /// </summary>
         bool Visible { get; set; }

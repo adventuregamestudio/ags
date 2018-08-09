@@ -52,6 +52,7 @@ namespace AGS.Editor
         private SortedDictionary<string, SelectedEdge> RoomItemRefs { get; set; }
 
         public bool SupportVisibleItems { get { return true; } }
+        public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
 

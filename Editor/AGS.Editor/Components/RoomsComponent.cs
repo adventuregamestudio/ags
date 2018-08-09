@@ -153,7 +153,7 @@ namespace AGS.Editor.Components
 			{
 				if (_loadedRoom != null)
 				{
-                    SaveRoomAndShowAnyErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor);
+                    SaveRoomIfModifiedAndShowErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor);
 				}
 			}
 			else if (controlID.StartsWith(TREE_PREFIX_ROOM_NODE))
@@ -232,12 +232,12 @@ namespace AGS.Editor.Components
 		private void CreateTemplateFromRoom(int roomNumber)
 		{
 			UnloadedRoom roomToTemplatize = FindRoomByID(roomNumber);
-			if ((_loadedRoom != null) && (_loadedRoom.Modified))
+			if (_loadedRoom != null)
 			{
-				if (!SaveRoomAndShowAnyErrors(_loadedRoom, null))
-				{
-					return;
-				}
+                if (!SaveRoomAlwaysAndShowErrors(_loadedRoom, _roomSettings.Control as RoomSettingsEditor))
+                {
+                    return;
+                }
 			}
 
 			if ((_loadedRoom == null) || (_loadedRoom.Number != roomNumber))
@@ -500,30 +500,51 @@ namespace AGS.Editor.Components
 			}
         }
 
-        private bool SaveRoomAndShowAnyErrors(Room room, RoomSettingsEditor editor)
+        private bool SaveRoomComponentsAndShowErrors(Room room, RoomSettingsEditor editor, bool onlyIfModified)
         {
             CompileMessages errors = new CompileMessages();
 
             // Save design-time room preferences. Currently they are stored directly
             // in the editor class, therefore we need an instance on one to do this.
-            if (editor != null)
-                RoomDesignData.SaveToUserFile(_loadedRoom, editor);
-
-            if (_roomScriptEditors.ContainsKey(room.Number))
+            if (editor != null && (editor.DesignModified || !onlyIfModified))
             {
-                ((ScriptEditor)_roomScriptEditors[room.Number].Control).SaveChanges();
+                RoomDesignData.SaveToUserFile(_loadedRoom, editor, errors);
+                editor.DesignModified = false;
             }
 
-			SaveRoomButDoNotShowAnyErrors(room, errors, "Please wait while the room is saved...");
+            if (room != null && (room.Modified || !onlyIfModified))
+            {
+                if (_roomScriptEditors.ContainsKey(room.Number))
+                {
+                    ((ScriptEditor)_roomScriptEditors[room.Number].Control).SaveChanges();
+                }
+
+                SaveRoomButDoNotShowAnyErrors(room, errors, "Please wait while the room is saved...");
+            }
 
             _guiController.ShowOutputPanel(errors);
 
-			if (errors.HasErrors)
-			{
-				Factory.GUIController.ShowMessage("There were errors saving the room. Please consult the output window for details.", MessageBoxIcon.Warning);
-			}
+            if (errors.HasErrors)
+            {
+                Factory.GUIController.ShowMessage("There were errors or warnings when saving the room. Please consult the output window for details.", MessageBoxIcon.Warning);
+            }
 
             return !errors.HasErrors;
+        }
+
+        private bool SaveRoomAlwaysAndShowErrors(Room room, RoomSettingsEditor editor)
+        {
+            return SaveRoomComponentsAndShowErrors(room, editor, false);
+        }
+
+        private bool SaveRoomIfModifiedAndShowErrors(Room room, RoomSettingsEditor editor)
+        {
+            return SaveRoomComponentsAndShowErrors(room, editor, true);
+        }
+
+        private bool SaveRoomOnlyGameDataAndShowErrors(Room room)
+        {
+            return SaveRoomComponentsAndShowErrors(room, null, false);
         }
 
         private void EnsureScriptNamesAreUnique(Room room, CompileMessages errors)
@@ -962,7 +983,7 @@ namespace AGS.Editor.Components
 
         private bool RoomEditor_SaveRoom(Room room, RoomSettingsEditor editor)
         {
-            return SaveRoomAndShowAnyErrors(room, editor);
+            return SaveRoomAlwaysAndShowErrors(room, editor);
         }
 
         private void _loadedRoom_RoomModifiedChanged(bool isModified)
@@ -1030,7 +1051,7 @@ namespace AGS.Editor.Components
 			{
 				_guiController.ShowMessage("Your game directory already has an existing file with the target room number.", MessageBoxIcon.Warning);
 			}
-			else if (SaveRoomAndShowAnyErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor))
+			else if (SaveRoomAlwaysAndShowErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor))
 			{
 				UnloadedRoom oldRoom = FindRoomByID(currentNumber);
 				UnloadedRoom tempNewRoom = new UnloadedRoom(numberRequested);
@@ -1298,9 +1319,9 @@ namespace AGS.Editor.Components
 
         private void AGSEditor_PreCompileGame(PreCompileGameEventArgs evArgs)
         {
-            if ((_loadedRoom != null) && (_loadedRoom.Modified))
+            if (_loadedRoom != null)
             {
-                evArgs.AllowCompilation = SaveRoomAndShowAnyErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor);
+                evArgs.AllowCompilation = SaveRoomIfModifiedAndShowErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor);
             }
 
             if (evArgs.AllowCompilation)
@@ -1311,9 +1332,9 @@ namespace AGS.Editor.Components
 
         private void AGSEditor_PreSaveGame(PreSaveGameEventArgs evArgs)
         {
-            if ((_loadedRoom != null) && (_loadedRoom.Modified))
+            if (_loadedRoom != null)
             {
-				if (!SaveRoomAndShowAnyErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor))
+				if (!SaveRoomIfModifiedAndShowErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor))
 				{
 					evArgs.SaveSucceeded = false;
 				}

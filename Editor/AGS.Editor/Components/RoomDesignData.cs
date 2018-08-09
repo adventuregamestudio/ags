@@ -116,7 +116,7 @@ namespace AGS.Editor.Components
         /// <summary>
         /// Save design-time user data for the current room.
         /// </summary>
-        public static void SaveToUserFile(Room room, RoomSettingsEditor editor)
+        public static void SaveToUserFile(Room room, RoomSettingsEditor editor, CompileMessages errors)
         {
             string fileName = room.UserFileName;
 
@@ -145,7 +145,9 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("Unable to write the room design-time preferences. Ensure that you have write access to the game folder, and that the file is not already open.\n\n" + ex.Message, MessageBoxIcon.Warning);
+                // TODO: had to break long message into two separate warnings, because Output panel is not suited for line breaks.
+                errors.Add(new CompileWarning("Unable to write the room design-time preferences. Ensure that you have write access to the game folder, and that the file is not already open"));
+                errors.Add(new CompileWarning(ex.Message, ex));
             }
         }
 

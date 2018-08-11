@@ -7,6 +7,24 @@ using AGS.Types;
 
 namespace AGS.Editor.Components
 {
+    /// <summary>
+    /// Manages serialization of the design-time room data.
+    /// -----------------------------------------------------------------------
+    /// [ivan-mogilko] As of now design-time information is stored separately
+    /// from the room objects, inside the IRoomEditorFilter classes. This is a
+    /// temporary solution based on @tzachshabtay's original UI code. Partially
+    /// the reason I kept this approach is that I was not confident in the best
+    /// direction at this time.
+    /// 
+    /// In the future it would be a good idea to develop a concept of a
+    /// design-time only properties "layer" over game objects. The question is
+    /// how these properties should be implemented. They could be added
+    /// directly in the entity classes, but in such case there has to be a way
+    /// to distinct which of the properties are serialized as a game data and
+    /// which as "user" data (property attributes?). On the other hand they
+    /// could be implemented as a separate class paired with game entity and
+    /// linked by some kind of a table, or attached otherwise (as component).
+    /// </summary>
     public static class RoomDesignData
     {
         private const string XML_DATA_ROOT_NODE = "AGSRoomUserData";
@@ -68,6 +86,12 @@ namespace AGS.Editor.Components
             }
         }
 
+        /// <summary>
+        /// Loads room user data from the given XML node.
+        /// </summary>
+        /// <param name="room"></param>
+        /// <param name="editor"></param>
+        /// <param name="node"></param>
         private static void LoadDataFromXML(Room room, RoomSettingsEditor editor, XmlNode node)
         {
             if (node == null)
@@ -150,6 +174,12 @@ namespace AGS.Editor.Components
             }
         }
 
+        /// <summary>
+        /// Saves room user data into the current XML node.
+        /// </summary>
+        /// <param name="room"></param>
+        /// <param name="editor"></param>
+        /// <param name="writer"></param>
         private static void SaveDataToXML(Room room, RoomSettingsEditor editor, XmlTextWriter writer)
         {
             // We do not have a distinct class which would only describe necessary fields,

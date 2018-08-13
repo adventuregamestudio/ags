@@ -184,15 +184,15 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
     }
   }
 
-  fixed angl = fatan(fdiv(ydist, xdist));
+  fixed angl = fixatan(fixdiv(ydist, xdist));
 
   // now, since new opp=hyp*sin, work out the Y step size
   //fixed newymove = useMoveSpeed * fsin(angl);
-  fixed newymove = fixmul(useMoveSpeed, fsin(angl));
+  fixed newymove = fixmul(useMoveSpeed, fixsin(angl));
 
   // since adj=hyp*cos, work out X step size
   //fixed newxmove = useMoveSpeed * fcos(angl);
-  fixed newxmove = fixmul(useMoveSpeed, fcos(angl));
+  fixed newxmove = fixmul(useMoveSpeed, fixcos(angl));
 
   if (destx < ourx)
     newxmove = -newxmove;

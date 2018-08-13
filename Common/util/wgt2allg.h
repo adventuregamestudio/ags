@@ -26,6 +26,7 @@
 #ifdef USE_ALLEGRO3
 #include <allegro3.h>
 #else
+#define ALLEGRO_NO_FIX_ALIASES
 #include "allegro.h"
 #endif
 

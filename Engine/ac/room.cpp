@@ -94,7 +94,6 @@ extern int our_eip;
 extern Bitmap *walkareabackup, *walkable_areas_temp;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern SpriteCache spriteset;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 extern int in_leaves_screen;
@@ -637,7 +636,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].y=thisroom.sprs[cc].y;
 
             if (thisroom.wasversion <= kRoomVersion_300a)
-                croom->obj[cc].y += divide_down_coordinate(spriteheight[thisroom.sprs[cc].sprnum]);
+                croom->obj[cc].y += divide_down_coordinate(game.SpriteInfos[thisroom.sprs[cc].sprnum].Height);
 
             croom->obj[cc].num=thisroom.sprs[cc].sprnum;
             croom->obj[cc].on=thisroom.sprs[cc].on;

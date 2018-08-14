@@ -19,7 +19,8 @@
 #ifndef __SPRCACHE_H
 #define __SPRCACHE_H
 
-#include "core/types.h"
+#include <vector>
+#include "ac/gamestructdefines.h"
 
 namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
@@ -42,7 +43,7 @@ using namespace AGS; // FIXME later
 class SpriteCache
 {
 public:
-  SpriteCache(int32_t maxElements);
+  SpriteCache(int32_t maxElements, std::vector<SpriteInfo> &sprInfos);
 
   int  initFile(const char *);
   soff_t loadSprite(int);
@@ -86,6 +87,8 @@ private:
 
   void initFile_adjustBuffers(short numspri);
   void initFile_initNullSpriteParams(int vv);
+
+  std::vector<SpriteInfo> &_sprInfos;
 };
 
 extern SpriteCache spriteset;

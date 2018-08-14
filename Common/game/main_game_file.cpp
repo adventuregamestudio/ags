@@ -88,6 +88,10 @@ LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dial
 {
 }
 
+LoadedGameEntities::~LoadedGameEntities()
+{
+}
+
 bool IsMainGameLibrary(const String &filename)
 {
     // We must not only detect if the given file is a correct AGS data library,
@@ -438,6 +442,14 @@ void BuildAudioClipArray(GameSetupStruct &game, const AssetLibInfo &lib)
     }
 }
 
+void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents)
+{
+    // Apply sprite flags read from original format (sequential array)
+    game.SpriteInfos.resize(ents.SpriteCount);
+    for (size_t i = 0; i < ents.SpriteCount; ++i)
+        game.SpriteInfos[i].Flags = ents.SpriteFlags[i];
+}
+
 // Convert audio data to the current version
 void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
 {
@@ -625,6 +637,20 @@ void FixupSaveDirectory(GameSetupStruct &game)
     snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", s.GetCStr());
 }
 
+HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
+{
+    int numToRead;
+    if (data_ver < kGameVersion_256)
+        numToRead = LEGACY_MAX_SPRITES_V25;
+    else
+        numToRead = in->ReadInt32();
+
+    ents.SpriteCount = numToRead;
+    ents.SpriteFlags.reset(new char[numToRead]);
+    in->Read(ents.SpriteFlags.get(), numToRead);
+    return HGameFileError::None();
+}
+
 HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
@@ -639,7 +665,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 
     game.read_savegame_info(in, data_ver);
     game.read_font_flags(in, data_ver);
-    HGameFileError err = game.read_sprite_flags(in, data_ver);
+    HGameFileError err = ReadSpriteFlags(ents, in, data_ver);
     if (!err)
         return err;
     game.ReadInvInfo_Aligned(in);
@@ -699,6 +725,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
+    ApplySpriteData(game, ents);
     UpgradeAudio(game, data_ver);
     AdjustScoreSound(game, data_ver);
     UpgradeCharacters(game, data_ver);

@@ -74,7 +74,6 @@ extern GameSetupStruct game;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern char saveGameDirectory[260];
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern ScriptObject scrObj[MAX_INIT_SPR];

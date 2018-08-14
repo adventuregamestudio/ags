@@ -43,7 +43,6 @@ extern GameState play;
 extern CharacterExtras *charextra;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int mousex,mousey;
 extern volatile int timerloop;
@@ -256,8 +255,8 @@ int InventoryScreen::Redraw()
             dii[numitems].num = charextra[game.playercharacter].invorder[i];
             dii[numitems].sprnum = game.invinfo[charextra[game.playercharacter].invorder[i]].pic;
             int snn=dii[numitems].sprnum;
-            if (spritewidth[snn] > widest) widest=spritewidth[snn];
-            if (spriteheight[snn] > highest) highest=spriteheight[snn];
+            if (game.SpriteInfos[snn].Width > widest) widest=game.SpriteInfos[snn].Width;
+            if (game.SpriteInfos[snn].Height > highest) highest= game.SpriteInfos[snn].Height;
             numitems++;
         }
     }
@@ -293,7 +292,7 @@ int InventoryScreen::Redraw()
         wputblock(ds, barxp+1+((i-top_item)%4)*widest+widest/2-spof->GetWidth()/2,
             bartop+1+((i-top_item)/4)*highest+highest/2-spof->GetHeight()/2,spof,1);
     }
-#define BUTTONWID Math::Max(1, spritewidth[btn_select_sprite])
+#define BUTTONWID Math::Max(1, game.SpriteInfos[btn_select_sprite].Width)
     // Draw select, look and OK buttons
     wputblock(ds, windowxp+2, buttonyp + get_fixed_pixel_size(2), spriteset[btn_look_sprite], 1);
     wputblock(ds, windowxp+3+BUTTONWID, buttonyp + get_fixed_pixel_size(2), spriteset[btn_select_sprite], 1);

@@ -34,7 +34,6 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern int offsetx, offsety;
 extern int displayed_room;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int face_talking;
 extern ViewStruct*views;
 extern CharacterExtras *charextra;
@@ -228,7 +227,7 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
 
         tdyp = multiply_up_coordinate(game.chars[charid].get_effective_y()) - offsety - 5;
         if (charextra[charid].height<1)
-            tdyp -= spriteheight[charpic];
+            tdyp -= game.SpriteInfos[charpic].Height;
         else
             tdyp -= charextra[charid].height;
 

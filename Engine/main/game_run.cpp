@@ -81,7 +81,6 @@ extern int replay_start_this_time;
 extern char noWalkBehindsAtAll;
 extern RoomStatus*croom;
 extern CharacterExtras *charextra;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int offsetx, offsety;
 extern unsigned int loopcounter,lastcounter;
@@ -435,8 +434,8 @@ void check_keyboard_controls()
                 sprintf(&infobuf[strlen(infobuf)],
                     "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
                     ff, objs[ff].x, objs[ff].y,
-                    (spriteset[objs[ff].num] != NULL) ? spritewidth[objs[ff].num] : 0,
-                    (spriteset[objs[ff].num] != NULL) ? spriteheight[objs[ff].num] : 0,
+                    (spriteset[objs[ff].num] != NULL) ? game.SpriteInfos[objs[ff].num].Width : 0,
+                    (spriteset[objs[ff].num] != NULL) ? game.SpriteInfos[objs[ff].num].Height : 0,
                     objs[ff].on,
                     (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
                     objs[ff].num, objs[ff].transparent,

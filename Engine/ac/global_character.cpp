@@ -40,7 +40,6 @@
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern RoomObject*objs;
 extern roomstruct thisroom;
 extern GameState play;
@@ -115,7 +114,7 @@ int GetCharacterWidth(int ww) {
             return multiply_up_coordinate(4);
         }
 
-        return spritewidth[views[char1->view].loops[char1->loop].frames[char1->frame].pic];
+        return game.SpriteInfos[views[char1->view].loops[char1->loop].frames[char1->frame].pic].Width;
     }
     else 
         return charextra[ww].width;
@@ -134,7 +133,7 @@ int GetCharacterHeight(int charid) {
             return multiply_up_coordinate(2);
         }
 
-        return spriteheight[views[char1->view].loops[char1->loop].frames[char1->frame].pic];
+        return game.SpriteInfos[views[char1->view].loops[char1->loop].frames[char1->frame].pic].Height;
     }
     else
         return charextra[charid].height;

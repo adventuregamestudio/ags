@@ -39,7 +39,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int force_window;
 extern char psp_translation[];

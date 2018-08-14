@@ -38,7 +38,6 @@ using namespace AGS::Common;
 extern void initialize_sprite(int);
 extern void pre_save_sprite(int);
 extern void get_new_size_for_sprite(int, int, int, int &, int &);
-extern int spritewidth[], spriteheight[];
 
 #define SPRITE_LOCKED -1
 #define START_OF_LIST -1
@@ -66,7 +65,8 @@ enum SpriteIndexFileVersion
 };
 
 
-SpriteCache::SpriteCache(int32_t maxElements)
+SpriteCache::SpriteCache(int32_t maxElements, std::vector<SpriteInfo> &sprInfos)
+    : _sprInfos(sprInfos)
 {
   elements = maxElements;
   cache_stream = NULL;
@@ -183,12 +183,9 @@ int SpriteCache::findFreeSlot()
       return i;
   }
   // no free slot found yet
-  if (elements < MAX_SPRITES) {
-    // enlarge the sprite bank to find a free slot
-    // and return the first new free slot
-    return enlargeTo(elements + 100);
-  }
-  return -1;
+  // enlarge the sprite bank to find a free slot
+  // and return the first new free slot
+  return enlargeTo(elements + 100);
 }
 
 int SpriteCache::doesSpriteExist(int index) {
@@ -387,8 +384,8 @@ soff_t SpriteCache::loadSprite(int index)
   int wdd = cache_stream->ReadInt16();
   int htt = cache_stream->ReadInt16();
   // update the stored width/height
-  spritewidth[index] = wdd;
-  spriteheight[index] = htt;
+  _sprInfos[index].Width = wdd;
+  _sprInfos[index].Height = htt;
 
   images[index] = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);
   if (images[index] == NULL) {
@@ -443,7 +440,7 @@ soff_t SpriteCache::loadSprite(int index)
 
   // we need to store this because the main program might
   // alter spritewidth/height if it resizes stuff
-  sizes[index] = spritewidth[index] * spriteheight[index] * coldep;
+  sizes[index] = _sprInfos[index].Width * _sprInfos[index].Height * coldep;
   cachesize += sizes[index];
 
 #ifdef DEBUG_SPRITECACHE
@@ -741,9 +738,9 @@ int SpriteCache::initFile(const char *filnam)
     wdd = cache_stream->ReadInt16();
     htt = cache_stream->ReadInt16();
 
-    spritewidth[vv] = wdd;
-    spriteheight[vv] = htt;
-    get_new_size_for_sprite(vv, wdd, htt, spritewidth[vv], spriteheight[vv]);
+    _sprInfos[vv].Width = wdd;
+    _sprInfos[vv].Height = htt;
+    get_new_size_for_sprite(vv, wdd, htt, _sprInfos[vv].Width, _sprInfos[vv].Height);
 
     int32_t spriteDataSize;
     if (vers == kSprfVersion_Compressed) {
@@ -830,7 +827,7 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
     flags[vv] = 0;
     if (offsets[vv] != 0) {
       offsets[vv] += spr_initial_offs;
-      get_new_size_for_sprite(vv, rspritewidths[vv], rspriteheights[vv], spritewidth[vv], spriteheight[vv]);
+      get_new_size_for_sprite(vv, rspritewidths[vv], rspriteheights[vv], _sprInfos[vv].Width, _sprInfos[vv].Height);
     }
     else if (vv > 0) {
       initFile_initNullSpriteParams(vv);

@@ -29,7 +29,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern int current_screen_resolution_multiplier;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int our_eip, eip_guinum, eip_guiobj;
 extern color palette[256];
@@ -39,7 +38,7 @@ extern AGSPlatformDriver *platform;
 void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) {
     newwid = ww * current_screen_resolution_multiplier;
     newhit = hh * current_screen_resolution_multiplier;
-    if (game.spriteflags[ee] & SPF_640x400) 
+    if (game.SpriteInfos[ee].Flags & SPF_640x400) 
     {
         if (current_screen_resolution_multiplier == 2) {
             newwid = ww;
@@ -142,22 +141,22 @@ void initialize_sprite (int ee) {
         // replace empty sprites with blue cups, to avoid crashes
         //spriteset[ee] = spriteset[0];
         spriteset.set (ee, spriteset[0]);
-        spritewidth[ee] = spritewidth[0];
-        spriteheight[ee] = spriteheight[0];
+        game.SpriteInfos[ee].Width = game.SpriteInfos[0].Width;
+        game.SpriteInfos[ee].Height = game.SpriteInfos[0].Height;
     }
     else if (spriteset[ee]==NULL) {
-        spritewidth[ee]=0;
-        spriteheight[ee]=0;
+        game.SpriteInfos[ee].Width=0;
+        game.SpriteInfos[ee].Height=0;
     }
     else {
         // stretch sprites to correct resolution
         int oldeip = our_eip;
         our_eip = 4300;
 
-        if (game.spriteflags[ee] & SPF_HADALPHACHANNEL) {
+        if (game.SpriteInfos[ee].Flags & SPF_HADALPHACHANNEL) {
             // we stripped the alpha channel out last time, put
             // it back so that we can remove it properly again
-            game.spriteflags[ee] |= SPF_ALPHACHANNEL;
+            game.SpriteInfos[ee].Flags |= SPF_ALPHACHANNEL;
         }
 
         curspr = spriteset[ee];
@@ -191,16 +190,16 @@ void initialize_sprite (int ee) {
             spriteset.set (ee, tmpdbl);
         }
 
-        spritewidth[ee]=spriteset[ee]->GetWidth();
-        spriteheight[ee]=spriteset[ee]->GetHeight();
+        game.SpriteInfos[ee].Width=spriteset[ee]->GetWidth();
+        game.SpriteInfos[ee].Height=spriteset[ee]->GetHeight();
 
-        spriteset.set(ee, PrepareSpriteForUse(spriteset[ee], (game.spriteflags[ee] & SPF_ALPHACHANNEL) != 0));
+        spriteset.set(ee, PrepareSpriteForUse(spriteset[ee], (game.SpriteInfos[ee].Flags & SPF_ALPHACHANNEL) != 0));
 
         if (game.GetColorDepth() < 32) {
-            game.spriteflags[ee] &= ~SPF_ALPHACHANNEL;
+            game.SpriteInfos[ee].Flags &= ~SPF_ALPHACHANNEL;
             // save the fact that it had one for the next time this
             // is re-loaded from disk
-            game.spriteflags[ee] |= SPF_HADALPHACHANNEL;
+            game.SpriteInfos[ee].Flags |= SPF_HADALPHACHANNEL;
         }
 
         pl_run_plugin_hooks(AGSE_SPRITELOAD, ee);

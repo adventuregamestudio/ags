@@ -72,7 +72,7 @@ struct OriGameSetupStruct2 : public OriGameSetupStruct {
 };
 
 struct OldGameSetupStruct : public OriGameSetupStruct2 {
-    unsigned char spriteflags[6000];
+    unsigned char spriteflags[LEGACY_MAX_SPRITES_V25];
 };
 
 #endif // __AGS_CN_AC__OLDGAMESETUPSTRUCT_H

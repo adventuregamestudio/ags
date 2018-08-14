@@ -57,7 +57,6 @@ extern int time_between_timers;
 extern int offsetx, offsety;
 extern int frames_per_second;
 extern int loops_per_character;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 
 int display_message_aschar=0;
@@ -526,8 +525,8 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
         sprn = 0;
     }
 
-    x = x + offx * spritewidth[sprn];
-    y = y + offy * spriteheight[sprn];
+    x = x + offx * game.SpriteInfos[sprn].Width;
+    y = y + offy * game.SpriteInfos[sprn].Height;
     draw_gui_sprite_v330(ds, sprn, x, y);
 }
 
@@ -562,8 +561,8 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         if (iep->BgColor > 0)
             ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
 
-        int leftRightWidth = spritewidth[get_but_pic(iep,4)];
-        int topBottomHeight = spriteheight[get_but_pic(iep,6)];
+        int leftRightWidth = game.SpriteInfos[get_but_pic(iep,4)].Width;
+        int topBottomHeight = game.SpriteInfos[get_but_pic(iep,6)].Height;
         if (iep->BgImage>0) {
             if ((loaded_game_file_version <= kGameVersion_272) // 2.xx
                 && (spriteset[iep->BgImage]->GetWidth() == 1)
@@ -589,20 +588,20 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
                     while (bgoffsy <= bgfinishy)
                     {
                         draw_gui_sprite_v330(ds, iep->BgImage, bgoffsx, bgoffsy);
-                        bgoffsy += spriteheight[iep->BgImage];
+                        bgoffsy += game.SpriteInfos[iep->BgImage].Height;
                     }
-                    bgoffsx += spritewidth[iep->BgImage];
+                    bgoffsx += game.SpriteInfos[iep->BgImage].Width;
                 }
                 // return to normal clipping rectangle
                 ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
             }
         }
         int uu;
-        for (uu=yy1;uu <= yy2;uu+=spriteheight[get_but_pic(iep,4)]) {
+        for (uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height) {
             do_corner(ds, get_but_pic(iep,4),xx1,uu,-1,0);   // left side
             do_corner(ds, get_but_pic(iep,5),xx2+1,uu,0,0);  // right side
         }
-        for (uu=xx1;uu <= xx2;uu+=spritewidth[get_but_pic(iep,6)]) {
+        for (uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width) {
             do_corner(ds, get_but_pic(iep,6),uu,yy1,0,-1);  // top side
             do_corner(ds, get_but_pic(iep,7),uu,yy2+1,0,0); // bottom side
         }
@@ -622,8 +621,8 @@ int get_textwindow_border_width (int twgui) {
     if (!guis[twgui].IsTextWindow())
         quit("!GUI set as text window but is not actually a text window GUI");
 
-    int borwid = spritewidth[get_but_pic(&guis[twgui], 4)] + 
-        spritewidth[get_but_pic(&guis[twgui], 5)];
+    int borwid = game.SpriteInfos[get_but_pic(&guis[twgui], 4)].Width + 
+        game.SpriteInfos[get_but_pic(&guis[twgui], 5)].Width;
 
     return borwid;
 }
@@ -636,7 +635,7 @@ int get_textwindow_top_border_height (int twgui) {
     if (!guis[twgui].IsTextWindow())
         quit("!GUI set as text window but is not actually a text window GUI");
 
-    return spriteheight[get_but_pic(&guis[twgui], 6)];
+    return game.SpriteInfos[get_but_pic(&guis[twgui], 6)].Height;
 }
 
 // Get the padding for a text window
@@ -679,17 +678,17 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         int tbnum = get_but_pic(&guis[ifnum], 0);
 
         wii[0] += get_textwindow_border_width (ifnum);
-        xx[0]-=spritewidth[tbnum];
-        yy[0]-=spriteheight[tbnum];
+        xx[0]-=game.SpriteInfos[tbnum].Width;
+        yy[0]-=game.SpriteInfos[tbnum].Height;
         if (ovrheight == 0)
             ovrheight = disp.fulltxtheight;
 
         if (should_free_ds)
             delete *text_window_ds;
         int padding = get_textwindow_padding(ifnum);
-        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+spriteheight[tbnum]*2,game.GetColorDepth());
+        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+ game.SpriteInfos[tbnum].Height*2,game.GetColorDepth());
         ds = SetVirtualScreen(*text_window_ds);
-        int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
+        int xoffs=game.SpriteInfos[tbnum].Width,yoffs= game.SpriteInfos[tbnum].Height;
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
         if (set_text_color)
             *set_text_color = ds->GetCompatibleColor(guis[ifnum].FgColor);

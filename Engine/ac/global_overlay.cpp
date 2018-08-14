@@ -30,7 +30,6 @@
 using namespace Common;
 using namespace Engine;
 
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
 extern Bitmap *virtual_screen;
@@ -47,11 +46,11 @@ void RemoveOverlay(int ovrid) {
 int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
     multiply_up_coordinates(&xx, &yy);
 
-    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(spritewidth[slott],spriteheight[slott], game.GetColorDepth());
+    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slott].Width, game.SpriteInfos[slott].Height, game.GetColorDepth());
     Bitmap *ds = SetVirtualScreen(screeno);
     wputblock(ds, 0,0,spriteset[slott],trans);
 
-    bool hasAlpha = (game.spriteflags[slott] & SPF_ALPHACHANNEL) != 0;
+    bool hasAlpha = (game.SpriteInfos[slott].Flags & SPF_ALPHACHANNEL) != 0;
     int nse = add_screen_overlay(xx, yy, OVER_CUSTOM, screeno, hasAlpha);
 
     SetVirtualScreen(virtual_screen);

@@ -98,7 +98,29 @@ void RoomStruct::Free()
     WalkBehindMask.reset();
 
     Properties.clear();
+
+    FreeMessages();
+    FreeScripts();
+}
+
+void RoomStruct::FreeMessages()
+{
+    for (size_t i = 0; i < MessageCount; ++i)
+        Messages[i].Free();
+    MessageCount = 0;
+}
+
+void RoomStruct::FreeScripts()
+{
     CompiledScript.reset();
+
+    EventHandlers.reset();
+    for (size_t i = 0; i < HotspotCount; ++i)
+        Hotspots[i].EventHandlers.reset();
+    for (size_t i = 0; i < ObjectCount; ++i)
+        Objects[i].EventHandlers.reset();
+    for (size_t i = 0; i < RegionCount; ++i)
+        Regions[i].EventHandlers.reset();
 }
 
 void RoomStruct::InitDefaults()

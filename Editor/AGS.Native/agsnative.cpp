@@ -43,8 +43,8 @@ using AGS::Common::Stream;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::GUIMain;
-using AGS::Common::InteractionVariable;
 using AGS::Common::RoomStruct;
+using AGS::Common::PInteractionScripts;
 typedef AGS::Common::String AGSString;
 
 typedef System::Drawing::Bitmap SysBitmap;
@@ -1217,8 +1217,9 @@ bool initialize_native()
 
 void shutdown_native()
 {
-  shutdown_font_renderer();
-	allegro_exit();
+    thisroom.Free();
+    shutdown_font_renderer();
+    allegro_exit();
     Common::AssetManager::DestroyInstance();
 }
 
@@ -3551,7 +3552,8 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 
 void save_crm_file(Room ^room)
 {
-    thisroom.Free();
+    thisroom.FreeMessages();
+    thisroom.FreeScripts();
 
     //
     // Convert managed Room object into the native roomstruct that is going
@@ -3681,30 +3683,31 @@ void save_crm_file(Room ^room)
 	}
 }
 
-void convert_interaction_scripts(Interactions ^interactions, AGS::Common::InteractionScripts *native_scripts)
+PInteractionScripts convert_interaction_scripts(Interactions ^interactions)
 {
-    native_scripts->ScriptFuncNames.clear();
+    InteractionScripts *native_scripts = new InteractionScripts();
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
         native_scripts->ScriptFuncNames.push_back(ConvertStringToNativeString(funcName));
 	}
+    return PInteractionScripts(native_scripts);
 }
 
 void convert_room_interactions_to_native()
 {
 	Room ^roomBeingSaved = TempDataStorage::RoomBeingSaved;
-    convert_interaction_scripts(roomBeingSaved->Interactions, thisroom.EventHandlers.get());
+    thisroom.EventHandlers = convert_interaction_scripts(roomBeingSaved->Interactions);
 	for (int i = 0; i < roomBeingSaved->Hotspots->Count; ++i) 
 	{
-        convert_interaction_scripts(roomBeingSaved->Hotspots[i]->Interactions, thisroom.Hotspots[i].EventHandlers.get());
+        thisroom.Hotspots[i].EventHandlers = convert_interaction_scripts(roomBeingSaved->Hotspots[i]->Interactions);
 	}
     for (int i = 0; i < roomBeingSaved->Objects->Count; ++i)
 	{
-        convert_interaction_scripts(roomBeingSaved->Objects[i]->Interactions, thisroom.Objects[i].EventHandlers.get());
+        thisroom.Objects[i].EventHandlers = convert_interaction_scripts(roomBeingSaved->Objects[i]->Interactions);
 	}
     for (int i = 0; i < roomBeingSaved->Regions->Count; ++i)
 	{
-        convert_interaction_scripts(roomBeingSaved->Regions[i]->Interactions, thisroom.Regions[i].EventHandlers.get());
+        thisroom.Regions[i].EventHandlers = convert_interaction_scripts(roomBeingSaved->Regions[i]->Interactions);
 	}
 }
 

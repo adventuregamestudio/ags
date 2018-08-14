@@ -243,6 +243,10 @@ public:
 
     // Releases room resources
     void            Free();
+    // Release room messages and scripts correspondingly. These two functions are needed
+    // at very specific occasion when only part of the room resources has to be freed.
+    void            FreeMessages();
+    void            FreeScripts();
     // Init default room state
     void            InitDefaults();
 

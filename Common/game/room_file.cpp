@@ -755,7 +755,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
         out->WriteInt16(room->Regions[i].Light);
     for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
-        out->WriteInt16(room->Regions[i].Tint);
+        out->WriteInt32(room->Regions[i].Tint);
 
     save_lzw(out, room->BgFrames[0].Graphic.get(), room->Palette);
 
@@ -828,6 +828,9 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
         WriteBlock(room, kRoomFblk_AnimBg, WriteAnimBgBlock, out);
     // Custom properties
     WriteBlock(room, kRoomFblk_Properties, WritePropertiesBlock, out);
+
+    // Write end of room file
+    out->WriteByte(kRoomFile_EOF);
     return HRoomFileError::None();
 }
 

@@ -78,25 +78,26 @@ namespace AGS.Editor
 		}
 
         public bool KeyPressed(Keys key)
-		{
-            if (_selectedObject == null) return false;
-            if (!_selectedObject.Locked)
+        {
+            if (_selectedObject == null)
+                return false;
+            if (DesignItems[GetItemID(_selectedObject)].Locked)
+                return false;
+
+            int step = GetArrowMoveStepSize();
+            switch (key)
             {
-                int step = GetArrowMoveStepSize();
-                switch (key)
-                {
-                    case Keys.Right:
-                        return MoveObject(_selectedObject.StartX + step, _selectedObject.StartY);
-                    case Keys.Left:
-                        return MoveObject(_selectedObject.StartX - step, _selectedObject.StartY);
-                    case Keys.Down:
-                        return MoveObject(_selectedObject.StartX, _selectedObject.StartY + step);
-                    case Keys.Up:
-                        return MoveObject(_selectedObject.StartX, _selectedObject.StartY - step);
-                }
+                case Keys.Right:
+                    return MoveObject(_selectedObject.StartX + step, _selectedObject.StartY);
+                case Keys.Left:
+                    return MoveObject(_selectedObject.StartX - step, _selectedObject.StartY);
+                case Keys.Down:
+                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY + step);
+                case Keys.Up:
+                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY - step);
             }
             return false;
-		}
+        }
 
         public void Invalidate() { _panel.Invalidate(); }
 
@@ -162,40 +163,41 @@ namespace AGS.Editor
             int xPos;
             int yPos;
 
-            if (_selectedObject != null && DesignItems[GetItemID(_selectedObject)].Visible)
+            if (_selectedObject == null)
+                return;
+            DesignTimeProperties design = DesignItems[GetItemID(_selectedObject)];
+            if (!design.Visible)
+                return;
+
+            int width = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(_selectedObject.Image));
+			int height = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(_selectedObject.Image));
+			xPos = state.RoomXToWindow(_selectedObject.StartX);
+			yPos = state.RoomYToWindow(_selectedObject.StartY) - height;
+            Pen pen = new Pen(Color.Goldenrod);
+            pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
+            graphics.DrawRectangle(pen, xPos, yPos, width, height);
+
+            if (_movingObjectWithMouse)
             {
-                int width = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(_selectedObject.Image));
-				int height = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(_selectedObject.Image));
-				xPos = state.RoomXToWindow(_selectedObject.StartX);
-				yPos = state.RoomYToWindow(_selectedObject.StartY) - height;
-                Pen pen = new Pen(Color.Goldenrod);
-                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
-                graphics.DrawRectangle(pen, xPos, yPos, width, height);
+                System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
+                string toDraw = String.Format("X:{0}, Y:{1}", _selectedObject.StartX, _selectedObject.StartY);
 
-                if (_movingObjectWithMouse)
-                {
-                    System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
-                    string toDraw = String.Format("X:{0}, Y:{1}", _selectedObject.StartX, _selectedObject.StartY);
+                int scaledx = xPos + (width / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
+                int scaledy = yPos - (int)graphics.MeasureString(toDraw, font).Height;
+                if (scaledx < 0) scaledx = 0;
+                if (scaledy < 0) scaledy = 0;
 
-                    int scaledx = xPos + (width / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
-                    int scaledy = yPos - (int)graphics.MeasureString(toDraw, font).Height;
-                    if (scaledx < 0) scaledx = 0;
-                    if (scaledy < 0) scaledy = 0;
+                graphics.DrawString(toDraw, font, pen.Brush, (float)scaledx, (float)scaledy);
+            }
+            else if (design.Locked)
+            {
+                pen = new Pen(Color.Goldenrod, 2);
+                xPos = state.RoomXToWindow(_selectedObject.StartX) + (width / 2);
+                yPos = state.RoomYToWindow(_selectedObject.StartY) - (height / 2);
+                Point center = new Point(xPos, yPos);
 
-                    graphics.DrawString(toDraw, font, pen.Brush, (float)scaledx, (float)scaledy);
-                }
-                else
-                    if (_selectedObject.Locked)
-                    {
-                        pen = new Pen(Color.Goldenrod, 2);
-                        xPos = state.RoomXToWindow(_selectedObject.StartX) + (width / 2);
-                        yPos = state.RoomYToWindow(_selectedObject.StartY) - (height / 2);
-                        Point center = new Point(xPos, yPos);
-
-                        graphics.DrawLine(pen, center.X - 3, center.Y - 3, center.X + 3, center.Y + 3);
-                        graphics.DrawLine(pen, center.X - 3, center.Y + 3, center.X + 3, center.Y - 3);
-
-                    }
+                graphics.DrawLine(pen, center.X - 3, center.Y - 3, center.X + 3, center.Y + 3);
+                graphics.DrawLine(pen, center.X - 3, center.Y + 3, center.X + 3, center.Y - 3);
             }
         }
 
@@ -218,13 +220,12 @@ namespace AGS.Editor
                 {
                     ShowContextMenu(e, state);
                 }
-                else
-                        if (!obj.Locked)
-                        {
-                            _movingObjectWithMouse = true;
-                            _mouseOffsetX = x - obj.StartX;
-                            _mouseOffsetY = y - obj.StartY;
-                        }
+                else if(!DesignItems[GetItemID(obj)].Locked)
+                {
+                    _movingObjectWithMouse = true;
+                    _mouseOffsetX = x - obj.StartX;
+                    _mouseOffsetY = y - obj.StartY;
+                }
             }
             if (_selectedObject == null)
             {                

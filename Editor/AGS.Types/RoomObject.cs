@@ -112,15 +112,6 @@ namespace AGS.Types
             set { _effectiveBaseline = value; }
         }
 
-        // TODO: perhaps separate into design-time entity?
-        [Description("Whether the object can be moved in the editor")]
-        [Category("Design")]
-        public bool Locked
-        {
-            get { return _locked; }
-            set { _locked = value; }
-        }
-
         [Description("X co-ordinate within the room of the left side of the object")]
         [Category("Design")]
         public int StartX

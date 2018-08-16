@@ -301,7 +301,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename) {
 
 ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
 
-    int gotSlot = spriteset.findFreeSlot();
+    int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)
         return NULL;
 
@@ -354,11 +354,11 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
 
 ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preserveAlphaChannel) {
 
-    int gotSlot = spriteset.findFreeSlot();
+    int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)
         return NULL;
 
-    if (!spriteset.doesSpriteExist(slot))
+    if (!spriteset.DoesSpriteExist(slot))
         quitprintf("DynamicSprite.CreateFromExistingSprite: sprite %d does not exist", slot);
 
     // create a new sprite as a copy of the existing one
@@ -376,7 +376,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
 
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height) 
 {
-    int gotSlot = spriteset.findFreeSlot();
+    int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)
         return NULL;
 
@@ -408,7 +408,7 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
 {
     multiply_up_coordinates(&width, &height);
 
-    int gotSlot = spriteset.findFreeSlot();
+    int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)
         return NULL;
 
@@ -450,7 +450,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     multiply_up_coordinates(&x1, &y1);
     multiply_up_coordinates(&width, &height);
 
-    int gotSlot = spriteset.findFreeSlot();
+    int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)
         return NULL;
 
@@ -471,7 +471,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 
 void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
 
-  spriteset.set(gotSlot, redin);
+  spriteset.Set(gotSlot, redin);
 
   game.SpriteInfos[gotSlot].Flags = SPF_DYNAMICALLOC;
 
@@ -489,14 +489,14 @@ void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
 void free_dynamic_sprite (int gotSlot) {
   int tt;
 
-  if ((gotSlot < 0) || (gotSlot >= spriteset.elements))
+  if ((gotSlot < 0) || (gotSlot >= spriteset.GetSpriteSlotCount()))
     quit("!FreeDynamicSprite: invalid slot number");
 
   if ((game.SpriteInfos[gotSlot].Flags & SPF_DYNAMICALLOC) == 0)
     quitprintf("!DeleteSprite: Attempted to free static sprite %d that was not loaded by the script", gotSlot);
 
   delete spriteset[gotSlot];
-  spriteset.set(gotSlot, NULL);
+  spriteset.Set(gotSlot, NULL);
 
   game.SpriteInfos[gotSlot].Flags = 0;
   game.SpriteInfos[gotSlot].Width = 0;

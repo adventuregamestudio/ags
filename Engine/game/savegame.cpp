@@ -351,7 +351,7 @@ void DoBeforeRestore(PreservedParams &pp)
 
     // cleanup dynamic sprites
     // NOTE: sprite 0 is a special constant sprite that cannot be dynamic
-    for (int i = 1; i < spriteset.elements; ++i)
+    for (int i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
     {
         if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
         {
@@ -501,7 +501,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     if (r_data.CursorMode == MODE_USE)
         SetActiveInventory(playerchar->activeinv);
     // ensure that the current cursor is locked
-    spriteset.precache(game.mcurs[r_data.CursorID].pic);
+    spriteset.Precache(game.mcurs[r_data.CursorID].pic);
 
 #if (ALLEGRO_DATE > 19990103)
     set_window_title(play.game_name);

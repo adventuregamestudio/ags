@@ -113,7 +113,7 @@ void precache_view(int view)
 
     for (int i = 0; i < views[view].numLoops; i++) {
         for (int j = 0; j < views[view].loops[i].numFrames; j++)
-            spriteset.precache (views[view].loops[i].frames[j].pic);
+            spriteset.Precache(views[view].loops[i].frames[j].pic);
     }
 }
 

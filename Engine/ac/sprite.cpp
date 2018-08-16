@@ -134,13 +134,12 @@ Bitmap *tmpdbl, *curspr;
 int newwid, newhit;
 void initialize_sprite (int ee) {
 
-    if ((ee < 0) || (ee > spriteset.elements))
+    if ((ee < 0) || (ee > spriteset.GetSpriteSlotCount()))
         quit("initialize_sprite: invalid sprite number");
 
     if ((spriteset[ee] == NULL) && (ee > 0)) {
         // replace empty sprites with blue cups, to avoid crashes
-        //spriteset[ee] = spriteset[0];
-        spriteset.set (ee, spriteset[0]);
+        spriteset.Set(ee, spriteset[0]);
         game.SpriteInfos[ee].Width = game.SpriteInfos[0].Width;
         game.SpriteInfos[ee].Height = game.SpriteInfos[0].Height;
     }
@@ -187,13 +186,13 @@ void initialize_sprite (int ee) {
             curspr->Release ();
             tmpdbl->Release ();
             delete curspr;
-            spriteset.set (ee, tmpdbl);
+            spriteset.Set(ee, tmpdbl);
         }
 
         game.SpriteInfos[ee].Width=spriteset[ee]->GetWidth();
         game.SpriteInfos[ee].Height=spriteset[ee]->GetHeight();
 
-        spriteset.set(ee, PrepareSpriteForUse(spriteset[ee], (game.SpriteInfos[ee].Flags & SPF_ALPHACHANNEL) != 0));
+        spriteset.Set(ee, PrepareSpriteForUse(spriteset[ee], (game.SpriteInfos[ee].Flags & SPF_ALPHACHANNEL) != 0));
 
         if (game.GetColorDepth() < 32) {
             game.SpriteInfos[ee].Flags &= ~SPF_ALPHACHANNEL;

@@ -85,7 +85,7 @@ void quit_check_dynamic_sprites(QuitReason qreason)
         (game.options[OPT_DEBUGMODE] != 0)) {
             // game exiting normally -- make sure the dynamic sprites
             // have been deleted
-            for (int i = 1; i < spriteset.elements; i++) {
+            for (int i = 1; i < spriteset.GetSpriteSlotCount(); i++) {
                 if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
                     debug_script_warn("Dynamic sprite %d was never deleted", i);
             }

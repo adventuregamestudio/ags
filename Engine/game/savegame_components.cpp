@@ -630,7 +630,7 @@ HSaveError WriteDynamicSprites(PStream out)
     out->WriteInt32(0); // top index
     int count = 0;
     int top_index = 1;
-    for (int i = 1; i < spriteset.elements; ++i)
+    for (int i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
     {
         if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
         {
@@ -656,7 +656,7 @@ HSaveError ReadDynamicSprites(PStream in, int32_t cmp_ver, const PreservedParams
     // ensure the sprite set is at least large enough
     // to accomodate top dynamic sprite index
     const int top_index = in->ReadInt32();
-    spriteset.enlargeTo(top_index);
+    spriteset.EnlargeTo(top_index);
     for (int i = 0; i < spr_count; ++i)
     {
         int id = in->ReadInt32();

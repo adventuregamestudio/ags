@@ -277,8 +277,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     if (!err)
         quitprintf("!RunAGSGame: error loading new game file:\n%s", err->FullMessage().GetCStr());
 
-    spriteset.reset();
-    if (spriteset.initFile ("acsprset.spr"))
+    spriteset.Reset();
+    if (spriteset.InitFile("acsprset.spr"))
         quit("!RunAGSGame: error loading new sprites");
 
     if ((mode & RAGMODE_PRESERVEGLOBALINT) == 0) {

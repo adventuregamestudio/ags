@@ -746,7 +746,7 @@ int Game_GetSpriteWidth(int spriteNum) {
     if (spriteNum < 0)
         return 0;
 
-    if (!spriteset.doesSpriteExist(spriteNum))
+    if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
     return divide_down_coordinate(game.SpriteInfos[spriteNum].Width);
@@ -756,7 +756,7 @@ int Game_GetSpriteHeight(int spriteNum) {
     if (spriteNum < 0)
         return 0;
 
-    if (!spriteset.doesSpriteExist(spriteNum))
+    if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
     return divide_down_coordinate(game.SpriteInfos[spriteNum].Height);
@@ -1209,7 +1209,7 @@ void restore_game_spriteset(Stream *in)
 {
     // ensure the sprite set is at least as large as it was
     // when the game was saved
-    spriteset.enlargeTo(in->ReadInt32());
+    spriteset.EnlargeTo(in->ReadInt32());
     // get serialized dynamic sprites
     int sprnum = in->ReadInt32();
     while (sprnum) {
@@ -1728,7 +1728,7 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
 
     if (desc.UserImage.get())
     {
-        int slot = spriteset.findFreeSlot();
+        int slot = spriteset.AddNewSprite();
         if (slot > 0)
         {
             // add it into the sprite set

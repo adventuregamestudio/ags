@@ -563,7 +563,10 @@ int IAGSEngine::GetFontType(int32 fontNum) {
 }
 int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
 
-    int gotSlot = spriteset.findFreeSlot();
+    // TODO: why is this implemented right here, should not an existing
+    // script handling implementation be called instead?
+
+    int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)
         return 0;
 

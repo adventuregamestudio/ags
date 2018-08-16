@@ -935,7 +935,7 @@ int engine_init_sprites()
 {
     Debug::Printf(kDbgMsg_Init, "Initialize sprites");
 
-    if (spriteset.initFile ("acsprset.spr")) 
+    if (spriteset.InitFile("acsprset.spr")) 
     {
         platform->FinishedUsingGraphicsMode();
         allegro_exit();
@@ -971,7 +971,7 @@ void engine_init_game_settings()
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
         if (game.mcurs[ee].pic >= 0)
-            spriteset.precache (game.mcurs[ee].pic);
+            spriteset.Precache(game.mcurs[ee].pic);
 
         // just in case they typed an invalid view number in the editor
         if (game.mcurs[ee].view >= game.numviews)

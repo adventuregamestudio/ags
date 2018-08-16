@@ -179,6 +179,8 @@ struct SpriteInfo
     uint32_t Flags;
     int      Width;
     int      Height;
+
+    SpriteInfo();
 };
 
 // Various font parameters, defining and extending font rendering behavior.

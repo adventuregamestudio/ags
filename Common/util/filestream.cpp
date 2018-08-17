@@ -50,6 +50,11 @@ FileStream::~FileStream()
     Close();
 }
 
+bool FileStream::HasErrors() const
+{
+    return IsValid() && ferror(_file) != 0;
+}
+
 void FileStream::Close()
 {
     if (_file)

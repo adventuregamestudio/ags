@@ -34,6 +34,7 @@ public:
         DataEndianess stream_endianess = kLittleEndian);
     virtual ~FileStream();
 
+    virtual bool    HasErrors() const;
     virtual void    Close();
     virtual bool    Flush();
 

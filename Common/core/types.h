@@ -81,6 +81,9 @@
 
 #endif // WINDOWS_VERSION
 
+// Stream offset type
+typedef int64_t soff_t;
+
 
 // Suppress override keyword for compilers that do not support it
 // TODO: this should be reviewed if project would demand C++11 or higher

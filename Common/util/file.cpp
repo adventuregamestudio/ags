@@ -23,15 +23,24 @@
 #include "util/file.h"
 #include "util/filestream.h"
 
+#if defined(_MSC_VER) // MSVC
+    #define stat_t      _stat64
+    #define stat_fn     _stati64
+#else
+    #define stat_t      stat
+    #define stat_fn     stat
+#endif
+
+
 namespace AGS
 {
 namespace Common
 {
 
-int File::GetFileSize(const String &filename)
+soff_t File::GetFileSize(const String &filename)
 {
-    struct stat st;
-    if (stat(filename, &st) == 0)
+    struct stat_t st;
+    if (stat_fn(filename, &st) == 0)
         return st.st_size;
     return -1;
 }

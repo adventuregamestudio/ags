@@ -290,7 +290,7 @@ size_t AlignedStream::WriteArrayOfInt64(const int64_t *buffer, size_t count)
     return 0;
 }
 
-size_t AlignedStream::Seek(int offset, StreamSeek origin)
+soff_t AlignedStream::Seek(soff_t offset, StreamSeek origin)
 {
     // TODO: split out Seekable Stream interface
     assert(false); // aligned stream should not be used in cases

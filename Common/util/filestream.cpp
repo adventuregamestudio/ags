@@ -12,22 +12,10 @@
 //
 //=============================================================================
 
-#if defined(WINDOWS_VERSION)
-#include <io.h>
-#endif
 #include <stdio.h>
 #include "util/filestream.h"
 #include "util/math.h"
 
-// TODO: use fstat on Windows too?
-#if !defined (WINDOWS_VERSION)
-#include <sys/stat.h>
-long int filelength(int fhandle)
-{
-    struct stat statbuf;
-    fstat(fhandle, &statbuf);
-    return statbuf.st_size;
-}
 #endif
 
 namespace AGS
@@ -87,8 +75,11 @@ size_t FileStream::GetLength() const
 {
     if (IsValid())
     {
-        long len = filelength(fileno(_file));
-        return len > 0 ? (size_t)len : 0;
+        size_t pos = (size_t)ftell(_file);
+        fseek(_file, 0, SEEK_END);
+        size_t end = (size_t)ftell(_file);
+        fseek(_file, pos, SEEK_SET);
+        return end;
     }
 
     return 0;

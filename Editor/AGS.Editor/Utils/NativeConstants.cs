@@ -40,11 +40,7 @@ namespace AGS.Editor
         public static readonly int MAXTOPICOPTIONS = (int)Factory.NativeProxy.GetNativeConstant("MAXTOPICOPTIONS");
         public static readonly short UNIFORM_WALK_SPEED = (short)(int)Factory.NativeProxy.GetNativeConstant("UNIFORM_WALK_SPEED");
         public static readonly int GAME_RESOLUTION_CUSTOM = (int)Factory.NativeProxy.GetNativeConstant("GAME_RESOLUTION_CUSTOM");
-        public static readonly int MAXMULTIFILES = (int)Factory.NativeProxy.GetNativeConstant("MAXMULTIFILES");
-        public static readonly int RAND_SEED_SALT = (int)Factory.NativeProxy.GetNativeConstant("RAND_SEED_SALT");
         public static readonly int CHUNKSIZE = (int)Factory.NativeProxy.GetNativeConstant("CHUNKSIZE");
-        public static readonly string CLIB_END_SIGNATURE = (string)Factory.NativeProxy.GetNativeConstant("CLIB_END_SIGNATURE");
-        public static readonly int MAX_FILENAME_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_FILENAME_LENGTH");
         public static readonly string SPRSET_NAME = (string)Factory.NativeProxy.GetNativeConstant("SPRSET_NAME");
         public static readonly byte SPF_640x400 = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_640x400");
         public static readonly byte SPF_ALPHACHANNEL = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_ALPHACHANNEL");

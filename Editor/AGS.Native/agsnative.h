@@ -27,9 +27,7 @@
 #include "Common/gui/guidefines.h"
 #include "Common/game/customproperties.h"
 
-#define MAXMULTIFILES 25
 #define CHUNKSIZE 256000
-#define MAX_FILENAME_LENGTH 100
 #define MAX_PLUGINS 40
 
 extern const char *sprsetname;

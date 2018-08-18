@@ -46,14 +46,25 @@ namespace MFLUtil
         kMFLErrLibAssetCount  = -4, // too many assets in library
     };
 
-    extern const String HeadSig;
-    extern const String TailSig;
+    enum MFLVersion
+    {
+        kMFLVersion_SingleLib   = 6,
+        kMFLVersion_MultiV10    = 10,
+        kMFLVersion_MultiV11    = 11,
+        kMFLVersion_MultiV15    = 15, // unknown differences
+        kMFLVersion_MultiV20    = 20,
+        kMFLVersion_MultiV21    = 21,
+        kMFLVersion_MultiV30    = 30  // 64-bit file support, loose limits
+    };
+
+    // Maximal number of the data files in one library chain (1-byte index)
+    const size_t MaxMultiLibFiles = 256;
 
     MFLError TestIsMFL(Stream *in, bool test_is_main = false);
     MFLError ReadHeader(AssetLibInfo &lib, Stream *in);
 
-    const int EncryptionRandSeed = 9338638;
-    int      GetNextPseudoRand(int &rand_val);
+    void     WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out);
+    void     WriteEnder(soff_t lib_offset, MFLVersion lib_index, Stream *out);
 };
 
 } // namespace Common

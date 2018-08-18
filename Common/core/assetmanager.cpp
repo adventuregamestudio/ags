@@ -107,19 +107,19 @@ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &
     return _theAssetManager ? _theAssetManager->_GetLibraryForAsset(asset_name) : "";
 }
 
-/* static */ long AssetManager::GetAssetOffset(const String &asset_name)
+/* static */ soff_t AssetManager::GetAssetOffset(const String &asset_name)
 {
     assert(_theAssetManager != NULL);
     return _theAssetManager ? _theAssetManager->_GetAssetOffset(asset_name) : 0;
 }
 
-/* static */ long AssetManager::GetAssetSize(const String &asset_name)
+/* static */ soff_t AssetManager::GetAssetSize(const String &asset_name)
 {
     assert(_theAssetManager != NULL);
     return _theAssetManager ? _theAssetManager->_GetAssetSize(asset_name) : 0;
 }
 
-/* static */ long AssetManager::GetLastAssetSize()
+/* static */ soff_t AssetManager::GetLastAssetSize()
 {
     assert(_theAssetManager != NULL);
     return _theAssetManager ? _theAssetManager->_GetLastAssetSize() : 0;
@@ -223,7 +223,7 @@ String AssetManager::_GetLibraryForAsset(const String &asset_name)
     return MakeLibraryFileNameForAsset(asset);
 }
 
-long AssetManager::_GetAssetOffset(const String &asset_name)
+soff_t AssetManager::_GetAssetOffset(const String &asset_name)
 {
     if (asset_name.IsEmpty())
     {
@@ -237,7 +237,7 @@ long AssetManager::_GetAssetOffset(const String &asset_name)
     return -1;
 }
 
-long AssetManager::_GetAssetSize(const String &asset_name)
+soff_t AssetManager::_GetAssetSize(const String &asset_name)
 {
     if (asset_name.IsEmpty())
     {
@@ -251,7 +251,7 @@ long AssetManager::_GetAssetSize(const String &asset_name)
     return -1;
 }
 
-long AssetManager::_GetLastAssetSize()
+soff_t AssetManager::_GetLastAssetSize()
 {
     return _lastAssetSize;
 }

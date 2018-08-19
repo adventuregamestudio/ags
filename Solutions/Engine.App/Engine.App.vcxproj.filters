@@ -402,9 +402,6 @@
     <ClCompile Include="..\..\Engine\ac\room.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\room_engine.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\roomobject.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>

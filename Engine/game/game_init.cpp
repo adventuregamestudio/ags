@@ -65,10 +65,10 @@ extern CCDialog    ccDynamicDialog;
 extern CCAudioChannel ccDynamicAudio;
 extern CCAudioClip ccDynamicAudioClip;
 extern ScriptString myScriptStringImpl;
-extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern ScriptGUI    *scrGui;
-extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-extern ScriptRegion scrRegion[MAX_REGIONS];
+extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
+extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern ScriptInvItem scrInv[MAX_INV];
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 
@@ -239,7 +239,7 @@ void InitAndRegisterInvItems()
 // Initializes room hotspots and registers them in the script system
 void InitAndRegisterHotspots()
 {
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         scrHotspot[i].id = i;
         scrHotspot[i].reserved = 0;
@@ -250,7 +250,7 @@ void InitAndRegisterHotspots()
 // Initializes room objects and registers them in the script system
 void InitAndRegisterRoomObjects()
 {
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
         ccRegisterManagedObject(&scrObj[i], &ccDynamicObject);
     }
@@ -259,7 +259,7 @@ void InitAndRegisterRoomObjects()
 // Initializes room regions and registers them in the script system
 void InitAndRegisterRegions()
 {
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
         scrRegion[i].id = i;
         scrRegion[i].reserved = 0;
@@ -412,8 +412,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
-    mls = (MoveList*)calloc(game.numcharacters + MAX_INIT_SPR + 1, sizeof(MoveList));
-    actSpsCount = game.numcharacters + MAX_INIT_SPR + 2;
+    mls = (MoveList*)calloc(game.numcharacters + MAX_ROOM_OBJECTS + 1, sizeof(MoveList));
+    actSpsCount = game.numcharacters + MAX_ROOM_OBJECTS + 2;
     actsps = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
     actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswb = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));

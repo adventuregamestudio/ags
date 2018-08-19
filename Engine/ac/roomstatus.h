@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__ROOMSTATUS_H
 
 #include "ac/roomobject.h"
+#include "game/roomstruct.h"
 #include "game/interactions.h"
 #include "util/string_types.h"
 
@@ -32,28 +33,28 @@ using AGS::Common::Stream;
 struct RoomStatus {
     int   beenhere;
     int   numobj;
-    RoomObject obj[MAX_INIT_SPR];
+    RoomObject obj[MAX_ROOM_OBJECTS];
     short flagstates[MAX_FLAGS];
     int   tsdatasize;
     char* tsdata;
     // CLNUP old interactions
-    //Interaction intrHotspot[MAX_HOTSPOTS];
-    //Interaction intrObject [MAX_INIT_SPR];
-    //Interaction intrRegion [MAX_REGIONS];
+    //Interaction intrHotspot[MAX_ROOM_HOTSPOTS];
+    //Interaction intrObject [MAX_ROOM_OBJECTS];
+    //Interaction intrRegion [MAX_ROOM_REGIONS];
     //Interaction intrRoom;
 
     Common::StringIMap roomProps;
-    Common::StringIMap hsProps[MAX_HOTSPOTS];
-    Common::StringIMap objProps[MAX_INIT_SPR];
+    Common::StringIMap hsProps[MAX_ROOM_HOTSPOTS];
+    Common::StringIMap objProps[MAX_ROOM_OBJECTS];
     // [IKM] 2012-06-22: not used anywhere
 #ifdef UNUSED_CODE
-    EventBlock hscond[MAX_HOTSPOTS];
-    EventBlock objcond[MAX_INIT_SPR];
+    EventBlock hscond[MAX_ROOM_HOTSPOTS];
+    EventBlock objcond[MAX_ROOM_OBJECTS];
     EventBlock misccond;
 #endif
-    char  hotspot_enabled[MAX_HOTSPOTS];
-    char  region_enabled[MAX_REGIONS];
-    short walkbehind_base[MAX_OBJ];
+    char  hotspot_enabled[MAX_ROOM_HOTSPOTS];
+    char  region_enabled[MAX_ROOM_REGIONS];
+    short walkbehind_base[MAX_WALK_BEHINDS];
     int   interactionVariableValues[MAX_GLOBAL_VARIABLES];
 
     RoomStatus();

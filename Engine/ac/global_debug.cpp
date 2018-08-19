@@ -27,7 +27,6 @@
 #include "ac/movelist.h"
 #include "ac/properties.h"
 #include "ac/record.h"
-#include "ac/roomstruct.h"
 #include "ac/tree_map.h"
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
@@ -107,7 +106,7 @@ void script_debug(int cmdd,int dataa) {
     }
     else if (cmdd==2) 
     {  // show walkable areas from here
-        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
         Bitmap *stretched = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight());
         stretched->StretchBlt(tempw,
@@ -153,7 +152,7 @@ void script_debug(int cmdd,int dataa) {
             Display("Not currently moving.");
             return;
         }
-        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         int mlsnum = game.chars[dataa].walking;
         if (game.chars[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;

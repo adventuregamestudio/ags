@@ -36,12 +36,12 @@ struct WordsDictionary {
 extern const char *passwencstring;
 
 extern void decrypt_text(char*toenc);
-extern void read_string_decrypt(Common::Stream *in, char *sss);
+extern void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
 extern void read_dictionary (WordsDictionary *dict, Common::Stream *in);
 extern void freadmissout(short *pptr, Common::Stream *in);
 
 extern void encrypt_text(char *toenc);
-extern void write_string_encrypt(Common::Stream *out, char *sss);
+extern void write_string_encrypt(Common::Stream *out, const char *s);
 extern void write_dictionary (WordsDictionary *dict, Common::Stream *out);
 
 #endif // __AC_WORDSDICTIONARY_H

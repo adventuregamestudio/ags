@@ -19,7 +19,6 @@
 #include "ac/route_finder.h"
 #include "ac/common.h"   // quit()
 #include "ac/movelist.h"     // MoveList
-#include "ac/point.h"
 #include "ac/common_defines.h"
 #include <string.h>
 #include <math.h>

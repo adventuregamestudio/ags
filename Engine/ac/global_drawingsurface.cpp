@@ -45,9 +45,9 @@ extern SpriteCache spriteset;
 extern GameSetupStruct game;
 
 // Raw screen writing routines - similar to old CapturedStuff
-//#define RAW_START() Bitmap *oldabuf=RAW_GRAPHICS()->GetBitmap(); RAW_GRAPHICS()->GetBitmap()=thisroom.ebscene[play.bg_frame]; play.raw_modified[play.bg_frame] = 1
+//#define RAW_START() Bitmap *oldabuf=RAW_GRAPHICS()->GetBitmap(); RAW_GRAPHICS()->GetBitmap()=thisroom.BgFrames.Graphic[play.bg_frame]; play.raw_modified[play.bg_frame] = 1
 //#define RAW_END() RAW_GRAPHICS()->GetBitmap() = oldabuf
-#define RAW_START() raw_drawing_surface = thisroom.ebscene[play.bg_frame]; play.raw_modified[play.bg_frame] = 1
+#define RAW_START() raw_drawing_surface = thisroom.BgFrames.Graphic[play.bg_frame]; play.raw_modified[play.bg_frame] = 1
 #define RAW_END()
 #define RAW_SURFACE() (raw_drawing_surface)
 
@@ -57,7 +57,7 @@ Bitmap *raw_drawing_surface;
 void RawSaveScreen () {
     if (raw_saved_screen != NULL)
         delete raw_saved_screen;
-    Bitmap *source = thisroom.ebscene[play.bg_frame];
+    Bitmap *source = thisroom.BgFrames.Graphic[play.bg_frame];
     raw_saved_screen = BitmapHelper::CreateBitmapCopy(source);
 }
 
@@ -69,7 +69,7 @@ void RawRestoreScreen() {
         debug_script_warn("RawRestoreScreen: unable to restore, since the screen hasn't been saved previously.");
         return;
     }
-    Bitmap *deston = thisroom.ebscene[play.bg_frame];
+    Bitmap *deston = thisroom.BgFrames.Graphic[play.bg_frame];
     deston->Blit(raw_saved_screen, 0, 0, 0, 0, deston->GetWidth(), deston->GetHeight());
     invalidate_screen();
     mark_current_background_dirty();
@@ -88,7 +88,7 @@ void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
 
     debug_script_log("RawRestoreTinted RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
-    Bitmap *deston = thisroom.ebscene[play.bg_frame];
+    Bitmap *deston = thisroom.BgFrames.Graphic[play.bg_frame];
     tint_image(deston, raw_saved_screen, red, green, blue, opacity);
     invalidate_screen();
     mark_current_background_dirty();
@@ -96,11 +96,11 @@ void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
 
 // [DEPRECATED]
 void RawDrawFrameTransparent (int frame, int translev) {
-    if ((frame < 0) || (frame >= thisroom.num_bscenes) ||
+    if ((frame < 0) || (frame >= thisroom.BgFrameCount) ||
         (translev < 0) || (translev > 99))
         quit("!RawDrawFrameTransparent: invalid parameter (transparency must be 0-99, frame a valid BG frame)");
 
-    if (thisroom.ebscene[frame]->GetColorDepth() <= 8)
+    if (thisroom.BgFrames.Graphic[frame]->GetColorDepth() <= 8)
         quit("!RawDrawFrameTransparent: 256-colour backgrounds not supported");
 
     if (frame == play.bg_frame)
@@ -110,12 +110,12 @@ void RawDrawFrameTransparent (int frame, int translev) {
     if (translev == 0)
     {
         // just draw it over the top, no transparency
-        RAW_SURFACE()->Blit(thisroom.ebscene[frame], 0, 0, 0, 0, thisroom.ebscene[frame]->GetWidth(), thisroom.ebscene[frame]->GetHeight());
+        RAW_SURFACE()->Blit(thisroom.BgFrames.Graphic[frame], 0, 0, 0, 0, thisroom.BgFrames.Graphic[frame]->GetWidth(), thisroom.BgFrames.Graphic[frame]->GetHeight());
     }
     else
     {
         // Draw it transparently
-        GfxUtil::DrawSpriteWithTransparency (RAW_SURFACE(), thisroom.ebscene[frame], 0, 0,
+        GfxUtil::DrawSpriteWithTransparency (RAW_SURFACE(), thisroom.BgFrames.Graphic[frame], 0, 0,
             GfxDef::Trans100ToAlpha255(translev));
     }
     invalidate_screen();
@@ -135,7 +135,7 @@ void RawClear (int clr) {
 // [DEPRECATED]
 void RawSetColor (int clr) {
     //push_screen();
-    //SetVirtualScreen(thisroom.ebscene[play.bg_frame]);
+    //SetVirtualScreen(thisroom.BgFrames.Graphic[play.bg_frame]);
     // set the colour at the appropriate depth for the background
     play.raw_color = GetVirtualScreen()->GetCompatibleColor(clr);
     //pop_screen();
@@ -147,7 +147,7 @@ void RawSetColorRGB(int red, int grn, int blu) {
         (blu < 0) || (blu > 255))
         quit("!RawSetColorRGB: colour values must be 0-255");
 
-    play.raw_color = makecol_depth(thisroom.ebscene[play.bg_frame]->GetColorDepth(), red, grn, blu);
+    play.raw_color = makecol_depth(thisroom.BgFrames.Graphic[play.bg_frame]->GetColorDepth(), red, grn, blu);
 }
 
 // [DEPRECATED]
@@ -277,7 +277,7 @@ void RawDrawLine (int fromx, int fromy, int tox, int toy) {
     play.raw_modified[play.bg_frame] = 1;
     int ii,jj;
     // draw a line thick enough to look the same at all resolutions
-    Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
+    Bitmap *bg_frame = thisroom.BgFrames.Graphic[play.bg_frame];
     color_t draw_color = play.raw_color;
     for (ii = 0; ii < 1; ii++) {
         for (jj = 0; jj < 1; jj++)
@@ -290,7 +290,7 @@ void RawDrawLine (int fromx, int fromy, int tox, int toy) {
 // [DEPRECATED]
 void RawDrawCircle (int xx, int yy, int rad) {
     play.raw_modified[play.bg_frame] = 1;
-    Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
+    Bitmap *bg_frame = thisroom.BgFrames.Graphic[play.bg_frame];
     bg_frame->FillCircle(Circle (xx, yy, rad), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
@@ -300,7 +300,7 @@ void RawDrawCircle (int xx, int yy, int rad) {
 void RawDrawRectangle(int x1, int y1, int x2, int y2) {
     play.raw_modified[play.bg_frame] = 1;
 
-	Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
+	Bitmap *bg_frame = thisroom.BgFrames.Graphic[play.bg_frame];
     bg_frame->FillRect(Rect(x1,y1,x2,y2), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
@@ -310,7 +310,7 @@ void RawDrawRectangle(int x1, int y1, int x2, int y2) {
 void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
     play.raw_modified[play.bg_frame] = 1;
 
-	Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
+	Bitmap *bg_frame = thisroom.BgFrames.Graphic[play.bg_frame];
     bg_frame->DrawTriangle(Triangle (x1,y1,x2,y2,x3,y3), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();

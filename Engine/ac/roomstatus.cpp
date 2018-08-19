@@ -52,11 +52,11 @@ void RoomStatus::FreeScriptData()
 void RoomStatus::FreeProperties()
 {
     roomProps.clear();
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         hsProps[i].clear();
     }
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
         objProps[i].clear();
     }
@@ -70,30 +70,30 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
     in->ReadArrayOfInt16(flagstates, MAX_FLAGS);
     tsdatasize = in->ReadInt32();
     in->ReadInt32(); // tsdata
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
     }
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
         LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
     }
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
         LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
     }
     LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
-    in->ReadArrayOfInt8((int8_t*)hotspot_enabled, MAX_HOTSPOTS);
-    in->ReadArrayOfInt8((int8_t*)region_enabled, MAX_REGIONS);
-    in->ReadArrayOfInt16(walkbehind_base, MAX_OBJ);
+    in->ReadArrayOfInt8((int8_t*)hotspot_enabled, MAX_ROOM_HOTSPOTS);
+    in->ReadArrayOfInt8((int8_t*)region_enabled, MAX_ROOM_REGIONS);
+    in->ReadArrayOfInt16(walkbehind_base, MAX_WALK_BEHINDS);
     in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
 
     Properties::ReadValues(roomProps, in);
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         Properties::ReadValues(hsProps[i], in);
     }
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
         Properties::ReadValues(objProps[i], in);
     }
@@ -103,7 +103,7 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
 void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
         obj[i].ReadFromFile(&align_s);
         align_s.Reset();
@@ -122,16 +122,16 @@ void RoomStatus::ReadFromSavegame(Stream *in)
         obj[i].ReadFromFile(in);
         Properties::ReadValues(objProps[i], in);
     }
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         hotspot_enabled[i] = in->ReadInt8();
         Properties::ReadValues(hsProps[i], in);
     }
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
         region_enabled[i] = in->ReadInt8();
     }
-    for (int i = 0; i < MAX_OBJ; ++i)
+    for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
     {
         walkbehind_base[i] = in->ReadInt32();
     }
@@ -155,16 +155,16 @@ void RoomStatus::WriteToSavegame(Stream *out) const
         obj[i].WriteToFile(out);
         Properties::WriteValues(objProps[i], out);
     }
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         out->WriteInt8(hotspot_enabled[i]);
         Properties::WriteValues(hsProps[i], out);
     }
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
         out->WriteInt8(region_enabled[i]);
     }
-    for (int i = 0; i < MAX_OBJ; ++i)
+    for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
     {
         out->WriteInt32(walkbehind_base[i]);
     }

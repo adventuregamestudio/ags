@@ -180,7 +180,7 @@ void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (!load_messages[ee]) continue;
         messages[ee]=(char*)malloc(500);
-        read_string_decrypt(in, messages[ee]);
+        read_string_decrypt(in, messages[ee], 500);
     }
     delete [] load_messages;
     load_messages = NULL;
@@ -307,7 +307,7 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
 
     // restore pointer members
     globalscript=gswas;
-    compiled_script=compsc;
+    CompiledScript=compsc;
     chars=chwas;
     dict = olddict;
     for (int vv=0;vv<MAXGLOBALMES;vv++) messages[vv]=mesbk[vv];

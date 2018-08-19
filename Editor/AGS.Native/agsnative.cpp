@@ -15,12 +15,13 @@ int mousex, mousey;
 #include "util/misc.h"
 #include "ac/spritecache.h"
 #include "ac/actiontype.h"
-#include "ac/roomstruct.h"
 #include "ac/scriptmodule.h"
 #include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
+#include "game/room_file.h"
+#include "game/roomstruct.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "gui/guibutton.h"
@@ -41,20 +42,19 @@ using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
-namespace AGSProps = AGS::Common::Properties;
 using AGS::Common::GUIMain;
-using AGS::Common::InteractionVariable;
+using AGS::Common::RoomStruct;
+using AGS::Common::PInteractionScripts;
 typedef AGS::Common::String AGSString;
 
 typedef System::Drawing::Bitmap SysBitmap;
 typedef AGS::Common::Bitmap AGSBitmap;
+typedef AGS::Common::PBitmap PBitmap;
 
 // TODO: do something with this later
 // (those are from 'cstretch' unit)
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
 extern void Cstretch_sprite(BITMAP *dst, BITMAP *src, int x, int y, int w, int h);
-
-void serialize_room_interactions(Stream *);
 
 inline void Cstretch_blit(Common::Bitmap *src, Common::Bitmap *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh)
 {
@@ -65,6 +65,7 @@ inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int
 	Cstretch_sprite(dst->GetAllegroBitmap(), src->GetAllegroBitmap(), x, y, w, h);
 }
 
+void save_room_file(const char *path);
 
 bool enable_greyed_out_masks = true;
 bool outlineGuiObjects;
@@ -109,6 +110,8 @@ SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel);
 
 // jibbles the sprite around to fix hi-color problems, by swapping
 // the red and blue elements
+// TODO: find out if this is actually needed. I guess this may have something to do
+// with Allegro keeping 16-bit bitmaps in an unusual format internally.
 #define fix_sprite(num) fix_block(spriteset[num])
 void fix_block (Common::Bitmap *todraw) {
   int a,b,pixval;
@@ -651,21 +654,21 @@ Common::Bitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 	{
 		return NULL;
 	}
-
+    // TODO: create weak_ptr here?
 	Common::Bitmap *source = NULL;
 	switch (maskType) 
 	{
 	case RoomAreaMask::Hotspots:
-		source = roomptr->lookat;
+		source = roomptr->HotspotMask.get();
 		break;
 	case RoomAreaMask::Regions:
-		source = roomptr->regions;
+		source = roomptr->RegionMask.get();
 		break;
 	case RoomAreaMask::WalkableAreas:
-		source = roomptr->walls;
+		source = roomptr->WalkAreaMask.get();
 		break;
 	case RoomAreaMask::WalkBehinds:
-		source = roomptr->object;
+		source = roomptr->WalkBehindMask.get();
 		break;
 	}
 
@@ -674,7 +677,7 @@ Common::Bitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 
 void copy_walkable_to_regions (void *roomptr) {
 	RoomStruct *theRoom = (RoomStruct*)roomptr;
-	theRoom->regions->Blit(theRoom->walls, 0, 0, 0, 0, theRoom->regions->GetWidth(), theRoom->regions->GetHeight());
+	theRoom->RegionMask->Blit(theRoom->WalkAreaMask.get(), 0, 0, 0, 0, theRoom->RegionMask->GetWidth(), theRoom->RegionMask->GetHeight());
 }
 
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
@@ -754,8 +757,8 @@ void setup_greyed_out_palette(int selCol)
     // for all the hotspot colours
     for (int aa = 0; aa < 256; aa++) {
       int lumin = 0;
-      if ((aa < MAX_HOTSPOTS) && (aa > 0))
-        lumin = ((MAX_HOTSPOTS - aa) % 30) * 2;
+      if ((aa < MAX_ROOM_HOTSPOTS) && (aa > 0))
+        lumin = ((MAX_ROOM_HOTSPOTS - aa) % 30) * 2;
       thisColourOnlyPal[aa].r = lumin;
       thisColourOnlyPal[aa].g = lumin;
       thisColourOnlyPal[aa].b = lumin;
@@ -844,10 +847,10 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 {
 	RoomStruct *roomptr = (RoomStruct*)roomvoidptr;
 
-  if (bgnum >= roomptr->num_bscenes)
+  if (bgnum < 0 || (size_t)bgnum >= roomptr->BgFrameCount)
     return;
 
-  Common::Bitmap *srcBlock = roomptr->ebscene[bgnum];
+  PBitmap srcBlock = roomptr->BgFrames[bgnum].Graphic;
   if (srcBlock == NULL)
     return;
 
@@ -856,10 +859,10 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 		Common::Bitmap *depthConverted = Common::BitmapHelper::CreateBitmap(srcBlock->GetWidth(), srcBlock->GetHeight(), drawBuffer->GetColorDepth());
     if (srcBlock->GetColorDepth() == 8)
     {
-      select_palette(roomptr->bpalettes[bgnum]);
+      select_palette(roomptr->BgFrames[bgnum].Palette);
     }
 
-    depthConverted->Blit(srcBlock, 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
+    depthConverted->Blit(srcBlock.get(), 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
 
     if (srcBlock->GetColorDepth() == 8)
     {
@@ -897,7 +900,7 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 		delete depthConverted;
 	}
 	else {
-		drawBlockScaledAt(hdc, srcBlock, x, y, scaleFactor);
+		drawBlockScaledAt(hdc, srcBlock.get(), x, y, scaleFactor);
 	}
 	
 }
@@ -1214,8 +1217,9 @@ bool initialize_native()
 
 void shutdown_native()
 {
-  shutdown_font_renderer();
-	allegro_exit();
+    thisroom.Free();
+    shutdown_font_renderer();
+    allegro_exit();
     Common::AssetManager::DestroyInstance();
 }
 
@@ -1637,8 +1641,8 @@ void copy_room_palette_to_global_palette()
   {
     if (thisgame.paluses[ww] == PAL_BACKGROUND)
     {
-      thisroom.pal[ww] = thisroom.bpalettes[0][ww];
-      palette[ww] = thisroom.bpalettes[0][ww];
+      thisroom.Palette[ww] = thisroom.BgFrames[0].Palette[ww];
+      palette[ww] = thisroom.BgFrames[0].Palette[ww];
     }
   }
 }
@@ -1648,7 +1652,7 @@ void copy_global_palette_to_room_palette()
   for (int ww = 0; ww < 256; ww++) 
   {
     if (thisgame.paluses[ww] != PAL_BACKGROUND)
-      thisroom.bpalettes[0][ww] = palette[ww];
+      thisroom.BgFrames[0].Palette[ww] = palette[ww];
   }
 }
 
@@ -1656,9 +1660,9 @@ void copy_global_palette_to_room_palette()
 // this is necessary because we no longer use the "resolution" and the mask might be low res while the room high res
 void fix_mask_area_size(Common::Bitmap *&mask) {
     if (mask == NULL) return;
-    if (mask->GetWidth() != thisroom.width || mask->GetHeight() != thisroom.height) {
+    if (mask->GetWidth() != thisroom.Width || mask->GetHeight() != thisroom.Height) {
         int oldw = mask->GetWidth(), oldh = mask->GetHeight();
-        Common::Bitmap *resized = Common::BitmapHelper::CreateBitmap(thisroom.width, thisroom.height, 8);
+        Common::Bitmap *resized = Common::BitmapHelper::CreateBitmap(thisroom.Width, thisroom.Height, 8);
         resized->Clear();
         resized->StretchBlt(mask, RectWH(0, 0, oldw, oldh), RectWH(0, 0, resized->GetWidth(), resized->GetHeight()));
         delete mask;
@@ -1668,61 +1672,36 @@ void fix_mask_area_size(Common::Bitmap *&mask) {
 
 const char* load_room_file(const char*rtlo) {
 
-  load_room((char*)rtlo, &thisroom);
-
-  if (thisroom.wasversion < kRoomVersion_250b) 
-  {
-	  return "This room was saved with an old version of the editor and cannot be opened. Use AGS 2.72 to upgrade this room file.";
-  }
-
-  //thisroom.numhotspots = MAX_HOTSPOTS;
+  load_room(rtlo, &thisroom);
 
   // Update room palette with gamewide colours
   copy_global_palette_to_room_palette();
   // Update current global palette with room background colours
   copy_room_palette_to_global_palette();
-  int ww;
-  for (ww = 0; ww < thisroom.numsprs; ww++) {
+  for (size_t i = 0; i < thisroom.ObjectCount; ++i) {
     // change invalid objects to blue cup
-    if (spriteset[thisroom.sprs[ww].sprnum] == NULL)
-      thisroom.sprs[ww].sprnum = 0;
+    // TODO: should this be done in the common native lib?
+    if (spriteset[thisroom.Objects[i].Sprite] == NULL)
+      thisroom.Objects[i].Sprite = 0;
   }
   // Fix hi-color screens
-  for (ww = 0; ww < thisroom.num_bscenes; ww++)
-    fix_block (thisroom.ebscene[ww]);
-  
-  // CLNUP probably to remove, this case should no longer apply
-  /*
-  if ((thisroom.resolution > 1) && (thisroom.object->GetWidth() < thisroom.width)) {
-    // 640x400 room with 320x200-res walkbehind
-    // resize it up to 640x400-res
-    int oldw = thisroom.object->GetWidth(), oldh=thisroom.object->GetHeight();
-    Common::Bitmap *tempb = Common::BitmapHelper::CreateBitmap(thisroom.width, thisroom.height, thisroom.object->GetColorDepth());
-    tempb->Fill(0);
-    tempb->StretchBlt(thisroom.object,RectWH(0,0,oldw,oldh),RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
-    delete thisroom.object; 
-    thisroom.object = tempb;
-  }
-  */
+  // TODO: find out why this is necessary. Probably has something to do with
+  // Allegro switching color components at certain version update long time ago.
+  for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+    fix_block (thisroom.BgFrames[i].Graphic.get());
 
   set_palette_range(palette, 0, 255, 0);
   
-  if ((thisroom.ebscene[0]->GetColorDepth () > 8) &&
+  if ((thisroom.BgFrames[0].Graphic->GetColorDepth () > 8) &&
       (thisgame.color_depth == 1))
     MessageBox(NULL,"WARNING: This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor.", "Colour depth warning", MB_OK);
 
   roomModified = false;
 
-  validate_mask(thisroom.lookat, "hotspot", MAX_HOTSPOTS);
-  validate_mask(thisroom.object, "walk-behind", MAX_WALK_AREAS + 1);
-  validate_mask(thisroom.walls, "walkable area", MAX_WALK_AREAS + 1);
-  validate_mask(thisroom.regions, "regions", MAX_REGIONS);
-
-  // fix for importing older mixed resolution masks
-  fix_mask_area_size(thisroom.lookat);
-  fix_mask_area_size(thisroom.object);
-  fix_mask_area_size(thisroom.walls);
-  fix_mask_area_size(thisroom.regions);
+  validate_mask(thisroom.HotspotMask.get(), "hotspot", MAX_ROOM_HOTSPOTS);
+  validate_mask(thisroom.WalkBehindMask.get(), "walk-behind", MAX_WALK_AREAS + 1);
+  validate_mask(thisroom.WalkAreaMask.get(), "walkable area", MAX_WALK_AREAS + 1);
+  validate_mask(thisroom.RegionMask.get(), "regions", MAX_ROOM_REGIONS);
   return NULL;
 }
 
@@ -1730,321 +1709,21 @@ void calculate_walkable_areas () {
   int ww, thispix;
 
   for (ww = 0; ww <= MAX_WALK_AREAS; ww++) {
-    thisroom.walk_area_top[ww] = thisroom.height;
-    thisroom.walk_area_bottom[ww] = 0;
+    thisroom.WalkAreas[ww].Top = thisroom.Height;
+    thisroom.WalkAreas[ww].Bottom = 0;
   }
-  for (ww = 0; ww < thisroom.walls->GetWidth(); ww++) {
-    for (int qq = 0; qq < thisroom.walls->GetHeight(); qq++) {
-      thispix = thisroom.walls->GetPixel (ww, qq);
+  for (ww = 0; ww < thisroom.WalkAreaMask->GetWidth(); ww++) {
+    for (int qq = 0; qq < thisroom.WalkAreaMask->GetHeight(); qq++) {
+      thispix = thisroom.WalkAreaMask->GetPixel (ww, qq);
       if (thispix > MAX_WALK_AREAS)
         continue;
-      if (thisroom.walk_area_top[thispix] > qq)
-        thisroom.walk_area_top[thispix] = qq;
-      if (thisroom.walk_area_bottom[thispix] < qq)
-        thisroom.walk_area_bottom[thispix] = qq;
+      if (thisroom.WalkAreas[thispix].Top > qq)
+        thisroom.WalkAreas[thispix].Top = qq;
+      if (thisroom.WalkAreas[thispix].Bottom < qq)
+        thisroom.WalkAreas[thispix].Bottom= qq;
     }
   }
 
-}
-
-void save_room(const char *files, RoomStruct rstruc) {
-  int               f;
-  long              xoff, tesl;
-  Stream       *opty;
-  room_file_header  rfh;
-
-  if (rstruc.wasversion < kRoomVersion_Current)
-    quit("save_room: can no longer save old format rooms");
-
-  if (rstruc.wasversion < kRoomVersion_200_alpha) {
-    for (f = 0; f < 11; f++)
-      rstruc.password[f] -= 60;
-  }
-  else
-    for (f = 0; f < 11; f++)
-      rstruc.password[f] -= passwencstring[f];
-
-  opty = ci_fopen(const_cast<char*>(files), Common::kFile_CreateAlways, Common::kFile_Write);
-  if (opty == NULL)
-    quit("save_room: unable to open room file for writing.");
-
-  rfh.version = (RoomFileVersion)rstruc.wasversion; //ROOM_FILE_VERSION;
-  rfh.WriteFromFile(opty);
-
-  if (rfh.version >= 5) {
-    opty->WriteByte(BLOCKTYPE_MAIN);
-    opty->WriteInt32(0);
-  }
-
-  opty->WriteInt32(rstruc.bytes_per_pixel);  // colour depth bytes per pixel
-  opty->WriteInt16(rstruc.numobj);
-  opty->WriteArrayOfInt16(&rstruc.objyval[0], rstruc.numobj);
-
-  opty->WriteInt32(rstruc.numhotspots);
-  opty->WriteArray(&rstruc.hswalkto[0], sizeof(_Point), rstruc.numhotspots);
-  for (f = 0; f < rstruc.numhotspots; f++)
-    Common::StrUtil::WriteString(rstruc.hotspotnames[f], opty);
-
-  // TODO: checking version here makes little sense now because save_room does not 
-  // properly support export to lower data version
-  if (rfh.version >= 24)
-    for (f = 0; f < rstruc.numhotspots; f++)
-      Common::StrUtil::WriteString(rstruc.hotspotScriptNames[f], opty);
-
-  opty->WriteInt32(rstruc.numwalkareas);
-  opty->WriteArray(&rstruc.wallpoints[0], sizeof(PolyPoints), rstruc.numwalkareas);
-
-  opty->WriteInt16(rstruc.top);
-  opty->WriteInt16(rstruc.bottom);
-  opty->WriteInt16(rstruc.left);
-  opty->WriteInt16(rstruc.right);
-  opty->WriteInt16(rstruc.numsprs);
-  opty->WriteArray(&rstruc.sprs[0], sizeof(sprstruc), rstruc.numsprs);
-
-  opty->WriteInt32 (0);// CLNUP legacy numLocalVars
-/*
-  for (f = 0; f < rstruc.numhotspots; f++)
-    serialize_new_interaction (rstruc.intrHotspot[f]);
-  for (f = 0; f < rstruc.numsprs; f++)
-    serialize_new_interaction (rstruc.intrObject[f]);
-  serialize_new_interaction (rstruc.intrRoom);
-*/
-  opty->WriteInt32 (MAX_REGIONS);
-  /*
-  for (f = 0; f < MAX_REGIONS; f++)
-    serialize_new_interaction (rstruc.intrRegion[f]);
-	*/
-  serialize_room_interactions(opty);
-
-  opty->WriteArrayOfInt32(&rstruc.objbaseline[0], rstruc.numsprs);
-  opty->WriteInt16(rstruc.width);
-  opty->WriteInt16(rstruc.height);
-
-  if (rfh.version >= 23)
-    opty->WriteArrayOfInt16(&rstruc.objectFlags[0], rstruc.numsprs);
-
-  if (rfh.version >= 11)
-    opty->WriteInt16(1); // CLNUP remove this after gamedata format change (rstruc.resolution)
-
-  // write the zoom and light levels
-  opty->WriteInt32 (MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_zoom[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_light[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_zoom2[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_top[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_bottom[0], MAX_WALK_AREAS + 1);
-
-  opty->Write(&rstruc.password[0], 11);
-  opty->Write(&rstruc.options[0], 10);
-  opty->WriteInt16(rstruc.nummes);
-
-  if (rfh.version >= 25)
-    opty->WriteInt32(rstruc.gameId);
- 
-  if (rfh.version >= 3)
-    opty->WriteArray(&rstruc.msgi[0], sizeof(MessageInfo), rstruc.nummes);
-
-  for (f = 0; f < rstruc.nummes; f++)
-    write_string_encrypt(opty, rstruc.message[f]);
-//    fputstring(rstruc.message[f]);
-
-  if (rfh.version >= 6) {
-    // we no longer use animations, remove them
-    rstruc.numanims = 0;
-    opty->WriteInt16(rstruc.numanims);
-
-    if (rstruc.numanims > 0)
-      opty->WriteArray(&rstruc.anims[0], sizeof(FullAnimation), rstruc.numanims);
-  }
-
-  if ((rfh.version >= 4) && (rfh.version < 16)) {
-    save_script_configuration(opty);
-    save_graphical_scripts(opty, &rstruc);
-  }
-
-  if (rfh.version >= 8)
-    opty->WriteArrayOfInt16(&rstruc.shadinginfo[0], 16);
-
-  if (rfh.version >= 21) {
-    opty->WriteArrayOfInt16(&rstruc.regionLightLevel[0], MAX_REGIONS);
-    opty->WriteArrayOfInt32(&rstruc.regionTintLevel[0], MAX_REGIONS);
-  }
-
-  xoff = opty->GetPosition();
-  delete opty;
-
-  tesl = save_lzw((char*)files, rstruc.ebscene[0], rstruc.pal, xoff);
-
-  tesl = savecompressed_allegro((char*)files, rstruc.regions, rstruc.pal, tesl);
-  tesl = savecompressed_allegro((char*)files, rstruc.walls, rstruc.pal, tesl);
-  tesl = savecompressed_allegro((char*)files, rstruc.object, rstruc.pal, tesl);
-  tesl = savecompressed_allegro((char*)files, rstruc.lookat, rstruc.pal, tesl);
-
-  if (rfh.version >= 5) {
-    long  lee;
-
-    opty = ci_fopen(files, Common::kFile_Open, Common::kFile_ReadWrite);
-    lee = opty->GetLength()-7;
-
-    opty->Seek(3, Common::kSeekBegin);
-    opty->WriteInt32(lee);
-    opty->Seek(0, Common::kSeekEnd);
-
-    if (rstruc.scripts != NULL) {
-      int hh;
-
-      opty->WriteByte(BLOCKTYPE_SCRIPT);
-      lee = (int)strlen(rstruc.scripts) + 4;
-      opty->WriteInt32(lee);
-      lee -= 4;
-
-      for (hh = 0; hh < lee; hh++)
-        rstruc.scripts[hh]-=passwencstring[hh % 11];
-
-      opty->WriteInt32(lee);
-      opty->Write(rstruc.scripts, lee);
-
-      for (hh = 0; hh < lee; hh++)
-        rstruc.scripts[hh]+=passwencstring[hh % 11];
-
-    }
-   
-    if (rstruc.compiled_script != NULL) {
-      long  leeat, wasat;
-
-      opty->WriteByte(BLOCKTYPE_COMPSCRIPT3);
-      lee = 0;
-      leeat = opty->GetPosition();
-      opty->WriteInt32(lee);
-      rstruc.compiled_script->Write(opty);
-     
-      wasat = opty->GetPosition();
-      opty->Seek(leeat, Common::kSeekBegin);
-      lee = (wasat - leeat) - 4;
-      opty->WriteInt32(lee);
-      opty->Seek(0, Common::kSeekEnd);
-    }
-
-    if (rstruc.numsprs > 0) {
-      // TODO: need generic algorithm to write block sizes back after their contents are written
-      long  leeat, wasat;
-
-      opty->WriteByte(BLOCKTYPE_OBJECTNAMES);
-      lee = 0;
-      leeat = opty->GetPosition();
-      opty->WriteInt32(lee);
-
-      opty->WriteByte(rstruc.numsprs);
-      for (int i = 0; i < rstruc.numsprs; ++i)
-        Common::StrUtil::WriteString(rstruc.objectnames[i], opty);
-
-      wasat = opty->GetPosition();
-      opty->Seek(leeat, Common::kSeekBegin);
-      lee = (wasat - leeat) - sizeof(int32_t);
-      opty->WriteInt32(lee);
-      opty->Seek(0, Common::kSeekEnd);
-
-
-      opty->WriteByte(BLOCKTYPE_OBJECTSCRIPTNAMES);
-      lee = 0;
-      leeat = opty->GetPosition();
-      opty->WriteInt32(lee);
-
-      opty->WriteByte(rstruc.numsprs);
-      for (int i = 0; i < rstruc.numsprs; ++i)
-        Common::StrUtil::WriteString(rstruc.objectscriptnames[i], opty);
-
-      wasat = opty->GetPosition();
-      opty->Seek(leeat, Common::kSeekBegin);
-      lee = (wasat - leeat) - sizeof(int32_t);
-      opty->WriteInt32(lee);
-      opty->Seek(0, Common::kSeekEnd);
-    }
-
-    long lenpos, lenis;
-    int gg;
-
-    if (rstruc.num_bscenes > 1) {
-      long  curoffs;
-
-      opty->WriteByte(BLOCKTYPE_ANIMBKGRND);
-      lenpos = opty->GetPosition();
-      lenis = 0;
-      opty->WriteInt32(lenis);
-      opty->WriteByte(rstruc.num_bscenes);
-      opty->WriteByte(rstruc.bscene_anim_speed);
-      
-      opty->WriteArrayOfInt8 ((int8_t*)&rstruc.ebpalShared[0], rstruc.num_bscenes);
-
-      delete opty;
-
-      curoffs = lenpos + 6 + rstruc.num_bscenes;
-      for (gg = 1; gg < rstruc.num_bscenes; gg++)
-        curoffs = save_lzw((char*)files, rstruc.ebscene[gg], rstruc.bpalettes[gg], curoffs);
-
-      opty = ci_fopen(const_cast<char*>(files), Common::kFile_Open, Common::kFile_ReadWrite);
-      lenis = (curoffs - lenpos) - 4;
-      opty->Seek(lenpos, Common::kSeekBegin);
-      opty->WriteInt32(lenis);
-      opty->Seek(0, Common::kSeekEnd);
-    }
-
-    // Write custom properties
-    opty->WriteByte (BLOCKTYPE_PROPERTIES);
-    lenpos = opty->GetPosition();
-    lenis = 0;
-    opty->WriteInt32(lenis);
-    opty->WriteInt32 (1);  // Version 1 of properties block
-    AGSProps::WriteValues(rstruc.roomProps, opty);
-    for (gg = 0; gg < rstruc.numhotspots; gg++)
-      AGSProps::WriteValues(rstruc.hsProps[gg], opty);
-    for (gg = 0; gg < rstruc.numsprs; gg++)
-      AGSProps::WriteValues(rstruc.objProps[gg], opty);
-
-    lenis = (opty->GetPosition() - lenpos) - 4;
-    opty->Seek(lenpos, Common::kSeekBegin);
-    opty->WriteInt32(lenis);
-    opty->Seek(0, Common::kSeekEnd);
-
-
-    // Write EOF block
-    opty->WriteByte(BLOCKTYPE_EOF);
-    delete opty;
-  }
- 
-  if (rfh.version < 9) {
-    for (f = 0; f < 11; f++)
-      rstruc.password[f]+=60;
-  }
-  else
-    for (f = 0; f < 11; f++)
-      rstruc.password[f] += passwencstring[f];
-
-//  fclose(opty);
-//  return SUCCESS;
-}
-
-void save_room_file(const char*rtsa) 
-{
-  thisroom.wasversion=kRoomVersion_Current;
-  copy_room_palette_to_global_palette();
-  
-  thisroom.password[0] = 0;
-
-  calculate_walkable_areas();
-
-  thisroom.bytes_per_pixel = thisroom.ebscene[0]->GetBPP();
-  int ww;
-  // Fix hi-color screens
-  for (ww = 0; ww < thisroom.num_bscenes; ww++)
-    fix_block (thisroom.ebscene[ww]);
-
-  thisroom.numobj = MAX_OBJ;
-  save_room((char*)rtsa,thisroom);
-
-  // Fix hi-color screens back again
-  for (ww = 0; ww < thisroom.num_bscenes; ww++)
-    fix_block (thisroom.ebscene[ww]);
 }
 
 
@@ -2716,15 +2395,14 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
 void DeleteBackground(Room ^room, int backgroundNumber) 
 {
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
-	delete theRoom->ebscene[backgroundNumber];
-	theRoom->ebscene[backgroundNumber] = NULL;
+    theRoom->BgFrames[backgroundNumber].Graphic.reset();
 	
-	theRoom->num_bscenes--;
+	theRoom->BgFrameCount--;
 	room->BackgroundCount--;
-	for (int i = backgroundNumber; i < theRoom->num_bscenes; i++) 
+	for (size_t i = backgroundNumber; i < theRoom->BgFrameCount; i++) 
 	{
-		theRoom->ebscene[i] = theRoom->ebscene[i + 1];
-		theRoom->ebpalShared[i] = theRoom->ebpalShared[i + 1];
+		theRoom->BgFrames[i] = theRoom->BgFrames[i + 1];
+		theRoom->BgFrames[i].IsPaletteShared = theRoom->BgFrames[i + 1].IsPaletteShared;
 	}
 }
 
@@ -2733,65 +2411,57 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	color oldpale[256];
 	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
-	theRoom->width = room->Width;
-	theRoom->height = room->Height;
+	theRoom->Width = room->Width;
+	theRoom->Height = room->Height;
 
 	if (newbg->GetColorDepth() == 8) 
 	{
 		for (int aa = 0; aa < 256; aa++) {
 		  // make sure it maps to locked cols properly
 		  if (thisgame.paluses[aa] == PAL_LOCKED)
-			  theRoom->bpalettes[backgroundNumber][aa] = palette[aa];
+			  theRoom->BgFrames[backgroundNumber].Palette[aa] = palette[aa];
 		}
 
 		// sharing palette with main background - so copy it across
 		if (sharePalette) {
-		  memcpy (&theRoom->bpalettes[backgroundNumber][0], &palette[0], sizeof(color) * 256);
-		  theRoom->ebpalShared[backgroundNumber] = 1;
-		  if (backgroundNumber >= theRoom->num_bscenes - 1)
-		  	theRoom->ebpalShared[0] = 1;
+		  memcpy (&theRoom->BgFrames[backgroundNumber].Palette[0], &palette[0], sizeof(color) * 256);
+		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 1;
+		  if ((size_t)backgroundNumber >= theRoom->BgFrameCount - 1)
+		  	theRoom->BgFrames[0].IsPaletteShared = 1;
 
 		  if (!useExactPalette)
 			wremapall(oldpale, newbg, palette);
 		}
 		else {
-		  theRoom->ebpalShared[backgroundNumber] = 0;
-		  remap_background (newbg, oldpale, theRoom->bpalettes[backgroundNumber], useExactPalette);
+		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 0;
+		  remap_background (newbg, oldpale, theRoom->BgFrames[backgroundNumber].Palette, useExactPalette);
 		}
 
     copy_room_palette_to_global_palette();
 	}
 
-	if (backgroundNumber >= theRoom->num_bscenes) 
+	if ((size_t)backgroundNumber >= theRoom->BgFrameCount)
 	{
-		theRoom->num_bscenes++;
+		theRoom->BgFrameCount++;
 	}
-	else 
-	{
-		delete theRoom->ebscene[backgroundNumber];
-	}
-	theRoom->ebscene[backgroundNumber] = newbg;
+	theRoom->BgFrames[backgroundNumber].Graphic.reset(newbg);
 
   // if size or resolution has changed, reset masks
-	if ((newbg->GetWidth() != theRoom->object->GetWidth()) || (newbg->GetHeight() != theRoom->object->GetHeight()) ||
-      (theRoom->width != theRoom->object->GetWidth()) )
+	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||
+      (theRoom->Width != theRoom->WalkBehindMask->GetWidth()) )
 	{
-		delete theRoom->walls;
-		delete theRoom->lookat;
-		delete theRoom->object;
-		delete theRoom->regions;
-		theRoom->walls = Common::BitmapHelper::CreateBitmap(theRoom->width, theRoom->height,8);
-		theRoom->lookat = Common::BitmapHelper::CreateBitmap(theRoom->width, theRoom->height,8);
-		theRoom->object = Common::BitmapHelper::CreateBitmap(theRoom->width, theRoom->height,8);
-		theRoom->regions = Common::BitmapHelper::CreateBitmap(theRoom->width, theRoom->height,8);
-		theRoom->walls->Clear();
-		theRoom->lookat->Clear();
-		theRoom->object->Clear();
-		theRoom->regions->Clear();
+		theRoom->WalkAreaMask.reset(Common::BitmapHelper::CreateBitmap(theRoom->Width, theRoom->Height,8));
+		theRoom->HotspotMask.reset(Common::BitmapHelper::CreateBitmap(theRoom->Width, theRoom->Height,8));
+		theRoom->WalkBehindMask.reset(Common::BitmapHelper::CreateBitmap(theRoom->Width, theRoom->Height,8));
+		theRoom->RegionMask.reset(Common::BitmapHelper::CreateBitmap(theRoom->Width, theRoom->Height,8));
+		theRoom->WalkAreaMask->Clear();
+		theRoom->HotspotMask->Clear();
+		theRoom->WalkBehindMask->Clear();
+		theRoom->RegionMask->Clear();
 	}
 
-	room->BackgroundCount = theRoom->num_bscenes;
-	room->ColorDepth = theRoom->ebscene[0]->GetColorDepth();
+	room->BackgroundCount = theRoom->BgFrameCount;
+	room->ColorDepth = theRoom->BgFrames[0].Graphic->GetColorDepth();
 }
 
 void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
@@ -2811,7 +2481,7 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 	}
 	delete importedImage;
 
-	validate_mask(mask, "imported", (maskType == Hotspots) ? MAX_HOTSPOTS : (MAX_WALK_AREAS + 1));
+	validate_mask(mask, "imported", (maskType == Hotspots) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
 }
 
 SysBitmap ^export_area_mask(void *roomptr, int maskType)
@@ -3001,7 +2671,7 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
 System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber) {
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
-  return ConvertBlockToBitmap32(roomptr->ebscene[backgroundNumber], room->Width, room->Height, false);
+  return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
 }
 
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
@@ -3725,54 +3395,19 @@ System::String ^load_room_script(System::String ^fileName)
 {
     AGSString roomFileName = ConvertFileNameToNativeString(fileName);
 
-	Stream *opty = Common::AssetManager::OpenAsset(roomFileName);
-	if (opty == NULL) throw gcnew AGSEditorException("Unable to open room file");
+    AGSString scriptText;
+    AGS::Common::RoomDataSource src;
+    AGS::Common::HRoomFileError err = OpenRoomFile(roomFileName, src);
+    if (err)
+    {
+        err = AGS::Common::ExtractScriptText(scriptText, src.InputStream.get(), src.DataVersion);
+        if (err.HasError() && err->Code() == AGS::Common::kRoomFileErr_BlockNotFound)
+            return nullptr; // simply did not find the script text
+    }
+    if (!err)
+        quit(AGSString::FromFormat("Unable to load room script source from '%s', error was:\r\n%s", roomFileName, err->FullMessage()));
 
-	short version = opty->ReadInt16();
-	if (version < 17)
-	{
-    delete opty;
-		throw gcnew AGSEditorException("Room file is from an old version of AGS and cannot be processed");
-	}
-
-	String ^scriptToReturn = nullptr;
-
-	int thisblock = 0;
-	while (thisblock != BLOCKTYPE_EOF) 
-	{
-		thisblock = opty->ReadByte();
-		if (thisblock == BLOCKTYPE_EOF) 
-		{
-			break;
-		}
-
-		int blockLen = opty->ReadInt32();
-
-		if (thisblock == BLOCKTYPE_SCRIPT) 
-		{
-			int lee = opty->ReadInt32();
-			int hh;
-
-			char *scriptFile = (char *)malloc(lee + 5);
-			opty->Read(scriptFile, lee);
-			scriptFile[lee] = 0;
-
-			for (hh = 0; hh < lee; hh++)
-			  scriptFile[hh] += passwencstring[hh % 11];
-
-			scriptToReturn = gcnew String(scriptFile, 0, strlen(scriptFile), System::Text::Encoding::Default);
-			free(scriptFile);
-			break;
-		}
-		else 
-		{
-			opty->Seek(blockLen);
-		}
-	}
-
-	delete opty;
-
-	return scriptToReturn;
+	return gcnew String(scriptText, 0, scriptText.GetLength(), System::Text::Encoding::Default);;
 }
 
 int GetCurrentlyLoadedRoomNumber()
@@ -3795,95 +3430,77 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	Room ^room = gcnew Room(roomToLoad->Number);
 	room->Description = roomToLoad->Description;
 	room->Script = roomToLoad->Script;
-	room->BottomEdgeY = thisroom.bottom;
-	room->LeftEdgeX = thisroom.left;
-    room->MusicVolumeAdjustment = (AGS::Types::RoomVolumeAdjustment)thisroom.options[ST_VOLUME];
-	room->PlayerCharacterView = thisroom.options[ST_MANVIEW];
-	room->PlayMusicOnRoomLoad = thisroom.options[ST_TUNE];
-	room->RightEdgeX = thisroom.right;
-	room->SaveLoadEnabled = (thisroom.options[ST_SAVELOAD] == 0);
-	room->ShowPlayerCharacter = (thisroom.options[ST_MANDISABLED] == 0);
-	room->TopEdgeY = thisroom.top;
-	room->Width = thisroom.width;
-	room->Height = thisroom.height;
-	room->ColorDepth = thisroom.ebscene[0]->GetColorDepth();
-	room->BackgroundAnimationDelay = thisroom.bscene_anim_speed;
-	room->BackgroundCount = thisroom.num_bscenes;
+	room->BottomEdgeY = thisroom.Edges.Bottom;
+	room->LeftEdgeX = thisroom.Edges.Left;
+    room->MusicVolumeAdjustment = (AGS::Types::RoomVolumeAdjustment)thisroom.Options.StartupMusic;
+	room->PlayerCharacterView = thisroom.Options.PlayerView;
+	room->PlayMusicOnRoomLoad = thisroom.Options.StartupMusic;
+	room->RightEdgeX = thisroom.Edges.Right;
+	room->SaveLoadEnabled = (thisroom.Options.SaveLoadDisabled == 0);
+	room->ShowPlayerCharacter = (thisroom.Options.PlayerCharOff == 0);
+	room->TopEdgeY = thisroom.Edges.Top;
+	room->Width = thisroom.Width;
+	room->Height = thisroom.Height;
+	room->ColorDepth = thisroom.BgFrames[0].Graphic->GetColorDepth();
+	room->BackgroundAnimationDelay = thisroom.BgAnimSpeed;
+	room->BackgroundCount = thisroom.BgFrameCount;
 
-	int i;
-	for (i = 0; i < thisroom.nummes; i++) 
+	for (size_t i = 0; i < thisroom.MessageCount; ++i) 
 	{
 		RoomMessage ^newMessage = gcnew RoomMessage(i);
-		newMessage->Text = gcnew String(thisroom.message[i]);
-		newMessage->ShowAsSpeech = (thisroom.msgi[i].displayas > 0);
-		newMessage->CharacterID = (thisroom.msgi[i].displayas - 1);
-		newMessage->DisplayNextMessageAfter = ((thisroom.msgi[i].flags & MSG_DISPLAYNEXT) != 0);
-		newMessage->AutoRemoveAfterTime = ((thisroom.msgi[i].flags & MSG_TIMELIMIT) != 0);
+		newMessage->Text = gcnew String(thisroom.Messages[i]);
+		newMessage->ShowAsSpeech = (thisroom.MessageInfos[i].DisplayAs > 0);
+		newMessage->CharacterID = (thisroom.MessageInfos[i].DisplayAs - 1);
+		newMessage->DisplayNextMessageAfter = ((thisroom.MessageInfos[i].Flags & MSG_DISPLAYNEXT) != 0);
+		newMessage->AutoRemoveAfterTime = ((thisroom.MessageInfos[i].Flags & MSG_TIMELIMIT) != 0);
 		room->Messages->Add(newMessage);
 	}
 
-	for (i = 0; i < thisroom.numsprs; i++) 
+	for (size_t i = 0; i < thisroom.ObjectCount; ++i) 
 	{
-		char jibbledScriptName[50] = "\0";
-		if (strlen(thisroom.objectscriptnames[i]) > 0) 
-		{
-			if (thisroom.wasversion < kRoomVersion_300a)
-			{
-				sprintf(jibbledScriptName, "o%s", thisroom.objectscriptnames[i]);
-				strlwr(jibbledScriptName);
-				jibbledScriptName[1] = toupper(jibbledScriptName[1]);
-			}
-			else 
-			{			
-				strcpy(jibbledScriptName, thisroom.objectscriptnames[i]);
-			}
-		}
-
 		RoomObject ^obj = gcnew RoomObject(room);
 		obj->ID = i;
-		obj->Image = thisroom.sprs[i].sprnum;
-		obj->StartX = thisroom.sprs[i].x;
-		obj->StartY = thisroom.sprs[i].y;
-    if (thisroom.wasversion <= kRoomVersion_300a)
-      obj->StartY += GetSpriteHeight(thisroom.sprs[i].sprnum);
-		obj->Visible = (thisroom.sprs[i].on != 0);
-		obj->Clickable = ((thisroom.objectFlags[i] & OBJF_NOINTERACT) == 0);
-		obj->Locked = ((thisroom.objectFlags[i] & OBJF_LOCKED) != 0);
-		obj->Baseline = thisroom.objbaseline[i];
-		obj->Name = gcnew String(jibbledScriptName);
-		obj->Description = gcnew String(thisroom.objectnames[i]);
-		obj->UseRoomAreaScaling = ((thisroom.objectFlags[i] & OBJF_USEROOMSCALING) != 0);
-		obj->UseRoomAreaLighting = ((thisroom.objectFlags[i] & OBJF_USEREGIONTINTS) != 0);
-		ConvertCustomProperties(obj->Properties, &thisroom.objProps[i]);
+		obj->Image = thisroom.Objects[i].Sprite;
+		obj->StartX = thisroom.Objects[i].X;
+		obj->StartY = thisroom.Objects[i].Y;
+		obj->Visible = (thisroom.Objects[i].IsOn != 0);
+		obj->Clickable = ((thisroom.Objects[i].Flags & OBJF_NOINTERACT) == 0);
+		obj->Locked = ((thisroom.Objects[i].Flags & OBJF_LOCKED) != 0);
+		obj->Baseline = thisroom.Objects[i].Baseline;
+		obj->Name = gcnew String(thisroom.Objects[i].ScriptName);
+		obj->Description = gcnew String(thisroom.Objects[i].Name);
+		obj->UseRoomAreaScaling = ((thisroom.Objects[i].Flags & OBJF_USEROOMSCALING) != 0);
+		obj->UseRoomAreaLighting = ((thisroom.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
+		ConvertCustomProperties(obj->Properties, &thisroom.Objects[i].Properties);
 
-		CopyInteractions(obj->Interactions, thisroom.objectScripts[i]);
+		CopyInteractions(obj->Interactions, thisroom.Objects[i].EventHandlers.get());
 
 		room->Objects->Add(obj);
 	}
 
-	for (i = 0; i < thisroom.numhotspots; i++) 
+	for (size_t i = 0; i < thisroom.HotspotCount; ++i) 
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
 		hotspot->ID = i;
-		hotspot->Description = gcnew String(thisroom.hotspotnames[i]);
-		hotspot->Name = (gcnew String(thisroom.hotspotScriptNames[i]))->Trim();
-        hotspot->WalkToPoint = System::Drawing::Point(thisroom.hswalkto[i].x, thisroom.hswalkto[i].y);
-		ConvertCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
+		hotspot->Description = gcnew String(thisroom.Hotspots[i].Name);
+		hotspot->Name = (gcnew String(thisroom.Hotspots[i].ScriptName))->Trim();
+        hotspot->WalkToPoint = System::Drawing::Point(thisroom.Hotspots[i].WalkTo.X, thisroom.Hotspots[i].WalkTo.Y);
+		ConvertCustomProperties(hotspot->Properties, &thisroom.Hotspots[i].Properties);
 
-		CopyInteractions(hotspot->Interactions, thisroom.hotspotScripts[i]);
+		CopyInteractions(hotspot->Interactions, thisroom.Hotspots[i].EventHandlers.get());
 	}
 
-	for (i = 0; i <= MAX_WALK_AREAS; i++) 
+	for (size_t i = 0; i <= MAX_WALK_AREAS; ++i) 
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
 		area->ID = i;
-		area->AreaSpecificView = thisroom.shadinginfo[i];
-		area->UseContinuousScaling = !(thisroom.walk_area_zoom2[i] == NOT_VECTOR_SCALED);
-		area->ScalingLevel = thisroom.walk_area_zoom[i] + 100;
-		area->MinScalingLevel = thisroom.walk_area_zoom[i] + 100;
+		area->AreaSpecificView = thisroom.WalkAreas[i].Light;
+		area->UseContinuousScaling = !(thisroom.WalkAreas[i].ScalingNear == NOT_VECTOR_SCALED);
+		area->ScalingLevel = thisroom.WalkAreas[i].ScalingFar + 100;
+		area->MinScalingLevel = thisroom.WalkAreas[i].ScalingFar + 100;
 		if (area->UseContinuousScaling) 
 		{
-			area->MaxScalingLevel = thisroom.walk_area_zoom2[i] + 100;
+			area->MaxScalingLevel = thisroom.WalkAreas[i].ScalingNear + 100;
 		}
 		else
 		{
@@ -3891,48 +3508,43 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		}
 	}
 
-	for (i = 0; i < MAX_OBJ; i++) 
+	for (size_t i = 0; i < MAX_WALK_BEHINDS; ++i) 
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
 		area->ID = i;
-		area->Baseline = thisroom.objyval[i];
+		area->Baseline = thisroom.WalkBehinds[i].Baseline;
 	}
 
-	for (i = 0; i < MAX_REGIONS; i++) 
+	for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
 	{
 		RoomRegion ^area = room->Regions[i];
 		area->ID = i;
 		// NOTE: Region's light level value exposed in editor is always 100 units higher,
 		// for compatibility with older versions of the editor.
 		// TODO: probably we could remove this behavior? Need to consider possible compat mode
-		area->LightLevel = thisroom.get_region_lightlevel(i) + 100;
-		area->UseColourTint = thisroom.has_region_tint(i);
-		area->BlueTint = (thisroom.regionTintLevel[i] >> 16) & 0x00ff;
-		area->GreenTint = (thisroom.regionTintLevel[i] >> 8) & 0x00ff;
-		area->RedTint = thisroom.regionTintLevel[i] & 0x00ff;
+		area->LightLevel = thisroom.GetRegionLightLevel(i) + 100;
+		area->UseColourTint = thisroom.HasRegionTint(i);
+		area->BlueTint = (thisroom.Regions[i].Tint >> 16) & 0x00ff;
+		area->GreenTint = (thisroom.Regions[i].Tint >> 8) & 0x00ff;
+		area->RedTint = thisroom.Regions[i].Tint & 0x00ff;
 		// Set saturation's and luminance's default values in the editor if it is disabled in room data
-		int saturation = (thisroom.regionTintLevel[i] >> 24) & 0xFF;
+		int saturation = (thisroom.Regions[i].Tint >> 24) & 0xFF;
 		area->TintSaturation = (saturation > 0 && area->UseColourTint) ? saturation :
 			Utilities::GetDefaultValue(area->GetType(), "TintSaturation", 0);
-		int luminance = thisroom.get_region_tintluminance(i);
+		int luminance = thisroom.GetRegionTintLuminance(i);
 		area->TintLuminance = area->UseColourTint ? luminance :
 			Utilities::GetDefaultValue(area->GetType(), "TintLuminance", 0);
 
-		CopyInteractions(area->Interactions, thisroom.regionScripts[i]);
+		CopyInteractions(area->Interactions, thisroom.Regions[i].EventHandlers.get());
 	}
-/*
-	if (thisroom.scripts != NULL) 
-	{
-		room->Script->Text = gcnew String(thisroom.scripts);
-	}
-*/
+
 	room->_roomStructPtr = (IntPtr)&thisroom;
 
-	ConvertCustomProperties(room->Properties, &thisroom.roomProps);
+	ConvertCustomProperties(room->Properties, &thisroom.Properties);
 
-	CopyInteractions(room->Interactions, thisroom.roomScripts);
+	CopyInteractions(room->Interactions, thisroom.EventHandlers.get());
 
-	room->GameID = thisroom.gameId;
+	room->GameID = thisroom.GameID;
   clear_undo_buffer();
 
 	return room;
@@ -3940,119 +3552,122 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 
 void save_crm_file(Room ^room)
 {
-    thisroom.freemessage();
-    thisroom.freescripts();
+    thisroom.FreeMessages();
+    thisroom.FreeScripts();
 
-	thisroom.gameId = room->GameID;
-	thisroom.bottom = room->BottomEdgeY;
-	thisroom.left = room->LeftEdgeX;
-	thisroom.options[ST_VOLUME] = (int)room->MusicVolumeAdjustment;
-	thisroom.options[ST_MANVIEW] = room->PlayerCharacterView;
-	thisroom.options[ST_TUNE] = room->PlayMusicOnRoomLoad;
-	thisroom.right = room->RightEdgeX;
-	thisroom.options[ST_SAVELOAD] = room->SaveLoadEnabled ? 0 : 1;
-	thisroom.options[ST_MANDISABLED] = room->ShowPlayerCharacter ? 0 : 1;
-	thisroom.top = room->TopEdgeY;
-	thisroom.width = room->Width;
-	thisroom.height = room->Height;
-	thisroom.bscene_anim_speed = room->BackgroundAnimationDelay;
-	thisroom.num_bscenes = room->BackgroundCount;
+    //
+    // Convert managed Room object into the native roomstruct that is going
+    // to be saved using native procedure.
+    //
 
-	thisroom.nummes = room->Messages->Count;
-	for (int i = 0; i < thisroom.nummes; i++) 
+	thisroom.GameID = room->GameID;
+	thisroom.Edges.Bottom = room->BottomEdgeY;
+	thisroom.Edges.Left = room->LeftEdgeX;
+	thisroom.Options.StartupMusic = (int)room->MusicVolumeAdjustment;
+	thisroom.Options.PlayerView = room->PlayerCharacterView;
+	thisroom.Options.StartupMusic = room->PlayMusicOnRoomLoad;
+	thisroom.Edges.Right = room->RightEdgeX;
+	thisroom.Options.SaveLoadDisabled = room->SaveLoadEnabled ? 0 : 1;
+	thisroom.Options.PlayerCharOff = room->ShowPlayerCharacter ? 0 : 1;
+	thisroom.Edges.Top = room->TopEdgeY;
+	thisroom.Width = room->Width;
+	thisroom.Height = room->Height;
+	thisroom.BgAnimSpeed = room->BackgroundAnimationDelay;
+	thisroom.BgFrameCount = room->BackgroundCount;
+
+	thisroom.MessageCount = room->Messages->Count;
+	for (size_t i = 0; i < thisroom.MessageCount; ++i)
 	{
 		RoomMessage ^newMessage = room->Messages[i];
-		thisroom.message[i] = (char*)malloc(newMessage->Text->Length + 1);
-		ConvertStringToCharArray(newMessage->Text, thisroom.message[i], newMessage->Text->Length + 1);
+		thisroom.Messages[i] = ConvertStringToNativeString(newMessage->Text);
 		if (newMessage->ShowAsSpeech)
 		{
-			thisroom.msgi[i].displayas = newMessage->CharacterID + 1;
+			thisroom.MessageInfos[i].DisplayAs = newMessage->CharacterID + 1;
 		}
 		else
 		{
-			thisroom.msgi[i].displayas = 0;
+			thisroom.MessageInfos[i].DisplayAs = 0;
 		}
-		thisroom.msgi[i].flags = 0;
-		if (newMessage->DisplayNextMessageAfter) thisroom.msgi[i].flags |= MSG_DISPLAYNEXT;
-		if (newMessage->AutoRemoveAfterTime) thisroom.msgi[i].flags |= MSG_TIMELIMIT;
+		thisroom.MessageInfos[i].Flags = 0;
+		if (newMessage->DisplayNextMessageAfter) thisroom.MessageInfos[i].Flags |= MSG_DISPLAYNEXT;
+		if (newMessage->AutoRemoveAfterTime) thisroom.MessageInfos[i].Flags |= MSG_TIMELIMIT;
 	}
 
-	thisroom.numsprs = room->Objects->Count;
-	for (int i = 0; i < thisroom.numsprs; i++) 
+	thisroom.ObjectCount = room->Objects->Count;
+	for (size_t i = 0; i < thisroom.ObjectCount; ++i)
 	{
 		RoomObject ^obj = room->Objects[i];
-		thisroom.objectscriptnames[i] = ConvertStringToNativeString(obj->Name);
+		thisroom.Objects[i].ScriptName = ConvertStringToNativeString(obj->Name);
 
-		thisroom.sprs[i].sprnum = obj->Image;
-		thisroom.sprs[i].x = obj->StartX;
-		thisroom.sprs[i].y = obj->StartY;
-		thisroom.sprs[i].on = obj->Visible;
-		thisroom.objbaseline[i] = obj->Baseline;
-		thisroom.objectnames[i] = ConvertStringToNativeString(obj->Description);
-		thisroom.objectFlags[i] = 0;
-		if (obj->UseRoomAreaScaling) thisroom.objectFlags[i] |= OBJF_USEROOMSCALING;
-		if (obj->UseRoomAreaLighting) thisroom.objectFlags[i] |= OBJF_USEREGIONTINTS;
-		if (!obj->Clickable) thisroom.objectFlags[i] |= OBJF_NOINTERACT;
-		if (obj->Locked) thisroom.objectFlags[i] |= OBJF_LOCKED;
-		CompileCustomProperties(obj->Properties, &thisroom.objProps[i]);
+		thisroom.Objects[i].Sprite = obj->Image;
+		thisroom.Objects[i].X = obj->StartX;
+		thisroom.Objects[i].Y = obj->StartY;
+		thisroom.Objects[i].IsOn = obj->Visible;
+		thisroom.Objects[i].Baseline = obj->Baseline;
+		thisroom.Objects[i].Name = ConvertStringToNativeString(obj->Description);
+		thisroom.Objects[i].Flags = 0;
+		if (obj->UseRoomAreaScaling) thisroom.Objects[i].Flags |= OBJF_USEROOMSCALING;
+		if (obj->UseRoomAreaLighting) thisroom.Objects[i].Flags |= OBJF_USEREGIONTINTS;
+		if (!obj->Clickable) thisroom.Objects[i].Flags |= OBJF_NOINTERACT;
+		if (obj->Locked) thisroom.Objects[i].Flags |= OBJF_LOCKED;
+		CompileCustomProperties(obj->Properties, &thisroom.Objects[i].Properties);
 	}
 
-	thisroom.numhotspots = room->Hotspots->Count;
-	for (int i = 0; i < thisroom.numhotspots; i++) 
+	thisroom.HotspotCount = room->Hotspots->Count;
+	for (size_t i = 0; i < thisroom.HotspotCount; ++i)
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
-		thisroom.hotspotnames[i] = ConvertStringToNativeString(hotspot->Description);
-		thisroom.hotspotScriptNames[i] = ConvertStringToNativeString(hotspot->Name);
-		thisroom.hswalkto[i].x = hotspot->WalkToPoint.X;
-		thisroom.hswalkto[i].y = hotspot->WalkToPoint.Y;
-		CompileCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
+		thisroom.Hotspots[i].Name = ConvertStringToNativeString(hotspot->Description);
+		thisroom.Hotspots[i].ScriptName = ConvertStringToNativeString(hotspot->Name);
+		thisroom.Hotspots[i].WalkTo.X = hotspot->WalkToPoint.X;
+		thisroom.Hotspots[i].WalkTo.Y = hotspot->WalkToPoint.Y;
+		CompileCustomProperties(hotspot->Properties, &thisroom.Hotspots[i].Properties);
 	}
 
-	for (int i = 0; i <= MAX_WALK_AREAS; i++) 
+	for (size_t i = 0; i <= MAX_WALK_AREAS; ++i)
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
-		thisroom.shadinginfo[i] = area->AreaSpecificView;
+		thisroom.WalkAreas[i].Light = area->AreaSpecificView;
 		
 		if (area->UseContinuousScaling) 
 		{
-			thisroom.walk_area_zoom[i] = area->MinScalingLevel - 100;
-			thisroom.walk_area_zoom2[i] = area->MaxScalingLevel - 100;
+			thisroom.WalkAreas[i].ScalingFar = area->MinScalingLevel - 100;
+			thisroom.WalkAreas[i].ScalingNear = area->MaxScalingLevel - 100;
 		}
 		else
 		{
-			thisroom.walk_area_zoom[i] = area->ScalingLevel - 100;
-			thisroom.walk_area_zoom2[i] = NOT_VECTOR_SCALED;
+			thisroom.WalkAreas[i].ScalingFar = area->ScalingLevel - 100;
+			thisroom.WalkAreas[i].ScalingNear = NOT_VECTOR_SCALED;
 		}
 	}
 
-	for (int i = 0; i < MAX_OBJ; i++) 
+	for (size_t i = 0; i < MAX_WALK_BEHINDS; ++i)
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
-		thisroom.objyval[i] = area->Baseline;
+		thisroom.WalkBehinds[i].Baseline = area->Baseline;
 	}
 
-	for (int i = 0; i < MAX_REGIONS; i++) 
+	for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
 	{
 		RoomRegion ^area = room->Regions[i];
-		thisroom.regionTintLevel[i] = 0;
+		thisroom.Regions[i].Tint = 0;
 		if (area->UseColourTint) 
 		{
-            thisroom.regionTintLevel[i]  = area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16) | (area->TintSaturation << 24);
-            thisroom.regionLightLevel[i] = (area->TintLuminance * 25) / 10;
+            thisroom.Regions[i].Tint  = area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16) | (area->TintSaturation << 24);
+            thisroom.Regions[i].Light = (area->TintLuminance * 25) / 10;
 		}
 		else 
 		{
-            thisroom.regionTintLevel[i] = 0;
+            thisroom.Regions[i].Tint = 0;
 			// NOTE: Region's light level value exposed in editor is always 100 units higher,
 			// for compatibility with older versions of the editor.
-			thisroom.regionLightLevel[i] = area->LightLevel - 100;
+			thisroom.Regions[i].Light = area->LightLevel - 100;
 		}
 	}
 
-	CompileCustomProperties(room->Properties, &thisroom.roomProps);
+	CompileCustomProperties(room->Properties, &thisroom.Properties);
 
-	thisroom.scripts = NULL;
-	thisroom.compiled_script = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
+	thisroom.CompiledScript = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
 
 	AGSString roomFileName = ConvertFileNameToNativeString(room->FileName);
 
@@ -4062,50 +3677,77 @@ void save_crm_file(Room ^room)
 
 	TempDataStorage::RoomBeingSaved = nullptr;
 
-	for (int i = 0; i < thisroom.numhotspots; i++) 
+	for (size_t i = 0; i < thisroom.HotspotCount; ++i)
 	{
-		thisroom.hotspotnames[i].Free(); // TODO: not sure if makes sense here
+		thisroom.Hotspots[i].Name.Free(); // TODO: not sure if makes sense here
 	}
 }
 
-void serialize_interaction_scripts(Interactions ^interactions, Stream *ooo)
+PInteractionScripts convert_interaction_scripts(Interactions ^interactions)
 {
-	ooo->WriteInt32(interactions->ScriptFunctionNames->Length);
+    InteractionScripts *native_scripts = new InteractionScripts();
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
-		if (funcName == nullptr)
-		{
-			ooo->WriteByte(0);
-		}
-		else 
-		{
-			AGSString fname = ConvertStringToNativeString(funcName);
-			fname.Write(ooo);
-		}
+        native_scripts->ScriptFuncNames.push_back(ConvertStringToNativeString(funcName));
 	}
+    return PInteractionScripts(native_scripts);
 }
 
-void serialize_room_interactions(Stream *ooo) 
+void convert_room_interactions_to_native()
 {
 	Room ^roomBeingSaved = TempDataStorage::RoomBeingSaved;
-	serialize_interaction_scripts(roomBeingSaved->Interactions, ooo);
-	for each (RoomHotspot ^hotspot in roomBeingSaved->Hotspots) 
+    thisroom.EventHandlers = convert_interaction_scripts(roomBeingSaved->Interactions);
+	for (int i = 0; i < roomBeingSaved->Hotspots->Count; ++i) 
 	{
-		serialize_interaction_scripts(hotspot->Interactions, ooo);
+        thisroom.Hotspots[i].EventHandlers = convert_interaction_scripts(roomBeingSaved->Hotspots[i]->Interactions);
 	}
-	for each (RoomObject ^obj in roomBeingSaved->Objects) 
+    for (int i = 0; i < roomBeingSaved->Objects->Count; ++i)
 	{
-		serialize_interaction_scripts(obj->Interactions, ooo);
+        thisroom.Objects[i].EventHandlers = convert_interaction_scripts(roomBeingSaved->Objects[i]->Interactions);
 	}
-	for each (RoomRegion ^region in roomBeingSaved->Regions) 
+    for (int i = 0; i < roomBeingSaved->Regions->Count; ++i)
 	{
-		serialize_interaction_scripts(region->Interactions, ooo);
+        thisroom.Regions[i].EventHandlers = convert_interaction_scripts(roomBeingSaved->Regions[i]->Interactions);
 	}
 }
 
 
 
 #pragma unmanaged
+
+
+void save_room_file(const char *path)
+{
+    thisroom.DataVersion = kRoomVersion_Current;
+    copy_room_palette_to_global_palette();
+
+    calculate_walkable_areas();
+
+    thisroom.BackgroundBPP = thisroom.BgFrames[0].Graphic->GetBPP();
+    // Fix hi-color screens
+    // TODO: find out why this is needed; may be related to the Allegro internal 16-bit bitmaps format
+    for (size_t i = 0; i < (size_t)thisroom.BgFrameCount; ++i)
+        fix_block(thisroom.BgFrames[i].Graphic.get());
+
+    thisroom.WalkBehindCount = MAX_WALK_BEHINDS; // TODO: why we need to do this here?
+
+                               // Prepare script links
+    convert_room_interactions_to_native();
+
+    Stream *out = AGS::Common::File::CreateFile(path);
+    if (out == NULL)
+        quit("save_room: unable to open room file for writing.");
+
+    AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&thisroom, out, kRoomVersion_Current);
+    delete out;
+    if (!err)
+        quit(AGSString::FromFormat("save_room: unable to write room data, error was:\r\n%s", err->FullMessage()));
+
+    // Fix hi-color screens back again
+    // TODO: find out why this is needed; may be related to the Allegro internal 16-bit bitmaps format
+    for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+        fix_block(thisroom.BgFrames[i].Graphic.get());
+}
 
 
 void quit(const char * message) 

@@ -21,12 +21,14 @@
 #include "ac/global_audio.h"
 #include "ac/lipsync.h"
 #include "ac/path_helper.h"
-#include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "game/roomstruct.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
+
+using namespace AGS::Common;
 
 extern GameSetup usetup;
 extern GameState play;
@@ -80,7 +82,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     }
     // calculate the maximum distance away the player can be, using X
     // only (since X centred is still more-or-less total Y)
-    ambient[channel].maxdist = ((x > thisroom.width / 2) ? x : (thisroom.width - x)) - AMBIENCE_FULL_DIST;
+    ambient[channel].maxdist = ((x > thisroom.Width / 2) ? x : (thisroom.Width - x)) - AMBIENCE_FULL_DIST;
     ambient[channel].num = sndnum;
     ambient[channel].x = x;
     ambient[channel].y = y;
@@ -301,7 +303,7 @@ int GetMP3PosMillis () {
 void SetMusicVolume(int newvol) {
     if ((newvol < kRoomVolumeMin) || (newvol > kRoomVolumeMax))
         quitprintf("!SetMusicVolume: invalid volume number. Must be from %d to %d.", kRoomVolumeMin, kRoomVolumeMax);
-    thisroom.options[ST_VOLUME]=newvol;
+    thisroom.Options.MusicVolume=(RoomVolumeMod)newvol;
     update_music_volume();
 }
 

@@ -117,8 +117,8 @@ bool parse_translation(Stream *language_file, String &parse_error)
         if (blockType == 1) {
             char original[STD_BUFFER_SIZE], translation[STD_BUFFER_SIZE];
             while (1) {
-                read_string_decrypt (language_file, original);
-                read_string_decrypt (language_file, translation);
+                read_string_decrypt (language_file, original, STD_BUFFER_SIZE);
+                read_string_decrypt (language_file, translation, STD_BUFFER_SIZE);
                 if ((strlen (original) < 1) && (strlen(translation) < 1))
                     break;
                 if (language_file->EOS())
@@ -134,7 +134,7 @@ bool parse_translation(Stream *language_file, String &parse_error)
             int uidfrom;
             char wasgamename[100];
             uidfrom = language_file->ReadInt32();
-            read_string_decrypt (language_file, wasgamename);
+            read_string_decrypt (language_file, wasgamename, sizeof(wasgamename));
             if ((uidfrom != game.uniqueid) || (strcmp (wasgamename, game.gamename) != 0)) {
                 parse_error.Format("The translation file is not compatible with this game. The translation is designed for '%s'.",
                     wasgamename);

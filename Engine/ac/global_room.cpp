@@ -198,11 +198,11 @@ int HasBeenToRoom (int roomnum) {
 // [DEPRECATED]
 /*void GetRoomPropertyText (const char *property, char *bufer)
 {
-    get_text_property(thisroom.roomProps, croom->roomProps, property, bufer);
+    get_text_property(thisroom.Properties, croom->roomProps, property, bufer);
 }*/
 
 void SetBackgroundFrame(int frnum) {
-    if ((frnum<-1) | (frnum>=thisroom.num_bscenes))
+    if ((frnum < -1) || (frnum != -1 && (size_t)frnum >= thisroom.BgFrameCount))
         quit("!SetBackgrondFrame: invalid frame number specified");
     if (frnum<0) {
         play.bg_frame_locked=0;

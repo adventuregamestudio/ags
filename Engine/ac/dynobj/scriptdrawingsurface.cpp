@@ -13,16 +13,16 @@
 //=============================================================================
 
 #include "ac/dynobj/scriptdrawingsurface.h"
-#include "ac/roomstruct.h"
 #include "ac/spritecache.h"
 #include "ac/runtime_defines.h"
 #include "ac/common.h"
 #include "ac/drawingsurface.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
+#include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 extern RoomStruct thisroom;
 extern SpriteCache spriteset;
@@ -32,8 +32,9 @@ extern GameSetupStruct game;
 
 Bitmap* ScriptDrawingSurface::GetBitmapSurface()
 {
+    // TODO: consider creating weak_ptr here, and store one in the DrawingSurface!
     if (roomBackgroundNumber >= 0)
-        return thisroom.ebscene[roomBackgroundNumber];
+        return thisroom.BgFrames[roomBackgroundNumber].Graphic.get();
     else if (dynamicSpriteNumber >= 0)
         return spriteset[dynamicSpriteNumber];
     else if (dynamicSurfaceNumber >= 0)

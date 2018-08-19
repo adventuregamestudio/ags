@@ -14,10 +14,12 @@
 
 #include "ac/viewport.h"
 #include "ac/draw.h"
-#include "ac/roomstruct.h"
 #include "ac/characterinfo.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetup.h"
+#include "game/roomstruct.h"
+
+using namespace AGS::Common;
 
 extern int offsetx, offsety;
 extern GameState play;
@@ -30,8 +32,8 @@ void check_viewport_coords()
     if (offsetx<0) offsetx=0;
     if (offsety<0) offsety=0;
 
-    int roomWidth = thisroom.width;
-    int roomHeight = thisroom.height;
+    int roomWidth = thisroom.Width;
+    int roomHeight = thisroom.Height;
     if (offsetx + play.viewport.GetWidth() > roomWidth)
         offsetx = roomWidth - play.viewport.GetWidth();
     if (offsety + play.viewport.GetHeight() > roomHeight)
@@ -41,7 +43,7 @@ void check_viewport_coords()
 
 void update_viewport()
 {
-    if ((thisroom.width > BASEWIDTH) || (thisroom.height > BASEHEIGHT)) {
+    if ((thisroom.Width > BASEWIDTH) || (thisroom.Height > BASEHEIGHT)) {
         if (play.offsets_locked == 0) {
             offsetx = playerchar->x - play.viewport.GetWidth()/2;
             offsety = playerchar->y - play.viewport.GetHeight()/2;

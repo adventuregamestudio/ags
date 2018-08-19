@@ -42,7 +42,7 @@ extern GameState play;
 extern RoomStatus*croom;
 extern RoomObject*objs;
 extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_INIT_SPR];
+extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];

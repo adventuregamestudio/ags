@@ -164,7 +164,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, bool old_save)
     in->Read( bad_parsed_word, 100);
     raw_color = in->ReadInt32();
     if (old_save)
-        in->ReadArrayOfInt32(raw_modified, MAX_BSCENE);
+        in->ReadArrayOfInt32(raw_modified, MAX_ROOM_BGFRAMES);
     in->ReadArrayOfInt16( filenumbers, MAXSAVEGAMES);
     if (old_save)
         in->ReadInt32(); // room_changes

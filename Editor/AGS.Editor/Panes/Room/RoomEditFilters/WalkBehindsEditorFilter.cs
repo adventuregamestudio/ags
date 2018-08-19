@@ -18,6 +18,7 @@ namespace AGS.Editor
         {
         }
 
+        public override string Name { get { return "WalkBehinds"; } }
         public override string DisplayName { get { return "Walk-behinds"; } }
 
         public override RoomAreaMaskType MaskToDraw

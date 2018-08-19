@@ -22,6 +22,7 @@ namespace AGS.Editor
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
         }
 
+        public string Name { get { return "Nothing"; } }
         public string DisplayName { get { return "Nothing"; } }
 
         public RoomAreaMaskType MaskToDraw
@@ -32,6 +33,7 @@ namespace AGS.Editor
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
 
         public bool SupportVisibleItems { get { return false; } }
+        public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
 

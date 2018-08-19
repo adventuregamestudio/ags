@@ -4169,7 +4169,6 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
       obj->StartY += GetSpriteHeight(thisroom.sprs[i].sprnum);
 		obj->Visible = (thisroom.sprs[i].on != 0);
 		obj->Clickable = ((thisroom.objectFlags[i] & OBJF_NOINTERACT) == 0);
-		obj->Locked = ((thisroom.objectFlags[i] & OBJF_LOCKED) != 0);
 		obj->Baseline = thisroom.objbaseline[i];
 		obj->Name = gcnew String(jibbledScriptName);
 		obj->Description = gcnew String(thisroom.objectnames[i]);
@@ -4349,7 +4348,6 @@ void save_crm_file(Room ^room)
 		if (obj->UseRoomAreaScaling) thisroom.objectFlags[i] |= OBJF_USEROOMSCALING;
 		if (obj->UseRoomAreaLighting) thisroom.objectFlags[i] |= OBJF_USEREGIONTINTS;
 		if (!obj->Clickable) thisroom.objectFlags[i] |= OBJF_NOINTERACT;
-		if (obj->Locked) thisroom.objectFlags[i] |= OBJF_LOCKED;
 		CompileCustomProperties(obj->Properties, &thisroom.objProps[i]);
 	}
 

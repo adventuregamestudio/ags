@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include <memory>
-#include <stdio.h>
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"
@@ -32,7 +31,6 @@
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
-#include "util/filestream.h"
 #include "util/textstreamwriter.h"
 
 using namespace AGS::Common;

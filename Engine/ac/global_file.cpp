@@ -19,7 +19,7 @@
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "util/filestream.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 

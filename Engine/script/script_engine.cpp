@@ -21,12 +21,12 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include <stdlib.h>
 #include "ac/roomstruct.h"
-#include "util/filestream.h"
 #include "script/cc_instance.h"
 #include "script/cc_error.h"
+#include "util/file.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 
@@ -91,7 +91,7 @@ void load_graphical_scripts(Stream *in, roomstruct * rst)
 
         char thisscn[20];
         sprintf(thisscn, scripttempn, ct);
-        Stream *te = Common::File::CreateFile(thisscn);
+        Stream *te = File::CreateFile(thisscn);
 
         char *scnf = (char *)malloc(lee);
         // MACPORT FIX: swap size and nmemb

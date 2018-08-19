@@ -18,7 +18,6 @@
 
 #define MSS
 
-#include <stdio.h>
 #include <stdlib.h>
 #include "ac/common.h"
 #include "util/stream.h"

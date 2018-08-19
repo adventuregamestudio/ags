@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include <stdlib.h>
 #include "ac/common.h"	// quit()
 #include "ac/roomstruct.h"
@@ -28,7 +27,6 @@
 
 #include "util/misc.h"
 #include "util/stream.h"
-#include "util/filestream.h"
 #include "gfx/bitmap.h"
 
 using namespace AGS::Common;

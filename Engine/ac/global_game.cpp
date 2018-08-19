@@ -13,7 +13,6 @@
 //=============================================================================
 
 #define USE_CLIB
-#include <stdio.h>
 #include "ac/global_game.h"
 #include "ac/common.h"
 #include "ac/view.h"

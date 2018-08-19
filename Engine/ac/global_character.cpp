@@ -16,7 +16,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/global_character.h"
 #include "ac/common.h"
 #include "ac/view.h"

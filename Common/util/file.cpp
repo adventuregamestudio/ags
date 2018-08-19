@@ -18,19 +18,9 @@
 #include <unistd.h> // for unlink()
 #endif
 #include <errno.h>
-#include <stdio.h>
-#include <sys/stat.h>
 #include "util/file.h"
 #include "util/filestream.h"
-
-#if defined(_MSC_VER) // MSVC
-    #define stat_t      _stat64
-    #define stat_fn     _stati64
-#else
-    #define stat_t      stat
-    #define stat_fn     stat
-#endif
-
+#include "util/stdio_compat.h"
 
 namespace AGS
 {

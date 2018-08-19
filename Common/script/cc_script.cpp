@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "cc_script.h"

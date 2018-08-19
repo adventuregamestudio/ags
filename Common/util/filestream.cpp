@@ -12,22 +12,8 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "util/filestream.h"
 #include "util/math.h"
-
-#if defined(HAVE_FSEEKO) // Contemporary POSIX libc
-    #define file_off_t  off_t
-    #define fseek       fseeko
-    #define ftell       ftello
-#elif defined(_MSC_VER) // MSVC
-    #define file_off_t  __int64
-    #define fseek       _fseeki64
-    #define ftell       _ftelli64
-#else // No distinct interface with off_t
-    #define file_off_t  long
-#endif
-
 
 namespace AGS
 {

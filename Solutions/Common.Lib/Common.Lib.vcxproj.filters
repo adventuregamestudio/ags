@@ -538,5 +538,8 @@
     <ClInclude Include="..\..\Common\util\error.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\stdio_compat.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

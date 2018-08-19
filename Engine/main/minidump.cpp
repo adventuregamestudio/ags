@@ -12,10 +12,9 @@
 //
 //=============================================================================
 
-#include <stdio.h>
-
 #ifdef WINDOWS_VERSION
 #define UNICODE
+#include <stdio.h> // sprintf
 #include "windows.h"
 #include <crtdbg.h>
 #include "main/main.h"

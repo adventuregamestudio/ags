@@ -14,7 +14,7 @@
 
 #include "debug/filebasedagsdebugger.h"
 #include "ac/file.h"                    // filelength()
-#include "util/filestream.h"
+#include "util/stream.h"
 #include "util/textstreamwriter.h"
 #include "util/wgt2allg.h"              // exists()
 

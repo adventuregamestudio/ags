@@ -41,9 +41,15 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "allegro.h"
+#if !defined (WINDOWS_VERSION)
+#include <unistd.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
+#endif
+#include <allegro.h>
 #include "util/misc.h"
-#include "util/filestream.h"
+#include "util/stdio_compat.h"
 
 using AGS::Common::Stream;
 

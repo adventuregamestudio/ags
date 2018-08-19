@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include <string.h>
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/all_dynamicclasses.h"

@@ -18,7 +18,6 @@
 
 // ********* WINDOWS *********
 
-#include <stdio.h>
 #include <string.h>
 #include <allegro.h>
 #include <allegro/platform/aintwin.h>

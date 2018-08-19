@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/draw.h"
 #include "ac/drawingsurface.h"
 #include "ac/common.h"

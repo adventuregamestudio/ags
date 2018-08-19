@@ -16,7 +16,6 @@
 #define USE_ALFONT
 #endif
 
-#include <stdio.h>
 #include "alfont.h"
 
 #include "ac/common.h"

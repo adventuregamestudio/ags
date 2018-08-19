@@ -14,11 +14,10 @@
 
 #ifdef _DEBUG
 
-#include <stdio.h>
 #include <string.h>
-#include "util/alignedstream.h"
-#include "util/filestream.h"
 #include "debug/assert.h"
+#include "util/alignedstream.h"
+#include "util/file.h"
 
 using namespace AGS::Common;
 

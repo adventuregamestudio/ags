@@ -23,7 +23,6 @@
 #include <winalleg.h>
 #include <windows.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <amstream.h>
 #include <mmstream.h>	// Multimedia stream interfaces
 #include <ddstream.h>	// DirectDraw multimedia stream interfaces

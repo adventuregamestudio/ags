@@ -193,59 +193,6 @@ int RoomStruct::GetRegionTintLuminance(int id) const
     return 0;
 }
 
-/*
-void RoomStruct::freemessage() {
-    for (int f = 0; f < MessageCount; f++) {
-        if (message[f] != NULL)
-            free(message[f]);
-    }
-}
-
-void RoomStruct::freescripts()
-{
-    if (scripts != NULL)
-    {
-        free(scripts);
-        scripts = NULL;
-    }
-
-    CompiledScript.reset();
-
-    if (roomScripts != NULL)
-    {
-        delete roomScripts;
-        roomScripts = NULL;
-    }
-    if (hotspotScripts != NULL)
-    {
-        for (int i = 0; i < HotspotCount; i++)
-        {
-            delete hotspotScripts[i];
-        }
-        delete[] hotspotScripts;
-        hotspotScripts = NULL;
-    }
-    if (objectScripts != NULL)
-    {
-        for (int i = 0; i < ObjectCount; i++)
-        {
-            delete objectScripts[i];
-        }
-        delete[] objectScripts;
-        objectScripts = NULL;
-    }
-    if (regionScripts != NULL)
-    {
-        for (int i = 0; i < RegionCount; i++)
-        {
-            delete regionScripts[i];
-        }
-        delete[] regionScripts;
-        regionScripts = NULL;
-    }
-}
-*/
-
 void load_room(const char *files, RoomStruct *room)
 {
     room->Free();

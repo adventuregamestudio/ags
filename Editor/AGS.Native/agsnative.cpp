@@ -1785,7 +1785,7 @@ void calculate_walkable_areas () {
 
 void save_room(const char *files, roomstruct rstruc) {
   int               f;
-  long              xoff, tesl;
+  soff_t            xoff, tesl;
   Stream       *opty;
   room_file_header  rfh;
 
@@ -1809,7 +1809,7 @@ void save_room(const char *files, roomstruct rstruc) {
 
   if (rfh.version >= 5) {
     opty->WriteByte(BLOCKTYPE_MAIN);
-    opty->WriteInt32(0);
+    opty->WriteInt64(0);
   }
 
   opty->WriteInt32(rstruc.bytes_per_pixel);  // colour depth bytes per pixel
@@ -1919,22 +1919,20 @@ void save_room(const char *files, roomstruct rstruc) {
   tesl = savecompressed_allegro((char*)files, rstruc.lookat, rstruc.pal, tesl);
 
   if (rfh.version >= 5) {
-    long  lee;
-
     opty = ci_fopen(files, Common::kFile_Open, Common::kFile_ReadWrite);
-    lee = opty->GetLength()-7;
+    soff_t lee = opty->GetLength() - (sizeof(int16_t) + 1 + sizeof(int64_t));
 
-    opty->Seek(3, Common::kSeekBegin);
-    opty->WriteInt32(lee);
+    opty->Seek(sizeof(int16_t) + 1, Common::kSeekBegin);
+    opty->WriteInt64(lee);
     opty->Seek(0, Common::kSeekEnd);
 
     if (rstruc.scripts != NULL) {
       int hh;
 
       opty->WriteByte(BLOCKTYPE_SCRIPT);
-      lee = (int)strlen(rstruc.scripts) + 4;
-      opty->WriteInt32(lee);
-      lee -= 4;
+      lee = (int)strlen(rstruc.scripts) + sizeof(int32_t);
+      opty->WriteInt64(lee);
+      lee -= sizeof(int32_t);
 
       for (hh = 0; hh < lee; hh++)
         rstruc.scripts[hh]-=passwencstring[hh % 11];
@@ -1948,29 +1946,29 @@ void save_room(const char *files, roomstruct rstruc) {
     }
    
     if (rstruc.compiled_script != NULL) {
-      long  leeat, wasat;
+      soff_t  leeat, wasat;
 
       opty->WriteByte(BLOCKTYPE_COMPSCRIPT3);
       lee = 0;
       leeat = opty->GetPosition();
-      opty->WriteInt32(lee);
+      opty->WriteInt64(lee);
       rstruc.compiled_script->Write(opty);
      
       wasat = opty->GetPosition();
       opty->Seek(leeat, Common::kSeekBegin);
-      lee = (wasat - leeat) - 4;
-      opty->WriteInt32(lee);
+      lee = (wasat - leeat) - sizeof(int64_t);
+      opty->WriteInt64(lee);
       opty->Seek(0, Common::kSeekEnd);
     }
 
     if (rstruc.numsprs > 0) {
       // TODO: need generic algorithm to write block sizes back after their contents are written
-      long  leeat, wasat;
+      soff_t  leeat, wasat;
 
       opty->WriteByte(BLOCKTYPE_OBJECTNAMES);
       lee = 0;
       leeat = opty->GetPosition();
-      opty->WriteInt32(lee);
+      opty->WriteInt64(lee);
 
       opty->WriteByte(rstruc.numsprs);
       for (int i = 0; i < rstruc.numsprs; ++i)
@@ -1978,15 +1976,15 @@ void save_room(const char *files, roomstruct rstruc) {
 
       wasat = opty->GetPosition();
       opty->Seek(leeat, Common::kSeekBegin);
-      lee = (wasat - leeat) - sizeof(int32_t);
-      opty->WriteInt32(lee);
+      lee = (wasat - leeat) - sizeof(int64_t);
+      opty->WriteInt64(lee);
       opty->Seek(0, Common::kSeekEnd);
 
 
       opty->WriteByte(BLOCKTYPE_OBJECTSCRIPTNAMES);
       lee = 0;
       leeat = opty->GetPosition();
-      opty->WriteInt32(lee);
+      opty->WriteInt64(lee);
 
       opty->WriteByte(rstruc.numsprs);
       for (int i = 0; i < rstruc.numsprs; ++i)
@@ -1994,21 +1992,21 @@ void save_room(const char *files, roomstruct rstruc) {
 
       wasat = opty->GetPosition();
       opty->Seek(leeat, Common::kSeekBegin);
-      lee = (wasat - leeat) - sizeof(int32_t);
-      opty->WriteInt32(lee);
+      lee = (wasat - leeat) - sizeof(int64_t);
+      opty->WriteInt64(lee);
       opty->Seek(0, Common::kSeekEnd);
     }
 
-    long lenpos, lenis;
+    soff_t lenpos, lenis;
     int gg;
 
     if (rstruc.num_bscenes > 1) {
-      long  curoffs;
+      soff_t  curoffs;
 
       opty->WriteByte(BLOCKTYPE_ANIMBKGRND);
       lenpos = opty->GetPosition();
       lenis = 0;
-      opty->WriteInt32(lenis);
+      opty->WriteInt64(lenis);
       opty->WriteByte(rstruc.num_bscenes);
       opty->WriteByte(rstruc.bscene_anim_speed);
       
@@ -2021,9 +2019,9 @@ void save_room(const char *files, roomstruct rstruc) {
         curoffs = save_lzw((char*)files, rstruc.ebscene[gg], rstruc.bpalettes[gg], curoffs);
 
       opty = ci_fopen(const_cast<char*>(files), Common::kFile_Open, Common::kFile_ReadWrite);
-      lenis = (curoffs - lenpos) - 4;
+      lenis = (curoffs - lenpos) - sizeof(int64_t);
       opty->Seek(lenpos, Common::kSeekBegin);
-      opty->WriteInt32(lenis);
+      opty->WriteInt64(lenis);
       opty->Seek(0, Common::kSeekEnd);
     }
 
@@ -2031,7 +2029,7 @@ void save_room(const char *files, roomstruct rstruc) {
     opty->WriteByte (BLOCKTYPE_PROPERTIES);
     lenpos = opty->GetPosition();
     lenis = 0;
-    opty->WriteInt32(lenis);
+    opty->WriteInt64(lenis);
     opty->WriteInt32 (1);  // Version 1 of properties block
     AGSProps::WriteValues(rstruc.roomProps, opty);
     for (gg = 0; gg < rstruc.numhotspots; gg++)
@@ -2039,9 +2037,9 @@ void save_room(const char *files, roomstruct rstruc) {
     for (gg = 0; gg < rstruc.numsprs; gg++)
       AGSProps::WriteValues(rstruc.objProps[gg], opty);
 
-    lenis = (opty->GetPosition() - lenpos) - 4;
+    lenis = (opty->GetPosition() - lenpos) - sizeof(int64_t);
     opty->Seek(lenpos, Common::kSeekBegin);
-    opty->WriteInt32(lenis);
+    opty->WriteInt64(lenis);
     opty->Seek(0, Common::kSeekEnd);
 
 
@@ -3985,7 +3983,7 @@ System::String ^load_room_script(System::String ^fileName)
 			break;
 		}
 
-		int blockLen = opty->ReadInt32();
+		soff_t blockLen = version < kRoomVersion_3422 ? opty->ReadInt32() : opty->ReadInt64();
 
 		if (thisblock == BLOCKTYPE_SCRIPT) 
 		{
@@ -4442,7 +4440,7 @@ void load_graphical_scripts(Stream*iii,roomstruct*rst) {
       doneMsg = true;
     }
     // skip the data
-    long lee = iii->ReadInt32();
+    long lee = rst->wasversion < kRoomVersion_3422 ? iii->ReadInt32() : iii->ReadInt64();
     iii->Seek (lee);
   }
 }

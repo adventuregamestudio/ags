@@ -15,6 +15,7 @@
 #ifndef __AC_COMPRESS_H
 #define __AC_COMPRESS_H
 
+#include "core/types.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 namespace AGS { namespace Common { class Stream; class Bitmap; } }
@@ -26,8 +27,6 @@ using namespace AGS; // FIXME later
 #endif
 typedef unsigned char * __block;
 
-long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto);
-
 void cpackbitl(unsigned char *line, int size, Common::Stream *out);
 void cpackbitl16(unsigned short *line, int size, Common::Stream *out);
 void cpackbitl32(unsigned int *line, int size, Common::Stream *out);
@@ -37,12 +36,10 @@ int  cunpackbitl32(unsigned int *line, int size, Common::Stream *in);
 
 //=============================================================================
 
-long save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, long offe);
-
-/*long load_lzw(char*fnn,Common::Bitmap*bmm,color*pall,long ooff);*/
-long load_lzw(Common::Stream *in, Common::Bitmap *bmm, color *pall);
-long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long write_at);
-long loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall, long read_at);
+soff_t save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, soff_t offe);
+soff_t load_lzw(Common::Stream *in, Common::Bitmap *bmm, color *pall);
+soff_t savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, soff_t write_at);
+soff_t loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall, soff_t read_at);
 
 //extern char *lztempfnm;
 extern Common::Bitmap *recalced;

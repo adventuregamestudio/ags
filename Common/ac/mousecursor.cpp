@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/mousecursor.h"
 #include "util/stream.h"
 

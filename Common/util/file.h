@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_UTIL__FILE_H
 #define __AGS_CN_UTIL__FILE_H
 
+#include "api/stream_api.h"
 #include "util/string.h"
 
 namespace AGS
@@ -45,7 +46,7 @@ enum FileWorkMode
 namespace File
 {
     // Returns size of a file, or -1 if no such file found
-    int         GetFileSize(const String &filename);
+    soff_t      GetFileSize(const String &filename);
     // Tests if file could be opened for reading
     bool        TestReadFile(const String &filename);
     // Opens a file for writing or creates new one if it does not exist; deletes file if it was created during test

@@ -12,23 +12,8 @@
 //
 //=============================================================================
 
-#if defined(WINDOWS_VERSION)
-#include <io.h>
-#endif
-#include <stdio.h>
 #include "util/filestream.h"
 #include "util/math.h"
-
-// TODO: use fstat on Windows too?
-#if !defined (WINDOWS_VERSION)
-#include <sys/stat.h>
-long int filelength(int fhandle)
-{
-    struct stat statbuf;
-    fstat(fhandle, &statbuf);
-    return statbuf.st_size;
-}
-#endif
 
 namespace AGS
 {
@@ -48,6 +33,11 @@ FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWork
 FileStream::~FileStream()
 {
     Close();
+}
+
+bool FileStream::HasErrors() const
+{
+    return IsValid() && ferror(_file) != 0;
 }
 
 void FileStream::Close()
@@ -78,22 +68,25 @@ bool FileStream::EOS() const
     return !IsValid() || feof(_file) != 0;
 }
 
-size_t FileStream::GetLength() const
+soff_t FileStream::GetLength() const
 {
     if (IsValid())
     {
-        long len = filelength(fileno(_file));
-        return len > 0 ? (size_t)len : 0;
+        soff_t pos = (soff_t)ftell(_file);
+        fseek(_file, 0, SEEK_END);
+        soff_t end = (soff_t)ftell(_file);
+        fseek(_file, pos, SEEK_SET);
+        return end;
     }
 
     return 0;
 }
 
-size_t FileStream::GetPosition() const
+soff_t FileStream::GetPosition() const
 {
     if (IsValid())
     {
-        return (size_t) ftell(_file);
+        return (soff_t) ftell(_file);
     }
     return -1;
 }
@@ -149,7 +142,7 @@ int32_t FileStream::WriteByte(uint8_t val)
     return -1;
 }
 
-size_t FileStream::Seek(int offset, StreamSeek origin)
+soff_t FileStream::Seek(soff_t offset, StreamSeek origin)
 {
     if (!_file)
     {
@@ -167,7 +160,7 @@ size_t FileStream::Seek(int offset, StreamSeek origin)
         return -1;
     }
 
-    fseek(_file, offset, stdclib_origin);
+    fseek(_file, (file_off_t)offset, stdclib_origin);
     return GetPosition();
 }
 

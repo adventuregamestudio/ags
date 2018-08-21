@@ -18,20 +18,19 @@
 #include <unistd.h> // for unlink()
 #endif
 #include <errno.h>
-#include <stdio.h>
-#include <sys/stat.h>
 #include "util/file.h"
 #include "util/filestream.h"
+#include "util/stdio_compat.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-int File::GetFileSize(const String &filename)
+soff_t File::GetFileSize(const String &filename)
 {
-    struct stat st;
-    if (stat(filename, &st) == 0)
+    struct stat_t st;
+    if (stat_fn(filename, &st) == 0)
         return st.st_size;
     return -1;
 }

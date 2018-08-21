@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include <stdio.h>
+#include <stdio.h> // sprintf
 #include <stdlib.h>
 #include <string.h>
 #include "debug/assert.h"

@@ -84,7 +84,7 @@ public:
     virtual size_t  WriteArrayOfInt32(const int32_t *buffer, size_t count);
     virtual size_t  WriteArrayOfInt64(const int64_t *buffer, size_t count);
 
-    virtual size_t  Seek(int offset, StreamSeek origin);
+    virtual soff_t  Seek(soff_t offset, StreamSeek origin);
 
 protected:
     void            ReadPadding(size_t next_type);

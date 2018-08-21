@@ -27,8 +27,6 @@
 #include <process.h>
 #endif
 
-#include <stdio.h>
-
 #include "util/wgt2allg.h"
 
 #ifndef TRUE

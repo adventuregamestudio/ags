@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/roomstruct.h"
 #include "ac/common.h"
 #include "ac/wordsdictionary.h"

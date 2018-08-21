@@ -18,7 +18,6 @@
 #ifndef __AGS_CN_UTIL__STRINGUTILS_H
 #define __AGS_CN_UTIL__STRINGUTILS_H
 
-#include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 

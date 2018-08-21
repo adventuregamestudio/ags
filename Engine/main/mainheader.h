@@ -21,7 +21,6 @@
 #include "main/maindefines_ex.h"
 
 #define USE_CLIB
-#include <stdio.h>
 #include "ac/math.h"
 #include "script/script_runtime.h"
 #include "gui/animatingguibutton.h"

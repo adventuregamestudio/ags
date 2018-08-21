@@ -29,7 +29,6 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/override_defines.h" //_getcwd()
 #include "util/directory.h"
-#include "util/filestream.h"
 #include "util/ini_util.h"
 #include "util/textstreamreader.h"
 #include "util/path.h"

@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/common.h"
 #include "ac/guicontrol.h"
 #include "ac/global_gui.h"

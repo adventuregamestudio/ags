@@ -48,8 +48,8 @@ public:
 
     virtual bool        IsValid() const = 0;
     virtual bool        EOS() const = 0;
-    virtual size_t      GetLength() const = 0;
-    virtual size_t      GetPosition() const = 0;
+    virtual soff_t      GetLength() const = 0;
+    virtual soff_t      GetPosition() const = 0;
     virtual bool        CanRead() const = 0;
     virtual bool        CanWrite() const = 0;
     virtual bool        CanSeek() const = 0;
@@ -81,7 +81,7 @@ public:
     virtual size_t      WriteArrayOfInt32(const int32_t *buffer, size_t count) = 0;
     virtual size_t      WriteArrayOfInt64(const int64_t *buffer, size_t count) = 0;
 
-    virtual size_t      Seek(int offset, StreamSeek origin = kSeekCurrent) = 0;
+    virtual soff_t      Seek(soff_t offset, StreamSeek origin = kSeekCurrent) = 0;
 };
 
 } // namespace Common

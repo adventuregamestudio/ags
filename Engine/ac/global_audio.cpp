@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"

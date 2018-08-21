@@ -45,12 +45,12 @@ bool ProxyStream::EOS() const
     return _stream ? _stream->EOS() : true;
 }
 
-size_t ProxyStream::GetLength() const
+soff_t ProxyStream::GetLength() const
 {
     return _stream ? _stream->GetLength() : 0;
 }
 
-size_t ProxyStream::GetPosition() const
+soff_t ProxyStream::GetPosition() const
 {
     return _stream ? _stream->GetPosition() : -1;
 }
@@ -160,7 +160,7 @@ size_t ProxyStream::WriteArrayOfInt64(const int64_t *buffer, size_t count)
     return _stream ? _stream->WriteArrayOfInt64(buffer, count) : 0;
 }
 
-size_t ProxyStream::Seek(int offset, StreamSeek origin)
+soff_t ProxyStream::Seek(soff_t offset, StreamSeek origin)
 {
     return _stream ? _stream->Seek(offset, origin) : -1;
 }

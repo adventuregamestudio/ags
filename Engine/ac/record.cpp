@@ -29,7 +29,7 @@
 #include "util/string_utils.h"
 #include "gfx/gfxfilter.h"
 #include "device/mousew32.h"
-#include "util/filestream.h"
+#include "util/file.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

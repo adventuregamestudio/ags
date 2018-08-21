@@ -22,6 +22,7 @@
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 #endif
 
+#include <stdio.h> // sprintf
 #include "ac/common.h"
 #include "ac/spritecache.h"
 #include "core/assetmanager.h"

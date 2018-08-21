@@ -53,7 +53,6 @@
 #include "main/main_allegro.h"
 #include "media/audio/sound.h"
 #include "ac/spritecache.h"
-#include "util/filestream.h"
 #include "gfx/graphicsdriver.h"
 #include "core/assetmanager.h"
 #include "util/misc.h"

@@ -44,15 +44,6 @@
 #ifndef __MISC_H
 #define __MISC_H
 
-#include <stdio.h>
-
-#if !defined (WINDOWS_VERSION)
-#include <unistd.h>
-#include <dirent.h>
-#include <string.h>
-#include <sys/stat.h>
-#endif
-
 #include "util/file.h"
 
 namespace AGS { namespace Common { class Stream; } }

@@ -14,7 +14,6 @@
 
 #ifdef _DEBUG
 
-#include <stdio.h>
 #include <string.h>
 #include "util/path.h"
 #include "util/string.h"

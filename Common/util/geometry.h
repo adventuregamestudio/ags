@@ -137,8 +137,8 @@ struct Size
 
     inline void Clamp(const Size floor, const Size ceil)
     {
-        Width = AGSMath::Clamp(floor.Width, ceil.Width, Width);
-        Height = AGSMath::Clamp(floor.Height, ceil.Height, Height);
+        Width = AGSMath::Clamp(Width, floor.Width, ceil.Width);
+        Height = AGSMath::Clamp(Height, floor.Height, ceil.Height);
     }
 
     // Indicates if current size exceeds other size by any metric

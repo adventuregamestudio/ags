@@ -109,8 +109,8 @@ void mgetgraphpos()
         if (!ignore_bounds &&
             (mousex < boundx1 || mousey < boundy1 || mousex > boundx2 || mousey > boundy2))
         {
-            mousex = Math::Clamp(boundx1, boundx2, mousex);
-            mousey = Math::Clamp(boundy1, boundy2, mousey);
+            mousex = Math::Clamp(mousex, boundx1, boundx2);
+            mousey = Math::Clamp(mousey, boundy1, boundy2);
             msetgraphpos(mousex, mousey);
         }
         return;
@@ -143,8 +143,8 @@ void mgetgraphpos()
         // to stay inside the rect's bounds.
         else if (Mouse::ConfineInCtrlRect)
         {
-            real_mouse_x = Math::Clamp(Mouse::ControlRect.Left, Mouse::ControlRect.Right, real_mouse_x + dx);
-            real_mouse_y = Math::Clamp(Mouse::ControlRect.Top, Mouse::ControlRect.Bottom, real_mouse_y + dy);
+            real_mouse_x = Math::Clamp(real_mouse_x + dx, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
+            real_mouse_y = Math::Clamp(real_mouse_y + dy, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
             position_mouse(real_mouse_x, real_mouse_y);
         }
         // Lastly, if the real cursor is out of the control rect, simply add
@@ -173,8 +173,8 @@ void mgetgraphpos()
     if (!ignore_bounds &&
         (mousex < boundx1 || mousey < boundy1 || mousex > boundx2 || mousey > boundy2))
     {
-        mousex = Math::Clamp(boundx1, boundx2, mousex);
-        mousey = Math::Clamp(boundy1, boundy2, mousey);
+        mousex = Math::Clamp(mousex, boundx1, boundx2);
+        mousey = Math::Clamp(mousey, boundy1, boundy2);
         msetgraphpos(mousex, mousey);
     }
 

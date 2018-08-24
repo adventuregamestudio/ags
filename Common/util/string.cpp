@@ -287,8 +287,8 @@ bool String::FindSection(char separator, size_t first, size_t last, bool exclude
     {
         // correct the indices to stay in the [0; length] range
         assert(slice_from <= slice_to);
-        from = Math::Clamp((size_t)0, _meta->Length, slice_from);
-        to   = Math::Clamp((size_t)0, _meta->Length, slice_to);
+        from = Math::Clamp(slice_from, (size_t)0, _meta->Length);
+        to   = Math::Clamp(slice_to, (size_t)0, _meta->Length);
         return true;
     }
     return false;
@@ -353,7 +353,7 @@ String String::Left(size_t count) const
 
 String String::Mid(size_t from, size_t count) const
 {
-    Math::ClampLength((size_t)0, GetLength(), from, count);
+    Math::ClampLength(from, count, (size_t)0, GetLength());
     return count == GetLength() ? *this : String(GetCStr() + from, count);
 }
 
@@ -682,7 +682,7 @@ void String::ReplaceMid(size_t from, size_t count, const char *cstr)
     if (!cstr)
         cstr = "";
     size_t length = strlen(cstr);
-    Math::ClampLength((size_t)0, GetLength(), from, count);
+    Math::ClampLength(from, count, (size_t)0, GetLength());
     ReserveAndShift(false, Math::Surplus(length, count));
     memmove(_meta->CStr + from + length, _meta->CStr + from + count, GetLength() - (from + count) + 1);
     memcpy(_meta->CStr + from, cstr, length);
@@ -791,7 +791,7 @@ void String::TruncateToMid(size_t from, size_t count)
 {
     if (_meta)
     {
-        Math::ClampLength((size_t)0, _meta->Length, from, count);
+        Math::ClampLength(from, count, (size_t)0, _meta->Length);
         if (from > 0 || count < _meta->Length)
         {
             BecomeUnique();

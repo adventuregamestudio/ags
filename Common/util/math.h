@@ -38,13 +38,13 @@ namespace Math
     }
 
     template <class T>
-    inline const T &Clamp(const T &floor, const T &ceil, const T &val)
+    inline const T &Clamp(const T &val, const T &floor, const T &ceil)
     {
         return Max<T>(floor, Min<T>(val, ceil));
     }
 
     template <class T>
-    inline void ClampLength(const T &floor, const T &height, T &from, T &length)
+    inline void ClampLength(T &from, T &length, const T &floor, const T &height)
     {
         if (from < floor)
         {

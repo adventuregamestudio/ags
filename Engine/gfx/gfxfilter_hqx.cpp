@@ -59,7 +59,7 @@ Bitmap* HqxGfxFilter::InitVirtualScreen(Bitmap *screen, const Size src_size, con
 
     // Choose used algorithm depending on minimal required integer scaling
     int min_scaling = Math::Min(dst_rect.GetWidth() / src_size.Width, dst_rect.GetHeight() / src_size.Height);
-    min_scaling = Math::Clamp(2, 3, min_scaling);
+    min_scaling = Math::Clamp(min_scaling, 2, 3);
     if (min_scaling == 2)
         _pfnHqx = hq2x_32;
     else

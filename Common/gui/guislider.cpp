@@ -62,7 +62,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
 
     if (MinValue >= MaxValue)
         MaxValue = MinValue + 1;
-    Value = Math::Clamp(MinValue, MaxValue, Value);
+    Value = Math::Clamp(Value, MinValue, MaxValue);
   
     // it's a horizontal slider
     if (IsHorizontal())
@@ -195,7 +195,7 @@ void GUISlider::OnMouseMove(int x, int y)
     else
         Value = (int)(((float)(((Y + Height) - y) - 2) / (float)(Height - 4)) * (float)(MaxValue - MinValue)) + MinValue;
 
-    Value = Math::Clamp(MinValue, MaxValue, Value);
+    Value = Math::Clamp(Value, MinValue, MaxValue);
     guis_need_update = 1;
     IsActivated = true;
 }

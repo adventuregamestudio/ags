@@ -61,8 +61,8 @@ struct GameState {
     int  speech_music_drop;      // how much to drop music volume by when speech is played
     int  in_cutscene;            // we are between a StartCutscene and EndCutscene
     int  fast_forward;           // player has elected to skip cutscene
-    int  room_width;      // width of current room (320-res co-ordinates)
-    int  room_height;     // height of current room (320-res co-ordinates)
+    int  room_width;      // width of current room
+    int  room_height;     // height of current room
     // ** up to here is referenced in the plugin interface
     int  game_speed_modifier;
     int  score_sound;

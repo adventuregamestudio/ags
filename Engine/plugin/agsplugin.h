@@ -112,8 +112,8 @@ struct AGSGameOptions {
   int32 speech_music_drop;      // how much to drop music volume by when speech is played
   int32 in_cutscene;            // we are between a StartCutscene and EndCutscene
   int32 fast_forward;           // player has elected to skip cutscene
-  int32 room_width;      // width of current room (320-res co-ordinates)
-  int32 room_height;     // height of current room (320-res co-ordinates)
+  int32 room_width;             // width of current room
+  int32 room_height;            // height of current room
 };
 
 // AGSCharacter.flags

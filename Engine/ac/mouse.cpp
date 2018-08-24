@@ -70,16 +70,26 @@ int Mouse_GetVisible() {
     return 1;
 }
 
-void SetMouseBounds (int x1, int y1, int x2, int y2) {
-    if ((x1 == 0) && (y1 == 0) && (x2 == 0) && (y2 == 0)) {
-        x2 = BASEWIDTH-1;
-        y2 = MOUSE_MAX_Y - 1;
+void SetMouseBounds(int x1, int y1, int x2, int y2)
+{
+    int xmax = BASEWIDTH - 1;
+    int ymax = MOUSE_MAX_Y - 1;
+    if ((x1 == 0) && (y1 == 0) && (x2 == 0) && (y2 == 0))
+    {
+        x2 = xmax;
+        y2 = ymax;
     }
-    if (x2 == BASEWIDTH) x2 = BASEWIDTH-1;
-    if (y2 == MOUSE_MAX_Y) y2 = MOUSE_MAX_Y - 1;
-    if ((x1 > x2) || (y1 > y2) || (x1 < 0) || (x2 >= BASEWIDTH) ||
-        (y1 < 0) || (y2 >= MOUSE_MAX_Y))
-        quit("!SetMouseBounds: invalid co-ordinates, must be within (0,0) - (320,200)");
+    else
+    {
+        if (x1 < 0 || x1 > xmax || x2 < 0 || x2 > xmax || x1 > x2 || y1 < 0 || y1 > ymax || y2 < 0 || y2 > ymax || y1 > y2)
+            debug_script_warn("SetMouseBounds: arguments are out of range and will be corrected: (%d,%d)-(%d,%d), range is (%d,%d)-(%d,%d)",
+                x1, y1, x2, y2, 0, 0, xmax, ymax);
+        x1 = Math::Clamp(x1, 0, xmax);
+        x2 = Math::Clamp(x2, x1, xmax);
+        y1 = Math::Clamp(y1, 0, ymax);
+        y2 = Math::Clamp(y2, y1, ymax);
+    }
+
     debug_script_log("Mouse bounds constrained to (%d,%d)-(%d,%d)", x1, y1, x2, y2);
     multiply_up_coordinates(&x1, &y1);
     multiply_up_coordinates_round_up(&x2, &y2);

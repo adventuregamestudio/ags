@@ -36,7 +36,8 @@ void LogFile::PrintMessage(const DebugMessage &msg)
         if (_filePath.IsEmpty())
             return;
         // Delayed file open
-        if (!OpenFile(_filePath, _openMode))
+        String fp = _filePath; // the file gets reset before reopening, so we need to save filepath in a local var
+        if (!OpenFile(fp, _openMode))
         {
             Debug::Printf("Unable to write log to '%s'.", _filePath.GetCStr());
             _filePath = "";

@@ -20,6 +20,7 @@
 #define __AGS_CN_CORE__ASSET_H
 
 #include <vector>
+#include "api/stream_api.h"
 #include "util/string.h"
 
 namespace AGS
@@ -33,8 +34,8 @@ struct AssetInfo
     // A pair of filename and libuid is assumed to be unique in game scope
     String      FileName;   // filename associated with asset
     int32_t     LibUid;     // uid of library, containing this asset
-    int         Offset;     // asset's position in library file (in bytes)
-    int         Size;       // asset's size (in bytes)
+    soff_t      Offset;     // asset's position in library file (in bytes)
+    soff_t      Size;       // asset's size (in bytes)
 
     AssetInfo();
 };

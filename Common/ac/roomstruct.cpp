@@ -166,7 +166,7 @@ int usesmisccond = 0;
 void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_file_header rfh) {
   int   f, gsmod, NUMREAD;
   char  buffre[3000];
-  long  tesl;
+  soff_t tesl;
 
   usesmisccond = 0;
   rstruc->width = 320;
@@ -601,7 +601,7 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
 
   int   thisblock = 0;
-  int   bloklen;
+  soff_t bloklen;
 
   while (thisblock != BLOCKTYPE_EOF) {
     update_polled_stuff_if_runtime();
@@ -610,7 +610,10 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
     if (thisblock == BLOCKTYPE_EOF)
       break;
 
-    bloklen = opty->ReadInt32();
+    if (rfh.version < kRoomVersion_3422)
+        bloklen = opty->ReadInt32();
+    else
+        bloklen = opty->ReadInt64();
     bloklen += opty->GetPosition();  // make it the new position for after block read
 
     if (thisblock == BLOCKTYPE_MAIN)
@@ -665,7 +668,7 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
     }
     else if (thisblock == BLOCKTYPE_ANIMBKGRND) {
       int   ct;
-      long  fpos;
+      soff_t fpos;
 
       rstruc->num_bscenes = opty->ReadByte();
       rstruc->bscene_anim_speed = opty->ReadByte();

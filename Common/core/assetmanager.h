@@ -68,8 +68,8 @@ enum AssetError
 struct AssetLocation
 {
     String      FileName;   // file where asset is located
-    int         Offset;     // asset's position in file (in bytes)
-    int         Size;       // asset's size (in bytes)
+    soff_t      Offset;     // asset's position in file (in bytes)
+    soff_t      Size;       // asset's size (in bytes)
 
     AssetLocation();
 };
@@ -97,10 +97,10 @@ public:
     static int          GetAssetCount();
     static String       GetLibraryForAsset(const String &asset_name);
     static String       GetAssetFileByIndex(int index);
-    static long         GetAssetOffset(const String &asset_name);
-    static long         GetAssetSize(const String &asset_name);
+    static soff_t       GetAssetOffset(const String &asset_name);
+    static soff_t       GetAssetSize(const String &asset_name);
     // TODO: instead of this support streams that work in a file subsection, limited by size
-    static long         GetLastAssetSize();
+    static soff_t       GetLastAssetSize();
     // TODO: this is a workaround that lets us use back-end specific kind of streams
     // to read the asset data. This is not ideal, because it limits us to reading from file.
     // The better solution could be returning a standart stream object (like std::stream,
@@ -124,9 +124,9 @@ private:
     int         _GetAssetCount();    
     String      _GetLibraryForAsset(const String &asset_name);
     String      _GetAssetFileByIndex(int index);
-    long        _GetAssetOffset(const String &asset_name);
-    long        _GetAssetSize(const String &asset_name);
-    long        _GetLastAssetSize();
+    soff_t      _GetAssetOffset(const String &asset_name);
+    soff_t      _GetAssetSize(const String &asset_name);
+    soff_t      _GetLastAssetSize();
 
     AssetError  RegisterAssetLib(const String &data_file, const String &password);
 
@@ -145,7 +145,7 @@ private:
 
     AssetLibInfo            &_assetLib;
     String                  _basePath;          // library's parent path (directory)
-    long                    _lastAssetSize;     // size of asset that was opened last time
+    soff_t                  _lastAssetSize;     // size of asset that was opened last time
 };
 
 } // namespace Common

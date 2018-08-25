@@ -34,16 +34,21 @@ namespace MFLUtil
     static const size_t V10LibFileLen    = 20;
     static const size_t V10AssetFileLen  = 25;
 
+    static const int EncryptionRandSeed  = 9338638;
     static const String EncryptionString = "My\x1\xde\x4Jibzle";
 
-    MFLError ReadSigsAndVersion(Stream *in, int *p_lib_version, long *p_abs_offset);
-    MFLError ReadSingleFileLib(AssetLibInfo &lib, Stream *in, int lib_version);
-    MFLError ReadMultiFileLib(AssetLibInfo &lib, Stream *in, int lib_version);
-    MFLError ReadV10(AssetLibInfo &lib, Stream *in, int lib_version);
+    MFLError ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_version, soff_t *p_abs_offset);
+    MFLError ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
+    MFLError ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
+    MFLError ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
     MFLError ReadV20(AssetLibInfo &lib, Stream *in);
     MFLError ReadV21(AssetLibInfo &lib, Stream *in);
+    MFLError ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
 
-    // Decryption routines
+    void     WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *out);
+
+    // Encryption / decryption 
+    int      GetNextPseudoRand(int &rand_val);
     void     DecryptText(char *text);
     void     ReadEncArray(void *data, size_t size, size_t count, Stream *in, int &rand_val);
     int8_t   ReadEncInt8(Stream *in, int &rand_val);
@@ -54,11 +59,11 @@ namespace MFLUtil
 
 MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)
 {
-    int lib_version;
+    MFLVersion lib_version;
     MFLError err = ReadSigsAndVersion(in, &lib_version, NULL);
     if (err == kMFLNoError)
     {
-        if (lib_version >= 10 && test_is_main)
+        if (lib_version >= kMFLVersion_MultiV10 && test_is_main)
         {
             // this version supports multiple data files, check if it is the first one
             if (in->ReadByte() != 0)
@@ -70,13 +75,13 @@ MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)
 
 MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
 {
-    int lib_version;
-    long abs_offset;
+    MFLVersion lib_version;
+    soff_t abs_offset;
     MFLError err = ReadSigsAndVersion(in, &lib_version, &abs_offset);
     if (err != kMFLNoError)
         return err;
 
-    if (lib_version >= 10)
+    if (lib_version >= kMFLVersion_MultiV10)
     {
         // read newer clib versions (versions 10+)
         err = ReadMultiFileLib(lib, in, lib_version);
@@ -101,33 +106,52 @@ MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
     return err;
 }
 
-MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, int *p_lib_version, long *p_abs_offset)
+MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_version, soff_t *p_abs_offset)
 {
-    long abs_offset = 0; // library offset in this file
+    soff_t abs_offset = 0; // library offset in this file
     String sig;
     // check multifile lib signature at the beginning of file
     sig.ReadCount(in, HeadSig.GetLength());
     if (HeadSig.Compare(sig) != 0)
     {
         // signature not found, check signature at the end of file
-        in->Seek(-(int)TailSig.GetLength(), kSeekEnd);
+        in->Seek(-(soff_t)TailSig.GetLength(), kSeekEnd);
         sig.ReadCount(in, TailSig.GetLength());
         // signature not found, return error code
         if (TailSig.Compare(sig) != 0)
             return kMFLErrNoLibSig;
 
-        // it's an appended-to-end-of-exe thing
-        in->Seek(-(int)TailSig.GetLength() - sizeof(int32_t), kSeekEnd);
-        // read multifile lib offset value
-        abs_offset = in->ReadInt32();
-        in->Seek(abs_offset + HeadSig.GetLength(), kSeekBegin);
+        // it's an appended-to-end-of-exe thing;
+        // now we need to read multifile lib offset value, but we do not know
+        // if its 32-bit or 64-bit yet, so we'll have to test both
+        in->Seek(-(soff_t)TailSig.GetLength() - sizeof(int64_t), kSeekEnd);
+        abs_offset = in->ReadInt64();
+        in->Seek(-(soff_t)sizeof(int32_t), kSeekCurrent);
+        soff_t abs_offset_32 = in->ReadInt32();
+
+        // test for header signature again, with 64-bit and 32-bit offsets if necessary
+        in->Seek(abs_offset, kSeekBegin);
+        sig.ReadCount(in, HeadSig.GetLength());
+        if (HeadSig.Compare(sig) != 0)
+        {
+            abs_offset = abs_offset_32;
+            in->Seek(abs_offset, kSeekBegin);
+            sig.ReadCount(in, HeadSig.GetLength());
+            if (HeadSig.Compare(sig) != 0)
+            {
+                // nope, no luck, bad / unknown format
+                return kMFLErrNoLibSig;
+            }
+        }
     }
+    // if we've reached this point we must be right behind the header signature
 
     // read library header
-    int lib_version = in->ReadByte();
-    if ((lib_version != 6) && (lib_version != 10) &&
-        (lib_version != 11) && (lib_version != 15) &&
-        (lib_version != 20) && (lib_version != 21))
+    MFLVersion lib_version = (MFLVersion)in->ReadByte();
+    if ((lib_version != kMFLVersion_SingleLib) && (lib_version != kMFLVersion_MultiV10) &&
+        (lib_version != kMFLVersion_MultiV11) && (lib_version != kMFLVersion_MultiV15) &&
+        (lib_version != kMFLVersion_MultiV20) && (lib_version != kMFLVersion_MultiV21) &&
+        lib_version != kMFLVersion_MultiV30)
         return kMFLErrLibVersion; // unsupported version
 
     if (p_lib_version)
@@ -137,7 +161,7 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, int *p_lib_version, lo
     return kMFLNoError;
 }
 
-MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, int lib_version)
+MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version)
 {
     int passwmodifier = in->ReadByte();
     in->ReadInt8(); // unused byte
@@ -172,17 +196,22 @@ MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, int 
     return kMFLNoError;
 }
 
-MFLUtil::MFLError MFLUtil::ReadMultiFileLib(AssetLibInfo &lib, Stream *in, int lib_version)
+MFLUtil::MFLError MFLUtil::ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version)
 {
     if (in->ReadByte() != 0)
         return kMFLErrNoLibBase; // not first datafile in chain
 
-    if (lib_version >= 21)
+    if (lib_version >= kMFLVersion_MultiV30)
+    {
+        // read new clib format with 64-bit files support
+        return ReadV30(lib, in, lib_version);
+    }
+    if (lib_version >= kMFLVersion_MultiV21)
     {
         // read new clib format with encoding support (versions 21+)
         return ReadV21(lib, in);
     }
-    else if (lib_version == 20)
+    else if (lib_version == kMFLVersion_MultiV20)
     {
         // read new clib format without encoding support (version 20)
         return ReadV20(lib, in);
@@ -191,7 +220,7 @@ MFLUtil::MFLError MFLUtil::ReadMultiFileLib(AssetLibInfo &lib, Stream *in, int l
     return ReadV10(lib, in, lib_version);
 }
 
-MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, Stream *in, int lib_version)
+MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib_version)
 {
     // number of clib parts
     size_t mf_count = in->ReadInt32();
@@ -211,7 +240,7 @@ MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, Stream *in, int lib_versio
     for (size_t i = 0; i < asset_count; ++i)
     {
         in->Read(fn_buf, V10AssetFileLen);
-        if (lib_version >= 11)
+        if (lib_version >= kMFLVersion_MultiV11)
             DecryptText(fn_buf);
         lib.AssetInfos[i].FileName = fn_buf;
     }
@@ -289,6 +318,76 @@ MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, Stream *in)
     for (size_t i = 0; i < asset_count; ++i)
         lib.AssetInfos[i].LibUid = ReadEncInt8(in, rand_val);
     return kMFLNoError;
+}
+
+MFLUtil::MFLError MFLUtil::ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion /* lib_version */)
+{
+    // NOTE: removed encryption like in v21, because it makes little sense
+    // with open-source program. But if really wanted it may be restored
+    // as one of the options here.
+    /* int flags = */ in->ReadInt32(); // reserved options
+    // number of clib parts
+    size_t mf_count = in->ReadInt32();
+    lib.LibFileNames.resize(mf_count);
+    // filenames for all clib parts
+    for (size_t i = 0; i < mf_count; ++i)
+        lib.LibFileNames[i] = String::FromStream(in);
+
+    // number of files in clib
+    size_t asset_count = in->ReadInt32();
+    // read information on clib contents
+    lib.AssetInfos.resize(asset_count);
+    for (AssetVec::iterator it = lib.AssetInfos.begin(); it != lib.AssetInfos.end(); ++it)
+    {
+        it->FileName = String::FromStream(in);
+        it->LibUid = in->ReadInt8();
+        it->Offset = in->ReadInt64();
+        it->Size = in->ReadInt64();
+    }
+    return kMFLNoError;
+}
+
+void MFLUtil::WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out)
+{
+    out->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
+    out->WriteByte(lib_version);
+    out->WriteByte(lib_index);   // file number
+
+    // First datafile in chain: write the table of contents
+    if (lib_index == 0)
+    {
+        WriteV30(lib, lib_version, out);
+    }
+}
+
+void MFLUtil::WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *out)
+{
+    out->WriteInt32(0); // reserved options
+    // filenames for all library parts
+    out->WriteInt32(lib.LibFileNames.size());
+    for (size_t i = 0; i < lib.LibFileNames.size(); ++i)
+    {
+        StrUtil::WriteCStr(lib.LibFileNames[i], out);
+    }
+
+    // table of contents for all assets in library
+    out->WriteInt32(lib.AssetInfos.size());
+    for (AssetVec::const_iterator it = lib.AssetInfos.begin(); it != lib.AssetInfos.end(); ++it)
+    {
+        StrUtil::WriteCStr(it->FileName, out);
+        out->WriteInt8(it->LibUid);
+        out->WriteInt64(it->Offset);
+        out->WriteInt64(it->Size);
+    }
+}
+
+void MFLUtil::WriteEnder(soff_t lib_offset, MFLVersion lib_index, Stream *out)
+{
+    if (lib_index < kMFLVersion_MultiV30)
+        out->WriteInt32((int32_t)lib_offset);
+    else
+        out->WriteInt64(lib_offset);
+    out->Write(TailSig, TailSig.GetLength());
 }
 
 void MFLUtil::DecryptText(char *text)

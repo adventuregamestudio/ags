@@ -38,10 +38,7 @@ struct color
 };
 #endif
 
-#ifndef __CJONES_H
-long csavecompressed(char *, __block, color[256], long = 0);
-long cloadcompressed(char *, __block, color *, long = 0);
-#endif
+soff_t csavecompressed(char *, __block, color[256], soff_t = 0);
 
 void cpackbitl(unsigned char *line, int size, Stream *out)
 {
@@ -152,7 +149,7 @@ void cpackbitl32(unsigned int *line, int size, Stream *out)
 }
 
 
-long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
+soff_t csavecompressed(char *finam, __block tobesaved, color pala[256], soff_t exto)
 {
   Stream *outpt;
 
@@ -164,7 +161,7 @@ long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
     outpt = ci_fopen(finam, Common::kFile_CreateAlways, Common::kFile_Write);
 
   int widt, hit;
-  long ofes;
+  soff_t ofes;
   widt = *tobesaved++;
   widt += (*tobesaved++) * 256;
   hit = *tobesaved++;
@@ -323,9 +320,9 @@ int bmp_bpp(Bitmap*bmpt) {
   return bmpt->GetColorDepth() / 8;
 }
 
-long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
+soff_t save_lzw(char *fnn, Bitmap *bmpp, color *pall, soff_t offe) {
   Stream  *lz_temp_s, *out;
-  long  fll, toret, gobacto;
+  soff_t  fll, toret, gobacto;
 
   lz_temp_s = ci_fopen(lztempfnm, Common::kFile_CreateAlways, Common::kFile_Write);
   lz_temp_s->WriteInt32(bmpp->GetWidth() * bmpp->GetBPP());
@@ -356,13 +353,9 @@ long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
   return toret;
 }
 
-/*long load_lzw(char*fnn,Bitmap*bmm,color*pall,long ooff) {
-  recalced=bmm;
-  FILE*iii=clibfopen(fnn,"rb");
-  Seek(iii,ooff,SEEK_SET);*/
-
-long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
-  int          uncompsiz, *loptr;
+soff_t load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
+  soff_t        uncompsiz;
+  int           *loptr;
   unsigned char *membuffer;
   int           arin;
 
@@ -445,10 +438,10 @@ long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
   return uncompsiz;
 }
 
-long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long write_at) {
+soff_t savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, soff_t write_at) {
   unsigned char *wgtbl = (unsigned char *)malloc(bmpp->GetWidth() * bmpp->GetHeight() + 4);
   short         *sss = (short *)wgtbl;
-  long          toret;
+  soff_t         toret;
 
   sss[0] = bmpp->GetWidth();
   sss[1] = bmpp->GetHeight();
@@ -460,7 +453,7 @@ long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long w
   return toret;
 }
 
-long loadcompressed_allegro(Stream *in, Common::Bitmap **bimpp, color *pall, long read_at) {
+soff_t loadcompressed_allegro(Stream *in, Common::Bitmap **bimpp, color *pall, soff_t /* read_at */) {
   short widd,hitt;
   int   ii;
 
@@ -484,5 +477,3 @@ long loadcompressed_allegro(Stream *in, Common::Bitmap **bimpp, color *pall, lon
 
   return in->GetPosition();
 }
-
-

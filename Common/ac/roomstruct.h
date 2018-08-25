@@ -57,7 +57,7 @@ using AGS::Common::InteractionVariable;
 29:  v3.0.3 - high-res coords for object x/y, edges and hotspot walk-to point
 30:  v3.4.0.4 - tint luminance for regions
 31:  v3.4.1.5 - removed room object and hotspot name length limits
-32:  v3.4.2.2 - 64-bit file offsets
+32:  v3.5.0 - 64-bit file offsets
 */
 enum RoomFileVersion
 {
@@ -90,8 +90,8 @@ enum RoomFileVersion
     kRoomVersion_303b       = 29,
     kRoomVersion_3404       = 30,
     kRoomVersion_3415       = 31,
-    kRoomVersion_3422       = 32,
-    kRoomVersion_Current    = kRoomVersion_3422
+    kRoomVersion_350        = 32,
+    kRoomVersion_Current    = kRoomVersion_350
 };
 
 // thisroom.options[0] = startup music

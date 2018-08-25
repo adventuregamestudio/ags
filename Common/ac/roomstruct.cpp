@@ -610,7 +610,7 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
     if (thisblock == BLOCKTYPE_EOF)
       break;
 
-    if (rfh.version < kRoomVersion_3422)
+    if (rfh.version < kRoomVersion_350)
         bloklen = opty->ReadInt32();
     else
         bloklen = opty->ReadInt64();

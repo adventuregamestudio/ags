@@ -3983,7 +3983,7 @@ System::String ^load_room_script(System::String ^fileName)
 			break;
 		}
 
-		soff_t blockLen = version < kRoomVersion_3422 ? opty->ReadInt32() : opty->ReadInt64();
+		soff_t blockLen = version < kRoomVersion_350 ? opty->ReadInt32() : opty->ReadInt64();
 
 		if (thisblock == BLOCKTYPE_SCRIPT) 
 		{
@@ -4440,7 +4440,7 @@ void load_graphical_scripts(Stream*iii,roomstruct*rst) {
       doneMsg = true;
     }
     // skip the data
-    long lee = rst->wasversion < kRoomVersion_3422 ? iii->ReadInt32() : iii->ReadInt64();
+    long lee = rst->wasversion < kRoomVersion_350 ? iii->ReadInt32() : iii->ReadInt64();
     iii->Seek (lee);
   }
 }

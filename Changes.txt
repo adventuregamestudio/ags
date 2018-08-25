@@ -1,17 +1,20 @@
 REVISION HISTORY
 ================
-VERSION 3.4.2 - Alpha
+VERSION 3.5.0 - Alpha
 
 Common features:
- - Removed font limit.
+ - Support for large files: compiled game, sprite files, room files now may exceed 2 GB.
+ - Removed fonts limit.
 
 Editor:
- - Editor requires .NET Framework 4.0 to run.
+ - Editor requires .NET Framework 4.5 to run. Dropped Windows XP support.
  - Editor preferences are now stored using .NET configuration model, instead of the
    Windows registry.
  - Added support for custom UI color themes.
  - New navigation bar in the room editor, which allows to select any room object
    or region for editing, show/hide and lock room objects and regions in any combination.
+   These settings are saved in the special roomXXX.crm.user files.
+ - Removed Locked property from the Room Object, objects are now locked by the navbar.
  - Improved how Room zoom slider works, now supports downscale.
  - Added "Export mask to file" tool button to the Room Editor.
  - Added "Always"choice to "Popup message on compile" preference. Successful compilation
@@ -33,8 +36,11 @@ Engine:
    extend, it should also reduce the size of the save files.
    The engine is still capable of loading older saves, temporarily.
  - Prevent game from crashing if there was an attempt to draw text with a non-existing font.
+ - SetMouseBounds() no longer crashes the game if it is called with arguments out of range,
+   these parameters are corrected and a warning logged instead.
  - Expanded some of the error messages providing more information to end-user and developers.
  - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
+ - Fixed 'warnings.log' could never be created (was broken in earlier versions).
 
 Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.
@@ -69,7 +75,7 @@ Editor:
  - Font's line spacing and offset are now used when displaying GUI previews.
 
 Engine:
- - Removed limit on maximal asset files in a game package.
+ - Removed limit on maximal number of asset files in a game package.
  - Fixed game refused to start at all if speech.vox has bad format.
  - Fixed DynamicSprite.SaveToFile() was not appending default  "bmp" extension
    if user did not specify one.

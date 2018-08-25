@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
+using System.IO;
 using System.Windows.Forms;
 using AGS.Editor.Preferences;
 
@@ -24,7 +20,10 @@ namespace AGS.Editor
 
             foreach (RecentGame game in Factory.AGSEditor.Settings.RecentGames)
             {
-                lstRecentGames.Items.Add(game.Name).SubItems.Add(game.Path);
+                if (Directory.Exists(game.Path))
+                {
+                    lstRecentGames.Items.Add(game.Name).SubItems.Add(game.Path);
+                }
             }
 
             if (lstRecentGames.Items.Count == 0)

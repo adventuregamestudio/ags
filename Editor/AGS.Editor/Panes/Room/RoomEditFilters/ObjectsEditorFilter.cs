@@ -297,6 +297,7 @@ namespace AGS.Editor
                 if (Factory.GUIController.ShowQuestion("Are you sure you want to delete this object?") == DialogResult.Yes)
                 {
                     _room.Objects.Remove(_selectedObject);
+                    _objectBaselines.Remove(_selectedObject);
                     RemoveObjectRef(_selectedObject);
                     foreach (RoomObject obj in _room.Objects)
                     {

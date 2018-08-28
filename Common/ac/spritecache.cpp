@@ -158,14 +158,14 @@ void SpriteCache::Set(sprkey_t index, Bitmap *sprite)
     _spriteData[index].Image = sprite;
 }
 
-void SpriteCache::setNonDiscardable(sprkey_t index, Bitmap *sprite)
+void SpriteCache::SetSpriteAndLock(sprkey_t index, Bitmap *sprite)
 {
     EnlargeTo(index + 1);
     _spriteData[index].Image = sprite;
     _spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
 }
 
-void SpriteCache::removeSprite(sprkey_t index, bool freeMemory)
+void SpriteCache::RemoveSprite(sprkey_t index, bool freeMemory)
 {
     if ((_spriteData[index].Image != NULL) && (freeMemory))
         delete _spriteData[index].Image;
@@ -505,7 +505,7 @@ void SpriteCache::compressSprite(Bitmap *sprite, Stream *out)
     }
 }
 
-int SpriteCache::saveToFile(const char *filnam, sprkey_t lastElement, bool compressOutput)
+int SpriteCache::SaveToFile(const char *filnam, sprkey_t lastElement, bool compressOutput)
 {
     Stream *output = Common::File::CreateFile(filnam);
     if (output == NULL)
@@ -902,17 +902,22 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
     return true;
 }
 
-void SpriteCache::detachFile()
+void SpriteCache::DetachFile()
 {
     delete _stream;
     _stream = NULL;
     _lastLoad = -2;
 }
 
-int SpriteCache::attachFile(const char *filename)
+int SpriteCache::AttachFile(const char *filename)
 {
     _stream = Common::AssetManager::OpenAsset((char *)filename);
     if (_stream == NULL)
         return -1;
     return 0;
+}
+
+bool SpriteCache::IsFileCompressed() const
+{
+    return _compressed;
 }

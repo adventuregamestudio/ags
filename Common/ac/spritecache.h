@@ -76,6 +76,8 @@ public:
     sprkey_t    EnlargeTo(sprkey_t newsize);
     // Finds a free slot index, if all slots are occupied enlarges sprite bank; returns index
     sprkey_t    AddNewSprite();
+    // Assigns bitmap to the given slot and locks it to prevent release from cache
+    void        SetSpriteAndLock(sprkey_t index, Common::Bitmap *);
     // Returns current size of the cache, in bytes
     size_t      GetCacheSize() const;
     // Gets the total size of the locked sprites, in bytes
@@ -84,10 +86,10 @@ public:
     size_t      GetMaxCacheSize() const;
     // Returns number of sprite slots in the bank (this includes both actual sprites and free slots)
     sprkey_t    GetSpriteSlotCount() const;
-    // Loads sprite reference information and inits sprite stream
-    int         InitFile(const char *);
     // Loads sprite and and locks in memory (so it cannot get removed implicitly)
     void        Precache(sprkey_t index);
+    // Unregisters sprite from the bank and optionally deletes bitmap
+    void        RemoveSprite(sprkey_t index, bool freeMemory);
     // Removes all loaded images from the cache
     void        RemoveAll();
     // Deletes all data and resets cache to the clear state
@@ -97,19 +99,25 @@ public:
     // Sets max cache size in bytes
     void        SetMaxCacheSize(size_t size);
 
+    // Loads sprite reference information and inits sprite stream
+    int         InitFile(const char *filename);
+    // Tells if bitmaps in the file are compressed
+    bool        IsFileCompressed() const;
+    // Opens file stream
+    int         AttachFile(const char *filename);
+    // Closes file stream
+    void        DetachFile();
+    // Saves all sprites until lastElement (exclusive) to file 
+    int         SaveToFile(const char *filename, sprkey_t lastElement, bool compressOutput);
+
     // Loads (if it's not in cache yet) and returns bitmap by the sprite index
     Common::Bitmap *operator[] (sprkey_t index);
 
 private:
     size_t loadSprite(sprkey_t);
     void seekToSprite(sprkey_t index);
-    void setNonDiscardable(sprkey_t, Common::Bitmap *);
-    void removeSprite(sprkey_t, bool);
     void removeOldest();
     void init(sprkey_t reserve_count = 1);
-    int  saveToFile(const char *, sprkey_t lastElement, bool compressOutput);
-    void detachFile();
-    int  attachFile(const char *);
 
     // Information required for the sprite streaming
     // TODO: make compatible with large (over 2GB) files

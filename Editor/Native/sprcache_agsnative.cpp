@@ -20,17 +20,16 @@ void get_new_size_for_sprite(int ee, int ww, int hh, int &newwid, int &newhit) {
   newwid = ww;
   newhit = hh;
 }
-int spritewidth[MAX_SPRITES + 5], spriteheight[MAX_SPRITES + 5];
 
-void SpriteCache::initFile_adjustBuffers(short numspri)
+void SpriteCache::initFile_adjustBuffers(sprkey_t numspri)
 {
-  // do nothing
+    // adjust the buffers to the sprite file size
+    EnlargeTo(numspri + 1);
 }
 
-void SpriteCache::initFile_initNullSpriteParams(int vv)
+void SpriteCache::initFile_initNullSpriteParams(sprkey_t index)
 {
-  // no sprite ... blank it out
-  spritewidth[vv] = 0;
-  spriteheight[vv] = 0;
-  offsets[vv] = 0;
+    // no sprite ... blank it out
+    _sprInfos[index] = SpriteInfo();
+    _spriteData[index] = SpriteData();
 }

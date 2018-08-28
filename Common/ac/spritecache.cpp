@@ -816,7 +816,7 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
 
   fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
   fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
-  if (fileVersion <= kSprfVersion_Last32bit)
+  if (fileVersion <= kSpridxfVersion_Last32bit)
   {
       for (int i = 0; i < numsprits; ++i)
           offsets[i] = fidx->ReadInt32();

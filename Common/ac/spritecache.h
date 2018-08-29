@@ -20,8 +20,6 @@
 // Perhaps an interface which would allow multiple implementation depending
 // on compression type.
 //
-// TODO: use 64-bit file offsets for over 2GB files.
-//
 // TODO: store sprite data in a specialized container type that is optimized
 // for having most keys allocated in large continious sequences by default.
 //
@@ -59,6 +57,27 @@ using namespace AGS; // FIXME later
 #else
 #define DEFAULTCACHESIZE 128 * 1024 * 1024
 #endif
+
+// TODO: research old version differences
+enum SpriteFileVersion
+{
+    kSprfVersion_Uncompressed = 4,
+    kSprfVersion_Compressed = 5,
+    kSprfVersion_Last32bit = 6,
+    kSprfVersion_64bit = 10,
+    kSprfVersion_HighSpriteLimit = 11,
+    kSprfVersion_Current = kSprfVersion_HighSpriteLimit
+};
+
+enum SpriteIndexFileVersion
+{
+    kSpridxfVersion_Initial = 1,
+    kSpridxfVersion_Last32bit = 2,
+    kSpridxfVersion_64bit = 10,
+    kSpridxfVersion_HighSpriteLimit = 11,
+    kSpridxfVersion_Current = kSpridxfVersion_HighSpriteLimit
+};
+
 
 typedef int32_t sprkey_t;
 
@@ -109,15 +128,18 @@ public:
     void        DetachFile();
     // Saves all sprites until lastElement (exclusive) to file 
     int         SaveToFile(const char *filename, sprkey_t lastElement, bool compressOutput);
+    // Saves sprite index table in a separate file
+    int         SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sprkey_t lastslot, sprkey_t numsprits,
+        const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs);
 
     // Loads (if it's not in cache yet) and returns bitmap by the sprite index
     Common::Bitmap *operator[] (sprkey_t index);
 
 private:
-    size_t loadSprite(sprkey_t);
-    void seekToSprite(sprkey_t index);
-    void removeOldest();
-    void init(sprkey_t reserve_count = 1);
+    void        Init(sprkey_t reserve_count = 1);
+    size_t      LoadSprite(sprkey_t index);
+    void        SeekToSprite(sprkey_t index);
+    void        RemoveOldest();
 
     // Information required for the sprite streaming
     // TODO: make compatible with large (over 2GB) files
@@ -158,8 +180,12 @@ private:
     int _liststart;
     int _listend;
 
-    void compressSprite(Common::Bitmap *sprite, Common::Stream *out);
-    bool loadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t numspri);
+    // Loads sprite index file
+    bool        LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t numspri);
+    // Rebuilds sprite index from the main sprite file
+    int         RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t numspri, SpriteFileVersion vers);
+    // Writes compressed sprite to the stream
+    void        CompressSprite(Common::Bitmap *sprite, Common::Stream *out);
 
     void initFile_adjustBuffers(sprkey_t numspri);
     void initFile_initNullSpriteParams(sprkey_t index);

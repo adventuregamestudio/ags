@@ -44,25 +44,6 @@ extern void get_new_size_for_sprite(int, int, int, int &, int &);
 const char *spindexid = "SPRINDEX";
 const char *spindexfilename = "sprindex.dat";
 
-// TODO: research old version differences
-enum SpriteFileVersion
-{
-    kSprfVersion_Uncompressed = 4,
-    kSprfVersion_Compressed = 5,
-    kSprfVersion_Last32bit = 6,
-    kSprfVersion_64bit = 10,
-    kSprfVersion_Current = kSprfVersion_64bit
-};
-
-enum SpriteIndexFileVersion
-{
-    kSpridxfVersion_Initial = 1,
-    kSpridxfVersion_Last32bit = 2,
-    kSpridxfVersion_64bit = 10,
-    kSpridxfVersion_Current = kSpridxfVersion_64bit
-};
-
-
 
 SpriteInfo::SpriteInfo()
     : Flags(0)
@@ -92,7 +73,7 @@ SpriteCache::SpriteCache(sprkey_t reserve_count, std::vector<SpriteInfo> &sprInf
 {
     _sprite0InitialOffset = 0;
     _compressed = false;
-    init(reserve_count);
+    Init(reserve_count);
 }
 
 size_t SpriteCache::GetCacheSize() const
@@ -120,7 +101,7 @@ void SpriteCache::SetMaxCacheSize(size_t size)
     _maxCacheSize = size;
 }
 
-void SpriteCache::init(sprkey_t reserve_count)
+void SpriteCache::Init(sprkey_t reserve_count)
 {
     delete _stream;
     _stream = NULL;
@@ -149,7 +130,7 @@ void SpriteCache::Reset()
     _mrulist.clear();
     _mrubacklink.clear();
 
-    init();
+    Init();
 }
 
 void SpriteCache::Set(sprkey_t index, Bitmap *sprite)
@@ -231,7 +212,7 @@ Bitmap *SpriteCache::operator [] (sprkey_t index)
 
     // if sprite exists in file but is not in mem, load it
     if ((_spriteData[index].Image == NULL) && (_spriteData[index].Offset > 0))
-        loadSprite(index);
+        LoadSprite(index);
 
     // Locked sprite, eg. mouse cursor, that shouldn't be discarded
     if (_spriteData[index].Flags & SPRCACHEFLAG_LOCKED)
@@ -270,7 +251,7 @@ Bitmap *SpriteCache::operator [] (sprkey_t index)
 }
 
 // Remove the oldest cache element
-void SpriteCache::removeOldest()
+void SpriteCache::RemoveOldest()
 {
     if (_liststart < 0)
         return;
@@ -352,7 +333,7 @@ void SpriteCache::Precache(sprkey_t index)
     soff_t sprSize = 0;
 
     if (_spriteData[index].Image == NULL)
-        sprSize = loadSprite(index);
+        sprSize = LoadSprite(index);
     else if (!(_spriteData[index].Flags & SPRCACHEFLAG_LOCKED))
         sprSize = _spriteData[index].Size;
 
@@ -367,19 +348,19 @@ void SpriteCache::Precache(sprkey_t index)
 #endif
 }
 
-void SpriteCache::seekToSprite(sprkey_t index)
+void SpriteCache::SeekToSprite(sprkey_t index)
 {
     if (index - 1 != _lastLoad)
         _stream->Seek(_spriteData[index].Offset, kSeekBegin);
 }
 
-size_t SpriteCache::loadSprite(sprkey_t index)
+size_t SpriteCache::LoadSprite(sprkey_t index)
 {
     int hh = 0;
 
     while (_cacheSize > _maxCacheSize)
     {
-        removeOldest();
+        RemoveOldest();
         hh++;
         if (hh > 1000)
         {
@@ -392,7 +373,7 @@ size_t SpriteCache::loadSprite(sprkey_t index)
         quit("sprite cache array index out of bounds");
 
     // If we didn't just load the previous sprite, seek to it
-    seekToSprite(index);
+    SeekToSprite(index);
 
     int coldep = _stream->ReadInt16();
 
@@ -484,7 +465,7 @@ size_t SpriteCache::loadSprite(sprkey_t index)
 
 const char *spriteFileSig = " Sprite File ";
 
-void SpriteCache::compressSprite(Bitmap *sprite, Stream *out)
+void SpriteCache::CompressSprite(Bitmap *sprite, Stream *out)
 {
     int depth = sprite->GetColorDepth() / 8;
 
@@ -536,25 +517,27 @@ int SpriteCache::SaveToFile(const char *filnam, sprkey_t lastElement, bool compr
     if (_spriteData.size() < (size_t)lastElement)
         lastElement = (sprkey_t)_spriteData.size();
 
-    for (sprkey_t i = 1; i < lastElement; i++)
+    for (sprkey_t i = 1; i < lastElement; ++i)
     {
         // slot empty
         if ((_spriteData[i].Image != NULL) || ((_spriteData[i].Offset != 0) && (_spriteData[i].Offset != _sprite0InitialOffset)))
             lastslot = i;
     }
 
-    output->WriteInt16(lastslot);
+    output->WriteInt32(lastslot);
 
     // allocate buffers to store the indexing info
     sprkey_t numsprits = lastslot + 1;
-    short *spritewidths = new short[numsprits];
-    short *spriteheights = new short[numsprits];
-    soff_t *spriteoffs = new soff_t[numsprits];
+    std::vector<int16_t> spritewidths, spriteheights;
+    std::vector<soff_t> spriteoffs;
+    spritewidths.resize(numsprits);
+    spriteheights.resize(numsprits);
+    spriteoffs.resize(numsprits);
 
     const int memBufferSize = 100000;
     char *memBuffer = new char[memBufferSize];
 
-    for (sprkey_t i = 0; i <= lastslot; i++)
+    for (sprkey_t i = 0; i <= lastslot; ++i)
     {
         spriteoffs[i] = output->GetPosition();
 
@@ -580,7 +563,7 @@ int SpriteCache::SaveToFile(const char *filnam, sprkey_t lastElement, bool compr
                 // write some space for the length data
                 output->WriteInt32(0);
 
-                compressSprite(image, output);
+                CompressSprite(image, output);
 
                 size_t fileSizeSoFar = output->GetPosition();
                 // write the length of the compressed data
@@ -606,7 +589,7 @@ int SpriteCache::SaveToFile(const char *filnam, sprkey_t lastElement, bool compr
         }
 
         // not in memory -- seek to it in the source file
-        seekToSprite(i);
+        SeekToSprite(i);
         _lastLoad = i;
 
         short colDepth = _stream->ReadInt16();
@@ -658,6 +641,12 @@ int SpriteCache::SaveToFile(const char *filnam, sprkey_t lastElement, bool compr
     delete [] memBuffer;
     delete output;
 
+    return SaveSpriteIndex(spindexfilename, spriteFileIDCheck, lastslot, numsprits, spritewidths, spriteheights, spriteoffs);
+}
+
+int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sprkey_t lastslot, sprkey_t numsprits,
+                                    const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs)
+{
     // write the sprite index file
     Stream *spindex_out = File::CreateFile(spindexfilename);
     // write "SPRINDEX" id
@@ -673,10 +662,6 @@ int SpriteCache::SaveToFile(const char *filnam, sprkey_t lastElement, bool compr
     spindex_out->WriteArrayOfInt16(&spriteheights[0], numsprits);
     spindex_out->WriteArrayOfInt64(&spriteoffs[0], numsprits);
     delete spindex_out;
-
-    delete [] spritewidths;
-    delete [] spriteheights;
-    delete [] spriteoffs;
     return 0;
 }
 
@@ -685,7 +670,6 @@ int SpriteCache::InitFile(const char *filnam)
     SpriteFileVersion vers;
     char buff[20];
     sprkey_t numspri = 0;
-    int wdd, htt;
     soff_t spr_initial_offs = 0;
     int spriteFileID = 0;
 
@@ -704,7 +688,7 @@ int SpriteCache::InitFile(const char *filnam)
     // read the "Sprite File" signature
     _stream->ReadArray(&buff[0], 13, 1);
 
-    if (vers < kSprfVersion_Uncompressed || vers > kSprfVersion_64bit)
+    if (vers < kSprfVersion_Uncompressed || vers > kSprfVersion_Current)
     {
         delete _stream;
         _stream = NULL;
@@ -740,14 +724,17 @@ int SpriteCache::InitFile(const char *filnam)
         _stream->Seek(256 * 3); // sizeof(RGB) * 256
     }
 
-    numspri = _stream->ReadInt16();
+    if (vers < kSprfVersion_HighSpriteLimit)
+        numspri = _stream->ReadInt16();
+    else
+        numspri = _stream->ReadInt32();
     if (vers < kSprfVersion_Uncompressed)
         numspri = 200;
 
     initFile_adjustBuffers(numspri);
 
     // if there is a sprite index file, use it
-    if (loadSpriteIndexFile(spriteFileID, spr_initial_offs, numspri))
+    if (LoadSpriteIndexFile(spriteFileID, spr_initial_offs, numspri))
     {
         // Succeeded
         return 0;
@@ -757,13 +744,18 @@ int SpriteCache::InitFile(const char *filnam)
     // TODO: refactor loading process and make it NOT delete file running the game!!
     unlink(spindexfilename);
 
+    return RebuildSpriteIndex(_stream, numspri, vers);
+}
+
+int SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t numspri, SpriteFileVersion vers)
+{
     // no sprite index file, manually index it
     for (sprkey_t i = 0; i <= numspri; ++i)
     {
-        _spriteData[i].Offset = _stream->GetPosition();
+        _spriteData[i].Offset = in->GetPosition();
         _spriteData[i].Flags = 0;
 
-        int coldep = _stream->ReadInt16();
+        int coldep = in->ReadInt16();
 
         if (coldep == 0)
         {
@@ -772,13 +764,13 @@ int SpriteCache::InitFile(const char *filnam)
 
             initFile_initNullSpriteParams(i);
 
-            if (_stream->EOS())
+            if (in->EOS())
                 break;
 
             continue;
         }
 
-        if (_stream->EOS())
+        if (in->EOS())
             break;
 
         if ((size_t)i >= _spriteData.size())
@@ -786,9 +778,8 @@ int SpriteCache::InitFile(const char *filnam)
 
         _spriteData[i].Image = NULL;
 
-        wdd = _stream->ReadInt16();
-        htt = _stream->ReadInt16();
-
+        int wdd = in->ReadInt16();
+        int htt = in->ReadInt16();
         _sprInfos[i].Width = wdd;
         _sprInfos[i].Height = htt;
         get_new_size_for_sprite(i, wdd, htt, _sprInfos[i].Width, _sprInfos[i].Height);
@@ -796,26 +787,24 @@ int SpriteCache::InitFile(const char *filnam)
         size_t spriteDataSize;
         if (vers == kSprfVersion_Compressed)
         {
-            spriteDataSize = _stream->ReadInt32();
+            spriteDataSize = in->ReadInt32();
         }
         else if (vers >= kSprfVersion_Last32bit)
         {
-            spriteDataSize = this->_compressed ? _stream->ReadInt32() :
-            wdd * coldep * htt;
+            spriteDataSize = this->_compressed ? in->ReadInt32() : wdd * coldep * htt;
         }
         else
         {
             spriteDataSize = wdd * coldep * htt;
         }
-
-        _stream->Seek(spriteDataSize);
+        in->Seek(spriteDataSize);
     }
 
     _sprite0InitialOffset = _spriteData[0].Offset;
     return 0;
 }
 
-bool SpriteCache::loadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t numspri)
+bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t numspri)
 {
     sprkey_t numspri_index = 0;
     Stream *fidx = Common::AssetManager::OpenAsset((char*)spindexfilename);
@@ -834,13 +823,13 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
         return false;
     }
     // check version
-    SpriteIndexFileVersion fileVersion = (SpriteIndexFileVersion)fidx->ReadInt32();
-    if (fileVersion < kSpridxfVersion_Initial || fileVersion > kSpridxfVersion_Current)
+    SpriteIndexFileVersion vers = (SpriteIndexFileVersion)fidx->ReadInt32();
+    if (vers < kSpridxfVersion_Initial || vers > kSpridxfVersion_Current)
     {
         delete fidx;
         return false;
     }
-    if (fileVersion >= kSpridxfVersion_Last32bit)
+    if (vers >= kSpridxfVersion_Last32bit)
     {
         if (fidx->ReadInt32() != expectedFileID)
         {
@@ -870,7 +859,7 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
 
     fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
     fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
-    if (fileVersion <= kSpridxfVersion_Last32bit)
+    if (vers <= kSpridxfVersion_Last32bit)
     {
         for (sprkey_t i = 0; i < numsprits; ++i)
             spriteoffs[i] = fidx->ReadInt32();

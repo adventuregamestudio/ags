@@ -1413,10 +1413,10 @@ namespace AGS.Editor
                 writer.Write(game.Fonts[i].VerticalOffset);
                 writer.Write(game.Fonts[i].LineSpacing);
             }
-            writer.Write(NativeConstants.MAX_SPRITES);
-            byte[] spriteFlags = new byte[NativeConstants.MAX_SPRITES];
+            writer.Write(NativeConstants.MAX_STATIC_SPRITES);
+            byte[] spriteFlags = new byte[NativeConstants.MAX_STATIC_SPRITES];
             UpdateSpriteFlags(game.RootSpriteFolder, spriteFlags);
-            for (int i = 0; i < NativeConstants.MAX_SPRITES; ++i)
+            for (int i = 0; i < NativeConstants.MAX_STATIC_SPRITES; ++i)
             {
                 writer.Write(spriteFlags[i]);
             }

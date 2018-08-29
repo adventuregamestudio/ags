@@ -70,11 +70,6 @@ namespace AGS.Editor
             // udNumber
             // 
             this.udNumber.Location = new System.Drawing.Point(22, 49);
-            this.udNumber.Maximum = new decimal(new int[] {
-            30000,
-            0,
-            0,
-            0});
             this.udNumber.Name = "udNumber";
             this.udNumber.Size = new System.Drawing.Size(115, 20);
             this.udNumber.TabIndex = 5;

@@ -665,11 +665,7 @@ namespace AGS
             if (name->Equals("MAXTOPICOPTIONS")) return MAXTOPICOPTIONS;
             if (name->Equals("UNIFORM_WALK_SPEED")) return UNIFORM_WALK_SPEED;
             if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;
-            if (name->Equals("MAXMULTIFILES")) return MAXMULTIFILES;
-            if (name->Equals("RAND_SEED_SALT")) return Common::MFLUtil::EncryptionRandSeed;
             if (name->Equals("CHUNKSIZE")) return CHUNKSIZE;
-            if (name->Equals("CLIB_END_SIGNATURE")) return gcnew String(Common::MFLUtil::TailSig);
-            if (name->Equals("MAX_FILENAME_LENGTH")) return MAX_FILENAME_LENGTH;
             if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
             if (name->Equals("SPF_640x400")) return SPF_640x400;
             if (name->Equals("SPF_ALPHACHANNEL")) return SPF_ALPHACHANNEL;

@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/global_debug.h"
 #include "ac/common.h"
 #include "ac/characterinfo.h"

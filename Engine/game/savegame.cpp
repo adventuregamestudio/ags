@@ -178,9 +178,9 @@ void SkipSaveImage(Stream *in)
 HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
 {
     svg_ver = (SavegameVersion)in->ReadInt32();
-    if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
+    if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current || svg_ver == kSvgVersion_Components)
         return new SavegameError(kSvgErr_FormatVersionNotSupported,
-            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
+            String::FromFormat("Required: %d, supported: %d - %d (except 9).", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
 
     // Enviroment information
     if (elems & kSvgDesc_EnvInfo)
@@ -190,6 +190,7 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         desc.GameGuid = StrUtil::ReadString(in);
         desc.GameTitle = StrUtil::ReadString(in);
         desc.MainDataFilename = StrUtil::ReadString(in);
+        desc.MainDataVersion = (GameDataVersion)in->ReadInt32();
         desc.ColorDepth = in->ReadInt32();
     }
     else
@@ -199,6 +200,7 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         StrUtil::SkipString(in);
         StrUtil::SkipString(in);
         StrUtil::SkipString(in);
+        in->ReadInt32(); // game data version
         in->ReadInt32(); // color depth
     }
     // User description
@@ -312,6 +314,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
             desc->GameGuid = temp_desc.GameGuid;
             desc->GameTitle = temp_desc.GameTitle;
             desc->MainDataFilename = temp_desc.MainDataFilename;
+            desc->MainDataVersion = temp_desc.MainDataVersion;
             desc->ColorDepth = temp_desc.ColorDepth;
         }
         if (elems & kSvgDesc_UserText)
@@ -666,6 +669,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     StrUtil::WriteString(game.guid, out);
     StrUtil::WriteString(game.gamename, out);
     StrUtil::WriteString(usetup.main_data_filename, out);
+    out->WriteInt32(loaded_game_file_version);
     out->WriteInt32(game.GetColorDepth());
     // User description
     StrUtil::WriteString(user_text, out);

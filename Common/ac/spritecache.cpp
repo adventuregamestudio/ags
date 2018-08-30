@@ -22,6 +22,7 @@
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 #endif
 
+#include <stdio.h> // sprintf
 #include "ac/common.h"
 #include "ac/spritecache.h"
 #include "core/assetmanager.h"
@@ -46,6 +47,24 @@ extern int spritewidth[], spriteheight[];
 const char *spindexid = "SPRINDEX";
 const char *spindexfilename = "sprindex.dat";
 
+// TODO: research old version differences
+enum SpriteFileVersion
+{
+    kSprfVersion_Uncompressed   = 4,
+    kSprfVersion_Compressed     = 5,
+    kSprfVersion_Last32bit      = 6,
+    kSprfVersion_64bit          = 10,
+    kSprfVersion_Current        = kSprfVersion_64bit
+};
+
+enum SpriteIndexFileVersion
+{
+    kSpridxfVersion_Initial     = 1,
+    kSpridxfVersion_Last32bit   = 2,
+    kSpridxfVersion_64bit       = 10,
+    kSpridxfVersion_Current     = kSpridxfVersion_64bit
+};
+
 
 SpriteCache::SpriteCache(int32_t maxElements)
 {
@@ -67,12 +86,12 @@ void SpriteCache::changeMaxSize(int32_t maxElements) {
     free(sizes);
     free(flags);
   }
-  offsets = (int32_t *)calloc(elements, sizeof(int32_t));
-  memset(offsets, 0, elements*sizeof(int32_t));
+  offsets = (soff_t *)calloc(elements, sizeof(soff_t));
+  memset(offsets, 0, elements*sizeof(soff_t));
   images = (Bitmap **) calloc(elements, sizeof(Bitmap *));
   mrulist = (int *)calloc(elements, sizeof(int));
   mrubacklink = (int *)calloc(elements, sizeof(int));
-  sizes = (int *)calloc(elements, sizeof(int));
+  sizes = (soff_t *)calloc(elements, sizeof(soff_t));
   flags = (unsigned char *)calloc(elements, sizeof(unsigned char));
 }
 
@@ -136,11 +155,11 @@ int SpriteCache::enlargeTo(int32_t newsize) {
 
   int elementsWas = elements;
   elements = newsize;
-  offsets = (int32_t *)realloc(offsets, elements * sizeof(int32_t));
+  offsets = (soff_t *)realloc(offsets, elements * sizeof(soff_t));
   images = (Bitmap **)realloc(images, elements * sizeof(Bitmap *));
   mrulist = (int *)realloc(mrulist, elements * sizeof(int));
   mrubacklink = (int *)realloc(mrubacklink, elements * sizeof(int));
-  sizes = (int *)realloc(sizes, elements * sizeof(int));
+  sizes = (soff_t *)realloc(sizes, elements * sizeof(soff_t));
   flags = (unsigned char*)realloc(flags, elements * sizeof(unsigned char));
 
   for (int i = elementsWas; i < elements; i++) {
@@ -313,7 +332,7 @@ void SpriteCache::precache(int index)
   if ((index < 0) || (index >= elements))
     return;
 
-  int sprSize = 0;
+  soff_t sprSize = 0;
 
   if (images[index] == NULL) {
     sprSize = loadSprite(index);
@@ -338,7 +357,7 @@ void SpriteCache::seekToSprite(int index) {
       cache_stream->Seek(offsets[index], kSeekBegin);
 }
 
-int SpriteCache::loadSprite(int index)
+soff_t SpriteCache::loadSprite(int index)
 {
   int hh = 0;
 
@@ -414,7 +433,7 @@ int SpriteCache::loadSprite(int index)
   lastLoad = index;
 
   // Stop it adding the sprite to the used list just because it's loaded
-  int32_t offs = offsets[index];
+  soff_t offs = offsets[index];
   offsets[index] = SPRITE_LOCKED;
 
   initialize_sprite(index);
@@ -428,7 +447,7 @@ int SpriteCache::loadSprite(int index)
   cachesize += sizes[index];
 
 #ifdef DEBUG_SPRITECACHE
-  Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Loaded %d, size now %d KB", index, cachesize / 1024);
+  Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Loaded %d, size now %lld KB", index, cachesize / 1024);
 #endif
 
   return sizes[index];
@@ -471,8 +490,8 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
 
   int spriteFileIDCheck = (int)time(NULL);
 
-  // version 6
-  output->WriteInt16(6);
+  // sprite file version
+  output->WriteInt16(kSprfVersion_Current);
 
   output->WriteArray(spriteFileSig, strlen(spriteFileSig), 1);
 
@@ -495,7 +514,7 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
   int numsprits = lastslot + 1;
   short *spritewidths = (short*)malloc(numsprits * sizeof(short));
   short *spriteheights = (short*)malloc(numsprits * sizeof(short));
-  int32_t *spriteoffs = (int32_t*)malloc(numsprits * sizeof(int32_t));
+  soff_t *spriteoffs = (soff_t*)malloc(numsprits * sizeof(soff_t));
 
   const int memBufferSize = 100000;
   char *memBuffer = (char*)malloc(memBufferSize);
@@ -601,8 +620,8 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
   Stream *spindex_out = File::CreateFile(spindexfilename);
   // write "SPRINDEX" id
   spindex_out->WriteArray(&spindexid[0], strlen(spindexid), 1);
-  // write version (1)
-  spindex_out->WriteInt32(2);
+  // write version
+  spindex_out->WriteInt32(kSpridxfVersion_Current);
   spindex_out->WriteInt32(spriteFileIDCheck);
   // write last sprite number and num sprites, to verify that
   // it matches the spr file
@@ -610,7 +629,7 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
   spindex_out->WriteInt32(numsprits);
   spindex_out->WriteArrayOfInt16(&spritewidths[0], numsprits);
   spindex_out->WriteArrayOfInt16(&spriteheights[0], numsprits);
-  spindex_out->WriteArrayOfInt32(&spriteoffs[0], numsprits);
+  spindex_out->WriteArrayOfInt64(&spriteoffs[0], numsprits);
   delete spindex_out;
 
   free(spritewidths);
@@ -644,7 +663,7 @@ int SpriteCache::initFile(const char *filnam)
   // read the "Sprite File" signature
   cache_stream->ReadArray(&buff[0], 13, 1);
 
-  if ((vers < 4) || (vers > 6)) {
+  if ((vers < kSprfVersion_Uncompressed) || (vers > kSprfVersion_64bit)) {
     delete cache_stream;
     cache_stream = NULL;
     return -1;
@@ -658,24 +677,24 @@ int SpriteCache::initFile(const char *filnam)
     return -1;
   }
 
-  if (vers == 4)
+  if (vers == kSprfVersion_Uncompressed)
     this->spritesAreCompressed = false;
-  else if (vers == 5)
+  else if (vers == kSprfVersion_Compressed)
     this->spritesAreCompressed = true;
-  else if (vers >= 6)
+  else if (vers >= kSprfVersion_Last32bit)
   {
     this->spritesAreCompressed = (cache_stream->ReadInt8() == 1);
     spriteFileID = cache_stream->ReadInt32();
   }
 
-  if (vers < 5) {
+  if (vers < kSprfVersion_Compressed) {
     // skip the palette
       cache_stream->Seek(256 * 3);
   }
 
   numspri = cache_stream->ReadInt16();
 
-  if (vers < 4)
+  if (vers < kSprfVersion_Uncompressed)
     numspri = 200;
 
   initFile_adjustBuffers(numspri);
@@ -727,10 +746,10 @@ int SpriteCache::initFile(const char *filnam)
     get_new_size_for_sprite(wdd, htt, spritewidth[vv], spriteheight[vv]);
 
     int32_t spriteDataSize;
-    if (vers == 5) {
+    if (vers == kSprfVersion_Compressed) {
       spriteDataSize = cache_stream->ReadInt32();
     }
-    else if (vers >= 6)
+    else if (vers >= kSprfVersion_Last32bit)
     {
       spriteDataSize = this->spritesAreCompressed ? cache_stream->ReadInt32() :
         wdd * coldep * htt;
@@ -746,7 +765,7 @@ int SpriteCache::initFile(const char *filnam)
   return 0;
 }
 
-bool SpriteCache::loadSpriteIndexFile(int expectedFileID, int32_t spr_initial_offs, short numspri)
+bool SpriteCache::loadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, short numspri)
 {
   short numspri_index = 0;
   int vv;
@@ -765,12 +784,12 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, int32_t spr_initial_of
     return false;
   }
   // check version
-  int fileVersion = fidx->ReadInt32();
-  if ((fileVersion < 1) || (fileVersion > 2)) {
+  SpriteIndexFileVersion fileVersion = (SpriteIndexFileVersion)fidx->ReadInt32();
+  if ((fileVersion < kSpridxfVersion_Initial) || (fileVersion > kSpridxfVersion_Current)) {
     delete fidx;
     return false;
   }
-  if (fileVersion >= 2)
+  if (fileVersion >= kSpridxfVersion_Last32bit)
   {
     if (fidx->ReadInt32() != expectedFileID)
     {
@@ -797,7 +816,15 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, int32_t spr_initial_of
 
   fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
   fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
-  fidx->ReadArrayOfInt32(&offsets[0], numsprits);
+  if (fileVersion <= kSpridxfVersion_Last32bit)
+  {
+      for (int i = 0; i < numsprits; ++i)
+          offsets[i] = fidx->ReadInt32();
+  }
+  else // large file support
+  {
+      fidx->ReadArrayOfInt64(&offsets[0], numsprits);
+  }
 
   for (vv = 0; vv <= numspri; vv++) {
     flags[vv] = 0;

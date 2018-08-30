@@ -9,8 +9,16 @@ using System.Text;
 
 namespace AGS.Editor
 {
+    // TODO: split onto main game file reader/writer and asset library reader/writer
     public class DataFileWriter
     {
+        // Signatures of the asset library
+        public const string CLIB_BEGIN_SIGNATURE = "CLIB\x1a";
+        public const string CLIB_END_SIGNATURE = "CLIB\x1\x2\x3\x4SIGE";
+        public const int CLIB_VERSION = 30; // large file support, non-encoded
+        public const int MAXMULTIFILES = 256; // 1-byte index
+        public const int MAX_PATH = 260; // corresponds to WinAPI definition
+
         // TODO: probably move these GetAnsiBytes functions to some utility class
 
         // Converts unicode string into ANSI array of bytes; the returned array
@@ -149,6 +157,21 @@ namespace AGS.Editor
             return stream;
         }
 
+        static void FilePutInt8(byte val, BinaryWriter writer)
+        {
+            writer.Write((byte)val);
+        }
+
+        static void FilePutInt32(int val, BinaryWriter writer)
+        {
+            writer.Write((int)val);
+        }
+
+        static void FilePutInt64(long val, BinaryWriter writer)
+        {
+            writer.Write((long)val);
+        }
+
         class PseudoRandInt
         {
             private static PseudoRandInt _instance;
@@ -199,6 +222,11 @@ namespace AGS.Editor
             FileWriteDataEncrypted(BitConverter.GetBytes(numberToWrite), writer);
         }
 
+        /// <summary>
+        /// Writes string preceding it with 32-bit length value.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="writer"></param>
         static void FilePutString(string text, BinaryWriter writer)
         {
             if (String.IsNullOrEmpty(text))
@@ -211,6 +239,12 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Writes null-terminated string, limited by the given number of bytes.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="maxLen"></param>
+        /// <param name="writer"></param>
         static void FilePutNullTerminatedString(string text, int maxLen, BinaryWriter writer)
         {
             if (maxLen <= 0) return;
@@ -228,6 +262,11 @@ namespace AGS.Editor
             writer.Write(GetAnsiBytesTerminated(text, maxLen));
         }
 
+        /// <summary>
+        /// Writes null-terminated string.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="writer"></param>
         static void FilePutNullTerminatedString(string text, BinaryWriter writer)
         {
             if (string.IsNullOrEmpty(text))
@@ -236,32 +275,26 @@ namespace AGS.Editor
                 writer.Write(GetAnsiBytesTerminated(text));
         }
 
+        /// <summary>
+        /// Write asset library header with the table of contents.
+        /// Currently corresponds to writing main lib file in chain in format version 30.
+        /// </summary>
+        /// <param name="writer"></param>
         static void WriteCLIBHeader(BinaryWriter writer)
         {
-            int randSeed = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            writer.Write(randSeed - NativeConstants.RAND_SEED_SALT);
-            PseudoRandInt.InitializeInstance(randSeed);
-            FilePutIntEncrypted(ourlib.DataFilenames.Count, writer);
+            FilePutInt32(0, writer); // reserved options
+            FilePutInt32(ourlib.DataFilenames.Count, writer);
             for (int i = 0; i < ourlib.DataFilenames.Count; ++i)
             {
-                FilePutStringEncrypted(ourlib.DataFilenames[i], writer);
+                FilePutNullTerminatedString(ourlib.DataFilenames[i], writer);
             }
-            FilePutIntEncrypted(ourlib.Files.Count, writer);
+            FilePutInt32(ourlib.Files.Count, writer);
             for (int i = 0; i < ourlib.Files.Count; ++i)
             {
-                FilePutStringEncrypted(ourlib.Files[i].Filename, writer);
-            }
-            for (int i = 0; i < ourlib.Files.Count; ++i)
-            {
-                FileWriteDataEncrypted(BitConverter.GetBytes((int)ourlib.Files[i].Offset), writer);
-            }
-            for (int i = 0; i < ourlib.Files.Count; ++i)
-            {
-                FileWriteDataEncrypted(BitConverter.GetBytes((int)ourlib.Files[i].Length), writer);
-            }
-            for (int i = 0; i < ourlib.Files.Count; ++i)
-            {
-                FileWriteDataEncrypted(new byte[] { ourlib.Files[i].Datafile }, writer);
+                FilePutNullTerminatedString(ourlib.Files[i].Filename, writer);
+                FilePutInt8(ourlib.Files[i].Datafile, writer);
+                FilePutInt64(ourlib.Files[i].Offset, writer);
+                FilePutInt64(ourlib.Files[i].Length, writer);
             }
         }
 
@@ -330,7 +363,7 @@ namespace AGS.Editor
                         currentDataFile++;
                         sizeSoFar = 0;
                     }
-                    else if ((sizeSoFar > splitSize) && (doSplitting) && (currentDataFile < (NativeConstants.MAXMULTIFILES - 1)))
+                    else if ((sizeSoFar > splitSize) && (doSplitting) && (currentDataFile < (DataFileWriter.MAXMULTIFILES - 1)))
                     {
                         currentDataFile++;
                         sizeSoFar = 0;
@@ -343,7 +376,7 @@ namespace AGS.Editor
                 }
                 sizeSoFar += thisFileSize;
                 string fileNameSrc = Path.GetFileName(fileNames[i]);
-                if (fileNameSrc.Length >= NativeConstants.MAX_FILENAME_LENGTH)
+                if (fileNameSrc.Length >= DataFileWriter.MAX_PATH)
                 {
                     return "Filename too long: " + fileNames[i];
                 }
@@ -405,8 +438,8 @@ namespace AGS.Editor
                     if (wout == null) return "ERROR: unable to open file '" + outputFileName + "' for writing";
                     BinaryWriter writer = new BinaryWriter(wout);
                     startOffset = writer.BaseStream.Length;
-                    writer.Write("CLIB\x1A".ToCharArray());
-                    writer.Write((byte)21);
+                    writer.Write(CLIB_BEGIN_SIGNATURE.ToCharArray());
+                    writer.Write((byte)CLIB_VERSION);
                     writer.Write((byte)i);
                     if (i == 0)
                     {
@@ -441,8 +474,8 @@ namespace AGS.Editor
                     }
                     if (startOffset > 0)
                     {
-                        writer.Write((int)startOffset);
-                        writer.Write(NativeConstants.CLIB_END_SIGNATURE.ToCharArray());
+                        FilePutInt64(startOffset, writer);
+                        writer.Write(DataFileWriter.CLIB_END_SIGNATURE.ToCharArray());
                     }
                 }
             }

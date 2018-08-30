@@ -81,7 +81,7 @@
 #include "script/script_runtime.h"
 #include "util/alignedstream.h"
 #include "util/directory.h"
-#include "util/filestream.h"
+#include "util/filestream.h" // TODO: needed only because plugins expect file handle
 #include "util/path.h"
 #include "util/string_utils.h"
 

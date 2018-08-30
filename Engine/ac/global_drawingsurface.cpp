@@ -14,7 +14,6 @@
 
 // CLNUP the whole file could be safely removed
 /*
-#include <stdio.h>
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"

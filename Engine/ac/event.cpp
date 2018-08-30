@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "event.h"
 #include "ac/common.h"
 #include "ac/draw.h"

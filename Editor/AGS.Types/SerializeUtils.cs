@@ -59,9 +59,30 @@ namespace AGS.Types
             SerializeToXML(obj, writer, true);
         }
 
+        /// <summary>
+        /// Serializes whole object, creates parent node for its data.
+        /// Optionally may close the node or keep it open to let external code write more data into it.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="writer"></param>
+        /// <param name="writeEndElement"></param>
         public static void SerializeToXML(object obj, XmlTextWriter writer, bool writeEndElement)
         {
             writer.WriteStartElement(obj.GetType().Name);
+            SerializePropertiesToXML(obj, writer);
+            if (writeEndElement)
+            {
+                writer.WriteEndElement();
+            }
+        }
+
+        /// <summary>
+        /// Serializes properties of the object into the current node.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="writer"></param>
+        public static void SerializePropertiesToXML(object obj, XmlTextWriter writer)
+        {
             PropertyInfo[] properties = obj.GetType().GetProperties();
             foreach (PropertyInfo prop in properties)
             {
@@ -129,12 +150,13 @@ namespace AGS.Types
                     }
                 }
             }
-            if (writeEndElement)
-            {
-                writer.WriteEndElement();
-            }
         }
 
+        /// <summary>
+        /// Deserializes whole object from the node.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="node"></param>
         public static void DeserializeFromXML(object obj, XmlNode node)
         {
             XmlNode mainNode = node;
@@ -148,10 +170,20 @@ namespace AGS.Types
                 }
             }
 
+            DeserializePropertiesFromXML(obj, mainNode);
+        }
+
+        /// <summary>
+        /// Deserializes properties of the given object from the node.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="node"></param>
+        public static void DeserializePropertiesFromXML(object obj, XmlNode node)
+        {
             DeserializeIgnoreAttribute[] ignoreAttributes =
                 (DeserializeIgnoreAttribute[])obj.GetType().GetCustomAttributes(typeof(DeserializeIgnoreAttribute), true);
 
-            foreach (XmlNode child in mainNode.ChildNodes)
+            foreach (XmlNode child in node.ChildNodes)
             {
                 string elementValue = child.InnerText;
                 PropertyInfo prop = obj.GetType().GetProperty(child.Name);

@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include <string.h>
 #include "ac/game_version.h"
 #include "script/cc_error.h"

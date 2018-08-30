@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/overlay.h"
 #include "ac/common.h"
 #include "ac/view.h"

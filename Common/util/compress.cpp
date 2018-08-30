@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include <stdlib.h>
 #include "ac/common.h"	// quit()
 #include "util/compress.h"
@@ -27,7 +26,6 @@
 
 #include "util/misc.h"
 #include "util/stream.h"
-#include "util/filestream.h"
 #include "gfx/bitmap.h"
 
 using namespace AGS::Common;
@@ -151,7 +149,6 @@ void cpackbitl32(unsigned int *line, int size, Stream *out)
 void csavecompressed(Stream *out, const unsigned char * tobesaved, const color pala[256])
 {
   int widt, hit;
-  long ofes;
   widt = *tobesaved++;
   widt += (*tobesaved++) * 256;
   hit = *tobesaved++;
@@ -177,7 +174,6 @@ void csavecompressed(Stream *out, const unsigned char * tobesaved, const color p
       out->WriteInt8(pala[ww].b);
   }
 
-  ofes = out->GetPosition();
   free(ress);
 }
 
@@ -187,8 +183,7 @@ int cunpackbitl(unsigned char *line, int size, Stream *in)
 
   while (n < size) {
     int ix = in->ReadByte();     // get index byte
-    // TODO: revise when new error handling system is implemented
-    if (ferror(((Common::FileStream*)in)->GetHandle()))
+    if (in->HasErrors())
       break;
 
     char cx = ix;
@@ -217,8 +212,7 @@ int cunpackbitl(unsigned char *line, int size, Stream *in)
     }
   }
 
-  // TODO: revise when new error handling system is implemented
-  return ferror(((Common::FileStream*)in)->GetHandle());
+  return in->HasErrors() ? -1 : 0;
 }
 
 int cunpackbitl16(unsigned short *line, int size, Stream *in)
@@ -227,8 +221,7 @@ int cunpackbitl16(unsigned short *line, int size, Stream *in)
 
   while (n < size) {
     int ix = in->ReadByte();     // get index byte
-    // TODO: revise when new error handling system is implemented
-    if (ferror(((Common::FileStream*)in)->GetHandle()))
+    if (in->HasErrors())
       break;
 
     char cx = ix;
@@ -257,8 +250,7 @@ int cunpackbitl16(unsigned short *line, int size, Stream *in)
     }
   }
 
-  // TODO: revise when new error handling system is implemented
-  return ferror(((Common::FileStream*)in)->GetHandle());
+  return in->HasErrors() ? -1 : 0;
 }
 
 int cunpackbitl32(unsigned int *line, int size, Stream *in)
@@ -267,8 +259,7 @@ int cunpackbitl32(unsigned int *line, int size, Stream *in)
 
   while (n < size) {
     int ix = in->ReadByte();     // get index byte
-    // TODO: revise when new error handling system is implemented
-    if (ferror(((Common::FileStream*)in)->GetHandle()))
+    if (in->HasErrors())
       break;
 
     char cx = ix;
@@ -297,8 +288,7 @@ int cunpackbitl32(unsigned int *line, int size, Stream *in)
     }
   }
 
-  // TODO: revise when new error handling system is implemented
-  return ferror(((Common::FileStream*)in)->GetHandle());
+  return in->HasErrors() ? -1 : 0;
 }
 
 //=============================================================================
@@ -324,17 +314,17 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
 
   // Now open same file for reading, and begin writing compressed data into required output stream
   lz_temp_s = ci_fopen(lztempfnm);
-  size_t temp_sz = lz_temp_s->GetLength();
+  soff_t temp_sz = lz_temp_s->GetLength();
   out->WriteArray(&pall[0], sizeof(color), 256);
   out->WriteInt32(temp_sz);
-  size_t gobacto = out->GetPosition();
+  soff_t gobacto = out->GetPosition();
 
   // reserve space for compressed size
   out->WriteInt32(temp_sz);
   lzwcompress(lz_temp_s, out);
-  size_t toret = out->GetPosition();
+  soff_t toret = out->GetPosition();
   out->Seek(gobacto, kSeekBegin);
-  size_t compressed_sz = (toret - gobacto) - 4;
+  soff_t compressed_sz = (toret - gobacto) - 4;
   out->WriteInt32(compressed_sz);      // write compressed size
 
   // Delete temp file
@@ -345,8 +335,10 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
   out->Seek(toret, kSeekBegin);
 }
 
-long load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
-  int          uncompsiz, *loptr;
+void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall)
+{
+  soff_t        uncompsiz;
+  int           *loptr;
   unsigned char *membuffer;
   int           arin;
 
@@ -422,10 +414,10 @@ long load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
   update_polled_stuff_if_runtime();
 
   *dst_bmp = bmm;
-  return uncompsiz;
 }
 
-void savecompressed_allegro(Stream *out, const Bitmap *bmpp, const color *pall) {
+void savecompressed_allegro(Stream *out, const Bitmap *bmpp, const color *pall)
+{
   unsigned char *wgtbl = (unsigned char *)malloc(bmpp->GetWidth() * bmpp->GetHeight() + 4);
   short         *sss = (short *)wgtbl;
 
@@ -438,7 +430,8 @@ void savecompressed_allegro(Stream *out, const Bitmap *bmpp, const color *pall) 
   free(wgtbl);
 }
 
-long loadcompressed_allegro(Stream *in, Bitmap **bimpp, color *pall, long read_at) {
+void loadcompressed_allegro(Stream *in, Bitmap **bimpp, color *pall)
+{
   short widd,hitt;
   int   ii;
 
@@ -457,7 +450,4 @@ long loadcompressed_allegro(Stream *in, Bitmap **bimpp, color *pall, long read_a
   in->Seek(768);  // skip palette
 
   *bimpp = bim;
-  return in->GetPosition();
 }
-
-

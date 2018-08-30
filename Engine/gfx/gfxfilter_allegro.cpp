@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "gfx/gfxfilter_allegro.h"
 
 namespace AGS

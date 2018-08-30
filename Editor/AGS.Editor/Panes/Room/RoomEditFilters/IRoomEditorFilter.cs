@@ -9,6 +9,13 @@ namespace AGS.Editor
 {
     public interface IRoomEditorFilter : IDisposable
     {
+        /// <summary>
+        /// Internal ID of the filter.
+        /// </summary>
+        string Name { get; }
+        /// <summary>
+        /// Displayed name of the filter.
+        /// </summary>
         string DisplayName { get; }
         RoomAreaMaskType MaskToDraw { get; }
         int ItemCount { get; }
@@ -16,6 +23,11 @@ namespace AGS.Editor
         string HelpKeyword { get; }
         bool ShowTransparencySlider { get; }
         bool SupportVisibleItems { get; }
+
+        /// <summary>
+        /// Tells that the design-time properties of the layer or items were modified.
+        /// </summary>
+        bool Modified { get; set; }
 
         /// <summary>
         /// Gets/sets if this layer is visible.

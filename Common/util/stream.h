@@ -34,6 +34,8 @@ namespace Common
 class Stream : public IAGSStream
 {
 public:
+    // Tells if the stream has errors
+    virtual bool HasErrors() const { return false; }
     // Flush stream buffer to the underlying device
     virtual bool Flush() = 0;
 

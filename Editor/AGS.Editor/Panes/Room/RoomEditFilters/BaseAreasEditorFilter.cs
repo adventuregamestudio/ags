@@ -98,6 +98,7 @@ namespace AGS.Editor
             InitGameEntities();
         }
 
+        public abstract string Name { get; }
         public abstract string DisplayName { get; }
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
@@ -141,6 +142,7 @@ namespace AGS.Editor
 		}
 
         public bool SupportVisibleItems { get { return false; } }
+        public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
 

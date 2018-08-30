@@ -35,11 +35,11 @@ public:
     // Read single character
     virtual char    ReadChar()              = 0;
     // Read defined number of characters
-    virtual String ReadString(int length)  = 0;
+    virtual String  ReadString(size_t length) = 0;
     // Read till line break
-    virtual String ReadLine()              = 0;
+    virtual String  ReadLine()              = 0;
     // Read till end of available data
-    virtual String ReadAll()               = 0;
+    virtual String  ReadAll()               = 0;
 };
 
 } // namespace Common

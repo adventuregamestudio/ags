@@ -1,11 +1,10 @@
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #if defined (WINDOWS_VERSION)
 #include <windows.h>
 #endif
-#include "util/path.h"
 #include "allegro/file.h"
+#include "util/path.h"
+#include "util/stdio_compat.h"
 
 // TODO: implement proper portable path length
 #ifndef MAX_PATH
@@ -22,10 +21,10 @@ namespace Path
 
 bool IsDirectory(const String &filename)
 {
-    struct stat st;
+    struct stat_t st;
     // stat() does not like trailing slashes, remove them
     String fixed_path = MakePathNoSlash(filename);
-    if (stat(fixed_path, &st) == 0)
+    if (stat_fn(fixed_path, &st) == 0)
     {
         return (st.st_mode & S_IFMT) == S_IFDIR;
     }
@@ -34,8 +33,8 @@ bool IsDirectory(const String &filename)
 
 bool IsFile(const String &filename)
 {
-    struct stat st;
-    if (stat(filename, &st) == 0)
+    struct stat_t st;
+    if (stat_fn(filename, &st) == 0)
     {
         return (st.st_mode & S_IFMT) == S_IFREG;
     }

@@ -15,6 +15,7 @@ namespace AGS.Editor
         {
         }
 
+        public override string Name { get { return "Regions"; } }
         public override string DisplayName { get { return "Regions"; } }
 
         public override RoomAreaMaskType MaskToDraw

@@ -351,6 +351,7 @@
     <ClInclude Include="..\..\Common\util\multifilelib.h" />
     <ClInclude Include="..\..\Common\util\path.h" />
     <ClInclude Include="..\..\Common\util\proxystream.h" />
+    <ClInclude Include="..\..\Common\util\stdio_compat.h" />
     <ClInclude Include="..\..\Common\util\stdtr1compat.h" />
     <ClInclude Include="..\..\Common\util\stream.h" />
     <ClInclude Include="..\..\Common\util\string.h" />

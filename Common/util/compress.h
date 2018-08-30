@@ -15,14 +15,13 @@
 #ifndef __AC_COMPRESS_H
 #define __AC_COMPRESS_H
 
-#include <stdio.h>
+#include "core/types.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
 
 void csavecompressed(Common::Stream *out, const unsigned char * tobesaved, const color pala[256]);
-
 void cpackbitl(unsigned char *line, int size, Common::Stream *out);
 void cpackbitl16(unsigned short *line, int size, Common::Stream *out);
 void cpackbitl32(unsigned int *line, int size, Common::Stream *out);
@@ -33,8 +32,8 @@ int  cunpackbitl32(unsigned int *line, int size, Common::Stream *in);
 //=============================================================================
 
 void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const color *pall);
-long load_lzw(Common::Stream *in, Common::Bitmap **bmm, int dst_bpp, color *pall);
+void load_lzw(Common::Stream *in, Common::Bitmap **bmm, int dst_bpp, color *pall);
 void savecompressed_allegro(Common::Stream *out, const Common::Bitmap *bmpp, const color *pall);
-long loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall, long read_at);
+void loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall);
 
 #endif // __AC_COMPRESS_H

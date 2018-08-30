@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "gfx/gfxfilter_d3d.h"
 #ifdef WINDOWS_VERSION
 #include <d3d9.h>

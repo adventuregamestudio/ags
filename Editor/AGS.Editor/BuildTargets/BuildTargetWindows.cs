@@ -212,7 +212,7 @@ namespace AGS.Editor
                     using (FileStream ostream = File.Open(GetCompiledPath(baseGameFileName + ".exe"), FileMode.Append,
                         FileAccess.Write))
                     {
-                        int startPosition = (int)ostream.Position;
+                        long startPosition = ostream.Position;
                         using (FileStream istream = File.Open(fileName, FileMode.Open, FileAccess.Read))
                         {
                             const int bufferSize = 4096;
@@ -223,11 +223,12 @@ namespace AGS.Editor
                                 ostream.Write(buffer, 0, count);
                             }
                         }
+                        // TODO: use functions shared with DataFileWriter
                         // write the offset into the EXE where the first data file resides
-                        ostream.Write(BitConverter.GetBytes(startPosition), 0, 4);
+                        ostream.Write(BitConverter.GetBytes(startPosition), 0, 8);
                         // write the CLIB end signature so the engine knows this is a valid EXE
-                        ostream.Write(Encoding.UTF8.GetBytes(NativeConstants.CLIB_END_SIGNATURE.ToCharArray()), 0,
-                            NativeConstants.CLIB_END_SIGNATURE.Length);
+                        ostream.Write(Encoding.UTF8.GetBytes(DataFileWriter.CLIB_END_SIGNATURE.ToCharArray()), 0,
+                            DataFileWriter.CLIB_END_SIGNATURE.Length);
                     }
                 }
                 else if (!fileName.EndsWith(AGSEditor.CONFIG_FILE_NAME))

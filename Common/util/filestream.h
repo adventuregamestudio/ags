@@ -18,9 +18,9 @@
 #ifndef __AGS_CN_UTIL__FILESTREAM_H
 #define __AGS_CN_UTIL__FILESTREAM_H
 
-#include <stdio.h>
 #include "util/datastream.h"
 #include "util/file.h"
+#include "util/stdio_compat.h"
 
 namespace AGS
 {
@@ -34,6 +34,7 @@ public:
         DataEndianess stream_endianess = kLittleEndian);
     virtual ~FileStream();
 
+    virtual bool    HasErrors() const;
     virtual void    Close();
     virtual bool    Flush();
 
@@ -50,9 +51,9 @@ public:
     // Is end of stream
     virtual bool    EOS() const;
     // Total length of stream (if known)
-    virtual size_t  GetLength() const;
+    virtual soff_t  GetLength() const;
     // Current position (if known)
-    virtual size_t  GetPosition() const;
+    virtual soff_t  GetPosition() const;
     virtual bool    CanRead() const;
     virtual bool    CanWrite() const;
     virtual bool    CanSeek() const;
@@ -62,7 +63,7 @@ public:
     virtual size_t  Write(const void *buffer, size_t size);
     virtual int32_t WriteByte(uint8_t b);
 
-    virtual size_t  Seek(int offset, StreamSeek origin);
+    virtual soff_t  Seek(soff_t offset, StreamSeek origin);
 
 protected:
     void            Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);

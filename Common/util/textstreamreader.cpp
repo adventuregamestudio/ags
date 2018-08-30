@@ -68,7 +68,7 @@ char TextStreamReader::ReadChar()
     return '\0';
 }
 
-String TextStreamReader::ReadString(int length)
+String TextStreamReader::ReadString(size_t length)
 {
     if (!_stream)
     {
@@ -144,7 +144,8 @@ String TextStreamReader::ReadAll()
 {
     if (_stream)
     {
-        return ReadString(_stream->GetLength() - _stream->GetPosition());
+        soff_t len = _stream->GetLength() - _stream->GetPosition();
+        return ReadString(len > SIZE_MAX ? SIZE_MAX : (size_t)len);
     }
     return "";
 }

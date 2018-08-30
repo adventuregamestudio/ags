@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include <set>
-#include <stdio.h>
 #include "ac/listbox.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"

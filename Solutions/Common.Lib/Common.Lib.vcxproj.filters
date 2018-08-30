@@ -535,5 +535,8 @@
     <ClInclude Include="..\..\Common\game\roomstruct.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\stdio_compat.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

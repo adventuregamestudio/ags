@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "stdio.h"
 #include "gfx/gfxfilter_aad3d.h"
 
 #ifdef WINDOWS_VERSION

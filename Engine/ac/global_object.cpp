@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/global_object.h"
 #include "ac/common.h"
 #include "ac/object.h"

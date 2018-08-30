@@ -19,7 +19,7 @@
   * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
   * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
 * Specifically for the Editor:
-  * irrKlang assembly pack for .NET 4.0 ([Download](http://www.ambiera.at/downloads/irrKlang-32bit-1.5.0.zip)).
+  * irrKlang 1.6 (32-bit) assembly pack for .NET 4.5 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
 * To make manual and/or Windows installer:
   * Python 2.7 with PyWin32 extension ([Download](http://www.activestate.com/activepython/downloads))
   * InnoSetup 5.5 ([Download](http://www.jrsoftware.org/isdl.php))
@@ -124,4 +124,4 @@ Depending on the version of MSVS you are using you need to setup paths to compil
 
 If you are working with AGS.Editor.NoNative solution, then you do not have to make any of C++ libraries at all, but you will have to get compatible compiled AGS.Native.dll somewhere. For starters we suggest taking one from the latest release of AGS.
 
-In either case you also need to download [irrKlang assembly pack](http://www.ambiera.at/downloads/irrKlang-32bit-1.5.0.zip) and put its contents into Editor/References subdirectory.
+In either case you also need to download [irrKlang assembly pack](https://www.ambiera.com/irrklang/downloads.html) and put irrKlang.NET4.dll and ikpMP3.dll into Editor/References subdirectory.

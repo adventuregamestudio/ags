@@ -72,7 +72,7 @@ namespace AGS.Editor
          * 13: 3.4.0.9    - Settings.ScriptCompatLevel
          * 14: 3.4.1      - Settings.RenderAtScreenResolution
          * 15: 3.4.1.2    - DefaultSetup node
-         * 16: 3.4.2      - Unlimited fonts (need separate version to prevent crashes in older editors)
+         * 16: 3.5.0      - Unlimited fonts (need separate version to prevent crashes in older editors)
         */
         public const int    LATEST_XML_VERSION_INDEX = 16;
         /*
@@ -94,8 +94,8 @@ namespace AGS.Editor
         private const string XML_USER_DATA_ROOT_NODE_NAME = "AGSEditorUserData";
         private const string XML_ROOT_NODE_NAME = "AGSEditorDocument";
         private const string XML_ATTRIBUTE_VERSION = "Version";
-        private const string XML_ATTRIBUTE_VERSION_INDEX = "VersionIndex";
-        private const string XML_ATTRIBUTE_EDITOR_VERSION = "EditorVersion";
+        public const string XML_ATTRIBUTE_VERSION_INDEX = "VersionIndex";
+        public const string XML_ATTRIBUTE_EDITOR_VERSION = "EditorVersion";
         public const string COMPILED_DTA_FILE_NAME = "game28.dta";
         public const string CONFIG_FILE_NAME = "acsetup.cfg";
         public const string ENGINE_EXE_FILE_NAME = "acwin.exe";

@@ -844,7 +844,7 @@ int Character_GetLightLevel(CharacterInfo *ch)
 
 void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
 {
-    light_level = Math::Clamp(-100, 100, light_level);
+    light_level = Math::Clamp(light_level, -100, 100);
     
     charextra[chaa->index_id].tint_light = light_level;
     chaa->flags &= ~CHF_HASTINT;

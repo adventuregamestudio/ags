@@ -44,11 +44,11 @@ public:
     // Read single character
     virtual char    ReadChar();
     // Read defined number of characters
-    virtual String ReadString(int length);
+    virtual String  ReadString(size_t length);
     // Read till line break
-    virtual String ReadLine();
+    virtual String  ReadLine();
     // Read till end of available data
-    virtual String ReadAll();
+    virtual String  ReadAll();
 
 private:
     Stream *_stream;

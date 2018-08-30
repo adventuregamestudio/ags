@@ -64,7 +64,7 @@ void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
 
 void SetAmbientLightLevel(int light_level)
 {
-    light_level = Math::Clamp(-100, 100, light_level);
+    light_level = Math::Clamp(light_level, -100, 100);
 
     play.rtint_enabled = light_level != 0;
     play.rtint_level = 0;

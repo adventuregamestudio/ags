@@ -1733,63 +1733,8 @@ void calculate_walkable_areas () {
 
 namespace MFLUtil = AGS::Common::MFLUtil;
 
-#define MAX_FILES 10000
-#define MAX_DATAFILENAME_LENGTH 50
-struct MultiFileLibNew {
-  char data_filenames[MAXMULTIFILES][MAX_DATAFILENAME_LENGTH];
-  int  num_data_files;
-  char filenames[MAX_FILES][MAX_FILENAME_LENGTH];
-  long offset[MAX_FILES];
-  long length[MAX_FILES];
-  char file_datafile[MAX_FILES];  // number of datafile
-  int  num_files;
-  };
-MultiFileLibNew ourlib;
 
-//static const char *tempSetting = "My\x1\xde\x4Jibzle";  // clib password
-//extern void init_pseudo_rand_gen(int seed);
-//extern int get_pseudo_rand();
-
-void fwrite_data_enc(const void *data, int dataSize, int dataCount, Stream *ooo, int &rand_val)
-{
-  const unsigned char *dataChar = (const unsigned char*)data;
-  for (int i = 0; i < dataSize * dataCount; i++)
-  {
-    ooo->WriteByte(dataChar[i] + MFLUtil::GetNextPseudoRand(rand_val));
-  }
-}
-
-void fputstring_enc(const char *sss, Stream *ooo, int &rand_val) 
-{
-  fwrite_data_enc(sss, 1, strlen(sss) + 1, ooo, rand_val);
-}
-
-void putw_enc(int numberToWrite, Stream *ooo, int &rand_val)
-{
-  fwrite_data_enc(&numberToWrite, 4, 1, ooo, rand_val);
-}
-
-void write_clib_header(Stream*wout) {
-  int ff;
-  int randSeed = (int)time(NULL);
-  wout->WriteInt32(randSeed - MFLUtil::EncryptionRandSeed);
-  putw_enc(ourlib.num_data_files, wout, randSeed);
-  for (ff = 0; ff < ourlib.num_data_files; ff++)
-  {
-    fputstring_enc(ourlib.data_filenames[ff], wout, randSeed);
-  }
-  putw_enc(ourlib.num_files, wout, randSeed);
-  for (ff = 0; ff < ourlib.num_files; ff++) 
-  {
-    fputstring_enc(ourlib.filenames[ff], wout, randSeed);
-  }
-  fwrite_data_enc(&ourlib.offset[0],4,ourlib.num_files, wout, randSeed);
-  fwrite_data_enc(&ourlib.length[0],4,ourlib.num_files, wout, randSeed);
-  fwrite_data_enc(&ourlib.file_datafile[0],1,ourlib.num_files, wout, randSeed);
-}
-
-
-int copy_file_across(Stream*inlibb,Stream*coppy,long leftforthis) {
+int copy_file_across(Stream*inlibb,Stream*coppy, soff_t leftforthis) {
   int success = 1;
   char*diskbuffer=(char*)malloc(CHUNKSIZE+10);
   while (leftforthis>0) {
@@ -1810,44 +1755,40 @@ int copy_file_across(Stream*inlibb,Stream*coppy,long leftforthis) {
   return success;
 }
 
-// TODO: upgrade this "old style data file" to "new style data file" (would require engine update too)
-void make_old_style_data_file(const AGSString &dataFileName, const std::vector<AGSString> &filenames)
+// NOTE: this is used for audio.vox and speech.vox
+void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<AGSString> &filenames)
 {
-    const int passwmod = 20;
-    std::vector<int32_t> filesizes(filenames.size());
-    std::vector<AGSString> writefname(filenames.size());
     size_t numfile = filenames.size();
+    AGS::Common::AssetLibInfo lib;
 
-    for (size_t fi = 0; fi < numfile; ++fi)
+    lib.AssetInfos.resize(numfile);
+    for (size_t i = 0; i < numfile; ++i)
     {
-        writefname[fi] = get_filename(filenames[fi]);
-
-        if (strlen(writefname[fi]) > 12)
-            ThrowManagedException(AGSString::FromFormat("Filename too long (limit is 12 chars): '%s'", writefname[fi].GetCStr()));
-        int filesize = Common::File::GetFileSize(filenames[fi]);
+        AGS::Common::AssetInfo &asset = lib.AssetInfos[i];
+        soff_t filesize = Common::File::GetFileSize(filenames[i]);
         if (filesize < 0)
-            ThrowManagedException(AGSString::FromFormat("Unable to retrieve file size: '%s'", writefname[fi].GetCStr()));
-        filesizes[fi] = filesize;
-
-        for (size_t c = 0; c < writefname[fi].GetLength(); ++c)
-            writefname[fi].SetAt(c, writefname[fi][c] + passwmod);
+            ThrowManagedException(AGSString::FromFormat("Unable to retrieve file size: '%s'", filenames[i].GetCStr()));
+        asset.FileName = get_filename(filenames[i]);
+        asset.Size = filesize;
     }
 
     // Write the header
     Stream *wout = Common::File::CreateFile(dataFileName);
     if (!wout)
         ThrowManagedException(AGSString::FromFormat("Failed to open data file for writing: '%s'", dataFileName.GetCStr()));
-    wout->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
-    wout->WriteByte(6);  // version
-    wout->WriteByte(passwmod);  // password modifier
-    wout->WriteByte(0);  // reserved
-    wout->WriteInt16((int16_t)numfile);
-    for (int i = 0; i < 13; ++i) wout->WriteByte(0);  // the password
+
+    MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, 0, wout);
+
+    // Recalculate offsets (knowing that asset data will be positioned in sequence) and rewrite header again
+    // TODO: this is not a very pleasant way to do things, need to refactor writing process to fix this
+    lib.AssetInfos[0].Offset = wout->GetPosition();
+    // set offsets (assets are positioned in sequence)
     for (size_t i = 0; i < numfile; ++i)
-        writefname[i].WriteCount(wout, 13);
-    for (size_t i = 0; i < numfile; ++i)
-        wout->WriteInt32(filesizes[i]);
-    wout->WriteByteCount(0, 2 * numfile);  // comp.ratio
+    {
+        lib.AssetInfos[i].Offset = lib.AssetInfos[i - 1].Offset + lib.AssetInfos[i - 1].Size;
+    }
+    wout->Seek(0, AGS::Common::kSeekBegin);
+    MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, 0, wout);
 
     // now copy the data
     AGSString err_msg;
@@ -1859,7 +1800,7 @@ void make_old_style_data_file(const AGSString &dataFileName, const std::vector<A
             err_msg.Format("Unable to open asset file for reading: '%s'", filenames[i].GetCStr());
             break;
         }
-        int res = copy_file_across(in, wout, filesizes[i]);
+        int res = copy_file_across(in, wout, lib.AssetInfos[i].Size);
         delete in;
         if (res < 1)
         {
@@ -1898,20 +1839,20 @@ Stream* find_file_in_path(char *buffer, const char *fileName)
 	return iii;
 }
 
+// TODO: find out why this function is still used in some cases, instead of the method in C# class DataFileWriter
 const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE)
 {
-  int a,b;
   Stream*wout;
   char tomake[MAX_PATH];
-  ourlib.num_data_files = 0;
-  ourlib.num_files = numFiles;
+  AGS::Common::AssetLibInfo lib;
+  lib.AssetInfos.resize(numFiles);
   Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
 
   int currentDataFile = 0;
   long sizeSoFar = 0;
   bool doSplitting = false;
 
-  for (a = 0; a < numFiles; a++)
+  for (size_t a = 0; a < numFiles; a++)
   {
 	  if (splitSize > 0)
 	  {
@@ -1923,42 +1864,36 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 			  sizeSoFar = 0;
 		  }
 		  else if ((sizeSoFar > splitSize) && (doSplitting) && 
-			  (currentDataFile < MAXMULTIFILES - 1))
+			  (currentDataFile < MFLUtil::MaxMultiLibFiles - 1))
 		  {
 			  currentDataFile++;
 			  sizeSoFar = 0;
 		  }
 	  }
-	  long thisFileSize = 0;
+	  soff_t thisFileSize = 0;
 	  Stream *tf = Common::File::OpenFileRead(fileNames[a]);
 	  thisFileSize = tf->GetLength();
 	  delete tf;
 	  
 	  sizeSoFar += thisFileSize;
 
-    const char *fileNameSrc = fileNames[a];
-
-  	if (strrchr(fileNames[a], '\\') != NULL)
-		  fileNameSrc = strrchr(fileNames[a], '\\') + 1;
+      const char *fileNameSrc = fileNames[a];
+  	  if (strrchr(fileNames[a], '\\') != NULL)
+	    fileNameSrc = strrchr(fileNames[a], '\\') + 1;
 	  else if (strrchr(fileNames[a], '/') != NULL)
 		  fileNameSrc = strrchr(fileNames[a], '/') + 1;
-
-    if (strlen(fileNameSrc) >= MAX_FILENAME_LENGTH)
-    {
-      char buffer[500];
-      sprintf(buffer, "Filename too long: %s", fileNames[a]);
-      ThrowManagedException(buffer);
-    }
-		strcpy(ourlib.filenames[a], fileNameSrc);
-
-	  ourlib.file_datafile[a] = currentDataFile;
-	  ourlib.length[a] = thisFileSize;
+      if (strlen(fileNameSrc) >= MAX_PATH)
+      {
+          ThrowManagedException(AGSString::FromFormat("Filename too long: %s", fileNames[a]));
+      }
+      lib.AssetInfos[a].FileName = fileNameSrc;
+      lib.AssetInfos[a].LibUid = currentDataFile;
+      lib.AssetInfos[a].Size = thisFileSize;
   }
 
-  ourlib.num_data_files = currentDataFile + 1;
+  lib.LibFileNames.resize(currentDataFile + 1);
 
-  long startOffset = 0;
-  long mainHeaderOffset = 0;
+  soff_t startOffset = 0;
   char outputFileName[MAX_PATH];
   char firstDataFileFullPath[MAX_PATH];
 
@@ -1969,47 +1904,50 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 
   // First, set up the ourlib.data_filenames array with all the filenames
   // so that write_clib_header will write the correct amount of data
-  for (a = 0; a < ourlib.num_data_files; a++) 
+  for (size_t a = 0; a < lib.LibFileNames.size(); a++)
   {
 	  if (makeFileNameAssumptionsForEXE) 
 	  {
-		  sprintf(ourlib.data_filenames[a], "%s.%03d", baseFileName, a);
+          lib.LibFileNames[a].Format("%s.%03d", baseFileName, a);
 		  if (a == 0)
 		  {
-			  strcpy(&ourlib.data_filenames[a][strlen(ourlib.data_filenames[a]) - 3], "exe");
+              // TODO: this is a very bad assumption that may cause failure in certain conditions
+              // we do not need to save first file extension!
+              // (but fixing this will require mirror fix in the engine.
+			  lib.LibFileNames[a].ReplaceMid(lib.LibFileNames[a].GetLength() - 3, 3, "exe");
 		  }
 	  }
 	  else 
 	  {
     	if (strrchr(baseFileName, '\\') != NULL)
-		    strcpy(ourlib.data_filenames[a], strrchr(baseFileName, '\\') + 1);
+		    lib.LibFileNames[a] = strrchr(baseFileName, '\\') + 1;
 	    else if (strrchr(baseFileName, '/') != NULL)
-		    strcpy(ourlib.data_filenames[a], strrchr(baseFileName, '/') + 1);
+            lib.LibFileNames[a] = strrchr(baseFileName, '/') + 1;
 	    else
-		    strcpy(ourlib.data_filenames[a], baseFileName);
+            lib.LibFileNames[a] = baseFileName;
 	  }
   }
 
   // adjust the file paths if necessary, so that write_clib_header will
   // write the correct amount of data
-  for (b = 0; b < ourlib.num_files; b++) 
+  for (size_t b = 0; b < lib.AssetInfos.size(); b++) 
   {
-	Stream *iii = find_file_in_path(tomake, ourlib.filenames[b]);
+	Stream *iii = find_file_in_path(tomake, lib.AssetInfos[b].FileName);
 	if (iii != NULL)
 	{
 		delete iii;
 
 		if (!makeFileNameAssumptionsForEXE)
-		  strcpy(ourlib.filenames[b], tomake);
+            lib.AssetInfos[b].FileName = tomake;
 	}
   }
 
   // now, create the actual files
-  for (a = 0; a < ourlib.num_data_files; a++) 
+  for (size_t a = 0; a < lib.LibFileNames.size(); a++)
   {
 	  if (makeFileNameAssumptionsForEXE) 
 	  {
-		  sprintf(outputFileName, "Compiled\\%s", ourlib.data_filenames[a]);
+		  sprintf(outputFileName, "Compiled\\%s", lib.LibFileNames[a]);
 	  }
 	  else 
 	  {
@@ -2025,31 +1963,27 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 	  }
 
 	  startOffset = wout->GetLength();
-    wout->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
-    wout->WriteByte(21);  // version
-    wout->WriteByte(a);   // file number
 
-    if (a == 0) 
-	{
-      mainHeaderOffset = wout->GetPosition();
-      write_clib_header(wout);
-    }
+      MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, a, wout);
 
-    for (b=0;b<ourlib.num_files;b++) {
-      if (ourlib.file_datafile[b] == a) {
-        ourlib.offset[b] = wout->GetPosition() - startOffset;
+    
 
-		Stream *iii = find_file_in_path(NULL, ourlib.filenames[b]);
+    for (size_t b=0;b<lib.AssetInfos.size();b++) {
+      AGS::Common::AssetInfo &asset = lib.AssetInfos[b];
+      if (asset.LibUid == a) {
+          asset.Offset = wout->GetPosition() - startOffset;
+
+		Stream *iii = find_file_in_path(NULL, asset.FileName);
         if (iii == NULL) {
           delete wout;
           unlink(outputFileName);
 
 		  char buffer[500];
-		  sprintf(buffer, "Unable to find file '%s' for compilation. Do not remove files during the compilation process.", ourlib.filenames[b]);
+		  sprintf(buffer, "Unable to find file '%s' for compilation. Do not remove files during the compilation process.", asset.FileName.GetCStr());
 		  ThrowManagedException(buffer);
         }
-
-        if (copy_file_across(iii,wout,ourlib.length[b]) < 1) {
+    
+        if (copy_file_across(iii,wout,asset.Size) < 1) {
           delete iii;
           return "Error writing file: possibly disk full";
         }
@@ -2058,15 +1992,14 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
     }
 	if (startOffset > 0)
 	{
-		wout->WriteInt32(startOffset);
-        wout->Write(MFLUtil::TailSig, MFLUtil::TailSig.GetLength());
+        MFLUtil::WriteEnder(startOffset, MFLUtil::kMFLVersion_MultiV30, wout);
 	}
     delete wout;
   }
 
   wout = Common::File::OpenFile(firstDataFileFullPath, Common::kFile_Open, Common::kFile_ReadWrite);
-  wout->Seek(mainHeaderOffset, Common::kSeekBegin);
-  write_clib_header(wout);
+  wout->Seek(startOffset, Common::kSeekBegin);
+  MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, 0, wout);
   delete wout;
   return NULL;
 }
@@ -3465,7 +3398,6 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		obj->StartY = thisroom.Objects[i].Y;
 		obj->Visible = (thisroom.Objects[i].IsOn != 0);
 		obj->Clickable = ((thisroom.Objects[i].Flags & OBJF_NOINTERACT) == 0);
-		obj->Locked = ((thisroom.Objects[i].Flags & OBJF_LOCKED) != 0);
 		obj->Baseline = thisroom.Objects[i].Baseline;
 		obj->Name = gcnew String(thisroom.Objects[i].ScriptName);
 		obj->Description = gcnew String(thisroom.Objects[i].Name);
@@ -3609,7 +3541,6 @@ void save_crm_file(Room ^room)
 		if (obj->UseRoomAreaScaling) thisroom.Objects[i].Flags |= OBJF_USEROOMSCALING;
 		if (obj->UseRoomAreaLighting) thisroom.Objects[i].Flags |= OBJF_USEREGIONTINTS;
 		if (!obj->Clickable) thisroom.Objects[i].Flags |= OBJF_NOINTERACT;
-		if (obj->Locked) thisroom.Objects[i].Flags |= OBJF_LOCKED;
 		CompileCustomProperties(obj->Properties, &thisroom.Objects[i].Properties);
 	}
 
@@ -3786,7 +3717,7 @@ void save_graphical_scripts(Stream*fff,RoomStruct*rss) {
 }
 
 char*scripttempn="~acsc%d.tmp";
-void load_graphical_scripts(Stream*iii,RoomStruct*rst) {
+void load_graphical_scripts(Stream*iii,RoomStruct*rst, RoomFileVersion data_ver) {
   long ct;
   bool doneMsg = false;
   while (1) {
@@ -3797,7 +3728,7 @@ void load_graphical_scripts(Stream*iii,RoomStruct*rst) {
       doneMsg = true;
     }
     // skip the data
-    long lee = iii->ReadInt32();
+    soff_t lee = data_ver < kRoomVersion_350 ? iii->ReadInt32() : iii->ReadInt64();
     iii->Seek (lee);
   }
 }

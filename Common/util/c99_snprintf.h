@@ -26,7 +26,7 @@
 
 #include <stdarg.h>
 #include <stddef.h>
-#include <stdio.h>
+#include <stdio.h> // sprintf
 
 #define snprintf c99_snprintf
 #define vsnprintf c99_vsnprintf

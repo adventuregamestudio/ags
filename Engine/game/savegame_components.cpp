@@ -599,7 +599,7 @@ HSaveError ReadViews(PStream in, int32_t cmp_ver, const PreservedParams &pp, Res
 
 HSaveError WriteDynamicSprites(PStream out)
 {
-    const size_t ref_pos = out->GetPosition();
+    const soff_t ref_pos = out->GetPosition();
     out->WriteInt32(0); // number of dynamic sprites
     out->WriteInt32(0); // top index
     int count = 0;
@@ -615,7 +615,7 @@ HSaveError WriteDynamicSprites(PStream out)
             serialize_bitmap(spriteset[i], out.get());
         }
     }
-    const size_t end_pos = out->GetPosition();
+    const soff_t end_pos = out->GetPosition();
     out->Seek(ref_pos, kSeekBegin);
     out->WriteInt32(count);
     out->WriteInt32(top_index);
@@ -1074,22 +1074,21 @@ struct ComponentInfo
 {
     String  Name;
     int32_t Version;
-    size_t  Offset;     // offset at which an opening tag is located
-    size_t  DataOffset; // offset at which component data begins
-    size_t  DataSize;   // expected size of component data
+    soff_t  Offset;     // offset at which an opening tag is located
+    soff_t  DataOffset; // offset at which component data begins
+    soff_t  DataSize;   // expected size of component data
 
     ComponentInfo() : Version(-1), Offset(0), DataOffset(0), DataSize(0) {}
 };
 
 HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 {
-    size_t pos = in->GetPosition();
     info = ComponentInfo(); // reset in case of early error
     info.Offset = in->GetPosition();
     if (!ReadFormatTag(in, info.Name, true))
         return new SavegameError(kSvgErr_ComponentOpeningTagFormat);
     info.Version = in->ReadInt32();
-    info.DataSize = in->ReadInt32();
+    info.DataSize = in->ReadInt64();
     info.DataOffset = in->GetPosition();
 
     const ComponentHandler *handler = NULL;
@@ -1105,7 +1104,7 @@ HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     if (!err)
         return err;
     if (in->GetPosition() - info.DataOffset != info.DataSize)
-        return new SavegameError(kSvgErr_ComponentSizeMismatch, String::FromFormat("Expected: %d, actual: %d", info.DataSize, in->GetPosition() - info.DataOffset));
+        return new SavegameError(kSvgErr_ComponentSizeMismatch, String::FromFormat("Expected: %lld, actual: %lld", info.DataSize, in->GetPosition() - info.DataOffset));
     if (!AssertFormatTag(in, info.Name, false))
         return new SavegameError(kSvgErr_ComponentClosingTagFormat);
     return HSaveError::None();
@@ -1124,7 +1123,7 @@ HSaveError ReadAll(PStream in, SavegameVersion svg_version, const PreservedParam
     {
         // Look out for the end of the component list:
         // this is the only way how this function ends with success
-        size_t off = in->GetPosition();
+        soff_t off = in->GetPosition();
         if (AssertFormatTag(in, ComponentListTag, false))
             return HSaveError::None();
         // If the list's end was not detected, then seek back and continue reading
@@ -1150,12 +1149,12 @@ HSaveError WriteComponent(PStream out, ComponentHandler &hdlr)
 {
     WriteFormatTag(out, hdlr.Name, true);
     out->WriteInt32(hdlr.Version);
-    size_t ref_pos = out->GetPosition();
-    out->WriteInt32(0); // size
+    soff_t ref_pos = out->GetPosition();
+    out->WriteInt64(0); // placeholder for the component size
     HSaveError err = hdlr.Serialize(out);
-    size_t end_pos = out->GetPosition();
+    soff_t end_pos = out->GetPosition();
     out->Seek(ref_pos, kSeekBegin);
-    out->WriteInt32(end_pos - ref_pos - sizeof(int32_t)); // size of serialized component data
+    out->WriteInt64(end_pos - ref_pos - sizeof(int64_t)); // size of serialized component data
     out->Seek(end_pos, kSeekBegin);
     if (err)
         WriteFormatTag(out, hdlr.Name, false);

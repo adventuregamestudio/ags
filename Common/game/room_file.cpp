@@ -335,24 +335,24 @@ HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_
     update_polled_stuff_if_runtime();
     // Primary background
     Bitmap *mask = NULL;
-    long lzw_at = load_lzw(in, &mask, room->BackgroundBPP, room->Palette);
+    load_lzw(in, &mask, room->BackgroundBPP, room->Palette);
     room->BgFrames[0].Graphic.reset(mask);
 
     // Mask bitmaps
     update_polled_stuff_if_runtime();
-    lzw_at = loadcompressed_allegro(in, &mask, room->Palette, lzw_at);
+    loadcompressed_allegro(in, &mask, room->Palette);
     room->RegionMask.reset(mask);
 
     update_polled_stuff_if_runtime();
-    lzw_at = loadcompressed_allegro(in, &mask, room->Palette, lzw_at);
+    loadcompressed_allegro(in, &mask, room->Palette);
     room->WalkAreaMask.reset(mask);
 
     update_polled_stuff_if_runtime();
-    lzw_at = loadcompressed_allegro(in, &mask, room->Palette, lzw_at);
+    loadcompressed_allegro(in, &mask, room->Palette);
     room->WalkBehindMask.reset(mask);
 
     update_polled_stuff_if_runtime();
-    lzw_at = loadcompressed_allegro(in, &mask, room->Palette, lzw_at);
+    loadcompressed_allegro(in, &mask, room->Palette);
     room->HotspotMask.reset(mask);
 
     return HRoomFileError::None();
@@ -457,8 +457,8 @@ HRoomFileError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion
 
 HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, RoomFileVersion data_ver)
 {
-    size_t block_len = in->ReadInt32();
-    size_t block_end = in->GetPosition() + block_len;
+    soff_t block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
+    soff_t block_end = in->GetPosition() + block_len;
 
     HRoomFileError err;
     switch (block)
@@ -496,7 +496,7 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
     if (!err)
         return err;
 
-    size_t cur_pos = in->GetPosition();
+    soff_t cur_pos = in->GetPosition();
     if (cur_pos > block_end)
     {
         return new RoomFileError(kRoomFileErr_BlockDataOverlapping,
@@ -513,8 +513,8 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
 
 void SkipRoomBlock(Stream *in, RoomFileVersion data_ver)
 {
-    size_t block_len = in->ReadInt32();
-    in->Seek(block_len, Common::kSeekCurrent);
+    soff_t block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
+    in->Seek(block_len);
 }
 
 
@@ -632,17 +632,17 @@ void WriteBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteBlock write
 {
     // Write block's header
     out->WriteByte(block);
-    size_t sz_at = out->GetPosition();
-    out->WriteInt32(0); // block size placeholder
+    soff_t sz_at = out->GetPosition();
+    out->WriteInt64(0); // block size placeholder
     // Call writer to save actual block contents
     writer(room, out);
 
     // Now calculate the block's size...
-    size_t end_at = out->GetPosition();
-    size_t block_size = (end_at - sz_at) - sizeof(int32_t);
+    soff_t end_at = out->GetPosition();
+    soff_t block_size = (end_at - sz_at) - sizeof(int64_t);
     // ...return back and write block's size in the placeholder
     out->Seek(sz_at, Common::kSeekBegin);
-    out->WriteInt32(block_size);
+    out->WriteInt64(block_size);
     // ...and get back to the end of the file
     out->Seek(0, Common::kSeekEnd);
 }

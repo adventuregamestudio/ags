@@ -18,7 +18,6 @@
 
 // ********* WINDOWS *********
 
-#include <stdio.h>
 #include <string.h>
 #include <allegro.h>
 #include <allegro/platform/aintwin.h>
@@ -1004,8 +1003,8 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
             border += ncm.iPaddedBorderWidth * 2;
         cy -= border;
     }
-    x = Math::Clamp(1, cx, x);
-    y = Math::Clamp(1, cy, y);
+    x = Math::Clamp(x, 1, cx);
+    y = Math::Clamp(y, 1, cy);
 }
 
 bool AGSWin32::LockMouseToWindow()

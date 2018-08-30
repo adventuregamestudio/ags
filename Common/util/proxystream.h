@@ -46,9 +46,9 @@ public:
     // Is end of stream
     virtual bool    EOS() const;
     // Total length of stream (if known)
-    virtual size_t  GetLength() const;
+    virtual soff_t  GetLength() const;
     // Current position (if known)
-    virtual size_t  GetPosition() const;
+    virtual soff_t  GetPosition() const;
 
     virtual bool    CanRead() const;
     virtual bool    CanWrite() const;
@@ -74,7 +74,7 @@ public:
     virtual size_t  WriteArrayOfInt32(const int32_t *buffer, size_t count);
     virtual size_t  WriteArrayOfInt64(const int64_t *buffer, size_t count);
 
-    virtual size_t  Seek(int offset, StreamSeek origin);
+    virtual soff_t  Seek(soff_t offset, StreamSeek origin);
 
 protected:
     Stream                  *_stream;

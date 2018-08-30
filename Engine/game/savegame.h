@@ -17,6 +17,7 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
+#include "ac/game_version.h"
 #include "util/error.h"
 #include "util/version.h"
 
@@ -48,8 +49,9 @@ enum SavegameVersion
 {
     kSvgVersion_Undefined = 0,
     kSvgVersion_321       = 8,
-    kSvgVersion_Components= 9,
-    kSvgVersion_Current   = kSvgVersion_Components,
+    kSvgVersion_Components= 9, // temp format, not supported anymore
+    kSvgVersion_Cmp_64bit = 10,
+    kSvgVersion_Current   = kSvgVersion_Cmp_64bit,
     kSvgVersion_LowestSupported = kSvgVersion_321 // change if support dropped
 };
 
@@ -131,7 +133,10 @@ struct SavegameDescription
     // Name of the main data file used; this is needed to properly
     // load saves made by "minigames"
     String              MainDataFilename;
-    // Color depth the engine was running in; this is required to
+    // Game's main data version; should be checked early to know
+    // if the save was made for the supported game format
+    GameDataVersion     MainDataVersion;
+    // Native color depth of the game; this is required to
     // properly restore dynamic graphics from the save
     int                 ColorDepth;
     

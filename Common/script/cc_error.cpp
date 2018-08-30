@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 #include "cc_error.h"

@@ -120,6 +120,16 @@ private:
 
 
 typedef SpriteDrawListEntry<ALSoftwareBitmap> ALDrawListEntry;
+// Software renderer's sprite batch
+struct ALSpriteBatch
+{
+    // List of sprites to render
+    std::vector<ALDrawListEntry> List;
+    // Intermediate surface which will be drawn upon and transformed if necessary
+    std::unique_ptr<Bitmap>      Surface;
+};
+typedef std::vector<ALSpriteBatch> ALSpriteBatches;
+
 
 class ALSoftwareGraphicsDriver : public GraphicsDriverBase
 {
@@ -142,8 +152,9 @@ public:
     virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
     virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
     virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
+
     virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
-    virtual void ClearDrawList();
+
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
@@ -183,7 +194,7 @@ private:
     Bitmap *_spareTintingScreen;
     int _tint_red, _tint_green, _tint_blue;
 
-    std::vector<ALDrawListEntry> drawlist;
+    ALSpriteBatches _spriteBatches;
     GFX_MODE_LIST *_gfxModeList;
 
 #ifdef _WIN32
@@ -196,11 +207,16 @@ private:
     DDCAPS ddrawCaps;
 #endif
 
+    virtual void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc);
+    virtual void ResetAllBatches();
+
     // Use gfx filter to create a new virtual screen
     void CreateVirtualScreen();
     void DestroyVirtualScreen();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
+    // Renders single sprite batch on the precreated surface
+    void RenderSpriteBatch(const ALSpriteBatch &batch);
 
     void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);

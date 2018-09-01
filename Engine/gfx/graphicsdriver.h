@@ -52,6 +52,20 @@ enum VideoSkipType
   VideoSkipKeyOrMouse = 3
 };
 
+// Sprite transformation
+// TODO: combine with stretch parameters in the IDriverDependantBitmap?
+struct SpriteTransform
+{
+    // Translate
+    int X, Y;
+
+    SpriteTransform()
+        : X(0)
+        , Y(0)
+    {
+    }
+};
+
 typedef void (*GFXDRV_CLIENTCALLBACK)();
 typedef bool (*GFXDRV_CLIENTCALLBACKXY)(int x, int y);
 typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
@@ -99,9 +113,18 @@ public:
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool hasAlpha, bool opaque = false) = 0;
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::Bitmap *bitmap, bool hasAlpha) = 0;
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
-  virtual void ClearDrawList() = 0;
+
+  // Prepares next sprite batch, a list of sprites with defined viewport and optional
+  // global model transformation; all subsequent calls to DrawSprite will be adding
+  // sprites to this batch's list.
+  virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform) = 0;
+  // Adds sprite to the active batch
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
+  // Clears all sprite batches, resets batch counter
+  virtual void ClearDrawLists() = 0;
+
   virtual void SetScreenTint(int red, int green, int blue) = 0;
+  // TODO: probably should be replaced by defining translation for the sprite batch
   virtual void SetRenderOffset(int x, int y) = 0;
   virtual void RenderToBackBuffer() = 0;
   virtual void Render() = 0;

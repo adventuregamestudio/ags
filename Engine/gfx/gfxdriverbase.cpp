@@ -36,6 +36,9 @@ GraphicsDriverBase::GraphicsDriverBase()
     , _initGfxCallback(NULL)
     , _initSurfaceUpdateCallback(NULL)
 {
+    // Initialize default sprite batch, it will be used when no other batch was activated
+    _actSpriteBatch = 0;
+    _spriteBatchDesc.push_back(SpriteBatchDesc());
 }
 
 bool GraphicsDriverBase::IsModeSet() const
@@ -74,6 +77,20 @@ void GraphicsDriverBase::SetRenderOffset(int x, int y)
     _global_y_offset = y;
 }
 
+void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform)
+{
+    _actSpriteBatch++;
+    _spriteBatchDesc.push_back(SpriteBatchDesc(viewport, transform));
+    InitSpriteBatch(_actSpriteBatch, _spriteBatchDesc[_actSpriteBatch]);
+}
+
+void GraphicsDriverBase::ClearDrawLists()
+{
+    ResetAllBatches();
+    _actSpriteBatch = 0;
+    _spriteBatchDesc.resize(1);
+}
+
 void GraphicsDriverBase::OnInit(volatile int *loopTimer)
 {
     _loopTimer = loopTimer;
@@ -108,6 +125,10 @@ void GraphicsDriverBase::OnSetNativeSize(const Size &src_size)
 {
     _srcRect = RectWH(0, 0, src_size.Width, src_size.Height);
     OnScalingChanged();
+
+    // Adjust default sprite batch making it comply to native size
+    _spriteBatchDesc[0].Viewport = RectWH(src_size);
+    InitSpriteBatch(_actSpriteBatch, _spriteBatchDesc[_actSpriteBatch]);
 }
 
 void GraphicsDriverBase::OnSetRenderFrame(const Rect &dst_rect)

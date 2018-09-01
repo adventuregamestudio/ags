@@ -735,7 +735,7 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
     {
         if (gfxDriver->UsesMemoryBackBuffer())
             gfxDriver->RenderToBackBuffer();
-        gfxDriver->ClearDrawList();
+        gfxDriver->ClearDrawLists();
         return;
     }
 
@@ -2489,7 +2489,7 @@ extern volatile int psp_audio_multithreaded; // in ac_audio
 
 void construct_virtual_screen(bool fullRedraw) 
 {
-    gfxDriver->ClearDrawList();
+    gfxDriver->ClearDrawLists();
 
     if (play.fast_forward)
         return;

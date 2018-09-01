@@ -54,7 +54,7 @@ namespace Engine
 namespace ALSW
 {
 
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace Common;
 
 bool ALSoftwareGfxModeList::GetMode(int index, DisplayMode &mode) const
 {
@@ -85,6 +85,9 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
 #endif
   _allegroScreenWrapper = NULL;
   virtualScreen = NULL;
+
+  // Initialize default sprite batch, it will be used when no other batch was activated
+  InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -263,7 +266,7 @@ void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
 void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
 {
   OnModeReleased();
-  drawlist.clear();
+  ClearDrawLists();
 
 #ifdef _WIN32
   if (dxGammaControl != NULL) 
@@ -380,18 +383,51 @@ void ALSoftwareGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
   delete bitmap;
 }
 
-void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
+void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
-  drawlist.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
+    if (_spriteBatches.size() <= index)
+        _spriteBatches.resize(index + 1);
+    ALSpriteBatch &batch = _spriteBatches[index];
+    batch.List.clear();
+    if (desc.Viewport.IsEmpty())
+        batch.Surface.reset();
+    else if (!batch.Surface || batch.Surface->GetWidth() != desc.Viewport.GetWidth() ||
+                          batch.Surface->GetHeight() != desc.Viewport.GetHeight())
+        batch.Surface.reset(new Bitmap(desc.Viewport.GetWidth(), desc.Viewport.GetHeight()));
 }
 
-void ALSoftwareGraphicsDriver::ClearDrawList()
+void ALSoftwareGraphicsDriver::ResetAllBatches()
 {
-  drawlist.clear();
+    for (ALSpriteBatches::iterator it = _spriteBatches.begin(); it != _spriteBatches.end(); ++it)
+        it->List.clear();
+}
+
+void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
+{
+    _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
 }
 
 void ALSoftwareGraphicsDriver::RenderToBackBuffer()
 {
+    // Render all the sprite batches with necessary transformations
+    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    {
+        const Rect &viewport = _spriteBatchDesc[i].Viewport;
+        const SpriteTransform &transform = _spriteBatchDesc[i].Transform;
+        const ALSpriteBatch &batch = _spriteBatches[i];
+        RenderSpriteBatch(batch);
+        // TODO: extract this to the generic software blit-with-transform function
+        virtualScreen->SetClip(viewport);
+        virtualScreen->Blit(batch.Surface.get(), viewport.Left + transform.X, viewport.Top + transform.Y, kBitmap_Transparency);
+    }
+    ClearDrawLists();
+}
+
+void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch)
+{
+  const std::vector<ALDrawListEntry> &drawlist = batch.List;
+  Bitmap *surface = batch.Surface.get();
+  surface->ClearTransparent();
   for (size_t i = 0; i < drawlist.size(); i++)
   {
     if (drawlist[i].bitmap == NULL)
@@ -408,11 +444,11 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     int drawAtX = drawlist[i].x;
     int drawAtY = drawlist[i].y;
 
-    if ((bitmap->_opaque) && (bitmap->_bmp == virtualScreen))
+    if ((bitmap->_opaque) && (bitmap->_bmp == surface))
     { }
     else if (bitmap->_opaque)
     {
-      virtualScreen->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
+        surface->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
     }
     else if (bitmap->_transparency >= 255)
     {
@@ -426,12 +462,12 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         // here _transparency is used as alpha (between 1 and 254)
         set_blender_mode(NULL, NULL, _trans_alpha_blender32, 0, 0, 0, bitmap->_transparency);
 
-	  virtualScreen->TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
+      surface->TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
     }
     else
     {
       // here _transparency is used as alpha (between 1 and 254), but 0 means opaque!
-      GfxUtil::DrawSpriteWithTransparency(virtualScreen, bitmap->_bmp, drawAtX, drawAtY,
+      GfxUtil::DrawSpriteWithTransparency(surface, bitmap->_bmp, drawAtX, drawAtY,
           bitmap->_transparency ? bitmap->_transparency : 255);
     }
   }
@@ -441,23 +477,21 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     // Common::gl_ScreenBmp tint
     // This slows down the game no end, only experimental ATM
     set_trans_blender(_tint_red, _tint_green, _tint_blue, 0);
-    virtualScreen->LitBlendBlt(virtualScreen, 0, 0, 128);
+    surface->LitBlendBlt(surface, 0, 0, 128);
 /*  This alternate method gives the correct (D3D-style) result, but is just too slow!
     if ((_spareTintingScreen != NULL) &&
-        ((_spareTintingScreen->GetWidth() != virtualScreen->GetWidth()) || (_spareTintingScreen->GetHeight() != virtualScreen->GetHeight())))
+        ((_spareTintingScreen->GetWidth() != surface->GetWidth()) || (_spareTintingScreen->GetHeight() != surface->GetHeight())))
     {
       destroy_bitmap(_spareTintingScreen);
       _spareTintingScreen = NULL;
     }
     if (_spareTintingScreen == NULL)
     {
-      _spareTintingScreen = BitmapHelper::CreateBitmap_(GetColorDepth(virtualScreen), virtualScreen->GetWidth(), virtualScreen->GetHeight());
+      _spareTintingScreen = BitmapHelper::CreateBitmap_(GetColorDepth(surface), surface->GetWidth(), surface->GetHeight());
     }
-    tint_image(virtualScreen, _spareTintingScreen, _tint_red, _tint_green, _tint_blue, 100, 255);
-    Blit(_spareTintingScreen, virtualScreen, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
+    tint_image(surface, _spareTintingScreen, _tint_red, _tint_green, _tint_blue, 100, 255);
+    Blit(_spareTintingScreen, surface, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
   }
-
-  ClearDrawList();
 }
 
 void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)

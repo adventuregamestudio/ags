@@ -906,7 +906,7 @@ void show_preload () {
 		screen_bmp->Fill(0);
         screen_bmp->StretchBlt(tsc, RectWH(0, 0, play.viewport.GetWidth(),play.viewport.GetHeight()), Common::kBitmap_Transparency);
 
-        gfxDriver->ClearDrawList();
+        gfxDriver->ClearDrawLists();
 
         if (!gfxDriver->UsesMemoryBackBuffer())
         {

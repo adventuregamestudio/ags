@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_GFX__GFXDRIVERBASE_H
 #define __AGS_EE_GFX__GFXDRIVERBASE_H
 
+#include <vector>
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "util/scaling.h"
@@ -29,12 +30,31 @@ namespace Engine
 
 using Common::Bitmap;
 
+// Sprite batch, defines viewport and an optional model transformation for the list of sprites
+struct SpriteBatchDesc
+{
+    // View rectangle for positioning and clipping, in resolution coordinates
+    // (this may be screen or game frame resolution, depending on circumstances)
+    Rect                     Viewport;
+    // Optional model transformation, to be applied to each sprite
+    SpriteTransform          Transform;
 
+    SpriteBatchDesc() {}
+    SpriteBatchDesc(const Rect viewport, const SpriteTransform &transform)
+        : Viewport(viewport)
+        , Transform(transform)
+    {
+    }
+};
+
+typedef std::vector<SpriteBatchDesc> SpriteBatchDescs;
+
+// The single sprite entry in the render list
 template<class T_DDB>
 struct SpriteDrawListEntry
 {
     T_DDB *bitmap; // TODO: use shared pointer?
-    int x, y;
+    int x, y; // sprite position, in camera coordinates
     bool skip;
 
     SpriteDrawListEntry()
@@ -68,7 +88,11 @@ public:
     virtual DisplayMode GetDisplayMode() const;
     virtual Size        GetNativeSize() const;
     virtual Rect        GetRenderDestination() const;
+    // TODO: probably should be replaced by defining translation for the sprite batch
     virtual void        SetRenderOffset(int x, int y);
+
+    virtual void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform);
+    virtual void        ClearDrawLists();
 
     virtual void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
     virtual void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
@@ -92,14 +116,19 @@ protected:
     virtual void OnSetRenderFrame(const Rect &dst_rect);
     // Called when the new filter is set
     virtual void OnSetFilter();
+    // Initialize sprite batch and allocate necessary resources
+    virtual void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) = 0;
+    // Clears sprite lists
+    virtual void ResetAllBatches() = 0;
 
-    void    OnScalingChanged();
+    void         OnScalingChanged();
 
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect
     Rect                _dstRect;       // rendering destination rect
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
-    PlaneScaling        _scaling;
+    PlaneScaling        _scaling;       // currently unused? don't remember what was it planned for
+    // TODO: probably should be replaced by defining translation for the sprite batch
     int                 _global_x_offset;
     int                 _global_y_offset;
     volatile int *      _loopTimer;
@@ -110,6 +139,10 @@ protected:
     GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
     GFXDRV_CLIENTCALLBACKSURFACEUPDATE _initSurfaceUpdateCallback;
+
+    // Sprite batch parameters
+    SpriteBatchDescs _spriteBatchDesc; // sprite batches list
+    size_t _actSpriteBatch; // active batch index
 };
 
 
@@ -133,7 +166,6 @@ public:
     int _colDepth;
     bool _opaque;
 };
-
 
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
 // which drawing method is based on passing the sprite stack into GPU,

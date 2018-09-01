@@ -257,6 +257,9 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 16;
   _vmem_a_shift_32 = 24;
+
+  // Initialize default sprite batch, it will be used when no other batch was activated
+  InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 
@@ -1065,10 +1068,10 @@ void OGLGraphicsDriver::Render(GlobalFlipType flip)
 
 void OGLGraphicsDriver::_reDrawLastFrame()
 {
-  drawList = drawListLastTime;
+    RestoreDrawLists();
 }
 
-void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool globalLeftRightFlip, bool globalTopBottomFlip)
+void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, const GLMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip)
 {
   OGLBitmap *bmpToDraw = drawListEntry->bitmap;
 
@@ -1210,11 +1213,15 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    // Origin is at the middle of the surface
     if (_do_render_to_texture)
       glTranslatef(_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f);
     else
       glTranslatef(_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f);
 
+    // Global batch transform
+    glMultMatrixf(matGlobal.m);
+    // Self sprite transform
     glTranslatef((float)thisX, (float)thisY, 0.0f);
     glScalef(widthToScale, heightToScale, 1.0f);
 
@@ -1276,12 +1283,6 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   }
 #endif
 
-  std::vector<OGLDrawListEntry> &listToDraw = drawList;
-  size_t listSize = drawList.size();
-
-  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
-  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
-
   if (_do_render_to_texture)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
@@ -1309,26 +1310,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glLoadIdentity();
   }
 
-  for (size_t i = 0; i < listSize; i++)
-  {
-    if (listToDraw[i].skip)
-      continue;
-
-    if (listToDraw[i].bitmap == NULL)
-    {
-      if (DoNullSpriteCallback(listToDraw[i].x, listToDraw[i].y))
-        listToDraw[i] = OGLDrawListEntry((OGLBitmap*)_stageVirtualScreenDDB);
-      else
-        continue;
-    }
-
-    this->_renderSprite(&listToDraw[i], globalLeftRightFlip, globalTopBottomFlip);
-  }
-
-  if (!_screenTintSprite.skip)
-  {
-    this->_renderSprite(&_screenTintSprite, false, false);
-  }
+  RenderSpriteBatches(flip);
 
   if (_do_render_to_texture)
   {
@@ -1372,32 +1354,123 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   if (clearDrawListAfterwards)
   {
-    drawListLastTime = drawList;
+    BackupDrawLists();
     flipTypeLastTime = flip;
-    ClearDrawList();
+    ClearDrawLists();
   }
 }
 
-void OGLGraphicsDriver::ClearDrawList()
+void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
 {
-  drawList.clear();
+    // Render all the sprite batches with necessary transformations
+    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    {
+        const Rect &viewport = _spriteBatchDesc[i].Viewport;
+        const OGLSpriteBatch &batch = _spriteBatches[i];
+        // TODO: apply viewport clip and transform (??)
+        RenderSpriteBatch(batch, flip);
+    }
+
+    if (!_screenTintSprite.skip)
+    {
+        this->_renderSprite(&_screenTintSprite, _spriteBatches[_actSpriteBatch].Matrix, false, false);
+    }
+}
+
+void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFlipType flip)
+{
+  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
+  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
+
+  OGLDrawListEntry stageEntry; // raw-draw plugin support
+
+  const std::vector<OGLDrawListEntry> &listToDraw = batch.List;
+  for (size_t i = 0; i < listToDraw.size(); i++)
+  {
+    if (listToDraw[i].skip)
+      continue;
+
+    const OGLDrawListEntry *sprite = &listToDraw[i];
+    if (listToDraw[i].bitmap == NULL)
+    {
+      if (DoNullSpriteCallback(listToDraw[i].x, listToDraw[i].y))
+        stageEntry = OGLDrawListEntry((OGLBitmap*)_stageVirtualScreenDDB);
+      else
+        continue;
+      sprite = &stageEntry;
+    }
+
+    this->_renderSprite(sprite, batch.Matrix, globalLeftRightFlip, globalTopBottomFlip);
+  }
+}
+
+void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
+{
+    if (_spriteBatches.size() <= index)
+        _spriteBatches.resize(index + 1);
+    _spriteBatches[index].List.clear();
+    // Combine both world transform and viewport transform into one matrix for faster perfomance
+    // TODO: is this the only way in OpenGL to construct matrixes for future use?
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef((float)(desc.Transform.X + desc.Viewport.Left), (float)-(desc.Transform.Y + desc.Viewport.Top), 0.0f);
+    glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
+    glLoadIdentity();
+}
+
+void OGLGraphicsDriver::ResetAllBatches()
+{
+    for (size_t i = 0; i < _spriteBatches.size(); ++i)
+        _spriteBatches[i].List.clear();
+}
+
+void OGLGraphicsDriver::ClearDrawBackups()
+{
+    _backupBatchDescs.clear();
+    _backupBatches.clear();
+}
+
+void OGLGraphicsDriver::BackupDrawLists()
+{
+    _backupBatchDescs.clear();
+    _backupBatches.clear();
+    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    {
+        _backupBatchDescs.push_back(_spriteBatchDesc[i]);
+        _backupBatches.push_back(_spriteBatches[i]);
+    }
+}
+
+void OGLGraphicsDriver::RestoreDrawLists()
+{
+    if (_backupBatchDescs.size() == 0)
+    {
+        ClearDrawLists();
+        return;
+    }
+    _spriteBatchDesc = _backupBatchDescs;
+    _spriteBatches = _backupBatches;
+    _actSpriteBatch = _backupBatchDescs.size() - 1;
 }
 
 void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 {
-  drawList.push_back(OGLDrawListEntry((OGLBitmap*)bitmap, x, y));
+    _spriteBatches[_actSpriteBatch].List.push_back(OGLDrawListEntry((OGLBitmap*)bitmap, x, y));
 }
 
 void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
-  for (size_t i = 0; i < drawListLastTime.size(); i++)
-  {
-    if (drawListLastTime[i].bitmap == bitmap)
+    // Remove deleted DDB from backups
+    for (OGLSpriteBatches::iterator it = _backupBatches.begin(); it != _backupBatches.end(); ++it)
     {
-      drawListLastTime[i].skip = true;
+        std::vector<OGLDrawListEntry> &drawlist = it->List;
+        for (size_t i = 0; i < drawlist.size(); i++)
+        {
+            if (drawlist[i].bitmap == bitmap)
+                drawlist[i].skip = true;
+        }
     }
-  }
-  delete bitmap;
+    delete bitmap;
 }
 
 
@@ -1664,7 +1737,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   }
 
   this->DestroyDDB(d3db);
-  this->ClearDrawList();
+  this->ClearDrawLists();
 }
 
 void OGLGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) 
@@ -1710,6 +1783,8 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   {
     boxWidth += speed;
     boxHeight += yspeed;
+    OGLSpriteBatch &batch = _spriteBatches.back();
+    std::vector<OGLDrawListEntry> &drawList = batch.List;
     size_t last = drawList.size() - 1;
     if (blackingOut)
     {
@@ -1734,7 +1809,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   }
 
   this->DestroyDDB(d3db);
-  this->ClearDrawList();
+  this->ClearDrawLists();
 }
 
 bool OGLGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)

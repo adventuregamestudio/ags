@@ -37,6 +37,50 @@ extern void dxmedia_shutdown_3d();
 // Necessary to update textures from 8-bit bitmaps
 extern RGB palette[256];
 
+//
+// Following functions implement various matrix operations. Normally they are found in the auxiliary d3d9x.dll,
+// but we do not want AGS to be dependent on it.
+//
+// Setup identity matrix
+void MatrixIdentity(D3DMATRIX &m)
+{
+    m = {
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0
+    };
+}
+// Setup transformation matrix
+// TODO: support rotate
+// TODO: maybe split into separate translate/scale functions?
+void MakeTranslatedScalingMatrix(D3DMATRIX &m, float x, float y, float xScale, float yScale)
+{
+    m._11 = xScale;
+    m._12 = 0.0;
+    m._13 = 0.0;
+    m._14 = 0.0;
+    m._21 = 0.0;
+    m._22 = yScale;
+    m._23 = 0.0;
+    m._24 = 0.0;
+    m._31 = 0.0;
+    m._32 = 0.0;
+    m._33 = 1.0;
+    m._34 = 0.0;
+    m._41 = x;
+    m._42 = y;
+    m._43 = 0.0;
+    m._44 = 1.0;
+}
+// Matrix multiplication
+void MatrixMultiply(D3DMATRIX &mr, const D3DMATRIX &m1, const D3DMATRIX &m2)
+{
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
+            mr.m[i][j] = m1.m[i][0] * m2.m[0][j] + m1.m[i][1] * m2.m[1][j] + m1.m[i][2] * m2.m[2][j] + m1.m[i][3] * m2.m[3][j];
+}
+
 
 namespace AGS
 {
@@ -205,6 +249,9 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _vmem_r_shift_32 = 16;
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 0;
+
+  // Initialize default sprite batch, it will be used when no other batch was activated
+  InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -274,8 +321,8 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
 
   OnModeReleased();
 
-  drawList.clear();
-  drawListLastTime.clear();
+  ClearDrawLists();
+  ClearDrawBackups();
   flipTypeLastTime = kFlip_None;
 
   if (_screenTintLayerDDB != NULL) 
@@ -557,28 +604,6 @@ static int wnd_create_device()
 static int wnd_reset_device()
 {
   return D3DGraphicsFactory::GetD3DDriver()->_resetDeviceIfNecessary();
-}
-
-// The D3DX library does this for us, but it's an external DLL that
-// we don't want a dependency on.
-void D3DGraphicsDriver::make_translated_scaling_matrix(D3DMATRIX *matrix, float x, float y, float xScale, float yScale)
-{
-  matrix->_11 = xScale;
-  matrix->_12 = 0.0;
-  matrix->_13 = 0.0;
-  matrix->_14 = 0.0;
-  matrix->_21 = 0.0;
-  matrix->_22 = yScale;
-  matrix->_23 = 0.0;
-  matrix->_24 = 0.0;
-  matrix->_31 = 0.0;
-  matrix->_32 = 0.0;
-  matrix->_33 = 1.0;
-  matrix->_34 = 0.0;
-  matrix->_41 = x;
-  matrix->_42 = y;
-  matrix->_43 = 0.0;
-  matrix->_44 = 1.0;
 }
 
 int D3DGraphicsDriver::_resetDeviceIfNecessary()
@@ -1072,13 +1097,14 @@ void D3DGraphicsDriver::Render(GlobalFlipType flip)
 
 void D3DGraphicsDriver::_reDrawLastFrame()
 {
-  drawList = drawListLastTime;
+  RestoreDrawLists();
 }
 
-void D3DGraphicsDriver::_renderSprite(D3DDrawListEntry *drawListEntry, bool globalLeftRightFlip, bool globalTopBottomFlip)
+void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const D3DMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip)
 {
   HRESULT hr;
   D3DBitmap *bmpToDraw = drawListEntry->bitmap;
+  D3DMATRIX matSelfTransform;
   D3DMATRIX matTransform;
 
   if (bmpToDraw->_transparency >= 255)
@@ -1238,7 +1264,9 @@ void D3DGraphicsDriver::_renderSprite(D3DDrawListEntry *drawListEntry, bool glob
       thisY -= height;
     }
 
-    make_translated_scaling_matrix(&matTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale);
+    // Multiply object's own and global matrixes
+    MakeTranslatedScalingMatrix(matSelfTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale);
+    MatrixMultiply(matTransform, matSelfTransform, matGlobal);
 
     if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
@@ -1294,11 +1322,6 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     }
   }
 
-  std::vector<D3DDrawListEntry> &listToDraw = drawList;
-  size_t listSize = listToDraw.size();
-  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
-  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
-
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 128), 0.5f, 0);
   if (direct3ddevice->BeginScene() != D3D_OK)
     throw Ali3DException("IDirect3DDevice9::BeginScene failed");
@@ -1308,30 +1331,9 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
   direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
 
-  for (size_t i = 0; i < listSize; i++)
-  {
-    if (listToDraw[i].skip)
-      continue;
-
-    if (listToDraw[i].bitmap == NULL)
-    {
-      if (DoNullSpriteCallback(listToDraw[i].x, (int)direct3ddevice))
-        listToDraw[i] = D3DDrawListEntry((D3DBitmap*)_stageVirtualScreenDDB);
-      else
-        continue;
-    }
-
-    this->_renderSprite(&listToDraw[i], globalLeftRightFlip, globalTopBottomFlip);
-  }
-
-  if (!_screenTintSprite.skip)
-  {
-    this->_renderSprite(&_screenTintSprite, false, false);
-  }
+  RenderSpriteBatches(flip);
 
   direct3ddevice->EndScene();
-
-
 
   if (!_renderSprAtScreenRes) {
     if (direct3ddevice->SetRenderTarget(0, pBackBuffer)!= D3D_OK)
@@ -1355,32 +1357,118 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   if (clearDrawListAfterwards)
   {
-    drawListLastTime = drawList;
+    BackupDrawLists();
     flipTypeLastTime = flip;
-    ClearDrawList();
+    ClearDrawLists();
   }
 }
 
-void D3DGraphicsDriver::ClearDrawList()
+void D3DGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
 {
-    drawList.clear();
+    // Render all the sprite batches with necessary transformations
+    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    {
+        const Rect &viewport = _spriteBatchDesc[i].Viewport;
+        const D3DSpriteBatch &batch = _spriteBatches[i];
+        // TODO: apply viewport clip and transform (??)
+        RenderSpriteBatch(batch, flip);
+    }
+
+    if (!_screenTintSprite.skip)
+    {
+        this->_renderSprite(&_screenTintSprite, _spriteBatches[_actSpriteBatch].Matrix, false, false);
+    }
+}
+
+void D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, GlobalFlipType flip)
+{
+  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
+  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
+
+  D3DDrawListEntry stageEntry; // raw-draw plugin support
+
+  const std::vector<D3DDrawListEntry> &listToDraw = batch.List;
+  for (size_t i = 0; i < listToDraw.size(); ++i)
+  {
+    if (listToDraw[i].skip)
+      continue;
+
+    const D3DDrawListEntry *sprite = &listToDraw[i];
+    if (listToDraw[i].bitmap == NULL)
+    {
+      if (DoNullSpriteCallback(listToDraw[i].x, (int)direct3ddevice))
+        stageEntry = D3DDrawListEntry((D3DBitmap*)_stageVirtualScreenDDB);
+      else
+        continue;
+      sprite = &stageEntry;
+    }
+
+    this->_renderSprite(sprite, batch.Matrix, globalLeftRightFlip, globalTopBottomFlip);
+  }
+}
+
+void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
+{
+    if (_spriteBatches.size() <= index)
+        _spriteBatches.resize(index + 1);
+    _spriteBatches[index].List.clear();
+    // Combine both world transform and viewport transform into one matrix for faster perfomance
+    MakeTranslatedScalingMatrix(_spriteBatches[index].Matrix,
+        desc.Transform.X + desc.Viewport.Left, -(desc.Transform.Y + desc.Viewport.Top), 1.0f, 1.0f);
+}
+
+void D3DGraphicsDriver::ResetAllBatches()
+{
+    for (size_t i = 0; i < _spriteBatches.size(); ++i)
+        _spriteBatches[i].List.clear();
+}
+
+void D3DGraphicsDriver::ClearDrawBackups()
+{
+    _backupBatchDescs.clear();
+    _backupBatches.clear();
+}
+
+void D3DGraphicsDriver::BackupDrawLists()
+{
+    ClearDrawBackups();
+    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    {
+        _backupBatchDescs.push_back(_spriteBatchDesc[i]);
+        _backupBatches.push_back(_spriteBatches[i]);
+    }
+}
+
+void D3DGraphicsDriver::RestoreDrawLists()
+{
+    if (_backupBatchDescs.size() == 0)
+    {
+        ClearDrawLists();
+        return;
+    }
+    _spriteBatchDesc = _backupBatchDescs;
+    _spriteBatches = _backupBatches;
+    _actSpriteBatch = _backupBatchDescs.size() - 1;
 }
 
 void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 {
-  drawList.push_back(D3DDrawListEntry((D3DBitmap*)bitmap, x, y));
+    _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry((D3DBitmap*)bitmap, x, y));
 }
 
 void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
-  for (size_t i = 0; i < drawListLastTime.size(); i++)
-  {
-    if (drawListLastTime[i].bitmap == bitmap)
+    // Remove deleted DDB from backups
+    for (D3DSpriteBatches::iterator it = _backupBatches.begin(); it != _backupBatches.end(); ++it)
     {
-      drawListLastTime[i].skip = true;
+        std::vector<D3DDrawListEntry> &drawlist = it->List;
+        for (size_t i = 0; i < drawlist.size(); i++)
+        {
+            if (drawlist[i].bitmap == bitmap)
+                drawlist[i].skip = true;
+        }
     }
-  }
-  delete bitmap;
+    delete bitmap;
 }
 
 void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, D3DBitmap *target, bool hasAlpha)
@@ -1663,7 +1751,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   }
 
   this->DestroyDDB(d3db);
-  this->ClearDrawList();
+  this->ClearDrawLists();
 }
 
 void D3DGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) 
@@ -1709,6 +1797,8 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   {
     boxWidth += speed;
     boxHeight += yspeed;
+    D3DSpriteBatch &batch = _spriteBatches.back();
+    std::vector<D3DDrawListEntry> &drawList = batch.List;
     const size_t last = drawList.size() - 1;
     if (blackingOut)
     {
@@ -1733,7 +1823,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   }
 
   this->DestroyDDB(d3db);
-  this->ClearDrawList();
+  this->ClearDrawLists();
 }
 
 bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)
@@ -1865,7 +1955,7 @@ bool D3DGraphicsFactory::Init()
 
     if (!_library.Load("d3d9"))
     {
-        set_allegro_error("Direct3D is not installed");
+        set_allegro_error("Direct3D 9 is not installed");
         return false;
     }
 

@@ -84,8 +84,8 @@ typedef int32_t sprkey_t;
 class SpriteCache
 {
 public:
-    const sprkey_t MIN_SPRITE_INDEX = 1; // 0 is reserved for "empty sprite"
-    const sprkey_t MAX_SPRITE_INDEX = INT32_MAX - 1;
+    static const sprkey_t MIN_SPRITE_INDEX = 1; // 0 is reserved for "empty sprite"
+    static const sprkey_t MAX_SPRITE_INDEX = INT32_MAX - 1;
 
     SpriteCache(sprkey_t reserve_count, std::vector<SpriteInfo> &sprInfos);
 

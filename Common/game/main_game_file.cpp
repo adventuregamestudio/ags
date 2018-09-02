@@ -14,6 +14,7 @@
 
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/spritecache.h"
 #include "ac/view.h"
 #include "core/asset.h"
 #include "core/assetmanager.h"
@@ -24,6 +25,8 @@
 #include "util/alignedstream.h"
 #include "util/path.h"
 #include "util/string_utils.h"
+
+extern SpriteCache spriteset;
 
 namespace AGS
 {
@@ -445,7 +448,7 @@ void BuildAudioClipArray(GameSetupStruct &game, const AssetLibInfo &lib)
 void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents)
 {
     // Apply sprite flags read from original format (sequential array)
-    game.SpriteInfos.resize(ents.SpriteCount);
+    spriteset.EnlargeTo(ents.SpriteCount);
     for (size_t i = 0; i < ents.SpriteCount; ++i)
         game.SpriteInfos[i].Flags = ents.SpriteFlags[i];
 }
@@ -639,15 +642,17 @@ void FixupSaveDirectory(GameSetupStruct &game)
 
 HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
 {
-    int numToRead;
+    uint32_t sprcount;
     if (data_ver < kGameVersion_256)
-        numToRead = LEGACY_MAX_SPRITES_V25;
+        sprcount = LEGACY_MAX_SPRITES_V25;
     else
-        numToRead = in->ReadInt32();
+        sprcount = in->ReadInt32();
+    if (sprcount > (uint32_t)SpriteCache::MAX_SPRITE_INDEX + 1)
+        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %u, max: %u", sprcount, (uint32_t)SpriteCache::MAX_SPRITE_INDEX + 1));
 
-    ents.SpriteCount = numToRead;
-    ents.SpriteFlags.reset(new char[numToRead]);
-    in->Read(ents.SpriteFlags.get(), numToRead);
+    ents.SpriteCount = sprcount;
+    ents.SpriteFlags.reset(new char[sprcount]);
+    in->Read(ents.SpriteFlags.get(), sprcount);
     return HGameFileError::None();
 }
 

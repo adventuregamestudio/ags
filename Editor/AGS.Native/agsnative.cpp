@@ -574,7 +574,7 @@ const char* save_sprites(bool compressSprites)
     else if (spriteset.AttachFile(backupname)) {
       errorMsg = "An error occurred attaching to the backup sprite file. Check write permissions on your game folder";
     }
-    else if (spriteset.SaveToFile(sprsetname, MAX_STATIC_SPRITES, compressSprites)) {
+    else if (spriteset.SaveToFile(sprsetname, compressSprites)) {
       errorMsg = "Unable to save the sprites. An error occurred writing the sprite file.";
     }
 

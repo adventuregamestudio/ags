@@ -30,12 +30,6 @@
 // Engine-specific implementation split out of sprcache.cpp
 //=============================================================================
 
-void SpriteCache::initFile_adjustBuffers(sprkey_t numspri)
-{
-    // adjust the buffers to the sprite file size
-    EnlargeTo(numspri + 1);
-}
-
 void SpriteCache::initFile_initNullSpriteParams(sprkey_t index)
 {
     // make it a blue cup, to avoid crashes

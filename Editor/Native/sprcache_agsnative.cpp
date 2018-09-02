@@ -16,15 +16,10 @@
 // AGS.Native-specific implementation split out of sprcache.cpp
 //=============================================================================
 
-void get_new_size_for_sprite(int ee, int ww, int hh, int &newwid, int &newhit) {
+void get_new_size_for_sprite(int ee, int ww, int hh, int &newwid, int &newhit)
+{
   newwid = ww;
   newhit = hh;
-}
-
-void SpriteCache::initFile_adjustBuffers(sprkey_t numspri)
-{
-    // adjust the buffers to the sprite file size
-    EnlargeTo(numspri + 1);
 }
 
 void SpriteCache::initFile_initNullSpriteParams(sprkey_t index)

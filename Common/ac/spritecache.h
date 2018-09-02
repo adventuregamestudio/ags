@@ -90,7 +90,7 @@ public:
     SpriteCache(sprkey_t reserve_count, std::vector<SpriteInfo> &sprInfos);
 
     // Tells if there is a sprite registered for the given index
-    bool        DoesSpriteExist(sprkey_t index);
+    bool        DoesSpriteExist(sprkey_t index) const;
     // Makes sure sprite cache has registered slots for all sprites up to the given exclusive limit
     sprkey_t    EnlargeTo(sprkey_t newsize);
     // Finds a free slot index, if all slots are occupied enlarges sprite bank; returns index
@@ -105,6 +105,8 @@ public:
     size_t      GetMaxCacheSize() const;
     // Returns number of sprite slots in the bank (this includes both actual sprites and free slots)
     sprkey_t    GetSpriteSlotCount() const;
+    // Finds the topmost occupied slot index. Warning: may be slow.
+    sprkey_t    FindTopmostSprite() const;
     // Loads sprite and and locks in memory (so it cannot get removed implicitly)
     void        Precache(sprkey_t index);
     // Unregisters sprite from the bank and optionally deletes bitmap
@@ -127,7 +129,7 @@ public:
     // Closes file stream
     void        DetachFile();
     // Saves all sprites until lastElement (exclusive) to file 
-    int         SaveToFile(const char *filename, sprkey_t lastElement, bool compressOutput);
+    int         SaveToFile(const char *filename, bool compressOutput);
     // Saves sprite index table in a separate file
     int         SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sprkey_t lastslot, sprkey_t numsprits,
         const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs);
@@ -181,13 +183,12 @@ private:
     int _listend;
 
     // Loads sprite index file
-    bool        LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t numspri);
+    bool        LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost);
     // Rebuilds sprite index from the main sprite file
-    int         RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t numspri, SpriteFileVersion vers);
+    int         RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers);
     // Writes compressed sprite to the stream
     void        CompressSprite(Common::Bitmap *sprite, Common::Stream *out);
 
-    void initFile_adjustBuffers(sprkey_t numspri);
     void initFile_initNullSpriteParams(sprkey_t index);
 };
 

@@ -152,11 +152,8 @@ int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 int new_room_loop = SCR_NO_VALUE;
 
-//Bitmap *spriteset[MAX_SPRITES+1];
-//SpriteCache spriteset (MAX_SPRITES+1);
 // initially size 1, this will be increased by the initFile function
-int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-SpriteCache spriteset(1);
+SpriteCache spriteset(1, game.SpriteInfos);
 int proper_exit=0,our_eip=0;
 
 std::vector<GUIMain> guis;
@@ -746,23 +743,23 @@ int Game_GetUseNativeCoordinates()
 }
 
 int Game_GetSpriteWidth(int spriteNum) {
-    if ((spriteNum < 0) || (spriteNum >= MAX_SPRITES))
+    if (spriteNum < 0)
         return 0;
 
-    if (!spriteset.doesSpriteExist(spriteNum))
+    if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
-    return divide_down_coordinate(spritewidth[spriteNum]);
+    return divide_down_coordinate(game.SpriteInfos[spriteNum].Width);
 }
 
 int Game_GetSpriteHeight(int spriteNum) {
-    if ((spriteNum < 0) || (spriteNum >= MAX_SPRITES))
+    if (spriteNum < 0)
         return 0;
 
-    if (!spriteset.doesSpriteExist(spriteNum))
+    if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
-    return divide_down_coordinate(spriteheight[spriteNum]);
+    return divide_down_coordinate(game.SpriteInfos[spriteNum].Height);
 }
 
 int Game_GetLoopCountForView(int viewNumber) {
@@ -1212,13 +1209,13 @@ void restore_game_spriteset(Stream *in)
 {
     // ensure the sprite set is at least as large as it was
     // when the game was saved
-    spriteset.enlargeTo(in->ReadInt32());
+    spriteset.EnlargeTo(in->ReadInt32());
     // get serialized dynamic sprites
     int sprnum = in->ReadInt32();
     while (sprnum) {
         unsigned char spriteflag = in->ReadByte();
         add_dynamic_sprite(sprnum, read_serialized_bitmap(in));
-        game.spriteflags[sprnum] = spriteflag;
+        game.SpriteInfos[sprnum].Flags = spriteflag;
         sprnum = in->ReadInt32();
     }
 }
@@ -1731,7 +1728,7 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
 
     if (desc.UserImage.get())
     {
-        int slot = spriteset.findFreeSlot();
+        int slot = spriteset.AddNewSprite();
         if (slot > 0)
         {
             // add it into the sprite set

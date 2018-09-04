@@ -48,7 +48,6 @@ extern GameState play;
 extern roomstruct thisroom;
 extern RoomObject*objs;
 extern ViewStruct*views;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int our_eip;
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;
@@ -426,7 +425,7 @@ void update_sierra_speech()
         }
         else
         {
-          view_frame_y = (screenover[face_talking].pic->GetHeight() / 2) - (spriteheight[thisPic] / 2);
+          view_frame_y = (screenover[face_talking].pic->GetHeight() / 2) - (game.SpriteInfos[thisPic].Height / 2);
         }
         screenover[face_talking].pic->Clear(0);
       }
@@ -436,12 +435,12 @@ void update_sierra_speech()
 
       Bitmap *frame_pic = screenover[face_talking].pic;
       const ViewFrame *face_vf = &views[facetalkview].loops[facetalkloop].frames[facetalkframe];
-      bool face_has_alpha = (game.spriteflags[face_vf->pic] & SPF_ALPHACHANNEL) != 0;
+      bool face_has_alpha = (game.SpriteInfos[face_vf->pic].Flags & SPF_ALPHACHANNEL) != 0;
       DrawViewFrame(frame_pic, face_vf, view_frame_x, view_frame_y);
 
       if ((facetalkchar->blinkview > 0) && (facetalkchar->blinktimer < 0)) {
         ViewFrame *blink_vf = &views[facetalkchar->blinkview].loops[facetalkBlinkLoop].frames[facetalkchar->blinkframe];
-        face_has_alpha |= (game.spriteflags[blink_vf->pic] & SPF_ALPHACHANNEL) != 0;
+        face_has_alpha |= (game.SpriteInfos[blink_vf->pic].Flags & SPF_ALPHACHANNEL) != 0;
         // draw the blinking sprite on top
         DrawViewFrame(frame_pic, blink_vf, view_frame_x, view_frame_y, face_has_alpha);
       }

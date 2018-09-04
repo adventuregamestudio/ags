@@ -58,7 +58,6 @@ extern ccInstance *dialogScriptsInst;
 extern int in_new_room;
 extern CharacterInfo*playerchar;
 extern SpriteCache spriteset;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
@@ -368,7 +367,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
       char tempbfr[20];
       int actualpicwid = 0;
       if (game.dialog_bullet > 0)
-        actualpicwid = spritewidth[game.dialog_bullet]+3;
+        actualpicwid = game.SpriteInfos[game.dialog_bullet].Width+3;
 
       sprintf (tempbfr, "%d.", ww + 1);
       wouttext_outline (ds, dlgxp + actualpicwid, curyp, usingfont, text_color, tempbfr);
@@ -502,7 +501,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   update_polled_stuff_if_runtime();
 
   if (game.dialog_bullet > 0)
-    bullet_wid = spritewidth[game.dialog_bullet]+3;
+    bullet_wid = game.SpriteInfos[game.dialog_bullet].Width+3;
 
   // numbered options, leave space for the numbers
   if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)

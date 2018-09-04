@@ -630,14 +630,14 @@ HSaveError WriteDynamicSprites(PStream out)
     out->WriteInt32(0); // top index
     int count = 0;
     int top_index = 1;
-    for (int i = 1; i < spriteset.elements; ++i)
+    for (int i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
     {
-        if (game.spriteflags[i] & SPF_DYNAMICALLOC)
+        if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
         {
             count++;
             top_index = i;
             out->WriteInt32(i);
-            out->WriteInt32(game.spriteflags[i]);
+            out->WriteInt32(game.SpriteInfos[i].Flags);
             serialize_bitmap(spriteset[i], out.get());
         }
     }
@@ -656,17 +656,13 @@ HSaveError ReadDynamicSprites(PStream in, int32_t cmp_ver, const PreservedParams
     // ensure the sprite set is at least large enough
     // to accomodate top dynamic sprite index
     const int top_index = in->ReadInt32();
-    if (!AssertCompatRange(err, top_index, 1, MAX_SPRITES - 1, "sprite top index"))
-        return err;
-    spriteset.enlargeTo(top_index);
+    spriteset.EnlargeTo(top_index + 1);
     for (int i = 0; i < spr_count; ++i)
     {
         int id = in->ReadInt32();
-        if (!AssertCompatRange(err, id, 1, MAX_SPRITES - 1, "sprite index"))
-            return err;
         int flags = in->ReadInt32();
         add_dynamic_sprite(id, read_serialized_bitmap(in.get()));
-        game.spriteflags[id] = flags;
+        game.SpriteInfos[id].Flags = flags;
     }
     return err;
 }

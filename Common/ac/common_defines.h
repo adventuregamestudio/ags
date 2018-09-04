@@ -94,7 +94,8 @@
 #define LEGACY_MAXOBJNAMELEN 30
 #define MAX_BSCENE    5   // max number of frames in animating bg scene
 
-#define MAX_SPRITES         30000
+#define LEGACY_MAX_SPRITES_V25  6000
+#define LEGACY_MAX_SPRITES      30000
 #define MAX_CURSOR          20
 
 #ifndef int32

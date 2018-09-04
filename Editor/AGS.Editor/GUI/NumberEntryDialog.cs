@@ -10,12 +10,14 @@ namespace AGS.Editor
 {
     public partial class NumberEntryDialog : Form
     {
-        private NumberEntryDialog(string titleText, string headerText, int initialValue)
+        private NumberEntryDialog(string titleText, string headerText, int initialValue, int minValue, int maxValue)
         {
             InitializeComponent();
             this.Text = titleText;
             lblHeader.Text = headerText;
             udNumber.Value = initialValue;
+            udNumber.Minimum = minValue;
+            udNumber.Maximum = maxValue;
             udNumber.Select();
             udNumber.Select(0, ((int)udNumber.Value).ToString().Length);
         }
@@ -26,10 +28,10 @@ namespace AGS.Editor
             set { udNumber.Value = value; }
         }
 
-        public static int Show(string titleBar, string headerText, int currentValue)
+        public static int Show(string titleBar, string headerText, int currentValue, int minValue = Int32.MinValue, int maxValue = Int32.MaxValue)
         {
             int result = -1;
-            NumberEntryDialog dialog = new NumberEntryDialog(titleBar, headerText, currentValue);
+            NumberEntryDialog dialog = new NumberEntryDialog(titleBar, headerText, currentValue, minValue, maxValue);
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 result = dialog.Number;

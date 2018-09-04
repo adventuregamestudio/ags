@@ -15,6 +15,7 @@
 #include "ac/roomobject.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
@@ -23,10 +24,9 @@
 
 using AGS::Common::Stream;
 
-
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern ViewStruct*views;
 extern GameState play;
+extern GameSetupStruct game;
 
 RoomObject::RoomObject()
 {
@@ -50,12 +50,12 @@ RoomObject::RoomObject()
 
 int RoomObject::get_width() {
     if (last_width == 0)
-        return spritewidth[num];
+        return game.SpriteInfos[num].Width;
     return last_width;
 }
 int RoomObject::get_height() {
     if (last_height == 0)
-        return spriteheight[num];
+        return game.SpriteInfos[num].Height;
     return last_height;
 }
 int RoomObject::get_baseline() {

@@ -39,7 +39,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int force_window;
 extern char psp_translation[];
@@ -476,7 +475,7 @@ void apply_config(const ConfigTree &cfg)
         // PSP: Don't let the setup determine the cache size as it is always too big.
 #if !defined(PSP_VERSION)
         // the config file specifies cache size in KB, here we convert it to bytes
-        spriteset.maxCacheSize = INIreadint (cfg, "misc", "cachemax", DEFAULTCACHESIZE / 1024) * 1024;
+        spriteset.SetMaxCacheSize(INIreadint (cfg, "misc", "cachemax", DEFAULTCACHESIZE / 1024) * 1024);
 #endif
 
         String repfile = INIreadstring(cfg, "misc", "replay");

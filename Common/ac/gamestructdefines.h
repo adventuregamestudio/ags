@@ -19,6 +19,7 @@
 #define __AGS_CN_AC__GAMESTRUCTDEFINES_H
 
 #include "util/geometry.h"
+#include "core/types.h"
 
 #define PAL_GAMEWIDE        0
 #define PAL_LOCKED          1
@@ -88,12 +89,7 @@
 #define FADE_BOXOUT         3
 #define FADE_CROSSFADE      4
 #define FADE_LAST           4   // this should equal the last one
-#define SPF_640x400         1
-#define SPF_HICOLOR         2
-#define SPF_DYNAMICALLOC    4
-#define SPF_TRUECOLOR       8
-#define SPF_ALPHACHANNEL 0x10
-#define SPF_HADALPHACHANNEL 0x80  // the saved sprite on disk has one
+
 //#define FFLG_NOSCALE        1
 #define FFLG_SIZEMASK 0x003f
 #define FONT_OUTLINE_NONE -1
@@ -166,6 +162,25 @@ enum RenderAtScreenRes
     kRenderAtScreenRes_UserDefined  = 0,
     kRenderAtScreenRes_Enabled      = 1,
     kRenderAtScreenRes_Disabled     = 2,
+};
+
+
+// Sprite flags
+#define SPF_640x400         0x01  // sized for high native resolution
+#define SPF_HICOLOR         0x02  // is 16-bit
+#define SPF_DYNAMICALLOC    0x04  // created by runtime script
+#define SPF_TRUECOLOR       0x08  // is 32-bit
+#define SPF_ALPHACHANNEL    0x10  // has alpha-channel
+#define SPF_HADALPHACHANNEL 0x80  // the saved sprite on disk has one
+
+// General information about sprite (properties, size)
+struct SpriteInfo
+{
+    uint32_t Flags;
+    int      Width;
+    int      Height;
+
+    SpriteInfo();
 };
 
 // Various font parameters, defining and extending font rendering behavior.

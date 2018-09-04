@@ -92,7 +92,7 @@ int get_adjusted_spriteheight(int spr)
 
 bool is_sprite_alpha(int spr)
 {
-  return ((game.spriteflags[spr] & SPF_ALPHACHANNEL) != 0);
+  return ((game.SpriteInfos[spr].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
 void set_eip_guiobj(int eip)

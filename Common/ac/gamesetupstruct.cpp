@@ -77,21 +77,6 @@ void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_v
     }
 }
 
-HGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)
-{
-    int numToRead;
-    if (data_ver < kGameVersion_256)
-        numToRead = 6000; // Fixed number of sprites on < 2.56
-    else
-        numToRead = in->ReadInt32();
-
-    if (numToRead > MAX_SPRITES)
-        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %d, max: %d", numToRead, MAX_SPRITES));
-    in->Read(&spriteflags[0], numToRead);
-    memset(spriteflags + numToRead, 0, MAX_SPRITES - numToRead);
-    return HGameFileError::None();
-}
-
 void GameSetupStruct::ReadInvInfo_Aligned(Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
@@ -403,7 +388,12 @@ void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {
         SetFontInfoFromSerializedFlags(gss->fonts[i], ogss->fontflags[i]);
         gss->fonts[i].Outline = ogss->fontoutline[i];
     }
-    memcpy (&gss->spriteflags[0], &ogss->spriteflags[0], 6000);
+
+    for (int i = 0; i < LEGACY_MAX_SPRITES_V25; ++i)
+    {
+        gss->SpriteInfos[i].Flags = ogss->spriteflags[i];
+    }
+
     memcpy (&gss->invinfo[0], &ogss->invinfo[0], 100 * sizeof(InventoryItemInfo));
     memcpy (&gss->mcurs[0], &ogss->mcurs[0], 10 * sizeof(MouseCursor));
     for (int i = 0; i < MAXGLOBALMES; i++)

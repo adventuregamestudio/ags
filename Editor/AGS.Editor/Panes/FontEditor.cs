@@ -66,7 +66,7 @@ namespace AGS.Editor
 
         private void ImportTTFFont(string fileName, string newTTFName, string newWFNName)
         {
-            int fontSize = NumberEntryDialog.Show("Font size", "Select the font size to import this TTF font at:", DEFAULT_IMPORTED_FONT_SIZE);
+            int fontSize = NumberEntryDialog.Show("Font size", "Select the font size to import this TTF font at:", DEFAULT_IMPORTED_FONT_SIZE, 1);
             if (fontSize > 0)
             {
                 File.Copy(fileName, newTTFName, true);

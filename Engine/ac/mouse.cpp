@@ -41,7 +41,6 @@ extern GameSetupStruct game;
 extern GameState play;
 extern ScriptSystem scsystem;
 extern Bitmap *mousecurs[MAXCURSORS];
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern CharacterInfo*playerchar;
 extern IGraphicsDriver *gfxDriver;
@@ -117,16 +116,11 @@ void set_mouse_cursor(int newcurs) {
             dotted_mouse_cursor = BitmapHelper::CreateBitmapCopy(mousecurs[0]);
 
             if (game.invhotdotsprite > 0) {
-                //Bitmap *abufWas = abuf;
-                //abuf = dotted_mouse_cursor;
-
                 draw_sprite_slot_support_alpha(dotted_mouse_cursor,
-                    (game.spriteflags[game.mcurs[newcurs].pic] & SPF_ALPHACHANNEL) != 0,
-                    hotspotx - spritewidth[game.invhotdotsprite] / 2,
-                    hotspoty - spriteheight[game.invhotdotsprite] / 2,
+                    (game.SpriteInfos[game.mcurs[newcurs].pic].Flags & SPF_ALPHACHANNEL) != 0,
+                    hotspotx - game.SpriteInfos[game.invhotdotsprite].Width / 2,
+                    hotspoty - game.SpriteInfos[game.invhotdotsprite].Height / 2,
                     game.invhotdotsprite);
-
-                //abuf = abufWas;
             }
             else {
                 putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty,
@@ -169,7 +163,7 @@ void ChangeCursorGraphic (int curs, int newslot) {
         debug_script_warn("Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is linked to the active inventory item");
 
     game.mcurs[curs].pic = newslot;
-    spriteset.precache (newslot);
+    spriteset.Precache(newslot);
     if (curs == cur_mode)
         set_mouse_cursor (curs);
 }
@@ -333,7 +327,7 @@ void update_inv_cursor(int invnum) {
 
         game.mcurs[MODE_USE].pic = cursorSprite;
         // all cursor images must be pre-cached
-        spriteset.precache(cursorSprite);
+        spriteset.Precache(cursorSprite);
 
         if ((game.invinfo[invnum].hotx > 0) || (game.invinfo[invnum].hoty > 0)) {
             // if the hotspot was set (unfortunately 0,0 isn't a valid co-ord)
@@ -341,8 +335,8 @@ void update_inv_cursor(int invnum) {
             game.mcurs[MODE_USE].hoty=game.invinfo[invnum].hoty;
         }
         else {
-            game.mcurs[MODE_USE].hotx = spritewidth[cursorSprite] / 2;
-            game.mcurs[MODE_USE].hoty = spriteheight[cursorSprite] / 2;
+            game.mcurs[MODE_USE].hotx = game.SpriteInfos[cursorSprite].Width / 2;
+            game.mcurs[MODE_USE].hoty = game.SpriteInfos[cursorSprite].Height / 2;
         }
     }
 }
@@ -368,7 +362,7 @@ void set_new_cursor_graphic (int spriteslot) {
         mousecurs[0] = blank_mouse_cursor;
     }
 
-    if (game.spriteflags[spriteslot] & SPF_ALPHACHANNEL)
+    if (game.SpriteInfos[spriteslot].Flags & SPF_ALPHACHANNEL)
         alpha_blend_cursor = 1;
     else
         alpha_blend_cursor = 0;

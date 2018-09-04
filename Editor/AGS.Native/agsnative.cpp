@@ -2140,7 +2140,7 @@ void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<
     // TODO: this is not a very pleasant way to do things, need to refactor writing process to fix this
     lib.AssetInfos[0].Offset = wout->GetPosition();
     // set offsets (assets are positioned in sequence)
-    for (size_t i = 0; i < numfile; ++i)
+    for (size_t i = 1; i < numfile; ++i)
     {
         lib.AssetInfos[i].Offset = lib.AssetInfos[i - 1].Offset + lib.AssetInfos[i - 1].Size;
     }

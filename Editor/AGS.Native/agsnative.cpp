@@ -2112,11 +2112,24 @@ int copy_file_across(Stream*inlibb,Stream*coppy, soff_t leftforthis) {
   return success;
 }
 
+AGSString make_libfilename(const AGSString &data_filename)
+{
+    if (strrchr(data_filename, '\\') != NULL)
+        return strrchr(data_filename, '\\') + 1;
+    else if (strrchr(data_filename, '/') != NULL)
+        return strrchr(data_filename, '/') + 1;
+    else
+        return data_filename;
+}
+
 // NOTE: this is used for audio.vox and speech.vox
 void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<AGSString> &filenames)
 {
     size_t numfile = filenames.size();
     AGS::Common::AssetLibInfo lib;
+
+    lib.LibFileNames.resize(1);
+    lib.LibFileNames[0] = make_libfilename(dataFileName);
 
     lib.AssetInfos.resize(numfile);
     for (size_t i = 0; i < numfile; ++i)
@@ -2276,12 +2289,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 	  }
 	  else 
 	  {
-    	if (strrchr(baseFileName, '\\') != NULL)
-		    lib.LibFileNames[a] = strrchr(baseFileName, '\\') + 1;
-	    else if (strrchr(baseFileName, '/') != NULL)
-            lib.LibFileNames[a] = strrchr(baseFileName, '/') + 1;
-	    else
-            lib.LibFileNames[a] = baseFileName;
+          lib.LibFileNames[a] = make_libfilename(baseFileName);
 	  }
   }
 

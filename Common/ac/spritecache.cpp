@@ -267,9 +267,7 @@ void SpriteCache::RemoveOldest()
         // Free the memory
         if (_spriteData[sprnum].Flags & SPRCACHEFLAG_DOESNOTEXIST)
         {
-            char msgg[150];
-            sprintf(msgg, "SpriteCache::removeOldest: Attempted to remove sprite %d that does not exist", sprnum);
-            quit(msgg);
+            quitprintf("SpriteCache::removeOldest: Attempted to remove sprite %d that does not exist", sprnum);
         }
         _cacheSize -= _spriteData[sprnum].Size;
 

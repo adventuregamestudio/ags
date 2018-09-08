@@ -56,5 +56,8 @@ void start_playback();
 int  my_readkey();
 // Clears buffered keypresses and mouse clicks, if any
 void clear_input_buffer();
+// Suspends the game until user keypress
+// TODO: this function should not normally exist; need to rewrite update loop to support different states
+void wait_until_keypress();
 
 #endif // __AGS_EE_AC__RECORD_H

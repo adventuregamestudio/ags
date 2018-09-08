@@ -24,17 +24,21 @@ const char *CCDynamicArray::GetType() {
 int CCDynamicArray::Dispose(const char *address, bool force) {
     address -= 8;
 
-    // If it's an array of managed objects, release
-    // their ref counts
-    int *elementCount = (int*)address;
-    if (elementCount[0] & ARRAY_MANAGED_TYPE_FLAG)
+    // If it's an array of managed objects, release their ref counts;
+    // except if this array is forcefully removed from the managed pool,
+    // in which case just ignore these.
+    if (!force)
     {
-        elementCount[0] &= ~ARRAY_MANAGED_TYPE_FLAG;
-        for (int i = 0; i < elementCount[0]; i++)
+        int *elementCount = (int*)address;
+        if (elementCount[0] & ARRAY_MANAGED_TYPE_FLAG)
         {
-            if (elementCount[2 + i] != 0)
+            elementCount[0] &= ~ARRAY_MANAGED_TYPE_FLAG;
+            for (int i = 0; i < elementCount[0]; i++)
             {
-                ccReleaseObjectReference(elementCount[2 + i]);
+                if (elementCount[2 + i] != 0)
+                {
+                    ccReleaseObjectReference(elementCount[2 + i]);
+                }
             }
         }
     }

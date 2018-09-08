@@ -35,7 +35,7 @@ struct ManagedObjectPool {
 
         void init(int32_t theHandle, const char *theAddress,
             ICCDynamicObject *theCallback, ScriptValueType objType);
-        int remove(bool force);
+        int remove(bool force = false);
         int AddRef();
         int CheckDispose();
         int SubRef();

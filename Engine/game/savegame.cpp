@@ -403,6 +403,7 @@ void DoBeforeRestore(PreservedParams &pp)
     free_do_once_tokens();
 
     // unregister gui controls from API exports
+    // TODO: find out why are we doing this here? perhaps remove if we do full managed pool reset in DoBeforeRestore
     for (int i = 0; i < game.numgui; ++i)
     {
         unexport_gui_controls(i);

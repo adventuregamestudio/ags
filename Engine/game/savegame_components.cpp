@@ -956,8 +956,9 @@ HSaveError ReadPluginData(PStream in, int32_t cmp_ver, const PreservedParams &pp
 // Description of a supported game state serialization component
 struct ComponentHandler
 {
-    String             Name;
-    int32_t            Version;
+    String             Name;    // internal component's ID
+    int32_t            Version; // current version to write and the highest supported version
+    int32_t            LowestVersion; // lowest supported version that the engine can read
     HSaveError       (*Serialize)  (PStream);
     HSaveError       (*Unserialize)(PStream, int32_t cmp_ver, const PreservedParams&, RestoredData&);
 };
@@ -968,11 +969,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Game State",
         0,
+        0,
         WriteGameState,
         ReadGameState
     },
     {
         "Audio",
+        0,
         0,
         WriteAudio,
         ReadAudio
@@ -980,11 +983,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Characters",
         1,
+        0,
         WriteCharacters,
         ReadCharacters
     },
     {
         "Dialogs",
+        0,
         0,
         WriteDialogs,
         ReadDialogs
@@ -992,11 +997,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "GUI",
         0,
+        0,
         WriteGUI,
         ReadGUI
     },
     {
         "Inventory Items",
+        0,
         0,
         WriteInventory,
         ReadInventory
@@ -1004,11 +1011,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Mouse Cursors",
         0,
+        0,
         WriteMouseCursors,
         ReadMouseCursors
     },
     {
         "Views",
+        0,
         0,
         WriteViews,
         ReadViews
@@ -1016,11 +1025,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Dynamic Sprites",
         0,
+        0,
         WriteDynamicSprites,
         ReadDynamicSprites
     },
     {
         "Overlays",
+        0,
         0,
         WriteOverlays,
         ReadOverlays
@@ -1028,11 +1039,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Dynamic Surfaces",
         0,
+        0,
         WriteDynamicSurfaces,
         ReadDynamicSurfaces
     },
     {
         "Script Modules",
+        0,
         0,
         WriteScriptModules,
         ReadScriptModules
@@ -1040,23 +1053,27 @@ ComponentHandler ComponentHandlers[] =
     {
         "Room States",
         0,
+        0,
         WriteRoomStates,
         ReadRoomStates
     },
     {
         "Loaded Room State",
         1,
+        0,
         WriteThisRoom,
         ReadThisRoom
     },
     {
         "Managed Pool",
         0,
+        0,
         WriteManagedPool,
         ReadManagedPool
     },
     {
         "Plugin Data",
+        0,
         0,
         WritePluginData,
         ReadPluginData
@@ -1094,8 +1111,8 @@ struct SvgCmpReadHelper
 // The basic information about deserialized component, used for debugging purposes
 struct ComponentInfo
 {
-    String  Name;
-    int32_t Version;
+    String  Name;       // internal component's ID
+    int32_t Version;    // data format version
     soff_t  Offset;     // offset at which an opening tag is located
     soff_t  DataOffset; // offset at which component data begins
     soff_t  DataSize;   // expected size of component data
@@ -1120,8 +1137,8 @@ HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 
     if (!handler || !handler->Unserialize)
         return new SavegameError(kSvgErr_UnsupportedComponent);
-    if (info.Version > handler->Version)
-        return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d", info.Version, handler->Version));
+    if (info.Version > handler->Version || info.Version < handler->LowestVersion)
+        return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version));
     HSaveError err = handler->Unserialize(in, info.Version, hlp.PP, hlp.RData);
     if (!err)
         return err;

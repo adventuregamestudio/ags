@@ -15,6 +15,8 @@
 #ifndef __AC_WORDSDICTIONARY_H
 #define __AC_WORDSDICTIONARY_H
 
+#include "core/types.h"
+
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 

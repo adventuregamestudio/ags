@@ -564,3 +564,9 @@ void clear_input_buffer()
     while (rec_kbhit()) rec_getch();
     while (mgetbutton() != NONE);
 }
+
+void wait_until_keypress()
+{
+    while (!rec_kbhit());
+    rec_getch();
+}

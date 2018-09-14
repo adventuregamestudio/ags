@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "ac/common.h" // update_polled_stuff
+#include "ac/spritecache.h"
 #include "ac/wordsdictionary.h"
 #include "debug/out.h"
 #include "core/assetmanager.h"
@@ -31,9 +32,6 @@
 #define ROOM_MESSAGE_FLAG_DISPLAYNEXT 200
 #define ROOM_LEGACY_OPTIONS_SIZE 10
 #define LEGACY_TINT_IS_ENABLED 0x80000000
-
-// Necessary for the room upgrade (see UpdateRoomData)
-extern int spriteheight[];
 
 namespace AGS
 {
@@ -541,7 +539,7 @@ HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_v
     return HRoomFileError::None();
 }
 
-HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver)
+HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos)
 {
     // Upgade object script names
     if (data_ver < kRoomVersion_300a)
@@ -558,7 +556,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver)
             }
             // Upgrade object Y coordinate
             // NOTE: this is impossible to do without game sprite information loaded beforehand
-            room->Objects[i].Y += spriteheight[room->Objects[i].Sprite];
+            room->Objects[i].Y += sprinfos[room->Objects[i].Sprite].Height;
         }
     }
 

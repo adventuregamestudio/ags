@@ -604,14 +604,14 @@ HSaveError WriteDynamicSprites(PStream out)
     out->WriteInt32(0); // top index
     int count = 0;
     int top_index = 1;
-    for (int i = 1; i < spriteset.elements; ++i)
+    for (int i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
     {
-        if (game.spriteflags[i] & SPF_DYNAMICALLOC)
+        if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
         {
             count++;
             top_index = i;
             out->WriteInt32(i);
-            out->WriteInt32(game.spriteflags[i]);
+            out->WriteInt32(game.SpriteInfos[i].Flags);
             serialize_bitmap(spriteset[i], out.get());
         }
     }
@@ -630,17 +630,13 @@ HSaveError ReadDynamicSprites(PStream in, int32_t cmp_ver, const PreservedParams
     // ensure the sprite set is at least large enough
     // to accomodate top dynamic sprite index
     const int top_index = in->ReadInt32();
-    if (!AssertCompatRange(err, top_index, 1, MAX_SPRITES - 1, "sprite top index"))
-        return err;
-    spriteset.enlargeTo(top_index);
+    spriteset.EnlargeTo(top_index + 1);
     for (int i = 0; i < spr_count; ++i)
     {
         int id = in->ReadInt32();
-        if (!AssertCompatRange(err, id, 1, MAX_SPRITES - 1, "sprite index"))
-            return err;
         int flags = in->ReadInt32();
         add_dynamic_sprite(id, read_serialized_bitmap(in.get()));
-        game.spriteflags[id] = flags;
+        game.SpriteInfos[id].Flags = flags;
     }
     return err;
 }
@@ -934,8 +930,9 @@ HSaveError ReadPluginData(PStream in, int32_t cmp_ver, const PreservedParams &pp
 // Description of a supported game state serialization component
 struct ComponentHandler
 {
-    String             Name;
-    int32_t            Version;
+    String             Name;    // internal component's ID
+    int32_t            Version; // current version to write and the highest supported version
+    int32_t            LowestVersion; // lowest supported version that the engine can read
     HSaveError       (*Serialize)  (PStream);
     HSaveError       (*Unserialize)(PStream, int32_t cmp_ver, const PreservedParams&, RestoredData&);
 };
@@ -946,11 +943,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Game State",
         0,
+        0,
         WriteGameState,
         ReadGameState
     },
     {
         "Audio",
+        0,
         0,
         WriteAudio,
         ReadAudio
@@ -958,11 +957,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Characters",
         1,
+        0,
         WriteCharacters,
         ReadCharacters
     },
     {
         "Dialogs",
+        0,
         0,
         WriteDialogs,
         ReadDialogs
@@ -970,11 +971,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "GUI",
         0,
+        0,
         WriteGUI,
         ReadGUI
     },
     {
         "Inventory Items",
+        0,
         0,
         WriteInventory,
         ReadInventory
@@ -982,11 +985,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Mouse Cursors",
         0,
+        0,
         WriteMouseCursors,
         ReadMouseCursors
     },
     {
         "Views",
+        0,
         0,
         WriteViews,
         ReadViews
@@ -994,11 +999,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Dynamic Sprites",
         0,
+        0,
         WriteDynamicSprites,
         ReadDynamicSprites
     },
     {
         "Overlays",
+        0,
         0,
         WriteOverlays,
         ReadOverlays
@@ -1006,11 +1013,13 @@ ComponentHandler ComponentHandlers[] =
     {
         "Dynamic Surfaces",
         0,
+        0,
         WriteDynamicSurfaces,
         ReadDynamicSurfaces
     },
     {
         "Script Modules",
+        0,
         0,
         WriteScriptModules,
         ReadScriptModules
@@ -1018,23 +1027,27 @@ ComponentHandler ComponentHandlers[] =
     {
         "Room States",
         0,
+        0,
         WriteRoomStates,
         ReadRoomStates
     },
     {
         "Loaded Room State",
         1,
+        0,
         WriteThisRoom,
         ReadThisRoom
     },
     {
         "Managed Pool",
         0,
+        0,
         WriteManagedPool,
         ReadManagedPool
     },
     {
         "Plugin Data",
+        0,
         0,
         WritePluginData,
         ReadPluginData
@@ -1072,8 +1085,8 @@ struct SvgCmpReadHelper
 // The basic information about deserialized component, used for debugging purposes
 struct ComponentInfo
 {
-    String  Name;
-    int32_t Version;
+    String  Name;       // internal component's ID
+    int32_t Version;    // data format version
     soff_t  Offset;     // offset at which an opening tag is located
     soff_t  DataOffset; // offset at which component data begins
     soff_t  DataSize;   // expected size of component data
@@ -1098,8 +1111,8 @@ HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 
     if (!handler || !handler->Unserialize)
         return new SavegameError(kSvgErr_UnsupportedComponent);
-    if (info.Version > handler->Version)
-        return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d", info.Version, handler->Version));
+    if (info.Version > handler->Version || info.Version < handler->LowestVersion)
+        return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version));
     HSaveError err = handler->Unserialize(in, info.Version, hlp.PP, hlp.RData);
     if (!err)
         return err;

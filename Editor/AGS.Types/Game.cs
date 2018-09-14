@@ -23,7 +23,6 @@ namespace AGS.Types
         public const int MAX_CURSORS = 20;
         public const int MAX_DIALOGS = 500;
         public const int MAX_INV_ITEMS = 300;
-        public const int MAX_SPRITES = 30000;
 
         public delegate void GUIAddedOrRemovedHandler(GUI theGUI);
         public delegate void GUIControlAddedOrRemovedHandler(GUI owningGUI, GUIControl control);

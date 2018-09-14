@@ -656,7 +656,7 @@ namespace AGS
             if (name->Equals("DFLG_NOREPEAT")) return DFLG_NOREPEAT;
             if (name->Equals("DTFLG_SHOWPARSER")) return DTFLG_SHOWPARSER;
             if (name->Equals("FONT_OUTLINE_AUTO")) return FONT_OUTLINE_AUTO;
-            if (name->Equals("MAX_SPRITES")) return MAX_SPRITES;
+            if (name->Equals("MAX_STATIC_SPRITES")) return MAX_STATIC_SPRITES;
             if (name->Equals("MAX_CURSOR")) return MAX_CURSOR;
             if (name->Equals("MAX_PARSER_WORD_LENGTH")) return MAX_PARSER_WORD_LENGTH;
             if (name->Equals("MAX_INV")) return MAX_INV;

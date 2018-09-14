@@ -30,7 +30,6 @@ using namespace AGS::Common;
 extern RoomStruct thisroom;
 extern GameState play;
 extern GameSetupStruct game;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int displayed_room;
 extern RoomStatus*croom;
 extern RoomObject*objs;
@@ -103,8 +102,8 @@ int get_area_scaling (int onarea, int xx, int yy) {
 }
 
 void scale_sprite_size(int sppic, int zoom_level, int *newwidth, int *newheight) {
-    newwidth[0] = (spritewidth[sppic] * zoom_level) / 100;
-    newheight[0] = (spriteheight[sppic] * zoom_level) / 100;
+    newwidth[0] = (game.SpriteInfos[sppic].Width * zoom_level) / 100;
+    newheight[0] = (game.SpriteInfos[sppic].Height * zoom_level) / 100;
     if (newwidth[0] < 1)
         newwidth[0] = 1;
     if (newheight[0] < 1)

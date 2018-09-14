@@ -113,7 +113,7 @@ void precache_view(int view)
 
     for (int i = 0; i < views[view].numLoops; i++) {
         for (int j = 0; j < views[view].loops[i].numFrames; j++)
-            spriteset.precache (views[view].loops[i].frames[j].pic);
+            spriteset.Precache(views[view].loops[i].frames[j].pic);
     }
 }
 
@@ -144,7 +144,7 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha
             src = new Bitmap(vf_bmp->GetWidth(), vf_bmp->GetHeight(), vf_bmp->GetColorDepth());
             src->FlipBlt(vf_bmp, 0, 0, Common::kBitmap_HFlip);
         }
-        draw_sprite_support_alpha(ds, true, x, y, src, (game.spriteflags[vframe->pic] & SPF_ALPHACHANNEL) != 0);
+        draw_sprite_support_alpha(ds, true, x, y, src, (game.SpriteInfos[vframe->pic].Flags & SPF_ALPHACHANNEL) != 0);
         if (src != vf_bmp)
             delete src;
     }

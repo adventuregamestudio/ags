@@ -25,27 +25,16 @@
 
 #include "ac/spritecache.h"
 #include "util/compress.h"
-//
-
-// For engine these are defined in ac.cpp
-extern int spritewidth[], spriteheight[];
-//
 
 //=============================================================================
 // Engine-specific implementation split out of sprcache.cpp
 //=============================================================================
 
-void SpriteCache::initFile_adjustBuffers(short numspri)
+void SpriteCache::initFile_initNullSpriteParams(sprkey_t index)
 {
-  // adjust the buffers to the sprite file size
-  changeMaxSize(numspri + 1);
-}
-
-void SpriteCache::initFile_initNullSpriteParams(int vv)
-{
-  // make it a blue cup, to avoid crashes
-  spritewidth[vv] = spritewidth[0];
-  spriteheight[vv] = spriteheight[0];
-  offsets[vv] = offsets[0];
-  flags[vv] = SPRCACHEFLAG_DOESNOTEXIST;
+    // make it a blue cup, to avoid crashes
+    _sprInfos[index].Width = _sprInfos[0].Width;
+    _sprInfos[index].Height = _sprInfos[0].Height;
+    _spriteData[index].Offset = _spriteData[0].Offset;
+    _spriteData[index].Flags = SPRCACHEFLAG_DOESNOTEXIST;
 }

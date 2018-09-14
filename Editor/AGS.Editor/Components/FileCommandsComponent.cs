@@ -96,7 +96,7 @@ namespace AGS.Editor.Components
                 Game game = _agsEditor.CurrentGame;
                 StringBuilder sb = new StringBuilder(1000);
                 int numSprites = CountSprites(game.RootSpriteFolder);
-                sb.AppendFormat("Total sprites:\t{0} / {1}\n", numSprites, Game.MAX_SPRITES);
+                sb.AppendFormat("Total sprites:\t{0} / {1}\n", numSprites, NativeConstants.MAX_STATIC_SPRITES);
                 int numSpriteFolders = CountSpriteFolders(game.RootSpriteFolder);
                 sb.AppendFormat("Sprite folders:\t{0}\n", numSpriteFolders);
 

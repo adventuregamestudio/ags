@@ -28,7 +28,6 @@ using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 
 // *** BUTTON FUNCTIONS
 
@@ -151,8 +150,8 @@ void Button_SetNormalGraphic(GUIButton *guil, int slotn) {
         guil->CurrentImage = slotn;
     guil->Image = slotn;
     // update the clickable area to the same size as the graphic
-    guil->Width = spritewidth[slotn];
-    guil->Height = spriteheight[slotn];
+    guil->Width = game.SpriteInfos[slotn].Width;
+    guil->Height = game.SpriteInfos[slotn].Height;
 
     guis_need_update = 1;
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);

@@ -16,21 +16,9 @@
 // AGS.Native-specific implementation split out of sprcache.cpp
 //=============================================================================
 
-void get_new_size_for_sprite(int ww, int hh, int &newwid, int &newhit) {
-  newwid = ww;
-  newhit = hh;
-}
-int spritewidth[MAX_SPRITES + 5], spriteheight[MAX_SPRITES + 5];
-
-void SpriteCache::initFile_adjustBuffers(short numspri)
+void SpriteCache::initFile_initNullSpriteParams(sprkey_t index)
 {
-  // do nothing
-}
-
-void SpriteCache::initFile_initNullSpriteParams(int vv)
-{
-  // no sprite ... blank it out
-  spritewidth[vv] = 0;
-  spriteheight[vv] = 0;
-  offsets[vv] = 0;
+    // no sprite ... blank it out
+    _sprInfos[index] = SpriteInfo();
+    _spriteData[index] = SpriteData();
 }

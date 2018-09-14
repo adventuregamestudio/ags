@@ -67,7 +67,6 @@ extern RoomStruct thisroom;
 extern MoveList *mls;
 extern ViewStruct*views;
 extern RoomObject*objs;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
@@ -619,7 +618,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
         quit("!SetCharacterLoop: character has invalid old view number");
 
     int sppic = views[chap->view].loops[chap->loop].frames[chap->frame].pic;
-    int leftSide = chap->x - spritewidth[sppic] / 2;
+    int leftSide = chap->x - game.SpriteInfos[sppic].Width / 2;
 
     Character_LockViewEx(chap, vii, stopMoving);
 
@@ -629,7 +628,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
     chap->loop = loop;
     chap->frame = 0;
     int newpic = views[chap->view].loops[chap->loop].frames[chap->frame].pic;
-    int newLeft = chap->x - spritewidth[newpic] / 2;
+    int newLeft = chap->x - game.SpriteInfos[newpic].Width / 2;
     int xdiff = 0;
 
     if (align == SCALIGN_LEFT)
@@ -637,7 +636,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
     else if (align == SCALIGN_CENTRE)
         xdiff = 0;
     else if (align == SCALIGN_RIGHT)
-        xdiff = (leftSide + spritewidth[sppic]) - (newLeft + spritewidth[newpic]);
+        xdiff = (leftSide + game.SpriteInfos[sppic].Width) - (newLeft + game.SpriteInfos[newpic].Width);
     else
         quit("!SetCharacterViewEx: invalid alignment type specified");
 
@@ -2155,8 +2154,8 @@ int is_pos_on_character(int xx,int yy) {
         sppic=views[chin->view].loops[chin->loop].frames[chin->frame].pic;
         int usewid = charextra[cc].width;
         int usehit = charextra[cc].height;
-        if (usewid==0) usewid=spritewidth[sppic];
-        if (usehit==0) usehit=spriteheight[sppic];
+        if (usewid==0) usewid=game.SpriteInfos[sppic].Width;
+        if (usehit==0) usehit= game.SpriteInfos[sppic].Height;
         int xxx = chin->x - usewid / 2;
         int yyy = chin->get_effective_y() - usehit;
 
@@ -2452,7 +2451,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
             tdyp = speakingChar->get_effective_y() - offsety - 5;
             if (charextra[aschar].height < 1)
-                tdyp -= spriteheight[sppic];
+                tdyp -= game.SpriteInfos[sppic].Height;
             else
                 tdyp -= charextra[aschar].height;
             // if it's a thought, lift it a bit further up
@@ -2541,9 +2540,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             ViewStruct*viptr=&views[useview];
             for (kk = 0; kk < viptr->loops[0].numFrames; kk++) 
             {
-                int tw = spritewidth[viptr->loops[0].frames[kk].pic];
+                int tw = game.SpriteInfos[viptr->loops[0].frames[kk].pic].Width;
                 if (tw > bigx) bigx=tw;
-                tw = spriteheight[viptr->loops[0].frames[kk].pic];
+                tw = game.SpriteInfos[viptr->loops[0].frames[kk].pic].Height;
                 if (tw > bigy) bigy=tw;
             }
 
@@ -2578,7 +2577,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 }
                 else
                 {
-                    view_frame_y = play.viewport.GetHeight()/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
+                    view_frame_y = play.viewport.GetHeight()/2 - game.SpriteInfos[viptr->loops[0].frames[0].pic].Height/2;
                 }
                 bigx = play.viewport.GetWidth()/2 - 20;
                 ovr_type = OVER_COMPLETE;
@@ -2603,7 +2602,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
             }
             const ViewFrame *vf = &viptr->loops[0].frames[0];
-            const bool closeupface_has_alpha = (game.spriteflags[vf->pic] & SPF_ALPHACHANNEL) != 0;
+            const bool closeupface_has_alpha = (game.SpriteInfos[vf->pic].Flags & SPF_ALPHACHANNEL) != 0;
             DrawViewFrame(closeupface, vf, view_frame_x, view_frame_y);
 
             int overlay_x = 10;

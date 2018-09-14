@@ -28,18 +28,11 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int our_eip, eip_guinum, eip_guiobj;
 extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-
-// CLNUP removed the multipliers and flags
-void get_new_size_for_sprite (int ww, int hh, int &newwid, int &newhit) {
-    newwid = ww;
-    newhit = hh;
-}
 
 // set any alpha-transparent pixels in the image to the appropriate
 // RGB mask value so that the blit calls work correctly
@@ -119,29 +112,28 @@ void pre_save_sprite(int ee) {
 Bitmap *tmpdbl, *curspr;
 void initialize_sprite (int ee) {
 
-    if ((ee < 0) || (ee > spriteset.elements))
+    if ((ee < 0) || (ee > spriteset.GetSpriteSlotCount()))
         quit("initialize_sprite: invalid sprite number");
 
     if ((spriteset[ee] == NULL) && (ee > 0)) {
         // replace empty sprites with blue cups, to avoid crashes
-        //spriteset[ee] = spriteset[0];
-        spriteset.set (ee, spriteset[0]);
-        spritewidth[ee] = spritewidth[0];
-        spriteheight[ee] = spriteheight[0];
+        spriteset.Set(ee, spriteset[0]);
+        game.SpriteInfos[ee].Width = game.SpriteInfos[0].Width;
+        game.SpriteInfos[ee].Height = game.SpriteInfos[0].Height;
     }
     else if (spriteset[ee]==NULL) {
-        spritewidth[ee]=0;
-        spriteheight[ee]=0;
+        game.SpriteInfos[ee].Width=0;
+        game.SpriteInfos[ee].Height=0;
     }
     else {
         // stretch sprites to correct resolution
         int oldeip = our_eip;
         our_eip = 4300;
 
-        if (game.spriteflags[ee] & SPF_HADALPHACHANNEL) {
+        if (game.SpriteInfos[ee].Flags & SPF_HADALPHACHANNEL) {
             // we stripped the alpha channel out last time, put
             // it back so that we can remove it properly again
-            game.spriteflags[ee] |= SPF_ALPHACHANNEL;
+            game.SpriteInfos[ee].Flags |= SPF_ALPHACHANNEL;
         }
 
         curspr = spriteset[ee];
@@ -149,16 +141,16 @@ void initialize_sprite (int ee) {
         eip_guinum = ee;
         eip_guiobj = curspr->GetWidth();
 
-        spritewidth[ee]=spriteset[ee]->GetWidth();
-        spriteheight[ee]=spriteset[ee]->GetHeight();
+        game.SpriteInfos[ee].Width=spriteset[ee]->GetWidth();
+        game.SpriteInfos[ee].Height=spriteset[ee]->GetHeight();
 
-        spriteset.set(ee, PrepareSpriteForUse(spriteset[ee], (game.spriteflags[ee] & SPF_ALPHACHANNEL) != 0));
+        spriteset.Set(ee, PrepareSpriteForUse(spriteset[ee], (game.SpriteInfos[ee].Flags & SPF_ALPHACHANNEL) != 0));
 
         if (game.GetColorDepth() < 32) {
-            game.spriteflags[ee] &= ~SPF_ALPHACHANNEL;
+            game.SpriteInfos[ee].Flags &= ~SPF_ALPHACHANNEL;
             // save the fact that it had one for the next time this
             // is re-loaded from disk
-            game.spriteflags[ee] |= SPF_HADALPHACHANNEL;
+            game.SpriteInfos[ee].Flags |= SPF_HADALPHACHANNEL;
         }
 
         pl_run_plugin_hooks(AGSE_SPRITELOAD, ee);

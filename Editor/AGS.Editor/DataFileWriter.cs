@@ -597,16 +597,20 @@ namespace AGS.Editor
             // no final padding required
         }
 
-        private static void UpdateSpriteFlags(SpriteFolder folder, byte[] flags)
+        private static void UpdateSpriteFlags(SpriteFolder folder, byte[] flags, out int mostTopmost)
         {
+            mostTopmost = -1;
             foreach (Sprite sprite in folder.Sprites)
             {
+                mostTopmost = Math.Max(sprite.Number, mostTopmost);
                 flags[sprite.Number] = 0;
                 if (sprite.AlphaChannel) flags[sprite.Number] |= NativeConstants.SPF_ALPHACHANNEL;
             }
             foreach (SpriteFolder subfolder in folder.SubFolders)
             {
-                UpdateSpriteFlags(subfolder, flags);
+                int topmost;
+                UpdateSpriteFlags(subfolder, flags, out topmost);
+                mostTopmost = Math.Max(topmost, mostTopmost);
             }
         }
 
@@ -1408,10 +1412,11 @@ namespace AGS.Editor
                 writer.Write(game.Fonts[i].VerticalOffset);
                 writer.Write(game.Fonts[i].LineSpacing);
             }
-            writer.Write(NativeConstants.MAX_SPRITES);
-            byte[] spriteFlags = new byte[NativeConstants.MAX_SPRITES];
-            UpdateSpriteFlags(game.RootSpriteFolder, spriteFlags);
-            for (int i = 0; i < NativeConstants.MAX_SPRITES; ++i)
+            int topmostSprite;
+            byte[] spriteFlags = new byte[NativeConstants.MAX_STATIC_SPRITES];
+            UpdateSpriteFlags(game.RootSpriteFolder, spriteFlags, out topmostSprite);
+            writer.Write(topmostSprite + 1);
+            for (int i = 0; i <= topmostSprite; ++i)
             {
                 writer.Write(spriteFlags[i]);
             }

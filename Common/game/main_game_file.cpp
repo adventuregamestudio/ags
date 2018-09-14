@@ -14,6 +14,7 @@
 
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/spritecache.h"
 #include "ac/view.h"
 #include "core/asset.h"
 #include "core/assetmanager.h"
@@ -24,6 +25,8 @@
 #include "util/alignedstream.h"
 #include "util/path.h"
 #include "util/string_utils.h"
+
+extern SpriteCache spriteset;
 
 namespace AGS
 {
@@ -85,6 +88,10 @@ LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dial
     : Game(game)
     , Dialogs(dialogs)
     , Views(views)
+{
+}
+
+LoadedGameEntities::~LoadedGameEntities()
 {
 }
 
@@ -367,6 +374,14 @@ void BuildAudioClipArray(GameSetupStruct &game, const AssetLibInfo &lib)
     }
 }
 
+void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents)
+{
+    // Apply sprite flags read from original format (sequential array)
+    spriteset.EnlargeTo(ents.SpriteCount);
+    for (size_t i = 0; i < ents.SpriteCount; ++i)
+        game.SpriteInfos[i].Flags = ents.SpriteFlags[i];
+}
+
 // Convert audio data to the current version
 void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
 {
@@ -439,6 +454,22 @@ void FixupSaveDirectory(GameSetupStruct &game)
     snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", s.GetCStr());
 }
 
+HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
+{
+    uint32_t sprcount;
+    if (data_ver < kGameVersion_256)
+        sprcount = LEGACY_MAX_SPRITES_V25;
+    else
+        sprcount = in->ReadInt32();
+    if (sprcount > (uint32_t)SpriteCache::MAX_SPRITE_INDEX + 1)
+        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %u, max: %u", sprcount, (uint32_t)SpriteCache::MAX_SPRITE_INDEX + 1));
+
+    ents.SpriteCount = sprcount;
+    ents.SpriteFlags.reset(new char[sprcount]);
+    in->Read(ents.SpriteFlags.get(), sprcount);
+    return HGameFileError::None();
+}
+
 HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
@@ -453,7 +484,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 
     game.read_savegame_info(in, data_ver);
     game.read_font_flags(in, data_ver);
-    HGameFileError err = game.read_sprite_flags(in, data_ver);
+    HGameFileError err = ReadSpriteFlags(ents, in, data_ver);
     if (!err)
         return err;
     game.ReadInvInfo_Aligned(in);
@@ -505,6 +536,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
+    ApplySpriteData(game, ents);
     UpgradeAudio(game, data_ver);
     AdjustScoreSound(game, data_ver);
     UpgradeCharacters(game, data_ver);

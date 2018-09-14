@@ -74,17 +74,6 @@ void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_v
     }
 }
 
-HGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)
-{
-    int numToRead = in->ReadInt32();
-
-    if (numToRead > MAX_SPRITES)
-        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %d, max: %d", numToRead, MAX_SPRITES));
-    in->Read(&spriteflags[0], numToRead);
-    memset(spriteflags + numToRead, 0, MAX_SPRITES - numToRead);
-    return HGameFileError::None();
-}
-
 void GameSetupStruct::ReadInvInfo_Aligned(Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);

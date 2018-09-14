@@ -72,7 +72,7 @@ String GetRuntimeInfo()
         mode.Windowed ? " W" : "",
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
         render_frame.GetWidth(), render_frame.GetHeight(),
-        spriteset.cachesize / 1024, spriteset.maxCacheSize / 1024, spriteset.lockedSize / 1024);
+        spriteset.GetCacheSize() / 1024, spriteset.GetMaxCacheSize() / 1024, spriteset.GetLockedSize() / 1024);
     if (play.separate_music_lib)
         runtimeInfo.Append("[AUDIO.VOX enabled");
     if (play.want_speech >= 1)
@@ -118,7 +118,7 @@ void script_debug(int cmdd,int dataa) {
         delete tempw;
         delete stretched;
         gfxDriver->DestroyDDB(ddb);
-        clear_input_buffer();
+        wait_until_keypress();
         invalidate_screen();
     }
     else if (cmdd==3) 
@@ -169,7 +169,7 @@ void script_debug(int cmdd,int dataa) {
 			Common::kBitmap_Transparency);
         render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);
         delete tempw;
-        clear_input_buffer();
+        wait_until_keypress();
     }
     else if (cmdd == 99)
         ccSetOption(SCOPT_DEBUGRUN, dataa);

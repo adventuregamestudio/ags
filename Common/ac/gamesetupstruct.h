@@ -40,8 +40,6 @@ struct GameSetupStruct: public GameSetupStructBase {
     // This array is used only to read data into;
     // font parameters are then put and queried in the fonts module
     std::vector<FontInfo> fonts;
-    //
-    unsigned char     spriteflags[MAX_SPRITES];
     InventoryItemInfo invinfo[MAX_INV];
     MouseCursor       mcurs[MAX_CURSOR];
     // CLNUP old interactions
@@ -75,6 +73,18 @@ struct GameSetupStruct: public GameSetupStructBase {
     // A clip to play when player gains score in game
     // TODO: find out why OPT_SCORESOUND option cannot be used to store this in >=3.2 games
     int               scoreClipID;
+    
+    // TODO: I converted original array of sprite infos to vector here, because
+    // statistically in most games sprites go in long continious sequences with minimal
+    // gaps, and standard hash-map will have relatively big memory overhead compared.
+    // Of course vector will not behave very well if user has created e.g. only
+    // sprite #1 and sprite #1000000. For that reason I decided to still limit static
+    // sprite count to some reasonable number for the time being. Dynamic sprite IDs are
+    // added in sequence, so there won't be any issue with these.
+    // There could be other collection types, more optimal for this case. For example,
+    // we could use a kind of hash map containing fixed-sized arrays, where size of
+    // array is calculated based on key spread factor.
+    std::vector<SpriteInfo> SpriteInfos;
 
     // Get game's native color depth
     inline int GetColorDepth() const { return color_depth * 8; }
@@ -98,7 +108,6 @@ struct GameSetupStruct: public GameSetupStructBase {
     // Part 1
     void read_savegame_info(Common::Stream *in, GameDataVersion data_ver);
     void read_font_flags(Common::Stream *in, GameDataVersion data_ver);
-    HGameFileError read_sprite_flags(Common::Stream *in, GameDataVersion data_ver);
     HGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver);
     void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
     void read_words_dictionary(Common::Stream *in);

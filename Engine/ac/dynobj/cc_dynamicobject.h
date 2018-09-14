@@ -33,7 +33,11 @@ struct ICCDynamicObject {
     // when a ref count reaches 0, this is called with the address
     // of the object. Return 1 to remove the object from memory, 0 to
     // leave it
-    virtual int Dispose(const char *address, bool force) = 0;
+    // The "force" flag tells system to detach the object, breaking any links and references
+    // to other managed objects or game resources (instead of disposing these too).
+    // TODO: it might be better to rewrite the managed pool and remove this flag at all,
+    // because it makes the use of this interface prone to mistakes.
+    virtual int Dispose(const char *address, bool force = false) = 0;
     // return the type name of the object
     virtual const char *GetType() = 0;
     // serialize the object into BUFFER (which is BUFSIZE bytes)

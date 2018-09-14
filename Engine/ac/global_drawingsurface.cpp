@@ -39,7 +39,6 @@ extern RoomStruct thisroom;
 extern GameState play;
 extern char lines[MAXLINE][200];
 extern int  numlines;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
 
@@ -187,7 +186,7 @@ void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
 }
 
 void RawDrawImageCore(int xx, int yy, int slot, int alpha) {
-    if ((slot < 0) || (slot >= MAX_SPRITES) || (spriteset[slot] == NULL))
+    if ((slot < 0) || (spriteset[slot] == NULL))
         quit("!RawDrawImage: invalid sprite slot number specified");
     RAW_START();
 
@@ -247,7 +246,7 @@ void RawDrawImageTransparent(int xx, int yy, int slot, int legacy_transparency) 
 
 // [DEPRECATED]
 void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
-    if ((gotSlot < 0) || (gotSlot >= MAX_SPRITES) || (spriteset[gotSlot] == NULL))
+    if ((gotSlot < 0) || (spriteset[gotSlot] == NULL))
         quit("!RawDrawImageResized: invalid sprite slot number specified");
     // very small, don't draw it
     if ((width < 1) || (height < 1))
@@ -256,7 +255,7 @@ void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
     newPic->StretchBlt(spriteset[gotSlot],
-        RectWH(0, 0, spritewidth[gotSlot], spriteheight[gotSlot]),
+        RectWH(0, 0, game.SpriteInfos[gotSlot].Width, game.SpriteInfos[gotSlot].Height),
         RectWH(0, 0, width, height));
 
     RAW_START();

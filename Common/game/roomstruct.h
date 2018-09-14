@@ -46,6 +46,7 @@
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 struct ccScript;
+struct SpriteInfo;
 
 // TODO: move the following enums under AGS::Common namespace
 // later, when more engine source is put in AGS namespace and
@@ -319,7 +320,7 @@ public:
 };
 
 
-void load_room(const char *file, RoomStruct *room);
+void load_room(const char *file, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos);
 
 } // namespace Common
 } // namespace AGS

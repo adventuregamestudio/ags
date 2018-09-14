@@ -109,7 +109,12 @@ struct LoadedGameEntities
     std::vector<PScript>    ScriptModules;
     std::vector<PluginInfo> PluginInfos;
 
+    // Original sprite data (when it was read into const-sized arrays)
+    size_t                  SpriteCount;
+    std::unique_ptr<char[]> SpriteFlags;
+
     LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs, ViewStruct *&views);
+    ~LoadedGameEntities();
 };
 
 // Tells if the given path (library filename) contains main game file

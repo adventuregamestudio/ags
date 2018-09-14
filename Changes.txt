@@ -46,6 +46,15 @@ Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.
 
 
+VERSION 3.4.1 - Patch 4, September 2018
+
+Engine:
+ - Fixed dynamic array of Dynamic Sprites or Overlays could loose some of its elements
+   after restoring a savedgame.
+ - Fixed Debug(2) and Debug(5) commands (regression).
+ - Fixed "warnings.log" was never created (regression).
+
+
 VERSION 3.4.1 - Patch 3, July 2018
 
 Editor:

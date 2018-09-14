@@ -41,7 +41,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern RoomStruct thisroom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
@@ -78,8 +77,8 @@ void quit_check_dynamic_sprites(QuitReason qreason)
         (game.options[OPT_DEBUGMODE] != 0)) {
             // game exiting normally -- make sure the dynamic sprites
             // have been deleted
-            for (int i = 1; i < spriteset.elements; i++) {
-                if (game.spriteflags[i] & SPF_DYNAMICALLOC)
+            for (int i = 1; i < spriteset.GetSpriteSlotCount(); i++) {
+                if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
                     debug_script_warn("Dynamic sprite %d was never deleted", i);
             }
     }

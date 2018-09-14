@@ -105,7 +105,6 @@ extern RoomStatus*croom;
 extern SpriteCache spriteset;
 extern ViewStruct*views;
 extern int game_paused;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern GameSetup usetup;
 extern int inside_script;
 extern ccInstance *gameinst, *roominst;
@@ -464,10 +463,10 @@ int IAGSEngine::IsGamePaused () {
     return game_paused;
 }
 int IAGSEngine::GetSpriteWidth (int32 slot) {
-    return spritewidth[slot];
+    return game.SpriteInfos[slot].Width;
 }
 int IAGSEngine::GetSpriteHeight (int32 slot) {
-    return spriteheight[slot];
+    return game.SpriteInfos[slot].Height;
 }
 void IAGSEngine::GetTextExtent (int32 font, const char *text, int32 *width, int32 *height) {
     if ((font < 0) || (font >= game.numfonts)) {
@@ -560,7 +559,10 @@ int IAGSEngine::GetFontType(int32 fontNum) {
 }
 int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
 
-    int gotSlot = spriteset.findFreeSlot();
+    // TODO: why is this implemented right here, should not an existing
+    // script handling implementation be called instead?
+
+    int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)
         return 0;
 
@@ -580,7 +582,7 @@ void IAGSEngine::DeleteDynamicSprite(int32 slot) {
     free_dynamic_sprite(slot);
 }
 int IAGSEngine::IsSpriteAlphaBlended(int32 slot) {
-    if (game.spriteflags[slot] & SPF_ALPHACHANNEL)
+    if (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL)
         return 1;
     return 0;
 }
@@ -633,10 +635,10 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot) {
 
 void IAGSEngine::SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended) {
 
-    game.spriteflags[slot] &= ~SPF_ALPHACHANNEL;
+    game.SpriteInfos[slot].Flags &= ~SPF_ALPHACHANNEL;
 
     if (isAlphaBlended)
-        game.spriteflags[slot] |= SPF_ALPHACHANNEL;
+        game.SpriteInfos[slot].Flags |= SPF_ALPHACHANNEL;
 }
 
 void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2) {

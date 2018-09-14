@@ -92,7 +92,6 @@ extern IDriverDependantBitmap *walkBehindBitmap[MAX_WALK_BEHINDS];
 extern int walkBehindsCachedForBgNum;
 extern WalkBehindMethodEnum walkBehindMethod;
 extern int walk_behind_baselines_changed;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
 extern int our_eip;
@@ -775,7 +774,7 @@ void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos
 void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot,
                                     BlendMode blend_mode, int alpha)
 {
-    draw_sprite_support_alpha(ds, ds_has_alpha, xpos, ypos, spriteset[src_slot], (game.spriteflags[src_slot] & SPF_ALPHACHANNEL) != 0,
+    draw_sprite_support_alpha(ds, ds_has_alpha, xpos, ypos, spriteset[src_slot], (game.SpriteInfos[src_slot].Flags & SPF_ALPHACHANNEL) != 0,
         blend_mode, alpha);
 }
 
@@ -982,7 +981,7 @@ void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baselin
         return;
 
     SpriteListEntry sprite;
-    if ((sprNum >= 0) && ((game.spriteflags[sprNum] & SPF_ALPHACHANNEL) != 0))
+    if ((sprNum >= 0) && ((game.SpriteInfos[sprNum].Flags & SPF_ALPHACHANNEL) != 0))
         sprite.hasAlphaChannel = true;
     else
         sprite.hasAlphaChannel = false;
@@ -1024,7 +1023,7 @@ void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMod
 {
     Bitmap *sprite = spriteset[pic];
     const bool ds_has_alpha  = ds->GetColorDepth() == 32;
-    const bool src_has_alpha = (game.spriteflags[pic] & SPF_ALPHACHANNEL) != 0;
+    const bool src_has_alpha = (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0;
 
     if (use_alpha)
     {
@@ -1286,14 +1285,14 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
       if (isMirrored) {
           Bitmap *tempspr = BitmapHelper::CreateBitmap(newwidth, newheight,coldept);
           tempspr->Fill (actsps[useindx]->GetMaskColor());
-          if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
+          if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
               tempspr->AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
               tempspr->StretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           active_spr->FlipBlt(tempspr, 0, 0, Common::kBitmap_HFlip);
           delete tempspr;
       }
-      else if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
+      else if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
           active_spr->AAStretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
       else
           active_spr->StretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
@@ -1354,8 +1353,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", aa, objs[aa].num);
 
     int coldept = spriteset[objs[aa].num]->GetColorDepth();
-    int sprwidth = spritewidth[objs[aa].num];
-    int sprheight = spriteheight[objs[aa].num];
+    int sprwidth = game.SpriteInfos[objs[aa].num].Width;
+    int sprheight = game.SpriteInfos[objs[aa].num].Height;
 
     int tint_red, tint_green, tint_blue;
     int tint_level, tint_light, light_level;
@@ -1488,7 +1487,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     else
     {
         // ensure actsps exists
-        actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, spritewidth[objs[aa].num], spriteheight[objs[aa].num]);
+        actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, game.SpriteInfos[objs[aa].num].Width, game.SpriteInfos[objs[aa].num].Height);
     }
 
     // direct read from source bitmap, where possible
@@ -1506,7 +1505,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
             comeFrom);
     }
     else if (!actspsUsed) {
-        actsps[useindx]->Blit(spriteset[objs[aa].num],0,0,0,0,spritewidth[objs[aa].num],spriteheight[objs[aa].num]);
+        actsps[useindx]->Blit(spriteset[objs[aa].num],0,0,0,0,game.SpriteInfos[objs[aa].num].Width, game.SpriteInfos[objs[aa].num].Height);
     }
 
     // Re-use the bitmap if it's the same size
@@ -1574,7 +1573,7 @@ void prepare_objects_for_drawing() {
 
         if ((!actspsIntact) || (actspsbmp[useindx] == NULL))
         {
-            bool hasAlpha = (game.spriteflags[objs[aa].num] & SPF_ALPHACHANNEL) != 0;
+            bool hasAlpha = (game.SpriteInfos[objs[aa].num].Flags & SPF_ALPHACHANNEL) != 0;
 
             if (actspsbmp[useindx] != NULL)
                 gfxDriver->DestroyDDB(actspsbmp[useindx]);
@@ -1687,7 +1686,7 @@ void prepare_characters_for_drawing() {
         }
 
         sppic=views[chin->view].loops[chin->loop].frames[chin->frame].pic;
-        if ((sppic < 0) || (sppic >= MAX_SPRITES))
+        if (sppic < 0)
             sppic = 0;  // in case it's screwed up somehow
         our_eip = 331;
         // sort out the stretching if required
@@ -1793,8 +1792,8 @@ void prepare_characters_for_drawing() {
             // draw at original size, so just use the sprite width and height
             charextra[aa].width=0;
             charextra[aa].height=0;
-            newwidth = spritewidth[sppic];
-            newheight = spriteheight[sppic];
+            newwidth = game.SpriteInfos[sppic].Width;
+            newheight = game.SpriteInfos[sppic].Height;
         }
 
         our_eip = 3336;
@@ -1827,7 +1826,7 @@ void prepare_characters_for_drawing() {
             else 
             {
                 // ensure actsps exists
-                actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, spritewidth[sppic], spriteheight[sppic]);
+                actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, game.SpriteInfos[sppic].Width, game.SpriteInfos[sppic].Height);
             }
 
             our_eip = 335;
@@ -1885,7 +1884,7 @@ void prepare_characters_for_drawing() {
 
         if ((!usingCachedImage) || (actspsbmp[useindx] == NULL))
         {
-            bool hasAlpha = (game.spriteflags[sppic] & SPF_ALPHACHANNEL) != 0;
+            bool hasAlpha = (game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) != 0;
 
             actspsbmp[useindx] = recycle_ddb_bitmap(actspsbmp[useindx], actsps[useindx], hasAlpha);
         }

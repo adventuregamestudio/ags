@@ -43,7 +43,6 @@ extern RoomObject*objs;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 // ** SCRIPT DRAWINGSURFACE OBJECT
@@ -154,7 +153,7 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
 
 void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slot, int trans, int width, int height)
 {
-    if ((slot < 0) || (slot >= MAX_SPRITES) || (spriteset[slot] == NULL))
+    if ((slot < 0) || (spriteset[slot] == NULL))
         quit("!DrawingSurface.DrawImage: invalid sprite slot number specified");
 
     if ((trans < 0) || (trans > 100))
@@ -178,7 +177,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
         Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, sourcePic->GetColorDepth());
 
         newPic->StretchBlt(sourcePic,
-            RectWH(0, 0, spritewidth[slot], spriteheight[slot]),
+            RectWH(0, 0, game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height),
             RectWH(0, 0, width, height));
 
         sourcePic = newPic;
@@ -192,7 +191,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
         debug_script_warn("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), ds->GetColorDepth());
     }
 
-    draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, xx, yy, sourcePic, (game.spriteflags[slot] & SPF_ALPHACHANNEL) != 0,
+    draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, xx, yy, sourcePic, (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0,
         kBlendMode_Alpha, GfxDef::Trans100ToAlpha255(trans));
 
     sds->FinishedDrawing();

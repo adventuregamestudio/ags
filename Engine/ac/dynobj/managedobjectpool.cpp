@@ -56,7 +56,7 @@ int ManagedObjectPool::ManagedObject::AddRef() {
 
 int ManagedObjectPool::ManagedObject::CheckDispose() {
     if ((refCount < 1) && (callback != NULL)) {
-        if (remove(false))
+        if (remove())
             return 1;
     }
     return 0;
@@ -155,7 +155,7 @@ void ManagedObjectPool::RunGarbageCollection()
     {
         if ((objects[i].refCount < 1) && (objects[i].callback != NULL)) 
         {
-            objects[i].remove(false);
+            objects[i].remove();
         }
     }
 }

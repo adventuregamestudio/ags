@@ -29,6 +29,8 @@
 #include "util/stream.h"
 #include "util/string.h"
 
+struct SpriteInfo;
+
 namespace AGS
 {
 namespace Common
@@ -79,7 +81,7 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
 HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
-HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver);
+HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos);
 // Extracts text script from the room file, if it's available.
 // Historically, text sources were kept inside packed room files before AGS 3.*.
 HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion data_ver);

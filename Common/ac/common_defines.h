@@ -88,7 +88,8 @@
 #define MAX_FLAGS     15
 #define LEGACY_MAXOBJNAMELEN 30
 
-#define MAX_SPRITES         30000
+#define LEGACY_MAX_SPRITES_V25  6000
+#define LEGACY_MAX_SPRITES      30000
 #define MAX_CURSOR          20
 
 #ifndef int32

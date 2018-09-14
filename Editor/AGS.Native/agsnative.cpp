@@ -66,12 +66,11 @@ inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int
 }
 
 void save_room_file(const char *path);
-
 bool enable_greyed_out_masks = true;
 bool outlineGuiObjects;
 color*palette;
 GameSetupStruct thisgame;
-SpriteCache spriteset(MAX_SPRITES + 2);
+SpriteCache spriteset(MAX_STATIC_SPRITES + 2, thisgame.SpriteInfos);
 GUIMain tempgui;
 const char*sprsetname = "acsprset.spr";
 const char *old_editor_data_file = "editor.dat";
@@ -156,12 +155,12 @@ Common::Bitmap *get_sprite (int spnr) {
 void SetNewSprite(int slot, Common::Bitmap *sprit) {
   delete spriteset[slot];
 
-  spriteset.setNonDiscardable(slot, sprit);
+  spriteset.SetSpriteAndLock(slot, sprit);
   spritesModified = true;
 }
 
 void deleteSprite (int sprslot) {
-  spriteset.removeSprite(sprslot, true);
+  spriteset.RemoveSprite(sprslot, true);
   
   spritesModified = true;
 }
@@ -182,7 +181,7 @@ bool DoesSpriteExist(int slot) {
 }
 
 int GetMaxSprites() {
-	return MAX_SPRITES;
+	return MAX_STATIC_SPRITES;
 }
 
 int GetSpriteWidth(int slot) {
@@ -218,35 +217,28 @@ void transform_string(char *text) {
 }
 
 int find_free_sprite_slot() {
-  int rr = spriteset.findFreeSlot();
-  if (rr < 0) {
-    return -1;
-  }
-  spriteset.images[rr] = NULL;
-  spriteset.offsets[rr] = 0;
-  spriteset.sizes[rr] = 0;
-  return rr;
+  return spriteset.AddNewSprite();
 }
 
 // CLNUP probably to remove
 void update_sprite_resolution(int spriteNum)
 {
-	thisgame.spriteflags[spriteNum] &= ~SPF_640x400;
+	thisgame.SpriteInfos[spriteNum].Flags &= ~SPF_640x400;
 	/*
 	if (isHighRes)
 	{
-		thisgame.spriteflags[spriteNum] |= SPF_640x400;
+		thisgame.SpriteInfos[spriteNum].Flags |= SPF_640x400;
 	}
 	*/
 }
 
 void change_sprite_number(int oldNumber, int newNumber) {
 
-  spriteset.setNonDiscardable(newNumber, spriteset[oldNumber]);
-  spriteset.removeSprite(oldNumber, false);
+  spriteset.SetSpriteAndLock(newNumber, spriteset[oldNumber]);
+  spriteset.RemoveSprite(oldNumber, false);
 
-  thisgame.spriteflags[newNumber] = thisgame.spriteflags[oldNumber];
-  thisgame.spriteflags[oldNumber] = 0;
+  thisgame.SpriteInfos[newNumber].Flags = thisgame.SpriteInfos[oldNumber].Flags;
+  thisgame.SpriteInfos[oldNumber].Flags = 0;
 
   spritesModified = true;
 }
@@ -343,7 +335,7 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
     newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     delete sprit;
 
-    spriteset.setNonDiscardable(sprites[aa], newsprit);
+    spriteset.SetSpriteAndLock(sprites[aa], newsprit);
   }
 
   spritesModified = true;
@@ -556,25 +548,25 @@ const char* save_sprites(bool compressSprites)
   char backupname[100];
   sprintf(backupname, "backup_%s", sprsetname);
 
-  if ((spritesModified) || (compressSprites != spriteset.spritesAreCompressed))
+  if ((spritesModified) || (compressSprites != spriteset.IsFileCompressed()))
   {
-    spriteset.detachFile();
+    spriteset.DetachFile();
     if (exists(backupname) && (unlink(backupname) != 0)) {
       errorMsg = "Unable to overwrite the old backup file. Make sure the backup sprite file is not read-only";
     }
     else if (rename(sprsetname, backupname)) {
       errorMsg = "Unable to create the backup sprite file. Make sure the backup sprite file is not read-only";
     }
-    else if (spriteset.attachFile(backupname)) {
+    else if (spriteset.AttachFile(backupname)) {
       errorMsg = "An error occurred attaching to the backup sprite file. Check write permissions on your game folder";
     }
-    else if (spriteset.saveToFile(sprsetname, MAX_SPRITES, compressSprites)) {
+    else if (spriteset.SaveToFile(sprsetname, compressSprites)) {
       errorMsg = "Unable to save the sprites. An error occurred writing the sprite file.";
     }
 
     // reset the sprite cache
-    spriteset.reset();
-    if (spriteset.initFile(sprsetname))
+    spriteset.Reset();
+    if (spriteset.InitFile(sprsetname))
     {
       if (errorMsg == NULL)
         errorMsg = "Unable to re-initialize sprite file after save.";
@@ -1127,7 +1119,7 @@ int get_adjusted_spritewidth(int spr) {
 
   int retval = tsp->GetWidth();
   /*
-  if (thisgame.spriteflags[spr] & SPF_640x400) {
+  if (thisgame.SpriteInfos[spr].Flags & SPF_640x400) {
     if (sxmult == 1)
       retval /= 2;
   }
@@ -1146,7 +1138,7 @@ int get_adjusted_spriteheight(int spr) {
 
   int retval = tsp->GetHeight();
   /*
-  if (thisgame.spriteflags[spr] & SPF_640x400) {
+  if (thisgame.SpriteInfos[spr].Flags & SPF_640x400) {
     if (symult == 1)
       retval /= 2;
   }
@@ -1202,10 +1194,10 @@ bool initialize_native()
 	thisgame.numfonts = 0;
 	new_font();
 
-	spriteset.reset();
-	if (spriteset.initFile(sprsetname))
+	spriteset.Reset();
+	if (spriteset.InitFile(sprsetname))
 	  return false;
-	spriteset.maxCacheSize = 100000000;  // 100 mb cache
+	spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set this up in preferences?
 
 	if (!Scintilla_RegisterClasses (GetModuleHandle(NULL)))
       return false;
@@ -1399,10 +1391,10 @@ bool reload_font(int curFont)
 }
 
 bool reset_sprite_file() {
-  spriteset.reset();
-  if (spriteset.initFile(sprsetname))
+  spriteset.Reset();
+  if (spriteset.InitFile(sprsetname))
     return false;
-  spriteset.maxCacheSize = 100000000;  // 100 mb cache
+  spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set in preferences?
   return true;
 }
 
@@ -1672,7 +1664,7 @@ void fix_mask_area_size(Common::Bitmap *&mask) {
 
 const char* load_room_file(const char*rtlo) {
 
-  load_room(rtlo, &thisroom);
+  load_room(rtlo, &thisroom, thisgame.SpriteInfos);
 
   // Update room palette with gamewide colours
   copy_global_palette_to_room_palette();
@@ -1755,11 +1747,24 @@ int copy_file_across(Stream*inlibb,Stream*coppy, soff_t leftforthis) {
   return success;
 }
 
+AGSString make_libfilename(const AGSString &data_filename)
+{
+    if (strrchr(data_filename, '\\') != NULL)
+        return strrchr(data_filename, '\\') + 1;
+    else if (strrchr(data_filename, '/') != NULL)
+        return strrchr(data_filename, '/') + 1;
+    else
+        return data_filename;
+}
+
 // NOTE: this is used for audio.vox and speech.vox
 void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<AGSString> &filenames)
 {
     size_t numfile = filenames.size();
     AGS::Common::AssetLibInfo lib;
+
+    lib.LibFileNames.resize(1);
+    lib.LibFileNames[0] = make_libfilename(dataFileName);
 
     lib.AssetInfos.resize(numfile);
     for (size_t i = 0; i < numfile; ++i)
@@ -1783,7 +1788,7 @@ void make_single_lib_data_file(const AGSString &dataFileName, const std::vector<
     // TODO: this is not a very pleasant way to do things, need to refactor writing process to fix this
     lib.AssetInfos[0].Offset = wout->GetPosition();
     // set offsets (assets are positioned in sequence)
-    for (size_t i = 0; i < numfile; ++i)
+    for (size_t i = 1; i < numfile; ++i)
     {
         lib.AssetInfos[i].Offset = lib.AssetInfos[i - 1].Offset + lib.AssetInfos[i - 1].Size;
     }
@@ -1919,12 +1924,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 	  }
 	  else 
 	  {
-    	if (strrchr(baseFileName, '\\') != NULL)
-		    lib.LibFileNames[a] = strrchr(baseFileName, '\\') + 1;
-	    else if (strrchr(baseFileName, '/') != NULL)
-            lib.LibFileNames[a] = strrchr(baseFileName, '/') + 1;
-	    else
-            lib.LibFileNames[a] = baseFileName;
+          lib.LibFileNames[a] = make_libfilename(baseFileName);
 	  }
   }
 
@@ -2063,7 +2063,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	int drawWidth = imageToDraw->GetWidth() * scale;
 	int drawHeight = imageToDraw->GetHeight() * scale;
 
-	if ((thisgame.spriteflags[sprNum] & SPF_ALPHACHANNEL) != 0)
+	if ((thisgame.SpriteInfos[sprNum].Flags & SPF_ALPHACHANNEL) != 0)
 	{
 		if (scale > 1.0f)
 		{
@@ -2097,9 +2097,9 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 {
 	for each (Sprite ^sprite in folder->Sprites)
 	{
-		thisgame.spriteflags[sprite->Number] = 0;
+		thisgame.SpriteInfos[sprite->Number].Flags = 0;
 		if (sprite->AlphaChannel)
-			thisgame.spriteflags[sprite->Number] |= SPF_ALPHACHANNEL;
+			thisgame.SpriteInfos[sprite->Number].Flags |= SPF_ALPHACHANNEL;
 	}
 
 	for each (SpriteFolder^ subFolder in folder->SubFolders) 
@@ -2462,10 +2462,10 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
 		sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
 	}
 
-	thisgame.spriteflags[slot] = 0;
+	thisgame.SpriteInfos[slot].Flags = 0;
 	if (alphaChannel)
 	{
-		thisgame.spriteflags[slot] |= SPF_ALPHACHANNEL;
+		thisgame.SpriteInfos[slot].Flags |= SPF_ALPHACHANNEL;
 
 		if (tempsprite->GetColorDepth() == 32)
 		{
@@ -2589,7 +2589,7 @@ System::Drawing::Bitmap^ ConvertAreaMaskToBitmap(Common::Bitmap *mask)
 
 System::Drawing::Bitmap^ getSpriteAsBitmap(int spriteNum) {
   Common::Bitmap *todraw = get_sprite(spriteNum);
-  return ConvertBlockToBitmap(todraw, (thisgame.spriteflags[spriteNum] & SPF_ALPHACHANNEL) != 0);
+  return ConvertBlockToBitmap(todraw, (thisgame.SpriteInfos[spriteNum].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
 System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height) {
@@ -2598,7 +2598,7 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
   {
 	  throw gcnew AGSEditorException(String::Format("getSpriteAsBitmap32bit: Unable to find sprite {0}", spriteNum));
   }
-  return ConvertBlockToBitmap32(todraw, width, height, (thisgame.spriteflags[spriteNum] & SPF_ALPHACHANNEL) != 0);
+  return ConvertBlockToBitmap32(todraw, width, height, (thisgame.SpriteInfos[spriteNum].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
 System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber) {
@@ -2813,12 +2813,12 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 {
 	Dictionary<int, Sprite^>^ sprites = gcnew Dictionary<int, Sprite^>();
 
-	for (int i = 0; i < spriteset.elements; i++)
+	for (int i = 0; i < spriteset.GetSpriteSlotCount(); i++)
 	{
 		Common::Bitmap *spr = spriteset[i];
 		if (spr != NULL)
 		{
-			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), (thisgame.spriteflags[i] & SPF_ALPHACHANNEL) ? true : false));
+			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), (thisgame.SpriteInfos[i].Flags & SPF_ALPHACHANNEL) ? true : false));
 		}
 	}
 

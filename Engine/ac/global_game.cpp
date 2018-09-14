@@ -64,7 +64,6 @@ extern GameState play;
 extern ExecutingScript*curscript;
 extern int displayed_room;
 extern int game_paused;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int frames_per_second;
 extern int time_between_timers;
@@ -176,13 +175,13 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     if (gotSlot == 0)
         return 0;
 
-    if ((spritewidth[gotSlot] == width) && (spriteheight[gotSlot] == height))
+    if ((game.SpriteInfos[gotSlot].Width == width) && (game.SpriteInfos[gotSlot].Height == height))
         return gotSlot;
 
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
     newPic->StretchBlt(spriteset[gotSlot],
-        RectWH(0, 0, spritewidth[gotSlot], spriteheight[gotSlot]),
+        RectWH(0, 0, game.SpriteInfos[gotSlot].Width, game.SpriteInfos[gotSlot].Height),
         RectWH(0, 0, width, height));
 
     update_polled_stuff_if_runtime();
@@ -281,8 +280,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     if (!err)
         quitprintf("!RunAGSGame: error loading new game file:\n%s", err->FullMessage().GetCStr());
 
-    spriteset.reset();
-    if (spriteset.initFile ("acsprset.spr"))
+    spriteset.Reset();
+    if (spriteset.InitFile("acsprset.spr"))
         quit("!RunAGSGame: error loading new sprites");
 
     if ((mode & RAGMODE_PRESERVEGLOBALINT) == 0) {

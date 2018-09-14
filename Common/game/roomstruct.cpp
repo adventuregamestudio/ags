@@ -193,7 +193,7 @@ int RoomStruct::GetRegionTintLuminance(int id) const
     return 0;
 }
 
-void load_room(const char *files, RoomStruct *room)
+void load_room(const char *files, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos)
 {
     room->Free();
 
@@ -206,7 +206,7 @@ void load_room(const char *files, RoomStruct *room)
         update_polled_stuff_if_runtime();  // it can take a while to load the file sometimes
         err = ReadRoomData(room, src.InputStream.get(), src.DataVersion);
         if (err)
-            err = UpdateRoomData(room, src.DataVersion);
+            err = UpdateRoomData(room, src.DataVersion, sprinfos);
     }
     if (!err)
         quitprintf("Unable to load the room file '%s'.\n%s.", files, err->FullMessage().GetCStr());

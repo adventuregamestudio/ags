@@ -95,7 +95,6 @@ extern int our_eip;
 extern Bitmap *walkareabackup, *walkable_areas_temp;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern int in_leaves_screen;
@@ -370,7 +369,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom);
+    load_room(room_filename, &thisroom, game.SpriteInfos);
 
     if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.GameID != game.uniqueid)) {
@@ -540,7 +539,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].y=thisroom.Objects[cc].Y;
 
             if (thisroom.DataVersion <= kRoomVersion_300a)
-                croom->obj[cc].y += spriteheight[thisroom.Objects[cc].Sprite];
+                croom->obj[cc].y += game.SpriteInfos[thisroom.Objects[cc].Sprite].Height;
 
             croom->obj[cc].num=thisroom.Objects[cc].Sprite;
             croom->obj[cc].on=thisroom.Objects[cc].IsOn;
@@ -883,7 +882,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     if (psp_clear_cache_on_room_change)
     {
         // Delete all cached sprites
-        spriteset.removeAll();
+        spriteset.RemoveAll();
 
         // Delete all gui background images
         for (int i = 0; i < game.numgui; i++)

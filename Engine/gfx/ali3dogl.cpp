@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(LINUX_VERSION)
 
 #include <algorithm>
 #include "gfx/ali3dexception.h"
@@ -24,6 +24,10 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/math.h"
 
+#if defined(LINUX_VERSION)
+#include <allegro.h>
+#include <xalleg.h>
+#endif
 
 #if defined(WINDOWS_VERSION)
 
@@ -60,6 +64,9 @@ PFNGLUNIFORM1IPROC glUniform1i = 0;
 PFNGLUNIFORM1FPROC glUniform1f = 0;
 PFNGLUNIFORM3FPROC glUniform3f = 0;
 
+#elif defined(LINUX_VERSION)
+
+const char* fbo_extension_string = "GL_EXT_framebuffer_object";
 
 #elif defined(ANDROID_VERSION)
 
@@ -227,6 +234,10 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _hInstance = NULL;
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
+#elif defined (LINUX_VERSION)
+  device_screen_physical_width  = 0;
+  device_screen_physical_height = 0;
+  _glxContext = 0;
 #elif defined (ANDROID_VERSION)
   device_screen_physical_width  = android_screen_physical_width;
   device_screen_physical_height = android_screen_physical_height;
@@ -290,7 +301,7 @@ void OGLGraphicsDriver::SetupDefaultVertices()
   defaultVertices[3].tv=1.0;
 }
 
-#if defined (WINDOWS_VERSION)
+#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
 
 void OGLGraphicsDriver::CreateDesktopScreen(int width, int height, int depth)
 {
@@ -366,13 +377,29 @@ void OGLGraphicsDriver::SetGraphicsFilter(POGLFilter filter)
   create_screen_tint_bitmap();
 }
 
-void OGLGraphicsDriver::SetTintMethod(TintMethod method) 
+void OGLGraphicsDriver::SetTintMethod(TintMethod method)
 {
   _legacyPixelShader = (method == TintReColourise);
 }
 
 void OGLGraphicsDriver::FirstTimeInit()
 {
+#if defined (LINUX_VERSION)
+  // Beware that glxewInit() will fail with "Missing GL version" unless we have
+  // set a valid context with glXMakeCurrent(). In our case this will have been
+  // done by InitGlScreen(), which is always called before this function.
+  int glxew_rc = glxewInit();
+  if(glxew_rc != GLEW_OK)
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: Failed to initialize GLXEW: %s.\n", glewGetErrorString(glxew_rc));
+  }
+
+  int glew_rc = glewInit();
+  if(glew_rc != GLEW_OK)
+  {
+    Debug::Printf(kDbgMsg_Error, "Failed to initialize GLEW: %s.\n", glewGetErrorString(glew_rc));
+  }
+#endif
   // It was told that GL_VERSION is supposed to begin with digits and may have
   // custom string after, but mobile version of OpenGL seem to have different
   // version string format.
@@ -435,6 +462,18 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 
   CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
   win_grab_input();
+#elif defined (LINUX_VERSION)
+  int allegro_driver =
+    mode.Windowed ? GFX_AUTODETECT_WINDOWED : GFX_AUTODETECT_FULLSCREEN;
+  set_gfx_mode(allegro_driver, mode.Width, mode.Height, 0, 0);
+
+  if (_glxContext)
+    DeleteGlContext();
+
+  if (!CreateGlContext(mode))
+    return false;
+
+  CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
 #endif
 
   gfx_driver = &gfx_opengl;
@@ -469,6 +508,7 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
+#if defined(WINDOWS_VERSION)
   if (glSwapIntervalEXT)
   {
     if(mode.Vsync)
@@ -476,6 +516,13 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
     else
       glSwapIntervalEXT(0);
   }
+#elif defined(LINUX_VERSION)
+  if (GLXEW_EXT_swap_control)
+  {
+    int interval = mode.Vsync ? 1 : 0;
+    glXSwapIntervalEXT(_xwin.display, _xwin.window, interval);
+  }
+#endif
 
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION)
   // Setup library mouse to have 1:1 coordinate transformation.
@@ -525,6 +572,27 @@ bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
   if(!wglMakeCurrent(_hDC, _hRC))
     return false;
 #endif // WINDOWS_VERSION
+#if defined (LINUX_VERSION)
+  int attrib[] = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
+  XVisualInfo *vi = glXChooseVisual(_xwin.display, DefaultScreen(_xwin.display), attrib);
+  if (!vi)
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: glXChooseVisual() failed.\n");
+    return false;
+  }
+
+  if (!(_glxContext = glXCreateContext(_xwin.display, vi, None, True)))
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: glXCreateContext() failed.\n");
+    return false;
+  }
+
+  if (!glXMakeCurrent(_xwin.display, _xwin.window, _glxContext))
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: glXMakeCurrent() failed.\n");
+    return false;
+  }
+#endif
   return true;
 }
 
@@ -540,6 +608,13 @@ void OGLGraphicsDriver::DeleteGlContext()
 
   if (_oldPixelFormat > 0)
     SetPixelFormat(_hDC, _oldPixelFormat, &_oldPixelFormatDesc);
+#elif defined (LINUX_VERSION)
+  if (_glxContext)
+  {
+    glXMakeCurrent(_xwin.display, None, NULL);
+    glXDestroyContext(_xwin.display, _glxContext);
+    _glxContext = NULL;
+  }
 #endif
 }
 
@@ -1038,7 +1113,7 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   {
 #if defined(IOS_VERSION)
     ios_select_buffer();
-#elif defined(WINDOWS_VERSION)
+#elif defined(WINDOWS_VERSION) || defined (LINUX_VERSION)
     glReadBuffer(GL_FRONT);
 #endif
     retr_rect = _dstRect;
@@ -1378,6 +1453,8 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
 #if defined(WINDOWS_VERSION)
   SwapBuffers(_hDC);
+#elif defined(LINUX_VERSION)
+  glXSwapBuffers(_xwin.display, _xwin.window);
 #elif defined(ANDROID_VERSION) || defined(IOS_VERSION)
   device_swap_buffers();
 #endif

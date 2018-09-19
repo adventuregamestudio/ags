@@ -30,6 +30,11 @@
 #include <GL/glext.h>
 #include <GL/wglext.h>
 
+#elif defined(LINUX_VERSION)
+
+#include <GL/glew.h>
+#include <GL/glxew.h>
+
 #elif defined(ANDROID_VERSION)
 
 #include <GLES/gl.h>

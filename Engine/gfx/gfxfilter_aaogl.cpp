@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(LINUX_VERSION)
 
 #include "gfx/gfxfilter_aaogl.h"
 #include "ogl_headers.h"

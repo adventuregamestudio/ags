@@ -216,6 +216,9 @@ private:
     GLuint _oldPixelFormat;
     PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
 #endif
+#if defined (LINUX_VERSION)
+    GLXContext _glxContext;
+#endif
     Version _oglVersion;
     bool _firstTimeInit;
     int _tint_red, _tint_green, _tint_blue;
@@ -298,7 +301,7 @@ private:
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();
-#if defined (WINDOWS_VERSION)
+#if defined (WINDOWS_VERSION) || defined(LINUX_VERSION)
     void CreateDesktopScreen(int width, int height, int depth);
 #elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
     void UpdateDeviceScreen();

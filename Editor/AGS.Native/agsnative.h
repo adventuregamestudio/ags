@@ -32,6 +32,6 @@
 
 // TODO: maybe remove this limit completely when engine's sprite cache
 // implements optimized container; see comments for SpriteCache class.
-#define MAX_STATIC_SPRITES 30000
+#define MAX_STATIC_SPRITES 90000
 
 extern const char *sprsetname;

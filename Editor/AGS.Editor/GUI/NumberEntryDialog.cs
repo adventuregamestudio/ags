@@ -15,9 +15,9 @@ namespace AGS.Editor
             InitializeComponent();
             this.Text = titleText;
             lblHeader.Text = headerText;
-            udNumber.Value = initialValue;
             udNumber.Minimum = minValue;
             udNumber.Maximum = maxValue;
+            udNumber.Value = initialValue;
             udNumber.Select();
             udNumber.Select(0, ((int)udNumber.Value).ToString().Length);
         }

@@ -731,7 +731,7 @@ namespace AGS.Editor
                     }
 
                     Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
-                    int newNumber = NumberEntryDialog.Show("Change Sprite Number", "Enter the new sprite number in the box below:", sprite.Number, 0, NativeConstants.MAX_STATIC_SPRITES);
+                    int newNumber = NumberEntryDialog.Show("Change Sprite Number", "Enter the new sprite number in the box below:", sprite.Number, 0, NativeConstants.MAX_STATIC_SPRITES - 1);
                     if (newNumber == -1)
                     {
                         // Dialog cancelled

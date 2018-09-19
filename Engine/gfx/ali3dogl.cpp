@@ -737,7 +737,7 @@ void OGLGraphicsDriver::CreateTintShader()
     // tintAmnTrsLum - tint parameters: amount, translucence (alpha), luminance.
     "\
                                 #version 130\n\
-                                out vec4 gl_FragColor;\n\
+                                out vec4 fragColor;\n\
                                 uniform sampler2D textID;\n\
                                 uniform vec3 tintHSV;\n\
                                 uniform vec3 tintAmnTrsLum;\n\
@@ -774,7 +774,7 @@ void OGLGraphicsDriver::CreateTintShader()
                                     float lum = getValue(src_col.xyz);\n\
                                     lum = max(lum - (1.0 - tintAmnTrsLum[2]), 0.0);\n\
                                     vec3 new_col = (hsv2rgb(vec3(tintHSV[0], tintHSV[1], lum)) * amount + src_col.xyz * (1.0 - amount));\n\
-                                    gl_FragColor = vec4(new_col, src_col.w * tintAmnTrsLum[1]);\n\
+                                    fragColor = vec4(new_col, src_col.w * tintAmnTrsLum[1]);\n\
                                 }\n\
     ";
   CreateShaderProgram(_tintShader, "Tinting", fragment_shader_src, "textID", "tintHSV", "tintAmnTrsLum");
@@ -793,7 +793,7 @@ void OGLGraphicsDriver::CreateLightShader()
     // alpha - color alpha value.
     "\
                                 #version 130\n\
-                                out vec4 gl_FragColor;\n\
+                                out vec4 fragColor;\n\
                                 uniform sampler2D textID;\n\
                                 uniform float light;\n\
                                 uniform float alpha;\n\
@@ -802,9 +802,9 @@ void OGLGraphicsDriver::CreateLightShader()
                                 {\n\
                                     vec4 src_col = texture2D(textID, gl_TexCoord[0].xy);\n\
                                     if (light >= 0.0)\n\
-                                        gl_FragColor = vec4(src_col.xyz + vec3(light, light, light), src_col.w * alpha);\n\
+                                        fragColor = vec4(src_col.xyz + vec3(light, light, light), src_col.w * alpha);\n\
                                     else\n\
-                                        gl_FragColor = vec4(src_col.xyz * abs(light), src_col.w * alpha);\n\
+                                        fragColor = vec4(src_col.xyz * abs(light), src_col.w * alpha);\n\
                                 }\n\
     ";
   CreateShaderProgram(_lightShader, "Lighting", fragment_shader_src, "textID", "light", "alpha");

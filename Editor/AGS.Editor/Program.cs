@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace AGS.Editor
@@ -32,6 +33,7 @@ namespace AGS.Editor
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+                AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
 
 				string filePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 				Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
@@ -94,6 +96,29 @@ namespace AGS.Editor
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             HandleException((Exception)e.ExceptionObject);
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            AssemblyName assembly = new AssemblyName(args.Name);
+            Assembly resolved = null;
+
+            if (assembly.GetPublicKey() == null)
+            {
+                switch(assembly.Name)
+                {
+                    case "AGS.Controls":
+                    case "AGS.CScript.Compiler":
+                    case "AGS.Native":
+                    case "AGS.Types":
+                        // UnsafeLoadFrom prevents the assembly being blocked
+                        // by ZoneIdentifiers in NTFS alternate stream data
+                        resolved = Assembly.UnsafeLoadFrom(assembly.Name + ".dll");
+                        break;
+                }
+            }
+
+            return resolved;
         }
 
 		private static void HandleException(Exception ex)

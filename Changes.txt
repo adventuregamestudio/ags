@@ -3,8 +3,10 @@ REVISION HISTORY
 VERSION 3.5.0 - Alpha
 
 Common features:
- - Support for large files: compiled game, sprite files, room files now may exceed 2 GB.
- - Removed fonts limit.
+ - Support for large files: compiled game, sprite set, room files now may exceed 2 GB.
+ - Removed fonts count limit.
+ - Raised imported sprites count limit to 90000 and removed total sprite count limit
+   (this means you may have around 2 billions of dynamic sprites).
 
 Editor:
  - Editor requires .NET Framework 4.5 to run. Dropped Windows XP support.
@@ -20,6 +22,7 @@ Editor:
  - Added "Always"choice to "Popup message on compile" preference. Successful compilation
    popup will only be displayed if "Always" choice is selected.
  - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
+ - Don't display missing games in the "recent games" list.
  - Build autocomplete table a little faster.
  - Don't modify filesystem permissions in Compiled directory when compiling the game.
    Editor no longer requires non-standard "takeown.exe" utility.

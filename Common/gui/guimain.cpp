@@ -490,22 +490,14 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 }
 
-void GUIMain::WriteToFile(Stream *out, GuiVersion gui_version) const
+void GUIMain::WriteToFile(Stream *out) const
 {
     char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
     if (Flags & kGUIMain_TextWindow)
         tw_flags[0] = kGUIMain_LegacyTextWindow;
     out->Write(tw_flags, sizeof(tw_flags));
-    if (gui_version < kGuiVersion_340)
-    {
-        Name.WriteCount(out, GUIMAIN_LEGACY_NAME_LENGTH);
-        OnClickHandler.WriteCount(out, GUIMAIN_LEGACY_EVENTHANDLER_LENGTH);
-    }
-    else
-    {
-        StrUtil::WriteString(Name, out);
-        StrUtil::WriteString(OnClickHandler, out);
-    }
+    StrUtil::WriteString(Name, out);
+    StrUtil::WriteString(OnClickHandler, out);
     out->WriteInt32(X);
     out->WriteInt32(Y);
     out->WriteInt32(Width);
@@ -530,18 +522,8 @@ void GUIMain::WriteToFile(Stream *out, GuiVersion gui_version) const
     int32_t reserved_ints[GUIMAIN_RESERVED_INTS] = {0};
     out->WriteArrayOfInt32(reserved_ints, GUIMAIN_RESERVED_INTS);
     out->WriteInt32(_visibility);
-
-    if (gui_version < kGuiVersion_340)
-    {
-        // array of dummy 32-bit pointers
-        int32_t dummy_arr[LEGACY_MAX_OBJS_ON_GUI] = {0};
-        out->WriteArrayOfInt32(dummy_arr, LEGACY_MAX_OBJS_ON_GUI);
-        out->WriteArrayOfInt32(&CtrlRefs.front(), LEGACY_MAX_OBJS_ON_GUI);
-    }
-    else if (ControlCount > 0)
-    {
+    if (ControlCount > 0)
         out->WriteArrayOfInt32(&CtrlRefs.front(), ControlCount);
-    }
 }
 
 void GUIMain::ReadFromSavegame(Common::Stream *in)
@@ -737,21 +719,15 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
     ResortGUI(guis, GameGuiVersion < kGuiVersion_272e);
 }
 
-void WriteGUI(const std::vector<GUIMain> &guis, Stream *out, bool savedgame)
+void WriteGUI(const std::vector<GUIMain> &guis, Stream *out)
 {
     out->WriteInt32(GUIMAGIC);
-    GuiVersion write_version;
-    if (savedgame)
-        write_version = GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible;
-    else
-        write_version = kGuiVersion_Current;
-
-    out->WriteInt32(write_version);
+    out->WriteInt32(kGuiVersion_Current);
     out->WriteInt32(guis.size());
 
     for (size_t i = 0; i < guis.size(); ++i)
     {
-        guis[i].WriteToFile(out, write_version);
+        guis[i].WriteToFile(out);
     }
     out->WriteInt32(numguibuts);
     for (int i = 0; i < numguibuts; ++i)

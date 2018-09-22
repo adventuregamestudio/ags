@@ -99,7 +99,9 @@ public:
   
     // Serialization
     void    ReadFromFile(Stream *in, GuiVersion gui_version);
-    void    WriteToFile(Stream *out, GuiVersion gui_version) const;
+    void    WriteToFile(Stream *out) const;
+    // TODO: move to engine, into gui savegame component unit
+    // (should read/write GUI properties accessing them by interface)
     void    ReadFromSavegame(Stream *in);
     void    WriteToSavegame(Stream *out) const;
 
@@ -157,7 +159,7 @@ namespace GUI
     void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
 
     void ReadGUI(std::vector<GUIMain> &guis, Stream *in);
-    void WriteGUI(const std::vector<GUIMain> &guis, Stream *out, bool savedgame);
+    void WriteGUI(const std::vector<GUIMain> &guis, Stream *out);
 }
 
 } // namespace Common

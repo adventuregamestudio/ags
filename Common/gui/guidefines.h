@@ -71,11 +71,7 @@ enum GuiVersion
     kGuiVersion_330         = 116,
     kGuiVersion_331         = 117,
     kGuiVersion_340         = 118,
-    kGuiVersion_Current     = kGuiVersion_340,
-    // Defines the oldest version of gui data that is complying to current
-    // savedgame format; if the loaded game data is of this version or lower,
-    // then this value will be written to savedgame instead of current version.
-    kGuiVersion_ForwardCompatible = kGuiVersion_272e
+    kGuiVersion_Current     = kGuiVersion_340
 };
 
 namespace AGS

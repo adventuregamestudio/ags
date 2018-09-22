@@ -473,7 +473,7 @@ HSaveError ReadGUI(PStream in, int32_t cmp_ver, const PreservedParams &pp, Resto
     if (!AssertGameContent(err, in->ReadInt32(), game.numgui, "GUIs"))
         return err;
     for (int i = 0; i < game.numgui; ++i)
-        guis[i].ReadFromSavegame(in.get());
+        guis[i].ReadFromSavegame(in.get(), (GuiSvgVersion)cmp_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUIButtons"))
         return err;
@@ -996,8 +996,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        0,
-        0,
+        kGuiSvgVersion_350,
+        kGuiSvgVersion_Initial,
         WriteGUI,
         ReadGUI
     },

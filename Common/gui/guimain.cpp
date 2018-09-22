@@ -53,14 +53,16 @@ namespace Common
 
 GUIMain::GUIMain()
 {
-    Init();
+    InitDefaults();
 }
 
-void GUIMain::Init()
+void GUIMain::InitDefaults()
 {
     Id            = 0;
     Name.Empty();
-    Flags         = 0;
+    // NOTE: currently default state is Visible to keep this backwards compatible;
+    // check later if this is still a wanted behavior
+    Flags         = kGUIMain_Visible;
 
     X             = 0;
     Y             = 0;
@@ -75,7 +77,6 @@ void GUIMain::Init()
     Transparency  = 0;
     ZOrder        = -1;
 
-    _visibility   = kGUIVisibility_On;
     FocusCtrl     = 0;
     HighlightCtrl = -1;
     MouseOverCtrl = -1;
@@ -85,7 +86,10 @@ void GUIMain::Init()
 
     OnClickHandler.Empty();
 
-    ControlCount  = 0;
+    Controls.clear();
+    CtrlRefs.clear();
+    CtrlDrawOrder.clear();
+    ControlCount = 0;
 }
 
 int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
@@ -136,9 +140,19 @@ GUIControlType GUIMain::GetControlType(int index) const
     return (GUIControlType)((CtrlRefs[index] >> 16) & 0x0000ffff);
 }
 
+bool GUIMain::IsConcealed() const
+{
+    return (Flags & kGUIMain_Concealed) != 0;
+}
+
+bool GUIMain::IsDisplayed() const
+{
+    return IsVisible() && !IsConcealed();
+}
+
 bool GUIMain::IsInteractableAt(int x, int y) const
 {
-    if (!IsVisible())
+    if (!IsDisplayed())
         return false;
     if (Flags & kGUIMain_NoClick)
         return false;
@@ -150,6 +164,11 @@ bool GUIMain::IsInteractableAt(int x, int y) const
 bool GUIMain::IsTextWindow() const
 {
     return (Flags & kGUIMain_TextWindow) != 0;
+}
+
+bool GUIMain::IsVisible() const
+{
+    return (Flags & kGUIMain_Visible) != 0;
 }
 
 bool GUIMain::BringControlToFront(int index)
@@ -344,6 +363,14 @@ void GUIMain::ResortZOrder()
         CtrlDrawOrder[i] = ctrl_sort[i]->Id;
 }
 
+void GUIMain::SetConceal(bool on)
+{
+    if (on)
+        Flags |= kGUIMain_Concealed;
+    else
+        Flags &= ~kGUIMain_Concealed;
+}
+
 bool GUIMain::SendControlToBack(int index)
 {
     return SetControlZOrder(index, 0);
@@ -386,9 +413,12 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
     Transparency = GfxDef::Trans100ToLegacyTrans255(percent);
 }
 
-void GUIMain::SetVisibility(GUIVisibilityState visibility)
+void GUIMain::SetVisible(bool on)
 {
-    _visibility = visibility;
+    if (on)
+        Flags |= kGUIMain_Visible;
+    else
+        Flags &= ~kGUIMain_Visible;
 }
 
 void GUIMain::OnControlPositionChanged()
@@ -473,7 +503,8 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     Id            = in->ReadInt32();
     Padding       = in->ReadInt32();
     in->Seek(sizeof(int32_t) * GUIMAIN_RESERVED_INTS);
-    _visibility = (GUIVisibilityState)in->ReadInt32();
+
+    GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
 
     if (gui_version < kGuiVersion_340)
     {
@@ -521,12 +552,12 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteInt32(Padding);
     int32_t reserved_ints[GUIMAIN_RESERVED_INTS] = {0};
     out->WriteArrayOfInt32(reserved_ints, GUIMAIN_RESERVED_INTS);
-    out->WriteInt32(_visibility);
+    out->WriteInt32(0); // legacy visibility option (unused)
     if (ControlCount > 0)
         out->WriteArrayOfInt32(&CtrlRefs.front(), ControlCount);
 }
 
-void GUIMain::ReadFromSavegame(Common::Stream *in)
+void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
 {
     // Properties
     Flags = in->ReadInt32();
@@ -536,7 +567,8 @@ void GUIMain::ReadFromSavegame(Common::Stream *in)
     Height = in->ReadInt32();
     BgImage = in->ReadInt32();
     Transparency = in->ReadInt32();
-    _visibility = (GUIVisibilityState)in->ReadInt32();
+    if (svg_version < kGuiSvgVersion_350)
+        GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
     ZOrder = in->ReadInt32();
     // Dynamic values
     FocusCtrl = in->ReadInt32();
@@ -557,7 +589,6 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(Height);
     out->WriteInt32(BgImage);
     out->WriteInt32(Transparency);
-    out->WriteInt32(_visibility);
     out->WriteInt32(ZOrder);
     // Dynamic values
     out->WriteInt32(FocusCtrl);
@@ -644,7 +675,7 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
     for (size_t i = 0; i < gui_count; ++i)
     {
         GUIMain &gui = guis[i];
-        gui.Init();
+        gui.InitDefaults();
         gui.ReadFromFile(in, GameGuiVersion);
 
         // perform fixups
@@ -758,6 +789,24 @@ void WriteGUI(const std::vector<GUIMain> &guis, Stream *out)
     for (int i = 0; i < numguilist; ++i)
     {
         guilist[i].WriteToFile(out);
+    }
+}
+
+void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis)
+{
+    // kGUIPopupMouseY had its own rules, which we practically reverted now
+    if (gui.PopupStyle == kGUIPopupMouseY)
+    {
+        // it was only !Visible if the legacy Visibility was Concealed
+        gui.SetVisible(vis != kGUIVisibility_Concealed);
+        // and you could tell it's overridden by behavior when legacy Visibility is Off
+        gui.SetConceal(vis == kGUIVisibility_Off);
+    }
+    // Other GUI styles were simple
+    else
+    {
+        gui.SetVisible(vis != kGUIVisibility_Off);
+        gui.SetConceal(false);
     }
 }
 

@@ -41,7 +41,8 @@ namespace AGS
 namespace Common
 {
 
-enum GUIVisibilityState
+// Legacy GUIMain visibility state, which combined Visible property and override factor
+enum LegacyGUIVisState
 {
     kGUIVisibility_Concealed = -1, // gui is hidden by command
     kGUIVisibility_Off       =  0, // gui is disabled (won't show up by command)
@@ -57,20 +58,28 @@ public:
 public:
     GUIMain();
 
-    void Init();
+    void        InitDefaults();
 
     // Tells if the gui background supports alpha channel
     bool        HasAlphaChannel() const;
-    // Tells if gui is allowed to be displayed, but is currently hidden off-screen
-    inline bool IsConcealed() const { return _visibility == kGUIVisibility_Concealed; }
+    // Tells if GUI's visibility is overridden and it won't be displayed on
+    // screen regardless of Visible property (until concealed mode is off).
+    bool        IsConcealed() const;
+    // Tells if gui is actually displayed on screen. Normally Visible property
+    // determines whether GUI is allowed to be seen, but there may be other
+    // settings that override GUI's visibility.
+    bool        IsDisplayed() const;
     // Tells if given coordinates are within interactable area of gui
+    // NOTE: this currently tests for actual visibility and Clickable property
     bool        IsInteractableAt(int x, int y) const;
-    // Tells if gui visibility is disabled
-    inline bool IsOff() const { return _visibility == kGUIVisibility_Off; }
     // Tells if gui is a text window
     bool        IsTextWindow() const;
-    // Tells if gui is allowed to be displayed on screen
-    inline bool IsVisible() const { return _visibility == kGUIVisibility_On; }
+    // Tells if GUI is *allowed* to be displayed and interacted with.
+    // This does not necessarily mean that it is displayed right now, because
+    // GUI may be hidden for other reasons, including overriding behavior.
+    // For example GUI with kGUIPopupMouseY style will not be shown unless
+    // mouse cursor is at certain position on screen.
+    bool        IsVisible() const;
 
     int32_t FindControlUnderMouse() const;
     // this version allows some extra leeway in the Editor so that
@@ -87,10 +96,14 @@ public:
     void    RebuildArray();
     void    ResortZOrder();
     bool    SendControlToBack(int index);
-    // attempts to change control's zorder; returns if zorder changed
+    // Override GUI visibility; when in concealed mode GUI won't show up
+    // even if Visible = true
+    void    SetConceal(bool on);
+    // Attempts to change control's zorder; returns if zorder changed
     bool    SetControlZOrder(int index, int zorder);
     void    SetTransparencyAsPercentage(int percent);
-    void    SetVisibility(GUIVisibilityState visibility);
+    // Sets whether GUI is allowed to be displayed on screen
+    void    SetVisible(bool on);
 
     // Events
     void    OnMouseButtonDown();
@@ -102,7 +115,7 @@ public:
     void    WriteToFile(Stream *out) const;
     // TODO: move to engine, into gui savegame component unit
     // (should read/write GUI properties accessing them by interface)
-    void    ReadFromSavegame(Stream *in);
+    void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_version);
     void    WriteToSavegame(Stream *out) const;
 
 private:
@@ -141,9 +154,6 @@ public:
 
     // TODO: remove these later
     int32_t ControlCount;   // number of objects on gui
-
-private:
-    GUIVisibilityState _visibility;
 };
 
 
@@ -160,6 +170,8 @@ namespace GUI
 
     void ReadGUI(std::vector<GUIMain> &guis, Stream *in);
     void WriteGUI(const std::vector<GUIMain> &guis, Stream *out);
+    // Converts legacy GUIVisibility into appropriate GUIMain properties
+    void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);
 }
 
 } // namespace Common

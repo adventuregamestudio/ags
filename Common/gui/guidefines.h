@@ -79,17 +79,22 @@ namespace AGS
 namespace Common
 {
 
+// GUIMain's style and behavior flags
 enum GUIMainFlags
 {
-    kGUIMain_NoClick    = 0x01,
-    kGUIMain_TextWindow = 0x02
+    kGUIMain_NoClick    = 0x0001,
+    kGUIMain_TextWindow = 0x0002,
+    kGUIMain_Visible    = 0x0004,
+    kGUIMain_Concealed  = 0x0008
 };
 
+// GUIMain's legacy flags, now converted to GUIMainFlags on load
 enum GUIMainLegacyFlags
 {
     kGUIMain_LegacyTextWindow = 5
 };
 
+// GUIMain's style of getting displayed on screen
 enum GUIPopupStyle
 {
     // normal GUI, initally on
@@ -104,6 +109,7 @@ enum GUIPopupStyle
     kGUIPopupNoneInitiallyOff = 4
 };
 
+// The type of GUIControl
 enum GUIControlType
 {
     kGUIControlUndefined = -1,
@@ -115,6 +121,7 @@ enum GUIControlType
     kGUIListBox     = 6
 };
 
+// GUIControl general style and behavior flags
 enum GUIControlFlags
 {
     kGUICtrl_Default    = 0x0001,
@@ -128,6 +135,7 @@ enum GUIControlFlags
     kGUICtrl_Deleted    = 0x8000, // unused
 };
 
+// GUIListBox style and behavior flags
 enum GUIListBoxFlags
 {
     kListBox_NoBorder = 0x01,
@@ -135,9 +143,18 @@ enum GUIListBoxFlags
     kListBox_SvgIndex = 0x04,
 };
 
+// GUITextBox style and behavior flags
 enum GUITextBoxFlags
 {
     kTextBox_NoBorder = 0x0001
+};
+
+// Savegame data format
+// TODO: move to the engine code
+enum GuiSvgVersion
+{
+    kGuiSvgVersion_Initial  = 0,
+    kGuiSvgVersion_350      = 1
 };
 
 } // namespace Common

@@ -153,7 +153,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
 
-  if (!guis[listbox->ParentId].IsVisible())
+  if (!guis[listbox->ParentId].IsDisplayed())
     return -1;
 
   multiply_up_coordinates(&x, &y);

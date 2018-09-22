@@ -83,9 +83,7 @@ int GUI_GetVisible(ScriptGUI *tehgui) {
   // GUI_GetVisible is slightly different from IsGUIOn, because
   // with a mouse ypos gui it returns 1 if the GUI is enabled,
   // whereas IsGUIOn actually checks if it is displayed
-  if (!guis[tehgui->id].IsOff())
-    return 1;
-  return 0;
+  return guis[tehgui->id].IsVisible() ? 1 : 0;
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
@@ -247,7 +245,7 @@ void GUI_ProcessClick(int x, int y, int mbut)
 void remove_popup_interface(int ifacenum) {
     if (ifacepopped != ifacenum) return;
     ifacepopped=-1; UnPauseGame();
-    guis[ifacenum].SetVisibility(kGUIVisibility_Off);
+    guis[ifacenum].SetConceal(true);
     if (mousey<=guis[ifacenum].PopupAtMouseY)
         Mouse::SetPosition(Point(mousex, guis[ifacenum].PopupAtMouseY+2));
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
@@ -453,7 +451,7 @@ int adjust_x_for_guis (int xx, int yy) {
         return xx;
     // If it's covered by a GUI, move it right a bit
     for (int aa=0;aa < game.numgui; aa++) {
-        if (!guis[aa].IsVisible())
+        if (!guis[aa].IsDisplayed())
             continue;
         if ((guis[aa].X > xx) || (guis[aa].Y > yy) || (guis[aa].Y + guis[aa].Height < yy))
             continue;
@@ -476,7 +474,7 @@ int adjust_y_for_guis ( int yy) {
         return yy;
     // If it's covered by a GUI, move it down a bit
     for (int aa=0;aa < game.numgui; aa++) {
-        if (!guis[aa].IsVisible())
+        if (!guis[aa].IsDisplayed())
             continue;
         if (guis[aa].Y > yy)
             continue;
@@ -536,13 +534,13 @@ int gui_on_mouse_move()
             if (is_complete_overlay>0) break;  // interfaces disabled
             //    if (play.disabled_user_interface>0) break;
             if (ifacepopped==guin) continue;
-            if (guis[guin].IsConcealed()) continue;
+            if (!guis[guin].IsVisible()) continue;
             // Don't allow it to be popped up while skipping cutscene
             if (play.fast_forward) continue;
 
             if (mousey < guis[guin].PopupAtMouseY) {
                 set_mouse_cursor(CURS_ARROW);
-                guis[guin].SetVisibility(kGUIVisibility_On); guis_need_update = 1;
+                guis[guin].SetConceal(false); guis_need_update = 1;
                 ifacepopped=guin; PauseGame();
                 break;
             }

@@ -138,7 +138,8 @@ public:
     int32_t Height;
     color_t BgColor;        // background color
     int32_t BgImage;        // background sprite index
-    color_t FgColor;        // foreground color
+    color_t FgColor;        // foreground color (used as border color in normal GUIs,
+                            // and text color in text windows)
     int32_t Padding;        // padding surrounding a GUI text window
     GUIPopupStyle PopupStyle; // GUI popup behavior
     int32_t PopupAtMouseY;  // popup when mousey < this

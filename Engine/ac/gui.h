@@ -24,6 +24,8 @@
 using AGS::Common::GUIMain;
 using AGS::Common::GUIObject;
 
+bool    GUI_IsTextWindow(ScriptGUI *tehgui);
+int     GUI_GetPopupStyle(ScriptGUI *tehgui);
 void	GUI_SetVisible(ScriptGUI *tehgui, int isvisible);
 int		GUI_GetVisible(ScriptGUI *tehgui);
 int		GUI_GetX(ScriptGUI *tehgui);
@@ -43,11 +45,21 @@ int		GUI_GetClickable(ScriptGUI *tehgui);
 int		GUI_GetID(ScriptGUI *tehgui);
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx);
 int		GUI_GetControlCount(ScriptGUI *tehgui);
+void    GUI_SetPopupYPos(ScriptGUI *tehgui, int newpos);
+int     GUI_GetPopupYPos(ScriptGUI *tehgui);
 void	GUI_SetTransparency(ScriptGUI *tehgui, int trans);
 int		GUI_GetTransparency(ScriptGUI *tehgui);
 void	GUI_Centre(ScriptGUI *sgui);
 void	GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn);
 int		GUI_GetBackgroundGraphic(ScriptGUI *tehgui);
+void    GUI_SetBackgroundColor(ScriptGUI *tehgui, int newcol);
+int     GUI_GetBackgroundColor(ScriptGUI *tehgui);
+void    GUI_SetBorderColor(ScriptGUI *tehgui, int newcol);
+int     GUI_GetBorderColor(ScriptGUI *tehgui);
+void    GUI_SetTextColor(ScriptGUI *tehgui, int newcol);
+int     GUI_GetTextColor(ScriptGUI *tehgui);
+void    GUI_SetTextPadding(ScriptGUI *tehgui, int newpos);
+int     GUI_GetTextPadding(ScriptGUI *tehgui);
 ScriptGUI *GetGUIAtLocation(int xx, int yy);
 
 void	remove_popup_interface(int ifacenum);

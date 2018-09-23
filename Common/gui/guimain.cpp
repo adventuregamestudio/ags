@@ -586,6 +586,15 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     if (svg_version < kGuiSvgVersion_350)
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
     ZOrder = in->ReadInt32();
+
+    if (svg_version >= kGuiSvgVersion_350)
+    {
+        BgColor = in->ReadInt32();
+        FgColor = in->ReadInt32();
+        Padding = in->ReadInt32();
+        PopupAtMouseY = in->ReadInt32();
+    }
+
     // Dynamic values
     FocusCtrl = in->ReadInt32();
     HighlightCtrl = in->ReadInt32();
@@ -606,6 +615,10 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(BgImage);
     out->WriteInt32(Transparency);
     out->WriteInt32(ZOrder);
+    out->WriteInt32(BgColor);
+    out->WriteInt32(FgColor);
+    out->WriteInt32(Padding);
+    out->WriteInt32(PopupAtMouseY);
     // Dynamic values
     out->WriteInt32(FocusCtrl);
     out->WriteInt32(HighlightCtrl);

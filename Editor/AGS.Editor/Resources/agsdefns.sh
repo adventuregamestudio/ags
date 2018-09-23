@@ -1435,6 +1435,13 @@ enum EventType {
   eEventRestoreGame = 9
 };
 
+enum GUIPopupStyle {
+  eGUIPopupNormal = 0,
+  eGUIPopupMouseYPos = 1,
+  eGUIPopupModal = 2,
+  eGUIPopupPersistent = 3
+};
+
 // forward-declare these so that they can be returned by GUIControl class
 builtin managed struct GUI;
 builtin managed struct Label;
@@ -1676,6 +1683,22 @@ builtin managed struct GUI {
   import void Click(MouseButton);
   /// Performs default processing of a mouse click at the specified co-ordinates.
   import static void ProcessClick(int x, int y, MouseButton);
+#endif
+#ifdef SCRIPT_API_v350
+  /// Gets/sets the background color.
+  import attribute int  BackgroundColor;
+  /// Gets/sets the border color. Not applicable to TextWindow GUIs.
+  import attribute int  BorderColor;
+  /// Gets whether this GUI is a TextWindow.
+  import readonly attribute bool IsTextWindow;
+  /// Gets the style of GUI behavior on screen.
+  import readonly attribute GUIPopupStyle PopupStyle;
+  /// Gets/sets the Y co-ordinate at which the GUI will appear when using MouseYPos popup style.
+  import attribute int  PopupYPos;
+  /// Gets/sets the text color. Only applicable to TextWindow GUIs.
+  import attribute int  TextColor;
+  /// Gets/sets the amount of padding, in pixels, surrounding the text in the TextWindow.
+  import attribute int  TextPadding;
 #endif
   
   int   reserved[2];   // $AUTOCOMPLETEIGNORE$

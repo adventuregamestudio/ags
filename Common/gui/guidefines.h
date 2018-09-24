@@ -44,6 +44,8 @@
 // 3.3.0.1132 (116): Added kGUICtrl_Translated flag.
 // 3.3.1.???? (117): Added padding variable for text window GUIs.
 // 3.4.0      (118): Removed GUI limits
+// 3.5.0      (119): Game data contains GUI properties that previously
+//                   could be set only at runtime.
 //
 //=============================================================================
 
@@ -71,7 +73,8 @@ enum GuiVersion
     kGuiVersion_330         = 116,
     kGuiVersion_331         = 117,
     kGuiVersion_340         = 118,
-    kGuiVersion_Current     = kGuiVersion_340
+    kGuiVersion_350         = 119,
+    kGuiVersion_Current     = kGuiVersion_350,
 };
 
 namespace AGS
@@ -97,16 +100,17 @@ enum GUIMainLegacyFlags
 // GUIMain's style of getting displayed on screen
 enum GUIPopupStyle
 {
-    // normal GUI, initally on
-    kGUIPopupNone             = 0,
-    // show when mouse moves to top of screen
+    // Normal GUI
+    kGUIPopupNormal           = 0,
+    // Shown when the mouse cursor moves to the top of the screen
     kGUIPopupMouseY           = 1,
-    // pauses game when shown
+    // Same as Normal, but pauses the game when shown
     kGUIPopupModal            = 2,
-    // initially on and not removed when interface is off
+    // Same as Normal, but is not removed when interface is off
     kGUIPopupNoAutoRemove     = 3,
-    // normal GUI, initially off
-    kGUIPopupNoneInitiallyOff = 4
+    // (legacy option) Normal GUI, initially off
+    // converts to kGUIPopupNormal with Visible = false
+    kGUIPopupLegacyNormalOff  = 4
 };
 
 // The type of GUIControl

@@ -209,17 +209,8 @@ void InitAndRegisterGUI()
     guiScriptObjNames.resize(game.numgui);
     for (int i = 0; i < game.numgui; ++i)
     {
+        // link controls to their parent guis
         guis[i].RebuildArray();
-        // Normal GUIs and PopupMouseY GUIs should start with Visible = true
-        if ((guis[i].PopupStyle == kGUIPopupNone) || (guis[i].PopupStyle == kGUIPopupNoAutoRemove) ||
-            (guis[i].PopupStyle == kGUIPopupMouseY))
-            guis[i].SetVisible(true);
-        else
-            guis[i].SetVisible(false);
-        // Also PopupMouseY GUIs should be initially concealed
-        if (guis[i].PopupStyle == kGUIPopupMouseY)
-            guis[i].SetConceal(true);
-
         // export all the GUI's controls
         export_gui_controls(i);
         // copy the script name to its own memory location

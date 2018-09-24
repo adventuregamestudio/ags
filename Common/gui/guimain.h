@@ -29,12 +29,12 @@ using namespace AGS; // FIXME later
 // There were issues when including header caused conflicts
 struct GameSetupStruct;
 
-#define LEGACY_MAX_OBJS_ON_GUI      30
+#define LEGACY_MAX_OBJS_ON_GUI             30
 
-#define GUIMAIN_RESERVED_INTS       5
+#define GUIMAIN_LEGACY_RESERVED_INTS       5
 #define GUIMAIN_LEGACY_NAME_LENGTH         16
 #define GUIMAIN_LEGACY_EVENTHANDLER_LENGTH 20
-#define GUIMAIN_LEGACY_TW_FLAGS_SIZE 4
+#define GUIMAIN_LEGACY_TW_FLAGS_SIZE       4
 
 namespace AGS
 {
@@ -101,6 +101,7 @@ public:
     void    SetConceal(bool on);
     // Attempts to change control's zorder; returns if zorder changed
     bool    SetControlZOrder(int index, int zorder);
+    // Sets GUI transparency as a percentage (0 - 100) where 100 = invisible
     void    SetTransparencyAsPercentage(int percent);
     // Sets whether GUI is allowed to be displayed on screen
     void    SetVisible(bool on);
@@ -168,7 +169,9 @@ namespace GUI
     // Draw text aligned horizontally inside given bounds
     void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
 
-    void ReadGUI(std::vector<GUIMain> &guis, Stream *in);
+    // TODO: remove is_savegame param after dropping support for old saves
+    // because only they use ReadGUI to read runtime GUI data
+    void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame = false);
     void WriteGUI(const std::vector<GUIMain> &guis, Stream *out);
     // Converts legacy GUIVisibility into appropriate GUIMain properties
     void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);

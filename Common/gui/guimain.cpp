@@ -72,7 +72,7 @@ void GUIMain::InitDefaults()
     BgImage       = 0;
     FgColor       = 1;
     Padding       = TEXTWINDOW_PADDING_DEFAULT;
-    PopupStyle    = kGUIPopupNone;
+    PopupStyle    = kGUIPopupNormal;
     PopupAtMouseY = -1;
     Transparency  = 0;
     ZOrder        = -1;
@@ -465,7 +465,8 @@ void GUIMain::OnMouseButtonUp()
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE];
+    // Legacy text window tag
+    char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
     in->Read(tw_flags, sizeof(tw_flags));
     if (gui_version < kGuiVersion_340)
     {
@@ -502,9 +503,12 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     ZOrder        = in->ReadInt32();
     Id            = in->ReadInt32();
     Padding       = in->ReadInt32();
-    in->Seek(sizeof(int32_t) * GUIMAIN_RESERVED_INTS);
+    in->Seek(sizeof(int32_t) * GUIMAIN_LEGACY_RESERVED_INTS);
 
-    GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
+    if (gui_version < kGuiVersion_350)
+    {
+        GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
+    }
 
     if (gui_version < kGuiVersion_340)
     {
@@ -550,9 +554,8 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteInt32(ZOrder);
     out->WriteInt32(Id);
     out->WriteInt32(Padding);
-    int32_t reserved_ints[GUIMAIN_RESERVED_INTS] = {0};
-    out->WriteArrayOfInt32(reserved_ints, GUIMAIN_RESERVED_INTS);
-    out->WriteInt32(0); // legacy visibility option (unused)
+    int32_t reserved_ints[GUIMAIN_LEGACY_RESERVED_INTS] = {0};
+    out->WriteArrayOfInt32(reserved_ints, GUIMAIN_LEGACY_RESERVED_INTS);
     if (ControlCount > 0)
         out->WriteArrayOfInt32(&CtrlRefs.front(), ControlCount);
 }
@@ -652,7 +655,7 @@ void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
     guis_need_update = 1;
 }
 
-void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
+void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         quit("ReadGUI: file is corrupt");
@@ -666,7 +669,7 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
         GameGuiVersion = kGuiVersion_Initial;
     }
     else if (GameGuiVersion > kGuiVersion_Current)
-        quit("read_gui: this game requires a newer version of AGS");
+        quit("ReadGUI: this game requires a newer version of AGS");
     else
         gui_count = in->ReadInt32();
     guis.resize(gui_count);
@@ -692,6 +695,27 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
         // fix names for 2.x: "GUI" -> "gGui"
         if (loaded_game_file_version <= kGameVersion_272)
             gui.Name = GUIMain::FixupGUIName(gui.Name);
+
+        // GUI popup style and visibility
+        if (GameGuiVersion < kGuiVersion_350 && !is_savegame)
+        {
+            // Convert legacy normal-off style into normal one
+            if (gui.PopupStyle == kGUIPopupLegacyNormalOff)
+            {
+                gui.PopupStyle = kGUIPopupNormal;
+                gui.SetVisible(false);
+            }
+            // Normal GUIs and PopupMouseY GUIs should start with Visible = true
+            else
+            {
+                gui.SetVisible(gui.PopupStyle != kGUIPopupModal);
+            }
+        }
+
+        // PopupMouseY GUIs should be initially concealed
+        if (gui.PopupStyle == kGUIPopupMouseY)
+            gui.SetConceal(true);
+        // Assign ID to order in array
         gui.Id = i;
     }
 

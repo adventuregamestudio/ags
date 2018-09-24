@@ -1390,7 +1390,7 @@ void ReadAnimatedButtons_Aligned(Stream *in)
 
 HSaveError restore_game_gui(Stream *in, int numGuisWas)
 {
-    GUI::ReadGUI(guis, in);
+    GUI::ReadGUI(guis, in, true);
     game.numgui = guis.size();
 
     if (numGuisWas != game.numgui)

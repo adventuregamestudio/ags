@@ -3947,6 +3947,9 @@ Game^ import_compiled_game_dta(const char *fileName)
 			newControl->Left = curObj->X;
 			newControl->Top = curObj->Y;
 			newControl->ZOrder = curObj->ZOrder;
+            newControl->Clickable = curObj->IsClickable();
+            newControl->Enabled = curObj->IsEnabled();
+            newControl->Visible = curObj->IsVisible();
 			newControl->ID = j;
 			newControl->Name = gcnew String(curObj->Name);
 			newGui->Controls->Add(newControl);

@@ -53,6 +53,9 @@ namespace AGS.Editor
         public static readonly int SAVEBUFFERSIZE = (int)Factory.NativeProxy.GetNativeConstant("SAVEBUFFERSIZE");
         public static readonly int GUIMAIN_NOCLICK = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_NOCLICK");
         public static readonly int GUIMAIN_VISIBLE = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_VISIBLE");
+        public static readonly int GUIF_DISABLED = (int)Factory.NativeProxy.GetNativeConstant("GUIF_DISABLED");
+        public static readonly int GUIF_NOCLICK = (int)Factory.NativeProxy.GetNativeConstant("GUIF_NOCLICK");
+        public static readonly int GUIF_INVISIBLE = (int)Factory.NativeProxy.GetNativeConstant("GUIF_INVISIBLE");
         public static readonly int GUIF_CLIP = (int)Factory.NativeProxy.GetNativeConstant("GUIF_CLIP");
         public static readonly int GUIF_TRANSLATED = (int)Factory.NativeProxy.GetNativeConstant("GUIF_TRANSLATED");
         public static readonly int GLF_NOBORDER = (int)Factory.NativeProxy.GetNativeConstant("GLF_NOBORDER");

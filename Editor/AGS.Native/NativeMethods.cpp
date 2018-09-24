@@ -691,6 +691,9 @@ namespace AGS
             if (name->Equals("SAVEBUFFERSIZE")) return PLUGIN_SAVEBUFFERSIZE;
             if (name->Equals("GUIMAIN_NOCLICK")) return (int)Common::kGUIMain_NoClick;
             if (name->Equals("GUIMAIN_VISIBLE")) return (int)Common::kGUIMain_Visible;
+            if (name->Equals("GUIF_DISABLED")) return (int)Common::kGUICtrl_Disabled;
+            if (name->Equals("GUIF_NOCLICK")) return (int)Common::kGUICtrl_NoClicks;
+            if (name->Equals("GUIF_INVISIBLE")) return (int)Common::kGUICtrl_Invisible;
             if (name->Equals("GUIF_CLIP")) return (int)Common::kGUICtrl_Clip;
             if (name->Equals("GUIF_TRANSLATED")) return (int)Common::kGUICtrl_Translated;
             if (name->Equals("GLF_NOBORDER")) return (int)Common::kListBox_NoBorder;

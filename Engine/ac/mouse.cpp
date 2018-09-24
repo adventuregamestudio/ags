@@ -242,7 +242,7 @@ void enable_cursor_mode(int modd) {
             GUIButton*gbpt=(GUIButton*)guis[uu].Controls[ww];
             if (gbpt->ClickAction[kMouseLeft]!=kGUIAction_SetMode) continue;
             if (gbpt->ClickData[kMouseLeft]!=modd) continue;
-            gbpt->Enable();
+            gbpt->SetEnabled(true);
         }
     }
     guis_need_update = 1;
@@ -259,7 +259,7 @@ void disable_cursor_mode(int modd) {
             GUIButton*gbpt=(GUIButton*)guis[uu].Controls[ww];
             if (gbpt->ClickAction[kMouseLeft]!=kGUIAction_SetMode) continue;
             if (gbpt->ClickData[kMouseLeft]!=modd) continue;
-            gbpt->Disable();
+            gbpt->SetEnabled(false);
         }
     }
     if (cur_mode==modd) find_next_enabled_cursor(modd);

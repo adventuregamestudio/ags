@@ -1058,12 +1058,21 @@ namespace AGS.Editor
                 }
             }
 
+            private int MakeCommonGUIControlFlags(GUIControl control)
+            {
+                return (control.Clickable ? 0 : NativeConstants.GUIF_NOCLICK) |
+                    (control.Enabled ? 0 : NativeConstants.GUIF_DISABLED) |
+                    (control.Visible ? 0 : NativeConstants.GUIF_INVISIBLE)
+                    ;
+            }
+
             /// <summary>
             /// Writes the common elements of this GUIControl to the file. Type-specific
             /// data is written only by the respective method for that type.
             /// </summary>
             private void WriteGUIControl(GUIControl control, int flags, string[] events)
             {
+                flags |= MakeCommonGUIControlFlags(control);
                 writer.Write(flags); // flags
                 writer.Write(control.Left);
                 writer.Write(control.Top);

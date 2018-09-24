@@ -60,12 +60,10 @@ public:
     bool            IsClickable() const;
     
     // Operations
-    void            Disable();
     virtual void    Draw(Bitmap *ds) { }
-    void            Enable();
-    void            Hide();
-    void            SetClickable(bool clickable);
-    void            Show();
+    void            SetClickable(bool on);
+    void            SetEnabled(bool on);
+    void            SetVisible(bool on);
 
     // Events
     // Key pressed for control

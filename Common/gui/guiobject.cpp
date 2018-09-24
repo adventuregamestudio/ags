@@ -65,32 +65,28 @@ bool GUIObject::IsOverControl(int x, int y, int leeway) const
     return x >= X && y >= Y && x < (X + Width + leeway) && y < (Y + Height + leeway);
 }
 
-void GUIObject::Disable()
+void GUIObject::SetClickable(bool on)
 {
-    Flags |= kGUICtrl_Disabled;
-}
-
-void GUIObject::Enable()
-{
-    Flags &= ~kGUICtrl_Disabled;
-}
-
-void GUIObject::Hide()
-{
-    Flags |= kGUICtrl_Invisible;
-}
-
-void GUIObject::SetClickable(bool clickable)
-{
-    if (clickable)
+    if (on)
         Flags &= ~kGUICtrl_NoClicks;
     else
         Flags |= kGUICtrl_NoClicks;
 }
 
-void GUIObject::Show()
+void GUIObject::SetEnabled(bool on)
 {
-    Flags &= ~kGUICtrl_Invisible;
+    if (on)
+        Flags &= ~kGUICtrl_Disabled;
+    else
+        Flags |= kGUICtrl_Disabled;
+}
+
+void GUIObject::SetVisible(bool on)
+{
+    if (on)
+        Flags &= ~kGUICtrl_Invisible;
+    else
+        Flags |= kGUICtrl_Invisible;
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString

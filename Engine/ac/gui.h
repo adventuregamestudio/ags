@@ -24,7 +24,7 @@
 using AGS::Common::GUIMain;
 using AGS::Common::GUIObject;
 
-bool    GUI_IsTextWindow(ScriptGUI *tehgui);
+ScriptGUI *GUI_AsTextWindow(ScriptGUI *tehgui);
 int     GUI_GetPopupStyle(ScriptGUI *tehgui);
 void	GUI_SetVisible(ScriptGUI *tehgui, int isvisible);
 int		GUI_GetVisible(ScriptGUI *tehgui);

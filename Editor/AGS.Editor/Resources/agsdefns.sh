@@ -1451,6 +1451,9 @@ builtin managed struct TextBox;
 builtin managed struct InvWindow;
 builtin managed struct ListBox;
 builtin managed struct Character;
+#ifdef SCRIPT_API_v350
+builtin managed struct TextWindowGUI;
+#endif
 
 builtin managed struct GUIControl {
   /// Brings this control to the front of the z-order, in front of all other controls.
@@ -1689,20 +1692,25 @@ builtin managed struct GUI {
   import attribute int  BackgroundColor;
   /// Gets/sets the border color. Not applicable to TextWindow GUIs.
   import attribute int  BorderColor;
-  /// Gets whether this GUI is a TextWindow.
-  import readonly attribute bool IsTextWindow;
+  /// If this GUI is a TextWindow, returns the TextWindowGUI interface; otherwise null.
+  import readonly attribute TextWindowGUI* AsTextWindow; // $AUTOCOMPLETENOINHERIT$
   /// Gets the style of GUI behavior on screen.
   import readonly attribute GUIPopupStyle PopupStyle;
   /// Gets/sets the Y co-ordinate at which the GUI will appear when using MouseYPos popup style.
   import attribute int  PopupYPos;
-  /// Gets/sets the text color. Only applicable to TextWindow GUIs.
-  import attribute int  TextColor;
-  /// Gets/sets the amount of padding, in pixels, surrounding the text in the TextWindow.
-  import attribute int  TextPadding;
 #endif
   
   int   reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
+
+#ifdef SCRIPT_API_v350
+builtin managed struct TextWindowGUI extends GUI {
+  /// Gets/sets the text color.
+  import attribute int  TextColor;
+  /// Gets/sets the amount of padding, in pixels, surrounding the text in the TextWindow.
+  import attribute int  TextPadding;
+};
+#endif
 
 builtin managed struct Hotspot {
   /// Gets the hotspot that is at the specified position on the screen.

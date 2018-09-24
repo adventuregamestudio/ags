@@ -72,9 +72,9 @@ int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
 int eip_guinum, eip_guiobj;
 
 
-bool GUI_IsTextWindow(ScriptGUI *tehgui)
-{
-    return guis[tehgui->id].IsTextWindow();
+ScriptGUI* GUI_AsTextWindow(ScriptGUI *tehgui)
+{ // Internally both GUI and TextWindow are implemented by same class
+    return guis[tehgui->id].IsTextWindow() ? &scrGui[tehgui->id] : NULL;
 }
 
 int GUI_GetPopupStyle(ScriptGUI *tehgui)
@@ -907,9 +907,9 @@ RuntimeScriptValue Sc_GUI_SetZOrder(void *self, const RuntimeScriptValue *params
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetZOrder);
 }
 
-RuntimeScriptValue Sc_GUI_IsTextWindow(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GUI_AsTextWindow(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(ScriptGUI, GUI_IsTextWindow);
+    API_OBJCALL_OBJ(ScriptGUI, ScriptGUI, ccDynamicGUI, GUI_AsTextWindow);
 }
 
 RuntimeScriptValue Sc_GUI_GetPopupStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -948,14 +948,14 @@ void RegisterGUIAPI()
     ccAddExternalObjectFunction("GUI::get_Height",              Sc_GUI_GetHeight);
     ccAddExternalObjectFunction("GUI::set_Height",              Sc_GUI_SetHeight);
     ccAddExternalObjectFunction("GUI::get_ID",                  Sc_GUI_GetID);
-    ccAddExternalObjectFunction("GUI::get_IsTextWindow",        Sc_GUI_IsTextWindow);
+    ccAddExternalObjectFunction("GUI::get_AsTextWindow",        Sc_GUI_AsTextWindow);
     ccAddExternalObjectFunction("GUI::get_PopupStyle",          Sc_GUI_GetPopupStyle);
     ccAddExternalObjectFunction("GUI::get_PopupYPos",           Sc_GUI_GetPopupYPos);
     ccAddExternalObjectFunction("GUI::set_PopupYPos",           Sc_GUI_SetPopupYPos);
-    ccAddExternalObjectFunction("GUI::get_TextColor",           Sc_GUI_GetTextColor);
-    ccAddExternalObjectFunction("GUI::set_TextColor",           Sc_GUI_SetTextColor);
-    ccAddExternalObjectFunction("GUI::get_TextPadding",         Sc_GUI_GetTextPadding);
-    ccAddExternalObjectFunction("GUI::set_TextPadding",         Sc_GUI_SetTextPadding);
+    ccAddExternalObjectFunction("TextWindowGUI::get_TextColor", Sc_GUI_GetTextColor);
+    ccAddExternalObjectFunction("TextWindowGUI::set_TextColor", Sc_GUI_SetTextColor);
+    ccAddExternalObjectFunction("TextWindowGUI::get_TextPadding", Sc_GUI_GetTextPadding);
+    ccAddExternalObjectFunction("TextWindowGUI::set_TextPadding", Sc_GUI_SetTextPadding);
     ccAddExternalObjectFunction("GUI::get_Transparency",        Sc_GUI_GetTransparency);
     ccAddExternalObjectFunction("GUI::set_Transparency",        Sc_GUI_SetTransparency);
     ccAddExternalObjectFunction("GUI::get_Visible",             Sc_GUI_GetVisible);

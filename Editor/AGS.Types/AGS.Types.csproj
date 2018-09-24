@@ -124,6 +124,7 @@
     <Compile Include="Enums\GameTextType.cs" />
     <Compile Include="Enums\GraphicsDriver.cs" />
     <Compile Include="Enums\GUIAlphaStyle.cs" />
+    <Compile Include="Enums\GUIPopupStyle.cs" />
     <Compile Include="Enums\InterfaceDisabledAction.cs" />
     <Compile Include="Enums\InventoryHotspotMarkerStyle.cs" />
     <Compile Include="Enums\LipSyncType.cs" />

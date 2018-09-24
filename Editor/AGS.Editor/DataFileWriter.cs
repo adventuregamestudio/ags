@@ -10,6 +10,7 @@ using System.Text;
 namespace AGS.Editor
 {
     // TODO: split onto main game file reader/writer and asset library reader/writer
+    // TODO: separate data format writers for various game components (GUI etc)
     public class DataFileWriter
     {
         // Signatures of the asset library
@@ -1265,7 +1266,7 @@ namespace AGS.Editor
                 writer.Write(gui.Height); // hit
                 writer.Write(0); // focus
                 writer.Write(gui.Controls.Count); // numobjs
-                writer.Write((int)gui.Visibility); // popup
+                writer.Write((int)gui.PopupStyle); // gui style
                 writer.Write(gui.PopupYPos); // popupyp
                 writer.Write(gui.BackgroundColor); // bgcol
                 writer.Write(gui.BackgroundImage); // bgpic
@@ -1275,7 +1276,8 @@ namespace AGS.Editor
                 writer.Write(-1); // mousewasy
                 writer.Write(-1); // mousedownon
                 writer.Write(-1); // highlightobj
-                writer.Write(gui.Clickable ? 0 : NativeConstants.GUIMAIN_NOCLICK); // flags
+                // GUI Flags
+                writer.Write(MakeGUIFlags(gui));
                 int transparency = gui.Transparency;
                 if (transparency <= 0) transparency = 0;
                 else if (transparency >= 100) transparency = 255;
@@ -1285,7 +1287,14 @@ namespace AGS.Editor
                 writer.Write(0); // guiId
                 writer.Write(NativeConstants.TEXTWINDOW_PADDING_DEFAULT); // padding
                 writer.Write(new byte[5 * sizeof(int)]); // reserved
-                writer.Write(1); // on
+            }
+
+            private int MakeGUIFlags(NormalGUI gui)
+            {
+                int flags =
+                    (gui.Clickable ? 0 : NativeConstants.GUIMAIN_NOCLICK) |
+                    (gui.Visible ? NativeConstants.GUIMAIN_VISIBLE : 0);
+                return flags;
             }
 
             private void WriteTextWindowGUI(TextWindowGUI gui)
@@ -1316,7 +1325,6 @@ namespace AGS.Editor
                 writer.Write(0); // guiId
                 writer.Write(gui.Padding); // padding
                 writer.Write(new byte[5 * sizeof(int)]); // reserved
-                writer.Write(1); // on
             }
 
             public void WriteAllGUIs()

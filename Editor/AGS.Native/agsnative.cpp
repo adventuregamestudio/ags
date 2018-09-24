@@ -3009,9 +3009,10 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	gui->Y = normalGui->Top;
 	gui->Width = normalGui->Width;
 	gui->Height = normalGui->Height;
-    gui->Flags = (normalGui->Clickable) ? 0 : Common::kGUIMain_NoClick;
+    gui->SetClickable(normalGui->Clickable);
+    gui->SetVisible(normalGui->Visible);
     gui->PopupAtMouseY = normalGui->PopupYPos;
-    gui->PopupStyle = (Common::GUIPopupStyle)normalGui->Visibility;
+    gui->PopupStyle = (Common::GUIPopupStyle)normalGui->PopupStyle;
     gui->ZOrder = normalGui->ZOrder;
     gui->FgColor = normalGui->BorderColor;
     gui->SetTransparencyAsPercentage(normalGui->Transparency);
@@ -3824,13 +3825,14 @@ Game^ import_compiled_game_dta(const char *fileName)
 		else 
 		{
 			newGui = gcnew NormalGUI(1, 1);
-			((NormalGUI^)newGui)->Clickable = ((guis[i].Flags & Common::kGUIMain_NoClick) == 0);
+            ((NormalGUI^)newGui)->Clickable = guis[i].IsClickable();
+            ((NormalGUI^)newGui)->Visible = guis[i].IsVisible();
 			((NormalGUI^)newGui)->Top = guis[i].Y;
 			((NormalGUI^)newGui)->Left = guis[i].X;
 			((NormalGUI^)newGui)->Width = (guis[i].Width > 0) ? guis[i].Width : 1;
 			((NormalGUI^)newGui)->Height = (guis[i].Height > 0) ? guis[i].Height : 1;
 			((NormalGUI^)newGui)->PopupYPos = guis[i].PopupAtMouseY;
-			((NormalGUI^)newGui)->Visibility = (GUIVisibility)guis[i].PopupStyle;
+			((NormalGUI^)newGui)->PopupStyle = (GUIPopupStyle)guis[i].PopupStyle;
 			((NormalGUI^)newGui)->ZOrder = guis[i].ZOrder;
 			((NormalGUI^)newGui)->OnClick = gcnew String(guis[i].OnClickHandler);
       ((NormalGUI^)newGui)->BorderColor = guis[i].FgColor;

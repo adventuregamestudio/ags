@@ -140,6 +140,11 @@ GUIControlType GUIMain::GetControlType(int index) const
     return (GUIControlType)((CtrlRefs[index] >> 16) & 0x0000ffff);
 }
 
+bool GUIMain::IsClickable() const
+{
+    return (Flags & kGUIMain_NoClick) == 0;
+}
+
 bool GUIMain::IsConcealed() const
 {
     return (Flags & kGUIMain_Concealed) != 0;
@@ -154,7 +159,7 @@ bool GUIMain::IsInteractableAt(int x, int y) const
 {
     if (!IsDisplayed())
         return false;
-    if (Flags & kGUIMain_NoClick)
+    if (!IsClickable())
         return false;
     if ((x >= X) & (y >= Y) & (x < X + Width) & (y < Y + Height))
         return true;
@@ -361,6 +366,14 @@ void GUIMain::ResortZOrder()
     CtrlDrawOrder.resize(ctrl_sort.size());
     for (int i = 0; i < ControlCount; ++i)
         CtrlDrawOrder[i] = ctrl_sort[i]->Id;
+}
+
+void GUIMain::SetClickable(bool on)
+{
+    if (on)
+        Flags &= ~kGUIMain_NoClick;
+    else
+        Flags |= kGUIMain_NoClick;
 }
 
 void GUIMain::SetConceal(bool on)

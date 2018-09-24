@@ -62,6 +62,8 @@ public:
 
     // Tells if the gui background supports alpha channel
     bool        HasAlphaChannel() const;
+    // Tells if GUI will react on clicking on it
+    bool        IsClickable() const;
     // Tells if GUI's visibility is overridden and it won't be displayed on
     // screen regardless of Visible property (until concealed mode is off).
     bool        IsConcealed() const;
@@ -96,6 +98,8 @@ public:
     void    RebuildArray();
     void    ResortZOrder();
     bool    SendControlToBack(int index);
+    // Sets whether GUI should react to player clicking on it
+    void    SetClickable(bool on);
     // Override GUI visibility; when in concealed mode GUI won't show up
     // even if Visible = true
     void    SetConceal(bool on);

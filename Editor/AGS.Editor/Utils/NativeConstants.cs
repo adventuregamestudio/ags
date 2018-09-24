@@ -4,6 +4,8 @@ using System.Text;
 
 namespace AGS.Editor
 {
+    // TODO: remove this as soon as all the data writing is done in C#
+    // and there won't be need to keep native code here.
     public class NativeConstants
     {
         // NOTE: GetNativeConstant returns only int or string, so some additional casting may be required
@@ -50,6 +52,7 @@ namespace AGS.Editor
         public static readonly uint GUIMAGIC = (uint)Factory.NativeProxy.GetNativeConstant("GUIMAGIC");
         public static readonly int SAVEBUFFERSIZE = (int)Factory.NativeProxy.GetNativeConstant("SAVEBUFFERSIZE");
         public static readonly int GUIMAIN_NOCLICK = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_NOCLICK");
+        public static readonly int GUIMAIN_VISIBLE = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_VISIBLE");
         public static readonly int GUIF_CLIP = (int)Factory.NativeProxy.GetNativeConstant("GUIF_CLIP");
         public static readonly int GUIF_TRANSLATED = (int)Factory.NativeProxy.GetNativeConstant("GUIF_TRANSLATED");
         public static readonly int GLF_NOBORDER = (int)Factory.NativeProxy.GetNativeConstant("GLF_NOBORDER");

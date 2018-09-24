@@ -25,7 +25,8 @@ namespace AGS.Types
         private int _x;
         private int _y;
         private bool _clickable = true;
-        private GUIVisibility _visibility;
+        private bool _visible = true;
+        private GUIPopupStyle _popupStyle;
         private int _popupYPos;
         private int _zorder;
 		private int _bordercol;
@@ -118,16 +119,40 @@ namespace AGS.Types
             set { _clickable = value; }
         }
 
-        [Description("Determines when the GUI will be visible on the screen")]
+        [Description("Determines whether the GUI is visible at the game start")]
         [Category("Appearance")]
-        [TypeConverter(typeof(EnumTypeConverter))]
-        public GUIVisibility Visibility
+        public bool Visible
         {
-            get { return _visibility; }
-            set { _visibility = value; }
+            get { return _visible; }
+            set { _visible = value; }
         }
 
-        [Description("The Y co-ordinate at which the GUI will appear when using MouseYPos visibility")]
+        [Description("Determines how the GUI will behave on screen")]
+        [Category("Appearance")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public GUIPopupStyle PopupStyle
+        {
+            get { return _popupStyle; }
+            set { _popupStyle = value; }
+        }
+
+        [AGSNoSerialize]
+        [Browsable(false)]
+        [Obsolete("NormalGUI.Visibility has been replaced by NormalGUI.PopupStyle.")]
+        public GUIVisibility Visibility
+        {
+            get { throw new NotImplementedException("Reading GUI.Visibility is no longer supported"); }
+            set
+            {
+                if (value == GUIVisibility.NormalButInitiallyOff)
+                    _popupStyle = GUIPopupStyle.Normal;
+                else
+                    _popupStyle = (GUIPopupStyle)value;
+                Visible = value != GUIVisibility.PopupModal && value != GUIVisibility.NormalButInitiallyOff;
+            }
+        }
+
+        [Description("The Y co-ordinate at which the GUI will appear when using MouseYPos popup style")]
         [Category("Appearance")]
         public int PopupYPos
         {

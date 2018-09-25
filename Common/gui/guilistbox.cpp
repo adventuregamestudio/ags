@@ -38,7 +38,7 @@ GUIListBox::GUIListBox()
     BgColor = 7;
     ListBoxFlags = 0;
     SelectedBgColor = 16;
-    TextAlignment = 0;
+    TextAlignment = kHAlignLeft;
 
     _scEventCount = 1;
     _scEventNames[0] = "SelectionChanged";
@@ -155,7 +155,7 @@ void GUIListBox::Draw(Common::Bitmap *ds)
         PrepareTextToDraw(Items[item_index]);
 
         GUI::DrawTextAlignedHor(ds, _textToDraw, Font, text_color, X + 1 + pixel_size, right_hand_edge, at_y + 1,
-            ConvertLegacyGUIAlignment(TextAlignment));
+            (FrameAlignment)TextAlignment);
     }
 
     DrawItemsUnfix();
@@ -294,12 +294,15 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (gui_version >= kGuiVersion_272b)
     {
-        TextAlignment = in->ReadInt32();
+        if (gui_version < kGuiVersion_350)
+            TextAlignment = ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
+        else
+            TextAlignment = (HorAlignment)in->ReadInt32();
         in->ReadInt32(); // reserved1
     }
     else
     {
-        TextAlignment = kLegacyGUIAlign_Left;
+        TextAlignment = kHAlignLeft;
     }
 
     if (gui_version >= kGuiVersion_unkn_107)

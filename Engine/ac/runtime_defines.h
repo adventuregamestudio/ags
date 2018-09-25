@@ -23,9 +23,6 @@
 #define MAXGSVALUES 500
 #define MAXGLOBALSTRINGS 51
 #define MAX_INVORDER 500
-#define SCALIGN_LEFT     1
-#define SCALIGN_CENTRE   2
-#define SCALIGN_RIGHT    3
 #define DIALOG_NONE      0
 #define DIALOG_RUNNING   1
 #define DIALOG_STOP      2
@@ -40,6 +37,14 @@
 #define QUEUED_MUSIC_REPEAT 10000
 #define PLAYMP3FILE_MAX_FILENAME_LEN 50
 #define MAX_AUDIO_TYPES  30
+
+// Legacy (pre 3.5.0) alignment types used in the script API
+enum LegacyScriptAlignment
+{
+    kLegacyScAlignLeft      = 1,
+    kLegacyScAlignCentre    = 2,
+    kLegacyScAlignRight     = 3
+};
 
 const int LegacyMusicMasterVolumeAdjustment = 60;
 const int LegacyRoomVolumeFactor            = 30;

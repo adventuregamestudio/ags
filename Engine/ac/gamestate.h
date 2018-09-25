@@ -27,6 +27,14 @@ using namespace AGS; // FIXME later
 
 #define GAME_STATE_RESERVED_INTS 5
 
+// Savegame data format
+enum GameStateSvgVersion
+{
+    kGSSvgVersion_OldFormat = -1, // TODO: remove after old save support is dropped
+    kGSSvgVersion_Initial   = 0,
+    kGSSvgVersion_350       = 1
+};
+
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
 struct GameState {
     int  score;      // player's current score
@@ -77,7 +85,7 @@ struct GameState {
                                   // (this is designed to work in text-only mode)
     int  disable_antialiasing;
     int  text_speed_modifier;
-    int  text_align;
+    HorAlignment text_align;
     int  speech_bubble_width;
     int  min_dialogoption_width;
     int  disable_dialog_parser;
@@ -90,7 +98,7 @@ struct GameState {
     int  screenshot_width;
     int  screenshot_height;
     int  top_bar_font;
-    int  speech_text_align;
+    HorAlignment speech_text_align;
     int  auto_use_walkto_points;
     int  inventory_greys_out;
     int  skip_speech_specific_key;
@@ -210,10 +218,17 @@ struct GameState {
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
     void ReadCustomProperties_v340(Common::Stream *in);
     void WriteCustomProperties_v340(Common::Stream *out) const;
-    void ReadFromSavegame(Common::Stream *in, bool old_save);
+    void ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver);
     void WriteForSavegame(Common::Stream *out) const;
     void FreeProperties();
 };
+
+// Converts legacy alignment type used in script API
+HorAlignment ConvertLegacyScriptAlignment(LegacyScriptAlignment align);
+// Reads legacy alignment type from the value set in script depending on the
+// current Script API level. This is made to make it possible to change
+// Alignment constants in the Script API and still support old version.
+HorAlignment ReadScriptAlignment(int32_t align);
 
 extern GameState play;
 

@@ -33,7 +33,7 @@ GUILabel::GUILabel()
 {
     Font = 0;
     TextColor = 0;
-    TextAlignment = kLegacyGUIAlign_Left;
+    TextAlignment = kHAlignLeft;
 
     _scEventCount = 0;
 }
@@ -61,7 +61,7 @@ void GUILabel::Draw(Common::Bitmap *ds)
         ++i, at_y += linespacing)
     {
         GUI::DrawTextAlignedHor(ds, lines[i], Font, text_color, X, X + Width - 1, at_y,
-            ConvertLegacyGUIAlignment(TextAlignment));
+            (FrameAlignment)TextAlignment);
     }
 }
 
@@ -93,7 +93,10 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
-    TextAlignment = in->ReadInt32();
+    if (gui_version < kGuiVersion_350)
+        TextAlignment = ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
+    else
+        TextAlignment = (HorAlignment)in->ReadInt32();
 
     if (TextColor == 0)
         TextColor = 16;

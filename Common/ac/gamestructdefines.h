@@ -146,6 +146,7 @@ enum DialogOptionNumbering
 // 3.4.0 final and above.
 enum ScriptAPIVersion
 {
+    kScriptAPI_Undefined = INT32_MIN,
     kScriptAPI_v321 = 0,
     kScriptAPI_v330 = 1,
     kScriptAPI_v334 = 2,

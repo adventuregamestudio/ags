@@ -348,11 +348,11 @@ void AllocScriptModules()
 
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
+    const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
+    const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
     if (data_ver >= kGameVersion_341)
     {
         const char * const scapi_names[] = {"v3.2.1", "v3.3.0", "v3.3.4", "v3.3.5", "v3.4.0", "v3.4.1", "v3.5.0"};
-        const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
-        const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
         Debug::Printf(kDbgMsg_Init, "Requested script API: %s (%d), compat level: %s (%d)",
                     base_api >= 0 && base_api <= kScriptAPI_Current ? scapi_names[base_api] : "unknown", base_api,
                     compat_api >= 0 && compat_api <= kScriptAPI_Current ? scapi_names[compat_api] : "unknown", compat_api);
@@ -442,7 +442,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     ccSetScriptAliveTimer(150000);
     ccSetStringClassImpl(&myScriptStringImpl);
-    setup_script_exports();
+    setup_script_exports(base_api, compat_api);
 
     //
     // 7. Start up plugins

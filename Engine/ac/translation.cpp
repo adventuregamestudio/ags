@@ -154,11 +154,11 @@ bool parse_translation(Stream *language_file, String &parse_error)
             temp = language_file->ReadInt32();
             // text direction
             if (temp == 1) {
-                play.text_align = SCALIGN_LEFT;
+                play.text_align = kHAlignLeft;
                 game.options[OPT_RIGHTLEFTWRITE] = 0;
             }
             else if (temp == 2) {
-                play.text_align = SCALIGN_RIGHT;
+                play.text_align = kHAlignRight;
                 game.options[OPT_RIGHTLEFTWRITE] = 1;
             }
         }

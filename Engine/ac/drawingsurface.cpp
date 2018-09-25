@@ -380,6 +380,10 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     sds->FinishedDrawing();
 }
 
+void DrawingSurface_DrawStringWrapped_Old(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg) {
+    DrawingSurface_DrawStringWrapped(sds, xx, yy, wid, font, ConvertLegacyScriptAlignment((LegacyScriptAlignment)alignment), msg);
+}
+
 void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg) {
     int linespacing = getfontspacing_outlined(font);
     sds->MultiplyCoordinates(&xx, &yy);
@@ -394,11 +398,11 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
     {
         int drawAtX = xx;
 
-        if (alignment == SCALIGN_CENTRE)
+        if (alignment & kMAlignHCenter)
         {
             drawAtX = xx + ((wid / 2) - wgettextwidth(lines[i], font) / 2);
         }
-        else if (alignment == SCALIGN_RIGHT)
+        else if (alignment & kMAlignRight)
         {
             drawAtX = (xx + wid) - wgettextwidth(lines[i], font);
         }
@@ -417,7 +421,7 @@ void DrawingSurface_DrawMessageWrapped(ScriptDrawingSurface *sds, int xx, int yy
     if (strlen(displbuf) > 2899)
         quit("!RawPrintMessageWrapped: message too long");
 
-    DrawingSurface_DrawStringWrapped(sds, xx, yy, wid, font, SCALIGN_LEFT, displbuf);
+    DrawingSurface_DrawStringWrapped_Old(sds, xx, yy, wid, font, kLegacyScAlignLeft, displbuf);
 }
 
 void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, int tox, int toy, int thickness) {
@@ -550,6 +554,11 @@ RuntimeScriptValue Sc_DrawingSurface_DrawString(void *self, const RuntimeScriptV
 }
 
 // void (ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg)
+RuntimeScriptValue Sc_DrawingSurface_DrawStringWrapped_Old(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5_POBJ(ScriptDrawingSurface, DrawingSurface_DrawStringWrapped_Old, const char);
+}
+
 RuntimeScriptValue Sc_DrawingSurface_DrawStringWrapped(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT5_POBJ(ScriptDrawingSurface, DrawingSurface_DrawStringWrapped, const char);
@@ -628,7 +637,7 @@ void ScPl_DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, i
     DrawingSurface_DrawString(sds, xx, yy, font, scsf_buffer);
 }
 
-void RegisterDrawingSurfaceAPI()
+void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
 {
     ccAddExternalObjectFunction("DrawingSurface::Clear^1",              Sc_DrawingSurface_Clear);
     ccAddExternalObjectFunction("DrawingSurface::CreateCopy^0",         Sc_DrawingSurface_CreateCopy);
@@ -639,7 +648,7 @@ void RegisterDrawingSurfaceAPI()
     ccAddExternalObjectFunction("DrawingSurface::DrawPixel^2",          Sc_DrawingSurface_DrawPixel);
     ccAddExternalObjectFunction("DrawingSurface::DrawRectangle^4",      Sc_DrawingSurface_DrawRectangle);
     ccAddExternalObjectFunction("DrawingSurface::DrawString^104",       Sc_DrawingSurface_DrawString);
-    ccAddExternalObjectFunction("DrawingSurface::DrawStringWrapped^6",  Sc_DrawingSurface_DrawStringWrapped);
+    ccAddExternalObjectFunction("DrawingSurface::DrawStringWrapped^6",  Sc_DrawingSurface_DrawStringWrapped_Old);
     ccAddExternalObjectFunction("DrawingSurface::DrawSurface^2",        Sc_DrawingSurface_DrawSurface);
     ccAddExternalObjectFunction("DrawingSurface::DrawTriangle^6",       Sc_DrawingSurface_DrawTriangle);
     ccAddExternalObjectFunction("DrawingSurface::GetPixel^2",           Sc_DrawingSurface_GetPixel);
@@ -662,7 +671,7 @@ void RegisterDrawingSurfaceAPI()
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawPixel^2",          (void*)DrawingSurface_DrawPixel);
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawRectangle^4",      (void*)DrawingSurface_DrawRectangle);
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawString^104",       (void*)ScPl_DrawingSurface_DrawString);
-    ccAddExternalFunctionForPlugin("DrawingSurface::DrawStringWrapped^6",  (void*)DrawingSurface_DrawStringWrapped);
+    ccAddExternalFunctionForPlugin("DrawingSurface::DrawStringWrapped^6",  (void*)DrawingSurface_DrawStringWrapped_Old);
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawSurface^2",        (void*)DrawingSurface_DrawSurface);
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawTriangle^6",       (void*)DrawingSurface_DrawTriangle);
     ccAddExternalFunctionForPlugin("DrawingSurface::GetPixel^2",           (void*)DrawingSurface_GetPixel);

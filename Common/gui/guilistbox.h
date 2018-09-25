@@ -58,8 +58,7 @@ public:
     color_t               BgColor;
     int32_t               Font;
     color_t               TextColor;
-    // TODO: use FrameAlignment type (will require changing GUI data format)
-    int32_t               TextAlignment;
+    HorAlignment          TextAlignment;
     color_t               SelectedBgColor;
     int32_t               RowHeight;
     int32_t               VisibleItemCount;

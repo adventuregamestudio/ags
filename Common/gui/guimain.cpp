@@ -649,7 +649,7 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
 void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
 {
     int text_height = wgettextheight(text, font);
-    if (align & kAlignVCenter)
+    if (align & kMAlignVCenter)
         text_height++; // CHECKME
     Rect item = AlignInRect(frame, RectWH(0, 0, wgettextwidth(text, font), text_height), align);
     wouttext_outline(ds, item.Left, item.Top, font, text_color, text);

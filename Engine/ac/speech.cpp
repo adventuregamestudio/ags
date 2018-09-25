@@ -185,9 +185,18 @@ RuntimeScriptValue Sc_Speech_GetTextAlignment(const RuntimeScriptValue *params, 
     API_VARGET_INT(play.speech_text_align);
 }
 
+RuntimeScriptValue Sc_Speech_SetTextAlignment_Old(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ASSERT_VARIABLE_VALUE(play.speech_text_align);
+    play.speech_text_align = ReadScriptAlignment(params[0].IValue);
+    return RuntimeScriptValue();
+}
+
 RuntimeScriptValue Sc_Speech_SetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARSET_PINT(play.speech_text_align);
+    ASSERT_VARIABLE_VALUE(play.speech_text_align);
+    play.speech_text_align = (HorAlignment)params[0].IValue;
+    return RuntimeScriptValue();
 }
 
 RuntimeScriptValue Sc_Speech_GetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
@@ -228,7 +237,7 @@ void RegisterSpeechAPI()
     ccAddExternalStaticFunction("Speech::get_Style",                  Sc_Speech_GetStyle);
     ccAddExternalStaticFunction("Speech::set_Style",                  Sc_SetSpeechStyle);
     ccAddExternalStaticFunction("Speech::get_TextAlignment",          Sc_Speech_GetTextAlignment);
-    ccAddExternalStaticFunction("Speech::set_TextAlignment",          Sc_Speech_SetTextAlignment);
+    ccAddExternalStaticFunction("Speech::set_TextAlignment",          Sc_Speech_SetTextAlignment_Old);
 	ccAddExternalStaticFunction("Speech::get_UseGlobalSpeechAnimationDelay", Sc_Speech_GetUseGlobalSpeechAnimationDelay);
 	ccAddExternalStaticFunction("Speech::set_UseGlobalSpeechAnimationDelay", Sc_Speech_SetUseGlobalSpeechAnimationDelay);
     ccAddExternalStaticFunction("Speech::get_VoiceMode",              Sc_Speech_GetVoiceMode);

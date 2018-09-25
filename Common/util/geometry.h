@@ -26,29 +26,44 @@ namespace AGSMath = AGS::Common::Math;
 //namespace Common
 //{
 
+// Type of alignment of a geometric item of rectangular boundaries.
 enum FrameAlignment
 {
-    kAlignNone     = 0x00,
-    kAlignLeft     = 0x01,
-    kAlignRight    = 0x02,
-    kAlignHCenter  = 0x04,
-    kAlignTop      = 0x10,
-    kAlignBottom   = 0x20,
-    kAlignVCenter  = 0x40,
+    kAlignNone = 0,
 
-    kAlignTopLeft      = kAlignTop     | kAlignLeft,
-    kAlignTopCenter    = kAlignTop     | kAlignHCenter,
-    kAlignTopRight     = kAlignTop     | kAlignRight,
-    kAlignCenterLeft   = kAlignVCenter | kAlignLeft,
-    kAlignCentered     = kAlignVCenter | kAlignHCenter,
-    kAlignCenterRight  = kAlignVCenter | kAlignRight,
-    kAlignBottomLeft   = kAlignBottom  | kAlignLeft,
-    kAlignBottomCenter = kAlignBottom  | kAlignHCenter,
-    kAlignBottomRight  = kAlignBottom  | kAlignRight,
+    // Alignment options are representing 8 sides of a frame (rectangle);
+    // they are implemented as flags that may be combined together if it
+    // is wanted to define alignment to multiple sides at once.
+    kAlignTopLeft       = 0x0001,
+    kAlignTopCenter     = 0x0002,
+    kAlignTopRight      = 0x0004,
+    kAlignMiddleLeft    = 0x0008,
+    kAlignMiddleCenter  = 0x0010,
+    kAlignMiddleRight   = 0x0020,
+    kAlignBottomLeft    = 0x0040,
+    kAlignBottomCenter  = 0x0080,
+    kAlignBottomRight   = 0x0100,
 
-    // Masks
-    kAlignHor      = kAlignLeft | kAlignRight | kAlignHCenter,
-    kAlignVer      = kAlignTop | kAlignBottom | kAlignVCenter,
+    // Masks are helping to determine whether alignment parameter contains
+    // particular horizontal or vertical component (for example: left side
+    // or bottom side)
+    kMAlignLeft         = kAlignTopLeft | kAlignMiddleLeft | kAlignBottomLeft,
+    kMAlignRight        = kAlignTopRight | kAlignMiddleRight | kAlignBottomRight,
+    kMAlignTop          = kAlignTopLeft | kAlignTopCenter | kAlignTopRight,
+    kMAlignBottom       = kAlignBottomLeft | kAlignBottomCenter | kAlignBottomRight,
+    kMAlignHCenter      = kAlignTopCenter | kAlignMiddleCenter | kAlignBottomCenter,
+    kMAlignVCenter      = kAlignMiddleLeft | kAlignMiddleCenter | kAlignMiddleRight
+};
+
+// Horizontal alignment; based on FrameAlignment, used to restrict alignment
+// setting to left/right/center option, while keeping compatibility with any
+// alignment in case it will be supported in the future.
+enum HorAlignment
+{
+    kHAlignNone     = kAlignNone,
+    kHAlignLeft     = kAlignTopLeft,
+    kHAlignRight    = kAlignTopRight,
+    kHAlignCenter   = kAlignTopCenter
 };
 
 enum RectPlacement

@@ -165,18 +165,18 @@ void GUIObject::WriteToSavegame(Stream *out) const
 }
 
 
-FrameAlignment ConvertLegacyGUIAlignment(int32_t align)
+HorAlignment ConvertLegacyGUIAlignment(LegacyGUIAlignment align)
 {
     switch (align)
     {
     case kLegacyGUIAlign_Left:
-        return kAlignLeft;
+        return kHAlignLeft;
     case kLegacyGUIAlign_Right:
-        return kAlignRight;
+        return kHAlignRight;
     case kLegacyGUIAlign_Center:
-        return kAlignHCenter;
+        return kHAlignCenter;
     }
-    return kAlignNone;
+    return kHAlignNone;
 }
 
 } // namespace Common

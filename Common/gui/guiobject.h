@@ -110,8 +110,8 @@ protected:
     String   _scEventArgs[MAX_GUIOBJ_EVENTS];  // script handler params
 };
 
-
-FrameAlignment ConvertLegacyGUIAlignment(int32_t align);
+// Converts legacy alignment type used in GUI Label/ListBox data (only left/right/center)
+HorAlignment ConvertLegacyGUIAlignment(LegacyGUIAlignment align);
 
 } // namespace Common
 } // namespace AGS

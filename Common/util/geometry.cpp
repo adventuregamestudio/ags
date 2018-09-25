@@ -37,18 +37,18 @@ Size ProportionalStretch(const Size &dest, const Size &item)
 
 int AlignInHRange(int x1, int x2, int off_x, int width, FrameAlignment align)
 {
-    if (align & kAlignRight)
+    if (align & kMAlignRight)
         return off_x + x2 - width;
-    else if (align & kAlignHCenter)
+    else if (align & kMAlignHCenter)
         return off_x + x1 + ((x2 - x1 + 1) >> 1) - (width >> 1);
     return off_x + x1; // kAlignLeft is default
 }
 
 int AlignInVRange(int y1, int y2, int off_y, int height, FrameAlignment align)
 {
-    if (align & kAlignBottom)
+    if (align & kMAlignBottom)
         return off_y + y2 - height;
-    else if (align & kAlignVCenter)
+    else if (align & kMAlignVCenter)
         return off_y + y1 + ((y2 - y1 + 1) >> 1) - (height >> 1);
     return off_y + y1; // kAlignTop is default
 }

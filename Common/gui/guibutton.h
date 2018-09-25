@@ -84,8 +84,7 @@ public:
     int32_t     CurrentImage;
     int32_t     Font;
     color_t     TextColor;
-    // TODO: use FrameAlignment type (will require changing GUI data format)
-    int32_t     TextAlignment;
+    FrameAlignment TextAlignment;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use
     static const int ClickCount = kMouseRight + 1;

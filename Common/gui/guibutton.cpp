@@ -27,7 +27,7 @@ namespace AGS
 namespace Common
 {
 
-FrameAlignment ConvertLegacyButtonAlignment(int32_t align)
+FrameAlignment ConvertLegacyButtonAlignment(LegacyButtonAlignment align)
 {
     switch (align)
     {
@@ -38,11 +38,11 @@ FrameAlignment ConvertLegacyButtonAlignment(int32_t align)
     case kLegacyButtonAlign_TopRight:
         return kAlignTopRight;
     case kLegacyButtonAlign_CenterLeft:
-        return kAlignCenterLeft;
+        return kAlignMiddleLeft;
     case kLegacyButtonAlign_Centered:
-        return kAlignCentered;
+        return kAlignMiddleCenter;
     case kLegacyButtonAlign_CenterRight:
-        return kAlignCenterRight;
+        return kAlignMiddleRight;
     case kLegacyButtonAlign_BottomLeft:
         return kAlignBottomLeft;
     case kLegacyButtonAlign_BottomCenter:
@@ -62,7 +62,7 @@ GUIButton::GUIButton()
     CurrentImage = -1;
     Font = 0;
     TextColor = 0;
-    TextAlignment = kLegacyButtonAlign_TopCenter;
+    TextAlignment = kAlignTopCenter;
     ClickAction[kMouseLeft] = kGUIAction_RunScript;
     ClickAction[kMouseRight] = kGUIAction_RunScript;
     ClickData[kMouseLeft] = 0;
@@ -210,12 +210,15 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (gui_version >= kGuiVersion_272a)
     {
-        TextAlignment = in->ReadInt32();
+        if (gui_version < kGuiVersion_350)
+            TextAlignment = ConvertLegacyButtonAlignment((LegacyButtonAlignment)in->ReadInt32());
+        else
+            TextAlignment = (FrameAlignment)in->ReadInt32();
         in->ReadInt32(); // reserved1
     }
     else
     {
-        TextAlignment = kLegacyButtonAlign_TopCenter;
+        TextAlignment = kAlignTopCenter;
     }
 
     if (TextColor == 0)
@@ -323,8 +326,7 @@ void GUIButton::DrawText(Bitmap *ds, bool draw_disabled)
     color_t text_color = ds->GetCompatibleColor(TextColor);
     if (draw_disabled)
         text_color = ds->GetCompatibleColor(8);
-    GUI::DrawTextAligned(ds, _textToDraw, Font, text_color, frame,
-        ConvertLegacyButtonAlignment(TextAlignment));
+    GUI::DrawTextAligned(ds, _textToDraw, Font, text_color, frame, TextAlignment);
 }
 
 void GUIButton::DrawTextButton(Bitmap *ds, bool draw_disabled)

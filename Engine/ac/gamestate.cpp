@@ -30,8 +30,9 @@ void GameState::SetViewport(const Size viewport_size)
                        viewport_size.Width, viewport_size.Height);
 }
 
-void GameState::ReadFromSavegame(Common::Stream *in, bool old_save)
+void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)
 {
+    const bool old_save = svg_ver < kGSSvgVersion_Initial;
     score = in->ReadInt32();
     usedmode = in->ReadInt32();
     disabled_user_interface = in->ReadInt32();
@@ -82,7 +83,10 @@ void GameState::ReadFromSavegame(Common::Stream *in, bool old_save)
     close_mouth_speech_time = in->ReadInt32();
     disable_antialiasing = in->ReadInt32();
     text_speed_modifier = in->ReadInt32();
-    text_align = in->ReadInt32();
+    if (svg_ver < kGSSvgVersion_350)
+        text_align = ConvertLegacyScriptAlignment((LegacyScriptAlignment)in->ReadInt32());
+    else
+        text_align = (HorAlignment)in->ReadInt32();
     speech_bubble_width = in->ReadInt32();
     min_dialogoption_width = in->ReadInt32();
     disable_dialog_parser = in->ReadInt32();
@@ -95,7 +99,10 @@ void GameState::ReadFromSavegame(Common::Stream *in, bool old_save)
     screenshot_width = in->ReadInt32();
     screenshot_height = in->ReadInt32();
     top_bar_font = in->ReadInt32();
-    speech_text_align = in->ReadInt32();
+    if (svg_ver < kGSSvgVersion_350)
+        speech_text_align = ConvertLegacyScriptAlignment((LegacyScriptAlignment)in->ReadInt32());
+    else
+        speech_text_align = (HorAlignment)in->ReadInt32();
     auto_use_walkto_points = in->ReadInt32();
     inventory_greys_out = in->ReadInt32();
     skip_speech_specific_key = in->ReadInt32();
@@ -470,3 +477,24 @@ void GameState::WriteCustomProperties_v340(Common::Stream *out) const
             Properties::WriteValues(invProps[i], out);
     }
 }
+
+// Converts legacy alignment type used in script API
+HorAlignment ConvertLegacyScriptAlignment(LegacyScriptAlignment align)
+{
+    switch (align)
+    {
+    case kLegacyScAlignLeft: return kHAlignLeft;
+    case kLegacyScAlignCentre: return kHAlignCenter;
+    case kLegacyScAlignRight: return kHAlignRight;
+    }
+    return kHAlignNone;
+}
+
+// Reads legacy alignment type from the value set in script depending on the
+// current Script API level. This is made to make it possible to change
+// Alignment constants in the Script API and still support old version.
+HorAlignment ReadScriptAlignment(int32_t align)
+{
+    return ConvertLegacyScriptAlignment((LegacyScriptAlignment)align);
+}
+

@@ -236,7 +236,7 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
     }
 
     // Game state
-    play.ReadFromSavegame(in.get(), false);
+    play.ReadFromSavegame(in.get(), (GameStateSvgVersion)cmp_ver);
 
     // Other dynamic values
     r_data.FPS = in->ReadInt32();

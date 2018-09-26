@@ -3054,7 +3054,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].Image;
 		  guibuts[numguibuts].MouseOverImage = button->MouseoverImage;
 		  guibuts[numguibuts].PushedImage = button->PushedImage;
-		  guibuts[numguibuts].TextAlignment = (int)button->TextAlignment;
+		  guibuts[numguibuts].TextAlignment = (::FrameAlignment)button->TextAlignment;
           guibuts[numguibuts].ClickAction[Common::kMouseLeft] = (Common::GUIClickAction)button->ClickAction;
 		  guibuts[numguibuts].ClickData[Common::kMouseLeft] = button->NewModeNumber;
           guibuts[numguibuts].Flags = (button->ClipImage) ? Common::kGUICtrl_Clip : 0;
@@ -3072,7 +3072,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guilabels.push_back(Common::GUILabel());
 		  guilabels[numguilabels].TextColor = label->TextColor;
 		  guilabels[numguilabels].Font = label->Font;
-		  guilabels[numguilabels].TextAlignment = (int)label->TextAlignment;
+		  guilabels[numguilabels].TextAlignment = (::HorAlignment)label->TextAlignment;
 		  guilabels[numguilabels].Flags = 0;
           Common::String text = ConvertStringToNativeString(label->Text);
 		  guilabels[numguilabels].SetText(text);
@@ -3103,7 +3103,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guilist[numguilist].Font = listbox->Font;
 		  guilist[numguilist].BgColor = listbox->SelectedTextColor;
 		  guilist[numguilist].SelectedBgColor = listbox->SelectedBackgroundColor;
-		  guilist[numguilist].TextAlignment = (int)listbox->TextAlignment;
+		  guilist[numguilist].TextAlignment = (::HorAlignment)listbox->TextAlignment;
           guilist[numguilist].Flags = listbox->Translated ? Common::kGUICtrl_Translated : 0;
           guilist[numguilist].ListBoxFlags = (listbox->ShowBorder) ? 0 : Common::kListBox_NoBorder;
 		  guilist[numguilist].ListBoxFlags |= (listbox->ShowScrollArrows) ? 0 : Common::kListBox_NoArrows;
@@ -3867,7 +3867,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 					newButton->Image = copyFrom->Image;
 					newButton->MouseoverImage = copyFrom->MouseOverImage;
 					newButton->PushedImage = copyFrom->PushedImage;
-					newButton->TextAlignment = (TextAlignment)copyFrom->TextAlignment;
+					newButton->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
                     newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kMouseLeft];
 					newButton->NewModeNumber = copyFrom->ClickData[Common::kMouseLeft];
                     newButton->ClipImage = (copyFrom->Flags & Common::kGUICtrl_Clip) ? true : false;
@@ -3883,7 +3883,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				newControl = newLabel;
 				newLabel->TextColor = copyFrom->TextColor;
 				newLabel->Font = copyFrom->Font;
-				newLabel->TextAlignment = (LabelTextAlignment)copyFrom->TextAlignment;
+				newLabel->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
 				newLabel->Text = gcnew String(copyFrom->GetText());
 				break;
 				}
@@ -3908,7 +3908,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newListbox->Font = copyFrom->Font; 
 				  newListbox->SelectedTextColor = copyFrom->BgColor;
 				  newListbox->SelectedBackgroundColor = copyFrom->SelectedBgColor;
-				  newListbox->TextAlignment = (ListBoxTextAlignment)copyFrom->TextAlignment;
+				  newListbox->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
 				  newListbox->ShowBorder = ((copyFrom->ListBoxFlags & Common::kListBox_NoBorder) == 0);
 				  newListbox->ShowScrollArrows = ((copyFrom->ListBoxFlags & Common::kListBox_NoArrows) == 0);
                   newListbox->Translated = (copyFrom->Flags & Common::kGUICtrl_Translated) != 0;

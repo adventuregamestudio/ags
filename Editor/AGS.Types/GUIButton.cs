@@ -20,7 +20,7 @@ namespace AGS.Types
         {
             _text = "New Button";
             _clickAction = GUIClickAction.RunScript;
-            _textAlign = TextAlignment.TopMiddle;
+            _textAlign = FrameAlignment.TopCenter;
         }
 
         public GUIButton(XmlNode node) : base(node)
@@ -37,7 +37,7 @@ namespace AGS.Types
         private int _pushedImage;
         private int _font;
         private int _textColor;
-        private TextAlignment _textAlign;
+        private FrameAlignment _textAlign;
         private bool _clipImage;
         private GUIClickAction _clickAction;
         private int _newModeNumber;
@@ -81,7 +81,7 @@ namespace AGS.Types
 
         [Description("Position on the button where the text is displayed")]
         [Category("Appearance")]
-        public TextAlignment TextAlignment
+        public FrameAlignment TextAlignment
         {
             get { return _textAlign; }
             set { _textAlign = value; }

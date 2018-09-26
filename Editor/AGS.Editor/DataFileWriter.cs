@@ -1027,13 +1027,13 @@ namespace AGS.Editor
                     }
                 }
 
-                public TextAlignment TextAlignment
+                public FrameAlignment TextAlignment
                 {
                     get
                     {
                         GUIButton button = (GUIButton)this;
                         if (button != null) return button.TextAlignment;
-                        return TextAlignment.TopMiddle;
+                        return FrameAlignment.TopCenter;
                     }
                 }
 

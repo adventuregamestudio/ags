@@ -648,7 +648,10 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion compa
     ccAddExternalObjectFunction("DrawingSurface::DrawPixel^2",          Sc_DrawingSurface_DrawPixel);
     ccAddExternalObjectFunction("DrawingSurface::DrawRectangle^4",      Sc_DrawingSurface_DrawRectangle);
     ccAddExternalObjectFunction("DrawingSurface::DrawString^104",       Sc_DrawingSurface_DrawString);
-    ccAddExternalObjectFunction("DrawingSurface::DrawStringWrapped^6",  Sc_DrawingSurface_DrawStringWrapped_Old);
+    if (base_api < kScriptAPI_v350)
+        ccAddExternalObjectFunction("DrawingSurface::DrawStringWrapped^6", Sc_DrawingSurface_DrawStringWrapped_Old);
+    else
+        ccAddExternalObjectFunction("DrawingSurface::DrawStringWrapped^6", Sc_DrawingSurface_DrawStringWrapped);
     ccAddExternalObjectFunction("DrawingSurface::DrawSurface^2",        Sc_DrawingSurface_DrawSurface);
     ccAddExternalObjectFunction("DrawingSurface::DrawTriangle^6",       Sc_DrawingSurface_DrawTriangle);
     ccAddExternalObjectFunction("DrawingSurface::GetPixel^2",           Sc_DrawingSurface_GetPixel);
@@ -671,7 +674,10 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion compa
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawPixel^2",          (void*)DrawingSurface_DrawPixel);
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawRectangle^4",      (void*)DrawingSurface_DrawRectangle);
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawString^104",       (void*)ScPl_DrawingSurface_DrawString);
-    ccAddExternalFunctionForPlugin("DrawingSurface::DrawStringWrapped^6",  (void*)DrawingSurface_DrawStringWrapped_Old);
+    if (base_api < kScriptAPI_v350)
+        ccAddExternalFunctionForPlugin("DrawingSurface::DrawStringWrapped^6", (void*)DrawingSurface_DrawStringWrapped_Old);
+    else
+        ccAddExternalFunctionForPlugin("DrawingSurface::DrawStringWrapped^6", (void*)DrawingSurface_DrawStringWrapped);
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawSurface^2",        (void*)DrawingSurface_DrawSurface);
     ccAddExternalFunctionForPlugin("DrawingSurface::DrawTriangle^6",       (void*)DrawingSurface_DrawTriangle);
     ccAddExternalFunctionForPlugin("DrawingSurface::GetPixel^2",           (void*)DrawingSurface_GetPixel);

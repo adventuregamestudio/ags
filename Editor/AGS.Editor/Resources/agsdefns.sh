@@ -31,6 +31,11 @@
       #define STRICT_IN_v340
     #endif
   #endif
+  #ifdef SCRIPT_API_v350
+    #ifndef SCRIPT_COMPAT_v341
+      #define STRICT_IN_v350
+    #endif
+  #endif
 #endif
 
 #define function int  // $AUTOCOMPLETEIGNORE$
@@ -124,11 +129,50 @@ enum RepeatStyle {
   eRepeat = 1
 };
 
+#ifdef SCRIPT_API_v350
+enum Alignment {
+  eAlignNone         = 0,
+
+  eAlignTopLeft       = 1,
+  eAlignTopCenter     = 2,
+  eAlignTopRight      = 4,
+  eAlignMiddleLeft    = 8,
+  eAlignMiddleCenter  = 16,
+  eAlignMiddleRight   = 32,
+  eAlignBottomLeft    = 64,
+  eAlignBottomCenter  = 128,
+  eAlignBottomRight   = 256,
+
+  // Masks are helping to determine whether alignment parameter contains
+  // particular horizontal or vertical component (for example: left side
+  // or bottom side)
+  eAlignHasLeft       = 73,
+  eAlignHasRight      = 292,
+  eAlignHasTop        = 7,
+  eAlignHasBottom     = 448,
+  eAlignHasHorCenter  = 146,
+  eAlignHasVerCenter  = 56
+};
+
+enum HorizontalAlignment {
+  // eq eAlignTopLeft
+  eAlignLeft = 1,
+  // eq eAlignTopCenter
+  eAlignCenter = 2,
+#ifdef SCRIPT_COMPAT_v341
+  eAlignCentre = 2,
+#endif
+  // eq eAlignTopRight
+  eAlignRight = 4
+};
+#endif
+#ifndef SCRIPT_API_v350
 enum Alignment {
   eAlignLeft = 1,
   eAlignCentre = 2,
   eAlignRight = 3
 };
+#endif
 
 enum LocationType {
   eLocationNothing = 0,
@@ -446,8 +490,14 @@ builtin managed struct DrawingSurface {
   import void DrawRectangle(int x1, int y1, int x2, int y2);
   /// Draws the specified text to the surface.
   import void DrawString(int x, int y, FontType, const string text, ...);
+#ifdef SCRIPT_API_v350
+  /// Draws the text to the surface, wrapping it at the specified width.
+  import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text);
+#endif
+#ifndef SCRIPT_API_v350
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, Alignment, const string text);
+#endif
   /// Draws the specified surface onto this surface.
   import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0);
   /// Draws a filled triangle onto the surface.
@@ -798,10 +848,10 @@ import int  Said (const string text);
 #define TRANSITION_DISSOLVE 2
 #define TRANSITION_BOXOUT   3
 #define TRANSITION_CROSSFADE 4
-#define ALIGN_LEFT    1
-#define ALIGN_CENTRE  2
-#define ALIGN_CENTER  2
-#define ALIGN_RIGHT   3
+#define ALIGN_LEFT    eAlignLeft
+#define ALIGN_CENTRE  eAlignCenter
+#define ALIGN_CENTER  eAlignCenter
+#define ALIGN_RIGHT   eAlignRight
 #define CHAR_IGNORESCALING 1
 #define CHAR_NOINTERACTION 4
 #define CHAR_NODIAGONAL    8
@@ -913,7 +963,12 @@ import void MoveToWalkableArea(CHARID);
 import void FaceCharacter(CHARID, CHARID toFace);
 import void FaceLocation(CHARID, int x, int y);
 import void SetCharacterView(CHARID, int view);
-import void SetCharacterViewEx(CHARID, int view, int loop, int align);
+#ifdef SCRIPT_API_v350
+import void SetCharacterViewEx(CHARID, int view, int loop, HorizontalAlignment align);
+#endif
+#ifndef SCRIPT_API_v350
+import void SetCharacterViewEx(CHARID, int view, int loop, Alignment align);
+#endif
 import void SetCharacterViewOffset(CHARID, int view, int x_offset, int y_offset);
 import void SetCharacterFrame(CHARID, int view, int loop, int frame);
 import void ReleaseCharacterView(CHARID);
@@ -2170,8 +2225,14 @@ builtin managed struct Character {
 #ifdef SCRIPT_API_v341
   /// Locks the character to this view, ready for doing animations.
   import function LockView(int view, StopMovementStyle=eStopMoving);
+#ifdef SCRIPT_API_v350
+  /// Locks the character to this view, and aligns it against one side of the existing sprite.
+  import function LockViewAligned(int view, int loop, HorizontalAlignment, StopMovementStyle=eStopMoving);
+#endif
+#ifndef SCRIPT_API_v350
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
   import function LockViewAligned(int view, int loop, Alignment, StopMovementStyle=eStopMoving);
+#endif
   /// Locks the character to the specified view frame
   import function LockViewFrame(int view, int loop, int frame, StopMovementStyle=eStopMoving);
   /// Locks the character to is view, with high-resolution position adjustment.
@@ -2531,8 +2592,14 @@ builtin struct Speech {
   import static attribute SkipSpeechStyle SkipStyle;
   /// Gets/sets the style in which speech is displayed.
   import static attribute eSpeechStyle    Style;
+#ifdef SCRIPT_API_v350
+  /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
+  import static attribute HorizontalAlignment TextAlignment;
+#endif
+#ifndef SCRIPT_API_v350
   /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
   import static attribute Alignment       TextAlignment;
+#endif
   /// Gets/sets whether speech animation delay should use global setting (or Character setting).
   import static attribute bool            UseGlobalSpeechAnimationDelay;
   /// Gets/sets whether voice and/or text are used in the game.

@@ -495,6 +495,7 @@ HorAlignment ConvertLegacyScriptAlignment(LegacyScriptAlignment align)
 // Alignment constants in the Script API and still support old version.
 HorAlignment ReadScriptAlignment(int32_t align)
 {
-    return ConvertLegacyScriptAlignment((LegacyScriptAlignment)align);
+    return game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v350 ?
+        ConvertLegacyScriptAlignment((LegacyScriptAlignment)align) :
+        (HorAlignment)align;
 }
-

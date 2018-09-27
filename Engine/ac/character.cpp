@@ -3785,8 +3785,16 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalObjectFunction("Character::IsInteractionAvailable^1",  Sc_Character_IsInteractionAvailable);
 	ccAddExternalObjectFunction("Character::LockView^1",                Sc_Character_LockView);
 	ccAddExternalObjectFunction("Character::LockView^2",                Sc_Character_LockViewEx);
-	ccAddExternalObjectFunction("Character::LockViewAligned^3",         Sc_Character_LockViewAligned_Old);
-	ccAddExternalObjectFunction("Character::LockViewAligned^4",         Sc_Character_LockViewAlignedEx_Old);
+    if (base_api < kScriptAPI_v350)
+    {
+        ccAddExternalObjectFunction("Character::LockViewAligned^3", Sc_Character_LockViewAligned_Old);
+        ccAddExternalObjectFunction("Character::LockViewAligned^4", Sc_Character_LockViewAlignedEx_Old);
+    }
+    else
+    {
+        ccAddExternalObjectFunction("Character::LockViewAligned^3", Sc_Character_LockViewAligned);
+        ccAddExternalObjectFunction("Character::LockViewAligned^4", Sc_Character_LockViewAlignedEx);
+    }
 	ccAddExternalObjectFunction("Character::LockViewFrame^3",           Sc_Character_LockViewFrame);
 	ccAddExternalObjectFunction("Character::LockViewFrame^4",           Sc_Character_LockViewFrameEx);
 	ccAddExternalObjectFunction("Character::LockViewOffset^3",          Sc_Character_LockViewOffset);
@@ -3934,8 +3942,16 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalFunctionForPlugin("Character::IsCollidingWithObject^1",   (void*)Character_IsCollidingWithObject);
     ccAddExternalFunctionForPlugin("Character::LockView^1",                (void*)Character_LockView);
     ccAddExternalFunctionForPlugin("Character::LockView^2",                (void*)Character_LockViewEx);
-    ccAddExternalFunctionForPlugin("Character::LockViewAligned^3",         (void*)Character_LockViewAligned_Old);
-    ccAddExternalFunctionForPlugin("Character::LockViewAligned^4",         (void*)Character_LockViewAlignedEx_Old);
+    if (base_api < kScriptAPI_v341)
+    {
+        ccAddExternalFunctionForPlugin("Character::LockViewAligned^3", (void*)Character_LockViewAligned_Old);
+        ccAddExternalFunctionForPlugin("Character::LockViewAligned^4", (void*)Character_LockViewAlignedEx_Old);
+    }
+    else
+    {
+        ccAddExternalFunctionForPlugin("Character::LockViewAligned^3", (void*)Character_LockViewAligned);
+        ccAddExternalFunctionForPlugin("Character::LockViewAligned^4", (void*)Character_LockViewAlignedEx);
+    }
     ccAddExternalFunctionForPlugin("Character::LockViewFrame^3",           (void*)Character_LockViewFrame);
     ccAddExternalFunctionForPlugin("Character::LockViewFrame^4",           (void*)Character_LockViewFrameEx);
     ccAddExternalFunctionForPlugin("Character::LockViewOffset^3",          (void*)Character_LockViewOffset);

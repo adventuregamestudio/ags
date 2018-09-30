@@ -35,7 +35,7 @@ GUIListBox::GUIListBox()
     VisibleItemCount = 0;
     Font = 0;
     TextColor = 0;
-    BgColor = 7;
+    SelectedTextColor = 7;
     ListBoxFlags = 0;
     SelectedBgColor = 16;
     TextAlignment = kHAlignLeft;
@@ -136,7 +136,7 @@ void GUIListBox::Draw(Common::Bitmap *ds)
         int at_y = Y + pixel_size + item * RowHeight;
         if (item + TopItem == SelectedItem)
         {
-            text_color = ds->GetCompatibleColor(BgColor);
+            text_color = ds->GetCompatibleColor(SelectedTextColor);
             if (SelectedBgColor > 0)
             {
                 int stretch_to = (X + width) - pixel_size;
@@ -258,7 +258,7 @@ void GUIListBox::WriteToFile(Stream *out)
     out->WriteInt32(VisibleItemCount);
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
-    out->WriteInt32(BgColor);
+    out->WriteInt32(SelectedTextColor);
     out->WriteInt32(ListBoxFlags);
     out->WriteInt32(TextAlignment);
     out->WriteInt32(0); // reserved1
@@ -289,7 +289,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     VisibleItemCount = in->ReadInt32();
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
-    BgColor = in->ReadInt32();
+    SelectedTextColor = in->ReadInt32();
     ListBoxFlags = in->ReadInt32();
 
     if (gui_version >= kGuiVersion_272b)
@@ -333,12 +333,21 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
         TextColor = 16;
 }
 
-void GUIListBox::ReadFromSavegame(Stream *in)
+void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in);
+    // Properties
     ListBoxFlags = in->ReadInt32();
     Font = in->ReadInt32();
+    if (svg_ver >= kGuiSvgVersion_350)
+    {
+        SelectedBgColor = in->ReadInt32();
+        SelectedTextColor = in->ReadInt32();
+        TextAlignment = (HorAlignment)in->ReadInt32();
+        TextColor = in->ReadInt32();
+    }
 
+    // Items
     ItemCount = in->ReadInt32();
     Items.resize(ItemCount);
     SavedGameIndex.resize(ItemCount);
@@ -354,9 +363,15 @@ void GUIListBox::ReadFromSavegame(Stream *in)
 void GUIListBox::WriteToSavegame(Stream *out) const
 {
     GUIObject::WriteToSavegame(out);
+    // Properties
     out->WriteInt32(ListBoxFlags);
     out->WriteInt32(Font);
+    out->WriteInt32(SelectedBgColor);
+    out->WriteInt32(SelectedTextColor);
+    out->WriteInt32(TextAlignment);
+    out->WriteInt32(TextColor);
 
+    // Items
     out->WriteInt32(ItemCount);
     for (int i = 0; i < ItemCount; ++i)
         StrUtil::WriteString(Items[i], out);

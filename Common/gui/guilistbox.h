@@ -49,17 +49,17 @@ public:
     // Serialization
     virtual void WriteToFile(Stream *out) override;
     virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void ReadFromSavegame(Common::Stream *in);
+    virtual void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
     virtual void WriteToSavegame(Common::Stream *out) const;
 
 // TODO: these members are currently public; hide them later
 public:
     int32_t               ListBoxFlags;
-    color_t               BgColor;
     int32_t               Font;
     color_t               TextColor;
     HorAlignment          TextAlignment;
     color_t               SelectedBgColor;
+    color_t               SelectedTextColor;
     int32_t               RowHeight;
     int32_t               VisibleItemCount;
     

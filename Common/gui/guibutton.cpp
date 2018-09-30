@@ -228,7 +228,7 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     Flags |= kGUICtrl_Translated;
 }
 
-void GUIButton::ReadFromSavegame(Stream *in)
+void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in);
     // Properties
@@ -238,6 +238,8 @@ void GUIButton::ReadFromSavegame(Stream *in)
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     SetText(StrUtil::ReadString(in));
+    if (svg_ver >= kGuiSvgVersion_350)
+        TextAlignment = (FrameAlignment)in->ReadInt32();
     // Dynamic state
     Image = in->ReadInt32();
 }
@@ -252,6 +254,7 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     StrUtil::WriteString(GetText(), out);
+    out->WriteInt32(TextAlignment);
     // Dynamic state
     out->WriteInt32(Image);
 }

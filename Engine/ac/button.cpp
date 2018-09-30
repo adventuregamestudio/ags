@@ -287,6 +287,19 @@ int Button_GetAnimFrame(GUIButton *butt)
     return idx >= 0 ? animbuts[idx].frame : 0;
 }
 
+int Button_GetTextAlignment(GUIButton *butt)
+{
+    return butt->TextAlignment;
+}
+
+void Button_SetTextAlignment(GUIButton *butt, int align)
+{
+    if (butt->TextAlignment != align) {
+        butt->TextAlignment = (FrameAlignment)align;
+        guis_need_update = 1;
+    }
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -412,6 +425,16 @@ RuntimeScriptValue Sc_Button_GetAnimating(void *self, const RuntimeScriptValue *
     API_OBJCALL_BOOL(GUIButton, Button_IsAnimating);
 }
 
+RuntimeScriptValue Sc_Button_GetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIButton, Button_GetTextAlignment);
+}
+
+RuntimeScriptValue Sc_Button_SetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextAlignment);
+}
+
 RuntimeScriptValue Sc_Button_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetAnimFrame);
@@ -433,6 +456,8 @@ void RegisterButtonAPI()
     ccAddExternalObjectFunction("Button::Click^1",              Sc_Button_Click);
     ccAddExternalObjectFunction("Button::GetText^1",            Sc_Button_GetText);
     ccAddExternalObjectFunction("Button::SetText^1",            Sc_Button_SetText);
+    ccAddExternalObjectFunction("Button::get_TextAlignment",    Sc_Button_GetTextAlignment);
+    ccAddExternalObjectFunction("Button::set_TextAlignment",    Sc_Button_SetTextAlignment);
     ccAddExternalObjectFunction("Button::get_Animating",        Sc_Button_GetAnimating);
     ccAddExternalObjectFunction("Button::get_ClipImage",        Sc_Button_GetClipImage);
     ccAddExternalObjectFunction("Button::set_ClipImage",        Sc_Button_SetClipImage);

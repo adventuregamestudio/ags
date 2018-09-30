@@ -242,6 +242,50 @@ void ListBox_SetHideScrollArrows(GUIListBox *listbox, int newValue) {
   guis_need_update = 1;
 }
 
+int ListBox_GetSelectedBackColor(GUIListBox *listbox) {
+    return listbox->SelectedBgColor;
+}
+
+void ListBox_SetSelectedBackColor(GUIListBox *listbox, int colr) {
+    if (listbox->SelectedBgColor != colr) {
+        listbox->SelectedBgColor = colr;
+        guis_need_update = 1;
+    }
+}
+
+int ListBox_GetSelectedTextColor(GUIListBox *listbox) {
+    return listbox->SelectedTextColor;
+}
+
+void ListBox_SetSelectedTextColor(GUIListBox *listbox, int colr) {
+    if (listbox->SelectedTextColor != colr) {
+        listbox->SelectedTextColor = colr;
+        guis_need_update = 1;
+    }
+}
+
+int ListBox_GetTextAlignment(GUIListBox *listbox) {
+    return listbox->TextAlignment;
+}
+
+void ListBox_SetTextAlignment(GUIListBox *listbox, int align) {
+    if (listbox->TextAlignment != align) {
+        listbox->TextAlignment = (HorAlignment)align;
+        guis_need_update = 1;
+    }
+}
+
+int ListBox_GetTextColor(GUIListBox *listbox) {
+    return listbox->TextColor;
+}
+
+void ListBox_SetTextColor(GUIListBox *listbox, int colr) {
+    if (listbox->TextColor != colr) {
+        listbox->TextColor = colr;
+        guis_need_update = 1;
+    }
+}
+
 int ListBox_GetSelectedIndex(GUIListBox *listbox) {
   if ((listbox->SelectedItem < 0) || (listbox->SelectedItem >= listbox->ItemCount))
     return -1;
@@ -447,6 +491,50 @@ RuntimeScriptValue Sc_ListBox_GetSaveGameSlots(void *self, const RuntimeScriptVa
     API_OBJCALL_INT_PINT(GUIListBox, ListBox_GetSaveGameSlots);
 }
 
+RuntimeScriptValue Sc_ListBox_GetSelectedBackColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIListBox, ListBox_GetSelectedBackColor);
+}
+
+// void (GUIListBox *guisl, int newsel)
+RuntimeScriptValue Sc_ListBox_SetSelectedBackColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetSelectedBackColor);
+}
+
+RuntimeScriptValue Sc_ListBox_GetSelectedTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIListBox, ListBox_GetSelectedTextColor);
+}
+
+// void (GUIListBox *guisl, int newsel)
+RuntimeScriptValue Sc_ListBox_SetSelectedTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetSelectedTextColor);
+}
+
+RuntimeScriptValue Sc_ListBox_GetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIListBox, ListBox_GetTextAlignment);
+}
+
+// void (GUIListBox *guisl, int newsel)
+RuntimeScriptValue Sc_ListBox_SetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetTextAlignment);
+}
+
+RuntimeScriptValue Sc_ListBox_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIListBox, ListBox_GetTextColor);
+}
+
+// void (GUIListBox *guisl, int newsel)
+RuntimeScriptValue Sc_ListBox_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetTextColor);
+}
+
 // int (GUIListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetSelectedIndex(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -497,8 +585,16 @@ void RegisterListBoxAPI()
     ccAddExternalObjectFunction("ListBox::seti_Items",          Sc_ListBox_SetItemText);
     ccAddExternalObjectFunction("ListBox::get_RowCount",        Sc_ListBox_GetRowCount);
     ccAddExternalObjectFunction("ListBox::geti_SaveGameSlots",  Sc_ListBox_GetSaveGameSlots);
+    ccAddExternalObjectFunction("ListBox::get_SelectedBackColor", Sc_ListBox_GetSelectedBackColor);
+    ccAddExternalObjectFunction("ListBox::set_SelectedBackColor", Sc_ListBox_SetSelectedBackColor);
     ccAddExternalObjectFunction("ListBox::get_SelectedIndex",   Sc_ListBox_GetSelectedIndex);
     ccAddExternalObjectFunction("ListBox::set_SelectedIndex",   Sc_ListBox_SetSelectedIndex);
+    ccAddExternalObjectFunction("ListBox::get_SelectedTextColor", Sc_ListBox_GetSelectedTextColor);
+    ccAddExternalObjectFunction("ListBox::set_SelectedTextColor", Sc_ListBox_SetSelectedTextColor);
+    ccAddExternalObjectFunction("ListBox::get_TextAlignment",   Sc_ListBox_GetTextAlignment);
+    ccAddExternalObjectFunction("ListBox::set_TextAlignment",   Sc_ListBox_SetTextAlignment);
+    ccAddExternalObjectFunction("ListBox::get_TextColor",       Sc_ListBox_GetTextColor);
+    ccAddExternalObjectFunction("ListBox::set_TextColor",       Sc_ListBox_SetTextColor);
     ccAddExternalObjectFunction("ListBox::get_TopItem",         Sc_ListBox_GetTopItem);
     ccAddExternalObjectFunction("ListBox::set_TopItem",         Sc_ListBox_SetTopItem);
 

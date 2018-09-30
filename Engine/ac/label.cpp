@@ -40,6 +40,19 @@ void Label_SetText(GUILabel *labl, const char *newtx) {
     }
 }
 
+int Label_GetTextAlignment(GUILabel *labl)
+{
+    return labl->TextAlignment;
+}
+
+void Label_SetTextAlignment(GUILabel *labl, int align)
+{
+    if (labl->TextAlignment != align) {
+        labl->TextAlignment = (HorAlignment)align;
+        guis_need_update = 1;
+    }
+}
+
 int Label_GetColor(GUILabel *labl) {
     return labl->TextColor;
 }
@@ -90,6 +103,17 @@ RuntimeScriptValue Sc_Label_SetText(void *self, const RuntimeScriptValue *params
     API_OBJCALL_VOID_POBJ(GUILabel, Label_SetText, const char);
 }
 
+RuntimeScriptValue Sc_Label_GetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUILabel, Label_GetTextAlignment);
+}
+
+RuntimeScriptValue Sc_Label_SetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUILabel, Label_SetTextAlignment);
+}
+
+
 // int (GUILabel *labl)
 RuntimeScriptValue Sc_Label_GetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -126,6 +150,8 @@ void RegisterLabelBoxAPI()
 {
     ccAddExternalObjectFunction("Label::GetText^1",     Sc_Label_GetText);
     ccAddExternalObjectFunction("Label::SetText^1",     Sc_Label_SetText);
+    ccAddExternalObjectFunction("Label::get_Alignment", Sc_Label_GetTextAlignment);
+    ccAddExternalObjectFunction("Label::set_Alignment", Sc_Label_SetTextAlignment);
     ccAddExternalObjectFunction("Label::get_Font",      Sc_Label_GetFont);
     ccAddExternalObjectFunction("Label::set_Font",      Sc_Label_SetFont);
     ccAddExternalObjectFunction("Label::get_Text",      Sc_Label_GetText_New);

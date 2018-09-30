@@ -1568,6 +1568,10 @@ builtin managed struct Label extends GUIControl {
   import attribute String Text;
   /// Gets/sets the colour in which the label text is drawn.
   import attribute int  TextColor;
+#ifdef SCRIPT_API_v350
+  /// Gets/sets list item's text alignment.
+  import attribute HorizontalAlignment TextAlignment;
+#endif
 };
 
 builtin managed struct Button extends GUIControl {
@@ -1607,6 +1611,10 @@ builtin managed struct Button extends GUIControl {
   /// Gets the current view number during an animation.
   readonly import attribute int  View;
 #endif
+#ifdef SCRIPT_API_v350
+  /// Gets/sets text alignment inside the button.
+  import attribute Alignment TextAlignment;
+#endif
 };
 
 builtin managed struct Slider extends GUIControl {
@@ -1635,6 +1643,10 @@ builtin managed struct TextBox extends GUIControl {
   import attribute String Text;
   /// Gets/sets the color of the text in the text box.
   import attribute int TextColor;
+#ifdef SCRIPT_API_v350
+  /// Gets/sets whether the border around the text box is shown.
+  import attribute bool ShowBorder;
+#endif
 };
 
 builtin managed struct InvWindow extends GUIControl {
@@ -1701,6 +1713,16 @@ builtin managed struct ListBox extends GUIControl {
 	import attribute int  SelectedIndex;
 	/// Gets/sets the first visible item in the list.
 	import attribute int  TopItem;
+#ifdef SCRIPT_API_v350
+	/// Gets/sets color of the list item's selection
+	import attribute int  SelectedBackColor;
+	/// Gets/sets selected list item's text color
+	import attribute int  SelectedTextColor;
+	/// Gets/sets list item's text alignment.
+	import attribute HorizontalAlignment TextAlignment;
+	/// Gets/sets regular list item's text color
+	import attribute int  TextColor;
+#endif
 };
 
 builtin managed struct GUI {

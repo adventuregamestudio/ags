@@ -68,6 +68,19 @@ void TextBox_SetFont(GUITextBox *guit, int fontnum) {
     }
 }
 
+bool TextBox_GetShowBorder(GUITextBox *guit) {
+    return guit->IsBorderShown();
+}
+
+void TextBox_SetShowBorder(GUITextBox *guit, bool on)
+{
+    if (guit->IsBorderShown() != on)
+    {
+        guit->SetBorderShown(on);
+        guis_need_update = 1;
+    }
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -105,6 +118,17 @@ RuntimeScriptValue Sc_TextBox_SetFont(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetFont);
 }
 
+RuntimeScriptValue Sc_TextBox_GetShowBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUITextBox, TextBox_GetShowBorder);
+}
+
+// void (GUITextBox *guit, int fontnum)
+RuntimeScriptValue Sc_TextBox_SetShowBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(GUITextBox, TextBox_SetShowBorder);
+}
+
 // const char* (GUITextBox *texbox)
 RuntimeScriptValue Sc_TextBox_GetText_New(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -130,6 +154,8 @@ void RegisterTextBoxAPI()
     ccAddExternalObjectFunction("TextBox::SetText^1",       Sc_TextBox_SetText);
     ccAddExternalObjectFunction("TextBox::get_Font",        Sc_TextBox_GetFont);
     ccAddExternalObjectFunction("TextBox::set_Font",        Sc_TextBox_SetFont);
+    ccAddExternalObjectFunction("TextBox::get_ShowBorder",  Sc_TextBox_GetShowBorder);
+    ccAddExternalObjectFunction("TextBox::set_ShowBorder",  Sc_TextBox_SetShowBorder);
     ccAddExternalObjectFunction("TextBox::get_Text",        Sc_TextBox_GetText_New);
     ccAddExternalObjectFunction("TextBox::set_Text",        Sc_TextBox_SetText);
     ccAddExternalObjectFunction("TextBox::get_TextColor",   Sc_TextBox_GetTextColor);

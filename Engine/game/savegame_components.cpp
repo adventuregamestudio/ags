@@ -480,14 +480,14 @@ HSaveError ReadGUI(PStream in, int32_t cmp_ver, const PreservedParams &pp, Resto
     if (!AssertGameContent(err, in->ReadInt32(), numguibuts, "GUI Buttons"))
         return err;
     for (int i = 0; i < numguibuts; ++i)
-        guibuts[i].ReadFromSavegame(in.get());
+        guibuts[i].ReadFromSavegame(in.get(), (GuiSvgVersion)cmp_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUILabels"))
         return err;
     if (!AssertGameContent(err, in->ReadInt32(), numguilabels, "GUI Labels"))
         return err;
     for (int i = 0; i < numguilabels; ++i)
-        guilabels[i].ReadFromSavegame(in.get());
+        guilabels[i].ReadFromSavegame(in.get(), (GuiSvgVersion)cmp_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUIInvWindows"))
         return err;
@@ -508,14 +508,14 @@ HSaveError ReadGUI(PStream in, int32_t cmp_ver, const PreservedParams &pp, Resto
     if (!AssertGameContent(err, in->ReadInt32(), numguitext, "GUI TextBoxes"))
         return err;
     for (int i = 0; i < numguitext; ++i)
-        guitext[i].ReadFromSavegame(in.get());
+        guitext[i].ReadFromSavegame(in.get(), (GuiSvgVersion)cmp_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUIListBoxes"))
         return err;
     if (!AssertGameContent(err, in->ReadInt32(), numguilist, "GUI ListBoxes"))
         return err;
     for (int i = 0; i < numguilist; ++i)
-        guilist[i].ReadFromSavegame(in.get());
+        guilist[i].ReadFromSavegame(in.get(), (GuiSvgVersion)cmp_ver);
 
     // Animated buttons
     if (!AssertFormatTagStrict(err, in, "AnimatedButtons"))

@@ -40,12 +40,17 @@ GUITextBox::GUITextBox()
     _scEventArgs[0] = "GUIControl *control";
 }
 
+bool GUITextBox::IsBorderShown() const
+{
+    return (TextBoxFlags & kTextBox_NoBorder) == 0;
+}
+
 void GUITextBox::Draw(Bitmap *ds)
 {
     check_font(&Font);
     color_t text_color = ds->GetCompatibleColor(TextColor);
     color_t draw_color = ds->GetCompatibleColor(TextColor);
-    if ((TextBoxFlags & kTextBox_NoBorder) == 0)
+    if (IsBorderShown())
     {
         ds->DrawRect(RectWH(X, Y, Width, Height), draw_color);
         if (get_fixed_pixel_size(1) > 1)
@@ -82,6 +87,14 @@ void GUITextBox::OnKeyPress(int keycode)
         Text.ClipRight(1);
 }
 
+void GUITextBox::SetBorderShown(bool on)
+{
+    if (on)
+        TextBoxFlags &= ~kTextBox_NoBorder;
+    else
+        TextBoxFlags |= kTextBox_NoBorder;
+}
+
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
 void GUITextBox::WriteToFile(Stream *out)
@@ -105,12 +118,14 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
         TextColor = 16;
 }
 
-void GUITextBox::ReadFromSavegame(Stream *in)
+void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     Text = StrUtil::ReadString(in);
+    if (svg_ver >= kGuiSvgVersion_350)
+        TextBoxFlags = in->ReadInt32();
 }
 
 void GUITextBox::WriteToSavegame(Stream *out) const
@@ -119,6 +134,7 @@ void GUITextBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     StrUtil::WriteString(Text, out);
+    out->WriteInt32(TextBoxFlags);
 }
 
 } // namespace Common

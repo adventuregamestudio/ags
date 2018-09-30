@@ -104,12 +104,14 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
     Flags |= kGUICtrl_Translated;
 }
 
-void GUILabel::ReadFromSavegame(Stream *in)
+void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     Text = StrUtil::ReadString(in);
+    if (svg_ver >= kGuiSvgVersion_350)
+        TextAlignment = (HorAlignment)in->ReadInt32();
 }
 
 void GUILabel::WriteToSavegame(Stream *out) const
@@ -118,6 +120,7 @@ void GUILabel::WriteToSavegame(Stream *out) const
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     StrUtil::WriteString(Text, out);
+    out->WriteInt32(TextAlignment);
 }
 
 } // namespace Common

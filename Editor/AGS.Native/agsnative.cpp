@@ -3101,7 +3101,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guilist.push_back(Common::GUIListBox());
 		  guilist[numguilist].TextColor = listbox->TextColor;
 		  guilist[numguilist].Font = listbox->Font;
-		  guilist[numguilist].BgColor = listbox->SelectedTextColor;
+		  guilist[numguilist].SelectedTextColor = listbox->SelectedTextColor;
 		  guilist[numguilist].SelectedBgColor = listbox->SelectedBackgroundColor;
 		  guilist[numguilist].TextAlignment = (::HorAlignment)listbox->TextAlignment;
           guilist[numguilist].Flags = listbox->Translated ? Common::kGUICtrl_Translated : 0;
@@ -3906,7 +3906,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newControl = newListbox;
 				  newListbox->TextColor = copyFrom->TextColor;
 				  newListbox->Font = copyFrom->Font; 
-				  newListbox->SelectedTextColor = copyFrom->BgColor;
+				  newListbox->SelectedTextColor = copyFrom->SelectedTextColor;
 				  newListbox->SelectedBackgroundColor = copyFrom->SelectedBgColor;
 				  newListbox->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
 				  newListbox->ShowBorder = ((copyFrom->ListBoxFlags & Common::kListBox_NoBorder) == 0);

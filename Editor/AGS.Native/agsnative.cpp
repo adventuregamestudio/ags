@@ -2003,10 +2003,10 @@ void save_room(const char *files, roomstruct rstruc) {
       opty->WriteByte(rstruc.bscene_anim_speed);
       
       opty->WriteArrayOfInt8 ((int8_t*)&rstruc.ebpalShared[0], rstruc.num_bscenes);
+      curoffs = opty->GetPosition();
 
       delete opty;
 
-      curoffs = lenpos + 6 + rstruc.num_bscenes;
       for (gg = 1; gg < rstruc.num_bscenes; gg++)
         curoffs = save_lzw((char*)files, rstruc.ebscene[gg], rstruc.bpalettes[gg], curoffs);
 

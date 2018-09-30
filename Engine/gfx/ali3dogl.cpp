@@ -27,6 +27,7 @@
 #if defined(LINUX_VERSION)
 #include <allegro.h>
 #include <xalleg.h>
+#include <X11/Xatom.h>
 #endif
 
 #if defined(WINDOWS_VERSION)
@@ -238,6 +239,7 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
   _glxContext = 0;
+  _have_window = false;
 #elif defined (ANDROID_VERSION)
   device_screen_physical_width  = android_screen_physical_width;
   device_screen_physical_height = android_screen_physical_height;
@@ -417,6 +419,18 @@ void OGLGraphicsDriver::FirstTimeInit()
   _firstTimeInit = true;
 }
 
+#if defined (LINUX_VERSION)
+Atom get_x_atom (const char *atom_name)
+{
+  Atom atom = XInternAtom(_xwin.display, atom_name, False);
+  if (atom == None)
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: X11 atom \"%s\" not found.\n");
+  }
+  return atom;
+}
+#endif
+
 bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 {
 #if defined(ANDROID_VERSION)
@@ -463,15 +477,79 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
   win_grab_input();
 #elif defined (LINUX_VERSION)
-  int allegro_driver =
-    mode.Windowed ? GFX_AUTODETECT_WINDOWED : GFX_AUTODETECT_FULLSCREEN;
-  set_gfx_mode(allegro_driver, mode.Width, mode.Height, 0, 0);
+  if (!_have_window)
+  {
+    // Use Allegro to create our window. We don't care what size Allegro uses
+    // here, we will set that ourselves below by manipulating members of
+    // Allegro's_xwin structure. We need to use the Allegro routine here (rather
+    // than create our own X window) to remain compatible with Allegro's mouse &
+    // keyboard handling.
+    //
+    // Note that although _xwin contains a special "fullscreen" Window member
+    // (_xwin.fs_window), we do not use it for going fullscreen. Instead we ask
+    // the window manager to take the "managed" Window (_xwin.wm_window)
+    // fullscreen for us. All drawing goes to the "real" Window (_xwin.window).
+    set_gfx_mode(GFX_AUTODETECT_WINDOWED, 0, 0, 0, 0);
+    _have_window = true;
+  }
 
-  if (_glxContext)
-    DeleteGlContext();
-
-  if (!CreateGlContext(mode))
+  if (!_glxContext && !CreateGlContext(mode))
     return false;
+
+  {
+    // Set the size of our "managed" window.
+    XSizeHints *hints = XAllocSizeHints();
+
+    if (hints)
+    {
+      if (mode.Windowed)
+      {
+        // Set a fixed-size window. This is copied from Allegro 4's
+        // _xwin_private_create_screen().
+        hints->flags = PMinSize | PMaxSize | PBaseSize;
+        hints->min_width  = hints->max_width  = hints->base_width  = mode.Width;
+        hints->min_height = hints->max_height = hints->base_height = mode.Height;
+      }
+      else
+      {
+        // Clear any previously set demand for a fixed-size window, otherwise
+        // the window manager will ignore our request to go full-screen.
+        hints->flags = 0;
+      }
+
+      XSetWMNormalHints(_xwin.display, _xwin.wm_window, hints);
+    }
+
+    XFree(hints);
+  }
+
+  // Set the window we are actually drawing into to the desired size.
+  XResizeWindow(_xwin.display, _xwin.window, mode.Width, mode.Height);
+
+  {
+    // Ask the window manager to add (or remove) the "fullscreen" property on
+    // our top-level window.
+    const Atom wm_state = get_x_atom("_NET_WM_STATE");
+    const Atom fullscreen = get_x_atom("_NET_WM_STATE_FULLSCREEN");
+    const long remove_property = 0;
+    const long add_property = 1;
+
+    XEvent xev;
+    memset(&xev, 0, sizeof(xev));
+    xev.type = ClientMessage;
+    xev.xclient.window = _xwin.wm_window;
+    xev.xclient.message_type = wm_state;
+    xev.xclient.format = 32;
+    xev.xclient.data.l[0] = mode.Windowed ? remove_property : add_property;
+    xev.xclient.data.l[1] = fullscreen;
+    xev.xclient.data.l[2] = 0;
+    xev.xclient.data.l[3] = 1; // Message source is a regular application.
+    Status status = XSendEvent(_xwin.display, DefaultRootWindow(_xwin.display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+    if (status == 0)
+    {
+      Debug::Printf(kDbgMsg_Error, "ERROR: Failed to encode window state message.\n");
+    }
+  }
 
   CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
 #endif

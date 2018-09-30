@@ -217,6 +217,7 @@ private:
     PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
 #endif
 #if defined (LINUX_VERSION)
+    bool _have_window;
     GLXContext _glxContext;
 #endif
     Version _oglVersion;

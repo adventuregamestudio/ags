@@ -220,28 +220,44 @@ void ListBox_SetFont(GUIListBox *listbox, int newfont) {
 
 }
 
+bool ListBox_GetShowBorder(GUIListBox *listbox) {
+    return listbox->IsBorderShown();
+}
+
+void ListBox_SetShowBorder(GUIListBox *listbox, bool newValue) {
+    if (listbox->IsBorderShown() != newValue)
+    {
+        listbox->SetShowBorder(newValue);
+        guis_need_update = 1;
+    }
+}
+
+bool ListBox_GetShowScrollArrows(GUIListBox *listbox) {
+    return listbox->AreArrowsShown();
+}
+
+void ListBox_SetShowScrollArrows(GUIListBox *listbox, bool newValue) {
+    if (listbox->AreArrowsShown() != newValue)
+    {
+        listbox->SetShowArrows(newValue);
+        guis_need_update = 1;
+    }
+}
+
 int ListBox_GetHideBorder(GUIListBox *listbox) {
-  return listbox->IsBorderShown() ? 0 : 1;
+    return !ListBox_GetShowBorder(listbox);
 }
 
 void ListBox_SetHideBorder(GUIListBox *listbox, int newValue) {
-  if (listbox->IsBorderShown() != !newValue)
-  {
-    listbox->SetShowBorder(!newValue);
-    guis_need_update = 1;
-  }
+    ListBox_SetShowBorder(listbox, !newValue);
 }
 
 int ListBox_GetHideScrollArrows(GUIListBox *listbox) {
-  return listbox->AreArrowsShown() ? 0 : 1;
+    return !ListBox_GetShowScrollArrows(listbox);
 }
 
 void ListBox_SetHideScrollArrows(GUIListBox *listbox, int newValue) {
-  if (listbox->AreArrowsShown() != !newValue)
-  {
-    listbox->SetShowArrows(!newValue);
-    guis_need_update = 1;
-  }
+    ListBox_SetShowScrollArrows(listbox, !newValue);
 }
 
 int ListBox_GetSelectedBackColor(GUIListBox *listbox) {
@@ -445,6 +461,26 @@ RuntimeScriptValue Sc_ListBox_SetFont(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetFont);
 }
 
+RuntimeScriptValue Sc_ListBox_GetShowBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIListBox, ListBox_GetShowBorder);
+}
+
+RuntimeScriptValue Sc_ListBox_SetShowBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(GUIListBox, ListBox_SetShowBorder);
+}
+
+RuntimeScriptValue Sc_ListBox_GetShowScrollArrows(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIListBox, ListBox_GetShowScrollArrows);
+}
+
+RuntimeScriptValue Sc_ListBox_SetShowScrollArrows(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(GUIListBox, ListBox_SetShowScrollArrows);
+}
+
 // int (GUIListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetHideBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -578,10 +614,16 @@ void RegisterListBoxAPI()
     ccAddExternalObjectFunction("ListBox::SetItemText^2",       Sc_ListBox_SetItemText);
     ccAddExternalObjectFunction("ListBox::get_Font",            Sc_ListBox_GetFont);
     ccAddExternalObjectFunction("ListBox::set_Font",            Sc_ListBox_SetFont);
+    ccAddExternalObjectFunction("ListBox::get_ShowBorder",      Sc_ListBox_GetShowBorder);
+    ccAddExternalObjectFunction("ListBox::set_ShowBorder",      Sc_ListBox_SetShowBorder);
+    ccAddExternalObjectFunction("ListBox::get_ShowScrollArrows", Sc_ListBox_GetShowScrollArrows);
+    ccAddExternalObjectFunction("ListBox::set_ShowScrollArrows", Sc_ListBox_SetShowScrollArrows);
+    // old "inverted" properties
     ccAddExternalObjectFunction("ListBox::get_HideBorder",      Sc_ListBox_GetHideBorder);
     ccAddExternalObjectFunction("ListBox::set_HideBorder",      Sc_ListBox_SetHideBorder);
     ccAddExternalObjectFunction("ListBox::get_HideScrollArrows", Sc_ListBox_GetHideScrollArrows);
     ccAddExternalObjectFunction("ListBox::set_HideScrollArrows", Sc_ListBox_SetHideScrollArrows);
+    //
     ccAddExternalObjectFunction("ListBox::get_ItemCount",       Sc_ListBox_GetItemCount);
     ccAddExternalObjectFunction("ListBox::geti_Items",          Sc_ListBox_GetItems);
     ccAddExternalObjectFunction("ListBox::seti_Items",          Sc_ListBox_SetItemText);

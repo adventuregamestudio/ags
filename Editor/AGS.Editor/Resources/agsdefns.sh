@@ -1697,10 +1697,12 @@ builtin managed struct ListBox extends GUIControl {
 	import void ScrollUp();
 	/// Gets/sets the font used to draw the list items.
 	import attribute FontType Font;
+#ifdef SCRIPT_COMPAT_v341
 	/// Gets/sets whether the border around the list box is hidden.
 	import attribute bool HideBorder;
 	/// Gets/sets whether the clickable scroll arrows are hidden.
 	import attribute bool HideScrollArrows;
+#endif
 	/// Gets the number of items currently in the list.
 	readonly import attribute int ItemCount;
 	/// Accesses the text for the items in the list.
@@ -1714,6 +1716,10 @@ builtin managed struct ListBox extends GUIControl {
 	/// Gets/sets the first visible item in the list.
 	import attribute int  TopItem;
 #ifdef SCRIPT_API_v350
+	/// Gets/sets whether the border around the list box is shown.
+	import attribute bool ShowBorder;
+	/// Gets/sets whether the clickable scroll arrows are shown.
+	import attribute bool ShowScrollArrows;
 	/// Gets/sets color of the list item's selection
 	import attribute int  SelectedBackColor;
 	/// Gets/sets selected list item's text color

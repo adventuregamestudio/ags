@@ -76,7 +76,7 @@ void TextBox_SetShowBorder(GUITextBox *guit, bool on)
 {
     if (guit->IsBorderShown() != on)
     {
-        guit->SetBorderShown(on);
+        guit->SetShowBorder(on);
         guis_need_update = 1;
     }
 }

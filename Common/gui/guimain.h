@@ -105,6 +105,8 @@ public:
     void    SetConceal(bool on);
     // Attempts to change control's zorder; returns if zorder changed
     bool    SetControlZOrder(int index, int zorder);
+    // Changes GUI style to the text window or back
+    void    SetTextWindow(bool on);
     // Sets GUI transparency as a percentage (0 - 100) where 100 = invisible
     void    SetTransparencyAsPercentage(int percent);
     // Sets whether GUI is allowed to be displayed on screen
@@ -130,7 +132,6 @@ private:
 public:
     int32_t Id;             // GUI identifier
     String  Name;           // the name of the GUI
-    int32_t Flags;          // style and behavior flags
 
     int32_t X;
     int32_t Y;
@@ -160,6 +161,9 @@ public:
 
     // TODO: remove these later
     int32_t ControlCount;   // number of objects on gui
+
+private:
+    int32_t Flags;          // style and behavior flags
 };
 
 

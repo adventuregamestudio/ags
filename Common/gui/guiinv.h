@@ -42,10 +42,10 @@ public:
     virtual void OnResized() override;
 
     // Serialization
-    virtual void WriteToFile(Stream *out) override;
     virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void ReadFromSavegame(Common::Stream *in);
-    virtual void WriteToSavegame(Common::Stream *out) const;
+    virtual void WriteToFile(Stream *out) const override;
+    virtual void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
+    virtual void WriteToSavegame(Common::Stream *out) const override;
 
 // TODO: these members are currently public; hide them later
 public:

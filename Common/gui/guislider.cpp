@@ -226,7 +226,7 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 }
 
-void GUISlider::WriteToFile(Stream *out)
+void GUISlider::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(MinValue);
@@ -238,9 +238,9 @@ void GUISlider::WriteToFile(Stream *out)
     out->WriteInt32(BgImage);
 }
 
-void GUISlider::ReadFromSavegame(Stream *in)
+void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     BgImage = in->ReadInt32();
     HandleImage = in->ReadInt32();
     HandleOffset = in->ReadInt32();

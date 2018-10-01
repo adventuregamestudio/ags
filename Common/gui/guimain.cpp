@@ -60,9 +60,7 @@ void GUIMain::InitDefaults()
 {
     Id            = 0;
     Name.Empty();
-    // NOTE: currently default state is Visible to keep this backwards compatible;
-    // check later if this is still a wanted behavior
-    Flags         = kGUIMain_Visible;
+    Flags         = kGUIMain_DefFlags;
 
     X             = 0;
     Y             = 0;
@@ -142,7 +140,7 @@ GUIControlType GUIMain::GetControlType(int index) const
 
 bool GUIMain::IsClickable() const
 {
-    return (Flags & kGUIMain_NoClick) == 0;
+    return (Flags & kGUIMain_Clickable) != 0;
 }
 
 bool GUIMain::IsConcealed() const
@@ -371,9 +369,9 @@ void GUIMain::ResortZOrder()
 void GUIMain::SetClickable(bool on)
 {
     if (on)
-        Flags &= ~kGUIMain_NoClick;
+        Flags |= kGUIMain_Clickable;
     else
-        Flags |= kGUIMain_NoClick;
+        Flags &= ~kGUIMain_Clickable;
 }
 
 void GUIMain::SetConceal(bool on)
@@ -419,6 +417,14 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     ResortZOrder();
     OnControlPositionChanged();
     return true;
+}
+
+void GUIMain::SetTextWindow(bool on)
+{
+    if (on)
+        Flags |= kGUIMain_TextWindow;
+    else
+        Flags &= ~kGUIMain_TextWindow;
 }
 
 void GUIMain::SetTransparencyAsPercentage(int percent)
@@ -520,6 +526,8 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (gui_version < kGuiVersion_350)
     {
+        // reverse particular flags from older format
+        Flags ^= kGUIMain_OldFmtXorMask;
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
     }
 
@@ -584,7 +592,11 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     BgImage = in->ReadInt32();
     Transparency = in->ReadInt32();
     if (svg_version < kGuiSvgVersion_350)
+    {
+        // reverse particular flags from older format
+        Flags ^= kGUIMain_OldFmtXorMask;
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
+    }
     ZOrder = in->ReadInt32();
 
     if (svg_version >= kGuiSvgVersion_350)

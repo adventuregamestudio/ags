@@ -104,17 +104,15 @@ int Button_GetFont(GUIButton *butt) {
 }
 
 int Button_GetClipImage(GUIButton *butt) {
-    if (butt->Flags & kGUICtrl_Clip)
-        return 1;
-    return 0;
+    return butt->IsClippingImage() ? 1 : 0;
 }
 
 void Button_SetClipImage(GUIButton *butt, int newval) {
-    butt->Flags &= ~kGUICtrl_Clip;
-    if (newval)
-        butt->Flags |= kGUICtrl_Clip;
-
-    guis_need_update = 1;
+    if (butt->IsClippingImage() != (newval != 0))
+    {
+        butt->SetClipImage(newval != 0);
+        guis_need_update = 1;
+    }
 }
 
 int Button_GetGraphic(GUIButton *butt) {

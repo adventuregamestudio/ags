@@ -1060,9 +1060,9 @@ namespace AGS.Editor
 
             private int MakeCommonGUIControlFlags(GUIControl control)
             {
-                return (control.Clickable ? 0 : NativeConstants.GUIF_NOCLICK) |
-                    (control.Enabled ? 0 : NativeConstants.GUIF_DISABLED) |
-                    (control.Visible ? 0 : NativeConstants.GUIF_INVISIBLE)
+                return (control.Clickable ? NativeConstants.GUIF_CLICKABLE : 0) |
+                    (control.Enabled ? NativeConstants.GUIF_ENABLED : 0) |
+                    (control.Visible ? NativeConstants.GUIF_VISIBLE : 0)
                     ;
             }
 
@@ -1171,8 +1171,13 @@ namespace AGS.Editor
                     WriteString(textBox.Text, 200, writer);
                     writer.Write(textBox.Font);
                     writer.Write(textBox.TextColor);
-                    writer.Write(textBox.ShowBorder ? 0 : NativeConstants.GTF_NOBORDER);
+                    writer.Write(MakeTextBoxFlags(textBox));
                 }
+            }
+
+            private int MakeTextBoxFlags(GUITextBox textBox)
+            {
+                return textBox.ShowBorder ? NativeConstants.GTF_SHOWBORDER : 0;
             }
 
             private void WriteAllListBoxes()
@@ -1192,13 +1197,18 @@ namespace AGS.Editor
                     writer.Write(listBox.Font);
                     writer.Write(listBox.TextColor);
                     writer.Write(listBox.SelectedTextColor);
-                    int exflags = (listBox.ShowBorder ? 0 : NativeConstants.GLF_NOBORDER);
-                    exflags |= (listBox.ShowScrollArrows ? 0 : NativeConstants.GLF_NOARROWS);
-                    writer.Write(exflags);
+                    writer.Write(MakeListBoxFlags(listBox));
                     writer.Write((int)listBox.TextAlignment);
                     writer.Write(0); // reserved1
                     writer.Write(listBox.SelectedBackgroundColor);
                 }
+            }
+
+            private int MakeListBoxFlags(GUIListBox listBox)
+            {
+                return (listBox.ShowBorder ? NativeConstants.GLF_SHOWBORDER : 0) |
+                       (listBox.ShowScrollArrows ? NativeConstants.GLF_SHOWARROWS : 0)
+                       ;
             }
 
             /// <summary>
@@ -1301,7 +1311,7 @@ namespace AGS.Editor
             private int MakeGUIFlags(NormalGUI gui)
             {
                 int flags =
-                    (gui.Clickable ? 0 : NativeConstants.GUIMAIN_NOCLICK) |
+                    (gui.Clickable ? NativeConstants.GUIMAIN_CLICKABLE : 0) |
                     (gui.Visible ? NativeConstants.GUIMAIN_VISIBLE : 0);
                 return flags;
             }

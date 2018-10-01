@@ -144,7 +144,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
   }
 
   guis_need_update = 1;
-  listbox->ListBoxFlags |= kListBox_SvgIndex;
+  listbox->SetSvgIndex(true);
 
   if (numsaves >= MAXSAVEGAMES)
     return 1;
@@ -221,25 +221,27 @@ void ListBox_SetFont(GUIListBox *listbox, int newfont) {
 }
 
 int ListBox_GetHideBorder(GUIListBox *listbox) {
-  return (listbox->ListBoxFlags & kListBox_NoBorder) ? 1 : 0;
+  return listbox->IsBorderShown() ? 0 : 1;
 }
 
 void ListBox_SetHideBorder(GUIListBox *listbox, int newValue) {
-  listbox->ListBoxFlags &= ~kListBox_NoBorder;
-  if (newValue)
-    listbox->ListBoxFlags |= kListBox_NoBorder;
-  guis_need_update = 1;
+  if (listbox->IsBorderShown() != !newValue)
+  {
+    listbox->SetShowBorder(!newValue);
+    guis_need_update = 1;
+  }
 }
 
 int ListBox_GetHideScrollArrows(GUIListBox *listbox) {
-  return (listbox->ListBoxFlags & kListBox_NoArrows) ? 1 : 0;
+  return listbox->AreArrowsShown() ? 0 : 1;
 }
 
 void ListBox_SetHideScrollArrows(GUIListBox *listbox, int newValue) {
-  listbox->ListBoxFlags &= ~kListBox_NoArrows;
-  if (newValue)
-    listbox->ListBoxFlags |= kListBox_NoArrows;
-  guis_need_update = 1;
+  if (listbox->AreArrowsShown() != !newValue)
+  {
+    listbox->SetShowArrows(!newValue);
+    guis_need_update = 1;
+  }
 }
 
 int ListBox_GetSelectedBackColor(GUIListBox *listbox) {

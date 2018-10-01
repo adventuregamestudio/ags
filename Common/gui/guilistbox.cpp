@@ -36,7 +36,7 @@ GUIListBox::GUIListBox()
     Font = 0;
     TextColor = 0;
     SelectedTextColor = 7;
-    ListBoxFlags = 0;
+    ListBoxFlags = kListBox_DefFlags;
     SelectedBgColor = 16;
     TextAlignment = kHAlignLeft;
 
@@ -56,9 +56,24 @@ int GUIListBox::GetItemAt(int x, int y) const
     return index;
 }
 
+bool GUIListBox::AreArrowsShown() const
+{
+    return (ListBoxFlags & kListBox_ShowArrows) != 0;
+}
+
+bool GUIListBox::IsBorderShown() const
+{
+    return (ListBoxFlags & kListBox_ShowBorder) != 0;
+}
+
+bool GUIListBox::IsSvgIndex() const
+{
+    return (ListBoxFlags & kListBox_SvgIndex) != 0;
+}
+
 bool GUIListBox::IsInRightMargin(int x) const
 {
-    if (x >= (Width - get_fixed_pixel_size(6)) && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
+    if (x >= (Width - get_fixed_pixel_size(6)) && IsBorderShown() && AreArrowsShown())
         return 1;
     return 0;
 }
@@ -91,7 +106,8 @@ void GUIListBox::Draw(Common::Bitmap *ds)
     check_font(&Font);
     color_t text_color = ds->GetCompatibleColor(TextColor);
     color_t draw_color = ds->GetCompatibleColor(TextColor);
-    if ((ListBoxFlags & kListBox_NoBorder) == 0) {
+    if (IsBorderShown())
+    {
         ds->DrawRect(Rect(X, Y, X + width + (pixel_size - 1), Y + height + (pixel_size - 1)), draw_color);
         if (pixel_size > 1)
             ds->DrawRect(Rect(X + 1, Y + 1, X + width, Y + height), draw_color);
@@ -103,7 +119,7 @@ void GUIListBox::Draw(Common::Bitmap *ds)
     SetFont(Font);
 
     // draw the scroll bar in if necessary
-    if (ItemCount > VisibleItemCount && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
+    if (ItemCount > VisibleItemCount && IsBorderShown() && AreArrowsShown())
     {
         int xstrt, ystrt;
         ds->DrawRect(Rect(X + width - get_fixed_pixel_size(7), Y, (X + (pixel_size - 1) + width) - get_fixed_pixel_size(7), Y + height), draw_color);
@@ -142,7 +158,7 @@ void GUIListBox::Draw(Common::Bitmap *ds)
                 int stretch_to = (X + width) - pixel_size;
                 // draw the SelectedItem item bar (if colour not transparent)
                 draw_color = ds->GetCompatibleColor(SelectedBgColor);
-                if ((VisibleItemCount < ItemCount) && ((ListBoxFlags & kListBox_NoBorder) == 0) && ((ListBoxFlags & kListBox_NoArrows) == 0))
+                if ((VisibleItemCount < ItemCount) && IsBorderShown() && AreArrowsShown())
                     stretch_to -= get_fixed_pixel_size(7);
 
                 ds->FillRect(Rect(X + pixel_size, at_y, stretch_to, at_y + RowHeight - pixel_size), draw_color);
@@ -190,6 +206,30 @@ void GUIListBox::RemoveItem(int index)
     if (SelectedItem >= ItemCount)
         SelectedItem = -1;
     guis_need_update = 1;
+}
+
+void GUIListBox::SetShowArrows(bool on)
+{
+    if (on)
+        ListBoxFlags |= kListBox_ShowArrows;
+    else
+        ListBoxFlags &= ~kListBox_ShowArrows;
+}
+
+void GUIListBox::SetShowBorder(bool on)
+{
+    if (on)
+        ListBoxFlags |= kListBox_ShowBorder;
+    else
+        ListBoxFlags &= ~kListBox_ShowBorder;
+}
+
+void GUIListBox::SetSvgIndex(bool on)
+{
+    if (on)
+        ListBoxFlags |= kListBox_SvgIndex;
+    else
+        ListBoxFlags &= ~kListBox_SvgIndex;
 }
 
 void GUIListBox::SetFont(int font)
@@ -246,7 +286,7 @@ void GUIListBox::OnResized()
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUIListBox::WriteToFile(Stream *out)
+void GUIListBox::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(ItemCount);
@@ -291,6 +331,9 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     TextColor = in->ReadInt32();
     SelectedTextColor = in->ReadInt32();
     ListBoxFlags = in->ReadInt32();
+    // reverse particular flags from older format
+    if (gui_version < kGuiVersion_350)
+        ListBoxFlags ^= kListBox_OldFmtXorMask;
 
     if (gui_version >= kGuiVersion_272b)
     {
@@ -335,11 +378,16 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     // Properties
     ListBoxFlags = in->ReadInt32();
     Font = in->ReadInt32();
-    if (svg_ver >= kGuiSvgVersion_350)
+    if (svg_ver < kGuiSvgVersion_350)
+    {
+        // reverse particular flags from older format
+        ListBoxFlags ^= kListBox_OldFmtXorMask;
+    }
+    else
     {
         SelectedBgColor = in->ReadInt32();
         SelectedTextColor = in->ReadInt32();

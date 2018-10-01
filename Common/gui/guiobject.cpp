@@ -26,7 +26,7 @@ GUIObject::GUIObject()
 {
     Id          = 0;
     ParentId    = 0;
-    Flags       = 0;
+    Flags       = kGUICtrl_DefFlags;
     X           = 0;
     Y           = 0;
     Width       = 0;
@@ -54,10 +54,15 @@ String GUIObject::GetEventArgs(int event) const
     return _scEventArgs[event];
 }
 
+bool GUIObject::IsDeleted() const
+{
+    return (Flags & kGUICtrl_Deleted) != 0;
+}
+
 bool GUIObject::IsEnabled() const
 {
     // TODO: a global variable should not be checked by control
-    return !((Flags & kGUICtrl_Disabled) || all_buttons_disabled);
+    return !((Flags & kGUICtrl_Enabled) == 0 || all_buttons_disabled);
 }
 
 bool GUIObject::IsOverControl(int x, int y, int leeway) const
@@ -65,33 +70,51 @@ bool GUIObject::IsOverControl(int x, int y, int leeway) const
     return x >= X && y >= Y && x < (X + Width + leeway) && y < (Y + Height + leeway);
 }
 
+bool GUIObject::IsTranslated() const
+{
+    return (Flags & kGUICtrl_Translated) != 0;
+}
+
+bool GUIObject::IsVisible() const
+{
+    return (Flags & kGUICtrl_Visible) != 0;
+}
+
 void GUIObject::SetClickable(bool on)
 {
     if (on)
-        Flags &= ~kGUICtrl_NoClicks;
+        Flags |= kGUICtrl_Clickable;
     else
-        Flags |= kGUICtrl_NoClicks;
+        Flags &= ~kGUICtrl_Clickable;
 }
 
 void GUIObject::SetEnabled(bool on)
 {
     if (on)
-        Flags &= ~kGUICtrl_Disabled;
+        Flags |= kGUICtrl_Enabled;
     else
-        Flags |= kGUICtrl_Disabled;
+        Flags &= ~kGUICtrl_Enabled;
+}
+
+void GUIObject::SetTranslated(bool on)
+{
+    if (on)
+        Flags |= kGUICtrl_Translated;
+    else
+        Flags &= ~kGUICtrl_Translated;
 }
 
 void GUIObject::SetVisible(bool on)
 {
     if (on)
-        Flags &= ~kGUICtrl_Invisible;
+        Flags |= kGUICtrl_Visible;
     else
-        Flags |= kGUICtrl_Invisible;
+        Flags &= ~kGUICtrl_Visible;
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUIObject::WriteToFile(Stream *out)
+void GUIObject::WriteToFile(Stream *out) const
 {
     out->WriteInt32(Flags);
     out->WriteInt32(X);
@@ -109,6 +132,9 @@ void GUIObject::WriteToFile(Stream *out)
 void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     Flags    = in->ReadInt32();
+    // reverse particular flags from older format
+    if (gui_version < kGuiVersion_350)
+        Flags ^= kGUICtrl_OldFmtXorMask;
     X        = in->ReadInt32();
     Y        = in->ReadInt32();
     Width    = in->ReadInt32();
@@ -138,10 +164,13 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 }
 
-void GUIObject::ReadFromSavegame(Stream *in)
+void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     // Properties
     Flags = in->ReadInt32();
+    // reverse particular flags from older format
+    if (svg_ver < kGuiSvgVersion_350)
+        Flags ^= kGUICtrl_OldFmtXorMask;
     X = in->ReadInt32();
     Y = in->ReadInt32();
     Width = in->ReadInt32();

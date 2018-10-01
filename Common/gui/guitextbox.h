@@ -33,25 +33,26 @@ public:
 
     // Operations
     virtual void Draw(Bitmap *ds) override;
-    void         SetBorderShown(bool on);
+    void         SetShowBorder(bool on);
  
     // Events
     virtual void OnKeyPress(int keycode) override;
  
     // Serialization
-    virtual void WriteToFile(Stream *out) override;
     virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver);
-    virtual void WriteToSavegame(Stream *out) const;
+    virtual void WriteToFile(Stream *out) const override;
+    virtual void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
+    virtual void WriteToSavegame(Stream *out) const override;
  
 // TODO: these members are currently public; hide them later
 public:
     int32_t Font;
     String  Text;
-    int32_t TextBoxFlags;
     color_t TextColor;
 
 private:
+    int32_t TextBoxFlags;
+
     void DrawTextBoxContents(Bitmap *ds, color_t text_color);
 };
 

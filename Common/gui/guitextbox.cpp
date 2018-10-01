@@ -33,7 +33,7 @@ GUITextBox::GUITextBox()
 {
     Font = 0;
     TextColor = 0;
-    TextBoxFlags = 0;
+    TextBoxFlags = kTextBox_DefFlags;
 
     _scEventCount = 1;
     _scEventNames[0] = "Activate";
@@ -42,7 +42,7 @@ GUITextBox::GUITextBox()
 
 bool GUITextBox::IsBorderShown() const
 {
-    return (TextBoxFlags & kTextBox_NoBorder) == 0;
+    return (TextBoxFlags & kTextBox_ShowBorder) != 0;
 }
 
 void GUITextBox::Draw(Bitmap *ds)
@@ -87,17 +87,17 @@ void GUITextBox::OnKeyPress(int keycode)
         Text.ClipRight(1);
 }
 
-void GUITextBox::SetBorderShown(bool on)
+void GUITextBox::SetShowBorder(bool on)
 {
     if (on)
-        TextBoxFlags &= ~kTextBox_NoBorder;
+        TextBoxFlags |= kTextBox_ShowBorder;
     else
-        TextBoxFlags |= kTextBox_NoBorder;
+        TextBoxFlags &= ~kTextBox_ShowBorder;
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUITextBox::WriteToFile(Stream *out)
+void GUITextBox::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
     Text.WriteCount(out, GUITEXTBOX_TEXT_LENGTH);
@@ -113,6 +113,9 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     TextBoxFlags = in->ReadInt32();
+    // reverse particular flags from older format
+    if (gui_version < kGuiVersion_350)
+        TextBoxFlags ^= kTextBox_OldFmtXorMask;
 
     if (TextColor == 0)
         TextColor = 16;
@@ -120,7 +123,7 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     Text = StrUtil::ReadString(in);

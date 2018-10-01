@@ -161,15 +161,11 @@ int GUI_GetZOrder(ScriptGUI *tehgui) {
 }
 
 void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
-  guis[tehgui->id].Flags &= ~kGUIMain_NoClick;
-  if (clickable == 0)
-    guis[tehgui->id].Flags |= kGUIMain_NoClick;
+  guis[tehgui->id].SetClickable(clickable != 0);
 }
 
 int GUI_GetClickable(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].Flags & kGUIMain_NoClick)
-    return 0;
-  return 1;
+  return guis[tehgui->id].IsClickable() ? 1 : 0;
 }
 
 int GUI_GetID(ScriptGUI *tehgui) {

@@ -29,6 +29,9 @@ class GUIListBox : public GUIObject
 public:
     GUIListBox();
 
+    bool         AreArrowsShown() const;
+    bool         IsBorderShown() const;
+    bool         IsSvgIndex() const;
     bool         IsInRightMargin(int x) const;
     int          GetItemAt(int x, int y) const;
 
@@ -38,6 +41,9 @@ public:
     virtual void Draw(Bitmap *ds) override;
     int          InsertItem(int index, const String &text);
     void         RemoveItem(int index);
+    void         SetShowArrows(bool on);
+    void         SetShowBorder(bool on);
+    void         SetSvgIndex(bool on); // TODO: work around this
     void         SetFont(int font);
     void         SetItemText(int index, const String &textt);
 
@@ -47,14 +53,13 @@ public:
     virtual void OnResized() override;
 
     // Serialization
-    virtual void WriteToFile(Stream *out) override;
     virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
-    virtual void WriteToSavegame(Common::Stream *out) const;
+    virtual void WriteToFile(Stream *out) const override;
+    virtual void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
+    virtual void WriteToSavegame(Common::Stream *out) const override;
 
 // TODO: these members are currently public; hide them later
 public:
-    int32_t               ListBoxFlags;
     int32_t               Font;
     color_t               TextColor;
     HorAlignment          TextAlignment;
@@ -73,6 +78,8 @@ public:
     int32_t               ItemCount;
 
 private:
+    int32_t               ListBoxFlags;
+
     // A temporary solution for special drawing in the Editor
     void DrawItemsFix();
     void DrawItemsUnfix();

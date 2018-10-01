@@ -85,10 +85,16 @@ namespace Common
 // GUIMain's style and behavior flags
 enum GUIMainFlags
 {
-    kGUIMain_NoClick    = 0x0001,
+    kGUIMain_Clickable  = 0x0001,
     kGUIMain_TextWindow = 0x0002,
     kGUIMain_Visible    = 0x0004,
-    kGUIMain_Concealed  = 0x0008
+    kGUIMain_Concealed  = 0x0008,
+
+    // NOTE: currently default state is Visible to keep this backwards compatible;
+    // check later if this is still a wanted behavior
+    kGUIMain_DefFlags   = kGUIMain_Clickable | kGUIMain_Visible,
+    // flags that had inverse meaning in old formats
+    kGUIMain_OldFmtXorMask = kGUIMain_Clickable
 };
 
 // GUIMain's legacy flags, now converted to GUIMainFlags on load
@@ -128,29 +134,41 @@ enum GUIControlType
 // GUIControl general style and behavior flags
 enum GUIControlFlags
 {
-    kGUICtrl_Default    = 0x0001,
+    kGUICtrl_Default    = 0x0001, // only button
     kGUICtrl_Cancel     = 0x0002, // unused
-    kGUICtrl_Disabled   = 0x0004,
+    kGUICtrl_Enabled    = 0x0004,
     kGUICtrl_TabStop    = 0x0008, // unused
-    kGUICtrl_Invisible  = 0x0010,
-    kGUICtrl_Clip       = 0x0020,
-    kGUICtrl_NoClicks   = 0x0040,
+    kGUICtrl_Visible    = 0x0010,
+    kGUICtrl_Clip       = 0x0020, // only button
+    kGUICtrl_Clickable  = 0x0040,
     kGUICtrl_Translated = 0x0080, // 3.3.0.1132
-    kGUICtrl_Deleted    = 0x8000, // unused
+    kGUICtrl_Deleted    = 0x8000, // unused (probably remains from the old editor?)
+
+    kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable,
+    // flags that had inverse meaning in old formats
+    kGUICtrl_OldFmtXorMask = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable
 };
 
 // GUIListBox style and behavior flags
 enum GUIListBoxFlags
 {
-    kListBox_NoBorder = 0x01,
-    kListBox_NoArrows = 0x02,
-    kListBox_SvgIndex = 0x04,
+    kListBox_ShowBorder = 0x01,
+    kListBox_ShowArrows = 0x02,
+    kListBox_SvgIndex   = 0x04,
+
+    kListBox_DefFlags   = kListBox_ShowBorder | kListBox_ShowArrows,
+    // flags that had inverse meaning in old formats
+    kListBox_OldFmtXorMask = kListBox_ShowBorder | kListBox_ShowArrows
 };
 
 // GUITextBox style and behavior flags
 enum GUITextBoxFlags
 {
-    kTextBox_NoBorder = 0x0001
+    kTextBox_ShowBorder = 0x0001,
+
+    kTextBox_DefFlags   = kTextBox_ShowBorder,
+    // flags that had inverse meaning in old formats
+    kTextBox_OldFmtXorMask = kTextBox_ShowBorder
 };
 
 // Savegame data format

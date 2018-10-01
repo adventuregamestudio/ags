@@ -61,7 +61,7 @@ void GUIInvWindow::OnResized()
     CalculateNumCells();
 }
 
-void GUIInvWindow::WriteToFile(Stream *out)
+void GUIInvWindow::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(CharId);
@@ -100,9 +100,9 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
     CalculateNumCells();
 }
 
-void GUIInvWindow::ReadFromSavegame(Stream *in)
+void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     ItemWidth = in->ReadInt32();
     ItemHeight = in->ReadInt32();
     CharId = in->ReadInt32();

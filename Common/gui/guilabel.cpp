@@ -72,7 +72,7 @@ void GUILabel::SetText(const String &text)
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUILabel::WriteToFile(Stream *out)
+void GUILabel::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(Text.GetLength() + 1);
@@ -106,7 +106,7 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     Text = StrUtil::ReadString(in);

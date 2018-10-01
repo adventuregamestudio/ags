@@ -524,7 +524,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
     parserInput = new GUITextBox();
     parserInput->Height = lineheight + get_fixed_pixel_size(4);
-    parserInput->TextBoxFlags = 0;
+    parserInput->SetShowBorder(true);
     parserInput->Font = usingfont;
   }
 

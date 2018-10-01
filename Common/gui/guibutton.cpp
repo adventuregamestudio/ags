@@ -83,6 +83,11 @@ const String &GUIButton::GetText() const
     return _text;
 }
 
+bool GUIButton::IsClippingImage() const
+{
+    return (Flags & kGUICtrl_Clip) != 0;
+}
+
 void GUIButton::Draw(Bitmap *ds)
 {
     bool draw_disabled = !IsEnabled();
@@ -108,6 +113,14 @@ void GUIButton::Draw(Bitmap *ds)
     // CHECKME: why don't draw frame if no Text? this will make button completely invisible!
     else if (!_text.IsEmpty())
         DrawTextButton(ds, draw_disabled);
+}
+
+void GUIButton::SetClipImage(bool on)
+{
+    if (on)
+        Flags |= kGUICtrl_Clip;
+    else
+        Flags &= ~kGUICtrl_Clip;
 }
 
 void GUIButton::SetText(const String &text)
@@ -168,7 +181,7 @@ void GUIButton::OnMouseUp()
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUIButton::WriteToFile(Stream *out)
+void GUIButton::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
 
@@ -230,7 +243,7 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     // Properties
     Image = in->ReadInt32();
     MouseOverImage = in->ReadInt32();
@@ -262,7 +275,7 @@ void GUIButton::WriteToSavegame(Stream *out) const
 void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
 {
     // NOTE: the CLIP flag only clips the image, not the text
-    if (Flags & kGUICtrl_Clip)
+    if (IsClippingImage())
         ds->SetClip(Rect(X, Y, X + Width - 1, Y + Height - 1));
     if (spriteset[CurrentImage] != NULL)
         draw_gui_sprite(ds, CurrentImage, X, Y, true);

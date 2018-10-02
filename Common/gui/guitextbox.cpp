@@ -19,7 +19,7 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-#define GUITEXTBOX_TEXT_LENGTH 200
+#define GUITEXTBOX_LEGACY_TEXTLEN 200
 
 std::vector<AGS::Common::GUITextBox> guitext;
 int numguitext = 0;
@@ -100,7 +100,7 @@ void GUITextBox::SetShowBorder(bool on)
 void GUITextBox::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
-    Text.WriteCount(out, GUITEXTBOX_TEXT_LENGTH);
+    StrUtil::WriteString(Text, out);
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     out->WriteInt32(TextBoxFlags);
@@ -109,7 +109,10 @@ void GUITextBox::WriteToFile(Stream *out) const
 void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
-    Text.ReadCount(in, GUITEXTBOX_TEXT_LENGTH);
+    if (gui_version < kGuiVersion_350)
+        Text.ReadCount(in, GUITEXTBOX_LEGACY_TEXTLEN);
+    else
+        Text = StrUtil::ReadString(in);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     TextBoxFlags = in->ReadInt32();

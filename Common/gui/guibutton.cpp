@@ -195,7 +195,7 @@ void GUIButton::WriteToFile(Stream *out) const
     out->WriteInt32(ClickData[kMouseLeft]);
     out->WriteInt32(ClickData[kMouseRight]);
 
-    _text.WriteCount(out, GUIBUTTON_TEXTLENGTH);
+    StrUtil::WriteString(_text, out);
     out->WriteInt32(TextAlignment);
 }
 
@@ -218,7 +218,10 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     ClickAction[kMouseRight] = (GUIClickAction)in->ReadInt32();
     ClickData[kMouseLeft] = in->ReadInt32();
     ClickData[kMouseRight] = in->ReadInt32();
-    SetText(String::FromStreamCount(in, GUIBUTTON_TEXTLENGTH));
+    if (gui_version < kGuiVersion_350)
+        SetText(String::FromStreamCount(in, GUIBUTTON_LEGACY_TEXTLENGTH));
+    else
+        SetText(StrUtil::ReadString(in));
 
     if (gui_version >= kGuiVersion_272a)
     {

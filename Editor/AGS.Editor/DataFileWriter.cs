@@ -1109,7 +1109,7 @@ namespace AGS.Editor
                     writer.Write(0); // rightclick
                     writer.Write(ctrl.NewModeNumber); // lclickdata
                     writer.Write(0); // rclickdata
-                    WriteString(ctrl.Text, 50, writer); // text
+                    FilePutString(ctrl.Text, writer); // text
                     writer.Write((int)ctrl.TextAlignment); // textAlignment
                 }
             }
@@ -1161,7 +1161,7 @@ namespace AGS.Editor
                 foreach (GUITextBox textBox in GUITextBoxes)
                 {
                     WriteGUIControl(textBox, 0, new string[] { textBox.OnActivate });
-                    WriteString(textBox.Text, 200, writer);
+                    FilePutString(textBox.Text, writer);
                     writer.Write(textBox.Font);
                     writer.Write(textBox.TextColor);
                     writer.Write(MakeTextBoxFlags(textBox));

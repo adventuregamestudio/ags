@@ -75,8 +75,7 @@ void GUILabel::SetText(const String &text)
 void GUILabel::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
-    out->WriteInt32(Text.GetLength() + 1);
-    Text.Write(out);
+    StrUtil::WriteString(Text, out);
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     out->WriteInt32(TextAlignment);
@@ -89,7 +88,7 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (gui_version < kGuiVersion_272c)
         Text.ReadCount(in, GUILABEL_TEXTLENGTH_PRE272);
     else
-        Text.ReadCount(in, in->ReadInt32());
+        Text = StrUtil::ReadString(in);
 
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();

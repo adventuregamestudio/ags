@@ -32,9 +32,6 @@ void TextBox_GetText(GUITextBox *texbox, char *buffer) {
 }
 
 void TextBox_SetText(GUITextBox *texbox, const char *newtex) {
-    if (strlen(newtex) > 190)
-        quit("!SetTextBoxText: text too long");
-
     if (strcmp(texbox->Text, newtex)) {
         texbox->Text = newtex;
         guis_need_update = 1;

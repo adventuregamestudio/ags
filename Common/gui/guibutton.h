@@ -19,7 +19,7 @@
 #include "gui/guiobject.h"
 #include "util/string.h"
 
-#define GUIBUTTON_TEXTLENGTH 50
+#define GUIBUTTON_LEGACY_TEXTLENGTH 50
 
 namespace AGS
 {

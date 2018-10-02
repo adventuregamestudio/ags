@@ -81,7 +81,6 @@ void Button_GetText(GUIButton *butt, char *buffer) {
 
 void Button_SetText(GUIButton *butt, const char *newtx) {
     newtx = get_translation(newtx);
-    if (strlen(newtx) > 49) quit("!SetButtonText: text too long, button has 50 chars max");
 
     if (strcmp(butt->GetText(), newtx)) {
         guis_need_update = 1;

@@ -3058,8 +3058,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guibuts[numguibuts].ClickAction[Common::kMouseLeft] = (Common::GUIClickAction)button->ClickAction;
 		  guibuts[numguibuts].ClickData[Common::kMouseLeft] = button->NewModeNumber;
           guibuts[numguibuts].SetClipImage(button->ClipImage);
-          Common::String text = ConvertStringToNativeString(button->Text, GUIBUTTON_TEXTLENGTH);
-          guibuts[numguibuts].SetText(text);
+          guibuts[numguibuts].SetText(ConvertStringToNativeString(button->Text));
           guibuts[numguibuts].EventHandlers[0] = ConvertStringToNativeString(button->OnClick);
 		  
           gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;

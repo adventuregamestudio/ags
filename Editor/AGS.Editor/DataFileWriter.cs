@@ -1079,7 +1079,6 @@ namespace AGS.Editor
                 writer.Write(control.Width);
                 writer.Write(control.Height);
                 writer.Write(control.ZOrder);
-                writer.Write(0); // activated
                 FilePutNullTerminatedString(control.Name, writer);
                 writer.Write(events.Length); // numSupportedEvents
                 foreach (string sevent in events)
@@ -1104,9 +1103,6 @@ namespace AGS.Editor
                     writer.Write(ctrl.Image); // pic
                     writer.Write(ctrl.MouseoverImage); // overpic
                     writer.Write(ctrl.PushedImage); // pushedpic
-                    writer.Write(ctrl.Image); // usepic
-                    writer.Write(0); // ispushed
-                    writer.Write(0); // isover
                     writer.Write(ctrl.Font); // font
                     writer.Write(ctrl.TextColor); // textcol
                     writer.Write((int)ctrl.ClickAction); // leftclick
@@ -1115,7 +1111,6 @@ namespace AGS.Editor
                     writer.Write(0); // rclickdata
                     WriteString(ctrl.Text, 50, writer); // text
                     writer.Write((int)ctrl.TextAlignment); // textAlignment
-                    writer.Write(0); // reserved1
                 }
             }
 
@@ -1142,7 +1137,6 @@ namespace AGS.Editor
                     writer.Write(invWindow.CharacterID);
                     writer.Write(invWindow.ItemWidth);
                     writer.Write(invWindow.ItemHeight);
-                    writer.Write(0); // topIndex
                 }
             }
 
@@ -1155,7 +1149,6 @@ namespace AGS.Editor
                     writer.Write(slider.MinValue);
                     writer.Write(slider.MaxValue);
                     writer.Write(slider.Value);
-                    writer.Write(0); // mpressed
                     writer.Write(slider.HandleImage);
                     writer.Write(slider.HandleOffset);
                     writer.Write(slider.BackgroundImage);
@@ -1188,18 +1181,11 @@ namespace AGS.Editor
                     int flags = (listBox.Translated ? NativeConstants.GUIF_TRANSLATED : 0);
                     WriteGUIControl(listBox, flags, new string[] { listBox.OnSelectionChanged });
                     writer.Write(0); // numItems
-                    writer.Write(0); // selected
-                    writer.Write(0); // topItem
-                    writer.Write(0); // mousexp
-                    writer.Write(0); // mouseyp
-                    writer.Write(0); // rowheight
-                    writer.Write(0); // num_items_fit
                     writer.Write(listBox.Font);
                     writer.Write(listBox.TextColor);
                     writer.Write(listBox.SelectedTextColor);
                     writer.Write(MakeListBoxFlags(listBox));
                     writer.Write((int)listBox.TextAlignment);
-                    writer.Write(0); // reserved1
                     writer.Write(listBox.SelectedBackgroundColor);
                 }
             }
@@ -1276,25 +1262,18 @@ namespace AGS.Editor
 
             private void WriteNormalGUI(NormalGUI gui)
             {
-                writer.Write(new byte[4]); // vtext
                 FilePutString(gui.Name, writer); // name
                 FilePutString(gui.OnClick, writer); // clickEventHandler
                 writer.Write(gui.Left); // x
                 writer.Write(gui.Top); // y
                 writer.Write(gui.Width); // wid
                 writer.Write(gui.Height); // hit
-                writer.Write(0); // focus
                 writer.Write(gui.Controls.Count); // numobjs
                 writer.Write((int)gui.PopupStyle); // gui style
                 writer.Write(gui.PopupYPos); // popupyp
                 writer.Write(gui.BackgroundColor); // bgcol
                 writer.Write(gui.BackgroundImage); // bgpic
                 writer.Write(gui.BorderColor); // fgcol
-                writer.Write(-1); // mouseover
-                writer.Write(-1); // mousewasx
-                writer.Write(-1); // mousewasy
-                writer.Write(-1); // mousedownon
-                writer.Write(-1); // highlightobj
                 // GUI Flags
                 writer.Write(MakeGUIFlags(gui));
                 int transparency = gui.Transparency;
@@ -1305,7 +1284,6 @@ namespace AGS.Editor
                 writer.Write(gui.ZOrder); // zorder
                 writer.Write(0); // guiId
                 writer.Write(NativeConstants.TEXTWINDOW_PADDING_DEFAULT); // padding
-                writer.Write(new byte[5 * sizeof(int)]); // reserved
             }
 
             private int MakeGUIFlags(NormalGUI gui)
@@ -1318,32 +1296,23 @@ namespace AGS.Editor
 
             private void WriteTextWindowGUI(TextWindowGUI gui)
             {
-                writer.Write(NativeConstants.GUIMAIN_LEGACYTEXTWINDOW); // vtext...
-                writer.Write(new byte[3]); // ...vtext
                 FilePutString(gui.Name, writer); // name
                 FilePutString(null, writer); // clickEventHandler
                 writer.Write(0); // x
                 writer.Write(0); // y
                 writer.Write(200); // wid
                 writer.Write(100); // hit
-                writer.Write(0); // focus
                 writer.Write(gui.Controls.Count); // numobjs
                 writer.Write(NativeConstants.GUI_POPUP_MODAL); // popup
                 writer.Write(-1); // popupyp
                 writer.Write(gui.BackgroundColor); // bgcol
                 writer.Write(gui.BackgroundImage); // bgpic
                 writer.Write(gui.TextColor); // fgcol
-                writer.Write(-1); // mouseover
-                writer.Write(-1); // mousewasx
-                writer.Write(-1); // mousewasy
-                writer.Write(-1); // mousedownon
-                writer.Write(-1); // highlightobj
                 writer.Write(NativeConstants.GUIMAIN_TEXTWINDOW); // flags
                 writer.Write(0); // transparency
                 writer.Write(-1); // zorder
                 writer.Write(0); // guiId
                 writer.Write(gui.Padding); // padding
-                writer.Write(new byte[5 * sizeof(int)]); // reserved
             }
 
             public void WriteAllGUIs()

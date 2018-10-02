@@ -290,29 +290,14 @@ void GUIListBox::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(ItemCount);
-    out->WriteInt32(SelectedItem);
-    out->WriteInt32(TopItem);
-    out->WriteInt32(MousePos.X);
-    out->WriteInt32(MousePos.Y);
-    out->WriteInt32(RowHeight);
-    out->WriteInt32(VisibleItemCount);
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     out->WriteInt32(SelectedTextColor);
     out->WriteInt32(ListBoxFlags);
     out->WriteInt32(TextAlignment);
-    out->WriteInt32(0); // reserved1
     out->WriteInt32(SelectedBgColor);
     for (int i = 0; i < ItemCount; ++i)
-    {
         Items[i].Write(out);
-    }
-
-    if (ListBoxFlags & kListBox_SvgIndex)
-    {
-        for (int i = 0; i < ItemCount; ++i)
-            out->WriteInt16(SavedGameIndex[i]);
-    }
 }
 
 void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -321,12 +306,15 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     GUIObject::ReadFromFile(in, gui_version);
     ItemCount = in->ReadInt32();
-    SelectedItem = in->ReadInt32();
-    TopItem = in->ReadInt32();
-    MousePos.X = in->ReadInt32();
-    MousePos.Y = in->ReadInt32();
-    RowHeight = in->ReadInt32();
-    VisibleItemCount = in->ReadInt32();
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        SelectedItem = in->ReadInt32();
+        TopItem = in->ReadInt32();
+        MousePos.X = in->ReadInt32();
+        MousePos.Y = in->ReadInt32();
+        RowHeight = in->ReadInt32();
+        VisibleItemCount = in->ReadInt32();
+    }
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     SelectedTextColor = in->ReadInt32();
@@ -338,10 +326,14 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (gui_version >= kGuiVersion_272b)
     {
         if (gui_version < kGuiVersion_350)
+        {
             TextAlignment = ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
+            in->ReadInt32(); // reserved1
+        }
         else
+        {
             TextAlignment = (HorAlignment)in->ReadInt32();
-        in->ReadInt32(); // reserved1
+        }
     }
     else
     {
@@ -359,6 +351,8 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
             SelectedBgColor = 16;
     }
 
+    // NOTE: we leave items in game data format as a potential support for defining
+    // ListBox contents at design-time, although Editor does not support it as of 3.5.0.
     Items.resize(ItemCount);
     SavedGameIndex.resize(ItemCount, -1);
     for (int i = 0; i < ItemCount; ++i)
@@ -366,8 +360,9 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
         Items[i].Read(in);
     }
 
-    if (gui_version >= kGuiVersion_272d && (ListBoxFlags & kListBox_SvgIndex))
-    {
+    if (gui_version >= kGuiVersion_272d && gui_version < kGuiVersion_350 &&
+        (ListBoxFlags & kListBox_SvgIndex))
+    { // NOTE: reading into actual variables only for old savegame support
         for (int i = 0; i < ItemCount; ++i)
             SavedGameIndex[i] = in->ReadInt16();
     }
@@ -401,6 +396,10 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     SavedGameIndex.resize(ItemCount);
     for (int i = 0; i < ItemCount; ++i)
         Items[i] = StrUtil::ReadString(in);
+    // TODO: investigate this, it might be unreasonable to save and read
+    // savegame index like that because list of savegames may easily change
+    // in between writing and restoring the game. Perhaps clearing and forcing
+    // this list to update on load somehow may make more sense.
     if (ListBoxFlags & kListBox_SvgIndex)
         for (int i = 0; i < ItemCount; ++i)
             SavedGameIndex[i] = in->ReadInt16();

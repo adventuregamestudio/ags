@@ -188,9 +188,6 @@ void GUIButton::WriteToFile(Stream *out) const
     out->WriteInt32(Image);
     out->WriteInt32(MouseOverImage);
     out->WriteInt32(PushedImage);
-    out->WriteInt32(CurrentImage);
-    out->WriteInt32(IsPushed);
-    out->WriteInt32(IsMouseOver);
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     out->WriteInt32(ClickAction[kMouseLeft]);
@@ -200,7 +197,6 @@ void GUIButton::WriteToFile(Stream *out) const
 
     _text.WriteCount(out, GUIBUTTON_TEXTLENGTH);
     out->WriteInt32(TextAlignment);
-    out->WriteInt32(0); // reserved int32
 }
 
 void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -210,9 +206,12 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     Image = in->ReadInt32();
     MouseOverImage = in->ReadInt32();
     PushedImage = in->ReadInt32();
-    CurrentImage = in->ReadInt32();
-    IsPushed = in->ReadInt32() != 0;
-    IsMouseOver = in->ReadInt32() != 0;
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        CurrentImage = in->ReadInt32();
+        IsPushed = in->ReadInt32() != 0;
+        IsMouseOver = in->ReadInt32() != 0;
+    }
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     ClickAction[kMouseLeft] = (GUIClickAction)in->ReadInt32();
@@ -224,10 +223,14 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (gui_version >= kGuiVersion_272a)
     {
         if (gui_version < kGuiVersion_350)
+        {
             TextAlignment = ConvertLegacyButtonAlignment((LegacyButtonAlignment)in->ReadInt32());
+            in->ReadInt32(); // reserved1
+        }
         else
+        {
             TextAlignment = (FrameAlignment)in->ReadInt32();
-        in->ReadInt32(); // reserved1
+        }
     }
     else
     {

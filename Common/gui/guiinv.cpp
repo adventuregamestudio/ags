@@ -67,7 +67,6 @@ void GUIInvWindow::WriteToFile(Stream *out) const
     out->WriteInt32(CharId);
     out->WriteInt32(ItemWidth);
     out->WriteInt32(ItemHeight);
-    out->WriteInt32(TopItem);
 }
 
 void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -78,7 +77,10 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
         CharId = in->ReadInt32();
         ItemWidth = in->ReadInt32();
         ItemHeight = in->ReadInt32();
-        TopItem = in->ReadInt32();
+        if (gui_version < kGuiVersion_350)
+        { // NOTE: reading into actual variables only for old savegame support
+            TopItem = in->ReadInt32();
+        }
     }
     else
     {

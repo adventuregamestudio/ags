@@ -486,7 +486,9 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     // Legacy text window tag
     char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
-    in->Read(tw_flags, sizeof(tw_flags));
+    if (gui_version < kGuiVersion_350)
+        in->Read(tw_flags, sizeof(tw_flags));
+
     if (gui_version < kGuiVersion_340)
     {
         Name.ReadCount(in, GUIMAIN_LEGACY_NAME_LENGTH);
@@ -501,31 +503,36 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     Y             = in->ReadInt32();
     Width         = in->ReadInt32();
     Height        = in->ReadInt32();
-    FocusCtrl     = in->ReadInt32();
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        FocusCtrl = in->ReadInt32();
+    }
     ControlCount  = in->ReadInt32();
     PopupStyle    = (GUIPopupStyle)in->ReadInt32();
     PopupAtMouseY = in->ReadInt32();
     BgColor       = in->ReadInt32();
     BgImage       = in->ReadInt32();
     FgColor       = in->ReadInt32();
-    MouseOverCtrl = in->ReadInt32();
-    MouseWasAt.X  = in->ReadInt32();
-    MouseWasAt.Y  = in->ReadInt32();
-    MouseDownCtrl = in->ReadInt32();
-    HighlightCtrl = in->ReadInt32();
-    Flags         = in->ReadInt32();
-    if (tw_flags[0] == kGUIMain_LegacyTextWindow)
-    {
-        Flags |= kGUIMain_TextWindow;
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        MouseOverCtrl = in->ReadInt32();
+        MouseWasAt.X  = in->ReadInt32();
+        MouseWasAt.Y  = in->ReadInt32();
+        MouseDownCtrl = in->ReadInt32();
+        HighlightCtrl = in->ReadInt32();
     }
+    Flags         = in->ReadInt32();
     Transparency  = in->ReadInt32();
     ZOrder        = in->ReadInt32();
     Id            = in->ReadInt32();
     Padding       = in->ReadInt32();
-    in->Seek(sizeof(int32_t) * GUIMAIN_LEGACY_RESERVED_INTS);
+    if (gui_version < kGuiVersion_350)
+        in->Seek(sizeof(int32_t) * GUIMAIN_LEGACY_RESERVED_INTS);
 
     if (gui_version < kGuiVersion_350)
     {
+        if (tw_flags[0] == kGUIMain_LegacyTextWindow)
+            Flags |= kGUIMain_TextWindow;
         // reverse particular flags from older format
         Flags ^= kGUIMain_OldFmtXorMask;
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
@@ -548,35 +555,23 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUIMain::WriteToFile(Stream *out) const
 {
-    char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
-    if (Flags & kGUIMain_TextWindow)
-        tw_flags[0] = kGUIMain_LegacyTextWindow;
-    out->Write(tw_flags, sizeof(tw_flags));
     StrUtil::WriteString(Name, out);
     StrUtil::WriteString(OnClickHandler, out);
     out->WriteInt32(X);
     out->WriteInt32(Y);
     out->WriteInt32(Width);
     out->WriteInt32(Height);
-    out->WriteInt32(FocusCtrl);
     out->WriteInt32(ControlCount);
     out->WriteInt32(PopupStyle);
     out->WriteInt32(PopupAtMouseY);
     out->WriteInt32(BgColor);
     out->WriteInt32(BgImage);
     out->WriteInt32(FgColor);
-    out->WriteInt32(MouseOverCtrl);
-    out->WriteInt32(MouseWasAt.X);
-    out->WriteInt32(MouseWasAt.Y);
-    out->WriteInt32(MouseDownCtrl);
-    out->WriteInt32(HighlightCtrl);
     out->WriteInt32(Flags);
     out->WriteInt32(Transparency);
     out->WriteInt32(ZOrder);
     out->WriteInt32(Id);
     out->WriteInt32(Padding);
-    int32_t reserved_ints[GUIMAIN_LEGACY_RESERVED_INTS] = {0};
-    out->WriteArrayOfInt32(reserved_ints, GUIMAIN_LEGACY_RESERVED_INTS);
     if (ControlCount > 0)
         out->WriteArrayOfInt32(&CtrlRefs.front(), ControlCount);
 }

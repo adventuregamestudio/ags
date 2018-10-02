@@ -122,7 +122,6 @@ void GUIObject::WriteToFile(Stream *out) const
     out->WriteInt32(Width);
     out->WriteInt32(Height);
     out->WriteInt32(ZOrder);
-    out->WriteInt32(IsActivated);
     Name.Write(out);
     out->WriteInt32(_scEventCount);
     for (int i = 0; i < _scEventCount; ++i)
@@ -140,7 +139,10 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
     Width    = in->ReadInt32();
     Height   = in->ReadInt32();
     ZOrder   = in->ReadInt32();
-    IsActivated = in->ReadInt32() != 0;
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        IsActivated = in->ReadInt32() != 0;
+    }
 
     if (gui_version >= kGuiVersion_unkn_106)
         Name.Read(in);

@@ -342,7 +342,7 @@ void SetObjectPosition(int objj, int tox, int toy) {
         quit("!SetObjectPosition: invalid object number");
 
     if (objs[objj].moving > 0)
-        quit("!Object.SetPosition: cannot set position while object is moving");
+        return;
 
     objs[objj].x = tox;
     objs[objj].y = toy;

@@ -110,7 +110,7 @@ void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
 }
 
 void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
-  if ((widd < 1) || (hitt < 1) || (widd > BASEWIDTH) || (hitt > BASEHEIGHT))
+  if ((widd < 1) || (hitt < 1))
     quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
 
   GUIMain *tehgui = &guis[sgui->id];

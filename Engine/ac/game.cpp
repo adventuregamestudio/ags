@@ -2071,7 +2071,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     if (!giveErr)
         maxlen = MAX_MAXSTRLEN;
 
-    if (msnum>=500) { //quit("global message requseted, nto yet supported");
+    if (msnum>=500) {
 
         if ((msnum >= MAXGLOBALMES + 500) || (game.messages[msnum-500]==NULL)) {
             if (giveErr)

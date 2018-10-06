@@ -15,6 +15,7 @@
 #include "ac/common.h"
 #include "ac/runtime_defines.h"
 #include "ac/speech.h"
+#include "debug/debug_log.h"
 
 int user_to_internal_skip_speech(SkipSpeechStyle userval)
 {
@@ -131,8 +132,11 @@ RuntimeScriptValue Sc_Speech_GetGlobalSpeechAnimationDelay(const RuntimeScriptVa
 
 RuntimeScriptValue Sc_Speech_SetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
 {
-	if (game.options[OPT_GLOBALTALKANIMSPD] == 0)
-		quit("!Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
+    if (game.options[OPT_GLOBALTALKANIMSPD] == 0)
+    {
+        debug_script_warn("!Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
+        return RuntimeScriptValue();
+    }
 	API_VARSET_PINT(play.talkanim_speed);
 }
 

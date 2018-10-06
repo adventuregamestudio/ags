@@ -68,7 +68,10 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) 
     numAnimButs++;
     // launch into the first frame
     if (UpdateAnimatingButton(numAnimButs - 1))
-        quit("!AnimateButton: no frames to animate");
+    {
+        debug_script_warn("AnimateButton: no frames to animate");
+        StopButtonAnimation(numAnimButs - 1);
+    }
 }
 
 const char* Button_GetText_New(GUIButton *butt) {

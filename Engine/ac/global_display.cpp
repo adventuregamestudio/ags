@@ -89,7 +89,7 @@ void DisplayMessageBar(int ypos, int ttexcol, int backcol, const char *title, in
 
 void DisplayMessageAtY(int msnum, int ypos) {
     char msgbufr[3001];
-    if (msnum>=500) { //quit("global message requseted, nto yet supported");
+    if (msnum>=500) {
         get_message_text (msnum, msgbufr);
         if (display_message_aschar > 0)
             DisplaySpeech(msgbufr, display_message_aschar);

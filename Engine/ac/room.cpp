@@ -905,8 +905,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         else if (forchar->y <= thisroom.top)
             play.entered_edge = 3;
     }
-    /*  if ((playerchar->x > thisroom.width) | (playerchar->y > thisroom.height))
-    quit("!NewRoomEx: x/y co-ordinates are invalid");*/
     if (thisroom.options[ST_TUNE]>0)
         PlayMusicResetQueue(thisroom.options[ST_TUNE]);
 
@@ -1063,9 +1061,7 @@ void compile_room_script() {
     roominst = ccInstance::CreateFromScript(thisroom.compiled_script);
 
     if ((ccError!=0) || (roominst==NULL)) {
-        char thiserror[400];
-        sprintf(thiserror, "Unable to create local script: %s", ccErrorString);
-        quit(thiserror);
+        quitprintf("Unable to create local script: %s", ccErrorString);
     }
 
     roominstFork = roominst->Fork();

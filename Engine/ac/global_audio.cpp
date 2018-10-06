@@ -236,7 +236,8 @@ int PlayMusicQueued(int musnum) {
 
     if ((play.music_queue_size > 0) && 
         (play.music_queue[play.music_queue_size - 1] >= QUEUED_MUSIC_REPEAT)) {
-            quit("!PlayMusicQueued: cannot queue music after a repeating tune has been queued");
+            debug_script_warn("PlayMusicQueued: cannot queue music after a repeating tune has been queued");
+            return 0;
     }
 
     if (play.music_repeat) {

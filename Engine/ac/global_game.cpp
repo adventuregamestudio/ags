@@ -897,9 +897,7 @@ void _sc_AbortGame(const char* text) {
 int GetGraphicalVariable (const char *varName) {
     InteractionVariable *theVar = FindGraphicalVariable(varName);
     if (theVar == NULL) {
-        char quitmessage[120];
-        sprintf (quitmessage, "!GetGraphicalVariable: interaction variable '%s' not found", varName);
-        quit(quitmessage);
+        quitprintf("!GetGraphicalVariable: interaction variable '%s' not found", varName);
         return 0;
     }
     return theVar->Value;
@@ -908,9 +906,7 @@ int GetGraphicalVariable (const char *varName) {
 void SetGraphicalVariable (const char *varName, int p_value) {
     InteractionVariable *theVar = FindGraphicalVariable(varName);
     if (theVar == NULL) {
-        char quitmessage[120];
-        sprintf (quitmessage, "!SetGraphicalVariable: interaction variable '%s' not found", varName);
-        quit(quitmessage);
+        quitprintf("!SetGraphicalVariable: interaction variable '%s' not found", varName);
     }
     else
         theVar->Value = p_value;

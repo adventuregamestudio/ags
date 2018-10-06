@@ -177,7 +177,10 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
 
     MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
     if (cmls->numstage >= MAXNEEDSTAGES)
-        quit("!MoveCharacterPath: move is too complex, cannot add any further paths");
+    {
+        debug_script_warn("Character_AddWaypoint: move is too complex, cannot add any further paths");
+        return;
+    }
 
     cmls->pos[cmls->numstage] = (x << 16) + y;
     // They're already walking there anyway
@@ -600,9 +603,7 @@ void Character_LockView(CharacterInfo *chap, int vii) {
 void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
 
     if ((vii < 1) || (vii > game.numviews)) {
-        char buffer[150];
-        sprintf (buffer, "!SetCharacterView: invalid view number (You said %d, max is %d)", vii, game.numviews);
-        quit(buffer);
+        quitprintf("!SetCharacterView: invalid view number (You said %d, max is %d)", vii, game.numviews);
     }
     vii--;
 
@@ -933,7 +934,10 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
     if ((xspeed == 0) || (xspeed > 50) || (yspeed == 0) || (yspeed > 50))
         quit("!SetCharacterSpeedEx: invalid speed value");
     if (chaa->walking)
-        quit("!SetCharacterSpeedEx: cannot change speed while walking");
+    {
+        debug_script_warn("Character_SetSpeed: cannot change speed while walking");
+        return;
+    }
 
     chaa->walkspeed = xspeed;
 
@@ -1120,7 +1124,10 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
     }
 
     if (chaa->inv[iit->id] < 1)
-        quit("!SetActiveInventory: character doesn't have any of that inventory");
+    {
+        debug_script_warn("SetActiveInventory: character doesn't have any of that inventory");
+        return;
+    }
 
     chaa->activeinv = iit->id;
 
@@ -1463,7 +1470,10 @@ int Character_GetScaling(CharacterInfo *chaa) {
 void Character_SetScaling(CharacterInfo *chaa, int zoomlevel) {
 
     if ((chaa->flags & CHF_MANUALSCALING) == 0)
-        quit("!Character.Scaling: cannot set property unless ManualScaling is enabled");
+    {
+        debug_script_warn("Character.Scaling: cannot set property unless ManualScaling is enabled");
+        return;
+    }
     if ((zoomlevel < 5) || (zoomlevel > 200))
         quit("!Character.Scaling: scaling level must be between 5 and 200%");
 
@@ -1503,8 +1513,11 @@ void Character_SetSpeechColor(CharacterInfo *chaa, int ncol) {
 
 void Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay)
 {
-	if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
-        quit("!Character.SpeechAnimationDelay cannot be set when global speech animation speed is enabled");
+    if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
+    {
+        debug_script_warn("Character.SpeechAnimationDelay cannot be set when global speech animation speed is enabled");
+        return;
+    }
 
     chaa->speech_anim_speed = newDelay;
 }
@@ -1536,7 +1549,7 @@ int Character_GetThinkingFrame(CharacterInfo *chaa)
     if (char_thinking == chaa->index_id)
         return chaa->thinkview > 0 ? chaa->frame : -1;
 
-    quit("!Character.ThinkingFrame: character is not currently thinking");
+    debug_script_warn("Character.ThinkingFrame: character is not currently thinking");
     return -1;
 }
 
@@ -1637,7 +1650,7 @@ int Character_GetSpeakingFrame(CharacterInfo *chaa) {
         }
     }
 
-    quit("!Character.SpeakingFrame: character is not currently speaking");
+    debug_script_warn("Character.SpeakingFrame: character is not currently speaking");
     return -1;
 }
 
@@ -2000,7 +2013,10 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
 {
     if (chaa->on != 1)
-        quit("!MoveCharacterBlocking: character is turned off and cannot be moved");
+    {
+        debug_script_warn("MoveCharacterBlocking: character is turned off and cannot be moved");
+        return;
+    }
 
     if ((direct == ANYWHERE) || (direct == 1))
         walk_character(chaa->index_id, x, y, 1, isWalk);
@@ -2344,7 +2360,10 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         quit("!DisplaySpeech: character has invalid view");
 
     if (is_text_overlay > 0)
-        quit("!DisplaySpeech: speech was already displayed (nested DisplaySpeech, perhaps room script and global script conflict?)");
+    {
+        debug_script_warn("DisplaySpeech: speech was already displayed (nested DisplaySpeech, perhaps room script and global script conflict?)");
+        return;
+    }
 
     EndSkippingUntilCharStops();
 

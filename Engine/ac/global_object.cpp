@@ -131,9 +131,7 @@ void SetObjectView(int obn,int vii) {
     if (!is_valid_object(obn)) quit("!SetObjectView: invalid object number specified");
     debug_script_log("Object %d set to view %d", obn, vii);
     if ((vii < 1) || (vii > game.numviews)) {
-        char buffer[150];
-        sprintf (buffer, "!SetObjectView: invalid view number (You said %d, max is %d)", vii, game.numviews);
-        quit(buffer);
+        quitprintf("!SetObjectView: invalid view number (You said %d, max is %d)", vii, game.numviews);
     }
     vii--;
 
@@ -342,7 +340,10 @@ void SetObjectPosition(int objj, int tox, int toy) {
         quit("!SetObjectPosition: invalid object number");
 
     if (objs[objj].moving > 0)
+    {
+        debug_script_warn("Object.SetPosition: cannot set position while object is moving");
         return;
+    }
 
     objs[objj].x = tox;
     objs[objj].y = toy;

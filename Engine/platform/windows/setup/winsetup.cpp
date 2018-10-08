@@ -623,10 +623,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     InitGfxModes();
 
     for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
-    {
-        if (it->second->GfxModeList.GetModeCount() > 0)
-            AddString(_hGfxDriverList, it->second->UserName, (DWORD_PTR)it->second->Id.GetCStr());
-    }
+        AddString(_hGfxDriverList, it->second->UserName, (DWORD_PTR)it->second->Id.GetCStr());
     SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
     OnGfxDriverUpdate();
 
@@ -1052,11 +1049,8 @@ void WinSetupDialog::InitGfxModes()
     InitDriverDescFromFactory("OGL");
     InitDriverDescFromFactory("Software");
 
-    size_t total_modes = 0;
-    for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
-        total_modes += it->second->GfxModeList.Modes.size();
-    if (total_modes == 0)
-        MessageBox(_hwnd, "Unable to query available graphic modes.", "Initialization error", MB_OK | MB_ICONERROR);
+    if (_drvDescMap.size() == 0)
+        MessageBox(_hwnd, "Unable to detect any supported graphic drivers!", "Initialization error", MB_OK | MB_ICONERROR);
 }
 
 // "Less" predicate that compares two display modes only by their screen metrics
@@ -1099,6 +1093,12 @@ void WinSetupDialog::InitDriverDescFromFactory(const String &id)
         }
         std::sort(modes.begin(), modes.end(), SizeLess);
         delete gfxm_list;
+    }
+    else
+    {
+        // Add two default modes in hope that engine will be able to handle them (or fallbacks to something else)
+        modes.push_back(DisplayMode(GraphicResolution(_desktopSize.Width, _desktopSize.Height, drv_desc->UseColorDepth)));
+        modes.push_back(DisplayMode(GraphicResolution(_winCfg.GameResolution.Width, _winCfg.GameResolution.Height, drv_desc->UseColorDepth)));
     }
 
     drv_desc->FilterList.resize(gfx_factory->GetFilterCount());

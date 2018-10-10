@@ -163,11 +163,11 @@ namespace AGS.Editor
             string scriptFileName = GetCompiledPath(Factory.AGSEditor.BaseGameFileName.Replace(" ", "")); // strip whitespace from script name
             string scriptText =
 @"#!/bin/sh
-SCRIPTPATH=""$(dirname ""$(readlink -f $0)"")""
+SCRIPTPATH=""$(dirname ""$(readlink -f ""$0"")"")""
 
-if test ""x$@"" = ""x-h"" -o ""x$@"" = ""x--help""
+if test ""x$@"" = ""x--help""
   then
-    echo ""Usage:"" ""$(basename ""$(readlink -f $0)"")"" ""[<ags options>]""
+    echo ""Usage:"" ""$(basename ""$(readlink -f ""$0"")"")"" ""[<ags options>]""
     echo """"
 fi
 

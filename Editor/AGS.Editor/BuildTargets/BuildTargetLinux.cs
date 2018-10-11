@@ -104,11 +104,11 @@ namespace AGS.Editor
             {
                 results +=
 @"
-    ln -f -s ""$SCRIPTPATH/data/lib" + bit + @"/" + soName + @""" """ + soName + @"""";
+    ln -f -s ""$scriptdir/data/lib" + bit + @"/" + soName + @""" """ + soName + @"""";
             }
             results +=
 @"
-    ALLEGRO_MODULES=""$SCRIPTPATH/data/lib" + bit + @""" ""$SCRIPTPATH/data/ags" + bit + @""" ""$@"" ""$SCRIPTPATH/data/""";
+    ALLEGRO_MODULES=""$scriptdir/data/lib" + bit + @""" ""$scriptdir/data/ags" + bit + @""" ""$@"" ""$scriptdir/data/""";
             return results;
         }
 
@@ -163,18 +163,19 @@ namespace AGS.Editor
             string scriptFileName = GetCompiledPath(Factory.AGSEditor.BaseGameFileName.Replace(" ", "")); // strip whitespace from script name
             string scriptText =
 @"#!/bin/sh
-SCRIPTPATH=""$(dirname ""$(readlink -f ""$0"")"")""
+scriptpath=$(readlink -f ""$0"")
+scriptdir=$(dirname ""$scriptpath"")
 
-if test ""x$@"" = ""x--help""
-  then
-    echo ""Usage:"" ""$(basename ""$(readlink -f ""$0"")"")"" ""[<ags options>]""
-    echo """"
-fi
+for arg; do
+    if [ ""$arg"" = ""--help"" ]; then
+        echo ""Usage: $(basename ""$scriptpath"") [<ags options>]\n""
+        break
+    fi
+done
 
-if test $(uname -m) = x86_64
-  then" + GetSymLinkScriptForEachPlugin(true) +
+if [ ""$(uname -m)"" = ""x86_64"" ]; then" + GetSymLinkScriptForEachPlugin(true) +
 @"
-  else" + GetSymLinkScriptForEachPlugin(false) +
+else" + GetSymLinkScriptForEachPlugin(false) +
 @"
 fi
 ";

@@ -490,7 +490,7 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
         int xpos = multiply_up_coordinate(xx - arx);
         int ypos = multiply_up_coordinate(yy - ary);
 
-        if (gfxDriver->HasAcceleratedStretchAndFlip())
+        if (gfxDriver->HasAcceleratedTransform())
         {
             // hardware acceleration, so the sprite in memory will not have
             // been stretched, it will be original size. Thus, adjust our

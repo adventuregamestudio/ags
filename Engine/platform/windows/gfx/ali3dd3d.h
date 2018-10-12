@@ -198,7 +198,7 @@ public:
     virtual void SetGamma(int newGamma);
     virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }
     virtual bool RequiresFullRedrawEachFrame() { return true; }
-    virtual bool HasAcceleratedStretchAndFlip() { return true; }
+    virtual bool HasAcceleratedTransform() { return true; }
     virtual void SetScreenTint(int red, int green, int blue);
 
     typedef stdtr1compat::shared_ptr<D3DGfxFilter> PD3DFilter;

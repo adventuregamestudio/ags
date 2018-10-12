@@ -1442,10 +1442,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
 // intact from last time; 0 otherwise
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware) {
     int useindx = aa;
-    bool hardwareAccelerated = gfxDriver->HasAcceleratedStretchAndFlip();
-
-    if (alwaysUseSoftware)
-        hardwareAccelerated = false;
+    bool hardwareAccelerated = !alwaysUseSoftware && gfxDriver->HasAcceleratedTransform();
 
     if (spriteset[objs[aa].num] == NULL)
         quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", aa, objs[aa].num);
@@ -1520,11 +1517,11 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
             isMirrored = 1;
     }
 
-    if ((objcache[aa].image != NULL) &&
-        (objcache[aa].sppic == objs[aa].num) &&
+    if ((hardwareAccelerated) &&
         (walkBehindMethod != DrawOverCharSprite) &&
-        (actsps[useindx] != NULL) &&
-        (hardwareAccelerated))
+        (objcache[aa].image != NULL) &&
+        (objcache[aa].sppic == objs[aa].num) &&
+        (actsps[useindx] != NULL))
     {
         // HW acceleration
         objcache[aa].tintamntwas = tint_level;
@@ -1539,7 +1536,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         return 1;
     }
 
-    if ((!hardwareAccelerated) && (gfxDriver->HasAcceleratedStretchAndFlip()))
+    if ((!hardwareAccelerated) && (gfxDriver->HasAcceleratedTransform()))
     {
         // They want to draw it in software mode with the D3D driver,
         // so force a redraw
@@ -1595,8 +1592,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 
     // apply tints or lightenings where appropriate, else just copy
     // the source bitmap
-    if (((tint_level > 0) || (light_level != 0)) &&
-        (!hardwareAccelerated))
+    if (!hardwareAccelerated && ((tint_level > 0) || (light_level != 0)))
     {
         apply_tint_or_light(useindx, light_level, tint_level, tint_red,
             tint_green, tint_blue, tint_light, coldept,
@@ -1608,10 +1604,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 
     // Re-use the bitmap if it's the same size
     objcache[aa].image = recycle_bitmap(objcache[aa].image, coldept, sprwidth, sprheight);
-
     // Create the cached image and store it
     objcache[aa].image->Blit(actsps[useindx], 0, 0, 0, 0, sprwidth, sprheight);
-
     objcache[aa].sppic = objs[aa].num;
     objcache[aa].tintamntwas = tint_level;
     objcache[aa].tintredwas = tint_red;
@@ -1678,7 +1672,7 @@ void prepare_objects_for_drawing() {
             actspsbmp[useindx] = gfxDriver->CreateDDBFromBitmap(actsps[useindx], hasAlpha);
         }
 
-        if (gfxDriver->HasAcceleratedStretchAndFlip())
+        if (gfxDriver->HasAcceleratedTransform())
         {
             actspsbmp[useindx]->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
             actspsbmp[useindx]->SetStretch(objs[aa].last_width, objs[aa].last_height);
@@ -1868,7 +1862,7 @@ void prepare_characters_for_drawing() {
         }
         else if ((charcache[aa].inUse) && 
             (charcache[aa].sppic == specialpic) &&
-            (gfxDriver->HasAcceleratedStretchAndFlip()))
+            (gfxDriver->HasAcceleratedTransform()))
         {
             usingCachedImage = true;
         }
@@ -1915,7 +1909,7 @@ void prepare_characters_for_drawing() {
             // create the base sprite in actsps[useindx], which will
             // be scaled and/or flipped, as appropriate
             int actspsUsed = 0;
-            if (!gfxDriver->HasAcceleratedStretchAndFlip())
+            if (!gfxDriver->HasAcceleratedTransform())
             {
                 actspsUsed = scale_and_flip_sprite(
                     useindx, coldept, zoom_level, sppic,
@@ -1930,7 +1924,7 @@ void prepare_characters_for_drawing() {
             our_eip = 335;
 
             if (((light_level != 0) || (tint_amount != 0)) &&
-                (!gfxDriver->HasAcceleratedStretchAndFlip())) {
+                (!gfxDriver->HasAcceleratedTransform())) {
                     // apply the lightening or tinting
                     Bitmap *comeFrom = NULL;
                     // if possible, direct read from the source image
@@ -1987,7 +1981,7 @@ void prepare_characters_for_drawing() {
             actspsbmp[useindx] = recycle_ddb_bitmap(actspsbmp[useindx], actsps[useindx], hasAlpha);
         }
 
-        if (gfxDriver->HasAcceleratedStretchAndFlip()) 
+        if (gfxDriver->HasAcceleratedTransform()) 
         {
             actspsbmp[useindx]->SetStretch(newwidth, newheight);
             actspsbmp[useindx]->SetFlippedLeftRight(isMirrored != 0);
@@ -2023,9 +2017,8 @@ void prepare_characters_for_drawing() {
 
 
 
-// draw_screen_background: draws the background scene, all the interfaces
-// and objects; basically, the entire screen
-void draw_screen_background(Bitmap *ds) {
+// Draws the room and its contents: background, objects, characters
+void draw_room(Bitmap *ds) {
 
     static int offsetxWas = -100, offsetyWas = -100;
 
@@ -2105,7 +2098,7 @@ void draw_screen_background(Bitmap *ds) {
     }
     our_eip=36;
 
-	allegro_bitmap_test_draw();
+	//allegro_bitmap_test_draw();
 }
 
 
@@ -2144,9 +2137,8 @@ void draw_fps()
     draw_and_invalidate_text(ds, get_fixed_pixel_size(250), yp, FONT_SPEECH, text_color, tbuffer);
 }
 
-// draw_screen_overlay: draws any stuff currently on top of the background,
-// like a message box or popup interface
-void draw_screen_overlay() {
+// Draw GUI and overlays of all kinds, anything outside the room space
+void draw_gui_and_overlays() {
     int gg;
 
     add_thing_to_draw(NULL, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
@@ -2257,6 +2249,7 @@ void draw_screen_overlay() {
     our_eip = 1099;
 }
 
+// Push the gathered list of sprites into the active graphic renderer
 void put_sprite_list_on_screen()
 {
     // *** Draw the Things To Draw List ***
@@ -2508,7 +2501,7 @@ void construct_virtual_screen(bool fullRedraw)
         if (fullRedraw)
             invalidate_screen();
 
-        draw_screen_background(ds);
+        draw_room(ds);
     }
     else if (!gfxDriver->RequiresFullRedrawEachFrame()) 
     {
@@ -2522,8 +2515,8 @@ void construct_virtual_screen(bool fullRedraw)
 
     // make sure that the mp3 is always playing smoothly
     update_mp3();
-        our_eip=4;
-    draw_screen_overlay();
+    our_eip=4;
+    draw_gui_and_overlays();
     put_sprite_list_on_screen();
     draw_misc_info();
 

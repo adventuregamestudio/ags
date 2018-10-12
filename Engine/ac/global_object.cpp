@@ -493,7 +493,7 @@ void GetObjectPropertyText (int item, const char *property, char *bufer)
 
 Bitmap *GetObjectImage(int obj, int *isFlipped) 
 {
-    if (!gfxDriver->HasAcceleratedStretchAndFlip())
+    if (!gfxDriver->HasAcceleratedTransform())
     {
         if (actsps[obj] != NULL) {
             // the actsps image is pre-flipped, so no longer register the image as such

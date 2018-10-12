@@ -152,7 +152,7 @@ public:
   virtual Common::Bitmap* GetMemoryBackBuffer() = 0;
   virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer) = 0;
   virtual bool RequiresFullRedrawEachFrame() = 0;
-  virtual bool HasAcceleratedStretchAndFlip() = 0;
+  virtual bool HasAcceleratedTransform() = 0;
   virtual bool UsesMemoryBackBuffer() = 0;
   virtual ~IGraphicsDriver() { }
 };

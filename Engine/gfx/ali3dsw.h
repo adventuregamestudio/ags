@@ -170,7 +170,7 @@ public:
     virtual void Vsync();
     virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling) { }
     virtual bool RequiresFullRedrawEachFrame() { return false; }
-    virtual bool HasAcceleratedStretchAndFlip() { return false; }
+    virtual bool HasAcceleratedTransform() { return false; }
     virtual bool UsesMemoryBackBuffer() { return true; }
     virtual Bitmap *GetMemoryBackBuffer();
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer) { virtualScreen = backBuffer; }

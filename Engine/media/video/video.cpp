@@ -235,7 +235,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
     {
         drawAtX = play.viewport.GetWidth() / 2 - fliTargetWidth / 2;
         drawAtY = play.viewport.GetHeight() / 2 - fliTargetHeight / 2;
-        if (!gfxDriver->HasAcceleratedStretchAndFlip())
+        if (!gfxDriver->HasAcceleratedTransform())
         {
             fli_target->StretchBlt(&gl_TheoraBuffer, RectWH(0, 0, gl_TheoraBuffer.GetWidth(), gl_TheoraBuffer.GetHeight()), 
                 RectWH(drawAtX, drawAtY, fliTargetWidth, fliTargetHeight));
@@ -404,7 +404,7 @@ void play_theora_video(const char *name, int skip, int flags)
         stretch_flc = 0;
     }
 
-    if ((stretch_flc) && (!gfxDriver->HasAcceleratedStretchAndFlip()))
+    if ((stretch_flc) && (!gfxDriver->HasAcceleratedTransform()))
     {
         fli_target = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), game.GetColorDepth());
         fli_target->Clear();

@@ -359,7 +359,7 @@ void engine_post_gfxmode_draw_setup(const DisplayMode &dm)
 {
     engine_setup_color_conversions(dm.ColorDepth);
 
-    if (gfxDriver->HasAcceleratedStretchAndFlip()) 
+    if (gfxDriver->HasAcceleratedTransform()) 
     {
         walkBehindMethod = DrawAsSeparateSprite;
         CreateBlankImage(game.GetColorDepth());

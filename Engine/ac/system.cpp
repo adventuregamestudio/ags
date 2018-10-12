@@ -99,7 +99,7 @@ const char *System_GetVersion() {
 
 int System_GetHardwareAcceleration() 
 {
-    return gfxDriver->HasAcceleratedStretchAndFlip() ? 1 : 0;
+    return gfxDriver->HasAcceleratedTransform() ? 1 : 0;
 }
 
 int System_GetNumLock()

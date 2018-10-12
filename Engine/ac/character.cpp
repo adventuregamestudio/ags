@@ -2188,7 +2188,7 @@ void CheckViewFrameForCharacter(CharacterInfo *chi) {
 
 Bitmap *GetCharacterImage(int charid, int *isFlipped) 
 {
-    if (!gfxDriver->HasAcceleratedStretchAndFlip())
+    if (!gfxDriver->HasAcceleratedTransform())
     {
         if (actsps[charid + MAX_INIT_SPR] != NULL) 
         {

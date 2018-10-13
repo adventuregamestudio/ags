@@ -513,6 +513,11 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   // Set the window we are actually drawing into to the desired size.
   XResizeWindow(_xwin.display, _xwin.window, mode.Width, mode.Height);
 
+  // Make Allegro aware of the new window size, otherwise the mouse cursor
+  // movement may be erratic.
+  _xwin.window_width = mode.Width;
+  _xwin.window_height = mode.Height;
+
   {
     // Ask the window manager to add (or remove) the "fullscreen" property on
     // our top-level window.

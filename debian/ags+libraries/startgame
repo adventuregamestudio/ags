@@ -1,15 +1,16 @@
 #!/bin/sh
-SCRIPTPATH="$(dirname "$(readlink -f $0)")"
+scriptpath=$(readlink -f "$0")
+scriptdir=$(dirname "$scriptpath")
 
-if test "x$@" = "x-h" -o "x$@" = "x--help"
-  then
-    echo "Usage:" "$(basename "$(readlink -f $0)")" "[<ags options>]"
-    echo ""
-fi
+for arg; do
+    if [ "$arg" = "--help" ]; then
+        echo "Usage: $(basename "$scriptpath") [<ags options>]\n"
+        break
+    fi
+done
 
-if test $(uname -m) = x86_64
-  then
-    ALLEGRO_MODULES="$SCRIPTPATH/data/lib64" "$SCRIPTPATH/data/ags64" "$@" "$SCRIPTPATH/data/"
-  else
-    ALLEGRO_MODULES="$SCRIPTPATH/data/lib32" "$SCRIPTPATH/data/ags32" "$@" "$SCRIPTPATH/data/"
+if [ "$(uname -m)" = "x86_64" ]; then
+    ALLEGRO_MODULES="$scriptdir/data/lib64" "$scriptdir/data/ags64" "$@" "$scriptdir/data/"
+else
+    ALLEGRO_MODULES="$scriptdir/data/lib32" "$scriptdir/data/ags32" "$@" "$scriptdir/data/"
 fi

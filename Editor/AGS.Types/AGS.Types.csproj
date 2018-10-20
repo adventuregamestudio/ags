@@ -120,10 +120,12 @@
     <Compile Include="Enums\CustomPropertyAppliesTo.cs" />
     <Compile Include="Enums\CustomPropertyType.cs" />
     <Compile Include="Enums\FontOutlineStyle.cs" />
+    <Compile Include="Enums\FrameAlignment.cs" />
     <Compile Include="Enums\GameColorDepth.cs" />
     <Compile Include="Enums\GameTextType.cs" />
     <Compile Include="Enums\GraphicsDriver.cs" />
     <Compile Include="Enums\GUIAlphaStyle.cs" />
+    <Compile Include="Enums\GUIPopupStyle.cs" />
     <Compile Include="Enums\InterfaceDisabledAction.cs" />
     <Compile Include="Enums\InventoryHotspotMarkerStyle.cs" />
     <Compile Include="Enums\LipSyncType.cs" />
@@ -199,7 +201,6 @@
     <Compile Include="ViewLoop.cs" />
     <Compile Include="MouseCursor.cs" />
     <Compile Include="PropertyGridExtras\AGSEventPropertyAttribute.cs" />
-    <Compile Include="Enums\ListBoxTextAlignment.cs" />
     <Compile Include="PropertyGridExtras\EnumTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\ScriptFunctionUIEditor.cs" />
     <Compile Include="Exceptions\AGSEditorException.cs" />
@@ -218,13 +219,11 @@
     <Compile Include="GUISlider.cs" />
     <Compile Include="GUITextBox.cs" />
     <Compile Include="Enums\GUIVisibility.cs" />
-    <Compile Include="Enums\LabelTextAlignment.cs" />
     <Compile Include="Exceptions\InvalidDataException.cs" />
     <Compile Include="InventoryHotspotMarker.cs" />
     <Compile Include="InventoryItem.cs" />
     <Compile Include="PaletteEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Enums\TextAlignment.cs" />
     <Compile Include="PropertyGridExtras\PropertyTabEvents.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="Scripts.cs" />

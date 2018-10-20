@@ -14,7 +14,6 @@ namespace AGS.Types
     {
         public const string CONTROL_DISPLAY_NAME = "TextBox";
         public const string SCRIPT_CLASS_TYPE = "TextBox";
-        public const int MAX_TEXT_LENGTH = 199;
 
         public GUITextBox(int x, int y, int width, int height)
             : base(x, y, width, height)
@@ -112,17 +111,7 @@ namespace AGS.Types
         public string Text
         {
             get { return _text; }
-            set
-            {
-                if (value.Length > MAX_TEXT_LENGTH)
-                {
-                    _text = value.Substring(0, MAX_TEXT_LENGTH);
-                }
-                else
-                {
-                    _text = value;
-                }
-            }
+            set { _text = value; }
         }
 
     }

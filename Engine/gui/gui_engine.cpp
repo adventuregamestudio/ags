@@ -114,7 +114,7 @@ namespace Common
 
 bool GUIObject::IsClickable() const
 {
-    return !(Flags & kGUICtrl_NoClicks);
+    return (Flags & kGUICtrl_Clickable) != 0;
 }
 
 void GUILabel::PrepareTextToDraw()

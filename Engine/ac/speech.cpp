@@ -189,9 +189,18 @@ RuntimeScriptValue Sc_Speech_GetTextAlignment(const RuntimeScriptValue *params, 
     API_VARGET_INT(play.speech_text_align);
 }
 
+RuntimeScriptValue Sc_Speech_SetTextAlignment_Old(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ASSERT_VARIABLE_VALUE(play.speech_text_align);
+    play.speech_text_align = ReadScriptAlignment(params[0].IValue);
+    return RuntimeScriptValue();
+}
+
 RuntimeScriptValue Sc_Speech_SetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARSET_PINT(play.speech_text_align);
+    ASSERT_VARIABLE_VALUE(play.speech_text_align);
+    play.speech_text_align = (HorAlignment)params[0].IValue;
+    return RuntimeScriptValue();
 }
 
 RuntimeScriptValue Sc_Speech_GetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
@@ -211,7 +220,7 @@ RuntimeScriptValue Sc_Speech_GetVoiceMode(const RuntimeScriptValue *params, int3
 
 extern RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count);
 
-void RegisterSpeechAPI()
+void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
 {
     ccAddExternalStaticFunction("Speech::get_AnimationStopTimeMargin", Sc_Speech_GetAnimationStopTimeMargin);
     ccAddExternalStaticFunction("Speech::set_AnimationStopTimeMargin", Sc_Speech_SetAnimationStopTimeMargin);
@@ -232,7 +241,10 @@ void RegisterSpeechAPI()
     ccAddExternalStaticFunction("Speech::get_Style",                  Sc_Speech_GetStyle);
     ccAddExternalStaticFunction("Speech::set_Style",                  Sc_SetSpeechStyle);
     ccAddExternalStaticFunction("Speech::get_TextAlignment",          Sc_Speech_GetTextAlignment);
-    ccAddExternalStaticFunction("Speech::set_TextAlignment",          Sc_Speech_SetTextAlignment);
+    if (base_api < kScriptAPI_v350)
+        ccAddExternalStaticFunction("Speech::set_TextAlignment",      Sc_Speech_SetTextAlignment_Old);
+    else
+        ccAddExternalStaticFunction("Speech::set_TextAlignment",      Sc_Speech_SetTextAlignment);
 	ccAddExternalStaticFunction("Speech::get_UseGlobalSpeechAnimationDelay", Sc_Speech_GetUseGlobalSpeechAnimationDelay);
 	ccAddExternalStaticFunction("Speech::set_UseGlobalSpeechAnimationDelay", Sc_Speech_SetUseGlobalSpeechAnimationDelay);
     ccAddExternalStaticFunction("Speech::get_VoiceMode",              Sc_Speech_GetVoiceMode);

@@ -626,6 +626,14 @@ void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
     chap->pic_yoffs = 0;
 }
 
+void Character_LockViewAligned_Old(CharacterInfo *chap, int vii, int loop, int align) {
+    Character_LockViewAlignedEx(chap, vii, loop, ConvertLegacyScriptAlignment((LegacyScriptAlignment)align), STOP_MOVING);
+}
+
+void Character_LockViewAlignedEx_Old(CharacterInfo *chap, int vii, int loop, int align, int stopMoving) {
+    Character_LockViewAlignedEx(chap, vii, loop, ConvertLegacyScriptAlignment((LegacyScriptAlignment)align), stopMoving);
+}
+
 void Character_LockViewAligned(CharacterInfo *chap, int vii, int loop, int align) {
     Character_LockViewAlignedEx(chap, vii, loop, align, STOP_MOVING);
 }
@@ -648,11 +656,11 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
     int newLeft = multiply_up_coordinate(chap->x) - game.SpriteInfos[newpic].Width / 2;
     int xdiff = 0;
 
-    if (align == SCALIGN_LEFT)
+    if (align & kMAlignLeft)
         xdiff = leftSide - newLeft;
-    else if (align == SCALIGN_CENTRE)
+    else if (align & kMAlignHCenter)
         xdiff = 0;
-    else if (align == SCALIGN_RIGHT)
+    else if (align & kMAlignRight)
         xdiff = (leftSide + game.SpriteInfos[sppic].Width) - (newLeft + game.SpriteInfos[newpic].Width);
     else
         quit("!SetCharacterViewEx: invalid alignment type specified");
@@ -755,9 +763,14 @@ void Character_RemoveTint(CharacterInfo *chaa) {
     }
 }
 
+int Character_GetHasExplicitTint_Old(CharacterInfo *ch)
+{
+    return ch->has_explicit_tint() || ch->has_explicit_light();
+}
+
 int Character_GetHasExplicitTint(CharacterInfo *ch)
 {
-    return ch->has_explicit_tint() || ((game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v341) && ch->has_explicit_light());
+    return ch->has_explicit_tint();
 }
 
 void Character_Say(CharacterInfo *chaa, const char *text) {
@@ -3055,12 +3068,22 @@ RuntimeScriptValue Sc_Character_LockViewEx(void *self, const RuntimeScriptValue 
 }
 
 // void (CharacterInfo *chap, int vii, int loop, int align)
+RuntimeScriptValue Sc_Character_LockViewAligned_Old(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_LockViewAligned_Old);
+}
+
+// void (CharacterInfo *chap, int vii, int loop, int align, int stopMoving)
+RuntimeScriptValue Sc_Character_LockViewAlignedEx_Old(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewAlignedEx_Old);
+}
+
 RuntimeScriptValue Sc_Character_LockViewAligned(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_LockViewAligned);
 }
 
-// void (CharacterInfo *chap, int vii, int loop, int align, int stopMoving)
 RuntimeScriptValue Sc_Character_LockViewAlignedEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewAlignedEx);
@@ -3390,6 +3413,11 @@ RuntimeScriptValue Sc_Character_GetFrame(void *self, const RuntimeScriptValue *p
 RuntimeScriptValue Sc_Character_SetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetFrame);
+}
+
+RuntimeScriptValue Sc_Character_GetHasExplicitTint_Old(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetHasExplicitTint_Old);
 }
 
 RuntimeScriptValue Sc_Character_GetHasExplicitTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -3751,7 +3779,7 @@ void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
     Character_Think(chaa, scsf_buffer);
 }
 
-void RegisterCharacterAPI()
+void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
 {
     ccAddExternalObjectFunction("Character::AddInventory^2",            Sc_Character_AddInventory);
 	ccAddExternalObjectFunction("Character::AddWaypoint^2",             Sc_Character_AddWaypoint);
@@ -3776,8 +3804,16 @@ void RegisterCharacterAPI()
     ccAddExternalObjectFunction("Character::IsInteractionAvailable^1",  Sc_Character_IsInteractionAvailable);
 	ccAddExternalObjectFunction("Character::LockView^1",                Sc_Character_LockView);
 	ccAddExternalObjectFunction("Character::LockView^2",                Sc_Character_LockViewEx);
-	ccAddExternalObjectFunction("Character::LockViewAligned^3",         Sc_Character_LockViewAligned);
-	ccAddExternalObjectFunction("Character::LockViewAligned^4",         Sc_Character_LockViewAlignedEx);
+    if (base_api < kScriptAPI_v350)
+    {
+        ccAddExternalObjectFunction("Character::LockViewAligned^3", Sc_Character_LockViewAligned_Old);
+        ccAddExternalObjectFunction("Character::LockViewAligned^4", Sc_Character_LockViewAlignedEx_Old);
+    }
+    else
+    {
+        ccAddExternalObjectFunction("Character::LockViewAligned^3", Sc_Character_LockViewAligned);
+        ccAddExternalObjectFunction("Character::LockViewAligned^4", Sc_Character_LockViewAlignedEx);
+    }
 	ccAddExternalObjectFunction("Character::LockViewFrame^3",           Sc_Character_LockViewFrame);
 	ccAddExternalObjectFunction("Character::LockViewFrame^4",           Sc_Character_LockViewFrameEx);
 	ccAddExternalObjectFunction("Character::LockViewOffset^3",          Sc_Character_LockViewOffset);
@@ -3830,7 +3866,10 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::set_DiagonalLoops",         Sc_Character_SetDiagonalWalking);
 	ccAddExternalObjectFunction("Character::get_Frame",                 Sc_Character_GetFrame);
 	ccAddExternalObjectFunction("Character::set_Frame",                 Sc_Character_SetFrame);
-	ccAddExternalObjectFunction("Character::get_HasExplicitTint",       Sc_Character_GetHasExplicitTint);
+    if (base_api < kScriptAPI_v341)
+        ccAddExternalObjectFunction("Character::get_HasExplicitTint",       Sc_Character_GetHasExplicitTint_Old);
+    else
+	    ccAddExternalObjectFunction("Character::get_HasExplicitTint",       Sc_Character_GetHasExplicitTint);
 	ccAddExternalObjectFunction("Character::get_ID",                    Sc_Character_GetID);
 	ccAddExternalObjectFunction("Character::get_IdleView",              Sc_Character_GetIdleView);
 	ccAddExternalObjectFunction("Character::geti_InventoryQuantity",    Sc_Character_GetIInventoryQuantity);
@@ -3922,8 +3961,16 @@ void RegisterCharacterAPI()
     ccAddExternalFunctionForPlugin("Character::IsCollidingWithObject^1",   (void*)Character_IsCollidingWithObject);
     ccAddExternalFunctionForPlugin("Character::LockView^1",                (void*)Character_LockView);
     ccAddExternalFunctionForPlugin("Character::LockView^2",                (void*)Character_LockViewEx);
-    ccAddExternalFunctionForPlugin("Character::LockViewAligned^3",         (void*)Character_LockViewAligned);
-    ccAddExternalFunctionForPlugin("Character::LockViewAligned^4",         (void*)Character_LockViewAlignedEx);
+    if (base_api < kScriptAPI_v341)
+    {
+        ccAddExternalFunctionForPlugin("Character::LockViewAligned^3", (void*)Character_LockViewAligned_Old);
+        ccAddExternalFunctionForPlugin("Character::LockViewAligned^4", (void*)Character_LockViewAlignedEx_Old);
+    }
+    else
+    {
+        ccAddExternalFunctionForPlugin("Character::LockViewAligned^3", (void*)Character_LockViewAligned);
+        ccAddExternalFunctionForPlugin("Character::LockViewAligned^4", (void*)Character_LockViewAlignedEx);
+    }
     ccAddExternalFunctionForPlugin("Character::LockViewFrame^3",           (void*)Character_LockViewFrame);
     ccAddExternalFunctionForPlugin("Character::LockViewFrame^4",           (void*)Character_LockViewFrameEx);
     ccAddExternalFunctionForPlugin("Character::LockViewOffset^3",          (void*)Character_LockViewOffset);
@@ -3973,7 +4020,10 @@ void RegisterCharacterAPI()
     ccAddExternalFunctionForPlugin("Character::set_DiagonalLoops",         (void*)Character_SetDiagonalWalking);
     ccAddExternalFunctionForPlugin("Character::get_Frame",                 (void*)Character_GetFrame);
     ccAddExternalFunctionForPlugin("Character::set_Frame",                 (void*)Character_SetFrame);
-    ccAddExternalFunctionForPlugin("Character::get_HasExplicitTint",       (void*)Character_GetHasExplicitTint);
+    if (base_api < kScriptAPI_v341)
+        ccAddExternalFunctionForPlugin("Character::get_HasExplicitTint",       (void*)Character_GetHasExplicitTint_Old);
+    else
+        ccAddExternalFunctionForPlugin("Character::get_HasExplicitTint",       (void*)Character_GetHasExplicitTint);
     ccAddExternalFunctionForPlugin("Character::get_ID",                    (void*)Character_GetID);
     ccAddExternalFunctionForPlugin("Character::get_IdleView",              (void*)Character_GetIdleView);
     ccAddExternalFunctionForPlugin("Character::geti_InventoryQuantity",    (void*)Character_GetIInventoryQuantity);

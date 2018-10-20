@@ -35,10 +35,10 @@ GUIListBox::GUIListBox()
     VisibleItemCount = 0;
     Font = 0;
     TextColor = 0;
-    BgColor = 7;
-    ListBoxFlags = 0;
+    SelectedTextColor = 7;
+    ListBoxFlags = kListBox_DefFlags;
     SelectedBgColor = 16;
-    TextAlignment = 0;
+    TextAlignment = kHAlignLeft;
 
     _scEventCount = 1;
     _scEventNames[0] = "SelectionChanged";
@@ -56,9 +56,24 @@ int GUIListBox::GetItemAt(int x, int y) const
     return index;
 }
 
+bool GUIListBox::AreArrowsShown() const
+{
+    return (ListBoxFlags & kListBox_ShowArrows) != 0;
+}
+
+bool GUIListBox::IsBorderShown() const
+{
+    return (ListBoxFlags & kListBox_ShowBorder) != 0;
+}
+
+bool GUIListBox::IsSvgIndex() const
+{
+    return (ListBoxFlags & kListBox_SvgIndex) != 0;
+}
+
 bool GUIListBox::IsInRightMargin(int x) const
 {
-    if (x >= (Width - get_fixed_pixel_size(6)) && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
+    if (x >= (Width - get_fixed_pixel_size(6)) && IsBorderShown() && AreArrowsShown())
         return 1;
     return 0;
 }
@@ -91,7 +106,8 @@ void GUIListBox::Draw(Common::Bitmap *ds)
     check_font(&Font);
     color_t text_color = ds->GetCompatibleColor(TextColor);
     color_t draw_color = ds->GetCompatibleColor(TextColor);
-    if ((ListBoxFlags & kListBox_NoBorder) == 0) {
+    if (IsBorderShown())
+    {
         ds->DrawRect(Rect(X, Y, X + width + (pixel_size - 1), Y + height + (pixel_size - 1)), draw_color);
         if (pixel_size > 1)
             ds->DrawRect(Rect(X + 1, Y + 1, X + width, Y + height), draw_color);
@@ -103,7 +119,7 @@ void GUIListBox::Draw(Common::Bitmap *ds)
     SetFont(Font);
 
     // draw the scroll bar in if necessary
-    if (ItemCount > VisibleItemCount && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
+    if (ItemCount > VisibleItemCount && IsBorderShown() && AreArrowsShown())
     {
         int xstrt, ystrt;
         ds->DrawRect(Rect(X + width - get_fixed_pixel_size(7), Y, (X + (pixel_size - 1) + width) - get_fixed_pixel_size(7), Y + height), draw_color);
@@ -136,13 +152,13 @@ void GUIListBox::Draw(Common::Bitmap *ds)
         int at_y = Y + pixel_size + item * RowHeight;
         if (item + TopItem == SelectedItem)
         {
-            text_color = ds->GetCompatibleColor(BgColor);
+            text_color = ds->GetCompatibleColor(SelectedTextColor);
             if (SelectedBgColor > 0)
             {
                 int stretch_to = (X + width) - pixel_size;
                 // draw the SelectedItem item bar (if colour not transparent)
                 draw_color = ds->GetCompatibleColor(SelectedBgColor);
-                if ((VisibleItemCount < ItemCount) && ((ListBoxFlags & kListBox_NoBorder) == 0) && ((ListBoxFlags & kListBox_NoArrows) == 0))
+                if ((VisibleItemCount < ItemCount) && IsBorderShown() && AreArrowsShown())
                     stretch_to -= get_fixed_pixel_size(7);
 
                 ds->FillRect(Rect(X + pixel_size, at_y, stretch_to, at_y + RowHeight - pixel_size), draw_color);
@@ -155,7 +171,7 @@ void GUIListBox::Draw(Common::Bitmap *ds)
         PrepareTextToDraw(Items[item_index]);
 
         GUI::DrawTextAlignedHor(ds, _textToDraw, Font, text_color, X + 1 + pixel_size, right_hand_edge, at_y + 1,
-            ConvertLegacyGUIAlignment(TextAlignment));
+            (FrameAlignment)TextAlignment);
     }
 
     DrawItemsUnfix();
@@ -190,6 +206,30 @@ void GUIListBox::RemoveItem(int index)
     if (SelectedItem >= ItemCount)
         SelectedItem = -1;
     guis_need_update = 1;
+}
+
+void GUIListBox::SetShowArrows(bool on)
+{
+    if (on)
+        ListBoxFlags |= kListBox_ShowArrows;
+    else
+        ListBoxFlags &= ~kListBox_ShowArrows;
+}
+
+void GUIListBox::SetShowBorder(bool on)
+{
+    if (on)
+        ListBoxFlags |= kListBox_ShowBorder;
+    else
+        ListBoxFlags &= ~kListBox_ShowBorder;
+}
+
+void GUIListBox::SetSvgIndex(bool on)
+{
+    if (on)
+        ListBoxFlags |= kListBox_SvgIndex;
+    else
+        ListBoxFlags &= ~kListBox_SvgIndex;
 }
 
 void GUIListBox::SetFont(int font)
@@ -246,33 +286,18 @@ void GUIListBox::OnResized()
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUIListBox::WriteToFile(Stream *out)
+void GUIListBox::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(ItemCount);
-    out->WriteInt32(SelectedItem);
-    out->WriteInt32(TopItem);
-    out->WriteInt32(MousePos.X);
-    out->WriteInt32(MousePos.Y);
-    out->WriteInt32(RowHeight);
-    out->WriteInt32(VisibleItemCount);
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
-    out->WriteInt32(BgColor);
+    out->WriteInt32(SelectedTextColor);
     out->WriteInt32(ListBoxFlags);
     out->WriteInt32(TextAlignment);
-    out->WriteInt32(0); // reserved1
     out->WriteInt32(SelectedBgColor);
     for (int i = 0; i < ItemCount; ++i)
-    {
         Items[i].Write(out);
-    }
-
-    if (ListBoxFlags & kListBox_SvgIndex)
-    {
-        for (int i = 0; i < ItemCount; ++i)
-            out->WriteInt16(SavedGameIndex[i]);
-    }
 }
 
 void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -281,25 +306,38 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     GUIObject::ReadFromFile(in, gui_version);
     ItemCount = in->ReadInt32();
-    SelectedItem = in->ReadInt32();
-    TopItem = in->ReadInt32();
-    MousePos.X = in->ReadInt32();
-    MousePos.Y = in->ReadInt32();
-    RowHeight = in->ReadInt32();
-    VisibleItemCount = in->ReadInt32();
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        SelectedItem = in->ReadInt32();
+        TopItem = in->ReadInt32();
+        MousePos.X = in->ReadInt32();
+        MousePos.Y = in->ReadInt32();
+        RowHeight = in->ReadInt32();
+        VisibleItemCount = in->ReadInt32();
+    }
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
-    BgColor = in->ReadInt32();
+    SelectedTextColor = in->ReadInt32();
     ListBoxFlags = in->ReadInt32();
+    // reverse particular flags from older format
+    if (gui_version < kGuiVersion_350)
+        ListBoxFlags ^= kListBox_OldFmtXorMask;
 
     if (gui_version >= kGuiVersion_272b)
     {
-        TextAlignment = in->ReadInt32();
-        in->ReadInt32(); // reserved1
+        if (gui_version < kGuiVersion_350)
+        {
+            TextAlignment = ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
+            in->ReadInt32(); // reserved1
+        }
+        else
+        {
+            TextAlignment = (HorAlignment)in->ReadInt32();
+        }
     }
     else
     {
-        TextAlignment = kLegacyGUIAlign_Left;
+        TextAlignment = kHAlignLeft;
     }
 
     if (gui_version >= kGuiVersion_unkn_107)
@@ -313,6 +351,8 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
             SelectedBgColor = 16;
     }
 
+    // NOTE: we leave items in game data format as a potential support for defining
+    // ListBox contents at design-time, although Editor does not support it as of 3.5.0.
     Items.resize(ItemCount);
     SavedGameIndex.resize(ItemCount, -1);
     for (int i = 0; i < ItemCount; ++i)
@@ -320,8 +360,9 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
         Items[i].Read(in);
     }
 
-    if (gui_version >= kGuiVersion_272d && (ListBoxFlags & kListBox_SvgIndex))
-    {
+    if (gui_version >= kGuiVersion_272d && gui_version < kGuiVersion_350 &&
+        (ListBoxFlags & kListBox_SvgIndex))
+    { // NOTE: reading into actual variables only for old savegame support
         for (int i = 0; i < ItemCount; ++i)
             SavedGameIndex[i] = in->ReadInt16();
     }
@@ -330,17 +371,35 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
         TextColor = 16;
 }
 
-void GUIListBox::ReadFromSavegame(Stream *in)
+void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
+    // Properties
     ListBoxFlags = in->ReadInt32();
     Font = in->ReadInt32();
+    if (svg_ver < kGuiSvgVersion_350)
+    {
+        // reverse particular flags from older format
+        ListBoxFlags ^= kListBox_OldFmtXorMask;
+    }
+    else
+    {
+        SelectedBgColor = in->ReadInt32();
+        SelectedTextColor = in->ReadInt32();
+        TextAlignment = (HorAlignment)in->ReadInt32();
+        TextColor = in->ReadInt32();
+    }
 
+    // Items
     ItemCount = in->ReadInt32();
     Items.resize(ItemCount);
     SavedGameIndex.resize(ItemCount);
     for (int i = 0; i < ItemCount; ++i)
         Items[i] = StrUtil::ReadString(in);
+    // TODO: investigate this, it might be unreasonable to save and read
+    // savegame index like that because list of savegames may easily change
+    // in between writing and restoring the game. Perhaps clearing and forcing
+    // this list to update on load somehow may make more sense.
     if (ListBoxFlags & kListBox_SvgIndex)
         for (int i = 0; i < ItemCount; ++i)
             SavedGameIndex[i] = in->ReadInt16();
@@ -351,9 +410,15 @@ void GUIListBox::ReadFromSavegame(Stream *in)
 void GUIListBox::WriteToSavegame(Stream *out) const
 {
     GUIObject::WriteToSavegame(out);
+    // Properties
     out->WriteInt32(ListBoxFlags);
     out->WriteInt32(Font);
+    out->WriteInt32(SelectedBgColor);
+    out->WriteInt32(SelectedTextColor);
+    out->WriteInt32(TextAlignment);
+    out->WriteInt32(TextColor);
 
+    // Items
     out->WriteInt32(ItemCount);
     for (int i = 0; i < ItemCount; ++i)
         StrUtil::WriteString(Items[i], out);

@@ -19,7 +19,7 @@
 #include "gui/guiobject.h"
 #include "util/string.h"
 
-#define GUIBUTTON_TEXTLENGTH 50
+#define GUIBUTTON_LEGACY_TEXTLENGTH 50
 
 namespace AGS
 {
@@ -59,9 +59,11 @@ public:
     GUIButton();
 
     const String &GetText() const;
+    bool         IsClippingImage() const;
 
     // Operations
     virtual void Draw(Bitmap *ds) override;
+    void         SetClipImage(bool on);
     void         SetText(const String &text);
 
     // Events
@@ -71,10 +73,10 @@ public:
     virtual void OnMouseUp() override;
   
     // Serialization
-    virtual void WriteToFile(Stream *out) override;
     virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void ReadFromSavegame(Common::Stream *in);
-    virtual void WriteToSavegame(Common::Stream *out) const;
+    virtual void WriteToFile(Stream *out) const override;
+    virtual void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
+    virtual void WriteToSavegame(Common::Stream *out) const override;
 
 // TODO: these members are currently public; hide them later
 public:
@@ -84,8 +86,7 @@ public:
     int32_t     CurrentImage;
     int32_t     Font;
     color_t     TextColor;
-    // TODO: use FrameAlignment type (will require changing GUI data format)
-    int32_t     TextAlignment;
+    FrameAlignment TextAlignment;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use
     static const int ClickCount = kMouseRight + 1;

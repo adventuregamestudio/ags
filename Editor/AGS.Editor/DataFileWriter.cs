@@ -10,6 +10,7 @@ using System.Text;
 namespace AGS.Editor
 {
     // TODO: split onto main game file reader/writer and asset library reader/writer
+    // TODO: separate data format writers for various game components (GUI etc)
     public class DataFileWriter
     {
         // Signatures of the asset library
@@ -1026,13 +1027,13 @@ namespace AGS.Editor
                     }
                 }
 
-                public TextAlignment TextAlignment
+                public FrameAlignment TextAlignment
                 {
                     get
                     {
                         GUIButton button = (GUIButton)this;
                         if (button != null) return button.TextAlignment;
-                        return TextAlignment.TopMiddle;
+                        return FrameAlignment.TopCenter;
                     }
                 }
 
@@ -1057,19 +1058,27 @@ namespace AGS.Editor
                 }
             }
 
+            private int MakeCommonGUIControlFlags(GUIControl control)
+            {
+                return (control.Clickable ? NativeConstants.GUIF_CLICKABLE : 0) |
+                    (control.Enabled ? NativeConstants.GUIF_ENABLED : 0) |
+                    (control.Visible ? NativeConstants.GUIF_VISIBLE : 0)
+                    ;
+            }
+
             /// <summary>
             /// Writes the common elements of this GUIControl to the file. Type-specific
             /// data is written only by the respective method for that type.
             /// </summary>
             private void WriteGUIControl(GUIControl control, int flags, string[] events)
             {
+                flags |= MakeCommonGUIControlFlags(control);
                 writer.Write(flags); // flags
                 writer.Write(control.Left);
                 writer.Write(control.Top);
                 writer.Write(control.Width);
                 writer.Write(control.Height);
                 writer.Write(control.ZOrder);
-                writer.Write(0); // activated
                 FilePutNullTerminatedString(control.Name, writer);
                 writer.Write(events.Length); // numSupportedEvents
                 foreach (string sevent in events)
@@ -1094,18 +1103,14 @@ namespace AGS.Editor
                     writer.Write(ctrl.Image); // pic
                     writer.Write(ctrl.MouseoverImage); // overpic
                     writer.Write(ctrl.PushedImage); // pushedpic
-                    writer.Write(ctrl.Image); // usepic
-                    writer.Write(0); // ispushed
-                    writer.Write(0); // isover
                     writer.Write(ctrl.Font); // font
                     writer.Write(ctrl.TextColor); // textcol
                     writer.Write((int)ctrl.ClickAction); // leftclick
                     writer.Write(0); // rightclick
                     writer.Write(ctrl.NewModeNumber); // lclickdata
                     writer.Write(0); // rclickdata
-                    WriteString(ctrl.Text, 50, writer); // text
+                    FilePutString(ctrl.Text, writer); // text
                     writer.Write((int)ctrl.TextAlignment); // textAlignment
-                    writer.Write(0); // reserved1
                 }
             }
 
@@ -1132,7 +1137,6 @@ namespace AGS.Editor
                     writer.Write(invWindow.CharacterID);
                     writer.Write(invWindow.ItemWidth);
                     writer.Write(invWindow.ItemHeight);
-                    writer.Write(0); // topIndex
                 }
             }
 
@@ -1145,7 +1149,6 @@ namespace AGS.Editor
                     writer.Write(slider.MinValue);
                     writer.Write(slider.MaxValue);
                     writer.Write(slider.Value);
-                    writer.Write(0); // mpressed
                     writer.Write(slider.HandleImage);
                     writer.Write(slider.HandleOffset);
                     writer.Write(slider.BackgroundImage);
@@ -1158,11 +1161,16 @@ namespace AGS.Editor
                 foreach (GUITextBox textBox in GUITextBoxes)
                 {
                     WriteGUIControl(textBox, 0, new string[] { textBox.OnActivate });
-                    WriteString(textBox.Text, 200, writer);
+                    FilePutString(textBox.Text, writer);
                     writer.Write(textBox.Font);
                     writer.Write(textBox.TextColor);
-                    writer.Write(textBox.ShowBorder ? 0 : NativeConstants.GTF_NOBORDER);
+                    writer.Write(MakeTextBoxFlags(textBox));
                 }
+            }
+
+            private int MakeTextBoxFlags(GUITextBox textBox)
+            {
+                return textBox.ShowBorder ? NativeConstants.GTF_SHOWBORDER : 0;
             }
 
             private void WriteAllListBoxes()
@@ -1173,22 +1181,20 @@ namespace AGS.Editor
                     int flags = (listBox.Translated ? NativeConstants.GUIF_TRANSLATED : 0);
                     WriteGUIControl(listBox, flags, new string[] { listBox.OnSelectionChanged });
                     writer.Write(0); // numItems
-                    writer.Write(0); // selected
-                    writer.Write(0); // topItem
-                    writer.Write(0); // mousexp
-                    writer.Write(0); // mouseyp
-                    writer.Write(0); // rowheight
-                    writer.Write(0); // num_items_fit
                     writer.Write(listBox.Font);
                     writer.Write(listBox.TextColor);
                     writer.Write(listBox.SelectedTextColor);
-                    int exflags = (listBox.ShowBorder ? 0 : NativeConstants.GLF_NOBORDER);
-                    exflags |= (listBox.ShowScrollArrows ? 0 : NativeConstants.GLF_NOARROWS);
-                    writer.Write(exflags);
+                    writer.Write(MakeListBoxFlags(listBox));
                     writer.Write((int)listBox.TextAlignment);
-                    writer.Write(0); // reserved1
                     writer.Write(listBox.SelectedBackgroundColor);
                 }
+            }
+
+            private int MakeListBoxFlags(GUIListBox listBox)
+            {
+                return (listBox.ShowBorder ? NativeConstants.GLF_SHOWBORDER : 0) |
+                       (listBox.ShowScrollArrows ? NativeConstants.GLF_SHOWARROWS : 0)
+                       ;
             }
 
             /// <summary>
@@ -1256,26 +1262,20 @@ namespace AGS.Editor
 
             private void WriteNormalGUI(NormalGUI gui)
             {
-                writer.Write(new byte[4]); // vtext
                 FilePutString(gui.Name, writer); // name
                 FilePutString(gui.OnClick, writer); // clickEventHandler
                 writer.Write(gui.Left); // x
                 writer.Write(gui.Top); // y
                 writer.Write(gui.Width); // wid
                 writer.Write(gui.Height); // hit
-                writer.Write(0); // focus
                 writer.Write(gui.Controls.Count); // numobjs
-                writer.Write((int)gui.Visibility); // popup
+                writer.Write((int)gui.PopupStyle); // gui style
                 writer.Write(gui.PopupYPos); // popupyp
                 writer.Write(gui.BackgroundColor); // bgcol
                 writer.Write(gui.BackgroundImage); // bgpic
                 writer.Write(gui.BorderColor); // fgcol
-                writer.Write(-1); // mouseover
-                writer.Write(-1); // mousewasx
-                writer.Write(-1); // mousewasy
-                writer.Write(-1); // mousedownon
-                writer.Write(-1); // highlightobj
-                writer.Write(gui.Clickable ? 0 : NativeConstants.GUIMAIN_NOCLICK); // flags
+                // GUI Flags
+                writer.Write(MakeGUIFlags(gui));
                 int transparency = gui.Transparency;
                 if (transparency <= 0) transparency = 0;
                 else if (transparency >= 100) transparency = 255;
@@ -1284,39 +1284,35 @@ namespace AGS.Editor
                 writer.Write(gui.ZOrder); // zorder
                 writer.Write(0); // guiId
                 writer.Write(NativeConstants.TEXTWINDOW_PADDING_DEFAULT); // padding
-                writer.Write(new byte[5 * sizeof(int)]); // reserved
-                writer.Write(1); // on
+            }
+
+            private int MakeGUIFlags(NormalGUI gui)
+            {
+                int flags =
+                    (gui.Clickable ? NativeConstants.GUIMAIN_CLICKABLE : 0) |
+                    (gui.Visible ? NativeConstants.GUIMAIN_VISIBLE : 0);
+                return flags;
             }
 
             private void WriteTextWindowGUI(TextWindowGUI gui)
             {
-                writer.Write(NativeConstants.GUIMAIN_LEGACYTEXTWINDOW); // vtext...
-                writer.Write(new byte[3]); // ...vtext
                 FilePutString(gui.Name, writer); // name
                 FilePutString(null, writer); // clickEventHandler
                 writer.Write(0); // x
                 writer.Write(0); // y
                 writer.Write(200); // wid
                 writer.Write(100); // hit
-                writer.Write(0); // focus
                 writer.Write(gui.Controls.Count); // numobjs
                 writer.Write(NativeConstants.GUI_POPUP_MODAL); // popup
                 writer.Write(-1); // popupyp
                 writer.Write(gui.BackgroundColor); // bgcol
                 writer.Write(gui.BackgroundImage); // bgpic
                 writer.Write(gui.TextColor); // fgcol
-                writer.Write(-1); // mouseover
-                writer.Write(-1); // mousewasx
-                writer.Write(-1); // mousewasy
-                writer.Write(-1); // mousedownon
-                writer.Write(-1); // highlightobj
                 writer.Write(NativeConstants.GUIMAIN_TEXTWINDOW); // flags
                 writer.Write(0); // transparency
                 writer.Write(-1); // zorder
                 writer.Write(0); // guiId
                 writer.Write(gui.Padding); // padding
-                writer.Write(new byte[5 * sizeof(int)]); // reserved
-                writer.Write(1); // on
             }
 
             public void WriteAllGUIs()

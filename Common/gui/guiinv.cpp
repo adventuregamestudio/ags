@@ -61,13 +61,12 @@ void GUIInvWindow::OnResized()
     CalculateNumCells();
 }
 
-void GUIInvWindow::WriteToFile(Stream *out)
+void GUIInvWindow::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(CharId);
     out->WriteInt32(ItemWidth);
     out->WriteInt32(ItemHeight);
-    out->WriteInt32(TopItem);
 }
 
 void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -78,7 +77,10 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
         CharId = in->ReadInt32();
         ItemWidth = in->ReadInt32();
         ItemHeight = in->ReadInt32();
-        TopItem = in->ReadInt32();
+        if (gui_version < kGuiVersion_350)
+        { // NOTE: reading into actual variables only for old savegame support
+            TopItem = in->ReadInt32();
+        }
     }
     else
     {
@@ -100,9 +102,9 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
     CalculateNumCells();
 }
 
-void GUIInvWindow::ReadFromSavegame(Stream *in)
+void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     ItemWidth = in->ReadInt32();
     ItemHeight = in->ReadInt32();
     CharId = in->ReadInt32();

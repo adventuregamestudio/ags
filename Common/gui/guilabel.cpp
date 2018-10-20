@@ -33,7 +33,7 @@ GUILabel::GUILabel()
 {
     Font = 0;
     TextColor = 0;
-    TextAlignment = kLegacyGUIAlign_Left;
+    TextAlignment = kHAlignLeft;
 
     _scEventCount = 0;
 }
@@ -61,7 +61,7 @@ void GUILabel::Draw(Common::Bitmap *ds)
         ++i, at_y += linespacing)
     {
         GUI::DrawTextAlignedHor(ds, lines[i], Font, text_color, X, X + Width - 1, at_y,
-            ConvertLegacyGUIAlignment(TextAlignment));
+            (FrameAlignment)TextAlignment);
     }
 }
 
@@ -72,11 +72,10 @@ void GUILabel::SetText(const String &text)
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUILabel::WriteToFile(Stream *out)
+void GUILabel::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
-    out->WriteInt32(Text.GetLength() + 1);
-    Text.Write(out);
+    StrUtil::WriteString(Text, out);
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     out->WriteInt32(TextAlignment);
@@ -89,11 +88,14 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (gui_version < kGuiVersion_272c)
         Text.ReadCount(in, GUILABEL_TEXTLENGTH_PRE272);
     else
-        Text.ReadCount(in, in->ReadInt32());
+        Text = StrUtil::ReadString(in);
 
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
-    TextAlignment = in->ReadInt32();
+    if (gui_version < kGuiVersion_350)
+        TextAlignment = ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
+    else
+        TextAlignment = (HorAlignment)in->ReadInt32();
 
     if (TextColor == 0)
         TextColor = 16;
@@ -101,12 +103,14 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
     Flags |= kGUICtrl_Translated;
 }
 
-void GUILabel::ReadFromSavegame(Stream *in)
+void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     Text = StrUtil::ReadString(in);
+    if (svg_ver >= kGuiSvgVersion_350)
+        TextAlignment = (HorAlignment)in->ReadInt32();
 }
 
 void GUILabel::WriteToSavegame(Stream *out) const
@@ -115,6 +119,7 @@ void GUILabel::WriteToSavegame(Stream *out) const
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     StrUtil::WriteString(Text, out);
+    out->WriteInt32(TextAlignment);
 }
 
 } // namespace Common

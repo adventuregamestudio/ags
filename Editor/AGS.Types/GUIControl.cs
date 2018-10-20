@@ -37,6 +37,9 @@ namespace AGS.Types
         private int _x;
         private int _y;
         private bool _locked;
+        private bool _clickable = true;
+        private bool _enabled = true;
+        private bool _visible = true;
 
         [AGSNoSerialize]
         private GUIControlGroup _memberOf;
@@ -130,6 +133,30 @@ namespace AGS.Types
             {
                 _name = Utilities.ValidateScriptName(value);
             }
+        }
+
+        [Description("Determines whether the Control can be clicked on, or whether mouse clicks pass straight through it")]
+        [Category("Appearance")]
+        public bool Clickable
+        {
+            get { return _clickable; }
+            set { _clickable = value; }
+        }
+
+        [Description("Determines whether the Control is in enabled state at the game start. Disabled controls don't react to clicks nor mouse moving over them, and their disabled looks are determined by related game setting.")]
+        [Category("Appearance")]
+        public bool Enabled
+        {
+            get { return _enabled; }
+            set { _enabled = value; }
+        }
+
+        [Description("Determines whether the Control is visible at the game start")]
+        [Category("Appearance")]
+        public bool Visible
+        {
+            get { return _visible; }
+            set { _visible = value; }
         }
 
         [Browsable(false)]

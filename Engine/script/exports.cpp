@@ -16,14 +16,16 @@
 //
 //=============================================================================
 
+#include "ac/gamestructdefines.h"
+
 extern void RegisterAudioChannelAPI();
 extern void RegisterAudioClipAPI();
 extern void RegisterButtonAPI();
-extern void RegisterCharacterAPI();
+extern void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
 extern void RegisterDateTimeAPI();
 extern void RegisterDialogAPI();
 extern void RegisterDialogOptionsRenderingAPI();
-extern void RegisterDrawingSurfaceAPI();
+extern void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
 extern void RegisterDynamicSpriteAPI();
 extern void RegisterFileAPI();
 extern void RegisterGameAPI();
@@ -43,7 +45,7 @@ extern void RegisterParserAPI();
 extern void RegisterRegionAPI();
 extern void RegisterRoomAPI();
 extern void RegisterSliderAPI();
-extern void RegisterSpeechAPI();
+extern void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
 extern void RegisterStringAPI();
 extern void RegisterSystemAPI();
 extern void RegisterTextBoxAPI();
@@ -51,16 +53,16 @@ extern void RegisterViewFrameAPI();
 
 extern void RegisterStaticObjects();
 
-void setup_script_exports()
+void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api)
 {
     RegisterAudioChannelAPI();
     RegisterAudioClipAPI();
     RegisterButtonAPI();
-    RegisterCharacterAPI();
+    RegisterCharacterAPI(base_api, compat_api);
     RegisterDateTimeAPI();
     RegisterDialogAPI();
     RegisterDialogOptionsRenderingAPI();
-    RegisterDrawingSurfaceAPI();
+    RegisterDrawingSurfaceAPI(base_api, compat_api);
     RegisterDynamicSpriteAPI();
     RegisterFileAPI();
     RegisterGameAPI();
@@ -80,7 +82,7 @@ void setup_script_exports()
     RegisterRegionAPI();
     RegisterRoomAPI();
     RegisterSliderAPI();
-    RegisterSpeechAPI();
+    RegisterSpeechAPI(base_api, compat_api);
     RegisterStringAPI();
     RegisterSystemAPI();
     RegisterTextBoxAPI();

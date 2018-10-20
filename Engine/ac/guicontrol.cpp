@@ -58,14 +58,10 @@ int GUIControl_GetVisible(GUIObject *guio) {
 
 void GUIControl_SetVisible(GUIObject *guio, int visible) 
 {
-  const bool is_visible = visible != 0;
-  if (is_visible != guio->IsVisible()) 
+  const bool on = visible != 0;
+  if (on != guio->IsVisible())
   {
-    if (is_visible)
-      guio->Show();
-    else
-      guio->Hide();
-
+    guio->SetVisible(on);
     guis[guio->ParentId].OnControlPositionChanged();
     guis_need_update = 1;
   }
@@ -92,13 +88,13 @@ int GUIControl_GetEnabled(GUIObject *guio) {
 }
 
 void GUIControl_SetEnabled(GUIObject *guio, int enabled) {
-  if (enabled)
-    guio->Enable();
-  else
-    guio->Disable();
-
-  guis[guio->ParentId].OnControlPositionChanged();
-  guis_need_update = 1;
+  const bool on = enabled != 0;
+  if (on != guio->IsEnabled())
+  {
+    guio->SetEnabled(on);
+    guis[guio->ParentId].OnControlPositionChanged();
+    guis_need_update = 1;
+  }
 }
 
 

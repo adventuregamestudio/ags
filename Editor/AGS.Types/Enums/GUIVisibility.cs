@@ -3,6 +3,7 @@ using System.ComponentModel;
 
 namespace AGS.Types
 {
+    // Deprecated GUI visibility type, now replaced with GUIPopupStyle
     public enum GUIVisibility
     {
         [Description("Normal, initially on")]

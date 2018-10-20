@@ -27,7 +27,7 @@ void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch,
 bool ShouldAntiAliasText();
 int GetTextDisplayTime (const char *text, int canberel=0);
 void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
-void wouttext_aligned (Common::Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, int align);
+void wouttext_aligned (Common::Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align);
 // TODO: GUI classes located in Common library do not make use of outlining,
 // need to find a way to make all code use same functions.
 // Get the maximal height of the given font, with possible outlining in mind

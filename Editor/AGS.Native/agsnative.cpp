@@ -3009,9 +3009,10 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	gui->Y = normalGui->Top;
 	gui->Width = normalGui->Width;
 	gui->Height = normalGui->Height;
-    gui->Flags = (normalGui->Clickable) ? 0 : Common::kGUIMain_NoClick;
+    gui->SetClickable(normalGui->Clickable);
+    gui->SetVisible(normalGui->Visible);
     gui->PopupAtMouseY = normalGui->PopupYPos;
-    gui->PopupStyle = (Common::GUIPopupStyle)normalGui->Visibility;
+    gui->PopupStyle = (Common::GUIPopupStyle)normalGui->PopupStyle;
     gui->ZOrder = normalGui->ZOrder;
     gui->FgColor = normalGui->BorderColor;
     gui->SetTransparencyAsPercentage(normalGui->Transparency);
@@ -3021,7 +3022,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
     TextWindowGUI^ twGui = dynamic_cast<TextWindowGUI^>(guiObj);
 	gui->Width = twGui->EditorWidth;
 	gui->Height = twGui->EditorHeight;
-    gui->Flags = Common::kGUIMain_TextWindow;
+    gui->SetTextWindow(true);
     gui->PopupStyle = Common::kGUIPopupModal;
 	gui->Padding = twGui->Padding;
     gui->FgColor = twGui->TextColor;
@@ -3053,12 +3054,11 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].Image;
 		  guibuts[numguibuts].MouseOverImage = button->MouseoverImage;
 		  guibuts[numguibuts].PushedImage = button->PushedImage;
-		  guibuts[numguibuts].TextAlignment = (int)button->TextAlignment;
+		  guibuts[numguibuts].TextAlignment = (::FrameAlignment)button->TextAlignment;
           guibuts[numguibuts].ClickAction[Common::kMouseLeft] = (Common::GUIClickAction)button->ClickAction;
 		  guibuts[numguibuts].ClickData[Common::kMouseLeft] = button->NewModeNumber;
-          guibuts[numguibuts].Flags = (button->ClipImage) ? Common::kGUICtrl_Clip : 0;
-          Common::String text = ConvertStringToNativeString(button->Text, GUIBUTTON_TEXTLENGTH);
-          guibuts[numguibuts].SetText(text);
+          guibuts[numguibuts].SetClipImage(button->ClipImage);
+          guibuts[numguibuts].SetText(ConvertStringToNativeString(button->Text));
           guibuts[numguibuts].EventHandlers[0] = ConvertStringToNativeString(button->OnClick);
 		  
           gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
@@ -3071,8 +3071,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guilabels.push_back(Common::GUILabel());
 		  guilabels[numguilabels].TextColor = label->TextColor;
 		  guilabels[numguilabels].Font = label->Font;
-		  guilabels[numguilabels].TextAlignment = (int)label->TextAlignment;
-		  guilabels[numguilabels].Flags = 0;
+		  guilabels[numguilabels].TextAlignment = (::HorAlignment)label->TextAlignment;
           Common::String text = ConvertStringToNativeString(label->Text);
 		  guilabels[numguilabels].SetText(text);
 
@@ -3086,8 +3085,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guitext.push_back(Common::GUITextBox());
 		  guitext[numguitext].TextColor = textbox->TextColor;
 		  guitext[numguitext].Font = textbox->Font;
-		  guitext[numguitext].Flags = 0;
-          guitext[numguitext].TextBoxFlags = (textbox->ShowBorder) ? 0 : Common::kTextBox_NoBorder;
+          guitext[numguitext].SetShowBorder(textbox->ShowBorder);
           guitext[numguitext].EventHandlers[0] = ConvertStringToNativeString(textbox->OnActivate);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
@@ -3100,12 +3098,12 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guilist.push_back(Common::GUIListBox());
 		  guilist[numguilist].TextColor = listbox->TextColor;
 		  guilist[numguilist].Font = listbox->Font;
-		  guilist[numguilist].BgColor = listbox->SelectedTextColor;
+		  guilist[numguilist].SelectedTextColor = listbox->SelectedTextColor;
 		  guilist[numguilist].SelectedBgColor = listbox->SelectedBackgroundColor;
-		  guilist[numguilist].TextAlignment = (int)listbox->TextAlignment;
-          guilist[numguilist].Flags = listbox->Translated ? Common::kGUICtrl_Translated : 0;
-          guilist[numguilist].ListBoxFlags = (listbox->ShowBorder) ? 0 : Common::kListBox_NoBorder;
-		  guilist[numguilist].ListBoxFlags |= (listbox->ShowScrollArrows) ? 0 : Common::kListBox_NoArrows;
+		  guilist[numguilist].TextAlignment = (::HorAlignment)listbox->TextAlignment;
+          guilist[numguilist].SetTranslated(listbox->Translated);
+          guilist[numguilist].SetShowBorder(listbox->ShowBorder);
+		  guilist[numguilist].SetShowArrows(listbox->ShowScrollArrows);
           guilist[numguilist].EventHandlers[0] = ConvertStringToNativeString(listbox->OnSelectionChanged);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
@@ -3146,7 +3144,6 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guibuts.push_back(Common::GUIButton());
 		  guibuts[numguibuts].Image = textwindowedge->Image;
 		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].Image;
-		  guibuts[numguibuts].Flags = 0;
 		  
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
@@ -3824,13 +3821,14 @@ Game^ import_compiled_game_dta(const char *fileName)
 		else 
 		{
 			newGui = gcnew NormalGUI(1, 1);
-			((NormalGUI^)newGui)->Clickable = ((guis[i].Flags & Common::kGUIMain_NoClick) == 0);
+            ((NormalGUI^)newGui)->Clickable = guis[i].IsClickable();
+            ((NormalGUI^)newGui)->Visible = guis[i].IsVisible();
 			((NormalGUI^)newGui)->Top = guis[i].Y;
 			((NormalGUI^)newGui)->Left = guis[i].X;
 			((NormalGUI^)newGui)->Width = (guis[i].Width > 0) ? guis[i].Width : 1;
 			((NormalGUI^)newGui)->Height = (guis[i].Height > 0) ? guis[i].Height : 1;
 			((NormalGUI^)newGui)->PopupYPos = guis[i].PopupAtMouseY;
-			((NormalGUI^)newGui)->Visibility = (GUIVisibility)guis[i].PopupStyle;
+			((NormalGUI^)newGui)->PopupStyle = (GUIPopupStyle)guis[i].PopupStyle;
 			((NormalGUI^)newGui)->ZOrder = guis[i].ZOrder;
 			((NormalGUI^)newGui)->OnClick = gcnew String(guis[i].OnClickHandler);
       ((NormalGUI^)newGui)->BorderColor = guis[i].FgColor;
@@ -3865,10 +3863,10 @@ Game^ import_compiled_game_dta(const char *fileName)
 					newButton->Image = copyFrom->Image;
 					newButton->MouseoverImage = copyFrom->MouseOverImage;
 					newButton->PushedImage = copyFrom->PushedImage;
-					newButton->TextAlignment = (TextAlignment)copyFrom->TextAlignment;
+					newButton->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
                     newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kMouseLeft];
 					newButton->NewModeNumber = copyFrom->ClickData[Common::kMouseLeft];
-                    newButton->ClipImage = (copyFrom->Flags & Common::kGUICtrl_Clip) ? true : false;
+                    newButton->ClipImage = copyFrom->IsClippingImage();
 					newButton->Text = gcnew String(copyFrom->GetText());
 					newButton->OnClick = gcnew String(copyFrom->EventHandlers[0]);
 				}
@@ -3881,7 +3879,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				newControl = newLabel;
 				newLabel->TextColor = copyFrom->TextColor;
 				newLabel->Font = copyFrom->Font;
-				newLabel->TextAlignment = (LabelTextAlignment)copyFrom->TextAlignment;
+				newLabel->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
 				newLabel->Text = gcnew String(copyFrom->GetText());
 				break;
 				}
@@ -3892,7 +3890,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newControl = newTextbox;
 				  newTextbox->TextColor = copyFrom->TextColor;
 				  newTextbox->Font = copyFrom->Font;
-                  newTextbox->ShowBorder = (copyFrom->TextBoxFlags & Common::kTextBox_NoBorder) ? false : true;
+                  newTextbox->ShowBorder = copyFrom->IsBorderShown();
 				  newTextbox->Text = gcnew String(copyFrom->Text);
 				  newTextbox->OnActivate = gcnew String(copyFrom->EventHandlers[0]);
 				  break;
@@ -3904,12 +3902,12 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newControl = newListbox;
 				  newListbox->TextColor = copyFrom->TextColor;
 				  newListbox->Font = copyFrom->Font; 
-				  newListbox->SelectedTextColor = copyFrom->BgColor;
+				  newListbox->SelectedTextColor = copyFrom->SelectedTextColor;
 				  newListbox->SelectedBackgroundColor = copyFrom->SelectedBgColor;
-				  newListbox->TextAlignment = (ListBoxTextAlignment)copyFrom->TextAlignment;
-				  newListbox->ShowBorder = ((copyFrom->ListBoxFlags & Common::kListBox_NoBorder) == 0);
-				  newListbox->ShowScrollArrows = ((copyFrom->ListBoxFlags & Common::kListBox_NoArrows) == 0);
-                  newListbox->Translated = (copyFrom->Flags & Common::kGUICtrl_Translated) != 0;
+				  newListbox->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->TextAlignment;
+				  newListbox->ShowBorder = copyFrom->IsBorderShown();
+				  newListbox->ShowScrollArrows = copyFrom->AreArrowsShown();
+                  newListbox->Translated = copyFrom->IsTranslated();
 				  newListbox->OnSelectionChanged = gcnew String(copyFrom->EventHandlers[0]);
 				  break;
 				}
@@ -3945,6 +3943,9 @@ Game^ import_compiled_game_dta(const char *fileName)
 			newControl->Left = curObj->X;
 			newControl->Top = curObj->Y;
 			newControl->ZOrder = curObj->ZOrder;
+            newControl->Clickable = curObj->IsClickable();
+            newControl->Enabled = curObj->IsEnabled();
+            newControl->Visible = curObj->IsVisible();
 			newControl->ID = j;
 			newControl->Name = gcnew String(curObj->Name);
 			newGui->Controls->Add(newControl);

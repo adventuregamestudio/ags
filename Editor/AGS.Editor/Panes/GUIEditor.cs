@@ -189,6 +189,16 @@ namespace AGS.Editor
 					}
 				}
 			}
+            else if (propertyName == "PopupStyle")
+            {
+                NormalGUI normalGui = (NormalGUI)_gui;
+                if (normalGui != null)
+                {
+                    // Force Modal GUIs not visible by default
+                    if (normalGui.PopupStyle == GUIPopupStyle.PopupModal)
+                        normalGui.Visible = false;
+                }
+            }
         }
 
         public GUI GuiToEdit

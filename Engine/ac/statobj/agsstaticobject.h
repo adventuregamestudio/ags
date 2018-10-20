@@ -38,6 +38,7 @@ struct AGSStaticObject : public ICCStaticObject {
 
 // Wrapper around script's "Game" struct, managing access to its variables
 struct StaticGame : public AGSStaticObject {
+    virtual int32_t ReadInt32(const char *address, intptr_t offset);
     virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val);
 };
 

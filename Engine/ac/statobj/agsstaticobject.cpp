@@ -2,6 +2,7 @@
 #include <string.h>
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/game.h"
+#include "ac/gamestate.h"
 
 AGSStaticObject GlobalStaticManager;
 StaticGame      GameStaticManager;
@@ -54,6 +55,17 @@ void AGSStaticObject::WriteInt32(const char *address, intptr_t offset, int32_t v
 void AGSStaticObject::WriteFloat(const char *address, intptr_t offset, float val)
 {
     *(float*)(address + offset) = val;
+}
+
+
+int32_t StaticGame::ReadInt32(const char *address, intptr_t offset)
+{
+    int32_t val = *(int32_t*)(address + offset);
+    if (offset == 99 * sizeof(int32_t) || offset == 112 * sizeof(int32_t))
+    { // game.text_align, game.speech_text_align
+        return ReadScriptAlignment(val);
+    }
+    return val;
 }
 
 void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)

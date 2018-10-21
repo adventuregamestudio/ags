@@ -93,6 +93,8 @@ namespace AGS.Editor
             Label scrollWindowSizer = new Label();
             scrollWindowSizer.Location = new Point(_image.Width, _image.Height);
             scrollWindowSizer.Text = string.Empty;
+            scrollWindowSizer.Width = 0;
+            scrollWindowSizer.Height = 0;
             previewPanel.Controls.Add(scrollWindowSizer);
         }
 

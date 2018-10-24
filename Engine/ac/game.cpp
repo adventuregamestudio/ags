@@ -1268,7 +1268,7 @@ void restore_game_room_state(Stream *in)
 void ReadGameState_Aligned(Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    play.ReadFromSavegame(&align_s, true);
+    play.ReadFromSavegame(&align_s, kGSSvgVersion_OldFormat);
 }
 
 void restore_game_play_ex_data(Stream *in)
@@ -1368,7 +1368,7 @@ void ReadAnimatedButtons_Aligned(Stream *in)
 
 HSaveError restore_game_gui(Stream *in, int numGuisWas)
 {
-    GUI::ReadGUI(guis, in);
+    GUI::ReadGUI(guis, in, true);
     game.numgui = guis.size();
 
     if (numGuisWas != game.numgui)
@@ -2046,7 +2046,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     if (!giveErr)
         maxlen = MAX_MAXSTRLEN;
 
-    if (msnum>=500) { //quit("global message requseted, nto yet supported");
+    if (msnum>=500) {
 
         if ((msnum >= MAXGLOBALMES + 500) || (game.messages[msnum-500]==NULL)) {
             if (giveErr)

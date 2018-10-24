@@ -19,7 +19,7 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-#define GUITEXTBOX_TEXT_LENGTH 200
+#define GUITEXTBOX_LEGACY_TEXTLEN 200
 
 std::vector<AGS::Common::GUITextBox> guitext;
 int numguitext = 0;
@@ -33,11 +33,16 @@ GUITextBox::GUITextBox()
 {
     Font = 0;
     TextColor = 0;
-    TextBoxFlags = 0;
+    TextBoxFlags = kTextBox_DefFlags;
 
     _scEventCount = 1;
     _scEventNames[0] = "Activate";
     _scEventArgs[0] = "GUIControl *control";
+}
+
+bool GUITextBox::IsBorderShown() const
+{
+    return (TextBoxFlags & kTextBox_ShowBorder) != 0;
 }
 
 void GUITextBox::Draw(Bitmap *ds)
@@ -45,7 +50,7 @@ void GUITextBox::Draw(Bitmap *ds)
     check_font(&Font);
     color_t text_color = ds->GetCompatibleColor(TextColor);
     color_t draw_color = ds->GetCompatibleColor(TextColor);
-    if ((TextBoxFlags & kTextBox_NoBorder) == 0)
+    if (IsBorderShown())
     {
         ds->DrawRect(RectWH(X, Y, Width, Height), draw_color);
         if (1 > 1)
@@ -82,12 +87,20 @@ void GUITextBox::OnKeyPress(int keycode)
         Text.ClipRight(1);
 }
 
+void GUITextBox::SetShowBorder(bool on)
+{
+    if (on)
+        TextBoxFlags |= kTextBox_ShowBorder;
+    else
+        TextBoxFlags &= ~kTextBox_ShowBorder;
+}
+
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUITextBox::WriteToFile(Stream *out)
+void GUITextBox::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
-    Text.WriteCount(out, GUITEXTBOX_TEXT_LENGTH);
+    StrUtil::WriteString(Text, out);
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     out->WriteInt32(TextBoxFlags);
@@ -96,21 +109,29 @@ void GUITextBox::WriteToFile(Stream *out)
 void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
-    Text.ReadCount(in, GUITEXTBOX_TEXT_LENGTH);
+    if (gui_version < kGuiVersion_350)
+        Text.ReadCount(in, GUITEXTBOX_LEGACY_TEXTLEN);
+    else
+        Text = StrUtil::ReadString(in);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     TextBoxFlags = in->ReadInt32();
+    // reverse particular flags from older format
+    if (gui_version < kGuiVersion_350)
+        TextBoxFlags ^= kTextBox_OldFmtXorMask;
 
     if (TextColor == 0)
         TextColor = 16;
 }
 
-void GUITextBox::ReadFromSavegame(Stream *in)
+void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     Text = StrUtil::ReadString(in);
+    if (svg_ver >= kGuiSvgVersion_350)
+        TextBoxFlags = in->ReadInt32();
 }
 
 void GUITextBox::WriteToSavegame(Stream *out) const
@@ -119,6 +140,7 @@ void GUITextBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     StrUtil::WriteString(Text, out);
+    out->WriteInt32(TextBoxFlags);
 }
 
 } // namespace Common

@@ -14,13 +14,12 @@ namespace AGS.Types
     {
         public const string CONTROL_DISPLAY_NAME = "Button";
         public const string SCRIPT_CLASS_TYPE = "Button";
-        public const int MAX_TEXT_LENGTH = 49;
 
         public GUIButton(int x, int y, int width, int height) : base(x, y, width, height)
         {
             _text = "New Button";
             _clickAction = GUIClickAction.RunScript;
-            _textAlign = TextAlignment.TopMiddle;
+            _textAlign = FrameAlignment.TopCenter;
         }
 
         public GUIButton(XmlNode node) : base(node)
@@ -37,7 +36,7 @@ namespace AGS.Types
         private int _pushedImage;
         private int _font;
         private int _textColor;
-        private TextAlignment _textAlign;
+        private FrameAlignment _textAlign;
         private bool _clipImage;
         private GUIClickAction _clickAction;
         private int _newModeNumber;
@@ -81,7 +80,7 @@ namespace AGS.Types
 
         [Description("Position on the button where the text is displayed")]
         [Category("Appearance")]
-        public TextAlignment TextAlignment
+        public FrameAlignment TextAlignment
         {
             get { return _textAlign; }
             set { _textAlign = value; }
@@ -183,17 +182,7 @@ namespace AGS.Types
         public string Text
         {
             get { return _text; }
-            set 
-            {
-                if (value.Length > MAX_TEXT_LENGTH)
-                {
-                    _text = value.Substring(0, MAX_TEXT_LENGTH);
-                }
-                else
-                {
-                    _text = value;
-                }
-            }
+            set { _text = value; }
         }
 
         protected override void GetSpritesForControl(List<int> list)

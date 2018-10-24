@@ -211,7 +211,10 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     MinValue = in->ReadInt32();
     MaxValue = in->ReadInt32();
     Value = in->ReadInt32();
-    IsMousePressed = in->ReadInt32() != 0;
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        IsMousePressed = in->ReadInt32() != 0;
+    }
     if (gui_version >= kGuiVersion_unkn_104)
     {
         HandleImage = in->ReadInt32();
@@ -226,21 +229,20 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 }
 
-void GUISlider::WriteToFile(Stream *out)
+void GUISlider::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(MinValue);
     out->WriteInt32(MaxValue);
     out->WriteInt32(Value);
-    out->WriteInt32(IsMousePressed);
     out->WriteInt32(HandleImage);
     out->WriteInt32(HandleOffset);
     out->WriteInt32(BgImage);
 }
 
-void GUISlider::ReadFromSavegame(Stream *in)
+void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     BgImage = in->ReadInt32();
     HandleImage = in->ReadInt32();
     HandleOffset = in->ReadInt32();

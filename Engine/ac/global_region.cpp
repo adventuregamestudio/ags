@@ -49,9 +49,7 @@ int GetRegionAt (int xxx, int yyy) {
         hsthere = 0;
 
     if (hsthere >= MAX_ROOM_REGIONS) {
-        char tempmsg[300];
-        sprintf(tempmsg, "!An invalid pixel was found on the room region mask (colour %d, location: %d, %d)", hsthere, xxx, yyy);
-        quit(tempmsg);
+        quitprintf("!An invalid pixel was found on the room region mask (colour %d, location: %d, %d)", hsthere, xxx, yyy);
     }
 
     if (croom->region_enabled[hsthere] == 0)

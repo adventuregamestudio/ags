@@ -49,23 +49,22 @@ public:
     String          GetEventArgs(int event) const;
     int             GetEventCount() const;
     String          GetEventName(int event) const;
-    bool            IsDeleted() const { return (Flags & kGUICtrl_Deleted) != 0; }
+    bool            IsDeleted() const;
     // checks both control flag and global variable
     bool            IsEnabled() const;
     // overridable routine to determine whether the mouse is over the control
     virtual bool    IsOverControl(int x, int y, int leeway) const;
-    inline bool     IsTranslated() const { return (Flags & kGUICtrl_Translated) != 0; }
-    inline bool     IsVisible() const { return (Flags & kGUICtrl_Invisible) == 0; }
+    bool            IsTranslated() const;
+    bool            IsVisible() const;
     // implemented separately in engine and editor
     bool            IsClickable() const;
     
     // Operations
-    void            Disable();
     virtual void    Draw(Bitmap *ds) { }
-    void            Enable();
-    void            Hide();
-    void            SetClickable(bool clickable);
-    void            Show();
+    void            SetClickable(bool on);
+    void            SetEnabled(bool on);
+    void            SetTranslated(bool on);
+    void            SetVisible(bool on);
 
     // Events
     // Key pressed for control
@@ -84,9 +83,9 @@ public:
     virtual void    OnResized() { }
 
     // Serialization
-    virtual void    WriteToFile(Common::Stream *out);
     virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-    virtual void    ReadFromSavegame(Common::Stream *in);
+    virtual void    WriteToFile(Common::Stream *out) const;
+    virtual void    ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
     virtual void    WriteToSavegame(Common::Stream *out) const;
 
 // TODO: these members are currently public; hide them later
@@ -94,7 +93,6 @@ public:
     int32_t  Id;         // GUI object's identifier
     int32_t  ParentId;   // id of parent GUI
     String   Name;       // script name
-    uint32_t Flags;      // generic style and behavior flags
 
     int32_t  X;
     int32_t  Y;
@@ -106,14 +104,16 @@ public:
     String   EventHandlers[MAX_GUIOBJ_EVENTS]; // script function names
   
 protected:
+    uint32_t Flags;      // generic style and behavior flags
+
     // TODO: explicit event names & handlers for every event
     int32_t  _scEventCount;                    // number of supported script events
     String   _scEventNames[MAX_GUIOBJ_EVENTS]; // script event names
     String   _scEventArgs[MAX_GUIOBJ_EVENTS];  // script handler params
 };
 
-
-FrameAlignment ConvertLegacyGUIAlignment(int32_t align);
+// Converts legacy alignment type used in GUI Label/ListBox data (only left/right/center)
+HorAlignment ConvertLegacyGUIAlignment(LegacyGUIAlignment align);
 
 } // namespace Common
 } // namespace AGS

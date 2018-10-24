@@ -46,14 +46,14 @@ namespace Common
 
 GUIMain::GUIMain()
 {
-    Init();
+    InitDefaults();
 }
 
-void GUIMain::Init()
+void GUIMain::InitDefaults()
 {
     Id            = 0;
     Name.Empty();
-    Flags         = 0;
+    Flags         = kGUIMain_DefFlags;
 
     X             = 0;
     Y             = 0;
@@ -63,12 +63,11 @@ void GUIMain::Init()
     BgImage       = 0;
     FgColor       = 1;
     Padding       = TEXTWINDOW_PADDING_DEFAULT;
-    PopupStyle    = kGUIPopupNone;
+    PopupStyle    = kGUIPopupNormal;
     PopupAtMouseY = -1;
     Transparency  = 0;
     ZOrder        = -1;
 
-    _visibility   = kGUIVisibility_On;
     FocusCtrl     = 0;
     HighlightCtrl = -1;
     MouseOverCtrl = -1;
@@ -78,7 +77,10 @@ void GUIMain::Init()
 
     OnClickHandler.Empty();
 
-    ControlCount  = 0;
+    Controls.clear();
+    CtrlRefs.clear();
+    CtrlDrawOrder.clear();
+    ControlCount = 0;
 }
 
 int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
@@ -113,11 +115,26 @@ GUIControlType GUIMain::GetControlType(int index) const
     return (GUIControlType)((CtrlRefs[index] >> 16) & 0x0000ffff);
 }
 
+bool GUIMain::IsClickable() const
+{
+    return (Flags & kGUIMain_Clickable) != 0;
+}
+
+bool GUIMain::IsConcealed() const
+{
+    return (Flags & kGUIMain_Concealed) != 0;
+}
+
+bool GUIMain::IsDisplayed() const
+{
+    return IsVisible() && !IsConcealed();
+}
+
 bool GUIMain::IsInteractableAt(int x, int y) const
 {
-    if (!IsVisible())
+    if (!IsDisplayed())
         return false;
-    if (Flags & kGUIMain_NoClick)
+    if (!IsClickable())
         return false;
     if ((x >= X) & (y >= Y) & (x < X + Width) & (y < Y + Height))
         return true;
@@ -127,6 +144,11 @@ bool GUIMain::IsInteractableAt(int x, int y) const
 bool GUIMain::IsTextWindow() const
 {
     return (Flags & kGUIMain_TextWindow) != 0;
+}
+
+bool GUIMain::IsVisible() const
+{
+    return (Flags & kGUIMain_Visible) != 0;
 }
 
 bool GUIMain::BringControlToFront(int index)
@@ -319,6 +341,22 @@ void GUIMain::ResortZOrder()
         CtrlDrawOrder[i] = ctrl_sort[i]->Id;
 }
 
+void GUIMain::SetClickable(bool on)
+{
+    if (on)
+        Flags |= kGUIMain_Clickable;
+    else
+        Flags &= ~kGUIMain_Clickable;
+}
+
+void GUIMain::SetConceal(bool on)
+{
+    if (on)
+        Flags |= kGUIMain_Concealed;
+    else
+        Flags &= ~kGUIMain_Concealed;
+}
+
 bool GUIMain::SendControlToBack(int index)
 {
     return SetControlZOrder(index, 0);
@@ -356,14 +394,25 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     return true;
 }
 
+void GUIMain::SetTextWindow(bool on)
+{
+    if (on)
+        Flags |= kGUIMain_TextWindow;
+    else
+        Flags &= ~kGUIMain_TextWindow;
+}
+
 void GUIMain::SetTransparencyAsPercentage(int percent)
 {
     Transparency = GfxDef::Trans100ToLegacyTrans255(percent);
 }
 
-void GUIMain::SetVisibility(GUIVisibilityState visibility)
+void GUIMain::SetVisible(bool on)
 {
-    _visibility = visibility;
+    if (on)
+        Flags |= kGUIMain_Visible;
+    else
+        Flags &= ~kGUIMain_Visible;
 }
 
 void GUIMain::OnControlPositionChanged()
@@ -410,8 +459,11 @@ void GUIMain::OnMouseButtonUp()
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE];
-    in->Read(tw_flags, sizeof(tw_flags));
+    // Legacy text window tag
+    char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
+    if (gui_version < kGuiVersion_350)
+        in->Read(tw_flags, sizeof(tw_flags));
+
     if (gui_version < kGuiVersion_340)
     {
         Name.ReadCount(in, GUIMAIN_LEGACY_NAME_LENGTH);
@@ -426,29 +478,40 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     Y             = in->ReadInt32();
     Width         = in->ReadInt32();
     Height        = in->ReadInt32();
-    FocusCtrl     = in->ReadInt32();
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        FocusCtrl = in->ReadInt32();
+    }
     ControlCount  = in->ReadInt32();
     PopupStyle    = (GUIPopupStyle)in->ReadInt32();
     PopupAtMouseY = in->ReadInt32();
     BgColor       = in->ReadInt32();
     BgImage       = in->ReadInt32();
     FgColor       = in->ReadInt32();
-    MouseOverCtrl = in->ReadInt32();
-    MouseWasAt.X  = in->ReadInt32();
-    MouseWasAt.Y  = in->ReadInt32();
-    MouseDownCtrl = in->ReadInt32();
-    HighlightCtrl = in->ReadInt32();
-    Flags         = in->ReadInt32();
-    if (tw_flags[0] == kGUIMain_LegacyTextWindow)
-    {
-        Flags |= kGUIMain_TextWindow;
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        MouseOverCtrl = in->ReadInt32();
+        MouseWasAt.X  = in->ReadInt32();
+        MouseWasAt.Y  = in->ReadInt32();
+        MouseDownCtrl = in->ReadInt32();
+        HighlightCtrl = in->ReadInt32();
     }
+    Flags         = in->ReadInt32();
     Transparency  = in->ReadInt32();
     ZOrder        = in->ReadInt32();
     Id            = in->ReadInt32();
     Padding       = in->ReadInt32();
-    in->Seek(sizeof(int32_t) * GUIMAIN_RESERVED_INTS);
-    _visibility = (GUIVisibilityState)in->ReadInt32();
+    if (gui_version < kGuiVersion_350)
+        in->Seek(sizeof(int32_t) * GUIMAIN_LEGACY_RESERVED_INTS);
+
+    if (gui_version < kGuiVersion_350)
+    {
+        if (tw_flags[0] == kGUIMain_LegacyTextWindow)
+            Flags |= kGUIMain_TextWindow;
+        // reverse particular flags from older format
+        Flags ^= kGUIMain_OldFmtXorMask;
+        GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
+    }
 
     if (gui_version < kGuiVersion_340)
     {
@@ -465,61 +528,30 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 }
 
-void GUIMain::WriteToFile(Stream *out, GuiVersion gui_version) const
+void GUIMain::WriteToFile(Stream *out) const
 {
-    char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
-    if (Flags & kGUIMain_TextWindow)
-        tw_flags[0] = kGUIMain_LegacyTextWindow;
-    out->Write(tw_flags, sizeof(tw_flags));
-    if (gui_version < kGuiVersion_340)
-    {
-        Name.WriteCount(out, GUIMAIN_LEGACY_NAME_LENGTH);
-        OnClickHandler.WriteCount(out, GUIMAIN_LEGACY_EVENTHANDLER_LENGTH);
-    }
-    else
-    {
-        StrUtil::WriteString(Name, out);
-        StrUtil::WriteString(OnClickHandler, out);
-    }
+    StrUtil::WriteString(Name, out);
+    StrUtil::WriteString(OnClickHandler, out);
     out->WriteInt32(X);
     out->WriteInt32(Y);
     out->WriteInt32(Width);
     out->WriteInt32(Height);
-    out->WriteInt32(FocusCtrl);
     out->WriteInt32(ControlCount);
     out->WriteInt32(PopupStyle);
     out->WriteInt32(PopupAtMouseY);
     out->WriteInt32(BgColor);
     out->WriteInt32(BgImage);
     out->WriteInt32(FgColor);
-    out->WriteInt32(MouseOverCtrl);
-    out->WriteInt32(MouseWasAt.X);
-    out->WriteInt32(MouseWasAt.Y);
-    out->WriteInt32(MouseDownCtrl);
-    out->WriteInt32(HighlightCtrl);
     out->WriteInt32(Flags);
     out->WriteInt32(Transparency);
     out->WriteInt32(ZOrder);
     out->WriteInt32(Id);
     out->WriteInt32(Padding);
-    int32_t reserved_ints[GUIMAIN_RESERVED_INTS] = {0};
-    out->WriteArrayOfInt32(reserved_ints, GUIMAIN_RESERVED_INTS);
-    out->WriteInt32(_visibility);
-
-    if (gui_version < kGuiVersion_340)
-    {
-        // array of dummy 32-bit pointers
-        int32_t dummy_arr[LEGACY_MAX_OBJS_ON_GUI] = {0};
-        out->WriteArrayOfInt32(dummy_arr, LEGACY_MAX_OBJS_ON_GUI);
-        out->WriteArrayOfInt32(&CtrlRefs.front(), LEGACY_MAX_OBJS_ON_GUI);
-    }
-    else if (ControlCount > 0)
-    {
+    if (ControlCount > 0)
         out->WriteArrayOfInt32(&CtrlRefs.front(), ControlCount);
-    }
 }
 
-void GUIMain::ReadFromSavegame(Common::Stream *in)
+void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
 {
     // Properties
     Flags = in->ReadInt32();
@@ -529,8 +561,22 @@ void GUIMain::ReadFromSavegame(Common::Stream *in)
     Height = in->ReadInt32();
     BgImage = in->ReadInt32();
     Transparency = in->ReadInt32();
-    _visibility = (GUIVisibilityState)in->ReadInt32();
+    if (svg_version < kGuiSvgVersion_350)
+    {
+        // reverse particular flags from older format
+        Flags ^= kGUIMain_OldFmtXorMask;
+        GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
+    }
     ZOrder = in->ReadInt32();
+
+    if (svg_version >= kGuiSvgVersion_350)
+    {
+        BgColor = in->ReadInt32();
+        FgColor = in->ReadInt32();
+        Padding = in->ReadInt32();
+        PopupAtMouseY = in->ReadInt32();
+    }
+
     // Dynamic values
     FocusCtrl = in->ReadInt32();
     HighlightCtrl = in->ReadInt32();
@@ -550,8 +596,11 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(Height);
     out->WriteInt32(BgImage);
     out->WriteInt32(Transparency);
-    out->WriteInt32(_visibility);
     out->WriteInt32(ZOrder);
+    out->WriteInt32(BgColor);
+    out->WriteInt32(FgColor);
+    out->WriteInt32(Padding);
+    out->WriteInt32(PopupAtMouseY);
     // Dynamic values
     out->WriteInt32(FocusCtrl);
     out->WriteInt32(HighlightCtrl);
@@ -582,7 +631,7 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
 void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
 {
     int text_height = wgettextheight(text, font);
-    if (align & kAlignVCenter)
+    if (align & kMAlignVCenter)
         text_height++; // CHECKME
     Rect item = AlignInRect(frame, RectWH(0, 0, wgettextwidth(text, font), text_height), align);
     wouttext_outline(ds, item.Left, item.Top, font, text_color, text);
@@ -614,7 +663,7 @@ void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
     guis_need_update = 1;
 }
 
-void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
+void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         quit("ReadGUI: file is corrupt");
@@ -628,7 +677,7 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
         GameGuiVersion = kGuiVersion_Initial;
     }
     else if (GameGuiVersion > kGuiVersion_Current)
-        quit("read_gui: this game requires a newer version of AGS");
+        quit("ReadGUI: this game requires a newer version of AGS");
     else
         gui_count = in->ReadInt32();
     guis.resize(gui_count);
@@ -637,12 +686,33 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
     for (size_t i = 0; i < gui_count; ++i)
     {
         GUIMain &gui = guis[i];
-        gui.Init();
+        gui.InitDefaults();
         gui.ReadFromFile(in, GameGuiVersion);
 
         // perform fixups
         if (gui.Height < 2)
             gui.Height = 2;
+
+        // GUI popup style and visibility
+        if (GameGuiVersion < kGuiVersion_350 && !is_savegame)
+        {
+            // Convert legacy normal-off style into normal one
+            if (gui.PopupStyle == kGUIPopupLegacyNormalOff)
+            {
+                gui.PopupStyle = kGUIPopupNormal;
+                gui.SetVisible(false);
+            }
+            // Normal GUIs and PopupMouseY GUIs should start with Visible = true
+            else
+            {
+                gui.SetVisible(gui.PopupStyle != kGUIPopupModal);
+            }
+        }
+
+        // PopupMouseY GUIs should be initially concealed
+        if (gui.PopupStyle == kGUIPopupMouseY)
+            gui.SetConceal(true);
+        // Assign ID to order in array
         gui.Id = i;
     }
 
@@ -701,21 +771,15 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
     ResortGUI(guis, GameGuiVersion < kGuiVersion_272e);
 }
 
-void WriteGUI(const std::vector<GUIMain> &guis, Stream *out, bool savedgame)
+void WriteGUI(const std::vector<GUIMain> &guis, Stream *out)
 {
     out->WriteInt32(GUIMAGIC);
-    GuiVersion write_version;
-    if (savedgame)
-        write_version = GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible;
-    else
-        write_version = kGuiVersion_Current;
-
-    out->WriteInt32(write_version);
+    out->WriteInt32(kGuiVersion_Current);
     out->WriteInt32(guis.size());
 
     for (size_t i = 0; i < guis.size(); ++i)
     {
-        guis[i].WriteToFile(out, write_version);
+        guis[i].WriteToFile(out);
     }
     out->WriteInt32(numguibuts);
     for (int i = 0; i < numguibuts; ++i)
@@ -746,6 +810,24 @@ void WriteGUI(const std::vector<GUIMain> &guis, Stream *out, bool savedgame)
     for (int i = 0; i < numguilist; ++i)
     {
         guilist[i].WriteToFile(out);
+    }
+}
+
+void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis)
+{
+    // kGUIPopupMouseY had its own rules, which we practically reverted now
+    if (gui.PopupStyle == kGUIPopupMouseY)
+    {
+        // it was only !Visible if the legacy Visibility was Concealed
+        gui.SetVisible(vis != kGUIVisibility_Concealed);
+        // and you could tell it's overridden by behavior when legacy Visibility is Off
+        gui.SetConceal(vis == kGUIVisibility_Off);
+    }
+    // Other GUI styles were simple
+    else
+    {
+        gui.SetVisible(vis != kGUIVisibility_Off);
+        gui.SetConceal(false);
     }
 }
 

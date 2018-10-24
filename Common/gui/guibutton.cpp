@@ -27,7 +27,7 @@ namespace AGS
 namespace Common
 {
 
-FrameAlignment ConvertLegacyButtonAlignment(int32_t align)
+FrameAlignment ConvertLegacyButtonAlignment(LegacyButtonAlignment align)
 {
     switch (align)
     {
@@ -38,11 +38,11 @@ FrameAlignment ConvertLegacyButtonAlignment(int32_t align)
     case kLegacyButtonAlign_TopRight:
         return kAlignTopRight;
     case kLegacyButtonAlign_CenterLeft:
-        return kAlignCenterLeft;
+        return kAlignMiddleLeft;
     case kLegacyButtonAlign_Centered:
-        return kAlignCentered;
+        return kAlignMiddleCenter;
     case kLegacyButtonAlign_CenterRight:
-        return kAlignCenterRight;
+        return kAlignMiddleRight;
     case kLegacyButtonAlign_BottomLeft:
         return kAlignBottomLeft;
     case kLegacyButtonAlign_BottomCenter:
@@ -62,7 +62,7 @@ GUIButton::GUIButton()
     CurrentImage = -1;
     Font = 0;
     TextColor = 0;
-    TextAlignment = kLegacyButtonAlign_TopCenter;
+    TextAlignment = kAlignTopCenter;
     ClickAction[kMouseLeft] = kGUIAction_RunScript;
     ClickAction[kMouseRight] = kGUIAction_RunScript;
     ClickData[kMouseLeft] = 0;
@@ -81,6 +81,11 @@ GUIButton::GUIButton()
 const String &GUIButton::GetText() const
 {
     return _text;
+}
+
+bool GUIButton::IsClippingImage() const
+{
+    return (Flags & kGUICtrl_Clip) != 0;
 }
 
 void GUIButton::Draw(Bitmap *ds)
@@ -108,6 +113,14 @@ void GUIButton::Draw(Bitmap *ds)
     // CHECKME: why don't draw frame if no Text? this will make button completely invisible!
     else if (!_text.IsEmpty())
         DrawTextButton(ds, draw_disabled);
+}
+
+void GUIButton::SetClipImage(bool on)
+{
+    if (on)
+        Flags |= kGUICtrl_Clip;
+    else
+        Flags &= ~kGUICtrl_Clip;
 }
 
 void GUIButton::SetText(const String &text)
@@ -168,16 +181,13 @@ void GUIButton::OnMouseUp()
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUIButton::WriteToFile(Stream *out)
+void GUIButton::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);
 
     out->WriteInt32(Image);
     out->WriteInt32(MouseOverImage);
     out->WriteInt32(PushedImage);
-    out->WriteInt32(CurrentImage);
-    out->WriteInt32(IsPushed);
-    out->WriteInt32(IsMouseOver);
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     out->WriteInt32(ClickAction[kMouseLeft]);
@@ -185,9 +195,8 @@ void GUIButton::WriteToFile(Stream *out)
     out->WriteInt32(ClickData[kMouseLeft]);
     out->WriteInt32(ClickData[kMouseRight]);
 
-    _text.WriteCount(out, GUIBUTTON_TEXTLENGTH);
+    StrUtil::WriteString(_text, out);
     out->WriteInt32(TextAlignment);
-    out->WriteInt32(0); // reserved int32
 }
 
 void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -197,25 +206,38 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     Image = in->ReadInt32();
     MouseOverImage = in->ReadInt32();
     PushedImage = in->ReadInt32();
-    CurrentImage = in->ReadInt32();
-    IsPushed = in->ReadInt32() != 0;
-    IsMouseOver = in->ReadInt32() != 0;
+    if (gui_version < kGuiVersion_350)
+    { // NOTE: reading into actual variables only for old savegame support
+        CurrentImage = in->ReadInt32();
+        IsPushed = in->ReadInt32() != 0;
+        IsMouseOver = in->ReadInt32() != 0;
+    }
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     ClickAction[kMouseLeft] = (GUIClickAction)in->ReadInt32();
     ClickAction[kMouseRight] = (GUIClickAction)in->ReadInt32();
     ClickData[kMouseLeft] = in->ReadInt32();
     ClickData[kMouseRight] = in->ReadInt32();
-    SetText(String::FromStreamCount(in, GUIBUTTON_TEXTLENGTH));
+    if (gui_version < kGuiVersion_350)
+        SetText(String::FromStreamCount(in, GUIBUTTON_LEGACY_TEXTLENGTH));
+    else
+        SetText(StrUtil::ReadString(in));
 
     if (gui_version >= kGuiVersion_272a)
     {
-        TextAlignment = in->ReadInt32();
-        in->ReadInt32(); // reserved1
+        if (gui_version < kGuiVersion_350)
+        {
+            TextAlignment = ConvertLegacyButtonAlignment((LegacyButtonAlignment)in->ReadInt32());
+            in->ReadInt32(); // reserved1
+        }
+        else
+        {
+            TextAlignment = (FrameAlignment)in->ReadInt32();
+        }
     }
     else
     {
-        TextAlignment = kLegacyButtonAlign_TopCenter;
+        TextAlignment = kAlignTopCenter;
     }
 
     if (TextColor == 0)
@@ -225,9 +247,9 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     Flags |= kGUICtrl_Translated;
 }
 
-void GUIButton::ReadFromSavegame(Stream *in)
+void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
-    GUIObject::ReadFromSavegame(in);
+    GUIObject::ReadFromSavegame(in, svg_ver);
     // Properties
     Image = in->ReadInt32();
     MouseOverImage = in->ReadInt32();
@@ -235,6 +257,8 @@ void GUIButton::ReadFromSavegame(Stream *in)
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     SetText(StrUtil::ReadString(in));
+    if (svg_ver >= kGuiSvgVersion_350)
+        TextAlignment = (FrameAlignment)in->ReadInt32();
     // Dynamic state
     Image = in->ReadInt32();
 }
@@ -249,6 +273,7 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(Font);
     out->WriteInt32(TextColor);
     StrUtil::WriteString(GetText(), out);
+    out->WriteInt32(TextAlignment);
     // Dynamic state
     out->WriteInt32(Image);
 }
@@ -256,7 +281,7 @@ void GUIButton::WriteToSavegame(Stream *out) const
 void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
 {
     // NOTE: the CLIP flag only clips the image, not the text
-    if (Flags & kGUICtrl_Clip)
+    if (IsClippingImage())
         ds->SetClip(Rect(X, Y, X + Width - 1, Y + Height - 1));
     if (spriteset[CurrentImage] != NULL)
         draw_gui_sprite(ds, CurrentImage, X, Y, true);
@@ -323,8 +348,7 @@ void GUIButton::DrawText(Bitmap *ds, bool draw_disabled)
     color_t text_color = ds->GetCompatibleColor(TextColor);
     if (draw_disabled)
         text_color = ds->GetCompatibleColor(8);
-    GUI::DrawTextAligned(ds, _textToDraw, Font, text_color, frame,
-        ConvertLegacyButtonAlignment(TextAlignment));
+    GUI::DrawTextAligned(ds, _textToDraw, Font, text_color, frame, TextAlignment);
 }
 
 void GUIButton::DrawTextButton(Bitmap *ds, bool draw_disabled)

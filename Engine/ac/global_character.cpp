@@ -377,7 +377,10 @@ void MoveCharacterToHotspot(int chaa,int hotsp) {
     // check if they try to move the player when Hide Player Char is
     // ticked -- otherwise this will hang the game
     if (game.chars[chaa].on != 1)
-        quit("!MoveCharacterBlocking: character is turned off (is Hide Player Character selected?) and cannot be moved");
+    {
+        debug_script_warn("MoveCharacterBlocking: character is turned off (is Hide Player Character selected?) and cannot be moved");
+        return;
+    }
 
     if (direct)
         MoveCharacterDirect(chaa,xx,yy);

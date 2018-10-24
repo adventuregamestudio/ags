@@ -37,6 +37,7 @@
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/system.h"
+#include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "script/cc_instance.h"
 #include "gui/guimain.h"
@@ -404,7 +405,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
     parserInput = new GUITextBox();
     parserInput->Height = lineheight + 4;
-    parserInput->TextBoxFlags = 0;
+    parserInput->SetShowBorder(true);
     parserInput->Font = usingfont;
   }
 
@@ -549,7 +550,7 @@ void DialogOptions::Redraw()
       run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
 
       if (!ccDialogOptionsRendering.surfaceAccessed)
-        quit("!dialog_options_get_dimensions was implemented, but no dialog_options_render function drew anything to the surface");
+          debug_script_warn("dialog_options_get_dimensions was implemented, but no dialog_options_render function drew anything to the surface");
 
       if (parserInput)
       {

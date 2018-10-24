@@ -53,6 +53,12 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
 {
     in->Read(&gamename[0], GAME_NAME_LENGTH);
     in->ReadArrayOfInt32(options, MAX_OPTIONS);
+    if (loaded_game_file_version < kGameVersion_340_4)
+    { // TODO: this should probably be possible to deduce script API level
+      // using game data version and other options like OPT_STRICTSCRIPTING
+        options[OPT_BASESCRIPTAPI] = kScriptAPI_Undefined;
+        options[OPT_SCRIPTCOMPATLEV] = kScriptAPI_Undefined;
+    }
     in->Read(&paluses[0], 256);
     // colors are an array of chars
     in->Read(&defpal[0], sizeof(color)*256);

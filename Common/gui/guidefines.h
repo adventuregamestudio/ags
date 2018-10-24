@@ -44,6 +44,8 @@
 // 3.3.0.1132 (116): Added kGUICtrl_Translated flag.
 // 3.3.1.???? (117): Added padding variable for text window GUIs.
 // 3.4.0      (118): Removed GUI limits
+// 3.5.0      (119): Game data contains GUI properties that previously
+//                   could be set only at runtime.
 //
 //=============================================================================
 
@@ -71,11 +73,8 @@ enum GuiVersion
     kGuiVersion_330         = 116,
     kGuiVersion_331         = 117,
     kGuiVersion_340         = 118,
-    kGuiVersion_Current     = kGuiVersion_340,
-    // Defines the oldest version of gui data that is complying to current
-    // savedgame format; if the loaded game data is of this version or lower,
-    // then this value will be written to savedgame instead of current version.
-    kGuiVersion_ForwardCompatible = kGuiVersion_272e
+    kGuiVersion_350         = 119,
+    kGuiVersion_Current     = kGuiVersion_350,
 };
 
 namespace AGS
@@ -83,31 +82,44 @@ namespace AGS
 namespace Common
 {
 
+// GUIMain's style and behavior flags
 enum GUIMainFlags
 {
-    kGUIMain_NoClick    = 0x01,
-    kGUIMain_TextWindow = 0x02
+    kGUIMain_Clickable  = 0x0001,
+    kGUIMain_TextWindow = 0x0002,
+    kGUIMain_Visible    = 0x0004,
+    kGUIMain_Concealed  = 0x0008,
+
+    // NOTE: currently default state is Visible to keep this backwards compatible;
+    // check later if this is still a wanted behavior
+    kGUIMain_DefFlags   = kGUIMain_Clickable | kGUIMain_Visible,
+    // flags that had inverse meaning in old formats
+    kGUIMain_OldFmtXorMask = kGUIMain_Clickable
 };
 
+// GUIMain's legacy flags, now converted to GUIMainFlags on load
 enum GUIMainLegacyFlags
 {
     kGUIMain_LegacyTextWindow = 5
 };
 
+// GUIMain's style of getting displayed on screen
 enum GUIPopupStyle
 {
-    // normal GUI, initally on
-    kGUIPopupNone             = 0,
-    // show when mouse moves to top of screen
+    // Normal GUI
+    kGUIPopupNormal           = 0,
+    // Shown when the mouse cursor moves to the top of the screen
     kGUIPopupMouseY           = 1,
-    // pauses game when shown
+    // Same as Normal, but pauses the game when shown
     kGUIPopupModal            = 2,
-    // initially on and not removed when interface is off
+    // Same as Normal, but is not removed when interface is off
     kGUIPopupNoAutoRemove     = 3,
-    // normal GUI, initially off
-    kGUIPopupNoneInitiallyOff = 4
+    // (legacy option) Normal GUI, initially off
+    // converts to kGUIPopupNormal with Visible = false
+    kGUIPopupLegacyNormalOff  = 4
 };
 
+// The type of GUIControl
 enum GUIControlType
 {
     kGUIControlUndefined = -1,
@@ -119,29 +131,52 @@ enum GUIControlType
     kGUIListBox     = 6
 };
 
+// GUIControl general style and behavior flags
 enum GUIControlFlags
 {
-    kGUICtrl_Default    = 0x0001,
+    kGUICtrl_Default    = 0x0001, // only button
     kGUICtrl_Cancel     = 0x0002, // unused
-    kGUICtrl_Disabled   = 0x0004,
+    kGUICtrl_Enabled    = 0x0004,
     kGUICtrl_TabStop    = 0x0008, // unused
-    kGUICtrl_Invisible  = 0x0010,
-    kGUICtrl_Clip       = 0x0020,
-    kGUICtrl_NoClicks   = 0x0040,
+    kGUICtrl_Visible    = 0x0010,
+    kGUICtrl_Clip       = 0x0020, // only button
+    kGUICtrl_Clickable  = 0x0040,
     kGUICtrl_Translated = 0x0080, // 3.3.0.1132
-    kGUICtrl_Deleted    = 0x8000, // unused
+    kGUICtrl_Deleted    = 0x8000, // unused (probably remains from the old editor?)
+
+    kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable,
+    // flags that had inverse meaning in old formats
+    kGUICtrl_OldFmtXorMask = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable
 };
 
+// GUIListBox style and behavior flags
 enum GUIListBoxFlags
 {
-    kListBox_NoBorder = 0x01,
-    kListBox_NoArrows = 0x02,
-    kListBox_SvgIndex = 0x04,
+    kListBox_ShowBorder = 0x01,
+    kListBox_ShowArrows = 0x02,
+    kListBox_SvgIndex   = 0x04,
+
+    kListBox_DefFlags   = kListBox_ShowBorder | kListBox_ShowArrows,
+    // flags that had inverse meaning in old formats
+    kListBox_OldFmtXorMask = kListBox_ShowBorder | kListBox_ShowArrows
 };
 
+// GUITextBox style and behavior flags
 enum GUITextBoxFlags
 {
-    kTextBox_NoBorder = 0x0001
+    kTextBox_ShowBorder = 0x0001,
+
+    kTextBox_DefFlags   = kTextBox_ShowBorder,
+    // flags that had inverse meaning in old formats
+    kTextBox_OldFmtXorMask = kTextBox_ShowBorder
+};
+
+// Savegame data format
+// TODO: move to the engine code
+enum GuiSvgVersion
+{
+    kGuiSvgVersion_Initial  = 0,
+    kGuiSvgVersion_350      = 1
 };
 
 } // namespace Common

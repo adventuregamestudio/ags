@@ -453,11 +453,11 @@ void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color
     wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
 }
 
-void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, int align) {
+void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align) {
 
-    if (align == SCALIGN_CENTRE)
+    if (align & kMAlignHCenter)
         usexp = usexp + (oriwid / 2) - (wgettextwidth_compensate(text, usingfont) / 2);
-    else if (align == SCALIGN_RIGHT)
+    else if (align & kMAlignRight)
         usexp = usexp + (oriwid - wgettextwidth_compensate(text, usingfont));
 
     wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);

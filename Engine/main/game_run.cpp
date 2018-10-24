@@ -489,7 +489,7 @@ void check_keyboard_controls()
             if ( ((kgn >= 32) && (kgn != '[') && (kgn < 256)) || (kgn == 13) || (kgn == 8) ) {
                 int uu,ww;
                 for (uu=0;uu<game.numgui;uu++) {
-                    if (!guis[uu].IsVisible()) continue;
+                    if (!guis[uu].IsDisplayed()) continue;
                     for (ww=0;ww<guis[uu].ControlCount;ww++) {
                         // not a text box, ignore it
                         if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUITextBox)

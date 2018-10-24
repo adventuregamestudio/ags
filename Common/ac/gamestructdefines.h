@@ -142,13 +142,15 @@ enum DialogOptionNumbering
 // 3.4.0 final and above.
 enum ScriptAPIVersion
 {
+    kScriptAPI_Undefined = INT32_MIN,
     kScriptAPI_v321 = 0,
     kScriptAPI_v330 = 1,
     kScriptAPI_v334 = 2,
     kScriptAPI_v335 = 3,
     kScriptAPI_v340 = 4,
     kScriptAPI_v341 = 5,
-    kScriptAPI_Current = kScriptAPI_v341
+    kScriptAPI_v350 = 6,
+    kScriptAPI_Current = kScriptAPI_v350
 };
 
 // Determines whether the graphics renderer should scale sprites at the final

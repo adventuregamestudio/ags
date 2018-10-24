@@ -71,6 +71,16 @@ int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
 int eip_guinum, eip_guiobj;
 
 
+ScriptGUI* GUI_AsTextWindow(ScriptGUI *tehgui)
+{ // Internally both GUI and TextWindow are implemented by same class
+    return guis[tehgui->id].IsTextWindow() ? &scrGui[tehgui->id] : NULL;
+}
+
+int GUI_GetPopupStyle(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].PopupStyle;
+}
+
 void GUI_SetVisible(ScriptGUI *tehgui, int isvisible) {
   if (isvisible)
     InterfaceOn(tehgui->id);
@@ -82,9 +92,7 @@ int GUI_GetVisible(ScriptGUI *tehgui) {
   // GUI_GetVisible is slightly different from IsGUIOn, because
   // with a mouse ypos gui it returns 1 if the GUI is enabled,
   // whereas IsGUIOn actually checks if it is displayed
-  if (!guis[tehgui->id].IsOff())
-    return 1;
-  return 0;
+  return guis[tehgui->id].IsVisible() ? 1 : 0;
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
@@ -109,7 +117,7 @@ void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
 }
 
 void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
-  if ((widd < 1) || (hitt < 1) || (widd > BASEWIDTH) || (hitt > BASEHEIGHT))
+  if ((widd < 1) || (hitt < 1))
     quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
 
   GUIMain *tehgui = &guis[sgui->id];
@@ -151,15 +159,11 @@ int GUI_GetZOrder(ScriptGUI *tehgui) {
 }
 
 void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
-  guis[tehgui->id].Flags &= ~kGUIMain_NoClick;
-  if (clickable == 0)
-    guis[tehgui->id].Flags |= kGUIMain_NoClick;
+  guis[tehgui->id].SetClickable(clickable != 0);
 }
 
 int GUI_GetClickable(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].Flags & kGUIMain_NoClick)
-    return 0;
-  return 1;
+  return guis[tehgui->id].IsClickable() ? 1 : 0;
 }
 
 int GUI_GetID(ScriptGUI *tehgui) {
@@ -174,6 +178,17 @@ GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
 
 int GUI_GetControlCount(ScriptGUI *tehgui) {
   return guis[tehgui->id].ControlCount;
+}
+
+int GUI_GetPopupYPos(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].PopupAtMouseY;
+}
+
+void GUI_SetPopupYPos(ScriptGUI *tehgui, int newpos)
+{
+    if (!guis[tehgui->id].IsTextWindow())
+        guis[tehgui->id].PopupAtMouseY = newpos;
 }
 
 void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
@@ -211,6 +226,67 @@ int GUI_GetBackgroundGraphic(ScriptGUI *tehgui) {
   return guis[tehgui->id].BgImage;
 }
 
+void GUI_SetBackgroundColor(ScriptGUI *tehgui, int newcol)
+{
+    if (guis[tehgui->id].BgColor != newcol)
+    {
+        guis[tehgui->id].BgColor = newcol;
+        guis_need_update = 1;
+    }
+}
+
+int GUI_GetBackgroundColor(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].BgColor;
+}
+
+void GUI_SetBorderColor(ScriptGUI *tehgui, int newcol)
+{
+    if (guis[tehgui->id].IsTextWindow())
+        return;
+    if (guis[tehgui->id].FgColor != newcol)
+    {
+        guis[tehgui->id].FgColor = newcol;
+        guis_need_update = 1;
+    }
+}
+
+int GUI_GetBorderColor(ScriptGUI *tehgui)
+{
+    if (guis[tehgui->id].IsTextWindow())
+        return 0;
+    return guis[tehgui->id].FgColor;
+}
+
+void GUI_SetTextColor(ScriptGUI *tehgui, int newcol)
+{
+    if (!guis[tehgui->id].IsTextWindow())
+        return;
+    if (guis[tehgui->id].FgColor != newcol)
+    {
+        guis[tehgui->id].FgColor = newcol;
+        guis_need_update = 1;
+    }
+}
+
+int GUI_GetTextColor(ScriptGUI *tehgui)
+{
+    if (!guis[tehgui->id].IsTextWindow())
+        return 0;
+    return guis[tehgui->id].FgColor;
+}
+
+int GUI_GetTextPadding(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].Padding;
+}
+
+void GUI_SetTextPadding(ScriptGUI *tehgui, int newpos)
+{
+    if (guis[tehgui->id].IsTextWindow())
+        guis[tehgui->id].Padding = newpos;
+}
+
 ScriptGUI *GetGUIAtLocation(int xx, int yy) {
     int guiid = GetGUIAt(xx, yy);
     if (guiid < 0)
@@ -245,7 +321,7 @@ void GUI_ProcessClick(int x, int y, int mbut)
 void remove_popup_interface(int ifacenum) {
     if (ifacepopped != ifacenum) return;
     ifacepopped=-1; UnPauseGame();
-    guis[ifacenum].SetVisibility(kGUIVisibility_Off);
+    guis[ifacenum].SetConceal(true);
     if (mousey<=guis[ifacenum].PopupAtMouseY)
         Mouse::SetPosition(Point(mousex, guis[ifacenum].PopupAtMouseY+2));
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
@@ -451,7 +527,7 @@ int adjust_x_for_guis (int xx, int yy) {
         return xx;
     // If it's covered by a GUI, move it right a bit
     for (int aa=0;aa < game.numgui; aa++) {
-        if (!guis[aa].IsVisible())
+        if (!guis[aa].IsDisplayed())
             continue;
         if ((guis[aa].X > xx) || (guis[aa].Y > yy) || (guis[aa].Y + guis[aa].Height < yy))
             continue;
@@ -474,7 +550,7 @@ int adjust_y_for_guis ( int yy) {
         return yy;
     // If it's covered by a GUI, move it down a bit
     for (int aa=0;aa < game.numgui; aa++) {
-        if (!guis[aa].IsVisible())
+        if (!guis[aa].IsDisplayed())
             continue;
         if (guis[aa].Y > yy)
             continue;
@@ -534,13 +610,13 @@ int gui_on_mouse_move()
             if (is_complete_overlay>0) break;  // interfaces disabled
             //    if (play.disabled_user_interface>0) break;
             if (ifacepopped==guin) continue;
-            if (guis[guin].IsConcealed()) continue;
+            if (!guis[guin].IsVisible()) continue;
             // Don't allow it to be popped up while skipping cutscene
             if (play.fast_forward) continue;
 
             if (mousey < guis[guin].PopupAtMouseY) {
                 set_mouse_cursor(CURS_ARROW);
-                guis[guin].SetVisibility(kGUIVisibility_On); guis_need_update = 1;
+                guis[guin].SetConceal(false); guis_need_update = 1;
                 ifacepopped=guin; PauseGame();
                 break;
             }
@@ -661,6 +737,36 @@ RuntimeScriptValue Sc_GUI_SetBackgroundGraphic(void *self, const RuntimeScriptVa
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetBackgroundGraphic);
 }
 
+RuntimeScriptValue Sc_GUI_GetBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetBackgroundColor);
+}
+
+RuntimeScriptValue Sc_GUI_SetBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetBackgroundColor);
+}
+
+RuntimeScriptValue Sc_GUI_GetBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetBorderColor);
+}
+
+RuntimeScriptValue Sc_GUI_SetBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetBorderColor);
+}
+
+RuntimeScriptValue Sc_GUI_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetTextColor);
+}
+
+RuntimeScriptValue Sc_GUI_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetTextColor);
+}
+
 // int (ScriptGUI *tehgui)
 RuntimeScriptValue Sc_GUI_GetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -701,6 +807,26 @@ RuntimeScriptValue Sc_GUI_SetHeight(void *self, const RuntimeScriptValue *params
 RuntimeScriptValue Sc_GUI_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptGUI, GUI_GetID);
+}
+
+RuntimeScriptValue Sc_GUI_GetPopupYPos(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetPopupYPos);
+}
+
+RuntimeScriptValue Sc_GUI_SetPopupYPos(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetPopupYPos);
+}
+
+RuntimeScriptValue Sc_GUI_GetTextPadding(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetTextPadding);
+}
+
+RuntimeScriptValue Sc_GUI_SetTextPadding(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetTextPadding);
 }
 
 // int (ScriptGUI *tehgui)
@@ -775,6 +901,16 @@ RuntimeScriptValue Sc_GUI_SetZOrder(void *self, const RuntimeScriptValue *params
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetZOrder);
 }
 
+RuntimeScriptValue Sc_GUI_AsTextWindow(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptGUI, ScriptGUI, ccDynamicGUI, GUI_AsTextWindow);
+}
+
+RuntimeScriptValue Sc_GUI_GetPopupStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetPopupStyle);
+}
+
 RuntimeScriptValue Sc_GUI_Click(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_Click);
@@ -795,6 +931,10 @@ void RegisterGUIAPI()
     ccAddExternalObjectFunction("GUI::SetSize^2",               Sc_GUI_SetSize);
     ccAddExternalObjectFunction("GUI::get_BackgroundGraphic",   Sc_GUI_GetBackgroundGraphic);
     ccAddExternalObjectFunction("GUI::set_BackgroundGraphic",   Sc_GUI_SetBackgroundGraphic);
+    ccAddExternalObjectFunction("GUI::get_BackgroundColor",     Sc_GUI_GetBackgroundColor);
+    ccAddExternalObjectFunction("GUI::set_BackgroundColor",     Sc_GUI_SetBackgroundColor);
+    ccAddExternalObjectFunction("GUI::get_BorderColor",         Sc_GUI_GetBorderColor);
+    ccAddExternalObjectFunction("GUI::set_BorderColor",         Sc_GUI_SetBorderColor);
     ccAddExternalObjectFunction("GUI::get_Clickable",           Sc_GUI_GetClickable);
     ccAddExternalObjectFunction("GUI::set_Clickable",           Sc_GUI_SetClickable);
     ccAddExternalObjectFunction("GUI::get_ControlCount",        Sc_GUI_GetControlCount);
@@ -802,6 +942,14 @@ void RegisterGUIAPI()
     ccAddExternalObjectFunction("GUI::get_Height",              Sc_GUI_GetHeight);
     ccAddExternalObjectFunction("GUI::set_Height",              Sc_GUI_SetHeight);
     ccAddExternalObjectFunction("GUI::get_ID",                  Sc_GUI_GetID);
+    ccAddExternalObjectFunction("GUI::get_AsTextWindow",        Sc_GUI_AsTextWindow);
+    ccAddExternalObjectFunction("GUI::get_PopupStyle",          Sc_GUI_GetPopupStyle);
+    ccAddExternalObjectFunction("GUI::get_PopupYPos",           Sc_GUI_GetPopupYPos);
+    ccAddExternalObjectFunction("GUI::set_PopupYPos",           Sc_GUI_SetPopupYPos);
+    ccAddExternalObjectFunction("TextWindowGUI::get_TextColor", Sc_GUI_GetTextColor);
+    ccAddExternalObjectFunction("TextWindowGUI::set_TextColor", Sc_GUI_SetTextColor);
+    ccAddExternalObjectFunction("TextWindowGUI::get_TextPadding", Sc_GUI_GetTextPadding);
+    ccAddExternalObjectFunction("TextWindowGUI::set_TextPadding", Sc_GUI_SetTextPadding);
     ccAddExternalObjectFunction("GUI::get_Transparency",        Sc_GUI_GetTransparency);
     ccAddExternalObjectFunction("GUI::set_Transparency",        Sc_GUI_SetTransparency);
     ccAddExternalObjectFunction("GUI::get_Visible",             Sc_GUI_GetVisible);

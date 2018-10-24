@@ -2087,7 +2087,7 @@ void draw_screen_overlay() {
             //Bitmap *abufwas = ds;
             guis_need_update = 0;
             for (aa=0;aa<game.numgui;aa++) {
-                if (!guis[aa].IsVisible()) continue;
+                if (!guis[aa].IsDisplayed()) continue;
 
                 if (guibg[aa] == NULL)
                     recreate_guibg_image(&guis[aa]);
@@ -2122,7 +2122,7 @@ void draw_screen_overlay() {
         // Draw the GUIs
         for (gg = 0; gg < game.numgui; gg++) {
             aa = play.gui_draw_order[gg];
-            if (!guis[aa].IsVisible()) continue;
+            if (!guis[aa].IsDisplayed()) continue;
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == 3) &&

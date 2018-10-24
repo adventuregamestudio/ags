@@ -7,6 +7,7 @@ Common features:
  - Removed fonts count limit.
  - Raised imported sprites count limit to 90000 and removed total sprite count limit
    (this means you may have around 2 billions of dynamic sprites).
+ - Removed length limit on the Button and TextBox text.
 
 Editor:
  - Editor requires .NET Framework 4.5 to run. Dropped Windows XP support.
@@ -17,6 +18,8 @@ Editor:
    or region for editing, show/hide and lock room objects and regions in any combination.
    These settings are saved in the special roomXXX.crm.user files.
  - Removed Locked property from the Room Object, objects are now locked by the navbar.
+ - Split GUI's Visibility property into PopupStyle and Visible properties.
+ - Added Clickable, Enabled and Visible properties to GUI Controls.
  - Improved how Room zoom slider works, now supports downscale.
  - Added "Export mask to file" tool button to the Room Editor.
  - Added "Always"choice to "Popup message on compile" preference. Successful compilation
@@ -33,17 +36,36 @@ Editor:
  - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key controls.
  - Fixed rooms not being rebuilt when running game just created from a template.
 
+Script API:
+ - Replaced Alignment enum with a new one which has eight values from TopLeft to BottomRight.
+ - Renamed old Alignment enum to HorizontalAlignment, intended for parameters that are
+   only allowed to be Left, Center or Right.
+ - Added new script class TextWindowGUI, which extends GUI class and is meant to access
+   text-window specific properties: TextColor and TextPadding.
+ - Added new properties to GUI class: AsTextWindow (readonly), BackgroundColor, BorderColor,
+   PopupStyle (readonly), PopupYPos.
+ - Added Button.TextAlignment and Label.TextAlignment.
+ - Added missing properties for ListBox: SelectedBackColor, SelectedTextColor, TextAlignment,
+   TextColor.
+ - Replaced ListBox.HideBorder and HideArrows with ShowBorder and ShowArrows.
+ - Added TextBox.ShowBorder.
+
 Engine:
  - New pathfinder based on the A* jump point search.
  - Implemented new savegame format. Much cleaner than the old one, and easier to
    extend, it should also reduce the size of the save files.
    The engine is still capable of loading older saves, temporarily.
  - Prevent game from crashing if there was an attempt to draw text with a non-existing font.
- - SetMouseBounds() no longer crashes the game if it is called with arguments out of range,
-   these parameters are corrected and a warning logged instead.
+ - Removed restriction preventing GUIs to be larger than the game's screen.
+ - Replaced number of fatal errors reported for incorrectly called script functions with
+   a warning to the warnings.log instead. This is done either when arguments may be fixed
+   automatically, or script command simply cannot be executed under current circumstances.
  - Expanded some of the error messages providing more information to end-user and developers.
  - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
  - Fixed 'warnings.log' could never be created (was broken in earlier versions).
+
+Linux:
+ - Fixes Linux game launch script (fixes issues with itch.io client).
 
 Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.

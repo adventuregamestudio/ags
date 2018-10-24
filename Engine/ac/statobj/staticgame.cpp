@@ -163,7 +163,7 @@ void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
     case 96:  play.close_mouth_speech_time = val; break;
     case 97:  play.disable_antialiasing = val; break;
     case 98:  play.text_speed_modifier = val; break;
-    case 99:  play.text_align = val; break;
+    case 99:  play.text_align = ReadScriptAlignment(val); break;
     case 100:  play.speech_bubble_width = val; break;
     case 101:  play.min_dialogoption_width = val; break;
     case 102:  play.disable_dialog_parser = val; break;
@@ -176,7 +176,7 @@ void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
     case 109:  play.screenshot_width = val; break;
     case 110:  play.screenshot_height = val; break;
     case 111:  play.top_bar_font = val; break;
-    case 112:  play.speech_text_align = val; break;
+    case 112:  play.speech_text_align = ReadScriptAlignment(val); break;
     case 113:  play.auto_use_walkto_points = val; break;
     case 114:  play.inventory_greys_out = val; break;
     case 115:  play.skip_speech_specific_key = val; break;

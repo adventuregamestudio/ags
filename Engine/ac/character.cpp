@@ -1452,7 +1452,7 @@ void Character_SetScaling(CharacterInfo *chaa, int zoomlevel) {
         return;
     }
     if ((zoomlevel < 5) || (zoomlevel > 200))
-        quit("!Character.ScalingFar: scaling level must be between 5 and 200%");
+        quit("!Character.Scaling: scaling level must be between 5 and 200%");
 
     charextra[chaa->index_id].zoom = zoomlevel;
 }

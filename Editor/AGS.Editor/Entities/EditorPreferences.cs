@@ -57,7 +57,9 @@ namespace AGS.Editor.Preferences
 
         public bool Equals(RecentGame otherGame)
         {
-            return Name == otherGame.Name && Path == otherGame.Path;
+            // for lack of an identifier, if the path on disk matches
+            // this is considered to be the same game
+            return Path == otherGame.Path;
         }
 
         public string Name { get; set; }

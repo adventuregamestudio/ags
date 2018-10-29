@@ -64,6 +64,12 @@ GameFrameSetup::GameFrameSetup()
 {
 }
 
+GameFrameSetup::GameFrameSetup(FrameScaleDefinition def, int factor)
+    : ScaleDef(def)
+    , ScaleFactor(factor)
+{
+}
+
 bool GameFrameSetup::IsValid() const
 {
     return ScaleDef != kFrame_IntScale || ScaleFactor > 0;

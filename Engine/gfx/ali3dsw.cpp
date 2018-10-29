@@ -240,6 +240,7 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid() || !_filter)
     return;
+  DestroyVirtualScreen();
   // Adjust clipping so nothing gets drawn outside the game frame
   Bitmap *real_screen = BitmapHelper::GetScreenBitmap();
   real_screen->SetClip(_dstRect);
@@ -247,6 +248,15 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
   // (which may or not be the same as real screen)
   virtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
   BitmapHelper::SetScreenBitmap( virtualScreen );
+}
+
+void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
+{
+  if (_filter)
+  {
+    BitmapHelper::SetScreenBitmap(_filter->ShutdownAndReturnRealScreen());
+    virtualScreen = NULL;
+  }
 }
 
 void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
@@ -262,8 +272,7 @@ void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
   }
 #endif
 
-  if (BitmapHelper::GetScreenBitmap())
-    BitmapHelper::SetScreenBitmap( _filter->ShutdownAndReturnRealScreen() );
+  DestroyVirtualScreen();
 
   // [IKM] 2012-09-07
   // We do not need the wrapper any longer;

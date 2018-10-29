@@ -198,6 +198,7 @@ private:
 
     // Use gfx filter to create a new virtual screen
     void CreateVirtualScreen();
+    void DestroyVirtualScreen();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
 

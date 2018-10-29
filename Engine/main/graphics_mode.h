@@ -63,6 +63,7 @@ struct GameFrameSetup
     int                  ScaleFactor; // explicit scale factor
 
     GameFrameSetup();
+    GameFrameSetup(FrameScaleDefinition def, int factor = 0);
     bool IsValid() const;
 };
 

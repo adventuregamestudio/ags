@@ -552,6 +552,11 @@ void post_config()
     {
         usetup.Screen.Filter.ID = "StdScale";
     }
+
+    if (!usetup.Screen.FsGameFrame.IsValid())
+        usetup.Screen.FsGameFrame = GameFrameSetup(kFrame_MaxProportional);
+    if (!usetup.Screen.WinGameFrame.IsValid())
+        usetup.Screen.WinGameFrame = GameFrameSetup(kFrame_MaxRound);
     
     // TODO: helper functions to remove slash in paths (or distinct path type)
     if (usetup.user_data_dir.GetLast() == '/' || usetup.user_data_dir.GetLast() == '\\')

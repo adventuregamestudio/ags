@@ -17,11 +17,6 @@ namespace AGS.Editor
             {
                 components.Dispose();
             }
-			if (disposing && (_lastImportedSprite != null))
-			{
-				_lastImportedSprite.Dispose();
-				_lastImportedSprite = null;
-			}
             base.Dispose(disposing);
         }
 

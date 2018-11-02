@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using AGS.Editor.Preferences;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
@@ -105,7 +106,7 @@ namespace AGS.Editor
 
         string IAGSEditor.GetSpriteUsageReport(int spriteNumber)
         {
-            return new SpriteUsageChecker().GetSpriteUsageReport(spriteNumber, _agsEditor.CurrentGame);
+            return SpriteTools.GetSpriteUsageReport(spriteNumber, _agsEditor.CurrentGame);
         }
 
         void IAGSEditor.DeleteSprite(int spriteNumber)

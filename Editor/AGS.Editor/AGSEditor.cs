@@ -11,6 +11,7 @@ using AGS.CScript.Compiler;
 using AGS.Types;
 using AGS.Types.Interfaces;
 using AGS.Editor.Preferences;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
@@ -1353,7 +1354,7 @@ namespace AGS.Editor
 
         public void DeleteSprite(Sprite sprite)
         {
-            string usageReport = new SpriteUsageChecker().GetSpriteUsageReport(sprite.Number, _game);
+            string usageReport = SpriteTools.GetSpriteUsageReport(sprite.Number, _game);
             if (usageReport != null)
             {
                 throw new SpriteInUseException("Cannot delete a sprite because it is in use:" + Environment.NewLine + usageReport);

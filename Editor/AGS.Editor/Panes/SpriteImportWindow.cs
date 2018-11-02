@@ -1,65 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Text;
 using System.Windows.Forms;
-using AGS.Editor.Preferences;
+using System.IO;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
     public partial class SpriteImportWindow : Form
     {
-		private readonly string[] TRANSPARENCY_MODE_DESCRIPTIONS = new string[]{
-			"Pixels of index 0 will be transparent (256-colour games only)",
-			"The top-left pixel will be the transparent colour for this sprite",
-			"The bottom-left pixel will be the transparent colour for this sprite",
-			"The top-right pixel will be the transparent colour for this sprite",
-			"The bottom-right pixel will be the transparent colour for this sprite",
-			"AGS will leave the sprite's pixels as they are. Any pixels that match the AGS Transparent Colour will be invisible.",
-			"AGS will remove all transparent pixels by changing them to a very similar non-transparent colour"
-		};
-		private static bool _initialized = false;
-		private static SpriteImportMethod _spriteImportMethod;
+        private Bitmap image;
+        private List<string> imageLookup;
+        private int zoomLevel = 1;
 
-		public static SpriteImportMethod SpriteImportMethod
-		{
-			get 
-			{
-				if (!_initialized)
-				{
-					_initialized = true;
-					_spriteImportMethod = Factory.AGSEditor.Settings.SpriteImportMethod;
-				}
-				return _spriteImportMethod; 
-			}
-			set { _spriteImportMethod = value; }
-		}
-
-		private static int _SelectionWidth = 0;
-		private static int _SelectionHeight = 0;
-
-        private Bitmap _image;
-        private int _startDraggingX;
-        private int _startDraggingY;
-        private bool _draggingRectangle = false;
-        private bool _doingTiledImport = false;
-        private int _mouseX;
-        private int _mouseY;
-        private int _firstFrameX;
-        private int _firstFrameY;
-        private int _framesHorizontal;
-        private int _framesVertical;
-        private int _zoomLevel = 1;
-        private List<Bitmap> _selectedBitmaps = new List<Bitmap>();
-		private ToolTip _tooltip = new ToolTip();
-
-        public List<Bitmap> SelectedBitmaps
-        {
-            get { return _selectedBitmaps; }
-        }
+        // for dragging a rectangle
+        private bool dragging = false;
+        private Point start;
+        private Point position;
 
         public bool RemapToGamePalette
         {
@@ -71,82 +29,163 @@ namespace AGS.Editor
             get { return chkRoomBackground.Checked; }
         }
 
-        public SpriteImportWindow(Bitmap bmpToImport)
+        public bool UseAlphaChannel
+        {
+            get { return chkUseAlphaChannel.Checked; }
+        }
+
+        public bool TiledImport
+        {
+            get { return chkTiled.Checked; }
+        }
+
+        public Size ImageSize
+        {
+            get { return new Size(image.Width, image.Height); }
+        }
+
+        public Point SelectionOffset
+        {
+            get { return new Point((int)numOffsetX.Value, (int)numOffsetY.Value); }
+        }
+
+        public Size SelectionSize
+        {
+            get { return new Size((int)numSizeX.Value, (int)numSizeY.Value); }
+        }
+
+        public Size TilingMargin
+        {
+            get { return new Size((int)numMarginX.Value, (int)numMarginY.Value); }
+        }
+
+        public SpriteTools.TilingDirection TilingDirection
+        {
+            get { return (SpriteTools.TilingDirection)cmbTileDirection.SelectedIndex; }
+        }
+
+        public int MaxTiles
+        {
+            get { return (int)numMaxTiles.Value; }
+        }
+
+        public int SpriteImportMethod
+        {
+            get
+            {
+                // "Pixels of index 0 will be transparent (256-colour games only)"
+                if (radTransColourIndex0.Checked) { return 0; };
+
+                // "The top-left pixel will be the transparent colour for this sprite"
+                if (radTransColourTopLeftPixel.Checked) { return 1; };
+
+                // "The bottom-left pixel will be the transparent colour for this sprite"
+                if (radTransColourBottomLeftPixel.Checked) { return 2; };
+
+                // "The top-right pixel will be the transparent colour for this sprite"
+                if (radTransColourTopRightPixel.Checked) { return 3; };
+
+                // "The bottom-right pixel will be the transparent colour for this sprite"
+                if (radTransColourBottomRightPixel.Checked) { return 4; };
+
+                // "AGS will remove all transparent pixels by changing them to a very similar non-transparent colour"
+                if (radTransColourNone.Checked) { return 6; };
+
+                // "AGS will leave the sprite's pixels as they are. Any pixels that match the AGS Transparent Colour will be invisible."
+                return 5;
+            }
+        }
+
+        public SpriteImportWindow(string[] filenames)
         {
             InitializeComponent();
 
-            _image = bmpToImport;
-            lblImageSize.Text = "Image size: " + _image.Width + " x " + _image.Height;
-            cmbTransparentCol.SelectedIndex = (int)SpriteImportMethod;
+            cmbFilenames.Enabled = filenames.Length > 1;
+            cmbFilenames.Items.Clear();
+            imageLookup = new List<string>();
 
-			if ((_SelectionWidth > _image.Width) ||
-				(_SelectionHeight > _image.Height))
-			{
-				_SelectionWidth = 0;
-				_SelectionHeight = 0;
-			}
+            foreach (string filename in filenames)
+            {
+                imageLookup.Add(filename);
+                cmbFilenames.Items.Add(Path.GetFileName(filename));
+            }
 
-            chkRoomBackground.Visible = (Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette);
-            chkRemapCols.Visible = (Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette);
+            cmbFilenames.SelectedIndex = 0;
+
+            OneTimeControlSetup();
+            PostImageLoad();
+        }
+
+        public SpriteImportWindow(Bitmap bmp)
+        {
+            InitializeComponent();
+
+            image = bmp;
+            cmbFilenames.Enabled = false;
+            cmbFilenames.Items.Clear();
+
+            OneTimeControlSetup();
+            PostImageLoad();
+        }
+
+        private void OneTimeControlSetup()
+        {
+            // enable or disable things based on the colour depth
+            panelIndex0.Enabled = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
+            radTransColourIndex0.Enabled = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
+            chkRoomBackground.Enabled = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
+            chkRemapCols.Enabled = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
+
+            // pick a default tiling direction
+            cmbTileDirection.SelectedIndex = 0;
+        }
+
+        private void PostImageLoad()
+        {
+            int framecount = SpriteTools.GetFrameCountEstimateFromFile(imageLookup[cmbFilenames.SelectedIndex]);
+            string format = image.PixelFormat.ToString().Substring(6).ToUpper().Replace("BPP", " bit ").Replace("INDEXED", "indexed");
+            string frames = framecount > 1 ? String.Format(", {0} frames", framecount) : "";
+            lblImageDescription.Text = String.Format("{0} x {1}, {2}{3}", image.Width, image.Height, format, frames);
+
+            // clear old labels to reset the scrollbars
+            previewPanel.Controls.Clear();
 
             // this label is a hack to get the scroll bars to stretch to the size we want
             Label scrollWindowSizer = new Label();
-            scrollWindowSizer.Location = new Point(_image.Width, _image.Height);
+            scrollWindowSizer.Location = new Point(image.Width * zoomLevel, image.Height * zoomLevel);
             scrollWindowSizer.Text = string.Empty;
             scrollWindowSizer.Width = 0;
             scrollWindowSizer.Height = 0;
             previewPanel.Controls.Add(scrollWindowSizer);
+
+            // update colour previews
+            panelTopLeft.BackColor = image.GetPixel(0, 0);
+            panelTopRight.BackColor = image.GetPixel(image.Width - 1, 0);
+            panelBottomLeft.BackColor = image.GetPixel(0, image.Height - 1);
+            panelBottomRight.BackColor = image.GetPixel(image.Width - 1, image.Height - 1);
+
+            previewPanel.Refresh();
+
+            // if not doing a tiled import, update selection width and height
+            if (!chkTiled.Checked)
+            {
+                numSizeX.Value = image.Width;
+                numSizeY.Value = image.Height;
+            }
         }
 
         private void zoomSlider_Scroll(object sender, EventArgs e)
         {
-            int newVertical = (previewPanel.VerticalScroll.Value / _zoomLevel) * zoomSlider.Value;
-            int newHorizontal = (previewPanel.HorizontalScroll.Value / _zoomLevel) * zoomSlider.Value;
+            int newVertical = (previewPanel.VerticalScroll.Value / zoomLevel) * zoomSlider.Value;
+            int newHorizontal = (previewPanel.HorizontalScroll.Value / zoomLevel) * zoomSlider.Value;
 
             previewPanel.VerticalScroll.Value = Math.Min(newVertical, previewPanel.VerticalScroll.Maximum);
             previewPanel.HorizontalScroll.Value = Math.Min(newHorizontal, previewPanel.HorizontalScroll.Maximum);
 
-            _zoomLevel = zoomSlider.Value;
-            lblZoom.Text = "Zoom: x " + _zoomLevel;
-            previewPanel.Controls[0].Location = new Point(_image.Width * _zoomLevel, _image.Height * _zoomLevel);
+            zoomLevel = zoomSlider.Value;
+            lblZoom.Text = "Zoom: x " + zoomLevel;
+            previewPanel.Controls[0].Location = new Point(image.Width * zoomLevel, image.Height * zoomLevel);
             previewPanel.Invalidate();
-        }
-
-        private void PaintTiledImportRectangles(Graphics g)
-        {
-            Pen pen = Pens.Blue;
-            int framesHorizontal = ((_mouseX + previewPanel.HorizontalScroll.Value) / _zoomLevel - _firstFrameX) / _SelectionWidth + 1;
-            int framesVertical = ((_mouseY + previewPanel.VerticalScroll.Value) / _zoomLevel - _firstFrameY) / _SelectionHeight + 1;
-            if (framesHorizontal < 1)
-            {
-                framesHorizontal = 1;
-            }
-            if (framesVertical < 1)
-            {
-                framesVertical = 1;
-            }
-            if (_firstFrameX + framesHorizontal * _SelectionWidth > _image.Width)
-            {
-                framesHorizontal = (_image.Width - _firstFrameX) / _SelectionWidth;
-            }
-            if (_firstFrameY + framesVertical * _SelectionHeight > _image.Height)
-            {
-                framesVertical = (_image.Height - _firstFrameY) / _SelectionHeight;
-            }
-            _framesHorizontal = framesHorizontal;
-            _framesVertical = framesVertical;
-
-            int rectX = _firstFrameX - previewPanel.HorizontalScroll.Value / _zoomLevel;
-            for (int x = 0; x < framesHorizontal; x++)
-            {
-                int rectY = _firstFrameY - previewPanel.VerticalScroll.Value / _zoomLevel;
-                for (int y = 0; y < framesVertical; y++)
-                {
-                    g.DrawRectangle(pen, rectX * _zoomLevel, rectY * _zoomLevel, _SelectionWidth * _zoomLevel, _SelectionHeight * _zoomLevel);
-                    rectY += _SelectionHeight;
-                }
-                rectX += _SelectionWidth;
-            }
         }
 
         private void previewPanel_Paint(object sender, PaintEventArgs e)
@@ -155,163 +194,54 @@ namespace AGS.Editor
             e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
             e.Graphics.CompositingQuality = CompositingQuality.HighSpeed;
-            e.Graphics.DrawImage(_image, -previewPanel.HorizontalScroll.Value, -previewPanel.VerticalScroll.Value, _image.Width * _zoomLevel, _image.Height * _zoomLevel);
 
-            if (_draggingRectangle)
+            // Draw the image
+            e.Graphics.DrawImage(image, -previewPanel.HorizontalScroll.Value,
+                -previewPanel.VerticalScroll.Value, image.Width * zoomLevel, image.Height * zoomLevel);
+
+            // Draw dragging indicator
+            if (dragging)
             {
-                int width = Math.Abs(_mouseX - _startDraggingX);
-                int height = Math.Abs(_mouseY - _startDraggingY);
-                int x = Math.Min(_mouseX, _startDraggingX);
-                int y = Math.Min(_mouseY, _startDraggingY);
+                numSizeX.Value = position.X / zoomLevel - numOffsetX.Value + 1;
+                numSizeY.Value = position.Y / zoomLevel - numOffsetY.Value + 1;
 
-                Brush brush = new HatchBrush(HatchStyle.Percent50, Color.Yellow, Color.Transparent);
-                e.Graphics.FillRectangle(brush, x, y, width, height);
+                Size snappedSize = new Size((int)numSizeX.Value * zoomLevel, (int)numSizeY.Value * zoomLevel);
+                Point snappedStart = new Point((int)numOffsetX.Value * zoomLevel - previewPanel.HorizontalScroll.Value, (int)numOffsetY.Value * zoomLevel - previewPanel.VerticalScroll.Value);
+                Point snappedMiddle = new Point(snappedStart.X + snappedSize.Width / 2, snappedStart.Y + snappedSize.Height / 2);
+
+                // draw selection box
+                Brush brush = new HatchBrush(HatchStyle.Percent50, Color.HotPink, Color.Transparent);
+                e.Graphics.FillRectangle(brush, new Rectangle(snappedStart, snappedSize));
+
+                // draw selection size text
+                StringFormat format = new StringFormat();
+                format.LineAlignment = StringAlignment.Center;
+                format.Alignment = StringAlignment.Center;
+                string selection = String.Format("{0} x {1}", numSizeX.Value, numSizeY.Value);
+                e.Graphics.DrawString(selection, this.Font, new SolidBrush(Color.Black), snappedMiddle, format);
             }
-            else if ((_SelectionWidth > 0) && (_SelectionHeight > 0))
+            else if (TiledImport)
             {
-                if (_doingTiledImport)
+                Pen pen = new Pen(Color.HotPink, 1);
+
+                foreach (Rectangle rect in SpriteTools.GetSpriteSelections(ImageSize, SelectionOffset,
+                    SelectionSize, TilingMargin, TilingDirection, MaxTiles))
                 {
-                    PaintTiledImportRectangles(e.Graphics);
-                }
-                else
-                {
-                    Brush brush = new HatchBrush(HatchStyle.Percent50, Color.Yellow, Color.Transparent);
-                    e.Graphics.FillRectangle(brush, _mouseX, _mouseY, _SelectionWidth * _zoomLevel, _SelectionHeight * _zoomLevel);
-                }
-            }
-        }
-
-		private void ConvertMousePositionToNearestPixel(MouseEventArgs e, ref int mouseX, ref int mouseY)
-		{
-			mouseX = (e.X + previewPanel.HorizontalScroll.Value) / _zoomLevel;
-			mouseY = (e.Y + previewPanel.VerticalScroll.Value) / _zoomLevel;
-			lblMousePos.Text = "Mouse location: " + mouseX + ", " + mouseY;
-			mouseX = (mouseX * _zoomLevel) - previewPanel.HorizontalScroll.Value;
-			mouseY = (mouseY * _zoomLevel) - previewPanel.VerticalScroll.Value;
-		}
-
-        private void previewPanel_MouseMove(object sender, MouseEventArgs e)
-        {
-			ConvertMousePositionToNearestPixel(e, ref _mouseX, ref _mouseY);
-
-            if ((_draggingRectangle) || (_SelectionWidth > 0))
-            {
-                previewPanel.Invalidate();
-            }
-        }
-
-        private void DoImport(Bitmap bmp)
-        {
-			if (VerifySpriteImportMethod())
-			{
-				SpriteImportMethod = (SpriteImportMethod)cmbTransparentCol.SelectedIndex;
-				if (bmp != null)
-				{
-					_selectedBitmaps.Add(bmp);
-				}
-				this.DialogResult = DialogResult.OK;
-				this.Close();
-			}
-        }
-
-		private bool VerifySpriteImportMethod()
-		{
-			if ((Factory.AGSEditor.CurrentGame.Settings.ColorDepth != AGS.Types.GameColorDepth.Palette) &&
-				(cmbTransparentCol.SelectedIndex == 0))
-			{
-				MessageBox.Show("You cannot use the 'Index 0' transparency with hi-colour games.", "Transparency selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-				return false;
-			}
-			return true;
-		}
-
-		private void btnImportWholeImage_Click(object sender, EventArgs e)
-		{
-			DoImport(_image);
-		}
-
-        private void previewPanel_MouseDown(object sender, MouseEventArgs e)
-        {
-            if ((e.Button == MouseButtons.Right) && (!_doingTiledImport))
-            {
-				ConvertMousePositionToNearestPixel(e, ref _startDraggingX, ref _startDraggingY);
-                _draggingRectangle = true;
-            }
-            else if ((e.Button == MouseButtons.Left) && (_doingTiledImport))
-            {
-				for (int y = 0; y < _framesVertical; y++)
-                {
-					for (int x = 0; x < _framesHorizontal; x++)
-					{
-                        int xp = x * _SelectionWidth + _firstFrameX;
-						int yp = y * _SelectionHeight + _firstFrameY;
-						Bitmap subBitmap = _image.Clone(new Rectangle(xp, yp, _SelectionWidth, _SelectionHeight), _image.PixelFormat);
-                        _selectedBitmaps.Add(subBitmap);
-                    }
-                }
-                DoImport(null);
-            }
-            else if ((e.Button == MouseButtons.Left) && (!_draggingRectangle))
-            {
-				if ((_SelectionWidth < 1) || (_SelectionHeight < 1))
-                {
-                    MessageBox.Show("You must right-drag to set the selection rectangle size before importing.", "Import error", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    int x = (_mouseX + previewPanel.HorizontalScroll.Value) / _zoomLevel;
-                    int y = (_mouseY + previewPanel.VerticalScroll.Value) / _zoomLevel;
-                    if ((x < _image.Width) && (y < _image.Height))
-                    {
-                        if (chkTiled.Checked)
-                        {
-                            _doingTiledImport = true;
-                            _firstFrameX = x;
-                            _firstFrameY = y;
-                            chkTiled.Enabled = false;
-                            btnImportWholeImage.Enabled = false;
-                            lblHelpText.Text = "Move the mouse to select the tiles that you want to import as sprites.";
-                            previewPanel.Invalidate();
-                        }
-                        else
-                        {
-                            int width = _SelectionWidth;
-							int height = _SelectionHeight;
-                            if (x + _SelectionWidth > _image.Width)
-                            {
-                                width = _image.Width - x;
-                            }
-							if (y + _SelectionHeight > _image.Height)
-                            {
-                                height = _image.Height - y;
-                            }
-                            Bitmap subBitmap = _image.Clone(new Rectangle(x, y, width, height), _image.PixelFormat);
-                            DoImport(subBitmap);
-                        }
-                    }
+                    // multiply everything by the zoom level
+                    Rectangle zoomed = rect;
+                    zoomed.X = zoomed.X * zoomLevel - previewPanel.HorizontalScroll.Value;
+                    zoomed.Y = zoomed.Y * zoomLevel - previewPanel.VerticalScroll.Value;
+                    zoomed.Width *= zoomLevel;
+                    zoomed.Height *= zoomLevel;
+                    e.Graphics.DrawRectangle(pen, zoomed);
                 }
             }
         }
 
-        private void previewPanel_MouseUp(object sender, MouseEventArgs e)
+        private void btnImport_Click(object sender, EventArgs e)
         {
-            if ((e.Button == MouseButtons.Right) && (!_doingTiledImport))
-            {
-                _draggingRectangle = false;
-                _SelectionWidth = Math.Abs(_mouseX - _startDraggingX) / _zoomLevel;
-				_SelectionHeight = Math.Abs(_mouseY - _startDraggingY) / _zoomLevel;
-
-                Point cursorPos = Cursor.Position;
-                if (_mouseX > _startDraggingX)
-                {
-                    cursorPos.X -= (_mouseX - _startDraggingX);
-                }
-                if (_mouseY > _startDraggingY)
-                {
-                    cursorPos.Y -= (_mouseY - _startDraggingY);
-                }
-                Cursor.Position = cursorPos;
-            }
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
 
         private void previewPanel_Scroll(object sender, ScrollEventArgs e)
@@ -325,13 +255,88 @@ namespace AGS.Editor
             this.Close();
         }
 
-		private void cmbTransparentCol_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			if (_tooltip.Active)
-			{
-				_tooltip.Hide(this);
-			}
-			_tooltip.Show(TRANSPARENCY_MODE_DESCRIPTIONS[cmbTransparentCol.SelectedIndex], this, cmbTransparentCol.Left + 20, cmbTransparentCol.Top, 5000);
-		}
+        private void cmbFilenames_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string filename = imageLookup[cmbFilenames.SelectedIndex];
+            image = SpriteTools.LoadFirstImageFromFile(filename);
+            PostImageLoad();
+        }
+
+        private void chkTiled_CheckedChanged(object sender, EventArgs e)
+        {
+            numOffsetX.Enabled =
+                numOffsetY.Enabled =
+                numSizeX.Enabled =
+                numSizeY.Enabled =
+                numMarginX.Enabled =
+                numMarginY.Enabled =
+                cmbTileDirection.Enabled =
+                numMaxTiles.Enabled = chkTiled.Checked;
+
+            previewPanel.Invalidate();
+        }
+
+        private void previewPanel_MouseDown(object sender, MouseEventArgs e)
+        {
+            chkTiled.Checked = true;
+            dragging = true;
+
+            Point mouse = e.Location;
+            mouse.X = mouse.X + previewPanel.HorizontalScroll.Value;
+            mouse.Y = mouse.Y + previewPanel.VerticalScroll.Value;
+
+            start = position = mouse;
+            numOffsetX.Value = start.X / zoomLevel;
+            numOffsetY.Value = start.Y / zoomLevel;
+        }
+
+        private void previewPanel_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (dragging)
+            {
+                Point mouse = e.Location;
+                mouse.X = mouse.X + previewPanel.HorizontalScroll.Value;
+                mouse.Y = mouse.Y + previewPanel.VerticalScroll.Value;
+
+                if (mouse.X < start.X)
+                {
+                    mouse.X = start.X;
+                }
+
+                if (mouse.Y < start.Y)
+                {
+                    mouse.Y = start.Y;
+                }
+
+                position = mouse;
+                position.X = (position.X / zoomLevel) * zoomLevel;
+                position.Y = (position.Y / zoomLevel) * zoomLevel;
+                previewPanel.Invalidate();
+            }
+        }
+
+        private void previewPanel_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (dragging)
+            {
+                dragging = false;
+                previewPanel.Invalidate();
+            }
+        }
+
+        private void cmbTileDirection_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            previewPanel.Invalidate();
+        }
+
+        private void InvalidateOn_KeyUp(object sender, KeyEventArgs e)
+        {
+            previewPanel.Invalidate();
+        }
+
+        private void InvalidateOn_ValueChanged(object sender, EventArgs e)
+        {
+            previewPanel.Invalidate();
+        }
     }
 }

@@ -981,7 +981,7 @@
     </Compile>
     <Compile Include="Plugins\EditorPlugin.cs" />
     <Compile Include="Utils\NativeConstants.cs" />
-    <Compile Include="Utils\SpriteUsageChecker.cs" />
+    <Compile Include="Utils\SpriteTools.cs" />
     <Compile Include="Tasks.cs" />
     <Compile Include="TextProcessing\BaseTextProcess.cs" />
     <Compile Include="TextProcessing\FindAllUsages.cs" />

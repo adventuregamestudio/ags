@@ -11,12 +11,6 @@ namespace AGS.Editor.Utils
 {
     public class SpriteTools
     {
-        public enum TilingDirection
-        {
-            Right,
-            Down
-        }
-
         public static IEnumerable<Bitmap> LoadSpritesFromFile(string fileName)
         {
             // We have to use this stream code because using "new Bitmap(filename)"
@@ -81,14 +75,14 @@ namespace AGS.Editor.Utils
             return decoder.GetFrameCount();
         }
 
-        public static IEnumerable<Rectangle> GetSpriteSelections(Size size, Point offset, Size selection, Size margin, TilingDirection direction, int count)
+        public static IEnumerable<Rectangle> GetSpriteSelections(Size size, Point offset, Size selection, Size margin, SpriteImportTilingDirection direction, int count)
         {
             Point start = new Point(offset.X, offset.Y);
             Rectangle rect = new Rectangle(start, selection);
 
             for (int i = 1; i <= count; i ++)
             {
-                if (direction == TilingDirection.Right)
+                if (direction == SpriteImportTilingDirection.Right)
                 {
                     if (i > 1)
                     {
@@ -106,7 +100,7 @@ namespace AGS.Editor.Utils
                         }
                     }
                 }
-                else if (direction == TilingDirection.Down)
+                else if (direction == SpriteImportTilingDirection.Down)
                 {
                     if (i > 1)
                     {

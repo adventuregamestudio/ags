@@ -59,9 +59,9 @@ namespace AGS.Editor
             get { return new Size((int)numMarginX.Value, (int)numMarginY.Value); }
         }
 
-        public SpriteTools.TilingDirection TilingDirection
+        public AGS.Types.SpriteImportTilingDirection TilingDirection
         {
-            get { return (SpriteTools.TilingDirection)cmbTileDirection.SelectedIndex; }
+            get { return (AGS.Types.SpriteImportTilingDirection)cmbTileDirection.SelectedIndex; }
         }
 
         public int MaxTiles

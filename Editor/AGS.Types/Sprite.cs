@@ -18,8 +18,13 @@ namespace AGS.Types
         private int _colorDepth;
         private SpriteImportResolution _resolution;
         private bool _alphaChannel;
-		private string _sourceFile = string.Empty;
-		private int? _coloursLockedToRoom = null;
+        private string _sourceFile = string.Empty;
+        private int? _coloursLockedToRoom = null;
+        private int _frame = 1;
+        private SpriteImportTransparency _importMethod = SpriteImportTransparency.LeaveAsIs;
+        private int _offsetX;
+        private int _offsetY;
+        private bool _remapToGamePalette;
 
         public Sprite(int number, int width, int height, int colorDepth, SpriteImportResolution importRes, bool alphaChannel)
         {
@@ -104,7 +109,6 @@ namespace AGS.Types
         }
 
 		[Description("The file location that this sprite was imported from")]
-		[ReadOnly(true)]
 		[Category("Design")]
 		public string SourceFile
 		{
@@ -126,6 +130,46 @@ namespace AGS.Types
 		{
 			get { return (_coloursLockedToRoom.HasValue) ? _coloursLockedToRoom.Value.ToString() : "(None)"; }
 		}
+
+        [Description("The horizontal offset within the source file")]
+        [Category("Design")]
+        public int OffsetX
+        {
+            get { return _offsetX; }
+            set { _offsetX = value; }
+        }
+
+        [Description("The vertical offset within the source file")]
+        [Category("Design")]
+        public int OffsetY
+        {
+            get { return _offsetY; }
+            set { _offsetY = value; }
+        }
+
+        [Description("The frame number of a multi-frame image within the source file")]
+        [Category("Design")]
+        public int Frame
+        {
+            get { return _frame; }
+            set { _frame = value; }
+        }
+
+        [Description("The import method used for processing transparent colours")]
+        [Category("Design")]
+        public SpriteImportTransparency ImportMethod
+        {
+            get { return _importMethod; }
+            set { _importMethod = value; }
+        }
+
+        [Description("Remap palette colours on import")]
+        [Category("Design")]
+        public bool RemapToGamePalette
+        {
+            get { return _remapToGamePalette; }
+            set { _remapToGamePalette = value; }
+        }
 
         public Sprite(XmlNode node)
         {

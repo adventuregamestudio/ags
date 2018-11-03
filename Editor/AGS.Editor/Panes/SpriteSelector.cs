@@ -455,6 +455,7 @@ namespace AGS.Editor
 
         private void ImportNewSprite(string[] filenames)
         {
+            _lastImportedFilenames = filenames;
             SpriteImportWindow impWin = new SpriteImportWindow(filenames);
 
             if (impWin.ShowDialog() == DialogResult.OK)
@@ -539,6 +540,7 @@ namespace AGS.Editor
 
         private void ReplaceSprite(Sprite sprite, string filename)
         {
+            _lastImportedFilenames = new string[] { filename };
             SpriteImportWindow impWin = new SpriteImportWindow(new string[] { filename });
 
             // get import options from the existing sprite

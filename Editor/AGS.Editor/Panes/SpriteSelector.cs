@@ -436,7 +436,7 @@ namespace AGS.Editor
             }
         }
 
-        private Sprite CreateSpriteForBitmap(Bitmap bmp, SpriteImportMethod method, bool remapColours, bool useRoomBackground, bool alphaChannel)
+        private Sprite CreateSpriteForBitmap(Bitmap bmp, SpriteImportTransparency method, bool remapColours, bool useRoomBackground, bool alphaChannel)
         {
             Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, method, remapColours, useRoomBackground, alphaChannel);
             _currentFolder.Sprites.Add(newSprite);
@@ -459,7 +459,7 @@ namespace AGS.Editor
                     foreach (Bitmap bmp in SpriteTools.LoadSpritesFromFile(filename))
                     {
                         bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
-                        SpriteImportMethod method = (SpriteImportMethod)impWin.SpriteImportMethod;
+                        SpriteImportTransparency method = (SpriteImportTransparency)impWin.SpriteImportMethod;
 
                         if (impWin.TiledImport)
                         {
@@ -495,7 +495,7 @@ namespace AGS.Editor
             if (impWin.ShowDialog() == DialogResult.OK)
             {
                 bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
-                SpriteImportMethod method = (SpriteImportMethod)impWin.SpriteImportMethod;
+                SpriteImportTransparency method = (SpriteImportTransparency)impWin.SpriteImportMethod;
 
                 Sprite newSprite = CreateSpriteForBitmap(bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
                 newSprite.SourceFile = String.Empty;
@@ -513,7 +513,7 @@ namespace AGS.Editor
             {
                 Bitmap bmp = SpriteTools.LoadFirstImageFromFile(filename);
                 bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
-                SpriteImportMethod method = (SpriteImportMethod)impWin.SpriteImportMethod;
+                SpriteImportTransparency method = (SpriteImportTransparency)impWin.SpriteImportMethod;
 
                 Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
                 sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
@@ -530,7 +530,7 @@ namespace AGS.Editor
             if (impWin.ShowDialog() == DialogResult.OK)
             {
                 bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
-                SpriteImportMethod method = (SpriteImportMethod)impWin.SpriteImportMethod;
+                SpriteImportTransparency method = (SpriteImportTransparency)impWin.SpriteImportMethod;
 
                 Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
                 sprite.SourceFile = string.Empty;
@@ -901,7 +901,7 @@ namespace AGS.Editor
                 else
                 {
                     Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, newBmp,
-                        SpriteImportMethod.LeaveAsIs, false, false, sprite.AlphaChannel);
+                        SpriteImportTransparency.LeaveAsIs, false, false, sprite.AlphaChannel);
                     RefreshSpriteDisplay();
                 }
                 newBmp.Dispose();

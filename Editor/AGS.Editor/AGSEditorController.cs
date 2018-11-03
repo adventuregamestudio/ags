@@ -82,7 +82,7 @@ namespace AGS.Editor
                 throw new AGSEditorException("Unable to find sprite " + spriteNumber + " in any sprite folders");
             }
 
-            Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, newImage, (SpriteImportMethod)((int)transparencyType), true, false, useAlphaChannel);
+            Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, newImage, (SpriteImportTransparency)((int)transparencyType), true, false, useAlphaChannel);
             if (sprite.ColorDepth < 32)
             {
                 sprite.AlphaChannel = false;
@@ -93,7 +93,7 @@ namespace AGS.Editor
 
         Sprite IAGSEditor.CreateNewSprite(ISpriteFolder inFolder, Bitmap newImage, SpriteImportTransparency transparencyType, bool useAlphaChannel)
         {
-            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(newImage, (SpriteImportMethod)((int)transparencyType), true, false, useAlphaChannel);
+            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(newImage, (SpriteImportTransparency)((int)transparencyType), true, false, useAlphaChannel);
             if (newSprite.ColorDepth < 32)
             {
                 newSprite.AlphaChannel = false;

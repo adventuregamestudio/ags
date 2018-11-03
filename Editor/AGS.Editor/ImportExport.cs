@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using AGS.Types;
-using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -1322,7 +1321,7 @@ namespace AGS.Editor
                 bmp.Palette = pal;
             }
 
-            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, SpriteImportMethod.LeaveAsIs, true, false, hasAlpha);
+            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, SpriteImportTransparency.LeaveAsIs, true, false, hasAlpha);
             bmp.Dispose();
             return newSprite;
         }

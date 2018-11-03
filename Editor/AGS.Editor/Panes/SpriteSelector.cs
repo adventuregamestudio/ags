@@ -482,6 +482,7 @@ namespace AGS.Editor
                                 sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
                                 sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
                                 sprite.RemapToGamePalette = impWin.RemapToGamePalette;
+                                sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
                                 sprite.Frame = frame;
                             }
                         }
@@ -903,6 +904,13 @@ namespace AGS.Editor
                 try
                 {
                     Bitmap bmp = SpriteTools.LoadFrameImageFromFile(spr.SourceFile, spr.Frame);
+
+                    // if offset would make a selection, use it
+                    if (spr.OffsetX > 0 || spr.OffsetY > 0)
+                    {
+                        bmp = bmp.Clone(new Rectangle(spr.OffsetX, spr.OffsetY, spr.Width, spr.Height), bmp.PixelFormat);
+                    }
+
                     bool alphaChannel = spr.AlphaChannel;
                     bool remap = spr.RemapToGamePalette;
                     SpriteImportTransparency method = spr.ImportMethod;

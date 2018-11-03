@@ -83,7 +83,7 @@ namespace AGS.Types
             set { _height = value; }
         }
 
-        [Description("The amount of disk space this sprite takes up")]
+        [Description("The amount of disk space this sprite takes up, when uncompressed")]
         [Category("Design")]
         public string SizeOnDisk
         {
@@ -99,9 +99,8 @@ namespace AGS.Types
             set { _colorDepth = value; }
         }
 
-        [Description("Whether this sprite has an alpha channel")]
-        [ReadOnly(true)]
-        [Category("Appearance")]
+        [Description("Whether this sprite was imported using its alpha channel")]
+        [Category("Import")]
         public bool AlphaChannel
         {
             get { return _alphaChannel; }
@@ -109,7 +108,7 @@ namespace AGS.Types
         }
 
 		[Description("The file location that this sprite was imported from")]
-		[Category("Design")]
+		[Category("Import")]
 		public string SourceFile
 		{
 			get { return _sourceFile; }
@@ -124,7 +123,7 @@ namespace AGS.Types
 		}
 
 		[Description("The room number that this sprite's palette is locked against. It will look wrong if used in other rooms.")]
-		[Category("Design")]
+		[Category("Import")]
 		[DisplayName("PaletteLockedToRoom")]
 		public string ColoursLockedToRoomDescription
 		{
@@ -132,7 +131,7 @@ namespace AGS.Types
 		}
 
         [Description("The horizontal offset within the source file")]
-        [Category("Design")]
+        [Category("Import")]
         public int OffsetX
         {
             get { return _offsetX; }
@@ -140,7 +139,7 @@ namespace AGS.Types
         }
 
         [Description("The vertical offset within the source file")]
-        [Category("Design")]
+        [Category("Import")]
         public int OffsetY
         {
             get { return _offsetY; }
@@ -148,7 +147,7 @@ namespace AGS.Types
         }
 
         [Description("The frame number of a multi-frame image within the source file")]
-        [Category("Design")]
+        [Category("Import")]
         public int Frame
         {
             get { return _frame; }
@@ -156,7 +155,7 @@ namespace AGS.Types
         }
 
         [Description("The import method used for processing transparent colours")]
-        [Category("Design")]
+        [Category("Import")]
         public SpriteImportTransparency ImportMethod
         {
             get { return _importMethod; }
@@ -164,7 +163,7 @@ namespace AGS.Types
         }
 
         [Description("Remap palette colours on import")]
-        [Category("Design")]
+        [Category("Import")]
         public bool RemapToGamePalette
         {
             get { return _remapToGamePalette; }
@@ -177,20 +176,36 @@ namespace AGS.Types
             _width = Convert.ToInt32(node.Attributes["Width"].InnerText);
             _height = Convert.ToInt32(node.Attributes["Height"].InnerText);
             _colorDepth = Convert.ToInt32(node.Attributes["ColorDepth"].InnerText);
+            _resolution = (SpriteImportResolution)Enum.Parse(typeof(SpriteImportResolution), node.Attributes["Resolution"].InnerText);
+
             if (node.Attributes["AlphaChannel"] != null)
             {
                 _alphaChannel = Convert.ToBoolean(node.Attributes["AlphaChannel"].InnerText);
             }
-			if (node.SelectSingleNode("Source") != null)
-			{
-				XmlNode sourceNode = node.SelectSingleNode("Source");
-				_sourceFile = SerializeUtils.GetElementString(sourceNode, "FileName");
-			}
-			if (node.Attributes["ColoursLockedToRoom"] != null)
-			{
-				_coloursLockedToRoom = Convert.ToInt32(node.Attributes["ColoursLockedToRoom"].InnerText);
-			}
-			_resolution = (SpriteImportResolution)Enum.Parse(typeof(SpriteImportResolution), node.Attributes["Resolution"].InnerText);
+
+            if (node.Attributes["ColoursLockedToRoom"] != null)
+            {
+                _coloursLockedToRoom = Convert.ToInt32(node.Attributes["ColoursLockedToRoom"].InnerText);
+            }
+
+            if (node.SelectSingleNode("Source") != null)
+            {
+                XmlNode sourceNode = node.SelectSingleNode("Source");
+
+                try
+                {
+                    _sourceFile = SerializeUtils.GetElementString(sourceNode, "FileName");
+                    _offsetX = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "OffsetX"));
+                    _offsetY = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "OffsetY"));
+                    _frame = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "Frame"));
+                    _remapToGamePalette = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "RemapToGamePalette"));
+                    _importMethod = (SpriteImportTransparency)Enum.Parse(typeof(SpriteImportTransparency), SerializeUtils.GetElementString(sourceNode, "ImportMethod"));
+                }
+                catch (InvalidDataException)
+                {
+                    // pass
+                }
+            }
         }
 
         public void ToXml(XmlTextWriter writer)
@@ -202,17 +217,22 @@ namespace AGS.Types
             writer.WriteAttributeString("ColorDepth", _colorDepth.ToString());
             writer.WriteAttributeString("Resolution", _resolution.ToString());
             writer.WriteAttributeString("AlphaChannel", _alphaChannel.ToString());
-			if (_coloursLockedToRoom.HasValue)
-			{
-				writer.WriteAttributeString("ColoursLockedToRoom", _coloursLockedToRoom.Value.ToString());
-			}
-			if (!string.IsNullOrEmpty(_sourceFile))
-			{
-				writer.WriteStartElement("Source");
-				writer.WriteElementString("FileName", _sourceFile);
-				writer.WriteEndElement();
-			}
-			writer.WriteEndElement();
+
+            if (_coloursLockedToRoom.HasValue)
+            {
+                writer.WriteAttributeString("ColoursLockedToRoom", _coloursLockedToRoom.Value.ToString());
+            }
+
+            writer.WriteStartElement("Source"); // start source
+            writer.WriteElementString("FileName", _sourceFile);
+            writer.WriteElementString("OffsetX", _offsetX.ToString());
+            writer.WriteElementString("OffsetY", _offsetY.ToString());
+            writer.WriteElementString("Frame", _frame.ToString());
+            writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
+            writer.WriteElementString("ImportMethod", _importMethod.ToString());
+            writer.WriteEndElement(); // end source
+
+            writer.WriteEndElement();
         }
 
 		#region IComparable<Sprite> Members

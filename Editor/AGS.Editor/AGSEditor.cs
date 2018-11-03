@@ -75,7 +75,7 @@ namespace AGS.Editor
          * 15: 3.4.1.2    - DefaultSetup node
          * 16: 3.5.0      - Unlimited fonts (need separate version to prevent crashes in older editors)
         */
-        public const int    LATEST_XML_VERSION_INDEX = 16;
+        public const int    LATEST_XML_VERSION_INDEX = 17;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

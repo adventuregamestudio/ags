@@ -56,6 +56,11 @@ namespace AGS.Editor.Utils
             return LoadSpritesFromFile(fileName).FirstOrDefault();
         }
 
+        public static Bitmap LoadFrameImageFromFile(string fileName, int frame)
+        {
+            return LoadSpritesFromFile(fileName).ElementAt(Math.Abs(frame - 1));
+        }
+
         public static int GetFrameCountEstimateFromFile(string fileName)
         {
             if (!File.Exists(fileName))
@@ -73,6 +78,11 @@ namespace AGS.Editor.Utils
 
             // this is a GIF file so just return the frame count
             return decoder.GetFrameCount();
+        }
+
+        public static Rectangle GetFirstSpriteSelection(Size size, Point offset, Size selection, Size margin, SpriteImportTilingDirection direction, int count)
+        {
+            return GetSpriteSelections(size, offset, selection, margin, direction, count).FirstOrDefault();
         }
 
         public static IEnumerable<Rectangle> GetSpriteSelections(Size size, Point offset, Size selection, Size margin, SpriteImportTilingDirection direction, int count)

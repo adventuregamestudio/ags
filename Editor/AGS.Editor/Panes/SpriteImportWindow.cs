@@ -5,6 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.IO;
 using AGS.Editor.Utils;
+using AGS.Types;
 
 namespace AGS.Editor
 {
@@ -22,21 +23,25 @@ namespace AGS.Editor
         public bool RemapToGamePalette
         {
             get { return chkRemapCols.Checked; }
+            set { chkRemapCols.Checked = value; }
         }
 
         public bool UseBackgroundSlots
         {
             get { return chkRoomBackground.Checked; }
+            set { chkRoomBackground.Checked = value; }
         }
 
         public bool UseAlphaChannel
         {
             get { return chkUseAlphaChannel.Checked; }
+            set { chkUseAlphaChannel.Checked = value; }
         }
 
         public bool TiledImport
         {
             get { return chkTiled.Checked; }
+            set { chkTiled.Checked = value; }
         }
 
         public Size ImageSize
@@ -47,52 +52,72 @@ namespace AGS.Editor
         public Point SelectionOffset
         {
             get { return new Point((int)numOffsetX.Value, (int)numOffsetY.Value); }
+            set { numOffsetX.Value = value.X; numOffsetY.Value = value.Y; }
         }
 
         public Size SelectionSize
         {
             get { return new Size((int)numSizeX.Value, (int)numSizeY.Value); }
+            set { numSizeX.Value = value.Width; numSizeY.Value = value.Height; }
         }
 
         public Size TilingMargin
         {
             get { return new Size((int)numMarginX.Value, (int)numMarginY.Value); }
+            set { numMarginX.Value = value.Width; numMarginY.Value = value.Height; }
         }
 
-        public AGS.Types.SpriteImportTilingDirection TilingDirection
+        public SpriteImportTilingDirection TilingDirection
         {
-            get { return (AGS.Types.SpriteImportTilingDirection)cmbTileDirection.SelectedIndex; }
+            get { return (SpriteImportTilingDirection)cmbTileDirection.SelectedIndex; }
+            set { cmbTileDirection.SelectedIndex = (int)value; }
         }
 
         public int MaxTiles
         {
             get { return (int)numMaxTiles.Value; }
+            set { numMaxTiles.Value = value; }
         }
 
-        public int SpriteImportMethod
+        public SpriteImportTransparency SpriteImportMethod
         {
             get
             {
-                // "Pixels of index 0 will be transparent (256-colour games only)"
-                if (radTransColourIndex0.Checked) { return 0; };
+                if (radTransColourIndex0.Checked) { return SpriteImportTransparency.Pixel0; };
+                if (radTransColourTopLeftPixel.Checked) { return SpriteImportTransparency.TopLeft; };
+                if (radTransColourBottomLeftPixel.Checked) { return SpriteImportTransparency.BottomLeft; };
+                if (radTransColourTopRightPixel.Checked) { return SpriteImportTransparency.TopRight; };
+                if (radTransColourBottomRightPixel.Checked) { return SpriteImportTransparency.BottomRight; };
+                if (radTransColourNone.Checked) { return SpriteImportTransparency.NoTransparency; };
+                return SpriteImportTransparency.LeaveAsIs;
+            }
 
-                // "The top-left pixel will be the transparent colour for this sprite"
-                if (radTransColourTopLeftPixel.Checked) { return 1; };
-
-                // "The bottom-left pixel will be the transparent colour for this sprite"
-                if (radTransColourBottomLeftPixel.Checked) { return 2; };
-
-                // "The top-right pixel will be the transparent colour for this sprite"
-                if (radTransColourTopRightPixel.Checked) { return 3; };
-
-                // "The bottom-right pixel will be the transparent colour for this sprite"
-                if (radTransColourBottomRightPixel.Checked) { return 4; };
-
-                // "AGS will remove all transparent pixels by changing them to a very similar non-transparent colour"
-                if (radTransColourNone.Checked) { return 6; };
-
-                // "AGS will leave the sprite's pixels as they are. Any pixels that match the AGS Transparent Colour will be invisible."
-                return 5;
+            set
+            {
+                switch(SpriteImportMethod)
+                {
+                    case SpriteImportTransparency.Pixel0:
+                        radTransColourIndex0.Checked = true;
+                        break;
+                    case SpriteImportTransparency.TopLeft:
+                        radTransColourTopLeftPixel.Checked = true;
+                        break;
+                    case SpriteImportTransparency.BottomLeft:
+                        radTransColourBottomLeftPixel.Checked = true;
+                        break;
+                    case SpriteImportTransparency.TopRight:
+                        radTransColourTopRightPixel.Checked = true;
+                        break;
+                    case SpriteImportTransparency.BottomRight:
+                        radTransColourBottomRightPixel.Checked = true;
+                        break;
+                    case SpriteImportTransparency.NoTransparency:
+                        radTransColourNone.Checked = true;
+                        break;
+                    default:
+                        radTransColourLeaveAsIs.Checked = true;
+                        break;
+                }
             }
         }
 
@@ -130,19 +155,40 @@ namespace AGS.Editor
 
         private void OneTimeControlSetup()
         {
-            // enable or disable things based on the colour depth
-            panelIndex0.Enabled = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
-            radTransColourIndex0.Enabled = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
-            chkRoomBackground.Enabled = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
-            chkRemapCols.Enabled = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
+            bool gameUsesIndexedPalette = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
 
-            // pick a default tiling direction
-            cmbTileDirection.SelectedIndex = 0;
+            // if import method is for index 0 and this is not an indexed palette
+            if (this.SpriteImportMethod == SpriteImportTransparency.Pixel0 && !gameUsesIndexedPalette)
+            {
+                this.SpriteImportMethod = SpriteImportTransparency.LeaveAsIs;
+            }
+
+            // enable or disable things based on the colour depth
+            panelIndex0.Enabled = gameUsesIndexedPalette;
+            radTransColourIndex0.Enabled = gameUsesIndexedPalette;
+            chkRoomBackground.Enabled = gameUsesIndexedPalette;
+            chkRemapCols.Enabled = gameUsesIndexedPalette;
+
+            // if tiling direction hasn't been set yet, just take the first option
+            if (cmbTileDirection.SelectedIndex == -1)
+            {
+                cmbTileDirection.SelectedIndex = 0;
+            }
         }
 
         private void PostImageLoad()
         {
-            int framecount = SpriteTools.GetFrameCountEstimateFromFile(imageLookup[cmbFilenames.SelectedIndex]);
+            int framecount;
+
+            try
+            {
+                framecount = SpriteTools.GetFrameCountEstimateFromFile(imageLookup[cmbFilenames.SelectedIndex]);
+            }
+            catch
+            {
+                framecount = 1;
+            }
+
             string format = image.PixelFormat.ToString().Substring(6).ToUpper().Replace("BPP", " bit ").Replace("INDEXED", "indexed");
             string frames = framecount > 1 ? String.Format(", {0} frames", framecount) : "";
             lblImageDescription.Text = String.Format("{0} x {1}, {2}{3}", image.Width, image.Height, format, frames);

@@ -515,17 +515,24 @@ namespace AGS.Editor
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
+                Bitmap import;
+
                 if (impWin.TiledImport)
                 {
                     Rectangle selection = SpriteTools.GetFirstSpriteSelection(impWin.ImageSize, impWin.SelectionOffset,
                         impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-                    bmp = bmp.Clone(selection, bmp.PixelFormat);
+                    import = bmp.Clone(selection, bmp.PixelFormat);
+                }
+                else
+                {
+                    import = (Bitmap)bmp.Clone();
                 }
 
-                bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
+                bool useAlphaChannel = import.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
                 SpriteImportTransparency method = impWin.SpriteImportMethod;
 
-                Sprite sprite = CreateSpriteForBitmap(bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+                Sprite sprite = CreateSpriteForBitmap(import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+                import.Dispose();
 
                 // set import options used for the sprite
                 sprite.ImportMethod = impWin.SpriteImportMethod;
@@ -554,18 +561,25 @@ namespace AGS.Editor
             if (impWin.ShowDialog() == DialogResult.OK)
             {
                 Bitmap bmp = SpriteTools.LoadFirstImageFromFile(filename);
+                Bitmap import;
 
                 if (impWin.TiledImport)
                 {
                     Rectangle selection = SpriteTools.GetFirstSpriteSelection(impWin.ImageSize, impWin.SelectionOffset,
                         impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-                    bmp = bmp.Clone(selection, bmp.PixelFormat);
+                    import = bmp.Clone(selection, bmp.PixelFormat);
+                }
+                else
+                {
+                    import = (Bitmap)bmp.Clone();
                 }
 
-                bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
+                bmp.Dispose();
+                bool useAlphaChannel = import.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
                 SpriteImportTransparency method = impWin.SpriteImportMethod;
 
-                Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+                Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+                import.Dispose();
 
                 // set import options used for the sprite
                 sprite.ImportMethod = impWin.SpriteImportMethod;
@@ -575,7 +589,6 @@ namespace AGS.Editor
                 sprite.Frame = 1; // for direct replacement from a file we only ever take the first frame
                 sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
 
-                bmp.Dispose();
                 RefreshSpriteDisplay();
             }
 
@@ -595,17 +608,23 @@ namespace AGS.Editor
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
+                Bitmap import;
+
                 if (impWin.TiledImport)
                 {
                     Rectangle selection = SpriteTools.GetFirstSpriteSelection(impWin.ImageSize, impWin.SelectionOffset,
                         impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-                    bmp = bmp.Clone(selection, bmp.PixelFormat);
+                    import = bmp.Clone(selection, bmp.PixelFormat);
+                } else
+                {
+                    import = (Bitmap)bmp.Clone();
                 }
 
-                bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
+                bool useAlphaChannel = import.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
                 SpriteImportTransparency method = impWin.SpriteImportMethod;
 
-                Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+                Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+                import.Dispose();
 
                 // set import options used for the sprite
                 sprite.ImportMethod = impWin.SpriteImportMethod;
@@ -904,18 +923,24 @@ namespace AGS.Editor
                 try
                 {
                     Bitmap bmp = SpriteTools.LoadFrameImageFromFile(spr.SourceFile, spr.Frame);
+                    Bitmap import;
 
                     // if offset would make a selection, use it
                     if (spr.OffsetX > 0 || spr.OffsetY > 0)
                     {
-                        bmp = bmp.Clone(new Rectangle(spr.OffsetX, spr.OffsetY, spr.Width, spr.Height), bmp.PixelFormat);
+                        import = bmp.Clone(new Rectangle(spr.OffsetX, spr.OffsetY, spr.Width, spr.Height), bmp.PixelFormat);
+                    }
+                    else
+                    {
+                        import = (Bitmap)bmp.Clone();
                     }
 
+                    bmp.Dispose();
                     bool alphaChannel = spr.AlphaChannel;
                     bool remap = spr.RemapToGamePalette;
                     SpriteImportTransparency method = spr.ImportMethod;
-                    NativeProxy.Instance.ReplaceSpriteWithBitmap(spr, bmp, method, remap, false, alphaChannel);
-                    bmp.Dispose();
+                    NativeProxy.Instance.ReplaceSpriteWithBitmap(spr, import, method, remap, false, alphaChannel);
+                    import.Dispose();
                 }
                 catch (Exception ex)
                 {

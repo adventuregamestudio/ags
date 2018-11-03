@@ -475,8 +475,10 @@ namespace AGS.Editor
                             foreach(Rectangle selection in SpriteTools.GetSpriteSelections(impWin.ImageSize, impWin.SelectionOffset,
                                 impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles))
                             {
-                                Sprite sprite = CreateSpriteForBitmap(bmp.Clone(selection, bmp.PixelFormat), method,
-                                    impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+                                Bitmap import = bmp.Clone(selection, bmp.PixelFormat);
+                                Sprite sprite = CreateSpriteForBitmap(import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+                                import.Dispose();
+
                                 // set import options used for the sprite
                                 sprite.ImportMethod = impWin.SpriteImportMethod;
                                 sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
@@ -515,30 +517,35 @@ namespace AGS.Editor
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
-                Bitmap import;
+                bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
+                SpriteImportTransparency method = impWin.SpriteImportMethod;
 
                 if (impWin.TiledImport)
                 {
-                    Rectangle selection = SpriteTools.GetFirstSpriteSelection(impWin.ImageSize, impWin.SelectionOffset,
-                        impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-                    import = bmp.Clone(selection, bmp.PixelFormat);
+                    foreach (Rectangle selection in SpriteTools.GetSpriteSelections(impWin.ImageSize, impWin.SelectionOffset,
+                        impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles))
+                    {
+                        Bitmap import = bmp.Clone(selection, bmp.PixelFormat);
+                        Sprite sprite = CreateSpriteForBitmap(import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+                        import.Dispose();
+
+                        // set import options used for the sprite
+                        sprite.ImportMethod = impWin.SpriteImportMethod;
+                        sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
+                        sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
+                        sprite.RemapToGamePalette = impWin.RemapToGamePalette;
+                    }
                 }
                 else
                 {
-                    import = (Bitmap)bmp.Clone();
+                    Sprite sprite = CreateSpriteForBitmap(bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
+
+                    // set import options used for the sprite
+                    sprite.ImportMethod = impWin.SpriteImportMethod;
+                    sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
+                    sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
+                    sprite.RemapToGamePalette = impWin.RemapToGamePalette;
                 }
-
-                bool useAlphaChannel = import.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
-                SpriteImportTransparency method = impWin.SpriteImportMethod;
-
-                Sprite sprite = CreateSpriteForBitmap(import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
-                import.Dispose();
-
-                // set import options used for the sprite
-                sprite.ImportMethod = impWin.SpriteImportMethod;
-                sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
-                sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
-                sprite.RemapToGamePalette = impWin.RemapToGamePalette;
 
                 RefreshSpriteDisplay();
             }

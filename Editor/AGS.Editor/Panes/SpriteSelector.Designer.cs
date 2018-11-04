@@ -82,7 +82,7 @@ namespace AGS.Editor
 			this.spriteList.TabIndex = 0;
 			this.spriteList.UseCompatibleStateImageBehavior = false;
 			this.spriteList.ItemActivate += new System.EventHandler(this.spriteList_ItemActivate);
-			this.spriteList.SelectedIndexChanged += new System.EventHandler(this.spriteList_SelectedIndexChanged);
+			this.spriteList.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.spriteList_ItemSelectionChanged);
 			this.spriteList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseUp);
 			this.spriteList.DragDrop += new System.Windows.Forms.DragEventHandler(this.spriteList_DragDrop);
 			this.spriteList.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.spriteList_ItemDrag);

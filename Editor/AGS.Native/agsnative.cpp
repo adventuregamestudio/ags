@@ -895,9 +895,9 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 
     if (x < 0)
     {
-      srcX = -x / scaleFactor;
-      x = 0;
-      srcWidth = drawBuffer->GetWidth() / scaleFactor + 1;
+      srcX = (int)(-x / scaleFactor);
+      x += (int)(srcX * scaleFactor);
+      srcWidth = drawBuffer->GetWidth() / scaleFactor;
       if (srcX + srcWidth > depthConverted->GetWidth())
       {
         srcWidth = depthConverted->GetWidth() - srcX;
@@ -905,16 +905,17 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
     }
     if (y < 0)
     {
-      srcY = -y / scaleFactor;
-      y = 0;
-      srcHeight = drawBuffer->GetHeight() / scaleFactor + 1;
+      srcY = (int)(-y / scaleFactor);
+      y += (int)(srcY * scaleFactor);
+      srcHeight = drawBuffer->GetHeight() / scaleFactor;
       if (srcY + srcHeight > depthConverted->GetHeight())
       {
         srcHeight = depthConverted->GetHeight() - srcY;
       }
     }
 
-		Cstretch_blit(depthConverted, drawBuffer, srcX, srcY, srcWidth, srcHeight, x, y, srcWidth * scaleFactor, srcHeight * scaleFactor);
+		Cstretch_blit(depthConverted, drawBuffer, srcX, srcY, srcWidth, srcHeight,
+            x, y, (int)(srcWidth * scaleFactor), (int)(srcHeight * scaleFactor));
 		delete depthConverted;
 	}
 	else {

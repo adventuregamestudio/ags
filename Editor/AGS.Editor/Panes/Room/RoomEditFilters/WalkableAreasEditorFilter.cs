@@ -11,7 +11,7 @@ namespace AGS.Editor
     public class WalkableAreasEditorFilter : BaseAreasEditorFilter
     {
         public WalkableAreasEditorFilter(Panel displayPanel, Room room)
-            : base(displayPanel, room, false)
+            : base(displayPanel, room)
         {
         }
 

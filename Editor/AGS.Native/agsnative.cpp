@@ -664,31 +664,29 @@ enum RoomAreaMask
     Regions
 };
 
-Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType) 
+// TODO: mask's bitmap, as well as coordinate factor, should be a property of the room or some room's mask class
+Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
 {
-	if (maskType == RoomAreaMask::None) 
-	{
-		return NULL;
-	}
-
-	Common::Bitmap *source = NULL;
 	switch (maskType) 
 	{
-	case RoomAreaMask::Hotspots:
-		source = roomptr->lookat;
-		break;
-	case RoomAreaMask::Regions:
-		source = roomptr->regions;
-		break;
-	case RoomAreaMask::WalkableAreas:
-		source = roomptr->walls;
-		break;
-	case RoomAreaMask::WalkBehinds:
-		source = roomptr->object;
-		break;
+	case RoomAreaMask::Hotspots: return roomptr->lookat;
+	case RoomAreaMask::Regions: return roomptr->regions;
+	case RoomAreaMask::WalkableAreas: return roomptr->walls;
+	case RoomAreaMask::WalkBehinds: return roomptr->object;
 	}
+    return NULL;
+}
 
-	return source;
+float get_scale_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
+{
+    switch (maskType)
+    {
+    case RoomAreaMask::Hotspots: return 1.f / roomptr->resolution;
+    case RoomAreaMask::Regions: return 1.f / roomptr->resolution;
+    case RoomAreaMask::WalkableAreas: return 1.f / roomptr->resolution;
+    case RoomAreaMask::WalkBehinds: return 1.f;
+    }
+    return 0.f;
 }
 
 void copy_walkable_to_regions (void *roomptr) {
@@ -698,26 +696,30 @@ void copy_walkable_to_regions (void *roomptr) {
 
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	return mask->GetPixel(x, y);
+    Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+    float scale = get_scale_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	return mask->GetPixel(x * scale, y * scale);
 }
 
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	mask->DrawLine(Line(x1, y1, x2, y2), color);
+    float scale = get_scale_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	mask->DrawLine(Line(x1 * scale, y1 * scale, x2 * scale, y2 * scale), color);
 }
 
 void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-    mask->FillRect(Rect(x1, y1, x2, y2), color);
+    float scale = get_scale_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+    mask->FillRect(Rect(x1 * scale, y1 * scale, x2 * scale, y2 * scale), color);
 }
 
 void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-    mask->FloodFill(x1, y1, color);
+    float scale = get_scale_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+    mask->FloodFill(x1 * scale, y1 * scale, color);
 }
 
 void create_undo_buffer(void *roomptr, int maskType) 

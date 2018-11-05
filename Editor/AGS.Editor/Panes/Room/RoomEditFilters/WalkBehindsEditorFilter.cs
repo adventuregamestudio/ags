@@ -14,7 +14,7 @@ namespace AGS.Editor
 		private bool _shownTooltip = false;
 
         public WalkBehindsEditorFilter(Panel displayPanel, Room room)
-            : base(displayPanel, room, true)
+            : base(displayPanel, room)
         {
         }
 

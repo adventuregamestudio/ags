@@ -11,7 +11,7 @@ namespace AGS.Editor
     public class RegionsEditorFilter : BaseAreasEditorFilter
     {
         public RegionsEditorFilter(Panel displayPanel, Room room)
-            : base(displayPanel, room, false)
+            : base(displayPanel, room)
         {
         }
 

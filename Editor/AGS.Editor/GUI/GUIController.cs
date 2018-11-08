@@ -1519,14 +1519,14 @@ namespace AGS.Editor
 
             bool canShutDown = true;
 
-			if (_batchProcessShutdown)
+			if (_batchProcessShutdown || _exitFromWelcomeScreen)
 			{
 				if (OnEditorShutdown != null)
 				{
 					OnEditorShutdown();
 				}
 			}
-			else if (!_exitFromWelcomeScreen)
+			else
 			{
 				canShutDown = QueryWhetherToSaveGameBeforeContinuing("Do you want to save the game before exiting?");
 				if (canShutDown)

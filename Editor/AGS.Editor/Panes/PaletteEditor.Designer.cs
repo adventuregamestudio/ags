@@ -122,8 +122,8 @@ namespace AGS.Editor
 			this.lblPaletteIntro.Name = "lblPaletteIntro";
 			this.lblPaletteIntro.Size = new System.Drawing.Size(394, 26);
 			this.lblPaletteIntro.TabIndex = 0;
-			this.lblPaletteIntro.Text = "Since your game is hi-color, this palette information will only be used for drawi" +
-				"ng any 8-bit graphics that you may have imported.";
+			this.lblPaletteIntro.Text = "This palette information will only be used for drawing any 8-bit graphics that yo" + 
+				"u may have imported.";
 			// 
 			// colourFinderPage
 			// 

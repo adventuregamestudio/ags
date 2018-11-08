@@ -153,7 +153,7 @@ int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 int new_room_loop = SCR_NO_VALUE;
 
 // initially size 1, this will be increased by the initFile function
-SpriteCache spriteset(1, game.SpriteInfos);
+SpriteCache spriteset(game.SpriteInfos);
 int proper_exit=0,our_eip=0;
 
 std::vector<GUIMain> guis;

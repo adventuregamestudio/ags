@@ -67,13 +67,17 @@ SpriteCache::SpriteData::~SpriteData()
 }
 
 
-SpriteCache::SpriteCache(sprkey_t reserve_count, std::vector<SpriteInfo> &sprInfos)
+SpriteCache::SpriteCache(std::vector<SpriteInfo> &sprInfos)
     : _sprInfos(sprInfos)
-    , _stream(NULL)
 {
     _sprite0InitialOffset = 0;
     _compressed = false;
-    Init(reserve_count);
+    Init();
+}
+
+SpriteCache::~SpriteCache()
+{
+    Reset();
 }
 
 size_t SpriteCache::GetCacheSize() const
@@ -110,11 +114,8 @@ void SpriteCache::SetMaxCacheSize(size_t size)
     _maxCacheSize = size;
 }
 
-void SpriteCache::Init(sprkey_t reserve_count)
+void SpriteCache::Init()
 {
-    delete _stream;
-    _stream = NULL;
-    EnlargeTo(reserve_count);
     _cacheSize = 0;
     _lockedSize = 0;
     _maxCacheSize = DEFAULTCACHESIZE;
@@ -125,6 +126,7 @@ void SpriteCache::Init(sprkey_t reserve_count)
 
 void SpriteCache::Reset()
 {
+    _stream.reset();
     // TODO: find out if it's safe to simply always delete _spriteData.Image with array element
     for (size_t i = 0; i < _spriteData.size(); ++i)
     {
@@ -406,17 +408,17 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
         if (coldep == 1)
         {
             for (hh = 0; hh < htt; hh++)
-                cunpackbitl(&image->GetScanLineForWriting(hh)[0], wdd, _stream);
+                cunpackbitl(&image->GetScanLineForWriting(hh)[0], wdd, _stream.get());
         }
         else if (coldep == 2)
         {
             for (hh = 0; hh < htt; hh++)
-                cunpackbitl16((unsigned short*)&image->GetScanLine(hh)[0], wdd, _stream);
+                cunpackbitl16((unsigned short*)&image->GetScanLine(hh)[0], wdd, _stream.get());
         }
         else
         {
             for (hh = 0; hh < htt; hh++)
-                cunpackbitl32((unsigned int*)&image->GetScanLine(hh)[0], wdd, _stream);
+                cunpackbitl32((unsigned int*)&image->GetScanLine(hh)[0], wdd, _stream.get());
         }
     }
     else
@@ -663,12 +665,7 @@ int SpriteCache::InitFile(const char *filnam)
     soff_t spr_initial_offs = 0;
     int spriteFileID = 0;
 
-    for (size_t i = 0; i < _spriteData.size(); ++i)
-    {
-        _spriteData[i] = SpriteData();
-    }
-
-    _stream = Common::AssetManager::OpenAsset((char *)filnam);
+    _stream.reset(Common::AssetManager::OpenAsset((char *)filnam));
     if (_stream == NULL)
         return -1;
 
@@ -680,8 +677,7 @@ int SpriteCache::InitFile(const char *filnam)
 
     if (vers < kSprfVersion_Uncompressed || vers > kSprfVersion_Current)
     {
-        delete _stream;
-        _stream = NULL;
+        _stream.reset();
         return -1;
     }
 
@@ -689,8 +685,7 @@ int SpriteCache::InitFile(const char *filnam)
     buff[13] = 0;
     if (strcmp(buff, spriteFileSig))
     {
-        delete _stream;
-        _stream = NULL;
+        _stream.reset();
         return -1;
     }
 
@@ -735,7 +730,7 @@ int SpriteCache::InitFile(const char *filnam)
     // TODO: refactor loading process and make it NOT delete file running the game!!
     unlink(spindexfilename);
 
-    return RebuildSpriteIndex(_stream, topmost, vers);
+    return RebuildSpriteIndex(_stream.get(), topmost, vers);
 }
 
 int SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers)
@@ -883,14 +878,13 @@ bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
 
 void SpriteCache::DetachFile()
 {
-    delete _stream;
-    _stream = NULL;
+    _stream.reset();
     _lastLoad = -2;
 }
 
 int SpriteCache::AttachFile(const char *filename)
 {
-    _stream = Common::AssetManager::OpenAsset((char *)filename);
+    _stream.reset(Common::AssetManager::OpenAsset((char *)filename));
     if (_stream == NULL)
         return -1;
     return 0;

@@ -73,7 +73,7 @@ bool enable_greyed_out_masks = true;
 bool outlineGuiObjects;
 color*palette;
 GameSetupStruct thisgame;
-SpriteCache spriteset(MAX_STATIC_SPRITES + 2, thisgame.SpriteInfos);
+SpriteCache spriteset(thisgame.SpriteInfos);
 GUIMain tempgui;
 const char*sprsetname = "acsprset.spr";
 const char *old_editor_data_file = "editor.dat";
@@ -1240,8 +1240,9 @@ bool initialize_native()
 
 void shutdown_native()
 {
-  shutdown_font_renderer();
-	allegro_exit();
+    shutdown_font_renderer();
+    spriteset.Reset();
+    allegro_exit();
     Common::AssetManager::DestroyInstance();
 }
 

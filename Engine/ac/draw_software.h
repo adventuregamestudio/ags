@@ -23,7 +23,7 @@
 #include "gfx/ddb.h"
 #include "util/geometry.h"
 
-void init_invalid_regions(int scrnHit);
+void init_invalid_regions(const Size &surf_size);
 void invalidate_all_rects();
 void invalidate_rect(int x1, int y1, int x2, int y2, const Rect &viewport);
 void update_invalid_region_and_reset(AGS::Common::Bitmap *ds, int x, int y, AGS::Common::Bitmap *src, const Rect &viewport);

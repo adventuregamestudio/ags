@@ -18,33 +18,62 @@
 //=============================================================================
 
 #include <string.h>
+#include <vector>
 #include "ac/draw_software.h"
 #include "gfx/bitmap.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-
+// TODO: choose these values depending on game resolution?
 #define MAXDIRTYREGIONS 25
 #define WHOLESCREENDIRTY (MAXDIRTYREGIONS + 5)
 #define MAX_SPANS_PER_ROW 4
-
-struct InvalidRect
-{
-    int x1, y1, x2, y2;
-};
 
 struct IRSpan
 {
     int x1, x2;
     int mergeSpan(int tx1, int tx2);
+
+    IRSpan();
 };
 
 struct IRRow
 {
     IRSpan span[MAX_SPANS_PER_ROW];
     int numSpans;
+
+    IRRow();
 };
+
+struct DirtyRects
+{
+    // Size of the surface managed by this dirty rects object
+    Size surfaceSize;
+
+    std::vector<IRRow> dirtyRows;
+    Rect dirtyRegions[MAXDIRTYREGIONS];
+    size_t numDirtyRegions;
+
+    DirtyRects();
+    // Initialize dirty rects for the given surface size
+    void Init(const Size &surf_size);
+    // Delete dirty rects
+    void Destroy();
+    // Mark all surface as tidy
+    void Reset();
+};
+
+
+IRSpan::IRSpan()
+    : x1(0), x2(0)
+{
+}
+
+IRRow::IRRow()
+    : numSpans(0)
+{
+}
 
 int IRSpan::mergeSpan(int tx1, int tx2)
 {
@@ -58,49 +87,66 @@ int IRSpan::mergeSpan(int tx1, int tx2)
     return 1;
 }
 
-
-IRRow *dirtyRow = NULL;
-int _dirtyRowSize;
-InvalidRect dirtyRegions[MAXDIRTYREGIONS];
-int numDirtyRegions = 0;
-int numDirtyBytes = 0;
-
-
-void destroy_invalid_regions()
+DirtyRects::DirtyRects()
+    : numDirtyRegions(0)
 {
-    delete[] dirtyRow;
-    dirtyRow = 0;
-    _dirtyRowSize = 0;
-    numDirtyRegions = 0;
 }
 
-void init_invalid_regions(int scrnHit)
+void DirtyRects::Init(const Size &surf_size)
 {
-    if (_dirtyRowSize != scrnHit)
+    int height = surf_size.Height;
+    if (surfaceSize != surf_size)
     {
-        destroy_invalid_regions();
-        dirtyRow = new IRRow[scrnHit];
+        Destroy();
+        surfaceSize = surf_size;
+        dirtyRows.resize(height);
     }
 
     numDirtyRegions = WHOLESCREENDIRTY;
-    memset(dirtyRow, 0, sizeof(IRRow) * scrnHit);
 
-    for (int e = 0; e < scrnHit; e++)
-        dirtyRow[e].numSpans = 0;
-    _dirtyRowSize = scrnHit;
+    for (int i = 0; i < height; ++i)
+        dirtyRows[i].numSpans = 0;
+}
+
+void DirtyRects::Destroy()
+{
+    dirtyRows.clear();
+    numDirtyRegions = 0;
+}
+
+void DirtyRects::Reset()
+{
+    numDirtyRegions = 0;
+
+    for (int i = 0; i < dirtyRows.size(); ++i)
+        dirtyRows[i].numSpans = 0;
+}
+
+
+// Dirty rects object for the single room camera
+DirtyRects RoomCamRects;
+
+void destroy_invalid_regions()
+{
+    RoomCamRects.Destroy();
+}
+
+void init_invalid_regions(const Size &surf_size)
+{
+    RoomCamRects.Init(surf_size);
 }
 
 void invalidate_all_rects()
 {
     // mark the whole screen dirty
-    numDirtyRegions = WHOLESCREENDIRTY;
+    RoomCamRects.numDirtyRegions = WHOLESCREENDIRTY;
 }
 
 void invalidate_rect(int x1, int y1, int x2, int y2, const Rect &viewport)
 {
-    if (numDirtyRegions >= MAXDIRTYREGIONS) {
+    if (RoomCamRects.numDirtyRegions >= MAXDIRTYREGIONS) {
         // too many invalid rectangles, just mark the whole thing dirty
-        numDirtyRegions = WHOLESCREENDIRTY;
+        RoomCamRects.numDirtyRegions = WHOLESCREENDIRTY;
         return;
     }
 
@@ -114,9 +160,10 @@ void invalidate_rect(int x1, int y1, int x2, int y2, const Rect &viewport)
     if (y1 < 0) y1 = 0;
     if (x2 < 0) x2 = 0;
     if (y2 < 0) y2 = 0;
-    numDirtyRegions++;
+    RoomCamRects.numDirtyRegions++;
 
     // ** Span code
+    std::vector<IRRow> &dirtyRow = RoomCamRects.dirtyRows;
     int s, foundOne;
     // add this rect to the list for this row
     for (a = y1; a <= y2; a++) {
@@ -185,10 +232,11 @@ void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src, const Rect &vi
     x = -x;
     y = -y;
 
-    if (numDirtyRegions == WHOLESCREENDIRTY) {
+    if (RoomCamRects.numDirtyRegions == WHOLESCREENDIRTY) {
         ds->Blit(src, x, y, 0, 0, ds->GetWidth(), ds->GetHeight());
     }
     else {
+        std::vector<IRRow> &dirtyRow = RoomCamRects.dirtyRows;
         int k, tx1, tx2, srcdepth = src->GetColorDepth();
         if ((srcdepth == ds->GetColorDepth()) && (ds->IsMemoryBitmap())) {
             int bypp = src->GetBPP();
@@ -229,16 +277,8 @@ void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src, const Rect &vi
 
 void update_invalid_region_and_reset(Bitmap *ds, int x, int y, Bitmap *src, const Rect &viewport)
 {
-
-    int i;
-
     update_invalid_region(ds, x, y, src, viewport);
 
     // screen has been updated, no longer dirty
-    numDirtyRegions = 0;
-    numDirtyBytes = 0;
-
-    for (i = 0; i < _dirtyRowSize; i++)
-        dirtyRow[i].numSpans = 0;
-
+    RoomCamRects.Reset();
 }

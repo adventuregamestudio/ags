@@ -487,7 +487,7 @@ void on_roomviewport_changed()
 void on_roomcamera_changed()
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())
-        init_invalid_regions(game.size.Height);
+        init_invalid_regions(play.GetRoomCamera().GetSize());
 }
 
 void mark_screen_dirty()

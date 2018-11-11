@@ -168,6 +168,7 @@
     <ClCompile Include="..\..\Engine\ac\display.cpp" />
     <ClCompile Include="..\..\Engine\ac\draw.cpp" />
     <ClCompile Include="..\..\Engine\ac\drawingsurface.cpp" />
+    <ClCompile Include="..\..\Engine\ac\draw_software.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynamicsprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_audiochannel.cpp" />
@@ -477,6 +478,7 @@
     <ClInclude Include="..\..\Engine\ac\display.h" />
     <ClInclude Include="..\..\Engine\ac\draw.h" />
     <ClInclude Include="..\..\Engine\ac\drawingsurface.h" />
+    <ClInclude Include="..\..\Engine\ac\draw_software.h" />
     <ClInclude Include="..\..\Engine\ac\dynamicsprite.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\all_dynamicclasses.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\all_scriptclasses.h" />

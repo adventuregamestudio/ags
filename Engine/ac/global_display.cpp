@@ -37,7 +37,6 @@ extern GameState play;
 extern roomstruct thisroom;
 extern int display_message_aschar;
 extern GameSetupStruct game;
-extern int screen_is_dirty;
 
 void Display(const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
@@ -163,7 +162,7 @@ void DisplayAtY (int ypos, const char *texx) {
     else { 
         // Normal "Display" in text box
 
-        if (screen_is_dirty) {
+        if (is_screen_dirty()) {
             // erase any previous DisplaySpeech
             play.disabled_user_interface ++;
             UpdateGameOnce();

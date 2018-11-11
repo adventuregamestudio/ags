@@ -84,7 +84,6 @@ extern int our_eip;
 extern int update_music_at;
 extern int current_screen_resolution_multiplier;
 extern int cur_mode;
-extern int screen_is_dirty;
 extern CCCharacter ccDynamicCharacter;
 extern CCInventory ccDynamicInv;
 
@@ -2823,7 +2822,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         closeupface = NULL;
     if (closeupface!=NULL)
         remove_screen_overlay(ovr_type);
-    screen_is_dirty = 1;
+    mark_screen_dirty();
     face_talking = -1;
     facetalkchar = NULL;
     our_eip=157;

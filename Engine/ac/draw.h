@@ -56,7 +56,15 @@ void on_roomviewport_changed();
 // Updates drawing settings depending on room camera's size
 void on_roomcamera_changed();
 
+// whether there are currently remnants of a DisplaySpeech
+void mark_screen_dirty();
+bool is_screen_dirty();
+
+// marks whole screen as needing a redraw
 void invalidate_screen();
+// marks certain rectangle on screen as needing a redraw
+void invalidate_rect(int x1, int y1, int x2, int y2);
+
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
 // Avoid freeing and reallocating the memory if possible
@@ -65,7 +73,6 @@ Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitma
 void push_screen (Common::Bitmap *ds);
 Common::Bitmap *pop_screen();
 void update_screen();
-void invalidate_rect(int x1, int y1, int x2, int y2);
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
 void construct_virtual_screen(bool fullRedraw) ;
@@ -82,7 +89,6 @@ void draw_screen_callback();
 void write_screen();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);
-void init_invalid_regions(int scrnHit);
 void destroy_invalid_regions();
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
 // create the actsps[aa] image with the object drawn correctly

@@ -987,6 +987,9 @@
     <ClCompile Include="..\..\Engine\game\savegame_components.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\draw_software.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1837,6 +1840,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\viewport.h">
       <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\draw_software.h">
+      <Filter>Header Files\ac</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -116,4 +116,10 @@ Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
 // Original bitmap **gets deleted** if a new bitmap had to be created.
 Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
 
+
+// Pointer to the real screen bitmap created by Allegro
+extern Common::Bitmap *real_screen;
+// Subsection of the real screen, used when the room size is smaller than the game's size
+extern Common::Bitmap *sub_screen;
+
 #endif // __AGS_EE_AC__DRAW_H

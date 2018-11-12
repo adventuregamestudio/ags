@@ -45,8 +45,6 @@ extern WalkBehindMethodEnum walkBehindMethod;
 extern IGraphicsDriver *gfxDriver;
 extern IDriverDependantBitmap *blankImage;
 extern IDriverDependantBitmap *blankSidebarImage;
-extern Bitmap *_old_screen;
-extern Bitmap *_sub_screen;
 extern Bitmap *virtual_screen;
 
 int convert_16bit_bgr = 0;
@@ -194,11 +192,11 @@ void engine_pre_gfxmode_driver_cleanup()
 // Setup virtual screen
 void engine_post_gfxmode_screen_setup(const DisplayMode &dm, bool recreate_bitmaps)
 {
-    _old_screen = BitmapHelper::GetScreenBitmap();
+    real_screen = BitmapHelper::GetScreenBitmap();
     if (recreate_bitmaps)
     {
-        delete _sub_screen;
-        _sub_screen = NULL;
+        delete sub_screen;
+        sub_screen = NULL;
         // TODO: find out if we need _sub_screen to be recreated right away here
 
         virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
@@ -212,15 +210,15 @@ void engine_pre_gfxmode_screen_cleanup()
 {
     SetVirtualScreen(NULL);
     // allegro_exit assumes screen is correct
-    if (_old_screen)
-        BitmapHelper::SetScreenBitmap( _old_screen );
+    if (real_screen)
+        BitmapHelper::SetScreenBitmap(real_screen);
 }
 
 // Release virtual screen
 void engine_pre_gfxsystem_screen_destroy()
 {
-    delete _sub_screen;
-    _sub_screen = NULL;
+    delete sub_screen;
+    sub_screen = NULL;
     delete virtual_screen;
     virtual_screen = NULL;
 }

@@ -45,7 +45,6 @@ extern GameState play;
 extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern Bitmap *temp_virtual;
 extern Bitmap *virtual_screen;
 extern volatile int timerloop;
 extern color old_palette[256];
@@ -238,7 +237,7 @@ void process_event(EventHappened*evp) {
             return;
 
         if (((theTransition == FADE_CROSSFADE) || (theTransition == FADE_DISSOLVE)) &&
-            (temp_virtual == NULL)) 
+            (saved_viewport_bitmap == NULL)) 
         {
             // transition type was not crossfade/dissolve when the screen faded out,
             // but it is now when the screen fades in (Eg. a save game was restored
@@ -313,17 +312,17 @@ void process_event(EventHappened*evp) {
                 {
                     // on last frame of fade (where transparency < 16), don't
                     // draw the old screen on top
-                    gfxDriver->DrawSprite(0, -(temp_virtual->GetHeight() - virtual_screen->GetHeight()), ddb);
+                    gfxDriver->DrawSprite(0, -(saved_viewport_bitmap->GetHeight() - virtual_screen->GetHeight()), ddb);
                 }
 				render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
                 while (timerloop == 0) ;
                 transparency -= 16;
             }
-            temp_virtual->Release();
+            saved_viewport_bitmap->Release();
 
-            delete temp_virtual;
-            temp_virtual = NULL;
+            delete saved_viewport_bitmap;
+            saved_viewport_bitmap = NULL;
             set_palette_range(palette, 0, 255, 0);
             gfxDriver->DestroyDDB(ddb);
         }
@@ -343,24 +342,24 @@ void process_event(EventHappened*evp) {
                     set_palette_range(interpal, 0, 255, 0);
                 }
                 // do the dissolving
-                int maskCol = temp_virtual->GetMaskColor();
+                int maskCol = saved_viewport_bitmap->GetMaskColor();
                 for (bb=0;bb<viewport.GetWidth();bb+=4) {
                     for (cc=0;cc<viewport.GetHeight();cc+=4) {
-                        temp_virtual->PutPixel(bb+pattern[aa]/4, cc+pattern[aa]%4, maskCol);
+                        saved_viewport_bitmap->PutPixel(bb+pattern[aa]/4, cc+pattern[aa]%4, maskCol);
                     }
                 }
-                gfxDriver->UpdateDDBFromBitmap(ddb, temp_virtual, false);
+                gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap, false);
                 invalidate_screen();
                 draw_screen_callback();
-                gfxDriver->DrawSprite(0, -(temp_virtual->GetHeight() - virtual_screen->GetHeight()), ddb);
+                gfxDriver->DrawSprite(0, -(saved_viewport_bitmap->GetHeight() - virtual_screen->GetHeight()), ddb);
 				render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
                 while (timerloop == 0) ;
             }
-            temp_virtual->Release();
+            saved_viewport_bitmap->Release();
 
-            delete temp_virtual;
-            temp_virtual = NULL;
+            delete saved_viewport_bitmap;
+            saved_viewport_bitmap = NULL;
             set_palette_range(palette, 0, 255, 0);
             gfxDriver->DestroyDDB(ddb);
         }

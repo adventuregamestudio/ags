@@ -112,8 +112,6 @@ extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 extern color palette[256];
 extern Bitmap *virtual_screen;
-extern Bitmap *_old_screen;
-extern Bitmap *_sub_screen;
 extern int mouse_z_was;
 
 extern Bitmap **guibg;
@@ -505,28 +503,29 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
 
         // If this is the first time we got here, then the sub_screen does not exist at this point; so we create it here.
-        if (!_sub_screen)
-            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(game.size.Width / 2 - viewport.GetWidth() / 2, game.size.Height / 2-newScreenHeight/2, viewport.GetWidth(), newScreenHeight));
+        if (!sub_screen)
+            sub_screen = BitmapHelper::CreateSubBitmap(real_screen, RectWH(game.size.Width / 2 - viewport.GetWidth() / 2, game.size.Height / 2-newScreenHeight/2, viewport.GetWidth(), newScreenHeight));
 
+        // TODO: utilise MainViewport here; Software graphics driver should create a sprite batch surface used instead of global _sub_screen pointer
         // Reset screen bitmap
-        if (newScreenHeight == _sub_screen->GetHeight())
+        if (newScreenHeight == sub_screen->GetHeight())
         {
             // requested viewport height is the same as existing subscreen
-			BitmapHelper::SetScreenBitmap( _sub_screen );
+			BitmapHelper::SetScreenBitmap(sub_screen);
         }
         // CHECKME: WTF is this for?
-        else if (_sub_screen->GetWidth() != game.size.Width)
+        else if (sub_screen->GetWidth() != game.size.Width)
         {
             // the height has changed and the width is not equal with game width
-            int subBitmapWidth = _sub_screen->GetWidth();
-            delete _sub_screen;
-            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(_old_screen->GetWidth() / 2 - subBitmapWidth / 2, _old_screen->GetHeight() / 2 - newScreenHeight / 2, subBitmapWidth, newScreenHeight));
-            BitmapHelper::SetScreenBitmap( _sub_screen );
+            int subBitmapWidth = sub_screen->GetWidth();
+            delete sub_screen;
+            sub_screen = BitmapHelper::CreateSubBitmap(real_screen, RectWH(real_screen->GetWidth() / 2 - subBitmapWidth / 2, real_screen->GetHeight() / 2 - newScreenHeight / 2, subBitmapWidth, newScreenHeight));
+            BitmapHelper::SetScreenBitmap(sub_screen);
         }
         else
         {
             // the height and width are equal to game native size: restore original screen
-            BitmapHelper::SetScreenBitmap( _old_screen );
+            BitmapHelper::SetScreenBitmap(real_screen);
         }
 
         // Update viewport and mouse area

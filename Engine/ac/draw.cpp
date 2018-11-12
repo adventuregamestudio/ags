@@ -151,8 +151,8 @@ Bitmap *virtual_screen;
 
 bool current_background_is_dirty = false;
 
-Bitmap *_old_screen=NULL;
-Bitmap *_sub_screen=NULL;
+Bitmap *real_screen =NULL;
+Bitmap *sub_screen=NULL;
 int wasShakingScreen = 0;
 
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
@@ -775,10 +775,11 @@ void clear_letterbox_borders() {
     const Rect &viewport = play.GetMainViewport();
     // TODO: is not this the same as testing against play.GetNativeSize() without coordinate conversion?
     // also, why do we use game.size to clear rectangle below, and not native size?
+    // TODO: use gfxDriver's properties to know the actual game frame size, not  "real_screen"
     if (multiply_up_coordinate(thisroom.height) < game.size.Height) {
         // blank out any traces in borders left by a full-screen room
-        gfxDriver->ClearRectangle(0, 0, _old_screen->GetWidth() - 1, viewport.Top - 1, NULL);
-        gfxDriver->ClearRectangle(0, viewport.Bottom + 1, _old_screen->GetWidth() - 1, game.size.Height - 1, NULL);
+        gfxDriver->ClearRectangle(0, 0, real_screen->GetWidth() - 1, viewport.Top - 1, NULL);
+        gfxDriver->ClearRectangle(0, viewport.Bottom + 1, real_screen->GetWidth() - 1, game.size.Height - 1, NULL);
     }
 
 }

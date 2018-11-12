@@ -84,6 +84,7 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
   dxGammaControl = NULL;
 #endif
   _allegroScreenWrapper = NULL;
+  virtualScreen = NULL;
 }
 
 bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -252,7 +253,7 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
 
 void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
 {
-  if (_filter)
+  if (_filter && virtualScreen)
   {
     BitmapHelper::SetScreenBitmap(_filter->ShutdownAndReturnRealScreen());
     virtualScreen = NULL;

@@ -333,6 +333,12 @@ namespace AGS.Editor
 
         private void previewPanel_MouseDown(object sender, MouseEventArgs e)
         {
+            if (e.Button != MouseButtons.Left && e.Button != MouseButtons.Right)
+            {
+                // ignore any clicks that aren't the left or right button
+                return;
+            }
+
             chkTiled.Checked = true;
             dragging = true;
 
@@ -340,9 +346,26 @@ namespace AGS.Editor
             mouse.X = mouse.X + previewPanel.HorizontalScroll.Value;
             mouse.Y = mouse.Y + previewPanel.VerticalScroll.Value;
 
-            start = position = mouse;
-            numOffsetX.Value = start.X / zoomLevel;
-            numOffsetY.Value = start.Y / zoomLevel;
+            // if the first click was the right button
+            bool origin = e.Button == MouseButtons.Right && start == null;
+
+            if (origin)
+            {
+                start = position = new Point(0, 0);
+            }
+            else if (e.Button == MouseButtons.Left)
+            {
+                start = position = mouse;
+            }
+
+            // track start position if:
+            // - this was the first click and it was a right click (forced to origin)
+            // - or, this was a left click
+            if (origin || e.Button == MouseButtons.Left)
+            {
+                numOffsetX.Value = start.X / zoomLevel;
+                numOffsetY.Value = start.Y / zoomLevel;
+            }
         }
 
         private void previewPanel_MouseMove(object sender, MouseEventArgs e)

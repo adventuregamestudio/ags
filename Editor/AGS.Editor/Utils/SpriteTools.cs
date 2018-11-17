@@ -143,6 +143,14 @@ namespace AGS.Editor.Utils
             }
         }
 
+        public static bool SelectionFitsWithinBitmap(Rectangle selection, Bitmap bmp)
+        {
+            return selection.Left >= 0 &&
+                selection.Left + selection.Width <= bmp.Width &&
+                selection.Top >= 0 &&
+                selection.Top + selection.Height <= bmp.Height;
+        }
+
         public static string GetSpriteUsageReport(int spriteNumber, Game game)
         {
             StringBuilder usageReport = new StringBuilder(5000);

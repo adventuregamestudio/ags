@@ -481,8 +481,8 @@ namespace AGS.Editor
 
                                 // set import options used for the sprite
                                 sprite.TransparentColour = impWin.SpriteImportMethod;
-                                sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
-                                sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
+                                sprite.OffsetX = selection.Left;
+                                sprite.OffsetY = selection.Top;
                                 sprite.RemapToGamePalette = impWin.RemapToGamePalette;
                                 sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
                                 sprite.Frame = frame;
@@ -531,8 +531,8 @@ namespace AGS.Editor
 
                         // set import options used for the sprite
                         sprite.TransparentColour = impWin.SpriteImportMethod;
-                        sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
-                        sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
+                        sprite.OffsetX = selection.Left;
+                        sprite.OffsetY = selection.Top;
                         sprite.RemapToGamePalette = impWin.RemapToGamePalette;
                     }
                 }

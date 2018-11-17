@@ -441,7 +441,7 @@ namespace AGS.Editor
             Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, method, remapColours, useRoomBackground, alphaChannel);
 
             // added for sprite reload from source
-            newSprite.ImportMethod = method;
+            newSprite.TransparentColour = method;
             newSprite.RemapToGamePalette = remapColours;
 
             _currentFolder.Sprites.Add(newSprite);
@@ -480,7 +480,7 @@ namespace AGS.Editor
                                 import.Dispose();
 
                                 // set import options used for the sprite
-                                sprite.ImportMethod = impWin.SpriteImportMethod;
+                                sprite.TransparentColour = impWin.SpriteImportMethod;
                                 sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
                                 sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
                                 sprite.RemapToGamePalette = impWin.RemapToGamePalette;
@@ -492,7 +492,7 @@ namespace AGS.Editor
                         {
                             Sprite sprite = CreateSpriteForBitmap(bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
                             // set import options used for the sprite
-                            sprite.ImportMethod = impWin.SpriteImportMethod;
+                            sprite.TransparentColour = impWin.SpriteImportMethod;
                             sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
                             sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
                             sprite.RemapToGamePalette = impWin.RemapToGamePalette;
@@ -530,7 +530,7 @@ namespace AGS.Editor
                         import.Dispose();
 
                         // set import options used for the sprite
-                        sprite.ImportMethod = impWin.SpriteImportMethod;
+                        sprite.TransparentColour = impWin.SpriteImportMethod;
                         sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
                         sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
                         sprite.RemapToGamePalette = impWin.RemapToGamePalette;
@@ -541,7 +541,7 @@ namespace AGS.Editor
                     Sprite sprite = CreateSpriteForBitmap(bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
 
                     // set import options used for the sprite
-                    sprite.ImportMethod = impWin.SpriteImportMethod;
+                    sprite.TransparentColour = impWin.SpriteImportMethod;
                     sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
                     sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
                     sprite.RemapToGamePalette = impWin.RemapToGamePalette;
@@ -559,7 +559,7 @@ namespace AGS.Editor
             SpriteImportWindow impWin = new SpriteImportWindow(new string[] { filename });
 
             // get import options from the existing sprite
-            impWin.SpriteImportMethod = sprite.ImportMethod;
+            impWin.SpriteImportMethod = sprite.TransparentColour;
             impWin.SelectionOffset = new Point(sprite.OffsetX, sprite.OffsetY);
             impWin.SelectionSize = new Size(sprite.Width, sprite.Height);
             impWin.UseAlphaChannel = sprite.AlphaChannel;
@@ -589,7 +589,7 @@ namespace AGS.Editor
                 import.Dispose();
 
                 // set import options used for the sprite
-                sprite.ImportMethod = impWin.SpriteImportMethod;
+                sprite.TransparentColour = impWin.SpriteImportMethod;
                 sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
                 sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
                 sprite.RemapToGamePalette = impWin.RemapToGamePalette;
@@ -607,7 +607,7 @@ namespace AGS.Editor
             SpriteImportWindow impWin = new SpriteImportWindow(bmp);
 
             // get import options from the existing sprite
-            impWin.SpriteImportMethod = sprite.ImportMethod;
+            impWin.SpriteImportMethod = sprite.TransparentColour;
             impWin.SelectionOffset = new Point(sprite.OffsetX, sprite.OffsetY);
             impWin.SelectionSize = new Size(sprite.Width, sprite.Height);
             impWin.UseAlphaChannel = sprite.AlphaChannel;
@@ -634,7 +634,7 @@ namespace AGS.Editor
                 import.Dispose();
 
                 // set import options used for the sprite
-                sprite.ImportMethod = impWin.SpriteImportMethod;
+                sprite.TransparentColour = impWin.SpriteImportMethod;
                 sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
                 sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
                 sprite.RemapToGamePalette = impWin.RemapToGamePalette;
@@ -945,7 +945,7 @@ namespace AGS.Editor
                     bmp.Dispose();
                     bool alphaChannel = spr.AlphaChannel;
                     bool remap = spr.RemapToGamePalette;
-                    SpriteImportTransparency method = spr.ImportMethod;
+                    SpriteImportTransparency method = spr.TransparentColour;
                     NativeProxy.Instance.ReplaceSpriteWithBitmap(spr, import, method, remap, false, alphaChannel);
                     import.Dispose();
                 }

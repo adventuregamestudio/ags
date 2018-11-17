@@ -21,7 +21,7 @@ namespace AGS.Types
         private string _sourceFile = string.Empty;
         private int? _coloursLockedToRoom = null;
         private int _frame = 1;
-        private SpriteImportTransparency _importMethod = SpriteImportTransparency.LeaveAsIs;
+        private SpriteImportTransparency _tranparentColour = SpriteImportTransparency.LeaveAsIs;
         private int _offsetX;
         private int _offsetY;
         private bool _remapToGamePalette;
@@ -154,12 +154,12 @@ namespace AGS.Types
             set { _frame = value; }
         }
 
-        [Description("The import method used for processing transparent colours")]
+        [Description("The method used for processing transparent colours")]
         [Category("Import")]
-        public SpriteImportTransparency ImportMethod
+        public SpriteImportTransparency TransparentColour
         {
-            get { return _importMethod; }
-            set { _importMethod = value; }
+            get { return _tranparentColour; }
+            set { _tranparentColour = value; }
         }
 
         [Description("Remap palette colours on import")]
@@ -199,7 +199,7 @@ namespace AGS.Types
                     _offsetY = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "OffsetY"));
                     _frame = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "Frame"));
                     _remapToGamePalette = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "RemapToGamePalette"));
-                    _importMethod = (SpriteImportTransparency)Enum.Parse(typeof(SpriteImportTransparency), SerializeUtils.GetElementString(sourceNode, "ImportMethod"));
+                    _tranparentColour = (SpriteImportTransparency)Enum.Parse(typeof(SpriteImportTransparency), SerializeUtils.GetElementString(sourceNode, "ImportMethod"));
                 }
                 catch (InvalidDataException)
                 {
@@ -229,7 +229,7 @@ namespace AGS.Types
             writer.WriteElementString("OffsetY", _offsetY.ToString());
             writer.WriteElementString("Frame", _frame.ToString());
             writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
-            writer.WriteElementString("ImportMethod", _importMethod.ToString());
+            writer.WriteElementString("ImportMethod", _tranparentColour.ToString());
             writer.WriteEndElement(); // end source
 
             writer.WriteEndElement();

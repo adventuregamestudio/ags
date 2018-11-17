@@ -83,7 +83,7 @@ namespace AGS.Editor
         {
             get
             {
-                if (radTransColourIndex0.Checked) { return SpriteImportTransparency.Pixel0; };
+                if (radTransColourIndex0.Checked) { return SpriteImportTransparency.PaletteIndex0; };
                 if (radTransColourTopLeftPixel.Checked) { return SpriteImportTransparency.TopLeft; };
                 if (radTransColourBottomLeftPixel.Checked) { return SpriteImportTransparency.BottomLeft; };
                 if (radTransColourTopRightPixel.Checked) { return SpriteImportTransparency.TopRight; };
@@ -96,7 +96,7 @@ namespace AGS.Editor
             {
                 switch(SpriteImportMethod)
                 {
-                    case SpriteImportTransparency.Pixel0:
+                    case SpriteImportTransparency.PaletteIndex0:
                         radTransColourIndex0.Checked = true;
                         break;
                     case SpriteImportTransparency.TopLeft:
@@ -158,7 +158,7 @@ namespace AGS.Editor
             bool gameUsesIndexedPalette = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
 
             // if import method is for index 0 and this is not an indexed palette
-            if (this.SpriteImportMethod == SpriteImportTransparency.Pixel0 && !gameUsesIndexedPalette)
+            if (this.SpriteImportMethod == SpriteImportTransparency.PaletteIndex0 && !gameUsesIndexedPalette)
             {
                 this.SpriteImportMethod = SpriteImportTransparency.LeaveAsIs;
             }

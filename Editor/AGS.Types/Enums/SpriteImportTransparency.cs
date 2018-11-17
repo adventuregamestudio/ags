@@ -5,7 +5,7 @@ namespace AGS.Types
     public enum SpriteImportTransparency
     {
         [Description("Pixels of index 0 will be transparent (256-colour games only)")]
-        Pixel0,
+        PaletteIndex0,
         [Description("The top-left pixel will be the transparent colour for this sprite")]
         TopLeft,
         [Description("The bottom-left pixel will be the transparent colour for this sprite")]

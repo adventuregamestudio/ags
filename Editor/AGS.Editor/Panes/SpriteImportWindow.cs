@@ -210,6 +210,15 @@ namespace AGS.Editor
             panelBottomLeft.BackColor = image.GetPixel(0, image.Height - 1);
             panelBottomRight.BackColor = image.GetPixel(image.Width - 1, image.Height - 1);
 
+            try
+            {
+                panelIndex0.BackColor = image.Palette.Entries[0];
+            }
+            catch (IndexOutOfRangeException)
+            {
+                // not an indexed palette
+            }
+
             previewPanel.Refresh();
 
             // if not doing a tiled import, update selection width and height

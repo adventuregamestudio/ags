@@ -127,7 +127,7 @@ namespace AGS.Editor
             this.chkRemapCols.Name = "chkRemapCols";
             this.chkRemapCols.Size = new System.Drawing.Size(175, 17);
             this.chkRemapCols.TabIndex = 3;
-            this.chkRemapCols.Text = "Remap colours to game palette";
+            this.chkRemapCols.Text = "Remap palette for 8-bit images";
             this.chkRemapCols.UseVisualStyleBackColor = true;
             // 
             // groupTransColour

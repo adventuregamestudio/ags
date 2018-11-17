@@ -167,7 +167,7 @@ namespace AGS.Editor
             panelIndex0.Enabled = gameUsesIndexedPalette;
             radTransColourIndex0.Enabled = gameUsesIndexedPalette;
             chkRoomBackground.Enabled = gameUsesIndexedPalette;
-            chkRemapCols.Enabled = gameUsesIndexedPalette;
+            chkRoomBackground.Checked = gameUsesIndexedPalette && Factory.AGSEditor.Settings.RemapPalettizedBackgrounds;
 
             // if tiling direction hasn't been set yet, just take the first option
             if (cmbTileDirection.SelectedIndex == -1)

@@ -58,7 +58,17 @@ namespace AGS.Editor.Utils
 
         public static Bitmap LoadFrameImageFromFile(string fileName, int frame)
         {
-            return LoadSpritesFromFile(fileName).ElementAt(Math.Abs(frame - 1));
+            GifDecoder decoder = new GifDecoder();
+
+            if (decoder.Read(fileName) != GifDecoder.STATUS_OK)
+            {
+                // in the interest of speed, if decode fails assume 1 frame
+                return LoadFirstImageFromFile(fileName);
+            }
+
+            // this is a GIF file so just return the frame
+            int at = Math.Min(Math.Abs(frame), decoder.GetFrameCount());
+            return decoder.GetFrame(at);
         }
 
         public static int GetFrameCountEstimateFromFile(string fileName)

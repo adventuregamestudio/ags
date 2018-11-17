@@ -20,7 +20,7 @@ namespace AGS.Types
         private bool _alphaChannel;
         private string _sourceFile = string.Empty;
         private int? _coloursLockedToRoom = null;
-        private int _frame = 1;
+        private int _frame = 0;
         private SpriteImportTransparency _tranparentColour = SpriteImportTransparency.LeaveAsIs;
         private int _offsetX;
         private int _offsetY;

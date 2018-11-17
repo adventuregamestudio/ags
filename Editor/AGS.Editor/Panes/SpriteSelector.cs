@@ -466,7 +466,6 @@ namespace AGS.Editor
 
                     foreach (Bitmap bmp in SpriteTools.LoadSpritesFromFile(filename))
                     {
-                        frame ++;
                         bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
                         SpriteImportTransparency method = impWin.SpriteImportMethod;
 
@@ -501,6 +500,7 @@ namespace AGS.Editor
                         }
 
                         bmp.Dispose();
+                        frame ++;
                     }
                 }
 
@@ -593,7 +593,7 @@ namespace AGS.Editor
                 sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
                 sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
                 sprite.RemapToGamePalette = impWin.RemapToGamePalette;
-                sprite.Frame = 1; // for direct replacement from a file we only ever take the first frame
+                sprite.Frame = 0; // for direct replacement from a file we only ever take the first frame
                 sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
 
                 RefreshSpriteDisplay();
@@ -638,7 +638,7 @@ namespace AGS.Editor
                 sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
                 sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
                 sprite.RemapToGamePalette = impWin.RemapToGamePalette;
-                sprite.Frame = 1; // for direct replacement from bmp there is only 1 frame
+                sprite.Frame = 0; // for direct replacement from bmp there is only 1 frame
 
                 RefreshSpriteDisplay();
             }

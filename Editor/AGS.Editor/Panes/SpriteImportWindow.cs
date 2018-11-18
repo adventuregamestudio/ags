@@ -204,12 +204,7 @@ namespace AGS.Editor
             scrollWindowSizer.Height = 0;
             previewPanel.Controls.Add(scrollWindowSizer);
 
-            // update colour previews
-            panelTopLeft.BackColor = image.GetPixel(0, 0);
-            panelTopRight.BackColor = image.GetPixel(image.Width - 1, 0);
-            panelBottomLeft.BackColor = image.GetPixel(0, image.Height - 1);
-            panelBottomRight.BackColor = image.GetPixel(image.Width - 1, image.Height - 1);
-
+            // update colour preview
             try
             {
                 panelIndex0.BackColor = image.Palette.Entries[0];
@@ -227,6 +222,14 @@ namespace AGS.Editor
                 numSizeX.Value = image.Width;
                 numSizeY.Value = image.Height;
             }
+        }
+
+        private void updateCornerColours(Point point, Size size)
+        {
+            panelTopLeft.BackColor = image.GetPixel(point.X, point.Y);
+            panelTopRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y);
+            panelBottomLeft.BackColor = image.GetPixel(point.X, point.Y + size.Height - 1);
+            panelBottomRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y + size.Height - 1);
         }
 
         private void zoomSlider_Scroll(object sender, EventArgs e)
@@ -278,10 +281,18 @@ namespace AGS.Editor
             else if (TiledImport)
             {
                 Pen pen = new Pen(Color.HotPink, 1);
+                bool first = true;
 
                 foreach (Rectangle rect in SpriteTools.GetSpriteSelections(ImageSize, SelectionOffset,
                     SelectionSize, TilingMargin, TilingDirection, MaxTiles))
                 {
+                    if (first)
+                    {
+                        // update colours based on the selection
+                        updateCornerColours(rect.Location, rect.Size);
+                        first = false;
+                    }
+
                     // multiply everything by the zoom level
                     Rectangle zoomed = rect;
                     zoomed.X = zoomed.X * zoomLevel - previewPanel.HorizontalScroll.Value;
@@ -290,6 +301,11 @@ namespace AGS.Editor
                     zoomed.Height *= zoomLevel;
                     e.Graphics.DrawRectangle(pen, zoomed);
                 }
+            }
+            else
+            {
+                // if not tiling, reset the colours
+                updateCornerColours(new Point(0, 0), new Size(image.Width, image.Height));
             }
         }
 

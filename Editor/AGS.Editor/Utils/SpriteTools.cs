@@ -100,6 +100,11 @@ namespace AGS.Editor.Utils
             Point start = new Point(offset.X, offset.Y);
             Rectangle rect = new Rectangle(start, selection);
 
+            if (!SelectionFitsWithinBounds(rect, size))
+            {
+                yield break;
+            }
+
             for (int i = 1; i <= count; i ++)
             {
                 if (direction == SpriteImportTilingDirection.Right)
@@ -143,12 +148,17 @@ namespace AGS.Editor.Utils
             }
         }
 
-        public static bool SelectionFitsWithinBitmap(Rectangle selection, Bitmap bmp)
+        public static bool SelectionFitsWithinBounds(Rectangle selection, Size bounds)
         {
             return selection.Left >= 0 &&
-                selection.Left + selection.Width <= bmp.Width &&
+                selection.Left + selection.Width <= bounds.Width &&
                 selection.Top >= 0 &&
-                selection.Top + selection.Height <= bmp.Height;
+                selection.Top + selection.Height <= bounds.Height;
+        }
+
+        public static bool SelectionFitsWithinBitmap(Rectangle selection, Bitmap bmp)
+        {
+            return SelectionFitsWithinBounds(selection, new Size(bmp.Width, bmp.Height));
         }
 
         public static string GetSpriteUsageReport(int spriteNumber, Game game)

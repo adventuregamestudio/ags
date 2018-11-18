@@ -164,8 +164,6 @@ namespace AGS.Editor
             }
 
             // enable or disable things based on the colour depth
-            panelIndex0.Enabled = gameUsesIndexedPalette;
-            radTransColourIndex0.Enabled = gameUsesIndexedPalette;
             chkRoomBackground.Enabled = gameUsesIndexedPalette;
             chkRoomBackground.Checked = gameUsesIndexedPalette && Factory.AGSEditor.Settings.RemapPalettizedBackgrounds;
 

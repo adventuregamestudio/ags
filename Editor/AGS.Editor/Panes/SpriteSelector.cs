@@ -993,6 +993,9 @@ namespace AGS.Editor
                         SpriteImportTransparency method = spr.TransparentColour;
                         NativeProxy.Instance.ReplaceSpriteWithBitmap(spr, import, method, remap, false, alphaChannel);
                         import.Dispose();
+
+                        // rewrite source, which might switch to a relative path
+                        spr.SourceFile = Utilities.GetRelativeToProjectPath(spr.SourceFile);
                     }
                 }
                 catch (Exception ex)

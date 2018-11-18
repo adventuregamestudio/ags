@@ -758,7 +758,7 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_IMPORT_NEW)
             {
-                string[] filenames = Factory.GUIController.ShowOpenFileDialogMultipleFiles("Import new sprites...", GUIController.IMAGE_FILE_FILTER);
+                string[] filenames = Factory.GUIController.ShowOpenFileDialogMultipleFiles("Import new sprites...", Constants.IMAGE_FILE_FILTER);
 
                 if (filenames.Length > 0)
                 {
@@ -771,7 +771,7 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_REPLACE_FROM_FILE)
             {
-                string fileName = Factory.GUIController.ShowOpenFileDialog("Replace sprite...", GUIController.IMAGE_FILE_FILTER);
+                string fileName = Factory.GUIController.ShowOpenFileDialog("Replace sprite...", Constants.IMAGE_FILE_FILTER);
                 if (fileName != null)
                 {
                     Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
@@ -822,7 +822,7 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_EXPORT_SPRITE)
             {
-                string fileName = Factory.GUIController.ShowSaveFileDialog("Export sprite...", GUIController.IMAGE_FILE_FILTER);
+                string fileName = Factory.GUIController.ShowSaveFileDialog("Export sprite...", Constants.IMAGE_FILE_FILTER);
                 if (fileName != null)
                 {
                     Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);

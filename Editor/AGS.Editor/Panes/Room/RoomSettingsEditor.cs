@@ -443,7 +443,7 @@ namespace AGS.Editor
 
         private void ImportBackground(int bgIndex)
         {
-            string selectedFile = Factory.GUIController.ShowOpenFileDialog("Select background to import...", GUIController.IMAGE_FILE_FILTER);
+            string selectedFile = Factory.GUIController.ShowOpenFileDialog("Select background to import...", Constants.IMAGE_FILE_FILTER);
             if (selectedFile != null)
             {
 				Bitmap bmp = null;
@@ -550,7 +550,7 @@ namespace AGS.Editor
 
         private void btnExport_Click(object sender, EventArgs e)
         {
-            string fileName = Factory.GUIController.ShowSaveFileDialog("Export background as...", GUIController.IMAGE_FILE_FILTER);
+            string fileName = Factory.GUIController.ShowSaveFileDialog("Export background as...", Constants.IMAGE_FILE_FILTER);
             if (fileName != null)
             {
                 Bitmap bmp = Factory.NativeProxy.GetBitmapForBackground(_room, cmbBackgrounds.SelectedIndex);

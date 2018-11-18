@@ -466,7 +466,7 @@ namespace AGS.Editor
 			}
 			else if (command == IMPORT_MASK_COMMAND)
 			{
-				string fileName = Factory.GUIController.ShowOpenFileDialog("Select mask to import...", GUIController.IMAGE_FILE_FILTER);
+				string fileName = Factory.GUIController.ShowOpenFileDialog("Select mask to import...", Constants.IMAGE_FILE_FILTER);
 				if (fileName != null)
 				{
 					ImportMaskFromFile(fileName);
@@ -474,7 +474,7 @@ namespace AGS.Editor
 			}
             else if (command == EXPORT_MASK_COMMAND)
             {
-                string fileName = Factory.GUIController.ShowSaveFileDialog("Save mask as...", GUIController.IMAGE_FILE_FILTER);
+                string fileName = Factory.GUIController.ShowSaveFileDialog("Save mask as...", Constants.IMAGE_FILE_FILTER);
                 if (fileName != null)
                 {
                     ExportMaskFromFile(fileName);

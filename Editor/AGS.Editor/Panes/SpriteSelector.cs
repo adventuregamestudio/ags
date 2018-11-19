@@ -474,11 +474,6 @@ namespace AGS.Editor
                             foreach(Rectangle selection in SpriteTools.GetSpriteSelections(impWin.ImageSize, impWin.SelectionOffset,
                                 impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles))
                             {
-                                if (!SpriteTools.SelectionFitsWithinBitmap(selection, bmp))
-                                {
-                                    continue;
-                                }
-
                                 Bitmap import = bmp.Clone(selection, bmp.PixelFormat);
                                 Sprite sprite = CreateSpriteForBitmap(import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
                                 import.Dispose();
@@ -530,11 +525,6 @@ namespace AGS.Editor
                     foreach (Rectangle selection in SpriteTools.GetSpriteSelections(impWin.ImageSize, impWin.SelectionOffset,
                         impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles))
                     {
-                        if (!SpriteTools.SelectionFitsWithinBitmap(selection, bmp))
-                        {
-                            continue;
-                        }
-
                         Bitmap import = bmp.Clone(selection, bmp.PixelFormat);
                         Sprite sprite = CreateSpriteForBitmap(import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
                         import.Dispose();
@@ -585,7 +575,7 @@ namespace AGS.Editor
                     Rectangle selection = SpriteTools.GetFirstSpriteSelection(impWin.ImageSize, impWin.SelectionOffset,
                         impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
 
-                    if (SpriteTools.SelectionFitsWithinBitmap(selection, bmp))
+                    if (!selection.IsEmpty)
                     {
                         import = bmp.Clone(selection, bmp.PixelFormat);
                     }
@@ -644,7 +634,7 @@ namespace AGS.Editor
                     Rectangle selection = SpriteTools.GetFirstSpriteSelection(impWin.ImageSize, impWin.SelectionOffset,
                         impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
 
-                    if (SpriteTools.SelectionFitsWithinBitmap(selection, bmp))
+                    if (!selection.IsEmpty)
                     {
                         import = bmp.Clone(selection, bmp.PixelFormat);
                     } else

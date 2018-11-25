@@ -1,15 +1,18 @@
 #ifndef __CC_VARIABLESYMLIST_H
 #define __CC_VARIABLESYMLIST_H
+#include <vector>
 
 struct VariableSymlist {
     int len;
-    long *syml;
-
-    void init(int pLen) {
+    ags::SymbolScript syml;
+    void init(int pLen)
+    {
         len = pLen;
-        syml = (long*)malloc(sizeof(long) * len);
+        syml = static_cast<ags::SymbolScript>(malloc(sizeof(ags::Symbol) * len));
     }
-    void destroy() {
+
+    void destroy()
+    {
         free(syml);
         syml = NULL;
     }

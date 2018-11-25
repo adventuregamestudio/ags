@@ -4,17 +4,8 @@
 #define NEW_SCRIPT_TOKEN_PREFIX "\"__NEWSCRIPTSTART_"
 #define STRING_LENGTH 200   // how big to make strings
 #define MAX_NESTED_LEVEL 75
-#define NEST_FUNCTION 1  // it's a function
-#define NEST_NOTHING  2  // no reason - they just put { } in the code
-#define NEST_IF       3  // it's an IF statement
-#define NEST_IFSINGLE 4  // single IF statment (ie. no braces)
-#define NEST_ELSE       5
-#define NEST_ELSESINGLE 6
-#define NEST_STRUCT     7
-#define NEST_DO         8 // Do statement (to be followed by a while)
-#define NEST_DOSINGLE   9 // Single Do statement
-#define NEST_FOR        10 // For statement
-#define NEST_SWITCH     11 // Case block for a switch statement
+// [fw] NOTE: NEST_ macros are converted into an enum in cs_parser.h
+
 #define MAX_FUNCTIONS 2000
 #define MAX_FUNCTION_PARAMETERS 15
 // This is the maximum length of a "static string" in the script
@@ -109,5 +100,15 @@ extern int is_whitespace(char cht);
 extern void skip_whitespace(char**pttt);
 extern int is_digit(int chrac);
 extern int is_alphanum(int chrac);
+
+namespace ags
+{
+// A symbol (result of scanner preprocessing)
+typedef int Symbol;
+
+// A buffer of symbols 
+// [fw] typedef SymbolScript vector<Symbol>
+typedef Symbol *SymbolScript;
+} // namespace ags
 
 #endif // __CS_PARSER_COMMON_H

@@ -3558,7 +3558,7 @@ int do_variable_ax_PrepareComponentAccess_JustTheAddressCases(ags::Symbol variab
 // We access the a variable or a component of a struct in order to read or write it. 
 int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol variableSym, int variableSymType, bool isLastClause, VariableSymlist * thisClause, bool writing, bool mustBeWritable, bool writingThisTime, ags::Symbol firstVariableType, ags::Symbol firstVariableSym, int &currentComponentOffset, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isProperty, bool &isArrayOffset, bool &readonly_cannot_cause_error, bool &isDynamicArray, bool &isPointer, bool &accessActualPointer, bool &cannotAssign)
 {
-    
+
     isProperty = (0 != (sym.entries[variableSym].flags & SFLG_PROPERTY));
     isPointer = (0 != (sym.entries[variableSym].flags & (SFLG_POINTER | SFLG_AUTOPTR)));
     isDynamicArray = (0 != (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY));
@@ -3567,7 +3567,7 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol 
     readonly_cannot_cause_error = false;
     getJustTheAddressIntoAX = false;
     doMemoryAccessNow = false;
-    
+
     accessActualPointer = false;
     cannotAssign = false;
     // Simple component access - increment the offset from the start of the structure,
@@ -3576,7 +3576,7 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol 
         (variableSymType == SYM_LOCALVAR) ||
         (variableSymType == SYM_STRUCTMEMBER) ||
         (variableSymType == SYM_STRING)) &&
-        (!isProperty) && 
+        (!isProperty) &&
         (!isImported))
     {
         do_variable_ax_PrepareComponentAccess_Elementary(variableSym, currentComponentOffset);
@@ -3639,7 +3639,7 @@ int do_variable_ax_ActualMemoryAccess(ccCompiledScript * scrip, ags::Symbol vari
             cc_error("Invalid pathing: unexpected '%s'", sym.get_friendly_name(variablePath[vp_idx + 1].syml[0]).c_str());
             return -1;
         }
-        
+
         // pathing, eg. lstItems.OwningGUI.ID
         // we just read a pointer address, so re-push it for use
         // next time round

@@ -36,5 +36,8 @@
     <ClCompile Include="..\..\Common\util\stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Compiler\test\cc_byte_compat_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

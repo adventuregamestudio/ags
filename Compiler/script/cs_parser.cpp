@@ -2114,20 +2114,27 @@ int check_type_mismatch(int typeIs, int typeWantsToBe, bool orderMatters)
 }
 
 
-bool isVCPUOperatorBoolean(int scmdtype) {
+inline bool isVCPUOperatorBoolean(int scmdtype) 
+{
     // returns whether this operator's val type is always bool
     if ((scmdtype >= SCMD_ISEQUAL) &&
         (scmdtype <= SCMD_OR))
+    {
         return true;
+    }
 
     if ((scmdtype >= SCMD_FGREATER) &&
         (scmdtype <= SCMD_FLTE))
+    {
         return true;
+    }
 
     if ((scmdtype == SCMD_STRINGSNOTEQ) ||
         (scmdtype == SCMD_STRINGSEQUAL))
+    {
         return true;
-
+    }
+       
     return false;
 }
 
@@ -3075,7 +3082,6 @@ int parse_subexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags:
         }
     }
 
-
     // function return type
     // [fw] So, why do we need that global?
     //      --> because expressions aren't marked with the type they have.
@@ -3191,7 +3197,8 @@ int parse_subexpr(ccCompiledScript *scrip, ags::SymbolScript symlist, size_t sym
     int lowest_op_idx = index_of_lowest_bonding_operator(symlist, symlist_len);  // can be < 0
 
     // If the lowest bonding operator is right in front and an integer follows,
-    // then it has been misinterpreted, it's really a unary minus (with high priority)
+    // then it has been misinterpreted so far: 
+    // it's really a unary minus. So let's try that.
     // [fw] Why don't we treat literal floats in the same way?
     if ((lowest_op_idx == 0) &&
         (symlist_len > 1) &&
@@ -3229,13 +3236,13 @@ int get_array_index_into_ax(ccCompiledScript *scrip, ags::SymbolScript symlist, 
     // overwritten by the size of the array index variable
     int saveOldReadcmd = readcmd_lastcalledwith;
     // parse expression inside brackets to return the array index in AX
-    if (parse_subexpr(scrip, &symlist[openBracketOffs + 1], closeBracketOffs - (openBracketOffs + 1)))
-        return -1;
+    int retval = parse_subexpr(scrip, &symlist[openBracketOffs + 1], closeBracketOffs - (openBracketOffs + 1));
+    if (retval < 0) return retval;
     readcmd_lastcalledwith = saveOldReadcmd;
 
     // array index must be an int
-    if (check_type_mismatch(scrip->ax_val_type, sym.normalIntSym, true))
-        return -1;
+    retval = check_type_mismatch(scrip->ax_val_type, sym.normalIntSym, true);
+    if (retval < 0) return retval;
 
     // "pop" the ax val type
     scrip->ax_val_type = axValTypeWas;
@@ -3270,8 +3277,14 @@ int get_array_index_into_ax(ccCompiledScript *scrip, ags::SymbolScript symlist, 
 
 
 
-// parse array brackets if present
-int parseArrayIndexOffsets(ccCompiledScript *scrip, VariableSymlist *thisClause, bool writingOperation, bool *isArrayOffset) {
+// parse array brackets
+int parseArrayIndexOffsetsIfPresent(ccCompiledScript *scrip, VariableSymlist *thisClause, bool writingOperation, bool *isArrayOffset) {
+
+    if ((thisClause->len <= 1) || (sym.get_type(thisClause->syml[1]) != SYM_OPENBRACKET))
+    {
+        // No '[', so no array index clause. Return without error.
+        return 0;
+    }
 
     // find where the brackets end
     size_t arrIndexEnd;
@@ -3374,7 +3387,7 @@ int do_variable_ax_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags
     getJustTheAddressIntoAX = true;
     doMemoryAccessNow = true;
 
-    int retval = parseArrayIndexOffsets(scrip, thisClause, writing != 0, &isArrayOffset);
+    int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing != 0, &isArrayOffset);
     if (retval < 0) return retval;
 
     if (mustBeWritable)
@@ -3432,7 +3445,7 @@ int do_variable_ax_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags:
         else
         {
             // put array index into DX
-            int retval = parseArrayIndexOffsets(scrip, thisClause, writing != 0, &isArrayOffset);
+            int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing != 0, &isArrayOffset);
             if (retval < 0) return retval;
 
             isArrayOfPointers = true;
@@ -3598,11 +3611,8 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol 
     }
     else
     {
-        if ((thisClause->len > 1) && (sym.get_type(thisClause->syml[1]) == SYM_OPENBRACKET))
-        {
-            int retval = parseArrayIndexOffsets(scrip, thisClause, writing, &isArrayOffset);
-            if (retval < 0) return retval;
-        }
+        int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing, &isArrayOffset);
+        if (retval < 0) return retval;   
     }
 
     int retval = do_variable_ax_PrepareComponentAccess_JustTheAddressCases(variableSym, thisClause, isLastClause, getJustTheAddressIntoAX, cannotAssign);

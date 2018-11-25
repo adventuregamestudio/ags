@@ -120,3 +120,4 @@ Manual/ags-help.chm
 # Tools output and temporary files
 libsrc/*.tar*
 libsrc/*.zip
+/.vs

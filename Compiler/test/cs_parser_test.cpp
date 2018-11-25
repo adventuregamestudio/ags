@@ -55,7 +55,9 @@ TEST(Compile, UnknownKeywordAfterReadonly) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Syntax error at 'MyStruct::int2'; expected variable type", last_seen_cc_error);
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error);
+    EXPECT_NE(std::string::npos, res.find("int2"));
 }
 
 TEST(Compile, DynamicArrayReturnValueErrorText) {
@@ -74,7 +76,7 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite*[]' to 'int[]'", last_seen_cc_error);
+    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite[]' to 'int[]'", last_seen_cc_error);
 }
 
 TEST(Compile, DynamicTypeReturnNonPointerManaged) {
@@ -157,7 +159,11 @@ TEST(Compile, ParsingIntDefaultOverflow) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '9999999999999999999999' because of overflow.", last_seen_cc_error);
+
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error);
+    EXPECT_NE(std::string::npos, res.find("9999999999999999999999"));
+
 }
 
 TEST(Compile, ParsingNegIntDefaultOverflow) {
@@ -170,7 +176,9 @@ TEST(Compile, ParsingNegIntDefaultOverflow) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '-9999999999999999999999' because of overflow.", last_seen_cc_error);
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error);
+    EXPECT_NE(std::string::npos, res.find("-9999999999999999999999"));
 }
 
 TEST(Compile, ParsingIntOverflow) {
@@ -183,7 +191,9 @@ TEST(Compile, ParsingIntOverflow) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '4200000000000000000000' because of overflow.", last_seen_cc_error);
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error);
+    EXPECT_NE(std::string::npos, res.find("4200000000000000000000"));
 }
 
 TEST(Compile, ParsingNegIntOverflow) {
@@ -196,7 +206,9 @@ TEST(Compile, ParsingNegIntOverflow) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '-4200000000000000000000' because of overflow.", last_seen_cc_error);
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error);
+    EXPECT_NE(std::string::npos, res.find("-4200000000000000000000"));
 }
 
 

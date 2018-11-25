@@ -1,21 +1,21 @@
-[2018-11-22 02:36:03] [info] Start Program:
-Path:"C:\Users\Peter G Bouillon\Source\Repos\ags\Solutions\\.test\Debug\Compiler.Lib.Test.exe"
+[2018-11-25 23:23:53] [info] Start Program:
+Path:"C:\Users\Peter G Bouillon\source\repos\ags\Solutions\\.test\Debug\Compiler.Lib.Test.exe"
 Arguments:
 Working directory: "C:\Users\Peter G Bouillon\source\repos\ags\Solutions\Compiler.Lib\"
-Modules: Selected: C:\Users\Peter G Bouillon\Source\Repos\ags\Solutions\.lib\Debug\Compiler_d.lib C:\Users\Peter G Bouillon\Source\Repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe Excluded: 
+Modules: Selected: C:\Users\Peter G Bouillon\source\repos\ags\Solutions\.lib\Debug\Compiler_d.lib C:\Users\Peter G Bouillon\source\repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe Excluded: 
 Sources: Selected: C:\Users\Peter G Bouillon\source\repos\ags\Common\script C:\Users\Peter G Bouillon\source\repos\ags\Compiler C:\Users\Peter G Bouillon\source\repos\ags\Solutions\Compiler.Lib C:\Users\Peter G Bouillon\source\repos\ags\Common\libsrc\googletest\src C:\Users\Peter G Bouillon\source\repos\ags\Common\util C:\Users\Peter G Bouillon\source\repos\ags\Compiler\test C:\Users\Peter G Bouillon\source\repos\ags\Solutions\Compiler.Lib Excluded: 
 Log Level: Normal
 Cover Children: 0
 Aggregate by file: 1
 Continue after C++ exception: 0
 Optimized build support: 0
-Export: Binary C:\Users\Peter G Bouillon\AppData\Local\Temp\1jn5t4f1.f3s 
+Export: Binary C:\Users\Peter G Bouillon\AppData\Local\Temp\m0bx15xh.imk 
 Input coverage: 
 Unified diff: 
 Excluded line regular expressions: 
 Substitute pdb source paths: 
 
-[2018-11-22 02:36:03] [info] Module: C:\Users\Peter G Bouillon\source\repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe is selected because it matches selected pattern: C:\Users\Peter G Bouillon\Source\Repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe
-[2018-11-22 02:36:04] [info] ----------------------------------------------------
-[2018-11-22 02:36:04] [info] Coverage binary generated in file: C:\Users\Peter G Bouillon\AppData\Local\Temp\1jn5t4f1.f3s
-[2018-11-22 02:36:04] [info] ----------------------------------------------------
+[2018-11-25 23:23:53] [info] Module: C:\Users\Peter G Bouillon\source\repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe is selected because it matches selected pattern: C:\Users\Peter G Bouillon\source\repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe
+[2018-11-25 23:23:54] [info] ----------------------------------------------------
+[2018-11-25 23:23:54] [info] Coverage binary generated in file: C:\Users\Peter G Bouillon\AppData\Local\Temp\m0bx15xh.imk
+[2018-11-25 23:23:54] [info] ----------------------------------------------------

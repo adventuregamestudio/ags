@@ -100,7 +100,7 @@ namespace AGS.Editor
             {
                 if (spriteList.SelectedItems.Count == 1)
                 {
-                    return FindSpriteByNumber(Convert.ToInt32(spriteList.SelectedItems[0].Name));
+                    return FindSpriteByNumber(Convert.ToInt32(spriteList.SelectedItems[0].Text));
                 }
                 return null;
             }
@@ -207,6 +207,7 @@ namespace AGS.Editor
             _spriteImages.ColorDepth = ColorDepth.Depth16Bit;
             _spriteImages.ImageSize = new Size(64, 64);
             _spriteImages.TransparentColor = Color.Pink;
+            List<ListViewItem> itemsToAdd = new List<ListViewItem>();
 
             Progress progress = new Progress(folder.Sprites.Count, "Refreshing folder...");
             progress.Show();
@@ -216,13 +217,20 @@ namespace AGS.Editor
                 progress.SetProgressValue(index);
                 Sprite sprite = folder.Sprites[index];
                 Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, 64, 64, false, true, Color.Pink);
-                _spriteImages.Images.Add(sprite.Number.ToString(), bmp);
-                spriteList.Items.Add(sprite.Number.ToString(), sprite.Number.ToString(), sprite.Number.ToString());
+
+                // we are already indexing from 0 and this ImageList was cleared,
+                // so just adding the image doesn't need a modified index
+                _spriteImages.Images.Add(bmp);
+
+                // adding items individually in this loop is extremely slow, so build
+                // a List of items and use AddRange instead
+                itemsToAdd.Add(new ListViewItem(sprite.Number.ToString(), index));
             }
 
             progress.Hide();
             progress.Dispose();
 
+            spriteList.Items.AddRange(itemsToAdd.ToArray());
             spriteList.LargeImageList = _spriteImages;
             spriteList.EndUpdate();
 
@@ -253,7 +261,7 @@ namespace AGS.Editor
             spriteList.SelectedItems.Clear();
             foreach (ListViewItem listItem in spriteList.Items)
             {
-                if (Convert.ToInt32(listItem.Name) == spriteNumber)
+                if (Convert.ToInt32(listItem.Text) == spriteNumber)
                 {
                     listItem.Selected = true;
                     listItem.Focused = true;
@@ -595,7 +603,7 @@ namespace AGS.Editor
                 {
                     if (listItem.Selected)
                     {
-                        int spriteNum = Convert.ToInt32(listItem.Name);
+                        int spriteNum = Convert.ToInt32(listItem.Text);
                         Sprite sprite = FindSpriteByNumber(spriteNum);
 
                         try
@@ -842,10 +850,10 @@ namespace AGS.Editor
 
             foreach (ListViewItem listItem in spriteList.SelectedItems) //Check sources still exist
             {
-                Sprite spr = FindSpriteByNumber(Convert.ToInt32(listItem.Name.ToString()));
+                Sprite spr = FindSpriteByNumber(Convert.ToInt32(listItem.Text));
                 if (String.IsNullOrEmpty(spr.SourceFile))
                 {
-                    Factory.GUIController.ShowMessage(String.Format("Sprite {0} does not have a source file.", listItem.Name.ToString()), MessageBoxIcon.Error);
+                    Factory.GUIController.ShowMessage(String.Format("Sprite {0} does not have a source file.", listItem.Text), MessageBoxIcon.Error);
                     return;
                 }
                 else if (!File.Exists(spr.SourceFile))
@@ -1102,7 +1110,7 @@ namespace AGS.Editor
             {
                 if (listItem.Selected)
                 {
-                    Sprite sprite = FindSpriteByNumber(Convert.ToInt32(listItem.Name));
+                    Sprite sprite = FindSpriteByNumber(Convert.ToInt32(listItem.Text));
                     if (sprites.Count > 0)
                     {
                         if (sprite.Width != width || sprite.Height != height)
@@ -1208,7 +1216,7 @@ namespace AGS.Editor
 
             if (itemAtLocation != null)
             {
-                _spriteNumberOnMenuActivation = Convert.ToInt32(itemAtLocation.Name);
+                _spriteNumberOnMenuActivation = Convert.ToInt32(itemAtLocation.Text);
                 ToolStripMenuItem newItem;
                 if (_showUseThisSpriteOption)
                 {
@@ -1303,7 +1311,7 @@ namespace AGS.Editor
                 Sprite[] selectedSprites = new Sprite[spriteList.SelectedItems.Count];
                 for (int i = 0; i < selectedSprites.Length; i++)
                 {
-                    selectedSprites[i] = FindSpriteByNumber(Convert.ToInt32(spriteList.SelectedItems[i].Name));
+                    selectedSprites[i] = FindSpriteByNumber(Convert.ToInt32(spriteList.SelectedItems[i].Text));
                     if (selectedSprites[i] == null)
                     {
                         throw new AGSEditorException("Internal error: selected sprite not in folder");
@@ -1335,7 +1343,7 @@ namespace AGS.Editor
 
             foreach (ListViewItem selectedItem in spriteList.SelectedItems)
             {
-                dragDropData.Sprites.Add(FindSpriteByNumber(Convert.ToInt32(selectedItem.Name)));
+                dragDropData.Sprites.Add(FindSpriteByNumber(Convert.ToInt32(selectedItem.Text)));
             }
 
             this.DoDragDrop(dragDropData, DragDropEffects.Move);

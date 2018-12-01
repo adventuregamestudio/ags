@@ -319,9 +319,15 @@ namespace AGS.Editor
             }
         }
 
-        public void ShowOutputPanel(string[] messages)
+        public void ShowOutputPanel(string[] messages, string imageKey = "BuildIcon")
         {
-            _mainForm.pnlOutput.SetMessages(messages);
+            _mainForm.pnlOutput.SetMessages(messages, imageKey);
+            _mainForm.pnlOutput.Show();
+        }
+
+        public void ShowOutputPanel(string message, string imageKey = "BuildIcon")
+        {
+            _mainForm.pnlOutput.SetMessage(message, imageKey);
             _mainForm.pnlOutput.Show();
         }
 
@@ -761,6 +767,7 @@ namespace AGS.Editor
                 AutoComplete.BackgroundCacheUpdateStatusChanged += new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
 				SystemEvents.DisplaySettingsChanged += new EventHandler(SystemEvents_DisplaySettingsChanging);
 
+                RegisterIcon("SpriteIcon", Resources.ResourceManager.GetIcon("iconspr.ico"));
                 RegisterIcon("BuildIcon", Resources.ResourceManager.GetIcon("menu_build_rebuild-files.ico"));
                 RegisterIcon("GameIcon", Resources.ResourceManager.GetIcon("game.ico"));
 				RegisterIcon("CompileErrorIcon", Resources.ResourceManager.GetIcon("eventlogError.ico"));

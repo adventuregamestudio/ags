@@ -8,7 +8,6 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
 using AGS.Types;
-using AGS.Editor.Preferences;
 using AGS.Editor.Utils;
 
 namespace AGS.Editor
@@ -208,12 +207,22 @@ namespace AGS.Editor
             _spriteImages.ColorDepth = ColorDepth.Depth16Bit;
             _spriteImages.ImageSize = new Size(64, 64);
             _spriteImages.TransparentColor = Color.Pink;
-            foreach (Sprite sprite in folder.Sprites)
+
+            Progress progress = new Progress(folder.Sprites.Count, "Refreshing folder...");
+            progress.Show();
+
+            for (int index = 0; index < folder.Sprites.Count; index ++)
             {
+                progress.SetProgressValue(index);
+                Sprite sprite = folder.Sprites[index];
                 Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, 64, 64, false, true, Color.Pink);
                 _spriteImages.Images.Add(sprite.Number.ToString(), bmp);
                 spriteList.Items.Add(sprite.Number.ToString(), sprite.Number.ToString(), sprite.Number.ToString());
             }
+
+            progress.Hide();
+            progress.Dispose();
+
             spriteList.LargeImageList = _spriteImages;
             spriteList.EndUpdate();
 
@@ -436,73 +445,33 @@ namespace AGS.Editor
             }
         }
 
-        private Sprite CreateSpriteForBitmap(Bitmap bmp, SpriteImportTransparency method, bool remapColours, bool useRoomBackground, bool alphaChannel)
+        private void ImportNewSprite(SpriteFolder folder, string filename)
         {
-            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, method, remapColours, useRoomBackground, alphaChannel);
-
-            // added for sprite reload from source
-            newSprite.TransparentColour = method;
-            newSprite.RemapToGamePalette = remapColours;
-
-            _currentFolder.Sprites.Add(newSprite);
-            return newSprite;
+            ImportNewSprite(folder, new string[] { filename });
         }
 
-        private void ImportNewSprite(string filename)
-        {
-            ImportNewSprite(new string[] { filename });
-        }
-
-        private void ImportNewSprite(string[] filenames)
+        private void ImportNewSprite(SpriteFolder folder, string[] filenames)
         {
             _lastImportedFilenames = filenames;
             SpriteImportWindow impWin = new SpriteImportWindow(filenames);
+            impWin.SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
-                foreach (string filename in filenames)
+                SpriteSheet spritesheet;
+
+                if (impWin.TiledImport)
                 {
-                    int frame = 0;
-
-                    foreach (Bitmap bmp in SpriteTools.LoadSpritesFromFile(filename))
-                    {
-                        bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
-                        SpriteImportTransparency method = impWin.SpriteImportMethod;
-
-                        if (impWin.TiledImport)
-                        {
-                            foreach(Rectangle selection in SpriteTools.GetSpriteSelections(impWin.ImageSize, impWin.SelectionOffset,
-                                impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles))
-                            {
-                                Bitmap import = bmp.Clone(selection, bmp.PixelFormat);
-                                Sprite sprite = CreateSpriteForBitmap(import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
-                                import.Dispose();
-
-                                // set import options used for the sprite
-                                sprite.TransparentColour = impWin.SpriteImportMethod;
-                                sprite.OffsetX = selection.Left;
-                                sprite.OffsetY = selection.Top;
-                                sprite.RemapToGamePalette = impWin.RemapToGamePalette;
-                                sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
-                                sprite.Frame = frame;
-                            }
-                        }
-                        else
-                        {
-                            Sprite sprite = CreateSpriteForBitmap(bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
-                            // set import options used for the sprite
-                            sprite.TransparentColour = impWin.SpriteImportMethod;
-                            sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
-                            sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
-                            sprite.RemapToGamePalette = impWin.RemapToGamePalette;
-                            sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
-                            sprite.Frame = frame;
-                        }
-
-                        bmp.Dispose();
-                        frame ++;
-                    }
+                    spritesheet = new SpriteSheet(impWin.SelectionOffset, impWin.SelectionSize,
+                        impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
                 }
+                else
+                {
+                    spritesheet = null;
+                }
+
+                SpriteTools.ImportNewSprites(folder, filenames, impWin.UseAlphaChannel, impWin.RemapToGamePalette,
+                    impWin.UseBackgroundSlots, impWin.SpriteImportMethod, spritesheet);
 
                 RefreshSpriteDisplay();
             }
@@ -510,42 +479,27 @@ namespace AGS.Editor
             impWin.Dispose();
         }
 
-        private void ImportNewSprite(Bitmap bmp)
+        private void ImportNewSprite(SpriteFolder folder, Bitmap bmp)
         {
             SpriteImportWindow impWin = new SpriteImportWindow(bmp);
             impWin.SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
-                bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
-                SpriteImportTransparency method = impWin.SpriteImportMethod;
+                SpriteSheet spritesheet;
 
                 if (impWin.TiledImport)
                 {
-                    foreach (Rectangle selection in SpriteTools.GetSpriteSelections(impWin.ImageSize, impWin.SelectionOffset,
-                        impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles))
-                    {
-                        Bitmap import = bmp.Clone(selection, bmp.PixelFormat);
-                        Sprite sprite = CreateSpriteForBitmap(import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
-                        import.Dispose();
-
-                        // set import options used for the sprite
-                        sprite.TransparentColour = impWin.SpriteImportMethod;
-                        sprite.OffsetX = selection.Left;
-                        sprite.OffsetY = selection.Top;
-                        sprite.RemapToGamePalette = impWin.RemapToGamePalette;
-                    }
+                    spritesheet = new SpriteSheet(impWin.SelectionOffset, impWin.SelectionSize,
+                        impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
                 }
                 else
                 {
-                    Sprite sprite = CreateSpriteForBitmap(bmp, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
-
-                    // set import options used for the sprite
-                    sprite.TransparentColour = impWin.SpriteImportMethod;
-                    sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
-                    sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
-                    sprite.RemapToGamePalette = impWin.RemapToGamePalette;
+                    spritesheet = null;
                 }
+
+                SpriteTools.ImportNewSprites(folder, bmp, impWin.UseAlphaChannel, impWin.RemapToGamePalette,
+                    impWin.UseBackgroundSlots, impWin.SpriteImportMethod, spritesheet);
 
                 RefreshSpriteDisplay();
             }
@@ -555,7 +509,6 @@ namespace AGS.Editor
 
         private void ReplaceSprite(Sprite sprite, string filename)
         {
-            _lastImportedFilenames = new string[] { filename };
             SpriteImportWindow impWin = new SpriteImportWindow(new string[] { filename });
 
             // get import options from the existing sprite
@@ -567,48 +520,22 @@ namespace AGS.Editor
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
-                Bitmap bmp = SpriteTools.LoadFirstImageFromFile(filename);
-                Bitmap import;
+                SpriteSheet spritesheet;
 
                 if (impWin.TiledImport)
                 {
-                    Rectangle selection = SpriteTools.GetFirstSpriteSelection(impWin.ImageSize, impWin.SelectionOffset,
-                        impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-
-                    if (!selection.IsEmpty)
-                    {
-                        import = bmp.Clone(selection, bmp.PixelFormat);
-                    }
-                    else
-                    {
-                        import = null;
-                    }
+                    spritesheet = new SpriteSheet(impWin.SelectionOffset, impWin.SelectionSize,
+                        impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
                 }
                 else
                 {
-                    import = (Bitmap)bmp.Clone();
+                    spritesheet = null;
                 }
 
-                bmp.Dispose();
+                SpriteTools.ReplaceSprite(sprite, filename, 0, impWin.UseAlphaChannel, impWin.RemapToGamePalette,
+                    impWin.UseBackgroundSlots, impWin.SpriteImportMethod, spritesheet);
 
-                if (import != null)
-                {
-                    bool useAlphaChannel = import.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
-                    SpriteImportTransparency method = impWin.SpriteImportMethod;
-
-                    Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
-                    import.Dispose();
-
-                    // set import options used for the sprite
-                    sprite.TransparentColour = impWin.SpriteImportMethod;
-                    sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
-                    sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
-                    sprite.RemapToGamePalette = impWin.RemapToGamePalette;
-                    sprite.Frame = 0; // for direct replacement from a file we only ever take the first frame
-                    sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
-
-                    RefreshSpriteDisplay();
-                }
+                RefreshSpriteDisplay();
             }
 
             impWin.Dispose();
@@ -627,42 +554,22 @@ namespace AGS.Editor
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
-                Bitmap import;
+                SpriteSheet spritesheet;
 
                 if (impWin.TiledImport)
                 {
-                    Rectangle selection = SpriteTools.GetFirstSpriteSelection(impWin.ImageSize, impWin.SelectionOffset,
-                        impWin.SelectionSize, impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-
-                    if (!selection.IsEmpty)
-                    {
-                        import = bmp.Clone(selection, bmp.PixelFormat);
-                    } else
-                    {
-                        import = null;
-                    }
-                } else
+                    spritesheet = new SpriteSheet(impWin.SelectionOffset, impWin.SelectionSize,
+                        impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
+                }
+                else
                 {
-                    import = (Bitmap)bmp.Clone();
+                    spritesheet = null;
                 }
 
-                if (import != null)
-                {
-                    bool useAlphaChannel = import.PixelFormat != PixelFormat.Format32bppArgb ? false : impWin.UseAlphaChannel;
-                    SpriteImportTransparency method = impWin.SpriteImportMethod;
+                SpriteTools.ReplaceSprite(sprite, bmp, impWin.UseAlphaChannel, impWin.RemapToGamePalette,
+                    impWin.UseBackgroundSlots, impWin.SpriteImportMethod, spritesheet);
 
-                    Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, import, method, impWin.RemapToGamePalette, impWin.UseBackgroundSlots, useAlphaChannel);
-                    import.Dispose();
-
-                    // set import options used for the sprite
-                    sprite.TransparentColour = impWin.SpriteImportMethod;
-                    sprite.OffsetX = impWin.TiledImport ? impWin.SelectionOffset.X : 0;
-                    sprite.OffsetY = impWin.TiledImport ? impWin.SelectionOffset.Y : 0;
-                    sprite.RemapToGamePalette = impWin.RemapToGamePalette;
-                    sprite.Frame = 0; // for direct replacement from bmp there is only 1 frame
-
-                    RefreshSpriteDisplay();
-                }
+                RefreshSpriteDisplay();
             }
 
             impWin.Dispose();
@@ -733,7 +640,7 @@ namespace AGS.Editor
                     if ((bmp.PixelFormat == PixelFormat.Format32bppRgb) ||
                         (bmp.PixelFormat == PixelFormat.Format16bppRgb565))
                     {
-                        ImportNewSprite(bmp);
+                        ImportNewSprite(_currentFolder, bmp);
                     }
                     else
                     {
@@ -752,12 +659,12 @@ namespace AGS.Editor
 
                 if (filenames.Length > 0)
                 {
-                    ImportNewSprite(filenames);
+                    ImportNewSprite(_currentFolder, filenames);
                 }
             }
             else if (item.Name == MENU_ITEM_NEW_FROM_PREVIOUS)
             {
-                ImportNewSprite(_lastImportedFilenames);
+                ImportNewSprite(_currentFolder, _lastImportedFilenames);
             }
             else if (item.Name == MENU_ITEM_REPLACE_FROM_FILE)
             {
@@ -932,6 +839,7 @@ namespace AGS.Editor
         {
             List<string> errors = new List<string>();
             List<Sprite> sprites = new List<Sprite>();
+
             foreach (ListViewItem listItem in spriteList.SelectedItems) //Check sources still exist
             {
                 Sprite spr = FindSpriteByNumber(Convert.ToInt32(listItem.Name.ToString()));
@@ -947,57 +855,41 @@ namespace AGS.Editor
                 }
                 sprites.Add(spr);
             }
-            foreach (Sprite spr in sprites)
+
+            Progress progress = new Progress(sprites.Count, "Re-importing from source files...");
+            progress.Show();
+
+            for (int index = 0; index < sprites.Count; index ++)
             {
+                Sprite spr = sprites[index];
+                progress.SetProgressValue(index);
+
                 try
                 {
-                    Bitmap bmp = SpriteTools.LoadFrameImageFromFile(spr.SourceFile, spr.Frame);
-                    Bitmap import;
+                    SpriteSheet spritesheet;
 
                     // if offset would make a selection, use it
                     if (spr.OffsetX > 0 || spr.OffsetY > 0)
                     {
-                        Rectangle selection = new Rectangle(spr.OffsetX, spr.OffsetY, spr.Width, spr.Height);
-
-                        if (SpriteTools.SelectionFitsWithinBitmap(selection, bmp))
-                        {
-                            import = bmp.Clone(selection, bmp.PixelFormat);
-                        }
-                        else
-                        {
-                            errors.Add(String.Format("Tiled selection for sprite {0} was out-of-bounds for image '{1}'", spr.Number, spr.SourceFile));
-                            import = null;
-                        }
+                        spritesheet = new SpriteSheet(new Point(spr.OffsetX, spr.OffsetY), new Size(spr.Width, spr.Height));
                     }
                     else
                     {
-                        import = (Bitmap)bmp.Clone();
+                        spritesheet = null;
                     }
 
-                    bmp.Dispose();
-
-                    if (import != null)
-                    {
-                        bool alphaChannel = spr.AlphaChannel;
-                        bool remap = spr.RemapToGamePalette;
-                        SpriteImportTransparency method = spr.TransparentColour;
-                        NativeProxy.Instance.ReplaceSpriteWithBitmap(spr, import, method, remap, false, alphaChannel);
-                        import.Dispose();
-
-                        // rewrite source, which might switch to a relative path
-                        spr.SourceFile = Utilities.GetRelativeToProjectPath(spr.SourceFile);
-                    }
+                    SpriteTools.ReplaceSprite(spr, spr.SourceFile, spr.Frame, spr.AlphaChannel, spr.RemapToGamePalette, false, spr.TransparentColour, spritesheet);
                 }
-                catch (Exception ex)
+                catch (InvalidOperationException ex)
                 {
-                    Factory.GUIController.ShowMessage(String.Format("There was an error importing the file, {0}. The error message was: '{1}' Please try again", spr.SourceFile, ex.Message), MessageBoxIcon.Warning);
-                    RefreshSpriteDisplay();
-                    return;
+                    errors.Add(ex.Message);
                 }
             }
+
+            progress.Hide();
+            progress.Dispose();
             RefreshSpriteDisplay();
             Factory.GUIController.ClearOutputPanel();
-            Factory.GUIController.ShowOutputPanel(errors.ToArray());
 
             if (errors.Count == 1)
             {
@@ -1005,11 +897,8 @@ namespace AGS.Editor
             }
             else if (errors.Count > 1)
             {
+                Factory.GUIController.ShowOutputPanel(errors.ToArray(), "SpriteIcon");
                 Factory.GUIController.ShowMessage("Sprite replacement complete, with some errors", MessageBoxIcon.Warning);
-            }
-            else
-            {
-                Factory.GUIController.ShowMessage("Sprite replacement complete!", MessageBoxIcon.Information);
             }
         }
 

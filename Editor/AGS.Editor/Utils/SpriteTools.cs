@@ -90,77 +90,6 @@ namespace AGS.Editor.Utils
             return decoder.GetFrameCount();
         }
 
-        public static Rectangle GetFirstSpriteSelection(Size size, Point offset, Size selection, Size margin, SpriteImportTilingDirection direction, int count)
-        {
-            return GetSpriteSelections(size, offset, selection, margin, direction, count).FirstOrDefault();
-        }
-
-        public static IEnumerable<Rectangle> GetSpriteSelections(Size size, Point offset, Size selection, Size margin, SpriteImportTilingDirection direction, int count)
-        {
-            Point start = new Point(offset.X, offset.Y);
-            Rectangle rect = new Rectangle(start, selection);
-
-            if (!SelectionFitsWithinBounds(rect, size))
-            {
-                yield break;
-            }
-
-            for (int i = 1; i <= count; i ++)
-            {
-                if (direction == SpriteImportTilingDirection.Right)
-                {
-                    if (i > 1)
-                    {
-                        rect.X += selection.Width + margin.Width;
-                    }
-
-                    if (rect.X + rect.Width > size.Width)
-                    {
-                        rect.X = offset.X;
-                        rect.Y += selection.Height + margin.Height;
-
-                        if (rect.Y + rect.Height > size.Height)
-                        {
-                            yield break;
-                        }
-                    }
-                }
-                else if (direction == SpriteImportTilingDirection.Down)
-                {
-                    if (i > 1)
-                    {
-                        rect.Y += selection.Height + margin.Height;
-                    }
-
-                    if (rect.Y + rect.Height > size.Height)
-                    {
-                        rect.Y = offset.Y;
-                        rect.X += selection.Width + margin.Width;
-
-                        if (rect.X + rect.Width > size.Width)
-                        {
-                            yield break;
-                        }
-                    }
-                }
-
-                yield return rect;
-            }
-        }
-
-        public static bool SelectionFitsWithinBounds(Rectangle selection, Size bounds)
-        {
-            return selection.Left >= 0 &&
-                selection.Left + selection.Width <= bounds.Width &&
-                selection.Top >= 0 &&
-                selection.Top + selection.Height <= bounds.Height;
-        }
-
-        public static bool SelectionFitsWithinBitmap(Rectangle selection, Bitmap bmp)
-        {
-            return SelectionFitsWithinBounds(selection, new Size(bmp.Width, bmp.Height));
-        }
-
         public static string GetSpriteUsageReport(int spriteNumber, Game game)
         {
             StringBuilder usageReport = new StringBuilder(5000);
@@ -261,5 +190,130 @@ namespace AGS.Editor.Utils
             }
         }
 
+        public static void ReplaceSprite(Sprite sprite, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
+            SpriteImportTransparency transparency, string filename = "", int frame = 0, int offsetX = 0, int offsetY = 0)
+        {
+            // ignore alpha channel if not 32 bit ARGB
+            bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : alpha;
+
+            // do replacement
+            Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp, transparency, remapColours, useRoomBackground, useAlphaChannel);
+
+            sprite.TransparentColour = transparency;
+            sprite.RemapToGamePalette = remapColours;
+            //sprite.ColoursLockedToRoom = useRoomBackground;
+            sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
+            sprite.Frame = frame;
+            sprite.OffsetX = offsetX;
+            sprite.OffsetY = offsetY;
+        }
+
+        public static void ReplaceSprite(Sprite sprite, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
+            SpriteImportTransparency transparency, SpriteSheet spritesheet = null, int frame = 0, string filename = "")
+        {
+            if (spritesheet != null)
+            {
+                Rectangle selection = spritesheet.GetFirstSpriteSelection(new Size(bmp.Width, bmp.Height));
+                
+                if (!selection.IsEmpty)
+                {
+                    Bitmap replacement = bmp.Clone(selection, bmp.PixelFormat);
+                    ReplaceSprite(sprite, replacement, alpha, remapColours, useRoomBackground, transparency, filename,
+                        frame, selection.Left, selection.Top);
+                    replacement.Dispose();
+                }
+                else
+                {
+                    string message = String.Format("Tiled selection for sprite {0} was out-of-bounds for image '{1}'", sprite.Number, sprite.SourceFile);
+                    throw new InvalidOperationException(message);
+                }
+            }
+            else
+            {
+                ReplaceSprite(sprite, bmp, alpha, remapColours, useRoomBackground, transparency, filename, frame);
+            }
+        }
+
+        public static void ReplaceSprite(Sprite sprite, string filename, int frame, bool alpha, bool remapColours, bool useRoomBackground,
+            SpriteImportTransparency transparency, SpriteSheet spritesheet = null)
+        {
+            Bitmap bmp = LoadFrameImageFromFile(filename, frame);
+            ReplaceSprite(sprite, bmp, alpha, remapColours, useRoomBackground, transparency, spritesheet, frame, filename);
+            bmp.Dispose();
+        }
+
+        public static void ImportNewSprite(SpriteFolder folder, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
+            SpriteImportTransparency transparency, string filename = "", int frame = 0, int offsetX = 0, int offsetY = 0)
+        {
+            // ignore alpha channel if not 32 bit ARGB
+            bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : alpha;
+
+            // do import
+            Sprite sprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, transparency, remapColours, useRoomBackground, useAlphaChannel);
+            
+            sprite.TransparentColour = transparency;
+            sprite.RemapToGamePalette = remapColours;
+            //sprite.ColoursLockedToRoom = useRoomBackground;
+            sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
+            sprite.Frame = frame;
+            sprite.OffsetX = offsetX;
+            sprite.OffsetY = offsetY;
+
+            folder.Sprites.Add(sprite);
+        }
+
+        public static void ImportNewSprites(SpriteFolder folder, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
+            SpriteImportTransparency transparency, SpriteSheet spritesheet = null, int frame = 0, string filename = "")
+        {
+            if (spritesheet != null)
+            {
+                foreach (Rectangle selection in spritesheet.GetSpriteSelections(new Size(bmp.Width, bmp.Height)))
+                {
+                    Bitmap import = bmp.Clone(selection, bmp.PixelFormat);
+                    ImportNewSprite(folder, import, alpha, remapColours, useRoomBackground, transparency,
+                        filename, frame, selection.Left, selection.Top);
+                    import.Dispose();
+                }
+            }
+            else
+            {
+                ImportNewSprite(folder, bmp, alpha, remapColours, useRoomBackground, transparency, filename, frame);
+            }
+        }
+
+        public static void ImportNewSprites(SpriteFolder folder, string filename, bool alpha, bool remapColours, bool useRoomBackground,
+            SpriteImportTransparency transparency, SpriteSheet spritesheet = null)
+        {
+            Progress progress = new Progress(GetFrameCountEstimateFromFile(filename), String.Format("Importing frames from {0}", filename));
+            progress.Show();
+            int frame = 0;
+
+            foreach (Bitmap bmp in LoadSpritesFromFile(filename))
+            {
+                progress.SetProgressValue(frame);
+                ImportNewSprites(folder, bmp, alpha, remapColours, useRoomBackground, transparency, spritesheet, frame, filename);
+                bmp.Dispose();
+                frame ++;
+            }
+
+            progress.Hide();
+            progress.Dispose();
+        }
+
+        public static void ImportNewSprites(SpriteFolder folder, string[] filenames, bool alpha, bool remapColours, bool useRoomBackground,
+            SpriteImportTransparency transparency, SpriteSheet spritesheet = null)
+        {
+            Progress progress = new Progress(filenames.Length, String.Format("Importing sprites from {0} files", filenames.Length));
+            progress.Show();
+
+            for (int index = 0; index < filenames.Length; index ++)
+            {
+                progress.SetProgressValue(index);
+                ImportNewSprites(folder, filenames[index], alpha, remapColours, useRoomBackground, transparency, spritesheet);
+            }
+
+            progress.Hide();
+            progress.Dispose();
+        }
     }
 }

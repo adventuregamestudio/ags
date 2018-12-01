@@ -138,6 +138,12 @@
     <Compile Include="GUI\CustomPropertySchemaItemEditor.Designer.cs">
       <DependentUpon>CustomPropertySchemaItemEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\Progress.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Progress.Designer.cs">
+      <DependentUpon>Progress.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\SplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -312,6 +318,9 @@
       <SubType>Designer</SubType>
       <DependentUpon>frmMain.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Progress.resx">
+      <DependentUpon>Progress.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Panes\BigPropertySheet.resx">
       <SubType>Designer</SubType>
       <DependentUpon>BigPropertySheet.cs</DependentUpon>
@@ -359,6 +368,7 @@
     <Compile Include="Utils\SourceControlProvider.cs" />
     <Compile Include="GUI\TabbedDocumentManager.cs">
     </Compile>
+    <Compile Include="Utils\SpriteSheet.cs" />
     <Compile Include="Utils\Utilities.cs" />
   </ItemGroup>
   <ItemGroup>

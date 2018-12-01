@@ -278,11 +278,11 @@ namespace AGS.Editor
             }
             else if (TiledImport)
             {
+                SpriteSheet spritesheet = new SpriteSheet(SelectionOffset, SelectionSize, TilingMargin, TilingDirection, MaxTiles);
                 Pen pen = new Pen(Color.HotPink, 1);
                 bool first = true;
 
-                foreach (Rectangle rect in SpriteTools.GetSpriteSelections(ImageSize, SelectionOffset,
-                    SelectionSize, TilingMargin, TilingDirection, MaxTiles))
+                foreach (Rectangle rect in spritesheet.GetSpriteSelections(ImageSize))
                 {
                     if (first)
                     {

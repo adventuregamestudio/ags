@@ -185,6 +185,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_region.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_serializer.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\managedobjectpool.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptcamera.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdatetime.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.cpp" />
@@ -194,6 +195,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewport.cpp" />
     <ClCompile Include="..\..\Engine\ac\event.cpp" />
     <ClCompile Include="..\..\Engine\ac\file.cpp" />
     <ClCompile Include="..\..\Engine\ac\game.cpp" />
@@ -277,6 +279,7 @@
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
     <ClCompile Include="..\..\Engine\ac\tree_map.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp" />
+    <ClCompile Include="..\..\Engine\ac\viewport.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkablearea.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkbehind.cpp" />
     <ClCompile Include="..\..\Engine\debug\consoleoutputtarget.cpp" />
@@ -498,6 +501,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptaudiochannel.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdatetime.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialog.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.h" />
@@ -515,6 +519,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewframe.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewport.h" />
     <ClInclude Include="..\..\Engine\ac\event.h" />
     <ClInclude Include="..\..\Engine\ac\file.h" />
     <ClInclude Include="..\..\Engine\ac\game.h" />

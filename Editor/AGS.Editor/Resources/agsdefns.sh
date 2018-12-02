@@ -516,6 +516,11 @@ builtin managed struct DrawingSurface {
   readonly import attribute int Width;
 };
 
+#ifdef SCRIPT_API_v350
+builtin managed struct Camera;
+builtin managed struct Viewport;
+#endif
+
 builtin managed struct Room {
   /// Gets a custom text property associated with this room.
   import static String GetTextProperty(const string property);
@@ -550,6 +555,9 @@ builtin managed struct Room {
   import static bool SetTextProperty(const string property, const string value);
   /// Performs default processing of a mouse click at the specified co-ordinates.
   import static void ProcessClick(int x, int y, CursorMode);
+#endif
+#ifdef SCRIPT_API_v350
+  import static readonly attribute Camera *Camera;
 #endif
 };
 
@@ -642,6 +650,9 @@ builtin managed struct Game {
   /// Accesses the audio clips collection.
   readonly import static attribute AudioClip *AudioClips[];
 #endif
+#ifdef SCRIPT_API_v350
+  import static readonly attribute Viewport *RoomViewport;
+#endif
 };
 
 builtin managed struct Parser {
@@ -724,6 +735,7 @@ import int  GetScalingAt (int x, int y);
 /// Gets the specified Custom Property for the current room.
 import int  GetRoomProperty(const string property);
 #endif
+#ifndef STRICT_IN_v350
 /// Locks the viewport to stop the screen scrolling automatically.
 import void SetViewport(int x, int y);
 /// Allows AGS to scroll the screen automatically to follow the player character.
@@ -732,6 +744,7 @@ import void ReleaseViewport();
 import int  GetViewportX();
 /// Gets the current Y offset of the scrolled viewport.
 import int  GetViewportY();
+#endif
 /// Returns whether the game is currently paused.
 import int  IsGamePaused();
 import int  GetGraphicalVariable (const string variableName);
@@ -2634,6 +2647,42 @@ builtin struct Speech {
   import static attribute eVoiceMode      VoiceMode;
 };
 #endif
+
+#ifdef SCRIPT_API_v350
+builtin managed struct Camera
+{
+  /// Gets/sets the X position of this camera in the room.
+  import attribute int X;
+  /// Gets/sets the Y position of this camera in the room.
+  import attribute int Y;
+  /// Gets/sets the camera's capture width in room coordinates.
+  import attribute int Width;
+  /// Gets/sets the camera's capture height in room coordinates.
+  import attribute int Height;
+  /// Gets/sets this camera's room horizontal scaling relative to the viewport it is displayed in.
+  import attribute float ScaleX;
+  /// Gets/sets this camera's room vertical scaling relative to the viewport it is displayed in.
+  import attribute float ScaleY;
+
+  /// Gets/sets whether this camera will follow the player character automatically.
+  import attribute bool AutoTracking;
+};
+
+builtin managed struct Viewport
+{
+  /// Gets/sets the X position on the screen where this viewport is located.
+  import attribute int X;
+  /// Gets/sets the Y position on the screen where this viewport is located.
+  import attribute int Y;
+  /// Gets/sets the viewport's width in screen coordinates.
+  import attribute int Width;
+  /// Gets/sets the viewport's height in screen coordinates.
+  import attribute int Height;
+  /// Gets the room camera displayed in this viewport.
+  import readonly attribute Camera *Camera;
+};
+#endif
+
 
 
 import readonly Character *player;

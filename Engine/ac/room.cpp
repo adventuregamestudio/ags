@@ -66,6 +66,7 @@
 #include "gfx/gfxfilter.h"
 #include "util/math.h"
 #include "device/mousew32.h"
+#include "ac/dynobj/scriptcamera.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -211,6 +212,13 @@ const char* Room_GetMessages(int index) {
     return CreateNewScriptString(buffer);
 }
 
+ScriptCamera* Room_GetCamera()
+{
+    ScriptCamera *camera = new ScriptCamera();
+    ccRegisterManagedObject(camera, camera);
+    return camera;
+}
+
 
 //=============================================================================
 
@@ -286,7 +294,7 @@ void unload_old_room() {
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     play.bg_frame=0;
     play.bg_frame_locked=0;
-    play.offsets_locked=0;
+    play.ReleaseRoomCamera();
     remove_screen_overlay(-1);
     delete raw_saved_screen;
     raw_saved_screen = NULL;
@@ -511,7 +519,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // Update viewport and mouse area
         play.SetUIViewport(CenterInRect(viewport, RectWH(new_ui_view)));
         play.SetRoomViewport(CenterInRect(viewport, RectWH(new_room_view)));
-        play.SetRoomCamera(new_room_view);
+        play.SetRoomCameraSize(new_room_view);
         Mouse::SetGraphicArea();
         on_roomcamera_changed();
 
@@ -1177,6 +1185,11 @@ RuntimeScriptValue Sc_ProcessClick(const RuntimeScriptValue *params, int32_t par
     API_SCALL_VOID_PINT3(ProcessClick);
 }
 
+RuntimeScriptValue Sc_Room_GetCamera(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptCamera, Room_GetCamera);
+}
+
 
 void RegisterRoomAPI()
 {
@@ -1197,6 +1210,7 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::get_RightEdge",                      Sc_Room_GetRightEdge);
     ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
     ccAddExternalStaticFunction("Room::get_Width",                          Sc_Room_GetWidth);
+    ccAddExternalStaticFunction("Room::get_Camera",                         Sc_Room_GetCamera);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

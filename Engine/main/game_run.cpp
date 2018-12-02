@@ -763,6 +763,9 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     update_polled_audio_and_crossfade();
 
+    // React to changes to viewports and cameras (possibly from script) just before the render
+    play.UpdateViewports();
+
     game_loop_do_render_and_check_mouse(extraBitmap, extraX, extraY);
 
     our_eip=6;

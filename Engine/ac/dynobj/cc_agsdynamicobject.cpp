@@ -39,6 +39,13 @@ void AGSCCDynamicObject::SerializeInt(int val) {
     bytesSoFar += 4;
 }
 
+void AGSCCDynamicObject::SerializeFloat(float val) {
+    char *chptr = &serbuffer[bytesSoFar];
+    float *fptr = (float*)chptr;
+    *fptr = BBOp::FloatFromLE(val);
+    bytesSoFar += 4;
+}
+
 int AGSCCDynamicObject::EndSerialize() {
     return bytesSoFar;
 }
@@ -56,6 +63,15 @@ int AGSCCDynamicObject::UnserializeInt() {
     char *chptr = &serbuffer[bytesSoFar];
     bytesSoFar += 4;
     return BBOp::Int32FromLE(*((int*)chptr));
+}
+
+float AGSCCDynamicObject::UnserializeFloat() {
+    if (bytesSoFar >= totalBytes)
+        quit("Unserialise: internal error: read past EOF");
+
+    char *chptr = &serbuffer[bytesSoFar];
+    bytesSoFar += 4;
+    return BBOp::FloatFromLE(*((float*)chptr));
 }
 
 void AGSCCDynamicObject::Read(const char *address, intptr_t offset, void *dest, int size)

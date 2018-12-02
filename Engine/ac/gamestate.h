@@ -138,7 +138,6 @@ struct GameState {
     int   digital_master_volume;
     char  walkable_areas_on[MAX_WALK_AREAS+1];
     short screen_flipped;
-    short offsets_locked;
     int   entered_at_x,entered_at_y, entered_edge;
     int   want_speech;
     int   cant_skip_speech;
@@ -231,11 +230,22 @@ struct GameState {
     void SetMainViewport(const Rect &viewport);
     void SetUIViewport(const Rect &viewport);
     void SetRoomViewport(const Rect &viewport);
+    // Applies all the pending changes to viewports and cameras
+    void UpdateViewports();
     // Returns Room camera position and size inside the room (in room coordinates)
     const Rect &GetRoomCamera() const;
-    void SetRoomCamera(const Size &cam_size);
+    // Returns constant camera object letting read its properties directly
+    const RoomCamera &GetRoomCameraObj() const;
+    // Sets explicit room camera's orthographic size
+    void SetRoomCameraSize(const Size &cam_size);
+    // Sets automatic room camera resize relative to the viewport it's been used at
+    void SetRoomCameraAutoSize(float scalex = 1.f, float scaley = 1.f);
     // Puts room camera to the new location in the room
     void SetRoomCameraAt(int x, int y);
+    // Tells if camera is currently locked at custom position
+    bool IsRoomCameraLocked() const;
+    // Locks room camera at its current position
+    void LockRoomCamera();
     // Similar to SetRoomCameraAt, but also locks camera preventing it from following player character
     void LockRoomCameraAt(int x, int y);
     // Releases camera lock, letting it follow player character
@@ -281,7 +291,16 @@ private:
     // Camera defines the position of an "looking eye" inside the room.
     RoomCamera _roomCamera;
 
-    // Calculates room-to-viewport coordinate conversion
+    // Tells that the room viewport's position has changed since last game update
+    bool  _viewportHasChanged;
+    // Tells that the room camera's size has changed since last game update
+    bool  _cameraHasChanged;
+
+    // Sets actual camera's size without resetting autoscale flag
+    void SetCameraActualSize(const Size &sz);
+    // Updates camera size after camera or viewport properties change.
+    void UpdateCameraSize();
+    // Calculates room-to-viewport coordinate conversion.
     void AdjustRoomToViewport();
 };
 

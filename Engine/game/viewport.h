@@ -23,7 +23,13 @@
 
 struct RoomCamera
 {
+    // Actual position and orthographic size
     Rect Position;
+    // Automatic scaling used to resize the camera's picture to the viewport
+    float ScaleX;
+    float ScaleY;
+    // Locked or following player automatically
+    bool Locked;
 };
 
 struct Viewport

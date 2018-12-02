@@ -31,6 +31,8 @@ extern CharacterInfo *playerchar;
 GameState::GameState()
 {
     _isAutoRoomViewport = true;
+    _viewportHasChanged = false;
+    _cameraHasChanged = false;
 }
 
 const Size &GameState::GetNativeSize() const
@@ -80,9 +82,20 @@ void GameState::SetUIViewport(const Rect &viewport)
 }
 
 void GameState::SetRoomViewport(const Rect &viewport)
-{// TODO: adjust to main viewport
+{// TODO: relative to main viewport?
     _roomViewport.Position = viewport;
-    AdjustRoomToViewport();
+    UpdateCameraSize();
+    _viewportHasChanged = true;
+}
+
+void GameState::UpdateViewports()
+{
+    if (_viewportHasChanged)
+        on_roomviewport_changed();
+    if (_cameraHasChanged)
+        on_roomcamera_changed();
+    _viewportHasChanged = false;
+    _cameraHasChanged = false;
 }
 
 const Rect &GameState::GetRoomCamera() const
@@ -90,11 +103,23 @@ const Rect &GameState::GetRoomCamera() const
     return _roomCamera.Position;
 }
 
-void GameState::SetRoomCamera(const Size &cam_size)
+const RoomCamera &GameState::GetRoomCameraObj() const
 {
-    _roomCamera.Position.SetWidth(cam_size.Width);
-    _roomCamera.Position.SetHeight(cam_size.Height);
-    AdjustRoomToViewport();
+    return _roomCamera;
+}
+
+void GameState::SetRoomCameraSize(const Size &cam_size)
+{
+    _roomCamera.ScaleX = 0.f;
+    _roomCamera.ScaleY = 0.f;
+    SetCameraActualSize(cam_size);
+}
+
+void GameState::SetRoomCameraAutoSize(float scalex, float scaley)
+{
+    _roomCamera.ScaleX = scalex;
+    _roomCamera.ScaleY = scaley;
+    UpdateCameraSize();
 }
 
 void GameState::SetRoomCameraAt(int x, int y)
@@ -110,19 +135,30 @@ void GameState::SetRoomCameraAt(int x, int y)
     _roomCamera.Position.MoveTo(Point(x, y));
 }
 
+bool GameState::IsRoomCameraLocked() const
+{
+    return _roomCamera.Locked;
+}
+
+void GameState::LockRoomCamera()
+{
+    debug_script_log("Room camera locked");
+    _roomCamera.Locked = true;
+}
+
 void GameState::LockRoomCameraAt(int x, int y)
 {
-    debug_script_log("Viewport locked to %d,%d", x, y);
+    debug_script_log("Room camera locked to %d,%d", x, y);
     x = multiply_up_coordinate(x);
     y = multiply_up_coordinate(y);
     SetRoomCameraAt(x, y);
-    offsets_locked = 1;
+    _roomCamera.Locked = true;
 }
 
 void GameState::ReleaseRoomCamera()
 {
-    offsets_locked = 0;
-    debug_script_log("Viewport released back to engine control");
+    _roomCamera.Locked = false;
+    debug_script_log("Room camera released back to engine control");
 }
 
 void GameState::UpdateRoomCamera()
@@ -131,7 +167,7 @@ void GameState::UpdateRoomCamera()
     if ((thisroom.width > camera.GetWidth()) || (thisroom.height > camera.GetHeight()))
     {
         // TODO: split out into Camera Behavior
-        if (offsets_locked == 0)
+        if (!play.IsRoomCameraLocked())
         {
             int x = multiply_up_coordinate(playerchar->x) - camera.GetWidth() / 2;
             int y = multiply_up_coordinate(playerchar->y) - camera.GetHeight() / 2;
@@ -141,6 +177,32 @@ void GameState::UpdateRoomCamera()
     else
     {
         SetRoomCameraAt(0, 0);
+    }
+}
+
+void GameState::SetCameraActualSize(const Size &cam_size)
+{
+    _roomCamera.Position.SetWidth(cam_size.Width);
+    _roomCamera.Position.SetHeight(cam_size.Height);
+    AdjustRoomToViewport();
+    _cameraHasChanged = true;
+}
+
+void GameState::UpdateCameraSize()
+{
+    // TODO: when we support multiple cameras/viewports we should perhaps
+    // call viewport-camera render init for each PAIR rather than camera,
+    // to let displaying same camera in different viewports.
+    if (_roomCamera.ScaleX > 0.f && _roomCamera.ScaleY > 0.f)
+    {
+        // Automatic camera scale
+        int camw = _roomViewport.Position.GetWidth() * (1.f / _roomCamera.ScaleX);
+        int camh = _roomViewport.Position.GetHeight() * (1.f / _roomCamera.ScaleY);
+        SetCameraActualSize(Size(camw, camh));
+    }
+    else
+    {
+        AdjustRoomToViewport();
     }
 }
 
@@ -306,7 +368,11 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     digital_master_volume = in->ReadInt32();
     in->Read(walkable_areas_on, MAX_WALK_AREAS+1);
     screen_flipped = in->ReadInt16();
-    offsets_locked = in->ReadInt16();
+    short offsets_locked = in->ReadInt16();
+    if (offsets_locked != 0)
+        LockRoomCamera();
+    else
+        ReleaseRoomCamera();
     entered_at_x = in->ReadInt32();
     entered_at_y = in->ReadInt32();
     entered_edge = in->ReadInt32();
@@ -511,7 +577,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( digital_master_volume);
     out->Write(walkable_areas_on, MAX_WALK_AREAS+1);
     out->WriteInt16( screen_flipped);
-    out->WriteInt16( offsets_locked);
+    out->WriteInt16( IsRoomCameraLocked() ? 1 : 0 );
     out->WriteInt32( entered_at_x);
     out->WriteInt32( entered_at_y);
     out->WriteInt32( entered_edge);

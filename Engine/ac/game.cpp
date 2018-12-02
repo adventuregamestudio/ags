@@ -59,6 +59,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/scriptviewport.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -963,6 +964,13 @@ ScriptAudioClip *Game_GetAudioClip(int index)
     if (index < 0 || index >= game.audioClipCount)
         return NULL;
     return &game.audioClips[index];
+}
+
+ScriptViewport* Game_GetRoomViewport()
+{
+    ScriptViewport *viewport = new ScriptViewport();
+    ccRegisterManagedObject(viewport, viewport);
+    return viewport;
 }
 
 //=============================================================================
@@ -2415,6 +2423,11 @@ RuntimeScriptValue Sc_Game_IsPluginLoaded(const RuntimeScriptValue *params, int3
     API_SCALL_BOOL_OBJ(pl_is_plugin_loaded, const char);
 }
 
+RuntimeScriptValue Sc_Game_GetRoomViewport(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptViewport, Game_GetRoomViewport);
+}
+
 
 void RegisterGameAPI()
 {
@@ -2467,6 +2480,7 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_AudioClipCount",                     Sc_Game_GetAudioClipCount);
     ccAddExternalStaticFunction("Game::geti_AudioClips",                         Sc_Game_GetAudioClip);
     ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
+    ccAddExternalStaticFunction("Game::get_RoomViewport",                       Sc_Game_GetRoomViewport);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

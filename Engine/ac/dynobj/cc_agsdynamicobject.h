@@ -24,6 +24,7 @@ public:
     // default implementation
     virtual int Dispose(const char *address, bool force);
 
+    // TODO: pass savegame format version
     virtual void Unserialize(int index, const char *serializedData, int dataSize) = 0;
 
     // Legacy support for reading and writing object values by their relative offset
@@ -39,15 +40,19 @@ public:
     virtual void    WriteFloat(const char *address, intptr_t offset, float val);
 
 protected:
+    // Savegame serialization
+    // TODO: reimplement with the proper memory stream?!
     int bytesSoFar;
     int totalBytes;
     char *serbuffer;
 
     void StartSerialize(char *sbuffer);
     void SerializeInt(int val);
+    void SerializeFloat(float val);
     int  EndSerialize();
     void StartUnserialize(const char *sbuffer, int pTotalBytes);
     int  UnserializeInt();
+    float UnserializeFloat();
 
 };
 

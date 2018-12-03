@@ -46,6 +46,7 @@ namespace AGS.Editor
         private int _selectedArea = 1;
 		private int _drawingWithArea;
         private bool _mouseDown = false;
+        // Mouse hold/release positions in ROOM's coordinates
         private int _mouseDownX, _mouseDownY;
         private int _currentMouseX, _currentMouseY;
         private bool _shouldSetDrawModeOnMouseUp = false;
@@ -163,30 +164,29 @@ namespace AGS.Editor
 
         public virtual void Paint(Graphics graphics, RoomEditorState state)
         {
+            int roomPixel = state.RoomSizeToWindow(1);
+            int halfRoomPixel = roomPixel / 2;
             if ((_mouseDown) && (_drawMode == AreaDrawMode.Line))
             {
-                int penWidth = (int)GetScaleFactor(state);
-                int extraOffset = penWidth / 2;
+                int penWidth = (int)(roomPixel * GetHintScaleFactor(state));
                 Pen pen = GetPenForArea(_drawingWithArea);
                 pen = new Pen(pen.Color, penWidth);
-                graphics.DrawLine(pen, state.RoomXToWindow(_mouseDownX) + extraOffset,
-                    state.RoomYToWindow(_mouseDownY) + extraOffset,
-                    state.RoomXToWindow(_currentMouseX) + extraOffset,
-                    state.RoomYToWindow(_currentMouseY) + extraOffset);
+                graphics.DrawLine(pen, state.RoomXToWindow(_mouseDownX) + halfRoomPixel,
+                    state.RoomYToWindow(_mouseDownY) + halfRoomPixel,
+                    state.RoomXToWindow(_currentMouseX) + halfRoomPixel,
+                    state.RoomYToWindow(_currentMouseY) + halfRoomPixel);
                 pen.Dispose();
             }
 			else if ((_mouseDown) && (_drawMode == AreaDrawMode.Rectangle))
 			{
-				int mousePressedAtX = state.RoomXToWindow(_mouseDownX);
-				int mousePressedAtY = state.RoomYToWindow(_mouseDownY);
-				int mouseNowAtX = state.RoomXToWindow(_currentMouseX);
-				int mouseNowAtY = state.RoomYToWindow(_currentMouseY);
-				EnsureSmallestNumberIsFirst(ref mousePressedAtX, ref mouseNowAtX);
-				EnsureSmallestNumberIsFirst(ref mousePressedAtY, ref mouseNowAtY);
-                mouseNowAtX += (int)GetScaleFactor(state) - 1;
-                mouseNowAtY += (int)GetScaleFactor(state) - 1;
-
-				graphics.FillRectangle(GetBrushForArea(_drawingWithArea), mousePressedAtX, mousePressedAtY, mouseNowAtX - mousePressedAtX + 1, mouseNowAtY - mousePressedAtY + 1);
+                int x1 = state.RoomXToWindow(_mouseDownX);
+                int y1 = state.RoomYToWindow(_mouseDownY);
+                int x2 = state.RoomXToWindow(_currentMouseX);
+                int y2 = state.RoomYToWindow(_currentMouseY);
+                EnsureSmallestNumberIsFirst(ref x1, ref x2);
+                EnsureSmallestNumberIsFirst(ref y1, ref y2);
+                graphics.FillRectangle(GetBrushForArea(_drawingWithArea),
+                    x1, y1, x2 - x1 + roomPixel, y2 - y1 + roomPixel);
 			}
 		}
 
@@ -218,9 +218,13 @@ namespace AGS.Editor
 			return Pens.Red;
 		}
 
-        private float GetScaleFactor(RoomEditorState state)
+        // Gets the scale factor for drawing auxiliary stuff on screen.
+        // This does not have any relation to screen/room coordinate conversion,
+        // only lets to have extra size for some hint lines etc, in hi-res games.
+        private float GetHintScaleFactor(RoomEditorState state)
         {
-            return state.Scale;
+            // TODO: invent some algorithm to increase size of visual hints depending on room resolution?
+            return 1f;
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 

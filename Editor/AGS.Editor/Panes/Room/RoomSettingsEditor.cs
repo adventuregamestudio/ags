@@ -935,12 +935,12 @@ namespace AGS.Editor
 
         internal int RoomXToWindow(int x)
         {
-            return (int)(x * _scale - _scrollOffsetX);
+            return (int)(x * _scale) - _scrollOffsetX;
         }
 
         internal int RoomYToWindow(int y)
         {
-            return (int)(y * _scale - _scrollOffsetY);
+            return (int)(y * _scale) - _scrollOffsetY;
         }
 
         internal int RoomSizeToWindow(int sz)
@@ -963,8 +963,8 @@ namespace AGS.Editor
             {
                 float oldScale = _scale;
                 _scale = value;
-                _scrollOffsetX = (int)(-(_scrollOffsetX / oldScale) * _scale);
-                _scrollOffsetY = (int)(-(_scrollOffsetY / oldScale) * _scale);
+                _scrollOffsetX = (int)((_scrollOffsetX / oldScale) * _scale);
+                _scrollOffsetY = (int)((_scrollOffsetY / oldScale) * _scale);
             }
         }
 
@@ -974,8 +974,8 @@ namespace AGS.Editor
         /// <param name="scrollPt">Scroll position in window coordinates.</param>
         internal void UpdateScroll(Point scrollPt)
         {
-            _scrollOffsetX = (int)(-(scrollPt.X / _scale) * _scale);
-            _scrollOffsetY = (int)(-(scrollPt.Y / _scale) * _scale);
+            _scrollOffsetX = -scrollPt.X;
+            _scrollOffsetY = -scrollPt.Y;
         }
     }
 }

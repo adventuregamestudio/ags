@@ -62,7 +62,10 @@ Engine:
    automatically, or script command simply cannot be executed under current circumstances.
  - Expanded some of the error messages providing more information to end-user and developers.
  - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
+ - Made engine fallback to defaults if config contains invalid game scaling setting.
  - Fixed 'warnings.log' could never be created (was broken in earlier versions).
+ - Fixed crash in the Software renderer which was occuring when any other renderers are tried
+   prior to Software one but failed to initialize for any reason.
 
 Linux:
  - Fixes Linux game launch script (fixes issues with itch.io client).

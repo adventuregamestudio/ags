@@ -160,10 +160,7 @@ void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
 
 void VideoMemoryGraphicsDriver::CreateStageScreen()
 {
-    if (_stageVirtualScreenDDB)
-        this->DestroyDDB(_stageVirtualScreenDDB);
-    _stageVirtualScreenDDB = NULL;
-    delete _stageVirtualScreen;
+    DestroyStageScreen();
     _stageVirtualScreen = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth);
     BitmapHelper::SetScreenBitmap(_stageVirtualScreen);
 }
@@ -175,6 +172,7 @@ void VideoMemoryGraphicsDriver::DestroyStageScreen()
     _stageVirtualScreenDDB = NULL;
     delete _stageVirtualScreen;
     _stageVirtualScreen = NULL;
+    BitmapHelper::SetScreenBitmap(NULL);
 }
 
 bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)

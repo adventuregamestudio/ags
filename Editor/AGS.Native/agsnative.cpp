@@ -640,31 +640,30 @@ enum RoomAreaMask
     Regions
 };
 
-Common::Bitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType) 
+// TODO: mask's bitmap, as well as coordinate factor, should be a property of the room or some room's mask class
+Common::Bitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
-	if (maskType == RoomAreaMask::None) 
-	{
-		return NULL;
-	}
     // TODO: create weak_ptr here?
-	Common::Bitmap *source = NULL;
 	switch (maskType) 
 	{
-	case RoomAreaMask::Hotspots:
-		source = roomptr->HotspotMask.get();
-		break;
-	case RoomAreaMask::Regions:
-		source = roomptr->RegionMask.get();
-		break;
-	case RoomAreaMask::WalkableAreas:
-		source = roomptr->WalkAreaMask.get();
-		break;
-	case RoomAreaMask::WalkBehinds:
-		source = roomptr->WalkBehindMask.get();
-		break;
+	case RoomAreaMask::Hotspots: return roomptr->HotspotMask.get();
+	case RoomAreaMask::Regions: return roomptr->RegionMask.get();
+	case RoomAreaMask::WalkableAreas: return roomptr->WalkAreaMask.get();
+	case RoomAreaMask::WalkBehinds: return roomptr->WalkBehindMask.get();
 	}
+    return NULL;
+}
 
-	return source;
+float get_scale_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
+{
+    switch (maskType)
+    {
+    case RoomAreaMask::Hotspots: return 1.f;
+    case RoomAreaMask::Regions: return 1.f;
+    case RoomAreaMask::WalkableAreas: return 1.f;
+    case RoomAreaMask::WalkBehinds: return 1.f;
+    }
+    return 0.f;
 }
 
 void copy_walkable_to_regions (void *roomptr) {
@@ -674,26 +673,30 @@ void copy_walkable_to_regions (void *roomptr) {
 
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-	return mask->GetPixel(x, y);
+    Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+	return mask->GetPixel(x * scale, y * scale);
 }
 
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-	mask->DrawLine(Line(x1, y1, x2, y2), color);
+    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+	mask->DrawLine(Line(x1 * scale, y1 * scale, x2 * scale, y2 * scale), color);
 }
 
 void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-    mask->FillRect(Rect(x1, y1, x2, y2), color);
+    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    mask->FillRect(Rect(x1 * scale, y1 * scale, x2 * scale, y2 * scale), color);
 }
 
 void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-    mask->FloodFill(x1, y1, color);
+    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    mask->FloodFill(x1 * scale, y1 * scale, color);
 }
 
 void create_undo_buffer(void *roomptr, int maskType) 
@@ -869,9 +872,9 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 
     if (x < 0)
     {
-      srcX = -x / scaleFactor;
-      x = 0;
-      srcWidth = drawBuffer->GetWidth() / scaleFactor + 1;
+      srcX = (int)(-x / scaleFactor);
+      x += (int)(srcX * scaleFactor);
+      srcWidth = drawBuffer->GetWidth() / scaleFactor;
       if (srcX + srcWidth > depthConverted->GetWidth())
       {
         srcWidth = depthConverted->GetWidth() - srcX;
@@ -879,16 +882,17 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
     }
     if (y < 0)
     {
-      srcY = -y / scaleFactor;
-      y = 0;
-      srcHeight = drawBuffer->GetHeight() / scaleFactor + 1;
+      srcY = (int)(-y / scaleFactor);
+      y += (int)(srcY * scaleFactor);
+      srcHeight = drawBuffer->GetHeight() / scaleFactor;
       if (srcY + srcHeight > depthConverted->GetHeight())
       {
         srcHeight = depthConverted->GetHeight() - srcY;
       }
     }
 
-		Cstretch_blit(depthConverted, drawBuffer, srcX, srcY, srcWidth, srcHeight, x, y, srcWidth * scaleFactor, srcHeight * scaleFactor);
+		Cstretch_blit(depthConverted, drawBuffer, srcX, srcY, srcWidth, srcHeight,
+            x, y, (int)(srcWidth * scaleFactor), (int)(srcHeight * scaleFactor));
 		delete depthConverted;
 	}
 	else {

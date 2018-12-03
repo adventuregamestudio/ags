@@ -353,7 +353,7 @@ void ccCompiledScript::flush_line_numbers() {
 }
 void ccCompiledScript::write_code(intptr_t byy) {
     // DEBUGGING [fw]
-    if (codesize == 14)
+    if (codesize == 95)
     {
         int i = 0;
     }

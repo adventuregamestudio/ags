@@ -19,7 +19,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
 
     // export the code
     of << "const size_t codesize = " << scrip->codesize << ";" << std::endl;
-    of << "ASSERT_EQ(codesize, scrip->codesize);" << std::endl << std::endl;
+    of << "EXPECT_EQ(codesize, scrip->codesize);" << std::endl << std::endl;
 
     if (scrip->codesize > 0)
     {
@@ -33,7 +33,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
         }
         of << " -999 " << std::endl << "};" << std::endl << std::endl;
 
-        of << "for (size_t idx = 0; idx < codesize; idx++)" << std::endl;
+        of << "for (size_t idx = 0; idx < scrip->codesize; idx++)" << std::endl;
         of << "{" << std::endl;
         of << "     std::string prefix = \"code[\";" << std::endl;
         of << "     prefix += (std::to_string(idx)) + std::string(\"] == \");" << std::endl;
@@ -44,7 +44,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
     }
     // export the fixups
     of << "const size_t numfixups = " << scrip->numfixups << ";" << std::endl;
-    of << "ASSERT_EQ(numfixups, scrip->numfixups);" << std::endl << std::endl;
+    of << "EXPECT_EQ(numfixups, scrip->numfixups);" << std::endl << std::endl;
 
     if (scrip->numfixups > 0)
     {
@@ -77,7 +77,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
         }
         of << " '\\0' " << std::endl << "};" << std::endl << std::endl;
 
-        of << "for (size_t idx = 0; idx < numfixups; idx++)" << std::endl;
+        of << "for (size_t idx = 0; idx < scrip->numfixups; idx++)" << std::endl;
         of << "{" << std::endl;
         of << "     std::string prefix = \"fixuptypes[\";" << std::endl;
         of << "     prefix += (std::to_string(idx)) + std::string(\"] == \");" << std::endl;
@@ -135,7 +135,7 @@ TEST(Compatibility, SimpleVoidFunction) {
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
-    
+
     const size_t codesize = 10;
     ASSERT_EQ(codesize, scrip->codesize);
 
@@ -174,7 +174,7 @@ TEST(Compatibility, SimpleIntFunction) {
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
-    
+
     const size_t codesize = 10;
     ASSERT_EQ(codesize, scrip->codesize);
 
@@ -255,7 +255,7 @@ TEST(Compatibility, IntFunctionParam) {
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
-    
+
     const size_t codesize = 11;
     ASSERT_EQ(codesize, scrip->codesize);
 
@@ -749,19 +749,18 @@ TEST(Compatibility, For) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    // writeoutput("For", scrip);
+    writeoutput("For", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
-    
-    const size_t codesize = 110;
-    ASSERT_EQ(codesize, scrip->codesize);
+    const size_t codesize = 130;
+    EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    3,            0,    6,    2,    0,
        8,    3,    6,    2,            0,    7,    3,   29,
        3,    6,    3,   10,           30,    4,   18,    4,
-       3,    3,    4,    3,           28,   72,    6,    2,
+       3,    3,    4,    3,           28,   92,    6,    2,
        0,    7,    3,   29,            3,    6,    3,    4,
       30,    4,   12,    4,            3,    3,    4,    3,
       29,    3,    6,    3,            7,   30,    4,   12,
@@ -770,11 +769,14 @@ TEST(Compatibility, For) {
        7,    3,   29,    3,            6,    3,    6,   30,
        4,   15,    4,    3,            3,    4,    3,   28,
        8,    2,    1,    4,            6,    3,    0,   31,
-     -69,    2,    1,    4,           31,  -92,    6,    3,
-       0,    5,    6,    3,            0,    5,  -999
+     -69,    2,    1,    4,            6,    3,    3,   29,
+       3,    6,    2,    0,            7,    3,   30,    4,
+      11,    3,    4,    6,            2,    0,    8,    3,
+      31, -112,    6,    3,            0,    5,    6,    3,
+       0,    5,  -999
     };
 
-    for (size_t idx = 0; idx < codesize; idx++)
+    for (size_t idx = 0; idx < scrip->codesize; idx++)
     {
         std::string prefix = "code[";
         prefix += (std::to_string(idx)) + std::string("] == ");
@@ -782,11 +784,11 @@ TEST(Compatibility, For) {
         std::string test_val = prefix + std::to_string(scrip->code[idx]);
         ASSERT_EQ(is_val, test_val);
     }
-    const size_t numfixups = 4;
+    const size_t numfixups = 6;
     ASSERT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       7,   12,   32,   71,        -999
+       7,   12,   32,   71,        107,  117,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -799,7 +801,7 @@ TEST(Compatibility, For) {
     }
 
     char fixuptypes[] = {
-      1,   1,   1,   1,     '\0'
+      1,   1,   1,   1,      1,   1,  '\0'
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -810,7 +812,6 @@ TEST(Compatibility, For) {
         std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
         ASSERT_EQ(is_val, test_val);
     }
-
 }
 
 TEST(Compatibility, IfDoWhile) {
@@ -839,8 +840,7 @@ TEST(Compatibility, IfDoWhile) {
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
-   
-    const size_t codesize = 182;
+    const size_t codesize = 200;
     ASSERT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -850,23 +850,26 @@ TEST(Compatibility, IfDoWhile) {
        3,    1,    2,    8,            3,    1,    1,    4,
       51,   12,    7,    3,           29,    3,    6,    3,
       10,   30,    4,   18,            4,    3,    3,    4,
-       3,   28,   76,    6,            3,    0,   51,    4,
+       3,   28,   94,    6,            3,    0,   51,    4,
        8,    3,   51,    4,            7,    3,   29,    3,
        6,    3,   10,   30,            4,   18,    4,    3,
-       3,    4,    3,   28,           48,   51,    4,    7,
+       3,    4,    3,   28,           66,   51,    4,    7,
        3,   29,    3,   51,           12,    7,    3,   30,
        4,   11,    3,    4,           51,    8,    8,    3,
       51,    4,    7,    3,           29,    3,    6,    3,
        6,   30,    4,   15,            4,    3,    3,    4,
        3,   28,    8,   51,            4,    7,    3,    2,
-       1,   12,    5,   31,          -67,   31,   41,   31,
-       2,   31,   37,    6,            3,    1,   29,    3,
+       1,   12,    5,    6,            3,    3,   29,    3,
       51,    8,    7,    3,           30,    4,   11,    3,
-       4,   51,    4,    8,            3,   51,    4,    7,
-       3,   29,    3,    6,            3,  100,   30,    4,
-      18,    4,    3,    3,            4,    3,   70,  -37,
-       6,    3,    0,    2,            1,   12,    5,    6,
-       3,    0,    2,    1,           12,    5,  -999
+       4,   51,    4,    8,            3,   31,  -85,   31,
+      41,   31,    2,   31,           37,    6,    3,    1,
+      29,    3,   51,    8,            7,    3,   30,    4,
+      11,    3,    4,   51,            4,    8,    3,   51,
+       4,    7,    3,   29,            3,    6,    3,  100,
+      30,    4,   18,    4,            3,    3,    4,    3,
+      70,  -37,    6,    3,            0,    2,    1,   12,
+       5,    6,    3,    0,            2,    1,   12,    5,
+     -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -879,6 +882,7 @@ TEST(Compatibility, IfDoWhile) {
     }
     const size_t numfixups = 0;
     ASSERT_EQ(numfixups, scrip->numfixups);
+
 }
 
 TEST(Compatibility, Switch) {

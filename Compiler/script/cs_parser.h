@@ -255,10 +255,10 @@ private:
 
 
 
-#define NEST_FUNCTION 1  // it's a function
-#define NEST_NOTHING  2  // no reason - they just put { } in the code
-#define NEST_IF       3  // it's an IF statement
-#define NEST_IFSINGLE 4  // single IF statment (ie. no braces)
+#define NEST_FUNCTION   1  // it's a function
+#define NEST_NOTHING    2  // no reason - they just put { } in the code
+#define NEST_IF         3  // it's an IF statement
+#define NEST_IFSINGLE   4  // single IF statment (ie. no braces)
 #define NEST_ELSE       5
 #define NEST_ELSESINGLE 6
 #define NEST_STRUCT     7

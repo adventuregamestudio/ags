@@ -1037,9 +1037,8 @@ int remove_locals(ccCompiledScript *scrip, int from_level, bool just_count) {
 
 // Return code can be 1 or 0 or, in case of errors, a value < 0
 int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, char*nested_type, long*nested_info, long*nested_start,
-    size_t * nestlevel, std::vector<ccChunk> *nested_chunk)
+    size_t &nested_level, std::vector<ccChunk> *nested_chunk)
 {
-    int nested_level = nestlevel[0];
     int is_else = 0;
     if (nested_type[nested_level] == NEST_ELSESINGLE);
     else if (nested_type[nested_level] == NEST_ELSE);
@@ -1079,12 +1078,12 @@ int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, char*n
     }
     else
     {
-        nestlevel[0]--;
-        if (nested_type[nestlevel[0]] == NEST_FOR)
+        nested_level--;
+        if (nested_type[nested_level] == NEST_FOR)
         {
-            nestlevel[0]--;
+            nested_level--;
             // find local variables that have just been removed
-            int totalsub = remove_locals(scrip, nestlevel[0], false);
+            int totalsub = remove_locals(scrip, nested_level, false);
 
             if (totalsub > 0)
             {
@@ -1096,12 +1095,11 @@ int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, char*n
     return 0;
 }
 
-int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, long *nested_info, long *nested_start, size_t *nestlevel) {
+int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, long *nested_info, long *nested_start, size_t &nested_level) 
+{
     ags::Symbol cursym;
-    int nested_level;
 
     cursym = targ->getnext();
-    nested_level = nestlevel[0];
     scrip->flush_line_numbers();
     if (sym.get_type(cursym) != SYM_WHILE)
     {
@@ -1126,15 +1124,14 @@ int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, long *nes
     scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize + 2) - nested_start[nested_level]));
     // Write the correct location for the end of the loop
     scrip->code[nested_info[nested_level]] = (scrip->codesize - nested_info[nested_level]) - 1;
-    nestlevel[0]--;
+    nested_level--;
 
     return 0;
 }
 
-int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, int32_t *nested_assign_addr, long *nested_start, std::vector<ccChunk> *nested_chunk, size_t *nestlevel, long *nested_info) {
+int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, int32_t *nested_assign_addr, long *nested_start, std::vector<ccChunk> *nested_chunk, size_t &nested_level, long *nested_info) {
     int index;
     int limit = nested_chunk->size();
-    int nested_level = nestlevel[0];
     int skip;
     int operation = is_any_type_of_string(nested_info[nested_level]) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
     if (scrip->code[scrip->codesize - 2] != SCMD_JMP || scrip->code[scrip->codesize - 1] != nested_start[nested_level] - scrip->codesize + 2)
@@ -1161,7 +1158,7 @@ int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, int32
     // Write the jump for the end of the switch block
     scrip->code[skip - 1] = scrip->codesize - skip;
     clear_chunk_list(nested_chunk);
-    nestlevel[0]--;
+    nested_level--;
 
     return 0;
 }
@@ -5006,16 +5003,16 @@ int cs_parser_handle_closebrace(ccInternalList *targ, ccCompiledScript * scrip, 
         INC_NESTED_LEVEL;
         if (nested_type[nested_level] == NEST_DO)
         {
-            int retval = deal_with_end_of_do(targ, scrip, nested_info, nested_start, &nested_level);
+            int retval = deal_with_end_of_do(targ, scrip, nested_info, nested_start, nested_level);
             if (retval < 0) return retval;
         }
         else if (nested_type[nested_level] == NEST_SWITCH)
         {
-            int retval = deal_with_end_of_switch(targ, scrip, nested_assign_addr, nested_start, &nested_chunk[nested_level], &nested_level, nested_info);
+            int retval = deal_with_end_of_switch(targ, scrip, nested_assign_addr, nested_start, &nested_chunk[nested_level], nested_level, nested_info);
             if (retval < 0) return retval;
         }
         // NOTE: return code of this function can be 1 or 0. Doesn't signify whether an error occurred
-        else if (deal_with_end_of_ifelse(targ, scrip, nested_type, nested_info, nested_start, &nested_level, nested_chunk))
+        else if (deal_with_end_of_ifelse(targ, scrip, nested_type, nested_info, nested_start, nested_level, nested_chunk))
         {
             return 0;
         }
@@ -5027,11 +5024,11 @@ int cs_parser_handle_closebrace(ccInternalList *targ, ccCompiledScript * scrip, 
         // has been turned into an ELSE
         if (nested_type[nested_level] == NEST_DOSINGLE)
         {
-            int retval = deal_with_end_of_do(targ, scrip, nested_info, nested_start, &nested_level);
+            int retval = deal_with_end_of_do(targ, scrip, nested_info, nested_start, nested_level);
             if (retval < 0) return retval;
         }
 
-        if (deal_with_end_of_ifelse(targ, scrip, nested_type, nested_info, nested_start, &nested_level, nested_chunk))
+        if (deal_with_end_of_ifelse(targ, scrip, nested_type, nested_info, nested_start, nested_level, nested_chunk))
             break;
     }
     return 0;
@@ -6303,18 +6300,18 @@ int evaluate_funccall(ccInternalList *targ, ccCompiledScript * scrip, int offset
     return 0;
 }
 
-int compile_funcbodycode_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, char * nested_type, size_t & nested_level, long * nested_info, long * nested_start, std::vector<ccChunk> * nested_chunk)
+int compile_funcbodycode_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, size_t & nested_level, char * nested_type, long * nested_info, long * nested_start, std::vector<ccChunk> * nested_chunk)
 {
     while (ntype_is_singleline_if_stmt(nested_type[nested_level]))
     {
         if (nested_type[nested_level] == NEST_DOSINGLE)
         {
-            if (deal_with_end_of_do(targ, scrip, nested_info, nested_start, &nested_level))
+            if (deal_with_end_of_do(targ, scrip, nested_info, nested_start, nested_level))
                 return -1;
         }
         else
         {
-            if (deal_with_end_of_ifelse(targ, scrip, nested_type, nested_info, nested_start, &nested_level, nested_chunk))
+            if (deal_with_end_of_ifelse(targ, scrip, nested_type, nested_info, nested_start, nested_level, nested_chunk))
                 break;
         }
     }
@@ -6392,8 +6389,8 @@ int evaluate_ifwhile(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbo
     }
     long oriaddr = scrip->codesize;
 
-    if (evaluate_expression(targ, scrip, true))
-        return -1;
+    int retval = evaluate_expression(targ, scrip, true);
+    if (retval < 0) return retval;
     // since AX will hold the result of the check, we can use JZ
     // to determine whether to jump or not (0 means test failed, so
     // skip content of "if" block)
@@ -6414,10 +6411,9 @@ int evaluate_ifwhile(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbo
     else
         nested_type[nested_level] = NEST_IFSINGLE;
 
-    nested_start[nested_level] = 0;
     nested_info[nested_level] = scrip->codesize - 1;
-    if (iswhile)
-        nested_start[nested_level] = oriaddr;
+    nested_start[nested_level] = 0;
+    if (iswhile) nested_start[nested_level] = oriaddr;
     return 0;
 }
 
@@ -6601,7 +6597,7 @@ int evaluate_for(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested
     return 0;
 }
 
-int evaluate_switch(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, long * nested_info, char * nested_type, long * nested_start, int32_t * nested_assign_addr)
+int evaluate_switch(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, char * nested_type, long * nested_info, long * nested_start, int32_t * nested_assign_addr)
 {
     if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
     {
@@ -6641,7 +6637,7 @@ int evaluate_switch(ccInternalList * targ, ccCompiledScript * scrip, size_t &nes
     return 0;
 }
 
-int evaluate_casedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, char * nested_type, size_t &nested_level, int32_t * nested_assign_addr, long * nested_info, std::vector<ccChunk> * nested_chunk)
+int evaluate_casedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, size_t &nested_level, char * nested_type, int32_t * nested_assign_addr, long * nested_info, std::vector<ccChunk> * nested_chunk)
 {
     if (nested_type[nested_level] != NEST_SWITCH)
     {
@@ -6684,7 +6680,7 @@ int evaluate_casedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::S
     return 0;
 }
 
-int evaluate_break(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, long * nested_start, char * nested_type, long * nested_info)
+int evaluate_break(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, char * nested_type, long * nested_start, long * nested_info)
 {
     int loop_level;
     loop_level = nested_level;
@@ -6716,7 +6712,7 @@ int evaluate_break(ccInternalList * targ, ccCompiledScript * scrip, size_t &nest
     return 0;
 }
 
-int evaluate_continue(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, long * nested_start, char * nested_type, std::vector<ccChunk> * nested_chunk)
+int evaluate_continue(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, char * nested_type, long * nested_start, std::vector<ccChunk> * nested_chunk)
 {
     int loop_level;
     loop_level = nested_level;
@@ -6790,18 +6786,18 @@ int compile_funcbodycode(
     }
 
     case SYM_BREAK:
-        retval = evaluate_break(targ, scrip, nested_level, nested_start, nested_type, nested_info);
+        retval = evaluate_break(targ, scrip, nested_level, nested_type, nested_start, nested_info);
         if (retval < 0) return retval;
         break;
 
     case SYM_CASE:
     case SYM_DEFAULT:
-        retval = evaluate_casedefault(targ, scrip, cursym, nested_type, nested_level, nested_assign_addr, nested_info, nested_chunk);
+        retval = evaluate_casedefault(targ, scrip, cursym, nested_level, nested_type, nested_assign_addr, nested_info, nested_chunk);
         if (retval < 0) return retval;
         break;
 
     case SYM_CONTINUE:
-        retval = evaluate_continue(targ, scrip, nested_level, nested_start, nested_type, nested_chunk);
+        retval = evaluate_continue(targ, scrip, nested_level, nested_type, nested_start, nested_chunk);
         if (retval < 0) return retval;
         break;
 
@@ -6826,14 +6822,14 @@ int compile_funcbodycode(
         break;
 
     case SYM_SWITCH:
-        retval = evaluate_switch(targ, scrip, nested_level, nested_info, nested_type, nested_start, nested_assign_addr);
+        retval = evaluate_switch(targ, scrip, nested_level, nested_type, nested_info, nested_start, nested_assign_addr);
         if (retval < 0) return retval;
         break;
     }
 
 
     // sort out jumps when a single-line if or else has finished
-    return compile_funcbodycode_EndOfDoIfElse(targ, scrip, nested_type, nested_level, nested_info, nested_start, nested_chunk);
+    return compile_funcbodycode_EndOfDoIfElse(targ, scrip, nested_level, nested_type, nested_info, nested_start, nested_chunk);
 }
 
 int cc_compile_HandleLinesAndMeta(ccInternalList & targ, ccCompiledScript * scrip, ags::Symbol cursym, int &currentlinewas)

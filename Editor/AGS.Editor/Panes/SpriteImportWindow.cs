@@ -11,14 +11,20 @@ namespace AGS.Editor
 {
     public partial class SpriteImportWindow : Form
     {
+        private SpriteFolder folder;
+        private Sprite replace;
         private Bitmap image;
         private List<string> imageLookup;
         private int zoomLevel = 1;
+        private int frames = 1;
 
         // for dragging a rectangle
         private bool dragging = false;
         private Point start;
         private Point position;
+
+        // track whether anything was imported before the window was closed
+        private bool hasImported = false;
 
         public bool RemapToGamePalette
         {
@@ -121,10 +127,70 @@ namespace AGS.Editor
             }
         }
 
-        public SpriteImportWindow(string[] filenames)
+        public SpriteImportWindow(string[] filenames, SpriteFolder folder)
         {
             InitializeComponent();
 
+            // take some defailts from Editor prederences
+            SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
+
+            // import, not replace
+            this.folder = folder;
+            replace = null;
+
+            btnImportAll.Enabled = cmbFilenames.Enabled = filenames.Length > 1;
+            cmbFilenames.Items.Clear();
+            imageLookup = new List<string>();
+
+            foreach (string filename in filenames)
+            {
+                imageLookup.Add(filename);
+                cmbFilenames.Items.Add(Path.GetFileName(filename));
+            }
+
+            cmbFilenames.SelectedIndex = 0;
+
+            OneTimeControlSetup();
+            PostImageLoad();
+        }
+
+        public SpriteImportWindow(Bitmap bmp, SpriteFolder folder)
+        {
+            InitializeComponent();
+
+            // take some defailts from Editor prederences
+            SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
+
+            // import, not replace
+            this.folder = folder;
+            replace = null;
+
+            image = bmp;
+            btnImportAll.Enabled = false;
+            cmbFilenames.Enabled = false;
+
+            OneTimeControlSetup();
+            PostImageLoad();
+        }
+
+        public SpriteImportWindow(string[] filenames, Sprite replace)
+        {
+            InitializeComponent();
+
+            // set defaults from the old sprite
+            SpriteImportMethod = replace.TransparentColour;
+            SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
+            SelectionSize = new Size(replace.Width, replace.Height);
+            UseAlphaChannel = replace.AlphaChannel;
+            RemapToGamePalette = replace.RemapToGamePalette;
+
+            // replace, not import
+            folder = null;
+            this.replace = replace;
+
+            // replacement can only use one image, but you can pick
+            // any one and make a selection from it
+            btnImportAll.Enabled = false;
             cmbFilenames.Enabled = filenames.Length > 1;
             cmbFilenames.Items.Clear();
             imageLookup = new List<string>();
@@ -141,13 +207,24 @@ namespace AGS.Editor
             PostImageLoad();
         }
 
-        public SpriteImportWindow(Bitmap bmp)
+        public SpriteImportWindow(Bitmap bmp, Sprite replace)
         {
             InitializeComponent();
 
+            // set defaults from the old sprite
+            SpriteImportMethod = replace.TransparentColour;
+            SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
+            SelectionSize = new Size(replace.Width, replace.Height);
+            UseAlphaChannel = replace.AlphaChannel;
+            RemapToGamePalette = replace.RemapToGamePalette;
+
+            // replace, not import
+            folder = null;
+            this.replace = replace;
+
             image = bmp;
+            btnImportAll.Enabled = false;
             cmbFilenames.Enabled = false;
-            cmbFilenames.Items.Clear();
 
             OneTimeControlSetup();
             PostImageLoad();
@@ -176,20 +253,18 @@ namespace AGS.Editor
 
         private void PostImageLoad()
         {
-            int framecount;
-
             try
             {
-                framecount = SpriteTools.GetFrameCountEstimateFromFile(imageLookup[cmbFilenames.SelectedIndex]);
+                frames = SpriteTools.GetFrameCountEstimateFromFile(imageLookup[cmbFilenames.SelectedIndex]);
             }
             catch
             {
-                framecount = 1;
+                frames = 1;
             }
 
             string format = image.PixelFormat.ToString().Substring(6).ToUpper().Replace("BPP", " bit ").Replace("INDEXED", "indexed");
-            string frames = framecount > 1 ? String.Format(", {0} frames", framecount) : "";
-            lblImageDescription.Text = String.Format("{0} x {1}, {2}{3}", image.Width, image.Height, format, frames);
+            string frametext = frames > 1 ? String.Format(", {0} frames", frames) : "";
+            lblImageDescription.Text = String.Format("{0} x {1}, {2}{3}", image.Width, image.Height, format, frametext);
 
             // clear old labels to reset the scrollbars
             previewPanel.Controls.Clear();
@@ -307,10 +382,101 @@ namespace AGS.Editor
             }
         }
 
+        private void DoReplace()
+        {
+            string filename = cmbFilenames.SelectedIndex >= 0 ? imageLookup[cmbFilenames.SelectedIndex] : "";
+
+            SpriteSheet spritesheet;
+
+            if (TiledImport)
+            {
+                spritesheet = new SpriteSheet(SelectionOffset, SelectionSize,
+                    TilingMargin, TilingDirection, MaxTiles);
+            }
+            else
+            {
+                spritesheet = null;
+            }
+
+            SpriteTools.ReplaceSprite(replace, image, UseAlphaChannel, RemapToGamePalette,
+                UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+        }
+
+        // return true when no more image to process
+        private bool DoImport()
+        {
+            string filename = cmbFilenames.SelectedIndex >= 0 ? imageLookup[cmbFilenames.SelectedIndex] : "";
+            SpriteSheet spritesheet;
+
+            if (TiledImport)
+            {
+                spritesheet = new SpriteSheet(SelectionOffset, SelectionSize,
+                    TilingMargin, TilingDirection, MaxTiles);
+            }
+            else
+            {
+                spritesheet = null;
+            }
+
+            if (frames == 1)
+            {
+                // in the interest of speed, import the existing bitmap if the file has a single frame
+                SpriteTools.ImportNewSprites(folder, image, UseAlphaChannel, RemapToGamePalette,
+                    UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+            }
+            else
+            {
+                SpriteTools.ImportNewSprites(folder, filename, UseAlphaChannel, RemapToGamePalette,
+                    UseBackgroundSlots, SpriteImportMethod, spritesheet);
+            }
+
+            hasImported = true;
+
+            if (cmbFilenames.Items.Count == 1)
+            {
+                // this was the last image in the list
+                return true;
+            }
+            else if (cmbFilenames.Items.Count > 0)
+            {
+                // more images are in the list
+                int index = cmbFilenames.SelectedIndex - 1;
+                imageLookup.RemoveAt(cmbFilenames.SelectedIndex);
+                cmbFilenames.Items.RemoveAt(cmbFilenames.SelectedIndex);
+                cmbFilenames.SelectedIndex = Math.Max(index, 0);
+                return false;
+            }
+
+            // there was only one image, or no list to begin with
+            return true;
+        }
+
+        private void btnImportAll_Click(object sender, EventArgs e)
+        {
+            cmbFilenames.SelectedIndex = 0;
+
+            while (!DoImport())
+            {
+                // import everything in sequence
+            }
+
+            this.DialogResult = hasImported ? DialogResult.OK : DialogResult.Cancel;
+            this.Close();
+        }
+
         private void btnImport_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+            if (folder != null && DoImport())
+            {
+                this.DialogResult = hasImported ? DialogResult.OK : DialogResult.Cancel;
+                this.Close();
+            }
+            else if (replace != null)
+            {
+                this.DialogResult = DialogResult.OK;
+                DoReplace();
+                this.Close();
+            }
         }
 
         private void previewPanel_Scroll(object sender, ScrollEventArgs e)
@@ -318,9 +484,9 @@ namespace AGS.Editor
             previewPanel.Invalidate();
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
+        private void btnClose_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
+            this.DialogResult = hasImported ? DialogResult.OK : DialogResult.Cancel;
             this.Close();
         }
 

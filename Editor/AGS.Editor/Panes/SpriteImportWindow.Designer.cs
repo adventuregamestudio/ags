@@ -36,7 +36,6 @@ namespace AGS.Editor
             this.chkRemapCols = new System.Windows.Forms.CheckBox();
             this.groupTransColour = new System.Windows.Forms.GroupBox();
             this.panelBottomRight = new System.Windows.Forms.Panel();
-            this.panelTopRight = new System.Windows.Forms.Panel();
             this.panelBottomLeft = new System.Windows.Forms.Panel();
             this.panelIndex0 = new System.Windows.Forms.Panel();
             this.panelTopLeft = new System.Windows.Forms.Panel();
@@ -47,7 +46,7 @@ namespace AGS.Editor
             this.radTransColourBottomLeftPixel = new System.Windows.Forms.RadioButton();
             this.radTransColourTopLeftPixel = new System.Windows.Forms.RadioButton();
             this.radTransColourIndex0 = new System.Windows.Forms.RadioButton();
-            this.btnCancel = new System.Windows.Forms.Button();
+            this.btnClose = new System.Windows.Forms.Button();
             this.btnImport = new System.Windows.Forms.Button();
             this.chkTiled = new System.Windows.Forms.CheckBox();
             this.cmbFilenames = new System.Windows.Forms.ComboBox();
@@ -55,14 +54,15 @@ namespace AGS.Editor
             this.zoomSlider = new System.Windows.Forms.TrackBar();
             this.lblZoom = new System.Windows.Forms.Label();
             this.groupSelection = new System.Windows.Forms.GroupBox();
+            this.cmbTileDirection = new System.Windows.Forms.ComboBox();
+            this.numMaxTiles = new System.Windows.Forms.NumericUpDown();
+            this.lblY = new System.Windows.Forms.Label();
+            this.lblMaxTiles = new System.Windows.Forms.Label();
             this.lblX = new System.Windows.Forms.Label();
+            this.lblTileDirection = new System.Windows.Forms.Label();
             this.lblMargin = new System.Windows.Forms.Label();
             this.numMarginX = new System.Windows.Forms.NumericUpDown();
             this.numMarginY = new System.Windows.Forms.NumericUpDown();
-            this.lblTileDirection = new System.Windows.Forms.Label();
-            this.cmbTileDirection = new System.Windows.Forms.ComboBox();
-            this.lblMaxTiles = new System.Windows.Forms.Label();
-            this.numMaxTiles = new System.Windows.Forms.NumericUpDown();
             this.lblSize = new System.Windows.Forms.Label();
             this.lblOffset = new System.Windows.Forms.Label();
             this.numSizeY = new System.Windows.Forms.NumericUpDown();
@@ -70,14 +70,15 @@ namespace AGS.Editor
             this.numOffsetX = new System.Windows.Forms.NumericUpDown();
             this.numOffsetY = new System.Windows.Forms.NumericUpDown();
             this.previewPanel = new AGS.Editor.BufferedPanel();
-            this.lblY = new System.Windows.Forms.Label();
+            this.btnImportAll = new System.Windows.Forms.Button();
+            this.panelTopRight = new System.Windows.Forms.Panel();
             this.groupImportOptions.SuspendLayout();
             this.groupTransColour.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.zoomSlider)).BeginInit();
             this.groupSelection.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numMaxTiles)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMarginX)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMarginY)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numMaxTiles)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSizeY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSizeX)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numOffsetX)).BeginInit();
@@ -91,7 +92,7 @@ namespace AGS.Editor
             this.groupImportOptions.Controls.Add(this.chkRemapCols);
             this.groupImportOptions.Location = new System.Drawing.Point(12, 12);
             this.groupImportOptions.Name = "groupImportOptions";
-            this.groupImportOptions.Size = new System.Drawing.Size(202, 90);
+            this.groupImportOptions.Size = new System.Drawing.Size(224, 90);
             this.groupImportOptions.TabIndex = 3;
             this.groupImportOptions.TabStop = false;
             this.groupImportOptions.Text = "Import options";
@@ -113,9 +114,9 @@ namespace AGS.Editor
             this.chkRoomBackground.AutoSize = true;
             this.chkRoomBackground.Location = new System.Drawing.Point(6, 66);
             this.chkRoomBackground.Name = "chkRoomBackground";
-            this.chkRoomBackground.Size = new System.Drawing.Size(183, 17);
+            this.chkRoomBackground.Size = new System.Drawing.Size(215, 17);
             this.chkRoomBackground.TabIndex = 4;
-            this.chkRoomBackground.Text = "Lock to room background palette";
+            this.chkRoomBackground.Text = "Use room background (8-bit game only)";
             this.chkRoomBackground.UseVisualStyleBackColor = true;
             // 
             // chkRemapCols
@@ -125,9 +126,9 @@ namespace AGS.Editor
             this.chkRemapCols.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkRemapCols.Location = new System.Drawing.Point(6, 43);
             this.chkRemapCols.Name = "chkRemapCols";
-            this.chkRemapCols.Size = new System.Drawing.Size(175, 17);
+            this.chkRemapCols.Size = new System.Drawing.Size(183, 17);
             this.chkRemapCols.TabIndex = 3;
-            this.chkRemapCols.Text = "Remap palette for 8-bit images";
+            this.chkRemapCols.Text = "Remap palette (8-bit image only)";
             this.chkRemapCols.UseVisualStyleBackColor = true;
             // 
             // groupTransColour
@@ -146,7 +147,7 @@ namespace AGS.Editor
             this.groupTransColour.Controls.Add(this.radTransColourIndex0);
             this.groupTransColour.Location = new System.Drawing.Point(12, 108);
             this.groupTransColour.Name = "groupTransColour";
-            this.groupTransColour.Size = new System.Drawing.Size(202, 192);
+            this.groupTransColour.Size = new System.Drawing.Size(224, 192);
             this.groupTransColour.TabIndex = 14;
             this.groupTransColour.TabStop = false;
             this.groupTransColour.Text = "Transparent colour";
@@ -154,41 +155,33 @@ namespace AGS.Editor
             // panelBottomRight
             // 
             this.panelBottomRight.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelBottomRight.Location = new System.Drawing.Point(134, 158);
+            this.panelBottomRight.Location = new System.Drawing.Point(136, 158);
             this.panelBottomRight.Name = "panelBottomRight";
-            this.panelBottomRight.Size = new System.Drawing.Size(62, 17);
+            this.panelBottomRight.Size = new System.Drawing.Size(78, 17);
             this.panelBottomRight.TabIndex = 21;
-            // 
-            // panelTopRight
-            // 
-            this.panelTopRight.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelTopRight.Location = new System.Drawing.Point(134, 135);
-            this.panelTopRight.Name = "panelTopRight";
-            this.panelTopRight.Size = new System.Drawing.Size(62, 17);
-            this.panelTopRight.TabIndex = 21;
             // 
             // panelBottomLeft
             // 
             this.panelBottomLeft.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelBottomLeft.Location = new System.Drawing.Point(134, 112);
+            this.panelBottomLeft.Location = new System.Drawing.Point(136, 112);
             this.panelBottomLeft.Name = "panelBottomLeft";
-            this.panelBottomLeft.Size = new System.Drawing.Size(62, 17);
+            this.panelBottomLeft.Size = new System.Drawing.Size(78, 17);
             this.panelBottomLeft.TabIndex = 21;
             // 
             // panelIndex0
             // 
             this.panelIndex0.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelIndex0.Location = new System.Drawing.Point(134, 66);
+            this.panelIndex0.Location = new System.Drawing.Point(136, 66);
             this.panelIndex0.Name = "panelIndex0";
-            this.panelIndex0.Size = new System.Drawing.Size(62, 17);
+            this.panelIndex0.Size = new System.Drawing.Size(78, 17);
             this.panelIndex0.TabIndex = 21;
             // 
             // panelTopLeft
             // 
             this.panelTopLeft.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelTopLeft.Location = new System.Drawing.Point(134, 89);
+            this.panelTopLeft.Location = new System.Drawing.Point(136, 89);
             this.panelTopLeft.Name = "panelTopLeft";
-            this.panelTopLeft.Size = new System.Drawing.Size(62, 17);
+            this.panelTopLeft.Size = new System.Drawing.Size(78, 17);
             this.panelTopLeft.TabIndex = 20;
             // 
             // radTransColourNone
@@ -263,20 +256,19 @@ namespace AGS.Editor
             this.radTransColourIndex0.Text = "Palette index 0";
             this.radTransColourIndex0.UseVisualStyleBackColor = true;
             // 
-            // btnCancel
+            // btnClose
             // 
-            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(12, 519);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(70, 30);
-            this.btnCancel.TabIndex = 6;
-            this.btnCancel.Text = "Cancel";
-            this.btnCancel.UseVisualStyleBackColor = true;
-            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            this.btnClose.Location = new System.Drawing.Point(12, 569);
+            this.btnClose.Name = "btnClose";
+            this.btnClose.Size = new System.Drawing.Size(70, 30);
+            this.btnClose.TabIndex = 6;
+            this.btnClose.Text = "Close";
+            this.btnClose.UseVisualStyleBackColor = true;
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
             // btnImport
             // 
-            this.btnImport.Location = new System.Drawing.Point(88, 519);
+            this.btnImport.Location = new System.Drawing.Point(89, 569);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(70, 30);
             this.btnImport.TabIndex = 11;
@@ -297,20 +289,18 @@ namespace AGS.Editor
             // 
             // cmbFilenames
             // 
-            this.cmbFilenames.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbFilenames.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFilenames.FormattingEnabled = true;
-            this.cmbFilenames.Location = new System.Drawing.Point(552, 12);
+            this.cmbFilenames.Location = new System.Drawing.Point(12, 519);
             this.cmbFilenames.Name = "cmbFilenames";
-            this.cmbFilenames.Size = new System.Drawing.Size(220, 21);
+            this.cmbFilenames.Size = new System.Drawing.Size(224, 21);
             this.cmbFilenames.TabIndex = 6;
             this.cmbFilenames.SelectedIndexChanged += new System.EventHandler(this.cmbFilenames_SelectedIndexChanged);
             // 
             // lblImageDescription
             // 
-            this.lblImageDescription.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblImageDescription.AutoSize = true;
-            this.lblImageDescription.Location = new System.Drawing.Point(552, 44);
+            this.lblImageDescription.Location = new System.Drawing.Point(13, 547);
             this.lblImageDescription.Name = "lblImageDescription";
             this.lblImageDescription.Size = new System.Drawing.Size(69, 13);
             this.lblImageDescription.TabIndex = 7;
@@ -321,11 +311,11 @@ namespace AGS.Editor
             this.zoomSlider.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.zoomSlider.LargeChange = 2;
-            this.zoomSlider.Location = new System.Drawing.Point(223, 12);
-            this.zoomSlider.Maximum = 15;
+            this.zoomSlider.Location = new System.Drawing.Point(245, 15);
+            this.zoomSlider.Maximum = 20;
             this.zoomSlider.Minimum = 1;
             this.zoomSlider.Name = "zoomSlider";
-            this.zoomSlider.Size = new System.Drawing.Size(323, 45);
+            this.zoomSlider.Size = new System.Drawing.Size(567, 45);
             this.zoomSlider.TabIndex = 4;
             this.zoomSlider.Value = 1;
             this.zoomSlider.Scroll += new System.EventHandler(this.zoomSlider_Scroll);
@@ -333,7 +323,7 @@ namespace AGS.Editor
             // lblZoom
             // 
             this.lblZoom.AutoSize = true;
-            this.lblZoom.Location = new System.Drawing.Point(220, 44);
+            this.lblZoom.Location = new System.Drawing.Point(242, 47);
             this.lblZoom.Name = "lblZoom";
             this.lblZoom.Size = new System.Drawing.Size(55, 13);
             this.lblZoom.TabIndex = 5;
@@ -359,10 +349,67 @@ namespace AGS.Editor
             this.groupSelection.Controls.Add(this.chkTiled);
             this.groupSelection.Location = new System.Drawing.Point(12, 306);
             this.groupSelection.Name = "groupSelection";
-            this.groupSelection.Size = new System.Drawing.Size(200, 207);
+            this.groupSelection.Size = new System.Drawing.Size(224, 207);
             this.groupSelection.TabIndex = 15;
             this.groupSelection.TabStop = false;
             this.groupSelection.Text = "Selection";
+            // 
+            // cmbTileDirection
+            // 
+            this.cmbTileDirection.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbTileDirection.Enabled = false;
+            this.cmbTileDirection.FormattingEnabled = true;
+            this.cmbTileDirection.Items.AddRange(new object[] {
+            "To the right",
+            "Downwards"});
+            this.cmbTileDirection.Location = new System.Drawing.Point(63, 43);
+            this.cmbTileDirection.Name = "cmbTileDirection";
+            this.cmbTileDirection.Size = new System.Drawing.Size(152, 21);
+            this.cmbTileDirection.TabIndex = 18;
+            this.cmbTileDirection.SelectedIndexChanged += new System.EventHandler(this.cmbTileDirection_SelectedIndexChanged);
+            // 
+            // numMaxTiles
+            // 
+            this.numMaxTiles.Enabled = false;
+            this.numMaxTiles.Location = new System.Drawing.Point(152, 74);
+            this.numMaxTiles.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            0});
+            this.numMaxTiles.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numMaxTiles.Name = "numMaxTiles";
+            this.numMaxTiles.Size = new System.Drawing.Size(63, 21);
+            this.numMaxTiles.TabIndex = 16;
+            this.numMaxTiles.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numMaxTiles.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
+            this.numMaxTiles.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
+            // 
+            // lblY
+            // 
+            this.lblY.AutoSize = true;
+            this.lblY.Location = new System.Drawing.Point(151, 102);
+            this.lblY.Name = "lblY";
+            this.lblY.Size = new System.Drawing.Size(13, 13);
+            this.lblY.TabIndex = 24;
+            this.lblY.Text = "Y";
+            // 
+            // lblMaxTiles
+            // 
+            this.lblMaxTiles.AutoSize = true;
+            this.lblMaxTiles.Location = new System.Drawing.Point(63, 76);
+            this.lblMaxTiles.Name = "lblMaxTiles";
+            this.lblMaxTiles.Size = new System.Drawing.Size(79, 13);
+            this.lblMaxTiles.TabIndex = 17;
+            this.lblMaxTiles.Text = "Number of tiles";
             // 
             // lblX
             // 
@@ -372,6 +419,15 @@ namespace AGS.Editor
             this.lblX.Size = new System.Drawing.Size(13, 13);
             this.lblX.TabIndex = 23;
             this.lblX.Text = "X";
+            // 
+            // lblTileDirection
+            // 
+            this.lblTileDirection.AutoSize = true;
+            this.lblTileDirection.Location = new System.Drawing.Point(10, 46);
+            this.lblTileDirection.Name = "lblTileDirection";
+            this.lblTileDirection.Size = new System.Drawing.Size(49, 13);
+            this.lblTileDirection.TabIndex = 19;
+            this.lblTileDirection.Text = "Direction";
             // 
             // lblMargin
             // 
@@ -400,7 +456,7 @@ namespace AGS.Editor
             // numMarginY
             // 
             this.numMarginY.Enabled = false;
-            this.numMarginY.Location = new System.Drawing.Point(131, 176);
+            this.numMarginY.Location = new System.Drawing.Point(152, 175);
             this.numMarginY.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -411,63 +467,6 @@ namespace AGS.Editor
             this.numMarginY.TabIndex = 20;
             this.numMarginY.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
             this.numMarginY.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
-            // 
-            // lblTileDirection
-            // 
-            this.lblTileDirection.AutoSize = true;
-            this.lblTileDirection.Location = new System.Drawing.Point(10, 46);
-            this.lblTileDirection.Name = "lblTileDirection";
-            this.lblTileDirection.Size = new System.Drawing.Size(49, 13);
-            this.lblTileDirection.TabIndex = 19;
-            this.lblTileDirection.Text = "Direction";
-            // 
-            // cmbTileDirection
-            // 
-            this.cmbTileDirection.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbTileDirection.Enabled = false;
-            this.cmbTileDirection.FormattingEnabled = true;
-            this.cmbTileDirection.Items.AddRange(new object[] {
-            "To the right",
-            "Downwards"});
-            this.cmbTileDirection.Location = new System.Drawing.Point(63, 43);
-            this.cmbTileDirection.Name = "cmbTileDirection";
-            this.cmbTileDirection.Size = new System.Drawing.Size(131, 21);
-            this.cmbTileDirection.TabIndex = 18;
-            this.cmbTileDirection.SelectedIndexChanged += new System.EventHandler(this.cmbTileDirection_SelectedIndexChanged);
-            // 
-            // lblMaxTiles
-            // 
-            this.lblMaxTiles.AutoSize = true;
-            this.lblMaxTiles.Location = new System.Drawing.Point(10, 76);
-            this.lblMaxTiles.Name = "lblMaxTiles";
-            this.lblMaxTiles.Size = new System.Drawing.Size(79, 13);
-            this.lblMaxTiles.TabIndex = 17;
-            this.lblMaxTiles.Text = "Number of tiles";
-            // 
-            // numMaxTiles
-            // 
-            this.numMaxTiles.Enabled = false;
-            this.numMaxTiles.Location = new System.Drawing.Point(131, 74);
-            this.numMaxTiles.Maximum = new decimal(new int[] {
-            99999,
-            0,
-            0,
-            0});
-            this.numMaxTiles.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numMaxTiles.Name = "numMaxTiles";
-            this.numMaxTiles.Size = new System.Drawing.Size(63, 21);
-            this.numMaxTiles.TabIndex = 16;
-            this.numMaxTiles.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numMaxTiles.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
-            this.numMaxTiles.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
             // 
             // lblSize
             // 
@@ -490,7 +489,7 @@ namespace AGS.Editor
             // numSizeY
             // 
             this.numSizeY.Enabled = false;
-            this.numSizeY.Location = new System.Drawing.Point(132, 148);
+            this.numSizeY.Location = new System.Drawing.Point(152, 148);
             this.numSizeY.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -535,7 +534,7 @@ namespace AGS.Editor
             // numOffsetY
             // 
             this.numOffsetY.Enabled = false;
-            this.numOffsetY.Location = new System.Drawing.Point(132, 121);
+            this.numOffsetY.Location = new System.Drawing.Point(152, 121);
             this.numOffsetY.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -554,9 +553,9 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Right)));
             this.previewPanel.AutoScroll = true;
             this.previewPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.previewPanel.Location = new System.Drawing.Point(223, 66);
+            this.previewPanel.Location = new System.Drawing.Point(245, 66);
             this.previewPanel.Name = "previewPanel";
-            this.previewPanel.Size = new System.Drawing.Size(549, 483);
+            this.previewPanel.Size = new System.Drawing.Size(570, 533);
             this.previewPanel.TabIndex = 0;
             this.previewPanel.Scroll += new System.Windows.Forms.ScrollEventHandler(this.previewPanel_Scroll);
             this.previewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.previewPanel_Paint);
@@ -564,35 +563,45 @@ namespace AGS.Editor
             this.previewPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseMove);
             this.previewPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseUp);
             // 
-            // lblY
+            // btnImportAll
             // 
-            this.lblY.AutoSize = true;
-            this.lblY.Location = new System.Drawing.Point(132, 102);
-            this.lblY.Name = "lblY";
-            this.lblY.Size = new System.Drawing.Size(13, 13);
-            this.lblY.TabIndex = 24;
-            this.lblY.Text = "Y";
+            this.btnImportAll.Location = new System.Drawing.Point(166, 569);
+            this.btnImportAll.Name = "btnImportAll";
+            this.btnImportAll.Size = new System.Drawing.Size(70, 30);
+            this.btnImportAll.TabIndex = 16;
+            this.btnImportAll.Text = "Import All";
+            this.btnImportAll.UseVisualStyleBackColor = true;
+            this.btnImportAll.Click += new System.EventHandler(this.btnImportAll_Click);
+            // 
+            // panelTopRight
+            // 
+            this.panelTopRight.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelTopRight.Location = new System.Drawing.Point(136, 135);
+            this.panelTopRight.Name = "panelTopRight";
+            this.panelTopRight.Size = new System.Drawing.Size(78, 17);
+            this.panelTopRight.TabIndex = 21;
             // 
             // SpriteImportWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(784, 561);
+            this.CancelButton = this.btnClose;
+            this.ClientSize = new System.Drawing.Size(824, 611);
+            this.Controls.Add(this.lblZoom);
+            this.Controls.Add(this.zoomSlider);
+            this.Controls.Add(this.btnImportAll);
             this.Controls.Add(this.groupSelection);
             this.Controls.Add(this.btnImport);
             this.Controls.Add(this.groupTransColour);
             this.Controls.Add(this.lblImageDescription);
-            this.Controls.Add(this.btnCancel);
+            this.Controls.Add(this.btnClose);
             this.Controls.Add(this.cmbFilenames);
-            this.Controls.Add(this.lblZoom);
             this.Controls.Add(this.groupImportOptions);
-            this.Controls.Add(this.zoomSlider);
             this.Controls.Add(this.previewPanel);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(800, 600);
+            this.MinimumSize = new System.Drawing.Size(840, 650);
             this.Name = "SpriteImportWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Import Sprite";
@@ -603,9 +612,9 @@ namespace AGS.Editor
             ((System.ComponentModel.ISupportInitialize)(this.zoomSlider)).EndInit();
             this.groupSelection.ResumeLayout(false);
             this.groupSelection.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numMaxTiles)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMarginX)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMarginY)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numMaxTiles)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSizeY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSizeX)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numOffsetX)).EndInit();
@@ -626,7 +635,7 @@ namespace AGS.Editor
         private System.Windows.Forms.TrackBar zoomSlider;
         private System.Windows.Forms.Label lblZoom;
         private System.Windows.Forms.Button btnImport;
-        private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.ComboBox cmbFilenames;
         private System.Windows.Forms.CheckBox chkUseAlphaChannel;
         private System.Windows.Forms.GroupBox groupTransColour;
@@ -638,7 +647,6 @@ namespace AGS.Editor
         private System.Windows.Forms.RadioButton radTransColourTopLeftPixel;
         private System.Windows.Forms.RadioButton radTransColourIndex0;
         private System.Windows.Forms.Panel panelBottomRight;
-        private System.Windows.Forms.Panel panelTopRight;
         private System.Windows.Forms.Panel panelBottomLeft;
         private System.Windows.Forms.Panel panelIndex0;
         private System.Windows.Forms.Panel panelTopLeft;
@@ -658,5 +666,7 @@ namespace AGS.Editor
         private System.Windows.Forms.NumericUpDown numMarginY;
         private System.Windows.Forms.Label lblX;
         private System.Windows.Forms.Label lblY;
+        private System.Windows.Forms.Button btnImportAll;
+        private System.Windows.Forms.Panel panelTopRight;
     }
 }

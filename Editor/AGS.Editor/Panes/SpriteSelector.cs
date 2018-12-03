@@ -461,26 +461,10 @@ namespace AGS.Editor
         private void ImportNewSprite(SpriteFolder folder, string[] filenames)
         {
             _lastImportedFilenames = filenames;
-            SpriteImportWindow impWin = new SpriteImportWindow(filenames);
-            impWin.SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
+            SpriteImportWindow impWin = new SpriteImportWindow(filenames, folder);
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
-                SpriteSheet spritesheet;
-
-                if (impWin.TiledImport)
-                {
-                    spritesheet = new SpriteSheet(impWin.SelectionOffset, impWin.SelectionSize,
-                        impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-                }
-                else
-                {
-                    spritesheet = null;
-                }
-
-                SpriteTools.ImportNewSprites(folder, filenames, impWin.UseAlphaChannel, impWin.RemapToGamePalette,
-                    impWin.UseBackgroundSlots, impWin.SpriteImportMethod, spritesheet);
-
                 RefreshSpriteDisplay();
             }
 
@@ -489,26 +473,10 @@ namespace AGS.Editor
 
         private void ImportNewSprite(SpriteFolder folder, Bitmap bmp)
         {
-            SpriteImportWindow impWin = new SpriteImportWindow(bmp);
-            impWin.SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
+            SpriteImportWindow impWin = new SpriteImportWindow(bmp, folder);
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
-                SpriteSheet spritesheet;
-
-                if (impWin.TiledImport)
-                {
-                    spritesheet = new SpriteSheet(impWin.SelectionOffset, impWin.SelectionSize,
-                        impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-                }
-                else
-                {
-                    spritesheet = null;
-                }
-
-                SpriteTools.ImportNewSprites(folder, bmp, impWin.UseAlphaChannel, impWin.RemapToGamePalette,
-                    impWin.UseBackgroundSlots, impWin.SpriteImportMethod, spritesheet);
-
                 RefreshSpriteDisplay();
             }
 
@@ -517,32 +485,10 @@ namespace AGS.Editor
 
         private void ReplaceSprite(Sprite sprite, string filename)
         {
-            SpriteImportWindow impWin = new SpriteImportWindow(new string[] { filename });
-
-            // get import options from the existing sprite
-            impWin.SpriteImportMethod = sprite.TransparentColour;
-            impWin.SelectionOffset = new Point(sprite.OffsetX, sprite.OffsetY);
-            impWin.SelectionSize = new Size(sprite.Width, sprite.Height);
-            impWin.UseAlphaChannel = sprite.AlphaChannel;
-            impWin.RemapToGamePalette = sprite.RemapToGamePalette;
+            SpriteImportWindow impWin = new SpriteImportWindow(new string[] { filename }, sprite);
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
-                SpriteSheet spritesheet;
-
-                if (impWin.TiledImport)
-                {
-                    spritesheet = new SpriteSheet(impWin.SelectionOffset, impWin.SelectionSize,
-                        impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-                }
-                else
-                {
-                    spritesheet = null;
-                }
-
-                SpriteTools.ReplaceSprite(sprite, filename, 0, impWin.UseAlphaChannel, impWin.RemapToGamePalette,
-                    impWin.UseBackgroundSlots, impWin.SpriteImportMethod, spritesheet);
-
                 RefreshSpriteDisplay();
             }
 
@@ -551,32 +497,10 @@ namespace AGS.Editor
 
         private void ReplaceSprite(Sprite sprite, Bitmap bmp)
         {
-            SpriteImportWindow impWin = new SpriteImportWindow(bmp);
-
-            // get import options from the existing sprite
-            impWin.SpriteImportMethod = sprite.TransparentColour;
-            impWin.SelectionOffset = new Point(sprite.OffsetX, sprite.OffsetY);
-            impWin.SelectionSize = new Size(sprite.Width, sprite.Height);
-            impWin.UseAlphaChannel = sprite.AlphaChannel;
-            impWin.RemapToGamePalette = sprite.RemapToGamePalette;
+            SpriteImportWindow impWin = new SpriteImportWindow(bmp, sprite);
 
             if (impWin.ShowDialog() == DialogResult.OK)
             {
-                SpriteSheet spritesheet;
-
-                if (impWin.TiledImport)
-                {
-                    spritesheet = new SpriteSheet(impWin.SelectionOffset, impWin.SelectionSize,
-                        impWin.TilingMargin, impWin.TilingDirection, impWin.MaxTiles);
-                }
-                else
-                {
-                    spritesheet = null;
-                }
-
-                SpriteTools.ReplaceSprite(sprite, bmp, impWin.UseAlphaChannel, impWin.RemapToGamePalette,
-                    impWin.UseBackgroundSlots, impWin.SpriteImportMethod, spritesheet);
-
                 RefreshSpriteDisplay();
             }
 

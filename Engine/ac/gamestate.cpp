@@ -62,6 +62,7 @@ const Rect &GameState::GetRoomViewport() const
 void GameState::SetRoomViewport(const Rect &viewport)
 {// TODO: adjust to main viewport
     _roomViewport.Position = viewport;
+    AdjustRoomToViewport();
 }
 
 const Rect &GameState::GetRoomCamera() const
@@ -73,6 +74,7 @@ void GameState::SetRoomCamera(const Size &cam_size)
 {
     _roomCamera.Position.SetWidth(cam_size.Width);
     _roomCamera.Position.SetHeight(cam_size.Height);
+    AdjustRoomToViewport();
 }
 
 void GameState::SetRoomCameraAt(int x, int y)
@@ -105,13 +107,14 @@ void GameState::ReleaseRoomCamera()
 
 void GameState::UpdateRoomCamera()
 {
-    if ((thisroom.width > _nativeSize.Width) || (thisroom.height > _nativeSize.Height))
+    const Rect &camera = _roomCamera.Position;
+    if ((thisroom.width > camera.GetWidth()) || (thisroom.height > camera.GetHeight()))
     {
         // TODO: split out into Camera Behavior
         if (offsets_locked == 0)
         {
-            int x = multiply_up_coordinate(playerchar->x) - _roomCamera.Position.GetWidth() / 2;
-            int y = multiply_up_coordinate(playerchar->y) - _roomCamera.Position.GetHeight() / 2;
+            int x = multiply_up_coordinate(playerchar->x) - camera.GetWidth() / 2;
+            int y = multiply_up_coordinate(playerchar->y) - camera.GetHeight() / 2;
             SetRoomCameraAt(x, y);
         }
     }
@@ -119,6 +122,48 @@ void GameState::UpdateRoomCamera()
     {
         SetRoomCameraAt(0, 0);
     }
+}
+
+void GameState::AdjustRoomToViewport()
+{
+    _roomViewport.Transform.Init(_roomCamera.Position.GetSize(), _roomViewport.Position);
+}
+
+Point GameState::RoomToScreen(int roomx, int roomy)
+{
+    return _roomViewport.Transform.Scale(Point(roomx - _roomCamera.Position.Left, roomy - _roomCamera.Position.Top));
+}
+
+Point GameState::RoomToScreenDivDown(int roomx, int roomy)
+{
+    return _roomViewport.Transform.Scale(Point(roomx - divide_down_coordinate(_roomCamera.Position.Left),
+        roomy - divide_down_coordinate(_roomCamera.Position.Top)));
+}
+
+int GameState::RoomToScreenX(int roomx)
+{
+    return _roomViewport.Transform.X.ScalePt(roomx - _roomCamera.Position.Left);
+}
+
+int GameState::RoomToScreenY(int roomy)
+{
+    return _roomViewport.Transform.Y.ScalePt(roomy - _roomCamera.Position.Top);
+}
+
+Point GameState::ScreenToRoom(int scrx, int scry)
+{
+    Point p = _roomViewport.Transform.UnScale(Point(scrx, scry));
+    p.X += _roomCamera.Position.Left;
+    p.Y += _roomCamera.Position.Top;
+    return p;
+}
+
+Point GameState::ScreenToRoomDivDown(int scrx, int scry)
+{
+    Point p = _roomViewport.Transform.UnScale(Point(scrx, scry));
+    p.X += divide_down_coordinate(_roomCamera.Position.Left);
+    p.Y += divide_down_coordinate(_roomCamera.Position.Top);
+    return p;
 }
 
 void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)

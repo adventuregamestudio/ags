@@ -513,10 +513,11 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
     return TRUE;
 }
 
-// X and Y co-ordinates must be in 320x200 format
+// X and Y co-ordinates must be in 320x200 format (TODO: find out if this comment is still true)
+// X and Y are ROOM coordinates here for some reason, so we have to perform that ugly back-and-forth coordinate conversion
 int check_click_on_object(int xx,int yy,int mood) {
-    const Rect &camera = play.GetRoomCamera();
-    int aa = GetObjectAt(xx - divide_down_coordinate(camera.Left), yy - divide_down_coordinate(camera.Top));
+    Point pt = play.RoomToScreenDivDown(xx, yy);
+    int aa = GetObjectAt(pt.X, pt.Y);
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;

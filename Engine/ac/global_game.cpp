@@ -551,8 +551,9 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         return;
     }
     int loctype = GetLocationType (xxx, yyy);
-    xxx += divide_down_coordinate(play.GetRoomCamera().Left); 
-    yyy += divide_down_coordinate(play.GetRoomCamera().Top);
+    Point roompt = play.ScreenToRoomDivDown(xxx, yyy);
+    xxx = roompt.X;
+    yyy = roompt.Y;
     tempo[0]=0;
     if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
         return;
@@ -800,9 +801,9 @@ extern int getloctype_throughgui, getloctype_index;
 void ProcessClick(int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    const Rect &camera = play.GetRoomCamera();
-    xx += divide_down_coordinate(camera.Left);
-    yy += divide_down_coordinate(camera.Top);
+    Point roompt = play.ScreenToRoomDivDown(xx, yy);
+    xx = roompt.X;
+    yy = roompt.Y;
 
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
         int hsnum=get_hotspot_at(xx,yy);
@@ -838,9 +839,9 @@ void ProcessClick(int xx,int yy,int mood) {
 int IsInteractionAvailable (int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    const Rect &camera = play.GetRoomCamera();
-    xx += divide_down_coordinate(camera.Left);
-    yy += divide_down_coordinate(camera.Top);
+    Point roompt = play.ScreenToRoomDivDown(xx, yy);
+    xx = roompt.X;
+    yy = roompt.Y;
 
     // You can always walk places
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0))

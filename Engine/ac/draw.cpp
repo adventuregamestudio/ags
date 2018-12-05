@@ -1037,6 +1037,7 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
 
     if (actspswbcache[actspsIndex].isWalkBehindHere)
     {
+        // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
         add_to_sprite_list(actspswbbmp[actspsIndex], xx - play.GetRoomCamera().Left, yy - play.GetRoomCamera().Top, basel, 0, -1, true);
     }
 }
@@ -1162,6 +1163,7 @@ void draw_sprite_list() {
         {
             if (walkBehindBitmap[ee] != NULL)
             {
+                // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
                 add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee] - play.GetRoomCamera().Left, walkBehindTop[ee] - play.GetRoomCamera().Top,
                     croom->walkbehind_base[ee], 0, -1, true);
             }
@@ -1647,6 +1649,7 @@ void prepare_objects_for_drawing() {
         objcache[aa].xwas = objs[aa].x;
         objcache[aa].ywas = objs[aa].y;
 
+        // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
         const Rect &camera = play.GetRoomCamera();
         int offsetx = camera.Left;
         int offsety = camera.Top;
@@ -1762,6 +1765,7 @@ void prepare_characters_for_drawing() {
 
     our_eip=33;
 
+    // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
     const Rect &camera = play.GetRoomCamera();
     int offsetx = camera.Left;
     int offsety = camera.Top;

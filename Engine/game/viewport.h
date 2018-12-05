@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__VIEWPORT_H
 
 #include "util/geometry.h"
+#include "util/scaling.h"
 
 struct RoomCamera
 {
@@ -28,6 +29,10 @@ struct RoomCamera
 struct Viewport
 {
     Rect Position;
+    // TODO: Camera reference (when supporting multiple cameras)
+    // Coordinate tranform between camera and viewport
+    // TODO: need to add rotate conversion to let script API support that
+    AGS::Engine::PlaneScaling Transform;
 };
 
 #endif // __AGS_EE_AC__VIEWPORT_H

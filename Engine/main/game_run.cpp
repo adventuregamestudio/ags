@@ -609,6 +609,7 @@ void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, in
         render_graphics(extraBitmap, extraX, extraY);
 
         // Check Mouse Moves Over Hotspot event
+        // TODO: do not use static variables!
         static int offsetxWas = -100, offsetyWas = -100;
 
         if (((mwasatx!=mousex) || (mwasaty!=mousey) ||

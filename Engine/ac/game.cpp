@@ -1876,9 +1876,11 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     getloctype_throughgui = 0;
 
-    const Rect &camera = play.GetRoomCamera();
-    xxx += divide_down_coordinate(camera.Left);
-    yyy += divide_down_coordinate(camera.Top);
+    const int scrx = xxx;
+    const int scry = yyy;
+    Point roompt = play.ScreenToRoomDivDown(xxx, yyy);
+    xxx = roompt.X;
+    yyy = roompt.Y;
     if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
         return 0;
 
@@ -1886,7 +1888,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     // foremost visible to the player
     int charat = is_pos_on_character(xxx,yyy);
     int hsat = get_hotspot_at(xxx,yyy);
-    int objat = GetObjectAt(xxx - divide_down_coordinate(camera.Left), yyy - divide_down_coordinate(camera.Top));
+    int objat = GetObjectAt(scrx, scry);
 
     multiply_up_coordinates(&xxx, &yyy);
 

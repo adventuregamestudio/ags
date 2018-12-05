@@ -443,10 +443,8 @@ void GetCharacterPropertyText (int item, const char *property, char *bufer) {
 }
 
 int GetCharacterAt (int xx, int yy) {
-    const Rect &camera = play.GetRoomCamera();
-    xx += divide_down_coordinate(camera.Left);
-    yy += divide_down_coordinate(camera.Right);
-    return is_pos_on_character(xx,yy);
+    Point roompt = play.ScreenToRoomDivDown(xx, yy);
+    return is_pos_on_character(roompt.X, roompt.Y);
 }
 
 void SetActiveInventory(int iit) {

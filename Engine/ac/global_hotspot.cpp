@@ -69,12 +69,11 @@ int GetHotspotPointY (int hotspot) {
     return thisroom.hswalkto[hotspot].y;
 }
 
-int GetHotspotAt(int xxx,int yyy) {
-    xxx += divide_down_coordinate(play.GetRoomCamera().Left);
-    yyy += divide_down_coordinate(play.GetRoomCamera().Top);
-    if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
+int GetHotspotAt(int scrx, int scry) {
+    Point pt = play.ScreenToRoomDivDown(scrx, scry);
+    if ((pt.X>=thisroom.width) | (pt.X<0) | (pt.Y<0) | (pt.Y>=thisroom.height))
         return 0;
-    return get_hotspot_at(xxx,yyy);
+    return get_hotspot_at(pt.X, pt.Y);
 }
 
 void GetHotspotName(int hotspot, char *buffer) {

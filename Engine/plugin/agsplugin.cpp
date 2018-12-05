@@ -379,16 +379,18 @@ int IAGSEngine::GetPlayerCharacter () {
     return game.playercharacter;
 }
 void IAGSEngine::RoomToViewport (int32 *x, int32 *y) {
+    Point scrp = play.RoomToScreen(x ? multiply_up_coordinate(*x) : 0, y ? multiply_up_coordinate(*y) : 0);
     if (x)
-        x[0] = multiply_up_coordinate(x[0]) - play.GetRoomCamera().Left;
+        *x = scrp.X;
     if (y)
-        y[0] = multiply_up_coordinate(y[0]) - play.GetRoomCamera().Top;
+        *y = scrp.Y;
 }
 void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
+    Point scrp = play.ScreenToRoom(x ? divide_down_coordinate(*x) : 0, y ? divide_down_coordinate(*y) : 0);
     if (x)
-        x[0] = divide_down_coordinate(x[0] + play.GetRoomCamera().Left);
+        *x = scrp.X;
     if (y)
-        y[0] = divide_down_coordinate(y[0] + play.GetRoomCamera().Top);
+        *y = scrp.Y;
 }
 int IAGSEngine::GetNumObjects () {
     return croom->numobj;

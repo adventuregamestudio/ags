@@ -72,12 +72,11 @@ void RestoreWalkableArea(int areanum) {
 }
 
 
-int GetWalkableAreaAt(int xxx,int yyy) {
-  xxx += divide_down_coordinate(play.GetRoomCamera().Left);
-  yyy += divide_down_coordinate(play.GetRoomCamera().Top);
-  if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
+int GetWalkableAreaAt(int x, int y) {
+  Point roompt = play.ScreenToRoomDivDown(x, y);
+  if ((roompt.X>=thisroom.width) | (roompt.X<0) | (roompt.Y<0) | (roompt.Y>=thisroom.height))
     return 0;
-  int result = get_walkable_area_pixel(xxx, yyy);
+  int result = get_walkable_area_pixel(roompt.X, roompt.Y);
   if (result <= 0)
     return 0;
   return result;

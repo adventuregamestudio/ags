@@ -2353,7 +2353,7 @@ void _DisplayThoughtCore(int chid, const char *displbuf) {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
         width = multiply_up_coordinate(play.speech_bubble_width);
-        xpp = (multiply_up_coordinate(game.chars[chid].x) - play.GetRoomCamera().Left) - width / 2;
+        xpp = play.RoomToScreenX(multiply_up_coordinate(game.chars[chid].x)) - width / 2;
         if (xpp < 0)
             xpp = 0;
         // -1 will automatically put it above the char's head
@@ -2423,7 +2423,6 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         textcol = 16;
 
     Rect ui_view = play.GetUIViewport();
-    Rect camera = play.GetRoomCamera();
     int allowShrink = 0;
     int bwidth = widd;
     if (bwidth < 0)
@@ -2500,7 +2499,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         // the screen.
         our_eip=1501;
         if (tdxp < 0)
-            tdxp = multiply_up_coordinate(speakingChar->x) - camera.Left;
+            tdxp = play.RoomToScreenX(multiply_up_coordinate(speakingChar->x));
         if (tdxp < 2)
             tdxp=2;
 
@@ -2530,7 +2529,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         if (tdyp < 0) 
         {
             int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
-            tdyp = multiply_up_coordinate(speakingChar->get_effective_y()) - camera.Top - get_fixed_pixel_size(5);
+            tdyp = play.RoomToScreenY(multiply_up_coordinate(speakingChar->get_effective_y())) - get_fixed_pixel_size(5);
             if (charextra[aschar].height < 1)
                 tdyp -= game.SpriteInfos[sppic].Height;
             else
@@ -2791,7 +2790,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             if (widd < 0) {
                 bwidth = ui_view.GetWidth()/2 + ui_view.GetWidth()/6;
                 // If they are close to the screen edge, make the text narrower
-                int relx = multiply_up_coordinate(speakingChar->x) - camera.Left;
+                int relx = play.RoomToScreenX(multiply_up_coordinate(speakingChar->x));
                 if ((relx < ui_view.GetWidth() / 4) || (relx > ui_view.GetWidth() - (ui_view.GetWidth() / 4)))
                     bwidth -= ui_view.GetWidth() / 5;
             }

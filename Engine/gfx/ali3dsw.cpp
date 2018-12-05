@@ -310,6 +310,8 @@ void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RG
   int color = 0;
   if (colorToUse != NULL) 
     color = makecol_depth(_mode.ColorDepth, colorToUse->r, colorToUse->g, colorToUse->b);
+  // TODO: hardware renderers do not scale these coordinates, but software filter does!
+  // find out what's the expected behavior and sync them
   _filter->ClearRect(x1, y1, x2, y2, color);
 }
 
@@ -389,11 +391,13 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
         _spriteBatches.resize(index + 1);
     ALSpriteBatch &batch = _spriteBatches[index];
     batch.List.clear();
-    if (desc.Viewport.IsEmpty())
+    // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
+    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
+    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    if (desc.Viewport.IsEmpty() || desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
         batch.Surface.reset();
-    else if (!batch.Surface || batch.Surface->GetWidth() != desc.Viewport.GetWidth() ||
-                          batch.Surface->GetHeight() != desc.Viewport.GetHeight())
-        batch.Surface.reset(new Bitmap(desc.Viewport.GetWidth(), desc.Viewport.GetHeight()));
+    else if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+        batch.Surface.reset(new Bitmap(src_w, src_h));
 }
 
 void ALSoftwareGraphicsDriver::ResetAllBatches()
@@ -415,19 +419,28 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         const Rect &viewport = _spriteBatchDesc[i].Viewport;
         const SpriteTransform &transform = _spriteBatchDesc[i].Transform;
         const ALSpriteBatch &batch = _spriteBatches[i];
-        RenderSpriteBatch(batch);
-        // TODO: extract this to the generic software blit-with-transform function
+
         virtualScreen->SetClip(viewport);
-        virtualScreen->Blit(batch.Surface.get(), viewport.Left + transform.X, viewport.Top + transform.Y, kBitmap_Transparency);
+        Bitmap *surface = batch.Surface.get();
+        if (surface)
+        {
+            surface->ClearTransparent();
+            RenderSpriteBatch(batch, surface, 0, 0);
+            // TODO: extract this to the generic software blit-with-transform function
+            virtualScreen->StretchBlt(batch.Surface.get(), RectWH(viewport.Left + transform.X, viewport.Top + transform.Y, viewport.GetWidth(), viewport.GetHeight()),
+                kBitmap_Transparency);
+        }
+        else
+        {
+            RenderSpriteBatch(batch, virtualScreen, viewport.Left + transform.X, viewport.Top + transform.Y);
+        }
     }
     ClearDrawLists();
 }
 
-void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch)
+void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Common::Bitmap *surface, int surf_offx, int surf_offy)
 {
   const std::vector<ALDrawListEntry> &drawlist = batch.List;
-  Bitmap *surface = batch.Surface.get();
-  surface->ClearTransparent();
   for (size_t i = 0; i < drawlist.size(); i++)
   {
     if (drawlist[i].bitmap == NULL)
@@ -441,8 +454,8 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch)
     }
 
     ALSoftwareBitmap* bitmap = drawlist[i].bitmap;
-    int drawAtX = drawlist[i].x;
-    int drawAtY = drawlist[i].y;
+    int drawAtX = drawlist[i].x + surf_offx;
+    int drawAtY = drawlist[i].y + surf_offy;
 
     if ((bitmap->_opaque) && (bitmap->_bmp == surface))
     { }

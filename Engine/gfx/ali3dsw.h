@@ -216,7 +216,7 @@ private:
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     // Renders single sprite batch on the precreated surface
-    void RenderSpriteBatch(const ALSpriteBatch &batch);
+    void RenderSpriteBatch(const ALSpriteBatch &batch, Common::Bitmap *surface, int surf_offx, int surf_offy);
 
     void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);

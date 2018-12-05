@@ -181,8 +181,12 @@ public:
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer);
 
 protected:
-    void CreateStageScreen();
-    void DestroyStageScreen();
+    // Stage screens are raw bitmap buffers meant to be sent to plugins on demand
+    // at certain drawing stages. If used at least once these buffers are then
+    // rendered as additional sprites in their respected order.
+    PBitmap CreateStageScreen(size_t index, const Size &sz);
+    PBitmap GetStageScreen(size_t index);
+    void DestroyAllStageScreens();
     // Use engine callback to acquire replacement for the null sprite;
     // returns true if the sprite was provided onto the virtual screen,
     // and false if this entry should be skipped.
@@ -194,7 +198,7 @@ protected:
 
     // Stage virtual screen is used to let plugins draw custom graphics
     // in between render stages (between room and GUI, after GUI, and so on)
-    Bitmap *_stageVirtualScreen;
+    PBitmap _stageVirtualScreen;
     IDriverDependantBitmap *_stageVirtualScreenDDB;
 
     // Color component shifts in video bitmap format (set by implementations)
@@ -204,6 +208,8 @@ protected:
     int _vmem_b_shift_32;
 
 private:
+    // Virtual screens for rendering stages (sprite batches)
+    std::vector<PBitmap> _stageScreens;
     // Flag which indicates whether stage screen was drawn upon during engine
     // callback and has to be inserted into sprite stack.
     bool _stageScreenDirty;

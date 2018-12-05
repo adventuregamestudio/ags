@@ -907,7 +907,9 @@ void OGLGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsNativeSizeValid())
     return;
-  CreateStageScreen();
+  // create initial stage screen for plugin raw drawing
+  _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
+  BitmapHelper::SetScreenBitmap(_stageVirtualScreen.get());
 }
 
 bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
@@ -965,7 +967,7 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   delete _screenTintLayer;
   _screenTintLayer = NULL;
 
-  DestroyStageScreen();
+  DestroyAllStageScreens();
 
   gfx_driver = NULL;
 
@@ -1393,6 +1395,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
         {
             glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
         }
+        _stageVirtualScreen = GetStageScreen(i);
         RenderSpriteBatch(batch, flip);
     }
 
@@ -1452,6 +1455,11 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f);
     glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
     glLoadIdentity();
+
+    // create stage screen for plugin raw drawing
+    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
+    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    CreateStageScreen(index, Size(src_w, src_h));
 }
 
 void OGLGraphicsDriver::ResetAllBatches()

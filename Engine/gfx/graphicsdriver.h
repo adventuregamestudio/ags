@@ -36,6 +36,7 @@ namespace Engine
 // Forward declaration
 class IDriverDependantBitmap;
 class IGfxFilter;
+typedef stdtr1compat::shared_ptr<Common::Bitmap> PBitmap;
 typedef stdtr1compat::shared_ptr<IGfxFilter> PGfxFilter;
 
 enum TintMethod

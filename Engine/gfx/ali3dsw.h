@@ -172,7 +172,7 @@ public:
     virtual bool RequiresFullRedrawEachFrame() { return false; }
     virtual bool HasAcceleratedStretchAndFlip() { return false; }
     virtual bool UsesMemoryBackBuffer() { return true; }
-    virtual Bitmap *GetMemoryBackBuffer() { return virtualScreen; }
+    virtual Bitmap *GetMemoryBackBuffer();
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer) { virtualScreen = backBuffer; }
     virtual void SetScreenTint(int red, int green, int blue) { 
         _tint_red = red; _tint_green = green; _tint_blue = blue; }
@@ -191,6 +191,10 @@ private:
     // bitmap, or bitmap provided by the graphics filter. It should not be
     // disposed by the renderer: it is up to filter object to manage it.
     Bitmap *virtualScreen;
+    // Stage screen meant for particular rendering stages, may be referencing
+    // actual virtual screen or separate bitmap of different size that is
+    // blitted to virtual screen at the stage finalization.
+    Bitmap *_stageVirtualScreen;
     Bitmap *_spareTintingScreen;
     int _tint_red, _tint_green, _tint_blue;
 

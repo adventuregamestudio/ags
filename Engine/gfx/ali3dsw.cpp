@@ -85,6 +85,7 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
 #endif
   _allegroScreenWrapper = NULL;
   virtualScreen = NULL;
+  _stageVirtualScreen = NULL;
 
   // Initialize default sprite batch, it will be used when no other batch was activated
   InitSpriteBatch(0, _spriteBatchDesc[0]);
@@ -252,6 +253,7 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
   // (which may or not be the same as real screen)
   virtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
   BitmapHelper::SetScreenBitmap( virtualScreen );
+  _stageVirtualScreen = virtualScreen;
 }
 
 void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
@@ -260,6 +262,7 @@ void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
   {
     BitmapHelper::SetScreenBitmap(_filter->ShutdownAndReturnRealScreen());
     virtualScreen = NULL;
+    _stageVirtualScreen = NULL;
   }
 }
 
@@ -425,6 +428,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         if (surface)
         {
             surface->ClearTransparent();
+            _stageVirtualScreen = surface;
             RenderSpriteBatch(batch, surface, 0, 0);
             // TODO: extract this to the generic software blit-with-transform function
             virtualScreen->StretchBlt(batch.Surface.get(), RectWH(viewport.Left + transform.X, viewport.Top + transform.Y, viewport.GetWidth(), viewport.GetHeight()),
@@ -434,6 +438,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         {
             RenderSpriteBatch(batch, virtualScreen, viewport.Left + transform.X, viewport.Top + transform.Y);
         }
+        _stageVirtualScreen = virtualScreen;
     }
     ClearDrawLists();
 }
@@ -528,6 +533,11 @@ void ALSoftwareGraphicsDriver::Render()
 void ALSoftwareGraphicsDriver::Vsync()
 {
   vsync();
+}
+
+Bitmap *ALSoftwareGraphicsDriver::GetMemoryBackBuffer()
+{
+  return _stageVirtualScreen;
 }
 
 void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)

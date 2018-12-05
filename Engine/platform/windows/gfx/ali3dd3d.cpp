@@ -351,7 +351,7 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
   delete _screenTintLayer;
   _screenTintLayer = NULL;
 
-  DestroyStageScreen();
+  DestroyAllStageScreens();
 
   gfx_driver = NULL;
 
@@ -909,8 +909,9 @@ void D3DGraphicsDriver::CreateVirtualScreen()
   }
   direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 
-  // create virtual screen for extra rendering
-  CreateStageScreen();
+  // create initial stage screen for plugin raw drawing
+  _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
+  BitmapHelper::SetScreenBitmap(_stageVirtualScreen.get());
 }
 
 HRESULT D3DGraphicsDriver::ResetD3DDevice()
@@ -1411,6 +1412,7 @@ void D3DGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
         {
             direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
         }
+        _stageVirtualScreen = GetStageScreen(i);
         RenderSpriteBatch(batch, flip);
     }
 
@@ -1462,6 +1464,11 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     MatrixTransform2D(_spriteBatches[index].Matrix,
         desc.Transform.X + desc.Viewport.Left - scaled_offx, -(desc.Transform.Y + desc.Viewport.Top - scaled_offy),
         desc.Transform.ScaleX, desc.Transform.ScaleY, desc.Transform.Rotate);
+
+    // create stage screen for plugin raw drawing
+    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
+    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    CreateStageScreen(index, Size(src_w, src_h));
 }
 
 void D3DGraphicsDriver::ResetAllBatches()

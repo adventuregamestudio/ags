@@ -144,8 +144,7 @@ void GraphicsDriverBase::OnSetFilter()
 
 
 VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
-    : _stageVirtualScreen(NULL)
-    , _stageVirtualScreenDDB(NULL)
+    : _stageVirtualScreenDDB(NULL)
     , _stageScreenDirty(false)
 {
     // Only to have something meaningful as default
@@ -157,7 +156,7 @@ VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
 
 VideoMemoryGraphicsDriver::~VideoMemoryGraphicsDriver()
 {
-    DestroyStageScreen();
+    DestroyAllStageScreens();
 }
 
 bool VideoMemoryGraphicsDriver::UsesMemoryBackBuffer()
@@ -171,7 +170,7 @@ bool VideoMemoryGraphicsDriver::UsesMemoryBackBuffer()
 Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
 {
     _stageScreenDirty = true;
-    return _stageVirtualScreen;
+    return _stageVirtualScreen.get();
 }
 
 void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
@@ -179,20 +178,33 @@ void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
     // TODO: support this under certain circumstances?
 }
 
-void VideoMemoryGraphicsDriver::CreateStageScreen()
+PBitmap VideoMemoryGraphicsDriver::CreateStageScreen(size_t index, const Size &sz)
 {
-    DestroyStageScreen();
-    _stageVirtualScreen = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth);
-    BitmapHelper::SetScreenBitmap(_stageVirtualScreen);
+    if (_stageScreens.size() <= index)
+        _stageScreens.resize(index + 1);
+    if (sz.IsNull())
+        _stageScreens[index].reset();
+    else if (_stageScreens[index] == NULL || _stageScreens[index]->GetSize() != sz)
+        _stageScreens[index].reset(new Bitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth));
+    return _stageScreens[index];
 }
 
-void VideoMemoryGraphicsDriver::DestroyStageScreen()
+PBitmap VideoMemoryGraphicsDriver::GetStageScreen(size_t index)
+{
+    if (index < _stageScreens.size())
+        return _stageScreens[index];
+    return NULL;
+}
+
+void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
 {
     if (_stageVirtualScreenDDB)
         this->DestroyDDB(_stageVirtualScreenDDB);
     _stageVirtualScreenDDB = NULL;
-    delete _stageVirtualScreen;
-    _stageVirtualScreen = NULL;
+
+    for (size_t i = 0; i < _stageScreens.size(); ++i)
+        _stageScreens[i].reset();
+    _stageVirtualScreen.reset();
     BitmapHelper::SetScreenBitmap(NULL);
 }
 
@@ -209,9 +221,9 @@ bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
     if (_stageScreenDirty)
     {
         if (_stageVirtualScreenDDB)
-            UpdateDDBFromBitmap(_stageVirtualScreenDDB, _stageVirtualScreen, true);
+            UpdateDDBFromBitmap(_stageVirtualScreenDDB, _stageVirtualScreen.get(), true);
         else
-            _stageVirtualScreenDDB = CreateDDBFromBitmap(_stageVirtualScreen, true);
+            _stageVirtualScreenDDB = CreateDDBFromBitmap(_stageVirtualScreen.get(), true);
         return true;
     }
     return false;

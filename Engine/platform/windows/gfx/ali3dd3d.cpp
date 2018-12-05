@@ -51,27 +51,30 @@ void MatrixIdentity(D3DMATRIX &m)
         0.0, 0.0, 0.0, 1.0
     };
 }
-// Setup transformation matrix
-// TODO: support rotate
-// TODO: maybe split into separate translate/scale functions?
-void MakeTranslatedScalingMatrix(D3DMATRIX &m, float x, float y, float xScale, float yScale)
+// Setup translation matrix
+void MatrixTranslate(D3DMATRIX &m, float x, float y, float z)
 {
-    m._11 = xScale;
-    m._12 = 0.0;
-    m._13 = 0.0;
-    m._14 = 0.0;
-    m._21 = 0.0;
-    m._22 = yScale;
-    m._23 = 0.0;
-    m._24 = 0.0;
-    m._31 = 0.0;
-    m._32 = 0.0;
-    m._33 = 1.0;
-    m._34 = 0.0;
-    m._41 = x;
-    m._42 = y;
-    m._43 = 0.0;
-    m._44 = 1.0;
+    MatrixIdentity(m);
+    m.m[3][0] = x;
+    m.m[3][1] = y;
+    m.m[3][2] = z;
+}
+// Setup scaling matrix
+void MatrixScale(D3DMATRIX &m, float sx, float sy, float sz)
+{
+    MatrixIdentity(m);
+    m.m[0][0] = sx;
+    m.m[1][1] = sy;
+    m.m[2][2] = sz;
+}
+// Setup rotation around Z axis; angle is in radians
+void MatrixRotateZ(D3DMATRIX &m, float angle)
+{
+    MatrixIdentity(m);
+    m.m[0][0] = cos(angle);
+    m.m[1][1] = cos(angle);
+    m.m[0][1] = sin(angle);
+    m.m[1][0] = -sin(angle);
 }
 // Matrix multiplication
 void MatrixMultiply(D3DMATRIX &mr, const D3DMATRIX &m1, const D3DMATRIX &m2)
@@ -79,6 +82,20 @@ void MatrixMultiply(D3DMATRIX &mr, const D3DMATRIX &m1, const D3DMATRIX &m2)
     for (int i = 0; i < 4; ++i)
         for (int j = 0; j < 4; ++j)
             mr.m[i][j] = m1.m[i][0] * m2.m[0][j] + m1.m[i][1] * m2.m[1][j] + m1.m[i][2] * m2.m[2][j] + m1.m[i][3] * m2.m[3][j];
+}
+// Setup full 2D transformation matrix
+void MatrixTransform2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez)
+{
+    D3DMATRIX translate;
+    D3DMATRIX scale;
+    D3DMATRIX rotate;
+    MatrixTranslate(translate, x, y, 0.f);
+    MatrixScale(scale, sx, sy, 1.f);
+    MatrixRotateZ(rotate, anglez);
+
+    D3DMATRIX tr1;
+    MatrixMultiply(tr1, rotate, scale);
+    MatrixMultiply(m, tr1, translate);
 }
 
 
@@ -1265,7 +1282,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     }
 
     // Multiply object's own and global matrixes
-    MakeTranslatedScalingMatrix(matSelfTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale);
+    MatrixTransform2D(matSelfTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale, 0.f);
     MatrixMultiply(matTransform, matSelfTransform, matGlobal);
 
     if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&
@@ -1370,10 +1387,34 @@ void D3DGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
     {
         const Rect &viewport = _spriteBatchDesc[i].Viewport;
         const D3DSpriteBatch &batch = _spriteBatches[i];
-        // TODO: apply viewport clip and transform (??)
+        if (!viewport.IsEmpty())
+        {
+            direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
+            RECT scissor;
+            if (_renderSprAtScreenRes)
+            {
+                scissor.left = _scaling.X.ScalePt(viewport.Left);
+                scissor.top = _scaling.Y.ScalePt(viewport.Top);
+                scissor.right = _scaling.X.ScalePt(viewport.Right + 1);
+                scissor.bottom = _scaling.Y.ScalePt(viewport.Bottom + 1);
+            }
+            else
+            {
+                scissor.left = viewport.Left;
+                scissor.top = viewport.Top;
+                scissor.right = viewport.Right + 1;
+                scissor.bottom = viewport.Bottom + 1;
+            }
+            direct3ddevice->SetScissorRect(&scissor);
+        }
+        else
+        {
+            direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+        }
         RenderSpriteBatch(batch, flip);
     }
 
+    direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
     if (!_screenTintSprite.skip)
     {
         this->_renderSprite(&_screenTintSprite, _spriteBatches[_actSpriteBatch].Matrix, false, false);
@@ -1413,8 +1454,14 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         _spriteBatches.resize(index + 1);
     _spriteBatches[index].List.clear();
     // Combine both world transform and viewport transform into one matrix for faster perfomance
-    MakeTranslatedScalingMatrix(_spriteBatches[index].Matrix,
-        desc.Transform.X + desc.Viewport.Left, -(desc.Transform.Y + desc.Viewport.Top), 1.0f, 1.0f);
+    // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
+    float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
+    float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
+    // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
+    // is it possible to do with matrixes?
+    MatrixTransform2D(_spriteBatches[index].Matrix,
+        desc.Transform.X + desc.Viewport.Left - scaled_offx, -(desc.Transform.Y + desc.Viewport.Top - scaled_offy),
+        desc.Transform.ScaleX, desc.Transform.ScaleY, desc.Transform.Rotate);
 }
 
 void D3DGraphicsDriver::ResetAllBatches()

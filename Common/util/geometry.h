@@ -91,6 +91,11 @@ struct Point
         X = x;
         Y = y;
     }
+
+    inline Point &operator +(const Point &p)
+    {
+        return Point(X + p.X, Y + p.Y);
+    }
 };
 
 struct Line
@@ -230,6 +235,11 @@ struct Rect
     inline Point GetLT() const
     {
         return Point(Left, Top);
+    }
+
+    inline Point GetCenter() const
+    {
+        return Point(Left + GetWidth() / 2, Top + GetHeight() / 2);
     }
 
 	inline int GetWidth() const

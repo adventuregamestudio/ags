@@ -127,7 +127,7 @@ protected:
     Rect                _srcRect;       // rendering source rect
     Rect                _dstRect;       // rendering destination rect
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
-    PlaneScaling        _scaling;       // currently unused? don't remember what was it planned for
+    PlaneScaling        _scaling;       // native -> render dest coordinate transformation
     // TODO: probably should be replaced by defining translation for the sprite batch
     int                 _global_x_offset;
     int                 _global_y_offset;

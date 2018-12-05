@@ -22,6 +22,7 @@
 #include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
+#include "util/math.h"
 
 
 #if defined(WINDOWS_VERSION)
@@ -849,9 +850,14 @@ void OGLGraphicsDriver::SetupViewport()
   if (!IsModeSet() || !IsRenderFrameValid())
     return;
 
-  // Setup viewport rect and scissor; notice that OpenGL viewport has Y axis inverted
-  _viewportRect = RectWH(_dstRect.Left, device_screen_physical_height - 1 - _dstRect.Bottom, _dstRect.GetWidth(), _dstRect.GetHeight());
+  // Setup viewport rect and scissor
+  _viewportRect = ConvertTopDownRect(_dstRect, device_screen_physical_height);
   glScissor(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
+}
+
+Rect OGLGraphicsDriver::ConvertTopDownRect(const Rect &rect, int surface_height)
+{
+    return RectWH(rect.Left, surface_height - 1 - rect.Bottom, rect.GetWidth(), rect.GetHeight());
 }
 
 bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
@@ -1213,6 +1219,9 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    //
+    // IMPORTANT: in OpenGL order of transformation is REVERSE to the order of commands!
+    //
     // Origin is at the middle of the surface
     if (_do_render_to_texture)
       glTranslatef(_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f);
@@ -1221,7 +1230,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
 
     // Global batch transform
     glMultMatrixf(matGlobal.m);
-    // Self sprite transform
+    // Self sprite transform (first scale, then translate, reversed)
     glTranslatef((float)thisX, (float)thisY, 0.0f);
     glScalef(widthToScale, heightToScale, 1.0f);
 
@@ -1363,18 +1372,37 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
 {
     // Render all the sprite batches with necessary transformations
+    Rect main_viewport = _do_render_to_texture ? _srcRect : _viewportRect;
+    int surface_height = _do_render_to_texture ? _srcRect.GetHeight() : device_screen_physical_height;
+    // TODO: see if it's possible to refactor and not enable/disable scissor test
+    // TODO: also maybe sync scissor code logic with D3D renderer
+    if (_do_render_to_texture)
+        glEnable(GL_SCISSOR_TEST);
+
     for (size_t i = 0; i <= _actSpriteBatch; ++i)
     {
         const Rect &viewport = _spriteBatchDesc[i].Viewport;
         const OGLSpriteBatch &batch = _spriteBatches[i];
-        // TODO: apply viewport clip and transform (??)
+        if (!viewport.IsEmpty())
+        {
+            Rect scissor = _do_render_to_texture ? viewport : _scaling.ScaleRange(viewport);
+            scissor = ConvertTopDownRect(scissor, surface_height);
+            glScissor(scissor.Left, scissor.Top, scissor.GetWidth(), scissor.GetHeight());
+        }
+        else
+        {
+            glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
+        }
         RenderSpriteBatch(batch, flip);
     }
 
+    glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
     if (!_screenTintSprite.skip)
     {
         this->_renderSprite(&_screenTintSprite, _spriteBatches[_actSpriteBatch].Matrix, false, false);
     }
+    if (_do_render_to_texture)
+        glDisable(GL_SCISSOR_TEST);
 }
 
 void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFlipType flip)
@@ -1410,10 +1438,18 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         _spriteBatches.resize(index + 1);
     _spriteBatches[index].List.clear();
     // Combine both world transform and viewport transform into one matrix for faster perfomance
+    // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
+    float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
+    float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
     // TODO: is this the only way in OpenGL to construct matrixes for future use?
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslatef((float)(desc.Transform.X + desc.Viewport.Left), (float)-(desc.Transform.Y + desc.Viewport.Top), 0.0f);
+    // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
+    // is it possible to do with matrixes?
+    glTranslatef((float)(desc.Transform.X + desc.Viewport.Left - scaled_offx),
+        (float)-(desc.Transform.Y + desc.Viewport.Top - scaled_offy), 0.0f);
+    glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f);
+    glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f);
     glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
     glLoadIdentity();
 }

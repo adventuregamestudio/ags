@@ -324,6 +324,8 @@ private:
     void create_screen_tint_bitmap();
     void _renderSprite(const OGLDrawListEntry *entry, const GLMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip);
     void SetupViewport();
+    // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
+    Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
 
     // Backup all draw lists in the temp storage
     void BackupDrawLists();

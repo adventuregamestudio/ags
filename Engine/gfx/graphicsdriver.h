@@ -58,12 +58,14 @@ struct SpriteTransform
 {
     // Translate
     int X, Y;
+    float ScaleX, ScaleY;
+    float Rotate; // angle, in radians
 
     SpriteTransform()
-        : X(0)
-        , Y(0)
-    {
-    }
+        : X(0), Y(0), ScaleX(1.f), ScaleY(1.f), Rotate(0.f) {}
+
+    SpriteTransform(int x, int y, float scalex, float scaley, float rotate)
+        : X(x), Y(y), ScaleX(scalex), ScaleY(scaley), Rotate(rotate) {}
 };
 
 typedef void (*GFXDRV_CLIENTCALLBACK)();

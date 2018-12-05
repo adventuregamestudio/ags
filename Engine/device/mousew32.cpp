@@ -209,20 +209,21 @@ void domouse(int str)
   int poow = mousecurs[currentcursor]->GetWidth();
   int pooh = mousecurs[currentcursor]->GetHeight();
   int smx = mousex - hotxwas, smy = mousey - hotywas;
+  const Rect &viewport = play.GetMainViewport();
 
   mgetgraphpos();
   mousex -= hotx;
   mousey -= hoty;
 
-  if (mousex + poow >= play.viewport.GetWidth())
-    poow = play.viewport.GetWidth() - mousex;
+  if (mousex + poow >= viewport.GetWidth())
+    poow = viewport.GetWidth() - mousex;
 
-  if (mousey + pooh >= play.viewport.GetHeight())
-    pooh = play.viewport.GetHeight() - mousey;
+  if (mousey + pooh >= viewport.GetHeight())
+    pooh = viewport.GetHeight() - mousey;
 
   Bitmap *ds = GetVirtualScreen();
 
-  ds->SetClip(Rect(0, 0, play.viewport.GetWidth() - 1, play.viewport.GetHeight() - 1));
+  ds->SetClip(Rect(0, 0, viewport.GetWidth() - 1, viewport.GetHeight() - 1));
   if ((str == 0) & (mouseturnedon == TRUE)) {
     if ((mousex != smx) | (mousey != smy)) {    // the mouse has moved
       wputblock(ds, smx, smy, savebk, 0);
@@ -344,26 +345,26 @@ int minstalled()
 
 void Mouse::AdjustPosition(int &x, int &y)
 {
-    x = GameScaling.X.UnScalePt(x) - play.viewport.Left;
-    y = GameScaling.Y.UnScalePt(y) - play.viewport.Top;
+    x = GameScaling.X.UnScalePt(x) - play.GetMainViewport().Left;
+    y = GameScaling.Y.UnScalePt(y) - play.GetMainViewport().Top;
 }
 
 void Mouse::SetGraphicArea()
 {
-    Rect dst_r = GameScaling.ScaleRange(play.viewport);
+    Rect dst_r = GameScaling.ScaleRange(play.GetMainViewport());
     mgraphconfine(dst_r.Left, dst_r.Top, dst_r.Right, dst_r.Bottom);
 }
 
 void Mouse::SetMoveLimit(const Rect &r)
 {
-    Rect src_r = OffsetRect(r, play.viewport.GetLT());
+    Rect src_r = OffsetRect(r, play.GetMainViewport().GetLT());
     Rect dst_r = GameScaling.ScaleRange(src_r);
     msetcursorlimit(dst_r.Left, dst_r.Top, dst_r.Right, dst_r.Bottom);
 }
 
 void Mouse::SetPosition(const Point p)
 {
-    msetgraphpos(GameScaling.X.ScalePt(p.X + play.viewport.Left), GameScaling.Y.ScalePt(p.Y + play.viewport.Top));
+    msetgraphpos(GameScaling.X.ScalePt(p.X + play.GetMainViewport().Left), GameScaling.Y.ScalePt(p.Y + play.GetMainViewport().Top));
 }
 
 bool Mouse::IsLockedToWindow()

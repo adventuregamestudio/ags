@@ -459,9 +459,6 @@
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\viewport.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\walkablearea.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -1286,9 +1283,6 @@
     <ClInclude Include="..\..\Engine\ac\viewframe.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\viewport.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\walkablearea.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
@@ -1839,6 +1833,9 @@
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\savegame_components.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\game\viewport.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
   </ItemGroup>

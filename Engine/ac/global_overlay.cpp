@@ -58,8 +58,8 @@ int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
 }
 
 int CreateTextOverlayCore(int xx, int yy, int wii, int fontid, int clr, const char *tex, int allowShrink) {
-    if (wii<8) wii=play.viewport.GetWidth()/2;
-    if (xx<0) xx=play.viewport.GetWidth()/2-wii/2;
+    if (wii<8) wii=play.GetUIViewport().GetWidth()/2;
+    if (xx<0) xx=play.GetUIViewport().GetWidth()/2-wii/2;
     if (clr==0) clr=16;
     int blcode = crovr_id;
     crovr_id = 2;

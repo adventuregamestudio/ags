@@ -91,17 +91,18 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
         quit("Crossfade: buffer is null attempting transition");
 
     temp_virtual = ReplaceBitmapWithSupportedFormat(temp_virtual);
-    if (temp_virtual->GetHeight() < play.viewport.GetHeight())
+    const Rect &viewport = play.GetMainViewport();
+    if (temp_virtual->GetHeight() < viewport.GetHeight())
     {
-        Bitmap *enlargedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), play.viewport.GetHeight(), temp_virtual->GetColorDepth());
-        enlargedBuffer->Blit(temp_virtual, 0, 0, 0, (play.viewport.GetHeight() - temp_virtual->GetHeight()) / 2, temp_virtual->GetWidth(), temp_virtual->GetHeight());
+        Bitmap *enlargedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), viewport.GetHeight(), temp_virtual->GetColorDepth());
+        enlargedBuffer->Blit(temp_virtual, 0, 0, 0, (viewport.GetHeight() - temp_virtual->GetHeight()) / 2, temp_virtual->GetWidth(), temp_virtual->GetHeight());
         delete temp_virtual;
         temp_virtual = enlargedBuffer;
     }
-    else if (temp_virtual->GetHeight() > play.viewport.GetHeight())
+    else if (temp_virtual->GetHeight() > viewport.GetHeight())
     {
-        Bitmap *clippedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), play.viewport.GetHeight(), temp_virtual->GetColorDepth());
-        clippedBuffer->Blit(temp_virtual, 0, (temp_virtual->GetHeight() - play.viewport.GetHeight()) / 2, 0, 0, temp_virtual->GetWidth(), temp_virtual->GetHeight());
+        Bitmap *clippedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), viewport.GetHeight(), temp_virtual->GetColorDepth());
+        clippedBuffer->Blit(temp_virtual, 0, (temp_virtual->GetHeight() - viewport.GetHeight()) / 2, 0, 0, temp_virtual->GetWidth(), temp_virtual->GetHeight());
         delete temp_virtual;
         temp_virtual = clippedBuffer;
     }

@@ -126,7 +126,6 @@ extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern char transFileName[MAX_PATH];
 extern color palette[256];
-extern int offsetx,offsety;
 extern unsigned int loopcounter;
 extern Bitmap *raw_saved_screen;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
@@ -1199,8 +1198,9 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     r_data.FPS = in->ReadInt32();
     r_data.CursorMode = in->ReadInt32();
     r_data.CursorID = in->ReadInt32();
-    offsetx = in->ReadInt32();
-    offsety = in->ReadInt32();
+    int camx = in->ReadInt32();
+    int camy = in->ReadInt32();
+    play.SetRoomCameraAt(camx, camy);
     loopcounter = in->ReadInt32();
     return HSaveError::None();
 }
@@ -1876,8 +1876,9 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     getloctype_throughgui = 0;
 
-    xxx += divide_down_coordinate(offsetx);
-    yyy += divide_down_coordinate(offsety);
+    const Rect &camera = play.GetRoomCamera();
+    xxx += divide_down_coordinate(camera.Left);
+    yyy += divide_down_coordinate(camera.Top);
     if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
         return 0;
 
@@ -1885,7 +1886,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     // foremost visible to the player
     int charat = is_pos_on_character(xxx,yyy);
     int hsat = get_hotspot_at(xxx,yyy);
-    int objat = GetObjectAt(xxx - divide_down_coordinate(offsetx), yyy - divide_down_coordinate(offsety));
+    int objat = GetObjectAt(xxx - divide_down_coordinate(camera.Left), yyy - divide_down_coordinate(camera.Top));
 
     multiply_up_coordinates(&xxx, &yyy);
 

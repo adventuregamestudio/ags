@@ -45,7 +45,6 @@ extern roomstruct thisroom;
 extern GameState play;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ScriptInvItem scrInv[MAX_INV];
-extern int offsetx, offsety;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 
@@ -444,8 +443,9 @@ void GetCharacterPropertyText (int item, const char *property, char *bufer) {
 }
 
 int GetCharacterAt (int xx, int yy) {
-    xx += divide_down_coordinate(offsetx);
-    yy += divide_down_coordinate(offsety);
+    const Rect &camera = play.GetRoomCamera();
+    xx += divide_down_coordinate(camera.Left);
+    yy += divide_down_coordinate(camera.Right);
     return is_pos_on_character(xx,yy);
 }
 
@@ -554,7 +554,7 @@ int DisplaySpeechBackground(int charid, const char*speel) {
         }
     }
 
-    int ovrl=CreateTextOverlay(OVR_AUTOPLACE,charid,play.viewport.GetWidth()/2,FONT_SPEECH,
+    int ovrl=CreateTextOverlay(OVR_AUTOPLACE,charid,play.GetUIViewport().GetWidth()/2,FONT_SPEECH,
         -game.chars[charid].talkcolor, get_translation(speel));
 
     int scid = find_overlay_of_type(ovrl);

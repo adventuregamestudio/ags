@@ -41,7 +41,6 @@
 #include "ac/screen.h"
 #include "ac/string.h"
 #include "ac/system.h"
-#include "ac/viewport.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
@@ -115,7 +114,6 @@ extern color palette[256];
 extern Bitmap *virtual_screen;
 extern Bitmap *_old_screen;
 extern Bitmap *_sub_screen;
-extern int offsetx, offsety;
 extern int mouse_z_was;
 
 extern Bitmap **guibg;
@@ -485,7 +483,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     const int real_room_height = multiply_up_coordinate(thisroom.height);
     // Game viewport is updated when when room's size is smaller than game's size.
     // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
-    if (real_room_height < game.size.Height || play.viewport.GetHeight() < game.size.Height) {
+    const Rect &viewport = play.GetMainViewport();
+    if (real_room_height < game.size.Height || viewport.GetHeight() < game.size.Height) {
         int abscreen=0;
 
         // [IKM] Here we remember what was set as virtual screen: either real screen bitmap, or virtual_screen bitmap
@@ -507,7 +506,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
         // If this is the first time we got here, then the sub_screen does not exist at this point; so we create it here.
         if (!_sub_screen)
-            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(game.size.Width / 2 - play.viewport.GetWidth() / 2, game.size.Height / 2-newScreenHeight/2, play.viewport.GetWidth(), newScreenHeight));
+            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(game.size.Width / 2 - viewport.GetWidth() / 2, game.size.Height / 2-newScreenHeight/2, viewport.GetWidth(), newScreenHeight));
 
         // Reset screen bitmap
         if (newScreenHeight == _sub_screen->GetHeight())
@@ -531,20 +530,24 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
 
         // Update viewport and mouse area
-        play.SetViewport(BitmapHelper::GetScreenBitmap()->GetSize());
+        Size new_view_size = BitmapHelper::GetScreenBitmap()->GetSize();
+        Rect new_viewport = CenterInRect(RectWH(game.size), RectWH(new_view_size));
+        play.SetMainViewport(new_viewport);
+        play.SetRoomViewport(new_viewport);
+        play.SetRoomCamera(new_viewport.GetSize());
         Mouse::SetGraphicArea();
 
         // Reset virtual_screen bitmap
-        if (virtual_screen->GetHeight() != play.viewport.GetHeight()) {
+        if (virtual_screen->GetHeight() != viewport.GetHeight()) {
             int cdepth=virtual_screen->GetColorDepth();
             delete virtual_screen;
-            virtual_screen=BitmapHelper::CreateBitmap(play.viewport.GetWidth(),play.viewport.GetHeight(),cdepth);
+            virtual_screen=BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight(), cdepth);
             virtual_screen->Clear();
             gfxDriver->SetMemoryBackBuffer(virtual_screen);
         }
 
         // Adjust offsets for rendering sprites on virtual screen
-        gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
+        gfxDriver->SetRenderOffset(viewport.Left, viewport.Top);
 
         // [IKM] Since both screen and virtual_screen bitmaps might have changed, we reset a virtual screen,
         // with either first or second, depending on what was set as virtual screen before
@@ -556,7 +559,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         update_polled_stuff_if_runtime();
     }
     // update the script viewport height
-    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
+    scsystem.viewport_height = divide_down_coordinate(viewport.GetHeight());
 
     SetMouseBounds (0,0,0,0);
 
@@ -588,8 +591,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             thisroom.ebscene[cc] = fix_bitmap_size(thisroom.ebscene[cc]);
     }
 
-    if ((thisroom.ebscene[0]->GetWidth() < play.viewport.GetWidth()) ||
-        (thisroom.ebscene[0]->GetHeight() < play.viewport.GetHeight()))
+    if ((thisroom.ebscene[0]->GetWidth() < viewport.GetWidth()) ||
+        (thisroom.ebscene[0]->GetHeight() < viewport.GetHeight()))
     {
         quitprintf("!The background scene for this room is smaller than the game resolution. If you have recently changed " 
             "the game resolution, you will need to re-import the background for this room. (Room: %d, BG Size: %d x %d)",
@@ -781,8 +784,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             }
         }
 
-        offsetx=0;
-        offsety=0;
+        play.SetRoomCameraAt(0, 0);
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
         // only stop moving if it's a new room, not a restore game
@@ -931,7 +933,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     generate_light_table();
     update_music_volume();
-    update_viewport();
+    play.UpdateRoomCamera();
     our_eip = 212;
     invalidate_screen();
     for (cc=0;cc<croom->numobj;cc++) {

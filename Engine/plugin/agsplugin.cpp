@@ -113,7 +113,6 @@ extern MoveList *mls;
 extern int numlines;
 extern char lines[MAXLINE][200];
 extern color palette[256];
-extern int offsetx, offsety;
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
 extern RuntimeScriptValue GlobalReturnValue;
@@ -242,9 +241,9 @@ void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text
 }
 void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth) {
     if (width != NULL)
-        width[0] = play.viewport.GetWidth();
+        width[0] = play.GetMainViewport().GetWidth();
     if (height != NULL)
-        height[0] = play.viewport.GetHeight();
+        height[0] = play.GetMainViewport().GetHeight();
     if (coldepth != NULL)
         coldepth[0] = scsystem.coldepth;
 }
@@ -381,15 +380,15 @@ int IAGSEngine::GetPlayerCharacter () {
 }
 void IAGSEngine::RoomToViewport (int32 *x, int32 *y) {
     if (x)
-        x[0] = multiply_up_coordinate(x[0]) - offsetx;
+        x[0] = multiply_up_coordinate(x[0]) - play.GetRoomCamera().Left;
     if (y)
-        y[0] = multiply_up_coordinate(y[0]) - offsety;
+        y[0] = multiply_up_coordinate(y[0]) - play.GetRoomCamera().Top;
 }
 void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
     if (x)
-        x[0] = divide_down_coordinate(x[0] + offsetx);
+        x[0] = divide_down_coordinate(x[0] + play.GetRoomCamera().Left);
     if (y)
-        y[0] = divide_down_coordinate(y[0] + offsety);
+        y[0] = divide_down_coordinate(y[0] + play.GetRoomCamera().Top);
 }
 int IAGSEngine::GetNumObjects () {
     return croom->numobj;

@@ -276,7 +276,6 @@
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
     <ClCompile Include="..\..\Engine\ac\tree_map.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp" />
-    <ClCompile Include="..\..\Engine\ac\viewport.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkablearea.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkbehind.cpp" />
     <ClCompile Include="..\..\Engine\debug\consoleoutputtarget.cpp" />
@@ -600,7 +599,6 @@
     <ClInclude Include="..\..\Engine\ac\translation.h" />
     <ClInclude Include="..\..\Engine\ac\tree_map.h" />
     <ClInclude Include="..\..\Engine\ac\viewframe.h" />
-    <ClInclude Include="..\..\Engine\ac\viewport.h" />
     <ClInclude Include="..\..\Engine\ac\walkablearea.h" />
     <ClInclude Include="..\..\Engine\ac\walkbehind.h" />
     <ClInclude Include="..\..\Engine\debug\agseditordebugger.h" />
@@ -616,6 +614,7 @@
     <ClInclude Include="..\..\Engine\game\savegame.h" />
     <ClInclude Include="..\..\Engine\game\savegame_components.h" />
     <ClInclude Include="..\..\Engine\game\savegame_internal.h" />
+    <ClInclude Include="..\..\Engine\game\viewport.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dexception.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dogl.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dsw.h" />

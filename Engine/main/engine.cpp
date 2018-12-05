@@ -904,7 +904,7 @@ void show_preload () {
         Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
 
 		screen_bmp->Fill(0);
-        screen_bmp->StretchBlt(tsc, RectWH(0, 0, play.viewport.GetWidth(),play.viewport.GetHeight()), Common::kBitmap_Transparency);
+        screen_bmp->StretchBlt(tsc, RectWH(0, 0, play.GetMainViewport().GetWidth(),play.GetMainViewport().GetHeight()), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawLists();
 

@@ -116,6 +116,4 @@ Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
 // Original bitmap **gets deleted** if a new bitmap had to be created.
 Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
 
-extern int offsetx, offsety;
-
 #endif // __AGS_EE_AC__DRAW_H

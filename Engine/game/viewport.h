@@ -12,13 +12,22 @@
 //
 //=============================================================================
 //
-//
+// Definition for the game viewports and cameras.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__VIEWPORT_H
 #define __AGS_EE_AC__VIEWPORT_H
 
-void check_viewport_coords();
-void update_viewport();
+#include "util/geometry.h"
+
+struct RoomCamera
+{
+    Rect Position;
+};
+
+struct Viewport
+{
+    Rect Position;
+};
 
 #endif // __AGS_EE_AC__VIEWPORT_H

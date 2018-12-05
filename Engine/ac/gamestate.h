@@ -17,6 +17,7 @@
 
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
+#include "game/viewport.h"
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
@@ -204,23 +205,60 @@ struct GameState {
     std::vector<AGS::Common::StringIMap> charProps;
     AGS::Common::StringIMap invProps[MAX_INV];
 
-    // These variables are not serialized
+    // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
-    // Viewport defines the current position of the playable area;
-    // in basic case it will be identical to game size, but it may be smaller
-    // to support room sizes lesser than game size.
-    Rect  viewport;
-    // game size in low-res units (for backwards-compatibility)
-    Size  native_size;
 
-    void SetViewport(const Size viewport_size);
+    const Size &GetNativeSize() const;
+    void SetNativeSize(const Size &size);
 
+    //
+    // Viewport and camera control.
+    // Viewports are positioned in game screen coordinates, related to the "game size",
+    // while cameras are positioned in room coordinates.
+    //
+    // Returns main viewport position on screen, this is the overall game view
+    const Rect &GetMainViewport() const;
+    // Returns UI viewport position on screen, this is the GUI layer
+    const Rect &GetUIViewport() const;
+    // Returns Room viewport position, which works as a "window" into the room
+    const Rect &GetRoomViewport() const;
+    void SetMainViewport(const Rect &viewport);
+    void SetRoomViewport(const Rect &viewport);
+    // Returns Room camera position and size inside the room (in room coordinates)
+    const Rect &GetRoomCamera() const;
+    void SetRoomCamera(const Size &cam_size);
+    // Puts room camera to the new location in the room
+    void SetRoomCameraAt(int x, int y);
+    // Similar to SetRoomCameraAt, but also locks camera preventing it from following player character
+    void LockRoomCameraAt(int x, int y);
+    // Releases camera lock, letting it follow player character
+    void ReleaseRoomCamera();
+    // Runs camera behavior
+    void UpdateRoomCamera();
+
+    // Serialization
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
     void ReadCustomProperties_v340(Common::Stream *in);
     void WriteCustomProperties_v340(Common::Stream *out) const;
     void ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver);
     void WriteForSavegame(Common::Stream *out) const;
     void FreeProperties();
+
+private:
+    // Determines the game's size in "native" units, used to convert coordinate
+    // arguments in game data and scripts to screen coordinates.
+    // Equals real game size by default, which results in 1:1 conversion.
+    // (atm used only for backwards-compatibility in high-res games that wanted
+    // to keep coordinates in 320x200 range in scripts)
+    Size _nativeSize;
+    // Viewport defines the rectangle of the drawn and interactable area
+    // in the most basic case it will be equal to the game size.
+    Viewport _mainViewport;
+    // Primary room viewport, defines place on screen where the room camera
+    // contents are drawn.
+    Viewport _roomViewport;
+    // Camera defines the position of an "looking eye" inside the room.
+    RoomCamera _roomCamera;
 };
 
 // Converts legacy alignment type used in script API

@@ -21,7 +21,6 @@
 #include "debug/debug_log.h"
 
 extern roomstruct thisroom;
-extern int offsetx, offsety;
 
 
 int GetScalingAt (int x, int y) {
@@ -74,8 +73,8 @@ void RestoreWalkableArea(int areanum) {
 
 
 int GetWalkableAreaAt(int xxx,int yyy) {
-  xxx += divide_down_coordinate(offsetx);
-  yyy += divide_down_coordinate(offsety);
+  xxx += divide_down_coordinate(play.GetRoomCamera().Left);
+  yyy += divide_down_coordinate(play.GetRoomCamera().Top);
   if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
     return 0;
   int result = get_walkable_area_pixel(xxx, yyy);

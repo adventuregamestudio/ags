@@ -248,6 +248,9 @@ void process_event(EventHappened*evp) {
         }
 
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+        // TODO: find out if should use viewport instead of native size
+        const Size &native_size = play.GetNativeSize();
+        const Rect &viewport = play.GetMainViewport();
 
         if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
             set_palette_range(palette, 0, 255, 0);
@@ -273,12 +276,12 @@ void process_event(EventHappened*evp) {
                 render_to_screen(screen_bmp, 0, 0);
 
                 int boxwid = get_fixed_pixel_size(16);
-                int boxhit = multiply_up_coordinate(BASEHEIGHT / 20);
+                int boxhit = multiply_up_coordinate(native_size.Height / 20);
                 while (boxwid < screen_bmp->GetWidth()) {
                     timerloop = 0;
                     boxwid += get_fixed_pixel_size(16);
-                    boxhit += multiply_up_coordinate(BASEHEIGHT / 20);
-                    int lxp = play.viewport.GetWidth() / 2 - boxwid / 2, lyp = play.viewport.GetHeight() / 2 - boxhit / 2;
+                    boxhit += multiply_up_coordinate(native_size.Height / 20);
+                    int lxp = viewport.GetWidth() / 2 - boxwid / 2, lyp = viewport.GetHeight() / 2 - boxhit / 2;
                     gfxDriver->Vsync();
                     screen_bmp->Blit(virtual_screen, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
@@ -341,8 +344,8 @@ void process_event(EventHappened*evp) {
                 }
                 // do the dissolving
                 int maskCol = temp_virtual->GetMaskColor();
-                for (bb=0;bb<play.viewport.GetWidth();bb+=4) {
-                    for (cc=0;cc<play.viewport.GetHeight();cc+=4) {
+                for (bb=0;bb<viewport.GetWidth();bb+=4) {
+                    for (cc=0;cc<viewport.GetHeight();cc+=4) {
                         temp_virtual->PutPixel(bb+pattern[aa]/4, cc+pattern[aa]%4, maskCol);
                     }
                 }

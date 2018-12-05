@@ -12,9 +12,12 @@
 //
 //=============================================================================
 
+#include "ac/draw.h"
 #include "ac/game_version.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/roomstruct.h"
+#include "debug/debug_log.h"
 #include "game/customproperties.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
@@ -22,12 +25,100 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
+extern roomstruct thisroom;
+extern CharacterInfo *playerchar;
 
-void GameState::SetViewport(const Size viewport_size)
+const Size &GameState::GetNativeSize() const
 {
-    viewport = RectWH((game.size.Width - viewport_size.Width) / 2,
-                      (game.size.Height - viewport_size.Height) / 2,
-                       viewport_size.Width, viewport_size.Height);
+    return _nativeSize;
+}
+
+void GameState::SetNativeSize(const Size &size)
+{
+    _nativeSize = size;
+}
+
+void GameState::SetMainViewport(const Rect &viewport)
+{
+    _mainViewport.Position = viewport;
+}
+
+const Rect &GameState::GetMainViewport() const
+{
+    return _mainViewport.Position;
+}
+
+const Rect &GameState::GetUIViewport() const
+{
+    // Internally main viewport and UI viewport are still same thing
+    return _mainViewport.Position;
+}
+
+const Rect &GameState::GetRoomViewport() const
+{
+    return _roomViewport.Position;
+}
+
+void GameState::SetRoomViewport(const Rect &viewport)
+{// TODO: adjust to main viewport
+    _roomViewport.Position = viewport;
+}
+
+const Rect &GameState::GetRoomCamera() const
+{
+    return _roomCamera.Position;
+}
+
+void GameState::SetRoomCamera(const Size &cam_size)
+{
+    _roomCamera.Position.SetWidth(cam_size.Width);
+    _roomCamera.Position.SetHeight(cam_size.Height);
+}
+
+void GameState::SetRoomCameraAt(int x, int y)
+{
+    int cw = _roomCamera.Position.GetWidth();
+    int ch = _roomCamera.Position.GetHeight();
+    int roomWidth = multiply_up_coordinate(thisroom.width);
+    int roomHeight = multiply_up_coordinate(thisroom.height);
+    if (x < 0) x = 0;
+    else if (x + cw > roomWidth) x = roomWidth - cw;
+    if (y < 0) y = 0;
+    else if (y + ch > roomHeight) y = roomHeight - ch;
+    _roomCamera.Position.MoveTo(Point(x, y));
+}
+
+void GameState::LockRoomCameraAt(int x, int y)
+{
+    debug_script_log("Viewport locked to %d,%d", x, y);
+    x = multiply_up_coordinate(x);
+    y = multiply_up_coordinate(y);
+    SetRoomCameraAt(x, y);
+    offsets_locked = 1;
+}
+
+void GameState::ReleaseRoomCamera()
+{
+    offsets_locked = 0;
+    debug_script_log("Viewport released back to engine control");
+}
+
+void GameState::UpdateRoomCamera()
+{
+    if ((thisroom.width > _nativeSize.Width) || (thisroom.height > _nativeSize.Height))
+    {
+        // TODO: split out into Camera Behavior
+        if (offsets_locked == 0)
+        {
+            int x = multiply_up_coordinate(playerchar->x) - _roomCamera.Position.GetWidth() / 2;
+            int y = multiply_up_coordinate(playerchar->y) - _roomCamera.Position.GetHeight() / 2;
+            SetRoomCameraAt(x, y);
+        }
+    }
+    else
+    {
+        SetRoomCameraAt(0, 0);
+    }
 }
 
 void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)

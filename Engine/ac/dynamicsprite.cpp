@@ -318,13 +318,13 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     Bitmap *newPic;
     if (!gfxDriver->UsesMemoryBackBuffer()) 
     {
-        // D3D driver
-        Bitmap *scrndump = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), game.GetColorDepth());
+        const Rect &viewport = play.GetMainViewport();
+        Bitmap *scrndump = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight(), game.GetColorDepth());
         gfxDriver->GetCopyOfScreenIntoBitmap(scrndump);
 
         update_polled_stuff_if_runtime();
 
-        if ((play.viewport.GetWidth() != width) || (play.viewport.GetHeight() != height))
+        if ((viewport.GetWidth() != width) || (viewport.GetHeight() != height))
         {
             newPic = BitmapHelper::CreateBitmap(width, height, game.GetColorDepth());
             newPic->StretchBlt(scrndump,

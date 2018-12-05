@@ -51,7 +51,6 @@ extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;
-extern int offsetx, offsety;
 extern int actSpsCount;
 extern Bitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
@@ -63,8 +62,8 @@ int obj_lowest_yp;
 int GetObjectAt(int xx,int yy) {
     int aa,bestshotyp=-1,bestshotwas=-1;
     // translate screen co-ordinates to room co-ordinates
-    xx += divide_down_coordinate(offsetx);
-    yy += divide_down_coordinate(offsety);
+    xx += divide_down_coordinate(play.GetRoomCamera().Left);
+    yy += divide_down_coordinate(play.GetRoomCamera().Top);
     // Iterate through all objects in the room
     for (aa=0;aa<croom->numobj;aa++) {
         if (objs[aa].on != 1) continue;

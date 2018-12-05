@@ -78,7 +78,6 @@ extern RoomStatus*croom;
 extern int gui_disabled_style;
 extern roomstruct thisroom;
 extern int getloctype_index;
-extern int offsetx, offsety;
 extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
@@ -552,8 +551,8 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         return;
     }
     int loctype = GetLocationType (xxx, yyy);
-    xxx += divide_down_coordinate(offsetx); 
-    yyy += divide_down_coordinate(offsety);
+    xxx += divide_down_coordinate(play.GetRoomCamera().Left); 
+    yyy += divide_down_coordinate(play.GetRoomCamera().Top);
     tempo[0]=0;
     if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
         return;
@@ -752,7 +751,7 @@ int SaveScreenShot(const char*namm) {
 #else
         int color_depth = game.GetColorDepth();
 #endif
-        Bitmap *buffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), color_depth);
+        Bitmap *buffer = BitmapHelper::CreateBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight(), color_depth);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
 
 		if (!buffer->SaveToFile(fileName, palette)!=0)
@@ -801,8 +800,9 @@ extern int getloctype_throughgui, getloctype_index;
 void ProcessClick(int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    xx += divide_down_coordinate(offsetx); 
-    yy += divide_down_coordinate(offsety);
+    const Rect &camera = play.GetRoomCamera();
+    xx += divide_down_coordinate(camera.Left);
+    yy += divide_down_coordinate(camera.Top);
 
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
         int hsnum=get_hotspot_at(xx,yy);
@@ -838,8 +838,9 @@ void ProcessClick(int xx,int yy,int mood) {
 int IsInteractionAvailable (int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    xx += divide_down_coordinate(offsetx); 
-    yy += divide_down_coordinate(offsety);
+    const Rect &camera = play.GetRoomCamera();
+    xx += divide_down_coordinate(camera.Left);
+    yy += divide_down_coordinate(camera.Top);
 
     // You can always walk places
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0))

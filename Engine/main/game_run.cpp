@@ -82,7 +82,6 @@ extern char noWalkBehindsAtAll;
 extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
-extern int offsetx, offsety;
 extern unsigned int loopcounter,lastcounter;
 extern volatile int timerloop;
 extern int cur_mode,cur_cursor;
@@ -604,6 +603,7 @@ void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, in
 {
     if (!play.fast_forward) {
         int mwasatx=mousex,mwasaty=mousey;
+        const Rect &camera = play.GetRoomCamera();
 
         // Only do this if we are not skipping a cutscene
         render_graphics(extraBitmap, extraX, extraY);
@@ -612,7 +612,7 @@ void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, in
         static int offsetxWas = -100, offsetyWas = -100;
 
         if (((mwasatx!=mousex) || (mwasaty!=mousey) ||
-            (offsetxWas != offsetx) || (offsetyWas != offsety)) &&
+            (offsetxWas != camera.Left) || (offsetyWas != camera.Top)) &&
             (displayed_room >= 0)) 
         {
             // mouse moves over hotspot
@@ -623,8 +623,8 @@ void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, in
             }
         }
 
-        offsetxWas = offsetx;
-        offsetyWas = offsety;
+        offsetxWas = camera.Left;
+        offsetyWas = camera.Top;
 
 #ifdef MAC_VERSION
         // take a breather after the heavy work

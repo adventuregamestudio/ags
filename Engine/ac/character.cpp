@@ -76,7 +76,6 @@ extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap **actsps;
 extern int source_text_length;
-extern int offsetx, offsety;
 extern int is_text_overlay;
 extern int said_speech_line;
 extern int numscreenover;
@@ -2354,7 +2353,7 @@ void _DisplayThoughtCore(int chid, const char *displbuf) {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
         width = multiply_up_coordinate(play.speech_bubble_width);
-        xpp = (multiply_up_coordinate(game.chars[chid].x) - offsetx) - width / 2;
+        xpp = (multiply_up_coordinate(game.chars[chid].x) - play.GetRoomCamera().Left) - width / 2;
         if (xpp < 0)
             xpp = 0;
         // -1 will automatically put it above the char's head
@@ -2423,10 +2422,12 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     if (textcol == 0)
         textcol = 16;
 
+    Rect ui_view = play.GetUIViewport();
+    Rect camera = play.GetRoomCamera();
     int allowShrink = 0;
     int bwidth = widd;
     if (bwidth < 0)
-        bwidth = play.viewport.GetWidth()/2 + play.viewport.GetWidth()/4;
+        bwidth = ui_view.GetWidth()/2 + ui_view.GetWidth()/4;
 
     our_eip=151;
 
@@ -2499,7 +2500,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         // the screen.
         our_eip=1501;
         if (tdxp < 0)
-            tdxp = multiply_up_coordinate(speakingChar->x) - offsetx;
+            tdxp = multiply_up_coordinate(speakingChar->x) - camera.Left;
         if (tdxp < 2)
             tdxp=2;
 
@@ -2529,7 +2530,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         if (tdyp < 0) 
         {
             int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
-            tdyp = multiply_up_coordinate(speakingChar->get_effective_y()) - offsety - get_fixed_pixel_size(5);
+            tdyp = multiply_up_coordinate(speakingChar->get_effective_y()) - camera.Top - get_fixed_pixel_size(5);
             if (charextra[aschar].height < 1)
                 tdyp -= game.SpriteInfos[sppic].Height;
             else
@@ -2628,8 +2629,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
             // if they accidentally used a large full-screen image as the sierra-style
             // talk view, correct it
-            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > play.viewport.GetWidth() - get_fixed_pixel_size(50)))
-                bigx = play.viewport.GetWidth() - get_fixed_pixel_size(50);
+            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > ui_view.GetWidth() - get_fixed_pixel_size(50)))
+                bigx = ui_view.GetWidth() - get_fixed_pixel_size(50);
 
             if (widd > 0)
                 bwidth = widd - bigx;
@@ -2643,7 +2644,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
             if (game.options[OPT_SPEECHTYPE] == 3) {
                 // QFG4-style whole screen picture
-                closeupface = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                closeupface = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight(), spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
                 closeupface->Clear(0);
                 if (xx < 0 && play.speech_portrait_placement)
                 {
@@ -2657,9 +2658,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 }
                 else
                 {
-                    view_frame_y = play.viewport.GetHeight()/2 - game.SpriteInfos[viptr->loops[0].frames[0].pic].Height/2;
+                    view_frame_y = ui_view.GetHeight()/2 - game.SpriteInfos[viptr->loops[0].frames[0].pic].Height/2;
                 }
-                bigx = play.viewport.GetWidth()/2 - get_fixed_pixel_size(20);
+                bigx = ui_view.GetWidth()/2 - get_fixed_pixel_size(20);
                 ovr_type = OVER_COMPLETE;
                 ovr_yp = 0;
                 tdyp = -1;  // center vertically
@@ -2698,7 +2699,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     tdxp += get_fixed_pixel_size(16);
                 }
 
-                int maxWidth = (play.viewport.GetWidth() - tdxp) - get_fixed_pixel_size(5) - 
+                int maxWidth = (ui_view.GetWidth() - tdxp) - get_fixed_pixel_size(5) -
                     get_textwindow_border_width (play.speech_textwindow_gui) / 2;
 
                 if (bwidth > maxWidth)
@@ -2718,7 +2719,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     tdxp = get_fixed_pixel_size(9);
                     if (play.speech_portrait_placement)
                     {
-                        overlay_x = (play.viewport.GetWidth() - bigx) - play.speech_portrait_x;
+                        overlay_x = (ui_view.GetWidth() - bigx) - play.speech_portrait_x;
                         int maxWidth = overlay_x - tdxp - get_fixed_pixel_size(9) - 
                             get_textwindow_border_width (play.speech_textwindow_gui) / 2;
                         if (bwidth > maxWidth)
@@ -2726,7 +2727,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     }
                     else
                     {
-                        overlay_x = (play.viewport.GetWidth() - bigx) - get_fixed_pixel_size(5);
+                        overlay_x = (ui_view.GetWidth() - bigx) - get_fixed_pixel_size(5);
                     }
                 }
                 else {
@@ -2788,11 +2789,11 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 views[speakingChar->view].loops[speakingChar->loop].frames[0].speed;
 
             if (widd < 0) {
-                bwidth = play.viewport.GetWidth()/2 + play.viewport.GetWidth()/6;
+                bwidth = ui_view.GetWidth()/2 + ui_view.GetWidth()/6;
                 // If they are close to the screen edge, make the text narrower
-                int relx = multiply_up_coordinate(speakingChar->x) - offsetx;
-                if ((relx < play.viewport.GetWidth() / 4) || (relx > play.viewport.GetWidth() - (play.viewport.GetWidth() / 4)))
-                    bwidth -= play.viewport.GetWidth() / 5;
+                int relx = multiply_up_coordinate(speakingChar->x) - camera.Left;
+                if ((relx < ui_view.GetWidth() / 4) || (relx > ui_view.GetWidth() - (ui_view.GetWidth() / 4)))
+                    bwidth -= ui_view.GetWidth() / 5;
             }
             /*   this causes the text to bob up and down as they talk
             tdxp = OVR_AUTOPLACE;

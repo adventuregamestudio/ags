@@ -91,8 +91,8 @@ void adjust_sizes_for_resolution(int filever)
         if (cgp->Height < 1)
             cgp->Height = 1;
         // Temp fix for older games
-        if (cgp->Width == BASEWIDTH - 1)
-            cgp->Width = BASEWIDTH;
+        if (cgp->Width == play.GetNativeSize().Width - 1)
+            cgp->Width = play.GetNativeSize().Width;
 
         adjust_pixel_sizes_for_loaded_data(&cgp->Width, &cgp->Height, filever);
 
@@ -130,38 +130,41 @@ void engine_setup_system_gamesize()
 {
     scsystem.width = game.size.Width;
     scsystem.height = game.size.Height;
-    scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
-    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
+    scsystem.viewport_width = divide_down_coordinate(play.GetMainViewport().GetWidth());
+    scsystem.viewport_height = divide_down_coordinate(play.GetMainViewport().GetHeight());
 }
 
 void engine_init_resolution_settings(const Size game_size)
 {
     Debug::Printf("Initializing resolution settings");
 
-    play.SetViewport(game_size);
+    // Initialize default viewports and room camera
+    Rect viewport = RectWH(game_size);
+    play.SetMainViewport(viewport);
+    play.SetRoomViewport(viewport);
+    play.SetRoomCamera(viewport.GetSize());
 
+    Size native_size = game_size;
     if (game.IsHiRes())
     {
-        play.native_size.Width = game_size.Width / 2;
-        play.native_size.Height = game_size.Height / 2;
+        if (!game.options[OPT_NATIVECOORDINATES])
+        {
+            native_size.Width = game_size.Width / 2;
+            native_size.Height = game_size.Height / 2;
+        }
+        current_screen_resolution_multiplier = 2;
         wtext_multiply = 2;
     }
     else
     {
-        play.native_size.Width = game_size.Width;
-        play.native_size.Height = game_size.Height;
+        native_size.Width = game_size.Width;
+        native_size.Height = game_size.Height;
+        current_screen_resolution_multiplier = 1;
         wtext_multiply = 1;
     }
+    play.SetNativeSize(native_size);
 
     usetup.textheight = getfontheight_outlined(0) + 1;
-    current_screen_resolution_multiplier = game_size.Width / play.native_size.Width;
-
-    if (game.IsHiRes() &&
-        (game.options[OPT_NATIVECOORDINATES]))
-    {
-        play.native_size.Width *= 2;
-        play.native_size.Height *= 2;
-    }
 
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
@@ -176,7 +179,7 @@ void engine_post_gfxmode_driver_setup()
     gfxDriver->SetCallbackForPolling(update_polled_stuff_if_runtime);
     gfxDriver->SetCallbackToDrawScreen(draw_screen_callback);
     gfxDriver->SetCallbackForNullSprite(GfxDriverNullSpriteCallback);
-    gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
+    gfxDriver->SetRenderOffset(play.GetMainViewport().Left, play.GetMainViewport().Top);
 }
 
 // Reset gfx driver callbacks
@@ -198,7 +201,7 @@ void engine_post_gfxmode_screen_setup(const DisplayMode &dm, bool recreate_bitma
         _sub_screen = NULL;
         // TODO: find out if we need _sub_screen to be recreated right away here
 
-        virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.viewport.GetWidth(), play.viewport.GetHeight());
+        virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     }
     virtual_screen->Clear();
     SetVirtualScreen(virtual_screen);
@@ -478,7 +481,7 @@ void on_coordinates_scaling_changed()
     Mouse::SetGraphicArea();
     // If mouse bounds do not have valid values yet, then limit cursor to viewport
     if (play.mboundx1 == 0 && play.mboundy1 == 0 && play.mboundx2 == 0 && play.mboundy2 == 0)
-        Mouse::SetMoveLimit(play.viewport);
+        Mouse::SetMoveLimit(play.GetMainViewport());
     else
         Mouse::SetMoveLimit(Rect(play.mboundx1, play.mboundy1, play.mboundx2, play.mboundy2));
 }

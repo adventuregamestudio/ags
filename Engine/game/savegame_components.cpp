@@ -213,8 +213,8 @@ HSaveError WriteGameState(PStream out)
     out->WriteInt32(cur_cursor);
     out->WriteInt32(mouse_on_iface);
     // Viewport
-    out->WriteInt32(offsetx);
-    out->WriteInt32(offsety);
+    out->WriteInt32(play.GetRoomCamera().Left);
+    out->WriteInt32(play.GetRoomCamera().Top);
     return HSaveError::None();
 }
 
@@ -248,8 +248,9 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
     r_data.CursorID = in->ReadInt32();
     mouse_on_iface = in->ReadInt32();
     // Viewport state
-    offsetx = in->ReadInt32();
-    offsety = in->ReadInt32();
+    int camx = in->ReadInt32();
+    int camy = in->ReadInt32();
+    play.SetRoomCameraAt(camx, camy);
     return err;
 }
 

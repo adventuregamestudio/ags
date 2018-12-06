@@ -398,8 +398,15 @@ namespace AGS.Editor
                 spritesheet = null;
             }
 
-            SpriteTools.ReplaceSprite(replace, image, UseAlphaChannel, RemapToGamePalette,
-                UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+            try
+            {
+                SpriteTools.ReplaceSprite(replace, image, UseAlphaChannel, RemapToGamePalette,
+                    UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+            }
+            catch (AGSEditorException ex)
+            {
+                Factory.GUIController.ShowMessage(ex.Message, MessageBoxIcon.Warning);
+            }
         }
 
         // return true when no more image to process
@@ -418,16 +425,23 @@ namespace AGS.Editor
                 spritesheet = null;
             }
 
-            if (frames == 1)
+            try
             {
-                // in the interest of speed, import the existing bitmap if the file has a single frame
-                SpriteTools.ImportNewSprites(folder, image, UseAlphaChannel, RemapToGamePalette,
-                    UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+                if (frames == 1)
+                {
+                    // in the interest of speed, import the existing bitmap if the file has a single frame
+                    SpriteTools.ImportNewSprites(folder, image, UseAlphaChannel, RemapToGamePalette,
+                        UseBackgroundSlots, SpriteImportMethod, spritesheet, 0, filename);
+                }
+                else
+                {
+                    SpriteTools.ImportNewSprites(folder, filename, UseAlphaChannel, RemapToGamePalette,
+                        UseBackgroundSlots, SpriteImportMethod, spritesheet);
+                }
             }
-            else
+            catch (AGSEditorException ex)
             {
-                SpriteTools.ImportNewSprites(folder, filename, UseAlphaChannel, RemapToGamePalette,
-                    UseBackgroundSlots, SpriteImportMethod, spritesheet);
+                Factory.GUIController.ShowMessage(ex.Message, MessageBoxIcon.Warning);
             }
 
             hasImported = true;

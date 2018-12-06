@@ -17,6 +17,8 @@
 #include "debug/debug_log.h"
 
 void SetViewport(int offsx, int offsy) {
+    offsx = multiply_up_coordinate(offsx);
+    offsy = multiply_up_coordinate(offsy);
     play.LockRoomCameraAt(offsx, offsy);
 }
 void ReleaseViewport() {

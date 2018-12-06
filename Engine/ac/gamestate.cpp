@@ -147,8 +147,6 @@ void GameState::LockRoomCamera()
 void GameState::LockRoomCameraAt(int x, int y)
 {
     debug_script_log("Room camera locked to %d,%d", x, y);
-    x = multiply_up_coordinate(x);
-    y = multiply_up_coordinate(y);
     SetRoomCameraAt(x, y);
     _roomCamera.Locked = true;
 }

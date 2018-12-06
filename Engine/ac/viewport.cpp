@@ -18,6 +18,7 @@
 
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptviewport.h"
+#include "ac/draw.h"
 #include "ac/gamestate.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
@@ -35,6 +36,7 @@ int Camera_GetX(ScriptCamera *)
 
 void Camera_SetX(ScriptCamera *, int x)
 {
+    x = multiply_up_coordinate(x);
     play.LockRoomCameraAt(x, play.GetRoomCameraObj().Position.Top);
 }
 
@@ -45,6 +47,7 @@ int Camera_GetY(ScriptCamera *)
 
 void Camera_SetY(ScriptCamera *, int y)
 {
+    y = multiply_up_coordinate(y);
     play.LockRoomCameraAt(play.GetRoomCameraObj().Position.Left, y);
 }
 

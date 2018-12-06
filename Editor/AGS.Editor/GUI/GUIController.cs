@@ -844,36 +844,12 @@ namespace AGS.Editor
 			return true;
 		}
 
-        public bool VerifyTemplatesDirectoryExists()
-        {
-            if (!Directory.Exists(_agsEditor.TemplatesDirectory))
-            {
-                try
-                {
-                    Directory.CreateDirectory(_agsEditor.TemplatesDirectory);
-                }
-                catch (UnauthorizedAccessException ex)
-                {
-                    this.ShowMessage("The Templates directory was missing and could not be created. AGS may not be installed properly or you may not have the appropriate permissions to run it." + Environment.NewLine + ex.Message, MessageBoxIcon.Error);
-                    return false;
-                }
-            }
-            return true;
-        }
-
         public bool ShowWelcomeScreen()
         {
             if (System.Environment.OSVersion.Platform != PlatformID.Win32NT)
 			{
 				this.ShowMessage("You are running AGS on a computer with Windows 98 or Windows ME. AGS is no longer supported on these operating systems. You are STRONGLY ADVISED to run the AGS Editor on Windows 2000, XP or higher.", MessageBoxIcon.Warning);
 			}
-
-            if (!VerifyTemplatesDirectoryExists())
-            {
-                _exitFromWelcomeScreen = true;
-                Application.Exit();
-                return true;
-            }
 
 			bool showWelcomeScreen = ProcessCommandLineArgumentsAndReturnWhetherToShowWelcomeScreen();
 

@@ -246,7 +246,15 @@ namespace AGS.Editor
 
         public void DoEditorInitialization()
         {
-            Directory.CreateDirectory(UserTemplatesDirectory);
+            try
+            {
+                Directory.CreateDirectory(UserTemplatesDirectory);
+            }
+            catch
+            {
+                // this is an optional folder that might have user data in
+                // the parent folder, so don't try too hard to force this
+            }
 
             _game = new Game();
             _sourceControl = new SourceControlProvider();

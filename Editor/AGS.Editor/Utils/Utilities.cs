@@ -168,15 +168,7 @@ namespace AGS.Editor
             }
             catch (IOException)
             {
-                if (Marshal.GetLastWin32Error() == ERROR_NO_MORE_FILES)
-                {
-                    // On a network share the Framework can throw this if
-                    // there are no matching files (reported by RickJ)...
-                    // Seems to be a Win32 FindFirstFile bug in certain
-                    // circumstances.
-                    return new string[0];
-                }
-                throw;
+                return new string[] { };
             }
         }
 

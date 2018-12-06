@@ -777,12 +777,12 @@ namespace AGS.Editor
                 Sprite spr = FindSpriteByNumber(Convert.ToInt32(listItem.Text));
                 if (String.IsNullOrEmpty(spr.SourceFile))
                 {
-                    Factory.GUIController.ShowMessage(String.Format("Sprite {0} does not have a source file.", listItem.Text), MessageBoxIcon.Error);
+                    Factory.GUIController.ShowMessage(String.Format("Sprite {0} does not have a source file.", spr.Number), MessageBoxIcon.Error);
                     return;
                 }
                 else if (!File.Exists(spr.SourceFile))
                 {
-                    Factory.GUIController.ShowMessage(String.Format("File {0} does not exist.", spr.SourceFile), MessageBoxIcon.Error);
+                    Factory.GUIController.ShowMessage(String.Format("Sprite {0}: source file {1} does not exist.", spr.Number, spr.SourceFile), MessageBoxIcon.Error);
                     return;
                 }
                 sprites.Add(spr);

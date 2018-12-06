@@ -208,6 +208,8 @@ struct GameState {
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
 
+    GameState();
+
     const Size &GetNativeSize() const;
     void SetNativeSize(const Size &size);
 
@@ -216,13 +218,18 @@ struct GameState {
     // Viewports are positioned in game screen coordinates, related to the "game size",
     // while cameras are positioned in room coordinates.
     //
+    // Tells if the room viewport should be adjusted automatically each time a new room is loaded
+    bool IsAutoRoomViewport() const;
     // Returns main viewport position on screen, this is the overall game view
     const Rect &GetMainViewport() const;
     // Returns UI viewport position on screen, this is the GUI layer
     const Rect &GetUIViewport() const;
     // Returns Room viewport position, which works as a "window" into the room
     const Rect &GetRoomViewport() const;
+    // Sets if the room viewport should be adjusted automatically each time a new room is loaded
+    void SetAutoRoomViewport(bool on);
     void SetMainViewport(const Rect &viewport);
+    void SetUIViewport(const Rect &viewport);
     void SetRoomViewport(const Rect &viewport);
     // Returns Room camera position and size inside the room (in room coordinates)
     const Rect &GetRoomCamera() const;
@@ -261,9 +268,13 @@ private:
     // (atm used only for backwards-compatibility in high-res games that wanted
     // to keep coordinates in 320x200 range in scripts)
     Size _nativeSize;
+    // Defines if the room viewport should be adjusted to the room size automatically.
+    bool _isAutoRoomViewport;
     // Viewport defines the rectangle of the drawn and interactable area
     // in the most basic case it will be equal to the game size.
     Viewport _mainViewport;
+    // Viewport defines the render and interaction rectangle of game's UI.
+    Viewport _uiViewport;
     // Primary room viewport, defines place on screen where the room camera
     // contents are drawn.
     Viewport _roomViewport;

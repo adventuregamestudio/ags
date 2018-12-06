@@ -152,7 +152,6 @@ Bitmap *virtual_screen;
 bool current_background_is_dirty = false;
 
 Bitmap *real_screen =NULL;
-Bitmap *sub_screen=NULL;
 int wasShakingScreen = 0;
 
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
@@ -161,8 +160,6 @@ IDriverDependantBitmap* roomBackgroundBmp = NULL;
 std::vector<SpriteListEntry> sprlist;
 std::vector<SpriteListEntry> thingsToDrawList;
 
-//GUIMain dummygui;
-//GUIButton dummyguicontrol;
 Bitmap **guibg = NULL;
 IDriverDependantBitmap **guibgbmp = NULL;
 
@@ -426,6 +423,71 @@ AGS_INLINE int divide_down_coordinate_round_up(int coord)
 
 // End resolution system functions
 
+// Create blank (black) images used to repaint borders around game frame
+void create_blank_image(int coldepth)
+{
+    // this is the first time that we try to use the graphics driver,
+    // so it's the most likey place for a crash
+    try
+    {
+        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, coldepth);
+        blank = ReplaceBitmapWithSupportedFormat(blank);
+        blank->Clear();
+        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        delete blank;
+    }
+    catch (Ali3DException gfxException)
+    {
+        quit((char*)gfxException._message);
+    }
+}
+
+void destroy_blank_image()
+{
+    if (blankImage)
+        gfxDriver->DestroyDDB(blankImage);
+    if (blankSidebarImage)
+        gfxDriver->DestroyDDB(blankSidebarImage);
+    blankImage = NULL;
+    blankSidebarImage = NULL;
+}
+
+
+void init_draw_method()
+{
+    if (gfxDriver->HasAcceleratedTransform())
+    {
+        walkBehindMethod = DrawAsSeparateSprite;
+        create_blank_image(game.GetColorDepth());
+    }
+    else
+    {
+        walkBehindMethod = DrawOverCharSprite;
+    }
+
+    on_roomviewport_changed();
+    on_roomcamera_changed();
+}
+
+void dispose_draw_method()
+{
+    destroy_invalid_regions();
+    destroy_blank_image();
+}
+
+void on_roomviewport_changed()
+{
+    if (!gfxDriver->RequiresFullRedrawEachFrame())
+        GetVirtualScreen()->Clear(0);
+    invalidate_screen();
+}
+
+void on_roomcamera_changed()
+{
+    if (!gfxDriver->RequiresFullRedrawEachFrame())
+        init_invalid_regions(game.size.Height);
+}
 
 
 // ** dirty rectangle system **
@@ -2486,22 +2548,6 @@ void update_screen() {
 
     screen_is_dirty = 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-extern volatile int psp_audio_multithreaded; // in ac_audio
-
 
 void construct_virtual_screen(bool fullRedraw) 
 {

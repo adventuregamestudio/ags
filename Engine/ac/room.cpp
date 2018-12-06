@@ -257,8 +257,6 @@ void unload_old_room() {
 
     current_fade_out_effect();
 
-    Bitmap *ds = GetVirtualScreen();
-    ds->Fill(0);
     for (ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
 
@@ -478,87 +476,47 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     our_eip=202;
-    const int real_room_height = multiply_up_coordinate(thisroom.height);
     // Game viewport is updated when when room's size is smaller than game's size.
     // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
     const Rect &viewport = play.GetMainViewport();
-    if (real_room_height < game.size.Height || viewport.GetHeight() < game.size.Height) {
-        int abscreen=0;
-
-        // [IKM] Here we remember what was set as virtual screen: either real screen bitmap, or virtual_screen bitmap
-        Bitmap *ds = GetVirtualScreen();
-        if (ds==BitmapHelper::GetScreenBitmap()) abscreen=1;
-        else if (ds==virtual_screen) abscreen=2;
-
-        // Define what should be a new game viewport size
-        int newScreenHeight = game.size.Height;
-        // [IKM] 2015-05-04: in original engine the letterbox feature only allowed viewports of
+    if (play.IsAutoRoomViewport() && real_room_sz < viewport.GetSize())
+    {
+        // Define what should be a new room and UI viewports sizes
+        Size new_room_view = viewport.GetSize();
+        Size new_ui_view = viewport.GetSize();
+        // In the original engine the letterbox feature only allowed viewports of
         // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
-        const int viewport_height = real_room_height < game.altsize.Height ? real_room_height :
-            (real_room_height >= game.altsize.Height && real_room_height < game.size.Height) ? game.altsize.Height :
-            game.size.Height;
-        if (viewport_height < game.size.Height) {
-            clear_letterbox_borders();
-            newScreenHeight = viewport_height;
-        }
-
-        // If this is the first time we got here, then the sub_screen does not exist at this point; so we create it here.
-        if (!sub_screen)
-            sub_screen = BitmapHelper::CreateSubBitmap(real_screen, RectWH(game.size.Width / 2 - viewport.GetWidth() / 2, game.size.Height / 2-newScreenHeight/2, viewport.GetWidth(), newScreenHeight));
-
-        // TODO: utilise MainViewport here; Software graphics driver should create a sprite batch surface used instead of global _sub_screen pointer
-        // Reset screen bitmap
-        if (newScreenHeight == sub_screen->GetHeight())
+        // Also, the UI viewport should be matching room viewport in that case.
+        if (game.IsLegacyLetterbox())
         {
-            // requested viewport height is the same as existing subscreen
-			BitmapHelper::SetScreenBitmap(sub_screen);
-        }
-        // CHECKME: WTF is this for?
-        else if (sub_screen->GetWidth() != game.size.Width)
-        {
-            // the height has changed and the width is not equal with game width
-            int subBitmapWidth = sub_screen->GetWidth();
-            delete sub_screen;
-            sub_screen = BitmapHelper::CreateSubBitmap(real_screen, RectWH(real_screen->GetWidth() / 2 - subBitmapWidth / 2, real_screen->GetHeight() / 2 - newScreenHeight / 2, subBitmapWidth, newScreenHeight));
-            BitmapHelper::SetScreenBitmap(sub_screen);
+            int viewport_height =
+                real_room_sz.Height < game.altsize.Height ? real_room_sz.Height :
+                (real_room_sz.Height >= game.altsize.Height && real_room_sz.Height < game.size.Height) ? game.altsize.Height :
+                game.size.Height;
+            new_room_view.Height = viewport_height;
+            new_ui_view.Height = viewport_height;
         }
         else
         {
-            // the height and width are equal to game native size: restore original screen
-            BitmapHelper::SetScreenBitmap(real_screen);
+            new_room_view = real_room_sz;
+        }
+        
+        // TODO: should this be done here? what about transition from the rooms of different size?
+        if (new_room_view < viewport.GetSize())
+        {
+            clear_letterbox_borders();
         }
 
         // Update viewport and mouse area
-        Size new_view_size = BitmapHelper::GetScreenBitmap()->GetSize();
-        Rect new_viewport = CenterInRect(RectWH(game.size), RectWH(new_view_size));
-        play.SetMainViewport(new_viewport);
-        play.SetRoomViewport(new_viewport);
-        play.SetRoomCamera(new_viewport.GetSize());
+        play.SetUIViewport(CenterInRect(viewport, RectWH(new_ui_view)));
+        play.SetRoomViewport(CenterInRect(viewport, RectWH(new_room_view)));
+        play.SetRoomCamera(new_room_view);
         Mouse::SetGraphicArea();
-
-        // Reset virtual_screen bitmap
-        if (virtual_screen->GetHeight() != viewport.GetHeight()) {
-            int cdepth=virtual_screen->GetColorDepth();
-            delete virtual_screen;
-            virtual_screen=BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight(), cdepth);
-            virtual_screen->Clear();
-            gfxDriver->SetMemoryBackBuffer(virtual_screen);
-        }
-
-        // Adjust offsets for rendering sprites on virtual screen
-        gfxDriver->SetRenderOffset(viewport.Left, viewport.Top);
-
-        // [IKM] Since both screen and virtual_screen bitmaps might have changed, we reset a virtual screen,
-        // with either first or second, depending on what was set as virtual screen before
-		if (abscreen==1) // it was a screen bitmap
-            SetVirtualScreen( BitmapHelper::GetScreenBitmap() );
-        else if (abscreen==2) // it was a virtual_screen bitmap
-            SetVirtualScreen( virtual_screen );
+        on_roomcamera_changed();
 
         update_polled_stuff_if_runtime();
     }
-    // update the script viewport height
-    scsystem.viewport_height = divide_down_coordinate(viewport.GetHeight());
 
     SetMouseBounds (0,0,0,0);
 
@@ -590,6 +548,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             thisroom.ebscene[cc] = fix_bitmap_size(thisroom.ebscene[cc]);
     }
 
+    // TODO: remove this after double-checking that it is actually safe to have room background of less than game's size
+    // (Also we should be testing against room camera size anyway now, probably)
     if ((thisroom.ebscene[0]->GetWidth() < viewport.GetWidth()) ||
         (thisroom.ebscene[0]->GetHeight() < viewport.GetHeight()))
     {

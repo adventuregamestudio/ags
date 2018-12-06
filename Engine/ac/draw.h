@@ -47,6 +47,15 @@ struct CachedActSpsData {
     int valid;
 };
 
+// Initializes drawing methods and optimisation
+void init_draw_method();
+// Disposes resources related to the current drawing methods
+void dispose_draw_method();
+// Updates drawing settings depending on room viewport's size and position on screen
+void on_roomviewport_changed();
+// Updates drawing settings depending on room camera's size
+void on_roomcamera_changed();
+
 void invalidate_screen();
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
@@ -119,7 +128,5 @@ Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
 
 // Pointer to the real screen bitmap created by Allegro
 extern Common::Bitmap *real_screen;
-// Subsection of the real screen, used when the room size is smaller than the game's size
-extern Common::Bitmap *sub_screen;
 
 #endif // __AGS_EE_AC__DRAW_H

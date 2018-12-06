@@ -28,6 +28,11 @@ extern GameSetupStruct game;
 extern roomstruct thisroom;
 extern CharacterInfo *playerchar;
 
+GameState::GameState()
+{
+    _isAutoRoomViewport = true;
+}
+
 const Size &GameState::GetNativeSize() const
 {
     return _nativeSize;
@@ -36,6 +41,17 @@ const Size &GameState::GetNativeSize() const
 void GameState::SetNativeSize(const Size &size)
 {
     _nativeSize = size;
+}
+
+bool GameState::IsAutoRoomViewport() const
+{
+    return _isAutoRoomViewport;
+}
+
+void GameState::SetAutoRoomViewport(bool on)
+{
+    _isAutoRoomViewport = on;
+    // TODO: adjust immediately?
 }
 
 void GameState::SetMainViewport(const Rect &viewport)
@@ -50,13 +66,17 @@ const Rect &GameState::GetMainViewport() const
 
 const Rect &GameState::GetUIViewport() const
 {
-    // Internally main viewport and UI viewport are still same thing
-    return _mainViewport.Position;
+    return _uiViewport.Position;
 }
 
 const Rect &GameState::GetRoomViewport() const
 {
     return _roomViewport.Position;
+}
+
+void GameState::SetUIViewport(const Rect &viewport)
+{
+    _uiViewport.Position = viewport;
 }
 
 void GameState::SetRoomViewport(const Rect &viewport)

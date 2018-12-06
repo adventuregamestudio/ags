@@ -41,10 +41,7 @@ extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
 extern int current_screen_resolution_multiplier;
-extern WalkBehindMethodEnum walkBehindMethod;
 extern IGraphicsDriver *gfxDriver;
-extern IDriverDependantBitmap *blankImage;
-extern IDriverDependantBitmap *blankSidebarImage;
 extern Bitmap *virtual_screen;
 
 int convert_16bit_bgr = 0;
@@ -139,6 +136,7 @@ void engine_init_resolution_settings(const Size game_size)
     // Initialize default viewports and room camera
     Rect viewport = RectWH(game_size);
     play.SetMainViewport(viewport);
+    play.SetUIViewport(viewport);
     play.SetRoomViewport(viewport);
     play.SetRoomCamera(viewport.GetSize());
 
@@ -165,7 +163,7 @@ void engine_init_resolution_settings(const Size game_size)
     usetup.textheight = getfontheight_outlined(0) + 1;
 
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
-        game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
+        game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
 
     adjust_sizes_for_resolution(loaded_game_file_version);
     engine_setup_system_gamesize();
@@ -195,13 +193,10 @@ void engine_post_gfxmode_screen_setup(const DisplayMode &dm, bool recreate_bitma
     real_screen = BitmapHelper::GetScreenBitmap();
     if (recreate_bitmaps)
     {
-        delete sub_screen;
-        sub_screen = NULL;
-        // TODO: find out if we need _sub_screen to be recreated right away here
-
         virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     }
     virtual_screen->Clear();
+    // TODO: unify these two calls, the virtual screen must be the same thing in both!
     SetVirtualScreen(virtual_screen);
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
 }
@@ -217,8 +212,6 @@ void engine_pre_gfxmode_screen_cleanup()
 // Release virtual screen
 void engine_pre_gfxsystem_screen_destroy()
 {
-    delete sub_screen;
-    sub_screen = NULL;
     delete virtual_screen;
     virtual_screen = NULL;
 }
@@ -226,7 +219,7 @@ void engine_pre_gfxsystem_screen_destroy()
 // Setup color conversion parameters
 void engine_setup_color_conversions(int coldepth)
 {
-    // default shifts for how we store the sprite data
+    // default shifts for how we store the sprite data1
 #if defined(PSP_VERSION)
     // PSP: Switch b<>r for 15/16 bit.
     _rgb_r_shift_32 = 16;
@@ -324,61 +317,18 @@ void engine_setup_color_conversions(int coldepth)
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256);
 }
 
-// Create blank (black) images used to repaint borders around game frame
-void CreateBlankImage(int coldepth)
-{
-    // this is the first time that we try to use the graphics driver,
-    // so it's the most likey place for a crash
-    try
-    {
-        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, coldepth);
-        blank = ReplaceBitmapWithSupportedFormat(blank);
-        blank->Clear();
-        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        delete blank;
-    }
-    catch (Ali3DException gfxException)
-    {
-        quit((char*)gfxException._message);
-    }
-}
-
-void destroy_blank_image()
-{
-    if (blankImage)
-        gfxDriver->DestroyDDB(blankImage);
-    if (blankSidebarImage)
-        gfxDriver->DestroyDDB(blankSidebarImage);
-    blankImage = NULL;
-    blankSidebarImage = NULL;
-}
-
 // Setup drawing modes and color conversions;
 // they depend primarily on gfx driver capabilities and new color depth
 void engine_post_gfxmode_draw_setup(const DisplayMode &dm)
 {
     engine_setup_color_conversions(dm.ColorDepth);
-
-    if (gfxDriver->HasAcceleratedTransform()) 
-    {
-        walkBehindMethod = DrawAsSeparateSprite;
-        CreateBlankImage(game.GetColorDepth());
-    }
-    else
-    {
-        walkBehindMethod = DrawOverCharSprite;
-    }
-
-    if (!gfxDriver->RequiresFullRedrawEachFrame())
-        init_invalid_regions(game.size.Height);
+    init_draw_method();
 }
 
 // Cleanup auxiliary drawing objects
 void engine_pre_gfxmode_draw_cleanup()
 {
-    destroy_invalid_regions();
-    destroy_blank_image();
+    dispose_draw_method();
 }
 
 // Setup mouse control mode and graphic area

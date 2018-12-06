@@ -129,7 +129,7 @@ void GameState::SetRoomCameraAt(int x, int y)
     int room_width = multiply_up_coordinate(thisroom.width);
     int room_height = multiply_up_coordinate(thisroom.height);
     x = Math::Clamp(x, 0, room_width - cw);
-    y = Math::Clamp(x, 0, room_height - ch);
+    y = Math::Clamp(y, 0, room_height - ch);
     _roomCamera.Position.MoveTo(Point(x, y));
 }
 

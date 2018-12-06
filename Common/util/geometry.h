@@ -366,6 +366,10 @@ struct Circle
 };
 
 
+// Tells if two rectangles intersect (overlap) at least partially
+bool AreRectsIntersecting(const Rect &r1, const Rect &r2);
+// Tells if the item is completely inside place
+bool IsRectInsideRect(const Rect &place, const Rect &item);
 
 int AlignInHRange(int x1, int x2, int off_x, int width, FrameAlignment align);
 int AlignInVRange(int y1, int y2, int off_y, int height, FrameAlignment align);

@@ -38,11 +38,14 @@ struct SpriteBatchDesc
     Rect                     Viewport;
     // Optional model transformation, to be applied to each sprite
     SpriteTransform          Transform;
+    // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
+    PBitmap                  Surface;
 
     SpriteBatchDesc() {}
-    SpriteBatchDesc(const Rect viewport, const SpriteTransform &transform)
+    SpriteBatchDesc(const Rect viewport, const SpriteTransform &transform, PBitmap surface)
         : Viewport(viewport)
         , Transform(transform)
+        , Surface(surface)
     {
     }
 };
@@ -91,7 +94,7 @@ public:
     // TODO: probably should be replaced by defining translation for the sprite batch
     virtual void        SetRenderOffset(int x, int y);
 
-    virtual void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform);
+    virtual void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = NULL);
     virtual void        ClearDrawLists();
 
     virtual void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }

@@ -77,10 +77,10 @@ void GraphicsDriverBase::SetRenderOffset(int x, int y)
     _global_y_offset = y;
 }
 
-void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform)
+void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface)
 {
     _actSpriteBatch++;
-    _spriteBatchDesc.push_back(SpriteBatchDesc(viewport, transform));
+    _spriteBatchDesc.push_back(SpriteBatchDesc(viewport, transform, surface));
     InitSpriteBatch(_actSpriteBatch, _spriteBatchDesc[_actSpriteBatch]);
 }
 

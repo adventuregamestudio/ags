@@ -126,7 +126,9 @@ struct ALSpriteBatch
     // List of sprites to render
     std::vector<ALDrawListEntry> List;
     // Intermediate surface which will be drawn upon and transformed if necessary
-    std::unique_ptr<Bitmap>      Surface;
+    std::shared_ptr<Bitmap>      Surface;
+    // Tells whether the surface is treated as opaque or transparent
+    bool                         Opaque;
 };
 typedef std::vector<ALSpriteBatch> ALSpriteBatches;
 

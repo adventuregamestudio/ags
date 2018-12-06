@@ -18,6 +18,18 @@
 //namespace Common
 //{
 
+bool AreRectsIntersecting(const Rect &r1, const Rect &r2)
+{ // NOTE: remember that in AGS Y axis is pointed downwards
+    return r1.Left <= r2.Right && r1.Right >= r2.Left &&
+        r1.Top <= r2.Bottom && r1.Bottom >= r2.Top;
+}
+
+bool IsRectInsideRect(const Rect &place, const Rect &item)
+{
+    return item.Left >= place.Left && item.Right <= place.Right &&
+        item.Top >= place.Top && item.Bottom <= place.Bottom;
+}
+
 Size ProportionalStretch(int dest_w, int dest_h, int item_w, int item_h)
 {
     int width = item_w ? dest_w : 0;

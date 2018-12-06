@@ -120,7 +120,7 @@ public:
   // Prepares next sprite batch, a list of sprites with defined viewport and optional
   // global model transformation; all subsequent calls to DrawSprite will be adding
   // sprites to this batch's list.
-  virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform) = 0;
+  virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = NULL) = 0;
   // Adds sprite to the active batch
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
   // Clears all sprite batches, resets batch counter

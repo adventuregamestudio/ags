@@ -63,7 +63,8 @@ bool is_screen_dirty();
 // marks whole screen as needing a redraw
 void invalidate_screen();
 // marks certain rectangle on screen as needing a redraw
-void invalidate_rect(int x1, int y1, int x2, int y2);
+// in_room flag tells how to interpret the coordinates: as in-room coords or screen viewport coordinates.
+void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room);
 
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();

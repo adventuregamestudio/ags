@@ -23,9 +23,17 @@
 #include "gfx/ddb.h"
 #include "util/geometry.h"
 
-void init_invalid_regions(const Size &surf_size);
+// Inits dirty rects array for the given room camera/viewport pair
+// View_index indicates the room viewport (>= 0) or the main viewport (-1)
+void init_invalid_regions(int view_index, const Size &surf_size, const Rect &viewport);
+// Update the coordinate transformation for the particular dirty rects object
+void set_invalidrects_cameraoffs(int view_index, int x, int y);
 void invalidate_all_rects();
-void invalidate_rect(int x1, int y1, int x2, int y2, const Rect &viewport);
-void update_invalid_region_and_reset(AGS::Common::Bitmap *ds, int x, int y, AGS::Common::Bitmap *src, const Rect &viewport);
+void invalidate_rect_ds(int x1, int y1, int x2, int y2, bool in_room);
+// Paints the black screen background in the regions marked as dirty
+void update_black_invreg_and_reset(AGS::Common::Bitmap *ds);
+// Copies the room regions marked as dirty from source (src) to destination (ds) with the given offset (x, y)
+// no_transform flag tells the system that the regions should be plain copied to the ds.
+void update_room_invreg_and_reset(int view_index, AGS::Common::Bitmap *ds, AGS::Common::Bitmap *src, bool no_transform);
 
 #endif // __AGS_EE_AC__DRAWSOFTWARE_H

@@ -190,6 +190,7 @@ void msetcursorlimit(int x1, int y1, int x2, int y2)
   boundy2 = y2;
 }
 
+// TODO: find out how this code is being used and how is it synced with mouseCursor DDB!!
 void drawCursor(Bitmap *ds) {
   if (alpha_blend_cursor) {
     set_alpha_blender();

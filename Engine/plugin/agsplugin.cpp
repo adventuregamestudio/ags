@@ -324,7 +324,7 @@ int IAGSEngine::LookupParserWord (const char *word) {
 }
 void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
     wputblock_raw (gfxDriver->GetMemoryBackBuffer(), x, y, bmp, masked);
-    invalidate_rect(x, y, x + bmp->w, y + bmp->h);
+    invalidate_rect(x, y, x + bmp->w, y + bmp->h, false);
 }
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
     Bitmap wrap(bmp, true);
@@ -531,7 +531,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
 }
 // Engine interface 12 and above are below
 void IAGSEngine::MarkRegionDirty(int32 left, int32 top, int32 right, int32 bottom) {
-    invalidate_rect(left, top, right, bottom);
+    invalidate_rect(left, top, right, bottom, false);
     plugins[this->pluginId].invalidatedRegion++;
 }
 AGSMouseCursor * IAGSEngine::GetMouseCursor(int32 cursor) {

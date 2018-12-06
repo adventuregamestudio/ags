@@ -397,7 +397,10 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
     int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
     int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
-    if (desc.Viewport.IsEmpty() || desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
+    batch.Opaque = desc.Surface != NULL;
+    if (desc.Surface != NULL)
+        batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
+    else if (desc.Viewport.IsEmpty() || desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
         batch.Surface.reset();
     else if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
         batch.Surface.reset(new Bitmap(src_w, src_h));
@@ -417,6 +420,16 @@ void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* 
 void ALSoftwareGraphicsDriver::RenderToBackBuffer()
 {
     // Render all the sprite batches with necessary transformations
+    //
+    // NOTE: that's not immediately clear whether it would be faster to first draw upon a camera-sized
+    // surface then stretch final result to the viewport on screen, or stretch-blit each individual
+    // sprite right onto screen bitmap. We'd need to do proper profiling to know that.
+    // An important thing is that Allegro does not provide stretching functions for drawing sprites
+    // with blending and translucency; it seems you'd have to first stretch the original sprite onto a
+    // temp buffer and then TransBlendBlt / LitBlendBlt it to the final destination. Of course, doing
+    // that here would slow things down significantly, so if we ever go that way sprite caching will
+    // be required (similarily to how AGS caches flipped/scaled object sprites now for).
+    //
     for (size_t i = 0; i <= _actSpriteBatch; ++i)
     {
         const Rect &viewport = _spriteBatchDesc[i].Viewport;
@@ -424,15 +437,16 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         const ALSpriteBatch &batch = _spriteBatches[i];
 
         virtualScreen->SetClip(viewport);
-        Bitmap *surface = batch.Surface.get();
+        Bitmap *surface = static_cast<Bitmap*>(batch.Surface.get());
         if (surface)
         {
-            surface->ClearTransparent();
+            if (!batch.Opaque)
+                surface->ClearTransparent();
             _stageVirtualScreen = surface;
             RenderSpriteBatch(batch, surface, 0, 0);
             // TODO: extract this to the generic software blit-with-transform function
-            virtualScreen->StretchBlt(batch.Surface.get(), RectWH(viewport.Left + transform.X, viewport.Top + transform.Y, viewport.GetWidth(), viewport.GetHeight()),
-                kBitmap_Transparency);
+            virtualScreen->StretchBlt(surface, RectWH(viewport.Left + transform.X, viewport.Top + transform.Y, viewport.GetWidth(), viewport.GetHeight()),
+                batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
         }
         else
         {

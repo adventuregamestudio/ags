@@ -155,7 +155,14 @@ bool current_background_is_dirty = false;
 Bitmap *real_screen =NULL;
 int wasShakingScreen = 0;
 
+// Room background sprite
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
+// Intermediate bitmap for the software drawing method.
+// We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
+// and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
+// to the virtual screen.
+// For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
+PBitmap RoomCameraBitmap;
 
 
 std::vector<SpriteListEntry> sprlist;
@@ -467,6 +474,9 @@ void init_draw_method()
         walkBehindMethod = DrawOverCharSprite;
     }
 
+    if (!gfxDriver->RequiresFullRedrawEachFrame())
+        init_invalid_regions(-1, play.GetMainViewport().GetSize(), play.GetMainViewport());
+
     on_roomviewport_changed();
     on_roomcamera_changed();
 }
@@ -475,6 +485,7 @@ void dispose_draw_method()
 {
     destroy_invalid_regions();
     destroy_blank_image();
+    RoomCameraBitmap.reset();
 }
 
 void on_roomviewport_changed()
@@ -487,7 +498,22 @@ void on_roomviewport_changed()
 void on_roomcamera_changed()
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())
-        init_invalid_regions(play.GetRoomCamera().GetSize());
+    {
+        // TODO: optimise for the case of gradual camera zoom (how??)
+        const Size &cam_sz = play.GetRoomCamera().GetSize();
+        const Size &view_sz = play.GetRoomViewport().GetSize();
+        init_invalid_regions(0, cam_sz, play.GetRoomViewport());
+        if (cam_sz == view_sz)
+        {
+            RoomCameraBitmap.reset();
+        }
+        else
+        {
+            RoomCameraBitmap.reset(new Bitmap(cam_sz.Width, cam_sz.Height));
+            RoomCameraBitmap->Clear(0);
+        }
+    }
+    invalidate_screen();
 }
 
 void mark_screen_dirty()
@@ -505,19 +531,16 @@ void invalidate_screen()
     invalidate_all_rects();
 }
 
-void invalidate_rect(int x1, int y1, int x2, int y2)
+void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room)
 {
-    invalidate_rect(x1, y1, x2, y2, play.GetMainViewport());
+    //if (!in_room)
+    invalidate_rect_ds(x1, y1, x2, y2, in_room);
 }
 
-void invalidate_sprite(int x1, int y1, IDriverDependantBitmap *pic)
+void invalidate_sprite(int x1, int y1, IDriverDependantBitmap *pic, bool in_room)
 {
-    invalidate_rect(x1, y1, x1 + pic->GetWidth(), y1 + pic->GetHeight(), play.GetMainViewport());
-}
-
-void update_invalid_region_and_reset(Bitmap *ds, int x, int y, Bitmap *src)
-{
-    update_invalid_region_and_reset(ds, x, y, src, play.GetMainViewport());
+    //if (!in_room)
+    invalidate_rect_ds(x1, y1, x1 + pic->GetWidth(), y1 + pic->GetHeight(), in_room);
 }
 
 void mark_current_background_dirty()
@@ -529,7 +552,7 @@ void mark_current_background_dirty()
 void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text)
 {
     wouttext_outline(ds, x1, y1, font, text_color, (char*)text);
-    invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + getfontheight_outlined(font) + get_fixed_pixel_size(1));
+    invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + getfontheight_outlined(font) + get_fixed_pixel_size(1), false);
 }
 
 void render_black_borders(int atx, int aty)
@@ -1872,8 +1895,17 @@ void prepare_characters_for_drawing() {
 
 
 // Draws the room and its contents: background, objects, characters
-void draw_room(Bitmap *ds) {
-
+//
+// NOTE that the bitmap arguments are **strictly** for software rendering.
+// ds is a full game screen surface, and roomcam_surface is a surface for drawing room camera content to.
+// ds and roomcam_surface may be the same bitmap.
+// TODO: if we support multiple cameras we would in fact need to split this function into calling
+// dirty rects drawing for the full surface and room drawing on room surface.
+// (maybe even split it into software/hardware variant)
+// no_transform flag tells to copy dirty regions on roomcam_surface without any coordinate conversion
+// whatsoever.
+void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
+    // TODO: dont use static vars!!
     static int offsetxWas = -100, offsetyWas = -100;
 
     screen_reset = 1;
@@ -1896,8 +1928,8 @@ void draw_room(Bitmap *ds) {
     our_eip=31;
 
     const Rect &camera = play.GetRoomCamera();
-    int offsetx = camera.Left;
-    int offsety = camera.Top;
+    const int offsetx = camera.Left;
+    const int offsety = camera.Top;
 
     if ((offsetx != offsetxWas) || (offsety != offsetyWas)) {
         invalidate_screen();
@@ -1935,10 +1967,20 @@ void draw_room(Bitmap *ds) {
     }
     else
     {
+        // For software renderer: copy dirty rects onto the virtual screen.
+        // TODO: that would be SUPER NICE to reorganize the code and move this operation into SoftwareGraphicDriver somehow.
+        // Because basically we duplicate sprite batch transform here.
+
+        set_invalidrects_cameraoffs(0, offsetx, offsety);
+
+        // TODO: (by CJ)
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_invalid_region_and_reset(ds, -offsetx, -offsety, thisroom.ebscene[play.bg_frame]);
+
+        update_black_invreg_and_reset(ds);
+        update_room_invreg_and_reset(0, roomcam_surface, thisroom.ebscene[play.bg_frame], no_transform);
+        // TODO: remember that we also would need to rotate here if we support camera rotation!
     }
 
     clear_sprite_list();
@@ -1989,7 +2031,7 @@ void draw_fps()
     int yp = play.GetMainViewport().GetHeight() - fpsDisplay->GetHeight();
 
     gfxDriver->DrawSprite(1, yp, ddb);
-    invalidate_sprite(1, yp, ddb);
+    invalidate_sprite(1, yp, ddb, false);
 
     sprintf(tbuffer,"Loop %u", loopcounter);
     draw_and_invalidate_text(ds, get_fixed_pixel_size(250), yp, FONT_SPEECH, text_color, tbuffer);
@@ -2108,7 +2150,7 @@ void draw_gui_and_overlays() {
 }
 
 // Push the gathered list of sprites into the active graphic renderer
-void put_sprite_list_on_screen()
+void put_sprite_list_on_screen(bool in_room)
 {
     // *** Draw the Things To Draw List ***
 
@@ -2120,7 +2162,7 @@ void put_sprite_list_on_screen()
 
         if (thisThing->bmp != NULL) {
             // mark the image's region as dirty
-            invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp);
+            invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp, in_room);
         }
         else if ((thisThing->transparent != TRANS_RUN_PLUGIN) &&
             (thisThing->bmp == NULL)) 
@@ -2286,7 +2328,7 @@ void update_screen() {
             gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
 
         gfxDriver->DrawSprite(0, 0, debugConsole);
-        invalidate_sprite(0, 0, debugConsole);
+        invalidate_sprite(0, 0, debugConsole, false);
     }
 
     domouse(DOMOUSE_NOCURSOR);
@@ -2294,7 +2336,7 @@ void update_screen() {
     if (!play.mouse_cursor_hidden)
     {
         gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
-        invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor);
+        invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
     }
 
     /*
@@ -2342,28 +2384,35 @@ void construct_virtual_screen(bool fullRedraw)
     //
     const Rect &room_viewport = play.GetRoomViewport();
     const Rect &camera = play.GetRoomCamera();
+    // TODO: have camera Left/Top used as a prescale (source) offset!
     SpriteTransform room_trans(0, 0,
         (float)room_viewport.GetWidth() / (float)camera.GetWidth(),
         (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
         0.f);
-    gfxDriver->BeginSpriteBatch(room_viewport, room_trans);
+    gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraBitmap);
     Bitmap *ds = GetVirtualScreen();
     if (displayed_room >= 0) {
 
         if (fullRedraw)
             invalidate_screen();
 
-        draw_room(ds);
+        // For the sake of software renderer, if there is any kind of camera transform required
+        // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
+        // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
+        bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
+        Bitmap *room_bmp = translate_only ? ds : RoomCameraBitmap.get();
+        draw_room(ds, room_bmp, !translate_only);
     }
     else if (!gfxDriver->RequiresFullRedrawEachFrame()) 
     {
         // if the driver is not going to redraw the screen,
         // black it out so we don't get cursor trails
+        // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
         ds->Fill(0);
     }
     // reset the Baselines Changed flag now that we've drawn stuff
     walk_behind_baselines_changed = 0;
-    put_sprite_list_on_screen();
+    put_sprite_list_on_screen(true);
 
     // make sure that the mp3 is always playing smoothly
     update_mp3();
@@ -2374,7 +2423,7 @@ void construct_virtual_screen(bool fullRedraw)
     //
     gfxDriver->BeginSpriteBatch(play.GetUIViewport(), SpriteTransform());
     draw_gui_and_overlays();
-    put_sprite_list_on_screen();
+    put_sprite_list_on_screen(false);
 
     //
     // Batch 3: auxiliary info
@@ -2399,7 +2448,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     our_eip=5;
 
     if (extraBitmap != NULL) {
-        invalidate_sprite(extraX, extraY, extraBitmap);
+        invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
     }
 

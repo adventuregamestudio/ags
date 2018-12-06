@@ -15,12 +15,26 @@
 // Software drawing component. Optimizes drawing for software renderer using
 // dirty rectangles technique.
 //
+// TODO: do research/profiling to find out if this dirty rectangles thing
+// is still giving ANY notable perfomance boost at all.
+//
+// TODO: how are we going to support rotation here??
+// Probably we'd need to have a pre-rotated Room image to cut dirty rects from.
+//
+// TODO: that would be SUPER NICE to reorganize the code and move dirty rectangles
+// into SoftwareGraphicDriver somehow. Because basically we duplicate sprite batch
+// transform here.
+// IDEA: connect particular registered DDB with DirtyRects class, making the
+// renderer copy bits of that DDB to virtual screen with the necessary sprite
+// transform.
+//
 //=============================================================================
 
 #include <string.h>
 #include <vector>
 #include "ac/draw_software.h"
 #include "gfx/bitmap.h"
+#include "util/scaling.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -30,6 +44,9 @@ using namespace AGS::Engine;
 #define WHOLESCREENDIRTY (MAXDIRTYREGIONS + 5)
 #define MAX_SPANS_PER_ROW 4
 
+// Dirty rects store coordinate values in the coordinate system of a camera surface,
+// where coords always span from 0,0 to surface width,height.
+// Converting from room to dirty rects would require subtracting room camera offsets.
 struct IRSpan
 {
     int x1, x2;
@@ -49,15 +66,24 @@ struct IRRow
 struct DirtyRects
 {
     // Size of the surface managed by this dirty rects object
-    Size surfaceSize;
+    Size SurfaceSize;
+    // Where the surface is rendered on screen
+    Rect Viewport;
+    // Room -> screen coordinate transformation
+    PlaneScaling Room2Screen;
+    // Screen -> dirty surface rect
+    // The dirty rects are saved in coordinates limited to (0,0)->(camera size) rather than room or screen coords
+    PlaneScaling Screen2DirtySurf;
 
-    std::vector<IRRow> dirtyRows;
-    Rect dirtyRegions[MAXDIRTYREGIONS];
-    size_t numDirtyRegions;
+    std::vector<IRRow> DirtyRows;
+    Rect DirtyRegions[MAXDIRTYREGIONS];
+    size_t NumDirtyRegions;
 
     DirtyRects();
+    bool IsInit() const;
     // Initialize dirty rects for the given surface size
-    void Init(const Size &surf_size);
+    void Init(const Size &surf_size, const Rect &viewport);
+    void SetSurfaceOffsets(int x, int y);
     // Delete dirty rects
     void Destroy();
     // Mark all surface as tidy
@@ -88,41 +114,59 @@ int IRSpan::mergeSpan(int tx1, int tx2)
 }
 
 DirtyRects::DirtyRects()
-    : numDirtyRegions(0)
+    : NumDirtyRegions(0)
 {
 }
 
-void DirtyRects::Init(const Size &surf_size)
+bool DirtyRects::IsInit() const
+{
+    return DirtyRows.size() > 0;
+}
+
+void DirtyRects::Init(const Size &surf_size, const Rect &viewport)
 {
     int height = surf_size.Height;
-    if (surfaceSize != surf_size)
+    if (SurfaceSize != surf_size)
     {
         Destroy();
-        surfaceSize = surf_size;
-        dirtyRows.resize(height);
+        SurfaceSize = surf_size;
+        DirtyRows.resize(height);
     }
 
-    numDirtyRegions = WHOLESCREENDIRTY;
+    NumDirtyRegions = WHOLESCREENDIRTY;
 
     for (int i = 0; i < height; ++i)
-        dirtyRows[i].numSpans = 0;
+        DirtyRows[i].numSpans = 0;
+
+    Viewport = viewport;
+    Room2Screen.Init(surf_size, viewport);
+    Screen2DirtySurf.Init(viewport, RectWH(0, 0, surf_size.Width, surf_size.Height));
+}
+
+void DirtyRects::SetSurfaceOffsets(int x, int y)
+{
+    Room2Screen.SetSrcOffsets(x, y);
 }
 
 void DirtyRects::Destroy()
 {
-    dirtyRows.clear();
-    numDirtyRegions = 0;
+    DirtyRows.clear();
+    NumDirtyRegions = 0;
 }
 
 void DirtyRects::Reset()
 {
-    numDirtyRegions = 0;
+    NumDirtyRegions = 0;
 
-    for (int i = 0; i < dirtyRows.size(); ++i)
-        dirtyRows[i].numSpans = 0;
+    for (size_t i = 0; i < DirtyRows.size(); ++i)
+        DirtyRows[i].numSpans = 0;
 }
 
-
+// Dirty rects for the main viewport background (black screen);
+// these are used when the room viewport does not cover whole screen,
+// so that we know when to paint black after mouse cursor and gui.
+DirtyRects BlackRects;
+// TODO: support for multiple cameras (multiple DirtyRects objects)
 // Dirty rects object for the single room camera
 DirtyRects RoomCamRects;
 
@@ -131,39 +175,64 @@ void destroy_invalid_regions()
     RoomCamRects.Destroy();
 }
 
-void init_invalid_regions(const Size &surf_size)
+void init_invalid_regions(int view_index, const Size &surf_size, const Rect &viewport)
 {
-    RoomCamRects.Init(surf_size);
+    if (view_index < 0)
+    {
+        BlackRects.Init(surf_size, viewport);
+    }
+    else
+    {
+        // TODO: multiple room viewport support
+        RoomCamRects.Init(surf_size, viewport);
+    }
+}
+
+void set_invalidrects_cameraoffs(int view_index, int x, int y)
+{
+    if (view_index < 0)
+    {
+        BlackRects.SetSurfaceOffsets(x, y);
+    }
+    else
+    {
+        RoomCamRects.SetSurfaceOffsets(x, y);
+    }
 }
 
 void invalidate_all_rects()
 {
     // mark the whole screen dirty
-    RoomCamRects.numDirtyRegions = WHOLESCREENDIRTY;
+    if (!IsRectInsideRect(RoomCamRects.Viewport, BlackRects.Viewport))
+        BlackRects.NumDirtyRegions = WHOLESCREENDIRTY;
+    RoomCamRects.NumDirtyRegions = WHOLESCREENDIRTY;
 }
 
-void invalidate_rect(int x1, int y1, int x2, int y2, const Rect &viewport)
+void invalidate_rect_on_surf(int x1, int y1, int x2, int y2, DirtyRects &rects)
 {
-    if (RoomCamRects.numDirtyRegions >= MAXDIRTYREGIONS) {
+    if (rects.DirtyRows.size() == 0)
+        return;
+    if (rects.NumDirtyRegions >= MAXDIRTYREGIONS) {
         // too many invalid rectangles, just mark the whole thing dirty
-        RoomCamRects.numDirtyRegions = WHOLESCREENDIRTY;
+        rects.NumDirtyRegions = WHOLESCREENDIRTY;
         return;
     }
 
     int a;
 
-    if (x1 >= viewport.GetWidth()) x1 = viewport.GetWidth() - 1;
-    if (y1 >= viewport.GetHeight()) y1 = viewport.GetHeight() - 1;
-    if (x2 >= viewport.GetWidth()) x2 = viewport.GetWidth() - 1;
-    if (y2 >= viewport.GetHeight()) y2 = viewport.GetHeight() - 1;
+    const Size &surfsz = rects.SurfaceSize;
+    if (x1 >= surfsz.Width) x1 = surfsz.Width - 1;
+    if (y1 >= surfsz.Height) y1 = surfsz.Height - 1;
+    if (x2 >= surfsz.Width) x2 = surfsz.Width - 1;
+    if (y2 >= surfsz.Height) y2 = surfsz.Height - 1;
     if (x1 < 0) x1 = 0;
     if (y1 < 0) y1 = 0;
     if (x2 < 0) x2 = 0;
     if (y2 < 0) y2 = 0;
-    RoomCamRects.numDirtyRegions++;
+    rects.NumDirtyRegions++;
 
     // ** Span code
-    std::vector<IRRow> &dirtyRow = RoomCamRects.dirtyRows;
+    std::vector<IRRow> &dirtyRow = rects.DirtyRows;
     int s, foundOne;
     // add this rect to the list for this row
     for (a = y1; a <= y2; a++) {
@@ -224,61 +293,165 @@ void invalidate_rect(int x1, int y1, int x2, int y2, const Rect &viewport)
     //}
 }
 
-void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src, const Rect &viewport)
+void invalidate_rect_ds(int x1, int y1, int x2, int y2, bool in_room)
 {
-    int i;
-    // convert the offsets for the destination into
-    // offsets into the source
-    x = -x;
-    y = -y;
+    if (!RoomCamRects.IsInit())
+        return;
+    // TODO: support for multiple cameras (just do the similar thing in a loop, switching DirtyRects object)
+    if (!in_room)
+    {
+        // TODO: for most opimisation (esp. with multiple viewports) should perhaps
+        // split/cut parts of the original rectangle which overlap room viewport(s).
+        Rect r(x1, y1, x2, y2);
+        // If overlay is NOT completely over the room, then invalidate black rect
+        if (!IsRectInsideRect(RoomCamRects.Viewport, r))
+            invalidate_rect_on_surf(x1, y1, x2, y2, BlackRects);
+        // If overlay is NOT intersecting room viewport at all, then stop
+        if (!AreRectsIntersecting(RoomCamRects.Viewport, r))
+            return;
 
-    if (RoomCamRects.numDirtyRegions == WHOLESCREENDIRTY) {
-        ds->Blit(src, x, y, 0, 0, ds->GetWidth(), ds->GetHeight());
+        // Transform from screen to room coordinates through the known viewport
+        x1 = RoomCamRects.Screen2DirtySurf.X.ScalePt(x1);
+        x2 = RoomCamRects.Screen2DirtySurf.X.ScalePt(x2);
+        y1 = RoomCamRects.Screen2DirtySurf.Y.ScalePt(y1);
+        y2 = RoomCamRects.Screen2DirtySurf.Y.ScalePt(y2);
     }
-    else {
-        std::vector<IRRow> &dirtyRow = RoomCamRects.dirtyRows;
-        int k, tx1, tx2, srcdepth = src->GetColorDepth();
-        if ((srcdepth == ds->GetColorDepth()) && (ds->IsMemoryBitmap())) {
-            int bypp = src->GetBPP();
-            // do the fast copy
-            for (i = 0; i < viewport.GetHeight(); i++) {
-                const uint8_t *src_scanline = src->GetScanLine(i + y);
-                uint8_t *dst_scanline = ds->GetScanLineForWriting(i);
+
+    invalidate_rect_on_surf(x1, y1, x2, y2, RoomCamRects);
+}
+
+void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, bool no_transform)
+{
+    if (rects.NumDirtyRegions == 0)
+        return;
+
+    if (!no_transform)
+        ds->SetClip(rects.Viewport);
+
+    const int src_x = rects.Room2Screen.X.GetSrcOffset();
+    const int src_y = rects.Room2Screen.Y.GetSrcOffset();
+
+    if (rects.NumDirtyRegions == WHOLESCREENDIRTY)
+    {
+        if (no_transform)
+            ds->Blit(src, src_x, src_y, 0, 0, rects.SurfaceSize.Width, rects.SurfaceSize.Height);
+        else
+            ds->StretchBlt(src, RectWH(src_x, src_y, rects.SurfaceSize.Width, rects.SurfaceSize.Height), rects.Viewport);
+    }
+    else
+    {
+        const std::vector<IRRow> &dirtyRow = rects.DirtyRows;
+        const int surf_height = rects.SurfaceSize.Height;
+        // TODO: is this IsMemoryBitmap check is still relevant?
+        // If bitmaps properties match and no transform required other than linear offset
+        if ((src->GetColorDepth() == ds->GetColorDepth()) && (ds->IsMemoryBitmap()) && (no_transform || rects.Room2Screen.IsTranslateOnly()))
+        {
+            const int dst_x = no_transform ? 0 : rects.Viewport.Left;
+            const int dst_y = no_transform ? 0 : rects.Viewport.Top;
+            const int bypp = src->GetBPP();
+            // do the fast memory copy
+            for (int i = 0; i < surf_height; i++)
+            {
+                const uint8_t *src_scanline = src->GetScanLine(i + src_y);
+                uint8_t *dst_scanline = ds->GetScanLineForWriting(i + dst_y);
                 const IRRow &dirty_row = dirtyRow[i];
-                for (k = 0; k < dirty_row.numSpans; k++) {
-                    tx1 = dirty_row.span[k].x1;
-                    tx2 = dirty_row.span[k].x2;
-                    memcpy(&dst_scanline[tx1 * bypp], &src_scanline[(tx1 + x) * bypp], ((tx2 - tx1) + 1) * bypp);
+                for (int k = 0; k < dirty_row.numSpans; k++)
+                {
+                    int tx1 = dirty_row.span[k].x1;
+                    int tx2 = dirty_row.span[k].x2;
+                    memcpy(&dst_scanline[(tx1 + dst_x) * bypp], &src_scanline[(tx1 + src_x) * bypp], ((tx2 - tx1) + 1) * bypp);
                 }
             }
         }
-        else {
-            // do the fast copy
-            int rowsInOne;
-            for (i = 0; i < viewport.GetHeight(); i++) {
-                rowsInOne = 1;
-
+        // If has to use Blit, but still must draw with no transform whatsoever
+        else if (no_transform)
+        {
+            // do fast copy without transform
+            for (int i = 0, rowsInOne = 1; i < surf_height; i += rowsInOne, rowsInOne = 1)
+            {
                 // if there are rows with identical masks, do them all in one go
-                while ((i + rowsInOne < viewport.GetHeight()) && (memcmp(&dirtyRow[i], &dirtyRow[i + rowsInOne], sizeof(IRRow)) == 0))
+                // TODO: what is this for? may this be done at the invalidate_rect merge step?
+                while ((i + rowsInOne < surf_height) && (memcmp(&dirtyRow[i], &dirtyRow[i + rowsInOne], sizeof(IRRow)) == 0))
                     rowsInOne++;
 
                 const IRRow &dirty_row = dirtyRow[i];
-                for (k = 0; k < dirty_row.numSpans; k++) {
-                    tx1 = dirty_row.span[k].x1;
-                    tx2 = dirty_row.span[k].x2;
-                    ds->Blit(src, tx1 + x, i + y, tx1, i, (tx2 - tx1) + 1, rowsInOne);
+                for (int k = 0; k < dirty_row.numSpans; k++)
+                {
+                    int tx1 = dirty_row.span[k].x1;
+                    int tx2 = dirty_row.span[k].x2;
+                    ds->Blit(src, tx1 + src_x, i + src_y, tx1, i, (tx2 - tx1) + 1, rowsInOne);
                 }
+            }
+        }
+        // If must do full transform (offset + scaling + etc)
+        else
+        {
+            const PlaneScaling &tf = rects.Room2Screen;
+            for (int i = 0, rowsInOne = 1; i < surf_height; i += rowsInOne, rowsInOne = 1)
+            {
+                // if there are rows with identical masks, do them all in one go
+                // TODO: what is this for? may this be done at the invalidate_rect merge step?
+                while ((i + rowsInOne < surf_height) && (memcmp(&dirtyRow[i], &dirtyRow[i + rowsInOne], sizeof(IRRow)) == 0))
+                    rowsInOne++;
 
-                i += (rowsInOne - 1);
+                const IRRow &dirty_row = dirtyRow[i];
+                for (int k = 0; k < dirty_row.numSpans; k++)
+                {
+                    Rect src_r(dirty_row.span[k].x1 + src_x, i + src_y, dirty_row.span[k].x2 + src_x, i + src_y + rowsInOne - 1);
+                    Rect dst_r = tf.ScaleRange(src_r);
+                    ds->StretchBlt(src, src_r, dst_r);
+                }
             }
         }
     }
 }
 
-void update_invalid_region_and_reset(Bitmap *ds, int x, int y, Bitmap *src, const Rect &viewport)
+void update_invalid_region(Bitmap *ds, color_t fill_color, const DirtyRects &rects)
 {
-    update_invalid_region(ds, x, y, src, viewport);
+    ds->SetClip(rects.Viewport);
 
-    // screen has been updated, no longer dirty
+    if (rects.NumDirtyRegions == WHOLESCREENDIRTY)
+    {
+        ds->FillRect(rects.Viewport, fill_color);
+    }
+    else
+    {
+        const std::vector<IRRow> &dirtyRow = rects.DirtyRows;
+        const int surf_height = rects.SurfaceSize.Height;
+        {
+            const PlaneScaling &tf = rects.Room2Screen;
+            for (int i = 0, rowsInOne = 1; i < surf_height; i += rowsInOne, rowsInOne = 1)
+            {
+                // if there are rows with identical masks, do them all in one go
+                // TODO: what is this for? may this be done at the invalidate_rect merge step?
+                while ((i + rowsInOne < surf_height) && (memcmp(&dirtyRow[i], &dirtyRow[i + rowsInOne], sizeof(IRRow)) == 0))
+                    rowsInOne++;
+
+                const IRRow &dirty_row = dirtyRow[i];
+                for (int k = 0; k < dirty_row.numSpans; k++)
+                {
+                    Rect src_r(dirty_row.span[k].x1, i, dirty_row.span[k].x2, i + rowsInOne - 1);
+                    Rect dst_r = tf.ScaleRange(src_r);
+                    ds->FillRect(dst_r, fill_color);
+                }
+            }
+        }
+    }
+}
+
+void update_black_invreg_and_reset(Bitmap *ds)
+{
+    if (!BlackRects.IsInit())
+        return;
+    update_invalid_region(ds, (color_t)0, BlackRects);
+    BlackRects.Reset();
+}
+
+void update_room_invreg_and_reset(int /*view_index*/, Bitmap *ds, Bitmap *src, bool no_transform)
+{
+    if (!RoomCamRects.IsInit())
+        return;
+    
+    update_invalid_region(ds, src, RoomCamRects, no_transform);
     RoomCamRects.Reset();
 }

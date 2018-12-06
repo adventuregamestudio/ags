@@ -558,16 +558,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             thisroom.ebscene[cc] = fix_bitmap_size(thisroom.ebscene[cc]);
     }
 
-    // TODO: remove this after double-checking that it is actually safe to have room background of less than game's size
-    // (Also we should be testing against room camera size anyway now, probably)
-    if ((thisroom.ebscene[0]->GetWidth() < viewport.GetWidth()) ||
-        (thisroom.ebscene[0]->GetHeight() < viewport.GetHeight()))
-    {
-        quitprintf("!The background scene for this room is smaller than the game resolution. If you have recently changed " 
-            "the game resolution, you will need to re-import the background for this room. (Room: %d, BG Size: %d x %d)",
-            newnum, thisroom.ebscene[0]->GetWidth(), thisroom.ebscene[0]->GetHeight());
-    }
-
     recache_walk_behinds();
 
     our_eip=205;

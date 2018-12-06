@@ -190,6 +190,7 @@ void Viewport_SetX(ScriptViewport *, int x)
 {
     Rect view = play.GetRoomViewport();
     view.MoveToX(x);
+    play.SetAutoRoomViewport(false);
     play.SetRoomViewport(view);
 }
 
@@ -202,6 +203,7 @@ void Viewport_SetY(ScriptViewport *, int y)
 {
     Rect view = play.GetRoomViewport();
     view.MoveToY(y);
+    play.SetAutoRoomViewport(false);
     play.SetRoomViewport(view);
 }
 
@@ -214,6 +216,7 @@ void Viewport_SetWidth(ScriptViewport *, int width)
 {
     Rect view = play.GetRoomViewport();
     view.SetWidth(width);
+    play.SetAutoRoomViewport(false);
     play.SetRoomViewport(view);
 }
 
@@ -226,6 +229,7 @@ void Viewport_SetHeight(ScriptViewport *, int height)
 {
     Rect view = play.GetRoomViewport();
     view.SetHeight(height);
+    play.SetAutoRoomViewport(false);
     play.SetRoomViewport(view);
 }
 

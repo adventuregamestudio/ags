@@ -579,10 +579,6 @@
     <EmbeddedResource Include="GUI\GotoLineDialog.resx">
       <DependentUpon>GotoLineDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\MakeTemplateWizardPage.resx">
-      <DependentUpon>MakeTemplateWizardPage.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\NewRoomDialog.resx">
       <SubType>Designer</SubType>
       <DependentUpon>NewRoomDialog.cs</DependentUpon>
@@ -1003,12 +999,6 @@
     </Compile>
     <Compile Include="GUI\AutoNumberSpeechWizardPage.Designer.cs">
       <DependentUpon>AutoNumberSpeechWizardPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\MakeTemplateWizardPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="GUI\MakeTemplateWizardPage.Designer.cs">
-      <DependentUpon>MakeTemplateWizardPage.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\StartNewGameWizardPage2.cs">
       <SubType>UserControl</SubType>

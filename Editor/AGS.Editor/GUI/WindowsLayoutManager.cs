@@ -64,9 +64,7 @@ namespace AGS.Editor
 
         private string GetLayoutFile()
         {
-            string baseFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            const string agsFolder = "AGS";
-            return Path.Combine(Path.Combine(baseFolder, agsFolder), LAYOUT_FILENAME);
+            return Path.Combine(Factory.AGSEditor.LocalAppData, LAYOUT_FILENAME);
         }
 
         private IDockContent DeserializeContents(string type)

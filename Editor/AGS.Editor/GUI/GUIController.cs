@@ -17,6 +17,8 @@ namespace AGS.Editor
     public class GUIController : IGUIController
     {
         public const string IMAGE_FILE_FILTER = "All supported images (*.bmp; *.gif; *.jpg; *.png; *.tif)|*.bmp;*.gif;*.jpg;*.png;*.tif|Windows bitmap files (*.bmp)|*.bmp|Compuserve Graphics Interchange (*.gif)|*.gif|JPEG (*.jpg)|*.jpg|Portable Network Graphics (*.png)|*.png|Tagged Image File (*.tif)|*.tif";
+        public const string GAME_TEMPLATE_FILE_FILTER = "AGS game template files (*.agt)|*.agt";
+        public const string ROOM_TEMPLATE_FILE_FILTER = "AGS room template files (*.art)|*.art";
 
         public const string FILE_MENU_ID = "fileToolStripMenuItem";
         public const string HELP_MENU_ID = "HelpMenu";
@@ -526,14 +528,14 @@ namespace AGS.Editor
             Cursor.Position = new Point(gridPosition.X + 90, gridPosition.Y + 30);
         }
 
-        public string ShowSaveFileDialog(string title, string fileFilter)
+        public string ShowSaveFileDialog(string title, string fileFilter, string initialDirectory = null)
         {
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Title = title;
             dialog.RestoreDirectory = true;
             dialog.OverwritePrompt = true;
             dialog.ValidateNames = true;
-            dialog.InitialDirectory = System.IO.Directory.GetCurrentDirectory();
+            dialog.InitialDirectory = initialDirectory == null ? Directory.GetCurrentDirectory() : initialDirectory;
             dialog.Filter = fileFilter;
             if (dialog.ShowDialog() == DialogResult.OK)
             {
@@ -931,12 +933,17 @@ namespace AGS.Editor
         {
             bool createdSuccessfully = false;
             List<GameTemplate> templates = new List<GameTemplate>();
-            foreach (string fileName in Utilities.GetDirectoryFileList(_agsEditor.TemplatesDirectory, "*.agt"))
+            string[] directories = new string[] { _agsEditor.TemplatesDirectory, _agsEditor.UserTemplatesDirectory };
+
+            foreach (string directory in directories)
             {
-                GameTemplate template = Factory.NativeProxy.LoadTemplateFile(fileName);
-                if (template != null)
+                foreach (string fileName in Utilities.GetDirectoryFileList(directory, "*.agt"))
                 {
-                    templates.Add(template);
+                    GameTemplate template = Factory.NativeProxy.LoadTemplateFile(fileName);
+                    if (template != null)
+                    {
+                        templates.Add(template);
+                    }
                 }
             }
 
@@ -1028,85 +1035,61 @@ namespace AGS.Editor
 			return files.ToArray();
 		}
 
-		public void ShowCreateRoomTemplateWizard(UnloadedRoom room)
-		{
-			List<WizardPage> pages = new List<WizardPage>();
-			MakeTemplateWizardPage templateCreationPage = new MakeTemplateWizardPage(_agsEditor.TemplatesDirectory, ".art");
-			pages.Add(templateCreationPage);
+        public void SaveRoomAsTemplate(UnloadedRoom room)
+        {
+            string filename = Factory.GUIController.ShowSaveFileDialog("Save room template as...", GUIController.ROOM_TEMPLATE_FILE_FILTER, Factory.AGSEditor.UserTemplatesDirectory);
 
-			WizardDialog dialog = new WizardDialog("Room Template", "This wizard will guide you through the process of creating a room template. A room template allows you to easily create new rooms based off an existing one.", pages);
-			DialogResult result = dialog.ShowDialog();
+            if (filename != null)
+            {
+                try
+                {
+                    BinaryWriter writer = new BinaryWriter(new FileStream(ROOM_TEMPLATE_ID_FILE, FileMode.Create, FileAccess.Write));
+                    writer.Write(ROOM_TEMPLATE_ID_FILE_SIGNATURE);
+                    writer.Write(room.Number);
+                    writer.Close();
 
-			if (result == DialogResult.OK)
-			{
-				string templateFileName = templateCreationPage.GetFullPath();
-				try
-				{
-					if (File.Exists(templateFileName))
-					{
-						File.Delete(templateFileName);
-					}
-					BinaryWriter writer = new BinaryWriter(new FileStream(ROOM_TEMPLATE_ID_FILE, FileMode.Create, FileAccess.Write));
-					writer.Write(ROOM_TEMPLATE_ID_FILE_SIGNATURE);
-					writer.Write(room.Number);
-					writer.Close();
+                    Factory.NativeProxy.CreateTemplateFile(filename, ConstructRoomTemplateFileList(room));
+                    File.Delete(ROOM_TEMPLATE_ID_FILE);
+                }
+                catch (AGSEditorException ex)
+                {
+                    Factory.GUIController.ShowMessage("There was an error creating your room template:" + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                }
+                catch (Exception ex)
+                {
+                    Factory.GUIController.ShowMessage("There was an error creating your room template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
+                }
+            }
+        }
 
-					Factory.NativeProxy.CreateTemplateFile(templateFileName, ConstructRoomTemplateFileList(room));
-
-					File.Delete(ROOM_TEMPLATE_ID_FILE);
-
-					Factory.GUIController.ShowMessage("Template created successfully. To try it out, create a new room.", MessageBoxIcon.Information);
-				}
-				catch (AGSEditorException ex)
-				{
-					Factory.GUIController.ShowMessage("There was an error creating your template: " + ex.Message, MessageBoxIcon.Warning);
-				}
-				catch (Exception ex)
-				{
-					Factory.GUIController.ShowMessage("There was an error creating your template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
-				}
-			}
-
-			dialog.Dispose();
-		}
-
-        public void ShowCreateTemplateWizard()
+        public void SaveGameAsTemplate()
         {
             if (_agsEditor.SourceControlProvider.ProjectUnderControl)
             {
-                if (this.ShowQuestion("This game is under source control. It is not advisable to create a template that is bound to source control. Are you sure you want to continue?", MessageBoxIcon.Warning) == DialogResult.No)
+                if (ShowQuestion("This game is under source control. It is not advisable to create a template that is bound to source control. Are you sure you want to continue?", MessageBoxIcon.Warning) == DialogResult.No)
                 {
                     return;
                 }
             }
 
-            List<WizardPage> pages = new List<WizardPage>();
-            MakeTemplateWizardPage templateCreationPage = new MakeTemplateWizardPage(_agsEditor.TemplatesDirectory, ".agt");
-            pages.Add(templateCreationPage);
+            string filename = Factory.GUIController.ShowSaveFileDialog("Save new template as...", GUIController.GAME_TEMPLATE_FILE_FILTER, Factory.AGSEditor.UserTemplatesDirectory);
 
-            WizardDialog dialog = new WizardDialog("Create Template", "This wizard will guide you through the process of creating a template. A template allows other people to easily create a game that uses your game as a starting point.", pages);
-            DialogResult result = dialog.ShowDialog();
-
-            if (result == DialogResult.OK)
+            if (filename != null)
             {
-                string templateName = templateCreationPage.GetFullPath();
                 try
                 {
                     _agsEditor.SaveGameFiles();
-                    InteractiveTasks.CreateTemplateFromCurrentGame(templateName);
-                    Factory.GUIController.ShowMessage("Template created successfully. To try it out, close AGS, start it up again, and select the 'Start New Game' option.", MessageBoxIcon.Information);
+                    InteractiveTasks.CreateTemplateFromCurrentGame(filename);
                 }
-				catch (AGSEditorException ex)
-				{
-					Factory.GUIController.ShowMessage("There was an error creating your template:" + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
-				}
-				catch (Exception ex)
+                catch (AGSEditorException ex)
+                {
+                    Factory.GUIController.ShowMessage("There was an error creating your template:" + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                }
+                catch (Exception ex)
                 {
                     Factory.GUIController.ShowMessage("There was an error creating your template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
                 }
             }
-
-            dialog.Dispose();
         }
 
 		public void ShowCreateVoiceActingScriptWizard()

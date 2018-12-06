@@ -51,6 +51,8 @@ struct CachedActSpsData {
 void init_draw_method();
 // Disposes resources related to the current drawing methods
 void dispose_draw_method();
+// Disposes any temporary resources on leaving current room
+void dispose_room_drawdata();
 // Updates drawing settings depending on room viewport's size and position on screen
 void on_roomviewport_changed();
 // Updates drawing settings depending on room camera's size

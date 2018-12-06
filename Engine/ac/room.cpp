@@ -265,6 +265,8 @@ void unload_old_room() {
 
     current_fade_out_effect();
 
+    dispose_room_drawdata();
+
     for (ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
 

@@ -162,7 +162,8 @@ IDriverDependantBitmap* roomBackgroundBmp = NULL;
 // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
 // to the virtual screen.
 // For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
-PBitmap RoomCameraBitmap;
+PBitmap RoomCameraBuffer;  // this is the actual bitmap
+PBitmap RoomCameraFrame;   // this is either same bitmap reference or sub-bitmap
 
 
 std::vector<SpriteListEntry> sprlist;
@@ -483,9 +484,15 @@ void init_draw_method()
 
 void dispose_draw_method()
 {
+    dispose_room_drawdata();
     destroy_invalid_regions();
     destroy_blank_image();
-    RoomCameraBitmap.reset();
+}
+
+void dispose_room_drawdata()
+{
+    RoomCameraBuffer.reset();
+    RoomCameraFrame.reset();
 }
 
 void on_roomviewport_changed()
@@ -504,13 +511,22 @@ void on_roomcamera_changed()
         const Size &view_sz = play.GetRoomViewport().GetSize();
         init_invalid_regions(0, cam_sz, play.GetRoomViewport());
         if (cam_sz == view_sz)
-        {
-            RoomCameraBitmap.reset();
+        { // note we keep the buffer allocated in case it will become useful later
+            RoomCameraFrame.reset();
         }
         else
         {
-            RoomCameraBitmap.reset(new Bitmap(cam_sz.Width, cam_sz.Height));
-            RoomCameraBitmap->Clear(0);
+            if (!RoomCameraBuffer || RoomCameraBuffer->GetWidth() < cam_sz.Width || RoomCameraBuffer->GetHeight() < cam_sz.Height)
+            {
+                // Allocate new buffer bitmap with an extra size in case they will want to zoom out
+                int room_width = multiply_up_coordinate(thisroom.width);
+                int room_height = multiply_up_coordinate(thisroom.height);
+                Size alloc_sz = Size::Clamp(cam_sz * 2, Size(), Size(room_width, room_height));
+                RoomCameraBuffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height));
+            }
+            
+            RoomCameraFrame.reset(BitmapHelper::CreateSubBitmap(RoomCameraBuffer.get(), RectWH(cam_sz)));
+            RoomCameraFrame->Clear(0);
         }
     }
     invalidate_screen();
@@ -2389,7 +2405,7 @@ void construct_virtual_screen(bool fullRedraw)
         (float)room_viewport.GetWidth() / (float)camera.GetWidth(),
         (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
         0.f);
-    gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraBitmap);
+    gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraFrame);
     Bitmap *ds = GetVirtualScreen();
     if (displayed_room >= 0) {
 
@@ -2400,7 +2416,7 @@ void construct_virtual_screen(bool fullRedraw)
         // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
         // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
         bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
-        Bitmap *room_bmp = translate_only ? ds : RoomCameraBitmap.get();
+        Bitmap *room_bmp = translate_only ? ds : RoomCameraFrame.get();
         draw_room(ds, room_bmp, !translate_only);
     }
     else if (!gfxDriver->RequiresFullRedrawEachFrame()) 

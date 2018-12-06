@@ -126,12 +126,10 @@ void GameState::SetRoomCameraAt(int x, int y)
 {
     int cw = _roomCamera.Position.GetWidth();
     int ch = _roomCamera.Position.GetHeight();
-    int roomWidth = multiply_up_coordinate(thisroom.width);
-    int roomHeight = multiply_up_coordinate(thisroom.height);
-    if (x < 0) x = 0;
-    else if (x + cw > roomWidth) x = roomWidth - cw;
-    if (y < 0) y = 0;
-    else if (y + ch > roomHeight) y = roomHeight - ch;
+    int room_width = multiply_up_coordinate(thisroom.width);
+    int room_height = multiply_up_coordinate(thisroom.height);
+    x = Math::Clamp(x, 0, room_width - cw);
+    y = Math::Clamp(x, 0, room_height - ch);
     _roomCamera.Position.MoveTo(Point(x, y));
 }
 
@@ -182,8 +180,14 @@ void GameState::UpdateRoomCamera()
 
 void GameState::SetCameraActualSize(const Size &cam_size)
 {
-    _roomCamera.Position.SetWidth(cam_size.Width);
-    _roomCamera.Position.SetHeight(cam_size.Height);
+    // TODO: currently we don't support having camera larger than room background
+    // (or rather - looking outside of the room background); look into this later
+    int room_width = multiply_up_coordinate(thisroom.width);
+    int room_height = multiply_up_coordinate(thisroom.height);
+    Size real_size = Size::Clamp(cam_size, Size(), Size(room_width, room_height));
+
+    _roomCamera.Position.SetWidth(real_size.Width);
+    _roomCamera.Position.SetHeight(real_size.Height);
     AdjustRoomToViewport();
     _cameraHasChanged = true;
 }

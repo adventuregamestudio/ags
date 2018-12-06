@@ -155,10 +155,10 @@ struct Size
         return Width <= 0 || Height <= 0;
     }
 
-    inline void Clamp(const Size floor, const Size ceil)
+    inline static Size Clamp(const Size &sz, const Size &floor, const Size &ceil)
     {
-        Width = AGSMath::Clamp(Width, floor.Width, ceil.Width);
-        Height = AGSMath::Clamp(Height, floor.Height, ceil.Height);
+        return Size(AGSMath::Clamp(sz.Width, floor.Width, ceil.Width),
+                    AGSMath::Clamp(sz.Height, floor.Height, ceil.Height));
     }
 
     // Indicates if current size exceeds other size by any metric

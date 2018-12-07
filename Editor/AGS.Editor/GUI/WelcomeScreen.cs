@@ -41,10 +41,7 @@ namespace AGS.Editor
 
         public string GetSelectedRecentGamePath()
         {
-            int index = lstRecentGames.SelectedItems[0].Index;
-            RecentGame game = Factory.AGSEditor.Settings.RecentGames[index];
-
-            return game.Path; 
+            return lstRecentGames.SelectedItems[0].SubItems[1].Text;
         }
 
         public WelcomeScreenSelection SelectedOption

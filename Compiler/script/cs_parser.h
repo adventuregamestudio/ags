@@ -308,3 +308,9 @@ typedef std::vector<NestStack> NestStack_t;
 
 
 #endif // __CS_PARSER_H
+
+int evaluate_for_InitClause(ccInternalList * targ, ags::Symbol & cursym, const ags::SymbolScript & vnlist, size_t & vnlist_len, int & offset_of_funcname, char is_protected, char is_static, size_t & nested_level, char is_readonly, ccCompiledScript * scrip, bool &retflag);
+
+int evaluate_for_ExitClause(long &oriaddr, ccCompiledScript * scrip, bool &hasLimitCheck, ccInternalList * targ, long &assignaddr, int &pre_fixup_count, ags::Symbol & cursym, bool &retflag);
+
+int evaluate_for_IterateClause(ags::Symbol & cursym, ccInternalList * targ, const ags::SymbolScript & vnlist, size_t & vnlist_len, int & offset_of_funcname, ccCompiledScript * scrip, bool &retflag);

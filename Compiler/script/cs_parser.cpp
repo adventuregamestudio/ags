@@ -832,25 +832,20 @@ void yank_chunk(ccCompiledScript *scrip, std::vector<ccChunk> *list, int codeoff
 }
 
 
-
-
+// Copy the code in ccChunk to the end of the bytecode vector 
 void write_chunk(ccCompiledScript *scrip, ccChunk item) 
 {
-    int index;
-    int limit;
-    int adjust;
-
     scrip->flush_line_numbers();
-    adjust = scrip->codesize - item.codeoffset;
+    int adjust = scrip->codesize - item.codeoffset;
 
-    limit = item.code.size();
-    for (index = 0; index < limit; index++)
+    int limit = item.code.size();
+    for (int index = 0; index < limit; index++)
     {
         scrip->write_code(item.code[index]);
     }
 
     limit = item.fixups.size();
-    for (index = 0; index < limit; index++)
+    for (int index = 0; index < limit; index++)
     {
         scrip->add_fixup(item.fixups[index] + adjust, item.fixuptypes[index]);
     }
@@ -859,7 +854,6 @@ void write_chunk(ccCompiledScript *scrip, ccChunk item)
 void clear_chunk_list(std::vector<ccChunk> *list) {
     list->clear();
 }
-
 
 std::string ConstructedMemberName; // size limitation removed
 
@@ -885,14 +879,7 @@ int sym_find_or_add(symbolTable &sym, const char *sname)
 }
 
 
-/// \brief Scan inpl into scan tokens, write line number opcodes, build a symbol table, mangle complex symbols
-///	\param[in]  inpl	A c string that contains the code to be compiled
-///	\param[out] targ	An object containing the scanned symbols
-/// \param[out] scrip	An object containing the symbol table and the generated code
-/// \return a non-0 value on error, otherwise 0
-///
-/// Instead of building a pipeline, all the characters are first converted to symbols,
-/// then all the symbols are processed. 
+// Scan inpl into scan tokens, write line number opcodes, build a symbol table, mangle complex symbols
 int cc_tokenize(const char * inpl, ccInternalList * targ, ccCompiledScript * scrip)
 {
     ags::Scanner scanner(inpl, 1, targ);
@@ -941,38 +928,43 @@ void free_pointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbo
 
 }
 
-void free_pointers_from_struct(ccCompiledScript *scrip, ags::Symbol structVarSym) {
-    int structType = sym.entries[structVarSym].vartype;
+void free_pointers_from_struct(ccCompiledScript *scrip, ags::Symbol structVarSym) 
+{
+    size_t structType = sym.entries[structVarSym].vartype;
 
-    for (size_t dd = 0; dd < sym.entries.size(); dd++)
+    for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
     {
-        if ((sym.entries[dd].stype == SYM_STRUCTMEMBER) &&
-            (sym.entries[dd].extends == structType) &&
-            ((sym.entries[dd].flags & SFLG_IMPORTED) == 0) &&
-            ((sym.entries[dd].flags & SFLG_PROPERTY) == 0))
+        if (sym.entries[entries_idx].stype != SYM_STRUCTMEMBER) continue;
+        if (sym.entries[entries_idx].extends != structType) continue;
+        if ((sym.entries[entries_idx].flags & SFLG_IMPORTED) != 0) continue;
+        if ((sym.entries[entries_idx].flags & SFLG_PROPERTY) != 0) continue;
+        
+        if ((sym.entries[entries_idx].flags & SFLG_POINTER) == 0)
         {
+            // if non-pointer struct, need to process its members
+            // **** TODO
+            // [fw] depends on how that struct of struct is in the symbol table;
+            //      STRUCTSYM.SUBSTRUCTSYM perhaps?
+            // ags:Symbol substruct = find(....);
+            // if (substruct is not in the symtable) continue;
 
-            if (sym.entries[dd].flags & SFLG_POINTER)
+            // free_pointers_from_struct(scrip, substruct);
+            
+            continue;
+        }
+        
+        // Locate where the pointer is on the stack
+        int spOffs = (scrip->cur_sp - sym.entries[structVarSym].soffs) - sym.entries[entries_idx].soffs;
+
+        free_pointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<ags::Symbol>(entries_idx));
+
+        if (sym.entries[structVarSym].flags & SFLG_ARRAY)
+        {
+            // an array of structs, free any pointers in them
+            for (int ii = 1; ii < sym.entries[structVarSym].arrsize; ii++)
             {
-                int spOffs = (scrip->cur_sp - sym.entries[structVarSym].soffs) - sym.entries[dd].soffs;
-
-                free_pointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<ags::Symbol>(dd));
-
-                if (sym.entries[structVarSym].flags & SFLG_ARRAY)
-                {
-                    // an array of structs, free any pointers in them
-                    for (int ii = 1; ii < sym.entries[structVarSym].arrsize; ii++)
-                    {
-                        spOffs -= sym.entries[structType].ssize;
-                        free_pointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<ags::Symbol>(dd));
-                    }
-                }
-            }
-            else
-            {
-                // non-pointer struct, need to procss its members
-                // **** TODO
-
+                spOffs -= sym.entries[structType].ssize;
+                free_pointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<ags::Symbol>(entries_idx));
             }
         }
     }
@@ -993,58 +985,88 @@ int readonly_cannot_cause_error;
 //      Zumindest sollte die Variable static sein. 
 
 
-// Removes local variables from tables, and returns number of bytes to
-// remove from stack
-// just_count == true: just returns number of bytes, doesn't actually remove any
-int remove_locals(ccCompiledScript *scrip, int from_level, bool just_count) {
-    size_t cc;
+// Return number of bytes to remove from stack to unallocate local vars
+// of level from_level or higher
+int stacksize_of_locals(int from_level)
+{
     int totalsub = 0;
-    int zeroPtrCmd = SCMD_MEMZEROPTR;
-    if (from_level == 0)
-        zeroPtrCmd = SCMD_MEMZEROPTRND;
-
-    for (cc = 0; cc < sym.entries.size(); cc++)
+    for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
     {
-        if ((sym.entries[cc].sscope > from_level) && (sym.entries[cc].stype == SYM_LOCALVAR))
-        {
-            // caller will sort out stack, so ignore parameters
-            if ((sym.entries[cc].flags & SFLG_PARAMETER) == 0)
-            {
-                if (sym.entries[cc].flags & SFLG_DYNAMICARRAY)
-                    totalsub += 4;
-                else
-                {
-                    totalsub += sym.entries[cc].ssize;
-                    // remove all elements if array
-                    if (sym.entries[cc].flags & SFLG_ARRAY)
-                        totalsub += (sym.entries[cc].arrsize - 1) * sym.entries[cc].ssize;
-                }
-                if (sym.entries[cc].flags & SFLG_STRBUFFER)
-                    totalsub += STRING_LENGTH;
-            }
-            // release the pointer reference if applicable
-            if (sym.entries[cc].flags & SFLG_THISPTR) {}
-            else if (((sym.entries[cc].flags & SFLG_POINTER) != 0) ||
-                ((sym.entries[cc].flags & SFLG_DYNAMICARRAY) != 0))
-            {
-                free_pointer(scrip, scrip->cur_sp - sym.entries[cc].soffs, zeroPtrCmd, static_cast<ags::Symbol>(cc));
-            }
-            else if (sym.entries[sym.entries[cc].vartype].flags & SFLG_STRUCTTYPE)
-            {
-                // a struct -- free any pointers it contains
-                free_pointers_from_struct(scrip, static_cast<ags::Symbol>(cc));
-            }
+        if (sym.entries[entries_idx].sscope < from_level) continue;
+        if (sym.entries[entries_idx].stype != SYM_LOCALVAR) continue;
 
-            if (!just_count)
-            {
-                sym.entries[cc].stype = 0;
-                sym.entries[cc].sscope = 0;
-                sym.entries[cc].flags = 0;
-            }
+        // caller will sort out stack, so ignore parameters
+        if ((sym.entries[entries_idx].flags & SFLG_PARAMETER) != 0) continue;
+       
+        if (sym.entries[entries_idx].flags & SFLG_DYNAMICARRAY)
+        {    
+            totalsub += 4; // size of an implicit pointer
+            continue;
         }
+
+        // Calculate the size of one var of the given type
+        size_t ssize = sym.entries[entries_idx].ssize;
+        if (sym.entries[entries_idx].flags & SFLG_STRBUFFER) ssize = STRING_LENGTH;
+        
+        // Calculate the number of vars
+        size_t number = 1;
+        if (sym.entries[entries_idx].flags & SFLG_ARRAY) number = sym.entries[entries_idx].arrsize;
+        
+        totalsub += ssize * number;
     }
     return totalsub;
 }
+
+
+// Free the pointers of any locals in level from_level or higher
+int free_pointers_of_locals(ccCompiledScript *scrip, int from_level)
+{
+    int totalsub = 0;
+    int zeroPtrCmd = SCMD_MEMZEROPTR;
+    if (from_level == 0) zeroPtrCmd = SCMD_MEMZEROPTRND;
+
+    for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
+    {
+        if (sym.entries[entries_idx].sscope < from_level) continue;
+        if (sym.entries[entries_idx].stype != SYM_LOCALVAR) continue;
+        
+        // don't touch the this pointer
+        if (sym.entries[entries_idx].flags & SFLG_THISPTR) continue;
+
+        if (((sym.entries[entries_idx].flags & SFLG_POINTER) != 0) ||
+            ((sym.entries[entries_idx].flags & SFLG_DYNAMICARRAY) != 0))
+        {
+            free_pointer(scrip, scrip->cur_sp - sym.entries[entries_idx].soffs, zeroPtrCmd, static_cast<ags::Symbol>(entries_idx));
+            continue;
+        }
+ 
+        if (sym.entries[sym.entries[entries_idx].vartype].flags & SFLG_STRUCTTYPE)
+        {
+            // free any pointers that this struct contains
+            free_pointers_from_struct(scrip, static_cast<ags::Symbol>(entries_idx));
+            continue;
+        }
+    }
+    return 0;
+}
+
+// Remove defns from the sym table of vars defined on from_level or higher
+int remove_locals_from_symtable(int from_level)
+{
+    
+    for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
+    {
+        if (sym.entries[entries_idx].sscope < from_level) continue;
+        if (sym.entries[entries_idx].stype != SYM_LOCALVAR) continue;
+
+        sym.entries[entries_idx].stype = 0;
+        sym.entries[entries_idx].sscope = 0;
+        sym.entries[entries_idx].flags = 0;
+    }
+    return 0;
+}
+
+
 
 
 // Return code can be 1 or 0 or, in case of errors, a value < 0
@@ -1095,14 +1117,15 @@ int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, char*n
         if (nested_type[nested_level] == NEST_FOR)
         {
             nested_level--;
-            // find local variables that have just been removed
-            int totalsub = remove_locals(scrip, nested_level, false);
-
+            
+            free_pointers_of_locals(scrip, nested_level + 1);
+            int totalsub = stacksize_of_locals(nested_level + 1);
             if (totalsub > 0)
             {
                 scrip->cur_sp -= totalsub;
                 scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
             }
+            remove_locals_from_symtable(nested_level + 1);
         }
     }
     return 0;
@@ -4979,11 +5002,8 @@ int cs_parser_handle_closebrace(ccInternalList *targ, ccCompiledScript * scrip, 
         scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
     }
 
-    // Remove locals from the symbol table, adjusting reference counts if necessary; 
-    // Remove allocations for the local vars on the stack;
-    // get the sum of all the bytes that had been allocated on the stack
-    int totalsub = remove_locals(scrip, nested_level, false);
-
+    free_pointers_of_locals(scrip, nested_level + 1);
+    int totalsub = stacksize_of_locals(nested_level + 1);
     if (totalsub > 0)
     {
         // Reduce the "high point" of the stack appropriately, 
@@ -4991,6 +5011,7 @@ int cs_parser_handle_closebrace(ccInternalList *targ, ccCompiledScript * scrip, 
         scrip->cur_sp -= totalsub;
         scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
     }
+    remove_locals_from_symtable(nested_level + 1);
 
     if (nested_level == 0)
     {
@@ -6380,10 +6401,10 @@ int evaluate_return(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol
     }
 
     // count total space taken by all local variables
-    int totalsub = remove_locals(scrip, 0, true);
+    free_pointers_of_locals(scrip, 1);
 
-    if (totalsub > 0)
-        scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
+    int totalsub = stacksize_of_locals(0);
+    if (totalsub > 0) scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
     scrip->write_cmd(SCMD_RET);
     // We don't alter cur_sp since there can be code after the RETURN
 
@@ -6638,13 +6659,13 @@ int evaluate_for(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested
     retval = evaluate_for_IterateClause(targ, scrip, vnlist, vnlist_len, offset_of_funcname, cursym);
     if (retval < 0) return retval;
 
+    INC_NESTED_LEVEL;
+
     // We've just generated code for getting to the next loop iteration.
     // But we don't need that code right here; we need it at the bottom of the loop.
     // So rip it out of the bytecode base and save it into our nesting stack.
     yank_chunk(scrip, &nested_chunk[nested_level], iterate_clause_addr, pre_fixup_count);
-
-    INC_NESTED_LEVEL;
-    
+           
     // Code for "If the expression we just evaluated is false, jump over the loop body."
     // the 0 will be fixed to a proper offset later
     scrip->write_cmd1(SCMD_JZ, 0);
@@ -6777,8 +6798,11 @@ int evaluate_break(ccInternalList * targ, ccCompiledScript * scrip, size_t &nest
         return -1;
     }
 
-    // Free all the local variables of the construct
-    int totalsub = remove_locals(scrip, loop_level - 1, true);
+    // If locals contain pointers, free them
+    free_pointers_of_locals(scrip, loop_level);
+
+    // Pop local variables from the stack
+    int totalsub = stacksize_of_locals(loop_level);
     if (totalsub > 0) scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
     scrip->flush_line_numbers();
 
@@ -6816,8 +6840,11 @@ int evaluate_continue(ccInternalList * targ, ccCompiledScript * scrip, size_t &n
         return -1;
     }
 
-    // Free all the local variables of the construct
-    int totalsub = remove_locals(scrip, loop_level - 1, true);
+    // If locals contain pointers, free them
+    free_pointers_of_locals(scrip, loop_level);
+
+    // Pop local variables from the stack
+    int totalsub = stacksize_of_locals(loop_level);
     if (totalsub > 0) scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
     scrip->flush_line_numbers();
 
@@ -6828,8 +6855,8 @@ int evaluate_continue(ccInternalList * targ, ccCompiledScript * scrip, size_t &n
     }
     scrip->flush_line_numbers();
 
-    // The jump below, may be a conditional jump.
-    //  [fw] Nooo? 
+    // The jump below may be a conditional jump.
+    //  [fw] Nooo? Leave it in, anyway, so that we have byte identical code
     // So clear AX to make sure that the jump is executed.
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0); 
 

@@ -29,7 +29,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
             of.width(4);
             of << scrip->code[idx] << ", ";
             if (idx % 8 == 3) of << "        ";
-            if (idx % 8 == 7) of << std::endl;
+            if (idx % 8 == 7) of << "// " << idx << std::endl;
         }
         of << " -999 " << std::endl << "};" << std::endl << std::endl;
 
@@ -749,7 +749,7 @@ TEST(Compatibility, For) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    writeoutput("For", scrip);
+    // writeoutput("For", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -949,4 +949,32 @@ TEST(Compatibility, Switch) {
     const size_t numfixups = 0;
     ASSERT_EQ(numfixups, scrip->numfixups);
 
+}
+
+
+TEST(Compatibility, FreeLocalPtr) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct S                  \n\
+    {                                 \n\
+        int i;                        \n\
+    };                                \n\
+                                      \n\
+    int foo()                         \n\
+    {                                 \n\
+        S *sptr = new S;              \n\
+                                      \n\
+        for (int i = 0; i < 10; i++)  \n\
+            sptr = new S;             \n\
+    }                                 \n\
+    }";
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+
+    // writeoutput("FreeLocalPtr", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
 }

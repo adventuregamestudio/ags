@@ -189,6 +189,16 @@ namespace AGS.Editor
             get { return _game.DirectoryPath; }
         }
 
+        public string LocalAppData
+        {
+            get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AGS"); }
+        }
+
+        public string UserTemplatesDirectory
+        {
+            get { return Path.Combine(LocalAppData, TEMPLATES_DIRECTORY_NAME); }
+        }
+
         public string BaseGameFileName
         {
             get { return Path.GetFileName(this.GameDirectory); }
@@ -236,6 +246,16 @@ namespace AGS.Editor
 
         public void DoEditorInitialization()
         {
+            try
+            {
+                Directory.CreateDirectory(UserTemplatesDirectory);
+            }
+            catch
+            {
+                // this is an optional folder that might have user data in
+                // the parent folder, so don't try too hard to force this
+            }
+
             _game = new Game();
             _sourceControl = new SourceControlProvider();
             _debugger = new DebugController(_engineComms);

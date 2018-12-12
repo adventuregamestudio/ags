@@ -28,6 +28,8 @@ static char scriptNameBuffer[256];
 
 int  evaluate_expression(ccInternalList *targ, ccCompiledScript *script, bool consider_paren_nesting);
 
+
+
 int read_variable_into_ax(ccCompiledScript * scrip, ags::SymbolScript syml, int syml_len, bool mustBeWritable = false, bool negateLiteral = false);
 int do_variable_memory_access(
     ccCompiledScript *scrip, ags::Symbol variableSym,
@@ -2407,9 +2409,9 @@ int read_var_or_funccall(ccInternalList *targ, ags::Symbol fsym, ags::SymbolScri
 }
 
 
-void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeFrom, int valTypeTo) {
+void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo) {
 
-    if (((valTypeFrom & (~STYPE_POINTER)) == sym.stringStructSym) &&
+    if (((scrip->ax_val_type & (~STYPE_POINTER)) == sym.stringStructSym) &&
         ((valTypeTo & (~STYPE_CONST)) == sym.normalStringSym))
     {
         scrip->write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
@@ -2417,14 +2419,15 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeFrom
 
 }
 
-// Convert normal literal string (if present) into String object
-void PerformStringConversionInAX(ccCompiledScript *scrip, int *valTypeFrom, int valTypeTo)
+// If we need a String but AX contains a normal literal string, 
+// then convert AX into a String object and set its type accordingly
+void ConvertAXIntoStringObject(ccCompiledScript *scrip, int valTypeTo)
 {
-    if (((*valTypeFrom & (~STYPE_CONST)) == sym.normalStringSym) &&
+    if (((scrip->ax_val_type & (~STYPE_CONST)) == sym.normalStringSym) &&
         ((valTypeTo & (~STYPE_POINTER)) == sym.stringStructSym))
     {
-        scrip->write_cmd1(SCMD_CREATESTRING, SREG_AX);
-        *valTypeFrom = STYPE_POINTER | sym.stringStructSym;
+        scrip->write_cmd1(SCMD_CREATESTRING, SREG_AX); // convert AX
+        scrip->ax_val_type = STYPE_POINTER | sym.stringStructSym; // set type of AX
     }
 }
 
@@ -2902,15 +2905,15 @@ int parse_subexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::S
 
         if (param_num <= num_func_args) // we know what type to expect
         {
-            // Implicitly convert string to stringstruct if relevant
+            // If we need a string object ptr but AX contains a normal string, convert AX
             int parameterType = sym.entries[funcSymbol].funcparamtypes[param_num];
-            // Convert normal literal string (if present) into String object
-            PerformStringConversionInAX(scrip, &scrip->ax_val_type, parameterType);
+            ConvertAXIntoStringObject(scrip, parameterType);
 
             if (check_type_mismatch(scrip->ax_val_type, parameterType, true)) return -1;
 
-            // If a stringstruct is converted to a string, generate a runtime assert that it isn't NULL
-            DoNullCheckOnStringInAXIfNecessary(scrip, scrip->ax_val_type, parameterType);
+            // If we need a normal string but AX contains a string object ptr, 
+            // check that this ptr isn't null
+            DoNullCheckOnStringInAXIfNecessary(scrip, parameterType);
         }
 
 
@@ -4279,137 +4282,200 @@ int evaluate_expression(ccInternalList *targ, ccCompiledScript*scrip, bool consi
     return parse_subexpr(scrip, expr_script.script, expr_script.length);
 }
 
-
-int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol cursym, bool expectCloseBracket, ags::SymbolScript vnlist, int vnlist_len, bool insideBracketedDeclaration)
+// We're in an assignment, cursym points to the LHS. Check that the LHS is assignable.
+int evaluate_assignment_CheckLHSIsAssignable(ags::Symbol cursym, const ags::SymbolScript &vnlist, int vnlist_len)
 {
+    if (sym.entries[cursym].is_loadable_variable()) return 0;
 
+    // Static property
+    if ((sym.get_type(cursym) == SYM_VARTYPE) &&
+        (vnlist_len > 2) &&
+        (sym.entries[vnlist[2]].flags & SFLG_STATIC) > 0) return 0;
+    
+    cc_error("Variable or constant property required on left of \"%s\" assignment", sym.get_name(cursym));
+    return -1;
+}
+
+// We are processing an assignment. vn_list[] contains a variable or a struct selector. 
+// If it is a (static or dynamic) array, then check whether the assignment is allowed.
+int evaluate_assignment_ArrayChecks(ags::Symbol cursym, ags::Symbol nextsym, size_t vnlist_len)
+{
+    // [fw] This isn't good enough. What if the array is in a struct? 
+    //      Then the checks won't run.
+    if ((sym.entries[cursym].flags & SFLG_DYNAMICARRAY) != 0) 
+    {
+        // Can only assign to entire dynamic arrays, e.g., allocate the memory
+        if ((vnlist_len < 2) && (sym.get_type(nextsym) != SYM_ASSIGN))
+        {
+            cc_error("Cannot use operator \"%s\" with an entire dynamic array", sym.get_name(nextsym));
+            return -1;
+        }
+        return 0;
+    }
+
+    if ((sym.entries[cursym].flags & SFLG_ARRAY) != 0)
+    {
+        if (vnlist_len < 2)
+        {
+            cc_error("cannot assign a value to entire static array");
+            return -1;
+        }
+    }
+    return 0;
+}
+
+// We compile something like "a += b"
+int evaluate_assignment_MAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript & vnlist, int vnlist_len)
+{
+    // Read in and adjust the result
+    scrip->push_reg(SREG_AX);
+    int varTypeRHS = scrip->ax_val_type;
+
+    int retval = read_variable_into_ax(scrip, vnlist, vnlist_len);
+    if (retval < 0) return retval;
+
+    retval = check_type_mismatch(varTypeRHS, scrip->ax_val_type, true);
+    if (retval < 0) return retval;
+
+    int cpuOp = sym.entries[ass_symbol].ssize;
+    if (get_operator_valid_for_type(varTypeRHS, scrip->ax_val_type, cpuOp))
+        return -1;
+
+    scrip->pop_reg(SREG_BX);
+    scrip->write_cmd2(cpuOp, SREG_AX, SREG_BX);
+    
+    retval = write_ax_to_variable(scrip, &vnlist[0], vnlist_len);
+    if (retval < 0) return retval;
+    return 0;
+}
+
+int evaluate_assignment_Assign(ccCompiledScript * scrip, int vnlist_len, const ags::SymbolScript & vnlist)
+{
+    // Convert normal literal string into String object
+    size_t finalPartOfLHS = vnlist_len - 1;
+    if (sym.get_type(vnlist[vnlist_len - 1]) == SYM_CLOSEBRACKET)
+    {
+        // deal with  a[1] = b
+        findOpeningBracketOffs(vnlist_len - 1, vnlist, finalPartOfLHS);
+        if (--finalPartOfLHS < 0)
+        {
+            cc_error("No '[' for ']' to match");
+            return -1;
+        }
+    }
+    // If we need a string object ptr but AX contains a normal string, convert AX
+    ConvertAXIntoStringObject(scrip, sym.entries[vnlist[finalPartOfLHS]].vartype);
+    
+    int retval = write_ax_to_variable(scrip, &vnlist[0], vnlist_len);
+    if (retval < 0) return retval;
+    
+    return 0;
+}
+
+int evaluate_assignment_SAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript & vnlist, int vnlist_len, bool &readonly_cannot_cause_error)
+{
+    readonly_cannot_cause_error = false;
+
+    int retval = read_variable_into_ax(scrip, &vnlist[0], vnlist_len, true);
+    if (retval < 0) return retval;
+
+    // Get the bytecode operator that corresponds to the assignment symbol and type
+    int cpuOp = sym.entries[ass_symbol].ssize;
+    retval = get_operator_valid_for_type(scrip->ax_val_type, 0, cpuOp);
+    if (retval < 0) return retval;
+
+    scrip->write_cmd2(cpuOp, SREG_AX, 1);
+
+    if (!readonly_cannot_cause_error)
+    {
+        // since the MAR won't have changed, we can directly write
+        // the value back to it without re-calculating the offset
+        scrip->write_cmd1(get_readwrite_cmd_for_size(readcmd_lastcalledwith, true), SREG_AX);
+        return 0;
+    }
+
+    // copy the result (currently in AX) into the variable
+    retval = write_ax_to_variable(scrip, &vnlist[0], vnlist_len);
+    if (retval < 0) return retval;
+
+    return 0;
+}
+
+int evaluate_assignment_DoAssignment(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript &vnlist, int vnlist_len)
+{
     bool readonly_cannot_cause_error = false;
 
-    if (!sym.entries[cursym].is_loadable_variable())
+    switch (sym.get_type(ass_symbol))
     {
-        // allow through static properties
-        if ((sym.get_type(cursym) == SYM_VARTYPE) &&
-            (vnlist_len > 2) &&
-            (sym.entries[vnlist[2]].flags & SFLG_STATIC) > 0)
-        {
-        }
-        else
-        {
-            cc_error("variable required on left of assignment %s ", sym.get_name(cursym));
-            return -1;
-        }
+    default: // can't happen
+    {
+        cc_error("Internal error: Illegal assignment symbol found");
+        return -99;
     }
 
-    bool isAccessingDynamicArray = false;
-    if (((sym.entries[cursym].flags & SFLG_DYNAMICARRAY) != 0) && (vnlist_len < 2))
+    case SYM_ASSIGN:
     {
-        if (sym.get_type(targ->peeknext()) != SYM_ASSIGN)
-        {
-            cc_error("invalid use of operator with array");
-            return -1;
-        }
-        isAccessingDynamicArray = true;
+        // Get RHS
+        int retval = evaluate_expression(targ, scrip, false);
+        if (retval < 0) return retval;
+        // Do assignment
+        retval = evaluate_assignment_Assign(scrip, vnlist_len, vnlist);
+        if (retval < 0) return retval;
     }
-    else if (((sym.entries[cursym].flags & SFLG_ARRAY) != 0) && (vnlist_len < 2))
+
+    case SYM_MASSIGN:
     {
-        cc_error("cannot assign value to entire array");
-        return -1;
+        // Get RHS
+        int retval = evaluate_expression(targ, scrip, false);
+        if (retval < 0) return retval;
+        // Do assignment
+        retval = evaluate_assignment_MAssign(scrip, ass_symbol, vnlist, vnlist_len);
+        if (retval < 0) return retval;
     }
+
+    case SYM_SASSIGN:
+    {
+        // "++" or "--". There isn't any RHS to read in. Do assignment.
+        return evaluate_assignment_SAssign(scrip, ass_symbol, vnlist, vnlist_len, readonly_cannot_cause_error);
+    }
+    }
+
+    return 0;
+}
+
+
+// We've read a variable or selector of a struct into vn_list[], the last identifying component is in cursym.
+// An assignment symbol is following. Compile the assignment.
+int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol cursym, ags::Symbol statementEndSymbol, ags::SymbolScript vnlist, int vnlist_len)
+{
+    // Check that the LHS is a loadable variable or a static property. 
+    int retval = evaluate_assignment_CheckLHSIsAssignable(cursym, vnlist, vnlist_len);
+    if (retval < 0) return retval;
+
+    // Checks to do for the LHS if it is a (dynamic or static) array
+    retval = evaluate_assignment_ArrayChecks(cursym, targ->peeknext(), vnlist_len);
+    if (retval < 0) return retval;
+
     if (sym.entries[cursym].flags & SFLG_ISSTRING)
     {
         cc_error("cannot assign to string; use Str* functions instead");
         return -1;
     }
 
-    int MARIntactAssumption = 0;
-    ags::Symbol asstype = targ->getnext();
-    if (sym.get_type(asstype) == SYM_SASSIGN)
+    // Do the assignment
+    retval = evaluate_assignment_DoAssignment(targ, scrip, targ->getnext(), vnlist, vnlist_len);
+    if (retval < 0) return retval;
+
+    // Gobble the statement end symbol (usually ';', can be ')')
+    if (sym.get_type(targ->getnext()) != statementEndSymbol)
     {
-
-        // ++ or --
-        readonly_cannot_cause_error = false;
-
-        if (read_variable_into_ax(scrip, &vnlist[0], vnlist_len, 1))
-            return -1;
-
-        int cpuOp = sym.entries[asstype].ssize;
-
-        if (get_operator_valid_for_type(scrip->ax_val_type, 0, cpuOp))
-            return -1;
-
-        scrip->write_cmd2(cpuOp, SREG_AX, 1);
-
-        if (!readonly_cannot_cause_error)
-        {
-            MARIntactAssumption = 1;
-            // since the MAR won't have changed, we can directly write
-            // the value back to it without re-calculating the offset
-            scrip->write_cmd1(get_readwrite_cmd_for_size(readcmd_lastcalledwith, true), SREG_AX);
-        }
-    }
-    // not ++ or --, so we need to evaluate the RHS
-    else if (evaluate_expression(targ, scrip, false) < 0)
+        cc_error("Expected '%s'", sym.get_name(statementEndSymbol));
         return -1;
-
-    if (sym.get_type(asstype) == SYM_MASSIGN)
-    {
-        // it's a += or -=, so read in and adjust the result
-        scrip->push_reg(SREG_AX);
-        int varTypeRHS = scrip->ax_val_type;
-
-        if (read_variable_into_ax(scrip, vnlist, vnlist_len))
-            return -1;
-        if (check_type_mismatch(varTypeRHS, scrip->ax_val_type, true))
-            return -1;
-
-        int cpuOp = sym.entries[asstype].ssize;
-
-        if (get_operator_valid_for_type(varTypeRHS, scrip->ax_val_type, cpuOp))
-            return -1;
-
-        scrip->pop_reg(SREG_BX);
-        scrip->write_cmd2(cpuOp, SREG_AX, SREG_BX);
     }
-
-    if (sym.get_type(asstype) == SYM_ASSIGN)
-    {
-        // Convert normal literal string into String object
-        size_t finalPartOfLHS = vnlist_len - 1;
-        if (sym.get_type(vnlist[vnlist_len - 1]) == SYM_CLOSEBRACKET)
-        {
-            // deal with  a[1] = b
-            findOpeningBracketOffs(vnlist_len - 1, vnlist, finalPartOfLHS);
-            if (--finalPartOfLHS < 0)
-            {
-                cc_error("No [ for ] to match");
-                return -1;
-            }
-        }
-        PerformStringConversionInAX(scrip, &scrip->ax_val_type, sym.entries[vnlist[finalPartOfLHS]].vartype);
-    }
-
-    if (MARIntactAssumption);
-    // so copy the result (currently in AX) into the variable
-    else if (write_ax_to_variable(scrip, &vnlist[0], vnlist_len))
-        return -1;
-
-    if (expectCloseBracket)
-    {
-        if (sym.get_type(targ->getnext()) != SYM_CLOSEPARENTHESIS)
-        {
-            cc_error("Expected ')'");
-            return -1;
-        }
-    }
-    else
-        if (sym.get_type(targ->getnext()) != SYM_SEMICOLON)
-        {
-            cc_error("Expected ';'");
-            return -1;
-        }
 
     return 0;
 }
+
 
 // true if the symbol is "int" and the like.
 inline bool sym_is_predef_typename(ags::Symbol symbl)
@@ -4417,18 +4483,66 @@ inline bool sym_is_predef_typename(ags::Symbol symbl)
     return (symbl >= 0 && symbl <= sym.normalFloatSym);
 }
 
+
 int parse_var_decl_InitialValAssignment_ToLocal(ccInternalList *targ, ccCompiledScript * scrip, int completeVarType)
 {
-    // grok an expression and generate code for it
+    // Parse and compile the expression
     int retval = evaluate_expression(targ, scrip, false);
     if (retval < 0) return retval;
 
-    // Convert normal literal string (if present) into String object
-    PerformStringConversionInAX(scrip, &scrip->ax_val_type, completeVarType);
+    // If we need a string object ptr but AX contains a normal string, convert AX
+    ConvertAXIntoStringObject(scrip, completeVarType);
 
     // Check whether the types match
     retval = check_type_mismatch(scrip->ax_val_type, completeVarType, true);
     if (retval < 0) return retval;
+    return 0;
+}
+
+
+int parse_var_decl_InitialValAssignment_ToGlobalFloat(ccInternalList * targ, bool is_neg, void *& initial_val_ptr)
+{
+    // initialize float
+    if (sym.get_type(targ->peeknext()) != SYM_LITERALFLOAT)
+    {
+        cc_error("Expected floating point value after '='");
+        return -1;
+    }
+
+    float float_init_val = static_cast<float>(atof(sym.get_name(targ->getnext())));
+    if (is_neg) float_init_val = -float_init_val;
+
+    // Allocate space for one long value
+    initial_val_ptr = malloc(sizeof(long));
+    if (!initial_val_ptr)
+    {
+        cc_error("Out of memory");
+        return -1;
+    }
+
+    // Interpret the float as an int; move that into the allocated space
+    (static_cast<long *>(initial_val_ptr))[0] = interpret_float_as_int(float_init_val);
+
+    return 0;
+}
+
+int parse_var_decl_InitialValAssignment_ToGlobalNonFloat(ccInternalList * targ, bool is_neg, void *& initial_val_ptr)
+{
+    // Initializer for an integer value
+    int int_init_val;
+    int retval = accept_literal_or_constant_value(targ->getnext(), int_init_val, is_neg, "Expected integer value after '='");
+    if (retval < 0) return retval;
+
+    // Allocate space for one long value
+    initial_val_ptr = malloc(sizeof(long));
+    if (!initial_val_ptr)
+    {
+        cc_error("Out of memory");
+        return -1;
+    }
+    // Convert int to long; move that into the allocated space
+    (reinterpret_cast<long *>(initial_val_ptr))[0] = int_init_val;
+
     return 0;
 }
 
@@ -4464,49 +4578,15 @@ int parse_var_decl_InitialValAssignment_ToGlobal(ccInternalList *targ, long varn
         targ->getnext();
     }
 
+    // Do actual assignment
     if (sym.entries[varname].vartype == sym.normalFloatSym)
     {
-        // initialize float
-        if (sym.get_type(targ->peeknext()) != SYM_LITERALFLOAT)
-        {
-            cc_error("Expected floating point value after '='");
-            return -1;
-        }
-        float float_init_val = (float)atof(sym.get_name(targ->getnext()));
-        if (is_neg) float_init_val = -float_init_val;
-
-        // Allocate space for one long value
-        initial_val_ptr = malloc(sizeof(long));
-        if (!initial_val_ptr)
-        {
-            cc_error("Out of memory");
-            return -1;
-        }
-        // Interpret the float as an int; move that into the allocated space
-        (static_cast<long *>(initial_val_ptr))[0] = interpret_float_as_int(float_init_val);
-        return 0;
+        return parse_var_decl_InitialValAssignment_ToGlobalFloat(targ, is_neg, initial_val_ptr, retflag);
     }
-
-
-    // Initializer for an integer value
-    int int_init_val;
-    int retval = accept_literal_or_constant_value(targ->getnext(), int_init_val, is_neg, "Expected integer value after '='");
-    if (retval < 0) return retval;
-
-    // Allocate space for one long value
-    initial_val_ptr = malloc(sizeof(long));
-    if (!initial_val_ptr)
-    {
-        cc_error("Out of memory");
-        return -1;
-    }
-    // Convert int to long; move that into the allocated space
-    (reinterpret_cast<long *>(initial_val_ptr))[0] = int_init_val;
-
-    return 0;
+    return parse_var_decl_InitialValAssignment_ToGlobalNonFloat(targ, is_neg, initial_val_ptr);
 }
 
-// [fw] TODO this func and its callers need to be cleaned up!
+
 // We have accepted something like "int var" and reading "= val"
 int parse_var_decl_InitialValAssignment(ccInternalList *targ, ccCompiledScript * scrip, int next_type, Globalness isglobal, long varname, int type_of_defn, void * &initial_val_ptr, FxFixupType &need_fixup)
 {
@@ -4554,6 +4634,8 @@ int parse_var_decl_InitialValAssignment(ccInternalList *targ, ccCompiledScript *
     return 0;
 }
 
+
+// Move variable information into the symbol table
 void parse_var_decl_Var2SymTable(int var_name, Globalness is_global, bool is_pointer, int size_of_defn, int type_of_defn)
 {
     sym.entries[var_name].extends = 0;
@@ -4564,6 +4646,7 @@ void parse_var_decl_Var2SymTable(int var_name, Globalness is_global, bool is_poi
     if (is_pointer)
         sym.entries[var_name].flags |= SFLG_POINTER;
 }
+
 
 // we have accepted something like "int a" and we're expecting "["
 int parse_var_decl_ArrayDecl(ccInternalList *targ, int var_name, int type_of_defn, int &array_size, int &size_of_defn)
@@ -4610,7 +4693,48 @@ int parse_var_decl_ArrayDecl(ccInternalList *targ, int var_name, int type_of_def
     return 0;
 }
 
-int parse_var_decl_StringDecl(ccCompiledScript * scrip, int var_name, Globalness is_global, void * &initial_value_ptr, FxFixupType &fixup_needed)
+
+int parse_var_decl_StringDecl_GlobalNoImport(ccCompiledScript * scrip, void *&initial_value_ptr, FxFixupType &fixup_needed)
+{
+    // Reserve space for the string in globaldata; 
+    // the initial value is the offset to the newly reserved space
+
+    int offset_of_init_string = scrip->add_global(STRING_LENGTH, NULL);
+    if (offset_of_init_string < 0)
+    {
+        cc_error("Out of memory");
+        return -1;
+    }
+
+    initial_value_ptr = malloc(sizeof(int));
+    if (!initial_value_ptr)
+    {
+        cc_error("Out of memory");
+        return -1;
+    }
+
+    reinterpret_cast<int *>(initial_value_ptr)[0] = offset_of_init_string;
+    fixup_needed = FxFixupDataData;
+    return 0;
+}
+
+int parse_var_decl_StringDecl_Local(ccCompiledScript * scrip, ags::Symbol var_name, void * &initial_value_ptr)
+{
+    // Note: We can't use scrip->cur_sp since we don't know if we'll be in a nested function call at the time
+    initial_value_ptr = nullptr;
+
+    sym.entries[var_name].flags |= SFLG_STRBUFFER; // Note in the symbol table that this var is a stringbuffer
+    scrip->cur_sp += STRING_LENGTH; // reserve STRING_LENGTH bytes for the var on the stack
+
+                                    // CX will contain the address of the new memory, which will be added to the stack
+    scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_CX); // Copy current stack pointer to CX
+    scrip->write_cmd2(SCMD_ADD, SREG_SP, STRING_LENGTH); // write code for reserving STRING LENGTH bytes 
+    
+    // [fw] So what will happen with this CX value?
+    return 0;
+}
+
+int parse_var_decl_StringDecl(ccCompiledScript * scrip, ags::Symbol var_name, Globalness is_global, void * &initial_value_ptr, FxFixupType &fixup_needed)
 {
     if (ccGetOption(SCOPT_OLDSTRINGS) == 0)
     {
@@ -4638,53 +4762,27 @@ int parse_var_decl_StringDecl(ccCompiledScript * scrip, int var_name, Globalness
 
     switch (is_global)
     {
-    default:
-        return -1; // This cannot happen
-
-    case GlGlobalNoImport:
+    default: // This cannot happen
     {
-        // Reserve space for the string in globaldata; 
-        // the initial value is the offset to the newly reserved space
-
-        int offset_of_init_string = scrip->add_global(STRING_LENGTH, NULL);
-        if (offset_of_init_string < 0)
-        {
-            cc_error("Out of memory");
-            return -1;
-        }
-
-        initial_value_ptr = malloc(sizeof(int));
-        if (!initial_value_ptr)
-        {
-            cc_error("Out of memory");
-            return -1;
-        }
-
-        reinterpret_cast<int *>(initial_value_ptr)[0] = offset_of_init_string;
-        fixup_needed = FxFixupDataData;
-        return 0;
-
+        cc_error("Internal error: Wrong value for globalness");
+        return 99;
     }
 
+    case GlGlobalNoImport:
+        return parse_var_decl_StringDecl_GlobalNoImport(scrip, initial_value_ptr, fixup_needed);
+
     case GlLocal:
-        // Note: We can't use scrip->cur_sp since we don't know if we'll be in a nested function call at the time
-        initial_value_ptr = nullptr;
-
-        sym.entries[var_name].flags |= SFLG_STRBUFFER; // Note in the symbol table that this var is a stringbuffer
-        scrip->cur_sp += STRING_LENGTH; // reserve STRING_LENGTH bytes for the var on the stack
-
-        // CX will contain the address of the new memory, which will be added to the stack
-        scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_CX); // Copy current stack pointer to CX
-        scrip->write_cmd2(SCMD_ADD, SREG_SP, STRING_LENGTH); // write code for reserving STRING LENGTH bytes 
-        // [fw] So what will happen with this CX value?
-        return 0;
+        return parse_var_decl_StringDecl_Local(scrip, var_name, initial_value_ptr);
     }
 }
 
-void parse_var_decl_LocalDecl(ccCompiledScript * scrip, int var_name, FxFixupType fixup_needed, int size_of_defn, void * initial_value)
+
+// We've parsed a definition of a local variable, provide the code for it
+void parse_var_decl_CodeForDefnOfLocal(ccCompiledScript * scrip, int var_name, FxFixupType fixup_needed, int size_of_defn, void * initial_value)
 {
-    sym.entries[var_name].soffs = scrip->cur_sp;
     scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR); // MAR = SP
+
+    // code for the initial assignment or the initialization to zeros
     if (fixup_needed == FxFixupType2)
     {
         // expression worked out into ax
@@ -4714,12 +4812,14 @@ void parse_var_decl_LocalDecl(ccCompiledScript * scrip, int var_name, FxFixupTyp
         scrip->fixup_previous(FIXUP_STACK);
     }
 
+    // Allocate space on the stack
     if (size_of_defn > 0)
     {
         scrip->cur_sp += size_of_defn;
         scrip->write_cmd2(SCMD_ADD, SREG_SP, size_of_defn);
     }
 }
+
 
 int parse_var_decl_CheckIllegalCombis(int var_name, int type_of_defn, bool is_pointer, Globalness is_global)
 {
@@ -4766,7 +4866,7 @@ int parse_var_decl0(
     void *initial_value_ptr)
 {
     int retval = parse_var_decl_CheckIllegalCombis(var_name, type_of_defn, is_pointer, is_global);
-    if (retval) return retval;
+    if (retval < 0) return retval;
 
     // this will become true iff we gobble a "," after the defn and expect another var of the same type
     another_var_follows = false;
@@ -4841,7 +4941,10 @@ int parse_var_decl0(
         break;
 
     case GlLocal:
-        parse_var_decl_LocalDecl(scrip, var_name, fixup_needed, size_of_defn, initial_value_ptr);
+        sym.entries[var_name].soffs = scrip->cur_sp;
+
+        // Output the code for defining the local and initializing it
+        parse_var_decl_CodeForDefnOfLocal(scrip, var_name, fixup_needed, size_of_defn, initial_value_ptr);
     }
 
     if (ReachedEOF(targ)) return -1;
@@ -6369,8 +6472,8 @@ int evaluate_return(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol
         int retval = evaluate_expression(targ, scrip, false);
         if (retval < 0) return retval;
 
-        // convert into String if appropriate
-        PerformStringConversionInAX(scrip, &scrip->ax_val_type, functionReturnType);
+        // If we need a string object ptr but AX contains a normal string, convert AX
+        ConvertAXIntoStringObject(scrip, functionReturnType);
 
         // check return type is correct
         retval = check_type_mismatch(scrip->ax_val_type, functionReturnType, true);
@@ -6566,9 +6669,8 @@ int evaluate_for_InitClause(ccInternalList * targ, ccCompiledScript * scrip, ags
     }
     else
     {
-        retval = evaluate_assignment(targ, scrip, cursym, false, vnlist, vnlist_len, false);
+        retval = evaluate_assignment(targ, scrip, cursym, SYM_SEMICOLON, vnlist, vnlist_len);
         if (retval < 0) return retval;
-
     }
     return 0;
 }
@@ -6604,7 +6706,7 @@ int evaluate_for_IterateClause(ccInternalList * targ, ccCompiledScript * scrip, 
     int retval = read_var_or_funccall(targ, cursym, vnlist, vnlist_len, offset_of_funcname);
     if (retval < 0) return retval;
 
-    retval = evaluate_assignment(targ, scrip, cursym, true, vnlist, vnlist_len, true);
+    retval = evaluate_assignment(targ, scrip, cursym, SYM_CLOSEPARENTHESIS, vnlist, vnlist_len);
     if (retval < 0) return retval;
 
     return 0;
@@ -6878,15 +6980,14 @@ int compile_funcbodycode(
     char nested_type[],
     long nested_start[],
     long nested_info[],
+    std::vector<ccChunk> nested_chunk[],
+    int32_t  nested_assign_addr[],
     char is_protected,
     char is_static,
-    char is_readonly,
-    std::vector<ccChunk> nested_chunk[],
-    int32_t  nested_assign_addr[])
+    char is_readonly)
 {
     // Force current symbol for functions
     if (offset_of_funcname > 0) cursym = sym.find("function");
-
 
     int retval = 0; // for error msg
     switch (sym.get_type(cursym))
@@ -6898,8 +6999,9 @@ int compile_funcbodycode(
         int nexttype = sym.get_type(nextsym);
         if (nexttype == SYM_ASSIGN || nexttype == SYM_MASSIGN || nexttype == SYM_SASSIGN)
         {
-            retval = evaluate_assignment(targ, scrip, cursym, false, vnlist, vnlist_len, false);
+            retval = evaluate_assignment(targ, scrip, cursym, SYM_SEMICOLON, vnlist, vnlist_len);
             if (retval < 0) return retval;
+
             break;
         }
         cc_error("Parse error at '%s'", sym.get_friendly_name(cursym).c_str());
@@ -6957,6 +7059,12 @@ int cc_compile_HandleLinesAndMeta(ccInternalList & targ, ccCompiledScript * scri
 {
     if (cursym < 0) return 0; // end of stream was reached.
     if (currentline == -10) return 0; // end of stream was reached
+    // [fw] DEBUGGING Start
+    if (currentline == 11)
+    {
+        int i = 0; // set breakpoint here
+    }
+    // [fw]DEBUGGING END
 
     if ((currentline != currentlinewas) && (ccGetOption(SCOPT_LINENUMBERS) != 0))
     {
@@ -7242,7 +7350,7 @@ int cc_compile_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_
         retval = read_var_or_funccall(&targ, cursym, vnlist, vnlist_len, offset_of_funcname);
         if (retval < 0) return retval;
 
-        retval = compile_funcbodycode(&targ, scrip, cursym, offset_of_funcname, targ.pos, vnlist, vnlist_len, name_of_current_func, nested_level, nested_type, nested_start, nested_info, next_is_protected, next_is_static, next_is_readonly, nested_chunk, nested_assign_addr);
+        retval = compile_funcbodycode(&targ, scrip, cursym, offset_of_funcname, targ.pos, vnlist, vnlist_len, name_of_current_func, nested_level, nested_type, nested_start, nested_info, nested_chunk, nested_assign_addr, next_is_protected, next_is_static, next_is_readonly);
         if (retval < 0) return retval;
     } // for
 

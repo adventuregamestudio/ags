@@ -9,6 +9,7 @@
 
 
 extern ccCompiledScript *newScriptFixture();
+extern int ccErrorLine;
 extern char * last_seen_cc_error;
 
 void writeoutput(char *fname, ccCompiledScript *scrip)
@@ -968,7 +969,7 @@ TEST(Compatibility, FreeLocalPtr) {
         for (int i = 0; i < 10; i++)  \n\
             sptr = new S;             \n\
     }                                 \n\
-    }";
+    ";
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
@@ -977,4 +978,31 @@ TEST(Compatibility, FreeLocalPtr) {
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 78;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   73,    3,            4,    3,    1,    2,    // 7
+      50,    3,    1,    1,            4,    6,    3,    0,    // 15
+       3,    1,    2,    8,            3,    1,    1,    4,    // 23
+      51,    4,    7,    3,           29,    3,    6,    3,    // 31
+      10,   30,    4,   18,            4,    3,    3,    4,    // 39
+       3,   28,   22,   73,            3,    4,   51,    8,    // 47
+      29,    2,   30,    2,           47,    3,   51,    4,    // 55
+       7,    3,    1,    3,            1,    8,    3,   31,    // 63
+     -41,    2,    1,    4,            6,    3,    0,   51,    // 71
+       4,   69,    2,    1,            4,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
 }

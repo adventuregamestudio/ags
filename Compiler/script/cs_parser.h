@@ -314,3 +314,13 @@ int evaluate_for_InitClause(ccInternalList * targ, ags::Symbol & cursym, const a
 int evaluate_for_ExitClause(long &oriaddr, ccCompiledScript * scrip, bool &hasLimitCheck, ccInternalList * targ, long &assignaddr, int &pre_fixup_count, ags::Symbol & cursym, bool &retflag);
 
 int evaluate_for_IterateClause(ags::Symbol & cursym, ccInternalList * targ, const ags::SymbolScript & vnlist, size_t & vnlist_len, int & offset_of_funcname, ccCompiledScript * scrip, bool &retflag);
+
+int evaluate_assignment_Assign(int vnlist_len, const ags::SymbolScript & vnlist, ccCompiledScript * scrip, bool &retflag);
+
+int evaluate_assignment_SAssign(bool &readonly_cannot_cause_error, ccCompiledScript * scrip, const ags::SymbolScript & vnlist, int vnlist_len, const ags::Symbol &ass_symbol, bool & MARIntactAssumption);
+
+int parse_var_decl_InitialValAssignment_ToGlobalFloat(ccInternalList * targ, bool is_neg, void *& initial_val_ptr, bool &retflag);
+
+int parse_var_decl_InitialValAssignment_ToGlobalNonFloat(ccInternalList * targ, bool is_neg, void *& initial_val_ptr);
+
+int parse_var_decl_StringDecl_Local(void *& initial_value_ptr, int var_name, ccCompiledScript * scrip);

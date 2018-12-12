@@ -28,9 +28,9 @@ static char scriptNameBuffer[256];
 
 int  evaluate_expression(ccInternalList *targ, ccCompiledScript *script, bool consider_paren_nesting);
 
+int read_variable_into_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool negateLiteral);
+int read_variable_into_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool negateLiteral, bool mustBeWritable, bool &write_same_as_read_access);
 
-
-int read_variable_into_ax(ccCompiledScript * scrip, ags::SymbolScript syml, int syml_len, bool mustBeWritable = false, bool negateLiteral = false);
 int do_variable_memory_access(
     ccCompiledScript *scrip, ags::Symbol variableSym,
     int variableSymType, bool isProperty,
@@ -639,6 +639,7 @@ void ags::Tokenizer::ProcessScannerSymstring(
     }
 }
 
+
 void ags::Tokenizer::TokenizeStringLiteral(int token, std::string const & symstring)
 {
     SetTokenType(token, SYM_STRING);
@@ -703,7 +704,6 @@ void ags::Tokenizer::GetNextToken(
 }
 
 
-
 // Check the nesting of () [] {}, error if mismatch
 void ags::Tokenizer::CheckMatcherNesting(int token, bool & error_encountered)
 {
@@ -739,6 +739,7 @@ void ags::Tokenizer::CheckMatcherNesting(int token, bool & error_encountered)
     }
 }
 
+
 std::string ags::Tokenizer::FullNameFromStructAndMember(int struct_name_token, int member_name_token)
 {
     std::string member_name = SymbolTable->get_name(member_name_token);
@@ -748,6 +749,7 @@ std::string ags::Tokenizer::FullNameFromStructAndMember(int struct_name_token, i
     struct_name.append("::").append(member_name);
     return struct_name;
 }
+
 
 int ags::Tokenizer::ConvertSymstringToTokenIndex(std::string symstring)
 {
@@ -766,15 +768,18 @@ void ags::OpenCloseMatcher::Reset()
     OpenInfoStack.resize(0);
 }
 
+
 std::string ags::OpenCloseMatcher::GetLastError()
 {
     return LastError;
 }
 
+
 ags::OpenCloseMatcher::OpenCloseMatcher()
 {
     Reset();
 }
+
 
 void ags::OpenCloseMatcher::Push(std::string const & opener, std::string const & expected_closer, int lineno)
 {
@@ -785,6 +790,7 @@ void ags::OpenCloseMatcher::Push(std::string const & opener, std::string const &
 
     OpenInfoStack.push_back(oi);
 }
+
 
 void ags::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, bool & error_encountered)
 {
@@ -853,6 +859,7 @@ void write_chunk(ccCompiledScript *scrip, ccChunk item)
     }
 }
 
+
 void clear_chunk_list(std::vector<ccChunk> *list) {
     list->clear();
 }
@@ -872,6 +879,7 @@ const char *get_member_full_name(ags::Symbol structSym, ags::Symbol memberSym)
 
     return ConstructedMemberName.c_str();
 }
+
 
 int sym_find_or_add(symbolTable &sym, const char *sname)
 {
@@ -913,6 +921,7 @@ int cc_tokenize(const char * inpl, ccInternalList * targ, ccCompiledScript * scr
     return 0;
 }
 
+
 void free_pointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbol arraySym) {
 
     scrip->write_cmd1(SCMD_LOADSPOFFS, spOffset);
@@ -929,6 +938,7 @@ void free_pointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbo
     }
 
 }
+
 
 void free_pointers_from_struct(ccCompiledScript *scrip, ags::Symbol structVarSym) 
 {
@@ -972,6 +982,7 @@ void free_pointers_from_struct(ccCompiledScript *scrip, ags::Symbol structVarSym
     }
 }
 
+
 inline bool is_any_type_of_string(ags::Symbol symtype)
 {
     symtype &= ~(STYPE_CONST | STYPE_POINTER);
@@ -979,12 +990,6 @@ inline bool is_any_type_of_string(ags::Symbol symtype)
         return true;
     return false;
 }
-
-int readonly_cannot_cause_error;
-// [fw] Diese globale Variable wird irgendwo gesetzt und irgendwo wieder ausgelesen.
-//      Wie die genaue Logik geht, ist hier im Code nicht mehr drin -> nachvollziehen
-//      Das soll etwas verhindern, das ich noch nicht überblicke.
-//      Zumindest sollte die Variable static sein. 
 
 
 // Return number of bytes to remove from stack to unallocate local vars
@@ -1182,7 +1187,7 @@ int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, int32
     scrip->code[nested_start[nested_level] + 1] = (jumptable_addr - nested_start[nested_level]) - 2;
 
     int noteq_op = is_any_type_of_string(nested_info[nested_level]) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
-    int limit = nested_chunk->size();
+    size_t limit = nested_chunk->size();
     for (size_t index = 0; index < limit; index++)
     {
         // Put the result of the expression into AX
@@ -2997,6 +3002,7 @@ int parse_subexpr_FunctionCall_CountAndCheckParm(const ags::SymbolScript &paramL
     return 0;
 }
 
+
 int parse_subexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags::SymbolScript vnlist, ags::SymbolScript & symlist, size_t & symlist_len)
 {
     ags::SymbolScript workList;
@@ -3084,7 +3090,7 @@ int parse_subexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags:
     if (using_op)
     {
         // write the address of the function's object to the OP reg
-        read_variable_into_ax(scrip, vnlist, funcSymbolIdx);
+        read_variable_into_ax(scrip, vnlist, funcSymbolIdx, false);
         scrip->write_cmd1(SCMD_CALLOBJ, SREG_AX);
     }
 
@@ -3117,6 +3123,7 @@ int parse_subexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags:
             scrip->write_cmd2(SCMD_SUB, SREG_SP, actual_num_args * 4);
         }
     }
+
 
     // function return type
     // [fw] So, why do we need that global?
@@ -3155,7 +3162,7 @@ int parse_subexpr_NoOps(ccCompiledScript * scrip, ags::SymbolScript symlist, siz
         {
             if (symlist_len == 2) // negative literal
             {
-                int retval = read_variable_into_ax(scrip, &symlist[1], 1, 0, true);
+                int retval = read_variable_into_ax(scrip, &symlist[1], 1, true);
                 if (retval < 0) return retval;
                 return 0;
             }
@@ -3175,7 +3182,16 @@ int parse_subexpr_NoOps(ccCompiledScript * scrip, ags::SymbolScript symlist, siz
     }
 
     // Find out whether this is a variable or function call; if so, copy it to vnlist
-    // [fw] AFAIK, the main reason for the copy is skipping over META linennumber statements.
+    // [fw] AFAICS, the main reason for the copy is skipping over META linennumber statements.
+    //      If so much code depends on a META-free symbol array, 
+    //      we shouldn't generate METAs in the first place.
+    //      TODO: Have an object that knows for each position of the code what linenumber
+    //      it belongs to. We rip out code and yank it back later; this object needs to be
+    //      told about that so that it can track that.
+    //      The object might be a vector of (size_t, size_t) sorted by the 1st component.
+    //      (A, B) means beginning from A, the line number is B
+    //      Lookup could be by binary search.
+    //      TODO: There should be an object that contains a char * and a len.
     ags::Symbol vnlist[TEMP_SYMLIST_LENGTH];
     size_t vnlist_len;
     int funcAtOffs = 0;
@@ -3201,14 +3217,14 @@ int parse_subexpr_NoOps(ccCompiledScript * scrip, ags::SymbolScript symlist, siz
     if (symlist_len == 1)
     {
         // Must be a variable or literal, otherwise it's invalid
-        int retval = read_variable_into_ax(scrip, symlist, true);
+        int retval = read_variable_into_ax(scrip, symlist, symlist_len, false);
         if (retval < 0) return retval;
         return 0;
     }
 
     if (symlist_len == vnlist_len)
     {
-        int retval = (read_variable_into_ax(scrip, vnlist, vnlist_len));
+        int retval = read_variable_into_ax(scrip, vnlist, vnlist_len, false);
         if (retval < 0) return retval;
         return 0;
     }
@@ -3417,7 +3433,7 @@ inline int do_variable_ax_PrepareComponentAccess_MemberFunction(bool isLastClaus
 
 // We access a component of a struct in order to read or write it. 
 // This is a property.
-int do_variable_ax_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags::Symbol variableSym, VariableSymlist * thisClause, bool writing, bool writingThisTime, bool mustBeWritable, bool & getJustTheAddressIntoAX, bool & doMemoryAccessNow, bool & isArrayOffset, bool & readonly_cannot_cause_error)
+int do_variable_ax_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags::Symbol variableSym, VariableSymlist * thisClause, bool writing, bool writingThisTime, bool mustBeWritable, bool & getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isArrayOffset)
 {
     // since a property is effectively a function call, load the address of the object
     getJustTheAddressIntoAX = true;
@@ -3426,15 +3442,7 @@ int do_variable_ax_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags
     int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing != 0, &isArrayOffset);
     if (retval < 0) return retval;
 
-    if (mustBeWritable)
-    {
-        // cannot use ++ or -- with property, because the memory
-        // access shortcut won't work
-        // Therefore, tell the caller to do it properly
-        // and call us again to write the value
-        readonly_cannot_cause_error = true;
-    }
-    else if (writing)
+    if (writing)
     {
 
         if ((writingThisTime) && (sym.entries[variableSym].flags & SFLG_READONLY))
@@ -3605,7 +3613,7 @@ int do_variable_ax_PrepareComponentAccess_JustTheAddressCases(ags::Symbol variab
 }
 
 // We access the a variable or a component of a struct in order to read or write it. 
-int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol variableSym, int variableSymType, bool isLastClause, VariableSymlist * thisClause, bool writing, bool mustBeWritable, bool writingThisTime, ags::Symbol firstVariableType, ags::Symbol firstVariableSym, int &currentComponentOffset, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isProperty, bool &isArrayOffset, bool &readonly_cannot_cause_error, bool &isDynamicArray, bool &isPointer, bool &accessActualPointer, bool &cannotAssign)
+int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol variableSym, int variableSymType, bool isLastClause, VariableSymlist * thisClause, bool writing, bool mustBeWritable, bool writingThisTime, ags::Symbol firstVariableType, ags::Symbol firstVariableSym, int &currentComponentOffset, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isProperty, bool &isArrayOffset, bool &write_same_as_read_access, bool &isDynamicArray, bool &isPointer, bool &accessActualPointer, bool &cannotAssign)
 {
 
     isProperty = (0 != (sym.entries[variableSym].flags & SFLG_PROPERTY));
@@ -3613,7 +3621,7 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol 
     isDynamicArray = (0 != (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY));
     bool isImported = (0 != (sym.entries[variableSym].flags & SFLG_IMPORTED));
     isArrayOffset = false;
-    readonly_cannot_cause_error = false;
+    write_same_as_read_access = true;
     getJustTheAddressIntoAX = false;
     doMemoryAccessNow = false;
 
@@ -3637,7 +3645,13 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol 
     }
     else if (isProperty)
     {
-        int retval = do_variable_ax_PrepareComponentAccess_Property(scrip, variableSym, thisClause, writing, writingThisTime, mustBeWritable, getJustTheAddressIntoAX, doMemoryAccessNow, isArrayOffset, readonly_cannot_cause_error);
+        // Writing a property calls a function, reading it calls another function.
+        // Avert the caller so that it doesn't try, e.g., to do "++" in-memory.
+        // When setting the property, they must always go the long way and first
+        // evaluate the new value in AX, then set the property explicitly.
+        write_same_as_read_access = false;
+
+        int retval = do_variable_ax_PrepareComponentAccess_Property(scrip, variableSym, thisClause, writing, writingThisTime, mustBeWritable, getJustTheAddressIntoAX, doMemoryAccessNow, isArrayOffset);
         if (retval < 0) return retval;
     }
     else if (isPointer)
@@ -3709,10 +3723,11 @@ int do_variable_ax_ActualMemoryAccess(ccCompiledScript * scrip, ags::Symbol vari
     return 0;
 }
 
-int do_variable_ax_CheckAccess(ags::Symbol variableSym, VariableSymlist variablePath[], bool writing, bool mustBeWritable, bool readonly_cannot_cause_error, bool isLastClause, size_t vp_idx, bool cannotAssign)
+
+int do_variable_ax_CheckAccess(ags::Symbol variableSym, VariableSymlist variablePath[], bool writing, bool mustBeWritable, bool write_same_as_read_access, bool isLastClause, size_t vp_idx, bool cannotAssign)
 {
     // if one of the struct members in the path is read-only, don't allow it
-    if (((writing) || (mustBeWritable)) && (!readonly_cannot_cause_error))
+    if (((writing) || (mustBeWritable)) && (write_same_as_read_access))
     {
         // allow writing to read-only pointers if it's actually
         // a property being accessed
@@ -3735,7 +3750,6 @@ int do_variable_ax_CheckAccess(ags::Symbol variableSym, VariableSymlist variable
         }
     }
 
-
     if ((writing) && (cannotAssign))
     {
         // an entire array or struct cannot be assigned to
@@ -3746,8 +3760,9 @@ int do_variable_ax_CheckAccess(ags::Symbol variableSym, VariableSymlist variable
     return 0;
 }
 
+
 // read the various types of values into AX
-int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool writing, bool mustBeWritable, bool negateLiteral = false)
+int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool writing, bool mustBeWritable, bool negateLiteral, bool &write_same_as_read_access)
 {
     // If this is a reading access, then the scope of AX will be the scope of the thing read
     if (!writing) set_ax_scope(scrip, syml[0]);
@@ -3763,11 +3778,6 @@ int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len,
     // start of the component that is looked up
     // given as an offset from the beginning of the overall structure
     int currentComponentOffset = 0;
-
-    bool isArrayOffset = false;
-    bool isPointer = false;
-    bool isDynamicArray = false;
-    bool readonly_cannot_cause_error = false;
 
     if (variablePathSize < 1) return 0;
 
@@ -3798,10 +3808,13 @@ int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len,
         // Mark the component as accessed
         sym.entries[variableSym].flags |= SFLG_ACCESSED;
 
-        int retval = do_variable_ax_PrepareComponentAccess(scrip, variableSym, variableSymType, isLastClause, thisClause, writing, mustBeWritable, writingThisTime, firstVariableType, firstVariableSym, currentComponentOffset, getJustTheAddressIntoAX, doMemoryAccessNow, isProperty, isArrayOffset, readonly_cannot_cause_error, isDynamicArray, isPointer, accessActualPointer, cannotAssign);
+        bool isArrayOffset;
+        bool isPointer;
+        bool isDynamicArray;
+        int retval = do_variable_ax_PrepareComponentAccess(scrip, variableSym, variableSymType, isLastClause, thisClause, writing, mustBeWritable, writingThisTime, firstVariableType, firstVariableSym, currentComponentOffset, getJustTheAddressIntoAX, doMemoryAccessNow, isProperty, isArrayOffset, write_same_as_read_access, isDynamicArray, isPointer, accessActualPointer, cannotAssign);
         if (retval < 0) return retval;
 
-        retval = do_variable_ax_CheckAccess(variableSym, variablePath, writing, mustBeWritable, readonly_cannot_cause_error, isLastClause, vp_idx, cannotAssign);
+        retval = do_variable_ax_CheckAccess(variableSym, variablePath, writing, mustBeWritable, write_same_as_read_access, isLastClause, vp_idx, cannotAssign);
         if (retval < 0) return retval;
 
         if (!doMemoryAccessNow && !isLastClause) continue;
@@ -3819,14 +3832,21 @@ int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len,
     return 0;
 }
 
-int read_variable_into_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool mustBeWritable, bool negateLiteral) {
 
-    return do_variable_ax(scrip, syml, syml_len, false, mustBeWritable, negateLiteral);
+int read_variable_into_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool negateLiteral)
+{
+    bool dummy; // ignored parameter
+    return do_variable_ax(scrip, syml, syml_len, false, false, negateLiteral, dummy);
 }
 
+int read_variable_into_ax(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool negateLiteral, bool mustBeWritable, bool &write_same_as_read_access)
+{
+    return do_variable_ax(scrip, syml, syml_len, false, mustBeWritable, negateLiteral, write_same_as_read_access);
+}
 
-int call_property_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite) {
-    // a Property Get
+// Get or set a property
+int call_property_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite) 
+{
     int numargs = 0;
 
     // AX contains the struct address
@@ -3840,29 +3860,27 @@ int call_property_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite
 
     if (isWrite)
     {
-        // BX contains the new value
-        if (sym.entries[propSym].flags & SFLG_IMPORTED)
-            scrip->write_cmd1(SCMD_PUSHREAL, SREG_BX);
-        else
+        if (0 == (sym.entries[propSym].flags & SFLG_IMPORTED))
         {
             cc_error("internal error: prop is not import");
             return -1;
         }
 
+        // BX contains the new value
+        scrip->write_cmd1(SCMD_PUSHREAL, SREG_BX);
         numargs++;
     }
 
     if (sym.entries[propSym].flags & SFLG_ARRAY)
     {
-        // array indexer is in DX
-        if (sym.entries[propSym].flags & SFLG_IMPORTED)
-            scrip->write_cmd1(SCMD_PUSHREAL, SREG_DX);
-        else
+        if (0 == (sym.entries[propSym].flags & SFLG_IMPORTED))
         {
             cc_error("internal error: prop is not import");
             return -1;
         }
-
+        
+        // array indexer is in DX
+        scrip->write_cmd1(SCMD_PUSHREAL, SREG_DX);
         numargs++;
     }
 
@@ -3875,9 +3893,13 @@ int call_property_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite
 
     int propFunc;
     if (isWrite)
+    {
         propFunc = sym.entries[propSym].get_propset();
+    }
     else
+    {
         propFunc = sym.entries[propSym].get_propget();
+    }
 
     if (propFunc == 0)
     {
@@ -3893,8 +3915,7 @@ int call_property_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite
         scrip->fixup_previous(FIXUP_IMPORT);
         // do the call
         scrip->write_cmd1(SCMD_CALLEXT, SREG_AX);
-        if (numargs > 0)
-            scrip->write_cmd1(SCMD_SUBREALSTACK, numargs);
+        if (numargs > 0) scrip->write_cmd1(SCMD_SUBREALSTACK, numargs);
     }
     else
     {
@@ -3929,6 +3950,7 @@ int call_property_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite
 
     return 0;
 }
+
 
 int do_variable_memory_access_vartype(ccCompiledScript * scrip, ags::Symbol variableSym, bool isProperty, int &gotValType)
 {
@@ -3975,6 +3997,7 @@ int do_variable_memory_access_LitOrConst(ccCompiledScript * scrip, int mainVaria
     return 0;
 }
 
+
 int do_variable_memory_access_LitFloat(ccCompiledScript * scrip, ags::Symbol variableSym, bool writing, bool mustBeWritable, int &gotValType)
 {
     if ((writing) || (mustBeWritable))
@@ -3986,6 +4009,7 @@ int do_variable_memory_access_LitFloat(ccCompiledScript * scrip, ags::Symbol var
     gotValType = sym.normalFloatSym;
     return 0;
 }
+
 
 // a "normal" variable or a pointer
 int do_variable_memory_access_Variable(ccCompiledScript * scrip, ags::Symbol mainVariableSym, int mainVariableType, ags::Symbol variableSym, bool isPointer, bool &wholePointerAccess, bool addressof, int soffset, bool extraoffset, bool isDynamicArray, bool writing, int &gotValType)
@@ -4000,6 +4024,8 @@ int do_variable_memory_access_Variable(ccCompiledScript * scrip, ags::Symbol mai
 
     if (isPointer)
     {
+        gotValType |= STYPE_POINTER;
+
         // the address is already in MAR by the caller
         if ((!wholePointerAccess) && ((!addressof) || (soffset) || (extraoffset)))
             scrip->write_cmd(SCMD_CHECKNULL);
@@ -4062,6 +4088,7 @@ int do_variable_memory_access_Variable(ccCompiledScript * scrip, ags::Symbol mai
     return 0;
 }
 
+
 int do_variable_memory_access_String(ccCompiledScript * scrip, bool writing, int soffset, int &gotValType)
 {
     if (writing)
@@ -4077,11 +4104,13 @@ int do_variable_memory_access_String(ccCompiledScript * scrip, bool writing, int
     return 0;
 }
 
+
 int do_variable_memory_access_StructMember(ags::Symbol mainVariableSym)
 {
     cc_error("must include parent structure of member '%s'", sym.get_friendly_name(mainVariableSym).c_str());
     return -1;
 }
+
 
 int do_variable_memory_access_Null(ccCompiledScript * scrip, bool writing, int &gotValType)
 {
@@ -4137,6 +4166,7 @@ int do_variable_memory_access_ActualAccess(ccCompiledScript * scrip, ags::Symbol
     return -1;
 }
 
+
 int do_variable_memory_access(ccCompiledScript *scrip, ags::Symbol variableSym,
     int variableSymType, bool isProperty,
     bool writing, bool mustBeWritable,
@@ -4146,8 +4176,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, ags::Symbol variableSym,
     ags::Symbol mainVariableSym, int mainVariableType,
     bool isDynamicArray, bool negateLiteral)
 {
-    int gotValType = 0;
-
+    int gotValType;
     int retval = do_variable_memory_access_ActualAccess(scrip, mainVariableSym, mainVariableType, variableSym, writing, mustBeWritable, negateLiteral, isPointer, addressof, soffset, extraoffset, isDynamicArray, isProperty, wholePointerAccess, gotValType);
     if (retval < 0) return retval;
 
@@ -4181,7 +4210,8 @@ int do_variable_memory_access(ccCompiledScript *scrip, ags::Symbol variableSym,
 
 int write_ax_to_variable(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len)
 {
-    return do_variable_ax(scrip, syml, syml_len, true, false);
+    bool dummy; // ignored parameter
+    return do_variable_ax(scrip, syml, syml_len, true, false, false, dummy);
 }
 
 
@@ -4215,6 +4245,7 @@ int evaluate_expression_CopyExpression(ccInternalList * source, size_t script_id
 
     return 0;
 }
+
 
 // evaluate the supplied expression, putting the result into AX
 // returns 0 on success or -1 if compile error
@@ -4282,6 +4313,7 @@ int evaluate_expression(ccInternalList *targ, ccCompiledScript*scrip, bool consi
     return parse_subexpr(scrip, expr_script.script, expr_script.length);
 }
 
+
 // We're in an assignment, cursym points to the LHS. Check that the LHS is assignable.
 int evaluate_assignment_CheckLHSIsAssignable(ags::Symbol cursym, const ags::SymbolScript &vnlist, int vnlist_len)
 {
@@ -4295,6 +4327,7 @@ int evaluate_assignment_CheckLHSIsAssignable(ags::Symbol cursym, const ags::Symb
     cc_error("Variable or constant property required on left of \"%s\" assignment", sym.get_name(cursym));
     return -1;
 }
+
 
 // We are processing an assignment. vn_list[] contains a variable or a struct selector. 
 // If it is a (static or dynamic) array, then check whether the assignment is allowed.
@@ -4324,6 +4357,7 @@ int evaluate_assignment_ArrayChecks(ags::Symbol cursym, ags::Symbol nextsym, siz
     return 0;
 }
 
+
 // We compile something like "a += b"
 int evaluate_assignment_MAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript & vnlist, int vnlist_len)
 {
@@ -4331,7 +4365,7 @@ int evaluate_assignment_MAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol
     scrip->push_reg(SREG_AX);
     int varTypeRHS = scrip->ax_val_type;
 
-    int retval = read_variable_into_ax(scrip, vnlist, vnlist_len);
+    int retval = read_variable_into_ax(scrip, vnlist, vnlist_len, false);
     if (retval < 0) return retval;
 
     retval = check_type_mismatch(varTypeRHS, scrip->ax_val_type, true);
@@ -4348,6 +4382,7 @@ int evaluate_assignment_MAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol
     if (retval < 0) return retval;
     return 0;
 }
+
 
 int evaluate_assignment_Assign(ccCompiledScript * scrip, int vnlist_len, const ags::SymbolScript & vnlist)
 {
@@ -4372,11 +4407,11 @@ int evaluate_assignment_Assign(ccCompiledScript * scrip, int vnlist_len, const a
     return 0;
 }
 
-int evaluate_assignment_SAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript & vnlist, int vnlist_len, bool &readonly_cannot_cause_error)
-{
-    readonly_cannot_cause_error = false;
 
-    int retval = read_variable_into_ax(scrip, &vnlist[0], vnlist_len, true);
+int evaluate_assignment_SAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript & vnlist, int vnlist_len)
+{
+    bool write_same_as_read_access;
+    int retval = read_variable_into_ax(scrip, &vnlist[0], vnlist_len, false, true, write_same_as_read_access);
     if (retval < 0) return retval;
 
     // Get the bytecode operator that corresponds to the assignment symbol and type
@@ -4386,7 +4421,7 @@ int evaluate_assignment_SAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol
 
     scrip->write_cmd2(cpuOp, SREG_AX, 1);
 
-    if (!readonly_cannot_cause_error)
+    if (write_same_as_read_access)
     {
         // since the MAR won't have changed, we can directly write
         // the value back to it without re-calculating the offset
@@ -4401,10 +4436,9 @@ int evaluate_assignment_SAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol
     return 0;
 }
 
+
 int evaluate_assignment_DoAssignment(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript &vnlist, int vnlist_len)
 {
-    bool readonly_cannot_cause_error = false;
-
     switch (sym.get_type(ass_symbol))
     {
     default: // can't happen
@@ -4418,9 +4452,9 @@ int evaluate_assignment_DoAssignment(ccInternalList * targ, ccCompiledScript * s
         // Get RHS
         int retval = evaluate_expression(targ, scrip, false);
         if (retval < 0) return retval;
+
         // Do assignment
-        retval = evaluate_assignment_Assign(scrip, vnlist_len, vnlist);
-        if (retval < 0) return retval;
+        return evaluate_assignment_Assign(scrip, vnlist_len, vnlist);
     }
 
     case SYM_MASSIGN:
@@ -4428,15 +4462,15 @@ int evaluate_assignment_DoAssignment(ccInternalList * targ, ccCompiledScript * s
         // Get RHS
         int retval = evaluate_expression(targ, scrip, false);
         if (retval < 0) return retval;
+
         // Do assignment
-        retval = evaluate_assignment_MAssign(scrip, ass_symbol, vnlist, vnlist_len);
-        if (retval < 0) return retval;
+        return evaluate_assignment_MAssign(scrip, ass_symbol, vnlist, vnlist_len);
     }
 
     case SYM_SASSIGN:
     {
         // "++" or "--". There isn't any RHS to read in. Do assignment.
-        return evaluate_assignment_SAssign(scrip, ass_symbol, vnlist, vnlist_len, readonly_cannot_cause_error);
+        return evaluate_assignment_SAssign(scrip, ass_symbol, vnlist, vnlist_len);
     }
     }
 
@@ -4526,6 +4560,7 @@ int parse_var_decl_InitialValAssignment_ToGlobalFloat(ccInternalList * targ, boo
     return 0;
 }
 
+
 int parse_var_decl_InitialValAssignment_ToGlobalNonFloat(ccInternalList * targ, bool is_neg, void *& initial_val_ptr)
 {
     // Initializer for an integer value
@@ -4545,6 +4580,7 @@ int parse_var_decl_InitialValAssignment_ToGlobalNonFloat(ccInternalList * targ, 
 
     return 0;
 }
+
 
 // if initial_value is non-null, it returns malloc'd memory that must be free
 int parse_var_decl_InitialValAssignment_ToGlobal(ccInternalList *targ, long varname, void * &initial_val_ptr)
@@ -4581,7 +4617,7 @@ int parse_var_decl_InitialValAssignment_ToGlobal(ccInternalList *targ, long varn
     // Do actual assignment
     if (sym.entries[varname].vartype == sym.normalFloatSym)
     {
-        return parse_var_decl_InitialValAssignment_ToGlobalFloat(targ, is_neg, initial_val_ptr, retflag);
+        return parse_var_decl_InitialValAssignment_ToGlobalFloat(targ, is_neg, initial_val_ptr);
     }
     return parse_var_decl_InitialValAssignment_ToGlobalNonFloat(targ, is_neg, initial_val_ptr);
 }
@@ -4718,6 +4754,7 @@ int parse_var_decl_StringDecl_GlobalNoImport(ccCompiledScript * scrip, void *&in
     return 0;
 }
 
+
 int parse_var_decl_StringDecl_Local(ccCompiledScript * scrip, ags::Symbol var_name, void * &initial_value_ptr)
 {
     // Note: We can't use scrip->cur_sp since we don't know if we'll be in a nested function call at the time
@@ -4733,6 +4770,7 @@ int parse_var_decl_StringDecl_Local(ccCompiledScript * scrip, ags::Symbol var_na
     // [fw] So what will happen with this CX value?
     return 0;
 }
+
 
 int parse_var_decl_StringDecl(ccCompiledScript * scrip, ags::Symbol var_name, Globalness is_global, void * &initial_value_ptr, FxFixupType &fixup_needed)
 {

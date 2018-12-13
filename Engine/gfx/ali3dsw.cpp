@@ -548,9 +548,9 @@ void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
     this->Vsync();
 
   if (flip == kFlip_None)
-    _filter->RenderScreen(virtualScreen, _global_x_offset, _global_y_offset);
+    _filter->RenderScreen(virtualScreen, _globalViewOff.X, _globalViewOff.Y);
   else
-    _filter->RenderScreenFlipped(virtualScreen, _global_x_offset, _global_y_offset, flip);
+    _filter->RenderScreenFlipped(virtualScreen, _globalViewOff.X, _globalViewOff.Y, flip);
 }
 
 void ALSoftwareGraphicsDriver::Render()
@@ -587,11 +587,11 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    Bitmap *bmp_orig = currentVirtScreen;
    const int col_depth = currentVirtScreen->GetColorDepth();
 
-   if ((_global_y_offset != 0) || (_global_x_offset != 0))
+   if ((_globalViewOff.Y != 0) || (_globalViewOff.X != 0))
    {
      bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), col_depth);
      bmp_orig->Fill(0);
-     bmp_orig->Blit(currentVirtScreen, 0, 0, _global_x_offset, _global_y_offset, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
+     bmp_orig->Blit(currentVirtScreen, 0, 0, _globalViewOff.X, _globalViewOff.Y, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
    }
 
    bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
@@ -618,9 +618,9 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    }
    delete bmp_buff;
 
-   _filter->RenderScreen(currentVirtScreen, _global_x_offset, _global_y_offset);
+   _filter->RenderScreen(currentVirtScreen, _globalViewOff.X, _globalViewOff.Y);
 
-   if ((_global_y_offset != 0) || (_global_x_offset != 0))
+   if ((_globalViewOff.Y != 0) || (_globalViewOff.X != 0))
      delete bmp_orig;
 }
 
@@ -661,7 +661,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
     }
 
     BitmapHelper::GetScreenBitmap()->Clear(clearColor);
-	_filter->RenderScreen(BitmapHelper::GetScreenBitmap(), _global_x_offset, _global_y_offset);
+	_filter->RenderScreen(BitmapHelper::GetScreenBitmap(), _globalViewOff.X, _globalViewOff.Y);
 }
 /** END FADE.C **/
 

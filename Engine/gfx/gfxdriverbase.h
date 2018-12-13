@@ -91,8 +91,7 @@ public:
     virtual DisplayMode GetDisplayMode() const;
     virtual Size        GetNativeSize() const;
     virtual Rect        GetRenderDestination() const;
-    // TODO: probably should be replaced by defining translation for the sprite batch
-    virtual void        SetRenderOffset(int x, int y);
+    virtual void        SetNativeRenderOffset(int x, int y);
 
     virtual void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = NULL);
     virtual void        ClearDrawLists();
@@ -131,9 +130,7 @@ protected:
     Rect                _dstRect;       // rendering destination rect
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
     PlaneScaling        _scaling;       // native -> render dest coordinate transformation
-    // TODO: probably should be replaced by defining translation for the sprite batch
-    int                 _global_x_offset;
-    int                 _global_y_offset;
+    Point               _globalViewOff; // extra offset to every sprite draw on screen with DrawSprite
     volatile int *      _loopTimer;
 
     // Callbacks

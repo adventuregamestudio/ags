@@ -65,7 +65,7 @@ struct SpriteTransform
     SpriteTransform()
         : X(0), Y(0), ScaleX(1.f), ScaleY(1.f), Rotate(0.f) {}
 
-    SpriteTransform(int x, int y, float scalex, float scaley, float rotate)
+    SpriteTransform(int x, int y, float scalex = 1.0f, float scaley = 1.0f, float rotate = 0.0f)
         : X(x), Y(y), ScaleX(scalex), ScaleY(scaley), Rotate(rotate) {}
 };
 
@@ -127,8 +127,11 @@ public:
   virtual void ClearDrawLists() = 0;
 
   virtual void SetScreenTint(int red, int green, int blue) = 0;
-  // TODO: probably should be replaced by defining translation for the sprite batch
-  virtual void SetRenderOffset(int x, int y) = 0;
+  // Defines the rendering offset of the every game sprite (in native coordinates).
+  // TODO: should be replaced by defining translation for the sprite batch
+  // (but translate transform does not work correctly enough at the moment and never truly used)
+  // NOTE: currently this method is only used by ShakeScreen.
+  virtual void SetNativeRenderOffset(int x, int y) = 0;
   virtual void RenderToBackBuffer() = 0;
   virtual void Render() = 0;
   virtual void Render(GlobalFlipType flip) = 0;
@@ -142,8 +145,14 @@ public:
   // the rest of the game. The effect is stronger for the low-res games being
   // rendered in the high-res mode.
   virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling = 1) = 0;
+  // TODO: move fade-in/out/boxout functions out of the graphics driver!! make everything render through
+  // main drawing procedure. Since currently it does not - we need to init our own sprite batch
+  // internally to let it set up correct viewport settings instead of relying on a chance.
+  // Runs fade-out animation in a blocking manner.
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
+  // Runs fade-in animation in a blocking manner.
   virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
+  // Runs box-out animation in a blocking manner.
   virtual void BoxOutEffect(bool blackingOut, int speed, int delay) = 0;
   virtual bool PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen) = 0;
   virtual void UseSmoothScaling(bool enabled) = 0;

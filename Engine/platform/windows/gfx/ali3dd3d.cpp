@@ -1236,8 +1236,8 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
   float yProportion = height / (float)bmpToDraw->_height;
 
   bool  flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
-  float drawAtX = drawListEntry->x + _global_x_offset;
-  float drawAtY = drawListEntry->y + _global_y_offset;
+  float drawAtX = drawListEntry->x + _globalViewOff.X;
+  float drawAtY = drawListEntry->y + _globalViewOff.Y;
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {
@@ -1780,8 +1780,10 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
+  BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
-  this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
+  // NOTE: what happens here is that we are trying to prevent global offset to be applied to this sprite :/
+  this->DrawSprite(-_globalViewOff.X, -_globalViewOff.Y, d3db);
 
   if (speed <= 0) speed = 16;
   speed *= 2;  // harmonise speeds with software driver which is faster
@@ -1835,8 +1837,10 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
+  BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
-  this->DrawSprite(0, 0, d3db);
+  // NOTE: what happens here is that we are trying to prevent global offset to be applied to this sprite :/
+  this->DrawSprite(-_globalViewOff.X, -_globalViewOff.Y, d3db);
   if (!blackingOut)
   {
     // when fading in, draw four black boxes, one

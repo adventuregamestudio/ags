@@ -597,13 +597,10 @@ void render_black_borders(int atx, int aty)
 }
 
 
-void render_to_screen(Bitmap *toRender, int atx, int aty) {
-
+void render_to_screen(Bitmap *toRender, int atx, int aty)
+{
+    gfxDriver->SetNativeRenderOffset(atx, aty);
     const Rect &viewport = play.GetMainViewport();
-    atx += viewport.Left;
-    aty += viewport.Top;
-    gfxDriver->SetRenderOffset(atx, aty);
-
     // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
     if (aty > 0 && wasShakingScreen && gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, aty, NULL);
@@ -2394,7 +2391,8 @@ void construct_virtual_screen(bool fullRedraw)
     //
     // Batch 1: room viewports
     //
-    const Rect &room_viewport = play.GetRoomViewport();
+    const Rect &main_viewport = play.GetMainViewport();
+    const Rect &room_viewport = play.GetRoomViewportAbs();
     const Rect &camera = play.GetRoomCamera();
     // TODO: have camera Left/Top used as a prescale (source) offset!
     SpriteTransform room_trans(0, 0,
@@ -2433,14 +2431,15 @@ void construct_virtual_screen(bool fullRedraw)
     //
     // Batch 2: UI overlay
     //
-    gfxDriver->BeginSpriteBatch(play.GetUIViewport(), SpriteTransform());
+    const Rect &ui_viewport = play.GetUIViewportAbs();
+    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform());
     draw_gui_and_overlays();
     put_sprite_list_on_screen(false);
 
     //
     // Batch 3: auxiliary info
     //
-    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+    gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
     draw_misc_info();
 
     if (fullRedraw)

@@ -225,10 +225,18 @@ struct GameState {
     const Rect &GetUIViewport() const;
     // Returns Room viewport position, which works as a "window" into the room
     const Rect &GetRoomViewport() const;
+    // Returns UI viewport position in absolute coordinates (with main viewport offset)
+    Rect       GetUIViewportAbs() const;
+    // Returns Room viewport position in absolute coordinates (with main viewport offset)
+    Rect       GetRoomViewportAbs() const;
     // Sets if the room viewport should be adjusted automatically each time a new room is loaded
     void SetAutoRoomViewport(bool on);
+    // Main viewport defines the location of all things drawn and interactable on the game screen.
+    // Other viewports are defined relative to the main viewports.
     void SetMainViewport(const Rect &viewport);
+    // UI viewport is a formal dummy viewport for GUI and Overlays (like speech).
     void SetUIViewport(const Rect &viewport);
+    // Room viewport defines location of a room view inside the main viewport.
     void SetRoomViewport(const Rect &viewport);
     // Applies all the pending changes to viewports and cameras
     void UpdateViewports();
@@ -292,7 +300,7 @@ private:
     RoomCamera _roomCamera;
 
     // Tells that the room viewport's position has changed since last game update
-    bool  _viewportHasChanged;
+    bool  _roomViewportHasChanged;
     // Tells that the room camera's size has changed since last game update
     bool  _cameraHasChanged;
 

@@ -175,7 +175,6 @@ void engine_post_gfxmode_driver_setup()
     gfxDriver->SetCallbackForPolling(update_polled_stuff_if_runtime);
     gfxDriver->SetCallbackToDrawScreen(draw_screen_callback);
     gfxDriver->SetCallbackForNullSprite(GfxDriverNullSpriteCallback);
-    gfxDriver->SetRenderOffset(play.GetMainViewport().Left, play.GetMainViewport().Top);
 }
 
 // Reset gfx driver callbacks

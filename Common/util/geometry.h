@@ -299,6 +299,11 @@ struct Rect
     {
         Bottom = Top + height - 1;
     }
+
+    inline static Rect MoveBy(const Rect &r, int x, int y)
+    {
+        return Rect(r.Left + x, r.Top + y, r.Right + x, r.Bottom + y);
+    }
 };
 
 // Helper factory function

@@ -31,7 +31,7 @@ extern CharacterInfo *playerchar;
 GameState::GameState()
 {
     _isAutoRoomViewport = true;
-    _viewportHasChanged = false;
+    _roomViewportHasChanged = false;
     _cameraHasChanged = false;
 }
 
@@ -76,6 +76,16 @@ const Rect &GameState::GetRoomViewport() const
     return _roomViewport.Position;
 }
 
+Rect GameState::GetUIViewportAbs() const
+{
+    return Rect::MoveBy(_uiViewport.Position, _mainViewport.Position.Left, _mainViewport.Position.Top);
+}
+
+Rect GameState::GetRoomViewportAbs() const
+{
+    return Rect::MoveBy(_roomViewport.Position, _mainViewport.Position.Left, _mainViewport.Position.Top);
+}
+
 void GameState::SetUIViewport(const Rect &viewport)
 {
     _uiViewport.Position = viewport;
@@ -85,16 +95,16 @@ void GameState::SetRoomViewport(const Rect &viewport)
 {// TODO: relative to main viewport?
     _roomViewport.Position = viewport;
     UpdateCameraSize();
-    _viewportHasChanged = true;
+    _roomViewportHasChanged = true;
 }
 
 void GameState::UpdateViewports()
 {
-    if (_viewportHasChanged)
+    if (_roomViewportHasChanged)
         on_roomviewport_changed();
     if (_cameraHasChanged)
         on_roomcamera_changed();
-    _viewportHasChanged = false;
+    _roomViewportHasChanged = false;
     _cameraHasChanged = false;
 }
 

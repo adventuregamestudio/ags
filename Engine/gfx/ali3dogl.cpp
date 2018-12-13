@@ -1168,8 +1168,8 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
   float yProportion = (float)height / (float)bmpToDraw->_height;
 
   bool flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
-  int drawAtX = drawListEntry->x + _global_x_offset;
-  int drawAtY = drawListEntry->y + _global_y_offset;
+  int drawAtX = drawListEntry->x + _globalViewOff.X;
+  int drawAtY = drawListEntry->y + _globalViewOff.Y;
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {
@@ -1753,8 +1753,10 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
+  BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
-  this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
+  // NOTE: what happens here is that we are trying to prevent global offset to be applied to this sprite :/
+  this->DrawSprite(-_globalViewOff.X, -_globalViewOff.Y, d3db);
 
   if (speed <= 0) speed = 16;
   speed *= 2;  // harmonise speeds with software driver which is faster
@@ -1808,6 +1810,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
+  BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)

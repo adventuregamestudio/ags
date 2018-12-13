@@ -27,9 +27,7 @@ namespace Engine
 {
 
 GraphicsDriverBase::GraphicsDriverBase()
-    : _global_x_offset(0)
-    , _global_y_offset(0)
-    , _loopTimer(NULL)
+    : _loopTimer(NULL)
     , _pollingCallback(NULL)
     , _drawScreenCallback(NULL)
     , _nullSpriteCallback(NULL)
@@ -71,10 +69,9 @@ Rect GraphicsDriverBase::GetRenderDestination() const
     return _dstRect;
 }
 
-void GraphicsDriverBase::SetRenderOffset(int x, int y)
+void GraphicsDriverBase::SetNativeRenderOffset(int x, int y)
 {
-    _global_x_offset = x;
-    _global_y_offset = y;
+    _globalViewOff = Point(x, y);
 }
 
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface)
@@ -174,8 +171,7 @@ Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
 }
 
 void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
-{
-    // TODO: support this under certain circumstances?
+{ // do nothing, video-memory drivers don't use main back buffer, only stage bitmaps they pass to plugins
 }
 
 PBitmap VideoMemoryGraphicsDriver::CreateStageScreen(size_t index, const Size &sz)

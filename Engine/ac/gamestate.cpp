@@ -55,7 +55,6 @@ bool GameState::IsAutoRoomViewport() const
 void GameState::SetAutoRoomViewport(bool on)
 {
     _isAutoRoomViewport = on;
-    // TODO: adjust immediately?
 }
 
 Rect FixupViewport(const Rect &viewport, const Rect &parent)

@@ -557,6 +557,7 @@ builtin managed struct Room {
   import static void ProcessClick(int x, int y, CursorMode);
 #endif
 #ifdef SCRIPT_API_v350
+  /// Gets the room camera
   import static readonly attribute Camera *Camera;
 #endif
 };
@@ -651,6 +652,9 @@ builtin managed struct Game {
   readonly import static attribute AudioClip *AudioClips[];
 #endif
 #ifdef SCRIPT_API_v350
+  /// Gets/sets whether the viewport should automatically adjust itself and camera to the new room's background size
+  import static attribute bool AutoSizeViewportOnRoomLoad;
+  /// Gets the room viewport
   import static readonly attribute Viewport *RoomViewport;
 #endif
 };

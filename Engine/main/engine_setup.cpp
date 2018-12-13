@@ -192,6 +192,10 @@ void engine_post_gfxmode_screen_setup(const DisplayMode &dm, bool recreate_bitma
     real_screen = BitmapHelper::GetScreenBitmap();
     if (recreate_bitmaps)
     {
+        delete sub_screen;
+        sub_screen = NULL;
+        // TODO: find out if we need _sub_screen to be recreated right away here
+
         virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     }
     virtual_screen->Clear();
@@ -211,6 +215,8 @@ void engine_pre_gfxmode_screen_cleanup()
 // Release virtual screen
 void engine_pre_gfxsystem_screen_destroy()
 {
+    delete sub_screen;
+    sub_screen = NULL;
     delete virtual_screen;
     virtual_screen = NULL;
 }

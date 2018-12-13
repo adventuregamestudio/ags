@@ -53,6 +53,7 @@ void init_draw_method();
 void dispose_draw_method();
 // Disposes any temporary resources on leaving current room
 void dispose_room_drawdata();
+void on_mainviewport_changed();
 // Updates drawing settings depending on room viewport's size and position on screen
 void on_roomviewport_changed();
 // Updates drawing settings depending on room camera's size
@@ -137,5 +138,7 @@ Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
 
 // Pointer to the real screen bitmap created by Allegro
 extern Common::Bitmap *real_screen;
+// Subsection of the real screen, used when the room size is smaller than the game's size
+extern Common::Bitmap *sub_screen;
 
 #endif // __AGS_EE_AC__DRAW_H

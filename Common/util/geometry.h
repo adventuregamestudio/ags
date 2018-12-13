@@ -178,7 +178,7 @@ struct Size
     }
 
     inline bool operator<(const Size &other) const
-    {
+    { // TODO: this implementation is silly and not universally useful; make a realistic one and replace with another function where necessary
         return Width < other.Width || (Width == other.Width && Height < other.Height);
     }
 

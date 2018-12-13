@@ -230,6 +230,9 @@ void process_event(EventHappened*evp) {
             play.next_screen_transition = -1;
         }
 
+        // React to changes to viewports and cameras (possibly from script) just before the render
+        play.UpdateViewports();
+
         if (pl_run_plugin_hooks(AGSE_TRANSITIONIN, 0))
             return;
 
@@ -247,7 +250,7 @@ void process_event(EventHappened*evp) {
         }
 
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
-        // TODO: find out if should use viewport instead of native size
+        // TODO: use normal coordinates instead of "native_size" and multiply_up_*?
         const Size &native_size = play.GetNativeSize();
         const Rect &viewport = play.GetMainViewport();
 
@@ -280,15 +283,18 @@ void process_event(EventHappened*evp) {
                     timerloop = 0;
                     boxwid += get_fixed_pixel_size(16);
                     boxhit += multiply_up_coordinate(native_size.Height / 20);
-                    int lxp = viewport.GetWidth() / 2 - boxwid / 2, lyp = viewport.GetHeight() / 2 - boxhit / 2;
+                    boxwid = Math::Clamp(boxwid, 0, viewport.GetWidth());
+                    boxhit = Math::Clamp(boxhit, 0, viewport.GetHeight());
+                    int lxp = viewport.GetWidth() / 2 - boxwid / 2;
+                    int lyp = viewport.GetHeight() / 2 - boxhit / 2;
                     gfxDriver->Vsync();
                     screen_bmp->Blit(virtual_screen, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
-                    render_to_screen(screen_bmp, 0, 0);
+                    render_to_screen(screen_bmp, viewport.Left, viewport.Top);
                     update_mp3();
                         while (timerloop == 0) ;
                 }
-                gfxDriver->SetMemoryBackBuffer(virtual_screen);
+                gfxDriver->SetMemoryBackBuffer(virtual_screen, viewport.Left, viewport.Top);
             }
             play.screen_is_faded_out = 0;
         }
@@ -312,7 +318,7 @@ void process_event(EventHappened*evp) {
                 {
                     // on last frame of fade (where transparency < 16), don't
                     // draw the old screen on top
-                    gfxDriver->DrawSprite(0, -(saved_viewport_bitmap->GetHeight() - virtual_screen->GetHeight()), ddb);
+                    gfxDriver->DrawSprite(0, 0, ddb);
                 }
 				render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
@@ -351,7 +357,7 @@ void process_event(EventHappened*evp) {
                 gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap, false);
                 invalidate_screen();
                 draw_screen_callback();
-                gfxDriver->DrawSprite(0, -(saved_viewport_bitmap->GetHeight() - virtual_screen->GetHeight()), ddb);
+                gfxDriver->DrawSprite(0, 0, ddb);
 				render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
                 while (timerloop == 0) ;

@@ -18,6 +18,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"
 #include "debug/debug_log.h"
+#include "device/mousew32.h"
 #include "game/customproperties.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
@@ -59,6 +60,8 @@ void GameState::SetAutoRoomViewport(bool on)
 void GameState::SetMainViewport(const Rect &viewport)
 {
     _mainViewport.Position = viewport;
+    Mouse::SetGraphicArea();
+    _mainViewportHasChanged = true;
 }
 
 const Rect &GameState::GetMainViewport() const
@@ -100,10 +103,13 @@ void GameState::SetRoomViewport(const Rect &viewport)
 
 void GameState::UpdateViewports()
 {
+    if (_mainViewportHasChanged)
+        on_mainviewport_changed();
     if (_roomViewportHasChanged)
         on_roomviewport_changed();
     if (_cameraHasChanged)
         on_roomcamera_changed();
+    _mainViewportHasChanged = false;
     _roomViewportHasChanged = false;
     _cameraHasChanged = false;
 }

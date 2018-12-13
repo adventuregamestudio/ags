@@ -409,7 +409,7 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     }
     else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
     {
-        Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
+        Rect rc = RectWH(desc.Viewport.Left - _virtualScrOff.X, desc.Viewport.Top - _virtualScrOff.Y, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
         batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
         batch.Opaque = true;
     }
@@ -450,8 +450,11 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         const SpriteTransform &transform = _spriteBatchDesc[i].Transform;
         const ALSpriteBatch &batch = _spriteBatches[i];
 
-        virtualScreen->SetClip(viewport);
+        virtualScreen->SetClip(Rect::MoveBy(viewport, -_virtualScrOff.X, -_virtualScrOff.Y));
         Bitmap *surface = static_cast<Bitmap*>(batch.Surface.get());
+        // TODO: correct transform offsets to have pre-scale (source) and post-scale (dest) offsets!
+        int view_offx = viewport.Left + transform.X - _virtualScrOff.X;
+        int view_offy = viewport.Top + transform.Y - _virtualScrOff.Y;
         if (surface)
         {
             if (!batch.Opaque)
@@ -459,12 +462,12 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
             _stageVirtualScreen = surface;
             RenderSpriteBatch(batch, surface, 0, 0);
             // TODO: extract this to the generic software blit-with-transform function
-            virtualScreen->StretchBlt(surface, RectWH(viewport.Left + transform.X, viewport.Top + transform.Y, viewport.GetWidth(), viewport.GetHeight()),
+            virtualScreen->StretchBlt(surface, RectWH(view_offx, view_offy, viewport.GetWidth(), viewport.GetHeight()),
                 batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
         }
         else
         {
-            RenderSpriteBatch(batch, virtualScreen, viewport.Left + transform.X, viewport.Top + transform.Y);
+            RenderSpriteBatch(batch, virtualScreen, view_offx, view_offy);
         }
         _stageVirtualScreen = virtualScreen;
     }
@@ -548,9 +551,9 @@ void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
     this->Vsync();
 
   if (flip == kFlip_None)
-    _filter->RenderScreen(virtualScreen, _globalViewOff.X, _globalViewOff.Y);
+    _filter->RenderScreen(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y);
   else
-    _filter->RenderScreenFlipped(virtualScreen, _globalViewOff.X, _globalViewOff.Y, flip);
+    _filter->RenderScreenFlipped(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y, flip);
 }
 
 void ALSoftwareGraphicsDriver::Render()
@@ -566,6 +569,12 @@ void ALSoftwareGraphicsDriver::Vsync()
 Bitmap *ALSoftwareGraphicsDriver::GetMemoryBackBuffer()
 {
   return _stageVirtualScreen;
+}
+
+void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
+{
+  virtualScreen = backBuffer;
+  _virtualScrOff = Point(offx, offy);
 }
 
 void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
@@ -587,11 +596,13 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    Bitmap *bmp_orig = currentVirtScreen;
    const int col_depth = currentVirtScreen->GetColorDepth();
 
-   if ((_globalViewOff.Y != 0) || (_globalViewOff.X != 0))
+   int _global_x_offset = _virtualScrOff.X + _globalViewOff.X;
+   int _global_y_offset = _virtualScrOff.Y + _globalViewOff.Y;
+   if ((_global_y_offset != 0) || (_global_x_offset != 0))
    {
      bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), col_depth);
      bmp_orig->Fill(0);
-     bmp_orig->Blit(currentVirtScreen, 0, 0, _globalViewOff.X, _globalViewOff.Y, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
+     bmp_orig->Blit(currentVirtScreen, 0, 0, _global_x_offset, _global_y_offset, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
    }
 
    bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
@@ -618,9 +629,9 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    }
    delete bmp_buff;
 
-   _filter->RenderScreen(currentVirtScreen, _globalViewOff.X, _globalViewOff.Y);
+   _filter->RenderScreen(currentVirtScreen, _global_x_offset, _global_y_offset);
 
-   if ((_globalViewOff.Y != 0) || (_globalViewOff.X != 0))
+   if ((_global_y_offset != 0) || (_global_x_offset != 0))
      delete bmp_orig;
 }
 
@@ -661,7 +672,9 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
     }
 
     BitmapHelper::GetScreenBitmap()->Clear(clearColor);
-	_filter->RenderScreen(BitmapHelper::GetScreenBitmap(), _globalViewOff.X, _globalViewOff.Y);
+    int _global_x_offset = _virtualScrOff.X + _globalViewOff.X;
+    int _global_y_offset = _virtualScrOff.Y + _globalViewOff.Y;
+	_filter->RenderScreen(BitmapHelper::GetScreenBitmap(), _global_x_offset, _global_y_offset);
 }
 /** END FADE.C **/
 

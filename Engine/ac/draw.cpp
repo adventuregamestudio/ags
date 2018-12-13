@@ -153,6 +153,7 @@ Bitmap *virtual_screen;
 bool current_background_is_dirty = false;
 
 Bitmap *real_screen =NULL;
+Bitmap *sub_screen = NULL;
 int wasShakingScreen = 0;
 
 // Room background sprite
@@ -475,9 +476,7 @@ void init_draw_method()
         walkBehindMethod = DrawOverCharSprite;
     }
 
-    if (!gfxDriver->RequiresFullRedrawEachFrame())
-        init_invalid_regions(-1, play.GetMainViewport().GetSize(), play.GetMainViewport());
-
+    on_mainviewport_changed();
     on_roomviewport_changed();
     on_roomcamera_changed();
 }
@@ -493,6 +492,54 @@ void dispose_room_drawdata()
 {
     RoomCameraBuffer.reset();
     RoomCameraFrame.reset();
+}
+
+void on_mainviewport_changed()
+{
+    if (gfxDriver->UsesMemoryBackBuffer())
+    {
+        // TODO: the following was carried over from the older version of the viewport change code,
+        // trying to keep as close to original behavior as possible. Unfortunately I was unable to
+        // fully grasp the logic behind this in the context of all the screen bitmaps manipulations
+        // throughout the program. In my opinion, it all has to be researched and possibly simplified
+        // as a big single step.
+
+        Bitmap *cur_vscr = GetVirtualScreen();
+        Bitmap *cur_rscr = BitmapHelper::GetScreenBitmap();
+        const bool vscr_was_realscr = cur_vscr == cur_rscr;
+        const Rect &main_view = play.GetMainViewport();
+
+        if (main_view.GetSize() == game.size)
+        {
+            BitmapHelper::SetScreenBitmap(real_screen);
+        }
+        else
+        {
+            sub_screen = BitmapHelper::CreateSubBitmap(real_screen, main_view);
+            BitmapHelper::SetScreenBitmap(sub_screen);
+        }
+
+        if (virtual_screen->GetSize() != main_view.GetSize())
+        {
+            int cdepth = virtual_screen->GetColorDepth();
+            delete virtual_screen;
+            virtual_screen = BitmapHelper::CreateBitmap(main_view.GetWidth(), main_view.GetHeight(), cdepth);
+            virtual_screen->Clear();
+            gfxDriver->SetMemoryBackBuffer(virtual_screen, main_view.Left, main_view.Top);
+        }
+
+        if (vscr_was_realscr)
+            SetVirtualScreen(BitmapHelper::GetScreenBitmap());
+        else
+            SetVirtualScreen(virtual_screen);
+    }
+
+    if (!gfxDriver->RequiresFullRedrawEachFrame())
+    {
+        init_invalid_regions(-1, play.GetMainViewport().GetSize(), RectWH(play.GetMainViewport().GetSize()));
+        if (game.size.ExceedsByAny(play.GetMainViewport().GetSize()))
+            clear_letterbox_borders();
+    }
 }
 
 void on_roomviewport_changed()

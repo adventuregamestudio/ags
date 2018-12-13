@@ -299,6 +299,8 @@ private:
     // Camera defines the position of an "looking eye" inside the room.
     RoomCamera _roomCamera;
 
+    // Tells that the main viewport's position has changed since last game update
+    bool  _mainViewportHasChanged;
     // Tells that the room viewport's position has changed since last game update
     bool  _roomViewportHasChanged;
     // Tells that the room camera's size has changed since last game update

@@ -50,7 +50,6 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
-#include "device/mousew32.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -65,7 +64,6 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
 #include "util/math.h"
-#include "device/mousew32.h"
 #include "ac/dynobj/scriptcamera.h"
 
 using namespace AGS::Common;
@@ -486,49 +484,40 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     our_eip=202;
-    // Game viewport is updated when when room's size is smaller than game's size.
-    // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
-    const Rect &viewport = play.GetMainViewport();
-    if (play.IsAutoRoomViewport() && real_room_sz < viewport.GetSize())
+    // Automatic viewport gets updated to the new room's size.
+    if (play.IsAutoRoomViewport())
     {
-        // Define what should be a new room and UI viewports sizes
-        Size new_room_view = viewport.GetSize();
-        Size new_ui_view = viewport.GetSize();
+        const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+        const Rect game_frame = RectWH(game.size);
+        // Define what should be a new room and main viewports sizes
+        Rect new_main_view = game_frame;
+        Rect new_room_view = game_frame;
         // In the original engine the letterbox feature only allowed viewports of
         // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
         // Also, the UI viewport should be matching room viewport in that case.
+        // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
         if (game.IsLegacyLetterbox())
         {
             int viewport_height =
                 real_room_sz.Height < game.altsize.Height ? real_room_sz.Height :
                 (real_room_sz.Height >= game.altsize.Height && real_room_sz.Height < game.size.Height) ? game.altsize.Height :
                 game.size.Height;
-            new_room_view.Height = viewport_height;
-            new_ui_view.Height = viewport_height;
+            new_main_view.SetHeight(viewport_height);
+            new_room_view.SetHeight(viewport_height);
         }
         else
         {
-            new_room_view = real_room_sz;
+            new_room_view = RectWH(real_room_sz);
         }
         
-        // TODO: should this be done here? what about transition from the rooms of different size?
-        if (new_room_view < viewport.GetSize())
-        {
-            clear_letterbox_borders();
-        }
-
         // Update viewport and mouse area
-        play.SetUIViewport(CenterInRect(viewport, RectWH(new_ui_view)));
-        play.SetRoomViewport(CenterInRect(viewport, RectWH(new_room_view)));
-        play.SetRoomCameraSize(new_room_view);
-        Mouse::SetGraphicArea();
-        on_roomcamera_changed();
-
-        update_polled_stuff_if_runtime();
+        play.SetMainViewport(CenterInRect(game_frame, new_main_view));
+        play.SetUIViewport(new_main_view);
+        play.SetRoomViewport(new_room_view);
+        play.SetRoomCameraSize(new_room_view.GetSize());
     }
 
-    SetMouseBounds (0,0,0,0);
+    SetMouseBounds(0, 0, 0, 0);
 
     our_eip=203;
     in_new_room=1;

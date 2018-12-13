@@ -158,8 +158,11 @@ public:
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;
+  // Returns memory backbuffer for the current stage screen (or base virtual screen if called outside of render pass).
   virtual Common::Bitmap* GetMemoryBackBuffer() = 0;
-  virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer) = 0;
+  // Sets base virtual screen to render to, optionally configure offsets at which this screen has to be blitted
+  // to the final render surface.
+  virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer, int offx = 0, int offy = 0) = 0;
   virtual bool RequiresFullRedrawEachFrame() = 0;
   virtual bool HasAcceleratedTransform() = 0;
   virtual bool UsesMemoryBackBuffer() = 0;

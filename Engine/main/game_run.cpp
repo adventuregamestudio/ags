@@ -599,11 +599,13 @@ void game_loop_update_animated_buttons()
 }
 
 void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
-// [IKM] ...and some coffee, please :)
 {
     if (!play.fast_forward) {
         int mwasatx=mousex,mwasaty=mousey;
         const Rect &camera = play.GetRoomCamera();
+
+        // React to changes to viewports and cameras (possibly from script) just before the render
+        play.UpdateViewports();
 
         // Only do this if we are not skipping a cutscene
         render_graphics(extraBitmap, extraX, extraY);
@@ -762,9 +764,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     game_loop_do_late_update();
 
     update_polled_audio_and_crossfade();
-
-    // React to changes to viewports and cameras (possibly from script) just before the render
-    play.UpdateViewports();
 
     game_loop_do_render_and_check_mouse(extraBitmap, extraX, extraY);
 

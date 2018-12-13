@@ -67,7 +67,7 @@ namespace AGS.Editor.Utils
             }
 
             // this is a GIF file so just return the frame
-            int at = Math.Min(Math.Abs(frame), decoder.GetFrameCount());
+            int at = Math.Min(Math.Abs(frame), decoder.GetFrameCount() - 1);
             return decoder.GetFrame(at);
         }
 

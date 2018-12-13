@@ -397,13 +397,27 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
     int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
     int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
-    batch.Opaque = desc.Surface != NULL;
     if (desc.Surface != NULL)
+    {
         batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
-    else if (desc.Viewport.IsEmpty() || desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
+        batch.Opaque = true;
+    }
+    else if (desc.Viewport.IsEmpty() || !virtualScreen)
+    {
         batch.Surface.reset();
+        batch.Opaque = false;
+    }
+    else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
+    {
+        Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
+        batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
+        batch.Opaque = true;
+    }
     else if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+    {
         batch.Surface.reset(new Bitmap(src_w, src_h));
+        batch.Opaque = false;
+    }
 }
 
 void ALSoftwareGraphicsDriver::ResetAllBatches()

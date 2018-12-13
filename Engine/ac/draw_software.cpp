@@ -131,12 +131,11 @@ void DirtyRects::Init(const Size &surf_size, const Rect &viewport)
         Destroy();
         SurfaceSize = surf_size;
         DirtyRows.resize(height);
+
+        NumDirtyRegions = WHOLESCREENDIRTY;
+        for (int i = 0; i < height; ++i)
+            DirtyRows[i].numSpans = 0;
     }
-
-    NumDirtyRegions = WHOLESCREENDIRTY;
-
-    for (int i = 0; i < height; ++i)
-        DirtyRows[i].numSpans = 0;
 
     Viewport = viewport;
     Room2Screen.Init(surf_size, viewport);

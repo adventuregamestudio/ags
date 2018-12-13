@@ -32,6 +32,7 @@ extern CharacterInfo *playerchar;
 GameState::GameState()
 {
     _isAutoRoomViewport = true;
+    _mainViewportHasChanged = false;
     _roomViewportHasChanged = false;
     _cameraHasChanged = false;
 }
@@ -96,9 +97,12 @@ void GameState::SetUIViewport(const Rect &viewport)
 
 void GameState::SetRoomViewport(const Rect &viewport)
 {// TODO: relative to main viewport?
+    bool pos_changed = viewport.GetLT() != _roomViewport.Position.GetLT();
+    bool size_changed = viewport.GetSize() != _roomViewport.Position.GetSize();
     _roomViewport.Position = viewport;
-    UpdateCameraSize();
-    _roomViewportHasChanged = true;
+    _roomViewportHasChanged = pos_changed | size_changed;
+    if (size_changed)
+        UpdateCameraSize();
 }
 
 void GameState::UpdateViewports()
@@ -108,7 +112,7 @@ void GameState::UpdateViewports()
     if (_roomViewportHasChanged)
         on_roomviewport_changed();
     if (_cameraHasChanged)
-        on_roomcamera_changed();
+        on_camera_size_changed();
     _mainViewportHasChanged = false;
     _roomViewportHasChanged = false;
     _cameraHasChanged = false;

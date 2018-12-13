@@ -53,11 +53,12 @@ void init_draw_method();
 void dispose_draw_method();
 // Disposes any temporary resources on leaving current room
 void dispose_room_drawdata();
+// Updates drawing settings depending on main viewport's size and position on screen
 void on_mainviewport_changed();
-// Updates drawing settings depending on room viewport's size and position on screen
+// Updates drawing settings if room viewport's position or size has changed
 void on_roomviewport_changed();
-// Updates drawing settings depending on room camera's size
-void on_roomcamera_changed();
+// Updates drawing settings if room camera's size has changed
+void on_camera_size_changed();
 
 // whether there are currently remnants of a DisplaySpeech
 void mark_screen_dirty();

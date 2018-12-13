@@ -478,7 +478,7 @@ void init_draw_method()
 
     on_mainviewport_changed();
     on_roomviewport_changed();
-    on_roomcamera_changed();
+    on_camera_size_changed();
 }
 
 void dispose_draw_method()
@@ -542,44 +542,53 @@ void on_mainviewport_changed()
     }
 }
 
-void on_roomviewport_changed()
+// Syncs room viewport and camera in case anything has changed
+void sync_roomview()
 {
-    // TODO: don't have to do this all the time, perhaps do "dirty rect" method
-    // and only clear previous viewport location?
-    if (!gfxDriver->RequiresFullRedrawEachFrame())
-        GetVirtualScreen()->Clear(0);
-    // TODO: also, don't have to do this if the camera is scaled, because in that
-    // case dirty rects are drawn not on virtual screen directly.
-    invalidate_screen();
+    const Size &cam_sz = play.GetRoomCamera().GetSize();
+    const Size &view_sz = play.GetRoomViewport().GetSize();
+    init_invalid_regions(0, cam_sz, play.GetRoomViewport());
+    if (cam_sz == view_sz)
+    { // note we keep the buffer allocated in case it will become useful later
+        RoomCameraFrame.reset();
+    }
+    else
+    {
+        if (!RoomCameraBuffer || RoomCameraBuffer->GetWidth() < cam_sz.Width || RoomCameraBuffer->GetHeight() < cam_sz.Height)
+        {
+            // Allocate new buffer bitmap with an extra size in case they will want to zoom out
+            int room_width = multiply_up_coordinate(thisroom.width);
+            int room_height = multiply_up_coordinate(thisroom.height);
+            Size alloc_sz = Size::Clamp(cam_sz * 2, Size(), Size(room_width, room_height));
+            RoomCameraBuffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height));
+        }
+
+        if (!RoomCameraFrame || RoomCameraFrame->GetSize() != cam_sz)
+        {
+            RoomCameraFrame.reset(BitmapHelper::CreateSubBitmap(RoomCameraBuffer.get(), RectWH(cam_sz)));
+        }
+    }
 }
 
-void on_roomcamera_changed()
+void on_roomviewport_changed()
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
-        const Size &cam_sz = play.GetRoomCamera().GetSize();
-        const Size &view_sz = play.GetRoomViewport().GetSize();
-        init_invalid_regions(0, cam_sz, play.GetRoomViewport());
-        if (cam_sz == view_sz)
-        { // note we keep the buffer allocated in case it will become useful later
-            RoomCameraFrame.reset();
-        }
-        else
-        {
-            if (!RoomCameraBuffer || RoomCameraBuffer->GetWidth() < cam_sz.Width || RoomCameraBuffer->GetHeight() < cam_sz.Height)
-            {
-                // Allocate new buffer bitmap with an extra size in case they will want to zoom out
-                int room_width = multiply_up_coordinate(thisroom.width);
-                int room_height = multiply_up_coordinate(thisroom.height);
-                Size alloc_sz = Size::Clamp(cam_sz * 2, Size(), Size(room_width, room_height));
-                RoomCameraBuffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height));
-            }
-            
-            RoomCameraFrame.reset(BitmapHelper::CreateSubBitmap(RoomCameraBuffer.get(), RectWH(cam_sz)));
-            RoomCameraFrame->Clear(0);
-        }
+        sync_roomview();
+        invalidate_screen();
+        // TODO: don't have to do this all the time, perhaps do "dirty rect" method
+        // and only clear previous viewport location?
+        GetVirtualScreen()->Clear(0);
     }
-    invalidate_screen();
+}
+
+void on_camera_size_changed()
+{
+    if (!gfxDriver->RequiresFullRedrawEachFrame())
+    {
+        sync_roomview();
+        invalidate_screen();
+    }
 }
 
 void mark_screen_dirty()

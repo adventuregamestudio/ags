@@ -92,6 +92,16 @@ struct Point
         Y = y;
     }
 
+    inline bool operator ==(const Point &p) const
+    {
+        return X == p.X && Y == p.Y;
+    }
+
+    inline bool operator !=(const Point &p) const
+    {
+        return X != p.X || Y != p.Y;
+    }
+
     inline Point &operator +(const Point &p)
     {
         return Point(X + p.X, Y + p.Y);

@@ -1006,11 +1006,14 @@ D3DGraphicsDriver::~D3DGraphicsDriver()
 
 void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
 {
+  // NOTE: this function is practically useless at the moment, because D3D redraws whole game frame each time
+  Rect r(x1, y1, x2, y2);
+  r = _scaling.ScaleRange(r);
   D3DRECT rectToClear;
-  rectToClear.x1 = x1;
-  rectToClear.y1 = y1;
-  rectToClear.x2 = x2;
-  rectToClear.y2 = y2;
+  rectToClear.x1 = r.Left;
+  rectToClear.y1 = r.Top;
+  rectToClear.x2 = r.Right + 1;
+  rectToClear.y2 = r.Bottom + 1;
   DWORD colorDword = 0;
   if (colorToUse != NULL)
     colorDword = D3DCOLOR_XRGB(colorToUse->r, colorToUse->g, colorToUse->b);

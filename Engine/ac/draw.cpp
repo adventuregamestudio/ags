@@ -497,8 +497,12 @@ void dispose_room_drawdata()
 
 void on_roomviewport_changed()
 {
+    // TODO: don't have to do this all the time, perhaps do "dirty rect" method
+    // and only clear previous viewport location?
     if (!gfxDriver->RequiresFullRedrawEachFrame())
         GetVirtualScreen()->Clear(0);
+    // TODO: also, don't have to do this if the camera is scaled, because in that
+    // case dirty rects are drawn not on virtual screen directly.
     invalidate_screen();
 }
 
@@ -506,7 +510,6 @@ void on_roomcamera_changed()
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
-        // TODO: optimise for the case of gradual camera zoom (how??)
         const Size &cam_sz = play.GetRoomCamera().GetSize();
         const Size &view_sz = play.GetRoomViewport().GetSize();
         init_invalid_regions(0, cam_sz, play.GetRoomViewport());
@@ -644,19 +647,12 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
     }
 }
 
-
-void clear_letterbox_borders() {
-
+// Blanks out borders around main viewport in case it became smaller (e.g. after loading another room)
+void clear_letterbox_borders()
+{
     const Rect &viewport = play.GetMainViewport();
-    // TODO: is not this the same as testing against play.GetNativeSize() without coordinate conversion?
-    // also, why do we use game.size to clear rectangle below, and not native size?
-    // TODO: use gfxDriver's properties to know the actual game frame size, not  "real_screen"
-    if (multiply_up_coordinate(thisroom.height) < game.size.Height) {
-        // blank out any traces in borders left by a full-screen room
-        gfxDriver->ClearRectangle(0, 0, real_screen->GetWidth() - 1, viewport.Top - 1, NULL);
-        gfxDriver->ClearRectangle(0, viewport.Bottom + 1, real_screen->GetWidth() - 1, game.size.Height - 1, NULL);
-    }
-
+    gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, viewport.Top - 1, NULL);
+    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.size.Width - 1, game.size.Height - 1, NULL);
 }
 
 // writes the virtual screen to the screen, converting colours if

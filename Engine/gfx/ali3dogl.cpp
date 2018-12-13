@@ -997,7 +997,7 @@ OGLGraphicsDriver::~OGLGraphicsDriver()
 
 void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
 {
-
+  // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
 void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)

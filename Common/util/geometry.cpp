@@ -87,6 +87,16 @@ Rect CenterInRect(const Rect &place, const Rect &item)
         item.GetWidth(), item.GetHeight());
 }
 
+Rect ClampToRect(const Rect &place, const Rect &item)
+{
+    return Rect(
+        AGSMath::Clamp(item.Left, place.Left, place.Right),
+        AGSMath::Clamp(item.Top, place.Top, place.Bottom),
+        AGSMath::Clamp(item.Right, place.Left, place.Right),
+        AGSMath::Clamp(item.Bottom, place.Top, place.Bottom)
+    );
+}
+
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement)
 {
     switch (placement)

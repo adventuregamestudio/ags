@@ -559,7 +559,7 @@ void sync_roomview()
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
             int room_width = multiply_up_coordinate(thisroom.width);
             int room_height = multiply_up_coordinate(thisroom.height);
-            Size alloc_sz = Size::Clamp(cam_sz * 2, Size(), Size(room_width, room_height));
+            Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(room_width, room_height));
             RoomCameraBuffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height));
         }
 

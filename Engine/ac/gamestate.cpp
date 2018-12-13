@@ -58,11 +58,20 @@ void GameState::SetAutoRoomViewport(bool on)
     // TODO: adjust immediately?
 }
 
+Rect FixupViewport(const Rect &viewport, const Rect &parent)
+{
+    Size real_size = viewport.GetSize().IsNull() ? Size(1, 1) : viewport.GetSize();
+    return ClampToRect(parent, RectWH(viewport.Left, viewport.Top, real_size.Width, real_size.Height));
+}
+
 void GameState::SetMainViewport(const Rect &viewport)
 {
-    _mainViewport.Position = viewport;
+    _mainViewport.Position = FixupViewport(viewport, RectWH(game.size));
     Mouse::SetGraphicArea();
     _mainViewportHasChanged = true;
+    // Update sub-viewports in case main viewport became smaller
+    SetUIViewport(_uiViewport.Position);
+    SetRoomViewport(_roomViewport.Position);
 }
 
 const Rect &GameState::GetMainViewport() const
@@ -92,11 +101,12 @@ Rect GameState::GetRoomViewportAbs() const
 
 void GameState::SetUIViewport(const Rect &viewport)
 {
-    _uiViewport.Position = viewport;
+    _uiViewport.Position = FixupViewport(viewport, RectWH(_mainViewport.Position.GetSize()));
 }
 
 void GameState::SetRoomViewport(const Rect &viewport)
-{// TODO: relative to main viewport?
+{
+    Rect real_view = FixupViewport(viewport, RectWH(_mainViewport.Position.GetSize()));
     bool pos_changed = viewport.GetLT() != _roomViewport.Position.GetLT();
     bool size_changed = viewport.GetSize() != _roomViewport.Position.GetSize();
     _roomViewport.Position = viewport;
@@ -202,7 +212,7 @@ void GameState::SetCameraActualSize(const Size &cam_size)
     // (or rather - looking outside of the room background); look into this later
     int room_width = multiply_up_coordinate(thisroom.width);
     int room_height = multiply_up_coordinate(thisroom.height);
-    Size real_size = Size::Clamp(cam_size, Size(), Size(room_width, room_height));
+    Size real_size = Size::Clamp(cam_size, Size(1, 1), Size(room_width, room_height));
 
     _roomCamera.Position.SetWidth(real_size.Width);
     _roomCamera.Position.SetHeight(real_size.Height);

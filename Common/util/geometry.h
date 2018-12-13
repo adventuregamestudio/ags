@@ -395,6 +395,7 @@ Size ProportionalStretch(const Size &dest, const Size &item);
 
 Rect OffsetRect(const Rect &r, const Point off);
 Rect CenterInRect(const Rect &place, const Rect &item);
+Rect ClampToRect(const Rect &place, const Rect &item);
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement);
 //} // namespace Common
 //} // namespace AGS

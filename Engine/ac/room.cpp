@@ -404,6 +404,35 @@ void convert_room_coordinates_to_low_res(roomstruct *rstruc)
 
 extern int convert_16bit_bgr;
 
+void update_letterbox_mode()
+{
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+    const Rect game_frame = RectWH(game.size);
+    Rect new_main_view = game_frame;
+    // In the original engine the letterbox feature only allowed viewports of
+    // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
+    // Also, the UI viewport should be matching room viewport in that case.
+    // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
+    const int viewport_height =
+        real_room_sz.Height < game.altsize.Height ? real_room_sz.Height :
+        (real_room_sz.Height >= game.altsize.Height && real_room_sz.Height < game.size.Height) ? game.altsize.Height :
+        game.size.Height;
+    new_main_view.SetHeight(viewport_height);
+
+    play.SetMainViewport(CenterInRect(game_frame, new_main_view));
+    play.SetUIViewport(new_main_view);
+}
+
+void adjust_viewport_to_room()
+{
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+    const Rect main_view = play.GetMainViewport();
+    Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
+
+    play.SetRoomViewport(new_room_view);
+    play.SetRoomCameraSize(new_room_view.GetSize());
+}
+
 #define NO_GAME_ID_IN_ROOM_FILE 16325
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
@@ -484,38 +513,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     our_eip=202;
-    // Automatic viewport gets updated to the new room's size.
+    // Update game viewports
+    if (game.IsLegacyLetterbox())
+        update_letterbox_mode();
     if (play.IsAutoRoomViewport())
-    {
-        const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
-        const Rect game_frame = RectWH(game.size);
-        // Define what should be a new room and main viewports sizes
-        Rect new_main_view = game_frame;
-        Rect new_room_view = game_frame;
-        // In the original engine the letterbox feature only allowed viewports of
-        // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
-        // Also, the UI viewport should be matching room viewport in that case.
-        // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
-        if (game.IsLegacyLetterbox())
-        {
-            int viewport_height =
-                real_room_sz.Height < game.altsize.Height ? real_room_sz.Height :
-                (real_room_sz.Height >= game.altsize.Height && real_room_sz.Height < game.size.Height) ? game.altsize.Height :
-                game.size.Height;
-            new_main_view.SetHeight(viewport_height);
-            new_room_view.SetHeight(viewport_height);
-        }
-        else
-        {
-            new_room_view = RectWH(real_room_sz);
-        }
-        
-        // Update viewport and mouse area
-        play.SetMainViewport(CenterInRect(game_frame, new_main_view));
-        play.SetUIViewport(new_main_view);
-        play.SetRoomViewport(new_room_view);
-        play.SetRoomCameraSize(new_room_view.GetSize());
-    }
+        adjust_viewport_to_room();
 
     SetMouseBounds(0, 0, 0, 0);
 

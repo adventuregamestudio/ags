@@ -185,7 +185,7 @@ PBitmap VideoMemoryGraphicsDriver::CreateStageScreen(size_t index, const Size &s
     if (sz.IsNull())
         _stageScreens[index].reset();
     else if (_stageScreens[index] == NULL || _stageScreens[index]->GetSize() != sz)
-        _stageScreens[index].reset(new Bitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth));
+        _stageScreens[index].reset(new Bitmap(sz.Width, sz.Height, _mode.ColorDepth));
     return _stageScreens[index];
 }
 

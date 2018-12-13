@@ -500,17 +500,17 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
 {
    Bitmap *bmp_buff;
    Bitmap *bmp_orig = currentVirtScreen;
+   const int col_depth = currentVirtScreen->GetColorDepth();
 
    if ((_global_y_offset != 0) || (_global_x_offset != 0))
    {
-     bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight());
+     bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), col_depth);
      bmp_orig->Fill(0);
      bmp_orig->Blit(currentVirtScreen, 0, 0, _global_x_offset, _global_y_offset, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
    }
 
-   bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight());
-   int clearColor = makecol_depth(bmp_buff->GetColorDepth(),
-				targetColourRed, targetColourGreen, targetColourBlue);
+   bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
+   const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
 
    int a;
    if (speed <= 0) speed = 16;
@@ -543,12 +543,12 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
 {
     Bitmap *bmp_orig, *bmp_buff;
 
-    int clearColor = makecol_depth(BitmapHelper::GetScreenBitmap()->GetColorDepth(),
-				targetColourRed, targetColourGreen, targetColourBlue);
+    const int col_depth = BitmapHelper::GetScreenBitmap()->GetColorDepth();
+    const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
 
-    if ((bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight())))
+    if ((bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), col_depth)))
     {
-        if ((bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight())))
+        if ((bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth)))
         {
             int a;
             _filter->GetCopyOfScreenIntoBitmap(bmp_orig, false);

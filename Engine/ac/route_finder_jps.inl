@@ -620,7 +620,8 @@ Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::
 		return res;
 	}
 
-	if (mapNodes[ey*mapWidth+ex].frameId != frameId)
+	if (ex < 0 || ex >= mapWidth || ey < 0 || ey >= mapHeight ||
+		mapNodes[ey*mapWidth+ex].frameId != frameId)
 	{
 		// path not found
 		return NAV_UNREACHABLE;

@@ -34,6 +34,9 @@ using namespace AGS::Common;
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
 
+// Necessary to update textures from 8-bit bitmaps
+extern RGB palette[256];
+
 
 namespace AGS
 {
@@ -1404,14 +1407,21 @@ void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
   D3DBitmap *target = (D3DBitmap*)bitmapToUpdate;
   if (target->_width != bitmap->GetWidth() || target->_height != bitmap->GetHeight())
     throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
-  if (bitmap->GetColorDepth() != target->_colDepth)
+  const int color_depth = bitmap->GetColorDepth();
+  if (color_depth != target->_colDepth)
     throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
 
   target->_hasAlpha = hasAlpha;
+  if (color_depth == 8)
+      select_palette(palette);
+
   for (int i = 0; i < target->_numTiles; i++)
   {
     UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
   }
+
+  if (color_depth == 8)
+      unselect_palette();
 }
 
 int D3DGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)

@@ -179,6 +179,16 @@ Bitmap *raw_saved_screen = NULL;
 Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 
+SpriteListEntry::SpriteListEntry()
+    : bmp(NULL)
+    , pic(NULL)
+    , baseline(0), x(0), y(0)
+    , transparent(0)
+    , takesPriorityIfEqual(false), hasAlphaChannel(false)
+{
+}
+
+
 // TODO: move to test unit
 extern Bitmap *test_allegro_bitmap;
 extern IDriverDependantBitmap *test_allegro_ddb;

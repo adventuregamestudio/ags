@@ -20,7 +20,8 @@
 
 #include "gfx/ddb.h"
 
-struct SpriteListEntry {
+struct SpriteListEntry
+{
     AGS::Engine::IDriverDependantBitmap *bmp;
     AGS::Common::Bitmap *pic;
     int baseline;
@@ -28,6 +29,8 @@ struct SpriteListEntry {
     int transparent;
     bool takesPriorityIfEqual;
     bool hasAlphaChannel;
+
+    SpriteListEntry();
 };
 
 #endif // __AGS_EE_AC__SPRITELISTENTRY_H

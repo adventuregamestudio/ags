@@ -140,6 +140,10 @@ const void (*glSwapIntervalEXT)(int) = NULL;
 
 #endif
 
+// Necessary to update textures from 8-bit bitmaps
+extern RGB palette[256];
+
+
 namespace AGS
 {
 namespace Engine
@@ -1453,14 +1457,21 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
   if (target->_width != bitmap->GetWidth() || target->_height != bitmap->GetHeight())
     throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
-  if (bitmap->GetColorDepth() != target->_colDepth)
+  const int color_depth = bitmap->GetColorDepth();
+  if (color_depth != target->_colDepth)
     throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
 
   target->_hasAlpha = hasAlpha;
+  if (color_depth == 8)
+      select_palette(palette);
+
   for (int i = 0; i < target->_numTiles; i++)
   {
     UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
   }
+
+  if (color_depth == 8)
+      unselect_palette();
 }
 
 int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)

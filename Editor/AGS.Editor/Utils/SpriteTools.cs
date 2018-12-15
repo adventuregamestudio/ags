@@ -196,6 +196,13 @@ namespace AGS.Editor.Utils
             // ignore alpha channel if not 32 bit ARGB
             bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : alpha;
 
+            // ignore palette remap options if not using an indexed palette
+            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
+            {
+                remapColours = false;
+                useRoomBackground = false;
+            }
+
             // do replacement
             Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, bmp, transparency, remapColours, useRoomBackground, useAlphaChannel);
 
@@ -247,6 +254,13 @@ namespace AGS.Editor.Utils
         {
             // ignore alpha channel if not 32 bit ARGB
             bool useAlphaChannel = bmp.PixelFormat != PixelFormat.Format32bppArgb ? false : alpha;
+
+            // ignore palette remap options if not using an indexed palette
+            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed)
+            {
+                remapColours = false;
+                useRoomBackground = false;
+            } 
 
             // do import
             Sprite sprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, transparency, remapColours, useRoomBackground, useAlphaChannel);

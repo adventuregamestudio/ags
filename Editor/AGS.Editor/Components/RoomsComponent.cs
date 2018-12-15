@@ -238,7 +238,7 @@ namespace AGS.Editor.Components
 			UnloadedRoom roomToTemplatize = FindRoomByID(roomNumber);
 			if (_loadedRoom != null)
 			{
-                if (!SaveRoomAlwaysAndShowErrors(_loadedRoom, _roomSettings.Control as RoomSettingsEditor))
+                if (!SaveRoomOnlyGameDataAndShowErrors(_loadedRoom))
                 {
                     return;
                 }

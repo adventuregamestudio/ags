@@ -46,7 +46,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 
 extern int convert_16bit_bgr;

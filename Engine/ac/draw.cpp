@@ -83,7 +83,7 @@ extern int current_screen_resolution_multiplier;
 extern int convert_16bit_bgr;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern char noWalkBehindsAtAll;
 extern unsigned int loopcounter;
 extern char *walkBehindExists;  // whether a WB area is in this column

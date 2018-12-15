@@ -39,7 +39,7 @@ using namespace Engine;
 
 extern GameSetupStruct game;
 extern SpriteCache spriteset;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern RoomObject*objs;
 extern RoomStatus*croom;
 extern CharacterCache *charcache;

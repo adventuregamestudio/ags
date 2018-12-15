@@ -27,7 +27,7 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern CharacterInfo *playerchar;
 extern ScriptSystem scsystem;
 

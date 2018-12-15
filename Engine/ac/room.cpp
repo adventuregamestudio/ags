@@ -50,6 +50,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "game/room_version.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -369,7 +370,7 @@ void unload_old_room() {
 
 
 
-void convert_room_coordinates_to_low_res(roomstruct *rstruc)
+void convert_room_coordinates_to_low_res(RoomStruct *rstruc)
 {
     int f;
     for (f = 0; f < rstruc->numsprs; f++)

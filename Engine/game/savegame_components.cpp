@@ -62,7 +62,7 @@ extern ViewStruct *views;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern RoomStatus troom;
 extern Bitmap *raw_saved_screen;
 extern MoveList *mls;

@@ -72,14 +72,14 @@ void load_script_configuration(Stream *in)
     }
 }
 
-void save_graphical_scripts(Stream *out, roomstruct * rss)
+void save_graphical_scripts(Stream *out, RoomStruct * rss)
 {
     quit("ScriptEdit: run-time version can't save");
 }
 
 char *scripttempn = "~acsc%d.tmp";
 
-void load_graphical_scripts(Stream *in, roomstruct * rst)
+void load_graphical_scripts(Stream *in, RoomStruct * rst)
 {
     int32_t ct;
 

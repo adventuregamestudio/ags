@@ -29,7 +29,7 @@
 #include "debug/debug_log.h"
 #include "script/script.h"
 
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern CharacterInfo*playerchar;
 extern GameSetupStruct game;

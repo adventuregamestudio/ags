@@ -30,7 +30,7 @@
 extern GameSetup usetup;
 extern GameState play;
 extern GameSetupStruct game;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 

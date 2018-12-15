@@ -65,7 +65,7 @@ extern volatile char want_exit, abort_engine;
 extern int proper_exit,our_eip;
 extern int displayed_room, starting_room, in_new_room, new_room_was;
 extern GameSetupStruct game;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern int game_paused;
 extern int getloctype_index;
 extern int in_enters_screen,done_es_error;

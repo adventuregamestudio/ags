@@ -33,7 +33,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern Bitmap *raw_saved_screen;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern GameState play;
 extern char lines[MAXLINE][200];
 extern int  numlines;

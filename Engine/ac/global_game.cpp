@@ -76,7 +76,7 @@ extern GameSetupStruct game;
 extern ViewStruct*views;
 extern RoomStatus*croom;
 extern int gui_disabled_style;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern int getloctype_index;
 extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;

@@ -23,7 +23,7 @@
 
 
 extern ScriptRegion scrRegion[MAX_REGIONS];
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern GameSetupStruct game;
 extern COLOR_MAP maincoltable;

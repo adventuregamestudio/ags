@@ -32,68 +32,6 @@ using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
 using AGS::Common::InteractionVariable;
 
-/* room file versions history
-8:  final v1.14 release
-9:  intermediate v2 alpha releases
-10:  v2 alpha-7 release
-11:  final v2.00 release
-12:  v2.08, to add colour depth byte
-13:  v2.14, add walkarea light levels
-14:  v2.4, fixed so it saves walkable area 15
-15:  v2.41, supports NewInteraction
-16:  v2.5
-17:  v2.5 - just version change to force room re-compile for new charctr struct
-18:  v2.51 - vector scaling
-19:  v2.53 - interaction variables
-20:  v2.55 - shared palette backgrounds
-21:  v2.55 - regions
-22:  v2.61 - encrypt room messages
-23:  v2.62 - object flags
-24:  v2.7  - hotspot script names
-25:  v2.72 - game id embedded
-26:  v3.0 - new interaction format, and no script source
-27:  v3.0 - store Y of bottom of object, not top
-28:  v3.0.3 - remove hotspot name length limit
-29:  v3.0.3 - high-res coords for object x/y, edges and hotspot walk-to point
-30:  v3.4.0.4 - tint luminance for regions
-31:  v3.4.1.5 - removed room object and hotspot name length limits
-32:  v3.5.0 - 64-bit file offsets
-*/
-enum RoomFileVersion
-{
-    kRoomVersion_Undefined  = 0,
-    kRoomVersion_pre114_3   = 3,  // exact version unknown
-    kRoomVersion_pre114_4   = 4,  // exact version unknown
-    kRoomVersion_pre114_5   = 5,  // exact version unknown
-    kRoomVersion_pre114_6   = 6,  // exact version unknown
-    kRoomVersion_114        = 8,
-    kRoomVersion_200_alpha  = 9,
-    kRoomVersion_200_alpha7 = 10,
-    kRoomVersion_200_final  = 11,
-    kRoomVersion_208        = 12,
-    kRoomVersion_214        = 13,
-    kRoomVersion_240        = 14,
-    kRoomVersion_241        = 15,
-    kRoomVersion_250a       = 16,
-    kRoomVersion_250b       = 17,
-    kRoomVersion_251        = 18,
-    kRoomVersion_253        = 19,
-    kRoomVersion_255a       = 20,
-    kRoomVersion_255b       = 21,
-    kRoomVersion_261        = 22,
-    kRoomVersion_262        = 23,
-    kRoomVersion_270        = 24,
-    kRoomVersion_272        = 25,
-    kRoomVersion_300a       = 26,
-    kRoomVersion_300b       = 27,
-    kRoomVersion_303a       = 28,
-    kRoomVersion_303b       = 29,
-    kRoomVersion_3404       = 30,
-    kRoomVersion_3415       = 31,
-    kRoomVersion_350        = 32,
-    kRoomVersion_Current    = kRoomVersion_350
-};
-
 // thisroom.options[0] = startup music
 // thisroom.options[1] = can save/load on screen (0=yes, 1=no)
 // thisroom.options[2] = player character disabled? (0=no, 1=yes)
@@ -133,7 +71,7 @@ struct sprstruc {
 
 #define NOT_VECTOR_SCALED -10000
 #define LEGACY_TINT_IS_ENABLED 0x80000000
-struct roomstruct {
+struct RoomStruct {
     Common::Bitmap *        walls, *object, *lookat;          // 'object' is the walk-behind
     Common::Bitmap *        regions;
     color         pal[256];
@@ -202,7 +140,7 @@ struct roomstruct {
     AGS::Common::StringIMap hsProps[MAX_HOTSPOTS];
     int           gameId;
 
-    roomstruct();
+    RoomStruct();
     void freemessage();
     void freescripts();
 
@@ -216,33 +154,16 @@ struct roomstruct {
     int  get_region_tintluminance(int id) const;
 };
 
-#define BLOCKTYPE_MAIN        1
-#define BLOCKTYPE_SCRIPT      2
-#define BLOCKTYPE_COMPSCRIPT  3
-#define BLOCKTYPE_COMPSCRIPT2 4
-#define BLOCKTYPE_OBJECTNAMES 5
-#define BLOCKTYPE_ANIMBKGRND  6
-#define BLOCKTYPE_COMPSCRIPT3 7     // new CSCOMP script instead of SeeR
-#define BLOCKTYPE_PROPERTIES  8
-#define BLOCKTYPE_OBJECTSCRIPTNAMES 9
-#define BLOCKTYPE_EOF         0xff
-
-struct room_file_header {
-    RoomFileVersion version;
-    void ReadFromFile(Common::Stream *in);
-    void WriteFromFile(Common::Stream *out);
-};
-
 extern int _acroom_bpp;  // bytes per pixel of currently loading room
 
-extern void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes);
+extern void load_room(const char *files, RoomStruct *rstruc, bool gameIsHighRes);
 
 
 // Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native
 extern void load_script_configuration(Common::Stream *in);
 extern void save_script_configuration(Common::Stream *out);
-extern void load_graphical_scripts(Common::Stream *in, roomstruct *);
-extern void save_graphical_scripts(Common::Stream *out, roomstruct *);
+extern void load_graphical_scripts(Common::Stream *in, RoomStruct *);
+extern void save_graphical_scripts(Common::Stream *out, RoomStruct *);
 //
 
 #endif // __AC_ROOMSTRUCT_H

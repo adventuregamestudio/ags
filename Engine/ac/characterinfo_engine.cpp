@@ -32,7 +32,7 @@ extern GameSetupStruct game;
 extern int displayed_room;
 extern GameState play;
 extern int char_speaking;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern unsigned int loopcounter;
 

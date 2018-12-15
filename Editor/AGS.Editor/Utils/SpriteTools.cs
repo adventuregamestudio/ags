@@ -201,7 +201,7 @@ namespace AGS.Editor.Utils
 
             sprite.TransparentColour = transparency;
             sprite.RemapToGamePalette = remapColours;
-            //sprite.ColoursLockedToRoom = useRoomBackground;
+            sprite.RemapToRoomPalette = useRoomBackground;
             sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
             sprite.Frame = frame;
             sprite.OffsetX = offsetX;
@@ -253,7 +253,7 @@ namespace AGS.Editor.Utils
             
             sprite.TransparentColour = transparency;
             sprite.RemapToGamePalette = remapColours;
-            //sprite.ColoursLockedToRoom = useRoomBackground;
+            sprite.RemapToRoomPalette = useRoomBackground;
             sprite.SourceFile = Utilities.GetRelativeToProjectPath(filename);
             sprite.Frame = frame;
             sprite.OffsetX = offsetX;

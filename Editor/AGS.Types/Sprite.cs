@@ -25,6 +25,7 @@ namespace AGS.Types
         private int _offsetX;
         private int _offsetY;
         private bool _remapToGamePalette;
+        private bool _remapToRoomPalette;
 
         public Sprite(int number, int width, int height, int colorDepth, SpriteImportResolution importRes, bool alphaChannel)
         {
@@ -124,7 +125,7 @@ namespace AGS.Types
 		}
 
 		[Description("The room number that this sprite's palette is locked against. It will look wrong if used in other rooms.")]
-		[Category("Import")]
+		[Category("Appearance")]
 		[DisplayName("PaletteLockedToRoom")]
 		public string ColoursLockedToRoomDescription
 		{
@@ -163,12 +164,20 @@ namespace AGS.Types
             set { _tranparentColour = value; }
         }
 
-        [Description("Remap palette colours on import")]
+        [Description("Remap colours to game palette")]
         [Category("Import")]
         public bool RemapToGamePalette
         {
             get { return _remapToGamePalette; }
             set { _remapToGamePalette = value; }
+        }
+
+        [Description("Remap colours to room palette")]
+        [Category("Import")]
+        public bool RemapToRoomPalette
+        {
+            get { return _remapToRoomPalette; }
+            set { _remapToRoomPalette = value; }
         }
 
         public Sprite(XmlNode node)
@@ -200,6 +209,7 @@ namespace AGS.Types
                     _offsetY = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "OffsetY"));
                     _frame = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "Frame"));
                     _remapToGamePalette = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "RemapToGamePalette"));
+                    _remapToRoomPalette = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "RemapToRoomPalette"));
                     _tranparentColour = (SpriteImportTransparency)Enum.Parse(typeof(SpriteImportTransparency), SerializeUtils.GetElementString(sourceNode, "ImportMethod"));
                 }
                 catch (InvalidDataException)
@@ -230,6 +240,7 @@ namespace AGS.Types
             writer.WriteElementString("OffsetY", _offsetY.ToString());
             writer.WriteElementString("Frame", _frame.ToString());
             writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
+            writer.WriteElementString("RemapToRoomPalette", _remapToRoomPalette.ToString());
             writer.WriteElementString("ImportMethod", _tranparentColour.ToString());
             writer.WriteEndElement(); // end source
 

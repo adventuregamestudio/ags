@@ -810,7 +810,7 @@ namespace AGS.Editor
                         spritesheet = null;
                     }
 
-                    SpriteTools.ReplaceSprite(spr, spr.SourceFile, spr.Frame, spr.AlphaChannel, spr.RemapToGamePalette, false, spr.TransparentColour, spritesheet);
+                    SpriteTools.ReplaceSprite(spr, spr.SourceFile, spr.Frame, spr.AlphaChannel, spr.RemapToGamePalette, spr.RemapToRoomPalette, spr.TransparentColour, spritesheet);
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -890,8 +890,8 @@ namespace AGS.Editor
                 }
                 else
                 {
-                    Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, newBmp,
-                        SpriteImportTransparency.LeaveAsIs, false, false, sprite.AlphaChannel);
+                    Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, newBmp, sprite.TransparentColour,
+                        sprite.RemapToGamePalette, sprite.RemapToRoomPalette, sprite.AlphaChannel);
                     RefreshSpriteDisplay();
                 }
                 newBmp.Dispose();
@@ -1122,7 +1122,6 @@ namespace AGS.Editor
         {
             try
             {
-                Bitmap bmp = SpriteTools.LoadFirstImageFromFile(fileName);
                 ReplaceSprite(sprite, fileName);
             }
             catch (Exception ex)

@@ -183,6 +183,7 @@ namespace AGS.Editor
             SelectionSize = new Size(replace.Width, replace.Height);
             UseAlphaChannel = replace.AlphaChannel;
             RemapToGamePalette = replace.RemapToGamePalette;
+            UseBackgroundSlots = replace.RemapToRoomPalette;
 
             // replace, not import
             folder = null;
@@ -217,6 +218,7 @@ namespace AGS.Editor
             SelectionSize = new Size(replace.Width, replace.Height);
             UseAlphaChannel = replace.AlphaChannel;
             RemapToGamePalette = replace.RemapToGamePalette;
+            UseBackgroundSlots = replace.RemapToRoomPalette;
 
             // replace, not import
             folder = null;
@@ -242,7 +244,6 @@ namespace AGS.Editor
 
             // enable or disable things based on the colour depth
             chkRoomBackground.Enabled = gameUsesIndexedPalette;
-            chkRoomBackground.Checked = gameUsesIndexedPalette && Factory.AGSEditor.Settings.RemapPalettizedBackgrounds;
 
             // if tiling direction hasn't been set yet, just take the first option
             if (cmbTileDirection.SelectedIndex == -1)

@@ -2437,7 +2437,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 
 	if ((thisgame.SpriteInfos[sprNum].Flags & SPF_ALPHACHANNEL) != 0)
 	{
-		if (scale > 1.0f)
+		if (scale != 1.0f)
 		{
 			Common::Bitmap *resizedImage = Common::BitmapHelper::CreateBitmap(drawWidth, drawHeight, imageToDraw->GetColorDepth());
 			resizedImage->StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),

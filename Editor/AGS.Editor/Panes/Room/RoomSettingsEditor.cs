@@ -287,14 +287,13 @@ namespace AGS.Editor
             int backgroundNumber = cmbBackgrounds.SelectedIndex;
             if (backgroundNumber < _room.BackgroundCount)
             {
-                int bufWidth = _state.RoomSizeToWindow(_room.Width);
-                int bufHeight = _state.RoomSizeToWindow(_room.Height);
-                e.Graphics.SetClip(new Rectangle(0, 0, bufWidth, bufHeight));
+                e.Graphics.SetClip(new Rectangle(0, 0, _state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height)));
                 IntPtr hdc = e.Graphics.GetHdc();
-				Factory.NativeProxy.CreateBuffer(bufWidth, bufHeight);
-				// Adjust co-ordinates using original scale factor so that it lines
-				// up with objects, etc
-				int drawOffsX = _state.RoomXToWindow(0);
+                Factory.NativeProxy.CreateBuffer(bufferedPanel1.ClientSize.Width + SystemInformation.VerticalScrollBarWidth,
+                    bufferedPanel1.ClientSize.Height + SystemInformation.HorizontalScrollBarHeight);
+                // Adjust co-ordinates using original scale factor so that it lines
+                // up with objects, etc
+                int drawOffsX = _state.RoomXToWindow(0);
                 int drawOffsY = _state.RoomYToWindow(0);
                 IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
 				lock (_room)

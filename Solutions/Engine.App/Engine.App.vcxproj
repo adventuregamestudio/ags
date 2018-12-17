@@ -168,6 +168,7 @@
     <ClCompile Include="..\..\Engine\ac\display.cpp" />
     <ClCompile Include="..\..\Engine\ac\draw.cpp" />
     <ClCompile Include="..\..\Engine\ac\drawingsurface.cpp" />
+    <ClCompile Include="..\..\Engine\ac\draw_software.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynamicsprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_audiochannel.cpp" />
@@ -184,6 +185,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_region.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_serializer.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\managedobjectpool.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptcamera.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdatetime.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.cpp" />
@@ -193,6 +195,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewport.cpp" />
     <ClCompile Include="..\..\Engine\ac\event.cpp" />
     <ClCompile Include="..\..\Engine\ac\file.cpp" />
     <ClCompile Include="..\..\Engine\ac\game.cpp" />
@@ -478,6 +481,7 @@
     <ClInclude Include="..\..\Engine\ac\display.h" />
     <ClInclude Include="..\..\Engine\ac\draw.h" />
     <ClInclude Include="..\..\Engine\ac\drawingsurface.h" />
+    <ClInclude Include="..\..\Engine\ac\draw_software.h" />
     <ClInclude Include="..\..\Engine\ac\dynamicsprite.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\all_dynamicclasses.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\all_scriptclasses.h" />
@@ -497,6 +501,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptaudiochannel.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdatetime.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialog.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.h" />
@@ -514,6 +519,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewframe.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewport.h" />
     <ClInclude Include="..\..\Engine\ac\event.h" />
     <ClInclude Include="..\..\Engine\ac\file.h" />
     <ClInclude Include="..\..\Engine\ac\game.h" />
@@ -600,7 +606,6 @@
     <ClInclude Include="..\..\Engine\ac\translation.h" />
     <ClInclude Include="..\..\Engine\ac\tree_map.h" />
     <ClInclude Include="..\..\Engine\ac\viewframe.h" />
-    <ClInclude Include="..\..\Engine\ac\viewport.h" />
     <ClInclude Include="..\..\Engine\ac\walkablearea.h" />
     <ClInclude Include="..\..\Engine\ac\walkbehind.h" />
     <ClInclude Include="..\..\Engine\debug\agseditordebugger.h" />
@@ -616,6 +621,7 @@
     <ClInclude Include="..\..\Engine\game\savegame.h" />
     <ClInclude Include="..\..\Engine\game\savegame_components.h" />
     <ClInclude Include="..\..\Engine\game\savegame_internal.h" />
+    <ClInclude Include="..\..\Engine\game\viewport.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dexception.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dogl.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dsw.h" />

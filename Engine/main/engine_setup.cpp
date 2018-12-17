@@ -41,12 +41,7 @@ extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
 extern int current_screen_resolution_multiplier;
-extern WalkBehindMethodEnum walkBehindMethod;
 extern IGraphicsDriver *gfxDriver;
-extern IDriverDependantBitmap *blankImage;
-extern IDriverDependantBitmap *blankSidebarImage;
-extern Bitmap *_old_screen;
-extern Bitmap *_sub_screen;
 extern Bitmap *virtual_screen;
 
 int convert_16bit_bgr = 0;
@@ -91,8 +86,8 @@ void adjust_sizes_for_resolution(int filever)
         if (cgp->Height < 1)
             cgp->Height = 1;
         // Temp fix for older games
-        if (cgp->Width == BASEWIDTH - 1)
-            cgp->Width = BASEWIDTH;
+        if (cgp->Width == play.GetNativeSize().Width - 1)
+            cgp->Width = play.GetNativeSize().Width;
 
         adjust_pixel_sizes_for_loaded_data(&cgp->Width, &cgp->Height, filever);
 
@@ -130,41 +125,45 @@ void engine_setup_system_gamesize()
 {
     scsystem.width = game.size.Width;
     scsystem.height = game.size.Height;
-    scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
-    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
+    scsystem.viewport_width = divide_down_coordinate(play.GetMainViewport().GetWidth());
+    scsystem.viewport_height = divide_down_coordinate(play.GetMainViewport().GetHeight());
 }
 
 void engine_init_resolution_settings(const Size game_size)
 {
     Debug::Printf("Initializing resolution settings");
 
-    play.SetViewport(game_size);
+    // Initialize default viewports and room camera
+    Rect viewport = RectWH(game_size);
+    play.SetMainViewport(viewport);
+    play.SetUIViewport(viewport);
+    play.SetRoomViewport(viewport);
+    play.SetRoomCameraAutoSize();
 
+    Size native_size = game_size;
     if (game.IsHiRes())
     {
-        play.native_size.Width = game_size.Width / 2;
-        play.native_size.Height = game_size.Height / 2;
+        if (!game.options[OPT_NATIVECOORDINATES])
+        {
+            native_size.Width = game_size.Width / 2;
+            native_size.Height = game_size.Height / 2;
+        }
+        current_screen_resolution_multiplier = 2;
         wtext_multiply = 2;
     }
     else
     {
-        play.native_size.Width = game_size.Width;
-        play.native_size.Height = game_size.Height;
+        native_size.Width = game_size.Width;
+        native_size.Height = game_size.Height;
+        current_screen_resolution_multiplier = 1;
         wtext_multiply = 1;
     }
+    play.SetNativeSize(native_size);
 
     usetup.textheight = getfontheight_outlined(0) + 1;
-    current_screen_resolution_multiplier = game_size.Width / play.native_size.Width;
-
-    if (game.IsHiRes() &&
-        (game.options[OPT_NATIVECOORDINATES]))
-    {
-        play.native_size.Width *= 2;
-        play.native_size.Height *= 2;
-    }
 
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
-        game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
+        game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
 
     adjust_sizes_for_resolution(loaded_game_file_version);
     engine_setup_system_gamesize();
@@ -176,7 +175,6 @@ void engine_post_gfxmode_driver_setup()
     gfxDriver->SetCallbackForPolling(update_polled_stuff_if_runtime);
     gfxDriver->SetCallbackToDrawScreen(draw_screen_callback);
     gfxDriver->SetCallbackForNullSprite(GfxDriverNullSpriteCallback);
-    gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
 }
 
 // Reset gfx driver callbacks
@@ -191,16 +189,17 @@ void engine_pre_gfxmode_driver_cleanup()
 // Setup virtual screen
 void engine_post_gfxmode_screen_setup(const DisplayMode &dm, bool recreate_bitmaps)
 {
-    _old_screen = BitmapHelper::GetScreenBitmap();
+    real_screen = BitmapHelper::GetScreenBitmap();
     if (recreate_bitmaps)
     {
-        delete _sub_screen;
-        _sub_screen = NULL;
+        delete sub_screen;
+        sub_screen = NULL;
         // TODO: find out if we need _sub_screen to be recreated right away here
 
-        virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.viewport.GetWidth(), play.viewport.GetHeight());
+        virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     }
     virtual_screen->Clear();
+    // TODO: unify these two calls, the virtual screen must be the same thing in both!
     SetVirtualScreen(virtual_screen);
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
 }
@@ -209,15 +208,15 @@ void engine_pre_gfxmode_screen_cleanup()
 {
     SetVirtualScreen(NULL);
     // allegro_exit assumes screen is correct
-    if (_old_screen)
-        BitmapHelper::SetScreenBitmap( _old_screen );
+    if (real_screen)
+        BitmapHelper::SetScreenBitmap(real_screen);
 }
 
 // Release virtual screen
 void engine_pre_gfxsystem_screen_destroy()
 {
-    delete _sub_screen;
-    _sub_screen = NULL;
+    delete sub_screen;
+    sub_screen = NULL;
     delete virtual_screen;
     virtual_screen = NULL;
 }
@@ -225,7 +224,7 @@ void engine_pre_gfxsystem_screen_destroy()
 // Setup color conversion parameters
 void engine_setup_color_conversions(int coldepth)
 {
-    // default shifts for how we store the sprite data
+    // default shifts for how we store the sprite data1
 #if defined(PSP_VERSION)
     // PSP: Switch b<>r for 15/16 bit.
     _rgb_r_shift_32 = 16;
@@ -323,61 +322,18 @@ void engine_setup_color_conversions(int coldepth)
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256);
 }
 
-// Create blank (black) images used to repaint borders around game frame
-void CreateBlankImage(int coldepth)
-{
-    // this is the first time that we try to use the graphics driver,
-    // so it's the most likey place for a crash
-    try
-    {
-        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, coldepth);
-        blank = ReplaceBitmapWithSupportedFormat(blank);
-        blank->Clear();
-        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        delete blank;
-    }
-    catch (Ali3DException gfxException)
-    {
-        quit((char*)gfxException._message);
-    }
-}
-
-void destroy_blank_image()
-{
-    if (blankImage)
-        gfxDriver->DestroyDDB(blankImage);
-    if (blankSidebarImage)
-        gfxDriver->DestroyDDB(blankSidebarImage);
-    blankImage = NULL;
-    blankSidebarImage = NULL;
-}
-
 // Setup drawing modes and color conversions;
 // they depend primarily on gfx driver capabilities and new color depth
 void engine_post_gfxmode_draw_setup(const DisplayMode &dm)
 {
     engine_setup_color_conversions(dm.ColorDepth);
-
-    if (gfxDriver->HasAcceleratedStretchAndFlip()) 
-    {
-        walkBehindMethod = DrawAsSeparateSprite;
-        CreateBlankImage(game.GetColorDepth());
-    }
-    else
-    {
-        walkBehindMethod = DrawOverCharSprite;
-    }
-
-    if (!gfxDriver->RequiresFullRedrawEachFrame())
-        init_invalid_regions(game.size.Height);
+    init_draw_method();
 }
 
 // Cleanup auxiliary drawing objects
 void engine_pre_gfxmode_draw_cleanup()
 {
-    destroy_invalid_regions();
-    destroy_blank_image();
+    dispose_draw_method();
 }
 
 // Setup mouse control mode and graphic area
@@ -478,7 +434,7 @@ void on_coordinates_scaling_changed()
     Mouse::SetGraphicArea();
     // If mouse bounds do not have valid values yet, then limit cursor to viewport
     if (play.mboundx1 == 0 && play.mboundy1 == 0 && play.mboundx2 == 0 && play.mboundy2 == 0)
-        Mouse::SetMoveLimit(play.viewport);
+        Mouse::SetMoveLimit(play.GetMainViewport());
     else
         Mouse::SetMoveLimit(Rect(play.mboundx1, play.mboundy1, play.mboundx2, play.mboundy2));
 }

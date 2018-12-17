@@ -59,6 +59,19 @@ namespace BitByteOperations
               ((val << 24) & 0xFF0000000000LL) | ((val << 40) & 0xFF000000000000LL) | ((val << 56) & 0xFF00000000000000LL);
     }
 
+    inline float SwapBytesFloat(const float val)
+    {
+        // (c) SDL2
+        union
+        {
+            float f;
+            uint32_t ui32;
+        } swapper;
+        swapper.f = val;
+        swapper.ui32 = SwapBytesInt32(swapper.ui32);
+        return swapper.f;
+    }
+
     inline int16_t Int16FromLE(const int16_t val)
     {
 #if defined (BITBYTE_BIG_ENDIAN)
@@ -81,6 +94,15 @@ namespace BitByteOperations
     {
 #if defined (BITBYTE_BIG_ENDIAN)
         return SwapBytesInt64(val);
+#else
+        return val;
+#endif
+    }
+
+    inline float FloatFromLE(const float val)
+    {
+#if defined (BITBYTE_BIG_ENDIAN)
+        return SwapBytesFloat(val);
 #else
         return val;
 #endif
@@ -110,6 +132,15 @@ namespace BitByteOperations
         return val;
 #else
         return SwapBytesInt64(val);
+#endif
+    }
+
+    inline float FloatFromBE(const float val)
+    {
+#if defined (BITBYTE_BIG_ENDIAN)
+        return val;
+#else
+        return SwapBytesFloat(val);
 #endif
     }
 

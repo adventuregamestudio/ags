@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_UTIL__MATH_H
 #define __AGS_CN_UTIL__MATH_H
 
+const float M_PI = 3.14159265358979323846f;
+
 namespace AGS
 {
 namespace Common
@@ -67,6 +69,16 @@ namespace Math
     inline T Surplus(const T &larger, const T &smaller)
     {
         return larger > smaller ? larger - smaller : 0;
+    }
+
+    inline float RadiansToDegrees(float rads)
+    {
+        return rads * (180.f / M_PI);
+    }
+
+    inline float DegreesToRadians(float deg)
+    {
+        return deg * (M_PI / 180.f);
     }
 } // namespace Math
 

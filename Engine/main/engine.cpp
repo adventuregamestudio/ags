@@ -904,9 +904,9 @@ void show_preload () {
         Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
 
 		screen_bmp->Fill(0);
-        screen_bmp->StretchBlt(tsc, RectWH(0, 0, play.viewport.GetWidth(),play.viewport.GetHeight()), Common::kBitmap_Transparency);
+        screen_bmp->StretchBlt(tsc, RectWH(0, 0, play.GetMainViewport().GetWidth(),play.GetMainViewport().GetHeight()), Common::kBitmap_Transparency);
 
-        gfxDriver->ClearDrawList();
+        gfxDriver->ClearDrawLists();
 
         if (!gfxDriver->UsesMemoryBackBuffer())
         {
@@ -1105,7 +1105,7 @@ void engine_init_game_settings()
     play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
     play.digital_master_volume = 100;
     play.screen_flipped=0;
-    play.offsets_locked=0;
+    play.ReleaseRoomCamera();
     play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
     play.sound_volume = 255;
     play.speech_volume = 255;

@@ -48,9 +48,7 @@ void my_fade_in(PALLETE p, int speed) {
     gfxDriver->FadeIn(speed, p, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
 }
 
-//#define _get_script_data_stack_size() (256*sizeof(int)+((int*)&scrpt[10*4])[0]+((int*)&scrpt[12*4])[0])
-//#define _get_script_data_stack_size(instac) ((int*)instac->code)[10]
-Bitmap *temp_virtual = NULL;
+Bitmap *saved_viewport_bitmap = NULL;
 color old_palette[256];
 void current_fade_out_effect () {
     if (pl_run_plugin_hooks(AGSE_TRANSITIONOUT, 0))
@@ -79,33 +77,33 @@ void current_fade_out_effect () {
     {
         get_palette(old_palette);
         Bitmap *ds = GetVirtualScreen();
-        temp_virtual = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),ds->GetColorDepth());
-        //->Blit(abuf,temp_virtual,0,0,0,0,abuf->GetWidth(),abuf->GetHeight());
-        gfxDriver->GetCopyOfScreenIntoBitmap(temp_virtual);
+        saved_viewport_bitmap = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),ds->GetColorDepth());
+        gfxDriver->GetCopyOfScreenIntoBitmap(saved_viewport_bitmap);
     }
 }
 
 IDriverDependantBitmap* prepare_screen_for_transition_in()
 {
-    if (temp_virtual == NULL)
+    if (saved_viewport_bitmap == NULL)
         quit("Crossfade: buffer is null attempting transition");
 
-    temp_virtual = ReplaceBitmapWithSupportedFormat(temp_virtual);
-    if (temp_virtual->GetHeight() < play.viewport.GetHeight())
+    saved_viewport_bitmap = ReplaceBitmapWithSupportedFormat(saved_viewport_bitmap);
+    const Rect &viewport = play.GetMainViewport();
+    if (saved_viewport_bitmap->GetHeight() < viewport.GetHeight())
     {
-        Bitmap *enlargedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), play.viewport.GetHeight(), temp_virtual->GetColorDepth());
-        enlargedBuffer->Blit(temp_virtual, 0, 0, 0, (play.viewport.GetHeight() - temp_virtual->GetHeight()) / 2, temp_virtual->GetWidth(), temp_virtual->GetHeight());
-        delete temp_virtual;
-        temp_virtual = enlargedBuffer;
+        Bitmap *enlargedBuffer = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
+        enlargedBuffer->Blit(saved_viewport_bitmap, 0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2, saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
+        delete saved_viewport_bitmap;
+        saved_viewport_bitmap = enlargedBuffer;
     }
-    else if (temp_virtual->GetHeight() > play.viewport.GetHeight())
+    else if (saved_viewport_bitmap->GetHeight() > viewport.GetHeight())
     {
-        Bitmap *clippedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), play.viewport.GetHeight(), temp_virtual->GetColorDepth());
-        clippedBuffer->Blit(temp_virtual, 0, (temp_virtual->GetHeight() - play.viewport.GetHeight()) / 2, 0, 0, temp_virtual->GetWidth(), temp_virtual->GetHeight());
-        delete temp_virtual;
-        temp_virtual = clippedBuffer;
+        Bitmap *clippedBuffer = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
+        clippedBuffer->Blit(saved_viewport_bitmap, 0, (saved_viewport_bitmap->GetHeight() - viewport.GetHeight()) / 2, 0, 0, saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
+        delete saved_viewport_bitmap;
+        saved_viewport_bitmap = clippedBuffer;
     }
-    temp_virtual->Acquire();
-    IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(temp_virtual, false);
+    saved_viewport_bitmap->Acquire();
+    IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap, false);
     return ddb;
 }

@@ -18,10 +18,14 @@
 #ifndef __AGS_EE_AC__SCREEN_H
 #define __AGS_EE_AC__SCREEN_H
 
+namespace AGS { namespace Common { class Bitmap; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; } }
 
 void my_fade_in(PALLETE p, int speed);
 void current_fade_out_effect ();
 AGS::Engine::IDriverDependantBitmap* prepare_screen_for_transition_in();
+
+// Screenshot made in the last room, used during some of the transition effects
+extern AGS::Common::Bitmap *saved_viewport_bitmap;
 
 #endif // __AGS_EE_AC__SCREEN_H

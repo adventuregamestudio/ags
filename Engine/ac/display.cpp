@@ -54,7 +54,6 @@ extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern volatile unsigned long globalTimerCounter;
 extern int time_between_timers;
-extern int offsetx, offsety;
 extern int frames_per_second;
 extern int loops_per_character;
 extern SpriteCache spriteset;
@@ -128,9 +127,10 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         play.disabled_user_interface--;
     }
 
+    const Rect &ui_view = play.GetUIViewport();
     if (xx == OVR_AUTOPLACE) ;
     // centre text in middle of screen
-    else if (yy<0) yy=play.viewport.GetHeight()/2-disp.fulltxtheight/2-padding;
+    else if (yy<0) yy= ui_view.GetHeight()/2-disp.fulltxtheight/2-padding;
     // speech, so it wants to be above the character's head
     else if (asspch > 0) {
         yy-=disp.fulltxtheight;
@@ -158,10 +158,10 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
         xx = adjust_x_for_guis (xx, yy);
 
-        if (xx + wii >= play.viewport.GetWidth())
-            xx = (play.viewport.GetWidth() - wii) - 5;
+        if (xx + wii >= ui_view.GetWidth())
+            xx = (ui_view.GetWidth() - wii) - 5;
     }
-    else if (xx<0) xx=play.viewport.GetWidth()/2-wii/2;
+    else if (xx<0) xx= ui_view.GetWidth()/2-wii/2;
 
     int ee, extraHeight = paddingDoubledScaled;
     Bitmap *ds = GetVirtualScreen();
@@ -334,8 +334,9 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         if (!overlayPositionFixed)
         {
             screenover[nse].positionRelativeToScreen = false;
-            screenover[nse].x += offsetx;
-            screenover[nse].y += offsety;
+            Point roompt = play.ScreenToRoom(screenover[nse].x, screenover[nse].y);
+            screenover[nse].x = roompt.X;
+            screenover[nse].y = roompt.Y;
         }
 
         GameLoopUntilEvent(UNTIL_NOOVERLAY,0);

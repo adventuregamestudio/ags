@@ -37,7 +37,6 @@ extern GameState play;
 extern roomstruct thisroom;
 extern int display_message_aschar;
 extern GameSetupStruct game;
-extern int screen_is_dirty;
 
 void Display(const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
@@ -141,14 +140,15 @@ void DisplayAt(int xxp,int yyp,int widd, const char* text) {
     multiply_up_coordinates(&xxp, &yyp);
     widd = multiply_up_coordinate(widd);
 
-    if (widd<1) widd=play.viewport.GetWidth()/2;
-    if (xxp<0) xxp=play.viewport.GetWidth()/2-widd/2;
+    if (widd<1) widd=play.GetUIViewport().GetWidth()/2;
+    if (xxp<0) xxp=play.GetUIViewport().GetWidth()/2-widd/2;
     _display_at(xxp,yyp,widd,text,1,0, 0, 0, false);
 }
 
 void DisplayAtY (int ypos, const char *texx) {
-    if ((ypos < -1) || (ypos >= BASEHEIGHT))
-        quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, BASEHEIGHT);
+    const Rect &ui_view = play.GetUIViewport();
+    if ((ypos < -1) || (ypos >= ui_view.GetHeight()))
+        quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, ui_view.GetHeight());
 
     // Display("") ... a bit of a stupid thing to do, so ignore it
     if (texx[0] == 0)
@@ -162,14 +162,14 @@ void DisplayAtY (int ypos, const char *texx) {
     else { 
         // Normal "Display" in text box
 
-        if (screen_is_dirty) {
+        if (is_screen_dirty()) {
             // erase any previous DisplaySpeech
             play.disabled_user_interface ++;
             UpdateGameOnce();
             play.disabled_user_interface --;
         }
 
-        _display_at(-1,ypos,play.viewport.GetWidth()/2+play.viewport.GetWidth()/4,get_translation(texx),1,0, 0, 0, false);
+        _display_at(-1,ypos,ui_view.GetWidth()/2+ui_view.GetWidth()/4,get_translation(texx),1,0, 0, 0, false);
     }
 }
 

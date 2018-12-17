@@ -47,7 +47,29 @@ struct CachedActSpsData {
     int valid;
 };
 
+// Initializes drawing methods and optimisation
+void init_draw_method();
+// Disposes resources related to the current drawing methods
+void dispose_draw_method();
+// Disposes any temporary resources on leaving current room
+void dispose_room_drawdata();
+// Updates drawing settings depending on main viewport's size and position on screen
+void on_mainviewport_changed();
+// Updates drawing settings if room viewport's position or size has changed
+void on_roomviewport_changed();
+// Updates drawing settings if room camera's size has changed
+void on_camera_size_changed();
+
+// whether there are currently remnants of a DisplaySpeech
+void mark_screen_dirty();
+bool is_screen_dirty();
+
+// marks whole screen as needing a redraw
 void invalidate_screen();
+// marks certain rectangle on screen as needing a redraw
+// in_room flag tells how to interpret the coordinates: as in-room coords or screen viewport coordinates.
+void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room);
+
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
 // Avoid freeing and reallocating the memory if possible
@@ -56,7 +78,6 @@ Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitma
 void push_screen (Common::Bitmap *ds);
 Common::Bitmap *pop_screen();
 void update_screen();
-void invalidate_rect(int x1, int y1, int x2, int y2);
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
 void construct_virtual_screen(bool fullRedraw) ;
@@ -73,7 +94,6 @@ void draw_screen_callback();
 void write_screen();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);
-void init_invalid_regions(int scrnHit);
 void destroy_invalid_regions();
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
 // create the actsps[aa] image with the object drawn correctly
@@ -86,12 +106,19 @@ void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, colo
 
 void setpal();
 
+// These functions are converting coordinates between native game units and
+// pre-scaled game frame units. The first are units used in game data and script,
+// and second are used when displaying things in the game's viewport.
+// This conversion is done *before* scaling game's frame further in the window
+// (which is a separate task done by graphics renderer and its filters).
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 extern AGS_INLINE int convert_to_low_res(int coord);
 extern AGS_INLINE int convert_back_to_high_res(int coord);
+// coordinate conversion game ---> screen
 extern AGS_INLINE int multiply_up_coordinate(int coord);
 extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
 extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
+// coordinate conversion screen ---> game
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 
@@ -109,6 +136,10 @@ Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
 // Original bitmap **gets deleted** if a new bitmap had to be created.
 Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
 
-extern int offsetx, offsety;
+
+// Pointer to the real screen bitmap created by Allegro
+extern Common::Bitmap *real_screen;
+// Subsection of the real screen, used when the room size is smaller than the game's size
+extern Common::Bitmap *sub_screen;
 
 #endif // __AGS_EE_AC__DRAW_H

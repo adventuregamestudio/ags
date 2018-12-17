@@ -71,8 +71,8 @@ int Mouse_GetVisible() {
 
 void SetMouseBounds(int x1, int y1, int x2, int y2)
 {
-    int xmax = BASEWIDTH - 1;
-    int ymax = MOUSE_MAX_Y - 1;
+    int xmax = divide_down_coordinate(play.GetMainViewport().GetWidth()) - 1;
+    int ymax = divide_down_coordinate(play.GetMainViewport().GetHeight()) - 1;
     if ((x1 == 0) && (y1 == 0) && (x2 == 0) && (y2 == 0))
     {
         x2 = xmax;
@@ -273,14 +273,16 @@ void RefreshMouse() {
 }
 
 void SetMousePosition (int newx, int newy) {
+    const Rect &viewport = play.GetMainViewport();
+
     if (newx < 0)
         newx = 0;
     if (newy < 0)
         newy = 0;
-    if (newx >= BASEWIDTH)
-        newx = BASEWIDTH - 1;
-    if (newy >= BASEHEIGHT)
-        newy = BASEHEIGHT - 1;
+    if (newx >= viewport.GetWidth())
+        newx = viewport.GetWidth() - 1;
+    if (newy >= viewport.GetHeight())
+        newy = viewport.GetHeight() - 1;
 
     multiply_up_coordinates(&newx, &newy);
     Mouse::SetPosition(Point(newx, newy));

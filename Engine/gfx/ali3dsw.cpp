@@ -54,7 +54,7 @@ namespace Engine
 namespace ALSW
 {
 
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace Common;
 
 bool ALSoftwareGfxModeList::GetMode(int index, DisplayMode &mode) const
 {
@@ -85,6 +85,10 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
 #endif
   _allegroScreenWrapper = NULL;
   virtualScreen = NULL;
+  _stageVirtualScreen = NULL;
+
+  // Initialize default sprite batch, it will be used when no other batch was activated
+  InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -249,6 +253,7 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
   // (which may or not be the same as real screen)
   virtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
   BitmapHelper::SetScreenBitmap( virtualScreen );
+  _stageVirtualScreen = virtualScreen;
 }
 
 void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
@@ -257,13 +262,14 @@ void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
   {
     BitmapHelper::SetScreenBitmap(_filter->ShutdownAndReturnRealScreen());
     virtualScreen = NULL;
+    _stageVirtualScreen = NULL;
   }
 }
 
 void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
 {
   OnModeReleased();
-  drawlist.clear();
+  ClearDrawLists();
 
 #ifdef _WIN32
   if (dxGammaControl != NULL) 
@@ -307,6 +313,8 @@ void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RG
   int color = 0;
   if (colorToUse != NULL) 
     color = makecol_depth(_mode.ColorDepth, colorToUse->r, colorToUse->g, colorToUse->b);
+  // TODO: hardware renderers do not scale these coordinates, but software filter does!
+  // find out what's the expected behavior and sync them
   _filter->ClearRect(x1, y1, x2, y2, color);
 }
 
@@ -380,18 +388,95 @@ void ALSoftwareGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
   delete bitmap;
 }
 
-void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
+void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
-  drawlist.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
+    if (_spriteBatches.size() <= index)
+        _spriteBatches.resize(index + 1);
+    ALSpriteBatch &batch = _spriteBatches[index];
+    batch.List.clear();
+    // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
+    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
+    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    if (desc.Surface != NULL)
+    {
+        batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
+        batch.Opaque = true;
+    }
+    else if (desc.Viewport.IsEmpty() || !virtualScreen)
+    {
+        batch.Surface.reset();
+        batch.Opaque = false;
+    }
+    else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
+    {
+        Rect rc = RectWH(desc.Viewport.Left - _virtualScrOff.X, desc.Viewport.Top - _virtualScrOff.Y, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
+        batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
+        batch.Opaque = true;
+    }
+    else if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+    {
+        batch.Surface.reset(new Bitmap(src_w, src_h));
+        batch.Opaque = false;
+    }
 }
 
-void ALSoftwareGraphicsDriver::ClearDrawList()
+void ALSoftwareGraphicsDriver::ResetAllBatches()
 {
-  drawlist.clear();
+    for (ALSpriteBatches::iterator it = _spriteBatches.begin(); it != _spriteBatches.end(); ++it)
+        it->List.clear();
+}
+
+void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
+{
+    _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
 }
 
 void ALSoftwareGraphicsDriver::RenderToBackBuffer()
 {
+    // Render all the sprite batches with necessary transformations
+    //
+    // NOTE: that's not immediately clear whether it would be faster to first draw upon a camera-sized
+    // surface then stretch final result to the viewport on screen, or stretch-blit each individual
+    // sprite right onto screen bitmap. We'd need to do proper profiling to know that.
+    // An important thing is that Allegro does not provide stretching functions for drawing sprites
+    // with blending and translucency; it seems you'd have to first stretch the original sprite onto a
+    // temp buffer and then TransBlendBlt / LitBlendBlt it to the final destination. Of course, doing
+    // that here would slow things down significantly, so if we ever go that way sprite caching will
+    // be required (similarily to how AGS caches flipped/scaled object sprites now for).
+    //
+    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    {
+        const Rect &viewport = _spriteBatchDesc[i].Viewport;
+        const SpriteTransform &transform = _spriteBatchDesc[i].Transform;
+        const ALSpriteBatch &batch = _spriteBatches[i];
+
+        virtualScreen->SetClip(Rect::MoveBy(viewport, -_virtualScrOff.X, -_virtualScrOff.Y));
+        Bitmap *surface = static_cast<Bitmap*>(batch.Surface.get());
+        // TODO: correct transform offsets to have pre-scale (source) and post-scale (dest) offsets!
+        int view_offx = viewport.Left + transform.X - _virtualScrOff.X;
+        int view_offy = viewport.Top + transform.Y - _virtualScrOff.Y;
+        if (surface)
+        {
+            if (!batch.Opaque)
+                surface->ClearTransparent();
+            _stageVirtualScreen = surface;
+            RenderSpriteBatch(batch, surface, 0, 0);
+            // TODO: extract this to the generic software blit-with-transform function
+            virtualScreen->StretchBlt(surface, RectWH(view_offx, view_offy, viewport.GetWidth(), viewport.GetHeight()),
+                batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
+        }
+        else
+        {
+            RenderSpriteBatch(batch, virtualScreen, view_offx, view_offy);
+        }
+        _stageVirtualScreen = virtualScreen;
+    }
+    ClearDrawLists();
+}
+
+void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Common::Bitmap *surface, int surf_offx, int surf_offy)
+{
+  const std::vector<ALDrawListEntry> &drawlist = batch.List;
   for (size_t i = 0; i < drawlist.size(); i++)
   {
     if (drawlist[i].bitmap == NULL)
@@ -405,14 +490,14 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     }
 
     ALSoftwareBitmap* bitmap = drawlist[i].bitmap;
-    int drawAtX = drawlist[i].x;
-    int drawAtY = drawlist[i].y;
+    int drawAtX = drawlist[i].x + surf_offx;
+    int drawAtY = drawlist[i].y + surf_offy;
 
-    if ((bitmap->_opaque) && (bitmap->_bmp == virtualScreen))
+    if ((bitmap->_opaque) && (bitmap->_bmp == surface))
     { }
     else if (bitmap->_opaque)
     {
-      virtualScreen->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
+        surface->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
     }
     else if (bitmap->_transparency >= 255)
     {
@@ -426,12 +511,12 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         // here _transparency is used as alpha (between 1 and 254)
         set_blender_mode(NULL, NULL, _trans_alpha_blender32, 0, 0, 0, bitmap->_transparency);
 
-	  virtualScreen->TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
+      surface->TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
     }
     else
     {
       // here _transparency is used as alpha (between 1 and 254), but 0 means opaque!
-      GfxUtil::DrawSpriteWithTransparency(virtualScreen, bitmap->_bmp, drawAtX, drawAtY,
+      GfxUtil::DrawSpriteWithTransparency(surface, bitmap->_bmp, drawAtX, drawAtY,
           bitmap->_transparency ? bitmap->_transparency : 255);
     }
   }
@@ -441,23 +526,21 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     // Common::gl_ScreenBmp tint
     // This slows down the game no end, only experimental ATM
     set_trans_blender(_tint_red, _tint_green, _tint_blue, 0);
-    virtualScreen->LitBlendBlt(virtualScreen, 0, 0, 128);
+    surface->LitBlendBlt(surface, 0, 0, 128);
 /*  This alternate method gives the correct (D3D-style) result, but is just too slow!
     if ((_spareTintingScreen != NULL) &&
-        ((_spareTintingScreen->GetWidth() != virtualScreen->GetWidth()) || (_spareTintingScreen->GetHeight() != virtualScreen->GetHeight())))
+        ((_spareTintingScreen->GetWidth() != surface->GetWidth()) || (_spareTintingScreen->GetHeight() != surface->GetHeight())))
     {
       destroy_bitmap(_spareTintingScreen);
       _spareTintingScreen = NULL;
     }
     if (_spareTintingScreen == NULL)
     {
-      _spareTintingScreen = BitmapHelper::CreateBitmap_(GetColorDepth(virtualScreen), virtualScreen->GetWidth(), virtualScreen->GetHeight());
+      _spareTintingScreen = BitmapHelper::CreateBitmap_(GetColorDepth(surface), surface->GetWidth(), surface->GetHeight());
     }
-    tint_image(virtualScreen, _spareTintingScreen, _tint_red, _tint_green, _tint_blue, 100, 255);
-    Blit(_spareTintingScreen, virtualScreen, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
+    tint_image(surface, _spareTintingScreen, _tint_red, _tint_green, _tint_blue, 100, 255);
+    Blit(_spareTintingScreen, surface, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
   }
-
-  ClearDrawList();
 }
 
 void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
@@ -468,9 +551,9 @@ void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
     this->Vsync();
 
   if (flip == kFlip_None)
-    _filter->RenderScreen(virtualScreen, _global_x_offset, _global_y_offset);
+    _filter->RenderScreen(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y);
   else
-    _filter->RenderScreenFlipped(virtualScreen, _global_x_offset, _global_y_offset, flip);
+    _filter->RenderScreenFlipped(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y, flip);
 }
 
 void ALSoftwareGraphicsDriver::Render()
@@ -481,6 +564,17 @@ void ALSoftwareGraphicsDriver::Render()
 void ALSoftwareGraphicsDriver::Vsync()
 {
   vsync();
+}
+
+Bitmap *ALSoftwareGraphicsDriver::GetMemoryBackBuffer()
+{
+  return _stageVirtualScreen;
+}
+
+void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
+{
+  virtualScreen = backBuffer;
+  _virtualScrOff = Point(offx, offy);
 }
 
 void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
@@ -502,6 +596,8 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    Bitmap *bmp_orig = currentVirtScreen;
    const int col_depth = currentVirtScreen->GetColorDepth();
 
+   int _global_x_offset = _virtualScrOff.X + _globalViewOff.X;
+   int _global_y_offset = _virtualScrOff.Y + _globalViewOff.Y;
    if ((_global_y_offset != 0) || (_global_x_offset != 0))
    {
      bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), col_depth);
@@ -576,6 +672,8 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
     }
 
     BitmapHelper::GetScreenBitmap()->Clear(clearColor);
+    int _global_x_offset = _virtualScrOff.X + _globalViewOff.X;
+    int _global_y_offset = _virtualScrOff.Y + _globalViewOff.Y;
 	_filter->RenderScreen(BitmapHelper::GetScreenBitmap(), _global_x_offset, _global_y_offset);
 }
 /** END FADE.C **/

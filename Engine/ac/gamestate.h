@@ -17,6 +17,7 @@
 
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
+#include "game/viewport.h"
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
@@ -137,7 +138,6 @@ struct GameState {
     int   digital_master_volume;
     char  walkable_areas_on[MAX_WALK_AREAS+1];
     short screen_flipped;
-    short offsets_locked;
     int   entered_at_x,entered_at_y, entered_edge;
     int   want_speech;
     int   cant_skip_speech;
@@ -204,23 +204,114 @@ struct GameState {
     std::vector<AGS::Common::StringIMap> charProps;
     AGS::Common::StringIMap invProps[MAX_INV];
 
-    // These variables are not serialized
+    // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
-    // Viewport defines the current position of the playable area;
-    // in basic case it will be identical to game size, but it may be smaller
-    // to support room sizes lesser than game size.
-    Rect  viewport;
-    // game size in low-res units (for backwards-compatibility)
-    Size  native_size;
 
-    void SetViewport(const Size viewport_size);
+    GameState();
 
+    const Size &GetNativeSize() const;
+    void SetNativeSize(const Size &size);
+
+    //
+    // Viewport and camera control.
+    // Viewports are positioned in game screen coordinates, related to the "game size",
+    // while cameras are positioned in room coordinates.
+    //
+    // Tells if the room viewport should be adjusted automatically each time a new room is loaded
+    bool IsAutoRoomViewport() const;
+    // Returns main viewport position on screen, this is the overall game view
+    const Rect &GetMainViewport() const;
+    // Returns UI viewport position on screen, this is the GUI layer
+    const Rect &GetUIViewport() const;
+    // Returns Room viewport position, which works as a "window" into the room
+    const Rect &GetRoomViewport() const;
+    // Returns UI viewport position in absolute coordinates (with main viewport offset)
+    Rect       GetUIViewportAbs() const;
+    // Returns Room viewport position in absolute coordinates (with main viewport offset)
+    Rect       GetRoomViewportAbs() const;
+    // Sets if the room viewport should be adjusted automatically each time a new room is loaded
+    void SetAutoRoomViewport(bool on);
+    // Main viewport defines the location of all things drawn and interactable on the game screen.
+    // Other viewports are defined relative to the main viewports.
+    void SetMainViewport(const Rect &viewport);
+    // UI viewport is a formal dummy viewport for GUI and Overlays (like speech).
+    void SetUIViewport(const Rect &viewport);
+    // Room viewport defines location of a room view inside the main viewport.
+    void SetRoomViewport(const Rect &viewport);
+    // Applies all the pending changes to viewports and cameras
+    void UpdateViewports();
+    // Returns Room camera position and size inside the room (in room coordinates)
+    const Rect &GetRoomCamera() const;
+    // Returns constant camera object letting read its properties directly
+    const RoomCamera &GetRoomCameraObj() const;
+    // Sets explicit room camera's orthographic size
+    void SetRoomCameraSize(const Size &cam_size);
+    // Sets automatic room camera resize relative to the viewport it's been used at
+    void SetRoomCameraAutoSize(float scalex = 1.f, float scaley = 1.f);
+    // Puts room camera to the new location in the room
+    void SetRoomCameraAt(int x, int y);
+    // Tells if camera is currently locked at custom position
+    bool IsRoomCameraLocked() const;
+    // Locks room camera at its current position
+    void LockRoomCamera();
+    // Similar to SetRoomCameraAt, but also locks camera preventing it from following player character
+    void LockRoomCameraAt(int x, int y);
+    // Releases camera lock, letting it follow player character
+    void ReleaseRoomCamera();
+    // Runs camera behavior
+    void UpdateRoomCamera();
+    // Converts room coordinates to the game screen coordinates through the room viewport
+    // TODO: find out if possible to refactor and get rid of "variadic" variants;
+    // usually this depends on how the arguments are created (whether they are in "variadic" or true coords)
+    Point RoomToScreen(int roomx, int roomy);
+    Point RoomToScreenDivDown(int roomx, int roomy); // native "variadic" coords variant
+    int  RoomToScreenX(int roomx);
+    int  RoomToScreenY(int roomy);
+    // Converts game screen coordinates to the room coordinates through the room viewport
+    Point ScreenToRoom(int scrx, int scry);
+    Point ScreenToRoomDivDown(int scrx, int scry); // native "variadic" coords variant
+
+    // Serialization
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
     void ReadCustomProperties_v340(Common::Stream *in);
     void WriteCustomProperties_v340(Common::Stream *out) const;
     void ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver);
     void WriteForSavegame(Common::Stream *out) const;
     void FreeProperties();
+
+private:
+    // Determines the game's size in "native" units, used to convert coordinate
+    // arguments in game data and scripts to screen coordinates.
+    // Equals real game size by default, which results in 1:1 conversion.
+    // (atm used only for backwards-compatibility in high-res games that wanted
+    // to keep coordinates in 320x200 range in scripts)
+    Size _nativeSize;
+    // Defines if the room viewport should be adjusted to the room size automatically.
+    bool _isAutoRoomViewport;
+    // Viewport defines the rectangle of the drawn and interactable area
+    // in the most basic case it will be equal to the game size.
+    Viewport _mainViewport;
+    // Viewport defines the render and interaction rectangle of game's UI.
+    Viewport _uiViewport;
+    // Primary room viewport, defines place on screen where the room camera
+    // contents are drawn.
+    Viewport _roomViewport;
+    // Camera defines the position of an "looking eye" inside the room.
+    RoomCamera _roomCamera;
+
+    // Tells that the main viewport's position has changed since last game update
+    bool  _mainViewportHasChanged;
+    // Tells that the room viewport's position has changed since last game update
+    bool  _roomViewportHasChanged;
+    // Tells that the room camera's size has changed since last game update
+    bool  _cameraHasChanged;
+
+    // Sets actual camera's size without resetting autoscale flag
+    void SetCameraActualSize(const Size &sz);
+    // Updates camera size after camera or viewport properties change.
+    void UpdateCameraSize();
+    // Calculates room-to-viewport coordinate conversion.
+    void AdjustRoomToViewport();
 };
 
 // Converts legacy alignment type used in script API

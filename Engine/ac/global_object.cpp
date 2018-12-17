@@ -51,7 +51,6 @@ extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;
-extern int offsetx, offsety;
 extern int actSpsCount;
 extern Bitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
@@ -60,11 +59,10 @@ extern IGraphicsDriver *gfxDriver;
 // Used for deciding whether a char or obj was closer
 int obj_lowest_yp;
 
-int GetObjectAt(int xx,int yy) {
+int GetObjectAt(int scrx, int scry) {
     int aa,bestshotyp=-1,bestshotwas=-1;
     // translate screen co-ordinates to room co-ordinates
-    xx += divide_down_coordinate(offsetx);
-    yy += divide_down_coordinate(offsety);
+    Point roompt = play.ScreenToRoomDivDown(scrx, scry);
     // Iterate through all objects in the room
     for (aa=0;aa<croom->numobj;aa++) {
         if (objs[aa].on != 1) continue;
@@ -79,7 +77,7 @@ int GetObjectAt(int xx,int yy) {
 
         Bitmap *theImage = GetObjectImage(aa, &isflipped);
 
-        if (is_pos_in_sprite(xx, yy, xxx, yyy - spHeight, theImage,
+        if (is_pos_in_sprite(roompt.X, roompt.Y, xxx, yyy - spHeight, theImage,
             spWidth, spHeight, isflipped) == FALSE)
             continue;
 
@@ -493,7 +491,7 @@ void GetObjectPropertyText (int item, const char *property, char *bufer)
 
 Bitmap *GetObjectImage(int obj, int *isFlipped) 
 {
-    if (!gfxDriver->HasAcceleratedStretchAndFlip())
+    if (!gfxDriver->HasAcceleratedTransform())
     {
         if (actsps[obj] != NULL) {
             // the actsps image is pre-flipped, so no longer register the image as such

@@ -22,6 +22,7 @@
 #include "ac/characterinfo.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/draw_software.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -43,7 +44,6 @@
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
-#include "ac/viewport.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptsystem.h"
@@ -152,20 +152,24 @@ Bitmap *virtual_screen;
 
 bool current_background_is_dirty = false;
 
-Bitmap *_old_screen=NULL;
-Bitmap *_sub_screen=NULL;
-
-int offsetx = 0, offsety = 0;
+Bitmap *real_screen =NULL;
+Bitmap *sub_screen = NULL;
 int wasShakingScreen = 0;
 
+// Room background sprite
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
+// Intermediate bitmap for the software drawing method.
+// We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
+// and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
+// to the virtual screen.
+// For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
+PBitmap RoomCameraBuffer;  // this is the actual bitmap
+PBitmap RoomCameraFrame;   // this is either same bitmap reference or sub-bitmap
 
 
 std::vector<SpriteListEntry> sprlist;
 std::vector<SpriteListEntry> thingsToDrawList;
 
-//GUIMain dummygui;
-//GUIButton dummyguicontrol;
 Bitmap **guibg = NULL;
 IDriverDependantBitmap **guibgbmp = NULL;
 
@@ -173,7 +177,7 @@ IDriverDependantBitmap **guibgbmp = NULL;
 Bitmap *debugConsoleBuffer = NULL;
 
 // whether there are currently remnants of a DisplaySpeech
-int screen_is_dirty = 0;
+bool screen_is_dirty = false;
 
 Bitmap *raw_saved_screen = NULL;
 Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
@@ -207,7 +211,7 @@ void allegro_bitmap_test_draw()
         {
             gfxDriver->UpdateDDBFromBitmap(test_allegro_ddb, test_allegro_bitmap, false);
         }
-        gfxDriver->DrawSprite(-offsetx, -offsety, test_allegro_ddb);
+        gfxDriver->DrawSprite(-play.GetRoomCamera().Left, -play.GetRoomCamera().Top, test_allegro_ddb);
 	}
 }
 
@@ -429,275 +433,206 @@ AGS_INLINE int divide_down_coordinate_round_up(int coord)
 
 // End resolution system functions
 
-
-
-// ** dirty rectangle system **
-
-#define MAXDIRTYREGIONS 25
-#define WHOLESCREENDIRTY (MAXDIRTYREGIONS + 5)
-#define MAX_SPANS_PER_ROW 4
-struct InvalidRect {
-    int x1, y1, x2, y2;
-};
-struct IRSpan {
-    int x1, x2;
-    int mergeSpan(int tx1, int tx2);
-};
-struct IRRow {
-    IRSpan span[MAX_SPANS_PER_ROW];
-    int numSpans;
-};
-IRRow *dirtyRow = NULL;
-int _dirtyRowSize;
-InvalidRect dirtyRegions[MAXDIRTYREGIONS];
-int numDirtyRegions = 0;
-int numDirtyBytes = 0;
-
-int IRSpan::mergeSpan(int tx1, int tx2) {
-    if ((tx1 > x2) || (tx2 < x1))
-        return 0;
-    // overlapping, increase the span
-    if (tx1 < x1)
-        x1 = tx1;
-    if (tx2 > x2)
-        x2 = tx2;
-    return 1;
-}
-
-void init_invalid_regions(int scrnHit)
+// Create blank (black) images used to repaint borders around game frame
+void create_blank_image(int coldepth)
 {
-    if (_dirtyRowSize != scrnHit)
+    // this is the first time that we try to use the graphics driver,
+    // so it's the most likey place for a crash
+    try
     {
-        destroy_invalid_regions();
-        dirtyRow = new IRRow[scrnHit];
+        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, coldepth);
+        blank = ReplaceBitmapWithSupportedFormat(blank);
+        blank->Clear();
+        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        delete blank;
     }
-
-    numDirtyRegions = WHOLESCREENDIRTY;
-    memset(dirtyRow, 0, sizeof(IRRow) * scrnHit);
-
-    for (int e = 0; e < scrnHit; e++)
-        dirtyRow[e].numSpans = 0;
-    _dirtyRowSize = scrnHit;
+    catch (Ali3DException gfxException)
+    {
+        quit((char*)gfxException._message);
+    }
 }
 
-void destroy_invalid_regions()
+void destroy_blank_image()
 {
-    delete [] dirtyRow;
-    dirtyRow = 0;
-    _dirtyRowSize = 0;
-    numDirtyRegions = 0;
+    if (blankImage)
+        gfxDriver->DestroyDDB(blankImage);
+    if (blankSidebarImage)
+        gfxDriver->DestroyDDB(blankSidebarImage);
+    blankImage = NULL;
+    blankSidebarImage = NULL;
 }
 
-void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src) {
-    int i;
 
-    // convert the offsets for the destination into
-    // offsets into the source
-    x = -x;
-    y = -y;
-
-    if (numDirtyRegions == WHOLESCREENDIRTY) {
-        ds->Blit(src, x, y, 0, 0, ds->GetWidth(), ds->GetHeight());
+void init_draw_method()
+{
+    if (gfxDriver->HasAcceleratedTransform())
+    {
+        walkBehindMethod = DrawAsSeparateSprite;
+        create_blank_image(game.GetColorDepth());
     }
-    else {
-        int k, tx1, tx2, srcdepth = src->GetColorDepth();
-        if ((srcdepth == ds->GetColorDepth()) && (ds->IsMemoryBitmap())) {
-            int bypp = src->GetBPP();
-            // do the fast copy
-            for (i = 0; i < play.viewport.GetHeight(); i++) {
-                const uint8_t *src_scanline = src->GetScanLine(i + y);
-                uint8_t *dst_scanline = ds->GetScanLineForWriting(i);
-                const IRRow &dirty_row = dirtyRow[i];
-                for (k = 0; k < dirty_row.numSpans; k++) {
-                    tx1 = dirty_row.span[k].x1;
-                    tx2 = dirty_row.span[k].x2;
-                    memcpy(&dst_scanline[tx1 * bypp], &src_scanline[(tx1 + x) * bypp], ((tx2 - tx1) + 1) * bypp);
-                }
-            }
-        }
-        else {
-            // do the fast copy
-            int rowsInOne;
-            for (i = 0; i < play.viewport.GetHeight(); i++) {
-                rowsInOne = 1;
-
-                // if there are rows with identical masks, do them all in one go
-                while ((i+rowsInOne < play.viewport.GetHeight()) && (memcmp(&dirtyRow[i], &dirtyRow[i+rowsInOne], sizeof(IRRow)) == 0))
-                    rowsInOne++;
-
-                const IRRow &dirty_row = dirtyRow[i];
-                for (k = 0; k < dirty_row.numSpans; k++) {
-                    tx1 = dirty_row.span[k].x1;
-                    tx2 = dirty_row.span[k].x2;
-                    ds->Blit(src, tx1 + x, i + y, tx1, i, (tx2 - tx1) + 1, rowsInOne);
-                }
-
-                i += (rowsInOne - 1);
-            }
-        }
-        /* else {
-        // update the dirty regions
-        for (i = 0; i < numDirtyRegions; i++) {
-        ->Blit(src, dest, x + dirtyRegions[i].x1, y + dirtyRegions[i].y1,
-        dirtyRegions[i].x1, dirtyRegions[i].y1,
-        (dirtyRegions[i].x2 - dirtyRegions[i].x1) + 1,
-        (dirtyRegions[i].y2 - dirtyRegions[i].y1) + 1);
-        }
-        }*/
-    }
-}
-
-
-void update_invalid_region_and_reset(Bitmap *ds, int x, int y, Bitmap *src) {
-
-    int i;
-
-    update_invalid_region(ds, x, y, src);
-
-    // screen has been updated, no longer dirty
-    numDirtyRegions = 0;
-    numDirtyBytes = 0;
-
-    for (i = 0; i < _dirtyRowSize; i++)
-        dirtyRow[i].numSpans = 0;
-
-}
-
-int combine_new_rect(InvalidRect *r1, InvalidRect *r2) {
-
-    // check if new rect is within old rect X-wise
-    if ((r2->x1 >= r1->x1) && (r2->x2 <= r1->x2)) {
-        if ((r2->y1 >= r1->y1) && (r2->y2 <= r1->y2)) {
-            // Y is also within the old one - scrap the new rect
-            return 1;
-        }
+    else
+    {
+        walkBehindMethod = DrawOverCharSprite;
     }
 
-    return 0;
+    on_mainviewport_changed();
+    on_roomviewport_changed();
+    on_camera_size_changed();
 }
 
-void invalidate_rect(int x1, int y1, int x2, int y2) {
-    if (numDirtyRegions >= MAXDIRTYREGIONS) {
-        // too many invalid rectangles, just mark the whole thing dirty
-        numDirtyRegions = WHOLESCREENDIRTY;
-        return;
+void dispose_draw_method()
+{
+    dispose_room_drawdata();
+    destroy_invalid_regions();
+    destroy_blank_image();
+}
+
+void dispose_room_drawdata()
+{
+    RoomCameraBuffer.reset();
+    RoomCameraFrame.reset();
+}
+
+void on_mainviewport_changed()
+{
+    if (gfxDriver->UsesMemoryBackBuffer())
+    {
+        // TODO: the following was carried over from the older version of the viewport change code,
+        // trying to keep as close to original behavior as possible. Unfortunately I was unable to
+        // fully grasp the logic behind this in the context of all the screen bitmaps manipulations
+        // throughout the program. In my opinion, it all has to be researched and possibly simplified
+        // as a big single step.
+
+        Bitmap *cur_vscr = GetVirtualScreen();
+        Bitmap *cur_rscr = BitmapHelper::GetScreenBitmap();
+        const bool vscr_was_realscr = cur_vscr == cur_rscr;
+        const Rect &main_view = play.GetMainViewport();
+
+        if (main_view.GetSize() == game.size)
+        {
+            BitmapHelper::SetScreenBitmap(real_screen);
+        }
+        else
+        {
+            sub_screen = BitmapHelper::CreateSubBitmap(real_screen, main_view);
+            BitmapHelper::SetScreenBitmap(sub_screen);
+        }
+
+        if (virtual_screen->GetSize() != main_view.GetSize())
+        {
+            int cdepth = virtual_screen->GetColorDepth();
+            delete virtual_screen;
+            virtual_screen = BitmapHelper::CreateBitmap(main_view.GetWidth(), main_view.GetHeight(), cdepth);
+            virtual_screen->Clear();
+            gfxDriver->SetMemoryBackBuffer(virtual_screen, main_view.Left, main_view.Top);
+        }
+
+        if (vscr_was_realscr)
+            SetVirtualScreen(BitmapHelper::GetScreenBitmap());
+        else
+            SetVirtualScreen(virtual_screen);
     }
 
-    int a;
-
-    if (x1 >= play.viewport.GetWidth()) x1 = play.viewport.GetWidth()-1;
-    if (y1 >= play.viewport.GetHeight()) y1 = play.viewport.GetHeight()-1;
-    if (x2 >= play.viewport.GetWidth()) x2 = play.viewport.GetWidth()-1;
-    if (y2 >= play.viewport.GetHeight()) y2 = play.viewport.GetHeight()-1;
-    if (x1 < 0) x1 = 0;
-    if (y1 < 0) y1 = 0;
-    if (x2 < 0) x2 = 0;
-    if (y2 < 0) y2 = 0;
-    /*
-    dirtyRegions[numDirtyRegions].x1 = x1;
-    dirtyRegions[numDirtyRegions].y1 = y1;
-    dirtyRegions[numDirtyRegions].x2 = x2;
-    dirtyRegions[numDirtyRegions].y2 = y2;
-
-    for (a = 0; a < numDirtyRegions; a++) {
-    // see if we can merge it into any other regions
-    if (combine_new_rect(&dirtyRegions[a], &dirtyRegions[numDirtyRegions]))
-    return;
+    if (!gfxDriver->RequiresFullRedrawEachFrame())
+    {
+        init_invalid_regions(-1, play.GetMainViewport().GetSize(), RectWH(play.GetMainViewport().GetSize()));
+        if (game.size.ExceedsByAny(play.GetMainViewport().GetSize()))
+            clear_letterbox_borders();
     }
+}
 
-    numDirtyBytes += (x2 - x1) * (y2 - y1);
+// Syncs room viewport and camera in case anything has changed
+void sync_roomview()
+{
+    const Size &cam_sz = play.GetRoomCamera().GetSize();
+    const Size &view_sz = play.GetRoomViewport().GetSize();
+    init_invalid_regions(0, cam_sz, play.GetRoomViewport());
+    if (cam_sz == view_sz)
+    { // note we keep the buffer allocated in case it will become useful later
+        RoomCameraFrame.reset();
+    }
+    else
+    {
+        if (!RoomCameraBuffer || RoomCameraBuffer->GetWidth() < cam_sz.Width || RoomCameraBuffer->GetHeight() < cam_sz.Height)
+        {
+            // Allocate new buffer bitmap with an extra size in case they will want to zoom out
+            int room_width = multiply_up_coordinate(thisroom.width);
+            int room_height = multiply_up_coordinate(thisroom.height);
+            Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(room_width, room_height));
+            RoomCameraBuffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height));
+        }
 
-    if (numDirtyBytes > (play.viewport.GetWidth() * play.viewport.GetHeight()) / 2)
-    numDirtyRegions = WHOLESCREENDIRTY;
-    else {*/
-    numDirtyRegions++;
-
-    // ** Span code
-    int s, foundOne;
-    // add this rect to the list for this row
-    for (a = y1; a <= y2; a++) {
-        foundOne = 0;
-        for (s = 0; s < dirtyRow[a].numSpans; s++) {
-            if (dirtyRow[a].span[s].mergeSpan(x1, x2)) {
-                foundOne = 1;
-                break;
-            }
-        }
-        if (foundOne) {
-            // we were merged into a span, so we're ok
-            int t;
-            // check whether now two of the spans overlap each other
-            // in which case merge them
-            for (s = 0; s < dirtyRow[a].numSpans; s++) {
-                for (t = s + 1; t < dirtyRow[a].numSpans; t++) {
-                    if (dirtyRow[a].span[s].mergeSpan(dirtyRow[a].span[t].x1, dirtyRow[a].span[t].x2)) {
-                        dirtyRow[a].numSpans--;
-                        for (int u = t; u < dirtyRow[a].numSpans; u++)
-                            dirtyRow[a].span[u] = dirtyRow[a].span[u + 1];
-                        break;
-                    }
-                }
-            }
-        }
-        else if (dirtyRow[a].numSpans < MAX_SPANS_PER_ROW) {
-            dirtyRow[a].span[dirtyRow[a].numSpans].x1 = x1;
-            dirtyRow[a].span[dirtyRow[a].numSpans].x2 = x2;
-            dirtyRow[a].numSpans++;
-        }
-        else {
-            // didn't fit in an existing span, and there are none spare
-            int nearestDist = 99999, nearestWas = -1, extendLeft;
-            int tleft, tright;
-            // find the nearest span, and enlarge that to include this rect
-            for (s = 0; s < dirtyRow[a].numSpans; s++) {
-                tleft = dirtyRow[a].span[s].x1 - x2;
-                if ((tleft > 0) && (tleft < nearestDist)) {
-                    nearestDist = tleft;
-                    nearestWas = s;
-                    extendLeft = 1;
-                }
-                tright = x1 - dirtyRow[a].span[s].x2;
-                if ((tright > 0) && (tright < nearestDist)) {
-                    nearestDist = tright;
-                    nearestWas = s;
-                    extendLeft = 0;
-                }
-            }
-            if (extendLeft)
-                dirtyRow[a].span[nearestWas].x1 = x1;
-            else
-                dirtyRow[a].span[nearestWas].x2 = x2;
+        if (!RoomCameraFrame || RoomCameraFrame->GetSize() != cam_sz)
+        {
+            RoomCameraFrame.reset(BitmapHelper::CreateSubBitmap(RoomCameraBuffer.get(), RectWH(cam_sz)));
         }
     }
-    // ** End span code
-    //}
 }
 
-
-
-void invalidate_sprite(int x1, int y1, IDriverDependantBitmap *pic) {
-    invalidate_rect(x1, y1, x1 + pic->GetWidth(), y1 + pic->GetHeight());
+void on_roomviewport_changed()
+{
+    if (!gfxDriver->RequiresFullRedrawEachFrame())
+    {
+        sync_roomview();
+        invalidate_screen();
+        // TODO: don't have to do this all the time, perhaps do "dirty rect" method
+        // and only clear previous viewport location?
+        GetVirtualScreen()->Clear(0);
+    }
 }
 
-void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text) {
-    wouttext_outline(ds, x1, y1, font, text_color, (char*)text);
-    invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + getfontheight_outlined(font) + get_fixed_pixel_size(1));
+void on_camera_size_changed()
+{
+    if (!gfxDriver->RequiresFullRedrawEachFrame())
+    {
+        sync_roomview();
+        invalidate_screen();
+    }
 }
 
-void invalidate_screen() {
-    // mark the whole screen dirty
-    numDirtyRegions = WHOLESCREENDIRTY;
+void mark_screen_dirty()
+{
+    screen_is_dirty = true;
 }
 
-// ** dirty rectangle system end **
+bool is_screen_dirty()
+{
+    return screen_is_dirty;
+}
+
+void invalidate_screen()
+{
+    invalidate_all_rects();
+}
+
+void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room)
+{
+    //if (!in_room)
+    invalidate_rect_ds(x1, y1, x2, y2, in_room);
+}
+
+void invalidate_sprite(int x1, int y1, IDriverDependantBitmap *pic, bool in_room)
+{
+    //if (!in_room)
+    invalidate_rect_ds(x1, y1, x1 + pic->GetWidth(), y1 + pic->GetHeight(), in_room);
+}
 
 void mark_current_background_dirty()
 {
     current_background_is_dirty = true;
 }
 
+
+void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text)
+{
+    wouttext_outline(ds, x1, y1, font, text_color, (char*)text);
+    invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + getfontheight_outlined(font) + get_fixed_pixel_size(1), false);
+}
+
 void render_black_borders(int atx, int aty)
 {
+    const Rect &viewport = play.GetMainViewport();
     if (!gfxDriver->UsesMemoryBackBuffer())
     {
         if (aty > 0)
@@ -705,28 +640,26 @@ void render_black_borders(int atx, int aty)
             // letterbox borders
             blankImage->SetStretch(game.size.Width, aty, false);
             gfxDriver->DrawSprite(-atx, -aty, blankImage);
-            gfxDriver->DrawSprite(0, play.viewport.GetHeight(), blankImage);
+            gfxDriver->DrawSprite(0, viewport.GetHeight(), blankImage);
         }
         if (atx > 0)
         {
             // sidebar borders for widescreen
-            blankSidebarImage->SetStretch(atx, play.viewport.GetHeight(), false);
+            blankSidebarImage->SetStretch(atx, viewport.GetHeight(), false);
             gfxDriver->DrawSprite(-atx, 0, blankSidebarImage);
-            gfxDriver->DrawSprite(play.viewport.GetWidth(), 0, blankSidebarImage);
+            gfxDriver->DrawSprite(viewport.GetWidth(), 0, blankSidebarImage);
         }
     }
 }
 
 
-void render_to_screen(Bitmap *toRender, int atx, int aty) {
-
-    atx += play.viewport.Left;
-    aty += play.viewport.Top;
-    gfxDriver->SetRenderOffset(atx, aty);
-
+void render_to_screen(Bitmap *toRender, int atx, int aty)
+{
+    gfxDriver->SetNativeRenderOffset(atx, aty);
+    const Rect &viewport = play.GetMainViewport();
     // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
     if (aty > 0 && wasShakingScreen && gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->ClearRectangle(play.viewport.Left, play.viewport.Top, play.viewport.GetWidth() - 1, aty, NULL);
+        gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, aty, NULL);
     render_black_borders(atx, aty);
 
     gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
@@ -735,7 +668,7 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
     {
         if (gfxDriver->UsesMemoryBackBuffer())
             gfxDriver->RenderToBackBuffer();
-        gfxDriver->ClearDrawList();
+        gfxDriver->ClearDrawLists();
         return;
     }
 
@@ -767,15 +700,12 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
     }
 }
 
-
-void clear_letterbox_borders() {
-
-    if (multiply_up_coordinate(thisroom.height) < game.size.Height) {
-        // blank out any traces in borders left by a full-screen room
-        gfxDriver->ClearRectangle(0, 0, _old_screen->GetWidth() - 1, play.viewport.Top - 1, NULL);
-        gfxDriver->ClearRectangle(0, play.viewport.Bottom + 1, _old_screen->GetWidth() - 1, game.size.Height - 1, NULL);
-    }
-
+// Blanks out borders around main viewport in case it became smaller (e.g. after loading another room)
+void clear_letterbox_borders()
+{
+    const Rect &viewport = play.GetMainViewport();
+    gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, viewport.Top - 1, NULL);
+    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.size.Width - 1, game.size.Height - 1, NULL);
 }
 
 // writes the virtual screen to the screen, converting colours if
@@ -816,7 +746,7 @@ void draw_screen_callback()
 {
     construct_virtual_screen(false);
 
-    render_black_borders(play.viewport.Left, play.viewport.Top);
+    render_black_borders(play.GetMainViewport().Left, play.GetMainViewport().Top);
 }
 
 
@@ -1032,7 +962,8 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
 
     if (actspswbcache[actspsIndex].isWalkBehindHere)
     {
-        add_to_sprite_list(actspswbbmp[actspsIndex], xx - offsetx, yy - offsety, basel, 0, -1, true);
+        // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
+        add_to_sprite_list(actspswbbmp[actspsIndex], xx - play.GetRoomCamera().Left, yy - play.GetRoomCamera().Top, basel, 0, -1, true);
     }
 }
 
@@ -1157,7 +1088,8 @@ void draw_sprite_list() {
         {
             if (walkBehindBitmap[ee] != NULL)
             {
-                add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee] - offsetx, walkBehindTop[ee] - offsety, 
+                // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
+                add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee] - play.GetRoomCamera().Left, walkBehindTop[ee] - play.GetRoomCamera().Top,
                     croom->walkbehind_base[ee], 0, -1, true);
             }
         }
@@ -1442,10 +1374,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
 // intact from last time; 0 otherwise
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware) {
     int useindx = aa;
-    bool hardwareAccelerated = gfxDriver->HasAcceleratedStretchAndFlip();
-
-    if (alwaysUseSoftware)
-        hardwareAccelerated = false;
+    bool hardwareAccelerated = !alwaysUseSoftware && gfxDriver->HasAcceleratedTransform();
 
     if (spriteset[objs[aa].num] == NULL)
         quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", aa, objs[aa].num);
@@ -1520,11 +1449,11 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
             isMirrored = 1;
     }
 
-    if ((objcache[aa].image != NULL) &&
-        (objcache[aa].sppic == objs[aa].num) &&
+    if ((hardwareAccelerated) &&
         (walkBehindMethod != DrawOverCharSprite) &&
-        (actsps[useindx] != NULL) &&
-        (hardwareAccelerated))
+        (objcache[aa].image != NULL) &&
+        (objcache[aa].sppic == objs[aa].num) &&
+        (actsps[useindx] != NULL))
     {
         // HW acceleration
         objcache[aa].tintamntwas = tint_level;
@@ -1539,7 +1468,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         return 1;
     }
 
-    if ((!hardwareAccelerated) && (gfxDriver->HasAcceleratedStretchAndFlip()))
+    if ((!hardwareAccelerated) && (gfxDriver->HasAcceleratedTransform()))
     {
         // They want to draw it in software mode with the D3D driver,
         // so force a redraw
@@ -1595,8 +1524,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 
     // apply tints or lightenings where appropriate, else just copy
     // the source bitmap
-    if (((tint_level > 0) || (light_level != 0)) &&
-        (!hardwareAccelerated))
+    if (!hardwareAccelerated && ((tint_level > 0) || (light_level != 0)))
     {
         apply_tint_or_light(useindx, light_level, tint_level, tint_red,
             tint_green, tint_blue, tint_light, coldept,
@@ -1608,10 +1536,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 
     // Re-use the bitmap if it's the same size
     objcache[aa].image = recycle_bitmap(objcache[aa].image, coldept, sprwidth, sprheight);
-
     // Create the cached image and store it
     objcache[aa].image->Blit(actsps[useindx], 0, 0, 0, 0, sprwidth, sprheight);
-
     objcache[aa].sppic = objs[aa].num;
     objcache[aa].tintamntwas = tint_level;
     objcache[aa].tintredwas = tint_red;
@@ -1648,6 +1574,10 @@ void prepare_objects_for_drawing() {
         objcache[aa].xwas = objs[aa].x;
         objcache[aa].ywas = objs[aa].y;
 
+        // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
+        const Rect &camera = play.GetRoomCamera();
+        int offsetx = camera.Left;
+        int offsety = camera.Top;
         atxp = multiply_up_coordinate(objs[aa].x) - offsetx;
         atyp = (multiply_up_coordinate(objs[aa].y) - tehHeight) - offsety;
 
@@ -1678,7 +1608,7 @@ void prepare_objects_for_drawing() {
             actspsbmp[useindx] = gfxDriver->CreateDDBFromBitmap(actsps[useindx], hasAlpha);
         }
 
-        if (gfxDriver->HasAcceleratedStretchAndFlip())
+        if (gfxDriver->HasAcceleratedTransform())
         {
             actspsbmp[useindx]->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
             actspsbmp[useindx]->SetStretch(objs[aa].last_width, objs[aa].last_height);
@@ -1759,6 +1689,12 @@ void prepare_characters_for_drawing() {
     int tint_red, tint_green, tint_blue, tint_amount, tint_light = 255;
 
     our_eip=33;
+
+    // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
+    const Rect &camera = play.GetRoomCamera();
+    int offsetx = camera.Left;
+    int offsety = camera.Top;
+
     // draw characters
     for (aa=0;aa<game.numcharacters;aa++) {
         if (game.chars[aa].on==0) continue;
@@ -1868,7 +1804,7 @@ void prepare_characters_for_drawing() {
         }
         else if ((charcache[aa].inUse) && 
             (charcache[aa].sppic == specialpic) &&
-            (gfxDriver->HasAcceleratedStretchAndFlip()))
+            (gfxDriver->HasAcceleratedTransform()))
         {
             usingCachedImage = true;
         }
@@ -1915,7 +1851,7 @@ void prepare_characters_for_drawing() {
             // create the base sprite in actsps[useindx], which will
             // be scaled and/or flipped, as appropriate
             int actspsUsed = 0;
-            if (!gfxDriver->HasAcceleratedStretchAndFlip())
+            if (!gfxDriver->HasAcceleratedTransform())
             {
                 actspsUsed = scale_and_flip_sprite(
                     useindx, coldept, zoom_level, sppic,
@@ -1930,7 +1866,7 @@ void prepare_characters_for_drawing() {
             our_eip = 335;
 
             if (((light_level != 0) || (tint_amount != 0)) &&
-                (!gfxDriver->HasAcceleratedStretchAndFlip())) {
+                (!gfxDriver->HasAcceleratedTransform())) {
                     // apply the lightening or tinting
                     Bitmap *comeFrom = NULL;
                     // if possible, direct read from the source image
@@ -1987,7 +1923,7 @@ void prepare_characters_for_drawing() {
             actspsbmp[useindx] = recycle_ddb_bitmap(actspsbmp[useindx], actsps[useindx], hasAlpha);
         }
 
-        if (gfxDriver->HasAcceleratedStretchAndFlip()) 
+        if (gfxDriver->HasAcceleratedTransform()) 
         {
             actspsbmp[useindx]->SetStretch(newwidth, newheight);
             actspsbmp[useindx]->SetFlippedLeftRight(isMirrored != 0);
@@ -2023,10 +1959,18 @@ void prepare_characters_for_drawing() {
 
 
 
-// draw_screen_background: draws the background scene, all the interfaces
-// and objects; basically, the entire screen
-void draw_screen_background(Bitmap *ds) {
-
+// Draws the room and its contents: background, objects, characters
+//
+// NOTE that the bitmap arguments are **strictly** for software rendering.
+// ds is a full game screen surface, and roomcam_surface is a surface for drawing room camera content to.
+// ds and roomcam_surface may be the same bitmap.
+// TODO: if we support multiple cameras we would in fact need to split this function into calling
+// dirty rects drawing for the full surface and room drawing on room surface.
+// (maybe even split it into software/hardware variant)
+// no_transform flag tells to copy dirty regions on roomcam_surface without any coordinate conversion
+// whatsoever.
+void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
+    // TODO: dont use static vars!!
     static int offsetxWas = -100, offsetyWas = -100;
 
     screen_reset = 1;
@@ -2044,9 +1988,13 @@ void draw_screen_background(Bitmap *ds) {
     return;
     }*/
     our_eip=30;
-    update_viewport();
+    play.UpdateRoomCamera();
 
     our_eip=31;
+
+    const Rect &camera = play.GetRoomCamera();
+    const int offsetx = camera.Left;
+    const int offsety = camera.Top;
 
     if ((offsetx != offsetxWas) || (offsety != offsetyWas)) {
         invalidate_screen();
@@ -2084,10 +2032,20 @@ void draw_screen_background(Bitmap *ds) {
     }
     else
     {
+        // For software renderer: copy dirty rects onto the virtual screen.
+        // TODO: that would be SUPER NICE to reorganize the code and move this operation into SoftwareGraphicDriver somehow.
+        // Because basically we duplicate sprite batch transform here.
+
+        set_invalidrects_cameraoffs(0, offsetx, offsety);
+
+        // TODO: (by CJ)
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_invalid_region_and_reset(ds, -offsetx, -offsety, thisroom.ebscene[play.bg_frame]);
+
+        update_black_invreg_and_reset(ds);
+        update_room_invreg_and_reset(0, roomcam_surface, thisroom.ebscene[play.bg_frame], no_transform);
+        // TODO: remember that we also would need to rotate here if we support camera rotation!
     }
 
     clear_sprite_list();
@@ -2105,7 +2063,7 @@ void draw_screen_background(Bitmap *ds) {
     }
     our_eip=36;
 
-	allegro_bitmap_test_draw();
+	//allegro_bitmap_test_draw();
 }
 
 
@@ -2135,18 +2093,17 @@ void draw_fps()
     else
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
 
-    int yp = play.viewport.GetHeight() - fpsDisplay->GetHeight();
+    int yp = play.GetMainViewport().GetHeight() - fpsDisplay->GetHeight();
 
     gfxDriver->DrawSprite(1, yp, ddb);
-    invalidate_sprite(1, yp, ddb);
+    invalidate_sprite(1, yp, ddb, false);
 
     sprintf(tbuffer,"Loop %u", loopcounter);
     draw_and_invalidate_text(ds, get_fixed_pixel_size(250), yp, FONT_SPEECH, text_color, tbuffer);
 }
 
-// draw_screen_overlay: draws any stuff currently on top of the background,
-// like a message box or popup interface
-void draw_screen_overlay() {
+// Draw GUI and overlays of all kinds, anything outside the room space
+void draw_gui_and_overlays() {
     int gg;
 
     add_thing_to_draw(NULL, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
@@ -2257,7 +2214,8 @@ void draw_screen_overlay() {
     our_eip = 1099;
 }
 
-void put_sprite_list_on_screen()
+// Push the gathered list of sprites into the active graphic renderer
+void put_sprite_list_on_screen(bool in_room)
 {
     // *** Draw the Things To Draw List ***
 
@@ -2269,7 +2227,7 @@ void put_sprite_list_on_screen()
 
         if (thisThing->bmp != NULL) {
             // mark the image's region as dirty
-            invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp);
+            invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp, in_room);
         }
         else if ((thisThing->transparent != TRANS_RUN_PLUGIN) &&
             (thisThing->bmp == NULL)) 
@@ -2409,9 +2367,10 @@ void update_screen() {
         int txtspacing= getfontspacing_outlined(0);
         int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
 
+        const Rect &viewport = play.GetMainViewport();
         if (debugConsoleBuffer == NULL)
         {
-            debugConsoleBuffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), barheight,game.GetColorDepth());
+            debugConsoleBuffer = BitmapHelper::CreateBitmap(viewport.GetWidth(), barheight,game.GetColorDepth());
             debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
         }
 
@@ -2419,7 +2378,7 @@ void update_screen() {
         //push_screen(ds);
         //ds = debugConsoleBuffer;
         color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);
-        debugConsoleBuffer->FillRect(Rect (0, 0, play.viewport.GetWidth() - 1, barheight), draw_color);
+        debugConsoleBuffer->FillRect(Rect (0, 0, viewport.GetWidth() - 1, barheight), draw_color);
         color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
         for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
             wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
@@ -2434,7 +2393,7 @@ void update_screen() {
             gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
 
         gfxDriver->DrawSprite(0, 0, debugConsole);
-        invalidate_sprite(0, 0, debugConsole);
+        invalidate_sprite(0, 0, debugConsole, false);
     }
 
     domouse(DOMOUSE_NOCURSOR);
@@ -2442,7 +2401,7 @@ void update_screen() {
     if (!play.mouse_cursor_hidden)
     {
         gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
-        invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor);
+        invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
     }
 
     /*
@@ -2468,63 +2427,75 @@ void update_screen() {
     //if (!play.mouse_cursor_hidden)
     //    domouse(2);
 
-    screen_is_dirty = 0;
+    screen_is_dirty = false;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-extern volatile int psp_audio_multithreaded; // in ac_audio
-
 
 void construct_virtual_screen(bool fullRedraw) 
 {
-    gfxDriver->ClearDrawList();
+    gfxDriver->ClearDrawLists();
 
     if (play.fast_forward)
         return;
 
     our_eip=3;
 
-    Bitmap *ds = GetVirtualScreen();
-
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
     gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes, usetup.Supersampling);
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 
+    //
+    // Batch 1: room viewports
+    //
+    const Rect &main_viewport = play.GetMainViewport();
+    const Rect &room_viewport = play.GetRoomViewportAbs();
+    const Rect &camera = play.GetRoomCamera();
+    // TODO: have camera Left/Top used as a prescale (source) offset!
+    SpriteTransform room_trans(0, 0,
+        (float)room_viewport.GetWidth() / (float)camera.GetWidth(),
+        (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
+        0.f);
+    gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraFrame);
+    Bitmap *ds = GetVirtualScreen();
     if (displayed_room >= 0) {
 
         if (fullRedraw)
             invalidate_screen();
 
-        draw_screen_background(ds);
+        // For the sake of software renderer, if there is any kind of camera transform required
+        // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
+        // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
+        bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
+        Bitmap *room_bmp = translate_only ? ds : RoomCameraFrame.get();
+        draw_room(ds, room_bmp, !translate_only);
     }
     else if (!gfxDriver->RequiresFullRedrawEachFrame()) 
     {
         // if the driver is not going to redraw the screen,
         // black it out so we don't get cursor trails
+        // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
         ds->Fill(0);
     }
-
     // reset the Baselines Changed flag now that we've drawn stuff
     walk_behind_baselines_changed = 0;
+    put_sprite_list_on_screen(true);
 
     // make sure that the mp3 is always playing smoothly
     update_mp3();
-        our_eip=4;
-    draw_screen_overlay();
-    put_sprite_list_on_screen();
+    our_eip=4;
+
+    //
+    // Batch 2: UI overlay
+    //
+    const Rect &ui_viewport = play.GetUIViewportAbs();
+    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform());
+    draw_gui_and_overlays();
+    put_sprite_list_on_screen(false);
+
+    //
+    // Batch 3: auxiliary info
+    //
+    gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
     draw_misc_info();
 
     if (fullRedraw)
@@ -2544,7 +2515,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     our_eip=5;
 
     if (extraBitmap != NULL) {
-        invalidate_sprite(extraX, extraY, extraBitmap);
+        invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
     }
 

@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_GFX__GFXDRIVERBASE_H
 #define __AGS_EE_GFX__GFXDRIVERBASE_H
 
+#include <vector>
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "util/scaling.h"
@@ -29,12 +30,34 @@ namespace Engine
 
 using Common::Bitmap;
 
+// Sprite batch, defines viewport and an optional model transformation for the list of sprites
+struct SpriteBatchDesc
+{
+    // View rectangle for positioning and clipping, in resolution coordinates
+    // (this may be screen or game frame resolution, depending on circumstances)
+    Rect                     Viewport;
+    // Optional model transformation, to be applied to each sprite
+    SpriteTransform          Transform;
+    // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
+    PBitmap                  Surface;
 
+    SpriteBatchDesc() {}
+    SpriteBatchDesc(const Rect viewport, const SpriteTransform &transform, PBitmap surface)
+        : Viewport(viewport)
+        , Transform(transform)
+        , Surface(surface)
+    {
+    }
+};
+
+typedef std::vector<SpriteBatchDesc> SpriteBatchDescs;
+
+// The single sprite entry in the render list
 template<class T_DDB>
 struct SpriteDrawListEntry
 {
     T_DDB *bitmap; // TODO: use shared pointer?
-    int x, y;
+    int x, y; // sprite position, in camera coordinates
     bool skip;
 
     SpriteDrawListEntry()
@@ -68,7 +91,10 @@ public:
     virtual DisplayMode GetDisplayMode() const;
     virtual Size        GetNativeSize() const;
     virtual Rect        GetRenderDestination() const;
-    virtual void        SetRenderOffset(int x, int y);
+    virtual void        SetNativeRenderOffset(int x, int y);
+
+    virtual void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = NULL);
+    virtual void        ClearDrawLists();
 
     virtual void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
     virtual void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
@@ -92,16 +118,19 @@ protected:
     virtual void OnSetRenderFrame(const Rect &dst_rect);
     // Called when the new filter is set
     virtual void OnSetFilter();
+    // Initialize sprite batch and allocate necessary resources
+    virtual void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) = 0;
+    // Clears sprite lists
+    virtual void ResetAllBatches() = 0;
 
-    void    OnScalingChanged();
+    void         OnScalingChanged();
 
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect
     Rect                _dstRect;       // rendering destination rect
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
-    PlaneScaling        _scaling;
-    int                 _global_x_offset;
-    int                 _global_y_offset;
+    PlaneScaling        _scaling;       // native -> render dest coordinate transformation
+    Point               _globalViewOff; // extra offset to every sprite draw on screen with DrawSprite
     volatile int *      _loopTimer;
 
     // Callbacks
@@ -110,6 +139,10 @@ protected:
     GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
     GFXDRV_CLIENTCALLBACKSURFACEUPDATE _initSurfaceUpdateCallback;
+
+    // Sprite batch parameters
+    SpriteBatchDescs _spriteBatchDesc; // sprite batches list
+    size_t _actSpriteBatch; // active batch index
 };
 
 
@@ -134,7 +167,6 @@ public:
     bool _opaque;
 };
 
-
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
 // which drawing method is based on passing the sprite stack into GPU,
 // rather than blitting to flat screen bitmap.
@@ -146,11 +178,15 @@ public:
 
     virtual bool UsesMemoryBackBuffer();
     virtual Bitmap *GetMemoryBackBuffer();
-    virtual void SetMemoryBackBuffer(Bitmap *backBuffer);
+    virtual void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy);
 
 protected:
-    void CreateStageScreen();
-    void DestroyStageScreen();
+    // Stage screens are raw bitmap buffers meant to be sent to plugins on demand
+    // at certain drawing stages. If used at least once these buffers are then
+    // rendered as additional sprites in their respected order.
+    PBitmap CreateStageScreen(size_t index, const Size &sz);
+    PBitmap GetStageScreen(size_t index);
+    void DestroyAllStageScreens();
     // Use engine callback to acquire replacement for the null sprite;
     // returns true if the sprite was provided onto the virtual screen,
     // and false if this entry should be skipped.
@@ -162,7 +198,7 @@ protected:
 
     // Stage virtual screen is used to let plugins draw custom graphics
     // in between render stages (between room and GUI, after GUI, and so on)
-    Bitmap *_stageVirtualScreen;
+    PBitmap _stageVirtualScreen;
     IDriverDependantBitmap *_stageVirtualScreenDDB;
 
     // Color component shifts in video bitmap format (set by implementations)
@@ -172,6 +208,8 @@ protected:
     int _vmem_b_shift_32;
 
 private:
+    // Virtual screens for rendering stages (sprite batches)
+    std::vector<PBitmap> _stageScreens;
     // Flag which indicates whether stage screen was drawn upon during engine
     // callback and has to be inserted into sprite stack.
     bool _stageScreenDirty;

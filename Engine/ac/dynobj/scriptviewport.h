@@ -12,21 +12,19 @@
 //
 //=============================================================================
 
-#include "ac/global_viewport.h"
-#include "ac/draw.h"
-#include "debug/debug_log.h"
+#ifndef __AC_SCRIPTVIEWPORT_H
+#define __AC_SCRIPTVIEWPORT_H
 
-void SetViewport(int offsx, int offsy) {
-    offsx = multiply_up_coordinate(offsx);
-    offsy = multiply_up_coordinate(offsy);
-    play.LockRoomCameraAt(offsx, offsy);
-}
-void ReleaseViewport() {
-    play.ReleaseRoomCamera();
-}
-int GetViewportX () {
-    return divide_down_coordinate(play.GetRoomCamera().Left);
-}
-int GetViewportY () {
-    return divide_down_coordinate(play.GetRoomCamera().Top);
-}
+#include "ac/dynobj/cc_agsdynamicobject.h"
+
+// ScriptViewport manages room Viewport struct in script.
+// Currently it has no members and actual data is stored in "GameState" struct.
+// Also in practice there is only single room viewport at the moment.
+struct ScriptViewport : AGSCCDynamicObject
+{
+    virtual const char *GetType();
+    virtual int Serialize(const char *address, char *buffer, int bufsize);
+    virtual void Unserialize(int index, const char *serializedData, int dataSize);
+};
+
+#endif // __AC_SCRIPTVIEWPORT_H

@@ -1108,19 +1108,6 @@ namespace AGS.Editor
 				}
 			}
 
-			foreach (GUI gui in _game.RootGUIFolder.AllItemsFlat)
-			{
-                NormalGUI normalGui = gui as NormalGUI;
-                if (normalGui != null)
-				{
-                    if ((normalGui.Width > _game.MinRoomWidth) ||
-                        (normalGui.Height > _game.MinRoomHeight))
-					{
-						errors.Add(new CompileWarning("GUI " + gui.Name + " is larger than the screen size and may cause errors in the game."));
-					}
-				}
-			}
-
 			Dictionary<string, AGS.Types.View> viewNames = new Dictionary<string, AGS.Types.View>();
 			EnsureViewNamesAreUnique(_game.RootViewFolder, viewNames, errors);
 

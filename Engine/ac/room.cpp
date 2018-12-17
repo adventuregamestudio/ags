@@ -41,7 +41,6 @@
 #include "ac/screen.h"
 #include "ac/string.h"
 #include "ac/system.h"
-#include "ac/viewport.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
@@ -51,7 +50,6 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
-#include "device/mousew32.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -66,7 +64,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
 #include "util/math.h"
-#include "device/mousew32.h"
+#include "ac/dynobj/scriptcamera.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -113,9 +111,6 @@ extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 extern color palette[256];
 extern Bitmap *virtual_screen;
-extern Bitmap *_old_screen;
-extern Bitmap *_sub_screen;
-extern int offsetx, offsety;
 extern int mouse_z_was;
 
 extern Bitmap **guibg;
@@ -215,6 +210,13 @@ const char* Room_GetMessages(int index) {
     return CreateNewScriptString(buffer);
 }
 
+ScriptCamera* Room_GetCamera()
+{
+    ScriptCamera *camera = new ScriptCamera();
+    ccRegisterManagedObject(camera, camera);
+    return camera;
+}
+
 
 //=============================================================================
 
@@ -261,8 +263,8 @@ void unload_old_room() {
 
     current_fade_out_effect();
 
-    Bitmap *ds = GetVirtualScreen();
-    ds->Fill(0);
+    dispose_room_drawdata();
+
     for (ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
 
@@ -292,7 +294,7 @@ void unload_old_room() {
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     play.bg_frame=0;
     play.bg_frame_locked=0;
-    play.offsets_locked=0;
+    play.ReleaseRoomCamera();
     remove_screen_overlay(-1);
     delete raw_saved_screen;
     raw_saved_screen = NULL;
@@ -402,6 +404,35 @@ void convert_room_coordinates_to_low_res(roomstruct *rstruc)
 
 extern int convert_16bit_bgr;
 
+void update_letterbox_mode()
+{
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+    const Rect game_frame = RectWH(game.size);
+    Rect new_main_view = game_frame;
+    // In the original engine the letterbox feature only allowed viewports of
+    // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
+    // Also, the UI viewport should be matching room viewport in that case.
+    // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
+    const int viewport_height =
+        real_room_sz.Height < game.altsize.Height ? real_room_sz.Height :
+        (real_room_sz.Height >= game.altsize.Height && real_room_sz.Height < game.size.Height) ? game.altsize.Height :
+        game.size.Height;
+    new_main_view.SetHeight(viewport_height);
+
+    play.SetMainViewport(CenterInRect(game_frame, new_main_view));
+    play.SetUIViewport(new_main_view);
+}
+
+void adjust_viewport_to_room()
+{
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+    const Rect main_view = play.GetMainViewport();
+    Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
+
+    play.SetRoomViewport(new_room_view);
+    play.SetRoomCameraSize(new_room_view.GetSize());
+}
+
 #define NO_GAME_ID_IN_ROOM_FILE 16325
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
@@ -482,83 +513,13 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     our_eip=202;
-    const int real_room_height = multiply_up_coordinate(thisroom.height);
-    // Game viewport is updated when when room's size is smaller than game's size.
-    // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
-    if (real_room_height < game.size.Height || play.viewport.GetHeight() < game.size.Height) {
-        int abscreen=0;
+    // Update game viewports
+    if (game.IsLegacyLetterbox())
+        update_letterbox_mode();
+    if (play.IsAutoRoomViewport())
+        adjust_viewport_to_room();
 
-        // [IKM] Here we remember what was set as virtual screen: either real screen bitmap, or virtual_screen bitmap
-        Bitmap *ds = GetVirtualScreen();
-        if (ds==BitmapHelper::GetScreenBitmap()) abscreen=1;
-        else if (ds==virtual_screen) abscreen=2;
-
-        // Define what should be a new game viewport size
-        int newScreenHeight = game.size.Height;
-        // [IKM] 2015-05-04: in original engine the letterbox feature only allowed viewports of
-        // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
-        const int viewport_height = real_room_height < game.altsize.Height ? real_room_height :
-            (real_room_height >= game.altsize.Height && real_room_height < game.size.Height) ? game.altsize.Height :
-            game.size.Height;
-        if (viewport_height < game.size.Height) {
-            clear_letterbox_borders();
-            newScreenHeight = viewport_height;
-        }
-
-        // If this is the first time we got here, then the sub_screen does not exist at this point; so we create it here.
-        if (!_sub_screen)
-            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(game.size.Width / 2 - play.viewport.GetWidth() / 2, game.size.Height / 2-newScreenHeight/2, play.viewport.GetWidth(), newScreenHeight));
-
-        // Reset screen bitmap
-        if (newScreenHeight == _sub_screen->GetHeight())
-        {
-            // requested viewport height is the same as existing subscreen
-			BitmapHelper::SetScreenBitmap( _sub_screen );
-        }
-        // CHECKME: WTF is this for?
-        else if (_sub_screen->GetWidth() != game.size.Width)
-        {
-            // the height has changed and the width is not equal with game width
-            int subBitmapWidth = _sub_screen->GetWidth();
-            delete _sub_screen;
-            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(_old_screen->GetWidth() / 2 - subBitmapWidth / 2, _old_screen->GetHeight() / 2 - newScreenHeight / 2, subBitmapWidth, newScreenHeight));
-            BitmapHelper::SetScreenBitmap( _sub_screen );
-        }
-        else
-        {
-            // the height and width are equal to game native size: restore original screen
-            BitmapHelper::SetScreenBitmap( _old_screen );
-        }
-
-        // Update viewport and mouse area
-        play.SetViewport(BitmapHelper::GetScreenBitmap()->GetSize());
-        Mouse::SetGraphicArea();
-
-        // Reset virtual_screen bitmap
-        if (virtual_screen->GetHeight() != play.viewport.GetHeight()) {
-            int cdepth=virtual_screen->GetColorDepth();
-            delete virtual_screen;
-            virtual_screen=BitmapHelper::CreateBitmap(play.viewport.GetWidth(),play.viewport.GetHeight(),cdepth);
-            virtual_screen->Clear();
-            gfxDriver->SetMemoryBackBuffer(virtual_screen);
-        }
-
-        // Adjust offsets for rendering sprites on virtual screen
-        gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
-
-        // [IKM] Since both screen and virtual_screen bitmaps might have changed, we reset a virtual screen,
-        // with either first or second, depending on what was set as virtual screen before
-		if (abscreen==1) // it was a screen bitmap
-            SetVirtualScreen( BitmapHelper::GetScreenBitmap() );
-        else if (abscreen==2) // it was a virtual_screen bitmap
-            SetVirtualScreen( virtual_screen );
-
-        update_polled_stuff_if_runtime();
-    }
-    // update the script viewport height
-    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
-
-    SetMouseBounds (0,0,0,0);
+    SetMouseBounds(0, 0, 0, 0);
 
     our_eip=203;
     in_new_room=1;
@@ -586,14 +547,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (thisroom.resolution != get_fixed_pixel_size(1)) {
         for (cc=0;cc<thisroom.num_bscenes;cc++)
             thisroom.ebscene[cc] = fix_bitmap_size(thisroom.ebscene[cc]);
-    }
-
-    if ((thisroom.ebscene[0]->GetWidth() < play.viewport.GetWidth()) ||
-        (thisroom.ebscene[0]->GetHeight() < play.viewport.GetHeight()))
-    {
-        quitprintf("!The background scene for this room is smaller than the game resolution. If you have recently changed " 
-            "the game resolution, you will need to re-import the background for this room. (Room: %d, BG Size: %d x %d)",
-            newnum, thisroom.ebscene[0]->GetWidth(), thisroom.ebscene[0]->GetHeight());
     }
 
     recache_walk_behinds();
@@ -781,8 +734,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             }
         }
 
-        offsetx=0;
-        offsety=0;
+        play.SetRoomCameraAt(0, 0);
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
         // only stop moving if it's a new room, not a restore game
@@ -931,7 +883,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     generate_light_table();
     update_music_volume();
-    update_viewport();
+    play.UpdateRoomCamera();
     our_eip = 212;
     invalidate_screen();
     for (cc=0;cc<croom->numobj;cc++) {
@@ -1216,6 +1168,11 @@ RuntimeScriptValue Sc_ProcessClick(const RuntimeScriptValue *params, int32_t par
     API_SCALL_VOID_PINT3(ProcessClick);
 }
 
+RuntimeScriptValue Sc_Room_GetCamera(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptCamera, Room_GetCamera);
+}
+
 
 void RegisterRoomAPI()
 {
@@ -1236,6 +1193,7 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::get_RightEdge",                      Sc_Room_GetRightEdge);
     ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
     ccAddExternalStaticFunction("Room::get_Width",                          Sc_Room_GetWidth);
+    ccAddExternalStaticFunction("Room::get_Camera",                         Sc_Room_GetCamera);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

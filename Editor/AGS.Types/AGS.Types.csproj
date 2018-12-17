@@ -138,6 +138,7 @@
     <Compile Include="Enums\SourceControlFileStatus.cs" />
     <Compile Include="Enums\SpeechPortraitSide.cs" />
     <Compile Include="Enums\SpeechStyle.cs" />
+    <Compile Include="Enums\SpriteImportTilingDirection.cs" />
     <Compile Include="Enums\SpriteImportTransparency.cs" />
     <Compile Include="Enums\SpriteImportResolution.cs" />
     <Compile Include="Enums\TextParserWordType.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="PropertyGridExtras\InteractionPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\PropertyTabInteractions.cs" />
     <Compile Include="PropertyGridExtras\RoomMessagesUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\SpriteFileNameEditor.cs" />
     <Compile Include="PropertyGridExtras\SpriteSelectUIEditor.cs" />
     <Compile Include="PropertyGridExtras\ViewUIEditor.cs" />
     <Compile Include="Room.cs" />

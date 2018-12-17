@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using AGS.Editor.Preferences;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
@@ -81,7 +82,7 @@ namespace AGS.Editor
                 throw new AGSEditorException("Unable to find sprite " + spriteNumber + " in any sprite folders");
             }
 
-            Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, newImage, (SpriteImportMethod)((int)transparencyType), true, false, useAlphaChannel);
+            Factory.NativeProxy.ReplaceSpriteWithBitmap(sprite, newImage, (SpriteImportTransparency)((int)transparencyType), true, false, useAlphaChannel);
             if (sprite.ColorDepth < 32)
             {
                 sprite.AlphaChannel = false;
@@ -92,7 +93,7 @@ namespace AGS.Editor
 
         Sprite IAGSEditor.CreateNewSprite(ISpriteFolder inFolder, Bitmap newImage, SpriteImportTransparency transparencyType, bool useAlphaChannel)
         {
-            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(newImage, (SpriteImportMethod)((int)transparencyType), true, false, useAlphaChannel);
+            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(newImage, (SpriteImportTransparency)((int)transparencyType), true, false, useAlphaChannel);
             if (newSprite.ColorDepth < 32)
             {
                 newSprite.AlphaChannel = false;
@@ -105,7 +106,7 @@ namespace AGS.Editor
 
         string IAGSEditor.GetSpriteUsageReport(int spriteNumber)
         {
-            return new SpriteUsageChecker().GetSpriteUsageReport(spriteNumber, _agsEditor.CurrentGame);
+            return SpriteTools.GetSpriteUsageReport(spriteNumber, _agsEditor.CurrentGame);
         }
 
         void IAGSEditor.DeleteSprite(int spriteNumber)

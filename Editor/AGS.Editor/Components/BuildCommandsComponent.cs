@@ -238,13 +238,12 @@ namespace AGS.Editor.Components
 			{
 				if (_agsEditor.CompileGame(forceRebuild, false).Count == 0)
 				{
-					string success = "Compilation successful!";
-					string[] messages = new string[] { success };
-					Factory.GUIController.ShowOutputPanel(messages);
+					string message = "Compilation successful!";
+					Factory.GUIController.ShowOutputPanel(message);
 
 					if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always)
 					{
-						_guiController.ShowMessage(success, MessageBoxIcon.Information);
+						_guiController.ShowMessage(message, MessageBoxIcon.Information);
 					}
 				}
 			}

@@ -11,6 +11,7 @@ using AGS.CScript.Compiler;
 using AGS.Types;
 using AGS.Types.Interfaces;
 using AGS.Editor.Preferences;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
@@ -74,7 +75,7 @@ namespace AGS.Editor
          * 15: 3.4.1.2    - DefaultSetup node
          * 16: 3.5.0      - Unlimited fonts (need separate version to prevent crashes in older editors)
         */
-        public const int    LATEST_XML_VERSION_INDEX = 16;
+        public const int    LATEST_XML_VERSION_INDEX = 17;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.
@@ -1353,7 +1354,7 @@ namespace AGS.Editor
 
         public void DeleteSprite(Sprite sprite)
         {
-            string usageReport = new SpriteUsageChecker().GetSpriteUsageReport(sprite.Number, _game);
+            string usageReport = SpriteTools.GetSpriteUsageReport(sprite.Number, _game);
             if (usageReport != null)
             {
                 throw new SpriteInUseException("Cannot delete a sprite because it is in use:" + Environment.NewLine + usageReport);

@@ -16,10 +16,6 @@ namespace AGS.Editor
 {
     public class GUIController : IGUIController
     {
-        public const string IMAGE_FILE_FILTER = "All supported images (*.bmp; *.gif; *.jpg; *.png; *.tif)|*.bmp;*.gif;*.jpg;*.png;*.tif|Windows bitmap files (*.bmp)|*.bmp|Compuserve Graphics Interchange (*.gif)|*.gif|JPEG (*.jpg)|*.jpg|Portable Network Graphics (*.png)|*.png|Tagged Image File (*.tif)|*.tif";
-        public const string GAME_TEMPLATE_FILE_FILTER = "AGS game template files (*.agt)|*.agt";
-        public const string ROOM_TEMPLATE_FILE_FILTER = "AGS room template files (*.art)|*.art";
-
         public const string FILE_MENU_ID = "fileToolStripMenuItem";
         public const string HELP_MENU_ID = "HelpMenu";
         private const string CONTROL_ID_SPLIT = "^!^";
@@ -323,9 +319,15 @@ namespace AGS.Editor
             }
         }
 
-        public void ShowOutputPanel(string[] messages)
+        public void ShowOutputPanel(string[] messages, string imageKey = "BuildIcon")
         {
-            _mainForm.pnlOutput.SetMessages(messages);
+            _mainForm.pnlOutput.SetMessages(messages, imageKey);
+            _mainForm.pnlOutput.Show();
+        }
+
+        public void ShowOutputPanel(string message, string imageKey = "BuildIcon")
+        {
+            _mainForm.pnlOutput.SetMessage(message, imageKey);
             _mainForm.pnlOutput.Show();
         }
 
@@ -765,6 +767,7 @@ namespace AGS.Editor
                 AutoComplete.BackgroundCacheUpdateStatusChanged += new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
 				SystemEvents.DisplaySettingsChanged += new EventHandler(SystemEvents_DisplaySettingsChanging);
 
+                RegisterIcon("SpriteIcon", Resources.ResourceManager.GetIcon("iconspr.ico"));
                 RegisterIcon("BuildIcon", Resources.ResourceManager.GetIcon("menu_build_rebuild-files.ico"));
                 RegisterIcon("GameIcon", Resources.ResourceManager.GetIcon("game.ico"));
 				RegisterIcon("CompileErrorIcon", Resources.ResourceManager.GetIcon("eventlogError.ico"));
@@ -1013,7 +1016,7 @@ namespace AGS.Editor
 
         public void SaveRoomAsTemplate(UnloadedRoom room)
         {
-            string filename = Factory.GUIController.ShowSaveFileDialog("Save room template as...", GUIController.ROOM_TEMPLATE_FILE_FILTER, Factory.AGSEditor.UserTemplatesDirectory);
+            string filename = Factory.GUIController.ShowSaveFileDialog("Save room template as...", Constants.ROOM_TEMPLATE_FILE_FILTER, Factory.AGSEditor.UserTemplatesDirectory);
 
             if (filename != null)
             {
@@ -1048,7 +1051,7 @@ namespace AGS.Editor
                 }
             }
 
-            string filename = Factory.GUIController.ShowSaveFileDialog("Save new template as...", GUIController.GAME_TEMPLATE_FILE_FILTER, Factory.AGSEditor.UserTemplatesDirectory);
+            string filename = Factory.GUIController.ShowSaveFileDialog("Save new template as...", Constants.GAME_TEMPLATE_FILE_FILTER, Factory.AGSEditor.UserTemplatesDirectory);
 
             if (filename != null)
             {

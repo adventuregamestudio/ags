@@ -199,7 +199,64 @@ namespace AGS.Editor
             UpdateWindowsEXE(newExeName, errors);
             CreateCompiledSetupProgram();
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
-            foreach (string fileName in Utilities.GetDirectoryFileList(compiledDataDir, "*"))
+            string mainGameData = Path.Combine(compiledDataDir, baseGameFileName + ".ags");
+            if (File.Exists(mainGameData))
+                AttachDataToEXE(mainGameData, newExeName);
+            else
+                errors.Add(new CompileError(String.Format("Unable to locate main game data file at '{0}'", mainGameData)));
+            CopyAuxiliaryGameFiles(compiledDataDir);
+            // Update config file with current game parameters
+            Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
+            // Copy Windows plugins
+            CopyPlugins(errors);
+            return true;
+        }
+
+        private void AttachDataToEXE(string sourceFile, string destFile)
+        {
+            using (FileStream ostream = File.Open(destFile, FileMode.Append, FileAccess.Write))
+            {
+                int startPosition = (int)ostream.Position;
+                using (FileStream istream = File.Open(sourceFile, FileMode.Open, FileAccess.Read))
+                {
+                    const int bufferSize = 4096;
+                    byte[] buffer = new byte[bufferSize];
+                    for (int count = istream.Read(buffer, 0, bufferSize); count > 0;
+                        count = istream.Read(buffer, 0, bufferSize))
+                    {
+                        ostream.Write(buffer, 0, count);
+                    }
+                }
+                // write the offset into the EXE where the first data file resides
+                ostream.Write(BitConverter.GetBytes(startPosition), 0, 4);
+                // write the CLIB end signature so the engine knows this is a valid EXE
+                ostream.Write(Encoding.UTF8.GetBytes(NativeConstants.CLIB_END_SIGNATURE.ToCharArray()), 0,
+                            NativeConstants.CLIB_END_SIGNATURE.Length);
+            }
+        }
+
+        /// <summary>
+        /// Copies all files that could potentially be a part of the game
+        /// into the final compiled directory.
+        /// </summary>
+        private void CopyAuxiliaryGameFiles(string sourcePath)
+        {
+            List<string> files = GetAuxiliaryGameFiles(sourcePath);
+            foreach (string fileName in files)
+            {
+                Utilities.HardlinkOrCopy(GetCompiledPath(Path.GetFileName(fileName)), fileName, true);
+            }
+        }
+
+        /// <summary>
+        /// Gathers a list of files that could potentially be a part of the game.
+        /// Skips main game data (*.ags) and config (these are treated separately).
+        /// Returns an array of file paths.
+        /// </summary>
+        private List<string> GetAuxiliaryGameFiles(string sourcePath)
+        {
+            List<string> files = new List<string>();
+            foreach (string fileName in Utilities.GetDirectoryFileList(sourcePath, "*"))
             {
                 // TODO: this attributes check was added as a part of a hotfix.
                 // Constructing a list of game files for distribution package
@@ -207,39 +264,11 @@ namespace AGS.Editor
                 // elaborate way.
                 if ((File.GetAttributes(fileName) & (FileAttributes.Hidden | FileAttributes.System | FileAttributes.Temporary)) != 0)
                     continue;
-                if (fileName.EndsWith(".ags"))
-                {
-                    using (FileStream ostream = File.Open(GetCompiledPath(baseGameFileName + ".exe"), FileMode.Append,
-                        FileAccess.Write))
-                    {
-                        int startPosition = (int)ostream.Position;
-                        using (FileStream istream = File.Open(fileName, FileMode.Open, FileAccess.Read))
-                        {
-                            const int bufferSize = 4096;
-                            byte[] buffer = new byte[bufferSize];
-                            for (int count = istream.Read(buffer, 0, bufferSize); count > 0;
-                                count = istream.Read(buffer, 0, bufferSize))
-                            {
-                                ostream.Write(buffer, 0, count);
-                            }
-                        }
-                        // write the offset into the EXE where the first data file resides
-                        ostream.Write(BitConverter.GetBytes(startPosition), 0, 4);
-                        // write the CLIB end signature so the engine knows this is a valid EXE
-                        ostream.Write(Encoding.UTF8.GetBytes(NativeConstants.CLIB_END_SIGNATURE.ToCharArray()), 0,
-                            NativeConstants.CLIB_END_SIGNATURE.Length);
-                    }
-                }
-                else if (!fileName.EndsWith(AGSEditor.CONFIG_FILE_NAME))
-                {
-                    Utilities.HardlinkOrCopy(GetCompiledPath(Path.GetFileName(fileName)), fileName, true);
-                }
+                if (fileName.EndsWith(".ags") || fileName.EndsWith(AGSEditor.CONFIG_FILE_NAME))
+                    continue;
+                files.Add(fileName);
             }
-            // Update config file with current game parameters
-            Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
-            // Copy Windows plugins
-            CopyPlugins(errors);
-            return true;
+            return files;
         }
 
         public override string Name

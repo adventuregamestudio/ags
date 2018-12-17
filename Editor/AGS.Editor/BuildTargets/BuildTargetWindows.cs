@@ -204,7 +204,7 @@ namespace AGS.Editor
                 AttachDataToEXE(mainGameData, newExeName);
             else
                 errors.Add(new CompileError(String.Format("Unable to locate main game data file at '{0}'", mainGameData)));
-            CopyAuxiliaryGameFiles(compiledDataDir);
+            CopyAuxiliaryGameFiles(compiledDataDir, true);
             // Update config file with current game parameters
             Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
             // Copy Windows plugins
@@ -239,12 +239,22 @@ namespace AGS.Editor
         /// Copies all files that could potentially be a part of the game
         /// into the final compiled directory.
         /// </summary>
-        private void CopyAuxiliaryGameFiles(string sourcePath)
+        public void CopyAuxiliaryGameFiles(string sourcePath, bool alwaysOverwrite)
         {
             List<string> files = GetAuxiliaryGameFiles(sourcePath);
+            // This method could be called separately from the standard building process,
+            // so double-check that necessary folders exist
+            if (files.Count > 0)
+                EnsureStandardSubfoldersExist();
             foreach (string fileName in files)
             {
-                Utilities.HardlinkOrCopy(GetCompiledPath(Path.GetFileName(fileName)), fileName, true);
+                string destFile = GetCompiledPath(Path.GetFileName(fileName));
+                if (alwaysOverwrite ||
+                    !File.Exists(destFile) ||
+                    File.GetLastWriteTimeUtc(destFile).CompareTo(File.GetLastWriteTimeUtc(fileName)) < 0)
+                {
+                    Utilities.HardlinkOrCopy(destFile, fileName, true);
+                }
             }
         }
 

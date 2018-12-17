@@ -246,8 +246,7 @@ namespace AGS.Editor
 
         private void UpdateScrollableWindowSize()
         {
-            bufferedPanel1.AutoScroll = true;
-			lblDummyScrollSizer.Location = new Point(_state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height));
+            bufferedPanel1.AutoScrollMinSize = new Size(_state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height));
         }
 
         private void RepopulateBackgroundList(int selectIndex) 
@@ -865,18 +864,17 @@ namespace AGS.Editor
 
         private void sldZoomLevel_Scroll(object sender, EventArgs e)
 		{
-            float oldScale = _state.Scale;
-            _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
-
-            int newValue = (int)((bufferedPanel1.VerticalScroll.Value / oldScale) * _state.Scale);
-			bufferedPanel1.VerticalScroll.Value = Math.Min(newValue, bufferedPanel1.VerticalScroll.Maximum);
-			newValue = (int)((bufferedPanel1.HorizontalScroll.Value / oldScale) * _state.Scale);
-			bufferedPanel1.HorizontalScroll.Value = Math.Min(newValue, bufferedPanel1.HorizontalScroll.Maximum);
-
             lblZoomInfo.Text = String.Format("{0}%", sldZoomLevel.Value * ZOOM_STEP_VALUE);
+
+            int oldPosX = _state.WindowSizeToRoom(bufferedPanel1.HorizontalScroll.Value);
+            int oldPosY = _state.WindowSizeToRoom(bufferedPanel1.VerticalScroll.Value);
+
+            _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
+            UpdateScrollableWindowSize();
             
-			UpdateScrollableWindowSize();
-			bufferedPanel1.Invalidate();
+            bufferedPanel1.HorizontalScroll.Value = _state.RoomSizeToWindow(oldPosX);
+            bufferedPanel1.VerticalScroll.Value = _state.RoomSizeToWindow(oldPosY);
+            bufferedPanel1.Invalidate();
 		}
 
 		private void sldTransparency_Scroll(object sender, EventArgs e)

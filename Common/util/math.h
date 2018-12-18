@@ -18,7 +18,9 @@
 #ifndef __AGS_CN_UTIL__MATH_H
 #define __AGS_CN_UTIL__MATH_H
 
-const float M_PI = 3.14159265358979323846f;
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace AGS
 {
@@ -73,12 +75,12 @@ namespace Math
 
     inline float RadiansToDegrees(float rads)
     {
-        return rads * (180.f / M_PI);
+        return rads * (float)(180.0 / M_PI);
     }
 
     inline float DegreesToRadians(float deg)
     {
-        return deg * (M_PI / 180.f);
+        return deg * (float)(M_PI / 180.0);
     }
 } // namespace Math
 

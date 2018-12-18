@@ -3535,7 +3535,6 @@ int do_variable_ax_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags:
         }
         else if (firstVariableType == SYM_GLOBALVAR)
         {
-
             if (sym.entries[firstVariableSym].flags & SFLG_IMPORTED)
             {
                 scrip->write_cmd2(SCMD_LITTOREG, SREG_MAR, sym.entries[firstVariableSym].soffs);
@@ -3634,7 +3633,8 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol 
         (variableSymType == SYM_STRUCTMEMBER) ||
         (variableSymType == SYM_STRING)) &&
         (!isProperty) &&
-        (!isImported))
+        (!isImported) &&
+        (!isPointer))
     {
         do_variable_ax_PrepareComponentAccess_Elementary(variableSym, currentComponentOffset);
     }

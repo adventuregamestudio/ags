@@ -102,7 +102,7 @@ struct Point
         return X != p.X || Y != p.Y;
     }
 
-    inline Point &operator +(const Point &p)
+    inline Point operator +(const Point &p) const
     {
         return Point(X + p.X, Y + p.Y);
     }

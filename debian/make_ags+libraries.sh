@@ -1,13 +1,13 @@
 #!/bin/sh
 set -e
 
-# This script uses Debian 7 (wheezy) chroots to build ags
+# This script uses Debian 8 (jessie) chroots to build ags
 # on Debian or Ubuntu.
-# That is because Debian 7 uses glibc 2.13, while
+# That is because Debian 8 uses glibc 2.19, while
 # most other major Linux distributions (including Ubuntu)
 # use higher versions. Building ags
-# on a distribution with glibc > 2.13 will likely result in
-# something that does not work on Debian 7.
+# on a distribution with glibc > 2.19 will likely result in
+# something that does not work on Debian 8.
 
 # Preliminaries for running this script:
 # This script is intended for use on Debian or Ubuntu
@@ -17,8 +17,8 @@ set -e
 
 # Create the (chroot) environments that will be used for building ags:
 
-# cowbuilder-dist wheezy i386 create
-# cowbuilder-dist wheezy amd64 create
+# cowbuilder-dist jessie i386 create
+# cowbuilder-dist jessie amd64 create
 
 # The only other thing you should take care of is that your ags
 # source tree is git clean. That means: check 'git status', commit any
@@ -27,8 +27,8 @@ set -e
 # The chroots can later be updated, which becomes necessary if
 # this script fails because some Debian package cannot be downloaded:
 
-# cowbuilder-dist wheezy i386 update
-# cowbuilder-dist wheezy amd64 update
+# cowbuilder-dist jessie i386 update
+# cowbuilder-dist jessie amd64 update
 
 BASEPATH=$(dirname $(dirname $(readlink -f $0)))
 
@@ -60,30 +60,28 @@ debuild -us -uc -S
 
 # Build ags binary package in i386 chroot, also use a hook script to copy libraries and licenses
 # from the chroot to a folder that is mounted into the chroot via --bindmounts.
-DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib32" cowbuilder-dist wheezy i386 build \
+DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib32" cowbuilder-dist jessie i386 build \
   $BASEPATH/../ags_$VERSION.dsc \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
-  --bindmounts "$BASEPATH/ags+libraries" \
-  --extrapackages "liballegro4.4-plugin-alsa"
+  --bindmounts "$BASEPATH/ags+libraries"
 
 # Get the ags binary out of the binary Debian package and clean up.
 cd $BASEPATH/ags+libraries
-ar p $BASEPATH/ags+libraries/ags_${VERSION}_i386.deb data.tar.gz | tar zx
+ar p $BASEPATH/ags+libraries/ags_${VERSION}_i386.deb data.tar.xz | unxz | tar x
 sudo cp $BASEPATH/ags+libraries/usr/bin/ags $BASEPATH/ags+libraries/data/ags32
 rm -rf $BASEPATH/ags+libraries/ags_* $BASEPATH/ags+libraries/ags-dbg_* $BASEPATH/ags+libraries/usr
 
 # Repeat for amd64.
 sed -i -r "5s/.*/BIT=64/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
-DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib64" cowbuilder-dist wheezy amd64 build \
+DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib64" cowbuilder-dist jessie amd64 build \
   $BASEPATH/../ags_$VERSION.dsc \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
-  --bindmounts "$BASEPATH/ags+libraries" \
-  --extrapackages "liballegro4.4-plugin-alsa"
+  --bindmounts "$BASEPATH/ags+libraries"
 
 cd $BASEPATH/ags+libraries
-ar p $BASEPATH/ags+libraries/ags_${VERSION}_amd64.deb data.tar.gz | tar zx
+ar p $BASEPATH/ags+libraries/ags_${VERSION}_amd64.deb data.tar.xz | unxz | tar x
 sudo cp $BASEPATH/ags+libraries/usr/bin/ags $BASEPATH/ags+libraries/data/ags64
 rm -rf $BASEPATH/ags+libraries/ags_* $BASEPATH/ags+libraries/ags-dbg_* $BASEPATH/ags+libraries/usr last_operation.log
 

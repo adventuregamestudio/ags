@@ -22,15 +22,4 @@ struct _Point {
     short x, y;
 };
 
-#define MAXPOINTS 30
-struct PolyPoints {
-    int x[MAXPOINTS];
-    int y[MAXPOINTS];
-    int numpoints;
-    void add_point(int xxx,int yyy);
-    PolyPoints() { numpoints = 0; }
-
-    void ReadFromFile(Common::Stream *in);
-};
-
 #endif // __AC_POINT_H

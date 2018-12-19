@@ -37,11 +37,8 @@ int  cunpackbitl32(unsigned int *line, int size, Common::Stream *in);
 //=============================================================================
 
 soff_t save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, soff_t offe);
-soff_t load_lzw(Common::Stream *in, Common::Bitmap *bmm, color *pall);
+soff_t load_lzw(Common::Stream *in, Common::Bitmap **bmm, int dst_bpp, color *pall);
 soff_t savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, soff_t write_at);
 soff_t loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall, soff_t read_at);
-
-//extern char *lztempfnm;
-extern Common::Bitmap *recalced;
 
 #endif // __AC_COMPRESS_H

@@ -220,7 +220,6 @@
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
     <ClCompile Include="..\..\Common\ac\messageinfo.cpp" />
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
-    <ClCompile Include="..\..\Common\ac\point.cpp" />
     <ClCompile Include="..\..\Common\ac\roomstruct.cpp" />
     <ClCompile Include="..\..\Common\ac\spritecache.cpp" />
     <ClCompile Include="..\..\Common\ac\view.cpp" />
@@ -236,6 +235,7 @@
     <ClCompile Include="..\..\Common\game\interactions.cpp" />
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
     <ClCompile Include="..\..\Common\game\room_file.cpp" />
+    <ClCompile Include="..\..\Common\game\room_file_deprecated.cpp" />
     <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />
     <ClCompile Include="..\..\Common\gui\guibutton.cpp" />
@@ -276,7 +276,6 @@
     <ClCompile Include="..\..\Common\util\wgt2allg.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\ac\animationstruct.h" />
     <ClInclude Include="..\..\Common\ac\audiocliptype.h" />
     <ClInclude Include="..\..\Common\ac\characterinfo.h" />
     <ClInclude Include="..\..\Common\ac\common.h" />

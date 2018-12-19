@@ -310,7 +310,6 @@ int cunpackbitl32(unsigned int *line, int size, Stream *in)
 //=============================================================================
 
 char *lztempfnm = "~aclzw.tmp";
-Bitmap *recalced = NULL;
 
 // returns bytes per pixel for bitmap's color depth
 int bmp_bpp(Bitmap*bmpt) {
@@ -353,14 +352,12 @@ soff_t save_lzw(char *fnn, Bitmap *bmpp, color *pall, soff_t offe) {
   return toret;
 }
 
-soff_t load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
+soff_t load_lzw(Stream *in, Common::Bitmap **dst_bmp, int dst_bpp, color *pall) {
   soff_t        uncompsiz;
   int           *loptr;
   unsigned char *membuffer;
   int           arin;
 
-  recalced = bmm;
-  // MACPORT FIX (HACK REALLY)
   in->Read(&pall[0], sizeof(color)*256);
   maxsize = in->ReadInt32();
   uncompsiz = in->ReadInt32();
@@ -377,8 +374,8 @@ soff_t load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
 #if defined(AGS_BIG_ENDIAN)
   loptr[0] = AGS::Common::BBOp::SwapBytesInt32(loptr[0]);
   loptr[1] = AGS::Common::BBOp::SwapBytesInt32(loptr[1]);
-  int bitmapNumPixels = loptr[0]*loptr[1]/_acroom_bpp;
-  switch (_acroom_bpp) // bytes per pixel!
+  int bitmapNumPixels = loptr[0]*loptr[1]/ dst_bpp;
+  switch (dst_bpp) // bytes per pixel!
   {
     case 1:
     {
@@ -408,18 +405,15 @@ soff_t load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
   }
 #endif // defined(AGS_BIG_ENDIAN)
 
-  delete bmm;
-
   update_polled_stuff_if_runtime();
 
-  bmm = BitmapHelper::CreateBitmap((loptr[0] / _acroom_bpp), loptr[1], _acroom_bpp * 8);
+  Bitmap *bmm = BitmapHelper::CreateBitmap((loptr[0] / dst_bpp), loptr[1], dst_bpp * 8);
   if (bmm == NULL)
     quit("!load_room: not enough memory to load room background");
 
   update_polled_stuff_if_runtime();
 
   bmm->Acquire ();
-  recalced = bmm;
 
   for (arin = 0; arin < loptr[1]; arin++)
     memcpy(&bmm->GetScanLineForWriting(arin)[0], &membuffer[arin * loptr[0]], loptr[0]);
@@ -435,6 +429,7 @@ soff_t load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
 
   update_polled_stuff_if_runtime();
 
+  *dst_bmp = bmm;
   return uncompsiz;
 }
 

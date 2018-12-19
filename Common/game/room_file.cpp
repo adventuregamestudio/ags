@@ -23,6 +23,14 @@
 #include "util/compress.h"
 #include "util/string_utils.h"
 
+// default number of hotspots to read from the room file
+#define MIN_HOTSPOTS  20
+#define LEGACY_HOTSPOT_NAME_LEN 30
+#define ROOM_PASSWORD_LENGTH 11
+#define LEGACY_ROOM_PASSWORD_SALT 60
+#define ROOM_MESSAGE_FLAG_DISPLAYNEXT 200
+
+
 namespace AGS
 {
 namespace Common
@@ -98,72 +106,55 @@ enum RoomFileBlock
 };
 
 
+// Main room data
 HRoomFileError ReadMainBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion data_ver)
 {
-    int   f;
-    char  buffer[3000];
-    soff_t tesl;
+    char buffer[3000];
 
-    rstruc->width = 320;
-    rstruc->height = 200;
-    rstruc->resolution = 1;
-    rstruc->numwalkareas = 0;
-    rstruc->numhotspots = 0;
-
-    memset(&rstruc->shadinginfo[0], 0, sizeof(short) * 16);
-    memset(&rstruc->sprs[0], 0, sizeof(sprstruc) * MAX_INIT_SPR);
-    memset(&rstruc->objbaseline[0], 0xff, sizeof(int) * MAX_INIT_SPR);
-    memset(&rstruc->objectFlags[0], 0, sizeof(short) * MAX_INIT_SPR);
-    memset(&rstruc->hswalkto[0], 0, sizeof(_Point) * MAX_HOTSPOTS);
-    memset(&rstruc->walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
-    memset(&rstruc->walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
-
-    for (f = 0; f < MAX_HOTSPOTS; f++) {
-        rstruc->hotspotScriptNames[f].Free();
-        if (f == 0)
-            rstruc->hotspotnames[f] = "No hotspot";
-        else
-            rstruc->hotspotnames[f].Format("Hotspot %d", f);
-    }
-
+    int bpp;
     if (data_ver >= kRoomVersion_208)
-        _acroom_bpp = in->ReadInt32();
+        bpp = in->ReadInt32();
     else
-        _acroom_bpp = 1;
+        bpp = 1;
 
-    if (_acroom_bpp < 1)
-        _acroom_bpp = 1;
+    if (bpp < 1)
+        bpp = 1;
 
-    rstruc->bytes_per_pixel = _acroom_bpp;
+    rstruc->bytes_per_pixel = bpp;
     rstruc->numobj = in->ReadInt16();
     if (rstruc->numobj > MAX_OBJ)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many walk-behinds (in room: %d, max: %d).", rstruc->numobj, MAX_OBJ));
 
+    // Walk-behinds baselines
     in->ReadArrayOfInt16(&rstruc->objyval[0], rstruc->numobj);
 
     rstruc->numhotspots = in->ReadInt32();
     if (rstruc->numhotspots == 0)
-        rstruc->numhotspots = 20;
+        rstruc->numhotspots = MIN_HOTSPOTS;
     if (rstruc->numhotspots > MAX_HOTSPOTS)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many hotspots (in room: %d, max: %d).", rstruc->numhotspots, MAX_HOTSPOTS));
 
-    // Points are a pair of shorts
-    // [IKM] TODO: read/write member for _Point?
-    in->ReadArrayOfInt16((int16_t*)&rstruc->hswalkto[0], 2 * rstruc->numhotspots);
+    // Hotspots walk-to points
+    for (size_t i = 0; i < (size_t)rstruc->numhotspots; ++i)
+    {
+        rstruc->hswalkto[i].x = in->ReadInt16();
+        rstruc->hswalkto[i].y = in->ReadInt16();
+    }
 
-    for (f = 0; f < rstruc->numhotspots; f++)
+    // Hotspots names and script names
+    for (size_t i = 0; i < (size_t)rstruc->numhotspots; ++i)
     {
         if (data_ver >= kRoomVersion_3415)
-            rstruc->hotspotnames[f] = StrUtil::ReadString(in);
+            rstruc->hotspotnames[i] = StrUtil::ReadString(in);
         else if (data_ver >= kRoomVersion_303a)
-            rstruc->hotspotnames[f] = String::FromStream(in);
+            rstruc->hotspotnames[i] = String::FromStream(in);
         else
-            rstruc->hotspotnames[f] = String::FromStreamCount(in, 30);
+            rstruc->hotspotnames[i] = String::FromStreamCount(in, LEGACY_HOTSPOT_NAME_LEN);
     }
 
     if (data_ver >= kRoomVersion_270)
     {
-        for (int i = 0; i < rstruc->numhotspots; ++i)
+        for (size_t i = 0; i < (size_t)rstruc->numhotspots; ++i)
         {
             if (data_ver >= kRoomVersion_3415)
                 rstruc->hotspotScriptNames[i] = StrUtil::ReadString(in);
@@ -172,11 +163,14 @@ HRoomFileError ReadMainBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion dat
         }
     }
 
-    rstruc->numwalkareas = in->ReadInt32();
-    for (int iteratorCount = 0; iteratorCount < rstruc->numwalkareas; ++iteratorCount)
-    {
-        rstruc->wallpoints[iteratorCount].ReadFromFile(in);
-    }
+    // TODO: remove from format later
+    int polypoint_areas = in->ReadInt32();
+    if (polypoint_areas > 0)
+        return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Legacy poly-point areas are no longer supported.");
+    /* NOTE: implementation hidden in room_file_deprecated.cpp
+        for (size_t i = 0; i < (size_t)polypoint_areas; ++i)
+            wallpoints[i].Read(in);
+    */
 
     update_polled_stuff_if_runtime();
 
@@ -185,15 +179,13 @@ HRoomFileError ReadMainBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion dat
     rstruc->left = in->ReadInt16();
     rstruc->right = in->ReadInt16();
 
+    // Room objects
     rstruc->numsprs = in->ReadInt16();
-
     if (rstruc->numsprs > MAX_INIT_SPR)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many objects (in room: %d, max: %d).", rstruc->numsprs, MAX_INIT_SPR));
 
-    for (int iteratorCount = 0; iteratorCount < rstruc->numsprs; ++iteratorCount)
-    {
-        rstruc->sprs[iteratorCount].ReadFromFile(in);
-    }
+    for (size_t i = 0; i < (size_t)rstruc->numsprs; ++i)
+        rstruc->sprs[i].ReadFromFile(in);
 
     // Legacy interactions
     if (data_ver >= kRoomVersion_253)
@@ -202,95 +194,50 @@ HRoomFileError ReadMainBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion dat
         if (rstruc->numLocalVars > 0)
         {
             rstruc->localvars = new InteractionVariable[rstruc->numLocalVars];
-            for (int iteratorCount = 0; iteratorCount < rstruc->numLocalVars; ++iteratorCount)
-                rstruc->localvars[iteratorCount].Read(in);
+            for (size_t i = 0; i < (size_t)rstruc->numLocalVars; ++i)
+                rstruc->localvars[i].Read(in);
         }
     }
 
-    rstruc->numRegions = 0;
+    if (data_ver >= kRoomVersion_241 && data_ver < kRoomVersion_300a)
+    {
+        for (size_t i = 0; i < (size_t)rstruc->numhotspots; ++i)
+            rstruc->intrHotspot[i] = Interaction::CreateFromStream(in);
+        for (size_t i = 0; i < (size_t)rstruc->numsprs; ++i)
+            rstruc->intrObject[i] = Interaction::CreateFromStream(in);
+        rstruc->intrRoom = Interaction::CreateFromStream(in);
+    }
 
-    if (data_ver >= kRoomVersion_241) {
-
-        // free all of the old interactions
-        for (f = 0; f < MAX_HOTSPOTS; f++) {
-            if (rstruc->intrHotspot[f] != NULL) {
-                delete rstruc->intrHotspot[f];
-                rstruc->intrHotspot[f] = NULL;
-            }
-
-            if (data_ver < kRoomVersion_300a)
-            {
-                if (f < rstruc->numhotspots)
-                    rstruc->intrHotspot[f] = Interaction::CreateFromStream(in);
-                else
-                    rstruc->intrHotspot[f] = new Interaction();
-            }
-        }
-
-        for (f = 0; f < MAX_INIT_SPR; f++) {
-            if (rstruc->intrObject[f] != NULL) {
-                delete rstruc->intrObject[f];
-                rstruc->intrObject[f] = NULL;
-            }
-
-            if (data_ver < kRoomVersion_300a)
-            {
-                if (f < rstruc->numsprs)
-                    rstruc->intrObject[f] = Interaction::CreateFromStream(in);
-                else
-                    rstruc->intrObject[f] = new Interaction();
-            }
-        }
+    if (data_ver >= kRoomVersion_255b)
+    {
+        rstruc->numRegions = in->ReadInt32();
+        if (rstruc->numRegions > MAX_REGIONS)
+            return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many regions (in room: %d, max: %d).", rstruc->numRegions, MAX_REGIONS));
 
         if (data_ver < kRoomVersion_300a)
         {
-            delete rstruc->intrRoom;
-            rstruc->intrRoom = Interaction::CreateFromStream(in);
-        }
-
-        for (f = 0; f < MAX_REGIONS; f++) {
-            if (rstruc->intrRegion[f] != NULL)
-                delete rstruc->intrRegion[f];
-            rstruc->intrRegion[f] = new Interaction();
-        }
-
-        if (data_ver >= kRoomVersion_255b) {
-            rstruc->numRegions = in->ReadInt32();
-            if (rstruc->numRegions > MAX_REGIONS)
-                return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many regions (in room: %d, max: %d).", rstruc->numRegions, MAX_REGIONS));
-
-            if (data_ver < kRoomVersion_300a)
-            {
-                for (f = 0; f < rstruc->numRegions; f++) {
-                    delete rstruc->intrRegion[f];
-                    rstruc->intrRegion[f] = Interaction::CreateFromStream(in);
-                }
-            }
-        }
-
-        if (data_ver >= kRoomVersion_300a)
-        {
-            rstruc->hotspotScripts = new InteractionScripts*[rstruc->numhotspots];
-            rstruc->objectScripts = new InteractionScripts*[rstruc->numsprs];
-            rstruc->regionScripts = new InteractionScripts*[rstruc->numRegions];
-            rstruc->roomScripts = InteractionScripts::CreateFromStream(in);
-            int bb;
-            for (bb = 0; bb < rstruc->numhotspots; bb++) {
-                rstruc->hotspotScripts[bb] = InteractionScripts::CreateFromStream(in);
-            }
-            for (bb = 0; bb < rstruc->numsprs; bb++) {
-                rstruc->objectScripts[bb] = InteractionScripts::CreateFromStream(in);
-            }
-            for (bb = 0; bb < rstruc->numRegions; bb++) {
-                rstruc->regionScripts[bb] = InteractionScripts::CreateFromStream(in);
-            }
-
+            for (size_t i = 0; i < (size_t)rstruc->numRegions; ++i)
+                rstruc->intrRegion[i] = Interaction::CreateFromStream(in);
         }
     }
 
+    // Event script links
+    if (data_ver >= kRoomVersion_300a)
+    {
+        rstruc->hotspotScripts = new InteractionScripts*[rstruc->numhotspots];
+        rstruc->objectScripts = new InteractionScripts*[rstruc->numsprs];
+        rstruc->regionScripts = new InteractionScripts*[rstruc->numRegions];
+        rstruc->roomScripts = InteractionScripts::CreateFromStream(in);
+        for (size_t i = 0; i < (size_t)rstruc->numhotspots; ++i)
+            rstruc->hotspotScripts[i] = InteractionScripts::CreateFromStream(in);
+        for (size_t i = 0; i < (size_t)rstruc->numsprs; ++i)
+            rstruc->objectScripts[i] = InteractionScripts::CreateFromStream(in);
+        for (size_t i = 0; i < (size_t)rstruc->numRegions; ++i)
+            rstruc->regionScripts[i] = InteractionScripts::CreateFromStream(in);
+    }
 
-
-    if (data_ver >= kRoomVersion_200_alpha) {
+    if (data_ver >= kRoomVersion_200_alpha)
+    {
         in->ReadArrayOfInt32(&rstruc->objbaseline[0], rstruc->numsprs);
         rstruc->width = in->ReadInt16();
         rstruc->height = in->ReadInt16();
@@ -302,34 +249,46 @@ HRoomFileError ReadMainBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion dat
     if (data_ver >= kRoomVersion_200_final)
         rstruc->resolution = in->ReadInt16();
 
-    int num_walk_areas = MAX_WALK_AREAS;
+    rstruc->numwalkareas = MAX_WALK_AREAS;
     if (data_ver >= kRoomVersion_240)
-        num_walk_areas = in->ReadInt32();
-
-    if (num_walk_areas > MAX_WALK_AREAS + 1)
-        return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many walkable areas (in room: %d, max: %d).", num_walk_areas, MAX_WALK_AREAS + 1));
+        rstruc->numwalkareas = in->ReadInt32();
+    if (rstruc->numwalkareas > MAX_WALK_AREAS + 1)
+        return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many walkable areas (in room: %d, max: %d).", rstruc->numwalkareas, MAX_WALK_AREAS + 1));
 
     if (data_ver >= kRoomVersion_200_alpha7)
-        in->ReadArrayOfInt16(&rstruc->walk_area_zoom[0], num_walk_areas);
+        in->ReadArrayOfInt16(&rstruc->walk_area_zoom[0], rstruc->numwalkareas);
     if (data_ver >= kRoomVersion_214)
-        in->ReadArrayOfInt16(&rstruc->walk_area_light[0], num_walk_areas);
-    if (data_ver >= kRoomVersion_251) {
-        in->ReadArrayOfInt16(&rstruc->walk_area_zoom2[0], num_walk_areas);
-        in->ReadArrayOfInt16(&rstruc->walk_area_top[0], num_walk_areas);
-        in->ReadArrayOfInt16(&rstruc->walk_area_bottom[0], num_walk_areas);
+        in->ReadArrayOfInt16(&rstruc->walk_area_light[0], rstruc->numwalkareas);
+    if (data_ver >= kRoomVersion_251)
+    {
+        in->ReadArrayOfInt16(&rstruc->walk_area_zoom2[0], rstruc->numwalkareas);
+        in->ReadArrayOfInt16(&rstruc->walk_area_top[0], rstruc->numwalkareas);
+        in->ReadArrayOfInt16(&rstruc->walk_area_bottom[0], rstruc->numwalkareas);
 
-        for (f = 0; f < num_walk_areas; f++) {
+        for (size_t i = 0; i < (size_t)rstruc->numwalkareas; ++i)
+        {
             // if they set a contiuously scaled area where the top
             // and bottom zoom levels are identical, set it as a normal
             // scaled area
-            if (rstruc->walk_area_zoom[f] == rstruc->walk_area_zoom2[f])
-                rstruc->walk_area_zoom2[f] = NOT_VECTOR_SCALED;
+            if (rstruc->walk_area_zoom[i] == rstruc->walk_area_zoom2[i])
+                rstruc->walk_area_zoom2[i] = NOT_VECTOR_SCALED;
         }
     }
 
+    in->Read(&rstruc->password[0], ROOM_PASSWORD_LENGTH);
+    if (data_ver < kRoomVersion_200_alpha)
+    {
+        for (size_t i = 0; i < (size_t)ROOM_PASSWORD_LENGTH; ++i)
+            rstruc->password[i] += LEGACY_ROOM_PASSWORD_SALT;
+    }
+    else
+    {
+        for (size_t i = 0; i < (size_t)ROOM_PASSWORD_LENGTH; ++i)
+            rstruc->password[i] += passwencstring[i];
+    }
 
-    in->Read(&rstruc->password[0], 11);
     in->Read(&rstruc->options[0], 10);
+
     rstruc->nummes = in->ReadInt16();
     if (rstruc->nummes > MAXMESS)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many room messages (in room: %d, max: %d).", rstruc->nummes, MAXMESS));
@@ -339,146 +298,101 @@ HRoomFileError ReadMainBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion dat
 
     if (data_ver >= kRoomVersion_pre114_3)
     {
-        for (int iteratorCount = 0; iteratorCount < rstruc->nummes; ++iteratorCount)
-        {
-            rstruc->msgi[iteratorCount].ReadFromFile(in);
-        }
+        for (size_t i = 0; i < (size_t)rstruc->nummes; ++i)
+            rstruc->msgi[i].ReadFromFile(in);
     }
-    else
-        memset(&rstruc->msgi[0], 0, sizeof(MessageInfo) * MAXMESS);
 
-    for (f = 0; f < rstruc->nummes; f++) {
+    for (size_t i = 0; i < (size_t)rstruc->nummes; ++i)
+    {
         if (data_ver >= kRoomVersion_261)
             read_string_decrypt(in, buffer, sizeof(buffer));
         else
             fgetstring_limit(buffer, in, sizeof(buffer));
 
         int buffer_length = strlen(buffer);
+        rstruc->message[i] = (char *)malloc(buffer_length + 2);
+        strcpy(rstruc->message[i], buffer);
 
-        rstruc->message[f] = (char *)malloc(buffer_length + 2);
-        strcpy(rstruc->message[f], buffer);
-
-        if ((buffer_length > 0) && (buffer[buffer_length - 1] == (char)200)) {
-            rstruc->message[f][strlen(buffer) - 1] = 0;
-            rstruc->msgi[f].flags |= MSG_DISPLAYNEXT;
+        if ((buffer_length > 0) && (buffer[buffer_length - 1] == (char)ROOM_MESSAGE_FLAG_DISPLAYNEXT))
+        {
+            rstruc->message[i][strlen(buffer) - 1] = 0;
+            rstruc->msgi[i].flags |= MSG_DISPLAYNEXT;
         }
     }
 
-    rstruc->numanims = 0;
-    if (data_ver >= kRoomVersion_pre114_6) {
-        rstruc->numanims = in->ReadInt16();
-
-        if (rstruc->numanims > 0)
-            // [IKM] CHECKME later: this will cause trouble if structure changes
-            in->Seek(sizeof(FullAnimation) * rstruc->numanims);
-        //      in->ReadArray(&rstruc->anims[0], sizeof(FullAnimation), rstruc->numanims);
-    }
-    else {
-        rstruc->numanims = 0;
-        memset(&rstruc->anims[0], 0, sizeof(FullAnimation) * MAXANIMS);
+    // Very old format legacy room animations (FullAnimation)
+    if (data_ver >= kRoomVersion_pre114_6)
+    {
+        // TODO: remove from format later
+        size_t fullanim_count = in->ReadInt16();
+        if (fullanim_count > 0)
+            return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Room animations are no longer supported.");
+        /* NOTE: implementation hidden in room_file_deprecated.cpp
+            in->ReadArray(&fullanims[0], sizeof(FullAnimation), fullanim_count);
+        */
     }
 
-    if ((data_ver >= kRoomVersion_pre114_4) && (data_ver < kRoomVersion_250a)) {
+    if ((data_ver >= kRoomVersion_pre114_4) && (data_ver < kRoomVersion_250a))
+    {
         load_script_configuration(in);
         load_graphical_scripts(in, rstruc);
     }
 
-
     if (data_ver >= kRoomVersion_114)
-        in->ReadArrayOfInt16(&rstruc->shadinginfo[0], 16);
-    if (data_ver >= kRoomVersion_255b) {
+        in->ReadArrayOfInt16(&rstruc->shadinginfo[0], MAX_WALK_AREAS + 1);
+    if (data_ver >= kRoomVersion_255b)
+    {
         in->ReadArrayOfInt16(&rstruc->regionLightLevel[0], rstruc->numRegions);
         in->ReadArrayOfInt32(&rstruc->regionTintLevel[0], rstruc->numRegions);
     }
 
-
-    if (data_ver < kRoomVersion_3404)
-    {
-        // Convert the old format tint saturation
-        for (int i = 0; i < MAX_REGIONS; ++i)
-        {
-            if ((rstruc->regionTintLevel[i] & LEGACY_TINT_IS_ENABLED) != 0)
-            {
-                rstruc->regionTintLevel[i] &= ~LEGACY_TINT_IS_ENABLED;
-                // older versions of the editor had a bug - work around it
-                int tint_amount = (rstruc->regionLightLevel[i] > 0 ? rstruc->regionLightLevel[i] : 50);
-                rstruc->regionTintLevel[i] |= (tint_amount & 0xFF) << 24;
-                rstruc->regionLightLevel[i] = 255;
-            }
-        }
-    }
-
     update_polled_stuff_if_runtime();
-    if (data_ver >= kRoomVersion_pre114_5) {
-        tesl = load_lzw(in, rstruc->ebscene[0], rstruc->pal);
-        rstruc->ebscene[0] = recalced;
-    }
+    // Primary background
+    soff_t lzw_at = in->GetPosition();
+    if (data_ver >= kRoomVersion_pre114_5)
+        lzw_at = load_lzw(in, &rstruc->ebscene[0], rstruc->bytes_per_pixel, rstruc->pal);
     else
-        tesl = loadcompressed_allegro(in, &rstruc->ebscene[0], rstruc->pal, in->GetPosition());
+        lzw_at = loadcompressed_allegro(in, &rstruc->ebscene[0], rstruc->pal, lzw_at);
 
     if ((rstruc->ebscene[0]->GetWidth() > 320) & (data_ver < kRoomVersion_200_final))
         rstruc->resolution = 2;
 
     update_polled_stuff_if_runtime();
+    // Mask bitmaps
     if (data_ver >= kRoomVersion_255b)
-        tesl = loadcompressed_allegro(in, &rstruc->regions, rstruc->pal, tesl);
-    else if (data_ver >= kRoomVersion_114) {
-        tesl = loadcompressed_allegro(in, &rstruc->regions, rstruc->pal, tesl);
-        // an old version - ->Clear the 'shadow' area into a blank regions bmp
+    {
+        lzw_at = loadcompressed_allegro(in, &rstruc->regions, rstruc->pal, lzw_at);
+    }
+    else if (data_ver >= kRoomVersion_114)
+    {
+        // an old version - clear the 'shadow' area into a blank regions bmp
+        lzw_at = loadcompressed_allegro(in, &rstruc->regions, rstruc->pal, lzw_at);
         delete rstruc->regions;
         rstruc->regions = NULL;
     }
 
     update_polled_stuff_if_runtime();
-    tesl = loadcompressed_allegro(in, &rstruc->walls, rstruc->pal, tesl);
-
+    lzw_at = loadcompressed_allegro(in, &rstruc->walls, rstruc->pal, lzw_at);
     update_polled_stuff_if_runtime();
-    tesl = loadcompressed_allegro(in, &rstruc->object, rstruc->pal, tesl);
-
+    lzw_at = loadcompressed_allegro(in, &rstruc->object, rstruc->pal, lzw_at);
     update_polled_stuff_if_runtime();
-    tesl = loadcompressed_allegro(in, &rstruc->lookat, rstruc->pal, tesl);
-
-    if (data_ver < kRoomVersion_255b) {
-        // Old version - copy walkable areas to Regions
-        if (rstruc->regions == NULL)
-            rstruc->regions = BitmapHelper::CreateBitmap(rstruc->walls->GetWidth(), rstruc->walls->GetHeight(), 8);
-        rstruc->regions->Fill(0);
-        rstruc->regions->Blit(rstruc->walls, 0, 0, 0, 0, rstruc->regions->GetWidth(), rstruc->regions->GetHeight());
-        for (f = 0; f <= 15; f++) {
-            rstruc->regionLightLevel[f] = rstruc->walk_area_light[f];
-            rstruc->regionTintLevel[f] = 255;
-        }
-    }
-
-    if (data_ver < kRoomVersion_200_alpha) {
-        for (f = 0; f < 11; f++)
-            rstruc->password[f] += 60;
-    }
-    else {
-        for (f = 0; f < 11; f++)
-            rstruc->password[f] += passwencstring[f];
-    }
-
+    lzw_at = loadcompressed_allegro(in, &rstruc->lookat, rstruc->pal, lzw_at);
     return HRoomFileError::None();
 }
 
+// Room script sources (original text); only attached in the old pre-3.* games.
 HRoomFileError ReadScriptBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion data_ver)
 {
-    int   lee;
-    int   hh;
-
-    lee = in->ReadInt32();
-    rstruc->scripts = (char *)malloc(lee + 5);
-    // MACPORT FIX: swap
-    in->Read(rstruc->scripts, lee);
-    rstruc->scripts[lee] = 0;
-
-    for (hh = 0; hh < lee; hh++)
-        rstruc->scripts[hh] += passwencstring[hh % 11];
-
+    size_t len = in->ReadInt32();
+    rstruc->scripts = (char *)malloc(len + 1);
+    in->Read(rstruc->scripts, len);
+    rstruc->scripts[len] = 0;
+    for (size_t i = 0; i < len; ++i)
+        rstruc->scripts[i] += passwencstring[i % 11];
     return HRoomFileError::None();
 }
 
+// Compiled room script
 HRoomFileError ReadCompSc3Block(RoomStruct *rstruc, Stream *in, RoomFileVersion data_ver)
 {
     rstruc->compiled_script.reset(ccScript::CreateFromStream(in));
@@ -487,6 +401,7 @@ HRoomFileError ReadCompSc3Block(RoomStruct *rstruc, Stream *in, RoomFileVersion 
     return HRoomFileError::None();
 }
 
+// Room object names
 HRoomFileError ReadObjNamesBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion data_ver)
 {
     int name_count = in->ReadByte();
@@ -494,7 +409,7 @@ HRoomFileError ReadObjNamesBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion
         return new RoomFileError(kRoomFileErr_InconsistentData,
             String::FromFormat("In the object names block, expected name count: %d, got %d", rstruc->numsprs, name_count));
 
-    for (int i = 0; i < rstruc->numsprs; ++i)
+    for (size_t i = 0; i < (size_t)rstruc->numsprs; ++i)
     {
         if (data_ver >= kRoomVersion_3415)
             rstruc->objectnames[i] = StrUtil::ReadString(in);
@@ -504,6 +419,7 @@ HRoomFileError ReadObjNamesBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion
     return HRoomFileError::None();
 }
 
+// Room object script names
 HRoomFileError ReadObjScNamesBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion data_ver)
 {
     int name_count = in->ReadByte();
@@ -511,7 +427,7 @@ HRoomFileError ReadObjScNamesBlock(RoomStruct *rstruc, Stream *in, RoomFileVersi
         return new RoomFileError(kRoomFileErr_InconsistentData,
             String::FromFormat("In the object script names block, expected name count: %d, got %d", rstruc->numsprs, name_count));
 
-    for (int i = 0; i < rstruc->numsprs; ++i)
+    for (size_t i = 0; i < (size_t)rstruc->numsprs; ++i)
     {
         if (data_ver >= kRoomVersion_3415)
             rstruc->objectscriptnames[i] = StrUtil::ReadString(in);
@@ -521,11 +437,9 @@ HRoomFileError ReadObjScNamesBlock(RoomStruct *rstruc, Stream *in, RoomFileVersi
     return HRoomFileError::None();
 }
 
+// Secondary backgrounds
 HRoomFileError ReadAnimBgBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion data_ver)
 {
-    int   ct;
-    long  fpos;
-
     rstruc->num_bscenes = in->ReadByte();
     if (rstruc->num_bscenes > MAX_BSCENE)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many room backgrounds (in room: %d, max: %d).", rstruc->num_bscenes, MAX_BSCENE));
@@ -536,34 +450,27 @@ HRoomFileError ReadAnimBgBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion d
     else
         memset(&rstruc->ebpalShared[0], 0, rstruc->num_bscenes);
 
-    fpos = in->GetPosition();
-    //        fclose(in);
-
-    for (ct = 1; ct < rstruc->num_bscenes; ct++) {
+    for (size_t i = 1; i < (size_t)rstruc->num_bscenes; ++i)
+    {
         update_polled_stuff_if_runtime();
-        //          fpos = load_lzw(files,rstruc->ebscene[ct],rstruc->pal,fpos);
-        fpos = load_lzw(in, rstruc->ebscene[ct], rstruc->bpalettes[ct]);
-        rstruc->ebscene[ct] = recalced;
+        load_lzw(in, &rstruc->ebscene[i], rstruc->bytes_per_pixel, rstruc->bpalettes[i]);
     }
-    //        in = Common::AssetManager::OpenAsset(files, "rb");
-    //        Seek(in, fpos, SEEK_SET);
     return HRoomFileError::None();
 }
 
+// Read custom properties
 HRoomFileError ReadPropertiesBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion data_ver)
 {
-    // Read custom properties
     int prop_ver = in->ReadInt32();
     if (prop_ver != 1)
         return new RoomFileError(kRoomFileErr_PropertiesBlockFormat, String::FromFormat("Expected version %d, got %d", 1, prop_ver));
 
-    int errors = 0, gg;
-
+    int errors = 0;
     errors += Properties::ReadValues(rstruc->roomProps, in);
-    for (gg = 0; gg < rstruc->numhotspots; gg++)
-        errors += Properties::ReadValues(rstruc->hsProps[gg], in);
-    for (gg = 0; gg < rstruc->numsprs; gg++)
-        errors += Properties::ReadValues(rstruc->objProps[gg], in);
+    for (size_t i = 0; i < (size_t)rstruc->numhotspots; ++i)
+        errors += Properties::ReadValues(rstruc->hsProps[i], in);
+    for (size_t i = 0; i < (size_t)rstruc->numsprs; ++i)
+        errors += Properties::ReadValues(rstruc->objProps[i], in);
 
     if (errors > 0)
         return new RoomFileError(kRoomFileErr_InvalidPropertyValues);
@@ -652,31 +559,61 @@ HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_v
 
 HRoomFileError UpdateRoomData(RoomStruct *rstruc, RoomFileVersion data_ver, bool game_is_hires)
 {
+    if (data_ver < kRoomVersion_255b)
+    {
+        // Old version - copy walkable areas to Regions
+        if (!rstruc->regions)
+            rstruc->regions = BitmapHelper::CreateBitmap(rstruc->walls->GetWidth(), rstruc->walls->GetHeight(), 8);
+        rstruc->regions->Fill(0);
+        rstruc->regions->Blit(rstruc->walls, 0, 0, 0, 0, rstruc->regions->GetWidth(), rstruc->regions->GetHeight());
+        for (size_t i = 0; i < MAX_REGIONS; ++i)
+        {
+            rstruc->regionLightLevel[i] = rstruc->walk_area_light[i];
+            rstruc->regionTintLevel[i] = 255;
+        }
+    }
+
+    // Fill in dummy interaction objects into unused slots
+    // TODO: remove this later, need to rework the legacy interaction usage around the engine code to prevent crashes
+    if (data_ver < kRoomVersion_300a)
+    {
+        if (!rstruc->intrRoom)
+            rstruc->intrRoom = new Interaction();
+        for (size_t i = 0; i < (size_t)MAX_HOTSPOTS; ++i)
+            if (!rstruc->intrHotspot[i])
+                rstruc->intrHotspot[i] = new Interaction();
+        for (size_t i = 0; i < (size_t)MAX_INIT_SPR; ++i)
+            if (!rstruc->intrObject[i])
+                rstruc->intrObject[i] = new Interaction();
+        for (size_t i = 0; i < (size_t)MAX_REGIONS; ++i)
+            if (!rstruc->intrRegion[i])
+                rstruc->intrRegion[i] = new Interaction();
+    }
+
     if (data_ver < kRoomVersion_303b && game_is_hires)
     {
         // Pre-3.0.3, multiply up co-ordinates
         // If you change this, also change convert_room_coordinates_to_low_res
         // function in the engine
-        int f;
-        for (f = 0; f < rstruc->numsprs; f++)
+        for (size_t i = 0; i < (size_t)rstruc->numsprs; ++i)
         {
-            rstruc->sprs[f].x *= 2;
-            rstruc->sprs[f].y *= 2;
-            if (rstruc->objbaseline[f] > 0)
+            rstruc->sprs[i].x *= 2;
+            rstruc->sprs[i].y *= 2;
+            if (rstruc->objbaseline[i] > 0)
             {
-                rstruc->objbaseline[f] *= 2;
+                rstruc->objbaseline[i] *= 2;
             }
         }
 
-        for (f = 0; f < rstruc->numhotspots; f++)
+        for (size_t i = 0; i < (size_t)rstruc->numhotspots; ++i)
         {
-            rstruc->hswalkto[f].x *= 2;
-            rstruc->hswalkto[f].y *= 2;
+            rstruc->hswalkto[i].x *= 2;
+            rstruc->hswalkto[i].y *= 2;
         }
 
-        for (f = 0; f < rstruc->numobj; f++)
+        for (size_t i = 0; i < (size_t)rstruc->numobj; ++i)
         {
-            rstruc->objyval[f] *= 2;
+            rstruc->objyval[i] *= 2;
         }
 
         rstruc->left *= 2;
@@ -685,6 +622,22 @@ HRoomFileError UpdateRoomData(RoomStruct *rstruc, RoomFileVersion data_ver, bool
         rstruc->right *= 2;
         rstruc->width *= 2;
         rstruc->height *= 2;
+    }
+
+    if (data_ver < kRoomVersion_3404)
+    {
+        // Convert the old format tint saturation
+        for (size_t i = 0; i < (size_t)MAX_REGIONS; ++i)
+        {
+            if ((rstruc->regionTintLevel[i] & LEGACY_TINT_IS_ENABLED) != 0)
+            {
+                rstruc->regionTintLevel[i] &= ~LEGACY_TINT_IS_ENABLED;
+                // older versions of the editor had a bug - work around it
+                int tint_amount = (rstruc->regionLightLevel[i] > 0 ? rstruc->regionLightLevel[i] : 50);
+                rstruc->regionTintLevel[i] |= (tint_amount & 0xFF) << 24;
+                rstruc->regionLightLevel[i] = 255;
+            }
+        }
     }
 
     // sync bpalettes[0] with room.pal

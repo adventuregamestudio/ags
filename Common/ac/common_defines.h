@@ -89,7 +89,6 @@
 
 #define MAX_ROOMS 300
 
-#define MAXANIMS      10
 #define MAX_FLAGS     15
 #define LEGACY_MAXOBJNAMELEN 30
 #define MAX_BSCENE    5   // max number of frames in animating bg scene

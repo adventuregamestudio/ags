@@ -21,8 +21,6 @@
 using namespace AGS::Common;
 
 Bitmap *backups[5];
-int _acroom_bpp = 1;  // bytes per pixel of currently loading room
-
 void sprstruc::ReadFromFile(Stream *in)
 {
     sprnum = in->ReadInt16();
@@ -35,7 +33,7 @@ void sprstruc::ReadFromFile(Stream *in)
 RoomStruct::RoomStruct() {
     ebscene[0] = NULL; walls = NULL; object = NULL; lookat = NULL; nummes = 0;
     left = 0; right = 317; top = 40; bottom = 199; numobj = MAX_OBJ; numsprs = 0; password[0] = 0;
-    wasversion = kRoomVersion_Current; numanims = 0; regions = NULL; numwalkareas = 0;
+    wasversion = kRoomVersion_Current; regions = NULL; numwalkareas = 0;
     numhotspots = 0;
     memset(&objbaseline[0], 0xff, sizeof(int) * MAX_INIT_SPR);
     memset(&objectFlags[0], 0, sizeof(short) * MAX_INIT_SPR);
@@ -150,47 +148,91 @@ int RoomStruct::get_region_tintluminance(int id) const
 
 void free_room(RoomStruct *rstruc)
 {
-  rstruc->freemessage();
-  rstruc->freescripts();
-  
-  if (rstruc->num_bscenes > 1) {
-    int ff;
+    rstruc->width = 320;
+    rstruc->height = 200;
+    rstruc->resolution = 1;
+    rstruc->numwalkareas = 0;
+    rstruc->numhotspots = 0;
 
-    for (ff = 1; ff < rstruc->num_bscenes; ff++) {
-      delete rstruc->ebscene[ff];
-      rstruc->ebscene[ff] = NULL;
+    memset(&rstruc->shadinginfo[0], 0, sizeof(short) * 16);
+    memset(&rstruc->sprs[0], 0, sizeof(sprstruc) * MAX_INIT_SPR);
+    memset(&rstruc->objbaseline[0], 0xff, sizeof(int) * MAX_INIT_SPR);
+    memset(&rstruc->objectFlags[0], 0, sizeof(short) * MAX_INIT_SPR);
+    memset(&rstruc->hswalkto[0], 0, sizeof(_Point) * MAX_HOTSPOTS);
+    memset(&rstruc->walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
+    memset(&rstruc->walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
+
+    rstruc->nummes = 0;
+    memset(&rstruc->msgi[0], 0, sizeof(MessageInfo) * MAXMESS);
+
+    for (size_t i = 0; i < (size_t)MAX_HOTSPOTS; ++i)
+    {
+        rstruc->hotspotScriptNames[i].Free();
+        if (i == 0)
+            rstruc->hotspotnames[i] = "No hotspot";
+        else
+            rstruc->hotspotnames[i].Format("Hotspot %d", i);
     }
-    update_polled_stuff_if_runtime();
-  }
 
-  rstruc->num_bscenes = 1;
-  rstruc->bscene_anim_speed = 5;
-  for (size_t i = 0; i < (size_t)MAX_INIT_SPR; ++i)
-  {
-    rstruc->objectnames[i].Free();
-    rstruc->objectscriptnames[i].Free();
-  }
-  memset (&rstruc->regionLightLevel[0], 0, sizeof(short) * MAX_REGIONS);
-  memset (&rstruc->regionTintLevel[0], 0, sizeof(int) * MAX_REGIONS);
+    rstruc->freemessage();
+    rstruc->freescripts();
+  
+    if (rstruc->num_bscenes > 1)
+    {
+        for (size_t i = 1; i < (size_t)rstruc->num_bscenes; ++i)
+        {
+            delete rstruc->ebscene[i];
+            rstruc->ebscene[i] = NULL;
+        }
+    }
 
-  for (size_t i = 0; i <= (size_t)MAX_WALK_AREAS; i++) {
-    rstruc->walk_area_zoom2[i] = NOT_VECTOR_SCALED;
-    rstruc->walk_area_top[i] = -1;
-    rstruc->walk_area_bottom[i] = -1;
-  }
+    rstruc->num_bscenes = 1;
+    rstruc->bscene_anim_speed = 5;
+    for (size_t i = 0; i < (size_t)MAX_INIT_SPR; ++i)
+    {
+        rstruc->objectnames[i].Free();
+        rstruc->objectscriptnames[i].Free();
+    }
+    memset (&rstruc->regionLightLevel[0], 0, sizeof(short) * MAX_REGIONS);
+    memset (&rstruc->regionTintLevel[0], 0, sizeof(int) * MAX_REGIONS);
 
-  for (size_t i = 0; i < (size_t)rstruc->numhotspots; i++)
-    rstruc->hsProps[i].clear();
-  for (size_t i = 0; i < (size_t)rstruc->numsprs; i++)
-    rstruc->objProps[i].clear();
-  rstruc->roomProps.clear();
+    for (size_t i = 0; i <= (size_t)MAX_WALK_AREAS; i++)
+    {
+        rstruc->walk_area_zoom2[i] = NOT_VECTOR_SCALED;
+        rstruc->walk_area_top[i] = -1;
+        rstruc->walk_area_bottom[i] = -1;
+    }
 
-  if (rstruc->localvars != NULL)
-    delete [] rstruc->localvars;
-  rstruc->localvars = NULL;
-  rstruc->numLocalVars = 0;
+    for (size_t i = 0; i < (size_t)rstruc->numhotspots; i++)
+        rstruc->hsProps[i].clear();
+    for (size_t i = 0; i < (size_t)rstruc->numsprs; i++)
+        rstruc->objProps[i].clear();
+    rstruc->roomProps.clear();
 
-  memset(&rstruc->ebpalShared[0], 0, MAX_BSCENE);
+    // free old interactions
+    delete rstruc->intrRoom;
+    for (size_t i = 0; i < (size_t)MAX_HOTSPOTS; ++i)
+    {
+        delete rstruc->intrHotspot[i];
+        rstruc->intrHotspot[i] = NULL;
+    }
+    for (size_t i = 0; i < (size_t)MAX_INIT_SPR; ++i)
+    {
+        delete rstruc->intrObject[i];
+        rstruc->intrObject[i] = NULL;
+    }
+    for (size_t i = 0; i < (size_t)MAX_REGIONS; ++i)
+    {
+        delete rstruc->intrRegion[i];
+        rstruc->intrRegion[i] = NULL;
+    }
+
+    if (rstruc->localvars != NULL)
+        delete [] rstruc->localvars;
+    rstruc->localvars = NULL;
+    rstruc->numLocalVars = 0;
+
+    memset(&rstruc->ebpalShared[0], 0, MAX_BSCENE);
 }
 
 void load_room(const char *files, RoomStruct *rstruc, bool gameIsHighRes)

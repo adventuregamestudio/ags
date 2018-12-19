@@ -107,9 +107,6 @@
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\point.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\ac\spritecache.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -272,11 +269,11 @@
     <ClCompile Include="..\..\Common\game\room_file.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\game\room_file_deprecated.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\ac\animationstruct.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>

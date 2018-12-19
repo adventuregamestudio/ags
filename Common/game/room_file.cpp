@@ -349,9 +349,9 @@ HRoomFileError ReadMainBlock(RoomStruct *rstruc, Stream *in, RoomFileVersion dat
 
     for (f = 0; f < rstruc->nummes; f++) {
         if (data_ver >= kRoomVersion_261)
-            read_string_decrypt(in, buffer);
+            read_string_decrypt(in, buffer, sizeof(buffer));
         else
-            fgetstring_limit(buffer, in, 2999);
+            fgetstring_limit(buffer, in, sizeof(buffer));
 
         int buffer_length = strlen(buffer);
 

@@ -15,6 +15,8 @@
 #ifndef __AC_WORDSDICTIONARY_H
 #define __AC_WORDSDICTIONARY_H
 
+#include "core/types.h"
+
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
@@ -36,7 +38,7 @@ struct WordsDictionary {
 extern const char *passwencstring;
 
 extern void decrypt_text(char*toenc);
-extern void read_string_decrypt(Common::Stream *in, char *sss);
+extern void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
 extern void read_dictionary (WordsDictionary *dict, Common::Stream *in);
 extern void freadmissout(short *pptr, Common::Stream *in);
 

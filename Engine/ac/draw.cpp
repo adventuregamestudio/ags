@@ -2464,6 +2464,9 @@ void construct_virtual_screen(bool fullRedraw)
 
         // For the sake of software renderer, if there is any kind of camera transform required
         // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
+        // There are few reasons for this, primary is that Allegro does not support StretchBlt
+        // between different colour depths (i.e. it won't correctly stretch blit 16-bit rooms to
+        // 32-bit virtual screen).
         // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
         bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
         Bitmap *room_bmp = translate_only ? ds : RoomCameraFrame.get();

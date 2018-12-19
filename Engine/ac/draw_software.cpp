@@ -18,15 +18,18 @@
 // TODO: do research/profiling to find out if this dirty rectangles thing
 // is still giving ANY notable perfomance boost at all.
 //
-// TODO: how are we going to support rotation here??
-// Probably we'd need to have a pre-rotated Room image to cut dirty rects from.
+// TODO: would that give any benefit to reorganize the code and move dirty
+// rectangles into SoftwareGraphicDriver?
 //
-// TODO: that would be SUPER NICE to reorganize the code and move dirty rectangles
-// into SoftwareGraphicDriver somehow. Because basically we duplicate sprite batch
-// transform here.
-// IDEA: connect particular registered DDB with DirtyRects class, making the
-// renderer copy bits of that DDB to virtual screen with the necessary sprite
-// transform.
+// NOTE: this code, including structs and functions, has underwent several
+// iterations of changes. Originally it was meant to perform full transform
+// of dirty rects right away, but later I realized it won't work that way
+// because a) Allegro does not support scaling bitmaps over destination with
+// different colour depth (which may be a case when running 16-bit game),
+// and b) Allegro does not support scaling and rotating of sprites with
+// blending and lighting at the same time which means that room objects have
+// to be drawn upon non-scaled background first. Possibly some of the code
+// below may be therefore simplified.
 //
 //=============================================================================
 
@@ -319,6 +322,11 @@ void invalidate_rect_ds(int x1, int y1, int x2, int y2, bool in_room)
     invalidate_rect_on_surf(x1, y1, x2, y2, RoomCamRects);
 }
 
+// Note that this function is denied to perform any kind of scaling or other transformation
+// other than blitting with offset. This is mainly because destination could be a 32-bit virtual screen
+// while room background was 16-bit and Allegro lib does not support stretching between colour depths.
+// The no_transform flag here means essentially "no offset", and indicates that the function
+// must blit src on ds at 0;0. Otherwise, actual Viewport offset is used.
 void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, bool no_transform)
 {
     if (rects.NumDirtyRegions == 0)
@@ -329,13 +337,12 @@ void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, boo
 
     const int src_x = rects.Room2Screen.X.GetSrcOffset();
     const int src_y = rects.Room2Screen.Y.GetSrcOffset();
+    const int dst_x = no_transform ? 0 : rects.Viewport.Left;
+    const int dst_y = no_transform ? 0 : rects.Viewport.Top;
 
     if (rects.NumDirtyRegions == WHOLESCREENDIRTY)
     {
-        if (no_transform)
-            ds->Blit(src, src_x, src_y, 0, 0, rects.SurfaceSize.Width, rects.SurfaceSize.Height);
-        else
-            ds->StretchBlt(src, RectWH(src_x, src_y, rects.SurfaceSize.Width, rects.SurfaceSize.Height), rects.Viewport);
+        ds->Blit(src, src_x, src_y, dst_x, dst_y, rects.SurfaceSize.Width, rects.SurfaceSize.Height);
     }
     else
     {
@@ -343,10 +350,8 @@ void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, boo
         const int surf_height = rects.SurfaceSize.Height;
         // TODO: is this IsMemoryBitmap check is still relevant?
         // If bitmaps properties match and no transform required other than linear offset
-        if ((src->GetColorDepth() == ds->GetColorDepth()) && (ds->IsMemoryBitmap()) && (no_transform || rects.Room2Screen.IsTranslateOnly()))
+        if ((src->GetColorDepth() == ds->GetColorDepth()) && (ds->IsMemoryBitmap()))
         {
-            const int dst_x = no_transform ? 0 : rects.Viewport.Left;
-            const int dst_y = no_transform ? 0 : rects.Viewport.Top;
             const int bypp = src->GetBPP();
             // do the fast memory copy
             for (int i = 0; i < surf_height; i++)
@@ -362,8 +367,8 @@ void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, boo
                 }
             }
         }
-        // If has to use Blit, but still must draw with no transform whatsoever
-        else if (no_transform)
+        // If has to use Blit, but still must draw with no transform but offset
+        else
         {
             // do fast copy without transform
             for (int i = 0, rowsInOne = 1; i < surf_height; i += rowsInOne, rowsInOne = 1)
@@ -378,27 +383,7 @@ void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, boo
                 {
                     int tx1 = dirty_row.span[k].x1;
                     int tx2 = dirty_row.span[k].x2;
-                    ds->Blit(src, tx1 + src_x, i + src_y, tx1, i, (tx2 - tx1) + 1, rowsInOne);
-                }
-            }
-        }
-        // If must do full transform (offset + scaling + etc)
-        else
-        {
-            const PlaneScaling &tf = rects.Room2Screen;
-            for (int i = 0, rowsInOne = 1; i < surf_height; i += rowsInOne, rowsInOne = 1)
-            {
-                // if there are rows with identical masks, do them all in one go
-                // TODO: what is this for? may this be done at the invalidate_rect merge step?
-                while ((i + rowsInOne < surf_height) && (memcmp(&dirtyRow[i], &dirtyRow[i + rowsInOne], sizeof(IRRow)) == 0))
-                    rowsInOne++;
-
-                const IRRow &dirty_row = dirtyRow[i];
-                for (int k = 0; k < dirty_row.numSpans; k++)
-                {
-                    Rect src_r(dirty_row.span[k].x1 + src_x, i + src_y, dirty_row.span[k].x2 + src_x, i + src_y + rowsInOne - 1);
-                    Rect dst_r = tf.ScaleRange(src_r);
-                    ds->StretchBlt(src, src_r, dst_r);
+                    ds->Blit(src, tx1 + src_x, i + src_y, tx1 + dst_x, i + dst_y, (tx2 - tx1) + 1, rowsInOne);
                 }
             }
         }

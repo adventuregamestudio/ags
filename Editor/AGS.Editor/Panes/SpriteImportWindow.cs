@@ -300,10 +300,13 @@ namespace AGS.Editor
 
         private void updateCornerColours(Point point, Size size)
         {
-            panelTopLeft.BackColor = image.GetPixel(point.X, point.Y);
-            panelTopRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y);
-            panelBottomLeft.BackColor = image.GetPixel(point.X, point.Y + size.Height - 1);
-            panelBottomRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y + size.Height - 1);
+            if (size.Width > 0 && size.Height > 0)
+            {
+                panelTopLeft.BackColor = image.GetPixel(point.X, point.Y);
+                panelTopRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y);
+                panelBottomLeft.BackColor = image.GetPixel(point.X, point.Y + size.Height - 1);
+                panelBottomRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y + size.Height - 1);
+            }
         }
 
         private void zoomSlider_Scroll(object sender, EventArgs e)

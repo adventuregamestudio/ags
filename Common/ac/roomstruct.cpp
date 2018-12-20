@@ -78,7 +78,7 @@ void RoomStruct::freescripts()
 {
     if (scripts != NULL)
     {
-        free(scripts);
+        delete scripts;
         scripts = NULL;
     }
 
@@ -235,7 +235,7 @@ void free_room(RoomStruct *rstruc)
     memset(&rstruc->ebpalShared[0], 0, MAX_BSCENE);
 }
 
-void load_room(const char *files, RoomStruct *rstruc, bool gameIsHighRes)
+void load_room(const char *files, RoomStruct *rstruc, bool gameIsHighRes, const std::vector<SpriteInfo> &sprinfos)
 {
     free_room(rstruc);
 
@@ -248,7 +248,7 @@ void load_room(const char *files, RoomStruct *rstruc, bool gameIsHighRes)
         update_polled_stuff_if_runtime();  // it can take a while to load the file sometimes
         err = ReadRoomData(rstruc, src.InputStream.get(), src.DataVersion);
         if (err)
-            err = UpdateRoomData(rstruc, src.DataVersion, gameIsHighRes);
+            err = UpdateRoomData(rstruc, src.DataVersion, gameIsHighRes, sprinfos);
     }
     if (!err)
         quitprintf("Unable to load the room file '%s'.\n%s.", files, err->FullMessage().GetCStr());

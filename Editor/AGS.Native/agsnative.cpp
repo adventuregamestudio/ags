@@ -15,12 +15,13 @@ int mousex, mousey;
 #include "util/misc.h"
 #include "ac/spritecache.h"
 #include "ac/actiontype.h"
-#include "ac/roomstruct.h"
+#include "ac/RoomStruct.h"
 #include "ac/scriptmodule.h"
 #include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
+#include "game/room_file.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "gui/guibutton.h"
@@ -56,8 +57,6 @@ typedef AGS::Common::Bitmap AGSBitmap;
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
 extern void Cstretch_sprite(BITMAP *dst, BITMAP *src, int x, int y, int w, int h);
 
-void serialize_room_interactions(Stream *);
-
 inline void Cstretch_blit(Common::Bitmap *src, Common::Bitmap *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh)
 {
 	Cstretch_blit(src->GetAllegroBitmap(), dst->GetAllegroBitmap(), sx, sy, sw, sh, dx, dy, dw, dh);
@@ -66,6 +65,8 @@ inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int
 {
 	Cstretch_sprite(dst->GetAllegroBitmap(), src->GetAllegroBitmap(), x, y, w, h);
 }
+
+void save_room_file(const char *path);
 
 int sxmult = 1, symult = 1;
 int dsc_want_hires = 0;
@@ -83,7 +84,7 @@ const char *TEMPLATE_LOCK_FILE = "template.dta";
 const char *ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
-roomstruct thisroom;
+RoomStruct thisroom;
 bool roomModified = false;
 std::unique_ptr<AGSBitmap> drawBuffer;
 std::unique_ptr<AGSBitmap> undoBuffer;
@@ -124,6 +125,8 @@ int get_fixed_pixel_size(int coord)
 
 // jibbles the sprite around to fix hi-color problems, by swapping
 // the red and blue elements
+// TODO: find out if this is actually needed. I guess this may have something to do
+// with Allegro keeping 16-bit bitmaps in an unusual format internally.
 #define fix_sprite(num) fix_block(spriteset[num])
 void fix_block (Common::Bitmap *todraw) {
   int a,b,pixval;
@@ -666,7 +669,7 @@ enum RoomAreaMask
 };
 
 // TODO: mask's bitmap, as well as coordinate factor, should be a property of the room or some room's mask class
-Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
+AGSBitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
 	switch (maskType) 
 	{
@@ -678,7 +681,7 @@ Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
     return NULL;
 }
 
-float get_scale_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
+float get_scale_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
     switch (maskType)
     {
@@ -691,41 +694,41 @@ float get_scale_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
 }
 
 void copy_walkable_to_regions (void *roomptr) {
-	roomstruct *theRoom = (roomstruct*)roomptr;
+    RoomStruct *theRoom = (RoomStruct*)roomptr;
 	theRoom->regions->Blit(theRoom->walls, 0, 0, 0, 0, theRoom->regions->GetWidth(), theRoom->regions->GetHeight());
 }
 
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
 {
-    Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-    float scale = get_scale_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+    Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
 	return mask->GetPixel(x * scale, y * scale);
 }
 
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-    float scale = get_scale_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
 	mask->DrawLine(Line(x1 * scale, y1 * scale, x2 * scale, y2 * scale), color);
 }
 
 void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-    float scale = get_scale_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
     mask->FillRect(Rect(x1 * scale, y1 * scale, x2 * scale, y2 * scale), color);
 }
 
 void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-    float scale = get_scale_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    float scale = get_scale_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
     mask->FloodFill(x1 * scale, y1 * scale, color);
 }
 
 void create_undo_buffer(void *roomptr, int maskType) 
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
   if (undoBuffer != NULL)
   {
     if ((undoBuffer->GetWidth() != mask->GetWidth()) || (undoBuffer->GetHeight() != mask->GetHeight())) 
@@ -757,7 +760,7 @@ void restore_from_undo_buffer(void *roomptr, int maskType)
 {
   if (does_undo_buffer_exist())
   {
-  	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+  	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
     mask->Blit(undoBuffer.get(), 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
   }
 }
@@ -809,7 +812,7 @@ Common::Bitmap *recycle_bitmap(Common::Bitmap* check, int colDepth, int w, int h
 
 Common::Bitmap *stretchedSprite = NULL, *srcAtRightColDep = NULL;
 
-void draw_area_mask(roomstruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskType, int selectedArea, int transparency) 
+void draw_area_mask(RoomStruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskType, int selectedArea, int transparency) 
 {
 	Common::Bitmap *source = get_bitmap_for_mask(roomptr, maskType);
 
@@ -862,7 +865,7 @@ void draw_area_mask(roomstruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskTy
 
 void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency) 
 {
-	roomstruct *roomptr = (roomstruct*)roomvoidptr;
+	RoomStruct *roomptr = (RoomStruct*)roomvoidptr;
 
   if (bgnum >= roomptr->num_bscenes)
     return;
@@ -1706,14 +1709,7 @@ void copy_global_palette_to_room_palette()
 
 const char* load_room_file(const char*rtlo) {
 
-  load_room((char*)rtlo, &thisroom, thisgame.IsHiRes());
-
-  if (thisroom.wasversion < kRoomVersion_250b) 
-  {
-	  return "This room was saved with an old version of the editor and cannot be opened. Use AGS 2.72 to upgrade this room file.";
-  }
-
-  //thisroom.numhotspots = MAX_HOTSPOTS;
+  load_room(rtlo, &thisroom, thisgame.IsHiRes(), thisgame.SpriteInfos);
 
   // Allocate enough memory to add extra variables
   InteractionVariable *ivv = new InteractionVariable[MAX_GLOBAL_VARIABLES];
@@ -1733,9 +1729,14 @@ const char* load_room_file(const char*rtlo) {
       thisroom.sprs[ww].sprnum = 0;
   }
   // Fix hi-color screens
+  // TODO: find out why this is necessary. Probably has something to do with
+  // Allegro switching color components at certain version update long time ago.
   for (ww = 0; ww < thisroom.num_bscenes; ww++)
     fix_block (thisroom.ebscene[ww]);
 
+  // TODO: find out how old this conversion is; was this ever a thing?
+  // Do we need to do this also in the engine?
+  // Perhaps simply do this non-conditionally for every mask that does not match background size?
   if ((thisroom.resolution > 1) && (thisroom.object->GetWidth() < thisroom.width)) {
     // 640x400 room with 320x200-res walkbehind
     // resize it up to 640x400-res
@@ -1781,306 +1782,6 @@ void calculate_walkable_areas () {
     }
   }
 
-}
-
-void save_room(const char *files, roomstruct rstruc) {
-  int               f;
-  soff_t            xoff, tesl;
-  Stream       *opty;
-  room_file_header  rfh;
-
-  if (rstruc.wasversion < kRoomVersion_Current)
-    quit("save_room: can no longer save old format rooms");
-
-  if (rstruc.wasversion < kRoomVersion_200_alpha) {
-    for (f = 0; f < 11; f++)
-      rstruc.password[f] -= 60;
-  }
-  else
-    for (f = 0; f < 11; f++)
-      rstruc.password[f] -= passwencstring[f];
-
-  opty = ci_fopen(const_cast<char*>(files), Common::kFile_CreateAlways, Common::kFile_Write);
-  if (opty == NULL)
-    quit("save_room: unable to open room file for writing.");
-
-  rfh.version = (RoomFileVersion)rstruc.wasversion; //ROOM_FILE_VERSION;
-  rfh.WriteFromFile(opty);
-
-  if (rfh.version >= 5) {
-    opty->WriteByte(BLOCKTYPE_MAIN);
-    opty->WriteInt64(0);
-  }
-
-  opty->WriteInt32(rstruc.bytes_per_pixel);  // colour depth bytes per pixel
-  opty->WriteInt16(rstruc.numobj);
-  opty->WriteArrayOfInt16(&rstruc.objyval[0], rstruc.numobj);
-
-  opty->WriteInt32(rstruc.numhotspots);
-  opty->WriteArray(&rstruc.hswalkto[0], sizeof(_Point), rstruc.numhotspots);
-  for (f = 0; f < rstruc.numhotspots; f++)
-    Common::StrUtil::WriteString(rstruc.hotspotnames[f], opty);
-
-  // TODO: checking version here makes little sense now because save_room does not 
-  // properly support export to lower data version
-  if (rfh.version >= 24)
-    for (f = 0; f < rstruc.numhotspots; f++)
-      Common::StrUtil::WriteString(rstruc.hotspotScriptNames[f], opty);
-
-  opty->WriteInt32(rstruc.numwalkareas);
-  opty->WriteArray(&rstruc.wallpoints[0], sizeof(PolyPoints), rstruc.numwalkareas);
-
-  opty->WriteInt16(rstruc.top);
-  opty->WriteInt16(rstruc.bottom);
-  opty->WriteInt16(rstruc.left);
-  opty->WriteInt16(rstruc.right);
-  opty->WriteInt16(rstruc.numsprs);
-  opty->WriteArray(&rstruc.sprs[0], sizeof(sprstruc), rstruc.numsprs);
-
-  opty->WriteInt32 (rstruc.numLocalVars);
-  for (int i = 0; i < rstruc.numLocalVars; ++i)
-    rstruc.localvars[i].Write(opty);
-/*
-  for (f = 0; f < rstruc.numhotspots; f++)
-    serialize_new_interaction (rstruc.intrHotspot[f]);
-  for (f = 0; f < rstruc.numsprs; f++)
-    serialize_new_interaction (rstruc.intrObject[f]);
-  serialize_new_interaction (rstruc.intrRoom);
-*/
-  opty->WriteInt32 (MAX_REGIONS);
-  /*
-  for (f = 0; f < MAX_REGIONS; f++)
-    serialize_new_interaction (rstruc.intrRegion[f]);
-	*/
-  serialize_room_interactions(opty);
-
-  opty->WriteArrayOfInt32(&rstruc.objbaseline[0], rstruc.numsprs);
-  opty->WriteInt16(rstruc.width);
-  opty->WriteInt16(rstruc.height);
-
-  if (rfh.version >= 23)
-    opty->WriteArrayOfInt16(&rstruc.objectFlags[0], rstruc.numsprs);
-
-  if (rfh.version >= 11)
-    opty->WriteInt16(rstruc.resolution);
-
-  // write the zoom and light levels
-  opty->WriteInt32 (MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_zoom[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_light[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_zoom2[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_top[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_bottom[0], MAX_WALK_AREAS + 1);
-
-  opty->Write(&rstruc.password[0], 11);
-  opty->Write(&rstruc.options[0], 10);
-  opty->WriteInt16(rstruc.nummes);
-
-  if (rfh.version >= 25)
-    opty->WriteInt32(rstruc.gameId);
- 
-  if (rfh.version >= 3)
-    opty->WriteArray(&rstruc.msgi[0], sizeof(MessageInfo), rstruc.nummes);
-
-  for (f = 0; f < rstruc.nummes; f++)
-    write_string_encrypt(opty, rstruc.message[f]);
-//    fputstring(rstruc.message[f]);
-
-  if (rfh.version >= 6) {
-    // we no longer use animations, remove them
-    rstruc.numanims = 0;
-    opty->WriteInt16(rstruc.numanims);
-
-    if (rstruc.numanims > 0)
-      opty->WriteArray(&rstruc.anims[0], sizeof(FullAnimation), rstruc.numanims);
-  }
-
-  if ((rfh.version >= 4) && (rfh.version < 16)) {
-    save_script_configuration(opty);
-    save_graphical_scripts(opty, &rstruc);
-  }
-
-  if (rfh.version >= 8)
-    opty->WriteArrayOfInt16(&rstruc.shadinginfo[0], 16);
-
-  if (rfh.version >= 21) {
-    opty->WriteArrayOfInt16(&rstruc.regionLightLevel[0], MAX_REGIONS);
-    opty->WriteArrayOfInt32(&rstruc.regionTintLevel[0], MAX_REGIONS);
-  }
-
-  xoff = opty->GetPosition();
-  delete opty;
-
-  tesl = save_lzw((char*)files, rstruc.ebscene[0], rstruc.pal, xoff);
-
-  tesl = savecompressed_allegro((char*)files, rstruc.regions, rstruc.pal, tesl);
-  tesl = savecompressed_allegro((char*)files, rstruc.walls, rstruc.pal, tesl);
-  tesl = savecompressed_allegro((char*)files, rstruc.object, rstruc.pal, tesl);
-  tesl = savecompressed_allegro((char*)files, rstruc.lookat, rstruc.pal, tesl);
-
-  if (rfh.version >= 5) {
-    opty = ci_fopen(files, Common::kFile_Open, Common::kFile_ReadWrite);
-    soff_t lee = opty->GetLength() - (sizeof(int16_t) + 1 + sizeof(int64_t));
-
-    opty->Seek(sizeof(int16_t) + 1, Common::kSeekBegin);
-    opty->WriteInt64(lee);
-    opty->Seek(0, Common::kSeekEnd);
-
-    if (rstruc.scripts != NULL) {
-      int hh;
-
-      opty->WriteByte(BLOCKTYPE_SCRIPT);
-      lee = (int)strlen(rstruc.scripts) + sizeof(int32_t);
-      opty->WriteInt64(lee);
-      lee -= sizeof(int32_t);
-
-      for (hh = 0; hh < lee; hh++)
-        rstruc.scripts[hh]-=passwencstring[hh % 11];
-
-      opty->WriteInt32(lee);
-      opty->Write(rstruc.scripts, lee);
-
-      for (hh = 0; hh < lee; hh++)
-        rstruc.scripts[hh]+=passwencstring[hh % 11];
-
-    }
-   
-    if (rstruc.compiled_script != NULL) {
-      soff_t  leeat, wasat;
-
-      opty->WriteByte(BLOCKTYPE_COMPSCRIPT3);
-      lee = 0;
-      leeat = opty->GetPosition();
-      opty->WriteInt64(lee);
-      rstruc.compiled_script->Write(opty);
-     
-      wasat = opty->GetPosition();
-      opty->Seek(leeat, Common::kSeekBegin);
-      lee = (wasat - leeat) - sizeof(int64_t);
-      opty->WriteInt64(lee);
-      opty->Seek(0, Common::kSeekEnd);
-    }
-
-    if (rstruc.numsprs > 0) {
-      // TODO: need generic algorithm to write block sizes back after their contents are written
-      soff_t  leeat, wasat;
-
-      opty->WriteByte(BLOCKTYPE_OBJECTNAMES);
-      lee = 0;
-      leeat = opty->GetPosition();
-      opty->WriteInt64(lee);
-
-      opty->WriteByte(rstruc.numsprs);
-      for (int i = 0; i < rstruc.numsprs; ++i)
-        Common::StrUtil::WriteString(rstruc.objectnames[i], opty);
-
-      wasat = opty->GetPosition();
-      opty->Seek(leeat, Common::kSeekBegin);
-      lee = (wasat - leeat) - sizeof(int64_t);
-      opty->WriteInt64(lee);
-      opty->Seek(0, Common::kSeekEnd);
-
-
-      opty->WriteByte(BLOCKTYPE_OBJECTSCRIPTNAMES);
-      lee = 0;
-      leeat = opty->GetPosition();
-      opty->WriteInt64(lee);
-
-      opty->WriteByte(rstruc.numsprs);
-      for (int i = 0; i < rstruc.numsprs; ++i)
-        Common::StrUtil::WriteString(rstruc.objectscriptnames[i], opty);
-
-      wasat = opty->GetPosition();
-      opty->Seek(leeat, Common::kSeekBegin);
-      lee = (wasat - leeat) - sizeof(int64_t);
-      opty->WriteInt64(lee);
-      opty->Seek(0, Common::kSeekEnd);
-    }
-
-    soff_t lenpos, lenis;
-    int gg;
-
-    if (rstruc.num_bscenes > 1) {
-      soff_t  curoffs;
-
-      opty->WriteByte(BLOCKTYPE_ANIMBKGRND);
-      lenpos = opty->GetPosition();
-      lenis = 0;
-      opty->WriteInt64(lenis);
-      opty->WriteByte(rstruc.num_bscenes);
-      opty->WriteByte(rstruc.bscene_anim_speed);
-      
-      opty->WriteArrayOfInt8 ((int8_t*)&rstruc.ebpalShared[0], rstruc.num_bscenes);
-      curoffs = opty->GetPosition();
-
-      delete opty;
-
-      for (gg = 1; gg < rstruc.num_bscenes; gg++)
-        curoffs = save_lzw((char*)files, rstruc.ebscene[gg], rstruc.bpalettes[gg], curoffs);
-
-      opty = ci_fopen(const_cast<char*>(files), Common::kFile_Open, Common::kFile_ReadWrite);
-      lenis = (curoffs - lenpos) - sizeof(int64_t);
-      opty->Seek(lenpos, Common::kSeekBegin);
-      opty->WriteInt64(lenis);
-      opty->Seek(0, Common::kSeekEnd);
-    }
-
-    // Write custom properties
-    opty->WriteByte (BLOCKTYPE_PROPERTIES);
-    lenpos = opty->GetPosition();
-    lenis = 0;
-    opty->WriteInt64(lenis);
-    opty->WriteInt32 (1);  // Version 1 of properties block
-    AGSProps::WriteValues(rstruc.roomProps, opty);
-    for (gg = 0; gg < rstruc.numhotspots; gg++)
-      AGSProps::WriteValues(rstruc.hsProps[gg], opty);
-    for (gg = 0; gg < rstruc.numsprs; gg++)
-      AGSProps::WriteValues(rstruc.objProps[gg], opty);
-
-    lenis = (opty->GetPosition() - lenpos) - sizeof(int64_t);
-    opty->Seek(lenpos, Common::kSeekBegin);
-    opty->WriteInt64(lenis);
-    opty->Seek(0, Common::kSeekEnd);
-
-
-    // Write EOF block
-    opty->WriteByte(BLOCKTYPE_EOF);
-    delete opty;
-  }
- 
-  if (rfh.version < 9) {
-    for (f = 0; f < 11; f++)
-      rstruc.password[f]+=60;
-  }
-  else
-    for (f = 0; f < 11; f++)
-      rstruc.password[f] += passwencstring[f];
-
-//  fclose(opty);
-//  return SUCCESS;
-}
-
-void save_room_file(const char*rtsa) 
-{
-  thisroom.wasversion=kRoomVersion_Current;
-  copy_room_palette_to_global_palette();
-  
-  thisroom.password[0] = 0;
-
-  calculate_walkable_areas();
-
-  thisroom.bytes_per_pixel = thisroom.ebscene[0]->GetBPP();
-  int ww;
-  // Fix hi-color screens
-  for (ww = 0; ww < thisroom.num_bscenes; ww++)
-    fix_block (thisroom.ebscene[ww]);
-
-  thisroom.numobj = MAX_OBJ;
-  save_room((char*)rtsa,thisroom);
-
-  // Fix hi-color screens back again
-  for (ww = 0; ww < thisroom.num_bscenes; ww++)
-    fix_block (thisroom.ebscene[ww]);
 }
 
 
@@ -2699,7 +2400,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
 
 void DeleteBackground(Room ^room, int backgroundNumber) 
 {
-	roomstruct *theRoom = (roomstruct*)(void*)room->_roomStructPtr;
+	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	delete theRoom->ebscene[backgroundNumber];
 	theRoom->ebscene[backgroundNumber] = NULL;
 	
@@ -2716,7 +2417,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 {
 	color oldpale[256];
 	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
-	roomstruct *theRoom = (roomstruct*)(void*)room->_roomStructPtr;
+	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->width = room->Width;
 	theRoom->height = room->Height;
 	bool resolutionChanged = (theRoom->resolution != (int)room->Resolution);
@@ -2784,7 +2485,7 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 {
 	color oldpale[256];
 	Common::Bitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
 
 	if (mask->GetWidth() != importedImage->GetWidth())
 	{
@@ -2802,7 +2503,7 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 
 SysBitmap ^export_area_mask(void *roomptr, int maskType)
 {
-    AGSBitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+    AGSBitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
     return ConvertBlockToBitmap(mask, false);
 }
 
@@ -2990,7 +2691,7 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
 
 System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber) {
 
-  roomstruct *roomptr = (roomstruct*)(void*)room->_roomStructPtr;
+  RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
   return ConvertBlockToBitmap32(roomptr->ebscene[backgroundNumber], room->Width, room->Height, false);
 }
 
@@ -3970,54 +3671,19 @@ System::String ^load_room_script(System::String ^fileName)
 {
     AGSString roomFileName = ConvertFileNameToNativeString(fileName);
 
-	Stream *opty = Common::AssetManager::OpenAsset(roomFileName);
-	if (opty == NULL) throw gcnew AGSEditorException("Unable to open room file");
+    AGSString scriptText;
+    AGS::Common::RoomDataSource src;
+    AGS::Common::HRoomFileError err = OpenRoomFile(roomFileName, src);
+    if (err)
+    {
+        err = AGS::Common::ExtractScriptText(scriptText, src.InputStream.get(), src.DataVersion);
+        if (err.HasError() && err->Code() == AGS::Common::kRoomFileErr_BlockNotFound)
+            return nullptr; // simply did not find the script text
+    }
+    if (!err)
+        quit(AGSString::FromFormat("Unable to load room script source from '%s', error was:\r\n%s", roomFileName, err->FullMessage()));
 
-	short version = opty->ReadInt16();
-	if (version < 17)
-	{
-    delete opty;
-		throw gcnew AGSEditorException("Room file is from an old version of AGS and cannot be processed");
-	}
-
-	String ^scriptToReturn = nullptr;
-
-	int thisblock = 0;
-	while (thisblock != BLOCKTYPE_EOF) 
-	{
-		thisblock = opty->ReadByte();
-		if (thisblock == BLOCKTYPE_EOF) 
-		{
-			break;
-		}
-
-		soff_t blockLen = version < kRoomVersion_350 ? opty->ReadInt32() : opty->ReadInt64();
-
-		if (thisblock == BLOCKTYPE_SCRIPT) 
-		{
-			int lee = opty->ReadInt32();
-			int hh;
-
-			char *scriptFile = (char *)malloc(lee + 5);
-			opty->Read(scriptFile, lee);
-			scriptFile[lee] = 0;
-
-			for (hh = 0; hh < lee; hh++)
-			  scriptFile[hh] += passwencstring[hh % 11];
-
-			scriptToReturn = gcnew String(scriptFile, 0, strlen(scriptFile), System::Text::Encoding::Default);
-			free(scriptFile);
-			break;
-		}
-		else 
-		{
-			opty->Seek(blockLen);
-		}
-	}
-
-	delete opty;
-
-	return scriptToReturn;
+	return gcnew String(scriptText, 0, scriptText.GetLength(), System::Text::Encoding::Default);;
 }
 
 int GetCurrentlyLoadedRoomNumber()
@@ -4084,32 +3750,15 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 
 	for (i = 0; i < thisroom.numsprs; i++) 
 	{
-		char jibbledScriptName[50] = "\0";
-		if (strlen(thisroom.objectscriptnames[i]) > 0) 
-		{
-			if (thisroom.wasversion < kRoomVersion_300a)
-			{
-				sprintf(jibbledScriptName, "o%s", thisroom.objectscriptnames[i]);
-				strlwr(jibbledScriptName);
-				jibbledScriptName[1] = toupper(jibbledScriptName[1]);
-			}
-			else 
-			{			
-				strcpy(jibbledScriptName, thisroom.objectscriptnames[i]);
-			}
-		}
-
 		RoomObject ^obj = gcnew RoomObject(room);
 		obj->ID = i;
 		obj->Image = thisroom.sprs[i].sprnum;
 		obj->StartX = thisroom.sprs[i].x;
 		obj->StartY = thisroom.sprs[i].y;
-    if (thisroom.wasversion <= kRoomVersion_300a)
-      obj->StartY += GetSpriteHeight(thisroom.sprs[i].sprnum);
 		obj->Visible = (thisroom.sprs[i].on != 0);
 		obj->Clickable = ((thisroom.objectFlags[i] & OBJF_NOINTERACT) == 0);
 		obj->Baseline = thisroom.objbaseline[i];
-		obj->Name = gcnew String(jibbledScriptName);
+		obj->Name = gcnew String(thisroom.objectscriptnames[i]);
 		obj->Description = gcnew String(thisroom.objectnames[i]);
 		obj->UseRoomAreaScaling = ((thisroom.objectFlags[i] & OBJF_USEROOMSCALING) != 0);
 		obj->UseRoomAreaLighting = ((thisroom.objectFlags[i] & OBJF_USEREGIONTINTS) != 0);
@@ -4361,44 +4010,72 @@ void save_crm_file(Room ^room)
 	}
 }
 
-void serialize_interaction_scripts(Interactions ^interactions, Stream *ooo)
+void convert_interaction_scripts(Interactions ^interactions, AGS::Common::InteractionScripts *native_scripts)
 {
-	ooo->WriteInt32(interactions->ScriptFunctionNames->Length);
+    native_scripts->ScriptFuncNames.clear();
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
-		if (funcName == nullptr)
-		{
-			ooo->WriteByte(0);
-		}
-		else 
-		{
-			AGSString fname = ConvertStringToNativeString(funcName);
-			fname.Write(ooo);
-		}
+        native_scripts->ScriptFuncNames.push_back(ConvertStringToNativeString(funcName));
 	}
 }
 
-void serialize_room_interactions(Stream *ooo) 
+void convert_room_interactions_to_native()
 {
 	Room ^roomBeingSaved = TempDataStorage::RoomBeingSaved;
-	serialize_interaction_scripts(roomBeingSaved->Interactions, ooo);
-	for each (RoomHotspot ^hotspot in roomBeingSaved->Hotspots) 
+    convert_interaction_scripts(roomBeingSaved->Interactions, thisroom.roomScripts);
+	for (size_t i = 0; i < roomBeingSaved->Hotspots->Count; ++i) 
 	{
-		serialize_interaction_scripts(hotspot->Interactions, ooo);
+        convert_interaction_scripts(roomBeingSaved->Hotspots[i]->Interactions, thisroom.hotspotScripts[i]);
 	}
-	for each (RoomObject ^obj in roomBeingSaved->Objects) 
+    for (size_t i = 0; i < roomBeingSaved->Objects->Count; ++i)
 	{
-		serialize_interaction_scripts(obj->Interactions, ooo);
+        convert_interaction_scripts(roomBeingSaved->Objects[i]->Interactions, thisroom.objectScripts[i]);
 	}
-	for each (RoomRegion ^region in roomBeingSaved->Regions) 
+    for (size_t i = 0; i < roomBeingSaved->Regions->Count; ++i)
 	{
-		serialize_interaction_scripts(region->Interactions, ooo);
+        convert_interaction_scripts(roomBeingSaved->Regions[i]->Interactions, thisroom.regionScripts[i]);
 	}
 }
 
 
 
 #pragma unmanaged
+
+
+void save_room_file(const char *path)
+{
+    thisroom.wasversion = kRoomVersion_Current;
+    copy_room_palette_to_global_palette();
+
+    memset(thisroom.password, 0, sizeof(thisroom.password));
+
+    calculate_walkable_areas();
+
+    thisroom.bytes_per_pixel = thisroom.ebscene[0]->GetBPP();
+    // Fix hi-color screens
+    // TODO: find out why this is needed; may be related to the Allegro internal 16-bit bitmaps format
+    for (size_t i = 0; i < (size_t)thisroom.num_bscenes; ++i)
+        fix_block(thisroom.ebscene[i]);
+
+    thisroom.numobj = MAX_OBJ; // TODO: why we need to do this here?
+
+                               // Prepare script links
+    convert_room_interactions_to_native();
+
+    Stream *out = AGS::Common::File::CreateFile(path);
+    if (out == NULL)
+        quit("save_room: unable to open room file for writing.");
+
+    AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&thisroom, out, kRoomVersion_Current);
+    delete out;
+    if (!err)
+        quit(AGSString::FromFormat("save_room: unable to write room data, error was:\r\n%s", err->FullMessage()));
+
+    // Fix hi-color screens back again
+    // TODO: find out why this is needed; may be related to the Allegro internal 16-bit bitmaps format
+    for (size_t i = 0; i < (size_t)thisroom.num_bscenes; ++i)
+        fix_block(thisroom.ebscene[i]);
+}
 
 
 void quit(const char * message) 
@@ -4431,13 +4108,13 @@ void load_script_configuration(Stream*iii) { int aa;
   }
 }
 
-void save_graphical_scripts(Stream*fff,roomstruct*rss) {
+void save_graphical_scripts(Stream*fff,RoomStruct*rss) {
   // no script
   fff->WriteInt32 (-1);
 }
 
 char*scripttempn="~acsc%d.tmp";
-void load_graphical_scripts(Stream*iii,roomstruct*rst) {
+void load_graphical_scripts(Stream*iii,RoomStruct*rst) {
   long ct;
   bool doneMsg = false;
   while (1) {

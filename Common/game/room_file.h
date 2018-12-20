@@ -29,6 +29,7 @@
 #include "util/string.h"
 
 struct RoomStruct;
+struct SpriteInfo;
 
 namespace AGS
 {
@@ -48,7 +49,8 @@ enum RoomFileErrorType
     kRoomFileErr_ScriptLoadFailed,
     kRoomFileErr_InconsistentData,
     kRoomFileErr_PropertiesBlockFormat,
-    kRoomFileErr_InvalidPropertyValues
+    kRoomFileErr_InvalidPropertyValues,
+    kRoomFileErr_BlockNotFound
 };
 
 String GetRoomFileErrorText(RoomFileErrorType err);
@@ -77,7 +79,12 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
 HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
-HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool game_is_hires);
+HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos);
+// Extracts text script from the room file, if it's available.
+// Historically, text sources were kept inside packed room files before AGS 3.*.
+HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion data_ver);
+
+HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver);
 
 } // namespace Common
 } // namespace AGS

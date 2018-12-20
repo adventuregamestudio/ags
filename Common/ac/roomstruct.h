@@ -30,6 +30,7 @@ using AGS::Common::Bitmap;
 using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
 using AGS::Common::InteractionVariable;
+struct SpriteInfo;
 
 // thisroom.options[0] = startup music
 // thisroom.options[1] = can save/load on screen (0=yes, 1=no)
@@ -148,7 +149,7 @@ struct RoomStruct {
     int  get_region_tintluminance(int id) const;
 };
 
-extern void load_room(const char *files, RoomStruct *rstruc, bool gameIsHighRes);
+extern void load_room(const char *files, RoomStruct *rstruc, bool gameIsHighRes, const std::vector<SpriteInfo> &sprinfos);
 
 
 // Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native

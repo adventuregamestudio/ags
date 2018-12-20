@@ -468,7 +468,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     thisroom.gameId = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom, game.IsHiRes());
+    load_room(room_filename, &thisroom, game.IsHiRes(), game.SpriteInfos);
 
     if ((thisroom.gameId != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.gameId != game.uniqueid)) {
@@ -587,10 +587,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc=0;cc<croom->numobj;cc++) {
             croom->obj[cc].x=thisroom.sprs[cc].x;
             croom->obj[cc].y=thisroom.sprs[cc].y;
-
-            if (thisroom.wasversion <= kRoomVersion_300a)
-                croom->obj[cc].y += divide_down_coordinate(game.SpriteInfos[thisroom.sprs[cc].sprnum].Height);
-
             croom->obj[cc].num=thisroom.sprs[cc].sprnum;
             croom->obj[cc].on=thisroom.sprs[cc].on;
             croom->obj[cc].view=-1;
@@ -662,19 +658,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // export the object's script object
         if (thisroom.objectscriptnames[cc].IsEmpty())
             continue;
-
-        if (thisroom.wasversion >= kRoomVersion_300a) 
-        {
-            objectScriptObjNames[cc] = thisroom.objectscriptnames[cc];
-        }
-        else
-        {
-            objectScriptObjNames[cc].Format("o%s", thisroom.objectscriptnames[cc].GetCStr());
-            objectScriptObjNames[cc].MakeLower();
-            if (objectScriptObjNames[cc].GetLength() >= 2)
-                objectScriptObjNames[cc].SetAt(1, toupper(objectScriptObjNames[cc].GetAt(1)));
-        }
-
+        objectScriptObjNames[cc] = thisroom.objectscriptnames[cc];
         ccAddExternalDynamicObject(objectScriptObjNames[cc], &scrObj[cc], &ccDynamicObject);
     }
 

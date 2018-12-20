@@ -571,19 +571,21 @@ namespace AGS.Editor
                 mouse.X = mouse.X + previewPanel.HorizontalScroll.Value;
                 mouse.Y = mouse.Y + previewPanel.VerticalScroll.Value;
 
-                if (mouse.X < start.X)
-                {
-                    mouse.X = start.X;
-                }
-
-                if (mouse.Y < start.Y)
-                {
-                    mouse.Y = start.Y;
-                }
-
                 position = mouse;
                 position.X = (position.X / zoomLevel) * zoomLevel;
                 position.Y = (position.Y / zoomLevel) * zoomLevel;
+
+                if (mouse.X < start.X)
+                {
+                    numOffsetX.Value = Math.Max(0, position.X / zoomLevel);
+                    position.X = start.X;
+                }
+
+                if (mouse.Y < start.Y) {
+                    numOffsetY.Value = Math.Max(0, position.Y / zoomLevel);
+                    position.Y = start.Y;
+                }
+
                 previewPanel.Invalidate();
             }
         }

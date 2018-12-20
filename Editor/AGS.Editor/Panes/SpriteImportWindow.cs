@@ -334,8 +334,8 @@ namespace AGS.Editor
             // Draw dragging indicator
             if (dragging)
             {
-                numSizeX.Value = position.X / zoomLevel - numOffsetX.Value + 1;
-                numSizeY.Value = position.Y / zoomLevel - numOffsetY.Value + 1;
+                numSizeX.Value = Math.Min(image.Width - numOffsetX.Value, position.X / zoomLevel - numOffsetX.Value + 1);
+                numSizeY.Value = Math.Min(image.Height - numOffsetY.Value, position.Y / zoomLevel - numOffsetY.Value + 1);
 
                 Size snappedSize = new Size((int)numSizeX.Value * zoomLevel, (int)numSizeY.Value * zoomLevel);
                 Point snappedStart = new Point((int)numOffsetX.Value * zoomLevel - previewPanel.HorizontalScroll.Value, (int)numOffsetY.Value * zoomLevel - previewPanel.VerticalScroll.Value);

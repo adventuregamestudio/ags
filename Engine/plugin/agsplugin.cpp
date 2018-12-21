@@ -16,7 +16,6 @@
 
 #include "util/wgt2allg.h"
 #include "ac/common.h"
-#include "ac/roomstruct.h"
 #include "ac/view.h"
 #include "ac/charactercache.h"
 #include "ac/display.h"
@@ -108,7 +107,7 @@ extern GameSetup usetup;
 extern int inside_script;
 extern ccInstance *gameinst, *roominst;
 extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_INIT_SPR];
+extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern MoveList *mls;
 extern int numlines;
 extern char lines[MAXLINE][200];
@@ -275,13 +274,13 @@ int IAGSEngine::GetCurrentRoom () {
     return displayed_room;
 }
 int IAGSEngine::GetNumBackgrounds () {
-    return thisroom.num_bscenes;
+    return thisroom.BgFrameCount;
 }
 int IAGSEngine::GetCurrentBackground () {
     return play.bg_frame;
 }
 BITMAP *IAGSEngine::GetBackgroundScene (int32 index) {
-    return (BITMAP*)thisroom.ebscene[index]->GetAllegroBitmap();
+    return (BITMAP*)thisroom.BgFrames[index].Graphic->GetAllegroBitmap();
 }
 void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth) {
     if (bmp == NULL)
@@ -418,13 +417,13 @@ BITMAP *IAGSEngine::GetSpriteGraphic (int32 num) {
 }
 BITMAP *IAGSEngine::GetRoomMask (int32 index) {
     if (index == MASK_WALKABLE)
-        return (BITMAP*)thisroom.walls->GetAllegroBitmap();
+        return (BITMAP*)thisroom.WalkAreaMask->GetAllegroBitmap();
     else if (index == MASK_WALKBEHIND)
-        return (BITMAP*)thisroom.object->GetAllegroBitmap();
+        return (BITMAP*)thisroom.WalkBehindMask->GetAllegroBitmap();
     else if (index == MASK_HOTSPOT)
-        return (BITMAP*)thisroom.lookat->GetAllegroBitmap();
+        return (BITMAP*)thisroom.HotspotMask->GetAllegroBitmap();
     else if (index == MASK_REGIONS)
-        return (BITMAP*)thisroom.regions->GetAllegroBitmap();
+        return (BITMAP*)thisroom.RegionMask->GetAllegroBitmap();
     else
         quit("!IAGSEngine::GetRoomMask: invalid mask requested");
     return NULL;
@@ -449,7 +448,7 @@ int IAGSEngine::GetRawPixelColor (int32 color) {
     return result;
 }
 int IAGSEngine::GetWalkbehindBaseline (int32 wa) {
-    if ((wa < 1) || (wa >= MAX_OBJ))
+    if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
         quit("!IAGSEngine::GetWalkBehindBase: invalid walk-behind area specified");
     return croom->walkbehind_base[wa];
 }
@@ -630,7 +629,7 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot) {
     }
 
     // clear the object cache
-    for (ff = 0; ff < MAX_INIT_SPR; ff++) {
+    for (ff = 0; ff < MAX_ROOM_OBJECTS; ff++) {
         if ((objcache[ff].image != NULL) && (objcache[ff].sppic == slot)) {
             delete objcache[ff].image;
             objcache[ff].image = NULL;

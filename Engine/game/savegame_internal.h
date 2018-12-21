@@ -28,6 +28,8 @@ namespace AGS
 namespace Engine
 {
 
+typedef stdtr1compat::shared_ptr<Bitmap> PBitmap;
+
 // PreservedParams keeps old values of particular gameplay
 // parameters that are saved before the save restoration
 // and either applied or compared to new values after
@@ -62,12 +64,12 @@ struct RestoredData
     ScriptData              GlobalScript;
     std::vector<ScriptData> ScriptModules;
     // Room data (has to be be preserved until room is loaded)
-    Bitmap                 *RoomBkgScene[MAX_BSCENE];
-    short                   RoomLightLevels[MAX_REGIONS];
-    int                     RoomTintLevels[MAX_REGIONS];
+    PBitmap                 RoomBkgScene[MAX_ROOM_BGFRAMES];
+    short                   RoomLightLevels[MAX_ROOM_REGIONS];
+    int                     RoomTintLevels[MAX_ROOM_REGIONS];
     short                   RoomZoomLevels1[MAX_WALK_AREAS + 1];
     short                   RoomZoomLevels2[MAX_WALK_AREAS + 1];
-    int                     RoomVolume;
+    RoomVolumeMod           RoomVolume;
     // Mouse cursor parameters
     int                     CursorID;
     int                     CursorMode;

@@ -15,7 +15,6 @@
 #include <string.h>
 #include "script/script.h"
 #include "ac/common.h"
-#include "ac/roomstruct.h"
 #include "ac/character.h"
 #include "ac/dialog.h"
 #include "ac/event.h"
@@ -47,7 +46,6 @@
 
 extern GameSetupStruct game;
 extern GameState play;
-extern RoomStruct thisroom;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;
@@ -87,7 +85,7 @@ std::vector<RuntimeScriptValue> moduleRepExecAddr;
 int numScriptModules = 0;
 
 std::vector<String> characterScriptObjNames;
-String              objectScriptObjNames[MAX_INIT_SPR];
+String              objectScriptObjNames[MAX_ROOM_OBJECTS];
 std::vector<String> guiScriptObjNames;
 
 
@@ -511,7 +509,7 @@ String GetScriptName(ccInstance *sci)
         return "Not in a script";
     else if (sci->instanceof == gamescript)
         return "Global script";
-    else if (sci->instanceof == thisroom.compiled_script)
+    else if (sci->instanceof == thisroom.CompiledScript)
         return String::FromFormat("Room %d script", displayed_room);
     return "Unknown script";
 }
@@ -631,8 +629,8 @@ int get_nivalue (InteractionCommandList *nic, int idx, int parm) {
 
 InteractionVariable *get_interaction_variable (int varindx) {
 
-    if ((varindx >= LOCAL_VARIABLE_OFFSET) && (varindx < LOCAL_VARIABLE_OFFSET + thisroom.numLocalVars))
-        return &thisroom.localvars[varindx - LOCAL_VARIABLE_OFFSET];
+    if ((varindx >= LOCAL_VARIABLE_OFFSET) && ((size_t)varindx < LOCAL_VARIABLE_OFFSET + thisroom.LocalVariables.size()))
+        return &thisroom.LocalVariables[varindx - LOCAL_VARIABLE_OFFSET];
 
     if ((varindx < 0) || (varindx >= numGlobalVars))
         quit("!invalid interaction variable specified");
@@ -646,9 +644,9 @@ InteractionVariable *FindGraphicalVariable(const char *varName) {
         if (stricmp (globalvars[ii].Name, varName) == 0)
             return &globalvars[ii];
     }
-    for (ii = 0; ii < thisroom.numLocalVars; ii++) {
-        if (stricmp (thisroom.localvars[ii].Name, varName) == 0)
-            return &thisroom.localvars[ii];
+    for (size_t i = 0; i < thisroom.LocalVariables.size(); ++i) {
+        if (stricmp (thisroom.LocalVariables[i].Name, varName) == 0)
+            return &thisroom.LocalVariables[i];
     }
     return NULL;
 }

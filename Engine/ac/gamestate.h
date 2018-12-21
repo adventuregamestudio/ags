@@ -17,6 +17,7 @@
 
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
+#include "game/roomstruct.h"
 #include "game/viewport.h"
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
@@ -154,7 +155,7 @@ struct GameState {
     short parsed_words[MAX_PARSED_WORDS];
     char  bad_parsed_word[100];
     int   raw_color;
-    int   raw_modified[MAX_BSCENE];
+    int   raw_modified[MAX_ROOM_BGFRAMES];
     short filenumbers[MAXSAVEGAMES];
     int   room_changes;
     int   mouse_cursor_hidden;

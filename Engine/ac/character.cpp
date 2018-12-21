@@ -19,7 +19,6 @@
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/roomstruct.h"
 #include "ac/view.h"
 #include "ac/display.h"
 #include "ac/draw.h"
@@ -218,13 +217,13 @@ void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos)
 
     if (new_room_pos == 0) {
         // auto place on other side of screen
-        if (chaa->x <= thisroom.left + 10)
+        if (chaa->x <= thisroom.Edges.Left + 10)
             new_room_pos = 2000;
-        else if (chaa->x >= thisroom.right - 10)
+        else if (chaa->x >= thisroom.Edges.Right - 10)
             new_room_pos = 1000;
-        else if (chaa->y <= thisroom.top + 10)
+        else if (chaa->y <= thisroom.Edges.Top + 10)
             new_room_pos = 3000;
-        else if (chaa->y >= thisroom.bottom - 10)
+        else if (chaa->y >= thisroom.Edges.Bottom - 10)
             new_room_pos = 4000;
 
         if (new_room_pos < 3000)
@@ -1930,16 +1929,16 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 {
     int ex, ey, nearest = 99999, thisis, nearx = 0, neary = 0;
     int startx = 0, starty = 14;
-    int roomWidthLowRes = convert_to_low_res(thisroom.width);
-    int roomHeightLowRes = convert_to_low_res(thisroom.height);
+    int roomWidthLowRes = convert_to_low_res(thisroom.Width);
+    int roomHeightLowRes = convert_to_low_res(thisroom.Height);
     int xwidth = roomWidthLowRes, yheight = roomHeightLowRes;
 
     int xLowRes = convert_to_low_res(xx[0]);
     int yLowRes = convert_to_low_res(yy[0]);
-    int rightEdge = convert_to_low_res(thisroom.right);
-    int leftEdge = convert_to_low_res(thisroom.left);
-    int topEdge = convert_to_low_res(thisroom.top);
-    int bottomEdge = convert_to_low_res(thisroom.bottom);
+    int rightEdge = convert_to_low_res(thisroom.Edges.Right);
+    int leftEdge = convert_to_low_res(thisroom.Edges.Left);
+    int topEdge = convert_to_low_res(thisroom.Edges.Top);
+    int bottomEdge = convert_to_low_res(thisroom.Edges.Bottom);
 
     // tweak because people forget to move the edges sometimes
     // if the player is already over the edge, ignore it
@@ -1963,7 +1962,7 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
     for (ex = startx; ex < xwidth; ex += step) {
         for (ey = starty; ey < yheight; ey += step) {
             // non-walkalbe, so don't go here
-            if (thisroom.walls->GetPixel(ex,ey) == 0) continue;
+            if (thisroom.WalkAreaMask->GetPixel(ex,ey) == 0) continue;
             // off a screen edge, don't move them there
             if ((ex <= leftEdge) || (ex >= rightEdge) ||
                 (ey <= topEdge) || (ey >= bottomEdge))
@@ -1985,8 +1984,7 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 
 void find_nearest_walkable_area (int *xx, int *yy) {
 
-
-    int pixValue = thisroom.walls->GetPixel(convert_to_low_res(xx[0]), convert_to_low_res(yy[0]));
+    int pixValue = thisroom.WalkAreaMask->GetPixel(convert_to_low_res(xx[0]), convert_to_low_res(yy[0]));
     // only fix this code if the game was built with 2.61 or above
     if (pixValue == 0 || (loaded_game_file_version >= kGameVersion_261 && pixValue < 1))
     {
@@ -2188,12 +2186,12 @@ Bitmap *GetCharacterImage(int charid, int *isFlipped)
 {
     if (!gfxDriver->HasAcceleratedTransform())
     {
-        if (actsps[charid + MAX_INIT_SPR] != NULL) 
+        if (actsps[charid + MAX_ROOM_OBJECTS] != NULL) 
         {
             // the actsps image is pre-flipped, so no longer register the image as such
             if (isFlipped)
                 *isFlipped = 0;
-            return actsps[charid + MAX_INIT_SPR];
+            return actsps[charid + MAX_ROOM_OBJECTS];
         }
     }
     CharacterInfo*chin=&game.chars[charid];

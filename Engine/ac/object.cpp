@@ -23,7 +23,6 @@
 #include "ac/path.h"
 #include "ac/properties.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/system.h"
@@ -40,11 +39,11 @@
 using namespace AGS::Common;
 
 
-extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern RoomStatus*croom;
 extern RoomObject*objs;
 extern RoomStruct thisroom;
-extern ObjectCache objcache[MAX_INIT_SPR];
+extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern MoveList *mls;
 extern GameSetupStruct game;
 extern Bitmap *walkable_areas_temp;
@@ -264,7 +263,7 @@ const char* Object_GetName_New(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Name: invalid object number");
 
-    return CreateNewScriptString(get_translation(thisroom.objectnames[objj->id]));
+    return CreateNewScriptString(get_translation(thisroom.Objects[objj->id].Name));
 }
 
 bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
@@ -421,7 +420,7 @@ void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufe
 
 const char* Object_GetTextProperty(ScriptObject *objj, const char *property)
 {
-    return get_text_property_dynamic_string(thisroom.objProps[objj->id], croom->objProps[objj->id], property);
+    return get_text_property_dynamic_string(thisroom.Objects[objj->id].Properties, croom->objProps[objj->id], property);
 }
 
 bool Object_SetProperty(ScriptObject *objj, const char *property, int value)

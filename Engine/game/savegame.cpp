@@ -101,11 +101,10 @@ RestoredData::ScriptData::ScriptData()
 
 RestoredData::RestoredData()
     : FPS(0)
-    , RoomVolume(0)
+    , RoomVolume(kRoomVolumeNormal)
     , CursorID(0)
     , CursorMode(0)
 {
-    memset(RoomBkgScene, 0, sizeof(RoomBkgScene));
     memset(RoomLightLevels, 0, sizeof(RoomLightLevels));
     memset(RoomTintLevels, 0, sizeof(RoomTintLevels));
     memset(RoomZoomLevels1, 0, sizeof(RoomZoomLevels1));
@@ -493,7 +492,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     play.gscript_timer=gstimer;
     // restore the correct room volume (they might have modified
     // it with SetMusicVolume)
-    thisroom.options[ST_VOLUME] = r_data.RoomVolume;
+    thisroom.Options.MusicVolume = r_data.RoomVolume;
 
     Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
 
@@ -512,23 +511,28 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     if (displayed_room >= 0)
     {
-        for (int i = 0; i < MAX_BSCENE; ++i)
+        for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
         {
             if (r_data.RoomBkgScene[i])
             {
-                delete thisroom.ebscene[i];
-                thisroom.ebscene[i] = r_data.RoomBkgScene[i];
+                thisroom.BgFrames[i].Graphic = r_data.RoomBkgScene[i];
             }
         }
 
         in_new_room=3;  // don't run "enters screen" events
         // now that room has loaded, copy saved light levels in
-        memcpy(thisroom.regionLightLevel, r_data.RoomLightLevels, sizeof(short) * MAX_REGIONS);
-        memcpy(thisroom.regionTintLevel, r_data.RoomTintLevels, sizeof(int) * MAX_REGIONS);
+        for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+        {
+            thisroom.Regions[i].Light = r_data.RoomLightLevels[i];
+            thisroom.Regions[i].Tint = r_data.RoomTintLevels[i];
+        }
         generate_light_table();
 
-        memcpy(thisroom.walk_area_zoom, r_data.RoomZoomLevels1, sizeof(short) * (MAX_WALK_AREAS + 1));
-        memcpy(thisroom.walk_area_zoom2, r_data.RoomZoomLevels2, sizeof(short) * (MAX_WALK_AREAS + 1));
+        for (size_t i = 0; i < MAX_WALK_AREAS + 1; ++i)
+        {
+            thisroom.WalkAreas[i].ScalingFar = r_data.RoomZoomLevels1[i];
+            thisroom.WalkAreas[i].ScalingNear = r_data.RoomZoomLevels2[i];
+        }
 
         on_background_frame_change();
     }
@@ -727,8 +731,8 @@ void DoBeforeSave()
             save_room_data_segment();
 
         // Update the saved interaction variable values
-        for (int i = 0; i < thisroom.numLocalVars; ++i)
-            croom->interactionVariableValues[i] = thisroom.localvars[i].Value;
+        for (size_t i = 0; i < thisroom.LocalVariables.size() && i < (size_t)MAX_GLOBAL_VARIABLES; ++i)
+            croom->interactionVariableValues[i] = thisroom.LocalVariables[i].Value;
     }
 }
 

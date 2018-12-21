@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "game/roomstruct.h" // MAX_ROOM_OBJECTS
 #include "script/cc_instance.h"
 #include "script/executingscript.h"
 #include "script/nonblockingscriptfunction.h"
@@ -109,8 +110,10 @@ extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern int numScriptModules;
 
+// TODO: find out if these extra arrays are really necessary. This may be remains from the
+// time when the symbol import table was holding raw pointers to char array.
 extern std::vector<AGS::Common::String> characterScriptObjNames;
-extern AGS::Common::String objectScriptObjNames[MAX_INIT_SPR];
+extern AGS::Common::String objectScriptObjNames[MAX_ROOM_OBJECTS];
 extern std::vector<AGS::Common::String> guiScriptObjNames;
 
 #endif // __AGS_EE_SCRIPT__SCRIPT_H

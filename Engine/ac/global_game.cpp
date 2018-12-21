@@ -38,7 +38,6 @@
 #include "ac/record.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/string.h"
 #include "ac/system.h"
 #include "debug/debugger.h"
@@ -555,7 +554,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     xxx = roompt.X;
     yyy = roompt.Y;
     tempo[0]=0;
-    if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
+    if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return;
 
     int onhs,aa;
@@ -579,7 +578,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     // on object
     if (loctype == LOCTYPE_OBJ) {
         aa = getloctype_index;
-        strcpy(tempo,get_translation(thisroom.objectnames[aa]));
+        strcpy(tempo,get_translation(thisroom.Objects[aa].Name));
         // Compatibility: < 3.1.1 games returned space for nameless object
         // (presumably was a bug, but fixing it affected certain games behavior)
         if (loaded_game_file_version < kGameVersion_311 && tempo[0] == 0) {
@@ -592,7 +591,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         return;
     }
     onhs = getloctype_index;
-    if (onhs>0) strcpy(tempo,get_translation(thisroom.hotspotnames[onhs]));
+    if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name));
     if (play.get_loc_name_last_time != onhs)
         guis_need_update = 1;
     play.get_loc_name_last_time = onhs;
@@ -808,11 +807,11 @@ void ProcessClick(int xx,int yy,int mood) {
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
         int hsnum=get_hotspot_at(xx,yy);
         if (hsnum<1) ;
-        else if (thisroom.hswalkto[hsnum].x<1) ;
+        else if (thisroom.Hotspots[hsnum].WalkTo.X<1) ;
         else if (play.auto_use_walkto_points == 0) ;
         else {
-            xx=thisroom.hswalkto[hsnum].x;
-            yy=thisroom.hswalkto[hsnum].y;
+            xx=thisroom.Hotspots[hsnum].WalkTo.X;
+            yy=thisroom.Hotspots[hsnum].WalkTo.Y;
             debug_script_log("Move to walk-to point hotspot %d", hsnum);
         }
         walk_character(game.playercharacter,xx,yy,0, true);

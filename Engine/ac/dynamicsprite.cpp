@@ -25,9 +25,9 @@
 #include "ac/path_helper.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/system.h"
 #include "debug/debug_log.h"
+#include "game/roomstruct.h"
 #include "gui/guibutton.h"
 #include "ac/spritecache.h"
 #include "platform/base/override_defines.h"
@@ -43,7 +43,7 @@ extern RoomStruct thisroom;
 extern RoomObject*objs;
 extern RoomStatus*croom;
 extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_INIT_SPR];
+extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 
 extern color palette[256];
 extern Bitmap *virtual_screen;
@@ -434,7 +434,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     if (frame == SCR_NO_VALUE) {
         frame = play.bg_frame;
     }
-    else if ((frame < 0) || (frame >= thisroom.num_bscenes))
+    else if ((frame < 0) || ((size_t)frame >= thisroom.BgFrameCount))
         quit("!DynamicSprite.CreateFromBackground: invalid frame specified");
 
     if (x1 == SCR_NO_VALUE) {
@@ -455,11 +455,11 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
         return NULL;
 
     // create a new sprite as a copy of the existing one
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, thisroom.ebscene[frame]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, thisroom.BgFrames[frame].Graphic->GetColorDepth());
     if (newPic == NULL)
         return NULL;
 
-    newPic->Blit(thisroom.ebscene[frame], x1, y1, 0, 0, width, height);
+    newPic->Blit(thisroom.BgFrames[frame].Graphic.get(), x1, y1, 0, 0, width, height);
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, newPic);

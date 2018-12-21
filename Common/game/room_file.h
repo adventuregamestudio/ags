@@ -28,13 +28,13 @@
 #include "util/stream.h"
 #include "util/string.h"
 
-struct RoomStruct;
 struct SpriteInfo;
-
 namespace AGS
 {
 namespace Common
 {
+
+class RoomStruct;
 
 enum RoomFileErrorType
 {

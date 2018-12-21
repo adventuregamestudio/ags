@@ -17,12 +17,13 @@
 #include "ac/draw.h"
 #include "ac/region.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "debug/debug_log.h"
-#include "script/script.h"
+#include "game/roomstruct.h"
 #include "gfx/bitmap.h"
+#include "script/script.h"
 
-using AGS::Common::Bitmap;
+
+using namespace AGS::Common;
 
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
@@ -38,21 +39,21 @@ int GetRegionAt (int xxx, int yyy) {
 
     if (loaded_game_file_version >= kGameVersion_262) // Version 2.6.2+
     {
-        if (xxx >= thisroom.regions->GetWidth())
-            xxx = thisroom.regions->GetWidth() - 1;
-        if (yyy >= thisroom.regions->GetHeight())
-            yyy = thisroom.regions->GetHeight() - 1;
+        if (xxx >= thisroom.RegionMask->GetWidth())
+            xxx = thisroom.RegionMask->GetWidth() - 1;
+        if (yyy >= thisroom.RegionMask->GetHeight())
+            yyy = thisroom.RegionMask->GetHeight() - 1;
         if (xxx < 0)
             xxx = 0;
         if (yyy < 0)
             yyy = 0;
     }
 
-    int hsthere = thisroom.regions->GetPixel (xxx, yyy);
+    int hsthere = thisroom.RegionMask->GetPixel (xxx, yyy);
     if (hsthere < 0)
         hsthere = 0;
 
-    if (hsthere >= MAX_REGIONS) {
+    if (hsthere >= MAX_ROOM_REGIONS) {
         quitprintf("!An invalid pixel was found on the room region mask (colour %d, location: %d, %d)", hsthere, xxx, yyy);
     }
 
@@ -62,19 +63,19 @@ int GetRegionAt (int xxx, int yyy) {
 }
 
 void SetAreaLightLevel(int area, int brightness) {
-    if ((area < 0) || (area > MAX_REGIONS))
+    if ((area < 0) || (area > MAX_ROOM_REGIONS))
         quit("!SetAreaLightLevel: invalid region");
     if (brightness < -100) brightness = -100;
     if (brightness > 100) brightness = 100;
-    thisroom.regionLightLevel[area] = brightness;
+    thisroom.Regions[area].Light = brightness;
     // disable RGB tint for this area
-    thisroom.regionTintLevel[area]  = 0;
+    thisroom.Regions[area].Tint  = 0;
     debug_script_log("Region %d light level set to %d", area, brightness);
 }
 
 void SetRegionTint (int area, int red, int green, int blue, int amount, int luminance)
 {
-    if ((area < 0) || (area > MAX_REGIONS))
+    if ((area < 0) || (area > MAX_ROOM_REGIONS))
         quit("!SetRegionTint: invalid region");
 
     if ((red < 0) || (red > 255) || (green < 0) || (green > 255) ||
@@ -98,15 +99,15 @@ void SetRegionTint (int area, int red, int green, int blue, int amount, int lumi
     green -= 100;
     blue -= 100;*/
 
-    thisroom.regionTintLevel[area] = red & 0xFF |
+    thisroom.Regions[area].Tint = red & 0xFF |
                                    ((green & 0xFF) << 8) |
                                    ((blue & 0XFF) << 16) |
                                    ((amount & 0xFF) << 24);
-    thisroom.regionLightLevel[area] = (luminance * 25) / 10;
+    thisroom.Regions[area].Light = (luminance * 25) / 10;
 }
 
 void DisableRegion(int hsnum) {
-    if ((hsnum < 0) || (hsnum >= MAX_REGIONS))
+    if ((hsnum < 0) || (hsnum >= MAX_ROOM_REGIONS))
         quit("!DisableRegion: invalid region specified");
 
     croom->region_enabled[hsnum] = 0;
@@ -114,7 +115,7 @@ void DisableRegion(int hsnum) {
 }
 
 void EnableRegion(int hsnum) {
-    if ((hsnum < 0) || (hsnum >= MAX_REGIONS))
+    if ((hsnum < 0) || (hsnum >= MAX_ROOM_REGIONS))
         quit("!EnableRegion: invalid region specified");
 
     croom->region_enabled[hsnum] = 1;
@@ -140,7 +141,7 @@ void EnableGroundLevelAreas() {
 }
 
 void RunRegionInteraction (int regnum, int mood) {
-    if ((regnum < 0) || (regnum >= MAX_REGIONS))
+    if ((regnum < 0) || (regnum >= MAX_ROOM_REGIONS))
         quit("!RunRegionInteraction: invalid region speicfied");
     if ((mood < 0) || (mood > 2))
         quit("!RunRegionInteraction: invalid event specified");
@@ -155,9 +156,9 @@ void RunRegionInteraction (int regnum, int mood) {
     evblockbasename = "region%d";
     evblocknum = regnum;
 
-    if (thisroom.regionScripts != NULL)
+    if (thisroom.Regions[regnum].EventHandlers != NULL)
     {
-        run_interaction_script(thisroom.regionScripts[regnum], mood);
+        run_interaction_script(thisroom.Regions[regnum].EventHandlers.get(), mood);
     }
     else
     {

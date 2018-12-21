@@ -15,7 +15,6 @@
 #include "ac/walkbehind.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
-#include "ac/roomstruct.h"
 #include "ac/gamestate.h"
 #include "media/audio/audio.h"
 #include "gfx/graphicsdriver.h"
@@ -32,9 +31,9 @@ extern IGraphicsDriver *gfxDriver;
 char *walkBehindExists = NULL;  // whether a WB area is in this column
 int *walkBehindStartY = NULL, *walkBehindEndY = NULL;
 char noWalkBehindsAtAll = 0;
-int walkBehindLeft[MAX_OBJ], walkBehindTop[MAX_OBJ];
-int walkBehindRight[MAX_OBJ], walkBehindBottom[MAX_OBJ];
-IDriverDependantBitmap *walkBehindBitmap[MAX_OBJ];
+int walkBehindLeft[MAX_WALK_BEHINDS], walkBehindTop[MAX_WALK_BEHINDS];
+int walkBehindRight[MAX_WALK_BEHINDS], walkBehindBottom[MAX_WALK_BEHINDS];
+IDriverDependantBitmap *walkBehindBitmap[MAX_WALK_BEHINDS];
 int walkBehindsCachedForBgNum = 0;
 WalkBehindMethodEnum walkBehindMethod = DrawOverCharSprite;
 int walk_behind_baselines_changed = 0;
@@ -42,9 +41,9 @@ int walk_behind_baselines_changed = 0;
 void update_walk_behind_images()
 {
   int ee, rr;
-  int bpp = (thisroom.ebscene[play.bg_frame]->GetColorDepth() + 7) / 8;
+  int bpp = (thisroom.BgFrames[play.bg_frame].Graphic->GetColorDepth() + 7) / 8;
   Bitmap *wbbmp;
-  for (ee = 1; ee < MAX_OBJ; ee++)
+  for (ee = 1; ee < MAX_WALK_BEHINDS; ee++)
   {
     update_polled_stuff_if_runtime();
     
@@ -53,16 +52,16 @@ void update_walk_behind_images()
       wbbmp = BitmapHelper::CreateTransparentBitmap( 
                                (walkBehindRight[ee] - walkBehindLeft[ee]) + 1,
                                (walkBehindBottom[ee] - walkBehindTop[ee]) + 1,
-							   thisroom.ebscene[play.bg_frame]->GetColorDepth());
+							   thisroom.BgFrames[play.bg_frame].Graphic->GetColorDepth());
       int yy, startX = walkBehindLeft[ee], startY = walkBehindTop[ee];
       for (rr = startX; rr <= walkBehindRight[ee]; rr++)
       {
         for (yy = startY; yy <= walkBehindBottom[ee]; yy++)
         {
-          if (thisroom.object->GetScanLine(yy)[rr] == ee)
+          if (thisroom.WalkBehindMask->GetScanLine(yy)[rr] == ee)
           {
             for (int ii = 0; ii < bpp; ii++)
-              wbbmp->GetScanLineForWriting(yy - startY)[(rr - startX) * bpp + ii] = thisroom.ebscene[play.bg_frame]->GetScanLine(yy)[rr * bpp + ii];
+              wbbmp->GetScanLineForWriting(yy - startY)[(rr - startX) * bpp + ii] = thisroom.BgFrames[play.bg_frame].Graphic->GetScanLine(yy)[rr * bpp + ii];
           }
         }
       }
@@ -89,14 +88,14 @@ void recache_walk_behinds () {
     free (walkBehindEndY);
   }
 
-  walkBehindExists = (char*)malloc (thisroom.object->GetWidth());
-  walkBehindStartY = (int*)malloc (thisroom.object->GetWidth() * sizeof(int));
-  walkBehindEndY = (int*)malloc (thisroom.object->GetWidth() * sizeof(int));
+  walkBehindExists = (char*)malloc (thisroom.WalkBehindMask->GetWidth());
+  walkBehindStartY = (int*)malloc (thisroom.WalkBehindMask->GetWidth() * sizeof(int));
+  walkBehindEndY = (int*)malloc (thisroom.WalkBehindMask->GetWidth() * sizeof(int));
   noWalkBehindsAtAll = 1;
 
   int ee,rr,tmm;
   const int NO_WALK_BEHIND = 100000;
-  for (ee = 0; ee < MAX_OBJ; ee++)
+  for (ee = 0; ee < MAX_WALK_BEHINDS; ee++)
   {
     walkBehindLeft[ee] = NO_WALK_BEHIND;
     walkBehindTop[ee] = NO_WALK_BEHIND;
@@ -114,15 +113,15 @@ void recache_walk_behinds () {
 
   // since this is an 8-bit memory bitmap, we can just use direct 
   // memory access
-  if ((!thisroom.object->IsLinearBitmap()) || (thisroom.object->GetColorDepth() != 8))
+  if ((!thisroom.WalkBehindMask->IsLinearBitmap()) || (thisroom.WalkBehindMask->GetColorDepth() != 8))
     quit("Walk behinds bitmap not linear");
 
-  for (ee=0;ee<thisroom.object->GetWidth();ee++) {
+  for (ee=0;ee<thisroom.WalkBehindMask->GetWidth();ee++) {
     walkBehindExists[ee] = 0;
-    for (rr=0;rr<thisroom.object->GetHeight();rr++) {
-      tmm = thisroom.object->GetScanLine(rr)[ee];
-      //tmm = _getpixel(thisroom.object,ee,rr);
-      if ((tmm >= 1) && (tmm < MAX_OBJ)) {
+    for (rr=0;rr<thisroom.WalkBehindMask->GetHeight();rr++) {
+      tmm = thisroom.WalkBehindMask->GetScanLine(rr)[ee];
+      //tmm = _getpixel(thisroom.WalkBehindMask,ee,rr);
+      if ((tmm >= 1) && (tmm < MAX_WALK_BEHINDS)) {
         if (!walkBehindExists[ee]) {
           walkBehindStartY[ee] = rr;
           walkBehindExists[ee] = tmm;

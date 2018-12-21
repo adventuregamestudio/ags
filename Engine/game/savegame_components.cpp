@@ -26,7 +26,6 @@
 #include "ac/mouse.h"
 #include "ac/movelist.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
@@ -831,37 +830,37 @@ HSaveError WriteThisRoom(PStream out)
         return HSaveError::None();
 
     // modified room backgrounds
-    for (int i = 0; i < MAX_BSCENE; ++i)
+    for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
     {
         out->WriteBool(play.raw_modified[i] != 0);
         if (play.raw_modified[i])
-            serialize_bitmap(thisroom.ebscene[i], out.get());
+            serialize_bitmap(thisroom.BgFrames[i].Graphic.get(), out.get());
     }
     out->WriteBool(raw_saved_screen != NULL);
     if (raw_saved_screen)
         serialize_bitmap(raw_saved_screen, out.get());
 
     // room region state
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
-        out->WriteInt32(thisroom.regionLightLevel[i]);
-        out->WriteInt32(thisroom.regionTintLevel[i]);
+        out->WriteInt32(thisroom.Regions[i].Light);
+        out->WriteInt32(thisroom.Regions[i].Tint);
     }
     for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
     {
-        out->WriteInt32(thisroom.walk_area_zoom[i]);
-        out->WriteInt32(thisroom.walk_area_zoom2[i]);
+        out->WriteInt32(thisroom.WalkAreas[i].ScalingFar);
+        out->WriteInt32(thisroom.WalkAreas[i].ScalingNear);
     }
 
     // room object movement paths cache
-    out->WriteInt32(thisroom.numsprs + 1);
-    for (int i = 0; i < thisroom.numsprs + 1; ++i)
+    out->WriteInt32(thisroom.ObjectCount + 1);
+    for (size_t i = 0; i < thisroom.ObjectCount + 1; ++i)
     {
         mls[i].WriteToFile(out.get());
     }
 
     // room music volume
-    out->WriteInt32(thisroom.options[ST_VOLUME]);
+    out->WriteInt32(thisroom.Options.MusicVolume);
 
     // persistent room's indicator
     const bool persist = displayed_room < MAX_ROOMS;
@@ -880,11 +879,11 @@ HSaveError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
         return err;
 
     // modified room backgrounds
-    for (int i = 0; i < MAX_BSCENE; ++i)
+    for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
     {
         play.raw_modified[i] = in->ReadBool();
         if (play.raw_modified[i])
-            r_data.RoomBkgScene[i] = read_serialized_bitmap(in.get());
+            r_data.RoomBkgScene[i].reset(read_serialized_bitmap(in.get()));
         else
             r_data.RoomBkgScene[i] = NULL;
     }
@@ -892,7 +891,7 @@ HSaveError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
         raw_saved_screen = read_serialized_bitmap(in.get());
 
     // room region state
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
         r_data.RoomLightLevels[i] = in->ReadInt32();
         r_data.RoomTintLevels[i] = in->ReadInt32();
@@ -915,7 +914,7 @@ HSaveError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
     }
 
     // save the new room music vol for later use
-    r_data.RoomVolume = in->ReadInt32();
+    r_data.RoomVolume = (RoomVolumeMod)in->ReadInt32();
 
     // read the current troom state, in case they saved in temporary room
     if (!in->ReadBool())

@@ -101,9 +101,6 @@
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\messageinfo.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -263,13 +260,13 @@
     <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aautil.c">
       <Filter>Library Sources\aastr</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\roomstruct.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\game\room_file.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\game\room_file_deprecated.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\roomstruct.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
   </ItemGroup>
@@ -310,16 +307,10 @@
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\messageinfo.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\ac\mousecursor.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\ac\point.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\spritecache.h">
@@ -538,10 +529,10 @@
     <ClInclude Include="..\..\Common\game\room_file.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\roomstruct.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\game\room_version.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\roomstruct.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\stdio_compat.h">

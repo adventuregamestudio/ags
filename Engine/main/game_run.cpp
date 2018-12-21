@@ -38,7 +38,6 @@
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "gui/guiinv.h"
@@ -537,13 +536,13 @@ void check_room_edges(int numevents_was)
             if ((numevents == numevents_was) &&
                 ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0)) {
 
-                    if (playerchar->x <= thisroom.left)
+                    if (playerchar->x <= thisroom.Edges.Left)
                         edgesActivated[0] = 1;
-                    else if (playerchar->x >= thisroom.right)
+                    else if (playerchar->x >= thisroom.Edges.Right)
                         edgesActivated[1] = 1;
-                    if (playerchar->y >= thisroom.bottom)
+                    if (playerchar->y >= thisroom.Edges.Bottom)
                         edgesActivated[2] = 1;
-                    else if (playerchar->y <= thisroom.top)
+                    else if (playerchar->y <= thisroom.Edges.Top)
                         edgesActivated[3] = 1;
 
                     if ((play.entered_edge >= 0) && (play.entered_edge <= 3)) {
@@ -662,9 +661,9 @@ void game_loop_update_background_animation()
     else {
         play.bg_anim_delay = play.anim_background_speed;
         play.bg_frame++;
-        if (play.bg_frame >= thisroom.num_bscenes)
+        if ((size_t)play.bg_frame >= thisroom.BgFrameCount)
             play.bg_frame=0;
-        if (thisroom.num_bscenes >= 2) {
+        if (thisroom.BgFrameCount >= 2) {
             // get the new frame's palette
             on_background_frame_change();
         }

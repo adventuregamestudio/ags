@@ -20,7 +20,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screen.h"
 #include "debug/debug_log.h"

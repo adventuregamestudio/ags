@@ -14,7 +14,6 @@
 
 #include <stdlib.h>
 #include "ac/common.h"	// quit()
-#include "ac/roomstruct.h"
 #include "util/compress.h"
 #include "util/lzw.h"
 #include "util/misc.h"
@@ -427,15 +426,11 @@ void loadcompressed_allegro(Stream *in, Bitmap **bimpp, color *pall) {
   short widd,hitt;
   int   ii;
 
-  Bitmap *bim = *bimpp;
-  delete bim;
-
   widd = in->ReadInt16();
   hitt = in->ReadInt16();
-  bim = BitmapHelper::CreateBitmap(widd, hitt, 8);
+  Bitmap *bim = BitmapHelper::CreateBitmap(widd, hitt, 8);
   if (bim == NULL)
     quit("!load_room: not enough memory to decompress masks");
-  *bimpp = bim;
 
   for (ii = 0; ii < hitt; ii++) {
     cunpackbitl(&bim->GetScanLineForWriting(ii)[0], widd, in);
@@ -444,4 +439,5 @@ void loadcompressed_allegro(Stream *in, Bitmap **bimpp, color *pall) {
   }
 
   in->Seek(768);  // skip palette
+  *bimpp = bim;
 }

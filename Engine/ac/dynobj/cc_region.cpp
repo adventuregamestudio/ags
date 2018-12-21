@@ -15,8 +15,9 @@
 #include "ac/dynobj/cc_region.h"
 #include "ac/dynobj/scriptregion.h"
 #include "ac/common_defines.h"
+#include "game/roomstruct.h"
 
-extern ScriptRegion scrRegion[MAX_REGIONS];
+extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 
 // return the type name of the object
 const char *CCRegion::GetType() {

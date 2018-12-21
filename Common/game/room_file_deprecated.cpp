@@ -91,4 +91,45 @@ void PolyPoints::Read(Stream *in)
     numpoints = in->ReadInt32();
 }
 
+
+//
+// Pre-2.5 scripts (we don't know how to convert them for the modern engine)
+//
+#define SCRIPT_CONFIG_VERSION 1
+HRoomFileError ReadAncientScriptConfig(Stream *in)
+{
+    int fmt = in->ReadInt32();
+    if (fmt != SCRIPT_CONFIG_VERSION)
+        return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Invalid script configuration format (in room: %d, expected: %d).", fmt, SCRIPT_CONFIG_VERSION));
+
+    size_t var_count = in->ReadInt32();
+    for (size_t i = 0; i < var_count; ++i)
+    {
+        size_t len = in->ReadByte();
+        in->Seek(len);
+    }
+    return HRoomFileError::None();
+}
+
+HRoomFileError ReadAncientGraphicalScripts(Stream *in)
+{
+    do
+    {
+        int ct = in->ReadInt32();
+        if (ct == -1 || in->EOS())
+            break;
+        size_t len = in->ReadInt32();
+        in->Seek(len);
+    } while (true);
+    return HRoomFileError::None();
+}
+
+HRoomFileError ReadPre250Scripts(Stream *in)
+{
+    HRoomFileError err = ReadAncientScriptConfig(in);
+    if (err)
+        err = ReadAncientGraphicalScripts(in);
+    return err;
+}
+
 #endif // OBSOLETE

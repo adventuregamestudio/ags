@@ -289,13 +289,6 @@ namespace AGS.Editor
             }
 
             previewPanel.Refresh();
-
-            // if not doing a tiled import, update selection width and height
-            if (!chkTiled.Checked)
-            {
-                numSizeX.Value = image.Width;
-                numSizeY.Value = image.Height;
-            }
         }
 
         private void updateCornerColours(Point point, Size size)

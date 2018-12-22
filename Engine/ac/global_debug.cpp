@@ -52,7 +52,6 @@ extern int convert_16bit_bgr;
 extern IGraphicsDriver *gfxDriver;
 extern SpriteCache spriteset;
 extern TreeMap *transtree;
-extern int offsetx, offsety;
 extern int displayed_room, starting_room;
 extern MoveList *mls;
 extern char transFileName[MAX_PATH];
@@ -107,9 +106,11 @@ void script_debug(int cmdd,int dataa) {
     {  // show walkable areas from here
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
-        Bitmap *stretched = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight());
+        const Rect &viewport = play.GetRoomViewport();
+        const Rect &camera = play.GetRoomCamera();
+        Bitmap *stretched = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
         stretched->StretchBlt(tempw,
-			RectWH(-offsetx, -offsety, tempw->GetWidth(), tempw->GetHeight()),
+			RectWH(-camera.Left, -camera.Top, tempw->GetWidth(), tempw->GetHeight()),
 			Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(stretched, false, true);
@@ -163,9 +164,10 @@ void script_debug(int cmdd,int dataa) {
             short targety=short(cmls->pos[i+1] & 0x00ffff);
             tempw->DrawLine(Line(srcx, srcy, targetx, targety), GetVirtualScreen()->GetCompatibleColor(i+1));
         }
+        Rect camera = play.GetRoomCamera(); // TODO: or is this logically viewport coords?
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
         screen_bmp->StretchBlt(tempw,
-			RectWH(-offsetx, -offsety, tempw->GetWidth(), tempw->GetHeight()),
+			RectWH(-camera.Left, -camera.Top, tempw->GetWidth(), tempw->GetHeight()),
 			Common::kBitmap_Transparency);
         render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);
         delete tempw;

@@ -26,8 +26,6 @@
 #include "util/path.h"
 #include "util/string_utils.h"
 
-extern SpriteCache spriteset;
-
 namespace AGS
 {
 namespace Common

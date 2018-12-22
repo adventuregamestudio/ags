@@ -12,13 +12,33 @@
 //
 //=============================================================================
 //
-//
+// Definition for the game viewports and cameras.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__VIEWPORT_H
 #define __AGS_EE_AC__VIEWPORT_H
 
-void check_viewport_coords();
-void update_viewport();
+#include "util/geometry.h"
+#include "util/scaling.h"
+
+struct RoomCamera
+{
+    // Actual position and orthographic size
+    Rect Position;
+    // Automatic scaling used to resize the camera's picture to the viewport
+    float ScaleX;
+    float ScaleY;
+    // Locked or following player automatically
+    bool Locked;
+};
+
+struct Viewport
+{
+    Rect Position;
+    // TODO: Camera reference (when supporting multiple cameras)
+    // Coordinate tranform between camera and viewport
+    // TODO: need to add rotate conversion to let script API support that
+    AGS::Engine::PlaneScaling Transform;
+};
 
 #endif // __AGS_EE_AC__VIEWPORT_H

@@ -23,6 +23,7 @@
 #include "core/types.h"
 #include "ac/runtime_defines.h"
 #include "ac/statobj/agsstaticobject.h"
+#include "debug/out.h"
 
 struct RuntimeScriptValue;
 
@@ -371,6 +372,11 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue, params[5].IValue); \
     return RuntimeScriptValue()
 
+#define API_OBJCALL_VOID_PFLOAT(CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
+    METHOD((CLASS*)self, params[0].FValue); \
+    return RuntimeScriptValue()
+
 #define API_OBJCALL_VOID_PBOOL(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     METHOD((CLASS*)self, params[0].GetAsBool()); \
@@ -443,6 +449,10 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define API_OBJCALL_INT_POBJ_PBOOL(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2) \
     return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].GetAsBool()))
+
+#define API_OBJCALL_FLOAT(CLASS, METHOD) \
+    ASSERT_SELF(METHOD) \
+    return RuntimeScriptValue().SetFloat(METHOD((CLASS*)self))
 
 #define API_OBJCALL_BOOL(CLASS, METHOD) \
     ASSERT_SELF(METHOD) \

@@ -28,7 +28,11 @@
 namespace AGS
 {
 
-namespace Common { class Bitmap; }
+namespace Common
+{
+    class Bitmap;
+    typedef stdtr1compat::shared_ptr<Common::Bitmap> PBitmap;
+}
 
 namespace Engine
 {
@@ -37,6 +41,7 @@ namespace Engine
 class IDriverDependantBitmap;
 class IGfxFilter;
 typedef stdtr1compat::shared_ptr<IGfxFilter> PGfxFilter;
+using Common::PBitmap;
 
 enum TintMethod
 {
@@ -50,6 +55,22 @@ enum VideoSkipType
   VideoSkipEscape = 1,
   VideoSkipAnyKey = 2,
   VideoSkipKeyOrMouse = 3
+};
+
+// Sprite transformation
+// TODO: combine with stretch parameters in the IDriverDependantBitmap?
+struct SpriteTransform
+{
+    // Translate
+    int X, Y;
+    float ScaleX, ScaleY;
+    float Rotate; // angle, in radians
+
+    SpriteTransform()
+        : X(0), Y(0), ScaleX(1.f), ScaleY(1.f), Rotate(0.f) {}
+
+    SpriteTransform(int x, int y, float scalex = 1.0f, float scaley = 1.0f, float rotate = 0.0f)
+        : X(x), Y(y), ScaleX(scalex), ScaleY(scaley), Rotate(rotate) {}
 };
 
 typedef void (*GFXDRV_CLIENTCALLBACK)();
@@ -99,10 +120,22 @@ public:
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool hasAlpha, bool opaque = false) = 0;
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::Bitmap *bitmap, bool hasAlpha) = 0;
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
-  virtual void ClearDrawList() = 0;
+
+  // Prepares next sprite batch, a list of sprites with defined viewport and optional
+  // global model transformation; all subsequent calls to DrawSprite will be adding
+  // sprites to this batch's list.
+  virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = NULL) = 0;
+  // Adds sprite to the active batch
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
+  // Clears all sprite batches, resets batch counter
+  virtual void ClearDrawLists() = 0;
+
   virtual void SetScreenTint(int red, int green, int blue) = 0;
-  virtual void SetRenderOffset(int x, int y) = 0;
+  // Defines the rendering offset of the every game sprite (in native coordinates).
+  // TODO: should be replaced by defining translation for the sprite batch
+  // (but translate transform does not work correctly enough at the moment and never truly used)
+  // NOTE: currently this method is only used by ShakeScreen.
+  virtual void SetNativeRenderOffset(int x, int y) = 0;
   virtual void RenderToBackBuffer() = 0;
   virtual void Render() = 0;
   virtual void Render(GlobalFlipType flip) = 0;
@@ -116,17 +149,26 @@ public:
   // the rest of the game. The effect is stronger for the low-res games being
   // rendered in the high-res mode.
   virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling = 1) = 0;
+  // TODO: move fade-in/out/boxout functions out of the graphics driver!! make everything render through
+  // main drawing procedure. Since currently it does not - we need to init our own sprite batch
+  // internally to let it set up correct viewport settings instead of relying on a chance.
+  // Runs fade-out animation in a blocking manner.
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
+  // Runs fade-in animation in a blocking manner.
   virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
+  // Runs box-out animation in a blocking manner.
   virtual void BoxOutEffect(bool blackingOut, int speed, int delay) = 0;
   virtual bool PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen) = 0;
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;
+  // Returns memory backbuffer for the current stage screen (or base virtual screen if called outside of render pass).
   virtual Common::Bitmap* GetMemoryBackBuffer() = 0;
-  virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer) = 0;
+  // Sets base virtual screen to render to, optionally configure offsets at which this screen has to be blitted
+  // to the final render surface.
+  virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer, int offx = 0, int offy = 0) = 0;
   virtual bool RequiresFullRedrawEachFrame() = 0;
-  virtual bool HasAcceleratedStretchAndFlip() = 0;
+  virtual bool HasAcceleratedTransform() = 0;
   virtual bool UsesMemoryBackBuffer() = 0;
   virtual ~IGraphicsDriver() { }
 };

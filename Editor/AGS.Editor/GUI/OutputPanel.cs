@@ -26,13 +26,18 @@ namespace AGS.Editor
 			lvwResults.SmallImageList = list;
 		}
 
-        public void SetMessages(string[] messages)
+        public void SetMessages(string[] messages, string imageKey)
         {
             foreach (string message in messages)
             {
-                ListViewItem newItem = lvwResults.Items.Add(message);
-                newItem.ImageKey = "BuildIcon";
+                SetMessage(message, imageKey);
             }
+        }
+
+        public void SetMessage(string message, string imageKey)
+        {
+            ListViewItem newItem = lvwResults.Items.Add(message);
+            newItem.ImageKey = imageKey;
         }
 
         public CompileMessages ErrorsToList

@@ -58,6 +58,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/scriptviewport.h"
 #include "ac/statobj/staticgame.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
@@ -126,7 +127,6 @@ extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern char transFileName[MAX_PATH];
 extern color palette[256];
-extern int offsetx,offsety;
 extern unsigned int loopcounter;
 extern Bitmap *raw_saved_screen;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
@@ -153,7 +153,7 @@ int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 int new_room_loop = SCR_NO_VALUE;
 
 // initially size 1, this will be increased by the initFile function
-SpriteCache spriteset(1, game.SpriteInfos);
+SpriteCache spriteset(game.SpriteInfos);
 int proper_exit=0,our_eip=0;
 
 std::vector<GUIMain> guis;
@@ -944,6 +944,24 @@ ScriptAudioClip *Game_GetAudioClip(int index)
     return &game.audioClips[index];
 }
 
+
+bool Game_GetAutoSizeViewport()
+{
+    return play.IsAutoRoomViewport();
+}
+
+void Game_SetAutoSizeViewport(bool on)
+{
+    play.SetAutoRoomViewport(on);
+}
+
+ScriptViewport* Game_GetRoomViewport()
+{
+    ScriptViewport *viewport = new ScriptViewport();
+    ccRegisterManagedObject(viewport, viewport);
+    return viewport;
+}
+
 //=============================================================================
 
 // save game functions
@@ -1177,8 +1195,9 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     r_data.FPS = in->ReadInt32();
     r_data.CursorMode = in->ReadInt32();
     r_data.CursorID = in->ReadInt32();
-    offsetx = in->ReadInt32();
-    offsety = in->ReadInt32();
+    int camx = in->ReadInt32();
+    int camy = in->ReadInt32();
+    play.SetRoomCameraAt(camx, camy);
     loopcounter = in->ReadInt32();
     return HSaveError::None();
 }
@@ -1853,8 +1872,11 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     getloctype_throughgui = 0;
 
-    xxx += offsetx;
-    yyy += offsety;
+    const int scrx = xxx;
+    const int scry = yyy;
+    Point roompt = play.ScreenToRoomDivDown(xxx, yyy);
+    xxx = roompt.X;
+    yyy = roompt.Y;
     if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return 0;
 
@@ -1862,7 +1884,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     // foremost visible to the player
     int charat = is_pos_on_character(xxx,yyy);
     int hsat = get_hotspot_at(xxx,yyy);
-    int objat = GetObjectAt(xxx - offsetx, yyy - offsety);
+    int objat = GetObjectAt(scrx, scry);
 
     int wbat = thisroom.WalkBehindMask->GetPixel(xxx, yyy);
 
@@ -2385,6 +2407,21 @@ RuntimeScriptValue Sc_Game_IsPluginLoaded(const RuntimeScriptValue *params, int3
     API_SCALL_BOOL_OBJ(pl_is_plugin_loaded, const char);
 }
 
+RuntimeScriptValue Sc_Game_GetAutoSizeViewport(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Game_GetAutoSizeViewport);
+}
+
+RuntimeScriptValue Sc_Game_SetAutoSizeViewport(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PBOOL(Game_SetAutoSizeViewport);
+}
+
+RuntimeScriptValue Sc_Game_GetRoomViewport(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptViewport, Game_GetRoomViewport);
+}
+
 
 void RegisterGameAPI()
 {
@@ -2434,8 +2471,11 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_TranslationFilename",                Sc_Game_GetTranslationFilename);
     ccAddExternalStaticFunction("Game::get_ViewCount",                          Sc_Game_GetViewCount);
     ccAddExternalStaticFunction("Game::get_AudioClipCount",                     Sc_Game_GetAudioClipCount);
-    ccAddExternalStaticFunction("Game::geti_AudioClips",                         Sc_Game_GetAudioClip);
+    ccAddExternalStaticFunction("Game::geti_AudioClips",                        Sc_Game_GetAudioClip);
     ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
+    ccAddExternalStaticFunction("Game::get_AutoSizeViewportOnRoomLoad",         Sc_Game_GetAutoSizeViewport);
+    ccAddExternalStaticFunction("Game::set_AutoSizeViewportOnRoomLoad",         Sc_Game_SetAutoSizeViewport);
+    ccAddExternalStaticFunction("Game::get_RoomViewport",                       Sc_Game_GetRoomViewport);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

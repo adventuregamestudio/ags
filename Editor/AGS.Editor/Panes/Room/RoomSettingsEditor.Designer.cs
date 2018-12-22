@@ -29,6 +29,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.mainFrame = new System.Windows.Forms.GroupBox();
+            this.lblZoomInfo = new System.Windows.Forms.Label();
             this._editAddressBar = new AddressBarExt.Controls.AddressBarExt();
             this.chkCharacterOffset = new System.Windows.Forms.CheckBox();
             this.coordbox = new System.Windows.Forms.CheckBox();
@@ -42,12 +43,9 @@ namespace AGS.Editor
             this.label1 = new System.Windows.Forms.Label();
             this.cmbBackgrounds = new System.Windows.Forms.ComboBox();
             this.bufferedPanel1 = new AGS.Editor.BufferedPanel();
-            this.lblDummyScrollSizer = new System.Windows.Forms.Label();
             this.sldZoomLevel = new System.Windows.Forms.TrackBar();
             this.sldTransparency = new System.Windows.Forms.TrackBar();
-            this.lblZoomInfo = new System.Windows.Forms.Label();
             this.mainFrame.SuspendLayout();
-            this.bufferedPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sldZoomLevel)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.sldTransparency)).BeginInit();
             this.SuspendLayout();
@@ -79,6 +77,15 @@ namespace AGS.Editor
             this.mainFrame.TabIndex = 4;
             this.mainFrame.TabStop = false;
             this.mainFrame.Text = "Room details";
+            // 
+            // lblZoomInfo
+            // 
+            this.lblZoomInfo.AutoSize = true;
+            this.lblZoomInfo.Location = new System.Drawing.Point(575, 46);
+            this.lblZoomInfo.Name = "lblZoomInfo";
+            this.lblZoomInfo.Size = new System.Drawing.Size(36, 13);
+            this.lblZoomInfo.TabIndex = 19;
+            this.lblZoomInfo.Text = "100%";
             // 
             // _editAddressBar
             // 
@@ -212,7 +219,6 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Right)));
             this.bufferedPanel1.AutoScroll = true;
             this.bufferedPanel1.BackColor = System.Drawing.SystemColors.Control;
-            this.bufferedPanel1.Controls.Add(this.lblDummyScrollSizer);
             this.bufferedPanel1.Location = new System.Drawing.Point(12, 93);
             this.bufferedPanel1.Name = "bufferedPanel1";
             this.bufferedPanel1.Size = new System.Drawing.Size(741, 384);
@@ -223,14 +229,6 @@ namespace AGS.Editor
             this.bufferedPanel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.bufferedPanel1_MouseDown);
             this.bufferedPanel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.bufferedPanel1_MouseMove);
             this.bufferedPanel1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.bufferedPanel1_MouseUp);
-            // 
-            // lblDummyScrollSizer
-            // 
-            this.lblDummyScrollSizer.AutoSize = true;
-            this.lblDummyScrollSizer.Location = new System.Drawing.Point(73, 92);
-            this.lblDummyScrollSizer.Name = "lblDummyScrollSizer";
-            this.lblDummyScrollSizer.Size = new System.Drawing.Size(0, 13);
-            this.lblDummyScrollSizer.TabIndex = 0;
             // 
             // sldZoomLevel
             // 
@@ -259,15 +257,6 @@ namespace AGS.Editor
             this.sldTransparency.Visible = false;
             this.sldTransparency.Scroll += new System.EventHandler(this.sldTransparency_Scroll);
             // 
-            // lblZoomInfo
-            // 
-            this.lblZoomInfo.AutoSize = true;
-            this.lblZoomInfo.Location = new System.Drawing.Point(575, 46);
-            this.lblZoomInfo.Name = "lblZoomInfo";
-            this.lblZoomInfo.Size = new System.Drawing.Size(36, 13);
-            this.lblZoomInfo.TabIndex = 19;
-            this.lblZoomInfo.Text = "100%";
-            // 
             // RoomSettingsEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -278,8 +267,6 @@ namespace AGS.Editor
             this.Size = new System.Drawing.Size(768, 491);
             this.mainFrame.ResumeLayout(false);
             this.mainFrame.PerformLayout();
-            this.bufferedPanel1.ResumeLayout(false);
-            this.bufferedPanel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sldZoomLevel)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.sldTransparency)).EndInit();
             this.ResumeLayout(false);
@@ -296,7 +283,6 @@ namespace AGS.Editor
         private System.Windows.Forms.Button btnDelete;
         private System.Windows.Forms.Button btnChangeImage;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label lblDummyScrollSizer;
         private System.Windows.Forms.Label lblMousePos;
 		private System.Windows.Forms.TrackBar sldZoomLevel;
 		private System.Windows.Forms.Label label3;

@@ -121,7 +121,7 @@ namespace AGS.Editor.Components
             }
             else if (controlID == MAKE_TEMPLATE_COMMAND)
             {
-                _guiController.ShowCreateTemplateWizard();
+                _guiController.SaveGameAsTemplate();
             }
             else if (controlID == AUTO_NUMBER_SPEECH_COMMAND)
             {

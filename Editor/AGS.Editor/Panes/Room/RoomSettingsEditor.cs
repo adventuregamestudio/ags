@@ -247,8 +247,7 @@ namespace AGS.Editor
 
         private void UpdateScrollableWindowSize()
         {
-            bufferedPanel1.AutoScroll = true;
-			lblDummyScrollSizer.Location = new Point(_state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height));
+            bufferedPanel1.AutoScrollMinSize = new Size(_state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height));
         }
 
         private void RepopulateBackgroundList(int selectIndex) 
@@ -281,14 +280,13 @@ namespace AGS.Editor
             int backgroundNumber = cmbBackgrounds.SelectedIndex;
             if (backgroundNumber < _room.BackgroundCount)
             {
-                int bufWidth = _state.RoomSizeToWindow(_room.Width);
-                int bufHeight = _state.RoomSizeToWindow(_room.Height);
-                e.Graphics.SetClip(new Rectangle(0, 0, bufWidth, bufHeight));
+                e.Graphics.SetClip(new Rectangle(0, 0, _state.RoomSizeToWindow(_room.Width), _state.RoomSizeToWindow(_room.Height)));
                 IntPtr hdc = e.Graphics.GetHdc();
-				Factory.NativeProxy.CreateBuffer(bufWidth, bufHeight);
-				// Adjust co-ordinates using original scale factor so that it lines
-				// up with objects, etc
-				int drawOffsX = _state.RoomXToWindow(0);
+                Factory.NativeProxy.CreateBuffer(bufferedPanel1.ClientSize.Width + SystemInformation.VerticalScrollBarWidth,
+                    bufferedPanel1.ClientSize.Height + SystemInformation.HorizontalScrollBarHeight);
+                // Adjust co-ordinates using original scale factor so that it lines
+                // up with objects, etc
+                int drawOffsX = _state.RoomXToWindow(0);
                 int drawOffsY = _state.RoomYToWindow(0);
                 IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
 				lock (_room)
@@ -437,7 +435,7 @@ namespace AGS.Editor
 
         private void ImportBackground(int bgIndex)
         {
-            string selectedFile = Factory.GUIController.ShowOpenFileDialog("Select background to import...", GUIController.IMAGE_FILE_FILTER);
+            string selectedFile = Factory.GUIController.ShowOpenFileDialog("Select background to import...", Constants.IMAGE_FILE_FILTER);
             if (selectedFile != null)
             {
 				Bitmap bmp = null;
@@ -532,7 +530,7 @@ namespace AGS.Editor
 
         private void btnExport_Click(object sender, EventArgs e)
         {
-            string fileName = Factory.GUIController.ShowSaveFileDialog("Export background as...", GUIController.IMAGE_FILE_FILTER);
+            string fileName = Factory.GUIController.ShowSaveFileDialog("Export background as...", Constants.IMAGE_FILE_FILTER);
             if (fileName != null)
             {
                 Bitmap bmp = Factory.NativeProxy.GetBitmapForBackground(_room, cmbBackgrounds.SelectedIndex);
@@ -848,18 +846,17 @@ namespace AGS.Editor
 
         private void sldZoomLevel_Scroll(object sender, EventArgs e)
 		{
-            float oldScale = _state.Scale;
-            _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
-
-            int newValue = (int)((bufferedPanel1.VerticalScroll.Value / oldScale) * _state.Scale);
-			bufferedPanel1.VerticalScroll.Value = Math.Min(newValue, bufferedPanel1.VerticalScroll.Maximum);
-			newValue = (int)((bufferedPanel1.HorizontalScroll.Value / oldScale) * _state.Scale);
-			bufferedPanel1.HorizontalScroll.Value = Math.Min(newValue, bufferedPanel1.HorizontalScroll.Maximum);
-
             lblZoomInfo.Text = String.Format("{0}%", sldZoomLevel.Value * ZOOM_STEP_VALUE);
+
+            int oldPosX = _state.WindowSizeToRoom(bufferedPanel1.HorizontalScroll.Value);
+            int oldPosY = _state.WindowSizeToRoom(bufferedPanel1.VerticalScroll.Value);
+
+            _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
+            UpdateScrollableWindowSize();
             
-			UpdateScrollableWindowSize();
-			bufferedPanel1.Invalidate();
+            bufferedPanel1.HorizontalScroll.Value = _state.RoomSizeToWindow(oldPosX);
+            bufferedPanel1.VerticalScroll.Value = _state.RoomSizeToWindow(oldPosY);
+            bufferedPanel1.Invalidate();
 		}
 
 		private void sldTransparency_Scroll(object sender, EventArgs e)

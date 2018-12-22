@@ -336,8 +336,8 @@ namespace AGS.Types
             set { _splitResources = value; }
         }
 
-        [DisplayName("Enable letterbox mode")]
-        [Description("Game will run at 320x240 or 640x480 with top and bottom black borders to give a square aspect ratio")]
+        [DisplayName("Old-style letterbox mode")]
+        [Description("Game will run at 320x240 or 640x480 with top and bottom black borders to give a square aspect ratio. Not recommended unless importing an old project.")]
         [DefaultValue(false)]
         [Category("(Basic properties)")]
         public bool LetterboxMode

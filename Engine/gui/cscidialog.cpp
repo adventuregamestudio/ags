@@ -245,6 +245,7 @@ int WINAPI _export CSCISendControlMessage(int haa, int mess, int wPar, long lPar
     return vobjs[haa]->processmessage(mess, wPar, lPar);
 }
 
+// TODO: this is silly, make a uniform formula
 int checkcontrols()
 {
     smcode = 0;
@@ -276,5 +277,5 @@ int finddefaultcontrol(int flagmask)
 }
 
 int GetBaseWidth () {
-    return BASEWIDTH;
+    return play.GetUIViewport().GetWidth();
 }

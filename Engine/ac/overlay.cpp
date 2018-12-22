@@ -32,7 +32,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int offsetx, offsety;
 extern int displayed_room;
 extern int face_talking;
 extern ViewStruct*views;
@@ -216,13 +215,14 @@ int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
 
 void get_overlay_position(int overlayidx, int *x, int *y) {
     int tdxp, tdyp;
+    const Rect &ui_view = play.GetUIViewport();
 
     if (screenover[overlayidx].x == OVR_AUTOPLACE) {
         // auto place on character
         int charid = screenover[overlayidx].y;
         int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
 
-        tdyp = game.chars[charid].get_effective_y() - offsety - 5;
+        tdyp = play.RoomToScreenY(game.chars[charid].get_effective_y()) - 5;
         if (charextra[charid].height<1)
             tdyp -= game.SpriteInfos[charpic].Height;
         else
@@ -230,14 +230,14 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
 
         tdyp -= screenover[overlayidx].pic->GetHeight();
         if (tdyp < 5) tdyp=5;
-        tdxp = (game.chars[charid].x - screenover[overlayidx].pic->GetWidth()/2) - offsetx;
+        tdxp = play.RoomToScreenX(game.chars[charid].x - screenover[overlayidx].pic->GetWidth()/2);
         if (tdxp < 0) tdxp=0;
 
-        if ((tdxp + screenover[overlayidx].pic->GetWidth()) >= play.viewport.GetWidth())
-            tdxp = (play.viewport.GetWidth() - screenover[overlayidx].pic->GetWidth()) - 1;
+        if ((tdxp + screenover[overlayidx].pic->GetWidth()) >= ui_view.GetWidth())
+            tdxp = (ui_view.GetWidth() - screenover[overlayidx].pic->GetWidth()) - 1;
         if (game.chars[charid].room != displayed_room) {
-            tdxp = play.viewport.GetWidth()/2 - screenover[overlayidx].pic->GetWidth()/2;
-            tdyp = play.viewport.GetHeight()/2 - screenover[overlayidx].pic->GetHeight()/2;
+            tdxp = ui_view.GetWidth()/2 - screenover[overlayidx].pic->GetWidth()/2;
+            tdyp = ui_view.GetHeight()/2 - screenover[overlayidx].pic->GetHeight()/2;
         }
     }
     else {
@@ -246,8 +246,9 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
 
         if (!screenover[overlayidx].positionRelativeToScreen)
         {
-            tdxp -= offsetx;
-            tdyp -= offsety;
+            Point tdxy = play.ScreenToRoom(tdxp, tdyp);
+            tdxp = tdxy.X;
+            tdyp = tdxy.Y;
         }
     }
     *x = tdxp;

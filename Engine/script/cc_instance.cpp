@@ -1266,8 +1266,8 @@ int ccInstance::Run(int32_t curpc)
                   cc_error("Invalid size for user object; requested: %u (or %d), range: 0..%d", (uint32_t)size, size, INT_MAX);
                   return -1;
               }
-              ScriptUserObject *suo = ScriptUserObject::CreateManaged(size);
-              reg1.SetDynamicObject(suo, suo);
+              std::pair<char*, ScriptUserObject*> suo = ScriptUserObject::CreateManaged(size);
+              reg1.SetDynamicObject(suo.first, suo.second);
               break;
           }
       case SCMD_FADD:

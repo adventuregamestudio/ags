@@ -125,6 +125,16 @@ public:
 };
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
+typedef struct GLMATRIX { GLfloat m[16]; } GLMATRIX;
+struct OGLSpriteBatch
+{
+    // List of sprites to render
+    std::vector<OGLDrawListEntry> List;
+    // Transformation matrix, built from the batch description
+    GLMATRIX Matrix;
+};
+typedef std::vector<OGLSpriteBatch>    OGLSpriteBatches;
+
 
 class OGLDisplayModeList : public IGfxModeList
 {
@@ -176,7 +186,6 @@ public:
     virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
     virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
     virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
-    virtual void ClearDrawList();
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
@@ -192,16 +201,13 @@ public:
     virtual void SetGamma(int newGamma);
     virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }
     virtual bool RequiresFullRedrawEachFrame() { return true; }
-    virtual bool HasAcceleratedStretchAndFlip() { return true; }
+    virtual bool HasAcceleratedTransform() { return true; }
     virtual void SetScreenTint(int red, int green, int blue);
 
     typedef stdtr1compat::shared_ptr<OGLGfxFilter> POGLFilter;
 
     void SetGraphicsFilter(POGLFilter filter);
 
-    // Internal
-    void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
-    void _reDrawLastFrame();
     OGLGraphicsDriver();
     virtual ~OGLGraphicsDriver();
 
@@ -240,6 +246,8 @@ private:
     };
     ShaderProgram _tintShader;
     ShaderProgram _lightShader;
+
+    // TODO: find a way to have this tint sprite in the normal sprite list (or use shader instead!)
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
     OGLDrawListEntry _screenTintSprite;
@@ -266,10 +274,15 @@ private:
     // Actual size of the backbuffer texture, created by OpenGL
     Size _backTextureSize;
 
-
-    std::vector<OGLDrawListEntry> drawList;
-    std::vector<OGLDrawListEntry> drawListLastTime;
+    OGLSpriteBatches _spriteBatches;
     GlobalFlipType flipTypeLastTime;
+    // TODO: these draw list backups are needed only for the fade-in/out effects
+    // find out if it's possible to reimplement these effects in main drawing routine.
+    SpriteBatchDescs _backupBatchDescs;
+    OGLSpriteBatches _backupBatches;
+
+    virtual void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc);
+    virtual void ResetAllBatches();
 
     // Sets up GL objects not related to particular display mode
     void FirstTimeInit();
@@ -309,8 +322,21 @@ private:
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void create_screen_tint_bitmap();
-    void _renderSprite(OGLDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
+    void _renderSprite(const OGLDrawListEntry *entry, const GLMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip);
     void SetupViewport();
+    // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
+    Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
+
+    // Backup all draw lists in the temp storage
+    void BackupDrawLists();
+    // Restore draw lists from the temp storage
+    void RestoreDrawLists();
+    // Deletes draw list backups
+    void ClearDrawBackups();
+    void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
+    void RenderSpriteBatches(GlobalFlipType flip);
+    void RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFlipType flip);
+    void _reDrawLastFrame();
 };
 
 

@@ -70,7 +70,7 @@ bool enable_greyed_out_masks = true;
 bool outlineGuiObjects;
 color*palette;
 GameSetupStruct thisgame;
-SpriteCache spriteset(MAX_STATIC_SPRITES + 2, thisgame.SpriteInfos);
+SpriteCache spriteset(thisgame.SpriteInfos);
 GUIMain tempgui;
 const char*sprsetname = "acsprset.spr";
 const char *old_editor_data_file = "editor.dat";
@@ -82,8 +82,9 @@ const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
 RoomStruct thisroom;
 bool roomModified = false;
-Common::Bitmap *drawBuffer = NULL;
-Common::Bitmap *undoBuffer = NULL;
+std::unique_ptr<AGSBitmap> drawBuffer;
+std::unique_ptr<AGSBitmap> undoBuffer;
+std::unique_ptr<AGSBitmap> roomBkgBuffer;
 int loaded_room_number = -1;
 
 GameDataVersion loaded_game_file_version = kGameVersion_Current;
@@ -706,13 +707,12 @@ void create_undo_buffer(void *roomptr, int maskType)
   {
     if ((undoBuffer->GetWidth() != mask->GetWidth()) || (undoBuffer->GetHeight() != mask->GetHeight())) 
     {
-      delete undoBuffer;
-      undoBuffer = NULL;
+      undoBuffer.reset();
     }
   }
   if (undoBuffer == NULL)
   {
-    undoBuffer = Common::BitmapHelper::CreateBitmap(mask->GetWidth(), mask->GetHeight(), mask->GetColorDepth());
+    undoBuffer.reset(Common::BitmapHelper::CreateBitmap(mask->GetWidth(), mask->GetHeight(), mask->GetColorDepth()));
   }
   undoBuffer->Blit(mask, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
 }
@@ -726,8 +726,7 @@ void clear_undo_buffer()
 {
   if (does_undo_buffer_exist()) 
   {
-    delete undoBuffer;
-    undoBuffer = NULL;
+    undoBuffer.reset();
   }
 }
 
@@ -736,7 +735,7 @@ void restore_from_undo_buffer(void *roomptr, int maskType)
   if (does_undo_buffer_exist())
   {
   	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-    mask->Blit(undoBuffer, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
+    mask->Blit(undoBuffer.get(), 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
   }
 }
 
@@ -851,20 +850,21 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 
 	if (drawBuffer != NULL) 
 	{
-		Common::Bitmap *depthConverted = Common::BitmapHelper::CreateBitmap(srcBlock->GetWidth(), srcBlock->GetHeight(), drawBuffer->GetColorDepth());
+        if (!roomBkgBuffer || roomBkgBuffer->GetSize() != srcBlock->GetSize() || roomBkgBuffer->GetColorDepth() != srcBlock->GetColorDepth())
+		    roomBkgBuffer.reset(new AGSBitmap(srcBlock->GetWidth(), srcBlock->GetHeight(), drawBuffer->GetColorDepth()));
     if (srcBlock->GetColorDepth() == 8)
     {
       select_palette(roomptr->BgFrames[bgnum].Palette);
     }
 
-    depthConverted->Blit(srcBlock.get(), 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
+    roomBkgBuffer->Blit(srcBlock.get(), 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
 
     if (srcBlock->GetColorDepth() == 8)
     {
       unselect_palette();
     }
 
-	draw_area_mask(roomptr, depthConverted, (RoomAreaMask)maskType, selectedArea, maskTransparency);
+	draw_area_mask(roomptr, roomBkgBuffer.get(), (RoomAreaMask)maskType, selectedArea, maskTransparency);
 
     int srcX = 0, srcY = 0;
     int srcWidth = srcBlock->GetWidth();
@@ -875,9 +875,9 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
       srcX = (int)(-x / scaleFactor);
       x += (int)(srcX * scaleFactor);
       srcWidth = drawBuffer->GetWidth() / scaleFactor;
-      if (srcX + srcWidth > depthConverted->GetWidth())
+      if (srcX + srcWidth > roomBkgBuffer->GetWidth())
       {
-        srcWidth = depthConverted->GetWidth() - srcX;
+        srcWidth = roomBkgBuffer->GetWidth() - srcX;
       }
     }
     if (y < 0)
@@ -885,15 +885,14 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
       srcY = (int)(-y / scaleFactor);
       y += (int)(srcY * scaleFactor);
       srcHeight = drawBuffer->GetHeight() / scaleFactor;
-      if (srcY + srcHeight > depthConverted->GetHeight())
+      if (srcY + srcHeight > roomBkgBuffer->GetHeight())
       {
-        srcHeight = depthConverted->GetHeight() - srcY;
+        srcHeight = roomBkgBuffer->GetHeight() - srcY;
       }
     }
 
-		Cstretch_blit(depthConverted, drawBuffer, srcX, srcY, srcWidth, srcHeight,
+		Cstretch_blit(roomBkgBuffer.get(), drawBuffer.get(), srcX, srcY, srcWidth, srcHeight,
             x, y, (int)(srcWidth * scaleFactor), (int)(srcHeight * scaleFactor));
-		delete depthConverted;
 	}
 	else {
 		drawBlockScaledAt(hdc, srcBlock.get(), x, y, scaleFactor);
@@ -1213,8 +1212,14 @@ bool initialize_native()
 
 void shutdown_native()
 {
+    // We must dispose all native bitmaps before shutting down the library
     thisroom.Free();
+    drawBuffer.reset();
+    undoBuffer.reset();
+    roomBkgBuffer.reset();
+
     shutdown_font_renderer();
+    spriteset.Reset();
     allegro_exit();
     Common::AssetManager::DestroyInstance();
 }
@@ -2043,8 +2048,9 @@ void save_game(bool compressSprites)
 
 void CreateBuffer(int width, int height)
 {
-	drawBuffer = Common::BitmapHelper::CreateBitmap( width, height, 32);
-	drawBuffer->Clear(0x00D0D0D0);
+    if (!drawBuffer || drawBuffer->GetWidth() != width || drawBuffer->GetHeight() != height || drawBuffer->GetColorDepth() != 32)
+        drawBuffer.reset(new AGSBitmap(width, height, 32));
+    drawBuffer->Clear(0x00D0D0D0);
 }
 
 void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
@@ -2069,7 +2075,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 
 	if ((thisgame.SpriteInfos[sprNum].Flags & SPF_ALPHACHANNEL) != 0)
 	{
-		if (scale > 1.0f)
+		if (scale != 1.0f)
 		{
 			Common::Bitmap *resizedImage = Common::BitmapHelper::CreateBitmap(drawWidth, drawHeight, imageToDraw->GetColorDepth());
 			resizedImage->StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),
@@ -2083,7 +2089,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	}
 	else
 	{
-		Cstretch_sprite(drawBuffer, imageToDraw, x, y, drawWidth, drawHeight);
+		Cstretch_sprite(drawBuffer.get(), imageToDraw, x, y, drawWidth, drawHeight);
 	}
 
 	if (imageToDraw != todraw)
@@ -2093,8 +2099,6 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 void RenderBufferToHDC(int hdc) 
 {
 	blit_to_hdc(drawBuffer->GetAllegroBitmap(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
-	delete drawBuffer;
-	drawBuffer = NULL;
 }
 
 void UpdateSpriteFlags(SpriteFolder ^folder) 

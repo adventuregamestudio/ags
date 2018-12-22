@@ -27,15 +27,16 @@ namespace Engine
 {
 
 GraphicsDriverBase::GraphicsDriverBase()
-    : _global_x_offset(0)
-    , _global_y_offset(0)
-    , _loopTimer(NULL)
+    : _loopTimer(NULL)
     , _pollingCallback(NULL)
     , _drawScreenCallback(NULL)
     , _nullSpriteCallback(NULL)
     , _initGfxCallback(NULL)
     , _initSurfaceUpdateCallback(NULL)
 {
+    // Initialize default sprite batch, it will be used when no other batch was activated
+    _actSpriteBatch = 0;
+    _spriteBatchDesc.push_back(SpriteBatchDesc());
 }
 
 bool GraphicsDriverBase::IsModeSet() const
@@ -68,10 +69,23 @@ Rect GraphicsDriverBase::GetRenderDestination() const
     return _dstRect;
 }
 
-void GraphicsDriverBase::SetRenderOffset(int x, int y)
+void GraphicsDriverBase::SetNativeRenderOffset(int x, int y)
 {
-    _global_x_offset = x;
-    _global_y_offset = y;
+    _globalViewOff = Point(x, y);
+}
+
+void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface)
+{
+    _actSpriteBatch++;
+    _spriteBatchDesc.push_back(SpriteBatchDesc(viewport, transform, surface));
+    InitSpriteBatch(_actSpriteBatch, _spriteBatchDesc[_actSpriteBatch]);
+}
+
+void GraphicsDriverBase::ClearDrawLists()
+{
+    ResetAllBatches();
+    _actSpriteBatch = 0;
+    _spriteBatchDesc.resize(1);
 }
 
 void GraphicsDriverBase::OnInit(volatile int *loopTimer)
@@ -108,6 +122,10 @@ void GraphicsDriverBase::OnSetNativeSize(const Size &src_size)
 {
     _srcRect = RectWH(0, 0, src_size.Width, src_size.Height);
     OnScalingChanged();
+
+    // Adjust default sprite batch making it comply to native size
+    _spriteBatchDesc[0].Viewport = RectWH(src_size);
+    InitSpriteBatch(_actSpriteBatch, _spriteBatchDesc[_actSpriteBatch]);
 }
 
 void GraphicsDriverBase::OnSetRenderFrame(const Rect &dst_rect)
@@ -123,8 +141,7 @@ void GraphicsDriverBase::OnSetFilter()
 
 
 VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
-    : _stageVirtualScreen(NULL)
-    , _stageVirtualScreenDDB(NULL)
+    : _stageVirtualScreenDDB(NULL)
     , _stageScreenDirty(false)
 {
     // Only to have something meaningful as default
@@ -136,7 +153,7 @@ VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
 
 VideoMemoryGraphicsDriver::~VideoMemoryGraphicsDriver()
 {
-    DestroyStageScreen();
+    DestroyAllStageScreens();
 }
 
 bool VideoMemoryGraphicsDriver::UsesMemoryBackBuffer()
@@ -150,28 +167,40 @@ bool VideoMemoryGraphicsDriver::UsesMemoryBackBuffer()
 Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
 {
     _stageScreenDirty = true;
-    return _stageVirtualScreen;
+    return _stageVirtualScreen.get();
 }
 
-void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
+void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
+{ // do nothing, video-memory drivers don't use main back buffer, only stage bitmaps they pass to plugins
+}
+
+PBitmap VideoMemoryGraphicsDriver::CreateStageScreen(size_t index, const Size &sz)
 {
-    // TODO: support this under certain circumstances?
+    if (_stageScreens.size() <= index)
+        _stageScreens.resize(index + 1);
+    if (sz.IsNull())
+        _stageScreens[index].reset();
+    else if (_stageScreens[index] == NULL || _stageScreens[index]->GetSize() != sz)
+        _stageScreens[index].reset(new Bitmap(sz.Width, sz.Height, _mode.ColorDepth));
+    return _stageScreens[index];
 }
 
-void VideoMemoryGraphicsDriver::CreateStageScreen()
+PBitmap VideoMemoryGraphicsDriver::GetStageScreen(size_t index)
 {
-    DestroyStageScreen();
-    _stageVirtualScreen = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth);
-    BitmapHelper::SetScreenBitmap(_stageVirtualScreen);
+    if (index < _stageScreens.size())
+        return _stageScreens[index];
+    return NULL;
 }
 
-void VideoMemoryGraphicsDriver::DestroyStageScreen()
+void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
 {
     if (_stageVirtualScreenDDB)
         this->DestroyDDB(_stageVirtualScreenDDB);
     _stageVirtualScreenDDB = NULL;
-    delete _stageVirtualScreen;
-    _stageVirtualScreen = NULL;
+
+    for (size_t i = 0; i < _stageScreens.size(); ++i)
+        _stageScreens[i].reset();
+    _stageVirtualScreen.reset();
     BitmapHelper::SetScreenBitmap(NULL);
 }
 
@@ -188,9 +217,9 @@ bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
     if (_stageScreenDirty)
     {
         if (_stageVirtualScreenDDB)
-            UpdateDDBFromBitmap(_stageVirtualScreenDDB, _stageVirtualScreen, true);
+            UpdateDDBFromBitmap(_stageVirtualScreenDDB, _stageVirtualScreen.get(), true);
         else
-            _stageVirtualScreenDDB = CreateDDBFromBitmap(_stageVirtualScreen, true);
+            _stageVirtualScreenDDB = CreateDDBFromBitmap(_stageVirtualScreen.get(), true);
         return true;
     }
     return false;

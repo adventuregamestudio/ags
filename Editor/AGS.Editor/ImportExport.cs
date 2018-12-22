@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using AGS.Types;
-using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -1316,7 +1315,7 @@ namespace AGS.Editor
                 bmp.Palette = pal;
             }
 
-            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, SpriteImportMethod.LeaveAsIs, true, false, hasAlpha);
+            Sprite newSprite = Factory.NativeProxy.CreateSpriteFromBitmap(bmp, SpriteImportTransparency.LeaveAsIs, true, false, hasAlpha);
             bmp.Dispose();
             return newSprite;
         }
@@ -1347,7 +1346,6 @@ namespace AGS.Editor
                     bool hasAlphaChannel = bool.Parse(SerializeUtils.GetAttributeString(childNode, GUI_XML_SPRITE_ALPHA_CHANNEL));
                     int width = SerializeUtils.GetAttributeInt(childNode, GUI_XML_SPRITE_WIDTH);
                     int height = SerializeUtils.GetAttributeInt(childNode, GUI_XML_SPRITE_HEIGHT);
-                    SpriteImportResolution resolution = (SpriteImportResolution)Enum.Parse(typeof(SpriteImportResolution), SerializeUtils.GetAttributeString(childNode, GUI_XML_SPRITE_RESOLUTION));
                     byte[]spriteData = Convert.FromBase64String(childNode.InnerText);
 
                     Sprite newSprite = ImportSpriteFromRawData(colDepth, width, height, hasAlphaChannel, spriteData, palette);

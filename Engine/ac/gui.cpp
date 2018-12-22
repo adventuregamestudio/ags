@@ -209,8 +209,8 @@ int GUI_GetTransparency(ScriptGUI *tehgui) {
 
 void GUI_Centre(ScriptGUI *sgui) {
   GUIMain *tehgui = &guis[sgui->id];
-  tehgui->X = play.viewport.GetWidth() / 2 - tehgui->Width / 2;
-  tehgui->Y = play.viewport.GetHeight() / 2 - tehgui->Height / 2;
+  tehgui->X = play.GetUIViewport().GetWidth() / 2 - tehgui->Width / 2;
+  tehgui->Y = play.GetUIViewport().GetHeight() / 2 - tehgui->Height / 2;
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {

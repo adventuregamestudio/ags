@@ -82,6 +82,11 @@ struct GameSetupStructBase {
         return default_resolution;
     }
 
+    inline bool IsLegacyLetterbox() const
+    {
+        return options[OPT_LETTERBOX] != 0;
+    }
+
 private:
     GameResolutionType default_resolution; // game size identifier
 };

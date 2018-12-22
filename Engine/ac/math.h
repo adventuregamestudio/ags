@@ -20,10 +20,6 @@
 
 #include "core/types.h"
 
-// MACPORT FIX 9/6/5: undef M_PI first
-#undef M_PI
-#define M_PI 3.14159265358979323846
-
 // unfortunately MSVC and GCC automatically push floats as doubles
 // to functions, thus we need to manually access it as 32-bit
 #define SCRIPT_FLOAT(x) int32_t __script_float##x

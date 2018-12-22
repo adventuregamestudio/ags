@@ -54,6 +54,9 @@ void    RunScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t pa
 //=============================================================================
 
 char*   make_ts_func_name(char*base,int iii,int subd);
+// Performs various updates to the game after script interpreter returns control to the engine.
+// Executes actions and does changes that are not executed immediately at script command, for
+// optimisation and other reasons.
 void    post_script_cleanup();
 void    quit_with_script_error(const char *functionName);
 // CLNUP old interactions

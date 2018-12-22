@@ -378,7 +378,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
 
   currentlyPlaying = true;
 
-  gfxDriver->ClearDrawList();
+  gfxDriver->ClearDrawLists();
   Bitmap *savedBackBuffer = gfxDriver->GetMemoryBackBuffer();
   gfxDriver->SetMemoryBackBuffer(screen_bmp);
 

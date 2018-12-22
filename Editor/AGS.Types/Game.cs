@@ -390,7 +390,7 @@ namespace AGS.Types
         {
             get
             {
-                return _settings.CustomResolution.Height;
+                return 1;
             }
         }
 
@@ -402,7 +402,7 @@ namespace AGS.Types
         {
             get
             {
-                return _settings.CustomResolution.Width;
+                return 1;
             }
         }
 

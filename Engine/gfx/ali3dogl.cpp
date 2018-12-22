@@ -22,6 +22,7 @@
 #include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
+#include "util/math.h"
 
 
 #if defined(WINDOWS_VERSION)
@@ -140,6 +141,10 @@ const void (*glSwapIntervalEXT)(int) = NULL;
 
 #endif
 
+// Necessary to update textures from 8-bit bitmaps
+extern RGB palette[256];
+
+
 namespace AGS
 {
 namespace Engine
@@ -253,6 +258,9 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 16;
   _vmem_a_shift_32 = 24;
+
+  // Initialize default sprite batch, it will be used when no other batch was activated
+  InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 
@@ -842,9 +850,14 @@ void OGLGraphicsDriver::SetupViewport()
   if (!IsModeSet() || !IsRenderFrameValid())
     return;
 
-  // Setup viewport rect and scissor; notice that OpenGL viewport has Y axis inverted
-  _viewportRect = RectWH(_dstRect.Left, device_screen_physical_height - 1 - _dstRect.Bottom, _dstRect.GetWidth(), _dstRect.GetHeight());
+  // Setup viewport rect and scissor
+  _viewportRect = ConvertTopDownRect(_dstRect, device_screen_physical_height);
   glScissor(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
+}
+
+Rect OGLGraphicsDriver::ConvertTopDownRect(const Rect &rect, int surface_height)
+{
+    return RectWH(rect.Left, surface_height - 1 - rect.Bottom, rect.GetWidth(), rect.GetHeight());
 }
 
 bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
@@ -894,7 +907,9 @@ void OGLGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsNativeSizeValid())
     return;
-  CreateStageScreen();
+  // create initial stage screen for plugin raw drawing
+  _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
+  BitmapHelper::SetScreenBitmap(_stageVirtualScreen.get());
 }
 
 bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
@@ -952,7 +967,7 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   delete _screenTintLayer;
   _screenTintLayer = NULL;
 
-  DestroyStageScreen();
+  DestroyAllStageScreens();
 
   gfx_driver = NULL;
 
@@ -982,7 +997,7 @@ OGLGraphicsDriver::~OGLGraphicsDriver()
 
 void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
 {
-
+  // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
 void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
@@ -1061,10 +1076,10 @@ void OGLGraphicsDriver::Render(GlobalFlipType flip)
 
 void OGLGraphicsDriver::_reDrawLastFrame()
 {
-  drawList = drawListLastTime;
+    RestoreDrawLists();
 }
 
-void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool globalLeftRightFlip, bool globalTopBottomFlip)
+void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, const GLMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip)
 {
   OGLBitmap *bmpToDraw = drawListEntry->bitmap;
 
@@ -1153,8 +1168,8 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
   float yProportion = (float)height / (float)bmpToDraw->_height;
 
   bool flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
-  int drawAtX = drawListEntry->x + _global_x_offset;
-  int drawAtY = drawListEntry->y + _global_y_offset;
+  int drawAtX = drawListEntry->x + _globalViewOff.X;
+  int drawAtY = drawListEntry->y + _globalViewOff.Y;
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {
@@ -1206,11 +1221,18 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    //
+    // IMPORTANT: in OpenGL order of transformation is REVERSE to the order of commands!
+    //
+    // Origin is at the middle of the surface
     if (_do_render_to_texture)
       glTranslatef(_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f);
     else
       glTranslatef(_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f);
 
+    // Global batch transform
+    glMultMatrixf(matGlobal.m);
+    // Self sprite transform (first scale, then translate, reversed)
     glTranslatef((float)thisX, (float)thisY, 0.0f);
     glScalef(widthToScale, heightToScale, 1.0f);
 
@@ -1272,12 +1294,6 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   }
 #endif
 
-  std::vector<OGLDrawListEntry> &listToDraw = drawList;
-  size_t listSize = drawList.size();
-
-  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
-  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
-
   if (_do_render_to_texture)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
@@ -1305,26 +1321,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glLoadIdentity();
   }
 
-  for (size_t i = 0; i < listSize; i++)
-  {
-    if (listToDraw[i].skip)
-      continue;
-
-    if (listToDraw[i].bitmap == NULL)
-    {
-      if (DoNullSpriteCallback(listToDraw[i].x, listToDraw[i].y))
-        listToDraw[i] = OGLDrawListEntry((OGLBitmap*)_stageVirtualScreenDDB);
-      else
-        continue;
-    }
-
-    this->_renderSprite(&listToDraw[i], globalLeftRightFlip, globalTopBottomFlip);
-  }
-
-  if (!_screenTintSprite.skip)
-  {
-    this->_renderSprite(&_screenTintSprite, false, false);
-  }
+  RenderSpriteBatches(flip);
 
   if (_do_render_to_texture)
   {
@@ -1368,32 +1365,156 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   if (clearDrawListAfterwards)
   {
-    drawListLastTime = drawList;
+    BackupDrawLists();
     flipTypeLastTime = flip;
-    ClearDrawList();
+    ClearDrawLists();
   }
 }
 
-void OGLGraphicsDriver::ClearDrawList()
+void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
 {
-  drawList.clear();
+    // Render all the sprite batches with necessary transformations
+    Rect main_viewport = _do_render_to_texture ? _srcRect : _viewportRect;
+    int surface_height = _do_render_to_texture ? _srcRect.GetHeight() : device_screen_physical_height;
+    // TODO: see if it's possible to refactor and not enable/disable scissor test
+    // TODO: also maybe sync scissor code logic with D3D renderer
+    if (_do_render_to_texture)
+        glEnable(GL_SCISSOR_TEST);
+
+    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    {
+        const Rect &viewport = _spriteBatchDesc[i].Viewport;
+        const OGLSpriteBatch &batch = _spriteBatches[i];
+        if (!viewport.IsEmpty())
+        {
+            Rect scissor = _do_render_to_texture ? viewport : _scaling.ScaleRange(viewport);
+            scissor = ConvertTopDownRect(scissor, surface_height);
+            glScissor(scissor.Left, scissor.Top, scissor.GetWidth(), scissor.GetHeight());
+        }
+        else
+        {
+            glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
+        }
+        _stageVirtualScreen = GetStageScreen(i);
+        RenderSpriteBatch(batch, flip);
+    }
+
+    glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
+    if (!_screenTintSprite.skip)
+    {
+        this->_renderSprite(&_screenTintSprite, _spriteBatches[_actSpriteBatch].Matrix, false, false);
+    }
+    if (_do_render_to_texture)
+        glDisable(GL_SCISSOR_TEST);
+}
+
+void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFlipType flip)
+{
+  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
+  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
+
+  OGLDrawListEntry stageEntry; // raw-draw plugin support
+
+  const std::vector<OGLDrawListEntry> &listToDraw = batch.List;
+  for (size_t i = 0; i < listToDraw.size(); i++)
+  {
+    if (listToDraw[i].skip)
+      continue;
+
+    const OGLDrawListEntry *sprite = &listToDraw[i];
+    if (listToDraw[i].bitmap == NULL)
+    {
+      if (DoNullSpriteCallback(listToDraw[i].x, listToDraw[i].y))
+        stageEntry = OGLDrawListEntry((OGLBitmap*)_stageVirtualScreenDDB);
+      else
+        continue;
+      sprite = &stageEntry;
+    }
+
+    this->_renderSprite(sprite, batch.Matrix, globalLeftRightFlip, globalTopBottomFlip);
+  }
+}
+
+void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
+{
+    if (_spriteBatches.size() <= index)
+        _spriteBatches.resize(index + 1);
+    _spriteBatches[index].List.clear();
+    // Combine both world transform and viewport transform into one matrix for faster perfomance
+    // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
+    float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
+    float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
+    // TODO: is this the only way in OpenGL to construct matrixes for future use?
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
+    // is it possible to do with matrixes?
+    glTranslatef((float)(desc.Transform.X + desc.Viewport.Left - scaled_offx),
+        (float)-(desc.Transform.Y + desc.Viewport.Top - scaled_offy), 0.0f);
+    glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f);
+    glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f);
+    glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
+    glLoadIdentity();
+
+    // create stage screen for plugin raw drawing
+    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
+    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    CreateStageScreen(index, Size(src_w, src_h));
+}
+
+void OGLGraphicsDriver::ResetAllBatches()
+{
+    for (size_t i = 0; i < _spriteBatches.size(); ++i)
+        _spriteBatches[i].List.clear();
+}
+
+void OGLGraphicsDriver::ClearDrawBackups()
+{
+    _backupBatchDescs.clear();
+    _backupBatches.clear();
+}
+
+void OGLGraphicsDriver::BackupDrawLists()
+{
+    _backupBatchDescs.clear();
+    _backupBatches.clear();
+    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    {
+        _backupBatchDescs.push_back(_spriteBatchDesc[i]);
+        _backupBatches.push_back(_spriteBatches[i]);
+    }
+}
+
+void OGLGraphicsDriver::RestoreDrawLists()
+{
+    if (_backupBatchDescs.size() == 0)
+    {
+        ClearDrawLists();
+        return;
+    }
+    _spriteBatchDesc = _backupBatchDescs;
+    _spriteBatches = _backupBatches;
+    _actSpriteBatch = _backupBatchDescs.size() - 1;
 }
 
 void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 {
-  drawList.push_back(OGLDrawListEntry((OGLBitmap*)bitmap, x, y));
+    _spriteBatches[_actSpriteBatch].List.push_back(OGLDrawListEntry((OGLBitmap*)bitmap, x, y));
 }
 
 void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
-  for (size_t i = 0; i < drawListLastTime.size(); i++)
-  {
-    if (drawListLastTime[i].bitmap == bitmap)
+    // Remove deleted DDB from backups
+    for (OGLSpriteBatches::iterator it = _backupBatches.begin(); it != _backupBatches.end(); ++it)
     {
-      drawListLastTime[i].skip = true;
+        std::vector<OGLDrawListEntry> &drawlist = it->List;
+        for (size_t i = 0; i < drawlist.size(); i++)
+        {
+            if (drawlist[i].bitmap == bitmap)
+                drawlist[i].skip = true;
+        }
     }
-  }
-  delete bitmap;
+    delete bitmap;
 }
 
 
@@ -1443,14 +1564,21 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
   if (target->_width != bitmap->GetWidth() || target->_height != bitmap->GetHeight())
     throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
-  if (bitmap->GetColorDepth() != target->_colDepth)
+  const int color_depth = bitmap->GetColorDepth();
+  if (color_depth != target->_colDepth)
     throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
 
   target->_hasAlpha = hasAlpha;
+  if (color_depth == 8)
+      select_palette(palette);
+
   for (int i = 0; i < target->_numTiles; i++)
   {
     UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
   }
+
+  if (color_depth == 8)
+      unselect_palette();
 }
 
 int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
@@ -1625,8 +1753,10 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
+  BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
-  this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
+  // NOTE: what happens here is that we are trying to prevent global offset to be applied to this sprite :/
+  this->DrawSprite(-_globalViewOff.X, -_globalViewOff.Y, d3db);
 
   if (speed <= 0) speed = 16;
   speed *= 2;  // harmonise speeds with software driver which is faster
@@ -1653,7 +1783,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   }
 
   this->DestroyDDB(d3db);
-  this->ClearDrawList();
+  this->ClearDrawLists();
 }
 
 void OGLGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) 
@@ -1680,6 +1810,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
+  BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
@@ -1699,6 +1830,8 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   {
     boxWidth += speed;
     boxHeight += yspeed;
+    OGLSpriteBatch &batch = _spriteBatches.back();
+    std::vector<OGLDrawListEntry> &drawList = batch.List;
     size_t last = drawList.size() - 1;
     if (blackingOut)
     {
@@ -1723,7 +1856,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   }
 
   this->DestroyDDB(d3db);
-  this->ClearDrawList();
+  this->ClearDrawLists();
 }
 
 bool OGLGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)

@@ -46,7 +46,6 @@ extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern MoveList *mls;
 extern GameSetupStruct game;
 extern Bitmap *walkable_areas_temp;
-extern int offsetx,offsety;
 extern CCObject ccDynamicObject;
 
 
@@ -482,9 +481,11 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
     return TRUE;
 }
 
-// X and Y co-ordinates must be in 320x200 format
+// X and Y co-ordinates must be in 320x200 format (TODO: find out if this comment is still true)
+// X and Y are ROOM coordinates here for some reason, so we have to perform that ugly back-and-forth coordinate conversion
 int check_click_on_object(int xx,int yy,int mood) {
-    int aa = GetObjectAt(xx - offsetx, yy - offsety);
+    Point pt = play.RoomToScreenDivDown(xx, yy);
+    int aa = GetObjectAt(pt.X, pt.Y);
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;

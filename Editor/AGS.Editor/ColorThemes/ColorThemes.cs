@@ -42,7 +42,7 @@ namespace AGS.Editor
 
         public bool IsCurrentDefault => Current == ColorThemeStub.DEFAULT;
 
-        private static string DiskDir => string.Format("{0}{1}AGS{1}Themes{1}", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Path.DirectorySeparatorChar);
+        private static string DiskDir => Path.Combine(Factory.AGSEditor.LocalAppData, "Themes");
 
         public void Load()
         {
@@ -99,7 +99,7 @@ namespace AGS.Editor
         {
             try
             {
-                string newDir = DiskDir + Path.GetFileName(dir);
+                string newDir = Path.Combine(DiskDir, Path.GetFileName(dir));
                 _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(dir), dir));
                 File.Copy(dir, newDir);
             }

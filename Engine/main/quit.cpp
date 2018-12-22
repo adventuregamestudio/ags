@@ -273,6 +273,8 @@ void quit(const char *quitmsg)
     shutdown_font_renderer();
     our_eip = 9902;
 
+    spriteset.Reset();
+
     our_eip = 9907;
 
     close_translation();

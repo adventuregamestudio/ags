@@ -86,11 +86,11 @@ int System_GetScreenHeight() {
 }
 
 int System_GetViewportHeight() {
-    return play.viewport.GetHeight();
+    return play.GetMainViewport().GetHeight();
 }
 
 int System_GetViewportWidth() {
-    return play.viewport.GetWidth();
+    return play.GetMainViewport().GetWidth();
 }
 
 const char *System_GetVersion() {
@@ -99,7 +99,7 @@ const char *System_GetVersion() {
 
 int System_GetHardwareAcceleration() 
 {
-    return gfxDriver->HasAcceleratedStretchAndFlip() ? 1 : 0;
+    return gfxDriver->HasAcceleratedTransform() ? 1 : 0;
 }
 
 int System_GetNumLock()

@@ -305,7 +305,7 @@ namespace AGS.Editor.Preferences
         }
 
         [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute("Pixel0")]
+        [DefaultSettingValueAttribute("LeaveAsIs")]
         public SpriteImportMethod SpriteImportMethod
         {
             get

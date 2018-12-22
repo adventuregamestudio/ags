@@ -14,25 +14,17 @@
 
 #include "ac/global_viewport.h"
 #include "ac/draw.h"
-#include "ac/viewport.h"
 #include "debug/debug_log.h"
 
-extern int offsetx, offsety;
-
-void SetViewport(int offsx,int offsy) {
-    debug_script_log("Viewport locked to %d,%d", offsx, offsy);
-    offsetx = offsx;
-    offsety = offsy;
-    check_viewport_coords();
-    play.offsets_locked = 1;
+void SetViewport(int offsx, int offsy) {
+    play.LockRoomCameraAt(offsx, offsy);
 }
 void ReleaseViewport() {
-    play.offsets_locked = 0;
-    debug_script_log("Viewport released back to engine control");
+    play.ReleaseRoomCamera();
 }
 int GetViewportX () {
-    return offsetx;
+    return play.GetRoomCamera().Left;
 }
 int GetViewportY () {
-    return offsety;
+    return play.GetRoomCamera().Top;
 }

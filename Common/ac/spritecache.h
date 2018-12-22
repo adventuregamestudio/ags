@@ -35,6 +35,8 @@
 #ifndef __SPRCACHE_H
 #define __SPRCACHE_H
 
+#include "util/stdtr1compat.h"
+#include <memory>
 #include <vector>
 #include "ac/gamestructdefines.h"
 
@@ -87,7 +89,8 @@ public:
     static const sprkey_t MIN_SPRITE_INDEX = 1; // 0 is reserved for "empty sprite"
     static const sprkey_t MAX_SPRITE_INDEX = INT32_MAX - 1;
 
-    SpriteCache(sprkey_t reserve_count, std::vector<SpriteInfo> &sprInfos);
+    SpriteCache(std::vector<SpriteInfo> &sprInfos);
+    ~SpriteCache();
 
     // Tells if there is a sprite registered for the given index
     bool        DoesSpriteExist(sprkey_t index) const;
@@ -138,7 +141,7 @@ public:
     Common::Bitmap *operator[] (sprkey_t index);
 
 private:
-    void        Init(sprkey_t reserve_count = 1);
+    void        Init();
     size_t      LoadSprite(sprkey_t index);
     void        SeekToSprite(sprkey_t index);
     void        RemoveOldest();
@@ -167,7 +170,7 @@ private:
     bool _compressed;        // are sprites compressed
     soff_t _sprite0InitialOffset; // offset of the first sprite in the stream
 
-    Common::Stream *_stream; // the sprite stream
+    std::unique_ptr<Common::Stream> _stream; // the sprite stream
     sprkey_t _lastLoad; // last loaded sprite index
 
     size_t _maxCacheSize;  // cache size limit

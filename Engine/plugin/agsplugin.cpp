@@ -114,7 +114,6 @@ extern MoveList *mls;
 extern int numlines;
 extern char lines[MAXLINE][200];
 extern color palette[256];
-extern int offsetx, offsety;
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
 extern RuntimeScriptValue GlobalReturnValue;
@@ -244,9 +243,9 @@ void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text
 }
 void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth) {
     if (width != NULL)
-        width[0] = play.viewport.GetWidth();
+        width[0] = play.GetMainViewport().GetWidth();
     if (height != NULL)
-        height[0] = play.viewport.GetHeight();
+        height[0] = play.GetMainViewport().GetHeight();
     if (coldepth != NULL)
         coldepth[0] = scsystem.coldepth;
 }
@@ -326,7 +325,7 @@ int IAGSEngine::LookupParserWord (const char *word) {
 }
 void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
     wputblock_raw (gfxDriver->GetMemoryBackBuffer(), x, y, bmp, masked);
-    invalidate_rect(x, y, x + bmp->w, y + bmp->h);
+    invalidate_rect(x, y, x + bmp->w, y + bmp->h, false);
 }
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
     Bitmap wrap(bmp, true);
@@ -383,16 +382,18 @@ int IAGSEngine::GetPlayerCharacter () {
     return game.playercharacter;
 }
 void IAGSEngine::RoomToViewport (int32 *x, int32 *y) {
+    Point scrp = play.RoomToScreen(x ? *x : 0, y ? *y : 0);
     if (x)
-        x[0] = x[0] - offsetx;
+        *x = scrp.X;
     if (y)
-        y[0] = y[0] - offsety;
+        *y = scrp.Y;
 }
 void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
+    Point scrp = play.ScreenToRoom(x ? *x : 0, y ? *y : 0);
     if (x)
-        x[0] = x[0] + offsetx;
+        *x = scrp.X;
     if (y)
-        y[0] = y[0] + offsety;
+        *y = scrp.Y;
 }
 int IAGSEngine::GetNumObjects () {
     return croom->numobj;
@@ -527,7 +528,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
 }
 // Engine interface 12 and above are below
 void IAGSEngine::MarkRegionDirty(int32 left, int32 top, int32 right, int32 bottom) {
-    invalidate_rect(left, top, right, bottom);
+    invalidate_rect(left, top, right, bottom, false);
     plugins[this->pluginId].invalidatedRegion++;
 }
 AGSMouseCursor * IAGSEngine::GetMouseCursor(int32 cursor) {

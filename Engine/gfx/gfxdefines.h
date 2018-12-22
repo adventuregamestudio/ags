@@ -22,6 +22,7 @@ namespace AGS
 namespace Engine
 {
 
+// TODO: find the way to merge this with sprite batch transform
 enum GlobalFlipType
 {
     kFlip_None,

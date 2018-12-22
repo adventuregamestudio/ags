@@ -38,7 +38,7 @@ GameSetupStructBase::~GameSetupStructBase()
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType resolution_type)
 {
     default_resolution = resolution_type;
-    size = ResolutionTypeToSize(default_resolution, options[OPT_LETTERBOX] != 0);
+    size = ResolutionTypeToSize(default_resolution, IsLegacyLetterbox());
     altsize = ResolutionTypeToSize(default_resolution, false);
 }
 

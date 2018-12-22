@@ -55,7 +55,7 @@ namespace AGS.Editor
             {
                 string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
                 string exeFileName = baseGameFileName + ".exe";
-                IBuildTarget targetWin = BuildTargetsInfo.FindBuildTargetByName("Windows");
+                BuildTargetWindows targetWin = BuildTargetsInfo.FindBuildTargetByName("Windows") as BuildTargetWindows;
                 if (targetWin == null)
                 {
                     errors.Add(new CompileError("Debug build depends on Windows build target being available! Your AGS installation may be corrupted!"));
@@ -90,6 +90,9 @@ namespace AGS.Editor
                 {
                     File.Copy(Path.Combine(Factory.AGSEditor.EditorDirectory, plugin.FileName), GetDebugPath(plugin.FileName), true);
                 }
+
+                // Copy files from Compiled/Data to Compiled/Windows, because this is currently where game will be looking them up
+                targetWin.CopyAuxiliaryGameFiles(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY), false);
             }
             catch (Exception ex)
             {

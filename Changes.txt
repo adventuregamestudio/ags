@@ -14,9 +14,14 @@ Editor:
  - Editor preferences are now stored using .NET configuration model, instead of the
    Windows registry.
  - Added support for custom UI color themes.
+ - Game and room templates are now by default saved in AppData/Local/AGS folder.
+   Editor finds them in both program folder and AppData.
+ - New revamped sprite import window.
+ - Sprites that were created using tiled import can now be properly reimported from source.
  - New navigation bar in the room editor, which allows to select any room object
    or region for editing, show/hide and lock room objects and regions in any combination.
    These settings are saved in the special roomXXX.crm.user files.
+ - Allow room size to be smaller than the game's resolution.
  - Removed Locked property from the Room Object, objects are now locked by the navbar.
  - Split GUI's Visibility property into PopupStyle and Visible properties.
  - Added Clickable, Enabled and Visible properties to GUI Controls.
@@ -34,9 +39,14 @@ Editor:
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
  - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key controls.
+ - Fixed GUI or Room editors sometimes allowed to scroll beyond necessary limits.
  - Fixed rooms not being rebuilt when running game just created from a template.
+ - Fixed translations were not available for the test run if game was not fully rebuilt yet.
+ - Fixed Windows Explorer was sometimes locking the game files during compilation.
 
 Script API:
+ - Implemented Viewport and Camera script classes which control how room is displayed on screen.
+ - Added properties Game.AutoSizeViewportOnRoomLoad, Game.Viewport, Room.Camera.
  - Replaced Alignment enum with a new one which has eight values from TopLeft to BottomRight.
  - Renamed old Alignment enum to HorizontalAlignment, intended for parameters that are
    only allowed to be Left, Center or Right.
@@ -63,9 +73,13 @@ Engine:
  - Expanded some of the error messages providing more information to end-user and developers.
  - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
  - Made engine fallback to defaults if config contains invalid game scaling setting.
+ - Fixed old-style string functions like StrCopy could crash the game if user managed object's
+   member is passed as an argument into them.
  - Fixed 'warnings.log' could never be created (was broken in earlier versions).
  - Fixed crash in the Software renderer which was occuring when any other renderers are tried
    prior to Software one but failed to initialize for any reason.
+ - Fixed 8-bit sprites could have broken colours if game is run using Direct3D or OpenGL.
+ - Fixed broken colours during fade-in and fade-out in 16-bit games.
 
 Linux:
  - Fixes Linux game launch script (fixes issues with itch.io client).

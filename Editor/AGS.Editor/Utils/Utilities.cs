@@ -19,6 +19,9 @@ namespace AGS.Editor
     {
         private const int ERROR_NO_MORE_FILES = 18;
 
+        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
+        internal static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Winapi)]
         internal static extern IntPtr GetFocus();
 
@@ -168,15 +171,7 @@ namespace AGS.Editor
             }
             catch (IOException)
             {
-                if (Marshal.GetLastWin32Error() == ERROR_NO_MORE_FILES)
-                {
-                    // On a network share the Framework can throw this if
-                    // there are no matching files (reported by RickJ)...
-                    // Seems to be a Win32 FindFirstFile bug in certain
-                    // circumstances.
-                    return new string[0];
-                }
-                throw;
+                return new string[] { };
             }
         }
 
@@ -440,66 +435,32 @@ namespace AGS.Editor
         /// <returns></returns>
         public static bool HardlinkOrCopy(string destFileName, string sourceFileName, bool overwrite)
         {
-            bool res = CreateHardLink(destFileName, sourceFileName, overwrite);
-            if (!res)
-                File.Copy(sourceFileName, destFileName, overwrite);
-            return res;
-        }
+            if (!Path.IsPathRooted(sourceFileName))
+            {
+                sourceFileName = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, sourceFileName);
+            }
 
-        /// <summary>
-        /// Creates hardlink using operating system utilities.
-        /// </summary>
-        /// <param name="destFileName">Destination file path, name of the created hardlink</param>
-        /// <param name="sourceFileName">Source file path, what hardlink to</param>
-        /// <param name="overwrite">Whether overwrite existing hardlink or not</param>
-        /// <returns></returns>
-        public static bool CreateHardLink(string destFileName, string sourceFileName, bool overwrite)
-        {
+            if (!Path.IsPathRooted(destFileName))
+            {
+                destFileName = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, destFileName);
+            }
+
             if (File.Exists(destFileName))
             {
-                if (overwrite) File.Delete(destFileName);
-                else return false;
+                if (!overwrite)
+                {
+                    return false;
+                }
+
+                File.Delete(destFileName);
             }
-            char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
-            if (Path.GetFileName(destFileName).IndexOfAny(invalidFileNameChars) != -1)
+
+            if (IsMonoRunning() || !CreateHardLink(destFileName, sourceFileName, IntPtr.Zero))
             {
-                throw new ArgumentException("Cannot create hard link! Invalid destination file name. (" + destFileName + ")");
+                File.Copy(sourceFileName, destFileName, overwrite);
             }
-            if (Path.GetFileName(sourceFileName).IndexOfAny(invalidFileNameChars) != -1)
-            {
-                throw new ArgumentException("Cannot create hard link! Invalid source file name. (" + sourceFileName + ")");
-            }
-            if (!File.Exists(sourceFileName))
-            {
-                throw new FileNotFoundException("Cannot create hard link! Source file does not exist. (" + sourceFileName + ")");
-            }
-            ProcessStartInfo si = new ProcessStartInfo("cmd.exe");
-            si.RedirectStandardInput = false;
-            si.RedirectStandardOutput = false;
-            si.RedirectStandardError = false;
-            si.UseShellExecute = false;
-            si.Arguments = string.Format("/c mklink /h \"{0}\" \"{1}\"", destFileName, sourceFileName);
-            si.CreateNoWindow = true;
-            si.WindowStyle = ProcessWindowStyle.Hidden;
-            if ((!IsWindowsVistaOrHigher()) && (IsWindowsXPOrHigher())) // running Windows XP
-            {
-                si.Arguments = string.Format("/c fsutil hardlink create \"{0}\" \"{1}\"", destFileName, sourceFileName);
-            }
-            if (IsMonoRunning())
-            {
-                si.FileName = "ln";
-                si.Arguments = string.Format("\"{0}\" \"{1}\"", sourceFileName, destFileName);
-            }
-            Process process = Process.Start(si);
-            bool result = (process != null);
-            if (result)
-            {
-                process.EnableRaisingEvents = true;
-                process.WaitForExit();
-                result = process.ExitCode == 0;
-                process.Close();
-            }
-            return result;
+
+            return true;
         }
 
         /// <summary>

@@ -23,7 +23,6 @@
 using namespace AGS::Common;
 
 extern RoomStruct thisroom;
-extern int offsetx, offsety;
 
 
 int GetScalingAt (int x, int y) {
@@ -75,12 +74,11 @@ void RestoreWalkableArea(int areanum) {
 }
 
 
-int GetWalkableAreaAt(int xxx,int yyy) {
-  xxx += offsetx;
-  yyy += offsety;
-  if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
+int GetWalkableAreaAt(int x, int y) {
+  Point roompt = play.ScreenToRoomDivDown(x, y);
+  if ((roompt.X>=thisroom.Width) | (roompt.X<0) | (roompt.Y<0) | (roompt.Y>=thisroom.Height))
     return 0;
-  int result = get_walkable_area_pixel(xxx, yyy);
+  int result = get_walkable_area_pixel(roompt.X, roompt.Y);
   if (result <= 0)
     return 0;
   return result;

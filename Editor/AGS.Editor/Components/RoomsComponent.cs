@@ -238,7 +238,7 @@ namespace AGS.Editor.Components
 			UnloadedRoom roomToTemplatize = FindRoomByID(roomNumber);
 			if (_loadedRoom != null)
 			{
-                if (!SaveRoomAlwaysAndShowErrors(_loadedRoom, _roomSettings.Control as RoomSettingsEditor))
+                if (!SaveRoomOnlyGameDataAndShowErrors(_loadedRoom))
                 {
                     return;
                 }
@@ -265,24 +265,31 @@ namespace AGS.Editor.Components
 
 			if (createTemplate)
 			{
-				_guiController.ShowCreateRoomTemplateWizard(roomToTemplatize);
+				_guiController.SaveRoomAsTemplate(roomToTemplatize);
 			}
 		}
 
-		private List<RoomTemplate> ConstructListOfRoomTemplates()
-		{
-			List<RoomTemplate> templates = new List<RoomTemplate>();
-			templates.Add(new RoomTemplate(null, null, "Blank Room"));
-            foreach (string fileName in Utilities.GetDirectoryFileList(_agsEditor.TemplatesDirectory, "*.art", SearchOption.TopDirectoryOnly))
-			{
-				RoomTemplate template = _nativeProxy.LoadRoomTemplateFile(fileName);
-				if (template != null)
-				{
-					templates.Add(template);
-				}
-			}
-			return templates;
-		}
+        private List<RoomTemplate> ConstructListOfRoomTemplates()
+        {
+            List<RoomTemplate> templates = new List<RoomTemplate>();
+            templates.Add(new RoomTemplate(null, null, "Blank Room"));
+            string[] directories = new string[] { _agsEditor.TemplatesDirectory, _agsEditor.UserTemplatesDirectory };
+
+            foreach (string directory in directories)
+            {
+                foreach (string fileName in Utilities.GetDirectoryFileList(directory, "*.art", SearchOption.TopDirectoryOnly))
+                {
+                    RoomTemplate template = _nativeProxy.LoadRoomTemplateFile(fileName);
+
+                    if (template != null)
+                    {
+                        templates.Add(template);
+                    }
+                }
+            }
+
+            return templates;
+        }
 
 		private void DisposeIcons(List<RoomTemplate> templates)
 		{

@@ -33,7 +33,6 @@ using namespace AGS::Common;
 
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
-extern int offsetx, offsety;
 extern CharacterInfo*playerchar;
 extern GameSetupStruct game;
 
@@ -72,12 +71,11 @@ int GetHotspotPointY (int hotspot) {
     return thisroom.Hotspots[hotspot].WalkTo.Y;
 }
 
-int GetHotspotAt(int xxx,int yyy) {
-    xxx += offsetx;
-    yyy += offsety;
-    if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
+int GetHotspotAt(int scrx, int scry) {
+    Point pt = play.ScreenToRoomDivDown(scrx, scry);
+    if ((pt.X>=thisroom.Width) | (pt.X<0) | (pt.Y<0) | (pt.Y>=thisroom.Height))
         return 0;
-    return get_hotspot_at(xxx,yyy);
+    return get_hotspot_at(pt.X, pt.Y);
 }
 
 void GetHotspotName(int hotspot, char *buffer) {

@@ -485,15 +485,16 @@ void DialogOptions::Show()
     }
     else {
       //dlgyp=(play.viewport.GetHeight()-numdisp*txthit)-1;
-      areawid=play.viewport.GetWidth()-5;
+      const Rect &ui_view = play.GetUIViewport();
+      areawid= ui_view.GetWidth()-5;
       padding = TEXTWINDOW_PADDING_DEFAULT;
       GET_OPTIONS_HEIGHT
-      dlgyp = play.viewport.GetHeight() - needheight;
+      dlgyp = ui_view.GetHeight() - needheight;
 
       dirtyx = 0;
       dirtyy = dlgyp - 1;
-      dirtywidth = play.viewport.GetWidth();
-      dirtyheight = play.viewport.GetHeight() - dirtyy;
+      dirtywidth = ui_view.GetWidth();
+      dirtyheight = ui_view.GetHeight() - dirtyy;
       dialog_abs_x = 0;
     }
     if (!is_textwindow)
@@ -533,8 +534,7 @@ void DialogOptions::Redraw()
 
     dlgxp = orixp;
     dlgyp = oriyp;
-    // lengthy drawing to screen, so lock it for speed
-    //acquire_screen();
+    const Rect &ui_view = play.GetUIViewport();
 
     bool options_surface_has_alpha = false;
 
@@ -584,11 +584,11 @@ void DialogOptions::Redraw()
       GET_OPTIONS_HEIGHT
 
       int savedwid = areawid;
-      int txoffs=0,tyoffs=0,yspos = play.viewport.GetHeight()/2-(2*padding+needheight)/2;
-      int xspos = play.viewport.GetWidth()/2 - areawid/2;
+      int txoffs=0,tyoffs=0,yspos = ui_view.GetHeight()/2-(2*padding+needheight)/2;
+      int xspos = ui_view.GetWidth()/2 - areawid/2;
       // shift window to the right if QG4-style full-screen pic
       if ((game.options[OPT_SPEECHTYPE] == 3) && (said_text > 0))
-        xspos = (play.viewport.GetWidth() - areawid) - 10;
+        xspos = (ui_view.GetWidth() - areawid) - 10;
 
       // needs to draw the right text window, not the default
       push_screen(ds);
@@ -624,7 +624,7 @@ void DialogOptions::Redraw()
         // fonts don't re-alias themselves
         if (game.options[OPT_DIALOGIFACE] == 0) {
           color_t draw_color = ds->GetCompatibleColor(16);
-          ds->FillRect(Rect(0,dlgyp-1,play.viewport.GetWidth()-1,play.viewport.GetHeight()-1), draw_color);
+          ds->FillRect(Rect(0,dlgyp-1, ui_view.GetWidth()-1, ui_view.GetHeight()-1), draw_color);
         }
         else {
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
@@ -634,7 +634,7 @@ void DialogOptions::Redraw()
       }
 
       dirtyx = 0;
-      dirtywidth = play.viewport.GetWidth();
+      dirtywidth = ui_view.GetWidth();
 
       if (game.options[OPT_DIALOGIFACE] > 0) 
       {
@@ -706,7 +706,7 @@ void DialogOptions::Redraw()
     if (usingCustomRendering)
     {
       subBitmap->Blit(tempScrn, 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
-      invalidate_rect(dirtyx, dirtyy, dirtyx + subBitmap->GetWidth(), dirtyy + subBitmap->GetHeight());
+      invalidate_rect(dirtyx, dirtyy, dirtyx + subBitmap->GetWidth(), dirtyy + subBitmap->GetHeight(), false);
     }
     else
     {

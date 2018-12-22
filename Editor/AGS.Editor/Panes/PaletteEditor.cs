@@ -50,7 +50,7 @@ namespace AGS.Editor
             }
             else
             {
-                lblPaletteIntro.Text = "Since your game is hi-color, this palette information will only be used for drawing any 8-bit graphics that you may have imported.";
+                lblPaletteIntro.Text = "This palette information will only be used for drawing any 8-bit graphics that you may have imported.";
                 if (!tabControl.TabPages.Contains(_colourFinder))
                 {
                     tabControl.TabPages.Add(_colourFinder);

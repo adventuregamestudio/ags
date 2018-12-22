@@ -120,6 +120,18 @@ private:
 
 
 typedef SpriteDrawListEntry<ALSoftwareBitmap> ALDrawListEntry;
+// Software renderer's sprite batch
+struct ALSpriteBatch
+{
+    // List of sprites to render
+    std::vector<ALDrawListEntry> List;
+    // Intermediate surface which will be drawn upon and transformed if necessary
+    std::shared_ptr<Bitmap>      Surface;
+    // Tells whether the surface is treated as opaque or transparent
+    bool                         Opaque;
+};
+typedef std::vector<ALSpriteBatch> ALSpriteBatches;
+
 
 class ALSoftwareGraphicsDriver : public GraphicsDriverBase
 {
@@ -142,8 +154,9 @@ public:
     virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
     virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
     virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
+
     virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
-    virtual void ClearDrawList();
+
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
@@ -159,10 +172,10 @@ public:
     virtual void Vsync();
     virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling) { }
     virtual bool RequiresFullRedrawEachFrame() { return false; }
-    virtual bool HasAcceleratedStretchAndFlip() { return false; }
+    virtual bool HasAcceleratedTransform() { return false; }
     virtual bool UsesMemoryBackBuffer() { return true; }
-    virtual Bitmap *GetMemoryBackBuffer() { return virtualScreen; }
-    virtual void SetMemoryBackBuffer(Bitmap *backBuffer) { virtualScreen = backBuffer; }
+    virtual Bitmap *GetMemoryBackBuffer();
+    virtual void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy);
     virtual void SetScreenTint(int red, int green, int blue) { 
         _tint_red = red; _tint_green = green; _tint_blue = blue; }
     virtual ~ALSoftwareGraphicsDriver();
@@ -180,10 +193,21 @@ private:
     // bitmap, or bitmap provided by the graphics filter. It should not be
     // disposed by the renderer: it is up to filter object to manage it.
     Bitmap *virtualScreen;
+    // Extra offset for the custom virtual screen.
+    // NOTE: the big issue with software renderer is that it handles main viewport changes
+    // differently from the hardware-accelerated ones. While D3D and OGL renderers
+    // work with the full game frame and offset sprites by the viewport's top-left,
+    // software renderer has to work with "virtual screen" bitmap of the main viewport's size,
+    // which means that it has to treat 0,0 as a viewport's top-left and not game frame's top-left.
+    Point   _virtualScrOff;
+    // Stage screen meant for particular rendering stages, may be referencing
+    // actual virtual screen or separate bitmap of different size that is
+    // blitted to virtual screen at the stage finalization.
+    Bitmap *_stageVirtualScreen;
     Bitmap *_spareTintingScreen;
     int _tint_red, _tint_green, _tint_blue;
 
-    std::vector<ALDrawListEntry> drawlist;
+    ALSpriteBatches _spriteBatches;
     GFX_MODE_LIST *_gfxModeList;
 
 #ifdef _WIN32
@@ -196,11 +220,16 @@ private:
     DDCAPS ddrawCaps;
 #endif
 
+    virtual void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc);
+    virtual void ResetAllBatches();
+
     // Use gfx filter to create a new virtual screen
     void CreateVirtualScreen();
     void DestroyVirtualScreen();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
+    // Renders single sprite batch on the precreated surface
+    void RenderSpriteBatch(const ALSpriteBatch &batch, Common::Bitmap *surface, int surf_offx, int surf_offy);
 
     void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);

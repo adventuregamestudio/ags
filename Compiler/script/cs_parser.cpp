@@ -3660,6 +3660,8 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol 
     {
         int retval = do_variable_ax_PrepareComponentAccess_Pointer(scrip, variableSym, thisClause, currentComponentOffset, isDynamicArray, writing, firstVariableType, firstVariableSym, isLastClause, pointerIsOnStack, isArrayOffset, getJustTheAddressIntoAX, currentComponentOffset, accessActualPointer, doMemoryAccessNow);
         if (retval < 0) return retval;
+
+        pointerIsOnStack = true;
     }
     else
     {

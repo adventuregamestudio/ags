@@ -3635,12 +3635,12 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol 
         (variableSymType == SYM_STRUCTMEMBER) ||
         (variableSymType == SYM_STRING)) &&
         (!isProperty) &&
-        (!isImported) &&
-        (!isPointer))
+        (!isImported))
     {
         do_variable_ax_PrepareComponentAccess_Elementary(variableSym, currentComponentOffset);
     }
-    else if (variableSymType == SYM_FUNCTION)
+
+    if (variableSymType == SYM_FUNCTION)
     {
         int retval = do_variable_ax_PrepareComponentAccess_MemberFunction(isLastClause, getJustTheAddressIntoAX, doMemoryAccessNow);
         if (retval < 0) return retval;

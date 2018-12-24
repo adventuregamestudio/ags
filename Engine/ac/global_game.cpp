@@ -554,7 +554,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         return;
     }
     int loctype = GetLocationType (xxx, yyy);
-    Point roompt = play.ScreenToRoomDivDown(xxx, yyy);
+    Point roompt = play.ScreenToRoom(xxx, yyy);
     xxx = roompt.X;
     yyy = roompt.Y;
     tempo[0]=0;
@@ -798,7 +798,7 @@ extern int getloctype_throughgui, getloctype_index;
 void ProcessClick(int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    Point roompt = play.ScreenToRoomDivDown(xx, yy);
+    Point roompt = play.ScreenToRoom(xx, yy);
     xx = roompt.X;
     yy = roompt.Y;
 
@@ -836,7 +836,7 @@ void ProcessClick(int xx,int yy,int mood) {
 int IsInteractionAvailable (int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    Point roompt = play.ScreenToRoomDivDown(xx, yy);
+    Point roompt = play.ScreenToRoom(xx, yy);
     xx = roompt.X;
     yy = roompt.Y;
 

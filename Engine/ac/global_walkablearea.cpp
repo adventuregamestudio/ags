@@ -75,7 +75,7 @@ void RestoreWalkableArea(int areanum) {
 
 
 int GetWalkableAreaAt(int x, int y) {
-  Point roompt = play.ScreenToRoomDivDown(x, y);
+  Point roompt = play.ScreenToRoom(x, y);
   if ((roompt.X>=thisroom.Width) | (roompt.X<0) | (roompt.Y<0) | (roompt.Y>=thisroom.Height))
     return 0;
   int result = get_walkable_area_pixel(roompt.X, roompt.Y);

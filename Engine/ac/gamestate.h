@@ -262,12 +262,10 @@ struct GameState {
     // TODO: find out if possible to refactor and get rid of "variadic" variants;
     // usually this depends on how the arguments are created (whether they are in "variadic" or true coords)
     Point RoomToScreen(int roomx, int roomy);
-    Point RoomToScreenDivDown(int roomx, int roomy); // native "variadic" coords variant
     int  RoomToScreenX(int roomx);
     int  RoomToScreenY(int roomy);
     // Converts game screen coordinates to the room coordinates through the room viewport
     Point ScreenToRoom(int scrx, int scry);
-    Point ScreenToRoomDivDown(int scrx, int scry); // native "variadic" coords variant
 
     // Serialization
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);

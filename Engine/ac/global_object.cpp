@@ -61,7 +61,7 @@ int obj_lowest_yp;
 int GetObjectAt(int scrx, int scry) {
     int aa,bestshotyp=-1,bestshotwas=-1;
     // translate screen co-ordinates to room co-ordinates
-    Point roompt = play.ScreenToRoomDivDown(scrx, scry);
+    Point roompt = play.ScreenToRoom(scrx, scry);
     // Iterate through all objects in the room
     for (aa=0;aa<croom->numobj;aa++) {
         if (objs[aa].on != 1) continue;

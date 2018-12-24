@@ -26,6 +26,7 @@ struct ICCStaticObject {
     virtual ~ICCStaticObject(){}
 
     // Legacy support for reading and writing object values by their relative offset
+    virtual const char* GetFieldPtr(const char *address, intptr_t offset)           = 0;
     virtual void    Read(const char *address, intptr_t offset, void *dest, int size)= 0;
     virtual uint8_t ReadInt8(const char *address, intptr_t offset)                  = 0;
     virtual int16_t ReadInt16(const char *address, intptr_t offset)                 = 0;

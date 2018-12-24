@@ -315,6 +315,9 @@ public:
     // Convert to most simple pointer type by resolving RValue ptrs and applying offsets;
     // non pointer types are left unmodified
     RuntimeScriptValue &DirectPtr();
+    // Similar to above, a slightly speed-optimised version for situations when we can
+    // tell for certain that we are expecting a pointer to the object and not its (first) field.
+    RuntimeScriptValue &DirectPtrObj();
     // Resolve and return direct pointer to the referenced data; non pointer types return IValue
     intptr_t           GetDirectPtr() const;
 };

@@ -38,6 +38,7 @@ public:
     virtual void Unserialize(int index, const char *serializedData, int dataSize);
 
     // Support for reading and writing object values by their relative offset
+    virtual const char* GetFieldPtr(const char *address, intptr_t offset);
     virtual void    Read(const char *address, intptr_t offset, void *dest, int size);
     virtual uint8_t ReadInt8(const char *address, intptr_t offset);
     virtual int16_t ReadInt16(const char *address, intptr_t offset);

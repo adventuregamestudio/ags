@@ -78,6 +78,11 @@ void ScriptUserObject::Unserialize(int index, const char *serializedData, int da
     ccRegisterUnserializedObject(index, this, this);
 }
 
+const char* ScriptUserObject::GetFieldPtr(const char *address, intptr_t offset)
+{
+    return _data + offset;
+}
+
 void ScriptUserObject::Read(const char *address, intptr_t offset, void *dest, int size)
 {
     memcpy(dest, _data + offset, size);

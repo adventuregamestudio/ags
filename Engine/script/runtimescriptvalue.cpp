@@ -329,9 +329,21 @@ RuntimeScriptValue &RuntimeScriptValue::DirectPtr()
 
     if (Ptr)
     {
-        Ptr += IValue;
+        if (Type == kScValDynamicObject || Type == kScValPluginObject)
+            Ptr = const_cast<char*>(DynMgr->GetFieldPtr(Ptr, IValue));
+        else if (Type == kScValStaticObject)
+            Ptr = const_cast<char*>(StcMgr->GetFieldPtr(Ptr, IValue));
+        else
+            Ptr += IValue;
         IValue = 0;
     }
+    return *this;
+}
+
+RuntimeScriptValue &RuntimeScriptValue::DirectPtrObj()
+{
+    if (Type == kScValGlobalVar || Type == kScValStackPtr)
+        *this = *RValue;
     return *this;
 }
 
@@ -345,5 +357,10 @@ intptr_t RuntimeScriptValue::GetDirectPtr() const
         ival     += temp_val->IValue;
     }
 
-    return (intptr_t)(temp_val->Ptr + ival);
+    if (temp_val->Type == kScValDynamicObject || temp_val->Type == kScValPluginObject)
+        return (intptr_t)temp_val->DynMgr->GetFieldPtr(temp_val->Ptr, ival);
+    else if (temp_val->Type == kScValStaticObject)
+        return (intptr_t)temp_val->StcMgr->GetFieldPtr(temp_val->Ptr, ival);
+    else
+        return (intptr_t)(temp_val->Ptr + ival);
 }

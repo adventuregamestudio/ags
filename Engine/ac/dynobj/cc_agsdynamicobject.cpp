@@ -58,6 +58,11 @@ int AGSCCDynamicObject::UnserializeInt() {
     return BBOp::Int32FromLE(*((int*)chptr));
 }
 
+const char* AGSCCDynamicObject::GetFieldPtr(const char *address, intptr_t offset)
+{
+    return address + offset;
+}
+
 void AGSCCDynamicObject::Read(const char *address, intptr_t offset, void *dest, int size)
 {
     memcpy(dest, address + offset, size);

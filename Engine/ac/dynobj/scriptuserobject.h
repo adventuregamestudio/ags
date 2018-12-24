@@ -18,7 +18,6 @@
 #ifndef __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
 #define __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
 
-#include <utility>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
 struct ScriptUserObject : ICCDynamicObject
@@ -27,8 +26,8 @@ public:
     ScriptUserObject();
     virtual ~ScriptUserObject();
 
-    static std::pair<char*, ScriptUserObject*> CreateManaged(size_t size);
-    void Create(const char *data, size_t size);
+    static ScriptUserObject *CreateManaged(size_t size);
+    void            Create(const char *data, size_t size);
 
     // return the type name of the object
     virtual const char *GetType();
@@ -49,9 +48,6 @@ public:
     virtual void    WriteInt16(const char *address, intptr_t offset, int16_t val);
     virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val);
     virtual void    WriteFloat(const char *address, intptr_t offset, float val);
-
-    inline size_t   GetSize() const { return _size; }
-    inline char    *GetData() const { return _data; }
 
 private:
     // NOTE: we use signed int for Size at the moment, because the managed

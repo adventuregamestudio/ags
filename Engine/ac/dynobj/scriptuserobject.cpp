@@ -32,23 +32,12 @@ ScriptUserObject::~ScriptUserObject()
     delete [] _data;
 }
 
-/* static */ std::pair<char*, ScriptUserObject*> ScriptUserObject::CreateManaged(size_t size)
+/* static */ ScriptUserObject *ScriptUserObject::CreateManaged(size_t size)
 {
-    // Ideally we should not be registering internal data address here, but managed object itself.
-    // We do so for the following reason:
-    // According to AGS script specification, when the old-string pointer or char array is passed
-    // as an argument, the byte-code does not include any specific command for the member variable
-    // retrieval and instructs to pass an address of the object itself with certain offset.
-    // This results in functions like StrCopy writing directly over object address.
-    // There may be other solutions, for instance - extract an address of the actual field into
-    // the script value of type "kScValData" (which also allows to define buffer length) -
-    // and pass that as an argument into the script function. The question is: how to detect when
-    // this is necessary because byte-code does not contain any distinct operation for this case.
-    //
     ScriptUserObject *suo = new ScriptUserObject();
     suo->Create(NULL, size);
-    ccRegisterManagedObject(suo->GetData(), suo);
-    return std::make_pair(suo->GetData(), suo);
+    ccRegisterManagedObject(suo, suo);
+    return suo;
 }
 
 void ScriptUserObject::Create(const char *data, size_t size)
@@ -86,7 +75,7 @@ int ScriptUserObject::Serialize(const char *address, char *buffer, int bufsize)
 void ScriptUserObject::Unserialize(int index, const char *serializedData, int dataSize)
 {
     Create(serializedData, dataSize);
-    ccRegisterUnserializedObject(index, GetData(), this);
+    ccRegisterUnserializedObject(index, this, this);
 }
 
 void ScriptUserObject::Read(const char *address, intptr_t offset, void *dest, int size)

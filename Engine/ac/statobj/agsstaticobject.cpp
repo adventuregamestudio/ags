@@ -7,6 +7,11 @@
 AGSStaticObject GlobalStaticManager;
 StaticGame      GameStaticManager;
 
+const char* AGSStaticObject::GetFieldPtr(const char *address, intptr_t offset)
+{
+    return address + offset;
+}
+
 void AGSStaticObject::Read(const char *address, intptr_t offset, void *dest, int size)
 {
     memcpy(dest, address + offset, size);

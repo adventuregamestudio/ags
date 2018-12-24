@@ -55,6 +55,11 @@ sc_File::sc_File() {
 }
 
 
+const char* sc_File::GetFieldPtr(const char *address, intptr_t offset)
+{
+    return address;
+}
+
 void sc_File::Read(const char *address, intptr_t offset, void *dest, int size)
 {
 }

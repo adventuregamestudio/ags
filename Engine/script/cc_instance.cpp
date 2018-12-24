@@ -1136,7 +1136,7 @@ int ccInstance::Run(int32_t curpc)
               if (next_call_needs_object)
               {
                   RuntimeScriptValue obj_rval = registers[SREG_OP];
-                  obj_rval.DirectPtr();
+                  obj_rval.DirectPtrObj();
                   int_ret_val = call_function((intptr_t)reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
               }
               else
@@ -1159,7 +1159,7 @@ int ccInstance::Run(int32_t curpc)
             if (reg1.Type == kScValObjectFunction)
             {
               RuntimeScriptValue obj_rval = registers[SREG_OP];
-              obj_rval.DirectPtr();
+              obj_rval.DirectPtrObj();
               return_value = reg1.ObjPfn(obj_rval.Ptr, func_callstack.GetHead() + 1, num_args_to_func);
             }
             else

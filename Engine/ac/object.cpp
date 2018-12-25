@@ -470,6 +470,18 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
         int xpos = xx - arx;
         int ypos = yy - ary;
 
+        if (System_GetHardwareAcceleration())
+        {
+            // hardware acceleration, so the sprite in memory will not have
+            // been stretched, it will be original size. Thus, adjust our
+            // calculations to compensate
+
+            if (spww != sprit->GetWidth())
+                xpos = (xpos * sprit->GetWidth()) / spww;
+            if (sphh != sprit->GetHeight())
+                ypos = (ypos * sprit->GetHeight()) / sphh;
+        }
+
         if (flipped)
             xpos = (sprit->GetWidth() - 1) - xpos;
 

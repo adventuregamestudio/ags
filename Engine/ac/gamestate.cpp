@@ -195,7 +195,8 @@ void GameState::ReleaseRoomCamera()
 void GameState::UpdateRoomCamera()
 {
     const Rect &camera = _roomCamera.Position;
-    if ((thisroom.width > camera.GetWidth()) || (thisroom.height > camera.GetHeight()))
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+    if ((real_room_sz.Width > camera.GetWidth()) || (real_room_sz.Height > camera.GetHeight()))
     {
         // TODO: split out into Camera Behavior
         if (!play.IsRoomCameraLocked())
@@ -215,9 +216,8 @@ void GameState::SetCameraActualSize(const Size &cam_size)
 {
     // TODO: currently we don't support having camera larger than room background
     // (or rather - looking outside of the room background); look into this later
-    int room_width = multiply_up_coordinate(thisroom.width);
-    int room_height = multiply_up_coordinate(thisroom.height);
-    Size real_size = Size::Clamp(cam_size, Size(1, 1), Size(room_width, room_height));
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+    Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
 
     _roomCamera.Position.SetWidth(real_size.Width);
     _roomCamera.Position.SetHeight(real_size.Height);

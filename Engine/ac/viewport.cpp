@@ -31,7 +31,8 @@
 
 int Camera_GetX(ScriptCamera *)
 {
-    return play.GetRoomCameraObj().Position.Left;
+    int x = play.GetRoomCameraObj().Position.Left;
+    return divide_down_coordinate(x);
 }
 
 void Camera_SetX(ScriptCamera *, int x)
@@ -42,7 +43,8 @@ void Camera_SetX(ScriptCamera *, int x)
 
 int Camera_GetY(ScriptCamera *)
 {
-    return play.GetRoomCameraObj().Position.Top;
+    int y = play.GetRoomCameraObj().Position.Top;
+    return divide_down_coordinate(y);
 }
 
 void Camera_SetY(ScriptCamera *, int y)
@@ -53,21 +55,25 @@ void Camera_SetY(ScriptCamera *, int y)
 
 int Camera_GetWidth(ScriptCamera *)
 {
-    return play.GetRoomCameraObj().Position.GetWidth();
+    int width = play.GetRoomCameraObj().Position.GetWidth();
+    return divide_down_coordinate(width);
 }
 
 void Camera_SetWidth(ScriptCamera *, int width)
 {
+    width = multiply_up_coordinate(width);
     play.SetRoomCameraSize(Size(width, play.GetRoomCamera().GetHeight()));
 }
 
 int Camera_GetHeight(ScriptCamera *)
 {
-    return play.GetRoomCameraObj().Position.GetHeight();
+    int height = play.GetRoomCameraObj().Position.GetHeight();
+    return divide_down_coordinate(height);
 }
 
 void Camera_SetHeight(ScriptCamera *, int height)
 {
+    height = multiply_up_coordinate(height);
     play.SetRoomCameraSize(Size(play.GetRoomCamera().GetWidth(), height));
 }
 
@@ -183,11 +189,13 @@ RuntimeScriptValue Sc_Camera_SetAutoTracking(void *self, const RuntimeScriptValu
 
 int Viewport_GetX(ScriptViewport *view)
 {
-    return play.GetRoomViewport().Left;
+    int x = play.GetRoomViewport().Left;
+    return divide_down_coordinate(x);
 }
 
 void Viewport_SetX(ScriptViewport *, int x)
 {
+    x = multiply_up_coordinate(x);
     Rect view = play.GetRoomViewport();
     view.MoveToX(x);
     play.SetRoomViewport(view);
@@ -195,11 +203,13 @@ void Viewport_SetX(ScriptViewport *, int x)
 
 int Viewport_GetY(ScriptViewport *)
 {
-    return play.GetRoomViewport().Top;
+    int y = play.GetRoomViewport().Top;
+    return divide_down_coordinate(y);
 }
 
 void Viewport_SetY(ScriptViewport *, int y)
 {
+    y = multiply_up_coordinate(y);
     Rect view = play.GetRoomViewport();
     view.MoveToY(y);
     play.SetRoomViewport(view);
@@ -207,11 +217,13 @@ void Viewport_SetY(ScriptViewport *, int y)
 
 int Viewport_GetWidth(ScriptViewport *)
 {
-    return play.GetRoomViewport().GetWidth();
+    int width = play.GetRoomViewport().GetWidth();
+    return divide_down_coordinate(width);
 }
 
 void Viewport_SetWidth(ScriptViewport *, int width)
 {
+    width = multiply_up_coordinate(width);
     Rect view = play.GetRoomViewport();
     view.SetWidth(width);
     play.SetRoomViewport(view);
@@ -219,11 +231,13 @@ void Viewport_SetWidth(ScriptViewport *, int width)
 
 int Viewport_GetHeight(ScriptViewport *)
 {
-    return play.GetRoomViewport().GetHeight();
+    int height = play.GetRoomViewport().GetHeight();
+    return divide_down_coordinate(height);
 }
 
 void Viewport_SetHeight(ScriptViewport *, int height)
 {
+    height = multiply_up_coordinate(height);
     Rect view = play.GetRoomViewport();
     view.SetHeight(height);
     play.SetRoomViewport(view);

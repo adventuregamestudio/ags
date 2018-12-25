@@ -815,7 +815,123 @@ void ags::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, 
     }
 }
 
+ags::Expression::Expression(symbolTable * sym, ccCompiledScript * compiledscript, SymbolScript scr, size_t len) :
+    Sym(sym),
+    Scrip(compiledscript),
+    InputScript(scr), 
+    InputScriptLength(len)
+{
+    Value = nullptr;
+}
 
+bool ags::Expression::IsAssignable()
+{
+    return ThisIsAssignable;
+}
+
+void ags::Expression::SetAssignable(bool abl)
+{
+    ThisIsAssignable = abl;
+}
+
+bool ags::Expression::IsAssignment()
+{
+    return ThisIsAssignment;
+}
+
+void ags::Expression::SetAssignment(bool ass)
+{
+    ThisIsAssignment = ass;
+}
+
+ags::ExpressionValue *ags::Expression::GetValue()
+{
+    return Value;
+}
+
+void ags::Expression::ResetValue()
+{
+    if (Value) free(Value);
+}
+
+int ags::Expression::Parse(size_t &parsedLength)
+{
+    return this->Parse(nullptr, -1, parsedLength);
+}
+
+int ags::Expression::Parse(ags::ExpressionValue *exval, ags::Symbol op, size_t &parsedLength)
+{
+    // "Expression is exhausted" means next char is ";" or ")" or EOF.
+    // if (expression is exhausted) return without error;
+    
+    // Get next identifier, call it ID1.
+    // Get infix operator, call it OP1.
+
+    // if weight(op1) <= weight(op)
+    //      Get value for id1 --> exval1
+    //      evaluate exval op exval1 --> exval2
+    //      rewrite this so that everything up to op1 is gobbled, g = num of chars gobbled
+    //      Parse(exval2, op1, x)
+    //      x += g;
+    //      return;
+    // So weight(op1) > weight(op)
+    //      generate code to push exval on the stack if exval is dynamic
+    //      Get value for id1 --> exval1
+    //      make an object o for whatever follows op1; g = num of chars to jump
+    //      o.Parse(exval1, op1, x);
+    //      x += g;
+    //      Get value of o into exval1
+    //      evaluate exval op exval1 --> exval2;
+    //      this->Value is exval2;
+    //      return;
+
+    // If OP1 is a PREfix operator (e.g. '!')
+    //      In this case, there is no ID1. 
+    //      "Get next identifier, call id ID1", above, gets OP1 instead.
+    //      Make ID1 = "void".
+    //      So weight(op1) > weight(op) per definitionem.
+    //      Evaluate void ! B := ! B
+
+    // If OP is a POSTfix operator (e.g., "[]")
+    //      In this case, there is no ID1. 
+    //      Don't try, make ID1 = "void" automatically.
+    //      So weight(op1) <= weight(op) per definitionem.
+    //      Evaluate A [] void := A[]
+
+    // If OP is [...]
+    //      Treat '[' as an infix operator. ']' is an additional closing symbol.
+    //      We must be able to gobble the ']' when the (sub-)expression is evaluated. 
+
+    // If OP is (...)
+    //      This is a function call. 
+
+    // If ID1 is '('
+    //      Get expression, get ')'
+
+    // Assignments: As soon as an expression contains an assignment anywhere,
+    // it is an assignment. This is copied up.
+
+    // Assignables: Variables are assignable, structs are assignable, 
+    // arrays are assignable, struct and array components are assignable.
+    // Function calls, literals, expression results are not assignable.
+
+    
+
+
+
+    return 0;
+}
+
+int ags::Expression::ToStack()
+{
+    return 0;
+}
+
+
+int ags::Expression::ToAX()
+{
+    return 0;
+}
 // Rip the code that has already been generated, starting from codeoffset, out of scrip
 // and move it into the vector at list, instead.
 void yank_chunk(ccCompiledScript *scrip, std::vector<ccChunk> *list, int codeoffset, int fixupoffset) {
@@ -999,13 +1115,13 @@ int stacksize_of_locals(int from_level)
     int totalsub = 0;
     for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
     {
-        if (sym.entries[entries_idx].sscope < from_level) continue;
+        if (sym.entries[entries_idx].sscope <= from_level) continue;
         if (sym.entries[entries_idx].stype != SYM_LOCALVAR) continue;
 
         // caller will sort out stack, so ignore parameters
         if ((sym.entries[entries_idx].flags & SFLG_PARAMETER) != 0) continue;
        
-        if (sym.entries[entries_idx].flags & SFLG_DYNAMICARRAY)
+        if ((sym.entries[entries_idx].flags & SFLG_DYNAMICARRAY) != 0)
         {    
             totalsub += 4; // size of an implicit pointer
             continue;
@@ -1034,7 +1150,7 @@ int free_pointers_of_locals(ccCompiledScript *scrip, int from_level)
 
     for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
     {
-        if (sym.entries[entries_idx].sscope < from_level) continue;
+        if (sym.entries[entries_idx].sscope <= from_level) continue;
         if (sym.entries[entries_idx].stype != SYM_LOCALVAR) continue;
         
         // don't touch the this pointer
@@ -5148,8 +5264,8 @@ int cs_parser_handle_closebrace(ccInternalList *targ, ccCompiledScript * scrip, 
         scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
     }
 
-    free_pointers_of_locals(scrip, nested_level + 1);
-    int totalsub = stacksize_of_locals(nested_level + 1);
+    free_pointers_of_locals(scrip, nested_level);
+    int totalsub = stacksize_of_locals(nested_level);
     if (totalsub > 0)
     {
         // Reduce the "high point" of the stack appropriately, 

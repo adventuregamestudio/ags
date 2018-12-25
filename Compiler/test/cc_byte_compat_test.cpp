@@ -664,7 +664,7 @@ TEST(Compatibility, DoNCall) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    // writeoutput("DoNCall", scrip);
+    writeoutput("DoNCall", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

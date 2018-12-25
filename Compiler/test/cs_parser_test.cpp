@@ -76,7 +76,7 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite[]' to 'int[]'", last_seen_cc_error);
+    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite*[]' to 'int[]'", last_seen_cc_error);
 }
 
 TEST(Compile, DynamicTypeReturnNonPointerManaged) {

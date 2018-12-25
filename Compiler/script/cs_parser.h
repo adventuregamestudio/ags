@@ -251,8 +251,127 @@ private:
     inline void SetTokenVartype(int token, Symbol value) { SymbolTable->entries[token].vartype = value; }
 };
 
-} // namespace ags
+class ExpressionValue
+{
+public:
+    size_t FrameOffset;
+    bool IsLocal;
 
+    enum ValueType
+    {
+        VTNothing = 0,
+        VTIntConst,
+        VTFloatConst,
+        VTStringConst,
+        VTStruct,
+        VTArray,
+        VTPointer,
+        VTFunction,
+        VTProperty,
+    } Type;
+
+    enum ValueLocation
+    {
+        LCNone = 0,
+        LCRegister_A,
+        LCStack,
+        LCHere, // for literals
+    } Location;
+};
+
+class IntValue : public ExpressionValue
+{
+public:
+    int ThisIntValue;
+};
+
+class FloatValue : public ExpressionValue
+{
+public:
+    double ThisFloatValue;
+};
+
+class StringValue : public ExpressionValue
+{
+public:
+    ::std::string ThisStringValue;
+};
+
+class StructValue : public ExpressionValue
+{
+public:
+    void *ThisStructValue;
+};
+
+class ArrayValue : public ExpressionValue
+{
+public:
+    void *ThisArrayValue;
+};
+
+class PointerValue : public ExpressionValue
+{
+public:
+    intptr_t ThisPointerValue;
+};
+
+class FunctionValue : public ExpressionValue
+{
+public:
+    intptr_t ThisFunctionValue;
+};
+
+class PropertyValue : public ExpressionValue
+{
+public:
+
+    intptr_t ThisPropertyValue;
+};
+
+
+class Expression
+{
+
+private:
+
+    bool ThisIsAssignable;
+    bool ThisIsAssignment;
+    bool ErrorEncountered;
+
+    ExpressionValue *Value;
+    symbolTable *Sym; // is NOT owned by this class
+    ccCompiledScript *Scrip; // is NOT owned by this class
+    ags::SymbolScript InputScript;
+    size_t InputScriptLength;
+
+public:
+    Expression(symbolTable *sym, ccCompiledScript *compiledscript, SymbolScript scr, size_t len);
+    ~Expression();
+
+    bool IsAssignable();
+    void SetAssignable(bool abl);
+
+    bool IsAssignment();
+    void SetAssignment(bool ass);
+
+    ExpressionValue *GetValue();
+    void ResetValue();
+
+    // Parses the expression, generates code for it, leaves the result in Value
+    // Returns index of first non-parsed char in parsedLength.
+    // Returns a negative value on error, otherwise a 0.
+    int Parse(size_t &parsedLength);
+    int Parse(ExpressionValue *exval, ags::Symbol op, size_t &parsedLength);
+
+    // Generates code to leave the result on the stack
+    int ToStack();
+
+    // Generates code to leave the result in Register AX
+    int ToAX();
+};
+
+
+} // namespace ags
 
 
 #define NEST_FUNCTION   1  // it's a function
@@ -279,7 +398,6 @@ extern int cc_compile(
     const char * inpl,           // preprocessed text to be compiled
     ccCompiledScript * scrip);   // store for the compiled text
 
-int cc_compile_HandleLinesAndMeta(const ags::Symbol &cursym, int &currentlinewas, ccCompiledScript * scrip, ccInternalList & targ, bool &retflag);
 
 
 
@@ -309,18 +427,3 @@ typedef std::vector<NestStack> NestStack_t;
 
 #endif // __CS_PARSER_H
 
-int evaluate_for_InitClause(ccInternalList * targ, ags::Symbol & cursym, const ags::SymbolScript & vnlist, size_t & vnlist_len, int & offset_of_funcname, char is_protected, char is_static, size_t & nested_level, char is_readonly, ccCompiledScript * scrip, bool &retflag);
-
-int evaluate_for_ExitClause(long &oriaddr, ccCompiledScript * scrip, bool &hasLimitCheck, ccInternalList * targ, long &assignaddr, int &pre_fixup_count, ags::Symbol & cursym, bool &retflag);
-
-int evaluate_for_IterateClause(ags::Symbol & cursym, ccInternalList * targ, const ags::SymbolScript & vnlist, size_t & vnlist_len, int & offset_of_funcname, ccCompiledScript * scrip, bool &retflag);
-
-int evaluate_assignment_Assign(int vnlist_len, const ags::SymbolScript & vnlist, ccCompiledScript * scrip, bool &retflag);
-
-int evaluate_assignment_SAssign(bool &readonly_cannot_cause_error, ccCompiledScript * scrip, const ags::SymbolScript & vnlist, int vnlist_len, const ags::Symbol &ass_symbol, bool & MARIntactAssumption);
-
-int parse_var_decl_InitialValAssignment_ToGlobalFloat(ccInternalList * targ, bool is_neg, void *& initial_val_ptr, bool &retflag);
-
-int parse_var_decl_InitialValAssignment_ToGlobalNonFloat(ccInternalList * targ, bool is_neg, void *& initial_val_ptr);
-
-int parse_var_decl_StringDecl_Local(void *& initial_value_ptr, int var_name, ccCompiledScript * scrip);

@@ -390,9 +390,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     displayed_room=newnum;
 
     room_filename.Format("room%d.crm", newnum);
-    // reset these back, because they might have been changed.
-    thisroom.WalkBehindMask.reset(BitmapHelper::CreateBitmap(320,200));
-    thisroom.BgFrames[0].Graphic.reset( BitmapHelper::CreateBitmap(320,200));
 
     update_polled_stuff_if_runtime();
 
@@ -512,7 +509,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
                 //        croom->obj[cc].baseoffs=thisroom.Objects.Baseline[cc]-thisroom.Objects[cc].y;
                 croom->obj[cc].baseline=thisroom.Objects[cc].Baseline;
         }
-        memcpy(&croom->walkbehind_base[0],&thisroom.WalkBehinds[0].Baseline,sizeof(short)*MAX_WALK_BEHINDS);
+        for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
+            croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
         for (cc=0;cc<MAX_FLAGS;cc++) croom->flagstates[cc]=0;
 
         /*    // we copy these structs for the Score column to work

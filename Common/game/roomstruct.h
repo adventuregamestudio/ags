@@ -302,7 +302,7 @@ public:
     size_t                  RegionCount;
     RoomRegion              Regions[MAX_ROOM_REGIONS];
     size_t                  WalkAreaCount;
-    WalkArea                WalkAreas[MAX_WALK_AREAS];
+    WalkArea                WalkAreas[MAX_WALK_AREAS + 1];
     size_t                  WalkBehindCount;
     WalkBehind              WalkBehinds[MAX_WALK_BEHINDS];
 

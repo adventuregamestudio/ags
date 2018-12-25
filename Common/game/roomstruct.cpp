@@ -196,6 +196,7 @@ int RoomStruct::GetRegionTintLuminance(int id) const
 void load_room(const char *files, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos)
 {
     room->Free();
+    room->InitDefaults();
 
     update_polled_stuff_if_runtime();
 

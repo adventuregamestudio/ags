@@ -677,12 +677,14 @@ namespace AGS.Editor
                 if (GetDesktopColourDepth() < 32 &&
                     (bmp.PixelFormat != PixelFormat.Format32bppArgb || bmp.PixelFormat == PixelFormat.Format32bppRgb))
                 {
-                    if (Factory.GUIController.ShowQuestion("Your desktop colour depth is lower than this image. You may lose image detail if you copy this to the clipboard. Do you want to go ahead?") == DialogResult.Yes)
+                    if (Factory.GUIController.ShowQuestion("Your desktop colour depth is lower than this image. You may lose image detail if you copy this to the clipboard. Do you want to go ahead?") != DialogResult.Yes)
                     {
-                        Clipboard.SetImage(bmp);
+                        bmp.Dispose();
+                        return;
                     }
                 }
 
+                Clipboard.SetImage(bmp);
                 bmp.Dispose();
             }
             else if (item.Name == MENU_ITEM_CHANGE_SPRITE_NUMBER)

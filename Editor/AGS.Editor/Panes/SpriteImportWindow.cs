@@ -289,21 +289,17 @@ namespace AGS.Editor
             }
 
             previewPanel.Refresh();
-
-            // if not doing a tiled import, update selection width and height
-            if (!chkTiled.Checked)
-            {
-                numSizeX.Value = image.Width;
-                numSizeY.Value = image.Height;
-            }
         }
 
         private void updateCornerColours(Point point, Size size)
         {
-            panelTopLeft.BackColor = image.GetPixel(point.X, point.Y);
-            panelTopRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y);
-            panelBottomLeft.BackColor = image.GetPixel(point.X, point.Y + size.Height - 1);
-            panelBottomRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y + size.Height - 1);
+            if (size.Width > 0 && size.Height > 0)
+            {
+                panelTopLeft.BackColor = image.GetPixel(point.X, point.Y);
+                panelTopRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y);
+                panelBottomLeft.BackColor = image.GetPixel(point.X, point.Y + size.Height - 1);
+                panelBottomRight.BackColor = image.GetPixel(point.X + size.Width - 1, point.Y + size.Height - 1);
+            }
         }
 
         private void zoomSlider_Scroll(object sender, EventArgs e)
@@ -334,8 +330,8 @@ namespace AGS.Editor
             // Draw dragging indicator
             if (dragging)
             {
-                numSizeX.Value = position.X / zoomLevel - numOffsetX.Value + 1;
-                numSizeY.Value = position.Y / zoomLevel - numOffsetY.Value + 1;
+                numSizeX.Value = Math.Min(image.Width - numOffsetX.Value, position.X / zoomLevel - numOffsetX.Value + 1);
+                numSizeY.Value = Math.Min(image.Height - numOffsetY.Value, position.Y / zoomLevel - numOffsetY.Value + 1);
 
                 Size snappedSize = new Size((int)numSizeX.Value * zoomLevel, (int)numSizeY.Value * zoomLevel);
                 Point snappedStart = new Point((int)numOffsetX.Value * zoomLevel - previewPanel.HorizontalScroll.Value, (int)numOffsetY.Value * zoomLevel - previewPanel.VerticalScroll.Value);
@@ -571,19 +567,21 @@ namespace AGS.Editor
                 mouse.X = mouse.X + previewPanel.HorizontalScroll.Value;
                 mouse.Y = mouse.Y + previewPanel.VerticalScroll.Value;
 
-                if (mouse.X < start.X)
-                {
-                    mouse.X = start.X;
-                }
-
-                if (mouse.Y < start.Y)
-                {
-                    mouse.Y = start.Y;
-                }
-
                 position = mouse;
                 position.X = (position.X / zoomLevel) * zoomLevel;
                 position.Y = (position.Y / zoomLevel) * zoomLevel;
+
+                if (mouse.X < start.X)
+                {
+                    numOffsetX.Value = Math.Max(0, position.X / zoomLevel);
+                    position.X = start.X;
+                }
+
+                if (mouse.Y < start.Y) {
+                    numOffsetY.Value = Math.Max(0, position.Y / zoomLevel);
+                    position.Y = start.Y;
+                }
+
                 previewPanel.Invalidate();
             }
         }

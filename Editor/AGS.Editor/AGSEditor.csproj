@@ -150,6 +150,12 @@
     <Compile Include="GUI\SplashScreen.Designer.cs">
       <DependentUpon>SplashScreen.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\SpriteExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\SpriteExportDialog.Designer.cs">
+      <DependentUpon>SpriteExportDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\TextEntryDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -320,6 +326,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Progress.resx">
       <DependentUpon>Progress.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\SpriteExportDialog.resx">
+      <DependentUpon>SpriteExportDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panes\BigPropertySheet.resx">
       <SubType>Designer</SubType>

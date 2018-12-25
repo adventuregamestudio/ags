@@ -1489,6 +1489,8 @@ void prepare_objects_for_drawing() {
         const Rect &camera = play.GetRoomCamera();
         int offsetx = camera.Left;
         int offsety = camera.Top;
+        atxp = objs[aa].x - offsetx;
+        atyp = (objs[aa].y - tehHeight) - offsety;
 
         int usebasel = objs[aa].get_baseline();
 

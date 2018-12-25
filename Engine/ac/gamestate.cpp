@@ -17,6 +17,7 @@
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"
+#include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
@@ -28,6 +29,7 @@ using namespace AGS::Common;
 extern GameSetupStruct game;
 extern roomstruct thisroom;
 extern CharacterInfo *playerchar;
+extern ScriptSystem scsystem;
 
 GameState::GameState()
 {
@@ -67,6 +69,8 @@ void GameState::SetMainViewport(const Rect &viewport)
 {
     _mainViewport.Position = FixupViewport(viewport, RectWH(game.size));
     Mouse::SetGraphicArea();
+    scsystem.viewport_width = divide_down_coordinate(_mainViewport.Position.GetWidth());
+    scsystem.viewport_height = divide_down_coordinate(_mainViewport.Position.GetHeight());
     _mainViewportHasChanged = true;
     // Update sub-viewports in case main viewport became smaller
     SetUIViewport(_uiViewport.Position);

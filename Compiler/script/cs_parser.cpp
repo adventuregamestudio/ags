@@ -1241,8 +1241,8 @@ int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, char*n
         {
             nested_level--;
             
-            free_pointers_of_locals(scrip, nested_level + 1);
-            int totalsub = stacksize_of_locals(nested_level + 1);
+            free_pointers_of_locals(scrip, nested_level);
+            int totalsub = stacksize_of_locals(nested_level);
             if (totalsub > 0)
             {
                 scrip->cur_sp -= totalsub;

@@ -168,8 +168,9 @@ public:
     // Begin executing script starting from the given bytecode index
     int     Run(int32_t curpc);
     
-    void    GetCallStack(char *buffer, int maxLines);
-    void    GetScriptName(char *curScrName);
+    // Get the script's execution position and callstack as human-readable text
+    Common::String GetCallStack(int maxLines);
+    // Get the script's execution position
     void    GetScriptPosition(ScriptPosition &script_pos);
     // Get the address of an exported symbol (function or variable) in the script
     RuntimeScriptValue GetSymbolAddress(const char *symname);

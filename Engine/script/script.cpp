@@ -339,7 +339,7 @@ bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcTo
         funcToRun->atLeastOneImplementationExists = true;
     }
     // this might be nested, so don't disrupt blocked scripts
-    ccErrorString[0] = 0;
+    ccErrorString = "";
     ccError = 0;
     no_blocking_functions--;
     return(hasTheFunc);
@@ -352,11 +352,11 @@ int PrepareTextScript(ccInstance *sci, const char**tsname)
     // FIXME: try to make it so this function is not called with NULL sci
     if (sci == NULL) return -1;
     if (sci->GetSymbolAddress(tsname[0]).IsNull()) {
-        strcpy(ccErrorString, "no such function in script");
+        ccErrorString = "no such function in script";
         return -2;
     }
     if (sci->IsBeingRun()) {
-        strcpy(ccErrorString, "script is already in execution");
+        ccErrorString = "script is already in execution";
         return -3;
     }
     scripts[num_scripts].init();
@@ -402,7 +402,7 @@ int RunScriptFunctionIfExists(ccInstance *sci, const char*tsname, int numParam, 
     }
 
     // Clear the error message
-    ccErrorString[0] = 0;
+    ccErrorString = "";
 
     if (numParam < 3)
     {
@@ -457,7 +457,7 @@ int RunTextScript(ccInstance *sci, const char *tsname)
     int toret = RunScriptFunctionIfExists(sci, tsname, 0, NULL);
     if ((toret == -18) && (sci == roominst)) {
         // functions in room script must exist
-        quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)", toret, ccErrorString, tsname, displayed_room);
+        quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)", toret, ccErrorString.GetCStr(), tsname, displayed_room);
     }
     return toret;
 }
@@ -501,6 +501,19 @@ int RunTextScript2IParam(ccInstance *sci, const char*tsname, const RuntimeScript
     tsname = NULL;
 
     return toret;
+}
+
+String GetScriptName(ccInstance *sci)
+{
+    // TODO: have script name a ccScript's member?
+    // TODO: check script modules too?
+    if (!sci)
+        return "Not in a script";
+    else if (sci->instanceof == gamescript)
+        return "Global script";
+    else if (sci->instanceof == thisroom.compiled_script)
+        return String::FromFormat("Room %d script", displayed_room);
+    return "Unknown script";
 }
 
 //=============================================================================
@@ -605,7 +618,7 @@ void post_script_cleanup() {
 
 void quit_with_script_error(const char *functionName)
 {
-    quitprintf("%sError running function '%s':\n%s", (ccErrorIsUserError ? "!" : ""), functionName, ccErrorString);
+    quitprintf("%sError running function '%s':\n%s", (ccErrorIsUserError ? "!" : ""), functionName, ccErrorString.GetCStr());
 }
 
 int get_nivalue (InteractionCommandList *nic, int idx, int parm) {

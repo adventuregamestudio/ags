@@ -14,7 +14,6 @@
 
 #include <string.h>
 #include "ac/common.h"
-#include "ac/roomstruct.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "gui/guidefines.h"
@@ -41,8 +40,6 @@ using namespace AGS::Common;
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
 extern ExecutingScript*curscript; // in script/script
-extern int displayed_room; // in ac/game
-extern roomstruct thisroom; // ac/game
 extern int maxWhileLoops;
 extern new_line_hook_type new_line_hook;
 
@@ -1306,37 +1303,20 @@ int ccInstance::Run(int32_t curpc)
     }
 }
 
-void ccInstance::GetCallStack(char *buffer, int maxLines) {
+String ccInstance::GetCallStack(int maxLines)
+{
+    String buffer = String::FromFormat("in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
 
-    // FIXME: check ptr prior to function call instead
-    if (this == NULL) {
-        // not in a script, no call stack
-        buffer[0] = 0;
-        return;
-    }
-
-    sprintf(buffer, "in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
-
-    char lineBuffer[300];
     int linesDone = 0;
-    for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++) {
-        sprintf(lineBuffer, "from \"%s\", line %d\n",
+    for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++)
+    {
+        String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
             callStackCodeInst[j]->instanceof->GetSectionName(callStackAddr[j]), callStackLineNumber[j]);
-        strcat(buffer, lineBuffer);
+        buffer.Append(lineBuffer);
         if (linesDone == maxLines - 1)
-            strcat(buffer, "(and more...)\n");
+            buffer.Append("(and more...)\n");
     }
-}
-
-void ccInstance::GetScriptName(char *curScrName) {
-    if (this == NULL)
-        strcpy (curScrName, "Not in a script");
-    else if (instanceof == gamescript)
-        strcpy (curScrName, "Global script");
-    else if (instanceof == thisroom.compiled_script)
-        sprintf (curScrName, "Room %d script", displayed_room);
-    else
-        strcpy (curScrName, "Unknown script");
+    return buffer;
 }
 
 void ccInstance::GetScriptPosition(ScriptPosition &script_pos)

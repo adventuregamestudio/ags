@@ -25,6 +25,7 @@
 #include "script/nonblockingscriptfunction.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "game/interactions.h"
+#include "util/string.h"
 
 using AGS::Common::Interaction;
 using AGS::Common::InteractionCommandList;
@@ -57,6 +58,8 @@ int     RunTextScript2IParam(ccInstance *sci, const char *tsname, const RuntimeS
 
 int     PrepareTextScript(ccInstance *sci, const char **tsname);
 bool    DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
+
+AGS::Common::String GetScriptName(ccInstance *sci);
 
 //=============================================================================
 

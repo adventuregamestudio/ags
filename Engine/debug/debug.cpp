@@ -220,13 +220,15 @@ void debug_script_log(const char *msg, ...)
 }
 
 
-const char *get_cur_script(int numberOfLinesOfCallStack) {
-    ccInstance::GetCurrentInstance()->GetCallStack(pexbuf, numberOfLinesOfCallStack);
-
-    if (pexbuf[0] == 0)
-        strcpy(pexbuf, ccErrorCallStack);
-
-    return &pexbuf[0];
+String get_cur_script(int numberOfLinesOfCallStack)
+{
+    String callstack;
+    ccInstance *sci = ccInstance::GetCurrentInstance();
+    if (sci)
+        callstack = sci->GetCallStack(numberOfLinesOfCallStack);
+    if (callstack.IsEmpty())
+        callstack = ccErrorCallStack;
+    return callstack;
 }
 
 bool get_script_position(ScriptPosition &script_pos)
@@ -451,8 +453,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
 
     if (pluginsWantingDebugHooks > 0) {
         // a plugin is handling the debugging
-        char scname[40];
-        ccinst->GetScriptName(scname);
+        String scname = GetScriptName(ccinst);
         pl_run_plugin_debug_hooks(scname, linenum);
         return;
     }

@@ -857,7 +857,10 @@ bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
         _spriteData[i].Flags = 0;
         if (spriteoffs[i] != 0)
         {
+            // Store the sprite info
             _spriteData[i].Offset = spriteoffs[i] + spr_initial_offs;
+            _sprInfos[i].Width = rspritewidths[i];
+            _sprInfos[i].Height = rspriteheights[i];
         }
         else if (i > 0)
         {

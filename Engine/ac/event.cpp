@@ -76,7 +76,7 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
     eventClaimed = EVENT_INPROGRESS;
     int toret;
 
-    if (includeRoom) {
+    if (includeRoom && roominst) {
         toret = roominst->RunScriptFunctionIfExists(tsname, numParams, params);
 
         if (eventClaimed == EVENT_CLAIMED) {

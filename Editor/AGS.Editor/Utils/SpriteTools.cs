@@ -360,16 +360,31 @@ namespace AGS.Editor.Utils
 
         public static void ExportSprite(Sprite sprite, string path, bool updateSourcePath)
         {
-            ImageFormat format = sprite.ColorDepth < 32 && !sprite.AlphaChannel ? ImageFormat.Bmp : ImageFormat.Png;
-            path = String.Format("{0}.{1}", ExpandExportPath(sprite, path), format.ToString().ToLower());
+            path = ExpandExportPath(sprite, path);
 
+            // stop if the export path is empty (file extension isn't appended yet)
+            if (String.IsNullOrWhiteSpace(path.Trim(new char[] { Path.DirectorySeparatorChar })))
+            {
+                throw new InvalidOperationException("Export path cannot be empty");
+            }
+
+            // for a relative path, the parent directory is the game folder
             if (!Path.IsPathRooted(path))
             {
                 path = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, path);
             }
 
+            // create directory if it doesn't exist
+            DirectoryInfo parent = Directory.GetParent(path);
+
+            if (parent != null)
+            {
+                parent.Create();
+            }
+
+            ImageFormat format = sprite.ColorDepth < 32 && !sprite.AlphaChannel ? ImageFormat.Bmp : ImageFormat.Png;
             Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
-            bmp.Save(path, format);
+            bmp.Save(String.Format("{0}.{1}", path, format.ToString().ToLower()), format);
             bmp.Dispose();
 
             if (updateSourcePath)

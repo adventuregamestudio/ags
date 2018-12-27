@@ -138,7 +138,7 @@ void engine_init_resolution_settings(const Size game_size)
     play.SetMainViewport(viewport);
     play.SetUIViewport(viewport);
     play.SetRoomViewport(viewport);
-    play.SetRoomCameraAutoSize();
+    play.SetRoomCameraSize(viewport.GetSize());
 
     Size native_size = game_size;
     if (game.IsHiRes())

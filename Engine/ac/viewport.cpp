@@ -77,26 +77,6 @@ void Camera_SetHeight(ScriptCamera *, int height)
     play.SetRoomCameraSize(Size(play.GetRoomCamera().GetWidth(), height));
 }
 
-float Camera_GetScaleX(ScriptCamera *)
-{
-    return play.GetRoomCameraObj().ScaleX;
-}
-
-void Camera_SetScaleX(ScriptCamera *, float sx)
-{
-    return play.SetRoomCameraAutoSize(sx, play.GetRoomCameraObj().ScaleY);
-}
-
-float Camera_GetScaleY(ScriptCamera *)
-{
-    return play.GetRoomCameraObj().ScaleY;
-}
-
-void Camera_SetScaleY(ScriptCamera *, float sy)
-{
-    return play.SetRoomCameraAutoSize(play.GetRoomCameraObj().ScaleX, sy);
-}
-
 bool Camera_GetAutoTracking(ScriptCamera *)
 {
     return !play.IsRoomCameraLocked();
@@ -148,26 +128,6 @@ RuntimeScriptValue Sc_Camera_GetHeight(void *self, const RuntimeScriptValue *par
 RuntimeScriptValue Sc_Camera_SetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptCamera, Camera_SetHeight);
-}
-
-RuntimeScriptValue Sc_Camera_GetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_FLOAT(ScriptCamera, Camera_GetScaleX);
-}
-
-RuntimeScriptValue Sc_Camera_SetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PFLOAT(ScriptCamera, Camera_SetScaleX);
-}
-
-RuntimeScriptValue Sc_Camera_GetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_FLOAT(ScriptCamera, Camera_GetScaleY);
-}
-
-RuntimeScriptValue Sc_Camera_SetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PFLOAT(ScriptCamera, Camera_SetScaleY);
 }
 
 RuntimeScriptValue Sc_Camera_GetAutoTracking(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -306,10 +266,6 @@ void RegisterViewportAPI()
     ccAddExternalObjectFunction("Camera::set_Width", Sc_Camera_SetWidth);
     ccAddExternalObjectFunction("Camera::get_Height", Sc_Camera_GetHeight);
     ccAddExternalObjectFunction("Camera::set_Height", Sc_Camera_SetHeight);
-    ccAddExternalObjectFunction("Camera::get_ScaleX", Sc_Camera_GetScaleX);
-    ccAddExternalObjectFunction("Camera::set_ScaleX", Sc_Camera_SetScaleX);
-    ccAddExternalObjectFunction("Camera::get_ScaleY", Sc_Camera_GetScaleY);
-    ccAddExternalObjectFunction("Camera::set_ScaleY", Sc_Camera_SetScaleY);
     ccAddExternalObjectFunction("Camera::get_AutoTracking", Sc_Camera_GetAutoTracking);
     ccAddExternalObjectFunction("Camera::set_AutoTracking", Sc_Camera_SetAutoTracking);
 

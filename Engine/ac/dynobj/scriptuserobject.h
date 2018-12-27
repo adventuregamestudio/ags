@@ -61,4 +61,12 @@ private:
     char    *_data;
 };
 
+
+// Helper functions for setting up custom managed structs based on ScriptUserObject.
+namespace ScriptStructHelpers
+{
+    // Creates a managed Point object, represented as a pair of X and Y coordinates.
+    ScriptUserObject *CreatePoint(int x, int y);
+};
+
 #endif // __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H

@@ -423,6 +423,15 @@ AGS_INLINE int divide_down_coordinate(int coord)
         return coord;
 }
 
+AGS_INLINE void divide_down_coordinates(int &x, int &y)
+{
+    if (game.options[OPT_NATIVECOORDINATES] == 0)
+    {
+        x /= current_screen_resolution_multiplier;
+        y /= current_screen_resolution_multiplier;
+    }
+}
+
 AGS_INLINE int divide_down_coordinate_round_up(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)

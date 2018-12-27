@@ -114,12 +114,13 @@ void setpal();
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 extern AGS_INLINE int convert_to_low_res(int coord);
 extern AGS_INLINE int convert_back_to_high_res(int coord);
-// coordinate conversion game ---> screen
+// coordinate conversion game,script ---> screen
 extern AGS_INLINE int multiply_up_coordinate(int coord);
 extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
 extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
-// coordinate conversion screen ---> game
+// coordinate conversion screen ---> game,script
 extern AGS_INLINE int divide_down_coordinate(int coord);
+extern AGS_INLINE void divide_down_coordinates(int &x, int &y);
 extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 
 // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap

@@ -132,3 +132,13 @@ void ScriptUserObject::WriteFloat(const char *address, intptr_t offset, float va
 {
     *(float*)(_data + offset) = val;
 }
+
+
+// Allocates managed struct containing two ints: X and Y
+ScriptUserObject *ScriptStructHelpers::CreatePoint(int x, int y)
+{
+    ScriptUserObject *suo = ScriptUserObject::CreateManaged(sizeof(int32_t) * 2);
+    suo->WriteInt32((const char*)suo, 0, x);
+    suo->WriteInt32((const char*)suo, sizeof(int32_t), y);
+    return suo;
+}

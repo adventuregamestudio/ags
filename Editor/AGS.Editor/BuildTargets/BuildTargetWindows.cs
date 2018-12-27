@@ -243,6 +243,10 @@ namespace AGS.Editor
         public void CopyAuxiliaryGameFiles(string sourcePath, bool alwaysOverwrite)
         {
             List<string> files = GetAuxiliaryGameFiles(sourcePath);
+            // This method could be called separately from the standard building process,
+            // so double-check that necessary folders exist
+            if (files.Count > 0)
+                EnsureStandardSubfoldersExist();
             foreach (string fileName in files)
             {
                 string destFile = GetCompiledPath(Path.GetFileName(fileName));

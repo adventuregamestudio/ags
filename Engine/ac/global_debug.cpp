@@ -105,20 +105,20 @@ void script_debug(int cmdd,int dataa) {
     }
     else if (cmdd==2) 
     {  // show walkable areas from here
+        // TODO: support multiple viewports?!
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
         const Rect &viewport = play.GetRoomViewport();
         const Rect &camera = play.GetRoomCamera();
-        Bitmap *stretched = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        stretched->StretchBlt(tempw,
-			RectWH(-camera.Left, -camera.Top, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())),
-			Common::kBitmap_Transparency);
+        Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
+        Rect mask_src = Rect(camera.Left / thisroom.resolution, camera.Top / thisroom.resolution, camera.Right / thisroom.resolution, camera.Bottom / thisroom.resolution);
+        view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
 
-        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(stretched, false, true);
-        render_graphics(ddb, 0, 0);
+        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);
+        render_graphics(ddb, viewport.Left, viewport.Top);
 
         delete tempw;
-        delete stretched;
+        delete view_bmp;
         gfxDriver->DestroyDDB(ddb);
         wait_until_keypress();
         invalidate_screen();
@@ -165,13 +165,19 @@ void script_debug(int cmdd,int dataa) {
             short targety=short(cmls->pos[i+1] & 0x00ffff);
             tempw->DrawLine(Line(srcx, srcy, targetx, targety), GetVirtualScreen()->GetCompatibleColor(i+1));
         }
-        Rect camera = play.GetRoomCamera(); // TODO: or is this logically viewport coords?
-		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
-        screen_bmp->StretchBlt(tempw,
-			RectWH(-camera.Left, -camera.Top, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())),
-			Common::kBitmap_Transparency);
-        render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);
+
+        const Rect &viewport = play.GetRoomViewport();
+        const Rect &camera = play.GetRoomCamera();
+        Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
+        Rect mask_src = Rect(camera.Left / thisroom.resolution, camera.Top / thisroom.resolution, camera.Right / thisroom.resolution, camera.Bottom / thisroom.resolution);
+        view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
+
+        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);
+        render_graphics(ddb, viewport.Left, viewport.Top);
+
         delete tempw;
+        delete view_bmp;
+        gfxDriver->DestroyDDB(ddb);
         wait_until_keypress();
     }
     else if (cmdd == 99)

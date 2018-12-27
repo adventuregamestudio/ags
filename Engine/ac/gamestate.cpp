@@ -112,6 +112,8 @@ void GameState::SetRoomViewport(const Rect &viewport)
     _roomViewportHasChanged = pos_changed | size_changed;
     if (size_changed)
         UpdateCameraSize();
+    else
+        AdjustRoomToViewport();
 }
 
 void GameState::UpdateViewports()

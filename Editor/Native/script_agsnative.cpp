@@ -2,17 +2,19 @@
 // Implementation for script specific to AGS.Native library
 //
 
-#include <stdio.h>
-#include "script/cc_error.h"
+#include <utility>
+#include "util/string.h"
+
+using namespace AGS::Common;
 
 extern int currentline; // in script/script_common
 
-void cc_error_at_line(char *buffer, const char *error_msg)
+std::pair<String, String> cc_error_at_line(const char *error_msg)
 {
-    sprintf(ccErrorString, "Error (line %d): %s", currentline, error_msg);
+    return std::make_pair(String::FromFormat("Error (line %d): %s", currentline, error_msg), String());
 }
 
-void cc_error_without_line(char *buffer, const char *error_msg)
+String cc_error_without_line(const char *error_msg)
 {
-    sprintf(ccErrorString, "Error (line unknown): %s", error_msg);
+    return String::FromFormat("Error (line unknown): %s", error_msg);
 }

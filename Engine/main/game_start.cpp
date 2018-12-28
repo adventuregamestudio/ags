@@ -104,9 +104,9 @@ void start_game() {
     our_eip = -42;
 
     for (int kk = 0; kk < numScriptModules; kk++)
-        moduleInst[kk]->RunTextScript("game_start");
+        RunTextScript(moduleInst[kk], "game_start");
 
-    gameinst->RunTextScript("game_start");
+    RunTextScript(gameinst, "game_start");
 
     our_eip = -43;
 

@@ -20,14 +20,15 @@
 #define __CC_ERROR_H
 
 #include "script/cc_script.h"
+#include "util/string.h"
 
 extern void cc_error(const char *, ...);
 
 // error reporting
 extern int ccError;             // set to non-zero if error occurs
 extern int ccErrorLine;         // line number of the error
-extern char ccErrorString[400]; // description of the error
-extern char ccErrorCallStack[400];
+extern AGS::Common::String ccErrorString; // description of the error
+extern AGS::Common::String ccErrorCallStack; // callstack where error happened
 extern bool ccErrorIsUserError;
 extern const char *ccCurScriptName; // name of currently compiling script
 

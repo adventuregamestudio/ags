@@ -36,20 +36,22 @@ char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 C
 extern void quit(const char *);
 extern int currentline; // in script/script_common
 
-void cc_error_at_line(char *buffer, const char *error_msg)
+std::pair<String, String> cc_error_at_line(const char *error_msg)
 {
-    if (ccInstance::GetCurrentInstance() == NULL) {
-        sprintf(ccErrorString, "Error (line %d): %s", currentline, error_msg);
+    ccInstance *sci = ccInstance::GetCurrentInstance();
+    if (!sci)
+    {
+        return std::make_pair(String::FromFormat("Error (line %d): %s", currentline, error_msg), String());
     }
-    else {
-        sprintf(ccErrorString, "Error: %s\n", error_msg);
-        ccInstance::GetCurrentInstance()->GetCallStack(ccErrorCallStack, 5);
+    else
+    {
+        return std::make_pair(String::FromFormat("Error: %s\n", error_msg), ccInstance::GetCurrentInstance()->GetCallStack(5));
     }
 }
 
-void cc_error_without_line(char *buffer, const char *error_msg)
+String cc_error_without_line(const char *error_msg)
 {
-    sprintf(ccErrorString, "Runtime error: %s", error_msg);
+    return String::FromFormat("Runtime error: %s", error_msg);
 }
 
 void save_script_configuration(Stream *out)

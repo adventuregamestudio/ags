@@ -614,7 +614,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
     params[0].SetPluginArgument(arg1);
     params[1].SetPluginArgument(arg2);
     params[2].SetPluginArgument(arg3);
-    int toret = toRun->RunScriptFunctionIfExists((char*)name, numArgs, params);
+    int toret = RunScriptFunctionIfExists(toRun, (char*)name, numArgs, params);
     return toret;
 }
 

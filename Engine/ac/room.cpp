@@ -54,6 +54,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
+#include "script/cc_error.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
@@ -98,8 +99,6 @@ extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;
 extern unsigned int loopcounter,lastcounter;
-extern int ccError;
-extern char ccErrorString[400];
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *raw_saved_screen;
@@ -1013,12 +1012,12 @@ void compile_room_script() {
     roominst = ccInstance::CreateFromScript(thisroom.compiled_script);
 
     if ((ccError!=0) || (roominst==NULL)) {
-        quitprintf("Unable to create local script: %s", ccErrorString);
+        quitprintf("Unable to create local script: %s", ccErrorString.GetCStr());
     }
 
     roominstFork = roominst->Fork();
     if (roominstFork == NULL)
-        quitprintf("Unable to create forked room instance: %s", ccErrorString);
+        quitprintf("Unable to create forked room instance: %s", ccErrorString.GetCStr());
 
     repExecAlways.roomHasFunction = true;
     lateRepExecAlways.roomHasFunction = true;

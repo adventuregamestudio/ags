@@ -84,6 +84,7 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
   dxGammaControl = NULL;
 #endif
   _allegroScreenWrapper = NULL;
+  _origVirtualScreen = NULL;
   virtualScreen = NULL;
   _stageVirtualScreen = NULL;
 
@@ -251,19 +252,21 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
   real_screen->SetClip(_dstRect);
   // Initialize scaling filter and receive virtual screen pointer
   // (which may or not be the same as real screen)
-  virtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
-  BitmapHelper::SetScreenBitmap( virtualScreen );
+  _origVirtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
+  BitmapHelper::SetScreenBitmap(_origVirtualScreen);
+  virtualScreen = _origVirtualScreen;
   _stageVirtualScreen = virtualScreen;
 }
 
 void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
 {
-  if (_filter && virtualScreen)
+  if (_filter && _origVirtualScreen)
   {
     BitmapHelper::SetScreenBitmap(_filter->ShutdownAndReturnRealScreen());
-    virtualScreen = NULL;
-    _stageVirtualScreen = NULL;
   }
+  _origVirtualScreen = NULL;
+  virtualScreen = NULL;
+  _stageVirtualScreen = NULL;
 }
 
 void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
@@ -573,8 +576,17 @@ Bitmap *ALSoftwareGraphicsDriver::GetMemoryBackBuffer()
 
 void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
 {
-  virtualScreen = backBuffer;
-  _virtualScrOff = Point(offx, offy);
+  if (backBuffer)
+  {
+    virtualScreen = backBuffer;
+    _virtualScrOff = Point(offx, offy);
+  }
+  else
+  {
+    virtualScreen = _origVirtualScreen;
+    _virtualScrOff = Point();
+  }
+  _stageVirtualScreen = virtualScreen;
 }
 
 void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)

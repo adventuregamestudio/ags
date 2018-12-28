@@ -192,14 +192,13 @@ void engine_post_gfxmode_screen_setup(const DisplayMode &dm, bool recreate_bitma
     real_screen = BitmapHelper::GetScreenBitmap();
     if (recreate_bitmaps)
     {
-        delete sub_screen;
-        sub_screen = NULL;
-        // TODO: find out if we need _sub_screen to be recreated right away here
-
-        virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
+        // TODO: find out if 
+        // - we need to support this case at all;
+        // - if yes then which bitmaps need to be recreated (probably only video bitmaps and textures?)
     }
+    virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     virtual_screen->Clear();
-    // TODO: unify these two calls, the virtual screen must be the same thing in both!
+    // TODO: (???) unify these two calls, the virtual screen must be the same thing in both!
     SetVirtualScreen(virtual_screen);
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
 }

@@ -192,6 +192,9 @@ private:
     // Virtual screen bitmap is either a wrapper over Allegro's real screen
     // bitmap, or bitmap provided by the graphics filter. It should not be
     // disposed by the renderer: it is up to filter object to manage it.
+    Bitmap *_origVirtualScreen;
+    // Current virtual screen bitmap; may be provided either by graphics
+    // filter or by external user. It should not be disposed by the renderer.
     Bitmap *virtualScreen;
     // Extra offset for the custom virtual screen.
     // NOTE: the big issue with software renderer is that it handles main viewport changes

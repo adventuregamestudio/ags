@@ -815,6 +815,28 @@ void ags::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, 
     }
 }
 
+int ags::NestingStack::Push(NestingType type, std::int32_t start, std::int32_t info)
+{
+    std::vector<ags::ccChunk> dummy_chunk;
+    struct ags::NestingInfo ni = { type, start, info, 0, dummy_chunk };
+    try
+    {
+        Stack.push_back(ni);
+    }
+    catch (...)
+    {
+        cc_error("Out of memory");
+        return -1;
+    }
+    return 0;
+}
+
+ags::NestingStack::NestingStack()
+{
+    // Push first record on stack so that it isn't empty
+    Push(ags::NestingStack::NTNothing);
+}
+
 ags::Expression::Expression(symbolTable * sym, ccCompiledScript * compiledscript, SymbolScript scr, size_t len) :
     Sym(sym),
     Scrip(compiledscript),
@@ -932,53 +954,54 @@ int ags::Expression::ToAX()
 {
     return 0;
 }
+
 // Rip the code that has already been generated, starting from codeoffset, out of scrip
 // and move it into the vector at list, instead.
-void yank_chunk(ccCompiledScript *scrip, std::vector<ccChunk> *list, int codeoffset, int fixupoffset) {
-    ccChunk item;
-    int index;
+void ags::NestingStack::YankChunk(ccCompiledScript *scrip, size_t codeoffset, size_t fixupoffset)
+{
+    ags::ccChunk item;
 
-    for (index = codeoffset; index < scrip->codesize; index++)
+    for (size_t code_idx = codeoffset; code_idx < static_cast<size_t>(scrip->codesize); code_idx++)
     {
-        item.code.push_back(scrip->code[index]);
+        item.Code.push_back(scrip->code[code_idx]);
     }
 
-    for (index = fixupoffset; index < scrip->numfixups; index++)
+    for (size_t fixups_idx = fixupoffset; fixups_idx < static_cast<size_t>(scrip->numfixups); fixups_idx++)
     {
-        item.fixups.push_back(scrip->fixups[index]);
-        item.fixuptypes.push_back(scrip->fixuptypes[index]);
+        item.Fixups.push_back(scrip->fixups[fixups_idx]);
+        item.FixupTypes.push_back(scrip->fixuptypes[fixups_idx]);
     }
-    item.codeoffset = codeoffset;
-    item.fixupoffset = fixupoffset;
-    list->push_back(item);
+    item.CodeOffset = codeoffset;
+    item.FixupOffset = fixupoffset;
+
+    Stack.back().Chunks.push_back(item);
+
+    // Cut out the code that has been pushed
     scrip->codesize = codeoffset;
     scrip->numfixups = fixupoffset;
 }
 
 
 // Copy the code in ccChunk to the end of the bytecode vector 
-void write_chunk(ccCompiledScript *scrip, ccChunk item) 
+void ags::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t index)
 {
+    const ags::ccChunk item = Chunks(level).at(index);
     scrip->flush_line_numbers();
-    int adjust = scrip->codesize - item.codeoffset;
+    int adjust = scrip->codesize - item.CodeOffset;
 
-    int limit = item.code.size();
+    int limit = item.Code.size();
     for (int index = 0; index < limit; index++)
     {
-        scrip->write_code(item.code[index]);
+        scrip->write_code(item.Code[index]);
     }
 
-    limit = item.fixups.size();
+    limit = item.Fixups.size();
     for (int index = 0; index < limit; index++)
     {
-        scrip->add_fixup(item.fixups[index] + adjust, item.fixuptypes[index]);
+        scrip->add_fixup(item.Fixups[index] + adjust, item.FixupTypes[index]);
     }
 }
 
-
-void clear_chunk_list(std::vector<ccChunk> *list) {
-    list->clear();
-}
 
 std::string ConstructedMemberName; // size limitation removed
 
@@ -1038,8 +1061,8 @@ int cc_tokenize(const char * inpl, ccInternalList * targ, ccCompiledScript * scr
 }
 
 
-void free_pointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbol arraySym) {
-
+void free_pointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbol arraySym) 
+{
     scrip->write_cmd1(SCMD_LOADSPOFFS, spOffset);
     scrip->write_cmd(zeroCmd);
 
@@ -1052,7 +1075,6 @@ void free_pointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbo
             scrip->write_cmd(zeroCmd);
         }
     }
-
 }
 
 
@@ -1190,76 +1212,87 @@ int remove_locals_from_symtable(int from_level)
 }
 
 
-
-
-// Return code can be 1 or 0 or, in case of errors, a value < 0
-int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, char*nested_type, long*nested_info, long*nested_start, std::vector<ccChunk> *nested_chunk, size_t &nested_level)
+// The type NT(Un)bracedElse isn't only used for ELSE branches, but also for the
+// body of WHILE and other statements. 
+// If the symbol "else" follows a THEN clause of an IF, this is handled most easily
+// by adding an unconditional jump out and then changing the THEN clause into an ELSE clause. 
+int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, ags::NestingStack *nesting_stack, bool &else_after_then)
 {
-    // Check whether an "else" follows a then branch, not an else branch.
-    bool is_else = false;
-    if (nested_type[nested_level] == NEST_ELSESINGLE);
-    else if (nested_type[nested_level] == NEST_ELSE);
+    // Check whether the symbol "else" follows a then branch
+    else_after_then = false;
+    if (nesting_stack->Type() == ags::NestingStack::NTUnbracedElse);
+    else if (nesting_stack->Type()== ags::NestingStack::NTBracedElse);
     else if (sym.get_type(targ->peeknext()) == SYM_ELSE)
     {
-        targ->getnext();
-        scrip->write_cmd1(SCMD_JMP, 0);
-        is_else = true;
+        targ->getnext();  // eat "else"
+        scrip->write_cmd1(SCMD_JMP, 0); // jump out, to be patched later
+        else_after_then = true;
     }
 
-    if (nested_start[nested_level])
+    if (nesting_stack->StartLoc()) // a loop that features a jump back to the start
     {
         scrip->flush_line_numbers();
         // if it's a for loop, drop the yanked chunk (loop increment) back in
-        if (nested_chunk[nested_level].size() > 0)
+        if (nesting_stack->ChunksExist())
         {
-            write_chunk(scrip, nested_chunk[nested_level].at(0));
-            clear_chunk_list(&nested_chunk[nested_level]);
+            nesting_stack->WriteChunk(scrip, 0);
+            nesting_stack->Chunks().clear();
         }
-        // it's a while loop, so write a jump back to the check again
-        scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nested_start[nested_level]));
+
+        // jump back to the start location
+        scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nesting_stack->StartLoc()));
     }
-    // write the correct relative jump location
-    scrip->code[nested_info[nested_level]] =
-        (scrip->codesize - nested_info[nested_level]) - 1;
-    if (is_else)
+
+    // Patch the jump out of the construct to point to here
+    scrip->code[nesting_stack->JumpOutLoc()] =
+        (scrip->codesize - nesting_stack->JumpOutLoc()) - 1;
+
+    if (else_after_then)
     {
-        // convert the IF into an ELSE
+        // convert the THEN branch into an ELSE, i.e., stay on the same Depth()
+        nesting_stack->SetType(ags::NestingStack::NTUnbracedElse);
         if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
         {
-            nested_type[nested_level] = NEST_ELSE;
+            nesting_stack->SetType(ags::NestingStack::NTBracedElse);
             targ->getnext();
         }
-        else
-            nested_type[nested_level] = NEST_ELSESINGLE;
-        nested_info[nested_level] = scrip->codesize - 1;
-        return 1;
+        
+        nesting_stack->SetJumpOutLoc(scrip->codesize - 1);
+
+        // We're continuing the current nesting until the "else" branch has ended.
+        // So we haven't ended the current nesting yet. So we leave at this point.
+        return 0;
     }
-    else
+    
+    // Clause ends, so pop the level off the stack
+    nesting_stack->Pop();
+
+    if (nesting_stack->Type() == ags::NestingStack::NTFor)
     {
-        nested_level--;
-        if (nested_type[nested_level] == NEST_FOR)
+        // A FOR is represented by two nestings, so we need to pop another level
+        nesting_stack->Pop();
+        
+        // The outer nesting of the FOR can contain defns, e.g., "for (int i = 0;...)"
+        // defines i. Free these definitions
+        free_pointers_of_locals(scrip, nesting_stack->Depth() - 1);
+        int totalsub = stacksize_of_locals(nesting_stack->Depth() - 1);
+        if (totalsub > 0)
         {
-            nested_level--;
-            
-            free_pointers_of_locals(scrip, nested_level);
-            int totalsub = stacksize_of_locals(nested_level);
-            if (totalsub > 0)
-            {
-                scrip->cur_sp -= totalsub;
-                scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
-            }
-            remove_locals_from_symtable(nested_level + 1);
+            scrip->cur_sp -= totalsub;
+            scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
         }
+        remove_locals_from_symtable(nesting_stack->Depth());
     }
+    
     return 0;
 }
 
-int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, long *nested_info, long *nested_start, size_t &nested_level) 
-{
-    ags::Symbol cursym;
 
-    cursym = targ->getnext();
+int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack) 
+{
     scrip->flush_line_numbers();
+
+    ags::Symbol cursym = targ->getnext();
     if (sym.get_type(cursym) != SYM_WHILE)
     {
         cc_error("Do without while");
@@ -1267,30 +1300,40 @@ int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, long *nes
     }
     if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
     {
-        cc_error("expected '('");
+        cc_error("Expected '('");
         return -1;
     }
     scrip->flush_line_numbers();
-    if (evaluate_expression(targ, scrip, true))
-        return -1;
-    if (sym.get_type(targ->peeknext()) != SYM_SEMICOLON)
+
+    int retval = evaluate_expression(targ, scrip, true);
+    if (retval < 0) return retval;
+
+    if (sym.get_type(targ->getnext()) != SYM_SEMICOLON)
     {
-        cc_error("expected ';'");
+        cc_error("Expected ';'");
         return -1;
     }
-    targ->getnext();
+
     // Jump back to the start of the loop while the condition is true
-    scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize + 2) - nested_start[nested_level]));
-    // Write the correct location for the end of the loop
-    scrip->code[nested_info[nested_level]] = (scrip->codesize - nested_info[nested_level]) - 1;
-    nested_level--;
+    scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize + 2) - nesting_stack->StartLoc()));
+    // Patch the jump out of the loop; it should point to here
+    scrip->code[nesting_stack->JumpOutLoc()] = (scrip->codesize - nesting_stack->JumpOutLoc()) - 1;
+    
+    // The clause has ended, so pop the level off the stack
+    nesting_stack->Pop();
 
     return 0;
 }
 
-int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, int32_t *nested_assign_addr, long *nested_start, std::vector<ccChunk> *nested_chunk, size_t &nested_level, long *nested_info) {
+
+int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack) 
+{
+    // [fw] Do we really need to do this?!
+    const size_t ns_level = nesting_stack->Depth() - 1;
+
     // If there was no terminating break, write a jump at the end of the last case
-    if (scrip->code[scrip->codesize - 2] != SCMD_JMP || scrip->code[scrip->codesize - 1] != nested_start[nested_level] - scrip->codesize + 2)
+    if (scrip->code[scrip->codesize - 2] != SCMD_JMP || 
+        scrip->code[scrip->codesize - 1] != nesting_stack->StartLoc() - scrip->codesize + 2)
     {
         scrip->write_cmd1(SCMD_JMP, 0);
     }
@@ -1300,30 +1343,33 @@ int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, int32
     
     // Patch the instruction "Jump to the jump table" at the start of the switch
     // so that it points to the correct address, i.e., here
-    scrip->code[nested_start[nested_level] + 1] = (jumptable_addr - nested_start[nested_level]) - 2;
+    scrip->code[nesting_stack->StartLoc() + 1] = (jumptable_addr - nesting_stack->StartLoc()) - 2;
 
-    int noteq_op = is_any_type_of_string(nested_info[nested_level]) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
-    size_t limit = nested_chunk->size();
-    for (size_t index = 0; index < limit; index++)
+    // Get correct comparison operation: Don't compare strings as pointers but as strings
+    int noteq_op = is_any_type_of_string(nesting_stack->SwitchExprType()) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
+    
+    const size_t size_of_chunks = nesting_stack->Chunks().size();
+    for (size_t index = 0; index < size_of_chunks; index++)
     {
         // Put the result of the expression into AX
-        write_chunk(scrip, (*nested_chunk)[index]);
+        nesting_stack->WriteChunk(scrip, index);
         // Do the comparison
         scrip->write_cmd2(noteq_op, SREG_AX, SREG_BX);
-        scrip->write_cmd1(SCMD_JZ, (*nested_chunk)[index].codeoffset - scrip->codesize - 2);
+        scrip->write_cmd1(SCMD_JZ, nesting_stack->Chunks().at(index).CodeOffset - scrip->codesize - 2);
     }
     
     // Write the default jump if necessary
-    if (nested_assign_addr[nested_level] != -1)
-        scrip->write_cmd1(SCMD_JMP, nested_assign_addr[nested_level] - scrip->codesize - 2);
+    if (nesting_stack->DefaultLabelLoc() != -1)
+        scrip->write_cmd1(SCMD_JMP, nesting_stack->DefaultLabelLoc() - scrip->codesize - 2);
     
-    // Write the location for the jump to the end of the switch block (for break statements)
-    scrip->code[nested_start[nested_level] + 3] = scrip->codesize - nested_start[nested_level] - 4;
+    // Patch th jump to the end of the switch block (for break statements)
+    scrip->code[nesting_stack->StartLoc() + 3] = scrip->codesize - nesting_stack->StartLoc() - 4;
     
-    // Write the jump for the end of the switch block
+    // Patch the jump for the end of the switch block
     scrip->code[jumptable_addr - 1] = scrip->codesize - jumptable_addr;
-    clear_chunk_list(nested_chunk);
-    nested_level--;
+
+    nesting_stack->Chunks().clear(); 
+    nesting_stack->Pop();
 
     return 0;
 }
@@ -1358,10 +1404,12 @@ int find_member_sym(ags::Symbol structSym, ags::Symbol &memSym, bool allowProtec
     return 0;
 }
 
+
 std::string friendly_int_symbol(int symidx, bool isNegative)
 {
     return (isNegative? "-" : "") + sym.get_friendly_name(symidx);
 }
+
 
 int accept_literal_or_constant_value(ags::Symbol fromSym, int &theValue, bool isNegative, const char *errorMsg) {
     if (sym.get_type(fromSym) == SYM_CONSTANT)
@@ -1415,6 +1463,7 @@ bool ReachedEOF(ccInternalList *targ)
     return true;
 }
 
+
 // We're parsing a parameter list and we have accepted something like "(...int i"
 // We accept a default value clause like "= 15" if it follows at this point.
 int param_list_param_DefaultValue(
@@ -1448,6 +1497,7 @@ int param_list_param_DefaultValue(
 
     return 0;
 }
+
 
 // process a dynamic array declaration, when present
 // We have accepted something like "int foo" and we might expect a trailing "[]" here
@@ -1577,6 +1627,7 @@ int process_function_decl_ExtenderPreparations(
     return 0;
 }
 
+
 int process_function_decl_NonExtenderPreparations(
     int struct_containing_the_func,
     std::string & functionName,
@@ -1601,6 +1652,7 @@ int process_function_decl_NonExtenderPreparations(
 
     return 0;
 }
+
 
 int process_func_paramlist_ParamType(ccInternalList * targ, int param_type, int param_idx, bool &param_is_ptr)
 {
@@ -1642,6 +1694,7 @@ int process_func_paramlist_ParamType(ccInternalList * targ, int param_type, int 
     }
     return 0;
 }
+
 
 enum param_defaults
 {
@@ -1697,6 +1750,7 @@ int process_func_paramlist_param_NameAndDefault(
 
     return 0;
 }
+
 
 // process a parameter decl in a function parameter list, something like int foo(INT BAR
 int process_func_paramlist_Param(
@@ -1774,6 +1828,7 @@ int process_func_paramlist_Param(
     return 0;
 }
 
+
 int process_function_decl_paramlist(
     ccInternalList * targ,
     ccCompiledScript * scrip,
@@ -1839,7 +1894,8 @@ int process_function_decl_paramlist(
     return 0;
 }
 
-int process_function_decl_CheckForIllegalCombis(bool func_is_readonly, int & in_func, int nested_level)
+
+int process_function_decl_CheckForIllegalCombis(bool func_is_readonly, int & in_func, size_t stack_depth)
 {
     if (func_is_readonly)
     {
@@ -1847,13 +1903,14 @@ int process_function_decl_CheckForIllegalCombis(bool func_is_readonly, int & in_
         return -1;
     }
 
-    if ((in_func >= 0) || (nested_level > 0))
+    if ((in_func >= 0) || (stack_depth > 1))
     {
         cc_error("Nested functions not supported (you may have forgotten a closing brace)");
         return -1;
     }
     return 0;
 }
+
 
 int process_function_decl_SetFunctype(
     ags::Symbol funcsym,
@@ -1889,6 +1946,7 @@ int process_function_decl_SetFunctype(
 
     return 0;
 }
+
 
 // We're at something like "int foo(", directly before the "("
 // This might or might not be within a struct defn
@@ -2020,6 +2078,7 @@ inline int interpret_float_as_int(float floatval)
     return *intptr; // return the int that the pointer points to
 }
 
+
 // Whether the current symbol can still be part of the expression
 bool canBePartOfExpression(ccInternalList *targ, size_t script_idx)
 {
@@ -2049,6 +2108,7 @@ bool canBePartOfExpression(ccInternalList *targ, size_t script_idx)
     return false;
 }
 
+
 // The higher the MATHEMATICAL priority of an operator, the MORE binding it is.
 // For example, "*" has a higher mathematical priority than "-".
 // In contrast to this, "size" gives the priority in the INVERSE way: 
@@ -2059,6 +2119,7 @@ inline int math_prio(ags::Symbol op)
 {
     return 100 - sym.entries[op].ssize;
 }
+
 
 // return the index of the lowest MATHEMATICAL priority operator in the list,
 // so that either side of it can be evaluated first.
@@ -2106,7 +2167,6 @@ int index_of_lowest_bonding_operator(ags::SymbolScript slist, size_t slist_len)
     }
     return index_of_lowest_math_prio;
 }
-
 
 
 inline bool is_string(int valtype)
@@ -2185,6 +2245,7 @@ int get_operator_valid_for_type(int type1, int type2, int &vcpuOp)
     return 0;
 }
 
+
 // Check for a type mismatch in one direction only
 bool is_type_mismatch_oneway(int typeIs, int typeWantsToBe)
 {
@@ -2261,7 +2322,6 @@ int check_type_mismatch(int typeIs, int typeWantsToBe, bool orderMatters)
     if (!is_type_mismatch_oneway(typeIs, typeWantsToBe)) return 0;
     if (!orderMatters && !is_type_mismatch_oneway(typeWantsToBe, typeIs)) return 0;
 
-
     cc_error(
         "Type mismatch: cannot convert '%s' to '%s'",
         sym.get_friendly_name(typeIs).c_str(),
@@ -2303,7 +2363,7 @@ int read_var_or_funccall_PointItem_HandleFuncCall(ccInternalList *targ, int & fu
 
     if (sym.get_type(slist[slist_len - 1]) != SYM_OPENPARENTHESIS)
     {
-        cc_error("'(' expected");
+        cc_error("Expected '('");
         return -1;
     }
 
@@ -2387,7 +2447,6 @@ int read_var_or_funccall_ExpectPoint(ccInternalList *targ, bool justHadBrackets,
     current_member = slist[slist_len];
     slist_len++;
 
-
     if (sym.get_type(current_member) == SYM_FUNCTION)
     {
         // The last member was a function name. This function is called.
@@ -2398,6 +2457,7 @@ int read_var_or_funccall_ExpectPoint(ccInternalList *targ, bool justHadBrackets,
 
     return 0;
 }
+
 
 int read_var_or_funccall_ExpectOpenBracket(ccInternalList *targ, ags::SymbolScript slist, size_t &slist_len)
 {
@@ -2411,7 +2471,7 @@ int read_var_or_funccall_ExpectOpenBracket(ccInternalList *targ, ags::SymbolScri
 
     if (sym.get_type(targ->peeknext()) == SYM_CLOSEBRACKET)
     {
-        cc_error("array index not specified");
+        cc_error("Array index not specified");
         return -1;
     }
 
@@ -2470,7 +2530,7 @@ int read_var_or_funccall(ccInternalList *targ, ags::Symbol fsym, ags::SymbolScri
     // (1) A loadable var
     // (2) A struct, then '.', then a struct member
     // (3) A type, then '.', then a static member
-    // If that member is a function, we read and buffer that function
+    // If that member is a function call, we read and buffer that function call
     // If that member is an array and we have [, we read the array expression
 
     if (!sym.entries[fsym].is_loadable_variable())
@@ -2540,6 +2600,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo) 
 
 }
 
+
 // If we need a String but AX contains a normal literal string, 
 // then convert AX into a String object and set its type accordingly
 void ConvertAXIntoStringObject(ccCompiledScript *scrip, int valTypeTo)
@@ -2584,6 +2645,7 @@ int findClosingBracketOffs(size_t openBracketOffs, ags::SymbolScript symlist, si
     // Did not find it
     return -1;
 }
+
 
 int findOpeningBracketOffs(size_t closeBracketOffs, ags::SymbolScript symlist, size_t &brac_idx)
 {
@@ -2671,6 +2733,7 @@ inline int get_read_command_for_size(int the_size)
     }
 }
 
+
 inline int get_write_command_for_size(int the_size)
 {
     switch (the_size)
@@ -2684,6 +2747,7 @@ inline int get_write_command_for_size(int the_size)
 // [fw] That is a HUGE code smell.
 int readcmd_lastcalledwith = 0;
 
+
 // Get the bytecode for reading or writing memory of size the_size
 inline int get_readwrite_cmd_for_size(int the_size, bool write_operation)
 {
@@ -2692,6 +2756,7 @@ inline int get_readwrite_cmd_for_size(int the_size, bool write_operation)
 
     return (write_operation) ? get_write_command_for_size(the_size) : get_read_command_for_size(the_size);
 }
+
 
 int parse_subexpr_NewIsFirst(ccCompiledScript * scrip, const ags::SymbolScript & symlist, const size_t & symlist_len)
 {
@@ -2756,6 +2821,7 @@ int parse_subexpr_NewIsFirst(ccCompiledScript * scrip, const ags::SymbolScript &
     return -1;
 }
 
+
 // We're parsing an expression that starts with '-' (unary minus)
 int parse_subexpr_UnaryMinusIsFirst(ccCompiledScript * scrip, const ags::SymbolScript & symlist, const size_t & symlist_len)
 {
@@ -2778,6 +2844,7 @@ int parse_subexpr_UnaryMinusIsFirst(ccCompiledScript * scrip, const ags::SymbolS
     scrip->write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_AX);
     return 0;
 }
+
 
 // We're parsing an expression that starts with '!' (boolean NOT)
 int parse_subexpr_NotIsFirst(ccCompiledScript * scrip, const ags::SymbolScript & symlist, const size_t & symlist_len)
@@ -2803,6 +2870,7 @@ int parse_subexpr_NotIsFirst(ccCompiledScript * scrip, const ags::SymbolScript &
     scrip->write_cmd1(SCMD_NOTREG, SREG_AX);
     return 0;
 }
+
 
 // The lowest-binding operator is the first thing in the expression
 // This means that the op must be an unary op.
@@ -2830,6 +2898,7 @@ int parse_subexpr_OpIsFirst(ccCompiledScript * scrip, const ags::SymbolScript &s
     cc_error("Unexpected operator '%s' without a preceding expression", sym.get_friendly_name(symlist[0]).c_str());
     return -1;
 }
+
 
 // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
 int parse_subexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, const ags::SymbolScript &symlist, const size_t &symlist_len)
@@ -2920,6 +2989,7 @@ int parse_subexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, con
     return 0;
 }
 
+
 int parse_subexpr_OpenParenthesis(ccCompiledScript * scrip, ags::SymbolScript & symlist, size_t symlist_len)
 {
     int matching_paren_idx = -1;
@@ -2975,6 +3045,7 @@ int parse_subexpr_OpenParenthesis(ccCompiledScript * scrip, ags::SymbolScript & 
     return 0;
 }
 
+
 // We're in the parameter list of a function call, and we have less parameters than declared.
 // Provide defaults for the missing values
 int parse_subexpr_FunctionCall_ProvideDefaults(ccCompiledScript * scrip, int num_func_args, size_t num_supplied_args, ags::Symbol funcSymbol)
@@ -2997,6 +3068,7 @@ int parse_subexpr_FunctionCall_ProvideDefaults(ccCompiledScript * scrip, int num
     }
     return 0;
 }
+
 
 int parse_subexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, ags::Symbol funcSymbol)
 {
@@ -3054,6 +3126,7 @@ int parse_subexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::S
     return 0;
 }
 
+
 int parse_subexpr_FunctionCall_CountAndCheckParm(const ags::SymbolScript &paramList, size_t paramListLen, ags::Symbol funcSymbol, size_t &indexOfClosedParen, size_t &num_supplied_args)
 {
     int paren_nesting_depth = 0;
@@ -3108,7 +3181,7 @@ int parse_subexpr_FunctionCall_CountAndCheckParm(const ags::SymbolScript &paramL
 
     if (paren_nesting_depth >= 0)
     {
-        cc_error("parser confused near '%s'", sym.get_friendly_name(funcSymbol).c_str());
+        cc_error("Internal error: Parser confused near '%s'", sym.get_friendly_name(funcSymbol).c_str());
         return -1;
     }
 
@@ -3232,6 +3305,7 @@ int parse_subexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags:
         scrip->fixup_previous(FIXUP_FUNCTION);
         scrip->write_cmd1(SCMD_CALL, SREG_AX);
 
+        // We will arrive here when the function call has returned
         // restore the stack
         if (actual_num_args > 0)
         {
@@ -3256,6 +3330,7 @@ int parse_subexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags:
     sym.entries[funcSymbol].flags |= SFLG_ACCESSED;
     return 0;
 }
+
 
 int parse_subexpr_NoOps(ccCompiledScript * scrip, ags::SymbolScript symlist, size_t symlist_len)
 {
@@ -3592,20 +3667,17 @@ int do_variable_ax_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags:
             // normally, the whole array can be used as a pointer.
             // this is not the case with an pointer array, so catch
             // it here and give an error
-            if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY)
-            {
-                isDynamicArray = true;
-            }
-            else
+            if ((sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) == 0)
             {
                 cc_error("Expected array index after '%s'", sym.get_friendly_name(variableSym).c_str());
                 return -1;
             }
+            isDynamicArray = true;
         }
         else
         {
             // put array index into DX
-            int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing != 0, &isArrayOffset);
+            int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing, &isArrayOffset);
             if (retval < 0) return retval;
 
             isArrayOfPointers = true;
@@ -3615,8 +3687,7 @@ int do_variable_ax_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags:
     // if they are just saying "ptr" (or doing a "ptr.Func" call)
     // then move the address being pointed to into AX
     // (member function call passes in "ptr.")
-    if (isLastClause)
-        getJustTheAddressIntoAX = true;
+    if (isLastClause) getJustTheAddressIntoAX = true;
 
     // Push the pointer address onto the stack, where it can be
     // retrieved by do_variable_memory_access later on
@@ -3631,69 +3702,67 @@ int do_variable_ax_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags:
 
         // for the "this" pointer, just use the Object Pointer
         scrip->push_reg(SREG_OP);
+        currentComponentOffset = 0;
+        return 0;
     }
-    else
-    {
-        // currentByteOffset has been set at the start of this loop
-        // so it is safe to use
+    
 
-        if (pointerIsOnStack) 
+    if (pointerIsOnStack) 
+    {
+        // already a pointer on the stack
+        scrip->pop_reg(SREG_MAR);
+        scrip->write_cmd(SCMD_CHECKNULL);
+        if (currentComponentOffset > 0)
+            scrip->write_cmd2(SCMD_ADD, SREG_MAR, currentComponentOffset);
+    }
+    else if (firstVariableType == SYM_LOCALVAR)
+    {
+        scrip->write_cmd1(SCMD_LOADSPOFFS, scrip->cur_sp - currentComponentOffset);
+    }
+    else if (firstVariableType == SYM_GLOBALVAR)
+    {
+        if (sym.entries[firstVariableSym].flags & SFLG_IMPORTED)
         {
-            // already a pointer on the stack
-            scrip->pop_reg(SREG_MAR);
-            scrip->write_cmd(SCMD_CHECKNULL);
-            if (currentComponentOffset > 0)
-                scrip->write_cmd2(SCMD_ADD, SREG_MAR, currentComponentOffset);
-        }
-        else if (firstVariableType == SYM_LOCALVAR)
-        {
-            scrip->write_cmd1(SCMD_LOADSPOFFS, scrip->cur_sp - currentComponentOffset);
-        }
-        else if (firstVariableType == SYM_GLOBALVAR)
-        {
-            if (sym.entries[firstVariableSym].flags & SFLG_IMPORTED)
-            {
-                scrip->write_cmd2(SCMD_LITTOREG, SREG_MAR, sym.entries[firstVariableSym].soffs);
-                scrip->fixup_previous(FIXUP_IMPORT);
-                if (currentComponentOffset != 0)
-                    scrip->write_cmd2(SCMD_ADD, SREG_MAR, currentByteOffset);
-            }
-            else
-            {
-                scrip->write_cmd2(SCMD_LITTOREG, SREG_MAR, currentByteOffset);
-                scrip->fixup_previous(FIXUP_GLOBALDATA);
-            }
+            scrip->write_cmd2(SCMD_LITTOREG, SREG_MAR, sym.entries[firstVariableSym].soffs);
+            scrip->fixup_previous(FIXUP_IMPORT);
+            if (currentComponentOffset != 0)
+                scrip->write_cmd2(SCMD_ADD, SREG_MAR, currentByteOffset);
         }
         else
         {
-            cc_error("Invalid type for pointer");
-            return -1;
+            scrip->write_cmd2(SCMD_LITTOREG, SREG_MAR, currentByteOffset);
+            scrip->fixup_previous(FIXUP_GLOBALDATA);
         }
-
-        // if an array, the array indexer was put into DX
-        if (isArrayOfPointers)
-        {
-            scrip->write_cmd2(SCMD_MUL, SREG_DX, 4);
-
-            if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY)
-            {
-                // pointer to an array -- dereference the pointer
-                scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
-                scrip->write_cmd(SCMD_CHECKNULL);
-                scrip->write_cmd1(SCMD_DYNAMICBOUNDS, SREG_DX);
-            }
-
-            scrip->write_cmd2(SCMD_ADDREG, SREG_MAR, SREG_DX);
-        }
-
-        // push the pointer's address
-        scrip->push_reg(SREG_MAR);
-        getJustTheAddressIntoAX = true;
-        accessActualPointer = true;
-        doMemoryAccessNow = true;
     }
-    currentComponentOffset = 0;
+    else
+    {
+        cc_error("Invalid type for pointer");
+        return -1;
+    }
 
+    // if an array, the array indexer was put into DX
+    if (isArrayOfPointers)
+    {
+        scrip->write_cmd2(SCMD_MUL, SREG_DX, 4);
+
+        if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY)
+        {
+            // pointer to an array -- dereference the pointer
+            scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
+            scrip->write_cmd(SCMD_CHECKNULL);
+            scrip->write_cmd1(SCMD_DYNAMICBOUNDS, SREG_DX);
+        }
+
+        scrip->write_cmd2(SCMD_ADDREG, SREG_MAR, SREG_DX);
+    }
+
+    // push the pointer's address
+    scrip->push_reg(SREG_MAR);
+    getJustTheAddressIntoAX = true;
+    accessActualPointer = true;
+    doMemoryAccessNow = true;
+    
+    currentComponentOffset = 0;
     return 0;
 }
 
@@ -3774,6 +3843,7 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol 
     }
     else if (isPointer)
     {
+        // currentComponentOffset has been set at the start of this loop so it is safe to use
         int retval = do_variable_ax_PrepareComponentAccess_Pointer(scrip, variableSym, thisClause, currentComponentOffset, isDynamicArray, writing, firstVariableType, firstVariableSym, isLastClause, pointerIsOnStack, isArrayOffset, getJustTheAddressIntoAX, currentComponentOffset, accessActualPointer, doMemoryAccessNow);
         if (retval < 0) return retval;
 
@@ -5139,29 +5209,62 @@ inline int parse_var_decl(
 }
 
 
-
-
-
-#define INC_NESTED_LEVEL \
-    if (nested_level >= MAX_NESTED_LEVEL) {\
-        cc_error("too many nested if/else statements");\
-        return -1;\
-    }\
-    nested_level++
-
-inline bool ntype_is_singleline_if_stmt(char nt)
+void cs_parser_handle_openbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol inFuncSym, int isMemberFunction, bool is_noloopcheck, ags::NestingStack * nesting_stack)
 {
-    return (nt == NEST_IFSINGLE) ||
-        (nt == NEST_ELSESINGLE) ||
-        (nt == NEST_DOSINGLE);
+    // write base address of function for any relocation needed later
+    scrip->write_cmd1(SCMD_THISBASE, scrip->codesize);
+    if (is_noloopcheck) scrip->write_cmd(SCMD_LOOPCHECKOFF);
+
+    // loop through all parameters and check whether they are pointers
+    // the first entry is the return value, so skip that
+    for (size_t pa = 1; pa <= sym.entries[inFuncSym].sscope; pa++)
+    {
+        if (sym.entries[inFuncSym].funcparamtypes[pa] & (STYPE_POINTER | STYPE_DYNARRAY))
+        {
+            // pointers are passed in on the stack with the real
+            // memory address -- convert this to the mem handle
+            // since params are pushed backwards, this works
+            // the +1 is to deal with the return address
+            scrip->write_cmd1(SCMD_LOADSPOFFS, 4 * (pa + 1));
+            scrip->write_cmd1(SCMD_MEMREAD, SREG_AX);
+            scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
+        }
+    }
+
+    // non-static member function -- declare "this" ptr
+    if ((isMemberFunction) && ((sym.entries[inFuncSym].flags & SFLG_STATIC) == 0))
+    {
+        const ags::Symbol thisSym = sym.find("this");
+        if (thisSym > 0)
+        {
+            int varsize = 4;
+            // declare "this" inside member functions
+            sym.entries[thisSym].stype = SYM_LOCALVAR;
+            sym.entries[thisSym].vartype = isMemberFunction;
+            sym.entries[thisSym].ssize = varsize; // pointer to struct
+            sym.entries[thisSym].sscope = static_cast<short>(nesting_stack->Depth() - 1);
+            sym.entries[thisSym].flags = SFLG_READONLY | SFLG_ACCESSED | SFLG_POINTER | SFLG_THISPTR;
+            // declare as local variable
+            sym.entries[thisSym].soffs = scrip->cur_sp;
+            scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
+            // first of all, write NULL to the pointer so that
+            // it doesn't try and free it in the following call
+            scrip->write_cmd2(SCMD_WRITELIT, varsize, 0);
+            // write the OP location into the variable
+            //scrip->write_cmd1(SCMD_MEMINITPTR, SREG_OP);
+            // the "this" ptr is allocated a space on the stack,
+            // even though it's not used (since accesses go directly
+            // via the OP)
+            scrip->cur_sp += varsize;
+            scrip->write_cmd2(SCMD_ADD, SREG_SP, varsize);
+        }
+    }
 }
-;
+
 
 int cs_parser_handle_openbrace(
     ccCompiledScript * scrip,
-    char  nested_type[],
-    long  nested_start[],
-    size_t &nested_level,
+    ags::NestingStack *nesting_stack,
     int in_func,
     ags::Symbol inFuncSym,
     int isMemberFunction,
@@ -5173,99 +5276,48 @@ int cs_parser_handle_openbrace(
         return -1;
     }
 
-    if (ntype_is_singleline_if_stmt(nested_type[nested_level]))
+    if (nesting_stack->IsUnbraced())
     {
         cc_error("Internal compiler error in openbrace");
         return -1;
     }
 
-    INC_NESTED_LEVEL;
-    if (nested_level == 1)
+    // Assume a brace without special reason as a default
+    int retval = nesting_stack->Push(ags::NestingStack::NTNothing);
+    if (retval < 0) return retval;
+
+    if (nesting_stack->Depth() == 2)
     {
-        // [fw] define function body start
-        nested_type[nested_level] = NEST_FUNCTION;
-        // write base address of function for any relocation needed later
-        scrip->write_cmd1(SCMD_THISBASE, scrip->codesize);
-        if (is_noloopcheck)
-            scrip->write_cmd(SCMD_LOOPCHECKOFF);
-
-        // loop through all parameters and check if they are pointers
-        // the first entry is the return value
-        for (int pa = 1; pa <= sym.entries[inFuncSym].sscope; pa++)
-        {
-            if (sym.entries[inFuncSym].funcparamtypes[pa] & (STYPE_POINTER | STYPE_DYNARRAY))
-            {
-                // pointers are passed in on the stack with the real
-                // memory address -- convert this to the mem handle
-                // since params are pushed backwards, this works
-                // the +1 is to deal with the return address
-                scrip->write_cmd1(SCMD_LOADSPOFFS, 4 * (pa + 1));
-                scrip->write_cmd1(SCMD_MEMREAD, SREG_AX);
-                scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
-            }
-        }
-
-        // non-static member function -- declare "this" ptr
-        if ((isMemberFunction) && ((sym.entries[inFuncSym].flags & SFLG_STATIC) == 0))
-        {
-            ags::Symbol thisSym = sym.find("this");
-            if (thisSym > 0)
-            {
-                int varsize = 4;
-                // declare "this" inside member functions
-                sym.entries[thisSym].stype = SYM_LOCALVAR;
-                sym.entries[thisSym].vartype = isMemberFunction;
-                sym.entries[thisSym].ssize = varsize; // pointer to struct
-                sym.entries[thisSym].sscope = static_cast<short>(nested_level);
-                sym.entries[thisSym].flags = SFLG_READONLY | SFLG_ACCESSED | SFLG_POINTER | SFLG_THISPTR;
-                // declare as local variable
-                sym.entries[thisSym].soffs = scrip->cur_sp;
-                scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
-                // first of all, write NULL to the pointer so that
-                // it doesn't try and free it in the following call
-                scrip->write_cmd2(SCMD_WRITELIT, varsize, 0);
-                // write the OP location into the variable
-                //scrip->write_cmd1(SCMD_MEMINITPTR, SREG_OP);
-                // the "this" ptr is allocated a space on the stack,
-                // even though it's not used (since accesses go directly
-                // via the OP)
-                scrip->cur_sp += varsize;
-                scrip->write_cmd2(SCMD_ADD, SREG_SP, varsize);
-            }
-        }
+        // In this case, the braces are around a function body
+        nesting_stack->SetType(ags::NestingStack::NTFunction);
+        cs_parser_handle_openbrace_FuncBody(scrip, inFuncSym, isMemberFunction, is_noloopcheck, nesting_stack);
     }
-    else nested_type[nested_level] = NEST_NOTHING;
-    nested_start[nested_level] = 0;
 
-    is_noloopcheck = 0;
     return 0;
 }
 
-int cs_parser_handle_closebrace(ccInternalList *targ, ccCompiledScript * scrip, char  nested_type[], long  nested_start[], long  nested_info[], int32_t  nested_assign_addr[], std::vector<ccChunk>  nested_chunk[], size_t &nested_level, int &in_func, ags::Symbol &inFuncSym, ags::Symbol &isMemberFunction)
+
+int cs_parser_handle_closebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack,  int &in_func, ags::Symbol &inFuncSym, ags::Symbol &isMemberFunction)
 {
-    if (ntype_is_singleline_if_stmt(nested_type[nested_level]))
+    size_t nesting_level = nesting_stack->Depth() - 1;    
+    
+    if (nesting_level == 0 || nesting_stack->IsUnbraced())
     {
         cc_error("Unexpected '}'");
         return -1;
     }
 
-    if (nested_level == 0)
-    {
-        cc_error("Unexpected '}'");
-        return -1;
-    }
 
-    nested_level--;
 
-    if (nested_level == 0)
+    if (nesting_level == 1)
     {
-        // Code  trace reaches end of a function (without passing a 'return' statement)
+        // Code  trace reaches end of a function
         // Emit code that returns 0
         scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
     }
 
-    free_pointers_of_locals(scrip, nested_level);
-    int totalsub = stacksize_of_locals(nested_level);
+    free_pointers_of_locals(scrip, nesting_level - 1);
+    int totalsub = stacksize_of_locals(nesting_level - 1);
     if (totalsub > 0)
     {
         // Reduce the "high point" of the stack appropriately, 
@@ -5273,9 +5325,11 @@ int cs_parser_handle_closebrace(ccInternalList *targ, ccCompiledScript * scrip, 
         scrip->cur_sp -= totalsub;
         scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
     }
-    remove_locals_from_symtable(nested_level + 1);
 
-    if (nested_level == 0)
+    // All the local variables that were defined within the braces become invalid
+    remove_locals_from_symtable(nesting_level);
+    
+    if (nesting_level == 1)
     {
         // We've just finished the body of the current function.
         in_func = -1;
@@ -5286,46 +5340,56 @@ int cs_parser_handle_closebrace(ccInternalList *targ, ccCompiledScript * scrip, 
         // This pops the return address from the stack, 
         // so adjust the "high point" of stack allocation appropriately
         scrip->write_cmd(SCMD_RET);
-        scrip->cur_sp -= 4;  // return address removed from stack
+        scrip->cur_sp -= 4;
+
+        nesting_stack->Pop();
         return 0;
     }
 
-
-    if ((nested_type[nested_level + 1] == NEST_IF) ||
-        (nested_type[nested_level + 1] == NEST_ELSE) ||
-        (nested_type[nested_level + 1] == NEST_DO) ||
-        (nested_type[nested_level + 1] == NEST_SWITCH))
+    // Deal with actions that need to be done at the end 
+    int retval;
+    switch (nesting_stack->Type())
     {
-        INC_NESTED_LEVEL;
-        if (nested_type[nested_level] == NEST_DO)
+    default: 
+        nesting_stack->Pop();
+        return 0;
+
+    case ags::NestingStack::NTBracedDo:
+        retval = deal_with_end_of_do(targ, scrip, nesting_stack);
+        if (retval < 0) return retval;
+        break;
+
+    case ags::NestingStack::NTBracedElse:
+    case ags::NestingStack::NTBracedThen:
         {
-            int retval = deal_with_end_of_do(targ, scrip, nested_info, nested_start, nested_level);
+            bool if_turned_into_else;
+            int retval = deal_with_end_of_ifelse(targ, scrip, nesting_stack, if_turned_into_else);
             if (retval < 0) return retval;
+            if (if_turned_into_else) return 0;
         }
-        else if (nested_type[nested_level] == NEST_SWITCH)
-        {
-            int retval = deal_with_end_of_switch(targ, scrip, nested_assign_addr, nested_start, &nested_chunk[nested_level], nested_level, nested_info);
-            if (retval < 0) return retval;
-        }
-        // NOTE: return code of this function can be 1 or 0. Doesn't signify whether an error occurred
-        else if (deal_with_end_of_ifelse(targ, scrip, nested_type, nested_info, nested_start, nested_chunk, nested_level))
-        {
-            return 0;
-        }
+        break;
+
+    case ags::NestingStack::NTSwitch:
+        retval = deal_with_end_of_switch(targ, scrip, nesting_stack);
+        if (retval < 0) return retval;
+        break;
     }
 
-    while (ntype_is_singleline_if_stmt(nested_type[nested_level]))
+
+    // loop round doing all the end of elses, but break once an IF
+    // has been turned into an ELSE
+    while (nesting_stack->IsUnbraced())
     {
-        // loop round doing all the end of elses, but break once an IF
-        // has been turned into an ELSE
-        if (nested_type[nested_level] == NEST_DOSINGLE)
+        if (nesting_stack->Type() == ags::NestingStack::NTUnbracedDo)
         {
-            int retval = deal_with_end_of_do(targ, scrip, nested_info, nested_start, nested_level);
+            int retval = deal_with_end_of_do(targ, scrip, nesting_stack);
             if (retval < 0) return retval;
         }
 
-        if (deal_with_end_of_ifelse(targ, scrip, nested_type, nested_info, nested_start, nested_chunk, nested_level))
-            break;
+        bool if_turned_into_else;
+        int retval = deal_with_end_of_ifelse(targ, scrip, nesting_stack, if_turned_into_else);
+        if (retval < 0) return retval;
+        if (if_turned_into_else) break;
     }
     return 0;
 }
@@ -6246,14 +6310,14 @@ int cs_parser_handle_vartype_GetVarName(ccInternalList * targ, ags::Symbol & var
     return 0;
 }
 
-int cs_parser_handle_vartype_CheckForIllegalContext(char surrounding_nest_type)
+int cs_parser_handle_vartype_CheckForIllegalContext(ags::NestingStack *nesting_stack)
 {
-    if (ntype_is_singleline_if_stmt(surrounding_nest_type))
+    if (nesting_stack->IsUnbraced())
     {
         cc_error("A variable or function declaration cannot be the sole body of an 'if', 'else' or loop clause");
         return -1;
     }
-    if (surrounding_nest_type == NEST_SWITCH)
+    if (nesting_stack->Type() == ags::NestingStack::NTSwitch)
     {
         cc_error("This variable declaration may be skipped by case label. Use braces to limit its scope or move it outside the switch statement block");
         return -1;
@@ -6382,13 +6446,10 @@ int cs_parser_handle_vartype_CheckIllegalCombis(bool is_static, bool is_member_d
     return 0;
 }
 
-int cs_parser_handle_vartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &func_name, bool is_readonly, int & idx_of_current_func, int nested_level, int type_of_defn, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, ags::Symbol & struct_of_current_func, SymbolTableEntry &oldDefinition, bool is_member_function_definition, bool is_protected, ags::Symbol & name_of_current_func, bool loopCheckOff)
+int cs_parser_handle_vartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &func_name, bool is_readonly, int & idx_of_current_func, int type_of_defn, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, ags::Symbol & struct_of_current_func, SymbolTableEntry &oldDefinition, bool is_member_function_definition, bool is_protected, ags::Symbol & name_of_current_func, bool loopCheckOff)
 {
     // Don't allow functions within functions or readonly functions
-    int retval = process_function_decl_CheckForIllegalCombis(is_readonly, idx_of_current_func, nested_level);
-    if (retval < 0) return retval;
-
-    retval = process_function_declaration(
+    int retval = process_function_declaration(
         targ, scrip, func_name, type_of_defn, isPointer, isDynamicArray,
         is_static, is_import, struct_of_current_func,
         idx_of_current_func, struct_of_current_func, &oldDefinition);
@@ -6448,8 +6509,7 @@ int cs_parser_handle_vartype(
     ccInternalList *targ,
     ccCompiledScript *scrip,
     ags::Symbol type_of_defn,           // e.g., "int"
-    char surrounding_nest_type, // type of the {} that immediately surrounds this statement
-    int nested_level,
+    ags::NestingStack *nesting_stack,
     Importness is_import,             // can be 0 or 1 or 2 
     bool is_readonly,
     bool is_static,
@@ -6462,7 +6522,7 @@ int cs_parser_handle_vartype(
     if (ReachedEOF(targ)) return -1;
 
     // Don't define variable or function where illegal in context.
-    int retval = cs_parser_handle_vartype_CheckForIllegalContext(surrounding_nest_type);
+    int retval = cs_parser_handle_vartype_CheckForIllegalContext(nesting_stack);
     if (retval < 0) return retval;
 
     // Calculate whether this is a pointer definition, gobbling "*" if present
@@ -6537,13 +6597,16 @@ int cs_parser_handle_vartype(
 
         if (is_function) // function defn
         {
-            int retval = cs_parser_handle_vartype_FuncDef(targ, scrip, var_or_func_name, is_readonly, idx_of_current_func, nested_level, type_of_defn, isPointer, isDynamicArray, is_static, is_import, struct_of_current_func, oldDefinition, is_member_definition, is_protected, name_of_current_func, loopCheckOff);
+            int retval = process_function_decl_CheckForIllegalCombis(is_readonly, idx_of_current_func, nesting_stack->Depth());
+            if (retval < 0) return retval;
+
+            retval = cs_parser_handle_vartype_FuncDef(targ, scrip, var_or_func_name, is_readonly, idx_of_current_func, type_of_defn, isPointer, isDynamicArray, is_static, is_import, struct_of_current_func, oldDefinition, is_member_definition, is_protected, name_of_current_func, loopCheckOff);
             if (retval < 0) return retval;
             another_ident_follows = false; // Can't join another func or var with ','
         }
         else // variable defn
         {
-            int retval = cs_parser_handle_vartype_VarDef(targ, scrip, var_or_func_name, is_global, nested_level, is_readonly, type_of_defn, next_type, isPointer, another_ident_follows);
+            int retval = cs_parser_handle_vartype_VarDef(targ, scrip, var_or_func_name, is_global, nesting_stack->Depth() - 1, is_readonly, type_of_defn, next_type, isPointer, another_ident_follows);
             if (retval < 0) return retval;
         }
 
@@ -6596,22 +6659,26 @@ int evaluate_funccall(ccInternalList *targ, ccCompiledScript * scrip, int offset
     return 0;
 }
 
-int compile_funcbodycode_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, size_t & nested_level, char * nested_type, long * nested_info, long * nested_start, std::vector<ccChunk> * nested_chunk)
+int compile_funcbodycode_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
 {
-    while (ntype_is_singleline_if_stmt(nested_type[nested_level]))
+    // Unravel else ... else ... chains
+    while (nesting_stack->IsUnbraced())
     {
-        if (nested_type[nested_level] == NEST_DOSINGLE)
+        if (nesting_stack->Type() == ags::NestingStack::NTUnbracedDo)
         {
-            if (deal_with_end_of_do(targ, scrip, nested_info, nested_start, nested_level))
-                return -1;
+            int retval = deal_with_end_of_do(targ, scrip, nesting_stack);
+            if (retval < 0) return retval;
+            continue;
         }
-        else
-        {
-            if (deal_with_end_of_ifelse(targ, scrip, nested_type, nested_info, nested_start, nested_chunk, nested_level))
-                break;
-        }
-    }
 
+        bool else_after_then;
+        int retval = deal_with_end_of_ifelse(targ, scrip, nesting_stack, else_after_then);
+        if (retval < 0) return retval;
+        // If an else follows a then clause, it has been changed into an
+        // else clause that has just started so this clause has NOT ended yet.
+        // So the else ... else chain is broken at this point, so we break out of the loop.
+        if (else_after_then) break;
+    }
     return 0;
 }
 
@@ -6673,11 +6740,47 @@ int evaluate_return(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol
     return 0;
 }
 
-// Evaluate the head of a "while" of "if" clause, e.g. "while (i < 0)" or "if (i < 0)".
-int evaluate_ifwhile(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, size_t &nested_level, char * nested_type, long * nested_start, long * nested_info)
-{
-    bool iswhile = (sym.get_type(cursym) == SYM_WHILE);
 
+// Evaluate the head of an "if" clause, e.g. "if (i < 0)".
+int evaluate_if(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, ags::NestingStack *nesting_stack)
+{
+    // Get expression, must be in parentheses
+    if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
+    {
+        cc_error("expected '('");
+        return -1;
+    }
+
+    int retval = evaluate_expression(targ, scrip, true);
+    if (retval < 0) return retval;
+
+    // Now the code that has just been generated has put the result of the check into AX
+    // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
+    scrip->write_cmd1(SCMD_JZ, 0);
+    uint32_t jump_dest_addr = scrip->codesize - 1;
+
+    // Assume unbraced as a default
+    retval = nesting_stack->Push(
+        ags::NestingStack::NTUnbracedThen, // Type
+        0, // Start
+        jump_dest_addr); // Info
+    
+    if (retval < 0) return retval;
+
+    if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
+    {
+        targ->getnext();
+        nesting_stack->SetType(ags::NestingStack::NTBracedThen); // change to braced
+    }
+
+    return 0;
+}
+
+
+// Evaluate the head of a "while" clause, e.g. "while (i < 0)" 
+int evaluate_while(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, ags::NestingStack *nesting_stack)
+{
+    // Get expression, must be in parentheses
     if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
     {
         cc_error("expected '('");
@@ -6695,51 +6798,47 @@ int evaluate_ifwhile(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbo
     scrip->write_cmd1(SCMD_JZ, 0);
     uint32_t jump_dest_addr = scrip->codesize - 1;
 
-    INC_NESTED_LEVEL;
+    // Assume unbraced as a default
+    retval = nesting_stack->Push(
+        ags::NestingStack::NTUnbracedThen, // Type
+        condition_eval_addr, // Start
+        jump_dest_addr); // Info
+    if (retval < 0) return retval;
 
-    
-    nested_type[nested_level] = NEST_IFSINGLE;
-    if (iswhile) 
-    {
-        // Use ELSE or ELSESINGLE for "while" loops so that an ELSE clause can't follow them.
-        nested_type[nested_level] = NEST_ELSESINGLE;
-    }
-    
     if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
     {
         targ->getnext();
-        nested_type[nested_level] = NEST_IF;
-        if (iswhile) nested_type[nested_level] = NEST_ELSE;
+        nesting_stack->SetType(ags::NestingStack::NTBracedElse); // change to braced
     }
-    
-    nested_info[nested_level] = jump_dest_addr;
-    nested_start[nested_level] = 0;
-    if (iswhile) nested_start[nested_level] = condition_eval_addr;
     return 0;
 }
 
-int evaluate_do(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, char * nested_type, long * nested_start, long * nested_info)
+int evaluate_do(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
 {
     // We need a jump at a known location for the break command to work:
     scrip->write_cmd1(SCMD_JMP, 2); // Jump past the next jump :D
     scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
     // This points to the address we have to patch with a jump past the end of the loop
     uint32_t jump_dest_addr = scrip->codesize - 1;
-    INC_NESTED_LEVEL;
-
-    nested_type[nested_level] = NEST_DOSINGLE;
+    
+    // Assume an unbraced DO as a default
+    int retval = nesting_stack->Push(
+        ags::NestingStack::NTUnbracedDo, // Type
+        scrip->codesize, // Start
+        jump_dest_addr);  // Info
+    if (retval < 0) return retval;
+    
     if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
     {
         targ->getnext();
-        nested_type[nested_level] = NEST_DO;
+        // Change to braced DO
+        nesting_stack->SetType(ags::NestingStack::NTBracedDo);
     }     
 
-    nested_start[nested_level] = scrip->codesize;
-    nested_info[nested_level] = jump_dest_addr;
     return 0;
 }
 
-int evaluate_for_InitClause(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol & cursym, const ags::SymbolScript & vnlist, size_t & vnlist_len, int & offset_of_funcname, char is_protected, char is_static, size_t & nested_level, char is_readonly)
+int evaluate_for_InitClause(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol & cursym, const ags::SymbolScript & vnlist, size_t & vnlist_len, int & offset_of_funcname, char is_protected, char is_static, size_t nested_level, char is_readonly)
 {
     // Check for empty init clause
     if (sym.get_type(cursym) == SYM_SEMICOLON) return 0;
@@ -6816,8 +6915,7 @@ int evaluate_for_InitClause(ccInternalList * targ, ccCompiledScript * scrip, ags
             {
                 // variable declaration
                 sym.entries[cursym].sscope = static_cast<short>(nested_level);
-                if (is_readonly)
-                    sym.entries[cursym].flags |= SFLG_READONLY;
+                if (is_readonly) sym.entries[cursym].flags |= SFLG_READONLY;
 
                 // parse the declaration
                 int varsize = sym.entries[vtwas].ssize;
@@ -6871,16 +6969,18 @@ int evaluate_for_IterateClause(ccInternalList * targ, ccCompiledScript * scrip, 
     return 0;
 }
 
-int evaluate_for(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, char * nested_type, long * nested_start, std::vector<ccChunk> * nested_chunk, long * nested_info, ags::Symbol &cursym, const ags::SymbolScript &vnlist, size_t &vnlist_len, int &offset_of_funcname, char is_protected, char is_static, char is_readonly)
+
+int evaluate_for(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &cursym, ags::NestingStack *nesting_stack, const ags::SymbolScript &vnlist, size_t &vnlist_len, int &offset_of_funcname, char is_protected, char is_static, char is_readonly)
 {
     // "for (I; E; C) { ...}" is equivalent to "{ I; while (E) { ...; C} }"
     // We implement this with TWO levels of the nesting stack.
     // The outer level contains "I"
     // The inner level contains "while (E) { ...; C}"
 
-    INC_NESTED_LEVEL;
-    nested_type[nested_level] = NEST_FOR;
-    nested_start[nested_level] = 0;
+    // Outer level
+    int retval = nesting_stack->Push(ags::NestingStack::NTFor);
+    if (retval < 0) return retval;
+    
     // '(' must follow
     cursym = targ->getnext();
     if (sym.get_type(cursym) != SYM_OPENPARENTHESIS)
@@ -6897,7 +6997,7 @@ int evaluate_for(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested
     }
     
     // Generate the initialization clause (I)
-    int retval = evaluate_for_InitClause(targ, scrip, cursym, vnlist, vnlist_len, offset_of_funcname, is_protected, is_static, nested_level, is_readonly);
+    retval = evaluate_for_InitClause(targ, scrip, cursym, vnlist, vnlist_len, offset_of_funcname, is_protected, is_static, nesting_stack->Depth() - 1, is_readonly);
     if (retval < 0) return retval;
 
     if (sym.get_type(targ->peeknext()) == SYM_CLOSEPARENTHESIS)
@@ -6920,58 +7020,75 @@ int evaluate_for(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested
     retval = evaluate_for_IterateClause(targ, scrip, vnlist, vnlist_len, offset_of_funcname, cursym);
     if (retval < 0) return retval;
 
-    INC_NESTED_LEVEL;
+    // Inner nesting level - assume unbraced as a default
+    retval = nesting_stack->Push(
+        ags::NestingStack::NTUnbracedElse, // Type
+        while_cond_addr, // Start
+        0); // Info
+    if (retval < 0) return retval;
+
+    if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
+    {
+        targ->getnext();
+        // Set type "braced" instead of "unbraced"
+        nesting_stack->SetType(ags::NestingStack::NTBracedElse);
+    }
 
     // We've just generated code for getting to the next loop iteration.
     // But we don't need that code right here; we need it at the bottom of the loop.
     // So rip it out of the bytecode base and save it into our nesting stack.
-    yank_chunk(scrip, &nested_chunk[nested_level], iterate_clause_addr, pre_fixup_count);
+    nesting_stack->YankChunk(scrip, iterate_clause_addr, pre_fixup_count);
            
     // Code for "If the expression we just evaluated is false, jump over the loop body."
     // the 0 will be fixed to a proper offset later
     scrip->write_cmd1(SCMD_JZ, 0);
+    nesting_stack->SetJumpOutLoc(scrip->codesize - 1); // the address to fix
 
-    nested_type[nested_level] = NEST_ELSESINGLE; // if '{' doesn't follow for (...)
-    if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
-    {
-        targ->getnext();
-        nested_type[nested_level] = NEST_ELSE;
-    }
-
-    nested_info[nested_level] = scrip->codesize - 1;
-    nested_start[nested_level] = while_cond_addr;
     return 0;
 }
 
-int evaluate_switch(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, char * nested_type, long * nested_info, long * nested_start, int32_t * nested_assign_addr)
+
+int evaluate_switch(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
 {
+    // Get the switch expression, must be in parentheses
     if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
     {
         cc_error("expected '('");
         return -1;
     }
-    INC_NESTED_LEVEL;
-    
-    nested_type[nested_level] = NEST_SWITCH;
-    if (evaluate_expression(targ, scrip, true)) // switch() expression
-        return -1;
-    // Store the type of the expression to enforce it later
-    nested_info[nested_level] = scrip->ax_val_type;
+
+    int retval = evaluate_expression(targ, scrip, true); 
+    if (retval < 0) return retval; 
+
+    // Remember the type of this expression to enforce it later
+    std::int32_t switch_expr_type = scrip->ax_val_type;
+
     // Copy the result to the BX register, ready for case statements
     scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_BX);
     scrip->flush_line_numbers();
-    nested_start[nested_level] = scrip->codesize;
+
+    // Start points to the jump to the lookup table
+    std::int32_t start = scrip->codesize;
 
     scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the lookup table
     scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to beyond the switch statement (for break)
-    if (sym.get_type(targ->peeknext()) != SYM_OPENBRACE)
+    
+    // There's no such thing as an unbraced SWITCH, so '{' must follow
+    if (sym.get_type(targ->getnext()) != SYM_OPENBRACE)
     {
         cc_error("expected '{'");
         return -1;
     }
-    nested_assign_addr[nested_level] = -1; // Location of default: label
-    targ->getnext();
-    if (targ->peeknext() == SCODE_META)
+
+    retval = nesting_stack->Push(
+        ags::NestingStack::NTSwitch, // Type
+        start, // Start
+        switch_expr_type); // Info
+    if (retval < 0) return retval;
+    nesting_stack->SetDefaultLabelLoc(-1);
+
+    // Check that "default" or "case" follows
+    if (ReachedEOF(targ))
     {
         currentline = targ->lineAtEnd;
         cc_error("Unexpected end of file");
@@ -6985,9 +7102,9 @@ int evaluate_switch(ccInternalList * targ, ccCompiledScript * scrip, size_t &nes
     return 0;
 }
 
-int evaluate_casedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, size_t &nested_level, char * nested_type, int32_t * nested_assign_addr, long * nested_info, std::vector<ccChunk> * nested_chunk)
+int evaluate_casedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, ags::NestingStack *nesting_stack)
 {
-    if (nested_type[nested_level] != NEST_SWITCH)
+    if (nesting_stack->Type() != ags::NestingStack::NTSwitch)
     {
         cc_error("Case label not valid outside switch statement block");
         return -1;
@@ -6995,12 +7112,12 @@ int evaluate_casedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::S
 
     if (sym.get_type(cursym) == SYM_DEFAULT)
     {
-        if (nested_assign_addr[nested_level] != -1)
+        if (nesting_stack->DefaultLabelLoc() != -1)
         {
-            cc_error("Multiple default labels in a switch statement block");
+            cc_error("This switch statement block already has a \"default:\" label");
             return -1;
         }
-        nested_assign_addr[nested_level] = scrip->codesize;
+        nesting_stack->SetDefaultLabelLoc(scrip->codesize);
     }
     else // "case"
     {
@@ -7014,7 +7131,7 @@ int evaluate_casedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::S
         if (retval < 0) return retval;  // case n: label expression, result is in AX
 
         // check that the types of the "case" expression and the "switch" expression match
-        retval = check_type_mismatch(scrip->ax_val_type, nested_info[nested_level], false);
+        retval = check_type_mismatch(scrip->ax_val_type, nesting_stack->SwitchExprType(), false);
         if (retval < 0) return retval;
 
         // Pop the switch variable, ready for comparison
@@ -7022,13 +7139,13 @@ int evaluate_casedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::S
 
         // get the right equality operator for the type
         int eq_op = SCMD_ISEQUAL;
-        retval = get_operator_valid_for_type(scrip->ax_val_type, nested_info[nested_level], eq_op);
+        retval = get_operator_valid_for_type(scrip->ax_val_type, nesting_stack->SwitchExprType(), eq_op);
         if (retval < 0) return retval;
 
         // [fw] Comparison operation may be missing here.
 
         // rip out the already generated code for the case/switch and store it with the switch
-        yank_chunk(scrip, &(nested_chunk[nested_level]), start_of_code_addr, numfixups_at_start_of_code);
+        nesting_stack->YankChunk(scrip, start_of_code_addr, numfixups_at_start_of_code);
     }
 
     // expect and gobble the ':'
@@ -7041,11 +7158,11 @@ int evaluate_casedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::S
     return 0;
 }
 
-int evaluate_break(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, char * nested_type, long * nested_start, long * nested_info)
+int evaluate_break(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
 {
     // Find the (level of the) looping construct to which the break applies
-    size_t loop_level = nested_level;
-    while (loop_level > 0 && nested_start[loop_level] == 0) loop_level--;
+    size_t loop_level = nesting_stack->Depth() - 1;
+    while (loop_level > 0 && nesting_stack->StartLoc(loop_level) == 0) loop_level--;
 
     if (loop_level == 0)
     {
@@ -7060,10 +7177,10 @@ int evaluate_break(ccInternalList * targ, ccCompiledScript * scrip, size_t &nest
     }
 
     // If locals contain pointers, free them
-    free_pointers_of_locals(scrip, loop_level);
+    free_pointers_of_locals(scrip, loop_level - 1);
 
     // Pop local variables from the stack
-    int totalsub = stacksize_of_locals(loop_level);
+    int totalsub = stacksize_of_locals(loop_level - 1);
     if (totalsub > 0) scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
     scrip->flush_line_numbers();
 
@@ -7072,22 +7189,22 @@ int evaluate_break(ccInternalList * targ, ccCompiledScript * scrip, size_t &nest
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0); 
 
     // Jump to a jump to the end of the loop
-    if (nested_type[loop_level] == NEST_SWITCH)
+    if (nesting_stack->Type(loop_level) == ags::NestingStack::NTSwitch)
     {
-        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nested_start[loop_level])); // Jump to the known break point
+        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nesting_stack->StartLoc(loop_level))); // Jump to the known break point
     }
     else
     {
-        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nested_info[loop_level] + 3)); // Jump to the known break point
+        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nesting_stack->JumpOutLoc(loop_level) + 3)); // Jump to the known break point
     }
     return 0;
 }
 
-int evaluate_continue(ccInternalList * targ, ccCompiledScript * scrip, size_t &nested_level, char * nested_type, long * nested_start, std::vector<ccChunk> * nested_chunk)
+int evaluate_continue(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
 {
     // Find the (level of the) looping construct to which the break applies
-    size_t loop_level = nested_level;
-    while (loop_level > 0 && nested_start[loop_level] == 0) loop_level--;
+    size_t loop_level = nesting_stack->Depth() - 1;
+    while (loop_level > 0 && nesting_stack->StartLoc(loop_level) == 0) loop_level--;
 
     if (loop_level == 0)
     {
@@ -7110,9 +7227,9 @@ int evaluate_continue(ccInternalList * targ, ccCompiledScript * scrip, size_t &n
     scrip->flush_line_numbers();
 
     // if it's a for loop, drop the yanked chunk (loop increment) back in
-    if (nested_chunk[loop_level].size() > 0)
+    if (nesting_stack->ChunksExist(loop_level))
     {
-        write_chunk(scrip, nested_chunk[loop_level][0]);
+        nesting_stack->WriteChunk(scrip, loop_level, 0);
     }
     scrip->flush_line_numbers();
 
@@ -7122,9 +7239,25 @@ int evaluate_continue(ccInternalList * targ, ccCompiledScript * scrip, size_t &n
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0); 
 
     // Jump to the start of the loop
-    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nested_start[loop_level])); 
+    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nesting_stack->StartLoc(loop_level))); 
     return 0;
 }
+
+// We're compiling function body code; the code does not start with a keyword or type.
+// Thus, we should be at the start of an assignment. Compile it.
+int compile_funcbodycode_Assignment(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, const ags::SymbolScript &vnlist, size_t &vnlist_len)
+{
+    // Check whether the next symbol is an assignment symbol
+    ags::Symbol nextsym = targ->peeknext();
+    int nexttype = sym.get_type(nextsym);
+    if (nexttype != SYM_ASSIGN && nexttype != SYM_MASSIGN && nexttype != SYM_SASSIGN)
+    {
+        cc_error("Parse error at '%s'", sym.get_friendly_name(cursym).c_str());
+        return -1;
+    }
+    return evaluate_assignment(targ, scrip, cursym, SYM_SEMICOLON, vnlist, vnlist_len);
+}
+
 
 int compile_funcbodycode(
     ccInternalList *targ,
@@ -7135,12 +7268,7 @@ int compile_funcbodycode(
     ags::SymbolScript  vnlist,
     size_t vnlist_len,
     ags::Symbol inFuncSym,
-    size_t &nested_level,
-    char nested_type[],
-    long nested_start[],
-    long nested_info[],
-    std::vector<ccChunk> nested_chunk[],
-    int32_t  nested_assign_addr[],
+    ags::NestingStack *nesting_stack,
     char is_protected,
     char is_static,
     char is_readonly)
@@ -7152,42 +7280,36 @@ int compile_funcbodycode(
     switch (sym.get_type(cursym))
     {
     default:
-    {
-        // might be a type of assignment - in this case, the NEXT symbol must be an assignment symbol
-        ags::Symbol nextsym = targ->peeknext();
-        int nexttype = sym.get_type(nextsym);
-        if (nexttype == SYM_ASSIGN || nexttype == SYM_MASSIGN || nexttype == SYM_SASSIGN)
-        {
-            retval = evaluate_assignment(targ, scrip, cursym, SYM_SEMICOLON, vnlist, vnlist_len);
-            if (retval < 0) return retval;
-
-            break;
-        }
-        cc_error("Parse error at '%s'", sym.get_friendly_name(cursym).c_str());
-        return -1;
-    }
+        // Should be an assignment -- or else it is an error
+        retval = compile_funcbodycode_Assignment(targ, scrip, cursym, vnlist, vnlist_len);
+        if (retval < 0) return retval;
+        break;
 
     case SYM_BREAK:
-        retval = evaluate_break(targ, scrip, nested_level, nested_type, nested_start, nested_info);
+        retval = evaluate_break(targ, scrip, nesting_stack);
         if (retval < 0) return retval;
         break;
 
     case SYM_CASE:
-    case SYM_DEFAULT:
-        retval = evaluate_casedefault(targ, scrip, cursym, nested_level, nested_type, nested_assign_addr, nested_info, nested_chunk);
+        retval = evaluate_casedefault(targ, scrip, cursym, nesting_stack);
         if (retval < 0) return retval;
         break;
 
     case SYM_CONTINUE:
-        retval = evaluate_continue(targ, scrip, nested_level, nested_type, nested_start, nested_chunk);
+        retval = evaluate_continue(targ, scrip, nesting_stack);
+        if (retval < 0) return retval;
+        break;
+
+    case SYM_DEFAULT:
+        retval = evaluate_casedefault(targ, scrip, cursym, nesting_stack);
         if (retval < 0) return retval;
         break;
 
     case SYM_DO:
-        return evaluate_do(targ, scrip, nested_level, nested_type, nested_start, nested_info);
+        return evaluate_do(targ, scrip, nesting_stack);
 
     case SYM_FOR:
-        return evaluate_for(targ, scrip, nested_level, nested_type, nested_start, nested_chunk, nested_info, cursym, vnlist, vnlist_len, offset_of_funcname, is_protected, is_static, is_readonly);
+        return evaluate_for(targ, scrip, cursym, nesting_stack, vnlist, vnlist_len, offset_of_funcname, is_protected, is_static, is_readonly);
 
     case SYM_FUNCTION:
         retval = evaluate_funccall(targ, scrip, offset_of_funcname, index_of_expression_start);
@@ -7195,8 +7317,7 @@ int compile_funcbodycode(
         break;
 
     case SYM_IF:
-    case SYM_WHILE:
-        return evaluate_ifwhile(targ, scrip, cursym, nested_level, nested_type, nested_start, nested_info);
+        return evaluate_if(targ, scrip, cursym, nesting_stack);
 
     case SYM_RETURN:
         retval = evaluate_return(targ, scrip, inFuncSym);
@@ -7204,15 +7325,18 @@ int compile_funcbodycode(
         break;
 
     case SYM_SWITCH:
-        retval = evaluate_switch(targ, scrip, nested_level, nested_type, nested_info, nested_start, nested_assign_addr);
+        retval = evaluate_switch(targ, scrip, nesting_stack);
         if (retval < 0) return retval;
         break;
+
+    case SYM_WHILE:
+        return evaluate_while(targ, scrip, cursym, nesting_stack);
     }
 
-
     // sort out jumps when a single-line if or else has finished
-    return compile_funcbodycode_EndOfDoIfElse(targ, scrip, nested_level, nested_type, nested_info, nested_start, nested_chunk);
+    return compile_funcbodycode_EndOfDoIfElse(targ, scrip, nesting_stack);
 }
+
 
 int cc_compile_HandleLinesAndMeta(ccInternalList & targ, ccCompiledScript * scrip, ags::Symbol cursym, int &currentlinewas)
 {
@@ -7260,20 +7384,8 @@ int cc_compile_HandleLinesAndMeta(ccInternalList & targ, ccCompiledScript * scri
 int cc_compile_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t &nested_level, int idx_of_current_func, ags::Symbol name_of_current_func)
 {
     ags::Symbol struct_of_current_func = 0; // non-zero only when a struct member function is open
-
-
-    // [fw] This cries for being converted into a vector of struct START
-    char nested_type[MAX_NESTED_LEVEL]; // Type of the nested construct. Must be NEST_... defined in cs_parser.h
-
-    long nested_info[MAX_NESTED_LEVEL]; // [fw]?
-
-    long nested_start[MAX_NESTED_LEVEL]; // Startposition of the code generated for this construct
-    std::vector<ccChunk> nested_chunk[MAX_NESTED_LEVEL]; // in FOR loops: Code for iterating
-    int32_t nested_assign_addr[MAX_NESTED_LEVEL];
-    // [fw] This cries for being converted into a vector of struct END
-
-    nested_type[0] = NEST_NOTHING;
     
+    ags::NestingStack nesting_stack = ags::NestingStack();
 
     // These are indicators that are switched on when keywords are encountered and switched off after they are used.
     // Thus, they are called "NEXT_IS_..." although they are sometimes _used_ with the meaning "THIS_IS...".
@@ -7356,7 +7468,7 @@ int cc_compile_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_
 
         case  SYM_CLOSEBRACE:
         {
-            int retval = cs_parser_handle_closebrace(&targ, scrip, nested_type, nested_start, nested_info, nested_assign_addr, nested_chunk, nested_level, idx_of_current_func, name_of_current_func, struct_of_current_func);
+            int retval = cs_parser_handle_closebrace(&targ, scrip, &nesting_stack, idx_of_current_func, name_of_current_func, struct_of_current_func);
             if (retval < 0) return retval;
             continue;
         }
@@ -7405,7 +7517,7 @@ int cc_compile_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_
         case SYM_OPENBRACE:
         {
             // This begins a compound statement (which is only legal if we are within a func body)
-            int retval = cs_parser_handle_openbrace(scrip, nested_type, nested_start, nested_level, idx_of_current_func, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
+            int retval = cs_parser_handle_openbrace(scrip, &nesting_stack, idx_of_current_func, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
             if (retval < 0) return retval;
 
             // The "noloopcheck" mode has just been used up. 
@@ -7478,7 +7590,7 @@ int cc_compile_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_
                 break;
             }
             // func or variable definition
-            int retval = cs_parser_handle_vartype(&targ, scrip, cursym, nested_type[nested_level], nested_level, next_is_import, next_is_readonly, next_is_static, next_is_protected, idx_of_current_func, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
+            int retval = cs_parser_handle_vartype(&targ, scrip, cursym, &nesting_stack, next_is_import, next_is_readonly, next_is_static, next_is_protected, idx_of_current_func, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
             if (retval < 0) return retval;
             next_is_import = ImNoImport;
             next_is_readonly = false;
@@ -7509,7 +7621,7 @@ int cc_compile_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_
         retval = read_var_or_funccall(&targ, cursym, vnlist, vnlist_len, offset_of_funcname);
         if (retval < 0) return retval;
 
-        retval = compile_funcbodycode(&targ, scrip, cursym, offset_of_funcname, targ.pos, vnlist, vnlist_len, name_of_current_func, nested_level, nested_type, nested_start, nested_info, nested_chunk, nested_assign_addr, next_is_protected, next_is_static, next_is_readonly);
+        retval = compile_funcbodycode(&targ, scrip, cursym, offset_of_funcname, targ.pos, vnlist, vnlist_len, name_of_current_func, &nesting_stack, next_is_protected, next_is_static, next_is_readonly);
         if (retval < 0) return retval;
     } // for
 

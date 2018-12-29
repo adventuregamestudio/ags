@@ -346,7 +346,7 @@ private:
 
 public:
     Expression(symbolTable *sym, ccCompiledScript *compiledscript, SymbolScript scr, size_t len);
-    ~Expression();
+    // ~Expression();
 
     bool IsAssignable();
     void SetAssignable(bool abl);
@@ -370,23 +370,116 @@ public:
     int ToAX();
 };
 
+// A section of compiled code that needs to be moved or copied to a new location
+struct ccChunk 
+{
+    std::vector<intptr_t> Code;
+    std::vector<int32_t> Fixups;
+    std::vector<char> FixupTypes;
+    int CodeOffset;
+    int FixupOffset;
+};
+
+// All data that is associated with a nesting level
+struct NestingInfo
+{
+    int Type; // Type of the level, see ags::NestingStack::NestingType
+    std::int32_t StartLoc; // Index of the first byte generated for the level
+    std::int32_t Info; // Various uses that differ by nesting type
+    std::int32_t DefaultLabelLoc; // Location of default label
+    std::vector<ccChunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
+};
+
+// The stack of nesting statements 
+class NestingStack
+{
+private:
+    std::vector<NestingInfo> Stack;
+
+public:
+    enum NestingType
+    {
+        NTNothing = 0,  // {...} in the code without a particular purpose
+        NTFunction,     // A function
+        NTBracedThen,   // THEN clause with braces
+        NTUnbracedThen, // THEN clause without braces (i.e, it's a single simple statement)
+        NTBracedElse,   // ELSE/inner FOR/WHILE clause with braces
+        NTUnbracedElse, // ELSE/inner FOR/WHILE clause without braces
+        NTBracedDo,     // DO clause with braces
+        NTUnbracedDo,   // DO clause without braces 
+        NTFor,          // Outer FOR clause
+        NTSwitch,       // SWITCH clause
+        NTStruct,       // Struct defn
+    };
+
+    NestingStack();
+
+    // Depth of the nesting == index of the innermost nesting level
+    inline size_t Depth() { return Stack.size(); };
+
+    // Type of the innermost nesting
+    inline NestingType Type() { return static_cast<NestingType>(Stack.back().Type); };
+    inline void SetType(NestingType nt) { Stack.back().Type = nt; };
+    // Type of the nesting at the given nesting level
+    inline NestingType Type(size_t level) { return static_cast<NestingType>(Stack.at(level).Type); };
+    
+    // If the innermost nesting is a loop that has a jump back to the start,
+    // then this gives the location to jump to; otherwise, it is 0
+    inline std::int32_t StartLoc() { return Stack.back().StartLoc; };
+    inline void SetStartLoc(std::int32_t start) { Stack.back().StartLoc = start; };
+    // If the nesting at the given level has a jump back to the start,
+    // then this gives the location to jump to; otherwise, it is 0
+    inline std::int32_t StartLoc(size_t level) { return Stack.at(level).StartLoc; };
+    
+    // If the innermost nesting features a jump out instruction, then this is the location of it
+    inline std::intptr_t JumpOutLoc() { return Stack.back().Info; };
+    inline void SetJumpOutLoc(std::intptr_t loc) { Stack.back().Info = loc; };
+    // If the nesting at the given level features a jump out, then this is the location of it
+    inline std::intptr_t JumpOutLoc(size_t level) { return Stack.at(level).Info; };
+    
+    // If the innermost nesting is a SWITCH, the type of the switch expression
+    int SwitchExprType() { return static_cast<int>(Stack.back().Info); };
+    inline void SetSwitchExprType(int ty) { Stack.back().Info = ty; };
+
+    // If the innermost nesting is a SWITCH, the location of the "default:" label
+    inline std::int32_t DefaultLabelLoc() { return Stack.back().DefaultLabelLoc; };
+    inline void SetDefaultLabelLoc(int32_t loc) { Stack.back().DefaultLabelLoc = loc; }
+
+    // If the innermost nesting contains code chunks that must be moved around
+    // (e.g., in FOR loops), then this is true, else false
+    inline bool ChunksExist() { return !Stack.back().Chunks.empty(); }
+    inline bool ChunksExist(size_t level) { return !Stack.at(level).Chunks.empty(); }
+
+    // Code chunks that must be moved around (e.g., in FOR, DO loops)
+    inline std::vector<ccChunk> Chunks() { return Stack.back().Chunks; };
+    inline std::vector<ccChunk> Chunks(size_t level) { return Stack.at(level).Chunks; };
+    
+    // True iff the innermost nesting is unbraced
+    inline bool IsUnbraced() 
+    {
+        NestingType nt = Type();
+        return (nt == NTUnbracedThen) || (nt == NTUnbracedElse) || (nt == NTUnbracedDo);
+    }
+
+    // Push a new nesting level (returns a  value < 0 on error)
+    int Push(NestingType type, std::int32_t start, std::int32_t info);
+    inline int Push(NestingType type) { return Push(type, 0, 0); };
+
+    // Pop a nesting level
+    inline void Pop() { Stack.pop_back(); };
+
+    // Rip a generated chunk of code out of the codebase and stash it away for later 
+    void YankChunk(::ccCompiledScript *scrip, size_t codeoffset, size_t fixupoffset);
+
+    // Write chunk of code back into the codebase that has been stashed in level given, at index
+    void WriteChunk(::ccCompiledScript *scrip, size_t level, size_t index);
+    // Write chunk of code back into the codebase stashed in the innermost level, at index
+    inline void WriteChunk(::ccCompiledScript *scrip, size_t index) { WriteChunk(scrip, Depth() - 1, index); };
+
+
+};
 
 } // namespace ags
-
-
-#define NEST_FUNCTION   1  // it's a function
-#define NEST_NOTHING    2  // no reason - they just put { } in the code
-#define NEST_IF         3  // it's an IF statement
-#define NEST_IFSINGLE   4  // single IF statment (ie. no braces)
-#define NEST_ELSE       5
-#define NEST_ELSESINGLE 6
-#define NEST_STRUCT     7
-#define NEST_DO         8 // Do statement (to be followed by a while)
-#define NEST_DOSINGLE   9 // Single Do statement
-#define NEST_FOR        10 // For statement
-#define NEST_SWITCH     11 // Case block for a switch statement
-
-
 
 
 extern int cc_tokenize(
@@ -398,32 +491,4 @@ extern int cc_compile(
     const char * inpl,           // preprocessed text to be compiled
     ccCompiledScript * scrip);   // store for the compiled text
 
-
-
-
-// A section of compiled code that needs to be moved or copied to a new location
-struct ccChunk {
-    std::vector<intptr_t> code;
-    std::vector<int32_t> fixups;
-    std::vector<char> fixuptypes;
-    int codeoffset;
-    int fixupoffset;
-};
-
-
-struct NestStack
-{
-    char Type;
-    long Start;
-    long Info;
-    std::int32_t AssignAddress;
-    std::vector<ccChunk> Chunk;
-};
-
-typedef std::vector<NestStack> NestStack_t;
-
-
-
-
 #endif // __CS_PARSER_H
-

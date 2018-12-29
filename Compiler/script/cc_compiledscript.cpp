@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,42 +7,53 @@
 #include "script/cc_options.h"      // ccGetOption
 #include "script/cc_error.h"
 
-void ccCompiledScript::write_cmd(int cmdd) {
+void ccCompiledScript::write_cmd(int cmdd)
+{
     write_code(cmdd);
 }
 
-void ccCompiledScript::write_cmd1(int cmdd, int param) {
+void ccCompiledScript::write_cmd1(int cmdd, int param)
+{
     write_code(cmdd);
     write_code(param);
 }
-void ccCompiledScript::write_cmd2(int cmdd, int param, int param2) {
+
+void ccCompiledScript::write_cmd2(int cmdd, int param, int param2)
+{
     write_code(cmdd);
     write_code(param);
     write_code(param2);
 }
-void ccCompiledScript::write_cmd3(int cmdd, int param, int param2, int param3) {
+
+void ccCompiledScript::write_cmd3(int cmdd, int param, int param2, int param3)
+{
     write_code(cmdd);
     write_code(param);
     write_code(param2);
     write_code(param3);
 }
 
-void ccCompiledScript::push_reg(int regg) {
+void ccCompiledScript::push_reg(int regg)
+{
     write_cmd1(SCMD_PUSHREG, regg);
     cur_sp += 4;
 }
 
-void ccCompiledScript::pop_reg(int regg) {
+void ccCompiledScript::pop_reg(int regg)
+{
     write_cmd1(SCMD_POPREG, regg);
     cur_sp -= 4;
 }
 
-ccCompiledScript::ccCompiledScript() {
+ccCompiledScript::ccCompiledScript()
+{
     init();
     ax_val_type = 0;
     ax_val_scope = 0;
 }
-ccCompiledScript::~ccCompiledScript() {
+
+ccCompiledScript::~ccCompiledScript()
+{
     shutdown();
 }
 
@@ -80,7 +90,8 @@ int ccCompiledScript::add_global(int siz, const char *vall)
     return offset;
 }
 
-int ccCompiledScript::add_string(const char*strr) {
+int ccCompiledScript::add_string(const char*strr)
+{
     strings = (char*)realloc(strings, stringssize + strlen(strr) + 5);
     unsigned int la, opi = 0;
     for (la = 0; la <= strlen(strr); la++)
@@ -342,7 +353,9 @@ int ccCompiledScript::add_new_export(const char*namm, int etype, long eoffs, int
     numexports++;
     return numexports - 1;
 }
-void ccCompiledScript::flush_line_numbers() {
+
+void ccCompiledScript::flush_line_numbers() 
+{
     if (next_line)
     {
         int linum = next_line;
@@ -351,11 +364,13 @@ void ccCompiledScript::flush_line_numbers() {
         write_code(linum);
     }
 }
-void ccCompiledScript::write_code(intptr_t byy) {
+
+void ccCompiledScript::write_code(intptr_t byy) 
+{
     // DEBUGGING [fw]
-    if (codesize == 60)
+    if (codesize == 42)
     {
-        int i = 0;
+        int iii = 0;
     }
     // END DEBUGGING [fw]
     flush_line_numbers();
@@ -368,7 +383,8 @@ void ccCompiledScript::write_code(intptr_t byy) {
     codesize++;
 }
 
-const char* ccCompiledScript::start_new_section(const char *name) {
+const char* ccCompiledScript::start_new_section(const char *name) 
+{
 
     if ((numSections == 0) ||
         (codesize != sectionOffsets[numSections - 1]))
@@ -395,7 +411,9 @@ const char* ccCompiledScript::start_new_section(const char *name) {
 
     return sectionNames[numSections - 1];
 }
-void ccCompiledScript::init() {
+
+void ccCompiledScript::init() 
+{
     globaldata = NULL;
     globaldatasize = 0;
     code = NULL;
@@ -421,8 +439,10 @@ void ccCompiledScript::init() {
     sectionOffsets = NULL;
     next_line = 0;
 }
+
 // free the extra bits that ccScript doesn't have
-void ccCompiledScript::free_extra() {
+void ccCompiledScript::free_extra() 
+{
     int aa;
     for (aa = 0; aa < numfunctions; aa++)
     {
@@ -430,6 +450,10 @@ void ccCompiledScript::free_extra() {
     }
     numfunctions = 0;
 }
-void ccCompiledScript::shutdown() {
+
+void ccCompiledScript::shutdown() 
+{
     free_extra();
 }
+
+

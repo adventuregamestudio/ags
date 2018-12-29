@@ -211,7 +211,7 @@ TEST(Compatibility, IntFunctionLocalV) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    //writeoutput("IntFunctionLocalV", scrip);
+    // writeoutput("IntFunctionLocalV", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -431,7 +431,7 @@ TEST(Compatibility, IfThenElse1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    writeoutput("IfThenElse1", scrip);
+    // writeoutput("IfThenElse1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -571,7 +571,7 @@ TEST(Compatibility, While) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    writeoutput("While", scrip);
+    // writeoutput("While", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -664,7 +664,7 @@ TEST(Compatibility, DoNCall) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    writeoutput("DoNCall", scrip);
+    // writeoutput("DoNCall", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -750,7 +750,7 @@ TEST(Compatibility, For) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    writeoutput("For", scrip);
+    // writeoutput("For", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -974,7 +974,7 @@ TEST(Compatibility, FreeLocalPtr) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    writeoutput("FreeLocalPtr", scrip);
+    // writeoutput("FreeLocalPtr", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

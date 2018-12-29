@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.groupBoxExport = new System.Windows.Forms.GroupBox();
             this.chkSkipValidSpriteSource = new System.Windows.Forms.CheckBox();
             this.chkRecurse = new System.Windows.Forms.CheckBox();
@@ -36,14 +37,23 @@
             this.groupBoxSaveAs = new System.Windows.Forms.GroupBox();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.txtFolder = new System.Windows.Forms.TextBox();
+            this.contextMenuStripExport = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.menuItemCopy = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuItemCut = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuItemPaste = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.menuItemToken = new System.Windows.Forms.ToolStripMenuItem();
             this.txtFilename = new System.Windows.Forms.TextBox();
             this.lblFolder = new System.Windows.Forms.Label();
             this.lblFilename = new System.Windows.Forms.Label();
+            this.chkUpdateSpriteSource = new System.Windows.Forms.CheckBox();
             this.btnClose = new System.Windows.Forms.Button();
             this.btnExport = new System.Windows.Forms.Button();
-            this.chkUpdateSpriteSource = new System.Windows.Forms.CheckBox();
+            this.groupBoxSpriteProperties = new System.Windows.Forms.GroupBox();
             this.groupBoxExport.SuspendLayout();
             this.groupBoxSaveAs.SuspendLayout();
+            this.contextMenuStripExport.SuspendLayout();
+            this.groupBoxSpriteProperties.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBoxExport
@@ -105,10 +115,8 @@
             // 
             // groupBoxSaveAs
             // 
-            this.groupBoxSaveAs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBoxSaveAs.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBoxSaveAs.Controls.Add(this.chkUpdateSpriteSource);
             this.groupBoxSaveAs.Controls.Add(this.btnBrowse);
             this.groupBoxSaveAs.Controls.Add(this.txtFolder);
             this.groupBoxSaveAs.Controls.Add(this.txtFilename);
@@ -116,18 +124,18 @@
             this.groupBoxSaveAs.Controls.Add(this.lblFilename);
             this.groupBoxSaveAs.Location = new System.Drawing.Point(12, 134);
             this.groupBoxSaveAs.Name = "groupBoxSaveAs";
-            this.groupBoxSaveAs.Size = new System.Drawing.Size(410, 136);
+            this.groupBoxSaveAs.Size = new System.Drawing.Size(410, 107);
             this.groupBoxSaveAs.TabIndex = 1;
             this.groupBoxSaveAs.TabStop = false;
-            this.groupBoxSaveAs.Text = "Save As";
+            this.groupBoxSaveAs.Text = "Save as";
             // 
             // btnBrowse
             // 
             this.btnBrowse.Location = new System.Drawing.Point(63, 74);
             this.btnBrowse.Name = "btnBrowse";
-            this.btnBrowse.Size = new System.Drawing.Size(75, 23);
+            this.btnBrowse.Size = new System.Drawing.Size(46, 21);
             this.btnBrowse.TabIndex = 4;
-            this.btnBrowse.Text = "Browse";
+            this.btnBrowse.Text = "...";
             this.btnBrowse.UseVisualStyleBackColor = true;
             this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
             // 
@@ -135,15 +143,62 @@
             // 
             this.txtFolder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFolder.ContextMenuStrip = this.contextMenuStripExport;
             this.txtFolder.Location = new System.Drawing.Point(63, 47);
             this.txtFolder.Name = "txtFolder";
             this.txtFolder.Size = new System.Drawing.Size(341, 20);
             this.txtFolder.TabIndex = 3;
             // 
+            // contextMenuStripExport
+            // 
+            this.contextMenuStripExport.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuItemCopy,
+            this.menuItemCut,
+            this.menuItemPaste,
+            this.toolStripSeparator1,
+            this.menuItemToken});
+            this.contextMenuStripExport.Name = "contextMenuStripExport";
+            this.contextMenuStripExport.Size = new System.Drawing.Size(137, 98);
+            this.contextMenuStripExport.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripExport_Opening);
+            // 
+            // menuItemCopy
+            // 
+            this.menuItemCopy.Name = "menuItemCopy";
+            this.menuItemCopy.Size = new System.Drawing.Size(136, 22);
+            this.menuItemCopy.Text = "Copy";
+            this.menuItemCopy.Click += new System.EventHandler(this.menuItemCopy_Click);
+            // 
+            // menuItemCut
+            // 
+            this.menuItemCut.Name = "menuItemCut";
+            this.menuItemCut.Size = new System.Drawing.Size(136, 22);
+            this.menuItemCut.Text = "Cut";
+            this.menuItemCut.Click += new System.EventHandler(this.menuItemCut_Click);
+            // 
+            // menuItemPaste
+            // 
+            this.menuItemPaste.Name = "menuItemPaste";
+            this.menuItemPaste.Size = new System.Drawing.Size(136, 22);
+            this.menuItemPaste.Text = "Paste";
+            this.menuItemPaste.Click += new System.EventHandler(this.menuItemPaste_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(133, 6);
+            // 
+            // menuItemToken
+            // 
+            this.menuItemToken.Name = "menuItemToken";
+            this.menuItemToken.Size = new System.Drawing.Size(136, 22);
+            this.menuItemToken.Text = "Insert token";
+            this.menuItemToken.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.menuItemToken_DropDownItemClicked);
+            // 
             // txtFilename
             // 
             this.txtFilename.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFilename.ContextMenuStrip = this.contextMenuStripExport;
             this.txtFilename.Location = new System.Drawing.Point(63, 20);
             this.txtFilename.Name = "txtFilename";
             this.txtFilename.Size = new System.Drawing.Size(341, 20);
@@ -155,25 +210,35 @@
             this.lblFolder.AutoSize = true;
             this.lblFolder.Location = new System.Drawing.Point(8, 49);
             this.lblFolder.Name = "lblFolder";
-            this.lblFolder.Size = new System.Drawing.Size(36, 13);
+            this.lblFolder.Size = new System.Drawing.Size(52, 13);
             this.lblFolder.TabIndex = 1;
-            this.lblFolder.Text = "Folder";
+            this.lblFolder.Text = "Directory:";
             // 
             // lblFilename
             // 
             this.lblFilename.AutoSize = true;
             this.lblFilename.Location = new System.Drawing.Point(7, 22);
             this.lblFilename.Name = "lblFilename";
-            this.lblFilename.Size = new System.Drawing.Size(49, 13);
+            this.lblFilename.Size = new System.Drawing.Size(52, 13);
             this.lblFilename.TabIndex = 0;
-            this.lblFilename.Text = "Filename";
+            this.lblFilename.Text = "Filename:";
             this.lblFilename.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // chkUpdateSpriteSource
+            // 
+            this.chkUpdateSpriteSource.AutoSize = true;
+            this.chkUpdateSpriteSource.Location = new System.Drawing.Point(7, 19);
+            this.chkUpdateSpriteSource.Name = "chkUpdateSpriteSource";
+            this.chkUpdateSpriteSource.Size = new System.Drawing.Size(179, 17);
+            this.chkUpdateSpriteSource.TabIndex = 5;
+            this.chkUpdateSpriteSource.Text = "Set exported file as sprite source";
+            this.chkUpdateSpriteSource.UseVisualStyleBackColor = true;
             // 
             // btnClose
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClose.Location = new System.Drawing.Point(12, 276);
+            this.btnClose.Location = new System.Drawing.Point(93, 304);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
             this.btnClose.TabIndex = 2;
@@ -184,39 +249,50 @@
             // 
             this.btnExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnExport.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnExport.Location = new System.Drawing.Point(93, 276);
+            this.btnExport.Location = new System.Drawing.Point(12, 304);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(75, 23);
             this.btnExport.TabIndex = 3;
             this.btnExport.Text = "Export";
             this.btnExport.UseVisualStyleBackColor = true;
             // 
-            // chkUpdateSpriteSource
+            // groupBoxSpriteProperties
             // 
-            this.chkUpdateSpriteSource.AutoSize = true;
-            this.chkUpdateSpriteSource.Location = new System.Drawing.Point(65, 108);
-            this.chkUpdateSpriteSource.Name = "chkUpdateSpriteSource";
-            this.chkUpdateSpriteSource.Size = new System.Drawing.Size(179, 17);
-            this.chkUpdateSpriteSource.TabIndex = 5;
-            this.chkUpdateSpriteSource.Text = "Set exported file as sprite source";
-            this.chkUpdateSpriteSource.UseVisualStyleBackColor = true;
+            this.groupBoxSpriteProperties.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxSpriteProperties.Controls.Add(this.chkUpdateSpriteSource);
+            this.groupBoxSpriteProperties.Location = new System.Drawing.Point(12, 248);
+            this.groupBoxSpriteProperties.Name = "groupBoxSpriteProperties";
+            this.groupBoxSpriteProperties.Size = new System.Drawing.Size(409, 44);
+            this.groupBoxSpriteProperties.TabIndex = 6;
+            this.groupBoxSpriteProperties.TabStop = false;
+            this.groupBoxSpriteProperties.Text = "Sprite properties";
             // 
             // SpriteExportDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(434, 311);
+            this.ClientSize = new System.Drawing.Size(434, 339);
             this.Controls.Add(this.btnExport);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.groupBoxSaveAs);
             this.Controls.Add(this.groupBoxExport);
+            this.Controls.Add(this.groupBoxSpriteProperties);
+            this.MaximizeBox = false;
+            this.MaximumSize = new System.Drawing.Size(4096, 378);
+            this.MinimizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(450, 378);
             this.Name = "SpriteExportDialog";
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Sprite export";
             this.groupBoxExport.ResumeLayout(false);
             this.groupBoxExport.PerformLayout();
             this.groupBoxSaveAs.ResumeLayout(false);
             this.groupBoxSaveAs.PerformLayout();
+            this.contextMenuStripExport.ResumeLayout(false);
+            this.groupBoxSpriteProperties.ResumeLayout(false);
+            this.groupBoxSpriteProperties.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -237,5 +313,12 @@
         private System.Windows.Forms.Button btnExport;
         private System.Windows.Forms.CheckBox chkSkipValidSpriteSource;
         private System.Windows.Forms.CheckBox chkUpdateSpriteSource;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStripExport;
+        private System.Windows.Forms.ToolStripMenuItem menuItemCopy;
+        private System.Windows.Forms.ToolStripMenuItem menuItemPaste;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem menuItemToken;
+        private System.Windows.Forms.ToolStripMenuItem menuItemCut;
+        private System.Windows.Forms.GroupBox groupBoxSpriteProperties;
     }
 }

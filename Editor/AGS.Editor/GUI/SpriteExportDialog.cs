@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -49,6 +50,15 @@ namespace AGS.Editor
                 radRootFolder.Checked = true;
                 radThisFolder.Enabled = false;
             }
+
+            List<ToolStripMenuItem> tokens = new List<ToolStripMenuItem>();
+
+            foreach(PropertyInfo property in typeof(Sprite).GetProperties())
+            {
+                tokens.Add(new ToolStripMenuItem(String.Format("%{0}%", property.Name)));
+            }
+
+            menuItemToken.DropDownItems.AddRange(tokens.ToArray());
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
@@ -58,6 +68,67 @@ namespace AGS.Editor
             if (folderPath != null)
             {
                 txtFolder.Text = folderPath;
+            }
+        }
+
+        private void contextMenuStripExport_Opening(object sender, CancelEventArgs e)
+        {
+            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
+
+            if (textbox != null)
+            {
+                menuItemCopy.Enabled =
+                    menuItemCut.Enabled = textbox.SelectionLength > 0;
+
+                menuItemPaste.Enabled = Clipboard.ContainsText();
+            }
+        }
+
+        private void menuItemCopy_Click(object sender, EventArgs e)
+        {
+            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
+
+            if (textbox != null)
+            {
+                textbox.Copy();
+            }
+        }
+
+        private void menuItemCut_Click(object sender, EventArgs e)
+        {
+            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
+
+            if (textbox != null)
+            {
+                textbox.Cut();
+            }
+        }
+
+        private void menuItemPaste_Click(object sender, EventArgs e)
+        {
+            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
+
+            if (textbox != null)
+            {
+                textbox.Paste();
+            }
+        }
+
+        private void menuItemToken_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
+
+            if (textbox != null)
+            {
+                int index = textbox.SelectionStart;
+
+                if (textbox.SelectionLength != 0)
+                {
+                    textbox.Text = textbox.Text.Remove(index, textbox.SelectionLength);
+                }
+
+                textbox.Text = textbox.Text.Insert(index, e.ClickedItem.Text);
+                textbox.SelectionStart = index + e.ClickedItem.Text.Length;
             }
         }
     }

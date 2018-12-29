@@ -36,8 +36,6 @@ int ScriptCamera::Serialize(const char *address, char *buffer, int bufsize)
     SerializeInt(cam.Position.Top);
     SerializeInt(cam.Position.GetWidth());
     SerializeInt(cam.Position.GetHeight());
-    SerializeFloat(cam.ScaleX);
-    SerializeFloat(cam.ScaleY);
     return EndSerialize();
 }
 
@@ -50,14 +48,7 @@ void ScriptCamera::Unserialize(int index, const char *serializedData, int dataSi
     int y = UnserializeInt();
     int w = UnserializeInt();
     int h = UnserializeInt();
-    float scalex = UnserializeFloat();
-    float scaley = UnserializeFloat();
-    if (scalex >= 0.f && scaley >= 0.f)
-        play.SetRoomCameraAutoSize(scalex, scaley);
-    else if (w > 0 && h > 0)
-        play.SetRoomCameraSize(Size(w, h));
-    else
-        play.SetRoomCameraAutoSize(1.f, 1.f);
+    play.SetRoomCameraSize(Size(w, h));
     if (flags & kScCamPosLocked)
         play.LockRoomCameraAt(x, y);
     else

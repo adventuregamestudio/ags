@@ -25,15 +25,13 @@ struct RoomCamera
 {
     // Actual position and orthographic size
     Rect Position;
-    // Automatic scaling used to resize the camera's picture to the viewport
-    float ScaleX;
-    float ScaleY;
     // Locked or following player automatically
     bool Locked;
 };
 
 struct Viewport
 {
+    // Position of the viewport on screen
     Rect Position;
     // TODO: Camera reference (when supporting multiple cameras)
     // Coordinate tranform between camera and viewport

@@ -19,6 +19,9 @@
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
 #include "ac/screen.h"
+#include "ac/dynobj/scriptviewport.h"
+#include "ac/dynobj/scriptuserobject.h"
+#include "script/script_runtime.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -106,4 +109,90 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
     saved_viewport_bitmap->Acquire();
     IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap, false);
     return ddb;
+}
+
+//=============================================================================
+//
+// Screen script API.
+//
+//=============================================================================
+
+int Screen_GetScreenWidth()
+{
+    return game.size.Width;
+}
+
+int Screen_GetScreenHeight()
+{
+    return game.size.Height;
+}
+
+bool Screen_GetAutoSizeViewport()
+{
+    return play.IsAutoRoomViewport();
+}
+
+void Screen_SetAutoSizeViewport(bool on)
+{
+    play.SetAutoRoomViewport(on);
+}
+
+ScriptViewport* Screen_GetViewport()
+{
+    ScriptViewport *viewport = new ScriptViewport();
+    ccRegisterManagedObject(viewport, viewport);
+    return viewport;
+}
+
+ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
+{
+    multiply_up_coordinates(&scrx, &scry);
+
+    const Rect &view = play.GetRoomViewport();
+    if (!view.IsInside(scrx, scry))
+        return NULL;
+    Point pt = play.ScreenToRoom(scrx, scry);
+
+    divide_down_coordinates(pt.X, pt.Y);
+    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
+}
+
+RuntimeScriptValue Sc_Screen_GetScreenHeight(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Screen_GetScreenHeight);
+}
+
+RuntimeScriptValue Sc_Screen_GetScreenWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Screen_GetScreenWidth);
+}
+
+RuntimeScriptValue Sc_Screen_GetAutoSizeViewport(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Screen_GetAutoSizeViewport);
+}
+
+RuntimeScriptValue Sc_Screen_SetAutoSizeViewport(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PBOOL(Screen_SetAutoSizeViewport);
+}
+
+RuntimeScriptValue Sc_Screen_GetViewport(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptViewport, Screen_GetViewport);
+}
+
+RuntimeScriptValue Sc_Screen_ScreenToRoomPoint(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_ScreenToRoomPoint);
+}
+
+void RegisterScreenAPI()
+{
+    ccAddExternalStaticFunction("Screen::get_Height", Sc_Screen_GetScreenHeight);
+    ccAddExternalStaticFunction("Screen::get_Width", Sc_Screen_GetScreenWidth);
+    ccAddExternalStaticFunction("Screen::get_AutoSizeViewportOnRoomLoad", Sc_Screen_GetAutoSizeViewport);
+    ccAddExternalStaticFunction("Screen::set_AutoSizeViewportOnRoomLoad", Sc_Screen_SetAutoSizeViewport);
+    ccAddExternalStaticFunction("Screen::get_Viewport", Sc_Screen_GetViewport);
+    ccAddExternalStaticFunction("Screen::ScreenToRoomPoint", Sc_Screen_ScreenToRoomPoint);
 }

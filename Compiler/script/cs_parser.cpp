@@ -972,14 +972,14 @@ void free_pointers_from_struct(ccCompiledScript *scrip, ags::Symbol_t structVarS
         
         if ((sym.entries[entries_idx].flags & SFLG_POINTER) == 0)
         {
-            // if non-pointer struct, need to process its members
-            // **** TODO
+            // original comment: "if non-pointer struct, need to process its members
+            // **** TODO"
             // [fw] depends on how that struct of struct is in the symbol table;
             //      STRUCTSYM.SUBSTRUCTSYM perhaps?
-            // ags:Symbol substruct = find(....);
-            // if (substruct is not in the symtable) continue;
+            //      ags:Symbol substruct = find(....);
+            //      if (substruct is not in the symtable) continue;
 
-            // free_pointers_from_struct(scrip, substruct);
+            //      free_pointers_from_struct(scrip, substruct);
             
             continue;
         }
@@ -2416,11 +2416,10 @@ int read_var_or_funccall(ccInternalList *targ, ags::Symbol_t fsym, ags::SymbolSc
     if (!sym.entries[fsym].is_loadable_variable())
     {
         if (sym.get_type(fsym) != SYM_VARTYPE) return 0; // Must be a type
-        // [fw] Should make sure here that it's a _struct_ type, too
     }
 
     slist_len = 0;
-    slist[slist_len++] = fsym; // [fw] slist.append(fsym);
+    slist[slist_len++] = fsym; 
 
     bool justHadBrackets = false;
     if (targ->peeknext() == SCODE_INVALID) return 0;
@@ -2623,6 +2622,7 @@ inline int get_write_command_for_size(int the_size)
     case 2:  return SCMD_MEMWRITEW;
     }
 }
+
 
 // [fw] That is a HUGE code smell.
 int readcmd_lastcalledwith = 0;
@@ -3196,11 +3196,7 @@ int parse_subexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags:
 
 
     // function return type
-    // [fw] So, why do we need that global?
-    //      --> because expressions aren't marked with the type they have.
-    //      Expressions are compiled to give their result to AX, and 
-    //      the type and scope of this result is here.
-    //      This is an alias for "type of the current expression". 
+    // This is an alias for "type of the current expression". 
     scrip->ax_val_type = sym.entries[funcSymbol].funcparamtypes[0];
     scrip->ax_val_scope = SYM_LOCALVAR;
 
@@ -3253,16 +3249,8 @@ int parse_subexpr_NoOps(ccCompiledScript * scrip, ags::SymbolScript_t symlist, s
     }
 
     // Find out whether this is a variable or function call; if so, copy it to vnlist
-    // [fw] AFAICS, the main reason for the copy is skipping over META linennumber statements.
-    //      If so much code depends on a META-free symbol array, 
-    //      we shouldn't generate METAs in the first place.
-    //      TODO: Have an object that knows for each position of the code what linenumber
-    //      it belongs to. We rip out code and yank it back later; this object needs to be
-    //      told about that so that it can track that.
-    //      The object might be a vector of (size_t, size_t) sorted by the 1st component.
-    //      (A, B) means beginning from A, the line number is B
-    //      Lookup could be by binary search.
-    // [fw] TODO: There should be an object that contains a char * and a len.
+    // We need to copy the bytes because a lot of code depends on the fact that there
+    // are no METAs interspersed between the symbols. 
     ags::Symbol_t vnlist[TEMP_SYMLIST_LENGTH];
     size_t vnlist_len;
     int funcAtOffs = 0;
@@ -3357,6 +3345,7 @@ int get_array_index_into_ax(ccCompiledScript *scrip, ags::SymbolScript_t symlist
 
     // save the size of the array element, so it doesn't get
     // overwritten by the size of the array index variable
+    // [fw] Passing info around through a global variable: That is a HUGE code smell.
     int saveOldReadcmd = readcmd_lastcalledwith;
     // parse expression inside brackets to return the array index in AX
     int retval = parse_subexpr(scrip, &symlist[openBracketOffs + 1], closeBracketOffs - (openBracketOffs + 1));
@@ -4263,7 +4252,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, ags::Symbol_t variableSym
         if (retval < 0) return retval;
     }
 
-    // [fw] Must be set when reading OR writing
+    // Must be set both when reading OR writing
     scrip->ax_val_type = gotValType;
 
     if (isProperty)
@@ -4404,7 +4393,7 @@ int evaluate_assignment_CheckLHSIsAssignable(ags::Symbol_t cursym, const ags::Sy
 // If it is a (static or dynamic) array, then check whether the assignment is allowed.
 int evaluate_assignment_ArrayChecks(ags::Symbol_t cursym, ags::Symbol_t nextsym, size_t vnlist_len)
 {
-    // [fw] This isn't good enough. What if the array is in a struct? 
+    // [fw] This may not be good enough. What if the array is in a struct? 
     //      Then the checks won't run.
     if ((sym.entries[cursym].flags & SFLG_DYNAMICARRAY) != 0) 
     {
@@ -4496,6 +4485,7 @@ int evaluate_assignment_SAssign(ccCompiledScript * scrip, ags::Symbol_t ass_symb
     {
         // since the MAR won't have changed, we can directly write
         // the value back to it without re-calculating the offset
+        // [fw] That is a HUGE code smell.
         scrip->write_cmd1(get_readwrite_cmd_for_size(readcmd_lastcalledwith, true), SREG_AX);
         return 0;
     }
@@ -4670,7 +4660,7 @@ int parse_var_decl_InitialValAssignment_ToGlobal(ccInternalList *targ, long varn
         return -1;
     }
 
-    // [fw] This check will probably fail for one-element structs
+    // [fw] This check will probably fail to work for structs that contain just 1 int.
     if (sym.entries[varname].ssize > 4)
     {
         cc_error("Cannot initialize struct type");
@@ -4836,8 +4826,6 @@ int parse_var_decl_StringDecl_Local(ccCompiledScript * scrip, ags::Symbol_t var_
                                     // CX will contain the address of the new memory, which will be added to the stack
     scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_CX); // Copy current stack pointer to CX
     scrip->write_cmd2(SCMD_ADD, SREG_SP, STRING_LENGTH); // write code for reserving STRING LENGTH bytes 
-    
-    // [fw] So what will happen with this CX value?
     return 0;
 }
 
@@ -5472,10 +5460,8 @@ int cs_parser_struct_CheckMemberNotInInheritedStruct(
     return 0;
 }
 
-
-// [fw] "in_func" is only used for funcs that are part of structs: The function body must not
-//      be included in a struct declaration. But this is true irrespective of whether the struct
-//      is declared within a function or not. We can probably do without this variable.
+// We have accepted something like "struct foo extends bar { const int".
+// We're waiting for the name of the member.
 int cs_parser_struct_MemberDefnVarOrFuncOrArray(
     ccInternalList *targ,
     ccCompiledScript * scrip,
@@ -5493,14 +5479,11 @@ int cs_parser_struct_MemberDefnVarOrFuncOrArray(
     bool type_is_static,
     int &size_so_far)
 {
+    // [fw] "in_func" is only used for funcs that are part of structs: The function body must not
+    //      be included in a struct declaration. But this is true irrespective of whether the struct
+    //      is declared within a function or not. We can probably do without this variable.
 
-    // [fw] TODO: This function still is far to complex and big. Cut it up
-
-
-    // Here when we have accepted something like "struct foo extends bar { const int".
-    // We're waiting for the name of the member.
-
-    ags::Symbol_t vname = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
+        ags::Symbol_t vname = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
     bool isDynamicArray = false;
 
     // Check whether "[]" is behind the type. 
@@ -5512,17 +5495,12 @@ int cs_parser_struct_MemberDefnVarOrFuncOrArray(
         vname = targ->getnext();
     }
 
-
-    // [fw] sym.get_name çomputes a string internally, then computes a char * from that and returns that. 
-    //      Kludgy.
     const char *memberExt = sym.get_name(vname);
     memberExt = strstr(memberExt, "::");
 
     bool isFunction = sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS;
 
     // If this is a member variable of the struct, then change the symbol to the fully qualified name.
-    // [fw] Values higher than normalFloatSym are either void or (?) custom types.
-    //      There ought to be a function for this: "normalFloatSym", used in this way, is a magic number.
     if (!isFunction && sym.get_type(vname) == SYM_VARTYPE && !sym_is_predef_typename(vname) && memberExt == NULL)
     {
         const char *new_name = get_member_full_name(stname, vname);
@@ -5788,9 +5766,9 @@ int cs_parser_struct_MemberDefn(
         type_is_import);
     if (retval < 0) return retval;
 
-    // [fw] NOTE! struct foo { int * a, b, c;}
-    //            This declares b to be an int pointer; but in C or C++, b would be an int
-    //            Bug?
+    // [fw] "struct foo { int * a, b, c;}"
+    //      This declares b to be an int pointer; but in C or C++, b would be an int
+    //      Bug?
 
     // run through all variables declared on this member defn.
     while (true)

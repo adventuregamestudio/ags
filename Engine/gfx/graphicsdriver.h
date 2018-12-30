@@ -162,11 +162,16 @@ public:
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;
-  // Returns memory backbuffer for the current stage screen (or base virtual screen if called outside of render pass).
+  // Returns the virtual screen. Will return NULL if renderer does not support memory backbuffer.
+  // In normal case you should use GetStageBackBuffer() instead.
   virtual Common::Bitmap* GetMemoryBackBuffer() = 0;
-  // Sets base virtual screen to render to, optionally configure offsets at which this screen has to be blitted
-  // to the final render surface.
+  // Sets custom backbuffer bitmap to render to, optionally configure offsets at which this screen has to be blitted
+  // to the final render surface. Passing NULL pointer will tell renderer to switch back to its original virtual screen.
+  // Note that only software renderer supports this.
   virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer, int offx = 0, int offy = 0) = 0;
+  // Returns memory backbuffer for the current rendering stage (or base virtual screen if called outside of render pass).
+  // All renderers should support this.
+  virtual Common::Bitmap* GetStageBackBuffer() = 0;
   virtual bool RequiresFullRedrawEachFrame() = 0;
   virtual bool HasAcceleratedTransform() = 0;
   virtual bool UsesMemoryBackBuffer() = 0;

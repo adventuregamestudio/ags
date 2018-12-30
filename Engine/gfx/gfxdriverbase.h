@@ -179,6 +179,7 @@ public:
     virtual bool UsesMemoryBackBuffer();
     virtual Bitmap *GetMemoryBackBuffer();
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy);
+    virtual Bitmap* GetStageBackBuffer();
 
 protected:
     // Stage screens are raw bitmap buffers meant to be sent to plugins on demand

@@ -176,6 +176,7 @@ public:
     virtual bool UsesMemoryBackBuffer() { return true; }
     virtual Bitmap *GetMemoryBackBuffer();
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy);
+    virtual Bitmap *GetStageBackBuffer();
     virtual void SetScreenTint(int red, int green, int blue) { 
         _tint_red = red; _tint_green = green; _tint_blue = blue; }
     virtual ~ALSoftwareGraphicsDriver();

@@ -571,7 +571,7 @@ void ALSoftwareGraphicsDriver::Vsync()
 
 Bitmap *ALSoftwareGraphicsDriver::GetMemoryBackBuffer()
 {
-  return _stageVirtualScreen;
+  return virtualScreen;
 }
 
 void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
@@ -587,6 +587,11 @@ void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx,
     _virtualScrOff = Point();
   }
   _stageVirtualScreen = virtualScreen;
+}
+
+Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer()
+{
+    return _stageVirtualScreen;
 }
 
 void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)

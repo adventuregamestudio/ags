@@ -176,16 +176,19 @@ const char* IAGSEngine::GetGraphicsDriverID()
 
 BITMAP *IAGSEngine::GetScreen () 
 {
+    // TODO: we could actually return stage buffer here, will that make a difference?
     if (!gfxDriver->UsesMemoryBackBuffer())
-        quit("!This plugin is not compatible with the Direct3D driver.");
+        quit("!This plugin is not compatible with the hardware-accelerated graphic drivers.");
 
 	return (BITMAP*)BitmapHelper::GetScreenBitmap()->GetAllegroBitmap();
 }
+
 BITMAP *IAGSEngine::GetVirtualScreen () 
 {
-	// [IKM] Aaahh... this is very dangerous, but what can we do?
-	return (BITMAP*)gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap();
+    Bitmap *stage = gfxDriver->GetStageBackBuffer();
+    return stage ? (BITMAP*)stage->GetAllegroBitmap() : NULL;
 }
+
 void IAGSEngine::RequestEventHook (int32 event) {
     if (event >= AGSE_TOOHIGH) 
         quit("!IAGSEngine::RequestEventHook: invalid event requested");
@@ -232,12 +235,16 @@ int IAGSEngine::GetSavedData (char *buffer, int32 bufsize) {
 
     return savedatasize;
 }
+
 void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text) 
 {
-    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
+    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    if (!ds)
+        return;
     color_t text_color = ds->GetCompatibleColor(color);
     draw_and_invalidate_text(ds, x, y, font, text_color, text);
 }
+
 void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth) {
     if (width != NULL)
         width[0] = play.GetMainViewport().GetWidth();
@@ -246,26 +253,34 @@ void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldep
     if (coldepth != NULL)
         coldepth[0] = scsystem.coldepth;
 }
-unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
-    if (!is_linear_bitmap (bmp))
-        quit("!IAGSEngine::GetRawBitmapSurface: invalid bitmap for access to surface");
-    acquire_bitmap (bmp);
 
-    if (bmp == gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap())
+unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp)
+{
+    if (!is_linear_bitmap(bmp))
+        quit("!IAGSEngine::GetRawBitmapSurface: invalid bitmap for access to surface");
+    acquire_bitmap(bmp);
+
+    Bitmap *stage = gfxDriver->GetStageBackBuffer();
+    if (stage && bmp == stage->GetAllegroBitmap())
         plugins[this->pluginId].invalidatedRegion = 0;
 
     return bmp->line;
 }
-void IAGSEngine::ReleaseBitmapSurface (BITMAP *bmp) {
+
+void IAGSEngine::ReleaseBitmapSurface (BITMAP *bmp)
+{
     release_bitmap (bmp);
 
-    if (bmp == gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap()) {
+    Bitmap *stage = gfxDriver->GetStageBackBuffer();
+    if (stage && bmp == stage->GetAllegroBitmap())
+    {
         // plugin does not manaually invalidate stuff, so
         // we must invalidate the whole screen to be safe
         if (!plugins[this->pluginId].invalidatedRegion)
             invalidate_screen();
     }
 }
+
 void IAGSEngine::GetMousePosition (int32 *x, int32 *y) {
     if (x) x[0] = mousex;
     if (y) y[0] = mousey;
@@ -301,18 +316,23 @@ int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
 int IAGSEngine::FWrite (void *buffer, int32 len, int32 handle) {
     return fwrite (buffer, 1, len, (FILE*)handle);
 }
-void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int32 color, const char*text) {
+
+void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int32 color, const char*text)
+{
     // TODO: use generic function from the engine instead of having copy&pasted code here
     int linespacing = getfontspacing_outlined(font);
 
     break_up_text_into_lines (wid, font, (char*)text);
 
-    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
+    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    if (!ds)
+        return;
     color_t text_color = ds->GetCompatibleColor(color);
     multiply_up_coordinates((int*)&xx, (int*)&yy); // stupid! quick tweak
     for (int i = 0; i < numlines; i++)
         draw_and_invalidate_text(ds, xx, yy + linespacing*i, font, text_color, lines[i]);
 }
+
 void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
 	// [IKM] Very, very dangerous :'(
     // TODO: this won't work with hardware-accelerated renderers
@@ -321,19 +341,33 @@ void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
 int IAGSEngine::LookupParserWord (const char *word) {
     return find_word_in_dictionary ((char*)word);
 }
-void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
-    wputblock_raw (gfxDriver->GetMemoryBackBuffer(), x, y, bmp, masked);
+
+void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked)
+{
+    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    if (!ds)
+        return;
+    wputblock_raw(ds, x, y, bmp, masked);
     invalidate_rect(x, y, x + bmp->w, y + bmp->h, false);
 }
-void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
+
+void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans)
+{
+    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    if (!ds)
+        return;
     Bitmap wrap(bmp, true);
     if (gfxDriver->UsesMemoryBackBuffer())
-        GfxUtil::DrawSpriteWithTransparency(gfxDriver->GetMemoryBackBuffer(), &wrap, x, y, trans);
+        GfxUtil::DrawSpriteWithTransparency(ds, &wrap, x, y, trans);
     else
-        GfxUtil::DrawSpriteBlend(gfxDriver->GetMemoryBackBuffer(), Point(x,y), &wrap, kBlendMode_Alpha, true, false, trans);
+        GfxUtil::DrawSpriteBlend(ds, Point(x,y), &wrap, kBlendMode_Alpha, true, false, trans);
 }
-void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
-    Common::Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
+
+void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
+{
+    Bitmap *ds = gfxDriver->GetStageBackBuffer();
+    if (!ds)
+        return;
     // FIXME: call corresponding Graphics Blit
     rotate_sprite(ds->GetAllegroBitmap(), bmp, x, y, itofix(angle));
 }

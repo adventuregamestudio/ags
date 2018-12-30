@@ -40,8 +40,6 @@ struct ccCompiledScript : public ccScript {
     void set_line_number(int nlum) { next_line = nlum; }
     void flush_line_numbers();
     int  remove_any_import(const char*, SymbolDef *oldSym); // deprecated
-    int  just_remove_any_import(ags::Symbol sym);
-    int  copy_import_symbol_table_entry(ags::Symbol sym, SymbolTableEntry *symbolTEntry);
     const char* start_new_section(const char *name);
 
     void write_cmd(int cmdd);
@@ -56,6 +54,8 @@ struct ccCompiledScript : public ccScript {
 
     //intptr_t ccCompiledScript::yank_chunk(int32_t start, intptr_t **nested_chunk, int index);
     //void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t chunk_size, bool dispose, int fixup_start, int fixup_stop, int32_t adjust);
+    int ccCompiledScript::copy_import_symbol_table_entry(ags::Symbol_t idx, SymbolTableEntry *dest);
+    int ccCompiledScript::just_remove_any_import(ags::Symbol_t idx);
 
     ccCompiledScript();
     virtual ~ccCompiledScript();

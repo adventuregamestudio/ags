@@ -125,7 +125,7 @@ protected:
     inline bool islower(int ch) { return (ch >= 'a' && ch <= 'z'); }
     inline bool isspace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
 
-    inline void WriteNewLinenoMeta(int ln) { const Symbol smeta_linenum = (Symbol)1; TokenList->write_meta(smeta_linenum, ln); }
+    inline void WriteNewLinenoMeta(int ln) { const Symbol_t smeta_linenum = (Symbol_t)1; TokenList->write_meta(smeta_linenum, ln); }
 
 private:
     std::istringstream InputStream;
@@ -244,136 +244,18 @@ private:
     int ParenthesisNestingDepth;
     std::deque<int> TokenBuffer;
 
-    inline Symbol TokenType(int token) { return SymbolTable->entries[token].stype; }
+    inline Symbol_t TokenType(int token) { return SymbolTable->entries[token].stype; }
     inline std::string TokenName(int token) { return SymbolTable->entries[token].sname; }
-    inline void SetTokenType(int token, Symbol value) { SymbolTable->entries[token].stype = value; }
+    inline void SetTokenType(int token, Symbol_t value) { SymbolTable->entries[token].stype = value; }
     inline void SetTokenOffsetInStrings(int token, int value) { SymbolTable->entries[token].soffs = value; }
-    inline void SetTokenVartype(int token, Symbol value) { SymbolTable->entries[token].vartype = value; }
+    inline void SetTokenVartype(int token, Symbol_t value) { SymbolTable->entries[token].vartype = value; }
 };
 
-class ExpressionValue
-{
-public:
-    size_t FrameOffset;
-    bool IsLocal;
-
-    enum ValueType
-    {
-        VTNothing = 0,
-        VTIntConst,
-        VTFloatConst,
-        VTStringConst,
-        VTStruct,
-        VTArray,
-        VTPointer,
-        VTFunction,
-        VTProperty,
-    } Type;
-
-    enum ValueLocation
-    {
-        LCNone = 0,
-        LCRegister_A,
-        LCStack,
-        LCHere, // for literals
-    } Location;
-};
-
-class IntValue : public ExpressionValue
-{
-public:
-    int ThisIntValue;
-};
-
-class FloatValue : public ExpressionValue
-{
-public:
-    double ThisFloatValue;
-};
-
-class StringValue : public ExpressionValue
-{
-public:
-    ::std::string ThisStringValue;
-};
-
-class StructValue : public ExpressionValue
-{
-public:
-    void *ThisStructValue;
-};
-
-class ArrayValue : public ExpressionValue
-{
-public:
-    void *ThisArrayValue;
-};
-
-class PointerValue : public ExpressionValue
-{
-public:
-    intptr_t ThisPointerValue;
-};
-
-class FunctionValue : public ExpressionValue
-{
-public:
-    intptr_t ThisFunctionValue;
-};
-
-class PropertyValue : public ExpressionValue
-{
-public:
-
-    intptr_t ThisPropertyValue;
-};
-
-
-class Expression
-{
-
-private:
-
-    bool ThisIsAssignable;
-    bool ThisIsAssignment;
-    bool ErrorEncountered;
-
-    ExpressionValue *Value;
-    symbolTable *Sym; // is NOT owned by this class
-    ccCompiledScript *Scrip; // is NOT owned by this class
-    ags::SymbolScript InputScript;
-    size_t InputScriptLength;
-
-public:
-    Expression(symbolTable *sym, ccCompiledScript *compiledscript, SymbolScript scr, size_t len);
-    // ~Expression();
-
-    bool IsAssignable();
-    void SetAssignable(bool abl);
-
-    bool IsAssignment();
-    void SetAssignment(bool ass);
-
-    ExpressionValue *GetValue();
-    void ResetValue();
-
-    // Parses the expression, generates code for it, leaves the result in Value
-    // Returns index of first non-parsed char in parsedLength.
-    // Returns a negative value on error, otherwise a 0.
-    int Parse(size_t &parsedLength);
-    int Parse(ExpressionValue *exval, ags::Symbol op, size_t &parsedLength);
-
-    // Generates code to leave the result on the stack
-    int ToStack();
-
-    // Generates code to leave the result in Register AX
-    int ToAX();
-};
 
 // A section of compiled code that needs to be moved or copied to a new location
 struct ccChunk 
 {
-    std::vector<intptr_t> Code;
+    std::vector<ags::CodeCell_t> Code;
     std::vector<int32_t> Fixups;
     std::vector<char> FixupTypes;
     int CodeOffset;
@@ -462,14 +344,14 @@ public:
     }
 
     // Push a new nesting level (returns a  value < 0 on error)
-    int Push(NestingType type, std::int32_t start, std::int32_t info);
+    int Push(NestingType type, ags::CodeLoc_t start, ags::CodeLoc_t info);
     inline int Push(NestingType type) { return Push(type, 0, 0); };
 
     // Pop a nesting level
     inline void Pop() { Stack.pop_back(); };
 
     // Rip a generated chunk of code out of the codebase and stash it away for later 
-    void YankChunk(::ccCompiledScript *scrip, size_t codeoffset, size_t fixupoffset);
+    void YankChunk(::ccCompiledScript *scrip, ags::CodeLoc_t codeoffset, ags::CodeLoc_t fixupoffset);
 
     // Write chunk of code back into the codebase that has been stashed in level given, at index
     void WriteChunk(::ccCompiledScript *scrip, size_t level, size_t index);

@@ -952,7 +952,6 @@ TEST(Compatibility, Switch) {
 
 }
 
-
 TEST(Compatibility, FreeLocalPtr) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -1005,4 +1004,76 @@ TEST(Compatibility, FreeLocalPtr) {
     const size_t numfixups = 0;
     EXPECT_EQ(numfixups, scrip->numfixups);
 
+}
+
+TEST(Compatibility, Strings1) {
+#include "script/cc_options.h"
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        string GLOBAL; \
+\
+        string MyFunction(int a)\
+        {\
+            string x;\
+            return GLOBAL;\
+        }\
+        ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+
+    writeoutput("Strings1", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 32;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            5,    1,    1,  200,    // 7
+       3,    1,    2,    8,            5,    1,    1,    4,    // 15
+       6,    2,  200,    7,            3,    2,    1,  204,    // 23
+       5,    6,    3,    0,            2,    1,  204,    5,    // 31
+     -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+     200,   18,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      5,   1,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
 }

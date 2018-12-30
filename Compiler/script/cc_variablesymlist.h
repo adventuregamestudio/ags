@@ -4,11 +4,11 @@
 
 struct VariableSymlist {
     int len;
-    ags::SymbolScript syml;
+    ags::SymbolScript_t syml;
     void init(int pLen)
     {
         len = pLen;
-        syml = static_cast<ags::SymbolScript>(malloc(sizeof(ags::Symbol) * len));
+        syml = static_cast<ags::SymbolScript_t>(malloc(sizeof(ags::Symbol_t) * len));
     }
 
     void destroy()

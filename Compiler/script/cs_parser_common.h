@@ -1,5 +1,6 @@
 #ifndef __CS_PARSER_COMMON_H
 #define __CS_PARSER_COMMON_H
+#include <cstdint>
 
 #define NEW_SCRIPT_TOKEN_PREFIX "\"__NEWSCRIPTSTART_"
 #define STRING_LENGTH 200   // how big to make strings
@@ -104,11 +105,16 @@ extern int is_alphanum(int chrac);
 namespace ags
 {
 // A symbol (result of scanner preprocessing)
-typedef int Symbol;
+typedef int Symbol_t;
 
 // A buffer of symbols 
-// [fw] typedef SymbolScript vector<Symbol>
-typedef Symbol *SymbolScript;
+typedef Symbol_t *SymbolScript_t;
+
+// A code cell (content)
+typedef std::intptr_t CodeCell_t;
+
+// A code location, may be negative
+typedef std::intptr_t CodeLoc_t;
 } // namespace ags
 
 #endif // __CS_PARSER_COMMON_H

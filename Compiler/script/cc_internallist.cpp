@@ -11,7 +11,7 @@ bool ccInternalList::isPosValid(int pos) {
     return pos >= 0 && pos < length;
 }
 
-ags::Symbol ccInternalList::peeknext() {
+ags::Symbol_t ccInternalList::peeknext() {
     int tpos = pos;
     // this should work even if 3 bytes aren't remaining
     while (isPosValid(tpos) && (script[tpos] == SCODE_META))
@@ -25,12 +25,12 @@ ags::Symbol ccInternalList::peeknext() {
     }
     else
     {
-        return static_cast<ags::Symbol>(SCODE_INVALID);
+        return static_cast<ags::Symbol_t>(SCODE_INVALID);
     }
 }
 
 
-ags::Symbol ccInternalList::getnext() {
+ags::Symbol_t ccInternalList::getnext() {
     // process line numbers internally
     while (isPosValid(pos) && script[pos] == SCODE_META)
     {
@@ -60,7 +60,7 @@ ags::Symbol ccInternalList::getnext() {
         {
             currentline = -10;
         }
-        return static_cast<ags::Symbol>(SCODE_INVALID);
+        return static_cast<ags::Symbol_t>(SCODE_INVALID);
     }
 
     if (isPosValid(pos))
@@ -69,13 +69,13 @@ ags::Symbol ccInternalList::getnext() {
     }
     else
     {
-        return static_cast<ags::Symbol>(SCODE_INVALID);
+        return static_cast<ags::Symbol_t>(SCODE_INVALID);
     }
 }
 
 
-void ccInternalList::write(ags::Symbol value) {
-    if ((length + 1) * sizeof(ags::Symbol) >= (unsigned long)allocated)
+void ccInternalList::write(ags::Symbol_t value) {
+    if ((length + 1) * sizeof(ags::Symbol_t) >= (unsigned long)allocated)
     {
 
         if (allocated < 1000)
@@ -87,7 +87,7 @@ void ccInternalList::write(ags::Symbol value) {
             allocated *= 2;
         }
 
-        script = static_cast<ags::SymbolScript>(realloc(script, allocated));
+        script = static_cast<ags::SymbolScript_t>(realloc(script, allocated));
         // TODO: this doesn't check realloc result
     }
     script[length] = value;
@@ -95,10 +95,10 @@ void ccInternalList::write(ags::Symbol value) {
 }
 
 // write a meta symbol (ie. non-code thingy)
-void ccInternalList::write_meta(ags::Symbol type, int param) {
-    write((ags::Symbol) SCODE_META);
+void ccInternalList::write_meta(ags::Symbol_t type, int param) {
+    write((ags::Symbol_t) SCODE_META);
     write(type);
-    write((ags::Symbol) param);
+    write((ags::Symbol_t) param);
 }
 
 void ccInternalList::shutdown() {

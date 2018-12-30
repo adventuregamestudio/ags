@@ -12,17 +12,16 @@
 struct ccInternalList {
     int length;    // size of array, in ints
     int allocated; // memory allocated for array, in bytes
-    ags::SymbolScript script;
+    ags::SymbolScript_t script;
     int pos;
     int lineAtEnd;
     int cancelCurrentLine;  // whether to set currentline=-10 if end reached
 
     void startread();
-    ags::Symbol peeknext();
-    ags::Symbol getnext();  // and update global current_line
-    void write(ags::Symbol value);
-    // write a meta symbol (ie. non-code thingy)
-    void write_meta(ags::Symbol type, int param);
+    ags::Symbol_t peeknext();
+    ags::Symbol_t getnext();  // and update global current_line
+    void ccInternalList::write(ags::Symbol_t value);
+    void ccInternalList::write_meta(ags::Symbol_t type, int param);
     void shutdown();
     void init();
     ~ccInternalList();

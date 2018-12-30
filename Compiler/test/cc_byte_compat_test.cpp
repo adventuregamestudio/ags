@@ -1077,3 +1077,76 @@ TEST(Compatibility, Strings1) {
         ASSERT_EQ(is_val, test_val);
     }
 }
+
+TEST(Compatibility, Struct1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Struct               \n\
+    {                               \n\
+        float Float;                \n\
+        import int[] Func(int i);   \n\
+    };                              \n\
+                                    \n\
+    int Ret[];                      \n\
+    int[] Struct::Func(int i)       \n\
+    {                               \n\
+        this.Float = 0.0;         \n\
+        Ret = new int[5];           \n\
+        return Ret;                 \n\
+    }";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+
+    writeoutput("Struct1", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    intptr_t code[] = {
+          38,    0,    3,    1,            5,    1,    1,  200, // 7
+           3,    1,    2,    8,            5,    1,    1,    4, // 15
+           6,    2,  200,    7,            3,    2,    1,  200, // 23
+           5,    6,    3,    0,            2,    1,  200,    5, // 31
+        -999
+    };
+
+    for (size_t idx = 0; idx < scrip->codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+     200,   18,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+        5,   1,  '\0'
+    };
+
+    for (size_t idx = 0; idx < scrip->numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}

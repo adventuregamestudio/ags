@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <algorithm>
 #include <stdlib.h>
 #include <string.h>
 #include "ac/wordsdictionary.h"
@@ -96,15 +97,14 @@ void decrypt_text(char*toenc) {
   }
 }
 
-void read_string_decrypt(Stream *in, char *sss) {
-  int newlen = in->ReadInt32();
-  if ((newlen < 0) || (newlen > 5000000))
-    quit("ReadString: file is corrupt");
-
-  // MACPORT FIX: swap as usual
-  in->Read(sss, newlen);
-  sss[newlen] = 0;
-  decrypt_text(sss);
+void read_string_decrypt(Stream *in, char *buf, size_t buf_sz) {
+  size_t len = in->ReadInt32();
+  size_t slen = std::min(buf_sz - 1, len);
+  in->Read(buf, slen);
+  if (len > slen)
+      in->Seek(len - slen);
+  buf[slen] = 0;
+  decrypt_text(buf);
 }
 
 void read_dictionary (WordsDictionary *dict, Stream *out) {
@@ -112,7 +112,7 @@ void read_dictionary (WordsDictionary *dict, Stream *out) {
 
   dict->allocate_memory(out->ReadInt32());
   for (ii = 0; ii < dict->num_words; ii++) {
-    read_string_decrypt (out, dict->word[ii]);
+    read_string_decrypt (out, dict->word[ii], MAX_PARSER_WORD_LENGTH);
     dict->wordnum[ii] = out->ReadInt16();
   }
 }
@@ -139,13 +139,14 @@ void encrypt_text(char *toenc) {
   }
 }
 
-void write_string_encrypt(Stream *out, char *sss) {
-  int stlent = (int)strlen(sss) + 1;
+void write_string_encrypt(Stream *out, const char *s) {
+  int stlent = (int)strlen(s) + 1;
 
   out->WriteInt32(stlent);
-  encrypt_text(sss);
-  out->WriteArray(sss, stlent, 1);
-  decrypt_text(sss);
+  char *enc = strdup(s);
+  encrypt_text(enc);
+  out->WriteArray(enc, stlent, 1);
+  free(enc);
 }
 
 void write_dictionary (WordsDictionary *dict, Stream *out) {

@@ -20,7 +20,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screen.h"
 #include "debug/debug_log.h"
@@ -34,7 +33,7 @@ using namespace AGS::Engine;
 extern GameSetup usetup;
 extern GameState play;
 extern GameSetupStruct game;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color palette[256];

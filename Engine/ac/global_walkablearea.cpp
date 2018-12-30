@@ -16,11 +16,13 @@
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/draw.h"
-#include "ac/roomstruct.h"
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
+#include "game/roomstruct.h"
 
-extern roomstruct thisroom;
+using namespace AGS::Common;
+
+extern RoomStruct thisroom;
 
 
 int GetScalingAt (int x, int y) {
@@ -46,12 +48,12 @@ void SetAreaScaling(int area, int min, int max) {
     max -= 100;
 
     if (min == max) {
-        thisroom.walk_area_zoom[area] = min;
-        thisroom.walk_area_zoom2[area] = NOT_VECTOR_SCALED;
+        thisroom.WalkAreas[area].ScalingFar = min;
+        thisroom.WalkAreas[area].ScalingNear = NOT_VECTOR_SCALED;
     }
     else {
-        thisroom.walk_area_zoom[area] = min;
-        thisroom.walk_area_zoom2[area] = max;
+        thisroom.WalkAreas[area].ScalingFar = min;
+        thisroom.WalkAreas[area].ScalingNear = max;
     }
 }
 
@@ -74,7 +76,7 @@ void RestoreWalkableArea(int areanum) {
 
 int GetWalkableAreaAt(int x, int y) {
   Point roompt = play.ScreenToRoomDivDown(x, y);
-  if ((roompt.X>=thisroom.width) | (roompt.X<0) | (roompt.Y<0) | (roompt.Y>=thisroom.height))
+  if ((roompt.X>=thisroom.Width) | (roompt.X<0) | (roompt.Y<0) | (roompt.Y>=thisroom.Height))
     return 0;
   int result = get_walkable_area_pixel(roompt.X, roompt.Y);
   if (result <= 0)

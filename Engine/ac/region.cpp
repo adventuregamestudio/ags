@@ -15,15 +15,16 @@
 #include "ac/region.h"
 #include "ac/common_defines.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/roomstruct.h"
 #include "ac/global_region.h"
 #include "ac/roomstatus.h"
 #include "ac/dynobj/cc_region.h"
+#include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"
 
+using namespace AGS::Common;
 
-extern ScriptRegion scrRegion[MAX_REGIONS];
-extern roomstruct thisroom;
+extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
+extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern GameSetupStruct game;
 extern COLOR_MAP maincoltable;
@@ -43,38 +44,38 @@ void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
 }
 
 int Region_GetLightLevel(ScriptRegion *ssr) {
-    return thisroom.get_region_lightlevel(ssr->id);
+    return thisroom.GetRegionLightLevel(ssr->id);
 }
 
 int Region_GetTintEnabled(ScriptRegion *srr) {
-    if (thisroom.regionTintLevel[srr->id] & 0xFF000000)
+    if (thisroom.Regions[srr->id].Tint & 0xFF000000)
         return 1;
     return 0;
 }
 
 int Region_GetTintRed(ScriptRegion *srr) {
 
-    return thisroom.regionTintLevel[srr->id] & 0x000000ff;
+    return thisroom.Regions[srr->id].Tint & 0x000000ff;
 }
 
 int Region_GetTintGreen(ScriptRegion *srr) {
 
-    return (thisroom.regionTintLevel[srr->id] >> 8) & 0x000000ff;
+    return (thisroom.Regions[srr->id].Tint >> 8) & 0x000000ff;
 }
 
 int Region_GetTintBlue(ScriptRegion *srr) {
 
-    return (thisroom.regionTintLevel[srr->id] >> 16) & 0x000000ff;
+    return (thisroom.Regions[srr->id].Tint >> 16) & 0x000000ff;
 }
 
 int Region_GetTintSaturation(ScriptRegion *srr) {
 
-    return (thisroom.regionTintLevel[srr->id] >> 24) & 0xFF;
+    return (thisroom.Regions[srr->id].Tint >> 24) & 0xFF;
 }
 
 int Region_GetTintLuminance(ScriptRegion *srr)
 {
-    return thisroom.get_region_tintluminance(srr->id);
+    return thisroom.GetRegionTintLuminance(srr->id);
 }
 
 void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount, int luminance)

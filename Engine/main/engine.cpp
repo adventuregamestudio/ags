@@ -75,8 +75,8 @@ extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern char saveGameDirectory[260];
 extern SpriteCache spriteset;
-extern ObjectCache objcache[MAX_INIT_SPR];
-extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ObjectCache objcache[MAX_ROOM_OBJECTS];
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern ViewStruct*views;
 extern int displayed_room;
 extern int eip_guinum;
@@ -956,7 +956,7 @@ void engine_init_game_settings()
 
     int ee;
 
-    for (ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
+    for (ee = 0; ee < MAX_ROOM_OBJECTS + game.numcharacters; ee++)
         actsps[ee] = NULL;
 
     for (ee=0;ee<256;ee++) {
@@ -984,7 +984,7 @@ void engine_init_game_settings()
     if (playerchar->view >= 0)
         precache_view (playerchar->view);
 
-    for (ee = 0; ee < MAX_INIT_SPR; ee++)
+    for (ee = 0; ee < MAX_ROOM_OBJECTS; ee++)
         objcache[ee].image = NULL;
 
     /*  dummygui.guiId = -1;
@@ -995,7 +995,7 @@ void engine_init_game_settings()
     //  game.chars[0].talkview=4;
     //init_language_text(game.langcodes[0]);
 
-    for (ee = 0; ee < MAX_INIT_SPR; ee++) {
+    for (ee = 0; ee < MAX_ROOM_OBJECTS; ee++) {
         scrObj[ee].id = ee;
         // 64 bit: Using the id instead
         // scrObj[ee].obj = NULL;
@@ -1175,7 +1175,7 @@ void engine_init_game_settings()
     strcpy(play.game_name, game.gamename);
     play.lastParserEntry[0] = 0;
     play.follow_change_room_timer = 150;
-    for (ee = 0; ee < MAX_BSCENE; ee++) 
+    for (ee = 0; ee < MAX_ROOM_BGFRAMES; ee++) 
         play.raw_modified[ee] = 0;
     play.game_speed_modifier = 0;
     if (debug_flags & DBG_DEBUGMODE)

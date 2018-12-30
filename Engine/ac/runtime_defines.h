@@ -101,7 +101,7 @@ const int LegacyRoomVolumeFactor            = 30;
 #define FOR_SCRIPT    2
 #define FOR_EXITLOOP  3
 #define opts usetup
-#define CHMLSOFFS (MAX_INIT_SPR+1)    // reserve this many movelists for objects & stuff
+#define CHMLSOFFS (MAX_ROOM_OBJECTS+1)    // reserve this many movelists for objects & stuff
 #define MAX_SCREEN_OVERLAYS 20
 #define abort_all_conditions restrict_until
 #define MAX_SCRIPT_AT_ONCE 10

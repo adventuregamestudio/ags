@@ -50,6 +50,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "game/room_version.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -86,15 +87,15 @@ extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
 extern int numevents;
 extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_INIT_SPR];
+extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern CharacterExtras *charextra;
 extern int done_es_error;
 extern int our_eip;
 extern Bitmap *walkareabackup, *walkable_areas_temp;
-extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
-extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
+extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;
@@ -132,7 +133,7 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
         backgroundNumber = play.bg_frame;
     }
 
-    if ((backgroundNumber < 0) || (backgroundNumber >= thisroom.num_bscenes))
+    if ((backgroundNumber < 0) || ((size_t)backgroundNumber >= thisroom.BgFrameCount))
         quit("!Room.GetDrawingSurfaceForBackground: invalid background number specified");
 
 
@@ -148,45 +149,45 @@ int Room_GetObjectCount() {
 }
 
 int Room_GetWidth() {
-    return thisroom.width;
+    return thisroom.Width;
 }
 
 int Room_GetHeight() {
-    return thisroom.height;
+    return thisroom.Height;
 }
 
 int Room_GetColorDepth() {
-    return thisroom.ebscene[0]->GetColorDepth();
+    return thisroom.BgFrames[0].Graphic->GetColorDepth();
 }
 
 int Room_GetLeftEdge() {
-    return thisroom.left;
+    return thisroom.Edges.Left;
 }
 
 int Room_GetRightEdge() {
-    return thisroom.right;
+    return thisroom.Edges.Right;
 }
 
 int Room_GetTopEdge() {
-    return thisroom.top;
+    return thisroom.Edges.Top;
 }
 
 int Room_GetBottomEdge() {
-    return thisroom.bottom;
+    return thisroom.Edges.Bottom;
 }
 
 int Room_GetMusicOnLoad() {
-    return thisroom.options[ST_TUNE];
+    return thisroom.Options.StartupMusic;
 }
 
 int Room_GetProperty(const char *property)
 {
-    return get_int_property(thisroom.roomProps, croom->roomProps, property);
+    return get_int_property(thisroom.Properties, croom->roomProps, property);
 }
 
 const char* Room_GetTextProperty(const char *property)
 {
-    return get_text_property_dynamic_string(thisroom.roomProps, croom->roomProps, property);
+    return get_text_property_dynamic_string(thisroom.Properties, croom->roomProps, property);
 }
 
 bool Room_SetProperty(const char *property, int value)
@@ -200,12 +201,12 @@ bool Room_SetTextProperty(const char *property, const char *value)
 }
 
 const char* Room_GetMessages(int index) {
-    if ((index < 0) || (index >= thisroom.nummes)) {
+    if ((index < 0) || ((size_t)index >= thisroom.MessageCount)) {
         return NULL;
     }
     char buffer[STD_BUFFER_SIZE];
     buffer[0]=0;
-    replace_tokens(get_translation(thisroom.message[index]), buffer, STD_BUFFER_SIZE);
+    replace_tokens(get_translation(thisroom.Messages[index]), buffer, STD_BUFFER_SIZE);
     return CreateNewScriptString(buffer);
 }
 
@@ -219,10 +220,11 @@ ScriptCamera* Room_GetCamera()
 
 //=============================================================================
 
-Bitmap *fix_bitmap_size(Bitmap *todubl) {
+PBitmap fix_bitmap_size(PBitmap todubl)
+{
     int oldw=todubl->GetWidth(), oldh=todubl->GetHeight();
-    int newWidth = multiply_up_coordinate(thisroom.width);
-    int newHeight = multiply_up_coordinate(thisroom.height);
+    int newWidth = multiply_up_coordinate(thisroom.Width);
+    int newHeight = multiply_up_coordinate(thisroom.Height);
 
     if ((oldw == newWidth) && (oldh == newHeight))
         return todubl;
@@ -232,9 +234,8 @@ Bitmap *fix_bitmap_size(Bitmap *todubl) {
     Bitmap *tempb=BitmapHelper::CreateBitmap(newWidth, newHeight, todubl->GetColorDepth());
     tempb->SetClip(Rect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
     tempb->Fill(0);
-    tempb->StretchBlt(todubl, RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
-    delete todubl;
-    return tempb;
+    tempb->StretchBlt(todubl.get(), RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
+    return PBitmap(tempb);
 }
 
 
@@ -297,10 +298,10 @@ void unload_old_room() {
     remove_screen_overlay(-1);
     delete raw_saved_screen;
     raw_saved_screen = NULL;
-    for (ff = 0; ff < MAX_BSCENE; ff++)
+    for (ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
         play.raw_modified[ff] = 0;
-    for (ff = 0; ff < thisroom.numLocalVars; ff++)
-        croom->interactionVariableValues[ff] = thisroom.localvars[ff].Value;
+    for (size_t i = 0; i < thisroom.LocalVariables.size() && i < MAX_GLOBAL_VARIABLES; ++i)
+        croom->interactionVariableValues[i] = thisroom.LocalVariables[i].Value;
 
     // wipe the character cache when we change rooms
     for (ff = 0; ff < game.numcharacters; ff++) {
@@ -324,24 +325,24 @@ void unload_old_room() {
         ccRemoveExternalSymbol(objectScriptObjNames[ff]);
     }
 
-    for (ff = 0; ff < MAX_HOTSPOTS; ff++) {
-        if (thisroom.hotspotScriptNames[ff].IsEmpty())
+    for (ff = 0; ff < MAX_ROOM_HOTSPOTS; ff++) {
+        if (thisroom.Hotspots[ff].ScriptName.IsEmpty())
             continue;
 
-        ccRemoveExternalSymbol(thisroom.hotspotScriptNames[ff]);
+        ccRemoveExternalSymbol(thisroom.Hotspots[ff].ScriptName);
     }
 
     croom_ptr_clear();
 
     // clear the object cache
-    for (ff = 0; ff < MAX_INIT_SPR; ff++) {
+    for (ff = 0; ff < MAX_ROOM_OBJECTS; ff++) {
         delete objcache[ff].image;
         objcache[ff].image = NULL;
     }
     // clear the actsps buffers to save memory, since the
     // objects/characters involved probably aren't on the
     // new screen. this also ensures all cached data is flushed
-    for (ff = 0; ff < MAX_INIT_SPR + game.numcharacters; ff++) {
+    for (ff = 0; ff < MAX_ROOM_OBJECTS + game.numcharacters; ff++) {
         delete actsps[ff];
         actsps[ff] = NULL;
 
@@ -368,44 +369,43 @@ void unload_old_room() {
 }
 
 
-
-void convert_room_coordinates_to_low_res(roomstruct *rstruc)
+// TODO: merge this into UpdateRoomData?
+void convert_room_coordinates_to_low_res(RoomStruct *rstruc)
 {
-    int f;
-    for (f = 0; f < rstruc->numsprs; f++)
+    for (size_t i = 0; i < rstruc->ObjectCount; ++i)
     {
-        rstruc->sprs[f].x /= 2;
-        rstruc->sprs[f].y /= 2;
-        if (rstruc->objbaseline[f] > 0)
+        rstruc->Objects[i].X /= 2;
+        rstruc->Objects[i].Y /= 2;
+        if (rstruc->Objects[i].Baseline > 0)
         {
-            rstruc->objbaseline[f] /= 2;
+            rstruc->Objects[i].Baseline /= 2;
         }
     }
 
-    for (f = 0; f < rstruc->numhotspots; f++)
+    for (size_t i = 0; i < rstruc->HotspotCount; ++i)
     {
-        rstruc->hswalkto[f].x /= 2;
-        rstruc->hswalkto[f].y /= 2;
+        rstruc->Hotspots[i].WalkTo.X /= 2;
+        rstruc->Hotspots[i].WalkTo.Y /= 2;
     }
 
-    for (f = 0; f < rstruc->numobj; f++)
+    for (size_t i = 0; i < rstruc->WalkBehindCount; ++i)
     {
-        rstruc->objyval[f] /= 2;
+        rstruc->WalkBehinds[i].Baseline /= 2;
     }
 
-    rstruc->left /= 2;
-    rstruc->top /= 2;
-    rstruc->bottom /= 2;
-    rstruc->right /= 2;
-    rstruc->width /= 2;
-    rstruc->height /= 2;
+    rstruc->Edges.Left /= 2;
+    rstruc->Edges.Top /= 2;
+    rstruc->Edges.Bottom /= 2;
+    rstruc->Edges.Right /= 2;
+    rstruc->Width /= 2;
+    rstruc->Height /= 2;
 }
 
 extern int convert_16bit_bgr;
 
 void update_letterbox_mode()
 {
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
     const Rect game_frame = RectWH(game.size);
     Rect new_main_view = game_frame;
     // In the original engine the letterbox feature only allowed viewports of
@@ -424,7 +424,7 @@ void update_letterbox_mode()
 
 void adjust_viewport_to_room()
 {
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
     const Rect main_view = play.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
@@ -432,7 +432,6 @@ void adjust_viewport_to_room()
     play.SetRoomCameraSize(new_room_view.GetSize());
 }
 
-#define NO_GAME_ID_IN_ROOM_FILE 16325
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
 
@@ -455,22 +454,16 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             room_filename = "intro.crm";
         }
     }
-    // reset these back, because they might have been changed.
-    delete thisroom.object;
-    thisroom.object=BitmapHelper::CreateBitmap(320,200);
-
-    delete thisroom.ebscene[0];
-    thisroom.ebscene[0] = BitmapHelper::CreateBitmap(320,200);
 
     update_polled_stuff_if_runtime();
 
     // load the room from disk
     our_eip=200;
-    thisroom.gameId = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom, game.IsHiRes());
+    thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
+    load_room(room_filename, &thisroom, game.IsHiRes(), game.SpriteInfos);
 
-    if ((thisroom.gameId != NO_GAME_ID_IN_ROOM_FILE) &&
-        (thisroom.gameId != game.uniqueid)) {
+    if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) &&
+        (thisroom.GameID != game.uniqueid)) {
             quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
 
@@ -482,31 +475,30 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     our_eip=201;
     /*  // apparently, doing this stops volume spiking between tracks
-    if (thisroom.options[ST_TUNE]>0) {
+    if (thisroom.Options.StartupMusic>0) {
     stopmusic();
     delay(100);
     }*/
 
-    play.room_width = thisroom.width;
-    play.room_height = thisroom.height;
-    play.anim_background_speed = thisroom.bscene_anim_speed;
+    play.room_width = thisroom.Width;
+    play.room_height = thisroom.Height;
+    play.anim_background_speed = thisroom.BgAnimSpeed;
     play.bg_anim_delay = play.anim_background_speed;
 
-    int dd;
     // do the palette
     for (cc=0;cc<256;cc++) {
         if (game.paluses[cc]==PAL_BACKGROUND)
-            palette[cc]=thisroom.pal[cc];
+            palette[cc]=thisroom.Palette[cc];
         else {
             // copy the gamewide colours into the room palette
-            for (dd = 0; dd < thisroom.num_bscenes; dd++)
-                thisroom.bpalettes[dd][cc] = palette[cc];
+            for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+                thisroom.BgFrames[i].Palette[cc] = palette[cc];
         }
     }
 
-    for (cc=0;cc<thisroom.num_bscenes;cc++) {
+    for (size_t i = 0; i < thisroom.BgFrameCount; ++i) {
         update_polled_stuff_if_runtime();
-        thisroom.ebscene[cc] = PrepareSpriteForUse(thisroom.ebscene[cc], false);
+        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(thisroom.BgFrames[i].Graphic, false);
     }
 
     update_polled_stuff_if_runtime();
@@ -526,26 +518,29 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // walkable_areas_temp is used by the pathfinder to generate a
     // copy of the walkable areas - allocate it here to save time later
     delete walkable_areas_temp;
-    walkable_areas_temp = BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(), thisroom.walls->GetHeight(), 8);
+    walkable_areas_temp = BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), 8);
 
     // Make a backup copy of the walkable areas prior to
     // any RemoveWalkableArea commands
     delete walkareabackup;
     // copy the walls screen
-    walkareabackup=BitmapHelper::CreateBitmapCopy(thisroom.walls);
+    walkareabackup=BitmapHelper::CreateBitmapCopy(thisroom.WalkAreaMask.get());
 
     our_eip=204;
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
     // fix walk-behinds to current screen resolution
-    thisroom.object = fix_bitmap_size(thisroom.object);
+    // TODO: perhaps do this for every mask in the UpdateRoomData()?
+    thisroom.WalkBehindMask = fix_bitmap_size(thisroom.WalkBehindMask);
     update_polled_stuff_if_runtime();
 
     set_color_depth(game.GetColorDepth());
     // convert backgrounds to current res
-    if (thisroom.resolution != get_fixed_pixel_size(1)) {
-        for (cc=0;cc<thisroom.num_bscenes;cc++)
-            thisroom.ebscene[cc] = fix_bitmap_size(thisroom.ebscene[cc]);
+    // TODO: perhaps do this in the UpdateRoomData()? also, what is this strange condition?
+    if (thisroom.Resolution != get_fixed_pixel_size(1))
+    {
+        for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+            thisroom.BgFrames[i].Graphic = fix_bitmap_size(thisroom.BgFrames[i].Graphic);
     }
 
     recache_walk_behinds();
@@ -557,8 +552,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         troom.beenhere=0;  
         troom.FreeScriptData();
         troom.FreeProperties();
-        memset(&troom.hotspot_enabled[0],1,MAX_HOTSPOTS);
-        memset(&troom.region_enabled[0], 1, MAX_REGIONS);
+        memset(&troom.hotspot_enabled[0],1,MAX_ROOM_HOTSPOTS);
+        memset(&troom.region_enabled[0], 1, MAX_ROOM_REGIONS);
     }
     if ((newnum>=0) & (newnum<MAX_ROOMS))
         croom = getRoomStatus(newnum);
@@ -569,60 +564,57 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // since we will overwrite the actual NewInteraction structs
         // (cos they have pointers and this might have been loaded from
         // a save game)
-        if (thisroom.roomScripts == NULL)
-        {
-            thisroom.intrRoom->CopyTimesRun(croom->intrRoom);
-            for (cc=0;cc < MAX_HOTSPOTS;cc++)
-                thisroom.intrHotspot[cc]->CopyTimesRun(croom->intrHotspot[cc]);
-            for (cc=0;cc < MAX_INIT_SPR;cc++)
-                thisroom.intrObject[cc]->CopyTimesRun(croom->intrObject[cc]);
-            for (cc=0;cc < MAX_REGIONS;cc++)
-                thisroom.intrRegion[cc]->CopyTimesRun(croom->intrRegion[cc]);
+        if (thisroom.EventHandlers == NULL)
+        {// legacy interactions
+            thisroom.Interaction->CopyTimesRun(croom->intrRoom);
+            for (cc=0;cc < MAX_ROOM_HOTSPOTS;cc++)
+                thisroom.Hotspots[cc].Interaction->CopyTimesRun(croom->intrHotspot[cc]);
+            for (cc=0;cc < MAX_ROOM_OBJECTS;cc++)
+                thisroom.Objects[cc].Interaction->CopyTimesRun(croom->intrObject[cc]);
+            for (cc=0;cc < MAX_ROOM_REGIONS;cc++)
+                thisroom.Regions[cc].Interaction->CopyTimesRun(croom->intrRegion[cc]);
         }
     }
     if (croom->beenhere==0) {
-        croom->numobj=thisroom.numsprs;
+        croom->numobj=thisroom.ObjectCount;
         croom->tsdatasize=0;
         for (cc=0;cc<croom->numobj;cc++) {
-            croom->obj[cc].x=thisroom.sprs[cc].x;
-            croom->obj[cc].y=thisroom.sprs[cc].y;
-
-            if (thisroom.wasversion <= kRoomVersion_300a)
-                croom->obj[cc].y += divide_down_coordinate(game.SpriteInfos[thisroom.sprs[cc].sprnum].Height);
-
-            croom->obj[cc].num=thisroom.sprs[cc].sprnum;
-            croom->obj[cc].on=thisroom.sprs[cc].on;
+            croom->obj[cc].x=thisroom.Objects[cc].X;
+            croom->obj[cc].y=thisroom.Objects[cc].Y;
+            croom->obj[cc].num=thisroom.Objects[cc].Sprite;
+            croom->obj[cc].on=thisroom.Objects[cc].IsOn;
             croom->obj[cc].view=-1;
             croom->obj[cc].loop=0;
             croom->obj[cc].frame=0;
             croom->obj[cc].wait=0;
             croom->obj[cc].transparent=0;
             croom->obj[cc].moving=-1;
-            croom->obj[cc].flags = thisroom.objectFlags[cc];
+            croom->obj[cc].flags = thisroom.Objects[cc].Flags;
             croom->obj[cc].baseline=-1;
             croom->obj[cc].last_zoom = 100;
             croom->obj[cc].last_width = 0;
             croom->obj[cc].last_height = 0;
             croom->obj[cc].blocking_width = 0;
             croom->obj[cc].blocking_height = 0;
-            if (thisroom.objbaseline[cc]>=0)
-                //        croom->obj[cc].baseoffs=thisroom.objbaseline[cc]-thisroom.sprs[cc].y;
-                croom->obj[cc].baseline=thisroom.objbaseline[cc];
+            if (thisroom.Objects[cc].Baseline>=0)
+                //        croom->obj[cc].baseoffs=thisroom.Objects.Baseline[cc]-thisroom.Objects[cc].y;
+                croom->obj[cc].baseline=thisroom.Objects[cc].Baseline;
         }
-        memcpy(&croom->walkbehind_base[0],&thisroom.objyval[0],sizeof(short)*MAX_OBJ);
+        for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
+            croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
         for (cc=0;cc<MAX_FLAGS;cc++) croom->flagstates[cc]=0;
 
         /*    // we copy these structs for the Score column to work
         croom->misccond=thisroom.misccond;
-        for (cc=0;cc<MAX_HOTSPOTS;cc++)
+        for (cc=0;cc<MAX_ROOM_HOTSPOTS;cc++)
         croom->hscond[cc]=thisroom.hscond[cc];
-        for (cc=0;cc<MAX_INIT_SPR;cc++)
+        for (cc=0;cc<MAX_ROOM_OBJECTS;cc++)
         croom->objcond[cc]=thisroom.objcond[cc];*/
 
-        for (cc=0;cc < MAX_HOTSPOTS;cc++) {
+        for (cc=0;cc < MAX_ROOM_HOTSPOTS;cc++) {
             croom->hotspot_enabled[cc] = 1;
         }
-        for (cc = 0; cc < MAX_REGIONS; cc++) {
+        for (cc = 0; cc < MAX_ROOM_REGIONS; cc++) {
             croom->region_enabled[cc] = 1;
         }
 
@@ -631,27 +623,27 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
     else {
         // We have been here before
-        for (int ff = 0; ff < thisroom.numLocalVars; ff++)
-            thisroom.localvars[ff].Value = croom->interactionVariableValues[ff];
+        for (size_t i = 0; i < thisroom.LocalVariables.size() && i < (size_t)MAX_GLOBAL_VARIABLES; ++i)
+            thisroom.LocalVariables[i].Value = croom->interactionVariableValues[i];
     }
 
     update_polled_stuff_if_runtime();
 
-    if (thisroom.roomScripts == NULL)
-    {
+    if (thisroom.EventHandlers == NULL)
+    {// legacy interactions
         // copy interactions from room file into our temporary struct
-        croom->intrRoom = thisroom.intrRoom[0];
-        for (cc=0;cc<MAX_HOTSPOTS;cc++)
-            croom->intrHotspot[cc] = thisroom.intrHotspot[cc][0];
-        for (cc=0;cc<MAX_INIT_SPR;cc++)
-            croom->intrObject[cc] = thisroom.intrObject[cc][0];
-        for (cc=0;cc<MAX_REGIONS;cc++)
-            croom->intrRegion[cc] = thisroom.intrRegion[cc][0];
+        croom->intrRoom = *thisroom.Interaction;
+        for (cc=0;cc<MAX_ROOM_HOTSPOTS;cc++)
+            croom->intrHotspot[cc] = *thisroom.Hotspots[cc].Interaction;
+        for (cc=0;cc<MAX_ROOM_OBJECTS;cc++)
+            croom->intrObject[cc] = *thisroom.Objects[cc].Interaction;
+        for (cc=0;cc<MAX_ROOM_REGIONS;cc++)
+            croom->intrRegion[cc] = *thisroom.Regions[cc].Interaction;
     }
 
     objs=&croom->obj[0];
 
-    for (cc = 0; cc < MAX_INIT_SPR; cc++) {
+    for (cc = 0; cc < MAX_ROOM_OBJECTS; cc++) {
         // 64 bit: Using the id instead
         // scrObj[cc].obj = &croom->obj[cc];
         objectScriptObjNames[cc].Free();
@@ -659,43 +651,31 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     for (cc = 0; cc < croom->numobj; cc++) {
         // export the object's script object
-        if (thisroom.objectscriptnames[cc].IsEmpty())
+        if (thisroom.Objects[cc].ScriptName.IsEmpty())
             continue;
-
-        if (thisroom.wasversion >= kRoomVersion_300a) 
-        {
-            objectScriptObjNames[cc] = thisroom.objectscriptnames[cc];
-        }
-        else
-        {
-            objectScriptObjNames[cc].Format("o%s", thisroom.objectscriptnames[cc].GetCStr());
-            objectScriptObjNames[cc].MakeLower();
-            if (objectScriptObjNames[cc].GetLength() >= 2)
-                objectScriptObjNames[cc].SetAt(1, toupper(objectScriptObjNames[cc].GetAt(1)));
-        }
-
+        objectScriptObjNames[cc] = thisroom.Objects[cc].ScriptName;
         ccAddExternalDynamicObject(objectScriptObjNames[cc], &scrObj[cc], &ccDynamicObject);
     }
 
-    for (cc = 0; cc < MAX_HOTSPOTS; cc++) {
-        if (thisroom.hotspotScriptNames[cc].IsEmpty())
+    for (cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) {
+        if (thisroom.Hotspots[cc].ScriptName.IsEmpty())
             continue;
 
-        ccAddExternalDynamicObject(thisroom.hotspotScriptNames[cc], &scrHotspot[cc], &ccDynamicHotspot);
+        ccAddExternalDynamicObject(thisroom.Hotspots[cc].ScriptName, &scrHotspot[cc], &ccDynamicHotspot);
     }
 
     our_eip=206;
     /*  THIS IS DONE IN THE EDITOR NOW
-    thisroom.ebpalShared[0] = 1;
-    for (dd = 1; dd < thisroom.num_bscenes; dd++) {
-    if (memcmp (&thisroom.bpalettes[dd][0], &palette[0], sizeof(color) * 256) == 0)
-    thisroom.ebpalShared[dd] = 1;
+    thisroom.BgFrames.IsPaletteShared[0] = 1;
+    for (dd = 1; dd < thisroom.BgFrameCount; dd++) {
+    if (memcmp (&thisroom.BgFrames.Palette[dd][0], &palette[0], sizeof(color) * 256) == 0)
+    thisroom.BgFrames.IsPaletteShared[dd] = 1;
     else
-    thisroom.ebpalShared[dd] = 0;
+    thisroom.BgFrames.IsPaletteShared[dd] = 0;
     }
     // only make the first frame shared if the last is
-    if (thisroom.ebpalShared[thisroom.num_bscenes - 1] == 0)
-    thisroom.ebpalShared[0] = 0;*/
+    if (thisroom.BgFrames.IsPaletteShared[thisroom.BgFrameCount - 1] == 0)
+    thisroom.BgFrames.IsPaletteShared[0] = 0;*/
 
     update_polled_stuff_if_runtime();
 
@@ -746,7 +726,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     roominst=NULL;
     if (debug_flags & DBG_NOSCRIPT) ;
-    else if (thisroom.compiled_script!=NULL) {
+    else if (thisroom.CompiledScript!=NULL) {
         compile_room_script();
         if (croom->tsdatasize>0) {
             if (croom->tsdatasize != roominst->globaldatasize)
@@ -771,46 +751,46 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if ((new_room_pos>0) & (forchar!=NULL)) {
         if (new_room_pos>=4000) {
             play.entered_edge = 3;
-            forchar->y = thisroom.top + get_fixed_pixel_size(1);
+            forchar->y = thisroom.Edges.Top + get_fixed_pixel_size(1);
             forchar->x=new_room_pos%1000;
-            if (forchar->x==0) forchar->x=thisroom.width/2;
-            if (forchar->x <= thisroom.left)
-                forchar->x = thisroom.left + 3;
-            if (forchar->x >= thisroom.right)
-                forchar->x = thisroom.right - 3;
+            if (forchar->x==0) forchar->x=thisroom.Width/2;
+            if (forchar->x <= thisroom.Edges.Left)
+                forchar->x = thisroom.Edges.Left + 3;
+            if (forchar->x >= thisroom.Edges.Right)
+                forchar->x = thisroom.Edges.Right - 3;
             forchar->loop=0;
         }
         else if (new_room_pos>=3000) {
             play.entered_edge = 2;
-            forchar->y = thisroom.bottom - get_fixed_pixel_size(1);
+            forchar->y = thisroom.Edges.Bottom - get_fixed_pixel_size(1);
             forchar->x=new_room_pos%1000;
-            if (forchar->x==0) forchar->x=thisroom.width/2;
-            if (forchar->x <= thisroom.left)
-                forchar->x = thisroom.left + 3;
-            if (forchar->x >= thisroom.right)
-                forchar->x = thisroom.right - 3;
+            if (forchar->x==0) forchar->x=thisroom.Width/2;
+            if (forchar->x <= thisroom.Edges.Left)
+                forchar->x = thisroom.Edges.Left + 3;
+            if (forchar->x >= thisroom.Edges.Right)
+                forchar->x = thisroom.Edges.Right - 3;
             forchar->loop=3;
         }
         else if (new_room_pos>=2000) {
             play.entered_edge = 1;
-            forchar->x = thisroom.right - get_fixed_pixel_size(1);
+            forchar->x = thisroom.Edges.Right - get_fixed_pixel_size(1);
             forchar->y=new_room_pos%1000;
-            if (forchar->y==0) forchar->y=thisroom.height/2;
-            if (forchar->y <= thisroom.top)
-                forchar->y = thisroom.top + 3;
-            if (forchar->y >= thisroom.bottom)
-                forchar->y = thisroom.bottom - 3;
+            if (forchar->y==0) forchar->y=thisroom.Height/2;
+            if (forchar->y <= thisroom.Edges.Top)
+                forchar->y = thisroom.Edges.Top + 3;
+            if (forchar->y >= thisroom.Edges.Bottom)
+                forchar->y = thisroom.Edges.Bottom - 3;
             forchar->loop=1;
         }
         else if (new_room_pos>=1000) {
             play.entered_edge = 0;
-            forchar->x = thisroom.left + get_fixed_pixel_size(1);
+            forchar->x = thisroom.Edges.Left + get_fixed_pixel_size(1);
             forchar->y=new_room_pos%1000;
-            if (forchar->y==0) forchar->y=thisroom.height/2;
-            if (forchar->y <= thisroom.top)
-                forchar->y = thisroom.top + 3;
-            if (forchar->y >= thisroom.bottom)
-                forchar->y = thisroom.bottom - 3;
+            if (forchar->y==0) forchar->y=thisroom.Height/2;
+            if (forchar->y <= thisroom.Edges.Top)
+                forchar->y = thisroom.Edges.Top + 3;
+            if (forchar->y >= thisroom.Edges.Bottom)
+                forchar->y = thisroom.Edges.Bottom - 3;
             forchar->loop=2;
         }
         // if starts on un-walkable area
@@ -823,8 +803,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
                     if (get_walkable_area_pixel(tryright, forchar->y) > 0) {
                         forchar->x=tryright; break; }
                     int nowhere=0;
-                    if (tryleft>thisroom.left) { tryleft--; nowhere++; }
-                    if (tryright<thisroom.right) { tryright++; nowhere++; }
+                    if (tryleft>thisroom.Edges.Left) { tryleft--; nowhere++; }
+                    if (tryright<thisroom.Edges.Right) { tryright++; nowhere++; }
                     if (nowhere==0) break;  // no place to go, so leave him
                 }
             }
@@ -836,8 +816,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
                     if (get_walkable_area_pixel(forchar->x, tryright) > 0) {
                         forchar->y=tryright; break; }
                     int nowhere=0;
-                    if (tryleft>thisroom.top) { tryleft--; nowhere++; }
-                    if (tryright<thisroom.bottom) { tryright++; nowhere++; }
+                    if (tryleft>thisroom.Edges.Top) { tryleft--; nowhere++; }
+                    if (tryright<thisroom.Edges.Bottom) { tryright++; nowhere++; }
                     if (nowhere==0) break;  // no place to go, so leave him
                 }
             }
@@ -847,21 +827,21 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (forchar!=NULL) {
         play.entered_at_x=forchar->x;
         play.entered_at_y=forchar->y;
-        if (forchar->x >= thisroom.right)
+        if (forchar->x >= thisroom.Edges.Right)
             play.entered_edge = 1;
-        else if (forchar->x <= thisroom.left)
+        else if (forchar->x <= thisroom.Edges.Left)
             play.entered_edge = 0;
-        else if (forchar->y >= thisroom.bottom)
+        else if (forchar->y >= thisroom.Edges.Bottom)
             play.entered_edge = 2;
-        else if (forchar->y <= thisroom.top)
+        else if (forchar->y <= thisroom.Edges.Top)
             play.entered_edge = 3;
     }
-    if (thisroom.options[ST_TUNE]>0)
-        PlayMusicResetQueue(thisroom.options[ST_TUNE]);
+    if (thisroom.Options.StartupMusic>0)
+        PlayMusicResetQueue(thisroom.Options.StartupMusic);
 
     our_eip=208;
     if (forchar!=NULL) {
-        if (thisroom.options[ST_MANDISABLED]==0) { forchar->on=1;
+        if (thisroom.Options.PlayerCharOff==0) { forchar->on=1;
         enable_cursor_mode(0); }
         else {
             forchar->on=0;
@@ -872,8 +852,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             play.temporarily_turned_off_character = game.playercharacter;
         }
         if (forchar->flags & CHF_FIXVIEW) ;
-        else if (thisroom.options[ST_MANVIEW]==0) forchar->view=forchar->defview;
-        else forchar->view=thisroom.options[ST_MANVIEW]-1;
+        else if (thisroom.Options.PlayerView==0) forchar->view=forchar->defview;
+        else forchar->view=thisroom.Options.PlayerView-1;
         forchar->frame=0;   // make him standing
     }
     color_map = NULL;
@@ -1009,7 +989,7 @@ void check_new_room() {
 void compile_room_script() {
     ccError = 0;
 
-    roominst = ccInstance::CreateFromScript(thisroom.compiled_script);
+    roominst = ccInstance::CreateFromScript(thisroom.CompiledScript);
 
     if ((ccError!=0) || (roominst==NULL)) {
         quitprintf("Unable to create local script: %s", ccErrorString.GetCStr());
@@ -1033,7 +1013,7 @@ void on_background_frame_change () {
     invalidate_cached_walkbehinds();
 
     // get the new frame's palette
-    memcpy (palette, thisroom.bpalettes[play.bg_frame], sizeof(color) * 256);
+    memcpy (palette, thisroom.BgFrames[play.bg_frame].Palette, sizeof(color) * 256);
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in
@@ -1044,7 +1024,7 @@ void on_background_frame_change () {
         return;
 
     // Don't update the palette if it hasn't changed
-    if (thisroom.ebpalShared[play.bg_frame])
+    if (thisroom.BgFrames[play.bg_frame].IsPaletteShared)
         return;
 
     // 256-colours, tell it to update the palette (will actually be done as

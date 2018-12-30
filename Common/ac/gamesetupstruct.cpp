@@ -193,7 +193,7 @@ void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (!load_messages[ee]) continue;
-        messages[ee]=(char*)malloc(500);
+        messages[ee]=(char*)malloc(GLOBALMESLENGTH);
 
         if (data_ver < kGameVersion_261) // Global messages are not encrypted on < 2.61
         {
@@ -209,7 +209,7 @@ void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver
             }
         }
         else
-            read_string_decrypt(in, messages[ee]);
+            read_string_decrypt(in, messages[ee], GLOBALMESLENGTH);
     }
     delete [] load_messages;
     load_messages = NULL;

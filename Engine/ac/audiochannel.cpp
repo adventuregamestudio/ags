@@ -13,16 +13,18 @@
 //=============================================================================
 
 #include "ac/audiochannel.h"
-#include "ac/roomstruct.h"
-#include "debug/debug_log.h"
 #include "ac/gamestate.h"
+#include "ac/dynobj/cc_audioclip.h"
+#include "debug/debug_log.h"
+#include "game/roomstruct.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_audioclip.h"
+
+using namespace AGS::Common;
 
 extern GameState play;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern CCAudioClip ccDynamicAudioClip;
 
 int AudioChannel_GetID(ScriptAudioChannel *channel)
@@ -178,7 +180,7 @@ void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPo
     if ((channels[channel->id] != NULL) &&
         (channels[channel->id]->done == 0))
     {
-        int maxDist = ((xPos > thisroom.width / 2) ? xPos : (thisroom.width - xPos)) - AMBIENCE_FULL_DIST;
+        int maxDist = ((xPos > thisroom.Width / 2) ? xPos : (thisroom.Width - xPos)) - AMBIENCE_FULL_DIST;
         channels[channel->id]->xSource = (xPos > 0) ? xPos : -1;
         channels[channel->id]->ySource = yPos;
         channels[channel->id]->maximumPossibleDistanceAway = maxDist;

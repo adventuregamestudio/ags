@@ -15,7 +15,6 @@
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/roomstruct.h"
 #include "media/audio/audiodefines.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
@@ -24,15 +23,18 @@
 #include "ac/math.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/roomstruct.h"
 #include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
+
+using namespace AGS::Common;
 
 extern ViewStruct*views;
 extern GameSetupStruct game;
 extern int displayed_room;
 extern GameState play;
 extern int char_speaking;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern unsigned int loopcounter;
 
@@ -414,20 +416,20 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
         if (room == displayed_room) {
           // only move to the room-entered position if coming into
           // the current room
-          if (play.entered_at_x > (thisroom.width - 8)) {
-            x = thisroom.width+8;
+          if (play.entered_at_x > (thisroom.Width - 8)) {
+            x = thisroom.Width+8;
             y = play.entered_at_y;
             }
           else if (play.entered_at_x < 8) {
             x = -8;
             y = play.entered_at_y;
             }
-          else if (play.entered_at_y > (thisroom.height - 8)) {
-            y = thisroom.height+8;
+          else if (play.entered_at_y > (thisroom.Height - 8)) {
+            y = thisroom.Height+8;
             x = play.entered_at_x;
             }
-          else if (play.entered_at_y < thisroom.top+8) {
-            y = thisroom.top+1;
+          else if (play.entered_at_y < thisroom.Edges.Top+8) {
+            y = thisroom.Edges.Top+1;
             x = play.entered_at_x;
             }
           else {

@@ -24,64 +24,66 @@
 #include "ac/hotspot.h"
 #include "ac/properties.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "game/roomstruct.h"
 #include "script/script.h"
 
-extern roomstruct thisroom;
+using namespace AGS::Common;
+
+extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern CharacterInfo*playerchar;
 extern GameSetupStruct game;
 
 
 void DisableHotspot(int hsnum) {
-    if ((hsnum<1) | (hsnum>=MAX_HOTSPOTS))
+    if ((hsnum<1) | (hsnum>=MAX_ROOM_HOTSPOTS))
         quit("!DisableHotspot: invalid hotspot specified");
     croom->hotspot_enabled[hsnum]=0;
     debug_script_log("Hotspot %d disabled", hsnum);
 }
 
 void EnableHotspot(int hsnum) {
-    if ((hsnum<1) | (hsnum>=MAX_HOTSPOTS))
+    if ((hsnum<1) | (hsnum>=MAX_ROOM_HOTSPOTS))
         quit("!EnableHotspot: invalid hotspot specified");
     croom->hotspot_enabled[hsnum]=1;
     debug_script_log("Hotspot %d re-enabled", hsnum);
 }
 
 int GetHotspotPointX (int hotspot) {
-    if ((hotspot < 0) || (hotspot >= MAX_HOTSPOTS))
+    if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
         quit("!GetHotspotPointX: invalid hotspot");
 
-    if (thisroom.hswalkto[hotspot].x < 1)
+    if (thisroom.Hotspots[hotspot].WalkTo.X < 1)
         return -1;
 
-    return thisroom.hswalkto[hotspot].x;
+    return thisroom.Hotspots[hotspot].WalkTo.X;
 }
 
 int GetHotspotPointY (int hotspot) {
-    if ((hotspot < 0) || (hotspot >= MAX_HOTSPOTS))
+    if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
         quit("!GetHotspotPointY: invalid hotspot");
 
-    if (thisroom.hswalkto[hotspot].x < 1)
+    if (thisroom.Hotspots[hotspot].WalkTo.X < 1) // TODO: there was "x" here, why?
         return -1;
 
-    return thisroom.hswalkto[hotspot].y;
+    return thisroom.Hotspots[hotspot].WalkTo.Y;
 }
 
 int GetHotspotAt(int scrx, int scry) {
     Point pt = play.ScreenToRoomDivDown(scrx, scry);
-    if ((pt.X>=thisroom.width) | (pt.X<0) | (pt.Y<0) | (pt.Y>=thisroom.height))
+    if ((pt.X>=thisroom.Width) | (pt.X<0) | (pt.Y<0) | (pt.Y>=thisroom.Height))
         return 0;
     return get_hotspot_at(pt.X, pt.Y);
 }
 
 void GetHotspotName(int hotspot, char *buffer) {
     VALIDATE_STRING(buffer);
-    if ((hotspot < 0) || (hotspot >= MAX_HOTSPOTS))
+    if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
         quit("!GetHotspotName: invalid hotspot number");
 
-    strcpy(buffer, get_translation(thisroom.hotspotnames[hotspot]));
+    strcpy(buffer, get_translation(thisroom.Hotspots[hotspot].Name));
 }
 
 void RunHotspotInteraction (int hotspothere, int mood) {
@@ -112,11 +114,11 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     evblockbasename="hotspot%d";
     evblocknum=hotspothere;
 
-    if (thisroom.hotspotScripts != NULL) 
+    if (thisroom.Hotspots[hotspothere].EventHandlers != NULL)
     {
         if (passon>=0)
-            run_interaction_script(thisroom.hotspotScripts[hotspothere], passon, 5, (passon == 3));
-        run_interaction_script(thisroom.hotspotScripts[hotspothere], 5);  // any click on hotspot
+            run_interaction_script(thisroom.Hotspots[hotspothere].EventHandlers.get(), passon, 5, (passon == 3));
+        run_interaction_script(thisroom.Hotspots[hotspothere].EventHandlers.get(), 5);  // any click on hotspot
     }
     else
     {
@@ -137,10 +139,10 @@ void RunHotspotInteraction (int hotspothere, int mood) {
 
 int GetHotspotProperty (int hss, const char *property)
 {
-    return get_int_property(thisroom.hsProps[hss], croom->hsProps[hss], property);
+    return get_int_property(thisroom.Hotspots[hss].Properties, croom->hsProps[hss], property);
 }
 
 void GetHotspotPropertyText (int item, const char *property, char *bufer)
 {
-    get_text_property(thisroom.hsProps[item], croom->hsProps[item], property, bufer);
+    get_text_property(thisroom.Hotspots[item].Properties, croom->hsProps[item], property, bufer);
 }

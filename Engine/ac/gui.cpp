@@ -27,7 +27,6 @@
 #include "ac/interfacebutton.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/system.h"
 #include "ac/dynobj/cc_guiobject.h"
@@ -51,7 +50,7 @@ using namespace AGS::Engine;
 
 
 extern GameSetup usetup;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern int cur_mode,cur_cursor;
 extern ccInstance *gameinst;
 extern ScriptGUI *scrGui;

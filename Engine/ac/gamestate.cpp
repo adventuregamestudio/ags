@@ -16,18 +16,18 @@
 #include "ac/game_version.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/roomstruct.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
+#include "game/roomstruct.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern CharacterInfo *playerchar;
 extern ScriptSystem scsystem;
 
@@ -141,9 +141,8 @@ void GameState::SetRoomCameraSize(const Size &cam_size)
 {
     // TODO: currently we don't support having camera larger than room background
     // (or rather - looking outside of the room background); look into this later
-    int room_width = multiply_up_coordinate(thisroom.width);
-    int room_height = multiply_up_coordinate(thisroom.height);
-    Size real_size = Size::Clamp(cam_size, Size(1, 1), Size(room_width, room_height));
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
+    Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
 
     _roomCamera.Position.SetWidth(real_size.Width);
     _roomCamera.Position.SetHeight(real_size.Height);
@@ -155,8 +154,8 @@ void GameState::SetRoomCameraAt(int x, int y)
 {
     int cw = _roomCamera.Position.GetWidth();
     int ch = _roomCamera.Position.GetHeight();
-    int room_width = multiply_up_coordinate(thisroom.width);
-    int room_height = multiply_up_coordinate(thisroom.height);
+    int room_width = multiply_up_coordinate(thisroom.Width);
+    int room_height = multiply_up_coordinate(thisroom.Height);
     x = Math::Clamp(x, 0, room_width - cw);
     y = Math::Clamp(y, 0, room_height - ch);
     _roomCamera.Position.MoveTo(Point(x, y));
@@ -189,7 +188,7 @@ void GameState::ReleaseRoomCamera()
 void GameState::UpdateRoomCamera()
 {
     const Rect &camera = _roomCamera.Position;
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.width), multiply_up_coordinate(thisroom.height));
+    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
     if ((real_room_sz.Width > camera.GetWidth()) || (real_room_sz.Height > camera.GetHeight()))
     {
         // TODO: split out into Camera Behavior
@@ -393,7 +392,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     in->Read( bad_parsed_word, 100);
     raw_color = in->ReadInt32();
     if (old_save)
-        in->ReadArrayOfInt32(raw_modified, MAX_BSCENE);
+        in->ReadArrayOfInt32(raw_modified, MAX_ROOM_BGFRAMES);
     in->ReadArrayOfInt16( filenumbers, MAXSAVEGAMES);
     if (old_save)
         in->ReadInt32(); // room_changes

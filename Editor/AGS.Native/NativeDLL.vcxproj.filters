@@ -34,9 +34,6 @@
     <ClCompile Include="..\Native\acgui_agsnative.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Native\acroom_agsnative.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="agsicons.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

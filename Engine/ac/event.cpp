@@ -22,7 +22,6 @@
 #include "ac/global_screen.h"
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/screen.h"
 #include "script/cc_error.h"
 #include "media/audio/audio.h"
@@ -38,7 +37,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern int displayed_room;
 extern GameState play;
@@ -107,9 +106,9 @@ void run_on_event (int evtype, RuntimeScriptValue &wparam)
 void run_room_event(int id) {
     evblockbasename="room";
 
-    if (thisroom.roomScripts != NULL)
+    if (thisroom.EventHandlers != NULL)
     {
-        run_interaction_script(thisroom.roomScripts, id);
+        run_interaction_script(thisroom.EventHandlers.get(), id);
     }
     else
     {
@@ -168,14 +167,14 @@ void process_event(EventHappened*evp) {
     }
     else if (evp->type==EV_RUNEVBLOCK) {
         Interaction*evpt=NULL;
-        InteractionScripts *scriptPtr = NULL;
+        PInteractionScripts scriptPtr = NULL;
         char *oldbasename = evblockbasename;
         int   oldblocknum = evblocknum;
 
         if (evp->data1==EVB_HOTSPOT) {
 
-            if (thisroom.hotspotScripts != NULL)
-                scriptPtr = thisroom.hotspotScripts[evp->data2];
+            if (thisroom.Hotspots[evp->data2].EventHandlers != NULL)
+                scriptPtr = thisroom.Hotspots[evp->data2].EventHandlers;
             else
                 evpt=&croom->intrHotspot[evp->data2];
 
@@ -185,8 +184,8 @@ void process_event(EventHappened*evp) {
         }
         else if (evp->data1==EVB_ROOM) {
 
-            if (thisroom.roomScripts != NULL)
-                scriptPtr = thisroom.roomScripts;
+            if (thisroom.EventHandlers != NULL)
+                scriptPtr = thisroom.EventHandlers;
             else
                 evpt=&croom->intrRoom;
 
@@ -201,7 +200,7 @@ void process_event(EventHappened*evp) {
 
         if (scriptPtr != NULL)
         {
-            run_interaction_script(scriptPtr, evp->data3);
+            run_interaction_script(scriptPtr.get(), evp->data3);
         }
         else if (evpt != NULL)
         {

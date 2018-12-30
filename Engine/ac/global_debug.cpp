@@ -26,7 +26,6 @@
 #include "ac/movelist.h"
 #include "ac/properties.h"
 #include "ac/record.h"
-#include "ac/roomstruct.h"
 #include "ac/tree_map.h"
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
@@ -46,7 +45,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 
 extern int convert_16bit_bgr;
@@ -106,12 +105,12 @@ void script_debug(int cmdd,int dataa) {
     else if (cmdd==2) 
     {  // show walkable areas from here
         // TODO: support multiple viewports?!
-        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
         const Rect &viewport = play.GetRoomViewport();
         const Rect &camera = play.GetRoomCamera();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        Rect mask_src = Rect(camera.Left / thisroom.resolution, camera.Top / thisroom.resolution, camera.Right / thisroom.resolution, camera.Bottom / thisroom.resolution);
+        Rect mask_src = Rect(camera.Left / thisroom.Resolution, camera.Top / thisroom.Resolution, camera.Right / thisroom.Resolution, camera.Bottom / thisroom.Resolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);
@@ -153,7 +152,7 @@ void script_debug(int cmdd,int dataa) {
             Display("Not currently moving.");
             return;
         }
-        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         int mlsnum = game.chars[dataa].walking;
         if (game.chars[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;
@@ -169,7 +168,7 @@ void script_debug(int cmdd,int dataa) {
         const Rect &viewport = play.GetRoomViewport();
         const Rect &camera = play.GetRoomCamera();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        Rect mask_src = Rect(camera.Left / thisroom.resolution, camera.Top / thisroom.resolution, camera.Right / thisroom.resolution, camera.Bottom / thisroom.resolution);
+        Rect mask_src = Rect(camera.Left / thisroom.Resolution, camera.Top / thisroom.Resolution, camera.Right / thisroom.Resolution, camera.Bottom / thisroom.Resolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);

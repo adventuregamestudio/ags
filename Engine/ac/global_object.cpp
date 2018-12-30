@@ -27,7 +27,6 @@
 #include "ac/properties.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -46,8 +45,8 @@ extern RoomStatus*croom;
 extern RoomObject*objs;
 extern ViewStruct*views;
 extern GameSetupStruct game;
-extern ObjectCache objcache[MAX_INIT_SPR];
-extern roomstruct thisroom;
+extern ObjectCache objcache[MAX_ROOM_OBJECTS];
+extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;
@@ -246,15 +245,15 @@ void MergeObject(int obn) {
     construct_object_gfx(obn, NULL, &theHeight, true);
 
     //Bitmap *oldabuf = graphics->bmp;
-    //abuf = thisroom.ebscene[play.bg_frame];
-    Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
+    //abuf = thisroom.BgFrames.Graphic[play.bg_frame];
+    PBitmap bg_frame = thisroom.BgFrames[play.bg_frame].Graphic;
     if (bg_frame->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
     int xpos = multiply_up_coordinate(objs[obn].x);
     int ypos = (multiply_up_coordinate(objs[obn].y) - theHeight);
 
-    draw_sprite_support_alpha(bg_frame, false, xpos, ypos, actsps[obn], (game.SpriteInfos[objs[obn].num].Flags & SPF_ALPHACHANNEL) != 0);
+    draw_sprite_support_alpha(bg_frame.get(), false, xpos, ypos, actsps[obn], (game.SpriteInfos[objs[obn].num].Flags & SPF_ALPHACHANNEL) != 0);
     invalidate_screen();
     mark_current_background_dirty();
 
@@ -352,7 +351,7 @@ void GetObjectName(int obj, char *buffer) {
     if (!is_valid_object(obj))
         quit("!GetObjectName: invalid object number");
 
-    strcpy(buffer, get_translation(thisroom.objectnames[obj]));
+    strcpy(buffer, get_translation(thisroom.Objects[obj].Name));
 }
 
 void MoveObject(int objj,int xx,int yy,int spp) {
@@ -395,14 +394,14 @@ void RunObjectInteraction (int aa, int mood) {
     play.usedinv=cdata; }
     evblockbasename="object%d"; evblocknum=aa;
 
-    if (thisroom.objectScripts != NULL) 
+    if (thisroom.Objects[aa].EventHandlers != NULL)
     {
         if (passon>=0) 
         {
-            if (run_interaction_script(thisroom.objectScripts[aa], passon, 4, (passon == 3)))
+            if (run_interaction_script(thisroom.Objects[aa].EventHandlers.get(), passon, 4, (passon == 3)))
                 return;
         }
-        run_interaction_script(thisroom.objectScripts[aa], 4);  // any click on obj
+        run_interaction_script(thisroom.Objects[aa].EventHandlers.get(), 4);  // any click on obj
     }
     else
     {
@@ -481,12 +480,12 @@ int GetObjectProperty (int hss, const char *property)
 {
     if (!is_valid_object(hss))
         quit("!GetObjectProperty: invalid object");
-    return get_int_property(thisroom.objProps[hss], croom->objProps[hss], property);
+    return get_int_property(thisroom.Objects[hss].Properties, croom->objProps[hss], property);
 }
 
 void GetObjectPropertyText (int item, const char *property, char *bufer)
 {
-    get_text_property(thisroom.objProps[item], croom->objProps[item], property, bufer);
+    get_text_property(thisroom.Objects[item].Properties, croom->objProps[item], property, bufer);
 }
 
 Bitmap *GetObjectImage(int obj, int *isFlipped) 

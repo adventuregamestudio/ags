@@ -24,6 +24,8 @@
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
+using namespace AGS::Common;
+
 //=============================================================================
 //
 // Camera script API.

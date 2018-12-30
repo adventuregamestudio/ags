@@ -14,7 +14,6 @@
 
 #include "ac/common.h"
 #include "ac/object.h"
-#include "ac/roomstruct.h"
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/gamestate.h"
@@ -23,11 +22,12 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/walkablearea.h"
+#include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern GameState play;
 extern GameSetupStruct game;
 extern int displayed_room;
@@ -40,16 +40,16 @@ void redo_walkable_areas() {
 
     // since this is an 8-bit memory bitmap, we can just use direct 
     // memory access
-    if ((!thisroom.walls->IsLinearBitmap()) || (thisroom.walls->GetColorDepth() != 8))
+    if ((!thisroom.WalkAreaMask->IsLinearBitmap()) || (thisroom.WalkAreaMask->GetColorDepth() != 8))
         quit("Walkable areas bitmap not linear");
 
-    thisroom.walls->Blit(walkareabackup, 0, 0, 0, 0, thisroom.walls->GetWidth(), thisroom.walls->GetHeight());
+    thisroom.WalkAreaMask->Blit(walkareabackup, 0, 0, 0, 0, thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight());
 
     int hh,ww;
     for (hh=0;hh<walkareabackup->GetHeight();hh++) {
-        uint8_t *walls_scanline = thisroom.walls->GetScanLineForWriting(hh);
+        uint8_t *walls_scanline = thisroom.WalkAreaMask->GetScanLineForWriting(hh);
         for (ww=0;ww<walkareabackup->GetWidth();ww++) {
-            //      if (play.walkable_areas_on[_getpixel(thisroom.walls,ww,hh)]==0)
+            //      if (play.walkable_areas_on[_getpixel(thisroom.WalkAreaMask,ww,hh)]==0)
             if (play.walkable_areas_on[walls_scanline[ww]]==0)
                 walls_scanline[ww] = 0;
         }
@@ -59,7 +59,7 @@ void redo_walkable_areas() {
 
 int get_walkable_area_pixel(int x, int y)
 {
-    return thisroom.walls->GetPixel(convert_to_low_res(x), convert_to_low_res(y));
+    return thisroom.WalkAreaMask->GetPixel(convert_to_low_res(x), convert_to_low_res(y));
 }
 
 int get_area_scaling (int onarea, int xx, int yy) {
@@ -69,33 +69,33 @@ int get_area_scaling (int onarea, int xx, int yy) {
     yy = convert_to_low_res(yy);
 
     if ((onarea >= 0) && (onarea <= MAX_WALK_AREAS) &&
-        (thisroom.walk_area_zoom2[onarea] != NOT_VECTOR_SCALED)) {
+        (thisroom.WalkAreas[onarea].ScalingNear != NOT_VECTOR_SCALED)) {
             // We have vector scaling!
             // In case the character is off the screen, limit the Y co-ordinate
             // to within the area range (otherwise we get silly zoom levels
             // that cause Out Of Memory crashes)
-            if (yy > thisroom.walk_area_bottom[onarea])
-                yy = thisroom.walk_area_bottom[onarea];
-            if (yy < thisroom.walk_area_top[onarea])
-                yy = thisroom.walk_area_top[onarea];
+            if (yy > thisroom.WalkAreas[onarea].Bottom)
+                yy = thisroom.WalkAreas[onarea].Bottom;
+            if (yy < thisroom.WalkAreas[onarea].Top)
+                yy = thisroom.WalkAreas[onarea].Top;
             // Work it all out without having to use floats
             // Percent = ((y - top) * 100) / (areabottom - areatop)
             // Zoom level = ((max - min) * Percent) / 100
-            if (thisroom.walk_area_bottom[onarea] != thisroom.walk_area_top[onarea])
+            if (thisroom.WalkAreas[onarea].Bottom != thisroom.WalkAreas[onarea].Top)
             {
-                int percent = ((yy - thisroom.walk_area_top[onarea]) * 100)
-                    / (thisroom.walk_area_bottom[onarea] - thisroom.walk_area_top[onarea]);
-                zoom_level = ((thisroom.walk_area_zoom2[onarea] - thisroom.walk_area_zoom[onarea]) * (percent)) / 100 + thisroom.walk_area_zoom[onarea];
+                int percent = ((yy - thisroom.WalkAreas[onarea].Top) * 100)
+                    / (thisroom.WalkAreas[onarea].Bottom - thisroom.WalkAreas[onarea].Top);
+                zoom_level = ((thisroom.WalkAreas[onarea].ScalingNear - thisroom.WalkAreas[onarea].ScalingFar) * (percent)) / 100 + thisroom.WalkAreas[onarea].ScalingFar;
             }
             else
             {
                 // Special case for 1px tall walkable area: take bottom line scaling
-                zoom_level = thisroom.walk_area_zoom2[onarea];
+                zoom_level = thisroom.WalkAreas[onarea].ScalingNear;
             }
             zoom_level += 100;
     }
     else if ((onarea >= 0) & (onarea <= MAX_WALK_AREAS))
-        zoom_level = thisroom.walk_area_zoom[onarea] + 100;
+        zoom_level = thisroom.WalkAreas[onarea].ScalingFar + 100;
 
     if (zoom_level == 0)
         zoom_level = 100;
@@ -141,7 +141,7 @@ int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
 
 Bitmap *prepare_walkable_areas (int sourceChar) {
     // copy the walkable areas to the temp bitmap
-    walkable_areas_temp->Blit (thisroom.walls, 0,0,0,0,thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+    walkable_areas_temp->Blit(thisroom.WalkAreaMask.get(), 0,0,0,0,thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
     // if the character who's moving doesn't Bitmap *, don't bother checking
     if (sourceChar < 0) ;
     else if (game.chars[sourceChar].flags & CHF_NOBLOCKING)
@@ -205,12 +205,12 @@ int get_walkable_area_at_location(int xx, int yy) {
     if (onarea < 0) {
         // the character has walked off the edge of the screen, so stop them
         // jumping up to full size when leaving
-        if (xx >= thisroom.width)
-            onarea = get_walkable_area_pixel(thisroom.width-1, yy);
+        if (xx >= thisroom.Width)
+            onarea = get_walkable_area_pixel(thisroom.Width-1, yy);
         else if (xx < 0)
             onarea = get_walkable_area_pixel(0, yy);
-        else if (yy >= thisroom.height)
-            onarea = get_walkable_area_pixel(xx, thisroom.height - 1);
+        else if (yy >= thisroom.Height)
+            onarea = get_walkable_area_pixel(xx, thisroom.Height - 1);
         else if (yy < 0)
             onarea = get_walkable_area_pixel(xx, 1);
     }

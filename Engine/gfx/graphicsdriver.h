@@ -28,7 +28,11 @@
 namespace AGS
 {
 
-namespace Common { class Bitmap; }
+namespace Common
+{
+    class Bitmap;
+    typedef stdtr1compat::shared_ptr<Common::Bitmap> PBitmap;
+}
 
 namespace Engine
 {
@@ -36,8 +40,8 @@ namespace Engine
 // Forward declaration
 class IDriverDependantBitmap;
 class IGfxFilter;
-typedef stdtr1compat::shared_ptr<Common::Bitmap> PBitmap;
 typedef stdtr1compat::shared_ptr<IGfxFilter> PGfxFilter;
+using Common::PBitmap;
 
 enum TintMethod
 {

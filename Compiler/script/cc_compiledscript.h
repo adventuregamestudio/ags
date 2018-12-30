@@ -54,8 +54,8 @@ struct ccCompiledScript : public ccScript {
 
     void pop_reg(int regg);
 
-    intptr_t ccCompiledScript::yank_chunk(int32_t start, intptr_t **nested_chunk, int index);
-    void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t chunk_size, bool dispose, int fixup_start, int fixup_stop, int32_t adjust);
+    //intptr_t ccCompiledScript::yank_chunk(int32_t start, intptr_t **nested_chunk, int index);
+    //void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t chunk_size, bool dispose, int fixup_start, int fixup_stop, int32_t adjust);
 
     ccCompiledScript();
     virtual ~ccCompiledScript();

@@ -25,7 +25,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
     if (scrip->codesize > 0)
     {
         of << "intptr_t code[] = {" << std::endl;
-        for (size_t idx = 0; idx < scrip->codesize; idx++)
+        for (size_t idx = 0; idx < static_cast<size_t>(scrip->codesize); idx++)
         {
             of.width(4);
             of << scrip->code[idx] << ", ";
@@ -50,7 +50,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
     if (scrip->numfixups > 0)
     {
         of << "intptr_t fixups[] = {" << std::endl;
-        for (size_t idx = 0; idx < scrip->numfixups; idx++)
+        for (size_t idx = 0; idx < static_cast<size_t>(scrip->numfixups); idx++)
         {
             of.width(4);
             of << scrip->fixups[idx] << ", ";
@@ -69,7 +69,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
         of << "}" << std::endl << std::endl;
 
         of << "char fixuptypes[] = {" << std::endl;
-        for (size_t idx = 0; idx < scrip->numfixups; idx++)
+        for (size_t idx = 0; idx < static_cast<size_t>(scrip->numfixups); idx++)
         {
             of.width(3);
             of << static_cast<int>(scrip->fixuptypes[idx]) << ", ";
@@ -777,7 +777,7 @@ TEST(Compatibility, For) {
        0,    5,  -999
     };
 
-    for (size_t idx = 0; idx < scrip->codesize; idx++)
+    for (size_t idx = 0; idx < static_cast<size_t>(scrip->codesize); idx++)
     {
         std::string prefix = "code[";
         prefix += (std::to_string(idx)) + std::string("] == ");

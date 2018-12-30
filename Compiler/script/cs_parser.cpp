@@ -2624,14 +2624,14 @@ inline int get_write_command_for_size(int the_size)
 }
 
 
-// [fw] That is a HUGE code smell.
+// [fw] Passing info around through a global variable: That is a HUGE code smell.
 int readcmd_lastcalledwith = 0;
 
 
 // Get the bytecode for reading or writing memory of size the_size
 inline int get_readwrite_cmd_for_size(int the_size, bool write_operation)
 {
-    // [fw] That is a HUGE code smell.
+    // [fw] Passing info around through a global variable: That is a HUGE code smell.
     if (the_size != 0) readcmd_lastcalledwith = the_size;
 
     return (write_operation) ? get_write_command_for_size(the_size) : get_read_command_for_size(the_size);
@@ -4485,7 +4485,7 @@ int evaluate_assignment_SAssign(ccCompiledScript * scrip, ags::Symbol_t ass_symb
     {
         // since the MAR won't have changed, we can directly write
         // the value back to it without re-calculating the offset
-        // [fw] That is a HUGE code smell.
+        // [fw] Passing info around through a global variable: That is a HUGE code smell.
         scrip->write_cmd1(get_readwrite_cmd_for_size(readcmd_lastcalledwith, true), SREG_AX);
         return 0;
     }
@@ -4684,7 +4684,7 @@ int parse_var_decl_InitialValAssignment_ToGlobal(ccInternalList *targ, long varn
 }
 
 
-// We have accepted something like "int var" and reading "= val"
+// We have accepted something like "int var" and we are reading "= val"
 int parse_var_decl_InitialValAssignment(ccInternalList *targ, ccCompiledScript * scrip, int next_type, Globalness isglobal, long varname, int type_of_defn, void * &initial_val_ptr, FxFixupType &need_fixup)
 {
     targ->getnext();  // skip the '='
@@ -6394,13 +6394,12 @@ int cs_parser_handle_vartype(
     bool isDynamicArray = (dynArrayStatus > 0);
 
     // Look for "noloopcheck"; if present, gobble it and set the indicator
-    // "function noloopcheck foo(...)"
+    // "TYPE noloopcheck foo(...)"
     loopCheckOff = false;
     if (sym.get_type(targ->peeknext()) == SYM_LOOPCHECKOFF)
     {
         targ->getnext();
         loopCheckOff = true;
-        // [fw] The old code seems to have something about if it is import, then don't loopCheckOff. What gives?
     }
 
     Globalness is_global = GlLocal;
@@ -7090,9 +7089,9 @@ int evaluate_continue(ccInternalList * targ, ccCompiledScript * scrip, ags::Nest
     }
     scrip->flush_line_numbers();
 
-    // The jump below may be a conditional jump.
+    // original comment "The jump below may be a conditional jump."
     //  [fw] Nooo? Leave it in, anyway, so that we have byte identical code
-    // So clear AX to make sure that the jump is executed.
+    // original comment "So clear AX to make sure that the jump is executed."
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0); 
 
     // Jump to the start of the loop
@@ -7223,8 +7222,6 @@ int cc_compile_HandleLinesAndMeta(ccInternalList & targ, ccCompiledScript * scri
         long metatype = targ.getnext();
         if (metatype == SMETA_END) return 0; // Another way of ending a compilation
 
-                                             // [fw] Check whether it is really possible for the tokenizer to return META LINENUM.
-                                             //      If not, the general 'Refuse metas of all kinds' ought to be sufficient guard.
         if (metatype == SMETA_LINENUM)
         {
             cc_error("Internal compiler error: Unexpected 'meta linenum' token found in input");
@@ -7257,12 +7254,11 @@ int cc_compile_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_
 
     // This is NOT an indicator proper since it can have values from 0 to 2.
     // But 0 seems to mean "next is NOT an import".
-    Importness next_is_import = ImNoImport; // [fw] NOT a bool, can be 0 or 1 or 2
+    Importness next_is_import = ImNoImport; // NOT a bool, can be 0 or 1 or 2
 
     // Go through the list of tokens one by one. We start off in the global data
     // part - no code is allowed until a function definition is started
     currentline = 1; // This is a global variable. cc_internallist.cpp, cs_internallist_test.cpp, cs_parser.cpp
-                    // [fw] After converting into a class, this should become an internal with getter/setter.
     int currentlinewas = 0;
 
     // This 'for' will typically run for much less than targ->length times

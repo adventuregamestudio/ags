@@ -96,7 +96,7 @@ TEST(Compile, DynamicTypeReturnNonPointerManaged) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("cannot pass non-pointer struct array", last_seen_cc_error);
+    EXPECT_STREQ("Cannot pass non-pointer struct array", last_seen_cc_error);
 }
 
 TEST(Compile, StructMemberQualifierOrder) {

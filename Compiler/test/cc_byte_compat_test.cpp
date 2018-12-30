@@ -1012,20 +1012,20 @@ TEST(Compatibility, Strings1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        string GLOBAL; \
-\
+        string GLOBAL;          \
+                                \
         string MyFunction(int a)\
-        {\
-            string x;\
-            return GLOBAL;\
-        }\
+        {                       \
+            string x;           \
+            return GLOBAL;      \
+        }                       \
         ";
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    writeoutput("Strings1", scrip);
+    // writeoutput("Strings1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1105,15 +1105,20 @@ TEST(Compatibility, Struct1) {
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 49;
+    EXPECT_EQ(codesize, scrip->codesize);
+
     intptr_t code[] = {
-          38,    0,    3,    1,            5,    1,    1,  200, // 7
-           3,    1,    2,    8,            5,    1,    1,    4, // 15
-           6,    2,  200,    7,            3,    2,    1,  200, // 23
-           5,    6,    3,    0,            2,    1,  200,    5, // 31
-        -999
+      38,    0,    3,    1,            2,    4,    4,    0,    // 7
+       1,    1,    4,    6,            3,    0,   29,    6,    // 15
+      30,    2,   52,    8,            3,    6,    3,    5,    // 23
+      72,    3,    4,    0,            6,    2,    0,   47,    // 31
+       3,    6,    2,    0,           48,    3,    2,    1,    // 39
+       4,    5,    6,    3,            0,    2,    1,    4,    // 47
+       5,  -999
     };
 
-    for (size_t idx = 0; idx < scrip->codesize; idx++)
+    for (size_t idx = 0; idx < codesize; idx++)
     {
         std::string prefix = "code[";
         prefix += (std::to_string(idx)) + std::string("] == ");
@@ -1125,7 +1130,7 @@ TEST(Compatibility, Struct1) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-     200,   18,  -999
+      30,   35,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -1138,10 +1143,10 @@ TEST(Compatibility, Struct1) {
     }
 
     char fixuptypes[] = {
-        5,   1,  '\0'
+      1,   1,  '\0'
     };
 
-    for (size_t idx = 0; idx < scrip->numfixups; idx++)
+    for (size_t idx = 0; idx < numfixups; idx++)
     {
         std::string prefix = "fixuptypes[";
         prefix += (std::to_string(idx)) + std::string("] == ");
@@ -1149,4 +1154,63 @@ TEST(Compatibility, Struct1) {
         std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
         ASSERT_EQ(is_val, test_val);
     }
+}
+
+TEST(Compatibility, Struct2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Struct                                        \n\
+        {                                                    \n\
+            int k;                                           \n\
+        };                                                   \n\
+                                                             \n\
+        struct Sub extends Struct                            \n\
+        {                                                    \n\
+            int l;                                           \n\
+        };                                                   \n\
+                                                             \n\
+        int Func(this Sub *, int i, int j)                   \n\
+        {                                                    \n\
+            return !i || !(j) && this.k || (0 != this.l);    \n\
+        }                                                    \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+
+    writeoutput("Struct2", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 100;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,    4,    4,    0,    // 7
+       1,    1,    4,   51,           12,    7,    3,   42,    // 15
+       3,   70,   35,   29,            3,   51,   20,    7,    // 23
+       3,   42,    3,   28,           17,   29,    3,   29,    // 31
+       6,   30,    2,   52,            7,    3,   30,    4,    // 39
+      21,    4,    3,    3,            4,    3,   30,    4,    // 47
+      22,    4,    3,    3,            4,    3,   70,   33,    // 55
+      29,    3,    6,    3,            0,   29,    3,   29,    // 63
+       6,   30,    2,   52,            1,    2,    4,    7,    // 71
+       3,   30,    4,   16,            4,    3,    3,    4,    // 79
+       3,   30,    4,   22,            4,    3,    3,    4,    // 87
+       3,    2,    1,    4,            5,    6,    3,    0,    // 95
+       2,    1,    4,    5,          -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
 }

@@ -1091,7 +1091,7 @@ TEST(Compatibility, Struct1) {
     int Ret[];                      \n\
     int[] Struct::Func(int i)       \n\
     {                               \n\
-        this.Float = 0.0;         \n\
+        this.Float = 0.0;           \n\
         Ret = new int[5];           \n\
         return Ret;                 \n\
     }";
@@ -1101,7 +1101,7 @@ TEST(Compatibility, Struct1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
-    writeoutput("Struct1", scrip);
+    // writeoutput("Struct1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

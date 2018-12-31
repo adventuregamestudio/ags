@@ -3682,7 +3682,7 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol_
     getJustTheAddressIntoAX = false;
     doMemoryAccessNow = false;
 
-    pointerIsOnStack = false; // was isPointer
+    //pointerIsOnStack = false; // was isPointer
     accessActualPointer = false;
     cannotAssign = false;
 
@@ -3739,6 +3739,7 @@ int do_variable_ax_ActualMemoryAccess(ccCompiledScript * scrip, ags::Symbol_t va
 
     // if a pointer in use, then its address was pushed on the
     // stack, so restore it here
+
     if (pointerIsOnStack) scrip->pop_reg(SREG_MAR);
 
     // in a writing operation, but not doing it just yet -- push
@@ -3873,7 +3874,6 @@ int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript_t syml, int syml_le
         sym.entries[variableSym].flags |= SFLG_ACCESSED;
 
         bool isArrayOffset;
-        bool pointerIsOnStack;
         bool isDynamicArray;
         int retval = do_variable_ax_PrepareComponentAccess(scrip, variableSym, variableSymType, isLastClause, thisClause, writing, mustBeWritable, writingThisTime, firstVariableType, firstVariableSym, currentComponentOffset, getJustTheAddressIntoAX, doMemoryAccessNow, isProperty, isArrayOffset, write_same_as_read_access, isDynamicArray, pointerIsOnStack, accessActualPointer, cannotAssign);
         if (retval < 0) return retval;

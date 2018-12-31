@@ -1032,7 +1032,7 @@ int stacksize_of_locals(int from_level)
 
         // Calculate the size of one var of the given type
         size_t ssize = sym.entries[entries_idx].ssize;
-        if (sym.entries[entries_idx].flags & SFLG_STRBUFFER) ssize = STRING_LENGTH;
+        if (sym.entries[entries_idx].flags & SFLG_STRBUFFER) ssize += STRING_LENGTH;
         
         // Calculate the number of vars
         size_t number = 1;
@@ -1254,14 +1254,16 @@ int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::
     return 0;
 }
 
+// Given a struct STRUCT and a member MEMBER, 
+// finds the symbol of the fully qualified name STRUCT::MEMBER and returns it in memSym.
+// Gives error if the fully qualified symbol is protected.
 int find_member_sym(ags::Symbol_t structSym, ags::Symbol_t &memSym, bool allowProtected) {
 
     // Construct a string out of struct and member, look it up in the symbol table
-    ags::Symbol_t oriname = memSym;
-    const char *name_as_cstring = get_member_full_name(structSym, oriname);
-    oriname = sym.find(name_as_cstring);
+    const char *name_as_cstring = get_member_full_name(structSym, memSym);
+    ags::Symbol_t full_name = sym.find(name_as_cstring);
 
-    if (oriname < 0)
+    if (full_name < 0)
     {
         if (sym.entries[structSym].extends > 0)
         {
@@ -1275,12 +1277,12 @@ int find_member_sym(ags::Symbol_t structSym, ags::Symbol_t &memSym, bool allowPr
         return -1;
     }
 
-    if ((!allowProtected) && (sym.entries[oriname].flags & SFLG_PROTECTED))
+    if ((!allowProtected) && (sym.entries[full_name].flags & SFLG_PROTECTED))
     {
-        cc_error("Cannot access protected member '%s'", sym.get_friendly_name(oriname).c_str());
+        cc_error("Cannot access protected member '%s'", sym.get_friendly_name(full_name).c_str());
         return -1;
     }
-
+    memSym = full_name;
     return 0;
 }
 
@@ -2424,7 +2426,9 @@ int read_var_or_funccall(ccInternalList *targ, ags::Symbol_t fsym, ags::SymbolSc
     bool justHadBrackets = false;
     if (targ->peeknext() == SCODE_INVALID) return 0;
     int nexttype = sym.get_type(targ->peeknext());
-    while ((nexttype == SYM_DOT) || (nexttype == SYM_OPENBRACKET))
+    for (int nexttype = sym.get_type(targ->peeknext()); 
+        nexttype == SYM_DOT || nexttype == SYM_OPENBRACKET;
+        nexttype = sym.get_type(targ->peeknext()))
     {
         // store the '.' or '['
         slist[slist_len++] = targ->getnext();

@@ -65,11 +65,15 @@ public:
         return _alBitmap;
     }
 
-    // TODO: also add generic GetBitmapType returning combination of flags
-	// Is this a "normal" bitmap created by application which data can be directly accessed for reading and writing
+    // Is this a "normal" bitmap created by application which data can be directly accessed for reading and writing
     inline bool IsMemoryBitmap() const
     {
         return is_memory_bitmap(_alBitmap) != 0;
+    }
+    // Is this a video bitmap
+    inline bool IsVideoBitmap() const
+    {
+        return is_video_bitmap(_alBitmap) != 0;
     }
     // Is this a linear bitmap, the one that can be accessed linearly within each scanline 
 	inline bool IsLinearBitmap() const

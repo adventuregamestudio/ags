@@ -512,7 +512,8 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 
   update_polled_stuff_if_runtime();
 
-  tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), game.GetColorDepth());
+  const Rect &ui_view = play.GetUIViewport();
+  tempScrn = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight(), game.GetColorDepth());
 
   set_mouse_cursor(CURS_ARROW);
 

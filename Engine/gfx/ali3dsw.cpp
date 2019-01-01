@@ -215,7 +215,7 @@ bool ALSoftwareGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile 
   // ensure global bitmap wraps over existing allegro screen bitmap.
   _allegroScreenWrapper = BitmapHelper::CreateRawBitmapWrapper(screen);
   BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
-  BitmapHelper::GetScreenBitmap()->Clear();
+  _allegroScreenWrapper->Clear();
 
   // [IKM] 2012-09-07
   // The wrapper we created will be saved by filter for future reference,
@@ -656,7 +656,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
 {
     Bitmap *bmp_orig, *bmp_buff;
 
-    const int col_depth = BitmapHelper::GetScreenBitmap()->GetColorDepth();
+    const int col_depth = virtualScreen->GetColorDepth();
     const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
 
     if ((bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), col_depth)))
@@ -688,10 +688,10 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
         delete bmp_orig;
     }
 
-    BitmapHelper::GetScreenBitmap()->Clear(clearColor);
+    virtualScreen->Clear(clearColor);
     int _global_x_offset = _virtualScrOff.X + _globalViewOff.X;
     int _global_y_offset = _virtualScrOff.Y + _globalViewOff.Y;
-	_filter->RenderScreen(BitmapHelper::GetScreenBitmap(), _global_x_offset, _global_y_offset);
+	_filter->RenderScreen(virtualScreen, _global_x_offset, _global_y_offset);
 }
 /** END FADE.C **/
 

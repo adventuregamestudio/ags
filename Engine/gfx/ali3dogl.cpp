@@ -1399,6 +1399,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
         RenderSpriteBatch(batch, flip);
     }
 
+    _stageVirtualScreen = GetStageScreen(0);
     glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
     if (!_screenTintSprite.skip)
     {

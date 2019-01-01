@@ -1419,6 +1419,7 @@ void D3DGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
         RenderSpriteBatch(batch, flip);
     }
 
+    _stageVirtualScreen = GetStageScreen(0);
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
     if (!_screenTintSprite.skip)
     {

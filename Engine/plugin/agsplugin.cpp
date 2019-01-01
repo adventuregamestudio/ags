@@ -180,7 +180,8 @@ BITMAP *IAGSEngine::GetScreen ()
     if (!gfxDriver->UsesMemoryBackBuffer())
         quit("!This plugin is not compatible with the hardware-accelerated graphic drivers.");
 
-	return (BITMAP*)BitmapHelper::GetScreenBitmap()->GetAllegroBitmap();
+    Bitmap *buffer = gfxDriver->GetMemoryBackBuffer();
+    return buffer ? (BITMAP*)buffer->GetAllegroBitmap() : NULL;
 }
 
 BITMAP *IAGSEngine::GetVirtualScreen () 

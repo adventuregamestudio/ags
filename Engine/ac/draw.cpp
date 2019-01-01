@@ -675,7 +675,7 @@ void render_black_borders(int atx, int aty)
 }
 
 
-void render_to_screen(Bitmap *toRender, int atx, int aty)
+void render_to_screen(int atx, int aty)
 {
     gfxDriver->SetNativeRenderOffset(atx, aty);
     const Rect &viewport = play.GetMainViewport();
@@ -759,7 +759,7 @@ void write_screen() {
     else
         gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
 
-    render_to_screen(virtual_screen, 0, at_yp);
+    render_to_screen(0, at_yp);
 }
 
 

@@ -28,13 +28,14 @@ using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
+extern GameSetupStruct game;
 
 // from ac_game
 extern char saveGameDirectory[260];
 
 int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
 Bitmap *windowBuffer;
-IDriverDependantBitmap *dialogBmp;
+IDriverDependantBitmap *dialogDDB;
 
 #undef MAXSAVEGAMES
 #define MAXSAVEGAMES 20
@@ -50,10 +51,12 @@ CSCIMessage smes;
 char buff[200];
 int myscrnwid = 320, myscrnhit = 200;
 
+//
+// TODO: rewrite the whole thing to work inside the main game update and render loop!
+//
 
-void prepare_gui_screen(int x, int y, int width, int height, bool opaque)
+Bitmap *prepare_gui_screen(int x, int y, int width, int height, bool opaque)
 {
-    clear_gui_screen();
     windowPosX = x;
     windowPosY = y;
     windowPosWidth = width;
@@ -64,31 +67,31 @@ void prepare_gui_screen(int x, int y, int width, int height, bool opaque)
     }
     else
     {
-        windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, GetVirtualScreen()->GetColorDepth());
+        windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, game.GetColorDepth());
         windowBuffer = ReplaceBitmapWithSupportedFormat(windowBuffer);
     }
-    dialogBmp = recycle_ddb_bitmap(dialogBmp, windowBuffer, false, opaque);
+    dialogDDB = recycle_ddb_bitmap(dialogDDB, windowBuffer, false, opaque);
+    return windowBuffer;
+}
+
+Bitmap *get_gui_screen()
+{
+    return windowBuffer;
 }
 
 void clear_gui_screen()
 {
-    if (dialogBmp)
-        gfxDriver->DestroyDDB(dialogBmp);
-    dialogBmp = NULL;
+    if (dialogDDB)
+        gfxDriver->DestroyDDB(dialogDDB);
+    dialogDDB = NULL;
     delete windowBuffer;
     windowBuffer = NULL;
 }
 
 void refresh_gui_screen()
 {
-    Bitmap *ds = GetVirtualScreen();
-    windowBuffer->Blit(ds, windowPosX, windowPosY, 0, 0, windowPosWidth, windowPosHeight);
-    gfxDriver->UpdateDDBFromBitmap(dialogBmp, windowBuffer, false);
-
-    render_graphics(dialogBmp, windowPosX, windowPosY);
-
-    // Copy it back, because the mouse will have been drawn on top
-    ds->Blit(windowBuffer, 0, 0, windowPosX, windowPosY, windowPosWidth, windowPosHeight);
+    gfxDriver->UpdateDDBFromBitmap(dialogDDB, windowBuffer, false);
+    render_graphics(dialogDDB, windowPosX, windowPosY);
 }
 
 int loadgamedialog()

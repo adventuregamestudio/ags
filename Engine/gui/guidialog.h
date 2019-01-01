@@ -18,9 +18,12 @@
 #ifndef __AGS_EE_GUI__GUIDIALOG_H
 #define __AGS_EE_GUI__GUIDIALOG_H
 
+namespace AGS { namespace Common { class Bitmap; } }
+
 // Functions for handling hard-coded GUIs
 // Prepares GUI bitmaps which will be passed to the renderer's draw chain
-void prepare_gui_screen(int x, int y, int width, int height, bool opaque);
+AGS::Common::Bitmap *prepare_gui_screen(int x, int y, int width, int height, bool opaque);
+AGS::Common::Bitmap *get_gui_screen();
 // Deletes GUI bitmaps
 void clear_gui_screen();
 // Draws virtual screen contents on the GUI bitmaps and assignes them to

@@ -60,7 +60,7 @@ void prepare_gui_screen(int x, int y, int width, int height, bool opaque)
     windowPosHeight = height;
     if (windowBuffer)
     {
-        windowBuffer = recycle_bitmap(windowBuffer, windowPosWidth, windowPosHeight, windowBuffer->GetColorDepth(), !opaque);
+        windowBuffer = recycle_bitmap(windowBuffer, windowBuffer->GetColorDepth(), windowPosWidth, windowPosHeight, !opaque);
     }
     else
     {

@@ -2094,34 +2094,29 @@ void draw_fps()
     static IDriverDependantBitmap* ddb = NULL;
     static Bitmap *fpsDisplay = NULL;
 
+    const Rect &ui_view = play.GetUIViewport();
     if (fpsDisplay == NULL)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), game.GetColorDepth());
+        fpsDisplay = BitmapHelper::CreateBitmap(ui_view.GetWidth(), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), game.GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
-    //Bitmap *oldAbuf = ds;
-    //ds = fpsDisplay;
+    
     char tbuffer[60];
     sprintf(tbuffer,"FPS: %d",fps);
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
     wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, tbuffer);
-    //ds = oldAbuf;
+    sprintf(tbuffer, "Loop %u", loopcounter);
+    int textw = wgettextwidth(tbuffer, FONT_SPEECH);
+    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, tbuffer);
 
-    Bitmap *ds = GetVirtualScreen();
-
-    if (ddb == NULL)
-        ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
-    else
+    if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
-
-    int yp = play.GetMainViewport().GetHeight() - fpsDisplay->GetHeight();
-
+    else
+        ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
+    int yp = ui_view.GetHeight() - fpsDisplay->GetHeight();
     gfxDriver->DrawSprite(1, yp, ddb);
     invalidate_sprite(1, yp, ddb, false);
-
-    sprintf(tbuffer,"Loop %u", loopcounter);
-    draw_and_invalidate_text(ds, get_fixed_pixel_size(250), yp, FONT_SPEECH, text_color, tbuffer);
 }
 
 // Draw GUI and overlays of all kinds, anything outside the room space
@@ -2282,30 +2277,8 @@ void put_sprite_list_on_screen(bool in_room)
 
 void draw_misc_info()
 {
-    if (display_fps) 
-    {
+    if (display_fps)
         draw_fps();
-    }
-
-    Bitmap *ds = GetVirtualScreen();
-
-    color_t text_color;
-    if (play.recording) {
-        // Flash "REC" while recording
-        text_color = ds->GetCompatibleColor (12);
-        //if ((loopcounter % (frames_per_second * 2)) > frames_per_second/2) {
-        char tformat[30];
-        sprintf (tformat, "REC %02d:%02d:%02d", replay_time / 3600, (replay_time % 3600) / 60, replay_time % 60);
-        draw_and_invalidate_text(ds, get_fixed_pixel_size(5), get_fixed_pixel_size(10), FONT_SPEECH, text_color, tformat);
-        //}
-    }
-    else if (play.playback) {
-        text_color = ds->GetCompatibleColor (10);
-        char tformat[30];
-        sprintf (tformat, "PLAY %02d:%02d:%02d", replay_time / 3600, (replay_time % 3600) / 60, replay_time % 60);
-
-        draw_and_invalidate_text(ds, get_fixed_pixel_size(5), get_fixed_pixel_size(10), FONT_SPEECH, text_color, tformat);
-    }
 
     our_eip = 1101;
 }

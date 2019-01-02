@@ -28,13 +28,13 @@ struct NewControl
   char visible, enabled;        // not implemented
   char needredraw;
   virtual void draw(Common::Bitmap *ds) = 0;
-  virtual int pressedon() = 0;
+  virtual int pressedon(int mousex, int mousey) = 0;
   virtual int processmessage(int, int, long) = 0;
 
   NewControl(int xx, int yy, int wi, int hi);
   NewControl();
   virtual ~NewControl(){}
-  int mouseisinarea();
+  int mouseisinarea(int mousex, int mousey);
   void drawifneeded();
   void drawandmouse();
 };

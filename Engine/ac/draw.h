@@ -56,6 +56,9 @@ struct CachedActSpsData {
     int valid;
 };
 
+// Converts AGS color index to the actual bitmap color using game's color depth
+int MakeColor(int color_index);
+
 // Initializes drawing methods and optimisation
 void init_draw_method();
 // Disposes resources related to the current drawing methods

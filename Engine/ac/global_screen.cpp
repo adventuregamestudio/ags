@@ -83,7 +83,7 @@ void ShakeScreen(int severe) {
     else
     {
         // TODO: support shaking room viewport separately
-        Bitmap *tty = BitmapHelper::CreateBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
+        Bitmap *tty = BitmapHelper::CreateBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight(), game.GetColorDepth());
         gfxDriver->GetCopyOfScreenIntoBitmap(tty);
         for (hh=0;hh<40;hh++) {
             platform->Delay(50);

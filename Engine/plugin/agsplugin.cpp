@@ -474,14 +474,17 @@ AGSViewFrame *IAGSEngine::GetViewFrame (int32 view, int32 loop, int32 frame) {
 
     return (AGSViewFrame*)&views[view].loops[loop].frames[frame];
 }
-int IAGSEngine::GetRawPixelColor (int32 color) {
-    // Convert the standardized colour to the local gfx mode color
-    // TODO: this won't work with hardware-accelerated renderers
-    int result;
-    __my_setcolor(&result, color, ::GetVirtualScreen()->GetColorDepth());
 
+int IAGSEngine::GetRawPixelColor(int32 color)
+{
+    // Convert the standardized colour to the local gfx mode color
+    // NOTE: it is unclear whether this has to be game colour depth or display color depth.
+    // there was no difference in the original engine, but there is now.
+    int result;
+    __my_setcolor(&result, color, game.GetColorDepth());
     return result;
 }
+
 int IAGSEngine::GetWalkbehindBaseline (int32 wa) {
     if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
         quit("!IAGSEngine::GetWalkBehindBase: invalid walk-behind area specified");

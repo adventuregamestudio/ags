@@ -162,7 +162,7 @@ void script_debug(int cmdd,int dataa) {
             short srcy=short(cmls->pos[i] & 0x00ffff);
             short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
             short targety=short(cmls->pos[i+1] & 0x00ffff);
-            tempw->DrawLine(Line(srcx, srcy, targetx, targety), GetVirtualScreen()->GetCompatibleColor(i+1));
+            tempw->DrawLine(Line(srcx, srcy, targetx, targety), MakeColor(i+1));
         }
 
         const Rect &viewport = play.GetRoomViewport();

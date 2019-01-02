@@ -127,7 +127,7 @@ void RawSetColor (int clr) {
     //push_screen();
     //SetVirtualScreen(thisroom.BgFrames.Graphic[play.bg_frame]);
     // set the colour at the appropriate depth for the background
-    play.raw_color = GetVirtualScreen()->GetCompatibleColor(clr);
+    play.raw_color = MakeColor(clr);
     //pop_screen();
 }
 void RawSetColorRGB(int red, int grn, int blu) {

@@ -485,6 +485,12 @@ void destroy_blank_image()
     blankSidebarImage = NULL;
 }
 
+int MakeColor(int color_index)
+{
+    color_t real_color = 0;
+    __my_setcolor(&real_color, color_index, game.GetColorDepth());
+    return real_color;
+}
 
 void init_draw_method()
 {
@@ -600,7 +606,7 @@ void on_roomviewport_changed()
         invalidate_screen();
         // TODO: don't have to do this all the time, perhaps do "dirty rect" method
         // and only clear previous viewport location?
-        GetVirtualScreen()->Clear(0);
+        gfxDriver->GetMemoryBackBuffer()->Clear();
     }
 }
 
@@ -2369,9 +2375,6 @@ void update_screen() {
             debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
         }
 
-        //Bitmap *ds = GetVirtualScreen();
-        //push_screen(ds);
-        //ds = debugConsoleBuffer;
         color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);
         debugConsoleBuffer->FillRect(Rect (0, 0, viewport.GetWidth() - 1, barheight), draw_color);
         color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
@@ -2379,8 +2382,6 @@ void update_screen() {
             wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
             ypp += txtspacing;
         }
-        //buf_graphics.text_color = otextc;
-        //ds = pop_screen();
 
         if (debugConsole == NULL)
             debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
@@ -2451,7 +2452,7 @@ void construct_virtual_screen(bool fullRedraw)
         (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
         0.f);
     gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraFrame);
-    Bitmap *ds = GetVirtualScreen();
+    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
     if (displayed_room >= 0) {
 
         if (fullRedraw)

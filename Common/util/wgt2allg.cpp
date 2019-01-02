@@ -202,13 +202,6 @@ extern "C"
     0xA0A0A0, 0xB0B0B0, 0xC0C0C0, 0xD0D0D0, 0xE0E0E0, 0xF0F0F0
   };
 
-  /*
-  void wsetcolor(int nval)
-  {
-    __my_setcolor(&currentcolor, nval);
-  }
-  */
-
   int __wremap_keep_transparent = 1;
 
   void wremap(color * pal1, Bitmap *picc, color * pal2)

@@ -47,7 +47,7 @@ struct GameSetupStructBase {
     int32             color_depth;          // in bytes per pixel (ie. 1 or 2)
     int32             target_win;
     int32             dialog_bullet;        // 0 for none, otherwise slot num of bullet point
-    unsigned short    hotdot, hotdotouter;  // inv cursor hotspot dot
+    unsigned short    hotdot, hotdotouter;  // inv cursor hotspot dot color
     int32             uniqueid;    // random key identifying the game
     int32             numgui;
     int32             numcursors;

@@ -149,6 +149,10 @@ public:
     void    Acquire();
 	void	Release();
 
+    // Converts AGS color-index into RGB color according to the bitmap format.
+    // TODO: this method was added to the Bitmap class during large refactoring,
+    // but that's a mistake, because in retrospect is has nothing to do with
+    // bitmap itself and should rather be a part of the game data logic.
     color_t GetCompatibleColor(color_t color);
 
     //=========================================================================

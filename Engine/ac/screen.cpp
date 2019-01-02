@@ -79,8 +79,7 @@ void current_fade_out_effect () {
     else 
     {
         get_palette(old_palette);
-        Bitmap *ds = GetVirtualScreen();
-        saved_viewport_bitmap = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),ds->GetColorDepth());
+        saved_viewport_bitmap = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(), game.GetColorDepth());
         gfxDriver->GetCopyOfScreenIntoBitmap(saved_viewport_bitmap);
     }
 }

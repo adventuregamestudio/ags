@@ -904,6 +904,9 @@ void show_preload()
         Debug::Printf("Displaying preload image");
         if (splashsc->GetColorDepth() == 8)
             set_palette_range(temppal, 0, 255, 0);
+        if (gfxDriver->UsesMemoryBackBuffer())
+            gfxDriver->GetMemoryBackBuffer()->Clear();
+
         const Rect &view = play.GetMainViewport();
         Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, game.GetColorDepth());
         if (!gfxDriver->HasAcceleratedTransform() && view.GetSize() != tsc->GetSize())

@@ -164,8 +164,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     else if (xx<0) xx= ui_view.GetWidth()/2-wii/2;
 
     int ee, extraHeight = paddingDoubledScaled;
-    Bitmap *ds = GetVirtualScreen();
-    color_t text_color = ds->GetCompatibleColor(15);
+    color_t text_color = MakeColor(15);
     if (blocking < 2)
         remove_screen_overlay(OVER_TEXTMSG);
 
@@ -246,7 +245,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, alphaChannel);
     // we should not delete text_window_ds here, because it is now owned by Overlay
 
-    ds = SetVirtualScreen(virtual_screen);
+    SetVirtualScreen(virtual_screen);
     if (blocking>=2) {
         return screenover[nse].type;
     }

@@ -3215,11 +3215,7 @@ int parse_subexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags:
 int parse_subexpr_NoOps(ccCompiledScript * scrip, ags::SymbolScript_t symlist, size_t symlist_len)
 {
 
-    if (sym.get_type(symlist[0]) == 0)
-    {
-        cc_error("Symbol '%s' is undefined", sym.get_friendly_name(symlist[0]).c_str());
-        return -1;
-    }
+    // Can't check whether type is 0, because e.g. "this" doesn't have a type
 
     if (sym.get_type(symlist[0]) == SYM_OPENPARENTHESIS)
     {
@@ -3885,6 +3881,11 @@ int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript_t syml, int syml_le
 
         retval = do_variable_ax_ActualMemoryAccess(scrip, variableSym, variableSymType, pointerIsOnStack, writing, writingThisTime, isProperty, mustBeWritable, getJustTheAddressIntoAX, isArrayOffset, currentComponentOffset, accessActualPointer, firstVariableSym, firstVariableType, isDynamicArray, negateLiteral, isLastClause, variablePath, vp_idx);
         if (retval < 0) return retval;
+
+        pointerIsOnStack = false;
+        currentComponentOffset = 0;
+        isDynamicArray = false;
+        firstVariableType = SYM_GLOBALVAR;
     }
 
     // free the VariablePaths
@@ -4088,8 +4089,6 @@ int do_variable_memory_access_Variable(ccCompiledScript * scrip, ags::Symbol_t m
 
     if (isPointer)
     {
-        gotValType |= STYPE_POINTER;
-
         // the address is already in MAR by the caller
         if ((!wholePointerAccess) && ((!addressof) || (soffset) || (extraoffset)))
             scrip->write_cmd(SCMD_CHECKNULL);

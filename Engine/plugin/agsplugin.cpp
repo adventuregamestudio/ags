@@ -334,11 +334,23 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
         draw_and_invalidate_text(ds, xx, yy + linespacing*i, font, text_color, lines[i]);
 }
 
-void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
-	// [IKM] Very, very dangerous :'(
-    // TODO: this won't work with hardware-accelerated renderers
-    SetVirtualScreenRaw (bmp);
+Bitmap glVirtualScreenWrap;
+void IAGSEngine::SetVirtualScreen (BITMAP *bmp)
+{
+    if (!gfxDriver->UsesMemoryBackBuffer())
+        quit("!This plugin is not compatible with the hardware-accelerated graphic drivers.");
+    if (bmp)
+    {
+        glVirtualScreenWrap.WrapAllegroBitmap(bmp, true);
+        gfxDriver->SetMemoryBackBuffer(&glVirtualScreenWrap);
+    }
+    else
+    {
+        glVirtualScreenWrap.Destroy();
+        gfxDriver->SetMemoryBackBuffer(NULL);
+    }
 }
+
 int IAGSEngine::LookupParserWord (const char *word) {
     return find_word_in_dictionary ((char*)word);
 }

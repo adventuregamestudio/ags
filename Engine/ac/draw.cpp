@@ -2307,22 +2307,6 @@ void GfxDriverOnInitCallback(void *data)
 
 
 
-int numOnStack = 0;
-Bitmap *screenstack[10];
-void push_screen (Bitmap *ds) {
-    if (numOnStack >= 10)
-        quit("!Too many push screen calls");
-
-    screenstack[numOnStack] = ds;
-    numOnStack++;
-}
-Bitmap *pop_screen() {
-    if (numOnStack <= 0)
-        quit("!Too many pop screen calls");
-    numOnStack--;
-    return SetVirtualScreen(screenstack[numOnStack]);
-}
-
 // update_screen: copies the contents of the virtual screen to the actual
 // screen, and draws the mouse cursor on.
 void update_screen() {
@@ -2408,8 +2392,6 @@ void update_screen() {
     domouse(2);*/
 
     write_screen();
-
-    SetVirtualScreen(virtual_screen);
 
     if (!play.screen_is_faded_out) {
         // always update the palette, regardless of whether the plugin

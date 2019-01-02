@@ -550,8 +550,6 @@ void DialogOptions::Show()
       return;
   }
 
-    SetVirtualScreen(virtual_screen);
-
     is_textwindow = 0;
     forecol = play.dialog_options_highlight_color;
 
@@ -651,7 +649,7 @@ void DialogOptions::Redraw()
     }
 
     tempScrn->ClearTransparent();
-    Bitmap *ds = SetVirtualScreen(tempScrn);
+    Bitmap *ds = tempScrn;
 
     dlgxp = orixp;
     dlgyp = oriyp;
@@ -712,14 +710,11 @@ void DialogOptions::Redraw()
         xspos = (ui_view.GetWidth() - areawid) - get_fixed_pixel_size(10);
 
       // needs to draw the right text window, not the default
-      push_screen(ds);
-      Bitmap *text_window_ds = ds;
+      Bitmap *text_window_ds = NULL;
       draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,NULL,needheight, game.options[OPT_DIALOGIFACE]);
       options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
-      ds = pop_screen();
-      // snice draw_text_window incrases the width, restore it
+      // since draw_text_window incrases the width, restore it
       areawid = savedwid;
-      //wnormscreen();
 
       dirtyx = xspos;
       dirtyy = yspos;
@@ -728,6 +723,8 @@ void DialogOptions::Redraw()
       dialog_abs_x = txoffs + xspos;
 
       GfxUtil::DrawSpriteWithTransparency(ds, text_window_ds, xspos, yspos);
+      // TODO: here we rely on draw_text_window always assigning new bitmap to text_window_ds;
+      // should make this more explicit
       delete text_window_ds;
 
       // Ignore the dialog_options_x/y offsets when using a text window
@@ -815,7 +812,7 @@ void DialogOptions::Redraw()
     }
 
     wantRefresh = false;
-    ds = SetVirtualScreen(virtual_screen);
+    ds = virtual_screen;
 
     update_polled_stuff_if_runtime();
 

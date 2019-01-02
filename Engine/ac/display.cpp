@@ -169,7 +169,6 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         remove_screen_overlay(OVER_TEXTMSG);
 
     Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, disp.fulltxtheight + extraHeight, game.GetColorDepth());
-    SetVirtualScreen(text_window_ds);
 
     // inform draw_text_window to free the old bitmap
     const bool wantFreeScreenop = true;
@@ -245,7 +244,6 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, alphaChannel);
     // we should not delete text_window_ds here, because it is now owned by Overlay
 
-    SetVirtualScreen(virtual_screen);
     if (blocking>=2) {
         return screenover[nse].type;
     }
@@ -687,7 +685,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
             delete *text_window_ds;
         int padding = get_textwindow_padding(ifnum);
         *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+ game.SpriteInfos[tbnum].Height*2,game.GetColorDepth());
-        ds = SetVirtualScreen(*text_window_ds);
+        ds = *text_window_ds;
         int xoffs=game.SpriteInfos[tbnum].Width,yoffs= game.SpriteInfos[tbnum].Height;
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
         if (set_text_color)
@@ -695,7 +693,6 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         xins[0]=xoffs+padding;
         yins[0]=yoffs+padding;
     }
-
 }
 
 void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
@@ -711,7 +708,7 @@ void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
         newScreenop->Blit(ds, 0, 0, 0, topBar.height, ds->GetWidth(), ds->GetHeight());
         delete *text_window_ds;
         *text_window_ds = newScreenop;
-        ds = SetVirtualScreen(*text_window_ds);
+        ds = *text_window_ds;
 
         // draw the top bar
         color_t draw_color = ds->GetCompatibleColor(play.top_bar_backcolor);

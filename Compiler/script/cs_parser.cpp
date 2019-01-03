@@ -1854,7 +1854,11 @@ int process_function_declaration(
 
     // skip the opening "("
     targ->getnext();
-    if (ReachedEOF(targ)) return -1;
+    if (ReachedEOF(targ))
+    {
+        cc_error("Unexpected end of input");
+        return -1;
+    }
 
     bool func_is_static_extender = (sym.get_type(targ->peeknext()) == SYM_STATIC);
     bool func_is_extender = (func_is_static_extender) || (targ->peeknext() == sym.find("this"));
@@ -2237,7 +2241,7 @@ inline bool isVCPUOperatorBoolean(int scmdtype)
 }
 
 
-int read_var_or_funccall_PointItem_HandleFuncCall(ccInternalList *targ, int & funcAtOffs, const ags::SymbolScript_t &slist, size_t & slist_len)
+int read_var_or_funccall_DotItem_HandleFuncCall(ccInternalList *targ, int & funcAtOffs, const ags::SymbolScript_t &slist, size_t & slist_len)
 {
     int paren_expr_startline = currentline;
     funcAtOffs = slist_len - 1;
@@ -2274,14 +2278,12 @@ int read_var_or_funccall_PointItem_HandleFuncCall(ccInternalList *targ, int & fu
     return 0;
 }
 
-// We have accepted something like "m.a"; we know that the next symbol will be a '.'.
-int read_var_or_funccall_ExpectPoint(ccInternalList *targ, bool justHadBrackets, ags::SymbolScript_t slist, size_t &slist_len, ags::Symbol_t &current_member, int & funcAtOffs)
+// We have accepted something like "m.a."
+int read_var_or_funccall_GotDot(ccInternalList *targ, bool justHadBrackets, ags::SymbolScript_t slist, size_t &slist_len, ags::Symbol_t &current_member, int &funcAtOffs)
 {
     bool mustBeStaticMember = false;
 
-    slist[slist_len] = targ->getnext();
-
-    // Get the type of the component we are looking at.
+    // Get the type of the component before the dot.
     ags::Symbol_t current_member_type = 0;
     if (sym.get_type(current_member) == SYM_VARTYPE)
     {
@@ -2309,31 +2311,32 @@ int read_var_or_funccall_ExpectPoint(ccInternalList *targ, bool justHadBrackets,
     bool allowProtectedMembers = false;
     if (sym.entries[current_member].flags & SFLG_THISPTR) allowProtectedMembers = true;
 
+    // Get the symbol to the right of the dot
+    slist[slist_len++] = targ->getnext();
+
     // convert the member's sym to the structmember version
-    int retval = find_member_sym(current_member_type, slist[slist_len], allowProtectedMembers);
+    int retval = find_member_sym(current_member_type, slist[slist_len - 1], allowProtectedMembers);
     if (retval < 0) return retval;
 
-
-    if ((sym.entries[slist[slist_len]].flags & SFLG_STRUCTMEMBER) == 0)
+    if ((sym.entries[slist[slist_len-1]].flags & SFLG_STRUCTMEMBER) == 0)
     {
         cc_error("structure member required after '.'");
         return -1;
     }
 
-    if ((mustBeStaticMember) && ((sym.entries[slist[slist_len]].flags & SFLG_STATIC) == 0))
+    if ((mustBeStaticMember) && (0 == (sym.entries[slist[slist_len-1]].flags & SFLG_STATIC)))
     {
         cc_error("Must have an instance of the struct to access a non-static member");
         return -1;
     }
 
-    current_member = slist[slist_len];
-    slist_len++;
+    current_member = slist[slist_len - 1];
 
     if (sym.get_type(current_member) == SYM_FUNCTION)
     {
-        // The last member was a function name. This function is called.
+        // The symbol after the dot was a function name. This function is called.
         // We encountered something like s.m; we're waiting for '('
-        int retval = read_var_or_funccall_PointItem_HandleFuncCall(targ, funcAtOffs, slist, slist_len);
+        int retval = read_var_or_funccall_DotItem_HandleFuncCall(targ, funcAtOffs, slist, slist_len);
         if (retval < 0) return retval;
     }
 
@@ -2341,9 +2344,9 @@ int read_var_or_funccall_ExpectPoint(ccInternalList *targ, bool justHadBrackets,
 }
 
 
-int read_var_or_funccall_ExpectOpenBracket(ccInternalList *targ, ags::SymbolScript_t slist, size_t &slist_len)
+// We've read something like "a.b.c[", we've already stored the '['
+int read_var_or_funccall_GotOpenBracket(ccInternalList *targ, ags::SymbolScript_t slist, size_t &slist_len)
 {
-    slist[slist_len++] = targ->getnext();
 
     if ((sym.entries[slist[slist_len - 2]].flags & SFLG_ARRAY) == 0)
     {
@@ -2365,7 +2368,7 @@ int read_var_or_funccall_ExpectOpenBracket(ccInternalList *targ, ags::SymbolScri
     // vartype is allowed to permit access to static members, e.g. array[Game.GetColorFromRGB(0, 0, 0)]
     while (bracket_nesting_depth > 0)
     {
-        ags::Symbol_t next_symbol = targ->peeknext();
+        ags::Symbol_t next_symbol = targ->getnext();
         if (next_symbol == SCODE_INVALID)
         {
             currentline = bracket_expr_startline;
@@ -2381,12 +2384,6 @@ int read_var_or_funccall_ExpectOpenBracket(ccInternalList *targ, ags::SymbolScri
             return -1;
         }
 
-        if (sym.get_type(slist[slist_len - 1]) == SYM_VARTYPE && sym.get_type(slist[slist_len]) != SYM_DOT)
-        {
-            cc_error("Expected '.', found '%s' instead", sym.get_friendly_name(next_symbol).c_str());
-            return -1;
-        }
-
         slist[slist_len++] = next_symbol;
         if (sym.get_type(next_symbol) == SYM_CLOSEBRACKET) bracket_nesting_depth--;
         if (sym.get_type(next_symbol) == SYM_OPENBRACKET)  bracket_nesting_depth++;
@@ -2399,6 +2396,7 @@ int read_var_or_funccall_ExpectOpenBracket(ccInternalList *targ, ags::SymbolScri
 
     return 0;
 }
+
 
 // Copies the parts of a  variable name or array expression or function call into slist[]
 // If there isn't any of this here, this will return without error
@@ -2424,16 +2422,12 @@ int read_var_or_funccall(ccInternalList *targ, ags::Symbol_t fsym, ags::SymbolSc
     slist[slist_len++] = fsym; 
 
     bool justHadBrackets = false;
-    if (targ->peeknext() == SCODE_INVALID) return 0;
-    int nexttype = sym.get_type(targ->peeknext());
+    
     for (int nexttype = sym.get_type(targ->peeknext()); 
         nexttype == SYM_DOT || nexttype == SYM_OPENBRACKET;
         nexttype = sym.get_type(targ->peeknext()))
     {
-        // store the '.' or '['
-        slist[slist_len++] = targ->getnext();
-
-        if (targ->peeknext() == SCODE_INVALID)
+        if (ReachedEOF(targ))
         {
             cc_error("Dot operator must be followed by member function or property");
             return -1;
@@ -2445,15 +2439,18 @@ int read_var_or_funccall(ccInternalList *targ, ags::Symbol_t fsym, ags::SymbolSc
             return -1;
         }
 
+        // store the '.' or '['
+        slist[slist_len++] = targ->getnext();
+
         switch (nexttype)
         {
         default: // This can't happen
             cc_error("Internal error: '.' or '[' expected");
-            return -1;
+            return -99;
 
         case SYM_DOT:
         {
-            int retval = read_var_or_funccall_ExpectPoint(targ, justHadBrackets, slist, slist_len, fsym, funcAtOffs);
+            int retval = read_var_or_funccall_GotDot(targ, justHadBrackets, slist, slist_len, fsym, funcAtOffs);
             if (retval < 0) return retval;
             justHadBrackets = false;
             break;
@@ -2461,7 +2458,7 @@ int read_var_or_funccall(ccInternalList *targ, ags::Symbol_t fsym, ags::SymbolSc
 
         case SYM_OPENBRACKET:
         {
-            int retval = read_var_or_funccall_ExpectOpenBracket(targ, slist, slist_len);
+            int retval = read_var_or_funccall_GotOpenBracket(targ, slist, slist_len);
             if (retval < 0) return retval;
             justHadBrackets = true;
             break;
@@ -5046,7 +5043,11 @@ int parse_var_decl0(
         parse_var_decl_CodeForDefnOfLocal(scrip, var_name, fixup_needed, size_of_defn, initial_value_ptr);
     }
 
-    if (ReachedEOF(targ)) return -1;
+    if (ReachedEOF(targ))
+    {
+        cc_error("Unexpected end of input");
+        return -1;
+    }
     if (next_type == SYM_COMMA || next_type == SYM_SEMICOLON)
     {
         targ->getnext();  // skip the comma or semicolon
@@ -5398,6 +5399,7 @@ int cs_parser_struct_IsMemberTypeIllegal(ccInternalList *targ, int stname, ags::
 
     if (ReachedEOF(targ))
     {
+        cc_error("Unexpected end of input");
         return -1;
     }
 
@@ -5976,7 +5978,11 @@ int cs_parser_handle_enum_inner(ccInternalList *targ, int in_func)
 
     while (true)
     {
-        if (ReachedEOF(targ)) return -1;
+        if (ReachedEOF(targ))
+        {
+            cc_error("Unexpected end of input");
+            return -1;
+        }
 
         ags::Symbol_t item_name = targ->getnext();
         if (sym.get_type(item_name) == SYM_CLOSEBRACE) break; // item list empty or ends with trailing ','
@@ -6129,7 +6135,10 @@ int cs_parser_handle_export(ccInternalList *targ, ccCompiledScript * scrip, ags:
             return -1;
         }
         if (ReachedEOF(targ))
+        {
+            cc_error("Unexpected end of input");
             return -1;
+        }
         cursym = targ->getnext();
         if (sym.get_type(cursym) == SYM_SEMICOLON) break;
         if (sym.get_type(cursym) != SYM_COMMA)
@@ -6379,7 +6388,11 @@ int cs_parser_handle_vartype(
     ags::Symbol_t &struct_of_current_func, // 0 if _not_ a member function
     bool &loopCheckOff)
 {
-    if (ReachedEOF(targ)) return -1;
+    if (ReachedEOF(targ))
+    {
+        cc_error("Unexpected end of input");
+        return -1;
+    }
 
     // Don't define variable or function where illegal in context.
     int retval = cs_parser_handle_vartype_CheckForIllegalContext(nesting_stack);
@@ -6415,7 +6428,11 @@ int cs_parser_handle_vartype(
     // We've accepted a type expression and are now reading vars or one func that should have this type.
     do
     {
-        if (ReachedEOF(targ)) return -1;
+        if (ReachedEOF(targ))
+        {
+            cc_error("Unexpected end of input");
+            return -1;
+        }
 
         // Get the variable or function name.
         ags::Symbol_t var_or_func_name = -1;
@@ -6950,7 +6967,7 @@ int evaluate_switch(ccInternalList * targ, ccCompiledScript * scrip, ags::Nestin
     if (ReachedEOF(targ))
     {
         currentline = targ->lineAtEnd;
-        cc_error("Unexpected end of file");
+        cc_error("Unexpected end of input");
         return -1;
     }
     if (sym.get_type(targ->peeknext()) != SYM_CASE && sym.get_type(targ->peeknext()) != SYM_DEFAULT && sym.get_type(targ->peeknext()) != SYM_CLOSEBRACE)

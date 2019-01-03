@@ -130,7 +130,7 @@ TEST(Compatibility, SimpleVoidFunction) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("SimpleVoidFunction", scrip);
     // run the test, comment out the previous line 
@@ -169,7 +169,7 @@ TEST(Compatibility, SimpleIntFunction) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("SimpleIntFunction", scrip);
     // run the test, comment out the previous line 
@@ -209,7 +209,7 @@ TEST(Compatibility, IntFunctionLocalV) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("IntFunctionLocalV", scrip);
     // run the test, comment out the previous line 
@@ -250,7 +250,7 @@ TEST(Compatibility, IntFunctionParam) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("IntFunctionParam", scrip);
     // run the test, comment out the previous line 
@@ -289,7 +289,7 @@ TEST(Compatibility, IntFunctionGlobalV) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("IntFunctionGlobalV", scrip);
     // run the test, comment out the previous line 
@@ -348,15 +348,15 @@ TEST(Compatibility, Expression1) {
 
     char *inpl = "\
         float a = 15.0;     \n\
-        float Foo()     \n\
-    {                   \n\
-        float f = 3.14; \n\
-        return a + f;   \n\
+        float Foo()         \n\
+    {                       \n\
+        float f = 3.14;     \n\
+        return a + f;       \n\
     }";
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("Expression1", scrip);
     // run the test, comment out the previous line 
@@ -429,7 +429,7 @@ TEST(Compatibility, IfThenElse1) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("IfThenElse1", scrip);
     // run the test, comment out the previous line 
@@ -486,7 +486,7 @@ TEST(Compatibility, IfThenElse2) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("IfThenElse2", scrip);
     // run the test, comment out the previous line 
@@ -569,7 +569,7 @@ TEST(Compatibility, While) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("While", scrip);
     // run the test, comment out the previous line 
@@ -748,7 +748,7 @@ TEST(Compatibility, For) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("For", scrip);
     // run the test, comment out the previous line 
@@ -835,7 +835,7 @@ TEST(Compatibility, IfDoWhile) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("IfDoWhile", scrip);
     // run the test, comment out the previous line 
@@ -905,7 +905,7 @@ TEST(Compatibility, Switch) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("Switch", scrip);
     // run the test, comment out the previous line 
@@ -971,7 +971,7 @@ TEST(Compatibility, FreeLocalPtr) {
     ";
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("FreeLocalPtr", scrip);
     // run the test, comment out the previous line 
@@ -1023,7 +1023,7 @@ TEST(Compatibility, Strings1) {
 
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("Strings1", scrip);
     // run the test, comment out the previous line 
@@ -1177,7 +1177,7 @@ TEST(Compatibility, Struct2) {
         S.Ix = 5;                   \n\
         Array[2] = 3;               \n\
         S.Array[Array[2]] = 42;     \n\
-        S.Array[s.Ix] = 19;         \n\
+        S.Array[S.Ix] = 19;         \n\
         return;                     \n\
     }";
 
@@ -1190,13 +1190,66 @@ TEST(Compatibility, Struct2) {
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
-    
+
+    const size_t codesize = 118;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+        38,    0,    6,    3,            5,    6,    2,   68,    // 7
+        8,    3,    6,    3,            3,   29,    3,    6,    // 15
+        3,    2,   46,    3,            5,   32,    3,    4,    // 23
+        3,    3,    5,   30,            3,    6,    2,   72,    // 31
+        11,    2,    5,    8,            3,    6,    3,   42,    // 39
+        29,    3,    6,    3,            2,   46,    3,    5,    // 47
+        32,    3,    4,    3,            3,    5,    6,    2,    // 55
+        72,   11,    2,    5,            7,    3,   46,    3,    // 63
+        17,   32,    3,    4,            3,    3,    5,   30,    // 71
+        3,    6,    2,    0,           11,    2,    5,    8,    // 79
+        3,    6,    3,   19,           29,    3,    6,    2,    // 87
+        68,    7,    3,   46,            3,   17,   32,    3,    // 95
+        4,    3,    3,    5,           30,    3,    6,    2,    // 103
+        0,   11,    2,    5,            8,    3,    6,    3,    // 111
+        0,    5,    6,    3,            0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 6;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+        7,   31,   56,   75,         88,  104,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+        1,   1,   1,   1,      1,   1,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
 }
-
-
-
-
-
 
 
 TEST(Compatibility, StructExtender) {
@@ -1262,7 +1315,7 @@ TEST(Compatibility, FuncCall) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        struct Struct               \n\
+    struct Struct                   \n\
     {                               \n\
         float Float;                \n\
         import int Func();          \n\
@@ -1345,3 +1398,38 @@ TEST(Compatibility, FuncCall) {
     }
 
 }
+
+TEST(Compatibility, Export) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    struct Struct                   \n\
+    {                               \n\
+        float Float;                \n\
+        int Int;                    \n\
+    };                              \n\
+    export Struct;                  \n\
+                                    \n\
+    int Inty;                       \n\
+    float Floaty;                   \n\
+    export Floaty, Inty;            \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        Struct s;                   \n\
+        s.Int = 3;                  \n\
+        s.Float = 1.1 / 2.2;        \n\
+        return -2;                  \n\
+    }                               \n\
+    export main;                    \n\
+    ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    // writeoutput("Export", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code

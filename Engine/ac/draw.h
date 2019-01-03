@@ -152,9 +152,8 @@ Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool has_alpha);
 Common::Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res = false);
 
 
-// Pointer to the real screen bitmap created by Allegro
-extern Common::Bitmap *real_screen;
-// Subsection of the real screen, used when the room size is smaller than the game's size
-extern Common::Bitmap *sub_screen;
+// Subsection of a virtual screen, used by the Software renderer
+// when the room size is smaller than the game's size.
+extern Common::Bitmap *sub_vscreen;
 
 #endif // __AGS_EE_AC__DRAW_H

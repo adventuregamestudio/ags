@@ -241,7 +241,7 @@ void RenderToSurface(Bitmap *vscreen) {
   }
   else {
     g_bAppactive = TRUE;
-	Bitmap *screen_bmp = gfxDriver->GetStageBackBuffer();
+	Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
     // TODO: don't render on screen bitmap, use gfxDriver->DrawSprite instead!
     screen_bmp->Acquire();
     // Because vscreen is a DX Video Bitmap, it can be stretched
@@ -343,7 +343,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   newWidth = vscreen->GetWidth();
   newHeight = vscreen->GetHeight();
 
-  Bitmap *screen_bmp = gfxDriver->GetStageBackBuffer();
+  Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
 
   if ((stretch == 1) ||
 	  (vscreen->GetWidth() > screen_bmp->GetWidth()) ||

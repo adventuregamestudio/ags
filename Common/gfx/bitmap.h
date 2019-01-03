@@ -76,14 +76,6 @@ namespace BitmapHelper
     // Pitch is given in bytes and defines the length of the source scan line.
     // Offset is optional and defines horizontal offset, in pixels.
     void    ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset = 0);
-
-	// TODO: revise this later
-	// Getters and setters for screen bitmap
-	// Unfortunately some of the allegro functions require "screen" allegro bitmap,
-	// therefore we must set that pointer to something every time we assign an Bitmap
-	// to screen.
-	Bitmap	*GetScreenBitmap();
-	void	SetScreenBitmap(Bitmap *bitmap);
 } // namespace BitmapHelper
 
 } // namespace Common

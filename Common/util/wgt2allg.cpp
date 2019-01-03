@@ -20,41 +20,6 @@
 
 using namespace AGS::Common;
 
-  Common::Bitmap *gl_VirtualScreenBitmap;
-  Common::Bitmap *SetVirtualScreen(Bitmap *bitmap)
-  {
-    if (bitmap == NULL)
-    {
-      gl_VirtualScreenBitmap = BitmapHelper::GetScreenBitmap();
-    }
-    else
-    {
-      gl_VirtualScreenBitmap = bitmap;
-    }
-    return gl_VirtualScreenBitmap;
-  }
-
-  // [IKM] A very, very dangerous stuff!
-  Bitmap gl_VirtualScreenWrapper;
-  Common::Bitmap *SetVirtualScreenRaw(BITMAP *allegro_bitmap)
-  {
-    gl_VirtualScreenWrapper.WrapAllegroBitmap(allegro_bitmap, true);
-    if (allegro_bitmap == NULL)
-    {
-      gl_VirtualScreenBitmap = BitmapHelper::GetScreenBitmap();
-	}
-	else
-    {
-      gl_VirtualScreenBitmap = &gl_VirtualScreenWrapper;
-	}
-    return gl_VirtualScreenBitmap;
-  }
-
-  Common::Bitmap *GetVirtualScreen()
-  {
-      return gl_VirtualScreenBitmap;
-  }
-
 #ifdef __cplusplus
 extern "C"
 {

@@ -110,7 +110,6 @@ extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 extern color palette[256];
-extern Bitmap *virtual_screen;
 extern int mouse_z_was;
 
 extern Bitmap **guibg;

@@ -911,7 +911,8 @@ void D3DGraphicsDriver::CreateVirtualScreen()
 
   // create initial stage screen for plugin raw drawing
   _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
-  BitmapHelper::SetScreenBitmap(_stageVirtualScreen.get());
+  // we must set Allegro's screen pointer to **something**
+  screen = (BITMAP*)_stageVirtualScreen->GetAllegroBitmap();
 }
 
 HRESULT D3DGraphicsDriver::ResetD3DDevice()

@@ -206,7 +206,6 @@ void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
     for (size_t i = 0; i < _stageScreens.size(); ++i)
         _stageScreens[i].reset();
     _stageVirtualScreen.reset();
-    BitmapHelper::SetScreenBitmap(NULL);
 }
 
 bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)

@@ -41,7 +41,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern IGraphicsDriver *gfxDriver;
-extern Bitmap *virtual_screen;
 extern int psp_video_framedrop;
 
 enum VideoPlaybackType
@@ -429,7 +428,8 @@ void play_theora_video(const char *name, int skip, int flags)
 
     update_polled_stuff_if_runtime();
 
-    virtual_screen->Clear();
+    if (gfxDriver->UsesMemoryBackBuffer())
+        gfxDriver->GetMemoryBackBuffer()->Clear();
 
     video_type = kVideoTheora;
     if (apeg_play_apeg_stream(oggVid, NULL, 0, theora_playing_callback) == APEG_ERROR)

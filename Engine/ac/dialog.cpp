@@ -62,7 +62,6 @@ extern SpriteCache spriteset;
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
-extern Bitmap *virtual_screen;
 extern IGraphicsDriver *gfxDriver;
 
 DialogTopic *dialog;
@@ -555,10 +554,11 @@ void DialogOptions::Show()
 
     mouseison=-1;
     mousewason=-10;
+    const Rect &ui_view = play.GetUIViewport();
     dirtyx = 0;
     dirtyy = 0;
-    dirtywidth = virtual_screen->GetWidth();
-    dirtyheight = virtual_screen->GetHeight();
+    dirtywidth = ui_view.GetWidth();
+    dirtyheight = ui_view.GetHeight();
     usingCustomRendering = false;
 
 
@@ -625,7 +625,6 @@ void DialogOptions::Show()
     mouseison=-10;
     
     update_polled_stuff_if_runtime();
-    //->Blit(virtual_screen, tempScrn, 0, 0, 0, 0, screen->GetWidth(), screen->GetHeight());
     if (!play.mouse_cursor_hidden)
       domouse(1);
     update_polled_stuff_if_runtime();
@@ -812,7 +811,6 @@ void DialogOptions::Redraw()
     }
 
     wantRefresh = false;
-    ds = virtual_screen;
 
     update_polled_stuff_if_runtime();
 

@@ -48,7 +48,6 @@ extern GameSetup usetup;
 extern int our_eip;
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
-extern Bitmap *virtual_screen;
 
 #include <shlobj.h>
 #include <time.h>
@@ -1072,11 +1071,10 @@ LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp)
 
   BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
 
-  if (bmp == virtual_screen->GetAllegroBitmap())
+  if (bmp == gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap())
     invalidate_screen();
 
   return bei->surf;
-  //return get_bitmap_surface2 (bmp);
 }
 
 LPDIRECTSOUND IAGSEngine::GetDirectSound() {

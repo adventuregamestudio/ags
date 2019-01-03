@@ -42,6 +42,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_EXPORT_SPRITE = "ExportSprite";
         private const string MENU_ITEM_REPLACE_FROM_FILE = "ReplaceFromFile";
         private const string MENU_ITEM_REPLACE_FROM_CLIPBOARD = "ReplaceFromClipboard";
+        private const string MENU_ITEM_OPEN_FILE_EXPLORER = "OpenFileExplorer";
         private const string MENU_ITEM_DELETE_SPRITE = "DeleteSprite";
         private const string MENU_ITEM_SHOW_USAGE = "ShowUsage";
         private const string MENU_ITEM_CROP_ASYMMETRIC = "CropAsymettric";
@@ -629,6 +630,24 @@ namespace AGS.Editor
                     Factory.GUIController.ShowMessage("The clipboard does not currently contain a supported image format.", MessageBoxIcon.Warning);
                 }
             }
+            else if (item.Name == MENU_ITEM_OPEN_FILE_EXPLORER)
+            {
+                Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
+                string path = Utilities.ResolveSourcePath(sprite.SourceFile);
+
+                if (File.Exists(path))
+                {
+                    if (Utilities.IsMonoRunning())
+                    {
+                        // FIXME - this probably needs to be more platform specific
+                        Process.Start(path);
+                    }
+                    else
+                    {
+                        Process.Start("explorer.exe", String.Format("/select,\"{0}\"", path));
+                    }
+                }
+            }
             else if (item.Name == MENU_ITEM_DELETE_SPRITE)
             {
                 DeleteSelectedSprites();
@@ -1155,6 +1174,8 @@ namespace AGS.Editor
                 newItem.Font = new System.Drawing.Font(newItem.Font.Name, newItem.Font.Size, FontStyle.Bold);
                 menu.Items.Add(newItem);
                 menu.Items.Add(new ToolStripSeparator());
+                menu.Items.Add(new ToolStripMenuItem("Open File Explorer at sprite source", null, onClick, MENU_ITEM_OPEN_FILE_EXPLORER));
+                menu.Items[menu.Items.Count - 1].Enabled = File.Exists(Utilities.ResolveSourcePath(FindSpriteByNumber(_spriteNumberOnMenuActivation).SourceFile));
                 menu.Items.Add(new ToolStripMenuItem("Copy sprite to clipboard", null, onClick, MENU_ITEM_COPY_TO_CLIPBOARD));
                 menu.Items.Add(new ToolStripMenuItem("Export sprite to file...", null, onClick, MENU_ITEM_EXPORT_SPRITE));
                 menu.Items.Add(new ToolStripSeparator());

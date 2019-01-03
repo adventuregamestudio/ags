@@ -1156,6 +1156,49 @@ TEST(Compatibility, Struct1) {
     }
 }
 
+
+TEST(Compatibility, Struct2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // test arrays; arrays in structs;
+    // whether the namespace in structs is independent of the global namespace
+
+    char *inpl = "\
+    struct Struct1                  \n\
+    {                               \n\
+        int Array[17], Ix;          \n\
+    };                              \n\
+                                    \n\
+    Struct1 S;                      \n\
+    int Array[5];                   \n\
+                                    \n\
+    void main()                     \n\
+    {                               \n\
+        S.Ix = 5;                   \n\
+        Array[2] = 3;               \n\
+        S.Array[Array[2]] = 42;     \n\
+        S.Array[s.Ix] = 19;         \n\
+        return;                     \n\
+    }";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    // writeoutput("Struct2", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    
+}
+
+
+
+
+
+
+
 TEST(Compatibility, StructExtender) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -1232,7 +1275,8 @@ TEST(Compatibility, FuncCall) {
                                     \n\
     int main()                      \n\
     {                               \n\
-        int Int = Func() % Func();  \n\
+        Struct s;                   \n\
+        int Int = s.Func() % 3;     \n\
         return Int;                 \n\
     }                               \n\
     ";
@@ -1246,4 +1290,58 @@ TEST(Compatibility, FuncCall) {
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
+
+    const size_t codesize = 72;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,            5,    5,    6,    3,    // 7
+       0,    5,   38,   10,            3,    1,    2,   63,    // 15
+       4,    1,    1,    4,           29,    6,   51,    8,    // 23
+       3,    2,    3,   45,            3,    6,    3,    0,    // 31
+      23,    3,   30,    6,           29,    3,    6,    3,    // 39
+       3,   30,    4,   40,            4,    3,    3,    4,    // 47
+       3,    3,    1,    2,            8,    3,    1,    1,    // 55
+       4,   51,    4,    7,            3,    2,    1,    8,    // 63
+       5,    6,    3,    0,            2,    1,    8,    5,    // 71
+     -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 1;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      31,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      2,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
 }

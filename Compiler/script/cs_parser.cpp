@@ -6425,7 +6425,7 @@ int cs_parser_handle_vartype(
         // Check whether var or func is being defined
         int next_type = sym.get_type(targ->peeknext());
         bool is_function = (sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS);
-        bool is_member_definition = (struct_of_current_func > 0);
+        bool is_member_definition = (struct_of_current_func >= 0); // [fw] "> 0" would be right
 
         // certains modifiers, such as "static" only go with certain kinds of definitions.
         retval = cs_parser_handle_vartype_CheckIllegalCombis(is_static, is_member_definition, is_function, is_protected, loopCheckOff, (is_import != ImNoImport));
@@ -7397,7 +7397,7 @@ int cc_compile_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_
             next_is_readonly = true;
             if (sym.get_type(targ.peeknext()) != SYM_VARTYPE)
             {
-                cc_error("Expected variable after 'readonly'");
+                cc_error("Expected type after 'readonly'");
                 return -1;
             }
             continue;

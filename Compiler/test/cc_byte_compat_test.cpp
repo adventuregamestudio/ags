@@ -1214,3 +1214,36 @@ TEST(Compatibility, StructExtender) {
     const size_t numfixups = 0;
     EXPECT_EQ(numfixups, scrip->numfixups);
 }
+
+TEST(Compatibility, FuncCall) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Struct               \n\
+    {                               \n\
+        float Float;                \n\
+        import int Func();          \n\
+    };                              \n\
+                                    \n\
+    int Struct::Func()              \n\
+    {                               \n\
+        return 5;                   \n\
+    }                               \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        int Int = Func() % Func();  \n\
+        return Int;                 \n\
+    }                               \n\
+    ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    // writeoutput("FuncCall", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+}

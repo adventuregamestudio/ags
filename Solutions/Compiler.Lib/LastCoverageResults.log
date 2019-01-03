@@ -1,4 +1,4 @@
-[2019-01-03 02:48:19] [info] Start Program:
+[2019-01-03 14:58:12] [info] Start Program:
 Path:"C:\Users\Peter G Bouillon\Source\Repos\ags\Solutions\\.test\Debug\Compiler.Lib.Test.exe"
 Arguments:
 Working directory: "C:\Users\Peter G Bouillon\source\repos\ags\Solutions\Compiler.Lib\"
@@ -9,14 +9,13 @@ Cover Children: 0
 Aggregate by file: 1
 Continue after C++ exception: 0
 Optimized build support: 0
-Export: Binary C:\Users\Peter G Bouillon\AppData\Local\Temp\tymtqha1.b5a 
+Export: Binary C:\Users\Peter G Bouillon\AppData\Local\Temp\jd0qqzbg.xtc 
 Input coverage: 
 Unified diff: 
 Excluded line regular expressions: 
 Substitute pdb source paths: 
 
-[2019-01-03 02:48:19] [info] Module: C:\Users\Peter G Bouillon\source\repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe is selected because it matches selected pattern: C:\Users\Peter G Bouillon\Source\Repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe
-[2019-01-03 02:48:20] [info] ----------------------------------------------------
-[2019-01-03 02:48:20] [info] Coverage binary generated in file: C:\Users\Peter G Bouillon\AppData\Local\Temp\tymtqha1.b5a
-[2019-01-03 02:48:20] [info] ----------------------------------------------------
-[2019-01-03 02:48:20] [error] Your program stop with error code: 1
+[2019-01-03 14:58:12] [info] Module: C:\Users\Peter G Bouillon\source\repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe is selected because it matches selected pattern: C:\Users\Peter G Bouillon\Source\Repos\ags\Solutions\.test\Debug\Compiler.Lib.Test.exe
+[2019-01-03 14:58:13] [info] ----------------------------------------------------
+[2019-01-03 14:58:13] [info] Coverage binary generated in file: C:\Users\Peter G Bouillon\AppData\Local\Temp\jd0qqzbg.xtc
+[2019-01-03 14:58:13] [info] ----------------------------------------------------

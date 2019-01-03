@@ -91,11 +91,17 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
 }
 
 /*    PROTOTYPE
-// 1. Run those tests in a snapshot that does not have the changes made.
-// 2. Append the generated lines, as explained below
-// 3. Comment out the "writeoutput" line.
-// 4. Export this file to a snapshot that does have the changes.
-// 5. Run the test.
+// 1. Define a program in string inpl that tests some aspect of AGS
+// 2. Define a unique filename in the "writeoutput" line below, 
+//    e.g., use the name of the TEST.
+// 3. Run the googletest in a snapshot that does not have the changes made.
+//    This will generate C++ lines in the file named in 2.
+// 4. Insert the generated lines into this test, directly above the finishing '}'
+// 5. Comment out the "writeoutput" line.
+// 6. Export this test to a snapshot that does have the changes made.
+// 7. Run the test in that snapshot. 
+//    It will fail UNLESS the generated code and fixup is still identical to the
+//    version before the changes, byte for byte.
 TEST(Compatibility, SimpleFunction) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -108,7 +114,7 @@ TEST(Compatibility, SimpleFunction) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
     // writeoutput("SimpleFunction", scrip);
     // run the test, comment out the previous line
@@ -117,6 +123,7 @@ TEST(Compatibility, SimpleFunction) {
 
 }
 */
+
 
 TEST(Compatibility, SimpleVoidFunction) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -158,6 +165,7 @@ TEST(Compatibility, SimpleVoidFunction) {
 
 }
 
+
 TEST(Compatibility, SimpleIntFunction) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -196,6 +204,7 @@ TEST(Compatibility, SimpleIntFunction) {
     ASSERT_EQ(numfixups, scrip->numfixups);
 
 }
+
 
 TEST(Compatibility, IntFunctionLocalV) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -239,6 +248,7 @@ TEST(Compatibility, IntFunctionLocalV) {
 
 }
 
+
 TEST(Compatibility, IntFunctionParam) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -276,6 +286,7 @@ TEST(Compatibility, IntFunctionParam) {
     const size_t numfixups = 0;
     ASSERT_EQ(numfixups, scrip->numfixups);
 }
+
 
 TEST(Compatibility, IntFunctionGlobalV) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -413,6 +424,7 @@ TEST(Compatibility, Expression1) {
 
 }
 
+
 TEST(Compatibility, IfThenElse1) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -549,6 +561,7 @@ TEST(Compatibility, IfThenElse2) {
         ASSERT_EQ(is_val, test_val);
     }
 }
+
 
 TEST(Compatibility, While) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -731,6 +744,7 @@ TEST(Compatibility, DoNCall) {
 
 }
 
+
 TEST(Compatibility, For) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -815,6 +829,7 @@ TEST(Compatibility, For) {
     }
 }
 
+
 TEST(Compatibility, IfDoWhile) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -886,6 +901,7 @@ TEST(Compatibility, IfDoWhile) {
 
 }
 
+
 TEST(Compatibility, Switch) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -952,6 +968,7 @@ TEST(Compatibility, Switch) {
 
 }
 
+
 TEST(Compatibility, FreeLocalPtr) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -1005,6 +1022,7 @@ TEST(Compatibility, FreeLocalPtr) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
 }
+
 
 TEST(Compatibility, Strings1) {
 #include "script/cc_options.h"
@@ -1077,6 +1095,7 @@ TEST(Compatibility, Strings1) {
         ASSERT_EQ(is_val, test_val);
     }
 }
+
 
 TEST(Compatibility, Struct1) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -1399,6 +1418,7 @@ TEST(Compatibility, FuncCall) {
 
 }
 
+
 TEST(Compatibility, Export) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -1408,7 +1428,8 @@ TEST(Compatibility, Export) {
         float Float;                \n\
         int Int;                    \n\
     };                              \n\
-    export Struct;                  \n\
+    Struct Structy;                 \n\
+    export Structy;                 \n\
                                     \n\
     int Inty;                       \n\
     float Floaty;                   \n\
@@ -1429,7 +1450,32 @@ TEST(Compatibility, Export) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
-    // writeoutput("Export", scrip);
+    writeoutput("Export", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
+
+    const size_t codesize = 51;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    8,    1,    // 7
+       1,    8,    6,    3,            3,   51,    4,    8,    // 15
+       3,    6,    3, 1066192077,     29,    3,    6,    3,    // 23
+    1074580685,   30,    4,   56,      4,    3,    3,    4,    // 31
+       3,   51,    8,    8,            3,    6,    3,   -2,    // 39
+       2,    1,    8,    5,            6,    3,    0,    2,    // 47
+       1,    8,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+}

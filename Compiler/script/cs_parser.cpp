@@ -1843,7 +1843,7 @@ int process_function_declaration(
     Importness func_is_import,  // NOT a bool: it can contain 0 .. 2
     int struct_containing_the_func,
     int &idx_of_func, // Index of the function functions[] array; = -1 for imports
-    ags::Symbol_t struct_extended_by_the_func, // the BAR in "int FOO(this BAR *," 
+    ags::Symbol_t &struct_extended_by_the_func, // the BAR in "int FOO(this BAR *," 
     SymbolTableEntry *oldDefinition)
 {
     int numparams = 1; // Counts the number of parameters including the ret parameter, so start at 1
@@ -2839,7 +2839,7 @@ int parse_subexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, con
         // AX will still be non-zero so that will do as the result of the calculation
         scrip->write_cmd1(SCMD_JNZ, 0);
         // We don't know the end of the instruction yet, so remember the location we need to patch
-        jump_dest_loc_to_patch = scrip->codesize;
+        jump_dest_loc_to_patch = scrip->codesize - 1;
     }
 
     int valtype_leftsize = scrip->ax_val_type;
@@ -2862,7 +2862,7 @@ int parse_subexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, con
 
     if (jump_dest_loc_to_patch >= 0)
     {
-        ags::CodeLoc_t jump_offset = scrip->codesize - jump_dest_loc_to_patch + 1;
+        ags::CodeLoc_t jump_offset = scrip->codesize - jump_dest_loc_to_patch - 1;
         scrip->code[jump_dest_loc_to_patch] = jump_offset;
     }
 
@@ -6425,7 +6425,7 @@ int cs_parser_handle_vartype(
         // Check whether var or func is being defined
         int next_type = sym.get_type(targ->peeknext());
         bool is_function = (sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS);
-        bool is_member_definition = (struct_of_current_func >= 0);
+        bool is_member_definition = (struct_of_current_func > 0);
 
         // certains modifiers, such as "static" only go with certain kinds of definitions.
         retval = cs_parser_handle_vartype_CheckIllegalCombis(is_static, is_member_definition, is_function, is_protected, loopCheckOff, (is_import != ImNoImport));

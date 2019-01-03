@@ -1180,7 +1180,7 @@ TEST(Compatibility, StructExtender) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0)? "Ok" : last_seen_cc_error);
 
-    // writeoutput("StructExtender", scrip);
+    writeoutput("StructExtender", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

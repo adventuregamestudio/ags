@@ -114,7 +114,7 @@ TEST(Compile, StructMemberQualifierOrder) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 }
 
 TEST(Compile, ParsingIntSuccess) {
@@ -128,7 +128,7 @@ TEST(Compile, ParsingIntSuccess) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 }
 
 TEST(Compile, ParsingIntLimits) {
@@ -146,7 +146,7 @@ TEST(Compile, ParsingIntLimits) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 }
 
 TEST(Compile, ParsingIntDefaultOverflow) {

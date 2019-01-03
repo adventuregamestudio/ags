@@ -594,10 +594,17 @@ Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer()
     return _stageVirtualScreen;
 }
 
-void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
+bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
 {
   (void)at_native_res; // software driver always renders at native resolution at the moment
+  if (destination->GetColorDepth() != _mode.ColorDepth)
+  {
+    if (want_size)
+        *want_size = destination->GetSize(); // software filter is taught to copy to any size
+    return false;
+  }
   _filter->GetCopyOfScreenIntoBitmap(destination);
+  return true;
 }
 
 /**

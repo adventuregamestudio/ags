@@ -1000,9 +1000,18 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
-void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
+bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
 {
   (void)at_native_res; // TODO: support this at some point
+
+  Size need_size = _do_render_to_texture ? _backRenderSize : _dstRect.GetSize();
+  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
+  {
+    if (want_size)
+      *want_size = need_size;
+    return false;
+  }
+
   Rect retr_rect;
   if (_do_render_to_texture)
   {
@@ -1031,37 +1040,32 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     unsigned char* sourcePtr;
     unsigned char* destPtr;
     
-	Bitmap* retrieveInto = BitmapHelper::CreateBitmap(retr_rect.GetWidth(), retr_rect.GetHeight(), _mode.ColorDepth);
-
-    if (retrieveInto)
+	for (int y = destination->GetHeight() - 1; y >= 0; y--)
     {
-      for (int y = retrieveInto->GetHeight() - 1; y >= 0; y--)
-      {
         sourcePtr = surfaceData;
-        destPtr = &retrieveInto->GetScanLineForWriting(y)[0];
-        for (int x = 0; x < retrieveInto->GetWidth() * bpp; x += bpp)
+        destPtr = &destination->GetScanLineForWriting(y)[0];
+        for (int x = 0; x < destination->GetWidth() * bpp; x += bpp)
         {
-          // TODO: find out if it's possible to retrieve pixels in the matching format
-          destPtr[x]     = sourcePtr[x + 2];
-          destPtr[x + 1] = sourcePtr[x + 1];
-          destPtr[x + 2] = sourcePtr[x];
-          destPtr[x + 3] = sourcePtr[x + 3];
+            // TODO: find out if it's possible to retrieve pixels in the matching format
+            destPtr[x]     = sourcePtr[x + 2];
+            destPtr[x + 1] = sourcePtr[x + 1];
+            destPtr[x + 2] = sourcePtr[x];
+            destPtr[x + 3] = sourcePtr[x + 3];
         }
         surfaceData += retr_rect.GetWidth() * bpp;
-      }
-
-      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
-		  RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
-      delete retrieveInto;
     }
+
+    if (_pollingCallback)
+        _pollingCallback();
 
     delete [] buffer;
   }
+  return true;
 }
 
 void OGLGraphicsDriver::RenderToBackBuffer()
 {
-  throw Ali3DException("D3D driver does not have a back buffer");
+  throw Ali3DException("OGL driver does not have a back buffer");
 }
 
 void OGLGraphicsDriver::Render()

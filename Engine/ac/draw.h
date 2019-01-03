@@ -147,6 +147,9 @@ Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
 Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
 // Same as above, but compatible for std::shared_ptr.
 Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool has_alpha);
+// Makes a screenshot corresponding to the last screen render and returns it as a bitmap
+// of the requested width and height and game's native color depth.
+Common::Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res = false);
 
 
 // Pointer to the real screen bitmap created by Allegro

@@ -35,7 +35,6 @@ extern GameSetupStruct game;
 extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern Bitmap *virtual_screen;
 
 void my_fade_in(PALLETE p, int speed) {
     if (game.color_depth > 1) {
@@ -79,8 +78,8 @@ void current_fade_out_effect () {
     else 
     {
         get_palette(old_palette);
-        saved_viewport_bitmap = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(), game.GetColorDepth());
-        gfxDriver->GetCopyOfScreenIntoBitmap(saved_viewport_bitmap);
+        const Rect &viewport = play.GetMainViewport();
+        saved_viewport_bitmap = CopyScreenIntoBitmap(viewport.GetWidth(), viewport.GetHeight());
     }
 }
 

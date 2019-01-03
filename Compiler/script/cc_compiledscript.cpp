@@ -230,7 +230,7 @@ int ccCompiledScript::remove_any_import(const char *namm, SymbolDef *oldSym)
             // Just null the name of the import
             // DO NOT remove the import from the list, as some other
             // import indexes might already be referenced by the code
-            // compiled so far.
+          // compiled so far.
             imports[i][0] = 0;
         }
         else if (strncmp(imports[i], appended, applen) == 0)
@@ -368,7 +368,7 @@ void ccCompiledScript::flush_line_numbers()
 void ccCompiledScript::write_code(intptr_t byy) 
 {
     // DEBUGGING [fw]
-    if (codesize == 18)
+    if (codesize == 271)
     {
         int iii = 0;
     }

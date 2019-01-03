@@ -1479,3 +1479,149 @@ TEST(Compatibility, Export) {
     const size_t numfixups = 0;
     EXPECT_EQ(numfixups, scrip->numfixups);
 }
+
+
+TEST(Compatibility, ArrayOfPointers) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct                \n\
+    {                                    \n\
+        float Float;                     \n\
+        protected int Int;               \n\
+    };                                   \n\
+    Struct *arr[50];                     \n\
+                                         \n\
+    int main()                           \n\
+    {                                    \n\
+        for(int i = 0; i < 50; i++)      \n\
+            arr[i] = new Struct;         \n\
+                                         \n\
+        int test = (arr[10] == null);    \n\
+                                         \n\
+        Struct *arr2[50];                \n\
+        for (int i = 0; i < 20; i++) {   \n\
+                arr2[i] = new Struct;    \n\
+        }                                \n\
+        arr2[5].Float = 2.2 - 0.0 * 3.3; \n\
+        arr2[4] = null;                  \n\
+    }                                    \n\
+    ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("ArrayOfPointers", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+    intptr_t code[] = {
+  38,    0,    6,    3,            0,    3,    1,    2,    // 7
+   8,    3,    1,    1,            4,   51,    4,    7,    // 15
+   3,   29,    3,    6,            3,   50,   30,    4,    // 23
+  18,    4,    3,    3,            4,    3,   28,   43,    // 31
+  73,    3,    8,   29,            3,   51,    8,    7,    // 39
+   3,   46,    3,   50,            3,    3,    7,   30,    // 47
+   3,    6,    2,    0,           32,    7,    4,   11,    // 55
+   2,    7,   29,    2,           30,    2,   47,    3,    // 63
+  51,    4,    7,    3,            1,    3,    1,    8,    // 71
+   3,   31,  -62,    2,            1,    4,    6,    3,    // 79
+  10,   46,    3,   50,            3,    3,    7,    6,    // 87
+   2,    0,   32,    7,            4,   11,    2,    7,    // 95
+  29,    2,   30,    2,           48,    3,   29,    3,    // 103
+   6,    3,    0,   30,            4,   15,    4,    3,    // 111
+   3,    4,    3,    3,            1,    2,    8,    3,    // 119
+   1,    1,    4,    3,            1,    2,   63,  200,    // 127
+   1,    1,  200,    6,            3,    0,    3,    1,    // 135
+   2,    8,    3,    1,            1,    4,   51,    4,    // 143
+   7,    3,   29,    3,            6,    3,   20,   30,    // 151
+   4,   18,    4,    3,            3,    4,    3,   28,    // 159
+  42,   73,    3,    8,           29,    3,   51,    8,    // 167
+   7,    3,   46,    3,           50,    3,    3,    7,    // 175
+  30,    3,   51,  204,           32,    7,    4,   11,    // 183
+   2,    7,   29,    2,           30,    2,   47,    3,    // 191
+  51,    4,    7,    3,            1,    3,    1,    8,    // 199
+   3,   31,  -61,    2,            1,    4,    6,    3,    // 207
+1074580685,   29,    3,    6,            3,    0,   29,    3,    // 215
+   6,    3, 1079194419,   30,            4,   55,    4,    3,    // 223
+   3,    4,    3,   30,            4,   58,    4,    3,    // 231
+   3,    4,    3,   29,            3,    6,    3,    5,    // 239
+  46,    3,   50,    3,            3,    7,   30,    3,    // 247
+  51,  200,   32,    7,            4,   11,    2,    7,    // 255
+  29,    2,   30,    2,           29,    3,   48,    3,    // 263
+  30,    4,   29,    3,            3,    4,    3,   30,    // 271
+   2,   52,    8,    3,            6,    3,    0,   29,    // 279
+   3,    6,    3,    4,           46,    3,   50,    3,    // 287
+   3,    7,   30,    3,           51,  200,   32,    7,    // 295
+   4,   11,    2,    7,           29,    2,   30,    2,    // 303
+  47,    3,    6,    3,            0,   51,  200,   69,    // 311
+   1,    2,    4,   69,            1,    2,    4,   69,    // 319
+   1,    2,    4,   69,            1,    2,    4,   69,    // 327
+   1,    2,    4,   69,            1,    2,    4,   69,    // 335
+   1,    2,    4,   69,            1,    2,    4,   69,    // 343
+   1,    2,    4,   69,            1,    2,    4,   69,    // 351
+   1,    2,    4,   69,            1,    2,    4,   69,    // 359
+   1,    2,    4,   69,            1,    2,    4,   69,    // 367
+   1,    2,    4,   69,            1,    2,    4,   69,    // 375
+   1,    2,    4,   69,            1,    2,    4,   69,    // 383
+   1,    2,    4,   69,            1,    2,    4,   69,    // 391
+   1,    2,    4,   69,            1,    2,    4,   69,    // 399
+   1,    2,    4,   69,            1,    2,    4,   69,    // 407
+   1,    2,    4,   69,            1,    2,    4,   69,    // 415
+   1,    2,    4,   69,            1,    2,    4,   69,    // 423
+   1,    2,    4,   69,            1,    2,    4,   69,    // 431
+   1,    2,    4,   69,            1,    2,    4,   69,    // 439
+   1,    2,    4,   69,            1,    2,    4,   69,    // 447
+   1,    2,    4,   69,            1,    2,    4,   69,    // 455
+   1,    2,    4,   69,            1,    2,    4,   69,    // 463
+   1,    2,    4,   69,            1,    2,    4,   69,    // 471
+   1,    2,    4,   69,            1,    2,    4,   69,    // 479
+   1,    2,    4,   69,            1,    2,    4,   69,    // 487
+   1,    2,    4,   69,            1,    2,    4,   69,    // 495
+   1,    2,    4,   69,            1,    2,    4,   69,    // 503
+   1,    2,    4,   69,            2,    1,  204,    5,    // 511
+ -999
+    };
+    const size_t codesize = 512;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      51,   89,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      1,   1,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}

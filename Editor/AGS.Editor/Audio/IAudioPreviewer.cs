@@ -7,12 +7,11 @@ namespace AGS.Editor
 {
     public delegate void PlayFinishedHandler(AudioClip clip);
 
-    internal interface IAudioPreviewer
+    internal interface IAudioPreviewer: IDisposable
     {
         event PlayFinishedHandler PlayFinished;
 
-        bool RequiresPoll { get; }
-        bool Play(AudioClip clip);
+        void Play();
         bool IsPlaying();
         void Poll();
         int GetLengthMs();

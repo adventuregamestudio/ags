@@ -1671,3 +1671,58 @@ TEST(Compatibility, ArrayOfPointers2) {
     const size_t numfixups = 0;
     EXPECT_EQ(numfixups, scrip->numfixups);
 }
+
+TEST(Compatibility, ArrayOfPointers2a) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct                \n\
+    {                                    \n\
+        float Float;                     \n\
+        protected int Int;               \n\
+    };                                   \n\
+                                         \n\
+    int main()                           \n\
+    {                                    \n\
+        Struct *arr2[5];                 \n\
+        for (int i = 0; i < 4; i++) {    \n\
+                arr2[i] = new Struct;    \n\
+        }                                \n\    }                                    \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("ArrayOfPointers2a", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+    const size_t codesize = 78;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,            2,    3,    1,    2,    // 7
+       8,    3,    1,    1,            4,    3,    1,    2,    // 15
+      63,   20,    1,    1,           20,   73,    3,    8,    // 23
+      29,    3,   51,   28,            7,    3,   46,    3,    // 31
+       5,    3,    3,    7,           30,    3,   51,   20,    // 39
+      32,    7,    4,   11,            2,    7,   29,    2,    // 47
+      30,    2,   47,    3,            6,    3,    0,   51,    // 55
+      20,   69,    1,    2,            4,   69,    1,    2,    // 63
+       4,   69,    1,    2,            4,   69,    1,    2,    // 71
+       4,   69,    2,    1,           24,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+}

@@ -1583,6 +1583,15 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, target, memPtr, pitch, usingLinearFiltering);
 
   // Mimic the behaviour of GL_CLAMP_EDGE for the bottom line
+  if (tile->width < tileWidth)
+  {
+      for (int y = 0; y < tileHeight; y++)
+      {
+          unsigned int* memPtrLong = (unsigned int*)(memPtr + y * pitch + tile->width * sizeof(int));
+          unsigned int* memPtrLong_previous = (unsigned int*)(memPtr + y * pitch + (tile->width - 1) * sizeof(int));
+          *memPtrLong = *memPtrLong_previous & 0x00FFFFFF;
+      }
+  }
   if (tile->height < tileHeight)
   {
     unsigned int* memPtrLong = (unsigned int*)(memPtr + pitch * tile->height);

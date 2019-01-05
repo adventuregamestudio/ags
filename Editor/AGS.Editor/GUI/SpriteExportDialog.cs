@@ -15,6 +15,8 @@ namespace AGS.Editor
 {
     public partial class SpriteExportDialog : Form
     {
+        private TextBox textbox; 
+
         public string ExportPath
         {
             get { return Path.Combine(txtFolder.Text, txtFilename.Text); }
@@ -73,7 +75,9 @@ namespace AGS.Editor
 
         private void contextMenuStripExport_Opening(object sender, CancelEventArgs e)
         {
-            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
+            // track the SourceControl since behaviour varies for sub-menu items
+            // depending on which .NET Framework version is being used
+            textbox = contextMenuStripExport.SourceControl as TextBox;
 
             if (textbox != null)
             {
@@ -86,8 +90,6 @@ namespace AGS.Editor
 
         private void menuItemCopy_Click(object sender, EventArgs e)
         {
-            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
-
             if (textbox != null)
             {
                 textbox.Copy();
@@ -96,8 +98,6 @@ namespace AGS.Editor
 
         private void menuItemCut_Click(object sender, EventArgs e)
         {
-            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
-
             if (textbox != null)
             {
                 textbox.Cut();
@@ -106,8 +106,6 @@ namespace AGS.Editor
 
         private void menuItemPaste_Click(object sender, EventArgs e)
         {
-            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
-
             if (textbox != null)
             {
                 textbox.Paste();
@@ -116,8 +114,6 @@ namespace AGS.Editor
 
         private void menuItemToken_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            TextBox textbox = contextMenuStripExport.SourceControl as TextBox;
-
             if (textbox != null)
             {
                 int index = textbox.SelectionStart;

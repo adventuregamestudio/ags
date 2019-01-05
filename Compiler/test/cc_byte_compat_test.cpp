@@ -1673,3 +1673,55 @@ TEST(Compatibility, ArrayOfPointers2) {
 }
 
 
+TEST(Compatibility, ArrayInStruct) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct                \n\
+    {                                    \n\
+        int Int[10];                     \n\
+    };                                   \n\
+                                         \n\
+    int main()                           \n\
+    {                                    \n\
+        Struct *S = new Struct;          \n\
+        S.Int[4] =  1;                   \n\
+    }                                    \n\
+    ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("ArrayInStruct", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+    const size_t codesize = 67;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   73,    3,           40,    3,    1,    2,    // 7
+      50,    3,    1,    1,            4,    6,    3,    1,    // 15
+      51,    4,   29,    2,           30,    2,   29,    3,    // 23
+      48,    3,   30,    4,           29,    3,    3,    4,    // 31
+       3,   29,    3,    6,            3,    4,   46,    3,    // 39
+      10,   32,    3,    4,            3,    3,    5,   30,    // 47
+       3,   30,    2,   52,           11,    2,    5,    8,    // 55
+       3,    6,    3,    0,           51,    4,   69,    2,    // 63
+       1,    4,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+}

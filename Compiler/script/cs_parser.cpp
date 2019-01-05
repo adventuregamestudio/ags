@@ -3749,6 +3749,11 @@ int do_variable_ax_ActualMemoryAccess(ccCompiledScript * scrip, ags::Symbol_t va
         isDynamicArray, negateLiteral);
     if (retval < 0) return retval;
 
+    pointerIsOnStack = false;
+    currentComponentOffset = 0;
+    isDynamicArray = false;
+    firstVariableType = SYM_GLOBALVAR;
+
     if (!isLastClause)
     {
         if (!isProperty && !getJustTheAddressIntoAX)
@@ -3879,10 +3884,7 @@ int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript_t syml, int syml_le
         retval = do_variable_ax_ActualMemoryAccess(scrip, variableSym, variableSymType, pointerIsOnStack, writing, writingThisTime, isProperty, mustBeWritable, getJustTheAddressIntoAX, isArrayOffset, currentComponentOffset, accessActualPointer, firstVariableSym, firstVariableType, isDynamicArray, negateLiteral, isLastClause, variablePath, vp_idx);
         if (retval < 0) return retval;
 
-        pointerIsOnStack = false;
-        currentComponentOffset = 0;
-        isDynamicArray = false;
-        firstVariableType = SYM_GLOBALVAR;
+        
     }
 
     // free the VariablePaths

@@ -124,14 +124,15 @@
             this.groupBoxSaveAs.Controls.Add(this.lblFilename);
             this.groupBoxSaveAs.Location = new System.Drawing.Point(12, 134);
             this.groupBoxSaveAs.Name = "groupBoxSaveAs";
-            this.groupBoxSaveAs.Size = new System.Drawing.Size(410, 107);
+            this.groupBoxSaveAs.Size = new System.Drawing.Size(410, 78);
             this.groupBoxSaveAs.TabIndex = 1;
             this.groupBoxSaveAs.TabStop = false;
             this.groupBoxSaveAs.Text = "Save as";
             // 
             // btnBrowse
             // 
-            this.btnBrowse.Location = new System.Drawing.Point(63, 74);
+            this.btnBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnBrowse.Location = new System.Drawing.Point(358, 47);
             this.btnBrowse.Name = "btnBrowse";
             this.btnBrowse.Size = new System.Drawing.Size(46, 21);
             this.btnBrowse.TabIndex = 4;
@@ -146,7 +147,7 @@
             this.txtFolder.ContextMenuStrip = this.contextMenuStripExport;
             this.txtFolder.Location = new System.Drawing.Point(63, 47);
             this.txtFolder.Name = "txtFolder";
-            this.txtFolder.Size = new System.Drawing.Size(341, 20);
+            this.txtFolder.Size = new System.Drawing.Size(290, 20);
             this.txtFolder.TabIndex = 3;
             // 
             // contextMenuStripExport
@@ -238,7 +239,7 @@
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClose.Location = new System.Drawing.Point(93, 304);
+            this.btnClose.Location = new System.Drawing.Point(93, 272);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
             this.btnClose.TabIndex = 2;
@@ -249,7 +250,7 @@
             // 
             this.btnExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnExport.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnExport.Location = new System.Drawing.Point(12, 304);
+            this.btnExport.Location = new System.Drawing.Point(12, 272);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(75, 23);
             this.btnExport.TabIndex = 3;
@@ -261,7 +262,7 @@
             this.groupBoxSpriteProperties.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBoxSpriteProperties.Controls.Add(this.chkUpdateSpriteSource);
-            this.groupBoxSpriteProperties.Location = new System.Drawing.Point(12, 248);
+            this.groupBoxSpriteProperties.Location = new System.Drawing.Point(12, 218);
             this.groupBoxSpriteProperties.Name = "groupBoxSpriteProperties";
             this.groupBoxSpriteProperties.Size = new System.Drawing.Size(409, 44);
             this.groupBoxSpriteProperties.TabIndex = 6;
@@ -272,16 +273,16 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(434, 339);
+            this.ClientSize = new System.Drawing.Size(434, 307);
             this.Controls.Add(this.btnExport);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.groupBoxSaveAs);
             this.Controls.Add(this.groupBoxExport);
             this.Controls.Add(this.groupBoxSpriteProperties);
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(4096, 378);
+            this.MaximumSize = new System.Drawing.Size(4096, 346);
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(450, 378);
+            this.MinimumSize = new System.Drawing.Size(450, 346);
             this.Name = "SpriteExportDialog";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

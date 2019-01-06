@@ -1271,6 +1271,44 @@ TEST(Compatibility, Struct2) {
 }
 
 
+TEST(Compatibility, Struct3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct StructI                               \n\
+        {                                                    \n\
+            int k;                                           \n\
+        };                                                   \n\
+                                                             \n\
+        struct StructO                                       \n\
+        {                                                    \n\
+            StructI *SI;                                     \n\
+            StructI *SJ[3];                                  \n\
+        };                                                   \n\
+                                                             \n\
+        int main()                                           \n\
+        {                                                    \n\
+            StructO SO;                                      \n\
+            SO.SI = new StructI;                             \n\
+            SO.SI.k = 12345;                                 \n\
+            StructO SOA[3];                                  \n\
+            SOA[2].SI = new StructI;                         \n\
+        }                                                    \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("Struct3", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+    
+}
+
+
 TEST(Compatibility, StructExtender) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -1329,40 +1367,6 @@ TEST(Compatibility, StructExtender) {
     const size_t numfixups = 0;
     EXPECT_EQ(numfixups, scrip->numfixups);
 }
-
-
-TEST(Compatibility, Struct3) {
-    ccCompiledScript *scrip = newScriptFixture();
-
-    char *inpl = "\
-        managed struct StructI                               \n\
-        {                                                    \n\
-            int k;                                           \n\
-        };                                                   \n\
-                                                             \n\
-        struct StructO                                       \n\
-        {                                                    \n\
-            StructI *SI;                                     \n\
-        };                                                   \n\
-                                                             \n\
-        int main()                                           \n\
-        {                                                    \n\
-            StructO SO;                                      \n\
-            SO.SI = new StructI;                             \n\
-        }                                                    \n\
-    ";
-
-    last_seen_cc_error = 0;
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
-
-    writeoutput("StructExtender", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-}
-
 
 
 TEST(Compatibility, FuncCall) {

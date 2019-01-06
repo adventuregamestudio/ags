@@ -1330,6 +1330,41 @@ TEST(Compatibility, StructExtender) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 }
 
+
+TEST(Compatibility, Struct3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct StructI                               \n\
+        {                                                    \n\
+            int k;                                           \n\
+        };                                                   \n\
+                                                             \n\
+        struct StructO                                       \n\
+        {                                                    \n\
+            StructI *SI;                                     \n\
+        };                                                   \n\
+                                                             \n\
+        int main()                                           \n\
+        {                                                    \n\
+            StructO SO;                                      \n\
+            SO.SI = new StructI;                             \n\
+        }                                                    \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("StructExtender", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+}
+
+
+
 TEST(Compatibility, FuncCall) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -1712,6 +1747,57 @@ TEST(Compatibility, ArrayInStruct) {
        3,   30,    2,   52,           11,    2,    5,    8,    // 55
        3,    6,    3,    0,           51,    4,   69,    2,    // 63
        1,    4,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+}
+
+
+TEST(Compatibility, FuncVarargs1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    int Func(int I, ...)                 \n\
+    {                                    \n\
+        return I + I / I;                \n\
+    }                                    \n\
+                                         \n\
+    int main()                           \n\
+    {                                    \n\
+        return 0;                        \n\
+    }                                    \n\
+    ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("FuncVarargs1", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+    const size_t codesize = 49;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   51,    8,            7,    3,   29,    3,    // 7
+      51,   12,    7,    3,           29,    3,   51,   16,    // 15
+       7,    3,   30,    4,           10,    4,    3,    3,    // 23
+       4,    3,   30,    4,           11,    4,    3,    3,    // 31
+       4,    3,    5,    6,            3,    0,    5,   38,    // 39
+      39,    6,    3,    0,            5,    6,    3,    0,    // 47
+       5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)

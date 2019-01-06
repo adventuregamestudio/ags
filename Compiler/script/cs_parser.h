@@ -161,6 +161,10 @@ private:
         bool &eof_encountered,
         bool &error_encountered);
 
+    /// Read in a symstring that begins with ".". This might yield a one- or three-char symstring.
+    void ReadInDotCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
+
+
     /// Read in a symstring that begins with "<". This might yield a one-, two- or three-char symstring.
     void ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
 

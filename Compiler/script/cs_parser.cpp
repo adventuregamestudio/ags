@@ -150,7 +150,7 @@ void ags::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_typ
     // Non-char symstrings, such as "*="
     scan_type = SctNonChar;
     switch (next_char)
-    {   // keep these cases sorted by ASCII code please. Only 1 method call per case, please.
+    {   
     default:  break;
     case '!': ReadIn1or2Char("=", symstring, eof_encountered, error_encountered); return;
     case '%': ReadIn1or2Char("=", symstring, eof_encountered, error_encountered); return;
@@ -161,7 +161,7 @@ void ags::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_typ
     case '+': ReadIn1or2Char("+=", symstring, eof_encountered, error_encountered); return;
     case ',': ReadIn1Char(symstring); return;
     case '-': ReadIn1or2Char("-=>", symstring, eof_encountered, error_encountered); return;
-    case '.': ReadIn1Char(symstring); return;
+    case '.': ReadInDotCombi(symstring, eof_encountered, error_encountered); return;
         // Note that the input is pre-processed,
         // so it cannot contain comments of the form //...EOL or /*...*/
     case '/': ReadIn1or2Char("=", symstring, eof_encountered, error_encountered); return;
@@ -423,6 +423,24 @@ void ags::Scanner::ReadIn1Char(std::string & symstring)
 {
     symstring.assign(1, InputStream.get());
 }
+
+void ags::Scanner::ReadInDotCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)
+{
+    ReadIn1or2Char(".", symstring, eof_encountered, error_encountered);
+    if (eof_encountered || error_encountered) return;
+
+    if (symstring == ".") return;
+
+    if (InputStream.peek() == '.')
+    {
+        symstring.push_back(InputStream.get());
+        return;
+    }
+
+    LastError = "Must either use '.' or '...'";
+    error_encountered = true;    
+}
+
 
 void ags::Scanner::ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)
 {
@@ -5090,7 +5108,7 @@ void cs_parser_handle_openbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol_t
 
     // loop through all parameters and check whether they are pointers
     // the first entry is the return value, so skip that
-    for (size_t pa = 1; pa <= sym.entries[inFuncSym].sscope; pa++)
+    for (size_t pa = 1; pa <= sym.entries[inFuncSym].get_num_args(); pa++)
     {
         if (sym.entries[inFuncSym].funcparamtypes[pa] & (STYPE_POINTER | STYPE_DYNARRAY))
         {

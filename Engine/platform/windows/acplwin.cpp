@@ -1060,14 +1060,14 @@ HWND IAGSEngine::GetWindowHandle () {
 }
 LPDIRECTDRAW2 IAGSEngine::GetDirectDraw2 () {
   if (directdraw == NULL)
-    quit("!This plugin is not compatible with the Direct3D driver.");
+    quit("!This plugin requires DirectDraw based graphics driver (software driver).");
 
   return directdraw;
 }
 LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp) 
 {
   if (directdraw == NULL)
-    quit("!This plugin is not compatible with the Direct3D driver.");
+    quit("!This plugin requires DirectDraw based graphics driver (software driver).");
 
   BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
 

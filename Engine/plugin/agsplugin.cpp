@@ -178,7 +178,7 @@ BITMAP *IAGSEngine::GetScreen ()
 {
     // TODO: we could actually return stage buffer here, will that make a difference?
     if (!gfxDriver->UsesMemoryBackBuffer())
-        quit("!This plugin is not compatible with the hardware-accelerated graphic drivers.");
+        quit("!This plugin requires software graphics driver.");
 
     Bitmap *buffer = gfxDriver->GetMemoryBackBuffer();
     return buffer ? (BITMAP*)buffer->GetAllegroBitmap() : NULL;

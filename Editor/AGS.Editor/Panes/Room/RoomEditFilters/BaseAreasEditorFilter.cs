@@ -466,7 +466,7 @@ namespace AGS.Editor
 			}
 			else if (command == IMPORT_MASK_COMMAND)
 			{
-				string fileName = Factory.GUIController.ShowOpenFileDialog("Select mask to import...", Constants.IMAGE_FILE_FILTER);
+				string fileName = Factory.GUIController.ShowOpenFileDialog("Select mask to import...", Constants.MASK_IMAGE_FILE_FILTER);
 				if (fileName != null)
 				{
 					ImportMaskFromFile(fileName);
@@ -474,7 +474,7 @@ namespace AGS.Editor
 			}
             else if (command == EXPORT_MASK_COMMAND)
             {
-                string fileName = Factory.GUIController.ShowSaveFileDialog("Save mask as...", Constants.IMAGE_FILE_FILTER);
+                string fileName = Factory.GUIController.ShowSaveFileDialog("Save mask as...", Constants.MASK_IMAGE_FILE_FILTER);
                 if (fileName != null)
                 {
                     ExportMaskFromFile(fileName);
@@ -542,7 +542,7 @@ namespace AGS.Editor
             try
             {
                 Bitmap bmp = Factory.NativeProxy.ExportAreaMask(_room, this.MaskToDraw);
-                bmp.Save(fileName);
+                bmp.Save(fileName, ImageFormat.Bmp);
                 bmp.Dispose();
             }
             catch (Exception ex)

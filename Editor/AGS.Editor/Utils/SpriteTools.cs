@@ -4,7 +4,9 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using AGS.Types;
 
 namespace AGS.Editor.Utils
@@ -328,6 +330,108 @@ namespace AGS.Editor.Utils
 
             progress.Hide();
             progress.Dispose();
+        }
+
+        private static string ExpandExportPath(object obj, string path)
+        {
+            Type type = obj.GetType();
+            PropertyInfo[] properties = type.GetProperties();
+            Dictionary<string, string> replace = new Dictionary<string, string>();
+
+            foreach (PropertyInfo property in properties)
+            {
+                string token = String.Format("%{0}%", property.Name.ToLower());
+                object value = property.GetValue(obj);
+                replace.Add(token, value != null ? value.ToString() : "");
+            }
+
+            Regex regex = new Regex("%[a-zA-Z0-9]+%");
+
+            return regex.Replace(path, delegate(Match m) {
+                string lookup = m.Value.ToLower();
+
+                if (replace.ContainsKey(lookup))
+                {
+                    return replace[lookup];
+                }
+
+                return m.Value; });
+        }
+
+        public static void ExportSprite(Sprite sprite, string path, bool updateSourcePath)
+        {
+            path = ExpandExportPath(sprite, path);
+
+            // stop if the export path is empty (file extension isn't appended yet)
+            if (String.IsNullOrWhiteSpace(path.Trim(new char[] { Path.DirectorySeparatorChar })))
+            {
+                throw new InvalidOperationException("Export path cannot be empty");
+            }
+
+            // for a relative path, the parent directory is the game folder
+            if (!Path.IsPathRooted(path))
+            {
+                path = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, path);
+            }
+
+            // create directory if it doesn't exist
+            DirectoryInfo parent = Directory.GetParent(path);
+
+            if (parent != null)
+            {
+                parent.Create();
+            }
+
+            ImageFormat format = sprite.ColorDepth < 32 && !sprite.AlphaChannel ? ImageFormat.Bmp : ImageFormat.Png;
+            Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
+            bmp.Save(String.Format("{0}.{1}", path, format.ToString().ToLower()), format);
+            bmp.Dispose();
+
+            if (updateSourcePath)
+            {
+                sprite.SourceFile = Utilities.GetRelativeToProjectPath(path);
+            }
+        }
+
+        public static void ExportSprites(SpriteFolder folder, string path, bool recurse, bool skipValidSourcePath, bool updateSourcePath)
+        {
+            foreach(Sprite sprite in folder.Sprites)
+            {
+                if (skipValidSourcePath)
+                {
+                    string checkPath;
+
+                    if (Path.IsPathRooted(sprite.SourceFile))
+                    {
+                        checkPath = sprite.SourceFile;
+                    }
+                    else
+                    {
+                        checkPath = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, sprite.SourceFile);
+                    }
+
+                    if (File.Exists(checkPath))
+                    {
+                        continue;
+                    }
+                }
+
+                ExportSprite(sprite, path, updateSourcePath);
+            }
+
+            if (recurse)
+            {
+                foreach (SpriteFolder subFolder in folder.SubFolders)
+                {
+                    ExportSprites(subFolder, path, recurse, skipValidSourcePath, updateSourcePath);
+                }
+            }
+        }
+
+        public static void ExportSprites(string path, bool recurse, bool skipValidSourcePath, bool updateSourcePath)
+        {
+            SpriteFolder folder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
+            ExportSprites(folder, path, recurse, skipValidSourcePath, updateSourcePath);
         }
     }
 }

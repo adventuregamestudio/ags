@@ -654,11 +654,7 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_EXPORT_FOLDER)
             {
-                string exportFolder = Factory.GUIController.ShowSelectFolderOrNoneDialog("Export sprites to folder...", System.IO.Directory.GetCurrentDirectory());
-                if (exportFolder != null)
-                {
-                    ExportAllSpritesInFolder(exportFolder);
-                }
+                ExportAllSprites();
             }
             else if (item.Name == MENU_ITEM_SORT_BY_NUMBER)
             {
@@ -1090,31 +1086,33 @@ namespace AGS.Editor
             bmp.Dispose();
         }
 
-        private void ExportAllSpritesInFolder(string exportToFolder)
+        private void ExportAllSprites()
         {
-            try
+            SpriteExportDialog dialog = new SpriteExportDialog(_currentFolder);
+
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
-                foreach (Sprite sprite in _currentFolder.Sprites)
+                try
                 {
-                    Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
-                    if ((sprite.ColorDepth < 32) && (!sprite.AlphaChannel))
+                    if (dialog.UseRootFolder)
                     {
-                        bmp.Save(string.Format("{0}{1}spr{2:00000}.bmp", exportToFolder, Path.DirectorySeparatorChar, sprite.Number), ImageFormat.Bmp);
+                        SpriteTools.ExportSprites(dialog.ExportPath, dialog.Recurse,
+                            dialog.SkipValidSpriteSource, dialog.UpdateSpriteSource);
                     }
                     else
                     {
-                        // export 32-bit images as PNG so no alpha channel is lost
-                        bmp.Save(string.Format("{0}{1}spr{2:00000}.png", exportToFolder, Path.DirectorySeparatorChar, sprite.Number), ImageFormat.Png);
+                        SpriteTools.ExportSprites(_currentFolder, dialog.ExportPath, dialog.Recurse,
+                            dialog.SkipValidSpriteSource, dialog.UpdateSpriteSource);
                     }
-                    bmp.Dispose();
                 }
+                catch (Exception ex)
+                {
+                    String message = String.Format("There was an error during the export. The error message was: '{0}'", ex.Message);
+                    Factory.GUIController.ShowMessage(message, MessageBoxIcon.Warning);
+                }
+            }
 
-                Factory.GUIController.ShowMessage("Sprites exported successfully.", MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                Factory.GUIController.ShowMessage("There was an error exporting the files. The error message was: '" + ex.Message + "'. Please try again", MessageBoxIcon.Warning);
-            }
+            dialog.Dispose();
         }
 
         private void SortAllSpritesInCurrentFolderByNumber()
@@ -1236,7 +1234,7 @@ namespace AGS.Editor
             }
 
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(new ToolStripMenuItem("Export all sprites in folder...", null, onClick, MENU_ITEM_EXPORT_FOLDER));
+            menu.Items.Add(new ToolStripMenuItem("Export all sprites...", null, onClick, MENU_ITEM_EXPORT_FOLDER));
             menu.Items.Add(new ToolStripMenuItem("Sort sprites by number", null, onClick, MENU_ITEM_SORT_BY_NUMBER));
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Find sprite by number...", null, onClick, MENU_ITEM_FIND_BY_NUMBER));

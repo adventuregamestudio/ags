@@ -134,7 +134,7 @@ RuntimeScriptValue Sc_Speech_SetGlobalSpeechAnimationDelay(const RuntimeScriptVa
 {
     if (game.options[OPT_GLOBALTALKANIMSPD] == 0)
     {
-        debug_script_warn("!Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
+        debug_script_warn("Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
         return RuntimeScriptValue();
     }
 	API_VARSET_PINT(play.talkanim_speed);

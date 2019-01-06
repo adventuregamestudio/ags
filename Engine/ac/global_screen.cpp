@@ -83,20 +83,19 @@ void ShakeScreen(int severe) {
     else
     {
         // TODO: support shaking room viewport separately
-        Bitmap *tty = BitmapHelper::CreateBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
-        gfxDriver->GetCopyOfScreenIntoBitmap(tty);
+        Bitmap *tty = CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
         for (hh=0;hh<40;hh++) {
             platform->Delay(50);
 
             if (hh % 2 == 0) 
-                render_to_screen(tty, 0, 0);
+                render_to_screen();
             else
-                render_to_screen(tty, 0, severe);
+                render_to_screen(0, severe);
 
             update_polled_stuff_if_runtime();
         }
         clear_letterbox_borders();
-        render_to_screen(tty, 0, 0);
+        render_to_screen();
         delete tty;
     }
     wasShakingScreen = 0;

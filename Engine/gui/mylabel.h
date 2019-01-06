@@ -24,7 +24,7 @@ struct MyLabel:public NewControl
 
   void draw(Common::Bitmap *ds);
 
-  int pressedon();
+  int pressedon(int mousex, int mousey);
 
   int processmessage(int mcode, int wParam, long lParam);
 };

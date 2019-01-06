@@ -209,17 +209,11 @@ bool ALSoftwareGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile 
 
   OnInit(loopTimer);
   OnModeSet(mode);
-  // [IKM] 2012-09-07
   // set_gfx_mode is an allegro function that creates screen bitmap;
   // following code assumes the screen is already created, therefore we should
   // ensure global bitmap wraps over existing allegro screen bitmap.
   _allegroScreenWrapper = BitmapHelper::CreateRawBitmapWrapper(screen);
-  BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
-  BitmapHelper::GetScreenBitmap()->Clear();
-
-  // [IKM] 2012-09-07
-  // The wrapper we created will be saved by filter for future reference,
-  // therefore we should not delete it until driver shutdown.
+  _allegroScreenWrapper->Clear();
 
   // If we already have a gfx filter, then use it to update virtual screen immediately
   CreateVirtualScreen();
@@ -248,21 +242,27 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
     return;
   DestroyVirtualScreen();
   // Adjust clipping so nothing gets drawn outside the game frame
-  Bitmap *real_screen = BitmapHelper::GetScreenBitmap();
-  real_screen->SetClip(_dstRect);
+  _allegroScreenWrapper->SetClip(_dstRect);
   // Initialize scaling filter and receive virtual screen pointer
   // (which may or not be the same as real screen)
-  _origVirtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
-  BitmapHelper::SetScreenBitmap(_origVirtualScreen);
+  _origVirtualScreen = _filter->InitVirtualScreen(_allegroScreenWrapper, _srcRect.GetSize(), _dstRect);
+  // Apparently we must still create a virtual screen even if its same size and color depth,
+  // because drawing sprites directly on real screen bitmap causes blinking (unless I missed something here...)
+  if (_origVirtualScreen == _allegroScreenWrapper)
+  {
+    _origVirtualScreen = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth);
+  }
   virtualScreen = _origVirtualScreen;
   _stageVirtualScreen = virtualScreen;
+  // Set Allegro's screen pointer to what may be the real or virtual screen
+  screen = (BITMAP*)_origVirtualScreen->GetAllegroBitmap();
 }
 
 void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
 {
   if (_filter && _origVirtualScreen)
   {
-    BitmapHelper::SetScreenBitmap(_filter->ShutdownAndReturnRealScreen());
+    screen = (BITMAP*)_filter->ShutdownAndReturnRealScreen()->GetAllegroBitmap();
   }
   _origVirtualScreen = NULL;
   virtualScreen = NULL;
@@ -284,15 +284,9 @@ void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
 
   DestroyVirtualScreen();
 
-  // [IKM] 2012-09-07
-  // We do not need the wrapper any longer;
-  // this does not destroy the underlying allegro screen bitmap, only wrapper.
+  // Note this does not destroy the underlying allegro screen bitmap, only wrapper.
   delete _allegroScreenWrapper;
   _allegroScreenWrapper = NULL;
-  // Nullify the global screen object (for safety reasons); note this yet does
-  // not change allegro screen pointer (at this moment it should point at the
-  // original internally created allegro bitmap which will be destroyed by Allegro).
-  BitmapHelper::SetScreenBitmap(NULL);
 }
 
 bool ALSoftwareGraphicsDriver::SetNativeSize(const Size &src_size)
@@ -571,7 +565,7 @@ void ALSoftwareGraphicsDriver::Vsync()
 
 Bitmap *ALSoftwareGraphicsDriver::GetMemoryBackBuffer()
 {
-  return _stageVirtualScreen;
+  return virtualScreen;
 }
 
 void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
@@ -589,10 +583,22 @@ void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx,
   _stageVirtualScreen = virtualScreen;
 }
 
-void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
+Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer()
+{
+    return _stageVirtualScreen;
+}
+
+bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
 {
   (void)at_native_res; // software driver always renders at native resolution at the moment
+  if (destination->GetColorDepth() != _mode.ColorDepth)
+  {
+    if (want_size)
+        *want_size = destination->GetSize(); // software filter is taught to copy to any size
+    return false;
+  }
   _filter->GetCopyOfScreenIntoBitmap(destination);
+  return true;
 }
 
 /**
@@ -651,7 +657,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
 {
     Bitmap *bmp_orig, *bmp_buff;
 
-    const int col_depth = BitmapHelper::GetScreenBitmap()->GetColorDepth();
+    const int col_depth = virtualScreen->GetColorDepth();
     const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
 
     if ((bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), col_depth)))
@@ -683,10 +689,10 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
         delete bmp_orig;
     }
 
-    BitmapHelper::GetScreenBitmap()->Clear(clearColor);
+    virtualScreen->Clear(clearColor);
     int _global_x_offset = _virtualScrOff.X + _globalViewOff.X;
     int _global_y_offset = _virtualScrOff.Y + _globalViewOff.Y;
-	_filter->RenderScreen(BitmapHelper::GetScreenBitmap(), _global_x_offset, _global_y_offset);
+	_filter->RenderScreen(virtualScreen, _global_x_offset, _global_y_offset);
 }
 /** END FADE.C **/
 

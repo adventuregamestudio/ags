@@ -86,7 +86,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     // array is calculated based on key spread factor.
     std::vector<SpriteInfo> SpriteInfos;
 
-    // Get game's native color depth
+    // Get game's native color depth (bits per pixel)
     inline int GetColorDepth() const { return color_depth * 8; }
 
 

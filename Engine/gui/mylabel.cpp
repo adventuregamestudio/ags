@@ -53,7 +53,7 @@ void MyLabel::draw(Bitmap *ds)
     }
 }
 
-int MyLabel::pressedon()
+int MyLabel::pressedon(int mousex, int mousey)
 {
     return 0;
 }

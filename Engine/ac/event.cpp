@@ -44,7 +44,6 @@ extern GameState play;
 extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern Bitmap *virtual_screen;
 extern volatile int timerloop;
 extern color old_palette[256];
 
@@ -248,8 +247,7 @@ void process_event(EventHappened*evp) {
             theTransition = FADE_NORMAL;
         }
 
-		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
-        // TODO: use normal coordinates instead of "native_size" and multiply_up_*?
+		// TODO: use normal coordinates instead of "native_size" and multiply_up_*?
         const Size &native_size = play.GetNativeSize();
         const Rect &viewport = play.GetMainViewport();
 
@@ -270,15 +268,20 @@ void process_event(EventHappened*evp) {
             }
             else
             {
+                // First of all we render the game once again and save backbuffer from further editing.
+                // We put temporary bitmap as a new backbuffer for the transition period, and
+                // will be drawing saved image of the game over to that backbuffer, simulating "box-out".
                 set_palette_range(palette, 0, 255, 0);
                 gfxDriver->RenderToBackBuffer();
-				gfxDriver->SetMemoryBackBuffer(screen_bmp);
-                screen_bmp->Clear();
-                render_to_screen(screen_bmp, 0, 0);
+                Bitmap *saved_backbuf = gfxDriver->GetMemoryBackBuffer();
+                Bitmap *temp_scr = new Bitmap(saved_backbuf->GetWidth(), saved_backbuf->GetHeight(), saved_backbuf->GetColorDepth());
+                gfxDriver->SetMemoryBackBuffer(temp_scr);
+                temp_scr->Clear();
+                render_to_screen();
 
                 int boxwid = get_fixed_pixel_size(16);
                 int boxhit = multiply_up_coordinate(native_size.Height / 20);
-                while (boxwid < screen_bmp->GetWidth()) {
+                while (boxwid < temp_scr->GetWidth()) {
                     timerloop = 0;
                     boxwid += get_fixed_pixel_size(16);
                     boxhit += multiply_up_coordinate(native_size.Height / 20);
@@ -287,13 +290,13 @@ void process_event(EventHappened*evp) {
                     int lxp = viewport.GetWidth() / 2 - boxwid / 2;
                     int lyp = viewport.GetHeight() / 2 - boxhit / 2;
                     gfxDriver->Vsync();
-                    screen_bmp->Blit(virtual_screen, lxp, lyp, lxp, lyp,
+                    temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
-                    render_to_screen(screen_bmp, viewport.Left, viewport.Top);
+                    render_to_screen(viewport.Left, viewport.Top);
                     update_mp3();
                         while (timerloop == 0) ;
                 }
-                gfxDriver->SetMemoryBackBuffer(virtual_screen, viewport.Left, viewport.Top);
+                gfxDriver->SetMemoryBackBuffer(saved_backbuf, viewport.Left, viewport.Top);
             }
             play.screen_is_faded_out = 0;
         }
@@ -319,7 +322,7 @@ void process_event(EventHappened*evp) {
                     // draw the old screen on top
                     gfxDriver->DrawSprite(0, 0, ddb);
                 }
-				render_to_screen(screen_bmp, 0, 0);
+				render_to_screen();
                 update_polled_stuff_if_runtime();
                 while (timerloop == 0) ;
                 transparency -= 16;
@@ -357,7 +360,7 @@ void process_event(EventHappened*evp) {
                 invalidate_screen();
                 draw_screen_callback();
                 gfxDriver->DrawSprite(0, 0, ddb);
-				render_to_screen(screen_bmp, 0, 0);
+				render_to_screen();
                 update_polled_stuff_if_runtime();
                 while (timerloop == 0) ;
             }

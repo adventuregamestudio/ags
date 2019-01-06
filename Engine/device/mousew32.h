@@ -37,7 +37,6 @@ void mgetgraphpos();
 // Sets the area of the game frame (zero-based coordinates) where the mouse cursor is allowed to move;
 // this function was meant to be used to achieve gameplay effect
 void msetcursorlimit(int x1, int y1, int x2, int y2);
-void drawCursor(Common::Bitmap *ds);
 void domouse(int str);
 int ismouseinbox(int lf, int tp, int rt, int bt);
 void mfreemem();

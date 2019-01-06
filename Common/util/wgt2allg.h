@@ -46,12 +46,6 @@ using namespace AGS; // FIXME later
 
 //=============================================================================
 
-extern Common::Bitmap *SetVirtualScreen(Common::Bitmap *nss);
-// CHECKME: temporary solution for plugin system
-extern Common::Bitmap *SetVirtualScreenRaw(BITMAP *nss);
-// Not physically a screen bitmap, but rather what counts as one at this moment
-extern Common::Bitmap *GetVirtualScreen();
-
 // [IKM] 2012-09-13: this function is now defined in engine and editor separately
 extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
 

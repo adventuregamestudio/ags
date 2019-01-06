@@ -101,9 +101,11 @@ struct CSCIMessage
 
 struct OnScreenWindow
 {
-    Common::Bitmap *buffer;
     int x, y;
+    int handle;
     int oldtop;
+
+    OnScreenWindow();
 };
 
 #endif // __AGS_EE_GUI__GUIDIALOGDEFINES_H

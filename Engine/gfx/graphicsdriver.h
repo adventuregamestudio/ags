@@ -139,7 +139,10 @@ public:
   virtual void RenderToBackBuffer() = 0;
   virtual void Render() = 0;
   virtual void Render(GlobalFlipType flip) = 0;
-  virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *destination, bool at_native_res = false) = 0;
+  // Copies contents of the game screen into bitmap using simple blit or pixel copy.
+  // Bitmap must be of supported size and pixel format. If it's not the method will
+  // fail and optionally write wanted destination size into 'want_size' pointer.
+  virtual bool GetCopyOfScreenIntoBitmap(Common::Bitmap *destination, bool at_native_res, Size *want_size = NULL) = 0;
   virtual void EnableVsyncBeforeRender(bool enabled) = 0;
   virtual void Vsync() = 0;
   // Enables or disables rendering mode that draws sprite list directly into
@@ -162,11 +165,16 @@ public:
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;
-  // Returns memory backbuffer for the current stage screen (or base virtual screen if called outside of render pass).
+  // Returns the virtual screen. Will return NULL if renderer does not support memory backbuffer.
+  // In normal case you should use GetStageBackBuffer() instead.
   virtual Common::Bitmap* GetMemoryBackBuffer() = 0;
-  // Sets base virtual screen to render to, optionally configure offsets at which this screen has to be blitted
-  // to the final render surface.
+  // Sets custom backbuffer bitmap to render to, optionally configure offsets at which this screen has to be blitted
+  // to the final render surface. Passing NULL pointer will tell renderer to switch back to its original virtual screen.
+  // Note that only software renderer supports this.
   virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer, int offx = 0, int offy = 0) = 0;
+  // Returns memory backbuffer for the current rendering stage (or base virtual screen if called outside of render pass).
+  // All renderers should support this.
+  virtual Common::Bitmap* GetStageBackBuffer() = 0;
   virtual bool RequiresFullRedrawEachFrame() = 0;
   virtual bool HasAcceleratedTransform() = 0;
   virtual bool UsesMemoryBackBuffer() = 0;

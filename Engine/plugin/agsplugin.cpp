@@ -338,7 +338,11 @@ Bitmap glVirtualScreenWrap;
 void IAGSEngine::SetVirtualScreen (BITMAP *bmp)
 {
     if (!gfxDriver->UsesMemoryBackBuffer())
-        quit("!This plugin is not compatible with the hardware-accelerated graphic drivers.");
+    {
+        debug_script_warn("SetVirtualScreen: this plugin requires software graphics driver to work correctly.");
+        // we let it continue since gfxDriver is supposed to ignore this request without throwing an exception
+    }
+
     if (bmp)
     {
         glVirtualScreenWrap.WrapAllegroBitmap(bmp, true);

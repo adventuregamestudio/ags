@@ -1305,7 +1305,41 @@ TEST(Compatibility, Struct3) {
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
 
-    
+    const size_t codesize = 147;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,   16,    1,    // 7
+       1,   16,   73,    3,            4,   51,   16,   29,    // 15
+       2,   30,    2,   47,            3,    6,    3, 12345,    // 23
+      51,   16,   29,    2,           30,    2,   29,    3,    // 31
+      48,    3,   30,    4,           29,    3,    3,    4,    // 39
+       3,   30,    2,   52,            8,    3,    3,    1,    // 47
+       2,   63,   48,    1,            1,   48,   73,    3,    // 55
+       4,   29,    3,    6,            3,    2,   46,    3,    // 63
+       3,   32,    3,   16,            3,    3,    5,   30,    // 71
+       3,   51,   48,   29,            2,   30,    2,   11,    // 79
+       2,    5,   47,    3,            6,    3,    0,   51,    // 87
+      64,   49,   51,   60,           49,    1,    2,    4,    // 95
+      49,    1,    2,    4,           49,   51,   48,   49,    // 103
+      51,   32,   49,   51,           16,   49,   51,   44,    // 111
+      49,    1,    2,    4,           49,    1,    2,    4,    // 119
+      49,   51,   28,   49,            1,    2,    4,   49,    // 127
+       1,    2,    4,   49,           51,   12,   49,    1,    // 135
+       2,    4,   49,    1,            2,    4,   49,    2,    // 143
+       1,   64,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
 }
 
 

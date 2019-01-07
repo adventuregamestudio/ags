@@ -1498,6 +1498,70 @@ TEST(Compatibility, Struct4) {
     }
 }
 
+
+TEST(Compatibility, Struct5) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct Struct0;                              \n\
+                                                             \n\
+        struct Struct1                                       \n\
+        {                                                    \n\
+            Struct0 *Array[];                                \n\
+        };                                                   \n\
+                                                             \n\
+        managed struct Struct0                               \n\
+        {                                                    \n\
+            int Payload;                                     \n\
+        };                                                   \n\
+                                                             \n\
+        int main()                                           \n\
+        {                                                    \n\
+             Struct1 S;                                      \n\
+                                                             \n\
+             S.Array = new Struct0[5];                       \n\
+             S.Array[3].Payload ++;                          \n\
+        }                                                    \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("Struct5", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+    const size_t codesize = 72;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    4,    1,    // 7
+       1,    4,    6,    3,            5,   72,    3,    4,    // 15
+       1,   51,    4,   29,            2,   30,    2,   47,    // 23
+       3,    6,    3,    3,            3,    3,    7,   51,    // 31
+       4,   32,    7,    4,           48,    2,   52,   71,    // 39
+       7,   11,    2,    7,           29,    2,   30,    2,    // 47
+      48,    3,   29,    3,           30,    2,   52,    7,    // 55
+       3,    1,    3,    1,            8,    3,    6,    3,    // 63
+       0,   51,    4,   49,            2,    1,    4,    5,    // 71
+     -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+}
+
+
 TEST(Compatibility, StructExtender) {
     ccCompiledScript *scrip = newScriptFixture();
 

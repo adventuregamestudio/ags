@@ -5382,9 +5382,10 @@ int parse_struct_MemberQualifiers(
 
 int parse_struct_IsMemberTypeIllegal(ccInternalList *targ, int stname, ags::Symbol_t cursym, bool member_is_pointer, Importness member_is_import)
 {
+    const ags::Symbol_t curtype = sym.get_type(cursym);
     // must either have a type of a struct here.
-    if ((sym.get_type(cursym) != SYM_VARTYPE) &&
-        (sym.get_type(cursym) != SYM_UNDEFINEDSTRUCT))
+    if ((curtype != SYM_VARTYPE) &&
+        (curtype != SYM_UNDEFINEDSTRUCT))
     {
         // Complain about non-type
         std::string type_name = sym.get_name(cursym);
@@ -5418,14 +5419,16 @@ int parse_struct_IsMemberTypeIllegal(ccInternalList *targ, int stname, ags::Symb
         return -1;
     }
 
-    if (sym.get_type(cursym) == SYM_UNDEFINEDSTRUCT)
+    if ((curtype == SYM_UNDEFINEDSTRUCT) && !member_is_pointer)
     {
-        cc_error("Invalid use of forward-declared struct");
+        cc_error("You can only declare a pointer to a struct that hasn't been completely defined yet");
         return -1;
     }
 
+    const long curflags = sym.entries[cursym].flags;
+
     // [fw] Where is the problem?
-    if ((sym.entries[cursym].flags & SFLG_STRUCTTYPE) && (member_is_pointer == 0))
+    if ((curflags & SFLG_STRUCTTYPE) && (member_is_pointer == 0))
     {
         cc_error("Member variable cannot be struct");
         return -1;
@@ -5435,12 +5438,12 @@ int parse_struct_IsMemberTypeIllegal(ccInternalList *targ, int stname, ags::Symb
         cc_error("Member variable of managed struct cannot be pointer");
         return -1;
     }
-    else if ((sym.entries[cursym].flags & SFLG_MANAGED) && (!member_is_pointer))
+    else if ((curflags & SFLG_MANAGED) && (!member_is_pointer))
     {
         cc_error("Cannot declare non-pointer of managed type");
         return -1;
     }
-    else if (((sym.entries[cursym].flags & SFLG_MANAGED) == 0) && (member_is_pointer))
+    else if (((curflags & SFLG_MANAGED) == 0) && (member_is_pointer))
     {
         cc_error("Cannot declare pointer to non-managed type");
         return -1;

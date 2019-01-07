@@ -3687,7 +3687,6 @@ int do_variable_ax_PrepareComponentAccess_JustTheAddressCases(ags::Symbol_t vari
 // We access the a variable or a component of a struct in order to read or write it. 
 int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol_t variableSym, int variableSymType, bool isLastClause, VariableSymlist * thisClause, bool writing, bool mustBeWritable, bool writingThisTime, ags::Symbol_t firstVariableType, ags::Symbol_t firstVariableSym, int &currentComponentOffset, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isProperty, bool &isArrayOffset, bool &write_same_as_read_access, bool &isDynamicArray, bool &pointerIsOnStack, bool &accessActualPointer, bool &cannotAssign)
 {
-    isArrayOffset = false;
     write_same_as_read_access = true;
     getJustTheAddressIntoAX = false;
     doMemoryAccessNow = false;
@@ -3867,9 +3866,11 @@ int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript_t syml, int syml_le
     // (since that determines whether this is global/local)
     ags::Symbol_t firstVariableSym = variablePath[0].syml[0];
     ags::Symbol_t firstVariableType = sym.get_type(firstVariableSym);
+    bool isArrayOffset = false;
+    bool isDynamicArray = false;
 
     bool pointerIsOnStack = false;
-
+    
     for (size_t vp_idx = 0; vp_idx < variablePathSize; vp_idx++)
     {
         VariableSymlist *thisClause = &variablePath[vp_idx];
@@ -3892,8 +3893,6 @@ int do_variable_ax(ccCompiledScript*scrip, ags::SymbolScript_t syml, int syml_le
         // Mark the component as accessed
         sym.entries[variableSym].flags |= SFLG_ACCESSED;
 
-        bool isArrayOffset;
-        bool isDynamicArray;
         int retval = do_variable_ax_PrepareComponentAccess(scrip, variableSym, variableSymType, isLastClause, thisClause, writing, mustBeWritable, writingThisTime, firstVariableType, firstVariableSym, currentComponentOffset, getJustTheAddressIntoAX, doMemoryAccessNow, isProperty, isArrayOffset, write_same_as_read_access, isDynamicArray, pointerIsOnStack, accessActualPointer, cannotAssign);
         if (retval < 0) return retval;
 

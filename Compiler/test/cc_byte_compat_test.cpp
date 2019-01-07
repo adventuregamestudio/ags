@@ -425,6 +425,7 @@ TEST(Compatibility, FloatExpr2) {
         short E2 = 0 == (1234.5 > 5.0) && 1; \n\
         long E3 = a <= 44.4;      \n\
         char E4 = 55.5 >= 44.4;   \n\
+        int E5 = (((a == b) || (a != b))); \n\
         return a - b * (a / b);   \n\
     }";
 
@@ -437,7 +438,7 @@ TEST(Compatibility, FloatExpr2) {
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
 
-    const size_t codesize = 211;
+    const size_t codesize = 269;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -461,13 +462,20 @@ TEST(Compatibility, FloatExpr2) {
       30,    4,   61,    4,            3,    3,    4,    3,    // 143
        3,    1,    2,   26,            3,    1,    1,    1,    // 151
        6,    2,    0,    7,            3,   29,    3,   51,    // 159
-      19,    7,    3,   29,            3,    6,    2,    0,    // 167
-       7,    3,   29,    3,           51,   27,    7,    3,    // 175
-      30,    4,   56,    4,            3,    3,    4,    3,    // 183
-      30,    4,   55,    4,            3,    3,    4,    3,    // 191
-      30,    4,   58,    4,            3,    3,    4,    3,    // 199
-       2,    1,   15,    5,            6,    3,    0,    2,    // 207
-       1,   15,    5,  -999
+      19,    7,    3,   30,            4,   15,    4,    3,    // 167
+       3,    4,    3,   70,           29,   29,    3,    6,    // 175
+       2,    0,    7,    3,           29,    3,   51,   23,    // 183
+       7,    3,   30,    4,           16,    4,    3,    3,    // 191
+       4,    3,   30,    4,           22,    4,    3,    3,    // 199
+       4,    3,    3,    1,            2,    8,    3,    1,    // 207
+       1,    4,    6,    2,            0,    7,    3,   29,    // 215
+       3,   51,   23,    7,            3,   29,    3,    6,    // 223
+       2,    0,    7,    3,           29,    3,   51,   31,    // 231
+       7,    3,   30,    4,           56,    4,    3,    3,    // 239
+       4,    3,   30,    4,           55,    4,    3,    3,    // 247
+       4,    3,   30,    4,           58,    4,    3,    3,    // 255
+       4,    3,    2,    1,           19,    5,    6,    3,    // 263
+       0,    2,    1,   19,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -478,11 +486,11 @@ TEST(Compatibility, FloatExpr2) {
         std::string test_val = prefix + std::to_string(scrip->code[idx]);
         ASSERT_EQ(is_val, test_val);
     }
-    const size_t numfixups = 3;
+    const size_t numfixups = 5;
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-     104,  154,  167,  -999
+     104,  154,  177,  212,        225,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -495,7 +503,7 @@ TEST(Compatibility, FloatExpr2) {
     }
 
     char fixuptypes[] = {
-      1,   1,   1,  '\0'
+      1,   1,   1,   1,      1,  '\0'
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -1422,12 +1430,14 @@ TEST(Compatibility, Struct4) {
     char *inpl = "\
         struct StructO                                       \n\
         {                                                    \n\
-            static int StInt;                                \n\
+            static import int StInt(int i);                  \n\
         };                                                   \n\
+        StructO        S1;                                   \n\
                                                              \n\
         int main()                                           \n\
         {                                                    \n\
-            StructO.SInt = 77;                               \n\
+             StructO        S2;                              \n\
+             return S1.StInt(S2.StInt(7));                   \n\
         }                                                    \n\
     ";
 
@@ -1439,7 +1449,53 @@ TEST(Compatibility, Struct4) {
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 37;
+    EXPECT_EQ(codesize, scrip->codesize);
 
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    0,    6,    // 7
+       3,    7,   34,    3,           39,    1,    6,    3,    // 15
+       0,   33,    3,   35,            1,   34,    3,   39,    // 23
+       1,    6,    3,    0,           33,    3,   35,    1,    // 31
+       5,    6,    3,    0,            5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      16,   27,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,   4,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
 }
 
 TEST(Compatibility, StructExtender) {

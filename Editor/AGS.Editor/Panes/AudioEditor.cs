@@ -29,7 +29,7 @@ namespace AGS.Editor
         public object SelectedItem
         {
             get { return _selectedItem; }
-            set { _selectedItem = value; SetupGUIForNewItem(value); }
+            set { _selectedItem = value; SetupForNewItem(value); }
         }
 
         private AudioClip SelectedClip
@@ -37,9 +37,22 @@ namespace AGS.Editor
             get { return (AudioClip)_selectedItem; }
         }
 
-        private void SetupGUIForNewItem(object selectedItem)
+        private void SetupForNewItem(object selectedItem)
         {
-            StopAnyPlayingSound();
+            lock (_timerLock)
+            {
+                if (_timer != null)
+                {
+                    _timer.Dispose();
+                    _timer = null;
+                }
+            }
+
+            if (_previewer != null)
+            {
+                _previewer.Stop();
+                _previewer.Dispose();
+            }
 
             grpAudioClip.Visible = false;
             grpAudioType.Visible = false;
@@ -48,9 +61,36 @@ namespace AGS.Editor
             if (selectedItem is AudioClip)
             {
                 lblSoundName.Text = "Audio Clip: " + ((AudioClip)selectedItem).ScriptName;
-                lblCurrentPosition.Text = "";
-                btnPlay.Enabled = true;
-                grpAudioClip.Visible = true;
+                lblCurrentPosition.Text = "00:00";
+                lblClipLength.Text = "/ 00:00";
+
+                try
+                {
+                    if (this.SelectedClip.FileType == AudioClipFileType.MIDI)
+                    {
+                        _previewer = new MidiPlayer(this.SelectedClip);
+                    }
+                    else
+                    {
+                        _previewer = new IrrklangPlayer(this.SelectedClip);
+                    }
+                }
+                catch (AGSEditorException ex)
+                {
+                    string message = ex.Message;
+                    Factory.GUIController.ShowMessage(message, MessageBoxIcon.Warning);
+                    btnPlay.Enabled = false;
+                }
+
+                if (_previewer != null)
+                {
+                    _previewer.PlayFinished += new PlayFinishedHandler(_previewer_PlayFinished);
+                    btnPlay.Enabled = true;
+                    grpAudioClip.Visible = true;
+
+                    int length = _previewer.GetLengthMs();
+                    lblClipLength.Text = string.Format("/ {0:00}:{1:00}", (length / 1000) / 60, (length / 1000) % 60);
+                }
             }
             else if (selectedItem is AudioClipFolder)
             {
@@ -64,54 +104,26 @@ namespace AGS.Editor
             }
         }
 
-        private void StopAnyPlayingSound()
-        {
-            if (_previewer != null)
-            {
-                _previewer.Stop();
-                _previewer = null;
-            }
-            lock (_timerLock)
-            {
-                if (_timer != null)
-                {
-                    _timer.Dispose();
-                    _timer = null;
-                }
-            }
-        }
-
         private void btnPlay_Click(object sender, EventArgs e)
         {
             Cursor.Current = Cursors.WaitCursor;
             try
             {
-                if (this.SelectedClip.FileType == AudioClipFileType.MIDI)
-                {
-                    _previewer = new MidiPlayer();
-                }
-                else
-                {
-                    _previewer = new IrrklangPlayer();
-                }
-                _previewer.PlayFinished += new PlayFinishedHandler(_previewer_PlayFinished);
                 _paused = false;
                 _timer = new Timer();
                 _timer.Interval = 900;
                 _timer.Tick += new EventHandler(_timer_Tick);
                 _timer.Start();
-
-                if (_previewer.Play(this.SelectedClip))
-                {
-                    UpdateCurrentTime();
-                    btnPlay.Enabled = false;
-                    btnPause.Enabled = true;
-                    btnStop.Enabled = true;
-                }
-                else
-                {
-                    Factory.GUIController.ShowMessage("Unable to play the sound. The file format may not be supported by the AGS Editor.", MessageBoxIcon.Warning);
-                }
+                _previewer.Play();
+                btnPlay.Enabled = false;
+                btnPause.Enabled = true;
+                btnStop.Enabled = true;
+            }
+            catch (AGSEditorException ex)
+            {
+                string message = ex.Message;
+                Factory.GUIController.ShowMessage(message, MessageBoxIcon.Warning);
+                btnPlay.Enabled = false;
             }
             finally
             {
@@ -119,31 +131,28 @@ namespace AGS.Editor
             }
         }
 
-        private void UpdateCurrentTime()
+        private void PollPreviewer()
         {
             if (_previewer != null)
             {
                 _previewer.Poll();
-                int currentPos = _previewer.GetPositionMs();
-                int currentLen = _previewer.GetLengthMs();
-                lblCurrentPosition.Text = string.Format("{0:00}:{1:00} / {2:00}:{3:00}",
-                                                (currentPos / 1000) / 60, (currentPos / 1000) % 60,
-                                                (currentLen / 1000) / 60, (currentLen / 1000) % 60);
-            }
-            else
-            {
-                lblCurrentPosition.Text = "";
+                int position = _previewer.GetPositionMs();
+                lblCurrentPosition.Text = string.Format("{0:00}:{1:00}", (position / 1000) / 60, (position / 1000) % 60);
             }
         }
 
         private void _timer_Tick(object sender, EventArgs e)
         {
-            this.Invoke(new NoParametersDelegate(UpdateCurrentTime));
+            this.Invoke(new NoParametersDelegate(PollPreviewer));
         }
 
         protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)
         {
-            StopAnyPlayingSound();
+            if (_previewer != null)
+            {
+                _previewer.Stop();
+                _previewer.Dispose();
+            }
         }
 
         private void ResetControlsForSoundFinished()
@@ -151,6 +160,8 @@ namespace AGS.Editor
             btnPlay.Enabled = true;
             btnPause.Enabled = false;
             btnStop.Enabled = false;
+            lblCurrentPosition.Text = "00:00";
+
             lock (_timerLock)
             {
                 if (_timer != null)
@@ -160,7 +171,6 @@ namespace AGS.Editor
                     _timer = null;
                 }
             }
-            UpdateCurrentTime();
         }
 
         private void _previewer_PlayFinished(AudioClip clip)
@@ -172,11 +182,13 @@ namespace AGS.Editor
         {
             if ((_previewer != null) && (_paused))
             {
-                _previewer.Resume();
                 _paused = false;
+                _previewer.Resume();
+                _timer.Start();
             }
             else if (_previewer != null)
             {
+                _timer.Stop();
                 _previewer.Pause();
                 _paused = true;
             }

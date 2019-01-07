@@ -41,6 +41,7 @@
             this.grpAudioType = new System.Windows.Forms.GroupBox();
             this.label2 = new System.Windows.Forms.Label();
             this.lblAudioTypeTitle = new System.Windows.Forms.Label();
+            this.lblClipLength = new System.Windows.Forms.Label();
             this.grpAudioClip.SuspendLayout();
             this.grpFolder.SuspendLayout();
             this.grpAudioType.SuspendLayout();
@@ -48,6 +49,7 @@
             // 
             // grpAudioClip
             // 
+            this.grpAudioClip.Controls.Add(this.lblClipLength);
             this.grpAudioClip.Controls.Add(this.btnStop);
             this.grpAudioClip.Controls.Add(this.lblCurrentPosition);
             this.grpAudioClip.Controls.Add(this.btnPause);
@@ -74,9 +76,10 @@
             // lblCurrentPosition
             // 
             this.lblCurrentPosition.AutoSize = true;
-            this.lblCurrentPosition.Location = new System.Drawing.Point(29, 132);
+            this.lblCurrentPosition.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblCurrentPosition.Location = new System.Drawing.Point(176, 160);
             this.lblCurrentPosition.Name = "lblCurrentPosition";
-            this.lblCurrentPosition.Size = new System.Drawing.Size(35, 13);
+            this.lblCurrentPosition.Size = new System.Drawing.Size(63, 25);
             this.lblCurrentPosition.TabIndex = 3;
             this.lblCurrentPosition.Text = "00:00";
             // 
@@ -169,6 +172,16 @@
             this.lblAudioTypeTitle.TabIndex = 1;
             this.lblAudioTypeTitle.Text = "folderName";
             // 
+            // lblClipLength
+            // 
+            this.lblClipLength.AutoSize = true;
+            this.lblClipLength.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblClipLength.Location = new System.Drawing.Point(236, 160);
+            this.lblClipLength.Name = "lblClipLength";
+            this.lblClipLength.Size = new System.Drawing.Size(78, 25);
+            this.lblClipLength.TabIndex = 5;
+            this.lblClipLength.Text = "/ 00:00";
+            // 
             // AudioEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -203,5 +216,6 @@
         private System.Windows.Forms.GroupBox grpAudioType;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label lblAudioTypeTitle;
+        private System.Windows.Forms.Label lblClipLength;
     }
 }

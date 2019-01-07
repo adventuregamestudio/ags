@@ -3403,9 +3403,8 @@ int get_array_index_into_ax(ccCompiledScript *scrip, ags::SymbolScript_t symlist
 }
 
 
-
 // parse array brackets
-int parseArrayIndexOffsetsIfPresent(ccCompiledScript *scrip, VariableSymlist *thisClause, bool writingOperation, bool *isArrayOffset) 
+int parseArrayIndexOffsetsIfPresent(ccCompiledScript *scrip, VariableSymlist *thisClause, bool writingOperation, bool &isArrayOffset) 
 {
 
     if ((thisClause->len <= 1) || (sym.get_type(thisClause->syml[1]) != SYM_OPENBRACKET))
@@ -3443,7 +3442,7 @@ int parseArrayIndexOffsetsIfPresent(ccCompiledScript *scrip, VariableSymlist *th
 
     // save the current offset in CX if there is one,
     // because parse_subexpr might destroy it
-    if (*isArrayOffset) scrip->push_reg(SREG_CX);
+    if (isArrayOffset) scrip->push_reg(SREG_CX);
 
     // get the byte offset of the array index into AX
     int retval = get_array_index_into_ax(scrip, thisClause->syml, 1, arrIndexEnd, checkBounds, multiplySize);
@@ -3451,7 +3450,7 @@ int parseArrayIndexOffsetsIfPresent(ccCompiledScript *scrip, VariableSymlist *th
 
     // if there is a current offset saved in CX, restore it
     // then add the result to CX (which is counting the overall offset)
-    if (*isArrayOffset)
+    if (isArrayOffset)
     {
         scrip->pop_reg(SREG_CX);
         scrip->write_cmd2(
@@ -3467,7 +3466,7 @@ int parseArrayIndexOffsetsIfPresent(ccCompiledScript *scrip, VariableSymlist *th
     }
 
     if (!propertyIndexer)
-        *isArrayOffset = true;
+        isArrayOffset = true;
 
     if (writingOperation)
         scrip->pop_reg(SREG_AX);
@@ -3477,6 +3476,7 @@ int parseArrayIndexOffsetsIfPresent(ccCompiledScript *scrip, VariableSymlist *th
 
     return 0;
 }
+
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a simple member of the struct.
@@ -3488,6 +3488,7 @@ inline void do_variable_ax_PrepareComponentAccess_Elementary(ags::Symbol_t varia
     // the hard offset value which will be written to MAR
     currentComponentOffset += sym.entries[variableSym].soffs;
 }
+
 
 // We access a component of a struct in order to read or write it. 
 // This is a function that is a member of a struct.
@@ -3507,6 +3508,7 @@ inline int do_variable_ax_PrepareComponentAccess_MemberFunction(bool isLastClaus
     return 0;
 }
 
+
 // We access a component of a struct in order to read or write it. 
 // This is a property.
 int do_variable_ax_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags::Symbol_t variableSym, VariableSymlist * thisClause, bool writing, bool writingThisTime, bool mustBeWritable, bool & getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isArrayOffset)
@@ -3515,12 +3517,11 @@ int do_variable_ax_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags
     getJustTheAddressIntoAX = true;
     doMemoryAccessNow = true;
 
-    int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing != 0, &isArrayOffset);
+    int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing != 0, isArrayOffset);
     if (retval < 0) return retval;
 
     if (writing)
     {
-
         if ((writingThisTime) && (sym.entries[variableSym].flags & SFLG_READONLY))
         {
             cc_error("Property '%s' is read-only", sym.get_friendly_name(variableSym).c_str());
@@ -3534,6 +3535,7 @@ int do_variable_ax_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags
 
     return 0;
 }
+
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a pointer
@@ -3561,7 +3563,7 @@ int do_variable_ax_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags:
         else
         {
             // put array index into DX
-            int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing, &isArrayOffset);
+            int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing, isArrayOffset);
             if (retval < 0) return retval;
 
             isArrayOfPointers = true;
@@ -3650,6 +3652,7 @@ int do_variable_ax_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags:
     return 0;
 }
 
+
 int do_variable_ax_PrepareComponentAccess_JustTheAddressCases(ags::Symbol_t variableSym, VariableSymlist * thisClause, bool isLastClause, bool & getJustTheAddressIntoAX, bool & cannotAssign)
 {
     // array without index specified
@@ -3680,22 +3683,21 @@ int do_variable_ax_PrepareComponentAccess_JustTheAddressCases(ags::Symbol_t vari
     return 0;
 }
 
+
 // We access the a variable or a component of a struct in order to read or write it. 
 int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol_t variableSym, int variableSymType, bool isLastClause, VariableSymlist * thisClause, bool writing, bool mustBeWritable, bool writingThisTime, ags::Symbol_t firstVariableType, ags::Symbol_t firstVariableSym, int &currentComponentOffset, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isProperty, bool &isArrayOffset, bool &write_same_as_read_access, bool &isDynamicArray, bool &pointerIsOnStack, bool &accessActualPointer, bool &cannotAssign)
 {
-
-    isProperty = (0 != (sym.entries[variableSym].flags & SFLG_PROPERTY));
-    bool isPointer = (0 != (sym.entries[variableSym].flags & (SFLG_POINTER | SFLG_AUTOPTR)));
-    isDynamicArray = (0 != (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY));
-    bool isImported = (0 != (sym.entries[variableSym].flags & SFLG_IMPORTED));
     isArrayOffset = false;
     write_same_as_read_access = true;
     getJustTheAddressIntoAX = false;
     doMemoryAccessNow = false;
-
-    //pointerIsOnStack = false; // was isPointer
     accessActualPointer = false;
     cannotAssign = false;
+
+    isProperty = (0 != (sym.entries[variableSym].flags & SFLG_PROPERTY));
+    isDynamicArray = (0 != (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY));
+    bool isPointer = (0 != (sym.entries[variableSym].flags & (SFLG_POINTER | SFLG_AUTOPTR)));
+    bool isImported = (0 != (sym.entries[variableSym].flags & SFLG_IMPORTED));
 
     // Simple component access - increment the offset from the start of the structure,
     // which is known at compile time
@@ -3735,7 +3737,7 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol_
     }
     else
     {
-        int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing, &isArrayOffset);
+        int retval = parseArrayIndexOffsetsIfPresent(scrip, thisClause, writing, isArrayOffset);
         if (retval < 0) return retval;   
     }
 
@@ -3743,6 +3745,7 @@ int do_variable_ax_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol_
     if (retval < 0) return retval;
     return 0;
 }
+
 
 int do_variable_ax_ActualMemoryAccess(ccCompiledScript * scrip, ags::Symbol_t variableSym, int variableSymType, bool pointerIsOnStack, bool writing, bool writingThisTime, bool isProperty, bool mustBeWritable, bool getJustTheAddressIntoAX, bool isArrayOffset, int currentComponentOffset, bool accessActualPointer, ags::Symbol_t firstVariableSym, ags::Symbol_t firstVariableType, bool isDynamicArray, bool negateLiteral, bool isLastClause, VariableSymlist  variablePath[], size_t vp_idx)
 {

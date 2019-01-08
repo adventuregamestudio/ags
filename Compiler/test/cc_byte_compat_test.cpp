@@ -1208,16 +1208,15 @@ TEST(Compatibility, Struct1) {
     }                               \n\
     ";
 
-
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
-    // writeoutput("Struct1", scrip);
+    writeoutput("Struct1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
-    const size_t codesize = 49;
+    const size_t codesize = 90;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -1227,7 +1226,12 @@ TEST(Compatibility, Struct1) {
       72,    3,    4,    0,            6,    2,    0,   47,    // 31
        3,    6,    2,    0,           48,    3,    2,    1,    // 39
        4,    5,    6,    3,            0,    2,    1,    4,    // 47
-       5,  -999
+       5,   38,   49,    3,            1,    2,   63,    4,    // 55
+       1,    1,    4,   29,            6,    6,    3,   -1,    // 63
+      29,    3,   51,   12,            3,    2,    3,   45,    // 71
+       3,    6,    3,    0,           23,    3,    2,    1,    // 79
+       4,   30,    6,    6,            3,    0,    2,    1,    // 87
+       4,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1238,11 +1242,11 @@ TEST(Compatibility, Struct1) {
         std::string test_val = prefix + std::to_string(scrip->code[idx]);
         ASSERT_EQ(is_val, test_val);
     }
-    const size_t numfixups = 2;
+    const size_t numfixups = 3;
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      30,   35,  -999
+      30,   35,   75,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -1255,7 +1259,7 @@ TEST(Compatibility, Struct1) {
     }
 
     char fixuptypes[] = {
-      1,   1,  '\0'
+      1,   1,   2,  '\0'
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)

@@ -369,6 +369,7 @@ void ccCompiledScript::write_code(intptr_t byy)
 {
     // DEBUGGING [fw]
     if (codesize == 64)
+    //if (currentline == 18)
     {
         int iii = 0;
     }

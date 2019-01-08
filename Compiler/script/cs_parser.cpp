@@ -6534,13 +6534,13 @@ int error_undef_token_inside_func(ags::Symbol_t cursym)
 }
 
 
-int parse_funccall(ccInternalList *targ, ccCompiledScript * scrip, int offset_of_funcname, int targPosWas)
+int parse_funccall(ccInternalList *targ, ccCompiledScript * scrip, int offset_of_funcname, int expression_start_idx)
 {
     // calling a function
     if (offset_of_funcname > 0)
     {
         // member function -- wind back to process whole expression
-        targ->pos = targPosWas;
+        targ->pos = expression_start_idx;
     }
 
     targ->pos--;
@@ -7171,11 +7171,11 @@ int parse_funcbodycode(
     char is_static,
     char is_readonly)
 {
-    // Force current symbol for functions
-    if (offset_of_funcname > 0) cursym = sym.find("function");
+    int curtype = sym.get_type(cursym);
+    if (offset_of_funcname > 0) curtype = SYM_FUNCTION;
 
     int retval = 0; // for error msg
-    switch (sym.get_type(cursym))
+    switch (curtype)
     {
     default:
         // Should be an assignment -- or else it is an error

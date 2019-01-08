@@ -817,8 +817,8 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backTextureSize.Width, _backTextureSize.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1537,7 +1537,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   int tileHeight = (textureHeight > tile->height) ? tile->height + 1 : tile->height;
 
   bool usingLinearFiltering = _filter->UseLinearFiltering();
-  bool lastPixelWasTransparent = false;
   char *origPtr = (char*)malloc(sizeof(int) * tileWidth * tileHeight);
   char *memPtr = origPtr;
 
@@ -1549,7 +1548,18 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   int pitch = tileWidth * sizeof(int);
   BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, target, memPtr, pitch, usingLinearFiltering);
 
-  // Mimic the behaviour of GL_CLAMP_EDGE for the bottom line
+  // Mimic the behaviour of GL_CLAMP_EDGE for the rightmost and bottom edges
+  // NOTE: we would not normally have to do this for the rightmost column, but on some platforms
+  // GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
+  if (tile->width < tileWidth)
+  {
+    for (int y = 0; y < tileHeight; y++)
+    {
+      unsigned int* memPtrLong = (unsigned int*)(memPtr + y * pitch + tile->width * sizeof(int));
+      unsigned int* memPtrLong_previous = memPtrLong - 1;
+      *memPtrLong = *memPtrLong_previous & 0x00FFFFFF;
+    }
+  }
   if (tile->height < tileHeight)
   {
     unsigned int* memPtrLong = (unsigned int*)(memPtr + pitch * tile->height);

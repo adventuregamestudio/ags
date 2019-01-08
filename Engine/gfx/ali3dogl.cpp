@@ -1588,7 +1588,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
       for (int y = 0; y < tileHeight; y++)
       {
           unsigned int* memPtrLong = (unsigned int*)(memPtr + y * pitch + tile->width * sizeof(int));
-          unsigned int* memPtrLong_previous = (unsigned int*)(memPtr + y * pitch + (tile->width - 1) * sizeof(int));
+          unsigned int* memPtrLong_previous = memPtrLong - 1;
           *memPtrLong = *memPtrLong_previous & 0x00FFFFFF;
       }
   }

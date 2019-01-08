@@ -252,8 +252,8 @@ int numBreakpoints = 0;
 
 bool send_message_to_editor(const char *msg, const char *errorMsg) 
 {
-    const char *callStack = get_cur_script(25);
-    if (callStack[0] == 0)
+    String callStack = get_cur_script(25);
+    if (callStack.IsEmpty())
         return false;
 
     char messageToSend[STD_BUFFER_SIZE];
@@ -261,7 +261,7 @@ bool send_message_to_editor(const char *msg, const char *errorMsg)
 #ifdef WINDOWS_VERSION
     sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", win_get_window());
 #endif
-    sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack);
+    sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack.GetCStr());
     if (errorMsg != NULL)
     {
         sprintf(&messageToSend[strlen(messageToSend)], "  <ErrorMessage><![CDATA[%s]]></ErrorMessage> ", errorMsg);

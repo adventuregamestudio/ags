@@ -170,7 +170,7 @@ QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
         qmsg++;
         alertis.Format("A warning has been generated. This is not normally fatal, but you have selected "
             "to treat warnings as errors.\n"
-            "(ACI version %s)\n\n%s\n", EngineVersion.LongString.GetCStr(), get_cur_script(5));
+            "(ACI version %s)\n\n%s\n", EngineVersion.LongString.GetCStr(), get_cur_script(5).GetCStr());
         return kQuit_GameWarning;
     }
     else

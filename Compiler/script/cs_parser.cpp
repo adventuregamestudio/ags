@@ -3445,10 +3445,14 @@ int access_data_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist 
     if (isArrayOffset)
     {
         scrip->pop_reg(SREG_CX);
-        scrip->write_cmd2(
-            (propertyIndexer ? SCMD_REGTOREG : SCMD_ADDREG),
-            SREG_AX,
-            SREG_DX);
+        if (propertyIndexer)
+        {
+            scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_DX);
+        }
+        else
+        {
+            scrip->write_cmd2(SCMD_ADDREG, SREG_CX, SREG_AX);
+        }
     }
     else
     {

@@ -1193,12 +1193,20 @@ TEST(Compatibility, Struct1) {
     };                              \n\
                                     \n\
     int Ret[];                      \n\
+                                    \n\
     int[] Struct::Func(int i)       \n\
     {                               \n\
-        this.Float = 0.0;         \n\
+        this.Float = 0.0;           \n\
         Ret = new int[5];           \n\
         return Ret;                 \n\
-    }";
+    }                               \n\
+                                    \n\
+    void main()                     \n\
+    {                               \n\
+        Struct S;                   \n\
+        S.Func(-1);                 \n\
+    }                               \n\
+    ";
 
 
     last_seen_cc_error = 0;

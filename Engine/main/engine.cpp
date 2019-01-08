@@ -1601,8 +1601,21 @@ extern int miniDumpResultCode;
 #endif
 
 // defined in main/main
-extern char tempmsg[100];
 extern char*printfworkingspace;
+
+#ifdef USE_CUSTOM_EXCEPTION_HANDLER
+void DisplayException()
+{
+    String script_callstack = get_cur_script(5);
+    sprintf(printfworkingspace, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
+        "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and post the details on the AGS Technical Forum.\n\n%s\n\n"
+        "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",
+        excinfo.ExceptionCode, (intptr_t)excinfo.ExceptionAddress, our_eip, EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, script_callstack.GetCStr(),
+        (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." :
+        "Unable to create an error dump file.", miniDumpResultCode);
+    MessageBoxA(win_get_window(), printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
+}
+#endif // USE_CUSTOM_EXCEPTION_HANDLER
 
 int initialize_engine_with_exception_handling(int argc,char*argv[])
 {
@@ -1618,14 +1631,7 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
     }
     __except (CustomExceptionHandler ( GetExceptionInformation() )) 
     {
-        strcpy (tempmsg, "");
-        sprintf (printfworkingspace, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X %s; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
-            "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and post the details on the AGS Technical Forum.\n\n%s\n\n"
-            "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",
-            excinfo.ExceptionCode, excinfo.ExceptionAddress, tempmsg, our_eip, EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, get_cur_script(5),
-            (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." : 
-            "Unable to create an error dump file.", miniDumpResultCode);
-        MessageBoxA(win_get_window(), printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
+        DisplayException();
         proper_exit = 1;
     }
     return EXIT_CRASH;

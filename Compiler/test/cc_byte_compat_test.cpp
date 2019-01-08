@@ -1562,6 +1562,109 @@ TEST(Compatibility, Struct5) {
 }
 
 
+TEST(Compatibility, Struct6) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Struct1                                       \n\
+        {                                                    \n\
+            int IPayload;                                    \n\
+            char CPayload[3];                                \n\
+        };                                                   \n\
+                                                             \n\
+        Struct1 S1[3];                                       \n\
+                                                             \n\
+        int main()                                           \n\
+        {                                                    \n\
+            S1[1].IPayload = 0;                              \n\
+            S1[1].CPayload[0] = 'A';                         \n\
+            S1[1].CPayload[1] = S1[1].CPayload[0] - 'A';     \n\                        \n\
+            S1[1].CPayload[0] --;                            \n\
+            return 0;                                        \n\
+        }                                                    \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("Struct6", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 218;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,            0,   29,    3,    6,    // 7
+       3,    1,   46,    3,            3,   32,    3,    8,    // 15
+       3,    3,    5,   30,            3,    6,    2,    0,    // 23
+      11,    2,    5,    8,            3,    6,    3,   65,    // 31
+      29,    3,    6,    3,            1,   46,    3,    3,    // 39
+      32,    3,    8,    3,            3,    5,   30,    3,    // 47
+      29,    3,   29,    5,            6,    3,    0,   46,    // 55
+       3,    3,   32,    3,            1,   30,    5,   11,    // 63
+       5,    3,   30,    3,            6,    2,    4,   11,    // 71
+       2,    5,   26,    3,            6,    3,    1,   46,    // 79
+       3,    3,   32,    3,            8,    3,    3,    5,    // 87
+      29,    5,    6,    3,            0,   46,    3,    3,    // 95
+      32,    3,    1,   30,            5,   11,    5,    3,    // 103
+       6,    2,    4,   11,            2,    5,   24,    3,    // 111
+      29,    3,    6,    3,           65,   30,    4,   12,    // 119
+       4,    3,    3,    4,            3,   29,    3,    6,    // 127
+       3,    1,   46,    3,            3,   32,    3,    8,    // 135
+       3,    3,    5,   30,            3,   29,    3,   29,    // 143
+       5,    6,    3,    1,           46,    3,    3,   32,    // 151
+       3,    1,   30,    5,           11,    5,    3,   30,    // 159
+       3,    6,    2,    4,           11,    2,    5,   26,    // 167
+       3,    6,    3,    1,           46,    3,    3,   32,    // 175
+       3,    8,    3,    3,            5,   29,    5,    6,    // 183
+       3,    0,   46,    3,            3,   32,    3,    1,    // 191
+      30,    5,   11,    5,            3,    6,    2,    4,    // 199
+      11,    2,    5,   24,            3,    2,    3,    1,    // 207
+      26,    3,    6,    3,            0,    5,    6,    3,    // 215
+       0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 5;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      23,   70,  106,  163,        199,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      1,   1,   1,   1,      1,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}
+
+
 TEST(Compatibility, StructExtender) {
     ccCompiledScript *scrip = newScriptFixture();
 

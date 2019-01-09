@@ -1128,7 +1128,7 @@ HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     if (!ReadFormatTag(in, info.Name, true))
         return new SavegameError(kSvgErr_ComponentOpeningTagFormat);
     info.Version = in->ReadInt32();
-    info.DataSize = in->ReadInt64();
+    info.DataSize = hlp.Version >= kSvgVersion_Cmp_64bit ? in->ReadInt64() : in->ReadInt32();
     info.DataOffset = in->GetPosition();
 
     const ComponentHandler *handler = NULL;

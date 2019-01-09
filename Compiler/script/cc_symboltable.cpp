@@ -181,6 +181,7 @@ std::string symbolTable::get_friendly_name(int idx)
 
 std::string symbolTable::get_name_string(int idx)
 {
+    if (idx < 0) return std::string("((NoSymbol))");
     if (idx & STYPE_CONST)
     {
         idx &= ~STYPE_CONST;

@@ -60,8 +60,8 @@ enum Globalness
 enum Importness
 {
     ImNoImport = 0,
-    ImImportType1 = 1,  
-    ImImportType2 = 2   
+    ImImportType1 = 1,
+    ImImportType2 = 2
 };
 
 ags::Scanner::Scanner()
@@ -150,7 +150,7 @@ void ags::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_typ
     // Non-char symstrings, such as "*="
     scan_type = SctNonChar;
     switch (next_char)
-    {   
+    {
     default:  break;
     case '!': ReadIn1or2Char("=", symstring, eof_encountered, error_encountered); return;
     case '%': ReadIn1or2Char("=", symstring, eof_encountered, error_encountered); return;
@@ -438,7 +438,7 @@ void ags::Scanner::ReadInDotCombi(std::string &symstring, bool &eof_encountered,
     }
 
     LastError = "Must either use '.' or '...'";
-    error_encountered = true;    
+    error_encountered = true;
 }
 
 
@@ -960,7 +960,7 @@ int cc_tokenize(const char * inpl, ccInternalList * targ, ccCompiledScript * scr
 }
 
 
-void free_pointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbol_t arraySym) 
+void free_pointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbol_t arraySym)
 {
     scrip->write_cmd1(SCMD_LOADSPOFFS, spOffset);
     scrip->write_cmd(zeroCmd);
@@ -977,7 +977,7 @@ void free_pointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbo
 }
 
 
-void free_pointers_from_struct(ccCompiledScript *scrip, ags::Symbol_t structVarSym) 
+void free_pointers_from_struct(ccCompiledScript *scrip, ags::Symbol_t structVarSym)
 {
     size_t structType = sym.entries[structVarSym].vartype;
 
@@ -987,7 +987,7 @@ void free_pointers_from_struct(ccCompiledScript *scrip, ags::Symbol_t structVarS
         if (sym.entries[entries_idx].extends != structType) continue;
         if ((sym.entries[entries_idx].flags & SFLG_IMPORTED) != 0) continue;
         if ((sym.entries[entries_idx].flags & SFLG_PROPERTY) != 0) continue;
-        
+
         if ((sym.entries[entries_idx].flags & SFLG_POINTER) == 0)
         {
             // original comment: "if non-pointer struct, need to process its members
@@ -998,10 +998,10 @@ void free_pointers_from_struct(ccCompiledScript *scrip, ags::Symbol_t structVarS
             //      if (substruct is not in the symtable) continue;
 
             //      free_pointers_from_struct(scrip, substruct);
-            
+
             continue;
         }
-        
+
         // Locate where the pointer is on the stack
         int spOffs = (scrip->cur_sp - sym.entries[structVarSym].soffs) - sym.entries[entries_idx].soffs;
 
@@ -1041,9 +1041,9 @@ int stacksize_of_locals(int from_level)
 
         // caller will sort out stack, so ignore parameters
         if ((sym.entries[entries_idx].flags & SFLG_PARAMETER) != 0) continue;
-       
+
         if ((sym.entries[entries_idx].flags & SFLG_DYNAMICARRAY) != 0)
-        {    
+        {
             totalsub += 4; // size of an implicit pointer
             continue;
         }
@@ -1051,11 +1051,11 @@ int stacksize_of_locals(int from_level)
         // Calculate the size of one var of the given type
         size_t ssize = sym.entries[entries_idx].ssize;
         if (sym.entries[entries_idx].flags & SFLG_STRBUFFER) ssize += STRING_LENGTH;
-        
+
         // Calculate the number of vars
         size_t number = 1;
         if (sym.entries[entries_idx].flags & SFLG_ARRAY) number = sym.entries[entries_idx].arrsize;
-        
+
         totalsub += ssize * number;
     }
     return totalsub;
@@ -1073,7 +1073,7 @@ int free_pointers_of_locals(ccCompiledScript *scrip, int from_level)
     {
         if (sym.entries[entries_idx].sscope <= from_level) continue;
         if (sym.entries[entries_idx].stype != SYM_LOCALVAR) continue;
-        
+
         // don't touch the this pointer
         if (sym.entries[entries_idx].flags & SFLG_THISPTR) continue;
 
@@ -1083,7 +1083,7 @@ int free_pointers_of_locals(ccCompiledScript *scrip, int from_level)
             free_pointer(scrip, scrip->cur_sp - sym.entries[entries_idx].soffs, zeroPtrCmd, static_cast<ags::Symbol_t>(entries_idx));
             continue;
         }
- 
+
         if (sym.entries[sym.entries[entries_idx].vartype].flags & SFLG_STRUCTTYPE)
         {
             // free any pointers that this struct contains
@@ -1097,7 +1097,7 @@ int free_pointers_of_locals(ccCompiledScript *scrip, int from_level)
 // Remove defns from the sym table of vars defined on from_level or higher
 int remove_locals_from_symtable(int from_level)
 {
-    
+
     for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
     {
         if (sym.entries[entries_idx].sscope < from_level) continue;
@@ -1120,7 +1120,7 @@ int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, ags::N
     // Check whether the symbol "else" follows a then branch
     else_after_then = false;
     if (nesting_stack->Type() == ags::NestingStack::NTUnbracedElse);
-    else if (nesting_stack->Type()== ags::NestingStack::NTBracedElse);
+    else if (nesting_stack->Type() == ags::NestingStack::NTBracedElse);
     else if (sym.get_type(targ->peeknext()) == SYM_ELSE)
     {
         targ->getnext();  // eat "else"
@@ -1155,14 +1155,14 @@ int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, ags::N
             nesting_stack->SetType(ags::NestingStack::NTBracedElse);
             targ->getnext();
         }
-        
+
         nesting_stack->SetJumpOutLoc(scrip->codesize - 1);
 
         // We're continuing the current nesting until the "else" branch has ended.
         // So we haven't ended the current nesting yet. So we leave at this point.
         return 0;
     }
-    
+
     // Clause ends, so pop the level off the stack
     nesting_stack->Pop();
 
@@ -1170,7 +1170,7 @@ int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, ags::N
     {
         // A FOR is represented by two nestings, so we need to pop another level
         nesting_stack->Pop();
-        
+
         // The outer nesting of the FOR can contain defns, e.g., "for (int i = 0;...)"
         // defines i. Free these definitions
         free_pointers_of_locals(scrip, nesting_stack->Depth() - 1);
@@ -1182,12 +1182,12 @@ int deal_with_end_of_ifelse(ccInternalList *targ, ccCompiledScript*scrip, ags::N
         }
         remove_locals_from_symtable(nesting_stack->Depth());
     }
-    
+
     return 0;
 }
 
 
-int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack) 
+int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack)
 {
     scrip->flush_line_numbers();
 
@@ -1217,7 +1217,7 @@ int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, ags::Nest
     scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize + 2) - nesting_stack->StartLoc()));
     // Patch the jump out of the loop; it should point to here
     scrip->code[nesting_stack->JumpOutLoc()] = (scrip->codesize - nesting_stack->JumpOutLoc()) - 1;
-    
+
     // The clause has ended, so pop the level off the stack
     nesting_stack->Pop();
 
@@ -1225,12 +1225,12 @@ int deal_with_end_of_do(ccInternalList *targ, ccCompiledScript *scrip, ags::Nest
 }
 
 
-int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack) 
+int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack)
 {
     const size_t ns_level = nesting_stack->Depth() - 1;
 
     // If there was no terminating break, write a jump at the end of the last case
-    if (scrip->code[scrip->codesize - 2] != SCMD_JMP || 
+    if (scrip->code[scrip->codesize - 2] != SCMD_JMP ||
         scrip->code[scrip->codesize - 1] != nesting_stack->StartLoc() - scrip->codesize + 2)
     {
         scrip->write_cmd1(SCMD_JMP, 0);
@@ -1238,14 +1238,14 @@ int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::
 
     // We begin the jump table; remember this address
     ags::CodeLoc_t jumptable_loc = scrip->codesize;
-    
+
     // Patch the instruction "Jump to the jump table" at the start of the switch
     // so that it points to the correct address, i.e., here
     scrip->code[nesting_stack->StartLoc() + 1] = (jumptable_loc - nesting_stack->StartLoc()) - 2;
 
     // Get correct comparison operation: Don't compare strings as pointers but as strings
     int noteq_op = is_any_type_of_string(nesting_stack->SwitchExprType()) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
-    
+
     const size_t size_of_chunks = nesting_stack->Chunks().size();
     for (size_t index = 0; index < size_of_chunks; index++)
     {
@@ -1255,18 +1255,18 @@ int deal_with_end_of_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::
         scrip->write_cmd2(noteq_op, SREG_AX, SREG_BX);
         scrip->write_cmd1(SCMD_JZ, nesting_stack->Chunks().at(index).CodeOffset - scrip->codesize - 2);
     }
-    
+
     // Write the default jump if necessary
     if (nesting_stack->DefaultLabelLoc() != -1)
         scrip->write_cmd1(SCMD_JMP, nesting_stack->DefaultLabelLoc() - scrip->codesize - 2);
-    
+
     // Patch th jump to the end of the switch block (for break statements)
     scrip->code[nesting_stack->StartLoc() + 3] = scrip->codesize - nesting_stack->StartLoc() - 4;
-    
+
     // Patch the jump for the end of the switch block
     scrip->code[jumptable_loc - 1] = scrip->codesize - jumptable_loc;
 
-    nesting_stack->Chunks().clear(); 
+    nesting_stack->Chunks().clear();
     nesting_stack->Pop();
 
     return 0;
@@ -1307,7 +1307,7 @@ int find_member_sym(ags::Symbol_t structSym, ags::Symbol_t &memSym, bool allowPr
 
 std::string get_FriendlyIntSymbol(int symidx, bool isNegative)
 {
-    return (isNegative? "-" : "") + sym.get_friendly_name(symidx);
+    return (isNegative ? "-" : "") + sym.get_friendly_name(symidx);
 }
 
 
@@ -1795,7 +1795,7 @@ int parse_funcdecl_paramlist(
 }
 
 
-int parse_funcdecl_CheckForIllegalCombis(bool func_is_readonly, int & in_func, size_t stack_depth)
+int parse_funcdecl_CheckForIllegalCombis(bool func_is_readonly, ags::Symbol_t name_of_current_func, size_t stack_depth)
 {
     if (func_is_readonly)
     {
@@ -1803,7 +1803,7 @@ int parse_funcdecl_CheckForIllegalCombis(bool func_is_readonly, int & in_func, s
         return -1;
     }
 
-    if ((in_func >= 0) || (stack_depth > 1))
+    if ((name_of_current_func >= 0) || (stack_depth > 1))
     {
         cc_error("Nested functions not supported (you may have forgotten a closing brace)");
         return -1;
@@ -1853,22 +1853,25 @@ int parse_funcdecl_SetFunctype(
 int parse_funcdecl(
     ccInternalList *targ,
     ccCompiledScript *scrip,
-    ags::Symbol_t &funcsym,
+    ags::Symbol_t &name_of_func,
     int return_type, // from "vtwas" in the caller - is the return type in here
     bool func_returns_ptr,
     bool func_returns_dynarray,
     bool func_is_static,
     Importness func_is_import,  // NOT a bool: it can contain 0 .. 2
-    int struct_containing_the_func,
-    int &idx_of_func, // Index of the function functions[] array; = -1 for imports
+    ags::Symbol_t struct_containing_the_func,
     ags::Symbol_t &struct_extended_by_the_func, // the BAR in "int FOO(this BAR *," 
-    SymbolTableEntry *oldDefinition)
+    SymbolTableEntry *oldDefinition,
+    bool &body_follows)
 {
     int numparams = 1; // Counts the number of parameters including the ret parameter, so start at 1
     int ret_parameter_size = sym.entries[return_type].ssize;
+    int idx_of_func;
+
+    body_follows = false; // assume by default that a body won't follow
 
     // Internal name of the function being defined, may be re-written (mangled) later on
-    std::string functionName = sym.get_name(funcsym);
+    std::string functionNameStr = sym.get_name(name_of_func);
 
     // skip the opening "("
     targ->getnext();
@@ -1886,19 +1889,19 @@ int parse_funcdecl(
     {
         int retval = parse_funcdecl_ExtenderPreparations(
             targ, scrip, func_is_static_extender,
-            func_is_import, functionName, funcsym, struct_extended_by_the_func,
+            func_is_import, functionNameStr, name_of_func, struct_extended_by_the_func,
             oldDefinition);
         if (retval < 0) return retval;
     }
     else // !func_is_extender
     {
-        int retval = parse_funcdecl_NonExtenderPreparations(struct_containing_the_func, functionName, funcsym);
+        int retval = parse_funcdecl_NonExtenderPreparations(struct_containing_the_func, functionNameStr, name_of_func);
         if (retval < 0) return retval;
     }
 
     // Type the function in the symbol table
     int retval = parse_funcdecl_SetFunctype(
-        funcsym, ret_parameter_size, return_type, func_returns_ptr,
+        name_of_func, ret_parameter_size, return_type, func_returns_ptr,
         func_returns_dynarray, func_is_static);
     if (retval < 0) return retval;
 
@@ -1908,14 +1911,14 @@ int parse_funcdecl(
     // Enter the function in the imports[] or functions[] array; get its index
     if (func_is_import != ImNoImport)
     {
-        // in_func = Index of the function in the ccScript::imports[] array
+        // Index of the function in the ccScript::imports[] array
         // Note: currently, add_new_import() cannot return values < 0, so idx_of_func must be >= 0 here
-        idx_of_func = scrip->add_new_import(functionName.c_str());
+        idx_of_func = scrip->add_new_import(functionNameStr.c_str());
     }
     else
     {
-        // in_func = Index of the function in the ccCompiledScript::functions[] array
-        idx_of_func = scrip->add_new_function(functionName.c_str(), &funcNum);
+        // Index of the function in the ccCompiledScript::functions[] array
+        idx_of_func = scrip->add_new_function(functionNameStr.c_str(), &funcNum);
         if (idx_of_func < 0)
         {
             cc_error("Max. number of functions exceeded");
@@ -1923,16 +1926,16 @@ int parse_funcdecl(
         }
     }
 
-    sym.entries[funcsym].soffs = idx_of_func;  // save index of the function
+    sym.entries[name_of_func].soffs = idx_of_func;  // save index of the function
     scrip->cur_sp += 4;  // the return address will be pushed
 
     // process parameter list, get number of parameters
-    retval = parse_funcdecl_paramlist(targ, scrip, funcsym, func_is_import, numparams);
+    retval = parse_funcdecl_paramlist(targ, scrip, name_of_func, func_is_import, numparams);
     if (retval < 0) return retval;
 
     // save the number of parameters (not counting the ret parameter)
-    sym.entries[funcsym].sscope = (numparams - 1);
-    if (funcNum >= 0) scrip->funcnumparams[funcNum] = sym.entries[funcsym].sscope;
+    sym.entries[name_of_func].sscope = (numparams - 1);
+    if (funcNum >= 0) scrip->funcnumparams[funcNum] = sym.entries[name_of_func].sscope;
 
     // Non-imported functions must be followed by a body
     if (func_is_import == ImNoImport)
@@ -1942,18 +1945,18 @@ int parse_funcdecl(
             cc_error("Expected '{'");
             return -1;
         }
+        body_follows = true;
         return 0;
     }
 
-
     // import functions
-    sym.entries[funcsym].flags |= SFLG_IMPORTED;
+    sym.entries[name_of_func].flags |= SFLG_IMPORTED;
 
     if (struct_containing_the_func > 0)
     {
         // Append the number of parameters to the name of the import
         char appendage[10];
-        sprintf(appendage, "^%d", sym.entries[funcsym].sscope);
+        sprintf(appendage, "^%d", sym.entries[name_of_func].sscope);
         strcat(scrip->imports[idx_of_func], appendage);
     }
 
@@ -1966,9 +1969,7 @@ int parse_funcdecl(
         cc_error("';' expected (cannot define body of imported function)");
         return -1;
     }
-
-    // This is to keep the caller from overwriting the function symbol.
-    idx_of_func = -1;
+			 
     return 0;
 }
 
@@ -2234,7 +2235,7 @@ int is_type_mismatch(int typeIs, int typeWantsToBe, bool orderMatters)
 }
 
 // returns whether this operator's val type is always bool
-inline bool is_BooleanVCPUOperator(int scmdtype) 
+inline bool is_BooleanVCPUOperator(int scmdtype)
 {
     if ((scmdtype >= SCMD_ISEQUAL) &&
         (scmdtype <= SCMD_OR))
@@ -2334,13 +2335,13 @@ int buffer_var_or_funccall_GotDot(ccInternalList *targ, bool justHadBrackets, ag
     int retval = find_member_sym(current_member_type, slist[slist_len - 1], allowProtectedMembers);
     if (retval < 0) return retval;
 
-    if ((sym.entries[slist[slist_len-1]].flags & SFLG_STRUCTMEMBER) == 0)
+    if ((sym.entries[slist[slist_len - 1]].flags & SFLG_STRUCTMEMBER) == 0)
     {
         cc_error("structure member required after '.'");
         return -1;
     }
 
-    if ((mustBeStaticMember) && (0 == (sym.entries[slist[slist_len-1]].flags & SFLG_STATIC)))
+    if ((mustBeStaticMember) && (0 == (sym.entries[slist[slist_len - 1]].flags & SFLG_STATIC)))
     {
         cc_error("Must have an instance of the struct to access a non-static member");
         return -1;
@@ -2435,11 +2436,11 @@ int buffer_var_or_funccall(ccInternalList *targ, ags::Symbol_t fsym, ags::Symbol
     }
 
     slist_len = 0;
-    slist[slist_len++] = fsym; 
+    slist[slist_len++] = fsym;
 
     bool justHadBrackets = false;
-    
-    for (int nexttype = sym.get_type(targ->peeknext()); 
+
+    for (int nexttype = sym.get_type(targ->peeknext());
         nexttype == SYM_DOT || nexttype == SYM_OPENBRACKET;
         nexttype = sym.get_type(targ->peeknext()))
     {
@@ -3396,7 +3397,7 @@ int get_array_index_into_ax(ccCompiledScript *scrip, ags::SymbolScript_t symlist
 
 
 // parse array brackets
-int access_data_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *thisClause, bool writingOperation, bool &isArrayOffset) 
+int access_data_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *thisClause, bool writingOperation, bool &isArrayOffset)
 {
 
     if ((thisClause->len <= 1) || (sym.get_type(thisClause->syml[1]) != SYM_OPENBRACKET))
@@ -3587,9 +3588,9 @@ int access_data_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags::Sy
         currentComponentOffset = 0;
         return 0;
     }
-    
 
-    if (pointerIsOnStack) 
+
+    if (pointerIsOnStack)
     {
         // already a pointer on the stack
         scrip->pop_reg(SREG_MAR);
@@ -3643,7 +3644,7 @@ int access_data_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags::Sy
     getJustTheAddressIntoAX = true;
     accessActualPointer = true;
     doMemoryAccessNow = true;
-    
+
     currentComponentOffset = 0;
     return 0;
 }
@@ -3733,7 +3734,7 @@ int access_data_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol_t v
     else
     {
         int retval = access_data_ParseArrayIndexPresent(scrip, thisClause, writing, isArrayOffset);
-        if (retval < 0) return retval;   
+        if (retval < 0) return retval;
     }
 
     int retval = access_data_PrepareComponentAccess_JustTheAddressCases(variableSym, thisClause, isLastClause, getJustTheAddressIntoAX, cannotAssign);
@@ -3865,7 +3866,7 @@ int access_data(ccCompiledScript*scrip, ags::SymbolScript_t syml, int syml_len, 
     bool isDynamicArray = false;
 
     bool pointerIsOnStack = false;
-    
+
     for (size_t vp_idx = 0; vp_idx < variablePathSize; vp_idx++)
     {
         VariableSymlist *thisClause = &variablePath[vp_idx];
@@ -3899,7 +3900,7 @@ int access_data(ccCompiledScript*scrip, ags::SymbolScript_t syml, int syml_len, 
         retval = access_data_ActualMemoryAccess(scrip, variableSym, variableSymType, pointerIsOnStack, writing, writingThisTime, isProperty, mustBeWritable, getJustTheAddressIntoAX, isArrayOffset, currentComponentOffset, accessActualPointer, firstVariableSym, firstVariableType, isDynamicArray, negateLiteral, isLastClause, variablePath, vp_idx);
         if (retval < 0) return retval;
 
-        
+
     }
 
     // free the VariablePaths
@@ -3924,7 +3925,7 @@ int read_data_into_ax(ccCompiledScript*scrip, ags::SymbolScript_t syml, int syml
 }
 
 // Get or set a property
-int call_property_func(ccCompiledScript *scrip, ags::Symbol_t propSym, int isWrite) 
+int call_property_func(ccCompiledScript *scrip, ags::Symbol_t propSym, int isWrite)
 {
     int numargs = 0;
 
@@ -3957,7 +3958,7 @@ int call_property_func(ccCompiledScript *scrip, ags::Symbol_t propSym, int isWri
             cc_error("Internal error: Property is not import");
             return -1;
         }
-        
+
         // array indexer is in DX
         scrip->write_cmd1(SCMD_PUSHREAL, SREG_DX);
         numargs++;
@@ -4294,7 +4295,7 @@ int write_ax_to_data(ccCompiledScript*scrip, ags::SymbolScript_t syml, int syml_
 }
 
 
-int parse_expression_CopyExpression(ccInternalList * source, size_t script_idx, ccInternalList *dest)
+int parse_expression_CopyExpression(ccInternalList *source, size_t script_idx, ccInternalList *dest)
 {
     size_t source_len = script_idx - source->pos;
 
@@ -4307,7 +4308,6 @@ int parse_expression_CopyExpression(ccInternalList * source, size_t script_idx, 
     }
 
     // Copy the content over, skipping METAs
-    // Doing this with memcpy isn't faster, since the METAs would have to be deleted afterwards, anyway.
     size_t dest_idx = 0;
     for (size_t source_idx = source->pos; source_idx < script_idx; source_idx++)
     {
@@ -4402,7 +4402,7 @@ int parse_assignment_CheckLHSIsAssignable(ags::Symbol_t cursym, const ags::Symbo
     if ((sym.get_type(cursym) == SYM_VARTYPE) &&
         (vnlist_len > 2) &&
         (sym.entries[vnlist[2]].flags & SFLG_STATIC) > 0) return 0;
-    
+
     cc_error("Variable or constant property required on left of \"%s\" assignment", sym.get_name(cursym));
     return -1;
 }
@@ -4414,7 +4414,7 @@ int parse_assignment_ArrayChecks(ags::Symbol_t cursym, ags::Symbol_t nextsym, si
 {
     // [fw] This may not be good enough. What if the array is in a struct? 
     //      Then the checks won't run.
-    if ((sym.entries[cursym].flags & SFLG_DYNAMICARRAY) != 0) 
+    if ((sym.entries[cursym].flags & SFLG_DYNAMICARRAY) != 0)
     {
         // Can only assign to entire dynamic arrays, e.g., allocate the memory
         if ((vnlist_len < 2) && (sym.get_type(nextsym) != SYM_ASSIGN))
@@ -4456,7 +4456,7 @@ int parse_assignment_MAssign(ccCompiledScript * scrip, ags::Symbol_t ass_symbol,
 
     scrip->pop_reg(SREG_BX);
     scrip->write_cmd2(cpuOp, SREG_AX, SREG_BX);
-    
+
     retval = write_ax_to_data(scrip, &vnlist[0], vnlist_len);
     if (retval < 0) return retval;
     return 0;
@@ -4479,10 +4479,10 @@ int parse_assignment_Assign(ccCompiledScript * scrip, int vnlist_len, const ags:
     }
     // If we need a string object ptr but AX contains a normal string, convert AX
     ConvertAXIntoStringObject(scrip, sym.entries[vnlist[finalPartOfLHS]].vartype);
-    
+
     int retval = write_ax_to_data(scrip, &vnlist[0], vnlist_len);
     if (retval < 0) return retval;
-    
+
     return 0;
 }
 
@@ -5074,7 +5074,7 @@ int parse_vardecl0(
         return 0;
     }
 
-    cc_error("Expected ',' or ';', not '%s'", sym.get_friendly_name(next_type).c_str());
+    cc_error("Expected ',' or ';' instead of '%s'", sym.get_friendly_name(targ->peeknext()).c_str());
     return -1;
 }
 
@@ -5099,7 +5099,7 @@ inline int parse_vardecl(
 }
 
 
-void parse_openbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol_t inFuncSym, int isMemberFunction, bool is_noloopcheck, ags::NestingStack * nesting_stack)
+void parse_openbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol_t name_of_func, int struct_of_func, bool is_noloopcheck, ags::NestingStack * nesting_stack)
 {
     // write base address of function for any relocation needed later
     scrip->write_cmd1(SCMD_THISBASE, scrip->codesize);
@@ -5107,9 +5107,9 @@ void parse_openbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol_t inFuncSym,
 
     // loop through all parameters and check whether they are pointers
     // the first entry is the return value, so skip that
-    for (size_t pa = 1; pa <= sym.entries[inFuncSym].get_num_args(); pa++)
+    for (size_t pa = 1; pa <= sym.entries[name_of_func].get_num_args(); pa++)
     {
-        if (sym.entries[inFuncSym].funcparamtypes[pa] & (STYPE_POINTER | STYPE_DYNARRAY))
+        if (sym.entries[name_of_func].funcparamtypes[pa] & (STYPE_POINTER | STYPE_DYNARRAY))
         {
             // pointers are passed in on the stack with the real
             // memory address -- convert this to the mem handle
@@ -5122,7 +5122,7 @@ void parse_openbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol_t inFuncSym,
     }
 
     // non-static member function -- declare "this" ptr
-    if ((isMemberFunction) && ((sym.entries[inFuncSym].flags & SFLG_STATIC) == 0))
+    if ((struct_of_func) && (0 == (sym.entries[name_of_func].flags & SFLG_STATIC)))
     {
         const ags::Symbol_t thisSym = sym.find("this");
         if (thisSym > 0)
@@ -5130,7 +5130,7 @@ void parse_openbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol_t inFuncSym,
             int varsize = 4;
             // declare "this" inside member functions
             sym.entries[thisSym].stype = SYM_LOCALVAR;
-            sym.entries[thisSym].vartype = isMemberFunction;
+            sym.entries[thisSym].vartype = struct_of_func;
             sym.entries[thisSym].ssize = varsize; // pointer to struct
             sym.entries[thisSym].sscope = static_cast<short>(nesting_stack->Depth() - 1);
             sym.entries[thisSym].flags = SFLG_READONLY | SFLG_ACCESSED | SFLG_POINTER | SFLG_THISPTR;
@@ -5155,17 +5155,10 @@ void parse_openbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol_t inFuncSym,
 int parse_openbrace(
     ccCompiledScript * scrip,
     ags::NestingStack *nesting_stack,
-    int in_func,
-    ags::Symbol_t inFuncSym,
-    int isMemberFunction,
+    ags::Symbol_t name_of_current_func,
+    ags::Symbol_t structsym,
     bool is_noloopcheck)
 {
-    if (in_func < 0)
-    {
-        cc_error("Unexpected '{'");
-        return -1;
-    }
-
     if (nesting_stack->IsUnbraced())
     {
         cc_error("Internal compiler error in openbrace");
@@ -5180,24 +5173,22 @@ int parse_openbrace(
     {
         // In this case, the braces are around a function body
         nesting_stack->SetType(ags::NestingStack::NTFunction);
-        parse_openbrace_FuncBody(scrip, inFuncSym, isMemberFunction, is_noloopcheck, nesting_stack);
+        parse_openbrace_FuncBody(scrip, name_of_current_func, structsym, is_noloopcheck, nesting_stack);
     }
 
     return 0;
 }
 
 
-int parse_closebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack,  int &in_func, ags::Symbol_t &inFuncSym, ags::Symbol_t &isMemberFunction)
+int parse_closebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack, ags::Symbol_t &name_of_current_func)
 {
-    size_t nesting_level = nesting_stack->Depth() - 1;    
-    
+    size_t nesting_level = nesting_stack->Depth() - 1;
+
     if (nesting_level == 0 || nesting_stack->IsUnbraced())
     {
         cc_error("Unexpected '}'");
         return -1;
     }
-
-
 
     if (nesting_level == 1)
     {
@@ -5218,13 +5209,11 @@ int parse_closebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::Nesting
 
     // All the local variables that were defined within the braces become invalid
     remove_locals_from_symtable(nesting_level);
-    
+
     if (nesting_level == 1)
     {
         // We've just finished the body of the current function.
-        in_func = -1;
-        inFuncSym = -1;
-        isMemberFunction = 0;
+        name_of_current_func = -1;
 
         // Write code to return from the function.
         // This pops the return address from the stack, 
@@ -5240,7 +5229,7 @@ int parse_closebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::Nesting
     int retval;
     switch (nesting_stack->Type())
     {
-    default: 
+    default:
         nesting_stack->Pop();
         return 0;
 
@@ -5251,13 +5240,13 @@ int parse_closebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::Nesting
 
     case ags::NestingStack::NTBracedElse:
     case ags::NestingStack::NTBracedThen:
-        {
-            bool if_turned_into_else;
-            int retval = deal_with_end_of_ifelse(targ, scrip, nesting_stack, if_turned_into_else);
-            if (retval < 0) return retval;
-            if (if_turned_into_else) return 0;
-        }
-        break;
+    {
+        bool if_turned_into_else;
+        int retval = deal_with_end_of_ifelse(targ, scrip, nesting_stack, if_turned_into_else);
+        if (retval < 0) return retval;
+        if (if_turned_into_else) return 0;
+    }
+    break;
 
     case ags::NestingStack::NTSwitch:
         retval = deal_with_end_of_switch(targ, scrip, nesting_stack);
@@ -5494,7 +5483,7 @@ int parse_struct_MemberDefnVarOrFuncOrArray(
     ccCompiledScript * scrip,
     ags::Symbol_t extendsWhat,
     ags::Symbol_t stname,
-    int in_func, // [fw] ONLY used for funcs in structs
+    ags::Symbol_t name_of_current_func, // [fw] ONLY used for funcs in structs
     int nested_level,
     int curtype,
     bool type_is_property,
@@ -5506,11 +5495,8 @@ int parse_struct_MemberDefnVarOrFuncOrArray(
     bool type_is_static,
     int &size_so_far)
 {
-    // [fw] "in_func" is only used for funcs that are part of structs: The function body must not
-    //      be included in a struct declaration. But this is true irrespective of whether the struct
-    //      is declared within a function or not. We can probably do without this variable.
 
-        ags::Symbol_t vname = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
+    ags::Symbol_t vname = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
     bool isDynamicArray = false;
 
     // Check whether "[]" is behind the type. 
@@ -5563,21 +5549,22 @@ int parse_struct_MemberDefnVarOrFuncOrArray(
             return -1;
         }
 
-        int retval = parse_funcdecl_CheckForIllegalCombis(type_is_readonly, in_func, nested_level);
+        int retval = parse_funcdecl_CheckForIllegalCombis(type_is_readonly, name_of_current_func, nested_level);
         if (retval < 0) return retval;
         {
             ags::Symbol_t throwaway_value = 0;
+            bool throwaway_bool;
             int retval =
                 parse_funcdecl(targ, scrip, vname, curtype, type_is_pointer, isDynamicArray,
                     type_is_static, type_is_import, stname,
-                    in_func, throwaway_value, nullptr);
+                    throwaway_value, nullptr, throwaway_bool);
         }
         if (retval < 0) return retval;
 
         if (type_is_protected)
             sym.entries[vname].flags |= SFLG_PROTECTED;
 
-        if (in_func >= 0)
+        if (name_of_current_func > 0)
         {
             cc_error("Cannot declare struct member function inside a function body");
             return -1;
@@ -5743,7 +5730,7 @@ int parse_struct_MemberDefn(
     ccInternalList *targ,
     ccCompiledScript * scrip,
     ags::Symbol_t stname,
-    int in_func,
+    ags::Symbol_t name_of_current_func,
     int nested_level,
     ags::Symbol_t extendsWhat,
     int &size_so_far)
@@ -5804,8 +5791,8 @@ int parse_struct_MemberDefn(
             targ,
             scrip,
             extendsWhat,        // Parent struct
-            stname,             // struct
-            in_func,
+            stname,     // struct
+            name_of_current_func,
             nested_level,
             curtype,             // core type
             type_is_property,
@@ -5839,12 +5826,12 @@ int parse_struct_MemberDefn(
 int parse_struct(
     ccInternalList *targ,
     ccCompiledScript * scrip,
+    ags::Symbol_t cursym,
     bool struct_is_managed,
     bool struct_is_builtin,
     bool struct_is_autoptr,
     bool struct_is_stringstruct,
-    ags::Symbol_t cursym,
-    int &in_func,
+    ags::Symbol_t name_of_current_func,
     size_t &nested_level)
 {
     // get token for name of struct
@@ -5905,7 +5892,7 @@ int parse_struct(
     // Process every member of the struct in turn
     while (sym.get_type(targ->peeknext()) != SYM_CLOSEBRACE)
     {
-        int retval = parse_struct_MemberDefn(targ, scrip, stname, in_func, nested_level, extendsWhat, size_so_far);
+        int retval = parse_struct_MemberDefn(targ, scrip, stname, name_of_current_func, nested_level, extendsWhat, size_so_far);
         if (retval < 0) return retval;
     }
 
@@ -5976,15 +5963,9 @@ int parse_enum_name_2_symtable(int enumName)
 }
 
 // enum eEnumName { value1, value2 }
-int parse_enum_inner(ccInternalList *targ, int in_func)
+int parse_enum0(ccInternalList *targ)
 {
-    if (in_func >= 0)
-    {
-        cc_error("Enum declaration not allowed within a function body");
-        return -1;
-    }
-
-    // Get name of the enum, enter it into the symbol table
+// Get name of the enum, enter it into the symbol table
     int enum_name = targ->getnext();
     int retval = parse_enum_name_2_symtable(enum_name);
     if (retval < 0) return retval;
@@ -6046,9 +6027,15 @@ int parse_enum_inner(ccInternalList *targ, int in_func)
 }
 
 // enum eEnumName { value1, value2 };
-int parse_enum(ccInternalList *targ, int in_func)
+int parse_enum(ccInternalList *targ, ags::Symbol_t name_of_current_function)
 {
-    int retval = parse_enum_inner(targ, in_func);
+    if (name_of_current_function >= 0)
+    {
+        cc_error("Enum declaration not allowed within a function body");
+        return -1;
+    }
+
+    int retval = parse_enum0(targ);
     if (retval < 0) return retval;
 
     // Force a semicolon after the declaration
@@ -6061,9 +6048,9 @@ int parse_enum(ccInternalList *targ, int in_func)
 }
 
 
-int parse_import(ccInternalList *targ, int in_func, ags::Symbol_t cursym, Importness &next_is_import)
+int parse_import(ccInternalList *targ, ags::Symbol_t name_of_current_func, ags::Symbol_t cursym, Importness &next_is_import)
 {
-    if (in_func >= 0)
+    if (name_of_current_func > 0)
     {
         cc_error("'import' not allowed inside function body");
         return -1;
@@ -6085,9 +6072,9 @@ int parse_import(ccInternalList *targ, int in_func, ags::Symbol_t cursym, Import
     return 0;
 }
 
-int parse_static(ccInternalList *targ, int in_func, bool &next_is_static)
+int parse_static(ccInternalList *targ, ags::Symbol_t name_of_current_func, bool &next_is_static)
 {
-    if (in_func >= 0)
+    if (name_of_current_func >= 0)
     {
         cc_error("'static' not allowed inside function body");
         return -1;
@@ -6102,9 +6089,9 @@ int parse_static(ccInternalList *targ, int in_func, bool &next_is_static)
     return 0;
 }
 
-int parse_protected(ccInternalList *targ, int in_func, bool &next_is_protected)
+int parse_protected(ccInternalList *targ, ags::Symbol_t name_of_current_func, bool &next_is_protected)
 {
-    if (in_func >= 0)
+    if (name_of_current_func > 0)
     {
         cc_error("'protected' not allowed inside a function body");
         return -1;
@@ -6337,21 +6324,20 @@ int parse_vartype_CheckIllegalCombis(bool is_static, bool is_member_definition, 
     return 0;
 }
 
-int parse_vartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &func_name, bool is_readonly, int & idx_of_current_func, int type_of_defn, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, ags::Symbol_t & struct_of_current_func, SymbolTableEntry &oldDefinition, bool is_member_function_definition, bool is_protected, ags::Symbol_t & name_of_current_func, bool loopCheckOff)
+int parse_vartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &func_name, bool is_readonly, int & idx_of_current_func, int type_of_defn, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, ags::Symbol_t & struct_of_current_func, SymbolTableEntry &oldDefinition, bool is_member_function_definition, bool is_protected, ags::Symbol_t &name_of_current_func)
 {
-    // Don't allow functions within functions or readonly functions
+    bool body_follows;
     int retval = parse_funcdecl(
         targ, scrip, func_name, type_of_defn, isPointer, isDynamicArray,
         is_static, is_import, struct_of_current_func,
-        idx_of_current_func, struct_of_current_func, &oldDefinition);
-    if (retval < 0) return retval;
+        struct_of_current_func, &oldDefinition, body_follows); 
 
     // restore flags, since remove_any_imports() zeros them out
     if (is_member_function_definition) sym.entries[func_name].flags |= SFLG_STRUCTMEMBER;
     if (is_protected)                  sym.entries[func_name].flags |= SFLG_PROTECTED;
 
     // If we've started a function, remember what it is.
-    if (idx_of_current_func >= 0) name_of_current_func = func_name;
+    if (body_follows) name_of_current_func = func_name;
 
     return 0;
 }
@@ -6405,7 +6391,6 @@ int parse_vartype(
     bool is_readonly,
     bool is_static,
     bool is_protected,
-    int &idx_of_current_func,
     ags::Symbol_t &name_of_current_func,
     ags::Symbol_t &struct_of_current_func, // 0 if _not_ a member function
     bool &loopCheckOff)
@@ -6441,7 +6426,7 @@ int parse_vartype(
     }
 
     Globalness is_global = GlLocal;
-    if (idx_of_current_func < 0)
+    if (name_of_current_func <= 0)
     {
         is_global = (is_import == ImNoImport) ? GlGlobalNoImport : GlGlobalImport;
     }
@@ -6495,10 +6480,10 @@ int parse_vartype(
 
         if (is_function) // function defn
         {
-            int retval = parse_funcdecl_CheckForIllegalCombis(is_readonly, idx_of_current_func, nesting_stack->Depth());
+            int retval = parse_funcdecl_CheckForIllegalCombis(is_readonly, name_of_current_func, nesting_stack->Depth());
             if (retval < 0) return retval;
 
-            retval = parse_vartype_FuncDef(targ, scrip, var_or_func_name, is_readonly, idx_of_current_func, type_of_defn, isPointer, isDynamicArray, is_static, is_import, struct_of_current_func, oldDefinition, is_member_definition, is_protected, name_of_current_func, loopCheckOff);
+            retval = parse_vartype_FuncDef(targ, scrip, var_or_func_name, is_readonly, name_of_current_func, type_of_defn, isPointer, isDynamicArray, is_static, is_import, struct_of_current_func, oldDefinition, is_member_definition, is_protected, name_of_current_func); // TODO Aufruf checken name_of_current_func
             if (retval < 0) return retval;
             another_ident_follows = false; // Can't join another func or var with ','
         }
@@ -6520,7 +6505,7 @@ int parse_vartype(
     return 0;
 }
 
-int error_undef_token_inside_func(ags::Symbol_t cursym)
+int parse_undef_token(ags::Symbol_t cursym)
 {
     char ascii_explanation[20] = "";
     const char *symname = sym.get_name(cursym);
@@ -6662,7 +6647,7 @@ int parse_if(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t curs
         ags::NestingStack::NTUnbracedThen, // Type
         0, // Start
         jump_dest_loc); // Info
-    
+
     if (retval < 0) return retval;
 
     if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
@@ -6718,29 +6703,34 @@ int parse_do(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack 
     scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
     // This points to the address we have to patch with a jump past the end of the loop
     ags::CodeLoc_t jump_dest_loc = scrip->codesize - 1;
-    
+
     // Assume an unbraced DO as a default
     int retval = nesting_stack->Push(
         ags::NestingStack::NTUnbracedDo, // Type
         scrip->codesize, // Start
         jump_dest_loc);  // Info
     if (retval < 0) return retval;
-    
+
     if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
     {
         targ->getnext();
         // Change to braced DO
         nesting_stack->SetType(ags::NestingStack::NTBracedDo);
-    }     
+    }
 
     return 0;
 }
 
-int parse_for_InitClause(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t & cursym, const ags::SymbolScript_t & vnlist, size_t & vnlist_len, int & offset_of_funcname, char is_protected, char is_static, size_t nested_level, char is_readonly)
+int parse_for_InitClause(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol_t &cursym, size_t nested_level)
 {
     // Check for empty init clause
     if (sym.get_type(cursym) == SYM_SEMICOLON) return 0;
-    
+
+    // This will contain buffered code.
+    ags::Symbol_t vnlist[TEMP_SYMLIST_LENGTH];
+    size_t vnlist_len;
+    int offset_of_funcname; // -1 means: No function call
+
     int retval = buffer_var_or_funccall(targ, cursym, vnlist, vnlist_len, offset_of_funcname);
     if (retval < 0) return retval;
     if (sym.get_type(cursym) == SYM_VARTYPE)
@@ -6799,21 +6789,10 @@ int parse_for_InitClause(ccInternalList * targ, ccCompiledScript * scrip, ags::S
                 cc_error("Variable '%s' is already defined", sym.get_name(cursym));
                 return -1;
             }
-            else if (is_protected)
-            {
-                cc_error("'protected' not valid in this context");
-                return -1;
-            }
-            else if (is_static)
-            {
-                cc_error("Invalid use of 'static'");
-                return -1;
-            }
             else
             {
                 // variable declaration
                 sym.entries[cursym].sscope = static_cast<short>(nested_level);
-                if (is_readonly) sym.entries[cursym].flags |= SFLG_READONLY;
 
                 // parse the declaration
                 int varsize = sym.entries[vtwas].ssize;
@@ -6853,10 +6832,15 @@ int parse_for_WhileClause(ccInternalList * targ, ccCompiledScript * scrip)
     return 0;
 }
 
-int parse_for_IterateClause(ccInternalList * targ, ccCompiledScript * scrip, const ags::SymbolScript_t & vnlist, size_t & vnlist_len, int & offset_of_funcname, ags::Symbol_t & cursym)
+int parse_for_IterateClause(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol_t &cursym)
 {
     // Check for empty interate clause
     if (sym.get_type(cursym) == SYM_CLOSEPARENTHESIS) return 0;
+
+    // This will contain buffered code.
+    ags::Symbol_t vnlist[TEMP_SYMLIST_LENGTH];
+    size_t vnlist_len;
+    int offset_of_funcname; // -1 means: No function call
 
     int retval = buffer_var_or_funccall(targ, cursym, vnlist, vnlist_len, offset_of_funcname);
     if (retval < 0) return retval;
@@ -6868,7 +6852,7 @@ int parse_for_IterateClause(ccInternalList * targ, ccCompiledScript * scrip, con
 }
 
 
-int parse_for(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &cursym, ags::NestingStack *nesting_stack, const ags::SymbolScript_t &vnlist, size_t &vnlist_len, int &offset_of_funcname, char is_protected, char is_static, char is_readonly)
+int parse_for(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &cursym, ags::NestingStack *nesting_stack)
 {
     // "for (I; E; C) { ...}" is equivalent to "{ I; while (E) { ...; C} }"
     // We implement this with TWO levels of the nesting stack.
@@ -6878,7 +6862,7 @@ int parse_for(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &cu
     // Outer level
     int retval = nesting_stack->Push(ags::NestingStack::NTFor);
     if (retval < 0) return retval;
-    
+
     // '(' must follow
     cursym = targ->getnext();
     if (sym.get_type(cursym) != SYM_OPENPARENTHESIS)
@@ -6893,9 +6877,9 @@ int parse_for(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &cu
         cc_error("Empty parentheses \"()\" aren't allowed after \"for\" (write \"for(;;)\" instead");
         return -1;
     }
-    
+
     // Generate the initialization clause (I)
-    retval = parse_for_InitClause(targ, scrip, cursym, vnlist, vnlist_len, offset_of_funcname, is_protected, is_static, nesting_stack->Depth() - 1, is_readonly);
+    retval = parse_for_InitClause(targ, scrip, cursym, nesting_stack->Depth() - 1);
     if (retval < 0) return retval;
 
     if (sym.get_type(targ->peeknext()) == SYM_CLOSEPARENTHESIS)
@@ -6909,13 +6893,13 @@ int parse_for(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &cu
 
     retval = parse_for_WhileClause(targ, scrip);
     if (retval < 0) return retval;
-    
+
     // Remember where the code of the iterate clause starts.
     ags::CodeLoc_t iterate_clause_loc = scrip->codesize;
     size_t pre_fixup_count = scrip->numfixups;
     cursym = targ->getnext();
 
-    retval = parse_for_IterateClause(targ, scrip, vnlist, vnlist_len, offset_of_funcname, cursym);
+    retval = parse_for_IterateClause(targ, scrip, cursym);
     if (retval < 0) return retval;
 
     // Inner nesting level - assume unbraced as a default
@@ -6936,7 +6920,7 @@ int parse_for(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &cu
     // But we don't need that code right here; we need it at the bottom of the loop.
     // So rip it out of the bytecode base and save it into our nesting stack.
     nesting_stack->YankChunk(scrip, iterate_clause_loc, pre_fixup_count);
-           
+
     // Code for "If the expression we just evaluated is false, jump over the loop body."
     // the 0 will be fixed to a proper offset later
     scrip->write_cmd1(SCMD_JZ, 0);
@@ -6955,8 +6939,8 @@ int parse_switch(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingSt
         return -1;
     }
 
-    int retval = parse_expression(targ, scrip, true); 
-    if (retval < 0) return retval; 
+    int retval = parse_expression(targ, scrip, true);
+    if (retval < 0) return retval;
 
     // Remember the type of this expression to enforce it later
     int switch_expr_type = scrip->ax_val_type;
@@ -6970,7 +6954,7 @@ int parse_switch(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingSt
 
     scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the lookup table
     scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to beyond the switch statement (for break)
-    
+
     // There's no such thing as an unbraced SWITCH, so '{' must follow
     if (sym.get_type(targ->getnext()) != SYM_OPENBRACE)
     {
@@ -7084,7 +7068,7 @@ int parse_break(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingSta
 
     // The jump out of the loop, below, may be a conditional jump.
     // So clear AX to make sure that the jump is executed.
-    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0); 
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
 
     // Jump to a jump to the end of the loop
     if (nesting_stack->Type(loop_level) == ags::NestingStack::NTSwitch)
@@ -7109,7 +7093,7 @@ int parse_continue(ccInternalList * targ, ccCompiledScript * scrip, ags::Nesting
         cc_error("Continue not valid outside a loop");
         return -1;
     }
-   
+
     if (sym.get_type(targ->getnext()) != SYM_SEMICOLON)
     {
         cc_error("Expected ';'");
@@ -7134,10 +7118,10 @@ int parse_continue(ccInternalList * targ, ccCompiledScript * scrip, ags::Nesting
     // original comment "The jump below may be a conditional jump."
     //  [fw] Nooo? Leave it in, anyway, so that we have byte identical code
     // original comment "So clear AX to make sure that the jump is executed."
-    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0); 
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
 
     // Jump to the start of the loop
-    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nesting_stack->StartLoc(loop_level))); 
+    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nesting_stack->StartLoc(loop_level)));
     return 0;
 }
 
@@ -7157,28 +7141,33 @@ int parse_funcbodycode_Assignment(ccInternalList * targ, ccCompiledScript * scri
 }
 
 
-int parse_funcbodycode(
+int parse_command(
     ccInternalList *targ,
     ccCompiledScript * scrip,
     ags::Symbol_t cursym,
-    int offset_of_funcname,
-    int index_of_expression_start,
-    ags::SymbolScript_t  vnlist,
-    size_t vnlist_len,
-    ags::Symbol_t inFuncSym,
+    ags::Symbol_t name_of_current_func,
+    ags::Symbol_t struct_of_current_func,
     ags::NestingStack *nesting_stack,
-    char is_protected,
-    char is_static,
-    char is_readonly)
+    bool &next_is_noloopcheck)
 {
-    int curtype = sym.get_type(cursym);
-    if (offset_of_funcname > 0) curtype = SYM_FUNCTION;
+    // This will contain buffered code.
+    ags::Symbol_t vnlist[TEMP_SYMLIST_LENGTH];
+    size_t vnlist_len;
+    int offset_of_funcname; // -1 means: No function call
 
-    int retval = 0; // for error msg
+    int index_of_expression_start = targ->pos;
+    // Read and buffer a leading variable or funccall, if present. If not, return without error.
+    int retval = buffer_var_or_funccall(targ, cursym, vnlist, vnlist_len, offset_of_funcname);
+    if (retval < 0) return retval;
+
+    int curtype = sym.get_type(cursym);
+    if (offset_of_funcname >= 0) curtype = SYM_FUNCTION;
+
     switch (curtype)
     {
     default:
-        // Should be an assignment -- or else it is an error
+        // If it doesn't begin with a keyword, it should be an assignment
+        // or a func call.
         retval = parse_funcbodycode_Assignment(targ, scrip, cursym, vnlist, vnlist_len);
         if (retval < 0) return retval;
         break;
@@ -7192,6 +7181,9 @@ int parse_funcbodycode(
         retval = parse_casedefault(targ, scrip, cursym, nesting_stack);
         if (retval < 0) return retval;
         break;
+
+    case  SYM_CLOSEBRACE:
+        return parse_closebrace(targ, scrip, nesting_stack, name_of_current_func);
 
     case SYM_CONTINUE:
         retval = parse_continue(targ, scrip, nesting_stack);
@@ -7207,7 +7199,7 @@ int parse_funcbodycode(
         return parse_do(targ, scrip, nesting_stack);
 
     case SYM_FOR:
-        return parse_for(targ, scrip, cursym, nesting_stack, vnlist, vnlist_len, offset_of_funcname, is_protected, is_static, is_readonly);
+        return parse_for(targ, scrip, cursym, nesting_stack);
 
     case SYM_FUNCTION:
         retval = parse_funccall(targ, scrip, offset_of_funcname, index_of_expression_start);
@@ -7217,8 +7209,13 @@ int parse_funcbodycode(
     case SYM_IF:
         return parse_if(targ, scrip, cursym, nesting_stack);
 
+    case SYM_OPENBRACE:
+        retval = parse_openbrace(scrip, nesting_stack, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
+        next_is_noloopcheck = false;
+        return retval;
+
     case SYM_RETURN:
-        retval = parse_return(targ, scrip, inFuncSym);
+        retval = parse_return(targ, scrip, name_of_current_func);
         if (retval < 0) return retval;
         break;
 
@@ -7236,7 +7233,7 @@ int parse_funcbodycode(
 }
 
 
-int cc_parse_HandleLinesAndMeta(ccInternalList & targ, ccCompiledScript * scrip, ags::Symbol_t cursym, int &currentlinewas)
+int cc_parse_HandleLinesAndMeta(ccInternalList *targ, ccCompiledScript * scrip, ags::Symbol_t cursym, int &currentlinewas)
 {
     if (cursym < 0) return 0; // end of stream was reached.
     if (currentline == -10) return 0; // end of stream was reached
@@ -7261,7 +7258,7 @@ int cc_parse_HandleLinesAndMeta(ccInternalList & targ, ccCompiledScript * scrip,
 
     if (cursym == SCODE_META)
     {
-        long metatype = targ.getnext();
+        long metatype = targ->getnext();
         if (metatype == SMETA_END) return 0; // Another way of ending a compilation
 
         if (metatype == SMETA_LINENUM)
@@ -7277,7 +7274,7 @@ int cc_parse_HandleLinesAndMeta(ccInternalList & targ, ccCompiledScript * scrip,
     return 0;
 }
 
-int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t &nested_level, int idx_of_current_func, ags::Symbol_t name_of_current_func)
+int cc_parse_ParseTokens(ccInternalList *targ, ccCompiledScript * scrip, size_t &nested_level, ags::Symbol_t name_of_current_func)
 {
     ags::Symbol_t struct_of_current_func = 0; // non-zero only when a struct member function is open
     
@@ -7304,11 +7301,11 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
     int currentlinewas = 0;
 
     // This 'for' will typically run for much less than targ->length times
-    for (size_t aa = 0; aa < static_cast<const size_t>(targ.length); aa++)
+    for (size_t aa = 0; aa < static_cast<const size_t>(targ->length); aa++)
     {
-        if (ReachedEOF(&targ)) break;
+        if (ReachedEOF(targ)) break;
 
-        ags::Symbol_t cursym = targ.getnext();
+        ags::Symbol_t cursym = targ->getnext();
         int retval = cc_parse_HandleLinesAndMeta(targ, scrip, cursym, currentlinewas);
         if (retval < 0) return retval;
 
@@ -7331,15 +7328,17 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
 
         int symType = sym.get_type(cursym);
 
-        switch (symType) // please keep the cases alphabetical
+        switch (symType)
         {
         default: break;
+
+        case 0:
+            return parse_undef_token(cursym);
 
         case  SYM_AUTOPTR:
         {
             next_is_autoptr = true;
-            int type_of_next_sym = sym.get_type(targ.peeknext());
-
+            int type_of_next_sym = sym.get_type(targ->peeknext());
             if (type_of_next_sym != SYM_MANAGED && type_of_next_sym != SYM_BUILTIN)
             {
                 cc_error("Expected 'managed' or 'builtin' after 'autoptr'");
@@ -7351,19 +7350,12 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
         case SYM_BUILTIN:
         {
             next_is_builtin = true;
-            int type_of_next_sym = sym.get_type(targ.peeknext());
+            int type_of_next_sym = sym.get_type(targ->peeknext());
             if ((type_of_next_sym != SYM_MANAGED) && (type_of_next_sym != SYM_STRUCT))
             {
                 cc_error("'builtin' can only be used with 'struct' or 'managed struct'");
                 return -1;
             }
-            continue;
-        }
-
-        case  SYM_CLOSEBRACE:
-        {
-            int retval = parse_closebrace(&targ, scrip, &nesting_stack, idx_of_current_func, name_of_current_func, struct_of_current_func);
-            if (retval < 0) return retval;
             continue;
         }
 
@@ -7375,7 +7367,7 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
 
         case SYM_ENUM:
         {
-            int retval = parse_enum(&targ, idx_of_current_func);
+            int retval = parse_enum(targ, name_of_current_func);
             if (retval < 0) return retval;
 
             continue;
@@ -7383,7 +7375,7 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
 
         case SYM_EXPORT:
         {
-            int retval = parse_export(&targ, scrip, cursym);
+            int retval = parse_export(targ, scrip, cursym);
             if (retval < 0) return retval;
 
             continue;
@@ -7391,7 +7383,7 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
 
         case SYM_IMPORT:
         {
-            int retval = parse_import(&targ, idx_of_current_func, cursym, next_is_import);
+            int retval = parse_import(targ, name_of_current_func, cursym, next_is_import);
             if (retval < 0) return retval;
             continue;
         }
@@ -7399,7 +7391,7 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
         case  SYM_MANAGED:
         {
             next_is_managed = true;
-            if (sym.get_type(targ.peeknext()) != SYM_STRUCT)
+            if (sym.get_type(targ->peeknext()) != SYM_STRUCT)
             {
                 cc_error("'managed' can only be used with 'struct'");
                 return -1;
@@ -7408,25 +7400,9 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
             continue;
         }
 
-        case SYM_OPENBRACE:
-        {
-            // This begins a compound statement (which is only legal if we are within a func body)
-            int retval = parse_openbrace(scrip, &nesting_stack, idx_of_current_func, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
-            if (retval < 0) return retval;
-
-            // The "noloopcheck" mode has just been used up. 
-            // This is true although the function that uses "noloopcheck" is still
-            // being compiled: "Noloopcheck" mode is translated into a Bytecode
-            // that is generated as part of a function header. Seemingly, this switches
-            // the mode on in the virtual machine until the virtual machine detects 
-            // the end of the function in some way.
-            next_is_noloopcheck = false;
-            continue;
-        }
-
         case SYM_PROTECTED:
         {
-            int retval = parse_protected(&targ, idx_of_current_func, next_is_protected);
+            int retval = parse_protected(targ, name_of_current_func, next_is_protected);
             if (retval < 0) return retval;
             continue;
         }
@@ -7434,7 +7410,7 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
         case SYM_READONLY:
         {
             next_is_readonly = true;
-            if (sym.get_type(targ.peeknext()) != SYM_VARTYPE)
+            if (sym.get_type(targ->peeknext()) != SYM_VARTYPE)
             {
                 cc_error("Expected type after 'readonly'");
                 return -1;
@@ -7444,7 +7420,7 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
 
         case SYM_STATIC:
         {
-            int retval = parse_static(&targ, idx_of_current_func, next_is_static);
+            int retval = parse_static(targ, name_of_current_func, next_is_static);
             if (retval < 0) return retval;
             continue;
         }
@@ -7457,7 +7433,7 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
                 cc_error("stringstruct already defined");
                 return -1;
             }
-            if (sym.get_type(targ.peeknext()) != SYM_AUTOPTR)
+            if (sym.get_type(targ->peeknext()) != SYM_AUTOPTR)
             {
                 cc_error("Expected 'autoptr' after 'stringstruct'");
                 return -1;
@@ -7467,7 +7443,7 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
 
         case  SYM_STRUCT:
         {
-            int retval = parse_struct(&targ, scrip, next_is_managed, next_is_builtin, next_is_autoptr, next_is_stringstruct, cursym, idx_of_current_func, nested_level);
+            int retval = parse_struct(targ, scrip, cursym, next_is_managed, next_is_builtin, next_is_autoptr, next_is_stringstruct, name_of_current_func, nested_level);
             if (retval < 0) return retval;
 
             next_is_managed = false;
@@ -7479,13 +7455,13 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
 
         case SYM_VARTYPE:
         {
-            if (sym.get_type(targ.peeknext()) == SYM_DOT)
+            if (sym.get_type(targ->peeknext()) == SYM_DOT)
             {
                 // We're looking at "int ." or similar; treated below the switch
                 break;
             }
             // func or variable definition
-            int retval = parse_vartype(&targ, scrip, cursym, &nesting_stack, next_is_import, next_is_readonly, next_is_static, next_is_protected, idx_of_current_func, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
+            int retval = parse_vartype(targ, scrip, cursym, &nesting_stack, next_is_import, next_is_readonly, next_is_static, next_is_protected, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
             if (retval < 0) return retval;
             next_is_import = ImNoImport;
             next_is_readonly = false;
@@ -7496,27 +7472,14 @@ int cc_parse_ParseTokens(ccInternalList &targ, ccCompiledScript * scrip, size_t 
 
         } // switch (symType)
 
-          // Guard against strange input first 
-        if (symType == 0) return error_undef_token_inside_func(cursym);
-
-        // Here when we haven't found any of the declaration starting keywords.
-        // This only makes sense if we are within a function call.
-        if (idx_of_current_func < 0)
+        // Commands are only allowed within a function
+        if (name_of_current_func == 0)
         {
             cc_error("'%s' is illegal outside a function", sym.get_friendly_name(cursym).c_str());
             return -1;
         }
 
-        // This will contain buffered code.
-        ags::Symbol_t vnlist[TEMP_SYMLIST_LENGTH];
-        size_t vnlist_len;
-        int offset_of_funcname; // -1 means: No function call
-
-        // Read and buffer a leading variable or funccall, if present. If not, return without error.
-        retval = buffer_var_or_funccall(&targ, cursym, vnlist, vnlist_len, offset_of_funcname);
-        if (retval < 0) return retval;
-
-        retval = parse_funcbodycode(&targ, scrip, cursym, offset_of_funcname, targ.pos, vnlist, vnlist_len, name_of_current_func, &nesting_stack, next_is_protected, next_is_static, next_is_readonly);
+        retval = parse_command(targ, scrip, cursym, name_of_current_func, struct_of_current_func, &nesting_stack, next_is_noloopcheck);
         if (retval < 0) return retval;
     } // for
 
@@ -7537,13 +7500,12 @@ int cc_compile(const char * inpl, ccCompiledScript * scrip)
     targ.startread();
 
     size_t nested_level = 0;
-    int idx_of_current_func = -1;
     ags::Symbol_t name_of_current_func = -1;
-    retval = cc_parse_ParseTokens(targ, scrip, nested_level, idx_of_current_func, name_of_current_func);
+    retval = cc_parse_ParseTokens(&targ, scrip, nested_level, name_of_current_func);
     if (retval < 0) return retval;
 
     // Here when the tokens have been exhausted
-    if (idx_of_current_func >= 0)
+    if (name_of_current_func > 0)
     {
         currentline = targ.lineAtEnd;
         std::string func_identification = "current function";

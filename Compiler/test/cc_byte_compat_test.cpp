@@ -835,7 +835,7 @@ TEST(Compatibility, DoNCall) {
 
 }
 
-TEST(Compatibility, For) {
+TEST(Compatibility, For1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -854,7 +854,7 @@ TEST(Compatibility, For) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
-    // writeoutput("For", scrip);
+    // writeoutput("For1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -918,6 +918,188 @@ TEST(Compatibility, For) {
         ASSERT_EQ(is_val, test_val);
     }
 }
+
+
+TEST(Compatibility, For2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    int Foo(int i, float f)         \n\
+    {                               \n\
+        int lp, sum;                \n\
+        for (; ; lp += 1)           \n\
+            sum += lp;              \n\
+        for ( ;; )                  \n\
+            sum -= lp;              \n\
+        for (; lp < 2; lp += 3)     \n\
+            sum *= lp;              \n\
+        for (; lp < 4; )            \n\
+            sum /= lp;              \n\
+        for (lp = 5; ; lp += 6)     \n\
+            sum /= lp;              \n\
+        for (int loop = 7; ; )      \n\
+            sum &= loop;            \n\
+        for (int loop = 8; loop < 9; )  \n\
+            sum |= loop;            \n\
+        return 0;                   \n\
+    }";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("For2", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 345;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    4,    1,    // 7
+       1,    4,    3,    1,            2,   63,    4,    1,    // 15
+       1,    4,    6,    3,            1,   28,   39,   51,    // 23
+       8,    7,    3,   29,            3,   51,    8,    7,    // 31
+       3,   30,    4,   11,            3,    4,   51,    4,    // 39
+       8,    3,    6,    3,            1,   29,    3,   51,    // 47
+      12,    7,    3,   30,            4,   11,    3,    4,    // 55
+      51,    8,    8,    3,           31,  -44,    6,    3,    // 63
+       1,   28,   21,   51,            8,    7,    3,   29,    // 71
+       3,   51,    8,    7,            3,   30,    4,   12,    // 79
+       3,    4,   51,    4,            8,    3,   31,  -26,    // 87
+      51,    8,    7,    3,           29,    3,    6,    3,    // 95
+       2,   30,    4,   18,            4,    3,    3,    4,    // 103
+       3,   28,   39,   51,            8,    7,    3,   29,    // 111
+       3,   51,    8,    7,            3,   30,    4,    9,    // 119
+       3,    4,   51,    4,            8,    3,    6,    3,    // 127
+       3,   29,    3,   51,           12,    7,    3,   30,    // 135
+       4,   11,    3,    4,           51,    8,    8,    3,    // 143
+      31,  -58,   51,    8,            7,    3,   29,    3,    // 151
+       6,    3,    4,   30,            4,   18,    4,    3,    // 159
+       3,    4,    3,   28,           21,   51,    8,    7,    // 167
+       3,   29,    3,   51,            8,    7,    3,   30,    // 175
+       4,   10,    3,    4,           51,    4,    8,    3,    // 183
+      31,  -40,    6,    3,            5,   51,    8,    8,    // 191
+       3,    6,    3,    1,           28,   39,   51,    8,    // 199
+       7,    3,   29,    3,           51,    8,    7,    3,    // 207
+      30,    4,   10,    3,            4,   51,    4,    8,    // 215
+       3,    6,    3,    6,           29,    3,   51,   12,    // 223
+       7,    3,   30,    4,           11,    3,    4,   51,    // 231
+       8,    8,    3,   31,          -44,    6,    3,    7,    // 239
+       3,    1,    2,    8,            3,    1,    1,    4,    // 247
+       6,    3,    1,   28,           21,   51,    4,    7,    // 255
+       3,   29,    3,   51,           12,    7,    3,   30,    // 263
+       4,   13,    3,    4,           51,    8,    8,    3,    // 271
+      31,  -26,    2,    1,            4,    6,    3,    8,    // 279
+       3,    1,    2,    8,            3,    1,    1,    4,    // 287
+      51,    4,    7,    3,           29,    3,    6,    3,    // 295
+       9,   30,    4,   18,            4,    3,    3,    4,    // 303
+       3,   28,   21,   51,            4,    7,    3,   29,    // 311
+       3,   51,   12,    7,            3,   30,    4,   14,    // 319
+       3,    4,   51,    8,            8,    3,   31,  -40,    // 327
+       2,    1,    4,    6,            3,    0,    2,    1,    // 335
+       8,    5,    6,    3,            0,    2,    1,    8,    // 343
+       5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+
+}
+
+
+TEST(Compatibility, For3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+
+
+    char *inpl = "\
+    managed struct Struct           \n\
+    {                               \n\
+        float Payload[1];           \n\
+    };                              \n\
+    Struct *S;                      \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        for (Struct *loop; ;)       \n\
+        {                           \n\
+            return ((loop == S));   \n\
+        }                           \n\
+        return -7;                  \n\
+    }                               \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("For3", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 65;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    4,    1,    // 7
+       1,    4,    6,    3,            1,   28,   36,   51,    // 15
+       4,   29,    2,   30,            2,   48,    3,   29,    // 23
+       3,    6,    2,    0,           29,    2,   30,    2,    // 31
+      48,    3,   30,    4,           15,    4,    3,    3,    // 39
+       4,    3,   51,    4,           69,    2,    1,    4,    // 47
+       5,   31,  -41,   51,            4,   49,    2,    1,    // 55
+       4,    6,    3,   -7,            5,    6,    3,    0,    // 63
+       5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 1;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      27,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      1,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}
+
 
 TEST(Compatibility, IfDoWhile) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -1741,7 +1923,7 @@ TEST(Compatibility, FuncCall) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-    struct Struct                   \n\
+        struct Struct               \n\
     {                               \n\
         float Float;                \n\
         import int Func();          \n\

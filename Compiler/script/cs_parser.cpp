@@ -904,7 +904,7 @@ void ags::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t
 
 std::string ConstructedMemberName; // size limitation removed
 
-const char *get_member_full_name(ags::Symbol_t structSym, ags::Symbol_t memberSym)
+const char *GetFullNameOfMember(ags::Symbol_t structSym, ags::Symbol_t memberSym)
 {
 
     // Get C-string of member, de-mangle it if appropriate
@@ -1278,7 +1278,7 @@ int DealWithEndOf_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::Nes
 int FindMemberSym(ags::Symbol_t structSym, ags::Symbol_t &memSym, bool allowProtected) {
 
     // Construct a string out of struct and member, look it up in the symbol table
-    const char *name_as_cstring = get_member_full_name(structSym, memSym);
+    const char *name_as_cstring = GetFullNameOfMember(structSym, memSym);
     ags::Symbol_t full_name = sym.find(name_as_cstring);
 
     if (full_name < 0)
@@ -1302,12 +1302,6 @@ int FindMemberSym(ags::Symbol_t structSym, ags::Symbol_t &memSym, bool allowProt
     }
     memSym = full_name;
     return 0;
-}
-
-
-std::string get_FriendlyIntSymbol(int symidx, bool isNegative)
-{
-    return (isNegative ? "-" : "") + sym.get_friendly_name(symidx);
 }
 
 
@@ -1473,8 +1467,7 @@ int ParseFuncdecl_ExtenderPreparations(
     functionName += "::";
     functionName += sym.get_name(funcsym);
 
-    funcsym = sym.find(functionName.c_str());
-    if (funcsym < 0) funcsym = sym.add(functionName.c_str());
+    funcsym = sym_find_or_add(sym, functionName.c_str());
 
     if (func_is_import == ImNoImport && (sym.entries[funcsym].flags & SFLG_IMPORTED) != 0)
     {
@@ -1541,8 +1534,7 @@ int ParseFuncdecl_NonExtenderPreparations(
         functionName = sym.get_name(struct_containing_the_func);
         functionName += "::";
         functionName += sym.get_name(funcsym);
-        funcsym = sym.find(functionName.c_str());
-        if (funcsym < 0) funcsym = sym.add(functionName.c_str());
+        funcsym = sym_find_or_add(sym, functionName.c_str());
     }
     if (sym.entries[funcsym].stype != 0)
     {
@@ -1976,7 +1968,7 @@ int ParseFuncdecl(
 
 // interpret the float as if it were an int (without converting it really);
 // return that int
-inline int interpret_float_as_int(float floatval)
+inline int InterpretFloatAsInt(float floatval)
 {
     float *floatptr = &floatval; // Get pointer to the float
     int *intptr = reinterpret_cast<int *>(floatptr); // pretend that it points to an int
@@ -2029,7 +2021,7 @@ inline int MathPrio(ags::Symbol_t op)
 // return the index of the lowest MATHEMATICAL priority operator in the list,
 // so that either side of it can be evaluated first.
 // returns -1 if no operator was found
-int index_of_lowest_bonding_operator(ags::SymbolScript_t slist, size_t slist_len)
+int IndexOfLowestBondingOperator(ags::SymbolScript_t slist, size_t slist_len)
 {
     size_t bracket_nesting_depth = 0;
     size_t paren_nesting_depth = 0;
@@ -2089,7 +2081,7 @@ inline bool is_string(int valtype)
 
 
 // Change the generic operator vcpuOp to the one that is correct for the types
-int get_operator_valid_for_type(int type1, int type2, int &vcpuOp)
+int GetOperatorValidForType(int type1, int type2, int &vcpuOp)
 {
     if ((type1 == sym.normalFloatSym) || (type2 == sym.normalFloatSym))
     {
@@ -2152,7 +2144,7 @@ int get_operator_valid_for_type(int type1, int type2, int &vcpuOp)
 
 
 // Check for a type mismatch in one direction only
-bool is_type_mismatch_oneway(int typeIs, int typeWantsToBe)
+bool IsTypeMismatch_Oneway(int typeIs, int typeWantsToBe)
 {
     // cannot convert 'void' to anything
     if (typeIs == sym.normalVoidSym) return true;
@@ -2222,10 +2214,10 @@ bool is_type_mismatch_oneway(int typeIs, int typeWantsToBe)
 }
 
 // Check whether there is a type mismatch; if so, give an error
-int is_type_mismatch(int typeIs, int typeWantsToBe, bool orderMatters)
+int IsTypeMismatch(int typeIs, int typeWantsToBe, bool orderMatters)
 {
-    if (!is_type_mismatch_oneway(typeIs, typeWantsToBe)) return 0;
-    if (!orderMatters && !is_type_mismatch_oneway(typeWantsToBe, typeIs)) return 0;
+    if (!IsTypeMismatch_Oneway(typeIs, typeWantsToBe)) return 0;
+    if (!orderMatters && !IsTypeMismatch_Oneway(typeWantsToBe, typeIs)) return 0;
 
     cc_error(
         "Type mismatch: cannot convert '%s' to '%s'",
@@ -2235,7 +2227,7 @@ int is_type_mismatch(int typeIs, int typeWantsToBe, bool orderMatters)
 }
 
 // returns whether this operator's val type is always bool
-inline bool is_BooleanVCPUOperator(int scmdtype)
+inline bool IsBooleanVCPUOperator(int scmdtype)
 {
     if ((scmdtype >= SCMD_ISEQUAL) &&
         (scmdtype <= SCMD_OR))
@@ -2621,7 +2613,7 @@ int AccessData_SplitPathIntoParts(VariableSymlist *variablePath, ags::SymbolScri
 }
 
 
-inline int get_read_command_for_size(int the_size)
+inline int GetReadCommandForSize(int the_size)
 {
     switch (the_size)
     {
@@ -2632,7 +2624,7 @@ inline int get_read_command_for_size(int the_size)
 }
 
 
-inline int get_write_command_for_size(int the_size)
+inline int GetWriteCommandForSize(int the_size)
 {
     switch (the_size)
     {
@@ -2648,12 +2640,12 @@ int readcmd_lastcalledwith = 0;
 
 
 // Get the bytecode for reading or writing memory of size the_size
-inline int get_readwrite_cmd_for_size(int the_size, bool write_operation)
+inline int GetReadWriteCmdForSize(int the_size, bool write_operation)
 {
     // [fw] Passing info around through a global variable: That is a HUGE code smell.
     if (the_size != 0) readcmd_lastcalledwith = the_size;
 
-    return (write_operation) ? get_write_command_for_size(the_size) : get_read_command_for_size(the_size);
+    return (write_operation) ? GetWriteCommandForSize(the_size) : GetReadCommandForSize(the_size);
 }
 
 
@@ -2735,7 +2727,7 @@ int ParseSubexpr_UnaryMinusIsFirst(ccCompiledScript * scrip, const ags::SymbolSc
 
     // now, subtract the result from 0 (which negates it)
     int cpuOp = SCMD_SUBREG; // get correct bytecode for the subtraction
-    retval = get_operator_valid_for_type(scrip->ax_val_type, 0, cpuOp);
+    retval = GetOperatorValidForType(scrip->ax_val_type, 0, cpuOp);
     if (retval < 0) return retval;
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_BX, 0);
@@ -2762,7 +2754,7 @@ int ParseSubexpr_NotIsFirst(ccCompiledScript * scrip, const ags::SymbolScript_t 
     // negate the result
     // First determine the correct bytecode for the negation
     int cpuOp = SCMD_NOTREG;
-    retval = get_operator_valid_for_type(scrip->ax_val_type, 0, cpuOp);
+    retval = GetOperatorValidForType(scrip->ax_val_type, 0, cpuOp);
     if (retval < 0) return retval;
 
     // now, NOT the result
@@ -2818,7 +2810,7 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, cons
     {
         // We aren't looking at a subtraction; instead, the '-' is the unary minus of a negative value
         // Thus, the "real" operator must be further to the right, find it.
-        op_idx = index_of_lowest_bonding_operator(symlist, op_idx);
+        op_idx = IndexOfLowestBondingOperator(symlist, op_idx);
         vcpuOperator = sym.entries[symlist[op_idx]].operatorToVCPUCmd();
     }
 
@@ -2866,10 +2858,10 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, cons
     // now the result of the left side is in BX, of the right side is in AX
 
     // Check whether the left side type and right side type match either way
-    retval = is_type_mismatch(scrip->ax_val_type, valtype_leftsize, false);
+    retval = IsTypeMismatch(scrip->ax_val_type, valtype_leftsize, false);
     if (retval < 0) return retval;
 
-    retval = get_operator_valid_for_type(scrip->ax_val_type, valtype_leftsize, vcpuOperator);
+    retval = GetOperatorValidForType(scrip->ax_val_type, valtype_leftsize, vcpuOperator);
     if (retval < 0) return retval;
 
     scrip->write_cmd2(vcpuOperator, SREG_BX, SREG_AX);
@@ -2883,7 +2875,7 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, cons
 
     // Operators like == return a bool (in our case, that's an int);
     // other operators like + return the type that they're operating on
-    if (is_BooleanVCPUOperator(vcpuOperator)) scrip->ax_val_type = sym.normalIntSym;
+    if (IsBooleanVCPUOperator(vcpuOperator)) scrip->ax_val_type = sym.normalIntSym;
 
     return 0;
 }
@@ -3002,7 +2994,7 @@ int ParseSubexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::Sy
             int parameterType = sym.entries[funcSymbol].funcparamtypes[param_num + 1];
             ConvertAXIntoStringObject(scrip, parameterType);
 
-            if (is_type_mismatch(scrip->ax_val_type, parameterType, true)) return -1;
+            if (IsTypeMismatch(scrip->ax_val_type, parameterType, true)) return -1;
 
             // If we need a normal string but AX contains a string object ptr, 
             // check that this ptr isn't null
@@ -3314,7 +3306,7 @@ int ParseSubexpr(ccCompiledScript *scrip, ags::SymbolScript_t symlist, size_t sy
         return -1;
     }
 
-    int lowest_op_idx = index_of_lowest_bonding_operator(symlist, symlist_len);  // can be < 0
+    int lowest_op_idx = IndexOfLowestBondingOperator(symlist, symlist_len);  // can be < 0
 
     // If the lowest bonding operator is right in front and an integer follows,
     // then it has been misinterpreted so far: 
@@ -3325,7 +3317,7 @@ int ParseSubexpr(ccCompiledScript *scrip, ags::SymbolScript_t symlist, size_t sy
         (sym.get_type(symlist[1]) == SYM_LITERALVALUE) &&
         (sym.entries[symlist[0]].operatorToVCPUCmd() == SCMD_SUBREG))
     {
-        lowest_op_idx = index_of_lowest_bonding_operator(&symlist[1], symlist_len - 1);
+        lowest_op_idx = IndexOfLowestBondingOperator(&symlist[1], symlist_len - 1);
         if (lowest_op_idx >= 0) lowest_op_idx++;
     }
 
@@ -3346,7 +3338,7 @@ int ParseSubexpr(ccCompiledScript *scrip, ags::SymbolScript_t symlist, size_t sy
 }
 
 
-int get_array_index_into_ax(ccCompiledScript *scrip, ags::SymbolScript_t symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize) {
+int GetArrayIndexIntoAX(ccCompiledScript *scrip, ags::SymbolScript_t symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize) {
 
     // "push" the ax val type (because this is just an array index,
     // we're actually interested in the type of the variable being read)
@@ -3362,7 +3354,7 @@ int get_array_index_into_ax(ccCompiledScript *scrip, ags::SymbolScript_t symlist
     readcmd_lastcalledwith = saveOldReadcmd;
 
     // array index must be an int
-    retval = is_type_mismatch(scrip->ax_val_type, sym.normalIntSym, true);
+    retval = IsTypeMismatch(scrip->ax_val_type, sym.normalIntSym, true);
     if (retval < 0) return retval;
 
     // "pop" the ax val type
@@ -3439,7 +3431,7 @@ int AccessData_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *
     if (isArrayOffset) scrip->push_reg(SREG_CX);
 
     // get the byte offset of the array index into AX
-    int retval = get_array_index_into_ax(scrip, thisClause->syml, 1, arrIndexEnd, checkBounds, multiplySize);
+    int retval = GetArrayIndexIntoAX(scrip, thisClause->syml, 1, arrIndexEnd, checkBounds, multiplySize);
     if (retval < 0) return retval;
 
     // if there is a current offset saved in CX, restore it
@@ -4087,7 +4079,7 @@ int MemoryAccess_LitFloat(ccCompiledScript * scrip, ags::Symbol_t variableSym, b
         cc_error("Cannot write to a literal value");
         return -1;
     }
-    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, interpret_float_as_int((float)atof(sym.get_name(variableSym))));
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, InterpretFloatAsInt((float)atof(sym.get_name(variableSym))));
     gotValType = sym.normalFloatSym;
     return 0;
 }
@@ -4096,7 +4088,7 @@ int MemoryAccess_LitFloat(ccCompiledScript * scrip, ags::Symbol_t variableSym, b
 // a "normal" variable or a pointer
 int MemoryAccess_Variable(ccCompiledScript * scrip, ags::Symbol_t mainVariableSym, int mainVariableType, ags::Symbol_t variableSym, bool pointerIsInMAR, bool &wholePointerAccess, bool addressof, int soffset, bool isArrayOffset, bool isDynamicArray, bool writing, int &gotValType)
 {
-    int readwritecmd = get_readwrite_cmd_for_size(sym.entries[variableSym].ssize, writing);
+    int readwritecmd = GetReadWriteCmdForSize(sym.entries[variableSym].ssize, writing);
 
     gotValType = sym.entries[variableSym].vartype;
     if (sym.entries[variableSym].flags & SFLG_CONST)
@@ -4269,7 +4261,7 @@ int MemoryAccess(
 
     if (writing)
     {
-        retval = is_type_mismatch(scrip->ax_val_type, gotValType, true);
+        retval = IsTypeMismatch(scrip->ax_val_type, gotValType, true);
         if (retval < 0) return retval;
     }
 
@@ -4448,11 +4440,11 @@ int ParseAssignment_MAssign(ccCompiledScript * scrip, ags::Symbol_t ass_symbol, 
     int retval = ReadDataIntoAX(scrip, vnlist, vnlist_len, false);
     if (retval < 0) return retval;
 
-    retval = is_type_mismatch(varTypeRHS, scrip->ax_val_type, true);
+    retval = IsTypeMismatch(varTypeRHS, scrip->ax_val_type, true);
     if (retval < 0) return retval;
 
     int cpuOp = sym.entries[ass_symbol].ssize;
-    if (get_operator_valid_for_type(varTypeRHS, scrip->ax_val_type, cpuOp))
+    if (GetOperatorValidForType(varTypeRHS, scrip->ax_val_type, cpuOp))
         return -1;
 
     scrip->pop_reg(SREG_BX);
@@ -4496,7 +4488,7 @@ int ParseAssignment_SAssign(ccCompiledScript * scrip, ags::Symbol_t ass_symbol, 
 
     // Get the bytecode operator that corresponds to the assignment symbol and type
     int cpuOp = sym.entries[ass_symbol].ssize;
-    retval = get_operator_valid_for_type(scrip->ax_val_type, 0, cpuOp);
+    retval = GetOperatorValidForType(scrip->ax_val_type, 0, cpuOp);
     if (retval < 0) return retval;
 
     scrip->write_cmd2(cpuOp, SREG_AX, 1);
@@ -4506,7 +4498,7 @@ int ParseAssignment_SAssign(ccCompiledScript * scrip, ags::Symbol_t ass_symbol, 
         // since the MAR won't have changed, we can directly write
         // the value back to it without re-calculating the offset
         // [fw] Passing info around through a global variable: That is a HUGE code smell.
-        scrip->write_cmd1(get_readwrite_cmd_for_size(readcmd_lastcalledwith, true), SREG_AX);
+        scrip->write_cmd1(GetReadWriteCmdForSize(readcmd_lastcalledwith, true), SREG_AX);
         return 0;
     }
 
@@ -4609,7 +4601,7 @@ int ParseVardecl_InitialValAssignment_ToLocal(ccInternalList *targ, ccCompiledSc
     ConvertAXIntoStringObject(scrip, completeVarType);
 
     // Check whether the types match
-    retval = is_type_mismatch(scrip->ax_val_type, completeVarType, true);
+    retval = IsTypeMismatch(scrip->ax_val_type, completeVarType, true);
     if (retval < 0) return retval;
     return 0;
 }
@@ -4636,7 +4628,7 @@ int ParseVardecl_InitialValAssignment_ToGlobalFloat(ccInternalList * targ, bool 
     }
 
     // Interpret the float as an int; move that into the allocated space
-    (static_cast<long *>(initial_val_ptr))[0] = interpret_float_as_int(float_init_val);
+    (static_cast<long *>(initial_val_ptr))[0] = InterpretFloatAsInt(float_init_val);
 
     return 0;
 }
@@ -4908,7 +4900,7 @@ void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript * scrip, int var_name, FxF
         }
         else
         {
-            scrip->write_cmd1(get_readwrite_cmd_for_size(size_of_defn, true), SREG_AX);
+            scrip->write_cmd1(GetReadWriteCmdForSize(size_of_defn, true), SREG_AX);
         }
     }
     else if (initial_value == NULL)
@@ -5518,7 +5510,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     // If this is a member variable of the struct, then change the symbol to the fully qualified name.
     if (!isFunction && sym.get_type(vname) == SYM_VARTYPE && !sym_is_predef_typename(vname) && memberExt == NULL)
     {
-        const char *new_name = get_member_full_name(stname, vname);
+        const char *new_name = GetFullNameOfMember(stname, vname);
         vname = sym_find_or_add(sym, new_name);
     }
 
@@ -6177,7 +6169,7 @@ int ParseVartype_GetVarName(ccInternalList * targ, ags::Symbol_t & varname, ags:
     ags::Symbol_t member_of_member_function = targ->getnext();
 
     // change varname to be the full function name
-    const char *full_name_str = get_member_full_name(struct_of_member_fct, member_of_member_function);
+    const char *full_name_str = GetFullNameOfMember(struct_of_member_fct, member_of_member_function);
     varname = sym.find(full_name_str);
     if (varname < 0)
     {
@@ -6565,7 +6557,7 @@ int ParseReturn(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t i
         ConvertAXIntoStringObject(scrip, functionReturnType);
 
         // check return type is correct
-        retval = is_type_mismatch(scrip->ax_val_type, functionReturnType, true);
+        retval = IsTypeMismatch(scrip->ax_val_type, functionReturnType, true);
         if (retval < 0) return retval;
 
         if ((is_string(scrip->ax_val_type)) &&
@@ -6593,7 +6585,7 @@ int ParseReturn(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t i
     }
 
     // count total space taken by all local variables
-    FreePointersOfLocals(scrip, 1);
+    FreePointersOfLocals(scrip, 0);
 
     int totalsub = stacksize_of_locals(0);
     if (totalsub > 0) scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
@@ -6996,7 +6988,7 @@ int ParseCasedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbo
         if (retval < 0) return retval;  // case n: label expression, result is in AX
 
         // check that the types of the "case" expression and the "switch" expression match
-        retval = is_type_mismatch(scrip->ax_val_type, nesting_stack->SwitchExprType(), false);
+        retval = IsTypeMismatch(scrip->ax_val_type, nesting_stack->SwitchExprType(), false);
         if (retval < 0) return retval;
 
         // Pop the switch variable, ready for comparison
@@ -7004,7 +6996,7 @@ int ParseCasedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbo
 
         // get the right equality operator for the type
         int eq_op = SCMD_ISEQUAL;
-        retval = get_operator_valid_for_type(scrip->ax_val_type, nesting_stack->SwitchExprType(), eq_op);
+        retval = GetOperatorValidForType(scrip->ax_val_type, nesting_stack->SwitchExprType(), eq_op);
         if (retval < 0) return retval;
 
         // [fw] Comparison operation may be missing here.
@@ -7228,7 +7220,7 @@ int ParseCommand(
 }
 
 
-int cc_ParseHandleLinesAndMeta(ccInternalList *targ, ccCompiledScript * scrip, ags::Symbol_t cursym, int &currentlinewas)
+int cc_parse_HandleLinesAndMeta(ccInternalList *targ, ccCompiledScript * scrip, ags::Symbol_t cursym, int &currentlinewas)
 {
     if (cursym < 0) return 0; // end of stream was reached.
     if (currentline == -10) return 0; // end of stream was reached
@@ -7269,7 +7261,7 @@ int cc_ParseHandleLinesAndMeta(ccInternalList *targ, ccCompiledScript * scrip, a
     return 0;
 }
 
-int cc_ParseParseTokens(ccInternalList *targ, ccCompiledScript * scrip, size_t &nested_level, ags::Symbol_t &name_of_current_func)
+int cc_parse(ccInternalList *targ, ccCompiledScript * scrip, size_t &nested_level, ags::Symbol_t &name_of_current_func)
 {
     ags::Symbol_t struct_of_current_func = 0; // non-zero only when a struct member function is open
     
@@ -7301,7 +7293,7 @@ int cc_ParseParseTokens(ccInternalList *targ, ccCompiledScript * scrip, size_t &
         if (ReachedEOF(targ)) break;
 
         ags::Symbol_t cursym = targ->getnext();
-        int retval = cc_ParseHandleLinesAndMeta(targ, scrip, cursym, currentlinewas);
+        int retval = cc_parse_HandleLinesAndMeta(targ, scrip, cursym, currentlinewas);
         if (retval < 0) return retval;
 
         // Handling new sections
@@ -7496,7 +7488,7 @@ int cc_compile(const char * inpl, ccCompiledScript * scrip)
 
     size_t nested_level = 0;
     ags::Symbol_t name_of_current_func = -1;
-    retval = cc_ParseParseTokens(&targ, scrip, nested_level, name_of_current_func);
+    retval = cc_parse(&targ, scrip, nested_level, name_of_current_func);
     if (retval < 0) return retval;
 
     // Here when the tokens have been exhausted

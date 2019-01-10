@@ -1741,7 +1741,7 @@ TEST(Compatibility, FuncCall) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        struct Struct               \n\
+    struct Struct                   \n\
     {                               \n\
         float Float;                \n\
         import int Func();          \n\

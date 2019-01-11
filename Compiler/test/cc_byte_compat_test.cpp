@@ -1919,6 +1919,276 @@ TEST(Compatibility, StructExtender) {
 }
 
 
+TEST(Compatibility, Func1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct1          \n\
+    {                               \n\
+        float Payload1;             \n\
+    };                              \n\
+    managed struct Struct2          \n\
+    {                               \n\
+        char Payload2;              \n\
+    };                              \n\
+                                    \n\
+    import int Func(Struct1 *S1, Struct2 *S2);  \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        Struct1 *SS1;               \n\
+        Struct2 *SS2;               \n\
+        int Ret = Func(SS1, SS2);   \n\
+        return Ret;                 \n\
+    }                               \n\
+    ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("Func1", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 82;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    4,    1,    // 7
+       1,    4,    3,    1,            2,   63,    4,    1,    // 15
+       1,    4,   51,    4,           29,    2,   30,    2,    // 23
+      48,    3,   34,    3,           51,    8,   29,    2,    // 31
+      30,    2,   48,    3,           34,    3,   39,    2,    // 39
+       6,    3,    0,   33,            3,   35,    2,    3,    // 47
+       1,    2,    8,    3,            1,    1,    4,   51,    // 55
+       4,    7,    3,   51,           12,   69,   51,    8,    // 63
+      69,    2,    1,   12,            5,    6,    3,    0,    // 71
+      51,   12,   69,   51,            8,   69,    2,    1,    // 79
+      12,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 1;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      42,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}
+
+
+TEST(Compatibility, Func2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct1          \n\
+    {                               \n\
+        float Payload1;             \n\
+    };                              \n\
+    managed struct Struct2          \n\
+    {                               \n\
+        char Payload2;              \n\
+    };                              \n\
+                                    \n\
+    import  int Func(Struct1 *S1, Struct2 *S2);  \n\
+                                    \n\
+    int Func(Struct1 *S1, Struct2 *S2)  \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        Struct1 *SS1;               \n\
+        Struct2 *SS2;               \n\
+        int Ret = Func(SS1, SS2);   \n\
+        return Ret;                 \n\
+    }                               \n\
+   ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("Func2", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+    const size_t codesize = 115;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   51,    8,            7,    3,   50,    3,    // 7
+      51,   12,    7,    3,           50,    3,    6,    3,    // 15
+       0,   51,    8,   69,           51,   12,   69,    5,    // 23
+       6,    3,    0,   51,            8,   69,   51,   12,    // 31
+      69,    5,   38,   34,            3,    1,    2,   63,    // 39
+       4,    1,    1,    4,            3,    1,    2,   63,    // 47
+       4,    1,    1,    4,           51,    4,   29,    2,    // 55
+      30,    2,   48,    3,           29,    3,   51,   12,    // 63
+      29,    2,   30,    2,           48,    3,   29,    3,    // 71
+       6,    3,    0,   23,            3,    2,    1,    8,    // 79
+       3,    1,    2,    8,            3,    1,    1,    4,    // 87
+      51,    4,    7,    3,           51,   12,   69,   51,    // 95
+       8,   69,    2,    1,           12,    5,    6,    3,    // 103
+       0,   51,   12,   69,           51,    8,   69,    2,    // 111
+       1,   12,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 1;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      74,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      2,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}
+
+
+TEST(Compatibility, Func3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct1          \n\
+    {                               \n\
+        float Payload1;             \n\
+    };                              \n\
+                                    \n\
+    Struct1 *Func(int Int)          \n\
+    {                               \n\
+        return new Struct1;         \n\
+    }                               \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        Struct1 *SS1 = Func(5);     \n\
+        return -1;                  \n\
+    }                               \n\
+   ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("Func3", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 53;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   73,    3,            4,    5,    6,    3,    // 7
+       0,    5,   38,   10,            6,    3,    5,   29,    // 15
+       3,    6,    3,    0,           23,    3,    2,    1,    // 23
+       4,    3,    1,    2,           50,    3,    1,    1,    // 31
+       4,    6,    3,   -1,           51,    4,   69,    2,    // 39
+       1,    4,    5,    6,            3,    0,   51,    4,    // 47
+      69,    2,    1,    4,            5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 1;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      19,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      2,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}
+
+
 TEST(Compatibility, FuncCall) {
     ccCompiledScript *scrip = newScriptFixture();
 

@@ -2963,9 +2963,9 @@ int ParseSubexpr_FunctionCall_ProvideDefaults(ccCompiledScript * scrip, int num_
 
 int ParseSubexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::SymbolScript_t &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, ags::Symbol_t funcSymbol)
 {
-    size_t param_num = num_supplied_args;
+    size_t param_num = num_supplied_args + 1;
     size_t start_of_this_param = 0;
-    int end_of_this_param = closedParenIdx;  // can become < 0
+    int end_of_this_param = closedParenIdx;  // can become < 0, points to (last byte of parameter + 1)
     // Go backwards through the parameters, since they must be pushed that way
     do
     {
@@ -2975,23 +2975,30 @@ int ParseSubexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::Sy
         for (size_t paramListIdx = end_of_this_param - 1; true; paramListIdx--)
         {
             // going backwards so ')' increases the depth level
-            if (sym.get_type(paramList[paramListIdx]) == SYM_CLOSEPARENTHESIS) paren_nesting_depth++;
-            if (sym.get_type(paramList[paramListIdx]) == SYM_OPENPARENTHESIS) paren_nesting_depth--;
-            if ((sym.get_type(paramList[paramListIdx]) == SYM_COMMA) && (paren_nesting_depth == 0))
+            const int idx_type = sym.get_type(paramList[paramListIdx]);
+            if (idx_type == SYM_CLOSEPARENTHESIS) paren_nesting_depth++;
+            if (idx_type == SYM_OPENPARENTHESIS) paren_nesting_depth--;
+            if ((paren_nesting_depth == 0 && idx_type == SYM_COMMA) ||
+                (paren_nesting_depth < 0  && idx_type == SYM_OPENPARENTHESIS))
             {
                 start_of_this_param = paramListIdx + 1;
                 break;
             }
-            if (paramListIdx == 0) break; // don't put into for(), it won't work
+            if (paramListIdx == 0) break; // Don't put this into the for header!
         }
+
         // Compile the parameter
+        if (end_of_this_param <= start_of_this_param)
+        {
+            cc_error("Internal error: parameter length is negative");
+            return -99;
+        }
         if (ParseSubexpr(scrip, &paramList[start_of_this_param], end_of_this_param - start_of_this_param)) return -1;
 
         if (param_num <= num_func_args) // we know what type to expect
         {
             // If we need a string object ptr but AX contains a normal string, convert AX
-            // (param #0 is the return parameter, so we need param_num + 1)
-            int parameterType = sym.entries[funcSymbol].funcparamtypes[param_num + 1];
+            int parameterType = sym.entries[funcSymbol].funcparamtypes[param_num];
             ConvertAXIntoStringObject(scrip, parameterType);
 
             if (IsTypeMismatch(scrip->ax_val_type, parameterType, true)) return -1;
@@ -3000,7 +3007,6 @@ int ParseSubexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::Sy
             // check that this ptr isn't null
             DoNullCheckOnStringInAXIfNecessary(scrip, parameterType);
         }
-
 
         if (sym.entries[funcSymbol].flags & SFLG_IMPORTED)
         {
@@ -3013,72 +3019,77 @@ int ParseSubexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::Sy
 
         end_of_this_param = start_of_this_param - 1;
 
-    } while (end_of_this_param >= 0);
+    } while (end_of_this_param > 0);
 
     return 0;
 }
 
 
 // Count parameters, check that all the parameters are non-empty; find closing paren
-int ParseSubexpr_FunctionCall_CountAndCheckParm(const ags::SymbolScript_t &paramList, size_t paramListLen, ags::Symbol_t funcSymbol, size_t &indexOfClosedParen, size_t &num_supplied_args)
+int ParseSubexpr_FunctionCall_CountAndCheckParm(const ags::SymbolScript_t &paramList, size_t paramListLen, ags::Symbol_t funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args)
 {
-    int paren_nesting_depth = 0;
+    size_t paren_nesting_depth = 1;
     num_supplied_args = 1;
-    int numParamSymbols = 0;
     size_t paramListIdx;
+    bool found_param_symbol = false;
 
-    for (paramListIdx = 0; paramListIdx < paramListLen; paramListIdx++)
+    for (paramListIdx = 1; paramListIdx < paramListLen; paramListIdx++)
     {
-        if (sym.get_type(paramList[paramListIdx]) == SYM_OPENPARENTHESIS) paren_nesting_depth++;
-        if (sym.get_type(paramList[paramListIdx]) == SYM_CLOSEPARENTHESIS)
+        const int idx_type = sym.get_type(paramList[paramListIdx]);
+
+        if (idx_type == SYM_OPENPARENTHESIS) paren_nesting_depth++;
+        if (idx_type == SYM_CLOSEPARENTHESIS)
         {
             paren_nesting_depth--;
-            if (paren_nesting_depth < 0) break;
+            if (paren_nesting_depth == 0) break;
         }
 
-        if ((sym.get_type(paramList[paramListIdx]) == SYM_COMMA) && (paren_nesting_depth == 0))
+        if (paren_nesting_depth == 1 && idx_type == SYM_COMMA)
         {
             num_supplied_args++;
-            if (numParamSymbols < 1)
-            {
-                cc_error("Missing argument in function call");
-                return -1;
-            }
-            numParamSymbols = 0;
+            if (found_param_symbol) continue;
+            
+            cc_error("Argument %d in function call is empty", num_supplied_args-1);
+            return -1;          
         }
-        else
-            numParamSymbols++;
+        found_param_symbol = true;
     }
 
-    indexOfClosedParen = paramListIdx;
-    if (indexOfClosedParen >= paramListLen)
+    // Special case: "()" means 0 arguments
+    if (num_supplied_args == 1 &&
+        paramListLen > 1 &&
+        sym.get_type(paramList[1]) == SYM_CLOSEPARENTHESIS)
+    {
+        num_supplied_args = 0;
+    }
+
+    indexOfCloseParen = paramListIdx;
+
+    if (sym.get_type(paramList[indexOfCloseParen]) != SYM_CLOSEPARENTHESIS)
     {
         cc_error("Missing ')' at the end of the parameter list");
         return -1;
     }
 
-    if (sym.get_type(paramList[indexOfClosedParen]) != SYM_CLOSEPARENTHESIS)
+    if (indexOfCloseParen > 0 &&
+        sym.get_type(paramList[indexOfCloseParen - 1]) == SYM_COMMA)
     {
-        // [fw] This can't happen, but the original code checks this so keep it here
-        cc_error("Expected ')'");
+        cc_error("Last argument in function call is empty");
         return -1;
     }
 
-    if (indexOfClosedParen < paramListLen - 1 &&
-        sym.get_type(paramList[indexOfClosedParen + 1]) != SYM_SEMICOLON)
+    if (indexOfCloseParen < paramListLen - 1 &&
+        sym.get_type(paramList[indexOfCloseParen + 1]) != SYM_SEMICOLON)
     {
         cc_error("Internal error: Unexpected symbols trailing the parameter list");
         return -1;
     }
 
-    if (paren_nesting_depth >= 0)
+    if (paren_nesting_depth > 0)
     {
         cc_error("Internal error: Parser confused near '%s'", sym.get_friendly_name(funcSymbol).c_str());
         return -1;
     }
-
-    // function call with no arguments -- set num_supplied back to 0
-    if ((numParamSymbols == 0) && (num_supplied_args == 1)) num_supplied_args = 0;
 
     return 0;
 }
@@ -3086,12 +3097,9 @@ int ParseSubexpr_FunctionCall_CountAndCheckParm(const ags::SymbolScript_t &param
 
 int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags::SymbolScript_t vnlist, ags::SymbolScript_t & symlist, size_t & symlist_len)
 {
-    ags::SymbolScript_t workList;
-    int workListLen;
-
     // workList is the function call beginning at the func symbol proper
-    workList = symlist;
-    workListLen = symlist_len;
+    ags::SymbolScript_t workList = symlist;
+    int workListLen = symlist_len;
     if (funcSymbolIdx > 0)
     {
         workList = &vnlist[funcSymbolIdx];
@@ -3107,9 +3115,9 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags::
         return -1;
     }
 
-    // paramList begins at the parameters, after the leading '('
-    ags::SymbolScript_t paramList = workList + 2;
-    size_t paramListLen = workListLen - 2;
+    // paramList begins at the parameters, at the leading '('
+    ags::SymbolScript_t paramList = workList + 1;
+    size_t paramListLen = workListLen - 1;
 
 
     // Generate code so that the runtime stack contains, bottom-to-top:

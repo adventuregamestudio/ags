@@ -27,7 +27,7 @@ namespace AGS.Editor.Utils
             }
             catch
             {
-                throw new Types.InvalidDataException("Unable to load image data");
+                throw new Types.InvalidDataException($"Unable to load image data from '{fileName}'");
             }
             finally
             {
@@ -52,7 +52,7 @@ namespace AGS.Editor.Utils
 
                 if (decoder.Read(fileName) != GifDecoder.STATUS_OK)
                 {
-                    throw new AGS.Types.InvalidDataException("Unable to load GIF");
+                    throw new Types.InvalidDataException($"Unable to load GIF data from '{fileName}'");
                 }
 
                 for (int i = 0; i < decoder.GetFrameCount(); i ++)

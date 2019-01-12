@@ -28,13 +28,13 @@ For the list of available config options and command line arguments, please refe
 
 We welcome any contributor who wishes to help the project.
 
-The usual workflow is this: you fork our repository (unless you already did that), create a feature/fix branch, commit your changes to that branch, and then create a pull request. We will review your commits, and sometimes we may ask you to change something before merging your commits into our main branch.
+The usual workflow is this: you fork our repository (unless you already did that), create a feature/fix branch, commit your changes to that branch, and then create a pull request. We will review your commits and sometimes may ask you to alter your code before merging it into our repository.
 
 For bug fixing and general code improvements that may be enough, however, for significant changes, completely new features or changes in the program design, we ask you to first open an issue in the tracker and discuss it with the development team, to make sure it does not break anything, nor is in conflict with existing program behavior or concepts.
 
 The [master](https://github.com/adventuregamestudio/ags/tree/master) branch should be kept in a working state and compilable on all targeted platforms.
-The "release-X.X.X" branch is created to prepare the code for respected release, and continue making patches to that release. If you've found a critical issue in the latest release, it should be fixed in the release-X.X.X branch when possible (it will be merged to master later).
-Because of the low number of active developers we only maintain one latest release branch along with master. If bugs are found in one of the much older versions, we advise you to update to the latest version first.
+The "release-X.X.X" branch is created to prepare the code for respective release and continue making patches to that release. If you've found a critical issue in the latest release it should be fixed in the release-X.X.X branch when possible (it will be merged to master later).
+Because of the low number of active developers we only maintain one latest release branch. If bugs are found in one of the much older versions, we advise you to update to the latest version first.
 
 We've made a big split, separating fully backwards compatible Editor and Engine into [ags3](https://github.com/adventuregamestudio/ags/tree/ags3) branch. That branch acts as a "master" for AGS 3.x.x generation. We do not normally accept any feature additions to that branch anymore, except for bug fixes, compatibility updates and perfomance improvements. For more information about this split and reasons it was made for please refer to [#448](https://github.com/adventuregamestudio/ags/issues/448).
 
@@ -50,10 +50,10 @@ The 4.x engine should be reading savegames made with the 3.4.2 engine and above.
 
 **The 3rd generation** of AGS may be found in "ags3" branch. It's specifics are:
 
--   Supports (imports into editor and runs by the engine) all versions of AGS games starting from games made with AGS 2.50 up to games made with the latest 3.x release, but there may be unknown compatibility issues with very old games.
--   If you try to run an unsupported game, you will receive an error message, reporting original version of AGS it was made in, and data format index, which may be used for reference.
--   Savegames are compatible between the different platforms if they are created with the same engine version. Engine should normally read savegames made by version 3.2.0 of runtime and above, but that has not been tested for a while.
--   Games that depend on plugins for which there is no platform-independent replacement will not load.
+- Supports (imports into editor and runs by the engine) all versions of AGS games starting from games made with AGS 2.50 up to games made with the latest 3.x release, but there may be unknown compatibility issues with very old games.
+- If you try to run an unsupported game, you will receive an error message, reporting original version of AGS it was made in, and data format index, which may be used for reference.
+- Savegames are compatible between the different platforms if they are created with the same engine version. Engine should normally read savegames made by version 3.2.0 of runtime and above, but that has not been tested for a while.
+- Games that depend on plugins for which there is no platform-independent replacement will not load.
 
 
 ## Changes from Chris Jones' version of AGS

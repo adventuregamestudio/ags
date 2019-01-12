@@ -308,17 +308,17 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
 
   // Now open same file for reading, and begin writing compressed data into required output stream
   lz_temp_s = ci_fopen(lztempfnm);
-  size_t temp_sz = lz_temp_s->GetLength();
+  soff_t temp_sz = lz_temp_s->GetLength();
   out->WriteArray(&pall[0], sizeof(color), 256);
   out->WriteInt32(temp_sz);
-  size_t gobacto = out->GetPosition();
+  soff_t gobacto = out->GetPosition();
 
   // reserve space for compressed size
   out->WriteInt32(temp_sz);
   lzwcompress(lz_temp_s, out);
-  size_t toret = out->GetPosition();
+  soff_t toret = out->GetPosition();
   out->Seek(gobacto, kSeekBegin);
-  size_t compressed_sz = (toret - gobacto) - 4;
+  soff_t compressed_sz = (toret - gobacto) - 4;
   out->WriteInt32(compressed_sz);      // write compressed size
 
   // Delete temp file

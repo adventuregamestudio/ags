@@ -565,8 +565,8 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
 
 void SkipRoomBlock(Stream *in, RoomFileVersion data_ver)
 {
-    size_t block_len = in->ReadInt32();
-    in->Seek(block_len, Common::kSeekCurrent);
+    soff_t block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
+    in->Seek(block_len);
 }
 
 

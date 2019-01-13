@@ -323,9 +323,16 @@ namespace AGS.Editor
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
             e.Graphics.CompositingQuality = CompositingQuality.HighSpeed;
 
-            // Draw the image
-            e.Graphics.DrawImage(image, -previewPanel.HorizontalScroll.Value,
+            Rectangle imageRect = new Rectangle(-previewPanel.HorizontalScroll.Value,
                 -previewPanel.VerticalScroll.Value, image.Width * zoomLevel, image.Height * zoomLevel);
+
+            // Draw the image
+            e.Graphics.DrawImage(image, imageRect);
+
+            // Draw image boundaries
+            Pen dashed = new Pen(Color.Black, 1);
+            dashed.DashPattern = new float[] { 2, 2 };
+            e.Graphics.DrawRectangle(dashed, imageRect);
 
             // Draw dragging indicator
             if (dragging)

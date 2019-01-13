@@ -504,7 +504,18 @@ namespace AGS.Editor
         private void cmbFilenames_SelectedIndexChanged(object sender, EventArgs e)
         {
             string filename = imageLookup[cmbFilenames.SelectedIndex];
-            image = SpriteTools.LoadFirstImageFromFile(filename);
+
+            try
+            {
+                image = SpriteTools.LoadFirstImageFromFile(filename);
+            }
+            catch (Types.InvalidDataException ex)
+            {
+                // use a placeholder in-case of bad data
+                Factory.GUIController.ShowMessage(ex.Message, MessageBoxIconType.Error);
+                image = SpriteTools.GetPlaceHolder();
+            }
+
             PostImageLoad();
         }
 

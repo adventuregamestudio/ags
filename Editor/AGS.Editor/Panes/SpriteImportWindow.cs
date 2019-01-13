@@ -548,12 +548,20 @@ namespace AGS.Editor
                 return;
             }
 
-            chkTiled.Checked = true;
-            dragging = true;
-
             Point mouse = e.Location;
+            Rectangle imageRect = new Rectangle(-previewPanel.HorizontalScroll.Value,
+                -previewPanel.VerticalScroll.Value, image.Width * zoomLevel, image.Height * zoomLevel);
+
+            if (!imageRect.Contains(mouse))
+            {
+                // ignore selections that start outside of the image
+                return;
+            }
+
             mouse.X = mouse.X + previewPanel.HorizontalScroll.Value;
             mouse.Y = mouse.Y + previewPanel.VerticalScroll.Value;
+            chkTiled.Checked = true;
+            dragging = true;
 
             // if the first click was the right button
             bool origin = e.Button == MouseButtons.Right && start == null;

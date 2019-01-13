@@ -26,6 +26,7 @@
 #include "script/nonblockingscriptfunction.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "game/interactions.h"
+#include "util/string.h"
 
 //using AGS::Common::Interaction;
 //using AGS::Common::InteractionCommandList;
@@ -51,6 +52,16 @@ void    QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t 
 void    RunScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count = 0,
                           const RuntimeScriptValue &p1 = RuntimeScriptValue(), const RuntimeScriptValue &p2 = RuntimeScriptValue());
 
+int     RunScriptFunctionIfExists(ccInstance *sci, const char *tsname, int numParam, const RuntimeScriptValue *params);
+int     RunTextScript(ccInstance *sci, const char *tsname);
+int     RunTextScriptIParam(ccInstance *sci, const char *tsname, const RuntimeScriptValue &iparam);
+int     RunTextScript2IParam(ccInstance *sci, const char *tsname, const RuntimeScriptValue &iparam, const RuntimeScriptValue &param2);
+
+int     PrepareTextScript(ccInstance *sci, const char **tsname);
+bool    DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
+
+AGS::Common::String GetScriptName(ccInstance *sci);
+
 //=============================================================================
 
 char*   make_ts_func_name(char*base,int iii,int subd);
@@ -65,7 +76,6 @@ void    quit_with_script_error(const char *functionName);
 InteractionVariable *get_interaction_variable (int varindx);
 InteractionVariable *FindGraphicalVariable(const char *varName);
 void    run_unhandled_event (int evnt);
-void    setup_exports(char*expfrom);
 void    can_run_delayed_command();
 
 

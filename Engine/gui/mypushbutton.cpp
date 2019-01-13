@@ -73,19 +73,19 @@ void MyPushButton::draw(Bitmap *ds)
 
 //extern const int LEFT;  // in mousew32
 
-int MyPushButton::pressedon()
+int MyPushButton::pressedon(int mousex, int mousey)
 {
     int wasstat;
     while (mbutrelease(LEFT) == 0) {
         timerloop = 0;
         wasstat = state;
         NextIteration();
-        state = mouseisinarea();
+        state = mouseisinarea(mousex, mousey);
         // stop mp3 skipping if button held down
         update_polled_stuff_if_runtime();
         if (wasstat != state) {
             //        domouse(2);
-            draw(GetVirtualScreen());
+            draw(get_gui_screen());
             //domouse(1);
         }
 
@@ -98,7 +98,7 @@ int MyPushButton::pressedon()
     wasstat = state;
     state = 0;
     //    domouse(2);
-    draw(GetVirtualScreen());
+    draw(get_gui_screen());
     //  domouse(1);
     return wasstat;
 }

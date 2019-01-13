@@ -35,6 +35,11 @@ const char *StaticArray::GetElementPtr(const char *address, intptr_t legacy_offs
     return address + (legacy_offset / _elemScriptSize) * _elemRealSize;
 }
 
+const char* StaticArray::GetFieldPtr(const char *address, intptr_t offset)
+{
+    return GetElementPtr(address, offset);
+}
+
 void StaticArray::Read(const char *address, intptr_t offset, void *dest, int size)
 {
     const char *el_ptr = GetElementPtr(address, offset);

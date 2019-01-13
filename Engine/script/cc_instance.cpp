@@ -14,8 +14,6 @@
 
 #include <string.h>
 #include "ac/common.h"
-#include "ac/event.h"
-#include "ac/mouse.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "gui/guidefines.h"
@@ -24,7 +22,6 @@
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "script/cc_options.h"
-#include "script/executingscript.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "script/systemimports.h"
@@ -43,8 +40,6 @@ using namespace AGS::Common;
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
 extern ExecutingScript*curscript; // in script/script
-extern int displayed_room; // in ac/game
-extern RoomStruct thisroom; // ac/game
 extern int maxWhileLoops;
 extern new_line_hook_type new_line_hook;
 
@@ -391,72 +386,6 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
         return -5;
     }
     return ccError;
-}
-
-bool ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool hasTheFunc) {
-    if (!hasTheFunc)
-        return(false);
-
-    no_blocking_functions++;
-    int result = 0;
-
-    if (funcToRun->numParameters < 3)
-    {
-        result = CallScriptFunction((char*)funcToRun->functionName, funcToRun->numParameters, funcToRun->params);
-    }
-    else
-        quit("DoRunScriptFuncCantBlock called with too many parameters");
-
-    if (result == -2) {
-        // the function doens't exist, so don't try and run it again
-        hasTheFunc = false;
-    }
-    else if ((result != 0) && (result != 100)) {
-        quit_with_script_error(funcToRun->functionName);
-    }
-    else
-    {
-        funcToRun->atLeastOneImplementationExists = true;
-    }
-    // this might be nested, so don't disrupt blocked scripts
-    ccErrorString[0] = 0;
-    ccError = 0;
-    no_blocking_functions--;
-    return(hasTheFunc);
-}
-
-char scfunctionname[MAX_FUNCTION_NAME_LEN+1];
-int ccInstance::PrepareTextScript(const char**tsname) {
-    ccError=0;
-    if (this==NULL) return -1;
-    if (GetSymbolAddress(tsname[0]).IsNull()) {
-        strcpy (ccErrorString, "no such function in script");
-        return -2;
-    }
-    if (pc!=0) {
-        strcpy(ccErrorString,"script is already in execution");
-        return -3;
-    }
-    scripts[num_scripts].init();
-    scripts[num_scripts].inst = this;
-    if (pc != 0) {
-        scripts[num_scripts].inst = Fork();
-        if (scripts[num_scripts].inst == NULL)
-            quit("unable to fork instance for secondary script");
-        scripts[num_scripts].forked = 1;
-    }
-    curscript = &scripts[num_scripts];
-    num_scripts++;
-    if (num_scripts >= MAX_SCRIPT_AT_ONCE)
-        quit("too many nested text script instances created");
-    // in case script_run_another is the function name, take a backup
-    strncpy(scfunctionname,tsname[0],MAX_FUNCTION_NAME_LEN);
-    tsname[0]=&scfunctionname[0];
-    update_script_mouse_coords();
-    inside_script++;
-    //  aborted_ip=0;
-    //  abort_executor=0;
-    return 0;
 }
 
 // Macros to maintain the call stack
@@ -1135,7 +1064,7 @@ int ccInstance::Run(int32_t curpc)
               if (next_call_needs_object)
               {
                   RuntimeScriptValue obj_rval = registers[SREG_OP];
-                  obj_rval.DirectPtr();
+                  obj_rval.DirectPtrObj();
                   int_ret_val = call_function((intptr_t)reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
               }
               else
@@ -1158,7 +1087,7 @@ int ccInstance::Run(int32_t curpc)
             if (reg1.Type == kScValObjectFunction)
             {
               RuntimeScriptValue obj_rval = registers[SREG_OP];
-              obj_rval.DirectPtr();
+              obj_rval.DirectPtrObj();
               return_value = reg1.ObjPfn(obj_rval.Ptr, func_callstack.GetHead() + 1, num_args_to_func);
             }
             else
@@ -1266,8 +1195,8 @@ int ccInstance::Run(int32_t curpc)
                   cc_error("Invalid size for user object; requested: %u (or %d), range: 0..%d", (uint32_t)size, size, INT_MAX);
                   return -1;
               }
-              std::pair<char*, ScriptUserObject*> suo = ScriptUserObject::CreateManaged(size);
-              reg1.SetDynamicObject(suo.first, suo.second);
+              ScriptUserObject *suo = ScriptUserObject::CreateManaged(size);
+              reg1.SetDynamicObject(suo, suo);
               break;
           }
       case SCMD_FADD:
@@ -1374,151 +1303,20 @@ int ccInstance::Run(int32_t curpc)
     }
 }
 
-int ccInstance::RunScriptFunctionIfExists(const char*tsname, int numParam, const RuntimeScriptValue *params) {
-    int oldRestoreCount = gameHasBeenRestored;
-    // First, save the current ccError state
-    // This is necessary because we might be attempting
-    // to run Script B, while Script A is still running in the
-    // background.
-    // If CallInstance here has an error, it would otherwise
-    // also abort Script A because ccError is a global variable.
-    int cachedCcError = ccError;
-    ccError = 0;
+String ccInstance::GetCallStack(int maxLines)
+{
+    String buffer = String::FromFormat("in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
 
-    int toret = PrepareTextScript(&tsname);
-    if (toret) {
-        ccError = cachedCcError;
-        return -18;
-    }
-
-    // Clear the error message
-    ccErrorString[0] = 0;
-
-    if (numParam < 3)
-    {
-        toret = curscript->inst->CallScriptFunction(tsname,numParam, params);
-    }
-    else
-        quit("Too many parameters to RunScriptFunctionIfExists");
-
-    // 100 is if Aborted (eg. because we are LoadAGSGame'ing)
-    if ((toret != 0) && (toret != -2) && (toret != 100)) {
-        quit_with_script_error(tsname);
-    }
-
-    post_script_cleanup_stack++;
-
-    if (post_script_cleanup_stack > 50)
-        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", tsname);
-
-    post_script_cleanup();
-
-    post_script_cleanup_stack--;
-
-    // restore cached error state
-    ccError = cachedCcError;
-
-    // if the game has been restored, ensure that any further scripts are not run
-    if ((oldRestoreCount != gameHasBeenRestored) && (eventClaimed == EVENT_INPROGRESS))
-        eventClaimed = EVENT_CLAIMED;
-
-    return toret;
-}
-
-int ccInstance::RunTextScript(const char *tsname) {
-    if (strcmp(tsname, REP_EXEC_NAME) == 0) {
-        // run module rep_execs
-        int room_changes_was = play.room_changes;
-        int restore_game_count_was = gameHasBeenRestored;
-
-        for (int kk = 0; kk < numScriptModules; kk++) {
-            if (!moduleRepExecAddr[kk].IsNull())
-                moduleInst[kk]->RunScriptFunctionIfExists(tsname, 0, NULL);
-
-            if ((room_changes_was != play.room_changes) ||
-                (restore_game_count_was != gameHasBeenRestored))
-                return 0;
-        }
-    }
-
-    int toret = RunScriptFunctionIfExists(tsname, 0, NULL);
-    if ((toret == -18) && (this == roominst)) {
-        // functions in room script must exist
-        quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)",toret,ccErrorString,tsname, displayed_room);
-    }
-    return toret;
-}
-
-int ccInstance::RunTextScriptIParam(const char *tsname, const RuntimeScriptValue &iparam) {
-    if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
-        bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 1, &iparam, &eventWasClaimed);
-
-        if (eventWasClaimed)
-            return toret;
-    }
-
-    return RunScriptFunctionIfExists(tsname, 1, &iparam);
-}
-
-int ccInstance::RunTextScript2IParam(const char*tsname, const RuntimeScriptValue &iparam, const RuntimeScriptValue &param2) {
-    RuntimeScriptValue params[2];
-    params[0] = iparam;
-    params[1] = param2;
-
-    if (strcmp(tsname, "on_event") == 0) {
-        bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 2, params, &eventWasClaimed);
-
-        if (eventWasClaimed)
-            return toret;
-    }
-
-    // response to a button click, better update guis
-    if (strnicmp(tsname, "interface_click", 15) == 0)
-        guis_need_update = 1;
-
-    int toret = RunScriptFunctionIfExists(tsname, 2, params);
-
-    // tsname is no longer valid, because RunScriptFunctionIfExists might
-    // have restored a save game and freed the memory. Therefore don't 
-    // attempt any strcmp's here
-    tsname = NULL;
-
-    return toret;
-}
-
-void ccInstance::GetCallStack(char *buffer, int maxLines) {
-
-    // FIXME: check ptr prior to function call instead
-    if (this == NULL) {
-        // not in a script, no call stack
-        buffer[0] = 0;
-        return;
-    }
-
-    sprintf(buffer, "in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
-
-    char lineBuffer[300];
     int linesDone = 0;
-    for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++) {
-        sprintf(lineBuffer, "from \"%s\", line %d\n",
+    for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++)
+    {
+        String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
             callStackCodeInst[j]->instanceof->GetSectionName(callStackAddr[j]), callStackLineNumber[j]);
-        strcat(buffer, lineBuffer);
+        buffer.Append(lineBuffer);
         if (linesDone == maxLines - 1)
-            strcat(buffer, "(and more...)\n");
+            buffer.Append("(and more...)\n");
     }
-}
-
-void ccInstance::GetScriptName(char *curScrName) {
-    if (this == NULL)
-        strcpy (curScrName, "Not in a script");
-    else if (instanceof == gamescript)
-        strcpy (curScrName, "Global script");
-    else if (instanceof == thisroom.CompiledScript)
-        sprintf (curScrName, "Room %d script", displayed_room);
-    else
-        strcpy (curScrName, "Unknown script");
+    return buffer;
 }
 
 void ccInstance::GetScriptPosition(ScriptPosition &script_pos)
@@ -1582,6 +1380,11 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
     }
     writer.WriteLineBreak();
     // the writer will delete data stream internally
+}
+
+bool ccInstance::IsBeingRun() const
+{
+    return pc != 0;
 }
 
 bool ccInstance::_Create(PScript scri, ccInstance * joined)

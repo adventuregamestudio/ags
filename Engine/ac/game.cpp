@@ -58,7 +58,6 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
-#include "ac/dynobj/scriptviewport.h"
 #include "ac/statobj/staticgame.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
@@ -91,7 +90,6 @@ using namespace AGS::Engine;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
-extern Bitmap *virtual_screen;
 extern int cur_mode,cur_cursor;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
@@ -333,7 +331,6 @@ int oldmouse;
 void setup_for_dialog() {
     cbuttfont = play.normal_font;
     acdialog_font = play.normal_font;
-    SetVirtualScreen(virtual_screen);
     if (!play.mouse_cursor_hidden)
         domouse(1);
     oldmouse=cur_cursor; set_mouse_cursor(CURS_ARROW);
@@ -944,24 +941,6 @@ ScriptAudioClip *Game_GetAudioClip(int index)
     return &game.audioClips[index];
 }
 
-
-bool Game_GetAutoSizeViewport()
-{
-    return play.IsAutoRoomViewport();
-}
-
-void Game_SetAutoSizeViewport(bool on)
-{
-    play.SetAutoRoomViewport(on);
-}
-
-ScriptViewport* Game_GetRoomViewport()
-{
-    ScriptViewport *viewport = new ScriptViewport();
-    ccRegisterManagedObject(viewport, viewport);
-    return viewport;
-}
-
 //=============================================================================
 
 // save game functions
@@ -1100,39 +1079,16 @@ void create_savegame_screenshot(Bitmap *&screenShot)
     if (game.options[OPT_SAVESCREENSHOT]) {
         int usewid = play.screenshot_width;
         int usehit = play.screenshot_height;
-        if (usewid > virtual_screen->GetWidth())
-            usewid = virtual_screen->GetWidth();
-        if (usehit > virtual_screen->GetHeight())
-            usehit = virtual_screen->GetHeight();
+        const Rect &viewport = play.GetMainViewport();
+        if (usewid > viewport.GetWidth())
+            usewid = viewport.GetWidth();
+        if (usehit > viewport.GetHeight())
+            usehit = viewport.GetHeight();
 
         if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
             quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
 
-        if (gfxDriver->UsesMemoryBackBuffer())
-        {
-            screenShot = BitmapHelper::CreateBitmap(usewid, usehit, virtual_screen->GetColorDepth());
-            screenShot->StretchBlt(virtual_screen,
-				RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
-				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
-        }
-        else
-        {
-            // FIXME this weird stuff! (related to incomplete OpenGL renderer)
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
-            int color_depth = (psp_gfx_renderer > 0) ? 32 : game.GetColorDepth();
-#else
-            int color_depth = game.GetColorDepth();
-#endif
-            Bitmap *tempBlock = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(), virtual_screen->GetHeight(), color_depth);
-            gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
-
-            screenShot = BitmapHelper::CreateBitmap(usewid, usehit, color_depth);
-            screenShot->StretchBlt(tempBlock,
-				RectWH(0, 0, tempBlock->GetWidth(), tempBlock->GetHeight()),
-				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
-
-            delete tempBlock;
-        }
+        screenShot = CopyScreenIntoBitmap(usewid, usehit);
     }
 }
 
@@ -1690,7 +1646,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     if (ccUnserializeAllObjects(in, &ccUnserializer))
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Managed pool deserialization failed: %s.", ccErrorString));
+            String::FromFormat("Managed pool deserialization failed: %s.", ccErrorString.GetCStr()));
     }
 
     // preserve legacy music type setting
@@ -2407,21 +2363,6 @@ RuntimeScriptValue Sc_Game_IsPluginLoaded(const RuntimeScriptValue *params, int3
     API_SCALL_BOOL_OBJ(pl_is_plugin_loaded, const char);
 }
 
-RuntimeScriptValue Sc_Game_GetAutoSizeViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_BOOL(Game_GetAutoSizeViewport);
-}
-
-RuntimeScriptValue Sc_Game_SetAutoSizeViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PBOOL(Game_SetAutoSizeViewport);
-}
-
-RuntimeScriptValue Sc_Game_GetRoomViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptViewport, Game_GetRoomViewport);
-}
-
 
 void RegisterGameAPI()
 {
@@ -2473,9 +2414,6 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_AudioClipCount",                     Sc_Game_GetAudioClipCount);
     ccAddExternalStaticFunction("Game::geti_AudioClips",                        Sc_Game_GetAudioClip);
     ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
-    ccAddExternalStaticFunction("Game::get_AutoSizeViewportOnRoomLoad",         Sc_Game_GetAutoSizeViewport);
-    ccAddExternalStaticFunction("Game::set_AutoSizeViewportOnRoomLoad",         Sc_Game_SetAutoSizeViewport);
-    ccAddExternalStaticFunction("Game::get_RoomViewport",                       Sc_Game_GetRoomViewport);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

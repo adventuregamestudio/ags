@@ -146,12 +146,9 @@ Bitmap **actspswb;
 IDriverDependantBitmap* *actspswbbmp;
 CachedActSpsData* actspswbcache;
 
-Bitmap *virtual_screen;
-
 bool current_background_is_dirty = false;
 
-Bitmap *real_screen =NULL;
-Bitmap *sub_screen = NULL;
+Bitmap *sub_vscreen = NULL;
 int wasShakingScreen = 0;
 
 // Room background sprite
@@ -374,6 +371,33 @@ PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
+Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
+{
+    Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
+    Size want_size;
+    // If the size and color depth are supported we may copy right into our bitmap
+    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_size))
+        return dst;
+    // Otherwise we might need to copy between few bitmaps...
+    Bitmap *buf_screenfmt = new Bitmap(want_size.Width, want_size.Height, gfxDriver->GetDisplayMode().ColorDepth);
+    gfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt, at_native_res);
+    // If at least size matches then we may blit
+    if (dst->GetSize() == buf_screenfmt->GetSize())
+    {
+        dst->Blit(buf_screenfmt);
+    }
+    // Otherwise we need to go through another bitmap of the matching format
+    else
+    {
+        Bitmap *buf_dstfmt = new Bitmap(buf_screenfmt->GetWidth(), buf_screenfmt->GetHeight(), dst->GetColorDepth());
+        buf_dstfmt->Blit(buf_screenfmt);
+        dst->StretchBlt(buf_dstfmt, RectWH(dst->GetSize()));
+        delete buf_dstfmt;
+    }
+    delete buf_screenfmt;
+    return dst;
+}
+
 void create_blank_image(int coldepth)
 {
     // this is the first time that we try to use the graphics driver,
@@ -403,6 +427,12 @@ void destroy_blank_image()
     blankSidebarImage = NULL;
 }
 
+int MakeColor(int color_index)
+{
+    color_t real_color = 0;
+    __my_setcolor(&real_color, color_index, game.GetColorDepth());
+    return real_color;
+}
 
 void init_draw_method()
 {
@@ -438,40 +468,14 @@ void on_mainviewport_changed()
 {
     if (gfxDriver->UsesMemoryBackBuffer())
     {
-        // TODO: the following was carried over from the older version of the viewport change code,
-        // trying to keep as close to original behavior as possible. Unfortunately I was unable to
-        // fully grasp the logic behind this in the context of all the screen bitmaps manipulations
-        // throughout the program. In my opinion, it all has to be researched and possibly simplified
-        // as a big single step.
-
-        Bitmap *cur_vscr = GetVirtualScreen();
-        Bitmap *cur_rscr = BitmapHelper::GetScreenBitmap();
-        const bool vscr_was_realscr = cur_vscr == cur_rscr;
         const Rect &main_view = play.GetMainViewport();
-
-        if (main_view.GetSize() == game.size)
+        gfxDriver->SetMemoryBackBuffer(NULL); // make it restore original virtual screen
+        if (main_view.GetSize() != game.size)
         {
-            BitmapHelper::SetScreenBitmap(real_screen);
+            delete sub_vscreen;
+            sub_vscreen = BitmapHelper::CreateSubBitmap(gfxDriver->GetMemoryBackBuffer(), main_view);
+            gfxDriver->SetMemoryBackBuffer(sub_vscreen, main_view.Left, main_view.Top);
         }
-        else
-        {
-            sub_screen = BitmapHelper::CreateSubBitmap(real_screen, main_view);
-            BitmapHelper::SetScreenBitmap(sub_screen);
-        }
-
-        if (virtual_screen->GetSize() != main_view.GetSize())
-        {
-            int cdepth = virtual_screen->GetColorDepth();
-            delete virtual_screen;
-            virtual_screen = BitmapHelper::CreateBitmap(main_view.GetWidth(), main_view.GetHeight(), cdepth);
-            virtual_screen->Clear();
-            gfxDriver->SetMemoryBackBuffer(virtual_screen, main_view.Left, main_view.Top);
-        }
-
-        if (vscr_was_realscr)
-            SetVirtualScreen(BitmapHelper::GetScreenBitmap());
-        else
-            SetVirtualScreen(virtual_screen);
     }
 
     if (!gfxDriver->RequiresFullRedrawEachFrame())
@@ -516,7 +520,7 @@ void on_roomviewport_changed()
         invalidate_screen();
         // TODO: don't have to do this all the time, perhaps do "dirty rect" method
         // and only clear previous viewport location?
-        GetVirtualScreen()->Clear(0);
+        gfxDriver->GetMemoryBackBuffer()->Clear();
     }
 }
 
@@ -591,7 +595,7 @@ void render_black_borders(int atx, int aty)
 }
 
 
-void render_to_screen(Bitmap *toRender, int atx, int aty)
+void render_to_screen(int atx, int aty)
 {
     gfxDriver->SetNativeRenderOffset(atx, aty);
     const Rect &viewport = play.GetMainViewport();
@@ -675,7 +679,7 @@ void write_screen() {
     else
         gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
 
-    render_to_screen(virtual_screen, 0, at_yp);
+    render_to_screen(0, at_yp);
 }
 
 
@@ -1983,34 +1987,29 @@ void draw_fps()
     static IDriverDependantBitmap* ddb = NULL;
     static Bitmap *fpsDisplay = NULL;
 
+    const Rect &ui_view = play.GetUIViewport();
     if (fpsDisplay == NULL)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(100, (getfontheight_outlined(FONT_SPEECH) + 5), game.GetColorDepth());
+        fpsDisplay = BitmapHelper::CreateBitmap(ui_view.GetWidth(), (getfontheight_outlined(FONT_SPEECH) + 5), game.GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
-    //Bitmap *oldAbuf = ds;
-    //ds = fpsDisplay;
+    
     char tbuffer[60];
     sprintf(tbuffer,"FPS: %d",fps);
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
     wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, tbuffer);
-    //ds = oldAbuf;
+    sprintf(tbuffer, "Loop %u", loopcounter);
+    int textw = wgettextwidth(tbuffer, FONT_SPEECH);
+    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, tbuffer);
 
-    Bitmap *ds = GetVirtualScreen();
-
-    if (ddb == NULL)
-        ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
-    else
+    if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
-
-    int yp = play.GetMainViewport().GetHeight() - fpsDisplay->GetHeight();
-
+    else
+        ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
+    int yp = ui_view.GetHeight() - fpsDisplay->GetHeight();
     gfxDriver->DrawSprite(1, yp, ddb);
     invalidate_sprite(1, yp, ddb, false);
-
-    sprintf(tbuffer,"Loop %u", loopcounter);
-    draw_and_invalidate_text(ds, 250, yp, FONT_SPEECH, text_color, tbuffer);
 }
 
 // Draw GUI and overlays of all kinds, anything outside the room space
@@ -2165,30 +2164,8 @@ void put_sprite_list_on_screen(bool in_room)
 
 void draw_misc_info()
 {
-    if (display_fps) 
-    {
+    if (display_fps)
         draw_fps();
-    }
-
-    Bitmap *ds = GetVirtualScreen();
-
-    color_t text_color;
-    if (play.recording) {
-        // Flash "REC" while recording
-        text_color = ds->GetCompatibleColor (12);
-        //if ((loopcounter % (frames_per_second * 2)) > frames_per_second/2) {
-        char tformat[30];
-        sprintf (tformat, "REC %02d:%02d:%02d", replay_time / 3600, (replay_time % 3600) / 60, replay_time % 60);
-        draw_and_invalidate_text(ds, 5, 10, FONT_SPEECH, text_color, tformat);
-        //}
-    }
-    else if (play.playback) {
-        text_color = ds->GetCompatibleColor (10);
-        char tformat[30];
-        sprintf (tformat, "PLAY %02d:%02d:%02d", replay_time / 3600, (replay_time % 3600) / 60, replay_time % 60);
-
-        draw_and_invalidate_text(ds, 5, 10, FONT_SPEECH, text_color, tformat);
-    }
 
     our_eip = 1101;
 }
@@ -2210,22 +2187,6 @@ void GfxDriverOnInitCallback(void *data)
 
 
 
-
-int numOnStack = 0;
-Bitmap *screenstack[10];
-void push_screen (Bitmap *ds) {
-    if (numOnStack >= 10)
-        quit("!Too many push screen calls");
-
-    screenstack[numOnStack] = ds;
-    numOnStack++;
-}
-Bitmap *pop_screen() {
-    if (numOnStack <= 0)
-        quit("!Too many pop screen calls");
-    numOnStack--;
-    return SetVirtualScreen(screenstack[numOnStack]);
-}
 
 // update_screen: copies the contents of the virtual screen to the actual
 // screen, and draws the mouse cursor on.
@@ -2279,9 +2240,6 @@ void update_screen() {
             debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
         }
 
-        //Bitmap *ds = GetVirtualScreen();
-        //push_screen(ds);
-        //ds = debugConsoleBuffer;
         color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);
         debugConsoleBuffer->FillRect(Rect (0, 0, viewport.GetWidth() - 1, barheight), draw_color);
         color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
@@ -2289,8 +2247,6 @@ void update_screen() {
             wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
             ypp += txtspacing;
         }
-        //buf_graphics.text_color = otextc;
-        //ds = pop_screen();
 
         if (debugConsole == NULL)
             debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
@@ -2317,8 +2273,6 @@ void update_screen() {
     domouse(2);*/
 
     write_screen();
-
-    SetVirtualScreen(virtual_screen);
 
     if (!play.screen_is_faded_out) {
         // always update the palette, regardless of whether the plugin
@@ -2361,7 +2315,7 @@ void construct_virtual_screen(bool fullRedraw)
         (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
         0.f);
     gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraFrame);
-    Bitmap *ds = GetVirtualScreen();
+    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
     if (displayed_room >= 0) {
 
         if (fullRedraw)

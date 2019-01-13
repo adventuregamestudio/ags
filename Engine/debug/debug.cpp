@@ -219,13 +219,15 @@ void debug_script_log(const char *msg, ...)
 }
 
 
-const char *get_cur_script(int numberOfLinesOfCallStack) {
-    ccInstance::GetCurrentInstance()->GetCallStack(pexbuf, numberOfLinesOfCallStack);
-
-    if (pexbuf[0] == 0)
-        strcpy(pexbuf, ccErrorCallStack);
-
-    return &pexbuf[0];
+String get_cur_script(int numberOfLinesOfCallStack)
+{
+    String callstack;
+    ccInstance *sci = ccInstance::GetCurrentInstance();
+    if (sci)
+        callstack = sci->GetCallStack(numberOfLinesOfCallStack);
+    if (callstack.IsEmpty())
+        callstack = ccErrorCallStack;
+    return callstack;
 }
 
 bool get_script_position(ScriptPosition &script_pos)
@@ -250,8 +252,8 @@ int numBreakpoints = 0;
 
 bool send_message_to_editor(const char *msg, const char *errorMsg) 
 {
-    const char *callStack = get_cur_script(25);
-    if (callStack[0] == 0)
+    String callStack = get_cur_script(25);
+    if (callStack.IsEmpty())
         return false;
 
     char messageToSend[STD_BUFFER_SIZE];
@@ -259,7 +261,7 @@ bool send_message_to_editor(const char *msg, const char *errorMsg)
 #ifdef WINDOWS_VERSION
     sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", win_get_window());
 #endif
-    sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack);
+    sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack.GetCStr());
     if (errorMsg != NULL)
     {
         sprintf(&messageToSend[strlen(messageToSend)], "  <ErrorMessage><![CDATA[%s]]></ErrorMessage> ", errorMsg);
@@ -450,8 +452,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
 
     if (pluginsWantingDebugHooks > 0) {
         // a plugin is handling the debugging
-        char scname[40];
-        ccinst->GetScriptName(scname);
+        String scname = GetScriptName(ccinst);
         pl_run_plugin_debug_hooks(scname, linenum);
         return;
     }

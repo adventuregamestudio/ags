@@ -175,7 +175,8 @@ struct Interaction
 */
 
 // CLNUP probably remove this too later
-// Legacy pre-3.0 kind of global variables
+
+// Legacy pre-3.0 kind of global and local room variables
 struct InteractionVariable
 {
     String Name;
@@ -189,6 +190,8 @@ struct InteractionVariable
     void Write(Stream *out) const;
 };
 
+typedef std::vector<InteractionVariable> InterVarVector;
+
 
 // A list of script function names for all supported events
 struct InteractionScripts
@@ -197,6 +200,8 @@ struct InteractionScripts
 
     static InteractionScripts *CreateFromStream(Stream *in);
 };
+
+typedef stdtr1compat::shared_ptr<InteractionScripts> PInteractionScripts;
 
 typedef stdtr1compat::shared_ptr<InteractionScripts> PInteractionScripts;
 

@@ -77,7 +77,12 @@ void __my_wbutt(Bitmap *ds, int x1, int y1, int x2, int y2)
 
 //-----------------------------------------------------------------------------
 
-int WINAPI _export CSCIGetVersion()
+OnScreenWindow::OnScreenWindow()
+{
+    handle = -1;
+}
+
+int CSCIGetVersion()
 {
     return 0x0100;
 }
@@ -85,12 +90,12 @@ int WINAPI _export CSCIGetVersion()
 int windowcount = 0, curswas = 0;
 int win_x = 0, win_y = 0, win_width = 0, win_height = 0;
 // CLNUP dialogs are based on 320x200 coords, will need to at least center them
-int WINAPI _export CSCIDrawWindow(Bitmap *ds, int xx, int yy, int wid, int hit)
+int CSCIDrawWindow(int xx, int yy, int wid, int hit)
 {
     ignore_bounds++;
     int drawit = -1;
     for (int aa = 0; aa < MAXSCREENWINDOWS; aa++) {
-        if (oswi[aa].buffer == NULL) {
+        if (oswi[aa].handle < 0) {
             drawit = aa;
             break;
         }
@@ -105,13 +110,14 @@ int WINAPI _export CSCIDrawWindow(Bitmap *ds, int xx, int yy, int wid, int hit)
     yy -= 2;
     wid += 4;
     hit += 4;
-    oswi[drawit].buffer = wnewblock(ds, xx, yy, xx + wid, yy + hit);
+    Bitmap *ds = prepare_gui_screen(xx, yy, wid, hit, true);
     oswi[drawit].x = xx;
     oswi[drawit].y = yy;
-    __my_wbutt(ds, xx + 1, yy + 1, xx + wid - 1, yy + hit - 1);    // wbutt goes outside its area
+    __my_wbutt(ds, 0, 0, wid - 1, hit - 1);    // wbutt goes outside its area
     //  domouse(1);
     oswi[drawit].oldtop = topwindowhandle;
     topwindowhandle = drawit;
+    oswi[drawit].handle = topwindowhandle;
     win_x = xx;
     win_y = yy;
     win_width = wid;
@@ -119,19 +125,18 @@ int WINAPI _export CSCIDrawWindow(Bitmap *ds, int xx, int yy, int wid, int hit)
     return drawit;
 }
 
-void WINAPI _export CSCIEraseWindow(Bitmap *ds, int handl)
+void CSCIEraseWindow(int handl)
 {
     //  domouse(2);
     ignore_bounds--;
     topwindowhandle = oswi[handl].oldtop;
-    wputblock(ds, oswi[handl].x, oswi[handl].y, oswi[handl].buffer, 0);
-    delete oswi[handl].buffer;
+    oswi[handl].handle = -1;
     //  domouse(1);
-    oswi[handl].buffer = NULL;
     windowcount--;
+    clear_gui_screen();
 }
 
-int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
+int CSCIWaitMessage(CSCIMessage * cscim)
 {
     NextIteration();
     for (int uu = 0; uu < MAXCONTROLS; uu++) {
@@ -191,11 +196,10 @@ int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
         while (timerloop == 0) ;
     }
 
-    clear_gui_screen();
     return 0;
 }
 
-int WINAPI _export CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const char *title)
+int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const char *title)
 {
     int usec = -1;
     for (int hh = 1; hh < MAXCONTROLS; hh++) {
@@ -227,18 +231,18 @@ int WINAPI _export CSCICreateControl(int typeandflags, int xx, int yy, int wii, 
     vobjs[usec]->typeandflags = typeandflags;
     vobjs[usec]->wlevel = topwindowhandle;
     //  domouse(2);
-    vobjs[usec]->draw(GetVirtualScreen());
+    vobjs[usec]->draw( get_gui_screen() );
     //  domouse(1);
     return usec;
 }
 
-void WINAPI _export CSCIDeleteControl(int haa)
+void CSCIDeleteControl(int haa)
 {
     delete vobjs[haa];
     vobjs[haa] = NULL;
 }
 
-int WINAPI _export CSCISendControlMessage(int haa, int mess, int wPar, long lPar)
+int CSCISendControlMessage(int haa, int mess, int wPar, long lPar)
 {
     if (vobjs[haa] == NULL)
         return -1;
@@ -248,12 +252,16 @@ int WINAPI _export CSCISendControlMessage(int haa, int mess, int wPar, long lPar
 // TODO: this is silly, make a uniform formula
 int checkcontrols()
 {
+    // NOTE: this is because old code was working with full game screen
+    const int mousex = ::mousex - win_x;
+    const int mousey = ::mousey - win_y;
+
     smcode = 0;
     for (int kk = 0; kk < MAXCONTROLS; kk++) {
         if (vobjs[kk] != NULL) {
-            if (vobjs[kk]->mouseisinarea()) {
+            if (vobjs[kk]->mouseisinarea(mousex, mousey)) {
                 controlid = kk;
-                return vobjs[kk]->pressedon();
+                return vobjs[kk]->pressedon(mousex, mousey);
             }
         }
     }

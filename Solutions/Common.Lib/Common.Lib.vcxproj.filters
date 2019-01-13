@@ -266,11 +266,11 @@
     <ClCompile Include="..\..\Common\game\roomstruct.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\game\roomstruct.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\ac\animationstruct.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>

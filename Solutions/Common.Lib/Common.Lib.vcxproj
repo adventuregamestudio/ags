@@ -274,7 +274,6 @@
     <ClCompile Include="..\..\Common\util\wgt2allg.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\ac\animationstruct.h" />
     <ClInclude Include="..\..\Common\ac\audiocliptype.h" />
     <ClInclude Include="..\..\Common\ac\characterinfo.h" />
     <ClInclude Include="..\..\Common\ac\common.h" />

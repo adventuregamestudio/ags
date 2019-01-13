@@ -168,8 +168,8 @@ void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (!load_messages[ee]) continue;
-        messages[ee]=(char*)malloc(500);
-        read_string_decrypt(in, messages[ee], 500);
+        messages[ee]=(char*)malloc(GLOBALMESLENGTH);
+        read_string_decrypt(in, messages[ee], GLOBALMESLENGTH);
     }
     delete [] load_messages;
     load_messages = NULL;

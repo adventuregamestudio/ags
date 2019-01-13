@@ -13,12 +13,10 @@
 //=============================================================================
 
 #include "gui/newcontrol.h"
+#include "gui/guidialog.h"
 #include "gui/guidialoginternaldefs.h"
 
 extern int topwindowhandle;
-extern int mousex, mousey;
-
-extern Common::Bitmap *GetVirtualScreen();
 
 NewControl::NewControl(int xx, int yy, int wi, int hi)
 {
@@ -35,7 +33,7 @@ NewControl::NewControl() {
     visible = 1;
     enabled = 1;
 }
-int NewControl::mouseisinarea()
+int NewControl::mouseisinarea(int mousex, int mousey)
 {
     if (topwindowhandle != wlevel)
         return 0;
@@ -51,12 +49,12 @@ void NewControl::drawifneeded()
         return;
     if (needredraw) {
         needredraw = 0;
-        draw(GetVirtualScreen());
+        draw(get_gui_screen());
     }
 }
 void NewControl::drawandmouse()
 {
     //    domouse(2);
-    draw(GetVirtualScreen());
+    draw(get_gui_screen());
     //  domouse(1);
 }

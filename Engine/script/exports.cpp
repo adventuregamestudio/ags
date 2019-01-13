@@ -44,6 +44,7 @@ extern void RegisterOverlayAPI();
 extern void RegisterParserAPI();
 extern void RegisterRegionAPI();
 extern void RegisterRoomAPI();
+extern void RegisterScreenAPI();
 extern void RegisterSliderAPI();
 extern void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
 extern void RegisterStringAPI();
@@ -82,6 +83,7 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     RegisterParserAPI();
     RegisterRegionAPI();
     RegisterRoomAPI();
+    RegisterScreenAPI();
     RegisterSliderAPI();
     RegisterSpeechAPI(base_api, compat_api);
     RegisterStringAPI();

@@ -178,9 +178,9 @@ void SkipSaveImage(Stream *in)
 HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
 {
     svg_ver = (SavegameVersion)in->ReadInt32();
-    if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current || svg_ver == kSvgVersion_Components)
+    if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
         return new SavegameError(kSvgErr_FormatVersionNotSupported,
-            String::FromFormat("Required: %d, supported: %d - %d (except 9).", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
+            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
 
     // Enviroment information
     if (elems & kSvgDesc_EnvInfo)
@@ -190,7 +190,8 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         desc.GameGuid = StrUtil::ReadString(in);
         desc.GameTitle = StrUtil::ReadString(in);
         desc.MainDataFilename = StrUtil::ReadString(in);
-        desc.MainDataVersion = (GameDataVersion)in->ReadInt32();
+        if (svg_ver >= kSvgVersion_Cmp_64bit)
+            desc.MainDataVersion = (GameDataVersion)in->ReadInt32();
         desc.ColorDepth = in->ReadInt32();
     }
     else
@@ -200,7 +201,8 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         StrUtil::SkipString(in);
         StrUtil::SkipString(in);
         StrUtil::SkipString(in);
-        in->ReadInt32(); // game data version
+        if (svg_ver >= kSvgVersion_Cmp_64bit)
+            in->ReadInt32(); // game data version
         in->ReadInt32(); // color depth
     }
     // User description
@@ -449,7 +451,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     if (create_global_script())
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Unable to recreate global script: %s", ccErrorString));
+            String::FromFormat("Unable to recreate global script: %s", ccErrorString.GetCStr()));
     }
 
     // read the global data into the newly created script

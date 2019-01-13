@@ -18,15 +18,19 @@ Editor:
    Editor finds them in both program folder and AppData.
  - New revamped sprite import window.
  - Sprites that were created using tiled import can now be properly reimported from source.
+ - Added context menu command to open sprite's source file location.
+ - New sprite export dialog that lets you configure some export preferences, including
+   remapping sprite source paths.
  - New navigation bar in the room editor, which allows to select any room object
    or region for editing, show/hide and lock room objects and regions in any combination.
    These settings are saved in the special roomXXX.crm.user files.
+ - Improved how Room zoom slider works, now supports downscale.
+ - Added "Export mask to file" tool button to the Room Editor.
  - Allow room size to be smaller than the game's resolution.
  - Removed Locked property from the Room Object, objects are now locked by the navbar.
  - Split GUI's Visibility property into PopupStyle and Visible properties.
  - Added Clickable, Enabled and Visible properties to GUI Controls.
- - Improved how Room zoom slider works, now supports downscale.
- - Added "Export mask to file" tool button to the Room Editor.
+ - Display audio clip length on the preview pane without starting playback.
  - Added "Always"choice to "Popup message on compile" preference. Successful compilation
    popup will only be displayed if "Always" choice is selected.
  - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
@@ -40,13 +44,20 @@ Editor:
    horizontally prior to their creation.
  - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key controls.
  - Fixed GUI or Room editors sometimes allowed to scroll beyond necessary limits.
+ - Fixed MIDI audio preview was resetting all instruments to default (piano) after pausing
+   and resuming playback.
+ - Fixed MIDI audio preview had wrong control states set when pausing a playback.
  - Fixed rooms not being rebuilt when running game just created from a template.
  - Fixed translations were not available for the test run if game was not fully rebuilt yet.
  - Fixed Windows Explorer was sometimes locking the game files during compilation.
 
 Script API:
+ - Introduced new managed struct Point describing (x,y) coordinates.
  - Implemented Viewport and Camera script classes which control how room is displayed on screen.
- - Added properties Game.AutoSizeViewportOnRoomLoad, Game.Viewport, Room.Camera.
+ - Implemented Screen struct with a number of static functions and properties, which notably
+   features a reference to the primary Viewport. Deprecated System's ScreenWidth, ScreenHeight,
+   ViewportWidth and ViewportHeight in favor of Screen's properties.
+ - Added Room.Camera property that references primary room camera.
  - Replaced Alignment enum with a new one which has eight values from TopLeft to BottomRight.
  - Renamed old Alignment enum to HorizontalAlignment, intended for parameters that are
    only allowed to be Left, Center or Right.
@@ -73,13 +84,17 @@ Engine:
  - Expanded some of the error messages providing more information to end-user and developers.
  - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
  - Made engine fallback to defaults if config contains invalid game scaling setting.
+ - Fixed some compilers could instigate a crash in the on_event callback with no loaded room.
  - Fixed old-style string functions like StrCopy could crash the game if user managed object's
    member is passed as an argument into them.
- - Fixed 'warnings.log' could never be created (was broken in earlier versions).
- - Fixed crash in the Software renderer which was occuring when any other renderers are tried
-   prior to Software one but failed to initialize for any reason.
+ - Fixed a new crash issue with the legacy InventoryScreen() command.
+ - Fixed crash in the Software renderer which was occuring if it failed anytime after setting
+   display mode but prior to initializing scaling filter.
+ - Fixed graphic artifacts looking like thin vertical lines around sprites when running OpenGL
+   renderer (aka "texel leaking").
  - Fixed 8-bit sprites could have broken colours if game is run using Direct3D or OpenGL.
  - Fixed broken colours during fade-in and fade-out in 16-bit games.
+ - Fixed 'warnings.log' could never be created (was broken in earlier versions).
 
 Linux:
  - Fixes Linux game launch script (fixes issues with itch.io client).

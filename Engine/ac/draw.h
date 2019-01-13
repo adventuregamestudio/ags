@@ -56,6 +56,9 @@ struct CachedActSpsData {
     int valid;
 };
 
+// Converts AGS color index to the actual bitmap color using game's color depth
+int MakeColor(int color_index);
+
 // Initializes drawing methods and optimisation
 void init_draw_method();
 // Disposes resources related to the current drawing methods
@@ -84,8 +87,6 @@ void invalidate_cached_walkbehinds();
 // Avoid freeing and reallocating the memory if possible
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
 Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *bimp, Common::Bitmap *source, bool hasAlpha = false, bool opaque = false);
-void push_screen (Common::Bitmap *ds);
-Common::Bitmap *pop_screen();
 void update_screen();
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
@@ -99,7 +100,8 @@ void draw_sprite_slot_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int x
 // CLNUP I'd like to put the default parameters to draw_gui_sprite, but the extern from guiman.h prevents it
 void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode);
 //void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
-void render_to_screen(Common::Bitmap *toRender, int atx, int aty);
+// Render game on screen with the given custom offset
+void render_to_screen(int atx = 0, int aty = 0);
 void draw_screen_callback();
 void write_screen();
 void GfxDriverOnInitCallback(void *data);
@@ -116,13 +118,6 @@ void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, colo
 
 void setpal();
 
-// These functions are converting coordinates between native game units and
-// pre-scaled game frame units. The first are units used in game data and script,
-// and second are used when displaying things in the game's viewport.
-// This conversion is done *before* scaling game's frame further in the window
-// (which is a separate task done by graphics renderer and its filters).
-// coordinate conversion game ---> screen
-// coordinate conversion screen ---> game
 // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
 // had to be created (by default).
 // TODO: this helper function was meant to remove bitmap deletion from the GraphicsDriver's
@@ -136,11 +131,13 @@ Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
 Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
 // Same as above, but compatible for std::shared_ptr.
 Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool has_alpha);
+// Makes a screenshot corresponding to the last screen render and returns it as a bitmap
+// of the requested width and height and game's native color depth.
+Common::Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res = false);
 
 
-// Pointer to the real screen bitmap created by Allegro
-extern Common::Bitmap *real_screen;
-// Subsection of the real screen, used when the room size is smaller than the game's size
-extern Common::Bitmap *sub_screen;
+// Subsection of a virtual screen, used by the Software renderer
+// when the room size is smaller than the game's size.
+extern Common::Bitmap *sub_vscreen;
 
 #endif // __AGS_EE_AC__DRAW_H

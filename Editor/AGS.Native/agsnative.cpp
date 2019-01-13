@@ -66,6 +66,7 @@ inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int
 }
 
 void save_room_file(const char *path);
+
 bool enable_greyed_out_masks = true;
 bool outlineGuiObjects;
 color*palette;
@@ -642,7 +643,7 @@ enum RoomAreaMask
 };
 
 // TODO: mask's bitmap, as well as coordinate factor, should be a property of the room or some room's mask class
-Common::Bitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
+AGSBitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
     // TODO: create weak_ptr here?
 	switch (maskType) 
@@ -654,7 +655,7 @@ Common::Bitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 	}
     return NULL;
 }
-
+    // TODO: create weak_ptr here?
 float get_scale_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
     switch (maskType)
@@ -3697,50 +3698,6 @@ void quit(const char * message)
 
 
 
-// ** GRAPHICAL SCRIPT LOAD/SAVE ROUTINES ** //
-
-long getlong(Stream*iii) {
-  long tmm;
-  tmm = iii->ReadInt32();
-  return tmm;
-}
-
-void save_script_configuration(Stream*iii) {
-  // no variable names
-  iii->WriteInt32 (1);
-  iii->WriteInt32 (0);
-}
-
-void load_script_configuration(Stream*iii) { int aa;
-  if (getlong(iii)!=1) quit("ScriptEdit: invliad config version");
-  int numvarnames=getlong(iii);
-  for (aa=0;aa<numvarnames;aa++) {
-    int lenoft=iii->ReadByte();
-    iii->Seek(lenoft);
-  }
-}
-
-void save_graphical_scripts(Stream*fff,RoomStruct*rss) {
-  // no script
-  fff->WriteInt32 (-1);
-}
-
-char*scripttempn="~acsc%d.tmp";
-void load_graphical_scripts(Stream*iii,RoomStruct*rst, RoomFileVersion data_ver) {
-  long ct;
-  bool doneMsg = false;
-  while (1) {
-    ct = iii->ReadInt32();
-    if ((ct==-1) | (iii->EOS()!=0)) break;
-    if (!doneMsg) {
-//      infoBox("WARNING: This room uses graphical scripts, which have been removed from this version. If you save the room now, all graphical scripts will be lost.");
-      doneMsg = true;
-    }
-    // skip the data
-    soff_t lee = data_ver < kRoomVersion_350 ? iii->ReadInt32() : iii->ReadInt64();
-    iii->Seek (lee);
-  }
-}
 
 void update_polled_stuff_if_runtime()
 {

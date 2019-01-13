@@ -166,12 +166,17 @@ bool VideoMemoryGraphicsDriver::UsesMemoryBackBuffer()
 
 Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
 {
-    _stageScreenDirty = true;
-    return _stageVirtualScreen.get();
+    return NULL;
 }
 
 void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
 { // do nothing, video-memory drivers don't use main back buffer, only stage bitmaps they pass to plugins
+}
+
+Bitmap *VideoMemoryGraphicsDriver::GetStageBackBuffer()
+{
+    _stageScreenDirty = true;
+    return _stageVirtualScreen.get();
 }
 
 PBitmap VideoMemoryGraphicsDriver::CreateStageScreen(size_t index, const Size &sz)
@@ -201,7 +206,6 @@ void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
     for (size_t i = 0; i < _stageScreens.size(); ++i)
         _stageScreens[i].reset();
     _stageVirtualScreen.reset();
-    BitmapHelper::SetScreenBitmap(NULL);
 }
 
 bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)

@@ -32,7 +32,6 @@ using namespace Engine;
 
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
-extern Bitmap *virtual_screen;
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int crovr_id;  // whether using SetTextOverlay or CreateTextOvelay
@@ -45,13 +44,9 @@ void RemoveOverlay(int ovrid) {
 
 int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
     Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slott].Width, game.SpriteInfos[slott].Height, game.GetColorDepth());
-    Bitmap *ds = SetVirtualScreen(screeno);
-    wputblock(ds, 0,0,spriteset[slott],trans);
-
+    wputblock(screeno, 0,0,spriteset[slott],trans);
     bool hasAlpha = (game.SpriteInfos[slott].Flags & SPF_ALPHACHANNEL) != 0;
     int nse = add_screen_overlay(xx, yy, OVER_CUSTOM, screeno, hasAlpha);
-
-    SetVirtualScreen(virtual_screen);
     return screenover[nse].type;
 }
 

@@ -350,6 +350,12 @@ enum eKeyCode
   eKeyF12 = 434
 };
 
+#ifdef SCRIPT_API_v350
+managed struct Point {
+	int x, y;
+};
+#endif
+
 #define CHARID int  // $AUTOCOMPLETEIGNORE$
 builtin struct ColorType {
   char r,g,b;
@@ -622,12 +628,6 @@ builtin managed struct Game {
   readonly import static attribute int AudioClipCount;
   /// Accesses the audio clips collection.
   readonly import static attribute AudioClip *AudioClips[];
-#ifdef SCRIPT_API_v350
-  /// Gets/sets whether the viewport should automatically adjust itself and camera to the new room's background size
-  import static attribute bool AutoSizeViewportOnRoomLoad;
-  /// Gets the room viewport
-  import static readonly attribute Viewport *RoomViewport;
-#endif
 };
 
 builtin managed struct Parser {
@@ -1539,12 +1539,14 @@ builtin managed struct AudioClip {
 };
 
 builtin struct System {
+#ifdef SCRIPT_COMPAT_v341
   readonly int  screen_width,screen_height;
   readonly int  color_depth;
   readonly int  os;
   readonly int  windowed;
   int  vsync;
   readonly int  viewport_width, viewport_height;
+#endif
   /// Gets whether Caps Lock is currently on.
   readonly import static attribute bool CapsLock;
   /// Gets a specific audio channel instance.
@@ -1561,20 +1563,24 @@ builtin struct System {
   readonly import static attribute bool NumLock;
   /// Gets which operating system the game is running on.
   readonly import static attribute eOperatingSystem OperatingSystem;
+#ifdef SCRIPT_COMPAT_v341
   /// Gets the screen height of the current resolution.
   readonly import static attribute int  ScreenHeight;
   /// Gets the screen width of the current resolution.
   readonly import static attribute int  ScreenWidth;
+#endif
   /// Gets whether Scroll Lock is currently on.
   readonly import static attribute bool ScrollLock;
   /// Gets whether the player's system supports gamma adjustment.
   readonly import static attribute bool SupportsGammaControl;
   /// Gets the AGS engine version number.
   readonly import static attribute String Version;
+#ifdef SCRIPT_COMPAT_v341
   /// Gets the height of the visible area in which the game is displayed.
   readonly import static attribute int  ViewportHeight;
   /// Gets the width of the visible area in which the game is displayed.
   readonly import static attribute int  ViewportWidth;
+#endif
   /// Gets/sets the audio output volume, from 0-100.
   import static attribute int  Volume;
   /// Gets/sets whether waiting for the vertical sync is enabled.
@@ -2038,8 +2044,7 @@ builtin struct Speech {
 };
 
 #ifdef SCRIPT_API_v350
-builtin managed struct Camera
-{
+builtin managed struct Camera {
   /// Gets/sets the X position of this camera in the room.
   import attribute int X;
   /// Gets/sets the Y position of this camera in the room.
@@ -2048,17 +2053,17 @@ builtin managed struct Camera
   import attribute int Width;
   /// Gets/sets the camera's capture height in room coordinates.
   import attribute int Height;
-  /// Gets/sets this camera's room horizontal scaling relative to the viewport it is displayed in.
-  import attribute float ScaleX;
-  /// Gets/sets this camera's room vertical scaling relative to the viewport it is displayed in.
-  import attribute float ScaleY;
 
   /// Gets/sets whether this camera will follow the player character automatically.
   import attribute bool AutoTracking;
+
+  /// Changes camera position in the room and disables automatic tracking of the player character.
+  import void SetAt(int x, int y);
+  /// Changes camera's capture dimensions in room coordinates.
+  import void SetSize(int width, int height);
 };
 
-builtin managed struct Viewport
-{
+builtin managed struct Viewport {
   /// Gets/sets the X position on the screen where this viewport is located.
   import attribute int X;
   /// Gets/sets the Y position on the screen where this viewport is located.
@@ -2069,6 +2074,29 @@ builtin managed struct Viewport
   import attribute int Height;
   /// Gets the room camera displayed in this viewport.
   import readonly attribute Camera *Camera;
+
+  /// Returns the viewport at the specified screen location.
+  import static Viewport *GetAtScreenXY(int x, int y);
+  /// Changes viewport's position on the screen
+  import void SetPosition(int x, int y, int width, int height);
+  /// Returns the point in room corresponding to the given screen coordinates if seen through this viewport.
+  import Point *ScreenToRoomPoint(int scrx, int scry, bool clipViewport = true);
+  /// Returns the point on screen corresponding to the given room coordinates if seen through this viewport.
+  import Point *RoomToScreenPoint(int roomx, int roomy, bool clipViewport = true);
+};
+
+builtin struct Screen {
+  /// Gets the width of the game resolution.
+  import static readonly attribute int Width;
+  /// Gets the height of the game resolution.
+  import static readonly attribute int Height;
+  /// Gets/sets whether the viewport should automatically adjust itself and camera to the new room's background size
+  import static attribute bool AutoSizeViewportOnRoomLoad;
+  /// Gets the primary room viewport
+  import static readonly attribute Viewport *Viewport;
+
+  /// Returns the point in room which is displayed at the given screen coordinates
+  import static Point *ScreenToRoomPoint(int sx, int sy);
 };
 #endif
 

@@ -46,7 +46,6 @@ extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 
 extern color palette[256];
-extern Bitmap *virtual_screen;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
 
 char check_dynamic_sprites_at_exit = 1;
@@ -291,46 +290,22 @@ ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename) {
 
 ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
 
+    // TODO: refactor and merge with create_savegame_screenshot()
+
     int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)
         return NULL;
 
+    const Rect &viewport = play.GetMainViewport();
     if (width <= 0)
-        width = virtual_screen->GetWidth();
+        width = viewport.GetWidth();
 
     if (height <= 0)
-        height = virtual_screen->GetHeight();
+        height = viewport.GetHeight();
 
-    Bitmap *newPic;
-    if (!gfxDriver->UsesMemoryBackBuffer()) 
-    {
-        const Rect &viewport = play.GetMainViewport();
-        Bitmap *scrndump = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight(), game.GetColorDepth());
-        gfxDriver->GetCopyOfScreenIntoBitmap(scrndump);
+    Bitmap *newPic = CopyScreenIntoBitmap(width, height);
 
-        update_polled_stuff_if_runtime();
-
-        if ((viewport.GetWidth() != width) || (viewport.GetHeight() != height))
-        {
-            newPic = BitmapHelper::CreateBitmap(width, height, game.GetColorDepth());
-            newPic->StretchBlt(scrndump,
-                RectWH(0, 0, scrndump->GetWidth(), scrndump->GetHeight()),
-                RectWH(0, 0, width, height));
-            delete scrndump;
-        }
-        else
-        {
-            newPic = scrndump;
-        }
-    }
-    else
-    {
-        // resize the sprite to the requested size
-        newPic = BitmapHelper::CreateBitmap(width, height, virtual_screen->GetColorDepth());
-        newPic->StretchBlt(virtual_screen,
-            RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
-            RectWH(0, 0, width, height));
-    }
+    update_polled_stuff_if_runtime();
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, ReplaceBitmapWithSupportedFormat(newPic));

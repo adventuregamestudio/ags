@@ -121,13 +121,10 @@ void set_mouse_cursor(int newcurs) {
                     game.invhotdotsprite);
             }
             else {
-                putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty,
-                    (dotted_mouse_cursor->GetColorDepth() > 8) ? GetVirtualScreen()->GetCompatibleColor (game.hotdot) : game.hotdot);
+                putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty, MakeColor(game.hotdot));
 
                 if (game.hotdotouter > 0) {
-                    int outercol = game.hotdotouter;
-                    if (dotted_mouse_cursor->GetColorDepth () > 8)
-                        outercol = GetVirtualScreen()->GetCompatibleColor(game.hotdotouter);
+                    int outercol = MakeColor(game.hotdotouter);
 
                     putpixel_compensate (dotted_mouse_cursor, hotspotx + 1, hotspoty, outercol);
                     putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty + 1, outercol);

@@ -29,7 +29,7 @@ struct MyListBox:public NewControl
   ~MyListBox();
 
   void draw(Common::Bitmap *ds);
-  int pressedon();
+  int pressedon(int mousex, int mousey);
   void additem(char *texx);
   int processmessage(int mcode, int wParam, long lParam);
 };

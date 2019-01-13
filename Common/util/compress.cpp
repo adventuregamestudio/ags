@@ -295,18 +295,10 @@ int cunpackbitl32(unsigned int *line, int size, Stream *in)
 
 char *lztempfnm = "~aclzw.tmp";
 
-// returns bytes per pixel for bitmap's color depth
-int bmp_bpp(Bitmap*bmpt) {
-  if (bmpt->GetColorDepth() == 15)
-    return 2;
-
-  return bmpt->GetColorDepth() / 8;
-}
-
 void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
 {
   // First write original bitmap into temporary file
-  Stream *lz_temp_s = ci_fopen(lztempfnm, Common::kFile_CreateAlways, Common::kFile_Write);
+  Stream *lz_temp_s = ci_fopen(lztempfnm, kFile_CreateAlways, kFile_Write);
   lz_temp_s->WriteInt32(bmpp->GetWidth() * bmpp->GetBPP());
   lz_temp_s->WriteInt32(bmpp->GetHeight());
   lz_temp_s->WriteArray(bmpp->GetData(), bmpp->GetLineLength(), bmpp->GetHeight());
@@ -356,8 +348,8 @@ void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall)
   loptr = (int *)&membuffer[0];
   membuffer += 8;
 #if defined(AGS_BIG_ENDIAN)
-  loptr[0] = AGS::Common::BBOp::SwapBytesInt32(loptr[0]);
-  loptr[1] = AGS::Common::BBOp::SwapBytesInt32(loptr[1]);
+  loptr[0] = BBOp::SwapBytesInt32(loptr[0]);
+  loptr[1] = BBOp::SwapBytesInt32(loptr[1]);
   int bitmapNumPixels = loptr[0]*loptr[1]/ dst_bpp;
   switch (dst_bpp) // bytes per pixel!
   {
@@ -371,7 +363,7 @@ void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall)
       short *sp = (short *)membuffer;
       for (int i = 0; i < bitmapNumPixels; ++i)
       {
-        sp[i] = AGS::Common::BBOp::SwapBytesInt16(sp[i]);
+        sp[i] = BBOp::SwapBytesInt16(sp[i]);
       }
       // all done
       break;
@@ -381,7 +373,7 @@ void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall)
       int *ip = (int *)membuffer;
       for (int i = 0; i < bitmapNumPixels; ++i)
       {
-        ip[i] = AGS::Common::BBOp::SwapBytesInt32(ip[i]);
+        ip[i] = BBOp::SwapBytesInt32(ip[i]);
       }
       // all done
       break;
@@ -448,6 +440,5 @@ void loadcompressed_allegro(Stream *in, Bitmap **bimpp, color *pall)
   }
 
   in->Seek(768);  // skip palette
-
   *bimpp = bim;
 }

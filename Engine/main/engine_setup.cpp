@@ -41,7 +41,6 @@ extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
 extern IGraphicsDriver *gfxDriver;
-extern Bitmap *virtual_screen;
 
 // CLNUP most likely remove these
 int convert_16bit_bgr = 0;
@@ -119,7 +118,7 @@ void engine_init_resolution_settings(const Size game_size)
     play.SetMainViewport(viewport);
     play.SetUIViewport(viewport);
     play.SetRoomViewport(viewport);
-    play.SetRoomCameraAutoSize();
+    play.SetRoomCameraSize(viewport.GetSize());
 
     wtext_multiply = 1;
     play.SetNativeSize(game_size);
@@ -153,36 +152,23 @@ void engine_pre_gfxmode_driver_cleanup()
 // Setup virtual screen
 void engine_post_gfxmode_screen_setup(const DisplayMode &dm, bool recreate_bitmaps)
 {
-    real_screen = BitmapHelper::GetScreenBitmap();
     if (recreate_bitmaps)
     {
-        delete sub_screen;
-        sub_screen = NULL;
-        // TODO: find out if we need _sub_screen to be recreated right away here
-
-        virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
+        // TODO: find out if 
+        // - we need to support this case at all;
+        // - if yes then which bitmaps need to be recreated (probably only video bitmaps and textures?)
     }
-    virtual_screen->Clear();
-    // TODO: unify these two calls, the virtual screen must be the same thing in both!
-    SetVirtualScreen(virtual_screen);
-    gfxDriver->SetMemoryBackBuffer(virtual_screen);
 }
 
 void engine_pre_gfxmode_screen_cleanup()
 {
-    SetVirtualScreen(NULL);
-    // allegro_exit assumes screen is correct
-    if (real_screen)
-        BitmapHelper::SetScreenBitmap(real_screen);
 }
 
 // Release virtual screen
 void engine_pre_gfxsystem_screen_destroy()
 {
-    delete sub_screen;
-    sub_screen = NULL;
-    delete virtual_screen;
-    virtual_screen = NULL;
+    delete sub_vscreen;
+    sub_vscreen = NULL;
 }
 
 // Setup color conversion parameters

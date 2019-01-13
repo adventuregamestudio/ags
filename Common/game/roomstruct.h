@@ -137,6 +137,7 @@ struct RoomEdges
     int32_t Bottom;
 
     RoomEdges();
+    RoomEdges(int l, int r, int t, int b);
 };
 
 // Room hotspot description
@@ -320,7 +321,7 @@ public:
 };
 
 
-void load_room(const char *file, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos);
+void load_room(const char *filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos);
 
 } // namespace Common
 } // namespace AGS

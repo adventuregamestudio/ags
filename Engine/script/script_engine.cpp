@@ -30,75 +30,23 @@
 namespace AGS { namespace Common { class RoomStruct; } }
 using namespace AGS::Common;
 
-char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";
-
-#define SCRIPT_CONFIG_VERSION 1
 extern void quit(const char *);
 extern int currentline; // in script/script_common
 
-void cc_error_at_line(char *buffer, const char *error_msg)
+std::pair<String, String> cc_error_at_line(const char *error_msg)
 {
-    if (ccInstance::GetCurrentInstance() == NULL) {
-        sprintf(ccErrorString, "Error (line %d): %s", currentline, error_msg);
+    ccInstance *sci = ccInstance::GetCurrentInstance();
+    if (!sci)
+    {
+        return std::make_pair(String::FromFormat("Error (line %d): %s", currentline, error_msg), String());
     }
-    else {
-        sprintf(ccErrorString, "Error: %s\n", error_msg);
-        ccInstance::GetCurrentInstance()->GetCallStack(ccErrorCallStack, 5);
-    }
-}
-
-void cc_error_without_line(char *buffer, const char *error_msg)
-{
-    sprintf(ccErrorString, "Runtime error: %s", error_msg);
-}
-
-void save_script_configuration(Stream *out)
-{
-    quit("ScriptEdit: run-time version can't save");
-}
-
-void load_script_configuration(Stream *in)
-{
-    int aa;
-    if (in->ReadInt32() != SCRIPT_CONFIG_VERSION)
-        quit("ScriptEdit: invalid config version");
-
-    int numvarnames = in->ReadInt32();
-    for (aa = 0; aa < numvarnames; aa++) {
-        int lenoft = in->ReadByte();
-        in->Seek(lenoft);
+    else
+    {
+        return std::make_pair(String::FromFormat("Error: %s\n", error_msg), ccInstance::GetCurrentInstance()->GetCallStack(5).GetCStr());
     }
 }
 
-void save_graphical_scripts(Stream *out, RoomStruct * rss)
+String cc_error_without_line(const char *error_msg)
 {
-    quit("ScriptEdit: run-time version can't save");
-}
-
-char *scripttempn = "~acsc%d.tmp";
-
-void load_graphical_scripts(Stream *in, RoomStruct * rst)
-{
-    int32_t ct;
-
-    while (1) {
-        ct = in->ReadInt32();
-        if ((ct == -1) | (in->EOS() != 0))
-            break;
-
-        int32_t lee;
-        lee = in->ReadInt32();
-
-        char thisscn[20];
-        sprintf(thisscn, scripttempn, ct);
-        Stream *te = File::CreateFile(thisscn);
-
-        char *scnf = (char *)malloc(lee);
-        // MACPORT FIX: swap size and nmemb
-        in->Read(scnf, lee);
-        te->Write(scnf, lee);
-        delete te;
-
-        free(scnf);
-    }
+    return String::FromFormat("Runtime error: %s", error_msg);
 }

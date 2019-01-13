@@ -28,13 +28,15 @@ using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
+extern GameSetupStruct game;
 
 // from ac_game
 extern char saveGameDirectory[260];
 
+// TODO: store drawing surface inside old gui classes instead
 int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
 Bitmap *windowBuffer;
-IDriverDependantBitmap *dialogBmp;
+IDriverDependantBitmap *dialogDDB;
 
 #undef MAXSAVEGAMES
 #define MAXSAVEGAMES 20
@@ -50,61 +52,65 @@ CSCIMessage smes;
 char buff[200];
 int myscrnwid = 320, myscrnhit = 200;
 
+//
+// TODO: rewrite the whole thing to work inside the main game update and render loop!
+//
 
-void prepare_gui_screen(int x, int y, int width, int height, bool opaque)
+Bitmap *prepare_gui_screen(int x, int y, int width, int height, bool opaque)
 {
-    clear_gui_screen();
     windowPosX = x;
     windowPosY = y;
     windowPosWidth = width;
     windowPosHeight = height;
     if (windowBuffer)
     {
-        windowBuffer = recycle_bitmap(windowBuffer, windowPosWidth, windowPosHeight, windowBuffer->GetColorDepth(), !opaque);
+        windowBuffer = recycle_bitmap(windowBuffer, windowBuffer->GetColorDepth(), windowPosWidth, windowPosHeight, !opaque);
     }
     else
     {
-        windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, GetVirtualScreen()->GetColorDepth());
+        windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, game.GetColorDepth());
         windowBuffer = ReplaceBitmapWithSupportedFormat(windowBuffer);
     }
-    dialogBmp = recycle_ddb_bitmap(dialogBmp, windowBuffer, false, opaque);
+    dialogDDB = recycle_ddb_bitmap(dialogDDB, windowBuffer, false, opaque);
+    return windowBuffer;
+}
+
+Bitmap *get_gui_screen()
+{
+    return windowBuffer;
 }
 
 void clear_gui_screen()
 {
-    if (dialogBmp)
-        gfxDriver->DestroyDDB(dialogBmp);
-    dialogBmp = NULL;
+    if (dialogDDB)
+        gfxDriver->DestroyDDB(dialogDDB);
+    dialogDDB = NULL;
     delete windowBuffer;
     windowBuffer = NULL;
 }
 
 void refresh_gui_screen()
 {
-    Bitmap *ds = GetVirtualScreen();
-    windowBuffer->Blit(ds, windowPosX, windowPosY, 0, 0, windowPosWidth, windowPosHeight);
-    gfxDriver->UpdateDDBFromBitmap(dialogBmp, windowBuffer, false);
-
-    render_graphics(dialogBmp, windowPosX, windowPosY);
-
-    // Copy it back, because the mouse will have been drawn on top
-    ds->Blit(windowBuffer, 0, 0, windowPosX, windowPosY, windowPosWidth, windowPosHeight);
+    gfxDriver->UpdateDDBFromBitmap(dialogDDB, windowBuffer, false);
+    render_graphics(dialogDDB, windowPosX, windowPosY);
 }
 
 int loadgamedialog()
 {
-  int boxleft = myscrnwid / 2 - 100;
-  int boxtop = myscrnhit / 2 - 60;
-  int buttonhit = usetup.textheight + 5;
-  Bitmap *ds = GetVirtualScreen();
-  int handl = CSCIDrawWindow(ds, boxleft, boxtop, 200, 120);
+  const int wnd_width = 200;
+  const int wnd_height = 120;
+  const int boxleft = myscrnwid / 2 - wnd_width / 2;
+  const int boxtop = myscrnhit / 2 - wnd_height / 2;
+  const int buttonhit = usetup.textheight + 5;
+
+  int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);
   int ctrlok =
-    CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, boxleft + 135, boxtop + 5, 60, 10, get_global_message(MSG_RESTORE));
+    CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 135, 5, 60, 10, get_global_message(MSG_RESTORE));
   int ctrlcancel =
-    CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, boxleft + 135, boxtop + 5 + buttonhit, 60, 10,
+    CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 135, 5 + buttonhit, 60, 10,
                       get_global_message(MSG_CANCEL));
-  int ctrllist = CSCICreateControl(CNT_LISTBOX, boxleft + 10, boxtop + 30, 120, 80, NULL);
-  int ctrltex1 = CSCICreateControl(CNT_LABEL, boxleft + 10, boxtop + 5, 120, 0, get_global_message(MSG_SELECTLOAD));
+  int ctrllist = CSCICreateControl(CNT_LISTBOX, 10, 30, 120, 80, NULL);
+  int ctrltex1 = CSCICreateControl(CNT_LABEL, 10, 5, 120, 0, get_global_message(MSG_SELECTLOAD));
   CSCISendControlMessage(ctrllist, CLB_CLEAR, 0, 0);
 
   preparesavegamelist(ctrllist);
@@ -112,7 +118,7 @@ int loadgamedialog()
   lpTemp = NULL;
   int toret = -1;
   while (1) {
-    CSCIWaitMessage(ds, &mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
+    CSCIWaitMessage(&mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
     if (mes.code == CM_COMMAND) {
       if (mes.id == ctrlok) {
         int cursel = CSCISendControlMessage(ctrllist, CLB_GETCURSEL, 0, 0);
@@ -136,7 +142,7 @@ int loadgamedialog()
   CSCIDeleteControl(ctrllist);
   CSCIDeleteControl(ctrlok);
   CSCIDeleteControl(ctrlcancel);
-  CSCIEraseWindow(ds, handl);
+  CSCIEraseWindow(handl);
   return toret;
 }
 
@@ -146,16 +152,18 @@ int savegamedialog()
   strcpy(okbuttontext, get_global_message(MSG_SAVEBUTTON));
   char labeltext[200];
   strcpy(labeltext, get_global_message(MSG_SAVEDIALOG));
-  int boxleft = myscrnwid / 2 - 100;
-  int boxtop = myscrnhit / 2 - 60;
-  int buttonhit = usetup.textheight + 5;
-  int labeltop = boxtop + 5;
-  Bitmap *ds = GetVirtualScreen();
-  int handl = CSCIDrawWindow(ds, boxleft, boxtop, 200, 120);
+  const int wnd_width = 200;
+  const int wnd_height = 120;
+  const int boxleft = myscrnwid / 2 - wnd_width / 2;
+  const int boxtop = myscrnhit / 2 - wnd_height / 2;
+  const int buttonhit = usetup.textheight + 5;
+  int labeltop = 5;
+
+  int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);
   int ctrlcancel =
-    CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, boxleft + 135, boxtop + 5 + buttonhit, 60, 10,
+    CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 135, 5 + buttonhit, 60, 10,
                       get_global_message(MSG_CANCEL));
-  int ctrllist = CSCICreateControl(CNT_LISTBOX, boxleft + 10, boxtop + 40, 120, 80, NULL);
+  int ctrllist = CSCICreateControl(CNT_LISTBOX, 10, 40, 120, 80, NULL);
   int ctrltbox = 0;
 
   CSCISendControlMessage(ctrllist, CLB_CLEAR, 0, 0);    // clear the list box
@@ -163,12 +171,12 @@ int savegamedialog()
   if (toomanygames) {
     strcpy(okbuttontext, get_global_message(MSG_REPLACE));
     strcpy(labeltext, get_global_message(MSG_MUSTREPLACE));
-    labeltop = boxtop + 2;
+    labeltop = 2;
   } else
-    ctrltbox = CSCICreateControl(CNT_TEXTBOX, boxleft + 10, boxtop + 29, 120, 0, NULL);
+    ctrltbox = CSCICreateControl(CNT_TEXTBOX, 10, 29, 120, 0, NULL);
 
-  int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, boxleft + 135, boxtop + 5, 60, 10, okbuttontext);
-  int ctrltex1 = CSCICreateControl(CNT_LABEL, boxleft + 10, labeltop, 120, 0, labeltext);
+  int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 135, 5, 60, 10, okbuttontext);
+  int ctrltex1 = CSCICreateControl(CNT_LABEL, 10, labeltop, 120, 0, labeltext);
   CSCIMessage mes;
 
   lpTemp = NULL;
@@ -181,7 +189,7 @@ int savegamedialog()
 
   int toret = -1;
   while (1) {
-    CSCIWaitMessage(ds, &mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
+    CSCIWaitMessage(&mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
     if (mes.code == CM_COMMAND) {
       if (mes.id == ctrlok) {
         int cursell = CSCISendControlMessage(ctrllist, CLB_GETCURSEL, 0, 0);
@@ -193,23 +201,23 @@ int savegamedialog()
           strcpy(bufTemp, "_NOSAVEGAMENAME");
 
         if (toomanygames) {
-          int nwhand = CSCIDrawWindow(ds, boxleft + 5, boxtop + 20, 190, 65);
+          int nwhand = CSCIDrawWindow(boxleft + 5, boxtop + 20, 190, 65);
           int lbl1 =
-            CSCICreateControl(CNT_LABEL, boxleft + 20, boxtop + 25, 160, 0, get_global_message(MSG_REPLACEWITH1));
-          int lbl2 = CSCICreateControl(CNT_LABEL, boxleft + 30, boxtop + 34, 160, 0, bufTemp);
+            CSCICreateControl(CNT_LABEL, 15, 5, 160, 0, get_global_message(MSG_REPLACEWITH1));
+          int lbl2 = CSCICreateControl(CNT_LABEL, 25, 14, 160, 0, bufTemp);
           int lbl3 =
-            CSCICreateControl(CNT_LABEL, boxleft + 20, boxtop + 45, 160, 0, get_global_message(MSG_REPLACEWITH2));
-          int txt1 = CSCICreateControl(CNT_TEXTBOX, boxleft + 20, boxtop + 55, 160, 0, bufTemp);
+            CSCICreateControl(CNT_LABEL, 15, 25, 160, 0, get_global_message(MSG_REPLACEWITH2));
+          int txt1 = CSCICreateControl(CNT_TEXTBOX, 15, 35, 160, 0, bufTemp);
           int btnOk =
-            CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, boxleft + 30, boxtop + 70, 60, 10,
+            CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 25, 50, 60, 10,
                               get_global_message(MSG_REPLACE));
           int btnCancel =
-            CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, boxleft + 100, boxtop + 70, 60, 10,
+            CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 95, 50, 60, 10,
                               get_global_message(MSG_CANCEL));
 
           CSCIMessage cmes;
           do {
-            CSCIWaitMessage(ds, &cmes);
+            CSCIWaitMessage(&cmes);
           } while (cmes.code != CM_COMMAND);
 
           CSCISendControlMessage(txt1, CTB_GETTEXT, 0, (long)&buffer2[0]);
@@ -219,7 +227,7 @@ int savegamedialog()
           CSCIDeleteControl(lbl3);
           CSCIDeleteControl(lbl2);
           CSCIDeleteControl(lbl1);
-          CSCIEraseWindow(ds, nwhand);
+          CSCIEraseWindow(nwhand);
           bufTemp[0] = 0;
 
           if (cmes.id == btnCancel) {
@@ -274,7 +282,7 @@ int savegamedialog()
   CSCIDeleteControl(ctrllist);
   CSCIDeleteControl(ctrlok);
   CSCIDeleteControl(ctrlcancel);
-  CSCIEraseWindow(ds, handl);
+  CSCIEraseWindow(handl);
   return toret;
 }
 
@@ -346,24 +354,26 @@ void preparesavegamelist(int ctrllist)
 
 void enterstringwindow(const char *prompttext, char *stouse)
 {
-  int boxleft = 60, boxtop = 80;
+  const int wnd_width = 200;
+  const int wnd_height = 40;
+  const int boxleft = 60, boxtop = 80;
   int wantCancel = 0;
   if (prompttext[0] == '!') {
     wantCancel = 1;
     prompttext++;
   }
-  Bitmap *ds = GetVirtualScreen();
-  int handl = CSCIDrawWindow(ds, boxleft, boxtop, 200, 40);
-  int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, boxleft + 135, boxtop + 5, 60, 10, "OK");
+  
+  int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);
+  int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 135, 5, 60, 10, "OK");
   int ctrlcancel = -1;
   if (wantCancel)
-    ctrlcancel = CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, boxleft + 135, boxtop + 20, 60, 10, get_global_message(MSG_CANCEL));
-  int ctrltbox = CSCICreateControl(CNT_TEXTBOX, boxleft + 10, boxtop + 29, 120, 0, NULL);
-  int ctrltex1 = CSCICreateControl(CNT_LABEL, boxleft + 10, boxtop + 5, 120, 0, prompttext);
+    ctrlcancel = CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 135, 20, 60, 10, get_global_message(MSG_CANCEL));
+  int ctrltbox = CSCICreateControl(CNT_TEXTBOX, 10, 29, 120, 0, NULL);
+  int ctrltex1 = CSCICreateControl(CNT_LABEL, 10, 5, 120, 0, prompttext);
   CSCIMessage mes;
 
   while (1) {
-    CSCIWaitMessage(ds, &mes);
+    CSCIWaitMessage(&mes);
     if (mes.code == CM_COMMAND) {
       if (mes.id == ctrlcancel)
         buffer2[0] = 0;
@@ -378,7 +388,7 @@ void enterstringwindow(const char *prompttext, char *stouse)
   CSCIDeleteControl(ctrlok);
   if (wantCancel)
     CSCIDeleteControl(ctrlcancel);
-  CSCIEraseWindow(ds, handl);
+  CSCIEraseWindow(handl);
   strcpy(stouse, buffer2);
 }
 
@@ -395,14 +405,16 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
 {
   char labeltext[200];
   strcpy(labeltext, get_global_message(MSG_SAVEDIALOG));
-  int boxleft = myscrnwid / 2 - 120;
-  int boxtop = myscrnhit / 2 - 80;
-  int labeltop = boxtop + 5;
-  Bitmap *ds = GetVirtualScreen();
-  int handl = CSCIDrawWindow(ds, boxleft, boxtop, 240, 160);
-  int ctrllist = CSCICreateControl(CNT_LISTBOX, boxleft + 10, boxtop + 40, 220, 100, NULL);
+  const int wnd_width = 240;
+  const int wnd_height = 160;
+  const int boxleft = myscrnwid / 2 - wnd_width / 2;
+  const int boxtop = myscrnhit / 2 - wnd_height / 2;
+  const int labeltop = 5;
+
+  int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);
+  int ctrllist = CSCICreateControl(CNT_LISTBOX, 10, 40, 220, 100, NULL);
   int ctrlcancel =
-    CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, boxleft + 80, boxtop + 145, 60, 10, "Cancel");
+    CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 80, 145, 60, 10, "Cancel");
 
   CSCISendControlMessage(ctrllist, CLB_CLEAR, 0, 0);    // clear the list box
   for (int aa = 0; aa < numRooms; aa++)
@@ -415,20 +427,20 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
     }
   }
 
-  int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, boxleft + 10, boxtop + 145, 60, 10, "OK");
-  int ctrltex1 = CSCICreateControl(CNT_LABEL, boxleft + 10, labeltop, 180, 0, "Choose which room to go to:");
+  int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 10, 145, 60, 10, "OK");
+  int ctrltex1 = CSCICreateControl(CNT_LABEL, 10, labeltop, 180, 0, "Choose which room to go to:");
   CSCIMessage mes;
 
   lpTemp = NULL;
   //sprintf(buffer2, "%d", currentRoom);
   sprintf(buffer2, "");
 
-  int ctrltbox = CSCICreateControl(CNT_TEXTBOX, boxleft + 10, boxtop + 29, 120, 0, NULL);
+  int ctrltbox = CSCICreateControl(CNT_TEXTBOX, 10, 29, 120, 0, NULL);
   CSCISendControlMessage(ctrltbox, CTB_SETTEXT, 0, (long)&buffer2[0]);
 
   int toret = -1;
   while (1) {
-    CSCIWaitMessage(ds, &mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
+    CSCIWaitMessage(&mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
     if (mes.code == CM_COMMAND) 
     {
       if (mes.id == ctrlok) 
@@ -460,15 +472,19 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
   CSCIDeleteControl(ctrllist);
   CSCIDeleteControl(ctrlok);
   CSCIDeleteControl(ctrlcancel);
-  CSCIEraseWindow(ds, handl);
+  CSCIEraseWindow(handl);
   return toret;
 }
 
 int myscimessagebox(const char *lpprompt, char *btn1, char *btn2)
 {
-    Bitmap *ds = GetVirtualScreen();
-    int windl = CSCIDrawWindow(ds, 80, 80, 240 - 80, 120 - 80);
-    int lbl1 = CSCICreateControl(CNT_LABEL, 90, 85, 150, 0, lpprompt);
+    const int wnd_width = 240 - 80;
+    const int wnd_height = 120 - 80;
+    const int boxleft = 80;
+    const int boxtop = 80;
+
+    int windl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);
+    int lbl1 = CSCICreateControl(CNT_LABEL, 10, 5, 150, 0, lpprompt);
     int btflag = CNT_PUSHBUTTON;
 
     if (btn2 == NULL)
@@ -476,16 +492,16 @@ int myscimessagebox(const char *lpprompt, char *btn1, char *btn2)
     else
         btflag |= CNF_DEFAULT;
 
-    int btnQuit = CSCICreateControl(btflag, 90, 105, 60, 10, btn1);
+    int btnQuit = CSCICreateControl(btflag, 10, 25, 60, 10, btn1);
     int btnPlay = 0;
 
     if (btn2 != NULL)
-        btnPlay = CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 165, 105, 60, 10, btn2);
+        btnPlay = CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 85, 25, 60, 10, btn2);
 
     smes.code = 0;
 
     do {
-        CSCIWaitMessage(ds, &smes);
+        CSCIWaitMessage(&smes);
     } while (smes.code != CM_COMMAND);
 
     if (btnPlay)
@@ -493,7 +509,7 @@ int myscimessagebox(const char *lpprompt, char *btn1, char *btn2)
 
     CSCIDeleteControl(btnQuit);
     CSCIDeleteControl(lbl1);
-    CSCIEraseWindow(ds, windl);
+    CSCIEraseWindow(windl);
 
     if (smes.id == btnQuit)
         return 1;

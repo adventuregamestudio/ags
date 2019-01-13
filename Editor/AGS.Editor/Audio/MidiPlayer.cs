@@ -9,61 +9,61 @@ namespace AGS.Editor
     internal class MidiPlayer : IAudioPreviewer
     {
         public event PlayFinishedHandler PlayFinished;
-        private AudioClip _playingClip;
-        private bool _sentStopEvent;
+        private AudioClip _audioClip;
+        private bool _paused;
 
         [DllImport("winmm.dll")]
         private static extern uint mciSendString(string strCommand, StringBuilder strReturn, int iReturnLength, IntPtr oCallback);
 
-        public bool RequiresPoll { get { return true; } }
-
-        public bool Play(AudioClip clip)
+        public MidiPlayer(AudioClip clip)
         {
             if (!File.Exists(clip.CacheFileName))
             {
-                return false;
+                throw new AGSEditorException("AudioClip file is missing from the audio cache");
             }
-            StringBuilder sb = new StringBuilder(100);
-            mciSendString(string.Format("open \"{0}\" alias track", clip.CacheFileName), sb, 0, IntPtr.Zero);
-            mciSendString("set track time format ms", sb, 0, IntPtr.Zero);
-            mciSendString("play track", sb, 0, IntPtr.Zero);
-            _playingClip = clip;
-            _sentStopEvent = false;
-            return true;
+
+            _audioClip = clip;
+            _paused = false;
+            uint rc = mciSendString(string.Format("open \"{0}\" alias track", clip.CacheFileName), null, 0, IntPtr.Zero);
+
+            if (rc != 0)
+            {
+                throw new AGSEditorException($"Unable to open MIDI file: error code {rc}");
+            }
+
+            mciSendString("set track time format ms", null, 0, IntPtr.Zero);
+        }
+
+        public void Play()
+        {
+            if (0 != mciSendString("play track", null, 0, IntPtr.Zero))
+            {
+                throw new AGSEditorException("Unable to play the MIDI file");
+            }
+        }
+
+        public void Poll()
+        {
+            if (!IsPlaying() && !_paused)
+            {
+                Stop();
+            }
         }
 
         private void SendStopEventToListeners()
         {
-            if (!_sentStopEvent)
-            {
-                _sentStopEvent = true;
-                if (PlayFinished != null)
-                {
-                    PlayFinished(_playingClip);
-                }
-            }
+            PlayFinished?.Invoke(_audioClip);
         }
 
         public bool IsPlaying()
         {
             StringBuilder sb = new StringBuilder(200);
             mciSendString("status track mode", sb, sb.Capacity, IntPtr.Zero);
-            if (sb.ToString().Contains("playing"))
-            {
-                return true;
-            }
-            SendStopEventToListeners();
-            return false;
-        }
-
-        public void Poll()
-        {
-            IsPlaying();
+            return sb.ToString().Contains("playing");
         }
 
         public int GetPositionMs()
         {
-            IsPlaying();  // ensure the Finished event gets sent if appropriate
             StringBuilder sb = new StringBuilder(200);
             mciSendString("status track position", sb, sb.Capacity, IntPtr.Zero);
             int position;
@@ -88,19 +88,29 @@ namespace AGS.Editor
 
         public void Pause()
         {
-            mciSendString("pause track", null, 0, IntPtr.Zero);
+            mciSendString("stop track", null, 0, IntPtr.Zero);
+            _paused = true;
         }
 
         public void Resume()
         {
-            mciSendString("resume track", null, 0, IntPtr.Zero);
+            // needs to play 'from' to prevent all instruments getting reset to defaults (piano)
+            StringBuilder sb = new StringBuilder(200);
+            mciSendString("status track position", sb, sb.Capacity, IntPtr.Zero);
+            mciSendString(string.Format("play track from {0}", sb.ToString()), null, 0, IntPtr.Zero);
+            _paused = false;
         }
 
         public void Stop()
         {
-            mciSendString("close all", null, 0, IntPtr.Zero);
+            mciSendString("stop track", null, 0, IntPtr.Zero);
+            mciSendString("seek track to start", null, 0, IntPtr.Zero);
             SendStopEventToListeners();
         }
 
+        public void Dispose()
+        {
+            mciSendString("close all", null, 0, IntPtr.Zero);
+        }
     }
 }

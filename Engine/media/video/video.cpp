@@ -41,7 +41,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern IGraphicsDriver *gfxDriver;
-extern Bitmap *virtual_screen;
 extern int psp_video_framedrop;
 
 enum VideoPlaybackType
@@ -99,7 +98,7 @@ extern "C" int fli_callback() {
 
     gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
     gfxDriver->DrawSprite(0, 0, fli_ddb);
-    render_to_screen(fli_target, 0, 0);
+    render_to_screen();
 
     return check_if_user_input_should_cancel_video();
 }
@@ -159,15 +158,18 @@ void play_flc_file(int numb,int playflags) {
     if (fli_buffer==NULL) quit("Not enough memory to play animation");
     fli_buffer->Clear();
 
-    Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
-
-    if (clearScreenAtStart) {
-        screen_bmp->Clear();
-        render_to_screen(screen_bmp, 0, 0);
+    if (clearScreenAtStart)
+    {
+        if (gfxDriver->UsesMemoryBackBuffer())
+        {
+            Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
+            screen_bmp->Clear();
+        }
+        render_to_screen();
     }
 
     video_type = kVideoFlic;
-    fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), game.GetColorDepth());
+    fli_target = BitmapHelper::CreateBitmap(view.GetWidth(), view.GetHeight(), game.GetColorDepth());
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
     // TODO: find a better solution.
@@ -192,10 +194,13 @@ void play_flc_file(int numb,int playflags) {
     delete fli_buffer;
     fli_buffer = NULL;
     // NOTE: the screen bitmap could change in the meanwhile, if the display mode has changed
-    screen_bmp = BitmapHelper::GetScreenBitmap();
-    screen_bmp->Clear();
+    if (gfxDriver->UsesMemoryBackBuffer())
+    {
+        Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
+        screen_bmp->Clear();
+    }
     set_palette_range(oldpal, 0, 255, 0);
-    render_to_screen(screen_bmp, 0, 0);
+    render_to_screen();
 
     delete fli_target;
     gfxDriver->DestroyDDB(fli_ddb);
@@ -257,7 +262,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
     }
 
     gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
-    render_to_screen(virtual_screen, 0, 0);
+    render_to_screen();
     update_polled_audio_and_crossfade ();
 
     return check_if_user_input_should_cancel_video();
@@ -371,7 +376,7 @@ void play_theora_video(const char *name, int skip, int flags)
 {
     ApegStreamReader reader(AssetPath("", name));
     apeg_set_stream_reader(apeg_stream_init, apeg_stream_read, apeg_stream_skip);
-    apeg_set_display_depth(BitmapHelper::GetScreenBitmap()->GetColorDepth());
+    apeg_set_display_depth(game.GetColorDepth());
     // we must disable length detection, otherwise it takes ages to start
     // playing if the file is large because it seeks through the whole thing
     apeg_disable_length_detection(TRUE);
@@ -419,7 +424,8 @@ void play_theora_video(const char *name, int skip, int flags)
 
     update_polled_stuff_if_runtime();
 
-    virtual_screen->Clear();
+    if (gfxDriver->UsesMemoryBackBuffer())
+        gfxDriver->GetMemoryBackBuffer()->Clear();
 
     video_type = kVideoTheora;
     if (apeg_play_apeg_stream(oggVid, NULL, 0, theora_playing_callback) == APEG_ERROR)

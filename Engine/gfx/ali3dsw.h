@@ -160,7 +160,7 @@ public:
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
-    virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res);
+    virtual bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size);
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE pal, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
@@ -176,6 +176,7 @@ public:
     virtual bool UsesMemoryBackBuffer() { return true; }
     virtual Bitmap *GetMemoryBackBuffer();
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy);
+    virtual Bitmap *GetStageBackBuffer();
     virtual void SetScreenTint(int red, int green, int blue) { 
         _tint_red = red; _tint_green = green; _tint_blue = blue; }
     virtual ~ALSoftwareGraphicsDriver();
@@ -192,6 +193,9 @@ private:
     // Virtual screen bitmap is either a wrapper over Allegro's real screen
     // bitmap, or bitmap provided by the graphics filter. It should not be
     // disposed by the renderer: it is up to filter object to manage it.
+    Bitmap *_origVirtualScreen;
+    // Current virtual screen bitmap; may be provided either by graphics
+    // filter or by external user. It should not be disposed by the renderer.
     Bitmap *virtualScreen;
     // Extra offset for the custom virtual screen.
     // NOTE: the big issue with software renderer is that it handles main viewport changes

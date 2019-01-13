@@ -35,6 +35,7 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
 
 int  find_overlay_of_type(int typ);
 void remove_screen_overlay(int type);
+// Calculates overlay position in screen coordinates
 void get_overlay_position(int overlayidx, int *x, int *y);
 int  add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
 void remove_screen_overlay_index(int cc);

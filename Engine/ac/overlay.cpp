@@ -246,7 +246,7 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
 
         if (!screenover[overlayidx].positionRelativeToScreen)
         {
-            Point tdxy = play.ScreenToRoom(tdxp, tdyp);
+            Point tdxy = play.RoomToScreen(tdxp, tdyp);
             tdxp = tdxy.X;
             tdyp = tdxy.Y;
         }

@@ -49,7 +49,7 @@ enum SavegameVersion
 {
     kSvgVersion_Undefined = 0,
     kSvgVersion_321       = 8,
-    kSvgVersion_Components= 9, // temp format, not supported anymore
+    kSvgVersion_Components= 9,
     kSvgVersion_Cmp_64bit = 10,
     kSvgVersion_Current   = kSvgVersion_Cmp_64bit,
     kSvgVersion_LowestSupported = kSvgVersion_321 // change if support dropped

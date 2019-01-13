@@ -26,6 +26,7 @@
 #define PAL_LOCKED          1
 #define PAL_BACKGROUND      2
 #define MAXGLOBALMES        500
+#define GLOBALMESLENGTH     500
 #define MAXLANGUAGE         5
 #define LEGACY_MAX_FONTS    30
 #define OPT_DEBUGMODE       0

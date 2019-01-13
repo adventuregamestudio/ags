@@ -40,6 +40,14 @@ RoomEdges::RoomEdges()
 {
 }
 
+RoomEdges::RoomEdges(int l, int r, int t, int b)
+    : Left(l)
+    , Right(r)
+    , Top(t)
+    , Bottom(b)
+{
+}
+
 RoomObjectInfo::RoomObjectInfo()
     : Sprite(0)
     , X(0)
@@ -90,7 +98,7 @@ RoomStruct::~RoomStruct()
 
 void RoomStruct::Free()
 {
-    for (size_t i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_BGFRAMES; ++i)
         BgFrames[i].Graphic.reset();
     HotspotMask.reset();
     RegionMask.reset();
@@ -98,6 +106,18 @@ void RoomStruct::Free()
     WalkBehindMask.reset();
 
     Properties.clear();
+    for (size_t i = 0; i < (size_t)MAX_ROOM_HOTSPOTS; ++i)
+    {
+        Hotspots[i].Properties.clear();
+    }
+    for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
+    {
+        Objects[i].Properties.clear();
+    }
+    for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)
+    {
+        Regions[i].Properties.clear();
+    }
 
     FreeMessages();
     FreeScripts();
@@ -106,7 +126,10 @@ void RoomStruct::Free()
 void RoomStruct::FreeMessages()
 {
     for (size_t i = 0; i < MessageCount; ++i)
+    {
         Messages[i].Free();
+        MessageInfos[i] = MessageInfo();
+    }
     MessageCount = 0;
 }
 
@@ -132,7 +155,7 @@ void RoomStruct::InitDefaults()
     Height          = 200;
 
     Options         = RoomOptions();
-    Edges           = RoomEdges();
+    Edges           = RoomEdges(0, 317, 40, 199);
 
     BgFrameCount    = 1;
     HotspotCount    = 0;
@@ -193,7 +216,7 @@ int RoomStruct::GetRegionTintLuminance(int id) const
     return 0;
 }
 
-void load_room(const char *files, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos)
+void load_room(const char *filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos)
 {
     room->Free();
     room->InitDefaults();
@@ -201,7 +224,7 @@ void load_room(const char *files, RoomStruct *room, const std::vector<SpriteInfo
     update_polled_stuff_if_runtime();
 
     RoomDataSource src;
-    HRoomFileError err = OpenRoomFile(files, src);
+    HRoomFileError err = OpenRoomFile(filename, src);
     if (err)
     {
         update_polled_stuff_if_runtime();  // it can take a while to load the file sometimes
@@ -210,7 +233,7 @@ void load_room(const char *files, RoomStruct *room, const std::vector<SpriteInfo
             err = UpdateRoomData(room, src.DataVersion, sprinfos);
     }
     if (!err)
-        quitprintf("Unable to load the room file '%s'.\n%s.", files, err->FullMessage().GetCStr());
+        quitprintf("Unable to load the room file '%s'.\n%s.", filename, err->FullMessage().GetCStr());
 }
 
 } // namespace Common

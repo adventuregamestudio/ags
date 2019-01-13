@@ -817,8 +817,8 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backTextureSize.Width, _backTextureSize.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -909,7 +909,8 @@ void OGLGraphicsDriver::CreateVirtualScreen()
     return;
   // create initial stage screen for plugin raw drawing
   _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
-  BitmapHelper::SetScreenBitmap(_stageVirtualScreen.get());
+  // we must set Allegro's screen pointer to **something**
+  screen = (BITMAP*)_stageVirtualScreen->GetAllegroBitmap();
 }
 
 bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
@@ -1000,9 +1001,18 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
-void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
+bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
 {
   (void)at_native_res; // TODO: support this at some point
+
+  Size need_size = _do_render_to_texture ? _backRenderSize : _dstRect.GetSize();
+  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
+  {
+    if (want_size)
+      *want_size = need_size;
+    return false;
+  }
+
   Rect retr_rect;
   if (_do_render_to_texture)
   {
@@ -1031,37 +1041,32 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     unsigned char* sourcePtr;
     unsigned char* destPtr;
     
-	Bitmap* retrieveInto = BitmapHelper::CreateBitmap(retr_rect.GetWidth(), retr_rect.GetHeight(), _mode.ColorDepth);
-
-    if (retrieveInto)
+	for (int y = destination->GetHeight() - 1; y >= 0; y--)
     {
-      for (int y = retrieveInto->GetHeight() - 1; y >= 0; y--)
-      {
         sourcePtr = surfaceData;
-        destPtr = &retrieveInto->GetScanLineForWriting(y)[0];
-        for (int x = 0; x < retrieveInto->GetWidth() * bpp; x += bpp)
+        destPtr = &destination->GetScanLineForWriting(y)[0];
+        for (int x = 0; x < destination->GetWidth() * bpp; x += bpp)
         {
-          // TODO: find out if it's possible to retrieve pixels in the matching format
-          destPtr[x]     = sourcePtr[x + 2];
-          destPtr[x + 1] = sourcePtr[x + 1];
-          destPtr[x + 2] = sourcePtr[x];
-          destPtr[x + 3] = sourcePtr[x + 3];
+            // TODO: find out if it's possible to retrieve pixels in the matching format
+            destPtr[x]     = sourcePtr[x + 2];
+            destPtr[x + 1] = sourcePtr[x + 1];
+            destPtr[x + 2] = sourcePtr[x];
+            destPtr[x + 3] = sourcePtr[x + 3];
         }
         surfaceData += retr_rect.GetWidth() * bpp;
-      }
-
-      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
-		  RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
-      delete retrieveInto;
     }
+
+    if (_pollingCallback)
+        _pollingCallback();
 
     delete [] buffer;
   }
+  return true;
 }
 
 void OGLGraphicsDriver::RenderToBackBuffer()
 {
-  throw Ali3DException("D3D driver does not have a back buffer");
+  throw Ali3DException("OGL driver does not have a back buffer");
 }
 
 void OGLGraphicsDriver::Render()
@@ -1399,6 +1404,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
         RenderSpriteBatch(batch, flip);
     }
 
+    _stageVirtualScreen = GetStageScreen(0);
     glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
     if (!_screenTintSprite.skip)
     {
@@ -1531,7 +1537,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   int tileHeight = (textureHeight > tile->height) ? tile->height + 1 : tile->height;
 
   bool usingLinearFiltering = _filter->UseLinearFiltering();
-  bool lastPixelWasTransparent = false;
   char *origPtr = (char*)malloc(sizeof(int) * tileWidth * tileHeight);
   char *memPtr = origPtr;
 
@@ -1543,7 +1548,18 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   int pitch = tileWidth * sizeof(int);
   BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, target, memPtr, pitch, usingLinearFiltering);
 
-  // Mimic the behaviour of GL_CLAMP_EDGE for the bottom line
+  // Mimic the behaviour of GL_CLAMP_EDGE for the rightmost and bottom edges
+  // NOTE: we would not normally have to do this for the rightmost column, but on some platforms
+  // GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
+  if (tile->width < tileWidth)
+  {
+    for (int y = 0; y < tileHeight; y++)
+    {
+      unsigned int* memPtrLong = (unsigned int*)(memPtr + y * pitch + tile->width * sizeof(int));
+      unsigned int* memPtrLong_previous = memPtrLong - 1;
+      *memPtrLong = *memPtrLong_previous & 0x00FFFFFF;
+    }
+  }
   if (tile->height < tileHeight)
   {
     unsigned int* memPtrLong = (unsigned int*)(memPtr + pitch * tile->height);

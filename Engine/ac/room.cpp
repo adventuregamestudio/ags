@@ -55,6 +55,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
+#include "script/cc_error.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
@@ -99,8 +100,6 @@ extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;
 extern unsigned int loopcounter,lastcounter;
-extern int ccError;
-extern char ccErrorString[400];
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *raw_saved_screen;
@@ -111,7 +110,6 @@ extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 extern color palette[256];
-extern Bitmap *virtual_screen;
 extern int mouse_z_was;
 
 extern Bitmap **guibg;
@@ -460,9 +458,12 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=204;
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
+    thisroom.WalkBehindMask = thisroom.WalkBehindMask;
     update_polled_stuff_if_runtime();
 
     set_color_depth(game.GetColorDepth());
+        for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+            thisroom.BgFrames[i].Graphic = thisroom.BgFrames[i].Graphic;
 
     recache_walk_behinds();
 
@@ -486,10 +487,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc=0;cc<croom->numobj;cc++) {
             croom->obj[cc].x=thisroom.Objects[cc].X;
             croom->obj[cc].y=thisroom.Objects[cc].Y;
-
-            if (thisroom.DataVersion <= kRoomVersion_300a)
-                croom->obj[cc].y += game.SpriteInfos[thisroom.Objects[cc].Sprite].Height;
-
             croom->obj[cc].num=thisroom.Objects[cc].Sprite;
             croom->obj[cc].on=thisroom.Objects[cc].IsOn;
             croom->obj[cc].view=-1;
@@ -545,19 +542,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // export the object's script object
         if (thisroom.Objects[cc].ScriptName.IsEmpty())
             continue;
-
-        if (thisroom.DataVersion >= kRoomVersion_300a) 
-        {
-            objectScriptObjNames[cc] = thisroom.Objects[cc].ScriptName;
-        }
-        else
-        {
-            objectScriptObjNames[cc].Format("o%s", thisroom.Objects[cc].ScriptName.GetCStr());
-            objectScriptObjNames[cc].MakeLower();
-            if (objectScriptObjNames[cc].GetLength() >= 2)
-                objectScriptObjNames[cc].SetAt(1, toupper(objectScriptObjNames[cc].GetAt(1)));
-        }
-
+        objectScriptObjNames[cc] = thisroom.Objects[cc].ScriptName;
         ccAddExternalDynamicObject(objectScriptObjNames[cc], &scrObj[cc], &ccDynamicObject);
     }
 
@@ -896,12 +881,12 @@ void compile_room_script() {
     roominst = ccInstance::CreateFromScript(thisroom.CompiledScript);
 
     if ((ccError!=0) || (roominst==NULL)) {
-        quitprintf("Unable to create local script: %s", ccErrorString);
+        quitprintf("Unable to create local script: %s", ccErrorString.GetCStr());
     }
 
     roominstFork = roominst->Fork();
     if (roominstFork == NULL)
-        quitprintf("Unable to create forked room instance: %s", ccErrorString);
+        quitprintf("Unable to create forked room instance: %s", ccErrorString.GetCStr());
 
     repExecAlways.roomHasFunction = true;
     lateRepExecAlways.roomHasFunction = true;

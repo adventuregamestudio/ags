@@ -91,7 +91,7 @@ std::vector<String> guiScriptObjNames;
 
 int run_dialog_request (int parmtr) {
     play.stop_dialog_at_end = DIALOG_RUNNING;
-    gameinst->RunTextScriptIParam("dialog_request", RuntimeScriptValue().SetInt32(parmtr));
+    RunTextScriptIParam(gameinst, "dialog_request", RuntimeScriptValue().SetInt32(parmtr));
 
     if (play.stop_dialog_at_end == DIALOG_STOP) {
         play.stop_dialog_at_end = DIALOG_NONE;
@@ -122,18 +122,18 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     // run modules
     // modules need a forkedinst for this to work
     for (int kk = 0; kk < numScriptModules; kk++) {
-        funcToRun->moduleHasFunction[kk] = moduleInstFork[kk]->DoRunScriptFuncCantBlock(funcToRun, funcToRun->moduleHasFunction[kk]);
+        funcToRun->moduleHasFunction[kk] = DoRunScriptFuncCantBlock(moduleInstFork[kk], funcToRun, funcToRun->moduleHasFunction[kk]);
 
         if (room_changes_was != play.room_changes)
             return;
     }
 
-    funcToRun->globalScriptHasFunction = gameinstFork->DoRunScriptFuncCantBlock(funcToRun, funcToRun->globalScriptHasFunction);
+    funcToRun->globalScriptHasFunction = DoRunScriptFuncCantBlock(gameinstFork, funcToRun, funcToRun->globalScriptHasFunction);
 
     if (room_changes_was != play.room_changes)
         return;
 
-    funcToRun->roomHasFunction = roominstFork->DoRunScriptFuncCantBlock(funcToRun, funcToRun->roomHasFunction);
+    funcToRun->roomHasFunction = DoRunScriptFuncCantBlock(roominstFork, funcToRun, funcToRun->roomHasFunction);
 }
 
 
@@ -252,16 +252,220 @@ void QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t par
 
 void RunScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count, const RuntimeScriptValue &p1, const RuntimeScriptValue &p2)
 {
-    ccInstance *inst = GetScriptInstanceByType(sc_inst);
-    if (inst)
+    ccInstance *sci = GetScriptInstanceByType(sc_inst);
+    if (sci)
     {
         if (param_count == 2)
-            inst->RunTextScript2IParam(fn_name, p1, p2);
+            RunTextScript2IParam(sci, fn_name, p1, p2);
         else if (param_count == 1)
-            inst->RunTextScriptIParam(fn_name, p1);
+            RunTextScriptIParam(sci, fn_name, p1);
         else if (param_count == 0)
-            inst->RunTextScript(fn_name);
+            RunTextScript(sci, fn_name);
     }
+}
+
+bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc)
+{
+    if (!hasTheFunc)
+        return(false);
+
+    no_blocking_functions++;
+    int result = 0;
+
+    if (funcToRun->numParameters < 3)
+    {
+        result = sci->CallScriptFunction((char*)funcToRun->functionName, funcToRun->numParameters, funcToRun->params);
+    }
+    else
+        quit("DoRunScriptFuncCantBlock called with too many parameters");
+
+    if (result == -2) {
+        // the function doens't exist, so don't try and run it again
+        hasTheFunc = false;
+    }
+    else if ((result != 0) && (result != 100)) {
+        quit_with_script_error(funcToRun->functionName);
+    }
+    else
+    {
+        funcToRun->atLeastOneImplementationExists = true;
+    }
+    // this might be nested, so don't disrupt blocked scripts
+    ccErrorString = "";
+    ccError = 0;
+    no_blocking_functions--;
+    return(hasTheFunc);
+}
+
+char scfunctionname[MAX_FUNCTION_NAME_LEN + 1];
+int PrepareTextScript(ccInstance *sci, const char**tsname)
+{
+    ccError = 0;
+    // FIXME: try to make it so this function is not called with NULL sci
+    if (sci == NULL) return -1;
+    if (sci->GetSymbolAddress(tsname[0]).IsNull()) {
+        ccErrorString = "no such function in script";
+        return -2;
+    }
+    if (sci->IsBeingRun()) {
+        ccErrorString = "script is already in execution";
+        return -3;
+    }
+    scripts[num_scripts].init();
+    scripts[num_scripts].inst = sci;
+    // CHECKME: this conditional block will never run, because
+    // function would have quit earlier (deprecated functionality?)
+    if (sci->IsBeingRun()) {
+        scripts[num_scripts].inst = sci->Fork();
+        if (scripts[num_scripts].inst == NULL)
+            quit("unable to fork instance for secondary script");
+        scripts[num_scripts].forked = 1;
+    }
+    curscript = &scripts[num_scripts];
+    num_scripts++;
+    if (num_scripts >= MAX_SCRIPT_AT_ONCE)
+        quit("too many nested text script instances created");
+    // in case script_run_another is the function name, take a backup
+    strncpy(scfunctionname, tsname[0], MAX_FUNCTION_NAME_LEN);
+    tsname[0] = &scfunctionname[0];
+    update_script_mouse_coords();
+    inside_script++;
+    //  aborted_ip=0;
+    //  abort_executor=0;
+    return 0;
+}
+
+int RunScriptFunctionIfExists(ccInstance *sci, const char*tsname, int numParam, const RuntimeScriptValue *params)
+{
+    int oldRestoreCount = gameHasBeenRestored;
+    // First, save the current ccError state
+    // This is necessary because we might be attempting
+    // to run Script B, while Script A is still running in the
+    // background.
+    // If CallInstance here has an error, it would otherwise
+    // also abort Script A because ccError is a global variable.
+    int cachedCcError = ccError;
+    ccError = 0;
+
+    int toret = PrepareTextScript(sci, &tsname);
+    if (toret) {
+        ccError = cachedCcError;
+        return -18;
+    }
+
+    // Clear the error message
+    ccErrorString = "";
+
+    if (numParam < 3)
+    {
+        toret = curscript->inst->CallScriptFunction(tsname, numParam, params);
+    }
+    else
+        quit("Too many parameters to RunScriptFunctionIfExists");
+
+    // 100 is if Aborted (eg. because we are LoadAGSGame'ing)
+    if ((toret != 0) && (toret != -2) && (toret != 100)) {
+        quit_with_script_error(tsname);
+    }
+
+    post_script_cleanup_stack++;
+
+    if (post_script_cleanup_stack > 50)
+        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", tsname);
+
+    post_script_cleanup();
+
+    post_script_cleanup_stack--;
+
+    // restore cached error state
+    ccError = cachedCcError;
+
+    // if the game has been restored, ensure that any further scripts are not run
+    if ((oldRestoreCount != gameHasBeenRestored) && (eventClaimed == EVENT_INPROGRESS))
+        eventClaimed = EVENT_CLAIMED;
+
+    return toret;
+}
+
+int RunTextScript(ccInstance *sci, const char *tsname)
+{
+    if (strcmp(tsname, REP_EXEC_NAME) == 0) {
+        // run module rep_execs
+        // FIXME: in theory the function may be already called for moduleInst[i],
+        // in which case this should not be executed; need to rearrange the code somehow
+        int room_changes_was = play.room_changes;
+        int restore_game_count_was = gameHasBeenRestored;
+
+        for (int kk = 0; kk < numScriptModules; kk++) {
+            if (!moduleRepExecAddr[kk].IsNull())
+                RunScriptFunctionIfExists(moduleInst[kk], tsname, 0, NULL);
+
+            if ((room_changes_was != play.room_changes) ||
+                (restore_game_count_was != gameHasBeenRestored))
+                return 0;
+        }
+    }
+
+    int toret = RunScriptFunctionIfExists(sci, tsname, 0, NULL);
+    if ((toret == -18) && (sci == roominst)) {
+        // functions in room script must exist
+        quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)", toret, ccErrorString.GetCStr(), tsname, displayed_room);
+    }
+    return toret;
+}
+
+int RunTextScriptIParam(ccInstance *sci, const char *tsname, const RuntimeScriptValue &iparam)
+{
+    if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
+        bool eventWasClaimed;
+        int toret = run_claimable_event(tsname, true, 1, &iparam, &eventWasClaimed);
+
+        if (eventWasClaimed)
+            return toret;
+    }
+
+    return RunScriptFunctionIfExists(sci, tsname, 1, &iparam);
+}
+
+int RunTextScript2IParam(ccInstance *sci, const char*tsname, const RuntimeScriptValue &iparam, const RuntimeScriptValue &param2)
+{
+    RuntimeScriptValue params[2];
+    params[0] = iparam;
+    params[1] = param2;
+
+    if (strcmp(tsname, "on_event") == 0) {
+        bool eventWasClaimed;
+        int toret = run_claimable_event(tsname, true, 2, params, &eventWasClaimed);
+
+        if (eventWasClaimed)
+            return toret;
+    }
+
+    // response to a button click, better update guis
+    if (strnicmp(tsname, "interface_click", 15) == 0)
+        guis_need_update = 1;
+
+    int toret = RunScriptFunctionIfExists(sci, tsname, 2, params);
+
+    // tsname is no longer valid, because RunScriptFunctionIfExists might
+    // have restored a save game and freed the memory. Therefore don't 
+    // attempt any strcmp's here
+    tsname = NULL;
+
+    return toret;
+}
+
+String GetScriptName(ccInstance *sci)
+{
+    // TODO: have script name a ccScript's member?
+    // TODO: check script modules too?
+    if (!sci)
+        return "Not in a script";
+    else if (sci->instanceof == gamescript)
+        return "Global script";
+    else if (sci->instanceof == thisroom.CompiledScript)
+        return String::FromFormat("Room %d script", displayed_room);
+    return "Unknown script";
 }
 
 //=============================================================================
@@ -366,7 +570,7 @@ void post_script_cleanup() {
 
 void quit_with_script_error(const char *functionName)
 {
-    quitprintf("%sError running function '%s':\n%s", (ccErrorIsUserError ? "!" : ""), functionName, ccErrorString);
+    quitprintf("%sError running function '%s':\n%s", (ccErrorIsUserError ? "!" : ""), functionName, ccErrorString.GetCStr());
 }
 
 InteractionVariable *FindGraphicalVariable(const char *varName) {

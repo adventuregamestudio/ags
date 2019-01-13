@@ -39,7 +39,7 @@ struct GameSetup {
     int digicard;
     int midicard;
     int mod_player;
-    int textheight; // text height used on the certain built-in GUI
+    int textheight; // text height used on the certain built-in GUI // TODO: move out to game class?
     bool  no_speech_pack;
     bool  enable_antialiasing;
     bool  disable_exception_handling;

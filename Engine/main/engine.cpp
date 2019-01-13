@@ -54,6 +54,7 @@
 #include "media/audio/sound.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/ddb.h"
 #include "core/assetmanager.h"
 #include "util/misc.h"
 #include "platform/util/pe.h"
@@ -893,42 +894,38 @@ void engine_init_modxm_player()
 #endif
 }
 
-void show_preload () {
-    // ** Do the preload graphic if available
+// Do the preload graphic if available
+void show_preload()
+{
     color temppal[256];
 	Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
-    if (splashsc != NULL) {
+    if (splashsc != NULL)
+    {
+        Debug::Printf("Displaying preload image");
         if (splashsc->GetColorDepth() == 8)
             set_palette_range(temppal, 0, 255, 0);
-		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
-        Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
+        if (gfxDriver->UsesMemoryBackBuffer())
+            gfxDriver->GetMemoryBackBuffer()->Clear();
 
-		screen_bmp->Fill(0);
-        screen_bmp->StretchBlt(tsc, RectWH(0, 0, play.GetMainViewport().GetWidth(),play.GetMainViewport().GetHeight()), Common::kBitmap_Transparency);
-
-        gfxDriver->ClearDrawLists();
-
-        if (!gfxDriver->UsesMemoryBackBuffer())
+        const Rect &view = play.GetMainViewport();
+        Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, game.GetColorDepth());
+        if (!gfxDriver->HasAcceleratedTransform() && view.GetSize() != tsc->GetSize())
         {
-            IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(screen_bmp, false, true);
-            gfxDriver->DrawSprite(0, 0, ddb);
-            render_to_screen(screen_bmp, 0, 0);
-            gfxDriver->DestroyDDB(ddb);
+            Bitmap *stretched = new Bitmap(view.GetWidth(), view.GetHeight(), tsc->GetColorDepth());
+            stretched->StretchBlt(tsc, RectWH(0, 0, view.GetWidth(), view.GetHeight()));
+            delete tsc;
+            tsc = stretched;
         }
-        else
-			render_to_screen(screen_bmp, 0, 0);
-
+        IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(tsc, false, true);
+        ddb->SetStretch(view.GetWidth(), view.GetHeight());
+        gfxDriver->ClearDrawLists();
+        gfxDriver->DrawSprite(0, 0, ddb);
+        render_to_screen();
+        gfxDriver->DestroyDDB(ddb);
         delete splashsc;
         delete tsc;
         platform->Delay(500);
     }
-}
-
-void engine_show_preload()
-{
-    Debug::Printf("Check for preload image");
-
-    show_preload ();
 }
 
 int engine_init_sprites()
@@ -1497,7 +1494,7 @@ int initialize_engine(int argc,char*argv[])
     // Hide the system cursor via allegro
     show_os_cursor(MOUSE_CURSOR_NONE);
 
-    engine_show_preload();
+    show_preload();
 
     res = engine_init_sprites();
     if (res != RETURN_CONTINUE) {
@@ -1603,8 +1600,21 @@ extern int miniDumpResultCode;
 #endif
 
 // defined in main/main
-extern char tempmsg[100];
 extern char*printfworkingspace;
+
+#ifdef USE_CUSTOM_EXCEPTION_HANDLER
+void DisplayException()
+{
+    String script_callstack = get_cur_script(5);
+    sprintf(printfworkingspace, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
+        "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and post the details on the AGS Technical Forum.\n\n%s\n\n"
+        "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",
+        excinfo.ExceptionCode, (intptr_t)excinfo.ExceptionAddress, our_eip, EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, script_callstack.GetCStr(),
+        (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." :
+        "Unable to create an error dump file.", miniDumpResultCode);
+    MessageBoxA(win_get_window(), printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
+}
+#endif // USE_CUSTOM_EXCEPTION_HANDLER
 
 int initialize_engine_with_exception_handling(int argc,char*argv[])
 {
@@ -1620,14 +1630,7 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
     }
     __except (CustomExceptionHandler ( GetExceptionInformation() )) 
     {
-        strcpy (tempmsg, "");
-        sprintf (printfworkingspace, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X %s; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
-            "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and post the details on the AGS Technical Forum.\n\n%s\n\n"
-            "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",
-            excinfo.ExceptionCode, excinfo.ExceptionAddress, tempmsg, our_eip, EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, get_cur_script(5),
-            (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." : 
-            "Unable to create an error dump file.", miniDumpResultCode);
-        MessageBoxA(win_get_window(), printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
+        DisplayException();
         proper_exit = 1;
     }
     return EXIT_CRASH;

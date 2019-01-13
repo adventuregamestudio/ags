@@ -27,7 +27,7 @@
 #include <mmstream.h>	// Multimedia stream interfaces
 #include <ddstream.h>	// DirectDraw multimedia stream interfaces
 #include <initguid.h>   // Defines DEFINE_GUID macro and enables GUID initialization
-//#include <dsound.h>
+#include "ac/draw.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
@@ -43,7 +43,6 @@ extern void update_polled_stuff_if_runtime();
 extern int rec_mgetbutton();
 extern void NextIteration();
 extern void update_music_volume();
-extern void render_to_screen(Bitmap *toRender, int atx, int aty);
 extern int crossFading, crossFadeStep;
 extern volatile char want_exit;
 extern IGraphicsDriver *gfxDriver;
@@ -242,12 +241,13 @@ void RenderToSurface(Bitmap *vscreen) {
   }
   else {
     g_bAppactive = TRUE;
-    acquire_screen();
-	Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+	Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
+    // TODO: don't render on screen bitmap, use gfxDriver->DrawSprite instead!
+    screen_bmp->Acquire();
     // Because vscreen is a DX Video Bitmap, it can be stretched
     // onto the screen (also a Video Bmp) but not onto a memory
     // bitmap (which is what "screen" is when using gfx filters)
-    if (is_video_bitmap(screen))
+    if (screen_bmp->IsVideoBitmap())
     {
 		screen_bmp->StretchBlt(vscreen,
 		  RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
@@ -264,9 +264,9 @@ void RenderToSurface(Bitmap *vscreen) {
 		         screen_bmp->GetHeight() / 2 - newHeight / 2,
 			     newWidth, newHeight));
     }
-    release_screen();
+    screen_bmp->Release();
 
-    render_to_screen(screen_bmp, 0, 0);
+    render_to_screen();
     // if we're not playing AVI sound, poll the game MP3
     if (!useSound)
       update_polled_audio_and_crossfade();
@@ -343,7 +343,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   newWidth = vscreen->GetWidth();
   newHeight = vscreen->GetHeight();
 
-  Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+  Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
 
   if ((stretch == 1) ||
 	  (vscreen->GetWidth() > screen_bmp->GetWidth()) ||
@@ -379,8 +379,6 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   currentlyPlaying = true;
 
   gfxDriver->ClearDrawLists();
-  Bitmap *savedBackBuffer = gfxDriver->GetMemoryBackBuffer();
-  gfxDriver->SetMemoryBackBuffer(screen_bmp);
 
   while ((g_bAppactive) && (!want_exit)) {
 
@@ -401,8 +399,6 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   }
 
   dxmedia_abort_video();
-
-  gfxDriver->SetMemoryBackBuffer(savedBackBuffer);
 
   return 0;
 }

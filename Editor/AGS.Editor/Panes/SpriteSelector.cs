@@ -42,6 +42,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_EXPORT_SPRITE = "ExportSprite";
         private const string MENU_ITEM_REPLACE_FROM_FILE = "ReplaceFromFile";
         private const string MENU_ITEM_REPLACE_FROM_CLIPBOARD = "ReplaceFromClipboard";
+        private const string MENU_ITEM_OPEN_FILE_EXPLORER = "OpenFileExplorer";
         private const string MENU_ITEM_DELETE_SPRITE = "DeleteSprite";
         private const string MENU_ITEM_SHOW_USAGE = "ShowUsage";
         private const string MENU_ITEM_CROP_ASYMMETRIC = "CropAsymettric";
@@ -629,17 +630,31 @@ namespace AGS.Editor
                     Factory.GUIController.ShowMessage("The clipboard does not currently contain a supported image format.", MessageBoxIcon.Warning);
                 }
             }
+            else if (item.Name == MENU_ITEM_OPEN_FILE_EXPLORER)
+            {
+                Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
+                string path = Utilities.ResolveSourcePath(sprite.SourceFile);
+
+                if (File.Exists(path))
+                {
+                    if (Utilities.IsMonoRunning())
+                    {
+                        // FIXME - this probably needs to be more platform specific
+                        Process.Start(path);
+                    }
+                    else
+                    {
+                        Process.Start("explorer.exe", String.Format("/select,\"{0}\"", path));
+                    }
+                }
+            }
             else if (item.Name == MENU_ITEM_DELETE_SPRITE)
             {
                 DeleteSelectedSprites();
             }
             else if (item.Name == MENU_ITEM_EXPORT_FOLDER)
             {
-                string exportFolder = Factory.GUIController.ShowSelectFolderOrNoneDialog("Export sprites to folder...", System.IO.Directory.GetCurrentDirectory());
-                if (exportFolder != null)
-                {
-                    ExportAllSpritesInFolder(exportFolder);
-                }
+                ExportAllSprites();
             }
             else if (item.Name == MENU_ITEM_SORT_BY_NUMBER)
             {
@@ -677,12 +692,14 @@ namespace AGS.Editor
                 if (GetDesktopColourDepth() < 32 &&
                     (bmp.PixelFormat != PixelFormat.Format32bppArgb || bmp.PixelFormat == PixelFormat.Format32bppRgb))
                 {
-                    if (Factory.GUIController.ShowQuestion("Your desktop colour depth is lower than this image. You may lose image detail if you copy this to the clipboard. Do you want to go ahead?") == DialogResult.Yes)
+                    if (Factory.GUIController.ShowQuestion("Your desktop colour depth is lower than this image. You may lose image detail if you copy this to the clipboard. Do you want to go ahead?") != DialogResult.Yes)
                     {
-                        Clipboard.SetImage(bmp);
+                        bmp.Dispose();
+                        return;
                     }
                 }
 
+                Clipboard.SetImage(bmp);
                 bmp.Dispose();
             }
             else if (item.Name == MENU_ITEM_CHANGE_SPRITE_NUMBER)
@@ -1069,31 +1086,33 @@ namespace AGS.Editor
             bmp.Dispose();
         }
 
-        private void ExportAllSpritesInFolder(string exportToFolder)
+        private void ExportAllSprites()
         {
-            try
+            SpriteExportDialog dialog = new SpriteExportDialog(_currentFolder);
+
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
-                foreach (Sprite sprite in _currentFolder.Sprites)
+                try
                 {
-                    Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
-                    if ((sprite.ColorDepth < 32) && (!sprite.AlphaChannel))
+                    if (dialog.UseRootFolder)
                     {
-                        bmp.Save(string.Format("{0}{1}spr{2:00000}.bmp", exportToFolder, Path.DirectorySeparatorChar, sprite.Number), ImageFormat.Bmp);
+                        SpriteTools.ExportSprites(dialog.ExportPath, dialog.Recurse,
+                            dialog.SkipValidSpriteSource, dialog.UpdateSpriteSource);
                     }
                     else
                     {
-                        // export 32-bit images as PNG so no alpha channel is lost
-                        bmp.Save(string.Format("{0}{1}spr{2:00000}.png", exportToFolder, Path.DirectorySeparatorChar, sprite.Number), ImageFormat.Png);
+                        SpriteTools.ExportSprites(_currentFolder, dialog.ExportPath, dialog.Recurse,
+                            dialog.SkipValidSpriteSource, dialog.UpdateSpriteSource);
                     }
-                    bmp.Dispose();
                 }
+                catch (Exception ex)
+                {
+                    String message = String.Format("There was an error during the export. The error message was: '{0}'", ex.Message);
+                    Factory.GUIController.ShowMessage(message, MessageBoxIcon.Warning);
+                }
+            }
 
-                Factory.GUIController.ShowMessage("Sprites exported successfully.", MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                Factory.GUIController.ShowMessage("There was an error exporting the files. The error message was: '" + ex.Message + "'. Please try again", MessageBoxIcon.Warning);
-            }
+            dialog.Dispose();
         }
 
         private void SortAllSpritesInCurrentFolderByNumber()
@@ -1153,6 +1172,8 @@ namespace AGS.Editor
                 newItem.Font = new System.Drawing.Font(newItem.Font.Name, newItem.Font.Size, FontStyle.Bold);
                 menu.Items.Add(newItem);
                 menu.Items.Add(new ToolStripSeparator());
+                menu.Items.Add(new ToolStripMenuItem("Open File Explorer at sprite source", null, onClick, MENU_ITEM_OPEN_FILE_EXPLORER));
+                menu.Items[menu.Items.Count - 1].Enabled = File.Exists(Utilities.ResolveSourcePath(FindSpriteByNumber(_spriteNumberOnMenuActivation).SourceFile));
                 menu.Items.Add(new ToolStripMenuItem("Copy sprite to clipboard", null, onClick, MENU_ITEM_COPY_TO_CLIPBOARD));
                 menu.Items.Add(new ToolStripMenuItem("Export sprite to file...", null, onClick, MENU_ITEM_EXPORT_SPRITE));
                 menu.Items.Add(new ToolStripSeparator());
@@ -1213,7 +1234,7 @@ namespace AGS.Editor
             }
 
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(new ToolStripMenuItem("Export all sprites in folder...", null, onClick, MENU_ITEM_EXPORT_FOLDER));
+            menu.Items.Add(new ToolStripMenuItem("Export all sprites...", null, onClick, MENU_ITEM_EXPORT_FOLDER));
             menu.Items.Add(new ToolStripMenuItem("Sort sprites by number", null, onClick, MENU_ITEM_SORT_BY_NUMBER));
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Find sprite by number...", null, onClick, MENU_ITEM_FIND_BY_NUMBER));

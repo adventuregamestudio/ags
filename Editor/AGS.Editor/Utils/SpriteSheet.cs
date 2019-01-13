@@ -88,6 +88,11 @@ namespace AGS.Editor.Utils
                     }
                 }
 
+                if (rect.Width == 0 || rect.Height == 0)
+                {
+                    yield break;
+                }
+
                 yield return rect;
             }
         }

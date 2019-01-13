@@ -909,7 +909,7 @@ HSaveError ReadManagedPool(PStream in, int32_t cmp_ver, const PreservedParams &p
     if (ccUnserializeAllObjects(in.get(), &ccUnserializer))
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Managed pool deserialization failed: %s", ccErrorString));
+            String::FromFormat("Managed pool deserialization failed: %s", ccErrorString.GetCStr()));
     }
     return HSaveError::None();
 }
@@ -1103,7 +1103,7 @@ HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     if (!ReadFormatTag(in, info.Name, true))
         return new SavegameError(kSvgErr_ComponentOpeningTagFormat);
     info.Version = in->ReadInt32();
-    info.DataSize = in->ReadInt64();
+    info.DataSize = hlp.Version >= kSvgVersion_Cmp_64bit ? in->ReadInt64() : in->ReadInt32();
     info.DataOffset = in->GetPosition();
 
     const ComponentHandler *handler = NULL;

@@ -150,6 +150,19 @@ namespace AGS.Editor
             return Uri.UnescapeDataString(currentProjectUri.MakeRelativeUri(currentPathUri).OriginalString);
         }
 
+        public static string ResolveSourcePath(string sourcePath)
+        {
+            Uri baseUri = new Uri(Factory.AGSEditor.CurrentGame.DirectoryPath + Path.DirectorySeparatorChar);
+            Uri absoluteUri;
+
+            if (Uri.TryCreate(baseUri, sourcePath, out absoluteUri))
+            {
+                sourcePath = absoluteUri.LocalPath;
+            }
+
+            return sourcePath;
+        }
+
         /// <summary>
         /// Wraps Directory.GetFiles in a handler to deal with an exception
         /// erroneously being thrown on Linux network shares if no files match.
@@ -435,15 +448,8 @@ namespace AGS.Editor
         /// <returns></returns>
         public static bool HardlinkOrCopy(string destFileName, string sourceFileName, bool overwrite)
         {
-            if (!Path.IsPathRooted(sourceFileName))
-            {
-                sourceFileName = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, sourceFileName);
-            }
-
-            if (!Path.IsPathRooted(destFileName))
-            {
-                destFileName = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, destFileName);
-            }
+            sourceFileName = ResolveSourcePath(sourceFileName);
+            destFileName = ResolveSourcePath(destFileName);
 
             if (File.Exists(destFileName))
             {

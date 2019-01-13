@@ -703,7 +703,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
         }
     }
 
-    // Convert the old format tint saturation
+    // Convert the old format region tint saturation
     if (data_ver < kRoomVersion_3404)
     {
         for (size_t i = 0; i < room->RegionCount; ++i)
@@ -824,7 +824,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
 
     out->WriteInt32(0); // legacy interaction vars
     out->WriteInt32(MAX_ROOM_REGIONS);
-    
+
     WriteInteractionScripts(room->EventHandlers.get(), out);
     for (size_t i = 0; i < room->HotspotCount; ++i)
         WriteInteractionScripts(room->Hotspots[i].EventHandlers.get(), out);

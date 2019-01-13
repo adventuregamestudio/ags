@@ -149,7 +149,6 @@ void cpackbitl32(unsigned int *line, int size, Stream *out)
 void csavecompressed(Stream *out, const unsigned char * tobesaved, const color pala[256])
 {
   int widt, hit;
-  soff_t ofes;
   widt = *tobesaved++;
   widt += (*tobesaved++) * 256;
   hit = *tobesaved++;
@@ -174,8 +173,6 @@ void csavecompressed(Stream *out, const unsigned char * tobesaved, const color p
       out->WriteInt8(pala[ww].g);
       out->WriteInt8(pala[ww].b);
   }
-
-  ofes = out->GetPosition();
   free(ress);
 }
 

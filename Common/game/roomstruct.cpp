@@ -98,7 +98,7 @@ RoomStruct::~RoomStruct()
 
 void RoomStruct::Free()
 {
-    for (size_t i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_BGFRAMES; ++i)
         BgFrames[i].Graphic.reset();
     HotspotMask.reset();
     RegionMask.reset();
@@ -108,17 +108,17 @@ void RoomStruct::Free()
     LocalVariables.clear();
     Interaction.reset();
     Properties.clear();
-    for (size_t i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_HOTSPOTS; ++i)
     {
         Hotspots[i].Interaction.reset();
         Hotspots[i].Properties.clear();
     }
-    for (size_t i = 0; i < MAX_ROOM_OBJECTS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
     {
         Objects[i].Interaction.reset();
         Objects[i].Properties.clear();
     }
-    for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)
     {
         Regions[i].Interaction.reset();
         Regions[i].Properties.clear();

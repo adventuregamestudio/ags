@@ -21,8 +21,7 @@ BIT=32
     libaldmb.so.1 \
     libdumb.so.1 \
     libfreetype.so.6 \
-    libGLEW.so.2.0.0 \
-    libGLEW.so.2.0 \
+    libGLEW.so.1.10 \
     libogg.so.0 \
     libtheora.so.0 \
     libvorbis.so.0 \

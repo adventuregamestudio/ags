@@ -17,8 +17,8 @@ set -e
 
 # Create the (chroot) environments that will be used for building ags:
 
-# cowbuilder-dist stretch i386 create
-# cowbuilder-dist stretch amd64 create
+# cowbuilder-dist jessie i386 create
+# cowbuilder-dist jessie amd64 create
 
 # The only other thing you should take care of is that your ags
 # source tree is git clean. That means: check 'git status', commit any
@@ -27,8 +27,8 @@ set -e
 # The chroots can later be updated, which becomes necessary if
 # this script fails because some Debian package cannot be downloaded:
 
-# cowbuilder-dist stretch i386 update
-# cowbuilder-dist stretch amd64 update
+# cowbuilder-dist jessie i386 update
+# cowbuilder-dist jessie amd64 update
 
 BASEPATH=$(dirname $(dirname $(readlink -f $0)))
 
@@ -60,7 +60,7 @@ debuild -us -uc -S
 
 # Build ags binary package in i386 chroot, also use a hook script to copy libraries and licenses
 # from the chroot to a folder that is mounted into the chroot via --bindmounts.
-DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib32" cowbuilder-dist stretch i386 build \
+DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib32" cowbuilder-dist jessie i386 build \
   $BASEPATH/../ags_$VERSION.dsc \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
@@ -74,7 +74,7 @@ rm -rf $BASEPATH/ags+libraries/ags_* $BASEPATH/ags+libraries/ags-dbg_* $BASEPATH
 
 # Repeat for amd64.
 sed -i -r "5s/.*/BIT=64/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
-DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib64" cowbuilder-dist stretch amd64 build \
+DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib64" cowbuilder-dist jessie amd64 build \
   $BASEPATH/../ags_$VERSION.dsc \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \

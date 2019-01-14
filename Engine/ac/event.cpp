@@ -148,14 +148,13 @@ void force_event(int evtyp,int ev1,int ev2,int ev3)
 void process_event(EventHappened*evp) {
     RuntimeScriptValue rval_null;
     if (evp->type==EV_TEXTSCRIPT) {
-        int resl=0; ccError=0;
+        ccError=0;
         if (evp->data2 > -1000) {
             QueueScriptFunction(kScInstGame, tsnames[evp->data1], 1, RuntimeScriptValue().SetInt32(evp->data2));
         }
         else {
             QueueScriptFunction(kScInstGame, tsnames[evp->data1]);
         }
-        //    Display("relt: %d err:%d",resl,scErrorNo);
     }
     else if (evp->type==EV_NEWROOM) {
         NewRoom(evp->data1);
@@ -310,7 +309,7 @@ void process_event(EventHappened*evp) {
         }
         else if (theTransition == FADE_DISSOLVE) {
             int pattern[16]={0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
-            int aa,bb,cc,thcol=0;
+            int aa,bb,cc;
             color interpal[256];
 
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();

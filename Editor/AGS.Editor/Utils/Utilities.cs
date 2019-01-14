@@ -99,7 +99,10 @@ namespace AGS.Editor
 
         public static void EnsureStandardSubFoldersExist()
         {
-            List<string> foldersToCreate = new List<string> { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY, "Compiled" };
+            // TODO: This list partially contradicts the Output Target concepts,
+            // because it explicitly mentions Data target's directories
+            List<string> foldersToCreate = new List<string> { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY,
+                AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY) };
             foreach (string folderName in foldersToCreate)
             {
                 if (!Directory.Exists(folderName))
@@ -391,26 +394,6 @@ namespace AGS.Editor
             }
         }
 
-        public static RegistryKey OpenAGSRegistryKey()
-        {
-            RegistryKey key;
-            try
-            {
-                key = Registry.CurrentUser.CreateSubKey(AGSEditor.AGS_REGISTRY_KEY);
-                if (key == null)
-                {
-                    Factory.GUIController.ShowMessage("Unable to access registry key: " + AGSEditor.AGS_REGISTRY_KEY, System.Windows.Forms.MessageBoxIcon.Warning);
-                }
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                Factory.GUIController.ShowMessage("Unable to write to the registry. Your user preferences cannot be saved. Please contact your system administrator.\n\nError: " + ex.Message, System.Windows.Forms.MessageBoxIcon.Warning);
-                key = null;
-            }
-
-            return key;
-        }
-
         /// <summary>
         /// Converts an image to icon.
         /// Code taken from comments section in:
@@ -432,81 +415,6 @@ namespace AGS.Editor
             DestroyIcon(UnmanagedIconHandle);
 
             return icon;
-        }
-
-        /// <summary>
-        /// Sets security permissions for a specific file.
-        /// </summary>
-        public static void SetFileAccess(string fileName, SecurityIdentifier sid, FileSystemRights rights, AccessControlType type)
-        {
-            try
-            {
-                FileSecurity fsec = File.GetAccessControl(fileName);
-                fsec.AddAccessRule(new FileSystemAccessRule(sid, rights, type));
-                File.SetAccessControl(fileName, fsec);
-            }
-            catch (UnauthorizedAccessException)
-            {
-            }
-        }
-
-        public static void SetDirectoryFilesAccess(string directory)
-        {
-            SetDirectoryFilesAccess(directory, new SecurityIdentifier(WellKnownSidType.WorldSid, null));
-        }
-
-        public static void SetDirectoryFilesAccess(string directory, SecurityIdentifier sid)
-        {
-            SetDirectoryFilesAccess(directory, sid, FileSystemRights.Modify);
-        }
-
-        public static void SetDirectoryFilesAccess(string directory, SecurityIdentifier sid, FileSystemRights rights)
-        {
-            SetDirectoryFilesAccess(directory, sid, rights, AccessControlType.Allow);
-        }
-
-        /// <summary>
-        /// Sets security permissions for all files in a directory.
-        /// </summary>
-        public static void SetDirectoryFilesAccess(string directory, SecurityIdentifier sid, FileSystemRights rights, AccessControlType type)
-        {
-            try
-            {
-                // first we will attempt to take ownership of the file
-                // this ensures (if successful) that all users can change security
-                // permissions for the file without admin access
-                ProcessStartInfo si = new ProcessStartInfo("cmd.exe");
-                si.RedirectStandardInput = false;
-                si.RedirectStandardOutput = false;
-                si.RedirectStandardError = false;
-                si.UseShellExecute = false;
-                si.Arguments = string.Format("/c takeown /f \"{0}\" /r /d y", directory);
-                si.CreateNoWindow = true;
-                si.WindowStyle = ProcessWindowStyle.Hidden;
-                if (Utilities.IsMonoRunning())
-                {
-                    si.FileName = "chown";
-                    si.Arguments = string.Format("-R $USER:$USER \"{0}\"", directory);
-                }
-                Process process = Process.Start(si);
-                bool result = (process != null);
-                if (result)
-                {
-                    process.EnableRaisingEvents = true;
-                    process.WaitForExit();
-                    if (process.ExitCode != 0) return;
-                    process.Close();
-                    // after successfully gaining ownership, parse each file in the
-                    // directory (recursively) and update its access rights
-                    foreach (string filename in Utilities.GetDirectoryFileList(directory, "*", SearchOption.AllDirectories))
-                    {
-                        Utilities.SetFileAccess(filename, sid, rights, type);
-                    }
-                }
-            }
-            catch (UnauthorizedAccessException)
-            {
-            }
         }
 
         public static bool IsWindowsXPOrHigher()

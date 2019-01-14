@@ -27,6 +27,7 @@
 #include "ac/game_version.h"
 #include "game/plugininfo.h"
 #include "script/cc_script.h"
+#include "util/error.h"
 #include "util/stream.h"
 #include "util/string.h"
 #include "util/version.h"
@@ -41,7 +42,7 @@ namespace Common
 {
 
 // Error codes for main game file reading
-enum MainGameFileError
+enum MainGameFileErrorType
 {
     kMGFErr_NoError,
     kMGFErr_FileNotFound,
@@ -65,6 +66,10 @@ enum MainGameFileError
     kMGFErr_PluginDataSizeTooLarge
 };
 
+String GetMainGameFileErrorText(MainGameFileErrorType err);
+
+typedef TypedCodeError<MainGameFileErrorType, GetMainGameFileErrorText> MainGameFileError;
+typedef ErrorHandle<MainGameFileError> HGameFileError;
 typedef stdtr1compat::shared_ptr<Stream> PStream;
 
 // MainGameSource defines a successfully opened main game file
@@ -109,18 +114,17 @@ struct LoadedGameEntities
     LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs, ViewStruct *&views);
 };
 
-String             GetMainGameFileErrorText(MainGameFileError err);
 // Tells if the given path (library filename) contains main game file
 bool               IsMainGameLibrary(const String &filename);
 // Opens main game file for reading from an arbitrary file
-MainGameFileError  OpenMainGameFile(const String &filename, MainGameSource &src);
+HGameFileError     OpenMainGameFile(const String &filename, MainGameSource &src);
 // Opens main game file for reading from the asset library (uses default asset name)
-MainGameFileError  OpenMainGameFileFromDefaultAsset(MainGameSource &src);
+HGameFileError     OpenMainGameFileFromDefaultAsset(MainGameSource &src);
 // Reads game data, applies necessary conversions to match current format version
-MainGameFileError  ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver);
+HGameFileError     ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
-MainGameFileError  UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
+HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
 // Ensures that the game saves directory path is valid
 void               FixupSaveDirectory(GameSetupStruct &game);
 

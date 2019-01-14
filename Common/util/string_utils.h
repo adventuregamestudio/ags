@@ -99,10 +99,14 @@ namespace StrUtil
     // def_val on failure
     ConversionError StringToInt(const String &s, int &val, int def_val);
 
-    // Serializes and unserializes unterminated string prefixed with length;
-    // length is presented as int32 integer
+    // Serializes and unserializes unterminated string prefixed with 32-bit length;
+    // length is presented as 32-bit integer integer
     String          ReadString(Stream *in);
+    void            ReadString(char *cstr, Stream *in, size_t buf_limit = 0);
+    void            ReadString(char **cstr, Stream *in);
+    void            SkipString(Stream *in);
     void            WriteString(const String &s, Stream *out);
+    void            WriteString(const char *cstr, Stream *out);
 
     // Serializes string as c-string (null-terminated sequence)
     void            WriteCStr(const String &s, Stream *out);

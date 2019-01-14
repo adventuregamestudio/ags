@@ -21,7 +21,7 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game name";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
-        public const string PROPERTY_SCALE_FONTS = "Fonts designed for 640x480";
+        public const string PROPERTY_SCALE_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
@@ -59,8 +59,8 @@ namespace AGS.Types
         private bool _displayMultipleInv = false;
         private ScriptAPIVersion _scriptAPIVersion = ScriptAPIVersion.Highest;
         private ScriptAPIVersion _scriptCompatLevel = ScriptAPIVersion.Highest;
-        private ScriptAPIVersion _scriptAPIVersionReal = ScriptAPIVersion.Highest;
-        private ScriptAPIVersion _scriptCompatLevelReal = ScriptAPIVersion.Highest;
+        private ScriptAPIVersion _scriptAPIVersionReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
+        private ScriptAPIVersion _scriptCompatLevelReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private bool _enforceObjectScripting = true;
         private bool _enforceNewStrings = true;
         private bool _enforceNewAudio = true;
@@ -90,7 +90,7 @@ namespace AGS.Types
         private bool _binaryFilesInSourceControl = false;
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
-        // Vista game explorer fields
+        // Windows game explorer fields
 		private bool _enableGameExplorer = false;
 		private string _description = string.Empty;
 		private DateTime _releaseDate = DateTime.Now;
@@ -506,9 +506,7 @@ namespace AGS.Types
             set
             {
                 _scriptAPIVersion = value;
-                _scriptAPIVersionReal = _scriptAPIVersion;
-                if (_scriptAPIVersionReal == ScriptAPIVersion.Highest)
-                    _scriptAPIVersionReal = Utilities.GetSecondMaxEnumValue<ScriptAPIVersion>();
+                _scriptAPIVersionReal = Utilities.GetActualAPI(_scriptAPIVersion);
                 if (_scriptAPIVersion < _scriptCompatLevel)
                     ScriptCompatLevel = _scriptAPIVersion;
             }
@@ -525,9 +523,7 @@ namespace AGS.Types
             set
             {
                 _scriptCompatLevel = value;
-                _scriptCompatLevelReal = _scriptCompatLevel;
-                if (_scriptCompatLevelReal == ScriptAPIVersion.Highest)
-                    _scriptCompatLevelReal = Utilities.GetSecondMaxEnumValue<ScriptAPIVersion>();
+                _scriptCompatLevelReal = Utilities.GetActualAPI(_scriptCompatLevel);
                 if (_scriptCompatLevel > _scriptAPIVersion)
                     ScriptAPIVersion = _scriptCompatLevel;
             }
@@ -753,7 +749,7 @@ namespace AGS.Types
         }
 
         [DisplayName(PROPERTY_SCALE_FONTS)]
-        [Description("Tells AGS that your fonts are designed for 640x480, and therefore not to scale them up at this resolution")]
+        [Description("Tells AGS that your fonts are designed for high resolution (higher than 320x240), and therefore not to scale them up in hi-res game")]
         [DefaultValue(false)]
         [Category("Text output")]
         public bool FontsForHiRes
@@ -810,7 +806,7 @@ namespace AGS.Types
 
 		[DisplayName("Enable Game Explorer integration")]
 		[Description("Whether or not this game can be added to the Vista Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public bool GameExplorerEnabled
 		{
 			get { return _enableGameExplorer; }
@@ -819,7 +815,7 @@ namespace AGS.Types
 
 		[DisplayName("Game description")]
 		[Description("The Description displayed in the Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public string Description
 		{
 			get { return _description; }
@@ -828,7 +824,7 @@ namespace AGS.Types
 
 		[DisplayName("Release date")]
 		[Description("Date on which this game is first released")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public DateTime ReleaseDate
 		{
 			get { return _releaseDate; }
@@ -837,7 +833,7 @@ namespace AGS.Types
 
 		[DisplayName("Genre")]
 		[Description("The Genre displayed in the Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public string Genre
 		{
 			get { return _genre; }
@@ -846,7 +842,7 @@ namespace AGS.Types
 
 		[DisplayName("Version")]
 		[Description("The Version displayed in the Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public string Version
 		{
 			get { return _version; }
@@ -862,8 +858,8 @@ namespace AGS.Types
 		}
 
 		[DisplayName("Windows Experience Index")]
-		[Description("The minimum Vista Experience Index necessary to play the game")]
-		[Category("Windows Vista Game Explorer")]
+		[Description("The minimum Windows Experience Index necessary to play the game")]
+		[Category("Windows Game Explorer")]
 		public int WindowsExperienceIndex
 		{
 			get { return _windowsExperienceIndex; }
@@ -871,7 +867,7 @@ namespace AGS.Types
 		}
 
 		[DisplayName("Developer name")]
-		[Description("The name of the game developer (you!). Displayed on the game EXE in Explorer, and in the Vista Game Explorer.")]
+		[Description("The name of the game developer (you!). Displayed on the game EXE in Explorer, and in the Windows Game Explorer.")]
         [Category("(Basic properties)")]
 		public string DeveloperName
 		{
@@ -881,7 +877,7 @@ namespace AGS.Types
 
 		[DisplayName("Developer website")]
 		[Description("URL of game developer's website")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public string DeveloperURL
 		{
 			get { return _developerURL; }
@@ -923,7 +919,7 @@ namespace AGS.Types
 		}
 
         [DisplayName("Save games folder name")]
-        [Description("If set, creates a folder of this name inside the user's Saved Games folder in Vista (or My Documents in XP) to store the save games in.")]
+        [Description("If set, creates a folder of this name inside the user's Saved Games folder in Windows Vista and higher (or My Documents in XP) to store the save games in.")]
         [Category("Saved Games")]
         public string SaveGameFolderName
         {
@@ -1021,7 +1017,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Render sprites at screen resolution")]
-        [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D renderer.")]
+        [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D and OpenGL renderers.")]
         [DefaultValue(RenderAtScreenResolution.UserDefined)]
         [Category("(Basic properties)")]
         [TypeConverter(typeof(EnumTypeConverter))]

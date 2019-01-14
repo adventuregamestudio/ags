@@ -23,32 +23,10 @@
 #include "platform/base/agsplatformdriver.h"
 
 
-//
-// NOTE: following external variables are used by the mobile ports:
-// TODO: parse them during config
-//
-// psp_gfx_scaling - scaling style:
-//    * 0 - no scaling
-//    * 1 - stretch and preserve aspect ratio
-//    * 2 - stretch to whole screen
-//
-// psp_gfx_smoothing - scaling filter:
-//    * 0 - nearest-neighbour
-//    * 1 - linear
-//
-// psp_gfx_renderer - rendering mode
-//    * 1 - render directly to screen
-//    * 2 - render to texture first and then to screen
-//
-// psp_gfx_super_sampling - enable super sampling
-//
-
-
 #if defined(WINDOWS_VERSION)
 
-int device_screen_initialized = 1;
-
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
+const char* vsync_extension_string = "WGL_EXT_swap_control";
 
 // TODO: linking to glew32 library might be a better option
 PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT = 0;
@@ -59,6 +37,7 @@ PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC glGetFramebufferAttachmentParame
 PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT = 0;
 PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = 0;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
+PFNWGLSWAPINTERVALEXTPROC glSwapIntervalEXT = 0;
 // Shaders stuff
 PFNGLCREATESHADERPROC glCreateShader = 0;
 PFNGLSHADERSOURCEPROC glShaderSource = 0;
@@ -95,11 +74,6 @@ extern "C"
 
 extern "C" void android_debug_printf(char* format, ...);
 
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
-extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
-
 extern unsigned int android_screen_physical_width;
 extern unsigned int android_screen_physical_height;
 extern int android_screen_initialized;
@@ -118,6 +92,9 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define glGenerateMipmapEXT glGenerateMipmapOES
 #define glFramebufferTexture2DEXT glFramebufferTexture2DOES
 #define glFramebufferRenderbufferEXT glFramebufferRenderbufferOES
+// TODO: probably should use EGL and function eglSwapInterval on Android to support setting swap interval
+// For now this is a dummy function pointer which is only used to test that function is not supported
+const void (*glSwapIntervalEXT)(int) = NULL;
 
 #define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
 #define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
@@ -134,11 +111,6 @@ extern "C"
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
-
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
-extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
 
 extern unsigned int ios_screen_physical_width;
 extern unsigned int ios_screen_physical_height;
@@ -158,6 +130,9 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define glGenerateMipmapEXT glGenerateMipmapOES
 #define glFramebufferTexture2DEXT glFramebufferTexture2DOES
 #define glFramebufferRenderbufferEXT glFramebufferRenderbufferOES
+// TODO: find out how to support swap interval setting on iOS
+// For now this is a dummy function pointer which is only used to test that function is not supported
+const void (*glSwapIntervalEXT)(int) = NULL;
 
 #define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
 #define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
@@ -254,12 +229,12 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _hInstance = NULL;
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
-#elif defined (ANRDOID_VERSION)
-  device_screen_physical_width  = android_screen_physical_width
-  device_screen_physical_height = android_screen_physical_height
+#elif defined (ANDROID_VERSION)
+  device_screen_physical_width  = android_screen_physical_width;
+  device_screen_physical_height = android_screen_physical_height;
 #elif defined (IOS_VERSION)
-  device_screen_physical_width  = ios_screen_physical_width
-  device_screen_physical_height = ios_screen_physical_height
+  device_screen_physical_width  = ios_screen_physical_width;
+  device_screen_physical_height = ios_screen_physical_height;
 #endif
 
   _firstTimeInit = false;
@@ -278,11 +253,11 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _can_render_to_texture = false;
   _do_render_to_texture = false;
   _super_sampling = 1;
-  set_up_default_vertices();
+  SetupDefaultVertices();
 }
 
 
-void OGLGraphicsDriver::set_up_default_vertices()
+void OGLGraphicsDriver::SetupDefaultVertices()
 {
   std::fill(_backbuffer_vertices, _backbuffer_vertices + sizeof(_backbuffer_vertices) / sizeof(GLfloat), 0.0f);
   std::fill(_backbuffer_texture_coordinates, _backbuffer_texture_coordinates + sizeof(_backbuffer_texture_coordinates) / sizeof(GLfloat), 0.0f);
@@ -309,22 +284,48 @@ void OGLGraphicsDriver::set_up_default_vertices()
 }
 
 #if defined (WINDOWS_VERSION)
-void OGLGraphicsDriver::create_desktop_screen(int width, int height, int depth)
+
+void OGLGraphicsDriver::CreateDesktopScreen(int width, int height, int depth)
 {
   device_screen_physical_width = width;
   device_screen_physical_height = height;
 }
+
+#elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
+
+void OGLGraphicsDriver::UpdateDeviceScreen()
+{
+#if defined (ANDROID_VERSION)
+    device_screen_physical_width  = android_screen_physical_width;
+    device_screen_physical_height = android_screen_physical_height;
+#elif defined (IOS_VERSION)
+    device_screen_physical_width  = ios_screen_physical_width;
+    device_screen_physical_height = ios_screen_physical_height;
+#endif
+
+    Debug::Printf("OGL: notified of device screen updated to %d x %d, resizing viewport", device_screen_physical_width, device_screen_physical_height);
+    _mode.Width = device_screen_physical_width;
+    _mode.Height = device_screen_physical_height;
+    InitGlParams(_mode);
+    if (_initSurfaceUpdateCallback)
+        _initSurfaceUpdateCallback();
+}
+
 #endif
 
 void OGLGraphicsDriver::Vsync() 
 {
-  // do nothing on D3D
+  // do nothing on OpenGL
 }
 
-void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
+void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled, int supersampling)
 {
   if (_can_render_to_texture)
+  {
     _do_render_to_texture = !enabled;
+    _super_sampling = supersampling;
+    TestSupersampling();
+  }
 
   if (_do_render_to_texture)
     glDisable(GL_SCISSOR_TEST);
@@ -376,6 +377,7 @@ void OGLGraphicsDriver::FirstTimeInit()
     _oglVersion.SetFromString(digits_ptr);
   Debug::Printf(kDbgMsg_Init, "Running OpenGL: %s", ogl_v_str.GetCStr());
 
+  TestVSync();
   TestRenderToTexture();
   CreateShaders();
   _firstTimeInit = true;
@@ -391,8 +393,8 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 #elif defined (WINDOWS_VERSION)
   if (!mode.Windowed)
   {
-    platform->EnterFullscreenMode(mode);
-    platform->AdjustWindowStyleForFullscreen();
+    if (platform->EnterFullscreenMode(mode))
+      platform->AdjustWindowStyleForFullscreen();
   }
   // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
   if (mode.Windowed && adjust_window(mode.Width, mode.Height) != 0)
@@ -424,7 +426,7 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
       return false;
   }
 
-  create_desktop_screen(mode.Width, mode.Height, mode.ColorDepth);
+  CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
   win_grab_input();
 #endif
 
@@ -432,7 +434,7 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   return true;
 }
 
-void OGLGraphicsDriver::InitGlParams()
+void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
 {
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
@@ -459,6 +461,22 @@ void OGLGraphicsDriver::InitGlParams()
   glDisableClientState(GL_NORMAL_ARRAY);
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+  if (glSwapIntervalEXT)
+  {
+    if(mode.Vsync)
+      glSwapIntervalEXT(1);
+    else
+      glSwapIntervalEXT(0);
+  }
+
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
+  // Setup library mouse to have 1:1 coordinate transformation.
+  // NOTE: cannot move this call to general mouse handling mode. Unfortunately, much of the setup and rendering
+  // is duplicated in the Android/iOS ports' Allegro library patches, and is run when the Software renderer
+  // is selected in AGS. This ugly situation causes trouble...
+  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 1.0, 1.0);
+#endif
 }
 
 bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
@@ -518,6 +536,29 @@ void OGLGraphicsDriver::DeleteGlContext()
 #endif
 }
 
+void OGLGraphicsDriver::TestVSync()
+{
+// TODO: find out how to implement SwapInterval on other platforms, and how to check if it's supported
+#if defined(WINDOWS_VERSION)
+  const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
+  const char* extensionsARB = NULL;
+//#if defined(WINDOWS_VERSION)
+  PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
+  extensionsARB = wglGetExtensionsStringARB ? (const char*)wglGetExtensionsStringARB(_hDC) : NULL;
+//#endif
+
+  if (extensions && strstr(extensions, vsync_extension_string) != NULL ||
+        extensionsARB && strstr(extensionsARB, vsync_extension_string) != NULL)
+  {
+//#if defined(WINDOWS_VERSION)
+    glSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+//#endif
+  }
+  if (!glSwapIntervalEXT)
+    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension '%s' not supported, vertical sync will be kept at driver default.", vsync_extension_string);
+#endif
+}
+
 void OGLGraphicsDriver::TestRenderToTexture()
 {
   const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
@@ -536,22 +577,30 @@ void OGLGraphicsDriver::TestRenderToTexture()
   #endif
 
     _can_render_to_texture = true;
+    TestSupersampling();
+  }
+  else
+  {
+    _can_render_to_texture = false;
+    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension '%s' not supported, rendering to texture mode will be disabled.", fbo_extension_string);
+  }
+
+  if (!_can_render_to_texture)
+    _do_render_to_texture = false;
+}
+
+void OGLGraphicsDriver::TestSupersampling()
+{
+    if (!_can_render_to_texture)
+        return;
     // Disable super-sampling if it would cause a too large texture size
     if (_super_sampling > 1)
     {
       int max = 1024;
       glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-      if ((max < _srcRect.GetWidth() * 2) || (max < _srcRect.GetHeight() * 2))
+      if ((max < _srcRect.GetWidth() * _super_sampling) || (max < _srcRect.GetHeight() * _super_sampling))
         _super_sampling = 1;
     }
-  }
-  else
-  {
-    _can_render_to_texture = false;
-  }
-
-  if (!_can_render_to_texture)
-    _do_render_to_texture = false;
 }
 
 void OGLGraphicsDriver::CreateShaders()
@@ -797,16 +846,6 @@ void OGLGraphicsDriver::SetupViewport()
   // Setup viewport rect and scissor; notice that OpenGL viewport has Y axis inverted
   _viewportRect = RectWH(_dstRect.Left, device_screen_physical_height - 1 - _dstRect.Bottom, _dstRect.GetWidth(), _dstRect.GetHeight());
   glScissor(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
-
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-  device_mouse_setup(
-      (device_screen_physical_width - _dstRect.GetWidth()) / 2,
-      device_screen_physical_width - ((device_screen_physical_width - _dstRect.GetWidth()) / 2),
-      (device_screen_physical_height - _dstRect.GetHeight()) / 2, 
-      device_screen_physical_height - ((device_screen_physical_height - _dstRect.GetHeight()) / 2), 
-      1.0f,
-      1.0f);
-#endif
 }
 
 bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
@@ -825,7 +864,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
       return false;
     if (!_firstTimeInit)
       FirstTimeInit();
-    InitGlParams();
+    InitGlParams(mode);
   }
   catch (Ali3DException exception)
   {
@@ -842,20 +881,6 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   final_mode.Width = device_screen_physical_width;
   final_mode.Height = device_screen_physical_height;
   OnModeSet(final_mode);
-
-  // TODO: move these options parsing into config instead
-#if defined(ANDROID_VERSION) || defined (IOS_VERSION)
-  if (psp_gfx_renderer == 2 && _can_render_to_texture)
-  {
-    _super_sampling = ((psp_gfx_super_sampling > 0) ? 2 : 1);
-    _do_render_to_texture = true;
-  }
-  else
-  {
-    _super_sampling = 1;
-    _do_render_to_texture = false;
-  }
-#endif
 
   create_screen_tint_bitmap();
   // If we already have a native size set, then update virtual screen and setup backbuffer texture immediately
@@ -879,6 +904,7 @@ bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
   SetupBackbufferTexture();
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();
+  TestSupersampling();
   return !_srcRect.IsEmpty();
 }
 
@@ -912,6 +938,9 @@ PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const
 
 void OGLGraphicsDriver::ReleaseDisplayMode()
 {
+  if (!IsModeSet())
+    return;
+
   OnModeReleased();
   DeleteBackbufferTexture();
 
@@ -928,8 +957,8 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = NULL;
 
-  platform->ExitFullscreenMode();
-  platform->RestoreWindowStyle();
+  if (platform->ExitFullscreenMode())
+    platform->RestoreWindowStyle();
 }
 
 void OGLGraphicsDriver::UnInit() 
@@ -1188,7 +1217,7 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
 
     glBindTexture(GL_TEXTURE_2D, bmpToDraw->_tiles[ti].texture);
 
-    if ((_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
+    if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
          (bmpToDraw->_stretchToWidth != bmpToDraw->_width)))
     {
@@ -1229,13 +1258,20 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   ios_select_buffer();
 #endif
 
+#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+  // TODO:
+  // For some reason, mobile ports initialize actual display size after a short delay.
+  // This is why we update display mode and related parameters (projection, viewport)
+  // at the first render pass.
+  // Ofcourse this is not a good thing, ideally the display size should be made
+  // known before graphic mode is initialized. This would require analysis and rewrite
+  // of the platform-specific part of the code (Java app for Android / XCode for iOS).
   if (!device_screen_initialized)
-  {// TODO: find out if this is really necessary here and why
-    if (!_firstTimeInit)
-      FirstTimeInit();
-    InitGlParams();
+  {
+    UpdateDeviceScreen();
     device_screen_initialized = 1;
   }
+#endif
 
   std::vector<OGLDrawListEntry> &listToDraw = drawList;
   size_t listSize = drawList.size();
@@ -1523,8 +1559,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
     memPtr += tileWidth * 4;
   }
 
-  unsigned int newTexture = tile->texture;
-
   glBindTexture(GL_TEXTURE_2D, tile->texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
 
@@ -1534,25 +1568,20 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
 void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
-  Bitmap *source = bitmap;
   if ((target->_width == bitmap->GetWidth()) &&
      (target->_height == bitmap->GetHeight()))
   {
     if (bitmap->GetColorDepth() != target->_colDepth)
     {
-      //throw Ali3DException("Mismatched colour depths");
-      source = BitmapHelper::CreateBitmapCopy(bitmap, 32);
+      throw Ali3DException("Mismatched colour depths");
     }
 
     target->_hasAlpha = hasAlpha;
 
     for (int i = 0; i < target->_numTiles; i++)
     {
-      UpdateTextureRegion(&target->_tiles[i], source, target, hasAlpha);
+      UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
     }
-
-    if (source != bitmap)
-      delete source;
   }
 }
 
@@ -1735,7 +1764,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
 
   if (speed <= 0) speed = 16;
@@ -1790,7 +1819,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
   {
@@ -1814,7 +1843,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     {
       drawList[last].x = _srcRect.GetWidth() / 2- boxWidth / 2;
       drawList[last].y = _srcRect.GetHeight() / 2 - boxHeight / 2;
-      d3db->SetStretch(boxWidth, boxHeight);
+      d3db->SetStretch(boxWidth, boxHeight, false);
     }
     else
     {
@@ -1822,7 +1851,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
       drawList[last - 2].y = _srcRect.GetHeight() / 2 - boxHeight / 2 - _srcRect.GetHeight();
       drawList[last - 1].x = _srcRect.GetWidth() / 2 + boxWidth / 2;
       drawList[last    ].y = _srcRect.GetHeight() / 2 + boxHeight / 2;
-      d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
+      d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
     }
     
     this->_render(flipTypeLastTime, false);
@@ -1864,7 +1893,7 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
     _screenTintLayer->Clear(makecol_depth(_screenTintLayer->GetColorDepth(), red, green, blue));
     this->UpdateDDBFromBitmap(_screenTintLayerDDB, _screenTintLayer, false);
-    _screenTintLayerDDB->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
+    _screenTintLayerDDB->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
     _screenTintLayerDDB->SetTransparency(128);
 
     _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));

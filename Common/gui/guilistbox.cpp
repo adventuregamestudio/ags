@@ -16,6 +16,7 @@
 #include "gui/guilistbox.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 std::vector<AGS::Common::GUIListBox> guilist;
 int numguilist = 0;
@@ -327,6 +328,40 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (TextColor == 0)
         TextColor = 16;
+}
+
+void GUIListBox::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    ListBoxFlags = in->ReadInt32();
+    Font = in->ReadInt32();
+
+    ItemCount = in->ReadInt32();
+    Items.resize(ItemCount);
+    SavedGameIndex.resize(ItemCount);
+    for (int i = 0; i < ItemCount; ++i)
+        Items[i] = StrUtil::ReadString(in);
+    if (ListBoxFlags & kListBox_SvgIndex)
+        for (int i = 0; i < ItemCount; ++i)
+            SavedGameIndex[i] = in->ReadInt16();
+    TopItem = in->ReadInt32();
+    SelectedItem = in->ReadInt32();
+}
+
+void GUIListBox::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(ListBoxFlags);
+    out->WriteInt32(Font);
+
+    out->WriteInt32(ItemCount);
+    for (int i = 0; i < ItemCount; ++i)
+        StrUtil::WriteString(Items[i], out);
+    if (ListBoxFlags & kListBox_SvgIndex)
+        for (int i = 0; i < ItemCount; ++i)
+            out->WriteInt16(SavedGameIndex[i]);
+    out->WriteInt32(TopItem);
+    out->WriteInt32(SelectedItem);
 }
 
 } // namespace Common

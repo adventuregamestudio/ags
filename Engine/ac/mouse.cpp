@@ -33,7 +33,6 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
-#include "ac/interfacebutton.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

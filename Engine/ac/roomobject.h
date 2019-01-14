@@ -23,8 +23,6 @@
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-// This struct is only used in save games and by plugins
-// [IKM] Not really.... used in update loop
 struct RoomObject {
     int   x,y;
     int   transparent;    // current transparency setting
@@ -57,7 +55,7 @@ struct RoomObject {
 	void update_cycle_view_backwards();
 
     void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void WriteToFile(Common::Stream *out) const;
 };
 
 #endif // __AGS_EE_AC__ROOMOBJECT_H

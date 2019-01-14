@@ -74,7 +74,7 @@ namespace AGS.Editor
         public GUIEditor()
         {
             InitializeComponent();
-
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
         }
 
@@ -784,7 +784,7 @@ namespace AGS.Editor
 
         private void DeleteControlClick(object sender, EventArgs e)
         {
-            if (_selectedControl != null && !_selectedControl.Locked)
+            if (_gui is NormalGUI && _selectedControl != null && !_selectedControl.Locked)
             {
                 Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, _selectedControl);
                 _selected.Remove(_selectedControl);
@@ -1037,7 +1037,9 @@ namespace AGS.Editor
 
         protected override void OnKeyPressed(Keys keyData)
         {
-
+            // TODO: normally this should be done using class/method overriding
+            if (_gui is TextWindowGUI)
+                return; // do not let users move or delete TextWindow elements
 
             if (_selectedControl != null && (this.Focused))
             {
@@ -1132,5 +1134,10 @@ namespace AGS.Editor
 			}
 		}
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("gui-editor/background");
+            ForeColor = t.GetColor("gui-editor/foreground");
+        }
     }
 }

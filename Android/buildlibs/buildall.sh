@@ -6,6 +6,12 @@ pushd ../../libsrc
 ./download.sh
 popd
 
+# android-14 is the minimum we can go with current Android SDK
+PLATFORM=android-14
+
+# standalone toolchains cannot share same directory
+export NDK_STANDALONE=$NDK_HOME/platforms/$PLATFORM
+
 for arch in armeabi armeabi-v7a x86 mips
 do
 	rm -rf ../nativelibs/$arch

@@ -2,6 +2,7 @@ using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor.Components
 {
@@ -42,7 +43,7 @@ namespace AGS.Editor.Components
         public override void RefreshDataFromGame()
         {
             // Game has just been loaded
-			if (_agsEditor.Preferences.StartupPane == EditorStartupPane.StartPage)
+			if (Factory.AGSEditor.Settings.StartupPane == StartupPane.StartPage)
 			{
 				_guiController.AddOrShowPane(_document);
 			}

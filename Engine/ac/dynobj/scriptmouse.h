@@ -12,15 +12,21 @@
 //
 //=============================================================================
 //
-//
+// Wrapper around script "Mouse" struct, managing access to its variables.
 //
 //=============================================================================
 #ifndef __AGS_EE_DYNOBJ__SCRIPTMOUSE_H
 #define __AGS_EE_DYNOBJ__SCRIPTMOUSE_H
 
-// The text script's "mouse" struct
-struct ScriptMouse {
-    int x,y;
+#include "ac/statobj/agsstaticobject.h"
+
+struct ScriptMouse : public AGSStaticObject
+{
+    int x;
+    int y;
+
+    virtual int32_t ReadInt32(const char *address, intptr_t offset) override;
+    virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val) override;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTMOUSE_H

@@ -400,7 +400,7 @@ bool ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, 
         return(false);
 
     no_blocking_functions++;
-    int result;
+    int result = 0;
 
     if (funcToRun->numParameters < 3)
     {

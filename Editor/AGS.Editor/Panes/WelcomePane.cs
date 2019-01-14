@@ -38,6 +38,7 @@ namespace AGS.Editor
         {
             _guiContoller = guiContoller;
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         protected override string OnGetHelpKeyword()
@@ -125,6 +126,20 @@ namespace AGS.Editor
             {
                 System.Diagnostics.Process.Start(_currentTipLinkTarget);
             }
+        }
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("welcome/background");
+            ForeColor = t.GetColor("welcome/foreground");
+            panel1.BackColor = t.GetColor("welcome/panel1/background");
+            panel1.ForeColor = t.GetColor("welcome/panel1/foreground");
+            panel2.BackColor = t.GetColor("welcome/panel2/background");
+            panel2.ForeColor = t.GetColor("welcome/panel2/foreground");
+            pnlTipOfTheDay.BackColor = t.GetColor("welcome/pnlTipOfTheDay/background");
+            pnlTipOfTheDay.ForeColor = t.GetColor("welcome/pnlTipOfTheDay/foreground");
+            pnlRight.BackColor = t.GetColor("welcome/pnlRight/background");
+            pnlRight.ForeColor = t.GetColor("welcome/pnlRight/foreground");
         }
     }
 }

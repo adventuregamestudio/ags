@@ -263,7 +263,7 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm)
         quit("!DynamicSprite.SaveToFile: sprite has been deleted");
 
     String filename = namm;
-    if (filename.FindChar('.') < 0)
+    if (filename.FindChar('.') == -1)
         filename.Append(".bmp");
 
     String path, alt_path; // alt_path is unused here, because it's a write op

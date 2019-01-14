@@ -23,6 +23,7 @@
 #include "util/string.h"
 
 using AGS::Common::String;
+using AGS::Engine::DisplayMode;
 
 Size get_desktop_size();
 String make_scaling_factor_string(uint32_t scaling);
@@ -73,12 +74,18 @@ enum ScreenSizeDefinition
     kNumScreenDef
 };
 
-// Display mode configuration
-struct DisplayModeSetup
+// Configuration that is used to determine the size of the screen
+struct ScreenSizeSetup
 {
     ScreenSizeDefinition SizeDef;       // a method used to determine screen size
     ::Size               Size;          // explicitly defined screen metrics
-    bool                 MatchDeviceRatio; // choose resolution matching device aspect ratio
+    bool                 MatchDeviceRatio; // whether to choose resolution matching device aspect ratio
+};
+
+// Display mode configuration
+struct DisplayModeSetup
+{
+    ScreenSizeSetup      ScreenSize;
 
     int                  RefreshRate;   // gfx mode refresh rate
     bool                 VSync;         // vertical sync
@@ -87,14 +94,19 @@ struct DisplayModeSetup
     DisplayModeSetup();
 };
 
-// General display configuration
+// Full graphics configuration
 struct ScreenSetup
 {
     String               DriverID;      // graphics driver ID
-    DisplayModeSetup     DisplayMode;   // definition of the display mode
+    DisplayModeSetup     DisplayMode;   // definition of the initial display mode
+
+    // Definitions for the fullscreen and windowed scaling methods.
+    // When the initial display mode is set, corresponding scaling method from this pair is used.
+    // The second method is meant to be saved and used if display mode is switched at runtime.
+    GameFrameSetup       FsGameFrame;   // how the game frame should be scaled/positioned in fullscreen mode
+    GameFrameSetup       WinGameFrame;  // how the game frame should be scaled/positioned in windowed mode
 
     GfxFilterSetup       Filter;        // graphics filter definition
-    GameFrameSetup       GameFrame;     // definition of the game frame's position on screen
 };
 
 // Display mode color depth variants suggested for the use
@@ -107,15 +119,19 @@ struct ColorDepthOption
     ColorDepthOption(int bits, bool forced = false) : Bits(bits), Forced(forced) {}
 };
 
+// ActiveDisplaySetting struct merges DisplayMode and GameFrameSetup,
+// which is useful if you need to save active settings and reapply them later.
+struct ActiveDisplaySetting
+{
+    DisplayMode     Dm;
+    GameFrameSetup  FrameSetup;
+};
+
 // Initializes any possible gfx mode, using user config as a recommendation;
 // may try all available renderers and modes before succeeding (or failing)
 bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depth);
-// Fill in setup structs with default settings for the given mode (windowed or fullscreen)
-void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameFrameSetup &frame_setup);
-// Get frame setup, adjusted to be more suitable for the given mode kind
-GameFrameSetup convert_frame_setup(const GameFrameSetup &frame_setup, bool windowed);
 // Return last saved display mode of the given kind
-AGS::Engine::DisplayMode graphics_mode_get_last_mode(bool windowed);
+ActiveDisplaySetting graphics_mode_get_last_setting(bool windowed);
 // Creates graphics driver of given id
 bool graphics_mode_create_renderer(const String &driver_id);
 // Try to find and initialize compatible display mode as close to given setup as possible

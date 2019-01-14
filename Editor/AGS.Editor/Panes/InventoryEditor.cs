@@ -17,6 +17,7 @@ namespace AGS.Editor
         public InventoryEditor()
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public InventoryEditor(InventoryItem itemToEdit) : this()
@@ -97,5 +98,16 @@ namespace AGS.Editor
             }
         }
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("inventory-editor/background");
+            ForeColor = t.GetColor("inventory-editor/foreground");
+            currentItemGroupBox.BackColor = t.GetColor("inventory-editor/current-item-box/background");
+            currentItemGroupBox.ForeColor = t.GetColor("inventory-editor/current-item-box/foreground");
+            groupBox1.BackColor = t.GetColor("inventory-editor/left-box/background");
+            groupBox1.ForeColor= t.GetColor("inventory-editor/left-box/foreground");
+            groupBox2.BackColor = t.GetColor("inventory-editor/right-box/background");
+            groupBox2.ForeColor = t.GetColor("inventory-editor/right-box/foreground");
+        }
     }
 }

@@ -1,6 +1,66 @@
 REVISION HISTORY
 ================
-VERSION 3.4.1
+VERSION 3.4.2 - Alpha
+
+Editor:
+ - Editor requires .NET Framework 4.0 to run.
+ - Editor preferences are now stored using .NET configuration model, instead of the
+   Windows registry.
+ - Added support for custom UI color themes.
+ - New navigation bar in the room editor, which allows to select any room object
+   or region for editing, show/hide and lock room objects and regions in any combination.
+ - Added "Export mask to file" tool button to the Room Editor.
+ - Added "Always"choice to "Popup message on compile" preference. Successful compilation
+   popup will only be displayed if "Always" choice is selected.
+ - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
+ - Don't modify filesystem permissions in Compiled directory when compiling the game.
+   Editor no longer requires non-standard "takeown.exe" utility.
+ - Corrected .NET version query for the anonymous statistics report.
+ - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
+ - Fixed view loops displayed with offset if the view panel area was scrolled
+   horizontally prior to their creation.
+ - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key controls.
+
+Engine:
+ - New pathfinder based on the A* jump point search.
+ - Implemented new savegame format. Much cleaner than the old one, and easier to
+   extend, it should also reduce the size of the save files.
+   The engine is still capable of loading older saves, temporarily.
+ - Expanded some of the error messages providing more information to end-user and developers.
+ - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
+
+Windows:
+ - Windows version of AGS is now built with MSVS 2015 and higher.
+
+
+VERSION 3.4.1 - Patch 2, May 2018
+
+Editor:
+ - Font's line spacing and offset are now used when displaying GUI previews.
+
+Engine:
+ - Removed limit on maximal asset files in a game package.
+ - Fixed game refused to start at all if speech.vox has bad format.
+ - Fixed DynamicSprite.SaveToFile() was not appending default  "bmp" extension
+   if user did not specify one.
+
+Android:
+ - Updated port to work with 3.4.1 engine. Software renderer works again too
+   (was broken in 3.4.0).
+
+
+VERSION 3.4.1 - Patch 1, January 2018
+
+Engine:
+ - Removed game error reported when GUI coordinates were off the room limits.
+ - Fixed crash in Direct3D renderer when alt+tabbing out of fullscreen mode.
+ - Fixed OpenGL fullscreen mode was not minimized when you alt+tab from it.
+ - Fixed Direct3D and OpenGL renderers unnecessarily applied anti-aliasing on
+   utility sprites (used for transition effects) when "smooth scaled sprites"
+   option was enabled.
+
+
+VERSION 3.4.1, December 2017
 
 Common features:
  - Upgraded Windows version of AGS with Allegro v4.4 library (previously v4.2).
@@ -8,8 +68,8 @@ Common features:
    and objects are scaled in screen pixels rather than game pixels.
  - Implemented VerticalOffset and LineSpacing properties for fonts.
  - Removed limit on Dialog Topics (was 500 topics per game).
- - Removed length limit on the names of Inventory, GUI and GUI Controls.
- - Removed length limit on the names of Hotspots and Objects.
+ - Removed length limit on the script names of Inventory, GUI and GUI Controls.
+ - Removed length limit on the script names of Hotspots and Objects.
  - Removed length limit on event handler names.
 
 Editor:
@@ -30,6 +90,10 @@ Editor:
  - Made Editor correctly detect modern versions of MS Windows for display on
    About dialog and when sending anonymous statistics.
  - New application icon to comply with 3.4.0 splash screen.
+ - Fixed crash when importing old games which have extended editor version
+   string saved in the project files.
+ - Fixed unhandled exception occuring when user types "#under", "#idef" or "#ifndef"
+   on the last line of the script.
  - Fixed #ifver and #ifnver not working properly if version number had only one
    component (major version).
  - Few improvements to the game compilation made in hope to reduce occasional
@@ -47,6 +111,9 @@ Script API:
  - A new parameter StopMovementStyle is added to following functions: LockView,
    LockViewAligned, LockViewFrame, LockViewOffset, UnlockView. This parameter
    can be eStopMoving (default) or eKeepMoving.
+ - DynamicSprite.CreateFromFile and SaveToFile now support path tokens and
+   comply to the new file path rules (no writing files to the game's
+   installation directory).
  - Added missing readonly properties to get Lighting/Tinting parameters for
    Character and Object: HasExplicitLight, HasExplicitTint, LightLevel,
    TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance.
@@ -55,9 +122,6 @@ Script API:
  - Added readonly properties to get Button's animation state: Button.Animating,
    Button.Frame, Button.Loop, Button.View.
  - Added GetFontHeight(FontType) and GetFontLineSpacing(FontType) functions.
- - DynamicSprite.CreateFromFile and SaveToFile now support path tokens and
-   comply to the new file path rules (no writing files to the game's
-   installation directory).
  - Added setter for System.Windowed property, letting to change it at runtime,
    switching between windowed and fullscreen modes.
  - Added System.RenderAtScreenResolution property to change sprite rendering
@@ -69,16 +133,19 @@ Engine:
    renderers (Direct3D, OpenGL).
  - Added support for switching between fullscreen and windowed modes at runtime
    using Alt+Enter key combination.
- - All supported hardware-accelerated graphic drivers (Direct3D and OpenGL)
-   now run every game in 32-bit display mode by default, and convert game's
-   graphics on load if that is required. This allows to run 8-bit games and
-   fixes loss of green hue precision in 16-bit games.
+ - All supported renderers now run 16-bit and 32-bit games in 32-bit display
+   mode by default, and convert game's graphics on load if that is required.
+   Hardware-accelerated renderers (Direct3D and OpenGL) are also allowed to run
+   8-bit games, converting graphics to 32-bit at runtime.
+   This measure improves Software renderer work on contemporary systems, and fixes
+   loss of green hue precision in 16-bit games when they are run with Direct3D or
+   OpenGL.
    NOTE: 8-bit dynamic palette cycling is still not supported for hardware-
    accelerated drivers.
  - Added support for global configuration file, which works as configuration
    for all games and overrides default game's config file. Individual game
    user's config overrides global one in its turn. Global config's location is
-   platform-dependent.
+   platform-dependent (this feature is currently disabled on Windows).
  - Implemented separate config option for game's shared data path, to keep it
    distinct from user-defined saves path.
  - Engine saves last Windowed and RenderAtScreenResolution mode states to the
@@ -90,6 +157,11 @@ Engine:
    limit imposed on drawing entries for all drivers (was 200).
  - Engine now tries to get voice files from the Speech folder first, if one
    exists, and speech.vox later when quick-run from the Editor.
+ - Fixed speech portrait was displayed below GUI, contrary to speech text.
+ - Fixed ShakeScreen command was causing graphic artifacts when game is run
+   with software renderer.
+ - Fixed calling ChangeView during idle animation results in new view being animated.
+ - Fixed Speech.SkipStyle getter return value for eSkipTime case.
  - Fixed Speech.VoiceMode not returning correct values when speech.vox is not
    enabled/present.
  - Fixed AdjustVolumeWithScaling character's property not working with the new
@@ -103,6 +175,7 @@ Engine:
  - Fixed engine was trying to locate "My Documents" folder on Windows Vista and
    higher even though it did not need it, and reporting internal error if such
    folder was not found, even though "Saved Games" folder is used instead.
+ - Properly toggle console upon play.debug_mode variable change in script.
  - Added missing stubs for agsjoy plugin.
 
 WinSetup:
@@ -538,7 +611,7 @@ Features:
 - Added config option to run pre-3.1.0 lo-res games in hi-res mode.
 
 Bug Fixes:
-- Fixed Editor crashing when user types "#define" in script.
+- Fixed Editor crashing when user types "#define" on the last line of the script.
 - Fixed error in game compilation after user moves item folders up or down in the project tree.
 - Fixed bug which could make Character.Transparency and Object.Transparency properties return
   slightly incorrect values.

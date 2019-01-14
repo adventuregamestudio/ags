@@ -42,6 +42,7 @@ namespace AGS.Editor
         public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController)
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _selectedFrame = -1;
             _loop = loopToEdit;
             lblLoopTitle.Text = "Loop " + _loop.ID + " (" + _loop.DirectionDescription + ")";
@@ -54,7 +55,7 @@ namespace AGS.Editor
             btnNewFrame.Height = FRAME_DISPLAY_SIZE;
             btnNewFrame.Top = _loopDisplayY;
 
-            _framelessWidth = Math.Max(chkRunNextLoop.Width + 10, Screen.PrimaryScreen.Bounds.Width);
+            _framelessWidth = Math.Min(chkRunNextLoop.Width, this.Width + this.Left);
             UpdateControlWidth();
         }
 
@@ -120,7 +121,7 @@ namespace AGS.Editor
 
         private void UpdateControlWidth()
         {
-            this.Width = Math.Max((_loop.Frames.Count + 1) * FRAME_DISPLAY_SIZE, _framelessWidth);
+            this.Width = Math.Max((_loop.Frames.Count + 1) * FRAME_DISPLAY_SIZE + 10, _framelessWidth);
             btnNewFrame.Left = _loop.Frames.Count * FRAME_DISPLAY_SIZE;
         }
 
@@ -365,5 +366,14 @@ namespace AGS.Editor
                 }
             }
         }                
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            btnNewFrame.BackColor = t.GetColor("view-editor/btn-new-frame/background");
+            btnNewFrame.ForeColor = t.GetColor("view-editor/btn-new-frame/foreground");
+            btnNewFrame.FlatStyle = (FlatStyle)t.GetInt("view-editor/btn-new-frame/flat/style");
+            btnNewFrame.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-new-frame/flat/border/size");
+            btnNewFrame.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-new-frame/flat/border/color");
+        }
     }
 }

@@ -25,10 +25,11 @@ namespace AGS.Editor
             viewToEdit.ViewUpdated += _viewUpdateHandler;
 
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _editingView = viewToEdit;
             InitializeControls();
 			viewPreview.DynamicUpdates = true;
-			chkShowPreview.Checked = Factory.AGSEditor.Preferences.ShowViewPreviewByDefault;
+			chkShowPreview.Checked = Factory.AGSEditor.Settings.ShowViewPreviewByDefault;
 			UpdateWhetherPreviewIsShown();
         }
 
@@ -78,7 +79,7 @@ namespace AGS.Editor
         private ViewLoopEditor AddNewLoopPane(ViewLoop loop)
         {
             ViewLoopEditor loopPane = new ViewLoopEditor(loop, _guiController);
-            loopPane.Left = 10;
+            loopPane.Left = 10 + editorPanel.AutoScrollPosition.X;
             loopPane.Top = 10 + _loopPanes.Count * loopPane.Height + editorPanel.AutoScrollPosition.Y;
             loopPane.SelectedFrameChanged += new ViewLoopEditor.SelectedFrameChangedHandler(loopPane_SelectedFrameChanged);
 			loopPane.NewFrameAdded += new ViewLoopEditor.NewFrameAddedHandler(loopPane_NewFrameAdded);
@@ -90,6 +91,7 @@ namespace AGS.Editor
 			//loopPane.GotFocus += new EventHandler(loopPane_GotFocus);
 			//loopPane.Leave += new EventHandler(loopPane_GotFocus);
             editorPanel.Controls.Add(loopPane);
+            editorPanel.AutoScrollPosition = new Point(0, editorPanel.VerticalScroll.Maximum);
             _loopPanes.Add(loopPane);
             return loopPane;
         }
@@ -273,12 +275,12 @@ namespace AGS.Editor
                 viewPreview.Width = viewPreview.PreferredSize.Width;
                 viewPreview.Height = viewPreview.PreferredSize.Height;
 
-				editorPanel.Left = viewPreview.Right + 10;
+				editorPanel.Left = viewPreview.Right;
 				viewPreview.ViewToPreview = _editingView;
 			}
 			else
 			{
-				editorPanel.Left = 10;
+				editorPanel.Left = 0;
 				viewPreview.ReleaseResources();
 			}
 
@@ -307,5 +309,20 @@ namespace AGS.Editor
 		{
 		}
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("view-editor/background");
+            ForeColor = t.GetColor("view-editor/foreground");
+            btnDeleteLastLoop.BackColor = t.GetColor("view-editor/btn-delete-option/background");
+            btnDeleteLastLoop.ForeColor = t.GetColor("view-editor/btn-delete-option/foreground");
+            btnDeleteLastLoop.FlatStyle = (FlatStyle)t.GetInt("view-editor/btn-delete-option/flat/style");
+            btnDeleteLastLoop.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-delete-option/flat/border/size");
+            btnDeleteLastLoop.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-delete-option/flat/border/color");
+            btnNewLoop.BackColor = t.GetColor("view-editor/btn-new-option/background");
+            btnNewLoop.ForeColor = t.GetColor("view-editor/btn-new-option/foreground");
+            btnNewLoop.FlatStyle = (FlatStyle)t.GetInt("view-editor/btn-new-option/flat/style");
+            btnNewLoop.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-new-option/flat/border/size");
+            btnNewLoop.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-new-option/flat/border/color");
+        }
     }
 }

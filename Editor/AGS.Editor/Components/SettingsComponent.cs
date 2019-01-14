@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor.Components
 {
@@ -32,14 +33,13 @@ namespace AGS.Editor.Components
         {
             _document.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_document);
-			_guiController.ShowCuppit("This is the Game Settings window. It's where you set various options for your game, such as the name, resolution and dialog type.", "Game Settings introduction");
         }
 
         public override void RefreshDataFromGame()
         {
             _settingsPane.RefreshData();
 
-			if (_agsEditor.Preferences.StartupPane == EditorStartupPane.GeneralSettings)
+			if (Factory.AGSEditor.Settings.StartupPane == StartupPane.GeneralSettings)
 			{
 				_guiController.AddOrShowPane(_document);
 			}

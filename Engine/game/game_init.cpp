@@ -103,24 +103,24 @@ namespace AGS
 namespace Engine
 {
 
-String GetGameInitErrorText(GameInitError err)
+String GetGameInitErrorText(GameInitErrorType err)
 {
     switch (err)
     {
     case kGameInitErr_NoError:
-        return "No error";
+        return "No error.";
     case kGameInitErr_NoFonts:
-        return "No fonts specified to be used in this game";
+        return "No fonts specified to be used in this game.";
     case kGameInitErr_TooManyAudioTypes:
-        return "Too many audio types for this engine to handle";
+        return "Too many audio types for this engine to handle.";
     case kGameInitErr_TooManyPlugins:
-        return "Too many plugins for this engine to handle";
+        return "Too many plugins for this engine to handle.";
     case kGameInitErr_PluginNameInvalid:
-        return "Plugin name is invalid";
+        return "Plugin name is invalid.";
     case kGameInitErr_ScriptLinkFailed:
-        return String::FromFormat("Script link failed: %s", ccErrorString);
+        return "Script link failed.";
     }
-    return "Unknown error";
+    return "Unknown error.";
 }
 
 // Initializes audio channels and clips and registers them in the script system
@@ -270,13 +270,27 @@ void InitAndRegisterRegions()
 // Registers static entity arrays in the script system
 void RegisterStaticArrays()
 {
-    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo), sizeof(CharacterInfo));
-    StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject), sizeof(ScriptObject));
-    StaticGUIArray.Create(&ccDynamicGUI, sizeof(ScriptGUI), sizeof(ScriptGUI));
-    StaticHotspotArray.Create(&ccDynamicHotspot, sizeof(ScriptHotspot), sizeof(ScriptHotspot));
-    StaticRegionArray.Create(&ccDynamicRegion, sizeof(ScriptRegion), sizeof(ScriptRegion));
-    StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem), sizeof(ScriptInvItem));
-    StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog), sizeof(ScriptDialog));
+    // We need to know sizes of related script structs to convert memory offsets into object indexes.
+    // These sized are calculated by the compiler based on script struct declaration.
+    // Note, that only regular variables count to the struct size, NOT properties and NOT methods.
+    // Currently there is no way to read the type sizes from script, so we have to define them by hand.
+    // If the struct size changes in script, we must change the numbers here.
+    // If we are going to support multiple different versions of same struct, then the "script size"
+    // should be chosen depending on the script api version.
+    const int charScriptSize = sizeof(int32_t) * 28 + sizeof(int16_t) * MAX_INV + sizeof(int32_t) + 61
+        + 1; // + 1 for mem align
+    const int dummyScriptSize = sizeof(int32_t) * 2; // 32-bit id + reserved int32
+
+    // The current implementation of the StaticArray assumes we are dealing with regular C-arrays.
+    // Therefore we need to know real struct size too. If we will change to std containers, then
+    // (templated) telling real size will no longer be necessary.
+    StaticCharacterArray.Create(&ccDynamicCharacter, charScriptSize, sizeof(CharacterInfo));
+    StaticObjectArray.Create(&ccDynamicObject, dummyScriptSize, sizeof(ScriptObject));
+    StaticGUIArray.Create(&ccDynamicGUI, dummyScriptSize, sizeof(ScriptGUI));
+    StaticHotspotArray.Create(&ccDynamicHotspot, dummyScriptSize, sizeof(ScriptHotspot));
+    StaticRegionArray.Create(&ccDynamicRegion, dummyScriptSize, sizeof(ScriptRegion));
+    StaticInventoryArray.Create(&ccDynamicInv, dummyScriptSize, sizeof(ScriptInvItem));
+    StaticDialogArray.Create(&ccDynamicDialog, dummyScriptSize, sizeof(ScriptDialog));
 
     ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
     ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
@@ -312,17 +326,14 @@ void LoadFonts()
     for (int i = 0; i < game.numfonts; ++i) 
     {
         FontInfo finfo;
-        finfo.Flags   = game.fontflags[i] & ~FFLG_SIZEMASK;
-        finfo.SizePt  = game.fontflags[i] &  FFLG_SIZEMASK;
-        finfo.Outline = game.fontoutline[i];
-        finfo.YOffset = game.fontvoffset[i];
-        finfo.LineSpacing = Math::Max(0, game.fontlnspace[i]);
+        make_fontinfo(game, i, finfo);
 
         // Apply compatibility adjustments
         if (finfo.SizePt == 0)
             finfo.SizePt = 8;
 
         // CLNUP decide what to do about arbitrary font scaling, might become an option
+        // TODO: for some reason these compat fixes are different in the editor, investigate
         /*
         if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
             finfo.SizePt *= 2;
@@ -352,8 +363,7 @@ void AllocScriptModules()
     }
 }
 
-// CLNUP check compat levels
-GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
+HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_341)
     {
@@ -374,9 +384,9 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
     // engine capabilities.
     //
     if (game.numfonts == 0)
-        return kGameInitErr_NoFonts;
+        return new GameInitError(kGameInitErr_NoFonts);
     if (game.audioClipTypeCount > MAX_AUDIO_TYPES)
-        return kGameInitErr_TooManyAudioTypes;
+        return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %d, max: %d", game.audioClipTypeCount, MAX_AUDIO_TYPES));
 
     //
     // 2. Apply overriding config settings
@@ -466,9 +476,9 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
     scriptModules = ents.ScriptModules;
     AllocScriptModules();
     if (create_global_script())
-        return kGameInitErr_ScriptLinkFailed;
+        return new GameInitError(kGameInitErr_ScriptLinkFailed, ccErrorString);
 
-    return kGameInitErr_NoError;
+    return HGameInitError::None();
 }
 
 } // namespace Engine

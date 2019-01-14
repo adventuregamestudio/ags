@@ -17,6 +17,7 @@
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 std::vector<AGS::Common::GUILabel> guilabels;
 int numguilabels = 0;
@@ -98,6 +99,22 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
         TextColor = 16;
     // All labels are translated at the moment
     Flags |= kGUICtrl_Translated;
+}
+
+void GUILabel::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    Font = in->ReadInt32();
+    TextColor = in->ReadInt32();
+    Text = StrUtil::ReadString(in);
+}
+
+void GUILabel::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(Font);
+    out->WriteInt32(TextColor);
+    StrUtil::WriteString(Text, out);
 }
 
 } // namespace Common

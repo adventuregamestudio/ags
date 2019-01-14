@@ -47,8 +47,7 @@ using namespace AGS; // FIXME later
 #define FOLLOW_ALWAYSONTOP  0x7ffe
 
 struct CharacterExtras; // forward declaration
-// remember - if change this struct, also change AGSDEFNS.SH and
-// plugin header file struct
+
 struct CharacterInfo {
     int   defview;
     int   talkview;

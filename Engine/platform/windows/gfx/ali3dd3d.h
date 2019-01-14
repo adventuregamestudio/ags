@@ -60,10 +60,11 @@ public:
     // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
     virtual void SetTransparency(int transparency) { _transparency = transparency; }
     virtual void SetFlippedLeftRight(bool isFlipped) { _flipped = isFlipped; }
-    virtual void SetStretch(int width, int height) 
+    virtual void SetStretch(int width, int height, bool useResampler = true)
     {
         _stretchToWidth = width;
         _stretchToHeight = height;
+        _useResampler = useResampler;
     }
     virtual int GetWidth() { return _width; }
     virtual int GetHeight() { return _height; }
@@ -81,6 +82,7 @@ public:
     int _colDepth;
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
+    bool _useResampler;
     int _red, _green, _blue;
     int _tintSaturation;
     int _lightLevel;
@@ -100,6 +102,7 @@ public:
         _hasAlpha = false;
         _stretchToWidth = 0;
         _stretchToHeight = 0;
+        _useResampler = false;
         _tintSaturation = 0;
         _lightLevel = 0;
         _transparency = 0;
@@ -185,7 +188,7 @@ public:
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
-    virtual void RenderSpritesAtScreenResolution(bool enabled) { _renderSprAtScreenRes = enabled; };
+    virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling) { _renderSprAtScreenRes = enabled; };
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);

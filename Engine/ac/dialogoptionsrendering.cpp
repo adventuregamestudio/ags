@@ -280,7 +280,7 @@ RuntimeScriptValue Sc_DialogOptionsRendering_GetHasAlphaChannel(void *self, cons
 
 RuntimeScriptValue Sc_DialogOptionsRendering_SetHasAlphaChannel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetHasAlphaChannel);
+    API_OBJCALL_VOID_PBOOL(ScriptDialogOptionsRendering, DialogOptionsRendering_SetHasAlphaChannel);
 }
 
 

@@ -519,6 +519,48 @@ void GUIMain::WriteToFile(Stream *out, GuiVersion gui_version) const
     }
 }
 
+void GUIMain::ReadFromSavegame(Common::Stream *in)
+{
+    // Properties
+    Flags = in->ReadInt32();
+    X = in->ReadInt32();
+    Y = in->ReadInt32();
+    Width = in->ReadInt32();
+    Height = in->ReadInt32();
+    BgImage = in->ReadInt32();
+    Transparency = in->ReadInt32();
+    _visibility = (GUIVisibilityState)in->ReadInt32();
+    ZOrder = in->ReadInt32();
+    // Dynamic values
+    FocusCtrl = in->ReadInt32();
+    HighlightCtrl = in->ReadInt32();
+    MouseOverCtrl = in->ReadInt32();
+    MouseDownCtrl = in->ReadInt32();
+    MouseWasAt.X = in->ReadInt32();
+    MouseWasAt.Y = in->ReadInt32();
+}
+
+void GUIMain::WriteToSavegame(Common::Stream *out) const
+{
+    // Properties
+    out->WriteInt32(Flags);
+    out->WriteInt32(X);
+    out->WriteInt32(Y);
+    out->WriteInt32(Width);
+    out->WriteInt32(Height);
+    out->WriteInt32(BgImage);
+    out->WriteInt32(Transparency);
+    out->WriteInt32(_visibility);
+    out->WriteInt32(ZOrder);
+    // Dynamic values
+    out->WriteInt32(FocusCtrl);
+    out->WriteInt32(HighlightCtrl);
+    out->WriteInt32(MouseOverCtrl);
+    out->WriteInt32(MouseDownCtrl);
+    out->WriteInt32(MouseWasAt.X);
+    out->WriteInt32(MouseWasAt.Y);
+}
+
 
 namespace GUI
 {
@@ -574,26 +616,26 @@ void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
 
 void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
 {
-  if (in->ReadInt32() != (int)GUIMAGIC)
+    if (in->ReadInt32() != (int)GUIMAGIC)
         quit("ReadGUI: file is corrupt");
 
-  GameGuiVersion = (GuiVersion)in->ReadInt32();
-  Debug::Printf(kDbgMsg_Init, "Game GUI version: %d", GameGuiVersion);
+    GameGuiVersion = (GuiVersion)in->ReadInt32();
+    Debug::Printf(kDbgMsg_Init, "Game GUI version: %d", GameGuiVersion);
     size_t gui_count;
     if (GameGuiVersion < kGuiVersion_214)
     {
         gui_count = (size_t)GameGuiVersion;
-    GameGuiVersion = kGuiVersion_Initial;
-  }
-  else if (GameGuiVersion > kGuiVersion_Current)
-    quit("read_gui: this game requires a newer version of AGS");
-  else
+        GameGuiVersion = kGuiVersion_Initial;
+    }
+    else if (GameGuiVersion > kGuiVersion_Current)
+        quit("read_gui: this game requires a newer version of AGS");
+    else
         gui_count = in->ReadInt32();
     guis.resize(gui_count);
 
-  // import the main GUI elements
+    // import the main GUI elements
     for (size_t i = 0; i < gui_count; ++i)
-  {
+    {
         GUIMain &gui = guis[i];
         gui.Init();
         gui.ReadFromFile(in, GameGuiVersion);
@@ -602,25 +644,25 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
         if (gui.Height < 2)
             gui.Height = 2;
         gui.Id = i;
-  }
+    }
 
     // buttons
-  numguibuts = in->ReadInt32();
-  guibuts.resize(numguibuts);
+    numguibuts = in->ReadInt32();
+    guibuts.resize(numguibuts);
     for (int i = 0; i < numguibuts; ++i)
     {
         guibuts[i].ReadFromFile(in, GameGuiVersion);
     }
-  // labels
-  numguilabels = in->ReadInt32();
-  guilabels.resize(numguilabels);
+    // labels
+    numguilabels = in->ReadInt32();
+    guilabels.resize(numguilabels);
     for (int i = 0; i < numguilabels; ++i)
     {
         guilabels[i].ReadFromFile(in, GameGuiVersion);
     }
-  // inv controls
-  numguiinv = in->ReadInt32();
-  guiinv.resize(numguiinv);
+    // inv controls
+    numguiinv = in->ReadInt32();
+    guiinv.resize(numguiinv);
     for (int i = 0; i < numguiinv; ++i)
     {
         guiinv[i].ReadFromFile(in, GameGuiVersion);
@@ -628,83 +670,83 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
 
     if (GameGuiVersion >= kGuiVersion_214)
     {
-    // sliders
-    numguislider = in->ReadInt32();
-    guislider.resize(numguislider);
+        // sliders
+        numguislider = in->ReadInt32();
+        guislider.resize(numguislider);
         for (int i = 0; i < numguislider; ++i)
         {
             guislider[i].ReadFromFile(in, GameGuiVersion);
-  }
+        }
     }
     if (GameGuiVersion >= kGuiVersion_222)
     {
-    // text boxes
-    numguitext = in->ReadInt32();
-    guitext.resize(numguitext);
+        // text boxes
+        numguitext = in->ReadInt32();
+        guitext.resize(numguitext);
         for (int i = 0; i < numguitext; ++i)
         {
             guitext[i].ReadFromFile(in, GameGuiVersion);
-  }
+        }
     }
     if (GameGuiVersion >= kGuiVersion_230)
     {
-    // list boxes
-    numguilist = in->ReadInt32();
-    guilist.resize(numguilist);
+        // list boxes
+        numguilist = in->ReadInt32();
+        guilist.resize(numguilist);
         for (int i = 0; i < numguilist; ++i)
         {
             guilist[i].ReadFromFile(in, GameGuiVersion);
-  }
+        }
     }
     ResortGUI(guis, GameGuiVersion < kGuiVersion_272e);
-  }
+}
 
 void WriteGUI(const std::vector<GUIMain> &guis, Stream *out, bool savedgame)
 {
-  out->WriteInt32(GUIMAGIC);
-  GuiVersion write_version;
-  if (savedgame)
-    write_version = GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible;
-  else
-    write_version = kGuiVersion_Current;
+    out->WriteInt32(GUIMAGIC);
+    GuiVersion write_version;
+    if (savedgame)
+        write_version = GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible;
+    else
+        write_version = kGuiVersion_Current;
 
-  out->WriteInt32(write_version);
+    out->WriteInt32(write_version);
     out->WriteInt32(guis.size());
 
     for (size_t i = 0; i < guis.size(); ++i)
-  {
+    {
         guis[i].WriteToFile(out, write_version);
-  }
-  out->WriteInt32(numguibuts);
+    }
+    out->WriteInt32(numguibuts);
     for (int i = 0; i < numguibuts; ++i)
     {
         guibuts[i].WriteToFile(out);
     }
-  out->WriteInt32(numguilabels);
+    out->WriteInt32(numguilabels);
     for (int i = 0; i < numguilabels; ++i)
     {
         guilabels[i].WriteToFile(out);
     }
-  out->WriteInt32(numguiinv);
+    out->WriteInt32(numguiinv);
     for (int i = 0; i < numguiinv; ++i)
     {
         guiinv[i].WriteToFile(out);
     }
-  out->WriteInt32(numguislider);
+    out->WriteInt32(numguislider);
     for (int i = 0; i < numguislider; ++i)
     {
         guislider[i].WriteToFile(out);
     }
-  out->WriteInt32(numguitext);
+    out->WriteInt32(numguitext);
     for (int i = 0; i < numguitext; ++i)
     {
         guitext[i].WriteToFile(out);
     }
-  out->WriteInt32(numguilist);
+    out->WriteInt32(numguilist);
     for (int i = 0; i < numguilist; ++i)
     {
         guilist[i].WriteToFile(out);
-}
+    }
 }
 
 } // namespace GUI

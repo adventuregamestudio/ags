@@ -128,6 +128,8 @@ bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 int ALSoftwareGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
 {
     // TODO: check for device caps to know which depth is supported?
+    if (native_color_depth > 8)
+        return 32;
     return native_color_depth;
 }
 
@@ -159,6 +161,11 @@ int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
   if (windowed)
     return GFX_XWINDOWS;
   return GFX_XWINDOWS_FULLSCREEN;
+#elif defined (MAC_VERSION)
+    if (windowed) {
+        return GFX_COCOAGL_WINDOW;
+    }
+    return GFX_COCOAGL_FULLSCREEN;
 #else
   if (windowed)
     return GFX_AUTODETECT_WINDOWED;
@@ -233,8 +240,13 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid() || !_filter)
     return;
-  BitmapHelper::SetScreenBitmap( _filter->InitVirtualScreen(BitmapHelper::GetScreenBitmap(), _srcRect.GetSize(), _dstRect) );
-  virtualScreen = BitmapHelper::GetScreenBitmap();
+  // Adjust clipping so nothing gets drawn outside the game frame
+  Bitmap *real_screen = BitmapHelper::GetScreenBitmap();
+  real_screen->SetClip(_dstRect);
+  // Initialize scaling filter and receive virtual screen pointer
+  // (which may or not be the same as real screen)
+  virtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
+  BitmapHelper::SetScreenBitmap( virtualScreen );
 }
 
 void ALSoftwareGraphicsDriver::ReleaseDisplayMode()

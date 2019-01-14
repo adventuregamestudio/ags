@@ -35,7 +35,7 @@ const char* Parser_SaidUnknownWord() {
     return CreateNewScriptString(play.bad_parsed_word);
 }
 
-void Parser_ParseText (const char*text) {
+void ParseText (const char*text) {
     parse_sentence (text, &play.num_parsed_words, play.parsed_words, NULL, 0);
 }
 
@@ -308,9 +308,9 @@ RuntimeScriptValue Sc_Parser_FindWordID(const RuntimeScriptValue *params, int32_
 }
 
 // void  (char*text)
-RuntimeScriptValue Sc_Parser_ParseText(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_ParseText(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ(Parser_ParseText, /*const*/ char);
+    API_SCALL_VOID_POBJ(ParseText, /*const*/ char);
 }
 
 // const char* ()
@@ -330,14 +330,14 @@ RuntimeScriptValue Sc_Said(const RuntimeScriptValue *params, int32_t param_count
 void RegisterParserAPI()
 {
     ccAddExternalStaticFunction("Parser::FindWordID^1",     Sc_Parser_FindWordID);
-    ccAddExternalStaticFunction("Parser::ParseText^1",      Sc_Parser_ParseText);
+    ccAddExternalStaticFunction("Parser::ParseText^1",      Sc_ParseText);
     ccAddExternalStaticFunction("Parser::SaidUnknownWord^0",Sc_Parser_SaidUnknownWord);
     ccAddExternalStaticFunction("Parser::Said^1",           Sc_Said);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
     ccAddExternalFunctionForPlugin("Parser::FindWordID^1",     (void*)Parser_FindWordID);
-    ccAddExternalFunctionForPlugin("Parser::ParseText^1",      (void*)Parser_ParseText);
+    ccAddExternalFunctionForPlugin("Parser::ParseText^1",      (void*)ParseText);
     ccAddExternalFunctionForPlugin("Parser::SaidUnknownWord^0",(void*)Parser_SaidUnknownWord);
     ccAddExternalFunctionForPlugin("Parser::Said^1",           (void*)Said);
 }

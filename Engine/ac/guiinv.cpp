@@ -86,8 +86,8 @@ void GUIInvWindow::Draw(Bitmap *ds)
     {
         // darken the inventory when disabled
         GUI::DrawDisabledEffect(ds, Rect(X, Y, Width, Height));
-            }
     }
+}
 
 } // namespace Common
 } // namespace AGS

@@ -347,17 +347,19 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
         if (game.audioClipTypes[clip->type].reservedChannels != 1)
             soundfx->set_volume_percent(0);
     }
-    // Apply volume drop if any speech voice-over is currently playing
-    else if (channels[SCHAN_SPEECH])
-    {
-        apply_volume_drop_to_clip(soundfx);
-    }
 
     if (soundfx->play_from(fromOffset) == 0)
     {
         debug_script_log("AudioClip.Play: failed to play sound file");
         return NULL;
     }
+
+    // Apply volume drop if any speech voice-over is currently playing
+    // NOTE: there is a confusing logic in sound clip classes, that they do not use
+    // any modifiers when begin playing, therefore we must apply this only after
+    // playback was started.
+    if (!play.fast_forward && channels[SCHAN_SPEECH])
+        apply_volume_drop_to_clip(soundfx);
 
     last_sound_played[channel] = -1;
     channels[channel] = soundfx;

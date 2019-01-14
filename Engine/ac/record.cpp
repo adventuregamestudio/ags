@@ -337,9 +337,8 @@ void start_recording() {
 }
 
 void start_replay_record () {
-    Stream *replay_s = Common::File::CreateFile(replayTempFile);
+    Common::PStream replay_s(Common::File::CreateFile(replayTempFile));
     SaveGameState(replay_s);
-    delete replay_s;
     start_recording();
     play.recording = 1;
 }
@@ -400,7 +399,7 @@ void stop_recording() {
 
 void start_playback()
 {
-    Stream *in = Common::File::OpenFileRead(replayfile);
+    Common::PStream in(Common::File::OpenFileRead(replayfile));
     if (in != NULL) {
         char buffer [100];
         in->Read(buffer, 12);
@@ -410,7 +409,7 @@ void start_playback()
             play.playback = 0;
         }
         else {
-            String version_string = String::FromStream(in, 12);
+            String version_string = String::FromStream(in.get(), 12);
             AGS::Engine::Version requested_engine_version(version_string);
             if (requested_engine_version.Major != '2') 
                 quit("!Replay file is from an old version of AGS");
@@ -436,18 +435,17 @@ void start_playback()
                 quit("!Unsupported Replay file version");
 
             if (replayver >= 2) {
-                fgetstring_limit (buffer, in, 99);
+                fgetstring_limit (buffer, in.get(), 99);
                 int uid = in->ReadInt32 ();
                 if ((strcmp (buffer, game.gamename) != 0) || (uid != game.uniqueid)) {
                     char msg[150];
                     sprintf (msg, "!This replay is meant for the game '%s' and will not work correctly with this game.", buffer);
-                    delete in;
                     quit (msg);
                 }
                 // skip the total time
                 in->ReadInt32 ();
                 // replay description, maybe we'll use this later
-                fgetstring_limit (buffer, in, 99);
+                fgetstring_limit (buffer, in.get(), 99);
             }
 
             play.randseed = in->ReadInt32();
@@ -466,12 +464,11 @@ void start_playback()
             if (replayver >= 3) {
                 int issave = in->ReadInt32();
                 if (issave) {
-                    if (RestoreGameState(in, kSvgVersion_321) != kSvgErr_NoError)
+                    if (!RestoreGameState(in, kSvgVersion_321))
                         quit("!Error running replay... could be incorrect game version");
                     replay_last_second = loopcounter;
                 }
             }
-            delete in;
         }
     }
     else // file not found

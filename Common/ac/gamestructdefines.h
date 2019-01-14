@@ -107,7 +107,7 @@
 #define MAX_SG_EXT_LENGTH 20
 #define MAX_SG_FOLDER_LEN 50
 
-// CLNUP remove
+// CLNUP remove or keep for standard game res ?
 enum GameResolutionType
 {
     kGameResolution_Undefined   = -1,

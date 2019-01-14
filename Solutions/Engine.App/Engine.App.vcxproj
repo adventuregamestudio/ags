@@ -188,8 +188,10 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptfile.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptsystem.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\event.cpp" />
@@ -267,6 +269,7 @@
     <ClCompile Include="..\..\Engine\ac\spritecache_engine.cpp" />
     <ClCompile Include="..\..\Engine\ac\statobj\agsstaticobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\statobj\staticarray.cpp" />
+    <ClCompile Include="..\..\Engine\ac\statobj\staticgame.cpp" />
     <ClCompile Include="..\..\Engine\ac\string.cpp" />
     <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
@@ -286,6 +289,7 @@
     <ClCompile Include="..\..\Engine\font\fonts_engine.cpp" />
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
     <ClCompile Include="..\..\Engine\game\savegame.cpp" />
+    <ClCompile Include="..\..\Engine\game\savegame_components.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
     <ClCompile Include="..\..\Engine\gfx\blender.cpp" />
@@ -585,6 +589,7 @@
     <ClInclude Include="..\..\Engine\ac\spritelistentry.h" />
     <ClInclude Include="..\..\Engine\ac\statobj\agsstaticobject.h" />
     <ClInclude Include="..\..\Engine\ac\statobj\staticarray.h" />
+    <ClInclude Include="..\..\Engine\ac\statobj\staticgame.h" />
     <ClInclude Include="..\..\Engine\ac\statobj\staticobject.h" />
     <ClInclude Include="..\..\Engine\ac\string.h" />
     <ClInclude Include="..\..\Engine\ac\system.h" />
@@ -608,6 +613,7 @@
     <ClInclude Include="..\..\Engine\device\mousew32.h" />
     <ClInclude Include="..\..\Engine\game\game_init.h" />
     <ClInclude Include="..\..\Engine\game\savegame.h" />
+    <ClInclude Include="..\..\Engine\game\savegame_components.h" />
     <ClInclude Include="..\..\Engine\game\savegame_internal.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dexception.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dogl.h" />
@@ -681,6 +687,7 @@
     <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h" />
     <ClInclude Include="..\..\Engine\plugin\agsplugin.h" />
     <ClInclude Include="..\..\Engine\plugin\pluginobjectreader.h" />
+    <ClInclude Include="..\..\Engine\plugin\plugin_builtin.h" />
     <ClInclude Include="..\..\Engine\plugin\plugin_engine.h" />
     <ClInclude Include="..\..\Engine\resource\resource.h" />
     <ClInclude Include="..\..\Engine\script\cc_instance.h" />

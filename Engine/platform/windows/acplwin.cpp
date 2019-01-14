@@ -117,8 +117,10 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out);
   virtual void SetGameWindowIcon();
   virtual void WriteStdOut(const char *fmt, ...);
-  virtual void DisplaySwitchOut() ;
-  virtual void DisplaySwitchIn() ;
+  virtual void DisplaySwitchOut();
+  virtual void DisplaySwitchIn();
+  virtual void PauseApplication();
+  virtual void ResumeApplication();
   virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
   virtual bool EnterFullscreenMode(const Engine::DisplayMode &dm);
   virtual bool ExitFullscreenMode();
@@ -141,7 +143,7 @@ private:
   void register_file_extension(const char *exePath);
   void unregister_file_extension();
 
-  bool SetSystemDisplayMode(const DisplayMode &dm);
+  bool SetSystemDisplayMode(const DisplayMode &dm, bool fullscreen);
 
   bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
   DisplayMode _preFullscreenMode; // saved display mode before switching system to fullscreen
@@ -711,20 +713,27 @@ const char *AGSWin32::GetGraphicsTroubleshootingText()
     "Run DXDiag using the Run command (Start->Run, type \"dxdiag.exe\") and correct any problems reported there.";
 }
 
-void AGSWin32::DisplaySwitchOut() {
-  dxmedia_pause_video();
-
-  // If we have explicitly set up fullscreen mode then minimize the window
-  if (_preFullscreenMode.IsValid())
-    ShowWindow(win_get_window(), SW_MINIMIZE);
+void AGSWin32::DisplaySwitchOut()
+{
+    // If we have explicitly set up fullscreen mode then minimize the window
+    if (_preFullscreenMode.IsValid())
+        ShowWindow(win_get_window(), SW_MINIMIZE);
 }
 
 void AGSWin32::DisplaySwitchIn() {
-  dxmedia_resume_video();
+    // If we have explicitly set up fullscreen mode then restore the window
+    if (_preFullscreenMode.IsValid())
+        ShowWindow(win_get_window(), SW_RESTORE);
+}
 
-  // If we have explicitly set up fullscreen mode then restore the window
-  if (_preFullscreenMode.IsValid())
-    ShowWindow(win_get_window(), SW_RESTORE);
+void AGSWin32::PauseApplication()
+{
+    dxmedia_pause_video();
+}
+
+void AGSWin32::ResumeApplication()
+{
+    dxmedia_resume_video();
 }
 
 void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)
@@ -739,7 +748,7 @@ void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)
     destroy_gfx_mode_list(gmlist);
 }
 
-bool AGSWin32::SetSystemDisplayMode(const DisplayMode &dm)
+bool AGSWin32::SetSystemDisplayMode(const DisplayMode &dm, bool fullscreen)
 {
   DEVMODE devmode;
   memset(&devmode, 0, sizeof(devmode));
@@ -748,7 +757,7 @@ bool AGSWin32::SetSystemDisplayMode(const DisplayMode &dm)
   devmode.dmPelsHeight = dm.Height;
   devmode.dmBitsPerPel = dm.ColorDepth;
   devmode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-  return ChangeDisplaySettings(&devmode, CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL;
+  return ChangeDisplaySettings(&devmode, fullscreen ? CDS_FULLSCREEN : 0) == DISP_CHANGE_SUCCESSFUL;
 }
 
 bool AGSWin32::EnterFullscreenMode(const DisplayMode &dm)
@@ -758,7 +767,7 @@ bool AGSWin32::EnterFullscreenMode(const DisplayMode &dm)
   _preFullscreenMode.ColorDepth = desktop_color_depth();
 
   // Set requested desktop mode
-  return SetSystemDisplayMode(dm);
+  return SetSystemDisplayMode(dm, true);
 }
 
 bool AGSWin32::ExitFullscreenMode()
@@ -768,7 +777,7 @@ bool AGSWin32::ExitFullscreenMode()
 
   DisplayMode dm = _preFullscreenMode;
   _preFullscreenMode = DisplayMode();
-  return SetSystemDisplayMode(dm);
+  return SetSystemDisplayMode(dm, false);
 }
 
 void AGSWin32::AdjustWindowStyleForFullscreen()
@@ -786,6 +795,9 @@ void AGSWin32::RestoreWindowStyle()
 {
   // Restore allegro window styles in case we modified them
   restore_window_style();
+  HWND allegro_wnd = win_get_window();
+  LONG winstyle = GetWindowLong(allegro_wnd, GWL_STYLE);
+  SetWindowLong(allegro_wnd, GWL_STYLE, (winstyle & ~WS_POPUP)/* | WS_OVERLAPPEDWINDOW*/);
   // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
   // cannot be removed with style altering functions; here use SetWindowPos
   // as a workaround

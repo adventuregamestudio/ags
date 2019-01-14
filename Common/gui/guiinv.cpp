@@ -63,7 +63,7 @@ void GUIInvWindow::OnResized()
 
 void GUIInvWindow::WriteToFile(Stream *out)
 {
-	GUIObject::WriteToFile(out);
+    GUIObject::WriteToFile(out);
     out->WriteInt32(CharId);
     out->WriteInt32(ItemWidth);
     out->WriteInt32(ItemHeight);
@@ -72,30 +72,48 @@ void GUIInvWindow::WriteToFile(Stream *out)
 
 void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-	GUIObject::ReadFromFile(in, gui_version);
+    GUIObject::ReadFromFile(in, gui_version);
     if (gui_version >= kGuiVersion_unkn_109)
     {
         CharId = in->ReadInt32();
         ItemWidth = in->ReadInt32();
         ItemHeight = in->ReadInt32();
         TopItem = in->ReadInt32();
-	}
+    }
     else
     {
         CharId = -1;
         ItemWidth = 40;
         ItemHeight = 22;
         TopItem = 0;
-	}
+    }
 
-	// ensure that some items are visible
+    // ensure that some items are visible
         if (ItemWidth > Width)
             ItemWidth = Width;
         if (ItemHeight > Height)
             ItemHeight = Height;
 
+    CalculateNumCells();
+}
 
-	CalculateNumCells();
+void GUIInvWindow::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    ItemWidth = in->ReadInt32();
+    ItemHeight = in->ReadInt32();
+    CharId = in->ReadInt32();
+    TopItem = in->ReadInt32();
+    CalculateNumCells();
+}
+
+void GUIInvWindow::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(ItemWidth);
+    out->WriteInt32(ItemHeight);
+    out->WriteInt32(CharId);
+    out->WriteInt32(TopItem);
 }
 
 void GUIInvWindow::CalculateNumCells()

@@ -44,7 +44,6 @@
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
-#include "game/main_game_file.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/engine.h"
@@ -98,8 +97,6 @@ extern IDriverDependantBitmap **guibgbmp;
 
 String music_file;
 String speech_file;
-
-Common::AssetError errcod;
 
 t_engine_pre_init_callback engine_pre_init_callback = 0;
 
@@ -224,10 +221,13 @@ void engine_force_window()
     if (force_window == 1)
     {
         usetup.Screen.DisplayMode.Windowed = true;
-        usetup.Screen.DisplayMode.SizeDef = kScreenDef_ByGameScaling;
+        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_ByGameScaling;
     }
     else if (force_window == 2)
+    {
         usetup.Screen.DisplayMode.Windowed = false;
+        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;
+    }
 }
 
 void init_game_file_name_from_cmdline()
@@ -289,8 +289,9 @@ String find_game_data_in_directory(const String &path)
     return first_nonstd_fn;
 }
 
-void initialise_game_file_name()
+bool search_for_game_data_file()
 {
+    Debug::Printf("Looking for the game data file");
     // 1. From command line argument
     if (datafile_argv > 0)
     {
@@ -350,51 +351,43 @@ void initialise_game_file_name()
     // Finally, store game file's absolute path, or report error
     if (game_file_name.IsEmpty())
     {
-        Debug::Printf(kDbgMsg_Error, "Game data file could not be found\n");
+        Debug::Printf(kDbgMsg_Error, "Game data file could not be found");
+        return false;
     }
     else
     {
         game_file_name = Path::MakeAbsolutePath(game_file_name);
-        Debug::Printf(kDbgMsg_Init, "Located game data file: %s\n", game_file_name.GetCStr());
+        Debug::Printf(kDbgMsg_Init, "Located game data file: %s", game_file_name.GetCStr());
+        return true;
     }
 }
 
 bool engine_init_game_data()
 {
-    Debug::Printf("Looking for game data file");
+    // Search for an available game package in the known locations
+    AssetError err;
+    if (search_for_game_data_file())
+        err = AssetManager::SetDataFile(game_file_name);
+    else
+        err = kAssetErrNoLibFile;
 
-    // initialize the data file
-    initialise_game_file_name();
-    errcod = Common::AssetManager::SetDataFile(game_file_name);
-
-    our_eip = -194;
-    our_eip = -193;
-
-    if (errcod!=Common::kAssetNoError)
+    if (err != kAssetNoError)
     {  // there's a problem
-        char emsg[STD_BUFFER_SIZE];
-        if (errcod==Common::kAssetErrNoLibFile)
-        {  // file not found
-            if (game_file_name.IsEmpty())
-            {
-                sprintf(emsg, "ERROR: Unable to find game data files\n\n");
-            }
-            else
-            {
-                sprintf(emsg, "ERROR: Unable to find or open '%s'.\n\n", game_file_name.GetCStr());
-            }
-        }
-        else if (errcod==Common::kAssetErrLibParse)
+        String emsg;
+        if (err == Common::kAssetErrLibParse)
         {
-            sprintf(emsg, "ERROR: The game file is of unsupported format or file is corrupt. "
-                "Make sure you have the correct version of the "
-                "editor, and that this really is an AGS game.\n\n%s\n\n", game_file_name.GetCStr());
+            emsg = String::FromFormat("ERROR: The game data is of unsupported format or file is corrupt.\nFile: '%s'", game_file_name.GetCStr());
+        }
+        else
+        { // file not found, or another problem
+            if (game_file_name.IsEmpty())
+                emsg = "ERROR: Unable to find game data files.";
+            else
+                emsg = String::FromFormat("ERROR: Unable to find or open '%s'.", game_file_name.GetCStr());
         }
 
         platform->DisplayAlert(emsg);
-
         main_print_help();
-
         return false;
     }
 
@@ -404,13 +397,12 @@ bool engine_init_game_data()
     // another one) save the path, so that it can load the VOX files, etc
     if (usetup.data_files_dir.IsEmpty())
     {
-        int ichar = game_file_name.FindCharReverse('/');
-        if (ichar >= 0)
+        size_t ichar = game_file_name.FindCharReverse('/');
+        if (ichar != -1)
         {
             usetup.data_files_dir = game_file_name.Left(ichar);
         }
     }
-
     return true;
 }
 
@@ -461,21 +453,19 @@ void engine_init_speech()
         speech_file = "speech.vox";
         String speech_filepath = find_assetlib(speech_file);
         if (!speech_filepath.IsEmpty()) {
-
             Debug::Printf("Initializing speech vox");
-
-            //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
-            if (Common::AssetManager::SetDataFile(speech_filepath)!=Common::kAssetNoError) {
+            if (AssetManager::SetDataFile(speech_filepath)!=Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to read voice pack, file could be corrupted or of unknown format.\nSpeech voice-over will be disabled.");
+                AssetManager::SetDataFile(game_file_name); // switch back to the main data pack
                 return;
             }
-            Stream *speechsync = Common::AssetManager::OpenAsset("syncdata.dat");
+            Stream *speechsync = AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != NULL) {
                 // this game has voice lip sync
-                if (speechsync->ReadInt32() != 4)
-                { 
-                    // Don't display this warning.
-                    // platform->DisplayAlert("Unknown speech lip sync format (might be from older or newer version); lip sync disabled");
+                int lipsync_fmt = speechsync->ReadInt32();
+                if (lipsync_fmt != 4)
+                {
+                    Debug::Printf(kDbgMsg_Init, "Unknown speech lip sync format (%d).\nLip sync disabled.", lipsync_fmt);
                 }
                 else {
                     numLipLines = speechsync->ReadInt32();
@@ -492,7 +482,7 @@ void engine_init_speech()
                 }
                 delete speechsync;
             }
-            Common::AssetManager::SetDataFile(game_file_name);
+            AssetManager::SetDataFile(game_file_name); // switch back to the main data pack
             Debug::Printf(kDbgMsg_Init, "Voice pack found and initialized.");
             play.want_speech=1;
         }
@@ -608,7 +598,7 @@ void engine_init_sound()
 
     Debug::Printf("Initialize sound drivers");
 
-    // PSP: Disable sound by config file.
+    // TODO: apply those options during config reading instead
     if (!psp_audio_enabled)
     {
         usetup.digicard = DIGI_NONE;
@@ -631,12 +621,12 @@ void engine_init_sound()
         Debug::Printf("Resetting to default sound parameters and trying again.");
         reserve_voices(-1, -1); // this resets voice number to defaults
         opts.mod_player = 0;
-        opts.mp3_player = 0; // CHECKME: why disabling MP3 player too?
         sound_res = try_install_sound(usetup.digicard, usetup.midicard);
     }
     if (!sound_res)
     {
         // If everything failed, disable sound completely
+        Debug::Printf("Resetting to zero digital voices and trying again.");
         reserve_voices(0,0);
         install_sound(DIGI_NONE, MIDI_NONE, NULL);
     }
@@ -733,12 +723,12 @@ int engine_load_game_data()
     Debug::Printf("Load game data");
 
     our_eip=-17;
-    String err_str;
-    if (!load_game_file(err_str))
+    HError err = load_game_file();
+    if (!err)
     {
         proper_exit=1;
         platform->FinishedUsingGraphicsMode();
-        display_game_file_error(err_str);
+        display_game_file_error(err);
         return EXIT_NORMAL;
     }
 
@@ -1228,8 +1218,6 @@ void engine_init_game_settings()
 
 void engine_setup_scsystem_auxiliary()
 {
-    // ScriptSystem::aci_version is only 10 chars long
-    strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
     if (usetup.override_script_os >= 0)
     {
         scsystem.os = usetup.override_script_os;
@@ -1293,23 +1281,17 @@ void allegro_bitmap_test_init()
 	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
 }
 
-bool engine_read_config(const String &exe_path, ConfigTree &cfg)
+bool engine_init_gamefile(const String &exe_path)
 {
-    Debug::Printf(kDbgMsg_Init, "Reading configuration");
-
-    config_defaults();
-    // Don't read in the standard config file if disabled.
-    if (psp_ignore_acsetup_cfg_file)
-        return true;
-
-    // Read default configuration file
-    our_eip = -200;
+    Debug::Printf(kDbgMsg_Init, "Initializing game data");
+    // Read game data location from the default config file.
+    // This is an optional setting that may instruct which game file to use as a primary asset library.
+    ConfigTree cfg;
     String def_cfg_file = find_default_cfg_file(exe_path);
     IniUtil::Read(def_cfg_file, cfg);
-
     read_game_data_location(cfg);
 
-    // Deduce the game data file location
+    // Deduce the game data file location and initialize assets library.
     if (!engine_init_game_data())
         return false;
 
@@ -1317,17 +1299,30 @@ bool engine_read_config(const String &exe_path, ConfigTree &cfg)
     // TODO: research if that is possible to avoid this step and just
     // read the full head game data at this point. This might require
     // further changes of the order of initialization.
-    String err_str;
-    if (!preload_game_data(err_str))
+    HError err = preload_game_data();
+    if (!err)
     {
-        display_game_file_error(err_str);
+        display_game_file_error(err);
         return false;
     }
+    return true;
+}
 
+void engine_read_config(const String &exe_path, ConfigTree &cfg)
+{
+    // Read default configuration file
+    String def_cfg_file = find_default_cfg_file(exe_path);
+    IniUtil::Read(def_cfg_file, cfg);
+
+    // Disabled on Windows because people were afraid that this config could be mistakenly
+    // created by some installer and screw up their games. Until any kind of solution is found.
+    String user_global_cfg_file;
+#if !defined (WINDOWS_VERSION)
     // Read user global configuration file
-    String user_global_cfg_file = find_user_global_cfg_file();
+    user_global_cfg_file = find_user_global_cfg_file();
     if (Path::ComparePaths(user_global_cfg_file, def_cfg_file) != 0)
         IniUtil::Read(user_global_cfg_file, cfg);
+#endif
 
     // Read user configuration file
     String user_cfg_file = find_user_cfg_file();
@@ -1335,33 +1330,34 @@ bool engine_read_config(const String &exe_path, ConfigTree &cfg)
         Path::ComparePaths(user_cfg_file, user_global_cfg_file) != 0)
         IniUtil::Read(user_cfg_file, cfg);
 
+    // Apply overriding options from mobile port settings
+    // TODO: normally, those should be instead stored in the same config file in a uniform way
+    // NOTE: the variable is historically called "ignore" but we use it in "override" meaning here
+    if (psp_ignore_acsetup_cfg_file)
+        override_config_ext(cfg);
+
+    // Apply overriding options from command line
     // TODO: override config tree with all the command-line args.
-    // NOTE: at the moment AGS provide little means to determine whether an
-    // option was overriden by command line, and since command line args
-    // are applied first, we need to check if the option differs from
-    // default before applying value from config file.
     if (disable_log_file)
         INIwriteint(cfg, "misc", "log", 0);
     else if (enable_log_file)
         INIwriteint(cfg, "misc", "log", 1);
-
-    // Parse and set up game config
-    read_config(cfg);
-
-    // Fixup configuration after reading
-    post_config();
-    return true;
 }
 
-bool engine_do_config(int argc, char*argv[])
+bool engine_do_config(const String &exe_path)
 {
+    Debug::Printf(kDbgMsg_Init, "Setting up game configuration");
+    // Init default options
+    config_defaults();
     ConfigTree cfg;
-    if (!engine_read_config(argv[0], cfg))
-        return false;
-
-    apply_debug_config(cfg);
-
-    return engine_check_run_setup(argv[0], cfg);
+    // Read configuration files
+    engine_read_config(exe_path, cfg);
+    // Set up game options from user config
+    apply_config(cfg);
+    // Fixup configuration if necessary
+    post_config();
+    // Test if need to run built-in setup program (where available)
+    return engine_check_run_setup(exe_path, cfg);
 }
 
 int initialize_engine(int argc,char*argv[])
@@ -1374,7 +1370,10 @@ int initialize_engine(int argc,char*argv[])
     if (!engine_init_allegro())
         return EXIT_NORMAL;
 
-    if (!engine_do_config(argc, argv))
+    const String exe_path = argv[0];
+    if (!engine_init_gamefile(exe_path))
+        return EXIT_NORMAL;
+    if (!engine_do_config(exe_path))
         return EXIT_NORMAL;
 
     engine_setup_allegro();
@@ -1545,8 +1544,9 @@ bool engine_try_switch_windowed_gfxmode()
 
     Size init_desktop = get_desktop_size();
     bool switch_to_windowed = !old_dm.Windowed;
-    DisplayMode last_opposite_mode = graphics_mode_get_last_mode(switch_to_windowed);
-    GameFrameSetup use_frame_setup = convert_frame_setup(old_frame, switch_to_windowed);
+    ActiveDisplaySetting setting = graphics_mode_get_last_setting(switch_to_windowed);
+    DisplayMode last_opposite_mode = setting.Dm;
+    GameFrameSetup use_frame_setup = setting.FrameSetup;
     
     // If there are saved parameters for given mode (fullscreen/windowed)
     // then use them, if there are not, get default setup for the new mode.
@@ -1557,13 +1557,14 @@ bool engine_try_switch_windowed_gfxmode()
     }
     else
     {
-        DisplayModeSetup dm_setup;
-        GameFrameSetup frame_setup;
-        graphics_mode_get_defaults(!old_dm.Windowed, dm_setup, frame_setup);
-        res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, frame_setup);
+        // we need to clone from initial config, because not every parameter is set by graphics_mode_get_defaults()
+        DisplayModeSetup dm_setup = usetup.Screen.DisplayMode;
+        dm_setup.Windowed = !old_dm.Windowed;
+        graphics_mode_get_defaults(dm_setup.Windowed, dm_setup.ScreenSize, use_frame_setup);
+        res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, use_frame_setup);
     }
 
-    // Always use same (or nearest compatible) frame render method
+    // Apply corresponding frame render method
     if (res)
         res = graphics_mode_set_render_frame(use_frame_setup);
     

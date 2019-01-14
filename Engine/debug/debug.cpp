@@ -81,11 +81,11 @@ int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
 
-std::auto_ptr<MessageBuffer> DebugMsgBuff;
-std::auto_ptr<LogFile> DebugLogFile;
+std::unique_ptr<MessageBuffer> DebugMsgBuff;
+std::unique_ptr<LogFile> DebugLogFile;
 // warnings.log for the games compiled in debug mode
-std::auto_ptr<LogFile> DebugWarningsFile;
-std::auto_ptr<ConsoleOutputTarget> DebugConsole;
+std::unique_ptr<LogFile> DebugWarningsFile;
+std::unique_ptr<ConsoleOutputTarget> DebugConsole;
 
 const String OutputMsgBufID = "buffer";
 const String OutputFileID = "logfile";
@@ -135,11 +135,7 @@ void apply_debug_config(const ConfigTree &cfg)
     if (game.options[OPT_DEBUGMODE] != 0)
     {
         // Game console
-        DebugConsole.reset(new ConsoleOutputTarget());
-        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_Errors);
-        gmcs_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_All);
-        gmcs_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_All);
-        DebugMsgBuff->Send(OutputGameConsoleID);
+        debug_set_console(true);
 
         // "Warnings.log" for printing script warnings in debug mode
         DebugWarningsFile.reset(new LogFile());
@@ -166,6 +162,24 @@ void shutdown_debug()
 
     DebugLogFile.reset();
     DebugConsole.reset();
+}
+
+void debug_set_console(bool enable)
+{
+    if (enable && DebugConsole.get() == NULL)
+    {
+        DebugConsole.reset(new ConsoleOutputTarget());
+        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_Errors);
+        gmcs_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_All);
+        gmcs_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_All);
+        if (DebugMsgBuff.get())
+            DebugMsgBuff->Send(OutputGameConsoleID);
+    }
+    else if (!enable && DebugConsole.get() != NULL)
+    {
+        DbgMgr.UnregisterOutput(OutputGameConsoleID);
+        DebugConsole.reset();
+    }
 }
 
 // Prepends message text with current room number and running script info, then logs result
@@ -227,8 +241,6 @@ bool get_script_position(ScriptPosition &script_pos)
     }
     return false;
 }
-
-static const char* BREAK_MESSAGE = "BREAK";
 
 struct Breakpoint
 {

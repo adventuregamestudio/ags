@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor.Components
 {
@@ -54,7 +55,7 @@ namespace AGS.Editor.Components
             debugCommands.Commands.Add(new MenuCommand(TEST_GAME_COMMAND, "Run without &debugger", Keys.Control | Keys.F5, "MenuIconTest"));
             debugCommands.Commands.Add(new MenuCommand(STEP_INTO_COMMAND, "S&tep into", Keys.F11, "StepMenuIcon"));
             debugCommands.Commands.Add(new MenuCommand(PAUSE_COMMAND, "&Pause", "PauseMenuIcon"));
-            debugCommands.Commands.Add(new MenuCommand(STOP_COMMAND, "&Stop", "StopMenuIcon"));
+            debugCommands.Commands.Add(new MenuCommand(STOP_COMMAND, "&Stop", Keys.Shift | Keys.F5, "StopMenuIcon"));
             debugCommands.Commands.Add(MenuCommand.Separator);
             debugCommands.Commands.Add(new MenuCommand(COMPILE_GAME_COMMAND, "&Build EXE", Keys.F7, "MenuIconBuildEXE"));
 			debugCommands.Commands.Add(new MenuCommand(REBUILD_GAME_COMMAND, "Rebuild &all files", "RebuildAllMenuIcon"));
@@ -184,8 +185,6 @@ namespace AGS.Editor.Components
 
             if (controlID == RUN_COMMAND)
             {
-				_guiController.ShowCuppit("When using this Run command, the game will always run in a window. If you want to play full-screen, use the Run Without Debugger option.", "Test full screen warning", true);
-				
                 if (_debuggerState == DebugState.NotRunning)
                 {
                     TestGame(true);
@@ -239,7 +238,14 @@ namespace AGS.Editor.Components
 			{
 				if (_agsEditor.CompileGame(forceRebuild, false).Count == 0)
 				{
-					_guiController.ShowMessage("Compile successful!", MessageBoxIcon.Information);
+					string success = "Compilation successful!";
+					string[] messages = new string[] { success };
+					Factory.GUIController.ShowOutputPanel(messages);
+
+					if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always)
+					{
+						_guiController.ShowMessage(success, MessageBoxIcon.Information);
+					}
 				}
 			}
 		}

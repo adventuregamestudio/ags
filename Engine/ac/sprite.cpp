@@ -35,6 +35,12 @@ extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 
+// CLNUP removed the multipliers and flags
+void get_new_size_for_sprite (int ww, int hh, int &newwid, int &newhit) {
+    newwid = ww;
+    newhit = hh;
+}
+
 // set any alpha-transparent pixels in the image to the appropriate
 // RGB mask value so that the blit calls work correctly
 void set_rgb_mask_using_alpha_channel(Bitmap *image)

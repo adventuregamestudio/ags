@@ -157,8 +157,8 @@ namespace AGS.Editor
             // disable Ctrl+T swapping lines since it used to be Test Game
             this.scintillaControl1.ClearCmdKey('T' | ((int)KeyMod.Ctrl << 16));
 
-            this.scintillaControl1.TabWidth = Factory.AGSEditor.Preferences.TabSize;
-            this.scintillaControl1.IsUseTabs = Factory.AGSEditor.Preferences.IndentUsingTabs;
+            this.scintillaControl1.TabWidth = Factory.AGSEditor.Settings.TabSize;
+            this.scintillaControl1.IsUseTabs = Factory.AGSEditor.Settings.IndentUseTabs;
             this.scintillaControl1.UsePopUp(false);
 
             // override the selected text colour
@@ -236,6 +236,8 @@ namespace AGS.Editor
 
 
             this.scintillaControl1.IsReadOnly = true;
+
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         void scintillaControl1_MarginClick(object sender, Scintilla.MarginClickEventArgs e)
@@ -2168,6 +2170,67 @@ namespace AGS.Editor
             scintillaControl1.SelectionStart = 0;
             scintillaControl1.SelectionEnd = 0;
             scintillaControl1.CurrentPos = 0;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="t"></param>
+        private void LoadColorTheme(ColorTheme t)
+        {
+            scintillaControl1.StyleSetBack(Cpp.GlobalDefault, t.GetColor("script-editor/text-editor/global-default/background"));
+            scintillaControl1.StyleSetFore(Cpp.GlobalDefault, t.GetColor("script-editor/text-editor/global-default/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.Default, t.GetColor("script-editor/text-editor/default/background"));
+            scintillaControl1.StyleSetFore(Cpp.Default, t.GetColor("script-editor/text-editor/default/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.Word, t.GetColor("script-editor/text-editor/word-1/background"));
+            scintillaControl1.StyleSetFore(Cpp.Word, t.GetColor("script-editor/text-editor/word-1/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.Word2, t.GetColor("script-editor/text-editor/word-2/background"));
+            scintillaControl1.StyleSetFore(Cpp.Word2, t.GetColor("script-editor/text-editor/word-2/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.Identifier, t.GetColor("script-editor/text-editor/identifier/background"));
+            scintillaControl1.StyleSetFore(Cpp.Identifier, t.GetColor("script-editor/text-editor/identifier/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.Comment, t.GetColor("script-editor/text-editor/comment/background"));
+            scintillaControl1.StyleSetFore(Cpp.Comment, t.GetColor("script-editor/text-editor/comment/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.CommentLine, t.GetColor("script-editor/text-editor/comment-line/background"));
+            scintillaControl1.StyleSetFore(Cpp.CommentLine, t.GetColor("script-editor/text-editor/comment-line/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.CommentDoc, t.GetColor("script-editor/text-editor/comment-doc/background"));
+            scintillaControl1.StyleSetFore(Cpp.CommentDoc, t.GetColor("script-editor/text-editor/comment-doc/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.CommentLineDoc, t.GetColor("script-editor/text-editor/comment-line-doc/background"));
+            scintillaControl1.StyleSetFore(Cpp.CommentLineDoc, t.GetColor("script-editor/text-editor/comment-line-doc/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.CommentDocKeyword, t.GetColor("script-editor/text-editor/comment-doc-keyword/background"));
+            scintillaControl1.StyleSetFore(Cpp.CommentDocKeyword, t.GetColor("script-editor/text-editor/comment-doc-keyword/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.CommentDocKeywordError, t.GetColor("script-editor/text-editor/comment-doc-keyword-error/background"));
+            scintillaControl1.StyleSetFore(Cpp.CommentDocKeywordError, t.GetColor("script-editor/text-editor/comment-doc-keyword-error/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.Number, t.GetColor("script-editor/text-editor/number/background"));
+            scintillaControl1.StyleSetFore(Cpp.Number, t.GetColor("script-editor/text-editor/number/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.Regex, t.GetColor("script-editor/text-editor/regex/background"));
+            scintillaControl1.StyleSetFore(Cpp.Regex, t.GetColor("script-editor/text-editor/regex/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.String, t.GetColor("script-editor/text-editor/string/background"));
+            scintillaControl1.StyleSetFore(Cpp.String, t.GetColor("script-editor/text-editor/string/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.StringEol, t.GetColor("script-editor/text-editor/string-eol/background"));
+            scintillaControl1.StyleSetFore(Cpp.StringEol, t.GetColor("script-editor/text-editor/string-eol/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.Operator, t.GetColor("script-editor/text-editor/operator/background"));
+            scintillaControl1.StyleSetFore(Cpp.Operator, t.GetColor("script-editor/text-editor/operator/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.Preprocessor, t.GetColor("script-editor/text-editor/preprocessor/background"));
+            scintillaControl1.StyleSetFore(Cpp.Preprocessor, t.GetColor("script-editor/text-editor/preprocessor/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.LineNumber, t.GetColor("script-editor/text-editor/line-number/background"));
+            scintillaControl1.StyleSetFore(Cpp.LineNumber, t.GetColor("script-editor/text-editor/line-number/foreground"));
+            scintillaControl1.StyleSetBack(Cpp.IndentGuide, t.GetColor("script-editor/text-editor/indent-guide/background"));
+            scintillaControl1.StyleSetFore(Cpp.IndentGuide, t.GetColor("script-editor/text-editor/indent-guide/foreground"));
+            scintillaControl1.SetFoldMarginColor(true, Scintilla.Utilities.ColorToRgb(t.GetColor("script-editor/text-editor/fold-margin")));
+            scintillaControl1.SetFoldMarginHiColor(true, Scintilla.Utilities.ColorToRgb(t.GetColor("script-editor/text-editor/fold-margin-hi")));
+            scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDER, t.GetColor("script-editor/text-editor/marknum-folder/background"));
+            scintillaControl1.MarkerSetFore(Scintilla.Constants.SC_MARKNUM_FOLDER, t.GetColor("script-editor/text-editor/marknum-folder/foreground"));
+            scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDEREND, t.GetColor("script-editor/text-editor/marknum-folder-end/background"));
+            scintillaControl1.MarkerSetFore(Scintilla.Constants.SC_MARKNUM_FOLDEREND, t.GetColor("script-editor/text-editor/marknum-folder-end/foreground"));
+            scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDEROPEN, t.GetColor("script-editor/text-editor/marknum-folder-open/background"));
+            scintillaControl1.MarkerSetFore(Scintilla.Constants.SC_MARKNUM_FOLDEROPEN, t.GetColor("script-editor/text-editor/marknum-folder-open/foreground"));
+            scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDEROPENMID, t.GetColor("script-editor/text-editor/marknum-folder-open-mid/background"));
+            scintillaControl1.MarkerSetFore(Scintilla.Constants.SC_MARKNUM_FOLDEROPENMID, t.GetColor("script-editor/text-editor/marknum-folder-open-mid/foreground"));
+            scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDERMIDTAIL, t.GetColor("script-editor/text-editor/marknum-folder-mid-tail"));
+            scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDERSUB, t.GetColor("script-editor/text-editor/marknum-folder-sub"));
+            scintillaControl1.MarkerSetBack(Scintilla.Constants.SC_MARKNUM_FOLDERTAIL, t.GetColor("script-editor/text-editor/marknum-folder-tail"));
+            scintillaControl1.SetSelBack(true, t.GetColor("script-editor/text-editor/selected"));
+            scintillaControl1.CaretFore = Scintilla.Utilities.ColorToRgb(t.GetColor("script-editor/text-editor/caret"));
         }
     }
 }

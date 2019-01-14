@@ -18,16 +18,19 @@
 #ifndef __AGS_EE_MAIN__GAMEFILE_H
 #define __AGS_EE_MAIN__GAMEFILE_H
 
+#include "util/error.h"
 #include "util/string.h"
+
+using AGS::Common::HError;
 
 void set_default_glmsg (int msgnum, const char* val);
 
 extern AGS::Common::String game_file_name;
 
 // Preload particular game-describing parameters from the game data header (title, save game dir name, etc)
-bool preload_game_data(AGS::Common::String &err_str);
+HError preload_game_data();
 // Loads game data and reinitializes the game state; assigns error message in case of failure
-bool load_game_file(AGS::Common::String &err_str);
-void display_game_file_error(const AGS::Common::String &err_str);
+HError load_game_file();
+void display_game_file_error(HError err);
 
 #endif // __AGS_EE_MAIN__GAMEFILE_H

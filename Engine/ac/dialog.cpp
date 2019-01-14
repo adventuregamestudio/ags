@@ -430,8 +430,7 @@ void DialogOptions::Show()
       return;
   }
 
-    Bitmap *ds = SetVirtualScreen(virtual_screen);
-    color_t draw_color = ds->GetCompatibleColor(0);
+    SetVirtualScreen(virtual_screen);
 
     is_textwindow = 0;
     forecol = play.dialog_options_highlight_color;
@@ -947,7 +946,7 @@ void DialogOptions::Close()
   if (parserActivated) 
   {
     strcpy (play.lastParserEntry, parserInput->Text);
-    Parser_ParseText (parserInput->Text);
+    ParseText (parserInput->Text);
     chose = CHOSE_TEXTPARSER;
   }
 

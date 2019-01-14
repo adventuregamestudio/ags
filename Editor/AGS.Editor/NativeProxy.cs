@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -17,8 +18,6 @@ namespace AGS.Editor
         public static extern bool FreeLibrary(IntPtr hModule);
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
-        [DllImport("User32.dll")]
-        private static extern short GetAsyncKeyState(int keyCode);
 		[DllImport("kernel32.dll")]
 		public static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
 		[DllImport("kernel32.dll")]
@@ -27,9 +26,6 @@ namespace AGS.Editor
         public const uint WM_MOUSEACTIVATE = 0x21;
         public const uint MA_ACTIVATE = 1;
         public const uint MA_ACTIVATEANDEAT = 2; 
-
-        private const int VK_SHIFT = 0x10;
-        private const int VK_CONTROL = 0x11;
 
         // IMPORTANT: These lengths reflect the resource file in ACWIN.EXE
         private const int AUTHOR_NAME_LEN = 30;
@@ -130,13 +126,7 @@ namespace AGS.Editor
 				_native.DrawViewLoop((int)hdc, loop, x, y, sizeInPixels, selectedFrame);
 			}
         }
-        /*
-        public Sprite CreateSpriteFromBitmap(Bitmap bmp)
-        {
-            int spriteSlot = _native.GetFreeSpriteSlot();
-            return _native.SetSpriteFromBitmap(spriteSlot, bmp, 0, true, false, false);
-        }
-        */
+
         public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportMethod transparency, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
             int spriteSlot = _native.GetFreeSpriteSlot();
@@ -208,6 +198,11 @@ namespace AGS.Editor
         public void ReloadTTFFont(int fontSlot)
         {
             _native.ReloadTTFFont(fontSlot);
+        }
+
+        public void OnFontUpdated(Game game, int fontSlot)
+        {
+            _native.OnGameFontUpdated(game, fontSlot);
         }
 
         public Dictionary<int, Sprite> LoadSpriteDimensions()
@@ -350,6 +345,11 @@ namespace AGS.Editor
             _native.ImportAreaMask(room, mask, bmp);
         }
 
+        public Bitmap ExportAreaMask(Room room, RoomAreaMaskType mask)
+        {
+            return _native.ExportAreaMask(room, mask);
+        }
+
         public string LoadRoomScript(string roomFileName)
         {
             return _native.LoadRoomScript(roomFileName);
@@ -443,32 +443,6 @@ namespace AGS.Editor
         {
             return _native.GetNativeConstant(name);
         }
-        
-        /*/// <summary>
-        /// Obsolete: Use Utilities.IsShiftPressed instead
-        /// </summary>
-        /// <returns></returns>
-        public bool IsShiftPressed()
-        {
-            if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Obsolete: Use Utilities.IsControlPressed instead
-        /// </summary>
-        /// <returns></returns>
-        public bool IsControlPressed()
-        {
-            if ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0)
-            {
-                return true;
-            }
-            return false;
-        }*/
 
         public void Dispose()
         {

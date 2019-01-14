@@ -4,6 +4,7 @@ using AGS.Types;
 using AGS.Types.AutoComplete;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
@@ -64,6 +65,7 @@ namespace AGS.Editor
             Init(scriptToEdit);
             _room = null;
             _roomNumber = 0;
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public void Clear()
@@ -661,8 +663,6 @@ namespace AGS.Editor
             }
             AutoComplete.RequestBackgroundCacheUpdate(_script);
             ActivateTextEditor();
-
-            Factory.GUIController.ShowCuppit("You've opened a script editor. This is where you set up how the game will react to various events like the player clicking on things. Read the Scripting Tutorial in the manual to get started.", "Script editor introduction");
         }
 
         protected override void OnWindowDeactivated()
@@ -1065,6 +1065,18 @@ namespace AGS.Editor
 
             menuStrip.Items.Add(new ToolStripSeparator());
             menuStrip.Items.Add(new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT));
+        }
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            panel1.BackColor = t.GetColor("script-editor/background");
+            panel1.ForeColor = t.GetColor("script-editor/foreground");
+            panel1.Controls.Remove(cmbFunctions);
+            cmbFunctions = t.GetComboBox("script-editor/combo-functions", cmbFunctions);
+            panel1.Controls.Add(cmbFunctions);
+            cmbFunctions.SelectedIndexChanged += cmbFunctions_SelectedIndexChanged;
+            cmbFunctions.MouseEnter += cmbFunctions_MouseEnter;
+            cmbFunctions.MouseLeave += cmbFunctions_MouseLeave;
         }
 
         void ScriptEditor_HandleCreated(object sender, System.EventArgs e)

@@ -269,6 +269,9 @@ void D3DGraphicsDriver::OnModeSet(const DisplayMode &mode)
 
 void D3DGraphicsDriver::ReleaseDisplayMode()
 {
+  if (!IsModeSet())
+    return;
+
   OnModeReleased();
 
   drawList.clear();
@@ -288,8 +291,8 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = NULL;
 
-  platform->ExitFullscreenMode();
-  platform->RestoreWindowStyle();
+  if (platform->ExitFullscreenMode())
+    platform->RestoreWindowStyle();
 }
 
 int D3DGraphicsDriver::FirstTimeInit()
@@ -615,8 +618,8 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 
   if (!mode.Windowed)
   {
-    platform->EnterFullscreenMode(mode);
-    platform->AdjustWindowStyleForFullscreen();
+    if (platform->EnterFullscreenMode(mode))
+      platform->AdjustWindowStyleForFullscreen();
   }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );
@@ -1237,7 +1240,7 @@ void D3DGraphicsDriver::_renderSprite(D3DDrawListEntry *drawListEntry, bool glob
 
     make_translated_scaling_matrix(&matTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale);
 
-    if ((_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
+    if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
          (bmpToDraw->_stretchToWidth != bmpToDraw->_width)))
     {
@@ -1269,8 +1272,7 @@ void D3DGraphicsDriver::_renderSprite(D3DDrawListEntry *drawListEntry, bool glob
 void D3DGraphicsDriver::_renderAndPresent(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
   _render(flip, clearDrawListAfterwards);
-  if (direct3ddevice->Present(NULL, NULL, NULL, NULL) != D3D_OK)
-    throw Ali3DException("IDirect3DSurface9::Present failed");
+  direct3ddevice->Present(NULL, NULL, NULL, NULL);
 }
 
 void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
@@ -1557,8 +1559,7 @@ Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
   {
     int old_conv = get_color_conversion();
     set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
-    Bitmap* tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), col_depth);
-    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    Bitmap* tempBmp = BitmapHelper::CreateBitmapCopy(bitmap, col_depth);
     set_color_conversion(old_conv);
     return tempBmp;
   }
@@ -1769,7 +1770,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
 
   if (speed <= 0) speed = 16;
@@ -1824,7 +1825,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
   {
@@ -1848,7 +1849,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     {
       drawList[last].x = _srcRect.GetWidth() / 2- boxWidth / 2;
       drawList[last].y = _srcRect.GetHeight() / 2 - boxHeight / 2;
-      d3db->SetStretch(boxWidth, boxHeight);
+      d3db->SetStretch(boxWidth, boxHeight, false);
     }
     else
     {
@@ -1856,7 +1857,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
       drawList[last - 2].y = _srcRect.GetHeight() / 2 - boxHeight / 2 - _srcRect.GetHeight();
       drawList[last - 1].x = _srcRect.GetWidth() / 2 + boxWidth / 2;
       drawList[last    ].y = _srcRect.GetHeight() / 2 + boxHeight / 2;
-      d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
+      d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
     }
     
     this->_renderAndPresent(flipTypeLastTime, false);
@@ -1901,7 +1902,7 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
     _screenTintLayer->Clear(makecol_depth(_screenTintLayer->GetColorDepth(), red, green, blue));
     this->UpdateDDBFromBitmap(_screenTintLayerDDB, _screenTintLayer, false);
-    _screenTintLayerDDB->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
+    _screenTintLayerDDB->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
     _screenTintLayerDDB->SetTransparency(128);
 
     _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));

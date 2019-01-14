@@ -34,17 +34,23 @@ String find_user_global_cfg_file();
 String find_user_cfg_file();
 // Read optional data file name and location from config
 void read_game_data_location(const AGS::Common::ConfigTree &cfg);
+// Apply overriding values from the external config (e.g. for mobile ports)
+void override_config_ext(AGS::Common::ConfigTree &cfg);
 // Setup game using final config tree
-void read_config(const AGS::Common::ConfigTree &cfg);
+void apply_config(const AGS::Common::ConfigTree &cfg);
 // Fixup game setup parameters
 void post_config();
 
 void save_config_file();
 
 void parse_scaling_option(const String &scaling_option, FrameScaleDefinition &scale_def, int &scale_factor);
+void parse_scaling_option(const String &scaling_option, GameFrameSetup &frame_setup);
 String make_scaling_option(FrameScaleDefinition scale_def, int scale_factor = 0);
+String make_scaling_option(const GameFrameSetup &frame_setup);
 uint32_t convert_scaling_to_fp(int scale_factor);
 int convert_fp_to_scaling(uint32_t scaling);
+// Fill in setup structs with default settings for the given mode (windowed or fullscreen)
+void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, GameFrameSetup &frame_setup);
 
 bool INIreaditem(const ConfigTree &cfg, const String &sectn, const String &item, String &value);
 int INIreadint(const ConfigTree &cfg, const String &sectn, const String &item, int def_value = 0);

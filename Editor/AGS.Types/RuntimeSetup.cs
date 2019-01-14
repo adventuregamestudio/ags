@@ -39,16 +39,19 @@ namespace AGS.Types
             filters["stdscale"] = "Nearest-neighbour";
             filters["linear"] = "Linear interpolation (with anti-aliasing)";
             _gfxFiltersAll.Add(GraphicsDriver.D3D9, filters);
+            _gfxFiltersAll.Add(GraphicsDriver.OpenGL, filters);
 
             _gfxFiltersDefault = new Dictionary<GraphicsDriver, string>();
             _gfxFiltersDefault[GraphicsDriver.Software] = "stdscale";
             _gfxFiltersDefault[GraphicsDriver.D3D9] = "stdscale";
+            _gfxFiltersDefault[GraphicsDriver.OpenGL] = "stdscale";
         }
 
         public void SetDefaults()
         {
             GraphicsDriver = GraphicsDriver.D3D9;
             Windowed = false;
+            FullscreenGameScaling = GameScaling.ProportionalStretch;
             GameScaling = GameScaling.MaxInteger;
             GameScalingMultiplier = 1;
             GraphicsFilter = "stdscale";
@@ -66,7 +69,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Graphics driver")]
-        [Description("The default graphics driver that your game will use. Direct3D allows fast high-resolution alpha-blended sprites, but DirectDraw is better at RawDrawing.")]
+        [Description("The default graphics driver that your game will use. Software renderer is slower at scaling images, but it is slightly faster with raw drawing, and only one supporting 8-bit games at the moment.")]
         [DefaultValue(GraphicsDriver.D3D9)]
         [Category("Graphics")]
         [TypeConverter(typeof(EnumTypeConverter))]
@@ -103,22 +106,37 @@ namespace AGS.Types
             set;
         }
 
-        [DisplayName("Game scaling style")]
-        [Description("Determines how the game frame is scaled on screen.")]
+        [DisplayName("Fullscreen scaling style")]
+        [Description("Determines how the game frame is scaled in the fullscreen mode.")]
+        [DefaultValue(GameScaling.ProportionalStretch)]
+        [Category("Graphics")]
+        [TypeConverter(typeof(FullscreenGameScalingConverter))]
+        public GameScaling FullscreenGameScaling
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Windowed scaling style")]
+        [Description("Determines how the game frame is scaled in the windowed mode.")]
         [DefaultValue(GameScaling.MaxInteger)]
         [Category("Graphics")]
         [TypeConverter(typeof(EnumTypeConverter))]
         [RefreshProperties(RefreshProperties.All)]
+        // TODO:  consider renaming to WindowedGameScaling and implement property-to-property deserialization attribute
+        // similar to value-to-value DeserializeConvertValueAttribute
         public GameScaling GameScaling
         {
             get;
             set;
         }
 
-        [DisplayName("Custom game scaling multiplier")]
-        [Description("A round multiplier to scale game with.")]
+        [DisplayName("Windowed game scaling multiplier")]
+        [Description("A round multiplier to scale game window with.")]
         [DefaultValue(1)]
         [Category("Graphics")]
+        // TODO: consider renaming to WindowedScalingMultiplier and implement property-to-property deserialization attribute
+        // similar to value-to-value DeserializeConvertValueAttribute
         public int GameScalingMultiplier
         {
             get;
@@ -173,7 +191,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Render sprites at screen resolution")]
-        [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D renderer.")]
+        [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D and OpenGL renderers.")]
         [DefaultValue(false)]
         [Category("Graphics")]
         public bool RenderAtScreenResolution

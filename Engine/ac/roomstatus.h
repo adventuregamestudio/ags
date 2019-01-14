@@ -63,9 +63,9 @@ struct RoomStatus {
     void FreeProperties();
 
     void ReadFromFile_v321(Common::Stream *in);
-    void WriteToFile_v321(Common::Stream *out);
     void ReadRoomObjects_Aligned(Common::Stream *in);
-    void WriteRoomObjects_Aligned(Common::Stream *out);
+    void ReadFromSavegame(Common::Stream *in);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 // Replaces all accesses to the roomstats array

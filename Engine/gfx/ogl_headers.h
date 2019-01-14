@@ -28,15 +28,18 @@
 #undef uint64_t
 
 #include <GL/glext.h>
+#include <GL/wglext.h>
 
 #elif defined(ANDROID_VERSION)
 
 #include <GLES/gl.h>
+#include <GLES2/gl2.h>
 
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 #endif
 
+// TODO: we probably should not use GLExt since we use GLES2
 #include <GLES/glext.h>
 
 #define HDC void*

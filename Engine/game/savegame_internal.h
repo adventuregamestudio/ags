@@ -17,7 +17,9 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
+#include <vector>
 
+#include "ac/common_defines.h"
 #include "media/audio/audiodefines.h"
 
 

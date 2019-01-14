@@ -61,6 +61,7 @@
     <WarningLevel>4</WarningLevel>
     <DebugType>full</DebugType>
     <ErrorReport>prompt</ErrorReport>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -84,6 +85,7 @@
     <WarningLevel>4</WarningLevel>
     <DebugType>none</DebugType>
     <ErrorReport>prompt</ErrorReport>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System">
@@ -103,6 +105,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdressBarEx\AddressBarExt.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="AdressBarEx\AddressBarExt.designer.cs">
+      <DependentUpon>AddressBarExt.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AdressBarEx\IAddressNode.cs" />
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -131,6 +140,11 @@
       <Project>{3EBBEDAB-214C-4201-BB5A-5152D56908DD}</Project>
       <Name>AGS.Types</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="AdressBarEx\AddressBarExt.resx">
+      <DependentUpon>AddressBarExt.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

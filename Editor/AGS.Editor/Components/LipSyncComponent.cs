@@ -48,7 +48,6 @@ namespace AGS.Editor.Components
             }
             _document.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_document);
-			_guiController.ShowCuppit("AGS supports two types of lip sync so that characters mouths appear to move in line with what they're saying. This is fairly advanced stuff, so I'd ignore it to start with. Read up on it in the manual later if you like.", "Lip Sync introduction");
 		}
 
         public override void RefreshDataFromGame()

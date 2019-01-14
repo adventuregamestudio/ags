@@ -54,6 +54,7 @@ namespace AGS
 			Game^ ImportOldGameFile(String^ fileName);
 			void ImportSCIFont(String ^fileName, int fontSlot);
       void ReloadTTFFont(int fontSlot);
+            void OnGameFontUpdated(Game^ game, int fontSlot);
 			Dictionary<int,Sprite^>^ LoadAllSpriteDimensions();
 			void LoadNewSpriteFile();
 			Room^ LoadRoomFile(UnloadedRoom ^roomToLoad);
@@ -68,6 +69,7 @@ namespace AGS
 			void CopyWalkableMaskToRegions(Room ^room);
 			int  GetAreaMaskPixel(Room ^room, RoomAreaMaskType maskType, int x, int y);
       void ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
+      Bitmap ^ExportAreaMask(Room ^room, RoomAreaMaskType maskType);
       void CreateUndoBuffer(Room ^room, RoomAreaMaskType maskType);
       bool DoesUndoBufferExist();
       void ClearUndoBuffer();

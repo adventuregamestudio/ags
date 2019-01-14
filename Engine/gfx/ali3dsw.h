@@ -50,7 +50,7 @@ public:
     // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
     virtual void SetTransparency(int transparency) { _transparency = transparency; }
     virtual void SetFlippedLeftRight(bool isFlipped) { _flipped = isFlipped; }
-    virtual void SetStretch(int width, int height) 
+    virtual void SetStretch(int width, int height, bool useResampler = true) 
     {
         _stretchToWidth = width;
         _stretchToHeight = height;
@@ -157,7 +157,7 @@ public:
     virtual void UseSmoothScaling(bool enabled) { }
     virtual void EnableVsyncBeforeRender(bool enabled) { _autoVsync = enabled; }
     virtual void Vsync();
-    virtual void RenderSpritesAtScreenResolution(bool enabled) { }
+    virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling) { }
     virtual bool RequiresFullRedrawEachFrame() { return false; }
     virtual bool HasAcceleratedStretchAndFlip() { return false; }
     virtual bool UsesMemoryBackBuffer() { return true; }

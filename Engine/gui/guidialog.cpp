@@ -37,7 +37,8 @@ int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
 Bitmap *windowBuffer;
 IDriverDependantBitmap *dialogBmp;
 
-//#define MAXSAVEGAMES 20
+#undef MAXSAVEGAMES
+#define MAXSAVEGAMES 20
 DisplayProperties dispp;
 char *lpTemp, *lpTemp2;
 char bufTemp[260], buffer2[260];
@@ -397,7 +398,6 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
   strcpy(labeltext, get_global_message(MSG_SAVEDIALOG));
   int boxleft = myscrnwid / 2 - 120;
   int boxtop = myscrnhit / 2 - 80;
-  int buttonhit = usetup.textheight + 5;
   int labeltop = boxtop + 5;
   Bitmap *ds = GetVirtualScreen();
   int handl = CSCIDrawWindow(ds, boxleft, boxtop, 240, 160);

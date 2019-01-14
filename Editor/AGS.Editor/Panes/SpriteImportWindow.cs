@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -30,7 +31,7 @@ namespace AGS.Editor
 				if (!_initialized)
 				{
 					_initialized = true;
-					_spriteImportMethod = Factory.AGSEditor.Preferences.DefaultSpriteImportTransparency;
+					_spriteImportMethod = Factory.AGSEditor.Settings.SpriteImportMethod;
 				}
 				return _spriteImportMethod; 
 			}

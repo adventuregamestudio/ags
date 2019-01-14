@@ -40,6 +40,13 @@ namespace AGS.Types
             return (T)Enum.ToObject(typeof(T), second);
         }
 
+        public static ScriptAPIVersion GetActualAPI(ScriptAPIVersion v)
+        {
+            if (v == ScriptAPIVersion.Highest)
+                return Utilities.GetSecondMaxEnumValue<ScriptAPIVersion>();
+            return v;
+        }
+
         public static string RemoveInvalidCharactersFromScriptName(string name)
         {
             StringBuilder sb = new StringBuilder();
@@ -110,6 +117,24 @@ namespace AGS.Types
             Uri baseUri = new Uri(parent + Path.DirectorySeparatorChar);
             Uri pathUri = new Uri(Path.Combine(parent, path) + Path.DirectorySeparatorChar);
             return baseUri.IsBaseOf(pathUri);
+        }
+
+        /// <summary>
+        /// Tries to parse version string, detecting and IGNORING any additional characters
+        /// appended after standard version format.Returns null in case of parsing exception.
+        /// </summary>
+        public static System.Version TryParseVersion(string s)
+        {
+            System.Version v = null;
+            try
+            {
+                int pos;
+                for (pos = 0; pos < s.Length && (Char.IsDigit(s[pos]) || s[pos] == '.'); pos++);
+                s = s.Substring(0, pos);
+                v = new System.Version(s);
+            }
+            catch (Exception){ /* just return null in case of any exception */ }
+            return v;
         }
     }
 }

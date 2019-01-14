@@ -221,6 +221,38 @@ namespace AGS.Types
             get { return _regions; }
         }
 
+        [Description("The number of hotspots in the room")]
+        [Category("Regions")]
+        [Browsable(false)]
+        public int HotspotCount
+        {
+            get { return _hotspots.Count; }
+        }
+
+        [Description("The number of walkable areas in the room")]
+        [Category("Regions")]
+        [Browsable(false)]
+        public int WalkableAreaCount
+        {
+            get { return _walkableAreas.Count; }
+        }
+
+        [Description("The number of walk-behinds in the room")]
+        [Category("Regions")]
+        [Browsable(false)]
+        public int WalkBehindCount
+        {
+            get { return _walkBehinds.Count; }
+        }
+
+        [Description("The number of regions in the room")]
+        [Category("Regions")]
+        [Browsable(false)]
+        public int RegionCount
+        {
+            get { return _regions.Count; }
+        }
+       
         [Browsable(false)]
         public IList<OldInteractionVariable> OldInteractionVariables
         {

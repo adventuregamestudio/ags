@@ -16,12 +16,15 @@
 #define __AC_MOVE_H
 
 #include "util/wgt2allg.h" // fixed type
+#include "game/savegame.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define MAXNEEDSTAGES 40
+#define MAXNEEDSTAGES 256
+#define MAXNEEDSTAGES_LEGACY 40
+
 struct MoveList {
     int   pos[MAXNEEDSTAGES];
     int   numstage;
@@ -32,7 +35,8 @@ struct MoveList {
     char  doneflag;
     char  direct;  // MoveCharDirect was used or not
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile_Legacy(Common::Stream *in);
+    AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out);
 };
 

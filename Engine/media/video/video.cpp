@@ -167,10 +167,10 @@ void play_flc_file(int numb,int playflags) {
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
     // TODO: find a better solution.
-    // Make only Windows use play_fli_pf from the patched version of Allegro for now.
-    // Add more versions as their Allegro lib becomes patched too.
+    // Make only certain versions of the engineuse play_fli_pf from the patched version of Allegro for now.
+    // Add more versions as their Allegro lib becomes patched too, or they use newer version of Allegro 4.
     // Ports can still play FLI if separate file is put into game's directory.
-#if defined WINDOWS_VERSION
+#if defined (WINDOWS_VERSION) || defined (ANDROID_VERSION)
     PACKFILE *pf = PackfileFromAsset(AssetPath("", flicname));
     if (play_fli_pf(pf, (BITMAP*)fli_buffer->GetAllegroBitmap(), fli_callback)==FLI_ERROR)
 #else
@@ -241,7 +241,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
         else
         {
             gfxDriver->UpdateDDBFromBitmap(fli_ddb, &gl_TheoraBuffer, false);
-            fli_ddb->SetStretch(fliTargetWidth, fliTargetHeight);
+            fli_ddb->SetStretch(fliTargetWidth, fliTargetHeight, false);
         }
     }
     else

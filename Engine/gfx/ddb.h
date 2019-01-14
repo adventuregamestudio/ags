@@ -30,7 +30,7 @@ public:
 
   virtual void SetTransparency(int transparency) = 0;  // 0-255
   virtual void SetFlippedLeftRight(bool isFlipped) = 0;
-  virtual void SetStretch(int width, int height) = 0;
+  virtual void SetStretch(int width, int height, bool useResampler = true) = 0;
   virtual void SetLightLevel(int light_level) = 0;   // 0-255
   virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0;  // 0-255
 

@@ -81,14 +81,14 @@ struct InteractionValue
 
 
 struct InteractionCommandList;
-typedef std::auto_ptr<InteractionCommandList> AInterCmdList; // TODO: use unique_ptr when available
+typedef std::unique_ptr<InteractionCommandList> UInterCmdList;
 
 // InteractionCommand represents a single command (action), an item of Command List
 struct InteractionCommand
 {
     int                     Type;       // type of action
     InteractionValue        Data[MAX_ACTION_ARGS]; // action arguments
-    AInterCmdList           Children;   // list of sub-actions
+    UInterCmdList           Children;   // list of sub-actions
     InteractionCommandList *Parent;     // action parent (optional)
 
     InteractionCommand();
@@ -135,7 +135,7 @@ struct InteractionEvent
 {
     int           Type;     // type of event
     int           TimesRun; // used by engine to track score changes
-    AInterCmdList Response; // list of commands to run
+    UInterCmdList Response; // list of commands to run
 
     InteractionEvent();
     InteractionEvent(const InteractionEvent &ie);

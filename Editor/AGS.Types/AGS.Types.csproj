@@ -50,9 +50,10 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DocumentationFile>bin\Debug\AGS.Types.XML</DocumentationFile>
     <NoWarn>1591</NoWarn>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -63,7 +64,8 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\AGS.Types.XML</DocumentationFile>
     <NoWarn>1591</NoWarn>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -276,6 +278,7 @@
     <Compile Include="Interfaces\ISpriteController.cs" />
     <Compile Include="Interfaces\IToXml.cs" />
     <Compile Include="InventoryItemFolder.cs" />
+    <Compile Include="PropertyGridExtras\ExclusiveEnumTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\GraphicsFilterTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\TranslationListTypeConverter.cs" />
     <Compile Include="RuntimeSetup.cs" />

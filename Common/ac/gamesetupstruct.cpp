@@ -68,15 +68,15 @@ void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_v
     }
 }
 
-MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)
 {
     int numToRead = in->ReadInt32();
 
     if (numToRead > MAX_SPRITES)
-        return kMGFErr_TooManySprites;
+        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %d, max: %d", numToRead, MAX_SPRITES));
     in->Read(&spriteflags[0], numToRead);
     memset(spriteflags + numToRead, 0, MAX_SPRITES - numToRead);
-    return kMGFErr_NoError;
+    return HGameFileError::None();
 }
 
 void GameSetupStruct::ReadInvInfo_Aligned(Stream *in)
@@ -99,13 +99,13 @@ void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
     }
 }
 
-MainGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver)
 {
     if (numcursors > MAX_CURSOR)
-        return kMGFErr_TooManyCursors;
+        return new MainGameFileError(kMGFErr_TooManyCursors, String::FromFormat("Count: %d, max: %d", numcursors, MAX_CURSOR));
 
     ReadMouseCursors_Aligned(in);
-    return kMGFErr_NoError;
+    return HGameFileError::None();
 }
 
 void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
@@ -203,12 +203,12 @@ void GameSetupStruct::WriteCharacters_Aligned(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 3
 
-MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
 {
     dialogScriptNames.resize(numdialog);
     viewNames.resize(numviews);
     if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
-        return kMGFErr_InvalidPropertySchema;
+        return new MainGameFileError(kMGFErr_InvalidPropertySchema);
 
     int errors = 0;
 
@@ -222,18 +222,21 @@ MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameData
         errors += Properties::ReadValues(invProps[i], in);
     }
 
-    for (int i = 0; i < numviews; ++i)
-        viewNames[i] = String::FromStream(in);
+        if (errors > 0)
+            return new MainGameFileError(kMGFErr_InvalidPropertyValues);
+
+        for (int i = 0; i < numviews; ++i)
+            viewNames[i] = String::FromStream(in);
 
     for (int i = 0; i < numinvitems; ++i)
         invScriptNames[i] = String::FromStream(in);
 
     for (int i = 0; i < numdialog; ++i)
         dialogScriptNames[i] = String::FromStream(in);
-    return kMGFErr_NoError;
+    return HGameFileError::None();
 }
 
-MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver)
 {
     audioClipTypeCount = in->ReadInt32();
 
@@ -249,7 +252,7 @@ MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersio
     
     scoreClipID = in->ReadInt32();
 
-    return kMGFErr_NoError;
+    return HGameFileError::None();
 }
 
 // Temporarily copied this from acruntim.h;
@@ -309,15 +312,32 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     ReadCharacters_Aligned(in);
 }
 
-void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
+//=============================================================================
+
+void GameSetupStruct::ReadFromSavegame(PStream in)
 {
-    WriteInvInfo_Aligned(out);
-    WriteMouseCursors_Aligned(out);
-
-    out->WriteArrayOfInt32 (&options[0], OPT_HIGHESTOPTION_321 + 1);
-    out->WriteInt8 (options[OPT_LIPSYNCTEXT]);
-
-    WriteCharacters_Aligned(out);
+    // of GameSetupStruct
+    in->ReadArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
+    options[OPT_LIPSYNCTEXT] = in->ReadInt32();
+    // of GameSetupStructBase
+    playercharacter = in->ReadInt32();
+    dialog_bullet = in->ReadInt32();
+    hotdot = in->ReadInt16();
+    hotdotouter = in->ReadInt16();
+    invhotdotsprite = in->ReadInt32();
+    default_lipsync_frame = in->ReadInt32();
 }
 
-//=============================================================================
+void GameSetupStruct::WriteForSavegame(PStream out)
+{
+    // of GameSetupStruct
+    out->WriteArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
+    out->WriteInt32(options[OPT_LIPSYNCTEXT]);
+    // of GameSetupStructBase
+    out->WriteInt32(playercharacter);
+    out->WriteInt32(dialog_bullet);
+    out->WriteInt16(hotdot);
+    out->WriteInt16(hotdotouter);
+    out->WriteInt32(invhotdotsprite);
+    out->WriteInt32(default_lipsync_frame);
+}

@@ -367,13 +367,14 @@ void ccCompiledScript::flush_line_numbers()
 
 void ccCompiledScript::write_code(intptr_t byy) 
 {
-    // DEBUGGING [fw]
-    //if (codesize == 28)
-    if (currentline == 7)
+    /*
+    // [fw] For DEBUGGING. Put a breakpoint on the "iii" line to have
+    //      flow halt when bytecode is compiled for a specific code[] index.
+    if (codesize == 28)
     {
         int iii = 0;
     }
-    // END DEBUGGING [fw]
+    */
     flush_line_numbers();
     if (codesize >= codeallocated - 2)
     {

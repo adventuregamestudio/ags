@@ -379,15 +379,6 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
 void OGLGraphicsDriver::FirstTimeInit()
 {
 #if defined (LINUX_VERSION)
-  // Beware that glxewInit() will fail with "Missing GL version" unless we have
-  // set a valid context with glXMakeCurrent(). In our case this will have been
-  // done by InitGlScreen(), which is always called before this function.
-  int glxew_rc = glxewInit();
-  if(glxew_rc != GLEW_OK)
-  {
-    Debug::Printf(kDbgMsg_Error, "ERROR: Failed to initialize GLXEW: %s.\n", glewGetErrorString(glxew_rc));
-  }
-
   int glew_rc = glewInit();
   if(glew_rc != GLEW_OK)
   {

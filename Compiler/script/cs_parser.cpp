@@ -919,6 +919,8 @@ const char *GetFullNameOfMember(ags::Symbol_t structSym, ags::Symbol_t memberSym
 }
 
 
+// Find a symbol in the symbol table; if not found, add it
+// This should probably move to the symbol table code
 int sym_find_or_add(symbolTable &sym, const char *sname)
 {
     int sym_index = sym.find(sname);

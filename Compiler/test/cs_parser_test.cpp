@@ -418,3 +418,40 @@ TEST(Compile, NegationRHSOfExpression) {
     printf("Error: %s\n", last_seen_cc_error);
     ASSERT_EQ(0, compileResult);
 }
+
+
+TEST(Compile, FuncDeclWrong) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct1          \n\
+    {                               \n\
+        float Payload1;             \n\
+    };                              \n\
+    managed struct Struct2          \n\
+    {                               \n\
+        char Payload2;              \n\
+    };                              \n\
+                                    \n\
+    import  int Func(Struct1 *S1, Struct2 *S2);  \n\
+                                    \n\
+    int Func(Struct2 *S1, Struct1 *S2)  \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+   ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    // Offer some leeway in the error message
+    std::string res(last_seen_cc_error);
+    EXPECT_NE(std::string::npos, res.find("parameter"));
+
+}

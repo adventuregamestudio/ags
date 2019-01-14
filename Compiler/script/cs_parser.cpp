@@ -1428,6 +1428,24 @@ int ParseParamlist_param_DynArrayMarker(
 }
 
 
+int ParseFuncdecl_CopyForwardDecl(ccCompiledScript * scrip, ags::Symbol_t & funcsym, SymbolTableEntry *oldDefinition)
+{
+    // Copy so that the forward definition can be compared afterwards to the real one 
+    int retval = scrip->copy_import_symbol_table_entry(funcsym, oldDefinition);
+    if (retval < 0) return retval;
+    // Strip import flag since the real defn won't be exported
+    oldDefinition->flags &= ~SFLG_IMPORTED; 
+
+    // Check whether the import has been referenced or whether imports may not be overridden;
+    // if so, complain; remove the import flags
+    // This ruins the flags, so save them beforehand and save them afterwards
+    const int funcsym_flags = sym.entries[funcsym].flags;
+    retval = scrip->just_remove_any_import(funcsym);
+    sym.entries[funcsym].flags = funcsym_flags & ~SFLG_IMPORTED;
+    return retval;
+}
+
+
 // extender function, eg. function GoAway(this Character *someone)
 // We've just accepted something like "int func(", we expect "this" --OR-- "static" (!)
 // We'll accept something like "this Character *"
@@ -1471,19 +1489,10 @@ int ParseFuncdecl_ExtenderPreparations(
 
     if (func_is_import == ImNoImport && (sym.entries[funcsym].flags & SFLG_IMPORTED) != 0)
     {
-        // Copy so that the forward definition can be compared afterwards to the real one 
-        int retval = scrip->copy_import_symbol_table_entry(funcsym, oldDefinition);
+        int retval = ParseFuncdecl_CopyForwardDecl(scrip, funcsym, oldDefinition);
         if (retval < 0) return retval;
-        oldDefinition->flags &= ~SFLG_IMPORTED; // Strip import flag, since the real defn won't be exported
-
-        // Check whether the import has been referenced or whether imports may not be overridden;
-        // if so, complain; remove the import flags
-        retval = scrip->just_remove_any_import(funcsym);
-        if (retval < 0) return retval;
-
     }
-
-    if (sym.entries[funcsym].stype != 0)
+    else if (sym.entries[funcsym].stype != 0)
     {
         cc_error("Function '%s' is already defined", functionName);
         return -1;
@@ -1521,27 +1530,20 @@ int ParseFuncdecl_ExtenderPreparations(
 }
 
 
-int ParseFuncdecl_NonExtenderPreparations(
-    int struct_containing_the_func,
-    std::string & functionName,
-    ags::Symbol_t & funcsym)
+int ParseFuncdecl_NonExtenderPreparations(ccCompiledScript *scrip, Importness func_is_import, int struct_containing_the_func, std::string &functionName, ags::Symbol_t &funcsym, SymbolTableEntry *oldDefinition)
 {
-    if (sym.get_type(funcsym) != SYM_VARTYPE) return 0; // nothing to do
-
-    if (struct_containing_the_func != 0)
+    if (func_is_import == ImNoImport && (sym.entries[funcsym].flags & SFLG_IMPORTED) != 0)
     {
-        // Construct STRUCT::FOO, enter it into the symbol table if necessary
-        functionName = sym.get_name(struct_containing_the_func);
-        functionName += "::";
-        functionName += sym.get_name(funcsym);
-        funcsym = sym_find_or_add(sym, functionName.c_str());
+        // Copy the previous definition to oldDefinition, 
+        // so that the current definition can be compared with it
+        int retval = ParseFuncdecl_CopyForwardDecl(scrip, funcsym, oldDefinition);
+        if (retval < 0) return retval;
     }
-    if (sym.entries[funcsym].stype != 0)
+    else if (sym.entries[funcsym].stype != 0)
     {
-        cc_error("'%s' is already defined", functionName);
+        cc_error("Function '%s' is already defined", functionName);
         return -1;
     }
-
     return 0;
 }
 
@@ -1840,6 +1842,65 @@ int ParseFuncdecl_SetFunctype(
 }
 
 
+// there was a forward declaration -- check that the real declaration matches it
+int ParseFuncdecl_CheckThatForwardDeclMatches(ags::Symbol_t funcname, SymbolTableEntry *prototype)
+{
+    if (prototype->stype != sym.entries[funcname].stype)
+    {
+        cc_error("Type of identifier differs from original declaration");
+        return -1;
+    }
+
+    if (prototype->flags != (sym.entries[funcname].flags & ~SFLG_IMPORTED))
+    {
+        cc_error("Attributes of identifier do not match prototype");
+        return -1;
+    }
+
+    if (prototype->ssize != sym.entries[funcname].ssize)
+    {
+        cc_error("Size of identifier does not match prototype");
+        return -1;
+    }
+
+    if ((sym.entries[funcname].flags & SFLG_ARRAY) && (prototype->arrsize != sym.entries[funcname].arrsize))
+    {
+        cc_error("Array size '%d' of identifier does not match prototype which is '%d'", sym.entries[funcname].arrsize, prototype->arrsize);
+        return -1;
+    }
+
+    if (prototype->stype != SYM_FUNCTION) return 0;
+
+    // Following checks pertain to functions
+    if (prototype->sscope != sym.entries[funcname].sscope)
+    {
+        cc_error("Function declaration has wrong number of arguments to prototype");
+        return -1;
+    }
+
+    if (prototype->funcparamtypes.at(0) != sym.entries[funcname].funcparamtypes.at(0))
+    {
+        cc_error("Return type does not match prototype");
+        return -1;
+    }
+
+    // this is 1 .. get_num_args(), INCLUSIVE, because param 0 is the return type
+    for (int param_idx = 1; param_idx <= sym.entries[funcname].get_num_args(); param_idx++)
+    {
+        if (prototype->funcparamtypes.at(param_idx) != sym.entries[funcname].funcparamtypes.at(param_idx))
+        {
+            cc_error("Type of parameter no. %d does not match prototype", param_idx);
+            return -1;
+        }
+
+        // copy the default values from the function prototype
+        sym.entries[funcname].funcParamDefaultValues.push_back(prototype->funcParamDefaultValues.at(param_idx));
+        sym.entries[funcname].funcParamHasDefaultValues.push_back(prototype->funcParamHasDefaultValues.at(param_idx));
+    }
+
+    return 0;
+}
+
 // We're at something like "int foo(", directly before the "("
 // This might or might not be within a struct defn
 int ParseFuncdecl(
@@ -1853,7 +1914,6 @@ int ParseFuncdecl(
     Importness func_is_import,  // NOT a bool: it can contain 0 .. 2
     ags::Symbol_t struct_containing_the_func,
     ags::Symbol_t &struct_extended_by_the_func, // the BAR in "int FOO(this BAR *," 
-    SymbolTableEntry *oldDefinition,
     bool &body_follows)
 {
     int numparams = 1; // Counts the number of parameters including the ret parameter, so start at 1
@@ -1876,18 +1936,26 @@ int ParseFuncdecl(
     bool func_is_static_extender = (sym.get_type(targ->peeknext()) == SYM_STATIC);
     bool func_is_extender = (func_is_static_extender) || (targ->peeknext() == sym.find("this"));
 
+    // If the function had a forward declaration, it will go here.
+    SymbolTableEntry forward_decl;
+    forward_decl.stype = 0;
+
     // Set up the function
     if (func_is_extender)
     {
         int retval = ParseFuncdecl_ExtenderPreparations(
             targ, scrip, func_is_static_extender,
-            func_is_import, functionNameStr, name_of_func, struct_extended_by_the_func,
-            oldDefinition);
+            func_is_import, functionNameStr, 
+            name_of_func, struct_extended_by_the_func,
+            &forward_decl);
         if (retval < 0) return retval;
     }
     else // !func_is_extender
     {
-        int retval = ParseFuncdecl_NonExtenderPreparations(struct_containing_the_func, functionNameStr, name_of_func);
+        int retval = ParseFuncdecl_NonExtenderPreparations(
+            scrip,
+            func_is_import, struct_containing_the_func, functionNameStr, 
+            name_of_func, &forward_decl);
         if (retval < 0) return retval;
     }
 
@@ -1928,6 +1996,13 @@ int ParseFuncdecl(
     // save the number of parameters (not counting the ret parameter)
     sym.entries[name_of_func].sscope = (numparams - 1);
     if (funcNum >= 0) scrip->funcnumparams[funcNum] = sym.entries[name_of_func].sscope;
+
+    // If there was a forward decl, it has to match the current decl.
+    if (forward_decl.stype != 0)
+    {
+        retval = ParseFuncdecl_CheckThatForwardDeclMatches(name_of_func, &forward_decl);
+        if (retval < 0) return retval;
+    }
 
     // Non-imported functions must be followed by a body
     if (func_is_import == ImNoImport)
@@ -5554,12 +5629,12 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
         int retval = ParseFuncdecl_CheckForIllegalCombis(type_is_readonly, name_of_current_func, nested_level);
         if (retval < 0) return retval;
         {
-            ags::Symbol_t throwaway_value = 0;
+            ags::Symbol_t throwaway_symbol = 0;
             bool throwaway_bool;
             int retval =
                 ParseFuncdecl(targ, scrip, vname, curtype, type_is_pointer, isDynamicArray,
                     type_is_static, type_is_import, stname,
-                    throwaway_value, nullptr, throwaway_bool);
+                    throwaway_symbol, throwaway_bool);
         }
         if (retval < 0) return retval;
 
@@ -6231,66 +6306,6 @@ int ParseVartype_GetPointerStatus(ccInternalList * targ, int type_of_defn, bool 
     return 0;
 }
 
-// there was a forward declaration -- check that the real declaration matches it
-int ParseVartype_CheckThatForwardDeclMatches(
-    Globalness isglobal, // isglobal is int 0 = local, 1 = global, 2 = global and import
-    SymbolTableEntry &oldDefinition,
-    ags::Symbol_t cursym)
-{
-
-    ccError = 0;
-    if (isglobal == GlLocal) // 0 == local
-    {
-        cc_error("Local variable cannot have the same name as an import");
-        return -1;
-    }
-
-    if (oldDefinition.stype != sym.entries[cursym].stype)
-    {
-        cc_error("Type of identifier differs from original declaration");
-        return -1;
-    }
-
-    if (oldDefinition.flags != (sym.entries[cursym].flags & ~SFLG_IMPORTED))
-    {
-        cc_error("Attributes of identifier do not match prototype");
-        return -1;
-    }
-
-    if (oldDefinition.ssize != sym.entries[cursym].ssize)
-    {
-        cc_error("Size of identifier does not match prototype");
-        return -1;
-    }
-
-    if ((sym.entries[cursym].flags & SFLG_ARRAY) && (oldDefinition.arrsize != sym.entries[cursym].arrsize))
-    {
-        cc_error("Array size '%d' of identifier does not match prototype which is '%d'", sym.entries[cursym].arrsize, oldDefinition.arrsize);
-        return -1;
-    }
-
-    if (oldDefinition.stype != SYM_FUNCTION) return 0;
-
-    // Following checks pertain to functions
-    if (oldDefinition.sscope != sym.entries[cursym].sscope)
-    {
-        cc_error("Function declaration has wrong number of arguments to prototype");
-        return -1;
-    }
-
-    // this is <= because the return type is the first one
-    for (int ii = 0; ii <= sym.entries[cursym].get_num_args(); ii++)
-    {
-        if (oldDefinition.funcparamtypes.at(ii) != sym.entries[cursym].funcparamtypes.at(ii))
-            cc_error("Parameter type does not match prototype");
-
-        // copy the default values from the function prototype
-        sym.entries[cursym].funcParamDefaultValues.push_back(oldDefinition.funcParamDefaultValues.at(ii));
-        sym.entries[cursym].funcParamHasDefaultValues.push_back(oldDefinition.funcParamHasDefaultValues.at(ii));
-    }
-
-    return 0;
-}
 
 int ParseVartype_CheckIllegalCombis(bool is_static, bool is_member_definition, bool is_function, bool is_protected, bool loopCheckOff, bool is_import)
 {
@@ -6326,18 +6341,18 @@ int ParseVartype_CheckIllegalCombis(bool is_static, bool is_member_definition, b
     return 0;
 }
 
-int ParseVartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &func_name, int type_of_defn, bool is_readonly, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, bool is_member_function_definition, bool is_protected, SymbolTableEntry &oldDefinition, ags::Symbol_t & struct_of_current_func, ags::Symbol_t &name_of_current_func)
+int ParseVartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &func_name, int type_of_defn, bool is_readonly, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, bool is_member_function_definition, bool is_protected, ags::Symbol_t & struct_of_current_func, ags::Symbol_t &name_of_current_func)
 {
-    bool body_follows;
-    int retval = ParseFuncdecl(
-        targ, scrip, func_name, type_of_defn, isPointer, isDynamicArray,
-        is_static, is_import, struct_of_current_func,
-        struct_of_current_func, &oldDefinition, body_follows);
-    if (retval < 0) return retval;
 
+    bool body_follows;
     // restore flags, since remove_any_imports() zeros them out
     if (is_member_function_definition) sym.entries[func_name].flags |= SFLG_STRUCTMEMBER;
     if (is_protected)                  sym.entries[func_name].flags |= SFLG_PROTECTED;
+    int retval = ParseFuncdecl(
+        targ, scrip, func_name, type_of_defn, isPointer, isDynamicArray,
+        is_static, is_import, struct_of_current_func,
+        struct_of_current_func, body_follows);
+    if (retval < 0) return retval;
 
     // If we've started a function, remember what it is.
     if (body_follows) name_of_current_func = func_name;
@@ -6345,29 +6360,10 @@ int ParseVartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, ags::S
     return 0;
 }
 
-// Call out an error if this identifier is in use
-int ParseVartype_CheckWhetherInUse(ags::Symbol_t var_or_func_name, bool is_function, bool is_member_definition)
+
+int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol_t &var_name, Globalness is_global, int nested_level, bool is_readonly, int type_of_defn, int next_type, bool isPointer, bool &another_var_follows)
 {
-    if (sym.get_type(var_or_func_name) == 0) return 0; // not in use
-
-    if (is_function && !is_member_definition) // if member defn, it has been _declared_, not defined
-    {
-        cc_error("Function '%s' is already defined", sym.get_friendly_name(var_or_func_name).c_str());
-        return -1;
-    }
-
-    if (sym.get_type(var_or_func_name) == SYM_VARTYPE || sym_is_predef_typename(var_or_func_name))
-    {
-        cc_error("'%s' is already in use as a type name", sym.get_friendly_name(var_or_func_name).c_str());
-        return -1;
-    }
-    return 0;
-}
-
-
-int ParseVartype_VarDef(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol_t &var_name, Globalness is_global, int nested_level, bool is_readonly, int type_of_defn, int next_type, bool isPointer, bool &another_var_follows)
-{
-
+    
     if (is_global == GlLocal)  // is_global is int 0 = local
     {
         sym.entries[var_name].sscope = nested_level;
@@ -6382,7 +6378,6 @@ int ParseVartype_VarDef(ccInternalList * targ, ccCompiledScript * scrip, ags::Sy
     if (retval < 0) return retval;
     return 0;
 }
-
 
 // We accepted a variable type such as "int", so what follows is a function or variable definition
 int ParseVartype(
@@ -6449,57 +6444,34 @@ int ParseVartype(
         retval = ParseVartype_GetVarName(targ, var_or_func_name, struct_of_current_func);
         if (retval < 0) return retval;
 
+        // Refuse to process it if it's a type name
+        if (sym.get_type(var_or_func_name) == SYM_VARTYPE || sym_is_predef_typename(var_or_func_name))
+        {
+            cc_error("'%s' is already in use as a type name", sym.get_friendly_name(var_or_func_name).c_str());
+            return -1;
+        }
+
         // Check whether var or func is being defined
         int next_type = sym.get_type(targ->peeknext());
         bool is_function = (sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS);
-        bool is_member_definition = (struct_of_current_func >= 0); // [fw] "> 0" would be right
+        bool is_member_definition = (struct_of_current_func > 0); 
 
         // certains modifiers, such as "static" only go with certain kinds of definitions.
         retval = ParseVartype_CheckIllegalCombis(is_static, is_member_definition, is_function, is_protected, loopCheckOff, (is_import != ImNoImport));
         if (retval < 0) return retval;
-
-        // Check whether the var or func is already defined or in use otherwise
-        retval = ParseVartype_CheckWhetherInUse(var_or_func_name, is_function, is_member_definition);
-        if (retval < 0) return retval;
-
-        // If there has been a forward declaration, its type will go here
-        SymbolTableEntry oldDefinition;
-        oldDefinition.stype = 0;
-
-        if (is_import != ImImportType1) // [fw] that is, no import or import of type 2
-        {
-
-            // Copy so that the forward declaration can be compared afterwards to the real one 
-            int retval = scrip->copy_import_symbol_table_entry(var_or_func_name, &oldDefinition);
-            if (retval < 0) return retval;
-            oldDefinition.flags &= ~SFLG_IMPORTED; // Strip import flag, since the real defn won't be exported
-
-            // Check whether the import has been referenced or whether imports may not be overridden;
-            // if so, complain; 
-            // remove the import flags
-            retval = scrip->just_remove_any_import(var_or_func_name);
-            if (retval < 0) return retval;
-        }
-
+        
         if (is_function) // function defn
         {
             int retval = ParseFuncdecl_CheckForIllegalCombis(is_readonly, name_of_current_func, nesting_stack->Depth());
             if (retval < 0) return retval;
 
-            retval = ParseVartype_FuncDef(targ, scrip, var_or_func_name, type_of_defn, is_readonly, isPointer, isDynamicArray, is_static, is_import, is_member_definition, is_protected, oldDefinition, struct_of_current_func, name_of_current_func);
+            retval = ParseVartype_FuncDef(targ, scrip, var_or_func_name, type_of_defn, is_readonly, isPointer, isDynamicArray, is_static, is_import, is_member_definition, is_protected, struct_of_current_func, name_of_current_func);
             if (retval < 0) return retval;
             another_ident_follows = false; // Can't join another func or var with ','
         }
         else // variable defn
         {
-            int retval = ParseVartype_VarDef(targ, scrip, var_or_func_name, is_global, nesting_stack->Depth() - 1, is_readonly, type_of_defn, next_type, isPointer, another_ident_follows);
-            if (retval < 0) return retval;
-        }
-
-        // If we've got a forward declaration, check whether it matches the actual one.
-        if (oldDefinition.stype != 0)
-        {
-            int retval = ParseVartype_CheckThatForwardDeclMatches(is_global, oldDefinition, var_or_func_name);
+            retval = ParseVartype_VarDef(targ, scrip, var_or_func_name, is_global, nesting_stack->Depth() - 1, is_readonly, type_of_defn, next_type, isPointer, another_ident_follows);
             if (retval < 0) return retval;
         }
 

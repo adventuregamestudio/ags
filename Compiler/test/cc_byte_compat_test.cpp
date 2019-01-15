@@ -2,12 +2,49 @@
 #include <fstream>
 #include <string>
 
-#include "gtest/gtest.h" 
+#include "gtest/gtest.h"
 #include "script/cs_parser.h"
 #include "script/cc_symboltable.h"
 #include "script/cc_internallist.h"
 
-// from cs_parser_test()
+
+// Note: This file contains googletests that check that the
+// pre-rewrite parser generates exactly the same bytes as the
+// rewritten parser. 
+// This file is for testing correct AGS code, i.e., AGS code that is
+// parsed into bytecode. (Incorrect AGS code that results in an error
+// message instead of bytecode should be checked elsewhere.)
+//
+// The tests are created as follows:
+// 1. Go to the branch of the pre-rewrite parser.
+// 2. Copy a prototype (search for "PROTOTYPE") to the end of this file.
+// 3. Edit the name of the googletest and the filename in the prototype.
+// 4. Change the AGS code in the prototype, 
+//      i.e., create what is to be checked.
+// 5. Uncomment the "writeoutput" line.
+// 6. Run the test.
+//    This will write a file to disk.
+// 7. Open the disk file, copy all its lines to the clipboard
+//    and paste them directly above the "}" at the end of the googletest.
+// 8. Comment the "writeoutput" line.
+// 9. Copy this whole googletest file into the clipboard.
+// 10. Go to the branch of the rewritten parser.
+// 11. Open this file and replace its complete content with the clipboard
+// 12. Run the tests. They will fail if the rewritten parser generates
+//       any bytes that are different from the pre-rewrite bytecode.
+
+
+// If tests fail, a good way of debugging is uncommenting 
+// the "writeoutput" line - this will write the bytecode that the 
+// rewritten parser generates to file. Compare that by hand to the bytecode
+// in the test and find out whether bytes are left out, changed, 
+// or added. Make the debugger break in cc_compiledscript.cpp function
+// ccCompiledScript::write_code() at the point where the last correct 
+// byte is generated. Then trace along and see where the logic fails.
+// Note that sometimes the parser generates some bytes, then stashes
+// them away, then generates other bytes in their place.
+
+
 extern ccCompiledScript *newScriptFixture();
 extern const char *last_seen_cc_error();
 extern void clear_error();
@@ -91,12 +128,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
 }
 
 /*    PROTOTYPE
-// 1. Run those tests in a snapshot that does not have the changes made.
-// 2. Append the generated lines, as explained below
-// 3. Comment out the "writeoutput" line.
-// 4. Export this file to a snapshot that does have the changes.
-// 5. Run the test.
-TEST(Compatibility, SimpleFunction) {
+TEST(Compatibility, p_r_o_t_o_t_y_p_e) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -110,7 +142,7 @@ TEST(Compatibility, SimpleFunction) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // writeoutput("SimpleFunction", scrip);
+    // writeoutput("P_R_O_T_O_T_Y_P_E", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -434,7 +466,7 @@ TEST(Compatibility, FloatExpr2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("FloatExpr2", scrip);
+    // writeoutput("FloatExpr2", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -949,7 +981,7 @@ TEST(Compatibility, For2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("For2", scrip);
+    // writeoutput("For2", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1044,7 +1076,7 @@ TEST(Compatibility, For3) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("For3", scrip);
+    // writeoutput("For3", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1395,7 +1427,7 @@ TEST(Compatibility, Struct1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Struct1", scrip);
+    // writeoutput("Struct1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1484,7 +1516,7 @@ TEST(Compatibility, Struct2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Struct2", scrip);
+    // writeoutput("Struct2", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1576,7 +1608,7 @@ TEST(Compatibility, Struct3) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Struct3", scrip);
+    // writeoutput("Struct3", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1640,7 +1672,7 @@ TEST(Compatibility, Struct4) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Struct4", scrip);
+    // writeoutput("Struct4", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1723,7 +1755,7 @@ TEST(Compatibility, Struct5) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Struct5", scrip);
+    // writeoutput("Struct5", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1783,7 +1815,7 @@ TEST(Compatibility, Struct6) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Struct6", scrip);
+    // writeoutput("Struct6", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1949,7 +1981,7 @@ TEST(Compatibility, Func1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Func1", scrip);
+    // writeoutput("Func1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2043,7 +2075,7 @@ TEST(Compatibility, Func2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Func2", scrip);
+    // writeoutput("Func2", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2134,7 +2166,7 @@ TEST(Compatibility, Func3) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Func3", scrip);
+    // writeoutput("Func3", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2218,7 +2250,7 @@ TEST(Compatibility, FuncCall) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("FuncCall", scrip);
+    // writeoutput("FuncCall", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2310,7 +2342,7 @@ TEST(Compatibility, Export) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("Export", scrip);
+    // writeoutput("Export", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2367,7 +2399,7 @@ TEST(Compatibility, ArrayOfPointers1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("ArrayOfPointers1", scrip);
+    // writeoutput("ArrayOfPointers1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2460,7 +2492,7 @@ TEST(Compatibility, ArrayOfPointers2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("ArrayOfPointers2", scrip);
+    // writeoutput("ArrayOfPointers2", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2554,7 +2586,7 @@ TEST(Compatibility, ArrayInStruct) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("ArrayInStruct", scrip);
+    // writeoutput("ArrayInStruct", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2607,7 +2639,7 @@ TEST(Compatibility, FuncVarargs1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    writeoutput("FuncVarargs1", scrip);
+    // writeoutput("FuncVarargs1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

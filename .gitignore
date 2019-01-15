@@ -140,18 +140,8 @@ libsrc/*.zip
 *.nuget.props
 *.nuget.targets
 
-
-# macOS system files
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-
-# Windows system files
-thumbs.db
-desktop.ini
-
-
-# recommended CMake build directory
-build*/**
+# OpenCppCoverage log file
+*/LastCoverageResults.log
+/.vs/ProjectSettings.json
+/.vs/slnx.sqlite
+/.vs/VSWorkspaceState.json

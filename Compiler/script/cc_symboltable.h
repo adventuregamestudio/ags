@@ -10,33 +10,33 @@
 
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry {
-	std::string sname;
-	short stype;
-	long flags;
-	short vartype;
-	int soffs;
-	long ssize; // or return type size for function
-	short sscope; // or num arguments for function
-	long arrsize;
-	short extends; // inherits another class (classes) / owning class (member vars)
+    std::string sname;
+    short stype;
+    long flags;
+    short vartype;
+    int soffs;
+    long ssize; // or return type size for function
+    short sscope; // or num arguments for function
+    long arrsize;
+    short extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<unsigned long> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
     std::vector<bool> funcParamHasDefaultValues;
 
-	int get_num_args();
+    int get_num_args();
 
-	int is_loadable_variable();
+    int is_loadable_variable();
 
-	void set_propfuncs(int propget, int propset);
-	int get_propget();
-	int get_propset();
+    void set_propfuncs(int propget, int propset);
+    int get_propget();
+    int get_propset();
 
-	int operatorToVCPUCmd();
+    int operatorToVCPUCmd();
 };
 
-struct symbolTable {
-	// index for predefined symbols
+struct SymbolTable {
+    // index for predefined symbols
     int normalIntSym;
     int normalStringSym;
     int normalFloatSym;
@@ -44,17 +44,17 @@ struct symbolTable {
     int nullSym;
     int stringStructSym;  // can get overwritten with new String symbol defined in agsdefns.sh
 
-	// properties for symbols, size is numsymbols
-	std::vector<SymbolTableEntry> entries;
+    // properties for symbols, size is numsymbols
+    std::vector<SymbolTableEntry> entries;
 
-    symbolTable();
+    SymbolTable();
     void reset();    // clears table
     int  find(const char*);  // returns ID of symbol, or -1
-    int  add_ex(const char*,int,char);  // adds new symbol of type and size
+    int  add_ex(const char*, int, char);  // adds new symbol of type and size
     int  add(const char*);   // adds new symbol, returns -1 if already exists
 
-    std::string symbolTable::get_friendly_name(int idx);  // inclue ptr
-    std::string symbolTable::get_name_string(int idx);
+    std::string SymbolTable::get_friendly_name(int idx);  // inclue ptr
+    std::string SymbolTable::get_name_string(int idx);
     const char *get_name(int idx); // gets symbol name of index
 
     int  get_type(int ii);
@@ -71,6 +71,6 @@ private:
 };
 
 
-extern symbolTable sym;
+extern SymbolTable sym;
 
 #endif //__CC_SYMBOLTABLE_H

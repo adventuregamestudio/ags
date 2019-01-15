@@ -62,6 +62,9 @@
     <ClCompile Include="..\..\Compiler\script\cc_treemap.cpp">
       <Filter>Source Files\cs</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\string.cpp">
+      <Filter>Source Files\cs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Compiler\fmem.h">
@@ -110,6 +113,9 @@
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script\cc_treemap.h">
+      <Filter>Header Files\cs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string.h">
       <Filter>Header Files\cs</Filter>
     </ClInclude>
   </ItemGroup>

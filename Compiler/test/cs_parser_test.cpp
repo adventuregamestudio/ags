@@ -73,7 +73,9 @@ TEST(Compile, UnknownKeywordAfterReadonly) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Syntax error at 'MyStruct::int2'; expected variable type", last_seen_cc_error());
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("int2"));
 }
 
 TEST(Compile, DynamicArrayReturnValueErrorText) {
@@ -112,7 +114,7 @@ TEST(Compile, DynamicTypeReturnNonPointerManaged) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("cannot pass non-pointer struct array", last_seen_cc_error());
+    EXPECT_STREQ("Cannot pass non-pointer struct array", last_seen_cc_error());
 }
 
 TEST(Compile, StructMemberQualifierOrder) {
@@ -130,7 +132,7 @@ TEST(Compile, StructMemberQualifierOrder) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, ParsingIntSuccess) {
@@ -144,7 +146,7 @@ TEST(Compile, ParsingIntSuccess) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, ParsingIntLimits) {
@@ -162,7 +164,7 @@ TEST(Compile, ParsingIntLimits) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, ParsingIntDefaultOverflow) {
@@ -175,7 +177,9 @@ TEST(Compile, ParsingIntDefaultOverflow) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '9999999999999999999999' because of overflow.", last_seen_cc_error());
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("'9999999999999999999999'"));
 }
 
 TEST(Compile, ParsingNegIntDefaultOverflow) {
@@ -188,7 +192,9 @@ TEST(Compile, ParsingNegIntDefaultOverflow) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '-9999999999999999999999' because of overflow.", last_seen_cc_error());
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("'-9999999999999999999999'"));
 }
 
 TEST(Compile, ParsingIntOverflow) {
@@ -201,7 +207,9 @@ TEST(Compile, ParsingIntOverflow) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '4200000000000000000000' because of overflow.", last_seen_cc_error());
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("4200000000000000000000"));
 }
 
 TEST(Compile, ParsingNegIntOverflow) {
@@ -214,7 +222,9 @@ TEST(Compile, ParsingNegIntOverflow) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '-4200000000000000000000' because of overflow.", last_seen_cc_error());
+    // Offer some leeway in the error message, but insist that the culprit is named
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("-4200000000000000000000"));
 }
 
 
@@ -423,4 +433,41 @@ TEST(Compile, NegationRHSOfExpression) {
     int compileResult = cc_compile(inpl, scrip);
     printf("Error: %s\n", last_seen_cc_error());
     ASSERT_EQ(0, compileResult);
+}
+
+
+TEST(Compile, FuncDeclWrong) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct1          \n\
+    {                               \n\
+        float Payload1;             \n\
+    };                              \n\
+    managed struct Struct2          \n\
+    {                               \n\
+        char Payload2;              \n\
+    };                              \n\
+                                    \n\
+    import  int Func(Struct1 *S1, Struct2 *S2);  \n\
+                                    \n\
+    int Func(Struct2 *S1, Struct1 *S2)  \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+   ";
+
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    // Offer some leeway in the error message
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("parameter"));
+
 }

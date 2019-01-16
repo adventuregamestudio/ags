@@ -62,7 +62,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
     if (scrip->codesize > 0)
     {
         of << "intptr_t code[] = {" << std::endl;
-        for (size_t idx = 0; idx < scrip->codesize; idx++)
+        for (size_t idx = 0; idx < static_cast<size_t>(scrip->codesize); idx++)
         {
             of.width(4);
             of << scrip->code[idx] << ", ";
@@ -87,7 +87,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
     if (scrip->numfixups > 0)
     {
         of << "intptr_t fixups[] = {" << std::endl;
-        for (size_t idx = 0; idx < scrip->numfixups; idx++)
+        for (size_t idx = 0; idx < static_cast<size_t>(scrip->numfixups); idx++)
         {
             of.width(4);
             of << scrip->fixups[idx] << ", ";
@@ -106,7 +106,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
         of << "}" << std::endl << std::endl;
 
         of << "char fixuptypes[] = {" << std::endl;
-        for (size_t idx = 0; idx < scrip->numfixups; idx++)
+        for (size_t idx = 0; idx < static_cast<size_t>(scrip->numfixups); idx++)
         {
             of.width(3);
             of << static_cast<int>(scrip->fixuptypes[idx]) << ", ";
@@ -128,7 +128,18 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
 }
 
 /*    PROTOTYPE
-TEST(Compatibility, p_r_o_t_o_t_y_p_e) {
+// 1. Define a program in string inpl that tests some aspect of AGS
+// 2. Define a unique filename in the "writeoutput" line below, 
+//    e.g., use the name of the TEST.
+// 3. Run the googletest in a snapshot that does not have the changes made.
+//    This will generate C++ lines in the file named in 2.
+// 4. Insert the generated lines into this test, directly above the finishing '}'
+// 5. Comment out the "writeoutput" line.
+// 6. Export this test to a snapshot that does have the changes made.
+// 7. Run the test in that snapshot. 
+//    It will fail UNLESS the generated code and fixup is still identical to the
+//    version before the changes, byte for byte.
+TEST(Compatibility, SimpleFunction) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -149,6 +160,7 @@ TEST(Compatibility, p_r_o_t_o_t_y_p_e) {
 
 }
 */
+
 
 TEST(Compatibility, SimpleVoidFunction) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -190,6 +202,7 @@ TEST(Compatibility, SimpleVoidFunction) {
 
 }
 
+
 TEST(Compatibility, SimpleIntFunction) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -229,6 +242,7 @@ TEST(Compatibility, SimpleIntFunction) {
 
 }
 
+
 TEST(Compatibility, IntFunctionLocalV) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -243,7 +257,7 @@ TEST(Compatibility, IntFunctionLocalV) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    //writeoutput("IntFunctionLocalV", scrip);
+    // writeoutput("IntFunctionLocalV", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -270,6 +284,7 @@ TEST(Compatibility, IntFunctionLocalV) {
     ASSERT_EQ(numfixups, scrip->numfixups);
 
 }
+
 
 TEST(Compatibility, IntFunctionParam) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -308,6 +323,7 @@ TEST(Compatibility, IntFunctionParam) {
     const size_t numfixups = 0;
     ASSERT_EQ(numfixups, scrip->numfixups);
 }
+
 
 TEST(Compatibility, IntFunctionGlobalV) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -380,10 +396,10 @@ TEST(Compatibility, FloatExpr1) {
 
     char *inpl = "\
         float a = 15.0;     \n\
-        float Foo()     \n\
-    {                   \n\
-        float f = 3.14; \n\
-        return a + f;   \n\
+        float Foo()         \n\
+    {                       \n\
+        float f = 3.14;     \n\
+        return a + f;       \n\
     }";
 
     clear_error();
@@ -687,6 +703,7 @@ TEST(Compatibility, IfThenElse2) {
     }
 }
 
+
 TEST(Compatibility, While) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -895,22 +912,22 @@ TEST(Compatibility, For1) {
     ASSERT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
-      38,    0,    6,    3,            0,    6,    2,    0,
-       8,    3,    6,    2,            0,    7,    3,   29,
-       3,    6,    3,   10,           30,    4,   18,    4,
-       3,    3,    4,    3,           28,   92,    6,    2,
-       0,    7,    3,   29,            3,    6,    3,    4,
-      30,    4,   12,    4,            3,    3,    4,    3,
-      29,    3,    6,    3,            7,   30,    4,   12,
-       4,    3,    3,    4,            3,    3,    1,    2,
-       8,    3,    1,    1,            4,    6,    2,    0,
-       7,    3,   29,    3,            6,    3,    6,   30,
-       4,   15,    4,    3,            3,    4,    3,   28,
-       8,    2,    1,    4,            6,    3,    0,   31,
-     -69,    2,    1,    4,            6,    3,    3,   29,
-       3,    6,    2,    0,            7,    3,   30,    4,
-      11,    3,    4,    6,            2,    0,    8,    3,
-      31, -112,    6,    3,            0,    5,    6,    3,
+      38,    0,    6,    3,            0,    6,    2,    0, // 7
+       8,    3,    6,    2,            0,    7,    3,   29, // 15
+       3,    6,    3,   10,           30,    4,   18,    4, // 23
+       3,    3,    4,    3,           28,   92,    6,    2, // 31
+       0,    7,    3,   29,            3,    6,    3,    4, // 39
+      30,    4,   12,    4,            3,    3,    4,    3, // 47
+      29,    3,    6,    3,            7,   30,    4,   12, // 55
+       4,    3,    3,    4,            3,    3,    1,    2, // 63
+       8,    3,    1,    1,            4,    6,    2,    0, // 71
+       7,    3,   29,    3,            6,    3,    6,   30, // 79
+       4,   15,    4,    3,            3,    4,    3,   28, // 87
+       8,    2,    1,    4,            6,    3,    0,   31, // 95
+     -69,    2,    1,    4,            6,    3,    3,   29, // 103
+       3,    6,    2,    0,            7,    3,   30,    4, // 111
+      11,    3,    4,    6,            2,    0,    8,    3, // 119
+      31, -112,    6,    3,            0,    5,    6,    3, // 127
        0,    5,  -999
     };
 
@@ -1204,6 +1221,7 @@ TEST(Compatibility, IfDoWhile) {
     ASSERT_EQ(numfixups, scrip->numfixups);
 
 }
+
 
 TEST(Compatibility, Switch) {
     ccCompiledScript *scrip = newScriptFixture();

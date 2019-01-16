@@ -988,11 +988,11 @@ TEST(Compatibility, For2) {
         return 0;                   \n\
     }";
 
-    clear_error();
+    last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
-    // writeoutput("For2", scrip);
+    writeoutput("For2", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1083,11 +1083,11 @@ TEST(Compatibility, For3) {
     }                               \n\
     ";
 
-    clear_error();
+    last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
 
-    // writeoutput("For3", scrip);
+    writeoutput("For3", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1143,6 +1143,7 @@ TEST(Compatibility, For3) {
         ASSERT_EQ(is_val, test_val);
     }
 }
+
 
 TEST(Compatibility, IfDoWhile) {
     ccCompiledScript *scrip = newScriptFixture();

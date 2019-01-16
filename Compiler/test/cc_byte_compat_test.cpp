@@ -62,7 +62,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
     if (scrip->codesize > 0)
     {
         of << "intptr_t code[] = {" << std::endl;
-        for (size_t idx = 0; idx < static_cast<size_t>(scrip->codesize); idx++)
+        for (size_t idx = 0; idx < scrip->codesize; idx++)
         {
             of.width(4);
             of << scrip->code[idx] << ", ";
@@ -87,7 +87,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
     if (scrip->numfixups > 0)
     {
         of << "intptr_t fixups[] = {" << std::endl;
-        for (size_t idx = 0; idx < static_cast<size_t>(scrip->numfixups); idx++)
+        for (size_t idx = 0; idx < scrip->numfixups; idx++)
         {
             of.width(4);
             of << scrip->fixups[idx] << ", ";
@@ -106,7 +106,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
         of << "}" << std::endl << std::endl;
 
         of << "char fixuptypes[] = {" << std::endl;
-        for (size_t idx = 0; idx < static_cast<size_t>(scrip->numfixups); idx++)
+        for (size_t idx = 0; idx < scrip->numfixups; idx++)
         {
             of.width(3);
             of << static_cast<int>(scrip->fixuptypes[idx]) << ", ";
@@ -161,7 +161,6 @@ TEST(Compatibility, p_r_o_t_o_t_y_p_e) {
 }
 */
 
-
 TEST(Compatibility, SimpleVoidFunction) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -202,7 +201,6 @@ TEST(Compatibility, SimpleVoidFunction) {
 
 }
 
-
 TEST(Compatibility, SimpleIntFunction) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -242,7 +240,6 @@ TEST(Compatibility, SimpleIntFunction) {
 
 }
 
-
 TEST(Compatibility, IntFunctionLocalV) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -257,7 +254,7 @@ TEST(Compatibility, IntFunctionLocalV) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // writeoutput("IntFunctionLocalV", scrip);
+    //writeoutput("IntFunctionLocalV", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -284,7 +281,6 @@ TEST(Compatibility, IntFunctionLocalV) {
     ASSERT_EQ(numfixups, scrip->numfixups);
 
 }
-
 
 TEST(Compatibility, IntFunctionParam) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -323,7 +319,6 @@ TEST(Compatibility, IntFunctionParam) {
     const size_t numfixups = 0;
     ASSERT_EQ(numfixups, scrip->numfixups);
 }
-
 
 TEST(Compatibility, IntFunctionGlobalV) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -396,10 +391,10 @@ TEST(Compatibility, FloatExpr1) {
 
     char *inpl = "\
         float a = 15.0;     \n\
-        float Foo()         \n\
-    {                       \n\
-        float f = 3.14;     \n\
-        return a + f;       \n\
+        float Foo()     \n\
+    {                   \n\
+        float f = 3.14; \n\
+        return a + f;   \n\
     }";
 
     clear_error();
@@ -703,7 +698,6 @@ TEST(Compatibility, IfThenElse2) {
     }
 }
 
-
 TEST(Compatibility, While) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -912,22 +906,22 @@ TEST(Compatibility, For1) {
     ASSERT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
-      38,    0,    6,    3,            0,    6,    2,    0, // 7
-       8,    3,    6,    2,            0,    7,    3,   29, // 15
-       3,    6,    3,   10,           30,    4,   18,    4, // 23
-       3,    3,    4,    3,           28,   92,    6,    2, // 31
-       0,    7,    3,   29,            3,    6,    3,    4, // 39
-      30,    4,   12,    4,            3,    3,    4,    3, // 47
-      29,    3,    6,    3,            7,   30,    4,   12, // 55
-       4,    3,    3,    4,            3,    3,    1,    2, // 63
-       8,    3,    1,    1,            4,    6,    2,    0, // 71
-       7,    3,   29,    3,            6,    3,    6,   30, // 79
-       4,   15,    4,    3,            3,    4,    3,   28, // 87
-       8,    2,    1,    4,            6,    3,    0,   31, // 95
-     -69,    2,    1,    4,            6,    3,    3,   29, // 103
-       3,    6,    2,    0,            7,    3,   30,    4, // 111
-      11,    3,    4,    6,            2,    0,    8,    3, // 119
-      31, -112,    6,    3,            0,    5,    6,    3, // 127
+      38,    0,    6,    3,            0,    6,    2,    0,
+       8,    3,    6,    2,            0,    7,    3,   29,
+       3,    6,    3,   10,           30,    4,   18,    4,
+       3,    3,    4,    3,           28,   92,    6,    2,
+       0,    7,    3,   29,            3,    6,    3,    4,
+      30,    4,   12,    4,            3,    3,    4,    3,
+      29,    3,    6,    3,            7,   30,    4,   12,
+       4,    3,    3,    4,            3,    3,    1,    2,
+       8,    3,    1,    1,            4,    6,    2,    0,
+       7,    3,   29,    3,            6,    3,    6,   30,
+       4,   15,    4,    3,            3,    4,    3,   28,
+       8,    2,    1,    4,            6,    3,    0,   31,
+     -69,    2,    1,    4,            6,    3,    3,   29,
+       3,    6,    2,    0,            7,    3,   30,    4,
+      11,    3,    4,    6,            2,    0,    8,    3,
+      31, -112,    6,    3,            0,    5,    6,    3,
        0,    5,  -999
     };
 
@@ -1150,7 +1144,6 @@ TEST(Compatibility, For3) {
     }
 }
 
-
 TEST(Compatibility, IfDoWhile) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -1221,7 +1214,6 @@ TEST(Compatibility, IfDoWhile) {
     ASSERT_EQ(numfixups, scrip->numfixups);
 
 }
-
 
 TEST(Compatibility, Switch) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -1445,7 +1437,7 @@ TEST(Compatibility, Struct1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // writeoutput("Struct1", scrip);
+    writeoutput("Struct1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1534,7 +1526,7 @@ TEST(Compatibility, Struct2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // writeoutput("Struct2", scrip);
+    writeoutput("Struct2", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1654,6 +1646,144 @@ TEST(Compatibility, Struct3) {
        1,    2,    4,   49,           51,   12,   49,    1,    // 135
        2,    4,   49,    1,            2,    4,   49,    2,    // 143
        1,   64,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 0;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+}
+
+
+TEST(Compatibility, Struct4) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct StructO                                       \n\
+        {                                                    \n\
+            static import int StInt(int i);                  \n\
+        };                                                   \n\
+        StructO        S1;                                   \n\
+                                                             \n\
+        int main()                                           \n\
+        {                                                    \n\
+             StructO        S2;                              \n\
+             return S1.StInt(S2.StInt(7));                   \n\
+        }                                                    \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("Struct4", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 37;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    0,    6,    // 7
+       3,    7,   34,    3,           39,    1,    6,    3,    // 15
+       0,   33,    3,   35,            1,   34,    3,   39,    // 23
+       1,    6,    3,    0,           33,    3,   35,    1,    // 31
+       5,    6,    3,    0,            5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        std::string prefix = "code[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      16,   27,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixups[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,   4,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        std::string prefix = "fixuptypes[";
+        prefix += (std::to_string(idx)) + std::string("] == ");
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+}
+
+
+TEST(Compatibility, Struct5) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct Struct0;                              \n\
+                                                             \n\
+        struct Struct1                                       \n\
+        {                                                    \n\
+            Struct0 *Array[];                                \n\
+        };                                                   \n\
+                                                             \n\
+        managed struct Struct0                               \n\
+        {                                                    \n\
+            int Payload;                                     \n\
+        };                                                   \n\
+                                                             \n\
+        int main()                                           \n\
+        {                                                    \n\
+             Struct1 S;                                      \n\
+                                                             \n\
+             S.Array = new Struct0[5];                       \n\
+             S.Array[3].Payload ++;                          \n\
+        }                                                    \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+
+    writeoutput("Struct5", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+    const size_t codesize = 72;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    4,    1,    // 7
+       1,    4,    6,    3,            5,   72,    3,    4,    // 15
+       1,   51,    4,   29,            2,   30,    2,   47,    // 23
+       3,    6,    3,    3,            3,    3,    7,   51,    // 31
+       4,   32,    7,    4,           48,    2,   52,   71,    // 39
+       7,   11,    2,    7,           29,    2,   30,    2,    // 47
+      48,    3,   29,    3,           30,    2,   52,    7,    // 55
+       3,    1,    3,    1,            8,    3,    6,    3,    // 63
+       0,   51,    4,   49,            2,    1,    4,    5,    // 71
+     -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -2268,7 +2398,7 @@ TEST(Compatibility, FuncCall) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // writeoutput("FuncCall", scrip);
+    writeoutput("FuncCall", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

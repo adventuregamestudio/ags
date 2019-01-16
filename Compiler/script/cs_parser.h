@@ -364,16 +364,28 @@ public:
 
 };
 
+
+struct NestStack
+{
+    char Type;
+    long Start;
+    long Info;
+    std::int32_t AssignAddress;
+    std::vector<ccChunk> Chunk;
+};
+
 } // namespace ags
 
 
 extern int cc_tokenize(
-    const char * inpl,         // preprocessed text to be tokenized
+    const char *inpl,         // preprocessed text to be tokenized
     ccInternalList * targ,     // store for the tokenized text
     ccCompiledScript * scrip); // store for the strings in the text
 
 extern int cc_compile(
-    const char * inpl,           // preprocessed text to be compiled
+    const char *inpl,           // preprocessed text to be compiled
     ccCompiledScript * scrip);   // store for the compiled text
 
 #endif // __CS_PARSER_H
+
+

@@ -10,15 +10,15 @@
 
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry {
-    std::string sname;
-    short stype;
-    long flags;
-    short vartype;
-    int soffs;
-    long ssize; // or return type size for function
-    short sscope; // or num arguments for function
-    long arrsize;
-    short extends; // inherits another class (classes) / owning class (member vars)
+	std::string sname;  // name of var or func
+	ags::Symbol stype;
+	long flags;
+    ags::Symbol vartype;
+	int soffs;          // for local var, its offset on stack
+	long ssize;         // for var, size of its size; for function, size of return type
+	short sscope;       // for var, ?; for function, number of arguments
+	long arrsize;
+    ags::Symbol extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<unsigned long> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
@@ -49,15 +49,15 @@ struct SymbolTable {
 
     SymbolTable();
     void reset();    // clears table
-    int  find(const char*);  // returns ID of symbol, or -1
-    int  add_ex(const char*, int, char);  // adds new symbol of type and size
-    int  add(const char*);   // adds new symbol, returns -1 if already exists
+    ags::Symbol  find(const char *);  // returns ID of symbol, or -1
+    ags::Symbol  add_ex(const char *, ags::Symbol, char);  // adds new symbol of type and size
+    ags::Symbol  add(const char *);   // adds new symbol, returns -1 if already exists
 
     std::string SymbolTable::get_friendly_name(int idx);  // inclue ptr
     std::string SymbolTable::get_name_string(int idx);
     const char *get_name(int idx); // gets symbol name of index
 
-    int  get_type(int ii);
+    ags::Symbol  get_type(int ii);
 
 
 private:
@@ -67,7 +67,7 @@ private:
     ccTreeMap symbolTree;
     std::vector<char *> symbolTreeNames;
 
-    int  add_operator(const char*, int priority, int vcpucmd); // adds new operator
+    int  add_operator(const char *, int priority, int vcpucmd); // adds new operator
 };
 
 

@@ -55,7 +55,7 @@ void ccSetSoftwareVersion(const char *versionNumber) {
 }
 
 ccScript* ccCompileText(const char *texo, const char *scriptName) {
-    int t;
+    size_t t;
     ccCompiledScript *cctemp = new ccCompiledScript();
     cctemp->init();
 

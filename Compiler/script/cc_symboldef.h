@@ -3,6 +3,12 @@
 
 #include "cs_parser_common.h"   // macro definitions
 
+// [fw] This header is still in use:
+//          cc_compiledscript.h
+//          cc_symboltable.cpp
+//          cc_symboltable.h
+//          cs_parser.cpp
+
 #define STYPE_DYNARRAY  (0x10000000)
 #define STYPE_CONST     (0x20000000)
 #define STYPE_POINTER   (0x40000000)

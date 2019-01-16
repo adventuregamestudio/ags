@@ -301,7 +301,7 @@ int ccCompiledScript::just_remove_any_import(ags::Symbol idx)
     sym.entries[idx].flags = 0;
 
     // check also for a number-of-parameters appended version
-    
+
     for (size_t imports_idx = 0; static_cast<int>(imports_idx) < numimports; imports_idx++)
     {
         if ((name.compare(imports[imports_idx]) == 0) ||
@@ -368,8 +368,8 @@ void ccCompiledScript::flush_line_numbers()
 
 void ccCompiledScript::write_code(intptr_t byy)
 {
-    // DEBUGGING [fw]
-    /* //if (codesize == 28)
+    /* // DEBUGGING [fw]
+    if (codesize == 28)
     {
         int iii = 0;
     }

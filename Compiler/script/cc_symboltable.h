@@ -9,17 +9,16 @@
 #include <vector>
 
 // So there's another symbol definition in cc_symboldef.h
-// Its fields are all in here, too; however, here we use vectors
 struct SymbolTableEntry {
-	std::string sname;  // name of var or func
-	ags::Symbol stype;
+	std::string sname;
+	short stype;
 	long flags;
-    ags::Symbol vartype;
-	int soffs;          // for local var, its offset on stack
-	long ssize;         // for var, size of its size; for function, size of return type
-	short sscope;       // for var, ?; for function, number of arguments
+	short vartype;
+	int soffs;
+	long ssize; // or return type size for function
+	short sscope; // or num arguments for function
 	long arrsize;
-    ags::Symbol extends; // inherits another class (classes) / owning class (member vars)
+	short extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<unsigned long> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
@@ -58,7 +57,7 @@ struct SymbolTable {
     std::string SymbolTable::get_name_string(int idx);
     const char *get_name(int idx); // gets symbol name of index
 
-    ags::Symbol  get_type(int ii);
+    int  get_type(int ii);
 
 
 private:

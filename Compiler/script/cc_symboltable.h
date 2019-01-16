@@ -9,6 +9,7 @@
 #include <vector>
 
 // So there's another symbol definition in cc_symboldef.h
+// Its fields are all in here, too; however, here we use vectors
 struct SymbolTableEntry {
 	std::string sname;  // name of var or func
 	ags::Symbol stype;

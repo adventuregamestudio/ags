@@ -177,6 +177,7 @@ TEST(Compile, ParsingIntDefaultOverflow) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
+    
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("'9999999999999999999999'"));

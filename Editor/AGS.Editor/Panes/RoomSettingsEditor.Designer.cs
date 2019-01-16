@@ -42,7 +42,6 @@ namespace AGS.Editor
 			this.label1 = new System.Windows.Forms.Label();
 			this.cmbBackgrounds = new System.Windows.Forms.ComboBox();
 			this.bufferedPanel1 = new AGS.Editor.BufferedPanel();
-			this.lblDummyScrollSizer = new System.Windows.Forms.Label();
 			this.sldZoomLevel = new System.Windows.Forms.TrackBar();
 			this.sldTransparency = new System.Windows.Forms.TrackBar();
 			this.mainFrame.SuspendLayout();
@@ -198,7 +197,6 @@ namespace AGS.Editor
 			// bufferedPanel1
 			// 
 			this.bufferedPanel1.AutoScroll = true;
-			this.bufferedPanel1.Controls.Add(this.lblDummyScrollSizer);
             this.bufferedPanel1.Location = new System.Drawing.Point(12, 93);
 			this.bufferedPanel1.Name = "bufferedPanel1";
 			this.bufferedPanel1.Size = new System.Drawing.Size(640, 480);
@@ -209,14 +207,6 @@ namespace AGS.Editor
             this.bufferedPanel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.bufferedPanel1_MouseDown);
 			this.bufferedPanel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.bufferedPanel1_MouseMove);
 			this.bufferedPanel1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.bufferedPanel1_MouseUp);
-			// 
-			// lblDummyScrollSizer
-			// 
-			this.lblDummyScrollSizer.AutoSize = true;
-			this.lblDummyScrollSizer.Location = new System.Drawing.Point(73, 92);
-			this.lblDummyScrollSizer.Name = "lblDummyScrollSizer";
-			this.lblDummyScrollSizer.Size = new System.Drawing.Size(0, 13);
-			this.lblDummyScrollSizer.TabIndex = 0;
 			// 
 			// sldZoomLevel
 			// 
@@ -275,7 +265,6 @@ namespace AGS.Editor
         private System.Windows.Forms.Button btnChangeImage;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox cmbViewType;
-        private System.Windows.Forms.Label lblDummyScrollSizer;
         private System.Windows.Forms.Label lblMousePos;
 		private System.Windows.Forms.TrackBar sldZoomLevel;
 		private System.Windows.Forms.Label label3;

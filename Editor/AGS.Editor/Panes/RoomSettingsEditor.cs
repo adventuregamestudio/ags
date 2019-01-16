@@ -104,8 +104,7 @@ namespace AGS.Editor
 
 		private void UpdateScrollableWindowSize()
         {
-            bufferedPanel1.AutoScroll = true;
-			lblDummyScrollSizer.Location = new Point(_room.Width * _state.ScaleFactor, _room.Height * _state.ScaleFactor);
+            bufferedPanel1.AutoScrollMinSize = new Size(_room.Width * _state.ScaleFactor, _room.Height * _state.ScaleFactor);
         }
 
         private void RepopulateBackgroundList(int selectIndex) 
@@ -635,18 +634,15 @@ namespace AGS.Editor
 
 		private void sldZoomLevel_Scroll(object sender, EventArgs e)
 		{
-			int currentScaleFactor = _state.ScaleFactor;
-            int newScaleFactor = sldZoomLevel.Value;// *(int)_room.Resolution;
+            int oldPosX = bufferedPanel1.HorizontalScroll.Value / _state.ScaleFactor;
+            int oldPosY = bufferedPanel1.VerticalScroll.Value / _state.ScaleFactor;
 
-			int newValue = (bufferedPanel1.VerticalScroll.Value / currentScaleFactor) * newScaleFactor;
-			bufferedPanel1.VerticalScroll.Value = Math.Min(newValue, bufferedPanel1.VerticalScroll.Maximum);
-			newValue = (bufferedPanel1.HorizontalScroll.Value / currentScaleFactor) * newScaleFactor;
-			bufferedPanel1.HorizontalScroll.Value = Math.Min(newValue, bufferedPanel1.HorizontalScroll.Maximum);
+            _state.ScaleFactor = sldZoomLevel.Value;
+            UpdateScrollableWindowSize();
 
-			_state.ScaleFactor = newScaleFactor;
-			ResizePaneToMatchWindowAndRoomSize();
-			UpdateScrollableWindowSize();
-			bufferedPanel1.Invalidate();
+            bufferedPanel1.HorizontalScroll.Value = Math.Min(oldPosX * _state.ScaleFactor, bufferedPanel1.HorizontalScroll.Maximum);
+            bufferedPanel1.VerticalScroll.Value = Math.Min(oldPosY * _state.ScaleFactor, bufferedPanel1.VerticalScroll.Maximum);
+            bufferedPanel1.Invalidate();
 		}
 
 		private void sldTransparency_Scroll(object sender, EventArgs e)

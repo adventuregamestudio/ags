@@ -261,7 +261,7 @@ int ccCompiledScript::copy_import_symbol_table_entry(ags::Symbol idx, SymbolTabl
 
     if (sym.entries[entries_idx].stype == SYM_FUNCTION)
     {
-        for (size_t arg = 0; arg <= sym.entries[entries_idx].get_num_args(); arg++)
+        for (size_t arg = 0; static_cast<int>(arg) <= sym.entries[entries_idx].get_num_args(); arg++)
         {
             dest->funcparamtypes.push_back(sym.entries[entries_idx].funcparamtypes.at(arg));
             dest->funcParamDefaultValues.push_back(sym.entries[entries_idx].funcParamDefaultValues.at(arg));
@@ -302,7 +302,7 @@ int ccCompiledScript::just_remove_any_import(ags::Symbol idx)
 
     // check also for a number-of-parameters appended version
     
-    for (size_t imports_idx = 0; imports_idx < numimports; imports_idx++)
+    for (size_t imports_idx = 0; static_cast<int>(imports_idx) < numimports; imports_idx++)
     {
         if ((name.compare(imports[imports_idx]) == 0) ||
             (strncmp(imports[imports_idx], name_with_hat.c_str(), name_with_hat.length()) == 0))

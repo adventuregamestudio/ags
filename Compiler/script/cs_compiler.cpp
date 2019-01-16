@@ -17,8 +17,8 @@ const char *ccSoftwareVersion = "1.0";
 
 char**defaultheaders = NULL;
 char**defaultHeaderNames = NULL;
-static int numheaders=0;
-static int capacityHeaders=0;
+static size_t numheaders=0;
+static size_t capacityHeaders=0;
 
 MacroTable predefinedMacros;
 
@@ -68,7 +68,7 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     ccError = 0;
     ccErrorLine = 0;
 
-    for (t=0;t<numheaders;t++) {
+    for (t=0; t < numheaders; t++) {
         if (defaultHeaderNames[t] != NULL)
             ccCurScriptName = defaultHeaderNames[t];
         else
@@ -125,7 +125,7 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
 
     if (ccGetOption(SCOPT_EXPORTALL)) {
         // export all functions
-        for (t=0;t<cctemp->numfunctions;t++) {
+        for (t=0; static_cast<int>(t) < cctemp->numfunctions; t++) {
             if (cctemp->add_new_export(cctemp->functions[t],EXPORT_FUNCTION,
                 cctemp->funccodeoffs[t], cctemp->funcnumparams[t]) == -1) {
                     cctemp->shutdown();

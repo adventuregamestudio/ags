@@ -456,3 +456,5 @@ void ccCompiledScript::shutdown()
 {
     free_extra();
 }
+
+

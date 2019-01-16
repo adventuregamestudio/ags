@@ -3,30 +3,27 @@
 
 extern int currentline;  // in script_common
 
-void ccInternalList::startread() {
+void ccInternalList::startread()
+{
     pos = 0;
 }
 
-bool ccInternalList::isPosValid(int pos) {
+bool ccInternalList::isPosValid(int pos)
+{
     return pos >= 0 && pos < length;
 }
 
-ags::Symbol ccInternalList::peeknext() {
+ags::Symbol ccInternalList::peeknext()
+{
     int tpos = pos;
     // this should work even if 3 bytes aren't remaining
     while (isPosValid(tpos) && (script[tpos] == SCODE_META))
-    {
         tpos += 3;
-    }
 
     if (isPosValid(tpos))
-    {
         return script[tpos];
-    }
     else
-    {
         return static_cast<ags::Symbol>(SCODE_INVALID);
-    }
 }
 
 
@@ -57,20 +54,14 @@ ags::Symbol ccInternalList::getnext() {
     if (pos >= length)
     {
         if (cancelCurrentLine)
-        {
             currentline = -10;
-        }
         return static_cast<ags::Symbol>(SCODE_INVALID);
     }
 
     if (isPosValid(pos))
-    {
         return script[pos++];
-    }
     else
-    {
         return static_cast<ags::Symbol>(SCODE_INVALID);
-    }
 }
 
 
@@ -79,13 +70,9 @@ void ccInternalList::write(ags::Symbol value) {
     {
 
         if (allocated < 1000)
-        {
             allocated += 1000;
-        }
         else
-        {
             allocated *= 2;
-        }
 
         script = static_cast<ags::SymbolScript>(realloc(script, allocated));
         // TODO: this doesn't check realloc result

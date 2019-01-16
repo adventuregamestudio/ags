@@ -5,13 +5,13 @@
 #define MAXDEFINES 1500
 struct MacroTable {
     int num;
-    char*name[MAXDEFINES];
-    char*macro[MAXDEFINES];
+    char *name[MAXDEFINES];
+    char *macro[MAXDEFINES];
     void init() {
         num=0; }
     void shutdown();
-    int  find_name(char*);
-    void add(char*,char*);
+    int  find_name(char *);
+    void add(char *,char *);
     void remove(int index);
     void merge(MacroTable *);
 

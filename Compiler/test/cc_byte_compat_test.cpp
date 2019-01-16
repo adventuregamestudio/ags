@@ -1242,7 +1242,7 @@ TEST(Compatibility, Switch) {
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
     const size_t codesize = 174;
-    ASSERT_EQ(codesize, scrip->codesize);
+    EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,

@@ -153,6 +153,7 @@ void SymbolTable::reset()
     add_ex("autoptr", SYM_AUTOPTR, 0);
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
     add_ex("builtin", SYM_BUILTIN, 0);
+    add_ex("function", SYM_FUNCTION, 0);
 }
 
 int SymbolTableEntry::operatorToVCPUCmd() 

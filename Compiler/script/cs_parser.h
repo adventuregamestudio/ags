@@ -388,4 +388,14 @@ extern int cc_compile(
 
 #endif // __CS_PARSER_H
 
+int parse_subexpr_OpIsFirst(const ags::SymbolScript &symlist, int oploc, const size_t &symlist_len, ccCompiledScript * scrip);
 
+int parse_subexpr_OpIsSecondOrLater(const ags::SymbolScript &symlist, int &oploc, ccCompiledScript * scrip, const size_t &symlist_len);
+
+int parse_subexpr_NoOps(size_t &symlist_len, ags::SymbolScript &symlist, ccCompiledScript * scrip, bool hasNegatedLiteral);
+
+int parse_subexpr_NewIsFirst(const size_t & symlist_len, const ags::SymbolScript & symlist, int oploc, ccCompiledScript * scrip);
+
+int parse_subexpr_UnaryMinusIsFirst(const size_t & symlist_len, ccCompiledScript * scrip, const ags::SymbolScript & symlist);
+
+int parse_subexpr_NotIsFirst(const size_t & symlist_len, ccCompiledScript * scrip, const ags::SymbolScript & symlist);

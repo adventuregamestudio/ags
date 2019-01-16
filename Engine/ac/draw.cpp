@@ -360,6 +360,32 @@ Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
     return new_bitmap;
 }
 
+Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
+{
+    Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
+    Size want_size;
+    // If the size and color depth are supported we may copy right into our bitmap
+    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_size))
+        return dst;
+    // Otherwise we might need to copy between few bitmaps...
+    Bitmap *buf_screenfmt = new Bitmap(want_size.Width, want_size.Height, gfxDriver->GetDisplayMode().ColorDepth);
+    gfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt, at_native_res);
+    // If at least size matches then we may blit
+    if (dst->GetSize() == buf_screenfmt->GetSize())
+    {
+        dst->Blit(buf_screenfmt);
+    }
+    // Otherwise we need to go through another bitmap of the matching format
+    else
+    {
+        Bitmap *buf_dstfmt = new Bitmap(buf_screenfmt->GetWidth(), buf_screenfmt->GetHeight(), dst->GetColorDepth());
+        buf_dstfmt->Blit(buf_screenfmt);
+        dst->StretchBlt(buf_dstfmt, RectWH(dst->GetSize()));
+        delete buf_dstfmt;
+    }
+    delete buf_screenfmt;
+    return dst;
+}
 
 
 // Begin resolution system functions

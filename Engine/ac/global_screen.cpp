@@ -83,8 +83,7 @@ void ShakeScreen(int severe) {
     }
     else
     {
-        Bitmap *tty = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight());
-        gfxDriver->GetCopyOfScreenIntoBitmap(tty);
+        Bitmap *tty = CopyScreenIntoBitmap(play.viewport.GetWidth(), play.viewport.GetHeight());
         for (hh=0;hh<40;hh++) {
             platform->Delay(50);
 

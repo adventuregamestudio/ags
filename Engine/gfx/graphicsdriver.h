@@ -106,7 +106,10 @@ public:
   virtual void RenderToBackBuffer() = 0;
   virtual void Render() = 0;
   virtual void Render(GlobalFlipType flip) = 0;
-  virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *destination, bool at_native_res = false) = 0;
+  // Copies contents of the game screen into bitmap using simple blit or pixel copy.
+  // Bitmap must be of supported size and pixel format. If it's not the method will
+  // fail and optionally write wanted destination size into 'want_size' pointer.
+  virtual bool GetCopyOfScreenIntoBitmap(Common::Bitmap *destination, bool at_native_res, Size *want_size = NULL) = 0;
   virtual void EnableVsyncBeforeRender(bool enabled) = 0;
   virtual void Vsync() = 0;
   // Enables or disables rendering mode that draws sprite list directly into

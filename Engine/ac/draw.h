@@ -108,5 +108,8 @@ Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
 // (old systems or uncommon gfx modes, and similar stuff).
 // Original bitmap **gets deleted** if a new bitmap had to be created.
 Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
+// Makes a screenshot corresponding to the last screen render and returns it as a bitmap
+// of the requested width and height and game's native color depth.
+Common::Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res = false);
 
 #endif // __AGS_EE_AC__DRAW_H

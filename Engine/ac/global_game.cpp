@@ -84,7 +84,6 @@ extern int offsetx, offsety;
 extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
-extern Bitmap *virtual_screen;
 
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION)
 extern int psp_gfx_renderer;
@@ -746,27 +745,13 @@ int SaveScreenShot(const char*namm) {
     else
         sprintf(fileName, "%s%s", saveGameDirectory, namm);
 
-    if (gfxDriver->RequiresFullRedrawEachFrame()) 
+    Bitmap *buffer = CopyScreenIntoBitmap(play.viewport.GetWidth(), play.viewport.GetHeight());
+    if (!buffer->SaveToFile(fileName, palette) != 0)
     {
-        // FIXME this weird stuff! (related to incomplete OpenGL renderer)
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
-        int color_depth = (psp_gfx_renderer > 0) ? 32 : game.GetColorDepth();
-#else
-        int color_depth = game.GetColorDepth();
-#endif
-        Bitmap *buffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), color_depth);
-        gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
-
-		if (!buffer->SaveToFile(fileName, palette)!=0)
-        {
-            delete buffer;
-            return 0;
-        }
         delete buffer;
+        return 0;
     }
-	else if (!virtual_screen->SaveToFile(fileName, palette)!=0)
-        return 0; // failed
-
+    delete buffer;
     return 1;  // successful
 }
 

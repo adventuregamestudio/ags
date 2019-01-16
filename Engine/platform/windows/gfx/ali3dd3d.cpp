@@ -976,11 +976,18 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
-void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
+bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
 {
-  D3DDISPLAYMODE displayMode;
-  direct3ddevice->GetDisplayMode(0, &displayMode);
-
+  // Currently don't support copying in screen resolution when we are rendering in native
+  if (!_renderSprAtScreenRes)
+      at_native_res = true;
+  Size need_size = at_native_res ? _srcRect.GetSize() : _dstRect.GetSize();
+  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
+  {
+    if (want_size)
+      *want_size = need_size;
+    return false;
+  }
   // If we are rendering sprites at the screen resolution, and requested native res,
   // re-render last frame to the native surface
   if (at_native_res && _renderSprAtScreenRes)
@@ -989,10 +996,6 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     _reDrawLastFrame();
     _render(flipTypeLastTime, true);
     _renderSprAtScreenRes = true;
-  }
-  else if (!_renderSprAtScreenRes)
-  {
-    at_native_res = true;
   }
   
   IDirect3DSurface9* surface = NULL;
@@ -1013,24 +1016,13 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     if (_pollingCallback)
       _pollingCallback();
 
-    Bitmap *retrieveInto = destination;
-    if (at_native_res)
-    {
-        retrieveInto = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), d3d_format_to_color_depth(displayMode.Format, false));
-    }
-    else if ((_srcRect.GetWidth() != _dstRect.GetWidth()) ||
-        (_srcRect.GetHeight() != _dstRect.GetHeight()))
-    {
-        retrieveInto = BitmapHelper::CreateBitmap(_dstRect.GetWidth(), _dstRect.GetHeight(), _mode.ColorDepth);
-    }
-
     D3DLOCKED_RECT lockedRect;
     if (surface->LockRect(&lockedRect, (at_native_res ? NULL : &viewport_rect), D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
 
-    BitmapHelper::ReadPixelsFromMemory(retrieveInto, (uint8_t*)lockedRect.pBits, lockedRect.Pitch);
+    BitmapHelper::ReadPixelsFromMemory(destination, (uint8_t*)lockedRect.pBits, lockedRect.Pitch);
 
     surface->UnlockRect();
     if (!at_native_res) // native surface is released elsewhere
@@ -1038,17 +1030,8 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
 
     if (_pollingCallback)
       _pollingCallback();
-
-    if (retrieveInto != destination)
-    {
-      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
-                   RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
-      delete retrieveInto;
-
-      if (_pollingCallback)
-        _pollingCallback();
-    }
   }
+  return true;
 }
 
 void D3DGraphicsDriver::RenderToBackBuffer()

@@ -1463,39 +1463,16 @@ void create_savegame_screenshot(Bitmap *&screenShot)
     if (game.options[OPT_SAVESCREENSHOT]) {
         int usewid = multiply_up_coordinate(play.screenshot_width);
         int usehit = multiply_up_coordinate(play.screenshot_height);
-        if (usewid > virtual_screen->GetWidth())
-            usewid = virtual_screen->GetWidth();
-        if (usehit > virtual_screen->GetHeight())
-            usehit = virtual_screen->GetHeight();
+        const Rect &viewport = play.viewport;
+        if (usewid > viewport.GetWidth())
+            usewid = viewport.GetWidth();
+        if (usehit > viewport.GetHeight())
+            usehit = viewport.GetHeight();
 
         if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
             quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
 
-        if (gfxDriver->UsesMemoryBackBuffer())
-        {
-            screenShot = BitmapHelper::CreateBitmap(usewid, usehit, virtual_screen->GetColorDepth());
-            screenShot->StretchBlt(virtual_screen,
-				RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
-				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
-        }
-        else
-        {
-            // FIXME this weird stuff! (related to incomplete OpenGL renderer)
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
-            int color_depth = (psp_gfx_renderer > 0) ? 32 : game.GetColorDepth();
-#else
-            int color_depth = game.GetColorDepth();
-#endif
-            Bitmap *tempBlock = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(), virtual_screen->GetHeight(), color_depth);
-            gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
-
-            screenShot = BitmapHelper::CreateBitmap(usewid, usehit, color_depth);
-            screenShot->StretchBlt(tempBlock,
-				RectWH(0, 0, tempBlock->GetWidth(), tempBlock->GetHeight()),
-				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
-
-            delete tempBlock;
-        }
+        screenShot = CopyScreenIntoBitmap(usewid, usehit);
     }
 }
 

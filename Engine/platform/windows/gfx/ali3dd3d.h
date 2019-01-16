@@ -177,7 +177,7 @@ public:
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
-    virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res);
+    virtual bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
     virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling) { _renderSprAtScreenRes = enabled; };

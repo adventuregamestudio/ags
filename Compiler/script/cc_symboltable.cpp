@@ -11,8 +11,8 @@ SymbolTable::SymbolTable()
     stringStructSym = 0;
 }
 
-int SymbolTableEntry::get_num_args() {
-	// TODO: assert is func?
+int SymbolTableEntry::get_num_args()
+{
     return sscope % 100;
 }
 
@@ -28,34 +28,37 @@ ags::Symbol SymbolTable::get_type(int ii)
     return entries[ii].stype;
 }
 
-int SymbolTableEntry::is_loadable_variable() {
+int SymbolTableEntry::is_loadable_variable()
+{
     return (stype == SYM_GLOBALVAR) || (stype == SYM_LOCALVAR) || (stype == SYM_CONSTANT);
 }
 
-void SymbolTableEntry::set_propfuncs(int propget, int propset) {
+void SymbolTableEntry::set_propfuncs(int propget, int propset)
+{
     // TODO check ranges and throw exception
     soffs = (propget << 16) | propset;
 }
-int SymbolTableEntry::get_propget() {
+
+int SymbolTableEntry::get_propget()
+{
     int toret = (soffs >> 16) & 0x00ffff;
-	if (toret == 0xffff) {
-        return -1;
-	}
+    if (toret == 0xffff) return -1;
+    
     return toret;
 }
-int SymbolTableEntry::get_propset() {
+
+int SymbolTableEntry::get_propset()
+{
     int toret = soffs & 0x00ffff;
-	if (toret == 0xffff) {
-        return -1;
-	}
+    if (toret == 0xffff) return -1;
+    
     return toret;
 }
 
 void SymbolTable::reset() {
 	for (std::map<int, char*>::iterator it = nameGenCache.begin(); it != nameGenCache.end(); ++it)
-    {
 		free(it->second);
-	}
+
 	nameGenCache.clear();
 
     entries.clear();
@@ -146,7 +149,8 @@ void SymbolTable::reset() {
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
     add_ex("builtin", SYM_BUILTIN, 0);
 }
-int SymbolTableEntry::operatorToVCPUCmd() {
+int SymbolTableEntry::operatorToVCPUCmd()
+{
     //return ssize + 8;
     return vartype;
 }

@@ -13,7 +13,7 @@
 #define STYPE_CONST     (0x20000000)
 #define STYPE_POINTER   (0x40000000)
 
-#define STYPE_MASK       (0xFFFFFFF)
+#define STYPE_MASK      (0xFFFFFFF)
 
 #define SYM_TEMPORARYTYPE -99
 

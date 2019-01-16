@@ -8,6 +8,14 @@
 #include <string>
 #include <vector>
 
+#define STYPE_DYNARRAY  (0x10000000)
+#define STYPE_CONST     (0x20000000)
+#define STYPE_POINTER   (0x40000000)
+
+#define STYPE_MASK       (0xFFFFFFF)
+
+#define SYM_TEMPORARYTYPE -99
+
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry {
 	std::string sname;
@@ -28,9 +36,9 @@ struct SymbolTableEntry {
 
     int is_loadable_variable();
 
-    void set_propfuncs(int propget, int propset);
-    int get_propget();
-    int get_propset();
+	void set_attrfuncs(int attrget, int attrset);
+	int get_attrget();
+	int get_attrset();
 
     int operatorToVCPUCmd();
 };

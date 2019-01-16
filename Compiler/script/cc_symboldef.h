@@ -3,15 +3,9 @@
 
 #include "cs_parser_common.h"   // macro definitions
 
-#define STYPE_DYNARRAY  (0x10000000)
-#define STYPE_CONST     (0x20000000)
-#define STYPE_POINTER   (0x40000000)
+// Types moved to cc_symboltable.h
 
-#define STYPE_MASK       (0xFFFFFFF)
-
-#define SYM_TEMPORARYTYPE -99
-
-struct SymbolDef {
+struct SymbolDef { // deprecated, use structure in cc_symboltable.h instead
     short stype;
     long  flags;
     long  ssize;  // or return type size for function

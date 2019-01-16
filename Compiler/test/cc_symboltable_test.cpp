@@ -179,26 +179,26 @@ TEST(SymbolTable, IsLoadableVariable) {
     ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
 }
 
-TEST(SymbolTable, PropFuncs) {
+TEST(SymbolTable, AttrFuncs) {
 
     SymbolTable testSym;
     int sym_01 = testSym.add("cup");
 
-    testSym.entries[sym_01].set_propfuncs(0, 0);
-    ASSERT_TRUE(testSym.entries[sym_01].get_propget() == 0);
-    ASSERT_TRUE(testSym.entries[sym_01].get_propset() == 0);
+	testSym.entries[sym_01].set_attrfuncs(0, 0);
+	ASSERT_TRUE(testSym.entries[sym_01].get_attrget() == 0);
+	ASSERT_TRUE(testSym.entries[sym_01].get_attrset() == 0);
 
-    testSym.entries[sym_01].set_propfuncs(1, 2);
-    ASSERT_TRUE(testSym.entries[sym_01].get_propget() == 1);
-    ASSERT_TRUE(testSym.entries[sym_01].get_propset() == 2);
+	testSym.entries[sym_01].set_attrfuncs(1, 2);
+	ASSERT_TRUE(testSym.entries[sym_01].get_attrget() == 1);
+	ASSERT_TRUE(testSym.entries[sym_01].get_attrset() == 2);
 
-    testSym.entries[sym_01].set_propfuncs(100, 200);
-    ASSERT_TRUE(testSym.entries[sym_01].get_propget() == 100);
-    ASSERT_TRUE(testSym.entries[sym_01].get_propset() == 200);
+	testSym.entries[sym_01].set_attrfuncs(100, 200);
+	ASSERT_TRUE(testSym.entries[sym_01].get_attrget() == 100);
+	ASSERT_TRUE(testSym.entries[sym_01].get_attrset() == 200);
 
-    testSym.entries[sym_01].set_propfuncs(0xFFFF, 0xFFFF);
-    ASSERT_TRUE(testSym.entries[sym_01].get_propget() == -1);
-    ASSERT_TRUE(testSym.entries[sym_01].get_propset() == -1);
+	testSym.entries[sym_01].set_attrfuncs(0xFFFF, 0xFFFF);
+	ASSERT_TRUE(testSym.entries[sym_01].get_attrget() == -1);
+	ASSERT_TRUE(testSym.entries[sym_01].get_attrset() == -1);
 }
 
 TEST(SymbolTable, OperatorToVCPUCmd) {

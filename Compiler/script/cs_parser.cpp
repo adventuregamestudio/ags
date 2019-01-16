@@ -83,7 +83,7 @@ ags::Scanner::Scanner(std::string const &input, std::size_t lineno, ::ccInternal
 
 void ags::Scanner::SetInput(const std::string &input)
 {
-    InputStream.str(input);
+    _inputStream.str(input);
 }
 
 void ags::Scanner::SetLineno(std::size_t lineno)
@@ -109,10 +109,10 @@ void ags::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_typ
     SkipWhitespace(eof_encountered, error_encountered);
     if (eof_encountered || error_encountered) return;
 
-    int next_char = InputStream.peek();
-    eof_encountered = InputStream.eof();
+    int next_char = _inputStream.peek();
+    eof_encountered = _inputStream.eof();
     if (eof_encountered) return;
-    error_encountered = InputStream.fail();
+    error_encountered = _inputStream.fail();
     if (error_encountered) return;
 
     // Integer or float literal
@@ -198,10 +198,10 @@ void ags::Scanner::SkipWhitespace(bool & eof_encountered, bool & error_encounter
 {
     while (true)
     {
-        int ch = InputStream.get();
-        eof_encountered = InputStream.eof();
+        int ch = _inputStream.get();
+        eof_encountered = _inputStream.eof();
         if (eof_encountered) return;
-        error_encountered = InputStream.fail();
+        error_encountered = _inputStream.fail();
         if (error_encountered)
         {
             _lastError = "Error whilst skipping whitespace (file corrupt?)";
@@ -210,12 +210,12 @@ void ags::Scanner::SkipWhitespace(bool & eof_encountered, bool & error_encounter
 
         if (!isspace(ch))
         {
-            InputStream.putback(ch);
+            _inputStream.putback(ch);
             return;
         }
 
         // Gobble the CR of a CRLF combination
-        if ((ch == '\r') && (InputStream.peek() == '\n')) continue;
+        if ((ch == '\r') && (_inputStream.peek() == '\n')) continue;
 
         if (ch == '\n')
         {
@@ -230,14 +230,14 @@ void ags::Scanner::ReadInNumberLit(std::string & symstring, ScanType &scan_type,
     bool decimal_point_encountered = false;
 
     scan_type = SctIntLiteral;
-    symstring.assign(1, InputStream.get());
+    symstring.assign(1, _inputStream.get());
 
     while (true)
     {
-        int ch = InputStream.get();
-        eof_encountered = InputStream.eof();
+        int ch = _inputStream.get();
+        eof_encountered = _inputStream.eof();
         if (eof_encountered) return;
-        error_encountered = InputStream.fail();
+        error_encountered = _inputStream.fail();
         if (error_encountered)
         {
             _lastError = "Error encountered while scanning a number literal (file corrupt?)";
@@ -260,7 +260,7 @@ void ags::Scanner::ReadInNumberLit(std::string & symstring, ScanType &scan_type,
                 continue;
             }
         }
-        InputStream.putback(ch); // no longer part of the number literal, so put it back
+        _inputStream.putback(ch); // no longer part of the number literal, so put it back
         break;
     }
 }
@@ -273,18 +273,18 @@ void ags::Scanner::ReadInCharLit(std::string & symstring, bool & eof_encountered
     do // exactly 1 time
     {
         // Opening '\''
-        InputStream.get();
+        _inputStream.get();
 
         // The character inside
-        lit_char = InputStream.get();
-        eof_encountered = InputStream.eof();
+        lit_char = _inputStream.get();
+        eof_encountered = _inputStream.eof();
         if (eof_encountered)
         {
             error_encountered = true;
             _lastError = "Expected a character and an apostrophe, but input ended instead";
             return;
         }
-        error_encountered = InputStream.fail();
+        error_encountered = _inputStream.fail();
         if (error_encountered) break; // to error processing
 
         if (lit_char == '\'')
@@ -292,28 +292,28 @@ void ags::Scanner::ReadInCharLit(std::string & symstring, bool & eof_encountered
             // The next char is escaped, whatever it may be. 
             // Note that AGS doesn't follow C syntax here:
             // In C, '\n' is a newline; in AGS, it is the letter 'n'.
-            lit_char = InputStream.get();
-            eof_encountered = InputStream.eof();  // This is an error
+            lit_char = _inputStream.get();
+            eof_encountered = _inputStream.eof();  // This is an error
             if (eof_encountered)
             {
                 error_encountered = true;
                 _lastError = "Expected a character and an apostrophe, but input ended instead";
                 return;
             }
-            error_encountered = InputStream.fail();
+            error_encountered = _inputStream.fail();
             if (error_encountered) break; // to error processing
         }
 
         // Closing '\''
-        int ch = InputStream.get();
-        eof_encountered = InputStream.eof();
+        int ch = _inputStream.get();
+        eof_encountered = _inputStream.eof();
         if (eof_encountered)
         {
             error_encountered = true;
             _lastError = "Expected an apostrophe, but input ended instead";
             return;
         }
-        error_encountered = InputStream.fail();
+        error_encountered = _inputStream.fail();
         if (error_encountered) break; // to error processing
         if (ch != '\'')
         {
@@ -339,12 +339,12 @@ void ags::Scanner::ReadInCharLit(std::string & symstring, bool & eof_encountered
 void ags::Scanner::ReadInStringLit(std::string & symstring, bool & eof_encountered, bool & error_encountered)
 {
     symstring = "\"";
-    InputStream.get(); // We know that this is a '"'
+    _inputStream.get(); // We know that this is a '"'
     while (true)
     {
-        int ch = InputStream.get();
-        eof_encountered = InputStream.eof(); // This is an error, too
-        error_encountered = InputStream.fail();
+        int ch = _inputStream.get();
+        eof_encountered = _inputStream.eof(); // This is an error, too
+        error_encountered = _inputStream.fail();
         if (eof_encountered || error_encountered || (strchr("\r\n", ch) != 0))
         {
             break; // to error msg
@@ -360,9 +360,9 @@ void ags::Scanner::ReadInStringLit(std::string & symstring, bool & eof_encounter
             // Now some character MUST follow; any one is allowed, but no line changes 
             // Note that AGS doesn't follow C syntax here.
             // In C, "\n" is a newline, but in AGS, "\n" is "n".
-            int ch = InputStream.get();
-            eof_encountered = InputStream.eof(); // This is an error, too
-            error_encountered = InputStream.fail();
+            int ch = _inputStream.get();
+            eof_encountered = _inputStream.eof(); // This is an error, too
+            error_encountered = _inputStream.fail();
             if (eof_encountered || error_encountered || (strchr("\r\n", ch) != 0))
             {
                 break; // to error msg
@@ -379,14 +379,14 @@ void ags::Scanner::ReadInStringLit(std::string & symstring, bool & eof_encounter
 
 void ags::Scanner::ReadInIdentifier(std::string & symstring, bool & eof_encountered, bool & error_encountered)
 {
-    symstring.assign(1, InputStream.get());
+    symstring.assign(1, _inputStream.get());
 
     while (true)
     {
-        int ch = InputStream.get();
-        eof_encountered = InputStream.eof();
+        int ch = _inputStream.get();
+        eof_encountered = _inputStream.eof();
         if (eof_encountered) return;
-        error_encountered = InputStream.fail();
+        error_encountered = _inputStream.fail();
         if (error_encountered)
         {
             _lastError = "Error encountered while scanning an identifier (file corrupt?)";
@@ -400,7 +400,7 @@ void ags::Scanner::ReadInIdentifier(std::string & symstring, bool & eof_encounte
             continue;
         }
         // That last char doesn't belong to the literal, so put it back.
-        InputStream.putback(ch);
+        _inputStream.putback(ch);
         return;
     }
 }
@@ -409,19 +409,19 @@ void ags::Scanner::ReadInIdentifier(std::string & symstring, bool & eof_encounte
 
 void ags::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string & symstring, bool & eof_encountered, bool & error_encountered)
 {
-    symstring.assign(1, InputStream.get());
+    symstring.assign(1, _inputStream.get());
 
-    int second_char = InputStream.peek();
+    int second_char = _inputStream.peek();
     if (possible_second_chars.find(second_char) != std::string::npos)
     {
-        InputStream.get(); // Gobble the character that was peek()ed
+        _inputStream.get(); // Gobble the character that was peek()ed
         symstring.push_back(second_char);
     }
 }
 
 void ags::Scanner::ReadIn1Char(std::string & symstring)
 {
-    symstring.assign(1, InputStream.get());
+    symstring.assign(1, _inputStream.get());
 }
 
 void ags::Scanner::ReadInDotCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)
@@ -431,9 +431,9 @@ void ags::Scanner::ReadInDotCombi(std::string &symstring, bool &eof_encountered,
 
     if (symstring == ".") return;
 
-    if (InputStream.peek() == '.')
+    if (_inputStream.peek() == '.')
     {
-        symstring.push_back(InputStream.get());
+        symstring.push_back(_inputStream.get());
         return;
     }
 
@@ -447,9 +447,9 @@ void ags::Scanner::ReadInLTCombi(std::string &symstring, bool &eof_encountered, 
     ReadIn1or2Char("<=", symstring, eof_encountered, error_encountered);
     if (eof_encountered || error_encountered) return;
 
-    if ((symstring == "<<") && (InputStream.peek() == '='))
+    if ((symstring == "<<") && (_inputStream.peek() == '='))
     {
-        symstring.push_back(InputStream.get());
+        symstring.push_back(_inputStream.get());
     }
 }
 
@@ -458,9 +458,9 @@ void ags::Scanner::ReadInGTCombi(std::string & symstring, bool & eof_encountered
     ReadIn1or2Char(">=", symstring, eof_encountered, error_encountered);
     if (eof_encountered || error_encountered) return;
 
-    if ((symstring == ">>") && (InputStream.peek() == '='))
+    if ((symstring == ">>") && (_inputStream.peek() == '='))
     {
-        symstring.push_back(InputStream.get());
+        symstring.push_back(_inputStream.get());
     }
 }
 
@@ -779,7 +779,7 @@ int ags::Tokenizer::ConvertSymstringToTokenIndex(std::string symstring)
 void ags::OpenCloseMatcher::Reset()
 {
     _lastError = "";
-    OpenInfoStack.resize(0);
+    _openInfoStack.resize(0);
 }
 
 
@@ -798,17 +798,17 @@ ags::OpenCloseMatcher::OpenCloseMatcher()
 void ags::OpenCloseMatcher::Push(std::string const & opener, std::string const & expected_closer, int lineno)
 {
     struct OpenInfo oi;
-    oi.Opener = opener;
-    oi.Closer = expected_closer;
+    oi._opener = opener;
+    oi._closer = expected_closer;
     oi._lineno = lineno;
 
-    OpenInfoStack.push_back(oi);
+    _openInfoStack.push_back(oi);
 }
 
 
 void ags::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, bool & error_encountered)
 {
-    if (OpenInfoStack.empty())
+    if (_openInfoStack.empty())
     {
         error_encountered = true;
         _lastError = "There isn't any opening symbol that matches this closing '&1'";
@@ -816,15 +816,15 @@ void ags::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, 
         return;
     }
 
-    struct OpenInfo oi(OpenInfoStack.back());
-    OpenInfoStack.pop_back();
-    if (oi.Closer != closer)
+    struct OpenInfo oi(_openInfoStack.back());
+    _openInfoStack.pop_back();
+    if (oi._closer != closer)
     {
         error_encountered = true;
         _lastError = "Found '&1', this does not match the '&2' on line &3";
         if (oi._lineno == lineno) _lastError = "Found '&1', this does not match the '&2' on this line";
         _lastError.replace(_lastError.find("&1"), 2, closer);
-        _lastError.replace(_lastError.find("&2"), 2, oi.Opener);
+        _lastError.replace(_lastError.find("&2"), 2, oi._opener);
         if (oi._lineno != lineno) _lastError.replace(_lastError.find("&3"), 2, std::to_string(oi._lineno));
     }
 }
@@ -835,7 +835,7 @@ int ags::NestingStack::Push(NestingType type, ags::CodeLoc start, ags::CodeLoc i
     struct ags::NestingInfo ni = { type, start, info, 0, dummy_chunk };
     try
     {
-        Stack.push_back(ni);
+        _stack.push_back(ni);
     }
     catch (...)
     {
@@ -871,7 +871,7 @@ void ags::NestingStack::YankChunk(ccCompiledScript *scrip, ags::CodeLoc codeoffs
     item.CodeOffset = codeoffset;
     item.FixupOffset = fixupoffset;
 
-    Stack.back().Chunks.push_back(item);
+    _stack.back().Chunks.push_back(item);
 
     // Cut out the code that has been pushed
     scrip->codesize = codeoffset;

@@ -71,11 +71,11 @@ public:
 private:
     struct OpenInfo
     {
-        std::string Opener;
-        std::string Closer;
-        int _lineno;  // of the Opener symbol
+        std::string _opener;
+        std::string _closer;
+        int _lineno;  // of the _opener symbol
     };
-    std::vector<struct OpenInfo> OpenInfoStack;
+    std::vector<struct OpenInfo> _openInfoStack;
     std::string _lastError;
 };
 
@@ -104,10 +104,10 @@ public:
     Scanner(std::string const & Input, std::size_t _lineno, struct ::ccInternalList * _tokenList);
 
     // setters and getters
-    void SetInput(const std::string & Input);
-    void SetLineno(std::size_t _lineno);
+    void SetInput(const std::string &input);
+    void SetLineno(std::size_t lineno);
     std::size_t GetLineno();
-    void SetTokenList(struct ::ccInternalList *_tokenList);
+    void SetTokenList(struct ::ccInternalList *tokenList);
 
     /// If the input couldn't be scanned, this will explain the problem
     const std::string GetLastError();
@@ -128,8 +128,7 @@ protected:
     inline void WriteNewLinenoMeta(int ln) { const Symbol smeta_linenum = (Symbol)1; _tokenList->write_meta(smeta_linenum, ln); }
 
 private:
-    std::istringstream InputStream;
-    std::string Error;
+    std::istringstream _inputStream;
     std::size_t _lineno;
     ccInternalList *_tokenList;
     std::string _lastError;
@@ -280,7 +279,7 @@ struct NestingInfo
 class NestingStack
 {
 private:
-    std::vector<NestingInfo> Stack;
+    std::vector<NestingInfo> _stack;
 
 public:
     enum NestingType
@@ -301,44 +300,44 @@ public:
     NestingStack();
 
     // Depth of the nesting == index of the innermost nesting level
-    inline size_t Depth() { return Stack.size(); };
+    inline size_t Depth() { return _stack.size(); };
 
     // Type of the innermost nesting
-    inline NestingType Type() { return static_cast<NestingType>(Stack.back().Type); };
-    inline void SetType(NestingType nt) { Stack.back().Type = nt; };
+    inline NestingType Type() { return static_cast<NestingType>(_stack.back().Type); };
+    inline void SetType(NestingType nt) { _stack.back().Type = nt; };
     // Type of the nesting at the given nesting level
-    inline NestingType Type(size_t level) { return static_cast<NestingType>(Stack.at(level).Type); };
+    inline NestingType Type(size_t level) { return static_cast<NestingType>(_stack.at(level).Type); };
 
     // If the innermost nesting is a loop that has a jump back to the start,
     // then this gives the location to jump to; otherwise, it is 0
-    inline std::int32_t StartLoc() { return Stack.back().StartLoc; };
-    inline void SetStartLoc(std::int32_t start) { Stack.back().StartLoc = start; };
+    inline std::int32_t StartLoc() { return _stack.back().StartLoc; };
+    inline void SetStartLoc(std::int32_t start) { _stack.back().StartLoc = start; };
     // If the nesting at the given level has a jump back to the start,
     // then this gives the location to jump to; otherwise, it is 0
-    inline std::int32_t StartLoc(size_t level) { return Stack.at(level).StartLoc; };
+    inline std::int32_t StartLoc(size_t level) { return _stack.at(level).StartLoc; };
 
     // If the innermost nesting features a jump out instruction, then this is the location of it
-    inline std::intptr_t JumpOutLoc() { return Stack.back().Info; };
-    inline void SetJumpOutLoc(std::intptr_t loc) { Stack.back().Info = loc; };
+    inline std::intptr_t JumpOutLoc() { return _stack.back().Info; };
+    inline void SetJumpOutLoc(std::intptr_t loc) { _stack.back().Info = loc; };
     // If the nesting at the given level features a jump out, then this is the location of it
-    inline std::intptr_t JumpOutLoc(size_t level) { return Stack.at(level).Info; };
+    inline std::intptr_t JumpOutLoc(size_t level) { return _stack.at(level).Info; };
 
     // If the innermost nesting is a SWITCH, the type of the switch expression
-    int SwitchExprType() { return static_cast<int>(Stack.back().Info); };
-    inline void SetSwitchExprType(int ty) { Stack.back().Info = ty; };
+    int SwitchExprType() { return static_cast<int>(_stack.back().Info); };
+    inline void SetSwitchExprType(int ty) { _stack.back().Info = ty; };
 
     // If the innermost nesting is a SWITCH, the location of the "default:" label
-    inline std::int32_t DefaultLabelLoc() { return Stack.back().DefaultLabelLoc; };
-    inline void SetDefaultLabelLoc(int32_t loc) { Stack.back().DefaultLabelLoc = loc; }
+    inline std::int32_t DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
+    inline void SetDefaultLabelLoc(int32_t loc) { _stack.back().DefaultLabelLoc = loc; }
 
     // If the innermost nesting contains code chunks that must be moved around
     // (e.g., in FOR loops), then this is true, else false
-    inline bool ChunksExist() { return !Stack.back().Chunks.empty(); }
-    inline bool ChunksExist(size_t level) { return !Stack.at(level).Chunks.empty(); }
+    inline bool ChunksExist() { return !_stack.back().Chunks.empty(); }
+    inline bool ChunksExist(size_t level) { return !_stack.at(level).Chunks.empty(); }
 
     // Code chunks that must be moved around (e.g., in FOR, DO loops)
-    inline std::vector<ccChunk> Chunks() { return Stack.back().Chunks; };
-    inline std::vector<ccChunk> Chunks(size_t level) { return Stack.at(level).Chunks; };
+    inline std::vector<ccChunk> Chunks() { return _stack.back().Chunks; };
+    inline std::vector<ccChunk> Chunks(size_t level) { return _stack.at(level).Chunks; };
 
     // True iff the innermost nesting is unbraced
     inline bool IsUnbraced()
@@ -352,7 +351,7 @@ public:
     inline int Push(NestingType type) { return Push(type, 0, 0); };
 
     // Pop a nesting level
-    inline void Pop() { Stack.pop_back(); };
+    inline void Pop() { _stack.pop_back(); };
 
     // Rip a generated chunk of code out of the codebase and stash it away for later 
     void YankChunk(::ccCompiledScript *scrip, ags::CodeLoc codeoffset, ags::CodeLoc fixupoffset);

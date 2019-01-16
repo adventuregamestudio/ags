@@ -988,9 +988,9 @@ TEST(Compatibility, For2) {
         return 0;                   \n\
     }";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     writeoutput("For2", scrip);
     // run the test, comment out the previous line 
@@ -1083,9 +1083,9 @@ TEST(Compatibility, For3) {
     }                               \n\
     ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     writeoutput("For3", scrip);
     // run the test, comment out the previous line 
@@ -1679,9 +1679,9 @@ TEST(Compatibility, Struct4) {
         }                                                    \n\
     ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     writeoutput("Struct4", scrip);
     // run the test, comment out the previous line 
@@ -1762,9 +1762,9 @@ TEST(Compatibility, Struct5) {
         }                                                    \n\
     ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     writeoutput("Struct5", scrip);
     // run the test, comment out the previous line 
@@ -1800,7 +1800,7 @@ TEST(Compatibility, Struct5) {
 }
 
 
-TEST(Compatibility, Struct4) {
+TEST(Compatibility, Struct6) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1821,7 +1821,7 @@ TEST(Compatibility, Struct4) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // writeoutput("Struct4", scrip);
+    // writeoutput("Struct6", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1875,7 +1875,7 @@ TEST(Compatibility, Struct4) {
 }
 
 
-TEST(Compatibility, Struct5) {
+TEST(Compatibility, Struct7) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1904,7 +1904,7 @@ TEST(Compatibility, Struct5) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // writeoutput("Struct5", scrip);
+    // writeoutput("Struct7", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -1938,7 +1938,7 @@ TEST(Compatibility, Struct5) {
 }
 
 
-TEST(Compatibility, Struct6) {
+TEST(Compatibility, Struct8) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1964,7 +1964,7 @@ TEST(Compatibility, Struct6) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // writeoutput("Struct6", scrip);
+    // writeoutput("Struct8", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

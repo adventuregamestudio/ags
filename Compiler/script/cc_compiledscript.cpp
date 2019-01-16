@@ -384,7 +384,7 @@ void ccCompiledScript::write_code(intptr_t byy)
     codesize++;
 }
 
-const char * ccCompiledScript::start_new_section(const char *name)
+const char *ccCompiledScript::start_new_section(const char *name)
 {
 
     if ((numSections == 0) ||

@@ -11,51 +11,54 @@ SymbolTable::SymbolTable()
     stringStructSym = 0;
 }
 
-int SymbolTableEntry::get_num_args()
+// Get the (minimal required) number of arguments of a function
+int SymbolTableEntry::get_num_args() 
 {
     return sscope % 100;
 }
 
-int SymbolTable::get_type(int ii)
+// Get the type of a symbol table entry, regardless of pointerness or constness
+ags::Symbol SymbolTable::get_type(int ii) 
 {
-    // just return the real type, regardless of pointerness/constness
+    // consider the real type, regardless of pointerness/constness
     ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
 
-    if ((ii < 0) || (ii >= entries.size())) { return -1; }
+    if ((ii < 0) || (ii >= entries.size()))
+        return -1;
 
     return entries[ii].stype;
 }
 
-int SymbolTableEntry::is_loadable_variable()
+int SymbolTableEntry::is_loadable_variable() 
 {
     return (stype == SYM_GLOBALVAR) || (stype == SYM_LOCALVAR) || (stype == SYM_CONSTANT);
 }
 
-void SymbolTableEntry::set_propfuncs(int propget, int propset)
+void SymbolTableEntry::set_propfuncs(int propget, int propset) 
 {
     // TODO check ranges and throw exception
     soffs = (propget << 16) | propset;
 }
 
-int SymbolTableEntry::get_propget()
+int SymbolTableEntry::get_propget() 
 {
     int toret = (soffs >> 16) & 0x00ffff;
-    if (toret == 0xffff) return -1;
+	if (toret == 0xffff) return -1;
 
     return toret;
 }
 
-int SymbolTableEntry::get_propset()
+int SymbolTableEntry::get_propset() 
 {
     int toret = soffs & 0x00ffff;
-    if (toret == 0xffff) return -1;
-
+	if (toret == 0xffff) return -1;
+	 
     return toret;
 }
 
 void SymbolTable::reset()
 {
-    for (std::map<int, char*>::iterator it = nameGenCache.begin();
+    for (std::map<int, char *>::iterator it = nameGenCache.begin();
         it != nameGenCache.end();
         ++it)
     {
@@ -151,13 +154,13 @@ void SymbolTable::reset()
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
     add_ex("builtin", SYM_BUILTIN, 0);
 }
-int SymbolTableEntry::operatorToVCPUCmd()
+
+int SymbolTableEntry::operatorToVCPUCmd() 
 {
-    //return ssize + 8;
     return vartype;
 }
 
-int SymbolTable::find(const char*ntf)
+int SymbolTable::find(const char *ntf)
 {
     return symbolTree.findValue(ntf);
 }
@@ -165,10 +168,10 @@ int SymbolTable::find(const char*ntf)
 std::string SymbolTable::get_friendly_name(int idx)
 {
     int short_idx = (idx & STYPE_MASK);
-    if (short_idx <= 0 || short_idx >= entries.size())
-    {
+    if (short_idx <= 0)
+        return std::string("(end of input)");
+    if (short_idx >= entries.size())
         return std::string("(invalid symbol)");
-    }
 
     std::string result = entries[short_idx].sname;
 
@@ -181,23 +184,24 @@ std::string SymbolTable::get_friendly_name(int idx)
 
 std::string SymbolTable::get_name_string(int idx)
 {
-    if (idx < 0) return std::string("((NoSymbol))");
+    if (idx < 0)
+        return std::string("(end of input)");
     if (idx & STYPE_CONST)
     {
         idx &= ~STYPE_CONST;
-        return std::string("const ") + get_name_string(idx);
+        return "const " + get_name_string(idx);
     }
 
     if (idx & STYPE_DYNARRAY)
     {
         idx &= ~(STYPE_DYNARRAY | STYPE_POINTER);
-        return get_name_string(idx) + std::string("[]");
+        return get_name_string(idx) + "[]";
     }
 
     if (idx & STYPE_POINTER)
     {
         idx &= ~STYPE_POINTER;
-        return get_name_string(idx) + std::string("*");
+        return get_name_string(idx) + "*";
     }
 
     return entries[idx].sname;
@@ -211,7 +215,8 @@ const char *SymbolTable::get_name(int idx)
     }
 
     std::size_t actualIdx = idx & STYPE_MASK;
-    if (actualIdx < 0 || actualIdx >= entries.size()) { return NULL; }
+    if (actualIdx < 0 || actualIdx >= entries.size())
+        return NULL;
 
     std::string resultString = get_name_string(idx);
     char *result = (char *)malloc(resultString.length() + 1);
@@ -220,12 +225,12 @@ const char *SymbolTable::get_name(int idx)
     return result;
 }
 
-int SymbolTable::add(const char*nta)
+int SymbolTable::add(const char *nta)
 {
     return add_ex(nta, 0, 0);
 }
 
-int SymbolTable::add_ex(const char*nta, int typo, char sizee)
+int SymbolTable::add_ex(const char *nta, int typo, char sizee)
 {
     if (find(nta) >= 0) return -1;
 

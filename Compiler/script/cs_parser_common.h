@@ -43,7 +43,8 @@
 #define SYM_RETURN     35
 #define SYM_READONLY   36
 #define SYM_MEMBERACCESS 37  // ::
-#define SYM_PROPERTY   38  // struct member as property
+#define SYM_PROPERTY   38  // deprecated
+#define SYM_ATTRIBUTE  38  // struct member as attribute
 #define SYM_ENUM       39
 #define SYM_SEMICOLON  40
 #define SYM_MANAGED    41  // "managed" struct allocated on heap
@@ -78,7 +79,8 @@
 #define SFLG_READONLY     0x40  // user cannot change
 #define SFLG_STRUCTMEMBER 0x80  // set for member vars & funcs
 #define SFLG_POINTER     0x100  // pointer to object
-#define SFLG_PROPERTY    0x200  // is a property-variable
+#define SFLG_ATTRIBUTE   0x200  // is an attribute variable
+#define SFLG_PROPERTY    0x200  // deprecated -- is an attribute variable
 #define SFLG_STRUCTTYPE  0x400  // is a struct type (type will be SYM_VARTYPE)
 #define SFLG_THISPTR     0x800  // is the "this" pointer
 #define SFLG_MANAGED    0x1000  // managed struct (SYM_VARTYPE)

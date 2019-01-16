@@ -6,8 +6,7 @@
 #include "script/cc_script.h"   
 #include "cs_parser_common.h"   // macro definitions
 #include "cc_symboltable.h"     // SymbolTableEntry
-#include "cc_symboldef.h"       // SymbolDef
-
+#include "cc_symboldef.h"       // deprecated
 
 
 struct ccCompiledScript : public ccScript {
@@ -37,16 +36,16 @@ struct ccCompiledScript : public ccScript {
     int  add_new_import(const char *);
     int  add_new_export(const char *, int, long, int);
     void write_code(intptr_t);
-    void set_line_number(int nlum) { next_line = nlum; }
+    void set_line_number(int nlum) { next_line=nlum; }
     void flush_line_numbers();
     int  remove_any_import(const char *, SymbolDef *oldSym); // deprecated
     const char *start_new_section(const char *name);
 
     void write_cmd(int cmdd);
 
-    void write_cmd1(int cmdd, int param);
-    void write_cmd2(int cmdd, int param, int param2);
-    void write_cmd3(int cmdd, int param, int param2, int param3);
+    void write_cmd1(int cmdd,int param);
+    void write_cmd2(int cmdd,int param,int param2);
+    void write_cmd3(int cmdd,int param,int param2,int param3);
 
     void push_reg(int regg);
 

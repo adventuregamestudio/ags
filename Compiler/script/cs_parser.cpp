@@ -2511,7 +2511,7 @@ int BufferVarOrFunccall(ccInternalList *targ, ags::Symbol fsym, ags::SymbolScrip
     {
         if (ReachedEOF(targ))
         {
-            cc_error("Dot operator must be followed by member function or property");
+            cc_error("Dot operator must be followed by member function or attribute");
             return -1;
         }
 
@@ -3489,17 +3489,17 @@ int AccessData_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *
         return -1;
     }
 
-    bool propertyIndexer = false;
+    bool attributeIndexer = false;
     bool checkBounds = true, multiplySize = true;
 
     if ((sym.entries[thisClause->syml[0]].flags & SFLG_PROPERTY) ||
         (sym.entries[thisClause->syml[0]].flags & SFLG_POINTER))
     {
-        // an array property, or array of pointers; in this case,
+        // an array attribute, or array of pointers; in this case,
         // don't touch CX but just calculate the index value into DX
-        propertyIndexer = true;
+        attributeIndexer = true;
         multiplySize = false;
-        // don't check bounds, the property getter will do that
+        // don't check bounds, the attribute getter will do that
         if (sym.entries[thisClause->syml[0]].flags & SFLG_PROPERTY)
             checkBounds = false;
     }
@@ -3520,7 +3520,7 @@ int AccessData_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *
     if (isArrayOffset)
     {
         scrip->pop_reg(SREG_CX);
-        if (propertyIndexer)
+        if (attributeIndexer)
         {
             scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_DX);
         }
@@ -3533,17 +3533,17 @@ int AccessData_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *
     {
         scrip->write_cmd2(SCMD_REGTOREG,
             SREG_AX,
-            (propertyIndexer ? SREG_DX : SREG_CX));
+            (attributeIndexer ? SREG_DX : SREG_CX));
     }
 
-    if (!propertyIndexer)
+    if (!attributeIndexer)
         isArrayOffset = true;
 
     if (writingOperation)
         scrip->pop_reg(SREG_AX);
 
     // the array offset has now been added to CX (normal array)
-    // or put into DX (property)
+    // or put into DX (attribute)
 
     return 0;
 }
@@ -3581,10 +3581,10 @@ inline int AccessData_PrepareComponentAccess_MemberFunction(bool isLastClause, b
 
 
 // We access a component of a struct in order to read or write it. 
-// This is a property.
+// This is an attribute.
 int AccessData_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags::Symbol variableSym, VariableSymlist * thisClause, bool writing, bool writingThisTime, bool mustBeWritable, bool & getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isArrayOffset)
 {
-    // since a property is effectively a function call, load the address of the object
+    // since an attribute is effectively a function call, load the address of the object
     getJustTheAddressIntoAX = true;
     doMemoryAccessNow = true;
 
@@ -3733,7 +3733,7 @@ int AccessData_PrepareComponentAccess_JustTheAddressCases(ags::Symbol variableSy
     {
         if (sym.entries[variableSym].flags & SFLG_PROPERTY)
         {
-            // Returning an array property as a whole is not supported
+            // Returning an array attribute as a whole is not supported
             cc_error("Expected array index after '%s'", sym.get_friendly_name(variableSym).c_str());
             return -1;
         }
@@ -3788,10 +3788,10 @@ int AccessData_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol vari
     }
     else if (isProperty)
     {
-        // Writing a property calls a function, reading it calls another function.
+        // Writing an attribute calls a function, reading it calls another function.
         // Avert the caller so that it doesn't try, e.g., to do "++" in-memory.
-        // When setting the property, they must always go the long way and first
-        // evaluate the new value in AX, then set the property explicitly.
+        // When setting the attribute, they must always go the long way and first
+        // evaluate the new value in AX, then set the attribute explicitly.
         write_same_as_read_access = false;
 
         int retval = AccessData_PrepareComponentAccess_Property(scrip, variableSym, thisClause, writing, writingThisTime, mustBeWritable, getJustTheAddressIntoAX, doMemoryAccessNow, isArrayOffset);
@@ -3882,7 +3882,7 @@ int AccessData_CheckAccess(ags::Symbol variableSym, VariableSymlist variablePath
     if (((writing) || (mustBeWritable)) && (write_same_as_read_access))
     {
         // allow writing to read-only pointers if it's actually
-        // a property being accessed
+        // an attribute being accessed
         if ((sym.entries[variableSym].flags & SFLG_POINTER) && (!isLastClause)) {}
         else if (sym.entries[variableSym].flags & SFLG_READONLY)
         {
@@ -3957,7 +3957,7 @@ int AccessData(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, boo
         bool accessActualPointer = false;
 
         // the memory access only wants to write if this is the
-        // end of the path, not an intermediate pathing property
+        // end of the path, not an intermediate pathing attribute
         bool writingThisTime = isLastClause && writing;
 
         // Mark the component as accessed
@@ -3998,8 +3998,8 @@ int ReadDataIntoAX(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len,
     return AccessData(scrip, syml, syml_len, false, mustBeWritable, negateLiteral, write_same_as_read_access);
 }
 
-// Get or set a property
-int call_property_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite)
+// Get or set an attribute
+int call_attribute_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite)
 {
     int numargs = 0;
 
@@ -4048,11 +4048,11 @@ int call_property_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite
     int propFunc;
     if (isWrite)
     {
-        propFunc = sym.entries[propSym].get_propset();
+        propFunc = sym.entries[propSym].get_attrset();
     }
     else
     {
-        propFunc = sym.entries[propSym].get_propget();
+        propFunc = sym.entries[propSym].get_attrget();
     }
 
     if (propFunc == 0)
@@ -4108,10 +4108,10 @@ int call_property_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite
 
 int MemoryAccess_Vartype(ccCompiledScript * scrip, ags::Symbol variableSym, bool isProperty, int &gotValType)
 {
-    // it's a static member property
+    // it's a static member attribute
     if (!isProperty)
     {
-        cc_error("Internal error: Static non-property access");
+        cc_error("Internal error: Static non-attribute access");
         return -1;
     }
     // just write 0 to AX for ease of debugging if anything
@@ -4354,7 +4354,7 @@ int MemoryAccess(
         // ParseArrays_and_members will have set addressOf to true,
         // so AX now contains the struct address, and BX
         // contains the new value if this is a Set
-        retval = call_property_func(scrip, variableSym, writing);
+        retval = call_attribute_func(scrip, variableSym, writing);
         if (retval < 0) return retval;
     }
 
@@ -4472,12 +4472,12 @@ int ParseAssignment_CheckLHSIsAssignable(ags::Symbol cursym, const ags::SymbolSc
 {
     if (sym.entries[cursym].is_loadable_variable()) return 0;
 
-    // Static property
+    // Static attribute
     if ((sym.get_type(cursym) == SYM_VARTYPE) &&
         (vnlist_len > 2) &&
         (sym.entries[vnlist[2]].flags & SFLG_STATIC) > 0) return 0;
 
-    cc_error("Variable or constant property required on left of \"%s\" assignment", sym.get_name(cursym));
+    cc_error("Variable or constant attribute required on left of \"%s\" assignment", sym.get_name(cursym));
     return -1;
 }
 
@@ -4636,7 +4636,7 @@ int ParseAssignment_DoAssignment(ccInternalList * targ, ccCompiledScript * scrip
 // An assignment symbol is following. Compile the assignment.
 int ParseAssignment(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol cursym, ags::Symbol statementEndSymbol, ags::SymbolScript vnlist, int vnlist_len)
 {
-    // Check that the LHS is a loadable variable or a static property. 
+    // Check that the LHS is a loadable variable or a static attribute. 
     int retval = ParseAssignment_CheckLHSIsAssignable(cursym, vnlist, vnlist_len);
     if (retval < 0) return retval;
 
@@ -5417,7 +5417,7 @@ int ParseStruct_MemberQualifiers(
     ags::Symbol &cursym,
     bool &is_readonly,
     Importness &is_import,
-    bool &is_property,
+    bool &is_attribute,
     bool &is_static,
     bool &is_protected,
     bool &is_writeprotected)
@@ -5431,7 +5431,7 @@ int ParseStruct_MemberQualifiers(
         {
         default: break;
         case SYM_IMPORT:         is_import = ImImportType1; continue;
-        case SYM_PROPERTY:       is_property = true;       continue;
+        case SYM_PROPERTY:       is_attribute = true;       continue;
         case SYM_PROTECTED:      is_protected = true;      continue;
         case SYM_READONLY:       is_readonly = true;       continue;
         case SYM_STATIC:         is_static = true;         continue;
@@ -5561,7 +5561,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     ags::Symbol name_of_current_func, // [fw] ONLY used for funcs in structs
     int nested_level,
     int curtype,
-    bool type_is_property,
+    bool type_is_attribute,
     bool type_is_readonly,
     Importness type_is_import,
     bool type_is_protected,
@@ -5653,13 +5653,13 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
         cc_error("Expected '('");
         return -1;
     }
-    else if ((type_is_import != ImNoImport) && (!type_is_property))
+    else if ((type_is_import != ImNoImport) && (!type_is_attribute))
     {
         // member variable cannot be an import
         cc_error("Only struct member functions may be declared with 'import'");
         return -1;
     }
-    else if ((type_is_static) && (!type_is_property))
+    else if ((type_is_static) && (!type_is_attribute))
     {
         cc_error("Static variables not supported");
         return -1;
@@ -5681,7 +5681,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
         sym.entries[vname].vartype = (short)curtype;
         if (type_is_readonly)
             sym.entries[vname].flags |= SFLG_READONLY;
-        if (type_is_property)
+        if (type_is_attribute)
             sym.entries[vname].flags |= SFLG_PROPERTY;
         if (type_is_pointer)
         {
@@ -5695,7 +5695,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
         else if (type_is_writeprotected)
             sym.entries[vname].flags |= SFLG_WRITEPROTECTED;
 
-        if (type_is_property)
+        if (type_is_attribute)
         {
             if (type_is_import == ImNoImport)
             {
@@ -5709,11 +5709,11 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
 
             if (sym.get_type(targ->peeknext()) == SYM_OPENBRACKET)
             {
-                // An indexed property!
+                // An indexed attribute!
                 targ->getnext();  // skip the [
                 if (sym.get_type(targ->getnext()) != SYM_CLOSEBRACKET)
                 {
-                    cc_error("Cannot specify array size for property");
+                    cc_error("Cannot specify array size for attribute");
                     return -1;
                 }
 
@@ -5744,7 +5744,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
                 sprintf(propFuncName, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);
                 propSet = scrip->add_new_import(propFuncName);
             }
-            sym.entries[vname].set_propfuncs(propGet, propSet);
+            sym.entries[vname].set_attrfuncs(propGet, propSet);
         }
         else if (sym.get_type(targ->peeknext()) == SYM_OPENBRACKET)
         {
@@ -5813,7 +5813,7 @@ int ParseStruct_MemberDefn(
 
     bool type_is_readonly = false;
     Importness type_is_import = ImNoImport;
-    bool type_is_property = false;
+    bool type_is_attribute = false;
     bool type_is_pointer = false;
     bool type_is_static = false;
     bool type_is_protected = false;
@@ -5827,7 +5827,7 @@ int ParseStruct_MemberDefn(
         curtype,
         type_is_readonly,
         type_is_import,
-        type_is_property,
+        type_is_attribute,
         type_is_static,
         type_is_protected,
         type_is_writeprotected);
@@ -5870,7 +5870,7 @@ int ParseStruct_MemberDefn(
             name_of_current_func,
             nested_level,
             curtype,             // core type
-            type_is_property,
+            type_is_attribute,
             type_is_readonly,
             type_is_import,
             type_is_protected,

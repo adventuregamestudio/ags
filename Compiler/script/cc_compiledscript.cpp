@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,53 +8,43 @@
 #include "script/cc_options.h"      // ccGetOption
 #include "script/cc_error.h"
 
-void ccCompiledScript::write_cmd(int cmdd)
-{
+void ccCompiledScript::write_cmd(int cmdd) {
     write_code(cmdd);
 }
 
-void ccCompiledScript::write_cmd1(int cmdd, int param)
-{
+void ccCompiledScript::write_cmd1(int cmdd,int param) {
     write_code(cmdd);
     write_code(param);
 }
-
-void ccCompiledScript::write_cmd2(int cmdd, int param, int param2)
-{
+void ccCompiledScript::write_cmd2(int cmdd,int param,int param2) {
     write_code(cmdd);
     write_code(param);
     write_code(param2);
 }
-
-void ccCompiledScript::write_cmd3(int cmdd, int param, int param2, int param3)
-{
+void ccCompiledScript::write_cmd3(int cmdd,int param,int param2,int param3) {
     write_code(cmdd);
     write_code(param);
     write_code(param2);
     write_code(param3);
 }
 
-void ccCompiledScript::push_reg(int regg)
-{
-    write_cmd1(SCMD_PUSHREG, regg);
+void ccCompiledScript::push_reg(int regg) {
+    write_cmd1(SCMD_PUSHREG,regg);
     cur_sp += 4;
 }
 
-void ccCompiledScript::pop_reg(int regg)
-{
-    write_cmd1(SCMD_POPREG, regg);
+void ccCompiledScript::pop_reg(int regg) {
+    write_cmd1(SCMD_POPREG,regg);
     cur_sp -= 4;
 }
 
-ccCompiledScript::ccCompiledScript()
-{
+ccCompiledScript::ccCompiledScript() {
     init();
     ax_val_type = 0;
     ax_val_scope = 0;
 }
 
-ccCompiledScript::~ccCompiledScript()
-{
+ccCompiledScript::~ccCompiledScript() {
     shutdown();
 }
 

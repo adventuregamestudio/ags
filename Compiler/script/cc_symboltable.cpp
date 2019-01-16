@@ -4,7 +4,6 @@
 #include <string.h>
 #include "cc_symboltable.h"
 #include "script/script_common.h"      // macro definitions
-#include "cc_symboldef.h"   // macro definitions
 
 SymbolTable::SymbolTable()
 {
@@ -33,13 +32,13 @@ int SymbolTableEntry::is_loadable_variable()
     return (stype == SYM_GLOBALVAR) || (stype == SYM_LOCALVAR) || (stype == SYM_CONSTANT);
 }
 
-void SymbolTableEntry::set_propfuncs(int propget, int propset)
+void SymbolTableEntry::set_attrfuncs(int attrget, int attrset)
 {
     // TODO check ranges and throw exception
-    soffs = (propget << 16) | propset;
+    soffs = (attrget << 16) | attrset;
 }
 
-int SymbolTableEntry::get_propget()
+int SymbolTableEntry::get_attrget()
 {
     int toret = (soffs >> 16) & 0x00ffff;
     if (toret == 0xffff) return -1;
@@ -47,7 +46,7 @@ int SymbolTableEntry::get_propget()
     return toret;
 }
 
-int SymbolTableEntry::get_propset()
+int SymbolTableEntry::get_attrset()
 {
     int toret = soffs & 0x00ffff;
     if (toret == 0xffff) return -1;
@@ -135,7 +134,7 @@ void SymbolTable::reset() {
     add_ex("readonly", SYM_READONLY, 0);
     add_ex("::", SYM_MEMBERACCESS, 0);
     add_ex(":", SYM_LABEL, 0);
-    add_ex("attribute", SYM_PROPERTY, 0);
+    add_ex("attribute", SYM_ATTRIBUTE, 0);
     add_ex("enum", SYM_ENUM, 0);
     add_ex("managed", SYM_MANAGED, 0);
     nullSym = add_ex("null", SYM_NULL, 0);

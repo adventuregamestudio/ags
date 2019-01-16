@@ -92,7 +92,7 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
         return NULL;
     }
 
-    for (t=0; t<sym.entries.size(); t++) {
+    for (t=0;t<sym.entries.size();t++) {
         int stype = sym.get_type(t);
         // blank out the name for imports that are not used, to save space
         // in the output file
@@ -102,14 +102,14 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
                 // unused func/variable
                 cctemp->imports[sym.entries[t].soffs][0] = 0;
             }
-            else if (sym.entries[t].flags & SFLG_PROPERTY) {
-                // unused property -- get rid of the getter and setter
-                int propGet = sym.entries[t].get_propget();
-                int propSet = sym.entries[t].get_propset();
-                if (propGet > 0)
-                    cctemp->imports[propGet][0] = 0;
-                if (propSet > 0)
-                    cctemp->imports[propSet][0] = 0;
+            else if (sym.entries[t].flags & SFLG_ATTRIBUTE) {
+                // unused attribute -- get rid of the getter and setter
+                int attr_get = sym.entries[t].get_attrget();
+                if (attr_get > 0)
+                    cctemp->imports[attr_get][0] = 0;
+                int attr_set = sym.entries[t].get_attrset();
+                if (attr_set > 0)
+                    cctemp->imports[attr_set][0] = 0;
             }
         }
 

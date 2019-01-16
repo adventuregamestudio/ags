@@ -139,7 +139,7 @@ void writeoutput(char *fname, ccCompiledScript *scrip)
 // 7. Run the test in that snapshot. 
 //    It will fail UNLESS the generated code and fixup is still identical to the
 //    version before the changes, byte for byte.
-TEST(Compatibility, SimpleFunction) {
+TEST(Compatibility, p_r_o_t_o_t_y_p_e) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\

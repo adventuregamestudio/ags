@@ -57,9 +57,9 @@ struct SymbolTable {
 
     SymbolTable();
     void reset();    // clears table
-    ags::Symbol  find(const char *);  // returns ID of symbol, or -1
-    ags::Symbol  add_ex(const char *, ags::Symbol, char);  // adds new symbol of type and size
-    ags::Symbol  add(const char *);   // adds new symbol, returns -1 if already exists
+    AGS::Symbol find(const char *);  // returns ID of symbol, or -1
+    AGS::Symbol add_ex(const char *, AGS::Symbol, char);  // adds new symbol of type and size
+    AGS::Symbol add(const char *);   // adds new symbol, returns -1 if already exists
 
     std::string SymbolTable::get_friendly_name(int idx);  // inclue ptr
     std::string SymbolTable::get_name_string(int idx);

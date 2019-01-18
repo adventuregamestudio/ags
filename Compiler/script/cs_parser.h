@@ -44,7 +44,7 @@ start
 #include "cc_symboltable.h"
 
 
-namespace ags
+namespace AGS
 {
 
 /// Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching
@@ -259,7 +259,7 @@ private:
 // A section of compiled code that needs to be moved or copied to a new location
 struct ccChunk
 {
-    std::vector<ags::CodeCell> Code;
+    std::vector<AGS::CodeCell> Code;
     std::vector<int32_t> Fixups;
     std::vector<char> FixupTypes;
     int CodeOffset;
@@ -269,7 +269,7 @@ struct ccChunk
 // All data that is associated with a nesting level
 struct NestingInfo
 {
-    int Type; // Type of the level, see ags::NestingStack::NestingType
+    int Type; // Type of the level, see AGS::NestingStack::NestingType
     std::int32_t StartLoc; // Index of the first byte generated for the level
     std::int32_t Info; // Various uses that differ by nesting type
     std::int32_t DefaultLabelLoc; // Location of default label
@@ -348,14 +348,14 @@ public:
     }
 
     // Push a new nesting level (returns a  value < 0 on error)
-    int Push(NestingType type, ags::CodeLoc start, ags::CodeLoc info);
+    int Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc info);
     inline int Push(NestingType type) { return Push(type, 0, 0); };
 
     // Pop a nesting level
     inline void Pop() { _stack.pop_back(); };
 
     // Rip a generated chunk of code out of the codebase and stash it away for later 
-    void YankChunk(::ccCompiledScript *scrip, ags::CodeLoc codeoffset, ags::CodeLoc fixupoffset);
+    void YankChunk(::ccCompiledScript *scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset);
 
     // Write chunk of code back into the codebase that has been stashed in level given, at index
     void WriteChunk(::ccCompiledScript *scrip, size_t level, size_t index);
@@ -375,7 +375,7 @@ struct NestStack
     std::vector<ccChunk> Chunk;
 };
 
-} // namespace ags
+} // namespace AGS
 
 
 extern int cc_tokenize(
@@ -389,14 +389,14 @@ extern int cc_compile(
 
 #endif // __CS_PARSER_H
 
-int parse_subexpr_OpIsFirst(const ags::SymbolScript &symlist, int oploc, const size_t &symlist_len, ccCompiledScript * scrip);
+int parse_subexpr_OpIsFirst(const AGS::SymbolScript &symlist, int oploc, const size_t &symlist_len, ccCompiledScript * scrip);
 
-int parse_subexpr_OpIsSecondOrLater(const ags::SymbolScript &symlist, int &oploc, ccCompiledScript * scrip, const size_t &symlist_len);
+int parse_subexpr_OpIsSecondOrLater(const AGS::SymbolScript &symlist, int &oploc, ccCompiledScript * scrip, const size_t &symlist_len);
 
-int parse_subexpr_NoOps(size_t &symlist_len, ags::SymbolScript &symlist, ccCompiledScript * scrip, bool hasNegatedLiteral);
+int parse_subexpr_NoOps(size_t &symlist_len, AGS::SymbolScript &symlist, ccCompiledScript * scrip, bool hasNegatedLiteral);
 
-int parse_subexpr_NewIsFirst(const size_t & symlist_len, const ags::SymbolScript & symlist, int oploc, ccCompiledScript * scrip);
+int parse_subexpr_NewIsFirst(const size_t & symlist_len, const AGS::SymbolScript & symlist, int oploc, ccCompiledScript * scrip);
 
-int parse_subexpr_UnaryMinusIsFirst(const size_t & symlist_len, ccCompiledScript * scrip, const ags::SymbolScript & symlist);
+int parse_subexpr_UnaryMinusIsFirst(const size_t & symlist_len, ccCompiledScript * scrip, const AGS::SymbolScript & symlist);
 
-int parse_subexpr_NotIsFirst(const size_t & symlist_len, ccCompiledScript * scrip, const ags::SymbolScript & symlist);
+int parse_subexpr_NotIsFirst(const size_t & symlist_len, ccCompiledScript * scrip, const AGS::SymbolScript & symlist);

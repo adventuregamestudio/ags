@@ -51,8 +51,8 @@ struct ccCompiledScript : public ccScript {
 
     void pop_reg(int regg);
 
-    int ccCompiledScript::copy_import_symbol_table_entry(ags::Symbol idx, SymbolTableEntry *dest);
-    int ccCompiledScript::just_remove_any_import(ags::Symbol idx);
+    int ccCompiledScript::copy_import_symbol_table_entry(AGS::Symbol idx, SymbolTableEntry *dest);
+    int ccCompiledScript::just_remove_any_import(AGS::Symbol idx);
 
     ccCompiledScript();
     virtual ~ccCompiledScript();

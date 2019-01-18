@@ -16,7 +16,7 @@ int SymbolTableEntry::get_num_args()
 }
 
 // Get the type of a symbol table entry, regardless of pointerness or constness
-ags::Symbol SymbolTable::get_type(int ii) 
+AGS::Symbol SymbolTable::get_type(int ii) 
 {
     // consider the real type, regardless of pointerness/constness
     ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);

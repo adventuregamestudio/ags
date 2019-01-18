@@ -236,7 +236,7 @@ int ccCompiledScript::remove_any_import(const char *namm, SymbolDef *oldSym)
 
 
 // Copy the symbol table entry of an import (or forward) declaration
-int ccCompiledScript::copy_import_symbol_table_entry(ags::Symbol idx, SymbolTableEntry *dest)
+int ccCompiledScript::copy_import_symbol_table_entry(AGS::Symbol idx, SymbolTableEntry *dest)
 {
     size_t entries_idx = idx;
     dest->flags = sym.entries[entries_idx].flags;
@@ -263,7 +263,7 @@ int ccCompiledScript::copy_import_symbol_table_entry(ags::Symbol idx, SymbolTabl
 }
 
 // Remove any import with the specified name, using the modern SymbolTableEntry
-int ccCompiledScript::just_remove_any_import(ags::Symbol idx)
+int ccCompiledScript::just_remove_any_import(AGS::Symbol idx)
 {
     const char *n = sym.get_name(idx);
     if (n == nullptr) return 0;

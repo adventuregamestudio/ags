@@ -16,9 +16,9 @@ TEST(Scanner, ShortInputBackslash)
     struct ccInternalList TokenList1;
     sym.reset();
 
-    ags::Scanner scanner1(Input1, 3, &TokenList1);
+    AGS::Scanner scanner1(Input1, 3, &TokenList1);
     std::string symstring;
-    ags::Scanner::ScanType sct;
+    AGS::Scanner::ScanType sct;
 
     // Test
     scanner1.GetNextSymstring(symstring, sct, eofe, errore);
@@ -31,7 +31,7 @@ TEST(Scanner, ShortInputBackslash)
     std::string Input2 = "int i = '\\";
     struct ccInternalList TokenList2;
     sym.reset();
-    ags::Scanner scanner2(Input2, 3, &TokenList2);
+    AGS::Scanner scanner2(Input2, 3, &TokenList2);
     for (size_t loop = 0; loop < 3; loop++)
     {
         scanner2.GetNextSymstring(symstring, sct, eofe, errore);
@@ -46,7 +46,7 @@ TEST(Scanner, ShortInputBackslash)
     std::string Input3 = "String s = \"a\\";
     struct ccInternalList TokenList3;
     sym.reset();
-    ags::Scanner scanner3(Input3, 3, &TokenList3);
+    AGS::Scanner scanner3(Input3, 3, &TokenList3);
     for (size_t loop = 0; loop < 3; loop++)
     {
         scanner3.GetNextSymstring(symstring, sct, eofe, errore);
@@ -67,9 +67,9 @@ TEST(Scanner, ShortInputSimple)
     std::string Input2 = "int i = ' ";
     struct ccInternalList TokenList2;
     sym.reset();
-    ags::Scanner::ScanType sct;
+    AGS::Scanner::ScanType sct;
     std::string symstring;
-    ags::Scanner scanner2(Input2, 3, &TokenList2);
+    AGS::Scanner scanner2(Input2, 3, &TokenList2);
     for (size_t loop = 0; loop < 3; loop++)
     {
         scanner2.GetNextSymstring(symstring, sct, eofe, errore);
@@ -84,7 +84,7 @@ TEST(Scanner, ShortInputSimple)
     std::string Input3 = "String s = \"a";
     struct ccInternalList TokenList3;
     sym.reset();
-    ags::Scanner scanner3(Input3, 3, &TokenList3);
+    AGS::Scanner scanner3(Input3, 3, &TokenList3);
     for (size_t loop = 0; loop < 3; loop++)
     {
         scanner3.GetNextSymstring(symstring, sct, eofe, errore);
@@ -108,9 +108,9 @@ TEST(Scanner, TwoByteSymbols)
     std::string input = "i++<=j"; // Should be i ++ <= j
     struct ccInternalList TokenList;
     sym.reset();
-    ags::Scanner::ScanType sct;
+    AGS::Scanner::ScanType sct;
     std::string symstring;
-    ags::Scanner scanner(input, 3, &TokenList);
+    AGS::Scanner scanner(input, 3, &TokenList);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     EXPECT_EQ(0, symstring.compare("i"));
@@ -130,9 +130,9 @@ TEST(Scanner, IdentifiersElementary)
     std::string Input = "\nIdentifier\r\nIden2tifier\r\r iden_ti_9f9_ier3";
     struct ccInternalList TokenList;
 
-    ags::Scanner scanner(Input, 3, &TokenList);
+    AGS::Scanner scanner(Input, 3, &TokenList);
     std::string symstring;
-    ags::Scanner::ScanType sct;
+    AGS::Scanner::ScanType sct;
     bool eofe;
     bool errore;
     std::string estr;
@@ -142,21 +142,21 @@ TEST(Scanner, IdentifiersElementary)
     EXPECT_EQ(4, lno);
     estr = "Identifier";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     lno = scanner.GetLineno();
     EXPECT_EQ(5, lno);
     estr = "Iden2tifier";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     lno = scanner.GetLineno();
     EXPECT_EQ(5, lno);
     estr = "iden_ti_9f9_ier3";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
 }
 
 TEST(Scanner, IdentifiersNumbers)
@@ -165,9 +165,9 @@ TEST(Scanner, IdentifiersNumbers)
     std::string Input = "Ident 4ify5er; _4 6.5 6996";
     struct ccInternalList TokenList;
 
-    ags::Scanner scanner(Input, 1, &TokenList);
+    AGS::Scanner scanner(Input, 1, &TokenList);
     std::string symstring;
-    ags::Scanner::ScanType sct;
+    AGS::Scanner::ScanType sct;
     bool eofe;
     bool errore;
     std::string estr;
@@ -177,38 +177,38 @@ TEST(Scanner, IdentifiersNumbers)
     EXPECT_EQ(1, lno);
     estr = "Ident";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
 
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "4";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctIntLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::SctIntLiteral, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "ify5er";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = ";";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctNonChar, sct);
+    EXPECT_EQ(AGS::Scanner::SctNonChar, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "_4";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "6.5";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctFloatLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::SctFloatLiteral, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "6996";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctIntLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::SctIntLiteral, sct);
 
 }
 
@@ -220,9 +220,9 @@ TEST(Scanner, Strings)
          \"\nH\" flurp";
     struct ccInternalList TokenList;
 
-    ags::Scanner scanner(Input, 1, &TokenList);
+    AGS::Scanner scanner(Input, 1, &TokenList);
     std::string symstring;
-    ags::Scanner::ScanType sct;
+    AGS::Scanner::ScanType sct;
     bool eofe;
     bool errore;
     std::string estr;
@@ -237,7 +237,7 @@ TEST(Scanner, Strings)
     EXPECT_EQ(1, lno);
     estr = "\"ABC\"";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctStringLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::SctStringLiteral, sct);
 
     // Standard string, should be passed back normally.
     // "\\E" should be equivalent to "E". "\\n" shoult NOT be a newline char.
@@ -248,7 +248,7 @@ TEST(Scanner, Strings)
     EXPECT_EQ(2, lno);
     estr = "\"D\\E;\\nF\"";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctStringLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::SctStringLiteral, sct);
 
     // Character literal, should not be a string, but an integer.
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
@@ -258,7 +258,7 @@ TEST(Scanner, Strings)
     EXPECT_EQ(2, lno);
     estr = "71";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(ags::Scanner::SctIntLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::SctIntLiteral, sct);
 
     // String containing a newline. This should be marked as erroneous.
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
@@ -288,8 +288,8 @@ TEST(Scanner, TokenizerBasicStruct)
     struct ccInternalList TokenList;
     struct ccCompiledScript StringCollect;
 
-    ags::Scanner scanner(Input, 1, &TokenList);
-    ags::Tokenizer tokenizer(&scanner, &TokenList, &sym, &StringCollect);
+    AGS::Scanner scanner(Input, 1, &TokenList);
+    AGS::Tokenizer tokenizer(&scanner, &TokenList, &sym, &StringCollect);
 
     int token;
     bool eof_encountered;
@@ -439,8 +439,8 @@ TEST(Scanner, TokenizerMatchBraceParen)
         struct ccInternalList TokenList;
         struct ccCompiledScript StringCollect;
         sym.reset();
-        ags::Scanner scanner(Input, 1, &TokenList);
-        ags::Tokenizer tokenizer(&scanner, &TokenList, &sym, &StringCollect);
+        AGS::Scanner scanner(Input, 1, &TokenList);
+        AGS::Tokenizer tokenizer(&scanner, &TokenList, &sym, &StringCollect);
 
         int token;
         bool eof_encountered;
@@ -465,8 +465,8 @@ TEST(Scanner, TokenizerMatchBraceParen)
         // This closing ')' does not match the '[' on this line
         std::string Input = "f(a[bb.ccc * (d + e - ( f - g)))";
         sym.reset();
-        ags::Scanner scanner(Input, 1, &TokenList);
-        ags::Tokenizer tokenizer(&scanner, &TokenList, &sym, &StringCollect);
+        AGS::Scanner scanner(Input, 1, &TokenList);
+        AGS::Tokenizer tokenizer(&scanner, &TokenList, &sym, &StringCollect);
         bool eof_encountered;
         bool error_encountered;
         int token;

@@ -104,7 +104,7 @@ extern void skip_whitespace(char **pttt);
 extern int is_digit(int chrac);
 extern int is_alphanum(int chrac);
 
-namespace ags
+namespace AGS
 {
 // A symbol (result of scanner preprocessing)
 typedef int Symbol;
@@ -117,6 +117,6 @@ typedef std::intptr_t CodeCell;
 
 // A code location, may be negative
 typedef std::intptr_t CodeLoc;
-} // namespace ags
+} // namespace AGS
 
 #endif // __CS_PARSER_COMMON_H

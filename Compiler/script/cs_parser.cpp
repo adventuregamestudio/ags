@@ -28,19 +28,19 @@ static char scriptNameBuffer[256];
 
 int  ParseExpression(ccInternalList *targ, ccCompiledScript *script, bool consider_paren_nesting);
 
-int ReadDataIntoAX(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool negateLiteral);
-int ReadDataIntoAX(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool negateLiteral, bool mustBeWritable, bool &write_same_as_read_access);
+int ReadDataIntoAX(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len, bool negateLiteral);
+int ReadDataIntoAX(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len, bool negateLiteral, bool mustBeWritable, bool &write_same_as_read_access);
 
 int MemoryAccess(
-    ccCompiledScript *scrip, ags::Symbol variableSym,
+    ccCompiledScript *scrip, AGS::Symbol variableSym,
     int variableSymType, bool isProperty,
     bool writing, bool mustBeWritable,
     bool addressof, bool isArrayOffset,
     int soffset, bool pointerIsInMAR,
     bool wholePointerAccess,
-    ags::Symbol mainVariableSym, int mainVariableType,
+    AGS::Symbol mainVariableSym, int mainVariableType,
     bool isDynamicArray, bool negateLiteral);
-int ParseSubexpr(ccCompiledScript *scrip, ags::SymbolScript symlist, size_t symlist_len);
+int ParseSubexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len);
 
 
 enum FxFixupType
@@ -64,7 +64,7 @@ enum Importness
     ImImportType2 = 2
 };
 
-ags::Scanner::Scanner()
+AGS::Scanner::Scanner()
     :
     _lineno(1),
     _tokenList(0),
@@ -72,7 +72,7 @@ ags::Scanner::Scanner()
 {
 }
 
-ags::Scanner::Scanner(std::string const &input, std::size_t lineno, ::ccInternalList *token_list)
+AGS::Scanner::Scanner(std::string const &input, std::size_t lineno, ::ccInternalList *token_list)
     :
     _lineno(lineno),
     _tokenList(token_list),
@@ -81,27 +81,27 @@ ags::Scanner::Scanner(std::string const &input, std::size_t lineno, ::ccInternal
     SetInput(input);
 }
 
-void ags::Scanner::SetInput(const std::string &input)
+void AGS::Scanner::SetInput(const std::string &input)
 {
     _inputStream.str(input);
 }
 
-void ags::Scanner::SetLineno(std::size_t lineno)
+void AGS::Scanner::SetLineno(std::size_t lineno)
 {
     _lineno = lineno;
 }
 
-std::size_t ags::Scanner::GetLineno()
+std::size_t AGS::Scanner::GetLineno()
 {
     return _lineno;
 }
 
-void ags::Scanner::SetTokenList(ccInternalList *token_list)
+void AGS::Scanner::SetTokenList(ccInternalList *token_list)
 {
     _tokenList = token_list;
 }
 
-void ags::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_type, bool & eof_encountered, bool & error_encountered)
+void AGS::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_type, bool & eof_encountered, bool & error_encountered)
 {
     eof_encountered = false;
     error_encountered = false;
@@ -188,13 +188,13 @@ void ags::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_typ
     return;
 }
 
-const std::string ags::Scanner::GetLastError()
+const std::string AGS::Scanner::GetLastError()
 {
     return this->_lastError;
 }
 
 
-void ags::Scanner::SkipWhitespace(bool & eof_encountered, bool & error_encountered)
+void AGS::Scanner::SkipWhitespace(bool & eof_encountered, bool & error_encountered)
 {
     while (true)
     {
@@ -225,7 +225,7 @@ void ags::Scanner::SkipWhitespace(bool & eof_encountered, bool & error_encounter
     }
 }
 
-void ags::Scanner::ReadInNumberLit(std::string & symstring, ScanType &scan_type, bool & eof_encountered, bool & error_encountered)
+void AGS::Scanner::ReadInNumberLit(std::string & symstring, ScanType &scan_type, bool & eof_encountered, bool & error_encountered)
 {
     bool decimal_point_encountered = false;
 
@@ -265,7 +265,7 @@ void ags::Scanner::ReadInNumberLit(std::string & symstring, ScanType &scan_type,
     }
 }
 
-void ags::Scanner::ReadInCharLit(std::string & symstring, bool & eof_encountered, bool & error_encountered)
+void AGS::Scanner::ReadInCharLit(std::string & symstring, bool & eof_encountered, bool & error_encountered)
 {
     symstring = "";
     int lit_char;
@@ -336,7 +336,7 @@ void ags::Scanner::ReadInCharLit(std::string & symstring, bool & eof_encountered
     return;
 }
 
-void ags::Scanner::ReadInStringLit(std::string & symstring, bool & eof_encountered, bool & error_encountered)
+void AGS::Scanner::ReadInStringLit(std::string & symstring, bool & eof_encountered, bool & error_encountered)
 {
     symstring = "\"";
     _inputStream.get(); // We know that this is a '"'
@@ -377,7 +377,7 @@ void ags::Scanner::ReadInStringLit(std::string & symstring, bool & eof_encounter
 }
 
 
-void ags::Scanner::ReadInIdentifier(std::string & symstring, bool & eof_encountered, bool & error_encountered)
+void AGS::Scanner::ReadInIdentifier(std::string & symstring, bool & eof_encountered, bool & error_encountered)
 {
     symstring.assign(1, _inputStream.get());
 
@@ -407,7 +407,7 @@ void ags::Scanner::ReadInIdentifier(std::string & symstring, bool & eof_encounte
 
 
 
-void ags::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string & symstring, bool & eof_encountered, bool & error_encountered)
+void AGS::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std::string & symstring, bool & eof_encountered, bool & error_encountered)
 {
     symstring.assign(1, _inputStream.get());
 
@@ -419,12 +419,12 @@ void ags::Scanner::ReadIn1or2Char(const std::string &possible_second_chars, std:
     }
 }
 
-void ags::Scanner::ReadIn1Char(std::string & symstring)
+void AGS::Scanner::ReadIn1Char(std::string & symstring)
 {
     symstring.assign(1, _inputStream.get());
 }
 
-void ags::Scanner::ReadInDotCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)
+void AGS::Scanner::ReadInDotCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)
 {
     ReadIn1or2Char(".", symstring, eof_encountered, error_encountered);
     if (eof_encountered || error_encountered) return;
@@ -442,7 +442,7 @@ void ags::Scanner::ReadInDotCombi(std::string &symstring, bool &eof_encountered,
 }
 
 
-void ags::Scanner::ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)
+void AGS::Scanner::ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered)
 {
     ReadIn1or2Char("<=", symstring, eof_encountered, error_encountered);
     if (eof_encountered || error_encountered) return;
@@ -453,7 +453,7 @@ void ags::Scanner::ReadInLTCombi(std::string &symstring, bool &eof_encountered, 
     }
 }
 
-void ags::Scanner::ReadInGTCombi(std::string & symstring, bool & eof_encountered, bool & error_encountered)
+void AGS::Scanner::ReadInGTCombi(std::string & symstring, bool & eof_encountered, bool & error_encountered)
 {
     ReadIn1or2Char(">=", symstring, eof_encountered, error_encountered);
     if (eof_encountered || error_encountered) return;
@@ -465,7 +465,7 @@ void ags::Scanner::ReadInGTCombi(std::string & symstring, bool & eof_encountered
 }
 
 
-ags::Tokenizer::Tokenizer()
+AGS::Tokenizer::Tokenizer()
     : _scanner(0)
     , _tokenList(0)
     , _symbolTable(0)
@@ -474,7 +474,7 @@ ags::Tokenizer::Tokenizer()
     Reset();
 }
 
-ags::Tokenizer::Tokenizer(ags::Scanner *scanner, ::ccInternalList *token_list, ::SymbolTable *symbol_table, ::ccCompiledScript *string_collector)
+AGS::Tokenizer::Tokenizer(AGS::Scanner *scanner, ::ccInternalList *token_list, ::SymbolTable *symbol_table, ::ccCompiledScript *string_collector)
     : _scanner(scanner)
     , _tokenList(token_list)
     , _symbolTable(symbol_table)
@@ -483,27 +483,27 @@ ags::Tokenizer::Tokenizer(ags::Scanner *scanner, ::ccInternalList *token_list, :
     Reset();
 }
 
-void ags::Tokenizer::SetScanner(ags::Scanner *scanner)
+void AGS::Tokenizer::SetScanner(AGS::Scanner *scanner)
 {
     _scanner = scanner;
 }
 
-void ags::Tokenizer::SetTokenList(ccInternalList *token_list)
+void AGS::Tokenizer::SetTokenList(ccInternalList *token_list)
 {
     _tokenList = token_list;
 }
 
-void ags::Tokenizer::SetSymbolTable(SymbolTable *symbol_table)
+void AGS::Tokenizer::SetSymbolTable(SymbolTable *symbol_table)
 {
     _symbolTable = symbol_table;
 }
 
-void ags::Tokenizer::SetStringCollector(ccCompiledScript * string_collector)
+void AGS::Tokenizer::SetStringCollector(ccCompiledScript * string_collector)
 {
     _stringCollector = string_collector;
 }
 
-void ags::Tokenizer::Reset()
+void AGS::Tokenizer::Reset()
 {
     _currentMode = ModeStandard;
     _braceNestingDepthInStructDecl = 0;
@@ -514,21 +514,21 @@ void ags::Tokenizer::Reset()
 }
 
 
-const std::string ags::Tokenizer::GetLastError()
+const std::string AGS::Tokenizer::GetLastError()
 {
     return _lastError;
 }
 
-void ags::Tokenizer::ResetTemporaryTypesInSymbolTable()
+void AGS::Tokenizer::ResetTemporaryTypesInSymbolTable()
 {
     // clear any temporary types set
     for (size_t tok = 0; tok < _symbolTable->entries.size(); tok++)
     {
-        if (TokenType(tok) == SYM_TEMPORARYTYPE) SetTokenType(tok, static_cast<ags::Symbol>(0));
+        if (TokenType(tok) == SYM_TEMPORARYTYPE) SetTokenType(tok, static_cast<AGS::Symbol>(0));
     }
 }
 
-void ags::Tokenizer::ProcessScannerSymstring(
+void AGS::Tokenizer::ProcessScannerSymstring(
     Scanner::ScanType symbol_type,
     std::string & symstring,
     int last_token,
@@ -654,7 +654,7 @@ void ags::Tokenizer::ProcessScannerSymstring(
 }
 
 
-void ags::Tokenizer::TokenizeStringLiteral(int token, std::string const & symstring)
+void AGS::Tokenizer::TokenizeStringLiteral(int token, std::string const & symstring)
 {
     SetTokenType(token, SYM_STRING);
     SetTokenVartype(token, _symbolTable->normalStringSym);
@@ -666,7 +666,7 @@ void ags::Tokenizer::TokenizeStringLiteral(int token, std::string const & symstr
 }
 
 
-void ags::Tokenizer::GetNextToken(
+void AGS::Tokenizer::GetNextToken(
     int &token,
     bool & eof_encountered, bool & error_encountered)
 {
@@ -719,7 +719,7 @@ void ags::Tokenizer::GetNextToken(
 
 
 // Check the nesting of () [] {}, error if mismatch
-void ags::Tokenizer::CheckMatcherNesting(int token, bool & error_encountered)
+void AGS::Tokenizer::CheckMatcherNesting(int token, bool & error_encountered)
 {
     switch (TokenType(token))
     {
@@ -754,7 +754,7 @@ void ags::Tokenizer::CheckMatcherNesting(int token, bool & error_encountered)
 }
 
 
-std::string ags::Tokenizer::FullNameFromStructAndMember(int struct_name_token, int member_name_token)
+std::string AGS::Tokenizer::FullNameFromStructAndMember(int struct_name_token, int member_name_token)
 {
     std::string member_name = _symbolTable->get_name(member_name_token);
     if (member_name.at(0) == '.') member_name.erase(0, 1);
@@ -765,7 +765,7 @@ std::string ags::Tokenizer::FullNameFromStructAndMember(int struct_name_token, i
 }
 
 
-int ags::Tokenizer::ConvertSymstringToTokenIndex(std::string symstring)
+int AGS::Tokenizer::ConvertSymstringToTokenIndex(std::string symstring)
 {
     int token = _symbolTable->find(symstring.c_str());
     if (token < 0)
@@ -776,26 +776,26 @@ int ags::Tokenizer::ConvertSymstringToTokenIndex(std::string symstring)
 }
 
 
-void ags::OpenCloseMatcher::Reset()
+void AGS::OpenCloseMatcher::Reset()
 {
     _lastError = "";
     _openInfoStack.resize(0);
 }
 
 
-std::string ags::OpenCloseMatcher::GetLastError()
+std::string AGS::OpenCloseMatcher::GetLastError()
 {
     return _lastError;
 }
 
 
-ags::OpenCloseMatcher::OpenCloseMatcher()
+AGS::OpenCloseMatcher::OpenCloseMatcher()
 {
     Reset();
 }
 
 
-void ags::OpenCloseMatcher::Push(std::string const & opener, std::string const & expected_closer, int lineno)
+void AGS::OpenCloseMatcher::Push(std::string const & opener, std::string const & expected_closer, int lineno)
 {
     struct OpenInfo oi;
     oi._opener = opener;
@@ -806,7 +806,7 @@ void ags::OpenCloseMatcher::Push(std::string const & opener, std::string const &
 }
 
 
-void ags::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, bool & error_encountered)
+void AGS::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, bool & error_encountered)
 {
     if (_openInfoStack.empty())
     {
@@ -829,10 +829,10 @@ void ags::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, 
     }
 }
 
-int ags::NestingStack::Push(NestingType type, ags::CodeLoc start, ags::CodeLoc info)
+int AGS::NestingStack::Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc info)
 {
-    std::vector<ags::ccChunk> dummy_chunk;
-    struct ags::NestingInfo ni = { type, start, info, 0, dummy_chunk };
+    std::vector<AGS::ccChunk> dummy_chunk;
+    struct AGS::NestingInfo ni = { type, start, info, 0, dummy_chunk };
     try
     {
         _stack.push_back(ni);
@@ -845,18 +845,18 @@ int ags::NestingStack::Push(NestingType type, ags::CodeLoc start, ags::CodeLoc i
     return 0;
 }
 
-ags::NestingStack::NestingStack()
+AGS::NestingStack::NestingStack()
 {
     // Push first record on stack so that it isn't empty
-    Push(ags::NestingStack::NTNothing);
+    Push(AGS::NestingStack::NTNothing);
 }
 
 
 // Rip the code that has already been generated, starting from codeoffset, out of scrip
 // and move it into the vector at list, instead.
-void ags::NestingStack::YankChunk(ccCompiledScript *scrip, ags::CodeLoc codeoffset, ags::CodeLoc fixupoffset)
+void AGS::NestingStack::YankChunk(ccCompiledScript *scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset)
 {
-    ags::ccChunk item;
+    AGS::ccChunk item;
 
     for (size_t code_idx = codeoffset; code_idx < scrip->codesize; code_idx++)
     {
@@ -880,11 +880,11 @@ void ags::NestingStack::YankChunk(ccCompiledScript *scrip, ags::CodeLoc codeoffs
 
 
 // Copy the code in ccChunk to the end of the bytecode vector 
-void ags::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t index)
+void AGS::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t index)
 {
-    const ags::ccChunk item = Chunks(level).at(index);
+    const AGS::ccChunk item = Chunks(level).at(index);
     scrip->flush_line_numbers();
-    ags::CodeLoc adjust = scrip->codesize - item.CodeOffset;
+    AGS::CodeLoc adjust = scrip->codesize - item.CodeOffset;
 
     size_t limit = item.Code.size();
     for (size_t index = 0; index < limit; index++)
@@ -902,7 +902,7 @@ void ags::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t
 
 std::string ConstructedMemberName; // size limitation removed
 
-const char *GetFullNameOfMember(ags::Symbol structSym, ags::Symbol memberSym)
+const char *GetFullNameOfMember(AGS::Symbol structSym, AGS::Symbol memberSym)
 {
 
     // Get C-string of member, de-mangle it if appropriate
@@ -928,8 +928,8 @@ int sym_find_or_add(SymbolTable &sym, const char *sname)
 // Scan inpl into scan tokens, write line number opcodes, build a symbol table, mangle complex symbols
 int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
 {
-    ags::Scanner scanner(inpl, 1, targ);
-    ags::Tokenizer tokenizer(&scanner, targ, &sym, scrip);
+    AGS::Scanner scanner(inpl, 1, targ);
+    AGS::Tokenizer tokenizer(&scanner, targ, &sym, scrip);
 
     // Write pseudo opcode for "Starting line 1"
     targ->write_meta(SMETA_LINENUM, 1);
@@ -946,7 +946,7 @@ int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
             return -1;
         }
         if (eof_encountered || error_encountered) break;
-        targ->write(static_cast<::ags::Symbol>(token));
+        targ->write(static_cast<::AGS::Symbol>(token));
     }
 
     // Write pseudo opcode for "This ends this tokenization"
@@ -958,7 +958,7 @@ int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
 }
 
 
-void FreePointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbol arraySym)
+void FreePointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, AGS::Symbol arraySym)
 {
     scrip->write_cmd1(SCMD_LOADSPOFFS, spOffset);
     scrip->write_cmd(zeroCmd);
@@ -975,7 +975,7 @@ void FreePointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, ags::Symbol
 }
 
 
-void FreePointersOfStruct(ccCompiledScript *scrip, ags::Symbol structVarSym)
+void FreePointersOfStruct(ccCompiledScript *scrip, AGS::Symbol structVarSym)
 {
     size_t structType = sym.entries[structVarSym].vartype;
 
@@ -992,7 +992,7 @@ void FreePointersOfStruct(ccCompiledScript *scrip, ags::Symbol structVarSym)
             // **** TODO"
             // [fw] depends on how that struct of struct is in the symbol table;
             //      STRUCTSYM.SUBSTRUCTSYM perhaps?
-            //      ags:Symbol substruct = find(....);
+            //      AGS:Symbol substruct = find(....);
             //      if (substruct is not in the symtable) continue;
 
             //      FreePointersOfStruct(scrip, substruct);
@@ -1003,7 +1003,7 @@ void FreePointersOfStruct(ccCompiledScript *scrip, ags::Symbol structVarSym)
         // Locate where the pointer is on the stack
         int spOffs = (scrip->cur_sp - sym.entries[structVarSym].soffs) - sym.entries[entries_idx].soffs;
 
-        FreePointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<ags::Symbol>(entries_idx));
+        FreePointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<AGS::Symbol>(entries_idx));
 
         if (sym.entries[structVarSym].flags & SFLG_ARRAY)
         {
@@ -1011,14 +1011,14 @@ void FreePointersOfStruct(ccCompiledScript *scrip, ags::Symbol structVarSym)
             for (int ii = 1; ii < sym.entries[structVarSym].arrsize; ii++)
             {
                 spOffs -= sym.entries[structType].ssize;
-                FreePointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<ags::Symbol>(entries_idx));
+                FreePointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<AGS::Symbol>(entries_idx));
             }
         }
     }
 }
 
 
-inline bool is_any_type_of_string(ags::Symbol symtype)
+inline bool is_any_type_of_string(AGS::Symbol symtype)
 {
     symtype &= ~(STYPE_CONST | STYPE_POINTER);
     if ((symtype == sym.normalStringSym) || (symtype == sym.stringStructSym))
@@ -1078,14 +1078,14 @@ int FreePointersOfLocals(ccCompiledScript *scrip, int from_level)
         if (((sym.entries[entries_idx].flags & SFLG_POINTER) != 0) ||
             ((sym.entries[entries_idx].flags & SFLG_DYNAMICARRAY) != 0))
         {
-            FreePointer(scrip, scrip->cur_sp - sym.entries[entries_idx].soffs, zeroPtrCmd, static_cast<ags::Symbol>(entries_idx));
+            FreePointer(scrip, scrip->cur_sp - sym.entries[entries_idx].soffs, zeroPtrCmd, static_cast<AGS::Symbol>(entries_idx));
             continue;
         }
 
         if (sym.entries[sym.entries[entries_idx].vartype].flags & SFLG_STRUCTTYPE)
         {
             // free any pointers that this struct contains
-            FreePointersOfStruct(scrip, static_cast<ags::Symbol>(entries_idx));
+            FreePointersOfStruct(scrip, static_cast<AGS::Symbol>(entries_idx));
             continue;
         }
     }
@@ -1113,12 +1113,12 @@ int RemoveLocalsFromSymtable(int from_level)
 // body of WHILE and other statements. 
 // If the symbol "else" follows a THEN clause of an IF, this is handled most easily
 // by adding an unconditional jump out and then changing the THEN clause into an ELSE clause. 
-int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, ags::NestingStack *nesting_stack, bool &else_after_then)
+int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, AGS::NestingStack *nesting_stack, bool &else_after_then)
 {
     // Check whether the symbol "else" follows a then branch
     else_after_then = false;
-    if (nesting_stack->Type() == ags::NestingStack::NTUnbracedElse);
-    else if (nesting_stack->Type() == ags::NestingStack::NTBracedElse);
+    if (nesting_stack->Type() == AGS::NestingStack::NTUnbracedElse);
+    else if (nesting_stack->Type() == AGS::NestingStack::NTBracedElse);
     else if (sym.get_type(targ->peeknext()) == SYM_ELSE)
     {
         targ->getnext();  // eat "else"
@@ -1147,10 +1147,10 @@ int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, ags::Nest
     if (else_after_then)
     {
         // convert the THEN branch into an ELSE, i.e., stay on the same Depth()
-        nesting_stack->SetType(ags::NestingStack::NTUnbracedElse);
+        nesting_stack->SetType(AGS::NestingStack::NTUnbracedElse);
         if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
         {
-            nesting_stack->SetType(ags::NestingStack::NTBracedElse);
+            nesting_stack->SetType(AGS::NestingStack::NTBracedElse);
             targ->getnext();
         }
 
@@ -1164,7 +1164,7 @@ int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, ags::Nest
     // Clause ends, so pop the level off the stack
     nesting_stack->Pop();
 
-    if (nesting_stack->Type() == ags::NestingStack::NTFor)
+    if (nesting_stack->Type() == AGS::NestingStack::NTFor)
     {
         // A FOR is represented by two nestings, so we need to pop another level
         nesting_stack->Pop();
@@ -1185,11 +1185,11 @@ int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, ags::Nest
 }
 
 
-int DealWithEndOf_do(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack)
+int DealWithEndOf_do(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack)
 {
     scrip->flush_line_numbers();
 
-    ags::Symbol cursym = targ->getnext();
+    AGS::Symbol cursym = targ->getnext();
     if (sym.get_type(cursym) != SYM_WHILE)
     {
         cc_error("Do without while");
@@ -1223,7 +1223,7 @@ int DealWithEndOf_do(ccInternalList *targ, ccCompiledScript *scrip, ags::Nesting
 }
 
 
-int DealWithEndOf_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack)
+int DealWithEndOf_switch(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack)
 {
     const size_t ns_level = nesting_stack->Depth() - 1;
 
@@ -1235,7 +1235,7 @@ int DealWithEndOf_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::Nes
     }
 
     // We begin the jump table; remember this address
-    ags::CodeLoc jumptable_loc = scrip->codesize;
+    AGS::CodeLoc jumptable_loc = scrip->codesize;
 
     // Patch the instruction "Jump to the jump table" at the start of the switch
     // so that it points to the correct address, i.e., here
@@ -1273,11 +1273,11 @@ int DealWithEndOf_switch(ccInternalList *targ, ccCompiledScript *scrip, ags::Nes
 // Given a struct STRUCT and a member MEMBER, 
 // finds the symbol of the fully qualified name STRUCT::MEMBER and returns it in memSym.
 // Gives error if the fully qualified symbol is protected.
-int FindMemberSym(ags::Symbol structSym, ags::Symbol &memSym, bool allowProtected) {
+int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtected) {
 
     // Construct a string out of struct and member, look it up in the symbol table
     const char *name_as_cstring = GetFullNameOfMember(structSym, memSym);
-    ags::Symbol full_name = sym.find(name_as_cstring);
+    AGS::Symbol full_name = sym.find(name_as_cstring);
 
     if (full_name < 0)
     {
@@ -1303,7 +1303,7 @@ int FindMemberSym(ags::Symbol structSym, ags::Symbol &memSym, bool allowProtecte
 }
 
 
-int ParseLiteral_or_constvalue(ags::Symbol fromSym, int &theValue, bool isNegative, const char *errorMsg) {
+int ParseLiteral_or_constvalue(AGS::Symbol fromSym, int &theValue, bool isNegative, const char *errorMsg) {
     if (sym.get_type(fromSym) == SYM_CONSTANT)
     {
         theValue = sym.entries[fromSym].soffs;
@@ -1376,7 +1376,7 @@ int ParseParamlist_param_DefaultValue(
     targ->getnext();   // eat "="
 
     bool default_is_negative = false;
-    ags::Symbol default_value_symbol = targ->getnext(); // may be '-', too
+    AGS::Symbol default_value_symbol = targ->getnext(); // may be '-', too
     if (default_value_symbol == sym.find("-"))
     {
         default_is_negative = true;
@@ -1396,7 +1396,7 @@ int ParseParamlist_param_DefaultValue(
 // Return values:  0 -- not an array, 1 -- an array, -1 -- error occurred
 int ParseParamlist_param_DynArrayMarker(
     ccInternalList *targ,
-    ags::Symbol typeSym,
+    AGS::Symbol typeSym,
     bool isPointer)
 {
     if (sym.get_type(targ->peeknext()) != SYM_OPENBRACKET) return 0;
@@ -1426,7 +1426,7 @@ int ParseParamlist_param_DynArrayMarker(
 }
 
 
-int ParseFuncdecl_CopyForwardDecl(ccCompiledScript * scrip, ags::Symbol & funcsym, SymbolTableEntry *oldDefinition)
+int ParseFuncdecl_CopyForwardDecl(ccCompiledScript * scrip, AGS::Symbol & funcsym, SymbolTableEntry *oldDefinition)
 {
     // Copy so that the forward definition can be compared afterwards to the real one 
     int retval = scrip->copy_import_symbol_table_entry(funcsym, oldDefinition);
@@ -1453,8 +1453,8 @@ int ParseFuncdecl_ExtenderPreparations(
     bool func_is_static_extender,
     Importness func_is_import,
     std::string & functionName,
-    ags::Symbol &funcsym,
-    ags::Symbol &struct_extended_by_the_func,
+    AGS::Symbol &funcsym,
+    AGS::Symbol &struct_extended_by_the_func,
     SymbolTableEntry * oldDefinition)
 {
     targ->getnext(); // accept "this" or "static"
@@ -1528,7 +1528,7 @@ int ParseFuncdecl_ExtenderPreparations(
 }
 
 
-int ParseFuncdecl_NonExtenderPreparations(ccCompiledScript *scrip, Importness func_is_import, int struct_containing_the_func, std::string &functionName, ags::Symbol &funcsym, SymbolTableEntry *oldDefinition)
+int ParseFuncdecl_NonExtenderPreparations(ccCompiledScript *scrip, Importness func_is_import, int struct_containing_the_func, std::string &functionName, AGS::Symbol &funcsym, SymbolTableEntry *oldDefinition)
 {
     if (func_is_import == ImNoImport && (sym.entries[funcsym].flags & SFLG_IMPORTED) != 0)
     {
@@ -1600,7 +1600,7 @@ enum param_defaults
 int ParseFunc_paramlist_Param_NameAndDefault(
     ccInternalList * targ,
     bool ParseParamlist_is_declaration,
-    ags::Symbol & param_name,
+    AGS::Symbol & param_name,
     bool & param_has_int_default,
     int & param_int_default)
 {
@@ -1648,9 +1648,9 @@ int ParseFunc_paramlist_Param_NameAndDefault(
 int ParseFunc_paramlist_Param(
     ccInternalList * targ,
     ccCompiledScript * scrip,
-    ags::Symbol funcsym,
+    AGS::Symbol funcsym,
     Importness func_is_import,
-    ags::Symbol cursym,
+    AGS::Symbol cursym,
     int curtype,
     bool param_is_const,
     int param_idx)
@@ -1677,7 +1677,7 @@ int ParseFunc_paramlist_Param(
     bool createdLocalVar = !ParseParamlist_is_declaration;
 
     // Process the parameter name (when present and meaningful) and the default (when present)
-    ags::Symbol param_name;
+    AGS::Symbol param_name;
     bool param_has_int_default;
     int param_int_default;
     retval = ParseFunc_paramlist_Param_NameAndDefault(
@@ -1724,14 +1724,14 @@ int ParseFunc_paramlist_Param(
 int ParseFuncdecl_paramlist(
     ccInternalList * targ,
     ccCompiledScript * scrip,
-    ags::Symbol funcsym,
+    AGS::Symbol funcsym,
     Importness func_is_import,
     int &numparams)
 {
     bool param_is_const = false;
     while (true)
     {
-        ags::Symbol cursym = targ->getnext();
+        AGS::Symbol cursym = targ->getnext();
         int curtype = sym.get_type(cursym);
 
         if (curtype == SYM_CLOSEPARENTHESIS) break;
@@ -1752,7 +1752,7 @@ int ParseFuncdecl_paramlist(
         if (curtype == SYM_CONST)
         {
             // get next token, this must be a variable type
-            ags::Symbol cursym = targ->getnext();
+            AGS::Symbol cursym = targ->getnext();
             int curtype = sym.get_type(cursym);
             if (curtype != SYM_VARTYPE)
             {
@@ -1787,7 +1787,7 @@ int ParseFuncdecl_paramlist(
 }
 
 
-int ParseFuncdecl_CheckForIllegalCombis(bool func_is_readonly, ags::Symbol name_of_current_func, size_t stack_depth)
+int ParseFuncdecl_CheckForIllegalCombis(bool func_is_readonly, AGS::Symbol name_of_current_func, size_t stack_depth)
 {
     if (func_is_readonly)
     {
@@ -1805,7 +1805,7 @@ int ParseFuncdecl_CheckForIllegalCombis(bool func_is_readonly, ags::Symbol name_
 
 
 int ParseFuncdecl_SetFunctype(
-    ags::Symbol funcsym,
+    AGS::Symbol funcsym,
     int ret_parameter_size,
     int return_type,
     bool func_returns_ptr,
@@ -1841,7 +1841,7 @@ int ParseFuncdecl_SetFunctype(
 
 
 // there was a forward declaration -- check that the real declaration matches it
-int ParseFuncdecl_CheckThatForwardDeclMatches(ags::Symbol funcname, SymbolTableEntry *prototype)
+int ParseFuncdecl_CheckThatForwardDeclMatches(AGS::Symbol funcname, SymbolTableEntry *prototype)
 {
     if (prototype->stype != sym.entries[funcname].stype)
     {
@@ -1904,14 +1904,14 @@ int ParseFuncdecl_CheckThatForwardDeclMatches(ags::Symbol funcname, SymbolTableE
 int ParseFuncdecl(
     ccInternalList *targ,
     ccCompiledScript *scrip,
-    ags::Symbol &name_of_func,
+    AGS::Symbol &name_of_func,
     int return_type, // from "vtwas" in the caller - is the return type in here
     bool func_returns_ptr,
     bool func_returns_dynarray,
     bool func_is_static,
     Importness func_is_import,  // NOT a bool: it can contain 0 .. 2
-    ags::Symbol struct_containing_the_func,
-    ags::Symbol &struct_extended_by_the_func, // the BAR in "int FOO(this BAR *," 
+    AGS::Symbol struct_containing_the_func,
+    AGS::Symbol &struct_extended_by_the_func, // the BAR in "int FOO(this BAR *," 
     bool &body_follows)
 {
     int numparams = 1; // Counts the number of parameters including the ret parameter, so start at 1
@@ -2026,7 +2026,7 @@ int ParseFuncdecl(
     }
 
     // member function expects the ';' to still be there whereas normal function does not
-    ags::Symbol nextvar = targ->peeknext();
+    AGS::Symbol nextvar = targ->peeknext();
     if (struct_containing_the_func == 0) nextvar = targ->getnext();
 
     if (sym.get_type(nextvar) != SYM_SEMICOLON)
@@ -2085,7 +2085,7 @@ bool CanBePartOfExpression(ccInternalList *targ, size_t script_idx)
 // The higher sym.entries[op].ssize is, the LESS binding is the operator op.
 // To convert, we must subtract this value from some suitable value 
 // (any will do that doesn't cause underflow of the subtraction).
-inline int MathPrio(ags::Symbol op)
+inline int MathPrio(AGS::Symbol op)
 {
     return 100 - sym.entries[op].ssize;
 }
@@ -2094,7 +2094,7 @@ inline int MathPrio(ags::Symbol op)
 // return the index of the lowest MATHEMATICAL priority operator in the list,
 // so that either side of it can be evaluated first.
 // returns -1 if no operator was found
-int IndexOfLowestBondingOperator(ags::SymbolScript slist, size_t slist_len)
+int IndexOfLowestBondingOperator(AGS::SymbolScript slist, size_t slist_len)
 {
     size_t bracket_nesting_depth = 0;
     size_t paren_nesting_depth = 0;
@@ -2323,7 +2323,7 @@ inline bool IsBooleanVCPUOperator(int scmdtype)
 }
 
 
-int BufferVarOrFunccall_DotItem_HandleFuncCall(ccInternalList *targ, int & funcAtOffs, const ags::SymbolScript &slist, size_t & slist_len)
+int BufferVarOrFunccall_DotItem_HandleFuncCall(ccInternalList *targ, int & funcAtOffs, const AGS::SymbolScript &slist, size_t & slist_len)
 {
     int paren_expr_startline = currentline;
     funcAtOffs = slist_len - 1;
@@ -2361,12 +2361,12 @@ int BufferVarOrFunccall_DotItem_HandleFuncCall(ccInternalList *targ, int & funcA
 }
 
 // We have accepted something like "m.a."
-int BufferVarOrFunccall_GotDot(ccInternalList *targ, bool justHadBrackets, ags::SymbolScript slist, size_t &slist_len, ags::Symbol &current_member, int &funcAtOffs)
+int BufferVarOrFunccall_GotDot(ccInternalList *targ, bool justHadBrackets, AGS::SymbolScript slist, size_t &slist_len, AGS::Symbol &current_member, int &funcAtOffs)
 {
     bool mustBeStaticMember = false;
 
     // Get the type of the component before the dot.
-    ags::Symbol current_member_type = 0;
+    AGS::Symbol current_member_type = 0;
     if (sym.get_type(current_member) == SYM_VARTYPE)
     {
         // static member access, eg. "Math.Func()"
@@ -2427,7 +2427,7 @@ int BufferVarOrFunccall_GotDot(ccInternalList *targ, bool justHadBrackets, ags::
 
 
 // We've read something like "a.b.c[", we've already stored the '['
-int BufferVarOrFunccall_GotOpenBracket(ccInternalList *targ, ags::SymbolScript slist, size_t &slist_len)
+int BufferVarOrFunccall_GotOpenBracket(ccInternalList *targ, AGS::SymbolScript slist, size_t &slist_len)
 {
 
     if ((sym.entries[slist[slist_len - 2]].flags & SFLG_ARRAY) == 0)
@@ -2450,7 +2450,7 @@ int BufferVarOrFunccall_GotOpenBracket(ccInternalList *targ, ags::SymbolScript s
     // vartype is allowed to permit access to static members, e.g. array[Game.GetColorFromRGB(0, 0, 0)]
     while (bracket_nesting_depth > 0)
     {
-        ags::Symbol next_symbol = targ->getnext();
+        AGS::Symbol next_symbol = targ->getnext();
         if (next_symbol == SCODE_INVALID)
         {
             currentline = bracket_expr_startline;
@@ -2482,7 +2482,7 @@ int BufferVarOrFunccall_GotOpenBracket(ccInternalList *targ, ags::SymbolScript s
 
 // Copies the parts of a  variable name or array expression or function call into slist[]
 // If there isn't any of this here, this will return without error
-int BufferVarOrFunccall(ccInternalList *targ, ags::Symbol fsym, ags::SymbolScript slist, size_t &slist_len, int &funcAtOffs)
+int BufferVarOrFunccall(ccInternalList *targ, AGS::Symbol fsym, AGS::SymbolScript slist, size_t &slist_len, int &funcAtOffs)
 {
     funcAtOffs = -1;
 
@@ -2591,7 +2591,7 @@ void SetAXScope(ccCompiledScript *scrip, int scrip_idx)
 }
 
 
-int FindClosingBracketOffs(size_t openBracketOffs, ags::SymbolScript symlist, size_t symlist_len, size_t &brac_idx)
+int FindClosingBracketOffs(size_t openBracketOffs, AGS::SymbolScript symlist, size_t symlist_len, size_t &brac_idx)
 {
     int nesting_depth = 0;
     for (brac_idx = openBracketOffs + 1; brac_idx < symlist_len; brac_idx++)
@@ -2610,7 +2610,7 @@ int FindClosingBracketOffs(size_t openBracketOffs, ags::SymbolScript symlist, si
 }
 
 
-int FindOpeningBracketOffs(size_t closeBracketOffs, ags::SymbolScript symlist, size_t &brac_idx)
+int FindOpeningBracketOffs(size_t closeBracketOffs, AGS::SymbolScript symlist, size_t &brac_idx)
 {
     int nesting_depth = 0;
 
@@ -2633,7 +2633,7 @@ int FindOpeningBracketOffs(size_t closeBracketOffs, ags::SymbolScript symlist, s
 }
 
 
-int AccessData_SplitPathIntoParts(VariableSymlist *variablePath, ags::SymbolScript syml, size_t syml_len, size_t &variablePathSize)
+int AccessData_SplitPathIntoParts(VariableSymlist *variablePath, AGS::SymbolScript syml, size_t syml_len, size_t &variablePathSize)
 {
     variablePathSize = 0;
     int lastOffs = 0;
@@ -2722,7 +2722,7 @@ inline int GetReadWriteCmdForSize(int the_size, bool write_operation)
 }
 
 
-int ParseSubexpr_NewIsFirst(ccCompiledScript * scrip, const ags::SymbolScript & symlist, const size_t & symlist_len)
+int ParseSubexpr_NewIsFirst(ccCompiledScript * scrip, const AGS::SymbolScript & symlist, const size_t & symlist_len)
 {
     if (symlist_len < 2 || sym.get_type(symlist[1]) != SYM_VARTYPE)
     {
@@ -2747,7 +2747,7 @@ int ParseSubexpr_NewIsFirst(ccCompiledScript * scrip, const ags::SymbolScript & 
     // "new TYPE[EXPR]", nothing following
     if (sym.get_type(symlist[2]) == SYM_OPENBRACKET && sym.get_type(symlist[symlist_len - 1]) == SYM_CLOSEBRACKET)
     {
-        ags::Symbol arrayType = symlist[1];
+        AGS::Symbol arrayType = symlist[1];
 
         // Expression for length of array begins after "[", ends before "]"
         // So expression_length = whole_length - 3 - 1
@@ -2787,7 +2787,7 @@ int ParseSubexpr_NewIsFirst(ccCompiledScript * scrip, const ags::SymbolScript & 
 
 
 // We're parsing an expression that starts with '-' (unary minus)
-int ParseSubexpr_UnaryMinusIsFirst(ccCompiledScript * scrip, const ags::SymbolScript & symlist, const size_t & symlist_len)
+int ParseSubexpr_UnaryMinusIsFirst(ccCompiledScript * scrip, const AGS::SymbolScript & symlist, const size_t & symlist_len)
 {
     if (symlist_len < 2)
     {
@@ -2811,7 +2811,7 @@ int ParseSubexpr_UnaryMinusIsFirst(ccCompiledScript * scrip, const ags::SymbolSc
 
 
 // We're parsing an expression that starts with '!' (boolean NOT)
-int ParseSubexpr_NotIsFirst(ccCompiledScript * scrip, const ags::SymbolScript & symlist, const size_t & symlist_len)
+int ParseSubexpr_NotIsFirst(ccCompiledScript * scrip, const AGS::SymbolScript & symlist, const size_t & symlist_len)
 {
 
     if (symlist_len < 2)
@@ -2838,7 +2838,7 @@ int ParseSubexpr_NotIsFirst(ccCompiledScript * scrip, const ags::SymbolScript & 
 
 // The lowest-binding operator is the first thing in the expression
 // This means that the op must be an unary op.
-int ParseSubexpr_OpIsFirst(ccCompiledScript * scrip, const ags::SymbolScript &symlist, const size_t &symlist_len)
+int ParseSubexpr_OpIsFirst(ccCompiledScript * scrip, const AGS::SymbolScript &symlist, const size_t &symlist_len)
 {
     if (sym.get_type(symlist[0]) == SYM_NEW)
     {
@@ -2865,7 +2865,7 @@ int ParseSubexpr_OpIsFirst(ccCompiledScript * scrip, const ags::SymbolScript &sy
 
 
 // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, const ags::SymbolScript &symlist, const size_t &symlist_len)
+int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, const AGS::SymbolScript &symlist, const size_t &symlist_len)
 {
 
     int vcpuOperator = sym.entries[symlist[op_idx]].operatorToVCPUCmd();
@@ -2900,7 +2900,7 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, cons
         return -1;
     }
 
-    ags::CodeLoc jump_dest_loc_to_patch = -1;
+    AGS::CodeLoc jump_dest_loc_to_patch = -1;
     if (vcpuOperator == SCMD_AND)
     {
         // "&&" operator lazy evaluation ... 
@@ -2942,7 +2942,7 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, cons
 
     if (jump_dest_loc_to_patch >= 0)
     {
-        ags::CodeLoc jump_offset = scrip->codesize - jump_dest_loc_to_patch - 1;
+        AGS::CodeLoc jump_offset = scrip->codesize - jump_dest_loc_to_patch - 1;
         scrip->code[jump_dest_loc_to_patch] = jump_offset;
     }
 
@@ -2954,7 +2954,7 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, cons
 }
 
 
-int ParseSubexpr_OpenParenthesis(ccCompiledScript * scrip, ags::SymbolScript & symlist, size_t symlist_len)
+int ParseSubexpr_OpenParenthesis(ccCompiledScript * scrip, AGS::SymbolScript & symlist, size_t symlist_len)
 {
     int matching_paren_idx = -1;
     size_t paren_nesting_depth = 1; // we've already read a '('
@@ -3012,7 +3012,7 @@ int ParseSubexpr_OpenParenthesis(ccCompiledScript * scrip, ags::SymbolScript & s
 
 // We're in the parameter list of a function call, and we have less parameters than declared.
 // Provide defaults for the missing values
-int ParseSubexpr_FunctionCall_ProvideDefaults(ccCompiledScript * scrip, int num_func_args, size_t num_supplied_args, ags::Symbol funcSymbol)
+int ParseSubexpr_FunctionCall_ProvideDefaults(ccCompiledScript * scrip, int num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol)
 {
     for (size_t arg_idx = num_func_args; arg_idx > num_supplied_args; arg_idx--)
     {
@@ -3034,7 +3034,7 @@ int ParseSubexpr_FunctionCall_ProvideDefaults(ccCompiledScript * scrip, int num_
 }
 
 
-int ParseSubexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, ags::Symbol funcSymbol)
+int ParseSubexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const AGS::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol)
 {
     size_t param_num = num_supplied_args + 1;
     size_t start_of_this_param = 0;
@@ -3099,7 +3099,7 @@ int ParseSubexpr_FunctionCall_PushParams(ccCompiledScript * scrip, const ags::Sy
 
 
 // Count parameters, check that all the parameters are non-empty; find closing paren
-int ParseSubexpr_FunctionCall_CountAndCheckParm(const ags::SymbolScript &paramList, size_t paramListLen, ags::Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args)
+int ParseSubexpr_FunctionCall_CountAndCheckParm(const AGS::SymbolScript &paramList, size_t paramListLen, AGS::Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args)
 {
     size_t paren_nesting_depth = 1;
     num_supplied_args = 1;
@@ -3168,10 +3168,10 @@ int ParseSubexpr_FunctionCall_CountAndCheckParm(const ags::SymbolScript &paramLi
 }
 
 
-int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags::SymbolScript vnlist, ags::SymbolScript & symlist, size_t & symlist_len)
+int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, AGS::SymbolScript vnlist, AGS::SymbolScript & symlist, size_t & symlist_len)
 {
     // workList is the function call beginning at the func symbol proper
-    ags::SymbolScript workList = symlist;
+    AGS::SymbolScript workList = symlist;
     int workListLen = symlist_len;
     if (funcSymbolIdx > 0)
     {
@@ -3179,7 +3179,7 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags::
         workListLen = symlist_len - funcSymbolIdx;
     }
 
-    ags::Symbol funcSymbol = workList[0];
+    AGS::Symbol funcSymbol = workList[0];
 
     // Make sure that a '(' follows the funcname of the function call 
     if (sym.get_type(workList[1]) != SYM_OPENPARENTHESIS)
@@ -3189,7 +3189,7 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags::
     }
 
     // paramList begins at the parameters, at the leading '('
-    ags::SymbolScript paramList = workList + 1;
+    AGS::SymbolScript paramList = workList + 1;
     size_t paramListLen = workListLen - 1;
 
 
@@ -3294,7 +3294,7 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, ags::
 }
 
 
-int ParseSubexpr_NoOps(ccCompiledScript * scrip, ags::SymbolScript symlist, size_t symlist_len)
+int ParseSubexpr_NoOps(ccCompiledScript * scrip, AGS::SymbolScript symlist, size_t symlist_len)
 {
 
     // Can't check whether type is 0, because e.g. "this" doesn't have a type
@@ -3333,7 +3333,7 @@ int ParseSubexpr_NoOps(ccCompiledScript * scrip, ags::SymbolScript symlist, size
     // Find out whether this is a variable or function call; if so, copy it to vnlist
     // We need to copy the bytes because a lot of code depends on the fact that there
     // are no METAs interspersed between the symbols. 
-    ags::Symbol vnlist[TEMP_SYMLIST_LENGTH];
+    AGS::Symbol vnlist[TEMP_SYMLIST_LENGTH];
     size_t vnlist_len;
     int funcAtOffs = 0;
 
@@ -3374,7 +3374,7 @@ int ParseSubexpr_NoOps(ccCompiledScript * scrip, ags::SymbolScript symlist, size
     return -1;
 }
 
-int ParseSubexpr(ccCompiledScript *scrip, ags::SymbolScript symlist, size_t symlist_len)
+int ParseSubexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len)
 {
     if (symlist_len == 0)
     {
@@ -3419,7 +3419,7 @@ int ParseSubexpr(ccCompiledScript *scrip, ags::SymbolScript symlist, size_t syml
 }
 
 
-int GetArrayIndexIntoAX(ccCompiledScript *scrip, ags::SymbolScript symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize) {
+int GetArrayIndexIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize) {
 
     // "push" the ax val type (because this is just an array index,
     // we're actually interested in the type of the variable being read)
@@ -3441,7 +3441,7 @@ int GetArrayIndexIntoAX(ccCompiledScript *scrip, ags::SymbolScript symlist, int 
     // "pop" the ax val type
     scrip->ax_val_type = axValTypeWas;
 
-    ags::Symbol arrSym = symlist[openBracketOffs - 1];
+    AGS::Symbol arrSym = symlist[openBracketOffs - 1];
 
     if ((sym.entries[arrSym].flags & SFLG_ARRAY) == 0)
     {
@@ -3551,7 +3551,7 @@ int AccessData_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a simple member of the struct.
-inline void AccessData_PrepareComponentAccess_Elementary(ags::Symbol variableSym, int & currentComponentOffset)
+inline void AccessData_PrepareComponentAccess_Elementary(AGS::Symbol variableSym, int & currentComponentOffset)
 {
 
     // since the member has a fixed offset into the structure, don't
@@ -3582,7 +3582,7 @@ inline int AccessData_PrepareComponentAccess_MemberFunction(bool isLastClause, b
 
 // We access a component of a struct in order to read or write it. 
 // This is an attribute.
-int AccessData_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags::Symbol variableSym, VariableSymlist * thisClause, bool writing, bool writingThisTime, bool mustBeWritable, bool & getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isArrayOffset)
+int AccessData_PrepareComponentAccess_Property(ccCompiledScript * scrip, AGS::Symbol variableSym, VariableSymlist * thisClause, bool writing, bool writingThisTime, bool mustBeWritable, bool & getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isArrayOffset)
 {
     // since an attribute is effectively a function call, load the address of the object
     getJustTheAddressIntoAX = true;
@@ -3610,7 +3610,7 @@ int AccessData_PrepareComponentAccess_Property(ccCompiledScript * scrip, ags::Sy
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a pointer
-int AccessData_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags::Symbol variableSym, VariableSymlist * thisClause, int currentByteOffset, bool & isDynamicArray, bool writing, ags::Symbol firstVariableType, ags::Symbol firstVariableSym, bool isLastClause, bool pointerIsOnStack, bool & isArrayOffset, bool & getJustTheAddressIntoAX, int & currentComponentOffset, bool & accessActualPointer, bool & doMemoryAccessNow)
+int AccessData_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, AGS::Symbol variableSym, VariableSymlist * thisClause, int currentByteOffset, bool & isDynamicArray, bool writing, AGS::Symbol firstVariableType, AGS::Symbol firstVariableSym, bool isLastClause, bool pointerIsOnStack, bool & isArrayOffset, bool & getJustTheAddressIntoAX, int & currentComponentOffset, bool & accessActualPointer, bool & doMemoryAccessNow)
 {
     bool isArrayOfPointers = false;
 
@@ -3724,7 +3724,7 @@ int AccessData_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, ags::Sym
 }
 
 
-int AccessData_PrepareComponentAccess_JustTheAddressCases(ags::Symbol variableSym, VariableSymlist * thisClause, bool isLastClause, bool & getJustTheAddressIntoAX, bool & cannotAssign)
+int AccessData_PrepareComponentAccess_JustTheAddressCases(AGS::Symbol variableSym, VariableSymlist * thisClause, bool isLastClause, bool & getJustTheAddressIntoAX, bool & cannotAssign)
 {
     // array without index specified
     if ((sym.entries[variableSym].flags & SFLG_ARRAY) &&
@@ -3756,7 +3756,7 @@ int AccessData_PrepareComponentAccess_JustTheAddressCases(ags::Symbol variableSy
 
 
 // We access the a variable or a component of a struct in order to read or write it. 
-int AccessData_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol variableSym, int variableSymType, bool isLastClause, VariableSymlist * thisClause, bool writing, bool mustBeWritable, bool writingThisTime, ags::Symbol firstVariableType, ags::Symbol firstVariableSym, int &currentComponentOffset, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isProperty, bool &isArrayOffset, bool &write_same_as_read_access, bool &isDynamicArray, bool &pointerIsOnStack, bool &accessActualPointer, bool &cannotAssign)
+int AccessData_PrepareComponentAccess(ccCompiledScript * scrip, AGS::Symbol variableSym, int variableSymType, bool isLastClause, VariableSymlist * thisClause, bool writing, bool mustBeWritable, bool writingThisTime, AGS::Symbol firstVariableType, AGS::Symbol firstVariableSym, int &currentComponentOffset, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isProperty, bool &isArrayOffset, bool &write_same_as_read_access, bool &isDynamicArray, bool &pointerIsOnStack, bool &accessActualPointer, bool &cannotAssign)
 {
     write_same_as_read_access = true;
     getJustTheAddressIntoAX = false;
@@ -3817,7 +3817,7 @@ int AccessData_PrepareComponentAccess(ccCompiledScript * scrip, ags::Symbol vari
 }
 
 
-int AccessData_ActualMemoryAccess(ccCompiledScript * scrip, ags::Symbol variableSym, int variableSymType, bool pointerIsOnStack, bool writing, bool writingThisTime, bool isProperty, bool mustBeWritable, bool getJustTheAddressIntoAX, bool isArrayOffset, int currentComponentOffset, bool accessActualPointer, ags::Symbol firstVariableSym, ags::Symbol firstVariableType, bool isDynamicArray, bool negateLiteral, bool isLastClause, VariableSymlist  variablePath[], size_t vp_idx)
+int AccessData_ActualMemoryAccess(ccCompiledScript * scrip, AGS::Symbol variableSym, int variableSymType, bool pointerIsOnStack, bool writing, bool writingThisTime, bool isProperty, bool mustBeWritable, bool getJustTheAddressIntoAX, bool isArrayOffset, int currentComponentOffset, bool accessActualPointer, AGS::Symbol firstVariableSym, AGS::Symbol firstVariableType, bool isDynamicArray, bool negateLiteral, bool isLastClause, VariableSymlist  variablePath[], size_t vp_idx)
 {
     int cachedAxValType = scrip->ax_val_type;
 
@@ -3876,7 +3876,7 @@ int AccessData_ActualMemoryAccess(ccCompiledScript * scrip, ags::Symbol variable
 }
 
 
-int AccessData_CheckAccess(ags::Symbol variableSym, VariableSymlist variablePath[], bool writing, bool mustBeWritable, bool write_same_as_read_access, bool isLastClause, size_t vp_idx, bool cannotAssign)
+int AccessData_CheckAccess(AGS::Symbol variableSym, VariableSymlist variablePath[], bool writing, bool mustBeWritable, bool write_same_as_read_access, bool isLastClause, size_t vp_idx, bool cannotAssign)
 {
     // if one of the struct members in the path is read-only, don't allow it
     if (((writing) || (mustBeWritable)) && (write_same_as_read_access))
@@ -3914,7 +3914,7 @@ int AccessData_CheckAccess(ags::Symbol variableSym, VariableSymlist variablePath
 
 
 // read the various types of values into AX
-int AccessData(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool writing, bool mustBeWritable, bool negateLiteral, bool &write_same_as_read_access)
+int AccessData(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len, bool writing, bool mustBeWritable, bool negateLiteral, bool &write_same_as_read_access)
 {
     // If this is a reading access, then the scope of AX will be the scope of the thing read
     if (!writing) SetAXScope(scrip, syml[0]);
@@ -3934,8 +3934,8 @@ int AccessData(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, boo
 
     // Symbol and type of the first variable in the list 
     // (since that determines whether this is global/local)
-    ags::Symbol firstVariableSym = variablePath[0].syml[0];
-    ags::Symbol firstVariableType = sym.get_type(firstVariableSym);
+    AGS::Symbol firstVariableSym = variablePath[0].syml[0];
+    AGS::Symbol firstVariableType = sym.get_type(firstVariableSym);
     bool isArrayOffset = false;
     bool isDynamicArray = false;
 
@@ -3946,7 +3946,7 @@ int AccessData(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, boo
         VariableSymlist *thisClause = &variablePath[vp_idx];
         bool isLastClause = (vp_idx == variablePathSize - 1);
 
-        ags::Symbol variableSym = thisClause->syml[0];
+        AGS::Symbol variableSym = thisClause->syml[0];
         int variableSymType = sym.get_type(variableSym);
 
         bool getJustTheAddressIntoAX = false;
@@ -3987,26 +3987,26 @@ int AccessData(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, boo
 }
 
 
-int ReadDataIntoAX(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool negateLiteral)
+int ReadDataIntoAX(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len, bool negateLiteral)
 {
     bool dummy; // ignored parameter
     return AccessData(scrip, syml, syml_len, false, false, negateLiteral, dummy);
 }
 
-int ReadDataIntoAX(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len, bool negateLiteral, bool mustBeWritable, bool &write_same_as_read_access)
+int ReadDataIntoAX(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len, bool negateLiteral, bool mustBeWritable, bool &write_same_as_read_access)
 {
     return AccessData(scrip, syml, syml_len, false, mustBeWritable, negateLiteral, write_same_as_read_access);
 }
 
 // Get or set an attribute
-int call_attribute_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrite)
+int call_attribute_func(ccCompiledScript *scrip, AGS::Symbol attrSym, int isWrite)
 {
     int numargs = 0;
 
     // AX contains the struct address
 
     // Always a struct member -- set OP = AX
-    if ((sym.entries[propSym].flags & SFLG_STATIC) == 0)
+    if ((sym.entries[attrSym].flags & SFLG_STATIC) == 0)
     {
         scrip->push_reg(SREG_OP);
         scrip->write_cmd1(SCMD_CALLOBJ, SREG_AX);
@@ -4014,7 +4014,7 @@ int call_attribute_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrit
 
     if (isWrite)
     {
-        if (0 == (sym.entries[propSym].flags & SFLG_IMPORTED))
+        if (0 == (sym.entries[attrSym].flags & SFLG_IMPORTED))
         {
             cc_error("Internal error: Property is not import");
             return -1;
@@ -4025,9 +4025,9 @@ int call_attribute_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrit
         numargs++;
     }
 
-    if (sym.entries[propSym].flags & SFLG_ARRAY)
+    if (sym.entries[attrSym].flags & SFLG_ARRAY)
     {
-        if (0 == (sym.entries[propSym].flags & SFLG_IMPORTED))
+        if (0 == (sym.entries[attrSym].flags & SFLG_IMPORTED))
         {
             cc_error("Internal error: Property is not import");
             return -1;
@@ -4038,33 +4038,33 @@ int call_attribute_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrit
         numargs++;
     }
 
-    if (sym.entries[propSym].flags & SFLG_IMPORTED)
+    if (sym.entries[attrSym].flags & SFLG_IMPORTED)
     {
         // tell it how many args for this call (nested imported functions
         // causes stack problems otherwise)
         scrip->write_cmd1(SCMD_NUMFUNCARGS, numargs);
     }
 
-    int propFunc;
+    int attrFunc;
     if (isWrite)
     {
-        propFunc = sym.entries[propSym].get_attrset();
+        attrFunc = sym.entries[attrSym].get_attrset();
     }
     else
     {
-        propFunc = sym.entries[propSym].get_attrget();
+        attrFunc = sym.entries[attrSym].get_attrget();
     }
 
-    if (propFunc == 0)
+    if (attrFunc == 0)
     {
         cc_error("Internal error: Property is in use but not set");
         return -1;
     }
 
     // AX = Func Address
-    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, propFunc);
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, attrFunc);
 
-    if (sym.entries[propSym].flags & SFLG_IMPORTED)
+    if (sym.entries[attrSym].flags & SFLG_IMPORTED)
     {
         scrip->fixup_previous(FIXUP_IMPORT);
         // do the call
@@ -4087,17 +4087,17 @@ int call_attribute_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrit
     if (!isWrite)
     {
         // function return type
-        scrip->ax_val_type = sym.entries[propSym].vartype;
+        scrip->ax_val_type = sym.entries[attrSym].vartype;
         scrip->ax_val_scope = SYM_LOCALVAR;
-        if (sym.entries[propSym].flags & SFLG_DYNAMICARRAY)
+        if (sym.entries[attrSym].flags & SFLG_DYNAMICARRAY)
             scrip->ax_val_type |= STYPE_DYNARRAY;
-        if (sym.entries[propSym].flags & SFLG_POINTER)
+        if (sym.entries[attrSym].flags & SFLG_POINTER)
             scrip->ax_val_type |= STYPE_POINTER;
-        if (sym.entries[propSym].flags & SFLG_CONST)
+        if (sym.entries[attrSym].flags & SFLG_CONST)
             scrip->ax_val_type |= STYPE_CONST;
     }
 
-    if ((sym.entries[propSym].flags & SFLG_STATIC) == 0)
+    if ((sym.entries[attrSym].flags & SFLG_STATIC) == 0)
     {
         scrip->pop_reg(SREG_OP);
     }
@@ -4106,7 +4106,7 @@ int call_attribute_func(ccCompiledScript *scrip, ags::Symbol propSym, int isWrit
 }
 
 
-int MemoryAccess_Vartype(ccCompiledScript * scrip, ags::Symbol variableSym, bool isProperty, int &gotValType)
+int MemoryAccess_Vartype(ccCompiledScript * scrip, AGS::Symbol variableSym, bool isProperty, int &gotValType)
 {
     // it's a static member attribute
     if (!isProperty)
@@ -4126,7 +4126,7 @@ int MemoryAccess_Vartype(ccCompiledScript * scrip, ags::Symbol variableSym, bool
 }
 
 
-int MemoryAccess_LitOrConst(ccCompiledScript * scrip, int mainVariableType, ags::Symbol variableSym, bool writing, bool mustBeWritable, bool negateLiteral, int &gotValType)
+int MemoryAccess_LitOrConst(ccCompiledScript * scrip, int mainVariableType, AGS::Symbol variableSym, bool writing, bool mustBeWritable, bool negateLiteral, int &gotValType)
 {
     if ((writing) || (mustBeWritable))
     {
@@ -4153,7 +4153,7 @@ int MemoryAccess_LitOrConst(ccCompiledScript * scrip, int mainVariableType, ags:
 }
 
 
-int MemoryAccess_LitFloat(ccCompiledScript * scrip, ags::Symbol variableSym, bool writing, bool mustBeWritable, int &gotValType)
+int MemoryAccess_LitFloat(ccCompiledScript * scrip, AGS::Symbol variableSym, bool writing, bool mustBeWritable, int &gotValType)
 {
     if ((writing) || (mustBeWritable))
     {
@@ -4167,7 +4167,7 @@ int MemoryAccess_LitFloat(ccCompiledScript * scrip, ags::Symbol variableSym, boo
 
 
 // a "normal" variable or a pointer
-int MemoryAccess_Variable(ccCompiledScript * scrip, ags::Symbol mainVariableSym, int mainVariableType, ags::Symbol variableSym, bool pointerIsInMAR, bool &wholePointerAccess, bool addressof, int soffset, bool isArrayOffset, bool isDynamicArray, bool writing, int &gotValType)
+int MemoryAccess_Variable(ccCompiledScript * scrip, AGS::Symbol mainVariableSym, int mainVariableType, AGS::Symbol variableSym, bool pointerIsInMAR, bool &wholePointerAccess, bool addressof, int soffset, bool isArrayOffset, bool isDynamicArray, bool writing, int &gotValType)
 {
     int readwritecmd = GetReadWriteCmdForSize(sym.entries[variableSym].ssize, writing);
 
@@ -4258,7 +4258,7 @@ int MemoryAccess_String(ccCompiledScript * scrip, bool writing, int soffset, int
 }
 
 
-int MemoryAccess_StructMember(ags::Symbol mainVariableSym)
+int MemoryAccess_StructMember(AGS::Symbol mainVariableSym)
 {
     cc_error("Must include parent structure of member '%s'", sym.get_friendly_name(mainVariableSym).c_str());
     return -1;
@@ -4279,7 +4279,7 @@ int MemoryAccess_Null(ccCompiledScript * scrip, bool writing, int &gotValType)
 }
 
 
-int MemoryAccess_ActualAccess(ccCompiledScript * scrip, ags::Symbol mainVariableSym, int mainVariableType, ags::Symbol variableSym, bool writing, bool mustBeWritable, bool negateLiteral, bool pointerIsInMAR, bool addressof, int soffset, bool isArrayOffset, bool isDynamicArray, bool isProperty, bool &wholePointerAccess, int &gotValType)
+int MemoryAccess_ActualAccess(ccCompiledScript * scrip, AGS::Symbol mainVariableSym, int mainVariableType, AGS::Symbol variableSym, bool writing, bool mustBeWritable, bool negateLiteral, bool pointerIsInMAR, bool addressof, int soffset, bool isArrayOffset, bool isDynamicArray, bool isProperty, bool &wholePointerAccess, int &gotValType)
 {
     switch (mainVariableType)
     {
@@ -4321,13 +4321,13 @@ int MemoryAccess_ActualAccess(ccCompiledScript * scrip, ags::Symbol mainVariable
 
 
 int MemoryAccess(
-    ccCompiledScript *scrip, ags::Symbol variableSym,
+    ccCompiledScript *scrip, AGS::Symbol variableSym,
     int variableSymType, bool isProperty,
     bool writing, bool mustBeWritable,
     bool addressof, bool isArrayOffset,
     int soffset, bool pointerIsInMAR,
     bool wholePointerAccess,
-    ags::Symbol mainVariableSym, int mainVariableType,
+    AGS::Symbol mainVariableSym, int mainVariableType,
     bool isDynamicArray, bool negateLiteral)
 {
     int gotValType;
@@ -4362,7 +4362,7 @@ int MemoryAccess(
 }
 
 
-int WriteAXToData(ccCompiledScript*scrip, ags::SymbolScript syml, int syml_len)
+int WriteAXToData(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len)
 {
     bool dummy; // ignored parameter
     return AccessData(scrip, syml, syml_len, true, false, false, dummy);
@@ -4374,7 +4374,7 @@ int ParseExpression_CopyExpression(ccInternalList *source, size_t script_idx, cc
     size_t source_len = script_idx - source->pos;
 
     // Reserve memory for destination script and copy source into destination
-    dest->script = static_cast<ags::SymbolScript>(malloc(source_len * sizeof(ags::Symbol)));
+    dest->script = static_cast<AGS::SymbolScript>(malloc(source_len * sizeof(AGS::Symbol)));
     if (!dest->script)
     {
         cc_error("Out of memory");
@@ -4468,7 +4468,7 @@ int ParseExpression(ccInternalList *targ, ccCompiledScript*scrip, bool consider_
 
 
 // We're in an assignment, cursym points to the LHS. Check that the LHS is assignable.
-int ParseAssignment_CheckLHSIsAssignable(ags::Symbol cursym, const ags::SymbolScript &vnlist, int vnlist_len)
+int ParseAssignment_CheckLHSIsAssignable(AGS::Symbol cursym, const AGS::SymbolScript &vnlist, int vnlist_len)
 {
     if (sym.entries[cursym].is_loadable_variable()) return 0;
 
@@ -4484,7 +4484,7 @@ int ParseAssignment_CheckLHSIsAssignable(ags::Symbol cursym, const ags::SymbolSc
 
 // We are processing an assignment. vn_list[] contains a variable or a struct selector. 
 // If it is a (static or dynamic) array, then check whether the assignment is allowed.
-int ParseAssignment_ArrayChecks(ags::Symbol cursym, ags::Symbol nextsym, size_t vnlist_len)
+int ParseAssignment_ArrayChecks(AGS::Symbol cursym, AGS::Symbol nextsym, size_t vnlist_len)
 {
     // [fw] This may not be good enough. What if the array is in a struct? 
     //      Then the checks won't run.
@@ -4512,7 +4512,7 @@ int ParseAssignment_ArrayChecks(ags::Symbol cursym, ags::Symbol nextsym, size_t 
 
 
 // We compile something like "a += b"
-int ParseAssignment_MAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript & vnlist, int vnlist_len)
+int ParseAssignment_MAssign(ccCompiledScript * scrip, AGS::Symbol ass_symbol, const AGS::SymbolScript & vnlist, int vnlist_len)
 {
     // Read in and adjust the result
     scrip->push_reg(SREG_AX);
@@ -4537,7 +4537,7 @@ int ParseAssignment_MAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol, co
 }
 
 
-int ParseAssignment_Assign(ccCompiledScript * scrip, int vnlist_len, const ags::SymbolScript & vnlist)
+int ParseAssignment_Assign(ccCompiledScript * scrip, int vnlist_len, const AGS::SymbolScript & vnlist)
 {
     // Convert normal literal string into String object
     size_t finalPartOfLHS = vnlist_len - 1;
@@ -4561,7 +4561,7 @@ int ParseAssignment_Assign(ccCompiledScript * scrip, int vnlist_len, const ags::
 }
 
 
-int ParseAssignment_SAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript & vnlist, int vnlist_len)
+int ParseAssignment_SAssign(ccCompiledScript * scrip, AGS::Symbol ass_symbol, const AGS::SymbolScript & vnlist, int vnlist_len)
 {
     bool write_same_as_read_access;
     int retval = ReadDataIntoAX(scrip, &vnlist[0], vnlist_len, false, true, write_same_as_read_access);
@@ -4591,7 +4591,7 @@ int ParseAssignment_SAssign(ccCompiledScript * scrip, ags::Symbol ass_symbol, co
 }
 
 
-int ParseAssignment_DoAssignment(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol ass_symbol, const ags::SymbolScript &vnlist, int vnlist_len)
+int ParseAssignment_DoAssignment(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol ass_symbol, const AGS::SymbolScript &vnlist, int vnlist_len)
 {
     switch (sym.get_type(ass_symbol))
     {
@@ -4634,7 +4634,7 @@ int ParseAssignment_DoAssignment(ccInternalList * targ, ccCompiledScript * scrip
 
 // We've read a variable or selector of a struct into vn_list[], the last identifying component is in cursym.
 // An assignment symbol is following. Compile the assignment.
-int ParseAssignment(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol cursym, ags::Symbol statementEndSymbol, ags::SymbolScript vnlist, int vnlist_len)
+int ParseAssignment(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym, AGS::Symbol statementEndSymbol, AGS::SymbolScript vnlist, int vnlist_len)
 {
     // Check that the LHS is a loadable variable or a static attribute. 
     int retval = ParseAssignment_CheckLHSIsAssignable(cursym, vnlist, vnlist_len);
@@ -4666,7 +4666,7 @@ int ParseAssignment(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol c
 
 
 // true if the symbol is "int" and the like.
-inline bool sym_is_predef_typename(ags::Symbol symbl)
+inline bool sym_is_predef_typename(AGS::Symbol symbl)
 {
     return (symbl >= 0 && symbl <= sym.normalFloatSym);
 }
@@ -4857,7 +4857,7 @@ int ParseVardecl_ArrayDecl(ccInternalList *targ, int var_name, int type_of_defn,
             return -1;
         }
 
-        ags::Symbol nextt = targ->getnext();
+        AGS::Symbol nextt = targ->getnext();
 
         int retval = ParseLiteral_or_constvalue(nextt, array_size, false, "Array size must be constant value");
         if (retval < 0) return retval;
@@ -4908,7 +4908,7 @@ int ParseVardecl_StringDecl_GlobalNoImport(ccCompiledScript * scrip, void *&init
 }
 
 
-int ParseVardecl_StringDecl_Local(ccCompiledScript * scrip, ags::Symbol var_name, void * &initial_value_ptr)
+int ParseVardecl_StringDecl_Local(ccCompiledScript * scrip, AGS::Symbol var_name, void * &initial_value_ptr)
 {
     // Note: We can't use scrip->cur_sp since we don't know if we'll be in a nested function call at the time
     initial_value_ptr = nullptr;
@@ -4923,7 +4923,7 @@ int ParseVardecl_StringDecl_Local(ccCompiledScript * scrip, ags::Symbol var_name
 }
 
 
-int ParseVardecl_StringDecl(ccCompiledScript * scrip, ags::Symbol var_name, Globalness is_global, void * &initial_value_ptr, FxFixupType &fixup_needed)
+int ParseVardecl_StringDecl(ccCompiledScript * scrip, AGS::Symbol var_name, Globalness is_global, void * &initial_value_ptr, FxFixupType &fixup_needed)
 {
     if (ccGetOption(SCOPT_OLDSTRINGS) == 0)
     {
@@ -5173,7 +5173,7 @@ inline int ParseVardecl(
 }
 
 
-void ParseOpenbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol name_of_func, int struct_of_func, bool is_noloopcheck, ags::NestingStack * nesting_stack)
+void ParseOpenbrace_FuncBody(ccCompiledScript * scrip, AGS::Symbol name_of_func, int struct_of_func, bool is_noloopcheck, AGS::NestingStack * nesting_stack)
 {
     // write base address of function for any relocation needed later
     scrip->write_cmd1(SCMD_THISBASE, scrip->codesize);
@@ -5198,7 +5198,7 @@ void ParseOpenbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol name_of_func,
     // non-static member function -- declare "this" ptr
     if ((struct_of_func) && (0 == (sym.entries[name_of_func].flags & SFLG_STATIC)))
     {
-        const ags::Symbol thisSym = sym.find("this");
+        const AGS::Symbol thisSym = sym.find("this");
         if (thisSym > 0)
         {
             int varsize = 4;
@@ -5228,9 +5228,9 @@ void ParseOpenbrace_FuncBody(ccCompiledScript * scrip, ags::Symbol name_of_func,
 
 int ParseOpenbrace(
     ccCompiledScript * scrip,
-    ags::NestingStack *nesting_stack,
-    ags::Symbol name_of_current_func,
-    ags::Symbol struct_of_current_func,
+    AGS::NestingStack *nesting_stack,
+    AGS::Symbol name_of_current_func,
+    AGS::Symbol struct_of_current_func,
     bool is_noloopcheck)
 {
     if (nesting_stack->IsUnbraced())
@@ -5240,13 +5240,13 @@ int ParseOpenbrace(
     }
 
     // Assume a brace without special reason as a default
-    int retval = nesting_stack->Push(ags::NestingStack::NTNothing);
+    int retval = nesting_stack->Push(AGS::NestingStack::NTNothing);
     if (retval < 0) return retval;
 
     if (nesting_stack->Depth() == 2)
     {
         // In this case, the braces are around a function body
-        nesting_stack->SetType(ags::NestingStack::NTFunction);
+        nesting_stack->SetType(AGS::NestingStack::NTFunction);
         ParseOpenbrace_FuncBody(scrip, name_of_current_func, struct_of_current_func, is_noloopcheck, nesting_stack);
     }
 
@@ -5254,7 +5254,7 @@ int ParseOpenbrace(
 }
 
 
-int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingStack *nesting_stack, ags::Symbol &struct_of_current_func, ags::Symbol &name_of_current_func)
+int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
     size_t nesting_level = nesting_stack->Depth() - 1;
 
@@ -5308,13 +5308,13 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingS
         nesting_stack->Pop();
         return 0;
 
-    case ags::NestingStack::NTBracedDo:
+    case AGS::NestingStack::NTBracedDo:
         retval = DealWithEndOf_do(targ, scrip, nesting_stack);
         if (retval < 0) return retval;
         break;
 
-    case ags::NestingStack::NTBracedElse:
-    case ags::NestingStack::NTBracedThen:
+    case AGS::NestingStack::NTBracedElse:
+    case AGS::NestingStack::NTBracedThen:
     {
         bool if_turned_into_else;
         int retval = DealWithEndOf_ifelse(targ, scrip, nesting_stack, if_turned_into_else);
@@ -5323,7 +5323,7 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingS
     }
     break;
 
-    case ags::NestingStack::NTSwitch:
+    case AGS::NestingStack::NTSwitch:
         retval = DealWithEndOf_switch(targ, scrip, nesting_stack);
         if (retval < 0) return retval;
         break;
@@ -5334,7 +5334,7 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, ags::NestingS
     // has been turned into an ELSE
     while (nesting_stack->IsUnbraced())
     {
-        if (nesting_stack->Type() == ags::NestingStack::NTUnbracedDo)
+        if (nesting_stack->Type() == AGS::NestingStack::NTUnbracedDo)
         {
             int retval = DealWithEndOf_do(targ, scrip, nesting_stack);
             if (retval < 0) return retval;
@@ -5373,7 +5373,7 @@ void ParseStruct_SetTypeInSymboltable(SymbolTableEntry &entry, bool struct_is_ma
 
 
 // We have accepted something like "struct foo" and are waiting for "extends"
-int ParseStruct_ExtendsClause(ccInternalList *targ, int stname, ags::Symbol &extendsWhat, int &size_so_far)
+int ParseStruct_ExtendsClause(ccInternalList *targ, int stname, AGS::Symbol &extendsWhat, int &size_so_far)
 {
     targ->getnext(); // gobble "extends"
     extendsWhat = targ->getnext(); // name of the extended struct
@@ -5414,7 +5414,7 @@ int ParseStruct_ExtendsClause(ccInternalList *targ, int stname, ags::Symbol &ext
 
 int ParseStruct_MemberQualifiers(
     ccInternalList *targ,
-    ags::Symbol &cursym,
+    AGS::Symbol &cursym,
     bool &is_readonly,
     Importness &is_import,
     bool &is_attribute,
@@ -5448,9 +5448,9 @@ int ParseStruct_MemberQualifiers(
     return 0;
 }
 
-int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, ags::Symbol cursym, bool member_is_pointer, Importness member_is_import)
+int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, AGS::Symbol cursym, bool member_is_pointer, Importness member_is_import)
 {
-    const ags::Symbol curtype = sym.get_type(cursym);
+    const AGS::Symbol curtype = sym.get_type(cursym);
     // must either have a type of a struct here.
     if ((curtype != SYM_VARTYPE) &&
         (curtype != SYM_UNDEFINEDSTRUCT))
@@ -5521,13 +5521,13 @@ int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, ags::Symbo
 
 
 int ParseStruct_CheckMemberNotInInheritedStruct(
-    ags::Symbol vname,
+    AGS::Symbol vname,
     const char * memberExt,
-    ags::Symbol extendsWhat)
+    AGS::Symbol extendsWhat)
 {
     // check that we haven't already inherited a member
     // with the same name
-    ags::Symbol member = vname;
+    AGS::Symbol member = vname;
     if (memberExt == nullptr)
     {
         cc_error("Internal compiler error dbc");
@@ -5538,7 +5538,7 @@ int ParseStruct_CheckMemberNotInInheritedStruct(
     // find the member-name-only sym
     member = sym.find(memberExt);
     // if it's never referenced it won't exist, so create it
-    if (member < 1)  member = sym.add_ex(memberExt, static_cast<ags::Symbol>(0), 0);
+    if (member < 1)  member = sym.add_ex(memberExt, static_cast<AGS::Symbol>(0), 0);
 
     if (FindMemberSym(extendsWhat, member, true) >= 0)
     {
@@ -5556,9 +5556,9 @@ int ParseStruct_CheckMemberNotInInheritedStruct(
 int ParseStruct_MemberDefnVarOrFuncOrArray(
     ccInternalList *targ,
     ccCompiledScript * scrip,
-    ags::Symbol extendsWhat,
-    ags::Symbol stname,
-    ags::Symbol name_of_current_func, // [fw] ONLY used for funcs in structs
+    AGS::Symbol extendsWhat,
+    AGS::Symbol stname,
+    AGS::Symbol name_of_current_func, // [fw] ONLY used for funcs in structs
     int nested_level,
     int curtype,
     bool type_is_attribute,
@@ -5571,7 +5571,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     int &size_so_far)
 {
 
-    ags::Symbol vname = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
+    AGS::Symbol vname = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
     bool isDynamicArray = false;
 
     // Check whether "[]" is behind the type. 
@@ -5627,7 +5627,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
         int retval = ParseFuncdecl_CheckForIllegalCombis(type_is_readonly, name_of_current_func, nested_level);
         if (retval < 0) return retval;
         {
-            ags::Symbol throwaway_symbol = 0;
+            AGS::Symbol throwaway_symbol = 0;
             bool throwaway_bool;
             int retval =
                 ParseFuncdecl(targ, scrip, vname, curtype, type_is_pointer, isDynamicArray,
@@ -5733,24 +5733,24 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
             memberPart += 2;
 
             // declare the imports for the Get and Setters
-            char propFuncName[200];
-            sprintf(propFuncName, "%s::get%s_%s", sym.get_name(stname), namePrefix, memberPart);
+            char attrFuncName[200];
+            sprintf(attrFuncName, "%s::get%s_%s", sym.get_name(stname), namePrefix, memberPart);
 
-            int propGet = scrip->add_new_import(propFuncName);
-            int propSet = 0;
+            int attrGet = scrip->add_new_import(attrFuncName);
+            int attrSet = 0;
             if (!type_is_readonly)
             {
                 // setter only if it's not read-only
-                sprintf(propFuncName, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);
-                propSet = scrip->add_new_import(propFuncName);
+                sprintf(attrFuncName, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);
+                attrSet = scrip->add_new_import(attrFuncName);
             }
-            sym.entries[vname].set_attrfuncs(propGet, propSet);
+            sym.entries[vname].set_attrfuncs(attrGet, attrSet);
         }
         else if (sym.get_type(targ->peeknext()) == SYM_OPENBRACKET)
         {
             // An array!
             targ->getnext();  // skip the [
-            ags::Symbol nextt = targ->getnext();
+            AGS::Symbol nextt = targ->getnext();
             int array_size;
 
             if (sym.get_type(nextt) == SYM_CLOSEBRACKET)
@@ -5804,10 +5804,10 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
 int ParseStruct_MemberDefn(
     ccInternalList *targ,
     ccCompiledScript * scrip,
-    ags::Symbol stname,
-    ags::Symbol name_of_current_func,
+    AGS::Symbol stname,
+    AGS::Symbol name_of_current_func,
     int nested_level,
-    ags::Symbol extendsWhat,
+    AGS::Symbol extendsWhat,
     int &size_so_far)
 {
 
@@ -5819,7 +5819,7 @@ int ParseStruct_MemberDefn(
     bool type_is_protected = false;
     bool type_is_writeprotected = false;
 
-    ags::Symbol curtype; // the type of the current members being defined, given as a symbol
+    AGS::Symbol curtype; // the type of the current members being defined, given as a symbol
 
     // parse qualifiers of the member ("import" etc.), set booleans accordingly
     int retval = ParseStruct_MemberQualifiers(
@@ -5901,16 +5901,16 @@ int ParseStruct_MemberDefn(
 int ParseStruct(
     ccInternalList *targ,
     ccCompiledScript * scrip,
-    ags::Symbol cursym,
+    AGS::Symbol cursym,
     bool struct_is_managed,
     bool struct_is_builtin,
     bool struct_is_autoptr,
     bool struct_is_stringstruct,
-    ags::Symbol name_of_current_func,
+    AGS::Symbol name_of_current_func,
     size_t &nested_level)
 {
     // get token for name of struct
-    ags::Symbol stname = targ->getnext();
+    AGS::Symbol stname = targ->getnext();
     if ((sym.get_type(stname) != 0) &&
         (sym.get_type(stname) != SYM_UNDEFINEDSTRUCT))
     {
@@ -5922,7 +5922,7 @@ int ParseStruct(
     int size_so_far = 0;
 
     // If the struct extends another struct, the token of the other struct's name
-    ags::Symbol extendsWhat = 0;
+    AGS::Symbol extendsWhat = 0;
 
     // Write the type of stname into the symbol table
     ParseStruct_SetTypeInSymboltable(
@@ -5994,7 +5994,7 @@ int ParseEnum_accept_assigned_value(ccInternalList * targ, int &currentValue)
     targ->getnext(); // eat "="
 
     // Get the value of the item
-    ags::Symbol item_value = targ->getnext(); // may be '-', too
+    AGS::Symbol item_value = targ->getnext(); // may be '-', too
     bool is_neg = false;
     if (item_value == sym.find("-"))
     {
@@ -6062,7 +6062,7 @@ int ParseEnum0(ccInternalList *targ)
             return -1;
         }
 
-        ags::Symbol item_name = targ->getnext();
+        AGS::Symbol item_name = targ->getnext();
         if (sym.get_type(item_name) == SYM_CLOSEBRACE) break; // item list empty or ends with trailing ','
 
         if (sym.get_type(item_name) != 0)
@@ -6074,7 +6074,7 @@ int ParseEnum0(ccInternalList *targ)
         // increment the value of the enum entry
         currentValue++;
 
-        ags::Symbol tnext = sym.get_type(targ->peeknext());
+        AGS::Symbol tnext = sym.get_type(targ->peeknext());
         if (tnext != SYM_ASSIGN && tnext != SYM_COMMA && tnext != SYM_CLOSEBRACE)
         {
             cc_error("Expected '=' or ',' or '}'");
@@ -6091,7 +6091,7 @@ int ParseEnum0(ccInternalList *targ)
         // Enter this enum item as a constant int into the sym table
         ParseEnum_item_2_symtable(enum_name, item_name, currentValue);
 
-        ags::Symbol comma_or_brace = targ->getnext();
+        AGS::Symbol comma_or_brace = targ->getnext();
         if (sym.get_type(comma_or_brace) == SYM_CLOSEBRACE) break;
         if (sym.get_type(comma_or_brace) == SYM_COMMA) continue;
 
@@ -6102,7 +6102,7 @@ int ParseEnum0(ccInternalList *targ)
 }
 
 // enum eEnumName { value1, value2 };
-int ParseEnum(ccInternalList *targ, ags::Symbol name_of_current_function)
+int ParseEnum(ccInternalList *targ, AGS::Symbol name_of_current_function)
 {
     if (name_of_current_function >= 0)
     {
@@ -6123,7 +6123,7 @@ int ParseEnum(ccInternalList *targ, ags::Symbol name_of_current_function)
 }
 
 
-int ParseImport(ccInternalList *targ, ags::Symbol name_of_current_func, ags::Symbol cursym, Importness &next_is_import)
+int ParseImport(ccInternalList *targ, AGS::Symbol name_of_current_func, AGS::Symbol cursym, Importness &next_is_import)
 {
     if (name_of_current_func > 0)
     {
@@ -6147,7 +6147,7 @@ int ParseImport(ccInternalList *targ, ags::Symbol name_of_current_func, ags::Sym
     return 0;
 }
 
-int ParseStatic(ccInternalList *targ, ags::Symbol name_of_current_func, bool &next_is_static)
+int ParseStatic(ccInternalList *targ, AGS::Symbol name_of_current_func, bool &next_is_static)
 {
     if (name_of_current_func >= 0)
     {
@@ -6164,7 +6164,7 @@ int ParseStatic(ccInternalList *targ, ags::Symbol name_of_current_func, bool &ne
     return 0;
 }
 
-int ParseProtected(ccInternalList *targ, ags::Symbol name_of_current_func, bool &next_is_protected)
+int ParseProtected(ccInternalList *targ, AGS::Symbol name_of_current_func, bool &next_is_protected)
 {
     if (name_of_current_func > 0)
     {
@@ -6182,7 +6182,7 @@ int ParseProtected(ccInternalList *targ, ags::Symbol name_of_current_func, bool 
     return 0;
 }
 
-int ParseExport(ccInternalList *targ, ccCompiledScript * scrip, ags::Symbol &cursym)
+int ParseExport(ccInternalList *targ, ccCompiledScript * scrip, AGS::Symbol &cursym)
 {
     // export specified symbol
     cursym = targ->getnext();
@@ -6236,7 +6236,7 @@ int ParseExport(ccInternalList *targ, ccCompiledScript * scrip, ags::Symbol &cur
     return 0;
 }
 
-int ParseVartype_GetVarName(ccInternalList * targ, ags::Symbol & varname, ags::Symbol & struct_of_member_fct)
+int ParseVartype_GetVarName(ccInternalList * targ, AGS::Symbol & varname, AGS::Symbol & struct_of_member_fct)
 {
     struct_of_member_fct = 0;
 
@@ -6247,7 +6247,7 @@ int ParseVartype_GetVarName(ccInternalList * targ, ags::Symbol & varname, ags::S
 
     struct_of_member_fct = varname;
     targ->getnext(); // gobble "::"
-    ags::Symbol member_of_member_function = targ->getnext();
+    AGS::Symbol member_of_member_function = targ->getnext();
 
     // change varname to be the full function name
     const char *full_name_str = GetFullNameOfMember(struct_of_member_fct, member_of_member_function);
@@ -6263,14 +6263,14 @@ int ParseVartype_GetVarName(ccInternalList * targ, ags::Symbol & varname, ags::S
     return 0;
 }
 
-int ParseVartype_CheckForIllegalContext(ags::NestingStack *nesting_stack)
+int ParseVartype_CheckForIllegalContext(AGS::NestingStack *nesting_stack)
 {
     if (nesting_stack->IsUnbraced())
     {
         cc_error("A variable or function declaration cannot be the sole body of an 'if', 'else' or loop clause");
         return -1;
     }
-    if (nesting_stack->Type() == ags::NestingStack::NTSwitch)
+    if (nesting_stack->Type() == AGS::NestingStack::NTSwitch)
     {
         cc_error("This variable declaration may be skipped by case label. Use braces to limit its scope or move it outside the switch statement block");
         return -1;
@@ -6339,7 +6339,7 @@ int ParseVartype_CheckIllegalCombis(bool is_static, bool is_member_definition, b
     return 0;
 }
 
-int ParseVartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &func_name, int type_of_defn, bool is_readonly, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, bool is_member_function_definition, bool is_protected, ags::Symbol & struct_of_current_func, ags::Symbol &name_of_current_func)
+int ParseVartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol &func_name, int type_of_defn, bool is_readonly, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, bool is_member_function_definition, bool is_protected, AGS::Symbol & struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
 
     bool body_follows;
@@ -6359,7 +6359,7 @@ int ParseVartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, ags::S
 }
 
 
-int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, int type_of_defn, int next_type, bool isPointer, bool &another_var_follows)
+int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, int type_of_defn, int next_type, bool isPointer, bool &another_var_follows)
 {
 
     if (is_global == GlLocal)  // is_global is int 0 = local
@@ -6381,14 +6381,14 @@ int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, ags::Symb
 int ParseVartype(
     ccInternalList *targ,
     ccCompiledScript *scrip,
-    ags::Symbol type_of_defn,           // e.g., "int"
-    ags::NestingStack *nesting_stack,
+    AGS::Symbol type_of_defn,           // e.g., "int"
+    AGS::NestingStack *nesting_stack,
     Importness is_import,             // can be 0 or 1 or 2 
     bool is_readonly,
     bool is_static,
     bool is_protected,
-    ags::Symbol &name_of_current_func,
-    ags::Symbol &struct_of_current_func, // 0 if _not_ a member function
+    AGS::Symbol &name_of_current_func,
+    AGS::Symbol &struct_of_current_func, // 0 if _not_ a member function
     bool &loopCheckOff)
 {
     if (ReachedEOF(targ))
@@ -6438,7 +6438,7 @@ int ParseVartype(
         }
 
         // Get the variable or function name.
-        ags::Symbol var_or_func_name = -1;
+        AGS::Symbol var_or_func_name = -1;
         retval = ParseVartype_GetVarName(targ, var_or_func_name, struct_of_current_func);
         if (retval < 0) return retval;
 
@@ -6478,7 +6478,7 @@ int ParseVartype(
     return 0;
 }
 
-int ParseUndef_token(ags::Symbol cursym)
+int ParseUndef_token(AGS::Symbol cursym)
 {
     char ascii_explanation[20] = "";
     const char *symname = sym.get_name(cursym);
@@ -6492,12 +6492,12 @@ int ParseUndef_token(ags::Symbol cursym)
 }
 
 
-int ParseCommand_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
+int ParseCommand_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
 {
     // Unravel else ... else ... chains
     while (nesting_stack->IsUnbraced())
     {
-        if (nesting_stack->Type() == ags::NestingStack::NTUnbracedDo)
+        if (nesting_stack->Type() == AGS::NestingStack::NTUnbracedDo)
         {
             int retval = DealWithEndOf_do(targ, scrip, nesting_stack);
             if (retval < 0) return retval;
@@ -6515,7 +6515,7 @@ int ParseCommand_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, 
     return 0;
 }
 
-int ParseReturn(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol inFuncSym)
+int ParseReturn(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol inFuncSym)
 {
     int functionReturnType = sym.entries[inFuncSym].funcparamtypes[0];
 
@@ -6575,7 +6575,7 @@ int ParseReturn(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol inF
 
 
 // Evaluate the head of an "if" clause, e.g. "if (i < 0)".
-int ParseIf(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, ags::NestingStack *nesting_stack)
+int ParseIf(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 {
     // Get expression, must be in parentheses
     if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
@@ -6590,11 +6590,11 @@ int ParseIf(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym,
     // Now the code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
     scrip->write_cmd1(SCMD_JZ, 0);
-    ags::CodeLoc jump_dest_loc = scrip->codesize - 1;
+    AGS::CodeLoc jump_dest_loc = scrip->codesize - 1;
 
     // Assume unbraced as a default
     retval = nesting_stack->Push(
-        ags::NestingStack::NTUnbracedThen, // Type
+        AGS::NestingStack::NTUnbracedThen, // Type
         0, // Start
         jump_dest_loc); // Info
 
@@ -6603,7 +6603,7 @@ int ParseIf(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym,
     if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
     {
         targ->getnext();
-        nesting_stack->SetType(ags::NestingStack::NTBracedThen); // change to braced
+        nesting_stack->SetType(AGS::NestingStack::NTBracedThen); // change to braced
     }
 
     return 0;
@@ -6611,7 +6611,7 @@ int ParseIf(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym,
 
 
 // Evaluate the head of a "while" clause, e.g. "while (i < 0)" 
-int ParseWhile(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, ags::NestingStack *nesting_stack)
+int ParseWhile(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 {
     // Get expression, must be in parentheses
     if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
@@ -6621,7 +6621,7 @@ int ParseWhile(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol curs
     }
 
     // point to the start of the code that evaluates the condition
-    ags::CodeLoc condition_eval_loc = scrip->codesize;
+    AGS::CodeLoc condition_eval_loc = scrip->codesize;
 
     int retval = ParseExpression(targ, scrip, true);
     if (retval < 0) return retval;
@@ -6629,11 +6629,11 @@ int ParseWhile(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol curs
     // Now the code that has just been generated has put the result of the check into AX
     // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
     scrip->write_cmd1(SCMD_JZ, 0);
-    ags::CodeLoc jump_dest_loc = scrip->codesize - 1;
+    AGS::CodeLoc jump_dest_loc = scrip->codesize - 1;
 
     // Assume unbraced as a default
     retval = nesting_stack->Push(
-        ags::NestingStack::NTUnbracedThen, // Type
+        AGS::NestingStack::NTUnbracedThen, // Type
         condition_eval_loc, // Start
         jump_dest_loc); // Info
     if (retval < 0) return retval;
@@ -6641,22 +6641,22 @@ int ParseWhile(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol curs
     if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
     {
         targ->getnext();
-        nesting_stack->SetType(ags::NestingStack::NTBracedElse); // change to braced
+        nesting_stack->SetType(AGS::NestingStack::NTBracedElse); // change to braced
     }
     return 0;
 }
 
-int ParseDo(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
+int ParseDo(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
 {
     // We need a jump at a known location for the break command to work:
     scrip->write_cmd1(SCMD_JMP, 2); // Jump past the next jump :D
     scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
     // This points to the address we have to patch with a jump past the end of the loop
-    ags::CodeLoc jump_dest_loc = scrip->codesize - 1;
+    AGS::CodeLoc jump_dest_loc = scrip->codesize - 1;
 
     // Assume an unbraced DO as a default
     int retval = nesting_stack->Push(
-        ags::NestingStack::NTUnbracedDo, // Type
+        AGS::NestingStack::NTUnbracedDo, // Type
         scrip->codesize, // Start
         jump_dest_loc);  // Info
     if (retval < 0) return retval;
@@ -6665,19 +6665,19 @@ int ParseDo(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *
     {
         targ->getnext();
         // Change to braced DO
-        nesting_stack->SetType(ags::NestingStack::NTBracedDo);
+        nesting_stack->SetType(AGS::NestingStack::NTBracedDo);
     }
 
     return 0;
 }
 
-int ParseFor_InitClause(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol &cursym, size_t nested_level)
+int ParseFor_InitClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &cursym, size_t nested_level)
 {
     // Check for empty init clause
     if (sym.get_type(cursym) == SYM_SEMICOLON) return 0;
 
     // This will contain buffered code.
-    ags::Symbol vnlist[TEMP_SYMLIST_LENGTH];
+    AGS::Symbol vnlist[TEMP_SYMLIST_LENGTH];
     size_t vnlist_len;
     int offset_of_funcname; // -1 means: No function call
 
@@ -6782,13 +6782,13 @@ int ParseFor_WhileClause(ccInternalList * targ, ccCompiledScript * scrip)
     return 0;
 }
 
-int ParseFor_IterateClause(ccInternalList *targ, ccCompiledScript *scrip, ags::Symbol &cursym)
+int ParseFor_IterateClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &cursym)
 {
     // Check for empty interate clause
     if (sym.get_type(cursym) == SYM_CLOSEPARENTHESIS) return 0;
 
     // This will contain buffered code.
-    ags::Symbol vnlist[TEMP_SYMLIST_LENGTH];
+    AGS::Symbol vnlist[TEMP_SYMLIST_LENGTH];
     size_t vnlist_len;
     int offset_of_funcname; // -1 means: No function call
 
@@ -6802,7 +6802,7 @@ int ParseFor_IterateClause(ccInternalList *targ, ccCompiledScript *scrip, ags::S
 }
 
 
-int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &cursym, ags::NestingStack *nesting_stack)
+int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
 {
     // "for (I; E; C) { ...}" is equivalent to "{ I; while (E) { ...; C} }"
     // We implement this with TWO levels of the nesting stack.
@@ -6810,7 +6810,7 @@ int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &cursy
     // The inner level contains "while (E) { ...; C}"
 
     // Outer level
-    int retval = nesting_stack->Push(ags::NestingStack::NTFor);
+    int retval = nesting_stack->Push(AGS::NestingStack::NTFor);
     if (retval < 0) return retval;
 
     // '(' must follow
@@ -6841,13 +6841,13 @@ int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &cursy
     }
 
     // Remember where the code of the while condition starts.
-    ags::CodeLoc while_cond_loc = scrip->codesize;
+    AGS::CodeLoc while_cond_loc = scrip->codesize;
 
     retval = ParseFor_WhileClause(targ, scrip);
     if (retval < 0) return retval;
 
     // Remember where the code of the iterate clause starts.
-    ags::CodeLoc iterate_clause_loc = scrip->codesize;
+    AGS::CodeLoc iterate_clause_loc = scrip->codesize;
     size_t pre_fixup_count = scrip->numfixups;
     cursym = targ->getnext();
 
@@ -6857,7 +6857,7 @@ int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &cursy
 
     // Inner nesting level - assume unbraced as a default
     retval = nesting_stack->Push(
-        ags::NestingStack::NTUnbracedElse, // Type
+        AGS::NestingStack::NTUnbracedElse, // Type
         while_cond_loc, // Start
         0); // Info
     if (retval < 0) return retval;
@@ -6866,7 +6866,7 @@ int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &cursy
     {
         targ->getnext();
         // Set type "braced" instead of "unbraced"
-        nesting_stack->SetType(ags::NestingStack::NTBracedElse);
+        nesting_stack->SetType(AGS::NestingStack::NTBracedElse);
     }
 
     // We've just generated code for getting to the next loop iteration.
@@ -6883,7 +6883,7 @@ int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol &cursy
 }
 
 
-int ParseSwitch(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
+int ParseSwitch(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
 {
     // Get the switch expression, must be in parentheses
     if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
@@ -6903,7 +6903,7 @@ int ParseSwitch(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingSta
     scrip->flush_line_numbers();
 
     // Remember the start of the lookup table
-    ags::CodeLoc lookup_table_start = scrip->codesize;
+    AGS::CodeLoc lookup_table_start = scrip->codesize;
 
     scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the lookup table
     scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to beyond the switch statement (for break)
@@ -6916,7 +6916,7 @@ int ParseSwitch(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingSta
     }
 
     retval = nesting_stack->Push(
-        ags::NestingStack::NTSwitch, // Type
+        AGS::NestingStack::NTSwitch, // Type
         lookup_table_start, // Start
         switch_expr_type); // Info
     if (retval < 0) return retval;
@@ -6937,9 +6937,9 @@ int ParseSwitch(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingSta
     return 0;
 }
 
-int ParseCasedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym, ags::NestingStack *nesting_stack)
+int ParseCasedefault(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 {
-    if (nesting_stack->Type() != ags::NestingStack::NTSwitch)
+    if (nesting_stack->Type() != AGS::NestingStack::NTSwitch)
     {
         cc_error("Case label not valid outside switch statement block");
         return -1;
@@ -6956,7 +6956,7 @@ int ParseCasedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbo
     }
     else // "case"
     {
-        ags::CodeLoc start_of_code_loc = scrip->codesize;
+        AGS::CodeLoc start_of_code_loc = scrip->codesize;
         int numfixups_at_start_of_code = scrip->numfixups;
         // Push the switch variable onto the stack
         scrip->push_reg(SREG_BX);
@@ -6993,7 +6993,7 @@ int ParseCasedefault(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbo
     return 0;
 }
 
-int ParseBreak(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
+int ParseBreak(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
 {
     // Find the (level of the) looping construct to which the break applies
     size_t loop_level = nesting_stack->Depth() - 1;
@@ -7024,7 +7024,7 @@ int ParseBreak(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStac
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
 
     // Jump to a jump to the end of the loop
-    if (nesting_stack->Type(loop_level) == ags::NestingStack::NTSwitch)
+    if (nesting_stack->Type(loop_level) == AGS::NestingStack::NTSwitch)
     {
         scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nesting_stack->StartLoc(loop_level))); // Jump to the known break point
     }
@@ -7035,7 +7035,7 @@ int ParseBreak(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStac
     return 0;
 }
 
-int ParseContinue(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingStack *nesting_stack)
+int ParseContinue(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
 {
     // Find the (level of the) looping construct to which the break applies
     size_t loop_level = nesting_stack->Depth() - 1;
@@ -7080,9 +7080,9 @@ int ParseContinue(ccInternalList * targ, ccCompiledScript * scrip, ags::NestingS
 
 // We're compiling function body code; the code does not start with a keyword or type.
 // Thus, we should be at the start of an assignment. Compile it.
-int ParseAssignment_or_funccall(ccInternalList * targ, ccCompiledScript * scrip, ags::Symbol cursym)
+int ParseAssignment_or_funccall(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym)
 {
-    ags::Symbol selector_script[TEMP_SYMLIST_LENGTH];
+    AGS::Symbol selector_script[TEMP_SYMLIST_LENGTH];
     size_t selector_script_len;
     int func_idx;
 
@@ -7110,7 +7110,7 @@ int ParseAssignment_or_funccall(ccInternalList * targ, ccCompiledScript * scrip,
     }
 
     // Check whether the next symbol is an assignment symbol
-    ags::Symbol nextsym = targ->peeknext();
+    AGS::Symbol nextsym = targ->peeknext();
     int nexttype = sym.get_type(nextsym);
     if (nexttype != SYM_ASSIGN && nexttype != SYM_MASSIGN && nexttype != SYM_SASSIGN)
     {
@@ -7124,10 +7124,10 @@ int ParseAssignment_or_funccall(ccInternalList * targ, ccCompiledScript * scrip,
 int ParseCommand(
     ccInternalList *targ,
     ccCompiledScript * scrip,
-    ags::Symbol cursym,
-    ags::Symbol &name_of_current_func,
-    ags::Symbol &struct_of_current_func,
-    ags::NestingStack *nesting_stack,
+    AGS::Symbol cursym,
+    AGS::Symbol &name_of_current_func,
+    AGS::Symbol &struct_of_current_func,
+    AGS::NestingStack *nesting_stack,
     bool &next_is_noloopcheck)
 {
     int retval;
@@ -7198,7 +7198,7 @@ int ParseCommand(
 }
 
 
-int cc_parse_HandleLinesAndMeta(ccInternalList *targ, ccCompiledScript * scrip, ags::Symbol cursym, int &currentlinewas)
+int cc_parse_HandleLinesAndMeta(ccInternalList *targ, ccCompiledScript * scrip, AGS::Symbol cursym, int &currentlinewas)
 {
     if (cursym < 0) return 0; // end of stream was reached.
     if (currentline == -10) return 0; // end of stream was reached
@@ -7239,11 +7239,11 @@ int cc_parse_HandleLinesAndMeta(ccInternalList *targ, ccCompiledScript * scrip, 
     return 0;
 }
 
-int cc_parse(ccInternalList *targ, ccCompiledScript * scrip, size_t &nested_level, ags::Symbol &name_of_current_func)
+int cc_parse(ccInternalList *targ, ccCompiledScript * scrip, size_t &nested_level, AGS::Symbol &name_of_current_func)
 {
-    ags::Symbol struct_of_current_func = 0; // non-zero only when a struct member function is open
+    AGS::Symbol struct_of_current_func = 0; // non-zero only when a struct member function is open
 
-    ags::NestingStack nesting_stack = ags::NestingStack();
+    AGS::NestingStack nesting_stack = AGS::NestingStack();
 
     // These are indicators that are switched on when keywords are encountered and switched off after they are used.
     // Thus, they are called "NEXT_IS_..." although they are sometimes _used_ with the meaning "THIS_IS...".
@@ -7270,7 +7270,7 @@ int cc_parse(ccInternalList *targ, ccCompiledScript * scrip, size_t &nested_leve
     {
         if (ReachedEOF(targ)) break;
 
-        ags::Symbol cursym = targ->getnext();
+        AGS::Symbol cursym = targ->getnext();
         int retval = cc_parse_HandleLinesAndMeta(targ, scrip, cursym, currentlinewas);
         if (retval < 0) return retval;
 
@@ -7465,7 +7465,7 @@ int cc_compile(const char * inpl, ccCompiledScript * scrip)
     targ.startread();
 
     size_t nested_level = 0;
-    ags::Symbol name_of_current_func = -1;
+    AGS::Symbol name_of_current_func = -1;
     retval = cc_parse(&targ, scrip, nested_level, name_of_current_func);
     if (retval < 0) return retval;
 

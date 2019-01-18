@@ -13,6 +13,14 @@
 **
 */
 
+
+//-------------------------------------------------------------------
+//
+// NOTE: This functionality is completely covered by standard C++/STL 
+// stringstreams, so there isn't any reason any more to use this addin.
+//
+//-------------------------------------------------------------------
+
 #ifndef __FMEM_H
 #define __FMEM_H
 

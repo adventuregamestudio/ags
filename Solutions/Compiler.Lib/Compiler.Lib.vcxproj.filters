@@ -23,9 +23,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Compiler\fmem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Compiler\script\cc_compiledscript.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
@@ -67,9 +64,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Compiler\fmem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_error.h">
       <Filter>Header Files\cs</Filter>
     </ClInclude>

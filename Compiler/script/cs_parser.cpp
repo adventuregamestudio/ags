@@ -17,8 +17,6 @@
 #include "script/cc_error.h"
 #include "cc_variablesymlist.h"
 
-#include "fmem.h"
-
 // Declared in Common/script/script_common.h 
 // Defined in Common/script/script_common.cpp
 extern int currentline;

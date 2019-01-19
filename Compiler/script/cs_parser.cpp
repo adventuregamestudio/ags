@@ -1,4 +1,65 @@
-﻿
+﻿/*
+'C'-style script compiler development file. (c) 2000,2001 Chris Jones
+SCOM is a script compiler for the 'C' language.
+
+BIRD'S EYE OVERVIEW - IMPLEMENTATION
+
+General:
+The origin of this module is C code, so there are lots of functions that haven't been converted
+to classes (yet). These functions have names of the form AaaAaa or AaaAaa_BbbBbb
+where the component parts are already camelcased. This means that function AaaAaa_BbbBbb is a
+subfunction of function AaaAaa that is exclusively called by function AaaAaa.
+In this way, we get a neatly grouped list of functions in the overview for the time being,
+until function AaaAaa and its subfunctions have been converted into a proper class.
+
+There shouldn't be any classes in the global namespace, but almost all the functions and
+structs that have C code origin still are.
+
+The Parser does does NOT get the sequence of tokens in a pipe from the Tokenizing step, i.e.,
+it does NOT read the symbols one-by-one. To the contrary, the logic reads back and forth in
+the token sequence.
+
+(Nearly) All parser functions return an error code that is negative iff an error has been
+encountered. In case of an error, they call cc_error() and return with a negative integer.
+
+The Parser runs in two phases.
+The first phase runs quickly through the tokenized source and collects the headers
+of the local functions.
+
+The second phase has the following main components:
+    Declaration parsing
+    Command parsing
+        Functions that process the keyword Kkk are called ParseKkk()
+
+    Code nesting and compound statements
+        In ParseWhile() etc., DealWithEndOf..(), and class AGS::NestingStack.
+
+    Expression parsing
+        In ParseExpression() and ParseSubexpr()
+        Note that "++" and "--" are treated as assignment symbols, not as operators.
+
+    Memory access
+        In MemoryAccess() and AccessData()
+        In order to read data or write to data, the respective piece of data must
+        be located first. This also encompasses literals of the program code.
+        Note that "." and "[]" are not treated as normal operators (operators like +).
+        Rather, a whole term such as a.b.c[d].e(f, g, h) is read in all at once and
+        processed together. The memory offset of struct components in relation to the
+        location of the respective struct is calculated at compile time, whereas array
+        offsets are calculated at run time.
+
+Notes on how nested statements are handled:
+    Class NestingStack keeps information on the "nesting level" of code:
+    in the statement "while (i > 0) i += 1", the nesting level "i += 1" is defined
+    to be one higher than the nesting level of "while (i > 0)".
+    For each nesting level, the class keeps, amongst others, the location in the bytecode
+    of the start of the construct and the location of a Bytecode jump to its end.
+
+    When handling nested constructs, the parser sometimes generates and emits some code,
+    then rips it out of the codebase and stores it internally, then later on, retrieves
+    it and emits it into the codebase again.
+*/
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -774,26 +835,26 @@ int AGS::Tokenizer::ConvertSymstringToTokenIndex(std::string symstring)
 }
 
 
-void AGS::OpenCloseMatcher::Reset()
+void AGS::Tokenizer::OpenCloseMatcher::Reset()
 {
     _lastError = "";
     _openInfoStack.resize(0);
 }
 
 
-std::string AGS::OpenCloseMatcher::GetLastError()
+std::string AGS::Tokenizer::OpenCloseMatcher::GetLastError()
 {
     return _lastError;
 }
 
 
-AGS::OpenCloseMatcher::OpenCloseMatcher()
+AGS::Tokenizer::OpenCloseMatcher::OpenCloseMatcher()
 {
     Reset();
 }
 
 
-void AGS::OpenCloseMatcher::Push(std::string const & opener, std::string const & expected_closer, int lineno)
+void AGS::Tokenizer::OpenCloseMatcher::Push(std::string const & opener, std::string const & expected_closer, int lineno)
 {
     struct OpenInfo oi;
     oi._opener = opener;
@@ -804,7 +865,7 @@ void AGS::OpenCloseMatcher::Push(std::string const & opener, std::string const &
 }
 
 
-void AGS::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, bool & error_encountered)
+void AGS::Tokenizer::OpenCloseMatcher::PopAndCheck(std::string const & closer, int lineno, bool & error_encountered)
 {
     if (_openInfoStack.empty())
     {

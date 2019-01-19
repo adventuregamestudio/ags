@@ -84,6 +84,8 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
   dxGammaControl = NULL;
 #endif
   _allegroScreenWrapper = NULL;
+  _origVirtualScreen = NULL;
+  virtualScreen = NULL;
 }
 
 bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -240,13 +242,25 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid() || !_filter)
     return;
+  DestroyVirtualScreen();
   // Adjust clipping so nothing gets drawn outside the game frame
   Bitmap *real_screen = BitmapHelper::GetScreenBitmap();
   real_screen->SetClip(_dstRect);
   // Initialize scaling filter and receive virtual screen pointer
   // (which may or not be the same as real screen)
-  virtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
-  BitmapHelper::SetScreenBitmap( virtualScreen );
+  _origVirtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
+  BitmapHelper::SetScreenBitmap(_origVirtualScreen);
+  virtualScreen = _origVirtualScreen;
+}
+
+void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
+{
+  if (_filter && _origVirtualScreen)
+  {
+    BitmapHelper::SetScreenBitmap(_filter->ShutdownAndReturnRealScreen());
+  }
+  _origVirtualScreen = NULL;
+  virtualScreen = NULL;
 }
 
 void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
@@ -262,8 +276,7 @@ void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
   }
 #endif
 
-  if (BitmapHelper::GetScreenBitmap())
-    BitmapHelper::SetScreenBitmap( _filter->ShutdownAndReturnRealScreen() );
+  DestroyVirtualScreen();
 
   // [IKM] 2012-09-07
   // We do not need the wrapper any longer;
@@ -471,6 +484,18 @@ void ALSoftwareGraphicsDriver::Render()
 void ALSoftwareGraphicsDriver::Vsync()
 {
   vsync();
+}
+
+void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
+{
+  if (backBuffer)
+  {
+    virtualScreen = backBuffer;
+  }
+  else
+  {
+    virtualScreen = _origVirtualScreen;
+  }
 }
 
 bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)

@@ -162,7 +162,7 @@ public:
     virtual bool HasAcceleratedStretchAndFlip() { return false; }
     virtual bool UsesMemoryBackBuffer() { return true; }
     virtual Bitmap *GetMemoryBackBuffer() { return virtualScreen; }
-    virtual void SetMemoryBackBuffer(Bitmap *backBuffer) { virtualScreen = backBuffer; }
+    virtual void SetMemoryBackBuffer(Bitmap *backBuffer);
     virtual void SetScreenTint(int red, int green, int blue) { 
         _tint_red = red; _tint_green = green; _tint_blue = blue; }
     virtual ~ALSoftwareGraphicsDriver();
@@ -179,6 +179,9 @@ private:
     // Virtual screen bitmap is either a wrapper over Allegro's real screen
     // bitmap, or bitmap provided by the graphics filter. It should not be
     // disposed by the renderer: it is up to filter object to manage it.
+    Bitmap *_origVirtualScreen;
+    // Current virtual screen bitmap; may be provided either by graphics
+    // filter or by external user. It should not be disposed by the renderer.
     Bitmap *virtualScreen;
     Bitmap *_spareTintingScreen;
     int _tint_red, _tint_green, _tint_blue;
@@ -198,6 +201,7 @@ private:
 
     // Use gfx filter to create a new virtual screen
     void CreateVirtualScreen();
+    void DestroyVirtualScreen();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
 

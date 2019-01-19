@@ -17,13 +17,18 @@ It currently does NOT do:
 * optimize code generated - it could check if MAR already contains location
 to read, for example
 
-Some interesting points about how this works:
-* while loops are stored internally as "else"-blocks, but with an extra
-bit of data storing the start of the while test condition to go back to
-* array index accesses are generated as code to allow anything inside
-the brackets, whereas structure member accesses are hardcoded into the
-offset in the code since the member has a fixed offset from the structure
-start
+* Scanning
+    Read the characters of the input and partition it in symbols (e.g., identifier, number literal).
+* Tokenizing
+    Enter all the symbols into a symbol table (thus recognizing keywords)
+    Enter all literal strings into a strings table
+    Recognize structs and prepend "." to struct component names
+These two steps are piped. They are performed separately _before_ the Parsing (below) begins.
+The result is:
+    the symbol table, a glo
+    bal sym that is a struct symbolTable.
+    the sequence of tokens, a parameter targ that is a struct ccInternalList *.
+    the collected string literals that go into a struct ccCompiledScript.
 
 */
 

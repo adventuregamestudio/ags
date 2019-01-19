@@ -163,7 +163,6 @@
     <ClCompile Include="..\..\Common\script\cc_options.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
-    <ClCompile Include="..\..\Compiler\fmem.cpp" />
     <ClCompile Include="..\..\Compiler\script\cc_compiledscript.cpp" />
     <ClCompile Include="..\..\Compiler\script\cc_internallist.cpp" />
     <ClCompile Include="..\..\Compiler\script\cc_macrotable.cpp" />
@@ -180,7 +179,6 @@
     <ClInclude Include="..\..\Common\script\cc_script.h" />
     <ClInclude Include="..\..\Common\script\script_common.h" />
     <ClInclude Include="..\..\Common\util\string.h" />
-    <ClInclude Include="..\..\Compiler\fmem.h" />
     <ClInclude Include="..\..\Compiler\script\cc_compiledscript.h" />
     <ClInclude Include="..\..\Compiler\script\cc_internallist.h" />
     <ClInclude Include="..\..\Compiler\script\cc_macrotable.h" />

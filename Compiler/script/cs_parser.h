@@ -1,21 +1,12 @@
 /*
 'C'-style script compiler development file. (c) 2000,2001 Chris Jones
+SCOM is a script compiler for the 'C' language.
 
-SCOM is a script compiler for the 'C' language. The current version
-implements:
-* #define macros, definition of and use of
-* "//" and "/*---* /" comments
-* global and local variables; calling functions; assignments
-* most of the standard 'C' operators
-* structures and arrays
-* import and export of variables and functions from parent program
-* strings get allocated 200 bytes of storage automatically
+BIRD'S EYE OVERVIEW - INTERFACE AND HIGH-LEVEL STRUCTURE
 
-It currently does NOT do:
-* #define with parenthesis, eg. #define func(a) bar(a+3)
-* typedefs
-* optimize code generated - it could check if MAR already contains location
-to read, for example
+The processing is done in the following layers:
+* [Preprocessing - This has been done separately before the input arrives here.]
+    Expand macros, delete comments
 
 * Scanning
     Read the characters of the input and partition it in symbols (e.g., identifier, number literal).
@@ -25,11 +16,23 @@ to read, for example
     Recognize structs and prepend "." to struct component names
 These two steps are piped. They are performed separately _before_ the Parsing (below) begins.
 The result is:
-    the symbol table, a glo
-    bal sym that is a struct symbolTable.
+    the symbol table, a global sym that is a struct symbolTable.
     the sequence of tokens, a parameter targ that is a struct ccInternalList *.
     the collected string literals that go into a struct ccCompiledScript.
 
+* Parsing
+    All the high-level logic.
+The parsing functions get the input in a parameter targ that is a ccInternalList *.
+The parser augments the symbol table sym as it goes along.
+The result is in a parameter scrip that is a struct ccCompiledScript *
+and has the following key components (amongst many other components):
+    functions - all the functions defined (i.e. they have a body) in the current inputstring
+    imports - all the functions declared (i.e. without body) in the current inputstring
+        NOTE: This includes "forward" declarations where a func definition will arrive later after all.
+    exports - all the functions that are made available to other entities
+    code, fixups - the Bytecode that is generated.
+
+(For an overview of the implementation details, see cs_parser.cpp)
 */
 
 //-----------------------------------------------------------------------------
@@ -51,39 +54,6 @@ The result is:
 
 namespace AGS
 {
-
-/// Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching
-class OpenCloseMatcher
-{
-public:
-    // c'tor
-    OpenCloseMatcher();
-
-    // Parameters: an opening thing, the thing that is expected to close it later, the current line number
-    // Pushes that onto a stack
-    void Push(std::string const &opener, std::string const &expected_closer, int lineno);
-
-    // Input a closing thing; this is matched against the symbol of the "put" method earlier.
-    // If they don't match, an error is generated.
-    void PopAndCheck(std::string const &closer, int lineno, bool &error_encountered);
-
-    // Get the last error encountered.
-    std::string GetLastError();
-
-    // Reset the matcher.
-    void Reset();
-
-
-private:
-    struct OpenInfo
-    {
-        std::string _opener;
-        std::string _closer;
-        int _lineno;  // of the _opener symbol
-    };
-    std::vector<struct OpenInfo> _openInfoStack;
-    std::string _lastError;
-};
 
 
 /// \brief Scans the input, returning the symstrings one by one.
@@ -236,6 +206,39 @@ protected:
 
     int ConvertSymstringToTokenIndex(std::string symstring);
 
+private:
+    // Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching
+    class OpenCloseMatcher
+    {
+    public:
+        // c'tor
+        OpenCloseMatcher();
+
+        // Parameters: an opening thing, the thing that is expected to close it later, the current line number
+        // Pushes that onto a stack
+        void Push(std::string const &opener, std::string const &expected_closer, int lineno);
+
+        // Input a closing thing; this is matched against the symbol of the "put" method earlier.
+        // If they don't match, an error is generated.
+        void PopAndCheck(std::string const &closer, int lineno, bool &error_encountered);
+
+        // Get the last error encountered.
+        std::string GetLastError();
+
+        // Reset the matcher.
+        void Reset();
+
+
+    private:
+        struct OpenInfo
+        {
+            std::string _opener;
+            std::string _closer;
+            int _lineno;  // of the Opener symbol
+        };
+        std::vector<OpenInfo> _openInfoStack;
+        std::string _lastError;
+    };
 
 private:
     Scanner *_scanner;

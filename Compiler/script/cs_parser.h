@@ -54,8 +54,6 @@ and has the following key components (amongst many other components):
 
 namespace AGS
 {
-
-
 /// \brief Scans the input, returning the symstrings one by one.
 /// In this context, a "symstring" is defined to mean the string. 
 /// When the symstring (i.e., the string) is entered into the symbol database, it becomes a "token". 
@@ -67,12 +65,12 @@ public:
     /// Since the symstrings haven't become tokens yet, this is just rudimentary information.
     enum ScanType
     {
-        SctUnspecified = 0,
-        SctIdentifier,      ///< Identifier or keyword --- [A-Za-z][A-Za-z_]*
-        SctFloatLiteral,    ///< Numbers containing a "." --- [0-9]+[.][0-9]*
-        SctIntLiteral,      ///< Numbers not containing a "." --- [0-9]+
-        SctStringLiteral,   ///< Quoted strings --- ["]([\\].[^"]*)*["]
-        SctNonChar          ///< i.e., +, ++, /=; this can be one character or two characters
+        kSct_Unspecified = 0,
+        kSct_Identifier,      ///< Identifier or keyword --- [A-Za-z][A-Za-z_]*
+        kSct_FloatLiteral,    ///< Numbers containing a "." --- [0-9]+[.][0-9]*
+        kSct_IntLiteral,      ///< Numbers not containing a "." --- [0-9]+
+        kSct_StringLiteral,   ///< Quoted strings --- ["]([\\].[^"]*)*["]
+        kSct_NonChar          ///< i.e., +, ++, /=; this can be one character or two characters
     };
 
     // ctors
@@ -155,8 +153,8 @@ class Tokenizer
 public:
     enum Modes
     {
-        ModeStandard = 0, ///< Tokenizer isn't in any special mode
-        ModeStructDecl,   ///< Tokenizer is in a struct declaration
+        kMode_Standard = 0, ///< Tokenizer isn't in any special mode
+        kMode_StructDecl,   ///< Tokenizer is in a struct declaration
     };
 
     // ctors
@@ -293,17 +291,17 @@ private:
 public:
     enum NestingType
     {
-        NTNothing = 0,  // {...} in the code without a particular purpose
-        NTFunction,     // A function
-        NTBracedThen,   // THEN clause with braces
-        NTUnbracedThen, // THEN clause without braces (i.e, it's a single simple statement)
-        NTBracedElse,   // ELSE/inner FOR/WHILE clause with braces
-        NTUnbracedElse, // ELSE/inner FOR/WHILE clause without braces
-        NTBracedDo,     // DO clause with braces
-        NTUnbracedDo,   // DO clause without braces 
-        NTFor,          // Outer FOR clause
-        NTSwitch,       // SWITCH clause
-        NTStruct,       // Struct defn
+        kNT_Nothing = 0,  // {...} in the code without a particular purpose
+        kNT_Function,     // A function
+        kNT_BracedThen,   // THEN clause with braces
+        kNT_UnbracedThen, // THEN clause without braces (i.e, it's a single simple statement)
+        kNT_BracedElse,   // ELSE/inner FOR/WHILE clause with braces
+        kNT_UnbracedElse, // ELSE/inner FOR/WHILE clause without braces
+        kNT_BracedDo,     // DO clause with braces
+        kNT_UnbracedDo,   // DO clause without braces 
+        kNT_For,          // Outer FOR clause
+        kNT_Switch,       // SWITCH clause
+        kNT_Struct,       // Struct defn
     };
 
     NestingStack();
@@ -352,7 +350,7 @@ public:
     inline bool IsUnbraced()
     {
         NestingType nt = Type();
-        return (nt == NTUnbracedThen) || (nt == NTUnbracedElse) || (nt == NTUnbracedDo);
+        return (nt == kNT_UnbracedThen) || (nt == kNT_UnbracedElse) || (nt == kNT_UnbracedDo);
     }
 
     // Push a new nesting level (returns a  value < 0 on error)

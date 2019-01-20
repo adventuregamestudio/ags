@@ -4,13 +4,18 @@
 
 #define NEW_SCRIPT_TOKEN_PREFIX "\"__NEWSCRIPTSTART_"
 #define STRING_LENGTH 200   // how big to make strings
-#define MAX_NESTED_LEVEL 75
+
+// unused
+// #define MAX_NESTED_LEVEL 75
 // [fw] NOTE: NEST_ macros are converted into an enum in cs_parser.h
 
 #define MAX_FUNCTIONS 2000
 #define MAX_FUNCTION_PARAMETERS 15
+#define VARARGS_INDICATOR 100
+
 // This is the maximum length of a "static string" in the script
-#define MAX_SYM_LEN 500
+// unused
+// #define MAX_SYM_LEN 500
 #define SYM_GLOBALVAR 1
 #define SYM_LOCALVAR  2
 #define SYM_OPERATOR  3

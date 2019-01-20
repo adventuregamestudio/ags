@@ -142,21 +142,21 @@ TEST(Scanner, IdentifiersElementary)
     EXPECT_EQ(4, lno);
     estr = "Identifier";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     lno = scanner.GetLineno();
     EXPECT_EQ(5, lno);
     estr = "Iden2tifier";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     lno = scanner.GetLineno();
     EXPECT_EQ(5, lno);
     estr = "iden_ti_9f9_ier3";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 }
 
 TEST(Scanner, IdentifiersNumbers)
@@ -177,38 +177,38 @@ TEST(Scanner, IdentifiersNumbers)
     EXPECT_EQ(1, lno);
     estr = "Ident";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "4";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctIntLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_IntLiteral, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "ify5er";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = ";";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctNonChar, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_NonChar, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "_4";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctIdentifier, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_Identifier, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "6.5";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctFloatLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_FloatLiteral, sct);
 
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     estr = "6996";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctIntLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_IntLiteral, sct);
 
 }
 
@@ -237,7 +237,7 @@ TEST(Scanner, Strings)
     EXPECT_EQ(1, lno);
     estr = "\"ABC\"";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctStringLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_StringLiteral, sct);
 
     // Standard string, should be passed back normally.
     // "\\E" should be equivalent to "E". "\\n" shoult NOT be a newline char.
@@ -248,7 +248,7 @@ TEST(Scanner, Strings)
     EXPECT_EQ(2, lno);
     estr = "\"D\\E;\\nF\"";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctStringLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_StringLiteral, sct);
 
     // Character literal, should not be a string, but an integer.
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
@@ -258,7 +258,7 @@ TEST(Scanner, Strings)
     EXPECT_EQ(2, lno);
     estr = "71";
     EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::SctIntLiteral, sct);
+    EXPECT_EQ(AGS::Scanner::kSct_IntLiteral, sct);
 
     // String containing a newline. This should be marked as erroneous.
     scanner.GetNextSymstring(symstring, sct, eofe, errore);

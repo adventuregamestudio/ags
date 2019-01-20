@@ -186,7 +186,7 @@ void AGS::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_typ
     {
         // Note that this converts the literal to an equivalent integer string "'A'" >>-> "65"
         ReadInCharLit(symstring, eof_encountered, error_encountered);
-        scan_type = SctIntLiteral;
+        scan_type = kSct_IntLiteral;
         return;
     }
 
@@ -194,7 +194,7 @@ void AGS::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_typ
     if (isupper(next_char) || islower(next_char) || (next_char == '_'))
     {
         ReadInIdentifier(symstring, eof_encountered, error_encountered);
-        scan_type = SctIdentifier;
+        scan_type = kSct_Identifier;
         return;
     }
 
@@ -202,12 +202,12 @@ void AGS::Scanner::GetNextSymstring(std::string & symstring, ScanType & scan_typ
     if (next_char == '"')
     {
         ReadInStringLit(symstring, eof_encountered, error_encountered);
-        scan_type = SctStringLiteral;
+        scan_type = kSct_StringLiteral;
         return;
     }
 
     // Non-char symstrings, such as "*="
-    scan_type = SctNonChar;
+    scan_type = kSct_NonChar;
     switch (next_char)
     {
     default:  break;
@@ -288,7 +288,7 @@ void AGS::Scanner::ReadInNumberLit(std::string & symstring, ScanType &scan_type,
 {
     bool decimal_point_encountered = false;
 
-    scan_type = SctIntLiteral;
+    scan_type = kSct_IntLiteral;
     symstring.assign(1, _inputStream.get());
 
     while (true)
@@ -314,7 +314,7 @@ void AGS::Scanner::ReadInNumberLit(std::string & symstring, ScanType &scan_type,
             if (!decimal_point_encountered)
             {
                 decimal_point_encountered = true;
-                scan_type = SctFloatLiteral;
+                scan_type = kSct_FloatLiteral;
                 symstring.push_back(ch);
                 continue;
             }
@@ -564,7 +564,7 @@ void AGS::Tokenizer::SetStringCollector(ccCompiledScript * string_collector)
 
 void AGS::Tokenizer::Reset()
 {
-    _currentMode = ModeStandard;
+    _currentMode = kMode_Standard;
     _braceNestingDepthInStructDecl = 0;
     _structBeingDeclared = -1; // no struct open
     _tokenBuffer.clear();
@@ -595,7 +595,7 @@ void AGS::Tokenizer::ProcessScannerSymstring(
     bool & eof_encountered,
     bool & error_encountered)
 {
-    if ((symbol_type == Scanner::SctIdentifier) && (last_token >= 0) && (TokenType(last_token) == SYM_DOT))
+    if ((symbol_type == Scanner::kSct_Identifier) && (last_token >= 0) && (TokenType(last_token) == SYM_DOT))
     {
         // Prepend a "." so that identifiers inside structs have a different name space from those outside of structs.
         symstring.insert(0, ".");
@@ -609,19 +609,19 @@ void AGS::Tokenizer::ProcessScannerSymstring(
         return;
     }
 
-    if (symbol_type == Scanner::SctStringLiteral)
+    if (symbol_type == Scanner::kSct_StringLiteral)
     {
         TokenizeStringLiteral(token, symstring);
         return;
     }
 
-    if (symbol_type == Scanner::SctIntLiteral)
+    if (symbol_type == Scanner::kSct_IntLiteral)
     {
         SetTokenType(token, SYM_LITERALVALUE);
         return;
     }
 
-    if (symbol_type == Scanner::SctFloatLiteral)
+    if (symbol_type == Scanner::kSct_FloatLiteral)
     {
         SetTokenType(token, SYM_LITERALFLOAT);
         return;
@@ -646,32 +646,32 @@ void AGS::Tokenizer::ProcessScannerSymstring(
     // We enter struct declaration mode after encountering the keyword "struct".
     if ((last_token >= 0) && (TokenType(last_token) == SYM_STRUCT))
     {
-        _currentMode = ModeStructDecl;
+        _currentMode = kMode_StructDecl;
         _inTypeSubmode = true;
         _braceNestingDepthInStructDecl = 0;
         _structBeingDeclared = token;
         return;
     }
 
-    if (_currentMode == ModeStructDecl)
+    if (_currentMode == kMode_StructDecl)
     {
         // The mode ends as soon as the { ... } after the "struct X" ends.
         if (TokenType(token) == SYM_OPENBRACE) ++_braceNestingDepthInStructDecl;
         if (TokenType(token) == SYM_CLOSEBRACE)
         {
-            if (--_braceNestingDepthInStructDecl == 0) _currentMode = ModeStandard;
+            if (--_braceNestingDepthInStructDecl == 0) _currentMode = kMode_Standard;
         }
 
         // The mode also ends if we never had any { ... } to begin with, i.e. a simple "struct X;".
         if ((TokenType(token) == SYM_SEMICOLON) && (_braceNestingDepthInStructDecl == 0))
         {
-            _currentMode = ModeStandard;
+            _currentMode = kMode_Standard;
         }
     }
 
     // If we're in the "root" of a struct declaration, 
     // then all var and func names must have the struct name prepended.
-    if ((_currentMode != ModeStructDecl) ||
+    if ((_currentMode != kMode_StructDecl) ||
         (_braceNestingDepthInStructDecl > 1) ||
         (_parenthesisNestingDepth > 0)) return;
 
@@ -907,7 +907,7 @@ int AGS::NestingStack::Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc i
 AGS::NestingStack::NestingStack()
 {
     // Push first record on stack so that it isn't empty
-    Push(AGS::NestingStack::NTNothing);
+    Push(AGS::NestingStack::kNT_Nothing);
 }
 
 
@@ -1176,8 +1176,8 @@ int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, AGS::Nest
 {
     // Check whether the symbol "else" follows a then branch
     else_after_then = false;
-    if (nesting_stack->Type() == AGS::NestingStack::NTUnbracedElse);
-    else if (nesting_stack->Type() == AGS::NestingStack::NTBracedElse);
+    if (nesting_stack->Type() == AGS::NestingStack::kNT_UnbracedElse);
+    else if (nesting_stack->Type() == AGS::NestingStack::kNT_BracedElse);
     else if (sym.get_type(targ->peeknext()) == SYM_ELSE)
     {
         targ->getnext();  // eat "else"
@@ -1206,10 +1206,10 @@ int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, AGS::Nest
     if (else_after_then)
     {
         // convert the THEN branch into an ELSE, i.e., stay on the same Depth()
-        nesting_stack->SetType(AGS::NestingStack::NTUnbracedElse);
+        nesting_stack->SetType(AGS::NestingStack::kNT_UnbracedElse);
         if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
         {
-            nesting_stack->SetType(AGS::NestingStack::NTBracedElse);
+            nesting_stack->SetType(AGS::NestingStack::kNT_BracedElse);
             targ->getnext();
         }
 
@@ -1223,7 +1223,7 @@ int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, AGS::Nest
     // Clause ends, so pop the level off the stack
     nesting_stack->Pop();
 
-    if (nesting_stack->Type() == AGS::NestingStack::NTFor)
+    if (nesting_stack->Type() == AGS::NestingStack::kNT_For)
     {
         // A FOR is represented by two nestings, so we need to pop another level
         nesting_stack->Pop();
@@ -5299,13 +5299,13 @@ int ParseOpenbrace(
     }
 
     // Assume a brace without special reason as a default
-    int retval = nesting_stack->Push(AGS::NestingStack::NTNothing);
+    int retval = nesting_stack->Push(AGS::NestingStack::kNT_Nothing);
     if (retval < 0) return retval;
 
     if (nesting_stack->Depth() == 2)
     {
         // In this case, the braces are around a function body
-        nesting_stack->SetType(AGS::NestingStack::NTFunction);
+        nesting_stack->SetType(AGS::NestingStack::kNT_Function);
         ParseOpenbrace_FuncBody(scrip, name_of_current_func, struct_of_current_func, is_noloopcheck, nesting_stack);
     }
 
@@ -5367,13 +5367,13 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingS
         nesting_stack->Pop();
         return 0;
 
-    case AGS::NestingStack::NTBracedDo:
+    case AGS::NestingStack::kNT_BracedDo:
         retval = DealWithEndOf_do(targ, scrip, nesting_stack);
         if (retval < 0) return retval;
         break;
 
-    case AGS::NestingStack::NTBracedElse:
-    case AGS::NestingStack::NTBracedThen:
+    case AGS::NestingStack::kNT_BracedElse:
+    case AGS::NestingStack::kNT_BracedThen:
     {
         bool if_turned_into_else;
         int retval = DealWithEndOf_ifelse(targ, scrip, nesting_stack, if_turned_into_else);
@@ -5382,7 +5382,7 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingS
     }
     break;
 
-    case AGS::NestingStack::NTSwitch:
+    case AGS::NestingStack::kNT_Switch:
         retval = DealWithEndOf_switch(targ, scrip, nesting_stack);
         if (retval < 0) return retval;
         break;
@@ -5393,7 +5393,7 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingS
     // has been turned into an ELSE
     while (nesting_stack->IsUnbraced())
     {
-        if (nesting_stack->Type() == AGS::NestingStack::NTUnbracedDo)
+        if (nesting_stack->Type() == AGS::NestingStack::kNT_UnbracedDo)
         {
             int retval = DealWithEndOf_do(targ, scrip, nesting_stack);
             if (retval < 0) return retval;
@@ -6329,7 +6329,7 @@ int ParseVartype_CheckForIllegalContext(AGS::NestingStack *nesting_stack)
         cc_error("A variable or function declaration cannot be the sole body of an 'if', 'else' or loop clause");
         return -1;
     }
-    if (nesting_stack->Type() == AGS::NestingStack::NTSwitch)
+    if (nesting_stack->Type() == AGS::NestingStack::kNT_Switch)
     {
         cc_error("This variable declaration may be skipped by case label. Use braces to limit its scope or move it outside the switch statement block");
         return -1;
@@ -6556,7 +6556,7 @@ int ParseCommand_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, 
     // Unravel else ... else ... chains
     while (nesting_stack->IsUnbraced())
     {
-        if (nesting_stack->Type() == AGS::NestingStack::NTUnbracedDo)
+        if (nesting_stack->Type() == AGS::NestingStack::kNT_UnbracedDo)
         {
             int retval = DealWithEndOf_do(targ, scrip, nesting_stack);
             if (retval < 0) return retval;
@@ -6653,7 +6653,7 @@ int ParseIf(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym,
 
     // Assume unbraced as a default
     retval = nesting_stack->Push(
-        AGS::NestingStack::NTUnbracedThen, // Type
+        AGS::NestingStack::kNT_UnbracedThen, // Type
         0, // Start
         jump_dest_loc); // Info
 
@@ -6662,7 +6662,7 @@ int ParseIf(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym,
     if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
     {
         targ->getnext();
-        nesting_stack->SetType(AGS::NestingStack::NTBracedThen); // change to braced
+        nesting_stack->SetType(AGS::NestingStack::kNT_BracedThen); // change to braced
     }
 
     return 0;
@@ -6692,7 +6692,7 @@ int ParseWhile(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol curs
 
     // Assume unbraced as a default
     retval = nesting_stack->Push(
-        AGS::NestingStack::NTUnbracedThen, // Type
+        AGS::NestingStack::kNT_UnbracedThen, // Type
         condition_eval_loc, // Start
         jump_dest_loc); // Info
     if (retval < 0) return retval;
@@ -6700,7 +6700,7 @@ int ParseWhile(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol curs
     if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
     {
         targ->getnext();
-        nesting_stack->SetType(AGS::NestingStack::NTBracedElse); // change to braced
+        nesting_stack->SetType(AGS::NestingStack::kNT_BracedElse); // change to braced
     }
     return 0;
 }
@@ -6715,7 +6715,7 @@ int ParseDo(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *
 
     // Assume an unbraced DO as a default
     int retval = nesting_stack->Push(
-        AGS::NestingStack::NTUnbracedDo, // Type
+        AGS::NestingStack::kNT_UnbracedDo, // Type
         scrip->codesize, // Start
         jump_dest_loc);  // Info
     if (retval < 0) return retval;
@@ -6724,7 +6724,7 @@ int ParseDo(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *
     {
         targ->getnext();
         // Change to braced DO
-        nesting_stack->SetType(AGS::NestingStack::NTBracedDo);
+        nesting_stack->SetType(AGS::NestingStack::kNT_BracedDo);
     }
 
     return 0;
@@ -6869,7 +6869,7 @@ int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol &cursy
     // The inner level contains "while (E) { ...; C}"
 
     // Outer level
-    int retval = nesting_stack->Push(AGS::NestingStack::NTFor);
+    int retval = nesting_stack->Push(AGS::NestingStack::kNT_For);
     if (retval < 0) return retval;
 
     // '(' must follow
@@ -6916,7 +6916,7 @@ int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol &cursy
 
     // Inner nesting level - assume unbraced as a default
     retval = nesting_stack->Push(
-        AGS::NestingStack::NTUnbracedElse, // Type
+        AGS::NestingStack::kNT_UnbracedElse, // Type
         while_cond_loc, // Start
         0); // Info
     if (retval < 0) return retval;
@@ -6925,7 +6925,7 @@ int ParseFor(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol &cursy
     {
         targ->getnext();
         // Set type "braced" instead of "unbraced"
-        nesting_stack->SetType(AGS::NestingStack::NTBracedElse);
+        nesting_stack->SetType(AGS::NestingStack::kNT_BracedElse);
     }
 
     // We've just generated code for getting to the next loop iteration.
@@ -6975,7 +6975,7 @@ int ParseSwitch(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingSta
     }
 
     retval = nesting_stack->Push(
-        AGS::NestingStack::NTSwitch, // Type
+        AGS::NestingStack::kNT_Switch, // Type
         lookup_table_start, // Start
         switch_expr_type); // Info
     if (retval < 0) return retval;
@@ -6998,7 +6998,7 @@ int ParseSwitch(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingSta
 
 int ParseCasedefault(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 {
-    if (nesting_stack->Type() != AGS::NestingStack::NTSwitch)
+    if (nesting_stack->Type() != AGS::NestingStack::kNT_Switch)
     {
         cc_error("Case label not valid outside switch statement block");
         return -1;
@@ -7083,7 +7083,7 @@ int ParseBreak(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStac
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
 
     // Jump to a jump to the end of the loop
-    if (nesting_stack->Type(loop_level) == AGS::NestingStack::NTSwitch)
+    if (nesting_stack->Type(loop_level) == AGS::NestingStack::kNT_Switch)
     {
         scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nesting_stack->StartLoc(loop_level))); // Jump to the known break point
     }

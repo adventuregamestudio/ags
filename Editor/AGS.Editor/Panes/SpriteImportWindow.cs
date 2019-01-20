@@ -323,9 +323,16 @@ namespace AGS.Editor
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
             e.Graphics.CompositingQuality = CompositingQuality.HighSpeed;
 
-            // Draw the image
-            e.Graphics.DrawImage(image, -previewPanel.HorizontalScroll.Value,
+            Rectangle imageRect = new Rectangle(-previewPanel.HorizontalScroll.Value,
                 -previewPanel.VerticalScroll.Value, image.Width * zoomLevel, image.Height * zoomLevel);
+
+            // Draw the image
+            e.Graphics.DrawImage(image, imageRect);
+
+            // Draw image boundaries
+            Pen dashed = new Pen(Color.Black, 1);
+            dashed.DashPattern = new float[] { 2, 2 };
+            e.Graphics.DrawRectangle(dashed, imageRect);
 
             // Draw dragging indicator
             if (dragging)
@@ -541,12 +548,20 @@ namespace AGS.Editor
                 return;
             }
 
-            chkTiled.Checked = true;
-            dragging = true;
-
             Point mouse = e.Location;
+            Rectangle imageRect = new Rectangle(-previewPanel.HorizontalScroll.Value,
+                -previewPanel.VerticalScroll.Value, image.Width * zoomLevel, image.Height * zoomLevel);
+
+            if (!imageRect.Contains(mouse))
+            {
+                // ignore selections that start outside of the image
+                return;
+            }
+
             mouse.X = mouse.X + previewPanel.HorizontalScroll.Value;
             mouse.Y = mouse.Y + previewPanel.VerticalScroll.Value;
+            chkTiled.Checked = true;
+            dragging = true;
 
             // if the first click was the right button
             bool origin = e.Button == MouseButtons.Right && start == null;

@@ -14,7 +14,7 @@ namespace AGS.Editor.Utils
 {
     public class SpriteTools
     {
-        public static IEnumerable<Bitmap> LoadSpritesFromFile(string fileName)
+        public static IEnumerable<Bitmap> LoadSpritesFromFile(string fileName, int start = 0)
         {
             // We have to use this stream code because using "new Bitmap(filename)"
             // keeps the file open until the Bitmap is disposed
@@ -48,16 +48,15 @@ namespace AGS.Editor.Utils
                 // us an issue, so use the custom GifDecoder instead when
                 // this happens.
                 loadedBmp.Dispose();
-                GifDecoder decoder = new GifDecoder();
 
-                if (decoder.Read(fileName) != GifDecoder.STATUS_OK)
+                using (GifDecoder decoder = new GifDecoder(fileName))
                 {
-                    throw new Types.InvalidDataException($"Unable to load GIF data from '{fileName}'");
-                }
-
-                for (int i = 0; i < decoder.GetFrameCount(); i ++)
-                {
-                    yield return decoder.GetFrame(i);
+                    for (int i = start; i < decoder.GetFrameCount(); i++)
+                    {
+                        loadedBmp = (Bitmap)decoder.GetFrame(i).Clone();
+                        yield return loadedBmp;
+                        loadedBmp.Dispose();
+                    }
                 }
             }
             else
@@ -73,17 +72,7 @@ namespace AGS.Editor.Utils
 
         public static Bitmap LoadFrameImageFromFile(string fileName, int frame)
         {
-            GifDecoder decoder = new GifDecoder();
-
-            if (decoder.Read(fileName) != GifDecoder.STATUS_OK)
-            {
-                // in the interest of speed, if decode fails assume 1 frame
-                return LoadFirstImageFromFile(fileName);
-            }
-
-            // this is a GIF file so just return the frame
-            int at = Math.Min(Math.Abs(frame), decoder.GetFrameCount() - 1);
-            return decoder.GetFrame(at);
+            return LoadSpritesFromFile(fileName, frame).FirstOrDefault();
         }
 
         public static int GetFrameCountEstimateFromFile(string fileName)
@@ -93,16 +82,21 @@ namespace AGS.Editor.Utils
                 return 0;
             }
 
-            GifDecoder decoder = new GifDecoder();
+            int count;
 
-            if (decoder.Read(fileName) != GifDecoder.STATUS_OK)
+            try
             {
-                // in the interest of speed, if decode fails assume 1 frame
-                return 1;
+                using (GifDecoder decoder = new GifDecoder(fileName))
+                {
+                    count = decoder.GetFrameCount();
+                }
+            }
+            catch (Types.InvalidDataException)
+            {
+                count = 1;
             }
 
-            // this is a GIF file so just return the frame count
-            return decoder.GetFrameCount();
+            return count;
         }
 
         public static string GetSpriteUsageReport(int spriteNumber, Game game)

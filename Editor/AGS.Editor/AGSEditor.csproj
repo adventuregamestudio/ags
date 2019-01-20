@@ -27,6 +27,8 @@
     </UpgradeBackupLocation>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -71,6 +73,9 @@
     </Reference>
     <Reference Include="irrKlang.NET4">
       <HintPath>..\References\irrKlang.NET4.dll</HintPath>
+    </Reference>
+    <Reference Include="Magick.NET-Q8-x86, Version=7.10.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=x86">
+      <HintPath>..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\lib\net40\Magick.NET-Q8-x86.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\Solutions\packages\Newtonsoft.Json.10.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
@@ -1126,4 +1131,11 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
+  <Import Project="..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\build\net40\Magick.NET-Q8-x86.targets" Condition="Exists('..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\build\net40\Magick.NET-Q8-x86.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\build\net40\Magick.NET-Q8-x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\build\net40\Magick.NET-Q8-x86.targets'))" />
+  </Target>
 </Project>

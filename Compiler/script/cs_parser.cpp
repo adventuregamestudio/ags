@@ -124,18 +124,16 @@ enum Importness
 };
 
 AGS::Scanner::Scanner()
-    :
-    _lineno(1),
-    _tokenList(0),
-    _lastError("")
+    : _lineno(1)
+    , _tokenList(0)
+    , _lastError("")
 {
 }
 
 AGS::Scanner::Scanner(std::string const &input, std::size_t lineno, ::ccInternalList *token_list)
-    :
-    _lineno(lineno),
-    _tokenList(token_list),
-    _lastError("")
+    : _lineno(lineno)
+    , _tokenList(token_list)
+    , _lastError("")
 {
     SetInput(input);
 }

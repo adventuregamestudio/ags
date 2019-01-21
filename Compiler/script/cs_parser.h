@@ -394,15 +394,3 @@ extern int cc_compile(
     ccCompiledScript * scrip);   // store for the compiled text
 
 #endif // __CS_PARSER_H
-
-int parse_subexpr_OpIsFirst(const AGS::SymbolScript &symlist, int oploc, const size_t &symlist_len, ccCompiledScript * scrip);
-
-int parse_subexpr_OpIsSecondOrLater(const AGS::SymbolScript &symlist, int &oploc, ccCompiledScript * scrip, const size_t &symlist_len);
-
-int parse_subexpr_NoOps(size_t &symlist_len, AGS::SymbolScript &symlist, ccCompiledScript * scrip, bool hasNegatedLiteral);
-
-int parse_subexpr_NewIsFirst(const size_t & symlist_len, const AGS::SymbolScript & symlist, int oploc, ccCompiledScript * scrip);
-
-int parse_subexpr_UnaryMinusIsFirst(const size_t & symlist_len, ccCompiledScript * scrip, const AGS::SymbolScript & symlist);
-
-int parse_subexpr_NotIsFirst(const size_t & symlist_len, ccCompiledScript * scrip, const AGS::SymbolScript & symlist);

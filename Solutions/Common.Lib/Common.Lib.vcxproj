@@ -245,6 +245,7 @@
     <ClCompile Include="..\..\Common\gui\guiobject.cpp" />
     <ClCompile Include="..\..\Common\gui\guislider.cpp" />
     <ClCompile Include="..\..\Common\gui\guitextbox.cpp" />
+    <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aarot.c" />
     <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aastr.c" />
     <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aautil.c" />
     <ClCompile Include="..\..\Common\script\cc_error.cpp" />

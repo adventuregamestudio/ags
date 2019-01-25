@@ -15,10 +15,12 @@ probably work.
 -   libogg (1.2.2-1.3.0)
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
+-   libXext (1.3.3)
+-   libXxf86vm (1.1.4)
 
 Fedora package installation
 ---------------------------
-    yum -y install git allegro-devel dumb-devel freetype-devel libogg-devel libtheora-devel libvorbis-devel
+    yum -y install git allegro-devel dumb-devel freetype-devel libogg-devel libtheora-devel libvorbis-devel libXext-devel libXxf86vm-devel
 
 Debian/Ubuntu package installation
 ----------------------------------

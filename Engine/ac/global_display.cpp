@@ -32,6 +32,7 @@
 #include "ac/topbarsettings.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
+#include "util/c99_snprintf.h"
 
 extern TopBarSettings topBar;
 extern GameState play;
@@ -54,9 +55,9 @@ void DisplaySimple(const char *text)
     DisplayAtY (-1, text);
 }
 
-void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char*text) {
-
-    strcpy(topBar.text, get_translation(title));
+void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char *text)
+{
+    snprintf(topBar.text, sizeof(topBar.text), "%s", get_translation(title));
 
     if (ypos > 0)
         play.top_bar_ypos = ypos;

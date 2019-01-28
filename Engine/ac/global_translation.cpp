@@ -14,6 +14,7 @@
 
 #include <string.h>
 #include "ac/common.h"
+#include "ac/display.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"
@@ -24,7 +25,6 @@
 
 extern GameState play;
 extern AGSPlatformDriver *platform;
-extern int source_text_length;
 extern TreeMap *transtree;
 extern char transFileName[MAX_PATH];
 
@@ -32,16 +32,7 @@ const char *get_translation (const char *text) {
     if (text == NULL)
         quit("!Null string supplied to CheckForTranslations");
 
-    source_text_length = strlen(text);
-    if ((text[0] == '&') && (play.unfactor_speech_from_textlength != 0)) {
-        // if there's an "&12 text" type line, remove "&12 " from the source
-        // length
-        int j = 0;
-        while ((text[j] != ' ') && (text[j] != 0))
-            j++;
-        j++;
-        source_text_length -= j;
-    }
+    source_text_length = GetTextDisplayLength(text);
 
     // check if a plugin wants to translate it - if so, return that
     char *plResult = (char*)pl_run_plugin_hooks(AGSE_TRANSLATETEXT, (long)text);

@@ -76,7 +76,6 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap **actsps;
-extern int source_text_length;
 extern int offsetx, offsety;
 extern int is_text_overlay;
 extern int said_speech_line;
@@ -2308,8 +2307,9 @@ void _DisplaySpeechCore(int chid, const char *displbuf) {
 
     // adjust timing of text (so that DisplaySpeech("%s", str) pauses
     // for the length of the string not 2 frames)
-    if ((int)strlen(displbuf) > source_text_length + 3)
-        source_text_length = strlen(displbuf);
+    int len = (int)strlen(displbuf);
+    if (len > source_text_length + 3)
+        source_text_length = len;
 
     DisplaySpeech(displbuf, chid);
 }
@@ -2317,8 +2317,9 @@ void _DisplaySpeechCore(int chid, const char *displbuf) {
 void _DisplayThoughtCore(int chid, const char *displbuf) {
     // adjust timing of text (so that DisplayThought("%s", str) pauses
     // for the length of the string not 2 frames)
-    if ((int)strlen(displbuf) > source_text_length + 3)
-        source_text_length = strlen(displbuf);
+    int len = (int)strlen(displbuf);
+    if (len > source_text_length + 3)
+        source_text_length = len;
 
     int xpp = -1, ypp = -1, width = -1;
 

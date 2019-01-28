@@ -888,8 +888,8 @@ void AGS::Tokenizer::OpenCloseMatcher::PopAndCheck(std::string const & closer, i
 
 int AGS::NestingStack::Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc info)
 {
-    std::vector<AGS::ccChunk> dummy_chunk;
-    struct AGS::NestingInfo ni = { type, start, info, 0, dummy_chunk };
+    std::vector<AGS::NestingStack::Chunk> dummy_chunk;
+    struct AGS::NestingStack::NestingInfo ni = { type, start, info, 0, dummy_chunk };
     try
     {
         _stack.push_back(ni);
@@ -913,22 +913,22 @@ AGS::NestingStack::NestingStack()
 // and move it into the vector at list, instead.
 void AGS::NestingStack::YankChunk(ccCompiledScript *scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset)
 {
-    AGS::ccChunk item;
+    AGS::NestingStack::Chunk item;
 
     for (size_t code_idx = codeoffset; code_idx < scrip->codesize; code_idx++)
     {
-        item.Code.push_back(scrip->code[code_idx]);
+        item._code.push_back(scrip->code[code_idx]);
     }
 
     for (size_t fixups_idx = fixupoffset; fixups_idx < scrip->numfixups; fixups_idx++)
     {
-        item.Fixups.push_back(scrip->fixups[fixups_idx]);
-        item.FixupTypes.push_back(scrip->fixuptypes[fixups_idx]);
+        item._fixups.push_back(scrip->fixups[fixups_idx]);
+        item._fixupTypes.push_back(scrip->fixuptypes[fixups_idx]);
     }
-    item.CodeOffset = codeoffset;
-    item.FixupOffset = fixupoffset;
+    item._codeOffset = codeoffset;
+    item._fixupOffset = fixupoffset;
 
-    _stack.back().Chunks.push_back(item);
+    _stack.back()._chunks.push_back(item);
 
     // Cut out the code that has been pushed
     scrip->codesize = codeoffset;
@@ -936,23 +936,23 @@ void AGS::NestingStack::YankChunk(ccCompiledScript *scrip, AGS::CodeLoc codeoffs
 }
 
 
-// Copy the code in ccChunk to the end of the bytecode vector 
+// Copy the code in Chunk to the end of the bytecode vector 
 void AGS::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t index)
 {
-    const AGS::ccChunk item = Chunks(level).at(index);
+    const AGS::NestingStack::Chunk item = Chunks(level).at(index);
     scrip->flush_line_numbers();
-    AGS::CodeLoc adjust = scrip->codesize - item.CodeOffset;
+    AGS::CodeLoc adjust = scrip->codesize - item._codeOffset;
 
-    size_t limit = item.Code.size();
+    size_t limit = item._code.size();
     for (size_t index = 0; index < limit; index++)
     {
-        scrip->write_code(item.Code[index]);
+        scrip->write_code(item._code[index]);
     }
 
-    limit = item.Fixups.size();
+    limit = item._fixups.size();
     for (size_t index = 0; index < limit; index++)
     {
-        scrip->add_fixup(item.Fixups[index] + adjust, item.FixupTypes[index]);
+        scrip->add_fixup(item._fixups[index] + adjust, item._fixupTypes[index]);
     }
 }
 
@@ -1183,7 +1183,7 @@ int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, AGS::Nest
         else_after_then = true;
     }
 
-    if (nesting_stack->StartLoc()) // a loop that features a jump back to the start
+    if (nesting_stack->_startLoc()) // a loop that features a jump back to the start
     {
         scrip->flush_line_numbers();
         // if it's a for loop, drop the yanked chunk (loop increment) back in
@@ -1194,7 +1194,7 @@ int DealWithEndOf_ifelse(ccInternalList *targ, ccCompiledScript*scrip, AGS::Nest
         }
 
         // jump back to the start location
-        scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nesting_stack->StartLoc()));
+        scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nesting_stack->_startLoc()));
     }
 
     // Patch the jump out of the construct to point to here
@@ -1269,7 +1269,7 @@ int DealWithEndOf_do(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nesting
     }
 
     // Jump back to the start of the loop while the condition is true
-    scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize + 2) - nesting_stack->StartLoc()));
+    scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize + 2) - nesting_stack->_startLoc()));
     // Patch the jump out of the loop; it should point to here
     scrip->code[nesting_stack->JumpOutLoc()] = (scrip->codesize - nesting_stack->JumpOutLoc()) - 1;
 
@@ -1286,7 +1286,7 @@ int DealWithEndOf_switch(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nes
 
     // If there was no terminating break, write a jump at the end of the last case
     if (scrip->code[scrip->codesize - 2] != SCMD_JMP ||
-        scrip->code[scrip->codesize - 1] != nesting_stack->StartLoc() - scrip->codesize + 2)
+        scrip->code[scrip->codesize - 1] != nesting_stack->_startLoc() - scrip->codesize + 2)
     {
         scrip->write_cmd1(SCMD_JMP, 0);
     }
@@ -1296,7 +1296,7 @@ int DealWithEndOf_switch(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nes
 
     // Patch the instruction "Jump to the jump table" at the start of the switch
     // so that it points to the correct address, i.e., here
-    scrip->code[nesting_stack->StartLoc() + 1] = (jumptable_loc - nesting_stack->StartLoc()) - 2;
+    scrip->code[nesting_stack->_startLoc() + 1] = (jumptable_loc - nesting_stack->_startLoc()) - 2;
 
     // Get correct comparison operation: Don't compare strings as pointers but as strings
     int noteq_op = is_any_type_of_string(nesting_stack->SwitchExprType()) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
@@ -1308,15 +1308,15 @@ int DealWithEndOf_switch(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nes
         nesting_stack->WriteChunk(scrip, index);
         // Do the comparison
         scrip->write_cmd2(noteq_op, SREG_AX, SREG_BX);
-        scrip->write_cmd1(SCMD_JZ, nesting_stack->Chunks().at(index).CodeOffset - scrip->codesize - 2);
+        scrip->write_cmd1(SCMD_JZ, nesting_stack->Chunks().at(index)._codeOffset - scrip->codesize - 2);
     }
 
     // Write the default jump if necessary
-    if (nesting_stack->DefaultLabelLoc() != -1)
-        scrip->write_cmd1(SCMD_JMP, nesting_stack->DefaultLabelLoc() - scrip->codesize - 2);
+    if (nesting_stack->_defaultLabelLoc() != -1)
+        scrip->write_cmd1(SCMD_JMP, nesting_stack->_defaultLabelLoc() - scrip->codesize - 2);
 
     // Patch th jump to the end of the switch block (for break statements)
-    scrip->code[nesting_stack->StartLoc() + 3] = scrip->codesize - nesting_stack->StartLoc() - 4;
+    scrip->code[nesting_stack->_startLoc() + 3] = scrip->codesize - nesting_stack->_startLoc() - 4;
 
     // Patch the jump for the end of the switch block
     scrip->code[jumptable_loc - 1] = scrip->codesize - jumptable_loc;
@@ -7004,7 +7004,7 @@ int ParseCasedefault(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbo
 
     if (sym.get_type(cursym) == SYM_DEFAULT)
     {
-        if (nesting_stack->DefaultLabelLoc() != -1)
+        if (nesting_stack->_defaultLabelLoc() != -1)
         {
             cc_error("This switch statement block already has a \"default:\" label");
             return -1;
@@ -7054,7 +7054,7 @@ int ParseBreak(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStac
 {
     // Find the (level of the) looping construct to which the break applies
     size_t loop_level = nesting_stack->Depth() - 1;
-    while (loop_level > 0 && nesting_stack->StartLoc(loop_level) == 0) loop_level--;
+    while (loop_level > 0 && nesting_stack->_startLoc(loop_level) == 0) loop_level--;
 
     if (loop_level == 0)
     {
@@ -7083,7 +7083,7 @@ int ParseBreak(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStac
     // Jump to a jump to the end of the loop
     if (nesting_stack->Type(loop_level) == AGS::NestingStack::kNT_Switch)
     {
-        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nesting_stack->StartLoc(loop_level))); // Jump to the known break point
+        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nesting_stack->_startLoc(loop_level))); // Jump to the known break point
     }
     else
     {
@@ -7096,7 +7096,7 @@ int ParseContinue(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingS
 {
     // Find the (level of the) looping construct to which the break applies
     size_t loop_level = nesting_stack->Depth() - 1;
-    while (loop_level > 0 && nesting_stack->StartLoc(loop_level) == 0) loop_level--;
+    while (loop_level > 0 && nesting_stack->_startLoc(loop_level) == 0) loop_level--;
 
     if (loop_level == 0)
     {
@@ -7131,7 +7131,7 @@ int ParseContinue(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingS
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
 
     // Jump to the start of the loop
-    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nesting_stack->StartLoc(loop_level)));
+    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize + 2) - nesting_stack->_startLoc(loop_level)));
     return 0;
 }
 

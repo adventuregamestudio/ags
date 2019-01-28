@@ -247,7 +247,7 @@ private:
     std::string _lastError;
     OpenCloseMatcher _ocMatcher;
 
-    enum Modes _currentMode;
+    Modes _currentMode;
     bool _inTypeSubmode;
     int _braceNestingDepthInStructDecl; // only used in StructDeclMode
     int _structBeingDeclared;
@@ -262,33 +262,31 @@ private:
 };
 
 
-// A section of compiled code that needs to be moved or copied to a new location
-struct ccChunk
-{
-    std::vector<AGS::CodeCell> Code;
-    std::vector<int32_t> Fixups;
-    std::vector<char> FixupTypes;
-    int CodeOffset;
-    int FixupOffset;
-};
 
-// All data that is associated with a nesting level
-struct NestingInfo
-{
-    int Type; // Type of the level, see AGS::NestingStack::NestingType
-    std::int32_t StartLoc; // Index of the first byte generated for the level
-    std::int32_t Info; // Various uses that differ by nesting type
-    std::int32_t DefaultLabelLoc; // Location of default label
-    std::vector<ccChunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
-};
 
 // The stack of nesting statements 
 class NestingStack
 {
-private:
-    std::vector<NestingInfo> _stack;
-
 public:
+    // A section of compiled code that needs to be moved or copied to a new location
+    struct Chunk
+    {
+        std::vector<AGS::CodeCell> _code;
+        std::vector<int32_t> _fixups;
+        std::vector<char> _fixupTypes;
+        int _codeOffset;
+        int _fixupOffset;
+    };
+
+    // All data that is associated with a nesting level
+    struct NestingInfo
+    {
+        int Type; // Type of the level, see AGS::NestingStack::NestingType
+        AGS::CodeLoc _startLoc; // Index of the first byte generated for the level
+        AGS::CodeLoc _info; // Various uses that differ by nesting type
+        AGS::CodeLoc _defaultLabelLoc; // Location of default label
+        std::vector<Chunk> _chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
+    };
     enum NestingType
     {
         kNT_Nothing = 0,  // {...} in the code without a particular purpose
@@ -303,7 +301,10 @@ public:
         kNT_Switch,       // SWITCH clause
         kNT_Struct,       // Struct defn
     };
+private:
+    std::vector<NestingInfo> _stack;
 
+public:
     NestingStack();
 
     // Depth of the nesting == index of the innermost nesting level
@@ -317,34 +318,34 @@ public:
 
     // If the innermost nesting is a loop that has a jump back to the start,
     // then this gives the location to jump to; otherwise, it is 0
-    inline std::int32_t StartLoc() { return _stack.back().StartLoc; };
-    inline void SetStartLoc(std::int32_t start) { _stack.back().StartLoc = start; };
+    inline std::int32_t _startLoc() { return _stack.back()._startLoc; };
+    inline void SetStartLoc(std::int32_t start) { _stack.back()._startLoc = start; };
     // If the nesting at the given level has a jump back to the start,
     // then this gives the location to jump to; otherwise, it is 0
-    inline std::int32_t StartLoc(size_t level) { return _stack.at(level).StartLoc; };
+    inline std::int32_t _startLoc(size_t level) { return _stack.at(level)._startLoc; };
 
     // If the innermost nesting features a jump out instruction, then this is the location of it
-    inline std::intptr_t JumpOutLoc() { return _stack.back().Info; };
-    inline void SetJumpOutLoc(std::intptr_t loc) { _stack.back().Info = loc; };
+    inline std::intptr_t JumpOutLoc() { return _stack.back()._info; };
+    inline void SetJumpOutLoc(std::intptr_t loc) { _stack.back()._info = loc; };
     // If the nesting at the given level features a jump out, then this is the location of it
-    inline std::intptr_t JumpOutLoc(size_t level) { return _stack.at(level).Info; };
+    inline std::intptr_t JumpOutLoc(size_t level) { return _stack.at(level)._info; };
 
     // If the innermost nesting is a SWITCH, the type of the switch expression
-    int SwitchExprType() { return static_cast<int>(_stack.back().Info); };
-    inline void SetSwitchExprType(int ty) { _stack.back().Info = ty; };
+    int SwitchExprType() { return static_cast<int>(_stack.back()._info); };
+    inline void SetSwitchExprType(int ty) { _stack.back()._info = ty; };
 
     // If the innermost nesting is a SWITCH, the location of the "default:" label
-    inline std::int32_t DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
-    inline void SetDefaultLabelLoc(int32_t loc) { _stack.back().DefaultLabelLoc = loc; }
+    inline std::int32_t _defaultLabelLoc() { return _stack.back()._defaultLabelLoc; };
+    inline void SetDefaultLabelLoc(int32_t loc) { _stack.back()._defaultLabelLoc = loc; }
 
     // If the innermost nesting contains code chunks that must be moved around
     // (e.g., in FOR loops), then this is true, else false
-    inline bool ChunksExist() { return !_stack.back().Chunks.empty(); }
-    inline bool ChunksExist(size_t level) { return !_stack.at(level).Chunks.empty(); }
+    inline bool ChunksExist() { return !_stack.back()._chunks.empty(); }
+    inline bool ChunksExist(size_t level) { return !_stack.at(level)._chunks.empty(); }
 
     // Code chunks that must be moved around (e.g., in FOR, DO loops)
-    inline std::vector<ccChunk> Chunks() { return _stack.back().Chunks; };
-    inline std::vector<ccChunk> Chunks(size_t level) { return _stack.at(level).Chunks; };
+    inline std::vector<Chunk> Chunks() { return _stack.back()._chunks; };
+    inline std::vector<Chunk> Chunks(size_t level) { return _stack.at(level)._chunks; };
 
     // True iff the innermost nesting is unbraced
     inline bool IsUnbraced()
@@ -371,26 +372,16 @@ public:
 
 };
 
-
-struct NestStack
-{
-    char Type;
-    long Start;
-    long Info;
-    std::int32_t AssignAddress;
-    std::vector<ccChunk> Chunk;
-};
-
 } // namespace AGS
 
 
 extern int cc_tokenize(
     const char *inpl,         // preprocessed text to be tokenized
-    ccInternalList * targ,     // store for the tokenized text
-    ccCompiledScript * scrip); // store for the strings in the text
+    ccInternalList *targ,     // store for the tokenized text
+    ccCompiledScript *scrip); // store for the strings in the text
 
 extern int cc_compile(
     const char *inpl,           // preprocessed text to be compiled
-    ccCompiledScript * scrip);   // store for the compiled text
+    ccCompiledScript *scrip);   // store for the compiled text
 
 #endif // __CS_PARSER_H

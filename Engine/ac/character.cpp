@@ -3107,7 +3107,7 @@ RuntimeScriptValue Sc_Character_Say(void *self, const RuntimeScriptValue *params
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_Say, 1);
     Character_Say((CharacterInfo*)self, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (CharacterInfo *chaa, int x, int y, int width, const char *texx)
@@ -3197,7 +3197,7 @@ RuntimeScriptValue Sc_Character_Think(void *self, const RuntimeScriptValue *para
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_Think, 1);
     Character_Think((CharacterInfo*)self, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 //void (CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance)

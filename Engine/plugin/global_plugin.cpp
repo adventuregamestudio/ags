@@ -37,7 +37,7 @@ void PluginSimulateMouseClick(int pluginButtonID) {
 
 RuntimeScriptValue Sc_PluginStub_Void(const RuntimeScriptValue *params, int32_t param_count)
 {
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 RuntimeScriptValue Sc_PluginStub_Int0(const RuntimeScriptValue *params, int32_t param_count)

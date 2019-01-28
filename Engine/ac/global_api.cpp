@@ -77,7 +77,7 @@ RuntimeScriptValue Sc_sc_AbortGame(const RuntimeScriptValue *params, int32_t par
 {
     API_SCALL_SCRIPT_SPRINTF(_sc_AbortGame, 1);
     _sc_AbortGame(scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (int inum)
@@ -250,7 +250,7 @@ RuntimeScriptValue Sc_Display(const RuntimeScriptValue *params, int32_t param_co
 {
     API_SCALL_SCRIPT_SPRINTF(Display, 1);
     DisplaySimple(scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (int xxp,int yyp,int widd,char*texx, ...)
@@ -258,7 +258,7 @@ RuntimeScriptValue Sc_DisplayAt(const RuntimeScriptValue *params, int32_t param_
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayAt, 4);
     DisplayAt(params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void  (int ypos, char *texx)
@@ -290,7 +290,7 @@ RuntimeScriptValue Sc_sc_displayspeech(const RuntimeScriptValue *params, int32_t
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayAt, 2);
     __sc_displayspeech(params[0].IValue, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void  (int xx, int yy, int wii, int aschar, char*spch)
@@ -310,7 +310,7 @@ RuntimeScriptValue Sc_DisplayThought(const RuntimeScriptValue *params, int32_t p
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayThought, 2);
     DisplayThought(params[0].IValue, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (int ypos, int ttexcol, int backcol, char *title, char*texx, ...)
@@ -318,7 +318,7 @@ RuntimeScriptValue Sc_DisplayTopBar(const RuntimeScriptValue *params, int32_t pa
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayTopBar, 5);
     DisplayTopBar(params[0].IValue, params[1].IValue, params[2].IValue, params[3].Ptr, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 extern RuntimeScriptValue Sc_enable_cursor_mode(const RuntimeScriptValue *params, int32_t param_count);
@@ -1304,7 +1304,7 @@ RuntimeScriptValue Sc_RawPrint(const RuntimeScriptValue *params, int32_t param_c
 {
     API_SCALL_SCRIPT_SPRINTF(RawPrint, 3);
     RawPrint(params[0].IValue, params[1].IValue, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void  (int xx, int yy, int wid, int font, int msgm)
@@ -1906,7 +1906,7 @@ RuntimeScriptValue Sc_SetSkipSpeech(const RuntimeScriptValue *params, int32_t pa
 {
     ASSERT_PARAM_COUNT(SetSkipSpeech, 1);
     SetSkipSpeech((SkipSpeechStyle)params[0].IValue);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (int guin,int objn, int valn)
@@ -1959,7 +1959,7 @@ RuntimeScriptValue Sc_SetTextOverlay(const RuntimeScriptValue *params, int32_t p
     API_SCALL_SCRIPT_SPRINTF(SetTextOverlay, 7);
     SetTextOverlay(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue,
                    params[4].IValue, params[5].IValue, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void  (int guinum)

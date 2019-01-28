@@ -548,7 +548,7 @@ RuntimeScriptValue Sc_DrawingSurface_DrawString(void *self, const RuntimeScriptV
 {
     API_OBJCALL_SCRIPT_SPRINTF(DrawingSurface_DrawString, 4);
     DrawingSurface_DrawString((ScriptDrawingSurface*)self, params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg)

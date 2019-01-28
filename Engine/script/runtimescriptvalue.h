@@ -55,10 +55,19 @@ public:
     RuntimeScriptValue()
     {
         Type        = kScValUndefined;
-        IValue		= 0;
+        IValue      = 0;
         Ptr         = NULL;
         MgrPtr      = NULL;
         Size        = 0;
+    }
+
+    RuntimeScriptValue(int32_t val)
+    {
+        Type        = kScValInteger;
+        IValue      = val;
+        Ptr         = NULL;
+        MgrPtr      = NULL;
+        Size        = 4;
     }
 
     ScriptValueType Type;
@@ -67,7 +76,7 @@ public:
     union
     {
         int32_t     IValue; // access Value as int32 type
-        float	    FValue;	// access Value as float type
+        float       FValue;	// access Value as float type
     };
     // Pointer is used for storing... pointers - to objects, arrays,
     // functions and stack entries (other RSV)

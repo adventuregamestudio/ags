@@ -45,7 +45,6 @@ enum MainGameFileError
 {
     kMGFErr_NoError,
     kMGFErr_FileNotFound,
-    kMGFErr_NoStream,
     kMGFErr_SignatureFailed,
     // separate error given for "too old" format to provide clarifying message
     kMGFErr_FormatVersionTooOld,

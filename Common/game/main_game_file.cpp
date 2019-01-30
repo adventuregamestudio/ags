@@ -46,9 +46,7 @@ String GetMainGameFileErrorText(MainGameFileError err)
     case kMGFErr_NoError:
         return "No error";
     case kMGFErr_FileNotFound:
-        return "Main game file not found";
-    case kMGFErr_NoStream:
-        return "Failed to open input stream";
+        return "Main game file not found (an important asset is missing in the game package)";
     case kMGFErr_SignatureFailed:
         return "Not an AGS main game file or unsupported format";
     case kMGFErr_FormatVersionTooOld:
@@ -56,7 +54,7 @@ String GetMainGameFileErrorText(MainGameFileError err)
     case kMGFErr_FormatVersionNotSupported:
         return "Format version not supported";
     case kMGFErr_CapsNotSupported:
-        return "Required engine caps are not supported";
+        return "The game requires extended capabilities which aren't supported by the engine";
     case kMGFErr_InvalidNativeResolution:
         return "Unable to determine native game resolution";
     case kMGFErr_TooManyFonts:
@@ -115,17 +113,16 @@ bool IsMainGameLibrary(const String &filename)
 // Begins reading main game file from a generic stream
 MainGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
 {
-    if (!in)
-        return kMGFErr_NoStream;
     // Check data signature
     String data_sig = String::FromStreamCount(in.get(), MainGameSource::Signature.GetLength());
     if (data_sig.Compare(MainGameSource::Signature))
         return kMGFErr_SignatureFailed;
     // Read data format version and requested engine version
     src.DataVersion = (GameDataVersion)in->ReadInt32();
+    if (src.DataVersion >= kGameVersion_230)
+        src.CompiledWith = StrUtil::ReadString(in.get());
     if (src.DataVersion < kGameVersion_250)
         return kMGFErr_FormatVersionTooOld;
-    src.CompiledWith = StrUtil::ReadString(in.get());
     if (src.DataVersion > kGameVersion_Current)
         return kMGFErr_FormatVersionNotSupported;
     // Read required capabilities

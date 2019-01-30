@@ -97,17 +97,11 @@ MainGameFileError game_file_first_open(MainGameSource &src)
         if (src.Caps.size() > 0)
         {
             String caps_list = get_caps_list(src.Caps);
-            Debug::Printf(kDbgMsg_Init, "Requested engine caps:%s", caps_list.GetCStr());
+            Debug::Printf(kDbgMsg_Init, "Requested engine caps: %s", caps_list.GetCStr());
         }
     }
     // Quit in case of error
-    if (err == kMGFErr_FormatVersionTooOld || err == kMGFErr_FormatVersionNotSupported)
-    {
-        platform->DisplayAlert("This game format is not supported by the engine (game compiled with: %s).\n\nIt cannot be run.",
-            src.CompiledWith.GetCStr());
-        return err;
-    }
-    else if (err != kMGFErr_NoError)
+    if (err != kMGFErr_NoError)
         return err;
 
     // Test the extended caps
@@ -115,8 +109,7 @@ MainGameFileError game_file_first_open(MainGameSource &src)
     if (!test_game_caps(src.Caps, failed_caps))
     {
         String caps_list = get_caps_list(failed_caps);
-        platform->DisplayAlert("This game requires extended capabilities which aren't supported by the engine:%s\n\nIt cannot be run.",
-            caps_list.GetCStr());
+        Debug::Printf(kDbgMsg_Init, "Missing engine caps: %s", caps_list.GetCStr());
         return kMGFErr_CapsNotSupported;
     }
     return kMGFErr_NoError;

@@ -565,13 +565,15 @@ void AlMidiToChars(int midi_id, AlIDStr &id_str)
         AlIDToChars(midi_id, id_str);
 }
 
-bool try_install_sound(int digi_id, int midi_id)
+bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = NULL)
 {
     if (install_sound(digi_id, midi_id, NULL) == 0)
         return true;
     // Allegro does not let you try digital and MIDI drivers separately,
     // and does not indicate which driver failed by return value.
     // Therefore we try to guess.
+    if (p_err_msg)
+        *p_err_msg = get_allegro_error();
     if (midi_id != MIDI_NONE)
     {
         Debug::Printf(kDbgMsg_Error, "Failed to init one of the drivers; Error: '%s'.\nWill try to start without MIDI", get_allegro_error());
@@ -591,11 +593,9 @@ bool try_install_sound(int digi_id, int midi_id)
 void engine_init_sound()
 {
     if (opts.mod_player)
-        reserve_voices(16, -1);
-#if ALLEGRO_DATE > 19991010
-    // maybe this line will solve the sound volume?
+        reserve_voices(NUM_DIGI_VOICES, -1);
+    // maybe this line will solve the sound volume? [??? wth is this]
     set_volume_per_voice(1);
-#endif
 
     Debug::Printf("Initialize sound drivers");
 
@@ -616,27 +616,30 @@ void engine_init_sound()
     Debug::Printf(kDbgMsg_Init, "Sound settings: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
         digi_id, usetup.digicard, midi_id, usetup.midicard);
 
-    bool sound_res = try_install_sound(usetup.digicard, usetup.midicard);
+    String err_msg;
+    bool sound_res = try_install_sound(usetup.digicard, usetup.midicard, &err_msg);
     if (!sound_res && opts.mod_player)
     {
         Debug::Printf("Resetting to default sound parameters and trying again.");
         reserve_voices(-1, -1); // this resets voice number to defaults
         opts.mod_player = 0;
-        sound_res = try_install_sound(usetup.digicard, usetup.midicard);
+        sound_res = try_install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT);
     }
     if (!sound_res)
     {
-        // If everything failed, disable sound completely
-        Debug::Printf("Resetting to zero digital voices and trying again.");
-        reserve_voices(0,0);
+        Debug::Printf("Everything failed, installing dummy no-sound drivers.");
+        reserve_voices(0, 0);
         install_sound(DIGI_NONE, MIDI_NONE, NULL);
     }
-    if (usetup.digicard != DIGI_NONE && digi_card == DIGI_NONE ||
-        usetup.midicard != MIDI_NONE && midi_card == MIDI_NONE)
+    // Only display a warning if they wanted a sound card
+    const bool digi_failed = usetup.digicard != DIGI_NONE && digi_card == DIGI_NONE;
+    const bool midi_failed = usetup.midicard != MIDI_NONE && midi_card == MIDI_NONE;
+    if (digi_failed || midi_failed)
     {
-        // only flag an error if they wanted a sound card
-        platform->DisplayAlert("\nUnable to initialize your audio hardware.\n"
-            "[Problem: %s]\n", get_allegro_error());
+        platform->DisplayAlert("Warning: cannot enable %s.\nProblem: %s.\n\nYou may supress this message by disabling %s in the game setup.",
+            (digi_failed && midi_failed ? "game audio" : (digi_failed ? "digital audio" : "MIDI audio") ),
+            (err_msg.IsEmpty() ? "No compatible drivers found in the system." : err_msg.GetCStr()),
+            (digi_failed && midi_failed ? "sound" : (digi_failed ? "digital sound" : "MIDI sound") ));
     }
 
     usetup.digicard = digi_card;

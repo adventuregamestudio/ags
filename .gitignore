@@ -139,3 +139,8 @@ libsrc/*.zip
 # NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
+
+\.DS_Store
+
+build*/**
+

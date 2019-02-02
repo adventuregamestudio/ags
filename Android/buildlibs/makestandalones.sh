@@ -4,8 +4,12 @@
 
 set -e
 
-# Please update NDK_HOME to the path of ndk-bundle in your system
-NDK_HOME=~/Android/Sdk/ndk-bundle
+# Please provide NDK_HOME is set to the path of ndk-bundle in your system
+if [[ -z "$NDK_HOME" ]]; then
+    echo "Please provide NDK_HOME is set to the path of ndk-bundle" 1>&2
+    echo "eg: export NDK_HOME=~/Android/Sdk/ndk-bundle/android-ndk-r16b" 1>&2
+    exit 1
+fi
 
 # android-14 is the minimum we can go with current Android SDK
 PLATFORM=android-14

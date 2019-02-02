@@ -45,5 +45,8 @@
     <ClCompile Include="..\..\Compiler\test\cc_byte_compat_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Compiler\test\cs_tokenizer_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

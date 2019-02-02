@@ -44,22 +44,6 @@ ccCompiledScript *newScriptFixture() {
     return scrip;
 }
 
-TEST(Tokenize, UnknownKeywordAfterReadonly) {
-    ccCompiledScript *scrip = newScriptFixture();
-
-    // This incorrect code would crash the tokenizer.
-    char *inpl = "struct MyStruct \
-        {\
-          readonly int2 a; \
-          readonly int2 b; \
-        };";
-
-    ccInternalList targ;
-    int tokenizeResult = cc_tokenize(inpl, &targ, scrip);
-
-    ASSERT_EQ(0, tokenizeResult);
-}
-
 TEST(Compile, UnknownKeywordAfterReadonly) {
     ccCompiledScript *scrip = newScriptFixture();
 

@@ -161,9 +161,9 @@ public:
     void WriteChunk(::ccCompiledScript *scrip, size_t level, size_t index);
     // Write chunk of code back into the codebase stashed in the innermost level, at index
     inline void WriteChunk(::ccCompiledScript *scrip, size_t index) { WriteChunk(scrip, Depth() - 1, index); };
-
-
 };
+
+
 
 } // namespace AGS
 

@@ -6603,7 +6603,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    int cc_parse(ccInternalList *targ, ccCompiledScript * scrip, size_t &nested_level, AGS::Symbol &name_of_current_func)
+    int cc_parse(ccInternalList *targ, ccCompiledScript *scrip, size_t &nested_level, AGS::Symbol &name_of_current_func)
     {
         AGS::Symbol struct_of_current_func = 0; // non-zero only when a struct member function is open
 
@@ -6816,7 +6816,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 
     // compile the code in the INPL parameter into code in the scrip structure,
     // but don't reset anything because more files could follow
-    int cc_compile(const char * inpl, ccCompiledScript * scrip)
+    int cc_compile(const char *inpl, ccCompiledScript *scrip)
     {
         // Scan the program code.
         ccInternalList targ;

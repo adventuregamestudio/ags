@@ -1,6 +1,7 @@
 #ifndef __CC_VARIABLESYMLIST_H
 #define __CC_VARIABLESYMLIST_H
-#include <vector>
+
+#include "cs_parser_common.h"
 
 struct VariableSymlist {
     int len;

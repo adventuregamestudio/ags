@@ -172,6 +172,8 @@
     <ClCompile Include="..\..\Compiler\script\cs_parser.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_parser_common.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_prepro.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cs_scanner.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cs_tokenizer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\script\cc_error.h" />
@@ -190,6 +192,8 @@
     <ClInclude Include="..\..\Compiler\script\cs_parser.h" />
     <ClInclude Include="..\..\Compiler\script\cs_parser_common.h" />
     <ClInclude Include="..\..\Compiler\script\cs_prepro.h" />
+    <ClInclude Include="..\..\Compiler\script\cs_scanner.h" />
+    <ClInclude Include="..\..\Compiler\script\cs_tokenizer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -18,7 +18,6 @@ namespace AGS.Types
         private int _x;
         private int _y;
         private bool _clickable = true;
-        private bool _locked;
         private bool _visible = true;
         private int _baseline;
         private int _effectiveBaseline;

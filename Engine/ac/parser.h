@@ -25,7 +25,7 @@ int Said (const char*checkwords);
 
 //=============================================================================
 
-int find_word_in_dictionary (char *lookfor);
+int find_word_in_dictionary (const char *lookfor);
 int is_valid_word_char(char theChar);
 int FindMatchingMultiWordWord(char *thisword, const char **text);
 int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*compareto, int comparetonum);

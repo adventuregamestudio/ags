@@ -85,14 +85,15 @@ Solutions/Engine.App/test.ini
 
 
 # MSVS solution output and temporary files
+*/.vs/
 Solutions/.build/
 Solutions/.lib/
 Solutions/.test/
-Solutions/.vs/
 Solutions/Common.Lib/Debug/
 Solutions/Common.Lib/Debug_MD/
 Solutions/Common.Lib/Release
 Solutions/Common.Lib/Release_MD/
+Solutions/Common.Lib/Release_NoMP3/
 Solutions/Compiler.Lib/Debug
 Solutions/Compiler.Lib/Debug_MD/
 Solutions/Compiler.Lib/Release
@@ -100,9 +101,12 @@ Solutions/Compiler.Lib/Release_MD/
 Solutions/Engine.App/Debug/
 Solutions/Engine.App/Release
 Solutions/Engine.App/Release_NoMP3
+*.csproj.user
+*.ncb
+*.suo
 *.VC.db
 *.VC.opendb
-*.csproj.user
+*.vcproj.*.user
 *.vcxproj.user
 
 

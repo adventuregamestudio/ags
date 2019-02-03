@@ -228,13 +228,14 @@ private:
     String previousError;
     bool _smoothScaling;
     bool _legacyPixelShader;
-    // shader program and its variable references
+    // Shader program and its variable references;
+    // the variables are rather specific for AGS use (sprite tinting).
     struct ShaderProgram
     {
         GLuint Program;
-        GLuint SamplerVar;
-        GLuint ColorVar;
-        GLuint AuxVar;
+        GLuint SamplerVar;      // texture ID
+        GLuint ColorVar;        // primary operation variable
+        GLuint AuxVar;          // auxiliary variable
 
         ShaderProgram();
     };

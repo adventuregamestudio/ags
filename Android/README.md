@@ -37,7 +37,7 @@ your last savegame.
 -   MENU button: Opens a menu for key input and quitting the game
 -   MENU button longpress: Opens and closes the onscreen keyboard
 -   BACK button: Sends ESC key command to the game
--   BACK button longpress: "Quit game" dialog
+-   BACK button longpress: Opens a menu for key input and quitting the game
 
 
 

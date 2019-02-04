@@ -67,7 +67,7 @@ public class AgsEngine extends Activity
 		
 		public void onBackKeyPressed(AgsEngine engine, boolean longPress)
 		{
-			if (longPress) engine.showExitConfirmation();
+			if (longPress) engine.showInGameMenu();
 			else engine.keyboardEvent(KeyCode.KeyBackHardKey);
 		}
 		

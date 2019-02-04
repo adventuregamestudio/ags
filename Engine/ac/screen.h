@@ -21,7 +21,7 @@
 namespace AGS { namespace Common { class Bitmap; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; } }
 
-void my_fade_in(PALLETE p, int speed);
+void my_fade_in(PALETTE p, int speed);
 void current_fade_out_effect ();
 AGS::Engine::IDriverDependantBitmap* prepare_screen_for_transition_in();
 

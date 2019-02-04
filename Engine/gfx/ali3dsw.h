@@ -237,7 +237,7 @@ private:
 
     void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void __fade_from_range(PALLETE source, PALLETE dest, int speed, int from, int to) ;
+    void __fade_from_range(PALETTE source, PALETTE dest, int speed, int from, int to) ;
     void __fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) ;
     int  GetAllegroGfxDriverID(bool windowed);
 };

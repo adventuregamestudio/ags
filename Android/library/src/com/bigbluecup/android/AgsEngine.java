@@ -364,7 +364,6 @@ public class AgsEngine extends Activity
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent ev)
 	{
-		
 		// Very simple key processing for now, just one key event per poll
 		switch (ev.getAction())
 		{
@@ -372,16 +371,9 @@ public class AgsEngine extends Activity
 			{
 				int key = ev.getKeyCode();
 				
-				if ((key == KeyEvent.KEYCODE_BACK) && ((ev.getFlags() & 0x80) > 0)) // FLAG_LONG_PRESS
+				if ((key == KeyEvent.KEYCODE_BACK) || (key == KeyEvent.KEYCODE_MENU))
 				{
-					ignoreNextActionUp_Back = true;
-					app.onBackKeyPressed(this, true);
-				}
-				
-				if ((key == KeyEvent.KEYCODE_MENU) && ((ev.getFlags() & 0x80) > 0)) // FLAG_LONG_PRESS
-				{
-					ignoreNextActionUp_Menu = true;
-					app.onMenuKeyPressed(this, true);
+					return super.dispatchKeyEvent(ev);
 				}
 				
 				if (key == KeyEvent.KEYCODE_VOLUME_UP)
@@ -434,6 +426,31 @@ public class AgsEngine extends Activity
 		return isInGame;
 	}
 
+	@Override
+	public boolean onKeyLongPress(int keyCode, KeyEvent event)
+	{
+		if (isInGame)
+		{
+			// a long press of the call key.
+			// do our work, returning true to consume it.  by
+			// returning true, the framework knows an action has
+			// been performed on the long press, so will set the
+			// canceled flag for the following up event.
+			if (keyCode == KeyEvent.KEYCODE_BACK)
+			{
+				ignoreNextActionUp_Back = true;
+				app.onBackKeyPressed(this, true);
+				return true;
+			}
+			if (keyCode == KeyEvent.KEYCODE_MENU)
+			{
+				ignoreNextActionUp_Menu = true;
+				app.onMenuKeyPressed(this, true);
+				return true;
+			}
+		}
+		return super.onKeyLongPress(keyCode, event);
+	}
 
 	public void toggleKeyboard()
 	{

@@ -190,6 +190,10 @@ namespace AGS.Editor
 					}
 				}
 			}
+            else if (propertyName == "Width" || propertyName == "Height")
+            {
+                UpdateScrollableWindowSize();
+            }
         }
 
         public GUI GuiToEdit

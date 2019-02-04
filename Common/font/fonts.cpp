@@ -86,6 +86,8 @@ void shutdown_font_renderer()
 
 void adjust_y_coordinate_for_text(int* ypos, int fontnum)
 {
+  if (fontnum < 0 || fontnum >= MAX_FONTS || !fonts[fontnum].Renderer)
+    return;
   fonts[fontnum].Renderer->AdjustYCoordinateForFont(ypos, fontnum);
 }
 
@@ -95,6 +97,8 @@ bool font_first_renderer_loaded() {
 
 IAGSFontRenderer* font_replace_renderer(int fontNumber, IAGSFontRenderer* renderer)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS)
+    return NULL;
   IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
   fonts[fontNumber].Renderer = renderer;
   fonts[fontNumber].Renderer2 = NULL;
@@ -103,36 +107,50 @@ IAGSFontRenderer* font_replace_renderer(int fontNumber, IAGSFontRenderer* render
 
 bool font_supports_extended_characters(int fontNumber)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS || !fonts[fontNumber].Renderer)
+    return false;
   return fonts[fontNumber].Renderer->SupportsExtendedCharacters(fontNumber);
 }
 
 void ensure_text_valid_for_font(char *text, int fontnum)
 {
+  if (fontnum < 0 || fontnum >= MAX_FONTS || !fonts[fontnum].Renderer)
+    return;
   fonts[fontnum].Renderer->EnsureTextValidForFont(text, fontnum);
 }
 
 int wgettextwidth(const char *texx, int fontNumber)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS || !fonts[fontNumber].Renderer)
+    return 0;
   return fonts[fontNumber].Renderer->GetTextWidth(texx, fontNumber);
 }
 
 int wgettextheight(const char *text, int fontNumber)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS || !fonts[fontNumber].Renderer)
+    return 0;
   return fonts[fontNumber].Renderer->GetTextHeight(text, fontNumber);
 }
 
 int get_font_outline(int font_number)
 {
+    if (font_number < 0 || font_number >= MAX_FONTS)
+        return 0;
     return fonts[font_number].Info.Outline;
 }
 
 void set_font_outline(int font_number, int outline_type)
 {
+    if (font_number < 0 || font_number >= MAX_FONTS)
+        return;
     fonts[font_number].Info.Outline = FONT_OUTLINE_AUTO;
 }
 
 int getfontheight(int fontNumber)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS || !fonts[fontNumber].Renderer)
+    return 0;
   // There is no explicit method for getting maximal possible height of any
   // random font renderer at the moment; the implementations of GetTextHeight
   // are allowed to return varied results depending on the text parameter.
@@ -143,6 +161,8 @@ int getfontheight(int fontNumber)
 
 int getfontlinespacing(int fontNumber)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS)
+    return 0;
   int spacing = fonts[fontNumber].Info.LineSpacing;
   // If the spacing parameter is not provided, then return default
   // spacing, that is font's height.
@@ -151,11 +171,15 @@ int getfontlinespacing(int fontNumber)
 
 bool use_default_linespacing(int fontNumber)
 {
+    if (fontNumber < 0 || fontNumber >= MAX_FONTS)
+        return true;
     return fonts[fontNumber].Info.LineSpacing == 0;
 }
 
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS)
+    return;
   yyy += fonts[fontNumber].Info.YOffset;
   if (yyy > ds->GetClip().Bottom)
     return;                   // each char is clipped but this speeds it up
@@ -177,13 +201,15 @@ void make_fontinfo(const GameSetupStruct &game, int fontNumber, FontInfo &finfo)
 
 void set_fontinfo(int fontNumber, const FontInfo &finfo)
 {
-    if (fonts[fontNumber].Renderer)
+    if (fontNumber >= 0 && fontNumber < MAX_FONTS && fonts[fontNumber].Renderer)
         fonts[fontNumber].Info = finfo;
 }
 
 // Loads a font from disk
 bool wloadfont_size(int fontNumber, const FontInfo &font_info, const FontRenderParams *params)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS)
+    return false;
   if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, params))
   {
     fonts[fontNumber].Renderer  = &ttfRenderer;
@@ -205,6 +231,9 @@ bool wloadfont_size(int fontNumber, const FontInfo &font_info, const FontRenderP
 
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, char *fmt, ...)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS)
+    return;
+
   char tbuffer[2000];
   va_list ap;
 
@@ -216,6 +245,9 @@ void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t tex
 
 void wfreefont(int fontNumber)
 {
+  if (fontNumber < 0 || fontNumber >= MAX_FONTS)
+    return;
+
   if (fonts[fontNumber].Renderer != NULL)
     fonts[fontNumber].Renderer->FreeMemory(fontNumber);
 

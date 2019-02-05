@@ -1,5 +1,66 @@
 REVISION HISTORY
 ================
+VERSION 3.4.3, February 2019
+
+Common features:
+ - Removed restriction preventing GUIs to be larger than the game's screen.
+
+Editor:
+ - Added missing audio options to Default Setup.
+ - Fixed GUI and Room editors sometimes having larger scrollable area than necessary.
+ - Fixed editable area was not resized when GUI size changed
+ - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key
+   controls with no means to restore them.
+ - Don't modify filesystem permissions in Compiled directory when compiling the game.
+   Editor no longer requires non-standard "takeown.exe" utility.
+ - Fixed Windows Explorer was sometimes locking the game files during compilation.
+ - Fixed rooms not being rebuilt when running game just created from a template.
+ - Fixed translations were not updated or available at all for the test run unless the
+   game was fully rebuilt.
+
+Engine:
+ - Allowed engine to return integer of "0" value from script functions that are "void"
+   by nature, for compatibility reasons. This may fix running particular old games.
+ - Fixed const-sized char[] arrays in managed structs did not work correctly and could
+   even cause engine to crash.
+ - Fixed some compilers could instigate a crash in the on_event callback if it was called
+   before the first room is loaded.
+ - Prevent game from crashing if there was an attempt to use a non-existant font index.
+ - Fixed crash when calling DisplayTopBar with a title longer than 200 characters.
+ - Fixed DisplayTopBar() was displayed on screen for the time calculated from the length
+   of it's title rather than it's message text (regression).
+ - Fixed built-in inventory screen could crash the game again (regression).
+ - Made engine fallback to defaults if config contains invalid graphic scaling setting.
+ - Fixed crash in the Software renderer which was occuring if it failed anytime after
+   setting display mode but prior to initializing scaling filter.
+ - Fixed graphic artifacts looking like thin vertical lines around sprites when running
+   OpenGL renderer (aka "texel leaking").
+ - Fixed OpenGL not displaying tinted sprites at all if tinting shader does not work
+   (now will display sprites without tint).
+ - Fixed 8-bit sprites could have broken colours if game is run using Direct3D or OpenGL.
+ - Fixed broken colours during fade-in and fade-out in 16-bit games.
+ - Fixed possible crash occuring when switching in and out the game window while game is
+   being shut down.
+ - Improved a warning message displayed when sound driver was not initialized, and added
+   a hint for players on how to supress it.
+ - Fixed double error message displayed if the game has an unsupported data format.
+
+Linux:
+ - Fixes Linux game launch script (fixes issues with itch.io client).
+
+Android:
+ - Long press on "Back" button now calls in-game menu (was displaying exit confirmation).
+   This change was made to counter removal of "Menu" button on many modern devices.
+ - Fixed long press on "Back" and "Menu" buttons not handled correctly on some devices.
+
+WinSetup:
+ - Always provide at least two standard fullscreen modes for selection, even if graphics
+   driver failed to return a list of supported modes.
+
+
+NOTE: VERSION 3.4.2 was cancelled and never released: the WIP build was renamed to 3.5.0.
+
+
 VERSION 3.4.1 - Patch 4, September 2018
 
 Engine:

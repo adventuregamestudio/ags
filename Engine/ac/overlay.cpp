@@ -301,7 +301,7 @@ RuntimeScriptValue Sc_Overlay_SetText(void *self, const RuntimeScriptValue *para
 {
     API_OBJCALL_SCRIPT_SPRINTF(Overlay_SetText, 4);
     Overlay_SetText((ScriptOverlay*)self, params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (ScriptOverlay *sco)

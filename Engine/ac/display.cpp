@@ -369,11 +369,27 @@ void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch,
         stop_speech();
 }
 
-int   source_text_length = -1;
+// TODO: refactor this global variable out; currently it is set at the every get_translation call.
+// Be careful: a number of Say/Display functions expect it to be set beforehand.
+int source_text_length = -1;
 
-int GetTextDisplayTime (const char *text, int canberel) {
-    int uselen = strlen(text);
+int GetTextDisplayLength(const char *text)
+{
+    int len = (int)strlen(text);
+    if ((text[0] == '&') && (play.unfactor_speech_from_textlength != 0))
+    {
+        // if there's an "&12 text" type line, remove "&12 " from the source length
+        size_t j = 0;
+        while ((text[j] != ' ') && (text[j] != 0))
+            j++;
+        j++;
+        len -= j;
+    }
+    return len;
+}
 
+int GetTextDisplayTime(const char *text, int canberel) {
+    int uselen = 0;
     int fpstimer = frames_per_second;
 
     // if it's background speech, make it stay relative to game speed
@@ -387,16 +403,7 @@ int GetTextDisplayTime (const char *text, int canberel) {
         source_text_length = -1;
     }
     else {
-        if ((text[0] == '&') && (play.unfactor_speech_from_textlength != 0)) {
-            // if there's an "&12 text" type line, remove "&12 " from the source
-            // length
-            int j = 0;
-            while ((text[j] != ' ') && (text[j] != 0))
-                j++;
-            j++;
-            uselen -= j;
-        }
-
+        uselen = GetTextDisplayLength(text);
     }
 
     if (uselen <= 0)

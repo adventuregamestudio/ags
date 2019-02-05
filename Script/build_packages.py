@@ -158,23 +158,10 @@ def build_ags_zip(output_path, staging_path, ver_str, ver_sp):
     create_checksums(zip_path)
 
 
-def build_nomp3_zip(output_path, staging_path, ver_str, ver_sp):
-
-    extract_into(staging_path, workspace_rel("engine-no-mp3.zip"))
-
-    delete_pdbs (staging_path)
-
-    zip_path = os.path.join(output_path, "{0}-noMP3.zip".format(package_name(ver_str, ver_sp)))
-    zip_from_dir(zip_path, staging_path)
-
-    create_checksums(zip_path)
-
-
 def build_pdb_zip(output_path, staging_path, ver_str, ver_sp):
 
     extract_into(staging_path, workspace_rel("editor.zip"))
     extract_into(staging_path, workspace_rel("engine.zip"))
-    extract_into(os.path.join(staging_path,"No MP3"), workspace_rel("engine-no-mp3.zip"))
 
     only_pdbs(staging_path)
 
@@ -200,9 +187,6 @@ def main():
 
     staging_path = refresh_staging()
     build_ags_zip(output_path, staging_path, ver_str, ver_sp)
-
-    staging_path = refresh_staging()
-    build_nomp3_zip(output_path, staging_path, ver_str, ver_sp)
 
     staging_path = refresh_staging()
     build_pdb_zip(output_path, staging_path, ver_str, ver_sp)

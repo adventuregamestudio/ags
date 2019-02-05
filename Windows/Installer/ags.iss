@@ -47,8 +47,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [CustomMessages]
 ComponentMain=Main files
 ComponentEngines=Engines
-ComponentEngineDefault=Engine (default)
-ComponentEngineNoMP3=Engine (no MP3 support)
+ComponentEngineDefault=Runtime engine for MS Windows
 ComponentLinuxBuild=Linux build component
 ComponentDemoGame=Demo Game
 InstallOptions=Install options
@@ -61,7 +60,6 @@ AssociateFiles=Associate AGF files with the editor
 Name: "main"; Description: "{cm:ComponentMain}"; Types: full compact custom; Flags: fixed
 Name: "engine"; Description: "{cm:ComponentEngines}"; Types: full compact custom; Flags: fixed
 Name: "engine\default"; Description: "{cm:ComponentEngineDefault}"; Types: full compact; Flags: exclusive
-Name: "engine\nomp3"; Description: "{cm:ComponentEngineNoMP3}"; Flags: exclusive
 Name: "linux"; Description: "{cm:ComponentLinuxBuild}"; Types: full custom
 Name: "demogame"; Description: "{cm:ComponentDemoGame}"; Types: full custom
 
@@ -79,7 +77,6 @@ Name: "{app}\Templates";
 
 [Files]
 Source: "Source\engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
-Source: "Source\engine-no-mp3\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\nomp3
 Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Linux\*"; DestDir: "{app}\Linux"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: linux
 Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main

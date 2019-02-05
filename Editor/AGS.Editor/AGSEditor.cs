@@ -1475,19 +1475,6 @@ namespace AGS.Editor
 		{
             string configFilePath = Path.Combine(outputDir, CONFIG_FILE_NAME);
 
-			if (!File.Exists(configFilePath))
-			{
-				// Write default values for sound drivers
-				NativeProxy.WritePrivateProfileString("sound", "digiid", "-1", configFilePath);
-				NativeProxy.WritePrivateProfileString("sound", "midiid", "-1", configFilePath);
-				NativeProxy.WritePrivateProfileString("sound", "digiwin", "-1", configFilePath);
-				NativeProxy.WritePrivateProfileString("sound", "midiwin", "-1", configFilePath);
-				NativeProxy.WritePrivateProfileString("sound", "digiindx", "0", configFilePath);
-				NativeProxy.WritePrivateProfileString("sound", "midiindx", "0", configFilePath);
-				NativeProxy.WritePrivateProfileString("sound", "digiwinindx", "0", configFilePath);
-				NativeProxy.WritePrivateProfileString("sound", "midiwinindx", "0", configFilePath);
-			}
-
             if (_game.Settings.LetterboxMode)
             {
                 NativeProxy.WritePrivateProfileString("misc", "defaultres", ((int)_game.Settings.LegacyLetterboxResolution).ToString(), configFilePath);
@@ -1518,6 +1505,16 @@ namespace AGS.Editor
             bool render_at_screenres = _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.UserDefined ?
                 _game.DefaultSetup.RenderAtScreenResolution : _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.True;
             NativeProxy.WritePrivateProfileString("graphics", "render_at_screenres", render_at_screenres ? "1" : "0", configFilePath);
+
+            bool use_default_digi = _game.DefaultSetup.DigitalSound == RuntimeAudioDriver.Default;
+            bool use_default_midi = _game.DefaultSetup.MidiSound == RuntimeAudioDriver.Default;
+            NativeProxy.WritePrivateProfileString("sound", "digiid", use_default_digi ? "-1" : "0", configFilePath);
+            NativeProxy.WritePrivateProfileString("sound", "midiid", use_default_midi ? "-1" : "0", configFilePath);
+            // NOTE: the *winindx values are used on Windows for historical reasons; their values are disconnected from the *id
+            NativeProxy.WritePrivateProfileString("sound", "digiwinindx", use_default_digi ? "0" : "2", configFilePath);
+            NativeProxy.WritePrivateProfileString("sound", "midiwinindx", use_default_midi ? "0" : "1", configFilePath);
+            NativeProxy.WritePrivateProfileString("sound", "usespeech", _game.DefaultSetup.UseVoicePack ? "1" : "0", configFilePath);
+
             NativeProxy.WritePrivateProfileString("language", "translation", _game.DefaultSetup.Translation, configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "auto_lock", _game.DefaultSetup.AutoLockMouse ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "speed", _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture), configFilePath);

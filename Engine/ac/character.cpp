@@ -74,7 +74,6 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap **actsps;
-extern int source_text_length;
 extern int is_text_overlay;
 extern int said_speech_line;
 extern int numscreenover;
@@ -2332,8 +2331,9 @@ void _DisplaySpeechCore(int chid, const char *displbuf) {
 
     // adjust timing of text (so that DisplaySpeech("%s", str) pauses
     // for the length of the string not 2 frames)
-    if ((int)strlen(displbuf) > source_text_length + 3)
-        source_text_length = strlen(displbuf);
+    int len = (int)strlen(displbuf);
+    if (len > source_text_length + 3)
+        source_text_length = len;
 
     DisplaySpeech(displbuf, chid);
 }
@@ -2341,8 +2341,9 @@ void _DisplaySpeechCore(int chid, const char *displbuf) {
 void _DisplayThoughtCore(int chid, const char *displbuf) {
     // adjust timing of text (so that DisplayThought("%s", str) pauses
     // for the length of the string not 2 frames)
-    if ((int)strlen(displbuf) > source_text_length + 3)
-        source_text_length = strlen(displbuf);
+    int len = (int)strlen(displbuf);
+    if (len > source_text_length + 3)
+        source_text_length = len;
 
     int xpp = -1, ypp = -1, width = -1;
 
@@ -3145,7 +3146,7 @@ RuntimeScriptValue Sc_Character_Say(void *self, const RuntimeScriptValue *params
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_Say, 1);
     Character_Say((CharacterInfo*)self, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (CharacterInfo *chaa, int x, int y, int width, const char *texx)
@@ -3235,7 +3236,7 @@ RuntimeScriptValue Sc_Character_Think(void *self, const RuntimeScriptValue *para
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_Think, 1);
     Character_Think((CharacterInfo*)self, scsf_buffer);
-    return RuntimeScriptValue();
+    return RuntimeScriptValue((int32_t)0);
 }
 
 //void (CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance)

@@ -189,6 +189,10 @@ namespace AGS.Editor
 					}
 				}
 			}
+            else if (propertyName == "Width" || propertyName == "Height")
+            {
+                UpdateScrollableWindowSize();
+            }
             else if (propertyName == "PopupStyle")
             {
                 NormalGUI normalGui = (NormalGUI)_gui;
@@ -1114,7 +1118,7 @@ namespace AGS.Editor
             // TODO: normally this should be done using class/method overriding
             if (_gui is TextWindowGUI)
                 return false; // do not let users move or delete TextWindow elements
-        
+
             if (_selectedControl != null)
             {
                 switch (keyData)
@@ -1214,7 +1218,6 @@ namespace AGS.Editor
             BackColor = t.GetColor("gui-editor/background");
             ForeColor = t.GetColor("gui-editor/foreground");
         }
-
         private void sldZoomLevel_Scroll(object sender, EventArgs e)
         {
             lblZoomInfo.Text = String.Format("{0}%", sldZoomLevel.Value * ZOOM_STEP_VALUE);

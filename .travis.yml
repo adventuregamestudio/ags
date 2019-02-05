@@ -1,0 +1,28 @@
+language: c
+compiler:
+  - gcc
+addons:
+  apt:
+    packages:
+    - debhelper
+    - build-essential
+    - pkg-config 
+    - cmake 
+    - libfreetype6-dev 
+    - libogg-dev 
+    - libtheora-dev 
+    - libvorbis-dev
+    - liballegro4-dev
+    - libaldmb1-dev
+    - fakeroot
+script:
+- fakeroot debian/rules binary
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key: $GITHUB_TOKEN
+  file: 
+  - ../ags_3~git-1_amd64.deb
+  - ../ags-dbg_3~git-1_amd64.deb
+  on:
+    tags: true

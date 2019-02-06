@@ -17,7 +17,7 @@
   * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
 * To make manual and/or Windows installer:
   * Python 2.7 with PyWin32 extension ([Download](http://www.activestate.com/activepython/downloads))
-  * InnoSetup 5.5 ([Download](http://www.jrsoftware.org/isdl.php))
+  * InnoSetup 5.5 or higher ([Download](http://www.jrsoftware.org/isdl.php))
 
 ## Installing SDKs
 

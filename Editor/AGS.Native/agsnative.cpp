@@ -3751,7 +3751,6 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		obj->UseRoomAreaLighting = ((thisroom.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
 		ConvertCustomProperties(obj->Properties, &thisroom.Objects[i].Properties);
 
-		CopyInteractions(obj->Interactions, thisroom.Objects[i].EventHandlers.get());
 		if (thisroom.DataVersion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
@@ -3775,7 +3774,6 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
         hotspot->WalkToPoint = System::Drawing::Point(thisroom.Hotspots[i].WalkTo.X, thisroom.Hotspots[i].WalkTo.Y);
 		ConvertCustomProperties(hotspot->Properties, &thisroom.Hotspots[i].Properties);
 
-		CopyInteractions(hotspot->Interactions, thisroom.Hotspots[i].EventHandlers.get());
 		if (thisroom.DataVersion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
@@ -3833,7 +3831,6 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		area->TintLuminance = area->UseColourTint ? luminance :
 			Utilities::GetDefaultValue(area->GetType(), "TintLuminance", 0);
 
-		CopyInteractions(area->Interactions, thisroom.Regions[i].EventHandlers.get());
 		if (thisroom.DataVersion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
@@ -3850,7 +3847,6 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 
 	ConvertCustomProperties(room->Properties, &thisroom.Properties);
 
-	CopyInteractions(room->Interactions, thisroom.EventHandlers.get());
 	if (thisroom.DataVersion < kRoomVersion_300a)
 	{
 		ConvertInteractions(room->Interactions, thisroom.Interaction.get(), "room_", nullptr, 0);

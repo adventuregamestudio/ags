@@ -17,7 +17,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct CCRegion : AGSCCDynamicObject {
+struct CCRegion final : AGSCCDynamicObject {
 
     // return the type name of the object
     virtual const char *GetType();

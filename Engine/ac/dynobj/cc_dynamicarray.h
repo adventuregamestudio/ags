@@ -20,7 +20,7 @@
 #define CC_DYNAMIC_ARRAY_TYPE_NAME "CCDynamicArray"
 #define ARRAY_MANAGED_TYPE_FLAG    0x80000000
 
-struct CCDynamicArray : ICCDynamicObject
+struct CCDynamicArray final : ICCDynamicObject
 {
     // return the type name of the object
     virtual const char *GetType();

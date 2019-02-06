@@ -17,7 +17,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptString : AGSCCDynamicObject, ICCStringClass {
+struct ScriptString final : AGSCCDynamicObject, ICCStringClass {
     char *text;
 
     virtual int Dispose(const char *address, bool force);

@@ -20,7 +20,7 @@
 // ScriptViewport manages room Viewport struct in script.
 // Currently it has no members and actual data is stored in "GameState" struct.
 // Also in practice there is only single room viewport at the moment.
-struct ScriptViewport : AGSCCDynamicObject
+struct ScriptViewport final : AGSCCDynamicObject
 {
     virtual const char *GetType();
     virtual int Serialize(const char *address, char *buffer, int bufsize);

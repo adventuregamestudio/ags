@@ -17,7 +17,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptViewFrame : AGSCCDynamicObject {
+struct ScriptViewFrame final : AGSCCDynamicObject {
     int view, loop, frame;
 
     virtual int Dispose(const char *address, bool force);

@@ -27,7 +27,7 @@ using namespace AGS; // FIXME later
 #define scFileWrite  2
 #define scFileAppend 3
 
-struct sc_File : ICCDynamicObject {
+struct sc_File final : ICCDynamicObject {
     int32_t             handle;
 
     static const Common::FileOpenMode fopenModes[];

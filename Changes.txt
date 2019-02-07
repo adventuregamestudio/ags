@@ -20,6 +20,7 @@ Editor:
  - New revamped sprite import window.
  - Sprites that were created using tiled import can now be properly reimported from source.
  - Added context menu command to open sprite's source file location.
+ - Using Magick.NET library as a GIF loader. This should fix faulty GIF imports.
  - New sprite export dialog that lets you configure some export preferences, including
    remapping sprite source paths.
  - New navigation bar in the room editor, which allows to select any room object
@@ -30,6 +31,7 @@ Editor:
  - Removed Locked property from the Room Object, objects are now locked by the navbar.
  - Split GUI's Visibility property into PopupStyle and Visible properties.
  - Added Clickable, Enabled and Visible properties to GUI Controls.
+ - "Import over font" command now supports importing WFN fonts too.
  - Display audio clip length on the preview pane without starting playback.
  - Added "Always"choice to "Popup message on compile" preference. Successful compilation
    popup will only be displayed if "Always" choice is selected.

@@ -355,7 +355,6 @@ namespace AGS.Editor
             ImportBackground(cmbBackgrounds.SelectedIndex);
             bufferedPanel1.Invalidate();
             Factory.GUIController.RefreshPropertyGrid();
-			ResizePaneToMatchWindowAndRoomSize();
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
@@ -600,36 +599,6 @@ namespace AGS.Editor
             {
                 filter.Dispose();
             }
-        }
-
-		private void ResizePaneToMatchWindowAndRoomSize()
-		{
-            if (_room == null)
-            {
-                return;
-            }
-
-			if (this.Width >= 200)
-			{
-				int requiredRoomWidth = _room.Width * _state.ScaleFactor + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Left;
-				mainFrame.Width = this.Width - 10;
-				mainFrame.Width = Math.Min(mainFrame.Width, requiredRoomWidth);
-				mainFrame.Width = Math.Max(mainFrame.Width, lblTransparency.Right + 10);
-			}
-			if (this.Height >= 200)
-			{
-				int requiredRoomHeight = _room.Height * _state.ScaleFactor + SCROLLBAR_WIDTH_BUFFER + bufferedPanel1.Top;
-				mainFrame.Height = this.Height - 10;
-				mainFrame.Height = Math.Min(mainFrame.Height, requiredRoomHeight);
-			}
-			bufferedPanel1.Size = new Size(mainFrame.DisplayRectangle.Width - bufferedPanel1.Left,
-										   mainFrame.DisplayRectangle.Height - bufferedPanel1.Top);
-
-		}
-
-        private void RoomSettingsEditor_Resize(object sender, EventArgs e)
-        {
-			ResizePaneToMatchWindowAndRoomSize();
         }
 
 		private void sldZoomLevel_Scroll(object sender, EventArgs e)

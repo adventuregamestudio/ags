@@ -84,7 +84,7 @@ void GUIMain::InitDefaults()
 
     OnClickHandler.Empty();
 
-    Controls.clear();
+    _controls.clear();
     _ctrlRefs.clear();
     _ctrlDrawOrder.clear();
 }
@@ -94,26 +94,26 @@ int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
     if (loaded_game_file_version <= kGameVersion_262)
     {
         // Ignore draw order On 2.6.2 and lower
-        for (size_t i = 0; i < Controls.size(); ++i)
+        for (size_t i = 0; i < _controls.size(); ++i)
         {
-            if (!Controls[i]->IsVisible())
+            if (!_controls[i]->IsVisible())
                 continue;
-            if (!Controls[i]->IsClickable() && must_be_clickable)
+            if (!_controls[i]->IsClickable() && must_be_clickable)
                 continue;
-            if (Controls[i]->IsOverControl(mousex, mousey, leeway))
+            if (_controls[i]->IsOverControl(mousex, mousey, leeway))
                 return i;
         }
     }
     else
     {
-        for (size_t i = Controls.size(); i-- > 0;)
+        for (size_t i = _controls.size(); i-- > 0;)
         {
             const int ctrl_index = _ctrlDrawOrder[i];
-            if (!Controls[ctrl_index]->IsVisible())
+            if (!_controls[ctrl_index]->IsVisible())
                 continue;
-            if (!Controls[ctrl_index]->IsClickable() && must_be_clickable)
+            if (!_controls[ctrl_index]->IsClickable() && must_be_clickable)
                 continue;
-            if (Controls[ctrl_index]->IsOverControl(mousex, mousey, leeway))
+            if (_controls[ctrl_index]->IsOverControl(mousex, mousey, leeway))
                 return ctrl_index;
         }
     }
@@ -132,7 +132,14 @@ int GUIMain::FindControlUnderMouse(int leeway) const
 
 int GUIMain::GetControlCount() const
 {
-    return (int32_t)Controls.size();
+    return (int32_t)_controls.size();
+}
+
+GUIObject *GUIMain::GetControl(int index) const
+{
+    if (index < 0 || (size_t)index >= _controls.size())
+        return NULL;
+    return _controls[index];
 }
 
 GUIControlType GUIMain::GetControlType(int index) const
@@ -188,18 +195,18 @@ bool GUIMain::IsVisible() const
 void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
 {
     _ctrlRefs.push_back(std::make_pair(type, id));
-    Controls.push_back(control);
+    _controls.push_back(control);
 }
 
 void GUIMain::RemoveAllControls()
 {
     _ctrlRefs.clear();
-    Controls.clear();
+    _controls.clear();
 }
 
 bool GUIMain::BringControlToFront(int index)
 {
-    return SetControlZOrder(index, (int)Controls.size() - 1);
+    return SetControlZOrder(index, (int)_controls.size() - 1);
 }
 
 void GUIMain::Draw(Bitmap *ds)
@@ -243,11 +250,11 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
     SET_EIP(379)
 
-    for (size_t ctrl_index = 0; ctrl_index < Controls.size(); ++ctrl_index)
+    for (size_t ctrl_index = 0; ctrl_index < _controls.size(); ++ctrl_index)
     {
         set_eip_guiobj(_ctrlDrawOrder[ctrl_index]);
 
-        GUIObject *objToDraw = Controls[_ctrlDrawOrder[ctrl_index]];
+        GUIObject *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
 
         if (!objToDraw->IsEnabled() && gui_disabled_style == GUIDIS_BLACKOUT)
             continue;
@@ -305,16 +312,16 @@ void GUIMain::Poll()
         int ctrl_index = FindControlUnderMouse();
 
         if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
-            Controls[MouseDownCtrl]->OnMouseMove(mousex, mousey);
+            _controls[MouseDownCtrl]->OnMouseMove(mousex, mousey);
         else if (ctrl_index != MouseOverCtrl)
         {
             if (MouseOverCtrl >= 0)
-                Controls[MouseOverCtrl]->OnMouseLeave();
+                _controls[MouseOverCtrl]->OnMouseLeave();
 
-            if (ctrl_index >= 0 && !Controls[ctrl_index]->IsEnabled())
+            if (ctrl_index >= 0 && !_controls[ctrl_index]->IsEnabled())
                 // the control is disabled - ignore it
                 MouseOverCtrl = -1;
-            else if (ctrl_index >= 0 && !Controls[ctrl_index]->IsClickable())
+            else if (ctrl_index >= 0 && !_controls[ctrl_index]->IsClickable())
                 // the control is not clickable - ignore it
                 MouseOverCtrl = -1;
             else
@@ -323,14 +330,14 @@ void GUIMain::Poll()
                 MouseOverCtrl = ctrl_index;
                 if (MouseOverCtrl >= 0)
                 {
-                    Controls[MouseOverCtrl]->OnMouseEnter();
-                    Controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
+                    _controls[MouseOverCtrl]->OnMouseEnter();
+                    _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
                 }
             }
             guis_need_update = 1;
         } 
         else if (MouseOverCtrl >= 0)
-            Controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
+            _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
     }
 
     MouseWasAt.X = mousex;
@@ -344,8 +351,8 @@ void GUIMain::RebuildArray()
     GUIControlType thistype;
     int32_t thisnum;
 
-    Controls.resize(_ctrlRefs.size());
-    for (size_t i = 0; i < Controls.size(); ++i)
+    _controls.resize(_ctrlRefs.size());
+    for (size_t i = 0; i < _controls.size(); ++i)
     {
         thistype = _ctrlRefs[i].first;
         thisnum = _ctrlRefs[i].second;
@@ -354,22 +361,22 @@ void GUIMain::RebuildArray()
             quit("GUIMain: rebuild array failed (invalid object index)");
 
         if (thistype == kGUIButton)
-            Controls[i] = &guibuts[thisnum];
+            _controls[i] = &guibuts[thisnum];
         else if (thistype == kGUILabel)
-            Controls[i] = &guilabels[thisnum];
+            _controls[i] = &guilabels[thisnum];
         else if (thistype == kGUIInvWindow)
-            Controls[i] = &guiinv[thisnum];
+            _controls[i] = &guiinv[thisnum];
         else if (thistype == kGUISlider)
-            Controls[i] = &guislider[thisnum];
+            _controls[i] = &guislider[thisnum];
         else if (thistype == kGUITextBox)
-            Controls[i] = &guitext[thisnum];
+            _controls[i] = &guitext[thisnum];
         else if (thistype == kGUIListBox)
-            Controls[i] = &guilist[thisnum];
+            _controls[i] = &guilist[thisnum];
         else
             quit("guimain: unknown control type found On gui");
 
-        Controls[i]->ParentId = ID;
-        Controls[i]->Id = i;
+        _controls[i]->ParentId = ID;
+        _controls[i]->Id = i;
     }
 
     ResortZOrder();
@@ -382,7 +389,7 @@ bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
 
 void GUIMain::ResortZOrder()
 {
-    std::vector<GUIObject*> ctrl_sort = Controls;
+    std::vector<GUIObject*> ctrl_sort = _controls;
     std::sort(ctrl_sort.begin(), ctrl_sort.end(), GUIControlZOrder);
 
     _ctrlDrawOrder.resize(ctrl_sort.size());
@@ -413,29 +420,29 @@ bool GUIMain::SendControlToBack(int index)
 
 bool GUIMain::SetControlZOrder(int index, int zorder)
 {
-    if (index < 0 || (size_t)index >= Controls.size())
+    if (index < 0 || (size_t)index >= _controls.size())
         return false; // no such control
 
-    zorder = Math::Clamp(zorder, 0, (int)Controls.size() - 1);
-    const int old_zorder = Controls[index]->ZOrder;
+    zorder = Math::Clamp(zorder, 0, (int)_controls.size() - 1);
+    const int old_zorder = _controls[index]->ZOrder;
     if (old_zorder == zorder)
         return false; // no change
 
     const bool move_back = zorder < old_zorder; // back is at zero index
     const int  left      = move_back ? zorder : old_zorder;
     const int  right     = move_back ? old_zorder : zorder;
-    for (size_t i = 0; i < Controls.size(); ++i)
+    for (size_t i = 0; i < _controls.size(); ++i)
     {
-        const int i_zorder = Controls[i]->ZOrder;
+        const int i_zorder = _controls[i]->ZOrder;
         if (i_zorder == old_zorder)
-            Controls[i]->ZOrder = zorder; // the control we are moving
+            _controls[i]->ZOrder = zorder; // the control we are moving
         else if (i_zorder >= left && i_zorder <= right)
         {
             // controls in between old and new positions shift towards free place
             if (move_back)
-                Controls[i]->ZOrder++; // move to front
+                _controls[i]->ZOrder++; // move to front
             else
-                Controls[i]->ZOrder--; // move to back
+                _controls[i]->ZOrder--; // move to back
         }
     }
     ResortZOrder();
@@ -477,14 +484,14 @@ void GUIMain::OnMouseButtonDown()
         return;
 
     // don't activate disabled buttons
-    if (!Controls[MouseOverCtrl]->IsEnabled() || !Controls[MouseOverCtrl]->IsVisible() ||
-        !Controls[MouseOverCtrl]->IsClickable())
+    if (!_controls[MouseOverCtrl]->IsEnabled() || !_controls[MouseOverCtrl]->IsVisible() ||
+        !_controls[MouseOverCtrl]->IsClickable())
     return;
 
     MouseDownCtrl = MouseOverCtrl;
-    if (Controls[MouseOverCtrl]->OnMouseDown())
+    if (_controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
-    Controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
+    _controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
     guis_need_update = 1;
 }
 
@@ -501,7 +508,7 @@ void GUIMain::OnMouseButtonUp()
     if (MouseDownCtrl < 0)
         return;
 
-    Controls[MouseDownCtrl]->OnMouseUp();
+    _controls[MouseDownCtrl]->OnMouseUp();
     MouseDownCtrl = -1;
     guis_need_update = 1;
 }
@@ -707,9 +714,9 @@ void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
     {
         GUIMain &gui = guis[gui_index];
         gui.RebuildArray();
-        for (size_t ctrl_index = 0; ctrl_index < gui.Controls.size(); ++ctrl_index)
+        for (int ctrl_index = 0; ctrl_index < gui.GetControlCount(); ++ctrl_index)
         {
-            GUIObject *gui_ctrl = gui.Controls[ctrl_index];
+            GUIObject *gui_ctrl = gui.GetControl(ctrl_index);
             gui_ctrl->ParentId = gui_index;
             gui_ctrl->Id = ctrl_index;
             if (bwcompat_ctrl_zorder)

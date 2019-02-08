@@ -28,7 +28,7 @@ void SetSliderValue(int guin,int objn, int valn) {
     if (guis[guin].GetControlType(objn)!=kGUISlider)
         quit("!SetSliderValue: specified control is not a slider");
 
-    GUISlider*guisl=(GUISlider*)guis[guin].Controls[objn];
+    GUISlider*guisl=(GUISlider*)guis[guin].GetControl(objn);
     Slider_SetValue(guisl, valn);
 }
 
@@ -37,6 +37,6 @@ int GetSliderValue(int guin,int objn) {
     if (guis[guin].GetControlType(objn)!=kGUISlider)
         quit("!GetSliderValue: specified control is not a slider");
 
-    GUISlider*guisl=(GUISlider*)guis[guin].Controls[objn];
+    GUISlider*guisl=(GUISlider*)guis[guin].GetControl(objn);
     return Slider_GetValue(guisl);
 }

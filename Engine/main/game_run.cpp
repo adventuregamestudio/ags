@@ -493,7 +493,7 @@ void check_keyboard_controls()
                         // not a text box, ignore it
                         if (guis[uu].GetControlType(ww) != kGUITextBox)
                             continue;
-                        GUITextBox*guitex=(GUITextBox*)guis[uu].Controls[ww];
+                        GUITextBox*guitex=(GUITextBox*)guis[uu].GetControl(ww);
                         // if the text box is disabled, it cannot except keypresses
                         if ((!guitex->IsEnabled()) || (!guitex->IsVisible()))
                             continue;

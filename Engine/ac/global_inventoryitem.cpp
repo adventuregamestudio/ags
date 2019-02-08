@@ -74,14 +74,15 @@ int GetInvAt (int xxx, int yyy) {
     mousex = multiply_up_coordinate(xxx) - guis[ongui].X;
     mousey = multiply_up_coordinate(yyy) - guis[ongui].Y;
     int onobj = guis[ongui].FindControlUnderMouse();
-    if (onobj>=0) {
-      mouse_ifacebut_xoffs = mousex-(guis[ongui].Controls[onobj]->X);
-      mouse_ifacebut_yoffs = mousey-(guis[ongui].Controls[onobj]->Y);
+    GUIObject *guio = guis[ongui].GetControl(onobj);
+    if (guio) {
+      mouse_ifacebut_xoffs = mousex-(guio->X);
+      mouse_ifacebut_yoffs = mousey-(guio->Y);
     }
     mousex = mxwas;
     mousey = mywas;
-    if ((onobj>=0) && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
-      return offset_over_inv((GUIInvWindow*)guis[ongui].Controls[onobj]);
+    if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
+      return offset_over_inv((GUIInvWindow*)guio);
   }
   return -1;
 }

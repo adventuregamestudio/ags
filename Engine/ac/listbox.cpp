@@ -367,7 +367,7 @@ GUIListBox* is_valid_listbox (int guin, int objn) {
   if (guis[guin].GetControlType(objn)!=kGUIListBox)
     quit("!ListBox: specified control is not a list box");
   guis_need_update = 1;
-  return (GUIListBox*)guis[guin].Controls[objn];
+  return (GUIListBox*)guis[guin].GetControl(objn);
 }
 
 //=============================================================================

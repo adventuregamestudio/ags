@@ -31,7 +31,7 @@ void SetLabelColor(int guin,int objn, int colr) {
     if (guis[guin].GetControlType(objn)!=kGUILabel)
         quit("!SetLabelColor: specified control is not a label");
 
-    GUILabel*guil=(GUILabel*)guis[guin].Controls[objn];
+    GUILabel*guil=(GUILabel*)guis[guin].GetControl(objn);
     Label_SetColor(guil, colr);
 }
 
@@ -42,7 +42,7 @@ void SetLabelText(int guin,int objn, const char*newtx) {
     if (guis[guin].GetControlType(objn)!=kGUILabel)
         quit("!SetLabelText: specified control is not a label");
 
-    GUILabel*guil=(GUILabel*)guis[guin].Controls[objn];
+    GUILabel*guil=(GUILabel*)guis[guin].GetControl(objn);
     Label_SetText(guil, newtx);
 }
 
@@ -53,6 +53,6 @@ void SetLabelFont(int guin,int objn, int fontnum) {
     if (guis[guin].GetControlType(objn)!=kGUILabel)
         quit("!SetLabelFont: specified control is not a label");
 
-    GUILabel*guil=(GUILabel*)guis[guin].Controls[objn];
+    GUILabel*guil=(GUILabel*)guis[guin].GetControl(objn);
     Label_SetFont(guil, fontnum);
 }

@@ -37,5 +37,5 @@ void CCGUIObject::Unserialize(int index, const char *serializedData, int dataSiz
     StartUnserialize(serializedData, dataSize);
     int guinum = UnserializeInt();
     int objnum = UnserializeInt();
-    ccRegisterUnserializedObject(index, guis[guinum].Controls[objnum], this);
+    ccRegisterUnserializedObject(index, guis[guinum].GetControl(objnum), this);
 }

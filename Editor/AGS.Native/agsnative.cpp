@@ -2831,7 +2831,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  numguibuts++;
 	  }
 
-      Common::GUIObject *newObj = gui->Controls[gui->GetControlCount() - 1];
+      Common::GUIObject *newObj = gui->GetControl(gui->GetControlCount() - 1);
 	  newObj->X = control->Left;
 	  newObj->Y = control->Top;
 	  newObj->Width = control->Width;
@@ -3520,7 +3520,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 		for (int j = 0; j < guis[i].GetControlCount(); j++)
 		{
-            Common::GUIObject* curObj = guis[i].Controls[j];
+            Common::GUIObject* curObj = guis[i].GetControl(j);
 			GUIControl ^newControl = nullptr;
             Common::GUIControlType ctrl_type = guis[i].GetControlType(j);
 			switch (ctrl_type)

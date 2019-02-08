@@ -33,7 +33,7 @@ void SetButtonText(int guin,int objn, const char*newtx) {
     if (guis[guin].GetControlType(objn)!=kGUIButton)
         quit("!SetButtonText: specified control is not a button");
 
-    GUIButton*guil=(GUIButton*)guis[guin].Controls[objn];
+    GUIButton*guil=(GUIButton*)guis[guin].GetControl(objn);
     Button_SetText(guil, newtx);
 }
 
@@ -44,7 +44,7 @@ void AnimateButton(int guin, int objn, int view, int loop, int speed, int repeat
     if (guis[guin].GetControlType(objn)!=kGUIButton)
         quit("!AnimateButton: specified control is not a button");
 
-    Button_Animate((GUIButton*)guis[guin].Controls[objn], view, loop, speed, repeat);
+    Button_Animate((GUIButton*)guis[guin].GetControl(objn), view, loop, speed, repeat);
 }
 
 
@@ -55,7 +55,7 @@ int GetButtonPic(int guin, int objn, int ptype) {
         quit("!GetButtonPic: specified control is not a button");
     if ((ptype < 0) | (ptype > 3)) quit("!GetButtonPic: invalid pic type");
 
-    GUIButton*guil=(GUIButton*)guis[guin].Controls[objn];
+    GUIButton*guil=(GUIButton*)guis[guin].GetControl(objn);
 
     if (ptype == 0) {
         // currently displayed pic
@@ -85,7 +85,7 @@ void SetButtonPic(int guin,int objn,int ptype,int slotn) {
         quit("!SetButtonPic: specified control is not a button");
     if ((ptype<1) | (ptype>3)) quit("!SetButtonPic: invalid pic type");
 
-    GUIButton*guil=(GUIButton*)guis[guin].Controls[objn];
+    GUIButton*guil=(GUIButton*)guis[guin].GetControl(objn);
     if (ptype==1) {
         Button_SetNormalGraphic(guil, slotn);
     }

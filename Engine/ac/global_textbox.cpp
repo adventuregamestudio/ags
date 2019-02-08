@@ -31,7 +31,7 @@ void SetTextBoxFont(int guin,int objn, int fontnum) {
     if (guis[guin].GetControlType(objn) != kGUITextBox)
         quit("!SetTextBoxFont: specified control is not a text box");
 
-    GUITextBox *guit = (GUITextBox*)guis[guin].Controls[objn];
+    GUITextBox *guit = (GUITextBox*)guis[guin].GetControl(objn);
     TextBox_SetFont(guit, fontnum);
 }
 
@@ -42,7 +42,7 @@ void GetTextBoxText(int guin, int objn, char*txbuf) {
     if (guis[guin].GetControlType(objn)!=kGUITextBox)
         quit("!GetTextBoxText: specified control is not a text box");
 
-    GUITextBox*guisl=(GUITextBox*)guis[guin].Controls[objn];
+    GUITextBox*guisl=(GUITextBox*)guis[guin].GetControl(objn);
     TextBox_GetText(guisl, txbuf);
 }
 
@@ -52,6 +52,6 @@ void SetTextBoxText(int guin, int objn, const char* txbuf) {
     if (guis[guin].GetControlType(objn)!=kGUITextBox)
         quit("!SetTextBoxText: specified control is not a text box");
 
-    GUITextBox*guisl=(GUITextBox*)guis[guin].Controls[objn];
+    GUITextBox*guisl=(GUITextBox*)guis[guin].GetControl(objn);
     TextBox_SetText(guisl, txbuf);
 }

@@ -90,6 +90,8 @@ public:
     int32_t FindControlUnderMouse(int leeway, bool must_be_clickable) const;
     // Gets the number of the GUI child controls
     int32_t GetControlCount() const;
+    // Gets control by its child's index
+    GUIObject *GetControl(int index) const;
     // Gets child control's type, looks up with child's index
     GUIControlType GetControlType(int index) const;
     // Gets child control's global ID, looks up with child's index
@@ -165,9 +167,6 @@ public:
 
     String  OnClickHandler; // script function name
 
-    // Array of child control references (not exclusively owned!)
-    std::vector<GUIObject*> Controls;
-
 private:
     int32_t _flags;          // style and behavior flags
 
@@ -175,6 +174,8 @@ private:
     // maps GUI child slots to actual controls and used for rebuilding Controls array
     typedef std::pair<GUIControlType, int32_t> ControlRef;
     std::vector<ControlRef> _ctrlRefs;
+    // Array of child control references (not exclusively owned!)
+    std::vector<GUIObject*> _controls;
     // Sorted array of controls in z-order.
     std::vector<int32_t>    _ctrlDrawOrder;
 };

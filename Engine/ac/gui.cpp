@@ -174,7 +174,7 @@ int GUI_GetID(ScriptGUI *tehgui) {
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
   if ((idx < 0) || (idx >= guis[tehgui->id].GetControlCount()))
     return NULL;
-  return guis[tehgui->id].Controls[idx];
+  return guis[tehgui->id].GetControl(idx);
 }
 
 int GUI_GetControlCount(ScriptGUI *tehgui) {
@@ -347,7 +347,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
     int btype = guis[ifce].GetControlType(btn);
     int rtype=kGUIAction_None,rdata;
     if (btype==kGUIButton) {
-        GUIButton*gbuto=(GUIButton*)guis[ifce].Controls[btn];
+        GUIButton*gbuto=(GUIButton*)guis[ifce].GetControl(btn);
         rtype=gbuto->ClickAction[kMouseLeft];
         rdata=gbuto->ClickData[kMouseLeft];
     }
@@ -359,7 +359,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
     else if (rtype==kGUIAction_SetMode)
         set_cursor_mode(rdata);
     else if (rtype==kGUIAction_RunScript) {
-        GUIObject *theObj = guis[ifce].Controls[btn];
+        GUIObject *theObj = guis[ifce].GetControl(btn);
         // if the object has a special handler script then run it;
         // otherwise, run interface_click
         if ((theObj->GetEventCount() > 0) &&
@@ -463,23 +463,25 @@ void update_gui_zorder() {
 }
 
 
-void export_gui_controls(int ee) {
-
-    for (int ff = 0; ff < guis[ee].GetControlCount(); ff++) {
-        if (!guis[ee].Controls[ff]->Name.IsEmpty())
-            ccAddExternalDynamicObject(guis[ee].Controls[ff]->Name, guis[ee].Controls[ff], &ccDynamicGUIObject);
-
-        ccRegisterManagedObject(guis[ee].Controls[ff], &ccDynamicGUIObject);
+void export_gui_controls(int ee)
+{
+    for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
+    {
+        GUIObject *guio = guis[ee].GetControl(ff);
+        if (!guio->Name.IsEmpty())
+            ccAddExternalDynamicObject(guio->Name, guio, &ccDynamicGUIObject);
+        ccRegisterManagedObject(guio, &ccDynamicGUIObject);
     }
 }
 
-void unexport_gui_controls(int ee) {
-
-    for (int ff = 0; ff < guis[ee].GetControlCount(); ff++) {
-        if (!guis[ee].Controls[ff]->Name.IsEmpty())
-            ccRemoveExternalSymbol(guis[ee].Controls[ff]->Name);
-
-        if (!ccUnRegisterManagedObject(guis[ee].Controls[ff]))
+void unexport_gui_controls(int ee)
+{
+    for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
+    {
+        GUIObject *guio = guis[ee].GetControl(ff);
+        if (!guio->Name.IsEmpty())
+            ccRemoveExternalSymbol(guio->Name);
+        if (!ccUnRegisterManagedObject(guio))
             quit("unable to unregister guicontrol object");
     }
 }
@@ -629,10 +631,11 @@ int gui_on_mouse_move()
 void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 {
     for (int i=0;i<guis[wasongui].GetControlCount();i++) {
-        if (!guis[wasongui].Controls[i]->IsActivated) continue;
+        GUIObject *guio = guis[wasongui].GetControl(i);
+        if (!guio->IsActivated) continue;
         if (guis[wasongui].GetControlType(i)!=kGUISlider) continue;
         // GUI Slider repeatedly activates while being dragged
-        guis[wasongui].Controls[i]->IsActivated = false;
+        guio->IsActivated = false;
         force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
         break;
     }
@@ -643,8 +646,9 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
     guis[wasongui].OnMouseButtonUp();
 
     for (int i=0;i<guis[wasongui].GetControlCount();i++) {
-        if (!guis[wasongui].Controls[i]->IsActivated) continue;
-        guis[wasongui].Controls[i]->IsActivated = false;
+        GUIObject *guio = guis[wasongui].GetControl(i);
+        if (!guio->IsActivated) continue;
+        guio->IsActivated = false;
         if (!IsInterfaceEnabled()) break;
 
         int cttype=guis[wasongui].GetControlType(i);
@@ -652,9 +656,9 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
             force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
         }
         else if (cttype == kGUIInvWindow) {
-            mouse_ifacebut_xoffs=mousex-(guis[wasongui].Controls[i]->X)-guis[wasongui].X;
-            mouse_ifacebut_yoffs=mousey-(guis[wasongui].Controls[i]->Y)-guis[wasongui].Y;
-            int iit=offset_over_inv((GUIInvWindow*)guis[wasongui].Controls[i]);
+            mouse_ifacebut_xoffs=mousex-(guio->X)-guis[wasongui].X;
+            mouse_ifacebut_yoffs=mousey-(guio->Y)-guis[wasongui].Y;
+            int iit=offset_over_inv((GUIInvWindow*)guio);
             if (iit>=0) {
                 evblocknum=iit;
                 play.used_inv_on = iit;

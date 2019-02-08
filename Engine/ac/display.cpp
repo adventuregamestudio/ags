@@ -534,8 +534,10 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
     draw_gui_sprite_v330(ds, sprn, x, y);
 }
 
-int get_but_pic(GUIMain*guo,int indx) {
-    return guibuts[guo->CtrlRefs[indx] & 0x000ffff].Image;
+int get_but_pic(GUIMain*guo,int indx)
+{
+    int butid = guo->GetControlID(indx);
+    return butid >= 0 ? guibuts[butid].Image : 0;
 }
 
 void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {

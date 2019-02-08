@@ -58,9 +58,9 @@ GUIMain::GUIMain()
 
 void GUIMain::InitDefaults()
 {
-    Id            = 0;
+    ID            = 0;
     Name.Empty();
-    Flags         = kGUIMain_DefFlags;
+    _flags        = kGUIMain_DefFlags;
 
     X             = 0;
     Y             = 0;
@@ -85,9 +85,8 @@ void GUIMain::InitDefaults()
     OnClickHandler.Empty();
 
     Controls.clear();
-    CtrlRefs.clear();
-    CtrlDrawOrder.clear();
-    ControlCount = 0;
+    _ctrlRefs.clear();
+    _ctrlDrawOrder.clear();
 }
 
 int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
@@ -95,7 +94,7 @@ int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
     if (loaded_game_file_version <= kGameVersion_262)
     {
         // Ignore draw order On 2.6.2 and lower
-        for (int i = 0; i < ControlCount; ++i)
+        for (size_t i = 0; i < Controls.size(); ++i)
         {
             if (!Controls[i]->IsVisible())
                 continue;
@@ -107,9 +106,9 @@ int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
     }
     else
     {
-        for (int i = ControlCount - 1; i >= 0; --i)
+        for (size_t i = Controls.size(); i-- > 0;)
         {
-            const int ctrl_index = CtrlDrawOrder[i];
+            const int ctrl_index = _ctrlDrawOrder[i];
             if (!Controls[ctrl_index]->IsVisible())
                 continue;
             if (!Controls[ctrl_index]->IsClickable() && must_be_clickable)
@@ -131,21 +130,33 @@ int GUIMain::FindControlUnderMouse(int leeway) const
     return FindControlUnderMouse(leeway, true);
 }
 
+int GUIMain::GetControlCount() const
+{
+    return (int32_t)Controls.size();
+}
+
 GUIControlType GUIMain::GetControlType(int index) const
 {
-    if (index < 0 || index >= ControlCount)
+    if (index < 0 || (size_t)index >= _ctrlRefs.size())
         return kGUIControlUndefined;
-    return (GUIControlType)((CtrlRefs[index] >> 16) & 0x0000ffff);
+    return _ctrlRefs[index].first;
+}
+
+int32_t GUIMain::GetControlID(int index) const
+{
+    if (index < 0 || (size_t)index >= _ctrlRefs.size())
+        return -1;
+    return _ctrlRefs[index].second;
 }
 
 bool GUIMain::IsClickable() const
 {
-    return (Flags & kGUIMain_Clickable) != 0;
+    return (_flags & kGUIMain_Clickable) != 0;
 }
 
 bool GUIMain::IsConcealed() const
 {
-    return (Flags & kGUIMain_Concealed) != 0;
+    return (_flags & kGUIMain_Concealed) != 0;
 }
 
 bool GUIMain::IsDisplayed() const
@@ -166,17 +177,29 @@ bool GUIMain::IsInteractableAt(int x, int y) const
 
 bool GUIMain::IsTextWindow() const
 {
-    return (Flags & kGUIMain_TextWindow) != 0;
+    return (_flags & kGUIMain_TextWindow) != 0;
 }
 
 bool GUIMain::IsVisible() const
 {
-    return (Flags & kGUIMain_Visible) != 0;
+    return (_flags & kGUIMain_Visible) != 0;
+}
+
+void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
+{
+    _ctrlRefs.push_back(std::make_pair(type, id));
+    Controls.push_back(control);
+}
+
+void GUIMain::RemoveAllControls()
+{
+    _ctrlRefs.clear();
+    Controls.clear();
 }
 
 bool GUIMain::BringControlToFront(int index)
 {
-    return SetControlZOrder(index, ControlCount - 1);
+    return SetControlZOrder(index, (int)Controls.size() - 1);
 }
 
 void GUIMain::Draw(Bitmap *ds)
@@ -220,11 +243,11 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
     SET_EIP(379)
 
-    for (int ctrl_index = 0; ctrl_index < ControlCount; ++ctrl_index)
+    for (size_t ctrl_index = 0; ctrl_index < Controls.size(); ++ctrl_index)
     {
-        set_eip_guiobj(CtrlDrawOrder[ctrl_index]);
+        set_eip_guiobj(_ctrlDrawOrder[ctrl_index]);
 
-        GUIObject *objToDraw = Controls[CtrlDrawOrder[ctrl_index]];
+        GUIObject *objToDraw = Controls[_ctrlDrawOrder[ctrl_index]];
 
         if (!objToDraw->IsEnabled() && gui_disabled_style == GUIDIS_BLACKOUT)
             continue;
@@ -235,7 +258,7 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
         int selectedColour = 14;
 
-        if (HighlightCtrl == CtrlDrawOrder[ctrl_index])
+        if (HighlightCtrl == _ctrlDrawOrder[ctrl_index])
         {
             if (outlineGuiObjects)
                 selectedColour = 13;
@@ -318,13 +341,14 @@ void GUIMain::Poll()
 
 void GUIMain::RebuildArray()
 {
-    int thistype, thisnum;
+    GUIControlType thistype;
+    int32_t thisnum;
 
-    Controls.resize(ControlCount);
-    for (int i = 0; i < ControlCount; ++i)
+    Controls.resize(_ctrlRefs.size());
+    for (size_t i = 0; i < Controls.size(); ++i)
     {
-        thistype = (CtrlRefs[i] >> 16) & 0x000ffff;
-        thisnum = CtrlRefs[i] & 0x0000ffff;
+        thistype = _ctrlRefs[i].first;
+        thisnum = _ctrlRefs[i].second;
 
         if (thisnum < 0 || thisnum >= 2000)
             quit("GUIMain: rebuild array failed (invalid object index)");
@@ -344,7 +368,7 @@ void GUIMain::RebuildArray()
         else
             quit("guimain: unknown control type found On gui");
 
-        Controls[i]->ParentId = Id;
+        Controls[i]->ParentId = ID;
         Controls[i]->Id = i;
     }
 
@@ -361,25 +385,25 @@ void GUIMain::ResortZOrder()
     std::vector<GUIObject*> ctrl_sort = Controls;
     std::sort(ctrl_sort.begin(), ctrl_sort.end(), GUIControlZOrder);
 
-    CtrlDrawOrder.resize(ctrl_sort.size());
-    for (int i = 0; i < ControlCount; ++i)
-        CtrlDrawOrder[i] = ctrl_sort[i]->Id;
+    _ctrlDrawOrder.resize(ctrl_sort.size());
+    for (size_t i = 0; i < ctrl_sort.size(); ++i)
+        _ctrlDrawOrder[i] = ctrl_sort[i]->Id;
 }
 
 void GUIMain::SetClickable(bool on)
 {
     if (on)
-        Flags |= kGUIMain_Clickable;
+        _flags |= kGUIMain_Clickable;
     else
-        Flags &= ~kGUIMain_Clickable;
+        _flags &= ~kGUIMain_Clickable;
 }
 
 void GUIMain::SetConceal(bool on)
 {
     if (on)
-        Flags |= kGUIMain_Concealed;
+        _flags |= kGUIMain_Concealed;
     else
-        Flags &= ~kGUIMain_Concealed;
+        _flags &= ~kGUIMain_Concealed;
 }
 
 bool GUIMain::SendControlToBack(int index)
@@ -389,10 +413,10 @@ bool GUIMain::SendControlToBack(int index)
 
 bool GUIMain::SetControlZOrder(int index, int zorder)
 {
-    if (index < 0 || index >= ControlCount)
+    if (index < 0 || (size_t)index >= Controls.size())
         return false; // no such control
 
-    zorder = Math::Clamp(zorder, 0, ControlCount - 1);
+    zorder = Math::Clamp(zorder, 0, (int)Controls.size() - 1);
     const int old_zorder = Controls[index]->ZOrder;
     if (old_zorder == zorder)
         return false; // no change
@@ -400,7 +424,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     const bool move_back = zorder < old_zorder; // back is at zero index
     const int  left      = move_back ? zorder : old_zorder;
     const int  right     = move_back ? old_zorder : zorder;
-    for (int i = 0; i < ControlCount; ++i)
+    for (size_t i = 0; i < Controls.size(); ++i)
     {
         const int i_zorder = Controls[i]->ZOrder;
         if (i_zorder == old_zorder)
@@ -422,9 +446,9 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
 void GUIMain::SetTextWindow(bool on)
 {
     if (on)
-        Flags |= kGUIMain_TextWindow;
+        _flags |= kGUIMain_TextWindow;
     else
-        Flags &= ~kGUIMain_TextWindow;
+        _flags &= ~kGUIMain_TextWindow;
 }
 
 void GUIMain::SetTransparencyAsPercentage(int percent)
@@ -435,9 +459,9 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 void GUIMain::SetVisible(bool on)
 {
     if (on)
-        Flags |= kGUIMain_Visible;
+        _flags |= kGUIMain_Visible;
     else
-        Flags &= ~kGUIMain_Visible;
+        _flags &= ~kGUIMain_Visible;
 }
 
 void GUIMain::OnControlPositionChanged()
@@ -507,7 +531,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     { // NOTE: reading into actual variables only for old savegame support
         FocusCtrl = in->ReadInt32();
     }
-    ControlCount  = in->ReadInt32();
+    const size_t ctrl_count = in->ReadInt32();
     PopupStyle    = (GUIPopupStyle)in->ReadInt32();
     PopupAtMouseY = in->ReadInt32();
     BgColor       = in->ReadInt32();
@@ -521,10 +545,10 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
         MouseDownCtrl = in->ReadInt32();
         HighlightCtrl = in->ReadInt32();
     }
-    Flags         = in->ReadInt32();
+    _flags         = in->ReadInt32();
     Transparency  = in->ReadInt32();
     ZOrder        = in->ReadInt32();
-    Id            = in->ReadInt32();
+    ID            = in->ReadInt32();
     Padding       = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
         in->Seek(sizeof(int32_t) * GUIMAIN_LEGACY_RESERVED_INTS);
@@ -532,24 +556,29 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (gui_version < kGuiVersion_350)
     {
         if (tw_flags[0] == kGUIMain_LegacyTextWindow)
-            Flags |= kGUIMain_TextWindow;
+            _flags |= kGUIMain_TextWindow;
         // reverse particular flags from older format
-        Flags ^= kGUIMain_OldFmtXorMask;
+        _flags ^= kGUIMain_OldFmtXorMask;
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
     }
 
+    size_t ctrls_read = ctrl_count;
     if (gui_version < kGuiVersion_340)
     {
-        CtrlRefs.resize(LEGACY_MAX_OBJS_ON_GUI);
+        // TODO: error if ctrl_count > LEGACY_MAX_OBJS_ON_GUI
         // array of 32-bit pointers; these values are unused
         in->Seek(LEGACY_MAX_OBJS_ON_GUI * sizeof(int32_t));
-        in->ReadArrayOfInt32(&CtrlRefs.front(), LEGACY_MAX_OBJS_ON_GUI);
+        ctrls_read = LEGACY_MAX_OBJS_ON_GUI;
     }
-    else
+    if (ctrls_read > 0)
     {
-        CtrlRefs.resize(ControlCount);
-        if (ControlCount > 0)
-            in->ReadArrayOfInt32(&CtrlRefs.front(), ControlCount);
+        _ctrlRefs.resize(ctrls_read);
+        for (size_t i = 0; i < ctrls_read; ++i)
+        {
+            const int32_t ref_packed = in->ReadInt32();
+            _ctrlRefs[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
+            _ctrlRefs[i].second = ref_packed & 0xFFFF;
+        }
     }
 }
 
@@ -561,25 +590,28 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteInt32(Y);
     out->WriteInt32(Width);
     out->WriteInt32(Height);
-    out->WriteInt32(ControlCount);
+    out->WriteInt32(_ctrlRefs.size());
     out->WriteInt32(PopupStyle);
     out->WriteInt32(PopupAtMouseY);
     out->WriteInt32(BgColor);
     out->WriteInt32(BgImage);
     out->WriteInt32(FgColor);
-    out->WriteInt32(Flags);
+    out->WriteInt32(_flags);
     out->WriteInt32(Transparency);
     out->WriteInt32(ZOrder);
-    out->WriteInt32(Id);
+    out->WriteInt32(ID);
     out->WriteInt32(Padding);
-    if (ControlCount > 0)
-        out->WriteArrayOfInt32(&CtrlRefs.front(), ControlCount);
+    for (size_t i = 0; i < _ctrlRefs.size(); ++i)
+    {
+        int32_t ref_packed = ((_ctrlRefs[i].first & 0xFFFF) << 16) | (_ctrlRefs[i].second & 0xFFFF);
+        out->WriteInt32(ref_packed);
+    }
 }
 
 void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
 {
     // Properties
-    Flags = in->ReadInt32();
+    _flags = in->ReadInt32();
     X = in->ReadInt32();
     Y = in->ReadInt32();
     Width = in->ReadInt32();
@@ -589,7 +621,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     if (svg_version < kGuiSvgVersion_350)
     {
         // reverse particular flags from older format
-        Flags ^= kGUIMain_OldFmtXorMask;
+        _flags ^= kGUIMain_OldFmtXorMask;
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
     }
     ZOrder = in->ReadInt32();
@@ -614,7 +646,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
 void GUIMain::WriteToSavegame(Common::Stream *out) const
 {
     // Properties
-    out->WriteInt32(Flags);
+    out->WriteInt32(_flags);
     out->WriteInt32(X);
     out->WriteInt32(Y);
     out->WriteInt32(Width);
@@ -749,7 +781,7 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
         if (gui.PopupStyle == kGUIPopupMouseY)
             gui.SetConceal(true);
         // Assign ID to order in array
-        gui.Id = i;
+        gui.ID = i;
     }
 
     // buttons

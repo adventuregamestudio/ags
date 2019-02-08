@@ -80,7 +80,7 @@ int GetInvAt (int xxx, int yyy) {
     }
     mousex = mxwas;
     mousey = mywas;
-    if ((onobj>=0) && ((guis[ongui].CtrlRefs[onobj] >> 16)==kGUIInvWindow))
+    if ((onobj>=0) && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
       return offset_over_inv((GUIInvWindow*)guis[ongui].Controls[onobj]);
   }
   return -1;

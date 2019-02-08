@@ -88,7 +88,17 @@ public:
     // the user can grab tiny controls
     int32_t FindControlUnderMouse(int leeway) const;
     int32_t FindControlUnderMouse(int leeway, bool must_be_clickable) const;
+    // Gets the number of the GUI child controls
+    int32_t GetControlCount() const;
+    // Gets child control's type, looks up with child's index
     GUIControlType GetControlType(int index) const;
+    // Gets child control's global ID, looks up with child's index
+    int32_t GetControlID(int index) const;
+
+    // Child control management
+    // Note that currently GUIMain does not own controls (should not delete them)
+    void    AddControl(GUIControlType type, int id, GUIObject *control);
+    void    RemoveAllControls();
 
     // Operations
     bool    BringControlToFront(int index);
@@ -130,7 +140,7 @@ private:
 
     // TODO: all members are currently public; hide them later
 public:
-    int32_t Id;             // GUI identifier
+    int32_t ID;             // GUI identifier
     String  Name;           // the name of the GUI
 
     int32_t X;
@@ -155,15 +165,18 @@ public:
 
     String  OnClickHandler; // script function name
 
-    std::vector<GUIObject*> Controls; // array of child controls
-    std::vector<int32_t>    CtrlRefs; // for re-building controls array
-    std::vector<int16_t>    CtrlDrawOrder;
-
-    // TODO: remove these later
-    int32_t ControlCount;   // number of objects on gui
+    // Array of child control references (not exclusively owned!)
+    std::vector<GUIObject*> Controls;
 
 private:
-    int32_t Flags;          // style and behavior flags
+    int32_t _flags;          // style and behavior flags
+
+    // Array of types and control indexes in global GUI object arrays;
+    // maps GUI child slots to actual controls and used for rebuilding Controls array
+    typedef std::pair<GUIControlType, int32_t> ControlRef;
+    std::vector<ControlRef> _ctrlRefs;
+    // Sorted array of controls in z-order.
+    std::vector<int32_t>    _ctrlDrawOrder;
 };
 
 

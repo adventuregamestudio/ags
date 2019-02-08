@@ -2728,9 +2728,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   
   gui->Name = ConvertStringToNativeString(guiObj->Name);
 
-  gui->ControlCount = 0;
-  gui->CtrlRefs.resize(guiObj->Controls->Count);
-  gui->Controls.resize(guiObj->Controls->Count);
+  gui->RemoveAllControls();
 
   for each (GUIControl^ control in guiObj->Controls)
   {
@@ -2757,9 +2755,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guibuts[numguibuts].SetText(ConvertStringToNativeString(button->Text));
           guibuts[numguibuts].EventHandlers[0] = ConvertStringToNativeString(button->OnClick);
 		  
-          gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
-		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
-		  gui->ControlCount++;
+          gui->AddControl(Common::kGUIButton, numguibuts, &guibuts[numguibuts]);
 		  numguibuts++;
 	  }
 	  else if (label)
@@ -2771,9 +2767,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::String text = ConvertStringToNativeString(label->Text);
 		  guilabels[numguilabels].SetText(text);
 
-		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUILabel << 16) | numguilabels;
-		  gui->Controls[gui->ControlCount] = &guilabels[numguilabels];
-		  gui->ControlCount++;
+          gui->AddControl(Common::kGUILabel, numguilabels, &guilabels[numguilabels]);
 		  numguilabels++;
 	  }
 	  else if (textbox)
@@ -2784,9 +2778,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guitext[numguitext].SetShowBorder(textbox->ShowBorder);
           guitext[numguitext].EventHandlers[0] = ConvertStringToNativeString(textbox->OnActivate);
 
-		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
-		  gui->Controls[gui->ControlCount] = &guitext[numguitext];
-		  gui->ControlCount++;
+          gui->AddControl(Common::kGUITextBox, numguitext, &guitext[numguitext]);
 		  numguitext++;
 	  }
 	  else if (listbox)
@@ -2802,9 +2794,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guilist[numguilist].SetShowArrows(listbox->ShowScrollArrows);
           guilist[numguilist].EventHandlers[0] = ConvertStringToNativeString(listbox->OnSelectionChanged);
 
-		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
-		  gui->Controls[gui->ControlCount] = &guilist[numguilist];
-		  gui->ControlCount++;
+          gui->AddControl(Common::kGUIListBox, numguilist, &guilist[numguilist]);
 		  numguilist++;
 	  }
 	  else if (slider)
@@ -2818,9 +2808,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guislider[numguislider].BgImage = slider->BackgroundImage;
           guislider[numguislider].EventHandlers[0] = ConvertStringToNativeString(slider->OnChange);
 
-		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUISlider << 16) | numguislider;
-		  gui->Controls[gui->ControlCount] = &guislider[numguislider];
-		  gui->ControlCount++;
+          gui->AddControl(Common::kGUISlider, numguislider, &guislider[numguislider]);
 		  numguislider++;
 	  }
 	  else if (invwindow)
@@ -2830,9 +2818,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guiinv[numguiinv].ItemWidth = invwindow->ItemWidth;
 		  guiinv[numguiinv].ItemHeight = invwindow->ItemHeight;
 
-		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIInvWindow << 16) | numguiinv;
-		  gui->Controls[gui->ControlCount] = &guiinv[numguiinv];
-		  gui->ControlCount++;
+          gui->AddControl(Common::kGUIInvWindow, numguiinv, &guiinv[numguiinv]);
 		  numguiinv++;
 	  }
 	  else if (textwindowedge)
@@ -2841,13 +2827,11 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guibuts[numguibuts].Image = textwindowedge->Image;
 		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].Image;
 		  
-		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
-		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
-		  gui->ControlCount++;
+          gui->AddControl(Common::kGUIButton, numguibuts, &guibuts[numguibuts]);
 		  numguibuts++;
 	  }
 
-      Common::GUIObject *newObj = gui->Controls[gui->ControlCount - 1];
+      Common::GUIObject *newObj = gui->Controls[gui->GetControlCount() - 1];
 	  newObj->X = control->Left;
 	  newObj->Y = control->Top;
 	  newObj->Width = control->Width;
@@ -3534,11 +3518,12 @@ Game^ import_compiled_game_dta(const char *fileName)
 		newGui->ID = i;
 		newGui->Name = gcnew String(guis[i].Name);
 
-		for (int j = 0; j < guis[i].ControlCount; j++)
+		for (int j = 0; j < guis[i].GetControlCount(); j++)
 		{
             Common::GUIObject* curObj = guis[i].Controls[j];
 			GUIControl ^newControl = nullptr;
-			switch (guis[i].CtrlRefs[j] >> 16)
+            Common::GUIControlType ctrl_type = guis[i].GetControlType(j);
+			switch (ctrl_type)
 			{
 			case Common::kGUIButton:
 				{
@@ -3632,7 +3617,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 					break;
 				}
 			default:
-				throw gcnew AGSEditorException("Unknown control type found: " + (guis[i].CtrlRefs[j] >> 16));
+				throw gcnew AGSEditorException("Unknown control type found: " + ((int)ctrl_type).ToString());
 			}
 			newControl->Width = (curObj->Width > 0) ? curObj->Width : 1;
 			newControl->Height = (curObj->Height > 0) ? curObj->Height : 1;

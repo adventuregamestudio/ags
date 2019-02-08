@@ -363,7 +363,7 @@ void ListBox_ScrollUp(GUIListBox *listbox) {
 
 GUIListBox* is_valid_listbox (int guin, int objn) {
   if ((guin<0) | (guin>=game.numgui)) quit("!ListBox: invalid GUI number");
-  if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!ListBox: invalid object number");
+  if ((objn<0) | (objn>=guis[guin].GetControlCount())) quit("!ListBox: invalid object number");
   if (guis[guin].GetControlType(objn)!=kGUIListBox)
     quit("!ListBox: specified control is not a list box");
   guis_need_update = 1;

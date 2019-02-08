@@ -234,8 +234,8 @@ void enable_cursor_mode(int modd) {
     int uu,ww;
 
     for (uu=0;uu<game.numgui;uu++) {
-        for (ww=0;ww<guis[uu].ControlCount;ww++) {
-            if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUIButton) continue;
+        for (ww=0;ww<guis[uu].GetControlCount();ww++) {
+            if (guis[uu].GetControlType(ww) != kGUIButton) continue;
             GUIButton*gbpt=(GUIButton*)guis[uu].Controls[ww];
             if (gbpt->ClickAction[kMouseLeft]!=kGUIAction_SetMode) continue;
             if (gbpt->ClickData[kMouseLeft]!=modd) continue;
@@ -251,8 +251,8 @@ void disable_cursor_mode(int modd) {
     int uu,ww;
 
     for (uu=0;uu<game.numgui;uu++) {
-        for (ww=0;ww<guis[uu].ControlCount;ww++) {
-            if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUIButton) continue;
+        for (ww=0;ww<guis[uu].GetControlCount();ww++) {
+            if (guis[uu].GetControlType(ww) != kGUIButton) continue;
             GUIButton*gbpt=(GUIButton*)guis[uu].Controls[ww];
             if (gbpt->ClickAction[kMouseLeft]!=kGUIAction_SetMode) continue;
             if (gbpt->ClickData[kMouseLeft]!=modd) continue;

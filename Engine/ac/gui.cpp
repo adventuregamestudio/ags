@@ -172,13 +172,13 @@ int GUI_GetID(ScriptGUI *tehgui) {
 }
 
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
-  if ((idx < 0) || (idx >= guis[tehgui->id].ControlCount))
+  if ((idx < 0) || (idx >= guis[tehgui->id].GetControlCount()))
     return NULL;
   return guis[tehgui->id].Controls[idx];
 }
 
 int GUI_GetControlCount(ScriptGUI *tehgui) {
-  return guis[tehgui->id].ControlCount;
+  return guis[tehgui->id].GetControlCount();
 }
 
 int GUI_GetPopupYPos(ScriptGUI *tehgui)
@@ -344,7 +344,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
         return;
     }
 
-    int btype=(guis[ifce].CtrlRefs[btn] >> 16) & 0x000ffff;
+    int btype = guis[ifce].GetControlType(btn);
     int rtype=kGUIAction_None,rdata;
     if (btype==kGUIButton) {
         GUIButton*gbuto=(GUIButton*)guis[ifce].Controls[btn];
@@ -465,7 +465,7 @@ void update_gui_zorder() {
 
 void export_gui_controls(int ee) {
 
-    for (int ff = 0; ff < guis[ee].ControlCount; ff++) {
+    for (int ff = 0; ff < guis[ee].GetControlCount(); ff++) {
         if (!guis[ee].Controls[ff]->Name.IsEmpty())
             ccAddExternalDynamicObject(guis[ee].Controls[ff]->Name, guis[ee].Controls[ff], &ccDynamicGUIObject);
 
@@ -475,7 +475,7 @@ void export_gui_controls(int ee) {
 
 void unexport_gui_controls(int ee) {
 
-    for (int ff = 0; ff < guis[ee].ControlCount; ff++) {
+    for (int ff = 0; ff < guis[ee].GetControlCount(); ff++) {
         if (!guis[ee].Controls[ff]->Name.IsEmpty())
             ccRemoveExternalSymbol(guis[ee].Controls[ff]->Name);
 
@@ -571,7 +571,7 @@ int adjust_y_for_guis ( int yy) {
 
 void recreate_guibg_image(GUIMain *tehgui)
 {
-  int ifn = tehgui->Id;
+  int ifn = tehgui->ID;
   delete guibg[ifn];
   guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, game.GetColorDepth());
   if (guibg[ifn] == NULL)
@@ -628,7 +628,7 @@ int gui_on_mouse_move()
 
 void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 {
-    for (int i=0;i<guis[wasongui].ControlCount;i++) {
+    for (int i=0;i<guis[wasongui].GetControlCount();i++) {
         if (!guis[wasongui].Controls[i]->IsActivated) continue;
         if (guis[wasongui].GetControlType(i)!=kGUISlider) continue;
         // GUI Slider repeatedly activates while being dragged
@@ -642,7 +642,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
 {
     guis[wasongui].OnMouseButtonUp();
 
-    for (int i=0;i<guis[wasongui].ControlCount;i++) {
+    for (int i=0;i<guis[wasongui].GetControlCount();i++) {
         if (!guis[wasongui].Controls[i]->IsActivated) continue;
         guis[wasongui].Controls[i]->IsActivated = false;
         if (!IsInterfaceEnabled()) break;

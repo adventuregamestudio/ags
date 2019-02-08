@@ -51,7 +51,7 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) 
     if (numAnimButs >= MAX_ANIMATING_BUTTONS)
         quit("!AnimateButton: too many animating GUI buttons at once");
 
-    int buttonId = guis[guin].CtrlRefs[objn] & 0x000ffff;
+    int buttonId = guis[guin].GetControlID(objn);
 
     guibuts[buttonId].PushedImage = 0;
     guibuts[buttonId].MouseOverImage = 0;

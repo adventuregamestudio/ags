@@ -489,9 +489,9 @@ void check_keyboard_controls()
                 int uu,ww;
                 for (uu=0;uu<game.numgui;uu++) {
                     if (!guis[uu].IsDisplayed()) continue;
-                    for (ww=0;ww<guis[uu].ControlCount;ww++) {
+                    for (ww=0;ww<guis[uu].GetControlCount();ww++) {
                         // not a text box, ignore it
-                        if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUITextBox)
+                        if (guis[uu].GetControlType(ww) != kGUITextBox)
                             continue;
                         GUITextBox*guitex=(GUITextBox*)guis[uu].Controls[ww];
                         // if the text box is disabled, it cannot except keypresses

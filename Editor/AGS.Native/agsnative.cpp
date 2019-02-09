@@ -1923,7 +1923,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   long sizeSoFar = 0;
   bool doSplitting = false;
 
-  for (size_t a = 0; a < numFiles; a++)
+  for (int a = 0; a < numFiles; a++)
   {
 	  if (splitSize > 0)
 	  {
@@ -2013,7 +2013,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   {
 	  if (makeFileNameAssumptionsForEXE) 
 	  {
-		  sprintf(outputFileName, "Compiled\\%s", lib.LibFileNames[a]);
+		  sprintf(outputFileName, "Compiled\\%s", lib.LibFileNames[a].GetCStr());
 	  }
 	  else 
 	  {
@@ -3071,7 +3071,8 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, InteractionComm
 		else
 		{
 			OldInteractionVariable^ variableToCheck = game->OldInteractionVariables[intrcmd->Data[0].Value];
-			sprintf(scriptCode, "if (%s == %d) {", variableToCheck->ScriptName, valueToCheck);
+			AGSString str = ConvertStringToNativeString(variableToCheck->ScriptName);
+			sprintf(scriptCode, "if (%s == %d) {", str.GetCStr(), valueToCheck);
 		}
 		sb->AppendLine(gcnew String(scriptCode));
 		break;
@@ -3087,7 +3088,8 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, InteractionComm
 		else
 		{
 			OldInteractionVariable^ variableToCheck = game->OldInteractionVariables[intrcmd->Data[0].Value];
-			sprintf(scriptCode, "%s = %d;", variableToCheck->ScriptName, valueToCheck);
+			AGSString str = ConvertStringToNativeString(variableToCheck->ScriptName);
+			sprintf(scriptCode, "%s = %d;", str.GetCStr(), valueToCheck);
 		}
 		sb->AppendLine(gcnew String(scriptCode));
 		break;

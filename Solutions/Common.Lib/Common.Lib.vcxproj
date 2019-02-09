@@ -132,7 +132,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -151,7 +151,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -170,7 +170,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -189,7 +189,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -208,7 +208,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>

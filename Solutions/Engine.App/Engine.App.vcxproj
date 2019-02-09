@@ -85,7 +85,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Common_d.lib;alleg-debug-static-mt.lib;alfont_mt_d.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -110,7 +110,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Common.lib;alleg-static-mt.lib;alfont_mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -140,7 +140,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Common.lib;alleg-static-mt.lib;alfont_mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>

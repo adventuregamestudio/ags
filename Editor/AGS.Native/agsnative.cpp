@@ -54,6 +54,9 @@ typedef System::Drawing::Bitmap SysBitmap;
 typedef AGS::Common::Bitmap AGSBitmap;
 typedef AGS::Common::PBitmap PBitmap;
 
+typedef AGS::Common::Error AGSError;
+typedef AGS::Common::HError HAGSError;
+
 // TODO: do something with this later
 // (those are from 'cstretch' unit)
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
@@ -1454,7 +1457,7 @@ bool reset_sprite_file() {
 Common::PluginInfo thisgamePlugins[MAX_PLUGINS];
 int numThisgamePlugins = 0;
 
-const char *init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
+HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     dlgscript = ents.OldDialogSources;
     numNewViews = thisgame.numviews;
@@ -1477,7 +1480,9 @@ const char *init_game_after_import(const AGS::Common::LoadedGameEntities &ents, 
 
     for (int i = 0; i < thisgame.numgui; ++i)
     {
-        guis[i].RebuildArray();
+        HAGSError err = guis[i].RebuildArray();
+        if (!err)
+            return err;
     }
 
     // reset colour 0, it's possible for it to get corrupted
@@ -1487,7 +1492,7 @@ const char *init_game_after_import(const AGS::Common::LoadedGameEntities &ents, 
     set_palette_range(palette, 0, 255, 0);
 
     if (!reset_sprite_file())
-        return "The sprite file could not be loaded. Ensure that all your game files are intact and not corrupt. The game may require a newer version of AGS.";
+        return new AGSError("The sprite file could not be loaded. Ensure that all your game files are intact and not corrupt. The game may require a newer version of AGS.");
 
     for (int i = 0; i < thisgame.numfonts; ++i)
         wfreefont(i);
@@ -1497,10 +1502,10 @@ const char *init_game_after_import(const AGS::Common::LoadedGameEntities &ents, 
     update_abuf_coldepth();
     spritesModified = false;
     thisgame.filever = data_ver;
-    return NULL;
+    return HAGSError::None();
 }
 
-const char *load_dta_file_into_thisgame(const char *fileName)
+HAGSError load_dta_file_into_thisgame(const char *fileName)
 {
     AGS::Common::MainGameSource src;
     AGS::Common::LoadedGameEntities ents(thisgame, dialog, newViews);
@@ -1512,9 +1517,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
             load_err = AGS::Common::UpdateGameData(ents, src.DataVersion);
     }
     if (!load_err)
-    {
-        return load_err->FullMessage();
-    }
+        return HAGSError(load_err);
     return init_game_after_import(ents, src.DataVersion);
 }
 
@@ -3184,11 +3187,11 @@ void ConvertInteractions(AGS::Types::Interactions ^interactions, Interaction *in
 // which version is being loaded.
 Game^ import_compiled_game_dta(const char *fileName)
 {
-	const char *errorMsg = load_dta_file_into_thisgame(fileName);
+	HAGSError err = load_dta_file_into_thisgame(fileName);
     loaded_game_file_version = kGameVersion_Current;
-	if (errorMsg != NULL)
+	if (!err)
 	{
-		throw gcnew AGS::Types::AGSEditorException(gcnew String(errorMsg));
+		throw gcnew AGS::Types::AGSEditorException(gcnew String(err->FullMessage()));
 	}
 
 	Game^ game = gcnew Game();

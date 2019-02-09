@@ -60,6 +60,7 @@ enum MainGameFileErrorType
     kMGFErr_CreateGlobalScriptFailed,
     kMGFErr_CreateDialogScriptFailed,
     kMGFErr_CreateScriptModuleFailed,
+    kMGFErr_GameEntityFailed,
     kMGFErr_PluginDataFmtNotSupported,
     kMGFErr_PluginDataSizeTooLarge
 };

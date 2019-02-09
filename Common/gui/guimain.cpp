@@ -14,7 +14,6 @@
 
 #include <algorithm>
 #include "gui/guimain.h"
-#include "ac/common.h"	// quit()
 #include "ac/gamesetupstruct.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
@@ -346,7 +345,7 @@ void GUIMain::Poll()
     mousey = mywas;
 }
 
-void GUIMain::RebuildArray()
+HError GUIMain::RebuildArray()
 {
     GUIControlType thistype;
     int32_t thisnum;
@@ -357,8 +356,8 @@ void GUIMain::RebuildArray()
         thistype = _ctrlRefs[i].first;
         thisnum = _ctrlRefs[i].second;
 
-        if (thisnum < 0 || thisnum >= 2000)
-            quit("GUIMain: rebuild array failed (invalid object index)");
+        if (thisnum < 0)
+            return new Error(String::FromFormat("GUIMain (%d): invalid control ID %d in ref #%d", ID, thisnum, i));
 
         if (thistype == kGUIButton)
             _controls[i] = &guibuts[thisnum];
@@ -373,13 +372,14 @@ void GUIMain::RebuildArray()
         else if (thistype == kGUIListBox)
             _controls[i] = &guilist[thisnum];
         else
-            quit("guimain: unknown control type found On gui");
+            return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", ID, thistype, i));
 
         _controls[i]->ParentId = ID;
         _controls[i]->Id = i;
     }
 
     ResortZOrder();
+    return HError::None();
 }
 
 bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
@@ -707,13 +707,15 @@ void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_col
     wouttext_outline(ds, x, y, font, text_color, text);
 }
 
-void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
+HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
 {
     // set up the reverse-lookup array
     for (size_t gui_index = 0; gui_index < guis.size(); ++gui_index)
     {
         GUIMain &gui = guis[gui_index];
-        gui.RebuildArray();
+        HError err = gui.RebuildArray();
+        if (!err)
+            return err;
         for (int ctrl_index = 0; ctrl_index < gui.GetControlCount(); ++ctrl_index)
         {
             GUIObject *gui_ctrl = gui.GetControl(ctrl_index);
@@ -725,12 +727,13 @@ void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
         gui.ResortZOrder();
     }
     guis_need_update = 1;
+    return HError::None();
 }
 
-void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
+HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
-        quit("ReadGUI: file is corrupt");
+        return new Error("ReadGUI: unknown format or file is corrupt");
 
     GameGuiVersion = (GuiVersion)in->ReadInt32();
     Debug::Printf(kDbgMsg_Init, "Game GUI version: %d", GameGuiVersion);
@@ -741,7 +744,8 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
         GameGuiVersion = kGuiVersion_Initial;
     }
     else if (GameGuiVersion > kGuiVersion_Current)
-        quit("ReadGUI: this game requires a newer version of AGS");
+        return new Error(String::FromFormat("ReadGUI: format version not supported (required %d, supported %d - %d)",
+            GameGuiVersion, kGuiVersion_Initial, kGuiVersion_Current));
     else
         gui_count = in->ReadInt32();
     guis.resize(gui_count);
@@ -843,7 +847,7 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
             guilist[i].ReadFromFile(in, GameGuiVersion);
         }
     }
-    ResortGUI(guis, GameGuiVersion < kGuiVersion_272e);
+    return ResortGUI(guis, GameGuiVersion < kGuiVersion_272e);
 }
 
 void WriteGUI(const std::vector<GUIMain> &guis, Stream *out)

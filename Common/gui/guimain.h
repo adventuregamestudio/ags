@@ -19,6 +19,7 @@
 #include "gui/guiobject.h"
 #include "ac/common_defines.h"       // AGS_INLINE
 #include "gfx/gfx_def.h"
+#include "util/error.h"
 #include "util/geometry.h"
 #include "util/string.h"
 
@@ -107,7 +108,7 @@ public:
     void    Draw(Bitmap *ds);
     void    DrawAt(Bitmap *ds, int x, int y);
     void    Poll();
-    void    RebuildArray();
+    HError  RebuildArray();
     void    ResortZOrder();
     bool    SendControlToBack(int index);
     // Sets whether GUI should react to player clicking on it
@@ -194,7 +195,7 @@ namespace GUI
 
     // TODO: remove is_savegame param after dropping support for old saves
     // because only they use ReadGUI to read runtime GUI data
-    void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame = false);
+    HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame = false);
     void WriteGUI(const std::vector<GUIMain> &guis, Stream *out);
     // Converts legacy GUIVisibility into appropriate GUIMain properties
     void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);

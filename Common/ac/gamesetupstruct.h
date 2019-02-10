@@ -90,6 +90,11 @@ struct GameSetupStruct: public GameSetupStructBase {
     inline int GetColorDepth() const { return color_depth * 8; }
 
 
+    GameSetupStruct();
+    ~GameSetupStruct();
+
+    void Free();
+
     // [IKM] Game struct loading code is moved here from Engine's load_game_file
     // function; for now it is not supposed to be called by Editor; although it
     // is possible that eventually will be.

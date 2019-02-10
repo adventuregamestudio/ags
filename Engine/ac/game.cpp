@@ -515,22 +515,6 @@ void free_do_once_tokens()
 void unload_game_file() {
     int bb, ee;
 
-    for (bb = 0; bb < game.numcharacters; bb++) {
-        if (game.charScripts != NULL)
-            delete game.charScripts[bb];
-
-        if (game.intrChar != NULL)
-        {
-            if (game.intrChar[bb] != NULL)
-                delete game.intrChar[bb];
-            game.intrChar[bb] = NULL;
-        }
-    }
-    if (game.intrChar != NULL)
-    {
-        free(game.intrChar);
-        game.intrChar = NULL;
-    }
     characterScriptObjNames.clear();
     free(charextra);
     free(mls);
@@ -539,29 +523,6 @@ void unload_game_file() {
     free(actspswb);
     free(actspswbbmp);
     free(actspswbcache);
-    game.charProps.clear();
-
-    for (bb = 1; bb < game.numinvitems; bb++) {
-        if (game.invScripts != NULL)
-            delete game.invScripts[bb];
-        if (game.intrInv[bb] != NULL)
-            delete game.intrInv[bb];
-        game.intrInv[bb] = NULL;
-    }
-
-    if (game.charScripts != NULL)
-    {
-        delete game.charScripts;
-        delete game.invScripts;
-        game.charScripts = NULL;
-        game.invScripts = NULL;
-    }
-
-    if (game.dict != NULL) {
-        game.dict->free_memory();
-        free (game.dict);
-        game.dict = NULL;
-    }
 
     if ((gameinst != NULL) && (gameinst->pc != 0))
         quit("Error: unload_game called while script still running");
@@ -603,20 +564,8 @@ void unload_game_file() {
     runDialogOptionRepExecFunc.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
-    if (game.audioClipCount > 0)
-    {
-        free(game.audioClips);
-        game.audioClipCount = 0;
-        free(game.audioClipTypes);
-        game.audioClipTypeCount = 0;
-    }
-
-    game.viewNames.clear();
     free (views);
     views = NULL;
-
-    free (game.chars);
-    game.chars = NULL;
 
     free (charcache);
     charcache = NULL;
@@ -632,23 +581,6 @@ void unload_game_file() {
         splipsync = NULL;
         numLipLines = 0;
         curLipLine = -1;
-    }
-
-    for (ee=0;ee < MAXGLOBALMES;ee++) {
-        if (game.messages[ee]==NULL) continue;
-        free (game.messages[ee]);
-        game.messages[ee] = NULL;
-    }
-
-    for (ee = 0; ee < game.roomCount; ee++)
-    {
-        free(game.roomNames[ee]);
-    }
-    if (game.roomCount > 0)
-    {
-        free(game.roomNames);
-        free(game.roomNumbers);
-        game.roomCount = 0;
     }
 
     for (ee=0;ee<game.numdialog;ee++) {
@@ -683,6 +615,8 @@ void unload_game_file() {
 
     resetRoomStatuses();
 
+    // free game struct last because it contains object counts
+    game.Free();
 }
 
 

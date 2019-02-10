@@ -29,6 +29,8 @@ struct WordsDictionary {
     char**word;
     short*wordnum;
 
+    WordsDictionary();
+    ~WordsDictionary();
     void allocate_memory(int wordCount);
     void free_memory();
     void  sort();

@@ -489,10 +489,10 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
     audioClipCount = 1000;
     audioClipTypeCount = 4;
 
-    audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
+    audioClipTypes = new AudioClipType[audioClipTypeCount];
     memset(audioClipTypes, 0, audioClipTypeCount * sizeof(AudioClipType));
 
-    audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
+    audioClips = new ScriptAudioClip[audioClipCount];
     memset(audioClips, 0, audioClipCount * sizeof(ScriptAudioClip));
 
     // TODO: find out what is 4
@@ -503,7 +503,6 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
         audioClipTypes[i].volume_reduction_while_speech_playing = 10;
     }
     audioClipTypes[3].reservedChannels = 0;
-
 
     audioClipCount = 0;
 
@@ -519,7 +518,10 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
     if (game_lib)
         BuildAudioClipArray(game, *game_lib);
 
-    audioClips = (ScriptAudioClip*)realloc(audioClips, audioClipCount * sizeof(ScriptAudioClip));
+    ScriptAudioClip *real_clips = new ScriptAudioClip[audioClipCount];
+    memcpy(real_clips, audioClips, audioClipCount);
+    delete[] audioClips;
+    audioClips = real_clips;
     game.scoreClipID = -1;
 }
 

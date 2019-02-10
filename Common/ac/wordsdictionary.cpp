@@ -23,27 +23,40 @@
 
 using AGS::Common::Stream;
 
+WordsDictionary::WordsDictionary()
+    : num_words(0)
+    , word(NULL)
+    , wordnum(NULL)
+{
+}
+
+WordsDictionary::~WordsDictionary()
+{
+    free_memory();
+}
+
 void WordsDictionary::allocate_memory(int wordCount)
 {
     num_words = wordCount;
     if (num_words > 0)
     {
-        word = (char**)malloc(wordCount * sizeof(char*));
-        word[0] = (char*)malloc(wordCount * MAX_PARSER_WORD_LENGTH);
-        wordnum = (short*)malloc(wordCount * sizeof(short));
+        word = new char*[wordCount];
+        word[0] = new char[wordCount * MAX_PARSER_WORD_LENGTH];
+        wordnum = new short[wordCount];
         for (int i = 1; i < wordCount; i++)
         {
             word[i] = word[0] + MAX_PARSER_WORD_LENGTH * i;
         }
     }
 }
+
 void WordsDictionary::free_memory()
 {
     if (num_words > 0)
     {
-        free(word[0]);
-        free(word);
-        free(wordnum);
+        delete [] word[0];
+        delete [] word;
+        delete [] wordnum;
         word = NULL;
         wordnum = NULL;
         num_words = 0;

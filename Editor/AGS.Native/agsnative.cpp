@@ -1541,23 +1541,10 @@ void free_script_modules() {
 void free_old_game_data()
 {
   int bb;
-  for (bb=0;bb<MAXGLOBALMES;bb++) {
-    if (thisgame.messages[bb] != NULL)
-      free(thisgame.messages[bb]);
-  }
   for (bb = 0; bb < thisgame.numdialog; bb++) 
   {
 	  if (dialog[bb].optionscripts != NULL)
 		  free(dialog[bb].optionscripts);
-  }
-  thisgame.charProps.clear();
-  if (thisgame.intrChar != NULL)
-  {
-    for (bb = 0; bb < thisgame.numcharacters; bb++)
-      delete thisgame.intrChar[bb];
-    
-    free(thisgame.intrChar);
-    thisgame.intrChar = NULL;
   }
   for (bb = 0; bb < numNewViews; bb++)
   {
@@ -1567,14 +1554,13 @@ void free_old_game_data()
     }
     newViews[bb].Dispose();
   }
-  thisgame.viewNames.clear();
   free(newViews);
   guis.clear();
-  free(thisgame.chars);
-  thisgame.dict->free_memory();
-  free(thisgame.dict);
   free(dialog);
   free_script_modules();
+
+  // free game struct last because it contains object counts
+  thisgame.Free();
 }
 
 // remap the scene, from its current palette oldpale to palette

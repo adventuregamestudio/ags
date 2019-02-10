@@ -72,6 +72,7 @@ struct GameSetupStructBase {
 
     GameSetupStructBase();
     virtual ~GameSetupStructBase();
+    void Free();
     void SetDefaultResolution(GameResolutionType resolution_type);
     void SetCustomResolution(Size game_res);
     void ReadFromFile(Common::Stream *in);

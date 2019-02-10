@@ -32,7 +32,26 @@ GameSetupStructBase::GameSetupStructBase()
 
 GameSetupStructBase::~GameSetupStructBase()
 {
-    delete [] load_messages;
+    Free();
+}
+
+void GameSetupStructBase::Free()
+{
+    for (int i = 0; i < MAXGLOBALMES; ++i)
+    {
+        delete[] messages[i];
+        messages[i] = NULL;
+    }
+    delete[] load_messages;
+    load_messages = NULL;
+    delete dict;
+    dict = NULL;
+    delete globalscript;
+    globalscript = NULL;
+    delete compiled_script;
+    compiled_script = NULL;
+    delete[] chars;
+    chars = NULL;
 }
 
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType resolution_type)

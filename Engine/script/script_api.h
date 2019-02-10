@@ -110,95 +110,102 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 
 //-----------------------------------------------------------------------------
 // Calls to static functions
+//
+// IMPORTANT: please note following: historically AGS compiler did not have
+// proper "void" type and allowed to store the return value of "void" API
+// functions as an integer (although that value did not have any practical
+// meaning). For backwards compatibility we actually return integer value
+// of '0' in all the VOID script API functions!
+//
 
 #define API_SCALL_VOID(FUNCTION) \
     FUNCTION(); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PBOOL(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 1) \
     FUNCTION(params[0].GetAsBool()); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 1) \
     FUNCTION(params[0].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT2(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     FUNCTION(params[0].IValue, params[1].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT3(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 3) \
     FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT4(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 4) \
     FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT5(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 5) \
     FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT6(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 6) \
     FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue, params[5].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     FUNCTION(params[0].IValue, (P1CLASS*)params[1].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT_POBJ2(FUNCTION, P1CLASS, P2CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 3) \
     FUNCTION(params[0].IValue, (P1CLASS*)params[1].Ptr, (P2CLASS*)params[2].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT2_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 3) \
     FUNCTION(params[0].IValue, params[1].IValue, (P1CLASS*)params[2].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT3_POBJ_PINT(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 5) \
     FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, (P1CLASS*)params[3].Ptr, params[4].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PINT4_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 5) \
     FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, (P1CLASS*)params[4].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_PFLOAT2(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     FUNCTION(params[0].FValue, params[1].FValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 1) \
     FUNCTION((P1CLASS*)params[0].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_POBJ_PINT(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     FUNCTION((P1CLASS*)params[0].Ptr, params[1].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_POBJ_PINT2(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 3) \
     FUNCTION((P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_VOID_POBJ2(FUNCTION, P1CLASS, P2CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     FUNCTION((P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_SCALL_INT(FUNCTION) \
     return RuntimeScriptValue().SetInt32(FUNCTION())
@@ -340,37 +347,37 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define API_OBJCALL_VOID(CLASS, METHOD) \
     ASSERT_SELF(METHOD) \
     METHOD((CLASS*)self); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     METHOD((CLASS*)self, params[0].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT2(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT3(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 3); \
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT4(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 4); \
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT5(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 5); \
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT6(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 6); \
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue, params[5].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PFLOAT(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
@@ -385,47 +392,47 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define API_OBJCALL_VOID_PBOOL(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     METHOD((CLASS*)self, params[0].GetAsBool()); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT_PBOOL(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     METHOD((CLASS*)self, params[0].IValue, params[1].GetAsBool()); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT_POBJ(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     METHOD((CLASS*)self, params[0].IValue, (P1CLASS*)params[1].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT3_POBJ(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 4); \
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue, (P1CLASS*)params[3].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_PINT5_POBJ(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 6); \
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue, (P1CLASS*)params[5].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_POBJ(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_POBJ_PINT(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_POBJ_PINT2(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 3); \
     METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_VOID_POBJ2(CLASS, METHOD, P1CLASS, P2CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr); \
-    return RuntimeScriptValue()
+    return RuntimeScriptValue((int32_t)0)
 
 #define API_OBJCALL_INT(CLASS, METHOD) \
     ASSERT_SELF(METHOD) \

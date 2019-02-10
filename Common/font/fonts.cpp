@@ -85,7 +85,7 @@ void shutdown_font_renderer()
 
 void adjust_y_coordinate_for_text(int* ypos, size_t fontnum)
 {
-  if (fontnum >= fonts.size())
+  if (fontnum >= fonts.size() || !fonts[fontnum].Renderer)
     return;
   fonts[fontnum].Renderer->AdjustYCoordinateForFont(ypos, fontnum);
 }
@@ -107,28 +107,28 @@ IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* ren
 
 bool font_supports_extended_characters(size_t fontNumber)
 {
-  if (fontNumber >= fonts.size())
+  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
     return false;
   return fonts[fontNumber].Renderer->SupportsExtendedCharacters(fontNumber);
 }
 
 void ensure_text_valid_for_font(char *text, size_t fontnum)
 {
-  if (fontnum >= fonts.size())
+  if (fontnum >= fonts.size() || !fonts[fontnum].Renderer)
     return;
   fonts[fontnum].Renderer->EnsureTextValidForFont(text, fontnum);
 }
 
 int wgettextwidth(const char *texx, size_t fontNumber)
 {
-  if (fontNumber >= fonts.size())
+  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
     return 0;
   return fonts[fontNumber].Renderer->GetTextWidth(texx, fontNumber);
 }
 
 int wgettextheight(const char *text, size_t fontNumber)
 {
-  if (fontNumber >= fonts.size())
+  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
     return 0;
   return fonts[fontNumber].Renderer->GetTextHeight(text, fontNumber);
 }
@@ -149,7 +149,7 @@ void set_font_outline(size_t font_number, int outline_type)
 
 int getfontheight(size_t fontNumber)
 {
-  if (fontNumber >= fonts.size())
+  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
     return 0;
   // There is no explicit method for getting maximal possible height of any
   // random font renderer at the moment; the implementations of GetTextHeight
@@ -223,6 +223,7 @@ void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t 
 {
   if (fontNumber >= fonts.size())
     return;
+
   char tbuffer[2000];
   va_list ap;
 
@@ -236,6 +237,7 @@ void wfreefont(size_t fontNumber)
 {
   if (fontNumber >= fonts.size())
     return;
+
   if (fonts[fontNumber].Renderer != NULL)
     fonts[fontNumber].Renderer->FreeMemory(fontNumber);
 

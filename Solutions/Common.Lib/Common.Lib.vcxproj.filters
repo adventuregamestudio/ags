@@ -269,6 +269,9 @@
     <ClCompile Include="..\..\Common\game\roomstruct.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aarot.c">
+      <Filter>Library Sources\aastr</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">

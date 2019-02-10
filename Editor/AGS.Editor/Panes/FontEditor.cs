@@ -96,7 +96,16 @@ namespace AGS.Editor
                 {
                     Factory.AGSEditor.DeleteFileOnDiskAndSourceControl(newTTFName);
                 }
-                Factory.NativeProxy.ImportSCIFont(fileName, _item.ID);
+
+                if (fileName.ToLower().EndsWith(".wfn"))
+                {
+                    File.Copy(fileName, newWFNName, true);
+                }
+                else
+                {
+                    Factory.NativeProxy.ImportSCIFont(fileName, _item.ID);
+                }
+
                 _item.PointSize = 0;
                 _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
             }
@@ -145,7 +154,7 @@ namespace AGS.Editor
             {
                 if (Factory.GUIController.ShowQuestion("Importing a font will replace the current font. Are you sure you want to do this?") == DialogResult.Yes)
                 {
-                    string fileName = Factory.GUIController.ShowOpenFileDialog("Select font to import...", "All supported fonts (*.ttf; font.*)|*.ttf;font.*|TrueType font files (*.ttf)|*.ttf|SCI font files (FONT.*)|font.*");
+                    string fileName = Factory.GUIController.ShowOpenFileDialog("Select font to import...", Constants.FONT_FILE_FILTER);
                     if (fileName != null)
                     {
                         ImportFont(fileName);

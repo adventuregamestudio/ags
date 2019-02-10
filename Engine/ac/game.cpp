@@ -1960,11 +1960,9 @@ void display_switch_in_resume()
         }
     }
 
-    // This can cause a segfault on Linux
-#if !defined (LINUX_VERSION)
-    if (gfxDriver->UsesMemoryBackBuffer())  // make sure all borders are cleared
+    // clear the screen if necessary
+    if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, game.size.Height - 1, NULL);
-#endif
 
     platform->ResumeApplication();
 }

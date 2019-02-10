@@ -47,10 +47,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [CustomMessages]
 ComponentMain=Main files
 ComponentEngines=Engines
-ComponentEngineDefault=Engine (default)
-ComponentEngineNoMP3=Engine (no MP3 support)
+ComponentEngineDefault=Runtime engine for MS Windows
 ComponentLinuxBuild=Linux build component
-ComponentDemoGame=Demo Game
+; ComponentDemoGame=Demo Game
 InstallOptions=Install options
 InstallVCRedist=Install Visual C++ Redistributable 2008 SP1
 CreateDesktopIcon=Create a &desktop icon
@@ -61,9 +60,8 @@ AssociateFiles=Associate AGF files with the editor
 Name: "main"; Description: "{cm:ComponentMain}"; Types: full compact custom; Flags: fixed
 Name: "engine"; Description: "{cm:ComponentEngines}"; Types: full compact custom; Flags: fixed
 Name: "engine\default"; Description: "{cm:ComponentEngineDefault}"; Types: full compact; Flags: exclusive
-Name: "engine\nomp3"; Description: "{cm:ComponentEngineNoMP3}"; Flags: exclusive
 Name: "linux"; Description: "{cm:ComponentLinuxBuild}"; Types: full custom
-Name: "demogame"; Description: "{cm:ComponentDemoGame}"; Types: full custom
+; Name: "demogame"; Description: "{cm:ComponentDemoGame}"; Types: full custom
 
 
 [Tasks]
@@ -79,21 +77,20 @@ Name: "{app}\Templates";
 
 [Files]
 Source: "Source\engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
-Source: "Source\engine-no-mp3\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\nomp3
 Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Linux\*"; DestDir: "{app}\Linux"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: linux
 Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion; Components: main
 Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
-Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: demogame
+; Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: demogame
 Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Tasks: vcredist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 
 [Icons]
 Name: "{group}\AGS Editor"; Filename: "{app}\AGSEditor.exe"; Comment: "What are you waiting for? Fire it up and start making the best game ever!";
-Name: "{group}\Demo Game"; Filename: "{code:GetDemoGameDir}\game.agf"; Comment: "Here's one we made earlier! If you want a sneak peak at a working game, check it out."; Components: demogame
+; Name: "{group}\Demo Game"; Filename: "{code:GetDemoGameDir}\game.agf"; Comment: "Here's one we made earlier! If you want a sneak peak at a working game, check it out."; Components: demogame
 Name: "{group}\AGS Manual"; Filename: "{app}\ags-help.chm"; Comment: "Online help, tutorials and reference. THIS IS YOUR BIBLE NOW!"
 Name: "{group}\{cm:UninstallProgram,Adventure Game Studio}"; Filename: "{uninstallexe}"; Comment: ":~(  Ah well, nothing lasts forever. Turn off the light on your way out."
 Name: "{group}\Visit the AGS Website"; Filename: "{app}\Docs\AGS Website.url"; Comment: "See the latest AGS-related news. Find games to play."

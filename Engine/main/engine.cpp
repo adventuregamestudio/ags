@@ -229,14 +229,15 @@ void engine_force_window()
     }
 }
 
-void init_game_file_name_from_cmdline()
+String init_game_file_name_from_cmdline()
 {
-    game_file_name.Empty();
+    String filename;
 #if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(MAC_VERSION)
-    game_file_name = psp_game_file_name;
+    filename = psp_game_file_name;
 #else
-    game_file_name = GetPathFromCmdArg(datafile_argv);
+    filename = GetPathFromCmdArg(datafile_argv);
 #endif
+    return filename;
 }
 
 String find_game_data_in_directory(const String &path)
@@ -288,18 +289,20 @@ String find_game_data_in_directory(const String &path)
     return first_nonstd_fn;
 }
 
-bool search_for_game_data_file()
+bool search_for_game_data_file(String &filename)
 {
     Debug::Printf("Looking for the game data file");
+    String search_path;
     // 1. From command line argument
     if (datafile_argv > 0)
     {
-        // set game_file_name from cmd arg (do any convertions if needed)
-        init_game_file_name_from_cmdline();
-        if (!Path::IsFile(game_file_name))
+        // set from cmd arg (do any convertions if needed)
+        filename = init_game_file_name_from_cmdline();
+        if (!filename.IsEmpty() && !Path::IsFile(filename))
         {
             // if it is not a file, assume it is a directory and seek for data file
-            game_file_name = find_game_data_in_directory(game_file_name);
+            search_path = filename;
+            filename = find_game_data_in_directory(search_path);
         }
     }
     // 2. From setup
@@ -308,64 +311,63 @@ bool search_for_game_data_file()
     {
         if (!usetup.data_files_dir.IsEmpty() && is_relative_filename(usetup.main_data_filename))
         {
-            game_file_name = usetup.data_files_dir;
-            if (game_file_name.GetLast() != '/' && game_file_name.GetLast() != '\\')
-                game_file_name.AppendChar('/');
-            game_file_name.Append(usetup.main_data_filename);
+            filename = usetup.data_files_dir;
+            if (filename.GetLast() != '/' && filename.GetLast() != '\\')
+                filename.AppendChar('/');
+            filename.Append(usetup.main_data_filename);
         }
         else
         {
-            game_file_name = usetup.main_data_filename;
+            filename = usetup.main_data_filename;
         }
     }
     // 2.2. Search in the provided data dir
     else if (!usetup.data_files_dir.IsEmpty())
     {
-        game_file_name = find_game_data_in_directory(usetup.data_files_dir);
+        search_path = usetup.data_files_dir;
+        filename = find_game_data_in_directory(search_path);
     }
     // 3. Look in known locations
     else
     {
         // 3.1. Look for attachment in the running executable
         //
-        // set game_file_name from cmd arg (do any conversions if needed)
+        // set filename from cmd arg (do any conversions if needed)
         // this will use argument zero, the executable's name
-        init_game_file_name_from_cmdline();
-        if (game_file_name.IsEmpty() || !Common::AssetManager::IsDataFile(game_file_name))
+        filename = init_game_file_name_from_cmdline();
+        if (filename.IsEmpty() || !Common::AssetManager::IsDataFile(filename))
         {
             // 3.2 Look in current directory
-            String cur_dir = Directory::GetCurrentDirectory();
-            game_file_name = find_game_data_in_directory(cur_dir);
-            if (game_file_name.IsEmpty())
+            search_path = Directory::GetCurrentDirectory();
+            filename = find_game_data_in_directory(search_path);
+            if (filename.IsEmpty())
             {
                 // 3.3 Look in executable's directory (if it's different from current dir)
-                if (Path::ComparePaths(appDirectory, cur_dir))
+                if (Path::ComparePaths(appDirectory, search_path))
                 {
-                    game_file_name = find_game_data_in_directory(appDirectory);
+                    search_path = appDirectory;
+                    filename = find_game_data_in_directory(search_path);
                 }
             }
         }
     }
 
     // Finally, store game file's absolute path, or report error
-    if (game_file_name.IsEmpty())
+    if (filename.IsEmpty())
     {
-        Debug::Printf(kDbgMsg_Error, "Game data file could not be found");
+        Debug::Printf(kDbgMsg_Error, "Game data file could not be found. Search path used: '%s'", search_path.GetCStr());
         return false;
     }
-    else
-    {
-        game_file_name = Path::MakeAbsolutePath(game_file_name);
-        Debug::Printf(kDbgMsg_Init, "Located game data file: %s", game_file_name.GetCStr());
-        return true;
-    }
+    filename = Path::MakeAbsolutePath(filename);
+    Debug::Printf(kDbgMsg_Init, "Located game data file: %s", filename.GetCStr());
+    return true;
 }
 
 bool engine_init_game_data()
 {
     // Search for an available game package in the known locations
     AssetError err;
-    if (search_for_game_data_file())
+    if (search_for_game_data_file(game_file_name))
         err = AssetManager::SetDataFile(game_file_name);
     else
         err = kAssetErrNoLibFile;
@@ -380,7 +382,7 @@ bool engine_init_game_data()
         else
         { // file not found, or another problem
             if (game_file_name.IsEmpty())
-                emsg = "ERROR: Unable to find game data files.";
+                emsg = "ERROR: Unable to find game data files. The necessary files are either missing or are of unsupported format.";
             else
                 emsg = String::FromFormat("ERROR: Unable to find or open '%s'.", game_file_name.GetCStr());
         }
@@ -563,13 +565,15 @@ void AlMidiToChars(int midi_id, AlIDStr &id_str)
         AlIDToChars(midi_id, id_str);
 }
 
-bool try_install_sound(int digi_id, int midi_id)
+bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = NULL)
 {
     if (install_sound(digi_id, midi_id, NULL) == 0)
         return true;
     // Allegro does not let you try digital and MIDI drivers separately,
     // and does not indicate which driver failed by return value.
     // Therefore we try to guess.
+    if (p_err_msg)
+        *p_err_msg = get_allegro_error();
     if (midi_id != MIDI_NONE)
     {
         Debug::Printf(kDbgMsg_Error, "Failed to init one of the drivers; Error: '%s'.\nWill try to start without MIDI", get_allegro_error());
@@ -589,11 +593,9 @@ bool try_install_sound(int digi_id, int midi_id)
 void engine_init_sound()
 {
     if (opts.mod_player)
-        reserve_voices(16, -1);
-#if ALLEGRO_DATE > 19991010
-    // maybe this line will solve the sound volume?
+        reserve_voices(NUM_DIGI_VOICES, -1);
+    // maybe this line will solve the sound volume? [??? wth is this]
     set_volume_per_voice(1);
-#endif
 
     Debug::Printf("Initialize sound drivers");
 
@@ -614,27 +616,30 @@ void engine_init_sound()
     Debug::Printf(kDbgMsg_Init, "Sound settings: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
         digi_id, usetup.digicard, midi_id, usetup.midicard);
 
-    bool sound_res = try_install_sound(usetup.digicard, usetup.midicard);
+    String err_msg;
+    bool sound_res = try_install_sound(usetup.digicard, usetup.midicard, &err_msg);
     if (!sound_res && opts.mod_player)
     {
         Debug::Printf("Resetting to default sound parameters and trying again.");
         reserve_voices(-1, -1); // this resets voice number to defaults
         opts.mod_player = 0;
-        sound_res = try_install_sound(usetup.digicard, usetup.midicard);
+        sound_res = try_install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT);
     }
     if (!sound_res)
     {
-        // If everything failed, disable sound completely
-        Debug::Printf("Resetting to zero digital voices and trying again.");
-        reserve_voices(0,0);
+        Debug::Printf("Everything failed, installing dummy no-sound drivers.");
+        reserve_voices(0, 0);
         install_sound(DIGI_NONE, MIDI_NONE, NULL);
     }
-    if (usetup.digicard != DIGI_NONE && digi_card == DIGI_NONE ||
-        usetup.midicard != MIDI_NONE && midi_card == MIDI_NONE)
+    // Only display a warning if they wanted a sound card
+    const bool digi_failed = usetup.digicard != DIGI_NONE && digi_card == DIGI_NONE;
+    const bool midi_failed = usetup.midicard != MIDI_NONE && midi_card == MIDI_NONE;
+    if (digi_failed || midi_failed)
     {
-        // only flag an error if they wanted a sound card
-        platform->DisplayAlert("\nUnable to initialize your audio hardware.\n"
-            "[Problem: %s]\n", get_allegro_error());
+        platform->DisplayAlert("Warning: cannot enable %s.\nProblem: %s.\n\nYou may supress this message by disabling %s in the game setup.",
+            (digi_failed && midi_failed ? "game audio" : (digi_failed ? "digital audio" : "MIDI audio") ),
+            (err_msg.IsEmpty() ? "No compatible drivers found in the system." : err_msg.GetCStr()),
+            (digi_failed && midi_failed ? "sound" : (digi_failed ? "digital sound" : "MIDI sound") ));
     }
 
     usetup.digicard = digi_card;

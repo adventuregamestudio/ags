@@ -173,7 +173,6 @@ void csavecompressed(Stream *out, const unsigned char * tobesaved, const color p
       out->WriteInt8(pala[ww].g);
       out->WriteInt8(pala[ww].b);
   }
-
   free(ress);
 }
 

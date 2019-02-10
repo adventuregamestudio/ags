@@ -4,6 +4,7 @@ VERSION 3.5.0 - Alpha
 
 Common features:
  - Support for large files: compiled game, sprite set, room files now may exceed 2 GB.
+ - Allow room size to be smaller than the game's resolution.
  - Removed fonts count limit.
  - Raised imported sprites count limit to 90000 and removed total sprite count limit
    (this means you may have around 2 billions of dynamic sprites).
@@ -19,6 +20,7 @@ Editor:
  - New revamped sprite import window.
  - Sprites that were created using tiled import can now be properly reimported from source.
  - Added context menu command to open sprite's source file location.
+ - Using Magick.NET library as a GIF loader. This should fix faulty GIF imports.
  - New sprite export dialog that lets you configure some export preferences, including
    remapping sprite source paths.
  - New navigation bar in the room editor, which allows to select any room object
@@ -26,30 +28,23 @@ Editor:
    These settings are saved in the special roomXXX.crm.user files.
  - Improved how Room zoom slider works, now supports downscale.
  - Added "Export mask to file" tool button to the Room Editor.
- - Allow room size to be smaller than the game's resolution.
  - Removed Locked property from the Room Object, objects are now locked by the navbar.
  - Split GUI's Visibility property into PopupStyle and Visible properties.
  - Added Clickable, Enabled and Visible properties to GUI Controls.
+ - "Import over font" command now supports importing WFN fonts too.
  - Display audio clip length on the preview pane without starting playback.
  - Added "Always"choice to "Popup message on compile" preference. Successful compilation
    popup will only be displayed if "Always" choice is selected.
  - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
  - Don't display missing games in the "recent games" list.
  - Build autocomplete table a little faster.
- - Don't modify filesystem permissions in Compiled directory when compiling the game.
-   Editor no longer requires non-standard "takeown.exe" utility.
  - Corrected .NET version query for the anonymous statistics report.
  - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
- - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key controls.
- - Fixed GUI or Room editors sometimes allowed to scroll beyond necessary limits.
  - Fixed MIDI audio preview was resetting all instruments to default (piano) after pausing
    and resuming playback.
  - Fixed MIDI audio preview had wrong control states set when pausing a playback.
- - Fixed rooms not being rebuilt when running game just created from a template.
- - Fixed translations were not available for the test run if game was not fully rebuilt yet.
- - Fixed Windows Explorer was sometimes locking the game files during compilation.
 
 Script API:
  - Introduced new managed struct Point describing (x,y) coordinates.
@@ -76,31 +71,77 @@ Engine:
  - Implemented new savegame format. Much cleaner than the old one, and easier to
    extend, it should also reduce the size of the save files.
    The engine is still capable of loading older saves, temporarily.
- - Prevent game from crashing if there was an attempt to draw text with a non-existing font.
- - Removed restriction preventing GUIs to be larger than the game's screen.
+ - Implemented support for sprite batch transformations.
+ - Implemented custom room viewport and camera.
  - Replaced number of fatal errors reported for incorrectly called script functions with
    a warning to the warnings.log instead. This is done either when arguments may be fixed
    automatically, or script command simply cannot be executed under current circumstances.
  - Expanded some of the error messages providing more information to end-user and developers.
  - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
- - Made engine fallback to defaults if config contains invalid game scaling setting.
- - Fixed some compilers could instigate a crash in the on_event callback with no loaded room.
- - Fixed old-style string functions like StrCopy could crash the game if user managed object's
-   member is passed as an argument into them.
- - Fixed a new crash issue with the legacy InventoryScreen() command.
- - Fixed crash in the Software renderer which was occuring if it failed anytime after setting
-   display mode but prior to initializing scaling filter.
- - Fixed graphic artifacts looking like thin vertical lines around sprites when running OpenGL
-   renderer (aka "texel leaking").
+
+Windows:
+ - Windows version of AGS is now built with MSVS 2015 and higher.
+
+
+VERSION 3.4.3, February 2019
+
+Common features:
+ - Removed restriction preventing GUIs to be larger than the game's screen.
+
+Editor:
+ - Added missing audio options to Default Setup.
+ - Fixed GUI and Room editors sometimes having larger scrollable area than necessary.
+ - Fixed editable area was not resized when GUI size changed.
+ - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key
+   controls with no means to restore them.
+ - Don't modify filesystem permissions in Compiled directory when compiling the game.
+   Editor no longer requires non-standard "takeown.exe" utility.
+ - Fixed Windows Explorer was sometimes locking the game files during compilation.
+ - Fixed rooms not being rebuilt when running game just created from a template.
+ - Fixed translations were not updated or available at all for the test run unless the
+   game was fully rebuilt.
+
+Engine:
+ - Allowed engine to return integer of "0" value from script functions that are "void"
+   by nature, for compatibility reasons. This may fix running particular old games.
+ - Fixed const-sized char[] arrays in managed structs did not work correctly and could
+   even cause engine to crash.
+ - Fixed some compilers could instigate a crash in the on_event callback if it was called
+   before the first room is loaded.
+ - Prevent game from crashing if there was an attempt to use a non-existant font index.
+ - Fixed crash when calling DisplayTopBar with a title longer than 200 characters.
+ - Fixed DisplayTopBar() was displayed on screen for the time calculated from the length
+   of it's title rather than it's message text (regression).
+ - Fixed built-in inventory screen could crash the game again (regression).
+ - Made engine fallback to defaults if config contains invalid graphic scaling setting.
+ - Fixed crash in the Software renderer which was occuring if it failed anytime after
+   setting display mode but prior to initializing scaling filter.
+ - Fixed graphic artifacts looking like thin vertical lines around sprites when running
+   OpenGL renderer (aka "texel leaking").
+ - Fixed OpenGL not displaying tinted sprites at all if tinting shader does not work
+   (now will display sprites without tint).
  - Fixed 8-bit sprites could have broken colours if game is run using Direct3D or OpenGL.
  - Fixed broken colours during fade-in and fade-out in 16-bit games.
- - Fixed 'warnings.log' could never be created (was broken in earlier versions).
+ - Fixed possible crash occuring when switching in and out the game window while game is
+   being shut down.
+ - Improved a warning message displayed when sound driver was not initialized, and added
+   a hint for players on how to supress it.
+ - Fixed double error message displayed if the game has an unsupported data format.
 
 Linux:
  - Fixes Linux game launch script (fixes issues with itch.io client).
 
-Windows:
- - Windows version of AGS is now built with MSVS 2015 and higher.
+Android:
+ - Long press on "Back" button now calls in-game menu (was displaying exit confirmation).
+   This change was made to counter removal of "Menu" button on many modern devices.
+ - Fixed long press on "Back" and "Menu" buttons not handled correctly on some devices.
+
+WinSetup:
+ - Always provide at least two standard fullscreen modes for selection, even if graphics
+   driver failed to return a list of supported modes.
+
+
+NOTE: VERSION 3.4.2 was cancelled and never released: the WIP build was renamed to 3.5.0.
 
 
 VERSION 3.4.1 - Patch 4, September 2018

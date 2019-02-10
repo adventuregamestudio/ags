@@ -256,6 +256,7 @@
     <Compile Include="Enums\DialogOptionsNumbering.cs" />
     <Compile Include="Enums\GameScaling.cs" />
     <Compile Include="Enums\RenderAtScreenResolution.cs" />
+    <Compile Include="Enums\RuntimeAudioDriver.cs" />
     <Compile Include="Enums\ScriptAPIVersion.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
     <Compile Include="HelperTypes\BindingListWithRemoving.cs" />

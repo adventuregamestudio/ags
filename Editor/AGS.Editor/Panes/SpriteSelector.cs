@@ -829,9 +829,16 @@ namespace AGS.Editor
 
                     SpriteTools.ReplaceSprite(spr, spr.SourceFile, spr.Frame, spr.AlphaChannel, spr.RemapToGamePalette, spr.RemapToRoomPalette, spr.TransparentColour, spritesheet);
                 }
-                catch (InvalidOperationException ex)
+                catch (Exception ex)
                 {
-                    errors.Add(ex.Message);
+                    if (ex is InvalidOperationException || ex is Types.InvalidDataException)
+                    {
+                        errors.Add(ex.Message);
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
             }
 

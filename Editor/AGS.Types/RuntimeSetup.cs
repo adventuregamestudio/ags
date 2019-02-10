@@ -59,6 +59,9 @@ namespace AGS.Types
             AAScaledSprites = false;
             DowngradeTo16bit = false;
             RenderAtScreenResolution = false;
+            DigitalSound = RuntimeAudioDriver.Default;
+            MidiSound = RuntimeAudioDriver.Default;
+            UseVoicePack = true;
             Translation = "";
             AutoLockMouse = false;
             MouseSpeed = 1.0f;
@@ -195,6 +198,36 @@ namespace AGS.Types
         [DefaultValue(false)]
         [Category("Graphics")]
         public bool RenderAtScreenResolution
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Digital sound")]
+        [Description("The suggested digital sound option. Normally you keep this at Default, but if your game does not use digital audio you may disable it to tell the engine to not initialize audio system at the runtime.")]
+        [DefaultValue(RuntimeAudioDriver.Default)]
+        [Category("Audio")]
+        public RuntimeAudioDriver DigitalSound
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("MIDI sound")]
+        [Description("The suggested MIDI sound option. Normally you keep this at Default, but if your game does not use MIDI clips you may disable it to tell the engine to not initialize audio system at the runtime.")]
+        [DefaultValue(RuntimeAudioDriver.Default)]
+        [Category("Audio")]
+        public RuntimeAudioDriver MidiSound
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Use voice pack if available")]
+        [Description("Enables the use of digital voice-over pack. Will be ignored if your game does not have one.")]
+        [DefaultValue(true)]
+        [Category("Audio")]
+        public bool UseVoicePack
         {
             get;
             set;

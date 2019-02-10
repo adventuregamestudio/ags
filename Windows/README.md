@@ -22,7 +22,7 @@
   * irrKlang 1.6 (32-bit) assembly pack for .NET 4.5 ([Download](https://www.ambiera.com/irrklang/downloads.html)).
 * To make manual and/or Windows installer:
   * Python 2.7 with PyWin32 extension ([Download](http://www.activestate.com/activepython/downloads))
-  * InnoSetup 5.5 ([Download](http://www.jrsoftware.org/isdl.php))
+  * InnoSetup 5.5 or higher ([Download](http://www.jrsoftware.org/isdl.php))
 
 
 **NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the following archive:

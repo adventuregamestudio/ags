@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using AGS.Types;
@@ -13,13 +14,25 @@ namespace AGS.Editor.Utils
 {
     public class SpriteTools
     {
-        public static IEnumerable<Bitmap> LoadSpritesFromFile(string fileName)
+        public static IEnumerable<Bitmap> LoadSpritesFromFile(string fileName, int start = 0)
         {
             // We have to use this stream code because using "new Bitmap(filename)"
             // keeps the file open until the Bitmap is disposed
             FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-            Bitmap loadedBmp = (Bitmap)Bitmap.FromStream(fileStream);
-            fileStream.Close();
+            Bitmap loadedBmp;
+
+            try
+            {
+                loadedBmp = (Bitmap)Bitmap.FromStream(fileStream);
+            }
+            catch
+            {
+                throw new Types.InvalidDataException($"Unable to load image data from '{fileName}'");
+            }
+            finally
+            {
+                fileStream.Close();
+            }
 
             // Unfortunately the Bitmap.Clone method will crash later due to
             // a .NET bug when it's loaded from a stream. Therefore we need
@@ -35,16 +48,15 @@ namespace AGS.Editor.Utils
                 // us an issue, so use the custom GifDecoder instead when
                 // this happens.
                 loadedBmp.Dispose();
-                GifDecoder decoder = new GifDecoder();
 
-                if (decoder.Read(fileName) != GifDecoder.STATUS_OK)
+                using (GifDecoder decoder = new GifDecoder(fileName))
                 {
-                    throw new AGS.Types.InvalidDataException("Unable to load GIF");
-                }
-
-                for (int i = 0; i < decoder.GetFrameCount(); i ++)
-                {
-                    yield return decoder.GetFrame(i);
+                    for (int i = start; i < decoder.GetFrameCount(); i++)
+                    {
+                        loadedBmp = (Bitmap)decoder.GetFrame(i).Clone();
+                        yield return loadedBmp;
+                        loadedBmp.Dispose();
+                    }
                 }
             }
             else
@@ -60,17 +72,7 @@ namespace AGS.Editor.Utils
 
         public static Bitmap LoadFrameImageFromFile(string fileName, int frame)
         {
-            GifDecoder decoder = new GifDecoder();
-
-            if (decoder.Read(fileName) != GifDecoder.STATUS_OK)
-            {
-                // in the interest of speed, if decode fails assume 1 frame
-                return LoadFirstImageFromFile(fileName);
-            }
-
-            // this is a GIF file so just return the frame
-            int at = Math.Min(Math.Abs(frame), decoder.GetFrameCount() - 1);
-            return decoder.GetFrame(at);
+            return LoadSpritesFromFile(fileName, frame).FirstOrDefault();
         }
 
         public static int GetFrameCountEstimateFromFile(string fileName)
@@ -80,16 +82,21 @@ namespace AGS.Editor.Utils
                 return 0;
             }
 
-            GifDecoder decoder = new GifDecoder();
+            int count;
 
-            if (decoder.Read(fileName) != GifDecoder.STATUS_OK)
+            try
             {
-                // in the interest of speed, if decode fails assume 1 frame
-                return 1;
+                using (GifDecoder decoder = new GifDecoder(fileName))
+                {
+                    count = decoder.GetFrameCount();
+                }
+            }
+            catch (Types.InvalidDataException)
+            {
+                count = 1;
             }
 
-            // this is a GIF file so just return the frame count
-            return decoder.GetFrameCount();
+            return count;
         }
 
         public static string GetSpriteUsageReport(int spriteNumber, Game game)
@@ -432,6 +439,74 @@ namespace AGS.Editor.Utils
         {
             SpriteFolder folder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
             ExportSprites(folder, path, recurse, skipValidSourcePath, updateSourcePath);
+        }
+
+        public static Bitmap GetPlaceHolder(int width = 12, int height = 7)
+        {
+            if (width <= 0 || height <= 0)
+            {
+                throw new ArgumentOutOfRangeException("Cannot generate a zero-sized bitmap");
+            }
+
+            // fine art as a byte array
+            byte[][] cup =
+            {
+                new byte[12] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+                new byte[12] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00 },
+                new byte[12] { 0x00, 0x01, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x01, 0x01, 0x01, 0x00 },
+                new byte[12] { 0x00, 0x01, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x01, 0x00, 0x01, 0x00 },
+                new byte[12] { 0x00, 0x01, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x01, 0x01, 0x01, 0x00 },
+                new byte[12] { 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00 },
+                new byte[12] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+            };
+
+            Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
+            BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, bitmap.PixelFormat);
+            long ptr = bitmapData.Scan0.ToInt64();
+            int y = 0;
+
+            for (int row = 0; row < height; row++)
+            {
+                int x = 0;
+                int span = cup[y].Length;
+
+                while (span == cup[y].Length)
+                {
+                    if (x + span >= width)
+                    {
+                        // align with the right edge of the bitmap
+                        span = width - x;
+                    }
+
+                    Marshal.Copy(cup[y], 0, new IntPtr(ptr), span);
+                    x += span;
+                    ptr += span;
+                }
+
+                // align with bitmap stride
+                ptr += bitmapData.Stride - x;
+
+                // next image row
+                if (y == cup.Length - 1)
+                {
+                    y = 0;
+                }
+                else
+                {
+                    y++;
+                }
+            }
+
+            bitmap.UnlockBits(bitmapData);
+
+            // set colours
+            ColorPalette palette = bitmap.Palette;
+            palette.Entries[0] = Color.FromArgb(0, 0, 0);
+            palette.Entries[1] = Color.FromArgb(85, 85, 255);
+            palette.Entries[2] = Color.FromArgb(0, 0, 170);
+            bitmap.Palette = palette;
+
+            return bitmap;
         }
     }
 }

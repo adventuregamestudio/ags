@@ -173,6 +173,10 @@ for arg; do
     fi
 done
 
+## Old versions of Mesa can hang when using DRI3
+## https://bugs.freedesktop.org/show_bug.cgi?id=106404
+export LIBGL_DRI3_DISABLE=true
+
 if [ ""$(uname -m)"" = ""x86_64"" ]; then" + GetSymLinkScriptForEachPlugin(true) +
 @"
 else" + GetSymLinkScriptForEachPlugin(false) +

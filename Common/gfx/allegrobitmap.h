@@ -20,7 +20,6 @@
 //=============================================================================
 #ifndef __AGS_CN_GFX__ALLEGROBITMAP_H
 #define __AGS_CN_GFX__ALLEGROBITMAP_H
-#define ALLEGRO_NO_FIX_ALIASES
 
 #include <allegro.h>
 #include "core/types.h"

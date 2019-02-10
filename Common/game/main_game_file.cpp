@@ -55,7 +55,7 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     case kMGFErr_FormatVersionNotSupported:
         return "Format version not supported.";
     case kMGFErr_CapsNotSupported:
-        return "Required engine caps are not supported.";
+        return "The game requires extended capabilities which aren't supported by the engine.";
     case kMGFErr_InvalidNativeResolution:
         return "Unable to determine native game resolution.";
     case kMGFErr_TooManySprites:
@@ -122,9 +122,10 @@ HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
         return new MainGameFileError(kMGFErr_SignatureFailed);
     // Read data format version and requested engine version
     src.DataVersion = (GameDataVersion)in->ReadInt32();
+    if (src.DataVersion >= kGameVersion_230)
+        src.CompiledWith = StrUtil::ReadString(in.get());
     if (src.DataVersion < kGameVersion_341)
         return new MainGameFileError(kMGFErr_FormatVersionTooOld, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kGameVersion_341, kGameVersion_Current));
-    src.CompiledWith = StrUtil::ReadString(in.get());
     if (src.DataVersion > kGameVersion_Current)
         return new MainGameFileError(kMGFErr_FormatVersionNotSupported,
             String::FromFormat("Game was compiled with %s. Required format version: %d, supported %d - %d", src.CompiledWith.GetCStr(), src.DataVersion, kGameVersion_341, kGameVersion_Current));

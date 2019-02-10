@@ -23,13 +23,7 @@
 #ifndef __WGT4_H
 #define __WGT4_H
 
-#ifdef USE_ALLEGRO3
-#include <allegro3.h>
-#else
-#define ALLEGRO_NO_FIX_ALIASES
 #include "allegro.h"
-#endif
-
 #ifdef WINDOWS_VERSION
 #include "winalleg.h"
 #endif

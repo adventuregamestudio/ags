@@ -171,7 +171,7 @@ void RoomStruct::InitDefaults()
     WalkBehindCount = 0;
     MessageCount    = 0;
 
-    for (size_t i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_HOTSPOTS; ++i)
     {
         Hotspots[i] = RoomHotspot();
         if (i == 0)
@@ -179,13 +179,13 @@ void RoomStruct::InitDefaults()
         else
             Hotspots[i].Name.Format("Hotspot %u", i);
     }
-    for (size_t i = 0; i < MAX_ROOM_OBJECTS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         Objects[i] = RoomObjectInfo();
-    for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)
         Regions[i] = RoomRegion();
-    for (size_t i = 0; i <= MAX_WALK_AREAS; ++i)
+    for (size_t i = 0; i <= (size_t)MAX_WALK_AREAS; ++i)
         WalkAreas[i] = WalkArea();
-    for (size_t i = 0; i < MAX_WALK_BEHINDS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
         WalkBehinds[i] = WalkBehind();
     
     BackgroundBPP = 1;

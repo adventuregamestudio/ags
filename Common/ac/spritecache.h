@@ -36,12 +36,14 @@
 #define __SPRCACHE_H
 
 #include "util/stdtr1compat.h"
-#include <memory>
+#include TR1INCLUDE(memory)
 #include <vector>
 #include "ac/gamestructdefines.h"
+#include "util/error.h"
 
 namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
+typedef AGS::Common::HError HAGSError;
 
 // We can't rely on offsets[slot]==0 because when the engine is running
 // this is changed to reference the Bluecup sprite. Therefore we need
@@ -124,7 +126,7 @@ public:
     void        SetMaxCacheSize(size_t size);
 
     // Loads sprite reference information and inits sprite stream
-    int         InitFile(const char *filename);
+    HAGSError   InitFile(const char *filename);
     // Tells if bitmaps in the file are compressed
     bool        IsFileCompressed() const;
     // Opens file stream
@@ -188,7 +190,7 @@ private:
     // Loads sprite index file
     bool        LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost);
     // Rebuilds sprite index from the main sprite file
-    int         RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers);
+    HAGSError   RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers);
     // Writes compressed sprite to the stream
     void        CompressSprite(Common::Bitmap *sprite, Common::Stream *out);
 

@@ -658,16 +658,16 @@ int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sp
     return 0;
 }
 
-int SpriteCache::InitFile(const char *filnam)
+HError SpriteCache::InitFile(const char *filnam)
 {
     SpriteFileVersion vers;
     char buff[20];
     soff_t spr_initial_offs = 0;
     int spriteFileID = 0;
 
-    _stream.reset(Common::AssetManager::OpenAsset((char *)filnam));
+    _stream.reset(Common::AssetManager::OpenAsset(filnam));
     if (_stream == NULL)
-        return -1;
+        return new Error(String::FromFormat("Failed to open spriteset file '%s'.", filnam));
 
     spr_initial_offs = _stream->GetPosition();
 
@@ -678,7 +678,7 @@ int SpriteCache::InitFile(const char *filnam)
     if (vers < kSprfVersion_Uncompressed || vers > kSprfVersion_Current)
     {
         _stream.reset();
-        return -1;
+        return new Error(String::FromFormat("Unsupported spriteset format (requested %d, supported %d - %d).", vers, kSprfVersion_Uncompressed, kSprfVersion_Current));
     }
 
     // unknown version
@@ -686,7 +686,7 @@ int SpriteCache::InitFile(const char *filnam)
     if (strcmp(buff, spriteFileSig))
     {
         _stream.reset();
-        return -1;
+        return new Error("Uknown spriteset format.");
     }
 
     if (vers == kSprfVersion_Uncompressed)
@@ -723,7 +723,7 @@ int SpriteCache::InitFile(const char *filnam)
     if (LoadSpriteIndexFile(spriteFileID, spr_initial_offs, topmost))
     {
         // Succeeded
-        return 0;
+        return HError::None();
     }
 
     // failed, delete the index file because it's invalid
@@ -733,7 +733,7 @@ int SpriteCache::InitFile(const char *filnam)
     return RebuildSpriteIndex(_stream.get(), topmost, vers);
 }
 
-int SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers)
+HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers)
 {
     // no sprite index file, manually index it
     for (sprkey_t i = 0; i <= topmost; ++i)
@@ -787,7 +787,7 @@ int SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, S
     }
 
     _sprite0InitialOffset = _spriteData[0].Offset;
-    return 0;
+    return HError::None();
 }
 
 bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost)

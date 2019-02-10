@@ -589,7 +589,8 @@ const char* save_sprites(bool compressSprites)
 
     // reset the sprite cache
     spriteset.Reset();
-    if (spriteset.InitFile(sprsetname))
+    HAGSError err = spriteset.InitFile(sprsetname);
+    if (!err)
     {
       if (errorMsg == NULL)
         errorMsg = "Unable to re-initialize sprite file after save.";
@@ -1233,7 +1234,8 @@ bool initialize_native()
 	new_font();
 
 	spriteset.Reset();
-	if (spriteset.InitFile(sprsetname))
+	HAGSError err = spriteset.InitFile(sprsetname);
+	if (!err)
 	  return false;
 	spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set this up in preferences?
 
@@ -1446,12 +1448,13 @@ bool reload_font(int curFont)
   return wloadfont_size(curFont, fi);
 }
 
-bool reset_sprite_file() {
+HAGSError reset_sprite_file() {
   spriteset.Reset();
-  if (spriteset.InitFile(sprsetname))
-    return false;
+  HAGSError err = spriteset.InitFile(sprsetname);
+  if (!err)
+    return err;
   spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set in preferences?
-  return true;
+  return HAGSError::None();
 }
 
 Common::PluginInfo thisgamePlugins[MAX_PLUGINS];
@@ -1491,8 +1494,9 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
     palette[0].b = 0;
     set_palette_range(palette, 0, 255, 0);
 
-    if (!reset_sprite_file())
-        return new AGSError("The sprite file could not be loaded. Ensure that all your game files are intact and not corrupt. The game may require a newer version of AGS.");
+    HAGSError err = reset_sprite_file();
+    if (!err)
+        return err;
 
     for (int i = 0; i < thisgame.numfonts; ++i)
         wfreefont(i);

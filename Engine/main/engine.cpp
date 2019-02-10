@@ -937,14 +937,14 @@ int engine_init_sprites()
 {
     Debug::Printf(kDbgMsg_Init, "Initialize sprites");
 
-    if (spriteset.InitFile("acsprset.spr")) 
+    HError err = spriteset.InitFile("acsprset.spr");
+    if (!err) 
     {
         platform->FinishedUsingGraphicsMode();
         allegro_exit();
         proper_exit=1;
-        platform->DisplayAlert("Could not load sprite set file ACSPRSET.SPR\n"
-            "This means that the file is missing or there is not enough free\n"
-            "system memory to load the file.\n");
+        platform->DisplayAlert("Could not load sprite set file ACSPRSET.SPR\n%s",
+            err->FullMessage().GetCStr());
         return EXIT_NORMAL;
     }
 

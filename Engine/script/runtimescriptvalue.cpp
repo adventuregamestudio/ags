@@ -329,7 +329,7 @@ RuntimeScriptValue &RuntimeScriptValue::DirectPtr()
 
     if (Ptr)
     {
-        if (Type == kScValDynamicObject || Type == kScValPluginObject)
+        if (Type == kScValDynamicObject)
             Ptr = const_cast<char*>(DynMgr->GetFieldPtr(Ptr, IValue));
         else if (Type == kScValStaticObject)
             Ptr = const_cast<char*>(StcMgr->GetFieldPtr(Ptr, IValue));
@@ -356,8 +356,7 @@ intptr_t RuntimeScriptValue::GetDirectPtr() const
         temp_val  = temp_val->RValue;
         ival     += temp_val->IValue;
     }
-
-    if (temp_val->Type == kScValDynamicObject || temp_val->Type == kScValPluginObject)
+    if (temp_val->Type == kScValDynamicObject)
         return (intptr_t)temp_val->DynMgr->GetFieldPtr(temp_val->Ptr, ival);
     else if (temp_val->Type == kScValStaticObject)
         return (intptr_t)temp_val->StcMgr->GetFieldPtr(temp_val->Ptr, ival);

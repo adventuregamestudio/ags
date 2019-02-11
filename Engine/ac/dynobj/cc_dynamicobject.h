@@ -44,7 +44,9 @@ struct ICCDynamicObject {
     // return number of bytes used
     virtual int Serialize(const char *address, char *buffer, int bufsize) = 0;
 
-    // Legacy support for reading and writing object values by their relative offset
+    // Legacy support for reading and writing object values by their relative offset.
+    // WARNING: following were never a part of plugin API, therefore these methods
+    // should **never** be called for kScValPluginObject script objects!
     //
     // RE: GetFieldPtr()
     // According to AGS script specification, when the old-string pointer or char array is passed

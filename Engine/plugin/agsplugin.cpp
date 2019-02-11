@@ -436,11 +436,11 @@ void IAGSEngine::RoomToViewport (int32 *x, int32 *y) {
         *y = scrp.Y;
 }
 void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
-    Point scrp = play.ScreenToRoom(x ? divide_down_coordinate(*x) : 0, y ? divide_down_coordinate(*y) : 0);
+    VpPoint vpt = play.ScreenToRoom(x ? divide_down_coordinate(*x) : 0, y ? divide_down_coordinate(*y) : 0, false);
     if (x)
-        *x = scrp.X;
+        *x = vpt.first.X;
     if (y)
-        *y = scrp.Y;
+        *y = vpt.first.Y;
 }
 int IAGSEngine::GetNumObjects () {
     return croom->numobj;

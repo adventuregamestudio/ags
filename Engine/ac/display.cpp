@@ -330,9 +330,9 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         if (!overlayPositionFixed)
         {
             screenover[nse].positionRelativeToScreen = false;
-            Point roompt = play.ScreenToRoom(screenover[nse].x, screenover[nse].y);
-            screenover[nse].x = roompt.X;
-            screenover[nse].y = roompt.Y;
+            VpPoint vpt = play.ScreenToRoom(screenover[nse].x, screenover[nse].y, false);
+            screenover[nse].x = vpt.first.X;
+            screenover[nse].y = vpt.first.Y;
         }
 
         GameLoopUntilEvent(UNTIL_NOOVERLAY,0);

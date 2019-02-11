@@ -61,8 +61,10 @@ int obj_lowest_yp;
 int GetObjectIDAtScreen(int scrx, int scry)
 {
     // translate screen co-ordinates to room co-ordinates
-    Point roompt = play.ScreenToRoomDivDown(scrx, scry);
-    return GetObjectIDAtRoom(roompt.X, roompt.Y);
+    VpPoint vpt = play.ScreenToRoomDivDown(scrx, scry);
+    if (vpt.second < 0)
+        return -1;
+    return GetObjectIDAtRoom(vpt.first.X, vpt.first.Y);
 }
 
 int GetObjectIDAtRoom(int roomx, int roomy)

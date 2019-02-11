@@ -445,8 +445,10 @@ void GetCharacterPropertyText (int item, const char *property, char *bufer) {
 }
 
 int GetCharIDAtScreen(int xx, int yy) {
-    Point roompt = play.ScreenToRoomDivDown(xx, yy);
-    return is_pos_on_character(roompt.X, roompt.Y);
+    VpPoint vpt = play.ScreenToRoomDivDown(xx, yy);
+    if (vpt.second < 0)
+        return -1;
+    return is_pos_on_character(vpt.first.X, vpt.first.Y);
 }
 
 void SetActiveInventory(int iit) {

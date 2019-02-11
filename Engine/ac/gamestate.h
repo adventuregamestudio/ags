@@ -37,6 +37,10 @@ enum GameStateSvgVersion
     kGSSvgVersion_350       = 1
 };
 
+// A result of coordinate conversion between screen and the room,
+// tells which viewport was used to pass the "touch" through.
+typedef std::pair<Point, int> VpPoint;
+
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
 struct GameState {
     int  score;      // player's current score
@@ -260,6 +264,8 @@ struct GameState {
     // Runs camera behavior
     void UpdateRoomCamera();
     // Converts room coordinates to the game screen coordinates through the room viewport
+    // This group of functions always tries to pass a point through the **primary** room viewport
+    // TODO: also support using arbitrary viewport (for multiple viewports).
     Point RoomToScreen(int roomx, int roomy);
     int  RoomToScreenX(int roomx);
     int  RoomToScreenY(int roomy);
@@ -268,8 +274,8 @@ struct GameState {
     // TODO: also support using arbitrary viewport (for multiple viewports)
     // TODO: find out if possible to refactor and get rid of "variadic" variants;
     // usually this depends on how the arguments are created (whether they are in "variadic" or true coords)
-    Point ScreenToRoom(int scrx, int scry);
-    Point ScreenToRoomDivDown(int scrx, int scry); // native "variadic" coords variant
+    VpPoint ScreenToRoom(int scrx, int scry, bool clip_viewport = true);
+    VpPoint ScreenToRoomDivDown(int scrx, int scry, bool clip_viewport = true); // native "variadic" coords variant
 
     // Serialization
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);

@@ -32,8 +32,8 @@ extern color palette[256];
 extern CCRegion ccDynamicRegion;
 
 
-ScriptRegion *GetRegionAtLocation(int xx, int yy) {
-    int hsnum = GetRegionAt(xx, yy);
+ScriptRegion *GetRegionAtRoom(int xx, int yy) {
+    int hsnum = GetRegionIDAtRoom(xx, yy);
     if (hsnum < 0)
         hsnum = 0;
     return &scrRegion[hsnum];
@@ -129,9 +129,9 @@ void generate_light_table()
 #include "script/script_runtime.h"
 
 // ScriptRegion *(int xx, int yy)
-RuntimeScriptValue Sc_GetRegionAtLocation(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetRegionAtRoom(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, GetRegionAtLocation);
+    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, GetRegionAtRoom);
 }
 
 RuntimeScriptValue Sc_Region_Tint(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -220,7 +220,7 @@ RuntimeScriptValue Sc_Region_GetTintLuminance(void *self, const RuntimeScriptVal
 
 void RegisterRegionAPI()
 {
-    ccAddExternalStaticFunction("Region::GetAtRoomXY^2",        Sc_GetRegionAtLocation);
+    ccAddExternalStaticFunction("Region::GetAtRoomXY^2",        Sc_GetRegionAtRoom);
     ccAddExternalObjectFunction("Region::Tint^4",               Sc_Region_TintNoLum);
     ccAddExternalObjectFunction("Region::Tint^5",               Sc_Region_Tint);
     ccAddExternalObjectFunction("Region::RunInteraction^1",     Sc_Region_RunInteraction);
@@ -238,7 +238,7 @@ void RegisterRegionAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("Region::GetAtRoomXY^2",        (void*)GetRegionAtLocation);
+    ccAddExternalFunctionForPlugin("Region::GetAtRoomXY^2",        (void*)GetRegionAtRoom);
     ccAddExternalFunctionForPlugin("Region::Tint^4",               (void*)Region_TintNoLum);
     ccAddExternalFunctionForPlugin("Region::RunInteraction^1",     (void*)Region_RunInteraction);
     ccAddExternalFunctionForPlugin("Region::get_Enabled",          (void*)Region_GetEnabled);

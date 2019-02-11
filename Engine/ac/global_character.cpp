@@ -444,7 +444,7 @@ void GetCharacterPropertyText (int item, const char *property, char *bufer) {
     get_text_property (game.charProps[item], play.charProps[item], property, bufer);
 }
 
-int GetCharacterAt (int xx, int yy) {
+int GetCharIDAtScreen(int xx, int yy) {
     Point roompt = play.ScreenToRoomDivDown(xx, yy);
     return is_pos_on_character(roompt.X, roompt.Y);
 }

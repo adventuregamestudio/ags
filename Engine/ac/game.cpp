@@ -1798,7 +1798,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     // foremost visible to the player
     int charat = is_pos_on_character(xxx,yyy);
     int hsat = get_hotspot_at(xxx,yyy);
-    int objat = GetObjectAt(scrx, scry);
+    int objat = GetObjectIDAtScreen(scrx, scry);
 
     multiply_up_coordinates(&xxx, &yyy);
 

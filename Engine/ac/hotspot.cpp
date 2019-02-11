@@ -55,8 +55,8 @@ int Hotspot_GetWalkToY(ScriptHotspot *hss) {
     return GetHotspotPointY(hss->id);
 }
 
-ScriptHotspot *GetHotspotAtLocation(int xx, int yy) {
-    int hsnum = GetHotspotAt(xx, yy);
+ScriptHotspot *GetHotspotAtScreen(int xx, int yy) {
+    int hsnum = GetHotspotIDAtScreen(xx, yy);
     ScriptHotspot *ret_hotspot;
     if (hsnum <= 0)
         ret_hotspot = &scrHotspot[0];
@@ -133,9 +133,9 @@ int get_hotspot_at(int xpp,int ypp) {
 extern ScriptString myScriptStringImpl;
 
 // ScriptHotspot *(int xx, int yy)
-RuntimeScriptValue Sc_GetHotspotAtLocation(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetHotspotAtScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, GetHotspotAtLocation);
+    API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, GetHotspotAtScreen);
 }
 
 // void (ScriptHotspot *hss, char *buffer)
@@ -223,7 +223,7 @@ RuntimeScriptValue Sc_Hotspot_GetWalkToY(void *self, const RuntimeScriptValue *p
 
 void RegisterHotspotAPI()
 {
-    ccAddExternalStaticFunction("Hotspot::GetAtScreenXY^2",     Sc_GetHotspotAtLocation);
+    ccAddExternalStaticFunction("Hotspot::GetAtScreenXY^2",     Sc_GetHotspotAtScreen);
     ccAddExternalObjectFunction("Hotspot::GetName^1",           Sc_Hotspot_GetName);
     ccAddExternalObjectFunction("Hotspot::GetProperty^1",       Sc_Hotspot_GetProperty);
     ccAddExternalObjectFunction("Hotspot::GetPropertyText^2",   Sc_Hotspot_GetPropertyText);
@@ -241,7 +241,7 @@ void RegisterHotspotAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("Hotspot::GetAtScreenXY^2",     (void*)GetHotspotAtLocation);
+    ccAddExternalFunctionForPlugin("Hotspot::GetAtScreenXY^2",     (void*)GetHotspotAtScreen);
     ccAddExternalFunctionForPlugin("Hotspot::GetName^1",           (void*)Hotspot_GetName);
     ccAddExternalFunctionForPlugin("Hotspot::GetProperty^1",       (void*)Hotspot_GetProperty);
     ccAddExternalFunctionForPlugin("Hotspot::GetPropertyText^2",   (void*)Hotspot_GetPropertyText);

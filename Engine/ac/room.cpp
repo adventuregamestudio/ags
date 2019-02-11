@@ -1141,9 +1141,9 @@ RuntimeScriptValue Sc_Room_GetWidth(const RuntimeScriptValue *params, int32_t pa
 }
 
 // void (int xx,int yy,int mood)
-RuntimeScriptValue Sc_ProcessClick(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_RoomProcessClick(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT3(ProcessClick);
+    API_SCALL_VOID_PINT3(RoomProcessClick);
 }
 
 RuntimeScriptValue Sc_Room_GetCamera(const RuntimeScriptValue *params, int32_t param_count)
@@ -1159,8 +1159,8 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::GetTextProperty^1",                  Sc_Room_GetTextProperty);
     ccAddExternalStaticFunction("Room::SetProperty^2",                      Sc_Room_SetProperty);
     ccAddExternalStaticFunction("Room::SetTextProperty^2",                  Sc_Room_SetTextProperty);
-    ccAddExternalStaticFunction("Room::ProcessClick^3",                     Sc_ProcessClick);
-    ccAddExternalStaticFunction("ProcessClick",                             Sc_ProcessClick);
+    ccAddExternalStaticFunction("Room::ProcessClick^3",                     Sc_RoomProcessClick);
+    ccAddExternalStaticFunction("ProcessClick",                             Sc_RoomProcessClick);
     ccAddExternalStaticFunction("Room::get_BottomEdge",                     Sc_Room_GetBottomEdge);
     ccAddExternalStaticFunction("Room::get_ColorDepth",                     Sc_Room_GetColorDepth);
     ccAddExternalStaticFunction("Room::get_Height",                         Sc_Room_GetHeight);

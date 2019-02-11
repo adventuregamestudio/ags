@@ -58,14 +58,14 @@ extern IGraphicsDriver *gfxDriver;
 // Used for deciding whether a char or obj was closer
 int obj_lowest_yp;
 
-int GetObjectAt(int scrx, int scry)
+int GetObjectIDAtScreen(int scrx, int scry)
 {
     // translate screen co-ordinates to room co-ordinates
     Point roompt = play.ScreenToRoomDivDown(scrx, scry);
-    return GetObjectAtRoom(roompt.X, roompt.Y);
+    return GetObjectIDAtRoom(roompt.X, roompt.Y);
 }
 
-int GetObjectAtRoom(int roomx, int roomy)
+int GetObjectIDAtRoom(int roomx, int roomy)
 {
     int aa,bestshotyp=-1,bestshotwas=-1;
     // Iterate through all objects in the room

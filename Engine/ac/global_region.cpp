@@ -30,7 +30,7 @@ extern RoomStatus*croom;
 extern char*evblockbasename;
 extern int evblocknum;
 
-int GetRegionAt (int xxx, int yyy) {
+int GetRegionIDAtRoom(int xxx, int yyy) {
     // if the co-ordinates are off the edge of the screen,
     // correct them to be just within
     // this fixes walk-off-screen problems

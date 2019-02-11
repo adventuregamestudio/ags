@@ -781,7 +781,7 @@ void SetMultitasking (int mode) {
 
 extern int getloctype_throughgui, getloctype_index;
 
-void ProcessClick(int xx,int yy,int mood) {
+void RoomProcessClick(int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
     Point roompt = play.ScreenToRoomDivDown(xx, yy);

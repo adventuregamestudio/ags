@@ -65,7 +65,7 @@ int IsKeyPressed (int keycode);
 int SaveScreenShot(const char*namm);
 void SetMultitasking (int mode);
 
-void ProcessClick(int xx,int yy,int mood);
+void RoomProcessClick(int xx,int yy,int mood);
 int IsInteractionAvailable (int xx,int yy,int mood);
 
 void GetMessageText (int msg, char *buffer);

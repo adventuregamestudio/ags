@@ -215,12 +215,6 @@ Point GameState::RoomToScreen(int roomx, int roomy)
     return _roomViewport.Transform.Scale(Point(roomx - _roomCamera.Position.Left, roomy - _roomCamera.Position.Top));
 }
 
-Point GameState::RoomToScreenDivDown(int roomx, int roomy)
-{
-    return _roomViewport.Transform.Scale(Point(roomx - divide_down_coordinate(_roomCamera.Position.Left),
-        roomy - divide_down_coordinate(_roomCamera.Position.Top)));
-}
-
 int GameState::RoomToScreenX(int roomx)
 {
     return _roomViewport.Transform.X.ScalePt(roomx - _roomCamera.Position.Left);

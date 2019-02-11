@@ -512,11 +512,10 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
     return TRUE;
 }
 
-// X and Y co-ordinates must be in 320x200 format (TODO: find out if this comment is still true)
-// X and Y are ROOM coordinates here for some reason, so we have to perform that ugly back-and-forth coordinate conversion
-int check_click_on_object(int xx,int yy,int mood) {
-    Point pt = play.RoomToScreenDivDown(xx, yy);
-    int aa = GetObjectAt(pt.X, pt.Y);
+// X and Y co-ordinates must be in native format (TODO: find out if this comment is still true)
+int check_click_on_object(int roomx, int roomy, int mood)
+{
+    int aa = GetObjectAtRoom(roomx, roomy);
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;

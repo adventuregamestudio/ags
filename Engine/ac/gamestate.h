@@ -260,13 +260,14 @@ struct GameState {
     // Runs camera behavior
     void UpdateRoomCamera();
     // Converts room coordinates to the game screen coordinates through the room viewport
-    // TODO: find out if possible to refactor and get rid of "variadic" variants;
-    // usually this depends on how the arguments are created (whether they are in "variadic" or true coords)
     Point RoomToScreen(int roomx, int roomy);
-    Point RoomToScreenDivDown(int roomx, int roomy); // native "variadic" coords variant
     int  RoomToScreenX(int roomx);
     int  RoomToScreenY(int roomy);
     // Converts game screen coordinates to the room coordinates through the room viewport
+    // These functions first try to find if there is any viewport at the given coords
+    // TODO: also support using arbitrary viewport (for multiple viewports)
+    // TODO: find out if possible to refactor and get rid of "variadic" variants;
+    // usually this depends on how the arguments are created (whether they are in "variadic" or true coords)
     Point ScreenToRoom(int scrx, int scry);
     Point ScreenToRoomDivDown(int scrx, int scry); // native "variadic" coords variant
 

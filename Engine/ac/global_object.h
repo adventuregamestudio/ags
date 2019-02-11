@@ -26,7 +26,10 @@ struct _Rect {
     int x1,y1,x2,y2;
 };
 
+// Get object at the given screen coordinates
 int  GetObjectAt(int xx,int yy);
+// Get object at the given room coordinates
+int  GetObjectAtRoom(int roomx, int roomy);
 void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance);
 void RemoveObjectTint(int obj);
 void SetObjectView(int obn,int vii);

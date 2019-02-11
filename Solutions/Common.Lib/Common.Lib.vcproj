@@ -1042,6 +1042,10 @@
 				Name="aastr"
 				>
 				<File
+					RelativePath="..\..\Common\libsrc\aastr-0.1.1\aarot.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\libsrc\aastr-0.1.1\aastr.c"
 					>
 				</File>

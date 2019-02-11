@@ -731,8 +731,16 @@ import void DeleteSaveSlot(int slot);
 import void SetRestartPoint();
 /// Gets what type of thing is in the room at the specified co-ordinates.
 import LocationType GetLocationType(int x, int y);
-/// Returns which walkable area is at the specified position relative to the current viewport.
+#ifdef SCRIPT_COMPAT_v341
+/// Returns which walkable area is at the specified position on screen.
 import int  GetWalkableAreaAt(int screenX, int screenY);
+#endif
+#ifdef SCRIPT_API_v350
+/// Returns which walkable area is at the specified position on screen.
+import int  GetWalkableAreaAtScreen(int screenX, int screenY);
+/// Returns which walkable area is at the specified position within the room.
+import int  GetWalkableAreaAtRoom(int roomX, int roomY);
+#endif
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
 #ifndef STRICT_IN_v340
@@ -1843,11 +1851,15 @@ builtin managed struct Hotspot {
   /// Sets a text custom property for this hotspot.
   import bool SetTextProperty(const string property, const string value);
 #endif
+#ifdef SCRIPT_API_v350
+  /// Returns the hotspot at the specified position within this room.
+  import static Hotspot* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+#endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 builtin managed struct Region {
-  /// Gets the region at the specified location within this room.
+  /// Returns the region at the specified position within this room.
   import static Region* GetAtRoomXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Runs the event handler for the specified event for this region.
   import void RunInteraction(int event);
@@ -1871,6 +1883,10 @@ builtin managed struct Region {
   readonly import attribute int  TintSaturation;
   /// Gets the Luminance of this region's colour tint.
   readonly import attribute int  TintLuminance;
+#ifdef SCRIPT_API_v350
+  /// Returns the region at the specified position on the screen.
+  import static Region* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+#endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -2219,6 +2235,10 @@ builtin managed struct Object {
   /// Gets the Luminance of this object's colour tint.
   readonly import attribute int  TintLuminance;
 #endif
+#ifdef SCRIPT_API_v350
+  /// Returns the object at the specified position within this room.
+  import static Object* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+#endif
 
   int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2459,6 +2479,10 @@ builtin managed struct Character {
   readonly import attribute int  TintSaturation;
   /// Gets the Luminance of this character's colour tint.
   readonly import attribute int  TintLuminance;
+#endif
+#ifdef SCRIPT_API_v350
+  /// Returns the character at the specified position within this room.
+  import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
 #ifdef STRICT
   /// The character's current X-position.

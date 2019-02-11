@@ -183,6 +183,7 @@ void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noi
 void CheckViewFrameForCharacter(CharacterInfo *chi);
 Common::Bitmap *GetCharacterImage(int charid, int *isFlipped);
 CharacterInfo *GetCharacterAtScreen(int xx, int yy);
+// Get character ID at the given room coordinates
 int is_pos_on_character(int xx,int yy);
 void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2);
 // Check whether the source char has walked onto character ww

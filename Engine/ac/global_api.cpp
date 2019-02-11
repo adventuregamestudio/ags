@@ -815,8 +815,13 @@ RuntimeScriptValue Sc_GetViewportY(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT(GetViewportY);
 }
 
+RuntimeScriptValue Sc_GetWalkableAreaAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT2(GetWalkableAreaAtRoom);
+}
+
 // int (int xxx,int yyy)
-RuntimeScriptValue Sc_GetWalkableAreaAt(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetWalkableAreaAtScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(GetWalkableAreaAtScreen);
 }
@@ -2400,7 +2405,9 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("GetTranslationName",       Sc_GetTranslationName);
 	ccAddExternalStaticFunction("GetViewportX",             Sc_GetViewportX);
 	ccAddExternalStaticFunction("GetViewportY",             Sc_GetViewportY);
-	ccAddExternalStaticFunction("GetWalkableAreaAt",        Sc_GetWalkableAreaAt);
+    ccAddExternalStaticFunction("GetWalkableAreaAtRoom",    Sc_GetWalkableAreaAtRoom);
+	ccAddExternalStaticFunction("GetWalkableAreaAt",        Sc_GetWalkableAreaAtScreen);
+    ccAddExternalStaticFunction("GetWalkableAreaAtScreen",  Sc_GetWalkableAreaAtScreen);
 	ccAddExternalStaticFunction("GiveScore",                Sc_GiveScore);
 	ccAddExternalStaticFunction("HasPlayerBeenInRoom",      Sc_HasPlayerBeenInRoom);
 	ccAddExternalStaticFunction("HideMouseCursor",          Sc_HideMouseCursor);
@@ -2767,7 +2774,9 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("GetTranslationName",       (void*)GetTranslationName);
     ccAddExternalFunctionForPlugin("GetViewportX",             (void*)GetViewportX);
     ccAddExternalFunctionForPlugin("GetViewportY",             (void*)GetViewportY);
+    ccAddExternalFunctionForPlugin("GetWalkableAreaAtRoom",    (void*)GetWalkableAreaAtRoom);
     ccAddExternalFunctionForPlugin("GetWalkableAreaAt",        (void*)GetWalkableAreaAtScreen);
+    ccAddExternalFunctionForPlugin("GetWalkableAreaAtScreen",  (void*)GetWalkableAreaAtScreen);
     ccAddExternalFunctionForPlugin("GiveScore",                (void*)GiveScore);
     ccAddExternalFunctionForPlugin("HasPlayerBeenInRoom",      (void*)HasPlayerBeenInRoom);
     ccAddExternalFunctionForPlugin("HideMouseCursor",          (void*)HideMouseCursor);

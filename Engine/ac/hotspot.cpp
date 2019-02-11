@@ -65,6 +65,16 @@ ScriptHotspot *GetHotspotAtScreen(int xx, int yy) {
     return ret_hotspot;
 }
 
+ScriptHotspot *GetHotspotAtRoom(int x, int y) {
+    int hsnum = get_hotspot_at(x, y);
+    ScriptHotspot *ret_hotspot;
+    if (hsnum <= 0)
+        ret_hotspot = &scrHotspot[0];
+    else
+        ret_hotspot = &scrHotspot[hsnum];
+    return ret_hotspot;
+}
+
 void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
     GetHotspotName(hss->id, buffer);
 }
@@ -131,6 +141,11 @@ int get_hotspot_at(int xpp,int ypp) {
 #include "ac/dynobj/scriptstring.h"
 
 extern ScriptString myScriptStringImpl;
+
+RuntimeScriptValue Sc_GetHotspotAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, GetHotspotAtRoom);
+}
 
 // ScriptHotspot *(int xx, int yy)
 RuntimeScriptValue Sc_GetHotspotAtScreen(const RuntimeScriptValue *params, int32_t param_count)
@@ -223,6 +238,7 @@ RuntimeScriptValue Sc_Hotspot_GetWalkToY(void *self, const RuntimeScriptValue *p
 
 void RegisterHotspotAPI()
 {
+    ccAddExternalStaticFunction("Hotspot::GetAtRoomXY^2",       Sc_GetHotspotAtRoom);
     ccAddExternalStaticFunction("Hotspot::GetAtScreenXY^2",     Sc_GetHotspotAtScreen);
     ccAddExternalObjectFunction("Hotspot::GetName^1",           Sc_Hotspot_GetName);
     ccAddExternalObjectFunction("Hotspot::GetProperty^1",       Sc_Hotspot_GetProperty);
@@ -241,6 +257,7 @@ void RegisterHotspotAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
+    ccAddExternalFunctionForPlugin("Hotspot::GetAtRoomXY^2",       (void*)GetHotspotAtRoom);
     ccAddExternalFunctionForPlugin("Hotspot::GetAtScreenXY^2",     (void*)GetHotspotAtScreen);
     ccAddExternalFunctionForPlugin("Hotspot::GetName^1",           (void*)Hotspot_GetName);
     ccAddExternalFunctionForPlugin("Hotspot::GetProperty^1",       (void*)Hotspot_GetProperty);

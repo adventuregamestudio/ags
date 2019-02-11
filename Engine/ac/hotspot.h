@@ -35,6 +35,7 @@ int     Hotspot_GetProperty (ScriptHotspot *hss, const char *property);
 void    Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bufer);
 const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property);
 
+// Gets hotspot ID at the given room coordinates
 int     get_hotspot_at(int xpp,int ypp);
 
 #endif // __AGS_EE_AC__HOTSPOT_H

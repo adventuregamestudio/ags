@@ -62,6 +62,14 @@ ScriptObject *GetObjectAtScreen(int xx, int yy) {
     return &scrObj[hsnum];
 }
 
+ScriptObject *GetObjectAtRoom(int x, int y)
+{
+    int hsnum = GetObjectIDAtRoom(x, y);
+    if (hsnum < 0)
+        return NULL;
+    return &scrObj[hsnum];
+}
+
 AGS_INLINE int is_valid_object(int obtest) {
     if ((obtest < 0) || (obtest >= croom->numobj)) return 0;
     return 1;
@@ -684,6 +692,11 @@ RuntimeScriptValue Sc_Object_Tint(void *self, const RuntimeScriptValue *params, 
     API_OBJCALL_VOID_PINT5(ScriptObject, Object_Tint);
 }
 
+RuntimeScriptValue Sc_GetObjectAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtRoom);
+}
+
 // ScriptObject *(int xx, int yy)
 RuntimeScriptValue Sc_GetObjectAtScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -901,6 +914,7 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::Tint^5",                   Sc_Object_Tint);
 
     // static
+    ccAddExternalStaticFunction("Object::GetAtRoomXY^2",            Sc_GetObjectAtRoom);
     ccAddExternalStaticFunction("Object::GetAtScreenXY^2",          Sc_GetObjectAtScreen);
 
     ccAddExternalObjectFunction("Object::get_Animating",            Sc_Object_GetAnimating);
@@ -962,6 +976,7 @@ void RegisterObjectAPI()
     ccAddExternalFunctionForPlugin("Object::StopAnimating^0",          (void*)Object_StopAnimating);
     ccAddExternalFunctionForPlugin("Object::StopMoving^0",             (void*)Object_StopMoving);
     ccAddExternalFunctionForPlugin("Object::Tint^5",                   (void*)Object_Tint);
+    ccAddExternalFunctionForPlugin("Object::GetAtRoomXY^2",            (void*)GetObjectAtRoom);
     ccAddExternalFunctionForPlugin("Object::GetAtScreenXY^2",          (void*)GetObjectAtScreen);
     ccAddExternalFunctionForPlugin("Object::get_Animating",            (void*)Object_GetAnimating);
     ccAddExternalFunctionForPlugin("Object::get_Baseline",             (void*)Object_GetBaseline);

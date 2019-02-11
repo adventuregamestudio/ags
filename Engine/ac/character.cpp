@@ -2205,6 +2205,14 @@ CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
     return &game.chars[hsnum];
 }
 
+CharacterInfo *GetCharacterAtRoom(int x, int y)
+{
+    int hsnum = is_pos_on_character(x, y);
+    if (hsnum < 0)
+        return NULL;
+    return &game.chars[hsnum];
+}
+
 extern int char_lowest_yp, obj_lowest_yp;
 
 int is_pos_on_character(int xx,int yy) {
@@ -3269,6 +3277,11 @@ RuntimeScriptValue Sc_Character_WalkStraight(void *self, const RuntimeScriptValu
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_WalkStraight);
 }
 
+RuntimeScriptValue Sc_GetCharacterAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtRoom);
+}
+
 // CharacterInfo *(int xx, int yy)
 RuntimeScriptValue Sc_GetCharacterAtScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3837,6 +3850,7 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
 	ccAddExternalObjectFunction("Character::Walk^4",                    Sc_Character_Walk);
 	ccAddExternalObjectFunction("Character::WalkStraight^3",            Sc_Character_WalkStraight);
 
+    ccAddExternalStaticFunction("Character::GetAtRoomXY^2",             Sc_GetCharacterAtRoom);
 	ccAddExternalStaticFunction("Character::GetAtScreenXY^2",           Sc_GetCharacterAtScreen);
 
 	ccAddExternalObjectFunction("Character::get_ActiveInventory",       Sc_Character_GetActiveInventory);
@@ -3992,6 +4006,7 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalFunctionForPlugin("Character::UnlockView^1",              (void*)Character_UnlockViewEx);
     ccAddExternalFunctionForPlugin("Character::Walk^4",                    (void*)Character_Walk);
     ccAddExternalFunctionForPlugin("Character::WalkStraight^3",            (void*)Character_WalkStraight);
+    ccAddExternalFunctionForPlugin("Character::GetAtRoomXY^2",             (void*)GetCharacterAtRoom);
     ccAddExternalFunctionForPlugin("Character::GetAtScreenXY^2",           (void*)GetCharacterAtScreen);
     ccAddExternalFunctionForPlugin("Character::get_ActiveInventory",       (void*)Character_GetActiveInventory);
     ccAddExternalFunctionForPlugin("Character::set_ActiveInventory",       (void*)Character_SetActiveInventory);

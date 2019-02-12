@@ -100,6 +100,26 @@ which can be viewed with
 
 This information should be included in bug reports.
 
+# Building Allegro 4.4.3 from source
+If you wish to distribute the Allegro libraries along with your game, and cannot
+use the **debian/make_ags+libraries.sh** script, you can build Allegro from source.
+In order to have digital sound & midi support, you will need to install the
+**libasound2-dev** package (ALSA shared library) before building Allegro. You will
+also need the **cmake** package in order to use the automated builder.
+
+Procedure for building Allegro 4.4.3 from source in Debian/Ubuntu:
+    apt install libasound2-dev cmake
+    wget https://github.com/liballeg/allegro5/archive/4.4.3.tar.gz
+    tar -zxvf allegro5-4.4.3.tar.gz
+    cd allegro5-4.4.3
+    mkdir Build
+    cd Build
+    cmake ..
+    make
+
+The compiled libraries are put in the ./Build/lib folder, and now can be
+copied elsewhere for distribution with your game.
+
 # Building AGS for a game release
 If you want to build AGS for inclusion in a game release, you want an
 engine that runs on most 32 and 64 bit Linux systems regardless of the library

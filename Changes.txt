@@ -1,5 +1,16 @@
 REVISION HISTORY
 ================
+VERSION 3.4.3 - Patch 1, February 2019
+
+Engine:
+ - Fixed serious mistake that would cause crashes in plugins which export their own
+   managed types for game script.
+
+Linux:
+ - Fixed compilation against recent Allegro 4.4.3 release.
+ - Updated prebuilt binaries to be compatible with Debian 8 (jessie) and higher.
+
+
 VERSION 3.4.3, February 2019
 
 Common features:

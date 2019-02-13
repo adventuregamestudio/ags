@@ -78,7 +78,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\..;..\..\Common;..\..\Common\libinclude;..\..\Compiler;..\Native;..\scintilla\include;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_USRDLL;WINDOWS_VERSION;ALLEGRO_STATICLINK;_CRT_SECURE_NO_DEPRECATE;_MERGE_PROXYSTUB;STATIC_BUILD;SCI_LEXER;USE_ALFONT;_BIND_TO_CURRENT_VCLIBS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_USRDLL;WINDOWS_VERSION;ALLEGRO_STATICLINK;ALLEGRO_NO_FIX_ALIASES;_CRT_SECURE_NO_DEPRECATE;_MERGE_PROXYSTUB;STATIC_BUILD;SCI_LEXER;USE_ALFONT;_BIND_TO_CURRENT_VCLIBS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -129,7 +129,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <AdditionalIncludeDirectories>..\..;..\..\Common;..\..\Common\libinclude;..\..\Compiler;..\Native;..\scintilla\include;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;WINDOWS_VERSION;ALLEGRO_STATICLINK;_MERGE_PROXYSTUB;STATIC_BUILD;SCI_LEXER;USE_ALFONT;_BIND_TO_CURRENT_VCLIBS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;WINDOWS_VERSION;ALLEGRO_STATICLINK;ALLEGRO_NO_FIX_ALIASES;_MERGE_PROXYSTUB;STATIC_BUILD;SCI_LEXER;USE_ALFONT;_BIND_TO_CURRENT_VCLIBS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <StructMemberAlignment>4Bytes</StructMemberAlignment>
       <PrecompiledHeader />

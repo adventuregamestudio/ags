@@ -140,7 +140,18 @@ libsrc/*.zip
 *.nuget.props
 *.nuget.targets
 
-\.DS_Store
 
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+
+# Windows system files
+thumbs.db
+desktop.ini
+
+
+# recommended CMake build directory
 build*/**
-

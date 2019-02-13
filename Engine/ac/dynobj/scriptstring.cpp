@@ -36,14 +36,15 @@ const char *ScriptString::GetType() {
 }
 
 int ScriptString::Serialize(const char *address, char *buffer, int bufsize) {
-    if (text == nullptr) {
-        text = static_cast<char *>(malloc(1));
-        text[0] = 0;
-    }
     StartSerialize(buffer);
-    SerializeInt(strlen(text));
-    strcpy(&serbuffer[bytesSoFar], text);
-    bytesSoFar += strlen(text) + 1;
+    
+    auto toSerialize = text ? text : "";
+    
+    auto len = strlen(toSerialize);
+    SerializeInt(len);
+    strcpy(&serbuffer[bytesSoFar], toSerialize);
+    bytesSoFar += len + 1;
+    
     return EndSerialize();
 }
 

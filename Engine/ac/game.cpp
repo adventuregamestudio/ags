@@ -512,9 +512,8 @@ void free_do_once_tokens()
 
 
 // Free all the memory associated with the game
-void unload_game_file() {
-    int bb, ee;
-
+void unload_game_file()
+{
     characterScriptObjNames.clear();
     free(charextra);
     free(mls);
@@ -525,9 +524,11 @@ void unload_game_file() {
     free(actspswbcache);
 
     if ((gameinst != NULL) && (gameinst->pc != 0))
+    {
         quit("Error: unload_game called while script still running");
-    //->AbortAndDestroy (gameinst);
-    else {
+    }
+    else
+    {
         delete gameinstFork;
         delete gameinst;
         gameinstFork = NULL;
@@ -537,7 +538,9 @@ void unload_game_file() {
     gamescript.reset();
 
     if ((dialogScriptsInst != NULL) && (dialogScriptsInst->pc != 0))
+    {
         quit("Error: unload_game called while dialog script still running");
+    }
     else if (dialogScriptsInst != NULL)
     {
         delete dialogScriptsInst;
@@ -546,10 +549,11 @@ void unload_game_file() {
 
     dialogScriptsScript.reset();
 
-    for (ee = 0; ee < numScriptModules; ee++) {
-        delete moduleInstFork[ee];
-        delete moduleInst[ee];
-        scriptModules[ee].reset();
+    for (int i = 0; i < numScriptModules; ++i)
+    {
+        delete moduleInstFork[i];
+        delete moduleInst[i];
+        scriptModules[i].reset();
     }
     moduleInstFork.resize(0);
     moduleInst.resize(0);
@@ -564,18 +568,18 @@ void unload_game_file() {
     runDialogOptionRepExecFunc.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
-    free (views);
+    free(views);
     views = NULL;
 
-    free (charcache);
+    free(charcache);
     charcache = NULL;
 
     if (splipsync != NULL)
     {
-        for (ee = 0; ee < numLipLines; ee++)
+        for (int i = 0; i < numLipLines; ++i)
         {
-            free(splipsync[ee].endtimeoffs);
-            free(splipsync[ee].frame);
+            free(splipsync[i].endtimeoffs);
+            free(splipsync[i].frame);
         }
         free(splipsync);
         splipsync = NULL;
@@ -583,19 +587,20 @@ void unload_game_file() {
         curLipLine = -1;
     }
 
-    for (ee=0;ee<game.numdialog;ee++) {
-        if (dialog[ee].optionscripts!=NULL)
-            free (dialog[ee].optionscripts);
-        dialog[ee].optionscripts = NULL;
+    for (int i = 0; i < game.numdialog; ++i)
+    {
+        if (dialog[i].optionscripts != NULL)
+            free(dialog[i].optionscripts);
+        dialog[i].optionscripts = NULL;
     }
-    free (dialog);
+    free(dialog);
     dialog = NULL;
-    delete [] scrDialog;
+    delete[] scrDialog;
     scrDialog = NULL;
 
-    for (ee = 0; ee < game.numgui; ee++) {
-        free (guibg[ee]);
-        guibg[ee] = NULL;
+    for (int i = 0; i < game.numgui; ++i) {
+        free(guibg[i]);
+        guibg[i] = NULL;
     }
 
     guiScriptObjNames.clear();
@@ -607,8 +612,8 @@ void unload_game_file() {
     ccRemoveAllSymbols();
     ccUnregisterAllObjects();
 
-    for (ee=0;ee<game.numfonts;ee++)
-        wfreefont(ee);
+    for (int i = 0; i < game.numfonts; ++i)
+        wfreefont(i);
 
     free_do_once_tokens();
     free(play.gui_draw_order);

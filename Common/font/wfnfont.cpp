@@ -35,7 +35,7 @@ WFNChar::WFNChar()
 void WFNChar::RestrictToBytes(size_t bytes)
 {
     if (bytes < GetRequiredPixelSize())
-        Height = bytes / GetRowByteCount();
+        Height = static_cast<uint16_t>(bytes / GetRowByteCount());
 }
 
 const WFNChar WFNFont::_emptyChar;
@@ -47,11 +47,11 @@ void WFNFont::Clear()
     _pixelData.clear();
 }
 
-WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
+WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
 {
     Clear();
 
-    const size_t used_data_size = data_size > 0 ? data_size : in->GetLength();
+    const soff_t used_data_size = data_size > 0 ? data_size : in->GetLength();
 
     // Read font header
     char sig[WFN_FILE_SIG_LENGTH];
@@ -62,17 +62,17 @@ WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
         return kWFNErr_BadSignature; // bad format
     }
 
-    const size_t table_addr = (uint16_t)in->ReadInt16(); // offset table relative address
+    const soff_t table_addr = static_cast<uint16_t>(in->ReadInt16()); // offset table relative address
     if (table_addr < WFN_FILE_SIG_LENGTH + sizeof(uint16_t) || table_addr >= used_data_size)
     {
-        Debug::Printf(kDbgMsg_Error, "\tWFN: bad table address: %d (%d - %d)", table_addr, WFN_FILE_SIG_LENGTH + sizeof(uint16_t), used_data_size);
+        Debug::Printf(kDbgMsg_Error, "\tWFN: bad table address: %lld (%d - %d)", table_addr, WFN_FILE_SIG_LENGTH + sizeof(uint16_t), used_data_size);
         return kWFNErr_BadTableAddress; // bad table address
     }
 
-    const size_t offset_table_size = used_data_size - table_addr;
-    const size_t raw_data_offset = WFN_FILE_SIG_LENGTH + sizeof(uint16_t);
-    const size_t total_char_data = table_addr - raw_data_offset;
-    const size_t char_count = offset_table_size / sizeof(uint16_t);
+    const soff_t offset_table_size = used_data_size - table_addr;
+    const soff_t raw_data_offset = WFN_FILE_SIG_LENGTH + sizeof(uint16_t);
+    const size_t total_char_data = static_cast<size_t>(table_addr - raw_data_offset);
+    const size_t char_count = static_cast<size_t>(offset_table_size / sizeof(uint16_t));
 
     // We process character data in three steps:
     // 1. For every character store offset of character item, excluding
@@ -182,7 +182,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
                 // we know beforehand that such item must exist
                 std::vector<uint16_t>::const_iterator at = std::lower_bound(offs.begin(), offs.end(), off);
                 assert(at != offs.end() && *at == off && // should not normally fail
-                       at - offs.begin() >= 0 && (size_t)(at - offs.begin()) < _items.size());
+                       at - offs.begin() >= 0 && static_cast<size_t>(at - offs.begin()) < _items.size());
                 _refs[i] = &_items[at - offs.begin()]; // set up reference to item
             }
         }

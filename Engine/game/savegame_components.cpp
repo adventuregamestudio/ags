@@ -1079,7 +1079,7 @@ ComponentHandler ComponentHandlers[] =
         WritePluginData,
         ReadPluginData
     },
-    { NULL, 0, NULL, NULL } // end of array
+    { NULL, 0, 0, NULL, NULL } // end of array
 };
 
 

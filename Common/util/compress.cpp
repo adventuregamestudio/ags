@@ -292,7 +292,7 @@ int cunpackbitl32(unsigned int *line, int size, Stream *in)
 
 //=============================================================================
 
-char *lztempfnm = "~aclzw.tmp";
+const char *lztempfnm = "~aclzw.tmp";
 
 void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
 {

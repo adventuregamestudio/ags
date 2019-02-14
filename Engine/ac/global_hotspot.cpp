@@ -108,7 +108,7 @@ void RunHotspotInteraction (int hotspothere, int mood) {
 
     // can't use the setevent functions because this ProcessClick is only
     // executed once in a eventlist
-    char *oldbasename = evblockbasename;
+    const char *oldbasename = evblockbasename;
     int   oldblocknum = evblocknum;
 
     evblockbasename="hotspot%d";

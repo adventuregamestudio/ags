@@ -53,13 +53,13 @@ int in_leaves_screen = -1;
 EventHappened event[MAXEVENTS+1];
 int numevents=0;
 
-char*evblockbasename;
+const char*evblockbasename;
 int evblocknum;
 
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
 
-char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
+const char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
 
 
 int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {
@@ -167,7 +167,7 @@ void process_event(EventHappened*evp) {
     else if (evp->type==EV_RUNEVBLOCK) {
         Interaction*evpt=NULL;
         PInteractionScripts scriptPtr = NULL;
-        char *oldbasename = evblockbasename;
+        const char *oldbasename = evblockbasename;
         int   oldblocknum = evblocknum;
 
         if (evp->data1==EVB_HOTSPOT) {

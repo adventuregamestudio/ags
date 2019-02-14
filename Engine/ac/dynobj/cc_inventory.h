@@ -17,7 +17,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct CCInventory : AGSCCDynamicObject {
+struct CCInventory final : AGSCCDynamicObject {
 
     // return the type name of the object
     virtual const char *GetType();

@@ -25,6 +25,7 @@ int ScriptString::Dispose(const char *address, bool force) {
     // always dispose
     if (text) {
         free(text);
+        text = nullptr;
     }
     delete this;
     return 1;
@@ -35,12 +36,15 @@ const char *ScriptString::GetType() {
 }
 
 int ScriptString::Serialize(const char *address, char *buffer, int bufsize) {
-    if (text == NULL)
-        text = "";
     StartSerialize(buffer);
-    SerializeInt(strlen(text));
-    strcpy(&serbuffer[bytesSoFar], text);
-    bytesSoFar += strlen(text) + 1;
+    
+    auto toSerialize = text ? text : "";
+    
+    auto len = strlen(toSerialize);
+    SerializeInt(len);
+    strcpy(&serbuffer[bytesSoFar], toSerialize);
+    bytesSoFar += len + 1;
+    
     return EndSerialize();
 }
 
@@ -53,7 +57,7 @@ void ScriptString::Unserialize(int index, const char *serializedData, int dataSi
 }
 
 ScriptString::ScriptString() {
-    text = NULL;
+    text = nullptr;
 }
 
 ScriptString::ScriptString(const char *fromText) {

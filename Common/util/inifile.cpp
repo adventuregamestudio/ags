@@ -81,7 +81,7 @@ void IniFile::ItemDef::SetValue(const String &value)
 
     if (SepAt > 0)
     {   // replacing existing value
-        int diff = value.GetLength() - (Value.second - Value.first);
+        int diff = static_cast<int>(value.GetLength()) - (Value.second - Value.first);
         ReplaceSubString(Line, Value, value);
         Value.second += diff;
     }

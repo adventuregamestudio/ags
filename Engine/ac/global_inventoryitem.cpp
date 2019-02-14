@@ -32,7 +32,7 @@ extern GameSetupStruct game;
 extern GameState play;
 extern int mousex, mousey;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
-extern char*evblockbasename;
+extern const char*evblockbasename;
 extern int evblocknum;
 extern CharacterInfo*playerchar;
 

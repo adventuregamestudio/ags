@@ -17,7 +17,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptOverlay : AGSCCDynamicObject {
+struct ScriptOverlay final : AGSCCDynamicObject {
     int overlayId;
     int borderWidth;
     int borderHeight;

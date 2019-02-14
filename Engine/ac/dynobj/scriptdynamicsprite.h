@@ -17,7 +17,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptDynamicSprite : AGSCCDynamicObject {
+struct ScriptDynamicSprite final  : AGSCCDynamicObject {
     int slot;
 
     virtual int Dispose(const char *address, bool force);

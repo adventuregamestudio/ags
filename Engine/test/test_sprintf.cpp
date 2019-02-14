@@ -33,7 +33,7 @@ void Test_ScriptSprintf()
 {
     const int argi = 123;
     const float argf = 0.456F;
-    char *argcc = "string literal";
+    const char *argcc = "string literal";
     RuntimeScriptValue params[10];
     params[0].SetInt32(argi);
     params[1].SetFloat(argf);

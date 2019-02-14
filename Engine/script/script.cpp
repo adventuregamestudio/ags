@@ -518,7 +518,7 @@ String GetScriptName(ccInstance *sci)
 
 
 char bname[MAX_FUNCTION_NAME_LEN+1],bne[MAX_FUNCTION_NAME_LEN+1];
-char* make_ts_func_name(char*base,int iii,int subd) {
+char* make_ts_func_name(const char*base,int iii,int subd) {
     snprintf(bname,MAX_FUNCTION_NAME_LEN,base,iii);
     snprintf(bne,MAX_FUNCTION_NAME_LEN,"%s_%c",bname,subd+'a');
     return &bne[0];

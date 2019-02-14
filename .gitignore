@@ -139,3 +139,19 @@ libsrc/*.zip
 # NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
+
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+
+# Windows system files
+thumbs.db
+desktop.ini
+
+
+# recommended CMake build directory
+build*/**

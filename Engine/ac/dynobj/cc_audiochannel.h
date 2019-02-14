@@ -20,7 +20,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct CCAudioChannel : AGSCCDynamicObject {
+struct CCAudioChannel final : AGSCCDynamicObject {
     virtual const char *GetType();
     virtual int Serialize(const char *address, char *buffer, int bufsize);
     virtual void Unserialize(int index, const char *serializedData, int dataSize);

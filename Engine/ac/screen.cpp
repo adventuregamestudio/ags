@@ -36,7 +36,7 @@ extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 
-void my_fade_in(PALLETE p, int speed) {
+void my_fade_in(PALETTE p, int speed) {
     if (game.color_depth > 1) {
         set_palette (p);
 

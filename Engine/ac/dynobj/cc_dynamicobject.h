@@ -69,6 +69,9 @@ struct ICCDynamicObject {
     virtual void    WriteInt16(const char *address, intptr_t offset, int16_t val)   = 0;
     virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val)   = 0;
     virtual void    WriteFloat(const char *address, intptr_t offset, float val)     = 0;
+
+protected:
+    ~ICCDynamicObject() = default;
 };
 
 struct ICCObjectReader {

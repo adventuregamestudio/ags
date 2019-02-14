@@ -34,6 +34,22 @@ namespace Common
 namespace Memory
 {
     //-------------------------------------------------------------------------
+    // Converts pointer to 32-bit integer value and vice-versa.
+    // Only for use in special cases for compatibility with 32-bit plugin API.
+    // Dangerous on 64-bit systems.
+    //-------------------------------------------------------------------------
+    template <typename T>
+    inline int32_t PtrToInt32(T *ptr)
+    {
+        return static_cast<int32_t>(reinterpret_cast<intptr_t>(ptr));
+    }
+    template <typename T>
+    inline T *Int32ToPtr(int32_t value)
+    {
+        return reinterpret_cast<T*>(static_cast<intptr_t>(value));
+    }
+
+    //-------------------------------------------------------------------------
     // Functions for reading and writing basic types from/to the memory.
     // Implement safety workaround for CPUs with alignment restrictions
     // (e.g. MIPS).

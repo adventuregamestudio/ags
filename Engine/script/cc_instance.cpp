@@ -33,9 +33,11 @@
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
+#include "util/memory.h"
 #include "util/string_utils.h" // linux strnicmp definition
 
 using namespace AGS::Common;
+using namespace AGS::Common::Memory;
 
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
@@ -891,8 +893,8 @@ int ccInstance::Run(int32_t curpc)
               address = reg1.Ptr;
           }
           else if (reg1.Type == kScValPluginArg)
-          {
-              address = (char*)reg1.IValue;
+          {// TODO: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
+              address = Int32ToPtr<char>(reg1.IValue);
           }
           // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())
@@ -925,8 +927,8 @@ int ccInstance::Run(int32_t curpc)
               address = reg1.Ptr;
           }
           else if (reg1.Type == kScValPluginArg)
-          {
-              address = (char*)reg1.IValue;
+          {// TODO: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
+              address = Int32ToPtr<char>(reg1.IValue);
           }
           // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())

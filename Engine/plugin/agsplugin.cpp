@@ -60,8 +60,10 @@
 #include "ac/dynobj/scriptstring.h"
 #include "main/graphics_mode.h"
 #include "gfx/gfx_util.h"
+#include "util/memory.h"
 
 using namespace AGS::Common;
+using namespace AGS::Common::Memory;
 using namespace AGS::Engine;
 
 
@@ -311,11 +313,12 @@ void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, 
 }
 // [IKM] Interesting, why does AGS need those two functions?
 // Can it be that it was planned to change implementation in the future?
+// TODO: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
 int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
-    return fread (buffer, 1, len, (FILE*)handle);
+    return fread (buffer, 1, len, Int32ToPtr<FILE>(handle));
 }
 int IAGSEngine::FWrite (void *buffer, int32 len, int32 handle) {
-    return fwrite (buffer, 1, len, (FILE*)handle);
+    return fwrite (buffer, 1, len, Int32ToPtr<FILE>(handle));
 }
 
 void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int32 color, const char*text)
@@ -852,7 +855,7 @@ void pl_startup_plugins() {
     }
 }
 
-int pl_run_plugin_hooks (int event, long data) {
+int pl_run_plugin_hooks (int event, int data) {
     int i, retval = 0;
     for (i = 0; i < numPlugins; i++) {
         if (plugins[i].wantHook & event) {

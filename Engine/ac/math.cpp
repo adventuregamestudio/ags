@@ -12,204 +12,143 @@
 //
 //=============================================================================
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cmath>
 #include "ac/math.h"
-#include "ac/common.h"
+#include "ac/common.h" // quit
 #include "platform/base/override_defines.h"
 #include "util/math.h"
 
-int FloatToInt(SCRIPT_FLOAT(value), int roundDirection) {
-    INIT_SCRIPT_FLOAT(value);
-
-    int intval = 0;
-
+int FloatToInt(float value, int roundDirection)
+{
     if (value >= 0.0) {
         if (roundDirection == eRoundDown)
-            intval = (int)value;
+            return static_cast<int>(value);
         else if (roundDirection == eRoundNearest)
-            intval = (int)(value + 0.5);
+            return static_cast<int>(value + 0.5);
         else if (roundDirection == eRoundUp)
-            intval = (int)(value + 0.999999);
+            return static_cast<int>(value + 0.999999);
         else
             quit("!FloatToInt: invalid round direction");
     }
     else {
         // negative number
         if (roundDirection == eRoundUp)
-            intval = (int)value; // this just truncates
+            return static_cast<int>(value); // this just truncates
         else if (roundDirection == eRoundNearest)
-            intval = (int)(value - 0.5);
+            return static_cast<int>(value - 0.5);
         else if (roundDirection == eRoundDown)
-            intval = (int)(value - 0.999999);
+            return static_cast<int>(value - 0.999999);
         else
             quit("!FloatToInt: invalid round direction");
     }
-
-    return intval;
+    return 0;
 }
 
-FLOAT_RETURN_TYPE IntToFloat(int value) {
-    float fval = (float)value;
-
-    RETURN_FLOAT(fval);
+float IntToFloat(int value)
+{
+    return static_cast<float>(value);
 }
 
-FLOAT_RETURN_TYPE StringToFloat(const char *theString) {
-    float fval = (float)atof(theString);
-
-    RETURN_FLOAT(fval);
+float StringToFloat(const char *theString)
+{
+    return static_cast<float>(atof(theString));
 }
 
-FLOAT_RETURN_TYPE Math_Cos(SCRIPT_FLOAT(value)) {
-    INIT_SCRIPT_FLOAT(value);
-
-    value = cos(value);
-
-    RETURN_FLOAT(value);
+float Math_Cos(float value)
+{
+    return cos(value);
 }
 
-FLOAT_RETURN_TYPE Math_Sin(SCRIPT_FLOAT(value)) {
-    INIT_SCRIPT_FLOAT(value);
-
-    value = sin(value);
-
-    RETURN_FLOAT(value);
+float Math_Sin(float value)
+{
+    return sin(value);
 }
 
-FLOAT_RETURN_TYPE Math_Tan(SCRIPT_FLOAT(value)) {
-    INIT_SCRIPT_FLOAT(value);
-
-    value = tan(value);
-
-    RETURN_FLOAT(value);
+float Math_Tan(float value)
+{
+    return tan(value);
 }
 
-FLOAT_RETURN_TYPE Math_ArcCos(SCRIPT_FLOAT(value)) {
-    INIT_SCRIPT_FLOAT(value);
-
-    value = acos(value);
-
-    RETURN_FLOAT(value);
+float Math_ArcCos(float value)
+{
+    return acos(value);
 }
 
-FLOAT_RETURN_TYPE Math_ArcSin(SCRIPT_FLOAT(value)) {
-    INIT_SCRIPT_FLOAT(value);
-
-    value = asin(value);
-
-    RETURN_FLOAT(value);
+float Math_ArcSin(float value)
+{
+    return asin(value);
 }
 
-FLOAT_RETURN_TYPE Math_ArcTan(SCRIPT_FLOAT(value)) {
-    INIT_SCRIPT_FLOAT(value);
-
-    value = atan(value);
-
-    RETURN_FLOAT(value);
+float Math_ArcTan(float value)
+{
+    return atan(value);
 }
 
-FLOAT_RETURN_TYPE Math_ArcTan2(SCRIPT_FLOAT(yval), SCRIPT_FLOAT(xval)) {
-    INIT_SCRIPT_FLOAT(yval);
-    INIT_SCRIPT_FLOAT(xval);
-
-    float value = atan2(yval, xval);
-
-    RETURN_FLOAT(value);
+float Math_ArcTan2(float yval, float xval)
+{
+    return atan2(yval, xval);
 }
 
-FLOAT_RETURN_TYPE Math_Log(SCRIPT_FLOAT(num)) {
-    INIT_SCRIPT_FLOAT(num);
-
-    float value = log(num);
-
-    RETURN_FLOAT(value);
+float Math_Log(float value)
+{
+    return log(value);
 }
 
-FLOAT_RETURN_TYPE Math_Log10(SCRIPT_FLOAT(num)) {
-    INIT_SCRIPT_FLOAT(num);
-
-    float value = ::log10(num);
-
-    RETURN_FLOAT(value);
+float Math_Log10(float value)
+{
+    return ::log10(value);
 }
 
-FLOAT_RETURN_TYPE Math_Exp(SCRIPT_FLOAT(num)) {
-    INIT_SCRIPT_FLOAT(num);
-
-    float value = exp(num);
-
-    RETURN_FLOAT(value);
+float Math_Exp(float value)
+{
+    return exp(value);
 }
 
-FLOAT_RETURN_TYPE Math_Cosh(SCRIPT_FLOAT(num)) {
-    INIT_SCRIPT_FLOAT(num);
-
-    float value = cosh(num);
-
-    RETURN_FLOAT(value);
+float Math_Cosh(float value)
+{
+    return cosh(value);
 }
 
-FLOAT_RETURN_TYPE Math_Sinh(SCRIPT_FLOAT(num)) {
-    INIT_SCRIPT_FLOAT(num);
-
-    float value = sinh(num);
-
-    RETURN_FLOAT(value);
+float Math_Sinh(float value)
+{
+    return sinh(value);
 }
 
-FLOAT_RETURN_TYPE Math_Tanh(SCRIPT_FLOAT(num)) {
-    INIT_SCRIPT_FLOAT(num);
-
-    float value = tanh(num);
-
-    RETURN_FLOAT(value);
+float Math_Tanh(float value)
+{
+    return tanh(value);
 }
 
-FLOAT_RETURN_TYPE Math_RaiseToPower(SCRIPT_FLOAT(base), SCRIPT_FLOAT(exp)) {
-    INIT_SCRIPT_FLOAT(base);
-    INIT_SCRIPT_FLOAT(exp);
-
-    float value = ::pow(base, exp);
-
-    RETURN_FLOAT(value);
+float Math_RaiseToPower(float base, float exp)
+{
+    return ::pow(base, exp);
 }
 
-FLOAT_RETURN_TYPE Math_DegreesToRadians(SCRIPT_FLOAT(value)) {
-    INIT_SCRIPT_FLOAT(value);
-
-    value = (float)(value * (M_PI / 180.0));
-
-    RETURN_FLOAT(value);
+float Math_DegreesToRadians(float value)
+{
+    return static_cast<float>(value * (M_PI / 180.0));
 }
 
-FLOAT_RETURN_TYPE Math_RadiansToDegrees(SCRIPT_FLOAT(value)) {
-    INIT_SCRIPT_FLOAT(value);
-
-    value = (float)(value * (180.0 / M_PI));
-
-    RETURN_FLOAT(value);
+float Math_RadiansToDegrees(float value)
+{
+    return static_cast<float>(value * (180.0 / M_PI));
 }
 
-FLOAT_RETURN_TYPE Math_GetPi() {
-    float pi = (float)M_PI;
-
-    RETURN_FLOAT(pi);
+float Math_GetPi()
+{
+    return static_cast<float>(M_PI);
 }
 
-FLOAT_RETURN_TYPE Math_Sqrt(SCRIPT_FLOAT(value)) {
-    INIT_SCRIPT_FLOAT(value);
-
+float Math_Sqrt(float value)
+{
     if (value < 0.0)
         quit("!Sqrt: cannot perform square root of negative number");
 
-    value = ::sqrt(value);
-
-    RETURN_FLOAT(value);
+    return ::sqrt(value);
 }
 
-int __Rand(int upto) {
+int __Rand(int upto)
+{
     upto++;
     if (upto < 1)
         quit("!Random: invalid parameter passed -- must be at least 0.");
@@ -227,112 +166,112 @@ int __Rand(int upto) {
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+// float (float value)
 RuntimeScriptValue Sc_Math_ArcCos(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_ArcCos);
+    API_SCALL_FLOAT_PFLOAT(Math_ArcCos);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+// float (float value)
 RuntimeScriptValue Sc_Math_ArcSin(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_ArcSin);
+    API_SCALL_FLOAT_PFLOAT(Math_ArcSin);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+// float (float value)
 RuntimeScriptValue Sc_Math_ArcTan(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_ArcTan);
+    API_SCALL_FLOAT_PFLOAT(Math_ArcTan);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(yval), SCRIPT_FLOAT(xval))
+// float (SCRIPT_FLOAT(yval), SCRIPT_FLOAT(xval))
 RuntimeScriptValue Sc_Math_ArcTan2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(Math_ArcTan2);
+    API_SCALL_FLOAT_PFLOAT2(Math_ArcTan2);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+// float (float value)
 RuntimeScriptValue Sc_Math_Cos(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Cos);
+    API_SCALL_FLOAT_PFLOAT(Math_Cos);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+// float (float value)
 RuntimeScriptValue Sc_Math_Cosh(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Cosh);
+    API_SCALL_FLOAT_PFLOAT(Math_Cosh);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+// float (float value)
 RuntimeScriptValue Sc_Math_DegreesToRadians(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_DegreesToRadians);
+    API_SCALL_FLOAT_PFLOAT(Math_DegreesToRadians);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+// float (float value)
 RuntimeScriptValue Sc_Math_Exp(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Exp);
+    API_SCALL_FLOAT_PFLOAT(Math_Exp);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+// float (float value)
 RuntimeScriptValue Sc_Math_Log(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Log);
+    API_SCALL_FLOAT_PFLOAT(Math_Log);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+// float (float value)
 RuntimeScriptValue Sc_Math_Log10(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Log10);
+    API_SCALL_FLOAT_PFLOAT(Math_Log10);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+// float (float value)
 RuntimeScriptValue Sc_Math_RadiansToDegrees(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_RadiansToDegrees);
+    API_SCALL_FLOAT_PFLOAT(Math_RadiansToDegrees);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(base), SCRIPT_FLOAT(exp))
+// float (SCRIPT_FLOAT(base), SCRIPT_FLOAT(exp))
 RuntimeScriptValue Sc_Math_RaiseToPower(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(Math_RaiseToPower);
+    API_SCALL_FLOAT_PFLOAT2(Math_RaiseToPower);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+// float (float value)
 RuntimeScriptValue Sc_Math_Sin(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Sin);
+    API_SCALL_FLOAT_PFLOAT(Math_Sin);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+// float (float value)
 RuntimeScriptValue Sc_Math_Sinh(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Sinh);
+    API_SCALL_FLOAT_PFLOAT(Math_Sinh);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+// float (float value)
 RuntimeScriptValue Sc_Math_Sqrt(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Sqrt);
+    API_SCALL_FLOAT_PFLOAT(Math_Sqrt);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+// float (float value)
 RuntimeScriptValue Sc_Math_Tan(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Tan);
+    API_SCALL_FLOAT_PFLOAT(Math_Tan);
 }
 
-// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+// float (float value)
 RuntimeScriptValue Sc_Math_Tanh(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Math_Tanh);
+    API_SCALL_FLOAT_PFLOAT(Math_Tanh);
 }
 
-// FLOAT_RETURN_TYPE ()
+// float ()
 RuntimeScriptValue Sc_Math_GetPi(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(Math_GetPi);
+    API_SCALL_FLOAT(Math_GetPi);
 }
 
 

@@ -14,6 +14,7 @@
 
 #include "ac/common.h"
 #include "ac/view.h"
+#include "ac/audiocliptype.h"
 #include "ac/audiochannel.h"
 #include "ac/character.h"
 #include "ac/charactercache.h"

@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/scriptaudioclip.h"
 #include "ac/gamesetupstruct.h"
 
 extern GameSetupStruct game;

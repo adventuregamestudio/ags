@@ -15,9 +15,6 @@
 #ifndef __AC_COMMON_H
 #define __AC_COMMON_H
 
-#include "ac/common_defines.h"
-#include "ac/game_version.h"
-
 // These are the project-dependent functions, they are defined both in Engine.App and AGS.Native.
 void quit(const char *);
 void quitprintf(const char *fmt, ...);

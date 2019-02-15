@@ -13,6 +13,7 @@ see the license.txt for details.
 #include <stdlib.h>
 #include "NativeMethods.h"
 #include "NativeUtils.h"
+#include "ac/game_version.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
 #include "util/multifilelib.h"

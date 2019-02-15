@@ -12,14 +12,13 @@
 //
 //=============================================================================
 
+#include "ac/audiocliptype.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/common.h"
-#include "core/asset.h"
-#include "core/assetmanager.h"
-#include "util/string_utils.h"      // fputstring, etc
-#include "util/string.h"
+#include "ac/oldgamesetupstruct.h"
+#include "ac/wordsdictionary.h"
+#include "ac/dynobj/scriptaudioclip.h"
+#include "game/interactions.h"
 #include "util/alignedstream.h"
-#include "util/math.h"
 
 using namespace AGS::Common;
 

@@ -14,6 +14,7 @@
 
 #include <map>
 
+#include "ac/audiocliptype.h"
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/dialogtopic.h"

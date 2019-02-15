@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#define USE_CLIB
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
 #include "media/audio/audiodefines.h"

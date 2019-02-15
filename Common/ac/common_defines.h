@@ -19,9 +19,11 @@
 #define EXIT_CRASH  92
 
 
+#if defined (OBSOLETE)
 #define NUM_MISC      20
 #define NUMOTCON      7                 // number of conditions before standing on
 #define NUM_CONDIT    (120 + NUMOTCON)
+#endif
 
 
 

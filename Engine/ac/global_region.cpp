@@ -14,6 +14,7 @@
 
 #include "ac/global_region.h"
 #include "ac/common.h"
+#include "ac/game_version.h"
 #include "ac/draw.h"
 #include "ac/region.h"
 #include "ac/roomstatus.h"

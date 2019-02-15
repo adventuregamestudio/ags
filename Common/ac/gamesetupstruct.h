@@ -19,22 +19,30 @@
 #define __AGS_CN_AC__GAMESETUPSTRUCT_H
 
 #include <vector>
-#include "ac/audiocliptype.h"        // AudioClipType
-#include "ac/game_version.h"
-#include "ac/inventoryiteminfo.h"   // InventoryItemInfo
-#include "ac/mousecursor.h"      // MouseCursor
+#include "ac/characterinfo.h" // TODO: constants to separate header
 #include "ac/gamesetupstructbase.h"
-#include "ac/oldgamesetupstruct.h"
-#include "ac/dynobj/scriptaudioclip.h" // ScriptAudioClip
+#include "ac/inventoryiteminfo.h"
+#include "ac/mousecursor.h"
 #include "game/customproperties.h"
-#include "game/interactions.h"
-#include "game/main_game_file.h"
+#include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
 
-namespace AGS { namespace Common { struct AssetLibInfo; } }
+namespace AGS
+{
+    namespace Common
+    {
+        struct AssetLibInfo;
+        struct Interaction;
+        struct InteractionScripts;
+    }
+}
 
 using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
 using AGS::Common::HGameFileError;
+struct ScriptAudioClip;
+struct AudioClipType;
+struct OldGameSetupStruct;
+
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
 struct GameSetupStruct: public GameSetupStructBase {

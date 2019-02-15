@@ -13,13 +13,10 @@
 //=============================================================================
 
 #include <algorithm>
-#include <stdlib.h>
 #include <string.h>
 #include "ac/wordsdictionary.h"
-#include "ac/common.h"
-#include "ac/common_defines.h"
-#include "util/string_utils.h"
 #include "util/stream.h"
+#include "util/string_utils.h" // stricmp
 
 using AGS::Common::Stream;
 
@@ -130,11 +127,14 @@ void read_dictionary (WordsDictionary *dict, Stream *out) {
   }
 }
 
+#if defined (OBSOLETE)
+// TODO: not a part of wordsdictionary, move to obsoletes
 void freadmissout(short *pptr, Stream *in) {
   in->ReadArrayOfInt16(&pptr[0], 5);
   in->ReadArrayOfInt16(&pptr[7], NUM_CONDIT - 7);
   pptr[5] = pptr[6] = 0;
 }
+#endif
 
 void encrypt_text(char *toenc) {
   int adx = 0, tobreak = 0;

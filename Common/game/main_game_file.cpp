@@ -12,10 +12,13 @@
 //
 //=============================================================================
 
+#include "ac/audiocliptype.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
+#include "ac/wordsdictionary.h"
+#include "ac/dynobj/scriptaudioclip.h"
 #include "core/asset.h"
 #include "core/assetmanager.h"
 #include "debug/out.h"

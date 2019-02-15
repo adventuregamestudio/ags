@@ -36,7 +36,7 @@
 #ifndef __AGS_CN_CORE__ASSETMANAGER_H
 #define __AGS_CN_CORE__ASSETMANAGER_H
 
-#include "util/file.h"
+#include "util/file.h" // TODO: extract filestream mode constants or introduce generic ones
 
 namespace AGS
 {

@@ -15,7 +15,6 @@
 #ifndef __AC_COMPRESS_H
 #define __AC_COMPRESS_H
 
-#include "core/types.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 namespace AGS { namespace Common { class Stream; class Bitmap; } }

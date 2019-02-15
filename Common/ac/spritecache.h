@@ -38,12 +38,13 @@
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
 #include <vector>
-#include "ac/gamestructdefines.h"
 #include "util/error.h"
 
 namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
 typedef AGS::Common::HError HAGSError;
+
+struct SpriteInfo;
 
 // We can't rely on offsets[slot]==0 because when the engine is running
 // this is changed to reference the Bluecup sprite. Therefore we need

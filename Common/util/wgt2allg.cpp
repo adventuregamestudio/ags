@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#define USE_CLIB
 #include "util/wgt2allg.h"
 #include "util/stream.h"
 #include "core/assetmanager.h"

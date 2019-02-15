@@ -13,6 +13,8 @@
 //=============================================================================
 
 #include "ac/common.h" // update_polled_stuff
+#include "ac/common_defines.h"
+#include "ac/gamestructdefines.h"
 #include "ac/spritecache.h"
 #include "ac/wordsdictionary.h"
 #include "debug/out.h"

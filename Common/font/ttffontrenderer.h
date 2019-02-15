@@ -15,12 +15,10 @@
 #ifndef __AC_TTFFONTRENDERER_H
 #define __AC_TTFFONTRENDERER_H
 
+#include <map>
 #include "font/agsfontrenderer.h"
 
-#include <map>
-
 struct ALFONT_FONT;
-struct FontRenderParams;
 
 class TTFFontRenderer : public IAGSFontRenderer, public IAGSFontRenderer2 {
 public:

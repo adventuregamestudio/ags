@@ -13,11 +13,10 @@
 //=============================================================================
 
 #include <algorithm>
-#include <memory>
 #include "font/wfnfont.h"
-#include "debug/assert.h"
 #include "debug/out.h"
 #include "util/memory.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 

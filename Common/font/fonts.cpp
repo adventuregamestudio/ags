@@ -12,20 +12,14 @@
 //
 //=============================================================================
 
-#ifndef USE_ALFONT
-#define USE_ALFONT
-#endif
-
-#include "alfont.h"
-
-#include "ac/common.h"
+#include <vector>
+#include <alfont.h>
+#include "ac/common.h" // set_our_eip
 #include "ac/gamestructdefines.h"
 #include "font/fonts.h"
-#include "font/agsfontrenderer.h"
 #include "font/ttffontrenderer.h"
 #include "font/wfnfontrenderer.h"
 #include "gfx/bitmap.h"
-#include "util/wgt2allg.h"
 
 using namespace AGS::Common;
 
@@ -69,18 +63,14 @@ FontInfo::FontInfo()
 
 void init_font_renderer()
 {
-#ifdef USE_ALFONT
   alfont_init();
   alfont_text_mode(-1);
-#endif
 }
 
 void shutdown_font_renderer()
 {
-#ifdef USE_ALFONT
   set_our_eip(9919);
   alfont_exit();
-#endif
 }
 
 void adjust_y_coordinate_for_text(int* ypos, size_t fontnum)

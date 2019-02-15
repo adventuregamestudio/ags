@@ -36,8 +36,10 @@ public:
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
 };
 
-
-struct FontRenderParams;
+// Font render params, mainly for dealing with various compatibility issues and
+// broken fonts. NOTE: currently left empty as a result of rewrite, but may be
+// used again in the future.
+struct FontRenderParams {};
 
 // NOTE: this extending interface is not yet exposed to plugins
 class IAGSFontRenderer2

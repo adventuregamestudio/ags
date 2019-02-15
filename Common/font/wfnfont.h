@@ -37,7 +37,9 @@
 #define __AGS_CN_FONT__WFNFONT_H
 
 #include <vector>
-#include "util/stream.h"
+#include "core/types.h"
+
+namespace AGS { namespace Common { class Stream; } }
 
 enum WFNError
 {

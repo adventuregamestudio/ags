@@ -15,20 +15,17 @@
 #ifndef __AC_FONT_H
 #define __AC_FONT_H
 
-#include "gfx/bitmap.h"
+#include "core/types.h"
 
 // TODO: we need to make some kind of TextManager class of this module
 
+namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS;
 
 class IAGSFontRenderer;
 class IAGSFontRenderer2;
 struct FontInfo;
-
-// Font render params, mainly for dealing with various compatibility issues and
-// broken fonts. NOTE: currently left empty as a result of rewrite, but may be
-// used again in the future.
-struct FontRenderParams {};
+struct FontRenderParams;
 
 void init_font_renderer();
 void shutdown_font_renderer();

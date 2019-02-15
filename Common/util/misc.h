@@ -44,7 +44,7 @@
 #ifndef __MISC_H
 #define __MISC_H
 
-#include "util/file.h"
+#include "util/file.h" // TODO: extract filestream mode constants
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

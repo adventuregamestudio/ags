@@ -12,38 +12,29 @@
 //
 //=============================================================================
 
-#ifndef USE_ALFONT
-#define USE_ALFONT
-#endif
-
-#include "alfont.h"
-#include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
+#include <alfont.h>
 #include "core/assetmanager.h"
-#include "font/fonts.h"
 #include "font/ttffontrenderer.h"
 #include "util/stream.h"
-#include "util/string.h"
+#if !defined(WINDOWS_VERSION) // TODO: factor out the hack in LoadFromDiskEx
+#include "ac/gamestructdefines.h"
+#include "font/fonts.h"
+#endif
 
-using AGS::Common::AssetManager;
-using AGS::Common::Stream;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();
 
-#ifdef USE_ALFONT
 ALFONT_FONT *tempttffnt;
 ALFONT_FONT *get_ttf_block(unsigned char* fontptr)
 {
   memcpy(&tempttffnt, &fontptr[4], sizeof(tempttffnt));
   return tempttffnt;
 }
-#endif // USE_ALFONT
 
 
 // ***** TTF RENDERER *****
-#ifdef USE_ALFONT	// declaration was not under USE_ALFONT though
-
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 {
   // TTF fonts already have space at the top, so try to remove the gap
@@ -136,5 +127,3 @@ void TTFFontRenderer::FreeMemory(int fontNumber)
   alfont_destroy_font(_fontData[fontNumber].AlFont);
   _fontData.erase(fontNumber);
 }
-
-#endif   // USE_ALFONT

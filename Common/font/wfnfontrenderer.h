@@ -15,10 +15,10 @@
 #ifndef __AC_WFNFONTRENDERER_H
 #define __AC_WFNFONTRENDERER_H
 
-#include "font/agsfontrenderer.h"
-#include "font/wfnfont.h"
-
 #include <map>
+#include "font/agsfontrenderer.h"
+
+class WFNFont;
 
 class WFNFontRenderer : public IAGSFontRenderer, public IAGSFontRenderer2 {
 public:

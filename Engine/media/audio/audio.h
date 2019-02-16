@@ -32,7 +32,6 @@ void        move_track_to_crossfade_channel(int currentChannel, int crossfadeSpe
 void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, ScriptAudioClip *newSound = NULL);
 int         find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptEqualPriority);
 SOUNDCLIP*  load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
-void        recache_queued_clips_after_loading_save_game();
 void        audio_update_polled_stuff();
 void        queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat);
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = NULL);

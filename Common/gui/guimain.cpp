@@ -569,24 +569,23 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
     }
 
-    size_t ctrls_read = ctrl_count;
+    // pre-3.4.0 games contained array of 32-bit pointers; these values are unused
+    // TODO: error if ctrl_count > LEGACY_MAX_OBJS_ON_GUI
     if (gui_version < kGuiVersion_340)
-    {
-        // TODO: error if ctrl_count > LEGACY_MAX_OBJS_ON_GUI
-        // array of 32-bit pointers; these values are unused
         in->Seek(LEGACY_MAX_OBJS_ON_GUI * sizeof(int32_t));
-        ctrls_read = LEGACY_MAX_OBJS_ON_GUI;
-    }
-    if (ctrls_read > 0)
+    if (ctrl_count > 0)
     {
-        _ctrlRefs.resize(ctrls_read);
-        for (size_t i = 0; i < ctrls_read; ++i)
+        _ctrlRefs.resize(ctrl_count);
+        for (size_t i = 0; i < ctrl_count; ++i)
         {
             const int32_t ref_packed = in->ReadInt32();
             _ctrlRefs[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
             _ctrlRefs[i].second = ref_packed & 0xFFFF;
         }
     }
+    // Skip unused control slots in pre-3.4.0 games
+    if (gui_version < kGuiVersion_340 && ctrl_count < LEGACY_MAX_OBJS_ON_GUI)
+        in->Seek((LEGACY_MAX_OBJS_ON_GUI - ctrl_count) * sizeof(int32_t));
 }
 
 void GUIMain::WriteToFile(Stream *out) const

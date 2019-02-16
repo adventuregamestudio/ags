@@ -12,14 +12,13 @@
 //
 //=============================================================================
 
-#include <stdio.h> // sprintf
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "debug/assert.h"
+#include "util/math.h"
 #include "util/stream.h"
 #include "util/string.h"
-#include "util/string_utils.h"
-#include "util/math.h"
+#include "util/string_utils.h" // stricmp
 
 namespace AGS
 {

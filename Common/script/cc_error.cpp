@@ -12,11 +12,10 @@
 //
 //=============================================================================
 
-#include <stdarg.h>
-#include <string.h>
+#include <stdio.h>
 #include <utility>
-#include "cc_error.h"
 #include "script/script_common.h"  // current_line
+#include "util/string.h"
 
 using namespace AGS::Common;
 

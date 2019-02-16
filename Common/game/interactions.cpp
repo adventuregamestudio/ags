@@ -12,12 +12,15 @@
 //
 //=============================================================================
 
+#include <string.h>
 #include "ac/common.h" // quit
 #include "game/interactions.h"
 #include "util/alignedstream.h"
 #include "util/math.h"
 
-AGS::Common::InteractionVariable globalvars[MAX_GLOBAL_VARIABLES] = {AGS::Common::InteractionVariable("Global 1", 0, 0)};
+using namespace AGS::Common;
+
+InteractionVariable globalvars[MAX_GLOBAL_VARIABLES] = {InteractionVariable("Global 1", 0, 0)};
 int numGlobalVars = 1;
 
 namespace AGS

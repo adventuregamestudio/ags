@@ -16,14 +16,11 @@
 //
 //=============================================================================
 
-#define MSS
-
 #include <stdlib.h>
-#include "ac/common.h"
+#include "ac/common.h" // quit
 #include "util/stream.h"
 
-using AGS::Common::Stream;
-using namespace AGS; // FIXME later
+using namespace AGS::Common;
 
 #ifdef _MANAGED
 // ensure this doesn't get compiled to .NET IL
@@ -125,7 +122,7 @@ void _delete(int z)
   }
 }
 
-void lzwcompress(Common::Stream *lzw_in, Common::Stream *out)
+void lzwcompress(Stream *lzw_in, Stream *out)
 {
   int ch, i, run, len, match, size, mask;
   char buf[17];
@@ -268,7 +265,7 @@ void lzwexpand(Stream *lzw_in, Stream *out)
   expand_to_mem = 0;
 }
 
-unsigned char *lzwexpand_to_mem(Common::Stream *in)
+unsigned char *lzwexpand_to_mem(Stream *in)
 {
   unsigned char *membuff = (unsigned char *)malloc(maxsize + 10);
   expand_to_mem = 1;

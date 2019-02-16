@@ -12,30 +12,20 @@
 //
 //=============================================================================
 
-#include <stdlib.h>
-#include "ac/common.h"	// quit()
-#include "util/compress.h"
-#include "util/lzw.h"
-#include "util/misc.h"
-#include "util/bbop.h"
-
 #ifdef _MANAGED
 // ensure this doesn't get compiled to .NET IL
 #pragma unmanaged
 #endif
 
+#include <stdlib.h>
+#include "ac/common.h"	// quit, update_polled_stuff
+#include "gfx/bitmap.h"
+#include "util/compress.h"
+#include "util/lzw.h"
 #include "util/misc.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
 
 using namespace AGS::Common;
-
-#ifndef __WGT4_H
-struct color
-{
-  unsigned char r, g, b;
-};
-#endif
 
 void cpackbitl(unsigned char *line, int size, Stream *out)
 {

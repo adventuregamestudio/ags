@@ -256,8 +256,6 @@
     <ClCompile Include="..\..\Common\script\cc_error.cpp" />
     <ClCompile Include="..\..\Common\script\cc_options.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
-    <ClCompile Include="..\..\Common\script\cc_treemap.cpp" />
-    <ClCompile Include="..\..\Common\script\script_common.cpp" />
     <ClCompile Include="..\..\Common\util\alignedstream.cpp" />
     <ClCompile Include="..\..\Common\util\compress.cpp" />
     <ClCompile Include="..\..\Common\util\datastream.cpp" />
@@ -336,7 +334,6 @@
     <ClInclude Include="..\..\Common\script\cc_error.h" />
     <ClInclude Include="..\..\Common\script\cc_options.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />
-    <ClInclude Include="..\..\Common\script\cc_treemap.h" />
     <ClInclude Include="..\..\Common\script\script_common.h" />
     <ClInclude Include="..\..\Common\util\alignedstream.h" />
     <ClInclude Include="..\..\Common\util\bbop.h" />

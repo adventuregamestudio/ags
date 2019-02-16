@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "util/filestream.h"
-#include "util/math.h"
 
 namespace AGS
 {

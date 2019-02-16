@@ -12,10 +12,10 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
-#include "util/stream.h"
 #include "core/assetmanager.h"
 #include "gfx/bitmap.h"
+#include "util/stream.h"
+#include "util/wgt2allg.h"
 
 using namespace AGS::Common;
 

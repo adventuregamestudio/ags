@@ -25,7 +25,7 @@ namespace AGS
 namespace Common
 {
 
-// TODO: move to more common header
+// TODO: replace with std::shared_ptr!!!
 enum ObjectOwnershipPolicy
 {
     kReleaseAfterUse,

@@ -59,10 +59,7 @@
     <ClCompile Include="..\..\Common\script\cc_script.cpp">
       <Filter>Source Files\cs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\script\cc_treemap.cpp">
-      <Filter>Source Files\cs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\script\script_common.cpp">
+    <ClCompile Include="..\..\Compiler\script\cc_treemap.cpp">
       <Filter>Source Files\cs</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,9 +74,6 @@
       <Filter>Header Files\cs</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_script.h">
-      <Filter>Header Files\cs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\script\cc_treemap.h">
       <Filter>Header Files\cs</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\script_common.h">
@@ -114,6 +108,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script\cs_prepro.h">
       <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cc_treemap.h">
+      <Filter>Header Files\cs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

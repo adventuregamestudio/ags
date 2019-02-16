@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <math.h>
 #include "ac/game_version.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"

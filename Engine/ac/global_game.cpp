@@ -51,6 +51,7 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"

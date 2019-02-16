@@ -30,6 +30,7 @@
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
+#include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 

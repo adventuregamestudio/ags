@@ -24,6 +24,7 @@
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
 #include <set>
+#include <vector>
 #include "ac/game_version.h"
 #include "game/plugininfo.h"
 #include "script/cc_script.h"

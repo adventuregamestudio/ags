@@ -13,21 +13,18 @@
 //=============================================================================
 
 #include <algorithm>
-#include "gui/guimain.h"
-#include "ac/gamesetupstruct.h"
-#include "gui/guibutton.h"
-#include "gui/guilabel.h"
-#include "gui/guislider.h"
-#include "gui/guiinv.h"
-#include "gui/guitextbox.h"
-#include "gui/guilistbox.h"
-#include "font/fonts.h"
+#include "ac/game_version.h"
 #include "ac/spritecache.h"
-#include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "gfx/gfx_def.h"
 #include "debug/out.h"
-#include "util/math.h"
+#include "font/fonts.h"
+#include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guimain.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
+#include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;

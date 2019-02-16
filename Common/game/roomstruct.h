@@ -40,13 +40,12 @@
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
 #include "game/interactions.h"
-#include "script/cc_script.h" // ccScript
 #include "util/geometry.h"
-#include "util/string_types.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 struct ccScript;
 struct SpriteInfo;
+typedef stdtr1compat::shared_ptr<ccScript> PScript;
 
 // TODO: move the following enums under AGS::Common namespace
 // later, when more engine source is put in AGS namespace and

@@ -19,7 +19,6 @@
 #ifndef __CC_ERROR_H
 #define __CC_ERROR_H
 
-#include "script/cc_script.h"
 #include "util/string.h"
 
 extern void cc_error(const char *, ...);

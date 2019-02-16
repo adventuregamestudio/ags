@@ -66,6 +66,7 @@
 #include "game/savegame.h"
 #include "game/savegame_internal.h"
 #include "gui/animatingguibutton.h"
+#include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"

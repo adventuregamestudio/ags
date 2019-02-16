@@ -16,9 +16,9 @@
 #define __AC_GUIMAIN_H
 
 #include <vector>
-#include "gui/guiobject.h"
-#include "ac/common_defines.h"       // AGS_INLINE
-#include "gfx/gfx_def.h"
+#include "ac/common_defines.h" // TODO: split out gui drawing helpers
+#include "gfx/gfx_def.h" // TODO: split out gui drawing helpers
+#include "gui/guidefines.h"
 #include "util/error.h"
 #include "util/geometry.h"
 #include "util/string.h"
@@ -49,6 +49,9 @@ enum LegacyGUIVisState
     kGUIVisibility_Off       =  0, // gui is disabled (won't show up by command)
     kGUIVisibility_On        =  1  // gui is shown by command
 };
+
+class Bitmap;
+class GUIObject;
 
 
 class GUIMain

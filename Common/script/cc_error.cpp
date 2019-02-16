@@ -14,6 +14,7 @@
 
 #include <stdarg.h>
 #include <string.h>
+#include <utility>
 #include "cc_error.h"
 #include "script/script_common.h"  // current_line
 

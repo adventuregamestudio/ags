@@ -27,7 +27,6 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(unordered_map)
-
 #include "util/string.h"
 #include "util/string_types.h"
 

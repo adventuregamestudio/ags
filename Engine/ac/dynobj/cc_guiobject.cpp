@@ -15,6 +15,7 @@
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
 #include "gui/guimain.h"
+#include "gui/guiobject.h"
 
 using AGS::Common::GUIObject;
 

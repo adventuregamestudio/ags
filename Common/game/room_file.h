@@ -23,6 +23,7 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
+#include <vector>
 #include "game/room_version.h"
 #include "util/error.h"
 #include "util/stream.h"

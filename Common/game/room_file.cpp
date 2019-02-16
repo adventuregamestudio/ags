@@ -15,15 +15,15 @@
 #include "ac/common.h" // update_polled_stuff
 #include "ac/common_defines.h"
 #include "ac/gamestructdefines.h"
-#include "ac/spritecache.h"
-#include "ac/wordsdictionary.h"
-#include "debug/out.h"
+#include "ac/wordsdictionary.h" // TODO: extract string decryption
 #include "core/assetmanager.h"
+#include "debug/out.h"
 #include "game/customproperties.h"
-#include "game/roomstruct.h"
 #include "game/room_file.h"
+#include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "script/cc_error.h"
+#include "script/cc_script.h"
 #include "util/compress.h"
 #include "util/string_utils.h"
 

@@ -12,9 +12,9 @@
 //
 //=============================================================================
 
-#include "ac/common.h"
-#include "gui/guiobject.h"
+#include "ac/common.h" // quit
 #include "gui/guimain.h"
+#include "gui/guiobject.h"
 #include "util/stream.h"
 
 namespace AGS

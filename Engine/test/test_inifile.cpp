@@ -184,7 +184,7 @@ void Test_IniFile()
 
         fs = File::OpenFileRead("test.ini");
         String ini_content;
-        ini_content.ReadCount(fs, fs->GetLength());
+        ini_content.ReadCount(fs, static_cast<size_t>(fs->GetLength()));
         
         assert(ini_content == IniFileText2);
     }

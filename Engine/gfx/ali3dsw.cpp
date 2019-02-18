@@ -448,7 +448,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         const ALSpriteBatch &batch = _spriteBatches[i];
 
         virtualScreen->SetClip(Rect::MoveBy(viewport, -_virtualScrOff.X, -_virtualScrOff.Y));
-        Bitmap *surface = static_cast<Bitmap*>(batch.Surface.get());
+        Bitmap *surface = batch.Surface.get();
         // TODO: correct transform offsets to have pre-scale (source) and post-scale (dest) offsets!
         int view_offx = viewport.Left + transform.X - _virtualScrOff.X;
         int view_offy = viewport.Top + transform.Y - _virtualScrOff.Y;

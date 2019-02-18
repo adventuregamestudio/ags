@@ -798,10 +798,15 @@ void D3DGraphicsDriver::SetupViewport()
   if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid())
     return;
 
+  const float src_width = _srcRect.GetWidth();
+  const float src_height = _srcRect.GetHeight();
+  const float disp_width = _mode.Width;
+  const float disp_height = _mode.Height;
+
   // Setup orthographic projection matrix
   D3DMATRIX matOrtho = {
-    (2.0 / (float)_srcRect.GetWidth()), 0.0, 0.0, 0.0,
-    0.0, (2.0 / (float)_srcRect.GetHeight()), 0.0, 0.0,
+    (2.0f / src_width), 0.0, 0.0, 0.0,
+    0.0, (2.0f / src_height), 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 1.0
   };
@@ -819,8 +824,8 @@ void D3DGraphicsDriver::SetupViewport()
 
   // See "Directly Mapping Texels to Pixels" MSDN article for why this is necessary
   // http://msdn.microsoft.com/en-us/library/windows/desktop/bb219690.aspx
-  _pixelRenderXOffset = ((float)_srcRect.GetWidth() / (float)_mode.Width) / 2.0f;
-  _pixelRenderYOffset = ((float)_srcRect.GetHeight() / (float)_mode.Height) / 2.0f;
+  _pixelRenderXOffset = (src_width / disp_width) / 2.0f;
+  _pixelRenderYOffset = (src_height / disp_height) / 2.0f;
 
   // Clear the screen before setting a viewport.
   ClearRectangle(0, 0, _mode.Width, _mode.Height, 0);

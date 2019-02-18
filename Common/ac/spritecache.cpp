@@ -104,7 +104,7 @@ sprkey_t SpriteCache::GetSpriteSlotCount() const
 sprkey_t SpriteCache::FindTopmostSprite() const
 {
     sprkey_t topmost = -1;
-    for (sprkey_t i = 0; i < _spriteData.size(); ++i)
+    for (sprkey_t i = 0; i < static_cast<sprkey_t>(_spriteData.size()); ++i)
         if (DoesSpriteExist(i))
             topmost = i;
     return topmost;
@@ -184,7 +184,7 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t newsize)
 
 sprkey_t SpriteCache::AddNewSprite()
 {
-    if (_spriteData.size() == MAX_SPRITE_INDEX + 1)
+    if (_spriteData.size() == MAX_SPRITE_SLOTS)
         return -1; // no more sprite allowed
     for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
     {

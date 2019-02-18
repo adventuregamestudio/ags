@@ -30,7 +30,7 @@ using namespace AGS; // FIXME later
 
 void pl_stop_plugins();
 void pl_startup_plugins();
-int  pl_run_plugin_hooks (int event, long data);
+int  pl_run_plugin_hooks (int event, int data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
 // Tries to register plugins, either by loading dynamic libraries, or getting any kind of replacement

@@ -22,6 +22,9 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
+#include "util/memory.h"
+
+using namespace AGS::Common::Memory;
 
 extern GameState play;
 extern AGSPlatformDriver *platform;
@@ -35,13 +38,9 @@ const char *get_translation (const char *text) {
     source_text_length = GetTextDisplayLength(text);
 
     // check if a plugin wants to translate it - if so, return that
-    char *plResult = (char*)pl_run_plugin_hooks(AGSE_TRANSLATETEXT, (long)text);
+    // TODO: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
+    char *plResult = Int32ToPtr<char>(pl_run_plugin_hooks(AGSE_TRANSLATETEXT, PtrToInt32(text)));
     if (plResult) {
-
-//  64bit: This is a wonky way to detect a valid pointer
-//  if (((int)plResult >= -1) && ((int)plResult < 10000))
-//    quit("!Plugin did not return a string for text translation");
-
         return plResult;
     }
 

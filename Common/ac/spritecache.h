@@ -91,6 +91,7 @@ class SpriteCache
 public:
     static const sprkey_t MIN_SPRITE_INDEX = 1; // 0 is reserved for "empty sprite"
     static const sprkey_t MAX_SPRITE_INDEX = INT32_MAX - 1;
+    static const size_t   MAX_SPRITE_SLOTS = INT32_MAX;
 
     SpriteCache(std::vector<SpriteInfo> &sprInfos);
     ~SpriteCache();

@@ -1175,16 +1175,16 @@ void get_local_tint(int xpp, int ypp, int nolight,
         if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0) {
             // check if the player is on a region, to find its
             // light/tint level
-            onRegion = GetRegionAt (xpp, ypp);
+            onRegion = GetRegionIDAtRoom(xpp, ypp);
             if (onRegion == 0) {
                 // when walking, he might just be off a walkable area
-                onRegion = GetRegionAt (xpp - 3, ypp);
+                onRegion = GetRegionIDAtRoom(xpp - 3, ypp);
                 if (onRegion == 0)
-                    onRegion = GetRegionAt (xpp + 3, ypp);
+                    onRegion = GetRegionIDAtRoom(xpp + 3, ypp);
                 if (onRegion == 0)
-                    onRegion = GetRegionAt (xpp, ypp - 3);
+                    onRegion = GetRegionIDAtRoom(xpp, ypp - 3);
                 if (onRegion == 0)
-                    onRegion = GetRegionAt (xpp, ypp + 3);
+                    onRegion = GetRegionIDAtRoom(xpp, ypp + 3);
             }
         }
 

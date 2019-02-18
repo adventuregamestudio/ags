@@ -259,13 +259,12 @@ ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *, int scrx, int scr
 {
     multiply_up_coordinates(&scrx, &scry);
 
-    const Rect &view = play.GetRoomViewport();
-    if (clipViewport && !view.IsInside(scrx, scry))
+    VpPoint vpt = play.ScreenToRoom(scrx, scry, clipViewport);
+    if (vpt.second < 0)
         return NULL;
-    Point pt = play.ScreenToRoom(scrx, scry);
 
-    divide_down_coordinates(pt.X, pt.Y);
-    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
+    divide_down_coordinates(vpt.first.X, vpt.first.Y);
+    return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
 ScriptUserObject *Sc_Viewport_RoomToScreenPoint(ScriptViewport *, int roomx, int roomy, bool clipViewport)

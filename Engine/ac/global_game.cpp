@@ -549,9 +549,11 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         return;
     }
     int loctype = GetLocationType (xxx, yyy);
-    Point roompt = play.ScreenToRoomDivDown(xxx, yyy);
-    xxx = roompt.X;
-    yyy = roompt.Y;
+    VpPoint vpt = play.ScreenToRoomDivDown(xxx, yyy);
+    if (vpt.second < 0)
+        return;
+    xxx = vpt.first.X;
+    yyy = vpt.first.Y;
     tempo[0]=0;
     if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return;
@@ -782,12 +784,14 @@ void SetMultitasking (int mode) {
 
 extern int getloctype_throughgui, getloctype_index;
 
-void ProcessClick(int xx,int yy,int mood) {
+void RoomProcessClick(int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    Point roompt = play.ScreenToRoomDivDown(xx, yy);
-    xx = roompt.X;
-    yy = roompt.Y;
+    VpPoint vpt = play.ScreenToRoomDivDown(xx, yy);
+    if (vpt.second < 0)
+        return;
+    xx = vpt.first.X;
+    yy = vpt.first.Y;
 
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
         int hsnum=get_hotspot_at(xx,yy);
@@ -823,9 +827,11 @@ void ProcessClick(int xx,int yy,int mood) {
 int IsInteractionAvailable (int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    Point roompt = play.ScreenToRoomDivDown(xx, yy);
-    xx = roompt.X;
-    yy = roompt.Y;
+    VpPoint vpt = play.ScreenToRoomDivDown(xx, yy);
+    if (vpt.second < 0)
+        return 0;
+    xx = vpt.first.X;
+    yy = vpt.first.Y;
 
     // You can always walk places
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0))

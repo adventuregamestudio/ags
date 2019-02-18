@@ -202,6 +202,7 @@ char pexbuf[STD_BUFFER_SIZE];
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
 
+// TODO: refactor these global vars into function arguments
 int getloctype_index = 0, getloctype_throughgui = 0;
 
 //=============================================================================
@@ -1795,9 +1796,11 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     const int scrx = xxx;
     const int scry = yyy;
-    Point roompt = play.ScreenToRoomDivDown(xxx, yyy);
-    xxx = roompt.X;
-    yyy = roompt.Y;
+    VpPoint vpt = play.ScreenToRoomDivDown(xxx, yyy);
+    if (vpt.second < 0)
+        return 0;
+    xxx = vpt.first.X;
+    yyy = vpt.first.Y;
     if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return 0;
 
@@ -1805,7 +1808,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     // foremost visible to the player
     int charat = is_pos_on_character(xxx,yyy);
     int hsat = get_hotspot_at(xxx,yyy);
-    int objat = GetObjectAt(scrx, scry);
+    int objat = GetObjectIDAtScreen(scrx, scry);
 
     multiply_up_coordinates(&xxx, &yyy);
 

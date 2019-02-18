@@ -71,8 +71,11 @@ int GetHotspotPointY (int hotspot) {
     return thisroom.Hotspots[hotspot].WalkTo.Y;
 }
 
-int GetHotspotAt(int scrx, int scry) {
-    Point pt = play.ScreenToRoomDivDown(scrx, scry);
+int GetHotspotIDAtScreen(int scrx, int scry) {
+    VpPoint vpt = play.ScreenToRoomDivDown(scrx, scry);
+    if (vpt.second < 0)
+        return 0;
+    Point pt = vpt.first;
     if ((pt.X>=thisroom.Width) | (pt.X<0) | (pt.Y<0) | (pt.Y>=thisroom.Height))
         return 0;
     return get_hotspot_at(pt.X, pt.Y);

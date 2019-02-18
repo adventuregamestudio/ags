@@ -215,12 +215,6 @@ Point GameState::RoomToScreen(int roomx, int roomy)
     return _roomViewport.Transform.Scale(Point(roomx - _roomCamera.Position.Left, roomy - _roomCamera.Position.Top));
 }
 
-Point GameState::RoomToScreenDivDown(int roomx, int roomy)
-{
-    return _roomViewport.Transform.Scale(Point(roomx - divide_down_coordinate(_roomCamera.Position.Left),
-        roomy - divide_down_coordinate(_roomCamera.Position.Top)));
-}
-
 int GameState::RoomToScreenX(int roomx)
 {
     return _roomViewport.Transform.X.ScalePt(roomx - _roomCamera.Position.Left);
@@ -231,20 +225,28 @@ int GameState::RoomToScreenY(int roomy)
     return _roomViewport.Transform.Y.ScalePt(roomy - _roomCamera.Position.Top);
 }
 
-Point GameState::ScreenToRoom(int scrx, int scry)
+VpPoint GameState::ScreenToRoom(int scrx, int scry, bool clip_viewport)
 {
-    Point p = _roomViewport.Transform.UnScale(Point(scrx, scry));
+    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v350;
+    Point screen_pt(scrx, scry);
+    if (clip_viewport && !_roomViewport.Position.IsInside(screen_pt))
+        return std::make_pair(Point(), -1);
+    Point p = _roomViewport.Transform.UnScale(screen_pt);
     p.X += _roomCamera.Position.Left;
     p.Y += _roomCamera.Position.Top;
-    return p;
+    return std::make_pair(p, 0);
 }
 
-Point GameState::ScreenToRoomDivDown(int scrx, int scry)
+VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry, bool clip_viewport)
 {
-    Point p = _roomViewport.Transform.UnScale(Point(scrx, scry));
+    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v350;
+    Point screen_pt(scrx, scry);
+    if (clip_viewport && !_roomViewport.Position.IsInside(screen_pt))
+        return std::make_pair(Point(), -1);
+    Point p = _roomViewport.Transform.UnScale(screen_pt);
     p.X += divide_down_coordinate(_roomCamera.Position.Left);
     p.Y += divide_down_coordinate(_roomCamera.Position.Top);
-    return p;
+    return std::make_pair(p, 0);
 }
 
 void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)

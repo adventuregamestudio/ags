@@ -147,7 +147,7 @@ int game_loop_check_ground_level_interactions()
         setevent(EV_RUNEVBLOCK, EVB_HOTSPOT, hotspotThere, 0);
 
         // check current region
-        int onRegion = GetRegionAt (playerchar->x, playerchar->y);
+        int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y);
         int inRoom = displayed_room;
 
         if (onRegion != play.player_on_region) {

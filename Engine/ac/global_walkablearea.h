@@ -22,6 +22,9 @@ int   GetScalingAt (int x, int y);
 void  SetAreaScaling(int area, int min, int max);
 void  RemoveWalkableArea(int areanum);
 void  RestoreWalkableArea(int areanum);
-int   GetWalkableAreaAt(int xxx,int yyy);
+// Gets walkable area at the given room coordinates
+int   GetWalkableAreaAtRoom(int x, int y);
+// Gets walkable area at the given screen coordinates
+int   GetWalkableAreaAtScreen(int x, int y);
 
 #endif // __AGS_EE_AC__GLOBALWALKABLEAREA_H

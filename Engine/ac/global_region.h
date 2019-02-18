@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_AC__GLOBALREGION_H
 #define __AGS_EE_AC__GLOBALREGION_H
 
-int  GetRegionAt (int xxx, int yyy);
+int  GetRegionIDAtRoom(int xxx, int yyy);
 void SetAreaLightLevel(int area, int brightness);
 void SetRegionTint (int area, int red, int green, int blue, int amount, int luminance = 100);
 void DisableRegion(int hsnum);

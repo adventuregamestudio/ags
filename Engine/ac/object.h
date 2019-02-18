@@ -28,7 +28,7 @@ using namespace AGS; // FIXME later
 
 AGS_INLINE int is_valid_object(int obtest);
 int     Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
-ScriptObject *GetObjectAtLocation(int xx, int yy);
+ScriptObject *GetObjectAtScreen(int xx, int yy);
 void    Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);
 void    Object_RemoveTint(ScriptObject *objj);
 void    Object_SetView(ScriptObject *objj, int view, int loop, int frame);
@@ -81,9 +81,9 @@ void    move_object(int objj,int tox,int toy,int spee,int ignwal);
 void    get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2);
 int     isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt);
 int     is_pos_in_sprite(int xx,int yy,int arx,int ary, Common::Bitmap *sprit, int spww,int sphh, int flipped = 0);
-// X and Y co-ordinates must be in 320x200 format
+// X and Y co-ordinates must be in native format
 // X and Y are ROOM coordinates
-int     check_click_on_object(int xx,int yy,int mood);
+int     check_click_on_object(int roomx, int roomy, int mood);
 
 #endif // __AGS_EE_AC__OBJECT_H
 

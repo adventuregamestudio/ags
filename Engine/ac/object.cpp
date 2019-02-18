@@ -55,8 +55,16 @@ int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {
     return AreObjectsColliding(objj->id, obj2->id);
 }
 
-ScriptObject *GetObjectAtLocation(int xx, int yy) {
-    int hsnum = GetObjectAt(xx, yy);
+ScriptObject *GetObjectAtScreen(int xx, int yy) {
+    int hsnum = GetObjectIDAtScreen(xx, yy);
+    if (hsnum < 0)
+        return NULL;
+    return &scrObj[hsnum];
+}
+
+ScriptObject *GetObjectAtRoom(int x, int y)
+{
+    int hsnum = GetObjectIDAtRoom(x, y);
     if (hsnum < 0)
         return NULL;
     return &scrObj[hsnum];
@@ -512,11 +520,10 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
     return TRUE;
 }
 
-// X and Y co-ordinates must be in 320x200 format (TODO: find out if this comment is still true)
-// X and Y are ROOM coordinates here for some reason, so we have to perform that ugly back-and-forth coordinate conversion
-int check_click_on_object(int xx,int yy,int mood) {
-    Point pt = play.RoomToScreenDivDown(xx, yy);
-    int aa = GetObjectAt(pt.X, pt.Y);
+// X and Y co-ordinates must be in native format (TODO: find out if this comment is still true)
+int check_click_on_object(int roomx, int roomy, int mood)
+{
+    int aa = GetObjectIDAtRoom(roomx, roomy);
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;
@@ -685,10 +692,15 @@ RuntimeScriptValue Sc_Object_Tint(void *self, const RuntimeScriptValue *params, 
     API_OBJCALL_VOID_PINT5(ScriptObject, Object_Tint);
 }
 
-// ScriptObject *(int xx, int yy)
-RuntimeScriptValue Sc_GetObjectAtLocation(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetObjectAtRoom(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtLocation);
+    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtRoom);
+}
+
+// ScriptObject *(int xx, int yy)
+RuntimeScriptValue Sc_GetObjectAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtScreen);
 }
 
 // int (ScriptObject *objj)
@@ -902,7 +914,8 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::Tint^5",                   Sc_Object_Tint);
 
     // static
-    ccAddExternalStaticFunction("Object::GetAtScreenXY^2",          Sc_GetObjectAtLocation);
+    ccAddExternalStaticFunction("Object::GetAtRoomXY^2",            Sc_GetObjectAtRoom);
+    ccAddExternalStaticFunction("Object::GetAtScreenXY^2",          Sc_GetObjectAtScreen);
 
     ccAddExternalObjectFunction("Object::get_Animating",            Sc_Object_GetAnimating);
     ccAddExternalObjectFunction("Object::get_Baseline",             Sc_Object_GetBaseline);
@@ -963,7 +976,8 @@ void RegisterObjectAPI()
     ccAddExternalFunctionForPlugin("Object::StopAnimating^0",          (void*)Object_StopAnimating);
     ccAddExternalFunctionForPlugin("Object::StopMoving^0",             (void*)Object_StopMoving);
     ccAddExternalFunctionForPlugin("Object::Tint^5",                   (void*)Object_Tint);
-    ccAddExternalFunctionForPlugin("Object::GetAtScreenXY^2",          (void*)GetObjectAtLocation);
+    ccAddExternalFunctionForPlugin("Object::GetAtRoomXY^2",            (void*)GetObjectAtRoom);
+    ccAddExternalFunctionForPlugin("Object::GetAtScreenXY^2",          (void*)GetObjectAtScreen);
     ccAddExternalFunctionForPlugin("Object::get_Animating",            (void*)Object_GetAnimating);
     ccAddExternalFunctionForPlugin("Object::get_Baseline",             (void*)Object_GetBaseline);
     ccAddExternalFunctionForPlugin("Object::set_Baseline",             (void*)Object_SetBaseline);

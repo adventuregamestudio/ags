@@ -257,6 +257,14 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define API_SCALL_FLOAT(FUNCTION) \
     return RuntimeScriptValue().SetFloat(FUNCTION())
 
+#define API_SCALL_FLOAT_PFLOAT(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 1) \
+    return RuntimeScriptValue().SetFloat(FUNCTION(params[0].FValue))
+
+#define API_SCALL_FLOAT_PFLOAT2(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    return RuntimeScriptValue().SetFloat(FUNCTION(params[0].FValue, params[1].FValue))
+
 #define API_SCALL_BOOL(FUNCTION) \
     return RuntimeScriptValue().SetInt32AsBool(FUNCTION())
 

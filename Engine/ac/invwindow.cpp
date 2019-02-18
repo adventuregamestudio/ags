@@ -352,7 +352,6 @@ bool InventoryScreen::Run()
     }
 
         timerloop = 0;
-        NEXT_ITERATION();
         refresh_gui_screen();
         //domouse(0);
         update_polled_audio_and_crossfade();

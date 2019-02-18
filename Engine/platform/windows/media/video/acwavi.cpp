@@ -41,7 +41,6 @@ using namespace AGS::Engine;
 extern void update_polled_audio_and_crossfade();
 extern void update_polled_stuff_if_runtime();
 extern int rec_mgetbutton();
-extern void NextIteration();
 extern void update_music_volume();
 extern int crossFading, crossFadeStep;
 extern volatile char want_exit;
@@ -384,7 +383,6 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
 
     while (currentlyPaused) ;
 
-    NextIteration();
     RenderToSurface(vscreen);
     //Sleep(0);
     int key;

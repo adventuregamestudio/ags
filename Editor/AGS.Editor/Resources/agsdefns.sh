@@ -2555,7 +2555,7 @@ builtin struct GameState {
   int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
   int  score_sound;
   int  previous_game_data;
-  int  replay_hotkey;
+  readonly int unused__041; // $AUTOCOMPLETEIGNORE$
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;

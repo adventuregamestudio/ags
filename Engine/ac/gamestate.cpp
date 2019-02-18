@@ -291,7 +291,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     game_speed_modifier = in->ReadInt32();
     score_sound = in->ReadInt32();
     takeover_data = in->ReadInt32();
-    replay_hotkey = in->ReadInt32();
+    replay_hotkey_unused = in->ReadInt32();
     dialog_options_x = in->ReadInt32();
     dialog_options_y = in->ReadInt32();
     narrator_speech = in->ReadInt32();
@@ -516,7 +516,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(game_speed_modifier);
     out->WriteInt32(score_sound);
     out->WriteInt32(takeover_data);
-    out->WriteInt32(replay_hotkey);
+    out->WriteInt32(replay_hotkey_unused);         // StartRecording: not supported
     out->WriteInt32(dialog_options_x);
     out->WriteInt32(dialog_options_y);
     out->WriteInt32(narrator_speech);

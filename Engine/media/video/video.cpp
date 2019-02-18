@@ -62,7 +62,6 @@ Bitmap *fli_target = NULL;
 int fliTargetWidth, fliTargetHeight;
 int check_if_user_input_should_cancel_video()
 {
-    NEXT_ITERATION();
     int key;
     if (run_service_key_controls(key)) {
         if ((key==27) && (canabort==1))

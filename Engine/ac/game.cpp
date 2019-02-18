@@ -1226,9 +1226,6 @@ void restore_game_play_ex_data(Stream *in)
 
 void restore_game_play(Stream *in)
 {
-    // preserve the replay settings
-    int playback_was = play.playback, recording_was = play.recording;
-    int gamestep_was = play.gamestep;
     int screenfadedout_was = play.screen_is_faded_out;
     int roomchanges_was = play.room_changes;
     // make sure the pointer is preserved
@@ -1237,9 +1234,6 @@ void restore_game_play(Stream *in)
     ReadGameState_Aligned(in);
 
     play.screen_is_faded_out = screenfadedout_was;
-    play.playback = playback_was;
-    play.recording = recording_was;
-    play.gamestep = gamestep_was;
     play.room_changes = roomchanges_was;
     play.gui_draw_order = gui_draw_order_was;
 
@@ -1702,9 +1696,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     our_eip = oldeip;
 
     // ensure keyboard buffer is clean
-    // use the raw versions rather than the rec_ versions so we don't
-    // interfere with the replay sync
-    while (keypressed()) readkey();
+    clear_input_buffer();
     // call "After Restore" event callback
     run_on_event(GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
     return HSaveError::None();

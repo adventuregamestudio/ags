@@ -77,7 +77,7 @@ struct GameState {
     int  game_speed_modifier;
     int  score_sound;
     int  takeover_data;  // value passed to RunAGSGame in previous game
-    int  replay_hotkey;
+    int  replay_hotkey_unused;  // (UNUSED!) StartRecording: not supported
     int  dialog_options_x;
     int  dialog_options_y;
     int  narrator_speech;
@@ -120,9 +120,6 @@ struct GameState {
     int  dialog_options_highlight_color; // The colour used for highlighted (hovered over) text in dialog options
     int  reserved[GAME_STATE_RESERVED_INTS];  // make sure if a future version adds a var, it doesn't mess anything up
     // ** up to here is referenced in the script "game." object
-    int   recording;   // user is recording their moves
-    int   playback;    // playing back recording
-    short gamestep;    // step number for matching recordings
     long  randseed;    // random seed
     int   player_on_region;    // player's current region
     int   screen_is_faded_out; // the screen is currently black

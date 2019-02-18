@@ -23,7 +23,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
-#include "ac/record.h"
 #include "ac/room.h"
 #include "ac/screen.h"
 #include "debug/debug_log.h"
@@ -48,19 +47,6 @@ extern std::vector<ccInstance *> moduleInst;
 extern int numScriptModules;
 extern CharacterInfo*playerchar;
 extern int convert_16bit_bgr;
-
-
-void start_game_check_replay()
-{
-    Debug::Printf("Checking replay status");
-
-    if (play.recording) {
-        start_recording();
-    }
-    else if (play.playback) {
-        start_playback();
-    }
-}
 
 void start_game_init_editor_debugging()
 {
@@ -148,11 +134,8 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
         }
 
         srand (play.randseed);
-        play.gamestep = 0;
         if (override_start_room)
             playerchar->room = override_start_room;
-
-        start_game_check_replay();
 
         Debug::Printf(kDbgMsg_Init, "Engine initialization complete");
         Debug::Printf(kDbgMsg_Init, "Starting game");

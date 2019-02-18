@@ -82,7 +82,6 @@ extern ViewStruct*views;
 extern int displayed_room;
 extern int eip_guinum;
 extern int eip_guiobj;
-extern const char *replayTempFile;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScriptSystem scsystem;
@@ -437,7 +436,6 @@ int engine_check_memory()
         return EXIT_NORMAL;
     }
     free(memcheck);
-    unlink (replayTempFile);
     return RETURN_CONTINUE;
 }
 
@@ -1136,7 +1134,7 @@ void engine_init_game_settings()
     play.speech_music_drop = 60;
     play.room_changes = 0;
     play.check_interaction_only = 0;
-    play.replay_hotkey = 318;  // Alt+R
+    play.replay_hotkey_unused = -1;  // StartRecording: not supported.
     play.dialog_options_x = 0;
     play.dialog_options_y = 0;
     play.min_dialogoption_width = 0;

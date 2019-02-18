@@ -138,7 +138,6 @@ void CSCIEraseWindow(int handl)
 
 int CSCIWaitMessage(CSCIMessage * cscim)
 {
-    NextIteration();
     for (int uu = 0; uu < MAXCONTROLS; uu++) {
         if (vobjs[uu] != NULL) {
             //      domouse(2);
@@ -151,7 +150,6 @@ int CSCIWaitMessage(CSCIMessage * cscim)
 
     while (1) {
         timerloop = 0;
-        NextIteration();
         refresh_gui_screen();
 
         cscim->id = -1;

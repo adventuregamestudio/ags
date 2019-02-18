@@ -32,7 +32,6 @@
 #include "ac/objectcache.h"
 #include "ac/parser.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "font/fonts.h"
@@ -60,6 +59,10 @@
 #include "ac/dynobj/scriptstring.h"
 #include "main/graphics_mode.h"
 #include "gfx/gfx_util.h"
+
+#ifdef __AGS_EE_AC__RECORD_H
+#error "Can't include record.h since we're interacting with mouse api directly"
+#endif
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -394,7 +397,6 @@ extern int  mgetbutton();
 
 void IAGSEngine::PollSystem () {
 
-    NEXT_ITERATION();
     domouse(DOMOUSE_NOCURSOR);
     update_polled_stuff_if_runtime();
     int mbut = mgetbutton();

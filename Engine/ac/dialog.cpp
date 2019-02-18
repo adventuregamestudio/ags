@@ -861,7 +861,6 @@ bool DialogOptions::Run()
       else
       {
         timerloop = 0;
-        NEXT_ITERATION();
 
         render_graphics(ddb, dirtyx, dirtyy);
       

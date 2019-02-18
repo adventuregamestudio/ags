@@ -76,7 +76,6 @@ extern GameState play;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;
 extern RoomObject*objs;
-extern int replay_start_this_time;
 extern char noWalkBehindsAtAll;
 extern RoomStatus*croom;
 extern CharacterExtras *charextra;
@@ -360,9 +359,6 @@ void check_keyboard_controls()
         return;
     // Now check for in-game controls
     {
-        // in case they press the finish-recording button, make sure we know
-        int was_playing = play.playback;
-        
         //    if (kgn==367) restart_game();
         //    if (kgn==2) Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed);
         //    if (kgn==2) CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear");
@@ -371,16 +367,6 @@ void check_keyboard_controls()
         //if (kgn == 2) SetCharacterIdle (game.playercharacter, 5, 0);
         //if (kgn == 2) Display("Some for?ign text");
         //if (kgn == 2) do_conversation(5);
-
-        if (kgn == play.replay_hotkey) {
-            // start/stop recording
-            if (play.recording)
-                stop_recording();
-            else if ((play.playback) || (was_playing))
-                ;  // do nothing (we got the replay of the stop key)
-            else
-                replay_start_this_time = 1;
-        }
 
         check_skip_cutscene_keypress (kgn);
 
@@ -519,7 +505,6 @@ void check_keyboard_controls()
 // check_controls: checks mouse & keyboard interface
 void check_controls() {
     our_eip = 1007;
-    NEXT_ITERATION();
 
     check_mouse_controls();
     check_keyboard_controls();
@@ -684,14 +669,6 @@ void game_loop_update_loop_counter()
     }
 }
 
-void game_loop_check_replay_record()
-{
-    if (replay_start_this_time) {
-        replay_start_this_time = 0;
-        start_replay_record();
-    }
-}
-
 void game_loop_update_fps()
 {
     if (time(NULL) != t1) {
@@ -778,8 +755,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     game_loop_update_background_animation();
 
     game_loop_update_loop_counter();
-
-    game_loop_check_replay_record();
 
     // Immediately start the next frame if we are skipping a cutscene
     if (play.fast_forward)
@@ -937,11 +912,6 @@ void GameLoopUntilEvent(int untilwhat,long daaa) {
   restrict_until = cached_restrict_until;
   user_disabled_data = cached_user_disabled_data;
   user_disabled_for = cached_user_disabled_for;
-}
-
-// for external modules to call
-void NextIteration() {
-    NEXT_ITERATION();
 }
 
 extern unsigned int load_new_game;

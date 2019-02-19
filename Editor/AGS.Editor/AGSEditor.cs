@@ -73,7 +73,9 @@ namespace AGS.Editor
          * 13: 3.4.0.9    - Settings.ScriptCompatLevel
          * 14: 3.4.1      - Settings.RenderAtScreenResolution
          * 15: 3.4.1.2    - DefaultSetup node
+         *     3.4.3      - Added missing audio properties to DefaultSetup [ forgot to change version index!! ]
          * 16: 3.5.0      - Unlimited fonts (need separate version to prevent crashes in older editors)
+         * 17: 3.5.0.4    - Extended sprite source properties
         */
         public const int    LATEST_XML_VERSION_INDEX = 17;
         /*

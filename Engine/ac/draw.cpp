@@ -33,7 +33,7 @@
 #include "ac/mouse.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"

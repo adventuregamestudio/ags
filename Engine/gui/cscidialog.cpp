@@ -21,7 +21,7 @@
 #include "ac/gui.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/runtime_defines.h"
 #include "font/fonts.h"
 #include "gui/cscidialog.h"

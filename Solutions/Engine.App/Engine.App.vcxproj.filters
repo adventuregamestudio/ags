@@ -396,7 +396,7 @@
     <ClCompile Include="..\..\Engine\ac\properties.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\record.cpp">
+    <ClCompile Include="..\..\Engine\ac\sys_events.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\region.cpp">
@@ -1226,7 +1226,7 @@
     <ClInclude Include="..\..\Engine\ac\properties.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\record.h">
+    <ClInclude Include="..\..\Engine\ac\sys_events.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\region.h">

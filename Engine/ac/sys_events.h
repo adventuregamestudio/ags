@@ -15,12 +15,8 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__RECORD_H
-#define __AGS_EE_AC__RECORD_H
-
-#pragma GCC poison kbhit rec_kbhit  rec_mgetbutton rec_domouse  rec_misbuttondown getch rec_getch
-#pragma GCC poison check_mouse_wheel clear_input_buffer wait_until_keypress  rec_isSpeechFinished rec_iskeypressed
-// #pragma GCC poison domouse mgetbutton misbuttondown
+#ifndef __AGS_EE_AC__SYS_EVENTS_H
+#define __AGS_EE_AC__SYS_EVENTS_H
 
 int  ags_getch ();
 int  ags_kbhit ();
@@ -34,4 +30,4 @@ int  ags_check_mouse_wheel ();
 // Clears buffered keypresses and mouse clicks, if any
 void ags_clear_input_buffer();
 
-#endif // __AGS_EE_AC__RECORD_H
+#endif // __AGS_EE_AC__SYS_EVENTS_H

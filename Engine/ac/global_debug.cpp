@@ -25,7 +25,7 @@
 #include "ac/global_room.h"
 #include "ac/movelist.h"
 #include "ac/properties.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/tree_map.h"
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"

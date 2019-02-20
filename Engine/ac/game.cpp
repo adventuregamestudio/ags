@@ -42,7 +42,7 @@
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/region.h"
 #include "ac/richgamemedia.h"
 #include "ac/room.h"

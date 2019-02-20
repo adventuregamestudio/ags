@@ -24,7 +24,7 @@
 #include "ac/global_display.h"
 #include "ac/global_room.h"
 #include "ac/mouse.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "debug/debug_log.h"
 #include "gui/guidialog.h"
 #include "main/game_run.h"

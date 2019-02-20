@@ -12,15 +12,13 @@
 //
 //=============================================================================
 
-// TODO: ags3--remove-record  : move into a different spot. input.cpp ? input_Events?  sys_events?
-
 #include "ac/common.h"
 #include "media/audio/audiodefines.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "media/audio/soundclip.h"
 #include "device/mousew32.h"
 

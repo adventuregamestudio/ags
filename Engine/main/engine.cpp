@@ -32,7 +32,7 @@
 #include "ac/lipsync.h"
 #include "ac/objectcache.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/roomstatus.h"
 #include "ac/speech.h"
 #include "ac/translation.h"

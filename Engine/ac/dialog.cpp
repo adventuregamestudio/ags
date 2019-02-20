@@ -32,7 +32,7 @@
 #include "ac/overlay.h"
 #include "ac/mouse.h"
 #include "ac/parser.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/string.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"

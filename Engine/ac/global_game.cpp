@@ -35,7 +35,7 @@
 #include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"

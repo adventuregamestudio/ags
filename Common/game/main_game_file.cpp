@@ -12,13 +12,15 @@
 //
 //=============================================================================
 
+#include "ac/audiocliptype.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
+#include "ac/wordsdictionary.h"
+#include "ac/dynobj/scriptaudioclip.h"
 #include "core/asset.h"
 #include "core/assetmanager.h"
-#include "debug/out.h"
 #include "game/main_game_file.h"
 #include "gui/guimain.h"
 #include "script/cc_error.h"
@@ -74,6 +76,8 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
         return "Failed to load dialog script.";
     case kMGFErr_CreateScriptModuleFailed:
         return "Failed to load script module.";
+    case kMGFErr_GameEntityFailed:
+        return "Failed to load one or more game entities.";
     case kMGFErr_PluginDataFmtNotSupported:
         return "Format version of plugin data is not supported.";
     case kMGFErr_PluginDataSizeTooLarge:
@@ -512,7 +516,9 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     game.read_messages(in, data_ver);
 
     ReadDialogs(ents.Dialogs, in, data_ver, game.numdialog);
-    GUI::ReadGUI(guis, in);
+    HError err2 = GUI::ReadGUI(guis, in);
+    if (!err2)
+        return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
     game.numgui = guis.size();
 
     if (data_ver >= kGameVersion_260)

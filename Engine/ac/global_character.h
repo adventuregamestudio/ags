@@ -71,7 +71,7 @@ int  GetPlayerCharacter();
 //void GetCharacterPropertyText (int item, const char *property, char *bufer);// [DEPRECATED]
 
 int GetCharacterSpeechAnimationDelay(CharacterInfo *cha);
-int GetCharacterAt (int xx, int yy);
+int GetCharIDAtScreen(int xx, int yy);
 
 void SetActiveInventory(int iit);// [DEPRECATED] but still used in Character_SetAsPlayer
 //void AddInventoryToCharacter(int charid, int inum);// [DEPRECATED]

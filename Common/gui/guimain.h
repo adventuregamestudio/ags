@@ -16,9 +16,10 @@
 #define __AC_GUIMAIN_H
 
 #include <vector>
-#include "gui/guiobject.h"
-#include "ac/common_defines.h"       // AGS_INLINE
-#include "gfx/gfx_def.h"
+#include "ac/common_defines.h" // TODO: split out gui drawing helpers
+#include "gfx/gfx_def.h" // TODO: split out gui drawing helpers
+#include "gui/guidefines.h"
+#include "util/error.h"
 #include "util/geometry.h"
 #include "util/string.h"
 
@@ -48,6 +49,9 @@ enum LegacyGUIVisState
     kGUIVisibility_Off       =  0, // gui is disabled (won't show up by command)
     kGUIVisibility_On        =  1  // gui is shown by command
 };
+
+class Bitmap;
+class GUIObject;
 
 
 class GUIMain
@@ -85,14 +89,26 @@ public:
     // the user can grab tiny controls
     int32_t FindControlUnderMouse(int leeway) const;
     int32_t FindControlUnderMouse(int leeway, bool must_be_clickable) const;
+    // Gets the number of the GUI child controls
+    int32_t GetControlCount() const;
+    // Gets control by its child's index
+    GUIObject *GetControl(int index) const;
+    // Gets child control's type, looks up with child's index
     GUIControlType GetControlType(int index) const;
+    // Gets child control's global ID, looks up with child's index
+    int32_t GetControlID(int index) const;
+
+    // Child control management
+    // Note that currently GUIMain does not own controls (should not delete them)
+    void    AddControl(GUIControlType type, int id, GUIObject *control);
+    void    RemoveAllControls();
 
     // Operations
     bool    BringControlToFront(int index);
     void    Draw(Bitmap *ds);
     void    DrawAt(Bitmap *ds, int x, int y);
     void    Poll();
-    void    RebuildArray();
+    HError  RebuildArray();
     void    ResortZOrder();
     bool    SendControlToBack(int index);
     // Sets whether GUI should react to player clicking on it
@@ -127,7 +143,7 @@ private:
 
     // TODO: all members are currently public; hide them later
 public:
-    int32_t Id;             // GUI identifier
+    int32_t ID;             // GUI identifier
     String  Name;           // the name of the GUI
 
     int32_t X;
@@ -152,15 +168,17 @@ public:
 
     String  OnClickHandler; // script function name
 
-    std::vector<GUIObject*> Controls; // array of child controls
-    std::vector<int32_t>    CtrlRefs; // for re-building controls array
-    std::vector<int16_t>    CtrlDrawOrder;
-
-    // TODO: remove these later
-    int32_t ControlCount;   // number of objects on gui
-
 private:
-    int32_t Flags;          // style and behavior flags
+    int32_t _flags;          // style and behavior flags
+
+    // Array of types and control indexes in global GUI object arrays;
+    // maps GUI child slots to actual controls and used for rebuilding Controls array
+    typedef std::pair<GUIControlType, int32_t> ControlRef;
+    std::vector<ControlRef> _ctrlRefs;
+    // Array of child control references (not exclusively owned!)
+    std::vector<GUIObject*> _controls;
+    // Sorted array of controls in z-order.
+    std::vector<int32_t>    _ctrlDrawOrder;
 };
 
 
@@ -177,7 +195,7 @@ namespace GUI
 
     // TODO: remove is_savegame param after dropping support for old saves
     // because only they use ReadGUI to read runtime GUI data
-    void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame = false);
+    HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame = false);
     void WriteGUI(const std::vector<GUIMain> &guis, Stream *out);
     // Converts legacy GUIVisibility into appropriate GUIMain properties
     void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);

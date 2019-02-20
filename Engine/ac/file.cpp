@@ -12,9 +12,9 @@
 //
 //=============================================================================
 
-#define USE_CLIB
 #include "aldumb.h"
 #include "ac/asset_helper.h"
+#include "ac/audiocliptype.h"
 #include "ac/file.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"

@@ -10,6 +10,7 @@
 
 #include "util/wgt2allg.h"
 #include "ac/common_defines.h"
+#include "ac/gamestructdefines.h"
 #include "ac/spritecache.h"
 
 //=============================================================================

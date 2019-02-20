@@ -12,10 +12,9 @@
 //
 //=============================================================================
 
-#include "font/agsfontrenderer.h"
 #include "font/fonts.h"
-#include "gui/guitextbox.h"
 #include "gui/guimain.h"
+#include "gui/guitextbox.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 

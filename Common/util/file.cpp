@@ -18,9 +18,7 @@
 #include <unistd.h> // for unlink()
 #endif
 #include <errno.h>
-#include "util/file.h"
 #include "util/filestream.h"
-#include "util/stdio_compat.h"
 
 namespace AGS
 {

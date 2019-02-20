@@ -13,22 +13,18 @@
 //=============================================================================
 
 #include <algorithm>
-#include "gui/guimain.h"
-#include "ac/common.h"	// quit()
-#include "ac/gamesetupstruct.h"
-#include "gui/guibutton.h"
-#include "gui/guilabel.h"
-#include "gui/guislider.h"
-#include "gui/guiinv.h"
-#include "gui/guitextbox.h"
-#include "gui/guilistbox.h"
-#include "font/fonts.h"
+#include "ac/game_version.h"
 #include "ac/spritecache.h"
-#include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "gfx/gfx_def.h"
 #include "debug/out.h"
-#include "util/math.h"
+#include "font/fonts.h"
+#include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guimain.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
+#include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -51,9 +47,9 @@ GUIMain::GUIMain()
 
 void GUIMain::InitDefaults()
 {
-    Id            = 0;
+    ID            = 0;
     Name.Empty();
-    Flags         = kGUIMain_DefFlags;
+    _flags        = kGUIMain_DefFlags;
 
     X             = 0;
     Y             = 0;
@@ -77,22 +73,21 @@ void GUIMain::InitDefaults()
 
     OnClickHandler.Empty();
 
-    Controls.clear();
-    CtrlRefs.clear();
-    CtrlDrawOrder.clear();
-    ControlCount = 0;
+    _controls.clear();
+    _ctrlRefs.clear();
+    _ctrlDrawOrder.clear();
 }
 
 int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
 {
-    for (int i = ControlCount - 1; i >= 0; --i)
+    for (size_t i = _controls.size(); i-- > 0;)
     {
-        const int ctrl_index = CtrlDrawOrder[i];
-        if (!Controls[ctrl_index]->IsVisible())
+        const int ctrl_index = _ctrlDrawOrder[i];
+        if (!_controls[ctrl_index]->IsVisible())
             continue;
-        if (!Controls[ctrl_index]->IsClickable() && must_be_clickable)
+        if (!_controls[ctrl_index]->IsClickable() && must_be_clickable)
             continue;
-        if (Controls[ctrl_index]->IsOverControl(mousex, mousey, leeway))
+        if (_controls[ctrl_index]->IsOverControl(mousex, mousey, leeway))
             return ctrl_index;
     }
     return -1;
@@ -108,21 +103,40 @@ int GUIMain::FindControlUnderMouse(int leeway) const
     return FindControlUnderMouse(leeway, true);
 }
 
+int GUIMain::GetControlCount() const
+{
+    return (int32_t)_controls.size();
+}
+
+GUIObject *GUIMain::GetControl(int index) const
+{
+    if (index < 0 || (size_t)index >= _controls.size())
+        return NULL;
+    return _controls[index];
+}
+
 GUIControlType GUIMain::GetControlType(int index) const
 {
-    if (index < 0 || index >= ControlCount)
+    if (index < 0 || (size_t)index >= _ctrlRefs.size())
         return kGUIControlUndefined;
-    return (GUIControlType)((CtrlRefs[index] >> 16) & 0x0000ffff);
+    return _ctrlRefs[index].first;
+}
+
+int32_t GUIMain::GetControlID(int index) const
+{
+    if (index < 0 || (size_t)index >= _ctrlRefs.size())
+        return -1;
+    return _ctrlRefs[index].second;
 }
 
 bool GUIMain::IsClickable() const
 {
-    return (Flags & kGUIMain_Clickable) != 0;
+    return (_flags & kGUIMain_Clickable) != 0;
 }
 
 bool GUIMain::IsConcealed() const
 {
-    return (Flags & kGUIMain_Concealed) != 0;
+    return (_flags & kGUIMain_Concealed) != 0;
 }
 
 bool GUIMain::IsDisplayed() const
@@ -143,17 +157,29 @@ bool GUIMain::IsInteractableAt(int x, int y) const
 
 bool GUIMain::IsTextWindow() const
 {
-    return (Flags & kGUIMain_TextWindow) != 0;
+    return (_flags & kGUIMain_TextWindow) != 0;
 }
 
 bool GUIMain::IsVisible() const
 {
-    return (Flags & kGUIMain_Visible) != 0;
+    return (_flags & kGUIMain_Visible) != 0;
+}
+
+void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
+{
+    _ctrlRefs.push_back(std::make_pair(type, id));
+    _controls.push_back(control);
+}
+
+void GUIMain::RemoveAllControls()
+{
+    _ctrlRefs.clear();
+    _controls.clear();
 }
 
 bool GUIMain::BringControlToFront(int index)
 {
-    return SetControlZOrder(index, ControlCount - 1);
+    return SetControlZOrder(index, (int)_controls.size() - 1);
 }
 
 void GUIMain::Draw(Bitmap *ds)
@@ -195,11 +221,11 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
     SET_EIP(379)
 
-    for (int ctrl_index = 0; ctrl_index < ControlCount; ++ctrl_index)
+    for (size_t ctrl_index = 0; ctrl_index < _controls.size(); ++ctrl_index)
     {
-        set_eip_guiobj(CtrlDrawOrder[ctrl_index]);
+        set_eip_guiobj(_ctrlDrawOrder[ctrl_index]);
 
-        GUIObject *objToDraw = Controls[CtrlDrawOrder[ctrl_index]];
+        GUIObject *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
 
         if (!objToDraw->IsEnabled() && gui_disabled_style == GUIDIS_BLACKOUT)
             continue;
@@ -210,7 +236,7 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
         int selectedColour = 14;
 
-        if (HighlightCtrl == CtrlDrawOrder[ctrl_index])
+        if (HighlightCtrl == _ctrlDrawOrder[ctrl_index])
         {
             if (outlineGuiObjects)
                 selectedColour = 13;
@@ -257,16 +283,16 @@ void GUIMain::Poll()
         int ctrl_index = FindControlUnderMouse();
 
         if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
-            Controls[MouseDownCtrl]->OnMouseMove(mousex, mousey);
+            _controls[MouseDownCtrl]->OnMouseMove(mousex, mousey);
         else if (ctrl_index != MouseOverCtrl)
         {
             if (MouseOverCtrl >= 0)
-                Controls[MouseOverCtrl]->OnMouseLeave();
+                _controls[MouseOverCtrl]->OnMouseLeave();
 
-            if (ctrl_index >= 0 && !Controls[ctrl_index]->IsEnabled())
+            if (ctrl_index >= 0 && !_controls[ctrl_index]->IsEnabled())
                 // the control is disabled - ignore it
                 MouseOverCtrl = -1;
-            else if (ctrl_index >= 0 && !Controls[ctrl_index]->IsClickable())
+            else if (ctrl_index >= 0 && !_controls[ctrl_index]->IsClickable())
                 // the control is not clickable - ignore it
                 MouseOverCtrl = -1;
             else
@@ -275,14 +301,14 @@ void GUIMain::Poll()
                 MouseOverCtrl = ctrl_index;
                 if (MouseOverCtrl >= 0)
                 {
-                    Controls[MouseOverCtrl]->OnMouseEnter();
-                    Controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
+                    _controls[MouseOverCtrl]->OnMouseEnter();
+                    _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
                 }
             }
             guis_need_update = 1;
         } 
         else if (MouseOverCtrl >= 0)
-            Controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
+            _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
     }
 
     MouseWasAt.X = mousex;
@@ -291,39 +317,41 @@ void GUIMain::Poll()
     mousey = mywas;
 }
 
-void GUIMain::RebuildArray()
+HError GUIMain::RebuildArray()
 {
-    int thistype, thisnum;
+    GUIControlType thistype;
+    int32_t thisnum;
 
-    Controls.resize(ControlCount);
-    for (int i = 0; i < ControlCount; ++i)
+    _controls.resize(_ctrlRefs.size());
+    for (size_t i = 0; i < _controls.size(); ++i)
     {
-        thistype = (CtrlRefs[i] >> 16) & 0x000ffff;
-        thisnum = CtrlRefs[i] & 0x0000ffff;
+        thistype = _ctrlRefs[i].first;
+        thisnum = _ctrlRefs[i].second;
 
-        if (thisnum < 0 || thisnum >= 2000)
-            quit("GUIMain: rebuild array failed (invalid object index)");
+        if (thisnum < 0)
+            return new Error(String::FromFormat("GUIMain (%d): invalid control ID %d in ref #%d", ID, thisnum, i));
 
         if (thistype == kGUIButton)
-            Controls[i] = &guibuts[thisnum];
+            _controls[i] = &guibuts[thisnum];
         else if (thistype == kGUILabel)
-            Controls[i] = &guilabels[thisnum];
+            _controls[i] = &guilabels[thisnum];
         else if (thistype == kGUIInvWindow)
-            Controls[i] = &guiinv[thisnum];
+            _controls[i] = &guiinv[thisnum];
         else if (thistype == kGUISlider)
-            Controls[i] = &guislider[thisnum];
+            _controls[i] = &guislider[thisnum];
         else if (thistype == kGUITextBox)
-            Controls[i] = &guitext[thisnum];
+            _controls[i] = &guitext[thisnum];
         else if (thistype == kGUIListBox)
-            Controls[i] = &guilist[thisnum];
+            _controls[i] = &guilist[thisnum];
         else
-            quit("guimain: unknown control type found On gui");
+            return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", ID, thistype, i));
 
-        Controls[i]->ParentId = Id;
-        Controls[i]->Id = i;
+        _controls[i]->ParentId = ID;
+        _controls[i]->Id = i;
     }
 
     ResortZOrder();
+    return HError::None();
 }
 
 bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
@@ -333,28 +361,28 @@ bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
 
 void GUIMain::ResortZOrder()
 {
-    std::vector<GUIObject*> ctrl_sort = Controls;
+    std::vector<GUIObject*> ctrl_sort = _controls;
     std::sort(ctrl_sort.begin(), ctrl_sort.end(), GUIControlZOrder);
 
-    CtrlDrawOrder.resize(ctrl_sort.size());
-    for (int i = 0; i < ControlCount; ++i)
-        CtrlDrawOrder[i] = ctrl_sort[i]->Id;
+    _ctrlDrawOrder.resize(ctrl_sort.size());
+    for (size_t i = 0; i < ctrl_sort.size(); ++i)
+        _ctrlDrawOrder[i] = ctrl_sort[i]->Id;
 }
 
 void GUIMain::SetClickable(bool on)
 {
     if (on)
-        Flags |= kGUIMain_Clickable;
+        _flags |= kGUIMain_Clickable;
     else
-        Flags &= ~kGUIMain_Clickable;
+        _flags &= ~kGUIMain_Clickable;
 }
 
 void GUIMain::SetConceal(bool on)
 {
     if (on)
-        Flags |= kGUIMain_Concealed;
+        _flags |= kGUIMain_Concealed;
     else
-        Flags &= ~kGUIMain_Concealed;
+        _flags &= ~kGUIMain_Concealed;
 }
 
 bool GUIMain::SendControlToBack(int index)
@@ -364,29 +392,29 @@ bool GUIMain::SendControlToBack(int index)
 
 bool GUIMain::SetControlZOrder(int index, int zorder)
 {
-    if (index < 0 || index >= ControlCount)
+    if (index < 0 || (size_t)index >= _controls.size())
         return false; // no such control
 
-    zorder = Math::Clamp(zorder, 0, ControlCount - 1);
-    const int old_zorder = Controls[index]->ZOrder;
+    zorder = Math::Clamp(zorder, 0, (int)_controls.size() - 1);
+    const int old_zorder = _controls[index]->ZOrder;
     if (old_zorder == zorder)
         return false; // no change
 
     const bool move_back = zorder < old_zorder; // back is at zero index
     const int  left      = move_back ? zorder : old_zorder;
     const int  right     = move_back ? old_zorder : zorder;
-    for (int i = 0; i < ControlCount; ++i)
+    for (size_t i = 0; i < _controls.size(); ++i)
     {
-        const int i_zorder = Controls[i]->ZOrder;
+        const int i_zorder = _controls[i]->ZOrder;
         if (i_zorder == old_zorder)
-            Controls[i]->ZOrder = zorder; // the control we are moving
+            _controls[i]->ZOrder = zorder; // the control we are moving
         else if (i_zorder >= left && i_zorder <= right)
         {
             // controls in between old and new positions shift towards free place
             if (move_back)
-                Controls[i]->ZOrder++; // move to front
+                _controls[i]->ZOrder++; // move to front
             else
-                Controls[i]->ZOrder--; // move to back
+                _controls[i]->ZOrder--; // move to back
         }
     }
     ResortZOrder();
@@ -397,9 +425,9 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
 void GUIMain::SetTextWindow(bool on)
 {
     if (on)
-        Flags |= kGUIMain_TextWindow;
+        _flags |= kGUIMain_TextWindow;
     else
-        Flags &= ~kGUIMain_TextWindow;
+        _flags &= ~kGUIMain_TextWindow;
 }
 
 void GUIMain::SetTransparencyAsPercentage(int percent)
@@ -410,9 +438,9 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 void GUIMain::SetVisible(bool on)
 {
     if (on)
-        Flags |= kGUIMain_Visible;
+        _flags |= kGUIMain_Visible;
     else
-        Flags &= ~kGUIMain_Visible;
+        _flags &= ~kGUIMain_Visible;
 }
 
 void GUIMain::OnControlPositionChanged()
@@ -428,14 +456,14 @@ void GUIMain::OnMouseButtonDown()
         return;
 
     // don't activate disabled buttons
-    if (!Controls[MouseOverCtrl]->IsEnabled() || !Controls[MouseOverCtrl]->IsVisible() ||
-        !Controls[MouseOverCtrl]->IsClickable())
+    if (!_controls[MouseOverCtrl]->IsEnabled() || !_controls[MouseOverCtrl]->IsVisible() ||
+        !_controls[MouseOverCtrl]->IsClickable())
     return;
 
     MouseDownCtrl = MouseOverCtrl;
-    if (Controls[MouseOverCtrl]->OnMouseDown())
+    if (_controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
-    Controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
+    _controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
     guis_need_update = 1;
 }
 
@@ -452,7 +480,7 @@ void GUIMain::OnMouseButtonUp()
     if (MouseDownCtrl < 0)
         return;
 
-    Controls[MouseDownCtrl]->OnMouseUp();
+    _controls[MouseDownCtrl]->OnMouseUp();
     MouseDownCtrl = -1;
     guis_need_update = 1;
 }
@@ -482,7 +510,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     { // NOTE: reading into actual variables only for old savegame support
         FocusCtrl = in->ReadInt32();
     }
-    ControlCount  = in->ReadInt32();
+    const size_t ctrl_count = in->ReadInt32();
     PopupStyle    = (GUIPopupStyle)in->ReadInt32();
     PopupAtMouseY = in->ReadInt32();
     BgColor       = in->ReadInt32();
@@ -496,10 +524,10 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
         MouseDownCtrl = in->ReadInt32();
         HighlightCtrl = in->ReadInt32();
     }
-    Flags         = in->ReadInt32();
+    _flags         = in->ReadInt32();
     Transparency  = in->ReadInt32();
     ZOrder        = in->ReadInt32();
-    Id            = in->ReadInt32();
+    ID            = in->ReadInt32();
     Padding       = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
         in->Seek(sizeof(int32_t) * GUIMAIN_LEGACY_RESERVED_INTS);
@@ -507,25 +535,29 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (gui_version < kGuiVersion_350)
     {
         if (tw_flags[0] == kGUIMain_LegacyTextWindow)
-            Flags |= kGUIMain_TextWindow;
+            _flags |= kGUIMain_TextWindow;
         // reverse particular flags from older format
-        Flags ^= kGUIMain_OldFmtXorMask;
+        _flags ^= kGUIMain_OldFmtXorMask;
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
     }
 
+    // pre-3.4.0 games contained array of 32-bit pointers; these values are unused
+    // TODO: error if ctrl_count > LEGACY_MAX_OBJS_ON_GUI
     if (gui_version < kGuiVersion_340)
-    {
-        CtrlRefs.resize(LEGACY_MAX_OBJS_ON_GUI);
-        // array of 32-bit pointers; these values are unused
         in->Seek(LEGACY_MAX_OBJS_ON_GUI * sizeof(int32_t));
-        in->ReadArrayOfInt32(&CtrlRefs.front(), LEGACY_MAX_OBJS_ON_GUI);
-    }
-    else
+    if (ctrl_count > 0)
     {
-        CtrlRefs.resize(ControlCount);
-        if (ControlCount > 0)
-            in->ReadArrayOfInt32(&CtrlRefs.front(), ControlCount);
+        _ctrlRefs.resize(ctrl_count);
+        for (size_t i = 0; i < ctrl_count; ++i)
+        {
+            const int32_t ref_packed = in->ReadInt32();
+            _ctrlRefs[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
+            _ctrlRefs[i].second = ref_packed & 0xFFFF;
+        }
     }
+    // Skip unused control slots in pre-3.4.0 games
+    if (gui_version < kGuiVersion_340 && ctrl_count < LEGACY_MAX_OBJS_ON_GUI)
+        in->Seek((LEGACY_MAX_OBJS_ON_GUI - ctrl_count) * sizeof(int32_t));
 }
 
 void GUIMain::WriteToFile(Stream *out) const
@@ -536,25 +568,28 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteInt32(Y);
     out->WriteInt32(Width);
     out->WriteInt32(Height);
-    out->WriteInt32(ControlCount);
+    out->WriteInt32(_ctrlRefs.size());
     out->WriteInt32(PopupStyle);
     out->WriteInt32(PopupAtMouseY);
     out->WriteInt32(BgColor);
     out->WriteInt32(BgImage);
     out->WriteInt32(FgColor);
-    out->WriteInt32(Flags);
+    out->WriteInt32(_flags);
     out->WriteInt32(Transparency);
     out->WriteInt32(ZOrder);
-    out->WriteInt32(Id);
+    out->WriteInt32(ID);
     out->WriteInt32(Padding);
-    if (ControlCount > 0)
-        out->WriteArrayOfInt32(&CtrlRefs.front(), ControlCount);
+    for (size_t i = 0; i < _ctrlRefs.size(); ++i)
+    {
+        int32_t ref_packed = ((_ctrlRefs[i].first & 0xFFFF) << 16) | (_ctrlRefs[i].second & 0xFFFF);
+        out->WriteInt32(ref_packed);
+    }
 }
 
 void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
 {
     // Properties
-    Flags = in->ReadInt32();
+    _flags = in->ReadInt32();
     X = in->ReadInt32();
     Y = in->ReadInt32();
     Width = in->ReadInt32();
@@ -564,7 +599,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     if (svg_version < kGuiSvgVersion_350)
     {
         // reverse particular flags from older format
-        Flags ^= kGUIMain_OldFmtXorMask;
+        _flags ^= kGUIMain_OldFmtXorMask;
         GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
     }
     ZOrder = in->ReadInt32();
@@ -589,7 +624,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
 void GUIMain::WriteToSavegame(Common::Stream *out) const
 {
     // Properties
-    out->WriteInt32(Flags);
+    out->WriteInt32(_flags);
     out->WriteInt32(X);
     out->WriteInt32(Y);
     out->WriteInt32(Width);
@@ -643,16 +678,18 @@ void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_col
     wouttext_outline(ds, x, y, font, text_color, text);
 }
 
-void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
+HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
 {
     // set up the reverse-lookup array
     for (size_t gui_index = 0; gui_index < guis.size(); ++gui_index)
     {
         GUIMain &gui = guis[gui_index];
-        gui.RebuildArray();
-        for (size_t ctrl_index = 0; ctrl_index < gui.Controls.size(); ++ctrl_index)
+        HError err = gui.RebuildArray();
+        if (!err)
+            return err;
+        for (int ctrl_index = 0; ctrl_index < gui.GetControlCount(); ++ctrl_index)
         {
-            GUIObject *gui_ctrl = gui.Controls[ctrl_index];
+            GUIObject *gui_ctrl = gui.GetControl(ctrl_index);
             gui_ctrl->ParentId = gui_index;
             gui_ctrl->Id = ctrl_index;
             if (bwcompat_ctrl_zorder)
@@ -661,12 +698,13 @@ void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
         gui.ResortZOrder();
     }
     guis_need_update = 1;
+    return HError::None();
 }
 
-void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
+HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
-        quit("ReadGUI: file is corrupt");
+        return new Error("ReadGUI: unknown format or file is corrupt");
 
     GameGuiVersion = (GuiVersion)in->ReadInt32();
     Debug::Printf(kDbgMsg_Init, "Game GUI version: %d", GameGuiVersion);
@@ -677,7 +715,8 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
         GameGuiVersion = kGuiVersion_Initial;
     }
     else if (GameGuiVersion > kGuiVersion_Current)
-        quit("ReadGUI: this game requires a newer version of AGS");
+        return new Error(String::FromFormat("ReadGUI: format version not supported (required %d, supported %d - %d)",
+            GameGuiVersion, kGuiVersion_Initial, kGuiVersion_Current));
     else
         gui_count = in->ReadInt32();
     guis.resize(gui_count);
@@ -713,7 +752,7 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
         if (gui.PopupStyle == kGUIPopupMouseY)
             gui.SetConceal(true);
         // Assign ID to order in array
-        gui.Id = i;
+        gui.ID = i;
     }
 
     // buttons
@@ -768,7 +807,7 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
             guilist[i].ReadFromFile(in, GameGuiVersion);
         }
     }
-    ResortGUI(guis, GameGuiVersion < kGuiVersion_272e);
+    return ResortGUI(guis, GameGuiVersion < kGuiVersion_272e);
 }
 
 void WriteGUI(const std::vector<GUIMain> &guis, Stream *out)

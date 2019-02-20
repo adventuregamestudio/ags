@@ -20,12 +20,15 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptUserObject : ICCDynamicObject
+struct ScriptUserObject final : ICCDynamicObject
 {
 public:
     ScriptUserObject();
+    
+protected:
     virtual ~ScriptUserObject();
 
+public:
     static ScriptUserObject *CreateManaged(size_t size);
     void            Create(const char *data, size_t size);
 

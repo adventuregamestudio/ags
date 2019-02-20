@@ -12,8 +12,11 @@
 //
 //=============================================================================
 
+#include "ac/characterinfo.h"
 #include "ac/gamesetupstructbase.h"
 #include "ac/game_version.h"
+#include "ac/wordsdictionary.h"
+#include "script/cc_script.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
@@ -32,7 +35,24 @@ GameSetupStructBase::GameSetupStructBase()
 
 GameSetupStructBase::~GameSetupStructBase()
 {
-    delete [] load_messages;
+    Free();
+}
+
+void GameSetupStructBase::Free()
+{
+    for (int i = 0; i < MAXGLOBALMES; ++i)
+    {
+        delete[] messages[i];
+        messages[i] = NULL;
+    }
+    delete[] load_messages;
+    load_messages = NULL;
+    delete dict;
+    dict = NULL;
+    delete globalscript;
+    globalscript = NULL;
+    delete[] chars;
+    chars = NULL;
 }
 
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType resolution_type)

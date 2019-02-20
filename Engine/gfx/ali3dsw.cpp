@@ -448,7 +448,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         const ALSpriteBatch &batch = _spriteBatches[i];
 
         virtualScreen->SetClip(Rect::MoveBy(viewport, -_virtualScrOff.X, -_virtualScrOff.Y));
-        Bitmap *surface = static_cast<Bitmap*>(batch.Surface.get());
+        Bitmap *surface = batch.Surface.get();
         // TODO: correct transform offsets to have pre-scale (source) and post-scale (dest) offsets!
         int view_offx = viewport.Left + transform.X - _virtualScrOff.X;
         int view_offy = viewport.Top + transform.Y - _virtualScrOff.Y;
@@ -707,9 +707,9 @@ void initialize_fade_256(int r, int g, int b) {
   }
 }
 
-void ALSoftwareGraphicsDriver::__fade_from_range(PALLETE source, PALLETE dest, int speed, int from, int to) 
+void ALSoftwareGraphicsDriver::__fade_from_range(PALETTE source, PALETTE dest, int speed, int from, int to) 
 {
-   PALLETE temp;
+   PALETTE temp;
    int c;
 
    for (c=0; c<PAL_SIZE; c++)
@@ -717,20 +717,20 @@ void ALSoftwareGraphicsDriver::__fade_from_range(PALLETE source, PALLETE dest, i
 
    for (c=0; c<64; c+=speed) {
       fade_interpolate(source, dest, temp, c, from, to);
-      set_pallete_range(temp, from, to, TRUE);
+      set_palette_range(temp, from, to, TRUE);
       if (_pollingCallback) _pollingCallback();
-      set_pallete_range(temp, from, to, TRUE);
+      set_palette_range(temp, from, to, TRUE);
    }
 
-   set_pallete_range(dest, from, to, TRUE);
+   set_palette_range(dest, from, to, TRUE);
 }
 
 void ALSoftwareGraphicsDriver::__fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) 
 {
-   PALLETE temp;
+   PALETTE temp;
 
    initialize_fade_256(targetColourRed, targetColourGreen, targetColourBlue);
-   get_pallete(temp);
+   get_palette(temp);
    __fade_from_range(temp, faded_out_palette, speed, from, to);
 }
 
@@ -744,7 +744,7 @@ void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targe
 
 }
 
-void ALSoftwareGraphicsDriver::FadeIn(int speed, PALLETE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
+void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
   if (_mode.ColorDepth > 8) {
 
     highcolor_fade_in(virtualScreen, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);

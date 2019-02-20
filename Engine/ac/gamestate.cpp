@@ -225,12 +225,16 @@ int GameState::RoomToScreenY(int roomy)
     return _roomViewport.Transform.Y.ScalePt(roomy - _roomCamera.Position.Top);
 }
 
-Point GameState::ScreenToRoom(int scrx, int scry)
+VpPoint GameState::ScreenToRoom(int scrx, int scry, bool clip_viewport)
 {
-    Point p = _roomViewport.Transform.UnScale(Point(scrx, scry));
+    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v350;
+    Point screen_pt(scrx, scry);
+    if (clip_viewport && !_roomViewport.Position.IsInside(screen_pt))
+        return std::make_pair(Point(), -1);
+    Point p = _roomViewport.Transform.UnScale(screen_pt);
     p.X += _roomCamera.Position.Left;
     p.Y += _roomCamera.Position.Top;
-    return p;
+    return std::make_pair(p, 0);
 }
 
 void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)

@@ -125,8 +125,6 @@ public:
     void RemoveSection(SectionIterator sec);
 
 private:
-    void MakeItemDef(const String &key, const String &value, ItemDef &itemdef);
-
     LSections _sections;
 };
 

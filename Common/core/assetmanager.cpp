@@ -12,15 +12,10 @@
 //
 //=============================================================================
 
-#include <string.h>
-#include <stdlib.h>
-#include "core/asset.h"
 #include "core/assetmanager.h"
-#include "debug/assert.h"
-#include "util/misc.h"
+#include "util/misc.h" // ci_fopen
 #include "util/multifilelib.h"
 #include "util/path.h"
-#include "util/stream.h"
 #include "util/string_utils.h"
 
 

@@ -17,7 +17,7 @@
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 
-struct ScriptDialogOptionsRendering : AGSCCDynamicObject {
+struct ScriptDialogOptionsRendering final : AGSCCDynamicObject {
     int x, y, width, height;
     bool hasAlphaChannel;
     int parserTextboxX, parserTextboxY;

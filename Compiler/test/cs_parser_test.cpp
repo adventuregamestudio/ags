@@ -2,20 +2,28 @@
 #include "script/cs_parser.h"
 #include "script/cc_symboltable.h"
 #include "script/cc_internallist.h"
+#include "util/string.h"
+
+typedef AGS::Common::String AGSString;
 
 extern int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip);
+extern int currentline; // in script/script_common
 
-char *last_seen_cc_error = 0;
+const char *last_seen_cc_error;
 
-void cc_error_at_line(char *buffer, const char *error_msg)
+// IMPORTANT: the last_seen_cc_error must contain unformatted error message.
+// It is being used in test and compared to hard-coded strings.
+std::pair<AGSString, AGSString> cc_error_at_line(const char *error_msg)
 {
     // printf("error: %s\n", error_msg);
     last_seen_cc_error = _strdup(error_msg);
+    return std::make_pair(AGSString::FromFormat("Error (line %d): %s", currentline, error_msg), AGSString());
 }
 
-void cc_error_without_line(char *buffer, const char *error_msg)
+AGSString cc_error_without_line(const char *error_msg)
 {
     last_seen_cc_error = _strdup(error_msg);
+    return AGSString::FromFormat("Error (line unknown): %s", error_msg);
 }
 
 ccCompiledScript *newScriptFixture() {

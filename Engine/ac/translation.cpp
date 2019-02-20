@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#define USE_CLIB
 #include "ac/asset_helper.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
@@ -22,6 +21,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
 #include "ac/tree_map.h"
+#include "ac/wordsdictionary.h"
 #include "debug/out.h"
 #include "util/misc.h"
 #include "util/stream.h"

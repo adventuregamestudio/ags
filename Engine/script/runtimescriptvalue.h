@@ -213,11 +213,11 @@ public:
         return *this;
     }
     // TODO: size?
-    inline RuntimeScriptValue &SetStringLiteral(char *str)
+    inline RuntimeScriptValue &SetStringLiteral(const char *str)
     {
         Type    = kScValStringLiteral;
         IValue  = 0;
-        Ptr     = str;
+        Ptr     = const_cast<char *>(str);
         MgrPtr  = NULL;
         Size    = 4;
         return *this;

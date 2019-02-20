@@ -36,8 +36,7 @@ extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 
-// CLNUP why not using PALETTE instead of the mispelled term and how to take away the 8bit portion ?
-void my_fade_in(PALLETE p, int speed) {
+void my_fade_in(PALETTE p, int speed) {
     if (game.color_depth > 1) {
         set_palette (p);
 
@@ -145,11 +144,10 @@ ScriptViewport* Screen_GetViewport()
 
 ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
 {
-    const Rect &view = play.GetRoomViewport();
-    if (!view.IsInside(scrx, scry))
+    VpPoint vpt = play.ScreenToRoom(scrx, scry);
+    if (vpt.second < 0)
         return NULL;
-    Point pt = play.ScreenToRoom(scrx, scry);
-    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
+    return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
 RuntimeScriptValue Sc_Screen_GetScreenHeight(const RuntimeScriptValue *params, int32_t param_count)

@@ -37,7 +37,9 @@
 #define __AGS_CN_FONT__WFNFONT_H
 
 #include <vector>
-#include "util/stream.h"
+#include "core/types.h"
+
+namespace AGS { namespace Common { class Stream; } }
 
 enum WFNError
 {
@@ -75,7 +77,7 @@ class WFNFont
 public:
     inline uint16_t GetCharCount() const
     {
-        return _refs.size();
+        return static_cast<uint16_t>(_refs.size());
     }
 
     // Get WFN character for the given code; if the character is missing, returns empty character
@@ -87,7 +89,7 @@ public:
     void Clear();
     // Reads WFNFont object, using data_size bytes from stream; if data_size = 0,
     // the available stream's length is used instead. Returns error code.
-    WFNError ReadFromFile(AGS::Common::Stream *in, const size_t data_size = 0);
+    WFNError ReadFromFile(AGS::Common::Stream *in, const soff_t data_size = 0);
 
 protected:
     std::vector<const WFNChar*> _refs;      // reference array, contains pointers to elements of _items

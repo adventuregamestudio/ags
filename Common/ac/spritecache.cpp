@@ -22,7 +22,8 @@
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 #endif
 
-#include "ac/common.h"
+#include "ac/common.h" // quit
+#include "ac/gamestructdefines.h"
 #include "ac/spritecache.h"
 #include "core/assetmanager.h"
 #include "debug/out.h"
@@ -102,7 +103,7 @@ sprkey_t SpriteCache::GetSpriteSlotCount() const
 sprkey_t SpriteCache::FindTopmostSprite() const
 {
     sprkey_t topmost = -1;
-    for (sprkey_t i = 0; i < (sprkey_t)_spriteData.size(); ++i)
+    for (sprkey_t i = 0; i < static_cast<sprkey_t>(_spriteData.size()); ++i)
         if (DoesSpriteExist(i))
             topmost = i;
     return topmost;
@@ -182,7 +183,7 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t newsize)
 
 sprkey_t SpriteCache::AddNewSprite()
 {
-    if (_spriteData.size() == MAX_SPRITE_INDEX + 1)
+    if (_spriteData.size() == MAX_SPRITE_SLOTS)
         return -1; // no more sprite allowed
     for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
     {
@@ -657,16 +658,16 @@ int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sp
     return 0;
 }
 
-int SpriteCache::InitFile(const char *filnam)
+HError SpriteCache::InitFile(const char *filnam)
 {
     SpriteFileVersion vers;
     char buff[20];
     soff_t spr_initial_offs = 0;
     int spriteFileID = 0;
 
-    _stream.reset(Common::AssetManager::OpenAsset((char *)filnam));
+    _stream.reset(Common::AssetManager::OpenAsset(filnam));
     if (_stream == NULL)
-        return -1;
+        return new Error(String::FromFormat("Failed to open spriteset file '%s'.", filnam));
 
     spr_initial_offs = _stream->GetPosition();
 
@@ -677,7 +678,7 @@ int SpriteCache::InitFile(const char *filnam)
     if (vers < kSprfVersion_Uncompressed || vers > kSprfVersion_Current)
     {
         _stream.reset();
-        return -1;
+        return new Error(String::FromFormat("Unsupported spriteset format (requested %d, supported %d - %d).", vers, kSprfVersion_Uncompressed, kSprfVersion_Current));
     }
 
     // unknown version
@@ -685,7 +686,7 @@ int SpriteCache::InitFile(const char *filnam)
     if (strcmp(buff, spriteFileSig))
     {
         _stream.reset();
-        return -1;
+        return new Error("Uknown spriteset format.");
     }
 
     if (vers == kSprfVersion_Uncompressed)
@@ -722,7 +723,7 @@ int SpriteCache::InitFile(const char *filnam)
     if (LoadSpriteIndexFile(spriteFileID, spr_initial_offs, topmost))
     {
         // Succeeded
-        return 0;
+        return HError::None();
     }
 
     // failed, delete the index file because it's invalid
@@ -732,7 +733,7 @@ int SpriteCache::InitFile(const char *filnam)
     return RebuildSpriteIndex(_stream.get(), topmost, vers);
 }
 
-int SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers)
+HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers)
 {
     // no sprite index file, manually index it
     for (sprkey_t i = 0; i <= topmost; ++i)
@@ -785,7 +786,7 @@ int SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, S
     }
 
     _sprite0InitialOffset = _spriteData[0].Offset;
-    return 0;
+    return HError::None();
 }
 
 bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost)

@@ -20,7 +20,6 @@
 #define __AGS_CN_CORE__ASSET_H
 
 #include <vector>
-#include "api/stream_api.h"
 #include "util/string.h"
 
 namespace AGS

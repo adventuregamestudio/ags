@@ -73,12 +73,17 @@ void RestoreWalkableArea(int areanum) {
   debug_script_log("Walkable area %d restored", areanum);
 }
 
-
-int GetWalkableAreaAt(int x, int y) {
-  Point roompt = play.ScreenToRoom(x, y);
-  if ((roompt.X>=thisroom.Width) | (roompt.X<0) | (roompt.Y<0) | (roompt.Y>=thisroom.Height))
+int GetWalkableAreaAtScreen(int x, int y) {
+  VpPoint vpt = play.ScreenToRoom(x, y);
+  if (vpt.second < 0)
     return 0;
-  int result = get_walkable_area_pixel(roompt.X, roompt.Y);
+  return GetWalkableAreaAtRoom(vpt.first.X, vpt.first.Y);
+}
+
+int GetWalkableAreaAtRoom(int x, int y) {
+  if ((x>=thisroom.Width) | (x<0) | (y<0) | (y>=thisroom.Height))
+    return 0;
+  int result = get_walkable_area_pixel(x, y);
   if (result <= 0)
     return 0;
   return result;

@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#define USE_CLIB
+#include "ac/audiocliptype.h"
 #include "ac/global_game.h"
 #include "ac/common.h"
 #include "ac/view.h"
@@ -51,6 +51,7 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
@@ -277,8 +278,9 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
         quitprintf("!RunAGSGame: error loading new game file:\n%s", err->FullMessage().GetCStr());
 
     spriteset.Reset();
-    if (spriteset.InitFile("acsprset.spr"))
-        quit("!RunAGSGame: error loading new sprites");
+    err = spriteset.InitFile("acsprset.spr");
+    if (!err)
+        quitprintf("!RunAGSGame: error loading new sprites:\n%s", err->FullMessage().GetCStr());
 
     if ((mode & RAGMODE_PRESERVEGLOBALINT) == 0) {
         // reset GlobalInts
@@ -551,9 +553,11 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         return;
     }
     int loctype = GetLocationType (xxx, yyy);
-    Point roompt = play.ScreenToRoom(xxx, yyy);
-    xxx = roompt.X;
-    yyy = roompt.Y;
+    VpPoint vpt = play.ScreenToRoom(xxx, yyy);
+    if (vpt.second < 0)
+        return;
+    xxx = vpt.first.X;
+    yyy = vpt.first.Y;
     tempo[0]=0;
     if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return;
@@ -778,12 +782,14 @@ void SetMultitasking (int mode) {
 
 extern int getloctype_throughgui, getloctype_index;
 
-void ProcessClick(int xx,int yy,int mood) {
+void RoomProcessClick(int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    Point roompt = play.ScreenToRoom(xx, yy);
-    xx = roompt.X;
-    yy = roompt.Y;
+    VpPoint vpt = play.ScreenToRoom(xx, yy);
+    if (vpt.second < 0)
+        return;
+    xx = vpt.first.X;
+    yy = vpt.first.Y;
 
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
         int hsnum=get_hotspot_at(xx,yy);
@@ -819,9 +825,11 @@ void ProcessClick(int xx,int yy,int mood) {
 int IsInteractionAvailable (int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    Point roompt = play.ScreenToRoom(xx, yy);
-    xx = roompt.X;
-    yy = roompt.Y;
+    VpPoint vpt = play.ScreenToRoom(xx, yy);
+    if (vpt.second < 0)
+        return 0;
+    xx = vpt.first.X;
+    yy = vpt.first.Y;
 
     // You can always walk places
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0))

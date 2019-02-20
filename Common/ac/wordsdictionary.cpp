@@ -13,37 +13,47 @@
 //=============================================================================
 
 #include <algorithm>
-#include <stdlib.h>
 #include <string.h>
 #include "ac/wordsdictionary.h"
-#include "ac/common.h"
-#include "ac/common_defines.h"
-#include "util/string_utils.h"
 #include "util/stream.h"
+#include "util/string_utils.h" // stricmp
 
 using AGS::Common::Stream;
+
+WordsDictionary::WordsDictionary()
+    : num_words(0)
+    , word(NULL)
+    , wordnum(NULL)
+{
+}
+
+WordsDictionary::~WordsDictionary()
+{
+    free_memory();
+}
 
 void WordsDictionary::allocate_memory(int wordCount)
 {
     num_words = wordCount;
     if (num_words > 0)
     {
-        word = (char**)malloc(wordCount * sizeof(char*));
-        word[0] = (char*)malloc(wordCount * MAX_PARSER_WORD_LENGTH);
-        wordnum = (short*)malloc(wordCount * sizeof(short));
+        word = new char*[wordCount];
+        word[0] = new char[wordCount * MAX_PARSER_WORD_LENGTH];
+        wordnum = new short[wordCount];
         for (int i = 1; i < wordCount; i++)
         {
             word[i] = word[0] + MAX_PARSER_WORD_LENGTH * i;
         }
     }
 }
+
 void WordsDictionary::free_memory()
 {
     if (num_words > 0)
     {
-        free(word[0]);
-        free(word);
-        free(wordnum);
+        delete [] word[0];
+        delete [] word;
+        delete [] wordnum;
         word = NULL;
         wordnum = NULL;
         num_words = 0;
@@ -117,11 +127,14 @@ void read_dictionary (WordsDictionary *dict, Stream *out) {
   }
 }
 
+#if defined (OBSOLETE)
+// TODO: not a part of wordsdictionary, move to obsoletes
 void freadmissout(short *pptr, Stream *in) {
   in->ReadArrayOfInt16(&pptr[0], 5);
   in->ReadArrayOfInt16(&pptr[7], NUM_CONDIT - 7);
   pptr[5] = pptr[6] = 0;
 }
+#endif
 
 void encrypt_text(char *toenc) {
   int adx = 0, tobreak = 0;

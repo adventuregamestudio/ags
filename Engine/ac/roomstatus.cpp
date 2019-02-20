@@ -15,6 +15,7 @@
 #include <string.h> // memset
 #include <stdlib.h> // free
 #include "ac/common.h"
+#include "ac/game_version.h"
 #include "ac/roomstatus.h"
 #include "game/customproperties.h"
 #include "util/alignedstream.h"

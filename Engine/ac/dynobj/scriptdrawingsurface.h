@@ -19,7 +19,7 @@
 
 namespace AGS { namespace Common { class Bitmap; }}
 
-struct ScriptDrawingSurface : AGSCCDynamicObject {
+struct ScriptDrawingSurface final : AGSCCDynamicObject {
     int roomBackgroundNumber;
     int dynamicSpriteNumber;
     int dynamicSurfaceNumber;

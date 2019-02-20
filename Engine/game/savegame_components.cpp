@@ -14,6 +14,7 @@
 
 #include <map>
 
+#include "ac/audiocliptype.h"
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/dialogtopic.h"
@@ -1054,7 +1055,7 @@ ComponentHandler ComponentHandlers[] =
         WritePluginData,
         ReadPluginData
     },
-    { NULL, 0, NULL, NULL } // end of array
+    { NULL, 0, 0, NULL, NULL } // end of array
 };
 
 

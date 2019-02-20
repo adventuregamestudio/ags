@@ -64,7 +64,7 @@ AGS::Common::String GetScriptName(ccInstance *sci);
 
 //=============================================================================
 
-char*   make_ts_func_name(char*base,int iii,int subd);
+char*   make_ts_func_name(const char*base,int iii,int subd);
 // Performs various updates to the game after script interpreter returns control to the engine.
 // Executes actions and does changes that are not executed immediately at script command, for
 // optimisation and other reasons.

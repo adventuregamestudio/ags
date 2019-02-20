@@ -235,11 +235,10 @@ void Viewport_SetPosition(ScriptViewport *, int x, int y, int width, int height)
 
 ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *, int scrx, int scry, bool clipViewport)
 {
-    const Rect &view = play.GetRoomViewport();
-    if (clipViewport && !view.IsInside(scrx, scry))
+    VpPoint vpt = play.ScreenToRoom(scrx, scry, clipViewport);
+    if (vpt.second < 0)
         return NULL;
-    Point pt = play.ScreenToRoom(scrx, scry);
-    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
+    return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
 ScriptUserObject *Sc_Viewport_RoomToScreenPoint(ScriptViewport *, int roomx, int roomy, bool clipViewport)

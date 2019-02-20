@@ -21,9 +21,7 @@
 //
 //-----------------------------------------------------------------------------
 //
-// [IKM] 2012-09-11: I am planning to complete AssetManager class in a number
-// of steps. First step will be to write a primitive wrapper over clib32
-// library. Then hide most of its functions making them private.
+// TODO:
 // Ideally AssetManager should take care of enumerating all existing data
 // packages and all files in them, while the game itself should not know where
 // it receives the data from.
@@ -36,7 +34,7 @@
 #ifndef __AGS_CN_CORE__ASSETMANAGER_H
 #define __AGS_CN_CORE__ASSETMANAGER_H
 
-#include "util/file.h"
+#include "util/file.h" // TODO: extract filestream mode constants or introduce generic ones
 
 namespace AGS
 {

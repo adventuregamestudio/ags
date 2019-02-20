@@ -32,7 +32,7 @@ extern GameSetupStruct game;
 extern GameState play;
 extern int mousex, mousey;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
-extern char*evblockbasename;
+extern const char*evblockbasename;
 extern int evblocknum;
 extern CharacterInfo*playerchar;
 
@@ -74,14 +74,15 @@ int GetInvAt (int xxx, int yyy) {
     mousex = xxx - guis[ongui].X;
     mousey = yyy - guis[ongui].Y;
     int onobj = guis[ongui].FindControlUnderMouse();
-    if (onobj>=0) {
-      mouse_ifacebut_xoffs = mousex-(guis[ongui].Controls[onobj]->X);
-      mouse_ifacebut_yoffs = mousey-(guis[ongui].Controls[onobj]->Y);
+    GUIObject *guio = guis[ongui].GetControl(onobj);
+    if (guio) {
+      mouse_ifacebut_xoffs = mousex-(guio->X);
+      mouse_ifacebut_yoffs = mousey-(guio->Y);
     }
     mousex = mxwas;
     mousey = mywas;
-    if ((onobj>=0) && ((guis[ongui].CtrlRefs[onobj] >> 16)==kGUIInvWindow))
-      return offset_over_inv((GUIInvWindow*)guis[ongui].Controls[onobj]);
+    if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
+      return offset_over_inv((GUIInvWindow*)guio);
   }
   return -1;
 }

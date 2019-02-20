@@ -224,12 +224,6 @@
     <ClCompile Include="..\..\Common\script\cc_script.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\script\cc_treemap.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\script\script_common.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
       <Filter>Source Files\debug</Filter>
     </ClCompile>
@@ -467,9 +461,6 @@
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_script.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\script\cc_treemap.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\script_common.h">

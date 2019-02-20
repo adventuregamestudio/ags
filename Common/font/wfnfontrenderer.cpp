@@ -12,29 +12,24 @@
 //
 //=============================================================================
 
-#ifndef USE_ALFONT
-#define USE_ALFONT
-#endif
-
-#include "alfont.h"
-#include "ac/common.h"
+#include "ac/common.h" // our_eip
 #include "core/assetmanager.h"
 #include "debug/out.h"
-#include "font/fonts.h"
+#include "font/wfnfont.h"
 #include "font/wfnfontrenderer.h"
-#include "gfx/allegrobitmap.h"
-#include "util/file.h"
+#include "gfx/bitmap.h"
 #include "util/stream.h"
-#include "util/string.h"
 
 using namespace AGS::Common;
+
+extern int wtext_multiply;
 
 static unsigned char GetCharCode(unsigned char wanted_code, const WFNFont* font)
 {
     return wanted_code < font->GetCharCount() ? wanted_code : '?';
 }
 
-static int RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color);
+static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color);
 
 void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 {
@@ -82,7 +77,7 @@ int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
   return max_height * wtext_multiply;
 }
 
-Common::Bitmap render_wrapper;
+Bitmap render_wrapper;
 void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
   int oldeip = get_our_eip();
@@ -97,7 +92,7 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   set_our_eip(oldeip);
 }
 
-int RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color)
+int RenderChar(Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color)
 {
   const int width = wfn_char.Width;
   const int height = wfn_char.Height;

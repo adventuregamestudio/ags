@@ -147,7 +147,7 @@ int game_loop_check_ground_level_interactions()
         setevent(EV_RUNEVBLOCK, EVB_HOTSPOT, hotspotThere, 0);
 
         // check current region
-        int onRegion = GetRegionAt (playerchar->x, playerchar->y);
+        int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y);
         int inRoom = displayed_room;
 
         if (onRegion != play.player_on_region) {
@@ -489,11 +489,11 @@ void check_keyboard_controls()
                 int uu,ww;
                 for (uu=0;uu<game.numgui;uu++) {
                     if (!guis[uu].IsDisplayed()) continue;
-                    for (ww=0;ww<guis[uu].ControlCount;ww++) {
+                    for (ww=0;ww<guis[uu].GetControlCount();ww++) {
                         // not a text box, ignore it
-                        if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUITextBox)
+                        if (guis[uu].GetControlType(ww) != kGUITextBox)
                             continue;
-                        GUITextBox*guitex=(GUITextBox*)guis[uu].Controls[ww];
+                        GUITextBox*guitex=(GUITextBox*)guis[uu].GetControl(ww);
                         // if the text box is disabled, it cannot except keypresses
                         if ((!guitex->IsEnabled()) || (!guitex->IsVisible()))
                             continue;

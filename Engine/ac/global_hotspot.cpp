@@ -71,8 +71,11 @@ int GetHotspotPointY (int hotspot) {
     return thisroom.Hotspots[hotspot].WalkTo.Y;
 }
 
-int GetHotspotAt(int scrx, int scry) {
-    Point pt = play.ScreenToRoom(scrx, scry);
+int GetHotspotIDAtScreen(int scrx, int scry) {
+    VpPoint vpt = play.ScreenToRoom(scrx, scry);
+    if (vpt.second < 0)
+        return 0;
+    Point pt = vpt.first;
     if ((pt.X>=thisroom.Width) | (pt.X<0) | (pt.Y<0) | (pt.Y>=thisroom.Height))
         return 0;
     return get_hotspot_at(pt.X, pt.Y);
@@ -108,7 +111,7 @@ void RunHotspotInteraction (int hotspothere, int mood) {
 
     // can't use the setevent functions because this ProcessClick is only
     // executed once in a eventlist
-    char *oldbasename = evblockbasename;
+    const char *oldbasename = evblockbasename;
     int   oldblocknum = evblocknum;
 
     evblockbasename="hotspot%d";

@@ -15,15 +15,6 @@
 #include "gfx/bitmap.h"
 #include "util/memory.h"
 
-#ifndef NULL
-#define NULL 0
-#endif
-
-extern "C"
-{
-	extern BITMAP *screen;	// in allegro
-}
-
 namespace AGS
 {
 namespace Common

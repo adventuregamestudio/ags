@@ -463,9 +463,11 @@ void GetCharacterPropertyText (int item, const char *property, char *bufer) {
 }
 */
 
-int GetCharacterAt (int xx, int yy) {
-    Point roompt = play.ScreenToRoom(xx, yy);
-    return is_pos_on_character(roompt.X, roompt.Y);
+int GetCharIDAtScreen(int xx, int yy) {
+    VpPoint vpt = play.ScreenToRoom(xx, yy);
+    if (vpt.second < 0)
+        return -1;
+    return is_pos_on_character(vpt.first.X, vpt.first.Y);
 }
 
 // [DEPRECATED] still used by Character_SetAsPlayer

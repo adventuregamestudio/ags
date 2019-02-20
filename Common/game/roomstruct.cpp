@@ -1,16 +1,20 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
-#include "ac/common.h"
-#include "ac/wordsdictionary.h"
-#include "core/assetmanager.h"
-#include "debug/out.h"
-#include "game/roomstruct.h"
+#include "ac/common.h" // update_polled_stuff_if_runtime
 #include "game/room_file.h"
-#include "game/room_version.h"
-#include "gfx/bitmap.h"
-#include "script/cc_script.h"
-#include "util/compress.h"
-#include "util/stream.h"
-#include "util/string_utils.h"
+#include "game/roomstruct.h"
 
 namespace AGS
 {
@@ -165,7 +169,7 @@ void RoomStruct::InitDefaults()
     WalkBehindCount = 0;
     MessageCount    = 0;
 
-    for (size_t i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_HOTSPOTS; ++i)
     {
         Hotspots[i] = RoomHotspot();
         if (i == 0)
@@ -173,13 +177,13 @@ void RoomStruct::InitDefaults()
         else
             Hotspots[i].Name.Format("Hotspot %u", i);
     }
-    for (size_t i = 0; i < MAX_ROOM_OBJECTS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         Objects[i] = RoomObjectInfo();
-    for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)
         Regions[i] = RoomRegion();
-    for (size_t i = 0; i <= MAX_WALK_AREAS; ++i)
+    for (size_t i = 0; i <= (size_t)MAX_WALK_AREAS; ++i)
         WalkAreas[i] = WalkArea();
-    for (size_t i = 0; i < MAX_WALK_BEHINDS; ++i)
+    for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
         WalkBehinds[i] = WalkBehind();
     
     BackgroundBPP = 1;

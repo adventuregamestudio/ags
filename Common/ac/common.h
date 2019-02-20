@@ -15,9 +15,6 @@
 #ifndef __AC_COMMON_H
 #define __AC_COMMON_H
 
-#include "ac/common_defines.h"
-#include "ac/game_version.h"
-
 // These are the project-dependent functions, they are defined both in Engine.App and AGS.Native.
 void quit(const char *);
 void quitprintf(const char *fmt, ...);
@@ -25,7 +22,7 @@ void update_polled_stuff_if_runtime();
 void set_our_eip(int eip);
 int  get_our_eip();
 
-extern char *croom_h_copyright;
-extern char *game_file_sig;
+extern const char *croom_h_copyright;
+extern const char *game_file_sig;
 
 #endif // __AC_COMMON_H

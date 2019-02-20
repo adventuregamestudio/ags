@@ -43,6 +43,7 @@ int getfontlinegap(int font);
 int getheightoflines(int font, int numlines);
 int wgettextwidth_compensate(const char *tex, int font);
 void do_corner(Common::Bitmap *ds, int sprn,int xx1,int yy1,int typx,int typy);
+// Returns the image of a button control on the GUI under given child index
 int get_but_pic(GUIMain*guo,int indx);
 void draw_button_background(Common::Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep);
 // Calculate the width that the left and right border of the textwindow

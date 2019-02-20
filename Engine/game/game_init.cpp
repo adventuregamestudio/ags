@@ -113,6 +113,8 @@ String GetGameInitErrorText(GameInitErrorType err)
         return "No fonts specified to be used in this game.";
     case kGameInitErr_TooManyAudioTypes:
         return "Too many audio types for this engine to handle.";
+    case kGameInitErr_EntityInitFail:
+        return "Failed to initialize game entities.";
     case kGameInitErr_TooManyPlugins:
         return "Too many plugins for this engine to handle.";
     case kGameInitErr_PluginNameInvalid:
@@ -194,7 +196,7 @@ void InitAndRegisterDialogOptions()
 }
 
 // Initializes gui and registers them in the script system
-void InitAndRegisterGUI()
+HError InitAndRegisterGUI()
 {
     scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
     for (int i = 0; i < game.numgui; ++i)
@@ -206,7 +208,9 @@ void InitAndRegisterGUI()
     for (int i = 0; i < game.numgui; ++i)
     {
         // link controls to their parent guis
-        guis[i].RebuildArray();
+        HError err = guis[i].RebuildArray();
+        if (!err)
+            return err;
         // export all the GUI's controls
         export_gui_controls(i);
         // copy the script name to its own memory location
@@ -216,6 +220,7 @@ void InitAndRegisterGUI()
         ccAddExternalDynamicObject(guiScriptObjNames[i], &scrGui[i], &ccDynamicGUI);
         ccRegisterManagedObject(&scrGui[i], &ccDynamicGUI);
     }
+    return HError::None();
 }
 
 // Initializes inventory items and registers them in the script system
@@ -298,13 +303,15 @@ void RegisterStaticArrays()
 }
 
 // Initializes various game entities and registers them in the script system
-void InitAndRegisterGameEntities()
+HError InitAndRegisterGameEntities()
 {
     InitAndRegisterAudioObjects();
     InitAndRegisterCharacters();
     InitAndRegisterDialogs();
     InitAndRegisterDialogOptions();
-    InitAndRegisterGUI();
+    HError err = InitAndRegisterGUI();
+    if (!err)
+        return err;
     InitAndRegisterInvItems();
 
     InitAndRegisterHotspots();
@@ -315,6 +322,7 @@ void InitAndRegisterGameEntities()
 
     setup_player_character(game.playercharacter);
     ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
+    return HError::None();
 }
 
 void LoadFonts()
@@ -416,7 +424,9 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
     play.charProps.resize(game.numcharacters);
-    InitAndRegisterGameEntities();
+    HError err = InitAndRegisterGameEntities();
+    if (!err)
+        return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts();
 
     //

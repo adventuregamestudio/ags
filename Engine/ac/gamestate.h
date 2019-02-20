@@ -37,6 +37,10 @@ enum GameStateSvgVersion
     kGSSvgVersion_350       = 1
 };
 
+// A result of coordinate conversion between screen and the room,
+// tells which viewport was used to pass the "touch" through.
+typedef std::pair<Point, int> VpPoint;
+
 struct GameState {
     int  score;      // player's current score
     int  usedmode;   // set by ProcessClick to last cursor mode used
@@ -257,13 +261,15 @@ struct GameState {
     // Runs camera behavior
     void UpdateRoomCamera();
     // Converts room coordinates to the game screen coordinates through the room viewport
-    // TODO: find out if possible to refactor and get rid of "variadic" variants;
-    // usually this depends on how the arguments are created (whether they are in "variadic" or true coords)
+    // This group of functions always tries to pass a point through the **primary** room viewport
+    // TODO: also support using arbitrary viewport (for multiple viewports).
     Point RoomToScreen(int roomx, int roomy);
     int  RoomToScreenX(int roomx);
     int  RoomToScreenY(int roomy);
     // Converts game screen coordinates to the room coordinates through the room viewport
-    Point ScreenToRoom(int scrx, int scry);
+    // These functions first try to find if there is any viewport at the given coords
+    // TODO: also support using arbitrary viewport (for multiple viewports)
+    VpPoint ScreenToRoom(int scrx, int scry, bool clip_viewport = true);
 
     // Serialization
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);

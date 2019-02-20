@@ -326,9 +326,9 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         if (!overlayPositionFixed)
         {
             screenover[nse].positionRelativeToScreen = false;
-            Point roompt = play.ScreenToRoom(screenover[nse].x, screenover[nse].y);
-            screenover[nse].x = roompt.X;
-            screenover[nse].y = roompt.Y;
+            VpPoint vpt = play.ScreenToRoom(screenover[nse].x, screenover[nse].y, false);
+            screenover[nse].x = vpt.first.X;
+            screenover[nse].y = vpt.first.Y;
         }
 
         GameLoopUntilEvent(UNTIL_NOOVERLAY,0);
@@ -530,8 +530,10 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
     draw_gui_sprite(ds, sprn, x, y);
 }
 
-int get_but_pic(GUIMain*guo,int indx) {
-    return guibuts[guo->CtrlRefs[indx] & 0x000ffff].Image;
+int get_but_pic(GUIMain*guo,int indx)
+{
+    int butid = guo->GetControlID(indx);
+    return butid >= 0 ? guibuts[butid].Image : 0;
 }
 
 void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {

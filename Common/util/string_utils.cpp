@@ -14,7 +14,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
-#include "gui/guidefines.h"
+#include "gui/guidefines.h" // MAXLINE
 #include "util/math.h"
 #include "util/string_utils.h"
 #include "util/stream.h"

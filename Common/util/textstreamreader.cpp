@@ -12,9 +12,9 @@
 //
 //=============================================================================
 
-#include "util/textstreamreader.h"
-#include "util/stream.h"
 #include "util/math.h"
+#include "util/stream.h"
+#include "util/textstreamreader.h"
 
 namespace AGS
 {

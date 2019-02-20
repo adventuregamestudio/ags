@@ -48,10 +48,11 @@
 #include <sys/stat.h>
 #endif
 #include <allegro.h>
-#include "util/misc.h"
+#include "util/file.h"
 #include "util/stdio_compat.h"
+#include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
 #include <string.h>
@@ -174,10 +175,10 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 
 
 /* Case Insensitive fopen */
-Stream *ci_fopen(const char *file_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+Stream *ci_fopen(const char *file_name, FileOpenMode open_mode, FileWorkMode work_mode)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
-  return Common::File::OpenFile(file_name, open_mode, work_mode);
+  return File::OpenFile(file_name, open_mode, work_mode);
 #else
   Stream *fs = NULL;
   char *fullpath = ci_find_file(NULL, (char*)file_name);
@@ -185,9 +186,9 @@ Stream *ci_fopen(const char *file_name, Common::FileOpenMode open_mode, Common::
   /* If I didn't find a file, this could be writing a new file,
       so use whatever file_name they passed */
   if (fullpath == NULL) {
-    fs = Common::File::OpenFile(file_name, open_mode, work_mode);
+    fs = File::OpenFile(file_name, open_mode, work_mode);
   } else {
-    fs = Common::File::OpenFile(fullpath, open_mode, work_mode);
+    fs = File::OpenFile(fullpath, open_mode, work_mode);
     free(fullpath);
   }
 

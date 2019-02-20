@@ -14,6 +14,7 @@
 
 #include "ac/common.h"
 #include "ac/view.h"
+#include "ac/audiocliptype.h"
 #include "ac/audiochannel.h"
 #include "ac/character.h"
 #include "ac/charactercache.h"
@@ -66,6 +67,7 @@
 #include "game/savegame.h"
 #include "game/savegame_internal.h"
 #include "gui/animatingguibutton.h"
+#include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
@@ -201,6 +203,7 @@ char pexbuf[STD_BUFFER_SIZE];
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
 
+// TODO: refactor these global vars into function arguments
 int getloctype_index = 0, getloctype_throughgui = 0;
 
 //=============================================================================
@@ -513,14 +516,8 @@ void free_do_once_tokens()
 
 
 // Free all the memory associated with the game
-void unload_game_file() {
-    int bb, ee;
-
-    for (bb = 0; bb < game.numcharacters; bb++) {
-        if (game.charScripts != NULL)
-            delete game.charScripts[bb];
-
-    }
+void unload_game_file()
+{
     characterScriptObjNames.clear();
     free(charextra);
     free(mls);
@@ -529,31 +526,13 @@ void unload_game_file() {
     free(actspswb);
     free(actspswbbmp);
     free(actspswbcache);
-    game.charProps.clear();
-
-    for (bb = 1; bb < game.numinvitems; bb++) {
-        if (game.invScripts != NULL)
-            delete game.invScripts[bb];
-    }
-
-    if (game.charScripts != NULL)
-    {
-        delete game.charScripts;
-        delete game.invScripts;
-        game.charScripts = NULL;
-        game.invScripts = NULL;
-    }
-
-    if (game.dict != NULL) {
-        game.dict->free_memory();
-        free (game.dict);
-        game.dict = NULL;
-    }
 
     if ((gameinst != NULL) && (gameinst->pc != 0))
+    {
         quit("Error: unload_game called while script still running");
-    //->AbortAndDestroy (gameinst);
-    else {
+    }
+    else
+    {
         delete gameinstFork;
         delete gameinst;
         gameinstFork = NULL;
@@ -563,7 +542,9 @@ void unload_game_file() {
     gamescript.reset();
 
     if ((dialogScriptsInst != NULL) && (dialogScriptsInst->pc != 0))
+    {
         quit("Error: unload_game called while dialog script still running");
+    }
     else if (dialogScriptsInst != NULL)
     {
         delete dialogScriptsInst;
@@ -572,10 +553,11 @@ void unload_game_file() {
 
     dialogScriptsScript.reset();
 
-    for (ee = 0; ee < numScriptModules; ee++) {
-        delete moduleInstFork[ee];
-        delete moduleInst[ee];
-        scriptModules[ee].reset();
+    for (int i = 0; i < numScriptModules; ++i)
+    {
+        delete moduleInstFork[i];
+        delete moduleInst[i];
+        scriptModules[i].reset();
     }
     moduleInstFork.resize(0);
     moduleInst.resize(0);
@@ -590,30 +572,18 @@ void unload_game_file() {
     runDialogOptionRepExecFunc.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
-    if (game.audioClipCount > 0)
-    {
-        free(game.audioClips);
-        game.audioClipCount = 0;
-        free(game.audioClipTypes);
-        game.audioClipTypeCount = 0;
-    }
-
-    game.viewNames.clear();
-    free (views);
+    free(views);
     views = NULL;
 
-    free (game.chars);
-    game.chars = NULL;
-
-    free (charcache);
+    free(charcache);
     charcache = NULL;
 
     if (splipsync != NULL)
     {
-        for (ee = 0; ee < numLipLines; ee++)
+        for (int i = 0; i < numLipLines; ++i)
         {
-            free(splipsync[ee].endtimeoffs);
-            free(splipsync[ee].frame);
+            free(splipsync[i].endtimeoffs);
+            free(splipsync[i].frame);
         }
         free(splipsync);
         splipsync = NULL;
@@ -621,36 +591,20 @@ void unload_game_file() {
         curLipLine = -1;
     }
 
-    for (ee=0;ee < MAXGLOBALMES;ee++) {
-        if (game.messages[ee]==NULL) continue;
-        free (game.messages[ee]);
-        game.messages[ee] = NULL;
-    }
-
-    for (ee = 0; ee < game.roomCount; ee++)
+    for (int i = 0; i < game.numdialog; ++i)
     {
-        free(game.roomNames[ee]);
+        if (dialog[i].optionscripts != NULL)
+            free(dialog[i].optionscripts);
+        dialog[i].optionscripts = NULL;
     }
-    if (game.roomCount > 0)
-    {
-        free(game.roomNames);
-        free(game.roomNumbers);
-        game.roomCount = 0;
-    }
-
-    for (ee=0;ee<game.numdialog;ee++) {
-        if (dialog[ee].optionscripts!=NULL)
-            free (dialog[ee].optionscripts);
-        dialog[ee].optionscripts = NULL;
-    }
-    free (dialog);
+    free(dialog);
     dialog = NULL;
-    delete [] scrDialog;
+    delete[] scrDialog;
     scrDialog = NULL;
 
-    for (ee = 0; ee < game.numgui; ee++) {
-        free (guibg[ee]);
-        guibg[ee] = NULL;
+    for (int i = 0; i < game.numgui; ++i) {
+        free(guibg[i]);
+        guibg[i] = NULL;
     }
 
     guiScriptObjNames.clear();
@@ -662,14 +616,16 @@ void unload_game_file() {
     ccRemoveAllSymbols();
     ccUnregisterAllObjects();
 
-    for (ee=0;ee<game.numfonts;ee++)
-        wfreefont(ee);
+    for (int i = 0; i < game.numfonts; ++i)
+        wfreefont(i);
 
     free_do_once_tokens();
     free(play.gui_draw_order);
 
     resetRoomStatuses();
 
+    // free game struct last because it contains object counts
+    game.Free();
 }
 
 
@@ -1343,7 +1299,9 @@ void ReadAnimatedButtons_Aligned(Stream *in)
 
 HSaveError restore_game_gui(Stream *in, int numGuisWas)
 {
-    GUI::ReadGUI(guis, in, true);
+    HError err = GUI::ReadGUI(guis, in, true);
+    if (!err)
+        return new SavegameError(kSvgErr_GameObjectInitFailed, err);
     game.numgui = guis.size();
 
     if (numGuisWas != game.numgui)
@@ -1830,9 +1788,11 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     const int scrx = xxx;
     const int scry = yyy;
-    Point roompt = play.ScreenToRoom(xxx, yyy);
-    xxx = roompt.X;
-    yyy = roompt.Y;
+    VpPoint vpt = play.ScreenToRoom(xxx, yyy);
+    if (vpt.second < 0)
+        return 0;
+    xxx = vpt.first.X;
+    yyy = vpt.first.Y;
     if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return 0;
 
@@ -1840,7 +1800,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     // foremost visible to the player
     int charat = is_pos_on_character(xxx,yyy);
     int hsat = get_hotspot_at(xxx,yyy);
-    int objat = GetObjectAt(scrx, scry);
+    int objat = GetObjectIDAtScreen(scrx, scry);
 
     int wbat = thisroom.WalkBehindMask->GetPixel(xxx, yyy);
 

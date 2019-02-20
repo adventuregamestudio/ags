@@ -42,7 +42,7 @@ std::pair<String, String> cc_error_at_line(const char *error_msg)
     }
     else
     {
-        return std::make_pair(String::FromFormat("Error: %s\n", error_msg), ccInstance::GetCurrentInstance()->GetCallStack(5).GetCStr());
+        return std::make_pair(String::FromFormat("Error: %s\n", error_msg), ccInstance::GetCurrentInstance()->GetCallStack(5));
     }
 }
 

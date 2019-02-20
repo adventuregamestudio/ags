@@ -790,7 +790,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
     if (displayed_room != playerchar->room)
         NewRoom(playerchar->room);
     else   // make sure it doesn't run the region interactions
-        play.player_on_region = GetRegionAt (playerchar->x, playerchar->y);
+        play.player_on_region = GetRegionIDAtRoom(playerchar->x, playerchar->y);
 
     if ((playerchar->activeinv >= 0) && (playerchar->inv[playerchar->activeinv] < 1))
         playerchar->activeinv = -1;
@@ -2152,8 +2152,16 @@ Bitmap *GetCharacterImage(int charid, int *isFlipped)
     return spriteset[sppic];
 }
 
-CharacterInfo *GetCharacterAtLocation(int xx, int yy) {
-    int hsnum = GetCharacterAt(xx, yy);
+CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
+    int hsnum = GetCharIDAtScreen(xx, yy);
+    if (hsnum < 0)
+        return NULL;
+    return &game.chars[hsnum];
+}
+
+CharacterInfo *GetCharacterAtRoom(int x, int y)
+{
+    int hsnum = is_pos_on_character(x, y);
     if (hsnum < 0)
         return NULL;
     return &game.chars[hsnum];
@@ -3218,10 +3226,15 @@ RuntimeScriptValue Sc_Character_WalkStraight(void *self, const RuntimeScriptValu
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_WalkStraight);
 }
 
-// CharacterInfo *(int xx, int yy)
-RuntimeScriptValue Sc_GetCharacterAtLocation(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetCharacterAtRoom(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtLocation);
+    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtRoom);
+}
+
+// CharacterInfo *(int xx, int yy)
+RuntimeScriptValue Sc_GetCharacterAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtScreen);
 }
 
 // ScriptInvItem* (CharacterInfo *chaa)
@@ -3786,7 +3799,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
 	ccAddExternalObjectFunction("Character::Walk^4",                    Sc_Character_Walk);
 	ccAddExternalObjectFunction("Character::WalkStraight^3",            Sc_Character_WalkStraight);
 
-	ccAddExternalStaticFunction("Character::GetAtScreenXY^2",           Sc_GetCharacterAtLocation);
+    ccAddExternalStaticFunction("Character::GetAtRoomXY^2",             Sc_GetCharacterAtRoom);
+	ccAddExternalStaticFunction("Character::GetAtScreenXY^2",           Sc_GetCharacterAtScreen);
 
 	ccAddExternalObjectFunction("Character::get_ActiveInventory",       Sc_Character_GetActiveInventory);
 	ccAddExternalObjectFunction("Character::set_ActiveInventory",       Sc_Character_SetActiveInventory);
@@ -3941,7 +3955,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalFunctionForPlugin("Character::UnlockView^1",              (void*)Character_UnlockViewEx);
     ccAddExternalFunctionForPlugin("Character::Walk^4",                    (void*)Character_Walk);
     ccAddExternalFunctionForPlugin("Character::WalkStraight^3",            (void*)Character_WalkStraight);
-    ccAddExternalFunctionForPlugin("Character::GetAtScreenXY^2",           (void*)GetCharacterAtLocation);
+    ccAddExternalFunctionForPlugin("Character::GetAtRoomXY^2",             (void*)GetCharacterAtRoom);
+    ccAddExternalFunctionForPlugin("Character::GetAtScreenXY^2",           (void*)GetCharacterAtScreen);
     ccAddExternalFunctionForPlugin("Character::get_ActiveInventory",       (void*)Character_GetActiveInventory);
     ccAddExternalFunctionForPlugin("Character::set_ActiveInventory",       (void*)Character_SetActiveInventory);
     ccAddExternalFunctionForPlugin("Character::get_Animating",             (void*)Character_GetAnimating);

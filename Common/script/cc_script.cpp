@@ -14,12 +14,17 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "cc_script.h"
-#include "script/script_common.h"      // SCOM_VERSION, scfilesig
-#include "cc_error.h"
+#include "script/cc_error.h"
+#include "script/cc_script.h"
+#include "script/script_common.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
+
+// currently executed line
+int currentline;
+// script file format signature
+const char scfilesig[5] = "SCOM";
 
 // [IKM] I reckon this function is almost identical to fgetstring in string_utils
 void freadstring(char **strptr, Stream *in)
@@ -39,7 +44,7 @@ void freadstring(char **strptr, Stream *in)
     strcpy(strptr[0], ibuffer);
 }
 
-ccScript *ccScript::CreateFromStream(Common::Stream *in)
+ccScript *ccScript::CreateFromStream(Stream *in)
 {
     ccScript *scri = new ccScript();
     if (!scri->Read(in))

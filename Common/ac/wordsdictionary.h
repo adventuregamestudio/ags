@@ -29,6 +29,8 @@ struct WordsDictionary {
     char**word;
     short*wordnum;
 
+    WordsDictionary();
+    ~WordsDictionary();
     void allocate_memory(int wordCount);
     void free_memory();
     void  sort();
@@ -40,7 +42,11 @@ extern const char *passwencstring;
 extern void decrypt_text(char*toenc);
 extern void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
 extern void read_dictionary (WordsDictionary *dict, Common::Stream *in);
+
+#if defined (OBSOLETE)
+// TODO: not a part of wordsdictionary, move to obsoletes
 extern void freadmissout(short *pptr, Common::Stream *in);
+#endif
 
 extern void encrypt_text(char *toenc);
 extern void write_string_encrypt(Common::Stream *out, const char *s);

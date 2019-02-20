@@ -47,7 +47,7 @@ GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     if (toret < 0)
         return NULL;
 
-    return guis[guinum].Controls[toret];
+    return guis[guinum].GetControl(toret);
 }
 
 int GUIControl_GetVisible(GUIObject *guio) {

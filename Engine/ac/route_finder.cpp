@@ -49,7 +49,7 @@ void init_pathfinder()
 }
 
 Bitmap *wallscreen;
-char *movelibcopyright = "PathFinder library v3.1 (c) 1998, 1999, 2001, 2002 Chris Jones.";
+const char *movelibcopyright = "PathFinder library v3.1 (c) 1998, 1999, 2001, 2002 Chris Jones.";
 int lastcx, lastcy;
 
 // check the copyright message is intact

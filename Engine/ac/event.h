@@ -72,12 +72,12 @@ extern int in_leaves_screen;
 extern EventHappened event[MAXEVENTS+1];
 extern int numevents;
 
-extern char*evblockbasename;
+extern const char*evblockbasename;
 extern int evblocknum;
 
 extern int eventClaimed;
 
-extern char*tsnames[4];
+extern const char*tsnames[4];
 
 #endif // __AGS_EE_AC__EVENT_H
 

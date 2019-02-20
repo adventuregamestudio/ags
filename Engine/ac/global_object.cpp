@@ -58,10 +58,18 @@ extern IGraphicsDriver *gfxDriver;
 // Used for deciding whether a char or obj was closer
 int obj_lowest_yp;
 
-int GetObjectAt(int scrx, int scry) {
-    int aa,bestshotyp=-1,bestshotwas=-1;
+int GetObjectIDAtScreen(int scrx, int scry)
+{
     // translate screen co-ordinates to room co-ordinates
-    Point roompt = play.ScreenToRoom(scrx, scry);
+    VpPoint vpt = play.ScreenToRoom(scrx, scry);
+    if (vpt.second < 0)
+        return -1;
+    return GetObjectIDAtRoom(vpt.first.X, vpt.first.Y);
+}
+
+int GetObjectIDAtRoom(int roomx, int roomy)
+{
+    int aa,bestshotyp=-1,bestshotwas=-1;
     // Iterate through all objects in the room
     for (aa=0;aa<croom->numobj;aa++) {
         if (objs[aa].on != 1) continue;
@@ -76,7 +84,7 @@ int GetObjectAt(int scrx, int scry) {
 
         Bitmap *theImage = GetObjectImage(aa, &isflipped);
 
-        if (is_pos_in_sprite(roompt.X, roompt.Y, xxx, yyy - spHeight, theImage,
+        if (is_pos_in_sprite(roomx, roomy, xxx, yyy - spHeight, theImage,
             spWidth, spHeight, isflipped) == FALSE)
             continue;
 

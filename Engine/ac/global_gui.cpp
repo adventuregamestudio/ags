@@ -82,7 +82,7 @@ void InterfaceOff(int ifn) {
   guis[ifn].SetVisible(false);
   if (guis[ifn].MouseOverCtrl>=0) {
     // Make sure that the overpic is turned off when the GUI goes off
-    guis[ifn].Controls[guis[ifn].MouseOverCtrl]->OnMouseLeave();
+    guis[ifn].GetControl(guis[ifn].MouseOverCtrl)->OnMouseLeave();
     guis[ifn].MouseOverCtrl = -1;
   }
   guis[ifn].OnControlPositionChanged();
@@ -94,19 +94,19 @@ void InterfaceOff(int ifn) {
 void SetGUIObjectEnabled(int guin, int objn, int enabled) {
   if ((guin<0) || (guin>=game.numgui))
     quit("!SetGUIObjectEnabled: invalid GUI number");
-  if ((objn<0) || (objn>=guis[guin].ControlCount))
+  if ((objn<0) || (objn>=guis[guin].GetControlCount()))
     quit("!SetGUIObjectEnabled: invalid object number");
 
-  GUIControl_SetEnabled(guis[guin].Controls[objn], enabled);
+  GUIControl_SetEnabled(guis[guin].GetControl(objn), enabled);
 }
 
 void SetGUIObjectPosition(int guin, int objn, int xx, int yy) {
   if ((guin<0) || (guin>=game.numgui))
     quit("!SetGUIObjectPosition: invalid GUI number");
-  if ((objn<0) || (objn>=guis[guin].ControlCount))
+  if ((objn<0) || (objn>=guis[guin].GetControlCount()))
     quit("!SetGUIObjectPosition: invalid object number");
 
-  GUIControl_SetPosition(guis[guin].Controls[objn], xx, yy);
+  GUIControl_SetPosition(guis[guin].GetControl(objn), xx, yy);
 }
 
 void SetGUIPosition(int ifn,int xx,int yy) {
@@ -120,10 +120,10 @@ void SetGUIObjectSize(int ifn, int objn, int newwid, int newhit) {
   if ((ifn<0) || (ifn>=game.numgui))
     quit("!SetGUIObjectSize: invalid GUI number");
 
-  if ((objn<0) || (objn >= guis[ifn].ControlCount))
+  if ((objn<0) || (objn >= guis[ifn].GetControlCount()))
     quit("!SetGUIObjectSize: invalid object number");
 
-  GUIControl_SetSize(guis[ifn].Controls[objn], newwid, newhit);
+  GUIControl_SetSize(guis[ifn].GetControl(objn), newwid, newhit);
 }
 
 void SetGUISize (int ifn, int widd, int hitt) {

@@ -12,9 +12,7 @@
 //
 //=============================================================================
 
-#include "core/types.h"
 #include "util/datastream.h"
-#include "util/math.h"
 
 namespace AGS
 {

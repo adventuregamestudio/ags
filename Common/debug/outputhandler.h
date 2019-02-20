@@ -27,6 +27,22 @@ namespace AGS
 namespace Common
 {
 
+struct DebugMessage
+{
+    String       Text;
+    uint32_t     GroupID;
+    String       GroupName;
+    MessageType  MT;
+
+    DebugMessage() : GroupID(kDbgGroup_None), MT(kDbgMsg_None) {}
+    DebugMessage(const String &text, uint32_t group_id, const String &group_name, MessageType mt)
+        : Text(text)
+        , GroupID(group_id)
+        , GroupName(group_name)
+        , MT(mt)
+    {}
+};
+
 class IOutputHandler
 {
 public:

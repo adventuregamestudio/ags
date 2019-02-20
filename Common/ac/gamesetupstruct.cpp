@@ -12,16 +12,77 @@
 //
 //=============================================================================
 
+#include "ac/audiocliptype.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/common.h"
-#include "core/asset.h"
-#include "core/assetmanager.h"
-#include "util/string_utils.h"      // fputstring, etc
-#include "util/string.h"
+#include "ac/wordsdictionary.h"
+#include "ac/dynobj/scriptaudioclip.h"
+#include "game/interactions.h"
 #include "util/alignedstream.h"
-#include "util/math.h"
 
 using namespace AGS::Common;
+
+GameSetupStruct::GameSetupStruct()
+    : filever(0)
+    , charScripts(NULL)
+    , invScripts(NULL)
+    , roomCount(0)
+    , roomNumbers(NULL)
+    , roomNames(NULL)
+    , audioClipCount(0)
+    , audioClips(NULL)
+    , audioClipTypeCount(0)
+    , audioClipTypes(NULL)
+    , scoreClipID(0)
+{
+    memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
+    memset(guid, 0, sizeof(guid));
+    memset(saveGameFileExtension, 0, sizeof(saveGameFileExtension));
+    memset(saveGameFolderName, 0, sizeof(saveGameFolderName));
+}
+
+GameSetupStruct::~GameSetupStruct()
+{
+    Free();
+}
+
+void GameSetupStruct::Free()
+{
+    GameSetupStructBase::Free();
+
+    if (charScripts)
+    {
+        for (int i = 0; i < numcharacters; ++i)
+            delete charScripts[i];
+        delete[] charScripts;
+        charScripts = NULL;
+    }
+    numcharacters = 0;
+
+    if (invScripts)
+    {
+        for (int i = 1; i < numinvitems; i++)
+            delete invScripts[i];
+        delete invScripts;
+        invScripts = NULL;
+    }
+    numinvitems = 0;
+
+    for (int i = 0; i < roomCount; i++)
+        delete roomNames[i];
+    delete[] roomNames;
+    delete[] roomNumbers;
+    roomCount = 0;
+
+    delete[] audioClips;
+    audioClips = NULL;
+    delete[] audioClipTypes;
+    audioClipTypes = NULL;
+    audioClipCount = 0;
+    audioClipTypeCount = 0;
+
+    charProps.clear();
+    viewNames.clear();
+}
 
 // Assigns font info parameters using flags value read from the game data
 void SetFontInfoFromSerializedFlags(FontInfo &finfo, char flags)
@@ -123,7 +184,7 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)
 {
     if (load_dictionary) {
-        dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
+        dict = new WordsDictionary();
         read_dictionary (dict, in);
     }
 }
@@ -153,7 +214,7 @@ void GameSetupStruct::WriteMouseCursors_Aligned(Stream *out)
 
 void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_ver)
 {
-    chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*numcharacters+5);
+    chars = new CharacterInfo[numcharacters + 5]; // TODO: why +5, is this really needed?
 
     ReadCharacters_Aligned(in);
 }
@@ -168,7 +229,7 @@ void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (!load_messages[ee]) continue;
-        messages[ee]=(char*)malloc(GLOBALMESLENGTH);
+        messages[ee] = new char[GLOBALMESLENGTH];
         read_string_decrypt(in, messages[ee], GLOBALMESLENGTH);
     }
     delete [] load_messages;
@@ -259,14 +320,14 @@ void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
     if (options[OPT_DEBUGMODE] != 0)
     {
         roomCount = in->ReadInt32();
-        roomNumbers = (int*)malloc(roomCount * sizeof(int));
-        roomNames = (char**)malloc(roomCount * sizeof(char*));
+        roomNumbers = new int[roomCount];
+        roomNames = new char*[roomCount];
         String pexbuf;
         for (int bb = 0; bb < roomCount; bb++)
         {
             roomNumbers[bb] = in->ReadInt32();
             pexbuf.Read(in, STD_BUFFER_SIZE);
-            roomNames[bb] = (char*)malloc(pexbuf.GetLength() + 1);
+            roomNames[bb] = new char[pexbuf.GetLength() + 1];
             strcpy(roomNames[bb], pexbuf);
         }
     }
@@ -289,8 +350,6 @@ void GameSetupStruct::ReadAudioClips_Aligned(Common::Stream *in)
 void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                        WordsDictionary *olddict, char** mesbk)
 {
-    int bb;
-
     ReadInvInfo_Aligned(in);
     ReadMouseCursors_Aligned(in);
 

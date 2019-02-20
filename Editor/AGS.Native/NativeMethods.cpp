@@ -13,10 +13,13 @@ see the license.txt for details.
 #include <stdlib.h>
 #include "NativeMethods.h"
 #include "NativeUtils.h"
+#include "ac/game_version.h"
 #include "game/plugininfo.h"
+#include "util/error.h"
 #include "util/multifilelib.h"
 
 using namespace System::Runtime::InteropServices;
+typedef AGS::Common::HError HAGSError;
 
 extern bool initialize_native();
 extern void shutdown_native();
@@ -58,7 +61,7 @@ extern int extract_room_template_files(const char *templateFileName, int newRoom
 extern void change_sprite_number(int oldNumber, int newNumber);
 extern void update_sprite_resolution(int spriteNum);
 extern void save_game(bool compressSprites);
-extern bool reset_sprite_file();
+extern HAGSError reset_sprite_file();
 extern int GetResolutionMultiplier();
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameUpdated(Game ^game);
@@ -167,9 +170,10 @@ namespace AGS
 
 		void NativeMethods::LoadNewSpriteFile() 
 		{
-			if (!reset_sprite_file())
+			HAGSError err = reset_sprite_file();
+			if (!err)
 			{
-				throw gcnew AGSEditorException("Unable to load the sprite file ACSPRSET.SPR. The file may be missing, corrupt or it may require a newer version of AGS.");
+				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + gcnew String(err->FullMessage()));
 			}
 		}
 

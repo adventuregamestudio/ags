@@ -14,7 +14,6 @@
 
 #include "debug/assert.h"
 #include "util/alignedstream.h"
-#include "util/stream.h"
 #include "util/math.h"
 
 namespace AGS

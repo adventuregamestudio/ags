@@ -22,7 +22,7 @@ void DisableHotspot(int hsnum);
 void EnableHotspot(int hsnum);
 int  GetHotspotPointX (int hotspot);
 int  GetHotspotPointY (int hotspot);
-int  GetHotspotAt(int xxx,int yyy);
+int  GetHotspotIDAtScreen(int xxx,int yyy);
 void GetHotspotName(int hotspot, char *buffer);
 void RunHotspotInteraction (int hotspothere, int mood);
 

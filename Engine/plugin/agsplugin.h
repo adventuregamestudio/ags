@@ -271,9 +271,9 @@ public:
   // *** BELOW ARE INTERFACE VERSION 7 AND ABOVE ONLY
   // get the current player character
   AGSIFUNC(int)  GetPlayerCharacter ();
-  // adjust to viewport co-ordinates
+  // adjust to main viewport co-ordinates
   AGSIFUNC(void) RoomToViewport (int32 *x, int32 *y);
-  // adjust from viewport co-ordinates
+  // adjust from main viewport co-ordinates (ignores viewport bounds)
   AGSIFUNC(void) ViewportToRoom (int32 *x, int32 *y);
   // number of objects in current room
   AGSIFUNC(int)  GetNumObjects ();

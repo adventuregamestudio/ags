@@ -14,6 +14,7 @@
 
 #include "ac/global_region.h"
 #include "ac/common.h"
+#include "ac/game_version.h"
 #include "ac/draw.h"
 #include "ac/region.h"
 #include "ac/roomstatus.h"
@@ -27,10 +28,10 @@ using namespace AGS::Common;
 
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
-extern char*evblockbasename;
+extern const char*evblockbasename;
 extern int evblocknum;
 
-int GetRegionAt (int xxx, int yyy) {
+int GetRegionIDAtRoom(int xxx, int yyy) {
     // if the co-ordinates are off the edge of the screen,
     // correct them to be just within
     // this fixes walk-off-screen problems
@@ -94,7 +95,7 @@ void SetRegionTint (int area, int red, int green, int blue, int amount, int lumi
     green -= 100;
     blue -= 100;*/
 
-    thisroom.Regions[area].Tint = red & 0xFF |
+    thisroom.Regions[area].Tint = (red & 0xFF) |
                                    ((green & 0xFF) << 8) |
                                    ((blue & 0XFF) << 16) |
                                    ((amount & 0xFF) << 24);
@@ -145,7 +146,7 @@ void RunRegionInteraction (int regnum, int mood) {
     // while another interaction (eg. hotspot) is in a Wait
     // command, and leaving our basename would call the wrong
     // script later on
-    char *oldbasename = evblockbasename;
+    const char *oldbasename = evblockbasename;
     int   oldblocknum = evblocknum;
 
     evblockbasename = "region%d";

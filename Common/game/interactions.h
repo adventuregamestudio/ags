@@ -179,9 +179,9 @@ struct Interaction
 // Legacy pre-3.0 kind of global and local room variables
 struct InteractionVariable
 {
-    String Name;
-    char   Type;
-    int    Value;
+    String Name {};
+    char   Type {'\0'};
+    int    Value {0};
 
     InteractionVariable();
     InteractionVariable(const String &name, char type, int val);

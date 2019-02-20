@@ -91,11 +91,12 @@ void adjust_sizes_for_resolution(int filever)
 
         cgp->PopupAtMouseY = adjust_pixel_size_for_loaded_data(cgp->PopupAtMouseY, filever);
 
-        for (ff = 0; ff < cgp->ControlCount; ff++) 
+        for (ff = 0; ff < cgp->GetControlCount(); ff++)
         {
-            adjust_pixel_sizes_for_loaded_data(&cgp->Controls[ff]->X, &cgp->Controls[ff]->Y, filever);
-            adjust_pixel_sizes_for_loaded_data(&cgp->Controls[ff]->Width, &cgp->Controls[ff]->Height, filever);
-            cgp->Controls[ff]->IsActivated = false;
+            GUIObject *guio = cgp->GetControl(ff);
+            adjust_pixel_sizes_for_loaded_data(&guio->X, &guio->Y, filever);
+            adjust_pixel_sizes_for_loaded_data(&guio->Width, &guio->Height, filever);
+            guio->IsActivated = false;
         }
     }
 }

@@ -13,8 +13,8 @@
 //=============================================================================
 
 #include "ac/spritecache.h"
-#include "gui/guislider.h"
 #include "gui/guimain.h"
+#include "gui/guislider.h"
 #include "util/stream.h"
 
 std::vector<AGS::Common::GUISlider> guislider;
@@ -153,6 +153,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
     if (HandleImage > 0)
     {
         // an image for the slider handle
+        // TODO: react to sprites initialization/deletion instead!
         if (spriteset[HandleImage] == NULL)
             HandleImage = 0;
 

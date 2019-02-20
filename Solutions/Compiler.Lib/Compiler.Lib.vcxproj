@@ -162,13 +162,12 @@
     <ClCompile Include="..\..\Common\script\cc_error.cpp" />
     <ClCompile Include="..\..\Common\script\cc_options.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
-    <ClCompile Include="..\..\Common\script\cc_treemap.cpp" />
-    <ClCompile Include="..\..\Common\script\script_common.cpp" />
     <ClCompile Include="..\..\Compiler\fmem.cpp" />
     <ClCompile Include="..\..\Compiler\script\cc_compiledscript.cpp" />
     <ClCompile Include="..\..\Compiler\script\cc_internallist.cpp" />
     <ClCompile Include="..\..\Compiler\script\cc_macrotable.cpp" />
     <ClCompile Include="..\..\Compiler\script\cc_symboltable.cpp" />
+    <ClCompile Include="..\..\Compiler\script\cc_treemap.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_compiler.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_parser.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_parser_common.cpp" />
@@ -178,7 +177,6 @@
     <ClInclude Include="..\..\Common\script\cc_error.h" />
     <ClInclude Include="..\..\Common\script\cc_options.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />
-    <ClInclude Include="..\..\Common\script\cc_treemap.h" />
     <ClInclude Include="..\..\Common\script\script_common.h" />
     <ClInclude Include="..\..\Compiler\fmem.h" />
     <ClInclude Include="..\..\Compiler\script\cc_compiledscript.h" />
@@ -186,6 +184,7 @@
     <ClInclude Include="..\..\Compiler\script\cc_macrotable.h" />
     <ClInclude Include="..\..\Compiler\script\cc_symboldef.h" />
     <ClInclude Include="..\..\Compiler\script\cc_symboltable.h" />
+    <ClInclude Include="..\..\Compiler\script\cc_treemap.h" />
     <ClInclude Include="..\..\Compiler\script\cc_variablesymlist.h" />
     <ClInclude Include="..\..\Compiler\script\cs_compiler.h" />
     <ClInclude Include="..\..\Compiler\script\cs_parser.h" />

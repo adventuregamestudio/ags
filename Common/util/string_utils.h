@@ -20,6 +20,7 @@
 
 #include <stdarg.h>
 #include <string.h>
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -68,8 +69,6 @@ void fgetstring_limit(char *sss, Common::Stream *in, int bufsize);
 // fgestring is similar to fgetstring_limit, but it assumes very large arbitrary buffer limit
 // TODO: replace this function, because it should not exist >:[
 void fgetstring(char *sss, Common::Stream *in);
-
-#include "util/string.h"
 
 // Converts char* to string and frees original malloc-ed array
 Common::String free_char_to_string(char *char_buf);

@@ -52,7 +52,7 @@ using namespace AGS::Engine;
 
 extern char lib_file_name[13];
 
-char *mouselibcopyr = "MouseLib32 (c) 1994, 1998 Chris Jones";
+const char *mouselibcopyr = "MouseLib32 (c) 1994, 1998 Chris Jones";
 const int NONE = -1, LEFT = 0, RIGHT = 1, MIDDLE = 2;
 char currentcursor = 0;
 // virtual mouse cursor coordinates

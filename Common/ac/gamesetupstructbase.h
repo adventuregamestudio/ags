@@ -18,15 +18,17 @@
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 
-#include "ac/characterinfo.h"       // OldCharacterInfo, CharacterInfo
-#include "ac/wordsdictionary.h"  // WordsDictionary
 #include "ac/gamestructdefines.h"
-#include "script/cc_script.h"           // ccScript
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
+
+struct WordsDictionary;
+struct CharacterInfo;
+struct ccScript;
+
 
 struct GameSetupStructBase {
     static const int  GAME_NAME_LENGTH = 50;
@@ -34,26 +36,26 @@ struct GameSetupStructBase {
     static const int  NUM_INTS_RESERVED = 17;
 
     char              gamename[GAME_NAME_LENGTH];
-    int32             options[MAX_OPTIONS];
+    int               options[MAX_OPTIONS];
     unsigned char     paluses[256];
     color             defpal[256];
-    int32             numviews;
-    int32             numcharacters;
-    int32             playercharacter;
-    int32             totalscore;
+    int               numviews;
+    int               numcharacters;
+    int               playercharacter;
+    int               totalscore;
     short             numinvitems;
-    int32             numdialog, numdlgmessage;
-    int32             numfonts;
-    int32             color_depth;          // in bytes per pixel (ie. 1 or 2)
-    int32             target_win;
-    int32             dialog_bullet;        // 0 for none, otherwise slot num of bullet point
+    int               numdialog, numdlgmessage;
+    int               numfonts;
+    int               color_depth;          // in bytes per pixel (ie. 1 or 2)
+    int               target_win;
+    int               dialog_bullet;        // 0 for none, otherwise slot num of bullet point
     unsigned short    hotdot, hotdotouter;  // inv cursor hotspot dot color
-    int32             uniqueid;    // random key identifying the game
-    int32             numgui;
-    int32             numcursors;
-    int32             default_lipsync_frame; // used for unknown chars
-    int32             invhotdotsprite;
-    int32             reserved[NUM_INTS_RESERVED];
+    int               uniqueid;    // random key identifying the game
+    int               numgui;
+    int               numcursors;
+    int               default_lipsync_frame; // used for unknown chars
+    int               invhotdotsprite;
+    int               reserved[NUM_INTS_RESERVED];
     char             *messages[MAXGLOBALMES];
     WordsDictionary  *dict;
     char             *globalscript;
@@ -62,7 +64,7 @@ struct GameSetupStructBase {
     Size              size;                 // native game size in pixels
     Size              altsize;              // alternate, lesser, game size for letterbox-by-design games
 
-    int32_t          *load_messages;
+    int             *load_messages;
     bool             load_dictionary;
     bool             load_compiled_script;
     // [IKM] 2013-03-30
@@ -72,6 +74,7 @@ struct GameSetupStructBase {
 
     GameSetupStructBase();
     virtual ~GameSetupStructBase();
+    void Free();
     void SetDefaultResolution(GameResolutionType resolution_type);
     void SetCustomResolution(Size game_res);
     void ReadFromFile(Common::Stream *in);

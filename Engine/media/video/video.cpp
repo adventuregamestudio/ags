@@ -70,7 +70,7 @@ int check_if_user_input_should_cancel_video()
             return 1;  // skip on any key
     }
     if (canabort == 3) {  // skip on mouse click
-        if (mgetbutton()!=NONE) return 1;
+        if (ags_mgetbutton()!=NONE) return 1;
     }
     return 0;
 }
@@ -214,7 +214,7 @@ void play_flc_file(int numb,int playflags) {
     delete hicol_buf;
     hicol_buf=NULL;
     //  SetVirtualScreen(screen); wputblock(0,0,backbuffer,0);
-    while (mgetbutton()!=NONE) ;
+    while (ags_mgetbutton()!=NONE) ;
     invalidate_screen();
 }
 

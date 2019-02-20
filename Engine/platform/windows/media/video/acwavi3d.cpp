@@ -63,7 +63,7 @@ inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars)
 
 // Interface from main game
 
-extern int rec_mgetbutton();
+extern int ags_mgetbutton();
 extern void update_polled_audio_and_crossfade();
 extern volatile char want_exit;
 extern volatile int timerloop;
@@ -126,7 +126,7 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
       if (canskip >= 2)
         break;
     }
-    if ((rec_mgetbutton() >= 0) && (canskip == 3))
+    if ((ags_mgetbutton() >= 0) && (canskip == 3))
       break;
 
     //device->Present(NULL, NULL, 0, NULL);

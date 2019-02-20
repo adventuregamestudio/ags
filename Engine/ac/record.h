@@ -18,29 +18,20 @@
 #ifndef __AGS_EE_AC__RECORD_H
 #define __AGS_EE_AC__RECORD_H
 
-// If this is defined for record unit it will cause endless recursion!
-#ifndef IS_RECORD_UNIT
-#undef kbhit
-#define mgetbutton rec_mgetbutton
-#define domouse rec_domouse
-#define misbuttondown rec_misbuttondown
-#define kbhit rec_kbhit
-#define getch rec_getch
-#endif
+#pragma GCC poison kbhit rec_kbhit  rec_mgetbutton rec_domouse  rec_misbuttondown getch rec_getch
+#pragma GCC poison check_mouse_wheel clear_input_buffer wait_until_keypress  rec_isSpeechFinished rec_iskeypressed
+// #pragma GCC poison domouse mgetbutton misbuttondown
 
-int  rec_getch ();
-int  rec_kbhit ();
-int  rec_iskeypressed (int keycode);
-int  rec_isSpeechFinished ();
-int  rec_misbuttondown (int but);
-int  rec_mgetbutton();
-void rec_domouse (int what);
-int  check_mouse_wheel ();
-int  my_readkey();
+int  ags_getch ();
+int  ags_kbhit ();
+int  ags_iskeypressed (int keycode);
+
+int  ags_misbuttondown (int but);
+int  ags_mgetbutton();
+void ags_domouse (int what);
+int  ags_check_mouse_wheel ();
+
 // Clears buffered keypresses and mouse clicks, if any
-void clear_input_buffer();
-// Suspends the game until user keypress
-// TODO: this function should not normally exist; need to rewrite update loop to support different states
-void wait_until_keypress();
+void ags_clear_input_buffer();
 
 #endif // __AGS_EE_AC__RECORD_H

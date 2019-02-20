@@ -85,6 +85,7 @@
 #include "util/filestream.h" // TODO: needed only because plugins expect file handle
 #include "util/path.h"
 #include "util/string_utils.h"
+#include "ac/mouse.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -333,13 +334,13 @@ void setup_for_dialog() {
     cbuttfont = play.normal_font;
     acdialog_font = play.normal_font;
     if (!play.mouse_cursor_hidden)
-        domouse(1);
+        ags_domouse(DOMOUSE_ENABLE);
     oldmouse=cur_cursor; set_mouse_cursor(CURS_ARROW);
 }
 void restore_after_dialog() {
     set_mouse_cursor(oldmouse);
     if (!play.mouse_cursor_hidden)
-        domouse(2);
+        ags_domouse(DOMOUSE_DISABLE);
     construct_virtual_screen(true);
 }
 
@@ -1696,7 +1697,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     our_eip = oldeip;
 
     // ensure keyboard buffer is clean
-    clear_input_buffer();
+    ags_clear_input_buffer();
     // call "After Restore" event callback
     run_on_event(GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
     return HSaveError::None();
@@ -1856,7 +1857,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 void display_switch_out()
 {
     switched_away = true;
-    clear_input_buffer();
+    ags_clear_input_buffer();
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
     platform->DisplaySwitchOut();
@@ -1903,7 +1904,7 @@ void display_switch_in()
             platform->EnterFullscreenMode(mode);
     }
     platform->DisplaySwitchIn();
-    clear_input_buffer();
+    ags_clear_input_buffer();
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();

@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+// TODO: ags3--remove-record  : move into a different spot. input.cpp ? input_Events?  sys_events?
+
 #include "ac/common.h"
 #include "media/audio/audiodefines.h"
 #include "ac/gamesetupstruct.h"
@@ -34,42 +36,32 @@ extern int pluginSimulatedClick;
 extern int displayed_room;
 extern char check_dynamic_sprites_at_exit;
 
+extern void domouse(int str);
+extern int mgetbutton();
+extern int misbuttondown(int buno);
+
 int mouse_z_was = 0;
 
-int rec_getch () {
-    int result = my_readkey();
-    return result;  
-}
-
-int rec_kbhit () {
+int ags_kbhit () {
     int result = keypressed();
     if ((result) && (globalTimerCounter < play.ignore_user_input_until_time))
     {
         // ignoring user input
-        my_readkey();
+        ags_getch();
         result = 0;
     }
     return result;  
 }
 
-int rec_iskeypressed (int keycode) {
-    int toret = key[keycode];
-    return toret;
+int ags_iskeypressed (int keycode) {
+    return key[keycode];
 }
 
-int rec_isSpeechFinished () {
-    if (!channels[SCHAN_SPEECH]->done) {
-        return 0;
-    }
-    return 1;
+int ags_misbuttondown (int but) {
+    return misbuttondown(but);
 }
 
-int rec_misbuttondown (int but) {
-    int result = misbuttondown (but);
-    return result;
-}
-
-int rec_mgetbutton() {
+int ags_mgetbutton() {
     int result;
 
     if (pluginSimulatedClick > NONE) {
@@ -89,14 +81,15 @@ int rec_mgetbutton() {
     return result;
 }
 
-void rec_domouse (int what) {
+void ags_domouse (int what) {
+    // do mouse is "update the mouse x,y and also the cursor position", unless DOMOUSE_NOCURSOR is set.
     if (what == DOMOUSE_NOCURSOR)
         mgetgraphpos();
     else
         domouse(what);
 }
 
-int check_mouse_wheel () {
+int ags_check_mouse_wheel () {
     int result = 0;
     if ((mouse_z != mouse_z_was) && (game.options[OPT_MOUSEWHEEL] != 0)) {
         if (mouse_z > mouse_z_was)
@@ -108,7 +101,7 @@ int check_mouse_wheel () {
     return result;
 }
 
-int my_readkey() {
+int ags_getch() {
     int gott=readkey();
     int scancode = ((gott >> 8) & 0x00ff);
 
@@ -192,14 +185,8 @@ int my_readkey() {
     return gott;
 }
 
-void clear_input_buffer()
+void ags_clear_input_buffer()
 {
-    while (rec_kbhit()) rec_getch();
+    while (ags_kbhit()) ags_getch();
     while (mgetbutton() != NONE);
-}
-
-void wait_until_keypress()
-{
-    while (!rec_kbhit());
-    rec_getch();
 }

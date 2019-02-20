@@ -119,7 +119,9 @@ void script_debug(int cmdd,int dataa) {
         delete tempw;
         delete view_bmp;
         gfxDriver->DestroyDDB(ddb);
-        wait_until_keypress();
+        // Wait until key press
+        while (!ags_kbhit());
+        ags_getch();
         invalidate_screen();
     }
     else if (cmdd==3) 
@@ -177,7 +179,9 @@ void script_debug(int cmdd,int dataa) {
         delete tempw;
         delete view_bmp;
         gfxDriver->DestroyDDB(ddb);
-        wait_until_keypress();
+        // Wait until key press
+        while (!ags_kbhit());
+        ags_getch();
     }
     else if (cmdd == 99)
         ccSetOption(SCOPT_DEBUGRUN, dataa);

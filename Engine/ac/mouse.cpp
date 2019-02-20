@@ -34,6 +34,10 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
 
+#ifdef __AGS_EE_AC__RECORD_H
+#error "Can't include record.h since we're interacting with mouse api directly"
+#endif
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -44,6 +48,9 @@ extern Bitmap *mousecurs[MAXCURSORS];
 extern SpriteCache spriteset;
 extern CharacterInfo*playerchar;
 extern IGraphicsDriver *gfxDriver;
+
+extern void ags_domouse(int str);
+extern int misbuttondown(int buno);
 
 ScriptMouse scmouse;
 int cur_mode,cur_cursor;
@@ -264,7 +271,7 @@ void disable_cursor_mode(int modd) {
 }
 
 void RefreshMouse() {
-    domouse(DOMOUSE_NOCURSOR);
+    ags_domouse(DOMOUSE_NOCURSOR);
     scmouse.x = divide_down_coordinate(mousex);
     scmouse.y = divide_down_coordinate(mousey);
 }

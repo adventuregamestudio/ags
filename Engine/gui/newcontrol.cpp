@@ -54,7 +54,7 @@ void NewControl::drawifneeded()
 }
 void NewControl::drawandmouse()
 {
-    //    domouse(2);
+    //    ags_domouse(DOMOUSE_DISABLE);
     draw(get_gui_screen());
-    //  domouse(1);
+    //  ags_domouse(DOMOUSE_ENABLE);
 }

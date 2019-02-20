@@ -2313,7 +2313,7 @@ void update_screen() {
 
     // update animating mouse cursor
     if (game.mcurs[cur_cursor].view>=0) {
-        domouse (DOMOUSE_NOCURSOR);
+        ags_domouse(DOMOUSE_NOCURSOR);
         // only on mousemove, and it's not moving
         if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE)!=0) &&
             (mousex==lastmx) && (mousey==lastmy)) ;
@@ -2372,7 +2372,7 @@ void update_screen() {
         invalidate_sprite(0, 0, debugConsole, false);
     }
 
-    domouse(DOMOUSE_NOCURSOR);
+    ags_domouse(DOMOUSE_NOCURSOR);
 
     if (!play.mouse_cursor_hidden)
     {
@@ -2381,11 +2381,11 @@ void update_screen() {
     }
 
     /*
-    domouse(1);
+    ags_domouse(DOMOUSE_ENABLE);
     // if the cursor is hidden, remove it again. However, it needs
     // to go on-off in order to update the stored mouse coordinates
     if (play.mouse_cursor_hidden)
-    domouse(2);*/
+    ags_domouse(DOMOUSE_DISABLE);*/
 
     write_screen();
 
@@ -2399,7 +2399,7 @@ void update_screen() {
     }
 
     //if (!play.mouse_cursor_hidden)
-    //    domouse(2);
+    //    ags_domouse(DOMOUSE_DISABLE);
 
     screen_is_dirty = false;
 }

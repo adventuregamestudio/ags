@@ -118,9 +118,9 @@ extern int smcode;
 
     }
 
-//    domouse(2);
+//    ags_domouse(DOMOUSE_DISABLE);
     draw(get_gui_screen());
-  //  domouse(1);
+  //  ags_domouse(DOMOUSE_ENABLE);
     smcode = CM_SELCHANGE;
     return 0;
   }

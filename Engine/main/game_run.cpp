@@ -215,15 +215,15 @@ void check_mouse_controls()
     // check mouse clicks on GUIs
     static int wasbutdown=0,wasongui=0;
 
-    if ((wasbutdown>0) && (misbuttondown(wasbutdown-1))) {
+    if ((wasbutdown>0) && (ags_misbuttondown(wasbutdown-1))) {
         gui_on_mouse_hold(wasongui, wasbutdown);
     }
-    else if ((wasbutdown>0) && (!misbuttondown(wasbutdown-1))) {
+    else if ((wasbutdown>0) && (!ags_misbuttondown(wasbutdown-1))) {
         gui_on_mouse_up(wasongui, wasbutdown);
         wasbutdown=0;
     }
 
-    int mbut =mgetbutton();
+    int mbut = ags_mgetbutton();
     if (mbut>NONE) {
         lock_mouse_on_click();
 
@@ -254,7 +254,7 @@ void check_mouse_controls()
         else setevent(EV_TEXTSCRIPT,TS_MCLICK,mbut+1);
         //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
     }
-    mbut = check_mouse_wheel();
+    mbut = ags_check_mouse_wheel();
     if (mbut !=0)
         lock_mouse_on_click();
     if (mbut < 0)
@@ -292,7 +292,7 @@ bool run_service_key_controls(int &kgn)
     static int old_key_shifts = 0; // for saving shift modes
 
     bool handled = false;
-    int kbhit_res = kbhit();
+    int kbhit_res = ags_kbhit();
     // First, check shifts
     const int act_shifts = get_active_shifts();
     // If shifts combination have already triggered an action, then do nothing
@@ -333,9 +333,9 @@ bool run_service_key_controls(int &kgn)
     if (!kbhit_res || handled)
         return false;
 
-    int keycode = getch();
+    int keycode = ags_getch();
     if (keycode == 0)
-        keycode = getch() + AGS_EXT_KEY_SHIFT;
+        keycode = ags_getch() + AGS_EXT_KEY_SHIFT;
 
     // LAlt or RAlt + Enter
     // NOTE: for some reason LAlt + Enter produces same code as F9
@@ -749,7 +749,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     our_eip=7;
 
-    //    if (mgetbutton()>NONE) break;
+    //    if (ags_mgetbutton()>NONE) break;
     update_polled_stuff_if_runtime();
 
     game_loop_update_background_animation();

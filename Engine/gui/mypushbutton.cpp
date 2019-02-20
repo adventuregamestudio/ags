@@ -16,7 +16,6 @@
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/mouse.h"
-#include "ac/record.h"
 #include "font/fonts.h"
 #include "gui/mypushbutton.h"
 #include "gui/guidialog.h"
@@ -83,12 +82,12 @@ int MyPushButton::pressedon(int mousex, int mousey)
         // stop mp3 skipping if button held down
         update_polled_stuff_if_runtime();
         if (wasstat != state) {
-            //        domouse(2);
+            //        ags_domouse(DOMOUSE_DISABLE);
             draw(get_gui_screen());
-            //domouse(1);
+            //ags_domouse(DOMOUSE_ENABLE);
         }
 
-        //      domouse(0);
+        //      ags_domouse(DOMOUSE_UPDATE);
 
         refresh_gui_screen();
 
@@ -96,9 +95,9 @@ int MyPushButton::pressedon(int mousex, int mousey)
     }
     wasstat = state;
     state = 0;
-    //    domouse(2);
+    //    ags_domouse(DOMOUSE_DISABLE);
     draw(get_gui_screen());
-    //  domouse(1);
+    //  ags_domouse(DOMOUSE_ENABLE);
     return wasstat;
 }
 

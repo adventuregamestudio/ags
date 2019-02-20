@@ -46,6 +46,10 @@
 #include "ac/global_game.h" // j for IsKeyPressed
 #endif
 
+#ifdef __AGS_EE_AC__RECORD_H
+#error "Can't include record.h since we're interacting with mouse api directly"
+#endif
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -232,12 +236,7 @@ void mfreemem()
   }
 }
 
-void mnewcursor(char cursno)
-{
-  domouse(2);
-  currentcursor = cursno;
-  domouse(1);
-}
+
 
 
 void mloadwcursor(char *namm)

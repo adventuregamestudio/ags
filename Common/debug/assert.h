@@ -18,30 +18,10 @@
 #ifndef __AGS_CN_DEBUG__ASSERT_H
 #define __AGS_CN_DEBUG__ASSERT_H
 
-// TODO: revise this later (add platform-specific output maybe?)
-#if defined(WINDOWS_VERSION)
-
-    #ifdef _DEBUG
-    inline void assert(bool expr)
-    {
-        if (!expr) {
-            _asm {
-                int 3
-            }
-        }
-    }
-    #else
-    inline void assert(bool /*expr*/) {}
-    #endif
-
-#else // !WINDOWS_VERSION
-
-    #if !defined(_DEBUG) && !defined(NDEBUG)
-    #define NDEBUG
-    #endif
-
-    #include <assert.h>
-
+#if !defined(_DEBUG) && !defined(NDEBUG)
+#define NDEBUG
 #endif
+
+#include <assert.h>
 
 #endif // __AGS_CN_DEBUG__ASSERT_H

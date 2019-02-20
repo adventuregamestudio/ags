@@ -1,3 +1,4 @@
+#include <string>
 #include "gtest/gtest.h"
 #include "script/cs_parser.h"
 #include "script/cc_symboltable.h"
@@ -9,20 +10,29 @@ typedef AGS::Common::String AGSString;
 extern int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip);
 extern int currentline; // in script/script_common
 
-const char *last_seen_cc_error;
+std::string last_cc_error_buf;
+void clear_error()
+{
+    last_cc_error_buf.clear();
+}
+
+const char *last_seen_cc_error()
+{
+    return last_cc_error_buf.c_str();
+}
 
 // IMPORTANT: the last_seen_cc_error must contain unformatted error message.
 // It is being used in test and compared to hard-coded strings.
 std::pair<AGSString, AGSString> cc_error_at_line(const char *error_msg)
 {
     // printf("error: %s\n", error_msg);
-    last_seen_cc_error = _strdup(error_msg);
+    last_cc_error_buf = _strdup(error_msg);
     return std::make_pair(AGSString::FromFormat("Error (line %d): %s", currentline, error_msg), AGSString());
 }
 
 AGSString cc_error_without_line(const char *error_msg)
 {
-    last_seen_cc_error = _strdup(error_msg);
+    last_cc_error_buf = _strdup(error_msg);
     return AGSString::FromFormat("Error (line unknown): %s", error_msg);
 }
 
@@ -59,11 +69,11 @@ TEST(Compile, UnknownKeywordAfterReadonly) {
           readonly int2 b; \
         };";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Syntax error at 'MyStruct::int2'; expected variable type", last_seen_cc_error);
+    EXPECT_STREQ("Syntax error at 'MyStruct::int2'; expected variable type", last_seen_cc_error());
 }
 
 TEST(Compile, DynamicArrayReturnValueErrorText) {
@@ -78,11 +88,11 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
           return r;\
         }";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite*[]' to 'int[]'", last_seen_cc_error);
+    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite*[]' to 'int[]'", last_seen_cc_error());
 }
 
 TEST(Compile, DynamicTypeReturnNonPointerManaged) {
@@ -98,11 +108,11 @@ TEST(Compile, DynamicTypeReturnNonPointerManaged) {
         {\
         }";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("cannot pass non-pointer struct array", last_seen_cc_error);
+    EXPECT_STREQ("cannot pass non-pointer struct array", last_seen_cc_error());
 }
 
 TEST(Compile, StructMemberQualifierOrder) {
@@ -117,7 +127,7 @@ TEST(Compile, StructMemberQualifierOrder) {
         };\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(0, compileResult);
@@ -131,7 +141,7 @@ TEST(Compile, ParsingIntSuccess) {
         int testfunc(int x ) { int y = 42; } \
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(0, compileResult);
@@ -149,7 +159,7 @@ TEST(Compile, ParsingIntLimits) {
                  }\
                  ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(0, compileResult);
@@ -162,10 +172,10 @@ TEST(Compile, ParsingIntDefaultOverflow) {
         import  int  importedfunc(int data1 = 9999999999999999999999, int data2=2, int data3=3);\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '9999999999999999999999' because of overflow.", last_seen_cc_error);
+    EXPECT_STREQ("Could not parse integer symbol '9999999999999999999999' because of overflow.", last_seen_cc_error());
 }
 
 TEST(Compile, ParsingNegIntDefaultOverflow) {
@@ -175,10 +185,10 @@ TEST(Compile, ParsingNegIntDefaultOverflow) {
         import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '-9999999999999999999999' because of overflow.", last_seen_cc_error);
+    EXPECT_STREQ("Could not parse integer symbol '-9999999999999999999999' because of overflow.", last_seen_cc_error());
 }
 
 TEST(Compile, ParsingIntOverflow) {
@@ -188,10 +198,10 @@ TEST(Compile, ParsingIntOverflow) {
         int testfunc(int x ) { int y = 4200000000000000000000; } \
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '4200000000000000000000' because of overflow.", last_seen_cc_error);
+    EXPECT_STREQ("Could not parse integer symbol '4200000000000000000000' because of overflow.", last_seen_cc_error());
 }
 
 TEST(Compile, ParsingNegIntOverflow) {
@@ -201,10 +211,10 @@ TEST(Compile, ParsingNegIntOverflow) {
                  int testfunc(int x ) { int y = -4200000000000000000000; } \
                  ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Could not parse integer symbol '-4200000000000000000000' because of overflow.", last_seen_cc_error);
+    EXPECT_STREQ("Could not parse integer symbol '-4200000000000000000000' because of overflow.", last_seen_cc_error());
 }
 
 
@@ -228,7 +238,7 @@ TEST(Compile, EnumNegative) {
         };\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
@@ -268,7 +278,7 @@ TEST(Compile, DefaultParametersLargeInts) {
             );\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
@@ -313,7 +323,7 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
         };\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 
@@ -334,10 +344,10 @@ TEST(Compile, DoubleNegatedConstant) {
             );\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Parameter default value must be literal", last_seen_cc_error);
+    EXPECT_STREQ("Parameter default value must be literal", last_seen_cc_error());
 }
 
 TEST(Compile, SubtractionWithoutSpaces) {
@@ -350,7 +360,7 @@ TEST(Compile, SubtractionWithoutSpaces) {
         }\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(0, compileResult);
 }
@@ -379,9 +389,9 @@ TEST(Compile, NegationLHSOfExpression) {
         }\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    printf("Error: %s\n", last_seen_cc_error);
+    printf("Error: %s\n", last_seen_cc_error());
     ASSERT_EQ(0, compileResult);
 }
 
@@ -409,8 +419,8 @@ TEST(Compile, NegationRHSOfExpression) {
         }\
         ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    printf("Error: %s\n", last_seen_cc_error);
+    printf("Error: %s\n", last_seen_cc_error());
     ASSERT_EQ(0, compileResult);
 }

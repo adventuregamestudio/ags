@@ -499,7 +499,7 @@ AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
     if (bundling_type == AUCL_BUNDLE_EXE)
         return AssetPath(game_file_name, filename);
     else if (bundling_type == AUCL_BUNDLE_VOX)
-        return AssetPath(is_old_audio_system() ? "music.vox" : "audio.vox", filename);
+        return AssetPath(game.GetAudioVOXName(), filename);
     return AssetPath();
 }
 

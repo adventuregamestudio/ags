@@ -227,7 +227,7 @@ int GameState::RoomToScreenY(int roomy)
 
 VpPoint GameState::ScreenToRoom(int scrx, int scry, bool clip_viewport)
 {
-    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v350;
+    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507;
     Point screen_pt(scrx, scry);
     if (clip_viewport && !_roomViewport.Position.IsInside(screen_pt))
         return std::make_pair(Point(), -1);
@@ -239,7 +239,7 @@ VpPoint GameState::ScreenToRoom(int scrx, int scry, bool clip_viewport)
 
 VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry, bool clip_viewport)
 {
-    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v350;
+    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507;
     Point screen_pt(scrx, scry);
     if (clip_viewport && !_roomViewport.Position.IsInside(screen_pt))
         return std::make_pair(Point(), -1);

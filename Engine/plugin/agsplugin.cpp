@@ -32,7 +32,6 @@
 #include "ac/objectcache.h"
 #include "ac/parser.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "font/fonts.h"
@@ -397,7 +396,6 @@ extern int  mgetbutton();
 
 void IAGSEngine::PollSystem () {
 
-    NEXT_ITERATION();
     domouse(DOMOUSE_NOCURSOR);
     update_polled_stuff_if_runtime();
     int mbut = mgetbutton();

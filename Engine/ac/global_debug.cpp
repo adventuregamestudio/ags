@@ -25,7 +25,7 @@
 #include "ac/global_room.h"
 #include "ac/movelist.h"
 #include "ac/properties.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/tree_map.h"
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
@@ -119,7 +119,9 @@ void script_debug(int cmdd,int dataa) {
         delete tempw;
         delete view_bmp;
         gfxDriver->DestroyDDB(ddb);
-        wait_until_keypress();
+        // Wait until key press
+        while (!ags_kbhit());
+        ags_getch();
         invalidate_screen();
     }
     else if (cmdd==3) 
@@ -177,7 +179,9 @@ void script_debug(int cmdd,int dataa) {
         delete tempw;
         delete view_bmp;
         gfxDriver->DestroyDDB(ddb);
-        wait_until_keypress();
+        // Wait until key press
+        while (!ags_kbhit());
+        ags_getch();
     }
     else if (cmdd == 99)
         ccSetOption(SCOPT_DEBUGRUN, dataa);

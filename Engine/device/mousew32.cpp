@@ -232,12 +232,7 @@ void mfreemem()
   }
 }
 
-void mnewcursor(char cursno)
-{
-  domouse(2);
-  currentcursor = cursno;
-  domouse(1);
-}
+
 
 
 void mloadwcursor(char *namm)

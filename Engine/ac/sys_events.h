@@ -15,22 +15,19 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H
-#define __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H
+#ifndef __AGS_EE_AC__SYS_EVENTS_H
+#define __AGS_EE_AC__SYS_EVENTS_H
 
-#include "gui/guidialogdefines.h"
+int  ags_getch ();
+int  ags_kbhit ();
+int  ags_iskeypressed (int keycode);
 
-#if !defined (WINDOWS_VERSION)
-#define _getcwd getcwd
-#endif
+int  ags_misbuttondown (int but);
+int  ags_mgetbutton();
+void ags_domouse (int what);
+int  ags_check_mouse_wheel ();
 
-#define _export
-#ifdef WINAPI
-#undef WINAPI
-#endif
-#define WINAPI
-extern int ags_misbuttondown (int but);
-#define mbutrelease(X) (!ags_misbuttondown(X))
-#define TEXT_HT usetup.textheight
+// Clears buffered keypresses and mouse clicks, if any
+void ags_clear_input_buffer();
 
-#endif // __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H
+#endif // __AGS_EE_AC__SYS_EVENTS_H

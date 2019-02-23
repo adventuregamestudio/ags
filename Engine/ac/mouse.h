@@ -20,6 +20,9 @@
 
 #include "ac/dynobj/scriptmouse.h"
 
+#define DOMOUSE_UPDATE 0
+#define DOMOUSE_ENABLE 1
+#define DOMOUSE_DISABLE 2
 #define DOMOUSE_NOCURSOR 5
 // are these mouse buttons? ;/
 // note: also defined in ac_cscidialog as const ints

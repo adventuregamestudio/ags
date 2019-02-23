@@ -26,7 +26,7 @@
 #include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/screenoverlay.h"
 #include "ac/speech.h"
 #include "ac/string.h"
@@ -41,6 +41,8 @@
 #include "ac/spritecache.h"
 #include "gfx/gfx_util.h"
 #include "util/string_utils.h"
+#include "ac/mouse.h"
+#include "media/audio/soundclip.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -258,7 +260,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         remove_screen_overlay(OVER_TEXTMSG);*/
 
         if (!play.mouse_cursor_hidden)
-            domouse(1);
+            ags_domouse(DOMOUSE_ENABLE);
         // play.skip_display has same values as SetSkipSpeech:
         // 0 = click mouse or key to skip
         // 1 = key only
@@ -269,15 +271,14 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
         while (1) {
             timerloop = 0;
-            NEXT_ITERATION();
             /*      if (!play.mouse_cursor_hidden)
-            domouse(0);
+            ags_domouse(DOMOUSE_UPDATE);
             write_screen();*/
 
             render_graphics();
 
             update_polled_audio_and_crossfade();
-            if (mgetbutton()>NONE) {
+            if (ags_mgetbutton()>NONE) {
                 // If we're allowed, skip with mouse
                 if (skip_setting & SKIP_MOUSECLICK)
                     break;
@@ -297,7 +298,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
             if (channels[SCHAN_SPEECH] != NULL) {
                 // extend life of text if the voice hasn't finished yet
-                if ((!rec_isSpeechFinished()) && (play.fast_forward == 0)) {
+                if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
                     if (countdown <= 1)
                         countdown = 1;
                 }
@@ -316,7 +317,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 break;
         }
         if (!play.mouse_cursor_hidden)
-            domouse(2);
+            ags_domouse(DOMOUSE_DISABLE);
         remove_screen_overlay(OVER_TEXTMSG);
 
         construct_virtual_screen(true);

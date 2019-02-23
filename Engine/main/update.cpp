@@ -25,7 +25,7 @@
 #include "ac/global_character.h"
 #include "ac/lipsync.h"
 #include "ac/overlay.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "main/mainheader.h"
@@ -255,7 +255,7 @@ void update_speech_and_messages()
     play.messagetime--;
     // extend life of text if the voice hasn't finished yet
     if (is_voice && !play.speech_in_post_state) {
-      if ((!rec_isSpeechFinished()) && (play.fast_forward == 0)) {
+      if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
       //if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
         if (play.messagetime <= 1)
           play.messagetime = 1;

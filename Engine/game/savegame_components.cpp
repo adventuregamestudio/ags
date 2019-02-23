@@ -943,7 +943,7 @@ HSaveError ReadManagedPool(PStream in, int32_t cmp_ver, const PreservedParams &p
 HSaveError WritePluginData(PStream out)
 {
     auto pluginFileHandle = AGSE_SAVEGAME;
-    pl_set_file_handle(pluginFileHandle, dynamic_cast<Common::FileStream *>(out.get()));
+    pl_set_file_handle(pluginFileHandle, out.get());
     pl_run_plugin_hooks(AGSE_SAVEGAME, pluginFileHandle);
     pl_clear_file_handle();
     return HSaveError::None();
@@ -952,7 +952,7 @@ HSaveError WritePluginData(PStream out)
 HSaveError ReadPluginData(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     auto pluginFileHandle = AGSE_RESTOREGAME;
-    pl_set_file_handle(pluginFileHandle, dynamic_cast<Common::FileStream *>(in.get()));
+    pl_set_file_handle(pluginFileHandle, in.get());
     pl_run_plugin_hooks(AGSE_RESTOREGAME, pluginFileHandle);
     pl_clear_file_handle();
     return HSaveError::None();

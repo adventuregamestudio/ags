@@ -25,7 +25,7 @@
 #define PLUGIN_FILENAME_MAX (49)
 
 class IAGSEngine;
-namespace AGS { namespace Common { class FileStream; }}
+namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
 void pl_stop_plugins();
@@ -50,7 +50,7 @@ struct InbuiltPluginDetails {
 
 // Register a builtin plugin.
 int pl_register_builtin_plugin(InbuiltPluginDetails const &details);
-void pl_set_file_handle(long data, AGS::Common::FileStream *stream);
+void pl_set_file_handle(long data, AGS::Common::Stream *stream);
 void pl_clear_file_handle();
 
 #endif // __AGS_EE_PLUGIN__PLUGINENGINE_H

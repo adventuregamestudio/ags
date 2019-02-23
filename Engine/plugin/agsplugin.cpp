@@ -316,9 +316,9 @@ void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, 
 // we can reuse the same handle.
 
 static long pl_file_handle = -1;
-static AGS::Common::FileStream *pl_file_stream = nullptr;
+static Stream *pl_file_stream = nullptr;
 
-void pl_set_file_handle(long data, AGS::Common::FileStream *stream) {
+void pl_set_file_handle(long data, Stream *stream) {
     pl_file_handle = data;
     pl_file_stream = stream;
 }

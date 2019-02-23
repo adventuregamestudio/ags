@@ -1597,7 +1597,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
         return err;
 
     auto pluginFileHandle = AGSE_RESTOREGAME;
-    pl_set_file_handle(pluginFileHandle, dynamic_cast<Common::FileStream *>(in));
+    pl_set_file_handle(pluginFileHandle, in);
     pl_run_plugin_hooks(AGSE_RESTOREGAME, pluginFileHandle);
     pl_clear_file_handle();
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)

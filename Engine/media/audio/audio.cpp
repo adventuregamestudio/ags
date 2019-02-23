@@ -467,7 +467,7 @@ int get_old_style_number_for_sound(int sound_number)
 {
     int audio_clip_id = 0;
 
-    if (is_old_audio_system())
+    if (game.IsLegacyAudioSystem())
     {
         // No sound assigned.
         if (sound_number < 1)

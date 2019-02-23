@@ -18,7 +18,9 @@
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 
+#include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
+#include "util/string.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 // Forward declaration
@@ -95,6 +97,17 @@ struct GameSetupStructBase {
     inline bool IsLegacyLetterbox() const
     {
         return options[OPT_LETTERBOX] != 0;
+    }
+
+    // Test if the game is built around old audio system
+    inline bool IsLegacyAudioSystem() const
+    {
+        return loaded_game_file_version < kGameVersion_320;
+    }
+    // Returns the expected filename of a digital audio package
+    inline AGS::Common::String GetAudioVOXName() const
+    {
+        return IsLegacyAudioSystem() ? "music.vox" : "audio.vox";
     }
 
 private:

@@ -234,6 +234,10 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     ASSERT_PARAM_COUNT(FUNCTION, 5) \
     return RuntimeScriptValue().SetInt32(FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue))
 
+#define API_SCALL_INT_PFLOAT_PINT(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    return RuntimeScriptValue().SetInt32(FUNCTION(params[0].FValue, params[1].IValue))
+
 #define API_SCALL_INT_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 1) \
     return RuntimeScriptValue().SetInt32(FUNCTION((P1CLASS*)params[0].Ptr))
@@ -256,6 +260,10 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 
 #define API_SCALL_FLOAT(FUNCTION) \
     return RuntimeScriptValue().SetFloat(FUNCTION())
+
+#define API_SCALL_FLOAT_PINT(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 1) \
+    return RuntimeScriptValue().SetFloat(FUNCTION(params[0].IValue))
 
 #define API_SCALL_FLOAT_PFLOAT(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 1) \

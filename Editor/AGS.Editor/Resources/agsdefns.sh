@@ -31,9 +31,9 @@
       #define STRICT_IN_v340
     #endif
   #endif
-  #ifdef SCRIPT_API_v350
-    #ifndef SCRIPT_COMPAT_v341
-      #define STRICT_IN_v350
+  #ifdef SCRIPT_API_v3507
+    #ifndef SCRIPT_COMPAT_v350
+      #define STRICT_IN_v3507
     #endif
   #endif
 #endif
@@ -747,7 +747,7 @@ import int  GetScalingAt (int x, int y);
 /// Gets the specified Custom Property for the current room.
 import int  GetRoomProperty(const string property);
 #endif
-#ifndef STRICT_IN_v350
+#ifndef STRICT_IN_v3507
 /// Locks the viewport to stop the screen scrolling automatically.
 import void SetViewport(int x, int y);
 /// Allows AGS to scroll the screen automatically to follow the player character.

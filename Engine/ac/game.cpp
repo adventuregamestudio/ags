@@ -1601,8 +1601,10 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     if (!err)
         return err;
 
-    // [IKM] Plugins expect FILE pointer! // TODO something with this later
-    pl_run_plugin_hooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
+    auto pluginFileHandle = AGSE_RESTOREGAME;
+    pl_set_file_handle(pluginFileHandle, dynamic_cast<Common::FileStream *>(in));
+    pl_run_plugin_hooks(AGSE_RESTOREGAME, pluginFileHandle);
+    pl_clear_file_handle();
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)
         return new SavegameError(kSvgErr_InconsistentPlugin);
 

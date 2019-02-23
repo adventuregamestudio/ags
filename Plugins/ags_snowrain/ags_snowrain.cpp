@@ -39,7 +39,7 @@ namespace ags_snowrain {
 #define signum(x) ((x > 0) ? 1 : -1)
 
 const unsigned int Magic = 0xCAFE0000;
-const unsigned int Version = 1;
+const unsigned int Version = 2;
 const unsigned int SaveMagic = Magic + Version;
 const float PI = 3.14159265f;
 
@@ -83,8 +83,8 @@ class Weather
     void Initialize();
     void InitializeParticles();
 
-    void RestoreGame(FILE* file);
-    void SaveGame(FILE* file);
+    void RestoreGame(long file);
+    void SaveGame(long file);
     bool ReinitializeViews();
     
     bool IsActive();
@@ -241,93 +241,75 @@ void Weather::UpdateWithDrift()
   engine->MarkRegionDirty(0, 0, screen_width, screen_height);
 }
 
+static size_t engineFileRead(void * ptr, size_t size, size_t count, long fileHandle) {
+  auto totalBytes = engine->FRead(ptr, size*count, fileHandle);
+  return totalBytes/size;
+}
 
-void Weather::RestoreGame(FILE* file)
+static size_t engineFileWrite(const void *ptr, size_t size, size_t count, long fileHandle) {
+  auto totalBytes = engine->FWrite(const_cast<void *>(ptr), size*count, fileHandle);
+  return totalBytes/size;
+}
+
+void Weather::RestoreGame(long file)
 {
-  unsigned int Position = ftell(file);
-  unsigned int DataSize;
-
   unsigned int SaveVersion = 0;
-  fread(&SaveVersion, 4, 1, file);
+  engineFileRead(&SaveVersion, sizeof(SaveVersion), 1, file);
 
-  if (SaveVersion == SaveMagic)
-  {
-    fread(&DataSize, 4, 1, file);
-
-    // Current version
-    fread(&mIsSnow, 4, 1, file);
-    fread(&mMinDrift, 4, 1, file);
-    fread(&mMaxDrift, 4, 1, file);
-    fread(&mDeltaDrift, 4, 1, file);
-    fread(&mMinDriftSpeed, 4, 1, file);
-    fread(&mMaxDriftSpeed, 4, 1, file);
-    fread(&mDeltaDriftSpeed, 4, 1, file);
-    fread(&mAmount, 4, 1, file);
-    fread(&mTargetAmount, 4, 1, file);
-    fread(&mMinAlpha, 4, 1, file);
-    fread(&mMaxAlpha, 4, 1, file);
-    fread(&mDeltaAlpha, 4, 1, file);
-    fread(&mWindSpeed, 4, 1, file);
-    fread(&mTopBaseline, 4, 1, file);
-    fread(&mBottomBaseline, 4, 1, file);
-    fread(&mDeltaBaseline, 4, 1, file);
-    fread(&mMinFallSpeed, 4, 1, file);
-    fread(&mMaxFallSpeed, 4, 1, file);
-    fread(&mDeltaFallSpeed, 4, 1, file);
-    fread(mViews, sizeof(view_t) * 5, 1, file);
-
-    InitializeParticles();
+  if (SaveVersion != SaveMagic) {
+    engine->AbortGame("ags_snowrain: bad save.");
   }
-  else if ((SaveVersion & 0xFFFF0000) == Magic)
-  {
-    // Unsupported version, skip it
-    DataSize = 0;
-    fread(&DataSize, 4, 1, file);
 
-    fseek(file, Position + DataSize - 8, SEEK_SET);
-  }
-  else
-  {
-    // Unknown data, loading might fail but we cannot help it
-    fseek(file, Position, SEEK_SET);
-  }
+  // Current version
+  engineFileRead(&mIsSnow, 4, 1, file);
+  engineFileRead(&mMinDrift, 4, 1, file);
+  engineFileRead(&mMaxDrift, 4, 1, file);
+  engineFileRead(&mDeltaDrift, 4, 1, file);
+  engineFileRead(&mMinDriftSpeed, 4, 1, file);
+  engineFileRead(&mMaxDriftSpeed, 4, 1, file);
+  engineFileRead(&mDeltaDriftSpeed, 4, 1, file);
+  engineFileRead(&mAmount, 4, 1, file);
+  engineFileRead(&mTargetAmount, 4, 1, file);
+  engineFileRead(&mMinAlpha, 4, 1, file);
+  engineFileRead(&mMaxAlpha, 4, 1, file);
+  engineFileRead(&mDeltaAlpha, 4, 1, file);
+  engineFileRead(&mWindSpeed, 4, 1, file);
+  engineFileRead(&mTopBaseline, 4, 1, file);
+  engineFileRead(&mBottomBaseline, 4, 1, file);
+  engineFileRead(&mDeltaBaseline, 4, 1, file);
+  engineFileRead(&mMinFallSpeed, 4, 1, file);
+  engineFileRead(&mMaxFallSpeed, 4, 1, file);
+  engineFileRead(&mDeltaFallSpeed, 4, 1, file);
+  engineFileRead(mViews, sizeof(view_t) * 5, 1, file);
+
+  InitializeParticles();
 }
 
 
-void Weather::SaveGame(FILE* file)
+void Weather::SaveGame(long file)
 {
-  unsigned int StartPosition = ftell(file);
+  engineFileWrite(&SaveMagic, sizeof(SaveMagic), 1, file);
 
-  fwrite(&SaveMagic, 4, 1, file);
-  fwrite(&StartPosition, 4, 1, file); // Update later with the correct size
-
-  fwrite(&mIsSnow, 4, 1, file);
-  fwrite(&mMinDrift, 4, 1, file);
-  fwrite(&mMaxDrift, 4, 1, file);
-  fwrite(&mDeltaDrift, 4, 1, file);
-  fwrite(&mMinDriftSpeed, 4, 1, file);
-  fwrite(&mMaxDriftSpeed, 4, 1, file);
-  fwrite(&mDeltaDriftSpeed, 4, 1, file);
-  fwrite(&mAmount, 4, 1, file);
-  fwrite(&mTargetAmount, 4, 1, file);
-  fwrite(&mMinAlpha, 4, 1, file);
-  fwrite(&mMaxAlpha, 4, 1, file);
-  fwrite(&mDeltaAlpha, 4, 1, file);
-  fwrite(&mWindSpeed, 4, 1, file);
-  fwrite(&mTopBaseline, 4, 1, file);
-  fwrite(&mBottomBaseline, 4, 1, file);
-  fwrite(&mDeltaBaseline, 4, 1, file);
-  fwrite(&mMinFallSpeed, 4, 1, file);
-  fwrite(&mMaxFallSpeed, 4, 1, file);
-  fwrite(&mDeltaFallSpeed, 4, 1, file);
-  fwrite(mViews, sizeof(view_t) * 5, 1, file);
-
-  unsigned int EndPosition = ftell(file);
-  unsigned int SaveSize = EndPosition - StartPosition;
-  fseek(file, StartPosition + 4, SEEK_SET);
-  fwrite(&SaveSize, 4, 1, file);
-
-  fseek(file, EndPosition, SEEK_SET);
+  engineFileWrite(&mIsSnow, 4, 1, file);
+  engineFileWrite(&mMinDrift, 4, 1, file);
+  engineFileWrite(&mMaxDrift, 4, 1, file);
+  engineFileWrite(&mDeltaDrift, 4, 1, file);
+  engineFileWrite(&mMinDriftSpeed, 4, 1, file);
+  engineFileWrite(&mMaxDriftSpeed, 4, 1, file);
+  engineFileWrite(&mDeltaDriftSpeed, 4, 1, file);
+  engineFileWrite(&mAmount, 4, 1, file);
+  engineFileWrite(&mTargetAmount, 4, 1, file);
+  engineFileWrite(&mMinAlpha, 4, 1, file);
+  engineFileWrite(&mMaxAlpha, 4, 1, file);
+  engineFileWrite(&mDeltaAlpha, 4, 1, file);
+  engineFileWrite(&mWindSpeed, 4, 1, file);
+  engineFileWrite(&mTopBaseline, 4, 1, file);
+  engineFileWrite(&mBottomBaseline, 4, 1, file);
+  engineFileWrite(&mDeltaBaseline, 4, 1, file);
+  engineFileWrite(&mMinFallSpeed, 4, 1, file);
+  engineFileWrite(&mMaxFallSpeed, 4, 1, file);
+  engineFileWrite(&mDeltaFallSpeed, 4, 1, file);
+  engineFileWrite(mViews, sizeof(view_t) * 5, 1, file);
 }
 
 
@@ -797,10 +779,8 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   engine->RequestEventHook(AGSE_PREGUIDRAW);
   engine->RequestEventHook(AGSE_PRESCREENDRAW);
   engine->RequestEventHook(AGSE_ENTERROOM);
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY)
   engine->RequestEventHook(AGSE_SAVEGAME);
   engine->RequestEventHook(AGSE_RESTOREGAME);
-#endif
 
   rain = new Weather;
   snow = new Weather(true);
@@ -827,37 +807,16 @@ int AGS_EngineOnEvent(int event, int data)
     rain->EnterRoom();
     snow->EnterRoom();
   }
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY)
   else if (event == AGSE_RESTOREGAME)
   {
-#ifdef AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY
-    // Advance the file pointer by 176152 byte
-    char buffer[176152 / 8];
-    
-    int i;
-    for (i = 0; i < 8; i++)
-      engine->FRead(buffer, 176152 / 8, data);
-#else
-    rain->RestoreGame((FILE*)data);
-    snow->RestoreGame((FILE*)data);
-#endif
+    rain->RestoreGame(data);
+    snow->RestoreGame(data);
   }
   else if (event == AGSE_SAVEGAME)
   {
-#ifdef AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY
-    // Write 176152 byte of zeros
-    char buffer[176152 / 8];
-    memset(buffer, 0, 176152 / 8);
-
-    int i;
-    for (i = 0; i < 8; i++)
-      engine->FWrite(buffer, 176152 / 8, data);
-#else
-    rain->SaveGame((FILE*)data);
-    snow->SaveGame((FILE*)data);
-#endif
+    rain->SaveGame(data);
+    snow->SaveGame(data);
   }
-#endif
   else if (event == AGSE_PRESCREENDRAW)
   {
     // Get screen size once here

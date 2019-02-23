@@ -28,10 +28,9 @@ namespace ags_parallax {
 #endif
 
 //#define DEBUG
-//#define ENABLE_SAVING // The original plugin does not save any data!
 
 const unsigned int Magic = 0xCAFE0000;
-const unsigned int Version = 1;
+const unsigned int Version = 2;
 const unsigned int SaveMagic = Magic + Version;
 
 int screen_width = 320;
@@ -63,54 +62,35 @@ void dummy()
   void *tmp = new int;
 }
 
-#if defined(ENABLE_SAVING)
-void RestoreGame(FILE* file)
-{
-  unsigned int Position = ftell(file);
-  unsigned int DataSize;
+static size_t engineFileRead(void * ptr, size_t size, size_t count, long fileHandle) {
+  int totalBytes = engine->FRead(ptr, size*count, fileHandle);
+  return totalBytes/size;
+}
 
+static size_t engineFileWrite(const void *ptr, size_t size, size_t count, long fileHandle) {
+  int totalBytes = engine->FWrite(const_cast<void *>(ptr), size*count, fileHandle);
+  return totalBytes/size;
+}
+
+void RestoreGame(long fileHandle)
+{
   unsigned int SaveVersion = 0;
-  fread(&SaveVersion, 4, 1, file);
+  engineFileRead(&SaveVersion, sizeof(SaveVersion), 1, fileHandle);
 
-  if (SaveVersion == SaveMagic)
-  {
-    fread(sprites, sizeof(sprite_t), MAX_SPRITES, file);
-    fread(&enabled, sizeof(bool), 1, file);
+  if (SaveVersion != SaveMagic) {
+    engine->AbortGame("ags_parallax: bad save.");
   }
-  else if ((SaveVersion & 0xFFFF0000) == Magic)
-  {
-    // Unsupported version, skip it
-    DataSize = 0;
-    fread(&DataSize, 4, 1, file);
 
-    fseek(file, Position + DataSize - 8, SEEK_SET);
-  }
-  else
-  {
-    // Unknown data, loading might fail but we cannot help it
-    fseek(file, Position, SEEK_SET);
-  }
+  engineFileRead(sprites, sizeof(sprite_t), MAX_SPRITES, fileHandle);
+  engineFileRead(&enabled, sizeof(bool), 1, fileHandle);
 }
 
-
-void SaveGame(FILE* file)
+void SaveGame(long file)
 {
-  unsigned int StartPosition = ftell(file);
-
-  fwrite(&SaveMagic, 4, 1, file);
-  fwrite(&StartPosition, 4, 1, file); // Update later with the correct size
-
-  fwrite(sprites, sizeof(sprite_t), MAX_SPRITES, file);
-  fwrite(&enabled, sizeof(bool), 1, file);
-
-  unsigned int EndPosition = ftell(file);
-  unsigned int SaveSize = EndPosition - StartPosition;
-  fseek(file, StartPosition + 4, SEEK_SET);
-  fwrite(&SaveSize, 4, 1, file);
-
-  fseek(file, EndPosition, SEEK_SET);
+  engineFileWrite(&SaveMagic, sizeof(SaveMagic), 1, file);
+  engineFileWrite(sprites, sizeof(sprite_t), MAX_SPRITES, file);
+  engineFileWrite(&enabled, sizeof(bool), 1, file);
 }
-#endif
 
 
 void Initialize()
@@ -223,10 +203,8 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   engine->RequestEventHook(AGSE_PREGUIDRAW);
   engine->RequestEventHook(AGSE_PRESCREENDRAW);
   engine->RequestEventHook(AGSE_ENTERROOM);
-#if defined(ENABLE_SAVING)
   engine->RequestEventHook(AGSE_SAVEGAME);
   engine->RequestEventHook(AGSE_RESTOREGAME);
-#endif
 
   Initialize();
 }
@@ -256,16 +234,14 @@ int AGS_EngineOnEvent(int event, int data)
     engine->GetScreenDimensions(&screen_width, &screen_height, &screen_color_depth);
     engine->UnrequestEventHook(AGSE_PRESCREENDRAW);
   }
-#if defined(ENABLE_SAVING)
   else if (event == AGSE_RESTOREGAME)
   {
-    RestoreGame((FILE*)data);
+    RestoreGame(data);
   }
   else if (event == AGSE_SAVEGAME)
   {
-    SaveGame((FILE*)data);
+    SaveGame(data);
   }
-#endif
   
   return 0;
 }

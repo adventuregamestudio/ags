@@ -29,5 +29,8 @@ int  ags_check_mouse_wheel ();
 
 // Clears buffered keypresses and mouse clicks, if any
 void ags_clear_input_buffer();
+// Halts execution until any user input
+// TODO: seriously not a good design, replace with event listening
+void ags_wait_until_keypress();
 
 #endif // __AGS_EE_AC__SYS_EVENTS_H

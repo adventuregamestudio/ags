@@ -15,6 +15,8 @@
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
+#include "util/stdtr1compat.h"
+#include <memory>
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 #include "game/roomstruct.h"
@@ -24,7 +26,10 @@
 #include "util/string_types.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS { namespace Common {
+    class Bitmap; class Stream;
+    typedef stdtr1compat::shared_ptr<Bitmap> PBitmap;
+} }
 using namespace AGS; // FIXME later
 
 #define GAME_STATE_RESERVED_INTS 5
@@ -157,6 +162,7 @@ struct GameState {
     char  bad_parsed_word[100];
     int   raw_color;
     int   raw_modified[MAX_ROOM_BGFRAMES];
+    Common::PBitmap raw_drawing_surface;
     short filenumbers[MAXSAVEGAMES];
     int   room_changes;
     int   mouse_cursor_hidden;
@@ -210,6 +216,8 @@ struct GameState {
     bool  speech_in_post_state;
 
     GameState();
+    // Free game resources
+    void Free();
 
     const Size &GetNativeSize() const;
     void SetNativeSize(const Size &size);

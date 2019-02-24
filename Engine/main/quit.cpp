@@ -199,6 +199,7 @@ void quit_release_data()
 {
     resetRoomStatuses();
     thisroom.Free();
+    play.Free();
 
     /*  _CrtMemState memstart;
     _CrtMemCheckpoint(&memstart);

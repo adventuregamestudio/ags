@@ -389,61 +389,57 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
 // Create the missing audioClips data structure for 3.1.x games.
 // This is done by going through the data files and adding all music*.*
 // and sound*.* files to it.
-void BuildAudioClipArray(GameSetupStruct &game, const AssetLibInfo &lib)
+void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &audioclips)
 {
     char temp_name[30];
     int temp_number;
     char temp_extension[10];
-
-    // TODO: this was done to simplify code transition; ideally we should be
-    // working with GameSetupStruct's getters and setters here
-    int &audioClipCount            = game.audioClipCount;
-    ScriptAudioClip *&audioClips   = game.audioClips;
 
     size_t number_of_files = lib.AssetInfos.size();
     for (size_t i = 0; i < number_of_files; ++i)
     {
         if (sscanf(lib.AssetInfos[i].FileName, "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
         {
+            audioclips.push_back(ScriptAudioClip());
+            ScriptAudioClip &clip = audioclips.back();
             if (stricmp(temp_name, "music") == 0)
             {
-                sprintf(audioClips[audioClipCount].scriptName, "aMusic%d", temp_number);
-                sprintf(audioClips[audioClipCount].fileName, "music%d.%s", temp_number, temp_extension);
-                audioClips[audioClipCount].bundlingType = (stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
-                audioClips[audioClipCount].type = 2;
-                audioClips[audioClipCount].defaultRepeat = 1;
+                sprintf(clip.scriptName, "aMusic%d", temp_number);
+                sprintf(clip.fileName, "music%d.%s", temp_number, temp_extension);
+                clip.bundlingType = (stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
+                clip.type = 2;
+                clip.defaultRepeat = 1;
             }
             else if (stricmp(temp_name, "sound") == 0)
             {
-                sprintf(audioClips[audioClipCount].scriptName, "aSound%d", temp_number);
-                sprintf(audioClips[audioClipCount].fileName, "sound%d.%s", temp_number, temp_extension);
-                audioClips[audioClipCount].bundlingType = AUCL_BUNDLE_EXE;
-                audioClips[audioClipCount].type = 3;
+                sprintf(clip.scriptName, "aSound%d", temp_number);
+                sprintf(clip.fileName, "sound%d.%s", temp_number, temp_extension);
+                clip.bundlingType = AUCL_BUNDLE_EXE;
+                clip.type = 3;
             }
             else
             {
+                audioclips.pop_back();
                 continue;
             }
 
-            audioClips[audioClipCount].defaultVolume = 100;
-            audioClips[audioClipCount].defaultPriority = 50;
-            audioClips[audioClipCount].id = audioClipCount;
+            clip.defaultVolume = 100;
+            clip.defaultPriority = 50;
+            clip.id = audioclips.size() - 1;
 
             if (stricmp(temp_extension, "mp3") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileMP3;
+                clip.fileType = eAudioFileMP3;
             else if (stricmp(temp_extension, "wav") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileWAV;
+                clip.fileType = eAudioFileWAV;
             else if (stricmp(temp_extension, "voc") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileVOC;
+                clip.fileType = eAudioFileVOC;
             else if (stricmp(temp_extension, "mid") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileMIDI;
+                clip.fileType = eAudioFileMIDI;
             else if ((stricmp(temp_extension, "mod") == 0) || (stricmp(temp_extension, "xm") == 0)
                 || (stricmp(temp_extension, "s3m") == 0) || (stricmp(temp_extension, "it") == 0))
-                audioClips[audioClipCount].fileType = eAudioFileMOD;
+                clip.fileType = eAudioFileMOD;
             else if (stricmp(temp_extension, "ogg") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileOGG;
-
-            audioClipCount++;
+                clip.fileType = eAudioFileOGG;
         }
     }
 }
@@ -471,43 +467,22 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
     // To make the modern engine compatible with pre-3.2 games, we have
     // to scan game data packages for audio files, and enumerate them
     // ourselves, then add this information to game struct.
-    //
-    // Some things below can be classified as "dirty hack" and should be
-    // fixed in the future.
-
-    // TODO: this was done to simplify code transition; ideally we should be
-    // working with GameSetupStruct's getters and setters here
-    int &audioClipCount            = game.audioClipCount;
-    ScriptAudioClip *&audioClips   = game.audioClips;
-    int &audioClipTypeCount        = game.audioClipTypeCount;
-    AudioClipType *&audioClipTypes = game.audioClipTypes;
 
     // Create soundClips and audioClipTypes structures.
-    //
-    // TODO: 1000 is a maximal number of clip entries this code is
-    // supporting, but it is not clear whether that limit is covering
-    // all possibilities. In any way, this array should be replaced
-    // with vector.
-    audioClipCount = 1000;
-    audioClipTypeCount = 4;
+    std::vector<AudioClipType> audiocliptypes;
+    std::vector<ScriptAudioClip> audioclips;
 
-    audioClipTypes = new AudioClipType[audioClipTypeCount];
-    memset(audioClipTypes, 0, audioClipTypeCount * sizeof(AudioClipType));
-
-    audioClips = new ScriptAudioClip[audioClipCount];
-    memset(audioClips, 0, audioClipCount * sizeof(ScriptAudioClip));
-
-    // TODO: find out what is 4
+    // TODO: find out what is 4 (maybe music, sound, ambient sound, voice?)
+    audiocliptypes.resize(4);
     for (int i = 0; i < 4; i++)
     {
-        audioClipTypes[i].reservedChannels = 1;
-        audioClipTypes[i].id = i;
-        audioClipTypes[i].volume_reduction_while_speech_playing = 10;
+        audiocliptypes[i].reservedChannels = 1;
+        audiocliptypes[i].id = i;
+        audiocliptypes[i].volume_reduction_while_speech_playing = 10;
     }
-    audioClipTypes[3].reservedChannels = 0;
+    audiocliptypes[3].reservedChannels = 0;
 
-    audioClipCount = 0;
-
+    audioclips.reserve(1000);
     // Read audio clip names from "music.vox", then from main library
     // TODO: this may become inconvenient that this code has to know about
     // "music.vox"; there might be better ways to handle this.
@@ -515,15 +490,23 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
     // resolve this (as well as make it unnecessary to switch between them)
     AssetLibInfo music_lib;
     if (AssetManager::ReadDataFileTOC("music.vox", music_lib) == kAssetNoError)
-        BuildAudioClipArray(game, music_lib);
+        BuildAudioClipArray(music_lib, audioclips);
     const AssetLibInfo *game_lib = AssetManager::GetLibraryTOC();
     if (game_lib)
-        BuildAudioClipArray(game, *game_lib);
+        BuildAudioClipArray(*game_lib, audioclips);
 
-    ScriptAudioClip *real_clips = new ScriptAudioClip[audioClipCount];
-    memcpy(real_clips, audioClips, audioClipCount);
-    delete[] audioClips;
-    audioClips = real_clips;
+    // Copy gathered data over to game
+    delete[] game.audioClipTypes;
+    game.audioClipTypeCount = audiocliptypes.size();
+    game.audioClipTypes = new AudioClipType[game.audioClipTypeCount];
+    memcpy(game.audioClipTypes, &audiocliptypes.front(), sizeof(AudioClipType) * game.audioClipTypeCount);
+
+    delete[] game.audioClips;
+    game.audioClipCount = audioclips.size();
+    game.audioClips = new ScriptAudioClip[game.audioClipCount];
+    memcpy(game.audioClips, &audioclips.front(), sizeof(ScriptAudioClip) * game.audioClipCount);
+    
+    // Setup sound clip played on score event
     game.scoreClipID = -1;
 }
 

@@ -343,9 +343,9 @@ AGS::Tokenizer::OpenCloseMatcher::OpenCloseMatcher()
 void AGS::Tokenizer::OpenCloseMatcher::Push(std::string const &opener, std::string const &expected_closer, int lineno)
 {
     struct OpenInfo oi;
-    oi._opener = opener;
-    oi._closer = expected_closer;
-    oi._lineno = lineno;
+    oi.Opener = opener;
+    oi.Closer = expected_closer;
+    oi.Lineno = lineno;
 
     _openInfoStack.push_back(oi);
 }
@@ -363,15 +363,15 @@ void AGS::Tokenizer::OpenCloseMatcher::PopAndCheck(std::string const &closer, in
 
     struct OpenInfo oi(_openInfoStack.back());
     _openInfoStack.pop_back();
-    if (oi._closer != closer)
+    if (oi.Closer != closer)
     {
         error_encountered = true;
         _lastError = "Found '&1', this does not match the '&2' on line &3";
-        if (oi._lineno == lineno)
+        if (oi.Lineno == lineno)
             _lastError = "Found '&1', this does not match the '&2' on this line";
         _lastError.replace(_lastError.find("&1"), 2, closer);
-        _lastError.replace(_lastError.find("&2"), 2, oi._opener);
-        if (oi._lineno != lineno)
-            _lastError.replace(_lastError.find("&3"), 2, std::to_string(oi._lineno));
+        _lastError.replace(_lastError.find("&2"), 2, oi.Opener);
+        if (oi.Lineno != lineno)
+            _lastError.replace(_lastError.find("&3"), 2, std::to_string(oi.Lineno));
     }
 }

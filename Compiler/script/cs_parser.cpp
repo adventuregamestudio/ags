@@ -1880,59 +1880,55 @@ int BufferVarOrFunccall(ccInternalList *targ, AGS::Symbol fsym, AGS::SymbolScrip
     if (sym.get_type(fsym) == SYM_FUNCTION)
         return BufferVarOrFunccall_HandleFuncCall(targ, funcAtOffs, slist, slist_len);
 
-    if (!sym.entries[fsym].is_loadable_variable())
+    // Must be variable or type
+    if (!sym.entries[fsym].is_loadable_variable() && sym.get_type(fsym) != SYM_VARTYPE)
+            return 0;
+
+    bool justHadBrackets = false;
+
+    for (int nexttype = sym.get_type(targ->peeknext());
+        nexttype == SYM_DOT || nexttype == SYM_OPENBRACKET;
+        nexttype = sym.get_type(targ->peeknext()))
     {
-        if (sym.get_type(fsym) != SYM_VARTYPE)
-            return 0; // Must be a type	 
-
-
-        bool justHadBrackets = false;
-
-        for (int nexttype = sym.get_type(targ->peeknext());
-            nexttype == SYM_DOT || nexttype == SYM_OPENBRACKET;
-            nexttype = sym.get_type(targ->peeknext()))
+        if (ReachedEOF(targ))
         {
-            if (ReachedEOF(targ))
-            {
-                cc_error("Dot operator must be followed by member function or attribute");
-                return -1;
-            }
-
-            if (slist_len >= TEMP_SYMLIST_LENGTH - 5)
-            {
-                cc_error("Name expression too long: Probably a ']' was missing above.");
-                return -1;
-            }
-
-            // store the '.' or '['
-            slist[slist_len++] = targ->getnext();
-
-            switch (nexttype)
-            {
-            default: // This can't happen
-                cc_error("Internal error: '.' or '[' expected");
-                return -99;
-
-            case SYM_DOT:
-            {
-                int retval = BufferVarOrFunccall_GotDot(targ, justHadBrackets, slist, slist_len, fsym, funcAtOffs);
-                if (retval < 0) return retval;
-                justHadBrackets = false;
-                break;
-            }
-
-            case SYM_OPENBRACKET:
-            {
-                int retval = BufferVarOrFunccall_GotOpenBracket(targ, slist, slist_len);
-                if (retval < 0) return retval;
-                justHadBrackets = true;
-                break;
-            }
-            } // switch (nexttype)
-
+            cc_error("Dot operator must be followed by member function or attribute");
+            return -1;
         }
-        return 0;
+
+        if (slist_len >= TEMP_SYMLIST_LENGTH - 5)
+        {
+            cc_error("Name expression too long: Probably a ']' was missing above.");
+            return -1;
+        }
+
+        // store the '.' or '['
+        slist[slist_len++] = targ->getnext();
+
+        switch (nexttype)
+        {
+        default: // This can't happen
+            cc_error("Internal error: '.' or '[' expected");
+            return -99;
+
+        case SYM_DOT:
+        {
+            int retval = BufferVarOrFunccall_GotDot(targ, justHadBrackets, slist, slist_len, fsym, funcAtOffs);
+            if (retval < 0) return retval;
+            justHadBrackets = false;
+            break;
+        }
+
+        case SYM_OPENBRACKET:
+        {
+            int retval = BufferVarOrFunccall_GotOpenBracket(targ, slist, slist_len);
+            if (retval < 0) return retval;
+            justHadBrackets = true;
+            break;
+        }
+        } // switch (nexttype)
     }
+    return 0;
 }
 
 void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)

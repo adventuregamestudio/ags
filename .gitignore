@@ -85,7 +85,7 @@ Solutions/Engine.App/test.ini
 
 
 # MSVS solution output and temporary files
-*/.vs/
+**/.vs/**
 Solutions/.build/
 Solutions/.lib/
 Solutions/.test/
@@ -107,7 +107,7 @@ Solutions/Engine.App/Release_NoMP3
 *.VC.db
 *.VC.opendb
 *.vcproj.*.user
-*.vcxproj.user
+**/*.vcxproj.user
 
 
 # Manual output and temporary files
@@ -141,5 +141,4 @@ libsrc/*.zip
 *.nuget.targets
 
 # OpenCppCoverage log file
-*/LastCoverageResults.log
-/.vs/*
+**/LastCoverageResults.log

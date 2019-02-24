@@ -1087,3 +1087,13 @@ bool pl_is_plugin_loaded(const char *pl_name)
     }
     return false;
 }
+
+bool pl_any_want_hook(int event)
+{
+    for (int i = 0; i < numPlugins; ++i)
+    {
+        if(plugins[i].wantHook & event)
+            return true;
+    }
+    return false;
+}

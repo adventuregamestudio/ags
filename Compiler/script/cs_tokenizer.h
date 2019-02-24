@@ -97,9 +97,9 @@ private:
     private:
         struct OpenInfo
         {
-            std::string _opener;
-            std::string _closer;
-            int _lineno;  // of the Opener symbol
+            std::string Opener;
+            std::string Closer;
+            int Lineno;  // of the Opener symbol
         };
         std::vector<OpenInfo> _openInfoStack;
         std::string _lastError;

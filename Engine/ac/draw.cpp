@@ -686,7 +686,8 @@ void render_to_screen(int atx, int aty)
         gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, aty, NULL);
     render_black_borders(atx, aty);
 
-    gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
+    if(pl_any_want_hook(AGSE_FINALSCREENDRAW))
+        gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
 
     if (play.screen_is_faded_out)
     {
@@ -1123,7 +1124,8 @@ void draw_sprite_list() {
 
     clear_draw_list();
 
-    add_thing_to_draw(NULL, AGSE_PRESCREENDRAW, 0, TRANS_RUN_PLUGIN, false);
+    if(pl_any_want_hook(AGSE_PRESCREENDRAW))
+        add_thing_to_draw(NULL, AGSE_PRESCREENDRAW, 0, TRANS_RUN_PLUGIN, false);
 
     // copy the sorted sprites into the Things To Draw list
     thingsToDrawList.insert(thingsToDrawList.end(), sprlist.begin(), sprlist.end());
@@ -2125,7 +2127,8 @@ void draw_fps()
 void draw_gui_and_overlays() {
     int gg;
 
-    add_thing_to_draw(NULL, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
+    if(pl_any_want_hook(AGSE_PREGUIDRAW))
+        add_thing_to_draw(NULL, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
 
     // draw overlays, except text boxes and portraits
     for (gg=0;gg<numscreenover;gg++) {
@@ -2309,7 +2312,9 @@ void update_screen() {
     // cos hi-color doesn't fade in, don't draw it the first time
     if ((in_new_room > 0) & (game.color_depth > 1))
         return;
-    gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, NULL);
+
+    if(pl_any_want_hook(AGSE_POSTSCREENDRAW))
+        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, NULL);
 
     // update animating mouse cursor
     if (game.mcurs[cur_cursor].view>=0) {

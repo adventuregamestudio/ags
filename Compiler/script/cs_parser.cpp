@@ -344,7 +344,7 @@ void AGS::Scanner::ReadInCharLit(std::string & symstring, bool & eof_encountered
         error_encountered = _inputStream.fail();
         if (error_encountered) break; // to error processing
 
-        if (lit_char == '\'')
+        if (lit_char == '\\')
         {
             // The next char is escaped, whatever it may be. 
             // Note that AGS doesn't follow C syntax here:

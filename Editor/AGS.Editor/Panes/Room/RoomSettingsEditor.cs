@@ -679,7 +679,13 @@ namespace AGS.Editor
 
             layerNode.IsVisible = true;
             SelectLayer(layerNode.Layer);
-            layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
+
+            // only select the item if the room editor is the active tab; this could
+            // be a refresh from another tab e.g. changing a character's starting room
+            if (Factory.GUIController.ActivePane.Control == this)
+            {
+                layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
+            }
         }
 
         private void SelectLayer(IRoomEditorFilter layer)

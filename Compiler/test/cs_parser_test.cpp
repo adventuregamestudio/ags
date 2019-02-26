@@ -456,3 +456,26 @@ TEST(Compile, FuncDeclWrong) {
     EXPECT_NE(std::string::npos, res.find("parameter"));
 
 }
+
+TEST(Compile, EnumType) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    enum bool          \n\
+    {                  \n\
+        false = 0,     \n\
+        true = 1       \n\
+    };                 \n\
+                       \n\
+    bool V1 = false;   \n\
+    bool Test(bool V2) \n\
+    {                  \n\
+        return true;   \n\
+    }                  \n\
+   ";
+
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_GE(0, compileResult);
+}

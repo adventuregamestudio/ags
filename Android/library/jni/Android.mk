@@ -131,3 +131,16 @@ LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lm
 LOCAL_LDFLAGS   :=
 
 include $(BUILD_SHARED_LIBRARY)
+
+
+# agspalrender (or palgorithms) plugin
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := agspalrender
+LOCAL_SRC_FILES := ../Plugins/agspalrender/ags_palrender.cpp ../Plugins/agspalrender/raycast.cpp
+LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH)
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
+LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lm
+LOCAL_LDFLAGS   :=
+
+include $(BUILD_SHARED_LIBRARY)

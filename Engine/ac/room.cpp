@@ -204,7 +204,7 @@ const char* Room_GetMessages(int index) {
     }
     char buffer[STD_BUFFER_SIZE];
     buffer[0]=0;
-    replace_tokens(get_translation(thisroom.Messages[index]), buffer, STD_BUFFER_SIZE);
+    replace_tokens(get_translation(thisroom.Messages[index].GetCStr()), buffer, STD_BUFFER_SIZE);
     return CreateNewScriptString(buffer);
 }
 
@@ -462,7 +462,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom, game.IsLegacyHiRes(), game.SpriteInfos);
+    load_room(room_filename.GetCStr(), &thisroom, game.IsLegacyHiRes(), game.SpriteInfos);
 
     if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.GameID != game.uniqueid)) {

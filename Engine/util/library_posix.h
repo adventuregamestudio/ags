@@ -93,7 +93,7 @@ public:
       sprintf(buffer, "%s%s", android_app_directory, "/lib");
       _library = dlopen(BuildPath(buffer, libraryName).GetCStr(), RTLD_LAZY);
 #else
-      _library = dlopen(BuildPath(appDirectory, libraryName).GetCStr(), RTLD_LAZY);
+      _library = dlopen(BuildPath(appDirectory.GetCStr(), libraryName).GetCStr(), RTLD_LAZY);
 #endif
 
       AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());

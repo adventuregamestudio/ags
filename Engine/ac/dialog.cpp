@@ -220,9 +220,9 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
             param1 = game.playercharacter;
 
           if (param1 == DCHAR_NARRATOR)
-            Display(get_translation(old_speech_lines[param2]));
+            Display(get_translation(old_speech_lines[param2].GetCStr()));
           else
-            DisplaySpeech(get_translation(old_speech_lines[param2]), param1);
+            DisplaySpeech(get_translation(old_speech_lines[param2].GetCStr()), param1);
 
           said_speech_line = 1;
           break;
@@ -875,9 +875,9 @@ bool DialogOptions::Run()
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
-          if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->Text) == 0))) {
+          if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->Text.GetCStr()) == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
-            for (unsigned int i = strlen(parserInput->Text); i < strlen(play.lastParserEntry); i++) {
+            for (unsigned int i = strlen(parserInput->Text.GetCStr()); i < strlen(play.lastParserEntry); i++) {
               parserInput->OnKeyPress(play.lastParserEntry[i]);
             }
             //ags_domouse(DOMOUSE_DISABLE);
@@ -1056,8 +1056,8 @@ void DialogOptions::Close()
 
   if (parserActivated) 
   {
-    strcpy (play.lastParserEntry, parserInput->Text);
-    ParseText (parserInput->Text);
+    strcpy (play.lastParserEntry, parserInput->Text.GetCStr());
+    ParseText (parserInput->Text.GetCStr());
     chose = CHOSE_TEXTPARSER;
   }
 

@@ -213,11 +213,11 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
     update_polled_mp3();
         if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
             // Character or Inventory (global script)
-            QueueScriptFunction(kScInstGame, nint->ScriptFuncNames[evnt]);
+            QueueScriptFunction(kScInstGame, nint->ScriptFuncNames[evnt].GetCStr());
         }
         else {
             // Other (room script)
-            QueueScriptFunction(kScInstRoom, nint->ScriptFuncNames[evnt]);
+            QueueScriptFunction(kScInstRoom, nint->ScriptFuncNames[evnt].GetCStr());
         }
         update_polled_mp3();
 
@@ -518,7 +518,7 @@ char* make_ts_func_name(const char*base,int iii,int subd) {
 
 void post_script_cleanup() {
     // should do any post-script stuff here, like go to new room
-    if (ccError) quit(ccErrorString);
+    if (ccError) quit(ccErrorString.GetCStr());
     ExecutingScript copyof = scripts[num_scripts-1];
     if (scripts[num_scripts-1].forked)
         delete scripts[num_scripts-1].inst;
@@ -591,7 +591,7 @@ void post_script_cleanup() {
     for (jj = 0; jj < copyof.numanother; jj++) {
         old_room_number = displayed_room;
         QueuedScript &script = copyof.ScFnQueue[jj];
-        RunScriptFunction(script.Instance, script.FnName, script.ParamCount, script.Param1, script.Param2);
+        RunScriptFunction(script.Instance, script.FnName.GetCStr(), script.ParamCount, script.Param1, script.Param2);
         if (script.Instance == kScInstRoom && script.ParamCount == 1)
         {
             // some bogus hack for "on_call" event handler
@@ -633,11 +633,11 @@ InteractionVariable *get_interaction_variable (int varindx) {
 InteractionVariable *FindGraphicalVariable(const char *varName) {
     int ii;
     for (ii = 0; ii < numGlobalVars; ii++) {
-        if (stricmp (globalvars[ii].Name, varName) == 0)
+        if (stricmp (globalvars[ii].Name.GetCStr(), varName) == 0)
             return &globalvars[ii];
     }
     for (size_t i = 0; i < thisroom.LocalVariables.size(); ++i) {
-        if (stricmp (thisroom.LocalVariables[i].Name, varName) == 0)
+        if (stricmp (thisroom.LocalVariables[i].Name.GetCStr(), varName) == 0)
             return &thisroom.LocalVariables[i];
     }
     return NULL;

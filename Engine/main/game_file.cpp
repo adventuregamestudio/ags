@@ -158,5 +158,5 @@ HError load_game_file()
 void display_game_file_error(HError err)
 {
     platform->DisplayAlert(String::FromFormat("Loading game failed with error:\n%s.\n\nThe game files may be incomplete, corrupt or from unsupported version of AGS.",
-        err->FullMessage().GetCStr()));
+        err->FullMessage().GetCStr()).GetCStr());
 }

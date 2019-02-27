@@ -307,7 +307,7 @@ SOUNDCLIP *my_load_mod(const AssetPath &asset_name, int repet)
 
     DUH *modPtr = NULL;
     // determine the file extension
-    const char *lastDot = strrchr(asset_name.second, '.');
+    const char *lastDot = strrchr(asset_name.second.GetCStr(), '.');
     if (lastDot == NULL)
     {
         dumbfile_close(df);

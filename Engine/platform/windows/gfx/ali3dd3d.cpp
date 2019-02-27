@@ -702,7 +702,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   if (hr != D3D_OK)
   {
     if (!previousError.IsEmpty())
-      set_allegro_error(previousError);
+      set_allegro_error(previousError.GetCStr());
     else
       set_allegro_error("Failed to create Direct3D Device: 0x%08X", hr);
     return -1;

@@ -122,14 +122,14 @@ void RestoreGameSlot(int slnum) {
 void DeleteSaveSlot (int slnum) {
     String nametouse;
     nametouse = get_save_game_path(slnum);
-    unlink (nametouse);
+    unlink (nametouse.GetCStr());
     if ((slnum >= 1) && (slnum <= MAXSAVEGAMES)) {
         String thisname;
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
             thisname = get_save_game_path(i);
             if (Common::File::TestReadFile(thisname)) {
                 // Rename the highest save game to fill in the gap
-                rename (thisname, nametouse);
+                rename (thisname.GetCStr(), nametouse.GetCStr());
                 break;
             }
         }
@@ -158,7 +158,7 @@ int GetSaveSlotDescription(int slnum,char*desbuf) {
     String description;
     if (read_savedgame_description(get_save_game_path(slnum), description))
     {
-        strcpy(desbuf, description);
+        strcpy(desbuf, description.GetCStr());
         return 1;
     }
     sprintf(desbuf,"INVALID SLOT %d", slnum);
@@ -580,7 +580,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     // on object
     if (loctype == LOCTYPE_OBJ) {
         aa = getloctype_index;
-        strcpy(tempo,get_translation(thisroom.Objects[aa].Name));
+        strcpy(tempo,get_translation(thisroom.Objects[aa].Name.GetCStr()));
         // Compatibility: < 3.1.1 games returned space for nameless object
         // (presumably was a bug, but fixing it affected certain games behavior)
         if (loaded_game_file_version < kGameVersion_311 && tempo[0] == 0) {
@@ -593,7 +593,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         return;
     }
     onhs = getloctype_index;
-    if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name));
+    if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name.GetCStr()));
     if (play.get_loc_name_last_time != onhs)
         guis_need_update = 1;
     play.get_loc_name_last_time = onhs;

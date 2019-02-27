@@ -54,7 +54,7 @@ void ListBox_Clear(GUIListBox *listbox) {
 void FillDirList(std::set<String> &files, const String &path)
 {
     al_ffblk dfb;
-    int	dun = al_findfirst(path, &dfb, FA_SEARCH);
+    int	dun = al_findfirst(path.GetCStr(), &dfb, FA_SEARCH);
     while (!dun) {
         files.insert(dfb.name);
         dun = al_findnext(&dfb);
@@ -169,7 +169,7 @@ int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
 char *ListBox_GetItemText(GUIListBox *listbox, int index, char *buffer) {
   if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBoxGetItemText: invalid item specified");
-  strncpy(buffer, listbox->Items[index],198);
+  strncpy(buffer, listbox->Items[index].GetCStr(), 198);
   buffer[199] = 0;
   return buffer;
 }
@@ -178,14 +178,14 @@ const char* ListBox_GetItems(GUIListBox *listbox, int index) {
   if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBox.Items: invalid index specified");
 
-  return CreateNewScriptString(listbox->Items[index]);
+  return CreateNewScriptString(listbox->Items[index].GetCStr());
 }
 
 void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext) {
   if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBoxSetItemText: invalid item specified");
 
-  if (strcmp(listbox->Items[index], newtext)) {
+  if (strcmp(listbox->Items[index].GetCStr(), newtext)) {
     listbox->SetItemText(index, newtext);
     guis_need_update = 1;
   }

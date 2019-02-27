@@ -521,7 +521,7 @@ int play_speech(int charid,int sndid) {
     curLipLine = -1;  // See if we have voice lip sync for this line
     curLipLinePhoneme = -1;
     for (ii = 0; ii < numLipLines; ii++) {
-        if (stricmp(splipsync[ii].filename, voice_file) == 0) {
+        if (stricmp(splipsync[ii].filename, voice_file.GetCStr()) == 0) {
             curLipLine = ii;
             break;
         }

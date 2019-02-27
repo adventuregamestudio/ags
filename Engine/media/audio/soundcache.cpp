@@ -109,7 +109,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
         if (sound_cache_entries[i].data == NULL)
             continue;
 
-        if (strcmp(asset_name.second, sound_cache_entries[i].file_name) == 0)
+        if (strcmp(asset_name.second.GetCStr(), sound_cache_entries[i].file_name) == 0)
         {
 #ifdef SOUND_CACHE_DEBUG
             Debug::Printf("..found in slot %d\n", i);
@@ -222,8 +222,8 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
 
         if (sound_cache_entries[i].file_name)
             free(sound_cache_entries[i].file_name);
-        sound_cache_entries[i].file_name = (char*)malloc(strlen(asset_name.second) + 1);
-        strcpy(sound_cache_entries[i].file_name, asset_name.second);
+        sound_cache_entries[i].file_name = (char*)malloc(strlen(asset_name.second.GetCStr()) + 1);
+        strcpy(sound_cache_entries[i].file_name, asset_name.second.GetCStr());
         sound_cache_entries[i].reference = 1;
         sound_cache_entries[i].last_used = sound_cache_counter++;
         sound_cache_entries[i].is_wave = is_wave;

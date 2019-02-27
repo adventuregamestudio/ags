@@ -399,7 +399,7 @@ void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &
     size_t number_of_files = lib.AssetInfos.size();
     for (size_t i = 0; i < number_of_files; ++i)
     {
-        if (sscanf(lib.AssetInfos[i].FileName, "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
+        if (sscanf(lib.AssetInfos[i].FileName.GetCStr(), "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
         {
             audioclips.push_back(ScriptAudioClip());
             ScriptAudioClip &clip = audioclips.back();

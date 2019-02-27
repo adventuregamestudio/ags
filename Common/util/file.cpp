@@ -28,14 +28,14 @@ namespace Common
 soff_t File::GetFileSize(const String &filename)
 {
     struct stat_t st;
-    if (stat_fn(filename, &st) == 0)
+    if (stat_fn(filename.GetCStr(), &st) == 0)
         return st.st_size;
     return -1;
 }
 
 bool File::TestReadFile(const String &filename)
 {
-    FILE *test_file = fopen(filename, "rb");
+    FILE *test_file = fopen(filename.GetCStr(), "rb");
     if (test_file)
     {
         fclose(test_file);
@@ -46,7 +46,7 @@ bool File::TestReadFile(const String &filename)
 
 bool File::TestWriteFile(const String &filename)
 {
-    FILE *test_file = fopen(filename, "r+");
+    FILE *test_file = fopen(filename.GetCStr(), "r+");
     if (test_file)
     {
         fclose(test_file);
@@ -57,11 +57,11 @@ bool File::TestWriteFile(const String &filename)
 
 bool File::TestCreateFile(const String &filename)
 {
-    FILE *test_file = fopen(filename, "wb");
+    FILE *test_file = fopen(filename.GetCStr(), "wb");
     if (test_file)
     {
         fclose(test_file);
-        unlink(filename);
+        unlink(filename.GetCStr());
         return true;
     }
     return false;
@@ -69,7 +69,7 @@ bool File::TestCreateFile(const String &filename)
 
 bool File::DeleteFile(const String &filename)
 {
-    if (unlink(filename) != 0)
+    if (unlink(filename.GetCStr()) != 0)
     {
         int err;
 #if defined(WINDOWS_VERSION)

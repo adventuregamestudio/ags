@@ -19,7 +19,7 @@ namespace Directory
 
 bool CreateDirectory(const String &path)
 {
-    return mkdir(path
+    return mkdir(path.GetCStr()
 #if !defined (WINDOWS_VERSION)
         , 0755
 #endif
@@ -28,7 +28,7 @@ bool CreateDirectory(const String &path)
 
 String SetCurrentDirectory(const String &path)
 {
-    chdir(path);
+    chdir(path.GetCStr());
     return GetCurrentDirectory();
 }
 

@@ -71,7 +71,7 @@ void get_text_property(const StringIMap &st_prop, const StringIMap &rt_prop, con
         return;
 
     String val = get_property_value(st_prop, rt_prop, property, desc.DefaultValue);
-    strcpy(bufer, val);
+    strcpy(bufer, val.GetCStr());
 }
 
 const char* get_text_property_dynamic_string(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property)
@@ -81,7 +81,7 @@ const char* get_text_property_dynamic_string(const StringIMap &st_prop, const St
         return NULL;
 
     String val = get_property_value(st_prop, rt_prop, property, desc.DefaultValue);
-    return CreateNewScriptString(val);
+    return CreateNewScriptString(val.GetCStr());
 }
 
 bool set_int_property(StringIMap &rt_prop, const char *property, int value)

@@ -63,7 +63,7 @@ void quit_tell_editor_debugger(const String &qmsg, QuitReason qreason)
     if (editor_debugging_initialized)
     {
         if (qreason & kQuitKind_GameException)
-            handledErrorInEditor = send_exception_to_editor(qmsg);
+            handledErrorInEditor = send_exception_to_editor(qmsg.GetCStr());
         send_message_to_editor("EXIT");
         editor_debugger->Shutdown();
     }
@@ -192,7 +192,7 @@ void quit_message_on_exit(const char *qmsg, String &alertis, QuitReason qreason)
         // Display the message (at this point the window still exists)
         sprintf(pexbuf,"%s\n",qmsg);
         alertis.Append(pexbuf);
-        platform->DisplayAlert(alertis);
+        platform->DisplayAlert(alertis.GetCStr());
     }
 }
 
@@ -296,7 +296,7 @@ void quit(const char *quitmsg)
 
     engine_shutdown_gfxmode();
 
-    quit_message_on_exit(qmsg, alertis, qreason);
+    quit_message_on_exit(qmsg.GetCStr(), alertis, qreason);
 
     quit_release_data();
 

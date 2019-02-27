@@ -391,7 +391,7 @@ void log_out_driver_modes(const int color_depth)
     }
     else
         out_str.Append("none");
-    Debug::Printf(out_str);
+    Debug::Printf(out_str.GetCStr());
 }
 
 // Create requested graphics driver and try to find and initialize compatible display mode as close to user setup as possible;

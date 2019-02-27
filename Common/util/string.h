@@ -297,10 +297,6 @@ public:
     // Operators
     //-------------------------------------------------------------------------
 
-    inline operator const char *() const
-    {
-        return GetCStr();
-    }
     // Assign String by sharing data reference
     String &operator=(const String&);
     // Assign C-string by copying contents

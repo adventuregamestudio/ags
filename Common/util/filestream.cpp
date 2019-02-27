@@ -169,7 +169,7 @@ void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkM
     if (mode.IsEmpty())
         // TODO: warning to the log
         return;
-    _file = fopen(file_name, mode);
+    _file = fopen(file_name.GetCStr(), mode.GetCStr());
 }
 
 } // namespace Common

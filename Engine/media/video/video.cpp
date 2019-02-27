@@ -183,7 +183,7 @@ void play_flc_file(int numb,int playflags) {
     PACKFILE *pf = PackfileFromAsset(AssetPath("", flicname));
     if (play_fli_pf(pf, (BITMAP*)fli_buffer->GetAllegroBitmap(), fli_callback)==FLI_ERROR)
 #else
-    if (play_fli(flicname, (BITMAP*)fli_buffer->GetAllegroBitmap(), 0, fli_callback)==FLI_ERROR)
+    if (play_fli(flicname.GetCStr(), (BITMAP*)fli_buffer->GetAllegroBitmap(), 0, fli_callback)==FLI_ERROR)
 #endif
     {
         // This is not a fatal error that should prevent the game from continuing

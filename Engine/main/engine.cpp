@@ -198,7 +198,7 @@ bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
             allegro_exit();
             char quotedpath[MAX_PATH];
             snprintf(quotedpath, MAX_PATH, "\"%s\"", exe_path.GetCStr());
-            _spawnl (_P_OVERLAY, exe_path, quotedpath, NULL);
+            _spawnl (_P_OVERLAY, exe_path.GetCStr(), quotedpath, NULL);
     }
 #endif
 
@@ -240,7 +240,7 @@ String find_game_data_in_directory(const String &path)
     String pattern = path;
     pattern.Append("/*");
 
-    if (al_findfirst(pattern, &ff, FA_ALL & ~(FA_DIREC)) != 0)
+    if (al_findfirst(pattern.GetCStr(), &ff, FA_ALL & ~(FA_DIREC)) != 0)
         return "";
     // Select first found data file; files with standart names (*.ags) have
     // higher priority over files with custom names.
@@ -301,7 +301,7 @@ bool search_for_game_data_file(String &filename)
     // 2.1. Use the provided data dir and filename
     else if (!usetup.main_data_filename.IsEmpty())
     {
-        if (!usetup.data_files_dir.IsEmpty() && is_relative_filename(usetup.main_data_filename))
+        if (!usetup.data_files_dir.IsEmpty() && is_relative_filename(usetup.main_data_filename.GetCStr()))
         {
             filename = usetup.data_files_dir;
             if (filename.GetLast() != '/' && filename.GetLast() != '\\')
@@ -379,13 +379,13 @@ bool engine_init_game_data()
                 emsg = String::FromFormat("ERROR: Unable to find or open '%s'.", game_file_name.GetCStr());
         }
 
-        platform->DisplayAlert(emsg);
+        platform->DisplayAlert(emsg.GetCStr());
         main_print_help();
         return false;
     }
 
     // Save data file name and data folder
-    usetup.main_data_filename = get_filename(game_file_name);
+    usetup.main_data_filename = get_filename(game_file_name.GetCStr());
     // There is a path in the game file name (and the user/ has not specified
     // another one) save the path, so that it can load the VOX files, etc
     if (usetup.data_files_dir.IsEmpty())
@@ -1191,7 +1191,7 @@ void engine_init_game_settings()
 void engine_setup_scsystem_auxiliary()
 {
     // ScriptSystem::aci_version is only 10 chars long
-    strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
+    strncpy(scsystem.aci_version, EngineVersion.LongString.GetCStr(), 10);
     if (usetup.override_script_os >= 0)
     {
         scsystem.os = usetup.override_script_os;
@@ -1264,7 +1264,7 @@ bool engine_init_gamefile(const String &exe_path)
     // Read game data location from the default config file.
     // This is an optional setting that may instruct which game file to use as a primary asset library.
     ConfigTree cfg;
-    String def_cfg_file = find_default_cfg_file(exe_path);
+    String def_cfg_file = find_default_cfg_file(exe_path.GetCStr());
     IniUtil::Read(def_cfg_file, cfg);
     read_game_data_location(cfg);
 
@@ -1288,7 +1288,7 @@ bool engine_init_gamefile(const String &exe_path)
 void engine_read_config(const String &exe_path, ConfigTree &cfg)
 {
     // Read default configuration file
-    String def_cfg_file = find_default_cfg_file(exe_path);
+    String def_cfg_file = find_default_cfg_file(exe_path.GetCStr());
     IniUtil::Read(def_cfg_file, cfg);
 
     // Disabled on Windows because people were afraid that this config could be mistakenly

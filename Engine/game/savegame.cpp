@@ -713,7 +713,7 @@ PStream StartSavegame(const String &filename, const String &user_text, const Bit
     vistaHeader.dwThumbnailSize = 0;
     convert_guid_from_text_to_binary(game.guid, &vistaHeader.guidGameId[0]);
     uconvert(game.gamename, U_ASCII, (char*)&vistaHeader.szGameName[0], U_UNICODE, RM_MAXLENGTH);
-    uconvert(user_text, U_ASCII, (char*)&vistaHeader.szSaveName[0], U_UNICODE, RM_MAXLENGTH);
+    uconvert(user_text.GetCStr(), U_ASCII, (char*)&vistaHeader.szSaveName[0], U_UNICODE, RM_MAXLENGTH);
     vistaHeader.szLevelName[0] = 0;
     vistaHeader.szComments[0] = 0;
     // MS Windows Vista rich media header

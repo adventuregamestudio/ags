@@ -26,5 +26,5 @@ void quitprintf(const char *fmt, ...)
     va_start(ap, fmt);
     String text = String::FromFormatV(fmt, ap);
     va_end(ap);
-    quit(text);
+    quit(text.GetCStr());
 }

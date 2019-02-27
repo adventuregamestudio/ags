@@ -75,17 +75,17 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) 
 }
 
 const char* Button_GetText_New(GUIButton *butt) {
-    return CreateNewScriptString(butt->GetText());
+    return CreateNewScriptString(butt->GetText().GetCStr());
 }
 
 void Button_GetText(GUIButton *butt, char *buffer) {
-    strcpy(buffer, butt->GetText());
+    strcpy(buffer, butt->GetText().GetCStr());
 }
 
 void Button_SetText(GUIButton *butt, const char *newtx) {
     newtx = get_translation(newtx);
 
-    if (strcmp(butt->GetText(), newtx)) {
+    if (strcmp(butt->GetText().GetCStr(), newtx)) {
         guis_need_update = 1;
         butt->SetText(newtx);
     }

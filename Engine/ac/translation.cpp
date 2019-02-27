@@ -88,11 +88,11 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
         if (quit_on_error)
         {
             parse_error.PrependChar('!');
-            quit(parse_error);
+            quit(parse_error.GetCStr());
         }
         else
         {
-            Debug::Printf(kDbgMsg_Error, parse_error);
+            Debug::Printf(kDbgMsg_Error, parse_error.GetCStr());
             if (!fallback_lang.IsEmpty())
             {
                 Debug::Printf("Fallback to translation: %s", fallback_lang.GetCStr());

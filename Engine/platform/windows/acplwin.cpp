@@ -653,7 +653,7 @@ void DetermineAppOutputDirectory()
   {
     win32OutputDirectory = win32SavedGamesDirectory;
     win32OutputDirectory.Append("\\.ags");
-    log_to_saves_dir = mkdir(win32OutputDirectory) == 0 || errno == EEXIST;
+    log_to_saves_dir = mkdir(win32OutputDirectory.GetCStr()) == 0 || errno == EEXIST;
   }
 
   if (!log_to_saves_dir)
@@ -686,13 +686,13 @@ const char *AGSWin32::GetUserConfigDirectory()
 const char *AGSWin32::GetUserGlobalConfigDirectory()
 {
   DetermineAppOutputDirectory();
-  return win32OutputDirectory;
+  return win32OutputDirectory.GetCStr();
 }
 
 const char *AGSWin32::GetAppOutputDirectory()
 {
   DetermineAppOutputDirectory();
-  return win32OutputDirectory;
+  return win32OutputDirectory.GetCStr();
 }
 
 const char *AGSWin32::GetIllegalFileChars()

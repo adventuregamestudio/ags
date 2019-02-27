@@ -81,11 +81,17 @@ Version::Version(const String &version_string)
 
 void Version::SetFromString(const String &version_string)
 {
-    Major = version_string.LeftSection('.').ToInt();
-    String second_section = version_string.Section('.', 1, 1);
-    Minor = second_section.ToInt();
-    String third_section = version_string.Section('.', 2, 2);
-    String fourth_section = version_string.Section('.', 3, 3);
+    String second_section, third_section, fourth_section;
+
+    auto sections = version_string.Split(".", 3);
+    if (sections.size() >= 1) { Major = sections[0].ToInt(); }
+    if (sections.size() >= 2) { 
+        second_section = sections[1];
+        Minor = second_section.ToInt();
+    }
+    if (sections.size() >= 3) { third_section = sections[2]; }
+    if (sections.size() >= 4) { fourth_section = sections[3]; }
+
     String revision_section;
 
     bool old_version_format = Major < 3 || fourth_section.IsEmpty();

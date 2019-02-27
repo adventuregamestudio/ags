@@ -307,8 +307,8 @@ AssetError AssetManager::RegisterAssetLib(const String &data_file, const String 
     String nammwas = data_file;
     String data_file_fixed = data_file;
     // TODO: this algorythm should be in path/string utils
-    data_file_fixed.TruncateToRightSection('\\');
-    data_file_fixed.TruncateToRightSection('/');
+    auto data_file_fixed_sections = data_file_fixed.Split("\\/");
+    data_file_fixed = data_file_fixed_sections[data_file_fixed_sections.size() - 1];
     if (data_file_fixed.Compare(nammwas) != 0)
     {
         // store complete path

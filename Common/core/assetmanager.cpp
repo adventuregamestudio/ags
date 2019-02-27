@@ -68,7 +68,7 @@ AssetManager::~AssetManager()
 
 /* static */ bool AssetManager::IsDataFile(const String &data_file)
 {
-    Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
+    Stream *in = ci_fopen(data_file.GetCStr(), Common::kFile_Open, Common::kFile_Read);
     if (in)
     {
         MFLUtil::MFLError err = MFLUtil::TestIsMFL(in, true);
@@ -80,7 +80,7 @@ AssetManager::~AssetManager()
 
 AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &lib)
 {
-    Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
+    Stream *in = ci_fopen(data_file.GetCStr(), Common::kFile_Open, Common::kFile_Read);
     if (in)
     {
         MFLUtil::MFLError err = MFLUtil::ReadHeader(lib, in);
@@ -354,7 +354,7 @@ bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc,
     if (!asset)
         return false; // asset not found
 
-    String libfile = cbuf_to_string_and_free( ci_find_file(nullptr, MakeLibraryFileNameForAsset(asset)) );
+    String libfile = cbuf_to_string_and_free( ci_find_file(nullptr, MakeLibraryFileNameForAsset(asset).GetCStr()) );
     if (libfile.IsEmpty())
         return false;
     loc.FileName = libfile;
@@ -365,7 +365,7 @@ bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc,
 
 bool AssetManager::GetAssetFromDir(const String &file_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    String exfile = cbuf_to_string_and_free( ci_find_file(nullptr, file_name) );
+    String exfile = cbuf_to_string_and_free( ci_find_file(nullptr, file_name.GetCStr()) );
     if (exfile.IsEmpty() || !Path::IsFile(exfile))
         return false;
     loc.FileName = exfile;

@@ -254,7 +254,7 @@ String FixSlashAfterToken(const String &path)
 
 String MakeSpecialSubDir(const String &sp_dir)
 {
-    if (is_relative_filename(sp_dir))
+    if (is_relative_filename(sp_dir.GetCStr()))
         return sp_dir;
     String full_path = sp_dir;
     if (full_path.GetLast() != '/' && full_path.GetLast() != '\\')
@@ -278,7 +278,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
 {
     rp = ResolvedPath();
 
-    bool is_absolute = !is_relative_filename(orig_sc_path);
+    bool is_absolute = !is_relative_filename(orig_sc_path.GetCStr());
     if (is_absolute && !read_only)
     {
         debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
@@ -474,13 +474,13 @@ void get_install_dir_path(char* buffer, const char *fileName)
 
 String find_assetlib(const String &filename)
 {
-    String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir, filename) );
+    String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir, filename.GetCStr()) );
     if (AssetManager::IsDataFile(libname))
         return libname;
     if (Path::ComparePaths(ResPaths.DataDir, installDirectory) != 0)
     {
       // Hack for running in Debugger
-      libname = cbuf_to_string_and_free( ci_find_file(installDirectory, filename) );
+      libname = cbuf_to_string_and_free( ci_find_file(installDirectory.GetCStr(), filename.GetCStr()) );
       if (AssetManager::IsDataFile(libname))
         return libname;
     }
@@ -561,7 +561,7 @@ ScriptFileHandle *check_valid_file_handle_ptr(Stream *stream_ptr, const char *op
   }
 
   String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
-  quit(exmsg);
+  quit(exmsg.GetCStr());
   return nullptr;
 }
 
@@ -579,7 +579,7 @@ ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *oper
   }
 
   String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
-  quit(exmsg);
+  quit(exmsg.GetCStr());
   return nullptr;
 }
 

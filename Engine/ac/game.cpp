@@ -496,7 +496,7 @@ const char* Game_GetSaveSlotDescription(int slnum) {
     String description;
     if (read_savedgame_description(get_save_game_path(slnum), description))
     {
-        return CreateNewScriptString(description);
+        return CreateNewScriptString(description.GetCStr());
     }
     return nullptr;
 }
@@ -1716,10 +1716,10 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
         // [IKM] 2012-11-26: this is a workaround, indeed.
         // Try to find wanted game's executable; if it does not exist,
         // continue loading savedgame in current game, and pray for the best
-        get_install_dir_path(gamefilenamebuf, desc.MainDataFilename);
+        get_install_dir_path(gamefilenamebuf, desc.MainDataFilename.GetCStr());
         if (Common::File::TestReadFile(gamefilenamebuf))
         {
-            RunAGSGame (desc.MainDataFilename, 0, 0);
+            RunAGSGame (desc.MainDataFilename.GetCStr(), 0, 0);
             load_new_game_restore = slotNumber;
             return HSaveError::None();
         }
@@ -1759,9 +1759,9 @@ bool try_restore_save(const Common::String &path, int slot)
         // game data was released or overwritten by the data from save file,
         // this is why we tell engine to shutdown if that happened.
         if (data_overwritten)
-            quitprintf(error);
+            quitprintf(error.GetCStr());
         else
-            Display(error);
+            Display(error.GetCStr());
         return false;
     }
     return true;
@@ -2065,7 +2065,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     }
 
     buffer[0]=0;
-    replace_tokens(get_translation(thisroom.Messages[msnum]), buffer, maxlen);
+    replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()), buffer, maxlen);
 }
 
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize)

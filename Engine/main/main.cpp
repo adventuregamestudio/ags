@@ -427,7 +427,7 @@ int ags_entry_point(int argc, char *argv[]) {
 
     if (justDisplayVersion)
     {
-        platform->WriteStdOut(get_engine_string());
+        platform->WriteStdOut(get_engine_string().GetCStr());
         return EXIT_NORMAL;
     }
 
@@ -441,7 +441,7 @@ int ags_entry_point(int argc, char *argv[]) {
         platform->SetGUIMode(true);
 
     init_debug(justTellInfo);
-    Debug::Printf(kDbgMsg_Init, get_engine_string());
+    Debug::Printf(kDbgMsg_Init, get_engine_string().GetCStr());
 
     main_set_gamedir(argc, argv);    
 

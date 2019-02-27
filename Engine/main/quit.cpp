@@ -64,7 +64,7 @@ void quit_tell_editor_debugger(const String &qmsg, QuitReason qreason)
     if (editor_debugging_initialized)
     {
         if (qreason & kQuitKind_GameException)
-            handledErrorInEditor = send_exception_to_editor(qmsg);
+            handledErrorInEditor = send_exception_to_editor(qmsg.GetCStr());
         send_message_to_editor("EXIT");
         editor_debugger->Shutdown();
     }
@@ -288,7 +288,7 @@ void quit(const char *quitmsg)
 
     engine_shutdown_gfxmode();
 
-    quit_message_on_exit(qmsg, alertis, qreason);
+    quit_message_on_exit(qmsg.GetCStr(), alertis, qreason);
 
     quit_release_data();
 

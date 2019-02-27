@@ -365,7 +365,7 @@ String MakeSaveGameDir(const char *newFolder)
 
     String newSaveGameDir = FixSlashAfterToken(newFolder);
 
-    if (newSaveGameDir.CompareLeft(UserSavedgamesRootToken, UserSavedgamesRootToken.GetLength()) == 0)
+    if (newSaveGameDir.StartsWith(UserSavedgamesRootToken))
     {
         if (saveGameParent.IsEmpty())
         {

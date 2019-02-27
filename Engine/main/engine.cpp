@@ -251,16 +251,16 @@ String find_game_data_in_directory(const String &path)
         // digital sound libraries.
         // NOTE: we could certainly benefit from any kind of flag in file lib
         // that would tell us this is the main lib without extra parsing.
-        if (test_file.CompareRightNoCase(".vox") == 0)
+        if (test_file.EndsWithNoCase(".vox"))
             continue;
 
         // *.ags is a standart cross-platform file pattern for AGS games,
         // ac2game.dat is a legacy file name for very old games,
         // *.exe is a MS Win executable; it is included to this case because
         // users often run AGS ports with Windows versions of games.
-        bool is_std_name = test_file.CompareRightNoCase(".ags") == 0 ||
+        bool is_std_name = test_file.EndsWithNoCase(".ags") ||
             test_file.CompareNoCase("ac2game.dat") == 0 ||
-            test_file.CompareRightNoCase(".exe") == 0;
+            test_file.EndsWithNoCase(".exe");
         if (is_std_name || first_nonstd_fn.IsEmpty())
         {
             test_file.Format("%s/%s", path.GetCStr(), ff.name);

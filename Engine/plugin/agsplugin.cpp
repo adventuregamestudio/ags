@@ -1029,7 +1029,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         // ".dll" extension appended; we need to take care of that
         const String name_ext = ".dll";
         if (name.GetLength() <= name_ext.GetLength() || name.GetLength() > PLUGIN_FILENAME_MAX + name_ext.GetLength() ||
-                name.CompareRightNoCase(name_ext, name_ext.GetLength())) {
+                !name.EndsWithNoCase(name_ext)) {
             return kGameInitErr_PluginNameInvalid;
         }
         // remove ".dll" from plugin's name

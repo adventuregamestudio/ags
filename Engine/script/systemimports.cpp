@@ -91,7 +91,7 @@ int SystemImports::get_index_of(const String &name)
     String mangled_name = String::FromFormat("%s$", name.GetCStr());
     // if it's a function with a mangled name, allow it
     it = btree.lower_bound(mangled_name);
-    if (it != btree.end() && it->first.CompareLeft(mangled_name) == 0)
+    if (it != btree.end() && it->first.StartsWith(mangled_name))
         return it->second;
 
     if (name.GetLength() > 3)

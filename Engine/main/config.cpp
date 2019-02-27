@@ -159,7 +159,7 @@ bool parse_legacy_frame_config(const String &scaling_option, String &filter_id, 
 
     for (int i = 0; i < 6; i++)
     {
-        if (scaling_option.CompareLeftNoCase(legacy_filters[i].LegacyName) == 0)
+        if (scaling_option.StartsWithNoCase(legacy_filters[i].LegacyName))
         {
             filter_id = legacy_filters[i].CurrentName;
             frame.ScaleDef = legacy_filters[i].Scaling == 0 ? kFrame_MaxRound : kFrame_IntScale;

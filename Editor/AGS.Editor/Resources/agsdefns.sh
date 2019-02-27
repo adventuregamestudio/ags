@@ -2736,6 +2736,8 @@ builtin struct Screen {
 
   /// Returns the point in room which is displayed at the given screen coordinates
   import static Point *ScreenToRoomPoint(int sx, int sy);
+  /// Returns the point on screen corresponding to the given room coordinates relative to the main viewport.
+  import static Point *RoomToScreenPoint(int rx, int ry);
 };
 #endif
 

@@ -154,6 +154,14 @@ ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
+ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
+{
+    multiply_up_coordinates(&roomx, &roomy);
+    Point pt = play.RoomToScreen(roomx, roomy);
+    divide_down_coordinates(pt.X, pt.Y);
+    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
+}
+
 RuntimeScriptValue Sc_Screen_GetScreenHeight(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Screen_GetScreenHeight);
@@ -184,6 +192,11 @@ RuntimeScriptValue Sc_Screen_ScreenToRoomPoint(const RuntimeScriptValue *params,
     API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_ScreenToRoomPoint);
 }
 
+RuntimeScriptValue Sc_Screen_RoomToScreenPoint(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_RoomToScreenPoint);
+}
+
 void RegisterScreenAPI()
 {
     ccAddExternalStaticFunction("Screen::get_Height", Sc_Screen_GetScreenHeight);
@@ -192,4 +205,5 @@ void RegisterScreenAPI()
     ccAddExternalStaticFunction("Screen::set_AutoSizeViewportOnRoomLoad", Sc_Screen_SetAutoSizeViewport);
     ccAddExternalStaticFunction("Screen::get_Viewport", Sc_Screen_GetViewport);
     ccAddExternalStaticFunction("Screen::ScreenToRoomPoint", Sc_Screen_ScreenToRoomPoint);
+    ccAddExternalStaticFunction("Screen::RoomToScreenPoint", Sc_Screen_RoomToScreenPoint);
 }

@@ -267,7 +267,7 @@ ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *, int scrx, int scr
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
-ScriptUserObject *Sc_Viewport_RoomToScreenPoint(ScriptViewport *, int roomx, int roomy, bool clipViewport)
+ScriptUserObject *Viewport_RoomToScreenPoint(ScriptViewport *, int roomx, int roomy, bool clipViewport)
 {
     multiply_up_coordinates(&roomx, &roomy);
 
@@ -342,7 +342,7 @@ RuntimeScriptValue Sc_Viewport_ScreenToRoomPoint(void *self, const RuntimeScript
 
 RuntimeScriptValue Sc_Viewport_RoomToScreenPoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptViewport, ScriptUserObject, Sc_Viewport_RoomToScreenPoint);
+    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptViewport, ScriptUserObject, Viewport_RoomToScreenPoint);
 }
 
 

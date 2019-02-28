@@ -156,7 +156,7 @@ void AGS::Tokenizer::ProcessScannerSymstring(
     // If we're in the "root" of a struct declaration, 
     // then all var and func names must have the struct name prepended.
     if ((_currentMode != kMode_StructDecl) ||
-        (_braceNestingDepthInStructDecl > 1) ||
+        (_braceNestingDepthInStructDecl != 1) ||
         (_parenthesisNestingDepth > 0))
         return;
 
@@ -189,9 +189,6 @@ void AGS::Tokenizer::ProcessScannerSymstring(
     {
     default: break;
     case 0:             _inTypeSubmode = false; break; // unclassified symbol
-    case SYM_LOCALVAR:  _inTypeSubmode = false; break;
-    case SYM_FUNCTION:  _inTypeSubmode = false; break; // keyword "function"
-    case SYM_GLOBALVAR: _inTypeSubmode = false; break;
     case SYM_SEMICOLON: _inTypeSubmode = true;  break;
     case SYM_VARTYPE:   _inTypeSubmode = false; break; // e.g., "int", "float"
     }

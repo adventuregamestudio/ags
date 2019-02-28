@@ -163,7 +163,58 @@ public:
     inline void WriteChunk(::ccCompiledScript *scrip, size_t index) { WriteChunk(scrip, Depth() - 1, index); };
 };
 
+class FuncCallpointMgr
+{
+private:
+    int const CodeBaseId = 0;  // Magic number, means: This is in codebase, not in a yanked piece of code
 
+    struct PatchInfo
+    {
+        int ChunkId;
+        AGS::CodeLoc Offset;
+    };
+    typedef std::vector<PatchInfo> PatchList;
+
+    struct FuncInfo
+    {
+        CodeLoc Callpoint;
+        PatchList List;
+        FuncInfo();
+    };
+
+    typedef std::map<Symbol, FuncInfo> CallMap;
+    CallMap _funcCallpointMap;
+
+
+public:
+    int Init();
+
+    // Note that a function named func is defined in the code (has body)
+    inline int EnterFunction(Symbol func) { FuncInfo fi; _funcCallpointMap[func] = fi; return 0; }
+
+    // Enter a code location where a function is called that hasn't been defined yet.
+    int TrackForwardDeclFuncCall(::ccCompiledScript *scrip, Symbol func, CodeLoc idx);
+
+    // When code is ripped out of the codebase: 
+    // Update list of calls to forward declared functions 
+    int UpdateCallListOnYanking(CodeLoc start, size_t len, int id);
+
+    // When code is inserted into the codebase:
+    // Update list of calls to forward declared functions
+    int UpdateCallListOnWriting(CodeLoc start, int id);
+
+    // Set the callpoint for a function. 
+    // Patch all the function calls of the given function to point to dest
+    int SetFuncCallpoint(::ccCompiledScript *scrip, Symbol func, AGS::CodeLoc dest);
+
+    inline int HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
+
+    inline bool IsForwardDecl(AGS::Symbol func) { return (0 != _funcCallpointMap.count(func)); }
+
+    // Gives an error message and returns a value < 0 iff there are still functions
+    // without a location
+    int CheckForUnresolvedFuncs();
+};
 
 } // namespace AGS
 

@@ -215,6 +215,126 @@ void AGS::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t
         scrip->add_fixup(item.Fixups[index] + adjust, item.FixupTypes[index]);
 }
 
+AGS::FuncCallpointMgr::FuncInfo::FuncInfo()
+    : Callpoint(-1)
+{ }
+
+int AGS::FuncCallpointMgr::Init()
+{
+    _funcCallpointMap.clear();
+    return 0;
+}
+
+int AGS::FuncCallpointMgr::TrackForwardDeclFuncCall(::ccCompiledScript *scrip, Symbol func, CodeLoc loc)
+{
+    // Patch callpoint in when known
+    CodeCell const callpoint = _funcCallpointMap[func].Callpoint;
+    if (callpoint >= 0)
+    {
+        scrip->code[loc] = callpoint;
+        return 0;
+    }
+
+    // Callpoint not known, so remember this location
+    PatchInfo pinfo;
+    pinfo.ChunkId = CodeBaseId;
+    pinfo.Offset = loc;
+    _funcCallpointMap[func].List.push_back(pinfo);
+
+    return 0;
+}
+
+int AGS::FuncCallpointMgr::UpdateCallListOnYanking(AGS::CodeLoc chunk_start, size_t chunk_len, int id)
+{
+    size_t const chunk_end = chunk_start + chunk_len;
+
+    for (CallMap::iterator func_it = _funcCallpointMap.begin();
+        func_it != _funcCallpointMap.end();
+        ++func_it)
+    {
+        PatchList &pl = func_it->second.List;
+        size_t const pl_size = pl.size();
+        for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
+        {
+            PatchInfo &patch_info = pl[pl_idx];
+            if (patch_info.ChunkId != CodeBaseId)
+                continue;
+            if (patch_info.Offset < chunk_start || patch_info.Offset >= chunk_end)
+                continue; // This address isn't yanked
+
+            patch_info.ChunkId = id;
+            patch_info.Offset -= chunk_start;
+        }
+    }
+
+    return 0;
+}
+
+int AGS::FuncCallpointMgr::UpdateCallListOnWriting(AGS::CodeLoc start, int id)
+{
+    for (CallMap::iterator func_it = _funcCallpointMap.begin();
+        func_it != _funcCallpointMap.end();
+        ++func_it)
+    {
+        PatchList &pl = func_it->second.List;
+        size_t const size = pl.size();
+        for (size_t pl_idx = 0; pl_idx < size; ++pl_idx)
+        {
+            PatchInfo &patch_info = pl[pl_idx];
+            if (patch_info.ChunkId != id)
+                continue; // Not our concern this time
+
+            // We cannot repurpose patch_info since it may be written multiple times.
+            PatchInfo cb_patch_info;
+            cb_patch_info.ChunkId = CodeBaseId;
+            cb_patch_info.Offset = patch_info.Offset + start;
+            pl.push_back(cb_patch_info);
+        }
+    }
+
+    return 0;
+}
+
+int AGS::FuncCallpointMgr::SetFuncCallpoint(::ccCompiledScript *scrip, AGS::Symbol func, AGS::CodeLoc dest)
+{
+    _funcCallpointMap[func].Callpoint = dest;
+    PatchList &pl = _funcCallpointMap[func].List;
+    size_t const pl_size = pl.size();
+    for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
+    {
+        if (pl[pl_idx].ChunkId == CodeBaseId)
+            scrip->code[pl[pl_idx].Offset] = dest;
+    }
+    return 0;
+}
+
+int AGS::FuncCallpointMgr::CheckForUnresolvedFuncs()
+{
+    for (CallMap::iterator fcm_it = _funcCallpointMap.begin(); fcm_it != _funcCallpointMap.end(); ++fcm_it)
+    {
+        PatchList &pl = fcm_it->second.List;
+        size_t const pl_size = pl.size();
+        for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
+        {
+            if (pl[pl_idx].ChunkId != CodeBaseId)
+                continue;
+
+            cc_error("Function %s has been called but not defined with body nor imported", sym.get_name(fcm_it->first));
+            return -1;
+        }
+    }
+    return 0;
+}
+
+
+
+// Manage a map of all the functions that have bodies defined.
+// Nearly all the functions need this directly or indirectly, and so
+// it is here.
+// [TODO] Convert this into a class variable when the compiler has been
+//        converted to classes
+AGS::FuncCallpointMgr g_FCM;
+
 // Track the phase the parser is in.
 // This is used ubiquitously, so defined as a global variable.
 // [TODO] Convert this into a class variable when the compiler has been

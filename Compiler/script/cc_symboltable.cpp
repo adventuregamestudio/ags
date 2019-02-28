@@ -42,7 +42,7 @@ int SymbolTableEntry::get_attrget()
 {
     int toret = (soffs >> 16) & 0x00ffff;
     if (toret == 0xffff) return -1;
-    
+
     return toret;
 }
 
@@ -50,7 +50,7 @@ int SymbolTableEntry::get_attrset()
 {
     int toret = soffs & 0x00ffff;
     if (toret == 0xffff) return -1;
-    
+
     return toret;
 }
 
@@ -146,7 +146,7 @@ void SymbolTable::reset() {
     add_ex("internalstring", SYM_STRINGSTRUCT, 0);
     add_ex("autoptr", SYM_AUTOPTR, 0);
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
-    add_ex("builtin", SYM_BUILTIN, 0);
+    lastPredefSym = add_ex("builtin", SYM_BUILTIN, 0);
 }
 int SymbolTableEntry::operatorToVCPUCmd()
 {
@@ -154,7 +154,24 @@ int SymbolTableEntry::operatorToVCPUCmd()
     return vartype;
 }
 
-int SymbolTable::find(const char *ntf)
+int SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
+{
+    dest.sname = this->sname;
+    dest.stype = this->stype;
+    dest.flags = this->flags;
+    dest.vartype = this->vartype;
+    dest.soffs = this->soffs;
+    dest.ssize = this->ssize;
+    dest.sscope = this->sscope;
+    dest.arrsize = this->arrsize;
+    dest.extends = this->extends;
+    dest.funcparamtypes.assign(this->funcparamtypes.begin(), this->funcparamtypes.end());
+    dest.funcParamDefaultValues.assign(this->funcParamDefaultValues.begin(), this->funcParamDefaultValues.end());
+    dest.funcParamHasDefaultValues.assign(this->funcParamHasDefaultValues.begin(), this->funcParamHasDefaultValues.end());
+    return 0;
+}
+
+int SymbolTable::find(const char*ntf)
 {
     return symbolTree.findValue(ntf);
 }

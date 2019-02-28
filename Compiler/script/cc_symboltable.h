@@ -18,15 +18,15 @@
 
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry {
-	std::string sname;
-	short stype;
-	long flags;
-	short vartype;
-	int soffs;
-	long ssize; // or return type size for function
-	short sscope; // or num arguments for function
-	long arrsize;
-	short extends; // inherits another class (classes) / owning class (member vars)
+    std::string sname;
+    short stype;
+    long flags;
+    short vartype;
+    int soffs;
+    long ssize; // or return type size for function
+    short sscope; // or num arguments for function
+    long arrsize;
+    short extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<unsigned long> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
@@ -36,11 +36,13 @@ struct SymbolTableEntry {
 
     int is_loadable_variable();
 
-	void set_attrfuncs(int attrget, int attrset);
-	int get_attrget();
-	int get_attrset();
+    void set_attrfuncs(int attrget, int attrset);
+    int get_attrget();
+    int get_attrset();
 
     int operatorToVCPUCmd();
+
+    int CopyTo(SymbolTableEntry &dest);
 };
 
 struct SymbolTable {
@@ -51,6 +53,7 @@ struct SymbolTable {
     int normalVoidSym;
     int nullSym;
     int stringStructSym;  // can get overwritten with new String symbol defined in agsdefns.sh
+    int lastPredefSym;
 
     // properties for symbols, size is numsymbols
     std::vector<SymbolTableEntry> entries;

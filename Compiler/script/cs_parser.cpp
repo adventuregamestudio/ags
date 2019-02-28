@@ -803,7 +803,7 @@ int ParseFuncdecl_ExtenderPreparations(
     std::string & functionName,
     AGS::Symbol &funcsym,
     AGS::Symbol &struct_extended_by_the_func,
-    SymbolTableEntry * oldDefinition)
+    SymbolTableEntry *oldDefinition)
 {
     targ->getnext(); // accept "this" or "static"
     if (sym.get_type(targ->peeknext()) != SYM_VARTYPE)
@@ -3897,7 +3897,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 
 
     // We compile something like "a += b"
-    int ParseAssignment_MAssign(ccCompiledScript * scrip, AGS::Symbol ass_symbol, const AGS::SymbolScript & vnlist, int vnlist_len)
+    int ParseAssignment_MAssign(ccCompiledScript *scrip, AGS::Symbol ass_symbol, const AGS::SymbolScript &vnlist, int vnlist_len)
     {
         // Read in and adjust the result
         scrip->push_reg(SREG_AX);
@@ -3922,7 +3922,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    int ParseAssignment_Assign(ccCompiledScript * scrip, int vnlist_len, const AGS::SymbolScript & vnlist)
+    int ParseAssignment_Assign(ccCompiledScript *scrip, int vnlist_len, const AGS::SymbolScript & vnlist)
     {
         // Convert normal literal string into String object
         size_t finalPartOfLHS = vnlist_len - 1;
@@ -3946,7 +3946,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    int ParseAssignment_SAssign(ccCompiledScript * scrip, AGS::Symbol ass_symbol, const AGS::SymbolScript & vnlist, int vnlist_len)
+    int ParseAssignment_SAssign(ccCompiledScript *scrip, AGS::Symbol ass_symbol, const AGS::SymbolScript &vnlist, int vnlist_len)
     {
         bool write_same_as_read_access;
         int retval = ReadDataIntoAX(scrip, &vnlist[0], vnlist_len, false, true, write_same_as_read_access);
@@ -4123,7 +4123,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 
 
     // if initial_value is non-null, it returns malloc'd memory that must be free
-    int ParseVardecl_InitialValAssignment_ToGlobal(ccInternalList *targ, long varname, void * &initial_val_ptr)
+    int ParseVardecl_InitialValAssignment_ToGlobal(ccInternalList *targ, long varname, void *&initial_val_ptr)
     {
         initial_val_ptr = nullptr;
 
@@ -4162,7 +4162,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 
 
     // We have accepted something like "int var" and we are reading "= val"
-    int ParseVardecl_InitialValAssignment(ccInternalList *targ, ccCompiledScript * scrip, int next_type, Globalness isglobal, long varname, int type_of_defn, void * &initial_val_ptr, FxFixupType &need_fixup)
+    int ParseVardecl_InitialValAssignment(ccInternalList *targ, ccCompiledScript * scrip, int next_type, Globalness isglobal, long varname, int type_of_defn, void *&initial_val_ptr, FxFixupType &need_fixup)
     {
         targ->getnext();  // skip the '='
 
@@ -4294,7 +4294,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    int ParseVardecl_StringDecl_Local(ccCompiledScript * scrip, AGS::Symbol var_name, void * &initial_value_ptr)
+    int ParseVardecl_StringDecl_Local(ccCompiledScript *scrip, AGS::Symbol var_name, void *&initial_value_ptr)
     {
         // Note: We can't use scrip->cur_sp since we don't know if we'll be in a nested function call at the time
         initial_value_ptr = nullptr;
@@ -4309,7 +4309,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    int ParseVardecl_StringDecl(ccCompiledScript * scrip, AGS::Symbol var_name, Globalness is_global, void * &initial_value_ptr, FxFixupType &fixup_needed)
+    int ParseVardecl_StringDecl(ccCompiledScript *scrip, AGS::Symbol var_name, Globalness is_global, void *&initial_value_ptr, FxFixupType &fixup_needed)
     {
         if (ccGetOption(SCOPT_OLDSTRINGS) == 0)
         {
@@ -4353,7 +4353,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 
 
     // We've parsed a definition of a local variable, provide the code for it
-    void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript * scrip, int var_name, FxFixupType fixup_needed, int size_of_defn, void * initial_value)
+    void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript *scrip, int var_name, FxFixupType fixup_needed, int size_of_defn, void *initial_value)
     {
         scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR); // MAR = SP
 
@@ -4560,7 +4560,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    void ParseOpenbrace_FuncBody(ccCompiledScript * scrip, AGS::Symbol name_of_func, int struct_of_func, bool is_noloopcheck, AGS::NestingStack * nesting_stack)
+    void ParseOpenbrace_FuncBody(ccCompiledScript *scrip, AGS::Symbol name_of_func, int struct_of_func, bool is_noloopcheck, AGS::NestingStack *nesting_stack)
     {
         // write base address of function for any relocation needed later
         scrip->write_cmd1(SCMD_THISBASE, scrip->codesize);
@@ -4907,7 +4907,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 
     int ParseStruct_CheckMemberNotInInheritedStruct(
         AGS::Symbol vname,
-        const char * memberExt,
+        const char *memberExt,
         AGS::Symbol extendsWhat)
     {
         // check that we haven't already inherited a member
@@ -5615,7 +5615,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    int ParseVartype_GetVarName(ccInternalList * targ, AGS::Symbol & varname, AGS::Symbol & struct_of_member_fct)
+    int ParseVartype_GetVarName(ccInternalList *targ, AGS::Symbol & varname, AGS::Symbol & struct_of_member_fct)
     {
         struct_of_member_fct = 0;
 
@@ -5719,7 +5719,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    int ParseVartype_FuncDef(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol &func_name, int type_of_defn, bool is_readonly, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, bool is_member_function_definition, bool is_protected, AGS::Symbol & struct_of_current_func, AGS::Symbol &name_of_current_func)
+    int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript * scrip, AGS::Symbol &func_name, int type_of_defn, bool is_readonly, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, bool is_member_function_definition, bool is_protected, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
     {
 
         bool body_follows;
@@ -6814,14 +6814,14 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    // compile the code in the INPL parameter into code in the scrip structure,
-    // but don't reset anything because more files could follow
-    int cc_compile(const char *inpl, ccCompiledScript *scrip)
-    {
-        // Scan the program code.
-        ccInternalList targ;
-        int retval = cc_tokenize(inpl, &targ, scrip);
-        if (retval < 0) return retval;
+// compile the code in the INPL parameter into code in the scrip structure,
+// but don't reset anything because more files could follow
+int cc_compile(const char *inpl, ccCompiledScript *scrip)
+{
+    // Scan & tokenize the program code.
+    ccInternalList targ;
+    int retval = cc_tokenize(inpl, &targ, scrip);
+    if (retval < 0) return retval;
 
         targ.startread();
 

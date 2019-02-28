@@ -124,6 +124,28 @@ enum Importness
     kIm_ImportType2 = 2,
 };
 
+enum TypeQualifier
+{
+    kTQ_Attribute = 1 << 0,
+    kTQ_Autoptr = 1 << 1,
+    kTQ_Builtin = 1 << 2,
+    kTQ_Const = 1 << 3,
+    kTQ_Import1 = 1 << 4,
+    kTQ_Import2 = 1 << 5,
+    kTQ_Noloopcheck = 1 << 6,
+    kTQ_Managed = 1 << 7,
+    kTQ_Protected = 1 << 8,
+    kTQ_Readonly = 1 << 9,
+    kTQ_Static = 1 << 10,
+    kTQ_Stringstruct = 1 << 11,
+    kTQ_Writeprotected = 1 << 12,
+    kTQ_Import = kTQ_Import1 | kTQ_Import2,
+};
+
+inline bool FlagIsSet(int fl_set, int flag) { return 0 != (fl_set & flag); }
+inline void SetFlag(int &fl_set, int flag, bool val) { fl_set &= ~flag; if (val) fl_set |= flag; }
+
+
 bool IsIdentifier(AGS::Symbol symb)
 {
     if (symb <= sym.lastPredefSym)

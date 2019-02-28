@@ -883,7 +883,7 @@ int ParseFuncdecl_NonExtenderPreparations(ccCompiledScript *scrip, Importness fu
     }
     else if (sym.entries[funcsym].stype != 0)
     {
-        cc_error("Function '%s' is already defined", functionName);
+        cc_error("Function '%s' is already defined", sym.get_name(funcsym));
         return -1;
     }
     return 0;

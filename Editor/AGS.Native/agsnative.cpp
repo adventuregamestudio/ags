@@ -213,17 +213,12 @@ int GetSpriteHeight(int slot) {
 	return get_sprite(slot)->GetHeight();
 }
 
-int GetRelativeSpriteWidth(int slot) {
-	return GetSpriteWidth(slot) / ((thisgame.SpriteInfos[slot].Flags & SPF_640x400) ? 2 : 1);
-}
-
-int GetRelativeSpriteHeight(int slot) {
-	return GetSpriteHeight(slot) / ((thisgame.SpriteInfos[slot].Flags & SPF_640x400) ? 2 : 1);
-}
-
-int GetSpriteResolutionMultiplier(int slot)
-{
-	return ((thisgame.SpriteInfos[slot].Flags & SPF_640x400) ? 1 : 2);
+void GetSpriteInfo(int slot, ::SpriteInfo &info) {
+    // TODO: find out if we may get width/height from SpriteInfos
+    // or it is necessary to go through get_sprite and check bitmaps in cache?
+    info.Width = GetSpriteWidth(slot);
+    info.Height = GetSpriteHeight(slot);
+    info.Flags = thisgame.SpriteInfos[slot].Flags;
 }
 
 unsigned char* GetRawSpriteData(int spriteSlot) {

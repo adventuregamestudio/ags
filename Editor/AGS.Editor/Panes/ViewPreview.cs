@@ -104,8 +104,15 @@ namespace AGS.Editor
             {
                 ViewFrame thisFrame = _view.Loops[(int)udLoop.Value].Frames[(int)udFrame.Value];
                 int spriteNum = thisFrame.Image;
-                int spriteWidth = Factory.NativeProxy.GetRelativeSpriteWidth(spriteNum) * 2;
-                int spriteHeight = Factory.NativeProxy.GetRelativeSpriteHeight(spriteNum) * 2;
+                SpriteInfo info = Factory.NativeProxy.GetSpriteInfo(spriteNum);
+                int spriteWidth = info.Width;
+                int spriteHeight = info.Height;
+                // Draw low-res sprites larger (TODO: find out why, perhaps just for the better looks?)
+                if (info.Resolution == SpriteImportResolution.LowRes)
+                {
+                    spriteWidth *= 2;
+                    spriteHeight *= 2;
+                }
                 int x = 0, y;
                 y = previewPanel.ClientSize.Height - spriteHeight;
                 if (chkCentrePivot.Checked)

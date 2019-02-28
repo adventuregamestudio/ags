@@ -43,11 +43,9 @@ namespace AGS
       Bitmap^ GetBitmapForSpritePreserveColDepth(int spriteSlot);
 			void DeleteSprite(int spriteSlot);
 			int  GetFreeSpriteSlot();
-			int  GetRelativeSpriteWidth(int spriteSlot);
-			int  GetRelativeSpriteHeight(int spriteSlot);
-			int  GetActualSpriteWidth(int spriteSlot);
-			int  GetActualSpriteHeight(int spriteSlot);
-			int  GetSpriteResolutionMultiplier(int spriteSlot);
+            Types::SpriteInfo^ GetSpriteInfo(int spriteSlot);
+			int  GetSpriteWidth(int spriteSlot);
+			int  GetSpriteHeight(int spriteSlot);
 			bool CropSpriteEdges(System::Collections::Generic::IList<Sprite^>^ sprites, bool symmetric);
 			bool DoesSpriteExist(int spriteNumber);
 			void ChangeSpriteNumber(Sprite^ sprite, int newNumber);

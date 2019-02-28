@@ -317,13 +317,18 @@ namespace AGS.Editor
         /// </summary>
         public static void GetSizeSpriteWillBeRenderedInGame(int spriteSlot, out int width, out int height)
         {
-            width = Factory.NativeProxy.GetActualSpriteWidth(spriteSlot);
-            height = Factory.NativeProxy.GetActualSpriteHeight(spriteSlot);
-
-            if (Factory.AGSEditor.CurrentGame.IsHighResolution)
+            SpriteInfo info = Factory.NativeProxy.GetSpriteInfo(spriteSlot);
+            width = info.Width;
+            height = info.Height;
+            if (Factory.AGSEditor.CurrentGame.IsHighResolution && info.Resolution == SpriteImportResolution.LowRes)
             {
-                width *= Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot);
-                height *= Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot);
+                width *= 2;
+                height *= 2;
+            }
+            else if (!Factory.AGSEditor.CurrentGame.IsHighResolution && info.Resolution == SpriteImportResolution.HighRes)
+            {
+                width /= 2;
+                height /= 2;
             }
         }
 

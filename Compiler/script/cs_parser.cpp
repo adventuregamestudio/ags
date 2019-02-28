@@ -22,7 +22,11 @@ the token sequence.
 (Nearly) All parser functions return an error code that is negative iff an error has been
 encountered. In case of an error, they call cc_error() and return with a negative integer.
 
-The Parser has the following main components:
+The Parser runs in two phases.
+The first phase runs quickly through the tokenized source and collects the headers
+of the local functions.
+
+The second phase has the following main components:
     Declaration parsing
     Command parsing
         Functions that process the keyword Kkk are called ParseKkk()
@@ -211,6 +215,22 @@ void AGS::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t
         scrip->add_fixup(item.Fixups[index] + adjust, item.FixupTypes[index]);
 }
 
+// Track the phase the parser is in.
+// This is used ubiquitously, so defined as a global variable.
+// [TODO] Convert this into a class variable when the compiler has been
+//        converted to classes
+enum ParsingPhases
+{
+    kpp_PreAnalyze = 0,
+    kpp_Main
+} g_PP;
+
+// Auxiliary symbol table for the first phase.
+// This is used ubiquitously, so defined as a global variable.
+// [TODO] Convert this into a class variable when the compiler has been
+//        converted to classes
+typedef std::map<AGS::Symbol, SymbolTableEntry> TSym1Table;
+TSym1Table g_Sym1;
 
 std::string ConstructedMemberName; // size limitation removed
 

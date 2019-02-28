@@ -187,16 +187,14 @@ void debug_script_print(const String &msg, MessageType mt)
     String script_ref;
     ccInstance *curinst = ccInstance::GetCurrentInstance();
     if (curinst != NULL) {
-        String scriptname;
+        const char *scriptname = "? ";
         if (curinst->instanceof == gamescript)
             scriptname = "G ";
         else if (curinst->instanceof == thisroom.CompiledScript)
             scriptname = "R ";
         else if (curinst->instanceof == dialogScriptsScript)
             scriptname = "D ";
-        else
-            scriptname = "? ";
-        script_ref.Format("[%s%d]", scriptname.GetCStr(), currentline);
+        script_ref.Format("[%s%d]", scriptname, currentline);
     }
 
     Debug::Printf(kDbgGroup_Script, mt, "(room:%d)%s %s", displayed_room, script_ref.GetCStr(), msg.GetCStr());

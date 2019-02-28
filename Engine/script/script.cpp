@@ -336,7 +336,7 @@ bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcTo
         funcToRun->atLeastOneImplementationExists = true;
     }
     // this might be nested, so don't disrupt blocked scripts
-    ccErrorString = "";
+    ccErrorString.Empty();
     ccError = 0;
     no_blocking_functions--;
     return(hasTheFunc);
@@ -399,7 +399,7 @@ int RunScriptFunctionIfExists(ccInstance *sci, const char*tsname, int numParam, 
     }
 
     // Clear the error message
-    ccErrorString = "";
+    ccErrorString.Empty();
 
     if (numParam < 3)
     {

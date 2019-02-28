@@ -38,7 +38,7 @@ int SystemImports::add(const String &name, const RuntimeScriptValue &value, ccIn
     ixof = imports.size();
     for (size_t i = 0; i < imports.size(); ++i)
     {
-        if (imports[i].Name == NULL)
+        if (imports[i].Name.IsEmpty())
         {
             ixof = i;
             break;
@@ -59,7 +59,7 @@ void SystemImports::remove(const String &name) {
     if (idx < 0)
         return;
     btree.erase(imports[idx].Name);
-    imports[idx].Name = NULL;
+    imports[idx].Name.Empty();
     imports[idx].Value.Invalidate();
     imports[idx].InstancePtr = NULL;
 }
@@ -116,13 +116,13 @@ void SystemImports::RemoveScriptExports(ccInstance *inst)
 
     for (size_t i = 0; i < imports.size(); ++i)
     {
-        if (imports[i].Name == NULL)
+        if (imports[i].Name.IsEmpty())
             continue;
 
         if (imports[i].InstancePtr == inst)
         {
             btree.erase(imports[i].Name);
-            imports[i].Name = NULL;
+            imports[i].Name.Empty();
             imports[i].Value.Invalidate();
             imports[i].InstancePtr = 0;
         }

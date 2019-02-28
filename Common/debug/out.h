@@ -127,7 +127,7 @@ struct DebugGroupID
     String      SID;
 
     DebugGroupID() : ID(kDbgGroup_None) {}
-    DebugGroupID(uint32_t id, const String &sid = "") : ID(id), SID(sid) {}
+    DebugGroupID(uint32_t id, const String &sid = {}) : ID(id), SID(sid) {}
     DebugGroupID(const String &sid) : ID(kDbgGroup_None), SID(sid) {}
     // Tells if any of the id components is valid
     bool IsValid() const { return ID != kDbgGroup_None || !SID.IsEmpty(); }

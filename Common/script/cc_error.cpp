@@ -57,7 +57,7 @@ void cc_error(const char *descr, ...)
     else
     {
         ccErrorString = cc_error_without_line(displbuf);
-        ccErrorCallStack = "";
+        ccErrorCallStack.Empty();
     }
 
     ccError = 1;

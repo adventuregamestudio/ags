@@ -356,7 +356,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
         if (!Path::IsSameOrSubDir(parent_dir, path))
         {
             debug_script_warn("Attempt to access file '%s' denied (outside of game directory)", sc_path.GetCStr());
-            path = "";
+            path.Empty();
             return false;
         }
     }

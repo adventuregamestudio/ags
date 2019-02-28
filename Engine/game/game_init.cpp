@@ -420,7 +420,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     if (game.saveGameFileExtension[0] != 0)
         saveGameSuffix.Format(".%s", game.saveGameFileExtension);
     else
-        saveGameSuffix = "";
+        saveGameSuffix.Empty();
 
     play.score_sound = game.scoreClipID;
     play.fade_effect = game.options[OPT_FADETYPE];

@@ -40,7 +40,7 @@ void LogFile::PrintMessage(const DebugMessage &msg)
         if (!OpenFile(fp, _openMode))
         {
             Debug::Printf("Unable to write log to '%s'.", _filePath.GetCStr());
-            _filePath = "";
+            _filePath.Empty();
             return;
         }
     }

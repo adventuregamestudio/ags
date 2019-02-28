@@ -457,7 +457,7 @@ TEST(Compile, FuncDeclWrong) {
 
 }
 
-TEST(Compile, EnumType) {
+TEST(Compile, EnumType1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -477,5 +477,55 @@ TEST(Compile, EnumType) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_GE(0, compileResult);
+    ASSERT_EQ(0, compileResult);
 }
+
+
+TEST(Compile, EnumType2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    enum bool                                               \n\
+    {                                                       \n\
+        false = 0,                                          \n\
+        true = 1                                            \n\
+    };                                                      \n\
+                                                            \n\
+    builtin managed struct ListBox                          \n\
+    {                                                       \n\
+        import bool AddItem(const string text);             \n\
+    };                                                      \n\
+   ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, EnumType2a) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    enum bool                                               \n\
+    {                                                       \n\
+        false = 0,                                          \n\
+        true = 1                                            \n\
+    };                                                      \n\
+                                                            \n\
+    builtin managed struct GUIControl                       \n\
+    {                                                       \n\
+        import void BringToFront();                         \n\
+        import void SendToBack();                           \n\
+    };                                                      \n\
+                                                            \n\
+    builtin managed struct ListBox extends GUIControl       \n\
+    {                                                       \n\
+        import bool AddItem(const string text);             \n\
+    };                                                      \n\
+   ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+}
+

@@ -216,6 +216,8 @@ public:
     int CheckForUnresolvedFuncs();
 };
 
+typedef int TypeQualifierSet;
+
 } // namespace AGS
 
 

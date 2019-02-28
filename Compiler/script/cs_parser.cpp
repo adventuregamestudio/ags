@@ -124,6 +124,28 @@ enum Importness
     kIm_ImportType2 = 2,
 };
 
+bool IsIdentifier(AGS::Symbol symb)
+{
+    if (symb <= sym.lastPredefSym)
+        return false;
+    char const *name = sym.get_name(symb);
+    if (nullptr == name || 0 == name[0])
+        return false;
+    for (size_t idx = 0; name[idx] != 0; ++idx)
+    {
+        char const &ch = name[idx];
+        // don't use "is.." functions, these are locale dependent
+        if ('0' <= ch && ch <= '9') continue;
+        if ('A' <= ch && ch <= 'Z') continue;
+        if ('a' <= ch && ch <= 'z') continue;
+        if ('_' == ch) continue;
+        return false;
+    }
+    if ('0' <= name[0] && name[0] <= '9')
+        return false;
+    return true;
+}
+
 // [fw] This should probably move to "cs_symboltable.h"
 int sym_find_or_add(const char *sname)
 {
@@ -144,7 +166,76 @@ bool ReachedEOF(ccInternalList *targ)
     return true;
 }
 
+int String2Int(std::string str, int &val, bool send_error)
+{
+    const bool is_neg = (0 == str.length() || '-' == str.at(0));
+    errno = 0;
+    char *endptr = 0;
+    const long longValue = strtol(str.c_str(), &endptr, 10);
+    if ((longValue == LONG_MIN && errno == ERANGE) ||
+        (is_neg && (endptr[0] != '\0')) ||
+        (longValue < INT_MIN))
+    {
+        if (send_error)
+            cc_error("Literal value '%s' is too low (min. is '%d')", str.c_str(), INT_MIN);
+        return -1;
+    }
 
+    if ((longValue == LONG_MAX && errno == ERANGE) ||
+        ((!is_neg) && (endptr[0] != '\0')) ||
+        (longValue > INT_MAX))
+    {
+        if (send_error)
+            cc_error("Literal value %s is too high (max. is %d)", str.c_str(), INT_MAX);
+        return -1;
+    }
+
+    val = static_cast<int>(longValue);
+    return 0;
+}
+
+AGS::Symbol MangleStructFunc(AGS::Symbol stname, AGS::Symbol funcname)
+{
+    std::string func_str = "::";
+    func_str = sym.get_name(stname) + func_str + sym.get_name(funcname);
+    return sym_find_or_add(func_str.c_str());
+}
+
+// Skim through the input, ignoring delimited content completely.
+// Stop in the following cases:
+//   A symbol in stoplist[] is encountered
+//   A closing symbol is encountered that hasn't been opened.
+// Don't consume the stop symbols.
+int SkipTo(ccInternalList * targ, const AGS::Symbol stoplist[], size_t stoplist_len)
+{
+    int delimeter_nesting_depth = 0;
+    while (!ReachedEOF(targ))
+    {
+        // Note that the scanner/tokenizer has already verified
+        // that all opening symbols get closed and 
+        // that we don't have (...] or similar in the input
+        const AGS::Symbol cursym = targ->peeknext();
+        const AGS::Symbol curtype = sym.get_type(cursym);
+        if (curtype == SYM_OPENBRACE ||
+            curtype == SYM_OPENBRACKET ||
+            curtype == SYM_OPENPARENTHESIS)
+        {
+            ++delimeter_nesting_depth;
+        }
+        if (curtype == SYM_CLOSEBRACE ||
+            curtype == SYM_CLOSEBRACKET ||
+            curtype == SYM_CLOSEPARENTHESIS)
+        {
+            if (--delimeter_nesting_depth < 0)
+                return 0;
+        }
+        for (size_t stoplist_idx = 0; stoplist_idx < stoplist_len; stoplist_idx++)
+            if (curtype == stoplist[stoplist_idx])
+                return 0;
+        targ->getnext();
+    }
+    return -1;
+}
 
 
 

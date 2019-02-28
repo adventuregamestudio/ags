@@ -444,12 +444,27 @@ void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &
     }
 }
 
-void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents)
+void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     // Apply sprite flags read from original format (sequential array)
     spriteset.EnlargeTo(ents.SpriteCount);
     for (size_t i = 0; i < ents.SpriteCount; ++i)
+    {
         game.SpriteInfos[i].Flags = ents.SpriteFlags[i];
+    }
+
+    // Promote sprite resolutions and mark legacy resolution setting
+    if (data_ver < kGameVersion_350)
+    {
+        for (size_t i = 0; i < ents.SpriteCount; ++i)
+        {
+            SpriteInfo &info = game.SpriteInfos[i];
+            if (game.IsHiRes() && info.IsHiRes() || !game.IsHiRes() && info.IsLowRes())
+                info.Flags &= ~(SPF_HIRES | SPF_VAR_RESOLUTION);
+            else
+                info.Flags |= SPF_VAR_RESOLUTION;
+        }
+    }
 }
 
 // Convert audio data to the current version
@@ -720,7 +735,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
-    ApplySpriteData(game, ents);
+    ApplySpriteData(game, ents, data_ver);
     UpgradeAudio(game, data_ver);
     AdjustScoreSound(game, data_ver);
     UpgradeCharacters(game, data_ver);

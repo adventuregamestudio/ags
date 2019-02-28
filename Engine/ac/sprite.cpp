@@ -35,24 +35,33 @@ extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 
-void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) {
-    newwid = ww * current_screen_resolution_multiplier;
-    newhit = hh * current_screen_resolution_multiplier;
-    if (game.SpriteInfos[ee].Flags & SPF_640x400) 
+void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit)
+{
+    const SpriteInfo &spinfo = game.SpriteInfos[ee];
+    if (!spinfo.IsVarRes())
     {
-        if (current_screen_resolution_multiplier == 2) {
+        newwid = ww;
+        newhit = hh;
+        return;
+    }
+
+    if (spinfo.IsHiRes())
+    {
+        if (current_screen_resolution_multiplier == 2)
+        {
             newwid = ww;
             newhit = hh;
         }
-        else {
-            newwid=(ww/2) * current_screen_resolution_multiplier;
-            newhit=(hh/2) * current_screen_resolution_multiplier;
-            // just make sure - could crash if wid or hit is 0
-            if (newwid < 1)
-                newwid = 1;
-            if (newhit < 1)
-                newhit = 1;
+        else
+        {
+            newwid = Math::Min(1, (ww / 2) * current_screen_resolution_multiplier);
+            newhit = Math::Min(1, (hh / 2) * current_screen_resolution_multiplier);
         }
+    }
+    else
+    {
+        newwid = ww * current_screen_resolution_multiplier;
+        newhit = hh * current_screen_resolution_multiplier;
     }
 }
 

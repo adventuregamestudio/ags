@@ -154,6 +154,9 @@ namespace AGS.Editor
 
         private void SetDefaultValuesForNewFeatures(Game game)
         {
+            // TODO: this may be noticably if upgrading lots of items. Display some kind of
+            // progress window to notify user.
+
             int xmlVersionIndex = 0;
             if (game.SavedXmlVersionIndex.HasValue)
             {
@@ -181,6 +184,15 @@ namespace AGS.Editor
             if (xmlVersionIndex < 15)
             {
                 game.DefaultSetup.SetDefaults();
+            }
+
+            if (xmlVersionIndex < 18)
+            {
+                // Promote sprites to "real" resolution when possible (ideally almost always)
+                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
+                {
+                    sprite.Resolution = Utilities.FixupSpriteResolution(sprite.Resolution);
+                }
             }
 
             game.SetScriptAPIForOldProject();

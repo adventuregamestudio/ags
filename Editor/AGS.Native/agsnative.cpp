@@ -241,13 +241,15 @@ int find_free_sprite_slot() {
   return spriteset.AddNewSprite();
 }
 
-void update_sprite_resolution(int spriteNum, bool isHighRes)
+void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes)
 {
-	thisgame.SpriteInfos[spriteNum].Flags &= ~SPF_640x400;
-	if (isHighRes)
-	{
-		thisgame.SpriteInfos[spriteNum].Flags |= SPF_640x400;
-	}
+	thisgame.SpriteInfos[spriteNum].Flags &= ~(SPF_HIRES | SPF_VAR_RESOLUTION);
+    if (isVarRes)
+    {
+        thisgame.SpriteInfos[spriteNum].Flags |= SPF_VAR_RESOLUTION;
+        if (isHighRes)
+            thisgame.SpriteInfos[spriteNum].Flags |= SPF_HIRES;
+    }
 }
 
 void change_sprite_number(int oldNumber, int newNumber) {
@@ -639,15 +641,17 @@ void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use
     }
 
   int nwid=towrite->GetWidth(),nhit=towrite->GetHeight();
-  if (thisgame.SpriteInfos[sprnum].Flags & SPF_640x400) {
-    if (dsc_want_hires == 0) {
-      nwid/=2;
-      nhit/=2;
+  if (thisgame.SpriteInfos[sprnum].IsVarRes()) {
+    if (thisgame.SpriteInfos[sprnum].IsHiRes()) {
+      if (dsc_want_hires == 0) {
+        nwid/=2;
+        nhit/=2;
+      }
     }
-  }
-  else if (dsc_want_hires) {
-    nwid *= 2;
-    nhit *= 2;
+    else if (dsc_want_hires) {
+      nwid *= 2;
+      nhit *= 2;
+    }
   }
   wputblock_stretch(g, atxp,atyp,towrite,nwid,nhit);
   if (needtofree) delete towrite;
@@ -1156,13 +1160,15 @@ int get_adjusted_spritewidth(int spr) {
 
   int retval = tsp->GetWidth();
 
-  if (thisgame.SpriteInfos[spr].Flags & SPF_640x400) {
-    if (sxmult == 1)
-      retval /= 2;
-  }
-  else {
-    if (sxmult == 2)
-      retval *= 2;
+  if (thisgame.SpriteInfos[spr].IsVarRes()) {
+    if (thisgame.SpriteInfos[spr].IsHiRes()) {
+      if (sxmult == 1)
+        retval /= 2;
+    }
+    else {
+      if (sxmult == 2)
+        retval *= 2;
+    }
   }
   return retval;
 }
@@ -1173,13 +1179,15 @@ int get_adjusted_spriteheight(int spr) {
 
   int retval = tsp->GetHeight();
 
-  if (thisgame.SpriteInfos[spr].Flags & SPF_640x400) {
-    if (symult == 1)
-      retval /= 2;
-  }
-  else {
-    if (symult == 2)
-      retval *= 2;
+  if (thisgame.SpriteInfos[spr].IsVarRes()) {
+    if (thisgame.SpriteInfos[spr].IsHiRes()) {
+      if (symult == 1)
+        retval /= 2;
+    }
+    else {
+      if (symult == 2)
+        retval *= 2;
+    }
   }
   return retval;
 }
@@ -1266,7 +1274,8 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float sca
 }
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
-	int scaleFactor = ((thisgame.SpriteInfos[spriteNum].Flags & SPF_640x400) != 0) ? 1 : 2;
+	int scaleFactor = thisgame.SpriteInfos[spriteNum].IsVarRes() ?
+        (thisgame.SpriteInfos[spriteNum].IsHiRes() ? 1 : 2) : 1;
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
   if (theSprite == NULL)
@@ -2100,8 +2109,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	if (todraw == NULL)
 	  todraw = spriteset[0];
 
-	if (((thisgame.SpriteInfos[sprNum].Flags & SPF_640x400) == 0) &&
-		thisgame.IsHiRes())
+	if (thisgame.SpriteInfos[sprNum].IsLowRes() && thisgame.IsHiRes())
 	{
 		scale *= 2.0f;
 	}
@@ -2153,11 +2161,16 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 {
 	for each (Sprite ^sprite in folder->Sprites)
 	{
-		thisgame.SpriteInfos[sprite->Number].Flags = 0;
-		if (sprite->Resolution == SpriteImportResolution::HighRes)
-			thisgame.SpriteInfos[sprite->Number].Flags |= SPF_640x400;
+        int flags = 0;
+        if (sprite->Resolution != SpriteImportResolution::Real)
+        {
+            flags | SPF_VAR_RESOLUTION;
+            if (sprite->Resolution == SpriteImportResolution::HighRes)
+                flags |= SPF_HIRES;
+        }
 		if (sprite->AlphaChannel)
-			thisgame.SpriteInfos[sprite->Number].Flags |= SPF_ALPHACHANNEL;
+            flags |= SPF_ALPHACHANNEL;
+        thisgame.SpriteInfos[sprite->Number].Flags = flags;
 	}
 
 	for each (SpriteFolder^ subFolder in folder->SubFolders) 
@@ -2522,15 +2535,10 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
 		sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
 	}
 
-	thisgame.SpriteInfos[slot].Flags = 0;
-	if (thisgame.IsHiRes())
-	{
-		thisgame.SpriteInfos[slot].Flags |= SPF_640x400;
-	}
+    int flags = 0;
 	if (alphaChannel)
 	{
-		thisgame.SpriteInfos[slot].Flags |= SPF_ALPHACHANNEL;
-
+        flags |= SPF_ALPHACHANNEL;
 		if (tempsprite->GetColorDepth() == 32)
 		{
 			set_rgb_mask_from_alpha_channel(tempsprite);
@@ -2540,6 +2548,7 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
 	{
 		set_opaque_alpha_channel(tempsprite);
 	}
+    thisgame.SpriteInfos[slot].Flags = flags;
 
 	SetNewSprite(slot, tempsprite);
 
@@ -2863,7 +2872,9 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 		Common::Bitmap *spr = spriteset[i];
 		if (spr != NULL)
 		{
-			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), (thisgame.SpriteInfos[i].Flags & SPF_640x400) ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes, (thisgame.SpriteInfos[i].Flags & SPF_ALPHACHANNEL) ? true : false));
+			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(),
+                thisgame.SpriteInfos[i].IsVarRes() ? (thisgame.SpriteInfos[i].IsHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real,
+                (thisgame.SpriteInfos[i].Flags & SPF_ALPHACHANNEL) ? true : false));
 		}
 	}
 

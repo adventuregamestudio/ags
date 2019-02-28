@@ -609,7 +609,8 @@ namespace AGS.Editor
             {
                 mostTopmost = Math.Max(sprite.Number, mostTopmost);
                 flags[sprite.Number] = 0;
-                if (sprite.Resolution == SpriteImportResolution.HighRes) flags[sprite.Number] |= NativeConstants.SPF_640x400;
+                if (sprite.Resolution != SpriteImportResolution.Real) flags[sprite.Number] |= NativeConstants.SPF_VAR_RESOLUTION;
+                if (sprite.Resolution == SpriteImportResolution.HighRes) flags[sprite.Number] |= NativeConstants.SPF_HIRES;
                 if (sprite.AlphaChannel) flags[sprite.Number] |= NativeConstants.SPF_ALPHACHANNEL;
             }
             foreach (SpriteFolder subfolder in folder.SubFolders)

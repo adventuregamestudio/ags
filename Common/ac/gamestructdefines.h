@@ -170,12 +170,13 @@ enum RenderAtScreenRes
 
 
 // Sprite flags
-#define SPF_640x400         0x01  // sized for high native resolution
-#define SPF_HICOLOR         0x02  // is 16-bit
-#define SPF_DYNAMICALLOC    0x04  // created by runtime script
-#define SPF_TRUECOLOR       0x08  // is 32-bit
-#define SPF_ALPHACHANNEL    0x10  // has alpha-channel
-#define SPF_HADALPHACHANNEL 0x80  // the saved sprite on disk has one
+#define SPF_HIRES           0x0001  // sized for high native resolution (legacy option)
+#define SPF_HICOLOR         0x0002  // is 16-bit
+#define SPF_DYNAMICALLOC    0x0004  // created by runtime script
+#define SPF_TRUECOLOR       0x0008  // is 32-bit
+#define SPF_ALPHACHANNEL    0x0010  // has alpha-channel
+#define SPF_HADALPHACHANNEL 0x0080  // the saved sprite on disk has one
+#define SPF_VAR_RESOLUTION  0x0100  // variable resolution (use SPF_HIRES)
 
 // General information about sprite (properties, size)
 struct SpriteInfo
@@ -185,6 +186,16 @@ struct SpriteInfo
     int      Height;
 
     SpriteInfo();
+
+    //
+    // Legacy game support
+    //
+    // Gets if sprite should adjust its base size depending on game's resolution
+    inline bool IsVarRes() const { return (Flags & SPF_VAR_RESOLUTION) != 0; }
+    // Gets if sprite belongs to high resolution (should be downscaled in low-res games)
+    inline bool IsHiRes() const { return IsVarRes() && (Flags & SPF_HIRES) != 0; }
+    // Gets if sprite belongs to low resolution (should be upscaled in hi-res games)
+    inline bool IsLowRes() const { return IsVarRes() && (Flags & SPF_HIRES) == 0; }
 };
 
 // Various font parameters, defining and extending font rendering behavior.

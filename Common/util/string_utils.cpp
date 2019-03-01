@@ -208,6 +208,7 @@ void StrUtil::ReadString(char *cstr, Stream *in, size_t buf_limit)
     size_t len = in->ReadInt32();
     if (buf_limit > 0)
         len = Math::Min(len, buf_limit - 1);
+    cstr[len] = 0;
     if (len > 0)
         in->Read(cstr, len);
     else
@@ -218,6 +219,7 @@ void StrUtil::ReadString(char **cstr, Stream *in)
 {
     size_t len = in->ReadInt32();
     *cstr = new char[len + 1];
+    (*cstr)[len] = 0;
     if (len > 0)
         in->Read(*cstr, len);
     else

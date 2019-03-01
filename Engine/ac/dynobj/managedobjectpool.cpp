@@ -24,39 +24,21 @@
 
 using namespace AGS::Common;
 
-void ManagedObjectPool::Init(int32_t theHandle, const char *theAddress,
-                                            ICCDynamicObject *theCallback, ScriptValueType objType) {
-    auto & o = objects[theHandle];
-
-    o.obj_type = objType;
-    o.handle = theHandle;
-    o.addr = theAddress;
-    o.callback = theCallback;
-    o.refCount = 0;
-
-    handleByAddress[theAddress] = theHandle;
-
-    ManagedObjectLog("Allocated managed object handle=%d, type=%s", o.theHandle, o.theCallback->GetType());
-}
+const auto OBJECT_CACHE_MAGIC_NUMBER = 0xa30b;
+const auto SERIALIZE_BUFFER_SIZE = 10240;
+const auto GARBAGE_COLLECTION_INTERVAL = 1024;
+const auto RESERVED_SIZE = 2048;
 
 int ManagedObjectPool::Remove(int32_t handle, bool force) {
-
     auto & o = objects[handle];
 
-    if ((o.callback != NULL) && (o.callback->Dispose(o.addr, force) == 0) &&
-        (force == false))
-        return 0;
+    bool canBeRemovedFromPool = o.callback->Dispose(o.addr, force);
+    if (!(canBeRemovedFromPool || force)) { return 0; }
 
-    ManagedObjectLog("Line %d Disposing managed object handle=%d", o.currentline, o.handle);
-
-    auto it = handleByAddress.find(o.addr);
-    if (it != handleByAddress.end()) {
-        handleByAddress.erase(it);
-    } 
-
-    o.handle = 0;
-    o.addr = 0;
-    o.callback = nullptr;
+    handleByAddress.erase(o.addr);
+    objects.erase(handle);
+    // <-- obj reference invalid at this point.
+    ManagedObjectLog("Line %d Disposed managed object handle=%d", currentline, handle);
 
     return 1;
 }
@@ -65,166 +47,155 @@ int32_t ManagedObjectPool::AddRef(int32_t handle) {
     auto & o = objects[handle];
 
     o.refCount += 1;
-    ManagedObjectLog("Line %d AddRef: handle=%d new refcount=%d", o.currentline, o.handle, o.refCount);
+    ManagedObjectLog("Line %d AddRef: handle=%d new refcount=%d", currentline, o.handle, o.refCount);
     return o.refCount;
 }
 
 int ManagedObjectPool::CheckDispose(int32_t handle) {
     auto & o = objects[handle];
-
-    if ((o.refCount < 1) && (o.callback != NULL)) {
-        return Remove(handle);
-    }
-    return 0;
+    if (o.refCount >= 1) { return 0; }
+    return Remove(handle);
 }
 
 int32_t ManagedObjectPool::SubRef(int32_t handle) {
     auto & o = objects[handle];
 
-    if ((disableDisposeForObject != NULL) && (o.addr == disableDisposeForObject)) {
-        o.refCount--;
-        ManagedObjectLog("Line %d SubRefNoDispose: handle=%d new refcount=%d", o.currentline, o.handle, o.refCount);
-    } else {
-        o.refCount--;
-        ManagedObjectLog("Line %d SubRef: handle=%d new refcount=%d", o.currentline, o.handle, o.refCount);
+    o.refCount--;
+    auto newRefCount = o.refCount;
+    auto canBeDisposed = (o.addr != disableDisposeForObject);
+    if (canBeDisposed) {
         CheckDispose(handle);
     }
-    return o.refCount;
+    // <-- obj reference invalid at this point.
+    ManagedObjectLog("Line %d SubRef: handle=%d new refcount=%d canBeDisposed=%d", currentline, handle, newRefCount, canBeDisposed);
+    return newRefCount;
 }
 
 int32_t ManagedObjectPool::AddressToHandle(const char *addr) {
-    try {
-        return handleByAddress.at(addr);
-    } catch (std::out_of_range) {
-        return 0;
-    }
+    return handleByAddress.at(addr);
 }
 
+// this function is called often (whenever a pointer is used)
 const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
-    // this function is called often (whenever a pointer is used)
-    if ((handle < 1) || (handle >= arrayAllocLimit))
-        return NULL;
-    if (objects[handle].handle == 0)
-        return NULL;
-    return objects[handle].addr;
+    auto it = objects.find(handle);
+    if (it == objects.end()) { return nullptr; }
+    auto & o = it->second;
+    return o.addr;
 }
 
+// this function is called often (whenever a pointer is used)
 ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager) {
-    object = NULL;
-    manager = NULL;
-    // this function is called often (whenever a pointer is used)
-    if ((handle < 1) || (handle >= arrayAllocLimit))
-        return kScValUndefined;
-    if (objects[handle].handle == 0)
-        return kScValUndefined;
-    object = (void*)objects[handle].addr;
-    manager = objects[handle].callback;
-    return objects[handle].obj_type;
+    auto it = objects.find(handle);
+    if (it == objects.end()) { return kScValUndefined; }
+    auto & o = it->second;
+
+    object = (void *)o.addr;  // WARNING: This strips the const from the char* pointer.
+    manager = o.callback;
+    return o.obj_type;
 }
 
 int ManagedObjectPool::RemoveObject(const char *address) {
     int32_t handl = AddressToHandle(address);
-    if (handl == 0)
-        return 0;
-
+    if (handl == 0) { return 0; }
     Remove(handl, true);
-
     return 1;
 }
 
 void ManagedObjectPool::RunGarbageCollectionIfAppropriate()
 {
-    if (objectCreationCounter > GARBAGE_COLLECTION_INTERVAL)
-    {
-        objectCreationCounter = 0;
-        RunGarbageCollection();
-    }
+    if (objectCreationCounter <= GARBAGE_COLLECTION_INTERVAL) { return; }
+    RunGarbageCollection();
+    objectCreationCounter = 0;
 }
 
 void ManagedObjectPool::RunGarbageCollection()
 {
-    ManagedObjectLog("Running garbage collection");
-
-    for (int i = 1; i < numObjects; i++) 
+    for (auto it = objects.begin(); it != objects.end() /* not hoisted */; /* no increment */)
     {
-        if ((objects[i].refCount < 1) && (objects[i].callback != NULL)) 
-        {
-            Remove(i);
+        auto & o = it->second;
+        it++; // iterator is invalid _after_ erase, so increment now.
+        if (o.refCount < 1) {
+            Remove(o.handle);
         }
     }
+    ManagedObjectLog("Ran garbage collection");
 }
 
-int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot) {
-    if (useSlot == -1)
-        useSlot = numObjects;
+inline int handle_increment(int handle) {
+    if (handle >= INT_MAX || handle <= 0) {
+        return 1;
+    }
+    return handle + 1;
+}
 
+int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot) 
+{
+    int handle;
+
+    if (useSlot >= 0) {
+        if (objects.find(useSlot) != objects.end()) {
+            cc_error("Slot used: %d", useSlot);
+            return -1;
+        }
+        handle = useSlot;
+    } else {
+        handle = nextHandle;
+        while (objects.find(handle) != objects.end()) {
+            handle = handle_increment(handle);
+        }
+    }
+
+    objects.insert({handle, {
+        ManagedObject {
+            obj_type: plugin_object ? kScValPluginObject : kScValDynamicObject,
+            handle: handle,
+            addr: address,
+            callback: callback,
+            refCount: 0
+        }
+    }});
+    handleByAddress.insert({address, handle});
+
+    nextHandle = handle_increment(handle);
     objectCreationCounter++;
 
-    if (useSlot < arrayAllocLimit) {
-        // still space in the array, so use it
-        Init(useSlot, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
-        if (useSlot == numObjects)
-            numObjects++;
-        return useSlot;
-    }
-    else {
-        // array has been used up
-        if (useSlot == numObjects) {
-            // if adding new (not un-serializing) check for empty slot
-            // check backwards, since newer objects don't tend to last
-            // long
-            for (int i = arrayAllocLimit - 1; i >= 1; i--) {
-                if (objects[i].handle == 0) {
-                    Init(i, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
-                    return i;
-                }
-            }
-        }
-        // no empty slots, expand array
-        while (useSlot >= arrayAllocLimit)
-            arrayAllocLimit += ARRAY_INCREMENT_SIZE;
+    ManagedObjectLog("Allocated managed object handle=%d, type=%s", handle, callback->GetType());
 
-        objects = (ManagedObject*)realloc(objects, sizeof(ManagedObject) * arrayAllocLimit);
-        memset(&objects[useSlot], 0, sizeof(ManagedObject) * ARRAY_INCREMENT_SIZE);
-        Init(useSlot, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
-        if (useSlot == numObjects)
-            numObjects++;
-        return useSlot;
-    }
+    return handle;
 }
 
 void ManagedObjectPool::WriteToDisk(Stream *out) {
+
+    // use this opportunity to clean up any non-referenced pointers
+    RunGarbageCollection();
+
     int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
     char *serializeBuffer = (char*)malloc(serializeBufferSize);
 
     out->WriteInt32(OBJECT_CACHE_MAGIC_NUMBER);
     out->WriteInt32(1);  // version
-    out->WriteInt32(numObjects);
+    out->WriteInt32(objects.size() + 1);
 
-    // use this opportunity to clean up any non-referenced pointers
-    RunGarbageCollection();
+    for( const auto& it : objects ) {
+        auto & o = it.second;
 
-    for (int i = 1; i < numObjects; i++) 
-    {
-        if ((objects[i].handle) && (objects[i].callback != NULL)) {
-            // write the type of the object
-            StrUtil::WriteCStr((char*)objects[i].callback->GetType(), out);
-            // now write the object data
-            int bytesWritten = objects[i].callback->Serialize(objects[i].addr, serializeBuffer, serializeBufferSize);
-            if ((bytesWritten < 0) && ((-bytesWritten) > serializeBufferSize))
-            {
-                // buffer not big enough, re-allocate with requested size
-                serializeBufferSize = -bytesWritten;
-                serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
-                bytesWritten = objects[i].callback->Serialize(objects[i].addr, serializeBuffer, serializeBufferSize);
-            }
-            out->WriteInt32(bytesWritten);
-            if (bytesWritten > 0)
-                out->Write(serializeBuffer, bytesWritten);
-            out->WriteInt32(objects[i].refCount);
+        // write the type of the object
+        StrUtil::WriteCStr((char*)o.callback->GetType(), out);
+        // now write the object data
+        int bytesWritten = o.callback->Serialize(o.addr, serializeBuffer, serializeBufferSize);
+        if ((bytesWritten < 0) && ((-bytesWritten) > serializeBufferSize))
+        {
+            // buffer not big enough, re-allocate with requested size
+            serializeBufferSize = -bytesWritten;
+            serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
+            bytesWritten = o.callback->Serialize(o.addr, serializeBuffer, serializeBufferSize);
         }
-        else  // write empty string if we cannot serialize it
-            out->WriteInt8(0); 
+        out->WriteInt32(bytesWritten);
+        if (bytesWritten > 0)
+            out->Write(serializeBuffer, bytesWritten);
+        out->WriteInt32(o.refCount);
+
+        ManagedObjectLog("Wrote handle = %d", o.handle);
     }
 
     free(serializeBuffer);
@@ -247,12 +218,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
 
     int numObjs = in->ReadInt32();
 
-    if (numObjs >= arrayAllocLimit) {
-        arrayAllocLimit = numObjs + ARRAY_INCREMENT_SIZE;
-        free(objects);
-        objects = (ManagedObject*)calloc(sizeof(ManagedObject), arrayAllocLimit);
-    }
-    numObjects = numObjs;
+    nextHandle = numObjs;
 
     for (int i = 1; i < numObjs; i++) {
         StrUtil::ReadCStr(typeNameBuffer, in, sizeof(typeNameBuffer));
@@ -281,22 +247,18 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
     return 0;
 }
 
+// de-allocate all objects
 void ManagedObjectPool::reset() {
-    // de-allocate all objects
-    for (int kk = 1; kk < arrayAllocLimit; kk++) {
-        if (objects[kk].handle) {
-            Remove(kk, true);
-        }
+    for (auto it = objects.begin(); it != objects.end() /* not hoisted */; /* no increment */) {
+        auto & o = it->second;
+        it++; // iterator is invalid _after_ erase, so increment now.
+        Remove(o.handle, true);
     }
-    memset(&objects[0], 0, sizeof(ManagedObject) * arrayAllocLimit);
-    numObjects = 1;
+    assert(objects.empty());
 }
 
 ManagedObjectPool::ManagedObjectPool() {
-    numObjects = 1;
-    arrayAllocLimit = 10;
-    objects = (ManagedObject*)calloc(sizeof(ManagedObject), arrayAllocLimit);
-    disableDisposeForObject = NULL;
+    handleByAddress.reserve(RESERVED_SIZE);
 }
 
 ManagedObjectPool pool;

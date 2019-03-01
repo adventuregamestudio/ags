@@ -15,6 +15,7 @@
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
+#include <map>
 #include <unordered_map>
 
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
@@ -22,15 +23,9 @@
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-#define OBJECT_CACHE_MAGIC_NUMBER 0xa30b
-#define SERIALIZE_BUFFER_SIZE 10240
-const int ARRAY_INCREMENT_SIZE = 100;
-const int GARBAGE_COLLECTION_INTERVAL = 100;
-
 struct ManagedObjectPool final {
 private:
-
-    struct ManagedObject final {
+    struct ManagedObject {
         ScriptValueType obj_type;
         int32_t handle;
         const char *addr;
@@ -38,12 +33,10 @@ private:
         int  refCount;
     };
 
-    ManagedObject *objects;
-    int arrayAllocLimit;
-    int numObjects;  // not actually numObjects, but the highest index used
-    int objectCreationCounter;  // used to do garbage collection every so often
+    int nextHandle {1};
+    int objectCreationCounter {0};  // used to do garbage collection every so often
 
-    // std::unordered_map<int32_t, ManagedObject> objects {};
+    std::map<int32_t, ManagedObject> objects {}; // must be ordered, since we need to save by handle order.
     std::unordered_map<const char *, int32_t> handleByAddress {};
 
     void Init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback, ScriptValueType objType);
@@ -67,7 +60,7 @@ public:
     void reset();
     ManagedObjectPool();
 
-    const char* disableDisposeForObject;
+    const char* disableDisposeForObject {nullptr};
 };
 
 extern ManagedObjectPool pool;

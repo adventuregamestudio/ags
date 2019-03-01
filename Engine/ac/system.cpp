@@ -199,9 +199,11 @@ void System_SetVolume(int newvol)
     // if it was previously set low; so restore them
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) 
     {
-        if (channel_is_playing(i)) 
+        AudioChannelsLock _lock;
+        auto* ch = _lock.GetChannel(i);
+        if ((ch != nullptr) && (ch->done == 0)) 
         {
-            channels[i]->adjust_volume();
+            ch->adjust_volume();
         }
     }
 }

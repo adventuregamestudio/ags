@@ -15,7 +15,6 @@
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
-#include <map>
 #include <unordered_map>
 
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
@@ -36,7 +35,7 @@ private:
     int nextHandle {1};
     int objectCreationCounter {0};  // used to do garbage collection every so often
 
-    std::map<int32_t, ManagedObject> objects {}; // must be ordered, since we need to save by handle order.
+    std::unordered_map<int32_t, ManagedObject> objects {};
     std::unordered_map<const char *, int32_t> handleByAddress {};
 
     void Init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback, ScriptValueType objType);

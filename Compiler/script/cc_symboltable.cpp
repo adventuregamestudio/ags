@@ -5,26 +5,24 @@
 #include "cc_symboltable.h"
 #include "script/script_common.h"      // macro definitions
 
-SymbolTable::SymbolTable()
-{
-    stringStructSym = 0;
-}
+SymbolTableEntry::SymbolTableEntry()
+    : sname("")
+    , stype(0)
+    , flags(0)
+    , vartype(0)
+    , soffs(0)
+    , ssize(0)
+    , sscope(0)
+    , arrsize(0)
+    , extends(0)
+    , funcparamtypes (std::vector<unsigned long>(1)) // Function must have at least the return param
+    , funcParamDefaultValues(std::vector<int>(1))
+    , funcParamHasDefaultValues(std::vector<bool>(1))
+{ }
 
 int SymbolTableEntry::get_num_args()
 {
     return sscope % 100;
-}
-
-// Get the type of a symbol table entry, regardless of pointerness or constness
-AGS::Symbol SymbolTable::get_type(int ii) 
-{
-    // consider the real type, regardless of pointerness/constness
-    ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
-
-    if ((ii < 0) || (ii >= entries.size()))
-        return -1;
-
-    return entries[ii].stype;
 }
 
 int SymbolTableEntry::is_loadable_variable()
@@ -54,11 +52,53 @@ int SymbolTableEntry::get_attrset()
     return toret;
 }
 
-void SymbolTable::reset() {
-	for (std::map<int, char*>::iterator it = nameGenCache.begin(); it != nameGenCache.end(); ++it)
-		free(it->second);
+int SymbolTableEntry::operatorToVCPUCmd()
+{
+    //return ssize + 8;
+    return vartype;
+}
 
-	nameGenCache.clear();
+int SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
+{
+    dest.sname = this->sname;
+    dest.stype = this->stype;
+    dest.flags = this->flags;
+    dest.vartype = this->vartype;
+    dest.soffs = this->soffs;
+    dest.ssize = this->ssize;
+    dest.sscope = this->sscope;
+    dest.arrsize = this->arrsize;
+    dest.extends = this->extends;
+    dest.funcparamtypes.assign(this->funcparamtypes.begin(), this->funcparamtypes.end());
+    dest.funcParamDefaultValues.assign(this->funcParamDefaultValues.begin(), this->funcParamDefaultValues.end());
+    dest.funcParamHasDefaultValues.assign(this->funcParamHasDefaultValues.begin(), this->funcParamHasDefaultValues.end());
+    return 0;
+}
+
+SymbolTable::SymbolTable()
+{
+    stringStructSym = 0;
+}
+
+int SymbolTable::get_type(int ii)
+{
+    // just return the real type, regardless of pointerness/constness
+    ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
+
+    if ((ii < 0) || (ii >= entries.size())) { return -1; }
+
+    return entries[ii].stype;
+}
+
+void SymbolTable::reset()
+{
+    for (std::map<int, char*>::iterator it = nameGenCache.begin();
+        it != nameGenCache.end();
+        ++it)
+    {
+        free(it->second);
+    }
+    nameGenCache.clear();
 
     entries.clear();
 
@@ -147,28 +187,6 @@ void SymbolTable::reset() {
     add_ex("autoptr", SYM_AUTOPTR, 0);
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
     lastPredefSym = add_ex("builtin", SYM_BUILTIN, 0);
-}
-int SymbolTableEntry::operatorToVCPUCmd()
-{
-    //return ssize + 8;
-    return vartype;
-}
-
-int SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
-{
-    dest.sname = this->sname;
-    dest.stype = this->stype;
-    dest.flags = this->flags;
-    dest.vartype = this->vartype;
-    dest.soffs = this->soffs;
-    dest.ssize = this->ssize;
-    dest.sscope = this->sscope;
-    dest.arrsize = this->arrsize;
-    dest.extends = this->extends;
-    dest.funcparamtypes.assign(this->funcparamtypes.begin(), this->funcparamtypes.end());
-    dest.funcParamDefaultValues.assign(this->funcParamDefaultValues.begin(), this->funcParamDefaultValues.end());
-    dest.funcParamHasDefaultValues.assign(this->funcParamHasDefaultValues.begin(), this->funcParamHasDefaultValues.end());
-    return 0;
 }
 
 int SymbolTable::find(const char*ntf)

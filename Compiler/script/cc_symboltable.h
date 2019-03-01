@@ -32,6 +32,8 @@ struct SymbolTableEntry {
     std::vector<int> funcParamDefaultValues;
     std::vector<bool> funcParamHasDefaultValues;
 
+    SymbolTableEntry();
+
     int get_num_args();
 
     int is_loadable_variable();

@@ -1285,6 +1285,7 @@ TEST(Compatibility, While) {
 }
 
 
+
 TEST(Compatibility, DoNCall) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -4098,7 +4099,7 @@ TEST(Compatibility, FuncCall) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        struct Struct               \n\
+    struct Struct                   \n\
     {                               \n\
         float Float;                \n\
         import int Func();          \n\
@@ -5550,7 +5551,6 @@ std::string gStringInit =
 TEST(Compatibility, StandardString) {
     ccCompiledScript *scrip = newScriptFixture();
 
-
     std::string sourcecode = "\
         int main()                         \n\
         {                                  \n\
@@ -5570,7 +5570,7 @@ TEST(Compatibility, StandardString) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("StandardString", scrip);
+    WriteOutput("StandardString", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

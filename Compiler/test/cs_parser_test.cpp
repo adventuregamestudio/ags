@@ -1,4 +1,3 @@
-#include <string>
 #include "gtest/gtest.h"
 #include "script/cs_parser.h"
 #include "script/cc_symboltable.h"
@@ -161,10 +160,11 @@ TEST(Compile, ParsingIntDefaultOverflow) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    
+
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("'9999999999999999999999'"));
+    EXPECT_NE(std::string::npos, res.find("9999999999999999999999"));
+
 }
 
 TEST(Compile, ParsingNegIntDefaultOverflow) {
@@ -179,7 +179,7 @@ TEST(Compile, ParsingNegIntDefaultOverflow) {
     ASSERT_EQ(-1, compileResult);
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("'-9999999999999999999999'"));
+    EXPECT_NE(std::string::npos, res.find("-9999999999999999999999"));
 }
 
 TEST(Compile, ParsingIntOverflow) {
@@ -457,75 +457,374 @@ TEST(Compile, FuncDeclWrong) {
 
 }
 
-TEST(Compile, EnumType1) {
+TEST(Compile, Writeprotected) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Directly taken from the doc on writeprotected, simplified.
+    char *inpl = "\
+        struct Weapon {                        \n\
+            writeprotected int Damage;         \n\
+        };                                     \n\
+                                               \n\
+        Weapon wp;                             \n\
+                                               \n\
+        void main()                            \n\
+        {                                      \n\
+            wp.Damage = 7;                     \n\
+            return false;                      \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    // Should fail, no modifying of writeprotected components from the outside.
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("Damage"));
+}
+
+TEST(Compile, Protected1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Directly taken from the doc on writeprotected, simplified.
+    char *inpl = "\
+        struct Weapon {                        \n\
+            protected int Damage;              \n\
+        };                                     \n\
+                                               \n\
+        Weapon wp;                             \n\
+                                               \n\
+        void main()                            \n\
+        {                                      \n\
+            wp.Damage = 7;                     \n\
+            return false;                      \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    // Should fail, no modifying of protected components from the outside.
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("Damage"));
+}
+
+
+
+TEST(Compile, Do1Wrong) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-    enum bool          \n\
-    {                  \n\
-        false = 0,     \n\
-        true = 1       \n\
-    };                 \n\
-                       \n\
-    bool V1 = false;   \n\
-    bool Test(bool V2) \n\
-    {                  \n\
-        return true;   \n\
-    }                  \n\
+    void main()                     \n\
+    {                               \n\
+        do                          \n\
+            int i = 10;             \n\
+    }                               \n\
    ";
 
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_EQ(-1, compileResult);
+    // Offer some leeway in the error message
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("sole body of"));
+
 }
 
-
-TEST(Compile, EnumType2) {
+TEST(Compile, Do2Wrong) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-    enum bool                                               \n\
-    {                                                       \n\
-        false = 0,                                          \n\
-        true = 1                                            \n\
-    };                                                      \n\
-                                                            \n\
-    builtin managed struct ListBox                          \n\
-    {                                                       \n\
-        import bool AddItem(const string text);             \n\
-    };                                                      \n\
+    void main()                     \n\
+    {                               \n\
+        int i;                      \n\
+        do                          \n\
+            i = 10;                 \n\
+    }                               \n\
    ";
+
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_EQ(-1, compileResult);
+    // Offer some leeway in the error message
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("while"));
 }
 
-TEST(Compile, EnumType2a) {
+TEST(Compile, Do3Wrong) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-    enum bool                                               \n\
-    {                                                       \n\
-        false = 0,                                          \n\
-        true = 1                                            \n\
-    };                                                      \n\
-                                                            \n\
-    builtin managed struct GUIControl                       \n\
-    {                                                       \n\
-        import void BringToFront();                         \n\
-        import void SendToBack();                           \n\
-    };                                                      \n\
-                                                            \n\
-    builtin managed struct ListBox extends GUIControl       \n\
-    {                                                       \n\
-        import bool AddItem(const string text);             \n\
-    };                                                      \n\
+    void main()                     \n\
+    {                               \n\
+        int i;                      \n\
+        do                          \n\
+            i = 10;                 \n\
+        while Holzschuh;            \n\
+    }                               \n\
    ";
+
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_EQ(-1, compileResult);
+    // Offer some leeway in the error message
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("("));
 }
 
+TEST(Compile, Do4Wrong) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    void main()                     \n\
+    {                               \n\
+        int i;                      \n\
+        do                          \n\
+            i = 10;                 \n\
+        while (true true);          \n\
+    }                               \n\
+   ";
+
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    // Offer some leeway in the error message
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("true"));
+}
+
+TEST(Compile, ForwardDeclFault1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            protected int Damage;              \n\
+            import int DoDamage();             \n\
+        };                                     \n\
+                                               \n\
+        Weapon wp;                             \n\
+                                               \n\
+        int Weapon::DoDamage()                 \n\
+        {                                      \n\
+            wp.Damage = 7;                     \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    // Should fail, no modifying of protected components from the outside.
+    EXPECT_NE((char *)0, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("rotected"));
+}
+
+TEST(Compile, FuncHeader1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        void main(int a[15])                   \n\
+        {                                      \n\
+             return;                           \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    // Should fail, no modifying of protected components from the outside.
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("rray size"));
+}
+
+TEST(Compile, ExtenderFuncHeaderFault1a) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            int Damage;                        \n\
+        };                                     \n\
+                                               \n\
+        void Foo(this Holzschuh)               \n\
+        {                                      \n\
+            return;                            \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("Holzschuh"));
+}
+
+TEST(Compile, ExtenderFuncHeaderFault1b) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            int Damage;                        \n\
+        };                                     \n\
+                                               \n\
+        void Foo(static Weapon Of Destruction) \n\
+        {                                      \n\
+            return;                            \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("arameter name"));
+}
+
+TEST(Compile, ExtenderFuncHeaderFault1c) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            int Damage;                        \n\
+        };                                     \n\
+                                               \n\
+        void Foo(static Weapon *)              \n\
+        {                                      \n\
+            return;                            \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("tatic extender function"));
+}
+
+TEST(Compile, ExtenderFuncHeaderFault2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            int Damage;                        \n\
+        };                                     \n\
+                                               \n\
+        void Foo(this int)                     \n\
+        {                                      \n\
+            return;                            \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("struct"));
+}
+
+TEST(Compile, DoubleExtenderFunc) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct Weapon {                        \n\
+            int Damage;                        \n\
+        };                                     \n\
+                                               \n\
+        int Foo(this Weapon *)                 \n\
+        {                                      \n\
+            return 1;                          \n\
+        }                                      \n\
+        int Foo(this Weapon *)                 \n\
+        {                                      \n\
+            return 2;                          \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    EXPECT_NE((char *)0, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("already been def"));
+}
+
+TEST(Compile, DoubleNonExtenderFunc) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        int Foo(int Bar)                       \n\
+        {                                      \n\
+            return 1;                          \n\
+        }                                      \n\
+        int Foo(int Bat)                       \n\
+        {                                      \n\
+            return 2;                          \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    EXPECT_NE((char *)0, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("already been def"));
+}
+
+TEST(Compile, ParamVoid) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        int Foo(void Bar)                      \n\
+        {                                      \n\
+            return 1;                          \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("void"));
+}
+
+TEST(Compile, ParamGlobal) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        short Bermudas;                        \n\
+        int Foo(int Bermudas)                  \n\
+        {                                      \n\
+            return 1;                          \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("Bermudas"));
+}

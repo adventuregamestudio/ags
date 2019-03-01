@@ -83,7 +83,7 @@ Notes on how nested statements are handled:
 // Defined in Common/script/script_common.cpp
 extern int currentline;
 
-char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2018 others";
+char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2019 others";
 static char ScriptNameBuffer[256];
 
 int  ParseExpression(ccInternalList *targ, ccCompiledScript *script, bool consider_paren_nesting);
@@ -101,7 +101,6 @@ int MemoryAccess(
     AGS::Symbol mainVariableSym, int mainVariableType,
     bool isDynamicArray, bool negateLiteral);
 int ParseSubexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len);
-
 
 enum FxFixupType // see script_common.h
 {
@@ -236,8 +235,8 @@ int SkipTo(ccInternalList * targ, const AGS::Symbol stoplist[], size_t stoplist_
         // Note that the scanner/tokenizer has already verified
         // that all opening symbols get closed and 
         // that we don't have (...] or similar in the input
-        const AGS::Symbol cursym = targ->peeknext();
-        const AGS::Symbol curtype = sym.get_type(cursym);
+        AGS::Symbol const cursym = targ->peeknext();
+        AGS::Symbol const curtype = sym.get_type(cursym);
         if (curtype == SYM_OPENBRACE ||
             curtype == SYM_OPENBRACKET ||
             curtype == SYM_OPENPARENTHESIS)
@@ -465,13 +464,21 @@ enum ParsingPhases
 typedef std::map<AGS::Symbol, SymbolTableEntry> TSym1Table;
 TSym1Table g_Sym1;
 
+inline AGS::Symbol Sym1GetType(AGS::Symbol sym)
+{
+    sym &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
+    if (sym < 0) return -1;
+    return g_Sym1[sym].stype;
+
+}
+
 std::string ConstructedMemberName; // size limitation removed
 
 const char *GetFullNameOfMember(AGS::Symbol structSym, AGS::Symbol memberSym)
 {
 
     // Get C-string of member, de-mangle it if appropriate
-    const char* memberNameStr = sym.get_name(memberSym);
+    const char *memberNameStr = sym.get_name(memberSym);
     if (memberNameStr[0] == '.')
         memberNameStr = &memberNameStr[1];
 
@@ -918,58 +925,39 @@ int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtecte
 }
 
 
-int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative, const char *errorMsg) {
-    if (sym.get_type(fromSym) == SYM_CONSTANT)
+int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative, const char *errorMsg)
+{
+    if (fromSym >= 0)
     {
-        theValue = sym.entries[fromSym].soffs;
-        if (isNegative)
-            theValue = -theValue;
-        return 0;
-    }
-
-    if (sym.get_type(fromSym) == SYM_LITERALVALUE)
-    {
-        std::string literalStrValue = std::string(sym.get_name(fromSym));
-        if (isNegative)
-            literalStrValue = '-' + literalStrValue;
-
-        // convert to LONG, but reject the result if out ouf INT range.
-        errno = 0;
-        char *endptr = 0;
-        const long longValue = strtol(literalStrValue.c_str(), &endptr, 10);
-        if ((longValue == LONG_MIN && errno == ERANGE) ||
-            (isNegative && (endptr[0] != '\0')) ||
-            (longValue < INT_MIN))
+        // sym.get_type() won't work in the Pre-Analyse phase for compile-time constants
+        SymbolTableEntry &from_entry = (kpp_Main == g_PP) ? sym.entries[fromSym] : g_Sym1[fromSym];
+        if (from_entry.stype  == SYM_CONSTANT)
         {
-            cc_error("Literal value '%s' is too low (min. is '%d')", literalStrValue.c_str(), INT_MIN);
-            return -1;
+            theValue = from_entry.soffs;
+            if (isNegative)
+                theValue = -theValue;
+            return 0;
         }
 
-        if ((longValue == LONG_MAX && errno == ERANGE) ||
-            ((!isNegative) && (endptr[0] != '\0')) ||
-            (longValue > INT_MAX))
+        if (sym.get_type(fromSym) == SYM_LITERALVALUE)
         {
-            cc_error("Literal value '%s' is too high (max. is '%d')", literalStrValue.c_str(), INT_MAX);
-            return -1;
-        }
+            std::string literalStrValue = std::string(sym.get_name(fromSym));
+            if (isNegative)
+                literalStrValue = '-' + literalStrValue;
 
-        theValue = static_cast<int>(longValue);
-        return 0;
+            return String2Int(literalStrValue, theValue, true);
+        }
     }
 
-    cc_error((char*)errorMsg);
+    cc_error((char *)errorMsg);
     return -1;
 }
 
 
 // We're parsing a parameter list and we have accepted something like "(...int i"
 // We accept a default value clause like "= 15" if it follows at this point.
-int ParseParamlist_Param_DefaultValue(
-    ccInternalList *targ,
-    bool &has_default_int,
-    int &default_int_value)
+int ParseParamlist_Param_DefaultValue(ccInternalList *targ, bool &has_default_int, int &default_int_value)
 {
-
     if (sym.get_type(targ->peeknext()) != SYM_ASSIGN)
     {
         has_default_int = false;
@@ -979,7 +967,7 @@ int ParseParamlist_Param_DefaultValue(
     has_default_int = true;
 
     // parameter has default value
-    targ->getnext();   // eat "="
+    targ->getnext();   // Eat '='
 
     bool default_is_negative = false;
     AGS::Symbol default_value_symbol = targ->getnext(); // may be '-', too
@@ -1000,10 +988,7 @@ int ParseParamlist_Param_DefaultValue(
 // process a dynamic array declaration, when present
 // We have accepted something like "int foo" and we might expect a trailing "[]" here
 // Return values:  0 -- not an array, 1 -- an array, -1 -- error occurred
-int ParseParamlist_Param_DynArrayMarker(
-    ccInternalList *targ,
-    AGS::Symbol typeSym,
-    bool isPointer)
+int ParseParamlist_Param_DynArrayMarker(ccInternalList *targ, AGS::Symbol typeSym, bool isPointer)
 {
     if (sym.get_type(targ->peeknext()) != SYM_OPENBRACKET)
         return 0;
@@ -1015,6 +1000,9 @@ int ParseParamlist_Param_DynArrayMarker(
         cc_error("Fixed array size cannot be used here (use '[]' instead)");
         return -1;
     }
+
+    if (kpp_PreAnalyze == g_PP)
+        return 1;
 
     if (sym.entries[typeSym].flags & SFLG_STRUCTTYPE)
     {
@@ -1032,22 +1020,27 @@ int ParseParamlist_Param_DynArrayMarker(
     return 1;
 }
 
-
-int ParseFuncdecl_CopyForwardDecl(ccCompiledScript * scrip, AGS::Symbol & funcsym, SymbolTableEntry *oldDefinition)
+// Copy so that the forward decl can be compared afterwards to the real one     
+int ParseFuncdecl_CopyKnownInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info)
 {
-    // Copy so that the forward definition can be compared afterwards to the real one 
-    int retval = scrip->copy_import_symbol_table_entry(funcsym, oldDefinition);
-    if (retval < 0) return retval;
-    // Strip import flag since the real defn won't be exported
-    oldDefinition->flags &= ~SFLG_IMPORTED;
+    known_info.stype = 0;
+    if (0 == entry.stype)
+        return 0; // there is no info yet
 
-    // Check whether the import has been referenced or whether imports may not be overridden;
-    // if so, complain; remove the import flags
-    // This ruins the flags, so save them beforehand and save them afterwards
-    const int funcsym_flags = sym.entries[funcsym].flags;
-    retval = scrip->just_remove_any_import(funcsym);
-    sym.entries[funcsym].flags = funcsym_flags & ~SFLG_IMPORTED;
-    return retval;
+    int retval = entry.CopyTo(known_info);
+    if (retval < 0) return retval;
+    // If the return type is unset, deduce it
+    if (0 == known_info.ssize && known_info.funcparamtypes.size() > 1)
+    {
+        AGS::Symbol const rettype = known_info.funcparamtypes.at(0) & ~(STYPE_POINTER | STYPE_DYNARRAY);
+        known_info.ssize = sym.entries[rettype].ssize;
+    }
+
+    // Kill the defaults so we can check whether this defn replicates them exactly.
+    entry.funcParamHasDefaultValues.assign(entry.sscope + 1, false);
+    // -77 is an arbitrary value that is easy to spot in the debugger; 
+    // don't use for anything in code
+    entry.funcParamDefaultValues.assign(entry.sscope + 1, -77);
 }
 
 
@@ -1055,60 +1048,41 @@ int ParseFuncdecl_CopyForwardDecl(ccCompiledScript * scrip, AGS::Symbol & funcsy
 // We've just accepted something like "int func(", we expect "this" --OR-- "static" (!)
 // We'll accept something like "this Character *"
 int ParseFuncdecl_ExtenderPreparations(
-    ccInternalList * targ,
-    ccCompiledScript * scrip,
-    bool func_is_static_extender,
-    Importness func_is_import,
-    std::string & functionName,
-    AGS::Symbol &funcsym,
-    AGS::Symbol &struct_extended_by_the_func,
-    SymbolTableEntry *oldDefinition)
+    ccInternalList *targ,
+    bool is_static_extender,
+    AGS::Symbol &name_of_func,
+    AGS::Symbol &struct_of_func)
 {
-    targ->getnext(); // accept "this" or "static"
-    if (sym.get_type(targ->peeknext()) != SYM_VARTYPE)
+    if (struct_of_func > 0)
     {
-        cc_error("'%s' must be followed by a struct name",
-            (func_is_static_extender ? "static" : "this"));
+        cc_error("A struct component function cannot be an extender function");
+        return -1;
+    }
+           
+    targ->getnext(); // Eat "this" or "static"
+    struct_of_func = targ->peeknext();
+    SymbolTableEntry &struct_entry = (kpp_Main == g_PP) ? sym.entries[struct_of_func] : g_Sym1[struct_of_func];
+    if ((struct_entry.flags & SFLG_STRUCTTYPE) == 0)
+    {
+        cc_error("Expected a struct type instead of '%s'", sym.get_name(struct_of_func));
         return -1;
     }
 
-    if ((sym.entries[targ->peeknext()].flags & SFLG_STRUCTTYPE) == 0)
-    {
-        cc_error("'%s' cannot be used with primitive types",
-            (func_is_static_extender ? "static" : "this"));
-        return -1;
-    }
-
-    if (functionName.find_first_of(':', 0) != std::string::npos)
-    {   // [fw] Can't be reached IMO.
+    if (nullptr != strchr(sym.get_name(name_of_func), ':'))
+    {   // [fw] Can't be reached IMO. 
         cc_error("Extender functions cannot be part of a struct");
         return -1;
     }
 
-    struct_extended_by_the_func = targ->peeknext();
-    functionName = sym.get_name(struct_extended_by_the_func);
-    functionName += "::";
-    functionName += sym.get_name(funcsym);
+    name_of_func = MangleStructFunc(struct_of_func, name_of_func);
+    SymbolTableEntry &entry = (kpp_Main == g_PP) ? sym.entries[name_of_func] : g_Sym1[name_of_func];
 
-    funcsym = sym_find_or_add(functionName.c_str());
-
-    if (func_is_import == kIm_NoImport && (sym.entries[funcsym].flags & SFLG_IMPORTED) != 0)
-    {
-        int retval = ParseFuncdecl_CopyForwardDecl(scrip, funcsym, oldDefinition);
-        if (retval < 0) return retval;
-    }
-    else if (sym.entries[funcsym].stype != 0)
-    {
-        cc_error("Function '%s' is already defined", functionName);
-        return -1;
-    }
-
-    sym.entries[funcsym].flags = SFLG_STRUCTMEMBER;
-    if (func_is_static_extender)
-        sym.entries[funcsym].flags |= SFLG_STATIC;
+    entry.flags = SFLG_STRUCTMEMBER;
+    if (is_static_extender)
+        entry.flags |= SFLG_STATIC;
 
     targ->getnext();
-    if (!func_is_static_extender && targ->getnext() != sym.find("*"))
+    if (!is_static_extender && targ->getnext() != sym.find("*"))
     {
         cc_error("Instance extender function must be pointer");
         return -1;
@@ -1131,36 +1105,22 @@ int ParseFuncdecl_ExtenderPreparations(
 }
 
 
-int ParseFuncdecl_NonExtenderPreparations(ccCompiledScript *scrip, Importness func_is_import, int struct_containing_the_func, std::string &functionName, AGS::Symbol &funcsym, SymbolTableEntry *oldDefinition)
+int ParseParamlist_ParamType(ccInternalList *targ, AGS::Symbol param_type, bool &param_is_ptr)
 {
-    if (func_is_import == kIm_NoImport && (sym.entries[funcsym].flags & SFLG_IMPORTED) != 0)
-    {
-        // Copy the previous definition to oldDefinition, 
-        // so that the current definition can be compared with it
-        int retval = ParseFuncdecl_CopyForwardDecl(scrip, funcsym, oldDefinition);
-        if (retval < 0) return retval;
-    }
-    else if (sym.entries[funcsym].stype != 0)
-    {
-        cc_error("Function '%s' is already defined", sym.get_name(funcsym));
-        return -1;
-    }
-    return 0;
-}
-
-
-int ParseFunc_Paramlist_ParamType(ccInternalList *targ, AGS::Symbol param_type, bool &param_is_ptr)
-{
-    const bool param_is_natural_ptr =
-        (0 == strcmp(sym.get_name(targ->peeknext()), "*"));
     // Determine whether the type is a pointer
+    bool const param_is_natural_ptr =
+        (0 == strcmp(sym.get_name(targ->peeknext()), "*"));
     if (param_is_natural_ptr)
         targ->getnext(); // gobble the '*'
-
-    const bool param_is_autoptr =
-        (0 != (sym.entries[param_type].flags & SFLG_AUTOPTR));
-
+    long type_flags = sym.entries[param_type].flags;
+    if (param_type > sym.lastPredefSym && kpp_PreAnalyze == g_PP)
+        type_flags = g_Sym1[param_type].flags;
+    bool const param_is_autoptr =
+        (0 != (type_flags & SFLG_AUTOPTR));
     param_is_ptr = param_is_natural_ptr || param_is_autoptr;
+
+    if (kpp_PreAnalyze == g_PP)
+        return 0;
 
     // Safety checks on the parameter type
     if (param_type == sym.normalVoidSym)
@@ -1192,34 +1152,21 @@ int ParseFunc_Paramlist_ParamType(ccInternalList *targ, AGS::Symbol param_type, 
 
 
 // We're accepting a parameter list. We've accepted something like "int".
-// We accept a param name such as "i" if present and a default clause such as "= 5" if present.
-int ParseFunc_Paramlist_Param_NameAndDefault(
-    ccInternalList *targ,
-    bool paramlist_is_declaration,
-    AGS::Symbol &param_name,
-    bool &param_has_int_default,
-    int &param_int_default)
+// We accept a param name such as "i" if present
+int ParseParamlist_Param_Name(ccInternalList *targ, bool body_follows, AGS::Symbol &param_name)
 {
     param_name = -1;
-    param_has_int_default = false;
-    param_int_default = 0;
 
-    if (paramlist_is_declaration)
+    if (kpp_PreAnalyze == g_PP || !body_follows)
     {
-        // Ignore the parameter name when present, it won't be used later on
+        // Ignore the parameter name when present, it won't be used later on (in this phase)
         param_name = -1;
-        const int next_type = sym.get_type(targ->peeknext());
-        if ((next_type == 0) || next_type == SYM_GLOBALVAR)
+        AGS::Symbol const nextsym = targ->peeknext();
+        if (IsIdentifier(nextsym))
             targ->getnext();
-
-        // but Get the value of a default assignment, must be returned out of the function
-        int retval = ParseParamlist_Param_DefaultValue(targ, param_has_int_default, param_int_default);
-        if (retval < 0) return retval;
-
         return 0;
     }
 
-    // parameter list is a definition
     if (sym.get_type(targ->peeknext()) == SYM_GLOBALVAR)
     {
         // This is a definition -- so the parameter name must not be a global variable
@@ -1240,106 +1187,101 @@ int ParseFunc_Paramlist_Param_NameAndDefault(
 }
 
 
-// process a parameter decl in a function parameter list, something like int foo(INT BAR
-int ParseFunc_Paramlist_Param(
-    ccInternalList * targ,
-    ccCompiledScript * scrip,
-    AGS::Symbol funcsym,
-    Importness func_is_import,
-    AGS::Symbol cursym,
-    bool param_is_const,
-    int param_idx)
+void ParseParamlist_Param_AsVar2Sym(ccCompiledScript * scrip, AGS::Symbol param_name, AGS::Symbol param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, int param_idx)
 {
-    // Determine the parameter type and gobble it completely
-    // (Note: Later on, the type might turn out to be dynamic array)
-    int param_type = cursym;
-    bool param_is_ptr = false;
+    SymbolTableEntry &param_entry = sym.entries[param_name];
+    param_entry.stype = SYM_LOCALVAR;
+    param_entry.extends = false;
+    param_entry.arrsize = 1;
+    param_entry.vartype = param_type;
+    param_entry.ssize = 4;
+    param_entry.sscope = 1;
+    param_entry.flags |= SFLG_PARAMETER;
+    if (param_is_ptr)
+        param_entry.flags |= SFLG_POINTER;
+    if (param_is_const)
+        param_entry.flags |= SFLG_CONST | SFLG_READONLY;
+    if (param_is_dynarray)
+        param_entry.flags |= SFLG_DYNAMICARRAY | SFLG_ARRAY;
+    // the parameters are pushed backwards, so the top of the
+    // stack has the first parameter. The +1 is because the
+    // call will push the return address onto the stack as well
+    param_entry.soffs = scrip->cur_sp - (param_idx + 1) * 4;
+}
 
-    int retval = ParseFunc_Paramlist_ParamType(targ, param_type, param_is_ptr);
-    if (retval < 0) return retval;
-
-    if (ReachedEOF(targ))
+void ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, bool param_has_int_default, int param_int_default)
+{
+    SymbolTableEntry &func_entry = (kpp_Main == g_PP) ? sym.entries[name_of_func] : g_Sym1[name_of_func];
+    size_t const minsize = param_idx + 1;
+    if (func_entry.funcparamtypes.size() < minsize)
     {
-        cc_error("Reached end of input within an open parameter list");
-        return -1;
+        func_entry.funcparamtypes.resize(minsize);
+        func_entry.funcParamHasDefaultValues.resize(minsize);
+        func_entry.funcParamDefaultValues.resize(minsize);
     }
 
-    // Currently, a parameter list is seen as a declaration (instead of a definition) 
-    // when the function statement has the "import" keyword. 
-    // A declaration doesn't have a function body following. 
-    // We create local variables iff we are within a definition
-    bool paramlist_is_declaration = (func_is_import != kIm_NoImport);
-    bool createdLocalVar = !paramlist_is_declaration;
+    func_entry.funcparamtypes[param_idx] = param_type;
+    if (param_is_ptr)
+        func_entry.funcparamtypes[param_idx] |= STYPE_POINTER;
+    if (param_is_const)
+        func_entry.funcparamtypes[param_idx] |= STYPE_CONST;
+    if (param_is_dynarray)
+        func_entry.funcparamtypes[param_idx] |= STYPE_DYNARRAY;
 
-    // Process the parameter name (when present and meaningful) and the default (when present)
-    AGS::Symbol param_name;
-    bool param_has_int_default = false;
-    int param_int_default;
-    retval = ParseFunc_Paramlist_Param_NameAndDefault(
-        targ, paramlist_is_declaration, param_name, param_has_int_default, param_int_default);
+    if (param_has_int_default)
+    {
+        func_entry.funcParamHasDefaultValues[param_idx] = param_has_int_default;
+        func_entry.funcParamDefaultValues[param_idx] = param_int_default;
+    }
+}
+
+// process a parameter decl in a function parameter list, something like int foo(INT BAR
+int ParseParamlist_Param(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol name_of_func, bool body_follows, AGS::Symbol param_type, bool param_is_const, int param_idx)
+{
+    // Parse complete parameter type
+    bool param_is_ptr = false;
+    int retval = ParseParamlist_ParamType(targ, param_type, param_is_ptr);
     if (retval < 0) return retval;
 
-    // Process a dynamic array signifier (when present)
-    retval = ParseParamlist_Param_DynArrayMarker(targ, cursym, param_is_ptr);
+    // Parameter name (when present and meaningful) 
+    AGS::Symbol param_name;
+    retval = ParseParamlist_Param_Name(targ, body_follows, param_name);
+    if (retval < 0) return retval;
+
+    // Dynamic array signifier (when present)
+    retval = ParseParamlist_Param_DynArrayMarker(targ, param_type, param_is_ptr);
     if (retval < 0) return retval;
     bool param_is_dynarray = (retval == 1);
 
-    // If a local variable has been created, enter this into the symbol table
-    if (createdLocalVar)
-    {
-        sym.entries[param_name].stype = SYM_LOCALVAR;
-        sym.entries[param_name].extends = false;
-        sym.entries[param_name].arrsize = 1;
-        sym.entries[param_name].vartype = param_type;
-        sym.entries[param_name].ssize = 4;
-        sym.entries[param_name].sscope = 1;
-        sym.entries[param_name].flags |= SFLG_PARAMETER;
-        if (param_is_ptr)
-            sym.entries[param_name].flags |= SFLG_POINTER;
-        if (param_is_const)
-            sym.entries[param_name].flags |= SFLG_CONST | SFLG_READONLY;
-        if (param_is_dynarray)
-            sym.entries[param_name].flags |= SFLG_DYNAMICARRAY | SFLG_ARRAY;
-        // the parameters are pushed backwards, so the top of the
-        // stack has the first parameter. The +1 is because the
-        // call will push the return address onto the stack as well
-        sym.entries[param_name].soffs = scrip->cur_sp - (param_idx + 1) * 4;
-    }
+    // Default clause (when present)
+    bool param_has_int_default = false;
+    int param_int_default;
+    retval = ParseParamlist_Param_DefaultValue(targ, param_has_int_default, param_int_default);
+    if (retval < 0) return retval;
 
     // Augment the function type in the symbol table  
-    sym.entries[funcsym].funcparamtypes[param_idx] = param_type;
-    if (param_has_int_default)
-    {
-        sym.entries[funcsym].funcParamHasDefaultValues[param_idx] = param_has_int_default;
-        sym.entries[funcsym].funcParamDefaultValues[param_idx] = param_int_default;
-    }
+    ParseParamlist_Param_Add2Func(name_of_func, param_idx, param_type, param_is_ptr, param_is_const, param_is_dynarray, param_has_int_default, param_int_default);
 
-    if (param_is_ptr)
-        sym.entries[funcsym].funcparamtypes[param_idx] |= STYPE_POINTER;
-    if (param_is_const)
-        sym.entries[funcsym].funcparamtypes[param_idx] |= STYPE_CONST;
-    if (param_is_dynarray)
-        sym.entries[funcsym].funcparamtypes[param_idx] |= STYPE_DYNARRAY;
+    if (kpp_Main != g_PP || !body_follows)
+        return 0;
+
+    // All function parameters correspond to local variables.
+    // A body will follow, so we need to enter this parameter as a variable into the symbol table
+    ParseParamlist_Param_AsVar2Sym(scrip, param_name, param_type, param_is_ptr, param_is_const, param_is_dynarray, param_idx);
 
     return 0;
 }
 
 
-int ParseFuncdecl_Paramlist(
-    ccInternalList * targ,
-    ccCompiledScript * scrip,
-    AGS::Symbol funcsym,
-    Importness func_is_import,
-    int &numparams)
+int ParseFuncdecl_Paramlist(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol funcsym, bool body_follows, int &numparams)
 {
     bool param_is_const = false;
-    while (true)
+    while (!ReachedEOF(targ))
     {
-        const AGS::Symbol cursym = targ->getnext();
-        const AGS::Symbol curtype = sym.get_type(cursym);
-
-        if (curtype == SYM_CLOSEPARENTHESIS)
-            return 0;
+        AGS::Symbol const cursym = targ->getnext();
+        AGS::Symbol curtype = sym.get_type(cursym);
+        if (kpp_PreAnalyze == g_PP && g_Sym1.count(cursym) > 0)
+            curtype = g_Sym1[cursym].stype;
 
         switch (curtype)
         {
@@ -1347,27 +1289,30 @@ int ParseFuncdecl_Paramlist(
             cc_error("Unexpected %s in parameter list", sym.get_name(cursym));
             return -1;
 
+        case SYM_CLOSEPARENTHESIS:
+            return 0;
+
         case SYM_CONST:
         {
-            // type must follow
-            if (sym.get_type(targ->peeknext()) != SYM_VARTYPE)
+            // check in main compiler phase that type must follow
+            if (kpp_Main == g_PP && sym.get_type(targ->peeknext()) != SYM_VARTYPE)
             {
                 cc_error("Expected a type after 'const'");
                 return -1;
             }
             param_is_const = true;
-            break;
+            continue;
         }
 
         case SYM_VARARGS:
         {
             numparams += VARARGS_INDICATOR;
-            if (sym.get_type(targ->peeknext()) != SYM_CLOSEPARENTHESIS)
+            if (sym.get_type(targ->getnext()) != SYM_CLOSEPARENTHESIS)
             {
                 cc_error("Expected ')' after '...'");
                 return -1;
             }
-            break;
+            return 0;
         }
 
         case SYM_VARTYPE:
@@ -1378,130 +1323,257 @@ int ParseFuncdecl_Paramlist(
                 return -1;
             }
 
-            int retval = ParseFunc_Paramlist_Param(targ, scrip, funcsym, func_is_import, cursym, param_is_const, numparams);
+            int retval = ParseParamlist_Param(targ, scrip, funcsym, body_follows, cursym, param_is_const, numparams);
             if (retval < 0) return retval;
-            numparams++;
-            param_is_const = false; // modifier has been used up
-            const int nexttype = sym.get_type(targ->peeknext());
-            if (nexttype != SYM_COMMA && nexttype != SYM_CLOSEPARENTHESIS)
-            {
-                cc_error("Expected ',' or ')' but found '%s'", sym.get_name(cursym));
-            }
 
+            ++numparams;
+            param_is_const = false; // modifier has been used up
+            int const nexttype = sym.get_type(targ->peeknext());
             if (nexttype == SYM_COMMA)
-                targ->getnext();
-            break;
+                targ->getnext(); // Eat ','
+            continue;
         }
         } // switch
-    } // while 
-    return 0;
+    } // while
+    cc_error("End of input when processing parameter list");
+    return -1;
 }
 
 
-int ParseFuncdecl_CheckForIllegalCombis(bool func_is_readonly, AGS::Symbol name_of_current_func, size_t stack_depth)
-{
-    if (func_is_readonly)
-    {
-        cc_error("Readonly cannot be applied to a function");
-        return -1;
-    }
-
-    if ((name_of_current_func >= 0) || (stack_depth > 1))
-    {
-        cc_error("Nested functions not supported (you may have forgotten a closing brace)");
-        return -1;
-    }
-    return 0;
-}
-
-
-int ParseFuncdecl_SetFunctype(
-    AGS::Symbol funcsym,
-    int ret_parameter_size,
+void ParseFuncdecl_SetFunctype(
+    SymbolTableEntry &entry,
     int return_type,
     bool func_returns_ptr,
     bool func_returns_dynarray,
-    bool func_is_static)
+    bool func_is_static,
+    int numparams)
 {
-    sym.entries[funcsym].stype = SYM_FUNCTION;
-    sym.entries[funcsym].ssize = ret_parameter_size;
-    sym.entries[funcsym].funcparamtypes[0] = return_type;
+    entry.stype = SYM_FUNCTION;
+    entry.ssize = sym.entries[return_type].ssize;
+    entry.funcparamtypes[0] = return_type;
+    entry.sscope = numparams - 1;
 
     if (func_returns_ptr)
-        sym.entries[funcsym].funcparamtypes[0] |= STYPE_POINTER;
+        entry.funcparamtypes[0] |= STYPE_POINTER;
     if (func_returns_dynarray)
-        sym.entries[funcsym].funcparamtypes[0] |= STYPE_DYNARRAY;
+        entry.funcparamtypes[0] |= STYPE_DYNARRAY;
+    if (func_is_static)
+        entry.flags |= SFLG_STATIC;
 
-    if ((!func_returns_ptr) && (!func_returns_dynarray) &&
-        ((sym.entries[return_type].flags & SFLG_STRUCTTYPE) != 0))
+    return;
+}
+
+
+int ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info)
+{
+    if (body_follows)
     {
-        cc_error("Cannot return entire struct from function");
+        // If none of the parameters have a default,
+        // we'll let this through for backward compatibility.
+        bool has_default = false;
+        for (int param_idx = 1; param_idx <= this_entry->get_num_args(); ++param_idx)
+            if (this_entry->funcParamHasDefaultValues[param_idx])
+            {
+                has_default = true;
+                break;
+            }
+        if (!has_default)
+            return 0;
+    }
+
+    // this is 1 .. get_num_args(), INCLUSIVE, because param 0 is the return type
+    for (int param_idx = 1; param_idx <= this_entry->get_num_args(); ++param_idx)
+    {
+        if ((this_entry->funcParamHasDefaultValues[param_idx] ==
+            known_info->funcParamHasDefaultValues[param_idx]) &&
+            (this_entry->funcParamHasDefaultValues[param_idx] == false ||
+                this_entry->funcParamDefaultValues[param_idx] ==
+                known_info->funcParamDefaultValues[param_idx]))
+        {
+            continue;
+        }
+        std::string errstr1 = "In this declaration, parameter #<1> <2>; ";
+        errstr1.replace(errstr1.find("<1>"), 3, std::to_string(param_idx));
+        if (!this_entry->funcParamHasDefaultValues[param_idx])
+            errstr1.replace(errstr1.find("<2>"), 3, "doesn't have a default value");
+        else
+            errstr1.replace(errstr1.find("<2>"), 3, "has the default "
+                + std::to_string(this_entry->funcParamDefaultValues[param_idx]));
+
+        std::string errstr2 = "in a declaration elsewhere, that parameter <2>.";
+        if (!known_info->funcParamHasDefaultValues[param_idx])
+            errstr2.replace(errstr2.find("<2>"), 3, "doesn't have a default value");
+        else
+            errstr2.replace(errstr2.find("<2>"), 3, "has the default "
+                + std::to_string(known_info->funcParamDefaultValues[param_idx]));
+        errstr1 += errstr2;
+        cc_error(errstr1.c_str());
         return -1;
     }
-    if (func_is_static)
-        sym.entries[funcsym].flags |= SFLG_STATIC;
+    return 0;
+}
+
+// there was a forward declaration -- check that the real declaration matches it
+int ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info)
+{
+    if (0 == known_info->stype)
+        return 0; // We don't have any known info
+
+    if (known_info->stype != this_entry->stype)
+    {
+        cc_error(
+            "Type of function is declared as %s here, as %s elsewhere",
+            sym.get_name_string(this_entry->stype).c_str(),
+            sym.get_name_string(known_info->stype).c_str());
+        return -1;
+    }
+
+    if ((known_info->flags & ~SFLG_IMPORTED) != (this_entry->flags & ~SFLG_IMPORTED))
+    {
+        cc_error("Qualifiers of function do not match prototype");
+        return -1;
+    }
+
+    if ((this_entry->flags & SFLG_ARRAY) && (known_info->arrsize != this_entry->arrsize))
+    {
+        cc_error(
+            "Function is declared to return an array size %d here, %d elsewhere",
+            this_entry->arrsize, known_info->arrsize);
+        return -1;
+    }
+
+    if (known_info->sscope != this_entry->sscope)
+    {
+        cc_error("Function is declared with %d parameters here, with %d parameters elswehere", this_entry->sscope, known_info->sscope);
+        return -1;
+    }
+
+    if (known_info->funcparamtypes.at(0) != this_entry->funcparamtypes.at(0))
+    {
+        cc_error(
+            "Return type is declared as %s here, as %s elsewhere",
+            sym.get_name_string(this_entry->funcparamtypes.at(0)).c_str(),
+            sym.get_name_string(known_info->funcparamtypes.at(0)).c_str());
+
+        return -1;
+    }
+    if (known_info->ssize != this_entry->ssize)
+    {
+        cc_error(
+            "Size of return value is %d here, %d declared elsewhere",
+            this_entry->ssize, known_info->ssize);
+        return -1;
+    }
+
+    size_t const num_args = this_entry->get_num_args();
+    if (num_args != known_info->get_num_args())
+    {
+        cc_error(
+            "Function has %d explicit arguments here, %d elsewhere",
+            this_entry->get_num_args(), known_info->get_num_args());
+        return -1;
+    }
+
+    for (int param_idx = 1; param_idx <= num_args; param_idx++)
+    {
+        if (known_info->funcparamtypes.at(param_idx) != this_entry->funcparamtypes.at(param_idx))
+        {
+            cc_error(
+                "Type of parameter no. %d is %s here, %s in a declaration elsewhere",
+                param_idx,
+                sym.get_name_string(this_entry->funcparamtypes.at(param_idx)).c_str(),
+                sym.get_name_string(known_info->funcparamtypes.at(param_idx)).c_str());
+            return -1;
+        }
+    }
+
+    // Check that the defaults match
+    int retval = ParseFuncdecl_CheckThatFDM_CheckDefaults(this_entry, body_follows, known_info);
+    if (retval < 0) return retval;
+
+    // copy the default values from the function prototype
+    this_entry->funcParamHasDefaultValues.assign(
+        known_info->funcParamHasDefaultValues.begin(),
+        known_info->funcParamHasDefaultValues.end());
+    this_entry->funcParamDefaultValues.assign(
+        known_info->funcParamDefaultValues.begin(),
+        known_info->funcParamDefaultValues.end());
 
     return 0;
 }
 
-
-// there was a forward declaration -- check that the real declaration matches it
-int ParseFuncdecl_CheckThatForwardDeclMatches(AGS::Symbol funcname, SymbolTableEntry *prototype)
+int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_of_func, bool body_follows, bool func_is_import, int &function_soffs, int &function_idx)
 {
-    if (prototype->stype != sym.entries[funcname].stype)
+    // Enter the function in the imports[] or functions[] array; get its index
+    if (body_follows)
     {
-        cc_error("Type of identifier differs from original declaration");
-        return -1;
-    }
-
-    if (prototype->flags != (sym.entries[funcname].flags & ~SFLG_IMPORTED))
-    {
-        cc_error("Attributes of identifier do not match prototype");
-        return -1;
-    }
-
-    if (prototype->ssize != sym.entries[funcname].ssize)
-    {
-        cc_error("Size of identifier does not match prototype");
-        return -1;
-    }
-
-    if ((sym.entries[funcname].flags & SFLG_ARRAY) && (prototype->arrsize != sym.entries[funcname].arrsize))
-    {
-        cc_error("Array size '%d' of identifier does not match prototype which is '%d'", sym.entries[funcname].arrsize, prototype->arrsize);
-        return -1;
-    }
-
-    if (prototype->stype != SYM_FUNCTION)
-        return 0;
-
-    // Following checks pertain to functions
-    if (prototype->sscope != sym.entries[funcname].sscope)
-    {
-        cc_error("Function declaration has wrong number of arguments to prototype");
-        return -1;
-    }
-
-    if (prototype->funcparamtypes.at(0) != sym.entries[funcname].funcparamtypes.at(0))
-    {
-        cc_error("Return type does not match prototype");
-        return -1;
-    }
-
-    // this is 1 .. get_num_args(), INCLUSIVE, because param 0 is the return type
-    for (int param_idx = 1; param_idx <= sym.entries[funcname].get_num_args(); param_idx++)
-    {
-        if (prototype->funcparamtypes.at(param_idx) != sym.entries[funcname].funcparamtypes.at(param_idx))
+        if (func_is_import)
         {
-            cc_error("Type of parameter no. %d does not match prototype", param_idx);
+            cc_error("Imported functions cannot have a body");
             return -1;
         }
-
-        // copy the default values from the function prototype
-        sym.entries[funcname].funcParamDefaultValues.push_back(prototype->funcParamDefaultValues.at(param_idx));
-        sym.entries[funcname].funcParamHasDefaultValues.push_back(prototype->funcParamHasDefaultValues.at(param_idx));
+        // Index of the function in the ccCompiledScript::functions[] array
+        function_soffs = scrip->add_new_function(sym.get_name(name_of_func), &function_idx);
+        if (function_soffs < 0)
+        {
+            cc_error("Max. number of functions exceeded");
+            return -1;
+        }
+        g_FCM.SetFuncCallpoint(scrip, name_of_func, function_soffs);
+        return 0;
     }
 
+    if (!func_is_import)
+    {
+        function_soffs = -1; // forward decl; callpoint is unknown yet
+        return 0;
+    }
+
+    // Import: Return existing entry in imports[] if it exists
+    for (size_t imports_idx = 0; imports_idx < scrip->numimports; ++imports_idx)
+        if (0 == strcmp(scrip->imports[imports_idx], sym.get_name(name_of_func)))
+        {
+            function_soffs = imports_idx;
+            return 0;
+        }
+
+    // Index of the function in the ccScript::imports[] array
+    // Note: currently, add_new_import() cannot return values < 0, so idx_of_func must be >= 0 here
+    function_soffs = scrip->add_new_import(sym.get_name(name_of_func));   
+}
+
+
+// We're at something like "int foo(", directly before the "("
+// Get the symbol after the corresponding ")"
+int ParseFuncdecl_GetSymbolAfterParmlist(ccInternalList *targ, AGS::Symbol &symbol)
+{
+    int pos = targ->pos;
+
+    int delim_nesting = 0;
+    while (!ReachedEOF(targ))
+    {
+        AGS::Symbol const curtype = sym.get_type(targ->getnext());
+        if (curtype == SYM_OPENBRACE ||
+            curtype == SYM_OPENBRACKET ||
+            curtype == SYM_OPENPARENTHESIS)
+        {
+            ++delim_nesting;
+        }
+        if (curtype == SYM_CLOSEBRACE ||
+            curtype == SYM_CLOSEBRACKET ||
+            curtype == SYM_CLOSEPARENTHESIS)
+        {
+            if (--delim_nesting < 0)
+                break;
+        }
+    }
+    if (ReachedEOF(targ))
+    {
+        cc_error("Internal error: Closing delimeter expected");
+        return -1;
+    }
+    symbol = targ->peeknext();
+    targ->pos = pos;
     return 0;
 }
 
@@ -1511,136 +1583,109 @@ int ParseFuncdecl(
     ccInternalList *targ,
     ccCompiledScript *scrip,
     AGS::Symbol &name_of_func,
-    int return_type, // from "vtwas" in the caller - is the return type in here
+    int return_type,
     bool func_returns_ptr,
     bool func_returns_dynarray,
-    bool func_is_static,
-    Importness func_is_import,  // NOT a bool: it can contain 0 .. 2
-    AGS::Symbol struct_containing_the_func,
-    AGS::Symbol &struct_extended_by_the_func, // the BAR in "int FOO(this BAR *," 
+    TypeQualifierSet tqs,
+    AGS::Symbol &struct_of_func,
     bool &body_follows)
 {
-    int numparams = 1; // Counts the number of parameters including the ret parameter, so start at 1
-    int ret_parameter_size = sym.entries[return_type].ssize;
-    int idx_of_func;
-
-    body_follows = false; // assume by default that a body won't follow
-
-    // Internal name of the function being defined, may be re-written (mangled) later on
-    std::string functionNameStr = sym.get_name(name_of_func);
-
-    // skip the opening "("
-    targ->getnext();
-    if (ReachedEOF(targ))
+    targ->getnext(); // Eat '('
     {
-        cc_error("Unexpected end of input");
+        AGS::Symbol symbol;
+        int retval = ParseFuncdecl_GetSymbolAfterParmlist(targ, symbol);
+        if (retval < 0) return retval;
+        body_follows = (SYM_OPENBRACE == sym.get_type(symbol));
+    }
+
+    bool const func_is_static_extender = (sym.get_type(targ->peeknext()) == SYM_STATIC);
+    bool const func_is_extender = (func_is_static_extender) || (targ->peeknext() == sym.find("this"));
+
+    // Rewrite extender function as if it were a component function of the corresponding struct.
+    if (func_is_extender)
+    {
+        int retval = ParseFuncdecl_ExtenderPreparations(targ, func_is_static_extender, name_of_func, struct_of_func);
+        if (retval < 0) return retval;
+    }
+
+    SymbolTableEntry &entry = (kpp_Main == g_PP) ? sym.entries[name_of_func] : g_Sym1[name_of_func];
+    if (entry.stype != SYM_FUNCTION && entry.stype != 0)
+    {
+        cc_error("Function '%s' is already defined", sym.get_name(name_of_func));
+        return -1;
+    }
+    if ((!func_returns_ptr) && (!func_returns_dynarray) &&
+        ((entry.flags & SFLG_STRUCTTYPE) != 0))
+    {
+        cc_error("Cannot return entire struct from function");
         return -1;
     }
 
-    bool func_is_static_extender = (sym.get_type(targ->peeknext()) == SYM_STATIC);
-    bool func_is_extender = (func_is_static_extender) || (targ->peeknext() == sym.find("this"));
-
-    // If the function had a forward declaration, it will go here.
-    SymbolTableEntry forward_decl;
-    forward_decl.stype = 0;
-
-    // Set up the function
-    if (func_is_extender)
+    if (body_follows && kpp_Main == g_PP)
     {
-        int retval = ParseFuncdecl_ExtenderPreparations(
-            targ, scrip, func_is_static_extender,
-            func_is_import, functionNameStr,
-            name_of_func, struct_extended_by_the_func,
-            &forward_decl);
-        if (retval < 0) return retval;
-    }
-    else // !func_is_extender
-    {
-        int retval = ParseFuncdecl_NonExtenderPreparations(
-            scrip,
-            func_is_import, struct_containing_the_func, functionNameStr,
-            name_of_func, &forward_decl);
-        if (retval < 0) return retval;
-    }
+        scrip->cur_sp += 4;  // the return address will be pushed
 
-    // Type the function in the symbol table
-    int retval = ParseFuncdecl_SetFunctype(
-        name_of_func, ret_parameter_size, return_type, func_returns_ptr,
-        func_returns_dynarray, func_is_static);
-    if (retval < 0) return retval;
-
-    // Get function number and function index
-    int funcNum = -1;
-
-    // Enter the function in the imports[] or functions[] array; get its index
-    if (func_is_import != kIm_NoImport)
-    {
-        // Index of the function in the ccScript::imports[] array
-        // Note: currently, add_new_import() cannot return values < 0, so idx_of_func must be >= 0 here
-        idx_of_func = scrip->add_new_import(functionNameStr.c_str());
-    }
-    else
-    {
-        // Index of the function in the ccCompiledScript::functions[] array
-        idx_of_func = scrip->add_new_function(functionNameStr.c_str(), &funcNum);
-        if (idx_of_func < 0)
+        if (g_FCM.HasFuncCallpoint(name_of_func))
         {
-            cc_error("Max. number of functions exceeded");
+            cc_error("This function has already been defined with body");
             return -1;
         }
     }
+    
+    // For backward compatibility, a forward decl can be written with the
+    // "import" keyword (when allowed in the options). This isn't an import
+    // proper, so reset the "import" flag in this case.
+    if (FlagIsSet(tqs, kTQ_Import) && entry.stype == SYM_FUNCTION && !(entry.flags & SFLG_IMPORTED))
+    {
+        if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
+        {
+            cc_error("A function with a local body must not be declared \"import\" here");
+            return -1;
+        }
+        SetFlag(tqs, kTQ_Import, false);
+    }
 
-    sym.entries[name_of_func].soffs = idx_of_func;  // save index of the function
-    scrip->cur_sp += 4;  // the return address will be pushed
+    // Copy all known info about the function so that we can check whether this declaration is compatible
+    SymbolTableEntry known_info;
+    int retval = ParseFuncdecl_CopyKnownInfo(entry, known_info);
+    if (retval < 0) return retval;
 
     // process parameter list, get number of parameters
-    retval = ParseFuncdecl_Paramlist(targ, scrip, name_of_func, func_is_import, numparams);
+    int numparams = 1; // Counts the number of parameters including the ret parameter, so start at 1
+    retval = ParseFuncdecl_Paramlist(targ, scrip, name_of_func, body_follows, numparams);
     if (retval < 0) return retval;
 
-    // save the number of parameters (not counting the ret parameter)
-    sym.entries[name_of_func].sscope = (numparams - 1);
-    if (funcNum >= 0)
-        scrip->funcnumparams[funcNum] = sym.entries[name_of_func].sscope;
+    // Type the function in the symbol table
+    ParseFuncdecl_SetFunctype(entry, return_type, func_returns_ptr, func_returns_dynarray, FlagIsSet(tqs, kTQ_Static), numparams);
 
-    // If there was a forward decl, it has to match the current decl.
-    if (forward_decl.stype != 0)
+    // Check whether this declaration is compatible with known info; 
+    retval = ParseFuncdecl_CheckThatKnownInfoMatches(&entry, body_follows, &known_info);
+    if (retval < 0) return retval;
+
+    if (kpp_Main == g_PP)
     {
-        retval = ParseFuncdecl_CheckThatForwardDeclMatches(name_of_func, &forward_decl);
+        // Get start offset and function index
+        int function_idx = -1; // Index in the scrip->functions[] array
+        int func_startoffs;
+        retval = ParseFuncdecl_EnterAsImportOrFunc(scrip, name_of_func, body_follows, FlagIsSet(tqs, kTQ_Import), func_startoffs, function_idx);
         if (retval < 0) return retval;
+        entry.soffs = func_startoffs;
+        if (function_idx >= 0)
+            scrip->funcnumparams[function_idx] = (numparams - 1);
     }
 
-    // Non-imported functions must be followed by a body
-    if (func_is_import == kIm_NoImport)
-    {
-        if (sym.get_type(targ->peeknext()) != SYM_OPENBRACE)
-        {
-            cc_error("Expected '{'");
-            return -1;
-        }
-        body_follows = true;
+    if (kpp_PreAnalyze == g_PP || !FlagIsSet(tqs, kTQ_Import))
         return 0;
-    }
 
-    // import functions
-    sym.entries[name_of_func].flags |= SFLG_IMPORTED;
+    // Imported functions
+    entry.flags |= SFLG_IMPORTED;
 
-    if (struct_containing_the_func > 0)
+    if (struct_of_func > 0)
     {
         // Append the number of parameters to the name of the import
         char appendage[10];
-        sprintf(appendage, "^%d", sym.entries[name_of_func].sscope);
-        strcat(scrip->imports[idx_of_func], appendage);
-    }
-
-    // member function expects the ';' to still be there whereas normal function does not
-    AGS::Symbol nextvar = targ->peeknext();
-    if (struct_containing_the_func == 0)
-        nextvar = targ->getnext();
-
-    if (sym.get_type(nextvar) != SYM_SEMICOLON)
-    {
-        cc_error("';' expected (cannot define body of imported function)");
-        return -1;
+        sprintf(appendage, "^%d", entry.sscope);
+        strcat(scrip->imports[entry.soffs], appendage);
     }
 
     return 0;
@@ -1970,13 +2015,6 @@ int BufferVarOrFunccall_HandleFuncCall(ccInternalList *targ, int & funcAtOffs, c
     size_t paren_nesting_depth = 1; // No. of '(' that wait for their matching ')'
     while (paren_nesting_depth > 0)
     {
-        if (ReachedEOF(targ))
-        {   // [fw] Can't be reached IMO. The tokenizer sees to it that delimiters match
-            currentline = paren_expr_startline;
-            cc_error("The '(' on line %d does not have a matching ')'", paren_expr_startline);
-            return -1;
-        }
-
         if (slist_len >= TEMP_SYMLIST_LENGTH - 1)
         {
             cc_error("Buffer exceeded: The '(' on line %d probably does not have a matching ')'", paren_expr_startline);
@@ -2084,14 +2122,7 @@ int BufferVarOrFunccall_GotOpenBracket(ccInternalList *targ, AGS::SymbolScript s
     // vartype is allowed to permit access to static members, e.g. array[Game.GetColorFromRGB(0, 0, 0)]
     while (bracket_nesting_depth > 0)
     {
-        AGS::Symbol next_symbol = targ->getnext();
-        if (next_symbol == SCODE_INVALID)
-        {
-            currentline = bracket_expr_startline;
-            cc_error("The '[' on line %d does not have a matching ']'", bracket_expr_startline);
-            return -1;
-        }
-
+        AGS::Symbol const next_symbol = targ->getnext();
         if ((sym.get_type(next_symbol) >= NOTEXPRESSION) &&
             (sym.get_type(next_symbol) != SYM_COMMA) &&
             !((sym.get_type(next_symbol) == SYM_VARTYPE) && (sym.entries[slist[next_symbol]].flags & SFLG_STRUCTTYPE)))
@@ -2129,8 +2160,8 @@ int BufferVarOrFunccall(ccInternalList *targ, AGS::Symbol fsym, AGS::SymbolScrip
     // - A loadable var
     // - A struct, then '.', then a struct member
     // - A type, then '.', then a static member
-    // If that member is a function call, we read and buffer that function call
-    // If that member is an array and we have [, we read the array expression
+    //     If that member is a function call, we read and buffer that function call
+    //     If that member is an array and we have [, we read the array expression
 
     slist_len = 0;
     slist[slist_len++] = fsym;
@@ -2141,7 +2172,7 @@ int BufferVarOrFunccall(ccInternalList *targ, AGS::Symbol fsym, AGS::SymbolScrip
 
     // Must be variable or type
     if (!sym.entries[fsym].is_loadable_variable() && sym.get_type(fsym) != SYM_VARTYPE)
-            return 0;
+        return 0;
 
     bool justHadBrackets = false;
 
@@ -2256,25 +2287,25 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     {
         int nesting_depth = 0;
 
-        // don't convert to for loop, "for(..., brac_idx >= 0,...)" will NOT work
-        brac_idx = closeBracketOffs;
-        do
+    // don't convert to for loop, "for(..., brac_idx >= 0,...)" will NOT work
+    brac_idx = closeBracketOffs;
+    do
+    {
+        brac_idx--;
+        int symtype = sym.get_type(symlist[brac_idx]);
+        if ((symtype == SYM_OPENBRACKET) || (symtype == SYM_OPENPARENTHESIS))
         {
-            brac_idx--;
-            int symtype = sym.get_type(symlist[brac_idx]);
-            if ((symtype == SYM_OPENBRACKET) || (symtype == SYM_OPENPARENTHESIS))
-            {
-                nesting_depth--;
-                if (nesting_depth < 0)
-                    return 0;
-            }
-            if ((symtype == SYM_CLOSEBRACKET) || (symtype == SYM_CLOSEPARENTHESIS))
-                nesting_depth++;
+            nesting_depth--;
+            if (nesting_depth < 0)
+                return 0;
         }
-        while (brac_idx > 0);
-        // Didn't find it
-        return -1;
+        if ((symtype == SYM_CLOSEBRACKET) || (symtype == SYM_CLOSEPARENTHESIS))
+            nesting_depth++;
     }
+    while (brac_idx > 0);
+    // Didn't find it
+    return -1;
+}
 
 
     int AccessData_SplitPathIntoParts(VariableSymlist *variablePath, AGS::SymbolScript syml, size_t syml_len, size_t &variablePathSize)
@@ -2366,13 +2397,13 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    int ParseSubexpr_NewIsFirst(ccCompiledScript * scrip, const AGS::SymbolScript & symlist, size_t symlist_len)
+int ParseSubexpr_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
+{
+    if (symlist_len < 2 || sym.get_type(symlist[1]) != SYM_VARTYPE)
     {
-        if (symlist_len < 2 || sym.get_type(symlist[1]) != SYM_VARTYPE)
-        {
-            cc_error("Expected a type after 'new'");
-            return -1;
-        }
+        cc_error("Expected a type after 'new'");
+        return -1;
+    }
 
         // "new TYPE", nothing following
         if (symlist_len <= 3)
@@ -2431,17 +2462,17 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    // We're parsing an expression that starts with '-' (unary minus)
-    int ParseSubexpr_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript & symlist, size_t symlist_len)
+// We're parsing an expression that starts with '-' (unary minus)
+int ParseSubexpr_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
+{
+    if (symlist_len < 2)
     {
-        if (symlist_len < 2)
-        {
-            cc_error("Parse error at '-'");
-            return -1;
-        }
-        // parse the rest of the expression into AX
-        int retval = ParseSubexpr(scrip, &symlist[1], symlist_len - 1);
-        if (retval < 0) return retval;
+        cc_error("Parse error at '-'");
+        return -1;
+    }
+    // parse the rest of the expression into AX
+    int retval = ParseSubexpr(scrip, &symlist[1], symlist_len - 1);
+    if (retval < 0) return retval;
 
         // now, subtract the result from 0 (which negates it)
         int cpuOp = SCMD_SUBREG; // get correct bytecode for the subtraction
@@ -2710,14 +2741,14 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
                     break; // Don't put this into the for header!
             }
 
-            // Compile the parameter
-            if (end_of_this_param - start_of_this_param < 0)
-            {
-                cc_error("Internal error: parameter length is negative");
-                return -99;
-            }
-            if (ParseSubexpr(scrip, &paramList[start_of_this_param], end_of_this_param - start_of_this_param))
-                return -1;
+        // Compile the parameter
+        if (end_of_this_param - start_of_this_param < 0)
+        {
+            cc_error("Internal error: parameter length is negative");
+            return -99;
+        }
+        int retval = ParseSubexpr(scrip, &paramList[start_of_this_param], end_of_this_param - start_of_this_param);
+        if (retval < 0) return retval;
 
             if (param_num <= num_func_args) // we know what type to expect
             {
@@ -2740,8 +2771,8 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 
             end_of_this_param = start_of_this_param - 1;
 
-        }
-        while (end_of_this_param > 0);
+    }
+    while (end_of_this_param > 0);
 
         return 0;
     }
@@ -2911,23 +2942,26 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
             scrip->write_cmd1(SCMD_NUMFUNCARGS, actual_num_args);
         }
 
-        // Call the function
-        AGS::CodeLoc callpoint = sym.entries[funcSymbol].soffs;
-        const bool is_import_function = (0 != (sym.entries[funcSymbol].flags & SFLG_IMPORTED));
-        scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, callpoint);
+    // Call the function
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[funcSymbol].soffs);
 
-        if (is_import_function)
-        {
-            scrip->fixup_previous(FIXUP_IMPORT);
-            // do the call
-            scrip->write_cmd1(SCMD_CALLEXT, SREG_AX);
-            if (actual_num_args > 0)
-                scrip->write_cmd1(SCMD_SUBREALSTACK, actual_num_args);
-        }
-        else
-        {
-            scrip->fixup_previous(FIXUP_FUNCTION);
-            scrip->write_cmd1(SCMD_CALL, SREG_AX);
+    bool is_import_function = (0 != (sym.entries[funcSymbol].flags & SFLG_IMPORTED));
+    if (is_import_function)
+    {
+        scrip->fixup_previous(FIXUP_IMPORT);
+        // do the call
+        scrip->write_cmd1(SCMD_CALLEXT, SREG_AX);
+        // We will arrive here when the function call has returned
+        // restore the stack
+        if (actual_num_args > 0)
+            scrip->write_cmd1(SCMD_SUBREALSTACK, actual_num_args);
+    }
+    else
+    {
+        if (g_FCM.IsForwardDecl(funcSymbol))
+            g_FCM.TrackForwardDeclFuncCall(scrip, funcSymbol, scrip->codesize - 1);
+        scrip->fixup_previous(FIXUP_FUNCTION);
+        scrip->write_cmd1(SCMD_CALL, SREG_AX);
 
             // We will arrive here when the function call has returned
             // restore the stack
@@ -4113,13 +4147,11 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         if (sym.entries[cursym].is_loadable_variable())
             return 0;
 
-        // Static attribute
-        if ((sym.get_type(cursym) == SYM_VARTYPE) &&
-            (vnlist_len > 2) &&
-            (sym.entries[vnlist[2]].flags & SFLG_STATIC) > 0)
-        {
-            return 0;
-        }
+    // Static attribute
+    if ((sym.get_type(cursym) == SYM_VARTYPE) &&
+        (vnlist_len > 2) &&
+        (sym.entries[vnlist[2]].flags & SFLG_STATIC) > 0)
+        return 0;
 
         cc_error("Variable or constant attribute required on left of \"%s\" assignment", sym.get_name(cursym));
         return -1;
@@ -4582,12 +4614,12 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
             return -1;
         }
 
-        if (is_global == kGl_GlobalImport)
-        {
-            // cannot import, because string is really char*, and the pointer won't resolve properly
-            cc_error("Cannot import string; use char[] instead");
-            return -1;
-        }
+    if (is_global == kGl_GlobalImport)
+    {
+        // cannot import, because string is really char *, and the pointer won't resolve properly
+        cc_error("Cannot import string; use char[] instead");
+        return -1;
+    }
 
         initial_value_ptr = nullptr;
         fixup_needed = kFx_NoFixup;
@@ -4998,119 +5030,112 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    void ParseStruct_SetTypeInSymboltable(SymbolTableEntry &entry, bool struct_is_managed, bool struct_is_builtin, bool struct_is_autoptr)
+void ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQualifierSet tqs)
+{
+    SymbolTableEntry &entry = (kpp_Main == g_PP) ? sym.entries[stname] : g_Sym1[stname];
+
+    entry.extends = 0;
+    entry.stype = SYM_VARTYPE;
+    entry.flags |= SFLG_STRUCTTYPE;
+    entry.ssize = 0;
+
+    if (FlagIsSet(tqs, kTQ_Managed))
+        entry.flags |= SFLG_MANAGED;
+
+    if (FlagIsSet(tqs, kTQ_Builtin))
+        entry.flags |= SFLG_BUILTIN;
+
+    if (FlagIsSet(tqs, kTQ_Autoptr))
+        entry.flags |= SFLG_AUTOPTR;
+}
+
+
+// We have accepted something like "struct foo" and are waiting for "extends"
+int ParseStruct_ExtendsClause(ccInternalList *targ, int stname, AGS::Symbol &extendsWhat, size_t &size_so_far)
+{
+    targ->getnext(); // gobble "extends"
+    extendsWhat = targ->getnext(); // name of the extended struct
+
+    if (kpp_PreAnalyze == g_PP)
+        return 0; // No further analysis necessary in first phase
+
+    if (sym.get_type(extendsWhat) != SYM_VARTYPE)
     {
-        entry.extends = 0;
-        entry.stype = SYM_VARTYPE;
-        entry.flags |= SFLG_STRUCTTYPE;
-        entry.ssize = 0;
-
-        if (struct_is_managed)
-            entry.flags |= SFLG_MANAGED;
-
-        if (struct_is_builtin)
-            entry.flags |= SFLG_BUILTIN;
-
-        if (struct_is_autoptr)
-            entry.flags |= SFLG_AUTOPTR;
+        cc_error("Expected a struct type here");
+        return -1;
     }
+    SymbolTableEntry &struct_entry = sym.entries[stname];
+    SymbolTableEntry const &extends_entry = sym.entries[extendsWhat];
 
-
-    // We have accepted something like "struct foo" and are waiting for "extends"
-    int ParseStruct_ExtendsClause(ccInternalList *targ, int stname, AGS::Symbol &extendsWhat, int &size_so_far)
+    if ((extends_entry.flags & SFLG_STRUCTTYPE) == 0)
     {
-        targ->getnext(); // gobble "extends"
-        extendsWhat = targ->getnext(); // name of the extended struct
-        if (sym.get_type(extendsWhat) != SYM_VARTYPE)
-        {
-            cc_error("Expected a struct type here");
-            return -1;
-        }
-        SymbolTableEntry & struct_entry = sym.entries[stname];
-        SymbolTableEntry & extends_entry = sym.entries[extendsWhat];
-
-        if ((extends_entry.flags & SFLG_STRUCTTYPE) == 0)
-        {
-            cc_error("Must extend a struct type");
-            return -1;
-        }
-        if ((extends_entry.flags & SFLG_MANAGED) == 0 && (struct_entry.flags & SFLG_MANAGED))
-        {
-            cc_error("Managed struct cannot extend the unmanaged struct '%s'", sym.get_name(extendsWhat));
-            return -1;
-        }
-        if ((extends_entry.flags & SFLG_MANAGED) && (struct_entry.flags & SFLG_MANAGED) == 0)
-        {
-            cc_error("Unmanaged struct cannot extend the managed struct '%s'", sym.get_name(extendsWhat));
-            return -1;
-        }
-        if ((extends_entry.flags & SFLG_BUILTIN) && (struct_entry.flags & SFLG_BUILTIN) == 0)
-        {
-            cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name(extendsWhat));
-            return -1;
-        }
-        size_so_far = extends_entry.ssize;
-        struct_entry.extends = extendsWhat;
+        cc_error("Must extend a struct type");
+        return -1;
+    }
+    if ((extends_entry.flags & SFLG_MANAGED) == 0 && (struct_entry.flags & SFLG_MANAGED))
+    {
+        cc_error("Managed struct cannot extend the unmanaged struct '%s'", sym.get_name(extendsWhat));
+        return -1;
+    }
+    if ((extends_entry.flags & SFLG_MANAGED) && (struct_entry.flags & SFLG_MANAGED) == 0)
+    {
+        cc_error("Unmanaged struct cannot extend the managed struct '%s'", sym.get_name(extendsWhat));
+        return -1;
+    }
+    if ((extends_entry.flags & SFLG_BUILTIN) && (struct_entry.flags & SFLG_BUILTIN) == 0)
+    {
+        cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name(extendsWhat));
+        return -1;
+    }
+    size_so_far = static_cast<size_t>(extends_entry.ssize);
+    struct_entry.extends = extendsWhat;
 
         return 0;
     }
 
 
-    int ParseStruct_MemberQualifiers(
-        ccInternalList *targ,
-        AGS::Symbol &cursym,
-        bool &is_readonly,
-        Importness &is_import,
-        bool &is_attribute,
-        bool &is_static,
-        bool &is_protected,
-        bool &is_writeprotected)
+void ParseStruct_MemberQualifiers(ccInternalList *targ, AGS::Symbol &cursym, TypeQualifierSet &tqs)
+{
+    tqs = 0;
+    while (true)
     {
-        // [fw] Check that each qualifier is used exactly once?
-        while (true)
-        {
-            cursym = targ->getnext();
+        cursym = targ->getnext();
 
-            switch (sym.get_type(cursym))
-            {
-            default: break;
-            case SYM_IMPORT:         is_import = kIm_ImportType1; continue;
-            case SYM_ATTRIBUTE:      is_attribute = true;       continue;
-            case SYM_PROTECTED:      is_protected = true;      continue;
-            case SYM_READONLY:       is_readonly = true;       continue;
-            case SYM_STATIC:         is_static = true;         continue;
-            case SYM_WRITEPROTECTED: is_writeprotected = true; continue;
-            }
-            break;
-        };
-
-        if (is_protected && is_writeprotected)
+        switch (sym.get_type(cursym))
         {
-            cc_error("Field cannot be both protected and write-protected.");
-            return -1;
+        default: break;
+        case SYM_ATTRIBUTE:      SetFlag(tqs, kTQ_Attribute, true); continue;
+        case SYM_IMPORT:         SetFlag(tqs, kTQ_Import1, true);   continue;
+        case SYM_PROTECTED:      SetFlag(tqs, kTQ_Protected, true); continue;
+        case SYM_READONLY:       SetFlag(tqs, kTQ_Readonly, true);  continue;
+        case SYM_STATIC:         SetFlag(tqs, kTQ_Static, true);    continue;
+        case SYM_WRITEPROTECTED: SetFlag(tqs, kTQ_Writeprotected, true);  continue;
         }
-        return 0;
+        break;
+    };
+
+    return;
+}
+
+int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, AGS::Symbol cursym, bool member_is_pointer, bool member_is_import)
+{
+    const AGS::Symbol curtype = sym.get_type(cursym);
+    // must either have a type of a struct here.
+    if ((curtype != SYM_VARTYPE) &&
+        (curtype != SYM_UNDEFINEDSTRUCT))
+    {
+        // Complain about non-type
+        std::string type_name = sym.get_name(cursym);
+        std::string prefix = sym.get_name(stname);
+        prefix += "::";
+        if (type_name.substr(0, prefix.length()) == prefix)
+        {
+            // The tokenizer has mangled the symbol, undo that.
+            type_name = type_name.substr(prefix.length(), type_name.length());
+        }
+        cc_error("Expected a variable type instead of '%s'", type_name.c_str());
+        return -1;
     }
-
-    int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, AGS::Symbol cursym, bool member_is_pointer, Importness member_is_import)
-    {
-        const AGS::Symbol curtype = sym.get_type(cursym);
-        // must either have a type of a struct here.
-        if ((curtype != SYM_VARTYPE) &&
-            (curtype != SYM_UNDEFINEDSTRUCT))
-        {
-            // Complain about non-type
-            std::string type_name = sym.get_name(cursym);
-            std::string prefix = sym.get_name(stname);
-            prefix += "::";
-            if (type_name.substr(0, prefix.length()) == prefix)
-            {
-                // The tokenizer has mangled the symbol, undo that.
-                type_name = type_name.substr(prefix.length(), type_name.length());
-            }
-            cc_error("Expected a variable type instead of '%s'", type_name.c_str());
-            return -1;
-        }
 
         // [fw] Where's the problem?
         if (cursym == sym.normalStringSym)
@@ -5139,29 +5164,29 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 
         const long curflags = sym.entries[cursym].flags;
 
-        // [fw] Where is the problem?
-        if ((curflags & SFLG_STRUCTTYPE) && (member_is_pointer == 0))
-        {
-            cc_error("Member variable cannot be struct");
-            return -1;
-        }
-        if ((member_is_pointer) && (sym.entries[stname].flags & SFLG_MANAGED) && (member_is_import == kIm_NoImport))
-        {
-            cc_error("Member variable of managed struct cannot be pointer");
-            return -1;
-        }
-        else if ((curflags & SFLG_MANAGED) && (!member_is_pointer))
-        {
-            cc_error("Cannot declare non-pointer of managed type");
-            return -1;
-        }
-        else if (((curflags & SFLG_MANAGED) == 0) && (member_is_pointer))
-        {
-            cc_error("Cannot declare pointer to non-managed type");
-            return -1;
-        }
-        return 0;
+    // [fw] Where is the problem?
+    if ((curflags & SFLG_STRUCTTYPE) && (member_is_pointer == 0))
+    {
+        cc_error("Member variable cannot be struct");
+        return -1;
     }
+    if (member_is_pointer && (sym.entries[stname].flags & SFLG_MANAGED) && !member_is_import)
+    {
+        cc_error("Member variable of managed struct cannot be pointer");
+        return -1;
+    }
+    else if ((curflags & SFLG_MANAGED) && (!member_is_pointer))
+    {
+        cc_error("Cannot declare non-pointer of managed type");
+        return -1;
+    }
+    else if (((curflags & SFLG_MANAGED) == 0) && (member_is_pointer))
+    {
+        cc_error("Cannot declare pointer to non-managed type");
+        return -1;
+    }
+    return 0;
+}
 
 
     int ParseStruct_CheckMemberNotInInheritedStruct(
@@ -5193,332 +5218,361 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    // We have accepted something like "struct foo extends bar { const int".
-    // We're waiting for the name of the member.
-    int ParseStruct_MemberDefnVarOrFuncOrArray(
-        ccInternalList *targ,
-        ccCompiledScript * scrip,
-        AGS::Symbol extendsWhat,
-        AGS::Symbol stname,
-        AGS::Symbol name_of_current_func, // [fw] ONLY used for funcs in structs
-        int nested_level,
-        int curtype,
-        bool type_is_attribute,
-        bool type_is_readonly,
-        Importness type_is_import,
-        bool type_is_protected,
-        bool type_is_writeprotected,
-        bool type_is_pointer,
-        bool type_is_static,
-        int &size_so_far)
+int ParseStruct_Function(ccInternalList * targ, ccCompiledScript * scrip, AGS::TypeQualifierSet tqs, AGS::Symbol curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_pointer, bool isDynamicArray)
+{
+
+    if (FlagIsSet(tqs, kTQ_Writeprotected))
     {
+        cc_error("'writeprotected' does not apply to functions");
+        return -1;
+    }
 
-        AGS::Symbol vname = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
-        bool isDynamicArray = false;
+    bool body_follows;
+    int retval = ParseFuncdecl(
+        targ, scrip, vname, curtype, type_is_pointer, isDynamicArray, tqs, stname, body_follows);
+    if (retval < 0) return retval;
+    if (body_follows)
+    {
+        cc_error("Cannot declare a function body within a struct definition");
+        return -1;
+    }
+    if (SYM_SEMICOLON != sym.get_type(targ->peeknext()))
+    {
+        cc_error("Expected ';'");
+        return -1;
+    }
 
-        // Check whether "[]" is behind the type. 
-        // [fw] Is this meant to accept "struct foo { const [] bar; }" ??! 
-        if (sym.get_type(vname) == SYM_OPENBRACKET && sym.get_type(targ->peeknext()) == SYM_CLOSEBRACKET)
+    if (FlagIsSet(tqs, kTQ_Protected))
+        sym.entries[vname].flags |= SFLG_PROTECTED;
+    return 0;
+}
+
+int ParseStruct_Attribute(ccInternalList * targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Symbol stname, AGS::Symbol vname)
+{
+    if (kpp_PreAnalyze == g_PP)
+    {
+        if (SYM_OPENBRACKET == sym.get_type(targ->peeknext()))
         {
-            isDynamicArray = true;
-            targ->getnext(); // Eat "]"
-            vname = targ->getnext();
+            targ->getnext();
+            if (SYM_CLOSEBRACKET != sym.get_type(targ->getnext()))
+            {
+                cc_error("Cannot specify array size for attribute");
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    if (!FlagIsSet(tqs, kTQ_Import))
+    {
+        cc_error("Attribute must be import");
+        return -1;
+    }
+
+    sym.entries[vname].flags |= SFLG_IMPORTED;
+
+    const char *namePrefix = "";
+
+    if (sym.get_type(targ->peeknext()) == SYM_OPENBRACKET)
+    {
+        // An indexed attribute
+        targ->getnext();  // skip the [
+        if (sym.get_type(targ->getnext()) != SYM_CLOSEBRACKET)
+        {
+            cc_error("Cannot specify array size for attribute");
+            return -1;
         }
 
-        const char *memberExt = sym.get_name(vname);
-        memberExt = strstr(memberExt, "::");
+        sym.entries[vname].flags |= SFLG_ARRAY;
+        sym.entries[vname].arrsize = 0;
+        namePrefix = "i";
+    }
+    // the variable name will have been jibbled with
+    // the struct name added to it -- strip it back off
+    const char *memberPart = strstr(sym.get_name(vname), "::");
+    if (memberPart == NULL)
+    {
+        cc_error("Internal error: Attribute has no struct name");
+        return -1;
+    }
+    // seek to the actual member name
+    memberPart += 2;
 
-        bool isFunction = sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS;
+    // declare the imports for the Get and Setters
+    char attr_funcname[200];
+    sprintf(attr_funcname, "%s::get%s_%s", sym.get_name(stname), namePrefix, memberPart);
 
-        // If this is a member variable of the struct, then change the symbol to the fully qualified name.
-        if (!isFunction && sym.get_type(vname) == SYM_VARTYPE && !sym_is_predef_typename(vname) && memberExt == NULL)
+    int attr_get = scrip->add_new_import(attr_funcname);
+    int attr_set = 0;
+    if (!FlagIsSet(tqs, kTQ_Readonly)) // setter only if it's not read-only
+    {
+        sprintf(attr_funcname, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);
+        attr_set = scrip->add_new_import(attr_funcname);
+    }
+    sym.entries[vname].set_attrfuncs(attr_get, attr_set);
+
+    return 0;
+}
+
+// We're inside a struct decl, parsing an array var.
+int ParseStruct_Array(ccInternalList * targ, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far)
+{
+    targ->getnext(); // Eat '['
+
+    if (kpp_PreAnalyze == g_PP)
+    {
+        // Skip the [...]
+        const AGS::Symbol stoplist[] = { 0 };
+        SkipTo(targ, stoplist, 0);
+        targ->getnext(); // Eat ']'
+        return 0;
+    }
+
+    int array_size;
+
+    AGS::Symbol nextt = targ->getnext();
+    if (sym.get_type(nextt) == SYM_CLOSEBRACKET)
+    {
+        if ((sym.entries[stname].flags & SFLG_MANAGED))
+        {
+            cc_error("Member variable of managed struct cannot be dynamic array");
+            return -1;
+        }
+        sym.entries[stname].flags |= SFLG_HASDYNAMICARRAY;
+        sym.entries[vname].flags |= SFLG_DYNAMICARRAY;
+        array_size = 0;
+        size_so_far += 4;
+    }
+    else
+    {
+        if (ParseLiteralOrConstvalue(nextt, array_size, false, "Array size must be constant value") < 0)
+            return -1;
+
+        if (array_size < 1)
+        {
+            cc_error("Array size cannot be less than 1");
+            return -1;
+        }
+
+        size_so_far += array_size * sym.entries[vname].ssize;
+
+        if (sym.get_type(targ->getnext()) != SYM_CLOSEBRACKET)
+        {
+            cc_error("Expected ']'");
+            return -1;
+        }
+    }
+    sym.entries[vname].flags |= SFLG_ARRAY;
+    sym.entries[vname].arrsize = array_size;
+    return 0;
+}
+
+// We're inside a struct decl, processing a member variable
+int ParseStruct_Variable(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Symbol curtype, bool type_is_pointer, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far)
+{
+    if (kpp_Main == g_PP)
+    {
+        sym.entries[vname].stype = SYM_STRUCTMEMBER;
+        sym.entries[vname].extends = stname;  // save which struct it belongs to
+        sym.entries[vname].ssize = sym.entries[curtype].ssize;
+        sym.entries[vname].soffs = size_so_far;
+        sym.entries[vname].vartype = (short)curtype;
+        if (FlagIsSet(tqs, kTQ_Readonly))
+            sym.entries[vname].flags |= SFLG_READONLY;
+        if (FlagIsSet(tqs, kTQ_Attribute))
+            sym.entries[vname].flags |= SFLG_ATTRIBUTE;
+        if (type_is_pointer)
+        {
+            sym.entries[vname].flags |= SFLG_POINTER;
+            sym.entries[vname].ssize = 4;
+        }
+        if (FlagIsSet(tqs, kTQ_Static))
+            sym.entries[vname].flags |= SFLG_STATIC;
+        if (FlagIsSet(tqs, kTQ_Protected))
+            sym.entries[vname].flags |= SFLG_PROTECTED;
+        if (FlagIsSet(tqs, kTQ_Writeprotected))
+            sym.entries[vname].flags |= SFLG_WRITEPROTECTED;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Attribute))
+        return ParseStruct_Attribute(targ, scrip, tqs, stname, vname);
+
+    if (sym.get_type(targ->peeknext()) == SYM_OPENBRACKET)
+        return ParseStruct_Array(targ, stname, vname, size_so_far);
+
+    size_so_far += sym.entries[vname].ssize;
+    return 0;
+}
+
+// We have accepted something like "struct foo extends bar { const int".
+// We're waiting for the name of the member.
+int ParseStruct_MemberDefnVarOrFuncOrArray(
+    ccInternalList *targ,
+    ccCompiledScript *scrip,
+    AGS::Symbol extendsWhat,
+    AGS::Symbol stname,
+    AGS::Symbol name_of_current_func, // ONLY used for funcs in structs
+    TypeQualifierSet tqs,
+    int nested_level,
+    int curtype,
+    bool type_is_pointer,
+    size_t &size_so_far)
+{
+    AGS::Symbol vname = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
+    bool isDynamicArray = false;
+
+    // Check whether "[]" is behind the type.  "struct foo { int [] bar; }" 
+    if (sym.get_type(vname) == SYM_OPENBRACKET && sym.get_type(targ->peeknext()) == SYM_CLOSEBRACKET)
+    {
+        isDynamicArray = true;
+        if (SYM_CLOSEBRACKET != sym.get_type(targ->getnext()))
+        {
+            cc_error("Expected ']'");
+            return -1;
+        }
+        vname = targ->getnext();
+    }
+
+    char const *memberExt = sym.get_name(vname);
+    memberExt = strstr(memberExt, "::");
+
+    bool const isFunction = sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS;
+
+    if (!isFunction)
+    {
+        // e.g., "struct S1 { int S2::Var;}"
+        if (sym.get_type(vname) == SYM_VARTYPE && !sym_is_predef_typename(vname) && memberExt == NULL)
         {
             const char *new_name = GetFullNameOfMember(stname, vname);
             vname = sym_find_or_add(new_name);
         }
 
-        // If, OTOH, this is a member that already has a type which is not VARTYPE or which is below sym.normalFloatSym,
-        // then complain.
-        if (sym.get_type(vname) != 0 &&
+        // Detect multiple declarations
+        if (kpp_Main == g_PP &&
+            sym.get_type(vname) != 0 &&
             (sym.get_type(vname) != SYM_VARTYPE || sym_is_predef_typename(vname)))
         {
             cc_error("'%s' is already defined", sym.get_friendly_name(vname).c_str());
             return -1;
         }
+    }
 
-        // If this is an extension of another type, then we must make sure that names don't clash. 
-        if (extendsWhat > 0)
+    // If this is an extension of another type, then we must make sure that names don't clash. 
+    if (kpp_Main == g_PP && extendsWhat > 0)
+    {
+        int retval = ParseStruct_CheckMemberNotInInheritedStruct(vname, memberExt, extendsWhat);
+        if (retval < 0) return retval;
+    }
+
+    if (isFunction)
+    {
+        if (name_of_current_func > 0)
         {
-            int retval = ParseStruct_CheckMemberNotInInheritedStruct(vname, memberExt, extendsWhat);
-            if (retval < 0) return retval;
-        }
-
-        if (isFunction)
-        {
-            if (type_is_import == kIm_NoImport)
-            {
-                cc_error("Function in a struct requires the import keyword");
-                return -1;
-            }
-            if (type_is_writeprotected)
-            {
-                cc_error("'writeprotected' does not apply to functions");
-                return -1;
-            }
-
-            int retval = ParseFuncdecl_CheckForIllegalCombis(type_is_readonly, name_of_current_func, nested_level);
-            if (retval < 0) return retval;
-            {
-                AGS::Symbol throwaway_symbol = 0;
-                bool throwaway_bool;
-                int retval =
-                    ParseFuncdecl(targ, scrip, vname, curtype, type_is_pointer, isDynamicArray,
-                        type_is_static, type_is_import, stname,
-                        throwaway_symbol, throwaway_bool);
-            }
-            if (retval < 0) return retval;
-
-            if (type_is_protected)
-                sym.entries[vname].flags |= SFLG_PROTECTED;
-
-            if (name_of_current_func > 0)
-            {
-                cc_error("Cannot declare struct member function inside a function body");
-                return -1;
-            }
-
-        }
-        else if (isDynamicArray)
-        {
-            // Someone tried to declare the function syntax for a dynamic array
-            // But there was no function declaration
-            cc_error("Expected '('");
+            cc_error("Cannot declare struct member function inside a function body");
             return -1;
         }
-        else if ((type_is_import != kIm_NoImport) && (!type_is_attribute))
-        {
-            // member variable cannot be an import
-            cc_error("Only struct member functions may be declared with 'import'");
-            return -1;
-        }
-        else if ((type_is_static) && (!type_is_attribute))
-        {
-            cc_error("Static variables not supported");
-            return -1;
-        }
-        else if ((curtype == stname) && (!type_is_pointer))
-        {
-            // cannot do  struct A { A a; }
-            // since we don't know the size of A, recursiveness
-            cc_error("Struct '%s' cannot be a member of itself", sym.get_friendly_name(curtype).c_str());
-            return -1;
-        }
-        else
-        {
-            // member variable
-            sym.entries[vname].stype = SYM_STRUCTMEMBER;
-            sym.entries[vname].extends = stname;  // save which struct it belongs to
-            sym.entries[vname].ssize = sym.entries[curtype].ssize;
-            sym.entries[vname].soffs = size_so_far;
-            sym.entries[vname].vartype = (short)curtype;
-            if (type_is_readonly)
-                sym.entries[vname].flags |= SFLG_READONLY;
-            if (type_is_attribute)
-                sym.entries[vname].flags |= SFLG_ATTRIBUTE;
-            if (type_is_pointer)
-            {
-                sym.entries[vname].flags |= SFLG_POINTER;
-                sym.entries[vname].ssize = 4;
-            }
-            if (type_is_static)
-                sym.entries[vname].flags |= SFLG_STATIC;
-            if (type_is_protected)
-                sym.entries[vname].flags |= SFLG_PROTECTED;
-            else if (type_is_writeprotected)
-                sym.entries[vname].flags |= SFLG_WRITEPROTECTED;
+        int retval = ParseStruct_Function(targ, scrip, tqs, curtype, stname, vname, name_of_current_func, type_is_pointer, isDynamicArray);
+        if (retval < 0) return retval;
+    }
+    else if (isDynamicArray)
+    {
+        // Someone tried to declare the function syntax for a dynamic array
+        // But there was no function declaration
+        cc_error("Expected '('");
+        return -1;
+    }
+    else if (FlagIsSet(tqs, kTQ_Import) && (!FlagIsSet(tqs, kTQ_Attribute)))
+    {
+        // member variable cannot be an import
+        cc_error("Only struct member functions may be declared with 'import'");
+        return -1;
+    }
+    else if (FlagIsSet(tqs, kTQ_Static) && (!FlagIsSet(tqs, kTQ_Attribute)))
+    {
+        cc_error("Static attribute variables not supported");
+        return -1;
+    }
+    else if ((curtype == stname) && (!type_is_pointer))
+    {
+        // cannot do  struct A { A a; }
+        // since we don't know the size of A, recursiveness
+        cc_error("Struct '%s' cannot be a member of itself", sym.get_friendly_name(curtype).c_str());
+        return -1;
+    }
+    else
+    {
+        int retval = ParseStruct_Variable(targ, scrip, tqs, curtype, type_is_pointer, stname, vname, size_so_far);
+        if (retval < 0) return retval;
+        tqs = 0;
+    }
 
-            if (type_is_attribute)
-            {
-                if (type_is_import == kIm_NoImport)
-                {
-                    cc_error("Attribute must be import");
-                    return -1;
-                }
-
-                sym.entries[vname].flags |= SFLG_IMPORTED;
-
-                const char *namePrefix = "";
-
-                if (sym.get_type(targ->peeknext()) == SYM_OPENBRACKET)
-                {
-                    // An indexed attribute
-                    targ->getnext();  // skip the [
-                    if (sym.get_type(targ->getnext()) != SYM_CLOSEBRACKET)
-                    {
-                        cc_error("Cannot specify array size for attribute");
-                        return -1;
-                    }
-
-                    sym.entries[vname].flags |= SFLG_ARRAY;
-                    sym.entries[vname].arrsize = 0;
-                    namePrefix = "i";
-                }
-                // the variable name will have been jibbled with
-                // the struct name added to it -- strip it back off
-                const char *memberPart = strstr(sym.get_name(vname), "::");
-                if (memberPart == NULL)
-                {
-                    cc_error("Internal error: Attribute has no struct name");
-                    return -1;
-                }
-                // seek to the actual member name
-                memberPart += 2;
-
-                // declare the imports for the Get and Setters
-                char attr_funcname[200];
-                sprintf(attr_funcname, "%s::get%s_%s", sym.get_name(stname), namePrefix, memberPart);
-
-                int attr_get = scrip->add_new_import(attr_funcname);
-                int attr_set = 0;
-                if (!type_is_readonly)
-                {
-                    // setter only if it's not read-only
-                    sprintf(attr_funcname, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);
-                    attr_set = scrip->add_new_import(attr_funcname);
-                }
-                sym.entries[vname].set_attrfuncs(attr_get, attr_set);
-            }
-            else if (sym.get_type(targ->peeknext()) == SYM_OPENBRACKET)
-            {
-                // An array!
-                targ->getnext();  // skip the [
-                AGS::Symbol nextt = targ->getnext();
-                int array_size;
-
-                if (sym.get_type(nextt) == SYM_CLOSEBRACKET)
-                {
-                    if ((sym.entries[stname].flags & SFLG_MANAGED))
-                    {
-                        cc_error("Member variable of managed struct cannot be dynamic array");
-                        return -1;
-                    }
-                    sym.entries[stname].flags |= SFLG_HASDYNAMICARRAY;
-                    sym.entries[vname].flags |= SFLG_DYNAMICARRAY;
-                    array_size = 0;
-                    size_so_far += 4;
-                }
-                else
-                {
-                    if (ParseLiteralOrConstvalue(nextt, array_size, false, "Array size must be constant value") < 0)
-                        return -1;
-
-                    if (array_size < 1)
-                    {
-                        cc_error("Array size cannot be less than 1");
-                        return -1;
-                    }
-
-                    size_so_far += array_size * sym.entries[vname].ssize;
-
-                    if (sym.get_type(targ->getnext()) != SYM_CLOSEBRACKET)
-                    {
-                        cc_error("Expected ']'");
-                        return -1;
-                    }
-                }
-                sym.entries[vname].flags |= SFLG_ARRAY;
-                sym.entries[vname].arrsize = array_size;
-            }
-            else
-            {
-                size_so_far += sym.entries[vname].ssize;
-            }
-        }
-
-        // both functions and variables have this set
+    // both functions and variables have this set
+    if (kpp_Main == g_PP)
         sym.entries[vname].flags |= SFLG_STRUCTMEMBER;
 
         return 0;
     }
 
-    int ParseStruct_MemberDefn(
-        ccInternalList *targ,
-        ccCompiledScript * scrip,
-        AGS::Symbol stname,
-        AGS::Symbol name_of_current_func,
-        int nested_level,
-        AGS::Symbol extendsWhat,
-        int &size_so_far)
+int ParseStruct_MemberStmt(
+    ccInternalList *targ,
+    ccCompiledScript *scrip,
+    AGS::Symbol stname,
+    AGS::Symbol name_of_current_func,
+    int nested_level,
+    AGS::Symbol extendsWhat,
+    size_t &size_so_far)
+{
+    AGS::Symbol curtype; // the type of the current members being defined, given as a symbol
+
+    // parse qualifiers of the member ("import" etc.), set booleans accordingly
+    TypeQualifierSet tqs = 0;
+    ParseStruct_MemberQualifiers(targ, curtype, tqs);
+    if (FlagIsSet(tqs, kTQ_Protected) && FlagIsSet(tqs, kTQ_Writeprotected))
     {
-
-        bool type_is_readonly = false;
-        Importness type_is_import = kIm_NoImport;
-        bool type_is_attribute = false;
-        bool type_is_pointer = false;
-        bool type_is_static = false;
-        bool type_is_protected = false;
-        bool type_is_writeprotected = false;
-
-        AGS::Symbol curtype; // the type of the current members being defined, given as a symbol
-
-        // parse qualifiers of the member ("import" etc.), set booleans accordingly
-        int retval = ParseStruct_MemberQualifiers(
-            targ,
-            curtype,
-            type_is_readonly,
-            type_is_import,
-            type_is_attribute,
-            type_is_static,
-            type_is_protected,
-            type_is_writeprotected);
-        if (retval < 0) return retval;
+        cc_error("Field cannot be both protected and write-protected.");
+        return -1;
+    }
 
         // curtype can now be: typename or typename *
 
-        // A member defn. is a pointer if it is AUTOPOINTER or it has an explicit "*"
-        if (sym.entries[curtype].flags & SFLG_AUTOPTR)
-        {
-            type_is_pointer = true;
-        }
-        else if (strcmp(sym.get_name(targ->peeknext()), "*") == 0)
-        {
-            type_is_pointer = true;
-            targ->getnext();
-        }
+    // A member defn. is a pointer if it is AUTOPOINTER or it has an explicit "*"
+    bool type_is_pointer = false;
+    if (sym.entries[curtype].flags & SFLG_AUTOPTR)
+    {
+        type_is_pointer = true;
+    }
+    else if (strcmp(sym.get_name(targ->peeknext()), "*") == 0)
+    {
+        type_is_pointer = true;
+        targ->getnext();
+    }
 
-        // Certain types of members are not allowed in structs; check this
-        retval = ParseStruct_IsMemberTypeIllegal(
-            targ,
-            stname,
-            curtype,
-            type_is_pointer,
-            type_is_import);
+    // Certain types of members are not allowed in structs; check this
+    if (kpp_Main == g_PP)
+    {
+        int retval = ParseStruct_IsMemberTypeIllegal(targ, stname, curtype, type_is_pointer, FlagIsSet(tqs, kTQ_Import));
         if (retval < 0) return retval;
+    }
 
         // [fw] "struct foo { int * a, b, c;}"
         //      This declares b to be an int pointer; but in C or C++, b would be an int
         //      Bug?
 
-        // run through all variables declared on this member defn.
-        while (true)
-        {
-            int retval = ParseStruct_MemberDefnVarOrFuncOrArray(
-                targ,
-                scrip,
-                extendsWhat,        // Parent struct
-                stname,     // struct
-                name_of_current_func,
-                nested_level,
-                curtype,             // core type
-                type_is_attribute,
-                type_is_readonly,
-                type_is_import,
-                type_is_protected,
-                type_is_writeprotected,
-                type_is_pointer,
-                type_is_static,
-                size_so_far);
-            if (retval < 0) return retval;
+    // run through all variables declared on this member defn.
+    while (true)
+    {
+        int retval = ParseStruct_MemberDefnVarOrFuncOrArray(
+            targ,
+            scrip,
+            extendsWhat,        // Parent struct
+            stname,             // struct
+            name_of_current_func,
+            tqs,
+            nested_level,
+            curtype,             // core type
+            type_is_pointer,
+            size_so_far);
+        if (retval < 0) return retval;
 
             if (sym.get_type(targ->peeknext()) == SYM_COMMA)
             {
@@ -5538,43 +5592,43 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    // Handle a "struct" definition clause
-    int ParseStruct(
-        ccInternalList *targ,
-        ccCompiledScript * scrip,
-        AGS::Symbol cursym,
-        bool struct_is_managed,
-        bool struct_is_builtin,
-        bool struct_is_autoptr,
-        bool struct_is_stringstruct,
-        AGS::Symbol name_of_current_func,
-        size_t &nested_level)
+// Handle a "struct" definition clause
+int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet tqs, AGS::Symbol name_of_current_func,
+    size_t &nested_level)
+{
+    // get token for name of struct
+    AGS::Symbol const stname = targ->getnext();
+
+    if ((sym.get_type(stname) != 0) &&
+        (sym.get_type(stname) != SYM_UNDEFINEDSTRUCT))
     {
-        // get token for name of struct
-        AGS::Symbol stname = targ->getnext();
-        if ((sym.get_type(stname) != 0) &&
-            (sym.get_type(stname) != SYM_UNDEFINEDSTRUCT))
+        cc_error("'%s' is already defined", sym.get_friendly_name(stname).c_str());
+        return -1;
+    }
+
+    // Write the type of stname into the symbol table
+    ParseStruct_SetTypeInSymboltable(stname, tqs);
+
+    // Declare the struct type that implements new strings
+    if (FlagIsSet(tqs, kTQ_Stringstruct))
+    {
+        if (sym.stringStructSym > 0 && stname != sym.stringStructSym)
         {
-            cc_error("'%s' is already defined", sym.get_friendly_name(stname).c_str());
+            cc_error("stringstruct already defined to be %s", sym.get_name(stname));
             return -1;
         }
+        sym.stringStructSym = stname;
+    }
 
-        // Sums up the size of the struct
-        int size_so_far = 0;
+    // Sums up the size of the struct
+    size_t size_so_far = 0;
 
         // If the struct extends another struct, the token of the other struct's name
         AGS::Symbol extendsWhat = 0;
 
-        // Write the type of stname into the symbol table
-        ParseStruct_SetTypeInSymboltable(
-            sym.entries[stname],
-            struct_is_managed,
-            struct_is_builtin,
-            struct_is_autoptr);
-
-        // Declare the struct type that implements new strings
-        if (struct_is_stringstruct)
-            sym.stringStructSym = stname;
+    // optional "extends" clause
+    if (sym.get_type(targ->peeknext()) == SYM_EXTENDS)
+        ParseStruct_ExtendsClause(targ, stname, extendsWhat, size_so_far);
 
         // forward-declaration of struct type
         if (sym.get_type(targ->peeknext()) == SYM_SEMICOLON)
@@ -5585,36 +5639,30 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
             return 0;
         }
 
-        // So we are in the "real" declaration.
-        // optional "extends" clause
-        if (sym.get_type(targ->peeknext()) == SYM_EXTENDS)
-        {
-            // [fw] At this point, it might be better to copy all the parent elements into this child
-            // We need extendsWhat later on.
-            ParseStruct_ExtendsClause(targ, stname, extendsWhat, size_so_far);
-        }
+    // So we are in the declaration of the components
+    // mandatory "{"
+    if (sym.get_type(targ->getnext()) != SYM_OPENBRACE)
+    {
+        cc_error("Expected '{'");
+        return -1;
+    }
 
-        // mandatory "{"
-        if (sym.get_type(targ->getnext()) != SYM_OPENBRACE)
-        {
-            cc_error("Expected '{'");
-            return -1;
-        }
+    // Process every member of the struct in turn
+    while (sym.get_type(targ->peeknext()) != SYM_CLOSEBRACE)
+    {
+        int retval = ParseStruct_MemberStmt(targ, scrip, stname, name_of_current_func, nested_level, extendsWhat, size_so_far);
+        if (retval < 0) return retval;
+    }
 
-        // Process every member of the struct in turn
-        while (sym.get_type(targ->peeknext()) != SYM_CLOSEBRACE)
-        {
-            int retval = ParseStruct_MemberDefn(targ, scrip, stname, name_of_current_func, nested_level, extendsWhat, size_so_far);
-            if (retval < 0) return retval;
-        }
-
+    if (kpp_Main == g_PP)
+    {
         // align struct on 4-byte boundary in keeping with compiler
         if ((size_so_far % 4) != 0)
             size_so_far += 4 - (size_so_far % 4);
         sym.entries[stname].ssize = size_so_far;
+    }
 
-        // gobble the "}"
-        targ->getnext();
+    targ->getnext(); // Eat '}'
 
         // mandatory ";" after struct defn.
         if (sym.get_type(targ->getnext()) != SYM_SEMICOLON)
@@ -5640,46 +5688,47 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
             item_value = targ->getnext();
         }
 
-        if (ParseLiteralOrConstvalue(item_value, currentValue, is_neg, "Expected integer or integer constant after '='") < 0)
-            return -1;
+    return ParseLiteralOrConstvalue(item_value, currentValue, is_neg, "Expected integer or integer constant after '='");
+}
+
+void ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol item_name, int currentValue)
+{
+    SymbolTableEntry &entry = (kpp_Main == g_PP) ? sym.entries[item_name] : g_Sym1[item_name];
+
+    entry.stype = SYM_CONSTANT;
+    entry.ssize = 4;
+    entry.arrsize = 1;
+    entry.vartype = enum_name;
+    entry.sscope = 0;
+    entry.flags = SFLG_READONLY;
+    // soffs is unused for a constant, so in a gratuitous
+    // hack we use it to store the enum's value
+    entry.soffs = currentValue;
+}
+
+int ParseEnum_Name2symtable(AGS::Symbol enumName)
+{
+    SymbolTableEntry &entry = (kpp_Main == g_PP) ? sym.entries[enumName] : g_Sym1[enumName];
+
+    if (0 != entry.stype)
+    {
+        cc_error("'%s' is already defined", sym.get_friendly_name(enumName).c_str());
+        return -1;
+    }
+    entry.stype = SYM_VARTYPE;
+    entry.ssize = 4; // standard int size
+    entry.vartype = sym.normalIntSym;
 
         return 0;
     }
 
-    void ParseEnum_Item2Symtable(int enum_name, int item_name, int currentValue)
-    {
-        sym.entries[item_name].stype = SYM_CONSTANT;
-        sym.entries[item_name].ssize = 4;
-        sym.entries[item_name].arrsize = 1;
-        sym.entries[item_name].vartype = enum_name;
-        sym.entries[item_name].sscope = 0;
-        sym.entries[item_name].flags = SFLG_READONLY;
-        // soffs is unused for a constant, so in a gratuitous
-        // hack we use it to store the enum's value
-        sym.entries[item_name].soffs = currentValue;
-    }
-
-    int ParseEnum_name_2_symtable(int enumName)
-    {
-        if (sym.get_type(enumName) != 0)
-        {
-            cc_error("'%s' is already defined", sym.get_friendly_name(enumName).c_str());
-            return -1;
-        }
-        sym.entries[enumName].stype = SYM_VARTYPE;
-        sym.entries[enumName].ssize = 4; // standard int size
-        sym.entries[enumName].vartype = sym.normalIntSym;
-
-        return 0;
-    }
-
-    // enum eEnumName { value1, value2 }
-    int ParseEnum0(ccInternalList *targ)
-    {
-        // Get name of the enum, enter it into the symbol table
-        int enum_name = targ->getnext();
-        int retval = ParseEnum_name_2_symtable(enum_name);
-        if (retval < 0) return retval;
+// enum eEnumName { value1, value2 }
+int ParseEnum0(ccInternalList *targ)
+{
+    // Get name of the enum, enter it into the symbol table
+    AGS::Symbol enum_name = targ->getnext();
+    int retval = ParseEnum_Name2symtable(enum_name);
+    if (retval < 0) return retval;
 
         if (sym.get_type(targ->getnext()) != SYM_OPENBRACE)
         {
@@ -5687,26 +5736,24 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
             return -1;
         }
 
+    int currentValue = 0;
 
-        int currentValue = 0;
+    while (true)
+    {
+        AGS::Symbol item_name = targ->getnext();
+        if (sym.get_type(item_name) == SYM_CLOSEBRACE)
+            break; // item list empty or ends with trailing ','
 
-        while (true)
+        if (sym.get_type(item_name) == SYM_CONST)  // will only test properly in main phase, but that's OK
         {
-            if (ReachedEOF(targ))
-            {
-                cc_error("Unexpected end of input");
-                return -1;
-            }
-
-            AGS::Symbol item_name = targ->getnext();
-            if (sym.get_type(item_name) == SYM_CLOSEBRACE)
-                break; // item list empty or ends with trailing ','
-
-            if (sym.get_type(item_name) != 0)
-            {
-                cc_error("Expected '}' or an unused identifier, found '%s' instead", sym.get_name_string(item_name).c_str());
-                return -1;
-            }
+            cc_error("'%s' is already defined as a constant or enum value", sym.get_name_string(item_name).c_str());
+            return -1;
+        }
+        if (sym.get_type(item_name) != 0)  // will only test properly in main phase, but that's OK
+        {
+            cc_error("Expected '}' or an unused identifier, found '%s' instead", sym.get_name_string(item_name).c_str());
+            return -1;
+        }
 
             // increment the value of the enum entry
             currentValue++;
@@ -5761,134 +5808,85 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-
-    int ParseImport(ccInternalList *targ, AGS::Symbol name_of_current_func, AGS::Symbol cursym, Importness &next_is_import)
+int ParseExport(ccInternalList *targ, ccCompiledScript *scrip)
+{
+    if (kpp_PreAnalyze == g_PP)
     {
-        if (name_of_current_func > 0)
-        {
-            cc_error("'import' not allowed inside function body");
-            return -1;
-        }
-
-        next_is_import = kIm_ImportType1;
-        if (strcmp(sym.get_name(cursym), "_tryimport") == 0)
-            next_is_import = kIm_ImportType2;
-
-        if ((sym.get_type(targ->peeknext()) != SYM_VARTYPE) &&
-            (sym.get_type(targ->peeknext()) != SYM_READONLY))
-        {
-            cc_error("Expected a type or 'readonly' after 'import', not '%s'", sym.get_friendly_name(targ->peeknext()).c_str());
-            return -1;
-        }
+        const AGS::Symbol stoplist[] = { SYM_SEMICOLON };
+        SkipTo(targ, stoplist, 1);
+        targ->getnext(); // Eat ';'
         return 0;
     }
 
-    int ParseStatic(ccInternalList *targ, AGS::Symbol name_of_current_func, bool &next_is_static)
+    // export specified symbols
+    AGS::Symbol cursym = targ->getnext();
+    while (sym.get_type(cursym) != SYM_SEMICOLON)
     {
-        if (name_of_current_func >= 0)
+        int nextype = sym.get_type(cursym);
+        if (nextype == 0)
         {
-            cc_error("'static' not allowed inside function body");
+            cc_error("Can only export global variables and functions, not '%s'", sym.get_friendly_name(cursym).c_str());
             return -1;
         }
-        next_is_static = 1;
-        if ((sym.get_type(targ->peeknext()) != SYM_VARTYPE) &&
-            (sym.get_type(targ->peeknext()) != SYM_READONLY))
+        if ((nextype != SYM_GLOBALVAR) && (nextype != SYM_FUNCTION))
         {
-            cc_error("Expected a type or 'readonly' after 'static'");
+            cc_error("Invalid export symbol '%s'", sym.get_friendly_name(cursym).c_str());
             return -1;
         }
-        return 0;
-    }
-
-    int ParseProtected(ccInternalList *targ, AGS::Symbol name_of_current_func, bool &next_is_protected)
-    {
-        if (name_of_current_func > 0)
+        if (sym.entries[cursym].flags & SFLG_IMPORTED)
         {
-            cc_error("'protected' not allowed inside a function body");
+            cc_error("Cannot export an import");
             return -1;
         }
-        next_is_protected = 1;
-        if ((sym.get_type(targ->peeknext()) != SYM_VARTYPE) &&
-            (sym.get_type(targ->peeknext()) != SYM_STATIC) &&
-            (sym.get_type(targ->peeknext()) != SYM_READONLY))
+        if (sym.entries[cursym].flags & SFLG_ISSTRING)
         {
-            cc_error("Expected a type, 'static' or 'readonly' after 'protected'");
+            cc_error("Cannot export string; use char[200] instead");
             return -1;
         }
-        return 0;
-    }
-
-    int ParseExport(ccInternalList *targ, ccCompiledScript * scrip, AGS::Symbol &cursym)
-    {
-        // export specified symbol
+        // if all functions are being exported anyway, don't bother doing
+        // it now
+        if ((ccGetOption(SCOPT_EXPORTALL) != 0) && (nextype == SYM_FUNCTION))
+        {
+        }
+        else if (scrip->add_new_export(sym.get_name(cursym),
+            (nextype == SYM_GLOBALVAR) ? EXPORT_DATA : EXPORT_FUNCTION,
+            sym.entries[cursym].soffs, sym.entries[cursym].sscope) == -1)
+        {
+            return -1;
+        }
+        if (ReachedEOF(targ))
+        {
+            cc_error("Unexpected end of input");
+            return -1;
+        }
         cursym = targ->getnext();
-        while (sym.get_type(cursym) != SYM_SEMICOLON)
+        if (sym.get_type(cursym) == SYM_SEMICOLON)
+            break;
+        if (sym.get_type(cursym) != SYM_COMMA)
         {
-            int nextype = sym.get_type(cursym);
-            if (nextype == 0)
-            {
-                cc_error("Can only export global variables and functions, not '%s'", sym.get_friendly_name(cursym).c_str());
-                return -1;
-            }
-            if ((nextype != SYM_GLOBALVAR) && (nextype != SYM_FUNCTION))
-            {
-                cc_error("Invalid export symbol '%s'", sym.get_friendly_name(cursym).c_str());
-                return -1;
-            }
-            if (sym.entries[cursym].flags & SFLG_IMPORTED)
-            {
-                cc_error("Cannot export an import");
-                return -1;
-            }
-            if (sym.entries[cursym].flags & SFLG_ISSTRING)
-            {
-                cc_error("Cannot export string; use char[200] instead");
-                return -1;
-            }
-            // if all functions are being exported anyway, don't bother doing
-            // it now
-            if ((ccGetOption(SCOPT_EXPORTALL) != 0) && (nextype == SYM_FUNCTION))
-            { }
-            else if (scrip->add_new_export(sym.get_name(cursym),
-                (nextype == SYM_GLOBALVAR) ? EXPORT_DATA : EXPORT_FUNCTION,
-                sym.entries[cursym].soffs, sym.entries[cursym].sscope) == -1)
-            {
-                return -1;
-            }
-            if (ReachedEOF(targ))
-            {
-                cc_error("Unexpected end of input");
-                return -1;
-            }
-            cursym = targ->getnext();
-            if (sym.get_type(cursym) == SYM_SEMICOLON)
-                break;
-            if (sym.get_type(cursym) != SYM_COMMA)
-            {
-                cc_error("Expected ',' instead of '%s'", sym.get_friendly_name(cursym).c_str());
-                return -1;
-            }
-            cursym = targ->getnext();
+            cc_error("Expected ',' instead of '%s'", sym.get_friendly_name(cursym).c_str());
+            return -1;
         }
+        cursym = targ->getnext();
+    }
 
         return 0;
     }
 
-    int ParseVartype_GetVarName(ccInternalList *targ, AGS::Symbol & varname, AGS::Symbol & struct_of_member_fct)
-    {
-        struct_of_member_fct = 0;
+int ParseVartype_GetVarName(ccInternalList *targ, AGS::Symbol & varname, AGS::Symbol & struct_of_member_fct)
+{
+    struct_of_member_fct = 0;
 
         varname = targ->getnext();
 
-        if (sym.get_type(targ->peeknext()) != SYM_MEMBERACCESS)
-            return 0; // done
+    if (sym.get_type(targ->peeknext()) != SYM_MEMBERACCESS)
+        return 0; // done
+    // We are accepting "struct::member"; so varname isn't the var name yet: it's the struct name.
+    struct_of_member_fct = varname;
+    targ->getnext(); // gobble "::"
+    AGS::Symbol member_of_member_function = targ->getnext();
 
-        // We are accepting "struct::member"; so varname isn't the var name yet: it's the struct name.
-        struct_of_member_fct = varname;
-        targ->getnext(); // gobble "::"
-        AGS::Symbol member_of_member_function = targ->getnext();
-
-        // change varname to be the full function name
+    // change varname to be the full function name
         const char *full_name_str = GetFullNameOfMember(struct_of_member_fct, member_of_member_function);
         varname = sym.find(full_name_str);
         if (varname < 0)
@@ -5902,14 +5900,16 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    int ParseVartype_CheckForIllegalContext(AGS::NestingStack *nesting_stack)
+    int ParseVartype_CheckForIllegalContext(AGS::Symbol type_of_defn, AGS::NestingStack *nesting_stack)
     {
-        if (nesting_stack->IsUnbraced())
+        // only allow pointers to structs
+        SymbolTableEntry &entry = (kpp_Main == g_PP) ? sym.entries[type_of_defn] : g_Sym1[type_of_defn];
+        if (0 == (entry.flags & SFLG_STRUCTTYPE))
         {
             cc_error("A variable or function declaration cannot be the sole body of an 'if', 'else' or loop clause");
             return -1;
         }
-        if (nesting_stack->Type() == AGS::NestingStack::kNT_Switch)
+        if (0 != (entry.flags & SFLG_AUTOPTR))
         {
             cc_error("This variable declaration may be skipped by case label. Use braces to limit its scope or move it outside the switch statement block");
             return -1;
@@ -5944,54 +5944,74 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    int ParseVartype_CheckIllegalCombis(bool is_static, bool is_member_definition, bool is_function, bool is_protected, bool loopCheckOff, bool is_import)
+int ParseVartype_CheckIllegalCombis(bool is_function, bool is_member_definition, TypeQualifierSet tqs)
+{
+    if (FlagIsSet(tqs, kTQ_Static) && (!is_function || !is_member_definition))
     {
-        if (is_static && (!is_function || !is_member_definition))
-        {
-            cc_error("'static' only applies to member functions");
-            return -1;
-        }
+        cc_error("'static' only applies to member functions");
+        return -1;
+    }
 
-        if (!is_function && is_protected)
-        {
-            cc_error("'protected' not valid in this context");
-            return -1;
-        }
+    if (FlagIsSet(tqs, kTQ_Protected) && is_function)
+    {
+        cc_error("'protected' not valid for functions");
+        return -1;
+    }
 
-        if (!is_function && loopCheckOff)
-        {
-            cc_error("'noloopcheck' not valid in this context");
-            return -1;
-        }
+    if (FlagIsSet(tqs, kTQ_Noloopcheck) && !is_function)
+    {
+        cc_error("'noloopcheck' only valid with functions");
+        return -1;
+    }
 
-        if (!is_function && is_static)
-        {
-            cc_error("Invalid use of 'static'");
-            return -1;
-        }
+    if (FlagIsSet(tqs, kTQ_Readonly) && is_function)
+    {
+        cc_error("Readonly cannot be applied to a function");
+        return -1;
+    }
 
-        if (is_function && loopCheckOff && is_import)
+    if (FlagIsSet(tqs, kTQ_Writeprotected) && is_function)
+    {
+        cc_error("'writeprotected' not valid for functions");
+        return -1;
+    }
+
+    if (is_function && FlagIsSet(tqs, kTQ_Noloopcheck) && FlagIsSet(tqs, kTQ_Import))
+    {
+        cc_error("'noloopcheck' cannot be applied to imported functions");
+        return -1;
+    }
+
+    return 0;
+}
+
+int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &func_name, int type_of_defn, bool isPointer, bool isDynamicArray, TypeQualifierSet tqs, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
+{
+    SymbolTableEntry &entry = (kpp_Main == g_PP) ? sym.entries[func_name] : g_Sym1[func_name];
+    bool body_follows;
+
+    // restore flags, since remove_any_imports() zeros them out
+    if (struct_of_current_func > 0)
+        entry.flags |= SFLG_STRUCTMEMBER;
+    if (FlagIsSet(tqs, kTQ_Protected))
+        entry.flags |= SFLG_PROTECTED;
+    int retval = ParseFuncdecl(
+        targ, scrip, func_name, type_of_defn, isPointer, isDynamicArray,
+        tqs, struct_of_current_func, body_follows);
+    if (retval < 0) return retval;
+    if (kpp_PreAnalyze == g_PP)
+        entry.soffs = (body_follows ? 1 : -1);
+
+    if (!body_follows)
+    {
+        if (SYM_SEMICOLON != sym.get_type(targ->getnext()))
         {
-            cc_error("'noloopcheck' cannot be applied to imported functions");
+            cc_error("Expected ';'");
             return -1;
         }
         return 0;
     }
 
-    int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript * scrip, AGS::Symbol &func_name, int type_of_defn, bool is_readonly, bool isPointer, bool isDynamicArray, bool is_static, Importness is_import, bool is_member_function_definition, bool is_protected, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
-    {
-
-        bool body_follows;
-        // restore flags, since remove_any_imports() zeros them out
-        if (is_member_function_definition)
-            sym.entries[func_name].flags |= SFLG_STRUCTMEMBER;
-        if (is_protected)
-            sym.entries[func_name].flags |= SFLG_PROTECTED;
-        int retval = ParseFuncdecl(
-            targ, scrip, func_name, type_of_defn, isPointer, isDynamicArray,
-            is_static, is_import, struct_of_current_func,
-            struct_of_current_func, body_follows);
-        if (retval < 0) return retval;
 
         // If we've started a function, remember what it is.
         if (body_follows)
@@ -6001,8 +6021,16 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, int type_of_defn, int next_type, bool isPointer, bool &another_var_follows)
+int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, int type_of_defn, int next_type, bool isPointer, bool &another_var_follows)
+{
+    if (kpp_PreAnalyze == g_PP)
     {
+        // We aren't interested in var defns at this stage, so skip this defn
+        AGS::Symbol const stoplist[] = { SYM_COMMA, SYM_SEMICOLON };
+        SkipTo(targ, stoplist, 2);
+        another_var_follows = (targ->getnext() == SYM_COMMA);
+        return 0;
+    }
 
         if (is_global == kGl_Local)
             sym.entries[var_name].sscope = nested_level;
@@ -6015,54 +6043,51 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    // We accepted a variable type such as "int", so what follows is a function or variable definition
-    int ParseVartype(
-        ccInternalList *targ,
-        ccCompiledScript *scrip,
-        AGS::Symbol type_of_defn,           // e.g., "int"
-        AGS::NestingStack *nesting_stack,
-        Importness is_import,             // can be 0 or 1 or 2 
-        bool is_readonly,
-        bool is_static,
-        bool is_protected,
-        AGS::Symbol &name_of_current_func,
-        AGS::Symbol &struct_of_current_func, // 0 if _not_ a member function
-        bool &loopCheckOff)
+// We accepted a variable type such as "int", so what follows is a function or variable definition
+int ParseVartype0(
+    ccInternalList *targ,
+    ccCompiledScript *scrip,
+    AGS::Symbol type_of_defn,           // e.g., "int"
+    AGS::NestingStack *nesting_stack,
+    TypeQualifierSet tqs,
+    AGS::Symbol &name_of_current_func,
+    AGS::Symbol &struct_of_current_func, // 0 if _not_ a member function
+    bool &noloopcheck_is_set)
+{
+    if (ReachedEOF(targ))
     {
-        if (ReachedEOF(targ))
-        {
-            cc_error("Unexpected end of input");
-            return -1;
-        }
+        cc_error("Unexpected end of input");
+        return -1;
+    }
 
-        // Don't define variable or function where illegal in context.
-        int retval = ParseVartype_CheckForIllegalContext(nesting_stack);
-        if (retval < 0) return retval;
+    // Don't define variable or function where illegal in context.
+    int retval = ParseVartype_CheckForIllegalContext(type_of_defn, nesting_stack);
+    if (retval < 0) return retval;
 
-        // Calculate whether this is a pointer definition, gobbling "*" if present
-        bool isPointer = false;
-        retval = ParseVartype_GetPointerStatus(targ, type_of_defn, isPointer);
-        if (retval < 0) return retval;
+    // Calculate whether this is a pointer definition, gobbling "*" if present
+    bool isPointer = false;
+    retval = ParseVartype_GetPointerStatus(targ, type_of_defn, isPointer);
+    if (retval < 0) return retval;
 
-        // Look for "[]"; if present, gobble it and call this a dynamic array.
-        // "int [] func(...)"
-        int dynArrayStatus = ParseParamlist_Param_DynArrayMarker(targ, type_of_defn, isPointer);
-        if (dynArrayStatus < 0)
-            return dynArrayStatus;
-        bool isDynamicArray = (dynArrayStatus > 0);
+    // Look for "[]"; if present, gobble it and call this a dynamic array.
+    // "int [] func(...)"
+    int dynArrayStatus = ParseParamlist_Param_DynArrayMarker(targ, type_of_defn, isPointer);
+    if (dynArrayStatus < 0)
+        return dynArrayStatus;
+    bool isDynamicArray = (dynArrayStatus > 0);
 
-        // Look for "noloopcheck"; if present, gobble it and set the indicator
-        // "TYPE noloopcheck foo(...)"
-        loopCheckOff = false;
-        if (sym.get_type(targ->peeknext()) == SYM_LOOPCHECKOFF)
-        {
-            targ->getnext();
-            loopCheckOff = true;
-        }
+    // Look for "noloopcheck"; if present, gobble it and set the indicator
+    // "TYPE noloopcheck foo(...)"
+    noloopcheck_is_set = false;
+    if (sym.get_type(targ->peeknext()) == SYM_LOOPCHECKOFF)
+    {
+        targ->getnext();
+        noloopcheck_is_set = true;
+    }
 
-        Globalness is_global = kGl_Local;
-        if (name_of_current_func <= 0)
-            is_global = (is_import == kIm_NoImport) ? kGl_GlobalNoImport : kGl_GlobalImport;
+    Globalness is_global = kGl_Local;
+    if (name_of_current_func <= 0)
+        is_global = FlagIsSet(tqs, kTQ_Import) ? kGl_GlobalImport : kGl_GlobalNoImport;
 
         bool another_ident_follows = false; // will become true when we gobble a "," after a var defn
         // We've accepted a type expression and are now reading vars or one func that should have this type.
@@ -6091,27 +6116,28 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
             bool is_function = (sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS);
             bool is_member_definition = (struct_of_current_func > 0);
 
-            // certains modifiers, such as "static" only go with certain kinds of definitions.
-            retval = ParseVartype_CheckIllegalCombis(is_static, is_member_definition, is_function, is_protected, loopCheckOff, (is_import != kIm_NoImport));
+        // certains modifiers, such as "static" only go with certain kinds of definitions.
+        retval = ParseVartype_CheckIllegalCombis(is_function, is_member_definition, tqs);
+        if (retval < 0) return retval;
+
+        if (is_function) // function defn
+        {
+            if ((name_of_current_func >= 0) || (nesting_stack->Depth() > 1))
+            {
+                cc_error("Nested functions not supported (you may have forgotten a closing brace)");
+                return -1;
+            }
+
+            retval = ParseVartype_FuncDef(targ, scrip, var_or_func_name, type_of_defn, isPointer, isDynamicArray, tqs, struct_of_current_func, name_of_current_func);
             if (retval < 0) return retval;
-
-            if (is_function) // function defn
-            {
-                int retval = ParseFuncdecl_CheckForIllegalCombis(is_readonly, name_of_current_func, nesting_stack->Depth());
-                if (retval < 0) return retval;
-
-                retval = ParseVartype_FuncDef(targ, scrip, var_or_func_name, type_of_defn, is_readonly, isPointer, isDynamicArray, is_static, is_import, is_member_definition, is_protected, struct_of_current_func, name_of_current_func);
-                if (retval < 0) return retval;
-                another_ident_follows = false; // Can't join another func or var with ','
-            }
-            else // variable defn
-            {
-                retval = ParseVartype_VarDef(targ, scrip, var_or_func_name, is_global, nesting_stack->Depth() - 1, is_readonly, type_of_defn, next_type, isPointer, another_ident_follows);
-                if (retval < 0) return retval;
-            }
-
+            another_ident_follows = false; // Can't join another func or var with ','
+            break;
         }
-        while (another_ident_follows);
+
+        retval = ParseVartype_VarDef(targ, scrip, var_or_func_name, is_global, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), type_of_defn, next_type, isPointer, another_ident_follows);
+        if (retval < 0) return retval;
+    }
+    while (another_ident_follows);
 
         return 0;
     }
@@ -6309,11 +6335,13 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    int ParseFor_InitClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &cursym, size_t nested_level)
-    {
-        // Check for empty init clause
-        if (sym.get_type(cursym) == SYM_SEMICOLON)
-            return 0;
+int ParseFor_InitClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &cursym, size_t nested_level)
+{
+    scrip->flush_line_numbers();
+
+    // Check for empty init clause
+    if (sym.get_type(cursym) == SYM_SEMICOLON)
+        return 0;
 
         // This will contain buffered code.
         AGS::Symbol vnlist[TEMP_SYMLIST_LENGTH];
@@ -6354,62 +6382,64 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
                 return -1;
             }
 
-            // FIXME: This duplicates common variable declaration parsing at/around the "startvarbit" label
-            bool another_var_follows = false;
-            do
-            {
-                cursym = targ->getnext();
-                if (cursym == SCODE_META)
-                {
-                    // eg. "int" was the last word in the file
-                    currentline = targ->lineAtEnd;
-                    cc_error("Unexpected end of file");
-                    return -1;
-                }
-
-                int next_type = sym.get_type(targ->peeknext());
-                if (next_type == SYM_MEMBERACCESS || next_type == SYM_OPENPARENTHESIS)
-                {
-                    cc_error("Function declaration not allowed in for loop initialiser");
-                    return -1;
-                }
-                else if (sym.get_type(cursym) != 0)
-                {
-                    cc_error("Variable '%s' is already defined", sym.get_name(cursym));
-                    return -1;
-                }
-                else
-                {
-                    // variable declaration
-                    sym.entries[cursym].sscope = static_cast<short>(nested_level);
-
-                    // parse the declaration
-                    int varsize = sym.entries[vtwas].ssize;
-                    int retval = ParseVardecl(targ, scrip, cursym, vtwas, next_type, kGl_Local, isPointer, another_var_follows);
-                    if (retval < 0) return retval;
-                }
-            }
-            while (another_var_follows);
-        }
-        else
+        // FIXME: This duplicates common variable declaration parsing at/around the "startvarbit" label
+        bool another_var_follows = false;
+        do
         {
-            retval = ParseAssignment(targ, scrip, cursym, SYM_SEMICOLON, vnlist, vnlist_len);
-            if (retval < 0) return retval;
+            cursym = targ->getnext();
+            if (cursym < 0)
+            {
+                // eg. "int" was the last word in the file
+                currentline = targ->lineAtEnd;
+                cc_error("Unexpected end of file");
+                return -1;
+            }
+
+            int next_type = sym.get_type(targ->peeknext());
+            if (next_type == SYM_MEMBERACCESS || next_type == SYM_OPENPARENTHESIS)
+            {
+                cc_error("Function definition not allowed in for loop initialiser");
+                return -1;
+            }
+            else if (sym.get_type(cursym) != 0)
+            {
+                cc_error("Variable '%s' is already defined", sym.get_name(cursym));
+                return -1;
+            }
+            else
+            {
+                // variable declaration
+                sym.entries[cursym].sscope = static_cast<short>(nested_level);
+
+                // parse the declaration
+                int varsize = sym.entries[vtwas].ssize;
+                int retval = ParseVardecl(targ, scrip, cursym, vtwas, next_type, kGl_Local, isPointer, another_var_follows);
+                if (retval < 0) return retval;
+            }
         }
+        while (another_var_follows);
+    }
+    else
+    {
+        retval = ParseAssignment(targ, scrip, cursym, SYM_SEMICOLON, vnlist, vnlist_len);
+        if (retval < 0) return retval;
+    }
+    return 0;
+}
+
+int ParseFor_WhileClause(ccInternalList *targ, ccCompiledScript *scrip)
+{
+    scrip->flush_line_numbers();
+
+    // Check for empty while clause
+    if (sym.get_type(targ->peeknext()) == SYM_SEMICOLON)
+    {
+        // Not having a while clause is tantamount to the while condition "true".
+        // So let's write "true" to the AX register.
+        scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 1);
+        targ->getnext();
         return 0;
     }
-
-    int ParseFor_WhileClause(ccInternalList * targ, ccCompiledScript * scrip)
-    {
-        // Check for empty while clause
-        if (sym.get_type(targ->peeknext()) == SYM_SEMICOLON)
-        {
-            // Not having a while clause is tantamount to the while condition "true".
-            // So let's write "true" to the AX register.
-            scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 1);
-            targ->getnext();
-            return 0;
-        }
 
         int retval = ParseExpression(targ, scrip, false);
         if (retval < 0) return retval;
@@ -6422,11 +6452,12 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    int ParseFor_IterateClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &cursym)
-    {
-        // Check for empty interate clause
-        if (sym.get_type(cursym) == SYM_CLOSEPARENTHESIS)
-            return 0;
+int ParseFor_IterateClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &cursym)
+{
+    scrip->flush_line_numbers();
+    // Check for empty interate clause
+    if (sym.get_type(cursym) == SYM_CLOSEPARENTHESIS)
+        return 0;
 
         // This will contain buffered code.
         AGS::Symbol vnlist[TEMP_SYMLIST_LENGTH];
@@ -6715,7 +6746,7 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
             scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
         scrip->flush_line_numbers();
 
-    // if it's a for loop, drop the yanked chunk (loop increment) back in
+    // if it's a for loop, drop the yanked chunk (loop increment)back in
     if (nesting_stack->ChunksExist(loop_level))
     {
         int id;
@@ -6781,17 +6812,17 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 
-    int ParseCommand(
-        ccInternalList *targ,
-        ccCompiledScript * scrip,
-        AGS::Symbol cursym,
-        AGS::Symbol &name_of_current_func,
-        AGS::Symbol &struct_of_current_func,
-        AGS::NestingStack *nesting_stack,
-        bool &next_is_noloopcheck)
-    {
-        int retval;
-        int curtype = sym.get_type(cursym);
+int ParseCommand(
+    ccInternalList *targ,
+    ccCompiledScript *scrip,
+    AGS::Symbol cursym,
+    AGS::Symbol &name_of_current_func,
+    AGS::Symbol &struct_of_current_func,
+    AGS::NestingStack *nesting_stack,
+    bool next_is_noloopcheck)
+{
+    int retval;
+    int curtype = sym.get_type(cursym);
 
         switch (curtype)
         {
@@ -6873,220 +6904,374 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
         return 0;
     }
 
-    int cc_parse(ccInternalList *targ, ccCompiledScript *scrip, size_t &nested_level, AGS::Symbol &name_of_current_func)
+int cc_parse_TQCombiError(TypeQualifierSet tqs)
+{
+    std::map<TypeQualifier, std::string> const tq2String =
     {
-        AGS::Symbol struct_of_current_func = 0; // non-zero only when a struct member function is open
+        {kTQ_Autoptr, "autoptr"},
+        {kTQ_Const, "const"},
+        {kTQ_Import1, "import"},
+        {kTQ_Import2, "_tryimport"},
+        {kTQ_Noloopcheck, "noloopcheck"},
+        {kTQ_Managed, "managed"},
+        {kTQ_Protected, "protected"},
+        {kTQ_Readonly, "readonly"},
+        {kTQ_Static, "static"},
+        {kTQ_Stringstruct, "stringstruct"},
+    };
+    std::string kw2 = "[sentinel]", kw1;
+    for (auto tq_it = tq2String.begin(); tq_it != tq2String.end(); ++tq_it)
+    {
+        if (!FlagIsSet(tqs, tq_it->first))
+            continue;
+        kw1 = kw2;
+        kw2 = tq_it->second;
+    }
 
-        AGS::NestingStack nesting_stack = AGS::NestingStack();
+    cc_error("Cannot use '%s' together with '%s'", kw1.c_str(), kw2.c_str());
+    return -1;
+}
 
-        // These are indicators that are switched on when keywords are encountered and switched off after they are used.
-        // Thus, they are called "NEXT_IS_..." although they are sometimes _used_ with the meaning "THIS_IS...".
-        bool next_is_managed = false;
-        bool next_is_builtin = false;
-        bool next_is_autoptr = false;
-        bool next_is_stringstruct = false;
-        bool next_is_readonly = false;
-        bool next_is_static = false;
-        bool next_is_protected = false;
-        bool next_is_noloopcheck = false;
+// Check whether the qualifiers that accumulated for this decl go together
+int cc_parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
+{
+    if (FlagIsSet(tqs, kTQ_Autoptr))
+    {
+        if (!FlagIsSet(tqs, kTQ_Managed) || !FlagIsSet(tqs, kTQ_Builtin))
+        {
+            cc_error("'autoptr' must be used with 'managed' and 'builtin'");
+            return -1;
+        }
+    }
 
-        // This is NOT an indicator proper since it can have values from 0 to 2.
-        // But 0 seems to mean "next is NOT an import".
-        Importness next_is_import = kIm_NoImport; // NOT a bool, can be 0 or 1 or 2
+    if (FlagIsSet(tqs, kTQ_Builtin) && SYM_STRUCT != decl_type)
+    {
+        cc_error("'builtin' can only be used with structs");
+        return -1;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Const))
+    {
+        cc_error("'const' is only valid for function parameters (use 'readonly' instead)");
+        return -1;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Import) && 0 != (tqs & ~kTQ_Readonly &~kTQ_Import))
+    {
+        cc_parse_TQCombiError((tqs & ~kTQ_Readonly));
+        return -1;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Managed) && SYM_STRUCT != decl_type)
+    {
+        cc_error("'managed' can only be used with structs");
+        return -1;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Protected) && 0 != (tqs & ~kTQ_Static & ~kTQ_Readonly))
+    {
+        cc_parse_TQCombiError((tqs & ~kTQ_Static & ~kTQ_Readonly));
+        return -1;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Readonly) && SYM_VARTYPE != decl_type)
+    {
+        cc_error("'readonly' can only be used in a type declaration");
+        return -1;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Static) && SYM_VARTYPE != decl_type)
+    {
+        cc_error("'static' can only be used in a type declaration");
+        return -1;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Static) && 0 != (tqs & ~kTQ_Static & ~kTQ_Protected & ~kTQ_Readonly))
+    {
+        cc_parse_TQCombiError((tqs & ~kTQ_Static & ~kTQ_Readonly));
+        return -1;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Stringstruct) && (!FlagIsSet(tqs, kTQ_Autoptr)))
+    {
+        cc_error("'stringstruct' must be used in combination with 'autoptr'");
+        return -1;
+    }
+
+    if (FlagIsSet(tqs, kTQ_Writeprotected))
+    {
+        cc_error("'writeprotected' is only valid for struct fields");
+        return -1;
+    }
+
+    if (SYM_EXPORT == decl_type && 0 != tqs)
+    {
+        cc_parse_TQCombiError(tqs);
+        return -1;
+    }
+}
+
+int ParseVartype(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &set_nlc_flag)
+{
+    if (sym.get_type(targ->peeknext()) == SYM_DOT)
+    {
+        if (0 != tqs & ~kTQ_Noloopcheck)
+        {
+            cc_error("Unexpected '.' (did you mean '::'?)");
+            return -1;
+        }
+    }
+
+    // func or variable definition
+    int retval = cc_parse_CheckTQ(tqs, SYM_VARTYPE);
+    if (retval < 0) return retval;
+    return ParseVartype0(targ, scrip, cursym, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, set_nlc_flag);
+}
+
+void cc_parse_SkipToEndingBrace(ccInternalList *targ)
+{
+    // Skip to matching '}'
+    AGS::Symbol const stoplist[] = { 0 };
+    SkipTo(targ, stoplist, 0); // pass empty list
+    targ->getnext(); // Eat '}'
+}
+
+int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip, size_t &nested_level, AGS::Symbol &name_of_current_func)
+{
+    AGS::NestingStack nesting_stack = AGS::NestingStack();
+
+    // non-zero only when a struct member function is open
+    AGS::Symbol struct_of_current_func = 0;
 
         // Go through the list of tokens one by one. We start off in the global data
         // part - no code is allowed until a function definition is started
         currentline = 1; // This is a global variable. cc_internallist.cpp, cs_internallist_test.cpp, cs_parser.cpp
         int currentlinewas = 0;
 
-        while (!ReachedEOF(targ))
+    // This collects the qualifiers ("static" etc.); it is reset whenever the 
+    // qualifiers are used.
+    TypeQualifierSet tqs = 0;
+
+    while (!ReachedEOF(targ))
+    {
+        AGS::Symbol cursym = targ->getnext();
+
+        int retval = cc_parse_HandleLines(targ, scrip, currentlinewas);
+        if (retval > 0)
+            break; // end of input
+
+        // Handling new sections
+        // These section are denoted by a string that begins with NEW_SCRIPT_TOKEN_PREFIX;
+        // the section name follows.
+        if (strncmp(sym.get_name(cursym), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
         {
-            AGS::Symbol cursym = targ->getnext();
+            // scriptNameBuffer is a static C string. 
+            // We can't replace it by a std::string  because it is referenced 
+            // externally through ccCurScriptName (defined in cc_error.cpp)
+            strncpy(ScriptNameBuffer, sym.get_name(cursym) + 18, 236);
+            ScriptNameBuffer[strlen(ScriptNameBuffer) - 1] = 0;  // strip closing quote
+            ccCurScriptName = ScriptNameBuffer;
+            scrip->start_new_section(ScriptNameBuffer);
+            currentline = 0;
+            continue;
+        }
 
-            int retval = cc_parse_HandleLines(targ, scrip, currentlinewas);
-            if (retval > 0)
-                break; // end of input
+        int symType = sym.get_type(cursym);
+        if (symType == 0 && kpp_PreAnalyze == g_PP)
+            symType = Sym1GetType(cursym);
+        switch (symType)
+        {
 
-            // Handling new sections
-            // These section are denoted by a string that begins with NEW_SCRIPT_TOKEN_PREFIX;
-            // the section name follows.
-            if (strncmp(sym.get_name(cursym), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
+        default: break;
+
+        case 0:
+            return ParseUndefToken(cursym);
+
+        case  SYM_AUTOPTR:
+        {
+            SetFlag(tqs, kTQ_Autoptr, true);
+            continue;
+        }
+
+        case SYM_BUILTIN:
+        {
+            SetFlag(tqs, kTQ_Builtin, true);
+            continue;
+        }
+
+        case SYM_CONST:
+        {
+            SetFlag(tqs, kTQ_Const, true);
+            continue;
+        }
+
+        case SYM_ENUM:
+        {
+            int retval = cc_parse_CheckTQ(tqs, SYM_EXPORT);
+            if (retval < 0) return retval;
+            retval = ParseEnum(targ, name_of_current_func);
+            if (retval < 0) return retval;
+            tqs = 0;
+            continue;
+        }
+
+        case SYM_EXPORT:
+        {
+            int retval = cc_parse_CheckTQ(tqs, SYM_EXPORT);
+            if (retval < 0) return retval;
+            retval = ParseExport(targ, scrip);
+            if (retval < 0) return retval;
+            tqs = 0;
+            continue;
+        }
+
+        case SYM_IMPORT:
+        {
+            if (0 == strcmp(sym.get_name(cursym), "_tryimport"))
+                SetFlag(tqs, kTQ_Import2, true);
+            else
+                SetFlag(tqs, kTQ_Import1, true);
+            if (name_of_current_func > 0)
             {
-                // scriptNameBuffer is a static C string. 
-                // We can't replace it by a std::string  because it is referenced 
-                // externally through ccCurScriptName (defined in cc_error.cpp)
-                strncpy(ScriptNameBuffer, sym.get_name(cursym) + 18, 236);
-                ScriptNameBuffer[strlen(ScriptNameBuffer) - 1] = 0;  // strip closing quote
-                ccCurScriptName = ScriptNameBuffer;
-                scrip->start_new_section(ScriptNameBuffer);
-                currentline = 0;
-                continue;
-            }
-
-
-            const int symType = sym.get_type(cursym);
-
-            switch (symType)
-            {
-            default: break;
-
-            case 0:
-                return ParseUndefToken(cursym);
-
-            case  SYM_AUTOPTR:
-            {
-                next_is_autoptr = true;
-                int type_of_next_sym = sym.get_type(targ->peeknext());
-                if (type_of_next_sym != SYM_MANAGED && type_of_next_sym != SYM_BUILTIN)
-                {
-                    cc_error("Expected 'managed' or 'builtin' after 'autoptr'");
-                    return -1;
-                }
-                continue;
-            }
-
-            case SYM_BUILTIN:
-            {
-                next_is_builtin = true;
-                int type_of_next_sym = sym.get_type(targ->peeknext());
-                if ((type_of_next_sym != SYM_MANAGED) && (type_of_next_sym != SYM_STRUCT))
-                {
-                    cc_error("'builtin' can only be used with 'struct' or 'managed struct'");
-                    return -1;
-                }
-                continue;
-            }
-
-            case SYM_CONST:
-            {
-                cc_error("'const' is only valid for function parameters (use 'readonly' instead)");
+                cc_error("'import' not allowed inside function body");
                 return -1;
             }
+            continue;
+        }
 
-            case SYM_ENUM:
+        case  SYM_MANAGED:
+        {
+            SetFlag(tqs, kTQ_Managed, true);
+            continue;
+        }
+
+        case SYM_OPENBRACE:
+        {
+            if (kpp_Main == g_PP)
+                break; // treat as a command, below the switch
+
+            cc_parse_SkipToEndingBrace(targ);
+            tqs = 0;
+            name_of_current_func = -1;
+            struct_of_current_func = -1;
+            continue;
+        }
+
+        case SYM_PROTECTED:
+        {
+            SetFlag(tqs, kTQ_Protected, true);
+            if (name_of_current_func > 0)
             {
-                int retval = ParseEnum(targ, name_of_current_func);
-                if (retval < 0) return retval;
-
-                continue;
+                cc_error("'protected' not allowed inside a function body");
+                return -1;
             }
+            continue;
+        }
 
-            case SYM_EXPORT:
+        case SYM_READONLY:
+        {
+            SetFlag(tqs, kTQ_Readonly, true);
+            continue;
+        }
+
+        case SYM_STATIC:
+        {
+            SetFlag(tqs, kTQ_Static, true);
+            if (name_of_current_func >= 0)
             {
-                int retval = ParseExport(targ, scrip, cursym);
-                if (retval < 0) return retval;
-
-                continue;
+                cc_error("'static' not allowed inside function body");
+                return -1;
             }
+            continue;
+        }
 
-            case SYM_IMPORT:
-            {
-                int retval = ParseImport(targ, name_of_current_func, cursym, next_is_import);
-                if (retval < 0) return retval;
-                continue;
-            }
+        case SYM_STRINGSTRUCT:
+        {
+            SetFlag(tqs, kTQ_Stringstruct, true);
+            continue;
+        }
 
-            case  SYM_MANAGED:
-            {
-                next_is_managed = true;
-                if (sym.get_type(targ->peeknext()) != SYM_STRUCT)
-                {
-                    cc_error("'managed' can only be used with 'struct'");
-                    return -1;
-                }
+        case  SYM_STRUCT:
+        {
+            int retval = cc_parse_CheckTQ(tqs, SYM_STRUCT);
+            if (retval < 0) return retval;
+            retval = ParseStruct(targ, scrip, tqs, name_of_current_func, nested_level);
+            if (retval < 0) return retval;
+            tqs = 0;
+            continue;
+        }
 
-                continue;
-            }
-
-            case SYM_PROTECTED:
-            {
-                int retval = ParseProtected(targ, name_of_current_func, next_is_protected);
-                if (retval < 0) return retval;
-                continue;
-            }
-
-            case SYM_READONLY:
-            {
-                next_is_readonly = true;
-                if (sym.get_type(targ->peeknext()) != SYM_VARTYPE)
-                {
-                    cc_error("Expected type after 'readonly'");
-                    return -1;
-                }
-                continue;
-            }
-
-            case SYM_STATIC:
-            {
-                int retval = ParseStatic(targ, name_of_current_func, next_is_static);
-                if (retval < 0) return retval;
-                continue;
-            }
-
-            case SYM_STRINGSTRUCT:
-            {
-                next_is_stringstruct = true;
-                if (sym.stringStructSym > 0)
-                {
-                    cc_error("stringstruct already defined");
-                    return -1;
-                }
-                if (sym.get_type(targ->peeknext()) != SYM_AUTOPTR)
-                {
-                    cc_error("Expected 'autoptr' after 'stringstruct'");
-                    return -1;
-                }
-                continue;
-            }
-
-            case  SYM_STRUCT:
-            {
-                int retval = ParseStruct(targ, scrip, cursym, next_is_managed, next_is_builtin, next_is_autoptr, next_is_stringstruct, name_of_current_func, nested_level);
-                if (retval < 0) return retval;
-
-                next_is_managed = false;
-                next_is_builtin = false;
-                next_is_autoptr = false;
-                next_is_stringstruct = false;
-                continue;
-            }
-
-            case SYM_VARTYPE:
-            {
-                if (sym.get_type(targ->peeknext()) == SYM_DOT)
-                {
-                    // We're looking at "int ." or similar; treated below the switch
-                    break;
-                }
-                // func or variable definition
-                int retval = ParseVartype(targ, scrip, cursym, &nesting_stack, next_is_import, next_is_readonly, next_is_static, next_is_protected, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
-                if (retval < 0) return retval;
-                next_is_import = kIm_NoImport;
-                next_is_readonly = false;
-                next_is_static = false;
-                next_is_protected = false;
-                continue;
-            }
+        case SYM_VARTYPE:
+        {
+            bool set_nlc_flag = false;
+            int retval = ParseVartype(targ, scrip, cursym, tqs, nesting_stack, name_of_current_func, struct_of_current_func, set_nlc_flag);
+            if (retval < 0) return retval;
+            tqs = 0;
+            if (set_nlc_flag)
+                SetFlag(tqs, kTQ_Noloopcheck, true);
+            continue;
+        }
 
             } // switch (symType)
 
-            // Commands are only allowed within a function
-            if (name_of_current_func <= 0)
-            {
-                cc_error("'%s' is illegal outside a function", sym.get_friendly_name(cursym).c_str());
-                return -1;
-            }
+        // Commands are only allowed within a function
+        if (name_of_current_func <= 0)
+        {
+            cc_error("'%s' is illegal outside a function", sym.get_name(cursym));
+            return -1;
+        }
 
-            retval = ParseCommand(targ, scrip, cursym, name_of_current_func, struct_of_current_func, &nesting_stack, next_is_noloopcheck);
-            if (retval < 0) return retval;
-        } // for
+        retval = ParseCommand(targ, scrip, cursym, name_of_current_func, struct_of_current_func, &nesting_stack, FlagIsSet(tqs, kTQ_Noloopcheck));
+        if (retval < 0) return retval;
+        tqs = 0;
+    } // for
 
-        return 0;
+    return 0;
+}
+
+int cc_parse_FuncHeaders2Sym()
+{
+    for (TSym1Table::iterator sym_it = g_Sym1.begin(); sym_it != g_Sym1.end(); ++sym_it)
+    {
+        SymbolTableEntry &f_entry = sym_it->second;
+        if (f_entry.stype != SYM_FUNCTION || f_entry.soffs <= 0)
+            continue;
+        SymbolTableEntry &s_entry = sym.entries[sym_it->first];
+        f_entry.soffs = 0;
+        f_entry.sname = s_entry.sname;
+        f_entry.flags &= ~SFLG_IMPORTED; // Local funcs can't be imported
+        f_entry.CopyTo(s_entry);
     }
+    return 0;
+}
+
+int cc_parse(ccInternalList *targ, ccCompiledScript *scrip, size_t &nested_level, AGS::Symbol &name_of_current_func)
+{
+    // Skim through the code and collect the headers of functions defined locally
+    int const start_of_input = targ->pos;
+    g_PP = kpp_PreAnalyze;
+    g_Sym1.clear();
+    int retval = cc_parse_ParseInput(targ, scrip, nested_level, name_of_current_func);
+    if (retval < 0) return retval;
+
+    // Copy (just) the headers of functions that have a body to the main symbol table
+    retval = cc_parse_FuncHeaders2Sym();
+    if (retval < 0) return retval;
+    g_Sym1.clear();
+
+    // Back up, parse the source in earnest and generate code for it
+    targ->pos = start_of_input;
+    g_PP = kpp_Main;
+    g_FCM.Init();
+    retval = cc_parse_ParseInput(targ, scrip, nested_level, name_of_current_func);
+    if (retval < 0) return retval;
+
+    return g_FCM.CheckForUnresolvedFuncs();
+}
 
 // compile the code in the INPL parameter into code in the scrip structure,
 // but don't reset anything because more files could follow
-int cc_compile(const char *inpl, ccCompiledScript *scrip)
+int cc_compile(const char * inpl, ccCompiledScript *scrip)
 {
     // Scan & tokenize the program code.
     ccInternalList targ;

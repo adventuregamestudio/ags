@@ -296,25 +296,29 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             PollUntilNextFrame();
             countdown--;
 
-            if (channels[SCHAN_SPEECH] != NULL) {
-                // extend life of text if the voice hasn't finished yet
-                if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
-                    if (countdown <= 1)
-                        countdown = 1;
-                }
-                else  // if the voice has finished, remove the speech
-                    countdown = 0;
-            }
-
-            if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
             {
-                play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms / time_between_timers);
-                break;
+                AudioChannelsLock _lock;
+                auto* speech_ch = _lock.GetChannel(SCHAN_SPEECH);
+                if (speech_ch != nullptr) {
+                    // extend life of text if the voice hasn't finished yet
+                    if ((!speech_ch->done) && (play.fast_forward == 0)) {
+                        if (countdown <= 1)
+                            countdown = 1;
+                    }
+                    else  // if the voice has finished, remove the speech
+                        countdown = 0;
+                }
+
+                if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
+                {
+                    play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms / time_between_timers);
+                    break;
+                }
+                // if skipping cutscene, don't get stuck on No Auto Remove
+                // text boxes
+                if ((countdown < 1) && (play.fast_forward))
+                    break;
             }
-            // if skipping cutscene, don't get stuck on No Auto Remove
-            // text boxes
-            if ((countdown < 1) && (play.fast_forward))
-                break;
         }
         if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_DISABLE);

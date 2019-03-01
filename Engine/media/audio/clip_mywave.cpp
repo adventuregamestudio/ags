@@ -21,10 +21,9 @@
 
 #include "platform/base/agsplatformdriver.h"
 
-
 int MYWAVE::poll()
 {
-    AGS::Engine::MutexLock _lock(_mutex);
+    //must be called AudioChannelsLock
 
     if (!done && _destroyThis)
     {
@@ -82,14 +81,12 @@ void MYWAVE::internal_destroy()
 
 void MYWAVE::destroy()
 {
-    AGS::Engine::MutexLock _lock(_mutex);
+    //must be called AudioChannelsLock
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
       _destroyThis = true;
     else
       internal_destroy();
-
-	_lock.Release();
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();

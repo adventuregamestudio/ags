@@ -23,6 +23,7 @@
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/draw.h"
 #include "ac/game_version.h"
+#include "media/audio/audio.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
@@ -31,7 +32,6 @@ extern GameSetupStruct game;
 extern ViewStruct*views;
 extern SpriteCache spriteset;
 extern CCAudioClip ccDynamicAudioClip;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf) {
@@ -147,7 +147,11 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
         }
     }
     if (sound_volume != SCR_NO_VALUE && channel != NULL)
-        channels[channel->id]->set_volume_percent(channels[channel->id]->get_volume() * sound_volume / 100);
+    {
+        AudioChannelsLock _lock;
+        auto* ch = _lock.GetChannel(channel->id);
+        ch->set_volume_percent(ch->get_volume() * sound_volume / 100);
+    }
     
 }
 

@@ -248,14 +248,15 @@ void update_overlay_timers()
 
 void update_speech_and_messages()
 {
-  const bool is_voice = channels[SCHAN_SPEECH] != NULL;
+  AudioChannelsLock _lock;
+  const bool is_voice = _lock.GetChannel(SCHAN_SPEECH) != nullptr;
 
   // determine if speech text should be removed
   if (play.messagetime>=0) {
     play.messagetime--;
     // extend life of text if the voice hasn't finished yet
     if (is_voice && !play.speech_in_post_state) {
-      if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
+      if ((!_lock.GetChannel(SCHAN_SPEECH)->done) && (play.fast_forward == 0)) {
       //if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
         if (play.messagetime <= 1)
           play.messagetime = 1;
@@ -291,7 +292,9 @@ void update_speech_and_messages()
 
 void update_sierra_speech()
 {
-  const bool is_voice = channels[SCHAN_SPEECH] != NULL;
+  AudioChannelsLock _lock;
+  const bool is_voice = _lock.GetChannel(SCHAN_SPEECH) != nullptr;
+
 	// update sierra-style speech
   if ((face_talking >= 0) && (play.fast_forward == 0)) 
   {
@@ -328,7 +331,7 @@ void update_sierra_speech()
 
     if (curLipLine >= 0) {
       // check voice lip sync
-      int spchOffs = channels[SCHAN_SPEECH]->get_pos_ms ();
+      int spchOffs = _lock.GetChannel(SCHAN_SPEECH)->get_pos_ms ();
       if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes) {
         // the lip-sync has finished, so just stay idle
       }

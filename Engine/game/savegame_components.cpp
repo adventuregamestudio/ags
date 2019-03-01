@@ -267,19 +267,21 @@ HSaveError WriteAudio(PStream out)
     }
 
     // Audio clips and crossfade
+    AudioChannelsLock _lock;
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++)
     {
-        if ((channels[i] != NULL) && (channels[i]->done == 0) && (channels[i]->sourceClip != NULL))
+        auto* ch = _lock.GetChannel(i);
+        if ((ch != nullptr) && (ch->done == 0) && (ch->sourceClip != NULL))
         {
-            out->WriteInt32(((ScriptAudioClip*)channels[i]->sourceClip)->id);
-            out->WriteInt32(channels[i]->get_pos());
-            out->WriteInt32(channels[i]->priority);
-            out->WriteInt32(channels[i]->repeat ? 1 : 0);
-            out->WriteInt32(channels[i]->vol);
-            out->WriteInt32(channels[i]->panning);
-            out->WriteInt32(channels[i]->volAsPercentage);
-            out->WriteInt32(channels[i]->panningAsPercentage);
-            out->WriteInt32(channels[i]->speed);
+            out->WriteInt32(((ScriptAudioClip*)ch->sourceClip)->id);
+            out->WriteInt32(ch->get_pos());
+            out->WriteInt32(ch->priority);
+            out->WriteInt32(ch->repeat ? 1 : 0);
+            out->WriteInt32(ch->vol);
+            out->WriteInt32(ch->panning);
+            out->WriteInt32(ch->volAsPercentage);
+            out->WriteInt32(ch->panningAsPercentage);
+            out->WriteInt32(ch->speed);
         }
         else
         {

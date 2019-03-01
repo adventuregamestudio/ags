@@ -31,7 +31,7 @@ extern int use_extra_sound_offset;  // defined in ac.cpp
 
 int MYSTATICOGG::poll()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    //must be called AudioChannelsLock
 
     if (tune && !done && _destroyThis)
     {
@@ -96,27 +96,22 @@ void MYSTATICOGG::internal_destroy()
 
 void MYSTATICOGG::destroy()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    //must be called AudioChannelsLock
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
       _destroyThis = true;
     else
       internal_destroy();
 
-	_lock.Release();
-
+    //warning: scary for this to be done under a lock
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();
-
-    // Allow the last poll cycle to finish.
-	_lock.Acquire(_mutex);
 }
 
 void MYSTATICOGG::seek(int pos)
 {
-	AGS::Engine::MutexLock _lock;
-    if (psp_audio_multithreaded)
-		_lock.Acquire(_mutex);
+    //must be called AudioChannelsLock
+
     // we stop and restart it because otherwise the buffer finishes
     // playing first and the seek isn't quite accurate
     alogg_stop_ogg(tune);

@@ -16,15 +16,17 @@
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
 #include "util/stream.h"
+#include "media/audio/audio.h"
 
 using AGS::Common::Stream;
 
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
-
 bool AmbientSound::IsPlaying () {
+    
     if (channel <= 0)
         return false;
-    return (channels[channel] != NULL) ? true : false;
+
+    AudioChannelsLock _lock;
+    return (_lock.GetChannel(channel) != nullptr) ? true : false;
 }
 
 void AmbientSound::ReadFromFile(Stream *in)

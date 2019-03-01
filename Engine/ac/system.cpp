@@ -30,13 +30,13 @@
 #include "ac/dynobj/cc_audiochannel.h"
 #include "main/graphics_mode.h"
 #include "ac/global_debug.h"
+#include "media/audio/audio.h"
 
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
@@ -201,9 +201,11 @@ void System_SetVolume(int newvol)
     // if it was previously set low; so restore them
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) 
     {
-        if ((channels[i] != NULL) && (channels[i]->done == 0)) 
+        AudioChannelsLock _lock;
+        auto* ch = _lock.GetChannel(i);
+        if ((ch != nullptr) && (ch->done == 0)) 
         {
-            channels[i]->adjust_volume();
+            ch->adjust_volume();
         }
     }
 }

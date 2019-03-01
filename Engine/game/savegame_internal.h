@@ -86,7 +86,7 @@ struct RestoredData
         int PanAsPercent;
         int Speed;
     };
-    ChannelInfo             AudioChans[MAX_SOUND_CHANNELS + 1];
+    ChannelInfo             AudioChans[MAX_SOUND_CHANNELS];
     // Ambient sounds
     int                     DoAmbient[MAX_SOUND_CHANNELS];
 

@@ -26,6 +26,7 @@
 #include "game/roomstruct.h"
 #include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
+#include "media/audio/audio.h"
 
 using namespace AGS::Common;
 
@@ -35,7 +36,6 @@ extern int displayed_room;
 extern GameState play;
 extern int char_speaking;
 extern RoomStruct thisroom;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern unsigned int loopcounter;
 
 #define Random __Rand
@@ -265,7 +265,8 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         ((walking == 0) || ((flags & CHF_MOVENOTWALK) != 0)) &&
         (room == displayed_room)) 
     {
-      const bool is_voice = channels[SCHAN_SPEECH] != NULL;
+      AudioChannelsLock _lock;
+      const bool is_voice = _lock.GetChannel(SCHAN_SPEECH) != nullptr;
 
       doing_nothing = 0;
       // idle anim doesn't count as doing something

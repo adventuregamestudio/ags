@@ -60,6 +60,9 @@ namespace AGS
 // The stack of nesting statements 
 class NestingStack
 {
+private:
+    static int _chunkIdCtr; // for assigning unique IDs to chunks
+
 public:
     // A section of compiled code that needs to be moved or copied to a new location
     struct Chunk
@@ -69,6 +72,7 @@ public:
         std::vector<char> FixupTypes;
         int CodeOffset;
         int FixupOffset;
+        int Id;
     };
 
     // All data that is associated with a nesting level
@@ -155,12 +159,13 @@ public:
     inline void Pop() { _stack.pop_back(); };
 
     // Rip a generated chunk of code out of the codebase and stash it away for later 
-    void YankChunk(::ccCompiledScript *scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset);
+    // Returns the unique ID of this code in id
+    void YankChunk(::ccCompiledScript *scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset, int &id);
 
     // Write chunk of code back into the codebase that has been stashed in level given, at index
-    void WriteChunk(::ccCompiledScript *scrip, size_t level, size_t index);
+    void WriteChunk(::ccCompiledScript *scrip, size_t level, size_t index, int &id);
     // Write chunk of code back into the codebase stashed in the innermost level, at index
-    inline void WriteChunk(::ccCompiledScript *scrip, size_t index) { WriteChunk(scrip, Depth() - 1, index); };
+    inline void WriteChunk(::ccCompiledScript *scrip, size_t index, int &id) { WriteChunk(scrip, Depth() - 1, index, id); };
 };
 
 class FuncCallpointMgr

@@ -259,9 +259,7 @@ int SkipTo(ccInternalList * targ, const AGS::Symbol stoplist[], size_t stoplist_
     return -1;
 }
 
-
-
-
+int AGS::NestingStack::_chunkIdCtr = 0;
 
 
 int AGS::NestingStack::Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc info)
@@ -289,7 +287,7 @@ AGS::NestingStack::NestingStack()
 
 // Rip the code that has already been generated, starting from codeoffset, out of scrip
 // and move it into the vector at list, instead.
-void AGS::NestingStack::YankChunk(ccCompiledScript *scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset)
+void AGS::NestingStack::YankChunk(ccCompiledScript *scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset, int &id)
 {
     AGS::NestingStack::Chunk item;
 
@@ -303,6 +301,7 @@ void AGS::NestingStack::YankChunk(ccCompiledScript *scrip, AGS::CodeLoc codeoffs
     }
     item.CodeOffset = codeoffset;
     item.FixupOffset = fixupoffset;
+    item.Id = id = ++_chunkIdCtr;
 
     _stack.back().Chunks.push_back(item);
 
@@ -313,9 +312,10 @@ void AGS::NestingStack::YankChunk(ccCompiledScript *scrip, AGS::CodeLoc codeoffs
 
 
 // Copy the code in the chunk to the end of the bytecode vector 
-void AGS::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t index)
+void AGS::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t index, int &id)
 {
-    const AGS::NestingStack::Chunk item = Chunks(level).at(index);
+    AGS::NestingStack::Chunk const item = Chunks(level).at(index);
+    id = item.Id;
     scrip->flush_line_numbers();
     AGS::CodeLoc adjust = scrip->codesize - item.CodeOffset;
 
@@ -720,7 +720,10 @@ int DealWithEndOfElse(ccInternalList *targ, ccCompiledScript*scrip, AGS::Nesting
         // if it's a for loop, drop the yanked chunk (loop increment) back in
         if (nesting_stack->ChunksExist())
         {
-            nesting_stack->WriteChunk(scrip, 0);
+            int id;
+            AGS::CodeLoc const write_start = scrip->codesize;
+            nesting_stack->WriteChunk(scrip, 0, id);
+            g_FCM.UpdateCallListOnWriting(write_start, id);
             nesting_stack->Chunks().clear();
         }
 
@@ -847,8 +850,11 @@ int DealWithEndOfSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nest
     const size_t size_of_chunks = nesting_stack->Chunks().size();
     for (size_t index = 0; index < size_of_chunks; index++)
     {
+        int id;
+        AGS::CodeLoc codesize = scrip->codesize;
         // Put the result of the expression into AX
-        nesting_stack->WriteChunk(scrip, index);
+        nesting_stack->WriteChunk(scrip, index, id);
+        g_FCM.UpdateCallListOnWriting(codesize, id);
         // Do the comparison
         scrip->write_cmd2(noteq_op, SREG_AX, SREG_BX);
         // This command will be written to code[codesize] and code[codesize]+1
@@ -6504,10 +6510,13 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
             nesting_stack->SetType(AGS::NestingStack::kNT_BracedElse);
         }
 
-        // We've just generated code for getting to the next loop iteration.
-        // But we don't need that code right here; we need it at the bottom of the loop.
-        // So rip it out of the bytecode base and save it into our nesting stack.
-        nesting_stack->YankChunk(scrip, iterate_clause_loc, pre_fixup_count);
+    // We've just generated code for getting to the next loop iteration.
+    // But we don't need that code right here; we need it at the bottom of the loop.
+    // So rip it out of the bytecode base and save it into our nesting stack.
+    int id;
+    size_t const yank_size = scrip->codesize - iterate_clause_loc;
+    nesting_stack->YankChunk(scrip, iterate_clause_loc, pre_fixup_count, id);
+    g_FCM.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
 
         // Code for "If the expression we just evaluated is false, jump over the loop body."
         // the 0 will be fixed to a proper offset later
@@ -6614,9 +6623,12 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 
             // [fw] Comparison operation may be missing here.
 
-            // rip out the already generated code for the case/switch and store it with the switch
-            nesting_stack->YankChunk(scrip, start_of_code_loc, numfixups_at_start_of_code);
-        }
+        // rip out the already generated code for the case/switch and store it with the switch
+        int id;
+        size_t const yank_size = scrip->codesize - start_of_code_loc;
+        nesting_stack->YankChunk(scrip, start_of_code_loc, numfixups_at_start_of_code, id);
+        g_FCM.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
+    }
 
         // expect and gobble the ':'
         if (sym.get_type(targ->getnext()) != SYM_LABEL)
@@ -6703,10 +6715,15 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
             scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
         scrip->flush_line_numbers();
 
-        // if it's a for loop, drop the yanked chunk (loop increment) back in
-        if (nesting_stack->ChunksExist(loop_level))
-            nesting_stack->WriteChunk(scrip, loop_level, 0);
-        scrip->flush_line_numbers();
+    // if it's a for loop, drop the yanked chunk (loop increment) back in
+    if (nesting_stack->ChunksExist(loop_level))
+    {
+        int id;
+        AGS::CodeLoc const write_start = scrip->codesize;
+        nesting_stack->WriteChunk(scrip, loop_level, 0, id);
+        g_FCM.UpdateCallListOnWriting(write_start, id);
+    }
+    scrip->flush_line_numbers();
 
         // original comment "The jump below may be a conditional jump."
         //  [fw] Nooo? Leave it in, anyway, so that we have identical bytecode

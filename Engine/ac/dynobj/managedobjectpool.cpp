@@ -24,87 +24,80 @@
 
 using namespace AGS::Common;
 
-void ManagedObjectPool::ManagedObject::init(int32_t theHandle, const char *theAddress,
+void ManagedObjectPool::Init(int32_t theHandle, const char *theAddress,
                                             ICCDynamicObject *theCallback, ScriptValueType objType) {
-    obj_type = objType;
-    handle = theHandle;
-    addr = theAddress;
-    callback = theCallback;
-    refCount = 0;
+    auto & o = objects[theHandle];
 
-    ManagedObjectLog("Allocated managed object handle=%d, type=%s", theHandle, theCallback->GetType());
+    o.obj_type = objType;
+    o.handle = theHandle;
+    o.addr = theAddress;
+    o.callback = theCallback;
+    o.refCount = 0;
+
+    handleByAddress[theAddress] = theHandle;
+
+    ManagedObjectLog("Allocated managed object handle=%d, type=%s", o.theHandle, o.theCallback->GetType());
 }
 
-int ManagedObjectPool::ManagedObject::remove(bool force) {
+int ManagedObjectPool::Remove(int32_t handle, bool force) {
 
-    if ((callback != NULL) && (callback->Dispose(addr, force) == 0) &&
+    auto & o = objects[handle];
+
+    if ((o.callback != NULL) && (o.callback->Dispose(o.addr, force) == 0) &&
         (force == false))
         return 0;
 
-    ManagedObjectLog("Line %d Disposing managed object handle=%d", currentline, handle);
+    ManagedObjectLog("Line %d Disposing managed object handle=%d", o.currentline, o.handle);
 
-    handle = 0;
-    addr = 0;
-    callback = NULL;
+    auto it = handleByAddress.find(o.addr);
+    if (it != handleByAddress.end()) {
+        handleByAddress.erase(it);
+    } 
+
+    o.handle = 0;
+    o.addr = 0;
+    o.callback = nullptr;
+
     return 1;
 }
 
-int ManagedObjectPool::ManagedObject::AddRef() {
-    ManagedObjectLog("Line %d AddRef: handle=%d new refcount=%d", currentline, handle, refCount+1);
-    return ++refCount;
-}
-
-int ManagedObjectPool::ManagedObject::CheckDispose() {
-    if ((refCount < 1) && (callback != NULL)) {
-        if (remove())
-            return 1;
-    }
-    return 0;
-}
-
-int ManagedObjectPool::ManagedObject::SubRef() {
-    refCount--;
-    ManagedObjectLog("Line %d SubRef: handle=%d new refcount=%d", currentline, handle, refCount);
-
-    return CheckDispose();
-}
-
-void ManagedObjectPool::ManagedObject::SubRefNoDispose() {
-    refCount--;
-    ManagedObjectLog("Line %d SubRefNoDispose: handle=%d new refcount=%d", currentline, handle, refCount);
-}
-
 int32_t ManagedObjectPool::AddRef(int32_t handle) {
-        return objects[handle].AddRef();
+    auto & o = objects[handle];
+
+    o.refCount += 1;
+    ManagedObjectLog("Line %d AddRef: handle=%d new refcount=%d", o.currentline, o.handle, o.refCount);
+    return o.refCount;
 }
 
 int ManagedObjectPool::CheckDispose(int32_t handle) {
-    return objects[handle].CheckDispose();
+    auto & o = objects[handle];
+
+    if ((o.refCount < 1) && (o.callback != NULL)) {
+        return Remove(handle);
+    }
+    return 0;
 }
 
 int32_t ManagedObjectPool::SubRef(int32_t handle) {
-    if ((disableDisposeForObject != NULL) && 
-        (objects[handle].addr == disableDisposeForObject))
-        objects[handle].SubRefNoDispose();
-    else
-        objects[handle].SubRef();
-    return objects[handle].refCount;
+    auto & o = objects[handle];
+
+    if ((disableDisposeForObject != NULL) && (o.addr == disableDisposeForObject)) {
+        o.refCount--;
+        ManagedObjectLog("Line %d SubRefNoDispose: handle=%d new refcount=%d", o.currentline, o.handle, o.refCount);
+    } else {
+        o.refCount--;
+        ManagedObjectLog("Line %d SubRef: handle=%d new refcount=%d", o.currentline, o.handle, o.refCount);
+        CheckDispose(handle);
+    }
+    return o.refCount;
 }
 
 int32_t ManagedObjectPool::AddressToHandle(const char *addr) {
-    // this function is only called when a pointer is set
-    // SLOW LOOP ALERT, improve at some point
-    // [IKM] 2013-01-01: search in reverse order, as suggested by rofl0r:
-    // it appears that, statistically, the given address is more often
-    // located closer to the end of the managed array.
-    for (size_t i = numObjects - 1; i >= 1; --i)
-    {
-        if (objects[i].addr == addr)
-        {
-            return objects[i].handle;
-        }
+    try {
+        return handleByAddress.at(addr);
+    } catch (std::out_of_range) {
+        return 0;
     }
-    return 0;
 }
 
 const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
@@ -134,7 +127,8 @@ int ManagedObjectPool::RemoveObject(const char *address) {
     if (handl == 0)
         return 0;
 
-    objects[handl].remove(true);
+    Remove(handl, true);
+
     return 1;
 }
 
@@ -155,7 +149,7 @@ void ManagedObjectPool::RunGarbageCollection()
     {
         if ((objects[i].refCount < 1) && (objects[i].callback != NULL)) 
         {
-            objects[i].remove();
+            Remove(i);
         }
     }
 }
@@ -168,7 +162,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
 
     if (useSlot < arrayAllocLimit) {
         // still space in the array, so use it
-        objects[useSlot].init(useSlot, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
+        Init(useSlot, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
         if (useSlot == numObjects)
             numObjects++;
         return useSlot;
@@ -181,7 +175,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
             // long
             for (int i = arrayAllocLimit - 1; i >= 1; i--) {
                 if (objects[i].handle == 0) {
-                    objects[i].init(i, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
+                    Init(i, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
                     return i;
                 }
             }
@@ -192,7 +186,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
 
         objects = (ManagedObject*)realloc(objects, sizeof(ManagedObject) * arrayAllocLimit);
         memset(&objects[useSlot], 0, sizeof(ManagedObject) * ARRAY_INCREMENT_SIZE);
-        objects[useSlot].init(useSlot, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
+        Init(useSlot, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
         if (useSlot == numObjects)
             numObjects++;
         return useSlot;
@@ -290,8 +284,9 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
 void ManagedObjectPool::reset() {
     // de-allocate all objects
     for (int kk = 1; kk < arrayAllocLimit; kk++) {
-        if (objects[kk].handle)
-            objects[kk].remove(true);
+        if (objects[kk].handle) {
+            Remove(kk, true);
+        }
     }
     memset(&objects[0], 0, sizeof(ManagedObject) * arrayAllocLimit);
     numObjects = 1;

@@ -44,7 +44,7 @@
 #define OPT_LETTERBOX       13
 #define OPT_FIXEDINVCURSOR  14
 #define OPT_NOLOSEINV       15
-#define OPT_NOSCALEFNT      16
+#define OPT_HIRES_FONTS     16
 #define OPT_SPLITRESOURCES  17
 #define OPT_ROTATECHARS     18
 #define OPT_FADETYPE        19
@@ -91,8 +91,9 @@
 #define FADE_CROSSFADE      4
 #define FADE_LAST           4   // this should equal the last one
 
-//#define FFLG_NOSCALE        1
-#define FFLG_SIZEMASK 0x003f
+//#define FFLG_NOSCALE      0x01 // TODO: is this from legacy format?
+#define FFLG_SIZEMASK 0x3f
+#define FFLG_SIZEMULTIPLIER 0x02  // size data means multiplier
 #define FONT_OUTLINE_NONE -1
 #define FONT_OUTLINE_AUTO -10
 #define MAX_FONT_SIZE 63
@@ -206,7 +207,7 @@ struct SpriteInfo
 struct FontInfo
 {
     // General font's loading and rendering flags
-    unsigned char Flags;
+    uint8_t       Flags;
     // Font size, in points (basically means pixels in AGS)
     int           SizePt;
     // Factor to multiply base font size by

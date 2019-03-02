@@ -32,6 +32,7 @@ void shutdown_font_renderer();
 void adjust_y_coordinate_for_text(int* ypos, size_t fontnum);
 IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer);
 bool font_first_renderer_loaded();
+bool is_font_loaded(size_t fontNumber);
 bool is_bitmap_font(size_t fontNumber);
 bool font_supports_extended_characters(size_t fontNumber);
 // TODO: with changes to WFN font renderer that implemented safe rendering of

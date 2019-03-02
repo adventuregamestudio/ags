@@ -99,10 +99,15 @@ void GameSetupStruct::Free()
 }
 
 // Assigns font info parameters using flags value read from the game data
-void SetFontInfoFromSerializedFlags(FontInfo &finfo, char flags)
+void SetFontInfoFromSerializedFlags(FontInfo &finfo, uint8_t flags)
 {
-    finfo.Flags = flags & ~FFLG_SIZEMASK;
-    finfo.SizePt = flags &  FFLG_SIZEMASK;
+    finfo.Flags = flags >> 6;
+    finfo.SizePt = flags & FFLG_SIZEMASK;
+    if ((finfo.Flags & FFLG_SIZEMULTIPLIER) != 0)
+    {
+        finfo.SizeMultiplier = finfo.SizePt;
+        finfo.SizePt = 0;
+    }
 }
 
 ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num)

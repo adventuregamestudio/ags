@@ -48,6 +48,7 @@ struct OldGameSetupStruct;
 struct GameSetupStruct: public GameSetupStructBase {
     // This array is used only to read data into;
     // font parameters are then put and queried in the fonts module
+    // TODO: split into installation params (used only when reading) and runtime params
     std::vector<FontInfo> fonts;
     InventoryItemInfo invinfo[MAX_INV];
     MouseCursor       mcurs[MAX_CURSOR];

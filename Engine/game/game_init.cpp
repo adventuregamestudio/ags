@@ -317,7 +317,7 @@ HError InitAndRegisterGameEntities()
     return HError::None();
 }
 
-void LoadFonts()
+void LoadFonts(GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
@@ -409,7 +409,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     HError err = InitAndRegisterGameEntities();
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
-    LoadFonts();
+    LoadFonts(data_ver);
 
     //
     // 4. Initialize certain runtime variables

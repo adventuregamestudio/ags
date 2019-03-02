@@ -38,6 +38,11 @@ namespace AGS.Editor
             }
         }
 
+        public void OnFontUpdated()
+        {
+            PaintFont();
+        }
+
         protected override string OnGetHelpKeyword()
         {
             return "Fonts";

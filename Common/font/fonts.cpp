@@ -84,6 +84,11 @@ bool font_first_renderer_loaded()
   return fonts.size() > 0 && fonts[0].Renderer != NULL;
 }
 
+bool is_font_loaded(size_t fontNumber)
+{
+    return fontNumber < fonts.size() && fonts[fontNumber].Renderer != NULL;;
+}
+
 IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer)
 {
   if (fontNumber >= fonts.size())

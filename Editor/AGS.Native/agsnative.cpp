@@ -931,34 +931,6 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 	
 }
 
-int global_font_scaling;
-void update_font_sizes() {
-  int multiplyWas = global_font_scaling;
-
-  // scale up fonts if necessary
-  global_font_scaling = 1;
-  if ((thisgame.options[OPT_NOSCALEFNT] == 0) &&
-      thisgame.IsHiRes()) {
-    global_font_scaling = 2;
-  }
-
-  if (multiplyWas != global_font_scaling) {
-    // resolution or Scale Up Fonts has changed, reload at new size
-    for (int bb=0;bb<thisgame.numfonts;bb++)
-      reload_font (bb);
-  }
-
-  if (thisgame.IsHiRes()) {
-    sxmult = 2;
-    symult = 2;
-  }
-  else {
-    sxmult = 1;
-    symult = 1;
-  }
-
-}
-
 const char* import_sci_font(const char*fnn,int fslot) {
   char wgtfontname[100];
   sprintf(wgtfontname,"agsfnt%d.wfn",fslot);
@@ -1033,13 +1005,14 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
     return 0;
   }
 
-  update_font_sizes();
+  if (!is_font_loaded(fontnum))
+    reload_font(fontnum);
 
   int doubleSize = (!thisgame.IsHiRes()) ? 2 : 1;
   int blockSize = (!thisgame.IsHiRes()) ? 1 : 2;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
-  int char_height = thisgame.fonts[fontnum].SizePt;
+  int char_height = thisgame.fonts[fontnum].SizePt * thisgame.fonts[fontnum].SizeMultiplier;
   int grid_size   = max(10, char_height);
   int grid_margin = max(4, grid_size / 4);
   grid_size += grid_margin * 2;
@@ -1437,22 +1410,7 @@ void update_abuf_coldepth() {
 bool reload_font(int curFont)
 {
   wfreefont(curFont);
-
-  FontInfo fi = thisgame.fonts[curFont];
-  // if the font is designed for 640x400, half it
-  if (thisgame.options[OPT_NOSCALEFNT]) {
-    fi.SizeMultiplier = 1;
-    // TODO: for some reason this compat fix is absent in the engine, investigate
-    if (!thisgame.IsHiRes())
-      fi.SizePt /= 2;
-  }
-  else if (thisgame.IsHiRes()) {
-    // designed for 320x200, double it up
-    fi.SizeMultiplier = 2;
-  } else {
-    fi.SizeMultiplier = 1;
-  }
-  return wloadfont_size(curFont, fi);
+  return wloadfont_size(curFont, thisgame.fonts[curFont]);
 }
 
 HAGSError reset_sprite_file() {
@@ -2198,10 +2156,17 @@ void GameUpdated(Game ^game) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
-  thisgame.options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
+  if (thisgame.IsHiRes()) {
+      sxmult = 2;
+      symult = 2;
+  }
+  else {
+      sxmult = 1;
+      symult = 1;
+  }
+
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
-  update_font_sizes();
 
   //delete abuf;
   //abuf = Common::BitmapHelper::CreateBitmap(32, 32, thisgame.color_depth * 8);
@@ -2225,6 +2190,7 @@ void GameUpdated(Game ^game) {
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
 	  thisgame.fonts[i].SizePt = game->Fonts[i]->PointSize;
+      thisgame.fonts[i].SizeMultiplier = game->Fonts[i]->SizeMultiplier;
       thisgame.fonts[i].YOffset = game->Fonts[i]->VerticalOffset;
       thisgame.fonts[i].LineSpacing = game->Fonts[i]->LineSpacing;
 	  reload_font(i);
@@ -2234,9 +2200,23 @@ void GameUpdated(Game ^game) {
 
 void GameFontUpdated(Game ^game, int fontNumber)
 {
-    thisgame.fonts[fontNumber].YOffset = game->Fonts[fontNumber]->VerticalOffset;
-    thisgame.fonts[fontNumber].LineSpacing = game->Fonts[fontNumber]->LineSpacing;
-    set_fontinfo(fontNumber, thisgame.fonts[fontNumber]);
+    FontInfo &font_info = thisgame.fonts[fontNumber];
+    AGS::Types::Font ^font = game->Fonts[fontNumber];
+
+    int old_sizept = font_info.SizePt;
+    int old_scaling = font_info.SizeMultiplier;
+
+    font_info.SizePt = font->PointSize;
+    font_info.SizeMultiplier = font->SizeMultiplier;
+    font_info.YOffset = font->VerticalOffset;
+    font_info.LineSpacing = font->LineSpacing;
+    set_fontinfo(fontNumber, font_info);
+
+    if (font_info.SizePt != old_sizept ||
+        font_info.SizeMultiplier != old_scaling)
+    {
+        reload_font(fontNumber);
+    }
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)
@@ -3213,7 +3193,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 	game->Settings->EnforceNewStrings = (thisgame.options[OPT_STRICTSTRINGS] != 0);
   game->Settings->EnforceNewAudio = false;
 	game->Settings->EnforceObjectBasedScript = (thisgame.options[OPT_STRICTSCRIPTING] != 0);
-	game->Settings->FontsForHiRes = (thisgame.options[OPT_NOSCALEFNT] != 0);
+	game->Settings->FontsForHiRes = (thisgame.options[OPT_HIRES_FONTS] != 0);
 	game->Settings->GameName = gcnew String(thisgame.gamename);
 	game->Settings->UseGlobalSpeechAnimationDelay = true; // this was always on in pre-3.0 games
 	game->Settings->GUIAlphaStyle = GUIAlphaStyle::Classic;

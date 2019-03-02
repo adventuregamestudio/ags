@@ -647,6 +647,7 @@ namespace AGS
             if (name->Equals("MAX_SG_FOLDER_LEN")) return MAX_SG_FOLDER_LEN;
             if (name->Equals("MAX_SCRIPT_NAME_LEN")) return MAX_SCRIPT_NAME_LEN;
             if (name->Equals("FFLG_SIZEMASK")) return FFLG_SIZEMASK;
+            if (name->Equals("FFLG_SIZEMULTIPLIER")) return FFLG_SIZEMULTIPLIER;
             if (name->Equals("IFLG_STARTWITH")) return IFLG_STARTWITH;
             if (name->Equals("MCF_ANIMMOVE")) return MCF_ANIMMOVE;
             if (name->Equals("MCF_STANDARD")) return MCF_STANDARD;
@@ -725,7 +726,7 @@ namespace AGS
             if (name->Equals("OPT_NOWALKMODE")) return OPT_NOWALKMODE;
             if (name->Equals("OPT_LETTERBOX")) return OPT_LETTERBOX;
             if (name->Equals("OPT_FIXEDINVCURSOR")) return OPT_FIXEDINVCURSOR;
-            if (name->Equals("OPT_NOSCALEFNT")) return OPT_NOSCALEFNT;
+            if (name->Equals("OPT_HIRES_FONTS")) return OPT_HIRES_FONTS;
             if (name->Equals("OPT_SPLITRESOURCES")) return OPT_SPLITRESOURCES;
             if (name->Equals("OPT_ROTATECHARS")) return OPT_ROTATECHARS;
             if (name->Equals("OPT_FADETYPE")) return OPT_FADETYPE;

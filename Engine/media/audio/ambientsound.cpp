@@ -19,12 +19,10 @@
 
 using AGS::Common::Stream;
 
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
-
 bool AmbientSound::IsPlaying () {
     if (channel <= 0)
         return false;
-    return (channels[channel] != NULL) ? true : false;
+    return channel_is_playing(channel);
 }
 
 void AmbientSound::ReadFromFile(Stream *in)

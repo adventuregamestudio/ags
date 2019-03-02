@@ -143,7 +143,7 @@ int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptE
 
     for (int i = startAtChannel; i < endBeforeChannel; i++)
     {
-        if ((channels[i] == NULL) || (channels[i]->done))
+        if (!channel_is_playing(i))
         {
             channelToUse = i;
             stop_and_destroy_channel(i);
@@ -225,11 +225,12 @@ void audio_update_polled_stuff()
 {
     play.crossfade_step++;
 
+    if ((play.crossfading_out_channel > 0) && !channel_is_playing(play.crossfading_out_channel)) {
+        play.crossfading_out_channel = 0;
+    }
+
     if (play.crossfading_out_channel > 0)
     {
-        if (channels[play.crossfading_out_channel] == NULL)
-            quitprintf("Crossfade out channel is %d but channel has gone", play.crossfading_out_channel);
-
         int newVolume = channels[play.crossfading_out_channel]->get_volume() - play.crossfade_out_volume_per_step;
         if (newVolume > 0)
         {
@@ -240,6 +241,10 @@ void audio_update_polled_stuff()
             stop_and_destroy_channel(play.crossfading_out_channel);
             play.crossfading_out_channel = 0;
         }
+    }
+
+    if ((play.crossfading_in_channel > 0) && !channel_is_playing(play.crossfading_in_channel)) {
+        play.crossfading_in_channel = 0;
     }
 
     if (play.crossfading_in_channel > 0)
@@ -356,7 +361,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     // NOTE: there is a confusing logic in sound clip classes, that they do not use
     // any modifiers when begin playing, therefore we must apply this only after
     // playback was started.
-    if (!play.fast_forward && channels[SCHAN_SPEECH])
+    if (!play.fast_forward && channel_is_playing(SCHAN_SPEECH))
         apply_volume_drop_to_clip(soundfx);
 
     last_sound_played[channel] = -1;
@@ -441,6 +446,7 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
         play.crossfading_in_channel = 0;
     if (play.crossfading_out_channel == chid)
         play.crossfading_out_channel = 0;
+    // don't update 'crossFading' here as it is updated in all the cross-fading functions.
 
     // destroyed an ambient sound channel
     if (ambient[chid].channel > 0)
@@ -540,7 +546,7 @@ void update_directional_sound_vol()
 {
     for (int chan = 1; chan < MAX_SOUND_CHANNELS; chan++) 
     {
-        if ((channels[chan] != NULL) && (channels[chan]->done == 0) &&
+        if (channel_is_playing(chan) &&
             (channels[chan]->xSource >= 0)) 
         {
             channels[chan]->apply_directional_modifier(
@@ -564,7 +570,7 @@ void update_ambient_sound_vol () {
 
         int sourceVolume = thisSound->vol;
 
-        if ((channels[SCHAN_SPEECH] != NULL) && (channels[SCHAN_SPEECH]->done == 0)) {
+        if (channel_is_playing(SCHAN_SPEECH)) {
             // Negative value means set exactly; positive means drop that amount
             if (play.speech_music_drop < 0)
                 sourceVolume = -play.speech_music_drop;
@@ -589,10 +595,9 @@ void update_ambient_sound_vol () {
             wantvol = get_volume_adjusted_for_distance(ambientvol, thisSound->x, thisSound->y, thisSound->maxdist);
         }
 
-        if (channels[thisSound->channel] == NULL)
-            quit("Internal error: the ambient sound channel is enabled, but it has been destroyed");
-
-        channels[thisSound->channel]->set_volume(wantvol);
+        if (channel_is_playing(thisSound->channel)) {
+            channels[thisSound->channel]->set_volume(wantvol);
+        }
     }
 }
 
@@ -636,13 +641,13 @@ int play_sound_priority (int val1, int priority) {
     int lowest_pri = 9999, lowest_pri_id = -1;
 
     // find a free channel to play it on
-    for (int i = SCHAN_NORMAL; i < numSoundChannels; i++) {
+    for (int i = SCHAN_NORMAL; i < MAX_SOUND_CHANNELS; i++) {
         if (val1 < 0) {
             // Playing sound -1 means iterate through and stop all sound
-            if ((channels[i] != NULL) && (channels[i]->done == 0))
+            if (channel_is_playing(i))
                 stop_and_destroy_channel (i);
         }
-        else if ((channels[i] == NULL) || (channels[i]->done != 0)) {
+        else if (!channel_is_playing(i)) {
             if (PlaySoundEx(val1, i) >= 0)
                 channels[i]->priority = priority;
             return i;
@@ -750,7 +755,7 @@ void apply_volume_drop_modifier(bool applyModifier)
 {
     for (int i = 0; i < MAX_SOUND_CHANNELS; i++) 
     {
-        if (channels[i] && channels[i]->done == 0 && channels[i]->sourceClip != NULL)
+        if (channel_is_playing(i) && channels[i]->sourceClip != NULL)
         {
             if (applyModifier)
                 apply_volume_drop_to_clip(channels[i]);
@@ -763,7 +768,7 @@ void apply_volume_drop_modifier(bool applyModifier)
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
 void update_volume_drop_if_voiceover()
 {
-    apply_volume_drop_modifier(channels[SCHAN_SPEECH] != NULL);
+    apply_volume_drop_modifier(channel_is_playing(SCHAN_SPEECH));
 }
 
 extern volatile char want_exit;
@@ -775,7 +780,7 @@ void update_mp3_thread()
 	AGS::Engine::MutexLock _lock(_audio_mutex);
 	for (musicPollIterator = 0; musicPollIterator <= MAX_SOUND_CHANNELS; ++musicPollIterator)
 	{
-		if ((channels[musicPollIterator] != NULL) && (channels[musicPollIterator]->done == 0))
+		if (channel_is_playing(musicPollIterator))
 			channels[musicPollIterator]->poll();
 	}
 }
@@ -858,8 +863,7 @@ void stopmusic() {
         }
     }
     else if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && (channels[SCHAN_MUSIC] != NULL)
-        && (channels[SCHAN_MUSIC]->done == 0)
+        && channel_is_playing(SCHAN_MUSIC)
         && (current_music_type != 0)
         && (current_music_type != MUS_MIDI)
         && (current_music_type != MUS_MOD)) {
@@ -902,8 +906,8 @@ void update_music_volume() {
                 stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
                 if (crossFading > 0) {
                     channels[SCHAN_MUSIC] = channels[crossFading];
-                    channels[crossFading] = NULL;
                 }
+                channels[crossFading] = nullptr;
                 crossFading = 0;
             }
             else {
@@ -915,7 +919,7 @@ void update_music_volume() {
                     newvol = 0;
             }
         }
-        if (channels[SCHAN_MUSIC])
+        if (channel_is_playing(SCHAN_MUSIC))
             channels[SCHAN_MUSIC]->set_volume (newvol);
     }
 }
@@ -923,11 +927,11 @@ void update_music_volume() {
 // Ensures crossfader is stable after loading (or failing to load)
 // new music
 void post_new_music_check (int newchannel) {
-    if ((crossFading > 0) && (channels[crossFading] == NULL)) {
+    if ((crossFading > 0) && !channel_is_playing(crossFading)) {
         crossFading = 0;
         // Was fading out but then they played invalid music, continue
         // to fade out
-        if (channels[SCHAN_MUSIC] != NULL)
+        if (channel_is_playing(SCHAN_MUSIC))
             crossFading = -1;
     }
 
@@ -939,8 +943,7 @@ int prepare_for_new_music () {
     int useChannel = SCHAN_MUSIC;
 
     if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && (channels[SCHAN_MUSIC] != NULL)
-        && (channels[SCHAN_MUSIC]->done == 0)
+        && channel_is_playing(SCHAN_MUSIC)
         && (current_music_type != MUS_MIDI)
         && (current_music_type != MUS_MOD)) {
 

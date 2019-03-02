@@ -30,7 +30,6 @@ SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll);
 SOUNDCLIP *my_load_midi(const AssetPath &asset_name, int repet);
 SOUNDCLIP *my_load_mod(const AssetPath &asset_name, int repet);
 
-extern int numSoundChannels;
 extern int use_extra_sound_offset;
 
 #endif // __AC_SOUND_H

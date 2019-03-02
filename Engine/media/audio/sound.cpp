@@ -52,9 +52,6 @@ extern "C"
 MIDI *load_midi_pf(PACKFILE *pf);
 }
 
-int numSoundChannels = 8;
-
-
 #if !defined (WINDOWS_VERSION)
 // for toupper
 #include <ctype.h>

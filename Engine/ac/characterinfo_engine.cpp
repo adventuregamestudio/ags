@@ -15,6 +15,7 @@
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
+#include "media/audio/soundclip.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"
@@ -264,7 +265,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         ((walking == 0) || ((flags & CHF_MOVENOTWALK) != 0)) &&
         (room == displayed_room)) 
     {
-      const bool is_voice = channels[SCHAN_SPEECH] != NULL;
+      const bool is_voice = channel_is_playing(SCHAN_SPEECH);
 
       doing_nothing = 0;
       // idle anim doesn't count as doing something

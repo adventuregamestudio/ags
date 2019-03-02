@@ -29,7 +29,6 @@ extern GameSetupStruct game;
 extern GameState play;
 
 extern volatile unsigned long globalTimerCounter;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern int pluginSimulatedClick;
 extern int displayed_room;
 extern char check_dynamic_sprites_at_exit;

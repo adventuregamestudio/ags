@@ -269,7 +269,7 @@ HSaveError WriteAudio(PStream out)
     // Audio clips and crossfade
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++)
     {
-        if ((channels[i] != NULL) && (channels[i]->done == 0) && (channels[i]->sourceClip != NULL))
+        if (channel_is_playing(i) && (channels[i]->sourceClip != NULL))
         {
             out->WriteInt32(((ScriptAudioClip*)channels[i]->sourceClip)->id);
             out->WriteInt32(channels[i]->get_pos());

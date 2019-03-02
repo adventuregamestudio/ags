@@ -164,5 +164,6 @@ protected:
     }
 };
 
+extern bool channel_is_playing(int chanid);
 
 #endif // __AC_SOUNDCLIP_H

@@ -59,8 +59,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
         return;
 
     // only play the sound if it's not already playing
-    if ((ambient[channel].channel < 1) || (channels[ambient[channel].channel] == NULL) ||
-        (channels[ambient[channel].channel]->done == 1) ||
+    if ((ambient[channel].channel < 1) || !channel_is_playing(ambient[channel].channel) ||
         (ambient[channel].num != sndnum)) {
 
             StopAmbientSound(channel);
@@ -96,7 +95,7 @@ int IsChannelPlaying(int chan) {
     if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
         quit("!IsChannelPlaying: invalid sound channel");
 
-    if ((channels[chan] != NULL) && (channels[chan]->done == 0))
+    if (channel_is_playing(chan))
         return 1;
 
     return 0;
@@ -107,8 +106,8 @@ int IsSoundPlaying() {
         return 0;
 
     // find if there's a sound playing
-    for (int i = SCHAN_NORMAL; i < numSoundChannels; i++) {
-        if ((channels[i] != NULL) && (channels[i]->done == 0))
+    for (int i = SCHAN_NORMAL; i < MAX_SOUND_CHANNELS; i++) {
+        if (channel_is_playing(i))
             return 1;
     }
 
@@ -207,17 +206,11 @@ int IsMusicPlaying() {
     if ((play.fast_forward) && (play.skip_until_char_stops < 0))
         return 0;
 
-    if (current_music_type != 0) {
-        if (channels[SCHAN_MUSIC] == NULL)
-            current_music_type = 0;
-        else if (channels[SCHAN_MUSIC]->done == 0)
-            return 1;
-        else if ((crossFading > 0) && (channels[crossFading] != NULL))
-            return 1;
-        return 0;
+    auto result = channel_is_playing(SCHAN_MUSIC) || (crossFading > 0 && channel_is_playing(crossFading));
+    if (!result) {
+        current_music_type = 0;
     }
-
-    return 0;
+    return result;
 }
 
 int PlayMusicQueued(int musnum) {
@@ -269,7 +262,7 @@ void scr_StopMusic() {
 }
 
 void SeekMODPattern(int patnum) {
-    if (current_music_type == MUS_MOD && channels[SCHAN_MUSIC]) {
+    if (current_music_type == MUS_MOD && channel_is_playing(SCHAN_MUSIC)) {
         channels[SCHAN_MUSIC]->seek (patnum);
         debug_script_log("Seek MOD/XM to pattern %d", patnum);
     }
@@ -277,9 +270,9 @@ void SeekMODPattern(int patnum) {
 void SeekMP3PosMillis (int posn) {
     if (current_music_type) {
         debug_script_log("Seek MP3/OGG to %d ms", posn);
-        if (crossFading && channels[crossFading])
+        if (crossFading > 0 && channel_is_playing(crossFading))
             channels[crossFading]->seek (posn);
-        else if (channels[SCHAN_MUSIC])
+        else if (channel_is_playing(SCHAN_MUSIC))
             channels[SCHAN_MUSIC]->seek (posn);
     }
 }
@@ -289,7 +282,7 @@ int GetMP3PosMillis () {
     if (play.fast_forward)
         return 999999;
 
-    if (current_music_type && channels[SCHAN_MUSIC]) {
+    if (current_music_type && channel_is_playing(SCHAN_MUSIC)) {
         int result = channels[SCHAN_MUSIC]->get_pos_ms();
         if (result >= 0)
             return result;
@@ -331,7 +324,7 @@ void SetChannelVolume(int chan, int newvol) {
     if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
         quit("!SetChannelVolume: invalid channel id");
 
-    if ((channels[chan] != NULL) && (channels[chan]->done == 0)) {
+    if (channel_is_playing(chan)) {
         if (chan == ambient[chan].channel) {
             ambient[chan].vol = newvol;
             update_ambient_sound_vol();
@@ -412,7 +405,7 @@ void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
-    if (channels[SCHAN_SPEECH])
+    if (channel_is_playing(SCHAN_SPEECH))
         channels[SCHAN_SPEECH]->set_volume (newvol);
 
     play.speech_volume = newvol;
@@ -544,7 +537,7 @@ int play_speech(int charid,int sndid) {
 }
 
 void stop_speech() {
-    if (channels[SCHAN_SPEECH] != NULL) {
+    if (channel_is_playing(SCHAN_MUSIC)) {
         play.music_master_volume = play.music_vol_was;
         // update the music in a bit (fixes two speeches follow each other
         // and music going up-then-down)

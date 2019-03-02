@@ -43,7 +43,7 @@ void AudioClip_Stop(ScriptAudioClip *clip)
 {
     for (int i = 0; i < MAX_SOUND_CHANNELS; i++)
     {
-        if ((channels[i] != NULL) && (!channels[i]->done) && (channels[i]->sourceClip == clip))
+        if (channel_is_playing(i) && (channels[i]->sourceClip == clip))
         {
             AudioChannel_Stop(&scrAudioChannel[i]);
         }

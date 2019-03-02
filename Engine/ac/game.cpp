@@ -299,7 +299,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 }
 
 int Game_GetMODPattern() {
-    if (current_music_type == MUS_MOD && channels[SCHAN_MUSIC]) {
+    if (current_music_type == MUS_MOD && channel_is_playing(SCHAN_MUSIC)) {
         return channels[SCHAN_MUSIC]->get_pos();
     }
     return -1;
@@ -1758,7 +1758,7 @@ void stop_fast_forwarding() {
     // Restore actual volume of sounds
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
-        if ((channels[aa] != NULL) && (!channels[aa]->done))
+        if (channel_is_playing(aa))
         {
             channels[aa]->set_mute(false);
         }
@@ -1873,7 +1873,7 @@ void display_switch_out_suspend()
 
     // stop the sound stuttering
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
-        if ((channels[i] != NULL) && (channels[i]->done == 0)) {
+        if (channel_is_playing(i)) {
             channels[i]->pause();
         }
     }
@@ -1908,7 +1908,7 @@ void display_switch_in_resume()
     display_switch_in();
 
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
-        if ((channels[i] != NULL) && (channels[i]->done == 0)) {
+        if (channel_is_playing(i)) {
             channels[i]->resume();
         }
     }

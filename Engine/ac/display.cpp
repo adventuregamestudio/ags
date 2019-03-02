@@ -269,6 +269,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         // 4 = mouse only
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
+        auto wasSpeaking = channel_is_playing(SCHAN_SPEECH);
         while (1) {
             timerloop = 0;
             /*      if (!play.mouse_cursor_hidden)
@@ -296,9 +297,9 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             PollUntilNextFrame();
             countdown--;
 
-            if (channels[SCHAN_SPEECH] != NULL) {
+            if (wasSpeaking) {
                 // extend life of text if the voice hasn't finished yet
-                if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
+                if (channel_is_playing(SCHAN_SPEECH) && (play.fast_forward == 0)) {
                     if (countdown <= 1)
                         countdown = 1;
                 }

@@ -201,7 +201,7 @@ void System_SetVolume(int newvol)
     // if it was previously set low; so restore them
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) 
     {
-        if ((channels[i] != NULL) && (channels[i]->done == 0)) 
+        if (channel_is_playing(i)) 
         {
             channels[i]->adjust_volume();
         }

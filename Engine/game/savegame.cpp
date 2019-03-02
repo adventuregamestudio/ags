@@ -568,7 +568,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         }
         play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);
-        if (channels[i] != NULL)
+        if (channel_is_playing(i))
         {
             channels[i]->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
             channels[i]->set_speed(chan_info.Speed);
@@ -576,9 +576,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
             channels[i]->panningAsPercentage = chan_info.PanAsPercent;
         }
     }
-    if ((cf_in_chan > 0) && (channels[cf_in_chan] != NULL))
+    if ((cf_in_chan > 0) && channel_is_playing(cf_in_chan))
         play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && (channels[cf_out_chan] != NULL))
+    if ((cf_out_chan > 0) && channel_is_playing(cf_out_chan))
         play.crossfading_out_channel = cf_out_chan;
 
     // If there were synced audio tracks, the time taken to load in the
@@ -587,7 +587,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
         int pos = r_data.AudioChans[i].Pos;
-        if ((pos > 0) && (channels[i] != NULL) && (channels[i]->done == 0))
+        if ((pos > 0) && channel_is_playing(i))
         {
             channels[i]->seek(pos);
         }
@@ -630,13 +630,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     }
 
     // test if the playing music was properly loaded
-    if (current_music_type > 0)
-    {
-        if (crossFading > 0 && !channels[crossFading] ||
-            crossFading <= 0 && !channels[SCHAN_MUSIC])
-        {
-            current_music_type = 0;
-        }
+    auto music_playing = channel_is_playing(SCHAN_MUSIC) || (crossFading > 0 && channel_is_playing(crossFading));
+    if (!music_playing) {
+        current_music_type = 0;
     }
 
     set_game_speed(r_data.FPS);

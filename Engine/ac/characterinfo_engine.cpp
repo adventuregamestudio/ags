@@ -16,6 +16,7 @@
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "media/audio/audiodefines.h"
+#include "media/audio/soundclip.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"
@@ -35,7 +36,6 @@ extern int displayed_room;
 extern GameState play;
 extern int char_speaking;
 extern RoomStruct thisroom;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern unsigned int loopcounter;
 
 #define Random __Rand
@@ -265,7 +265,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         ((walking == 0) || ((flags & CHF_MOVENOTWALK) != 0)) &&
         (room == displayed_room)) 
     {
-      const bool is_voice = channels[SCHAN_SPEECH] != NULL;
+      const bool is_voice = channel_is_playing(SCHAN_SPEECH);
 
       doing_nothing = 0;
       // idle anim doesn't count as doing something

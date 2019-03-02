@@ -77,3 +77,8 @@ SOUNDCLIP::SOUNDCLIP() {
 SOUNDCLIP::~SOUNDCLIP()
 {
 }
+
+bool channel_is_playing(int chanid) {
+    auto ch = channels[chanid];
+    return ch != nullptr && ch->done == 0;
+}

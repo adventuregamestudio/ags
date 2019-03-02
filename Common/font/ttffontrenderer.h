@@ -33,6 +33,7 @@ public:
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
   // IAGSFontRenderer2 implementation
+  virtual bool IsBitmapFont();
   virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params);
 
 private:

@@ -440,8 +440,8 @@ void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color
     else if (get_font_outline(usingfont) == FONT_OUTLINE_AUTO) {
         int outlineDist = 1;
 
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(usingfont))) {
-            // if it's a scaled up SCI font, move the outline out more
+        if (is_bitmap_font(usingfont) && get_font_scaling_mul(usingfont) > 1) {
+            // if it's a scaled up bitmap font, move the outline out more
             outlineDist = get_fixed_pixel_size(1);
         }
 
@@ -476,8 +476,8 @@ int get_outline_adjustment(int font)
 {
     // automatic outline fonts are 2 pixels taller
     if (get_font_outline(font) == FONT_OUTLINE_AUTO) {
-        // scaled up SCI font, push outline further out
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(font)))
+        // scaled up bitmap font, push outline further out
+        if (is_bitmap_font(font) && get_font_scaling_mul(font) > 1)
             return get_fixed_pixel_size(2);
         // otherwise, just push outline by 1 pixel
         else
@@ -513,7 +513,7 @@ int wgettextwidth_compensate(const char *tex, int font) {
 
     if (get_font_outline(font) == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(font)))
+        if (is_bitmap_font(font) && get_font_scaling_mul(font) > 1)
             wdof += get_fixed_pixel_size(2);
         // otherwise, just push outline by 1 pixel
         else

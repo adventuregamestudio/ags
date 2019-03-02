@@ -209,6 +209,8 @@ struct FontInfo
     unsigned char Flags;
     // Font size, in points (basically means pixels in AGS)
     int           SizePt;
+    // Factor to multiply base font size by
+    int           SizeMultiplier;
     // Outlining font index, or auto-outline flag
     char          Outline;
     // Custom vertical render offset, used mainly for fixing broken fonts

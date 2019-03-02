@@ -931,17 +931,18 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 	
 }
 
+int global_font_scaling;
 void update_font_sizes() {
-  int multiplyWas = wtext_multiply;
+  int multiplyWas = global_font_scaling;
 
   // scale up fonts if necessary
-  wtext_multiply = 1;
+  global_font_scaling = 1;
   if ((thisgame.options[OPT_NOSCALEFNT] == 0) &&
       thisgame.IsHiRes()) {
-    wtext_multiply = 2;
+    global_font_scaling = 2;
   }
 
-  if (multiplyWas != wtext_multiply) {
+  if (multiplyWas != global_font_scaling) {
     // resolution or Scale Up Fonts has changed, reload at new size
     for (int bb=0;bb<thisgame.numfonts;bb++)
       reload_font (bb);
@@ -1438,16 +1439,18 @@ bool reload_font(int curFont)
   wfreefont(curFont);
 
   FontInfo fi = thisgame.fonts[curFont];
-
-  // TODO: for some reason these compat fixes are different in the engine, investigate
   // if the font is designed for 640x400, half it
   if (thisgame.options[OPT_NOSCALEFNT]) {
+    fi.SizeMultiplier = 1;
+    // TODO: for some reason this compat fix is absent in the engine, investigate
     if (!thisgame.IsHiRes())
       fi.SizePt /= 2;
   }
   else if (thisgame.IsHiRes()) {
     // designed for 320x200, double it up
-    fi.SizePt *= 2;
+    fi.SizeMultiplier = 2;
+  } else {
+    fi.SizeMultiplier = 1;
   }
   return wloadfont_size(curFont, fi);
 }

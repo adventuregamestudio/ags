@@ -77,6 +77,11 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   return LoadFromDiskEx(fontNumber, fontSize, NULL);
 }
 
+bool TTFFontRenderer::IsBitmapFont()
+{
+    return false;
+}
+
 bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params)
 {
   String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
@@ -113,7 +118,10 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const FontRen
       strcmp(alfont_get_name(alfptr), "LucasFan-Font") == 0)
       set_font_outline(fontNumber, FONT_OUTLINE_AUTO);
 #endif
-
+  if (fontSize == 0)
+      fontSize = 8; // compatibility fix
+  if (params && params->SizeMultiplier > 1)
+      fontSize *= params->SizeMultiplier;
   if (fontSize > 0)
     alfont_set_font_size(alfptr, fontSize);
 

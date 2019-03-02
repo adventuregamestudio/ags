@@ -29,6 +29,7 @@
 #include "ac/statobj/staticarray.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/game_init.h"
 #include "gfx/bitmap.h"
@@ -320,17 +321,7 @@ void LoadFonts()
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
-        FontInfo finfo = game.fonts[i];
-
-        // Apply compatibility adjustments
-        if (finfo.SizePt == 0)
-            finfo.SizePt = 8;
-
-        // TODO: for some reason these compat fixes are different in the editor, investigate
-        if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
-            finfo.SizePt *= 2;
-
-        if (!wloadfont_size(i, finfo, NULL))
+        if (!wloadfont_size(i, game.fonts[i]))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
     }
 }

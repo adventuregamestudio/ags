@@ -1745,7 +1745,7 @@ void start_skipping_cutscene () {
 
 void check_skip_cutscene_keypress (int kgn) {
 
-    if ((play.in_cutscene > 0) && (play.in_cutscene != 3)) {
+    if ((play.in_cutscene > 0) && (play.in_cutscene != 3) && (play.in_cutscene != 6)) {
         if ((kgn != 27) && ((play.in_cutscene == 1) || (play.in_cutscene == 5)))
             ;
         else

@@ -186,7 +186,8 @@ enum CutsceneSkipType {
   eSkipAnyKey = 2,
   eSkipMouseClick = 3,
   eSkipAnyKeyOrMouseClick = 4,
-  eSkipESCOrRightButton = 5
+  eSkipESCOrRightButton = 5,
+  eSkipScriptOnly = 6
 };
 
 enum DialogOptionState {

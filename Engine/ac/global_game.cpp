@@ -484,6 +484,12 @@ void StartCutscene (int skipwith) {
     initialize_skippable_cutscene();
 }
 
+void SkipCutscene()
+{
+    if (play.in_cutscene > 0)
+        start_skipping_cutscene();
+}
+
 int EndCutscene () {
     if (play.in_cutscene == 0)
         quit("!EndCutscene: not in a cutscene");

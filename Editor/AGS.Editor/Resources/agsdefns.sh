@@ -1445,6 +1445,11 @@ import void ClaimEvent();
 import void SetTextWindowGUI (int gui);
 import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
 
+#ifdef SCRIPT_API_v3507
+/// Skip current cutscene (if one is currently in progress)
+import void SkipCutscene();
+#endif
+
 #ifndef STRICT
 // Obsolete GUI functions
 import void SetInvDimensions(int width, int height);

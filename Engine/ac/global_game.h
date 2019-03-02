@@ -53,6 +53,8 @@ void EndSkippingUntilCharStops();
 // 5 = right click or ESC only
 void StartCutscene (int skipwith);
 int EndCutscene ();
+// Tell the game to skip current cutscene
+void SkipCutscene();
 
 void sc_inputbox(const char*msg,char*bufr);
 

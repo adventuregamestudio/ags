@@ -152,6 +152,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
 
     while (1) {
         timerloop = 0;
+        update_audio_system_on_game_loop();
         refresh_gui_screen();
 
         cscim->id = -1;
@@ -192,7 +193,6 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         if (cscim->code > 0)
             break;
 
-        update_polled_audio_and_crossfade();
         while (timerloop == 0) ;
     }
 

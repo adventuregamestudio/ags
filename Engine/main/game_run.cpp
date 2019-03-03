@@ -717,7 +717,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     int res;
 
-    update_mp3();
+    update_polled_mp3();
 
     numEventsAtStartOfFunction = numevents;
 
@@ -764,7 +764,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_do_late_update();
 
-    update_polled_audio_and_crossfade();
+    update_audio_system_on_game_loop();
 
     game_loop_do_render_and_check_mouse(extraBitmap, extraX, extraY);
 
@@ -959,8 +959,7 @@ void update_polled_stuff_if_runtime()
         quit("||exit!");
     }
 
-    if (!psp_audio_multithreaded)
-        update_polled_mp3();
+    update_polled_mp3();
 
     if (editor_debugging_initialized)
         check_for_messages_from_editor();

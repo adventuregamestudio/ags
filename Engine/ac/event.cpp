@@ -293,7 +293,7 @@ void process_event(EventHappened*evp) {
                     temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
                     render_to_screen(viewport.Left, viewport.Top);
-                    update_mp3();
+                    update_polled_mp3();
                         while (timerloop == 0) ;
                 }
                 gfxDriver->SetMemoryBackBuffer(saved_backbuf, viewport.Left, viewport.Top);

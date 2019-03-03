@@ -75,10 +75,9 @@ void        play_next_queued();
 int         calculate_max_volume();
 // add/remove the volume drop to the audio channels while speech is playing
 void        apply_volume_drop_modifier(bool applyModifier);
-void        update_polled_mp3();
 // Update the music, and advance the crossfade on a step
 // (this should only be called once per game loop);
-void        update_polled_audio_and_crossfade ();
+void        update_audio_system_on_game_loop ();
 void        stopmusic();
 void        update_music_volume();
 void        post_new_music_check (int newchannel);
@@ -95,7 +94,7 @@ extern volatile bool _audio_doing_crossfade;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for update_mp3_thread
 extern volatile int psp_audio_multithreaded;
 
-void update_mp3();
+void update_polled_mp3();
 void update_mp3_thread();
 
 extern volatile int mvolcounter;

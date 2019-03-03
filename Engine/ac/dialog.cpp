@@ -862,10 +862,8 @@ bool DialogOptions::Run()
       else
       {
         timerloop = 0;
-
+        update_audio_system_on_game_loop();
         render_graphics(ddb, dirtyx, dirtyy);
-      
-        update_polled_audio_and_crossfade();
       }
 
       if (new_custom_render)

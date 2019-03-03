@@ -464,6 +464,7 @@ void EndSkippingUntilCharStops() {
 // 3 = mouse button
 // 4 = mouse button or any key
 // 5 = right click or ESC only
+// 6 = nothing, only skip by script command
 void StartCutscene (int skipwith) {
     static ScriptPosition last_cutscene_script_pos;
 
@@ -472,7 +473,7 @@ void StartCutscene (int skipwith) {
             last_cutscene_script_pos.Section.GetCStr(), last_cutscene_script_pos.Line);
     }
 
-    if ((skipwith < 1) || (skipwith > 5))
+    if ((skipwith < 1) || (skipwith > 6))
         quit("!StartCutscene: invalid argument, must be 1 to 5.");
 
     get_script_position(last_cutscene_script_pos);
@@ -482,6 +483,12 @@ void StartCutscene (int skipwith) {
 
     play.in_cutscene = skipwith;
     initialize_skippable_cutscene();
+}
+
+void SkipCutscene()
+{
+    if (play.in_cutscene > 0)
+        start_skipping_cutscene();
 }
 
 int EndCutscene () {

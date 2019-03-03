@@ -2015,6 +2015,11 @@ RuntimeScriptValue Sc_ShowMouseCursor(const RuntimeScriptValue *params, int32_t 
     API_SCALL_VOID(ShowMouseCursor);
 }
 
+RuntimeScriptValue Sc_SkipCutscene(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(SkipCutscene);
+}
+
 // void (int cc)
 RuntimeScriptValue Sc_SkipUntilCharacterStops(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2616,6 +2621,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("ShakeScreen",              Sc_ShakeScreen);
 	ccAddExternalStaticFunction("ShakeScreenBackground",    Sc_ShakeScreenBackground);
 	ccAddExternalStaticFunction("ShowMouseCursor",          Sc_ShowMouseCursor);
+    ccAddExternalStaticFunction("SkipCutscene",             Sc_SkipCutscene);
 	ccAddExternalStaticFunction("SkipUntilCharacterStops",  Sc_SkipUntilCharacterStops);
 	ccAddExternalStaticFunction("StartCutscene",            Sc_StartCutscene);
 	ccAddExternalStaticFunction("StartRecording",           Sc_scStartRecording);

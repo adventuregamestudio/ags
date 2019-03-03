@@ -186,7 +186,8 @@ enum CutsceneSkipType {
   eSkipAnyKey = 2,
   eSkipMouseClick = 3,
   eSkipAnyKeyOrMouseClick = 4,
-  eSkipESCOrRightButton = 5
+  eSkipESCOrRightButton = 5,
+  eSkipScriptOnly = 6
 };
 
 enum DialogOptionState {
@@ -1444,6 +1445,11 @@ import void ClaimEvent();
 // Changes the GUI used to render standard game text windows.
 import void SetTextWindowGUI (int gui);
 import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
+
+#ifdef SCRIPT_API_v3507
+/// Skip current cutscene (if one is currently in progress)
+import void SkipCutscene();
+#endif
 
 #ifndef STRICT
 // Obsolete GUI functions

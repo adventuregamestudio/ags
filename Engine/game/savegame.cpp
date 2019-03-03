@@ -411,6 +411,9 @@ void DoBeforeRestore(PreservedParams &pp)
         unexport_gui_controls(i);
     }
 
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     // NOTE: channels are array of MAX_SOUND_CHANNELS+1 size
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
@@ -418,6 +421,7 @@ void DoBeforeRestore(PreservedParams &pp)
     }
 
     clear_music_cache();
+    }
 }
 
 // Final processing after successfully restoring from save
@@ -542,6 +546,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
 
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     // restore the queue now that the music is playing
     play.music_queue_size = queuedMusicSize;
 
@@ -598,6 +605,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         if (r_data.DoAmbient[i])
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
+    }
 
     for (int i = 0; i < game.numgui; ++i)
     {
@@ -623,6 +631,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         first_room_initialization();
     }
 
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if ((play.music_queue_size > 0) && (cachedQueuedMusic == NULL))
     {
         cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
@@ -632,6 +643,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     auto music_playing = channel_is_playing(SCHAN_MUSIC) || (crossFading > 0 && channel_is_playing(crossFading));
     if (!music_playing) {
         current_music_type = 0;
+    }
     }
 
     set_game_speed(r_data.FPS);
@@ -717,10 +729,13 @@ PStream StartSavegame(const String &filename, const String &user_text, const Bit
 
 void DoBeforeSave()
 {
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     if (play.cur_music_number >= 0)
     {
         if (IsMusicPlaying() == 0)
             play.cur_music_number = -1;
+    }
     }
 
     if (displayed_room >= 0)

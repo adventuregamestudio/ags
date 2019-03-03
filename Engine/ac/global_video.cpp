@@ -44,10 +44,15 @@ void scrPlayVideo(const char* name, int skip, int flags) {
 
 void pause_sound_if_necessary_and_play_video(const char *name, int skip, int flags)
 {
-    int musplaying = play.cur_music_number, i;
+    int musplaying;
     int ambientWas[MAX_SOUND_CHANNELS];
-    for (i = 1; i < MAX_SOUND_CHANNELS; i++)
+
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+    musplaying = play.cur_music_number;
+    for (int i = 1; i < MAX_SOUND_CHANNELS; i++)
         ambientWas[i] = ambient[i].channel;
+    }
 
     if ((strlen(name) > 3) && (stricmp(&name[strlen(name) - 3], "ogv") == 0))
     {
@@ -63,11 +68,13 @@ void pause_sound_if_necessary_and_play_video(const char *name, int skip, int fla
 
     if (flags < 10) 
     {
+        AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
         update_music_volume();
         // restart the music
         if (musplaying >= 0)
             newmusic (musplaying);
-        for (i = 1; i < MAX_SOUND_CHANNELS; i++) {
+        for (int i = 1; i < MAX_SOUND_CHANNELS; i++) {
             if (ambientWas[i] > 0)
                 PlayAmbientSound(ambientWas[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);
         }

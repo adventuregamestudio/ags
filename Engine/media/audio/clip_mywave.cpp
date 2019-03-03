@@ -17,27 +17,17 @@
 #include "media/audio/clip_mywave.h"
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/soundcache.h"
-#include "util/mutex_lock.h"
 
 #include "platform/base/agsplatformdriver.h"
 
-
 int MYWAVE::poll()
 {
-    AGS::Engine::MutexLock _lock(_mutex);
-
-    if (!done && _destroyThis)
-    {
-      internal_destroy();
-      _destroyThis = false;
-    }
-
-    if (wave == NULL)
-    {
+    if (done || !wave) {
+        done = 1;
         return 1;
     }
-    if (paused)
-    {
+
+    if (paused) {
         return 0;
     }
 
@@ -50,8 +40,6 @@ int MYWAVE::poll()
     if (voice_get_position(voice) < 0)
     {
         done = 1;
-        if (psp_audio_multithreaded)
-            internal_destroy();
     }
 
     return done;
@@ -69,30 +57,15 @@ void MYWAVE::set_volume(int newvol)
     adjust_volume();
 }
 
-void MYWAVE::internal_destroy()
-{
-    // Stop sound and decrease reference count.
-    stop_sample(wave);
-    sound_cache_free((char*)wave, true);
-    wave = NULL;
-
-    _destroyThis = false;
-    done = 1;
-}
-
 void MYWAVE::destroy()
 {
-    AGS::Engine::MutexLock _lock(_mutex);
-
-    if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
-    else
-      internal_destroy();
-
-	_lock.Release();
-
-    while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+    // Stop sound and decrease reference count.
+    if (wave) {
+        stop_sample(wave);
+        sound_cache_free((char*)wave, true);
+    }
+    wave = nullptr;
+    done = 1;
 }
 
 void MYWAVE::seek(int pos)
@@ -118,6 +91,7 @@ int MYWAVE::get_pos_ms()
 
 int MYWAVE::get_length_ms()
 {
+    if (!wave) { return 0; }
     if (wave->freq < 100)
         return 0;
     return (wave->len / (wave->freq / 100)) * 10;
@@ -133,10 +107,8 @@ int MYWAVE::get_sound_type() {
 }
 
 int MYWAVE::play() {
+    if (!wave) { return 0; }
     voice = play_sample(wave, vol, panning, 1000, repeat);
-
-    _playing = true;
-
     return 1;
 }
 

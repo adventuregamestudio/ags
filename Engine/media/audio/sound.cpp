@@ -29,14 +29,10 @@
 #include "media/audio/clip_myogg.h"
 #include "media/audio/clip_mystaticogg.h"
 #include "media/audio/clip_mymidi.h"
-#ifdef JGMOD_MOD_PLAYER
-#include "media/audio/clip_myjgmod.h"
-#endif
 #ifdef DUMB_MOD_PLAYER
 #include "media/audio/clip_mydumbmod.h"
 #endif
 #include "media/audio/soundcache.h"
-#include "util/mutex_lock.h"
 
 #if defined JGMOD_MOD_PLAYER && defined DUMB_MOD_PLAYER
 #error JGMOD_MOD_PLAYER and DUMB_MOD_PLAYER macros cannot be defined at the same time.
@@ -65,6 +61,8 @@ int use_extra_sound_offset = 0;
 MYWAVE *thiswave;
 SOUNDCLIP *my_load_wave(const AssetPath &asset_name, int voll, int loop)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     // Load via soundcache.
     long dummy;
     SAMPLE *new_sample = (SAMPLE*)get_cached_sound(asset_name, true, &dummy);
@@ -88,6 +86,8 @@ PACKFILE *mp3in;
 MYMP3 *thistune;
 SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     mp3in = PackfileFromAsset(asset_name);
     if (mp3in == NULL)
         return NULL;
@@ -111,9 +111,7 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
 
     thistune->buffer = (char *)tmpbuffer;
 
-    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->todo < 1));
-	_lockMp3.Release();
 
     if (thistune->stream == NULL) {
         free(tmpbuffer);
@@ -130,6 +128,8 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
 MYSTATICMP3 *thismp3;
 SOUNDCLIP *my_load_static_mp3(const AssetPath &asset_name, int voll, bool loop)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     // Load via soundcache.
     long muslen = 0;
     char* mp3buffer = get_cached_sound(asset_name, false, &muslen);
@@ -146,11 +146,8 @@ SOUNDCLIP *my_load_static_mp3(const AssetPath &asset_name, int voll, bool loop)
     thismp3->mp3buffer = NULL;
     thismp3->repeat = loop;
 
-    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     thismp3->tune = almp3_create_mp3(mp3buffer, muslen);
-	_lockMp3.Release();
     thismp3->done = 0;
-    thismp3->ready = true;
 
     if (thismp3->tune == NULL) {
         free(mp3buffer);
@@ -182,6 +179,8 @@ SOUNDCLIP *my_load_static_mp3(const AssetPath &asset_name, int voll, bool loop)
 MYSTATICOGG *thissogg;
 SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     // Load via soundcache.
     long muslen = 0;
     char* mp3buffer = get_cached_sound(asset_name, false, &muslen);
@@ -197,7 +196,6 @@ SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
     thissogg->mp3buffersize = muslen;
 
     thissogg->tune = alogg_create_ogg_from_buffer(mp3buffer, muslen);
-    thissogg->ready = true;
 
     if (thissogg->tune == NULL) {
         thissogg->destroy();
@@ -211,6 +209,8 @@ SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
 MYOGG *thisogg;
 SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     mp3in = PackfileFromAsset(asset_name);
     if (mp3in == NULL)
         return NULL;
@@ -253,6 +253,8 @@ SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
 MYMIDI *thismidi;
 SOUNDCLIP *my_load_midi(const AssetPath &asset_name, int repet)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     // The first a midi is played, preload all patches.
     if (!thismidi && psp_midi_preload_patches)
         load_midi_patches();
@@ -271,7 +273,6 @@ SOUNDCLIP *my_load_midi(const AssetPath &asset_name, int repet)
     thismidi->done = 0;
     thismidi->tune = midiPtr;
     thismidi->repeat = (repet != 0);
-    thismidi->initializing = true;
 
     return thismidi;
 }
@@ -309,6 +310,8 @@ void remove_mod_player() {
 MYMOD *thismod = NULL;
 SOUNDCLIP *my_load_mod(const AssetPath &asset_name, int repet)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     DUMBFILE *df = DUMBfileFromAsset(asset_name);
     if (!df)
         return NULL;
@@ -352,11 +355,13 @@ SOUNDCLIP *my_load_mod(const AssetPath &asset_name, int repet)
 }
 
 int init_mod_player(int numVoices) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
     dumb_register_packfiles();
     return 0;
 }
 
 void remove_mod_player() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
     dumb_exit();
 }
 

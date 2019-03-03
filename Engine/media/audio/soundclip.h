@@ -20,11 +20,12 @@
 #define __AC_SOUNDCLIP_H
 
 #undef BITMAP
-#include "util/mutex.h"
+
+#include <thread>
+#include <mutex>
 
 // JJS: This is needed for the derieved classes
 extern volatile int psp_audio_multithreaded;
-extern volatile bool _audio_doing_crossfade;
 
 // TODO: one of the biggest problems with sound clips currently is that it
 // provides several methods of applying volume, which may ignore or override
@@ -34,9 +35,6 @@ extern volatile bool _audio_doing_crossfade;
 
 struct SOUNDCLIP
 {
-    bool _destroyThis;
-    bool _playing;
-
     int done;
     int priority;
     int soundType;
@@ -56,8 +54,6 @@ struct SOUNDCLIP
     int directionalVolModifier;
     bool repeat;
     void *sourceClip;
-    bool ready;
-    AGS::Engine::Mutex _mutex;
 
     virtual int poll() = 0;
     virtual void destroy() = 0;
@@ -167,5 +163,11 @@ protected:
 extern bool channel_has_clip(int chanid);
 // Tells if channel has got a clip and clip is in playback state
 extern bool channel_is_playing(int chanid);
+
+extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // +1 for SPECIAL_CROSSFADE_CHANNEL
+extern std::recursive_mutex audio_system_mutex;
+
+#define AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN std::lock_guard<std::recursive_mutex> lock(audio_system_mutex);
+#define AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
 #endif // __AC_SOUNDCLIP_H

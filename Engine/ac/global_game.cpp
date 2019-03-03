@@ -91,9 +91,12 @@ void GiveScore(int amnt)
     guis_need_update = 1;
     play.score += amnt;
 
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     if ((amnt > 0) && (play.score_sound >= 0))
         play_audio_clip_by_index(play.score_sound);
-
+    }
+    
     run_on_event (GE_GOT_SCORE, RuntimeScriptValue().SetInt32(amnt));
 }
 

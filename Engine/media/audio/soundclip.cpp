@@ -12,6 +12,9 @@
 //
 //=============================================================================
 
+#include <thread>
+#include <mutex>
+
 #include "util/wgt2allg.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
@@ -19,8 +22,12 @@
 
 SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for update_mp3_thread
 
+std::recursive_mutex audio_system_mutex;
+
 int SOUNDCLIP::play_from(int position) 
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int retVal = play();
     if ((retVal != 0) && (position > 0))
     {
@@ -30,6 +37,8 @@ int SOUNDCLIP::play_from(int position)
 }
 
 void SOUNDCLIP::set_panning(int newPanning) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int voice = get_voice();
     if (voice >= 0) {
         voice_set_pan(voice, newPanning);
@@ -38,6 +47,8 @@ void SOUNDCLIP::set_panning(int newPanning) {
 }
 
 void SOUNDCLIP::pause() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int voice = get_voice();
     if (voice >= 0) {
         voice_stop(voice);
@@ -45,6 +56,8 @@ void SOUNDCLIP::pause() {
     }
 }
 void SOUNDCLIP::resume() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int voice = get_voice();
     if (voice >= 0)
         voice_start(voice);
@@ -52,7 +65,6 @@ void SOUNDCLIP::resume() {
 }
 
 SOUNDCLIP::SOUNDCLIP() {
-    ready = false;
     done = 0;
     paused = 0;
     priority = 50;
@@ -70,8 +82,6 @@ SOUNDCLIP::SOUNDCLIP() {
     ySource = -1;
     maximumPossibleDistanceAway = 0;
     directionalVolModifier = 0;
-    _destroyThis = false;
-    _playing = false;
 }
 
 SOUNDCLIP::~SOUNDCLIP()

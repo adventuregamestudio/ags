@@ -18,8 +18,6 @@
 #include "almp3.h"
 #include "media/audio/soundclip.h"
 
-extern AGS::Engine::Mutex _mp3_mutex;
-
 // pre-loaded (non-streaming) MP3 file
 struct MYSTATICMP3:public SOUNDCLIP
 {
@@ -30,8 +28,6 @@ struct MYSTATICMP3:public SOUNDCLIP
 
     void set_volume(int newvol);
     void set_speed(int new_speed);
-
-    void internal_destroy();
 
     void destroy();
 

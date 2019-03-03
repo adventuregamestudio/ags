@@ -360,10 +360,13 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     fade_effect = in->ReadInt32();
     bg_frame_locked = in->ReadInt32();
     in->ReadArrayOfInt32(globalscriptvars, MAXGSVALUES);
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     cur_music_number = in->ReadInt32();
     music_repeat = in->ReadInt32();
     music_master_volume = in->ReadInt32();
     digital_master_volume = in->ReadInt32();
+    }
     in->Read(walkable_areas_on, MAX_WALK_AREAS+1);
     screen_flipped = in->ReadInt16();
     short offsets_locked = in->ReadInt16();
@@ -569,10 +572,13 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( fade_effect);
     out->WriteInt32( bg_frame_locked);
     out->WriteArrayOfInt32(globalscriptvars, MAXGSVALUES);
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     out->WriteInt32( cur_music_number);
     out->WriteInt32( music_repeat);
     out->WriteInt32( music_master_volume);
     out->WriteInt32( digital_master_volume);
+    }
     out->Write(walkable_areas_on, MAX_WALK_AREAS+1);
     out->WriteInt16( screen_flipped);
     out->WriteInt16( IsRoomCameraLocked() ? 1 : 0 );

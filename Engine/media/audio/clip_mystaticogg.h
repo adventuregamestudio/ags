@@ -35,8 +35,6 @@ struct MYSTATICOGG:public SOUNDCLIP
     void set_volume(int newvol);
     void set_speed(int new_speed);
 
-    void internal_destroy();
-
     void destroy();
 
     void seek(int pos);

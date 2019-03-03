@@ -266,9 +266,12 @@ void unload_old_room() {
     for (ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
 
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     if (!play.ambient_sounds_persist) {
         for (ff = 1; ff < MAX_SOUND_CHANNELS; ff++)
             StopAmbientSound(ff);
+    }
     }
 
     cancel_all_scripts();

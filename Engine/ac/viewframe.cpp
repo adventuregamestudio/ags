@@ -65,6 +65,7 @@ void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip* clip)
 }
 
 int ViewFrame_GetSound(ScriptViewFrame *svf) {
+  AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
   // convert audio clip to old-style sound number
   return get_old_style_number_for_sound(views[svf->view].loops[svf->loop].frames[svf->frame].sound);
 }
@@ -118,6 +119,8 @@ void precache_view(int view)
 // the specified frame has just appeared, see if we need
 // to play a sound or whatever
 void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     ScriptAudioChannel *channel = NULL;
     if (game.IsLegacyAudioSystem())
     {

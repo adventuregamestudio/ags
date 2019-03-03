@@ -16,10 +16,9 @@
 #include <string.h>
 #include "ac/file.h"
 #include "util/wgt2allg.h"
-#include "media/audio/soundcache.h"
+#include "media/audio/audio_system.h"
 #include "media/audio/audiointernaldefs.h"
-#include "util/mutex.h"
-#include "util/mutex_lock.h"
+#include "media/audio/soundcache.h"
 #include "util/string.h"
 
 using namespace Common;
@@ -27,12 +26,9 @@ using namespace Common;
 sound_cache_entry_t* sound_cache_entries = NULL;
 unsigned int sound_cache_counter = 0;
 
-AGS::Engine::Mutex _sound_cache_mutex;
-
-
 void clear_sound_cache()
 {
-    AGS::Engine::MutexLock _lock(_sound_cache_mutex);
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
     if (sound_cache_entries)
     {
@@ -58,7 +54,7 @@ void clear_sound_cache()
 
 void sound_cache_free(char* buffer, bool is_wave)
 {
-    AGS::Engine::MutexLock _lock(_sound_cache_mutex);
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
 #ifdef SOUND_CACHE_DEBUG
     Debug::Printf("sound_cache_free(%d %d)\n", (unsigned int)buffer, (unsigned int)is_wave);
@@ -95,7 +91,7 @@ void sound_cache_free(char* buffer, bool is_wave)
 
 char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
 {
-	AGS::Engine::MutexLock _lock(_sound_cache_mutex);
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
 #ifdef SOUND_CACHE_DEBUG
     Debug::Printf("get_cached_sound(%s %d)\n", filename, (unsigned int)is_wave);

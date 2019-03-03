@@ -15,7 +15,6 @@
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "media/audio/soundclip.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"
@@ -265,6 +264,8 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         ((walking == 0) || ((flags & CHF_MOVENOTWALK) != 0)) &&
         (room == displayed_room)) 
     {
+      AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
       // we need to know if there is/was voice-over
       const bool is_voice = channel_has_clip(SCHAN_SPEECH);
 

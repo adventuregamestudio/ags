@@ -36,9 +36,6 @@
 
 using namespace AGS::Common;
 
-AGS::Engine::Mutex _audio_mutex;
-volatile bool _audio_doing_crossfade;
-
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
@@ -59,6 +56,8 @@ AGS::Engine::Thread audioThread;
 
 void calculate_reserved_channel_count()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int reservedChannels = 0;
     for (int i = 0; i < game.audioClipTypeCount; i++)
     {
@@ -69,6 +68,8 @@ void calculate_reserved_channel_count()
 
 void update_clip_default_volume(ScriptAudioClip *audioClip)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (play.default_audio_type_volumes[audioClip->type] >= 0) 
     {
         audioClip->defaultVolume = play.default_audio_type_volumes[audioClip->type];
@@ -77,6 +78,8 @@ void update_clip_default_volume(ScriptAudioClip *audioClip)
 
 void start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip *newSound)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int crossfadeSpeed = game.audioClipTypes[newSound->type].crossfadeSpeed;
     if (crossfadeSpeed > 0)
     {
@@ -89,6 +92,8 @@ void start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip 
 
 void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int fadeInChannel, ScriptAudioClip *newSound)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     stop_and_destroy_channel(SPECIAL_CROSSFADE_CHANNEL);
     channels[SPECIAL_CROSSFADE_CHANNEL] = channels[currentChannel];
     channels[currentChannel] = NULL;
@@ -107,6 +112,8 @@ void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int
 
 void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudioClip *newSound)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     ScriptAudioClip *sourceClip = AudioChannel_GetPlayingClip(&scrAudioChannel[fadeOutChannel]);
     if ((sourceClip != NULL) && (game.audioClipTypes[sourceClip->type].crossfadeSpeed > 0))
     {
@@ -121,6 +128,8 @@ void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudio
 
 int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptEqualPriority)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int lowestPrioritySoFar = 9999999;
     int lowestPriorityID = -1;
     int channelToUse = -1;
@@ -178,6 +187,8 @@ bool is_audiotype_allowed_to_play(AudioFileType type)
 
 SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (!is_audiotype_allowed_to_play((AudioFileType)audioClip->fileType))
     {
         return NULL;
@@ -223,6 +234,8 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 
 void audio_update_polled_stuff()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     play.crossfade_step++;
 
     if ((play.crossfading_out_channel > 0) && !channel_is_playing(play.crossfading_out_channel)) {
@@ -289,12 +302,16 @@ void audio_update_polled_stuff()
 // Applies a volume drop modifier to the clip, in accordance to its audio type
 void apply_volume_drop_to_clip(SOUNDCLIP *clip)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int audiotype = ((ScriptAudioClip*)clip->sourceClip)->type;
     clip->apply_volume_modifier(-(game.audioClipTypes[audiotype].volume_reduction_while_speech_playing * 255 / 100));
 }
 
 void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (play.new_music_queue_size >= MAX_QUEUED_MUSIC) {
         debug_script_log("Too many queued music, cannot add %s", clip->scriptName);
         return;
@@ -315,6 +332,8 @@ void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
 
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (soundfx == NULL)
     {
         soundfx = load_sound_clip(clip, (repeat) ? true : false);
@@ -354,7 +373,9 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     if (soundfx->play_from(fromOffset) == 0)
     {
         debug_script_log("AudioClip.Play: failed to play sound file");
-        return NULL;
+        soundfx->destroy();
+        delete soundfx;
+        return nullptr;
     }
 
     // Apply volume drop if any speech voice-over is currently playing
@@ -370,6 +391,8 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
 
 void remove_clips_of_type_from_queue(int audioType) 
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int aa;
     for (aa = 0; aa < play.new_music_queue_size; aa++)
     {
@@ -386,6 +409,8 @@ void remove_clips_of_type_from_queue(int audioType)
 
 void update_queued_clips_volume(int audioType, int new_vol)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     for (int i = 0; i < play.new_music_queue_size; ++i)
     {
         // NOTE: if clip is uncached, the volume will be set from defaults when it is loaded
@@ -401,6 +426,8 @@ void update_queued_clips_volume(int audioType, int new_vol)
 
 ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (!queueIfNoChannel)
         remove_clips_of_type_from_queue(clip->type);
 
@@ -425,6 +452,8 @@ ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int rep
 
 ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if ((audioClipIndex >= 0) && (audioClipIndex < game.audioClipCount))
         return AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
     else 
@@ -432,6 +461,8 @@ ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
 }
 
 void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if ((chid < 0) || (chid > MAX_SOUND_CHANNELS))
         quit("!StopChannel: invalid channel ID");
 
@@ -469,6 +500,8 @@ void stop_and_destroy_channel (int chid)
 
 int get_old_style_number_for_sound(int sound_number)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int audio_clip_id = 0;
 
     if (game.IsLegacyAudioSystem())
@@ -498,6 +531,8 @@ int get_old_style_number_for_sound(int sound_number)
 
 SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     ScriptAudioClip* audioClip = GetAudioClipForOldStyleNumber(game, isMusic, indexNumber);
 
     if (audioClip != NULL)
@@ -511,6 +546,8 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 //=============================================================================
 
 void force_audiostream_include() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     // This should never happen, but the call is here to make it
     // link the audiostream libraries
     stop_audio_stream(NULL);
@@ -520,6 +557,8 @@ AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array i
 
 int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int distx = playerchar->x - sndX;
     int disty = playerchar->y - sndY;
     // it uses Allegro's "fix" sqrt without the ::
@@ -541,6 +580,8 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
 
 void update_directional_sound_vol()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     for (int chan = 1; chan < MAX_SOUND_CHANNELS; chan++) 
     {
         if (channel_is_playing(chan) &&
@@ -557,6 +598,7 @@ void update_directional_sound_vol()
 }
 
 void update_ambient_sound_vol () {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
     for (int chan = 1; chan < MAX_SOUND_CHANNELS; chan++) {
 
@@ -600,11 +642,16 @@ void update_ambient_sound_vol () {
 
 SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     SOUNDCLIP *soundfx = load_sound_clip(aclip, repeat);
 
-    if (soundfx != NULL) {
-        if (soundfx->play() == 0)
-            soundfx = NULL;
+    if (!soundfx) { return nullptr; }
+
+    if (soundfx->play() == 0) {
+        soundfx->destroy();
+        delete soundfx;
+        return nullptr;
     }
 
     return soundfx;
@@ -612,6 +659,8 @@ SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
 
 void stop_all_sound_and_music() 
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int a;
     stopmusic();
     // make sure it doesn't start crossfading when it comes back
@@ -623,6 +672,8 @@ void stop_all_sound_and_music()
 
 void shutdown_sound() 
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     stop_all_sound_and_music();
 
 #ifndef PSP_NO_MOD_PLAYBACK
@@ -635,6 +686,8 @@ void shutdown_sound()
 // the sound will only be played if there is a free channel or
 // it has a priority >= an existing sound to override
 int play_sound_priority (int val1, int priority) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     int lowest_pri = 9999, lowest_pri_id = -1;
 
     // find a free channel to play it on
@@ -685,13 +738,12 @@ int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
 int crossFadeVolumeAtStart = 0;
 SOUNDCLIP *cachedQueuedMusic = NULL;
 
-int musicPollIterator; // long name so it doesn't interfere with anything else
-
 volatile int mvolcounter = 0;
 int update_music_at=0;
 
 
 void clear_music_cache() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
     if (cachedQueuedMusic != NULL) {
         cachedQueuedMusic->destroy();
@@ -702,6 +754,8 @@ void clear_music_cache() {
 }
 
 void play_next_queued() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     // check if there's a queued one to play
     if (play.music_queue_size > 0) {
 
@@ -736,6 +790,8 @@ void play_next_queued() {
 }
 
 int calculate_max_volume() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     // quieter so that sounds can be heard better
     int newvol=play.music_master_volume + ((int)thisroom.Options.MusicVolume) * LegacyRoomVolumeFactor;
     if (newvol>255) newvol=255;
@@ -750,6 +806,8 @@ int calculate_max_volume() {
 // add/remove the volume drop to the audio channels while speech is playing
 void apply_volume_drop_modifier(bool applyModifier)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     for (int i = 0; i < MAX_SOUND_CHANNELS; i++) 
     {
         if (channel_is_playing(i) && channels[i]->sourceClip != NULL)
@@ -765,6 +823,7 @@ void apply_volume_drop_modifier(bool applyModifier)
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
 void update_volume_drop_if_voiceover()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
     apply_volume_drop_modifier(channel_is_playing(SCHAN_SPEECH));
 }
 
@@ -773,12 +832,21 @@ extern int get_current_fps();
 
 void update_mp3_thread()
 {
-	while (switching_away_from_game) { }
-	AGS::Engine::MutexLock _lock(_audio_mutex);
-	for (musicPollIterator = 0; musicPollIterator <= MAX_SOUND_CHANNELS; ++musicPollIterator)
+	while (switching_away_from_game) { std::this_thread::yield(); }
+
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
+	for (int ch = 0; ch <= MAX_SOUND_CHANNELS; ch++)
 	{
-		if (channel_is_playing(musicPollIterator))
-			channels[musicPollIterator]->poll();
+		if (channels[ch] == nullptr) { continue; }
+
+        auto done = channels[ch]->poll();
+
+        if (done) {
+            channels[ch]->destroy();
+            delete channels[ch];
+            channels[ch] = nullptr;
+        }
 	}
 }
 
@@ -792,9 +860,7 @@ void update_polled_mp3()
 // (this should only be called once per game loop)
 void update_audio_system_on_game_loop ()
 {
-	update_polled_stuff_if_runtime ();
-
-	AGS::Engine::MutexLock _lock(_audio_mutex);
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
     if (mvolcounter > update_music_at) {
         update_music_volume();
@@ -803,8 +869,6 @@ void update_audio_system_on_game_loop ()
         mvolcounter = 0;
         update_ambient_sound_vol();
     }
-
-    _audio_doing_crossfade = true;
 
     audio_update_polled_stuff();
 
@@ -835,13 +899,11 @@ void update_audio_system_on_game_loop ()
                 }
         }
     }
-
-    _audio_doing_crossfade = false;
-
 }
 
 
 void stopmusic() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
     if (crossFading > 0) {
         // stop in the middle of a new track fading in
@@ -878,6 +940,7 @@ void stopmusic() {
 }
 
 void update_music_volume() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
     if ((current_music_type) || (crossFading < 0)) 
     {
@@ -924,6 +987,8 @@ void update_music_volume() {
 // Ensures crossfader is stable after loading (or failing to load)
 // new music
 void post_new_music_check (int newchannel) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if ((crossFading > 0) && !channel_is_playing(crossFading)) {
         crossFading = 0;
         // Was fading out but then they played invalid music, continue
@@ -937,6 +1002,8 @@ void post_new_music_check (int newchannel) {
 // Sets up the crossfading for playing the new music track,
 // and returns the channel number to use
 int prepare_for_new_music () {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     int useChannel = SCHAN_MUSIC;
 
     if ((game.options[OPT_CROSSFADEMUSIC] > 0)
@@ -982,12 +1049,15 @@ int prepare_for_new_music () {
 
 ScriptAudioClip *get_audio_clip_for_music(int mnum)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (mnum >= QUEUED_MUSIC_REPEAT)
         mnum -= QUEUED_MUSIC_REPEAT;
     return GetAudioClipForOldStyleNumber(game, true, mnum);
 }
 
 SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
 
     if (mnum >= QUEUED_MUSIC_REPEAT) {
         mnum -= QUEUED_MUSIC_REPEAT;
@@ -1007,6 +1077,8 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
 
 
 void play_new_music(int mnum, SOUNDCLIP *music) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (debug_flags & DBG_NOMUSIC)
         return;
 
@@ -1051,9 +1123,11 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
 
     if (channels[useChannel] != NULL) {
 
-        if (channels[useChannel]->play() == 0)
-            channels[useChannel] = NULL;
-        else
+        if (channels[useChannel]->play() == 0) {
+            channels[useChannel]->destroy();
+            delete channels[useChannel];
+            channels[useChannel] = nullptr;
+        } else
             current_music_type = channels[useChannel]->get_sound_type();
     }
 

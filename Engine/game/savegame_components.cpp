@@ -255,6 +255,8 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
 
 HSaveError WriteAudio(PStream out)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     // Game content assertion
     out->WriteInt32(game.audioClipTypeCount);
     out->WriteInt32(game.audioClipCount);
@@ -300,6 +302,8 @@ HSaveError WriteAudio(PStream out)
 
 HSaveError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     HSaveError err;
     // Game content assertion
     if (!AssertGameContent(err, in->ReadInt32(), game.audioClipTypeCount, "Audio Clip Types"))

@@ -18,8 +18,6 @@
 #include "almp3.h"
 #include "media/audio/soundclip.h"
 
-extern AGS::Engine::Mutex _mp3_mutex;
-
 struct MYMP3:public SOUNDCLIP
 {
     ALMP3_MP3STREAM *stream;
@@ -31,7 +29,6 @@ struct MYMP3:public SOUNDCLIP
     int poll();
     void set_volume(int newvol);
     void set_speed(int new_speed);
-    void internal_destroy();
     void destroy();
     void seek(int pos);
     int get_pos();

@@ -211,6 +211,8 @@ int getloctype_index = 0, getloctype_throughgui = 0;
 
 void Game_StopAudio(int audioType)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (((audioType < 0) || (audioType >= game.audioClipTypeCount)) && (audioType != SCR_NO_VALUE))
         quitprintf("!Game.StopAudio: invalid audio type %d", audioType);
     int aa;
@@ -234,6 +236,8 @@ void Game_StopAudio(int audioType)
 
 int Game_IsAudioPlaying(int audioType)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (((audioType < 0) || (audioType >= game.audioClipTypeCount)) && (audioType != SCR_NO_VALUE))
         quitprintf("!Game.IsAudioPlaying: invalid audio type %d", audioType);
 
@@ -256,6 +260,8 @@ int Game_IsAudioPlaying(int audioType)
 
 void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
         quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
 
@@ -266,6 +272,8 @@ void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop)
 
 void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if ((volume < 0) || (volume > 100))
         quitprintf("!Game.SetAudioTypeVolume: volume %d is not between 0..100", volume);
     if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
@@ -298,6 +306,8 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 }
 
 int Game_GetMODPattern() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (current_music_type == MUS_MOD && channel_is_playing(SCHAN_MUSIC)) {
         return channels[SCHAN_MUSIC]->get_pos();
     }
@@ -1318,6 +1328,8 @@ void restore_game_thisroom(Stream *in, RestoredData &r_data)
 
 void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     int bb;
 
     for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
@@ -1439,6 +1451,8 @@ HSaveError restore_game_views(Stream *in)
 
 HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (in->ReadInt32() != game.audioClipCount)
     {
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clips.");
@@ -1590,9 +1604,11 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
             String::FromFormat("Managed pool deserialization failed: %s.", ccErrorString.GetCStr()));
     }
 
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     // preserve legacy music type setting
     current_music_type = in->ReadInt32();
-
+    }
     return HSaveError::None();
 }
 
@@ -1751,6 +1767,10 @@ void stop_fast_forwarding() {
     // when the skipping of a cutscene comes to an end, update things
     play.fast_forward = 0;
     setpal();
+
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (play.end_cutscene_music >= 0)
         newmusic(play.end_cutscene_music);
 
@@ -1764,6 +1784,7 @@ void stop_fast_forwarding() {
     }
 
     update_music_volume();
+    }
 }
 
 // allowHotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT
@@ -1870,11 +1891,15 @@ void display_switch_out_suspend()
     if (set_display_switch_mode(SWITCH_BACKGROUND) == -1)
         set_display_switch_mode(SWITCH_BACKAMNESIA);
 
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+    
     // stop the sound stuttering
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
         if (channel_is_playing(i)) {
             channels[i]->pause();
         }
+    }
     }
 
     rest(1000);
@@ -1906,10 +1931,14 @@ void display_switch_in_resume()
 {
     display_switch_in();
 
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
         if (channel_is_playing(i)) {
             channels[i]->resume();
         }
+    }
     }
 
     // clear the screen if necessary

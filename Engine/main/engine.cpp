@@ -877,6 +877,7 @@ int engine_check_font_was_loaded()
 
 void engine_init_modxm_player()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
 #ifndef PSP_NO_MOD_PLAYBACK
     if (game.options[OPT_NOMODMUSIC])
         opts.mod_player = 0;
@@ -1095,10 +1096,13 @@ void engine_init_game_settings()
     play.shakesc_length = 0;
     play.wait_counter=0;
     play.key_skip_wait = 0;
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     play.cur_music_number=-1;
     play.music_repeat=1;
     play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
     play.digital_master_volume = 100;
+    }
     play.screen_flipped=0;
     play.ReleaseRoomCamera();
     play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);

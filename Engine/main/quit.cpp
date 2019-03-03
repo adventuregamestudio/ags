@@ -113,6 +113,9 @@ void quit_shutdown_platform(QuitReason qreason)
 
 void quit_shutdown_audio()
 {
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     our_eip = 9917;
     game.options[OPT_CROSSFADEMUSIC] = 0;
     stopmusic();
@@ -120,11 +123,15 @@ void quit_shutdown_audio()
     if (opts.mod_player)
         remove_mod_player();
 #endif
-
+    }
+    
     // Quit the sound thread.
     audioThread.Stop();
 
+    {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     remove_sound();
+    }
 }
 
 QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)

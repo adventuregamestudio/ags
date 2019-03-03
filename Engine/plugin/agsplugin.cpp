@@ -575,9 +575,12 @@ void IAGSEngine::PrintDebugConsole (const char *text) {
     platform->WriteStdOut("[PLUGIN] %s", text);
 }
 int IAGSEngine::IsChannelPlaying (int32 channel) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     return ::IsChannelPlaying (channel);
 }
 void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume, int32 loop, const char *filename) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     stop_and_destroy_channel (channel);
     SOUNDCLIP *newcha = NULL;
 
@@ -680,6 +683,7 @@ int IAGSEngine::IsSpriteAlphaBlended(int32 slot) {
 
 // disable AGS's sound engine
 void IAGSEngine::DisableSound() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
     shutdown_sound();
     usetup.digicard = DIGI_NONE;
     usetup.midicard = MIDI_NONE;

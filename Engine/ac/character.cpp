@@ -2402,8 +2402,11 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     play.speech_in_post_state = false;
 
     if (isPause) {
+        {
+        AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
         if (update_music_at > 0)
             update_music_at += play.messagetime;
+        }
         GameLoopUntilEvent(UNTIL_INTISNEG,(long)&play.messagetime);
         return;
     }

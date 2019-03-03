@@ -667,6 +667,7 @@ void game_loop_update_loop_counter()
 
     if (loopcounter % 5 == 0)
     {
+        AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
         update_ambient_sound_vol();
         update_directional_sound_vol();
     }

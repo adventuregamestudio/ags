@@ -20,6 +20,8 @@
 using AGS::Common::Stream;
 
 bool AmbientSound::IsPlaying () {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (channel <= 0)
         return false;
     return channel_is_playing(channel);
@@ -27,6 +29,8 @@ bool AmbientSound::IsPlaying () {
 
 void AmbientSound::ReadFromFile(Stream *in)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     channel = in->ReadInt32();
     x = in->ReadInt32();
     y = in->ReadInt32();
@@ -37,6 +41,8 @@ void AmbientSound::ReadFromFile(Stream *in)
 
 void AmbientSound::WriteToFile(Stream *out)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     out->WriteInt32(channel);
     out->WriteInt32(x);
     out->WriteInt32(y);

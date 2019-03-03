@@ -19,8 +19,6 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
-#include "util/mutex.h"
-#include "util/mutex_lock.h"
 #include "util/thread.h"
 
 struct SOUNDCLIP;
@@ -95,9 +93,6 @@ void        play_new_music(int mnum, SOUNDCLIP *music);
 void        newmusic(int mnum);
 
 extern AGS::Engine::Thread audioThread;
-extern AGS::Engine::Mutex _audio_mutex;
-extern volatile bool _audio_doing_crossfade;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for update_mp3_thread
 extern volatile int psp_audio_multithreaded;
 
 void update_polled_mp3();

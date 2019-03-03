@@ -19,11 +19,10 @@
 
 int MYMIDI::poll()
 {
-    if (initializing)
-        return 0;
-
-    if (done)
+    if (done || !tune) {
+        done = 1;
         return done;
+    }
 
     if (midi_pos < 0)
         done = 1;
@@ -45,8 +44,11 @@ void MYMIDI::set_volume(int newvol)
 void MYMIDI::destroy()
 {
     stop_midi();
-    destroy_midi(tune);
-    tune = NULL;
+    if (tune) {
+        destroy_midi(tune);
+    }
+    tune = nullptr;
+    done = 1;
 }
 
 void MYMIDI::seek(int pos)
@@ -88,12 +90,12 @@ int MYMIDI::get_sound_type() {
 }
 
 int MYMIDI::play() {
+    if (!tune) { return 0; }
     lengthInSeconds = get_midi_length(tune);
     if (::play_midi(tune, repeat)) {
         delete this;
         return 0;
     }
-    initializing = false;
 
     return 1;
 }
@@ -101,5 +103,4 @@ int MYMIDI::play() {
 MYMIDI::MYMIDI() : SOUNDCLIP() {
     tune = NULL;
     lengthInSeconds = 0;
-    initializing = false;
 }

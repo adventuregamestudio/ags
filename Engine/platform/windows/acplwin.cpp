@@ -835,7 +835,8 @@ void AGSWin32::Delay(int millis)
     millis -= 5;
     // don't allow it to check for debug messages, since this Delay()
     // call might be from within a debugger polling loop
-    update_polled_mp3();
+    if (!psp_audio_multithreaded)
+      update_polled_mp3();
   }
 
   if (millis > 0)
@@ -931,6 +932,8 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
   if (useSound)
   {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (opts.mod_player)
       reserve_voices(NUM_DIGI_VOICES, -1);
     install_sound(usetup.digicard,usetup.midicard,NULL);

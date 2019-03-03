@@ -246,6 +246,8 @@ void update_overlay_timers()
 
 void update_speech_and_messages()
 {
+  AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
   // we need to know if there is/was voice-over
   const bool is_voice = channel_has_clip(SCHAN_SPEECH);
 
@@ -289,6 +291,8 @@ void update_speech_and_messages()
 
 void update_sierra_speech()
 {
+  AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
   // we need to know if there is/was voice-over
   const bool is_voice = channel_has_clip(SCHAN_SPEECH);
 
@@ -476,11 +480,15 @@ void update_stuff() {
 
   update_overlay_timers();
 
+  {
+  AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
   update_speech_and_messages();
 
   our_eip = 24;
 
   update_sierra_speech();
+  }
 
   our_eip = 25;
 }

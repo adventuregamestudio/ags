@@ -40,6 +40,8 @@ int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
 
 void AudioClip_Stop(ScriptAudioClip *clip)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     for (int i = 0; i < MAX_SOUND_CHANNELS; i++)
     {
         if (channel_is_playing(i) && (channels[i]->sourceClip == clip))

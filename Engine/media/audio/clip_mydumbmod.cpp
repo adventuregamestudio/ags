@@ -33,10 +33,7 @@ void al_duh_set_loop(AL_DUH_PLAYER *dp, int loop) {
 
 int MYMOD::poll()
 {
-    if (done)
-        return done;
-
-    if (duhPlayer == NULL) {
+    if (done || !duhPlayer || !tune) {
         done = 1;
         return done;
     }
@@ -63,12 +60,13 @@ void MYMOD::destroy()
 {
     if (duhPlayer) {
         al_stop_duh(duhPlayer);
-        duhPlayer = NULL;
     }
+    duhPlayer = nullptr;
     if (tune) {
         unload_duh(tune);
-        tune = NULL;
     }
+    tune = nullptr;
+    done = 1;
 }
 
 void MYMOD::seek(int patnum)
@@ -143,6 +141,7 @@ int MYMOD::get_sound_type() {
 }
 
 int MYMOD::play() {
+    if (!duhPlayer || !tune) { return 0; }
     duhPlayer = al_start_duh(tune, 2, 0, 1.0, 8192, 22050);
     al_duh_set_loop(duhPlayer, repeat);
     set_volume(vol);

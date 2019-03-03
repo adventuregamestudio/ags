@@ -36,6 +36,8 @@ extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 void StopAmbientSound (int channel) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if ((channel < 0) || (channel >= MAX_SOUND_CHANNELS))
         quit("!StopAmbientSound: invalid channel");
 
@@ -47,6 +49,8 @@ void StopAmbientSound (int channel) {
 }
 
 void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     // the channel parameter is to allow multiple ambient sounds in future
     if ((channel < 1) || (channel == SCHAN_SPEECH) || (channel >= MAX_SOUND_CHANNELS))
         quit("!PlayAmbientSound: invalid channel number");
@@ -88,6 +92,8 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
 }
 
 int IsChannelPlaying(int chan) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (play.fast_forward)
         return 0;
 
@@ -101,6 +107,8 @@ int IsChannelPlaying(int chan) {
 }
 
 int IsSoundPlaying() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (play.fast_forward)
         return 0;
 
@@ -115,6 +123,7 @@ int IsSoundPlaying() {
 
 // returns -1 on failure, channel number on success
 int PlaySoundEx(int val1, int channel) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
 
     if (debug_flags & DBG_NOSFX)
         return -1;
@@ -155,6 +164,8 @@ int PlaySoundEx(int val1, int channel) {
 }
 
 void StopAllSounds(int evenAmbient) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     // backwards-compatible hack -- stop Type 3 (default Sound Type)
     Game_StopAudio(3);
 
@@ -163,11 +174,15 @@ void StopAllSounds(int evenAmbient) {
 }
 
 void PlayMusicResetQueue(int newmus) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     play.music_queue_size = 0;
     newmusic(newmus);
 }
 
 void SeekMIDIPosition (int position) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (play.silent_midi)
         midi_seek (position);
     if (current_music_type == MUS_MIDI) {
@@ -177,6 +192,8 @@ void SeekMIDIPosition (int position) {
 }
 
 int GetMIDIPosition () {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (play.silent_midi)
         return midi_pos;
     if (current_music_type != MUS_MIDI)
@@ -188,6 +205,8 @@ int GetMIDIPosition () {
 }
 
 int IsMusicPlaying() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     // in case they have a "while (IsMusicPlaying())" loop
     if ((play.fast_forward) && (play.skip_until_char_stops < 0))
         return 0;
@@ -200,6 +219,7 @@ int IsMusicPlaying() {
 }
 
 int PlayMusicQueued(int musnum) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
 
     // Just get the queue size
     if (musnum < 0)
@@ -243,17 +263,23 @@ int PlayMusicQueued(int musnum) {
 }
 
 void scr_StopMusic() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     play.music_queue_size = 0;
     stopmusic();
 }
 
 void SeekMODPattern(int patnum) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (current_music_type == MUS_MOD && channel_is_playing(SCHAN_MUSIC)) {
         channels[SCHAN_MUSIC]->seek (patnum);
         debug_script_log("Seek MOD/XM to pattern %d", patnum);
     }
 }
 void SeekMP3PosMillis (int posn) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (current_music_type) {
         debug_script_log("Seek MP3/OGG to %d ms", posn);
         if (crossFading > 0 && channel_is_playing(crossFading))
@@ -264,6 +290,8 @@ void SeekMP3PosMillis (int posn) {
 }
 
 int GetMP3PosMillis () {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     // in case they have "while (GetMP3PosMillis() < 5000) "
     if (play.fast_forward)
         return 999999;
@@ -280,6 +308,8 @@ int GetMP3PosMillis () {
 }
 
 void SetMusicVolume(int newvol) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if ((newvol < kRoomVolumeMin) || (newvol > kRoomVolumeMax))
         quitprintf("!SetMusicVolume: invalid volume number. Must be from %d to %d.", kRoomVolumeMin, kRoomVolumeMax);
     thisroom.Options.MusicVolume=(RoomVolumeMod)newvol;
@@ -287,6 +317,8 @@ void SetMusicVolume(int newvol) {
 }
 
 void SetMusicMasterVolume(int newvol) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     const int min_volume = loaded_game_file_version < kGameVersion_330 ? 0 :
         -LegacyMusicMasterVolumeAdjustment - (kRoomVolumeMax * LegacyRoomVolumeFactor);
     if ((newvol < min_volume) | (newvol>100))
@@ -296,6 +328,8 @@ void SetMusicMasterVolume(int newvol) {
 }
 
 void SetSoundVolume(int newvol) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if ((newvol<0) | (newvol>255))
         quit("!SetSoundVolume: invalid volume - must be from 0-255");
     play.sound_volume = newvol;
@@ -305,6 +339,8 @@ void SetSoundVolume(int newvol) {
 }
 
 void SetChannelVolume(int chan, int newvol) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if ((newvol<0) || (newvol>255))
         quit("!SetChannelVolume: invalid volume - must be from 0-255");
     if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
@@ -321,6 +357,8 @@ void SetChannelVolume(int chan, int newvol) {
 }
 
 void SetDigitalMasterVolume (int newvol) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if ((newvol<0) | (newvol>100))
         quit("!SetDigitalMasterVolume: invalid volume - must be from 0-100");
     play.digital_master_volume = newvol;
@@ -328,14 +366,20 @@ void SetDigitalMasterVolume (int newvol) {
 }
 
 int GetCurrentMusic() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     return play.cur_music_number;
 }
 
 void SetMusicRepeat(int loopflag) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     play.music_repeat=loopflag;
 }
 
 void PlayMP3File (const char *filename) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (strlen(filename) >= PLAYMP3FILE_MAX_FILENAME_LEN)
         quit("!PlayMP3File: filename too long");
 
@@ -371,6 +415,8 @@ void PlayMP3File (const char *filename) {
 }
 
 void PlaySilentMIDI (int mnum) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (current_music_type == MUS_MIDI)
         quit("!PlaySilentMIDI: proper midi music is in progress");
 
@@ -388,6 +434,8 @@ void PlaySilentMIDI (int mnum) {
 }
 
 void SetSpeechVolume(int newvol) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
@@ -407,6 +455,8 @@ void __scr_play_speech(int who, int which) {
 // 1 = voice & text
 // 2 = voice only
 void SetVoiceMode (int newmod) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if ((newmod < 0) | (newmod > 2))
         quit("!SetVoiceMode: invalid mode number (must be 0,1,2)");
     // If speech is turned off, store the mode anyway in case the
@@ -419,20 +469,28 @@ void SetVoiceMode (int newmod) {
 
 int GetVoiceMode()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     return play.want_speech >= 0 ? play.want_speech : -(play.want_speech + 1);
 }
 
 int IsVoxAvailable() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     if (play.want_speech < 0)
         return 0;
     return 1;
 }
 
 int IsMusicVoxAvailable () {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN_CONSERVATIVE
+
     return play.separate_music_lib;
 }
 
 int play_speech(int charid,int sndid) {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     stop_and_destroy_channel (SCHAN_SPEECH);
 
     // don't play speech if we're skipping a cutscene
@@ -486,8 +544,11 @@ int play_speech(int charid,int sndid) {
     }
 
     if (speechmp3 != NULL) {
-        if (speechmp3->play() == 0)
+        if (speechmp3->play() == 0) {
+            speechmp3->destroy();
+            delete speechmp3;
             speechmp3 = NULL;
+        }
     }
 
     if (speechmp3 == NULL) {
@@ -523,6 +584,8 @@ int play_speech(int charid,int sndid) {
 }
 
 void stop_speech() {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+
     if (channel_has_clip(SCHAN_SPEECH)) {
         play.music_master_volume = play.music_vol_was;
         // update the music in a bit (fixes two speeches follow each other

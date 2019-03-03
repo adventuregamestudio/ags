@@ -16,7 +16,6 @@
 #include "media/audio/clip_mystaticogg.h"
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/soundcache.h"
-#include "util/mutex_lock.h"
 
 #include "platform/base/agsplatformdriver.h"
 
@@ -31,31 +30,27 @@ extern int use_extra_sound_offset;  // defined in ac.cpp
 
 int MYSTATICOGG::poll()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
-
-    if (tune && !done && _destroyThis)
-    {
-      internal_destroy();
-      _destroyThis = false;
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+    if (done || !tune || !mp3buffer) {
+        done = 1;
+        return done;
     }
-
-    if ((tune == NULL) || (!ready))
-        ; // Do nothing
-    else if (alogg_poll_ogg(tune) == ALOGG_POLL_PLAYJUSTFINISHED) {
-        if (!repeat)
-        {
+    
+    if (alogg_poll_ogg(tune) == ALOGG_POLL_PLAYJUSTFINISHED) {
+        if (!repeat) {
             done = 1;
-            if (psp_audio_multithreaded)
-                internal_destroy();
         }
     }
-    else get_pos();  // call this to keep the last_but_one stuff up to date
+    else {
+        get_pos();  // call this to keep the last_but_one stuff up to date
+    }
 
     return done;
 }
 
 void MYSTATICOGG::adjust_stream()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
     if (tune)
         alogg_adjust_ogg(tune, get_final_volume(), panning, speed, repeat);
 }
@@ -77,46 +72,27 @@ void MYSTATICOGG::set_speed(int new_speed)
     adjust_stream();
 }
 
-void MYSTATICOGG::internal_destroy()
+void MYSTATICOGG::destroy()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
     if (tune != NULL) {
         alogg_stop_ogg(tune);
         alogg_destroy_ogg(tune);
-        tune = NULL;
     }
+    tune = NULL;
 
     if (mp3buffer != NULL) {
         sound_cache_free(mp3buffer, false);
-        mp3buffer = NULL;
     }
+    mp3buffer = NULL;
 
-    _destroyThis = false;
     done = 1;
-}
-
-void MYSTATICOGG::destroy()
-{
-	AGS::Engine::MutexLock _lock(_mutex);
-
-    if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
-    else
-      internal_destroy();
-
-	_lock.Release();
-
-    while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
-
-    // Allow the last poll cycle to finish.
-	_lock.Acquire(_mutex);
 }
 
 void MYSTATICOGG::seek(int pos)
 {
-	AGS::Engine::MutexLock _lock;
-    if (psp_audio_multithreaded)
-		_lock.Acquire(_mutex);
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+    if (!tune) { return; }
     // we stop and restart it because otherwise the buffer finishes
     // playing first and the seek isn't quite accurate
     alogg_stop_ogg(tune);
@@ -130,11 +106,15 @@ int MYSTATICOGG::get_pos()
 
 int MYSTATICOGG::get_pos_ms()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+    if (done) { return 0; }
+    if (!tune) { return 0; }
+
     // Unfortunately the alogg_get_pos_msecs function
     // returns the ms offset that was last decoded, so it's always
     // ahead of the actual playback. Therefore we have this
     // hideous hack below to sort it out.
-    if ((done) || (!alogg_is_playing_ogg(tune)))
+    if (!alogg_is_playing_ogg(tune))
         return 0;
 
     AUDIOSTREAM *str = alogg_get_audiostream_ogg(tune);
@@ -174,11 +154,15 @@ case 1:
 
 int MYSTATICOGG::get_length_ms()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+    if (!tune) { return 0; }
     return alogg_get_length_msecs_ogg(tune);
 }
 
 int MYSTATICOGG::get_voice()
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+    if (!tune) { return -1; }
     AUDIOSTREAM *ast = alogg_get_audiostream_ogg(tune);
     if (ast)
         return ast->voice;
@@ -191,14 +175,15 @@ int MYSTATICOGG::get_sound_type() {
 
 int MYSTATICOGG::play_from(int position)
 {
+    AGS_AUDIO_SYSTEM_CRITICAL_SECTION_BEGIN
+    if (!tune) { return 0; }
     if (use_extra_sound_offset) 
         extraOffset = ((16384 / (alogg_get_wave_is_stereo_ogg(tune) ? 2 : 1)) * 1000) / alogg_get_wave_freq_ogg(tune);
     else
         extraOffset = 0;
 
     if (alogg_play_ex_ogg(tune, 16384, vol, panning, 1000, repeat) != ALOGG_OK) {
-        destroy();
-        delete this;
+        done = 1;
         return 0;
     }
 
@@ -209,14 +194,10 @@ int MYSTATICOGG::play_from(int position)
     if (position > 0)
         alogg_seek_abs_msecs_ogg(tune, position);
 
-    if (!psp_audio_multithreaded)
-      poll();
-
     return 1;
 }
 
 int MYSTATICOGG::play() {
-    _playing = true;
     return play_from(0);
 }
 

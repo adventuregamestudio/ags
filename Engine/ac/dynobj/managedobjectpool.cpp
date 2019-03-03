@@ -147,11 +147,11 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
 
     objects.insert({handle, {
         ManagedObject {
-            obj_type: plugin_object ? kScValPluginObject : kScValDynamicObject,
-            handle: handle,
-            addr: address,
-            callback: callback,
-            refCount: 0
+            /* obj_type: */ plugin_object ? kScValPluginObject : kScValDynamicObject,
+            /* handle: */ handle,
+            /* addr: */ address,
+            /* callback: */ callback,
+            /* refCount: */ 0
         }
     }});
     handleByAddress.insert({address, handle});

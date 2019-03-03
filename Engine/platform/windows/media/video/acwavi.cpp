@@ -38,11 +38,9 @@ using namespace AGS::Engine;
 //link with the following libraries under project/settings/link...
 //amstrmid.lib quartz.lib strmbase.lib ddraw.lib 
 
-extern void update_polled_audio_and_crossfade();
+extern void update_audio_system_on_game_loop();
 extern void update_polled_stuff_if_runtime();
 extern int ags_mgetbutton();
-extern void update_music_volume();
-extern int crossFading, crossFadeStep;
 extern volatile char want_exit;
 extern IGraphicsDriver *gfxDriver;
 //int errno;
@@ -265,10 +263,11 @@ void RenderToSurface(Bitmap *vscreen) {
     }
     screen_bmp->Release();
 
-    render_to_screen();
-    // if we're not playing AVI sound, poll the game MP3
+    // if we're not playing AVI sound, poll the audio system
     if (!useSound)
-      update_polled_audio_and_crossfade();
+      update_audio_system_on_game_loop();
+
+    render_to_screen();
   }	
 }
 

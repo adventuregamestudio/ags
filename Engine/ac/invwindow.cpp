@@ -352,9 +352,9 @@ bool InventoryScreen::Run()
     }
 
         timerloop = 0;
-        refresh_gui_screen();
         //ags_domouse(DOMOUSE_UPDATE);
-        update_polled_audio_and_crossfade();
+        update_audio_system_on_game_loop();
+        refresh_gui_screen();
 
         // NOTE: this is because old code was working with full game screen
         const int mousex = ::mousex - windowxp;

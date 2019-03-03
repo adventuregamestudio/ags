@@ -275,9 +275,9 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             ags_domouse(DOMOUSE_UPDATE);
             write_screen();*/
 
+            update_audio_system_on_game_loop();
             render_graphics();
 
-            update_polled_audio_and_crossfade();
             if (ags_mgetbutton()>NONE) {
                 // If we're allowed, skip with mouse
                 if (skip_setting & SKIP_MOUSECLICK)

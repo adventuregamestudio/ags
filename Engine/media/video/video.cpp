@@ -82,7 +82,7 @@ extern "C" int fli_callback() {
 #endif
     Bitmap *usebuf = fli_buffer;
 
-    update_polled_audio_and_crossfade ();
+    update_audio_system_on_game_loop ();
 
     if (game.color_depth > 1) {
         hicol_buf->Blit(fli_buffer,0,0,0,0,fliwidth,fliheight);
@@ -265,8 +265,8 @@ int theora_playing_callback(BITMAP *theoraBuffer)
     }
 
     gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
+    update_audio_system_on_game_loop ();
     render_to_screen();
-    update_polled_audio_and_crossfade ();
 
     return check_if_user_input_should_cancel_video();
 }

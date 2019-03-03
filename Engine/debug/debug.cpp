@@ -417,7 +417,7 @@ bool send_exception_to_editor(const char *qmsg)
 
     while ((check_for_messages_from_editor() == 0) && (want_exit == 0))
     {
-        update_mp3();
+        update_polled_mp3();
             platform->Delay(10);
     }
 #endif

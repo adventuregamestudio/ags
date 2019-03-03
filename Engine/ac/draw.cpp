@@ -2486,7 +2486,7 @@ void construct_virtual_screen(bool fullRedraw)
     }
 
     // make sure that the mp3 is always playing smoothly
-    update_mp3();
+    update_polled_mp3();
     our_eip=4;
 
     //

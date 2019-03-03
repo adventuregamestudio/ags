@@ -305,8 +305,7 @@ void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
         play.new_music_queue_size++;
     }
     
-    if (!psp_audio_multithreaded)
-      update_polled_mp3();
+    update_polled_mp3();
 }
 
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx)
@@ -690,40 +689,6 @@ volatile int mvolcounter = 0;
 int update_music_at=0;
 
 
-
-/*
-#include "almp3_old.h"
-ALLEGRO_MP3 *mp3ptr;
-int mp3vol=128;
-
-void amp_setvolume(int newvol) { mp3vol=newvol; }
-int load_amp(char*namm,int loop) {
-mp3ptr = new ALLEGRO_MP3(namm);
-if (mp3ptr == NULL) return 0;
-if (mp3ptr->get_error_code() != 0) {
-delete mp3ptr;
-return 0;
-}
-mp3ptr->play(mp3vol, 8192);
-return 1;
-}
-void install_amp() { }
-void unload_amp() {
-mp3ptr->stop();
-delete mp3ptr;
-}
-int amp_decode() {
-mp3ptr->poll();
-if (mp3ptr->is_finished()) {
-if (play.music_repeat)
-mp3ptr->play(mp3vol, 8192);
-else return -1;
-}
-return 0;
-}
-*/
-//#endif
-
 void clear_music_cache() {
 
     if (cachedQueuedMusic != NULL) {
@@ -815,30 +780,27 @@ void update_mp3_thread()
 	}
 }
 
-void update_mp3()
+void update_polled_mp3()
 {
-	if (!psp_audio_multithreaded) update_mp3_thread();
-}
-
-void update_polled_mp3() {
-    update_mp3();
-
-        if (mvolcounter > update_music_at) {
-            update_music_volume();
-            apply_volume_drop_modifier(false);
-            update_music_at = 0;
-            mvolcounter = 0;
-            update_ambient_sound_vol();
-        }
+	if (psp_audio_multithreaded) { return; }
+    update_mp3_thread();
 }
 
 // Update the music, and advance the crossfade on a step
 // (this should only be called once per game loop)
-void update_polled_audio_and_crossfade ()
+void update_audio_system_on_game_loop ()
 {
 	update_polled_stuff_if_runtime ();
 
 	AGS::Engine::MutexLock _lock(_audio_mutex);
+
+    if (mvolcounter > update_music_at) {
+        update_music_volume();
+        apply_volume_drop_modifier(false);
+        update_music_at = 0;
+        mvolcounter = 0;
+        update_ambient_sound_vol();
+    }
 
     _audio_doing_crossfade = true;
 

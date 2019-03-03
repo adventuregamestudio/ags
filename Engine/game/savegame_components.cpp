@@ -43,13 +43,12 @@
 #include "gui/guimain.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
 #include "script/script.h"
 #include "util/filestream.h" // TODO: needed only because plugins expect file handle
+#include "media/audio/audio_system.h"
 
 using namespace Common;
 

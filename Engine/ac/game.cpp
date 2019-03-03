@@ -72,8 +72,6 @@
 #include "gui/guidialog.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
@@ -86,6 +84,7 @@
 #include "util/path.h"
 #include "util/string_utils.h"
 #include "ac/mouse.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

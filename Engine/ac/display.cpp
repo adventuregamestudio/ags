@@ -36,13 +36,12 @@
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
-#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
 #include "gfx/gfx_util.h"
 #include "util/string_utils.h"
 #include "ac/mouse.h"
-#include "media/audio/soundclip.h"
+#include "media/audio/audio_system.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;

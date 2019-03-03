@@ -24,8 +24,7 @@
 #include "debug/debugger.h"
 #include "game/roomstruct.h"
 #include "main/engine.h"
-#include "media/audio/audio.h"
-#include "media/audio/sound.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 

@@ -14,7 +14,6 @@
 
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
-#include "media/audio/audiodefines.h"
 #include "ac/charactercache.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
@@ -51,7 +50,6 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "game/room_version.h"
-#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -67,6 +65,7 @@
 #include "gfx/gfxfilter.h"
 #include "util/math.h"
 #include "ac/dynobj/scriptcamera.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

@@ -59,6 +59,7 @@
 #include "ac/dynobj/cc_inventory.h"
 #include "script/script_runtime.h"
 #include "gfx/gfx_def.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 
@@ -79,7 +80,6 @@ extern int said_speech_line;
 extern int numscreenover;
 extern int said_text;
 extern int our_eip;
-extern int update_music_at;
 extern int cur_mode;
 extern CCCharacter ccDynamicCharacter;
 extern CCInventory ccDynamicInv;

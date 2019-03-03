@@ -50,8 +50,6 @@
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -60,6 +58,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/blender.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

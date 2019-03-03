@@ -47,11 +47,11 @@
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "main/update.h"
-#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 

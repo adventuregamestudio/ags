@@ -51,7 +51,6 @@
 #include "main/graphics_mode.h"
 #include "main/main.h"
 #include "main/main_allegro.h"
-#include "media/audio/sound.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/ddb.h"
@@ -62,6 +61,7 @@
 #include "util/path.h"
 #include "main/game_file.h"
 #include "debug/out.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

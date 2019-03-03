@@ -35,13 +35,13 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gui/guilabel.h"
-#include "media/audio/audio.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
 #include "script/exports.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace Common;
 using namespace Engine;

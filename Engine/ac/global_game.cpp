@@ -441,7 +441,7 @@ void SkipUntilCharacterStops(int cc) {
     if (!game.chars[cc].walking)
         return;
 
-    if (play.in_cutscene)
+    if (is_in_cutscene())
         quit("!SkipUntilCharacterStops: cannot be used within a cutscene");
 
     initialize_skippable_cutscene();
@@ -458,17 +458,10 @@ void EndSkippingUntilCharStops() {
     play.skip_until_char_stops = -1;
 }
 
-// skipwith decides how it can be skipped:
-// 1 = ESC only
-// 2 = any key
-// 3 = mouse button
-// 4 = mouse button or any key
-// 5 = right click or ESC only
-// 6 = nothing, only skip by script command
 void StartCutscene (int skipwith) {
     static ScriptPosition last_cutscene_script_pos;
 
-    if (play.in_cutscene) {
+    if (is_in_cutscene()) {
         quitprintf("!StartCutscene: already in a cutscene; previous started in \"%s\", line %d",
             last_cutscene_script_pos.Section.GetCStr(), last_cutscene_script_pos.Line);
     }
@@ -487,12 +480,12 @@ void StartCutscene (int skipwith) {
 
 void SkipCutscene()
 {
-    if (play.in_cutscene > 0)
+    if (is_in_cutscene())
         start_skipping_cutscene();
 }
 
 int EndCutscene () {
-    if (play.in_cutscene == 0)
+    if (!is_in_cutscene())
         quit("!EndCutscene: not in a cutscene");
 
     int retval = play.fast_forward;

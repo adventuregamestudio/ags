@@ -227,10 +227,12 @@ void check_mouse_controls()
     if (mbut>NONE) {
         lock_mouse_on_click();
 
-        if ((play.in_cutscene == 3) || (play.in_cutscene == 4))
+        CutsceneSkipStyle skip = get_cutscene_skipstyle();
+        if (skip == eSkipSceneMouse || skip == eSkipSceneKeyMouse ||
+            (mbut == RIGHT && skip == eSkipSceneEscOrRMB))
+        {
             start_skipping_cutscene();
-        if ((play.in_cutscene == 5) && (mbut == RIGHT))
-            start_skipping_cutscene();
+        }
 
         if (play.fast_forward) { }
         else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))

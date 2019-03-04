@@ -1731,6 +1731,16 @@ bool try_restore_save(const Common::String &path, int slot)
     return true;
 }
 
+bool is_in_cutscene()
+{
+    return play.in_cutscene > 0;
+}
+
+CutsceneSkipStyle get_cutscene_skipstyle()
+{
+    return static_cast<CutsceneSkipStyle>(play.in_cutscene);
+}
+
 void start_skipping_cutscene () {
     play.fast_forward = 1;
     // if a drop-down icon bar is up, remove it as it will pause the game
@@ -1745,13 +1755,12 @@ void start_skipping_cutscene () {
 
 void check_skip_cutscene_keypress (int kgn) {
 
-    if ((play.in_cutscene > 0) && (play.in_cutscene != 3) && (play.in_cutscene != 6)) {
-        if ((kgn != 27) && ((play.in_cutscene == 1) || (play.in_cutscene == 5)))
-            ;
-        else
-            start_skipping_cutscene();
+    CutsceneSkipStyle skip = get_cutscene_skipstyle();
+    if (skip == eSkipSceneAnyKey || skip == eSkipSceneKeyMouse ||
+        (kgn == 27 && (skip == eSkipSceneEscOnly || skip == eSkipSceneEscOrRMB)))
+    {
+        start_skipping_cutscene();
     }
-
 }
 
 // Helper functions used by StartCutscene/EndCutscene, but also

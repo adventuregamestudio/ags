@@ -469,7 +469,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     {
         for (int i = 0; i < num_do_once_tokens; ++i)
         {
-            StrUtil::ReadString(&do_once_tokens[i], in);
+            StrUtil::ReadString(do_once_tokens[i], in);
         }
     }
     text_min_display_time_ms = in->ReadInt32();

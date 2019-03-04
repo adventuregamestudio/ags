@@ -217,13 +217,10 @@ void StrUtil::ReadString(char *cstr, Stream *in, size_t buf_limit)
         cstr[0] = 0;
 }
 
-void StrUtil::ReadString(String *s, Stream *in)
+void StrUtil::ReadString(String &s, Stream *in)
 {
     size_t len = in->ReadInt32();
-    s->FillString('\0',len);
-    char* ptr = (char*)s->GetCStr(); //yes, this is bad.
-    if (len > 0)
-        in->Read(ptr, len);
+    s.ReadCount(in, len);
 }
 
 void StrUtil::ReadString(char **cstr, Stream *in)

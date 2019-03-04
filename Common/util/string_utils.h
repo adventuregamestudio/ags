@@ -102,7 +102,7 @@ namespace StrUtil
     String          ReadString(Stream *in);
     void            ReadString(char *cstr, Stream *in, size_t buf_limit = 0);
     void            ReadString(char **cstr, Stream *in);
-    void            ReadString(String *s, Stream *in);
+    void            ReadString(String &s, Stream *in);
     void            SkipString(Stream *in);
     void            WriteString(const String &s, Stream *out);
     void            WriteString(const char *cstr, Stream *out);

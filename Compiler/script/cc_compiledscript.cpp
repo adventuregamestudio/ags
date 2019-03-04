@@ -8,46 +8,29 @@
 #include "script/cc_options.h"      // ccGetOption
 #include "script/cc_error.h"
 
-void ccCompiledScript::write_cmd(int cmdd) {
-    write_code(cmdd);
-}
-
-void ccCompiledScript::write_cmd1(int cmdd,int param) {
-    write_code(cmdd);
-    write_code(param);
-}
-void ccCompiledScript::write_cmd2(int cmdd,int param,int param2) {
-    write_code(cmdd);
-    write_code(param);
-    write_code(param2);
-}
-void ccCompiledScript::write_cmd3(int cmdd,int param,int param2,int param3) {
-    write_code(cmdd);
-    write_code(param);
-    write_code(param2);
-    write_code(param3);
-}
-
-void ccCompiledScript::push_reg(int regg) {
-    write_cmd1(SCMD_PUSHREG,regg);
+void ccCompiledScript::push_reg(int regg) 
+{
+    write_cmd1(SCMD_PUSHREG, regg);
     cur_sp += 4;
 }
 
-void ccCompiledScript::pop_reg(int regg) {
-    write_cmd1(SCMD_POPREG,regg);
+void ccCompiledScript::pop_reg(int regg) 
+{
+    write_cmd1(SCMD_POPREG, regg);
     cur_sp -= 4;
 }
 
-ccCompiledScript::ccCompiledScript() {
+ccCompiledScript::ccCompiledScript() 
+{
     init();
     ax_val_type = 0;
     ax_val_scope = 0;
 }
 
-ccCompiledScript::~ccCompiledScript() {
+ccCompiledScript::~ccCompiledScript() 
+{
     shutdown();
 }
-
 
 // [fw] Note: Existing callers expected this function to return < 0 on overflow
 // [fw] TODO: All this should become an STL vector for automatic memory management
@@ -359,17 +342,11 @@ void ccCompiledScript::flush_line_numbers()
 
 void ccCompiledScript::write_code(intptr_t byy)
 {
-    /* // DEBUGGING [fw]
-    if (codesize == 28)
-    {
-        int iii = 0;
-    }
-    // END DEBUGGING [fw] */
     flush_line_numbers();
     if (codesize >= codeallocated - 2)
     {
         codeallocated += 500;
-        code = (intptr_t*)realloc(code, codeallocated * sizeof(intptr_t));
+        code = (intptr_t *)realloc(code, codeallocated * sizeof(intptr_t));
     }
     code[codesize] = byy;
     codesize++;
@@ -447,5 +424,3 @@ void ccCompiledScript::shutdown()
 {
     free_extra();
 }
-
-

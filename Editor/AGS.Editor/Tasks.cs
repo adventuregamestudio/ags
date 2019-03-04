@@ -195,6 +195,20 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 18)
+            {
+                foreach (Font font in game.Fonts)
+                    font.SizeMultiplier = 1;
+                // Apply font scaling to each individual font settings
+                if (game.IsHighResolution && !game.Settings.FontsForHiRes)
+                {
+                    foreach (Font font in game.Fonts)
+                    {
+                        font.SizeMultiplier = 2;
+                    }
+                }
+            }
+
             game.SetScriptAPIForOldProject();
         }
 

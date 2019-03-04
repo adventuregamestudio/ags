@@ -467,6 +467,26 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
     }
 }
 
+void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    if (data_ver < kGameVersion_350)
+    {
+        for (int i = 0; i < game.numfonts; ++i)
+        {
+            FontInfo &finfo = game.fonts[i];
+            // If the game is hi-res but font is designed for low-res, then scale it up
+            if (game.IsHiRes() && game.options[OPT_HIRES_FONTS] == 0)
+            {
+                finfo.SizeMultiplier = 2;
+            }
+            else
+            {
+                finfo.SizeMultiplier = 1;
+            }
+        }
+    }
+}
+
 // Convert audio data to the current version
 void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
 {
@@ -736,6 +756,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
 {
     GameSetupStruct &game = ents.Game;
     ApplySpriteData(game, ents, data_ver);
+    UpgradeFonts(game, data_ver);
     UpgradeAudio(game, data_ver);
     AdjustScoreSound(game, data_ver);
     UpgradeCharacters(game, data_ver);

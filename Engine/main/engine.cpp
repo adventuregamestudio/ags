@@ -962,8 +962,6 @@ void engine_init_game_settings()
             palette[ee]=game.defpal[ee];
     }
 
-    if (game.options[OPT_NOSCALEFNT]) wtext_multiply=1;
-
     for (ee = 0; ee < game.numcursors; ee++) 
     {
         // The cursor graphics are assigned to mousecurs[] and so cannot

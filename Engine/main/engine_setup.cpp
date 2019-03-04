@@ -149,14 +149,12 @@ void engine_init_resolution_settings(const Size game_size)
             native_size.Height = game_size.Height / 2;
         }
         current_screen_resolution_multiplier = 2;
-        wtext_multiply = 2;
     }
     else
     {
         native_size.Width = game_size.Width;
         native_size.Height = game_size.Height;
         current_screen_resolution_multiplier = 1;
-        wtext_multiply = 1;
     }
     play.SetNativeSize(native_size);
 

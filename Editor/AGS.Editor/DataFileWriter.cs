@@ -507,7 +507,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_DUPLICATEINV] = (game.Settings.DisplayMultipleInventory ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_STRICTSTRINGS] = (game.Settings.EnforceNewStrings ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_STRICTSCRIPTING] = (game.Settings.EnforceObjectBasedScript ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_NOSCALEFNT] = (game.Settings.FontsForHiRes ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_HIRES_FONTS] = 0; // always ignore this setting
             options[NativeConstants.GameOptions.OPT_NEWGUIALPHA] = (int)game.Settings.GUIAlphaStyle;
             options[NativeConstants.GameOptions.OPT_SPRITEALPHA] = (int)game.Settings.SpriteAlphaStyle;
             options[NativeConstants.GameOptions.OPT_HANDLEINVCLICKS] = (game.Settings.HandleInvClicksInScript ? 1 : 0);
@@ -1392,7 +1392,17 @@ namespace AGS.Editor
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
-                writer.Write((byte)(game.Fonts[i].PointSize & NativeConstants.FFLG_SIZEMASK));
+                byte flags = 0;
+                if (game.Fonts[i].PointSize == 0)
+                {
+                    flags = (byte)(NativeConstants.FFLG_SIZEMULTIPLIER << 6);
+                    flags |= (byte)(game.Fonts[i].SizeMultiplier & NativeConstants.FFLG_SIZEMASK);
+                }
+                else
+                {
+                    flags = (byte)(game.Fonts[i].PointSize & NativeConstants.FFLG_SIZEMASK);
+                }
+                writer.Write(flags);
             }
             for (int i = 0; i < game.Fonts.Count; ++i)
             {

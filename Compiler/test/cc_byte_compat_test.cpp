@@ -3422,6 +3422,124 @@ TEST(Compatibility, Func1) {
 
 }
 
+TEST(Compatibility, Func1A) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct1          \n\
+    {                               \n\
+        float Payload1;             \n\
+    };                              \n\
+    managed struct Struct2          \n\
+    {                               \n\
+        char Payload2;              \n\
+    };                              \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        Struct1 *SS1;               \n\
+        Struct2 *SS2;               \n\
+        int Ret = Func(SS1, SS2);   \n\
+        return Ret;                 \n\
+    }                               \n\
+                                    \n\
+    import int Func(Struct1 *S1, Struct2 *S2);  \n\
+    ";
+
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Func1A", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+
+    const size_t codesize = 82;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    4,    1,    // 7
+       1,    4,    3,    1,            2,   63,    4,    1,    // 15
+       1,    4,   51,    4,           29,    2,   30,    2,    // 23
+      48,    3,   34,    3,           51,    8,   29,    2,    // 31
+      30,    2,   48,    3,           34,    3,   39,    2,    // 39
+       6,    3,    0,   33,            3,   35,    2,    3,    // 47
+       1,    2,    8,    3,            1,    1,    4,   51,    // 55
+       4,    7,    3,   51,           12,   69,   51,    8,    // 63
+      69,    2,    1,   12,            5,    6,    3,    0,    // 71
+      51,   12,   69,   51,            8,   69,    2,    1,    // 79
+      12,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (idx >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 1;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      42,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 1;
+    std::string imports[] = {
+    "Func",         "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+
+}
 
 TEST(Compatibility, Func2) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -3687,7 +3805,7 @@ TEST(Compatibility, Func4) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Func4", scrip);
+    // WriteOutput("Func4", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -3898,7 +4016,7 @@ TEST(Compatibility, Func4b) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Func4b", scrip);
+    // WriteOutput("Func4b", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -4772,7 +4890,7 @@ TEST(Compatibility, Writeprotected) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Writeprotected", scrip);
+    // WriteOutput("Writeprotected", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -5570,7 +5688,7 @@ TEST(Compatibility, StandardString) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("StandardString", scrip);
+    // WriteOutput("StandardString", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -5701,7 +5819,7 @@ TEST(Compatibility, SwitchNoBreak) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("SwitchNoBreak", scrip);
+    // WriteOutput("SwitchNoBreak", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

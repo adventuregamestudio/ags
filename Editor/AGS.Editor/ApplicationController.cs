@@ -88,6 +88,8 @@ namespace AGS.Editor
         {
             Game game = Factory.AGSEditor.CurrentGame;
 
+            // TODO: this may be noticably slow especially for sprites. Display some kind of
+            // progress window to notify user.
             // Convert absolute paths to relative paths. This is an automatic fixup from when the
             // editor stored absolute paths only
             foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())

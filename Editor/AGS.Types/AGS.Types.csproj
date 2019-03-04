@@ -154,6 +154,7 @@
     <Compile Include="GlobalVariable.cs" />
     <Compile Include="GlobalVariables.cs" />
     <Compile Include="GUIControlGroup.cs" />
+    <Compile Include="HelperTypes\SpriteInfo.cs" />
     <Compile Include="Interfaces\IRePopulatableComponent.cs" />
     <Compile Include="Interfaces\ILoadedRoom.cs" />
     <Compile Include="InteractionSchema.cs" />

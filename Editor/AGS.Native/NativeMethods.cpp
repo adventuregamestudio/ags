@@ -48,10 +48,9 @@ extern unsigned char* GetRawSpriteData(int spriteSlot);
 extern int find_free_sprite_slot();
 extern int crop_sprite_edges(int numSprites, int *sprites, bool symmetric);
 extern void deleteSprite(int sprslot);
+extern void GetSpriteInfo(int slot, ::SpriteInfo &info);
 extern int GetSpriteWidth(int slot);
 extern int GetSpriteHeight(int slot);
-extern int GetRelativeSpriteWidth(int slot);
-extern int GetRelativeSpriteHeight(int slot);
 extern int GetSpriteColorDepth(int slot);
 extern int GetPaletteAsHPalette();
 extern bool DoesSpriteExist(int slot);
@@ -61,10 +60,9 @@ extern int load_template_file(const char *fileName, char **iconDataBuffer, long 
 extern int extract_template_files(const char *templateFileName);
 extern int extract_room_template_files(const char *templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
-extern void update_sprite_resolution(int spriteNum, bool isHighRes);
+extern void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes);
 extern void save_game(bool compressSprites);
 extern HAGSError reset_sprite_file();
-extern int GetSpriteResolutionMultiplier(int slot);
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameUpdated(Game ^game);
 extern void GameFontUpdated(Game ^game, int fontNumber);
@@ -251,31 +249,22 @@ namespace AGS
         GameFontUpdated(game, fontSlot);
     }
 
-		// Gets sprite height in 320x200-res co-ordinates
-		int NativeMethods::GetRelativeSpriteHeight(int spriteSlot) 
-		{
-			return ::GetRelativeSpriteHeight(spriteSlot);
-		}
+        AGS::Types::SpriteInfo^ NativeMethods::GetSpriteInfo(int spriteSlot)
+        {
+            ::SpriteInfo info;
+            ::GetSpriteInfo(spriteSlot, info);
+            return gcnew AGS::Types::SpriteInfo(info.Width, info.Height,
+                info.IsVarRes() ? (info.IsHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real);
+        }
 
-		// Gets sprite width in 320x200-res co-ordinates
-		int NativeMethods::GetRelativeSpriteWidth(int spriteSlot) 
-		{
-			return ::GetRelativeSpriteWidth(spriteSlot);
-		}
-
-		int NativeMethods::GetActualSpriteWidth(int spriteSlot) 
+		int NativeMethods::GetSpriteWidth(int spriteSlot) 
 		{
 			return ::GetSpriteWidth(spriteSlot);
 		}
 
-		int NativeMethods::GetActualSpriteHeight(int spriteSlot) 
+		int NativeMethods::GetSpriteHeight(int spriteSlot) 
 		{
 			return ::GetSpriteHeight(spriteSlot);
-		}
-
-		int NativeMethods::GetSpriteResolutionMultiplier(int spriteSlot)
-		{
-			return ::GetSpriteResolutionMultiplier(spriteSlot);
 		}
 
 		void NativeMethods::ChangeSpriteNumber(Sprite^ sprite, int newNumber)
@@ -292,7 +281,7 @@ namespace AGS
 		{
 			for each (Sprite^ sprite in sprites)
 			{
-				update_sprite_resolution(sprite->Number, sprite->Resolution == SpriteImportResolution::HighRes);
+				update_sprite_resolution(sprite->Number, sprite->Resolution != SpriteImportResolution::Real, sprite->Resolution == SpriteImportResolution::HighRes);
 			}
 		}
 
@@ -686,7 +675,8 @@ namespace AGS
             if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;
             if (name->Equals("CHUNKSIZE")) return CHUNKSIZE;
             if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
-            if (name->Equals("SPF_640x400")) return SPF_640x400;
+            if (name->Equals("SPF_VAR_RESOLUTION")) return SPF_VAR_RESOLUTION;
+            if (name->Equals("SPF_HIRES")) return SPF_HIRES;
             if (name->Equals("SPF_ALPHACHANNEL")) return SPF_ALPHACHANNEL;
             if (name->Equals("PASSWORD_ENC_STRING"))
             {

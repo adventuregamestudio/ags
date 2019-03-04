@@ -42,7 +42,7 @@ namespace AGS.Types
 		/// around and use this as an entity.
 		/// </summary>
 		public Sprite(int number, int width, int height)
-			: this(number, width, height, 0, SpriteImportResolution.LowRes, false)
+			: this(number, width, height, 0, SpriteImportResolution.Real, false)
 		{
 		}
 

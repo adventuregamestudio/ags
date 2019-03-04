@@ -224,7 +224,7 @@ HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDe
     if (elems & kSvgDesc_UserText)
         desc.UserText.Read(in);
     else
-        for (; in->ReadByte(); ); // skip until null terminator
+        StrUtil::SkipCStr(in);
     svg_ver = (SavegameVersion)in->ReadInt32();
 
     // Check saved game format version
@@ -257,7 +257,7 @@ HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDe
     }
     else
     {
-        for (; in->ReadByte(); ); // skip until null terminator
+        StrUtil::SkipCStr(in);
         in->ReadInt32(); // unscaled game height with borders, now obsolete
         in->ReadInt32(); // color depth
     }

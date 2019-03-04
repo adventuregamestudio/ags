@@ -99,6 +99,7 @@ namespace StrUtil
 
     // Serialize and unserialize string as c-string (null-terminated sequence)
     void            ReadCStr(char *buf, Stream *in, size_t buf_limit);
+    void            SkipCStr(Stream *in);
     void            WriteCStr(const char *cstr, Stream *out);
     void            WriteCStr(const String &s, Stream *out);
 }

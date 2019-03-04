@@ -16,7 +16,10 @@
 #define __AC_GAMESTATE_H
 
 #include "util/stdtr1compat.h"
+
 #include <memory>
+#include <vector>
+
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 #include "game/roomstruct.h"
@@ -24,6 +27,7 @@
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
+#include "util/string.h"
 
 // Forward declaration
 namespace AGS { namespace Common {
@@ -201,8 +205,7 @@ struct GameState {
     short temporarily_turned_off_character;  // Hide Player Charactr ticked
     short inv_backwards_compatibility;
     int  *gui_draw_order;
-    char**do_once_tokens;
-    int   num_do_once_tokens;
+    std::vector<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms;
     int   ignore_user_input_after_text_timeout_ms;
     unsigned long ignore_user_input_until_time;

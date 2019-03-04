@@ -137,11 +137,13 @@ void fputstring(const char *sss, Common::Stream *out)
 
 void fgetstring_limit(char *sss, Common::Stream *in, int bufsize)
 {
+    //TODO: bug. should guarantee buffer is terminated in any event. the way this is used, anyway.
     int b = -1;
     do {
         if (b < bufsize - 1)
             b++;
         sss[b] = in->ReadInt8();
+        //TODO: bug. if reached end of stream prematurely, won't have a null terminator
         if (in->EOS())
             return;
     } while (sss[b] != 0);
@@ -208,16 +210,27 @@ void StrUtil::ReadString(char *cstr, Stream *in, size_t buf_limit)
     size_t len = in->ReadInt32();
     if (buf_limit > 0)
         len = Math::Min(len, buf_limit - 1);
+    cstr[len] = 0;
     if (len > 0)
         in->Read(cstr, len);
     else
         cstr[0] = 0;
 }
 
+void StrUtil::ReadString(String *s, Stream *in)
+{
+    size_t len = in->ReadInt32();
+    s->FillString('\0',len);
+    char* ptr = (char*)s->GetCStr(); //yes, this is bad.
+    if (len > 0)
+        in->Read(ptr, len);
+}
+
 void StrUtil::ReadString(char **cstr, Stream *in)
 {
     size_t len = in->ReadInt32();
     *cstr = new char[len + 1];
+    (*cstr)[len] = 0;
     if (len > 0)
         in->Read(*cstr, len);
     else

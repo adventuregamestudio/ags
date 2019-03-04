@@ -463,10 +463,10 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
         in->ReadInt32(); // gui_draw_order
         in->ReadInt32(); // do_once_tokens;
     }
-    num_do_once_tokens = in->ReadInt32();
+    int num_do_once_tokens = in->ReadInt32();
+    do_once_tokens.resize(num_do_once_tokens);
     if (!old_save)
     {
-        do_once_tokens = new char*[num_do_once_tokens];
         for (int i = 0; i < num_do_once_tokens; ++i)
         {
             StrUtil::ReadString(&do_once_tokens[i], in);
@@ -650,8 +650,8 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( gamma_adjustment);
     out->WriteInt16(temporarily_turned_off_character);
     out->WriteInt16(inv_backwards_compatibility);
-    out->WriteInt32( num_do_once_tokens);
-    for (int i = 0; i < num_do_once_tokens; ++i)
+    out->WriteInt32(do_once_tokens.size());
+    for (int i = 0; i < (int)do_once_tokens.size(); ++i)
     {
         StrUtil::WriteString(do_once_tokens[i], out);
     }

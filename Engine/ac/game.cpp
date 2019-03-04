@@ -502,16 +502,7 @@ void save_game_dialog() {
 
 void free_do_once_tokens()
 {
-    for (int i = 0; i < play.num_do_once_tokens; i++)
-    {
-        free(play.do_once_tokens[i]);
-    }
-    if (play.do_once_tokens != NULL)
-    {
-        free(play.do_once_tokens);
-        play.do_once_tokens = NULL;
-    }
-    play.num_do_once_tokens = 0;
+    play.do_once_tokens.resize(0);
 }
 
 
@@ -744,17 +735,14 @@ int Game_DoOnceOnly(const char *token)
     if (strlen(token) > 199)
         quit("!Game.DoOnceOnly: token length cannot be more than 200 chars");
 
-    for (int i = 0; i < play.num_do_once_tokens; i++)
+    for (int i = 0; i < (int)play.do_once_tokens.size(); i++)
     {
-        if (strcmp(play.do_once_tokens[i], token) == 0)
+        if (play.do_once_tokens[i] == token)
         {
             return 0;
         }
     }
-    play.do_once_tokens = (char**)realloc(play.do_once_tokens, sizeof(char*) * (play.num_do_once_tokens + 1));
-    play.do_once_tokens[play.num_do_once_tokens] = (char*)malloc(strlen(token) + 1);
-    strcpy(play.do_once_tokens[play.num_do_once_tokens], token);
-    play.num_do_once_tokens++;
+    play.do_once_tokens.push_back(token);
     return 1;
 }
 
@@ -1212,15 +1200,10 @@ void ReadGameState_Aligned(Stream *in)
 
 void restore_game_play_ex_data(Stream *in)
 {
-    if (play.num_do_once_tokens > 0)
+    for (int bb = 0; (int)bb < play.do_once_tokens.size(); bb++)
     {
-        play.do_once_tokens = (char**)malloc(sizeof(char*) * play.num_do_once_tokens);
-        for (int bb = 0; bb < play.num_do_once_tokens; bb++)
-        {
-            fgetstring_limit(rbuffer, in, 200);
-            play.do_once_tokens[bb] = (char*)malloc(strlen(rbuffer) + 1);
-            strcpy(play.do_once_tokens[bb], rbuffer);
-        }
+        fgetstring_limit(rbuffer, in, 200);
+        play.do_once_tokens[bb] = rbuffer;
     }
 
     in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);

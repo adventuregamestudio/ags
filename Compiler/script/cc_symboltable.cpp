@@ -99,7 +99,7 @@ SymbolTable::SymbolTable()
 int SymbolTable::get_type(int ii)
 {
     // just return the real type, regardless of pointerness/constness
-    ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
+    ii &= STYPE_MASK;
 
     if ((ii < 0) || (ii >= entries.size())) { return -1; }
 

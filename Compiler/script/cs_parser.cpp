@@ -105,8 +105,8 @@ int ParseSubexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t syml
 enum FxFixupType // see script_common.h
 {
     kFx_NoFixup = 0,
-    kFx_FixupDataData = 1, // globaldata[fixup] += &globaldata[0]
-    kFx_FixupFunction = 2, // code[fixup] += &code[0]
+    kFx_FixupDataData = FIXUP_DATADATA, // globaldata[fixup] += &globaldata[0]
+    kFx_FixupFunction = FIXUP_FUNCTION,  // code[fixup] += &code[0]
 };
 
 enum Globalness
@@ -141,8 +141,8 @@ enum TypeQualifier
     kTQ_Import = kTQ_Import1 | kTQ_Import2,
 };
 
-inline bool FlagIsSet(int fl_set, int flag) { return 0 != (fl_set & flag); }
-inline void SetFlag(int &fl_set, int flag, bool val) { fl_set &= ~flag; if (val) fl_set |= flag; }
+inline bool FlagIsSet(long fl_set, long flag) { return 0 != (fl_set & flag); }
+inline void SetFlag(long &fl_set, long flag, bool val) { fl_set &= ~flag; if (val) fl_set |= flag; }
 
 
 bool IsIdentifier(AGS::Symbol symb)
@@ -466,7 +466,7 @@ TSym1Table g_Sym1;
 
 inline AGS::Symbol Sym1GetType(AGS::Symbol sym)
 {
-    sym &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
+    sym &= STYPE_MASK;
     if (sym < 0) return -1;
     return g_Sym1[sym].stype;
 
@@ -1346,6 +1346,7 @@ void ParseFuncdecl_SetFunctype(
     bool func_returns_ptr,
     bool func_returns_dynarray,
     bool func_is_static,
+    bool func_is_protected,
     int numparams)
 {
     entry.stype = SYM_FUNCTION;
@@ -1359,6 +1360,8 @@ void ParseFuncdecl_SetFunctype(
         entry.funcparamtypes[0] |= STYPE_DYNARRAY;
     if (func_is_static)
         entry.flags |= SFLG_STATIC;
+    if (func_is_protected)
+        entry.flags |= SFLG_PROTECTED;
 
     return;
 }
@@ -1656,7 +1659,7 @@ int ParseFuncdecl(
     if (retval < 0) return retval;
 
     // Type the function in the symbol table
-    ParseFuncdecl_SetFunctype(entry, return_type, func_returns_ptr, func_returns_dynarray, FlagIsSet(tqs, kTQ_Static), numparams);
+    ParseFuncdecl_SetFunctype(entry, return_type, func_returns_ptr, func_returns_dynarray, FlagIsSet(tqs, kTQ_Static), FlagIsSet(tqs, kTQ_Protected), numparams);
 
     // Check whether this declaration is compatible with known info; 
     retval = ParseFuncdecl_CheckThatKnownInfoMatches(&entry, body_follows, &known_info);
@@ -5988,15 +5991,13 @@ int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Sym
     SymbolTableEntry &entry = (kpp_Main == g_PP) ? sym.entries[func_name] : g_Sym1[func_name];
     bool body_follows;
 
-    // restore flags, since remove_any_imports() zeros them out
-    if (struct_of_current_func > 0)
-        entry.flags |= SFLG_STRUCTMEMBER;
-    if (FlagIsSet(tqs, kTQ_Protected))
-        entry.flags |= SFLG_PROTECTED;
     int retval = ParseFuncdecl(
         targ, scrip, func_name, type_of_defn, isPointer, isDynamicArray,
         tqs, struct_of_current_func, body_follows);
     if (retval < 0) return retval;
+    if (struct_of_current_func > 0)
+        entry.flags |= SFLG_STRUCTMEMBER;
+
     if (kpp_PreAnalyze == g_PP)
         entry.soffs = (body_follows ? 1 : -1);
 

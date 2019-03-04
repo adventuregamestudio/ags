@@ -43,9 +43,8 @@ and has the following key components (amongst many other components):
 #define __CS_PARSER_H
 
 #include <vector>
-#include <deque>
 #include <string>
-#include <sstream>
+#include <map>
 
 #include "cc_compiledscript.h"
 #include "cc_internallist.h"
@@ -221,7 +220,7 @@ public:
     int CheckForUnresolvedFuncs();
 };
 
-typedef int TypeQualifierSet;
+typedef long TypeQualifierSet;
 
 } // namespace AGS
 

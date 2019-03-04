@@ -2125,7 +2125,7 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
         int flags = 0;
         if (sprite->Resolution != SpriteImportResolution::Real)
         {
-            flags | SPF_VAR_RESOLUTION;
+            flags |= SPF_VAR_RESOLUTION;
             if (sprite->Resolution == SpriteImportResolution::HighRes)
                 flags |= SPF_HIRES;
         }

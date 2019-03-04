@@ -94,14 +94,14 @@ TEST(SymbolTable, GetNameNonExistentFlags) {
 }
 
 TEST(SymbolTable, AddExAlreadyExists) {
-    SymbolTable testSym;
+	SymbolTable testSym;
 
     int a_sym = testSym.add_ex("a", 0, 0);
     ASSERT_TRUE(testSym.add_ex("a", 0, 0) == -1);
 }
 
 TEST(SymbolTable, AddExUnique) {
-    SymbolTable testSym;
+	SymbolTable testSym;
 
     int a_sym = testSym.add_ex("a", 0, 0);
     int b_sym = testSym.add_ex("b", 0, 0);
@@ -109,7 +109,7 @@ TEST(SymbolTable, AddExUnique) {
 }
 
 TEST(SymbolTable, AddExDefaultValues) {
-    SymbolTable testSym;
+	SymbolTable testSym;
 
     int typo = 1;
     int sizee = 2;
@@ -128,7 +128,7 @@ TEST(SymbolTable, AddExDefaultValues) {
 }
 
 TEST(SymbolTable, AddExAvailableAfterwards) {
-    SymbolTable testSym;
+	SymbolTable testSym;
 
     int a_sym = testSym.add_ex("x", 0, 0);
 
@@ -138,7 +138,7 @@ TEST(SymbolTable, AddExAvailableAfterwards) {
 }
 
 TEST(SymbolTable, EntriesEnsureModifiable) {
-    SymbolTable testSym;
+	SymbolTable testSym;
 
     // ensure reading and writing to entries actually works!
     int a_sym = testSym.add_ex("x", 0, 0);
@@ -147,8 +147,8 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
 }
 
 TEST(SymbolTable, GetNumArgs) {
-    SymbolTable testSym;
-    int sym_01 = testSym.add("yellow");
+	SymbolTable testSym;
+	int sym_01 = testSym.add("yellow");
 
     testSym.entries[sym_01].sscope = 0;
     ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 0);
@@ -166,8 +166,8 @@ TEST(SymbolTable, GetNumArgs) {
 }
 
 TEST(SymbolTable, IsLoadableVariable) {
-    SymbolTable testSym;
-    int sym_01 = testSym.add("supergreen");
+	SymbolTable testSym;
+	int sym_01 = testSym.add("supergreen");
 
     ASSERT_TRUE(!testSym.entries[sym_01].is_loadable_variable());
 
@@ -181,8 +181,8 @@ TEST(SymbolTable, IsLoadableVariable) {
 
 TEST(SymbolTable, AttrFuncs) {
 
-    SymbolTable testSym;
-    int sym_01 = testSym.add("cup");
+	SymbolTable testSym;
+	int sym_01 = testSym.add("cup");
 
 	testSym.entries[sym_01].set_attrfuncs(0, 0);
 	ASSERT_TRUE(testSym.entries[sym_01].get_attrget() == 0);
@@ -202,8 +202,8 @@ TEST(SymbolTable, AttrFuncs) {
 }
 
 TEST(SymbolTable, OperatorToVCPUCmd) {
-    SymbolTable testSym;
-    int sym_01 = testSym.add("grassgreen");
+	SymbolTable testSym;
+	int sym_01 = testSym.add("grassgreen");
 
     testSym.entries[sym_01].vartype = 0;
     ASSERT_TRUE(testSym.entries[sym_01].operatorToVCPUCmd() == 0);

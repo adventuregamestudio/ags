@@ -16,7 +16,7 @@
 
 #define SYM_TEMPORARYTYPE -99
 
-// So there's another symbol definition in cc_symboldef.h
+// So there's another symbol definition in cc_symboldef.h which is deprecated
 struct SymbolTableEntry {
     std::string sname;
     short stype;
@@ -33,6 +33,7 @@ struct SymbolTableEntry {
     std::vector<bool> funcParamHasDefaultValues;
 
     SymbolTableEntry();
+    SymbolTableEntry(const char *nta, int typo, char sizee);
 
     int get_num_args();
 

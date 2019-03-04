@@ -20,6 +20,22 @@ SymbolTableEntry::SymbolTableEntry()
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
 
+SymbolTableEntry::SymbolTableEntry(const char *nta, int typo, char sizee)
+    : sname(std::string(nta))
+    , stype(typo)
+    , flags(0)
+    , vartype(0)
+    , soffs(0)
+    , ssize(sizee)
+    , sscope(0)
+    , arrsize(0)
+    , extends(0)
+    , funcparamtypes(std::vector<unsigned long>(1)) // Function must have at least the return param
+    , funcParamDefaultValues(std::vector<int>(1))
+    , funcParamHasDefaultValues(std::vector<bool>(1))
+{ }
+
+
 int SymbolTableEntry::get_num_args()
 {
     return sscope % 100;
@@ -189,7 +205,7 @@ void SymbolTable::reset()
     lastPredefSym = add_ex("builtin", SYM_BUILTIN, 0);
 }
 
-int SymbolTable::find(const char*ntf)
+int SymbolTable::find(const char *ntf)
 {
     return symbolTree.findValue(ntf);
 }
@@ -261,23 +277,12 @@ int SymbolTable::add(const char *nta)
 
 int SymbolTable::add_ex(const char *nta, int typo, char sizee)
 {
-    if (find(nta) >= 0) return -1;
+    if (find(nta) >= 0) 
+        return -1;
 
-    int p_value = entries.size();
+    int const p_value = entries.size();
 
-    SymbolTableEntry entry = {};
-    entry.sname = std::string(nta);
-    entry.stype = typo;
-    entry.flags = 0;
-    entry.vartype = 0;
-    entry.soffs = 0;
-    entry.ssize = sizee;
-    entry.sscope = 0;
-    entry.arrsize = 0;
-    entry.extends = 0;
-    entry.funcparamtypes = std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1);
-    entry.funcParamDefaultValues = std::vector<int>(MAX_FUNCTION_PARAMETERS + 1);
-    entry.funcParamHasDefaultValues = std::vector<bool>(MAX_FUNCTION_PARAMETERS + 1);
+    SymbolTableEntry entry(nta, typo, sizee);
     entries.push_back(entry);
 
     symbolTree.addEntry(nta, p_value);

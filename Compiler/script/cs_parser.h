@@ -16,7 +16,7 @@ The processing is done in the following layers:
     Recognize structs and prepend "." to struct component names
 These two steps are piped. They are performed separately _before_ the Parsing (below) begins.
 The result is:
-    the symbol table, a global sym that is a struct symbolTable.
+    the symbol table, a global sym that is a struct SymbolTable.
     the sequence of tokens, a parameter targ that is a struct ccInternalList *.
     the collected string literals that go into a struct ccCompiledScript.
 

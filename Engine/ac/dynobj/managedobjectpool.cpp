@@ -214,7 +214,7 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
     {
         if ((objects[i].handle) && (objects[i].callback != NULL)) {
             // write the type of the object
-            fputstring((char*)objects[i].callback->GetType(), out);
+            StrUtil::WriteCStr((char*)objects[i].callback->GetType(), out);
             // now write the object data
             int bytesWritten = objects[i].callback->Serialize(objects[i].addr, serializeBuffer, serializeBufferSize);
             if ((bytesWritten < 0) && ((-bytesWritten) > serializeBufferSize))
@@ -261,7 +261,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
     numObjects = numObjs;
 
     for (int i = 1; i < numObjs; i++) {
-        fgetstring_limit(typeNameBuffer, in, 199);
+        StrUtil::ReadCStr(typeNameBuffer, in, sizeof(typeNameBuffer));
         if (typeNameBuffer[0] != 0) {
             int numBytes = in->ReadInt32();
             if (numBytes > serializeBufferSize) {

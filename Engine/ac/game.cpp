@@ -1202,7 +1202,7 @@ void restore_game_play_ex_data(Stream *in)
 {
     for (int bb = 0; (int)bb < play.do_once_tokens.size(); bb++)
     {
-        fgetstring_limit(rbuffer, in, 200);
+        StrUtil::ReadCStr(rbuffer, in, sizeof(rbuffer));
         play.do_once_tokens[bb] = rbuffer;
     }
 

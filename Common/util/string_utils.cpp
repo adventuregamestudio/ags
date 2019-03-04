@@ -124,37 +124,8 @@ void split_lines(const char *todis, int wii, int fonnt) {
 }
 
 //=============================================================================
-// FIXME: remove later when arrays of chars are replaced by string class
-void fputstring(const char *sss, Common::Stream *out)
-{
-    int b = 0;
-    while (sss[b] != 0) {
-        out->WriteInt8(sss[b]);
-        b++;
-    }
-    out->WriteInt8(0);
-}
 
-void fgetstring_limit(char *sss, Common::Stream *in, int bufsize)
-{
-    //TODO: bug. should guarantee buffer is terminated in any event. the way this is used, anyway.
-    int b = -1;
-    do {
-        if (b < bufsize - 1)
-            b++;
-        sss[b] = in->ReadInt8();
-        //TODO: bug. if reached end of stream prematurely, won't have a null terminator
-        if (in->EOS())
-            return;
-    } while (sss[b] != 0);
-}
-
-void fgetstring(char *sss, Common::Stream *in)
-{
-    fgetstring_limit (sss, in, 50000000);
-}
-
-String free_char_to_string(char *char_buf)
+String cbuf_to_string_and_free(char *char_buf)
 {
     String s = char_buf;
     free(char_buf);
@@ -250,10 +221,34 @@ void StrUtil::WriteString(const String &s, Stream *out)
 
 void StrUtil::WriteString(const char *cstr, Stream *out)
 {
-    size_t len = (int)strlen(cstr);
+    size_t len = strlen(cstr);
     out->WriteInt32(len);
     if (len > 0)
         out->Write(cstr, len);
+}
+
+void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
+{
+    int ichar;
+    size_t read_count = 0;
+    char *ptr = buf;
+    do
+    {
+        ichar = in->ReadByte();
+        if (ichar < 0)
+            break;
+        if (++read_count > buf_limit)
+            continue;
+        *(ptr++) = static_cast<char>(ichar);
+    }
+    while (ichar > 0);
+    buf[read_count > buf_limit ? buf_limit - 1 : read_count - 1] = 0;
+}
+
+void StrUtil::WriteCStr(const char *cstr, Stream *out)
+{
+    size_t len = strlen(cstr);
+    out->Write(cstr, len + 1);
 }
 
 void StrUtil::WriteCStr(const String &s, Stream *out)

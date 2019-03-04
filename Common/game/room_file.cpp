@@ -335,7 +335,7 @@ HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_
         if (data_ver >= kRoomVersion_261)
             read_string_decrypt(in, buffer, sizeof(buffer));
         else
-            fgetstring_limit(buffer, in, sizeof(buffer));
+            StrUtil::ReadCStr(buffer, in, sizeof(buffer));
         room->Messages[i] = buffer;
     }
 

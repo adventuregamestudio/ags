@@ -461,13 +461,13 @@ void get_install_dir_path(char* buffer, const char *fileName)
 
 String find_assetlib(const String &filename)
 {
-    String libname = free_char_to_string( ci_find_file(usetup.data_files_dir, filename) );
+    String libname = cbuf_to_string_and_free( ci_find_file(usetup.data_files_dir, filename) );
     if (AssetManager::IsDataFile(libname))
         return libname;
     if (Path::ComparePaths(usetup.data_files_dir, installDirectory) != 0)
     {
       // Hack for running in Debugger
-      libname = free_char_to_string( ci_find_file(installDirectory, filename) );
+      libname = cbuf_to_string_and_free( ci_find_file(installDirectory, filename) );
       if (AssetManager::IsDataFile(libname))
         return libname;
     }

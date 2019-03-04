@@ -351,7 +351,7 @@ bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc,
     if (!asset)
         return false; // asset not found
 
-    String libfile = free_char_to_string( ci_find_file(NULL, MakeLibraryFileNameForAsset(asset)) );
+    String libfile = cbuf_to_string_and_free( ci_find_file(NULL, MakeLibraryFileNameForAsset(asset)) );
     if (libfile.IsEmpty())
         return false;
     loc.FileName = libfile;
@@ -362,7 +362,7 @@ bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc,
 
 bool AssetManager::GetAssetFromDir(const String &file_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    String exfile = free_char_to_string( ci_find_file(NULL, file_name) );
+    String exfile = cbuf_to_string_and_free( ci_find_file(NULL, file_name) );
     if (exfile.IsEmpty() || !Path::IsFile(exfile))
         return false;
     loc.FileName = exfile;

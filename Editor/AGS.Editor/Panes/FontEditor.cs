@@ -83,6 +83,7 @@ namespace AGS.Editor
                     }
                     Factory.NativeProxy.ReloadTTFFont(_item.ID);
                     _item.PointSize = fontSize;
+                    _item.SizeMultiplier = 1;
                     _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
                 }
                 catch (AGSEditorException ex)
@@ -112,6 +113,7 @@ namespace AGS.Editor
                 }
 
                 _item.PointSize = 0;
+                _item.SizeMultiplier = 1;
                 _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
             }
             catch (AGSEditorException ex)

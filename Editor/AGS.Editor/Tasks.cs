@@ -199,12 +199,20 @@ namespace AGS.Editor
             {
                 foreach (Font font in game.Fonts)
                     font.SizeMultiplier = 1;
-                // Apply font scaling to each individual font settings
+                // Apply font scaling to each individual font settings.
+                // Bitmap fonts save multiplier explicitly, while vector fonts have their size doubled.
                 if (game.IsHighResolution && !game.Settings.FontsForHiRes)
                 {
                     foreach (Font font in game.Fonts)
                     {
-                        font.SizeMultiplier = 2;
+                        if (font.PointSize == 0)
+                        {
+                            font.SizeMultiplier = 2;
+                        }
+                        else
+                        {
+                            font.PointSize *= 2;
+                        }
                     }
                 }
             }

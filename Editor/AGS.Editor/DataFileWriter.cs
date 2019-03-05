@@ -1399,7 +1399,7 @@ namespace AGS.Editor
                 }
                 writer.Write(flags);
                 if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
-                    writer.Write(game.Fonts[i].PointSize);
+                    writer.Write(game.Fonts[i].PointSize * game.Fonts[i].SizeMultiplier);
                 else
                     writer.Write(game.Fonts[i].SizeMultiplier);
 

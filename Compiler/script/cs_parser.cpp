@@ -454,8 +454,15 @@ AGS::FuncCallpointMgr g_FCM;
 enum ParsingPhases
 {
     kPP_PreAnalyze = 0,
-    kPP_Main
+    kPP_Main,
 } g_PP;
+
+enum FunctionType
+{
+    kFT_PureForward = 0,
+    kFT_Import = 1,
+    kFT_LocalBody = 2,
+};
 
 // Auxiliary symbol table for the first phase.
 // This is used ubiquitously, so defined as a global variable.
@@ -1113,11 +1120,8 @@ int ParseParamlist_ParamType(ccInternalList *targ, AGS::Symbol param_type, bool 
         (0 == strcmp(sym.get_name(targ->peeknext()), "*"));
     if (param_is_natural_ptr)
         targ->getnext(); // gobble the '*'
-    long type_flags = sym.entries[param_type].flags;
-    if (param_type > sym.lastPredefSym && kPP_PreAnalyze == g_PP)
-        type_flags = g_Sym1[param_type].flags;
-    bool const param_is_autoptr =
-        (0 != (type_flags & SFLG_AUTOPTR));
+    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[param_type] : g_Sym1[param_type];
+    bool const param_is_autoptr = FlagIsSet(entry.flags, SFLG_AUTOPTR);
     param_is_ptr = param_is_natural_ptr || param_is_autoptr;
 
     if (kPP_PreAnalyze == g_PP)
@@ -1615,7 +1619,7 @@ int ParseFuncdecl(
     SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[name_of_func] : g_Sym1[name_of_func];
     if (entry.stype != SYM_FUNCTION && entry.stype != 0)
     {
-        cc_error("Function '%s' is already defined", sym.get_name(name_of_func));
+        cc_error("'%s' is already defined", sym.get_name(name_of_func));
         return -1;
     }
     if ((!func_returns_ptr) && (!func_returns_dynarray) &&
@@ -1678,11 +1682,17 @@ int ParseFuncdecl(
             scrip->funcnumparams[function_idx] = (numparams - 1);
     }
 
-    if (kPP_PreAnalyze == g_PP || !FlagIsSet(tqs, kTQ_Import))
+    if (!FlagIsSet(tqs, kTQ_Import))
         return 0;
 
     // Imported functions
     entry.flags |= SFLG_IMPORTED;
+
+    if (kPP_PreAnalyze == g_PP)
+    {
+        entry.soffs = kFT_Import;
+        return 0;
+    }
 
     if (struct_of_func > 0)
     {
@@ -5541,7 +5551,8 @@ int ParseStruct_MemberStmt(
 
     // A member defn. is a pointer if it is AUTOPOINTER or it has an explicit "*"
     bool type_is_pointer = false;
-    if (sym.entries[curtype].flags & SFLG_AUTOPTR)
+    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[curtype] : g_Sym1[curtype];
+    if (entry.flags & SFLG_AUTOPTR)
     {
         type_is_pointer = true;
     }
@@ -6001,7 +6012,22 @@ int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Sym
         entry.flags |= SFLG_STRUCTMEMBER;
 
     if (kPP_PreAnalyze == g_PP)
-        entry.soffs = (body_follows ? 1 : -1);
+    {
+        if (body_follows && kFT_LocalBody == entry.soffs)
+        {
+            cc_error("This function has already been defined with a body");
+            return -1;
+        }
+        
+        // Encode in entry.soffs the type of function declaration
+        FunctionType ft = kFT_PureForward;
+        if (FlagIsSet(tqs, kTQ_Import))
+            ft = kFT_Import;
+        if (body_follows)
+            ft = kFT_LocalBody;
+        if (entry.soffs < ft)
+            entry.soffs = ft;
+    }
 
     if (!body_follows)
     {
@@ -6524,9 +6550,9 @@ int ParseFor_IterateClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::S
         size_t pre_fixup_count = scrip->numfixups;
         cursym = targ->getnext();
 
-        // TODO: This should be ParseAssignment_or_funccall
-        retval = ParseFor_IterateClause(targ, scrip, cursym);
-        if (retval < 0) return retval;
+    // TODO: This should be ParseAssignmentOrFunccall
+    retval = ParseFor_IterateClause(targ, scrip, cursym);
+    if (retval < 0) return retval;
 
         // Inner nesting level - assume unbraced as a default
         retval = nesting_stack->Push(
@@ -6770,13 +6796,13 @@ int ParseFor_IterateClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::S
         return 0;
     }
 
-    // We're compiling function body code; the code does not start with a keyword or type.
-    // Thus, we should be at the start of an assignment. Compile it.
-    int ParseAssignment_or_funccall(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym)
-    {
-        AGS::Symbol selector_script[TEMP_SYMLIST_LENGTH];
-        size_t selector_script_len;
-        int func_idx;
+// We're compiling function body code; the code does not start with a keyword or type.
+// Thus, we should be at the start of an assignment. Compile it.
+int ParseAssignmentOrFunccall(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym)
+{
+    AGS::Symbol selector_script[TEMP_SYMLIST_LENGTH];
+    size_t selector_script_len;
+    int func_idx;
 
         // Read ahead one variable or func call
         size_t expr_start = targ->pos;
@@ -6825,14 +6851,14 @@ int ParseCommand(
     int retval;
     int curtype = sym.get_type(cursym);
 
-        switch (curtype)
-        {
-        default:
-            // If it doesn't begin with a keyword, it should be an assignment
-            // or a func call.
-            retval = ParseAssignment_or_funccall(targ, scrip, cursym);
-            if (retval < 0) return retval;
-            break;
+    switch (curtype)
+    {
+    default:
+        // If it doesn't begin with a keyword, it should be an assignment
+        // or a func call.
+        retval = ParseAssignmentOrFunccall(targ, scrip, cursym);
+        if (retval < 0) return retval;
+        break;
 
         case SYM_BREAK:
             retval = ParseBreak(targ, scrip, nesting_stack);
@@ -7230,17 +7256,18 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip, size_t &n
     return 0;
 }
 
+// Copy all the func headers from the PreAnalyse phase into the "real" symbol table
 int cc_parse_FuncHeaders2Sym()
 {
     for (TSym1Table::iterator sym_it = g_Sym1.begin(); sym_it != g_Sym1.end(); ++sym_it)
     {
         SymbolTableEntry &f_entry = sym_it->second;
-        if (f_entry.stype != SYM_FUNCTION || f_entry.soffs <= 0)
+        if (f_entry.stype != SYM_FUNCTION)
             continue;
         SymbolTableEntry &s_entry = sym.entries[sym_it->first];
+        SetFlag(f_entry.flags, SFLG_IMPORTED, (kFT_Import == f_entry.soffs));
         f_entry.soffs = 0;
         f_entry.sname = s_entry.sname;
-        f_entry.flags &= ~SFLG_IMPORTED; // Local funcs can't be imported
         f_entry.CopyTo(s_entry);
     }
     return 0;
@@ -7252,6 +7279,8 @@ int cc_parse(ccInternalList *targ, ccCompiledScript *scrip, size_t &nested_level
     int const start_of_input = targ->pos;
     g_PP = kPP_PreAnalyze;
     g_Sym1.clear();
+    for (size_t idx = 0; idx <= sym.lastPredefSym; idx++)
+        g_Sym1[idx] = sym.entries[idx];
     int retval = cc_parse_ParseInput(targ, scrip, nested_level, name_of_current_func);
     if (retval < 0) return retval;
 

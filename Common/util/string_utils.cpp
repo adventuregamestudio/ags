@@ -236,21 +236,23 @@ void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
         return;
     }
 
-    char *ptr = buf;
-    for (int ichar = in->ReadByte();; ichar = in->ReadByte())
+    auto ptr = buf;
+    auto last = buf + buf_limit - 1;
+    for (;;)
     {
-        if (ichar <= 0)
-        {
-            *ptr = 0;
-            break;
-        }
-        if (ptr == buf + buf_limit - 1)
-        {
+        if (ptr >= last) {
             *ptr = 0;
             while (in->ReadByte() > 0); // must still read until 0
             break;
         }
-        *(ptr++) = static_cast<char>(ichar);
+
+        auto ichar = in->ReadByte();
+        if (ichar <= 0) {
+            *ptr = 0;
+            break;
+        }
+        *ptr = static_cast<char>(ichar);
+        ptr++;
     }
 }
 

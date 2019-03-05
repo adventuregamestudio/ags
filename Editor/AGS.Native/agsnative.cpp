@@ -2150,6 +2150,8 @@ void SetGameResolution(Game ^game)
         thisgame.SetCustomResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
 }
 
+void GameFontUpdated(Game ^game, int fontNumber);
+
 void GameUpdated(Game ^game) {
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
@@ -2189,12 +2191,7 @@ void GameUpdated(Game ^game) {
   thisgame.fonts.resize(thisgame.numfonts);
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
-	  thisgame.fonts[i].SizePt = game->Fonts[i]->PointSize;
-      thisgame.fonts[i].SizeMultiplier = game->Fonts[i]->SizeMultiplier;
-      thisgame.fonts[i].YOffset = game->Fonts[i]->VerticalOffset;
-      thisgame.fonts[i].LineSpacing = game->Fonts[i]->LineSpacing;
-	  reload_font(i);
-	  game->Fonts[i]->Height = getfontheight(i);
+      GameFontUpdated(game, i);
   }
 }
 
@@ -2217,6 +2214,8 @@ void GameFontUpdated(Game ^game, int fontNumber)
     {
         reload_font(fontNumber);
     }
+
+    font->Height = getfontheight(fontNumber);
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)

@@ -40,6 +40,7 @@ namespace AGS.Editor
 
         public void OnFontUpdated()
         {
+            Factory.GUIController.RefreshPropertyGrid();
             PaintFont();
         }
 

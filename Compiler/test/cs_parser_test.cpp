@@ -421,7 +421,7 @@ TEST(Compile, NegationRHSOfExpression) {
 }
 
 
-TEST(Compile, FuncDeclWrong) {
+TEST(Compile, FuncDeclWrong1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -434,7 +434,7 @@ TEST(Compile, FuncDeclWrong) {
         char Payload2;              \n\
     };                              \n\
                                     \n\
-    import  int Func(Struct1 *S1, Struct2 *S2);  \n\
+    import int Func(Struct1 *S1, Struct2 *S2);  \n\
                                     \n\
     int Func(Struct2 *S1, Struct1 *S2)  \n\
     {                               \n\
@@ -453,6 +453,42 @@ TEST(Compile, FuncDeclWrong) {
     ASSERT_EQ(-1, compileResult);
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("parameter"));
+
+}
+
+TEST(Compile, FuncDeclWrong2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Struct1          \n\
+    {                               \n\
+        float Payload1;             \n\
+    };                              \n\
+    managed struct Struct2          \n\
+    {                               \n\
+        char Payload2;              \n\
+    };                              \n\
+                                    \n\
+    int main()                      \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+                                    \n\
+    int Func(Struct2 *S1, Struct1 *S2)  \n\
+    {                               \n\
+        return 0;                   \n\
+    }                               \n\
+                                    \n\
+    int Func(Struct1 *S1, Struct2 *S2);  \n\
+   ";
+
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    // Offer some leeway in the error message
+    std::string res(last_seen_cc_error);
     EXPECT_NE(std::string::npos, res.find("parameter"));
 
 }
@@ -601,7 +637,7 @@ TEST(Compile, Do4Wrong) {
     EXPECT_NE(std::string::npos, res.find("true"));
 }
 
-TEST(Compile, ForwardDeclFault1) {
+TEST(Compile, ProtectedFault1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -827,4 +863,54 @@ TEST(Compile, ParamGlobal) {
     ASSERT_NE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Bermudas"));
+}
+
+TEST(Compile, StructExtend1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    struct Parent                   \n\
+    {                               \n\
+        int Payload;                \n\
+    };                              \n\
+    struct Child extends Parent     \n\
+    {                               \n\
+        int Payload;                \n\
+    };                              \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error);
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error;
+    ASSERT_NE(std::string::npos, err.find("Payload"));
+}
+
+TEST(Compile, StructExtend2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    struct Grandparent              \n\
+    {                               \n\
+        int Payload;                \n\
+    };                              \n\
+    struct Parent                   \n\
+    {                               \n\
+        short Money;                \n\
+    };                              \n\
+    struct Child extends Parent     \n\
+    {                               \n\
+        int Payload;                \n\
+    };                              \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(nullptr, last_seen_cc_error);
+    ASSERT_NE(0, compileResult);
+    std::string err = last_seen_cc_error;
+    ASSERT_NE(std::string::npos, err.find("Payload"));
 }

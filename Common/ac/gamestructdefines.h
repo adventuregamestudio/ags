@@ -170,14 +170,14 @@ enum RenderAtScreenRes
 };
 
 
-// Sprite flags
-#define SPF_HIRES           0x0001  // sized for high native resolution (legacy option)
-#define SPF_HICOLOR         0x0002  // is 16-bit
-#define SPF_DYNAMICALLOC    0x0004  // created by runtime script
-#define SPF_TRUECOLOR       0x0008  // is 32-bit
-#define SPF_ALPHACHANNEL    0x0010  // has alpha-channel
-#define SPF_HADALPHACHANNEL 0x0080  // the saved sprite on disk has one
-#define SPF_VAR_RESOLUTION  0x0100  // variable resolution (use SPF_HIRES)
+// Sprite flags (serialized as 8-bit)
+#define SPF_HIRES           0x01  // sized for high native resolution (legacy option)
+#define SPF_HICOLOR         0x02  // is 16-bit
+#define SPF_DYNAMICALLOC    0x04  // created by runtime script
+#define SPF_TRUECOLOR       0x08  // is 32-bit
+#define SPF_ALPHACHANNEL    0x10  // has alpha-channel
+#define SPF_VAR_RESOLUTION  0x20  // variable resolution (refer to SPF_HIRES)
+#define SPF_HADALPHACHANNEL 0x80  // the saved sprite on disk has one
 
 // General information about sprite (properties, size)
 struct SpriteInfo

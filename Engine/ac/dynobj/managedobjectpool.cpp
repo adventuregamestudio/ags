@@ -130,30 +130,26 @@ inline int handle_increment(int handle) {
 
 int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot) 
 {
-    int handle;
+    auto handle = useSlot >= 0 ? useSlot : nextHandle;
 
-    if (useSlot >= 0) {
-        if (objects.find(useSlot) != objects.end()) {
+    for(;;) {
+        auto ok = objects.insert({handle, {
+            ManagedObject {
+                /* obj_type: */ plugin_object ? kScValPluginObject : kScValDynamicObject,
+                /* handle: */ handle,
+                /* addr: */ address,
+                /* callback: */ callback,
+                /* refCount: */ 0
+            }
+            }}).second;
+        if (ok) { break; }
+        if (useSlot >= 0) {
             cc_error("Slot used: %d", useSlot);
             return -1;
         }
-        handle = useSlot;
-    } else {
-        handle = nextHandle;
-        while (objects.find(handle) != objects.end()) {
-            handle = handle_increment(handle);
-        }
+        handle = handle_increment(handle);
     }
 
-    objects.insert({handle, {
-        ManagedObject {
-            /* obj_type: */ plugin_object ? kScValPluginObject : kScValDynamicObject,
-            /* handle: */ handle,
-            /* addr: */ address,
-            /* callback: */ callback,
-            /* refCount: */ 0
-        }
-    }});
     handleByAddress.insert({address, handle});
 
     nextHandle = handle_increment(handle);

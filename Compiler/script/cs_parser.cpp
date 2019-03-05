@@ -5067,7 +5067,7 @@ void ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQualifierSet tqs)
 
 
 // We have accepted something like "struct foo" and are waiting for "extends"
-int ParseStruct_ExtendsClause(ccInternalList *targ, int stname, AGS::Symbol &extendsWhat, size_t &size_so_far)
+int ParseStruct_ExtendsClause(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol &extendsWhat, size_t &size_so_far)
 {
     targ->getnext(); // gobble "extends"
     extendsWhat = targ->getnext(); // name of the extended struct
@@ -5428,7 +5428,6 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     AGS::Symbol stname,
     AGS::Symbol name_of_current_func, // ONLY used for funcs in structs
     TypeQualifierSet tqs,
-    int nested_level,
     int curtype,
     bool type_is_pointer,
     size_t &size_so_far)
@@ -5533,7 +5532,6 @@ int ParseStruct_MemberStmt(
     ccCompiledScript *scrip,
     AGS::Symbol stname,
     AGS::Symbol name_of_current_func,
-    int nested_level,
     AGS::Symbol extendsWhat,
     size_t &size_so_far)
 {
@@ -5584,7 +5582,6 @@ int ParseStruct_MemberStmt(
             stname,             // struct
             name_of_current_func,
             tqs,
-            nested_level,
             curtype,             // core type
             type_is_pointer,
             size_so_far);
@@ -5666,7 +5663,7 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
     // Process every member of the struct in turn
     while (sym.get_type(targ->peeknext()) != SYM_CLOSEBRACE)
     {
-        int retval = ParseStruct_MemberStmt(targ, scrip, stname, name_of_current_func, nested_level, extendsWhat, size_so_far);
+        int retval = ParseStruct_MemberStmt(targ, scrip, stname, name_of_current_func, extendsWhat, size_so_far);
         if (retval < 0) return retval;
     }
 

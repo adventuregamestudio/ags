@@ -121,7 +121,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     //------------------------------
     // Part 1
     void read_savegame_info(Common::Stream *in, GameDataVersion data_ver);
-    void read_font_flags(Common::Stream *in, GameDataVersion data_ver);
+    void read_font_infos(Common::Stream *in, GameDataVersion data_ver);
     HGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver);
     void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
     void read_words_dictionary(Common::Stream *in);

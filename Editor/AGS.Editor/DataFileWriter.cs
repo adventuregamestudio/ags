@@ -1392,35 +1392,24 @@ namespace AGS.Editor
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
-                byte flags = 0;
+                int flags = 0;
                 if (game.Fonts[i].PointSize == 0)
                 {
-                    flags = (byte)(NativeConstants.FFLG_SIZEMULTIPLIER << 6);
-                    flags |= (byte)(game.Fonts[i].SizeMultiplier & NativeConstants.FFLG_SIZEMASK);
-                }
-                else
-                {
-                    flags = (byte)(game.Fonts[i].PointSize & NativeConstants.FFLG_SIZEMASK);
+                    flags = NativeConstants.FFLG_SIZEMULTIPLIER;
                 }
                 writer.Write(flags);
-            }
-            for (int i = 0; i < game.Fonts.Count; ++i)
-            {
-                if (game.Fonts[i].OutlineStyle == FontOutlineStyle.None)
-                {
-                    writer.Write((sbyte)-1);
-                }
-                else if (game.Fonts[i].OutlineStyle == FontOutlineStyle.Automatic)
-                {
-                    writer.Write(NativeConstants.FONT_OUTLINE_AUTO);
-                }
+                if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
+                    writer.Write(game.Fonts[i].PointSize);
                 else
-                {
-                    writer.Write((byte)game.Fonts[i].OutlineFont);
-                }
-            }
-            for (int i = 0; i < game.Fonts.Count; ++i)
-            {
+                    writer.Write(game.Fonts[i].SizeMultiplier);
+
+                int outline = -1;
+                if (game.Fonts[i].OutlineStyle == FontOutlineStyle.Automatic)
+                    outline = NativeConstants.FONT_OUTLINE_AUTO;
+                else if (game.Fonts[i].OutlineStyle != FontOutlineStyle.None)
+                    outline = game.Fonts[i].OutlineFont;
+                writer.Write(outline);
+
                 writer.Write(game.Fonts[i].VerticalOffset);
                 writer.Write(game.Fonts[i].LineSpacing);
             }

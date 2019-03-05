@@ -98,12 +98,17 @@ void GameSetupStruct::Free()
     viewNames.clear();
 }
 
-// Assigns font info parameters using flags value read from the game data
-void SetFontInfoFromSerializedFlags(FontInfo &finfo, uint8_t flags)
+// Assigns font info parameters using legacy flags value read from the game data
+void SetFontInfoFromLegacyFlags(FontInfo &finfo, const uint8_t data)
 {
-    finfo.Flags = flags >> 6;
-    finfo.SizePt = flags & FFLG_SIZEMASK;
-    if ((finfo.Flags & FFLG_SIZEMULTIPLIER) != 0)
+    finfo.Flags = (data >> 6) & 0xFF;
+    finfo.SizePt = data & FFLG_LEGACY_SIZEMASK;
+}
+
+void AdjustFontInfoUsingFlags(FontInfo &finfo, const uint32_t flags)
+{
+    finfo.Flags = flags;
+    if ((flags & FFLG_SIZEMULTIPLIER) != 0)
     {
         finfo.SizeMultiplier = finfo.SizePt;
         finfo.SizePt = 0;
@@ -139,21 +144,35 @@ void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion dat
     }
 }
 
-void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_ver)
+void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_ver)
 {
     fonts.resize(numfonts);
-    for (int i = 0; i < numfonts; ++i)
-        SetFontInfoFromSerializedFlags(fonts[i], in->ReadInt8());
-    for (int i = 0; i < numfonts; ++i)
-        fonts[i].Outline = in->ReadInt8(); // size of char
-    if (data_ver < kGameVersion_341)
-        return;
-    // Extended font parameters
-    for (int i = 0; i < numfonts; ++i)
+    if (data_ver < kGameVersion_350)
     {
-        fonts[i].YOffset = in->ReadInt32();
-        if (data_ver >= kGameVersion_341_2)
+        for (int i = 0; i < numfonts; ++i)
+            SetFontInfoFromLegacyFlags(fonts[i], in->ReadInt8());
+        for (int i = 0; i < numfonts; ++i)
+            fonts[i].Outline = in->ReadInt8(); // size of char
+        if (data_ver < kGameVersion_341)
+            return;
+        for (int i = 0; i < numfonts; ++i)
+        {
+            fonts[i].YOffset = in->ReadInt32();
+            if (data_ver >= kGameVersion_341_2)
+                fonts[i].LineSpacing = Math::Max(0, in->ReadInt32());
+        }
+    }
+    else
+    {
+        for (int i = 0; i < numfonts; ++i)
+        {
+            uint32_t flags = in->ReadInt32();
+            fonts[i].SizePt = in->ReadInt32();
+            fonts[i].Outline = in->ReadInt32();
+            fonts[i].YOffset = in->ReadInt32();
             fonts[i].LineSpacing = Math::Max(0, in->ReadInt32());
+            AdjustFontInfoUsingFlags(fonts[i], flags);
+        }
     }
 }
 
@@ -465,7 +484,7 @@ void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {
     gss->numgui = ogss->numgui;
     for (int i = 0; i < 10; ++i)
     {
-        SetFontInfoFromSerializedFlags(gss->fonts[i], ogss->fontflags[i]);
+        SetFontInfoFromLegacyFlags(gss->fonts[i], ogss->fontflags[i]);
         gss->fonts[i].Outline = ogss->fontoutline[i];
     }
 

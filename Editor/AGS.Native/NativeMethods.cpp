@@ -646,7 +646,6 @@ namespace AGS
             if (name->Equals("MAX_SG_EXT_LENGTH")) return MAX_SG_EXT_LENGTH;
             if (name->Equals("MAX_SG_FOLDER_LEN")) return MAX_SG_FOLDER_LEN;
             if (name->Equals("MAX_SCRIPT_NAME_LEN")) return MAX_SCRIPT_NAME_LEN;
-            if (name->Equals("FFLG_SIZEMASK")) return FFLG_SIZEMASK;
             if (name->Equals("FFLG_SIZEMULTIPLIER")) return FFLG_SIZEMULTIPLIER;
             if (name->Equals("IFLG_STARTWITH")) return IFLG_STARTWITH;
             if (name->Equals("MCF_ANIMMOVE")) return MCF_ANIMMOVE;

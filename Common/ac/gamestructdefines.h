@@ -91,12 +91,16 @@
 #define FADE_CROSSFADE      4
 #define FADE_LAST           4   // this should equal the last one
 
-//#define FFLG_NOSCALE      0x01 // TODO: is this from legacy format?
-#define FFLG_SIZEMASK 0x3f
-#define FFLG_SIZEMULTIPLIER 0x02  // size data means multiplier
+// Legacy font flags
+//#define FFLG_LEGACY_NOSCALE 0x01 // TODO: is this from legacy format, ever used?
+#define FFLG_LEGACY_SIZEMASK 0x3f
+#define MAX_LEGACY_FONT_SIZE 63
+// Contemporary font flags
+#define FFLG_SIZEMULTIPLIER  0x01  // size data means multiplier
+// Font outline types
 #define FONT_OUTLINE_NONE -1
 #define FONT_OUTLINE_AUTO -10
-#define MAX_FONT_SIZE 63
+
 #define DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT  14 // Yellow
 
 #define MAXVIEWNAMELENGTH 15
@@ -207,7 +211,7 @@ struct SpriteInfo
 struct FontInfo
 {
     // General font's loading and rendering flags
-    uint8_t       Flags;
+    uint32_t      Flags;
     // Font size, in points (basically means pixels in AGS)
     int           SizePt;
     // Factor to multiply base font size by

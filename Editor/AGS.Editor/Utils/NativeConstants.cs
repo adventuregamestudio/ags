@@ -15,7 +15,6 @@ namespace AGS.Editor
         public static readonly int MAX_SG_EXT_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_EXT_LENGTH");
         public static readonly int MAX_SG_FOLDER_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_FOLDER_LEN");
         public static readonly int MAX_SCRIPT_NAME_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_SCRIPT_NAME_LEN");
-        public static readonly int FFLG_SIZEMASK = (int)Factory.NativeProxy.GetNativeConstant("FFLG_SIZEMASK");
         public static readonly int FFLG_SIZEMULTIPLIER = (int)Factory.NativeProxy.GetNativeConstant("FFLG_SIZEMULTIPLIER");
         public static readonly char IFLG_STARTWITH = (char)(int)Factory.NativeProxy.GetNativeConstant("IFLG_STARTWITH");
         public static readonly char MCF_ANIMMOVE = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_ANIMMOVE");

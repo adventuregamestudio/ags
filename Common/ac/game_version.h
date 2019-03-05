@@ -98,7 +98,7 @@ OPT_RENDERATSCREENRES, extended engine caps check, font vertical offset.
 Font custom line spacing.
 
 50 : 3.5.0.8
-Sprites have "real" resolution. Individual font scaling.
+Sprites have "real" resolution. Expanded FontInfo data format.
 
 */
 

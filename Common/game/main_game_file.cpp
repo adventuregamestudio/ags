@@ -692,7 +692,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);
 
     game.read_savegame_info(in, data_ver);
-    game.read_font_flags(in, data_ver);
+    game.read_font_infos(in, data_ver);
     HGameFileError err = ReadSpriteFlags(ents, in, data_ver);
     if (!err)
         return err;

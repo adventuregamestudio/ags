@@ -1354,6 +1354,9 @@ bool engine_do_config(const String &exe_path)
     return engine_check_run_setup(exe_path, cfg);
 }
 
+// TODO: this function is still a big mess, engine/system-related initialization
+// is mixed with game-related data adjustments. Divide it in parts, move game
+// data init into either InitGameState() or other game method as appropriate.
 int initialize_engine(int argc,char*argv[])
 {
     if (engine_pre_init_callback) {

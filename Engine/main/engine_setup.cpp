@@ -45,80 +45,74 @@ extern IGraphicsDriver *gfxDriver;
 
 int convert_16bit_bgr = 0;
 
-int ff; // whatever!
-
-int adjust_pixel_size_for_loaded_data(int size, int filever)
+// Convert guis position and size to proper game screen coordinates.
+// Necessary for pre 3.1.0 games only.
+void convert_gui_to_screen_coordinates(GameDataVersion filever)
 {
-    if (filever < kGameVersion_310)
+    if (filever > kGameVersion_310)
+        return;
+
+    for (int i = 0; i < game.numcursors; ++i)
     {
-        return multiply_up_coordinate(size);
-    }
-    return size;
-}
-
-void adjust_pixel_sizes_for_loaded_data(int *x, int *y, int filever)
-{
-    x[0] = adjust_pixel_size_for_loaded_data(x[0], filever);
-    y[0] = adjust_pixel_size_for_loaded_data(y[0], filever);
-}
-
-void adjust_sizes_for_resolution(int filever)
-{
-    int ee;
-    for (ee = 0; ee < game.numcursors; ee++) 
-    {
-        game.mcurs[ee].hotx = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hotx, filever);
-        game.mcurs[ee].hoty = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hoty, filever);
+        game.mcurs[i].hotx *= current_screen_resolution_multiplier;
+        game.mcurs[i].hoty *= current_screen_resolution_multiplier;
     }
 
-    for (ee = 0; ee < game.numinvitems; ee++) 
+    for (int i = 0; i < game.numinvitems; ++i)
     {
-        adjust_pixel_sizes_for_loaded_data(&game.invinfo[ee].hotx, &game.invinfo[ee].hoty, filever);
+        game.invinfo[i].hotx *= current_screen_resolution_multiplier;
+        game.invinfo[i].hoty *= current_screen_resolution_multiplier;
     }
 
-    for (ee = 0; ee < game.numgui; ee++) 
+    for (int i = 0; i < game.numgui; ++i)
     {
-        GUIMain*cgp=&guis[ee];
-        adjust_pixel_sizes_for_loaded_data(&cgp->X, &cgp->Y, filever);
+        GUIMain*cgp = &guis[i];
+        cgp->X *= current_screen_resolution_multiplier;
+        cgp->Y *= current_screen_resolution_multiplier;
         if (cgp->Width < 1)
             cgp->Width = 1;
         if (cgp->Height < 1)
             cgp->Height = 1;
-        // Temp fix for older games
         if (cgp->Width == play.GetNativeSize().Width - 1)
             cgp->Width = play.GetNativeSize().Width;
 
-        adjust_pixel_sizes_for_loaded_data(&cgp->Width, &cgp->Height, filever);
+        cgp->Width *= current_screen_resolution_multiplier;
+        cgp->Height *= current_screen_resolution_multiplier;
 
-        cgp->PopupAtMouseY = adjust_pixel_size_for_loaded_data(cgp->PopupAtMouseY, filever);
+        cgp->PopupAtMouseY *= current_screen_resolution_multiplier;
 
-        for (ff = 0; ff < cgp->GetControlCount(); ff++)
+        for (int j = 0; j < cgp->GetControlCount(); ++j)
         {
-            GUIObject *guio = cgp->GetControl(ff);
-            adjust_pixel_sizes_for_loaded_data(&guio->X, &guio->Y, filever);
-            adjust_pixel_sizes_for_loaded_data(&guio->Width, &guio->Height, filever);
+            GUIObject *guio = cgp->GetControl(j);
+            guio->X *= current_screen_resolution_multiplier;
+            guio->Y *= current_screen_resolution_multiplier;
+            guio->Width *= current_screen_resolution_multiplier;
+            guio->Height *= current_screen_resolution_multiplier;
             guio->IsActivated = false;
         }
     }
+}
 
-    if ((filever >= 37) && (game.options[OPT_NATIVECOORDINATES] == 0) &&
-        game.IsHiRes())
+// Convert objects position and size to proper room coordinates.
+// Necessary for 3.1.0 and above games with legacy "low-res coordinates" setting.
+void convert_objects_to_room_coordinates(GameDataVersion filever)
+{
+    if (! (filever >= kGameVersion_310 && (game.options[OPT_NATIVECOORDINATES] == 0) && game.IsHiRes()) )
+        return;
+
+    for (int i = 0; i < game.numcharacters; ++i) 
     {
-        // New 3.1 format game file, but with Use Native Coordinates off
-
-        for (ee = 0; ee < game.numcharacters; ee++) 
-        {
-            game.chars[ee].x /= 2;
-            game.chars[ee].y /= 2;
-        }
-
-        for (ee = 0; ee < numguiinv; ee++)
-        {
-            guiinv[ee].ItemWidth /= 2;
-            guiinv[ee].ItemHeight /= 2;
-        }
+        game.chars[i].x /= current_screen_resolution_multiplier;
+        game.chars[i].y /= current_screen_resolution_multiplier;
     }
 
+    // TODO: frankly doing this to inventory window props makes little sense,
+    // find out if this is correct and why; fix or add comment here.
+    for (int i = 0; i < numguiinv; ++i)
+    {
+        guiinv[i].ItemWidth /= current_screen_resolution_multiplier;
+        guiinv[i].ItemHeight /= current_screen_resolution_multiplier;
+    }
 }
 
 void engine_setup_system_gamesize()
@@ -163,7 +157,9 @@ void engine_init_resolution_settings(const Size game_size)
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
 
-    adjust_sizes_for_resolution(loaded_game_file_version);
+    convert_gui_to_screen_coordinates(loaded_game_file_version);
+    convert_objects_to_room_coordinates(loaded_game_file_version);
+
     engine_setup_system_gamesize();
 }
 

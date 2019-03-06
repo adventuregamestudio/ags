@@ -123,8 +123,6 @@ void setpal();
 // This conversion is done *before* scaling game's frame further in the window
 // (which is a separate task done by graphics renderer and its filters).
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
-extern AGS_INLINE int convert_to_low_res(int coord);
-extern AGS_INLINE int convert_back_to_high_res(int coord);
 // coordinate conversion game,script ---> screen
 extern AGS_INLINE int multiply_up_coordinate(int coord);
 extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
@@ -133,6 +131,17 @@ extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE void divide_down_coordinates(int &x, int &y);
 extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
+// These functions are separate, they help to convert from room coordinates
+// to the region mask coordinates. They were necessary because in hi-res
+// games region masks are 1:2 of the room background size.
+// This is why their conversion condition is also opposite. Above functions
+// apply conversion when OPT_NATIVECOORDINATES == 0, but functions below
+// apply conversion when OPT_NATIVECOORDINATES != 0.
+// TODO: they really should depend only on room mask setting, not on global game setting.
+// coordinate conversion room ---> mask
+extern AGS_INLINE int convert_to_low_res(int coord);
+// coordinate conversion mask ---> room
+extern AGS_INLINE int convert_back_to_high_res(int coord);
 
 // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
 // had to be created (by default).

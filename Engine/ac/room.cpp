@@ -367,7 +367,10 @@ void unload_old_room() {
 }
 
 
-// TODO: merge this into UpdateRoomData?
+// The coordinates are divided by 2, because in the past there were only two
+// room resolution "types": low-res and hi-res, and the difference between
+// them was equal to the difference between 320x200 and 640x400 (i.e. x2).
+// TODO: merge this into UpdateRoomData? or this is required for engine only?
 void convert_room_coordinates_to_low_res(RoomStruct *rstruc)
 {
     for (size_t i = 0; i < rstruc->ObjectCount; ++i)

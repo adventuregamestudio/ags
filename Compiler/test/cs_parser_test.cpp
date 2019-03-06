@@ -484,11 +484,11 @@ TEST(Compile, FuncDeclWrong2) {
    ";
 
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
     // Offer some leeway in the error message
-    std::string res(last_seen_cc_error);
+    std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("parameter"));
 
 }
@@ -879,12 +879,12 @@ TEST(Compile, StructExtend1) {
     };                              \n\
     ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_NE(nullptr, last_seen_cc_error);
+    ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_NE(0, compileResult);
-    std::string err = last_seen_cc_error;
+    std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Payload"));
 }
 
@@ -906,12 +906,12 @@ TEST(Compile, StructExtend2) {
     };                              \n\
     ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_NE(nullptr, last_seen_cc_error);
+    ASSERT_NE(nullptr, last_seen_cc_error());
     ASSERT_NE(0, compileResult);
-    std::string err = last_seen_cc_error;
+    std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Payload"));
 }
 
@@ -933,7 +933,7 @@ TEST(Compile, StructExtend3) {
     }                               \n\
     ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_EQ(0, compileResult);
@@ -957,7 +957,7 @@ TEST(Compile, StructExtend4) {
     }                               \n\
     ";
 
-    last_seen_cc_error = 0;
+    clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(0, compileResult);

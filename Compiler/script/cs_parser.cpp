@@ -901,7 +901,8 @@ int DealWithEndOfSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nest
 // Given a struct STRUCT and a member MEMBER, 
 // finds the symbol of the fully qualified name STRUCT::MEMBER and returns it in memSym.
 // Gives error if the fully qualified symbol is protected.
-int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtected) {
+int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtected, bool errorOnFail = true)
+{
 
     const char *name_as_cstring = GetFullNameOfMember(structSym, memSym);
     AGS::Symbol full_name = sym.find(name_as_cstring);
@@ -913,17 +914,21 @@ int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtecte
             // look for the member in the ancesters recursively
             if (FindMemberSym(sym.entries[structSym].extends, memSym, allowProtected) == 0)
                 return 0;
-            // the inherited member was not found, so fall through to the error message
         }
-        cc_error("'%s' is not a public member of '%s'. Are you sure you spelt it correctly (remember, capital letters are important)?",
-            sym.get_friendly_name(memSym).c_str(),
-            sym.get_friendly_name(structSym).c_str());
+        if (errorOnFail)
+            cc_error(
+                "'%s' is not a public member of '%s'. Are you sure you spelt it correctly (remember, capital letters are important)?",
+                sym.get_friendly_name(memSym).c_str(),
+                sym.get_friendly_name(structSym).c_str());
         return -1;
     }
 
     if ((!allowProtected) && FlagIsSet(sym.entries[full_name].flags, SFLG_PROTECTED))
     {
-        cc_error("Cannot access protected member '%s'", sym.get_friendly_name(full_name).c_str());
+        if (errorOnFail)
+            cc_error(
+                "Cannot access protected member '%s'",
+                sym.get_friendly_name(full_name).c_str());
         return -1;
     }
     memSym = full_name;
@@ -937,7 +942,7 @@ int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative
     {
         // sym.get_type() won't work in the Pre-Analyse phase for compile-time constants
         SymbolTableEntry &from_entry = (kPP_Main == g_PP) ? sym.entries[fromSym] : g_Sym1[fromSym];
-        if (from_entry.stype  == SYM_CONSTANT)
+        if (from_entry.stype == SYM_CONSTANT)
         {
             theValue = from_entry.soffs;
             if (isNegative)
@@ -1065,7 +1070,7 @@ int ParseFuncdecl_ExtenderPreparations(
         cc_error("A struct component function cannot be an extender function");
         return -1;
     }
-           
+
     targ->getnext(); // Eat "this" or "static"
     struct_of_func = targ->peeknext();
     SymbolTableEntry &struct_entry = (kPP_Main == g_PP) ? sym.entries[struct_of_func] : g_Sym1[struct_of_func];
@@ -1546,7 +1551,7 @@ int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_
 
     // Index of the function in the ccScript::imports[] array
     // Note: currently, add_new_import() cannot return values < 0, so idx_of_func must be >= 0 here
-    function_soffs = scrip->add_new_import(sym.get_name(name_of_func));   
+    function_soffs = scrip->add_new_import(sym.get_name(name_of_func));
 }
 
 
@@ -1638,7 +1643,7 @@ int ParseFuncdecl(
             return -1;
         }
     }
-    
+
     // For backward compatibility, a forward decl can be written with the
     // "import" keyword (when allowed in the options). This isn't an import
     // proper, so reset the "import" flag in this case.
@@ -3590,9 +3595,9 @@ int AccessData_CheckAccess(AGS::Symbol variableSym, VariableSymlist variablePath
         {
             // write-protected variables can only be written by
             // the this ptr
-            if ((vp_idx > 0) && 
-                FlagIsSet(sym.entries[variablePath[vp_idx - 1].syml[0]].flags, SFLG_THISPTR)) 
-            {}
+            if ((vp_idx > 0) &&
+                FlagIsSet(sym.entries[variablePath[vp_idx - 1].syml[0]].flags, SFLG_THISPTR))
+            { }
             else
             {
                 cc_error("Variable '%s' is write-protected", sym.get_friendly_name(variableSym).c_str());
@@ -5210,7 +5215,7 @@ int ParseStruct_CheckMemberNotInASuperStruct(
 {
     AGS::Symbol member = sym_find_or_add(nakedComponentNameStr);
 
-    if (FindMemberSym(super_struct, member, true) >= 0)
+    if (FindMemberSym(super_struct, member, true, false) >= 0)
     {
         // Calculate name of the struct that contains the variable
         std::string super_name_str = sym.get_name(member);
@@ -5223,8 +5228,6 @@ int ParseStruct_CheckMemberNotInASuperStruct(
             sym.get_name(member));
         return -1;
     }
-    // not found -- a good thing, but FindMemberSym will have errored. Clear the error
-    ccError = 0;
     return 0;
 }
 
@@ -5893,6 +5896,7 @@ int ParseVartype_GetVarName(ccInternalList *targ, AGS::Symbol &varname, AGS::Sym
 
     if (sym.get_type(targ->peeknext()) != SYM_MEMBERACCESS)
         return 0; // done
+
     // We are accepting "struct::member"; so varname isn't the var name yet: it's the struct name.
     struct_of_member_fct = varname;
     targ->getnext(); // gobble "::"
@@ -6015,7 +6019,7 @@ int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Sym
             cc_error("This function has already been defined with a body");
             return -1;
         }
-        
+
         // Encode in entry.soffs the type of function declaration
         FunctionType ft = kFT_PureForward;
         if (FlagIsSet(tqs, kTQ_Import))
@@ -7100,9 +7104,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip, size_t &n
             continue;
         }
 
-        int symType = sym.get_type(cursym);
-        if (symType == 0 && kPP_PreAnalyze == g_PP)
-            symType = Sym1GetType(cursym);
+        int const symType = (kPP_Main == g_PP) ? sym.get_type(cursym) : Sym1GetType(cursym);
         switch (symType)
         {
 

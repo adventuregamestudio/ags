@@ -896,7 +896,7 @@ TEST(Compile, StructExtend2) {
     {                               \n\
         int Payload;                \n\
     };                              \n\
-    struct Parent                   \n\
+    struct Parent extends Grandparent \n\
     {                               \n\
         short Money;                \n\
     };                              \n\
@@ -913,4 +913,52 @@ TEST(Compile, StructExtend2) {
     ASSERT_NE(0, compileResult);
     std::string err = last_seen_cc_error;
     ASSERT_NE(std::string::npos, err.find("Payload"));
+}
+
+TEST(Compile, StructExtend3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Parent           \n\
+    {                               \n\
+        int Wage;                   \n\
+    };                              \n\
+    managed struct Child extends Parent \n\
+    {                               \n\
+        int PocketMoney;            \n\
+    };                              \n\
+    void main()                     \n\
+    {                               \n\
+        Parent *Ptr = new Child;    \n\
+    }                               \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, StructExtend4) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    managed struct Parent           \n\
+    {                               \n\
+        int Wage;                   \n\
+    };                              \n\
+    managed struct Child extends Parent \n\
+    {                               \n\
+        int PocketMoney;            \n\
+    };                              \n\
+    void main()                     \n\
+    {                               \n\
+        Child *Ptr = new Parent;    \n\
+    }                               \n\
+    ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(0, compileResult);
 }

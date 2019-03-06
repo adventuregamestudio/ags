@@ -903,7 +903,6 @@ int DealWithEndOfSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nest
 // Gives error if the fully qualified symbol is protected.
 int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtected) {
 
-    // Construct a string out of struct and member, look it up in the symbol table
     const char *name_as_cstring = GetFullNameOfMember(structSym, memSym);
     AGS::Symbol full_name = sym.find(name_as_cstring);
 
@@ -5204,34 +5203,30 @@ int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, AGS::Symbo
     return 0;
 }
 
-
-int ParseStruct_CheckMemberNotInInheritedStruct(
-    AGS::Symbol vname,
-    const char *memberExt,
-    AGS::Symbol extendsWhat)
+// check that we haven't extended a struct that already contains a member with the same name
+int ParseStruct_CheckMemberNotInASuperStruct(
+    char const * const nakedComponentNameStr,
+    AGS::Symbol super_struct)
 {
-    // check that we haven't already inherited a member with the same name
-    AGS::Symbol member = vname;
-    if (memberExt == nullptr)
+    AGS::Symbol member = sym_find_or_add(nakedComponentNameStr);
+
+    if (FindMemberSym(super_struct, member, true) >= 0)
     {
-        cc_error("Internal compiler error dbc");
+        // Calculate name of the struct that contains the variable
+        std::string super_name_str = sym.get_name(member);
+        int struct_end_idx = super_name_str.rfind("::");
+        if (struct_end_idx == std::string::npos) struct_end_idx = super_name_str.length();
+        super_name_str.resize(struct_end_idx);
+        cc_error(
+            "This struct extends '%s', and '%s' is already defined",
+            super_name_str.c_str(),
+            sym.get_name(member));
         return -1;
     }
-    // skip the colons
-    memberExt += 2;
-    // find the member-name-only sym
-    member = sym_find_or_add(memberExt);
-
-        if (FindMemberSym(extendsWhat, member, true) >= 0)
-        {
-            cc_error("'%s' already defined by inherited class", sym.get_friendly_name(member).c_str());
-            return -1;
-        }
-        // not found -- a good thing, but FindMemberSym will
-        // have errored. Clear the error
-        ccError = 0;
-        return 0;
-    }
+    // not found -- a good thing, but FindMemberSym will have errored. Clear the error
+    ccError = 0;
+    return 0;
+}
 
 int ParseStruct_Function(ccInternalList * targ, ccCompiledScript * scrip, AGS::TypeQualifierSet tqs, AGS::Symbol curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_pointer, bool isDynamicArray)
 {
@@ -5424,7 +5419,7 @@ int ParseStruct_Variable(ccInternalList *targ, ccCompiledScript *scrip, AGS::Typ
 int ParseStruct_MemberDefnVarOrFuncOrArray(
     ccInternalList *targ,
     ccCompiledScript *scrip,
-    AGS::Symbol extendsWhat,
+    AGS::Symbol super_struct,
     AGS::Symbol stname,
     AGS::Symbol name_of_current_func, // ONLY used for funcs in structs
     TypeQualifierSet tqs,
@@ -5447,15 +5442,19 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
         vname = targ->getnext();
     }
 
-    char const *memberExt = sym.get_name(vname);
-    memberExt = strstr(memberExt, "::");
+    // The Tokenizer prefixes all unknown symbols within a struct declaration with "STRUCT::".
+    // Get the name without this prefix. 
+    char const *nakedComponentNameStr = sym.get_name(vname);
+    nakedComponentNameStr = strstr(nakedComponentNameStr, "::");
+    if (nakedComponentNameStr)
+        nakedComponentNameStr += 2; // cut off "::"
 
     bool const isFunction = sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS;
 
     if (!isFunction)
     {
-        // e.g., "struct S1 { int S2::Var;}"
-        if (sym.get_type(vname) == SYM_VARTYPE && !sym_is_predef_typename(vname) && memberExt == NULL)
+        // Allow "struct ... { int S2 }" when S2 is a non-predefined type
+        if (sym.get_type(vname) == SYM_VARTYPE && !sym_is_predef_typename(vname))
         {
             const char *new_name = GetFullNameOfMember(stname, vname);
             vname = sym_find_or_add(new_name);
@@ -5472,9 +5471,9 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     }
 
     // If this is an extension of another type, then we must make sure that names don't clash. 
-    if (kPP_Main == g_PP && extendsWhat > 0)
+    if (kPP_Main == g_PP && super_struct > 0)
     {
-        int retval = ParseStruct_CheckMemberNotInInheritedStruct(vname, memberExt, extendsWhat);
+        int retval = ParseStruct_CheckMemberNotInASuperStruct(nakedComponentNameStr, super_struct);
         if (retval < 0) return retval;
     }
 

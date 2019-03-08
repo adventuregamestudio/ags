@@ -962,3 +962,18 @@ TEST(Compile, StructExtend4) {
 
     ASSERT_NE(0, compileResult);
 }
+
+TEST(Compile, StructStaticFunc) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    builtin managed struct GUI {                          \n\
+        import static GUI* GetAtScreenXY(int x, int y);   \n\
+    }                                                     \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(0, compileResult);
+}

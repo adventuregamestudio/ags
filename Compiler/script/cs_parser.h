@@ -49,8 +49,6 @@ and has the following key components (amongst many other components):
 #include "cc_compiledscript.h"
 #include "cc_internallist.h"
 #include "cc_symboltable.h"
-#include "cs_scanner.h"
-#include "cs_tokenizer.h"
 
 
 namespace AGS
@@ -62,12 +60,11 @@ class NestingStack
 private:
     static int _chunkIdCtr; // for assigning unique IDs to chunks
 
-public:
     // A section of compiled code that needs to be moved or copied to a new location
     struct Chunk
     {
         std::vector<AGS::CodeCell> Code;
-        std::vector<int32_t> Fixups;
+        std::vector<AGS::CodeLoc> Fixups;
         std::vector<char> FixupTypes;
         int CodeOffset;
         int FixupOffset;
@@ -83,6 +80,10 @@ public:
         AGS::CodeLoc DefaultLabelLoc; // Location of default label
         std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
     };
+
+    std::vector<NestingInfo> _stack;
+
+public:
     enum NestingType
     {
         kNT_Nothing = 0,  // {...} in the code without a particular purpose
@@ -97,10 +98,7 @@ public:
         kNT_Switch,       // SWITCH clause
         kNT_Struct,       // Struct defn
     };
-private:
-    std::vector<NestingInfo> _stack;
 
-public:
     NestingStack();
 
     // Depth of the nesting == index of the innermost nesting level
@@ -114,25 +112,26 @@ public:
 
     // If the innermost nesting is a loop that has a jump back to the start,
     // then this gives the location to jump to; otherwise, it is 0
-    inline std::int32_t StartLoc() { return _stack.back().StartLoc; };
-    inline void SetStartLoc(std::int32_t start) { _stack.back().StartLoc = start; };
+    inline AGS::CodeLoc StartLoc() { return _stack.back().StartLoc; };
+    inline void SetStartLoc(AGS::CodeLoc start) { _stack.back().StartLoc = start; };
     // If the nesting at the given level has a jump back to the start,
     // then this gives the location to jump to; otherwise, it is 0
-    inline std::int32_t StartLoc(size_t level) { return _stack.at(level).StartLoc; };
+    inline AGS::CodeLoc StartLoc(size_t level) { return _stack.at(level).StartLoc; };
 
-    // If the innermost nesting features a jump out instruction, then this is the location of it
+    // If the innermost nesting features a jump out instruction, 
+    // then this is the location of the bytecode symbol that says where to jump
     inline std::intptr_t JumpOutLoc() { return _stack.back().Info; };
     inline void SetJumpOutLoc(std::intptr_t loc) { _stack.back().Info = loc; };
     // If the nesting at the given level features a jump out, then this is the location of it
-    inline std::intptr_t JumpOutLoc(size_t level) { return _stack.at(level).Info; };
+    inline AGS::CodeLoc JumpOutLoc(size_t level) { return _stack.at(level).Info; };
 
     // If the innermost nesting is a SWITCH, the type of the switch expression
     int SwitchExprType() { return static_cast<int>(_stack.back().Info); };
     inline void SetSwitchExprType(int ty) { _stack.back().Info = ty; };
 
     // If the innermost nesting is a SWITCH, the location of the "default:" label
-    inline std::int32_t DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
-    inline void SetDefaultLabelLoc(int32_t loc) { _stack.back().DefaultLabelLoc = loc; }
+    inline AGS::CodeLoc DefaultLabelLoc() { return _stack.back().DefaultLabelLoc; };
+    inline void SetDefaultLabelLoc(AGS::CodeLoc loc) { _stack.back().DefaultLabelLoc = loc; }
 
     // If the innermost nesting contains code chunks that must be moved around
     // (e.g., in FOR loops), then this is true, else false
@@ -171,6 +170,7 @@ class FuncCallpointMgr
 {
 private:
     int const CodeBaseId = 0;  // Magic number, means: This is in codebase, not in a yanked piece of code
+    int const PatchedId = -1;  // Magic number, means: This is in codebase and has already been patched in
 
     struct PatchInfo
     {
@@ -193,9 +193,7 @@ private:
 public:
     int Init();
 
-    // Note that a function named func is defined in the code (has body)
-    inline int EnterFunction(Symbol func) { FuncInfo fi; _funcCallpointMap[func] = fi; return 0; }
-
+    
     // Enter a code location where a function is called that hasn't been defined yet.
     int TrackForwardDeclFuncCall(::ccCompiledScript *scrip, Symbol func, CodeLoc idx);
 
@@ -213,7 +211,7 @@ public:
 
     inline int HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
 
-    inline bool IsForwardDecl(AGS::Symbol func) { return (0 != _funcCallpointMap.count(func)); }
+    inline bool IsForwardDecl(AGS::Symbol func) { return (0 == _funcCallpointMap.count(func)); }
 
     // Gives an error message and returns a value < 0 iff there are still functions
     // without a location

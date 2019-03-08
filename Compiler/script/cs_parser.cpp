@@ -3724,7 +3724,7 @@ int CallAttributeFunc(ccCompiledScript *scrip, AGS::Symbol attrib_sym, int isWri
     // AX contains the struct address
 
     // Always a struct member -- set OP = AX
-    if (!FlagIsSet(sym.entries[attrib_sym].flags, SFLG_STATIC) == 0)
+    if (!FlagIsSet(sym.entries[attrib_sym].flags, SFLG_STATIC))
     {
         scrip->push_reg(SREG_OP);
         scrip->write_cmd1(SCMD_CALLOBJ, SREG_AX);

@@ -5692,10 +5692,16 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
 
     targ->getnext(); // Eat '}'
 
-    if (SYM_SEMICOLON == sym.get_type(targ->peeknext()))
+    AGS::Symbol const next_sym = sym.get_type(targ->peeknext());
+    if (SYM_SEMICOLON == next_sym)
     {
         targ->getnext(); // Eat ';'
         return 0;
+    }
+    if (0 != sym.get_type(next_sym))
+    {
+        cc_error("Expected ';' or a variable name (did you forget ';' after the last struct definition?)");
+        return -1;
     }
 
     bool dummy;
@@ -6126,239 +6132,239 @@ int ParseVartype0(
     if (name_of_current_func <= 0)
         is_global = FlagIsSet(tqs, kTQ_Import) ? kGl_GlobalImport : kGl_GlobalNoImport;
 
-        bool another_ident_follows = false; // will become true when we gobble a "," after a var defn
-        // We've accepted a type expression and are now reading vars or one func that should have this type.
-        do
+    bool another_ident_follows = false; // will become true when we gobble a "," after a var defn
+    // We've accepted a type expression and are now reading vars or one func that should have this type.
+    do
+    {
+        if (ReachedEOF(targ))
         {
-            if (ReachedEOF(targ))
-            {
-                cc_error("Unexpected end of input");
-                return -1;
-            }
+            cc_error("Unexpected end of input");
+            return -1;
+        }
 
-            // Get the variable or function name.
-            AGS::Symbol var_or_func_name = -1;
-            retval = ParseVartype_GetVarName(targ, var_or_func_name, struct_of_current_func);
-            if (retval < 0) return retval;
-
-            // Refuse to process it if it's a type name
-            if (sym.get_type(var_or_func_name) == SYM_VARTYPE || sym_is_predef_typename(var_or_func_name))
-            {
-                cc_error("'%s' is already in use as a type name", sym.get_friendly_name(var_or_func_name).c_str());
-                return -1;
-            }
-
-            // Check whether var or func is being defined
-            int next_type = sym.get_type(targ->peeknext());
-            bool is_function = (sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS);
-            bool is_member_definition = (struct_of_current_func > 0);
-
-        // certains modifiers, such as "static" only go with certain kinds of definitions.
-        retval = ParseVartype_CheckIllegalCombis(is_function, is_member_definition, tqs);
+        // Get the variable or function name.
+        AGS::Symbol var_or_func_name = -1;
+        retval = ParseVartype_GetVarName(targ, var_or_func_name, struct_of_current_func);
         if (retval < 0) return retval;
 
-        if (is_function) // function defn
+        // Refuse to process it if it's a type name
+        if (sym.get_type(var_or_func_name) == SYM_VARTYPE || sym_is_predef_typename(var_or_func_name))
         {
-            if ((name_of_current_func >= 0) || (nesting_stack->Depth() > 1))
-            {
-                cc_error("Nested functions not supported (you may have forgotten a closing brace)");
-                return -1;
-            }
+            cc_error("'%s' is already in use as a type name", sym.get_friendly_name(var_or_func_name).c_str());
+            return -1;
+        }
 
-            retval = ParseVartype_FuncDef(targ, scrip, var_or_func_name, type_of_defn, isPointer, isDynamicArray, tqs, struct_of_current_func, name_of_current_func);
+        // Check whether var or func is being defined
+        int next_type = sym.get_type(targ->peeknext());
+        bool is_function = (sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS);
+        bool is_member_definition = (struct_of_current_func > 0);
+
+    // certains modifiers, such as "static" only go with certain kinds of definitions.
+    retval = ParseVartype_CheckIllegalCombis(is_function, is_member_definition, tqs);
+    if (retval < 0) return retval;
+
+    if (is_function) // function defn
+    {
+        if ((name_of_current_func >= 0) || (nesting_stack->Depth() > 1))
+        {
+            cc_error("Nested functions not supported (you may have forgotten a closing brace)");
+            return -1;
+        }
+
+        retval = ParseVartype_FuncDef(targ, scrip, var_or_func_name, type_of_defn, isPointer, isDynamicArray, tqs, struct_of_current_func, name_of_current_func);
+        if (retval < 0) return retval;
+        another_ident_follows = false; // Can't join another func or var with ','
+        break;
+    }
+
+    retval = ParseVartype_VarDef(targ, scrip, var_or_func_name, is_global, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), type_of_defn, next_type, isPointer, another_ident_follows);
+    if (retval < 0) return retval;
+}
+while (another_ident_follows);
+
+    return 0;
+}
+
+int ParseCommand_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
+{
+    // Unravel else ... else ... chains
+    while (nesting_stack->IsUnbraced())
+    {
+        if (nesting_stack->Type() == AGS::NestingStack::kNT_UnbracedDo)
+        {
+            int retval = DealWithEndOfDo(targ, scrip, nesting_stack);
             if (retval < 0) return retval;
-            another_ident_follows = false; // Can't join another func or var with ','
+            continue;
+        }
+
+        bool else_after_then;
+        int retval = DealWithEndOfElse(targ, scrip, nesting_stack, else_after_then);
+        if (retval < 0) return retval;
+        // If an else follows a then clause, it has been changed into an
+        // else clause that has just started so this clause has NOT ended yet.
+        // So the else ... else chain is broken at this point, so we break out of the loop.
+        if (else_after_then)
             break;
-        }
-
-        retval = ParseVartype_VarDef(targ, scrip, var_or_func_name, is_global, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), type_of_defn, next_type, isPointer, another_ident_follows);
-        if (retval < 0) return retval;
     }
-    while (another_ident_follows);
+    return 0;
+}
 
-        return 0;
-    }
+int ParseReturn(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol inFuncSym)
+{
+    int functionReturnType = sym.entries[inFuncSym].funcparamtypes[0];
 
-    int ParseCommand_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
+    if (sym.get_type(targ->peeknext()) != SYM_SEMICOLON)
     {
-        // Unravel else ... else ... chains
-        while (nesting_stack->IsUnbraced())
+        if (functionReturnType == sym.normalVoidSym)
         {
-            if (nesting_stack->Type() == AGS::NestingStack::kNT_UnbracedDo)
-            {
-                int retval = DealWithEndOfDo(targ, scrip, nesting_stack);
-                if (retval < 0) return retval;
-                continue;
-            }
-
-            bool else_after_then;
-            int retval = DealWithEndOfElse(targ, scrip, nesting_stack, else_after_then);
-            if (retval < 0) return retval;
-            // If an else follows a then clause, it has been changed into an
-            // else clause that has just started so this clause has NOT ended yet.
-            // So the else ... else chain is broken at this point, so we break out of the loop.
-            if (else_after_then)
-                break;
-        }
-        return 0;
-    }
-
-    int ParseReturn(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol inFuncSym)
-    {
-        int functionReturnType = sym.entries[inFuncSym].funcparamtypes[0];
-
-        if (sym.get_type(targ->peeknext()) != SYM_SEMICOLON)
-        {
-            if (functionReturnType == sym.normalVoidSym)
-            {
-                cc_error("Cannot return value from void function");
-                return -1;
-            }
-
-            // parse what is being returned
-            int retval = ParseExpression(targ, scrip, false);
-            if (retval < 0) return retval;
-
-            // If we need a string object ptr but AX contains a normal string, convert AX
-            ConvertAXIntoStringObject(scrip, functionReturnType);
-
-            // check return type is correct
-            retval = IsTypeMismatch(scrip->ax_val_type, functionReturnType, true);
-            if (retval < 0) return retval;
-
-            if ((is_string(scrip->ax_val_type)) &&
-                (scrip->ax_val_scope == SYM_LOCALVAR))
-            {
-                cc_error("Cannot return local string from function");
-                return -1;
-            }
-        }
-        else if ((functionReturnType != sym.normalIntSym) && (functionReturnType != sym.normalVoidSym))
-        {
-            cc_error("Must return a '%s' value from function", sym.get_friendly_name(functionReturnType).c_str());
-            return -1;
-        }
-        else
-        {
-            scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
-        }
-
-        int cursym = sym.get_type(targ->getnext());
-        if (cursym != SYM_SEMICOLON)
-        {
-            cc_error("Expected ';' instead of '%s'", sym.get_name(cursym));
+            cc_error("Cannot return value from void function");
             return -1;
         }
 
-        // count total space taken by all local variables
-        FreePointersOfLocals(scrip, 0);
+        // parse what is being returned
+        int retval = ParseExpression(targ, scrip, false);
+        if (retval < 0) return retval;
 
-        int totalsub = StacksizeOfLocals(0);
-        if (totalsub > 0)
-            scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
-        scrip->write_cmd(SCMD_RET);
-        // We don't alter cur_sp since there can be code after the RETURN
+        // If we need a string object ptr but AX contains a normal string, convert AX
+        ConvertAXIntoStringObject(scrip, functionReturnType);
 
-        return 0;
-    }
+        // check return type is correct
+        retval = IsTypeMismatch(scrip->ax_val_type, functionReturnType, true);
+        if (retval < 0) return retval;
 
-
-    // Evaluate the head of an "if" clause, e.g. "if (i < 0)".
-    int ParseIf(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
-    {
-        // Get expression, must be in parentheses
-        if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
+        if ((is_string(scrip->ax_val_type)) &&
+            (scrip->ax_val_scope == SYM_LOCALVAR))
         {
-            cc_error("Expected '('");
+            cc_error("Cannot return local string from function");
             return -1;
         }
-
-        int retval = ParseExpression(targ, scrip, true);
-        if (retval < 0) return retval;
-
-        // Now the code that has just been generated has put the result of the check into AX
-        // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
-        scrip->write_cmd1(SCMD_JZ, 0);
-        AGS::CodeLoc jump_dest_loc = scrip->codesize - 1;
-
-        // Assume unbraced as a default
-        retval = nesting_stack->Push(
-            AGS::NestingStack::kNT_UnbracedThen, // Type
-            0, // Start
-            jump_dest_loc); // Info
-
-        if (retval < 0) return retval;
-
-        if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
-        {
-            targ->getnext();
-            nesting_stack->SetType(AGS::NestingStack::kNT_BracedThen); // change to braced
-        }
-
-        return 0;
     }
-
-
-    // Evaluate the head of a "while" clause, e.g. "while (i < 0)" 
-    int ParseWhile(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
+    else if ((functionReturnType != sym.normalIntSym) && (functionReturnType != sym.normalVoidSym))
     {
-        // Get expression, must be in parentheses
-        if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
-        {
-            cc_error("Expected '('");
-            return -1;
-        }
-
-        // point to the start of the code that evaluates the condition
-        AGS::CodeLoc condition_eval_loc = scrip->codesize;
-
-        int retval = ParseExpression(targ, scrip, true);
-        if (retval < 0) return retval;
-
-        // Now the code that has just been generated has put the result of the check into AX
-        // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
-        scrip->write_cmd1(SCMD_JZ, 0);
-        AGS::CodeLoc jump_dest_loc = scrip->codesize - 1;
-
-        // Assume unbraced as a default
-        retval = nesting_stack->Push(
-            AGS::NestingStack::kNT_UnbracedThen, // Type
-            condition_eval_loc, // Start
-            jump_dest_loc); // Info
-        if (retval < 0) return retval;
-
-        if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
-        {
-            targ->getnext();
-            nesting_stack->SetType(AGS::NestingStack::kNT_BracedElse); // change to braced
-        }
-        return 0;
+        cc_error("Must return a '%s' value from function", sym.get_friendly_name(functionReturnType).c_str());
+        return -1;
     }
-
-    int ParseDo(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
+    else
     {
-        // We need a jump at a known location for the break command to work:
-        scrip->write_cmd1(SCMD_JMP, 2); // Jump past the next jump :D
-        scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
-        // This points to the address we have to patch with a jump past the end of the loop
-        AGS::CodeLoc jump_dest_loc = scrip->codesize - 1;
-
-        // Assume an unbraced DO as a default
-        int retval = nesting_stack->Push(
-            AGS::NestingStack::kNT_UnbracedDo, // Type
-            scrip->codesize, // Start
-            jump_dest_loc);  // Info
-        if (retval < 0) return retval;
-
-        if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
-        {
-            targ->getnext();
-            // Change to braced DO
-            nesting_stack->SetType(AGS::NestingStack::kNT_BracedDo);
-        }
-
-        return 0;
+        scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
     }
+
+    int cursym = sym.get_type(targ->getnext());
+    if (cursym != SYM_SEMICOLON)
+    {
+        cc_error("Expected ';' instead of '%s'", sym.get_name(cursym));
+        return -1;
+    }
+
+    // count total space taken by all local variables
+    FreePointersOfLocals(scrip, 0);
+
+    int totalsub = StacksizeOfLocals(0);
+    if (totalsub > 0)
+        scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
+    scrip->write_cmd(SCMD_RET);
+    // We don't alter cur_sp since there can be code after the RETURN
+
+    return 0;
+}
+
+
+// Evaluate the head of an "if" clause, e.g. "if (i < 0)".
+int ParseIf(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
+{
+    // Get expression, must be in parentheses
+    if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
+    {
+        cc_error("Expected '('");
+        return -1;
+    }
+
+    int retval = ParseExpression(targ, scrip, true);
+    if (retval < 0) return retval;
+
+    // Now the code that has just been generated has put the result of the check into AX
+    // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
+    scrip->write_cmd1(SCMD_JZ, 0);
+    AGS::CodeLoc jump_dest_loc = scrip->codesize - 1;
+
+    // Assume unbraced as a default
+    retval = nesting_stack->Push(
+        AGS::NestingStack::kNT_UnbracedThen, // Type
+        0, // Start
+        jump_dest_loc); // Info
+
+    if (retval < 0) return retval;
+
+    if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
+    {
+        targ->getnext();
+        nesting_stack->SetType(AGS::NestingStack::kNT_BracedThen); // change to braced
+    }
+
+    return 0;
+}
+
+
+// Evaluate the head of a "while" clause, e.g. "while (i < 0)" 
+int ParseWhile(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
+{
+    // Get expression, must be in parentheses
+    if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS)
+    {
+        cc_error("Expected '('");
+        return -1;
+    }
+
+    // point to the start of the code that evaluates the condition
+    AGS::CodeLoc condition_eval_loc = scrip->codesize;
+
+    int retval = ParseExpression(targ, scrip, true);
+    if (retval < 0) return retval;
+
+    // Now the code that has just been generated has put the result of the check into AX
+    // Generate code for "if (AX == 0) jumpto X", where X will be determined later on.
+    scrip->write_cmd1(SCMD_JZ, 0);
+    AGS::CodeLoc jump_dest_loc = scrip->codesize - 1;
+
+    // Assume unbraced as a default
+    retval = nesting_stack->Push(
+        AGS::NestingStack::kNT_UnbracedThen, // Type
+        condition_eval_loc, // Start
+        jump_dest_loc); // Info
+    if (retval < 0) return retval;
+
+    if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
+    {
+        targ->getnext();
+        nesting_stack->SetType(AGS::NestingStack::kNT_BracedElse); // change to braced
+    }
+    return 0;
+}
+
+int ParseDo(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
+{
+    // We need a jump at a known location for the break command to work:
+    scrip->write_cmd1(SCMD_JMP, 2); // Jump past the next jump :D
+    scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
+    // This points to the address we have to patch with a jump past the end of the loop
+    AGS::CodeLoc jump_dest_loc = scrip->codesize - 1;
+
+    // Assume an unbraced DO as a default
+    int retval = nesting_stack->Push(
+        AGS::NestingStack::kNT_UnbracedDo, // Type
+        scrip->codesize, // Start
+        jump_dest_loc);  // Info
+    if (retval < 0) return retval;
+
+    if (sym.get_type(targ->peeknext()) == SYM_OPENBRACE)
+    {
+        targ->getnext();
+        // Change to braced DO
+        nesting_stack->SetType(AGS::NestingStack::kNT_BracedDo);
+    }
+
+    return 0;
+}
 
 int ParseFor_InitClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &cursym, size_t nested_level)
 {

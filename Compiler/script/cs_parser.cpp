@@ -67,13 +67,16 @@ Notes on how nested statements are handled:
 #include <string>
 #include <limits>
 #include <algorithm>
+
 #include "script/cc_options.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
+
 #include "cc_variablesymlist.h"
 #include "cc_internallist.h"    // ccInternalList
 #include "cs_parser_common.h"
 #include "cc_symboltable.h"
+
 #include "cs_scanner.h"
 #include "cs_tokenizer.h"
 #include "cs_parser.h"
@@ -258,8 +261,8 @@ int SkipTo(ccInternalList * targ, const AGS::Symbol stoplist[], size_t stoplist_
     return -1;
 }
 
+// For assigning unique IDs to chunks
 int AGS::NestingStack::_chunkIdCtr = 0;
-
 
 int AGS::NestingStack::Push(NestingType type, AGS::CodeLoc start, AGS::CodeLoc info)
 {
@@ -282,6 +285,7 @@ AGS::NestingStack::NestingStack()
     // Push first record on stack so that it isn't empty
     Push(AGS::NestingStack::kNT_Nothing);
 }
+
 
 
 // Rip the code that has already been generated, starting from codeoffset, out of scrip
@@ -326,10 +330,6 @@ void AGS::NestingStack::WriteChunk(ccCompiledScript *scrip, size_t level, size_t
     for (size_t index = 0; index < limit; index++)
         scrip->add_fixup(item.Fixups[index] + adjust, item.FixupTypes[index]);
 }
-
-AGS::FuncCallpointMgr::FuncInfo::FuncInfo()
-    : Callpoint(-1)
-{ }
 
 int AGS::FuncCallpointMgr::Init()
 {
@@ -407,16 +407,24 @@ int AGS::FuncCallpointMgr::UpdateCallListOnWriting(AGS::CodeLoc start, int id)
     return 0;
 }
 
-int AGS::FuncCallpointMgr::SetFuncCallpoint(::ccCompiledScript *scrip, AGS::Symbol func, AGS::CodeLoc dest)
+int AGS::FuncCallpointMgr::SetFuncCallpoint(ccCompiledScript *scrip, AGS::Symbol func, AGS::CodeLoc dest)
 {
     _funcCallpointMap[func].Callpoint = dest;
     PatchList &pl = _funcCallpointMap[func].List;
     size_t const pl_size = pl.size();
+    bool yanked_patches_exist = false;
     for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
-    {
         if (pl[pl_idx].ChunkId == CodeBaseId)
+        {
             scrip->code[pl[pl_idx].Offset] = dest;
-    }
+            pl[pl_idx].ChunkId = PatchedId;
+        }
+        else if (pl[pl_idx].ChunkId != PatchedId)
+        {
+            yanked_patches_exist = true;
+        }
+    if (!yanked_patches_exist)
+        pl.clear();
     return 0;
 }
 
@@ -437,6 +445,10 @@ int AGS::FuncCallpointMgr::CheckForUnresolvedFuncs()
     }
     return 0;
 }
+
+AGS::FuncCallpointMgr::FuncInfo::FuncInfo()
+    : Callpoint(-1)
+{ }
 
 
 
@@ -1651,7 +1663,7 @@ int ParseFuncdecl(
     {
         if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
         {
-            cc_error("A function with a local body must not be declared \"import\" here");
+            cc_error("In here, a function with a local body must not have an \"import\" declaration");
             return -1;
         }
         SetFlag(tqs, kTQ_Import, false);
@@ -4707,7 +4719,7 @@ void ParseVardecl_Var2SymTable(int var_name, Globalness is_global, bool is_point
     {
         if (sym.get_type(var_name) != 0)
         {
-            cc_error("Symbol '%s' is already defined");
+            cc_error("Symbol '%s' is already defined", sym.get_friendly_name(var_name).c_str());
             return -1;
         }
 
@@ -5607,9 +5619,10 @@ int ParseStruct_MemberStmt(
         return 0;
     }
 
+int ParseVartype0(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol type_of_defn, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &noloopcheck_is_set);
+
 // Handle a "struct" definition clause
-int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet tqs, AGS::Symbol name_of_current_func,
-    size_t &nested_level)
+int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func)
 {
     // get token for name of struct
     AGS::Symbol const stname = targ->getnext();
@@ -5679,15 +5692,15 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
 
     targ->getnext(); // Eat '}'
 
-        // mandatory ";" after struct defn.
-        if (sym.get_type(targ->getnext()) != SYM_SEMICOLON)
-        {
-            cc_error("Expected ';'");
-            return -1;
-        }
+    if (SYM_SEMICOLON == sym.get_type(targ->peeknext()))
+    {
+        targ->getnext(); // Eat ';'
         return 0;
     }
 
+    bool dummy;
+    ParseVartype0(targ, scrip, stname, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, dummy);
+}
 
     // We've accepted something like "enum foo { bar"; '=' follows
     int ParseEnum_AssignedValue(ccInternalList * targ, int &currentValue)
@@ -6040,13 +6053,10 @@ int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Sym
         return 0;
     }
 
-
-        // If we've started a function, remember what it is.
-        if (body_follows)
-            name_of_current_func = func_name;
-
-        return 0;
-    }
+    // We've started a function, remember what it is.
+    name_of_current_func = func_name;
+    return 0;
+}
 
 
 int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, int type_of_defn, int next_type, bool isPointer, bool &another_var_follows)
@@ -6100,8 +6110,7 @@ int ParseVartype0(
     // Look for "[]"; if present, gobble it and call this a dynamic array.
     // "int [] func(...)"
     int dynArrayStatus = ParseParamlist_Param_DynArrayMarker(targ, type_of_defn, isPointer);
-    if (dynArrayStatus < 0)
-        return dynArrayStatus;
+    if (dynArrayStatus < 0) return dynArrayStatus;
     bool isDynamicArray = (dynArrayStatus > 0);
 
     // Look for "noloopcheck"; if present, gobble it and set the indicator
@@ -6169,18 +6178,6 @@ int ParseVartype0(
 
         return 0;
     }
-
-    int ParseUndefToken(AGS::Symbol cursym)
-    {
-        char ascii_explanation[20] = "";
-        const char *symname = sym.get_name(cursym);
-        if ((symname[0] <= 32) || (symname[0] >= 128))
-            sprintf(ascii_explanation, "(ASCII index %02X)", symname[0]);
-
-        cc_error("Undefined token '%s' %s", symname, ascii_explanation);
-        return -1;
-    }
-
 
     int ParseCommand_EndOfDoIfElse(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingStack *nesting_stack)
     {
@@ -6734,15 +6731,11 @@ int ParseFor_IterateClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::S
         // Jump to a jump to the end of the loop
         // The bytecode byte with the relative dest is at code[codesize+1]
         if (nesting_stack->Type(loop_level) == AGS::NestingStack::kNT_Switch)
-
             scrip->write_cmd1(SCMD_JMP,
                 RelativeJumpDist(scrip->codesize + 1, nesting_stack->StartLoc(loop_level) + 2));
-
         else
-
             scrip->write_cmd1(SCMD_JMP,
                 RelativeJumpDist(scrip->codesize + 1, nesting_stack->JumpOutLoc(loop_level) - 1));
-
         return 0;
     }
 
@@ -6861,60 +6854,58 @@ int ParseCommand(
         if (retval < 0) return retval;
         break;
 
-        case SYM_BREAK:
-            retval = ParseBreak(targ, scrip, nesting_stack);
-            if (retval < 0) return retval;
-            break;
+    case SYM_BREAK:
+        retval = ParseBreak(targ, scrip, nesting_stack);
+        if (retval < 0) return retval;
+        break;
 
-        case SYM_CASE:
-            retval = ParseCasedefault(targ, scrip, cursym, nesting_stack);
-            if (retval < 0) return retval;
-            break;
+    case SYM_CASE:
+        retval = ParseCasedefault(targ, scrip, cursym, nesting_stack);
+        if (retval < 0) return retval;
+        break;
 
-        case  SYM_CLOSEBRACE:
-            return ParseClosebrace(targ, scrip, nesting_stack, struct_of_current_func, name_of_current_func);
+    case  SYM_CLOSEBRACE:
+        return ParseClosebrace(targ, scrip, nesting_stack, struct_of_current_func, name_of_current_func);
 
-        case SYM_CONTINUE:
-            retval = ParseContinue(targ, scrip, nesting_stack);
-            if (retval < 0) return retval;
-            break;
+    case SYM_CONTINUE:
+        retval = ParseContinue(targ, scrip, nesting_stack);
+        if (retval < 0) return retval;
+        break;
 
-        case SYM_DEFAULT:
-            retval = ParseCasedefault(targ, scrip, cursym, nesting_stack);
-            if (retval < 0) return retval;
-            break;
+    case SYM_DEFAULT:
+        retval = ParseCasedefault(targ, scrip, cursym, nesting_stack);
+        if (retval < 0) return retval;
+        break;
 
-        case SYM_DO:
-            return ParseDo(targ, scrip, nesting_stack);
+    case SYM_DO:
+        return ParseDo(targ, scrip, nesting_stack);
 
-        case SYM_FOR:
-            return ParseFor(targ, scrip, cursym, nesting_stack);
+    case SYM_FOR:
+        return ParseFor(targ, scrip, cursym, nesting_stack);
 
-        case SYM_IF:
-            return ParseIf(targ, scrip, cursym, nesting_stack);
+    case SYM_IF:
+        return ParseIf(targ, scrip, cursym, nesting_stack);
 
-        case SYM_OPENBRACE:
-            retval = ParseOpenbrace(scrip, nesting_stack, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
-            next_is_noloopcheck = false;
-            return retval;
+    case SYM_OPENBRACE:
+        return ParseOpenbrace(scrip, nesting_stack, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
 
-        case SYM_RETURN:
-            retval = ParseReturn(targ, scrip, name_of_current_func);
-            if (retval < 0) return retval;
-            break;
+    case SYM_RETURN:
+        retval = ParseReturn(targ, scrip, name_of_current_func);
+        if (retval < 0) return retval;
+        break;
 
-        case SYM_SWITCH:
-            retval = ParseSwitch(targ, scrip, nesting_stack);
-            if (retval < 0) return retval;
-            break;
+    case SYM_SWITCH:
+        retval = ParseSwitch(targ, scrip, nesting_stack);
+        if (retval < 0) return retval;
+        break;
 
-        case SYM_WHILE:
-            return ParseWhile(targ, scrip, cursym, nesting_stack);
-        }
-
-        // sort out jumps when a single-line if or else has finished
-        return ParseCommand_EndOfDoIfElse(targ, scrip, nesting_stack);
+    case SYM_WHILE:
+        return ParseWhile(targ, scrip, cursym, nesting_stack);
     }
+
+    // sort out jumps when a single-line if or else has finished
+    return ParseCommand_EndOfDoIfElse(targ, scrip, nesting_stack);
+}
 
 
     int cc_parse_HandleLines(ccInternalList *targ, ccCompiledScript *scrip, int &currentlinewas)
@@ -7037,6 +7028,7 @@ int cc_parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
         cc_parse_TQCombiError(tqs);
         return -1;
     }
+    return 0;
 }
 
 int ParseVartype(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &set_nlc_flag)
@@ -7111,7 +7103,8 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip, size_t &n
         default: break;
 
         case 0:
-            return ParseUndefToken(cursym);
+            cc_error("Unexpected token '%s'", sym.get_name(cursym));
+            return -1;
 
         case  SYM_AUTOPTR:
         {
@@ -7221,7 +7214,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip, size_t &n
         {
             int retval = cc_parse_CheckTQ(tqs, SYM_STRUCT);
             if (retval < 0) return retval;
-            retval = ParseStruct(targ, scrip, tqs, name_of_current_func, nested_level);
+            retval = ParseStruct(targ, scrip, tqs, nesting_stack, name_of_current_func, struct_of_current_func);
             if (retval < 0) return retval;
             tqs = 0;
             continue;
@@ -7272,14 +7265,19 @@ int cc_parse_FuncHeaders2Sym()
     return 0;
 }
 
-int cc_parse(ccInternalList *targ, ccCompiledScript *scrip, size_t &nested_level, AGS::Symbol &name_of_current_func)
+int cc_parse(ccInternalList *targ, ccCompiledScript *scrip)
 {
+    size_t nested_level = 0;
+    AGS::Symbol name_of_current_func = -1;
+
     // Skim through the code and collect the headers of functions defined locally
     int const start_of_input = targ->pos;
-    g_PP = kPP_PreAnalyze;
+    
     g_Sym1.clear();
     for (size_t idx = 0; idx <= sym.lastPredefSym; idx++)
         g_Sym1[idx] = sym.entries[idx];
+
+    g_PP = kPP_PreAnalyze;
     int retval = cc_parse_ParseInput(targ, scrip, nested_level, name_of_current_func);
     if (retval < 0) return retval;
 
@@ -7300,38 +7298,14 @@ int cc_parse(ccInternalList *targ, ccCompiledScript *scrip, size_t &nested_level
 
 // compile the code in the INPL parameter into code in the scrip structure,
 // but don't reset anything because more files could follow
-int cc_compile(const char * inpl, ccCompiledScript *scrip)
+int cc_compile(const char *inpl, ccCompiledScript *scrip)
 {
-    // Scan & tokenize the program code.
     ccInternalList targ;
+
+    // Scan & tokenize the program code.
     int retval = cc_tokenize(inpl, &targ, scrip);
     if (retval < 0) return retval;
 
-        targ.startread();
-
-        size_t nested_level = 0;
-        AGS::Symbol name_of_current_func = -1;
-        retval = cc_parse(&targ, scrip, nested_level, name_of_current_func);
-        if (retval < 0) return retval;
-
-        // Here when the tokens have been exhausted
-        if (name_of_current_func > 0)
-        {
-            currentline = targ.lineAtEnd;
-            std::string func_identification = "current function";
-            if (name_of_current_func != 0)
-            {
-                func_identification = "function '&1'";
-                func_identification.replace(func_identification.find("&1"), 2, sym.get_name_string(name_of_current_func));
-            }
-            cc_error("At end of input, but body of '%s' has not been closed", func_identification.c_str());
-            return -1;
-        }
-
-        if (nested_level == 0)
-            return 0;
-
-        currentline = targ.lineAtEnd;
-        cc_error("At end of input, but an open '{' is missing its '}'");
-        return -1;
-    }
+    targ.startread();
+    return cc_parse(&targ, scrip);
+}

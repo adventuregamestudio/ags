@@ -2,11 +2,13 @@
 #include "script/cs_parser.h"
 #include "script/cc_symboltable.h"
 #include "script/cc_internallist.h"
+#include "script/cc_options.h"
+
 #include "util/string.h"
 
 typedef AGS::Common::String AGSString;
 
-extern int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip);
+extern int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip);
 extern int currentline; // in script/script_common
 
 std::string last_cc_error_buf;
@@ -973,6 +975,114 @@ TEST(Compile, StructStaticFunc) {
     ";
 
     clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(0, compileResult);
+}
+
+TEST(Compile, Undefined) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        Supercalifragilisticexpialidocious! \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(0, compileResult);
+}
+
+TEST(Compile, ImportOverride1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    import int Func(int i = 5);     \n\
+    int Func(int i)                 \n\
+    {                               \n\
+        return 2 * i;               \n\
+    }                               \n\
+    ";
+
+    clear_error();
+
+    ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(0, compileResult);
+}
+
+TEST(Compile, ImportOverride2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    int Func(int i = 5);            \n\
+    int Func(int i)                 \n\
+    {                               \n\
+        return 2 * i;               \n\
+    }                               \n\
+    ";
+
+    clear_error();
+
+    ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, ImportOverride3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    int Func(int i)                 \n\
+    {                               \n\
+        return 2 * i;               \n\
+    }                               \n\
+    import int Func(int i = 5);     \n\
+    ";
+
+    clear_error();
+
+    ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_NE(0, compileResult);
+}
+
+TEST(Compile, LocalGlobalSeq1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    void Func()                     \n\
+    {                               \n\
+        short Var = 5;              \n\
+        return;                     \n\
+    }                               \n\
+    int Var;                        \n\
+    ";
+
+    clear_error();
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, LocalGlobalSeq2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    int Var;                        \n\
+    void Func()                     \n\
+    {                               \n\
+        short Var = 5;              \n\
+        return;                     \n\
+    }                               \n\
+    ";
+
+    clear_error();
+
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(0, compileResult);

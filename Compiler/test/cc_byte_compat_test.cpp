@@ -6226,3 +6226,141 @@ TEST(Compatibility, SwitchNoBreak) {
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
 }
+
+TEST(Compatibility, Attributes) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        enum bool { false = 0, true = 1 };              \n\
+        builtin managed struct ViewFrame {              \n\
+            readonly import attribute bool Flipped;     \n\
+            import attribute int Graphic;               \n\
+            readonly import attribute float AsFloat;    \n\
+        };                                              \n\
+                                                        \n\
+        int main()                                      \n\
+        {                                               \n\
+            ViewFrame *VF;                              \n\
+            if (VF.Flipped)                             \n\
+            {                                           \n\
+                VF.Graphic = 17;                        \n\
+                float f = VF.AsFloat + VF.AsFloat;      \n\
+                return VF.Graphic;                      \n\
+            }                                           \n\
+            return VF.Flipped;                          \n\
+        }                                               \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Attributes", scrip);
+    // run the test, comment out the previous line
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 242;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    3,    1,            2,   63,    4,    1,    // 7
+       1,    4,   51,    4,           29,    2,   30,    2,    // 15
+      48,    3,   29,    3,           30,    2,    3,    2,    // 23
+       3,   29,    6,   45,            3,   39,    0,    6,    // 31
+       3,    0,   33,    3,           30,    6,   28,  157,    // 39
+       6,    3,   17,   51,            4,   29,    2,   30,    // 47
+       2,   29,    3,   48,            3,   30,    4,   29,    // 55
+       3,    3,    4,    3,            3,    3,    4,   30,    // 63
+       2,    3,    2,    3,           29,    6,   45,    3,    // 71
+      34,    4,   39,    1,            6,    3,    2,   33,    // 79
+       3,   35,    1,   30,            6,   51,    4,   29,    // 87
+       2,   30,    2,   48,            3,   29,    3,   30,    // 95
+       2,    3,    2,    3,           29,    6,   45,    3,    // 103
+      39,    0,    6,    3,            3,   33,    3,   30,    // 111
+       6,   29,    3,   51,            8,   29,    2,   30,    // 119
+       2,   48,    3,   29,            3,   30,    2,    3,    // 127
+       2,    3,   29,    6,           45,    3,   39,    0,    // 135
+       6,    3,    3,   33,            3,   30,    6,   30,    // 143
+       4,   57,    4,    3,            3,    4,    3,    3,    // 151
+       1,    2,    8,    3,            1,    1,    4,   51,    // 159
+       8,   29,    2,   30,            2,   48,    3,   29,    // 167
+       3,   30,    2,    3,            2,    3,   29,    6,    // 175
+      45,    3,   39,    0,            6,    3,    1,   33,    // 183
+       3,   30,    6,   51,            8,   69,    2,    1,    // 191
+       8,    5,    2,    1,            4,   51,    4,   29,    // 199
+       2,   30,    2,   48,            3,   29,    3,   30,    // 207
+       2,    3,    2,    3,           29,    6,   45,    3,    // 215
+      39,    0,    6,    3,            0,   33,    3,   30,    // 223
+       6,   51,    4,   69,            2,    1,    4,    5,    // 231
+       6,    3,    0,   51,            4,   69,    2,    1,    // 239
+       4,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (idx >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 6;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      33,   78,  108,  138,        182,  220,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,   4,   4,   4,      4,   4,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 5;
+    std::string imports[] = {
+    "ViewFrame::get_Flipped",     "ViewFrame::get_Graphic",     // 1
+    "ViewFrame::set_Graphic",     "ViewFrame::get_AsFloat",      "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}

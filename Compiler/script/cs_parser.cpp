@@ -5900,48 +5900,46 @@ int ParseVartype_GetVarName(ccInternalList *targ, AGS::Symbol & varname, AGS::Sy
         return 0;
     }
 
-    int ParseVartype_CheckForIllegalContext(AGS::Symbol type_of_defn, AGS::NestingStack *nesting_stack)
+int ParseVartype_CheckForIllegalContext(AGS::NestingStack *nesting_stack)
+{
+    if (nesting_stack->IsUnbraced())
+    {
+        cc_error("A variable or function declaration cannot be the sole body of an 'if', 'else' or loop clause");
+        return -1;
+    }
+    if (nesting_stack->Type() == AGS::NestingStack::kNT_Switch)
+    {
+        cc_error("This variable declaration may be skipped by case label. Use braces to limit its scope or move it outside the switch statement block");
+        return -1;
+    }
+    return 0;
+}
+
+int ParseVartype_GetPointerStatus(ccInternalList * targ, int type_of_defn, bool &isPointer)
+{
+    isPointer = false;
+    if (targ->peeknext() == sym.find("*"))
     {
         // only allow pointers to structs
-        SymbolTableEntry &entry = (kpp_Main == g_PP) ? sym.entries[type_of_defn] : g_Sym1[type_of_defn];
-        if (0 == (entry.flags & SFLG_STRUCTTYPE))
+        if ((sym.entries[type_of_defn].flags & SFLG_STRUCTTYPE) == 0)
         {
-            cc_error("A variable or function declaration cannot be the sole body of an 'if', 'else' or loop clause");
+            cc_error("Cannot create pointer to basic type");
             return -1;
         }
-        if (0 != (entry.flags & SFLG_AUTOPTR))
-        {
-            cc_error("This variable declaration may be skipped by case label. Use braces to limit its scope or move it outside the switch statement block");
-            return -1;
-        }
-        return 0;
-    }
-
-    int ParseVartype_GetPointerStatus(ccInternalList * targ, int type_of_defn, bool &isPointer)
-    {
-        isPointer = false;
-        if (targ->peeknext() == sym.find("*"))
-        {
-            // only allow pointers to structs
-            if ((sym.entries[type_of_defn].flags & SFLG_STRUCTTYPE) == 0)
-            {
-                cc_error("Cannot create pointer to basic type");
-                return -1;
-            }
-            if (sym.entries[type_of_defn].flags & SFLG_AUTOPTR)
-            {
-                cc_error("Invalid use of '*'");
-                return -1;
-            }
-            isPointer = true;
-            targ->getnext();
-        }
-
         if (sym.entries[type_of_defn].flags & SFLG_AUTOPTR)
-            isPointer = true;
-
-        return 0;
+        {
+            cc_error("Invalid use of '*'");
+            return -1;
+        }
+        isPointer = true;
+        targ->getnext();
     }
+
+    if (sym.entries[type_of_defn].flags & SFLG_AUTOPTR)
+        isPointer = true;
+
+    return 0;
+}
 
 
 int ParseVartype_CheckIllegalCombis(bool is_function, bool is_member_definition, TypeQualifierSet tqs)
@@ -6061,7 +6059,7 @@ int ParseVartype0(
     }
 
     // Don't define variable or function where illegal in context.
-    int retval = ParseVartype_CheckForIllegalContext(type_of_defn, nesting_stack);
+    int retval = ParseVartype_CheckForIllegalContext(nesting_stack);
     if (retval < 0) return retval;
 
     // Calculate whether this is a pointer definition, gobbling "*" if present

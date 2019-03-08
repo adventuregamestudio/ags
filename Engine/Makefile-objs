@@ -70,3 +70,43 @@ APEG = libsrc/apeg-1.2.1/adisplay.c libsrc/apeg-1.2.1/getbits.c libsrc/apeg-1.2.
 AASTR = ../Common/libsrc/aastr-0.1.1/aarot.c ../Common/libsrc/aastr-0.1.1/aastr.c ../Common/libsrc/aastr-0.1.1/aautil.c
 
 AL_MIDI_PATCH = libsrc/allegro-4.2.2-agspatch/midi.c
+
+ALDUMB = libsrc/dumb-0.9.2/allegro/alplay.c \
+    libsrc/dumb-0.9.2/allegro/datduh.c \
+    libsrc/dumb-0.9.2/allegro/datit.c \
+    libsrc/dumb-0.9.2/allegro/datmod.c \
+    libsrc/dumb-0.9.2/allegro/dats3m.c \
+    libsrc/dumb-0.9.2/allegro/datunld.c \
+    libsrc/dumb-0.9.2/allegro/datxm.c \
+    libsrc/dumb-0.9.2/allegro/packfile.c \
+    libsrc/dumb-0.9.2/core/atexit.c \
+    libsrc/dumb-0.9.2/core/duhlen.c \
+    libsrc/dumb-0.9.2/core/dumbfile.c \
+    libsrc/dumb-0.9.2/core/loadduh.c \
+    libsrc/dumb-0.9.2/core/makeduh.c \
+    libsrc/dumb-0.9.2/core/rawsig.c \
+    libsrc/dumb-0.9.2/core/readduh.c \
+    libsrc/dumb-0.9.2/core/register.c \
+    libsrc/dumb-0.9.2/core/rendduh.c \
+    libsrc/dumb-0.9.2/core/rendsig.c \
+    libsrc/dumb-0.9.2/core/unload.c \
+    libsrc/dumb-0.9.2/helpers/clickrem.c \
+    libsrc/dumb-0.9.2/helpers/memfile.c \
+    libsrc/dumb-0.9.2/helpers/resample.c \
+    libsrc/dumb-0.9.2/helpers/sampbuf.c \
+    libsrc/dumb-0.9.2/helpers/silence.c \
+    libsrc/dumb-0.9.2/helpers/stdfile.c \
+    libsrc/dumb-0.9.2/it/itload.c \
+    libsrc/dumb-0.9.2/it/itmisc.c \
+    libsrc/dumb-0.9.2/it/itorder.c \
+    libsrc/dumb-0.9.2/it/itread.c \
+    libsrc/dumb-0.9.2/it/itrender.c \
+    libsrc/dumb-0.9.2/it/itunload.c \
+    libsrc/dumb-0.9.2/it/loadmod.c \
+    libsrc/dumb-0.9.2/it/loads3m.c \
+    libsrc/dumb-0.9.2/it/loadxm.c \
+    libsrc/dumb-0.9.2/it/readmod.c \
+    libsrc/dumb-0.9.2/it/reads3m.c \
+    libsrc/dumb-0.9.2/it/readxm.c \
+    libsrc/dumb-0.9.2/it/xmeffect.c 
+

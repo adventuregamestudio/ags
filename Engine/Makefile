@@ -14,6 +14,10 @@ else
 include Makefile-defs.linux
 endif
 
+ifneq ($(USE_MIDI_PATCH), 1)
+AL_MIDI_PATCH :=
+endif
+
 OBJS_C_CPP_MM = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(HQ2X3X) $(AL_MIDI_PATCH) $(CDA) $(ALDUMB) $(PLUGINS) $(BASE) $(BASE_PLATFORM)
 OBJS := $(OBJS_C_CPP_MM:.mm=.o)
 OBJS := $(OBJS:.cpp=.o)
@@ -31,7 +35,7 @@ all: printflags ags
 
 ags: $(OBJS) common.a 
 	@echo "Linking engine..."
-	$(CMD_PREFIX) $(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) $(LIBS)
+	$(CMD_PREFIX) $(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS) $(LIBS)
 
 debug: CXXFLAGS += -UNDEBUG -D_DEBUG -Og -g -pg
 debug: CFLAGS   += -UNDEBUG -D_DEBUG -Og -g -pg

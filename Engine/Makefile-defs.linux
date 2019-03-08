@@ -1,3 +1,6 @@
+USE_BUILT_IN_LIBSRC = 0
+USE_MIDI_PATCH = 1
+
 FT_CFLAGS := $(shell pkg-config --cflags freetype2)
 FT_LDFLAGS := $(shell pkg-config --libs freetype2)
 
@@ -5,8 +8,9 @@ INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
 LIBDIR =
 CFLAGS := -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DALLEGRO_NO_COMPATIBILITY -DALLEGRO_NO_FIX_ALIASES -DALLEGRO_NO_FIX_CLASS -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -D_FILE_OFFSET_BITS=64 -DHAVE_FSEEKO -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(FT_CFLAGS) $(CFLAGS)
 
-CXXFLAGS := -std=c++11 -fno-rtti -Wno-write-strings $(CXXFLAGS)
-LIBS := -rdynamic -laldmb -ldumb -Wl,-Bdynamic
+CXXFLAGS := -std=c++11 -Wno-write-strings $(CXXFLAGS)
+
+LIBS := -Wl,-Bdynamic
 LIBS += $(FT_LDFLAGS)
 LIBS += $(shell pkg-config --libs allegro)
 LIBS += $(shell pkg-config --libs x11)
@@ -21,6 +25,11 @@ else
 endif
 LIBS += $(shell pkg-config --libs vorbisfile)
 LIBS += -ldl -lpthread -lc -lm -lstdc++
+
+ifneq ($(USE_BUILT_IN_LIBSRC), 1)
+ALDUMB :=
+LIBS += -Wl,--push-state,-Bstatic -laldmb -ldumb -Wl,--pop-state
+endif
 
 ifeq ($(ALLEGRO_MAGIC_DRV), 1)
   CFLAGS += -DALLEGRO_MAGIC_DRV
@@ -37,7 +46,7 @@ AR ?= ar
 CFLAGS   += $(addprefix -I,$(INCDIR))
 CXXFLAGS += $(CFLAGS)
 ASFLAGS  += $(CFLAGS)
-LDFLAGS  += -Wl,--as-needed $(addprefix -L,$(LIBDIR))
+LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
 ifneq (,$(RPATH))
   LDFLAGS  += -Wl,-rpath,'$$ORIGIN/$(RPATH)'
@@ -49,4 +58,3 @@ platform/util/pe.c \
 platform/util/libc.c
 
 CDA := libsrc/libcda-0.5/linux.c
-ALDUMB :=

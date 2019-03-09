@@ -6,9 +6,19 @@ FT_LDFLAGS := $(shell pkg-config --libs freetype2)
 
 INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
 LIBDIR =
-CFLAGS := -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DALLEGRO_NO_COMPATIBILITY -DALLEGRO_NO_FIX_ALIASES -DALLEGRO_NO_FIX_CLASS -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -D_FILE_OFFSET_BITS=64 -DHAVE_FSEEKO -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(FT_CFLAGS) $(CFLAGS)
 
-CXXFLAGS := -std=c++11 -Wno-write-strings $(CXXFLAGS)
+CFLAGS := -O2 -g \
+    -fsigned-char -fno-strict-aliasing -fwrapv \
+    -Wunused-result \
+    -Wno-unused-value  \
+    -Werror=write-strings -Werror=format-security -Werror=implicit-function-declaration \
+    -DNDEBUG \
+    -DALLEGRO_STATICLINK -DALLEGRO_NO_COMPATIBILITY -DALLEGRO_NO_FIX_ALIASES -DALLEGRO_NO_FIX_CLASS \
+    -DLINUX_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DAGS_HAS_CD_AUDIO -DAGS_RUNTIME_PATCH_ALLEGRO \
+    -D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
+    $(FT_CFLAGS) $(CFLAGS)
+
+CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 
 LIBS := -Wl,-Bdynamic
 LIBS += $(FT_LDFLAGS)

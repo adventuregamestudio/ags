@@ -4,20 +4,23 @@ USE_MIDI_PATCH = 0
 INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins ../OSX/include ../OSX/include/freetype2
 LIBDIR = ../OSX/lib
 
-CFLAGS := -O2 -g -fsigned-char -fno-strict-aliasing -fwrapv \
+CFLAGS := -O2 -g \
+    -fsigned-char -fno-strict-aliasing -fwrapv \
+    -Wunused-result \
     -Wno-logical-op-parentheses -Wno-unused-value \
     -Werror=write-strings -Werror=format-security -Werror=implicit-function-declaration \
     -DNDEBUG \
     -DALLEGRO_STATICLINK -DALLEGRO_NO_COMPATIBILITY -DALLEGRO_NO_FIX_ALIASES -DALLEGRO_NO_FIX_CLASS \
     -DMAC_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO \
-    -D_FILE_OFFSET_BITS=64 -DRTLD_NEXT
+    -D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
+    $(CFLAGS)
 ifdef BUILD_STR
   CFLAGS += -DBUILD_STR=\"$(BUILD_STR)\"
 endif
 
-CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor
+CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 
-MMFLAGS :=
+MMFLAGS := $(MMFLAGS)
 
 LIBS := -framework Cocoa \
     -framework OpenGL \

@@ -40,7 +40,6 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
-extern int current_screen_resolution_multiplier;
 extern IGraphicsDriver *gfxDriver;
 
 int convert_16bit_bgr = 0;
@@ -52,42 +51,44 @@ void convert_gui_to_screen_coordinates(GameDataVersion filever)
     if (filever > kGameVersion_310)
         return;
 
+    const int mul = game.GetUpscaleMult();
     for (int i = 0; i < game.numcursors; ++i)
     {
-        game.mcurs[i].hotx *= current_screen_resolution_multiplier;
-        game.mcurs[i].hoty *= current_screen_resolution_multiplier;
+        game.mcurs[i].hotx *= mul;
+        game.mcurs[i].hoty *= mul;
     }
 
     for (int i = 0; i < game.numinvitems; ++i)
     {
-        game.invinfo[i].hotx *= current_screen_resolution_multiplier;
-        game.invinfo[i].hoty *= current_screen_resolution_multiplier;
+        game.invinfo[i].hotx *= mul;
+        game.invinfo[i].hoty *= mul;
     }
 
     for (int i = 0; i < game.numgui; ++i)
     {
         GUIMain*cgp = &guis[i];
-        cgp->X *= current_screen_resolution_multiplier;
-        cgp->Y *= current_screen_resolution_multiplier;
+        cgp->X *= mul;
+        cgp->Y *= mul;
         if (cgp->Width < 1)
             cgp->Width = 1;
         if (cgp->Height < 1)
             cgp->Height = 1;
-        if (cgp->Width == play.GetNativeSize().Width - 1)
-            cgp->Width = play.GetNativeSize().Width;
+        // This is probably a way to fix GUIs meant to be covering whole screen
+        if (cgp->Width == game.GetNativeSize().Width - 1)
+            cgp->Width = game.GetNativeSize().Width;
 
-        cgp->Width *= current_screen_resolution_multiplier;
-        cgp->Height *= current_screen_resolution_multiplier;
+        cgp->Width *= mul;
+        cgp->Height *= mul;
 
-        cgp->PopupAtMouseY *= current_screen_resolution_multiplier;
+        cgp->PopupAtMouseY *= mul;
 
         for (int j = 0; j < cgp->GetControlCount(); ++j)
         {
             GUIObject *guio = cgp->GetControl(j);
-            guio->X *= current_screen_resolution_multiplier;
-            guio->Y *= current_screen_resolution_multiplier;
-            guio->Width *= current_screen_resolution_multiplier;
-            guio->Height *= current_screen_resolution_multiplier;
+            guio->X *= mul;
+            guio->Y *= mul;
+            guio->Width *= mul;
+            guio->Height *= mul;
             guio->IsActivated = false;
         }
     }
@@ -100,18 +101,19 @@ void convert_objects_to_room_coordinates(GameDataVersion filever)
     if (! (filever >= kGameVersion_310 && (game.options[OPT_NATIVECOORDINATES] == 0) && game.IsHiRes()) )
         return;
 
+    const int mul = game.GetUpscaleMult();
     for (int i = 0; i < game.numcharacters; ++i) 
     {
-        game.chars[i].x /= current_screen_resolution_multiplier;
-        game.chars[i].y /= current_screen_resolution_multiplier;
+        game.chars[i].x /= mul;
+        game.chars[i].y /= mul;
     }
 
     // TODO: frankly doing this to inventory window props makes little sense,
     // find out if this is correct and why; fix or add comment here.
     for (int i = 0; i < numguiinv; ++i)
     {
-        guiinv[i].ItemWidth /= current_screen_resolution_multiplier;
-        guiinv[i].ItemHeight /= current_screen_resolution_multiplier;
+        guiinv[i].ItemWidth /= mul;
+        guiinv[i].ItemHeight /= mul;
     }
 }
 
@@ -133,24 +135,6 @@ void engine_init_resolution_settings(const Size game_size)
     play.SetUIViewport(viewport);
     play.SetRoomViewport(viewport);
     play.SetRoomCameraSize(viewport.GetSize());
-
-    Size native_size = game_size;
-    if (game.IsHiRes())
-    {
-        if (!game.options[OPT_NATIVECOORDINATES])
-        {
-            native_size.Width = game_size.Width / 2;
-            native_size.Height = game_size.Height / 2;
-        }
-        current_screen_resolution_multiplier = 2;
-    }
-    else
-    {
-        native_size.Width = game_size.Width;
-        native_size.Height = game_size.Height;
-        current_screen_resolution_multiplier = 1;
-    }
-    play.SetNativeSize(native_size);
 
     usetup.textheight = getfontheight_outlined(0) + 1;
 

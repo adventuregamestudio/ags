@@ -39,7 +39,6 @@ extern char lines[MAXLINE][200];
 extern int  numlines;
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
-extern int current_screen_resolution_multiplier;
 
 // Raw screen writing routines - similar to old CapturedStuff
 #define RAW_START() play.raw_drawing_surface = thisroom.BgFrames[play.bg_frame].Graphic; play.raw_modified[play.bg_frame] = 1

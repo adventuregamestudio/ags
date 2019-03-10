@@ -84,15 +84,20 @@ struct GameSetupStructBase {
 
     inline GameResolutionType GetDefaultResolution() const
     {
-        return default_resolution;
+        return _defResolution;
     }
 
     inline bool IsHiRes() const
     {
-        if (default_resolution == kGameResolution_Custom)
+        if (_defResolution == kGameResolution_Custom)
             return (size.Width * size.Height) > (320 * 240);
-        return ::IsHiRes(default_resolution);
+        return ::IsHiRes(_defResolution);
     }
+
+    // Get game resolution in logical (script) units
+    const Size &GetNativeSize() const { return _nativeSize; }
+    // Get game data-->final game resolution coordinate multiplier
+    inline int GetUpscaleMult() const { return _upscaleMult; }
 
     inline bool IsLegacyLetterbox() const
     {
@@ -111,7 +116,17 @@ struct GameSetupStructBase {
     }
 
 private:
-    GameResolutionType default_resolution; // game size identifier
+    void OnSetGameResolution();
+
+    GameResolutionType _defResolution; // game size identifier
+    // Determines the game's size in "native" units, used to convert coordinate
+    // arguments in game data and scripts to screen coordinates.
+    // Equals real game size by default, which results in 1:1 conversion.
+    // (used mainly for backwards-compatibility in high-res games that wanted
+    // to keep coordinates in low-resolution range in scripts)
+    Size _nativeSize;
+    // Game logic to game resolution coordinate factor
+    int _upscaleMult;
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

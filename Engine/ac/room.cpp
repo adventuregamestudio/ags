@@ -373,33 +373,34 @@ void unload_old_room() {
 // TODO: merge this into UpdateRoomData? or this is required for engine only?
 void convert_room_coordinates_to_low_res(RoomStruct *rstruc)
 {
+    const int mul = HIRES_COORD_MULTIPLIER;
     for (size_t i = 0; i < rstruc->ObjectCount; ++i)
     {
-        rstruc->Objects[i].X /= 2;
-        rstruc->Objects[i].Y /= 2;
+        rstruc->Objects[i].X /= mul;
+        rstruc->Objects[i].Y /= mul;
         if (rstruc->Objects[i].Baseline > 0)
         {
-            rstruc->Objects[i].Baseline /= 2;
+            rstruc->Objects[i].Baseline /= mul;
         }
     }
 
     for (size_t i = 0; i < rstruc->HotspotCount; ++i)
     {
-        rstruc->Hotspots[i].WalkTo.X /= 2;
-        rstruc->Hotspots[i].WalkTo.Y /= 2;
+        rstruc->Hotspots[i].WalkTo.X /= mul;
+        rstruc->Hotspots[i].WalkTo.Y /= mul;
     }
 
     for (size_t i = 0; i < rstruc->WalkBehindCount; ++i)
     {
-        rstruc->WalkBehinds[i].Baseline /= 2;
+        rstruc->WalkBehinds[i].Baseline /= mul;
     }
 
-    rstruc->Edges.Left /= 2;
-    rstruc->Edges.Top /= 2;
-    rstruc->Edges.Bottom /= 2;
-    rstruc->Edges.Right /= 2;
-    rstruc->Width /= 2;
-    rstruc->Height /= 2;
+    rstruc->Edges.Left /= mul;
+    rstruc->Edges.Top /= mul;
+    rstruc->Edges.Bottom /= mul;
+    rstruc->Edges.Right /= mul;
+    rstruc->Width /= mul;
+    rstruc->Height /= mul;
 }
 
 extern int convert_16bit_bgr;

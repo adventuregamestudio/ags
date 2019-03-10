@@ -80,7 +80,6 @@ extern int numscreenover;
 extern int said_text;
 extern int our_eip;
 extern int update_music_at;
-extern int current_screen_resolution_multiplier;
 extern int cur_mode;
 extern CCCharacter ccDynamicCharacter;
 extern CCInventory ccDynamicInv;

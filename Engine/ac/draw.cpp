@@ -78,7 +78,6 @@ extern "C" void ios_render();
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
-extern int current_screen_resolution_multiplier;
 extern int convert_16bit_bgr;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
@@ -405,7 +404,7 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
 // resolution, to give a relatively fixed size at any game res
 AGS_INLINE int get_fixed_pixel_size(int pixels)
 {
-    return pixels * current_screen_resolution_multiplier;
+    return pixels * game.GetUpscaleMult();
 }
 
 AGS_INLINE int convert_to_low_res(int coord)
@@ -413,7 +412,7 @@ AGS_INLINE int convert_to_low_res(int coord)
     if (game.options[OPT_NATIVECOORDINATES] == 0)
         return coord;
     else
-        return coord / current_screen_resolution_multiplier;
+        return coord / game.GetUpscaleMult();
 }
 
 AGS_INLINE int convert_back_to_high_res(int coord)
@@ -421,13 +420,13 @@ AGS_INLINE int convert_back_to_high_res(int coord)
     if (game.options[OPT_NATIVECOORDINATES] == 0)
         return coord;
     else
-        return coord * current_screen_resolution_multiplier;
+        return coord * game.GetUpscaleMult();
 }
 
 AGS_INLINE int multiply_up_coordinate(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord * current_screen_resolution_multiplier;
+        return coord * game.GetUpscaleMult();
     else
         return coord;
 }
@@ -436,8 +435,8 @@ AGS_INLINE void multiply_up_coordinates(int *x, int *y)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
     {
-        x[0] *= current_screen_resolution_multiplier;
-        y[0] *= current_screen_resolution_multiplier;
+        x[0] *= game.GetUpscaleMult();
+        y[0] *= game.GetUpscaleMult();
     }
 }
 
@@ -445,15 +444,15 @@ AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
     {
-        x[0] = x[0] * current_screen_resolution_multiplier + (current_screen_resolution_multiplier - 1);
-        y[0] = y[0] * current_screen_resolution_multiplier + (current_screen_resolution_multiplier - 1);
+        x[0] = x[0] * game.GetUpscaleMult() + (game.GetUpscaleMult() - 1);
+        y[0] = y[0] * game.GetUpscaleMult() + (game.GetUpscaleMult() - 1);
     }
 }
 
 AGS_INLINE int divide_down_coordinate(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord / current_screen_resolution_multiplier;
+        return coord / game.GetUpscaleMult();
     else
         return coord;
 }
@@ -462,28 +461,28 @@ AGS_INLINE void divide_down_coordinates(int &x, int &y)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
     {
-        x /= current_screen_resolution_multiplier;
-        y /= current_screen_resolution_multiplier;
+        x /= game.GetUpscaleMult();
+        y /= game.GetUpscaleMult();
     }
 }
 
 AGS_INLINE int divide_down_coordinate_round_up(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return (coord / current_screen_resolution_multiplier) + (current_screen_resolution_multiplier - 1);
+        return (coord / game.GetUpscaleMult()) + (game.GetUpscaleMult() - 1);
     else
         return coord;
 }
 
 AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y)
 {
-    if ((current_screen_resolution_multiplier == 1) && game.IsHiRes())
+    if ((game.GetUpscaleMult() == 1) && game.IsHiRes())
     {
         // running a 640x400 game at 320x200, adjust
         x /= 2;
         y /= 2;
     }
-    else if ((current_screen_resolution_multiplier > 1) && !game.IsHiRes())
+    else if ((game.GetUpscaleMult() > 1) && !game.IsHiRes())
     {
         // running a 320x200 game at 640x400, adjust
         x *= 2;

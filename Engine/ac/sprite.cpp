@@ -28,7 +28,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int current_screen_resolution_multiplier;
 extern SpriteCache spriteset;
 extern int our_eip, eip_guinum, eip_guiobj;
 extern color palette[256];
@@ -45,23 +44,24 @@ void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit)
         return;
     }
 
+    const int mul = game.GetUpscaleMult();
     if (spinfo.IsHiRes())
     {
-        if (current_screen_resolution_multiplier == 2)
+        if (mul == HIRES_COORD_MULTIPLIER)
         {
             newwid = ww;
             newhit = hh;
         }
         else
         {
-            newwid = Math::Min(1, (ww / 2) * current_screen_resolution_multiplier);
-            newhit = Math::Min(1, (hh / 2) * current_screen_resolution_multiplier);
+            newwid = Math::Min(1, (ww / HIRES_COORD_MULTIPLIER) * mul);
+            newhit = Math::Min(1, (hh / HIRES_COORD_MULTIPLIER) * mul);
         }
     }
     else
     {
-        newwid = ww * current_screen_resolution_multiplier;
-        newhit = hh * current_screen_resolution_multiplier;
+        newwid = ww * mul;
+        newhit = hh * mul;
     }
 }
 

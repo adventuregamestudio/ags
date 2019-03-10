@@ -45,8 +45,6 @@ extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
-extern int current_screen_resolution_multiplier;
-
 // ** SCRIPT DRAWINGSURFACE OBJECT
 
 void DrawingSurface_Release(ScriptDrawingSurface* sds)
@@ -110,7 +108,7 @@ void ScriptDrawingSurface::MultiplyCoordinates(int *xcoord, int *ycoord)
 {
     if (this->highResCoordinates)
     {
-        if (current_screen_resolution_multiplier == 1) 
+        if (game.GetUpscaleMult() == 1)
         {
             // using high-res co-ordinates but game running at low-res
             xcoord[0] /= 2;
@@ -119,7 +117,7 @@ void ScriptDrawingSurface::MultiplyCoordinates(int *xcoord, int *ycoord)
     }
     else
     {
-        if (current_screen_resolution_multiplier > 1) 
+        if (game.GetUpscaleMult() > 1)
         {
             // using low-res co-ordinates but game running at high-res
             xcoord[0] *= 2;
@@ -132,7 +130,7 @@ void ScriptDrawingSurface::MultiplyThickness(int *valueToAdjust)
 {
     if (this->highResCoordinates)
     {
-        if (current_screen_resolution_multiplier == 1) 
+        if (game.GetUpscaleMult() == 1)
         {
             valueToAdjust[0] /= 2;
             if (valueToAdjust[0] < 1)
@@ -141,7 +139,7 @@ void ScriptDrawingSurface::MultiplyThickness(int *valueToAdjust)
     }
     else
     {
-        if (current_screen_resolution_multiplier > 1) 
+        if (game.GetUpscaleMult() > 1)
         {
             valueToAdjust[0] *= 2;
         }
@@ -153,14 +151,14 @@ void ScriptDrawingSurface::UnMultiplyThickness(int *valueToAdjust)
 {
     if (this->highResCoordinates)
     {
-        if (current_screen_resolution_multiplier == 1) 
+        if (game.GetUpscaleMult() == 1)
         {
             valueToAdjust[0] *= 2;
         }
     }
     else
     {
-        if (current_screen_resolution_multiplier > 1) 
+        if (game.GetUpscaleMult() > 1)
         {
             valueToAdjust[0] /= 2;
             if (valueToAdjust[0] < 1)

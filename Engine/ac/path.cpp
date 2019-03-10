@@ -12,24 +12,26 @@
 //
 //=============================================================================
 
-#include "path.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/path.h"
 
-extern int current_screen_resolution_multiplier;
+extern GameSetupStruct game;
 
 void convert_move_path_to_high_res(MoveList *ml)
 {
-    ml->fromx *= current_screen_resolution_multiplier;
-    ml->fromy *= current_screen_resolution_multiplier;
-    ml->lastx *= current_screen_resolution_multiplier;
-    ml->lasty *= current_screen_resolution_multiplier;
+    const int mul = game.GetUpscaleMult();
+    ml->fromx *= mul;
+    ml->fromy *= mul;
+    ml->lastx *= mul;
+    ml->lasty *= mul;
 
     for (int i = 0; i < ml->numstage; i++)
     {
-        short lowPart = (ml->pos[i] & 0x0000ffff) * current_screen_resolution_multiplier;
-        short highPart = ((ml->pos[i] >> 16) & 0x0000ffff) * current_screen_resolution_multiplier;
+        short lowPart = (ml->pos[i] & 0x0000ffff) * mul;
+        short highPart = ((ml->pos[i] >> 16) & 0x0000ffff) * mul;
         ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
 
-        ml->xpermove[i] *= current_screen_resolution_multiplier;
-        ml->ypermove[i] *= current_screen_resolution_multiplier;
+        ml->xpermove[i] *= mul;
+        ml->ypermove[i] *= mul;
     }
 }

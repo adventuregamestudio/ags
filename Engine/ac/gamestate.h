@@ -222,9 +222,6 @@ struct GameState {
     // Free game resources
     void Free();
 
-    const Size &GetNativeSize() const;
-    void SetNativeSize(const Size &size);
-
     //
     // Viewport and camera control.
     // Viewports are positioned in game screen coordinates, related to the "game size",
@@ -294,12 +291,6 @@ struct GameState {
     void FreeProperties();
 
 private:
-    // Determines the game's size in "native" units, used to convert coordinate
-    // arguments in game data and scripts to screen coordinates.
-    // Equals real game size by default, which results in 1:1 conversion.
-    // (atm used only for backwards-compatibility in high-res games that wanted
-    // to keep coordinates in 320x200 range in scripts)
-    Size _nativeSize;
     // Defines if the room viewport should be adjusted to the room size automatically.
     bool _isAutoRoomViewport;
     // Viewport defines the rectangle of the drawn and interactable area

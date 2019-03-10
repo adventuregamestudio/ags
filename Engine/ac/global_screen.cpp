@@ -40,8 +40,6 @@ extern color palette[256];
 extern unsigned int loopcounter;
 extern int wasShakingScreen;
 
-int current_screen_resolution_multiplier = 1;
-
 int screen_reset = 0;
 
 void FlipScreen(int amount) {

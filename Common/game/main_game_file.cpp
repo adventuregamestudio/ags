@@ -478,7 +478,7 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
             // If the game is hi-res but font is designed for low-res, then scale it up
             if (game.IsHiRes() && game.options[OPT_HIRES_FONTS] == 0)
             {
-                finfo.SizeMultiplier = 2;
+                finfo.SizeMultiplier = HIRES_COORD_MULTIPLIER;
             }
             else
             {

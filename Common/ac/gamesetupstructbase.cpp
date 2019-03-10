@@ -47,7 +47,7 @@ GameSetupStructBase::GameSetupStructBase()
     , load_messages(NULL)
     , load_dictionary(false)
     , load_compiled_script(false)
-    , default_resolution(kGameResolution_Undefined)
+    , _defResolution(kGameResolution_Undefined)
 {
     memset(gamename, 0, sizeof(gamename));
     memset(options, 0, sizeof(options));
@@ -83,16 +83,33 @@ void GameSetupStructBase::Free()
 
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType resolution_type)
 {
-    default_resolution = resolution_type;
-    size = ResolutionTypeToSize(default_resolution, IsLegacyLetterbox());
-    altsize = ResolutionTypeToSize(default_resolution, false);
+    _defResolution = resolution_type;
+    size = ResolutionTypeToSize(_defResolution, IsLegacyLetterbox());
+    altsize = ResolutionTypeToSize(_defResolution, false);
+    OnSetGameResolution();
 }
 
 void GameSetupStructBase::SetCustomResolution(Size game_res)
 {
-    default_resolution = kGameResolution_Custom;
+    _defResolution = kGameResolution_Custom;
     size = game_res;
     altsize = size;
+    OnSetGameResolution();
+}
+
+void GameSetupStructBase::OnSetGameResolution()
+{
+    _upscaleMult = 1;
+    _nativeSize = size;
+    if (IsHiRes())
+    {
+        _upscaleMult = HIRES_COORD_MULTIPLIER;
+        if (options[OPT_NATIVECOORDINATES] == 0)
+        {
+            _nativeSize.Width = size.Width / _upscaleMult;
+            _nativeSize.Height = size.Height / _upscaleMult;
+        }
+    }
 }
 
 void GameSetupStructBase::ReadFromFile(Stream *in)
@@ -172,8 +189,8 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteInt32(uniqueid);
     out->WriteInt32(numgui);
     out->WriteInt32(numcursors);
-    out->WriteInt32(default_resolution);
-    if (default_resolution == kGameResolution_Custom)
+    out->WriteInt32(_defResolution);
+    if (_defResolution == kGameResolution_Custom)
     {
         out->WriteInt32(size.Width);
         out->WriteInt32(size.Height);

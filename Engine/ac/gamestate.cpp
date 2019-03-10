@@ -45,16 +45,6 @@ void GameState::Free()
     FreeProperties();
 }
 
-const Size &GameState::GetNativeSize() const
-{
-    return _nativeSize;
-}
-
-void GameState::SetNativeSize(const Size &size)
-{
-    _nativeSize = size;
-}
-
 bool GameState::IsAutoRoomViewport() const
 {
     return _isAutoRoomViewport;

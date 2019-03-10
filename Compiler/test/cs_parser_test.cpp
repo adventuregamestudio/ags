@@ -1087,3 +1087,20 @@ TEST(Compile, LocalGlobalSeq2) {
 
     ASSERT_NE(0, compileResult);
 }
+
+TEST(Compile, RetLengthNoMatch) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    builtin managed struct GUI {                                \n\
+        import void Centre();                                   \n\
+        import static GUI* GetAtScreenXY(int x, int y);         \n\
+    };                                                          \n\
+    ";
+
+    clear_error();
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

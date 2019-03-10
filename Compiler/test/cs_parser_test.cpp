@@ -1,3 +1,5 @@
+#include <string>
+
 #include "gtest/gtest.h"
 #include "script/cs_parser.h"
 #include "script/cc_symboltable.h"
@@ -45,6 +47,41 @@ ccCompiledScript *newScriptFixture() {
     return scrip;
 }
 
+char g_Input_String[] = "\
+internalstring autoptr builtin managed struct String        \n\
+{                                                           \n\
+	import static String Format(const string format, ...);  \n\
+	import static bool IsNullOrEmpty(String stringToCheck); \n\
+	import String  Append(const string appendText);         \n\
+	import String  AppendChar(char extraChar);              \n\
+	import int     CompareTo(const string otherString,      \n\
+					bool caseSensitive = false);            \n\
+	import int     Contains(const string needle);           \n\
+	import String  Copy();                                  \n\
+	import bool    EndsWith(const string endsWithText,      \n\
+					bool caseSensitive = false);            \n\
+	import int     IndexOf(const string needle);            \n\
+	import String  LowerCase();                             \n\
+	import String  Replace(const string lookForText,        \n\
+					const string replaceWithText,           \n\
+					bool caseSensitive = false);            \n\
+	import String  ReplaceCharAt(int index, char newChar);  \n\
+	import bool    StartsWith(const string startsWithText,  \n\
+					bool caseSensitive = false);            \n\
+	import String  Substring(int index, int length);        \n\
+	import String  Truncate(int length);                    \n\
+	import String  UpperCase();                             \n\
+	readonly import attribute float AsFloat;                \n\
+	readonly import attribute int AsInt;                    \n\
+	readonly import attribute char Chars[];                 \n\
+	readonly import attribute int Length;                   \n\
+};                                                          \n\
+                                                            \n\
+"; // 30 Zeilen
+
+char g_Input_Bool[] = "\
+    enum bool { false = 0, true = 1 };"; // 1 Zeile
+
 TEST(Compile, UnknownKeywordAfterReadonly) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -57,7 +94,7 @@ TEST(Compile, UnknownKeywordAfterReadonly) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("int2"));
@@ -78,7 +115,7 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite*[]' to 'int[]'", last_seen_cc_error());
 }
 
@@ -98,7 +135,7 @@ TEST(Compile, DynamicTypeReturnNonPointerManaged) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     EXPECT_STREQ("Cannot pass non-pointer struct array", last_seen_cc_error());
 }
 
@@ -161,7 +198,7 @@ TEST(Compile, ParsingIntDefaultOverflow) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
 
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
@@ -178,7 +215,7 @@ TEST(Compile, ParsingNegIntDefaultOverflow) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("-9999999999999999999999"));
@@ -193,7 +230,7 @@ TEST(Compile, ParsingIntOverflow) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("4200000000000000000000"));
@@ -208,7 +245,7 @@ TEST(Compile, ParsingNegIntOverflow) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("-4200000000000000000000"));
@@ -237,7 +274,7 @@ TEST(Compile, EnumNegative) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // C enums default to 0!
     EXPECT_EQ(1, sym.entries[sym.find("cat")].soffs);
@@ -277,7 +314,7 @@ TEST(Compile, DefaultParametersLargeInts) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
     funcidx = sym.find("importedfunc");
@@ -343,7 +380,7 @@ TEST(Compile, DoubleNegatedConstant) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     EXPECT_STREQ("Parameter default value must be literal", last_seen_cc_error());
 }
 
@@ -359,7 +396,7 @@ TEST(Compile, SubtractionWithoutSpaces) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, NegationLHSOfExpression) {
@@ -388,8 +425,7 @@ TEST(Compile, NegationLHSOfExpression) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    printf("Error: %s\n", last_seen_cc_error());
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, NegationRHSOfExpression) {
@@ -418,8 +454,7 @@ TEST(Compile, NegationRHSOfExpression) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    printf("Error: %s\n", last_seen_cc_error());
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 
@@ -452,7 +487,7 @@ TEST(Compile, FuncDeclWrong1) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("parameter"));
@@ -488,7 +523,7 @@ TEST(Compile, FuncDeclWrong2) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("parameter"));
@@ -518,7 +553,7 @@ TEST(Compile, Writeprotected) {
 
     // Should fail, no modifying of writeprotected components from the outside.
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Damage"));
 }
@@ -546,7 +581,7 @@ TEST(Compile, Protected1) {
 
     // Should fail, no modifying of protected components from the outside.
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Damage"));
 }
@@ -567,7 +602,7 @@ TEST(Compile, Do1Wrong) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("sole body of"));
@@ -589,7 +624,7 @@ TEST(Compile, Do2Wrong) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("while"));
@@ -611,7 +646,7 @@ TEST(Compile, Do3Wrong) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("("));
@@ -633,7 +668,7 @@ TEST(Compile, Do4Wrong) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(-1, compileResult);
+    ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("true"));
@@ -661,7 +696,7 @@ TEST(Compile, ProtectedFault1) {
 
     // Should fail, no modifying of protected components from the outside.
     EXPECT_NE((char *)0, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("rotected"));
 }
@@ -681,7 +716,7 @@ TEST(Compile, FuncHeader1) {
 
     // Should fail, no modifying of protected components from the outside.
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("rray size"));
 }
@@ -704,7 +739,7 @@ TEST(Compile, ExtenderFuncHeaderFault1a) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Holzschuh"));
 }
@@ -727,7 +762,7 @@ TEST(Compile, ExtenderFuncHeaderFault1b) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("arameter name"));
 }
@@ -750,7 +785,7 @@ TEST(Compile, ExtenderFuncHeaderFault1c) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("tatic extender function"));
 }
@@ -773,7 +808,7 @@ TEST(Compile, ExtenderFuncHeaderFault2) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("struct"));
 }
@@ -800,7 +835,7 @@ TEST(Compile, DoubleExtenderFunc) {
     int compileResult = cc_compile(inpl, scrip);
 
     EXPECT_NE((char *)0, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("already been def"));
 }
@@ -823,7 +858,7 @@ TEST(Compile, DoubleNonExtenderFunc) {
     int compileResult = cc_compile(inpl, scrip);
 
     EXPECT_NE((char *)0, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("already been def"));
 }
@@ -842,7 +877,7 @@ TEST(Compile, ParamVoid) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("void"));
 }
@@ -862,7 +897,7 @@ TEST(Compile, ParamGlobal) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Bermudas"));
 }
@@ -885,7 +920,7 @@ TEST(Compile, StructExtend1) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Payload"));
 }
@@ -912,7 +947,7 @@ TEST(Compile, StructExtend2) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_NE(nullptr, last_seen_cc_error());
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
     std::string err = last_seen_cc_error();
     ASSERT_NE(std::string::npos, err.find("Payload"));
 }
@@ -938,7 +973,7 @@ TEST(Compile, StructExtend3) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, StructExtend4) {
@@ -962,7 +997,7 @@ TEST(Compile, StructExtend4) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
 }
 
 TEST(Compile, StructStaticFunc) {
@@ -977,7 +1012,7 @@ TEST(Compile, StructStaticFunc) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
 }
 
 TEST(Compile, Undefined) {
@@ -990,7 +1025,7 @@ TEST(Compile, Undefined) {
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
 }
 
 TEST(Compile, ImportOverride1) {
@@ -1009,7 +1044,7 @@ TEST(Compile, ImportOverride1) {
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
 }
 
 TEST(Compile, ImportOverride2) {
@@ -1028,7 +1063,7 @@ TEST(Compile, ImportOverride2) {
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, ImportOverride3) {
@@ -1047,7 +1082,7 @@ TEST(Compile, ImportOverride3) {
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, true);
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
 }
 
 TEST(Compile, LocalGlobalSeq1) {
@@ -1066,7 +1101,7 @@ TEST(Compile, LocalGlobalSeq1) {
 
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, LocalGlobalSeq2) {
@@ -1085,7 +1120,31 @@ TEST(Compile, LocalGlobalSeq2) {
 
     int compileResult = cc_compile(inpl, scrip);
 
-    ASSERT_NE(0, compileResult);
+    ASSERT_GE(0, compileResult);
+}
+
+TEST(Compile, Void1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+    builtin managed struct Parser {                             \n\
+	    import static int    FindWordID(const string wordToFind);   \n\
+	    import static void   ParseText(const string text);      \n\
+	    import static bool   Said(const string text);           \n\
+	    import static String SaidUnknownWord();                 \n\
+    };                                                          \n\
+    ";
+
+    std::string input = "";
+    input += g_Input_Bool;
+    input += g_Input_String;
+    input += inpl;
+
+    clear_error();
+
+    int compileResult = cc_compile(input.c_str(), scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
 TEST(Compile, RetLengthNoMatch) {
@@ -1098,9 +1157,14 @@ TEST(Compile, RetLengthNoMatch) {
     };                                                          \n\
     ";
 
+    std::string input = "";
+    input += g_Input_Bool;
+    input += g_Input_String;
+    input += inpl;
+
     clear_error();
 
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(input.c_str(), scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }

@@ -44,9 +44,9 @@ extern IGraphicsDriver *gfxDriver;
 
 int convert_16bit_bgr = 0;
 
-// Convert guis position and size to proper game screen coordinates.
-// Necessary for pre 3.1.0 games only.
-void convert_gui_to_screen_coordinates(GameDataVersion filever)
+// Convert guis position and size to proper game resolution.
+// Necessary for pre 3.1.0 games only to sync with modern engine.
+void convert_gui_to_game_resolution(GameDataVersion filever)
 {
     if (filever > kGameVersion_310)
         return;
@@ -94,11 +94,11 @@ void convert_gui_to_screen_coordinates(GameDataVersion filever)
     }
 }
 
-// Convert objects position and size to proper room coordinates.
+// Convert certain coordinates to data resolution (only if it's different from game resolution).
 // Necessary for 3.1.0 and above games with legacy "low-res coordinates" setting.
-void convert_objects_to_room_coordinates(GameDataVersion filever)
+void convert_objects_to_data_resolution(GameDataVersion filever)
 {
-    if (! (filever >= kGameVersion_310 && (game.options[OPT_NATIVECOORDINATES] == 0) && game.IsHiRes()) )
+    if (filever < kGameVersion_310 || game.GetDataUpscaleMult() == 1)
         return;
 
     const int mul = game.GetDataUpscaleMult();
@@ -108,8 +108,6 @@ void convert_objects_to_room_coordinates(GameDataVersion filever)
         game.chars[i].y /= mul;
     }
 
-    // TODO: frankly doing this to inventory window props makes little sense,
-    // find out if this is correct and why; fix or add comment here.
     for (int i = 0; i < numguiinv; ++i)
     {
         guiinv[i].ItemWidth /= mul;
@@ -141,8 +139,8 @@ void engine_init_resolution_settings(const Size game_size)
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
 
-    convert_gui_to_screen_coordinates(loaded_game_file_version);
-    convert_objects_to_room_coordinates(loaded_game_file_version);
+    convert_gui_to_game_resolution(loaded_game_file_version);
+    convert_objects_to_data_resolution(loaded_game_file_version);
 
     engine_setup_system_gamesize();
 }

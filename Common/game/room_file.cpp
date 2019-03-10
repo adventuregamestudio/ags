@@ -650,8 +650,8 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
     }
 
     // Pre-3.0.3, multiply up co-ordinates for high-res games to bring them
-    // to the proper game screen coordinate system.
-    // If you change this, also change convert_room_coordinates_to_low_res
+    // to the proper game coordinate system.
+    // If you change this, also change convert_room_coordinates_to_data_res
     // function in the engine
     if (data_ver < kRoomVersion_303b && game_is_hires)
     {

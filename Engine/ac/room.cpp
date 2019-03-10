@@ -367,14 +367,14 @@ void unload_old_room() {
 
 }
 
-
-// The coordinates are divided by 2, because in the past there were only two
-// room resolution "types": low-res and hi-res, and the difference between
-// them was equal to the difference between 320x200 and 640x400 (i.e. x2).
+// Convert all room objects to the data resolution (only if it's different from game resolution).
 // TODO: merge this into UpdateRoomData? or this is required for engine only?
-void convert_room_coordinates_to_low_res(RoomStruct *rstruc)
+void convert_room_coordinates_to_data_res(RoomStruct *rstruc)
 {
-    const int mul = HIRES_COORD_MULTIPLIER;
+    if (game.GetDataUpscaleMult() == 1)
+        return;
+
+    const int mul = game.GetDataUpscaleMult();
     for (size_t i = 0; i < rstruc->ObjectCount; ++i)
     {
         rstruc->Objects[i].X /= mul;
@@ -470,10 +470,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
 
-    if (game.IsHiRes() && (game.options[OPT_NATIVECOORDINATES] == 0))
-    {
-        convert_room_coordinates_to_low_res(&thisroom);
-    }
+    convert_room_coordinates_to_data_res(&thisroom);
 
     update_polled_stuff_if_runtime();
     our_eip=201;
@@ -539,8 +536,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     set_color_depth(game.GetColorDepth());
     // convert backgrounds to current res
-    // TODO: perhaps do this in the UpdateRoomData()? also, what is this strange condition?
-    if (thisroom.Resolution != get_fixed_pixel_size(1))
+    // TODO: perhaps do this in the UpdateRoomData()?
+    if (thisroom.Resolution != game.GetDataUpscaleMult())
     {
         for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
             thisroom.BgFrames[i].Graphic = fix_bitmap_size(thisroom.BgFrames[i].Graphic);

@@ -36,32 +36,21 @@ extern AGSPlatformDriver *platform;
 
 void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit)
 {
+    newwid = ww;
+    newhit = hh;
     const SpriteInfo &spinfo = game.SpriteInfos[ee];
     if (!spinfo.IsVarRes())
-    {
-        newwid = ww;
-        newhit = hh;
         return;
-    }
 
-    const int mul = game.GetDataUpscaleMult();
-    if (spinfo.IsHiRes())
-    {
-        if (mul == HIRES_COORD_MULTIPLIER)
-        {
-            newwid = ww;
-            newhit = hh;
-        }
-        else
-        {
-            newwid = Math::Min(1, (ww / HIRES_COORD_MULTIPLIER) * mul);
-            newhit = Math::Min(1, (hh / HIRES_COORD_MULTIPLIER) * mul);
-        }
+    if (spinfo.IsHiRes() && !game.IsHiRes())
+    { // hi-res sprites in a low-res game
+        newwid = Math::Min(1, (ww / HIRES_COORD_MULTIPLIER));
+        newhit = Math::Min(1, (hh / HIRES_COORD_MULTIPLIER));
     }
-    else
-    {
-        newwid = ww * mul;
-        newhit = hh * mul;
+    else if (!spinfo.IsHiRes() && game.IsHiRes())
+    { // low-res sprites in hi-res game
+        newwid = ww * HIRES_COORD_MULTIPLIER;
+        newhit = hh * HIRES_COORD_MULTIPLIER;
     }
 }
 

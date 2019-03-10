@@ -44,7 +44,7 @@ void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit)
         return;
     }
 
-    const int mul = game.GetUpscaleMult();
+    const int mul = game.GetDataUpscaleMult();
     if (spinfo.IsHiRes())
     {
         if (mul == HIRES_COORD_MULTIPLIER)

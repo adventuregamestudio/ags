@@ -51,7 +51,7 @@ void convert_gui_to_screen_coordinates(GameDataVersion filever)
     if (filever > kGameVersion_310)
         return;
 
-    const int mul = game.GetUpscaleMult();
+    const int mul = game.GetDataUpscaleMult();
     for (int i = 0; i < game.numcursors; ++i)
     {
         game.mcurs[i].hotx *= mul;
@@ -74,8 +74,8 @@ void convert_gui_to_screen_coordinates(GameDataVersion filever)
         if (cgp->Height < 1)
             cgp->Height = 1;
         // This is probably a way to fix GUIs meant to be covering whole screen
-        if (cgp->Width == game.GetNativeSize().Width - 1)
-            cgp->Width = game.GetNativeSize().Width;
+        if (cgp->Width == game.GetDataRes().Width - 1)
+            cgp->Width = game.GetDataRes().Width;
 
         cgp->Width *= mul;
         cgp->Height *= mul;
@@ -101,7 +101,7 @@ void convert_objects_to_room_coordinates(GameDataVersion filever)
     if (! (filever >= kGameVersion_310 && (game.options[OPT_NATIVECOORDINATES] == 0) && game.IsHiRes()) )
         return;
 
-    const int mul = game.GetUpscaleMult();
+    const int mul = game.GetDataUpscaleMult();
     for (int i = 0; i < game.numcharacters; ++i) 
     {
         game.chars[i].x /= mul;
@@ -119,8 +119,8 @@ void convert_objects_to_room_coordinates(GameDataVersion filever)
 
 void engine_setup_system_gamesize()
 {
-    scsystem.width = game.size.Width;
-    scsystem.height = game.size.Height;
+    scsystem.width = game.GetGameRes().Width;
+    scsystem.height = game.GetGameRes().Height;
     scsystem.viewport_width = game_to_data_coord(play.GetMainViewport().GetWidth());
     scsystem.viewport_height = game_to_data_coord(play.GetMainViewport().GetHeight());
 }

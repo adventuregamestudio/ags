@@ -63,7 +63,7 @@ Rect FixupViewport(const Rect &viewport, const Rect &parent)
 
 void GameState::SetMainViewport(const Rect &viewport)
 {
-    _mainViewport.Position = FixupViewport(viewport, RectWH(game.size));
+    _mainViewport.Position = FixupViewport(viewport, RectWH(game.GetGameRes()));
     Mouse::SetGraphicArea();
     scsystem.viewport_width = game_to_data_coord(_mainViewport.Position.GetWidth());
     scsystem.viewport_height = game_to_data_coord(_mainViewport.Position.GetHeight());

@@ -408,16 +408,16 @@ extern int convert_16bit_bgr;
 void update_letterbox_mode()
 {
     const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
-    const Rect game_frame = RectWH(game.size);
+    const Rect game_frame = RectWH(game.GetGameRes());
     Rect new_main_view = game_frame;
     // In the original engine the letterbox feature only allowed viewports of
     // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
     // Also, the UI viewport should be matching room viewport in that case.
     // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
     const int viewport_height =
-        real_room_sz.Height < game.altsize.Height ? real_room_sz.Height :
-        (real_room_sz.Height >= game.altsize.Height && real_room_sz.Height < game.size.Height) ? game.altsize.Height :
-        game.size.Height;
+        real_room_sz.Height < game.GetLetterboxSize().Height ? real_room_sz.Height :
+        (real_room_sz.Height >= game.GetLetterboxSize().Height && real_room_sz.Height < game.GetGameRes().Height) ? game.GetLetterboxSize().Height :
+        game.GetGameRes().Height;
     new_main_view.SetHeight(viewport_height);
 
     play.SetMainViewport(CenterInRect(game_frame, new_main_view));

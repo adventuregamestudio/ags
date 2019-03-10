@@ -385,10 +385,10 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // resolutions, such as 320x200 and 320x240.
     if (usetup.override_upscale)
     {
-        if (game.GetDefaultResolution() == kGameResolution_320x200)
-            game.SetDefaultResolution(kGameResolution_640x400);
-        else if (game.GetDefaultResolution() == kGameResolution_320x240)
-            game.SetDefaultResolution(kGameResolution_640x480);
+        if (game.GetResolutionType() == kGameResolution_320x200)
+            game.SetGameResolution(kGameResolution_640x400);
+        else if (game.GetResolutionType() == kGameResolution_320x240)
+            game.SetGameResolution(kGameResolution_640x480);
     }
 
     //

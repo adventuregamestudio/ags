@@ -173,10 +173,10 @@ bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
 
             // Add information about game resolution and let setup application
             // display some properties to the user
-            INIwriteint(cfg, "misc", "defaultres", game.GetDefaultResolution());
+            INIwriteint(cfg, "misc", "defaultres", game.GetResolutionType());
             INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
-            INIwriteint(cfg, "misc", "game_width", game.size.Width);
-            INIwriteint(cfg, "misc", "game_height", game.size.Height);
+            INIwriteint(cfg, "misc", "game_width", game.GetDefaultRes().Width);
+            INIwriteint(cfg, "misc", "game_height", game.GetDefaultRes().Height);
             INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
             if (game.options[OPT_RENDERATSCREENRES] != kRenderAtScreenRes_UserDefined)
             {
@@ -1481,7 +1481,7 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_modxm_player();
 
-    engine_init_resolution_settings(game.size);
+    engine_init_resolution_settings(game.GetGameRes());
 
     // Attempt to initialize graphics mode
     if (!engine_try_set_gfxmode_any(usetup.Screen))
@@ -1517,7 +1517,7 @@ bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
     engine_shutdown_gfxmode();
 
     const Size init_desktop = get_desktop_size();
-    if (!graphics_mode_init_any(game.size, setup, ColorDepthOption(game.GetColorDepth())))
+    if (!graphics_mode_init_any(game.GetGameRes(), setup, ColorDepthOption(game.GetColorDepth())))
         return false;
 
     engine_post_gfxmode_setup(init_desktop);
@@ -1555,7 +1555,7 @@ bool engine_try_switch_windowed_gfxmode()
         DisplayModeSetup dm_setup = usetup.Screen.DisplayMode;
         dm_setup.Windowed = !old_dm.Windowed;
         graphics_mode_get_defaults(dm_setup.Windowed, dm_setup.ScreenSize, use_frame_setup);
-        res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, use_frame_setup);
+        res = graphics_mode_set_dm_any(game.GetGameRes(), dm_setup, old_dm.ColorDepth, use_frame_setup);
     }
 
     // Apply corresponding frame render method

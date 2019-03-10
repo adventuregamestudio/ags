@@ -695,7 +695,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
         game.GameSetupStructBase::ReadFromFile(&align_s);
     }
 
-    if (game.size.IsNull())
+    if (game.GetGameRes().IsNull())
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);
 
     game.read_savegame_info(in, data_ver);

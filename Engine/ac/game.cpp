@@ -1919,7 +1919,7 @@ void display_switch_in_resume()
 
     // clear the screen if necessary
     if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, game.size.Height - 1, NULL);
+        gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, NULL);
 
     platform->ResumeApplication();
 }

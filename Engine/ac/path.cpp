@@ -19,7 +19,7 @@ extern GameSetupStruct game;
 
 void convert_move_path_to_high_res(MoveList *ml)
 {
-    const int mul = game.GetUpscaleMult();
+    const int mul = game.GetDataUpscaleMult();
     ml->fromx *= mul;
     ml->fromy *= mul;
     ml->lastx *= mul;

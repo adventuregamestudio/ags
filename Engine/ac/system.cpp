@@ -78,11 +78,11 @@ int System_GetOS() {
 // compatibility.
 //
 int System_GetScreenWidth() {
-    return game.size.Width;
+    return game.GetGameRes().Width;
 }
 
 int System_GetScreenHeight() {
-    return game.size.Height;
+    return game.GetGameRes().Height;
 }
 
 int System_GetViewportHeight() {

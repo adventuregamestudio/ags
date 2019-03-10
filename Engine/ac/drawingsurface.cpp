@@ -108,7 +108,7 @@ void ScriptDrawingSurface::MultiplyCoordinates(int *xcoord, int *ycoord)
 {
     if (this->highResCoordinates)
     {
-        if (game.GetUpscaleMult() == 1)
+        if (game.GetDataUpscaleMult() == 1)
         {
             // using high-res co-ordinates but game running at low-res
             xcoord[0] /= 2;
@@ -117,7 +117,7 @@ void ScriptDrawingSurface::MultiplyCoordinates(int *xcoord, int *ycoord)
     }
     else
     {
-        if (game.GetUpscaleMult() > 1)
+        if (game.GetDataUpscaleMult() > 1)
         {
             // using low-res co-ordinates but game running at high-res
             xcoord[0] *= 2;
@@ -130,7 +130,7 @@ void ScriptDrawingSurface::MultiplyThickness(int *valueToAdjust)
 {
     if (this->highResCoordinates)
     {
-        if (game.GetUpscaleMult() == 1)
+        if (game.GetDataUpscaleMult() == 1)
         {
             valueToAdjust[0] /= 2;
             if (valueToAdjust[0] < 1)
@@ -139,7 +139,7 @@ void ScriptDrawingSurface::MultiplyThickness(int *valueToAdjust)
     }
     else
     {
-        if (game.GetUpscaleMult() > 1)
+        if (game.GetDataUpscaleMult() > 1)
         {
             valueToAdjust[0] *= 2;
         }
@@ -151,14 +151,14 @@ void ScriptDrawingSurface::UnMultiplyThickness(int *valueToAdjust)
 {
     if (this->highResCoordinates)
     {
-        if (game.GetUpscaleMult() == 1)
+        if (game.GetDataUpscaleMult() == 1)
         {
             valueToAdjust[0] *= 2;
         }
     }
     else
     {
-        if (game.GetUpscaleMult() > 1)
+        if (game.GetDataUpscaleMult() > 1)
         {
             valueToAdjust[0] /= 2;
             if (valueToAdjust[0] < 1)

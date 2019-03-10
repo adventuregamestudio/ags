@@ -404,7 +404,7 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
 // resolution, to give a relatively fixed size at any game res
 AGS_INLINE int get_fixed_pixel_size(int pixels)
 {
-    return pixels * game.GetUpscaleMult();
+    return pixels * game.GetDataUpscaleMult();
 }
 
 AGS_INLINE int room_to_mask_coord(int coord)
@@ -412,7 +412,7 @@ AGS_INLINE int room_to_mask_coord(int coord)
     if (game.options[OPT_NATIVECOORDINATES] == 0)
         return coord;
     else
-        return coord / game.GetUpscaleMult();
+        return coord / game.GetDataUpscaleMult();
 }
 
 AGS_INLINE int mask_to_room_coord(int coord)
@@ -420,13 +420,13 @@ AGS_INLINE int mask_to_room_coord(int coord)
     if (game.options[OPT_NATIVECOORDINATES] == 0)
         return coord;
     else
-        return coord * game.GetUpscaleMult();
+        return coord * game.GetDataUpscaleMult();
 }
 
 AGS_INLINE int data_to_game_coord(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord * game.GetUpscaleMult();
+        return coord * game.GetDataUpscaleMult();
     else
         return coord;
 }
@@ -435,8 +435,8 @@ AGS_INLINE void data_to_game_coords(int *x, int *y)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
     {
-        x[0] *= game.GetUpscaleMult();
-        y[0] *= game.GetUpscaleMult();
+        x[0] *= game.GetDataUpscaleMult();
+        y[0] *= game.GetDataUpscaleMult();
     }
 }
 
@@ -444,15 +444,15 @@ AGS_INLINE void data_to_game_round_up(int *x, int *y)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
     {
-        x[0] = x[0] * game.GetUpscaleMult() + (game.GetUpscaleMult() - 1);
-        y[0] = y[0] * game.GetUpscaleMult() + (game.GetUpscaleMult() - 1);
+        x[0] = x[0] * game.GetDataUpscaleMult() + (game.GetDataUpscaleMult() - 1);
+        y[0] = y[0] * game.GetDataUpscaleMult() + (game.GetDataUpscaleMult() - 1);
     }
 }
 
 AGS_INLINE int game_to_data_coord(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord / game.GetUpscaleMult();
+        return coord / game.GetDataUpscaleMult();
     else
         return coord;
 }
@@ -461,28 +461,28 @@ AGS_INLINE void game_to_data_coords(int &x, int &y)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
     {
-        x /= game.GetUpscaleMult();
-        y /= game.GetUpscaleMult();
+        x /= game.GetDataUpscaleMult();
+        y /= game.GetDataUpscaleMult();
     }
 }
 
 AGS_INLINE int game_to_data_round_up(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return (coord / game.GetUpscaleMult()) + (game.GetUpscaleMult() - 1);
+        return (coord / game.GetDataUpscaleMult()) + (game.GetDataUpscaleMult() - 1);
     else
         return coord;
 }
 
 AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y)
 {
-    if ((game.GetUpscaleMult() == 1) && game.IsHiRes())
+    if ((game.GetDataUpscaleMult() == 1) && game.IsHiRes())
     {
         // running a 640x400 game at 320x200, adjust
         x /= 2;
         y /= 2;
     }
-    else if ((game.GetUpscaleMult() > 1) && !game.IsHiRes())
+    else if ((game.GetDataUpscaleMult() > 1) && !game.IsHiRes())
     {
         // running a 320x200 game at 640x400, adjust
         x *= 2;
@@ -565,7 +565,7 @@ void on_mainviewport_changed()
     {
         const Rect &main_view = play.GetMainViewport();
         gfxDriver->SetMemoryBackBuffer(NULL); // make it restore original virtual screen
-        if (main_view.GetSize() != game.size)
+        if (main_view.GetSize() != game.GetGameRes())
         {
             delete sub_vscreen;
             sub_vscreen = BitmapHelper::CreateSubBitmap(gfxDriver->GetMemoryBackBuffer(), main_view);
@@ -576,7 +576,7 @@ void on_mainviewport_changed()
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
         init_invalid_regions(-1, play.GetMainViewport().GetSize(), RectWH(play.GetMainViewport().GetSize()));
-        if (game.size.ExceedsByAny(play.GetMainViewport().GetSize()))
+        if (game.GetGameRes().ExceedsByAny(play.GetMainViewport().GetSize()))
             clear_letterbox_borders();
     }
 }
@@ -677,7 +677,7 @@ void render_black_borders(int atx, int aty)
         if (aty > 0)
         {
             // letterbox borders
-            blankImage->SetStretch(game.size.Width, aty, false);
+            blankImage->SetStretch(game.GetGameRes().Width, aty, false);
             gfxDriver->DrawSprite(-atx, -aty, blankImage);
             gfxDriver->DrawSprite(0, viewport.GetHeight(), blankImage);
         }
@@ -744,8 +744,8 @@ void render_to_screen(int atx, int aty)
 void clear_letterbox_borders()
 {
     const Rect &viewport = play.GetMainViewport();
-    gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, viewport.Top - 1, NULL);
-    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.size.Width - 1, game.size.Height - 1, NULL);
+    gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, NULL);
+    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, NULL);
 }
 
 // writes the virtual screen to the screen, converting colours if

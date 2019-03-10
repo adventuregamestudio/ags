@@ -117,12 +117,12 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
 
 int Screen_GetScreenWidth()
 {
-    return game.size.Width;
+    return game.GetGameRes().Width;
 }
 
 int Screen_GetScreenHeight()
 {
-    return game.size.Height;
+    return game.GetGameRes().Height;
 }
 
 bool Screen_GetAutoSizeViewport()

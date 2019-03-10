@@ -63,8 +63,6 @@ struct GameSetupStructBase {
     char             *globalscript;
     CharacterInfo    *chars;
     ccScript         *compiled_script;
-    Size              size;                 // native game size in pixels
-    Size              altsize;              // alternate, lesser, game size for letterbox-by-design games
 
     int             *load_messages;
     bool             load_dictionary;
@@ -77,38 +75,92 @@ struct GameSetupStructBase {
     GameSetupStructBase();
     virtual ~GameSetupStructBase();
     void Free();
-    void SetDefaultResolution(GameResolutionType resolution_type);
-    void SetCustomResolution(Size game_res);
+    void SetGameResolution(GameResolutionType type);
+    void SetGameResolution(Size game_res);
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
 
-    inline GameResolutionType GetDefaultResolution() const
+
+    //
+    // ** On game resolution.
+    //
+    // Game resolution is a size of a native game screen in pixels.
+    // This is the "game resolution" that developer sets up in AGS Editor.
+    // It is in the same units in which sprite and font sizes are defined.
+    //
+    // Graphic renderer may scale and stretch game's frame as requested by
+    // player or system, which will not affect native coordinates in any way.
+    //
+    // ** Legacy upscale mode.
+    //
+    // In the past engine had a separation between logical and native screen
+    // coordinates and supported running games "upscaled". E.g. 320x200 games
+    // could be run as 640x400. This was not done by simply stretching final
+    // game's drawn frame to the larger window, but by multiplying all data
+    // containing coordinates and graphics either on load or real-time.
+    // Games of 640x400 and above were scripted and set up in coordinate units
+    // that were always x2 times smaller than the one developer chose.
+    // For example, choosing a 640x400 resolution would make game draw itself
+    // as 640x400, but all the game logic (object properties, script commands)
+    // would work in 320x200 (this also let run 640x400 downscaled to 320x200).
+    // Ignoring the obvious complications, the known benefit from such approach
+    // was that developers could supply separate sets of fonts and sprites for
+    // low-res and high-res modes.
+    // The 3rd generation of AGS still allows to achieve same effect by using
+    // backwards-compatible option (although it is not recommended except when
+    // importing and continuing old projects).
+    //
+    // In order to support this legacy behavior we have a set of functions for
+    // coordinate conversion. They are required to move from "data" resolution
+    // to "final game" resolution and back.
+    // NOTE: some of the script commands, as well as some internal engine data
+    // use coordinates in final resolution instead (this should be documented).
+    //
+    // ** TODO.
+    //
+    // Truth be told, all this is still implemented incorrectly, because no one
+    // found time to rewrite the thing. The correct way would perhaps be:
+    // 1) treat old games as x2 lower resolution than they say.
+    // 2) support drawing particular sprites and texts in x2 higher resolution
+    // (assuming display resolution allows). The latter is potentially enabled
+    // by "sprite batches" system in the engine and will benefit new games too.
+
+    inline GameResolutionType GetResolutionType() const
     {
-        return _defResolution;
+        return _resolutionType;
     }
 
+    // Get actual game's resolution
+    const Size &GetGameRes() const { return _gameResolution; }
+    // Get default resolution the game was created for;
+    // this is usually equal to GetGameRes except for legacy modes.
+    const Size &GetDefaultRes() const { return _defGameResolution; }
+    // Get data & script resolution;
+    // this is usually equal to GetGameRes except for legacy modes.
+    const Size &GetDataRes() const { return _dataResolution; }
+    // Get game data-->final game resolution coordinate multiplier
+    inline int GetDataUpscaleMult() const { return _dataUpscaleMult; }
+    // Legacy definition of high and low game resolution.
+    // Used to determine certain hardcoded coordinate conversion logic, but
+    // does not make much sense today when the resolution is arbitrary.
     inline bool IsHiRes() const
     {
-        if (_defResolution == kGameResolution_Custom)
-            return (size.Width * size.Height) > (320 * 240);
-        return ::IsHiRes(_defResolution);
+        if (_resolutionType == kGameResolution_Custom)
+            return (_gameResolution.Width * _gameResolution.Height) > (320 * 240);
+        return ::IsHiRes(_resolutionType);
     }
-
-    // Get game resolution in logical (script) units
-    const Size &GetNativeSize() const { return _nativeSize; }
-    // Get game data-->final game resolution coordinate multiplier
-    inline int GetUpscaleMult() const { return _upscaleMult; }
-
-    inline bool IsLegacyLetterbox() const
-    {
-        return options[OPT_LETTERBOX] != 0;
-    }
+    
+    // Tells if game runs in native letterbox mode (legacy option)
+    inline bool IsLegacyLetterbox() const { return options[OPT_LETTERBOX] != 0; }
+    // Get letterboxed frame size
+    const Size &GetLetterboxSize() const { return _letterboxSize; }
 
     // Test if the game is built around old audio system
     inline bool IsLegacyAudioSystem() const
     {
         return loaded_game_file_version < kGameVersion_320;
     }
+
     // Returns the expected filename of a digital audio package
     inline AGS::Common::String GetAudioVOXName() const
     {
@@ -116,17 +168,29 @@ struct GameSetupStructBase {
     }
 
 private:
-    void OnSetGameResolution();
+    void SetDefaultResolution(GameResolutionType type, Size game_res);
+    void SetNativeResolution(GameResolutionType type, Size game_res);
+    void OnResolutionSet();
 
-    GameResolutionType _defResolution; // game size identifier
-    // Determines the game's size in "native" units, used to convert coordinate
-    // arguments in game data and scripts to screen coordinates.
-    // Equals real game size by default, which results in 1:1 conversion.
-    // (used mainly for backwards-compatibility in high-res games that wanted
-    // to keep coordinates in low-resolution range in scripts)
-    Size _nativeSize;
+    // Game's native resolution ID, used to init following values.
+    GameResolutionType _resolutionType;
+
+    // Determines game's default screen resolution. Use for the reference
+    // when comparing with actual screen resolution, which may be modified
+    // by certain overriding game modes.
+    Size _defGameResolution;
+    // Determines game's actual resolution.
+    Size _gameResolution;
+    // Determines resolution in which loaded data and script define coordinates
+    // and sizes (with very little exception).
+    Size _dataResolution;
+    // Letterboxed frame size. Used when old game is run in native letterbox
+    // mode. In all other situations is equal to game's resolution.
+    Size _letterboxSize;
+
     // Game logic to game resolution coordinate factor
-    int _upscaleMult;
+    int _dataUpscaleMult;
+
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

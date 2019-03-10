@@ -249,7 +249,7 @@ void process_event(EventHappened*evp) {
         }
 
 		// TODO: use normal coordinates instead of "native_size" and multiply_up_*?
-        const Size &native_size = game.GetNativeSize();
+        const Size &data_res = game.GetDataRes();
         const Rect &viewport = play.GetMainViewport();
 
         if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
@@ -281,11 +281,11 @@ void process_event(EventHappened*evp) {
                 render_to_screen();
 
                 int boxwid = get_fixed_pixel_size(16);
-                int boxhit = data_to_game_coord(native_size.Height / 20);
+                int boxhit = data_to_game_coord(data_res.Height / 20);
                 while (boxwid < temp_scr->GetWidth()) {
                     timerloop = 0;
                     boxwid += get_fixed_pixel_size(16);
-                    boxhit += data_to_game_coord(native_size.Height / 20);
+                    boxhit += data_to_game_coord(data_res.Height / 20);
                     boxwid = Math::Clamp(boxwid, 0, viewport.GetWidth());
                     boxhit = Math::Clamp(boxhit, 0, viewport.GetHeight());
                     int lxp = viewport.GetWidth() / 2 - boxwid / 2;

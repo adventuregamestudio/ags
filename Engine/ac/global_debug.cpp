@@ -66,7 +66,7 @@ String GetRuntimeInfo()
         "[Game resolution %d x %d (%d-bit)"
         "[Running %d x %d at %d-bit%s%s[GFX: %s; %s[Draw frame %d x %d["
         "Sprite cache size: %d KB (limit %d KB; %d locked)",
-        EngineVersion.LongString.GetCStr(), game.size.Width, game.size.Height, game.GetColorDepth(),
+        EngineVersion.LongString.GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
         mode.Width, mode.Height, mode.ColorDepth, (convert_16bit_bgr) ? " BGR" : "",
         mode.Windowed ? " W" : "",
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),

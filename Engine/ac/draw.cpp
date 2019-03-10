@@ -454,6 +454,52 @@ AGS_INLINE int game_to_data_round_up(int coord)
     return (coord / mul) + (mul - 1);
 }
 
+AGS_INLINE void ctx_data_to_game_coord(int &x, int &y, bool hires_ctx)
+{
+    if (hires_ctx && !game.IsHiRes())
+    {
+        x /= HIRES_COORD_MULTIPLIER;
+        y /= HIRES_COORD_MULTIPLIER;
+    }
+    else if (!hires_ctx && game.IsHiRes())
+    {
+        x *= HIRES_COORD_MULTIPLIER;
+        y *= HIRES_COORD_MULTIPLIER;
+    }
+}
+
+AGS_INLINE void ctx_data_to_game_size(int &w, int &h, bool hires_ctx)
+{
+    if (hires_ctx && !game.IsHiRes())
+    {
+        w = Math::Max(1, (w / HIRES_COORD_MULTIPLIER));
+        h = Math::Max(1, (h / HIRES_COORD_MULTIPLIER));
+    }
+    else if (!hires_ctx && game.IsHiRes())
+    {
+        w *= HIRES_COORD_MULTIPLIER;
+        h *= HIRES_COORD_MULTIPLIER;
+    }
+}
+
+AGS_INLINE int ctx_data_to_game_size(int size, bool hires_ctx)
+{
+    if (hires_ctx && !game.IsHiRes())
+        return Math::Max(1, (size / HIRES_COORD_MULTIPLIER));
+    if (!hires_ctx && game.IsHiRes())
+        return size * HIRES_COORD_MULTIPLIER;
+    return size;
+}
+
+AGS_INLINE int game_to_ctx_data_size(int size, bool hires_ctx)
+{
+    if (hires_ctx && !game.IsHiRes())
+        return size * HIRES_COORD_MULTIPLIER;
+    else if (!hires_ctx && game.IsHiRes())
+        return Math::Max(1, (size / HIRES_COORD_MULTIPLIER));
+    return size;
+}
+
 AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y)
 { // Note we support only upscale now
     x *= game.GetScreenUpscaleMult();

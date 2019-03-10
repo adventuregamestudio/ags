@@ -132,6 +132,11 @@ extern AGS_INLINE void data_to_game_round_up(int *x, int *y);
 extern AGS_INLINE int game_to_data_coord(int coord);
 extern AGS_INLINE void game_to_data_coords(int &x, int &y);
 extern AGS_INLINE int game_to_data_round_up(int coord);
+// convert contextual data coordinates to final game resolution
+extern AGS_INLINE void ctx_data_to_game_coord(int &x, int &y, bool hires_ctx);
+extern AGS_INLINE void ctx_data_to_game_size(int &x, int &y, bool hires_ctx);
+extern AGS_INLINE int ctx_data_to_game_size(int size, bool hires_ctx);
+extern AGS_INLINE int game_to_ctx_data_size(int size, bool hires_ctx);
 // These functions are separate, they help to convert from room coordinates
 // to the region mask coordinates. They were necessary because in hi-res
 // games region masks are 1:2 of the room background size.

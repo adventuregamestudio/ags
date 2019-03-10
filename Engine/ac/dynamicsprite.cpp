@@ -356,8 +356,8 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
         return NULL;
 
     // use DrawingSurface resolution
-    sds->MultiplyCoordinates(&x, &y);
-    sds->MultiplyCoordinates(&width, &height);
+    sds->PointToGameResolution(&x, &y);
+    sds->SizeToGameResolution(&width, &height);
 
     Bitmap *ds = sds->StartDrawing();
 

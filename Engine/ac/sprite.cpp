@@ -41,17 +41,7 @@ void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit)
     const SpriteInfo &spinfo = game.SpriteInfos[ee];
     if (!spinfo.IsVarRes())
         return;
-
-    if (spinfo.IsHiRes() && !game.IsHiRes())
-    { // hi-res sprites in a low-res game
-        newwid = Math::Min(1, (ww / HIRES_COORD_MULTIPLIER));
-        newhit = Math::Min(1, (hh / HIRES_COORD_MULTIPLIER));
-    }
-    else if (!spinfo.IsHiRes() && game.IsHiRes())
-    { // low-res sprites in hi-res game
-        newwid = ww * HIRES_COORD_MULTIPLIER;
-        newhit = hh * HIRES_COORD_MULTIPLIER;
-    }
+    ctx_data_to_game_size(newwid, newhit, spinfo.IsHiRes());
 }
 
 // set any alpha-transparent pixels in the image to the appropriate

@@ -135,9 +135,6 @@ extern AGS_INLINE int game_to_data_round_up(int coord);
 // These functions are separate, they help to convert from room coordinates
 // to the region mask coordinates. They were necessary because in hi-res
 // games region masks are 1:2 of the room background size.
-// This is why their conversion condition is also opposite. Above functions
-// apply conversion when OPT_NATIVECOORDINATES == 0, but functions below
-// apply conversion when OPT_NATIVECOORDINATES != 0.
 // TODO: they really should depend only on room mask setting, not on global game setting.
 // coordinate conversion room ---> mask
 extern AGS_INLINE int room_to_mask_coord(int coord);

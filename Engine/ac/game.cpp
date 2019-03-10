@@ -665,11 +665,7 @@ int Game_GetViewCount() {
 
 int Game_GetUseNativeCoordinates()
 {
-    if (game.options[OPT_NATIVECOORDINATES] != 0)
-    {
-        return 1;
-    }
-    return 0;
+    return game.IsDataInNativeCoordinates() ? 1 : 0;
 }
 
 int Game_GetSpriteWidth(int spriteNum) {

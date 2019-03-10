@@ -156,6 +156,8 @@ struct GameSetupStructBase {
             return (_gameResolution.Width * _gameResolution.Height) > (320 * 240);
         return ::IsHiRes(_resolutionType);
     }
+    // Tells if data has coordinates in default game resolution
+    inline bool IsDataInNativeCoordinates() const { return options[OPT_NATIVECOORDINATES] != 0; }
     
     // Tells if game runs in native letterbox mode (legacy option)
     inline bool IsLegacyLetterbox() const { return options[OPT_LETTERBOX] != 0; }

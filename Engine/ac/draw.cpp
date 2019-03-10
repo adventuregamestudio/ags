@@ -425,53 +425,39 @@ AGS_INLINE int mask_to_room_coord(int coord)
 
 AGS_INLINE int data_to_game_coord(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord * game.GetDataUpscaleMult();
-    else
-        return coord;
+    return coord * game.GetDataUpscaleMult();
 }
 
 AGS_INLINE void data_to_game_coords(int *x, int *y)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-    {
-        x[0] *= game.GetDataUpscaleMult();
-        y[0] *= game.GetDataUpscaleMult();
-    }
+    const int mul = game.GetDataUpscaleMult();
+    x[0] *= mul;
+    y[0] *= mul;
 }
 
 AGS_INLINE void data_to_game_round_up(int *x, int *y)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-    {
-        x[0] = x[0] * game.GetDataUpscaleMult() + (game.GetDataUpscaleMult() - 1);
-        y[0] = y[0] * game.GetDataUpscaleMult() + (game.GetDataUpscaleMult() - 1);
-    }
+    const int mul = game.GetDataUpscaleMult();
+    x[0] = x[0] * mul + (mul - 1);
+    y[0] = y[0] * mul + (mul - 1);
 }
 
 AGS_INLINE int game_to_data_coord(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord / game.GetDataUpscaleMult();
-    else
-        return coord;
+    return coord / game.GetDataUpscaleMult();
 }
 
 AGS_INLINE void game_to_data_coords(int &x, int &y)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-    {
-        x /= game.GetDataUpscaleMult();
-        y /= game.GetDataUpscaleMult();
-    }
+    const int mul = game.GetDataUpscaleMult();
+    x /= mul;
+    y /= mul;
 }
 
 AGS_INLINE int game_to_data_round_up(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return (coord / game.GetDataUpscaleMult()) + (game.GetDataUpscaleMult() - 1);
-    else
-        return coord;
+    const int mul = game.GetDataUpscaleMult();
+    return (coord / mul) + (mul - 1);
 }
 
 AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y)

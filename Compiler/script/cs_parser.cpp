@@ -67,6 +67,8 @@ Notes on how nested statements are handled:
 #include <string>
 #include <limits>
 #include <algorithm>
+#include <ctime>
+#include <fstream>
 
 #include "script/cc_options.h"
 #include "script/script_common.h"
@@ -260,6 +262,7 @@ int SkipTo(ccInternalList * targ, const AGS::Symbol stoplist[], size_t stoplist_
     }
     return -1;
 }
+
 
 // For assigning unique IDs to chunks
 int AGS::NestingStack::_chunkIdCtr = 0;
@@ -483,12 +486,20 @@ enum FunctionType
 typedef std::map<AGS::Symbol, SymbolTableEntry> TSym1Table;
 TSym1Table g_Sym1;
 
-inline AGS::Symbol Sym1GetType(AGS::Symbol sym)
+// Reference to the symbol table that works irrespective of the phase we are in
+inline SymbolTableEntry &GetSymbolTableEntryAnyPhase(AGS::Symbol symb)
 {
-    sym &= STYPE_MASK;
-    if (sym < 0) return -1;
-    return g_Sym1[sym].stype;
+    if (kPP_Main == g_PP)
+        return sym.entries[symb];
+    return g_Sym1[symb];
+}
 
+// Get the type of symb; this will work irrespective of the phase we are in
+inline AGS::Symbol GetSymbolTypeAnyPhase(AGS::Symbol symb)
+{
+    if (symb < 0)
+        return -1;
+    return GetSymbolTableEntryAnyPhase(symb & STYPE_MASK).stype;
 }
 
 std::string ConstructedMemberName; // size limitation removed
@@ -953,7 +964,7 @@ int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative
     if (fromSym >= 0)
     {
         // sym.get_type() won't work in the Pre-Analyse phase for compile-time constants
-        SymbolTableEntry &from_entry = (kPP_Main == g_PP) ? sym.entries[fromSym] : g_Sym1[fromSym];
+        SymbolTableEntry &from_entry = GetSymbolTableEntryAnyPhase(fromSym); 
         if (from_entry.stype == SYM_CONSTANT)
         {
             theValue = from_entry.soffs;
@@ -1085,7 +1096,7 @@ int ParseFuncdecl_ExtenderPreparations(
 
     targ->getnext(); // Eat "this" or "static"
     struct_of_func = targ->peeknext();
-    SymbolTableEntry &struct_entry = (kPP_Main == g_PP) ? sym.entries[struct_of_func] : g_Sym1[struct_of_func];
+    SymbolTableEntry &struct_entry = GetSymbolTableEntryAnyPhase(struct_of_func);
     if (!FlagIsSet(struct_entry.flags, SFLG_STRUCTTYPE))
     {
         cc_error("Expected a struct type instead of '%s'", sym.get_name(struct_of_func));
@@ -1099,7 +1110,7 @@ int ParseFuncdecl_ExtenderPreparations(
     }
 
     name_of_func = MangleStructFunc(struct_of_func, name_of_func);
-    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[name_of_func] : g_Sym1[name_of_func];
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(name_of_func); 
 
     entry.flags = SFLG_STRUCTMEMBER;
     if (is_static_extender)
@@ -1136,7 +1147,7 @@ int ParseParamlist_ParamType(ccInternalList *targ, AGS::Symbol param_type, bool 
         (0 == strcmp(sym.get_name(targ->peeknext()), "*"));
     if (param_is_natural_ptr)
         targ->getnext(); // gobble the '*'
-    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[param_type] : g_Sym1[param_type];
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(param_type);
     bool const param_is_autoptr = FlagIsSet(entry.flags, SFLG_AUTOPTR);
     param_is_ptr = param_is_natural_ptr || param_is_autoptr;
 
@@ -1232,7 +1243,7 @@ void ParseParamlist_Param_AsVar2Sym(ccCompiledScript * scrip, AGS::Symbol param_
 
 void ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, bool param_has_int_default, int param_int_default)
 {
-    SymbolTableEntry &func_entry = (kPP_Main == g_PP) ? sym.entries[name_of_func] : g_Sym1[name_of_func];
+    SymbolTableEntry &func_entry = GetSymbolTableEntryAnyPhase(name_of_func);
     size_t const minsize = param_idx + 1;
     if (func_entry.funcparamtypes.size() < minsize)
     {
@@ -1370,11 +1381,16 @@ void ParseFuncdecl_SetFunctype(
     bool func_is_protected,
     int numparams)
 {
+    int const size_of_a_pointer = 4;
+
     entry.stype = SYM_FUNCTION;
-    entry.ssize = sym.entries[return_type].ssize;
-    entry.funcparamtypes[0] = return_type;
+    SymbolTableEntry &ret_type_entry = GetSymbolTableEntryAnyPhase(return_type);
+    entry.ssize = ret_type_entry.ssize;
+    if (func_returns_ptr)
+        entry.ssize = size_of_a_pointer;
     entry.sscope = numparams - 1;
 
+    entry.funcparamtypes[0] = return_type;
     if (func_returns_ptr)
         entry.funcparamtypes[0] |= STYPE_POINTER;
     if (func_returns_dynarray)
@@ -1632,7 +1648,7 @@ int ParseFuncdecl(
         if (retval < 0) return retval;
     }
 
-    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[name_of_func] : g_Sym1[name_of_func];
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(name_of_func);
     if (entry.stype != SYM_FUNCTION && entry.stype != 0)
     {
         cc_error("'%s' is already defined", sym.get_name(name_of_func));
@@ -5060,7 +5076,7 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingS
 
 void ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQualifierSet tqs)
 {
-    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[stname] : g_Sym1[stname];
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(stname);
 
     entry.extends = 0;
     entry.stype = SYM_VARTYPE;
@@ -5239,7 +5255,7 @@ int ParseStruct_CheckMemberNotInASuperStruct(
     return 0;
 }
 
-int ParseStruct_Function(ccInternalList * targ, ccCompiledScript * scrip, AGS::TypeQualifierSet tqs, AGS::Symbol curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_pointer, bool isDynamicArray)
+int ParseStruct_Function(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Symbol curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_pointer, bool isDynamicArray)
 {
 
     if (FlagIsSet(tqs, kTQ_Writeprotected))
@@ -5481,12 +5497,16 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
         }
     }
 
-    // If this is an extension of another type, then we must make sure that names don't clash. 
     if (kPP_Main == g_PP && super_struct > 0)
     {
+        // If this is an extension of another type, then we must make sure that names don't clash. 
         int retval = ParseStruct_CheckMemberNotInASuperStruct(nakedComponentNameStr, super_struct);
         if (retval < 0) return retval;
     }
+
+    // All struct members get this flag, even functions
+    if (kPP_Main == g_PP)
+        SetFlag(sym.entries[vname].flags, SFLG_STRUCTMEMBER, true);
 
     if (isFunction)
     {
@@ -5495,46 +5515,44 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
             cc_error("Cannot declare struct member function inside a function body");
             return -1;
         }
-        int retval = ParseStruct_Function(targ, scrip, tqs, curtype, stname, vname, name_of_current_func, type_is_pointer, isDynamicArray);
-        if (retval < 0) return retval;
+        return ParseStruct_Function(targ, scrip, tqs, curtype, stname, vname, name_of_current_func, type_is_pointer, isDynamicArray);
     }
-    else if (isDynamicArray)
+
+    if (isDynamicArray)
     {
         // Someone tried to declare the function syntax for a dynamic array
         // But there was no function declaration
         cc_error("Expected '('");
         return -1;
     }
-    else if (FlagIsSet(tqs, kTQ_Import) && (!FlagIsSet(tqs, kTQ_Attribute)))
+
+    if (FlagIsSet(tqs, kTQ_Import) && (!FlagIsSet(tqs, kTQ_Attribute)))
     {
         // member variable cannot be an import
         cc_error("Only struct member functions may be declared with 'import'");
         return -1;
     }
-    else if (FlagIsSet(tqs, kTQ_Static) && (!FlagIsSet(tqs, kTQ_Attribute)))
+
+    /*
+    // [fw] Strange. As far as agsdefns is concerned,
+    //      static attribute variables are indeed supported, e.g.
+    //      "readonly import static attribute int BottomEdge;"
+    if (FlagIsSet(tqs, kTQ_Static) && (FlagIsSet(tqs, kTQ_Attribute)))
     {
         cc_error("Static attribute variables not supported");
         return -1;
     }
-    else if ((curtype == stname) && (!type_is_pointer))
+    */
+
+    if ((curtype == stname) && (!type_is_pointer))
     {
         // cannot do  struct A { A a; }
         // since we don't know the size of A, recursiveness
         cc_error("Struct '%s' cannot be a member of itself", sym.get_friendly_name(curtype).c_str());
         return -1;
     }
-    else
-    {
-        int retval = ParseStruct_Variable(targ, scrip, tqs, curtype, type_is_pointer, stname, vname, size_so_far);
-        if (retval < 0) return retval;
-        tqs = 0;
-    }
-
-    // both functions and variables have this set
-    if (kPP_Main == g_PP)
-        SetFlag(sym.entries[vname].flags, SFLG_STRUCTMEMBER, true);
-
-    return 0;
+    
+    return ParseStruct_Variable(targ, scrip, tqs, curtype, type_is_pointer, stname, vname, size_so_far);
 }
 
 int ParseStruct_MemberStmt(
@@ -5560,7 +5578,7 @@ int ParseStruct_MemberStmt(
 
 // A member defn. is a pointer if it is AUTOPOINTER or it has an explicit "*"
     bool type_is_pointer = false;
-    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[curtype] : g_Sym1[curtype];
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(curtype);
     if (FlagIsSet(entry.flags, SFLG_AUTOPTR))
     {
         type_is_pointer = true;
@@ -5582,7 +5600,7 @@ int ParseStruct_MemberStmt(
     //      This declares b to be an int pointer; but in C or C++, b would be an int
     //      Bug?
 
-// run through all variables declared on this member defn.
+    // run through all variables declared on this member defn.
     while (true)
     {
         int retval = ParseStruct_MemberDefnVarOrFuncOrArray(
@@ -5638,7 +5656,7 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
     {
         if (sym.stringStructSym > 0 && stname != sym.stringStructSym)
         {
-            cc_error("stringstruct already defined to be %s", sym.get_name(stname));
+            cc_error("The stringstruct type is already defined to be %s", sym.get_name(sym.stringStructSym));
             return -1;
         }
         sym.stringStructSym = stname;
@@ -5658,8 +5676,9 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
     if (sym.get_type(targ->peeknext()) == SYM_SEMICOLON)
     {
         targ->getnext(); // gobble the ";"
-        sym.entries[stname].stype = SYM_UNDEFINEDSTRUCT;
-        sym.entries[stname].ssize = 4;
+        SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(stname);
+        entry.stype = SYM_UNDEFINEDSTRUCT;
+        entry.ssize = 0;
         return 0;
     }
 
@@ -5694,7 +5713,7 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
         targ->getnext(); // Eat ';'
         return 0;
     }
-    if (0 != sym.get_type(next_sym))
+    if (0 != next_sym)
     {
         cc_error("Expected ';' or a variable name (did you forget ';' after the last struct definition?)");
         return -1;
@@ -5723,7 +5742,7 @@ int ParseEnum_AssignedValue(ccInternalList * targ, int &currentValue)
 
 void ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol item_name, int currentValue)
 {
-    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[item_name] : g_Sym1[item_name];
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(item_name);
 
     entry.stype = SYM_CONSTANT;
     entry.ssize = 4;
@@ -5738,7 +5757,7 @@ void ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol item_name, int c
 
 int ParseEnum_Name2symtable(AGS::Symbol enumName)
 {
-    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[enumName] : g_Sym1[enumName];
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(enumName);
 
     if (0 != entry.stype)
     {
@@ -5951,7 +5970,7 @@ int ParseVartype_GetPointerStatus(ccInternalList *targ, int type_of_defn, bool &
     if (targ->peeknext() == sym.find("*"))
     {
         // only allow pointers to structs
-        SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[type_of_defn] : g_Sym1[type_of_defn];
+        SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(type_of_defn);
         if (!FlagIsSet(entry.flags, SFLG_STRUCTTYPE))
         {
             cc_error("Cannot create pointer to basic type");
@@ -6016,7 +6035,7 @@ int ParseVartype_CheckIllegalCombis(bool is_function, bool is_member_definition,
 
 int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &func_name, int type_of_defn, bool isPointer, bool isDynamicArray, TypeQualifierSet tqs, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
-    SymbolTableEntry &entry = (kPP_Main == g_PP) ? sym.entries[func_name] : g_Sym1[func_name];
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(func_name);
     bool body_follows;
 
     int retval = ParseFuncdecl(
@@ -7093,11 +7112,11 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip, size_t &n
             ScriptNameBuffer[strlen(ScriptNameBuffer) - 1] = 0;  // strip closing quote
             ccCurScriptName = ScriptNameBuffer;
             scrip->start_new_section(ScriptNameBuffer);
-            currentline = 0;
+            // Don't mind currentline; calculating line numbers is the scanner's job.
             continue;
         }
 
-        int const symType = (kPP_Main == g_PP) ? sym.get_type(cursym) : Sym1GetType(cursym);
+        int const symType = GetSymbolTypeAnyPhase(cursym);
         switch (symType)
         {
 

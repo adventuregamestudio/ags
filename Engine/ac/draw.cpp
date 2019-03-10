@@ -409,18 +409,12 @@ AGS_INLINE int get_fixed_pixel_size(int pixels)
 
 AGS_INLINE int room_to_mask_coord(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord;
-    else
-        return coord / game.GetDataUpscaleMult();
+    return coord / game.GetRoomMaskMul();
 }
 
 AGS_INLINE int mask_to_room_coord(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord;
-    else
-        return coord * game.GetDataUpscaleMult();
+    return coord * game.GetRoomMaskMul();
 }
 
 AGS_INLINE int data_to_game_coord(int coord)

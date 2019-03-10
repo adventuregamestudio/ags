@@ -36,8 +36,8 @@
 #include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/overlay.h"
-#include "ac/path.h"
 #include "ac/properties.h"
+#include "ac/room.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "ac/system.h"
@@ -1719,12 +1719,8 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     if (mslot>0) {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;
+        convert_move_path_to_room_resolution(&mls[mslot]);
 
-        if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-            game.IsHiRes())
-        {
-            convert_move_path_to_high_res(&mls[mslot]);
-        }
         // cancel any pending waits on current animations
         // or if they were already moving, keep the current wait - 
         // this prevents a glitch if MoveCharacter is called when they

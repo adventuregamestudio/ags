@@ -28,6 +28,7 @@
 #include "ac/global_game.h"
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
+#include "ac/movelist.h"
 #include "ac/mouse.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
@@ -1039,6 +1040,28 @@ void croom_ptr_clear()
 {
     croom = NULL;
     objs = NULL;
+}
+
+void convert_move_path_to_room_resolution(MoveList *ml)
+{ // TODO: refer to room mask own setting here instead
+    if (game.GetRoomMaskMul() == 1)
+        return;
+
+    const int mul = game.GetRoomMaskMul();
+    ml->fromx *= mul;
+    ml->fromy *= mul;
+    ml->lastx *= mul;
+    ml->lasty *= mul;
+
+    for (int i = 0; i < ml->numstage; i++)
+    {
+        short lowPart = (ml->pos[i] & 0x0000ffff) * mul;
+        short highPart = ((ml->pos[i] >> 16) & 0x0000ffff) * mul;
+        ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
+
+        ml->xpermove[i] *= mul;
+        ml->ypermove[i] *= mul;
+    }
 }
 
 //=============================================================================

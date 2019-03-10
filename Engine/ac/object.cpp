@@ -20,8 +20,8 @@
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
 #include "ac/objectcache.h"
-#include "ac/path.h"
 #include "ac/properties.h"
+#include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
@@ -405,12 +405,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     if (mslot>0) {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;
-
-        if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-            game.IsHiRes())
-        {
-            convert_move_path_to_high_res(&mls[mslot]);
-        }
+        convert_move_path_to_room_resolution(&mls[mslot]);
     }
 }
 

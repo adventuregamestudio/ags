@@ -128,6 +128,7 @@ void GameSetupStructBase::OnResolutionSet()
     // The final data-to-game multiplier is always set after actual game resolution (not default one)
     _dataUpscaleMult = _gameResolution.Width / _dataResolution.Width;
     _screenUpscaleMult = _gameResolution.Width / _defGameResolution.Width;
+    _roomMaskMul = IsHiRes() ? HIRES_COORD_MULTIPLIER : 1;
 }
 
 void GameSetupStructBase::ReadFromFile(Stream *in)

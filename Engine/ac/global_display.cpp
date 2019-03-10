@@ -72,7 +72,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
     topBar.wantIt = 1;
     topBar.font = FONT_NORMAL;
     topBar.height = getfontheight_outlined(topBar.font);
-    topBar.height += multiply_up_coordinate(play.top_bar_borderwidth) * 2 + get_fixed_pixel_size(1);
+    topBar.height += data_to_game_coord(play.top_bar_borderwidth) * 2 + get_fixed_pixel_size(1);
 
     // they want to customize the font
     if (play.top_bar_font >= 0)
@@ -143,8 +143,8 @@ void DisplayMessage(int msnum) {
 }
 
 void DisplayAt(int xxp,int yyp,int widd, const char* text) {
-    multiply_up_coordinates(&xxp, &yyp);
-    widd = multiply_up_coordinate(widd);
+    data_to_game_coords(&xxp, &yyp);
+    widd = data_to_game_coord(widd);
 
     if (widd<1) widd=play.GetUIViewport().GetWidth()/2;
     if (xxp<0) xxp=play.GetUIViewport().GetWidth()/2-widd/2;
@@ -161,10 +161,10 @@ void DisplayAtY (int ypos, const char *texx) {
         return;
 
     if (ypos > 0)
-        ypos = multiply_up_coordinate(ypos);
+        ypos = data_to_game_coord(ypos);
 
     if (game.options[OPT_ALWAYSSPCH])
-        DisplaySpeechAt(-1, (ypos > 0) ? divide_down_coordinate(ypos) : ypos, -1, game.playercharacter, texx);
+        DisplaySpeechAt(-1, (ypos > 0) ? game_to_data_coord(ypos) : ypos, -1, game.playercharacter, texx);
     else { 
         // Normal "Display" in text box
 

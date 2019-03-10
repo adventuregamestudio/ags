@@ -78,11 +78,11 @@ int DynamicSprite_GetGraphic(ScriptDynamicSprite *sds) {
 }
 
 int DynamicSprite_GetWidth(ScriptDynamicSprite *sds) {
-    return divide_down_coordinate(game.SpriteInfos[sds->slot].Width);
+    return game_to_data_coord(game.SpriteInfos[sds->slot].Width);
 }
 
 int DynamicSprite_GetHeight(ScriptDynamicSprite *sds) {
-    return divide_down_coordinate(game.SpriteInfos[sds->slot].Height);
+    return game_to_data_coord(game.SpriteInfos[sds->slot].Height);
 }
 
 int DynamicSprite_GetColorDepth(ScriptDynamicSprite *sds) {
@@ -100,7 +100,7 @@ void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
     if (sds->slot == 0)
         quit("!DynamicSprite.Resize: sprite has been deleted");
 
-    multiply_up_coordinates(&width, &height);
+    data_to_game_coords(&width, &height);
 
     if (width * height >= 25000000)
         quitprintf("!DynamicSprite.Resize: new size is too large: %d x %d", width, height);
@@ -176,8 +176,8 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
     if ((width < 1) || (height < 1))
         quit("!DynamicSprite.ChangeCanvasSize: new size is too small");
 
-    multiply_up_coordinates(&x, &y);
-    multiply_up_coordinates(&width, &height);
+    data_to_game_coords(&x, &y);
+    data_to_game_coords(&width, &height);
 
     Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
     // blit it into the enlarged image
@@ -195,8 +195,8 @@ void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int
     if (sds->slot == 0)
         quit("!DynamicSprite.Crop: sprite has been deleted");
 
-    multiply_up_coordinates(&x1, &y1);
-    multiply_up_coordinates(&width, &height);
+    data_to_game_coords(&x1, &y1);
+    data_to_game_coords(&width, &height);
 
     if ((width > game.SpriteInfos[sds->slot].Width) || (height > game.SpriteInfos[sds->slot].Height))
         quit("!DynamicSprite.Crop: requested to crop an area larger than the source");
@@ -233,7 +233,7 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
         height = (sinVal * (double)game.SpriteInfos[sds->slot].Width + cosVal * (double)game.SpriteInfos[sds->slot].Height);
     }
     else {
-        multiply_up_coordinates(&width, &height);
+        data_to_game_coords(&width, &height);
     }
 
     // convert to allegro angle
@@ -310,12 +310,12 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     if (width <= 0)
         width = viewport.GetWidth();
     else
-        width = multiply_up_coordinate(width);
+        width = data_to_game_coord(width);
 
     if (height <= 0)
         height = viewport.GetHeight();
     else
-        height = multiply_up_coordinate(height);
+        height = data_to_game_coord(height);
 
     Bitmap *newPic = CopyScreenIntoBitmap(width, height);
 
@@ -381,7 +381,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
 
 ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChannel) 
 {
-    multiply_up_coordinates(&width, &height);
+    data_to_game_coords(&width, &height);
 
     int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)
@@ -422,8 +422,8 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
         (x1 + width > play.room_width) || (y1 + height > play.room_height))
         quit("!DynamicSprite.CreateFromBackground: invalid co-ordinates specified");
 
-    multiply_up_coordinates(&x1, &y1);
-    multiply_up_coordinates(&width, &height);
+    data_to_game_coords(&x1, &y1);
+    data_to_game_coords(&width, &height);
 
     int gotSlot = spriteset.AddNewSprite();
     if (gotSlot <= 0)

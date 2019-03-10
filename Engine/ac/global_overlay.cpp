@@ -43,7 +43,7 @@ void RemoveOverlay(int ovrid) {
 }
 
 int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
-    multiply_up_coordinates(&xx, &yy);
+    data_to_game_coords(&xx, &yy);
 
     Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slott].Width, game.SpriteInfos[slott].Height, game.GetColorDepth());
     wputblock(screeno, 0,0,spriteset[slott],trans);
@@ -65,8 +65,8 @@ int CreateTextOverlay(int xx,int yy,int wii,int fontid,int clr, const char* text
     int allowShrink = 0;
 
     if (xx != OVR_AUTOPLACE) {
-        multiply_up_coordinates(&xx,&yy);
-        wii = multiply_up_coordinate(wii);
+        data_to_game_coords(&xx,&yy);
+        wii = data_to_game_coord(wii);
     }
     else  // allow DisplaySpeechBackground to be shrunk
         allowShrink = 1;
@@ -82,7 +82,7 @@ void SetTextOverlay(int ovrid,int xx,int yy,int wii,int fontid,int clr, const ch
 }
 
 void MoveOverlay(int ovrid, int newx,int newy) {
-    multiply_up_coordinates(&newx, &newy);
+    data_to_game_coords(&newx, &newy);
 
     int ovri=find_overlay_of_type(ovrid);
     if (ovri<0) quit("!MoveOverlay: invalid overlay ID specified");

@@ -143,11 +143,11 @@ ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
 
 int offset_over_inv(GUIInvWindow *inv) {
 
-    int mover = mouse_ifacebut_xoffs / multiply_up_coordinate(inv->ItemWidth);
+    int mover = mouse_ifacebut_xoffs / data_to_game_coord(inv->ItemWidth);
     // if it's off the edge of the visible items, ignore
     if (mover >= inv->ColCount)
         return -1;
-    mover += (mouse_ifacebut_yoffs / multiply_up_coordinate(inv->ItemHeight)) * inv->ColCount;
+    mover += (mouse_ifacebut_yoffs / data_to_game_coord(inv->ItemHeight)) * inv->ColCount;
     if (mover >= inv->ColCount * inv->RowCount)
         return -1;
 

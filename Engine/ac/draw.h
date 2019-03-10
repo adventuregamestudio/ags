@@ -117,20 +117,21 @@ void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, colo
 
 void setpal();
 
-// These functions are converting coordinates between native game units and
-// pre-scaled game frame units. The first are units used in game data and script,
-// and second are used when displaying things in the game's viewport.
-// This conversion is done *before* scaling game's frame further in the window
-// (which is a separate task done by graphics renderer and its filters).
+// These functions are converting coordinates between data resolution and
+// game resolution units. The first are units used by game data and script,
+// and second define the game's screen resolution, sprite and font sizes.
+// This conversion is done before anything else (like moving from room to
+// viewport on screen, or scaling game further in the window by the graphic
+// renderer).
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
-// coordinate conversion game,script ---> screen
-extern AGS_INLINE int multiply_up_coordinate(int coord);
-extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
-extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
-// coordinate conversion screen ---> game,script
-extern AGS_INLINE int divide_down_coordinate(int coord);
-extern AGS_INLINE void divide_down_coordinates(int &x, int &y);
-extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
+// coordinate conversion data,script ---> final game resolution
+extern AGS_INLINE int data_to_game_coord(int coord);
+extern AGS_INLINE void data_to_game_coords(int *x, int *y);
+extern AGS_INLINE void data_to_game_round_up(int *x, int *y);
+// coordinate conversion final game resolution ---> data,script
+extern AGS_INLINE int game_to_data_coord(int coord);
+extern AGS_INLINE void game_to_data_coords(int &x, int &y);
+extern AGS_INLINE int game_to_data_round_up(int coord);
 // These functions are separate, they help to convert from room coordinates
 // to the region mask coordinates. They were necessary because in hi-res
 // games region masks are 1:2 of the room background size.
@@ -139,9 +140,9 @@ extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 // apply conversion when OPT_NATIVECOORDINATES != 0.
 // TODO: they really should depend only on room mask setting, not on global game setting.
 // coordinate conversion room ---> mask
-extern AGS_INLINE int convert_to_low_res(int coord);
+extern AGS_INLINE int room_to_mask_coord(int coord);
 // coordinate conversion mask ---> room
-extern AGS_INLINE int convert_back_to_high_res(int coord);
+extern AGS_INLINE int mask_to_room_coord(int coord);
 // This function converts game coordinates coming from script to the actual game resolution.
 extern AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y);
 

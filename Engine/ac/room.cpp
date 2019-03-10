@@ -221,8 +221,8 @@ ScriptCamera* Room_GetCamera()
 PBitmap fix_bitmap_size(PBitmap todubl)
 {
     int oldw=todubl->GetWidth(), oldh=todubl->GetHeight();
-    int newWidth = multiply_up_coordinate(thisroom.Width);
-    int newHeight = multiply_up_coordinate(thisroom.Height);
+    int newWidth = data_to_game_coord(thisroom.Width);
+    int newHeight = data_to_game_coord(thisroom.Height);
 
     if ((oldw == newWidth) && (oldh == newHeight))
         return todubl;
@@ -407,7 +407,7 @@ extern int convert_16bit_bgr;
 
 void update_letterbox_mode()
 {
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
+    const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
     const Rect game_frame = RectWH(game.size);
     Rect new_main_view = game_frame;
     // In the original engine the letterbox feature only allowed viewports of
@@ -426,7 +426,7 @@ void update_letterbox_mode()
 
 void adjust_viewport_to_room()
 {
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
+    const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
     const Rect main_view = play.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 

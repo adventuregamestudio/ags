@@ -96,19 +96,19 @@ int GUI_GetVisible(ScriptGUI *tehgui) {
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
-  return divide_down_coordinate(guis[tehgui->id].X);
+  return game_to_data_coord(guis[tehgui->id].X);
 }
 
 void GUI_SetX(ScriptGUI *tehgui, int xx) {
-  guis[tehgui->id].X = multiply_up_coordinate(xx);
+  guis[tehgui->id].X = data_to_game_coord(xx);
 }
 
 int GUI_GetY(ScriptGUI *tehgui) {
-  return divide_down_coordinate(guis[tehgui->id].Y);
+  return game_to_data_coord(guis[tehgui->id].Y);
 }
 
 void GUI_SetY(ScriptGUI *tehgui, int yy) {
-  guis[tehgui->id].Y = multiply_up_coordinate(yy);
+  guis[tehgui->id].Y = data_to_game_coord(yy);
 }
 
 void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
@@ -121,7 +121,7 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
     quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
 
   GUIMain *tehgui = &guis[sgui->id];
-  multiply_up_coordinates(&widd, &hitt);
+  data_to_game_coords(&widd, &hitt);
 
   if ((tehgui->Width == widd) && (tehgui->Height == hitt))
     return;
@@ -135,11 +135,11 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
 }
 
 int GUI_GetWidth(ScriptGUI *sgui) {
-  return divide_down_coordinate(guis[sgui->id].Width);
+  return game_to_data_coord(guis[sgui->id].Width);
 }
 
 int GUI_GetHeight(ScriptGUI *sgui) {
-  return divide_down_coordinate(guis[sgui->id].Height);
+  return game_to_data_coord(guis[sgui->id].Height);
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
@@ -422,7 +422,7 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
                 if (!IsInterfaceEnabled())
                     tempo[0] = 0;
                 else
-                    GetLocationName(divide_down_coordinate(mousex), divide_down_coordinate(mousey), tempo);
+                    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey), tempo);
             }
             else { // not a macro, there's just a @ in the message
                 curptr = curptrWasAt + 1;

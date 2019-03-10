@@ -223,9 +223,9 @@ extern bool is_sprite_alpha(int spr);
 extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha = true,
                             Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
 
-extern AGS_INLINE int divide_down_coordinate(int coord);
-extern AGS_INLINE int multiply_up_coordinate(int coord);
-extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
+extern AGS_INLINE int game_to_data_coord(int coord);
+extern AGS_INLINE int data_to_game_coord(int coord);
+extern AGS_INLINE void data_to_game_coords(int *x, int *y);
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 
 // Those function have distinct implementations in Engine and Editor

@@ -71,8 +71,8 @@ int GetInvAt (int xxx, int yyy) {
   int ongui = GetGUIAt (xxx, yyy);
   if (ongui >= 0) {
     int mxwas = mousex, mywas = mousey;
-    mousex = multiply_up_coordinate(xxx) - guis[ongui].X;
-    mousey = multiply_up_coordinate(yyy) - guis[ongui].Y;
+    mousex = data_to_game_coord(xxx) - guis[ongui].X;
+    mousey = data_to_game_coord(yyy) - guis[ongui].Y;
     int onobj = guis[ongui].FindControlUnderMouse();
     GUIObject *guio = guis[ongui].GetControl(onobj);
     if (guio) {

@@ -74,8 +74,8 @@ int Mouse_GetVisible() {
 
 void SetMouseBounds(int x1, int y1, int x2, int y2)
 {
-    int xmax = divide_down_coordinate(play.GetMainViewport().GetWidth()) - 1;
-    int ymax = divide_down_coordinate(play.GetMainViewport().GetHeight()) - 1;
+    int xmax = game_to_data_coord(play.GetMainViewport().GetWidth()) - 1;
+    int ymax = game_to_data_coord(play.GetMainViewport().GetHeight()) - 1;
     if ((x1 == 0) && (y1 == 0) && (x2 == 0) && (y2 == 0))
     {
         x2 = xmax;
@@ -93,8 +93,8 @@ void SetMouseBounds(int x1, int y1, int x2, int y2)
     }
 
     debug_script_log("Mouse bounds constrained to (%d,%d)-(%d,%d)", x1, y1, x2, y2);
-    multiply_up_coordinates(&x1, &y1);
-    multiply_up_coordinates_round_up(&x2, &y2);
+    data_to_game_coords(&x1, &y1);
+    data_to_game_round_up(&x2, &y2);
 
     play.mboundx1 = x1;
     play.mboundx2 = x2;
@@ -178,8 +178,8 @@ int Mouse_GetModeGraphic(int curs) {
 void ChangeCursorHotspot (int curs, int x, int y) {
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!ChangeCursorHotspot: invalid mouse cursor");
-    game.mcurs[curs].hotx = multiply_up_coordinate(x);
-    game.mcurs[curs].hoty = multiply_up_coordinate(y);
+    game.mcurs[curs].hotx = data_to_game_coord(x);
+    game.mcurs[curs].hoty = data_to_game_coord(y);
     if (curs == cur_cursor)
         set_mouse_cursor (cur_cursor);
 }
@@ -268,8 +268,8 @@ void disable_cursor_mode(int modd) {
 
 void RefreshMouse() {
     ags_domouse(DOMOUSE_NOCURSOR);
-    scmouse.x = divide_down_coordinate(mousex);
-    scmouse.y = divide_down_coordinate(mousey);
+    scmouse.x = game_to_data_coord(mousex);
+    scmouse.y = game_to_data_coord(mousey);
 }
 
 void SetMousePosition (int newx, int newy) {
@@ -284,7 +284,7 @@ void SetMousePosition (int newx, int newy) {
     if (newy >= viewport.GetHeight())
         newy = viewport.GetHeight() - 1;
 
-    multiply_up_coordinates(&newx, &newy);
+    data_to_game_coords(&newx, &newy);
     Mouse::SetPosition(Point(newx, newy));
     RefreshMouse();
 }
@@ -314,8 +314,8 @@ int GetMouseCursor() {
 }
 
 void update_script_mouse_coords() {
-    scmouse.x = divide_down_coordinate(mousex);
-    scmouse.y = divide_down_coordinate(mousey);
+    scmouse.x = game_to_data_coord(mousex);
+    scmouse.y = game_to_data_coord(mousey);
 }
 
 void update_inv_cursor(int invnum) {

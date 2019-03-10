@@ -77,8 +77,8 @@ int GetObjectIDAtRoom(int roomx, int roomy)
             continue;
         int xxx=objs[aa].x,yyy=objs[aa].y;
         int isflipped = 0;
-        int spWidth = divide_down_coordinate(objs[aa].get_width());
-        int spHeight = divide_down_coordinate(objs[aa].get_height());
+        int spWidth = game_to_data_coord(objs[aa].get_width());
+        int spHeight = game_to_data_coord(objs[aa].get_height());
         if (objs[aa].view >= 0)
             isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
 
@@ -258,8 +258,8 @@ void MergeObject(int obn) {
     if (bg_frame->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
-    int xpos = multiply_up_coordinate(objs[obn].x);
-    int ypos = (multiply_up_coordinate(objs[obn].y) - theHeight);
+    int xpos = data_to_game_coord(objs[obn].x);
+    int ypos = (data_to_game_coord(objs[obn].y) - theHeight);
 
     draw_sprite_support_alpha(bg_frame.get(), false, xpos, ypos, actsps[obn], (game.SpriteInfos[objs[obn].num].Flags & SPF_ALPHACHANNEL) != 0);
     invalidate_screen();
@@ -433,10 +433,10 @@ int GetThingRect(int thing, _Rect *rect) {
         if (game.chars[thing].room != displayed_room)
             return 0;
 
-        int charwid = divide_down_coordinate(GetCharacterWidth(thing));
+        int charwid = game_to_data_coord(GetCharacterWidth(thing));
         rect->x1 = game.chars[thing].x - (charwid / 2);
         rect->x2 = rect->x1 + charwid;
-        rect->y1 = game.chars[thing].get_effective_y() - divide_down_coordinate(GetCharacterHeight(thing));
+        rect->y1 = game.chars[thing].get_effective_y() - game_to_data_coord(GetCharacterHeight(thing));
         rect->y2 = game.chars[thing].get_effective_y();
     }
     else if (is_valid_object(thing - OVERLAPPING_OBJECT)) {
@@ -444,8 +444,8 @@ int GetThingRect(int thing, _Rect *rect) {
         if (objs[objid].on != 1)
             return 0;
         rect->x1 = objs[objid].x;
-        rect->x2 = objs[objid].x + divide_down_coordinate(objs[objid].get_width());
-        rect->y1 = objs[objid].y - divide_down_coordinate(objs[objid].get_height());
+        rect->x2 = objs[objid].x + game_to_data_coord(objs[objid].get_width());
+        rect->y1 = objs[objid].y - game_to_data_coord(objs[objid].get_height());
         rect->y2 = objs[objid].y;
     }
     else

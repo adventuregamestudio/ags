@@ -53,8 +53,8 @@ void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const 
     int ovri=find_overlay_of_type(scover->overlayId);
     if (ovri<0)
         quit("!Overlay.SetText: invalid overlay ID specified");
-    int xx = divide_down_coordinate(screenover[ovri].x) - scover->borderWidth;
-    int yy = divide_down_coordinate(screenover[ovri].y) - scover->borderHeight;
+    int xx = game_to_data_coord(screenover[ovri].x) - scover->borderWidth;
+    int yy = game_to_data_coord(screenover[ovri].y) - scover->borderHeight;
 
     RemoveOverlay(scover->overlayId);
     crovr_id = scover->overlayId;
@@ -71,7 +71,7 @@ int Overlay_GetX(ScriptOverlay *scover) {
     int tdxp, tdyp;
     get_overlay_position(ovri, &tdxp, &tdyp);
 
-    return divide_down_coordinate(tdxp);
+    return game_to_data_coord(tdxp);
 }
 
 void Overlay_SetX(ScriptOverlay *scover, int newx) {
@@ -79,7 +79,7 @@ void Overlay_SetX(ScriptOverlay *scover, int newx) {
     if (ovri < 0)
         quit("!invalid overlay ID specified");
 
-    screenover[ovri].x = multiply_up_coordinate(newx);
+    screenover[ovri].x = data_to_game_coord(newx);
 }
 
 int Overlay_GetY(ScriptOverlay *scover) {
@@ -90,7 +90,7 @@ int Overlay_GetY(ScriptOverlay *scover) {
     int tdxp, tdyp;
     get_overlay_position(ovri, &tdxp, &tdyp);
 
-    return divide_down_coordinate(tdyp);
+    return game_to_data_coord(tdyp);
 }
 
 void Overlay_SetY(ScriptOverlay *scover, int newy) {
@@ -98,7 +98,7 @@ void Overlay_SetY(ScriptOverlay *scover, int newy) {
     if (ovri < 0)
         quit("!invalid overlay ID specified");
 
-    screenover[ovri].y = multiply_up_coordinate(newy);
+    screenover[ovri].y = data_to_game_coord(newy);
 }
 
 int Overlay_GetValid(ScriptOverlay *scover) {
@@ -127,14 +127,14 @@ ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent) 
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text) {
     ScriptOverlay *sco = new ScriptOverlay();
 
-    multiply_up_coordinates(&x, &y);
-    width = multiply_up_coordinate(width);
+    data_to_game_coords(&x, &y);
+    width = data_to_game_coord(width);
 
     sco->overlayId = CreateTextOverlayCore(x, y, width, font, colour, text, 0);
 
     int ovri = find_overlay_of_type(sco->overlayId);
-    sco->borderWidth = divide_down_coordinate(screenover[ovri].x - x);
-    sco->borderHeight = divide_down_coordinate(screenover[ovri].y - y);
+    sco->borderWidth = game_to_data_coord(screenover[ovri].x - x);
+    sco->borderHeight = game_to_data_coord(screenover[ovri].y - y);
     sco->isBackgroundSpeech = 0;
 
     ccRegisterManagedObject(sco, sco);
@@ -225,7 +225,7 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
         int charid = screenover[overlayidx].y;
         int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
 
-        tdyp = play.RoomToScreenY(multiply_up_coordinate(game.chars[charid].get_effective_y())) - 5;
+        tdyp = play.RoomToScreenY(data_to_game_coord(game.chars[charid].get_effective_y())) - 5;
         if (charextra[charid].height<1)
             tdyp -= game.SpriteInfos[charpic].Height;
         else
@@ -233,7 +233,7 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
 
         tdyp -= screenover[overlayidx].pic->GetHeight();
         if (tdyp < 5) tdyp=5;
-        tdxp = play.RoomToScreenX((multiply_up_coordinate(game.chars[charid].x) - screenover[overlayidx].pic->GetWidth()/2));
+        tdxp = play.RoomToScreenX((data_to_game_coord(game.chars[charid].x) - screenover[overlayidx].pic->GetWidth()/2));
         if (tdxp < 0) tdxp=0;
 
         if ((tdxp + screenover[overlayidx].pic->GetWidth()) >= ui_view.GetWidth())

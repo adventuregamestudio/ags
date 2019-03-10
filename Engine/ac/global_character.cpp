@@ -112,7 +112,7 @@ int GetCharacterWidth(int ww) {
             (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
         {
             debug_script_warn("GetCharacterWidth: Character %s has invalid frame: view %d, loop %d, frame %d", char1->scrname, char1->view + 1, char1->loop, char1->frame);
-            return multiply_up_coordinate(4);
+            return data_to_game_coord(4);
         }
 
         return game.SpriteInfos[views[char1->view].loops[char1->loop].frames[char1->frame].pic].Width;
@@ -131,7 +131,7 @@ int GetCharacterHeight(int charid) {
             (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
         {
             debug_script_warn("GetCharacterHeight: Character %s has invalid frame: view %d, loop %d, frame %d", char1->scrname, char1->view + 1, char1->loop, char1->frame);
-            return multiply_up_coordinate(2);
+            return data_to_game_coord(2);
         }
 
         return game.SpriteInfos[views[char1->view].loops[char1->loop].frames[char1->frame].pic].Height;
@@ -541,8 +541,8 @@ void __sc_displayspeech(int chid, const char *text) {
 // **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY
 // **** AT 640x400 AND DOESN'T USE THE RIGHT SPEECH STYLE
 void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {
-    multiply_up_coordinates(&xx, &yy);
-    wii = multiply_up_coordinate(wii);
+    data_to_game_coords(&xx, &yy);
+    wii = data_to_game_coord(wii);
     _displayspeech (get_translation(spch), aschar, xx, yy, wii, 0);
 }
 

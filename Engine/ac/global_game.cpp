@@ -166,7 +166,7 @@ int GetSaveSlotDescription(int slnum,char*desbuf) {
 
 int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     int gotSlot;
-    multiply_up_coordinates(&width, &height);
+    data_to_game_coords(&width, &height);
 
     if (!read_savedgame_screenshot(get_save_game_path(slnum), gotSlot))
         return 0;
@@ -516,7 +516,7 @@ int GetLocationType(int xxx,int yyy) {
 void SaveCursorForLocationChange() {
     // update the current location name
     char tempo[100];
-    GetLocationName(divide_down_coordinate(mousex), divide_down_coordinate(mousey), tempo);
+    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey), tempo);
 
     if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
         play.get_loc_name_save_cursor = play.get_loc_name_last_time;

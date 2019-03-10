@@ -144,21 +144,21 @@ ScriptViewport* Screen_GetViewport()
 
 ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
 {
-    multiply_up_coordinates(&scrx, &scry);
+    data_to_game_coords(&scrx, &scry);
 
     VpPoint vpt = play.ScreenToRoom(scrx, scry);
     if (vpt.second < 0)
         return NULL;
 
-    divide_down_coordinates(vpt.first.X, vpt.first.Y);
+    game_to_data_coords(vpt.first.X, vpt.first.Y);
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
 ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
 {
-    multiply_up_coordinates(&roomx, &roomy);
+    data_to_game_coords(&roomx, &roomy);
     Point pt = play.RoomToScreen(roomx, roomy);
-    divide_down_coordinates(pt.X, pt.Y);
+    game_to_data_coords(pt.X, pt.Y);
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 

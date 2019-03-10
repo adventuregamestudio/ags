@@ -113,7 +113,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         // ensure that the window is wide enough to display
         // any top bar text
         int topBarWid = wgettextwidth_compensate(topBar.text, topBar.font);
-        topBarWid += multiply_up_coordinate(play.top_bar_borderwidth + 2) * 2;
+        topBarWid += data_to_game_coord(play.top_bar_borderwidth + 2) * 2;
         if (longestline < topBarWid)
             longestline = topBarWid;
         // the top bar should behave like DisplaySpeech wrt blocking
@@ -725,7 +725,7 @@ void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
         if (play.top_bar_backcolor != play.top_bar_bordercolor) {
             // draw the border
             draw_color = ds->GetCompatibleColor(play.top_bar_bordercolor);
-            for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
+            for (int j = 0; j < data_to_game_coord(play.top_bar_borderwidth); j++)
                 ds->DrawRect(Rect(j, j, ds->GetWidth() - (j + 1), topBar.height - (j + 1)), draw_color);
         }
 

@@ -121,8 +121,8 @@ void engine_setup_system_gamesize()
 {
     scsystem.width = game.size.Width;
     scsystem.height = game.size.Height;
-    scsystem.viewport_width = divide_down_coordinate(play.GetMainViewport().GetWidth());
-    scsystem.viewport_height = divide_down_coordinate(play.GetMainViewport().GetHeight());
+    scsystem.viewport_width = game_to_data_coord(play.GetMainViewport().GetWidth());
+    scsystem.viewport_height = game_to_data_coord(play.GetMainViewport().GetHeight());
 }
 
 void engine_init_resolution_settings(const Size game_size)

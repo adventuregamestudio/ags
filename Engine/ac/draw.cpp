@@ -407,7 +407,7 @@ AGS_INLINE int get_fixed_pixel_size(int pixels)
     return pixels * game.GetUpscaleMult();
 }
 
-AGS_INLINE int convert_to_low_res(int coord)
+AGS_INLINE int room_to_mask_coord(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
         return coord;
@@ -415,7 +415,7 @@ AGS_INLINE int convert_to_low_res(int coord)
         return coord / game.GetUpscaleMult();
 }
 
-AGS_INLINE int convert_back_to_high_res(int coord)
+AGS_INLINE int mask_to_room_coord(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
         return coord;
@@ -423,7 +423,7 @@ AGS_INLINE int convert_back_to_high_res(int coord)
         return coord * game.GetUpscaleMult();
 }
 
-AGS_INLINE int multiply_up_coordinate(int coord)
+AGS_INLINE int data_to_game_coord(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
         return coord * game.GetUpscaleMult();
@@ -431,7 +431,7 @@ AGS_INLINE int multiply_up_coordinate(int coord)
         return coord;
 }
 
-AGS_INLINE void multiply_up_coordinates(int *x, int *y)
+AGS_INLINE void data_to_game_coords(int *x, int *y)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
     {
@@ -440,7 +440,7 @@ AGS_INLINE void multiply_up_coordinates(int *x, int *y)
     }
 }
 
-AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y)
+AGS_INLINE void data_to_game_round_up(int *x, int *y)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
     {
@@ -449,7 +449,7 @@ AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y)
     }
 }
 
-AGS_INLINE int divide_down_coordinate(int coord)
+AGS_INLINE int game_to_data_coord(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
         return coord / game.GetUpscaleMult();
@@ -457,7 +457,7 @@ AGS_INLINE int divide_down_coordinate(int coord)
         return coord;
 }
 
-AGS_INLINE void divide_down_coordinates(int &x, int &y)
+AGS_INLINE void game_to_data_coords(int &x, int &y)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
     {
@@ -466,7 +466,7 @@ AGS_INLINE void divide_down_coordinates(int &x, int &y)
     }
 }
 
-AGS_INLINE int divide_down_coordinate_round_up(int coord)
+AGS_INLINE int game_to_data_round_up(int coord)
 {
     if (game.options[OPT_NATIVECOORDINATES] == 0)
         return (coord / game.GetUpscaleMult()) + (game.GetUpscaleMult() - 1);
@@ -596,8 +596,8 @@ void sync_roomview()
         if (!RoomCameraBuffer || RoomCameraBuffer->GetWidth() < cam_sz.Width || RoomCameraBuffer->GetHeight() < cam_sz.Height)
         {
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
-            int room_width = multiply_up_coordinate(thisroom.Width);
-            int room_height = multiply_up_coordinate(thisroom.Height);
+            int room_width = data_to_game_coord(thisroom.Width);
+            int room_height = data_to_game_coord(thisroom.Height);
             Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(room_width, room_height));
             RoomCameraBuffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height));
         }
@@ -760,7 +760,7 @@ void write_screen() {
     if (play.shakesc_length > 0) {
         wasShakingScreen = 1;
         if ( (loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2) )
-            at_yp = multiply_up_coordinate(play.shakesc_amount);
+            at_yp = data_to_game_coord(play.shakesc_amount);
         invalidate_screen();
     }
     else if (wasShakingScreen) {
@@ -1619,8 +1619,8 @@ void prepare_objects_for_drawing() {
         const Rect &camera = play.GetRoomCamera();
         int offsetx = camera.Left;
         int offsety = camera.Top;
-        atxp = multiply_up_coordinate(objs[aa].x) - offsetx;
-        atyp = (multiply_up_coordinate(objs[aa].y) - tehHeight) - offsety;
+        atxp = data_to_game_coord(objs[aa].x) - offsetx;
+        atyp = (data_to_game_coord(objs[aa].y) - tehHeight) - offsety;
 
         int usebasel = objs[aa].get_baseline();
 
@@ -1874,8 +1874,8 @@ void prepare_characters_for_drawing() {
         our_eip = 3336;
 
         // Calculate the X & Y co-ordinates of where the sprite will be
-        atxp=(multiply_up_coordinate(chin->x) - offsetx) - newwidth/2;
-        atyp=(multiply_up_coordinate(chin->y) - newheight) - offsety;
+        atxp=(data_to_game_coord(chin->x) - offsetx) - newwidth/2;
+        atyp=(data_to_game_coord(chin->y) - newheight) - offsety;
 
         charcache[aa].scaling = zoom_level;
         charcache[aa].sppic = specialpic;
@@ -1934,7 +1934,7 @@ void prepare_characters_for_drawing() {
         int usebasel = chin->get_baseline();
 
         // adjust the Y positioning for the character's Z co-ord
-        atyp -= multiply_up_coordinate(chin->z);
+        atyp -= data_to_game_coord(chin->z);
 
         our_eip = 336;
 
@@ -2339,7 +2339,7 @@ void update_screen() {
             (mousex==lastmx) && (mousey==lastmy)) ;
         // only on hotspot, and it's not on one
         else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT)!=0) &&
-            (GetLocationType(divide_down_coordinate(mousex), divide_down_coordinate(mousey)) == 0))
+            (GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey)) == 0))
             set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
         else if (mouse_delay>0) mouse_delay--;
         else {

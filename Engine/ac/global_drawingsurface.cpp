@@ -195,18 +195,8 @@ void RawDrawImageTrans(int xx, int yy, int slot, int alpha) {
 }
 
 void RawDrawImageOffset(int xx, int yy, int slot) {
-
-    if ((current_screen_resolution_multiplier == 1) && game.IsHiRes()) {
-        // running a 640x400 game at 320x200, adjust
-        xx /= 2;
-        yy /= 2;
-    }
-    else if ((current_screen_resolution_multiplier > 1) && !game.IsHiRes()) {
-        // running a 320x200 game at 640x400, adjust
-        xx *= 2;
-        yy *= 2;
-    }
-
+    // This function takes coordinates in real game coordinates as opposed to script coordinates
+    defgame_to_finalgame_coords(xx, yy);
     RawDrawImageCore(xx, yy, slot);
 }
 

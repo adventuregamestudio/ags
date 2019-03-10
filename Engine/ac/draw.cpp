@@ -475,6 +475,22 @@ AGS_INLINE int divide_down_coordinate_round_up(int coord)
         return coord;
 }
 
+AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y)
+{
+    if ((current_screen_resolution_multiplier == 1) && game.IsHiRes())
+    {
+        // running a 640x400 game at 320x200, adjust
+        x /= 2;
+        y /= 2;
+    }
+    else if ((current_screen_resolution_multiplier > 1) && !game.IsHiRes())
+    {
+        // running a 320x200 game at 640x400, adjust
+        x *= 2;
+        y *= 2;
+    }
+}
+
 // End resolution system functions
 
 // Create blank (black) images used to repaint borders around game frame

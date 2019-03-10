@@ -690,17 +690,8 @@ void Character_LockViewOffset(CharacterInfo *chap, int vii, int xoffs, int yoffs
 void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving) {
     Character_LockViewEx(chap, vii, stopMoving);
 
-    if ((current_screen_resolution_multiplier == 1) && (game.IsHiRes())) {
-        // running a 640x400 game at 320x200, adjust
-        xoffs /= 2;
-        yoffs /= 2;
-    }
-    else if ((current_screen_resolution_multiplier > 1) && (!game.IsHiRes())) {
-        // running a 320x200 game at 640x400, adjust
-        xoffs *= 2;
-        yoffs *= 2;
-    }
-
+    // This function takes offsets in real game coordinates as opposed to script coordinates
+    defgame_to_finalgame_coords(xoffs, yoffs);
     chap->pic_xoffs = xoffs;
     chap->pic_yoffs = yoffs;
 }

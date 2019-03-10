@@ -142,6 +142,8 @@ extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 extern AGS_INLINE int convert_to_low_res(int coord);
 // coordinate conversion mask ---> room
 extern AGS_INLINE int convert_back_to_high_res(int coord);
+// This function converts game coordinates coming from script to the actual game resolution.
+extern AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y);
 
 // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
 // had to be created (by default).

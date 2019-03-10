@@ -68,6 +68,9 @@ extern void clear_error();
 extern const char *last_seen_cc_error();
 extern ccCompiledScript *newScriptFixture();
 
+// from cs_parser_test.cpp, provide "ready-made" code chunks to be included in tests
+extern char g_Input_Bool[], g_Input_String[];
+
 std::string Esc(const char ch)
 {
     static const char *tohex = "0123456789abcdef";
@@ -5751,129 +5754,6 @@ TEST(Compatibility, Readonly) {
 
 }
 
-TEST(Compatibility, Attribute1) {
-    ccCompiledScript *scrip = newScriptFixture();
-
-    char *inpl = "\
-        struct Weapon {                          \n\
-            protected int D_amage;               \n\
-            import attribute int Damage;         \n\
-            import int get_Damage();             \n\
-            import void set_Damage(int damage);  \n\
-        };                                       \n\
-                                                 \n\
-        int Weapon::get_Damage()                 \n\
-        {                                        \n\
-            return this.D_amage;                 \n\
-        }                                        \n\
-        Weapon sword;                            \n\
-                                                 \n\
-        void main()                              \n\
-        {                                        \n\
-            sword.Damage = 5;                    \n\
-        }                                        \n\
-        ";
-
-    // [fw] NOTE: This test doesn't work so far, and rightly so:
-    // The parser detects that int Weapon::get_Damage() has a local
-    // definition, and the parser concludes that the import declaration
-    // for it is a forward declaration. Yes indeed!
-    ASSERT_STREQ("TEST IS COMMENTED OUT", "TEST IS COMMENTED OUT");
-
-    /*
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    // WriteOutput("Attribute1", scrip);
-    // run the test, comment out the previous line
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 64;
-    EXPECT_EQ(codesize, scrip->codesize);
-
-    intptr_t code[] = {
-      38,    0,    3,    1,            2,    4,    4,    0,    // 7
-       1,    1,    4,   29,            6,   30,    2,   52,    // 15
-       7,    3,    2,    1,            4,    5,    6,    3,    // 23
-       0,    2,    1,    4,            5,   38,   29,    6,    // 31
-       3,    5,    3,    3,            4,    6,    2,    0,    // 39
-       3,    2,    3,   29,            6,   45,    3,   34,    // 47
-       4,   39,    1,    6,            3,    1,   33,    3,    // 55
-      35,    1,   30,    6,            6,    3,    0,    5,    // 63
-     -999
-    };
-
-    for (size_t idx = 0; idx < codesize; idx++)
-    {
-        if (idx >= scrip->codesize) break;
-        std::string prefix = "code[";
-        prefix += std::to_string(idx) + "] == ";
-        std::string is_val = prefix + std::to_string(code[idx]);
-        std::string test_val = prefix + std::to_string(scrip->code[idx]);
-        ASSERT_EQ(is_val, test_val);
-    }
-
-    const size_t numfixups = 2;
-    EXPECT_EQ(numfixups, scrip->numfixups);
-
-    intptr_t fixups[] = {
-      39,   53,  -999
-    };
-
-    for (size_t idx = 0; idx < numfixups; idx++)
-    {
-        if (idx >= scrip->numfixups) break;
-        std::string prefix = "fixups[";
-        prefix += std::to_string(idx) + "] == ";
-        std::string   is_val = prefix + std::to_string(fixups[idx]);
-        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
-        ASSERT_EQ(is_val, test_val);
-    }
-
-    char fixuptypes[] = {
-      1,   4,  '\0'
-    };
-
-    for (size_t idx = 0; idx < numfixups; idx++)
-    {
-        if (idx >= scrip->numfixups) break;
-        std::string prefix = "fixuptypes[";
-        prefix += std::to_string(idx) + "] == ";
-        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
-        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
-        ASSERT_EQ(is_val, test_val);
-    }
-
-    const int numimports = 2;
-    std::string imports[] = {
-    "Weapon::set_Damage",         "Weapon::set_Damage^1",        "[[SENTINEL]]"
-    };
-
-    int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
-    {
-        if (!strcmp(scrip->imports[idx], ""))
-            continue;
-        idx2++;
-        ASSERT_LT(idx2, numimports);
-        std::string prefix = "imports[";
-        prefix += std::to_string(idx2) + "] == ";
-        std::string is_val = prefix + scrip->imports[idx];
-        std::string test_val = prefix + imports[idx2];
-        ASSERT_EQ(is_val, test_val);
-    }
-
-    const size_t numexports = 0;
-    EXPECT_EQ(numexports, scrip->numexports);
-
-    const size_t stringssize = 0;
-    EXPECT_EQ(stringssize, scrip->stringssize);
-    */
-}
-
 TEST(Compatibility, Import) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -5986,40 +5866,10 @@ TEST(Compatibility, Import) {
 
 }
 
-// Copied from the file that initializes AGS programs
-std::string gStringInit =
-"\
-        enum bool { false = 0, true };                                  \n\
-                                                                        \n\
-        internalstring autoptr builtin managed struct String {          \n\
-            import static String Format(const string format, ...);      \n\
-            import static bool IsNullOrEmpty(String stringToCheck);     \n\
-            import String  Append(const string appendText);             \n\
-            import String  AppendChar(char extraChar);                  \n\
-            import int     CompareTo(const string otherString, bool caseSensitive = false);      \n\
-            import int     Contains(const string needle);               \n\
-            import String  Copy();                                      \n\
-            import bool    EndsWith(const string endsWithText, bool caseSensitive = false);      \n\
-            import int     IndexOf(const string needle);                \n\
-            import String  LowerCase();                                 \n\
-            import String  Replace(const string lookForText, const string replaceWithText, bool caseSensitive = false); \n\
-            import String  ReplaceCharAt(int index, char newChar);      \n\
-            import bool    StartsWith(const string startsWithText, bool caseSensitive = false);  \n\
-            import String  Substring(int index, int length);            \n\
-            import String  Truncate(int length);                        \n\
-            import String  UpperCase();                                 \n\
-            readonly import attribute float AsFloat;                    \n\
-            readonly import attribute int AsInt;                        \n\
-            readonly import attribute char Chars[];                     \n\
-            readonly import attribute int Length;                       \n\
-        };                                                              \n\
-                                                                        \n\
-        "; // these are 25 lines
-
 TEST(Compatibility, StandardString) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    std::string sourcecode = "\
+    char inpl[] = "\
         int main()                         \n\
         {                                  \n\
             String s = \"Hello, world!\";  \n\
@@ -6028,13 +5878,13 @@ TEST(Compatibility, StandardString) {
             return 0;                      \n\
         }                                  \n\
         ";
-    sourcecode = gStringInit + sourcecode;
-
-    char inpl[5000];
-    strncpy(inpl, sourcecode.c_str(), 5000);
+    std::string input = "";
+    input += g_Input_Bool;
+    input += g_Input_String;
+    input += inpl;
 
     clear_error();
-    int compileResult = cc_compile(inpl, scrip);
+    int compileResult = cc_compile(input.c_str(), scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 

@@ -113,8 +113,12 @@ struct GameSetupStructBase {
     // In order to support this legacy behavior we have a set of functions for
     // coordinate conversion. They are required to move from "data" resolution
     // to "final game" resolution and back.
-    // NOTE: some of the script commands, as well as some internal engine data
-    // use coordinates in final resolution instead (this should be documented).
+    //
+    // Some of the script commands, as well as some internal engine data use
+    // coordinates in "game resolution" instead (this should be documented).
+    // In such case there's another conversion which translates these from
+    // default to actual resolution; e.g. when 320x200 game is run as 640x400
+    // they should be multiplied by 2.
     //
     // ** TODO.
     //
@@ -140,6 +144,9 @@ struct GameSetupStructBase {
     const Size &GetDataRes() const { return _dataResolution; }
     // Get game data-->final game resolution coordinate multiplier
     inline int GetDataUpscaleMult() const { return _dataUpscaleMult; }
+    // Get game default res-->final game resolution coordinate multiplier;
+    // used to convert coordinates from original game res to actual one
+    inline int GetScreenUpscaleMult() const { return _screenUpscaleMult; }
     // Legacy definition of high and low game resolution.
     // Used to determine certain hardcoded coordinate conversion logic, but
     // does not make much sense today when the resolution is arbitrary.
@@ -190,7 +197,8 @@ private:
 
     // Game logic to game resolution coordinate factor
     int _dataUpscaleMult;
-
+    // Game default resolution to actual game resolution factor
+    int _screenUpscaleMult;
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

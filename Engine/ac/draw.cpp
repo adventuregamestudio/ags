@@ -475,19 +475,9 @@ AGS_INLINE int game_to_data_round_up(int coord)
 }
 
 AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y)
-{
-    if ((game.GetDataUpscaleMult() == 1) && game.IsHiRes())
-    {
-        // running a 640x400 game at 320x200, adjust
-        x /= 2;
-        y /= 2;
-    }
-    else if ((game.GetDataUpscaleMult() > 1) && !game.IsHiRes())
-    {
-        // running a 320x200 game at 640x400, adjust
-        x *= 2;
-        y *= 2;
-    }
+{ // Note we support only upscale now
+    x *= game.GetScreenUpscaleMult();
+    y *= game.GetScreenUpscaleMult();
 }
 
 // End resolution system functions

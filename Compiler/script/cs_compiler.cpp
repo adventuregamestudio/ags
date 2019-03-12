@@ -43,17 +43,6 @@ void ccRemoveDefaultHeaders()
     defaultHeaders.clear();
 }
 
-void ccDefineMacro(const char *macro, const char *definition)
-{
-    predefinedMacros.add((char *)macro, (char *)definition);
-}
-
-void ccClearAllMacros()
-{
-    predefinedMacros.shutdown();
-    predefinedMacros.init();
-}
-
 void ccSetSoftwareVersion(const char *versionNumber)
 {
     ccSoftwareVersion = versionNumber;
@@ -65,7 +54,6 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
     compiled_script->init();
 
     sym.reset();
-    preproc_startup(&predefinedMacros);
 
     if (scriptName == NULL)
         scriptName = "Main script";
@@ -88,7 +76,6 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
         compiled_script->start_new_section(ccCurScriptName);
         cc_compile(texo, compiled_script);
     }
-    preproc_shutdown();
 
     if (ccError)
     {

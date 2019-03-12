@@ -2,6 +2,9 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <fstream>
+#include <streambuf>
+
 
 #include "script/cc_options.h"
 #include "gtest/gtest.h"

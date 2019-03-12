@@ -1168,3 +1168,16 @@ TEST(Compile, RetLengthNoMatch) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, LocalImportVar) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        import int Var;     \n\
+        int Var;            \n\
+        export Var;         \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+}

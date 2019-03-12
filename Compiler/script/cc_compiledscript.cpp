@@ -412,10 +412,9 @@ void ccCompiledScript::init()
 // free the extra bits that ccScript doesn't have
 void ccCompiledScript::free_extra()
 {
-    int aa;
-    for (aa = 0; aa < numfunctions; aa++)
+    for (size_t func = 0; func < numfunctions; func++)
     {
-        free(functions[aa]);
+        free(functions[func]);
     }
     numfunctions = 0;
 }

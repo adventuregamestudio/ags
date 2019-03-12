@@ -23,19 +23,6 @@ extern int ccAddDefaultHeader(char *script, char *name);
 // don't compile any headers into the compilation
 extern void ccRemoveDefaultHeaders(void);
 
-// NOTE: All macro processing is currently done within the Editor.
-//       These functions aren't called any more.
-// START
-//
-// define a macro which will affect all compilations
-extern void ccDefineMacro(const char *macro, const char *definition);
-// clear all predefined macros
-extern void ccClearAllMacros();
-//
-// END
-// NOTE: All macro processing is currently done in the Editor.
-
-
 // set version for use with #ifversion macros
 extern void ccSetSoftwareVersion(const char *version);
 

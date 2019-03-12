@@ -89,7 +89,6 @@ Notes on how nested statements are handled:
 extern int currentline;
 
 char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2019 others";
-static char ScriptNameBuffer[256];
 
 int  ParseExpression(ccInternalList *targ, ccCompiledScript *script, bool consider_paren_nesting);
 
@@ -461,6 +460,12 @@ AGS::FuncCallpointMgr::FuncInfo::FuncInfo()
 // [TODO] Convert this into a class variable when the compiler has been
 //        converted to classes
 AGS::FuncCallpointMgr g_FCM;
+
+// Manage a list of all global import variables and track whether they are
+// re-defined as non-import later on.
+// [TODO] Convert this into a class variable when the compiler has been
+//        converted to classes
+std::map<AGS::Symbol, bool> g_GIVM;
 
 // Track the phase the parser is in.
 // This is used ubiquitously, so defined as a global variable.
@@ -1055,7 +1060,7 @@ int ParseParamlist_Param_DynArrayMarker(ccInternalList *targ, AGS::Symbol typeSy
 }
 
 // Copy so that the forward decl can be compared afterwards to the real one     
-int ParseFuncdecl_CopyKnownInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info)
+int CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info)
 {
     known_info.stype = 0;
     if (0 == entry.stype)
@@ -1542,9 +1547,9 @@ int ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, bool b
     return 0;
 }
 
+// Enter the function in the imports[] or functions[] array; get its index   
 int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_of_func, bool body_follows, bool func_is_import, int &function_soffs, int &function_idx)
 {
-    // Enter the function in the imports[] or functions[] array; get its index
     if (body_follows)
     {
         if (func_is_import)
@@ -1687,7 +1692,7 @@ int ParseFuncdecl(
 
     // Copy all known info about the function so that we can check whether this declaration is compatible
     SymbolTableEntry known_info;
-    int retval = ParseFuncdecl_CopyKnownInfo(entry, known_info);
+    int retval = CopyKnownSymInfo(entry, known_info);
     if (retval < 0) return retval;
 
     // process parameter list, get number of parameters
@@ -4729,12 +4734,6 @@ void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript *scrip, int var_name, FxFi
 
 int ParseVardecl_CheckIllegalCombis(int var_name, int type_of_defn, bool is_pointer, Globalness is_global)
 {
-    if (sym.get_type(var_name) != 0)
-    {
-        cc_error("Symbol '%s' is already defined", sym.get_friendly_name(var_name).c_str());
-        return -1;
-    }
-
     if (FlagIsSet(sym.entries[type_of_defn].flags, SFLG_MANAGED) && (!is_pointer) && (is_global != kGl_GlobalImport))
     {
         // managed structs must be allocated via ccRegisterObject,
@@ -4759,7 +4758,45 @@ int ParseVardecl_CheckIllegalCombis(int var_name, int type_of_defn, bool is_poin
     return 0;
 }
 
+// there was a forward declaration -- check that the real declaration matches it
+int ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info)
+{
+    if (0 == known_info->stype)
+        return 0; // We don't have any known info
 
+    if (known_info->stype != this_entry->stype)
+    {
+        cc_error(
+            "Type of this variable is declared as %s here, as %s elsewhere",
+            sym.get_name_string(this_entry->stype).c_str(),
+            sym.get_name_string(known_info->stype).c_str());
+        return -1;
+    }
+
+    if ((known_info->flags & ~SFLG_IMPORTED) != (this_entry->flags & ~SFLG_IMPORTED))
+    {
+        cc_error("Qualifiers of this variable do not match prototype");
+        return -1;
+    }
+
+    if (FlagIsSet(this_entry->flags, SFLG_ARRAY) && (known_info->arrsize != this_entry->arrsize))
+    {
+        cc_error(
+            "Variable is declared as an array of size %d here, of size %d elsewhere",
+            this_entry->arrsize, known_info->arrsize);
+        return -1;
+    }
+
+    if (known_info->ssize != this_entry->ssize)
+    {
+        cc_error(
+            "Size of this variable is %d here, %d declared elsewhere",
+            this_entry->ssize, known_info->ssize);
+        return -1;
+    }
+
+    return 0;
+}
 int ParseVardecl0(
     ccInternalList *targ,
     ccCompiledScript * scrip,
@@ -4771,6 +4808,10 @@ int ParseVardecl0(
     bool &another_var_follows,
     void *initial_value_ptr)
 {
+    SymbolTableEntry known_info;
+    if (sym.get_type(var_name) != 0)
+        CopyKnownSymInfo(sym.entries[var_name], known_info);
+
     int retval = ParseVardecl_CheckIllegalCombis(var_name, type_of_defn, is_pointer, is_global);
     if (retval < 0) return retval;
 
@@ -4789,7 +4830,6 @@ int ParseVardecl0(
     // Enter the variable into the symbol table
     ParseVardecl_Var2SymTable(var_name, is_global, is_pointer, size_of_defn, type_of_defn);
 
-    // Default assignment
     if (next_type == SYM_OPENBRACKET)
     {
         // Parse the bracketed expression; determine whether it is dynamic; if not, determine the size
@@ -4815,6 +4855,9 @@ int ParseVardecl0(
         initial_value_ptr = calloc(1, sizeof(long));
     }
 
+    retval = ParseVardecl_CheckThatKnownInfoMatches(&sym.entries[var_name], &known_info);
+    if (retval < 0) return retval;
+
     // initial assignment, i.e. a clause "= value" following the definition
     if (next_type == SYM_ASSIGN)
     {
@@ -4825,6 +4868,8 @@ int ParseVardecl0(
         next_type = sym.get_type(targ->peeknext());
     }
 
+    if (kGl_GlobalImport == is_global && g_GIVM[var_name])
+        is_global = kGl_GlobalNoImport;
 
     switch (is_global)
     {
@@ -6083,7 +6128,23 @@ int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symb
 {
     if (kPP_PreAnalyze == g_PP)
     {
-        // We aren't interested in var defns at this stage, so skip this defn
+        if (0 != g_GIVM.count(var_name))
+        {
+            if(g_GIVM[var_name])
+            {
+                cc_error("'%s' is already defined as a global non-import", sym.get_name(var_name));
+                return -1;
+            }
+            else if (kGl_GlobalImport == is_global)
+            {
+                cc_error("'%s' is already defined as a global import", sym.get_name(var_name));
+                return -1;
+            }
+            
+        }
+        g_GIVM[var_name] = (kGl_GlobalImport == is_global);
+            
+        // Apart from this, we aren't interested in var defns at this stage, so skip this defn
         AGS::Symbol const stoplist[] = { SYM_COMMA, SYM_SEMICOLON };
         SkipTo(targ, stoplist, 2);
         another_var_follows = (targ->getnext() == SYM_COMMA);
@@ -7076,12 +7137,29 @@ void cc_parse_SkipToEndingBrace(ccInternalList *targ)
     targ->getnext(); // Eat '}'
 }
 
-int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip, size_t &nested_level, AGS::Symbol &name_of_current_func)
+std::string g_ScriptNameBuffer;
+
+void cc_parse_StartNewSection(ccCompiledScript *scrip, AGS::Symbol mangled_section_name)
+{
+    g_ScriptNameBuffer = &sym.get_name(mangled_section_name)[18];
+    g_ScriptNameBuffer.pop_back(); // strip closing speech mark
+    ccCurScriptName = g_ScriptNameBuffer.c_str();
+    currentline = 0;
+    // The Pre-Compile phase shouldn't generate any code,
+    // so only do it in the Main phase
+    if (kPP_Main == g_PP)
+        scrip->start_new_section(g_ScriptNameBuffer.c_str());
+}
+
+int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
 {
     AGS::NestingStack nesting_stack = AGS::NestingStack();
+    size_t nested_level = 0;
 
     // non-zero only when a struct member function is open
     AGS::Symbol struct_of_current_func = 0;
+    AGS::Symbol name_of_current_func = -1;
+
 
     // Go through the list of tokens one by one. We start off in the global data
     // part - no code is allowed until a function definition is started
@@ -7096,25 +7174,15 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip, size_t &n
     {
         AGS::Symbol cursym = targ->getnext();
 
+        if (strncmp(sym.get_name(cursym), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
+        {
+            cc_parse_StartNewSection(scrip, cursym);           
+            continue;
+        }
+
         int retval = cc_parse_HandleLines(targ, scrip, currentlinewas);
         if (retval > 0)
             break; // end of input
-
-        // Handling new sections
-        // These section are denoted by a string that begins with NEW_SCRIPT_TOKEN_PREFIX;
-        // the section name follows.
-        if (strncmp(sym.get_name(cursym), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
-        {
-            // scriptNameBuffer is a static C string. 
-            // We can't replace it by a std::string  because it is referenced 
-            // externally through ccCurScriptName (defined in cc_error.cpp)
-            strncpy(ScriptNameBuffer, sym.get_name(cursym) + 18, 236);
-            ScriptNameBuffer[strlen(ScriptNameBuffer) - 1] = 0;  // strip closing quote
-            ccCurScriptName = ScriptNameBuffer;
-            scrip->start_new_section(ScriptNameBuffer);
-            // Don't mind currentline; calculating line numbers is the scanner's job.
-            continue;
-        }
 
         int const symType = GetSymbolTypeAnyPhase(cursym);
         switch (symType)
@@ -7287,18 +7355,15 @@ int cc_parse_FuncHeaders2Sym()
 
 int cc_parse(ccInternalList *targ, ccCompiledScript *scrip)
 {
-    size_t nested_level = 0;
-    AGS::Symbol name_of_current_func = -1;
-
     // Skim through the code and collect the headers of functions defined locally
     int const start_of_input = targ->pos;
 
     g_Sym1.clear();
-    for (size_t idx = 0; idx <= sym.lastPredefSym; idx++)
+    for (size_t idx = 0; idx < sym.entries.size(); idx++)
         g_Sym1[idx] = sym.entries[idx];
 
     g_PP = kPP_PreAnalyze;
-    int retval = cc_parse_ParseInput(targ, scrip, nested_level, name_of_current_func);
+    int retval = cc_parse_ParseInput(targ, scrip);
     if (retval < 0) return retval;
 
     // Copy (just) the headers of functions that have a body to the main symbol table
@@ -7310,7 +7375,7 @@ int cc_parse(ccInternalList *targ, ccCompiledScript *scrip)
     targ->pos = start_of_input;
     g_PP = kPP_Main;
     g_FCM.Init();
-    retval = cc_parse_ParseInput(targ, scrip, nested_level, name_of_current_func);
+    retval = cc_parse_ParseInput(targ, scrip);
     if (retval < 0) return retval;
 
     return g_FCM.CheckForUnresolvedFuncs();

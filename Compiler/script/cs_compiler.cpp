@@ -16,31 +16,31 @@
 
 const char *ccSoftwareVersion = "1.0";
 
-char **defaultheaders = NULL;
-char **defaultHeaderNames = NULL;
-static int numheaders = 0;
-static int capacityHeaders = 0;
+struct ScriptHeader
+{
+    std::string Name;
+    std::string Content;
+};
+
+std::vector<ScriptHeader> defaultHeaders;
 
 MacroTable predefinedMacros;
 
-int ccAddDefaultHeader(char *nhead, char *nName)
+int ccAddDefaultHeader(char *hd_content, char *hd_name)
 {
-    if (numheaders >= capacityHeaders)
-    {
-        capacityHeaders += 50;
-        defaultheaders = (char **)realloc(defaultheaders, sizeof(char *) * capacityHeaders);
-        defaultHeaderNames = (char **)realloc(defaultHeaderNames, sizeof(char *) * capacityHeaders);
-    }
+    if (!hd_content)
+        hd_content = "";
+    if (!hd_name)
+        hd_name = "Internal Header File";
+    struct ScriptHeader head = { std::string(hd_name), std::string(hd_content) };
+    defaultHeaders.push_back(head);
 
-    defaultheaders[numheaders] = nhead;
-    defaultHeaderNames[numheaders] = nName;
-    numheaders++;
     return 0;
 }
 
 void ccRemoveDefaultHeaders()
 {
-    numheaders = 0;
+    defaultHeaders.clear();
 }
 
 void ccDefineMacro(const char *macro, const char *definition)
@@ -61,8 +61,8 @@ void ccSetSoftwareVersion(const char *versionNumber)
 
 ccScript *ccCompileText(const char *texo, const char *scriptName)
 {
-    ccCompiledScript *cctemp = new ccCompiledScript();
-    cctemp->init();
+    ccCompiledScript *compiled_script = new ccCompiledScript();
+    compiled_script->init();
 
     sym.reset();
     preproc_startup(&predefinedMacros);
@@ -73,30 +73,27 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
     ccError = 0;
     ccErrorLine = 0;
 
-    for (size_t header = 0; header < numheaders; header++)
+    size_t const num_of_headers = defaultHeaders.size();
+    for (size_t header = 0; header < num_of_headers; header++)
     {
-        if (defaultHeaderNames[header] != NULL)
-            ccCurScriptName = defaultHeaderNames[header];
-        else
-            ccCurScriptName = "Internal header file";
-
-        cctemp->start_new_section(ccCurScriptName);
-        cc_compile(defaultheaders[header], cctemp);
+        ccCurScriptName = defaultHeaders[header].Name.c_str();
+        compiled_script->start_new_section(ccCurScriptName);
+        cc_compile(defaultHeaders[header].Content.c_str(), compiled_script);
         if (ccError) break;
     }
 
     if (!ccError)
     {
         ccCurScriptName = scriptName;
-        cctemp->start_new_section(ccCurScriptName);
-        cc_compile(texo, cctemp);
+        compiled_script->start_new_section(ccCurScriptName);
+        cc_compile(texo, compiled_script);
     }
     preproc_shutdown();
 
     if (ccError)
     {
-        cctemp->shutdown();
-        delete cctemp;
+        compiled_script->shutdown();
+        delete compiled_script;
         return NULL;
     }
 
@@ -111,17 +108,17 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
             if ((stype == SYM_FUNCTION) || (stype == SYM_GLOBALVAR))
             {
                 // unused func/variable
-                cctemp->imports[sym.entries[entries_idx].soffs][0] = 0;
+                compiled_script->imports[sym.entries[entries_idx].soffs][0] = 0;
             }
             else if (sym.entries[entries_idx].flags & SFLG_ATTRIBUTE)
             {
                 // unused attribute -- get rid of the getter and setter
                 int attr_get = sym.entries[entries_idx].get_attrget();
                 if (attr_get > 0)
-                    cctemp->imports[attr_get][0] = 0;
+                    compiled_script->imports[attr_get][0] = 0;
                 int attr_set = sym.entries[entries_idx].get_attrset();
                 if (attr_set > 0)
-                    cctemp->imports[attr_set][0] = 0;
+                    compiled_script->imports[attr_set][0] = 0;
             }
         }
 
@@ -141,18 +138,18 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
     if (ccGetOption(SCOPT_EXPORTALL))
     {
         // export all functions
-        for (size_t func_num = 0; func_num < cctemp->numfunctions; func_num++)
+        for (size_t func_num = 0; func_num < compiled_script->numfunctions; func_num++)
         {
-            if (cctemp->add_new_export(cctemp->functions[func_num], EXPORT_FUNCTION,
-                cctemp->funccodeoffs[func_num], cctemp->funcnumparams[func_num]) == -1)
+            if (compiled_script->add_new_export(compiled_script->functions[func_num], EXPORT_FUNCTION,
+                compiled_script->funccodeoffs[func_num], compiled_script->funcnumparams[func_num]) == -1)
             {
-                cctemp->shutdown();
+                compiled_script->shutdown();
                 return NULL;
             }
 
         }
     }
 
-    cctemp->free_extra();
-    return cctemp;
+    compiled_script->free_extra();
+    return compiled_script;
 }

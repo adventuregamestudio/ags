@@ -48,42 +48,8 @@ void ccSetSoftwareVersion(const char *versionNumber)
     ccSoftwareVersion = versionNumber;
 }
 
-ccScript *ccCompileText(const char *texo, const char *scriptName)
+void ccCompileText_KillUnusedImports(ccCompiledScript * compiled_script)
 {
-    ccCompiledScript *compiled_script = new ccCompiledScript();
-    compiled_script->init();
-
-    sym.reset();
-
-    if (scriptName == NULL)
-        scriptName = "Main script";
-
-    ccError = 0;
-    ccErrorLine = 0;
-
-    size_t const num_of_headers = defaultHeaders.size();
-    for (size_t header = 0; header < num_of_headers; header++)
-    {
-        ccCurScriptName = defaultHeaders[header].Name.c_str();
-        compiled_script->start_new_section(ccCurScriptName);
-        cc_compile(defaultHeaders[header].Content.c_str(), compiled_script);
-        if (ccError) break;
-    }
-
-    if (!ccError)
-    {
-        ccCurScriptName = scriptName;
-        compiled_script->start_new_section(ccCurScriptName);
-        cc_compile(texo, compiled_script);
-    }
-
-    if (ccError)
-    {
-        compiled_script->shutdown();
-        delete compiled_script;
-        return NULL;
-    }
-
     for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
     {
         int stype = sym.get_type(entries_idx);
@@ -95,17 +61,17 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
             if ((stype == SYM_FUNCTION) || (stype == SYM_GLOBALVAR))
             {
                 // unused func/variable
-                compiled_script->imports[sym.entries[entries_idx].soffs][0] = 0;
+                compiled_script->imports[sym.entries[entries_idx].soffs][0] = '\0';
             }
             else if (sym.entries[entries_idx].flags & SFLG_ATTRIBUTE)
             {
                 // unused attribute -- get rid of the getter and setter
                 int attr_get = sym.entries[entries_idx].get_attrget();
                 if (attr_get > 0)
-                    compiled_script->imports[attr_get][0] = 0;
+                    compiled_script->imports[attr_get][0] = '\0';
                 int attr_set = sym.entries[entries_idx].get_attrset();
                 if (attr_set > 0)
-                    compiled_script->imports[attr_set][0] = 0;
+                    compiled_script->imports[attr_set][0] = '\0';
             }
         }
 
@@ -121,6 +87,47 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
             printf("warning: variable '%s' is never used\n", sym.get_friendly_name(entries_idx).c_str());
         }
     }
+}
+
+ccScript *ccCompileText(const char *texo, const char *scriptName)
+{
+    ccCompiledScript *compiled_script = new ccCompiledScript();
+    compiled_script->init();
+
+    sym.reset();
+
+    if (scriptName == NULL)
+        scriptName = "Main script";
+
+    ccError = 0;
+    ccErrorLine = 0;
+
+    size_t const num_of_headers = defaultHeaders.size();
+    std::string sourcecode = "";
+    // Note: Currently, all compilations that arrive here are set up in the following way:
+    // 1. The defaultHeaders list is blanked out (ccRemoveDefaultHeaders())
+    // 2. Then all the necessary headers are added (ccAddDefaultHeader() repeatedly);
+    // 3. Then compilation proper starts.
+    // So in essence, we don't re-use anything; we start from scratch each time.
+    // Compiling the headers separately doesn't save any time in this case,
+    // so we just concatenate all sources and present them to the compiler as one.
+    // We will still know what source starts where, because currently all the
+    // sources start with a __NEWSCRIPTSTART_ token
+    for (size_t header = 0; header < num_of_headers; header++)
+        sourcecode += defaultHeaders[header].Content;
+    sourcecode += texo;
+    ccCurScriptName = scriptName;
+    compiled_script->start_new_section(ccCurScriptName);
+    cc_compile(sourcecode.c_str(), compiled_script);
+
+    if (ccError)
+    {
+        compiled_script->shutdown();
+        delete compiled_script;
+        return NULL;
+    }
+
+    ccCompileText_KillUnusedImports(compiled_script);
 
     if (ccGetOption(SCOPT_EXPORTALL))
     {
@@ -133,7 +140,6 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
                 compiled_script->shutdown();
                 return NULL;
             }
-
         }
     }
 

@@ -41,6 +41,7 @@ AGSString cc_error_without_line(const char *error_msg)
 
 ccCompiledScript *newScriptFixture() {
     // TODO: investigate proper google test fixtures.
+    ccSetOption(SCOPT_NOIMPORTOVERRIDE, 0);
     ccCompiledScript *scrip = new ccCompiledScript();
     scrip->init();
     sym.reset();  // <-- global
@@ -1169,10 +1170,11 @@ TEST(Compile, RetLengthNoMatch) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile, LocalImportVar) {
+TEST(Compile, GlobalImportVar1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
+        import int Var;     \n\
         import int Var;     \n\
         int Var;            \n\
         export Var;         \n\
@@ -1180,4 +1182,67 @@ TEST(Compile, LocalImportVar) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, GlobalImportVar2) {
+    ccCompiledScript *scrip = newScriptFixture();
+    ccSetOption(SCOPT_NOIMPORTOVERRIDE, 1);
+
+    char *inpl = "\
+        import int Var;     \n\
+        import int Var;     \n\
+        int Var;            \n\
+        export Var;         \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, GlobalImportVar3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        import int Var;     \n\
+        import int Var;     \n\
+        short Var;          \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, GlobalImportVar4) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        int Var;            \n\
+        import int Var;     \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, GlobalImportVar5) {
+    ccCompiledScript *scrip = newScriptFixture();
+    // "import int Var" is treated as a forward declaration
+    // for the "int Var" that follows, not as an import proper.
+    char *inpl = "\
+        import int Var;     \n\
+        int main()          \n\
+        {                   \n\
+            return Var;     \n\
+        }                   \n\
+        int Var;            \n\
+        export Var;         \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }

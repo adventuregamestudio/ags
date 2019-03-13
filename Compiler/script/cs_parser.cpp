@@ -463,6 +463,10 @@ AGS::FuncCallpointMgr g_FCM;
 
 // Manage a list of all global import variables and track whether they are
 // re-defined as non-import later on.
+// Symbol maps to TRUE if it is global import, to FALSE if it is global non-import.
+// Only a global import may have a repeated identical definition.
+// Only a global import may be re-defined as a global non-import (identical except for the import),
+//    and this may only happen if the options don't forbid this.
 // [TODO] Convert this into a class variable when the compiler has been
 //        converted to classes
 std::map<AGS::Symbol, bool> g_GIVM;
@@ -6132,17 +6136,17 @@ int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symb
         {
             if(g_GIVM[var_name])
             {
-                cc_error("'%s' is already defined as a global non-import", sym.get_name(var_name));
+                cc_error("'%s' is already defined as a global non-import variable", sym.get_name(var_name));
                 return -1;
             }
-            else if (kGl_GlobalImport == is_global)
+            else if (kGl_GlobalNoImport == is_global && 0 !=ccGetOption(SCOPT_NOIMPORTOVERRIDE))
             {
-                cc_error("'%s' is already defined as a global import", sym.get_name(var_name));
+                cc_error("'%s' is defined as an import variable; that cannot be overridden here", sym.get_name(var_name));
                 return -1;
             }
             
         }
-        g_GIVM[var_name] = (kGl_GlobalImport == is_global);
+        g_GIVM[var_name] = (kGl_GlobalNoImport == is_global);
             
         // Apart from this, we aren't interested in var defns at this stage, so skip this defn
         AGS::Symbol const stoplist[] = { SYM_COMMA, SYM_SEMICOLON };
@@ -7359,6 +7363,7 @@ int cc_parse(ccInternalList *targ, ccCompiledScript *scrip)
     int const start_of_input = targ->pos;
 
     g_Sym1.clear();
+    g_GIVM.clear();
     for (size_t idx = 0; idx < sym.entries.size(); idx++)
         g_Sym1[idx] = sym.entries[idx];
 

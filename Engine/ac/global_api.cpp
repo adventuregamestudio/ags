@@ -2139,7 +2139,7 @@ RuntimeScriptValue Sc_strlen(const RuntimeScriptValue *params, int32_t param_cou
 // void  (char *strin, int posn, int nchar)
 RuntimeScriptValue Sc_StrSetCharAt(const RuntimeScriptValue *params, int32_t param_count)
 {
-    ASSERT_PARAM_COUNT(StrSetCharAt, 3) \
+    ASSERT_PARAM_COUNT(StrSetCharAt, 3);
     StrSetCharAt((char*)params[0].Ptr, params[1].IValue, params[2].IValue);
     return params[0];
 }

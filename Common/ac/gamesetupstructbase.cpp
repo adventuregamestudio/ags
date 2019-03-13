@@ -81,6 +81,16 @@ void GameSetupStructBase::Free()
     chars = NULL;
 }
 
+void GameSetupStructBase::SetDefaultResolution(GameResolutionType type)
+{
+    SetDefaultResolution(type, Size());
+}
+
+void GameSetupStructBase::SetDefaultResolution(Size size)
+{
+    SetDefaultResolution(kGameResolution_Custom, size);
+}
+
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType type, Size size)
 {
     // Calculate native res first then remember it

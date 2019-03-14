@@ -18,6 +18,18 @@
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 
+ViewFrame::ViewFrame()
+    : pic(0)
+    , xoffs(0)
+    , yoffs(0)
+    , speed(0)
+    , flags(0)
+    , sound(0)
+{
+    reserved_for_future[0] = 0;
+    reserved_for_future[1] = 0;
+}
+
 void ViewFrame::ReadFromFile(Stream *in)
 {
     pic = in->ReadInt32();
@@ -40,6 +52,13 @@ void ViewFrame::WriteToFile(Stream *out)
     out->WriteInt32(sound);
     out->WriteInt32(reserved_for_future[0]);
     out->WriteInt32(reserved_for_future[1]);
+}
+
+ViewLoopNew::ViewLoopNew()
+    : numFrames(0)
+    , flags(0)
+    , frames(NULL)
+{
 }
 
 bool ViewLoopNew::RunNextLoop() 
@@ -102,6 +121,12 @@ void ViewLoopNew::ReadFrames_Aligned(Stream *in)
     }
 }
 
+ViewStruct::ViewStruct()
+    : numLoops(0)
+    , loops(NULL)
+{
+}
+
 void ViewStruct::Initialize(int loopCount)
 {
     numLoops = loopCount;
@@ -137,6 +162,13 @@ void ViewStruct::ReadFromFile(Stream *in)
     {
         loops[i].ReadFromFile_v321(in);
     }
+}
+
+ViewStruct272::ViewStruct272()
+    : numloops(0)
+{
+    memset(numframes, 0, sizeof(numframes));
+    memset(loopflags, 0, sizeof(loopflags));
 }
 
 void ViewStruct272::ReadFromFile(Stream *in)

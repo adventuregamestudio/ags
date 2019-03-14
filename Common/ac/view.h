@@ -29,7 +29,7 @@ struct ViewFrame {
     int   flags;
     int   sound;  // play sound when this frame comes round
     int   reserved_for_future[2];
-    ViewFrame() { pic = 0; xoffs = 0; yoffs = 0; speed = 0; }
+    ViewFrame();
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
@@ -43,10 +43,10 @@ struct ViewLoopNew
     int   flags;
     ViewFrame *frames;
 
-    bool RunNextLoop();
-
+    ViewLoopNew();
     void Initialize(int frameCount);
     void Dispose();
+    bool RunNextLoop();
     void WriteToFile_v321(Common::Stream *out);
     void ReadFromFile_v321(Common::Stream *in);
     void WriteFrames_Aligned(Common::Stream *out);
@@ -58,6 +58,7 @@ struct ViewStruct
     short numLoops;
     ViewLoopNew *loops;
 
+    ViewStruct();
     void Initialize(int loopCount);
     void Dispose();
     void WriteToFile(Common::Stream *out);
@@ -69,8 +70,8 @@ struct ViewStruct272 {
     short     numframes[16];
     int       loopflags[16];
     ViewFrame frames[16][20];
-    ViewStruct272() { numloops = 0; numframes[0] = 0; }
 
+    ViewStruct272();
     void ReadFromFile(Common::Stream *in);
 };
 

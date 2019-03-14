@@ -33,7 +33,7 @@ AlignedStream::AlignedStream(Stream *stream, AlignedStreamMode mode, ObjectOwner
 
 AlignedStream::~AlignedStream()
 {
-    Close();
+    AlignedStream::Close();
 }
 
 void AlignedStream::Reset()

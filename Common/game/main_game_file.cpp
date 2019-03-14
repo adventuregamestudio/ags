@@ -90,6 +90,7 @@ LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dial
     : Game(game)
     , Dialogs(dialogs)
     , Views(views)
+    , SpriteCount(0)
 {
 }
 

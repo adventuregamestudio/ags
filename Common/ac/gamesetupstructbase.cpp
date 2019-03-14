@@ -22,14 +22,38 @@
 using AGS::Common::Stream;
 
 GameSetupStructBase::GameSetupStructBase()
-    : dict(NULL)
+    : numviews(0)
+    , numcharacters(0)
+    , playercharacter(-1)
+    , totalscore(0)
+    , numinvitems(0)
+    , numdialog(0)
+    , numdlgmessage(0)
+    , numfonts(0)
+    , color_depth(0)
+    , target_win(0)
+    , dialog_bullet(0)
+    , hotdot(0)
+    , hotdotouter(0)
+    , uniqueid(0)
+    , numgui(0)
+    , numcursors(0)
+    , default_lipsync_frame(0)
+    , invhotdotsprite(0)
+    , dict(NULL)
     , globalscript(NULL)
     , chars(NULL)
     , compiled_script(NULL)
     , load_messages(NULL)
     , load_dictionary(false)
     , load_compiled_script(false)
+    , default_resolution(kGameResolution_Undefined)
 {
+    memset(gamename, 0, sizeof(gamename));
+    memset(options, 0, sizeof(options));
+    memset(paluses, 0, sizeof(paluses));
+    memset(defpal, 0, sizeof(defpal));
+    memset(reserved, 0, sizeof(reserved));
     memset(messages, 0, sizeof(messages));
 }
 

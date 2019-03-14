@@ -36,6 +36,8 @@ GameSetupStruct::GameSetupStruct()
     , audioClipTypes(NULL)
     , scoreClipID(0)
 {
+    memset(invinfo, 0, sizeof(invinfo));
+    memset(mcurs, 0, sizeof(mcurs));
     memset(intrInv, 0, sizeof(intrInv));
     memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
     memset(guid, 0, sizeof(guid));

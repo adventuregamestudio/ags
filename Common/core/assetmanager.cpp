@@ -174,6 +174,8 @@ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &
 
 AssetManager::AssetManager()
     : _assetLib(*new AssetLibInfo())
+    , _searchPriority(kAssetPriorityDir)
+    , _lastAssetSize(0)
 {
 }
 

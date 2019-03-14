@@ -31,7 +31,7 @@ FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWork
 
 FileStream::~FileStream()
 {
-    Close();
+    FileStream::Close();
 }
 
 bool FileStream::HasErrors() const

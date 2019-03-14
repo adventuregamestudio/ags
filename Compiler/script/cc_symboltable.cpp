@@ -36,11 +36,6 @@ SymbolTableEntry::SymbolTableEntry(const char *nta, int typo, char sizee)
 { }
 
 
-int SymbolTableEntry::get_num_args()
-{
-    return sscope % 100;
-}
-
 int SymbolTableEntry::is_loadable_variable()
 {
     return (stype == SYM_GLOBALVAR) || (stype == SYM_LOCALVAR) || (stype == SYM_CONSTANT);

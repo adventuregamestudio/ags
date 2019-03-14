@@ -35,7 +35,8 @@ struct SymbolTableEntry {
     SymbolTableEntry();
     SymbolTableEntry(const char *nta, int typo, char sizee);
 
-    int get_num_args();
+    int get_num_args() { return sscope % 100; }
+    bool is_varargs() { return (sscope >= 100); }
 
     int is_loadable_variable();
 

@@ -287,6 +287,11 @@ void ccCompiledScript::init() {
     sectionNames = NULL;
     sectionOffsets = NULL;
     next_line = 0;
+    ax_val_type = 0;
+    ax_val_scope = 0;
+    memset(functions, 0, sizeof(functions));
+    memset(funccodeoffs, 0, sizeof(funccodeoffs));
+    memset(funcnumparams, 0, sizeof(funcnumparams));
 }
 // free the extra bits that ccScript doesn't have
 void ccCompiledScript::free_extra() {

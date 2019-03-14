@@ -7,7 +7,12 @@
 #include "cc_symboldef.h"   // macro definitions
 
 symbolTable::symbolTable() {
-	stringStructSym = 0;
+    normalIntSym = 0;
+    normalStringSym = 0;
+    normalFloatSym = 0;
+    normalVoidSym = 0;
+    nullSym = 0;
+    stringStructSym = 0;
 }
 
 int SymbolTableEntry::get_num_args() {

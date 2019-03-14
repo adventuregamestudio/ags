@@ -1121,7 +1121,8 @@ int ParseFuncdecl_ExtenderPreparations(
     name_of_func = MangleStructFunc(struct_of_func, name_of_func);
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(name_of_func); 
 
-    entry.flags = SFLG_STRUCTMEMBER;
+    // Don't clobber the flags set in the Pre-Analyze phase
+    SetFlag(entry.flags, SFLG_STRUCTMEMBER, true);
     if (is_static_extender)
         SetFlag(entry.flags, SFLG_STATIC, true);
 
@@ -2917,7 +2918,7 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, AGS::
         workListLen = symlist_len - funcSymbolIdx;
     }
 
-    AGS::Symbol funcSymbol = workList[0];
+    AGS::Symbol name_of_func = workList[0];
 
     // Make sure that a '(' follows the funcname of the function call 
     if (sym.get_type(workList[1]) != SYM_OPENPARENTHESIS)
@@ -2930,20 +2931,19 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, AGS::
     AGS::SymbolScript paramList = workList + 1;
     size_t paramListLen = workListLen - 1;
 
-
     // Generate code so that the runtime stack contains, bottom-to-top:
     //      a pointer to "this" if applicable
     //      the parameters in reverse sequence, so that the first parameter will pop off first 
 
-// Find out whether we use "this"; in this case, generate a push to the stack
-// This is supposed to push a pointer to "this" onto the stack as hidden first argument
+    // Find out whether we use "this"; in this case, generate a push to the stack
+    // This is supposed to push a pointer to "this" onto the stack as hidden first argument
     bool using_op = false;
     if (funcSymbolIdx > 0)
     {
         // functions in struct usually use "this" (method calls)
         using_op = true;
         // but static functions don't have an object instance, so no "this"
-        if (FlagIsSet(sym.entries[funcSymbol].flags, SFLG_STATIC))
+        if (FlagIsSet(sym.entries[name_of_func].flags, SFLG_STATIC))
             using_op = false;
     }
 
@@ -2952,20 +2952,20 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, AGS::
         scrip->push_reg(SREG_OP);
 
     // Expected number of arguments, or expected minimal number of arguments
-    size_t num_func_args = sym.entries[funcSymbol].get_num_args();
-    bool func_is_varargs = (num_func_args >= VARARGS_INDICATOR);
+    size_t const num_func_args = sym.entries[name_of_func].get_num_args();
+    bool const func_is_varargs = sym.entries[name_of_func].is_varargs();
 
     // Count the parameters and check them
     size_t indexOfClosedParen;
     size_t num_supplied_args;
-    int retval = ParseSubexpr_FunctionCall_CountAndCheckParm(paramList, paramListLen, funcSymbol, indexOfClosedParen, num_supplied_args);
+    int retval = ParseSubexpr_FunctionCall_CountAndCheckParm(paramList, paramListLen, name_of_func, indexOfClosedParen, num_supplied_args);
     if (retval < 0) return retval;
 
     // Push default parameters onto the stack when applicable
     // This will give an error if there aren't enough default parameters
     if (num_supplied_args < num_func_args)
     {
-        int retval = ParseSubexpr_FunctionCall_ProvideDefaults(scrip, num_func_args, num_supplied_args, funcSymbol);
+        int retval = ParseSubexpr_FunctionCall_ProvideDefaults(scrip, num_func_args, num_supplied_args, name_of_func);
         if (retval < 0) return retval;
     }
     if (num_supplied_args > num_func_args && !func_is_varargs)
@@ -2978,7 +2978,7 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, AGS::
     // Push the explicit arguments of the function
     if (num_supplied_args > 0)
     {
-        int retval = ParseSubexpr_FunctionCall_PushParams(scrip, paramList, indexOfClosedParen, num_func_args, num_supplied_args, funcSymbol);
+        int retval = ParseSubexpr_FunctionCall_PushParams(scrip, paramList, indexOfClosedParen, num_func_args, num_supplied_args, name_of_func);
         if (retval < 0) return retval;
     }
 
@@ -2990,7 +2990,7 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, AGS::
     }
 
     size_t actual_num_args = std::max(num_supplied_args, num_func_args);
-    if (FlagIsSet(sym.entries[funcSymbol].flags, SFLG_IMPORTED))
+    if (FlagIsSet(sym.entries[name_of_func].flags, SFLG_IMPORTED))
     {
         // tell it how many args for this call (nested imported functions
         // cause stack problems otherwise)
@@ -2998,9 +2998,9 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, AGS::
     }
 
     // Call the function
-    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[funcSymbol].soffs);
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[name_of_func].soffs);
 
-    bool is_import_function = (FlagIsSet(sym.entries[funcSymbol].flags, SFLG_IMPORTED));
+    bool const is_import_function = (FlagIsSet(sym.entries[name_of_func].flags, SFLG_IMPORTED));
     if (is_import_function)
     {
         scrip->fixup_previous(FIXUP_IMPORT);
@@ -3013,8 +3013,8 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, AGS::
     }
     else
     {
-        if (g_FCM.IsForwardDecl(funcSymbol))
-            g_FCM.TrackForwardDeclFuncCall(scrip, funcSymbol, scrip->codesize - 1);
+        if (g_FCM.IsForwardDecl(name_of_func))
+            g_FCM.TrackForwardDeclFuncCall(scrip, name_of_func, scrip->codesize - 1);
         scrip->fixup_previous(FIXUP_FUNCTION);
         scrip->write_cmd1(SCMD_CALL, SREG_AX);
 
@@ -3029,14 +3029,14 @@ int ParseSubexpr_FunctionCall(ccCompiledScript * scrip, int funcSymbolIdx, AGS::
 
     // function return type
     // This is an alias for "type of the current expression". 
-    scrip->ax_val_type = sym.entries[funcSymbol].funcparamtypes[0];
+    scrip->ax_val_type = sym.entries[name_of_func].funcparamtypes[0];
     scrip->ax_val_scope = SYM_LOCALVAR;
 
     if (using_op)
         scrip->pop_reg(SREG_OP);
 
     // Note that this function has been accessed at least once
-    SetFlag(sym.entries[funcSymbol].flags, SFLG_ACCESSED, true);
+    SetFlag(sym.entries[name_of_func].flags, SFLG_ACCESSED, true);
     return 0;
 }
 

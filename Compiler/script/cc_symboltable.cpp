@@ -20,8 +20,8 @@ SymbolTableEntry::SymbolTableEntry()
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
 
-SymbolTableEntry::SymbolTableEntry(const char *nta, int typo, char sizee)
-    : sname(std::string(nta))
+SymbolTableEntry::SymbolTableEntry(const char *name, int typo, char sizee)
+    : sname(std::string(name))
     , stype(typo)
     , flags(0)
     , vartype(0)

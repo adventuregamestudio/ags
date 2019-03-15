@@ -16,7 +16,7 @@
 
 #define SYM_TEMPORARYTYPE -99
 
-// So there's another symbol definition in cc_symboldef.h which is deprecated
+// There's another symbol definition in cc_symboldef.h which is deprecated
 struct SymbolTableEntry {
     std::string sname;
     short stype;
@@ -33,12 +33,12 @@ struct SymbolTableEntry {
     std::vector<bool> funcParamHasDefaultValues;
 
     SymbolTableEntry();
-    SymbolTableEntry(const char *nta, int typo, char sizee);
+    SymbolTableEntry(const char *name, int stype, char ssize);
 
-    int get_num_args() { return sscope % 100; }
-    bool is_varargs() { return (sscope >= 100); }
+    inline int get_num_args() { return sscope % 100; }
+    inline bool is_varargs() { return (sscope >= 100); }
 
-    int is_loadable_variable();
+    bool is_loadable_variable();
 
     void set_attrfuncs(int attrget, int attrset);
     int get_attrget();
@@ -51,38 +51,48 @@ struct SymbolTableEntry {
 
 struct SymbolTable {
     // index for predefined symbols
-    int normalIntSym;
-    int normalStringSym;
-    int normalFloatSym;
-    int normalVoidSym;
-    int nullSym;
-    int stringStructSym;  // can get overwritten with new String symbol defined in agsdefns.sh
-    int lastPredefSym;
+    int normalCharSym;      // the symbol that corresponds to "char"
+    int normalFloatSym;     // the symbol that corresponds to "float"
+    int normalIntSym;       // the symbol that corresponds to "int"
+    int normalNullSym;      // the symbol that corresponds to "null"
+    int normalPointerSym;   // the symbol that corresponds to "*"
+    int normalStringSym;    // the symbol that corresponds to "string"
+    int normalVoidSym;      // the symbol that corresponds to "void"
+    int stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
+    int lastPredefSym;      // last predefined symbol
 
-    // properties for symbols, size is numsymbols
     std::vector<SymbolTableEntry> entries;
 
     SymbolTable();
-    void reset();    // clears table
-    AGS::Symbol find(const char *);  // returns ID of symbol, or -1
-    AGS::Symbol add_ex(const char *, AGS::Symbol, char);  // adds new symbol of type and size
-    AGS::Symbol add(const char *);   // adds new symbol, returns -1 if already exists
+    void reset();
 
-    std::string SymbolTable::get_friendly_name(int idx);  // inclue ptr
-    std::string SymbolTable::get_name_string(int idx);
-    const char *get_name(int idx); // gets symbol name of index
+    // Return the symbol to the name, or -1 if not found
+    AGS::Symbol find(const char *name);  
 
-    int  get_type(int ii);
+    // Add to the symbol table if not in there already; in any case return the symbol
+    AGS::Symbol find_or_add(const char *name); 
 
+    // add the name to the symbol table, give it the type stype and the size ssize
+    AGS::Symbol SymbolTable::add_ex(char const *name, AGS::Symbol stype, int ssize);
+
+    // add the name to the symbol table, empty type and size
+    inline AGS::Symbol add(const char *name) { return add_ex(name, 0, 0); };
+
+    // add the operator to the symbol table
+    int  add_operator(const char *opname , int priority, int vcpucmd);
+
+    // return the name to the symbol including "const" qualifier, including "*" or "[]"
+    std::string const SymbolTable::get_name_string(int idx);
+
+    // return name as char *, statically allocated
+    char const *SymbolTable::get_name(int idx);
+
+    // Ignore any type qualifiers that symb might contain, return its core type
+    AGS::Symbol SymbolTable::get_type(AGS::Symbol symb);
 
 private:
 
-    std::map<int, char *> nameGenCache;
-
-    ccTreeMap symbolTree;
-    std::vector<char *> symbolTreeNames;
-
-    int  add_operator(const char *, int priority, int vcpucmd); // adds new operator
+    std::map<std::string, int> _findCache;
 };
 
 

@@ -151,12 +151,14 @@ inline void SetFlag(long &fl_set, long flag, bool val) { fl_set &= ~flag; if (va
 
 bool IsIdentifier(AGS::Symbol symb)
 {
-    if (symb <= sym.lastPredefSym)
+    if (symb <= sym.lastPredefSym || symb > sym.entries.size())
         return false;
-    char const *name = sym.get_name(symb);
-    if (nullptr == name || 0 == name[0])
+    std::string name = sym.get_name_string(symb);
+    if (name.size() == 0)
         return false;
-    for (size_t idx = 0; name[idx] != 0; ++idx)
+    if ('0' <= name[0] && name[0] <= '9')
+        return false;
+    for (size_t idx = 0; idx < name.size(); ++idx)
     {
         char const &ch = name[idx];
         // don't use "is.." functions, these are locale dependent
@@ -166,18 +168,7 @@ bool IsIdentifier(AGS::Symbol symb)
         if ('_' == ch) continue;
         return false;
     }
-    if ('0' <= name[0] && name[0] <= '9')
-        return false;
     return true;
-}
-
-// [fw] This should probably move to "cs_symboltable.h"
-int sym_find_or_add(const char *sname)
-{
-    int sym_index = sym.find(sname);
-    if (sym_index < 0)
-        sym_index = sym.add(sname);
-    return sym_index;
 }
 
 bool ReachedEOF(ccInternalList *targ)
@@ -222,8 +213,8 @@ int String2Int(std::string str, int &val, bool send_error)
 AGS::Symbol MangleStructFunc(AGS::Symbol stname, AGS::Symbol funcname)
 {
     std::string func_str = "::";
-    func_str = sym.get_name(stname) + func_str + sym.get_name(funcname);
-    return sym_find_or_add(func_str.c_str());
+    func_str = sym.get_name_string(stname) + func_str + sym.get_name_string(funcname);
+    return sym.find_or_add(func_str.c_str());
 }
 
 // Skim through the input, ignoring delimited content completely.
@@ -441,7 +432,7 @@ int AGS::FuncCallpointMgr::CheckForUnresolvedFuncs()
             if (pl[pl_idx].ChunkId != CodeBaseId)
                 continue;
 
-            cc_error("Function %s has been called but not defined with body nor imported", sym.get_name(fcm_it->first));
+            cc_error("Function '%s()' has been called but not defined with body nor imported", sym.get_name_string(fcm_it->first).c_str());
             return -1;
         }
     }
@@ -460,6 +451,31 @@ AGS::FuncCallpointMgr::FuncInfo::FuncInfo()
 // [TODO] Convert this into a class variable when the compiler has been
 //        converted to classes
 AGS::FuncCallpointMgr g_FCM;
+
+void AGS::ImportMgr::Init(ccCompiledScript * scrip)
+{
+    _scrip = scrip;
+    _importIdx.clear();
+    for (size_t import_idx = 0; import_idx < scrip->numimports; import_idx++)
+        _importIdx[scrip->imports[import_idx]] = import_idx;
+}
+
+int AGS::ImportMgr::FindOrAdd(std::string s)
+{
+    auto it = _importIdx.find(s);
+    if (_importIdx.end() != it)
+        return it->second;
+    // Cache miss
+    int idx = _scrip->add_new_import(s.c_str());
+    _importIdx[s] = idx;
+    return idx;
+}
+
+// Measurements show that the checks whether imports already exist take up
+// considerable time. The Import Manager speeds this up by caching the lookups.
+// [TODO] When the compiler has been converted to classes, this can become
+//        a class variable. Or it might be integrated into ccCompiledScript.
+AGS::ImportMgr g_ImportMgr;
 
 // Manage a list of all global import variables and track whether they are
 // re-defined as non-import later on.
@@ -511,21 +527,15 @@ inline AGS::Symbol GetSymbolTypeAnyPhase(AGS::Symbol symb)
     return GetSymbolTableEntryAnyPhase(symb & STYPE_MASK).stype;
 }
 
-std::string ConstructedMemberName; // size limitation removed
-
-const char *GetFullNameOfMember(AGS::Symbol structSym, AGS::Symbol memberSym)
+std::string GetFullNameOfMember(AGS::Symbol structSym, AGS::Symbol memberSym)
 {
 
     // Get C-string of member, de-mangle it if appropriate
-    const char *memberNameStr = sym.get_name(memberSym);
+    std::string memberNameStr = sym.get_name_string(memberSym);
     if (memberNameStr[0] == '.')
-        memberNameStr = &memberNameStr[1];
-
-    ConstructedMemberName = sym.get_name(structSym);
-    ConstructedMemberName += "::";
-    ConstructedMemberName += memberNameStr;
-
-    return ConstructedMemberName.c_str();
+        memberNameStr.erase(0, 1);
+    std::string ret = sym.get_name_string(structSym) + "::" + memberNameStr;
+    return ret;
 }
 
 
@@ -936,8 +946,7 @@ int DealWithEndOfSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nest
 int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtected, bool errorOnFail = true)
 {
 
-    const char *name_as_cstring = GetFullNameOfMember(structSym, memSym);
-    AGS::Symbol full_name = sym.find(name_as_cstring);
+    AGS::Symbol full_name = sym.find(GetFullNameOfMember(structSym, memSym).c_str());
 
     if (full_name < 0)
     {
@@ -950,8 +959,8 @@ int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtecte
         if (errorOnFail)
             cc_error(
                 "'%s' is not a public member of '%s'. Are you sure you spelt it correctly (remember, capital letters are important)?",
-                sym.get_friendly_name(memSym).c_str(),
-                sym.get_friendly_name(structSym).c_str());
+                sym.get_name_string(memSym).c_str(),
+                sym.get_name_string(structSym).c_str());
         return -1;
     }
 
@@ -960,7 +969,7 @@ int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtecte
         if (errorOnFail)
             cc_error(
                 "Cannot access protected member '%s'",
-                sym.get_friendly_name(full_name).c_str());
+                sym.get_name_string(full_name).c_str());
         return -1;
     }
     memSym = full_name;
@@ -968,7 +977,7 @@ int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtecte
 }
 
 
-int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative, const char *errorMsg)
+int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative, std::string errorMsg)
 {
     if (fromSym >= 0)
     {
@@ -984,7 +993,7 @@ int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative
 
         if (sym.get_type(fromSym) == SYM_LITERALVALUE)
         {
-            std::string literalStrValue = std::string(sym.get_name(fromSym));
+            std::string literalStrValue = sym.get_name_string(fromSym);
             if (isNegative)
                 literalStrValue = '-' + literalStrValue;
 
@@ -992,7 +1001,7 @@ int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative
         }
     }
 
-    cc_error((char *)errorMsg);
+    cc_error(errorMsg.c_str());
     return -1;
 }
 
@@ -1108,11 +1117,11 @@ int ParseFuncdecl_ExtenderPreparations(
     SymbolTableEntry &struct_entry = GetSymbolTableEntryAnyPhase(struct_of_func);
     if (!FlagIsSet(struct_entry.flags, SFLG_STRUCTTYPE))
     {
-        cc_error("Expected a struct type instead of '%s'", sym.get_name(struct_of_func));
+        cc_error("Expected a struct type instead of '%s'", sym.get_name_string(struct_of_func).c_str());
         return -1;
     }
 
-    if (nullptr != strchr(sym.get_name(name_of_func), ':'))
+    if (std::string::npos != sym.get_name_string(name_of_func).find_first_of(':'))
     {   // [fw] Can't be reached IMO. 
         cc_error("Extender functions cannot be part of a struct");
         return -1;
@@ -1136,7 +1145,7 @@ int ParseFuncdecl_ExtenderPreparations(
     if ((sym.get_type(targ->peeknext()) != SYM_COMMA) &&
         (sym.get_type(targ->peeknext()) != SYM_CLOSEPARENTHESIS))
     {
-        if (strcmp(sym.get_name(targ->getnext()), "*") == 0)
+        if (targ->getnext() == sym.normalPointerSym)
             cc_error("Static extender function cannot be pointer");
         else
             cc_error("Parameter name cannot be defined for extender type");
@@ -1154,7 +1163,7 @@ int ParseParamlist_ParamType(ccInternalList *targ, AGS::Symbol param_type, bool 
 {
     // Determine whether the type is a pointer
     bool const param_is_natural_ptr =
-        (0 == strcmp(sym.get_name(targ->peeknext()), "*"));
+        (sym.normalPointerSym == targ->peeknext());
     if (param_is_natural_ptr)
         targ->getnext(); // gobble the '*'
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(param_type);
@@ -1180,7 +1189,7 @@ int ParseParamlist_ParamType(ccInternalList *targ, AGS::Symbol param_type, bool 
         }
         if (param_is_natural_ptr && param_is_autoptr)
         {
-            cc_error("Cannot use '*' with %s", sym.get_name(param_type));
+            cc_error("Cannot use '*' with %s", sym.get_name_string(param_type).c_str());
             return -1;
         }
     }
@@ -1212,14 +1221,14 @@ int ParseParamlist_Param_Name(ccInternalList *targ, bool body_follows, AGS::Symb
     if (sym.get_type(targ->peeknext()) == SYM_GLOBALVAR)
     {
         // This is a definition -- so the parameter name must not be a global variable
-        cc_error("The name '%s' is already used for a global variable", sym.get_name(targ->peeknext()));
+        cc_error("The name '%s' is already used for a global variable", sym.get_name_string(targ->peeknext()).c_str());
         return -1;
     }
 
     if (sym.get_type(targ->peeknext()) != 0)
     {
         // We need to have a real parameter name here
-        cc_error("Expected a parameter name here, found '%s' instead", sym.get_name(targ->peeknext()));
+        cc_error("Expected a parameter name here, found '%s' instead", sym.get_name_string(targ->peeknext()).c_str());
         return -1;
     }
 
@@ -1328,7 +1337,7 @@ int ParseFuncdecl_Paramlist(ccInternalList *targ, ccCompiledScript *scrip, AGS::
         switch (curtype)
         {
         default:
-            cc_error("Unexpected %s in parameter list", sym.get_name(cursym));
+            cc_error("Unexpected %s in parameter list", sym.get_name_string(cursym).c_str());
             return -1;
 
         case SYM_CLOSEPARENTHESIS:
@@ -1563,7 +1572,7 @@ int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_
             return -1;
         }
         // Index of the function in the ccCompiledScript::functions[] array
-        function_soffs = scrip->add_new_function(sym.get_name(name_of_func), &function_idx);
+        function_soffs = scrip->add_new_function(sym.get_name_string(name_of_func).c_str(), &function_idx);
         if (function_soffs < 0)
         {
             cc_error("Max. number of functions exceeded");
@@ -1579,17 +1588,8 @@ int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_
         return 0;
     }
 
-    // Import: Return existing entry in imports[] if it exists
-    for (size_t imports_idx = 0; imports_idx < scrip->numimports; ++imports_idx)
-        if (0 == strcmp(scrip->imports[imports_idx], sym.get_name(name_of_func)))
-        {
-            function_soffs = imports_idx;
-            return 0;
-        }
-
     // Index of the function in the ccScript::imports[] array
-    // Note: currently, add_new_import() cannot return values < 0, so idx_of_func must be >= 0 here
-    function_soffs = scrip->add_new_import(sym.get_name(name_of_func));
+    function_soffs = g_ImportMgr.FindOrAdd(sym.get_name_string(name_of_func));
 }
 
 
@@ -1661,7 +1661,7 @@ int ParseFuncdecl(
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(name_of_func);
     if (entry.stype != SYM_FUNCTION && entry.stype != 0)
     {
-        cc_error("'%s' is already defined", sym.get_name(name_of_func));
+        cc_error("'%s' is already defined", sym.get_name_string(name_of_func).c_str());
         return -1;
     }
     if ((!func_returns_ptr) && (!func_returns_dynarray) &&
@@ -1854,19 +1854,12 @@ int IndexOfLowestBondingOperator(AGS::SymbolScript slist, size_t slist_len)
 
 inline bool is_string(int valtype)
 {
-    if (valtype == 0)
-        return false;
-    const char *type_string = sym.get_name(valtype);
-    if (!type_string)
-        return false;
-
-    if (strcmp(type_string, "const string") == 0)
+    if (valtype == sym.normalStringSym)
         return true;
-    if (strcmp(type_string, "string") == 0)
+    if (valtype == (sym.normalStringSym | STYPE_CONST))
         return true;
-    if (strcmp(type_string, "char*") == 0)
+    if (valtype == (sym.normalCharSym | STYPE_CONST))
         return true;
-
     return false;
 }
 
@@ -1961,7 +1954,7 @@ bool IsTypeMismatch_Oneway(int typeIs, int typeWantsToBe)
         return false;
 
     // Can convert from NULL to pointer
-    if ((typeIs == (STYPE_POINTER | sym.nullSym)) && ((typeWantsToBe & STYPE_DYNARRAY) != 0))
+    if ((typeIs == (STYPE_POINTER | sym.normalNullSym)) && ((typeWantsToBe & STYPE_DYNARRAY) != 0))
         return false;
 
     // Cannot convert non-dynarray to dynarray or vice versa
@@ -1980,7 +1973,7 @@ bool IsTypeMismatch_Oneway(int typeIs, int typeWantsToBe)
     if ((typeIs & STYPE_POINTER) || (typeWantsToBe & STYPE_POINTER))
     {
         // null can be cast to any pointer type
-        if (typeIs == (STYPE_POINTER | sym.nullSym))
+        if (typeIs == (STYPE_POINTER | sym.normalNullSym))
         {
             if (typeWantsToBe & STYPE_POINTER)
                 return false;
@@ -2026,8 +2019,8 @@ int IsTypeMismatch(int typeIs, int typeWantsToBe, bool orderMatters)
 
     cc_error(
         "Type mismatch: cannot convert '%s' to '%s'",
-        sym.get_friendly_name(typeIs).c_str(),
-        sym.get_friendly_name(typeWantsToBe).c_str());
+        sym.get_name_string(typeIs).c_str(),
+        sym.get_name_string(typeWantsToBe).c_str());
     return -1;
 }
 
@@ -2160,7 +2153,7 @@ int BufferVarOrFunccall_GotOpenBracket(ccInternalList *targ, AGS::SymbolScript s
 
     if (!FlagIsSet(sym.entries[slist[slist_len - 2]].flags, SFLG_ARRAY))
     {
-        cc_error("%s is not an array", sym.get_friendly_name(slist[slist_len - 2]).c_str());
+        cc_error("%s is not an array", sym.get_name_string(slist[slist_len - 2]).c_str());
         return -1;
     }
 
@@ -2183,7 +2176,7 @@ int BufferVarOrFunccall_GotOpenBracket(ccInternalList *targ, AGS::SymbolScript s
             (sym.get_type(next_symbol) != SYM_COMMA) &&
             !((sym.get_type(next_symbol) == SYM_VARTYPE) && FlagIsSet(sym.entries[slist[next_symbol]].flags, SFLG_STRUCTTYPE)))
         {
-            cc_error("Unexpected symbol '%s'", sym.get_friendly_name(next_symbol).c_str());
+            cc_error("Unexpected symbol '%s'", sym.get_name_string(next_symbol).c_str());
             return -1;
         }
 
@@ -2466,7 +2459,7 @@ int ParseSubexpr_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &sy
     {
         if (FlagIsSet(sym.entries[symlist[1]].flags, SFLG_BUILTIN))
         {
-            cc_error("Built-in type '%s' cannot be instantiated directly", sym.get_name(symlist[1]));
+            cc_error("Built-in type '%s' cannot be instantiated directly", sym.get_name_string(symlist[1]).c_str());
             return -1;
         }
         const size_t size = sym.entries[symlist[1]].ssize;
@@ -2513,7 +2506,7 @@ int ParseSubexpr_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &sy
         return 0;
     }
 
-    cc_error("Unexpected characters following 'new %s'", sym.get_name(symlist[1]));
+    cc_error("Unexpected characters following 'new %s'", sym.get_name_string(symlist[1]).c_str());
     return -1;
 }
 
@@ -2591,7 +2584,7 @@ int ParseSubexpr_OpIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &sym
     }
 
     // All the other operators need a non-empty left hand side
-    cc_error("Unexpected operator '%s' without a preceding expression", sym.get_friendly_name(symlist[0]).c_str());
+    cc_error("Unexpected operator '%s' without a preceding expression", sym.get_name_string(symlist[0]).c_str());
     return -1;
 }
 
@@ -2628,7 +2621,7 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript * scrip, size_t op_idx, cons
     if (op_idx + 1 >= symlist_len)
     {
         // there is no right hand side for the expression
-        cc_error("Parse error: invalid use of operator '%s'", sym.get_friendly_name(symlist[op_idx]).c_str());
+        cc_error("Parse error: invalid use of operator '%s'", sym.get_name_string(symlist[op_idx]).c_str());
         return -1;
     }
 
@@ -2899,7 +2892,7 @@ int ParseSubexpr_FunctionCall_CountAndCheckParm(const AGS::SymbolScript &paramLi
 
     if (paren_nesting_depth > 0)
     {
-        cc_error("Internal error: Parser confused near '%s'", sym.get_friendly_name(funcSymbol).c_str());
+        cc_error("Internal error: Parser confused near '%s'", sym.get_name_string(funcSymbol).c_str());
         return -1;
     }
 
@@ -3066,12 +3059,12 @@ int ParseSubexpr_NoOps(ccCompiledScript * scrip, AGS::SymbolScript symlist, size
             // Otherwise, the problem is the unary minus itself, at index 0. 
             cc_error(
                 "Parse error: unexpected '%s'",
-                sym.get_friendly_name(symlist[(symlist_len > 2) ? 2 : 0]).c_str());
+                sym.get_name_string(symlist[(symlist_len > 2) ? 2 : 0]).c_str());
             return -1;
         }
 
         // We don't know this unary operator. "new", perhaps?
-        cc_error("Parse error: Unexpected '%s'", sym.get_friendly_name(symlist[0]).c_str());
+        cc_error("Parse error: Unexpected '%s'", sym.get_name_string(symlist[0]).c_str());
         return -1;
     }
 
@@ -3113,7 +3106,7 @@ int ParseSubexpr_NoOps(ccCompiledScript * scrip, AGS::SymbolScript symlist, size
         return 0;
     }
 
-    cc_error("Parse error in expression near '%s'", sym.get_friendly_name(symlist[0]).c_str());
+    cc_error("Parse error in expression near '%s'", sym.get_name_string(symlist[0]).c_str());
     return -1;
 }
 
@@ -3185,7 +3178,7 @@ int GetArrayIndexIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, int 
 
     if (!FlagIsSet(sym.entries[arrSym].flags, SFLG_ARRAY))
     {
-        cc_error("Internal error: '%s' is not an array", sym.get_friendly_name(arrSym).c_str());
+        cc_error("Internal error: '%s' is not an array", sym.get_name_string(arrSym).c_str());
         return -1;
     }
 
@@ -3331,7 +3324,7 @@ int AccessData_PrepareComponentAccess_Attribute(ccCompiledScript *scrip, AGS::Sy
     {
         if ((writingThisTime) && FlagIsSet(sym.entries[variableSym].flags, SFLG_READONLY))
         {
-            cc_error("Attribute '%s' is read-only", sym.get_friendly_name(variableSym).c_str());
+            cc_error("Attribute '%s' is read-only", sym.get_name_string(variableSym).c_str());
             return -1;
         }
 
@@ -3362,7 +3355,7 @@ int AccessData_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, AGS::Sym
             // it here and give an error
             if (!FlagIsSet(sym.entries[variableSym].flags, SFLG_DYNAMICARRAY))
             {
-                cc_error("Expected array index after '%s'", sym.get_friendly_name(variableSym).c_str());
+                cc_error("Expected array index after '%s'", sym.get_name_string(variableSym).c_str());
                 return -1;
             }
             isDynamicArray = true;
@@ -3471,7 +3464,7 @@ int AccessData_PrepareComponentAccess_JustTheAddressCases(AGS::Symbol variableSy
         if (FlagIsSet(variableSymFlags, SFLG_ATTRIBUTE))
         {
             // Returning an array attribute as a whole is not supported
-            cc_error("Expected array index after '%s'", sym.get_friendly_name(variableSym).c_str());
+            cc_error("Expected array index after '%s'", sym.get_name_string(variableSym).c_str());
             return -1;
         }
         getJustTheAddressIntoAX = true;
@@ -3587,7 +3580,7 @@ int AccessData_ActualMemoryAccess(ccCompiledScript * scrip, AGS::Symbol variable
     {
         if (!is_attribute && !getJustTheAddressIntoAX)
         {
-            cc_error("Unexpected '%s' in variable path", sym.get_friendly_name(variablePath[vp_idx + 1].syml[0]).c_str());
+            cc_error("Unexpected '%s' in variable path", sym.get_name_string(variablePath[vp_idx + 1].syml[0]).c_str());
             return -1;
         }
 
@@ -3626,7 +3619,7 @@ int AccessData_CheckAccess(AGS::Symbol variableSym, VariableSymlist variablePath
         { }
         else if (FlagIsSet(sym.entries[variableSym].flags, SFLG_READONLY))
         {
-            cc_error("Variable '%s' is read-only", sym.get_friendly_name(variableSym).c_str());
+            cc_error("Variable '%s' is read-only", sym.get_name_string(variableSym).c_str());
             return -1;
         }
         else if (FlagIsSet(sym.entries[variableSym].flags, SFLG_WRITEPROTECTED))
@@ -3638,7 +3631,7 @@ int AccessData_CheckAccess(AGS::Symbol variableSym, VariableSymlist variablePath
             { }
             else
             {
-                cc_error("Variable '%s' is write-protected", sym.get_friendly_name(variableSym).c_str());
+                cc_error("Variable '%s' is write-protected", sym.get_name_string(variableSym).c_str());
                 return -1;
             }
         }
@@ -3647,7 +3640,7 @@ int AccessData_CheckAccess(AGS::Symbol variableSym, VariableSymlist variablePath
     if ((writing) && (cannotAssign))
     {
         // an entire array or struct cannot be assigned to
-        cc_error("Cannot assign to '%s'", sym.get_friendly_name(variableSym).c_str());
+        cc_error("Cannot assign to '%s'", sym.get_name_string(variableSym).c_str());
         return -1;
     }
 
@@ -3889,7 +3882,7 @@ int MemoryAccess_LitFloat(ccCompiledScript * scrip, AGS::Symbol variableSym, boo
         cc_error("Cannot write to a literal value");
         return -1;
     }
-    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, InterpretFloatAsInt((float)atof(sym.get_name(variableSym))));
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, InterpretFloatAsInt((float)atof(sym.get_name_string(variableSym).c_str())));
     gotValType = sym.normalFloatSym;
     return 0;
 }
@@ -3987,7 +3980,7 @@ int MemoryAccess_String(ccCompiledScript * scrip, bool writing, int soffset, int
 
 int MemoryAccess_StructMember(AGS::Symbol mainVariableSym)
 {
-    cc_error("Must include parent structure of member '%s'", sym.get_friendly_name(mainVariableSym).c_str());
+    cc_error("Must include parent structure of member '%s'", sym.get_name_string(mainVariableSym).c_str());
     return -1;
 }
 
@@ -4000,7 +3993,7 @@ int MemoryAccess_Null(ccCompiledScript * scrip, bool writing, int &gotValType)
         return -1;
     }
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
-    gotValType = sym.nullSym | STYPE_POINTER;
+    gotValType = sym.normalNullSym | STYPE_POINTER;
 
     return 0;
 }
@@ -4042,7 +4035,7 @@ int MemoryAccess_ActualAccess(ccCompiledScript * scrip, AGS::Symbol mainVariable
     }
 
     // Can't reach this
-    cc_error("Internal error: Read/write ax called with non-variable parameter '%s'", sym.get_friendly_name(variableSym).c_str());
+    cc_error("Internal error: Read/write ax called with non-variable parameter '%s'", sym.get_name_string(variableSym).c_str());
     return -99;
 }
 
@@ -4166,7 +4159,7 @@ int ParseExpression(ccInternalList *targ, ccCompiledScript*scrip, bool consider_
             // Here, script_idx is the first symbol that is NOT part of the expression
             if ((script_idx == targ->pos) || hadMetaOnly)
             {
-                cc_error("Expression expected and not found at '%s'", sym.get_friendly_name(targ->script[script_idx]).c_str());
+                cc_error("Expression expected and not found at '%s'", sym.get_name_string(targ->script[script_idx]).c_str());
                 return -1;
             }
 
@@ -4206,7 +4199,7 @@ int ParseAssignment_CheckLHSIsAssignable(AGS::Symbol cursym, const AGS::SymbolSc
         FlagIsSet(sym.entries[vnlist[2]].flags, SFLG_STATIC))
         return 0;
 
-    cc_error("Variable or constant attribute required on left of \"%s\" assignment", sym.get_name(cursym));
+    cc_error("Variable or constant attribute required on left of \"%s\" assignment", sym.get_name_string(cursym).c_str());
     return -1;
 }
 
@@ -4222,7 +4215,7 @@ int ParseAssignment_ArrayChecks(AGS::Symbol cursym, AGS::Symbol nextsym, size_t 
         // Can only assign to entire dynamic arrays, e.g., allocate the memory
         if ((vnlist_len < 2) && (sym.get_type(nextsym) != SYM_ASSIGN))
         {
-            cc_error("Cannot use operator \"%s\" with an entire dynamic array", sym.get_name(nextsym));
+            cc_error("Cannot use operator \"%s\" with an entire dynamic array", sym.get_name_string(nextsym).c_str());
             return -1;
         }
         return 0;
@@ -4386,7 +4379,7 @@ int ParseAssignment(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol c
     // Gobble the statement end symbol (usually ';', can be ')')
     if (sym.get_type(targ->getnext()) != statementEndSymbol)
     {
-        cc_error("Expected '%s'", sym.get_name(statementEndSymbol));
+        cc_error("Expected '%s'", sym.get_name_string(statementEndSymbol).c_str());
         return -1;
     }
 
@@ -4426,7 +4419,7 @@ int ParseVardecl_InitialValAssignment_ToGlobalFloat(ccInternalList * targ, bool 
         return -1;
     }
 
-    float float_init_val = static_cast<float>(atof(sym.get_name(targ->getnext())));
+    float float_init_val = static_cast<float>(atof(sym.get_name_string(targ->getnext()).c_str()));
     if (is_neg)
         float_init_val = -float_init_val;
 
@@ -4492,7 +4485,7 @@ int ParseVardecl_InitialValAssignment_ToGlobal(ccInternalList *targ, long varnam
 
     // accept leading '-' if present
     bool is_neg = false;
-    if (sym.get_name(targ->peeknext())[0] == '-')
+    if (targ->peeknext() == sym.find("-"))
     {
         is_neg = true;
         targ->getnext();
@@ -4848,7 +4841,7 @@ int ParseVardecl0(
         // initialize the struct to all zeros
         initial_value_ptr = calloc(1, size_of_defn + 1);
     }
-    else if (strcmp(sym.get_name(type_of_defn), "string") == 0)
+    else if (strcmp(sym.get_name_string(type_of_defn).c_str(), "string") == 0)
     {
         int retval = ParseVardecl_StringDecl(scrip, var_name, is_global, initial_value_ptr, fixup_needed);
         if (retval < 0) return retval;
@@ -4882,7 +4875,7 @@ int ParseVardecl0(
         return -99;
 
     case kGl_GlobalImport:
-        sym.entries[var_name].soffs = scrip->add_new_import(sym.get_name(var_name));
+        sym.entries[var_name].soffs = scrip->add_new_import(sym.get_name_string(var_name).c_str());
         SetFlag(sym.entries[var_name].flags, SFLG_IMPORTED, true);
         if (sym.entries[var_name].soffs == -1)
         {
@@ -4918,7 +4911,7 @@ int ParseVardecl0(
         return 0;
     }
 
-    cc_error("Expected ',' or ';' instead of '%s'", sym.get_friendly_name(targ->peeknext()).c_str());
+    cc_error("Expected ',' or ';' instead of '%s'", sym.get_name_string(targ->peeknext()).c_str());
     return -1;
 }
 
@@ -5167,17 +5160,17 @@ int ParseStruct_ExtendsClause(ccInternalList *targ, AGS::Symbol stname, AGS::Sym
     }
     if (!FlagIsSet(extends_entry.flags, SFLG_MANAGED) && FlagIsSet(struct_entry.flags, SFLG_MANAGED))
     {
-        cc_error("Managed struct cannot extend the unmanaged struct '%s'", sym.get_name(extendsWhat));
+        cc_error("Managed struct cannot extend the unmanaged struct '%s'", sym.get_name_string(extendsWhat).c_str());
         return -1;
     }
     if (FlagIsSet(extends_entry.flags, SFLG_MANAGED) && !FlagIsSet(struct_entry.flags, SFLG_MANAGED))
     {
-        cc_error("Unmanaged struct cannot extend the managed struct '%s'", sym.get_name(extendsWhat));
+        cc_error("Unmanaged struct cannot extend the managed struct '%s'", sym.get_name_string(extendsWhat).c_str());
         return -1;
     }
     if (FlagIsSet(extends_entry.flags, SFLG_BUILTIN) && !FlagIsSet(struct_entry.flags, SFLG_BUILTIN))
     {
-        cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name(extendsWhat));
+        cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name_string(extendsWhat).c_str());
         return -1;
     }
     size_so_far = static_cast<size_t>(extends_entry.ssize);
@@ -5218,8 +5211,8 @@ int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, AGS::Symbo
         (curtype != SYM_UNDEFINEDSTRUCT))
     {
         // Complain about non-type
-        std::string type_name = sym.get_name(cursym);
-        std::string prefix = sym.get_name(stname);
+        std::string type_name = sym.get_name_string(cursym).c_str();
+        std::string prefix = sym.get_name_string(stname).c_str();
         prefix += "::";
         if (type_name.substr(0, prefix.length()) == prefix)
         {
@@ -5239,7 +5232,7 @@ int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, AGS::Symbo
 
     if (targ->peeknext() < 0)
     {
-        cc_error("Invalid syntax near '%s'", sym.get_friendly_name(cursym).c_str());
+        cc_error("Invalid syntax near '%s'", sym.get_name_string(cursym).c_str());
         return -1;
     }
 
@@ -5283,22 +5276,22 @@ int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, AGS::Symbo
 
 // check that we haven't extended a struct that already contains a member with the same name
 int ParseStruct_CheckMemberNotInASuperStruct(
-    char const * const nakedComponentNameStr,
+    std::string nakedComponentNameStr,
     AGS::Symbol super_struct)
 {
-    AGS::Symbol member = sym_find_or_add(nakedComponentNameStr);
+    AGS::Symbol member = sym.find_or_add(nakedComponentNameStr.c_str());
 
     if (FindMemberSym(super_struct, member, true, false) >= 0)
     {
         // Calculate name of the struct that contains the variable
-        std::string super_name_str = sym.get_name(member);
+        std::string super_name_str = sym.get_name_string(member);
         int struct_end_idx = super_name_str.rfind("::");
         if (struct_end_idx == std::string::npos) struct_end_idx = super_name_str.length();
         super_name_str.resize(struct_end_idx);
         cc_error(
             "This struct extends '%s', and '%s' is already defined",
             super_name_str.c_str(),
-            sym.get_name(member));
+            sym.get_name_string(member).c_str());
         return -1;
     }
     return 0;
@@ -5357,7 +5350,7 @@ int ParseStruct_Attribute(ccInternalList * targ, ccCompiledScript *scrip, AGS::T
 
     SetFlag(sym.entries[vname].flags, SFLG_IMPORTED, true);
 
-    const char *namePrefix = "";
+    std::string name_prefix = "_";
 
     if (sym.get_type(targ->peeknext()) == SYM_OPENBRACKET)
     {
@@ -5371,29 +5364,29 @@ int ParseStruct_Attribute(ccInternalList * targ, ccCompiledScript *scrip, AGS::T
 
         SetFlag(sym.entries[vname].flags, SFLG_ARRAY, true);
         sym.entries[vname].arrsize = 0;
-        namePrefix = "i";
+        name_prefix = "i_";
     }
     // the variable name will have been jibbled with
     // the struct name added to it -- strip it back off
-    const char *memberPart = strstr(sym.get_name(vname), "::");
-    if (memberPart == NULL)
+    std::string member_part = sym.get_name_string(vname);
+    size_t member_part_idx = member_part.rfind("::");
+    if (member_part_idx == std::string::npos)
     {
         cc_error("Internal error: Attribute has no struct name");
         return -1;
     }
     // seek to the actual member name
-    memberPart += 2;
+    member_part = member_part.substr(member_part_idx + 2);
 
     // declare the imports for the Get and Setters
-    char attr_funcname[200];
-    sprintf(attr_funcname, "%s::get%s_%s", sym.get_name(stname), namePrefix, memberPart);
-
-    int attr_get = scrip->add_new_import(attr_funcname);
+    std::string attr_funcname = sym.get_name_string(stname) + "::get" + name_prefix + member_part;
+    
+    int attr_get = scrip->add_new_import(attr_funcname.c_str());
     int attr_set = 0;
     if (!FlagIsSet(tqs, kTQ_Readonly)) // setter only if it's not read-only
     {
-        sprintf(attr_funcname, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);
-        attr_set = scrip->add_new_import(attr_funcname);
+        attr_funcname = sym.get_name_string(stname) + "::set" + name_prefix + member_part;
+        attr_set = scrip->add_new_import(attr_funcname.c_str());
     }
     sym.entries[vname].set_attrfuncs(attr_get, attr_set);
 
@@ -5519,11 +5512,11 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     }
 
     // The Tokenizer prefixes all unknown symbols within a struct declaration with "STRUCT::".
-    // Get the name without this prefix. 
-    char const *nakedComponentNameStr = sym.get_name(vname);
-    nakedComponentNameStr = strstr(nakedComponentNameStr, "::");
-    if (nakedComponentNameStr)
-        nakedComponentNameStr += 2; // cut off "::"
+    // Get the name without this prefix.
+    std::string nakedComponentNameStr = sym.get_name_string(vname);
+    size_t component_index = nakedComponentNameStr.find("::");
+    if (component_index != std::string::npos)
+        nakedComponentNameStr = nakedComponentNameStr.substr(component_index + 2);
 
     bool const isFunction = sym.get_type(targ->peeknext()) == SYM_OPENPARENTHESIS;
 
@@ -5531,17 +5524,14 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     {
         // Allow "struct ... { int S2 }" when S2 is a non-predefined type
         if (sym.get_type(vname) == SYM_VARTYPE && !sym_is_predef_typename(vname))
-        {
-            const char *new_name = GetFullNameOfMember(stname, vname);
-            vname = sym_find_or_add(new_name);
-        }
+            vname = sym.find_or_add(GetFullNameOfMember(stname, vname).c_str());
 
         // Detect multiple declarations
         if (kPP_Main == g_PP &&
             sym.get_type(vname) != 0 &&
             (sym.get_type(vname) != SYM_VARTYPE || sym_is_predef_typename(vname)))
         {
-            cc_error("'%s' is already defined", sym.get_friendly_name(vname).c_str());
+            cc_error("'%s' is already defined", sym.get_name_string(vname).c_str());
             return -1;
         }
     }
@@ -5597,7 +5587,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     {
         // cannot do  struct A { A a; }
         // since we don't know the size of A, recursiveness
-        cc_error("Struct '%s' cannot be a member of itself", sym.get_friendly_name(curtype).c_str());
+        cc_error("Struct '%s' cannot be a member of itself", sym.get_name_string(curtype).c_str());
         return -1;
     }
     
@@ -5632,7 +5622,7 @@ int ParseStruct_MemberStmt(
     {
         type_is_pointer = true;
     }
-    else if (strcmp(sym.get_name(targ->peeknext()), "*") == 0)
+    else if (sym.normalPointerSym == targ->peeknext())
     {
         type_is_pointer = true;
         targ->getnext();
@@ -5693,7 +5683,7 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
     if ((sym.get_type(stname) != 0) &&
         (sym.get_type(stname) != SYM_UNDEFINEDSTRUCT))
     {
-        cc_error("'%s' is already defined", sym.get_friendly_name(stname).c_str());
+        cc_error("'%s' is already defined", sym.get_name_string(stname).c_str());
         return -1;
     }
 
@@ -5705,7 +5695,7 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
     {
         if (sym.stringStructSym > 0 && stname != sym.stringStructSym)
         {
-            cc_error("The stringstruct type is already defined to be %s", sym.get_name(sym.stringStructSym));
+            cc_error("The stringstruct type is already defined to be %s", sym.get_name_string(sym.stringStructSym).c_str());
             return -1;
         }
         sym.stringStructSym = stname;
@@ -5810,7 +5800,7 @@ int ParseEnum_Name2symtable(AGS::Symbol enumName)
 
     if (0 != entry.stype)
     {
-        cc_error("'%s' is already defined", sym.get_friendly_name(enumName).c_str());
+        cc_error("'%s' is already defined", sym.get_name_string(enumName).c_str());
         return -1;
     }
     entry.stype = SYM_VARTYPE;
@@ -5923,12 +5913,12 @@ int ParseExport(ccInternalList *targ, ccCompiledScript *scrip)
         int nextype = sym.get_type(cursym);
         if (nextype == 0)
         {
-            cc_error("Can only export global variables and functions, not '%s'", sym.get_friendly_name(cursym).c_str());
+            cc_error("Can only export global variables and functions, not '%s'", sym.get_name_string(cursym).c_str());
             return -1;
         }
         if ((nextype != SYM_GLOBALVAR) && (nextype != SYM_FUNCTION))
         {
-            cc_error("Invalid export symbol '%s'", sym.get_friendly_name(cursym).c_str());
+            cc_error("Invalid export symbol '%s'", sym.get_name_string(cursym).c_str());
             return -1;
         }
         if (FlagIsSet(sym.entries[cursym].flags, SFLG_IMPORTED))
@@ -5945,7 +5935,7 @@ int ParseExport(ccInternalList *targ, ccCompiledScript *scrip)
         // it now
         if ((ccGetOption(SCOPT_EXPORTALL) != 0) && (nextype == SYM_FUNCTION))
         { }
-        else if (scrip->add_new_export(sym.get_name(cursym),
+        else if (scrip->add_new_export(sym.get_name_string(cursym).c_str(),
             (nextype == SYM_GLOBALVAR) ? EXPORT_DATA : EXPORT_FUNCTION,
             sym.entries[cursym].soffs, sym.entries[cursym].sscope) == -1)
         {
@@ -5961,7 +5951,7 @@ int ParseExport(ccInternalList *targ, ccCompiledScript *scrip)
             break;
         if (sym.get_type(cursym) != SYM_COMMA)
         {
-            cc_error("Expected ',' instead of '%s'", sym.get_friendly_name(cursym).c_str());
+            cc_error("Expected ',' instead of '%s'", sym.get_name_string(cursym).c_str());
             return -1;
         }
         cursym = targ->getnext();
@@ -5985,13 +5975,12 @@ int ParseVartype_GetVarName(ccInternalList *targ, AGS::Symbol &varname, AGS::Sym
     AGS::Symbol member_of_member_function = targ->getnext();
 
     // change varname to be the full function name
-    const char *full_name_str = GetFullNameOfMember(struct_of_member_fct, member_of_member_function);
-    varname = sym.find(full_name_str);
+    varname = sym.find(GetFullNameOfMember(struct_of_member_fct, member_of_member_function).c_str());
     if (varname < 0)
     {
         cc_error("'%s' does not contain a function '%s'",
-            sym.get_friendly_name(struct_of_member_fct).c_str(),
-            sym.get_friendly_name(member_of_member_function).c_str());
+            sym.get_name_string(struct_of_member_fct).c_str(),
+            sym.get_name_string(member_of_member_function).c_str());
         return -1;
     }
 
@@ -6136,12 +6125,12 @@ int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symb
         {
             if(g_GIVM[var_name])
             {
-                cc_error("'%s' is already defined as a global non-import variable", sym.get_name(var_name));
+                cc_error("'%s' is already defined as a global non-import variable", sym.get_name_string(var_name).c_str());
                 return -1;
             }
             else if (kGl_GlobalNoImport == is_global && 0 !=ccGetOption(SCOPT_NOIMPORTOVERRIDE))
             {
-                cc_error("'%s' is defined as an import variable; that cannot be overridden here", sym.get_name(var_name));
+                cc_error("'%s' is defined as an import variable; that cannot be overridden here", sym.get_name_string(var_name).c_str());
                 return -1;
             }
             
@@ -6229,7 +6218,7 @@ int ParseVartype0(
         // Refuse to process it if it's a type name
         if (sym.get_type(var_or_func_name) == SYM_VARTYPE || sym_is_predef_typename(var_or_func_name))
         {
-            cc_error("'%s' is already in use as a type name", sym.get_friendly_name(var_or_func_name).c_str());
+            cc_error("'%s' is already in use as a type name", sym.get_name_string(var_or_func_name).c_str());
             return -1;
         }
 
@@ -6320,7 +6309,7 @@ int ParseReturn(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol inF
     }
     else if ((functionReturnType != sym.normalIntSym) && (functionReturnType != sym.normalVoidSym))
     {
-        cc_error("Must return a '%s' value from function", sym.get_friendly_name(functionReturnType).c_str());
+        cc_error("Must return a '%s' value from function", sym.get_name_string(functionReturnType).c_str());
         return -1;
     }
     else
@@ -6331,7 +6320,7 @@ int ParseReturn(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol inF
     int cursym = sym.get_type(targ->getnext());
     if (cursym != SYM_SEMICOLON)
     {
-        cc_error("Expected ';' instead of '%s'", sym.get_name(cursym));
+        cc_error("Expected ';' instead of '%s'", sym.get_name_string(cursym).c_str());
         return -1;
     }
 
@@ -6466,7 +6455,7 @@ int ParseFor_InitClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symb
 
         bool isPointer = false;
 
-        if (strcmp(sym.get_name(targ->peeknext()), "*") == 0)
+        if (sym.normalPointerSym == targ->peeknext())
         {
             // only allow pointers to structs
             if (!FlagIsSet(sym.entries[vtwas].flags, SFLG_STRUCTTYPE))
@@ -6513,7 +6502,7 @@ int ParseFor_InitClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symb
             }
             else if (sym.get_type(cursym) != 0)
             {
-                cc_error("Variable '%s' is already defined", sym.get_name(cursym));
+                cc_error("Variable '%s' is already defined", sym.get_name_string(cursym).c_str());
                 return -1;
             }
             else
@@ -6716,7 +6705,7 @@ int ParseSwitch(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingSta
     }
     if (sym.get_type(targ->peeknext()) != SYM_CASE && sym.get_type(targ->peeknext()) != SYM_DEFAULT && sym.get_type(targ->peeknext()) != SYM_CLOSEBRACE)
     {
-        cc_error("Invalid keyword '%s' in switch statement block", sym.get_name(targ->peeknext()));
+        cc_error("Invalid keyword '%s' in switch statement block", sym.get_name_string(targ->peeknext()).c_str());
         return -1;
     }
     return 0;
@@ -6911,7 +6900,7 @@ int ParseAssignmentOrFunccall(ccInternalList *targ, ccCompiledScript *scrip, AGS
     int nexttype = sym.get_type(nextsym);
     if (nexttype != SYM_ASSIGN && nexttype != SYM_MASSIGN && nexttype != SYM_SASSIGN)
     {
-        cc_error("Parse error at '%s'", sym.get_friendly_name(cursym).c_str());
+        cc_error("Parse error at '%s'", sym.get_name_string(cursym).c_str());
         return -1;
     }
     return ParseAssignment(targ, scrip, cursym, SYM_SEMICOLON, selector_script, selector_script_len);
@@ -7145,7 +7134,7 @@ std::string g_ScriptNameBuffer;
 
 void cc_parse_StartNewSection(ccCompiledScript *scrip, AGS::Symbol mangled_section_name)
 {
-    g_ScriptNameBuffer = &sym.get_name(mangled_section_name)[18];
+    g_ScriptNameBuffer = sym.get_name_string(mangled_section_name).substr(18);
     g_ScriptNameBuffer.pop_back(); // strip closing speech mark
     ccCurScriptName = g_ScriptNameBuffer.c_str();
     currentline = 0;
@@ -7178,7 +7167,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
     {
         AGS::Symbol cursym = targ->getnext();
 
-        if (strncmp(sym.get_name(cursym), NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
+        if (0 == sym.get_name_string(cursym).compare(0, 18, NEW_SCRIPT_TOKEN_PREFIX))
         {
             cc_parse_StartNewSection(scrip, cursym);           
             continue;
@@ -7195,7 +7184,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
         default: break;
 
         case 0:
-            cc_error("Unexpected token '%s'", sym.get_name(cursym));
+            cc_error("Unexpected token '%s'", sym.get_name_string(cursym).c_str());
             return -1;
 
         case  SYM_AUTOPTR:
@@ -7238,7 +7227,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
 
         case SYM_IMPORT:
         {
-            if (0 == strcmp(sym.get_name(cursym), "_tryimport"))
+            if (std::string::npos != sym.get_name_string(cursym).find("_tryimport"))
                 SetFlag(tqs, kTQ_Import2, true);
             else
                 SetFlag(tqs, kTQ_Import1, true);
@@ -7328,7 +7317,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
     // Commands are only allowed within a function
         if (name_of_current_func <= 0)
         {
-            cc_error("'%s' is illegal outside a function", sym.get_name(cursym));
+            cc_error("'%s' is illegal outside a function", sym.get_name_string(cursym).c_str());
             return -1;
         }
 
@@ -7362,8 +7351,9 @@ int cc_parse(ccInternalList *targ, ccCompiledScript *scrip)
     // Skim through the code and collect the headers of functions defined locally
     int const start_of_input = targ->pos;
 
-    g_Sym1.clear();
     g_GIVM.clear();
+    g_ImportMgr.Init(scrip);
+    g_Sym1.clear();
     for (size_t idx = 0; idx < sym.entries.size(); idx++)
         g_Sym1[idx] = sym.entries[idx];
 

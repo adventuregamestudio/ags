@@ -248,9 +248,7 @@ int ccCompiledScript::copy_import_symbol_table_entry(AGS::Symbol idx, SymbolTabl
 // Remove any import with the specified name, using the modern SymbolTableEntry
 int ccCompiledScript::just_remove_any_import(AGS::Symbol idx)
 {
-    const char *n = sym.get_name(idx);
-    if (n == nullptr) return 0;
-    std::string name = n;
+    std::string name = sym.get_name_string(idx);
     std::string name_with_hat = name;
     name_with_hat.push_back('^');
 
@@ -266,7 +264,7 @@ int ccCompiledScript::just_remove_any_import(AGS::Symbol idx)
     // if they set the No Override Imports flag, don't allow it
     if (ccGetOption(SCOPT_NOIMPORTOVERRIDE))
     {
-        cc_error("Variable '%s' is already imported", sym.get_name(idx));
+        cc_error("Variable '%s' is already imported", sym.get_name_string(idx).c_str());
         return -1;
     }
 

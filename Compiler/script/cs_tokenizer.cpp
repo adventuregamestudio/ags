@@ -299,22 +299,13 @@ void AGS::Tokenizer::CheckMatcherNesting(int token, bool &error_encountered)
 
 std::string AGS::Tokenizer::FullNameFromStructAndMember(int struct_name_token, int member_name_token)
 {
-    std::string member_name = _symbolTable->get_name(member_name_token);
+    std::string member_name = _symbolTable->get_name_string(member_name_token);
     if (member_name.at(0) == '.')
         member_name.erase(0, 1);
 
-    std::string struct_name = _symbolTable->get_name(struct_name_token);
+    std::string struct_name = _symbolTable->get_name_string(struct_name_token);
     struct_name.append("::").append(member_name);
     return struct_name;
-}
-
-
-int AGS::Tokenizer::ConvertSymstringToTokenIndex(std::string symstring)
-{
-    int token = _symbolTable->find(symstring.c_str());
-    if (token < 0)
-        token = _symbolTable->add(symstring.c_str());
-    return token;
 }
 
 

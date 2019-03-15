@@ -4,7 +4,7 @@
 #include "cs_parser_common.h"   // macro definitions
 #include "script/cc_treemap.h"
 
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -92,7 +92,7 @@ struct SymbolTable {
 
 private:
 
-    std::map<std::string, int> _findCache;
+    std::unordered_map<std::string, int> _findCache;
 };
 
 

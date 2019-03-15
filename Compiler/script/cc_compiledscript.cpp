@@ -59,26 +59,26 @@ int ccCompiledScript::add_global(int siz,const char*vall) {
     return toret;
 }
 int ccCompiledScript::add_string(const char*strr) {
-    strings = (char*)realloc(strings, stringssize + strlen(strr) + 5);
-    unsigned int la,opi=0;
-    for (la = 0; la <= strlen(strr); la++) {
-        char ch = strr[la];
-        if (strr[la]=='\\') {
-            la++;
-            ch = strr[la];
-            if (strr[la] == 'n') {ch=10;}
-            else if (strr[la] == 'r') {ch=13;}
-            else if (strr[la] == '[') { // pass through as \[
-                strings[stringssize + opi] = '\\';
-                opi++;
+    size_t len = strlen(strr);
+    strings = (char*)realloc(strings, stringssize + len + 1);
+    char *write_ptr = strings + stringssize;
+    for (size_t src = 0; src <= len; ++src) {
+        char ch = strr[src];
+        if (ch=='\\') {
+            src++;
+            ch = strr[src];
+            if (ch == 'n') {ch = '\n';}
+            else if (ch == 'r') {ch = '\r';}
+            else if (ch == '[') { // pass through as \[
+                *write_ptr = '\\';
+                write_ptr++;
             }
         }
-        strings[stringssize+opi]=ch;
-        opi++;
+        *write_ptr = ch;
+        write_ptr++;
     }
-    //  memcpy(&strings[stringssize],strr,strlen(strr)+1);
     int toret = stringssize;
-    stringssize += strlen(strr) + 1;
+    stringssize += write_ptr - (strings + stringssize);
     return toret;
 }
 void ccCompiledScript::add_fixup(int32_t locc, char ftype) {

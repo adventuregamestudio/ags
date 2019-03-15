@@ -1012,8 +1012,13 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 
 // return the float as an int32 (but not actually converted to int)
 int float_to_int_raw(float toconv) {
-    int *memptr = (int*)&toconv;
-    return memptr[0];
+    union
+    {
+        float   f;
+        int32_t i32;
+    } conv;
+    conv.f = toconv;
+    return conv.i32;
 }
 
 int isPartOfExpression(ccInternalList *targ, int j) {

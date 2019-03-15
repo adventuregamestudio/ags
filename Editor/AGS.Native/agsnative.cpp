@@ -1,4 +1,3 @@
-#define USE_CLIB
 #include <stdio.h>
 void ThrowManagedException(const char *message);
 #pragma unmanaged
@@ -6,10 +5,6 @@ void ThrowManagedException(const char *message);
 extern bool Scintilla_RegisterClasses(void *hInstance);
 extern int Scintilla_LinkLexers();
 
-int antiAliasFonts = 0;
-bool ShouldAntiAliasText() { return (antiAliasFonts != 0); }
-
-int mousex, mousey;
 #include "agsnative.h"
 #include "util/wgt2allg.h"
 #include "util/misc.h"
@@ -73,11 +68,13 @@ inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int
 
 void save_room_file(const char *path);
 
+int mousex = 0, mousey = 0;
+int antiAliasFonts = 0;
 int sxmult = 1, symult = 1;
 int dsc_want_hires = 0;
 bool enable_greyed_out_masks = true;
-bool outlineGuiObjects;
-color*palette;
+bool outlineGuiObjects = false;
+color*palette = NULL;
 GameSetupStruct thisgame;
 SpriteCache spriteset(thisgame.SpriteInfos);
 GUIMain tempgui;
@@ -90,26 +87,32 @@ const char *ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
 RoomStruct thisroom;
-bool roomModified = false;
-std::unique_ptr<AGSBitmap> drawBuffer;
-std::unique_ptr<AGSBitmap> undoBuffer;
-std::unique_ptr<AGSBitmap> roomBkgBuffer;
-int loaded_room_number = -1;
 
 GameDataVersion loaded_game_file_version = kGameVersion_Current;
 
 // stuff for importing old games
-int numScriptModules;
+int numScriptModules = 0;
 ScriptModule* scModules = NULL;
-DialogTopic *dialog;
+DialogTopic *dialog = NULL;
 std::vector<Common::String> dlgscript;
 std::vector<GUIMain> guis;
-ViewStruct *newViews;
+ViewStruct *newViews = NULL;
 int numNewViews = 0;
 
 // A reference color depth, for correct color selection;
 // originally was defined by 'abuf' bitmap.
-int BaseColorDepth;
+int BaseColorDepth = 0;
+
+
+struct NativeRoomTools
+{
+    bool roomModified = false;
+    int loaded_room_number = -1;
+    std::unique_ptr<AGSBitmap> drawBuffer;
+    std::unique_ptr<AGSBitmap> undoBuffer;
+    std::unique_ptr<AGSBitmap> roomBkgBuffer;
+};
+std::unique_ptr<NativeRoomTools> RoomTools;
 
 
 bool reload_font(int curFont);
@@ -734,6 +737,7 @@ void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 void create_undo_buffer(void *roomptr, int maskType) 
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    auto &undoBuffer = RoomTools->undoBuffer;
   if (undoBuffer != NULL)
   {
     if ((undoBuffer->GetWidth() != mask->GetWidth()) || (undoBuffer->GetHeight() != mask->GetHeight())) 
@@ -750,14 +754,14 @@ void create_undo_buffer(void *roomptr, int maskType)
 
 bool does_undo_buffer_exist()
 {
-  return (undoBuffer != NULL);
+  return (RoomTools->undoBuffer != NULL);
 }
 
 void clear_undo_buffer() 
 {
   if (does_undo_buffer_exist()) 
   {
-    undoBuffer.reset();
+      RoomTools->undoBuffer.reset();
   }
 }
 
@@ -766,7 +770,7 @@ void restore_from_undo_buffer(void *roomptr, int maskType)
   if (does_undo_buffer_exist())
   {
   	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-    mask->Blit(undoBuffer.get(), 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
+    mask->Blit(RoomTools->undoBuffer.get(), 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
   }
 }
 
@@ -879,6 +883,8 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
   if (srcBlock == NULL)
     return;
 
+    auto &drawBuffer = RoomTools->drawBuffer;
+    auto &roomBkgBuffer = RoomTools->roomBkgBuffer;
 	if (drawBuffer != NULL) 
 	{
         if (!roomBkgBuffer || roomBkgBuffer->GetSize() != srcBlock->GetSize() || roomBkgBuffer->GetColorDepth() != srcBlock->GetColorDepth())
@@ -1200,7 +1206,7 @@ bool initialize_native()
 {
     Common::AssetManager::CreateInstance();
 
-  set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
+	set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
 	install_allegro(SYSTEM_NONE, &errno, atexit);
 	//set_gdi_color_format();
 	palette = &thisgame.defpal[0];
@@ -1219,19 +1225,17 @@ bool initialize_native()
 	if (!Scintilla_RegisterClasses (GetModuleHandle(NULL)))
       return false;
 
-  init_font_renderer();
+	init_font_renderer();
 
+	RoomTools.reset(new NativeRoomTools());
 	return true;
 }
 
 void shutdown_native()
 {
+    RoomTools.reset();
     // We must dispose all native bitmaps before shutting down the library
     thisroom.Free();
-    drawBuffer.reset();
-    undoBuffer.reset();
-    roomBkgBuffer.reset();
-
     shutdown_font_renderer();
     spriteset.Reset();
     allegro_exit();
@@ -1643,7 +1647,7 @@ void validate_mask(Common::Bitmap *toValidate, const char *name, int maxColour) 
        "entry 0 corresponds to No Area, palette index 1 corresponds to area 1, and "
        "so forth.", name);
 	MessageBox(NULL, errorBuf, "Mask Error", MB_OK);
-    roomModified = true;
+    RoomTools->roomModified = true;
   }
 }
 
@@ -1709,7 +1713,7 @@ const char* load_room_file(const char*rtlo) {
       (thisgame.color_depth == 1))
     MessageBox(NULL,"WARNING: This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor.", "Colour depth warning", MB_OK);
 
-  roomModified = false;
+  RoomTools->roomModified = false;
 
   validate_mask(thisroom.HotspotMask.get(), "hotspot", MAX_ROOM_HOTSPOTS);
   validate_mask(thisroom.WalkBehindMask.get(), "walk-behind", MAX_WALK_AREAS + 1);
@@ -2060,6 +2064,7 @@ void save_game(bool compressSprites)
 
 void CreateBuffer(int width, int height)
 {
+    auto &drawBuffer = RoomTools->drawBuffer;
     if (!drawBuffer || drawBuffer->GetWidth() != width || drawBuffer->GetHeight() != height || drawBuffer->GetColorDepth() != 32)
         drawBuffer.reset(new AGSBitmap(width, height, 32));
     drawBuffer->Clear(0x00D0D0D0);
@@ -2076,7 +2081,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	}
 
 	Common::Bitmap *imageToDraw = todraw;
-
+    auto &drawBuffer = RoomTools->drawBuffer;
 	if (todraw->GetColorDepth() != drawBuffer->GetColorDepth()) 
 	{
 		int oldColorConv = get_color_conversion();
@@ -2115,6 +2120,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 
 void RenderBufferToHDC(int hdc) 
 {
+    auto &drawBuffer = RoomTools->drawBuffer;
 	blit_to_hdc(drawBuffer->GetAllegroBitmap(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
 }
 
@@ -3644,7 +3650,7 @@ System::String ^load_room_script(System::String ^fileName)
 
 int GetCurrentlyLoadedRoomNumber()
 {
-  return loaded_room_number;
+  return RoomTools->loaded_room_number;
 }
 
 AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
@@ -3657,7 +3663,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		throw gcnew AGSEditorException(gcnew String(errorMsg));
 	}
 
-  loaded_room_number = roomToLoad->Number;
+    RoomTools->loaded_room_number = roomToLoad->Number;
 
 	Room ^room = gcnew Room(roomToLoad->Number);
 	room->Description = roomToLoad->Description;

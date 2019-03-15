@@ -84,7 +84,7 @@ void ccCompileText_KillUnusedImports(ccCompiledScript * compiled_script)
         if (ccGetOption(SCOPT_SHOWWARNINGS) == 0);
         else if ((sym.entries[entries_idx].flags & SFLG_ACCESSED) == 0)
         {
-            printf("warning: variable '%s' is never used\n", sym.get_friendly_name(entries_idx).c_str());
+            printf("warning: variable '%s' is never used\n", sym.get_name_string(entries_idx).c_str());
         }
     }
 }

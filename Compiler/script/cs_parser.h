@@ -192,7 +192,6 @@ private:
 
 public:
     int Init();
-
     
     // Enter a code location where a function is called that hasn't been defined yet.
     int TrackForwardDeclFuncCall(::ccCompiledScript *scrip, Symbol func, CodeLoc idx);
@@ -219,6 +218,18 @@ public:
 };
 
 typedef long TypeQualifierSet;
+
+class ImportMgr
+{
+private:
+    std::map<std::string, size_t> _importIdx;
+    ccCompiledScript *_scrip;
+
+public:
+    void Init(ccCompiledScript *scrip);
+    int FindOrAdd(std::string s);
+};
+
 
 } // namespace AGS
 

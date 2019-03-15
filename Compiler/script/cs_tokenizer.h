@@ -69,7 +69,7 @@ protected:
     // Given the token of a struct name and a member name, generate a string denoting the full name of the member
     std::string FullNameFromStructAndMember(int struct_name_token, int member_name_token);
 
-    int ConvertSymstringToTokenIndex(std::string symstring);
+    inline int ConvertSymstringToTokenIndex(std::string symstring) { return _symbolTable->find_or_add(symstring.c_str()); }
 
 private:
     // Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching

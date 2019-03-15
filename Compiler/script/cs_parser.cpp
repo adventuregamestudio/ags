@@ -3127,6 +3127,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     int varsize,ccCompiledScript*scrip,ccInternalList*targ, int vtwas,
     int isPointer) {
   long lbuffer = 0;
+  std::unique_ptr<char[]> xbuffer;
   long *getsvalue = &lbuffer;
   int need_fixup = 0;
   int array_size = 1;
@@ -3205,10 +3206,12 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     }
 
     next_type[0] = sym.get_type(targ->peeknext());
-    getsvalue = (long*)calloc(1,varsize+1);
+    xbuffer.reset(new char[varsize + 1]);
+    getsvalue = (long*)xbuffer.get();
   }
   else if (varsize > 4) {
-    getsvalue = (long*)calloc(1, varsize + 1);
+    xbuffer.reset(new char[varsize + 1]);
+    getsvalue = (long*)xbuffer.get();
   }
 
   if (strcmp(sym.get_name(vtwas),"string")==0) {
@@ -3366,8 +3369,6 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
       scrip->write_cmd2(SCMD_ADD,SREG_SP,varsize);
     }
   }
-  if ((getsvalue != &lbuffer) && (getsvalue != NULL))
-    free(getsvalue);
   if (next_type[0] == SYM_COMMA) {
     targ->getnext();  // skip the comma
     return 2;

@@ -6073,13 +6073,15 @@ int ParseVartype_CheckIllegalCombis(bool is_function, bool is_member_definition,
 
 int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &func_name, int type_of_defn, bool isPointer, bool isDynamicArray, TypeQualifierSet tqs, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
-    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(func_name);
     bool body_follows;
 
+    // In the case of extender functions, this will alter func_name
     int retval = ParseFuncdecl(
         targ, scrip, func_name, type_of_defn, isPointer, isDynamicArray,
         tqs, struct_of_current_func, body_follows);
     if (retval < 0) return retval;
+
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(func_name);
     if (struct_of_current_func > 0)
         SetFlag(entry.flags, SFLG_STRUCTMEMBER, true);
 

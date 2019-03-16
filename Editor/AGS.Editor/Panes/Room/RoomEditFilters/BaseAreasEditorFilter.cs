@@ -221,10 +221,10 @@ namespace AGS.Editor
         // Gets the scale factor for drawing auxiliary stuff on screen.
         // This does not have any relation to screen/room coordinate conversion,
         // only lets to have extra size for some hint lines etc, in hi-res games.
+        // TODO: choose this factor based on game size vs window size relation
         private float GetHintScaleFactor(RoomEditorState state)
         {
-            if (_room.Resolution == RoomResolution.HighRes ||
-                Factory.AGSEditor.CurrentGame.IsHighResolution)
+            if (Factory.AGSEditor.CurrentGame.IsHighResolution)
             {
                 return 2f;
             }
@@ -350,14 +350,7 @@ namespace AGS.Editor
         {
             int tempx = _menuClickX;
             int tempy = _menuClickY;
-
-            if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
-             (_room.Resolution == RoomResolution.HighRes))
-            {
-                tempx /= 2;
-                tempy /= 2;
-            }
-
+            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref tempx, ref tempy);
             string textToCopy = tempx.ToString() + ", " + tempy.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
         }

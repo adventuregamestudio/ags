@@ -6004,11 +6004,12 @@ int ParseVartype_CheckForIllegalContext(AGS::NestingStack *nesting_stack)
 
 int ParseVartype_GetPointerStatus(ccInternalList *targ, int type_of_defn, bool &isPointer)
 {
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(type_of_defn);
     isPointer = false;
     if (targ->peeknext() == sym.find("*"))
     {
         // only allow pointers to structs
-        SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(type_of_defn);
+        
         if (!FlagIsSet(entry.flags, SFLG_STRUCTTYPE))
         {
             cc_error("Cannot create pointer to basic type");
@@ -6023,7 +6024,7 @@ int ParseVartype_GetPointerStatus(ccInternalList *targ, int type_of_defn, bool &
         targ->getnext();
     }
 
-    if (FlagIsSet(sym.entries[type_of_defn].flags, SFLG_AUTOPTR))
+    if (FlagIsSet(entry.flags, SFLG_AUTOPTR))
         isPointer = true;
 
     return 0;

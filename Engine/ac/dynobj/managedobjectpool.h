@@ -15,6 +15,8 @@
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
+#include <vector>
+#include <queue>
 #include <unordered_map>
 
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
@@ -28,18 +30,26 @@ private:
         ScriptValueType obj_type;
         int32_t handle;
         const char *addr;
-        ICCDynamicObject * callback;
-        int  refCount;
+        ICCDynamicObject *callback;
+        int refCount;
+
+        bool isUsed() const { return obj_type != kScValUndefined; }
+
+        ManagedObject() 
+            : obj_type(kScValUndefined), handle(0), addr(nullptr), callback(nullptr), refCount(0) {}
+        ManagedObject(ScriptValueType obj_type, int32_t handle, const char *addr, ICCDynamicObject * callback) 
+            : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
     };
 
-    int nextHandle {1};
-    int objectCreationCounter {0};  // used to do garbage collection every so often
+    int objectCreationCounter;  // used to do garbage collection every so often
 
-    std::unordered_map<int32_t, ManagedObject> objects {};
-    std::unordered_map<const char *, int32_t> handleByAddress {};
+    int32_t nextHandle {};
+    std::queue<int32_t> available_ids;
+    std::vector<ManagedObject> objects;
+    std::unordered_map<const char *, int32_t> handleByAddress;
 
     void Init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback, ScriptValueType objType);
-    int Remove(int32_t handle, bool force = false);
+    int Remove(ManagedObject &o, bool force = false); 
 
     void RunGarbageCollection();
 
@@ -53,7 +63,8 @@ public:
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
-    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot = -1);
+    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object);
+    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
     void reset();

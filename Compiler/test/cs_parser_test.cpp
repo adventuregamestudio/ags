@@ -1246,3 +1246,31 @@ TEST(Compile, GlobalImportVar5) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, ExtenderFuncDifference)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+    // Same func name, should be okay since they extend different structs
+    char *inpl = "\
+        struct A            \n\
+        {                   \n\
+            int A_Payload;  \n\
+        };                  \n\
+        struct B            \n\
+        {                   \n\
+            int B_Payload;  \n\
+        };                  \n\
+                            \n\
+        int Func(this A *)  \n\
+        {                   \n\
+            return 0;       \n\
+        }                   \n\
+        int Func(this B *)  \n\
+        {                   \n\
+            return 0;       \n\
+        }                   \n\
+    ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

@@ -160,7 +160,8 @@ void RoomStruct::InitDefaults()
     DataVersion     = kRoomVersion_Current;
     GameID          = NO_GAME_ID_IN_ROOM_FILE;
 
-    Resolution      = 1;
+    Resolution      = kRoomLoRes;
+    MaskResolution  = 1;
     Width           = 320;
     Height          = 200;
 

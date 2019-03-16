@@ -110,7 +110,7 @@ void script_debug(int cmdd,int dataa) {
         const Rect &viewport = play.GetRoomViewport();
         const Rect &camera = play.GetRoomCamera();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        Rect mask_src = Rect(camera.Left / thisroom.Resolution, camera.Top / thisroom.Resolution, camera.Right / thisroom.Resolution, camera.Bottom / thisroom.Resolution);
+        Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);
@@ -168,7 +168,7 @@ void script_debug(int cmdd,int dataa) {
         const Rect &viewport = play.GetRoomViewport();
         const Rect &camera = play.GetRoomCamera();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        Rect mask_src = Rect(camera.Left / thisroom.Resolution, camera.Top / thisroom.Resolution, camera.Right / thisroom.Resolution, camera.Bottom / thisroom.Resolution);
+        Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);

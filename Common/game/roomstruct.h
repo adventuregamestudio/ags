@@ -238,6 +238,14 @@ struct MessageInfo
 };
 
 
+// Room's legacy resolution type
+enum RoomResolutionType
+{
+    kRoomLoRes = 1, // created for low-resolution game
+    kRoomHiRes = 2 // created for high-resolution game
+};
+
+
 //
 // Description of a single room.
 // This class contains initial room data. Some of it may still be modified
@@ -250,7 +258,7 @@ public:
     ~RoomStruct();
 
     // Gets if room belongs to high resolution
-    inline bool IsHiRes() const { return Resolution == HIRES_COORD_MULTIPLIER; }
+    inline bool IsHiRes() const { return Resolution == kRoomHiRes; }
 
     // Releases room resources
     void            Free();
@@ -284,7 +292,10 @@ public:
 
     // Room's legacy resolution type (1 - lores, 2 - hires);
     // also serves as a hotspot/region mask relation to background
-    int32_t                 Resolution;
+    RoomResolutionType      Resolution;
+    // Room region masks resolution. Defines the relation between room and mask units.
+    // Mask point is calculated as roompt / MaskResolution. Must be >= 1.
+    int32_t                 MaskResolution;
     // Size of the room, in logical coordinates (= pixels)
     int32_t                 Width;
     int32_t                 Height;

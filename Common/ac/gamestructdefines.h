@@ -109,9 +109,6 @@
 #define MAX_SG_EXT_LENGTH 20
 #define MAX_SG_FOLDER_LEN 50
 
-// The game to screen coordinate conversion multiplier in hi-res type games
-#define HIRES_COORD_MULTIPLIER 2
-
 enum GameResolutionType
 {
     kGameResolution_Undefined   = -1,

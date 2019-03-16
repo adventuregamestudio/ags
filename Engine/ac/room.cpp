@@ -219,25 +219,36 @@ ScriptCamera* Room_GetCamera()
 
 //=============================================================================
 
-PBitmap fix_bitmap_size(PBitmap todubl)
+// If room mask is too small or too large for this room size,
+// then create a new bitmap and stretch old one to fill in;
+// otherwise return old bitmap.
+PBitmap fix_bitmap_size(PBitmap todubl, int bkg_width, int bkg_height)
 {
     int oldw=todubl->GetWidth(), oldh=todubl->GetHeight();
-    int newWidth = data_to_game_coord(thisroom.Width);
-    int newHeight = data_to_game_coord(thisroom.Height);
-
-    if ((oldw == newWidth) && (oldh == newHeight))
+    if ((oldw == bkg_width) && (oldh == bkg_height))
         return todubl;
 
-    //  Bitmap *tempb=BitmapHelper::CreateBitmap(play.viewport.GetWidth(),play.viewport.GetHeight());
-    //todubl->SetClip(Rect(0,0,oldw-1,oldh-1)); // CHECKME! [IKM] Not sure this is needed here
-    Bitmap *tempb=BitmapHelper::CreateBitmap(newWidth, newHeight, todubl->GetColorDepth());
-    tempb->SetClip(Rect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
-    tempb->Fill(0);
+    Bitmap *tempb=BitmapHelper::CreateBitmap(bkg_width, bkg_height, todubl->GetColorDepth());
     tempb->StretchBlt(todubl.get(), RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
     return PBitmap(tempb);
 }
 
+// Makes sure that room background and walk-behind mask are matching room size
+// in game resolution coordinates; in other words makes graphics appropriate
+// for display in the game.
+void convert_room_background_to_game_res()
+{
+    int bkg_width = thisroom.Width;
+    int bkg_height = thisroom.Height;
+    data_to_game_coords(&bkg_width, &bkg_height);
 
+    for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+        thisroom.BgFrames[i].Graphic = fix_bitmap_size(thisroom.BgFrames[i].Graphic, bkg_width, bkg_height);
+
+    // fix walk-behinds to match room background
+    // TODO: would not we need to do similar to each mask if they were 1:1 in hires room?
+    thisroom.WalkBehindMask = fix_bitmap_size(thisroom.WalkBehindMask, bkg_width, bkg_height);
+}
 
 
 void save_room_data_segment () {
@@ -529,21 +540,12 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=204;
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
-    // fix walk-behinds to current screen resolution
-    // TODO: perhaps do this for every mask in the UpdateRoomData()?
-    thisroom.WalkBehindMask = fix_bitmap_size(thisroom.WalkBehindMask);
     update_polled_stuff_if_runtime();
 
     set_color_depth(game.GetColorDepth());
-    // convert backgrounds to current res
-    // TODO: perhaps do this in the UpdateRoomData()?
-    if (thisroom.Resolution != game.GetDataUpscaleMult())
-    {
-        for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
-            thisroom.BgFrames[i].Graphic = fix_bitmap_size(thisroom.BgFrames[i].Graphic);
-    }
-
+    convert_room_background_to_game_res();
     recache_walk_behinds();
+    update_polled_stuff_if_runtime();
 
     our_eip=205;
     // setup objects

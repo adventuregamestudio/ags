@@ -39,6 +39,7 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
+#include "ac/common_defines.h"
 #include "game/interactions.h"
 #include "util/geometry.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
@@ -248,6 +249,9 @@ public:
     RoomStruct();
     ~RoomStruct();
 
+    // Gets if room belongs to high resolution
+    inline bool IsHiRes() const { return Resolution == HIRES_COORD_MULTIPLIER; }
+
     // Releases room resources
     void            Free();
     // Release room messages and scripts correspondingly. These two functions are needed
@@ -278,9 +282,8 @@ public:
     // the room must have behavior specific to certain version of AGS.
     int32_t                 DataVersion;
 
-    // Room's resolution multiplier. Important only if game's OPT_NATIVECOORDINATES
-    // setting is NOT set, in which case it acts as a conversion factor between
-    // data/script and game screen pixels.
+    // Room's legacy resolution type (1 - lores, 2 - hires);
+    // also serves as a hotspot/region mask relation to background
     int32_t                 Resolution;
     // Size of the room, in logical coordinates (= pixels)
     int32_t                 Width;

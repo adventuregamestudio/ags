@@ -28,7 +28,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int current_screen_resolution_multiplier;
 extern SpriteCache spriteset;
 extern int our_eip, eip_guinum, eip_guiobj;
 extern color palette[256];
@@ -37,32 +36,12 @@ extern AGSPlatformDriver *platform;
 
 void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit)
 {
+    newwid = ww;
+    newhit = hh;
     const SpriteInfo &spinfo = game.SpriteInfos[ee];
     if (!spinfo.IsVarRes())
-    {
-        newwid = ww;
-        newhit = hh;
         return;
-    }
-
-    if (spinfo.IsHiRes())
-    {
-        if (current_screen_resolution_multiplier == 2)
-        {
-            newwid = ww;
-            newhit = hh;
-        }
-        else
-        {
-            newwid = Math::Min(1, (ww / 2) * current_screen_resolution_multiplier);
-            newhit = Math::Min(1, (hh / 2) * current_screen_resolution_multiplier);
-        }
-    }
-    else
-    {
-        newwid = ww * current_screen_resolution_multiplier;
-        newhit = hh * current_screen_resolution_multiplier;
-    }
+    ctx_data_to_game_size(newwid, newhit, spinfo.IsHiRes());
 }
 
 // set any alpha-transparent pixels in the image to the appropriate

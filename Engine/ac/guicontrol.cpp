@@ -38,7 +38,7 @@ GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     if (guinum == -1)
         return NULL;
 
-    multiply_up_coordinates(&xx, &yy);
+    data_to_game_coords(&xx, &yy);
 
     int oldmousex = mousex, oldmousey = mousey;
     mousex = xx - guis[guinum].X;
@@ -149,21 +149,21 @@ GUITextBox* GUIControl_GetAsTextBox(GUIObject *guio) {
 }
 
 int GUIControl_GetX(GUIObject *guio) {
-  return divide_down_coordinate(guio->X);
+  return game_to_data_coord(guio->X);
 }
 
 void GUIControl_SetX(GUIObject *guio, int xx) {
-  guio->X = multiply_up_coordinate(xx);
+  guio->X = data_to_game_coord(xx);
   guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
 int GUIControl_GetY(GUIObject *guio) {
-  return divide_down_coordinate(guio->Y);
+  return game_to_data_coord(guio->Y);
 }
 
 void GUIControl_SetY(GUIObject *guio, int yy) {
-  guio->Y = multiply_up_coordinate(yy);
+  guio->Y = data_to_game_coord(yy);
   guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;
 }
@@ -186,22 +186,22 @@ void GUIControl_SetPosition(GUIObject *guio, int xx, int yy) {
 
 
 int GUIControl_GetWidth(GUIObject *guio) {
-  return divide_down_coordinate(guio->Width);
+  return game_to_data_coord(guio->Width);
 }
 
 void GUIControl_SetWidth(GUIObject *guio, int newwid) {
-  guio->Width = multiply_up_coordinate(newwid);
+  guio->Width = data_to_game_coord(newwid);
   guio->OnResized();
   guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
 int GUIControl_GetHeight(GUIObject *guio) {
-  return divide_down_coordinate(guio->Height);
+  return game_to_data_coord(guio->Height);
 }
 
 void GUIControl_SetHeight(GUIObject *guio, int newhit) {
-  guio->Height = multiply_up_coordinate(newhit);
+  guio->Height = data_to_game_coord(newhit);
   guio->OnResized();
   guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;

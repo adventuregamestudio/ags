@@ -66,7 +66,7 @@
 #define OPT_STRICTSTRINGS   35  // don't allow old-style strings
 #define OPT_NEWGUIALPHA     36
 #define OPT_RUNGAMEDLGOPTS  37
-#define OPT_NATIVECOORDINATES 38
+#define OPT_NATIVECOORDINATES 38 // defines coordinate relation between game logic and game screen
 #define OPT_GLOBALTALKANIMSPD 39
 #define OPT_HIGHESTOPTION_321 39
 #define OPT_SPRITEALPHA     40
@@ -108,7 +108,6 @@
 #define MAX_GUID_LENGTH   40
 #define MAX_SG_EXT_LENGTH 20
 #define MAX_SG_FOLDER_LEN 50
-
 
 enum GameResolutionType
 {

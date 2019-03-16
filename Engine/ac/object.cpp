@@ -20,8 +20,8 @@
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
 #include "ac/objectcache.h"
-#include "ac/path.h"
 #include "ac/properties.h"
+#include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
@@ -393,10 +393,10 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
 
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
-    int objX = convert_to_low_res(objs[objj].x);
-    int objY = convert_to_low_res(objs[objj].y);
-    tox = convert_to_low_res(tox);
-    toy = convert_to_low_res(toy);
+    int objX = room_to_mask_coord(objs[objj].x);
+    int objY = room_to_mask_coord(objs[objj].y);
+    tox = room_to_mask_coord(tox);
+    toy = room_to_mask_coord(toy);
 
     set_route_move_speed(spee, spee);
     set_color_depth(8);
@@ -405,12 +405,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     if (mslot>0) {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;
-
-        if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-            game.IsHiRes())
-        {
-            convert_move_path_to_high_res(&mls[mslot]);
-        }
+        convert_move_path_to_room_resolution(&mls[mslot]);
     }
 }
 
@@ -446,17 +441,17 @@ void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) 
     int cwidth, fromx;
 
     if (tehobj->blocking_width < 1)
-        cwidth = divide_down_coordinate(tehobj->last_width) - 4;
+        cwidth = game_to_data_coord(tehobj->last_width) - 4;
     else
         cwidth = tehobj->blocking_width;
 
-    fromx = tehobj->x + (divide_down_coordinate(tehobj->last_width) / 2) - cwidth / 2;
+    fromx = tehobj->x + (game_to_data_coord(tehobj->last_width) / 2) - cwidth / 2;
     if (fromx < 0) {
         cwidth += fromx;
         fromx = 0;
     }
-    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->GetWidth()))
-        cwidth = convert_back_to_high_res(walkable_areas_temp->GetWidth()) - fromx;
+    if (fromx + cwidth >= mask_to_room_coord(walkable_areas_temp->GetWidth()))
+        cwidth = mask_to_room_coord(walkable_areas_temp->GetWidth()) - fromx;
 
     if (x1)
         *x1 = fromx;
@@ -484,8 +479,8 @@ int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary is the sprite x/y co-ordinates
 int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int sphh, int flipped) {
-    if (spww==0) spww = divide_down_coordinate(sprit->GetWidth()) - 1;
-    if (sphh==0) sphh = divide_down_coordinate(sprit->GetHeight()) - 1;
+    if (spww==0) spww = game_to_data_coord(sprit->GetWidth()) - 1;
+    if (sphh==0) sphh = game_to_data_coord(sprit->GetHeight()) - 1;
 
     if (isposinbox(xx,yy,arx,ary,arx+spww,ary+sphh)==FALSE)
         return FALSE;
@@ -493,15 +488,15 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
     if (game.options[OPT_PIXPERFECT]) 
     {
         // if it's transparent, or off the edge of the sprite, ignore
-        int xpos = multiply_up_coordinate(xx - arx);
-        int ypos = multiply_up_coordinate(yy - ary);
+        int xpos = data_to_game_coord(xx - arx);
+        int ypos = data_to_game_coord(yy - ary);
 
         if (gfxDriver->HasAcceleratedTransform())
         {
             // hardware acceleration, so the sprite in memory will not have
             // been stretched, it will be original size. Thus, adjust our
             // calculations to compensate
-            multiply_up_coordinates(&spww, &sphh);
+            data_to_game_coords(&spww, &sphh);
 
             if (spww != sprit->GetWidth())
                 xpos = (xpos * sprit->GetWidth()) / spww;

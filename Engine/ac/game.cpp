@@ -665,11 +665,7 @@ int Game_GetViewCount() {
 
 int Game_GetUseNativeCoordinates()
 {
-    if (game.options[OPT_NATIVECOORDINATES] != 0)
-    {
-        return 1;
-    }
-    return 0;
+    return game.IsDataInNativeCoordinates() ? 1 : 0;
 }
 
 int Game_GetSpriteWidth(int spriteNum) {
@@ -679,7 +675,7 @@ int Game_GetSpriteWidth(int spriteNum) {
     if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
-    return divide_down_coordinate(game.SpriteInfos[spriteNum].Width);
+    return game_to_data_coord(game.SpriteInfos[spriteNum].Width);
 }
 
 int Game_GetSpriteHeight(int spriteNum) {
@@ -689,7 +685,7 @@ int Game_GetSpriteHeight(int spriteNum) {
     if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
-    return divide_down_coordinate(game.SpriteInfos[spriteNum].Height);
+    return game_to_data_coord(game.SpriteInfos[spriteNum].Height);
 }
 
 int Game_GetLoopCountForView(int viewNumber) {
@@ -1029,8 +1025,8 @@ void WriteGameSetupStructBase_Aligned(Stream *out)
 void create_savegame_screenshot(Bitmap *&screenShot)
 {
     if (game.options[OPT_SAVESCREENSHOT]) {
-        int usewid = multiply_up_coordinate(play.screenshot_width);
-        int usehit = multiply_up_coordinate(play.screenshot_height);
+        int usewid = data_to_game_coord(play.screenshot_width);
+        int usehit = data_to_game_coord(play.screenshot_height);
         const Rect &viewport = play.GetMainViewport();
         if (usewid > viewport.GetWidth())
             usewid = viewport.GetWidth();
@@ -1797,7 +1793,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     int hsat = get_hotspot_at(xxx,yyy);
     int objat = GetObjectIDAtScreen(scrx, scry);
 
-    multiply_up_coordinates(&xxx, &yyy);
+    data_to_game_coords(&xxx, &yyy);
 
     int wbat = thisroom.WalkBehindMask->GetPixel(xxx, yyy);
 
@@ -1919,7 +1915,7 @@ void display_switch_in_resume()
 
     // clear the screen if necessary
     if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, game.size.Height - 1, NULL);
+        gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, NULL);
 
     platform->ResumeApplication();
 }

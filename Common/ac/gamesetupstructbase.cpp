@@ -47,7 +47,7 @@ GameSetupStructBase::GameSetupStructBase()
     , load_messages(NULL)
     , load_dictionary(false)
     , load_compiled_script(false)
-    , default_resolution(kGameResolution_Undefined)
+    , _resolutionType(kGameResolution_Undefined)
 {
     memset(gamename, 0, sizeof(gamename));
     memset(options, 0, sizeof(options));
@@ -81,18 +81,64 @@ void GameSetupStructBase::Free()
     chars = NULL;
 }
 
-void GameSetupStructBase::SetDefaultResolution(GameResolutionType resolution_type)
+void GameSetupStructBase::SetDefaultResolution(GameResolutionType type)
 {
-    default_resolution = resolution_type;
-    size = ResolutionTypeToSize(default_resolution, IsLegacyLetterbox());
-    altsize = ResolutionTypeToSize(default_resolution, false);
+    SetDefaultResolution(type, Size());
 }
 
-void GameSetupStructBase::SetCustomResolution(Size game_res)
+void GameSetupStructBase::SetDefaultResolution(Size size)
 {
-    default_resolution = kGameResolution_Custom;
-    size = game_res;
-    altsize = size;
+    SetDefaultResolution(kGameResolution_Custom, size);
+}
+
+void GameSetupStructBase::SetDefaultResolution(GameResolutionType type, Size size)
+{
+    // Calculate native res first then remember it
+    SetNativeResolution(type, size);
+    _defGameResolution = _gameResolution;
+    // Setup data resolution according to legacy settings (if set)
+    _dataResolution = _defGameResolution;
+    if (IsHiRes() && options[OPT_NATIVECOORDINATES] == 0)
+    {
+        _dataResolution = _defGameResolution / HIRES_COORD_MULTIPLIER;
+    }
+    OnResolutionSet();
+}
+
+void GameSetupStructBase::SetNativeResolution(GameResolutionType type, Size game_res)
+{
+    if (type == kGameResolution_Custom)
+    {
+        _resolutionType = kGameResolution_Custom;
+        _gameResolution = game_res;
+        _letterboxSize = _gameResolution;
+    }
+    else
+    {
+        _resolutionType = type;
+        _gameResolution = ResolutionTypeToSize(_resolutionType, IsLegacyLetterbox());
+        _letterboxSize = ResolutionTypeToSize(_resolutionType, false);
+    }
+}
+
+void GameSetupStructBase::SetGameResolution(GameResolutionType type)
+{
+    SetNativeResolution(type, Size());
+    OnResolutionSet();
+}
+
+void GameSetupStructBase::SetGameResolution(Size game_res)
+{
+    SetNativeResolution(kGameResolution_Custom, game_res);
+    OnResolutionSet();
+}
+
+void GameSetupStructBase::OnResolutionSet()
+{
+    // The final data-to-game multiplier is always set after actual game resolution (not default one)
+    _dataUpscaleMult = _gameResolution.Width / _dataResolution.Width;
+    _screenUpscaleMult = _gameResolution.Width / _defGameResolution.Width;
+    _roomMaskMul = IsHiRes() ? HIRES_COORD_MULTIPLIER : 1;
 }
 
 void GameSetupStructBase::ReadFromFile(Stream *in)
@@ -125,15 +171,13 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
     GameResolutionType resolution_type = (GameResolutionType)in->ReadInt32();
+    Size game_size;
     if (resolution_type == kGameResolution_Custom && loaded_game_file_version >= kGameVersion_331)
     {
-        Size game_size;
         game_size.Width = in->ReadInt32();
         game_size.Height = in->ReadInt32();
-        SetCustomResolution(game_size);
     }
-    else
-        SetDefaultResolution(resolution_type);
+    SetDefaultResolution(resolution_type, game_size);
 
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
@@ -172,11 +216,11 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteInt32(uniqueid);
     out->WriteInt32(numgui);
     out->WriteInt32(numcursors);
-    out->WriteInt32(default_resolution);
-    if (default_resolution == kGameResolution_Custom)
+    out->WriteInt32(_resolutionType);
+    if (_resolutionType == kGameResolution_Custom)
     {
-        out->WriteInt32(size.Width);
-        out->WriteInt32(size.Height);
+        out->WriteInt32(_defGameResolution.Width);
+        out->WriteInt32(_defGameResolution.Height);
     }
     out->WriteInt32(default_lipsync_frame);
     out->WriteInt32(invhotdotsprite);

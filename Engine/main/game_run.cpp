@@ -605,7 +605,7 @@ void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, in
             (displayed_room >= 0)) 
         {
             // mouse moves over hotspot
-            if (__GetLocationType(divide_down_coordinate(mousex), divide_down_coordinate(mousey), 1) == LOCTYPE_HOTSPOT) {
+            if (__GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey), 1) == LOCTYPE_HOTSPOT) {
                 int onhs = getloctype_index;
 
                 setevent(EV_RUNEVBLOCK,EVB_HOTSPOT,onhs,6); 
@@ -774,7 +774,7 @@ void UpdateMouseOverLocation()
     // Call GetLocationName - it will internally force a GUI refresh
     // if the result it returns has changed from last time
     char tempo[STD_BUFFER_SIZE];
-    GetLocationName(divide_down_coordinate(mousex), divide_down_coordinate(mousey), tempo);
+    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey), tempo);
 
     if ((play.get_loc_name_save_cursor >= 0) &&
         (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&

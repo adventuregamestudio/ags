@@ -117,8 +117,7 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     hasAlphaChannel = 0;
     highResCoordinates = 0;
 
-    if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-        (game.IsHiRes()))
+    if (game.IsHiRes() && game.IsDataInNativeCoordinates())
     {
         highResCoordinates = 1;
     }

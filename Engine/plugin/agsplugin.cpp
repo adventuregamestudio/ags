@@ -361,7 +361,7 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
     if (!ds)
         return;
     color_t text_color = ds->GetCompatibleColor(color);
-    multiply_up_coordinates((int*)&xx, (int*)&yy); // stupid! quick tweak
+    data_to_game_coords((int*)&xx, (int*)&yy); // stupid! quick tweak
     for (int i = 0; i < numlines; i++)
         draw_and_invalidate_text(ds, xx, yy + linespacing*i, font, text_color, lines[i]);
 }
@@ -460,14 +460,14 @@ int IAGSEngine::GetPlayerCharacter () {
     return game.playercharacter;
 }
 void IAGSEngine::RoomToViewport (int32 *x, int32 *y) {
-    Point scrp = play.RoomToScreen(x ? multiply_up_coordinate(*x) : 0, y ? multiply_up_coordinate(*y) : 0);
+    Point scrp = play.RoomToScreen(x ? data_to_game_coord(*x) : 0, y ? data_to_game_coord(*y) : 0);
     if (x)
         *x = scrp.X;
     if (y)
         *y = scrp.Y;
 }
 void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
-    VpPoint vpt = play.ScreenToRoom(x ? divide_down_coordinate(*x) : 0, y ? divide_down_coordinate(*y) : 0, false);
+    VpPoint vpt = play.ScreenToRoom(x ? game_to_data_coord(*x) : 0, y ? game_to_data_coord(*y) : 0, false);
     if (x)
         *x = vpt.first.X;
     if (y)

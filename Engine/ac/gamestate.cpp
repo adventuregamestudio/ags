@@ -45,16 +45,6 @@ void GameState::Free()
     FreeProperties();
 }
 
-const Size &GameState::GetNativeSize() const
-{
-    return _nativeSize;
-}
-
-void GameState::SetNativeSize(const Size &size)
-{
-    _nativeSize = size;
-}
-
 bool GameState::IsAutoRoomViewport() const
 {
     return _isAutoRoomViewport;
@@ -73,10 +63,10 @@ Rect FixupViewport(const Rect &viewport, const Rect &parent)
 
 void GameState::SetMainViewport(const Rect &viewport)
 {
-    _mainViewport.Position = FixupViewport(viewport, RectWH(game.size));
+    _mainViewport.Position = FixupViewport(viewport, RectWH(game.GetGameRes()));
     Mouse::SetGraphicArea();
-    scsystem.viewport_width = divide_down_coordinate(_mainViewport.Position.GetWidth());
-    scsystem.viewport_height = divide_down_coordinate(_mainViewport.Position.GetHeight());
+    scsystem.viewport_width = game_to_data_coord(_mainViewport.Position.GetWidth());
+    scsystem.viewport_height = game_to_data_coord(_mainViewport.Position.GetHeight());
     _mainViewportHasChanged = true;
     // Update sub-viewports in case main viewport became smaller
     SetUIViewport(_uiViewport.Position);
@@ -147,7 +137,7 @@ void GameState::SetRoomCameraSize(const Size &cam_size)
 {
     // TODO: currently we don't support having camera larger than room background
     // (or rather - looking outside of the room background); look into this later
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
+    const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
     Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
 
     _roomCamera.Position.SetWidth(real_size.Width);
@@ -160,8 +150,8 @@ void GameState::SetRoomCameraAt(int x, int y)
 {
     int cw = _roomCamera.Position.GetWidth();
     int ch = _roomCamera.Position.GetHeight();
-    int room_width = multiply_up_coordinate(thisroom.Width);
-    int room_height = multiply_up_coordinate(thisroom.Height);
+    int room_width = data_to_game_coord(thisroom.Width);
+    int room_height = data_to_game_coord(thisroom.Height);
     x = Math::Clamp(x, 0, room_width - cw);
     y = Math::Clamp(y, 0, room_height - ch);
     _roomCamera.Position.MoveTo(Point(x, y));
@@ -194,14 +184,14 @@ void GameState::ReleaseRoomCamera()
 void GameState::UpdateRoomCamera()
 {
     const Rect &camera = _roomCamera.Position;
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
+    const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
     if ((real_room_sz.Width > camera.GetWidth()) || (real_room_sz.Height > camera.GetHeight()))
     {
         // TODO: split out into Camera Behavior
         if (!play.IsRoomCameraLocked())
         {
-            int x = multiply_up_coordinate(playerchar->x) - camera.GetWidth() / 2;
-            int y = multiply_up_coordinate(playerchar->y) - camera.GetHeight() / 2;
+            int x = data_to_game_coord(playerchar->x) - camera.GetWidth() / 2;
+            int y = data_to_game_coord(playerchar->y) - camera.GetHeight() / 2;
             SetRoomCameraAt(x, y);
         }
     }
@@ -250,8 +240,8 @@ VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry, bool clip_viewport)
     if (clip_viewport && !_roomViewport.Position.IsInside(screen_pt))
         return std::make_pair(Point(), -1);
     Point p = _roomViewport.Transform.UnScale(screen_pt);
-    p.X += divide_down_coordinate(_roomCamera.Position.Left);
-    p.Y += divide_down_coordinate(_roomCamera.Position.Top);
+    p.X += game_to_data_coord(_roomCamera.Position.Left);
+    p.Y += game_to_data_coord(_roomCamera.Position.Top);
     return std::make_pair(p, 0);
 }
 

@@ -41,7 +41,6 @@ RuntimeScriptValue Sc_Room_GetProperty(const RuntimeScriptValue *params, int32_t
 
 void  save_room_data_segment ();
 void  unload_old_room();
-void  convert_room_coordinates_to_low_res(AGS::Common::RoomStruct *room);
 void  load_new_room(int newnum,CharacterInfo*forchar);
 void  new_room(int newnum,CharacterInfo*forchar);
 int   find_highest_room_entered();
@@ -51,6 +50,10 @@ void  compile_room_script();
 void  on_background_frame_change ();
 // Clear the current room pointer if room status is no longer valid
 void  croom_ptr_clear();
+
+struct MoveList;
+// Convert move path from room's mask resolution to room resolution
+void convert_move_path_to_room_resolution(MoveList *ml);
 
 extern AGS::Common::RoomStruct thisroom;
 

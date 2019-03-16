@@ -478,7 +478,7 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
             // If the game is hi-res but font is designed for low-res, then scale it up
             if (game.IsHiRes() && game.options[OPT_HIRES_FONTS] == 0)
             {
-                finfo.SizeMultiplier = 2;
+                finfo.SizeMultiplier = HIRES_COORD_MULTIPLIER;
             }
             else
             {
@@ -695,7 +695,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
         game.GameSetupStructBase::ReadFromFile(&align_s);
     }
 
-    if (game.size.IsNull())
+    if (game.GetGameRes().IsNull())
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);
 
     game.read_savegame_info(in, data_ver);

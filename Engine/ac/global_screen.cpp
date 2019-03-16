@@ -40,8 +40,6 @@ extern color palette[256];
 extern unsigned int loopcounter;
 extern int wasShakingScreen;
 
-int current_screen_resolution_multiplier = 1;
-
 int screen_reset = 0;
 
 void FlipScreen(int amount) {
@@ -57,7 +55,7 @@ void ShakeScreen(int severe) {
 
     int hh;
     //Bitmap *oldsc=abuf; // CHECKME!!!
-    severe = multiply_up_coordinate(severe);
+    severe = data_to_game_coord(severe);
 
     wasShakingScreen = 1;
     if (gfxDriver->RequiresFullRedrawEachFrame())

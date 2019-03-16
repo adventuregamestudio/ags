@@ -78,19 +78,19 @@ int System_GetOS() {
 // compatibility.
 //
 int System_GetScreenWidth() {
-    return game.size.Width;
+    return game.GetGameRes().Width;
 }
 
 int System_GetScreenHeight() {
-    return game.size.Height;
+    return game.GetGameRes().Height;
 }
 
 int System_GetViewportHeight() {
-    return divide_down_coordinate(play.GetMainViewport().GetHeight());
+    return game_to_data_coord(play.GetMainViewport().GetHeight());
 }
 
 int System_GetViewportWidth() {
-    return divide_down_coordinate(play.GetMainViewport().GetWidth());
+    return game_to_data_coord(play.GetMainViewport().GetWidth());
 }
 
 const char *System_GetVersion() {

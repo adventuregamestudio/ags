@@ -38,9 +38,10 @@ struct ScriptDrawingSurface final : AGSCCDynamicObject {
     virtual void Unserialize(int index, const char *serializedData, int dataSize);
     Common::Bitmap* GetBitmapSurface();
     Common::Bitmap *StartDrawing();
-    void MultiplyThickness(int *adjustValue);
-    void UnMultiplyThickness(int *adjustValue);
-    void MultiplyCoordinates(int *xcoord, int *ycoord);
+    void PointToGameResolution(int *xcoord, int *ycoord);
+    void SizeToGameResolution(int *width, int *height);
+    void SizeToGameResolution(int *adjustValue);
+    void SizeToDataResolution(int *adjustValue);
     void FinishedDrawing();
     void FinishedDrawingReadOnly();
 

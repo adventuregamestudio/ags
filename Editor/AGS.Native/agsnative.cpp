@@ -70,7 +70,6 @@ void save_room_file(const char *path);
 
 int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
-int sxmult = 1, symult = 1;
 int dsc_want_hires = 0;
 bool enable_greyed_out_masks = true;
 bool outlineGuiObjects = false;
@@ -121,14 +120,14 @@ void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, float scal
 void write_log(const char *) { }
 SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel);
 
-int multiply_up_coordinate(int coord)
+int data_to_game_coord(int coord)
 {
-	return coord * sxmult;
+	return coord * thisgame.GetDataUpscaleMult();
 }
 
 int get_fixed_pixel_size(int coord)
 {
-	return coord * sxmult;
+	return coord * thisgame.GetDataUpscaleMult();
 }
 
 // jibbles the sprite around to fix hi-color problems, by swapping
@@ -1134,42 +1133,33 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
   delete todraw;
 }
 
+int ctx_data_to_game_size(int val, bool hires_ctx)
+{
+    if (hires_ctx && !thisgame.IsHiRes())
+        return AGSMath::Max(1, (val / HIRES_COORD_MULTIPLIER));
+    if (!hires_ctx && thisgame.IsHiRes())
+        return val * HIRES_COORD_MULTIPLIER;
+    return val;
+}
+
 int get_adjusted_spritewidth(int spr) {
   Common::Bitmap *tsp = get_sprite(spr);
-  if (tsp == NULL) return 0;
-
+  if (tsp == NULL)
+      return 0;
   int retval = tsp->GetWidth();
-
-  if (thisgame.SpriteInfos[spr].IsVarRes()) {
-    if (thisgame.SpriteInfos[spr].IsHiRes()) {
-      if (sxmult == 1)
-        retval /= 2;
-    }
-    else {
-      if (sxmult == 2)
-        retval *= 2;
-    }
-  }
-  return retval;
+  if (!thisgame.SpriteInfos[spr].IsVarRes())
+      return retval;
+  return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsHiRes());
 }
 
 int get_adjusted_spriteheight(int spr) {
   Common::Bitmap *tsp = get_sprite(spr);
-  if (tsp == NULL) return 0;
-
+  if (tsp == NULL)
+      return 0;
   int retval = tsp->GetHeight();
-
-  if (thisgame.SpriteInfos[spr].IsVarRes()) {
-    if (thisgame.SpriteInfos[spr].IsHiRes()) {
-      if (symult == 1)
-        retval /= 2;
-    }
-    else {
-      if (symult == 2)
-        retval *= 2;
-    }
-  }
-  return retval;
+  if (!thisgame.SpriteInfos[spr].IsVarRes())
+      return retval;
+  return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsHiRes());
 }
 
 void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
@@ -2153,7 +2143,7 @@ void SetGameResolution(Game ^game)
     if (game->Settings->LetterboxMode)
         thisgame.SetDefaultResolution((GameResolutionType)game->Settings->LegacyLetterboxResolution);
     else
-        thisgame.SetCustomResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
+        thisgame.SetDefaultResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
 }
 
 void GameFontUpdated(Game ^game, int fontNumber);
@@ -2163,15 +2153,6 @@ void GameUpdated(Game ^game) {
   // probably it would be best to split it up into several callbacks at some point.
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
-
-  if (thisgame.IsHiRes()) {
-      sxmult = 2;
-      symult = 2;
-  }
-  else {
-      sxmult = 1;
-      symult = 1;
-  }
 
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
@@ -3212,7 +3193,7 @@ Game^ import_compiled_game_dta(const char *fileName)
     game->Settings->NumberDialogOptions = (thisgame.options[OPT_DIALOGNUMBERED] != 0) ? DialogOptionsNumbering::Normal : DialogOptionsNumbering::KeyShortcutsOnly;
 	game->Settings->PixelPerfect = (thisgame.options[OPT_PIXPERFECT] != 0);
 	game->Settings->PlaySoundOnScore = thisgame.options[OPT_SCORESOUND];
-	game->Settings->Resolution = (GameResolutions)thisgame.GetDefaultResolution();
+	game->Settings->Resolution = (GameResolutions)thisgame.GetResolutionType();
 	game->Settings->RoomTransition = (RoomTransitionStyle)thisgame.options[OPT_FADETYPE];
 	game->Settings->SaveScreenshots = (thisgame.options[OPT_SAVESCREENSHOT] != 0);
 	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.options[OPT_NOSKIPTEXT];

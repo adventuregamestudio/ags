@@ -28,6 +28,7 @@
 #include "ac/global_game.h"
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
+#include "ac/movelist.h"
 #include "ac/mouse.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
@@ -218,25 +219,36 @@ ScriptCamera* Room_GetCamera()
 
 //=============================================================================
 
-PBitmap fix_bitmap_size(PBitmap todubl)
+// If room mask is too small or too large for this room size,
+// then create a new bitmap and stretch old one to fill in;
+// otherwise return old bitmap.
+PBitmap fix_bitmap_size(PBitmap todubl, int bkg_width, int bkg_height)
 {
     int oldw=todubl->GetWidth(), oldh=todubl->GetHeight();
-    int newWidth = multiply_up_coordinate(thisroom.Width);
-    int newHeight = multiply_up_coordinate(thisroom.Height);
-
-    if ((oldw == newWidth) && (oldh == newHeight))
+    if ((oldw == bkg_width) && (oldh == bkg_height))
         return todubl;
 
-    //  Bitmap *tempb=BitmapHelper::CreateBitmap(play.viewport.GetWidth(),play.viewport.GetHeight());
-    //todubl->SetClip(Rect(0,0,oldw-1,oldh-1)); // CHECKME! [IKM] Not sure this is needed here
-    Bitmap *tempb=BitmapHelper::CreateBitmap(newWidth, newHeight, todubl->GetColorDepth());
-    tempb->SetClip(Rect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
-    tempb->Fill(0);
+    Bitmap *tempb=BitmapHelper::CreateBitmap(bkg_width, bkg_height, todubl->GetColorDepth());
     tempb->StretchBlt(todubl.get(), RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
     return PBitmap(tempb);
 }
 
+// Makes sure that room background and walk-behind mask are matching room size
+// in game resolution coordinates; in other words makes graphics appropriate
+// for display in the game.
+void convert_room_background_to_game_res()
+{
+    int bkg_width = thisroom.Width;
+    int bkg_height = thisroom.Height;
+    data_to_game_coords(&bkg_width, &bkg_height);
 
+    for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+        thisroom.BgFrames[i].Graphic = fix_bitmap_size(thisroom.BgFrames[i].Graphic, bkg_width, bkg_height);
+
+    // fix walk-behinds to match room background
+    // TODO: would not we need to do similar to each mask if they were 1:1 in hires room?
+    thisroom.WalkBehindMask = fix_bitmap_size(thisroom.WalkBehindMask, bkg_width, bkg_height);
+}
 
 
 void save_room_data_segment () {
@@ -366,54 +378,58 @@ void unload_old_room() {
 
 }
 
-
-// TODO: merge this into UpdateRoomData?
-void convert_room_coordinates_to_low_res(RoomStruct *rstruc)
+// Convert all room objects to the data resolution (only if it's different from game resolution).
+// TODO: merge this into UpdateRoomData? or this is required for engine only?
+void convert_room_coordinates_to_data_res(RoomStruct *rstruc)
 {
+    if (game.GetDataUpscaleMult() == 1)
+        return;
+
+    const int mul = game.GetDataUpscaleMult();
     for (size_t i = 0; i < rstruc->ObjectCount; ++i)
     {
-        rstruc->Objects[i].X /= 2;
-        rstruc->Objects[i].Y /= 2;
+        rstruc->Objects[i].X /= mul;
+        rstruc->Objects[i].Y /= mul;
         if (rstruc->Objects[i].Baseline > 0)
         {
-            rstruc->Objects[i].Baseline /= 2;
+            rstruc->Objects[i].Baseline /= mul;
         }
     }
 
     for (size_t i = 0; i < rstruc->HotspotCount; ++i)
     {
-        rstruc->Hotspots[i].WalkTo.X /= 2;
-        rstruc->Hotspots[i].WalkTo.Y /= 2;
+        rstruc->Hotspots[i].WalkTo.X /= mul;
+        rstruc->Hotspots[i].WalkTo.Y /= mul;
     }
 
     for (size_t i = 0; i < rstruc->WalkBehindCount; ++i)
     {
-        rstruc->WalkBehinds[i].Baseline /= 2;
+        rstruc->WalkBehinds[i].Baseline /= mul;
     }
 
-    rstruc->Edges.Left /= 2;
-    rstruc->Edges.Top /= 2;
-    rstruc->Edges.Bottom /= 2;
-    rstruc->Edges.Right /= 2;
-    rstruc->Width /= 2;
-    rstruc->Height /= 2;
+    rstruc->Edges.Left /= mul;
+    rstruc->Edges.Top /= mul;
+    rstruc->Edges.Bottom /= mul;
+    rstruc->Edges.Right /= mul;
+    rstruc->Width /= mul;
+    rstruc->Height /= mul;
 }
 
 extern int convert_16bit_bgr;
 
 void update_letterbox_mode()
 {
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
-    const Rect game_frame = RectWH(game.size);
+    const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
+    const Rect game_frame = RectWH(game.GetGameRes());
     Rect new_main_view = game_frame;
     // In the original engine the letterbox feature only allowed viewports of
     // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
     // Also, the UI viewport should be matching room viewport in that case.
     // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
     const int viewport_height =
-        real_room_sz.Height < game.altsize.Height ? real_room_sz.Height :
-        (real_room_sz.Height >= game.altsize.Height && real_room_sz.Height < game.size.Height) ? game.altsize.Height :
-        game.size.Height;
+        real_room_sz.Height < game.GetLetterboxSize().Height ? real_room_sz.Height :
+        (real_room_sz.Height >= game.GetLetterboxSize().Height && real_room_sz.Height < game.GetGameRes().Height) ? game.GetLetterboxSize().Height :
+        game.GetGameRes().Height;
     new_main_view.SetHeight(viewport_height);
 
     play.SetMainViewport(CenterInRect(game_frame, new_main_view));
@@ -422,7 +438,7 @@ void update_letterbox_mode()
 
 void adjust_viewport_to_room()
 {
-    const Size real_room_sz = Size(multiply_up_coordinate(thisroom.Width), multiply_up_coordinate(thisroom.Height));
+    const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
     const Rect main_view = play.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
@@ -465,10 +481,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
 
-    if (game.IsHiRes() && (game.options[OPT_NATIVECOORDINATES] == 0))
-    {
-        convert_room_coordinates_to_low_res(&thisroom);
-    }
+    convert_room_coordinates_to_data_res(&thisroom);
 
     update_polled_stuff_if_runtime();
     our_eip=201;
@@ -527,21 +540,12 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=204;
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
-    // fix walk-behinds to current screen resolution
-    // TODO: perhaps do this for every mask in the UpdateRoomData()?
-    thisroom.WalkBehindMask = fix_bitmap_size(thisroom.WalkBehindMask);
     update_polled_stuff_if_runtime();
 
     set_color_depth(game.GetColorDepth());
-    // convert backgrounds to current res
-    // TODO: perhaps do this in the UpdateRoomData()? also, what is this strange condition?
-    if (thisroom.Resolution != get_fixed_pixel_size(1))
-    {
-        for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
-            thisroom.BgFrames[i].Graphic = fix_bitmap_size(thisroom.BgFrames[i].Graphic);
-    }
-
+    convert_room_background_to_game_res();
     recache_walk_behinds();
+    update_polled_stuff_if_runtime();
 
     our_eip=205;
     // setup objects
@@ -1035,6 +1039,28 @@ void croom_ptr_clear()
 {
     croom = NULL;
     objs = NULL;
+}
+
+void convert_move_path_to_room_resolution(MoveList *ml)
+{ // TODO: refer to room mask own setting here instead
+    if (game.GetRoomMaskMul() == 1)
+        return;
+
+    const int mul = game.GetRoomMaskMul();
+    ml->fromx *= mul;
+    ml->fromy *= mul;
+    ml->lastx *= mul;
+    ml->lasty *= mul;
+
+    for (int i = 0; i < ml->numstage; i++)
+    {
+        short lowPart = (ml->pos[i] & 0x0000ffff) * mul;
+        short highPart = ((ml->pos[i] >> 16) & 0x0000ffff) * mul;
+        ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
+
+        ml->xpermove[i] *= mul;
+        ml->ypermove[i] *= mul;
+    }
 }
 
 //=============================================================================

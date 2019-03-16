@@ -599,7 +599,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
 {
     // This is something very ancient...
     if (data_ver < kRoomVersion_200_final && room->BgFrames[0].Graphic->GetWidth() > 320)
-        room->Resolution = 2;
+        room->Resolution = HIRES_COORD_MULTIPLIER;
 
     // Old version - copy walkable areas to regions
     if (data_ver < kRoomVersion_255b)
@@ -650,38 +650,39 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
     }
 
     // Pre-3.0.3, multiply up co-ordinates for high-res games to bring them
-    // to the proper game screen coordinate system.
-    // If you change this, also change convert_room_coordinates_to_low_res
+    // to the proper game coordinate system.
+    // If you change this, also change convert_room_coordinates_to_data_res
     // function in the engine
     if (data_ver < kRoomVersion_303b && game_is_hires)
     {
+        const int mul = HIRES_COORD_MULTIPLIER;
         for (size_t i = 0; i < room->ObjectCount; ++i)
         {
-            room->Objects[i].X *= 2;
-            room->Objects[i].Y *= 2;
+            room->Objects[i].X *= mul;
+            room->Objects[i].Y *= mul;
             if (room->Objects[i].Baseline > 0)
             {
-                room->Objects[i].Baseline *= 2;
+                room->Objects[i].Baseline *= mul;
             }
         }
 
         for (size_t i = 0; i < room->HotspotCount; ++i)
         {
-            room->Hotspots[i].WalkTo.X *= 2;
-            room->Hotspots[i].WalkTo.Y *= 2;
+            room->Hotspots[i].WalkTo.X *= mul;
+            room->Hotspots[i].WalkTo.Y *= mul;
         }
 
         for (size_t i = 0; i < room->WalkBehindCount; ++i)
         {
-            room->WalkBehinds[i].Baseline *= 2;
+            room->WalkBehinds[i].Baseline *= mul;
         }
 
-        room->Edges.Left *= 2;
-        room->Edges.Top *= 2;
-        room->Edges.Bottom *= 2;
-        room->Edges.Right *= 2;
-        room->Width *= 2;
-        room->Height *= 2;
+        room->Edges.Left *= mul;
+        room->Edges.Top *= mul;
+        room->Edges.Bottom *= mul;
+        room->Edges.Right *= mul;
+        room->Width *= mul;
+        room->Height *= mul;
     }
 
     // Adjust object Y coordinate by adding sprite's height

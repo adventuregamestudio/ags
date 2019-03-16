@@ -6833,10 +6833,10 @@ int ParseContinue(ccInternalList * targ, ccCompiledScript * scrip, AGS::NestingS
     }
 
     // If locals contain pointers, free them
-    FreePointersOfLocals(scrip, loop_level);
+    FreePointersOfLocals(scrip, loop_level - 1);
 
     // Pop local variables from the stack
-    int totalsub = StacksizeOfLocals(loop_level);
+    int totalsub = StacksizeOfLocals(loop_level - 1);
     if (totalsub > 0)
         scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
     scrip->flush_line_numbers();

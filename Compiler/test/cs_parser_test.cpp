@@ -1274,3 +1274,23 @@ TEST(Compile, ExtenderFuncDifference)
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, StaticFuncCall)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+    // Static function call, should work.
+    char *inpl = "\
+        builtin managed struct GUI                                  \n\
+        {                                                           \n\
+            import static void ProcessClick(int x, int y, int z);   \n\
+        };                                                          \n\
+                                                                    \n\
+        void main()                                                 \n\
+        {                                                           \n\
+            GUI.ProcessClick(1, 2, 3);                              \n\
+        }                                                           \n\
+    ";
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

@@ -4729,7 +4729,7 @@ void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript *scrip, int var_name, FxFi
 }
 
 
-int ParseVardecl_CheckIllegalCombis(int var_name, int type_of_defn, bool is_pointer, Globalness is_global)
+int ParseVardecl_CheckIllegalCombis(int type_of_defn, bool is_pointer, Globalness is_global)
 {
     if (FlagIsSet(sym.entries[type_of_defn].flags, SFLG_MANAGED) && (!is_pointer) && (is_global != kGl_GlobalImport))
     {
@@ -4809,7 +4809,7 @@ int ParseVardecl0(
     if (sym.get_type(var_name) != 0)
         CopyKnownSymInfo(sym.entries[var_name], known_info);
 
-    int retval = ParseVardecl_CheckIllegalCombis(var_name, type_of_defn, is_pointer, is_global);
+    int retval = ParseVardecl_CheckIllegalCombis(type_of_defn, is_pointer, is_global);
     if (retval < 0) return retval;
 
     // this will become true iff we gobble a "," after the defn and expect another var of the same type
@@ -7109,15 +7109,6 @@ int cc_parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
 
 int ParseVartype(ccInternalList * targ, ccCompiledScript * scrip, AGS::Symbol cursym, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &set_nlc_flag)
 {
-    if (sym.get_type(targ->peeknext()) == SYM_DOT)
-    {
-        if (0 != (tqs & ~kTQ_Noloopcheck))
-        {
-            cc_error("Unexpected '.' (did you mean '::'?)");
-            return -1;
-        }
-    }
-
     // func or variable definition
     int retval = cc_parse_CheckTQ(tqs, SYM_VARTYPE);
     if (retval < 0) return retval;
@@ -7305,6 +7296,8 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
 
         case SYM_VARTYPE:
         {
+            if (SYM_DOT == sym.get_type(targ->peeknext()))
+                break; // this is a static struct component function call, so a command
             bool set_nlc_flag = false;
             int retval = ParseVartype(targ, scrip, cursym, tqs, nesting_stack, name_of_current_func, struct_of_current_func, set_nlc_flag);
             if (retval < 0) return retval;

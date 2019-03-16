@@ -534,13 +534,19 @@ void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
     // Copy gathered data over to game
     delete[] game.audioClipTypes;
     game.audioClipTypeCount = audiocliptypes.size();
-    game.audioClipTypes = new AudioClipType[game.audioClipTypeCount];
-    memcpy(game.audioClipTypes, &audiocliptypes.front(), sizeof(AudioClipType) * game.audioClipTypeCount);
+    if (game.audioClipTypeCount > 0)
+    {
+        game.audioClipTypes = new AudioClipType[game.audioClipTypeCount];
+        memcpy(game.audioClipTypes, &audiocliptypes.front(), sizeof(AudioClipType) * game.audioClipTypeCount);
+    }
 
     delete[] game.audioClips;
     game.audioClipCount = audioclips.size();
-    game.audioClips = new ScriptAudioClip[game.audioClipCount];
-    memcpy(game.audioClips, &audioclips.front(), sizeof(ScriptAudioClip) * game.audioClipCount);
+    if (game.audioClipCount > 0)
+    {
+        game.audioClips = new ScriptAudioClip[game.audioClipCount];
+        memcpy(game.audioClips, &audioclips.front(), sizeof(ScriptAudioClip) * game.audioClipCount);
+    }
     
     // Setup sound clip played on score event
     game.scoreClipID = -1;

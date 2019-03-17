@@ -42,6 +42,7 @@ extern int smcode;
     items = 0;
     topitem = 0;
     selected = -1;
+    memset(itemnames, 0, sizeof(itemnames));
   }
 
   void MyListBox::clearlist()

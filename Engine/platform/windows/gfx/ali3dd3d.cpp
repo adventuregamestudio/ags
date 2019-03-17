@@ -268,7 +268,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _vmem_b_shift_32 = 0;
 
   // Initialize default sprite batch, it will be used when no other batch was activated
-  InitSpriteBatch(0, _spriteBatchDesc[0]);
+  D3DGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -1004,7 +1004,7 @@ void D3DGraphicsDriver::UnInit()
 
 D3DGraphicsDriver::~D3DGraphicsDriver()
 {
-  UnInit();
+  D3DGraphicsDriver::UnInit();
 
   if (direct3d)
     direct3d->Release();

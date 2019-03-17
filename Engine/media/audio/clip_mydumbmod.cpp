@@ -160,6 +160,7 @@ int MYMOD::play() {
 }  
 
 MYMOD::MYMOD() : SOUNDCLIP() {
+    tune = NULL;
     duhPlayer = NULL;
 }
 

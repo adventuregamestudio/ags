@@ -84,13 +84,15 @@ SavegameSource::SavegameSource()
 }
 
 SavegameDescription::SavegameDescription()
-    : ColorDepth(0)
+    : MainDataVersion(kGameVersion_Undefined)
+    , ColorDepth(0)
 {
 }
 
 PreservedParams::PreservedParams()
     : SpeechVOX(0)
     , MusicVOX(0)
+    , GlScDataSize(0)
 {
 }
 

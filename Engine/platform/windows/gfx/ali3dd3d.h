@@ -95,6 +95,7 @@ public:
         _stretchToWidth = 0;
         _stretchToHeight = 0;
         _useResampler = false;
+        _red = _green = _blue = 0;
         _tintSaturation = 0;
         _lightLevel = 0;
         _transparency = 0;

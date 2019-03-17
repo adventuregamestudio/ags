@@ -12,10 +12,16 @@
 //
 //=============================================================================
 
-#include "executingscript.h"
 #include <string.h>
+#include "executingscript.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+
+QueuedScript::QueuedScript()
+    : Instance(kScInstGame)
+    , ParamCount(0)
+{
+}
 
 int ExecutingScript::queue_action(PostScriptAction act, int data, const char *aname) {
     if (numPostScriptActions >= MAX_QUEUED_ACTIONS)
@@ -70,6 +76,11 @@ void ExecutingScript::init() {
     forked = 0;
     numanother = 0;
     numPostScriptActions = 0;
+
+    memset(postScriptActions, 0, sizeof(postScriptActions));
+    memset(postScriptActionNames, 0, sizeof(postScriptActionNames));
+    memset(postScriptSaveSlotDescription, 0, sizeof(postScriptSaveSlotDescription));
+    memset(postScriptActionData, 0, sizeof(postScriptActionData));
 }
 
 ExecutingScript::ExecutingScript() {

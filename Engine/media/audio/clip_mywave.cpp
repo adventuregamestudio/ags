@@ -151,5 +151,7 @@ int MYWAVE::play() {
 }
 
 MYWAVE::MYWAVE() : SOUNDCLIP() {
+    wave = NULL;
     voice = -1;
+    firstTime = 0;
 }

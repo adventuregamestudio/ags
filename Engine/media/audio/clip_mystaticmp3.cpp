@@ -196,6 +196,8 @@ int MYSTATICMP3::play() {
 }
 
 MYSTATICMP3::MYSTATICMP3() : SOUNDCLIP() {
+    tune = NULL;
+    mp3buffer = NULL;
 }
 
 #endif // !NO_MP3_PLAYER

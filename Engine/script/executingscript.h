@@ -49,6 +49,8 @@ struct QueuedScript
     size_t             ParamCount;
     RuntimeScriptValue Param1;
     RuntimeScriptValue Param2;
+
+    QueuedScript();
 };
 
 struct ExecutingScript {

@@ -137,11 +137,11 @@ struct EnginePlugin {
     int         savedatasize;
     int         wantHook;
     int         invalidatedRegion;
-    void      (*engineStartup) (IAGSEngine *);
-    void      (*engineShutdown) ();
-    int       (*onEvent) (int, int);
-    void      (*initGfxHook) (const char *driverName, void *data);
-    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved);
+    void      (*engineStartup) (IAGSEngine *) = NULL;
+    void      (*engineShutdown) () = NULL;
+    int       (*onEvent) (int, int) = NULL;
+    void      (*initGfxHook) (const char *driverName, void *data) = NULL;
+    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = NULL;
     IAGSEngine  eiface;
     bool        builtin;
 
@@ -150,8 +150,11 @@ struct EnginePlugin {
         wantHook = 0;
         invalidatedRegion = 0;
         savedata = NULL;
+        savedatasize = 0;
         builtin = false;
         available = false;
+        eiface.version = 0;
+        eiface.pluginId = 0;
     }
 };
 #define MAXPLUGINS 20

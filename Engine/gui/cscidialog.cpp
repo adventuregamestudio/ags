@@ -79,7 +79,9 @@ void __my_wbutt(Bitmap *ds, int x1, int y1, int x2, int y2)
 
 OnScreenWindow::OnScreenWindow()
 {
+    x = y = 0;
     handle = -1;
+    oldtop = -1;
 }
 
 int CSCIGetVersion()

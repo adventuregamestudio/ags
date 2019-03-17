@@ -25,13 +25,20 @@ NewControl::NewControl(int xx, int yy, int wi, int hi)
     wid = wi;
     hit = hi;
     state = 0;
+    typeandflags = 0;
+    wlevel = 0;
     visible = 1;
     enabled = 1;
     needredraw = 1;
 };
 NewControl::NewControl() {
+    x = y = wid = hit = 0;
+    state = 0;
+    typeandflags = 0;
+    wlevel = 0;
     visible = 1;
     enabled = 1;
+    needredraw = 1;
 }
 int NewControl::mouseisinarea(int mousex, int mousey)
 {

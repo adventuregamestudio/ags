@@ -48,6 +48,9 @@ GameSetupStructBase::GameSetupStructBase()
     , load_dictionary(false)
     , load_compiled_script(false)
     , _resolutionType(kGameResolution_Undefined)
+    , _dataUpscaleMult(1)
+    , _screenUpscaleMult(1)
+    , _roomMaskMul(1)
 {
     memset(gamename, 0, sizeof(gamename));
     memset(options, 0, sizeof(options));

@@ -412,7 +412,7 @@ Atom get_x_atom (const char *atom_name)
   Atom atom = XInternAtom(_xwin.display, atom_name, False);
   if (atom == None)
   {
-    Debug::Printf(kDbgMsg_Error, "ERROR: X11 atom \"%s\" not found.\n");
+    Debug::Printf(kDbgMsg_Error, "ERROR: X11 atom \"%s\" not found.\n", atom_name);
   }
   return atom;
 }

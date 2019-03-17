@@ -1032,10 +1032,10 @@ void croom_ptr_clear()
 
 void convert_move_path_to_room_resolution(MoveList *ml)
 { // TODO: refer to room mask own setting here instead
-    if (game.GetRoomMaskMul() == 1)
+    if (thisroom.MaskResolution == 1)
         return;
 
-    const int mul = game.GetRoomMaskMul();
+    const int mul = thisroom.MaskResolution;
     ml->fromx *= mul;
     ml->fromy *= mul;
     ml->lastx *= mul;

@@ -21,9 +21,6 @@
 #include <stdio.h>
 #include <allegro.h>
 #include <xalleg.h>
-// xalleg.h pulls in an Allegro-internal definition of MAX_TIMERS which
-// conflicts with the definition in runtime_defines.h. Forget it.
-#undef MAX_TIMERS
 #include "ac/runtime_defines.h"
 #include "gfx/gfxdefines.h"
 #include "platform/base/agsplatformdriver.h"

@@ -720,14 +720,6 @@ void render_to_screen(int atx, int aty)
     if(pl_any_want_hook(AGSE_FINALSCREENDRAW))
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
 
-    if (play.screen_is_faded_out)
-    {
-        if (gfxDriver->UsesMemoryBackBuffer())
-            gfxDriver->RenderToBackBuffer();
-        gfxDriver->ClearDrawLists();
-        return;
-    }
-
     // only vsync in full screen mode, it makes things worse
     // in a window
     gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (!scsystem.windowed));

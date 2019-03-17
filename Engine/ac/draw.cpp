@@ -2402,7 +2402,7 @@ void update_screen() {
 
     ags_domouse(DOMOUSE_NOCURSOR);
 
-    if (!play.mouse_cursor_hidden)
+    if (!play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
     {
         gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
         invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
@@ -2459,8 +2459,8 @@ void construct_virtual_screen(bool fullRedraw)
         0.f);
     gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraFrame);
     Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
-    if (displayed_room >= 0) {
-
+    if (displayed_room >= 0 && play.screen_is_faded_out == 0)
+    {
         if (fullRedraw)
             invalidate_screen();
 
@@ -2473,6 +2473,9 @@ void construct_virtual_screen(bool fullRedraw)
         bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
         Bitmap *room_bmp = translate_only ? ds : RoomCameraFrame.get();
         draw_room(ds, room_bmp, !translate_only);
+        // reset the Baselines Changed flag now that we've drawn stuff
+        walk_behind_baselines_changed = 0;
+        put_sprite_list_on_screen(true);
     }
     else if (!gfxDriver->RequiresFullRedrawEachFrame()) 
     {
@@ -2481,9 +2484,6 @@ void construct_virtual_screen(bool fullRedraw)
         // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
         ds->Fill(0);
     }
-    // reset the Baselines Changed flag now that we've drawn stuff
-    walk_behind_baselines_changed = 0;
-    put_sprite_list_on_screen(true);
 
     // make sure that the mp3 is always playing smoothly
     update_mp3();
@@ -2494,8 +2494,11 @@ void construct_virtual_screen(bool fullRedraw)
     //
     const Rect &ui_viewport = play.GetUIViewportAbs();
     gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform());
-    draw_gui_and_overlays();
-    put_sprite_list_on_screen(false);
+    if (play.screen_is_faded_out == 0)
+    {
+        draw_gui_and_overlays();
+        put_sprite_list_on_screen(false);
+    }
 
     //
     // Batch 3: auxiliary info

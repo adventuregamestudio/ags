@@ -241,6 +241,7 @@ struct MessageInfo
 // Room's legacy resolution type
 enum RoomResolutionType
 {
+    kRoomRealRes = 0, // room should always be treated as-is
     kRoomLoRes = 1, // created for low-resolution game
     kRoomHiRes = 2 // created for high-resolution game
 };
@@ -257,8 +258,11 @@ public:
     RoomStruct();
     ~RoomStruct();
 
+    // Gets if room should adjust its base size depending on game's resolution
+    inline bool IsRelativeRes() const { return _resolution != kRoomRealRes; }
     // Gets if room belongs to high resolution
-    inline bool IsHiRes() const { return Resolution == kRoomHiRes; }
+    inline bool IsHiRes() const { return _resolution == kRoomHiRes; }
+    inline RoomResolutionType GetResolutionType() const { return _resolution; }
 
     // Releases room resources
     void            Free();
@@ -268,6 +272,8 @@ public:
     void            FreeScripts();
     // Init default room state
     void            InitDefaults();
+    // Set legacy resolution type
+    void            SetResolution(RoomResolutionType type);
 
     // TODO: see later whether it may be more convenient to move these to the Region class instead.
     // Gets if the given region has light level set
@@ -290,9 +296,6 @@ public:
     // the room must have behavior specific to certain version of AGS.
     int32_t                 DataVersion;
 
-    // Room's legacy resolution type (1 - lores, 2 - hires);
-    // also serves as a hotspot/region mask relation to background
-    RoomResolutionType      Resolution;
     // Room region masks resolution. Defines the relation between room and mask units.
     // Mask point is calculated as roompt / MaskResolution. Must be >= 1.
     int32_t                 MaskResolution;
@@ -344,6 +347,10 @@ public:
     PInteractionScripts     EventHandlers;
     // Compiled room script
     PScript                 CompiledScript;
+
+private:
+    // Room's legacy resolution type, defines relation room and game's resolution
+    RoomResolutionType      _resolution;
 };
 
 

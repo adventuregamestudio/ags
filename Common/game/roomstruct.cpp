@@ -160,7 +160,7 @@ void RoomStruct::InitDefaults()
     DataVersion     = kRoomVersion_Current;
     GameID          = NO_GAME_ID_IN_ROOM_FILE;
 
-    Resolution      = kRoomLoRes;
+    _resolution     = kRoomRealRes;
     MaskResolution  = 1;
     Width           = 320;
     Height          = 200;
@@ -197,6 +197,11 @@ void RoomStruct::InitDefaults()
     BgAnimSpeed = 5;
 
     memset(Palette, 0, sizeof(Palette));
+}
+
+void RoomStruct::SetResolution(RoomResolutionType type)
+{
+    _resolution = type;
 }
 
 bool RoomStruct::HasRegionLightLevel(int id) const

@@ -238,6 +238,9 @@ PBitmap fix_bitmap_size(PBitmap todubl, int bkg_width, int bkg_height)
 // for display in the game.
 void convert_room_background_to_game_res()
 {
+    if (!thisroom.IsRelativeRes())
+        return;
+
     int bkg_width = thisroom.Width;
     int bkg_height = thisroom.Height;
     data_to_game_coords(&bkg_width, &bkg_height);

@@ -1686,20 +1686,9 @@ const char* load_room_file(const char*rtlo) {
   // Fix hi-color screens
   // TODO: find out why this is necessary. Probably has something to do with
   // Allegro switching color components at certain version update long time ago.
+  // do we need to do this in the engine too?
   for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
     fix_block (thisroom.BgFrames[i].Graphic.get());
-
-  // TODO: find out how old this conversion is; was this ever a thing?
-  // Perhaps merge this in UpdateRoomData and simply do this non-conditionally for every mask that does not match background size?
-  if ((thisroom.Resolution > 1) && (thisroom.WalkBehindMask->GetWidth() < thisroom.Width)) {
-    // 640x400 room with 320x200-res walkbehind
-    // resize it up to 640x400-res
-    int oldw = thisroom.WalkBehindMask->GetWidth(), oldh=thisroom.WalkBehindMask->GetHeight();
-    Common::Bitmap *tempb = Common::BitmapHelper::CreateBitmap(thisroom.Width, thisroom.Height, thisroom.WalkBehindMask->GetColorDepth());
-    tempb->Fill(0);
-    tempb->StretchBlt(thisroom.WalkBehindMask.get(),RectWH(0,0,oldw,oldh),RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
-    thisroom.WalkBehindMask.reset(tempb);
-  }
 
   set_palette_range(palette, 0, 255, 0);
   
@@ -2391,9 +2380,9 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
-	bool resolutionChanged = (theRoom->Resolution != (AGS::Common::RoomResolutionType)room->Resolution);
-	theRoom->Resolution = (AGS::Common::RoomResolutionType)room->Resolution;
-    theRoom->MaskResolution = theRoom->Resolution;
+	bool resolutionChanged = (theRoom->GetResolutionType() != (AGS::Common::RoomResolutionType)room->Resolution);
+	theRoom->SetResolution((AGS::Common::RoomResolutionType)room->Resolution);
+    theRoom->MaskResolution = theRoom->MaskResolution;
 
 	if (newbg->GetColorDepth() == 8) 
 	{
@@ -3669,14 +3658,8 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	room->ColorDepth = thisroom.BgFrames[0].Graphic->GetColorDepth();
 	room->BackgroundAnimationDelay = thisroom.BgAnimSpeed;
 	room->BackgroundCount = thisroom.BgFrameCount;
-    if (thisroom.Resolution > 2)
-    {
-        room->Resolution = RoomResolution::HighRes;
-    }
-    else
-    {
-  	    room->Resolution = (RoomResolution)thisroom.Resolution;
-    }
+    room->Resolution = (AGS::Types::RoomResolution)thisroom.GetResolutionType();
+    room->MaskResolution = thisroom.MaskResolution;
 
 	for (size_t i = 0; i < thisroom.LocalVariables.size(); ++i)
 	{
@@ -3832,8 +3815,8 @@ void save_crm_file(Room ^room)
     // Convert managed Room object into the native roomstruct that is going
     // to be saved using native procedure.
     //
-	thisroom.Resolution = (AGS::Common::RoomResolutionType)room->Resolution;
-    thisroom.MaskResolution = thisroom.Resolution;
+	thisroom.SetResolution((AGS::Common::RoomResolutionType)room->Resolution);
+    thisroom.MaskResolution = room->MaskResolution;
 
 	thisroom.GameID = room->GameID;
 	thisroom.Edges.Bottom = room->BottomEdgeY;

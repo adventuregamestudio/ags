@@ -599,7 +599,15 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
 {
     if (data_ver < kRoomVersion_200_final)
         room->MaskResolution = room->BgFrames[0].Graphic->GetWidth() > 320 ? kRoomHiRes : kRoomLoRes;
-    room->Resolution = room->MaskResolution > 1 ? kRoomHiRes : kRoomLoRes;
+    if (data_ver < kRoomVersion_3508)
+    {
+        // Save legacy resolution if it DOES NOT match game's;
+        // otherwise it gets promoted to "real resolution"
+        if (room->MaskResolution == 1 && game_is_hires)
+            room->SetResolution(kRoomLoRes);
+        else if (room->MaskResolution > 1 && !game_is_hires)
+            room->SetResolution(kRoomHiRes);
+    }
 
     // Old version - copy walkable areas to regions
     if (data_ver < kRoomVersion_255b)

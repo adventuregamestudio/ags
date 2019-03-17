@@ -453,15 +453,9 @@ namespace AGS.Editor
 					{
 						newResolution = _room.Resolution;
 					}
-                    // CHECKME: WTF is this??? How to deal with it?
-					else if (//(bmp.Width > 640) && (bmp.Height > 400) &&
-						(!Factory.AGSEditor.CurrentGame.Settings.LowResolution))
-					{
-						newResolution = RoomResolution.HighRes;
-					}
 					else
 					{
-						newResolution = RoomResolution.LowRes;
+						newResolution = RoomResolution.Real;
 					}
 
 					if ((bmp.Width != _room.Width) || (bmp.Height != _room.Height) ||
@@ -1010,7 +1004,8 @@ namespace AGS.Editor
         internal static bool IsHighResRoomWithLowResScript(Room room)
         {
             return Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript &&
-                room.Resolution == RoomResolution.HighRes;
+                (room.Resolution == RoomResolution.HighRes ||
+                room.Resolution == RoomResolution.Real && Factory.AGSEditor.CurrentGame.IsHighResolution);
         }
 
         /// <summary>

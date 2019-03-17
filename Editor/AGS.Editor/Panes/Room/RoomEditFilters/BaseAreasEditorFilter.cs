@@ -162,6 +162,11 @@ namespace AGS.Editor
         {
         }
 
+        /// <summary>
+        /// Draw hint overlay.
+        /// NOTE: this is NOT drawing on actual mask, which is performed when
+        /// user releases mouse button.
+        /// </summary>
         public virtual void Paint(Graphics graphics, RoomEditorState state)
         {
             int roomPixel = state.RoomSizeToWindow(1);
@@ -224,14 +229,7 @@ namespace AGS.Editor
         // TODO: choose this factor based on game size vs window size relation
         private float GetHintScaleFactor(RoomEditorState state)
         {
-            if (Factory.AGSEditor.CurrentGame.IsHighResolution)
-            {
-                return 2f;
-            }
-            else
-            {
-                return 1f;
-            }
+            return _room.MaskResolution;
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 

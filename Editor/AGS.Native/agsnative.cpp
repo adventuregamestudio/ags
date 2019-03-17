@@ -701,6 +701,7 @@ float get_scale_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
     return 0.f;
 }
 
+
 void copy_walkable_to_regions (void *roomptr) {
     RoomStruct *theRoom = (RoomStruct*)roomptr;
 	theRoom->RegionMask->Blit(theRoom->WalkAreaMask.get(), 0, 0, 0, 0, theRoom->RegionMask->GetWidth(), theRoom->RegionMask->GetHeight());
@@ -2642,6 +2643,13 @@ System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber)
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
   return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
+}
+
+void FixRoomMasks(Room ^room)
+{
+    RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
+    roomptr->MaskResolution = room->MaskResolution;
+    AGS::Common::FixRoomMasks(roomptr);
 }
 
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 

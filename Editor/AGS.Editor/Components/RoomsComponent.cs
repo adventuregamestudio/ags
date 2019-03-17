@@ -1036,6 +1036,11 @@ namespace AGS.Editor.Components
 				RenameRoom(_loadedRoom.Number, numberRequested);
 			}
 
+            if ((propertyName == Room.PROPERTY_NAME_MASKRESOLUTION) && (_loadedRoom != null))
+            {
+                AdjustRoomMaskResolution(Convert.ToInt32(oldValue), _loadedRoom.MaskResolution);
+            }
+
             // TODO: wish we could forward event to the CharacterComponent.OnPropertyChanged,
             // but its implementation relies on it being active Pane!
             if ((_guiController.ActivePane.SelectedPropertyGridObject is Character) &&
@@ -1082,6 +1087,19 @@ namespace AGS.Editor.Components
 				RePopulateTreeView();
 			}
 		}
+
+        /// <summary>
+        /// Resize room masks to match current MaskResolution property.
+        /// </summary>
+        private void AdjustRoomMaskResolution(int oldValue, int newValue)
+        {
+            if (newValue > oldValue) // this is a divisor
+            {
+                if (Factory.GUIController.ShowQuestion("The new mask resolution is smaller and this will reduce mask's precision and some pixels may be lost in the process. Do you want to proceed?") != DialogResult.Yes)
+                    return;
+            }
+            _nativeProxy.AdjustRoomMaskResolution(_loadedRoom);
+        }
 
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
@@ -1137,6 +1155,8 @@ namespace AGS.Editor.Components
 
             RePopulateTreeView();
             RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
+            // Allow room mask resolutions from 1:1 to 1:4
+            RoomMaskResolutionTypeConverter.SetResolutionRange(1, 4);
         }
 
         private int GetRoomNumberForFileName(string fileName, bool isDebugExecutionPoint)

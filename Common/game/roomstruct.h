@@ -354,7 +354,13 @@ private:
 };
 
 
+// Loads new room data into the given RoomStruct object
 void load_room(const char *filename, RoomStruct *room, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos);
+// Ensures that all existing room masks match room background size and
+// MaskResolution property, resizes mask bitmaps if necessary.
+void FixRoomMasks(RoomStruct *room);
+// Adjusts bitmap size if necessary and returns either new or old bitmap.
+PBitmap FixBitmap(PBitmap bmp, int dst_width, int dst_height);
 
 } // namespace Common
 } // namespace AGS

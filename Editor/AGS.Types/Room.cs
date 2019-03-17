@@ -21,6 +21,8 @@ namespace AGS.Types
 
         public const string EVENT_SUFFIX_ROOM_LOAD = "Load";
 
+        public const string PROPERTY_NAME_MASKRESOLUTION = "MaskResolution";
+
         private static InteractionSchema _interactionSchema;
 
         public delegate void RoomModifiedChangedHandler(bool isModified);
@@ -136,7 +138,7 @@ namespace AGS.Types
 
         [Description("What resolution do room region masks have relative to the room size")]
         [Category("Regions")]
-        [ReadOnly(true)]
+        [TypeConverter(typeof(RoomMaskResolutionTypeConverter))]
         public int MaskResolution
         {
             get { return _maskResolution; }

@@ -138,6 +138,7 @@ namespace AGS.Types
 
         [Description("What resolution do room region masks have relative to the room size")]
         [Category("Regions")]
+        [DefaultValue(1)]
         [TypeConverter(typeof(RoomMaskResolutionTypeConverter))]
         public int MaskResolution
         {

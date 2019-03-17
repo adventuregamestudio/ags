@@ -796,9 +796,11 @@ namespace AGS.Editor.Components
                 ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
             }
             _loadedRoom = _nativeProxy.LoadRoom(newRoom);
+            // TODO: group these in some UpdateRoomToNewVersion method
             _loadedRoom.Modified = ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
             _loadedRoom.Modified |= AddPlayMusicCommandToPlayerEntersRoomScript(_loadedRoom, errors);
+            _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
 			if (_loadedRoom.Script.Modified)
 			{
 				if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
@@ -851,6 +853,24 @@ namespace AGS.Editor.Components
             }
 
             return scriptModified;
+        }
+
+        private bool ApplyDefaultMaskResolution(Room room)
+        {
+            // TODO: currently the only way to know if the room was not affected by
+            // game's settings is to test whether it has game's ID. Investigate for
+            // a better way later?
+            if (room.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
+            {
+                int mask = _agsEditor.CurrentGame.Settings.DefaultRoomMaskResolution;
+                if (mask != room.MaskResolution)
+                {
+                    room.MaskResolution = mask;
+                    NativeProxy.Instance.AdjustRoomMaskResolution(room);
+                    return true;
+                }
+            }
+            return false;
         }
 
         private bool HookUpInteractionVariables(Room room)

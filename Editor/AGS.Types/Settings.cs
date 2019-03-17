@@ -90,8 +90,9 @@ namespace AGS.Types
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private bool _useLowResCoordinatesInScript = true;
+        private int _defRoomMaskResolution = 1;
         // Windows game explorer fields
-		private bool _enableGameExplorer = false;
+        private bool _enableGameExplorer = false;
 		private string _description = string.Empty;
 		private DateTime _releaseDate = DateTime.Now;
 		private string _genre = DEFAULT_GENRE;
@@ -847,7 +848,18 @@ namespace AGS.Types
             set { _hasMODMusic = value; }
         }
 
-		[DisplayName("Enable Game Explorer integration")]
+        [DisplayName("Default mask resolution")]
+        [Description("What resolution do room region masks have relative to the room size")]
+        [Category("Rooms")]
+        [DefaultValue(1)]
+        [TypeConverter(typeof(RoomMaskResolutionTypeConverter))]
+        public int DefaultRoomMaskResolution
+        {
+            get { return _defRoomMaskResolution; }
+            set { _defRoomMaskResolution = value; }
+        }
+
+        [DisplayName("Enable Game Explorer integration")]
 		[Description("Whether or not this game can be added to the Vista Game Explorer")]
 		[Category("Windows Game Explorer")]
 		public bool GameExplorerEnabled

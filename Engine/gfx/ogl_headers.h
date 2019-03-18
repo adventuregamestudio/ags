@@ -20,20 +20,17 @@
 #include <allegro.h>
 #include <winalleg.h>
 #include <allegro/platform/aintwin.h>
-#include <GL/gl.h>
 
-// Allegro and glext.h define these
-#undef int32_t
-#undef int64_t
-#undef uint64_t
-
-#include <GL/glext.h>
-#include <GL/wglext.h>
+#include "glad/glad.h"
+#include "glad/glad_wgl.h"
 
 #elif defined(LINUX_VERSION)
+#include <allegro.h>
+#include <xalleg.h>
+#include <X11/Xatom.h>
 
-#include <GL/glew.h>
-#include <GL/glxew.h>
+#include "glad/glad.h"
+#include "glad/glad_glx.h"
 
 #elif defined(ANDROID_VERSION)
 
@@ -66,5 +63,9 @@
 #define HGLRC void*
 #define HWND void*
 #define HINSTANCE void*
+
+#else
+
+#error "opengl: unsupported platform"
 
 #endif

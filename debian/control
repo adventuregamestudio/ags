@@ -9,8 +9,7 @@ Build-Depends: debhelper (>= 8.0.0),
                libfreetype6-dev,
                libtheora-dev,
                libvorbis-dev,
-               libogg-dev,
-               libglew-dev
+               libogg-dev
 Standards-Version: 3.9.3
 Homepage: https://github.com/adventuregamestudio/ags
 Vcs-Git: git://github.com/adventuregamestudio/ags.git

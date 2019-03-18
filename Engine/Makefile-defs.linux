@@ -1,4 +1,4 @@
-INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
+INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins ../Engine/libsrc/glad/include
 LIBDIR =
 CFLAGS := -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DALLEGRO_NO_FIX_ALIASES -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2) $(CFLAGS)
 CXXFLAGS := -fno-rtti -Wno-write-strings $(CXXFLAGS)
@@ -7,7 +7,6 @@ LIBS += $(shell pkg-config --libs allegro)
 LIBS += $(shell pkg-config --libs x11)
 LIBS += $(shell pkg-config --libs ogg)
 LIBS += $(shell pkg-config --libs theora)
-LIBS += $(shell pkg-config --libs glew)
 
 ifeq ($(USE_TREMOR), 1)
   LIBS += -lvorbisidec
@@ -46,3 +45,4 @@ platform/util/pe.c \
 platform/util/libc.c
 
 CDA = libsrc/libcda-0.5/linux.c
+GLAD := libsrc/glad/src/glad.c libsrc/glad/src/glad_glx.c

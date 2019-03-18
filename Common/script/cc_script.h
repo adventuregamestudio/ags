@@ -31,6 +31,7 @@ struct ccScript
 public:
     char *globaldata;
     int32_t globaldatasize;
+    intptr_t *code;
     int32_t *rawCode;
     int32_t codesize;
     char *strings;
@@ -56,7 +57,7 @@ public:
     static ccScript *CreateFromStream(Common::Stream *in);
 
     ccScript();
-    ccScript(const ccScript &src);
+    ccScript(const ccScript &) = delete;
     virtual ~ccScript(); // there are few derived classes, so dtor should be virtual
 
     // write the script to disk (after compiling)

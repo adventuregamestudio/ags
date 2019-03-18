@@ -59,6 +59,7 @@ ccScript::ccScript()
 {
     globaldata          = NULL;
     globaldatasize      = 0;
+    code                = nullptr;
     rawCode             = nullptr;
     codesize            = 0;
     strings             = NULL;
@@ -80,6 +81,7 @@ ccScript::ccScript()
     capacitySections    = 0;
 }
 
+#if 0
 ccScript::ccScript(const ccScript &src)
 {
     globaldatasize = src.globaldatasize;
@@ -94,11 +96,12 @@ ccScript::ccScript(const ccScript &src)
     }
 
     codesize = src.codesize;
+    code = nullptr;
     rawCode = nullptr;
     if (codesize > 0) {
-        auto s = codesize * sizeof(int32_t);
-        rawCode = (int32_t*)malloc(s);
-        memcpy(rawCode, src.rawCode, s);
+        auto s = codesize * sizeof(intptr_t);
+        code = (intptr_t*)malloc(s);
+        memcpy(code, src.code, s);
     }
 
     stringssize = src.stringssize;
@@ -178,6 +181,7 @@ ccScript::ccScript(const ccScript &src)
 
     instances = 0;
 }
+#endif 
 
 ccScript::~ccScript()
 {
@@ -193,8 +197,14 @@ void ccScript::Write(Stream *out) {
     out->WriteInt32(stringssize);
     if (globaldatasize > 0)
         out->WriteArray(globaldata,globaldatasize,1);
-    if (codesize > 0)
+    if (codesize > 0) {
+        if (rawCode) { free(rawCode); }
+        rawCode = (int32_t *)malloc(codesize * sizeof(int32_t));
+        for (int i = 0; i < codesize; i++) {
+            rawCode[i] = code[i];
+        }
         out->WriteArrayOfInt32(rawCode, codesize);
+    }
     if (stringssize > 0)
         out->WriteArray(strings,stringssize,1);
     out->WriteInt32(numfixups);
@@ -247,6 +257,7 @@ bool ccScript::Read(Stream *in)
   else
     globaldata = NULL;
 
+  code = nullptr;
   rawCode = nullptr;
   if (codesize > 0) {
     rawCode = (int32_t *)malloc(codesize * sizeof(int32_t));
@@ -316,6 +327,10 @@ void ccScript::Free()
 {
     if (globaldata != NULL)
         free(globaldata);
+
+    if (code)
+        free(code);
+    code = nullptr;
 
     if (rawCode)
         free(rawCode);

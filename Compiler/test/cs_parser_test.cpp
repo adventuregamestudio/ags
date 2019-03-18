@@ -1294,3 +1294,21 @@ TEST(Compile, StaticFuncCall)
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, Import2GlobalAllocation)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+    // Imported var I becomes a global var; must be allocated only once.
+    // This means that J ought to be allocated at 4.
+    char *inpl = "\
+        import int I;   \n\
+        int I;          \n\
+        int J;          \n\
+    ";
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    int idx = sym.find("J");
+    ASSERT_LE(0, idx);
+    SymbolTableEntry &entry = sym.entries[idx];
+    ASSERT_EQ(4, entry.soffs);
+}

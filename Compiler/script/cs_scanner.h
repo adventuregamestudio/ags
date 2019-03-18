@@ -11,14 +11,14 @@
 namespace AGS
 {
 
-/// Scans the input, returning the symstrings one by one.
-/// In this context, a "symstring" is defined to mean the string. 
-/// When the symstring (i.e., the string) is entered into the symbol database, it becomes a "symbol". 
+// Scans the input, returning the symstrings one by one.
+// In this context, a "symstring" is defined to mean the string. 
+// When the symstring (i.e., the string) is entered into the symbol database, it becomes a "symbol". 
 class Scanner
 {
 public:
-    /// These types represent the different kinds of symstring that can be scanned.
-    /// Since the symstrings haven't become tokens yet, this is just rudimentary information.
+    // These types represent the different kinds of symstring that can be scanned.
+    // Since the symstrings haven't become tokens yet, this is just rudimentary information.
     enum ScanType
     {
         kSct_Unspecified = 0,
@@ -39,13 +39,10 @@ public:
     std::size_t GetLineno();
     void SetTokenList(struct ::ccInternalList *TokenList);
 
-    /// If the input couldn't be scanned, this will explain the problem
+    // If the input couldn't be scanned, this will explain the problem
     const std::string GetLastError();
 
-    /// Get the next symstring from the input.
-    /// \param[out] symstring  The symstring from the input
-    /// \param[out] eof_encountered  Is true if the input is exhausted
-    /// \param[out] error_encountered Is true if the input couldn't be scanned; details in GetLastError() 
+    // Get the next symstring from the input.
     void GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
 
 protected:
@@ -63,41 +60,50 @@ private:
     ccInternalList *_tokenList;
     std::string _lastError;
 
-    /// Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
+    // Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
     void SkipWhitespace(bool &eof_encountered, bool &error_encountered);
 
-    ///  Read in either an int literal or a float literal
+    //  Read in either an int literal or a float literal
     void ReadInNumberLit(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
 
-    /// Read in a character literal; converts it internally into an equivalent int literal
+    // Translate a '\\' combination into a character, backslash is already read in
+    int EscapedChar2Char(int first_char_after_backslash, bool &error_encountered);
+
+    // Read oct combination \777; backslash is already read in
+    int OctChar2Char(int first_digit_char);
+
+    // Read hex combination \x77; backslash is already read in
+    int HexChar2Char();
+
+    // Read in a character literal; converts it internally into an equivalent int literal
     void ReadInCharLit(std::string &symstring, bool &eof_encountered, bool &error_encountered);
 
-    /// Read in a string literal
+    // Read in a string literal
     void ReadInStringLit(std::string &symstring, bool &eof_encountered, bool &error_encountered);
 
-    /// Read in an identifier or a keyword 
+    // Read in an identifier or a keyword 
     void ReadInIdentifier(std::string &symstring, bool &eof_encountered, bool &error_encountered);
 
-    /// Read in a single-char symstring
+    // Read in a single-char symstring
     void ReadIn1Char(std::string & symstring);
 
-    /// \brief Read in a single-char symstring (such as "*"), or a double-char one (such as "*=")
-    /// A double-char symstring is detected if and only if the second char is in PossibleSecondChars.
-    /// Otherwise, a one-char symstring is detected and the second char is left for the next call
+    // \brief Read in a single-char symstring (such as "*"), or a double-char one (such as "*=")
+    // A double-char symstring is detected if and only if the second char is in PossibleSecondChars.
+    // Otherwise, a one-char symstring is detected and the second char is left for the next call
     void ReadIn1or2Char(
         const std::string &possible_second_chars,
         std::string &symstring,
         bool &eof_encountered,
         bool &error_encountered);
 
-    /// Read in a symstring that begins with ".". This might yield a one- or three-char symstring.
+    // Read in a symstring that begins with ".". This might yield a one- or three-char symstring.
     void ReadInDotCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
 
 
-    /// Read in a symstring that begins with "<". This might yield a one-, two- or three-char symstring.
+    // Read in a symstring that begins with "<". This might yield a one-, two- or three-char symstring.
     void ReadInLTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
 
-    /// Read in a symstring that begins with ">". This might yield a one-, two- or three-char symstring.
+    // Read in a symstring that begins with ">". This might yield a one-, two- or three-char symstring.
     void ReadInGTCombi(std::string &symstring, bool &eof_encountered, bool &error_encountered);
 };
 

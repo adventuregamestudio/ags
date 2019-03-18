@@ -66,30 +66,19 @@ int ccCompiledScript::add_global(int siz, const char *vall)
 
 int ccCompiledScript::add_string(const char *strr)
 {
-    strings = (char *)realloc(strings, stringssize + strlen(strr) + 5);
-    unsigned int la, opi = 0;
-    for (la = 0; la <= strlen(strr); la++)
-    {
-        char ch = strr[la];
-        if (strr[la] == '\\')
-        {
-            la++;
-            ch = strr[la];
-            if (strr[la] == 'n') { ch = 10; }
-            else if (strr[la] == 'r') { ch = 13; }
-            else if (strr[la] == '[')
-            { // pass through as \[
-                strings[stringssize + opi] = '\\';
-                opi++;
-            }
-        }
-        strings[stringssize + opi] = ch;
-        opi++;
-    }
-    //  memcpy(&strings[stringssize],strr,strlen(strr)+1);
-    int toret = stringssize;
-    stringssize += strlen(strr) + 1;
-    return toret;
+    // Note: processing  of '\\' and '[' combinations moved to the scanner
+    // because the scanner must deal with '\\' anyway.
+    size_t const strsize_needed = strlen(strr) + 1;
+    size_t const start_of_new_string = stringssize;
+    // [fw] BUG: As soon as realloc relocates the whole block, all the previous
+    // return addresses will point into the wild. The correct way would be to
+    // store addresses that are relative to the start of the block and to add
+    // the block start to such addresses before they are used. There are
+    // fixups that implement this AFAIK, but strangely, those aren't used here.
+    strings = (char *)realloc(strings, stringssize + strsize_needed);
+    memcpy(&strings[start_of_new_string], strr, strsize_needed);
+    stringssize += strsize_needed;
+    return start_of_new_string;
 }
 
 void ccCompiledScript::add_fixup(int32_t locc, char ftype)

@@ -806,8 +806,7 @@ void OGLGraphicsDriver::CreateTintShader()
     // tintHSV - tint color in HSV,
     // tintAmnTrsLum - tint parameters: amount, translucence (alpha), luminance.
     "\
-                                #version 130\n\
-                                out vec4 gl_FragColor;\n\
+                                #version 120\n\
                                 uniform sampler2D textID;\n\
                                 uniform vec3 tintHSV;\n\
                                 uniform vec3 tintAmnTrsLum;\n\
@@ -862,8 +861,7 @@ void OGLGraphicsDriver::CreateLightShader()
     // light - light level,
     // alpha - color alpha value.
     "\
-                                #version 130\n\
-                                out vec4 gl_FragColor;\n\
+                                #version 120\n\
                                 uniform sampler2D textID;\n\
                                 uniform float light;\n\
                                 uniform float alpha;\n\

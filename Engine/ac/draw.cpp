@@ -1212,7 +1212,7 @@ void get_local_tint(int xpp, int ypp, int nolight,
             }
         }
 
-        if ((onRegion > 0) && (onRegion <= MAX_ROOM_REGIONS)) {
+        if ((onRegion > 0) && (onRegion < MAX_ROOM_REGIONS)) {
             light_level = thisroom.Regions[onRegion].Light;
             tint_level = thisroom.Regions[onRegion].Tint;
         }

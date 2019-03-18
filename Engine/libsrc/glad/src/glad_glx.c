@@ -149,7 +149,8 @@ int gladLoadGLX(Display *dpy, int screen) {
 
     if(open_gl()) {
         status = gladLoadGLXLoader((GLADloadproc)get_proc, dpy, screen);
-        close_gl();
+        // Issue with closing lib https://github.com/Dav1dde/glad/issues/107
+        //close_gl();
     }
 
     return status;

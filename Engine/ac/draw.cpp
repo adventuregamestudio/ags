@@ -1259,7 +1259,7 @@ void get_local_tint(int xpp, int ypp, int nolight,
             }
         }
 
-        if ((onRegion > 0) && (onRegion <= MAX_REGIONS)) {
+        if ((onRegion > 0) && (onRegion < MAX_REGIONS)) {
             light_level = thisroom.regionLightLevel[onRegion];
             tint_level = thisroom.regionTintLevel[onRegion];
         }

@@ -59,7 +59,7 @@ ccScript::ccScript()
 {
     globaldata          = NULL;
     globaldatasize      = 0;
-    code                = NULL;
+    rawCode             = nullptr;
     codesize            = 0;
     strings             = NULL;
     stringssize         = 0;
@@ -94,14 +94,11 @@ ccScript::ccScript(const ccScript &src)
     }
 
     codesize = src.codesize;
-    if (codesize > 0)
-    {
-        code = (intptr_t*)malloc(codesize * sizeof(intptr_t));
-        memcpy(code, src.code, sizeof(intptr_t) * codesize);
-    }
-    else
-    {
-        code = NULL;
+    rawCode = nullptr;
+    if (codesize > 0) {
+        auto s = codesize * sizeof(int32_t);
+        rawCode = (int32_t*)malloc(s);
+        memcpy(rawCode, src.rawCode, s);
     }
 
     stringssize = src.stringssize;
@@ -197,7 +194,7 @@ void ccScript::Write(Stream *out) {
     if (globaldatasize > 0)
         out->WriteArray(globaldata,globaldatasize,1);
     if (codesize > 0)
-        out->WriteArrayOfIntPtr32(code,codesize);
+        out->WriteArrayOfInt32(rawCode, codesize);
     if (stringssize > 0)
         out->WriteArray(strings,stringssize,1);
     out->WriteInt32(numfixups);
@@ -250,16 +247,11 @@ bool ccScript::Read(Stream *in)
   else
     globaldata = NULL;
 
+  rawCode = nullptr;
   if (codesize > 0) {
-    code = (intptr_t *)malloc(codesize * sizeof(intptr_t));
-    // MACPORT FIX: swap
-
-    // 64 bit: Read code into 8 byte array, necessary for being able to perform
-    // relocations on the references.
-    in->ReadArrayOfIntPtr32(code, codesize);
+    rawCode = (int32_t *)malloc(codesize * sizeof(int32_t));
+    in->ReadArrayOfInt32(rawCode, codesize);
   }
-  else
-    code = NULL;
 
   if (stringssize > 0) {
     strings = (char *)malloc(stringssize);
@@ -325,8 +317,9 @@ void ccScript::Free()
     if (globaldata != NULL)
         free(globaldata);
 
-    if (code != NULL)
-        free(code);
+    if (rawCode)
+        free(rawCode);
+    rawCode = nullptr;
 
     if (strings != NULL)
         free(strings);
@@ -338,7 +331,6 @@ void ccScript::Free()
         free(fixuptypes);
 
     globaldata = NULL;
-    code = NULL;
     strings = NULL;
     fixups = NULL;
     fixuptypes = NULL;

@@ -131,12 +131,16 @@ void Test_File()
 
     out->WriteInt32(20);
 
-    intptr_t ptr32_array_out[4];
-    ptr32_array_out[0] = 0xABCDABCD;
-    ptr32_array_out[1] = 0xFEDCFEDC;
-    ptr32_array_out[2] = 0xFEEDBEEF;
-    ptr32_array_out[3] = 0xBEEFFEED;
-    out->WriteArrayOfIntPtr32(ptr32_array_out, 4);
+    int32_t int32_array_out[8];
+    int32_array_out[0] = 0xABCDABCD;
+    int32_array_out[1] = 0xFEDCFEDC;
+    int32_array_out[2] = 0xFEEDBEEF;
+    int32_array_out[3] = 0xBEEFFEED;
+    int32_array_out[4] = 0x00000000;
+    int32_array_out[5] = 0x00000001;
+    int32_array_out[6] = 0x7FFFFFFF;
+    int32_array_out[7] = -1;
+    out->WriteArrayOfInt32(int32_array_out, 8);
 
     delete out;
 
@@ -180,8 +184,8 @@ void Test_File()
 
     int32_t int32val    = in->ReadInt32();
 
-    intptr_t ptr32_array_in[4];
-    in->ReadArrayOfIntPtr32(ptr32_array_in, 4);
+    int32_t int32_array_in[8];
+    in->ReadArrayOfInt32(int32_array_in, 8);
 
     delete in;
 
@@ -196,10 +200,27 @@ void Test_File()
     assert(memcmp(&tricky_data_in, &tricky_data_out, sizeof(TTrickyAlignedData)) == 0);
     assert(int32val == 20);
 
-    assert(ptr32_array_in[0] == 0xABCDABCD);
-    assert(ptr32_array_in[1] == 0xFEDCFEDC);
-    assert(ptr32_array_in[2] == 0xFEEDBEEF);
-    assert(ptr32_array_in[3] == 0xBEEFFEED);
+#ifndef AGS_64BIT
+    assert(int32_array_in[0] == 0xABCDABCD);
+    assert(int32_array_in[1] == 0xFEDCFEDC);
+    assert(int32_array_in[2] == 0xFEEDBEEF);
+    assert(int32_array_in[3] == 0xBEEFFEED);
+    assert(int32_array_in[4] == 0x00000000);
+    assert(int32_array_in[5] == 0x00000001);
+    assert(int32_array_in[6] == 0x7fffffff);
+    assert(int32_array_in[7] == -1);
+#else
+    // Because these are saved as signed int, they get sign extended. 
+    // This is fine as we might want negative numbers
+    assert(int32_array_in[0] == 0xFFFFFFFFABCDABCD);
+    assert(int32_array_in[1] == 0xFFFFFFFFFEDCFEDC);
+    assert(int32_array_in[2] == 0xFFFFFFFFFEEDBEEF);
+    assert(int32_array_in[3] == 0xFFFFFFFFBEEFFEED);
+    assert(int32_array_in[4] == 0x00000000);
+    assert(int32_array_in[5] == 0x00000001);
+    assert(int32_array_in[6] == 0x7fffffff);
+    assert(int32_array_in[7] == -1);
+#endif
 
     assert(!File::TestReadFile("test.tmp"));
 }

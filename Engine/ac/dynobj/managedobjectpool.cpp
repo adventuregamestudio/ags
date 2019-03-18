@@ -11,9 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include <stdlib.h>
-#include <string.h>
+#include <vector>
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
 #include "debug/out.h"
@@ -180,8 +178,8 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
     // use this opportunity to clean up any non-referenced pointers
     RunGarbageCollection();
 
-    int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
-    char *serializeBuffer = (char*)malloc(serializeBufferSize);
+    std::vector<char> serializeBuffer;
+    serializeBuffer.resize(SERIALIZE_BUFFER_SIZE);
 
     out->WriteInt32(OBJECT_CACHE_MAGIC_NUMBER);
     out->WriteInt32(2);  // version
@@ -204,34 +202,31 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
         // write the type of the object
         StrUtil::WriteCStr((char*)o.callback->GetType(), out);
         // now write the object data
-        int bytesWritten = o.callback->Serialize(o.addr, serializeBuffer, serializeBufferSize);
-        if ((bytesWritten < 0) && ((-bytesWritten) > serializeBufferSize))
+        int bytesWritten = o.callback->Serialize(o.addr, &serializeBuffer.front(), serializeBuffer.size());
+        if ((bytesWritten < 0) && ((-bytesWritten) > serializeBuffer.size()))
         {
             // buffer not big enough, re-allocate with requested size
-            serializeBufferSize = -bytesWritten;
-            serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
-            bytesWritten = o.callback->Serialize(o.addr, serializeBuffer, serializeBufferSize);
+            serializeBuffer.resize(-bytesWritten);
+            bytesWritten = o.callback->Serialize(o.addr, &serializeBuffer.front(), serializeBuffer.size());
         }
         assert(bytesWritten >= 0);
         out->WriteInt32(bytesWritten);
-        out->Write(serializeBuffer, bytesWritten);
+        out->Write(&serializeBuffer.front(), bytesWritten);
         out->WriteInt32(o.refCount);
 
         ManagedObjectLog("Wrote handle = %d", o.handle);
     }
-
-    free(serializeBuffer);
 }
 
 int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
-    int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
-    char *serializeBuffer = (char*)malloc(serializeBufferSize);
-    char typeNameBuffer[200];
-
     if (in->ReadInt32() != OBJECT_CACHE_MAGIC_NUMBER) {
         cc_error("Data was not written by ccSeralize");
         return -1;
     }
+
+    char typeNameBuffer[200];
+    std::vector<char> serializeBuffer;
+    serializeBuffer.resize(SERIALIZE_BUFFER_SIZE);
 
     auto version = in->ReadInt32();
 
@@ -244,16 +239,14 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
                     StrUtil::ReadCStr(typeNameBuffer, in, sizeof(typeNameBuffer));
                     if (typeNameBuffer[0] != 0) {
                         int numBytes = in->ReadInt32();
-                        if (numBytes > serializeBufferSize) {
-                            serializeBufferSize = numBytes;
-                            serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
+                        if (numBytes > serializeBuffer.size()) {
+                            serializeBuffer.resize(numBytes);
                         }
-                        assert(serializeBuffer != nullptr);
-                        in->Read(serializeBuffer, numBytes);
+                        in->Read(&serializeBuffer.front(), numBytes);
                         if (strcmp(typeNameBuffer, CC_DYNAMIC_ARRAY_TYPE_NAME) == 0) {
-                            globalDynamicArray.Unserialize(i, serializeBuffer, numBytes);
+                            globalDynamicArray.Unserialize(i, &serializeBuffer.front(), numBytes);
                         } else {
-                            reader->Unserialize(i, typeNameBuffer, serializeBuffer, numBytes);
+                            reader->Unserialize(i, typeNameBuffer, &serializeBuffer.front(), numBytes);
                         }
                         objects[i].refCount = in->ReadInt32();
                         ManagedObjectLog("Read handle = %d", objects[i].handle);
@@ -272,16 +265,14 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
                     assert (typeNameBuffer[0] != 0);
                     int numBytes = in->ReadInt32();
                     assert (numBytes >= 0);
-                    if (numBytes > serializeBufferSize) {
-                        serializeBufferSize = numBytes;
-                        serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
+                    if (numBytes > serializeBuffer.size()) {
+                        serializeBuffer.resize(numBytes);
                     }
-                    assert(serializeBuffer != nullptr);
-                    in->Read(serializeBuffer, numBytes);
+                    in->Read(&serializeBuffer.front(), numBytes);
                     if (strcmp(typeNameBuffer, CC_DYNAMIC_ARRAY_TYPE_NAME) == 0) {
-                        globalDynamicArray.Unserialize(handle, serializeBuffer, numBytes);
+                        globalDynamicArray.Unserialize(handle, &serializeBuffer.front(), numBytes);
                     } else {
-                        reader->Unserialize(handle, typeNameBuffer, serializeBuffer, numBytes);
+                        reader->Unserialize(handle, typeNameBuffer, &serializeBuffer.front(), numBytes);
                     }
                     objects[handle].refCount = in->ReadInt32();
                     ManagedObjectLog("Read handle = %d", objects[i].handle);
@@ -292,8 +283,6 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
             cc_error("Invalid data version: %d", version);
             return -1;
     }
-
-    free(serializeBuffer);
 
     // re-adjust next handles. (in case saved in random order)
     while (!available_ids.empty()) { available_ids.pop(); }

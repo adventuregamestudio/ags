@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <string.h>
 #include "ac/view.h"
 #include "util/alignedstream.h"
 

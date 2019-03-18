@@ -219,7 +219,7 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encountered, 
     do // exactly 1 time
     {
         // Opening '\''
-        _inputStream.get();
+        _inputStream.get(); // Eat '\''
 
         // The character inside
         lit_char = _inputStream.get();
@@ -236,20 +236,27 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encountered, 
 
         if (lit_char == '\\')
         {
-            // The next char is escaped, whatever it may be. 
-            // Note that AGS doesn't follow C syntax here:
-            // In C, '\n' is a newline; in AGS, it is the letter 'n'.
+            // The next char is escaped, whatever it may be.
             lit_char = _inputStream.get();
-            eof_encountered = _inputStream.eof();  // This is an error
+            eof_encountered = _inputStream.eof();
+            error_encountered = _inputStream.fail();
             if (eof_encountered)
             {
                 error_encountered = true;
-                _lastError = "Expected a character and an apostrophe, but input ended instead";
+                _lastError = "The input ended inmidst of an escape sequence";
                 return;
             }
-            error_encountered = _inputStream.fail();
+            if ('[' == lit_char)
+            {
+                // "\\[" is equivalent to two characters, so can't be used as a single character
+                _lastError = "\\[ not allowed in single quotes, use '[' instead";
+                return;
+            }
             if (error_encountered)
                 break; // to error processing
+            lit_char = EscapedChar2Char(lit_char, error_encountered);
+            if (error_encountered)
+                return;
         }
 
         // Closing '\''
@@ -286,40 +293,120 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encountered, 
     return;
 }
 
+int AGS::Scanner::OctChar2Char(int first_digit_char)
+{
+    int ret = first_digit_char - '0';
+    for (size_t count = 0; count < 2; ++count)
+    {
+        int digit = _inputStream.peek();
+        if (digit < '0' || digit > '8')
+            return ret;
+        int new_value = 8 * ret + (digit - '0');
+        if (new_value > 255)
+            return ret;
+        ret = new_value;
+        _inputStream.get(); // Eat the digit
+    }
+    return ret;
+}
+
+int AGS::Scanner::HexChar2Char()
+{
+    int ret = 0;
+    for (size_t count = 0; count < 2; ++count)
+    {
+        int hexdigit = _inputStream.peek();
+        //convert a..f to A..F
+        if (hexdigit > 'a')
+            hexdigit = hexdigit - 'a' + 'A'; 
+        if (hexdigit < '0' || (hexdigit > '9' && hexdigit < 'A') || hexdigit > 'F' )
+            return ret;
+        hexdigit -= '0';
+        if (hexdigit > 9)
+            hexdigit -= ('@' - '9');
+        ret = 16 * ret + hexdigit;
+        _inputStream.get(); // Eat the hexdigit
+    }
+    return ret;
+}
+
+int AGS::Scanner::EscapedChar2Char(int ch, bool &error_encountered)
+{
+    if (isdigit(ch))
+        return OctChar2Char(ch);
+
+    switch (ch)
+    {
+    default:
+        error_encountered = true;
+        _lastError = "Found unknown escape sequence '\\&' in string.";
+        _lastError.replace(_lastError.find_first_of('&'), 1, 1, ch);
+        return 0;
+    case '\'':
+    case '\"':
+        return ch;
+    case 'a':
+        return '\a';
+    case 'b':
+        return '\b';
+    case 'e':
+        return 27; // escape char
+    case 'f':
+        return '\f';
+    case 'n':
+        return '\n';
+    case 'r':
+        return '\r';
+    case 't':
+        return '\t';
+    case 'v':
+        return '\v';
+    case 'x':
+        return HexChar2Char();
+    }
+    return 0; // can't be reached
+}
+
 void AGS::Scanner::ReadInStringLit(std::string &symstring, bool &eof_encountered, bool &error_encountered)
 {
     symstring = "\"";
-    _inputStream.get(); // We know that this is a '"'
+    _inputStream.get(); // Eat '"'
     while (true)
     {
         int ch = _inputStream.get();
-        eof_encountered = _inputStream.eof(); // This is an error, too
+        eof_encountered = _inputStream.eof();
         error_encountered = _inputStream.fail();
-        if (eof_encountered || error_encountered || (strchr("\r\n", ch) != 0))
+        if (eof_encountered || error_encountered || ch == '\n' || ch == '\r')
             break; // to error msg
+
+        if (ch == '\\')
+        {
+            int ch = _inputStream.get();
+            eof_encountered = _inputStream.eof(); // This is an error, too
+            error_encountered = _inputStream.fail();
+            if (eof_encountered || error_encountered || ch == '\n' || ch == '\r')
+                break; // to error msg
+            if ('[' == ch)
+                symstring.append("\\[");
+            else
+                symstring.push_back(EscapedChar2Char(ch, error_encountered));
+            if (error_encountered)
+                return;
+            continue;
+        }
 
         symstring.push_back(ch);
 
         // End of string
         if (ch == '"')
             return;
-
-        if (ch == '\\')
-        {
-            // Now some character MUST follow; any one is allowed, but no line changes 
-            // Note that AGS doesn't follow C syntax here.
-            // In C, "\n" is a newline, but in AGS, "\n" is "n".
-            int ch = _inputStream.get();
-            eof_encountered = _inputStream.eof(); // This is an error, too
-            error_encountered = _inputStream.fail();
-            if (eof_encountered || error_encountered || (strchr("\r\n", ch) != 0))
-                break; // to error msg
-            symstring.push_back(ch);
-        }
     }
-    // Here whenever an error or EOF or LF came before the string was terminated
+    // Here when an error or eof occurs.
+    if (eof_encountered)
+        _lastError = "End of input encountered in an unclosed string literal";
+    else 
+        _lastError = "String literal may not contain any line breaks (use '[' instead)";
     error_encountered = true;
-    _lastError = "Incorrectly terminated string literal (Use '[' for line feed)";
     return;
 }
 

@@ -220,7 +220,7 @@ TEST(Scanner, Strings)
 {
     sym.reset();
     std::string Input =
-        "\"ABC\"\n\"D\\E;\\nF\" 'G' \
+        "\"ABC\"\n'G' \
          \"\nH\" flurp";
     struct ccInternalList TokenList;
 
@@ -239,19 +239,7 @@ TEST(Scanner, Strings)
     EXPECT_EQ(false, eofe);
     EXPECT_EQ(false, errore);
     EXPECT_EQ(1, lno);
-    estr = "\"ABC\"";
-    EXPECT_EQ(estr, symstring);
-    EXPECT_EQ(AGS::Scanner::kSct_StringLiteral, sct);
-
-    // Standard string, should be passed back normally.
-    // "\\E" should be equivalent to "E". "\\n" shoult NOT be a newline char.
-    scanner.GetNextSymstring(symstring, sct, eofe, errore);
-    lno = scanner.GetLineno();
-    EXPECT_EQ(false, eofe);
-    EXPECT_EQ(false, errore);
-    EXPECT_EQ(2, lno);
-    estr = "\"D\\E;\\nF\"";
-    EXPECT_EQ(estr, symstring);
+    EXPECT_STREQ("\"ABC\"", symstring.c_str());
     EXPECT_EQ(AGS::Scanner::kSct_StringLiteral, sct);
 
     // Character literal, should not be a string, but an integer.
@@ -301,7 +289,7 @@ TEST(Scanner, CharLit1)
 TEST(Scanner, CharLit2)
 {
     sym.reset();
-    std::string Input = "foo \'\\";
+    std::string Input = "foo '\\";
     struct ccInternalList TokenList;
 
     AGS::Scanner scanner(Input, 3, &TokenList);
@@ -349,7 +337,7 @@ TEST(Scanner, CharLit3)
 TEST(Scanner, CharLit4)
 {
     sym.reset();
-    std::string Input = "foo \'\\A$";
+    std::string Input = "foo '\\A$";
     struct ccInternalList TokenList;
 
     AGS::Scanner scanner(Input, 3, &TokenList);
@@ -366,6 +354,41 @@ TEST(Scanner, CharLit4)
     scanner.GetNextSymstring(symstring, sct, eofe, errore);
     EXPECT_TRUE(errore);
     estr = scanner.GetLastError();
-    EXPECT_NE(std::string::npos, estr.find("$"));
+    EXPECT_NE(std::string::npos, estr.find("nknown"));
 }
 
+TEST(Scanner, CharLit5)
+{
+    sym.reset();
+    std::string Input = "'\\n'";
+    struct ccInternalList TokenList;
+
+    AGS::Scanner scanner(Input, 3, &TokenList);
+    std::string symstring;
+    AGS::Scanner::ScanType sct;
+    bool eofe;
+    bool errore;
+    std::string estr;
+
+    scanner.GetNextSymstring(symstring, sct, eofe, errore);
+    ASSERT_FALSE(errore);
+    EXPECT_STREQ("10", symstring.c_str());
+}
+
+TEST(Scanner, String1)
+{
+    sym.reset();
+    std::string Input = "\"Oh, \\the \\brow\\n \\fo\\x5e jumps \\[ove\\r] the \\100\\azy dog.\"";
+    struct ccInternalList TokenList;
+
+    AGS::Scanner scanner(Input, 3, &TokenList);
+    std::string symstring;
+    AGS::Scanner::ScanType sct;
+    bool eofe;
+    bool errore;
+    std::string estr;
+
+    scanner.GetNextSymstring(symstring, sct, eofe, errore);
+    ASSERT_FALSE(errore);
+    EXPECT_STREQ("\"Oh, \the \brow\n \fo^ jumps \\[ove\r] the @\azy dog.\"", symstring.c_str());
+}

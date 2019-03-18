@@ -485,6 +485,7 @@ AGS::ImportMgr g_ImportMgr;
 //    and this may only happen if the options don't forbid this.
 // [TODO] Convert this into a class variable when the compiler has been
 //        converted to classes
+
 std::map<AGS::Symbol, bool> g_GIVM;
 
 // Track the phase the parser is in.
@@ -3339,7 +3340,7 @@ int AccessData_PrepareComponentAccess_Attribute(ccCompiledScript *scrip, AGS::Sy
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a pointer
-int AccessData_PrepareComponentAccess_Pointer(ccCompiledScript * scrip, AGS::Symbol variableSym, VariableSymlist * thisClause, int currentByteOffset, bool & isDynamicArray, bool writing, AGS::Symbol firstVariableType, AGS::Symbol firstVariableSym, bool isLastClause, bool pointerIsOnStack, bool & isArrayOffset, bool & getJustTheAddressIntoAX, int & currentComponentOffset, bool & accessActualPointer, bool & doMemoryAccessNow)
+int AccessData_PrepareComponentAccess_Pointer(ccCompiledScript *scrip, AGS::Symbol variableSym, VariableSymlist *thisClause, int currentByteOffset, bool &isDynamicArray, bool writing, AGS::Symbol firstVariableType, AGS::Symbol firstVariableSym, bool isLastClause, bool pointerIsOnStack, bool &isArrayOffset, bool &getJustTheAddressIntoAX, int &currentComponentOffset, bool &accessActualPointer, bool &doMemoryAccessNow)
 {
     bool isArrayOfPointers = false;
 
@@ -4082,7 +4083,7 @@ int MemoryAccess(
 }
 
 
-int WriteAXToData(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len)
+int WriteAXToData(ccCompiledScript *scrip, AGS::SymbolScript syml, int syml_len)
 {
     bool dummy; // ignored parameter
     return AccessData(scrip, syml, syml_len, true, false, false, dummy);
@@ -4841,7 +4842,7 @@ int ParseVardecl0(
         // initialize the struct to all zeros
         initial_value_ptr = calloc(1, size_of_defn + 1);
     }
-    else if (strcmp(sym.get_name_string(type_of_defn).c_str(), "string") == 0)
+    else if (sym.get_name_string(type_of_defn).compare("string") == 0)
     {
         int retval = ParseVardecl_StringDecl(scrip, var_name, is_global, initial_value_ptr, fixup_needed);
         if (retval < 0) return retval;
@@ -4865,9 +4866,6 @@ int ParseVardecl0(
         next_type = sym.get_type(targ->peeknext());
     }
 
-    if (kGl_GlobalImport == is_global && g_GIVM[var_name])
-        is_global = kGl_GlobalNoImport;
-
     switch (is_global)
     {
     default:
@@ -4875,6 +4873,8 @@ int ParseVardecl0(
         return -99;
 
     case kGl_GlobalImport:
+        if (g_GIVM[var_name])
+            break; // Skip this since the global non-import decl will come later
         sym.entries[var_name].soffs = scrip->add_new_import(sym.get_name_string(var_name).c_str());
         SetFlag(sym.entries[var_name].flags, SFLG_IMPORTED, true);
         if (sym.entries[var_name].soffs == -1)

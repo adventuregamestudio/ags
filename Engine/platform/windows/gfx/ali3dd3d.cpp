@@ -1675,6 +1675,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
      if (hr != D3D_OK) 
      {
+        free(tiles);
         char errorMessage[200];
         sprintf(errorMessage, "Direct3DDevice9::CreateVertexBuffer(Length=%d) for texture failed: error code %08X", vertexBufferSize, hr);
         throw Ali3DException(errorMessage);
@@ -1682,6 +1683,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
      if (ddb->_vertex->Lock(0, 0, (void**)&vertices, D3DLOCK_DISCARD) != D3D_OK)
      {
+       free(tiles);
        throw Ali3DException("Failed to lock vertex buffer");
      }
   }

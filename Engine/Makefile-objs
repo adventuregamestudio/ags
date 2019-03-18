@@ -109,4 +109,3 @@ ALDUMB = libsrc/dumb-0.9.2/allegro/alplay.c \
     libsrc/dumb-0.9.2/it/reads3m.c \
     libsrc/dumb-0.9.2/it/readxm.c \
     libsrc/dumb-0.9.2/it/xmeffect.c 
-

@@ -17,15 +17,14 @@ probably work.
 -   libvorbis (1.3.2)
 -   libXext (1.3.3)
 -   libXxf86vm (1.1.4)
--   GLEW (2.0.0)
 
 Fedora package installation
 ---------------------------
-    yum -y install git allegro-devel dumb-devel freetype-devel libogg-devel libtheora-devel libvorbis-devel libXext-devel libXxf86vm-devel glew-devel
+    yum -y install git allegro-devel dumb-devel freetype-devel libogg-devel libtheora-devel libvorbis-devel libXext-devel libXxf86vm-devel
 
 Debian/Ubuntu package installation
 ----------------------------------
-    sudo apt-get install git debhelper build-essential pkg-config libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev libglew-dev
+    sudo apt-get install git debhelper build-essential pkg-config libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
 
 Download and build
 ------------------

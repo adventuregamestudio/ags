@@ -227,7 +227,6 @@ private:
     bool _have_window;
     GLXContext _glxContext;
 #endif
-    Version _oglVersion;
     bool _firstTimeInit;
     int _tint_red, _tint_green, _tint_blue;
     // Position of backbuffer texture in world space
@@ -299,8 +298,6 @@ private:
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
     void SetupDefaultVertices();
-    // Test if swap interval (used for vsync) is supported
-    void TestVSync();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
     // Test if supersampling should be allowed with the current setup

@@ -24,52 +24,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/math.h"
 
-#if defined(LINUX_VERSION)
-#include <allegro.h>
-#include <xalleg.h>
-#include <X11/Xatom.h>
-#endif
-
-#if defined(WINDOWS_VERSION)
-
-const char* fbo_extension_string = "GL_EXT_framebuffer_object";
-const char* vsync_extension_string = "WGL_EXT_swap_control";
-
-// TODO: linking to glew32 library might be a better option
-PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT = 0;
-PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffersEXT = 0;
-PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT = 0;
-PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatusEXT = 0;
-PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC glGetFramebufferAttachmentParameterivEXT = 0;
-PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT = 0;
-PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = 0;
-PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
-PFNWGLSWAPINTERVALEXTPROC glSwapIntervalEXT = 0;
-// Shaders stuff
-PFNGLCREATESHADERPROC glCreateShader = 0;
-PFNGLSHADERSOURCEPROC glShaderSource = 0;
-PFNGLCOMPILESHADERPROC glCompileShader = 0;
-PFNGLGETSHADERIVPROC glGetShaderiv = 0;
-PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog = 0;
-PFNGLATTACHSHADERPROC glAttachShader = 0;
-PFNGLDETACHSHADERPROC glDetachShader = 0;
-PFNGLDELETESHADERPROC glDeleteShader = 0;
-PFNGLCREATEPROGRAMPROC glCreateProgram = 0;
-PFNGLLINKPROGRAMPROC glLinkProgram = 0;
-PFNGLGETPROGRAMIVPROC glGetProgramiv = 0;
-PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog = 0;
-PFNGLUSEPROGRAMPROC glUseProgram = 0;
-PFNGLDELETEPROGRAMPROC glDeleteProgram = 0;
-PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = 0;
-PFNGLUNIFORM1IPROC glUniform1i = 0;
-PFNGLUNIFORM1FPROC glUniform1f = 0;
-PFNGLUNIFORM3FPROC glUniform3f = 0;
-
-#elif defined(LINUX_VERSION)
-
-const char* fbo_extension_string = "GL_EXT_framebuffer_object";
-
-#elif defined(ANDROID_VERSION)
+#if defined(ANDROID_VERSION)
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
@@ -271,9 +226,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 16;
   _vmem_a_shift_32 = 24;
-
-  // Initialize default sprite batch, it will be used when no other batch was activated
-  OGLGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 
@@ -386,25 +338,11 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
 
 void OGLGraphicsDriver::FirstTimeInit()
 {
-#if defined (LINUX_VERSION)
-  int glew_rc = glewInit();
-  if(glew_rc != GLEW_OK)
-  {
-    Debug::Printf(kDbgMsg_Error, "Failed to initialize GLEW: %s.\n", glewGetErrorString(glew_rc));
-  }
-#endif
-  // It was told that GL_VERSION is supposed to begin with digits and may have
-  // custom string after, but mobile version of OpenGL seem to have different
-  // version string format.
-  String ogl_v_str = (const char*)glGetString(GL_VERSION);
-  String digits = "1234567890";
-  const char *digits_ptr = std::find_first_of(ogl_v_str.GetCStr(), ogl_v_str.GetCStr() + ogl_v_str.GetLength(),
-      digits.GetCStr(), digits.GetCStr() + digits.GetLength());
-  if (digits_ptr < ogl_v_str.GetCStr() + ogl_v_str.GetLength())
-    _oglVersion.SetFromString(digits_ptr);
-  Debug::Printf(kDbgMsg_Init, "Running OpenGL: %s", ogl_v_str.GetCStr());
+  Debug::Printf(kDbgMsg_Init, "Running OpenGL: %d.%d\n", GLVersion.major, GLVersion.minor);
 
-  TestVSync();
+  // Initialize default sprite batch, it will be used when no other batch was activated
+  OGLGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
+  
   TestRenderToTexture();
   CreateShaders();
   _firstTimeInit = true;
@@ -465,6 +403,16 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
       return false;
   }
 
+  if (!gladLoadWGL(_hDC)) {
+	  Debug::Printf(kDbgMsg_Error, "Failed to load WGL.");
+	  return false;
+  }
+
+  if (!gladLoadGL()) {
+	  Debug::Printf(kDbgMsg_Error, "Failed to load GL.");
+	  return false;
+  }
+
   CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
   win_grab_input();
 #elif defined (LINUX_VERSION)
@@ -480,12 +428,23 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
     // (_xwin.fs_window), we do not use it for going fullscreen. Instead we ask
     // the window manager to take the "managed" Window (_xwin.wm_window)
     // fullscreen for us. All drawing goes to the "real" Window (_xwin.window).
-    set_gfx_mode(GFX_AUTODETECT_WINDOWED, 0, 0, 0, 0);
+    if (set_gfx_mode(GFX_AUTODETECT_WINDOWED, 0, 0, 0, 0) != 0) 
+      return false;
     _have_window = true;
+  }
+
+  if (!gladLoadGLX(_xwin.display, DefaultScreen(_xwin.display))) {
+    Debug::Printf(kDbgMsg_Error, "Failed to load GLX.");
+    return false;
   }
 
   if (!_glxContext && !CreateGlContext(mode))
     return false;
+
+  if(!gladLoadGL()) {
+    Debug::Printf(kDbgMsg_Error, "Failed to load GL.");
+    return false;
+  }
 
   {
     // Set the size of our "managed" window.
@@ -582,21 +541,32 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-#if defined(WINDOWS_VERSION)
-  if (glSwapIntervalEXT)
-  {
-    if(mode.Vsync)
-      glSwapIntervalEXT(1);
-    else
-      glSwapIntervalEXT(0);
-  }
-#elif defined(LINUX_VERSION)
-  if (GLXEW_EXT_swap_control)
-  {
-    int interval = mode.Vsync ? 1 : 0;
-    glXSwapIntervalEXT(_xwin.display, _xwin.window, interval);
+  auto interval = mode.Vsync ? 1 : 0;
+  bool vsyncEnabled = false;
+
+#ifdef WINDOWS_VERSION
+  if (GLAD_WGL_EXT_swap_control) {
+    vsyncEnabled = wglSwapIntervalEXT(interval) != FALSE;
   }
 #endif
+
+#ifdef LINUX_VERSION
+  if (GLAD_GLX_EXT_swap_control) {
+    glXSwapIntervalEXT(_xwin.display, _xwin.window, interval);
+    // glx requires hooking into XSetErrorHandler to test for BadWindow or BadValue
+    vsyncEnabled = true;
+  } else if (GLAD_GLX_MESA_swap_control) {
+    vsyncEnabled = glXSwapIntervalMESA(interval) == 0;
+  } else if (GLAD_GLX_SGI_swap_control) {
+    vsyncEnabled = glXSwapIntervalSGI(interval) == 0;
+  }
+#endif
+
+  // TODO: find out how to implement SwapInterval on other platforms, and how to check if it's supported
+
+  if (mode.Vsync && !vsyncEnabled) {
+    Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync could not be enabled. Setting will be kept at driver default.");
+  }
 
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION)
   // Setup library mouse to have 1:1 coordinate transformation.
@@ -692,53 +662,14 @@ void OGLGraphicsDriver::DeleteGlContext()
 #endif
 }
 
-void OGLGraphicsDriver::TestVSync()
-{
-// TODO: find out how to implement SwapInterval on other platforms, and how to check if it's supported
-#if defined(WINDOWS_VERSION)
-  const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
-  const char* extensionsARB = NULL;
-//#if defined(WINDOWS_VERSION)
-  PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
-  extensionsARB = wglGetExtensionsStringARB ? (const char*)wglGetExtensionsStringARB(_hDC) : NULL;
-//#endif
-
-  if (extensions && strstr(extensions, vsync_extension_string) != NULL ||
-        extensionsARB && strstr(extensionsARB, vsync_extension_string) != NULL)
-  {
-//#if defined(WINDOWS_VERSION)
-    glSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-//#endif
-  }
-  if (!glSwapIntervalEXT)
-    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension '%s' not supported, vertical sync will be kept at driver default.", vsync_extension_string);
-#endif
-}
-
 void OGLGraphicsDriver::TestRenderToTexture()
 {
-  const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
-
-  if (extensions && strstr(extensions, fbo_extension_string) != NULL)
-  {
-  #if defined(WINDOWS_VERSION)
-    glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
-    glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
-    glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
-    glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
-    glGetFramebufferAttachmentParameterivEXT = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC)wglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
-    glGenerateMipmapEXT = (PFNGLGENERATEMIPMAPEXTPROC)wglGetProcAddress("glGenerateMipmapEXT");
-    glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
-    glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
-  #endif
-
+  if (GLAD_GL_EXT_framebuffer_object) {
     _can_render_to_texture = true;
     TestSupersampling();
-  }
-  else
-  {
+  } else {
     _can_render_to_texture = false;
-    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension '%s' not supported, rendering to texture mode will be disabled.", fbo_extension_string);
+    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension 'GL_EXT_framebuffer_object' not supported, rendering to texture mode will be disabled.");
   }
 
   if (!_can_render_to_texture)
@@ -761,38 +692,10 @@ void OGLGraphicsDriver::TestSupersampling()
 
 void OGLGraphicsDriver::CreateShaders()
 {
-  // We need at least OpenGL 3.0 to run our tinting shader
-  if (_oglVersion.Major < 3)
-    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL 3.0 or higher is required for tinting shader.");
-
-  // TODO: linking with GLEW library might be a better idea
-  #if defined(WINDOWS_VERSION)
-    glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
-    glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
-    glCompileShader = (PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader");
-    glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
-    glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)wglGetProcAddress("glGetShaderInfoLog");
-    glAttachShader = (PFNGLATTACHSHADERPROC)wglGetProcAddress("glAttachShader");
-    glDetachShader = (PFNGLDETACHSHADERPROC)wglGetProcAddress("glDetachShader");
-    glDeleteShader = (PFNGLDELETESHADERPROC)wglGetProcAddress("glDeleteShader");
-    glCreateProgram = (PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram");
-    glLinkProgram = (PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram");
-    glGetProgramiv = (PFNGLGETPROGRAMIVPROC)wglGetProcAddress("glGetProgramiv");
-    glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)wglGetProcAddress("glGetProgramInfoLog");
-    glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
-    glDeleteProgram = (PFNGLDELETEPROGRAMPROC)wglGetProcAddress("glDeleteProgram");
-    glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
-    glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
-    glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
-    glUniform3f = (PFNGLUNIFORM3FPROC)wglGetProcAddress("glUniform3f");
-  #endif
-
-  if (!glCreateShader)
-  {
-    Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL shader functions could not be linked.");
+  if (!GLAD_GL_VERSION_2_0) {
+    Debug::Printf(kDbgMsg_Error, "ERROR: Shaders require a minimum of OpenGL 2.0 support.");
     return;
   }
-
   CreateTintShader();
   CreateLightShader();
 }

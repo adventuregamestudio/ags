@@ -491,14 +491,7 @@ int RunTextScript2IParam(ccInstance *sci, const char*tsname, const RuntimeScript
     if (strnicmp(tsname, "interface_click", 15) == 0)
         guis_need_update = 1;
 
-    int toret = RunScriptFunctionIfExists(sci, tsname, 2, params);
-
-    // tsname is no longer valid, because RunScriptFunctionIfExists might
-    // have restored a save game and freed the memory. Therefore don't 
-    // attempt any strcmp's here
-    tsname = NULL;
-
-    return toret;
+    return RunScriptFunctionIfExists(sci, tsname, 2, params);
 }
 
 String GetScriptName(ccInstance *sci)

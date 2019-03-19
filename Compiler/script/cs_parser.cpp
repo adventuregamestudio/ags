@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cerrno>
 #include <string>
+#include <vector>
 #include "cs_parser.h"
 #include "cc_internallist.h"    // ccInternalList
 #include "cs_parser_common.h"
@@ -3127,7 +3128,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     int varsize,ccCompiledScript*scrip,ccInternalList*targ, int vtwas,
     int isPointer) {
   long lbuffer = 0;
-  std::unique_ptr<char[]> xbuffer;
+  std::vector<char> xbuffer;
   long *getsvalue = &lbuffer;
   int need_fixup = 0;
   int array_size = 1;
@@ -3206,12 +3207,12 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     }
 
     next_type[0] = sym.get_type(targ->peeknext());
-    xbuffer.reset(new char[varsize + 1]);
-    getsvalue = (long*)xbuffer.get();
+    xbuffer.resize(varsize + 1);
+    getsvalue = (long*)&xbuffer.front();
   }
   else if (varsize > 4) {
-    xbuffer.reset(new char[varsize + 1]);
-    getsvalue = (long*)xbuffer.get();
+    xbuffer.resize(varsize + 1);
+    getsvalue = (long*)&xbuffer.front();
   }
 
   if (strcmp(sym.get_name(vtwas),"string")==0) {

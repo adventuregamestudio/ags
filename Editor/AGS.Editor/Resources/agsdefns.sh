@@ -33,9 +33,9 @@
     #endif
   #endif
 */
-  #ifdef SCRIPT_API_v350
-    #ifndef SCRIPT_COMPAT_v341
-      #define STRICT_IN_v350
+  #ifdef SCRIPT_API_v3507
+    #ifndef SCRIPT_COMPAT_v350
+      #define STRICT_IN_v3507
     #endif
   #endif
 #endif
@@ -350,7 +350,7 @@ enum eKeyCode
   eKeyF12 = 434
 };
 
-#ifdef SCRIPT_API_v350
+#ifdef SCRIPT_API_v3507
 managed struct Point {
 	int x, y;
 };
@@ -503,7 +503,7 @@ builtin managed struct DrawingSurface {
   readonly import attribute int Width;
 };
 
-#ifdef SCRIPT_API_v350
+#ifdef SCRIPT_API_v3507
 builtin managed struct Camera;
 builtin managed struct Viewport;
 #endif
@@ -541,7 +541,7 @@ builtin managed struct Room {
   import static bool SetTextProperty(const string property, const string value);
   /// Performs default processing of a mouse click at the specified co-ordinates.
   import static void ProcessClick(int x, int y, CursorMode);
-#ifdef SCRIPT_API_v350
+#ifdef SCRIPT_API_v3507
   /// Gets the room camera
   import static readonly attribute Camera *Camera;
 #endif
@@ -698,11 +698,11 @@ import void DeleteSaveSlot(int slot);
 import void SetRestartPoint();
 /// Gets what type of thing is in the room at the specified co-ordinates.
 import LocationType GetLocationType(int x, int y);
-#ifdef SCRIPT_COMPAT_v341
+#ifdef SCRIPT_COMPAT_v350
 /// Returns which walkable area is at the specified position on screen.
 import int  GetWalkableAreaAt(int screenX, int screenY);
 #endif
-#ifdef SCRIPT_API_v350
+#ifdef SCRIPT_API_v3507
 /// Returns which walkable area is at the specified position on screen.
 import int  GetWalkableAreaAtScreen(int screenX, int screenY);
 /// Returns which walkable area is at the specified position within the room.
@@ -710,7 +710,7 @@ import int  GetWalkableAreaAtRoom(int roomX, int roomY);
 #endif
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
-#ifndef STRICT_IN_v350
+#ifndef STRICT_IN_v3507
 /// Locks the viewport to stop the screen scrolling automatically.
 import void SetViewport(int x, int y);
 /// Allows AGS to scroll the screen automatically to follow the player character.
@@ -1357,7 +1357,7 @@ builtin managed struct Hotspot {
   /// Sets a text custom property for this hotspot.
   import bool SetTextProperty(const string property, const string value);
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
-#ifdef SCRIPT_API_v350
+#ifdef SCRIPT_API_v3507
   /// Returns the hotspot at the specified position within this room.
   import static Hotspot* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
@@ -1388,7 +1388,7 @@ builtin managed struct Region {
   readonly import attribute int  TintSaturation;
   /// Gets the Luminance of this region's colour tint.
   readonly import attribute int  TintLuminance;
-#ifdef SCRIPT_API_v350
+#ifdef SCRIPT_API_v3507
   /// Returns the region at the specified position on the screen.
   import static Region* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #endif
@@ -1555,7 +1555,7 @@ builtin managed struct AudioClip {
 };
 
 builtin struct System {
-#ifdef SCRIPT_COMPAT_v341
+#ifdef SCRIPT_COMPAT_v350
   readonly int  screen_width,screen_height;
   readonly int  color_depth;
   readonly int  os;
@@ -1579,7 +1579,7 @@ builtin struct System {
   readonly import static attribute bool NumLock;
   /// Gets which operating system the game is running on.
   readonly import static attribute eOperatingSystem OperatingSystem;
-#ifdef SCRIPT_COMPAT_v341
+#ifdef SCRIPT_COMPAT_v350
   /// Gets the screen height of the current resolution.
   readonly import static attribute int  ScreenHeight;
   /// Gets the screen width of the current resolution.
@@ -1591,7 +1591,7 @@ builtin struct System {
   readonly import static attribute bool SupportsGammaControl;
   /// Gets the AGS engine version number.
   readonly import static attribute String Version;
-#ifdef SCRIPT_COMPAT_v341
+#ifdef SCRIPT_COMPAT_v350
   /// Gets the height of the visible area in which the game is displayed.
   readonly import static attribute int  ViewportHeight;
   /// Gets the width of the visible area in which the game is displayed.
@@ -1717,7 +1717,7 @@ builtin managed struct Object {
   readonly import attribute int  TintSaturation;
   /// Gets the Luminance of this object's colour tint.
   readonly import attribute int  TintLuminance;
-#ifdef SCRIPT_API_v350
+#ifdef SCRIPT_API_v3507
   /// Returns the object at the specified position within this room.
   import static Object* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
@@ -1927,7 +1927,7 @@ builtin managed struct Character {
   readonly import attribute int  TintSaturation;
   /// Gets the Luminance of this character's colour tint.
   readonly import attribute int  TintLuminance;
-#ifdef SCRIPT_API_v350
+#ifdef SCRIPT_API_v3507
   /// Returns the character at the specified position within this room.
   import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
@@ -2067,7 +2067,7 @@ builtin struct Speech {
   import static attribute eVoiceMode      VoiceMode;
 };
 
-#ifdef SCRIPT_API_v350
+#ifdef SCRIPT_API_v3507
 builtin managed struct Camera {
   /// Gets/sets the X position of this camera in the room.
   import attribute int X;

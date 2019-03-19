@@ -53,6 +53,12 @@ Script API:
    features a reference to the primary Viewport. Deprecated System's ScreenWidth, ScreenHeight,
    ViewportWidth and ViewportHeight in favor of Screen's properties.
  - Added Room.Camera property that references primary room camera.
+ - All functions that find room objects under screen coordinates are now being clipped by the
+   viewport (fail if there's no room viewport at these coordinates). This refers to:
+   GetLocationName, GetLocationType, IsInteractionAvailable, Room.ProcessClick, GetWalkableAreaAt
+   and all of the GetAtScreenXY functions (and corresponding deprecated functions).
+ - Added Character.GetAtRoomXY, Hotspot.GetAtRoomXY, Object.GetAtRoomXY, Region.GetAtScreenXY,
+   replaced GetWalkableAreaAt with GetWalkableAreaAtScreen and added GetWalkableAreaAtRoom.
  - Replaced Alignment enum with a new one which has eight values from TopLeft to BottomRight.
  - Renamed old Alignment enum to HorizontalAlignment, intended for parameters that are
    only allowed to be Left, Center or Right.

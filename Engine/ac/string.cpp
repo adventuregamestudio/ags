@@ -413,7 +413,7 @@ RuntimeScriptValue Sc_String_UpperCase(void *self, const RuntimeScriptValue *par
 // FLOAT_RETURN_TYPE (const char *theString);
 RuntimeScriptValue Sc_StringToFloat(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(const char, StringToFloat);
+    API_OBJCALL_FLOAT(const char, StringToFloat);
 }
 
 // int (char*stino)

@@ -465,7 +465,7 @@ RuntimeScriptValue Sc_FlipScreen(const RuntimeScriptValue *params, int32_t param
 // int (SCRIPT_FLOAT(value), int roundDirection)
 RuntimeScriptValue Sc_FloatToInt(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(FloatToInt);
+    API_SCALL_INT_PFLOAT_PINT(FloatToInt);
 }
 
 /*
@@ -873,7 +873,7 @@ RuntimeScriptValue Sc_InterfaceOn(const RuntimeScriptValue *params, int32_t para
 // FLOAT_RETURN_TYPE (int value) 
 RuntimeScriptValue Sc_IntToFloat(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(IntToFloat);
+    API_SCALL_FLOAT_PINT(IntToFloat);
 }
 
 // [DEPRECATED] void ()

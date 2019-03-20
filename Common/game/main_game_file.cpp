@@ -460,7 +460,7 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
         for (size_t i = 0; i < ents.SpriteCount; ++i)
         {
             SpriteInfo &info = game.SpriteInfos[i];
-            if (game.IsHiRes() && info.IsHiRes() || !game.IsHiRes() && info.IsLowRes())
+            if (game.IsHiRes() == info.IsHiRes())
                 info.Flags &= ~(SPF_HIRES | SPF_VAR_RESOLUTION);
             else
                 info.Flags |= SPF_VAR_RESOLUTION;

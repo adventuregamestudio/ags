@@ -39,7 +39,7 @@ extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int s
 extern void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum);
 extern void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel);
 extern void SetNewSpriteFromHBitmap(int slot, int hBmp);
-extern int SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 extern int GetSpriteAsHBitmap(int spriteSlot);
 extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
@@ -254,7 +254,7 @@ namespace AGS
             ::SpriteInfo info;
             ::GetSpriteInfo(spriteSlot, info);
             return gcnew AGS::Types::SpriteInfo(info.Width, info.Height,
-                info.IsVarRes() ? (info.IsHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real);
+                info.IsRelativeRes() ? (info.IsHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real);
         }
 
 		int NativeMethods::GetSpriteWidth(int spriteSlot) 
@@ -287,9 +287,9 @@ namespace AGS
 
 		Sprite^ NativeMethods::SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 		{
-			int spriteRes = SetNewSpriteFromBitmap(spriteSlot, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
+            SpriteImportResolution spriteRes = SetNewSpriteFromBitmap(spriteSlot, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
       int colDepth = GetSpriteColorDepth(spriteSlot);
-			Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, (SpriteImportResolution)spriteRes, alphaChannel);
+			Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, spriteRes, alphaChannel);
       int roomNumber = GetCurrentlyLoadedRoomNumber();
       if ((colDepth == 8) && (useRoomBackgroundColours) && (roomNumber >= 0))
       {
@@ -300,8 +300,8 @@ namespace AGS
 
 		void NativeMethods::ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 		{
-			int spriteRes = SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
-			spr->Resolution = (SpriteImportResolution)spriteRes;
+            SpriteImportResolution spriteRes = SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
+			spr->Resolution = spriteRes;
 			spr->ColorDepth = GetSpriteColorDepth(spr->Number);
 			spr->Width = bmp->Width;
 			spr->Height = bmp->Height;

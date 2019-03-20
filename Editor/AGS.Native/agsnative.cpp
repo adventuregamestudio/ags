@@ -643,7 +643,7 @@ void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use
     }
 
   int nwid=towrite->GetWidth(),nhit=towrite->GetHeight();
-  if (thisgame.SpriteInfos[sprnum].IsVarRes()) {
+  if (thisgame.SpriteInfos[sprnum].IsRelativeRes()) {
     if (thisgame.SpriteInfos[sprnum].IsHiRes()) {
       if (dsc_want_hires == 0) {
         nwid/=2;
@@ -1013,6 +1013,7 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   if (!is_font_loaded(fontnum))
     reload_font(fontnum);
 
+  // TODO: rewrite this, use actual font size (maybe related to window size) and not game's resolution type
   int doubleSize = (!thisgame.IsHiRes()) ? 2 : 1;
   int blockSize = (!thisgame.IsHiRes()) ? 1 : 2;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
@@ -1147,7 +1148,7 @@ int get_adjusted_spritewidth(int spr) {
   if (tsp == NULL)
       return 0;
   int retval = tsp->GetWidth();
-  if (!thisgame.SpriteInfos[spr].IsVarRes())
+  if (!thisgame.SpriteInfos[spr].IsRelativeRes())
       return retval;
   return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsHiRes());
 }
@@ -1157,7 +1158,7 @@ int get_adjusted_spriteheight(int spr) {
   if (tsp == NULL)
       return 0;
   int retval = tsp->GetHeight();
-  if (!thisgame.SpriteInfos[spr].IsVarRes())
+  if (!thisgame.SpriteInfos[spr].IsRelativeRes())
       return retval;
   return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsHiRes());
 }
@@ -1242,7 +1243,7 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float sca
 }
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
-	int scaleFactor = thisgame.SpriteInfos[spriteNum].IsVarRes() ?
+	int scaleFactor = thisgame.SpriteInfos[spriteNum].IsRelativeRes() ?
         (thisgame.SpriteInfos[spriteNum].IsHiRes() ? 1 : 2) : 1;
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
@@ -2065,7 +2066,8 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	if (todraw == NULL)
 	  todraw = spriteset[0];
 
-	if (thisgame.SpriteInfos[sprNum].IsLowRes() && thisgame.IsHiRes())
+	if (thisgame.SpriteInfos[sprNum].IsRelativeRes() &&
+        !thisgame.SpriteInfos[sprNum].IsHiRes() && thisgame.IsHiRes())
 	{
 		scale *= 2.0f;
 	}
@@ -2493,7 +2495,7 @@ void set_opaque_alpha_channel(Common::Bitmap *image)
 	}
 }
 
-int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel) 
+AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
 	color imgPalBuf[256];
   int importedColourDepth;
@@ -2521,7 +2523,7 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
 
 	SetNewSprite(slot, tempsprite);
 
-	return thisgame.IsHiRes() ? 1 : 0;
+	return AGS::Types::SpriteImportResolution::Real;
 }
 
 void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)
@@ -2842,7 +2844,7 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 		if (spr != NULL)
 		{
 			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(),
-                thisgame.SpriteInfos[i].IsVarRes() ? (thisgame.SpriteInfos[i].IsHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real,
+                thisgame.SpriteInfos[i].IsRelativeRes() ? (thisgame.SpriteInfos[i].IsHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real,
                 (thisgame.SpriteInfos[i].Flags & SPF_ALPHACHANNEL) ? true : false));
 		}
 	}

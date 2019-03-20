@@ -39,7 +39,7 @@ void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit)
     newwid = ww;
     newhit = hh;
     const SpriteInfo &spinfo = game.SpriteInfos[ee];
-    if (!spinfo.IsVarRes())
+    if (!spinfo.IsRelativeRes())
         return;
     ctx_data_to_game_size(newwid, newhit, spinfo.IsHiRes());
 }

@@ -962,9 +962,7 @@ extern long t1;  // defined in ac_main
 
 void first_room_initialization() {
     starting_room = displayed_room;
-    t1 = time(NULL);
-    lastcounter=0;
-    loopcounter=0;
+    set_loop_counter(0);
     mouse_z_was = mouse_z;
 }
 

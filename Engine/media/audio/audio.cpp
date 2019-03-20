@@ -802,7 +802,7 @@ void update_volume_drop_if_voiceover()
 }
 
 extern volatile char want_exit;
-extern int frames_per_second;
+extern int get_current_fps();
 
 void update_mp3_thread()
 {
@@ -865,7 +865,7 @@ void update_polled_audio_and_crossfade ()
                     // we want to crossfade, and we know how far through
                     // the tune we are
                     int takesSteps = calculate_max_volume() / game.options[OPT_CROSSFADEMUSIC];
-                    int takesMs = (takesSteps * 1000) / frames_per_second;
+                    int takesMs = takesSteps * 1000 / get_current_fps();
                     if (curpos >= muslen - takesMs)
                         play_next_queued();
                 }

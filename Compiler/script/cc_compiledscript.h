@@ -28,24 +28,19 @@ struct ccCompiledScript: public ccScript {
     int  add_new_function(const char*, int *idx);
     int  add_new_import(const char*);
     int  add_new_export(const char*,int,long, int);
-    void write_code(intptr_t);
+    void write_code(int32_t);
     void set_line_number(int nlum) { next_line=nlum; }
     void flush_line_numbers();
     int  remove_any_import(const char*, SymbolDef *oldSym);
     const char* start_new_section(const char *name);
 
     void write_cmd(int cmdd);
-
     void write_cmd1(int cmdd,int param);
     void write_cmd2(int cmdd,int param,int param2);
     void write_cmd3(int cmdd,int param,int param2,int param3);
 
     void push_reg(int regg);
-
     void pop_reg(int regg);
-
-    intptr_t ccCompiledScript::yank_chunk(int32_t start, intptr_t **nested_chunk, int index);
-    void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t chunk_size, bool dispose, int fixup_start, int fixup_stop, int32_t adjust);
 
     ccCompiledScript();
     virtual ~ccCompiledScript();

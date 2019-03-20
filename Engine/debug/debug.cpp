@@ -30,6 +30,7 @@
 #include "script/script_common.h"
 #include "script/cc_error.h"
 #include "util/textstreamwriter.h"
+#include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -75,7 +76,8 @@ bool disable_log_file = false;
 String debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
-int fps=0,display_fps=0;
+float fps=NAN;
+int display_fps=0;
 
 std::unique_ptr<MessageBuffer> DebugMsgBuff;
 std::unique_ptr<LogFile> DebugLogFile;

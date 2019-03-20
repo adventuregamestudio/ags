@@ -23,14 +23,16 @@
 //#include "ac/runtime_defines.h"
 //#include "main/config.h"
 //#include "plugin/agsplugin.h"
-//#include "media/audio/audio_system.h"
 //#include <libcda.h>
 //#include <pwd.h>
 //#include <sys/stat.h>
- #include <unistd.h>
+#include <thread>
+#include <unistd.h>
 #include "platform/base/agsplatformdriver.h"
 #include "util/directory.h"
 #include "ac/common.h"
+#include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 void AGSMacInitPaths(char gamename[256], char appdata[PATH_MAX]);
 void AGSMacGetBundleDir(char gamepath[PATH_MAX]);
@@ -107,7 +109,23 @@ void AGSMac::DisplayAlert(const char *text, ...) {
 }
 
 void AGSMac::Delay(int millis) {
-  usleep(millis);
+  auto delayUntil = AGS_Clock::now() + std::chrono::milliseconds(millis);
+
+  for (;;) {
+    if (AGS_Clock::now() < delayUntil) { break; }
+
+    auto duration = delayUntil - AGS_Clock::now();
+    if (duration > std::chrono::milliseconds(25)) {
+      duration = std::chrono::milliseconds(25);
+    }
+    std::this_thread::sleep_for(duration);
+
+    if (AGS_Clock::now() < delayUntil) { break; }
+
+    // don't allow it to check for debug messages, since this Delay()
+    // call might be from within a debugger polling loop
+    update_polled_mp3();
+  }
 }
 
 unsigned long AGSMac::GetDiskFreeSpaceMB() {

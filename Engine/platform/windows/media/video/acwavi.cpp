@@ -31,6 +31,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
+#include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -380,7 +381,9 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
 
   while ((g_bAppactive) && (!want_exit)) {
 
-    while (currentlyPaused) ;
+    while (currentlyPaused) {
+      platform->YieldCPU();
+    }
 
     RenderToSurface(vscreen);
     //Sleep(0);

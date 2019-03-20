@@ -25,6 +25,7 @@
 #include "game/roomstruct.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -505,10 +506,9 @@ int play_speech(int charid,int sndid) {
     else
         play.music_master_volume -= play.speech_music_drop;
 
+    cancel_scheduled_music_update();
     apply_volume_drop_modifier(true);
     update_music_volume();
-    update_music_at = 0;
-    mvolcounter = 0;
 
     update_ambient_sound_vol();
 
@@ -527,8 +527,7 @@ void stop_speech() {
         play.music_master_volume = play.music_vol_was;
         // update the music in a bit (fixes two speeches follow each other
         // and music going up-then-down)
-        update_music_at = 20;
-        mvolcounter = 1;
+        schedule_music_update_at(AGS_Clock::now() + std::chrono::milliseconds(500));
         stop_and_destroy_channel (SCHAN_SPEECH);
         curLipLine = -1;
 

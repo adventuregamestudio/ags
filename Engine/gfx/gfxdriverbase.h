@@ -131,7 +131,6 @@ protected:
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
     PlaneScaling        _scaling;       // native -> render dest coordinate transformation
     Point               _globalViewOff; // extra offset to every sprite draw on screen with DrawSprite
-    volatile int *      _loopTimer;
 
     // Callbacks
     GFXDRV_CLIENTCALLBACK _pollingCallback;

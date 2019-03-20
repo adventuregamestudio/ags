@@ -34,6 +34,7 @@
 #include "main/game_start.h"
 #include "script/script.h"
 #include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -42,7 +43,6 @@ extern int our_eip, displayed_room;
 extern volatile char want_exit, abort_engine;
 extern GameSetupStruct game;
 extern GameState play;
-extern volatile int timerloop;
 extern const char *loadSaveGameOnStartup;
 extern std::vector<ccInstance *> moduleInst;
 extern int numScriptModules;
@@ -56,8 +56,8 @@ void start_game_init_editor_debugging()
         SetMultitasking(1);
         if (init_editor_debugging())
         {
-            timerloop = 0;
-            while (timerloop < 20)
+            auto waitUntil = AGS_Clock::now() + std::chrono::milliseconds(500);
+            while (waitUntil > AGS_Clock::now())
             {
                 // pick up any breakpoints in game_start
                 check_for_messages_from_editor();
@@ -89,6 +89,9 @@ void start_game() {
     newmusic(0);
 
     our_eip = -42;
+
+    // skip ticks to account for initialisation or a restored game.
+    skipMissedTicks();
 
     for (int kk = 0; kk < numScriptModules; kk++)
         RunTextScript(moduleInst[kk], "game_start");

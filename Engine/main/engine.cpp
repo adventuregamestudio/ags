@@ -524,12 +524,6 @@ void engine_init_keyboard()
 #endif
 }
 
-void engine_init_timer()
-{
-    Debug::Printf(kDbgMsg_Init, "Install timer");
-    install_timer();
-}
-
 typedef char AlIDStr[5];
 
 void AlIDToChars(int al_id, AlIDStr &id_str)
@@ -1060,7 +1054,7 @@ void engine_init_game_settings()
     play.text_speed=15;
     play.text_min_display_time_ms = 1000;
     play.ignore_user_input_after_text_timeout_ms = 500;
-    play.ignore_user_input_until_time = 0;
+    play.ignore_user_input_until_time = AGS_Clock::now();
     play.lipsync_speed = 15;
     play.close_mouth_speech_time = 10;
     play.disable_antialiasing = 0;
@@ -1221,8 +1215,11 @@ void engine_setup_scsystem_auxiliary()
 
 void engine_update_mp3_thread()
 {
-  update_mp3_thread();
-  platform->Delay(50);
+    update_mp3_thread();
+    // reduce polling period to encourage more multithreading bugs.
+#ifndef _DEBUG
+    platform->Delay(50);
+#endif
 }
 
 void engine_start_multithreaded_audio()
@@ -1416,7 +1413,8 @@ int initialize_engine(int argc,char*argv[])
 
     our_eip = -183;
 
-    engine_init_timer();
+    // Original timer was initialised here.
+    skipMissedTicks();
 
     our_eip = -182;
 
@@ -1439,8 +1437,6 @@ int initialize_engine(int argc,char*argv[])
 
     //engine_pre_init_gfx();
 
-    LOCK_VARIABLE(timerloop);
-    LOCK_FUNCTION(dj_timer_handler);
     set_game_speed(40);
 
     our_eip=-20;

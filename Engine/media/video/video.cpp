@@ -214,7 +214,7 @@ void play_flc_file(int numb,int playflags) {
     delete hicol_buf;
     hicol_buf=NULL;
     //  SetVirtualScreen(screen); wputblock(0,0,backbuffer,0);
-    while (ags_mgetbutton()!=NONE) ;
+    while (ags_mgetbutton()!=NONE) { } // clear any queued mouse events.
     invalidate_screen();
 }
 

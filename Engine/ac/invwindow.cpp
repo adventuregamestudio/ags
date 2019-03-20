@@ -35,6 +35,7 @@
 #include "ac/dynobj/cc_inventory.h"
 #include "util/math.h"
 #include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -45,7 +46,6 @@ extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern SpriteCache spriteset;
 extern int mousex,mousey;
-extern volatile int timerloop;
 extern int evblocknum;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
@@ -351,7 +351,6 @@ bool InventoryScreen::Run()
         return false; // end inventory screen loop
     }
 
-        timerloop = 0;
         //ags_domouse(DOMOUSE_UPDATE);
         update_audio_system_on_game_loop();
         refresh_gui_screen();

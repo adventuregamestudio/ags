@@ -51,6 +51,7 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace Common;
 using namespace Engine;
@@ -609,7 +610,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     guis_need_update = 1;
 
-    play.ignore_user_input_until_time = 0;
+    // if savegame contained a global time and not an offset, this will be way off.
+    if ((play.ignore_user_input_until_time - AGS_Clock::now()) > std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms)) {
+        play.ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms);
+    }
     update_polled_stuff_if_runtime();
 
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);

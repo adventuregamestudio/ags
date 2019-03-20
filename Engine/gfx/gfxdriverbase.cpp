@@ -27,8 +27,7 @@ namespace Engine
 {
 
 GraphicsDriverBase::GraphicsDriverBase()
-    : _loopTimer(NULL)
-    , _pollingCallback(NULL)
+    : _pollingCallback(NULL)
     , _drawScreenCallback(NULL)
     , _nullSpriteCallback(NULL)
     , _initGfxCallback(NULL)
@@ -90,7 +89,6 @@ void GraphicsDriverBase::ClearDrawLists()
 
 void GraphicsDriverBase::OnInit(volatile int *loopTimer)
 {
-    _loopTimer = loopTimer;
 }
 
 void GraphicsDriverBase::OnUnInit()

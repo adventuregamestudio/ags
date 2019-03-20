@@ -676,6 +676,7 @@ enum RoomAreaMask
 };
 
 // TODO: mask's bitmap, as well as coordinate factor, should be a property of the room or some room's mask class
+// TODO: create weak_ptr here?
 AGSBitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
 	switch (maskType) 
@@ -687,18 +688,19 @@ AGSBitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 	}
     return NULL;
 }
-    // TODO: create weak_ptr here?
+
 float get_scale_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
     switch (maskType)
     {
-    case RoomAreaMask::Hotspots: return 1.f / roomptr->Resolution;
-    case RoomAreaMask::Regions: return 1.f / roomptr->Resolution;
-    case RoomAreaMask::WalkableAreas: return 1.f / roomptr->Resolution;
-    case RoomAreaMask::WalkBehinds: return 1.f;
+    case RoomAreaMask::Hotspots: return 1.f / roomptr->MaskResolution;
+    case RoomAreaMask::Regions: return 1.f / roomptr->MaskResolution;
+    case RoomAreaMask::WalkableAreas: return 1.f / roomptr->MaskResolution;
+    case RoomAreaMask::WalkBehinds: return 1.f; // walk-behinds always 1:1 with room size
     }
     return 0.f;
 }
+
 
 void copy_walkable_to_regions (void *roomptr) {
     RoomStruct *theRoom = (RoomStruct*)roomptr;
@@ -1134,6 +1136,8 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
   delete todraw;
 }
 
+// TODO: these functions duplicate ones in the engine, because game struct
+// is referenced differently. Refactor this somehow.
 int ctx_data_to_game_size(int val, bool hires_ctx)
 {
     if (hires_ctx && !thisgame.IsHiRes())
@@ -1683,20 +1687,9 @@ const char* load_room_file(const char*rtlo) {
   // Fix hi-color screens
   // TODO: find out why this is necessary. Probably has something to do with
   // Allegro switching color components at certain version update long time ago.
+  // do we need to do this in the engine too?
   for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
     fix_block (thisroom.BgFrames[i].Graphic.get());
-
-  // TODO: find out how old this conversion is; was this ever a thing?
-  // Perhaps merge this in UpdateRoomData and simply do this non-conditionally for every mask that does not match background size?
-  if ((thisroom.Resolution > 1) && (thisroom.WalkBehindMask->GetWidth() < thisroom.Width)) {
-    // 640x400 room with 320x200-res walkbehind
-    // resize it up to 640x400-res
-    int oldw = thisroom.WalkBehindMask->GetWidth(), oldh=thisroom.WalkBehindMask->GetHeight();
-    Common::Bitmap *tempb = Common::BitmapHelper::CreateBitmap(thisroom.Width, thisroom.Height, thisroom.WalkBehindMask->GetColorDepth());
-    tempb->Fill(0);
-    tempb->StretchBlt(thisroom.WalkBehindMask.get(),RectWH(0,0,oldw,oldh),RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
-    thisroom.WalkBehindMask.reset(tempb);
-  }
 
   set_palette_range(palette, 0, 255, 0);
   
@@ -2388,8 +2381,9 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
-	bool resolutionChanged = (theRoom->Resolution != (int)room->Resolution);
-	theRoom->Resolution = (int)room->Resolution;
+	bool resolutionChanged = (theRoom->GetResolutionType() != (AGS::Common::RoomResolutionType)room->Resolution);
+	theRoom->SetResolution((AGS::Common::RoomResolutionType)room->Resolution);
+    theRoom->MaskResolution = theRoom->MaskResolution;
 
 	if (newbg->GetColorDepth() == 8) 
 	{
@@ -2427,10 +2421,10 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||
       (theRoom->Width != theRoom->WalkBehindMask->GetWidth()) || (resolutionChanged))
 	{
-        theRoom->WalkAreaMask.reset(new AGSBitmap(theRoom->Width / theRoom->Resolution, theRoom->Height / theRoom->Resolution, 8));
-        theRoom->HotspotMask.reset(new AGSBitmap(theRoom->Width / theRoom->Resolution, theRoom->Height / theRoom->Resolution, 8));
+        theRoom->WalkAreaMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
+        theRoom->HotspotMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
         theRoom->WalkBehindMask.reset(new AGSBitmap(theRoom->Width, theRoom->Height, 8));
-        theRoom->RegionMask.reset(new AGSBitmap(theRoom->Width / theRoom->Resolution, theRoom->Height / theRoom->Resolution, 8));
+        theRoom->RegionMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
         theRoom->WalkAreaMask->Clear();
         theRoom->HotspotMask->Clear();
         theRoom->WalkBehindMask->Clear();
@@ -2649,6 +2643,13 @@ System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber)
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
   return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
+}
+
+void FixRoomMasks(Room ^room)
+{
+    RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
+    roomptr->MaskResolution = room->MaskResolution;
+    AGS::Common::FixRoomMasks(roomptr);
 }
 
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
@@ -3665,14 +3666,8 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	room->ColorDepth = thisroom.BgFrames[0].Graphic->GetColorDepth();
 	room->BackgroundAnimationDelay = thisroom.BgAnimSpeed;
 	room->BackgroundCount = thisroom.BgFrameCount;
-  if (thisroom.Resolution > 2)
-  {
-    room->Resolution = RoomResolution::HighRes;
-  }
-  else
-  {
-  	room->Resolution = (RoomResolution)thisroom.Resolution;
-  }
+    room->Resolution = (AGS::Types::RoomResolution)thisroom.GetResolutionType();
+    room->MaskResolution = thisroom.MaskResolution;
 
 	for (size_t i = 0; i < thisroom.LocalVariables.size(); ++i)
 	{
@@ -3828,7 +3823,8 @@ void save_crm_file(Room ^room)
     // Convert managed Room object into the native roomstruct that is going
     // to be saved using native procedure.
     //
-	thisroom.Resolution = (int)room->Resolution;
+	thisroom.SetResolution((AGS::Common::RoomResolutionType)room->Resolution);
+    thisroom.MaskResolution = room->MaskResolution;
 
 	thisroom.GameID = room->GameID;
 	thisroom.Edges.Bottom = room->BottomEdgeY;

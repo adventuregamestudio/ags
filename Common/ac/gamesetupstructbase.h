@@ -171,11 +171,6 @@ struct GameSetupStructBase {
     // This also means that mask relation to data resolution is 1:1 if the
     // game uses low-res coordinates in script and 1:2 if high-res.
 
-    // Get constant room mask-->data resolution coordinate multiplier.
-    // Used with all room masks except walk-behinds (which are always 1:1 to room size)
-    // TODO: should this be a property of room instead? Rooms have Resolution setting.
-    inline int GetRoomMaskMul() const { return _roomMaskMul; }
-
     // Test if the game is built around old audio system
     inline bool IsLegacyAudioSystem() const
     {
@@ -213,9 +208,6 @@ private:
     int _dataUpscaleMult;
     // Game default resolution to actual game resolution factor
     int _screenUpscaleMult;
-
-    // Room mask to room data resolution factor
-    int _roomMaskMul;
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

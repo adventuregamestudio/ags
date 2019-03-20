@@ -76,7 +76,7 @@ namespace AGS.Editor
          *     3.4.3      - Added missing audio properties to DefaultSetup [ forgot to change version index!! ]
          * 16: 3.5.0      - Unlimited fonts (need separate version to prevent crashes in older editors)
          * 17: 3.5.0.4    - Extended sprite source properties
-         * 18: 3.5.0.8    - Real sprite resolution; Individual font scaling
+         * 18: 3.5.0.8    - Real sprite resolution; Individual font scaling; Default room mask resolution
         */
         public const int    LATEST_XML_VERSION_INDEX = 18;
         /*

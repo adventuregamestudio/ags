@@ -145,14 +145,7 @@ namespace AGS.Editor
         {
             int tempx = _menuClickX;
             int tempy = _menuClickY;
-
-            if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
-                (_room.Resolution == RoomResolution.HighRes))
-            {
-                tempx /= 2;
-                tempy /= 2;
-            }
-
+            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref tempx, ref tempy);
             string textToCopy = tempx.ToString() + ", " + tempy.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
         }
@@ -173,17 +166,7 @@ namespace AGS.Editor
         {
             int tempx = _selectedCharacter.StartX;
             int tempy = _selectedCharacter.StartY;
-
-            //this halves the coordinates of the x and y values 
-            //if you have low res coordinates set in the properties and are in high res
-
-            if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
-                (_room.Resolution == RoomResolution.HighRes))
-            {
-                tempx /= 2;
-                tempy /= 2;
-            }
-
+            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref tempx, ref tempy);
             string textToCopy = tempx.ToString() + ", " + tempy.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
         }

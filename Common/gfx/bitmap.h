@@ -66,6 +66,9 @@ namespace BitmapHelper
     Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
 	Bitmap *LoadFromFile(const char *filename);
 
+    // Stretches bitmap to the requested size. The new bitmap will have same
+    // colour depth. Returns original bitmap if no changes are necessary. 
+    Bitmap *AdjustBitmapSize(Bitmap *src, int width, int height);
     // Copy transparency mask and/or alpha channel from one bitmap into another.
     // Destination and mask bitmaps must be of the same pixel format.
     // Transparency is merged, meaning that fully transparent pixels on

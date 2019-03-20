@@ -281,7 +281,7 @@ HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_
             room->Objects[i].Flags = in->ReadInt16();
 
     if (data_ver >= kRoomVersion_200_final)
-        room->Resolution = in->ReadInt16();
+        room->MaskResolution = in->ReadInt16();
 
     room->WalkAreaCount = MAX_WALK_AREAS;
     if (data_ver >= kRoomVersion_240)
@@ -597,16 +597,23 @@ HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_v
 
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
 {
-    // This is something very ancient...
-    if (data_ver < kRoomVersion_200_final && room->BgFrames[0].Graphic->GetWidth() > 320)
-        room->Resolution = HIRES_COORD_MULTIPLIER;
+    if (data_ver < kRoomVersion_200_final)
+        room->MaskResolution = room->BgFrames[0].Graphic->GetWidth() > 320 ? kRoomHiRes : kRoomLoRes;
+    if (data_ver < kRoomVersion_3508)
+    {
+        // Save legacy resolution if it DOES NOT match game's;
+        // otherwise it gets promoted to "real resolution"
+        if (room->MaskResolution == 1 && game_is_hires)
+            room->SetResolution(kRoomLoRes);
+        else if (room->MaskResolution > 1 && !game_is_hires)
+            room->SetResolution(kRoomHiRes);
+    }
 
     // Old version - copy walkable areas to regions
     if (data_ver < kRoomVersion_255b)
     {
         if (!room->RegionMask)
             room->RegionMask.reset(BitmapHelper::CreateBitmap(room->WalkAreaMask->GetWidth(), room->WalkAreaMask->GetHeight(), 8));
-        room->RegionMask->Fill(0);
         room->RegionMask->Blit(room->WalkAreaMask.get(), 0, 0, 0, 0, room->RegionMask->GetWidth(), room->RegionMask->GetHeight());
         for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
         {
@@ -842,7 +849,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt16(room->Height);
     for (size_t i = 0; i < room->ObjectCount; ++i)
         out->WriteInt16(room->Objects[i].Flags);
-    out->WriteInt16(room->Resolution);
+    out->WriteInt16(room->MaskResolution);
 
     out->WriteInt32(MAX_WALK_AREAS + 1);
     for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)

@@ -539,6 +539,8 @@ namespace AGS.Types
             return null;
         }
 
+        // TODO: remove this after we have proper zoom controls in all editors;
+        // default zoom-in should be relied on the actual image size if on anything
         public int GUIScaleFactor
         {
             get

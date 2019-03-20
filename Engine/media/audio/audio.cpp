@@ -360,7 +360,6 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     if (!play.fast_forward && channels[SCHAN_SPEECH])
         apply_volume_drop_to_clip(soundfx);
 
-    last_sound_played[channel] = -1;
     channels[channel] = soundfx;
     return &scrAudioChannel[channel];
 }
@@ -505,8 +504,6 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 }
 
 //=============================================================================
-
-int last_sound_played[MAX_SOUND_CHANNELS + 1];
 
 void force_audiostream_include() {
     // This should never happen, but the call is here to make it

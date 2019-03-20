@@ -108,7 +108,6 @@ extern int crossFadeVolumeAtStart;
 
 extern SOUNDCLIP *cachedQueuedMusic;
 
-extern int last_sound_played[MAX_SOUND_CHANNELS + 1];
 extern AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array iterations
 
 #endif // __AC_AUDIO_H

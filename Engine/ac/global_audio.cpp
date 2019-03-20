@@ -139,22 +139,9 @@ int PlaySoundEx(int val1, int channel) {
     if (play.fast_forward)
         return -1;
 
-    // that sound is already in memory, play it
-    if (!psp_audio_multithreaded)
-    {
-        if ((last_sound_played[channel] == val1) && (channels[channel] != NULL)) {
-            debug_script_log("Playing sound %d on channel %d; cached", val1, channel);
-            channels[channel]->restart();
-            channels[channel]->set_volume (play.sound_volume);
-            return channel;
-        }
-    }
-
     // free the old sound
     stop_and_destroy_channel (channel);
     debug_script_log("Playing sound %d on channel %d", val1, channel);
-
-    last_sound_played[channel] = val1;
 
     SOUNDCLIP *soundfx = aclip ? load_sound_and_play(aclip, false) : NULL;
     if (soundfx == NULL) {

@@ -517,8 +517,10 @@ builtin managed struct DrawingSurface {
   import attribute int DrawingColor;
   /// Gets the height of this surface.
   readonly import attribute int Height;
+#ifdef SCRIPT_COMPAT_v341
   /// Determines whether you use high-res or low-res co-ordinates for drawing onto this surface.
   import attribute bool UseHighResCoordinates;
+#endif
   /// Gets the width of the surface.
   readonly import attribute int Width;
 };

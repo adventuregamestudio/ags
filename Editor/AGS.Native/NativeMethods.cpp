@@ -255,7 +255,7 @@ namespace AGS
             ::SpriteInfo info;
             ::GetSpriteInfo(spriteSlot, info);
             return gcnew AGS::Types::SpriteInfo(info.Width, info.Height,
-                info.IsRelativeRes() ? (info.IsHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real);
+                info.IsRelativeRes() ? (info.IsLegacyHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real);
         }
 
 		int NativeMethods::GetSpriteWidth(int spriteSlot) 
@@ -760,6 +760,7 @@ namespace AGS
             if (name->Equals("OPT_BASESCRIPTAPI")) return OPT_BASESCRIPTAPI;
             if (name->Equals("OPT_SCRIPTCOMPATLEV")) return OPT_SCRIPTCOMPATLEV;
             if (name->Equals("OPT_RENDERATSCREENRES")) return OPT_RENDERATSCREENRES;
+            if (name->Equals("OPT_RELATIVEASSETRES")) return OPT_RELATIVEASSETRES;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
 			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
             return nullptr;

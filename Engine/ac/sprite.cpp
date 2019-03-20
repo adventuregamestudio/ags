@@ -39,9 +39,9 @@ void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit)
     newwid = ww;
     newhit = hh;
     const SpriteInfo &spinfo = game.SpriteInfos[ee];
-    if (!spinfo.IsRelativeRes())
+    if (!game.AllowRelativeRes() || !spinfo.IsRelativeRes())
         return;
-    ctx_data_to_game_size(newwid, newhit, spinfo.IsHiRes());
+    ctx_data_to_game_size(newwid, newhit, spinfo.IsLegacyHiRes());
 }
 
 // set any alpha-transparent pixels in the image to the appropriate

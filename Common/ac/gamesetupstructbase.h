@@ -149,14 +149,17 @@ struct GameSetupStructBase {
     // Get game default res-->final game resolution coordinate multiplier;
     // used to convert coordinates from original game res to actual one
     inline int GetScreenUpscaleMult() const { return _screenUpscaleMult; }
+    // Tells if game allows assets defined in relative resolution;
+    // that is - have to be converted to this game resolution type
+    inline bool AllowRelativeRes() const { return options[OPT_RELATIVEASSETRES] != 0; }
     // Legacy definition of high and low game resolution.
     // Used to determine certain hardcoded coordinate conversion logic, but
     // does not make much sense today when the resolution is arbitrary.
-    inline bool IsHiRes() const
+    inline bool IsLegacyHiRes() const
     {
         if (_resolutionType == kGameResolution_Custom)
             return (_gameResolution.Width * _gameResolution.Height) > (320 * 240);
-        return ::IsHiRes(_resolutionType);
+        return ::IsLegacyHiRes(_resolutionType);
     }
     // Tells if data has coordinates in default game resolution
     inline bool IsDataInNativeCoordinates() const { return options[OPT_NATIVECOORDINATES] != 0; }

@@ -224,7 +224,7 @@ ScriptCamera* Room_GetCamera()
 // for display in the game.
 void convert_room_background_to_game_res()
 {
-    if (!thisroom.IsRelativeRes())
+    if (!game.AllowRelativeRes() || !thisroom.IsRelativeRes())
         return;
 
     int bkg_width = thisroom.Width;
@@ -463,7 +463,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom, game.IsHiRes(), game.SpriteInfos);
+    load_room(room_filename, &thisroom, game.IsLegacyHiRes(), game.SpriteInfos);
 
     if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.GameID != game.uniqueid)) {

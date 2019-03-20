@@ -100,7 +100,7 @@ void GameSetupStructBase::SetDefaultResolution(GameResolutionType type, Size siz
     _defGameResolution = _gameResolution;
     // Setup data resolution according to legacy settings (if set)
     _dataResolution = _defGameResolution;
-    if (IsHiRes() && options[OPT_NATIVECOORDINATES] == 0)
+    if (IsLegacyHiRes() && options[OPT_NATIVECOORDINATES] == 0)
     {
         _dataResolution = _defGameResolution / HIRES_COORD_MULTIPLIER;
     }

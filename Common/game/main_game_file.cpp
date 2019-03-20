@@ -460,7 +460,7 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
         for (size_t i = 0; i < ents.SpriteCount; ++i)
         {
             SpriteInfo &info = game.SpriteInfos[i];
-            if (game.IsHiRes() == info.IsHiRes())
+            if (game.IsLegacyHiRes() == info.IsLegacyHiRes())
                 info.Flags &= ~(SPF_HIRES | SPF_VAR_RESOLUTION);
             else
                 info.Flags |= SPF_VAR_RESOLUTION;
@@ -476,7 +476,7 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
         {
             FontInfo &finfo = game.fonts[i];
             // If the game is hi-res but font is designed for low-res, then scale it up
-            if (game.IsHiRes() && game.options[OPT_HIRES_FONTS] == 0)
+            if (game.IsLegacyHiRes() && game.options[OPT_HIRES_FONTS] == 0)
             {
                 finfo.SizeMultiplier = HIRES_COORD_MULTIPLIER;
             }
@@ -782,7 +782,14 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     }
     // Old dialog options API for pre-3.4.0.2 games
     if (data_ver < kGameVersion_340_2)
+    {
         game.options[OPT_DIALOGOPTIONSAPI] = -1;
+    }
+    // Relative asset resolution in pre-3.5.0.8 (always enabled)
+    if (data_ver < kGameVersion_350)
+    {
+        game.options[OPT_RELATIVEASSETRES] = 1;
+    }
     FixupSaveDirectory(game);
     return HGameFileError::None();
 }

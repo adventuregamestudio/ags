@@ -261,7 +261,7 @@ public:
     // Gets if room should adjust its base size depending on game's resolution
     inline bool IsRelativeRes() const { return _resolution != kRoomRealRes; }
     // Gets if room belongs to high resolution
-    inline bool IsHiRes() const { return _resolution == kRoomHiRes; }
+    inline bool IsLegacyHiRes() const { return _resolution == kRoomHiRes; }
     inline RoomResolutionType GetResolutionType() const { return _resolution; }
 
     // Releases room resources

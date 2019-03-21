@@ -4,13 +4,13 @@
 // Copyright (c) 2002 Chris Jones
 //
 
-#ifndef BUILTIN_PLUGINS
-#error only for builtin
-#endif
-
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#endif
+
+#if !defined(BUILTIN_PLUGINS)
+#define THIS_IS_THE_PLUGIN
 #endif
 
 #include <algorithm>
@@ -26,8 +26,6 @@
 
 
 
-// #define THIS_IS_THE_PLUGIN
-// #include "agsplugin.h"
 #include "plugin/agsplugin.h"
 #include "palrender.h"
 #include "raycast.h"
@@ -62,8 +60,9 @@ bool APIENTRY DllMain( HANDLE hModule,
 
 
 
-
+#if defined(BUILTIN_PLUGINS)
 namespace agspalrender {
+#endif
 
 const float halfpi = (0.5f * PI);
 const float twopi  = (2.0f * PI);
@@ -167,6 +166,7 @@ PALSTRUCT objectivepal[256];
 int bgimgspr;
 
 // ***** DESIGN TIME CALLS *******
+#if defined(WINDOWS_VERSION) && !defined(BUILTIN_PLUGINS)
 
 IAGSEditor *editor;
 const char *ourScriptHeader =
@@ -464,6 +464,7 @@ void AGS_EditorLoadGame (char *buffer, int bufsize) {
   // Nothing to load for this dummy plugin
 }
 
+#endif // #if defined(WINDOWS_VERSION) && !defined(BUILTIN_PLUGINS)
 // ******* END DESIGN TIME  *******
 
 
@@ -2383,4 +2384,6 @@ void AGS_EngineInitGfx(const char *driverID, void *data) {}
 
 // *** END RUN TIME ****
 
-}
+#if defined(BUILTIN_PLUGINS)
+} // namespace agspalrender
+#endif

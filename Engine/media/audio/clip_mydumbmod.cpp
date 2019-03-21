@@ -120,15 +120,6 @@ int MYMOD::get_length_ms()
     return (duh_get_length(tune) * 10) / 655;
 }
 
-void MYMOD::restart()
-{
-    if (tune != NULL) {
-        al_stop_duh(duhPlayer);
-        done = 0;
-        duhPlayer = al_start_duh(tune, 2, 0, 1.0, 8192, 22050);
-    }
-}
-
 int MYMOD::get_voice()
 {
     // MOD uses so many different voices it's not practical to keep track

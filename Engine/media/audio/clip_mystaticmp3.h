@@ -42,7 +42,6 @@ struct MYSTATICMP3:public SOUNDCLIP
     int get_pos_ms();
 
     int get_length_ms();
-    void restart();
 
     int get_voice();
 

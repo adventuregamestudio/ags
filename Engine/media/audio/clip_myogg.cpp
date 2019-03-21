@@ -192,20 +192,6 @@ int MYOGG::get_length_ms()
     return 0;
 }
 
-void MYOGG::restart()
-{
-    if (stream != NULL) {
-        // need to reset file pointer for this to work
-        quit("Attempted to restart OGG not currently supported");
-        alogg_play_oggstream(stream, MP3CHUNKSIZE, vol, panning);
-        done = 0;
-        paused = 0;
-        
-        if (!psp_audio_multithreaded)
-          poll();
-    }
-}
-
 int MYOGG::get_voice()
 {
     AUDIOSTREAM *ast = alogg_get_audiostream_oggstream(stream);

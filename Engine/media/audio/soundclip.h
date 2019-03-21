@@ -64,7 +64,6 @@ struct SOUNDCLIP
     // apply volume directly to playback; volume is given in units of 255
     // NOTE: this completely ignores volAsPercentage and muted property
     virtual void set_volume(int) = 0;
-    virtual void restart() = 0;
     virtual void seek(int) = 0;
     virtual int get_pos() = 0;    // return 0 to indicate seek not supported
     virtual int get_pos_ms() = 0; // this must always return valid value if poss

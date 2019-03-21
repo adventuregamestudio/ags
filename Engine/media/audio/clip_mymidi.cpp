@@ -69,15 +69,6 @@ int MYMIDI::get_length_ms()
     return lengthInSeconds * 1000;
 }
 
-void MYMIDI::restart()
-{
-    if (tune != NULL) {
-        stop_midi();
-        done = 0;
-        play_midi(tune, 0);
-    }
-}
-
 int MYMIDI::get_voice()
 {
     // voice is N/A for midi

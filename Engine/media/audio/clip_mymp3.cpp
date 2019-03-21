@@ -166,21 +166,6 @@ int MYMP3::get_length_ms()
     return almp3_get_length_msecs_mp3stream(stream, filesize);
 }
 
-void MYMP3::restart()
-{
-    if (stream != NULL) {
-        // need to reset file pointer for this to work
-		AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-        almp3_play_mp3stream(stream, MP3CHUNKSIZE, vol, panning);
-		_lockMp3.Release();
-        done = 0;
-        paused = 0;
-
-        if (!psp_audio_multithreaded)
-          poll();
-    }
-}
-
 int MYMP3::get_voice()
 {
 	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);

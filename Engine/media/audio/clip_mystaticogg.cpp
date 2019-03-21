@@ -177,22 +177,6 @@ int MYSTATICOGG::get_length_ms()
     return alogg_get_length_msecs_ogg(tune);
 }
 
-void MYSTATICOGG::restart()
-{
-    if (tune != NULL) {
-        alogg_stop_ogg(tune);
-        alogg_rewind_ogg(tune);
-        alogg_play_ogg(tune, 16384, vol, panning);
-        last_ms_offs = 0;
-        last_but_one = 0;
-        last_but_one_but_one = 0;
-        done = 0;
-
-        if (!psp_audio_multithreaded)
-          poll();
-    }
-}
-
 int MYSTATICOGG::get_voice()
 {
     AUDIOSTREAM *ast = alogg_get_audiostream_ogg(tune);

@@ -17,7 +17,6 @@
 //
 
 #include <chrono>
-
 #include "ac/common.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -697,8 +696,8 @@ int get_current_fps() {
     return result;
 }
 
-void set_loop_counter(unsigned int _loopcounter) {
-    loopcounter = _loopcounter;
+void set_loop_counter(unsigned int new_counter) {
+    loopcounter = new_counter;
     t1 = std::chrono::steady_clock::now();
     lastcounter = loopcounter;
     fps = 0;

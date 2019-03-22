@@ -2130,10 +2130,8 @@ void draw_fps()
     
     char tbuffer[60];
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
-    if (fps > 0) {
-    sprintf(tbuffer,"FPS: %d",fps);
+    sprintf(tbuffer, "FPS: %d", fps > 0 ? fps : 0);
     wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, tbuffer);
-    }
     sprintf(tbuffer, "Loop %u", loopcounter);
     int textw = wgettextwidth(tbuffer, FONT_SPEECH);
     wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, tbuffer);

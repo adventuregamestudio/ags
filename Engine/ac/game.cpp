@@ -319,9 +319,9 @@ void set_debug_mode(bool on)
     debug_set_console(on);
 }
 
-void set_game_speed(int _frames_per_second) {
-    frames_per_second = _frames_per_second;
-    time_between_timers = 1000 / _frames_per_second;
+void set_game_speed(int new_fps) {
+    frames_per_second = new_fps;
+    time_between_timers = 1000 / new_fps;
     install_int_ex(dj_timer_handler,MSEC_TO_TIMER(time_between_timers));
 }
 

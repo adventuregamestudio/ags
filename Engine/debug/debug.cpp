@@ -24,6 +24,7 @@
 #include "debug/logfile.h"
 #include "debug/messagebuffer.h"
 #include "main/config.h"
+#include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_common.h"
@@ -416,7 +417,7 @@ bool send_exception_to_editor(const char *qmsg)
     while ((check_for_messages_from_editor() == 0) && (want_exit == 0))
     {
         update_mp3();
-            platform->Delay(10);
+        platform->Delay(10);
     }
 #endif
     return true;

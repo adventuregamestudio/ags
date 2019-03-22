@@ -239,7 +239,7 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
 
     // Other dynamic values
     r_data.FPS = in->ReadInt32();
-    loopcounter = in->ReadInt32();
+    set_loop_counter(in->ReadInt32());
     ifacepopped = in->ReadInt32();
     game_paused = in->ReadInt32();
     // Mouse cursor state

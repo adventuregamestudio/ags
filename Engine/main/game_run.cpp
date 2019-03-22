@@ -16,6 +16,8 @@
 // Game loop
 //
 
+#include <chrono>
+
 #include "ac/common.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -88,7 +90,7 @@ extern int cur_mode,cur_cursor;
 int ShouldStayInWaitMode();
 
 int numEventsAtStartOfFunction;
-long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
+auto t1 = std::chrono::steady_clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 
 long user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
@@ -673,11 +675,33 @@ void game_loop_update_loop_counter()
 
 void game_loop_update_fps()
 {
-    if (time(NULL) != t1) {
-        t1 = time(NULL);
-        fps = loopcounter - lastcounter;
+    auto t2 = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    auto frames = loopcounter - lastcounter;
+
+    if (duration >= std::chrono::milliseconds(1000) && frames > 0) {
+        fps = frames * 1000 / duration.count();
+        t1 = t2;
         lastcounter = loopcounter;
     }
+}
+
+int get_current_fps() {
+    // if wanted frames_per_second is >= 1000, that means we have maxed out framerate so return the frame rate we're seeing instead
+    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
+
+    auto result = frames_per_second;
+    if (maxed_framerate && fps > 0) {
+        result = fps;
+    }
+    return result;
+}
+
+void set_loop_counter(unsigned int _loopcounter) {
+    loopcounter = _loopcounter;
+    t1 = std::chrono::steady_clock::now();
+    lastcounter = loopcounter;
+    fps = 0;
 }
 
 void PollUntilNextFrame()

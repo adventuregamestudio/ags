@@ -67,7 +67,6 @@ extern int displayed_room;
 extern int game_paused;
 extern SpriteCache spriteset;
 extern int frames_per_second;
-extern int time_between_timers;
 extern char gamefilenamebuf[200];
 extern GameSetup usetup;
 extern unsigned int load_new_game;
@@ -81,6 +80,7 @@ extern int getloctype_index;
 extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
+extern int get_current_fps();
 
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION)
 extern int psp_gfx_renderer;
@@ -373,8 +373,8 @@ void SetRestartPoint() {
 
 void SetGameSpeed(int newspd) {
     // if Ctrl+E has been used to max out frame rate, lock it there
-    if ((frames_per_second == 1000) && (display_fps == 2))
-        return;
+    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
+    if (maxed_framerate) { return; }
 
     newspd += play.game_speed_modifier;
     if (newspd>1000) newspd=1000;
@@ -384,7 +384,7 @@ void SetGameSpeed(int newspd) {
 }
 
 int GetGameSpeed() {
-    return frames_per_second - play.game_speed_modifier;
+    return get_current_fps() - play.game_speed_modifier;
 }
 
 int SetGameOption (int opt, int setting) {

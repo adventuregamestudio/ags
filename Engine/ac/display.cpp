@@ -53,8 +53,7 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern volatile unsigned long globalTimerCounter;
-extern int time_between_timers;
-extern int frames_per_second;
+extern int get_current_fps();
 extern int loops_per_character;
 extern SpriteCache spriteset;
 
@@ -307,7 +306,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
             if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
             {
-                play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms / time_between_timers);
+                play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms * get_current_fps() / 1000);
                 break;
             }
             // if skipping cutscene, don't get stuck on No Auto Remove
@@ -390,7 +389,7 @@ int GetTextDisplayLength(const char *text)
 
 int GetTextDisplayTime(const char *text, int canberel) {
     int uselen = 0;
-    int fpstimer = frames_per_second;
+    int fpstimer = get_current_fps();
 
     // if it's background speech, make it stay relative to game speed
     if ((canberel == 1) && (play.bgspeech_game_speed == 1))

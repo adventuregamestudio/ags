@@ -319,9 +319,9 @@ void set_debug_mode(bool on)
     debug_set_console(on);
 }
 
-void set_game_speed(int fps) {
-    frames_per_second = fps;
-    time_between_timers = 1000 / fps;
+void set_game_speed(int _frames_per_second) {
+    frames_per_second = _frames_per_second;
+    time_between_timers = 1000 / _frames_per_second;
     install_int_ex(dj_timer_handler,MSEC_TO_TIMER(time_between_timers));
 }
 
@@ -1101,7 +1101,7 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     int camx = in->ReadInt32();
     int camy = in->ReadInt32();
     play.SetRoomCameraAt(camx, camy);
-    loopcounter = in->ReadInt32();
+    set_loop_counter(in->ReadInt32());
     return HSaveError::None();
 }
 

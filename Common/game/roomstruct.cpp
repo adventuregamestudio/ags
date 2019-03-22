@@ -15,6 +15,7 @@
 #include "ac/common.h" // update_polled_stuff_if_runtime
 #include "game/room_file.h"
 #include "game/roomstruct.h"
+#include "gfx/bitmap.h"
 
 namespace AGS
 {
@@ -160,7 +161,8 @@ void RoomStruct::InitDefaults()
     DataVersion     = kRoomVersion_Current;
     GameID          = NO_GAME_ID_IN_ROOM_FILE;
 
-    Resolution      = 1;
+    _resolution     = kRoomRealRes;
+    MaskResolution  = 1;
     Width           = 320;
     Height          = 200;
 
@@ -196,6 +198,11 @@ void RoomStruct::InitDefaults()
     BgAnimSpeed = 5;
 
     memset(Palette, 0, sizeof(Palette));
+}
+
+void RoomStruct::SetResolution(RoomResolutionType type)
+{
+    _resolution = type;
 }
 
 bool RoomStruct::HasRegionLightLevel(int id) const
@@ -244,6 +251,40 @@ void load_room(const char *filename, RoomStruct *room, bool game_is_hires, const
     }
     if (!err)
         quitprintf("Unable to load the room file '%s'.\n%s.", filename, err->FullMessage().GetCStr());
+}
+
+PBitmap FixBitmap(PBitmap bmp, int width, int height)
+{
+    Bitmap *new_bmp = BitmapHelper::AdjustBitmapSize(bmp.get(), width, height);
+    if (new_bmp != bmp.get())
+        return PBitmap(new_bmp);
+    return bmp;
+}
+
+void FixRoomMasks(RoomStruct *room)
+{
+    if (room->MaskResolution <= 0)
+        return;
+    Bitmap *bkg = room->BgFrames[0].Graphic.get();
+    if (bkg == NULL)
+        return;
+    // TODO: this issue is somewhat complicated. Original code was relying on
+    // room->Width and Height properties. But in the engine these are saved
+    // already converted to data resolution which may be "low-res". Since this
+    // function is shared between engine and editor we do not know if we need
+    // to upscale them.
+    // For now room width/height is always equal to background bitmap.
+    int base_width = bkg->GetWidth();
+    int base_height = bkg->GetHeight();
+    int low_width = base_width / room->MaskResolution;
+    int low_height = base_height / room->MaskResolution;
+
+    // Walk-behinds are always 1:1 of the primary background.
+    // Other masks are 1:x where X is MaskResolution.
+    room->WalkBehindMask = FixBitmap(room->WalkBehindMask, base_width, base_height);
+    room->HotspotMask = FixBitmap(room->HotspotMask, low_width, low_height);
+    room->RegionMask = FixBitmap(room->RegionMask, low_width, low_height);
+    room->WalkAreaMask = FixBitmap(room->WalkAreaMask, low_width, low_height);
 }
 
 } // namespace Common

@@ -79,6 +79,15 @@ Bitmap *LoadFromFile(const char *filename)
 	return bitmap;
 }
 
+Bitmap *AdjustBitmapSize(Bitmap *src, int width, int height)
+{
+    int oldw = src->GetWidth(), oldh = src->GetHeight();
+    if ((oldw == width) && (oldh == height))
+        return src;
+    Bitmap *bmp = BitmapHelper::CreateBitmap(width, height, src->GetColorDepth());
+    bmp->StretchBlt(src, RectWH(0, 0, oldw, oldh), RectWH(0, 0, width, height));
+    return bmp;
+}
 
 template <class TPx, size_t BPP_>
 struct PixelTransCpy

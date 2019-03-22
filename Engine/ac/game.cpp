@@ -72,8 +72,6 @@
 #include "gui/guidialog.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
@@ -86,6 +84,7 @@
 #include "util/path.h"
 #include "util/string_utils.h"
 #include "ac/mouse.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -320,9 +319,9 @@ void set_debug_mode(bool on)
     debug_set_console(on);
 }
 
-void set_game_speed(int fps) {
-    frames_per_second = fps;
-    time_between_timers = 1000 / fps;
+void set_game_speed(int new_fps) {
+    frames_per_second = new_fps;
+    time_between_timers = 1000 / new_fps;
     install_int_ex(dj_timer_handler,MSEC_TO_TIMER(time_between_timers));
 }
 
@@ -1102,7 +1101,7 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     int camx = in->ReadInt32();
     int camy = in->ReadInt32();
     play.SetRoomCameraAt(camx, camy);
-    loopcounter = in->ReadInt32();
+    set_loop_counter(in->ReadInt32());
     return HSaveError::None();
 }
 

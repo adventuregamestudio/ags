@@ -75,7 +75,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -376,6 +376,8 @@
     <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\READS3M.C" />
     <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\READXM.C" />
     <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\XMEFFECT.C" />
+    <ClCompile Include="..\..\Engine\libsrc\glad\src\glad.c" />
+    <ClCompile Include="..\..\Engine\libsrc\glad\src\glad_wgl.c" />
     <ClCompile Include="..\..\Engine\libsrc\hq2x\hq2x3x.cpp" />
     <ClCompile Include="..\..\Engine\libsrc\libcda-0.5\windows.c" />
     <ClCompile Include="..\..\Engine\main\config.cpp" />

@@ -96,8 +96,8 @@ ccScript::ccScript(const ccScript &src)
     codesize = src.codesize;
     if (codesize > 0)
     {
-        code = (intptr_t*)malloc(codesize * sizeof(intptr_t));
-        memcpy(code, src.code, sizeof(intptr_t) * codesize);
+        code = (int32_t*)malloc(codesize * sizeof(int32_t));
+        memcpy(code, src.code, sizeof(int32_t) * codesize);
     }
     else
     {
@@ -197,7 +197,7 @@ void ccScript::Write(Stream *out) {
     if (globaldatasize > 0)
         out->WriteArray(globaldata,globaldatasize,1);
     if (codesize > 0)
-        out->WriteArrayOfIntPtr32(code,codesize);
+        out->WriteArrayOfInt32(code,codesize);
     if (stringssize > 0)
         out->WriteArray(strings,stringssize,1);
     out->WriteInt32(numfixups);
@@ -251,12 +251,12 @@ bool ccScript::Read(Stream *in)
     globaldata = NULL;
 
   if (codesize > 0) {
-    code = (intptr_t *)malloc(codesize * sizeof(intptr_t));
+    code = (int32_t *)malloc(codesize * sizeof(int32_t));
     // MACPORT FIX: swap
 
     // 64 bit: Read code into 8 byte array, necessary for being able to perform
     // relocations on the references.
-    in->ReadArrayOfIntPtr32(code, codesize);
+    in->ReadArrayOfInt32(code, codesize);
   }
   else
     code = NULL;

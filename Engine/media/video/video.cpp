@@ -32,8 +32,8 @@
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
-#include "media/audio/audio.h"
 #include "util/stream.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

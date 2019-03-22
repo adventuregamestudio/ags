@@ -276,6 +276,9 @@ int alogg_play_ex_ogg(ALOGG_OGG *ogg, int buffer_len, int vol, int pan, int spee
   /* create a new audiostream and play it */
   samples = buffer_len / (ogg->stereo ? 2 : 1) / 2; /* / 2 = 16 bits samples */
   ogg->audiostream = play_audio_stream(samples, 16, ogg->stereo, ogg->freq, vol, pan);
+  if (!ogg->audiostream) {
+    return ALOGG_POLL_INTERNALERROR;
+  }
   ogg->audiostream_buffer_len = samples * (ogg->stereo ? 2 : 1) * 2; /* * 2 = 16 bits samples */
 
   if (speed != 1000)
@@ -915,6 +918,9 @@ int alogg_play_ex_oggstream(ALOGG_OGGSTREAM *ogg, int buffer_len, int vol, int p
   /* create a new audiostream and play it */
   samples = buffer_len / (ogg->stereo ? 2 : 1) / 2; /* / 2 = 16 bits samples */
   ogg->audiostream = play_audio_stream(samples, 16, ogg->stereo, ogg->freq, vol, pan);
+  if (!ogg->audiostream) {
+    return ALOGG_POLL_INTERNALERROR;
+  }
   ogg->audiostream_buffer_len = samples * (ogg->stereo ? 2 : 1) * 2; /* * 2 = 16 bits samples */
 
   ogg->wait_for_audio_stop = 0;

@@ -643,8 +643,8 @@ void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use
     }
 
   int nwid=towrite->GetWidth(),nhit=towrite->GetHeight();
-  if (thisgame.SpriteInfos[sprnum].IsRelativeRes()) {
-    if (thisgame.SpriteInfos[sprnum].IsHiRes()) {
+  if (thisgame.AllowRelativeRes() && thisgame.SpriteInfos[sprnum].IsRelativeRes()) {
+    if (thisgame.SpriteInfos[sprnum].IsLegacyHiRes()) {
       if (dsc_want_hires == 0) {
         nwid/=2;
         nhit/=2;
@@ -676,6 +676,7 @@ enum RoomAreaMask
 };
 
 // TODO: mask's bitmap, as well as coordinate factor, should be a property of the room or some room's mask class
+// TODO: create weak_ptr here?
 AGSBitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
 	switch (maskType) 
@@ -687,18 +688,19 @@ AGSBitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 	}
     return NULL;
 }
-    // TODO: create weak_ptr here?
+
 float get_scale_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
     switch (maskType)
     {
-    case RoomAreaMask::Hotspots: return 1.f / roomptr->Resolution;
-    case RoomAreaMask::Regions: return 1.f / roomptr->Resolution;
-    case RoomAreaMask::WalkableAreas: return 1.f / roomptr->Resolution;
-    case RoomAreaMask::WalkBehinds: return 1.f;
+    case RoomAreaMask::Hotspots: return 1.f / roomptr->MaskResolution;
+    case RoomAreaMask::Regions: return 1.f / roomptr->MaskResolution;
+    case RoomAreaMask::WalkableAreas: return 1.f / roomptr->MaskResolution;
+    case RoomAreaMask::WalkBehinds: return 1.f; // walk-behinds always 1:1 with room size
     }
     return 0.f;
 }
+
 
 void copy_walkable_to_regions (void *roomptr) {
     RoomStruct *theRoom = (RoomStruct*)roomptr;
@@ -1014,8 +1016,8 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
     reload_font(fontnum);
 
   // TODO: rewrite this, use actual font size (maybe related to window size) and not game's resolution type
-  int doubleSize = (!thisgame.IsHiRes()) ? 2 : 1;
-  int blockSize = (!thisgame.IsHiRes()) ? 1 : 2;
+  int doubleSize = (!thisgame.IsLegacyHiRes()) ? 2 : 1;
+  int blockSize = (!thisgame.IsLegacyHiRes()) ? 1 : 2;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   int char_height = thisgame.fonts[fontnum].SizePt * thisgame.fonts[fontnum].SizeMultiplier;
@@ -1134,11 +1136,13 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
   delete todraw;
 }
 
+// TODO: these functions duplicate ones in the engine, because game struct
+// is referenced differently. Refactor this somehow.
 int ctx_data_to_game_size(int val, bool hires_ctx)
 {
-    if (hires_ctx && !thisgame.IsHiRes())
+    if (hires_ctx && !thisgame.IsLegacyHiRes())
         return AGSMath::Max(1, (val / HIRES_COORD_MULTIPLIER));
-    if (!hires_ctx && thisgame.IsHiRes())
+    if (!hires_ctx && thisgame.IsLegacyHiRes())
         return val * HIRES_COORD_MULTIPLIER;
     return val;
 }
@@ -1148,9 +1152,9 @@ int get_adjusted_spritewidth(int spr) {
   if (tsp == NULL)
       return 0;
   int retval = tsp->GetWidth();
-  if (!thisgame.SpriteInfos[spr].IsRelativeRes())
+  if (!thisgame.AllowRelativeRes() || !thisgame.SpriteInfos[spr].IsRelativeRes())
       return retval;
-  return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsHiRes());
+  return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsLegacyHiRes());
 }
 
 int get_adjusted_spriteheight(int spr) {
@@ -1158,9 +1162,9 @@ int get_adjusted_spriteheight(int spr) {
   if (tsp == NULL)
       return 0;
   int retval = tsp->GetHeight();
-  if (!thisgame.SpriteInfos[spr].IsRelativeRes())
+  if (!thisgame.AllowRelativeRes() || !thisgame.SpriteInfos[spr].IsRelativeRes())
       return retval;
-  return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsHiRes());
+  return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsLegacyHiRes());
 }
 
 void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
@@ -1243,8 +1247,8 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float sca
 }
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
-	int scaleFactor = thisgame.SpriteInfos[spriteNum].IsRelativeRes() ?
-        (thisgame.SpriteInfos[spriteNum].IsHiRes() ? 1 : 2) : 1;
+	int scaleFactor = (thisgame.AllowRelativeRes() && thisgame.SpriteInfos[spriteNum].IsRelativeRes()) ?
+        (thisgame.SpriteInfos[spriteNum].IsLegacyHiRes() ? 1 : 2) : 1;
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
   if (theSprite == NULL)
@@ -1665,7 +1669,7 @@ void copy_global_palette_to_room_palette()
 
 const char* load_room_file(const char*rtlo) {
 
-  load_room(rtlo, &thisroom, thisgame.IsHiRes(), thisgame.SpriteInfos);
+  load_room(rtlo, &thisroom, thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
 
   // Allocate enough memory to add extra variables
   thisroom.LocalVariables.resize(MAX_GLOBAL_VARIABLES);
@@ -1683,20 +1687,9 @@ const char* load_room_file(const char*rtlo) {
   // Fix hi-color screens
   // TODO: find out why this is necessary. Probably has something to do with
   // Allegro switching color components at certain version update long time ago.
+  // do we need to do this in the engine too?
   for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
     fix_block (thisroom.BgFrames[i].Graphic.get());
-
-  // TODO: find out how old this conversion is; was this ever a thing?
-  // Perhaps merge this in UpdateRoomData and simply do this non-conditionally for every mask that does not match background size?
-  if ((thisroom.Resolution > 1) && (thisroom.WalkBehindMask->GetWidth() < thisroom.Width)) {
-    // 640x400 room with 320x200-res walkbehind
-    // resize it up to 640x400-res
-    int oldw = thisroom.WalkBehindMask->GetWidth(), oldh=thisroom.WalkBehindMask->GetHeight();
-    Common::Bitmap *tempb = Common::BitmapHelper::CreateBitmap(thisroom.Width, thisroom.Height, thisroom.WalkBehindMask->GetColorDepth());
-    tempb->Fill(0);
-    tempb->StretchBlt(thisroom.WalkBehindMask.get(),RectWH(0,0,oldw,oldh),RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
-    thisroom.WalkBehindMask.reset(tempb);
-  }
 
   set_palette_range(palette, 0, 255, 0);
   
@@ -2066,8 +2059,8 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	if (todraw == NULL)
 	  todraw = spriteset[0];
 
-	if (thisgame.SpriteInfos[sprNum].IsRelativeRes() &&
-        !thisgame.SpriteInfos[sprNum].IsHiRes() && thisgame.IsHiRes())
+	if (thisgame.AllowRelativeRes() && thisgame.SpriteInfos[sprNum].IsRelativeRes() &&
+        !thisgame.SpriteInfos[sprNum].IsLegacyHiRes() && thisgame.IsLegacyHiRes())
 	{
 		scale *= 2.0f;
 	}
@@ -2388,8 +2381,9 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
-	bool resolutionChanged = (theRoom->Resolution != (int)room->Resolution);
-	theRoom->Resolution = (int)room->Resolution;
+	bool resolutionChanged = (theRoom->GetResolutionType() != (AGS::Common::RoomResolutionType)room->Resolution);
+	theRoom->SetResolution((AGS::Common::RoomResolutionType)room->Resolution);
+    theRoom->MaskResolution = theRoom->MaskResolution;
 
 	if (newbg->GetColorDepth() == 8) 
 	{
@@ -2427,10 +2421,10 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||
       (theRoom->Width != theRoom->WalkBehindMask->GetWidth()) || (resolutionChanged))
 	{
-        theRoom->WalkAreaMask.reset(new AGSBitmap(theRoom->Width / theRoom->Resolution, theRoom->Height / theRoom->Resolution, 8));
-        theRoom->HotspotMask.reset(new AGSBitmap(theRoom->Width / theRoom->Resolution, theRoom->Height / theRoom->Resolution, 8));
+        theRoom->WalkAreaMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
+        theRoom->HotspotMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
         theRoom->WalkBehindMask.reset(new AGSBitmap(theRoom->Width, theRoom->Height, 8));
-        theRoom->RegionMask.reset(new AGSBitmap(theRoom->Width / theRoom->Resolution, theRoom->Height / theRoom->Resolution, 8));
+        theRoom->RegionMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
         theRoom->WalkAreaMask->Clear();
         theRoom->HotspotMask->Clear();
         theRoom->WalkBehindMask->Clear();
@@ -2651,6 +2645,13 @@ System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber)
   return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
 }
 
+void FixRoomMasks(Room ^room)
+{
+    RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
+    roomptr->MaskResolution = room->MaskResolution;
+    AGS::Common::FixRoomMasks(roomptr);
+}
+
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
 {  
 	for each (PaletteEntry ^colour in newPalette) 
@@ -2844,7 +2845,7 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 		if (spr != NULL)
 		{
 			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(),
-                thisgame.SpriteInfos[i].IsRelativeRes() ? (thisgame.SpriteInfos[i].IsHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real,
+                thisgame.SpriteInfos[i].IsRelativeRes() ? (thisgame.SpriteInfos[i].IsLegacyHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real,
                 (thisgame.SpriteInfos[i].Flags & SPF_ALPHACHANNEL) ? true : false));
 		}
 	}
@@ -3164,7 +3165,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 	}
 
 	Game^ game = gcnew Game();
-	game->Settings->AlwaysDisplayTextAsSpeech = (thisgame.options[OPT_ALWAYSSPCH] != 0);
+    game->Settings->AlwaysDisplayTextAsSpeech = (thisgame.options[OPT_ALWAYSSPCH] != 0);
 	game->Settings->AntiAliasFonts = (thisgame.options[OPT_ANTIALIASFONTS] != 0);
 	game->Settings->AntiGlideMode = (thisgame.options[OPT_ANTIGLIDE] != 0);
 	game->Settings->AutoMoveInWalkMode = !thisgame.options[OPT_NOWALKMODE];
@@ -3209,8 +3210,9 @@ Game^ import_compiled_game_dta(const char *fileName)
 	game->Settings->WalkInLookMode = (thisgame.options[OPT_WALKONLOOK] != 0);
 	game->Settings->WhenInterfaceDisabled = (InterfaceDisabledAction)thisgame.options[OPT_DISABLEOFF];
 	game->Settings->UniqueID = thisgame.uniqueid;
-  game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
-  game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
+    game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
+    game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
+    game->Settings->AllowRelativeAssetResolutions = (thisgame.options[OPT_RELATIVEASSETRES] != 0);
 
 	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
 	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;
@@ -3665,14 +3667,8 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	room->ColorDepth = thisroom.BgFrames[0].Graphic->GetColorDepth();
 	room->BackgroundAnimationDelay = thisroom.BgAnimSpeed;
 	room->BackgroundCount = thisroom.BgFrameCount;
-  if (thisroom.Resolution > 2)
-  {
-    room->Resolution = RoomResolution::HighRes;
-  }
-  else
-  {
-  	room->Resolution = (RoomResolution)thisroom.Resolution;
-  }
+    room->Resolution = (AGS::Types::RoomResolution)thisroom.GetResolutionType();
+    room->MaskResolution = thisroom.MaskResolution;
 
 	for (size_t i = 0; i < thisroom.LocalVariables.size(); ++i)
 	{
@@ -3828,7 +3824,8 @@ void save_crm_file(Room ^room)
     // Convert managed Room object into the native roomstruct that is going
     // to be saved using native procedure.
     //
-	thisroom.Resolution = (int)room->Resolution;
+	thisroom.SetResolution((AGS::Common::RoomResolutionType)room->Resolution);
+    thisroom.MaskResolution = room->MaskResolution;
 
 	thisroom.GameID = room->GameID;
 	thisroom.Edges.Bottom = room->BottomEdgeY;

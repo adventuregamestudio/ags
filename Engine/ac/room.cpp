@@ -14,7 +14,6 @@
 
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
-#include "media/audio/audiodefines.h"
 #include "ac/charactercache.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
@@ -51,7 +50,6 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "game/room_version.h"
-#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -67,6 +65,7 @@
 #include "gfx/gfxfilter.h"
 #include "util/math.h"
 #include "ac/dynobj/scriptcamera.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -219,35 +218,24 @@ ScriptCamera* Room_GetCamera()
 
 //=============================================================================
 
-// If room mask is too small or too large for this room size,
-// then create a new bitmap and stretch old one to fill in;
-// otherwise return old bitmap.
-PBitmap fix_bitmap_size(PBitmap todubl, int bkg_width, int bkg_height)
-{
-    int oldw=todubl->GetWidth(), oldh=todubl->GetHeight();
-    if ((oldw == bkg_width) && (oldh == bkg_height))
-        return todubl;
-
-    Bitmap *tempb=BitmapHelper::CreateBitmap(bkg_width, bkg_height, todubl->GetColorDepth());
-    tempb->StretchBlt(todubl.get(), RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
-    return PBitmap(tempb);
-}
-
 // Makes sure that room background and walk-behind mask are matching room size
 // in game resolution coordinates; in other words makes graphics appropriate
 // for display in the game.
 void convert_room_background_to_game_res()
 {
+    if (!game.AllowRelativeRes() || !thisroom.IsRelativeRes())
+        return;
+
     int bkg_width = thisroom.Width;
     int bkg_height = thisroom.Height;
     data_to_game_coords(&bkg_width, &bkg_height);
 
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
-        thisroom.BgFrames[i].Graphic = fix_bitmap_size(thisroom.BgFrames[i].Graphic, bkg_width, bkg_height);
+        thisroom.BgFrames[i].Graphic = FixBitmap(thisroom.BgFrames[i].Graphic, bkg_width, bkg_height);
 
-    // fix walk-behinds to match room background
+    // Fix walk-behinds to match room background
     // TODO: would not we need to do similar to each mask if they were 1:1 in hires room?
-    thisroom.WalkBehindMask = fix_bitmap_size(thisroom.WalkBehindMask, bkg_width, bkg_height);
+    thisroom.WalkBehindMask = FixBitmap(thisroom.WalkBehindMask, bkg_width, bkg_height);
 }
 
 
@@ -474,7 +462,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom, game.IsHiRes(), game.SpriteInfos);
+    load_room(room_filename, &thisroom, game.IsLegacyHiRes(), game.SpriteInfos);
 
     if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.GameID != game.uniqueid)) {
@@ -962,9 +950,7 @@ extern long t1;  // defined in ac_main
 
 void first_room_initialization() {
     starting_room = displayed_room;
-    t1 = time(NULL);
-    lastcounter=0;
-    loopcounter=0;
+    set_loop_counter(0);
     mouse_z_was = mouse_z;
 }
 
@@ -1043,10 +1029,10 @@ void croom_ptr_clear()
 
 void convert_move_path_to_room_resolution(MoveList *ml)
 { // TODO: refer to room mask own setting here instead
-    if (game.GetRoomMaskMul() == 1)
+    if (thisroom.MaskResolution == 1)
         return;
 
-    const int mul = game.GetRoomMaskMul();
+    const int mul = thisroom.MaskResolution;
     ml->fromx *= mul;
     ml->fromy *= mul;
     ml->lastx *= mul;

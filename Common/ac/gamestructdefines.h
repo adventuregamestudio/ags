@@ -77,7 +77,8 @@
 #define OPT_BASESCRIPTAPI   43 // version of the Script API (ScriptAPIVersion) used to compile game script
 #define OPT_SCRIPTCOMPATLEV 44 // level of API compatibility (ScriptAPIVersion) used to compile game script
 #define OPT_RENDERATSCREENRES 45 // use the legacy D3D scaling that scales sprites at the (final) screen resolution
-#define OPT_HIGHESTOPTION   OPT_RENDERATSCREENRES
+#define OPT_RELATIVEASSETRES 46 // relative asset resolution mode (where sprites are resized to match game type)
+#define OPT_HIGHESTOPTION   OPT_RELATIVEASSETRES
 #define OPT_NOMODMUSIC      98
 #define OPT_LIPSYNCTEXT     99
 #define PORTRAIT_LEFT       0
@@ -128,7 +129,7 @@ enum GameResolutionType
     kGameResolution_FirstHiRes  = kGameResolution_640x400
 };
 
-inline bool IsHiRes(GameResolutionType resolution)
+inline bool IsLegacyHiRes(GameResolutionType resolution)
 {
     return resolution > kGameResolution_LastLoRes;
 }
@@ -199,7 +200,7 @@ struct SpriteInfo
     // Gets if sprite belongs to high resolution; hi-res sprites should be
     // downscaled in low-res games, and low-res sprites should be upscaled
     // in hi-res games
-    inline bool IsHiRes() const { return (Flags & SPF_HIRES) != 0; }
+    inline bool IsLegacyHiRes() const { return (Flags & SPF_HIRES) != 0; }
 };
 
 // Various font parameters, defining and extending font rendering behavior.

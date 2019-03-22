@@ -15,14 +15,13 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/draw.h"
 #include "ac/game_version.h"
+#include "media/audio/audio_system.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
@@ -31,7 +30,6 @@ extern GameSetupStruct game;
 extern ViewStruct*views;
 extern SpriteCache spriteset;
 extern CCAudioClip ccDynamicAudioClip;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf) {

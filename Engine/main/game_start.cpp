@@ -33,6 +33,7 @@
 #include "main/game_run.h"
 #include "main/game_start.h"
 #include "script/script.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

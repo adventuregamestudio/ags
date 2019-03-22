@@ -24,8 +24,6 @@
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
 #include "script/cc_error.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -33,6 +31,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

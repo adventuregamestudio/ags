@@ -106,15 +106,8 @@ namespace AGS.Editor
 
 			_menuClickX = state.WindowXToRoom(e.X);
 			_menuClickY = state.WindowYToRoom(e.Y);
-
-            if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
-                (_room.Resolution == RoomResolution.HighRes))
-            {
-                _menuClickX /= 2;
-                _menuClickY /= 2;
-            }
-
-			menu.Show(_panel, e.X, e.Y);
+            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref _menuClickX, ref _menuClickY);
+            menu.Show(_panel, e.X, e.Y);
 		}
 
         public bool MouseMove(int x, int y, RoomEditorState state)

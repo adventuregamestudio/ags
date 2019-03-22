@@ -116,8 +116,10 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     modified = 0;
     hasAlphaChannel = 0;
     highResCoordinates = 0;
-
-    if (game.IsHiRes() && game.IsDataInNativeCoordinates())
+    // NOTE: Normally in contemporary games coordinates ratio will always be 1:1.
+    // But we still support legacy drawing, so have to set this up even for modern games,
+    // otherwise we'd have to complicate conversion conditions further.
+    if (game.IsLegacyHiRes() && game.IsDataInNativeCoordinates())
     {
         highResCoordinates = 1;
     }

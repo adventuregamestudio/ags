@@ -249,7 +249,8 @@ int DrawingSurface_GetDrawingColor(ScriptDrawingSurface *sds)
 
 void DrawingSurface_SetUseHighResCoordinates(ScriptDrawingSurface *sds, int highRes) 
 {
-    sds->highResCoordinates = (highRes) ? 1 : 0;
+    if (game.AllowRelativeRes())
+        sds->highResCoordinates = (highRes) ? 1 : 0;
 }
 
 int DrawingSurface_GetUseHighResCoordinates(ScriptDrawingSurface *sds) 

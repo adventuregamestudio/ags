@@ -538,6 +538,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_BASESCRIPTAPI] = (int)game.Settings.ScriptAPIVersionReal;
             options[NativeConstants.GameOptions.OPT_SCRIPTCOMPATLEV] = (int)game.Settings.ScriptCompatLevelReal;
             options[NativeConstants.GameOptions.OPT_RENDERATSCREENRES] = (int)game.Settings.RenderAtScreenResolution;
+            options[NativeConstants.GameOptions.OPT_RELATIVEASSETRES] = (game.Settings.AllowRelativeAssetResolutions ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
             {

@@ -82,6 +82,7 @@ void AGSPlatformDriver::WriteStdOut(const char *fmt, ...) {
     vprintf(fmt, args);
     va_end(args);
     printf("\n");
+    fflush(stdout);
 }
 
 void AGSPlatformDriver::YieldCPU() {

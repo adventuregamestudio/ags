@@ -31,7 +31,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <math.h>
 
+#if defined(BUILTIN_PLUGINS)
 namespace agspalrender {
+#endif
 
 #define PI         (3.1415926535f)
 
@@ -1693,4 +1695,6 @@ void combSort(int* order, double* dist, int amount)
   }
 }
 
-}
+#if defined(BUILTIN_PLUGINS)
+} // namespace agspalrender
+#endif

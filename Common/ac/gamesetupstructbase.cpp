@@ -50,7 +50,6 @@ GameSetupStructBase::GameSetupStructBase()
     , _resolutionType(kGameResolution_Undefined)
     , _dataUpscaleMult(1)
     , _screenUpscaleMult(1)
-    , _roomMaskMul(1)
 {
     memset(gamename, 0, sizeof(gamename));
     memset(options, 0, sizeof(options));
@@ -101,7 +100,7 @@ void GameSetupStructBase::SetDefaultResolution(GameResolutionType type, Size siz
     _defGameResolution = _gameResolution;
     // Setup data resolution according to legacy settings (if set)
     _dataResolution = _defGameResolution;
-    if (IsHiRes() && options[OPT_NATIVECOORDINATES] == 0)
+    if (IsLegacyHiRes() && options[OPT_NATIVECOORDINATES] == 0)
     {
         _dataResolution = _defGameResolution / HIRES_COORD_MULTIPLIER;
     }
@@ -141,7 +140,6 @@ void GameSetupStructBase::OnResolutionSet()
     // The final data-to-game multiplier is always set after actual game resolution (not default one)
     _dataUpscaleMult = _gameResolution.Width / _dataResolution.Width;
     _screenUpscaleMult = _gameResolution.Width / _defGameResolution.Width;
-    _roomMaskMul = IsHiRes() ? HIRES_COORD_MULTIPLIER : 1;
 }
 
 void GameSetupStructBase::ReadFromFile(Stream *in)

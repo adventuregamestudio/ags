@@ -33,6 +33,7 @@
 #include "util/textstreamreader.h"
 #include "util/path.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

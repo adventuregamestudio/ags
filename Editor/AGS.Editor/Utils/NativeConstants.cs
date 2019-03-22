@@ -129,6 +129,7 @@ namespace AGS.Editor
             public static readonly int OPT_BASESCRIPTAPI = (int)Factory.NativeProxy.GetNativeConstant("OPT_BASESCRIPTAPI");
             public static readonly int OPT_SCRIPTCOMPATLEV = (int)Factory.NativeProxy.GetNativeConstant("OPT_SCRIPTCOMPATLEV");
             public static readonly int OPT_RENDERATSCREENRES = (int)Factory.NativeProxy.GetNativeConstant("OPT_RENDERATSCREENRES");
+            public static readonly int OPT_RELATIVEASSETRES = (int)Factory.NativeProxy.GetNativeConstant("OPT_RELATIVEASSETRES");
             public static readonly int OPT_LIPSYNCTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_LIPSYNCTEXT");
         }
     }

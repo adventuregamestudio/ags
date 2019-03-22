@@ -13,13 +13,11 @@
 //=============================================================================
 
 #include "ac/common.h"
-#include "media/audio/audiodefines.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/sys_events.h"
-#include "media/audio/soundclip.h"
 #include "device/mousew32.h"
 
 using namespace AGS::Common;
@@ -29,7 +27,6 @@ extern GameSetupStruct game;
 extern GameState play;
 
 extern volatile unsigned long globalTimerCounter;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern int pluginSimulatedClick;
 extern int displayed_room;
 extern char check_dynamic_sprites_at_exit;

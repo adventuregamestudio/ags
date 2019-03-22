@@ -22,6 +22,7 @@
 #include <allegro.h>
 #include <xalleg.h>
 #include "ac/runtime_defines.h"
+#include "gfx/gfxdefines.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "util/string.h"
@@ -60,6 +61,7 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void ShutdownCDPlayer();
   virtual bool LockMouseToWindow();
   virtual void UnlockMouse();
+  virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
 };
 
 
@@ -204,4 +206,16 @@ bool AGSLinux::LockMouseToWindow()
 void AGSLinux::UnlockMouse()
 {
     XUngrabPointer(_xwin.display, CurrentTime);
+}
+
+void AGSLinux::GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms)
+{
+    dms.clear();
+    GFX_MODE_LIST *gmlist = get_gfx_mode_list(GFX_XWINDOWS_FULLSCREEN);
+    for (int i = 0; i < gmlist->num_modes; ++i)
+    {
+        const GFX_MODE &m = gmlist->mode[i];
+        dms.push_back(Engine::DisplayMode(Engine::GraphicResolution(m.width, m.height, m.bpp)));
+    }
+    destroy_gfx_mode_list(gmlist);
 }

@@ -41,8 +41,6 @@
 #include "game/savegame_components.h"
 #include "game/savegame_internal.h"
 #include "main/main.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -52,6 +50,7 @@
 #include "util/file.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace Common;
 using namespace Engine;

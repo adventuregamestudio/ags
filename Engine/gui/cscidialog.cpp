@@ -29,9 +29,9 @@
 #include "gui/guimain.h"
 #include "gui/mycontrols.h"
 #include "main/game_run.h"
-#include "media/audio/audio.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "media/audio/audio_system.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;

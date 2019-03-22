@@ -35,6 +35,7 @@ namespace AGS.Types
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.HighColor;
+        private bool _allowRelativeAssetResolution = false;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;
@@ -90,8 +91,9 @@ namespace AGS.Types
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private bool _useLowResCoordinatesInScript = true;
+        private int _defRoomMaskResolution = 1;
         // Windows game explorer fields
-		private bool _enableGameExplorer = false;
+        private bool _enableGameExplorer = false;
 		private string _description = string.Empty;
 		private DateTime _releaseDate = DateTime.Now;
 		private string _genre = DEFAULT_GENRE;
@@ -230,18 +232,28 @@ namespace AGS.Types
             }
         }
 
+        [DisplayName("Allow relative asset resolutions")]
+        [Description("Allow sprites and room backgrounds to define whether they are low- or high-resolution assets. If this does not match the game type then images will be scaled up or down in game." +
+            "\nThis option will only be useful when importing games made before AGS 3.1.")]
+        [Category("Backwards Compatibility")]
+        [DefaultValue(false)]
+        public bool AllowRelativeAssetResolutions
+        {
+            get { return _allowRelativeAssetResolution; }
+            set { _allowRelativeAssetResolution = value; }
+        }
+
         /// <summary>
-        /// Tells if the game should be considered low-resolution.
+        /// Tells if the game should be considered high-resolution.
         /// For backwards-compatble logic only.
-        /// The "low resolution" assumes that game does not exceed
-        /// 320x240 pixels.
+        /// The "high resolution" assumes that game exceeds 320x240 pixels.
         /// </summary>
         [Browsable(false)]
-        public bool LowResolution
+        public bool HighResolution
         {
             get
             {
-                return (CustomResolution.Width * CustomResolution.Height) <= (320 * 240);
+                return (CustomResolution.Width * CustomResolution.Height) > (320 * 240);
             }
         }
 
@@ -847,7 +859,18 @@ namespace AGS.Types
             set { _hasMODMusic = value; }
         }
 
-		[DisplayName("Enable Game Explorer integration")]
+        [DisplayName("Default mask resolution")]
+        [Description("What resolution do room region masks have relative to the room size")]
+        [Category("Rooms")]
+        [DefaultValue(1)]
+        [TypeConverter(typeof(RoomMaskResolutionTypeConverter))]
+        public int DefaultRoomMaskResolution
+        {
+            get { return _defRoomMaskResolution; }
+            set { _defRoomMaskResolution = value; }
+        }
+
+        [DisplayName("Enable Game Explorer integration")]
 		[Description("Whether or not this game can be added to the Vista Game Explorer")]
 		[Category("Windows Game Explorer")]
 		public bool GameExplorerEnabled

@@ -539,17 +539,11 @@ namespace AGS.Types
             return null;
         }
 
+        // TODO: remove this after we have proper zoom controls in all editors;
+        // default zoom-in should be relied on the actual image size if on anything
         public int GUIScaleFactor
         {
-            get
-            {
-                if (_settings.LowResolution)
-                {
-                    return 2;
-                }
-
-                return 1;
-            }
+            get { return IsHighResolution ? 1 : 2; }
         }
 
         /// <summary>
@@ -557,7 +551,7 @@ namespace AGS.Types
         /// </summary>
         public bool IsHighResolution
         {
-            get { return (this.GUIScaleFactor == 1); }
+            get { return _settings.HighResolution; }
         }
 
         public int GetNextAudioIndex()
@@ -1144,7 +1138,7 @@ namespace AGS.Types
         /// </summary>
         public void ConvertCoordinatesToNativeResolution()
         {
-            if (_settings.LowResolution)
+            if (!_settings.HighResolution)
             {
                 // No conversion necessary -- already at native res
                 return;

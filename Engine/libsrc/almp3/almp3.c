@@ -535,6 +535,9 @@ int almp3_play_ex_mp3(ALMP3_MP3 *mp3, int buffer_len, int vol, int pan, int spee
   /* create a new audiostream and play it */
   samples = (mp3->outbytes_per_frame * mp3->frames_per_poll) / (mp3->stereo ? 2 : 1) / (mp3->bits / 8);
   mp3->audiostream = play_audio_stream(samples, mp3->bits, mp3->stereo, mp3->freq, vol, pan);
+  if (!mp3->audiostream) {
+    return ALMP3_POLL_INTERNALERROR;
+  }
 
   if (speed != 1000)
     adjust_sample(mp3->audiostream->samp, vol, pan, speed, TRUE);
@@ -1489,7 +1492,10 @@ int almp3_play_ex_mp3stream(ALMP3_MP3STREAM *mp3, int buffer_len, int vol, int p
   /* create a new audiostream and play it */
   samples = (mp3->outbytes_per_frame * mp3->frames_per_poll) / (mp3->stereo ? 2 : 1) / (mp3->bits / 8);
   mp3->audiostream = play_audio_stream(samples, mp3->bits, mp3->stereo, mp3->freq, vol, pan);
-
+  if (!mp3->audiostream) {
+    return ALMP3_POLL_INTERNALERROR;
+  }
+  
   mp3->wait_for_audio_stop = 0;
 
   if (speed != 1000)

@@ -35,7 +35,7 @@
 #include "ac/walkablearea.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "media/audio/soundclip.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -56,15 +56,13 @@ extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
 extern int facetalkBlinkLoop;
 extern bool facetalk_qfg4_override_placement_x, facetalk_qfg4_override_placement_y;
 extern volatile unsigned long globalTimerCounter;
-extern int time_between_timers;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_text_overlay;
 extern IGraphicsDriver *gfxDriver;
-extern int frames_per_second;
-
+extern int get_current_fps();
 
 int do_movelist_move(short*mlnum,int*xx,int*yy) {
   int need_to_fix_sprite=0;
@@ -269,7 +267,7 @@ void update_speech_and_messages()
     {
         if (!play.speech_in_post_state)
         {
-            play.messagetime = play.speech_display_post_time_ms * frames_per_second / 1000;
+            play.messagetime = play.speech_display_post_time_ms * get_current_fps() / 1000;
         }
         play.speech_in_post_state = !play.speech_in_post_state;
     }
@@ -283,7 +281,7 @@ void update_speech_and_messages()
       else if (play.cant_skip_speech & SKIP_AUTOTIMER)
       {
         remove_screen_overlay(OVER_TEXTMSG);
-        play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms / time_between_timers);
+        play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms * get_current_fps() / 1000);
       }
     }
   }

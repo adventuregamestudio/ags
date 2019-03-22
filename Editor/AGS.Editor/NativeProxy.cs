@@ -272,6 +272,11 @@ namespace AGS.Editor
             return _native.GetBitmapForBackground(room, backgroundNumber);
         }
 
+        public void AdjustRoomMaskResolution(Room room)
+        {
+            _native.AdjustRoomMaskResolution(room);
+        }
+
         public void CreateBuffer(int width, int height)
         {
             _native.CreateBuffer(width, height);

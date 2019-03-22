@@ -238,6 +238,15 @@ struct MessageInfo
 };
 
 
+// Room's legacy resolution type
+enum RoomResolutionType
+{
+    kRoomRealRes = 0, // room should always be treated as-is
+    kRoomLoRes = 1, // created for low-resolution game
+    kRoomHiRes = 2 // created for high-resolution game
+};
+
+
 //
 // Description of a single room.
 // This class contains initial room data. Some of it may still be modified
@@ -249,8 +258,11 @@ public:
     RoomStruct();
     ~RoomStruct();
 
+    // Gets if room should adjust its base size depending on game's resolution
+    inline bool IsRelativeRes() const { return _resolution != kRoomRealRes; }
     // Gets if room belongs to high resolution
-    inline bool IsHiRes() const { return Resolution == HIRES_COORD_MULTIPLIER; }
+    inline bool IsLegacyHiRes() const { return _resolution == kRoomHiRes; }
+    inline RoomResolutionType GetResolutionType() const { return _resolution; }
 
     // Releases room resources
     void            Free();
@@ -260,6 +272,8 @@ public:
     void            FreeScripts();
     // Init default room state
     void            InitDefaults();
+    // Set legacy resolution type
+    void            SetResolution(RoomResolutionType type);
 
     // TODO: see later whether it may be more convenient to move these to the Region class instead.
     // Gets if the given region has light level set
@@ -282,9 +296,9 @@ public:
     // the room must have behavior specific to certain version of AGS.
     int32_t                 DataVersion;
 
-    // Room's legacy resolution type (1 - lores, 2 - hires);
-    // also serves as a hotspot/region mask relation to background
-    int32_t                 Resolution;
+    // Room region masks resolution. Defines the relation between room and mask units.
+    // Mask point is calculated as roompt / MaskResolution. Must be >= 1.
+    int32_t                 MaskResolution;
     // Size of the room, in logical coordinates (= pixels)
     int32_t                 Width;
     int32_t                 Height;
@@ -333,10 +347,20 @@ public:
     PInteractionScripts     EventHandlers;
     // Compiled room script
     PScript                 CompiledScript;
+
+private:
+    // Room's legacy resolution type, defines relation room and game's resolution
+    RoomResolutionType      _resolution;
 };
 
 
+// Loads new room data into the given RoomStruct object
 void load_room(const char *filename, RoomStruct *room, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos);
+// Ensures that all existing room masks match room background size and
+// MaskResolution property, resizes mask bitmaps if necessary.
+void FixRoomMasks(RoomStruct *room);
+// Adjusts bitmap size if necessary and returns either new or old bitmap.
+PBitmap FixBitmap(PBitmap bmp, int dst_width, int dst_height);
 
 } // namespace Common
 } // namespace AGS

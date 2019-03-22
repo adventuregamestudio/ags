@@ -76,6 +76,7 @@ extern void DrawSpriteToBuffer(int sprNum, int x, int y, float scale);
 extern void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color);
+extern void FixRoomMasks(Room ^room);
 extern void copy_walkable_to_regions(void *roomptr);
 extern int get_mask_pixel(void *roomptr, int maskType, int x, int y);
 extern void import_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
@@ -254,7 +255,7 @@ namespace AGS
             ::SpriteInfo info;
             ::GetSpriteInfo(spriteSlot, info);
             return gcnew AGS::Types::SpriteInfo(info.Width, info.Height,
-                info.IsRelativeRes() ? (info.IsHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real);
+                info.IsRelativeRes() ? (info.IsLegacyHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real);
         }
 
 		int NativeMethods::GetSpriteWidth(int spriteSlot) 
@@ -471,6 +472,11 @@ namespace AGS
 		{
 			return getBackgroundAsBitmap(room, backgroundNumber);
 		}
+
+        void NativeMethods::AdjustRoomMaskResolution(Room ^room)
+        {
+            FixRoomMasks(room);
+        }
 
 		void NativeMethods::DrawLineOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color)
 		{
@@ -754,6 +760,7 @@ namespace AGS
             if (name->Equals("OPT_BASESCRIPTAPI")) return OPT_BASESCRIPTAPI;
             if (name->Equals("OPT_SCRIPTCOMPATLEV")) return OPT_SCRIPTCOMPATLEV;
             if (name->Equals("OPT_RENDERATSCREENRES")) return OPT_RENDERATSCREENRES;
+            if (name->Equals("OPT_RELATIVEASSETRES")) return OPT_RELATIVEASSETRES;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
 			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
             return nullptr;

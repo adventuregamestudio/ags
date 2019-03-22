@@ -43,7 +43,6 @@
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
 #include "main/game_run.h"
-#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
@@ -51,6 +50,7 @@
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
 #include "ac/mouse.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 

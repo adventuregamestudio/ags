@@ -38,11 +38,10 @@
 #include "script/cc_options.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "media/video/video.h"
 #include "script/script_runtime.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 extern GameSetupStruct game;
 extern GameState play;

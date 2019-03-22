@@ -149,14 +149,17 @@ struct GameSetupStructBase {
     // Get game default res-->final game resolution coordinate multiplier;
     // used to convert coordinates from original game res to actual one
     inline int GetScreenUpscaleMult() const { return _screenUpscaleMult; }
+    // Tells if game allows assets defined in relative resolution;
+    // that is - have to be converted to this game resolution type
+    inline bool AllowRelativeRes() const { return options[OPT_RELATIVEASSETRES] != 0; }
     // Legacy definition of high and low game resolution.
     // Used to determine certain hardcoded coordinate conversion logic, but
     // does not make much sense today when the resolution is arbitrary.
-    inline bool IsHiRes() const
+    inline bool IsLegacyHiRes() const
     {
         if (_resolutionType == kGameResolution_Custom)
             return (_gameResolution.Width * _gameResolution.Height) > (320 * 240);
-        return ::IsHiRes(_resolutionType);
+        return ::IsLegacyHiRes(_resolutionType);
     }
     // Tells if data has coordinates in default game resolution
     inline bool IsDataInNativeCoordinates() const { return options[OPT_NATIVECOORDINATES] != 0; }
@@ -170,11 +173,6 @@ struct GameSetupStructBase {
     // low-resolution games and 1:2 of the room size in high-resolution games.
     // This also means that mask relation to data resolution is 1:1 if the
     // game uses low-res coordinates in script and 1:2 if high-res.
-
-    // Get constant room mask-->data resolution coordinate multiplier.
-    // Used with all room masks except walk-behinds (which are always 1:1 to room size)
-    // TODO: should this be a property of room instead? Rooms have Resolution setting.
-    inline int GetRoomMaskMul() const { return _roomMaskMul; }
 
     // Test if the game is built around old audio system
     inline bool IsLegacyAudioSystem() const
@@ -213,9 +211,6 @@ private:
     int _dataUpscaleMult;
     // Game default resolution to actual game resolution factor
     int _screenUpscaleMult;
-
-    // Room mask to room data resolution factor
-    int _roomMaskMul;
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

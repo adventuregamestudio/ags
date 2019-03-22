@@ -6,7 +6,9 @@
 #define mapWidth 64
 #define mapHeight 64
 
+#if defined(BUILTIN_PLUGINS)
 namespace agspalrender {
+#endif
 
 struct Sprite
   {
@@ -181,6 +183,9 @@ void Ray_SetLightingAt (int x,int y,unsigned char lighting);
 int Ray_GetAmbientWeight ();
 
 int Ray_HasSeenTile (int x,int y);
-}
+
+#if defined(BUILTIN_PLUGINS)
+} // namespace agspalrender
+#endif
 
 #endif

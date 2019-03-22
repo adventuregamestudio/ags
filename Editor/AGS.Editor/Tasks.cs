@@ -217,6 +217,12 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 18)
+            {
+                game.Settings.AllowRelativeAssetResolutions = true;
+                game.Settings.DefaultRoomMaskResolution = game.IsHighResolution ? 2 : 1;
+            }
+
             game.SetScriptAPIForOldProject();
         }
 

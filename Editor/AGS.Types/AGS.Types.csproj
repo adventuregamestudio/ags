@@ -181,6 +181,7 @@
     <Compile Include="PropertyGridExtras\CustomPropertiesUIEditor.cs" />
     <Compile Include="PropertyGridExtras\InteractionPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\PropertyTabInteractions.cs" />
+    <Compile Include="PropertyGridExtras\RoomMaskResolutionTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\RoomMessagesUIEditor.cs" />
     <Compile Include="PropertyGridExtras\SpriteFileNameEditor.cs" />
     <Compile Include="PropertyGridExtras\SpriteSelectUIEditor.cs" />

@@ -50,8 +50,6 @@
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -60,6 +58,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/blender.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -409,12 +408,12 @@ AGS_INLINE int get_fixed_pixel_size(int pixels)
 
 AGS_INLINE int room_to_mask_coord(int coord)
 {
-    return coord / game.GetRoomMaskMul();
+    return coord / thisroom.MaskResolution;
 }
 
 AGS_INLINE int mask_to_room_coord(int coord)
 {
-    return coord * game.GetRoomMaskMul();
+    return coord * thisroom.MaskResolution;
 }
 
 AGS_INLINE int data_to_game_coord(int coord)
@@ -456,12 +455,12 @@ AGS_INLINE int game_to_data_round_up(int coord)
 
 AGS_INLINE void ctx_data_to_game_coord(int &x, int &y, bool hires_ctx)
 {
-    if (hires_ctx && !game.IsHiRes())
+    if (hires_ctx && !game.IsLegacyHiRes())
     {
         x /= HIRES_COORD_MULTIPLIER;
         y /= HIRES_COORD_MULTIPLIER;
     }
-    else if (!hires_ctx && game.IsHiRes())
+    else if (!hires_ctx && game.IsLegacyHiRes())
     {
         x *= HIRES_COORD_MULTIPLIER;
         y *= HIRES_COORD_MULTIPLIER;
@@ -470,12 +469,12 @@ AGS_INLINE void ctx_data_to_game_coord(int &x, int &y, bool hires_ctx)
 
 AGS_INLINE void ctx_data_to_game_size(int &w, int &h, bool hires_ctx)
 {
-    if (hires_ctx && !game.IsHiRes())
+    if (hires_ctx && !game.IsLegacyHiRes())
     {
         w = Math::Max(1, (w / HIRES_COORD_MULTIPLIER));
         h = Math::Max(1, (h / HIRES_COORD_MULTIPLIER));
     }
-    else if (!hires_ctx && game.IsHiRes())
+    else if (!hires_ctx && game.IsLegacyHiRes())
     {
         w *= HIRES_COORD_MULTIPLIER;
         h *= HIRES_COORD_MULTIPLIER;
@@ -484,18 +483,18 @@ AGS_INLINE void ctx_data_to_game_size(int &w, int &h, bool hires_ctx)
 
 AGS_INLINE int ctx_data_to_game_size(int size, bool hires_ctx)
 {
-    if (hires_ctx && !game.IsHiRes())
+    if (hires_ctx && !game.IsLegacyHiRes())
         return Math::Max(1, (size / HIRES_COORD_MULTIPLIER));
-    if (!hires_ctx && game.IsHiRes())
+    if (!hires_ctx && game.IsLegacyHiRes())
         return size * HIRES_COORD_MULTIPLIER;
     return size;
 }
 
 AGS_INLINE int game_to_ctx_data_size(int size, bool hires_ctx)
 {
-    if (hires_ctx && !game.IsHiRes())
+    if (hires_ctx && !game.IsLegacyHiRes())
         return size * HIRES_COORD_MULTIPLIER;
-    else if (!hires_ctx && game.IsHiRes())
+    else if (!hires_ctx && game.IsLegacyHiRes())
         return Math::Max(1, (size / HIRES_COORD_MULTIPLIER));
     return size;
 }
@@ -2130,8 +2129,8 @@ void draw_fps()
     fpsDisplay->ClearTransparent();
     
     char tbuffer[60];
-    sprintf(tbuffer,"FPS: %d",fps);
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
+    sprintf(tbuffer, "FPS: %d", fps > 0 ? fps : 0);
     wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, tbuffer);
     sprintf(tbuffer, "Loop %u", loopcounter);
     int textw = wgettextwidth(tbuffer, FONT_SPEECH);

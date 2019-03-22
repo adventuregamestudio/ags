@@ -16,10 +16,9 @@
 #include "ac/audioclip.h"
 #include "ac/audiochannel.h"
 #include "ac/gamesetupstruct.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audiochannel.h"
+#include "media/audio/audio_system.h"
 
 extern GameSetupStruct game;
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];

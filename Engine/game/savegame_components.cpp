@@ -43,13 +43,12 @@
 #include "gui/guimain.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
 #include "script/script.h"
 #include "util/filestream.h" // TODO: needed only because plugins expect file handle
+#include "media/audio/audio_system.h"
 
 using namespace Common;
 
@@ -240,7 +239,7 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
 
     // Other dynamic values
     r_data.FPS = in->ReadInt32();
-    loopcounter = in->ReadInt32();
+    set_loop_counter(in->ReadInt32());
     ifacepopped = in->ReadInt32();
     game_paused = in->ReadInt32();
     // Mouse cursor state

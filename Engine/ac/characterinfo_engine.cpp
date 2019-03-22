@@ -15,7 +15,6 @@
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "media/audio/audiodefines.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"
@@ -26,6 +25,7 @@
 #include "game/roomstruct.h"
 #include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 
@@ -35,7 +35,6 @@ extern int displayed_room;
 extern GameState play;
 extern int char_speaking;
 extern RoomStruct thisroom;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern unsigned int loopcounter;
 
 #define Random __Rand

@@ -47,7 +47,6 @@
 #include "main/game_start.h"
 #include "main/game_run.h"
 #include "main/graphics_mode.h"
-#include "media/audio/audio.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
@@ -56,6 +55,7 @@
 #include "core/assetmanager.h"
 #include "main/game_file.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 

@@ -42,8 +42,6 @@
 #include "gui/guidefines.h"
 #include "main/game_run.h"
 #include "main/engine.h"
-#include "media/audio/audio.h"
-#include "media/audio/sound.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "plugin/plugin_builtin.h"
@@ -62,6 +60,7 @@
 #include "gfx/gfx_util.h"
 #include "util/memory.h"
 #include "util/filestream.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;

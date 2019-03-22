@@ -35,7 +35,7 @@
 #include "ac/walkablearea.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "media/audio/soundclip.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

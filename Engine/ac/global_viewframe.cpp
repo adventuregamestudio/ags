@@ -17,7 +17,7 @@
 #include "ac/view.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
-#include "media/audio/audio.h"
+#include "media/audio/audio_system.h"
 
 extern GameSetupStruct game;
 extern ViewStruct*views;

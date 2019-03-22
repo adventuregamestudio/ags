@@ -17,9 +17,8 @@
 #include "ac/dynobj/cc_audioclip.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "script/runtimescriptvalue.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 

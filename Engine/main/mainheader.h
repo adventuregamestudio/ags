@@ -31,8 +31,6 @@
 #include "ac/route_finder.h"
 #include "util/misc.h"
 #include "script/cc_error.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundcache.h"
 
 #if defined (WINDOWS_VERSION)
 #include <process.h>

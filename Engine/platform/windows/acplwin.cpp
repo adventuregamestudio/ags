@@ -32,13 +32,13 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "main/engine.h"
-#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/windows/setup/winsetup.h"
 #include "plugin/agsplugin.h"
 #include "util/file.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

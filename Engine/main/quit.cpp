@@ -36,6 +36,7 @@
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "plugin/plugin_engine.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

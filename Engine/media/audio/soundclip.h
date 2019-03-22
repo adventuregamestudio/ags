@@ -163,6 +163,9 @@ protected:
     }
 };
 
+// Tells if channel has got a clip; does not care about its state
+extern bool channel_has_clip(int chanid);
+// Tells if channel has got a clip and clip is in playback state
 extern bool channel_is_playing(int chanid);
 
 #endif // __AC_SOUNDCLIP_H

@@ -246,7 +246,8 @@ void update_overlay_timers()
 
 void update_speech_and_messages()
 {
-  const bool is_voice = channel_is_playing(SCHAN_SPEECH);
+  // we need to know if there is/was voice-over
+  const bool is_voice = channel_has_clip(SCHAN_SPEECH);
 
   // determine if speech text should be removed
   if (play.messagetime>=0) {
@@ -288,8 +289,8 @@ void update_speech_and_messages()
 
 void update_sierra_speech()
 {
-  const auto is_voice = channel_is_playing(SCHAN_SPEECH);
-  const auto spchOffs = is_voice ? channels[SCHAN_SPEECH]->get_pos_ms() : -1;
+  // we need to know if there is/was voice-over
+  const bool is_voice = channel_has_clip(SCHAN_SPEECH);
 
 	// update sierra-style speech
   if ((face_talking >= 0) && (play.fast_forward == 0)) 
@@ -332,6 +333,7 @@ void update_sierra_speech()
       }
       else 
       {
+        const int spchOffs = is_voice ? channels[SCHAN_SPEECH]->get_pos_ms() : -1;
         while ((curLipLinePhoneme < splipsync[curLipLine].numPhonemes) &&
           ((curLipLinePhoneme < 0) || (spchOffs >= splipsync[curLipLine].endtimeoffs[curLipLinePhoneme])))
         {

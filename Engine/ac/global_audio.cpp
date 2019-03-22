@@ -523,7 +523,7 @@ int play_speech(int charid,int sndid) {
 }
 
 void stop_speech() {
-    if (channel_is_playing(SCHAN_MUSIC)) {
+    if (channel_has_clip(SCHAN_SPEECH)) {
         play.music_master_volume = play.music_vol_was;
         // update the music in a bit (fixes two speeches follow each other
         // and music going up-then-down)

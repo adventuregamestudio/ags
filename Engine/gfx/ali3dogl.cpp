@@ -337,7 +337,13 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
 
 void OGLGraphicsDriver::FirstTimeInit()
 {
-  Debug::Printf(kDbgMsg_Init, "Running OpenGL: %d.%d\n", GLVersion.major, GLVersion.minor);
+  String ogl_v_str;
+#ifdef GLAPI
+  ogl_v_str.Format("%d.%d", GLVersion.major, GLVersion.minor);
+#else
+  ogl_v_str = (const char*)glGetString(GL_VERSION);
+#endif
+  Debug::Printf(kDbgMsg_Init, "Running OpenGL: %s", ogl_v_str.GetCStr());
   
   TestRenderToTexture();
   CreateShaders();
@@ -658,9 +664,24 @@ void OGLGraphicsDriver::DeleteGlContext()
 #endif
 }
 
+inline bool CanDoFrameBuffer()
+{
+#ifdef GLAPI
+  return GLAD_GL_EXT_framebuffer_object != 0;
+#else
+#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+  const char* fbo_extension_string = "GL_OES_framebuffer_object";
+#else
+  const char* fbo_extension_string = "GL_EXT_framebuffer_object";
+#endif
+  const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
+  return extensions && strstr(extensions, fbo_extension_string) != NULL;
+#endif
+}
+
 void OGLGraphicsDriver::TestRenderToTexture()
 {
-  if (GLAD_GL_EXT_framebuffer_object) {
+  if (CanDoFrameBuffer()) {
     _can_render_to_texture = true;
     TestSupersampling();
   } else {

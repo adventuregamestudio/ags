@@ -69,3 +69,7 @@
 #error "opengl: unsupported platform"
 
 #endif
+
+#ifndef GLAPI
+#define GLAD_GL_VERSION_2_0 (0)
+#endif

@@ -151,21 +151,6 @@ int MYSTATICMP3::get_length_ms()
     return almp3_get_length_msecs_mp3(tune);
 }
 
-void MYSTATICMP3::restart()
-{
-    if (tune != NULL) {
-        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-        almp3_stop_mp3(tune);
-        almp3_rewind_mp3(tune);
-        almp3_play_mp3(tune, 16384, vol, panning);
-		_lockMp3.Release();
-        done = 0;
-
-        if (!psp_audio_multithreaded)
-          poll();
-    }
-}
-
 int MYSTATICMP3::get_voice()
 {
 	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);

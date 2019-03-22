@@ -123,16 +123,6 @@ int MYWAVE::get_length_ms()
     return (wave->len / (wave->freq / 100)) * 10;
 }
 
-void MYWAVE::restart()
-{
-    if (wave != NULL) {
-        done = 0;
-        paused = 0;
-        stop_sample(wave);
-        voice = play_sample(wave, vol, panning, 1000, 0);
-    }
-}
-
 int MYWAVE::get_voice()
 {
     return voice;

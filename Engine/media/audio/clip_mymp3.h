@@ -37,7 +37,6 @@ struct MYMP3:public SOUNDCLIP
     int get_pos();
     int get_pos_ms();
     int get_length_ms();
-    void restart();
     int get_voice();
     int get_sound_type();
     int play();

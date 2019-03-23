@@ -246,10 +246,6 @@ void audio_update_polled_stuff()
         }
     }
 
-    if ((play.crossfading_in_channel > 0) && !channel_is_playing(play.crossfading_in_channel)) {
-        play.crossfading_in_channel = 0;
-    }
-
     if (play.crossfading_in_channel > 0)
     {
         int newVolume = channels[play.crossfading_in_channel]->get_volume() + play.crossfade_in_volume_per_step;
@@ -364,7 +360,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     // NOTE: there is a confusing logic in sound clip classes, that they do not use
     // any modifiers when begin playing, therefore we must apply this only after
     // playback was started.
-    if (!play.fast_forward && channel_is_playing(SCHAN_SPEECH))
+    if (!play.fast_forward && channel_has_clip(SCHAN_SPEECH))
         apply_volume_drop_to_clip(soundfx);
 
     channels[channel] = soundfx;
@@ -680,7 +676,8 @@ int play_sound(int val1) {
 //=============================================================================
 
 
-
+// This is an indicator of a music played by an old audio system
+// (to distinguish from the new system API)
 int current_music_type = 0;
 // crossFading is >0 (channel number of new track), or -1 (old
 // track fading out, no new track)
@@ -790,7 +787,7 @@ void apply_volume_drop_modifier(bool applyModifier)
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
 void update_volume_drop_if_voiceover()
 {
-    apply_volume_drop_modifier(channel_is_playing(SCHAN_SPEECH));
+    apply_volume_drop_modifier(channel_has_clip(SCHAN_SPEECH));
 }
 
 extern volatile char want_exit;
@@ -922,8 +919,8 @@ void update_music_volume() {
                 stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
                 if (crossFading > 0) {
                     channels[SCHAN_MUSIC] = channels[crossFading];
+                    channels[crossFading] = nullptr;
                 }
-                channels[crossFading] = nullptr;
                 crossFading = 0;
             }
             else {

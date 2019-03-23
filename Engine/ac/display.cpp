@@ -268,7 +268,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         // 4 = mouse only
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
-        auto wasSpeaking = channel_is_playing(SCHAN_SPEECH);
+        auto wasSpeaking = channel_has_clip(SCHAN_SPEECH);
         while (1) {
             /*      if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_UPDATE);

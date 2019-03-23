@@ -193,11 +193,18 @@ int IsMusicPlaying() {
     if ((play.fast_forward) && (play.skip_until_char_stops < 0))
         return 0;
 
-    auto result = channel_is_playing(SCHAN_MUSIC) || (crossFading > 0 && channel_is_playing(crossFading));
-    if (!result) {
+    // This only returns positive if there was a music started by old audio API
+    if (current_music_type == 0)
+        return 0;
+
+    if (!channel_has_clip(SCHAN_MUSIC))
+    { // This was probably a hacky fix in case it was not reset by game update; TODO: find out if needed
         current_music_type = 0;
+        return 0;
     }
-    return result;
+
+    bool result = channel_is_playing(SCHAN_MUSIC) || (crossFading > 0 && channel_is_playing(crossFading));
+    return result ? 1 : 0;
 }
 
 int PlayMusicQueued(int musnum) {
@@ -523,6 +530,8 @@ int play_speech(int charid,int sndid) {
 }
 
 void stop_speech() {
+    // NOTE: here we should know only if there *was* any voice-over playing
+    // TODO: refactor speech and replace with a state variable to check instead
     if (channel_has_clip(SCHAN_SPEECH)) {
         play.music_master_volume = play.music_vol_was;
         // update the music in a bit (fixes two speeches follow each other

@@ -18,6 +18,7 @@
 
 // ********* WINDOWS *********
 
+#include <thread>
 #include <string.h>
 #include <allegro.h>
 #include <allegro/platform/aintwin.h>
@@ -39,6 +40,7 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -829,17 +831,23 @@ int AGSWin32::GetLastSystemError()
 
 void AGSWin32::Delay(int millis) 
 {
-  while (millis >= 5)
-  {
-    Sleep(5);
-    millis -= 5;
+  auto delayUntil = AGS_Clock::now() + std::chrono::milliseconds(millis);
+
+  for (;;) {
+    if (AGS_Clock::now() < delayUntil) { break; }
+    
+    auto duration = delayUntil - AGS_Clock::now();
+    if (duration > std::chrono::milliseconds(25)) {
+      duration = std::chrono::milliseconds(25);
+    }
+    std::this_thread::sleep_for(duration);
+
+    if (AGS_Clock::now() < delayUntil) { break; }
+
     // don't allow it to check for debug messages, since this Delay()
     // call might be from within a debugger polling loop
     update_polled_mp3();
   }
-
-  if (millis > 0)
-    Sleep(millis);
 }
 
 unsigned long AGSWin32::GetDiskFreeSpaceMB() {

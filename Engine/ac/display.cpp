@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+#include <cmath>
+
 #include "ac/display.h"
 #include "ac/common.h"
 #include "font/agsfontrenderer.h"
@@ -42,6 +44,7 @@
 #include "util/string_utils.h"
 #include "ac/mouse.h"
 #include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -50,10 +53,8 @@ extern GameState play;
 extern GameSetupStruct game;
 extern int longestline;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
-extern volatile unsigned long globalTimerCounter;
-extern int get_current_fps();
+extern float get_current_fps();
 extern int loops_per_character;
 extern SpriteCache spriteset;
 
@@ -269,7 +270,6 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
         auto wasSpeaking = channel_is_playing(SCHAN_SPEECH);
         while (1) {
-            timerloop = 0;
             /*      if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_UPDATE);
             write_screen();*/
@@ -307,7 +307,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
             if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
             {
-                play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms * get_current_fps() / 1000);
+                play.ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms);
                 break;
             }
             // if skipping cutscene, don't get stuck on No Auto Remove
@@ -390,7 +390,7 @@ int GetTextDisplayLength(const char *text)
 
 int GetTextDisplayTime(const char *text, int canberel) {
     int uselen = 0;
-    int fpstimer = get_current_fps();
+    auto fpstimer = std::lround(get_current_fps());
 
     // if it's background speech, make it stay relative to game speed
     if ((canberel == 1) && (play.bgspeech_game_speed == 1))

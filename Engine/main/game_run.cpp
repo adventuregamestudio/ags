@@ -53,6 +53,8 @@
 #include "script/script.h"
 #include "ac/spritecache.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -82,19 +84,20 @@ extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 extern unsigned int loopcounter,lastcounter;
-extern volatile int timerloop;
 extern int cur_mode,cur_cursor;
 
 // Checks if user interface should remain disabled for now
 int ShouldStayInWaitMode();
 
 int numEventsAtStartOfFunction;
-auto t1 = std::chrono::steady_clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
+auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 
 long user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
 
 int restrict_until=0;
+
+unsigned int loopcounter=0,lastcounter=0;
 
 void ProperExit()
 {
@@ -615,12 +618,6 @@ void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, in
 
         offsetxWas = camera.Left;
         offsetyWas = camera.Top;
-
-#ifdef MAC_VERSION
-        // take a breather after the heavy work
-        // cuts down on CPU usage and reduces the fan noise
-        rest(2);
-#endif
     }
 }
 
@@ -674,42 +671,40 @@ void game_loop_update_loop_counter()
 
 void game_loop_update_fps()
 {
-    auto t2 = std::chrono::steady_clock::now();
+    auto t2 = AGS_Clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
     auto frames = loopcounter - lastcounter;
 
     if (duration >= std::chrono::milliseconds(1000) && frames > 0) {
-        fps = frames * 1000 / duration.count();
+        fps = 1000.0f * frames / duration.count();
         t1 = t2;
         lastcounter = loopcounter;
     }
 }
 
-int get_current_fps() {
+float get_current_fps() {
     // if wanted frames_per_second is >= 1000, that means we have maxed out framerate so return the frame rate we're seeing instead
     auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
-
-    auto result = frames_per_second;
-    if (maxed_framerate && fps > 0) {
-        result = fps;
+    // fps must be greater that 0 or some timings will take forever.
+    if (maxed_framerate && fps > 0.0f) {
+        return fps;
     }
-    return result;
+    return frames_per_second;
 }
 
 void set_loop_counter(unsigned int new_counter) {
     loopcounter = new_counter;
-    t1 = std::chrono::steady_clock::now();
+    t1 = AGS_Clock::now();
     lastcounter = loopcounter;
-    fps = 0;
+    fps = NAN;
 }
 
 void PollUntilNextFrame()
 {
-    // make sure we poll, cos a low framerate (eg 5 fps) could stutter
-    // mp3 music
-    while (timerloop == 0 && play.fast_forward == 0) {
+    if (play.fast_forward) { return; }
+    while (waitingForNextTick()) {
+        // make sure we poll, cos a low framerate (eg 5 fps) could stutter mp3 music
         update_polled_stuff_if_runtime();
-        platform->YieldCPU();
     }
 }
 
@@ -727,7 +722,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     ccNotifyScriptStillAlive ();
     our_eip=1;
-    timerloop=0;
 
     game_loop_check_problems_at_start();
 
@@ -932,7 +926,7 @@ void GameLoopUntilEvent(int untilwhat,long daaa) {
   int cached_user_disabled_for = user_disabled_for;
 
   SetupLoopParameters(untilwhat,daaa,0);
-  while (GameTick()==0) ;
+  while (GameTick()==0);
 
   restrict_until = cached_restrict_until;
   user_disabled_data = cached_user_disabled_data;
@@ -942,6 +936,9 @@ void GameLoopUntilEvent(int untilwhat,long daaa) {
 extern unsigned int load_new_game;
 void RunGameUntilAborted()
 {
+    // skip ticks to account for time spent starting game.
+    skipMissedTicks();
+
     while (!abort_engine) {
         GameTick();
 

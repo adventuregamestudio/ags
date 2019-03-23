@@ -15,7 +15,6 @@
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "media/audio/soundclip.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"

@@ -16,6 +16,7 @@
 // Game update procedure
 //
 
+#include <cmath>
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
@@ -36,6 +37,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -55,7 +57,6 @@ extern int face_talking,facetalkview,facetalkwait,facetalkframe;
 extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
 extern int facetalkBlinkLoop;
 extern bool facetalk_qfg4_override_placement_x, facetalk_qfg4_override_placement_y;
-extern volatile unsigned long globalTimerCounter;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
@@ -267,7 +268,7 @@ void update_speech_and_messages()
     {
         if (!play.speech_in_post_state)
         {
-            play.messagetime = play.speech_display_post_time_ms * get_current_fps() / 1000;
+            play.messagetime = std::lround(play.speech_display_post_time_ms * get_current_fps() / 1000.0f);
         }
         play.speech_in_post_state = !play.speech_in_post_state;
     }
@@ -281,7 +282,7 @@ void update_speech_and_messages()
       else if (play.cant_skip_speech & SKIP_AUTOTIMER)
       {
         remove_screen_overlay(OVER_TEXTMSG);
-        play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms * get_current_fps() / 1000);
+        play.ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms);
       }
     }
   }

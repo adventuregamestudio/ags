@@ -24,6 +24,7 @@
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -465,7 +466,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
-    ignore_user_input_until_time = in->ReadInt32();
+    ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(in->ReadInt32());
     if (old_save)
         in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }
@@ -648,7 +649,8 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     }
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);
-    out->WriteInt32( ignore_user_input_until_time);
+    auto ignore_user_input_until_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(ignore_user_input_until_time - AGS_Clock::now());
+    out->WriteInt32( ignore_user_input_until_time_ms.count() );
 }
 
 void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)

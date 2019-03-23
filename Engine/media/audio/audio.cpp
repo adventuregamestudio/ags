@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+#include <cmath>
+
 #include "util/wgt2allg.h"
 #include "media/audio/audio.h"
 #include "ac/audiocliptype.h"
@@ -33,6 +35,7 @@
 #include <math.h>
 #include "util/stream.h"
 #include "core/assetmanager.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -687,9 +690,31 @@ SOUNDCLIP *cachedQueuedMusic = NULL;
 
 int musicPollIterator; // long name so it doesn't interfere with anything else
 
-volatile int mvolcounter = 0;
-int update_music_at=0;
+static bool music_update_scheduled = false;
+static auto music_update_at = AGS_Clock::now();
 
+void cancel_scheduled_music_update() {
+    music_update_scheduled = false;
+}
+
+void schedule_music_update_at(AGS_Clock::time_point at) {
+    music_update_scheduled = true;
+    music_update_at = at;
+}
+
+void postpone_scheduled_music_update_by(std::chrono::milliseconds duration) {
+    if (!music_update_scheduled) { return; }
+    music_update_at += duration;
+}
+
+void process_scheduled_music_update() {
+    if (!music_update_scheduled) { return; }
+    if (music_update_at > AGS_Clock::now()) { return; }
+    cancel_scheduled_music_update();
+    update_music_volume();
+    apply_volume_drop_modifier(false);
+    update_ambient_sound_vol();
+}
 
 void clear_music_cache() {
 
@@ -796,13 +821,7 @@ void update_audio_system_on_game_loop ()
 
 	AGS::Engine::MutexLock _lock(_audio_mutex);
 
-    if (mvolcounter > update_music_at) {
-        update_music_volume();
-        apply_volume_drop_modifier(false);
-        update_music_at = 0;
-        mvolcounter = 0;
-        update_ambient_sound_vol();
-    }
+    process_scheduled_music_update();
 
     _audio_doing_crossfade = true;
 
@@ -829,7 +848,7 @@ void update_audio_system_on_game_loop ()
                     // we want to crossfade, and we know how far through
                     // the tune we are
                     int takesSteps = calculate_max_volume() / game.options[OPT_CROSSFADEMUSIC];
-                    int takesMs = takesSteps * 1000 / get_current_fps();
+                    int takesMs = std::lround(takesSteps * 1000.0f / get_current_fps());
                     if (curpos >= muslen - takesMs)
                         play_next_queued();
                 }

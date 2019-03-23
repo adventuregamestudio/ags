@@ -16,6 +16,7 @@
 //
 //=============================================================================
 
+#include <thread>
 #include "util/wgt2allg.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/common.h"
@@ -86,7 +87,7 @@ void AGSPlatformDriver::WriteStdOut(const char *fmt, ...) {
 }
 
 void AGSPlatformDriver::YieldCPU() {
-    this->Delay(1);
+    std::this_thread::yield();
 }
 
 void AGSPlatformDriver::InitialiseAbufAtStartup()

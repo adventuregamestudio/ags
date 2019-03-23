@@ -532,18 +532,23 @@ int play_speech(int charid,int sndid) {
 void stop_speech() {
     // NOTE: here we should know only if there *was* any voice-over playing
     // TODO: refactor speech and replace with a state variable to check instead
+    
     if (channel_has_clip(SCHAN_SPEECH)) {
+        stop_and_destroy_channel (SCHAN_SPEECH);
+    }
+
+    if (play.music_master_volume != play.music_vol_was) {
         play.music_master_volume = play.music_vol_was;
         // update the music in a bit (fixes two speeches follow each other
         // and music going up-then-down)
         schedule_music_update_at(AGS_Clock::now() + std::chrono::milliseconds(500));
-        stop_and_destroy_channel (SCHAN_SPEECH);
-        curLipLine = -1;
+    }
 
-        if (play.no_textbg_when_voice == 2) {
-            // set back to Sierra w/bgrnd
-            play.no_textbg_when_voice = 1;
-            game.options[OPT_SPEECHTYPE] = 2;
-        }
+    curLipLine = -1;
+
+    if (play.no_textbg_when_voice == 2) {
+        // set back to Sierra w/bgrnd
+        play.no_textbg_when_voice = 1;
+        game.options[OPT_SPEECHTYPE] = 2;
     }
 }

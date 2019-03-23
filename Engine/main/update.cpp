@@ -290,9 +290,6 @@ void update_speech_and_messages()
 
 void update_sierra_speech()
 {
-  // we need to know if there is/was voice-over
-  const bool is_voice = channel_has_clip(SCHAN_SPEECH);
-
 	// update sierra-style speech
   if ((face_talking >= 0) && (play.fast_forward == 0)) 
   {
@@ -326,6 +323,9 @@ void update_sierra_speech()
       }
 
     }
+
+    // we need to know if there is/was voice-over
+    const bool is_voice = channel_has_clip(SCHAN_SPEECH);
 
     if (curLipLine >= 0) {
       // check voice lip sync

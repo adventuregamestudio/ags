@@ -25,6 +25,12 @@
 
 struct SOUNDCLIP;
 
+#ifdef WINDOWS_VERSION
+#define AUDIO_MULTITHREADED_DEFAULT (0)
+#else
+#define AUDIO_MULTITHREADED_DEFAULT (1)
+#endif
+
 void        calculate_reserved_channel_count();
 void        update_clip_default_volume(ScriptAudioClip *audioClip);
 void        start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip *newSound);

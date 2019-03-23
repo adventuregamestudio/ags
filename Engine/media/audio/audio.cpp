@@ -48,7 +48,7 @@ extern CharacterInfo*playerchar;
 extern volatile int switching_away_from_game;
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
-volatile int psp_audio_multithreaded = 0;
+volatile int psp_audio_multithreaded = AUDIO_MULTITHREADED_DEFAULT;
 #endif
 
 ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];

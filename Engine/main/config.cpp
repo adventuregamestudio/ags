@@ -415,9 +415,8 @@ void apply_config(const ConfigTree &cfg)
             idx = MIDI_AUTODETECT;
         usetup.midicard = idx;
 #endif
-#if !defined (LINUX_VERSION)
+
         psp_audio_multithreaded = INIreadint(cfg, "sound", "threaded", psp_audio_multithreaded);
-#endif
 
         // Filter can also be set by command line
         // TODO: apply command line arguments to ConfigTree instead to override options read from config file

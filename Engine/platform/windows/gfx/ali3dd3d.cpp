@@ -18,6 +18,7 @@
 
 #include <allegro.h>
 #include <allegro/platform/aintwin.h>
+#include "ac/timer.h"
 #include "debug/assert.h"
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"

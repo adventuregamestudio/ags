@@ -36,6 +36,7 @@
 #include "util/stream.h"
 #include "core/assetmanager.h"
 #include "ac/timer.h"
+#include "main/game_run.h"
 
 using namespace AGS::Common;
 
@@ -791,7 +792,6 @@ void update_volume_drop_if_voiceover()
 }
 
 extern volatile char want_exit;
-extern int get_current_fps();
 
 void update_mp3_thread()
 {

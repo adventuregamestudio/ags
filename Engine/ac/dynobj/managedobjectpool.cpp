@@ -33,6 +33,7 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     bool canBeRemovedFromPool = o.callback->Dispose(o.addr, force);
     if (!(canBeRemovedFromPool || force)) { return 0; }
 
+    auto handle = o.handle;
     available_ids.push(o.handle);
 
     handleByAddress.erase(o.addr);

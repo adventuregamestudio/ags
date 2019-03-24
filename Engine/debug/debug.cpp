@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include <memory>
+#include <limits>
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/runtime_defines.h"
@@ -76,7 +77,7 @@ bool disable_log_file = false;
 String debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
-float fps=NAN;
+float fps = std::numeric_limits<float>::quiet_NaN();
 int display_fps=0;
 
 std::unique_ptr<MessageBuffer> DebugMsgBuff;

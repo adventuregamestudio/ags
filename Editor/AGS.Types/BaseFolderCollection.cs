@@ -70,6 +70,7 @@ namespace AGS.Types
 
         protected virtual string RootNodeName { get { return null; } }
 
+        [Browsable(false)]
         public IEnumerable<TFolderItem> AllItemsFlat
         {
             get

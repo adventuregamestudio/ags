@@ -18,7 +18,6 @@
 
 // ********* WINDOWS *********
 
-#include <thread>
 #include <string.h>
 #include <allegro.h>
 #include <allegro/platform/aintwin.h>
@@ -40,7 +39,6 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
-#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -97,7 +95,6 @@ struct AGSWin32 : AGSPlatformDriver {
 
   virtual void AboutToQuitGame();
   virtual int  CDPlayerCommand(int cmdd, int datt);
-  virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual int  GetLastSystemError();
   virtual const char *GetAllUsersDataDirectory();
@@ -827,27 +824,6 @@ void AGSWin32::DisplayAlert(const char *text, ...) {
 int AGSWin32::GetLastSystemError()
 {
   return ::GetLastError();
-}
-
-void AGSWin32::Delay(int millis) 
-{
-  auto delayUntil = AGS_Clock::now() + std::chrono::milliseconds(millis);
-
-  for (;;) {
-    if (AGS_Clock::now() < delayUntil) { break; }
-    
-    auto duration = delayUntil - AGS_Clock::now();
-    if (duration > std::chrono::milliseconds(25)) {
-      duration = std::chrono::milliseconds(25);
-    }
-    std::this_thread::sleep_for(duration);
-
-    if (AGS_Clock::now() < delayUntil) { break; }
-
-    // don't allow it to check for debug messages, since this Delay()
-    // call might be from within a debugger polling loop
-    update_polled_mp3();
-  }
 }
 
 unsigned long AGSWin32::GetDiskFreeSpaceMB() {

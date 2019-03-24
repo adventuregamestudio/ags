@@ -12,47 +12,35 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_UTIL__MUTEX_H
-#define __AGS_EE_UTIL__MUTEX_H
+#ifndef __AGS_EE_UTIL__MUTEX_STD_H
+#define __AGS_EE_UTIL__MUTEX_STD_H
+
+#include <mutex>
 
 namespace AGS
 {
 namespace Engine
 {
 
-
-class BaseMutex
+class StdMutex : public BaseMutex
 {
-public:
-  BaseMutex()
-  {
-  };
+  public:
+    inline StdMutex() : mutex_() {}
+    inline ~StdMutex() {}
 
-  virtual ~BaseMutex()
-  {
-  };
+    StdMutex &operator=(const StdMutex &) = delete;
+    StdMutex(const StdMutex &) = delete;
 
-  BaseMutex &operator=(const BaseMutex &) = delete;
-  BaseMutex(const BaseMutex &) = delete;
+    inline void Lock() { mutex_.lock(); }
+    inline void Unlock() { mutex_.unlock(); }
 
-  virtual void Lock() = 0;
-
-  virtual void Unlock() = 0;
+  private:
+    std::recursive_mutex mutex_;
 };
 
+typedef StdMutex Mutex;
 
 } // namespace Engine
 } // namespace AGS
 
-
-
-#if defined(PSP_VERSION)
-#include "mutex_psp.h"
-#elif defined(WII_VERSION)
-#include "mutex_wii.h"
-#else
-#include "mutex_std.h"
-#endif
-
-
-#endif // __AGS_EE_UTIL__MUTEX_H
+#endif // __AGS_EE_UTIL__MUTEX_STD_H

@@ -99,7 +99,7 @@ int MemoryAccess(
     ccCompiledScript *scrip, AGS::Symbol variableSym,
     int variableSymType, bool isAttribute,
     bool writing, bool mustBeWritable,
-    bool addressof, bool isArrayOffset,
+    bool addressof, bool offset_is_in_cx,
     int soffset, bool pointerIsInMAR,
     bool wholePointerAccess,
     AGS::Symbol mainVariableSym, int mainVariableType,
@@ -3153,12 +3153,8 @@ int ParseSubexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t syml
 }
 
 
-int GetArrayIndexIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize) {
-
-    // "push" the ax val type (because this is just an array index,
-    // we're actually interested in the type of the variable being read)
-    int axValTypeWas = scrip->ax_val_type;
-
+int GetArrayIndexIntoAX(ccCompiledScript *scrip, AGS::Symbol array_symbol, ::SymbolScript symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize)
+{
     // save the size of the array element, so it doesn't get
     // overwritten by the size of the array index variable
     // [fw] Passing info around through a global variable: That is a HUGE code smell.
@@ -3168,34 +3164,23 @@ int GetArrayIndexIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, int 
     if (retval < 0) return retval;
     SizeUsedInLastReadCommand = saveOldReadcmd;
 
-    // array index must be an int
+    // array index must be convertible to an int
     retval = IsTypeMismatch(scrip->ax_val_type, sym.normalIntSym, true);
     if (retval < 0) return retval;
 
-    // "pop" the ax val type
-    scrip->ax_val_type = axValTypeWas;
-
-    AGS::Symbol arrSym = symlist[openBracketOffs - 1];
-
-    if (!FlagIsSet(sym.entries[arrSym].flags, SFLG_ARRAY))
-    {
-        cc_error("Internal error: '%s' is not an array", sym.get_name_string(arrSym).c_str());
-        return -1;
-    }
-
     if (checkBounds)
     {
-        // check the array bounds that have been calculated in AX,
+        // check the array bounds that have been calculated in AX
         // before they are added to the overall offset
-        if (!FlagIsSet(sym.entries[arrSym].flags, SFLG_DYNAMICARRAY))
-            scrip->write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, sym.entries[arrSym].arrsize);
+        if (!FlagIsSet(sym.entries[array_symbol].flags, SFLG_DYNAMICARRAY))
+            scrip->write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, sym.entries[array_symbol].arrsize);
     }
 
     if (multiplySize)
     {
         // multiply up array index (in AX) by size of array element
         // to get memory offset
-        scrip->write_cmd2(SCMD_MUL, SREG_AX, sym.entries[arrSym].ssize);
+        scrip->write_cmd2(SCMD_MUL, SREG_AX, sym.entries[array_symbol].ssize);
     }
 
     return 0;
@@ -3203,7 +3188,7 @@ int GetArrayIndexIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, int 
 
 
 // parse array brackets
-int AccessData_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *thisClause, bool writingOperation, bool &isArrayOffset)
+int AccessData_ParseArrayIndexIfPresent(ccCompiledScript *scrip, VariableSymlist *thisClause, bool writingOperation, bool &offset_is_in_cx)
 {
 
     if ((thisClause->len <= 1) || (sym.get_type(thisClause->syml[1]) != SYM_OPENBRACKET))
@@ -3212,6 +3197,15 @@ int AccessData_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *
         return 0;
     }
 
+    AGS::Symbol const array_symbol = thisClause->syml[0];
+    if (!FlagIsSet(sym.entries[array_symbol].flags, SFLG_ARRAY))
+    {
+        cc_error(
+            "Internal error: '%s' has an array index but is not an array",
+            sym.get_name_string(array_symbol).c_str());
+        return -1;
+    }
+       
     // find where the brackets end
     size_t arrIndexEnd;
     FindClosingBracketOffs(1, thisClause->syml, thisClause->len, arrIndexEnd);
@@ -3224,34 +3218,34 @@ int AccessData_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *
     bool attribute_indexer = false;
     bool checkBounds = true, multiplySize = true;
 
-    if (FlagIsSet(sym.entries[thisClause->syml[0]].flags, SFLG_ATTRIBUTE) ||
-        FlagIsSet(sym.entries[thisClause->syml[0]].flags, SFLG_POINTER))
+    if (FlagIsSet(sym.entries[array_symbol].flags, SFLG_ATTRIBUTE) ||
+        FlagIsSet(sym.entries[array_symbol].flags, SFLG_POINTER))
     {
         // an array attribute or array of pointers; in this case,
         // don't touch CX but just calculate the index value into DX
         attribute_indexer = true;
         multiplySize = false;
         // don't check bounds, the attribute getter will do that
-        if (FlagIsSet(sym.entries[thisClause->syml[0]].flags, SFLG_ATTRIBUTE))
+        if (FlagIsSet(sym.entries[array_symbol].flags, SFLG_ATTRIBUTE))
             checkBounds = false;
     }
 
     // the value to write is in AX; preserve it
     if (writingOperation)
         scrip->push_reg(SREG_AX);
+    int const savedAXValType = scrip->ax_val_type;
 
     // save the current offset in CX if there is one,
     // because ParseSubexpr might destroy it
-    if (isArrayOffset)
+    if (offset_is_in_cx)
         scrip->push_reg(SREG_CX);
 
-    // get the byte offset of the array index into AX
-    int retval = GetArrayIndexIntoAX(scrip, thisClause->syml, 1, arrIndexEnd, checkBounds, multiplySize);
+    int retval = GetArrayIndexIntoAX(scrip, array_symbol, thisClause->syml, 1, arrIndexEnd, checkBounds, multiplySize);
     if (retval < 0) return retval;
 
     // if there is a current offset saved in CX, restore it
     // then add the result to CX (which is counting the overall offset)
-    if (isArrayOffset)
+    if (offset_is_in_cx)
     {
         scrip->pop_reg(SREG_CX);
         if (attribute_indexer)
@@ -3265,12 +3259,13 @@ int AccessData_ParseArrayIndexPresent(ccCompiledScript *scrip, VariableSymlist *
             SREG_AX,
             (attribute_indexer ? SREG_DX : SREG_CX));
     }
-
+    
     if (!attribute_indexer)
-        isArrayOffset = true;
+        offset_is_in_cx = true;
 
     if (writingOperation)
         scrip->pop_reg(SREG_AX);
+    scrip->ax_val_type = savedAXValType;
 
     // the array offset has now been added to CX (normal array)
     // or put into DX (attribute)
@@ -3312,13 +3307,13 @@ inline int AccessData_PrepareComponentAccess_MemberFunction(bool isLastClause, b
 
 // We access a component of a struct in order to read or write it. 
 // This is an attribute.
-int AccessData_PrepareComponentAccess_Attribute(ccCompiledScript *scrip, AGS::Symbol variableSym, VariableSymlist *thisClause, bool writing, bool writingThisTime, bool mustBeWritable, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &isArrayOffset)
+int AccessData_PrepareComponentAccess_Attribute(ccCompiledScript *scrip, AGS::Symbol variableSym, VariableSymlist *thisClause, bool writing, bool writingThisTime, bool mustBeWritable, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &offset_is_in_cx)
 {
     // since an attribute is effectively a function call, load the address of the object
     getJustTheAddressIntoAX = true;
     doMemoryAccessNow = true;
 
-    int retval = AccessData_ParseArrayIndexPresent(scrip, thisClause, writing != 0, isArrayOffset);
+    int retval = AccessData_ParseArrayIndexIfPresent(scrip, thisClause, writing != 0, offset_is_in_cx);
     if (retval < 0) return retval;
 
     if (writing)
@@ -3340,7 +3335,7 @@ int AccessData_PrepareComponentAccess_Attribute(ccCompiledScript *scrip, AGS::Sy
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a pointer
-int AccessData_PrepareComponentAccess_Pointer(ccCompiledScript *scrip, AGS::Symbol variableSym, VariableSymlist *thisClause, int currentByteOffset, bool &isDynamicArray, bool writing, AGS::Symbol firstVariableType, AGS::Symbol firstVariableSym, bool isLastClause, bool pointerIsOnStack, bool &isArrayOffset, bool &getJustTheAddressIntoAX, int &currentComponentOffset, bool &accessActualPointer, bool &doMemoryAccessNow)
+int AccessData_PrepareComponentAccess_Pointer(ccCompiledScript *scrip, AGS::Symbol variableSym, VariableSymlist *thisClause, int currentByteOffset, bool &isDynamicArray, bool writing, AGS::Symbol firstVariableType, AGS::Symbol firstVariableSym, bool isLastClause, bool pointerIsOnStack, bool &offset_is_in_cx, bool &getJustTheAddressIntoAX, int &currentComponentOffset, bool &accessActualPointer, bool &doMemoryAccessNow)
 {
     bool isArrayOfPointers = false;
 
@@ -3363,8 +3358,8 @@ int AccessData_PrepareComponentAccess_Pointer(ccCompiledScript *scrip, AGS::Symb
         }
         else
         {
-            // put array index into DX
-            int retval = AccessData_ParseArrayIndexPresent(scrip, thisClause, writing, isArrayOffset);
+            // put array index into DX (!)
+            int retval = AccessData_ParseArrayIndexIfPresent(scrip, thisClause, writing, offset_is_in_cx);
             if (retval < 0) return retval;
 
             isArrayOfPointers = true;
@@ -3487,7 +3482,7 @@ int AccessData_PrepareComponentAccess_JustTheAddressCases(AGS::Symbol variableSy
 
 
 // We access the a variable or a component of a struct in order to read or write it. 
-int AccessData_PrepareComponentAccess(ccCompiledScript * scrip, AGS::Symbol variableSym, int variableSymType, bool isLastClause, VariableSymlist * thisClause, bool writing, bool mustBeWritable, bool writingThisTime, AGS::Symbol firstVariableType, AGS::Symbol firstVariableSym, int &currentComponentOffset, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &is_attribute, bool &isArrayOffset, bool &write_same_as_read_access, bool &isDynamicArray, bool &pointerIsOnStack, bool &accessActualPointer, bool &cannotAssign)
+int AccessData_PrepareComponentAccess(ccCompiledScript * scrip, AGS::Symbol variableSym, int variableSymType, bool isLastClause, VariableSymlist * thisClause, bool writing, bool mustBeWritable, bool writingThisTime, AGS::Symbol firstVariableType, AGS::Symbol firstVariableSym, int &currentComponentOffset, bool &getJustTheAddressIntoAX, bool &doMemoryAccessNow, bool &is_attribute, bool &offset_is_in_cx, bool &write_same_as_read_access, bool &isDynamicArray, bool &pointerIsOnStack, bool &accessActualPointer, bool &cannotAssign)
 {
     write_same_as_read_access = true;
     getJustTheAddressIntoAX = false;
@@ -3497,8 +3492,8 @@ int AccessData_PrepareComponentAccess(ccCompiledScript * scrip, AGS::Symbol vari
 
     is_attribute = FlagIsSet(sym.entries[variableSym].flags, SFLG_ATTRIBUTE);
     isDynamicArray = FlagIsSet(sym.entries[variableSym].flags, SFLG_DYNAMICARRAY);
-    bool isPointer = FlagIsSet(sym.entries[variableSym].flags, (SFLG_POINTER | SFLG_AUTOPTR));
-    bool isImported = FlagIsSet(sym.entries[variableSym].flags, SFLG_IMPORTED);
+    bool const isPointer = FlagIsSet(sym.entries[variableSym].flags, (SFLG_POINTER | SFLG_AUTOPTR));
+    bool const isImported = FlagIsSet(sym.entries[variableSym].flags, SFLG_IMPORTED);
 
     // Simple component access - increment the offset from the start of the structure,
     // which is known at compile time
@@ -3525,30 +3520,28 @@ int AccessData_PrepareComponentAccess(ccCompiledScript * scrip, AGS::Symbol vari
         // evaluate the new value in AX, then set the attribute explicitly.
         write_same_as_read_access = false;
 
-        int retval = AccessData_PrepareComponentAccess_Attribute(scrip, variableSym, thisClause, writing, writingThisTime, mustBeWritable, getJustTheAddressIntoAX, doMemoryAccessNow, isArrayOffset);
+        int retval = AccessData_PrepareComponentAccess_Attribute(scrip, variableSym, thisClause, writing, writingThisTime, mustBeWritable, getJustTheAddressIntoAX, doMemoryAccessNow, offset_is_in_cx);
         if (retval < 0) return retval;
     }
     else if (isPointer)
     {
         // currentComponentOffset has been set at the start of this loop so it is safe to use
-        int retval = AccessData_PrepareComponentAccess_Pointer(scrip, variableSym, thisClause, currentComponentOffset, isDynamicArray, writing, firstVariableType, firstVariableSym, isLastClause, pointerIsOnStack, isArrayOffset, getJustTheAddressIntoAX, currentComponentOffset, accessActualPointer, doMemoryAccessNow);
+        int retval = AccessData_PrepareComponentAccess_Pointer(scrip, variableSym, thisClause, currentComponentOffset, isDynamicArray, writing, firstVariableType, firstVariableSym, isLastClause, pointerIsOnStack, offset_is_in_cx, getJustTheAddressIntoAX, currentComponentOffset, accessActualPointer, doMemoryAccessNow);
         if (retval < 0) return retval;
 
         pointerIsOnStack = true;
     }
     else
     {
-        int retval = AccessData_ParseArrayIndexPresent(scrip, thisClause, writing, isArrayOffset);
+        int retval = AccessData_ParseArrayIndexIfPresent(scrip, thisClause, writing, offset_is_in_cx);
         if (retval < 0) return retval;
     }
 
-    int retval = AccessData_PrepareComponentAccess_JustTheAddressCases(variableSym, thisClause, isLastClause, getJustTheAddressIntoAX, cannotAssign);
-    if (retval < 0) return retval;
-    return 0;
+    return AccessData_PrepareComponentAccess_JustTheAddressCases(variableSym, thisClause, isLastClause, getJustTheAddressIntoAX, cannotAssign);
 }
 
 
-int AccessData_ActualMemoryAccess(ccCompiledScript * scrip, AGS::Symbol variableSym, int variableSymType, bool pointerIsOnStack, bool writing, bool writingThisTime, bool is_attribute, bool mustBeWritable, bool getJustTheAddressIntoAX, bool isArrayOffset, int currentComponentOffset, bool accessActualPointer, AGS::Symbol firstVariableSym, AGS::Symbol firstVariableType, bool isDynamicArray, bool negateLiteral, bool isLastClause, VariableSymlist  variablePath[], size_t vp_idx)
+int AccessData_ActualMemoryAccess(ccCompiledScript * scrip, AGS::Symbol variableSym, int variableSymType, bool pointerIsOnStack, bool writing, bool writingThisTime, bool is_attribute, bool mustBeWritable, bool getJustTheAddressIntoAX, bool offset_is_in_cx, int currentComponentOffset, bool accessActualPointer, AGS::Symbol firstVariableSym, AGS::Symbol firstVariableType, bool isDynamicArray, bool negateLiteral, bool isLastClause, VariableSymlist  variablePath[], size_t vp_idx)
 {
     int cachedAxValType = scrip->ax_val_type;
 
@@ -3565,7 +3558,7 @@ int AccessData_ActualMemoryAccess(ccCompiledScript * scrip, AGS::Symbol variable
     int retval = MemoryAccess(
         scrip, variableSym, variableSymType,
         is_attribute, writingThisTime, mustBeWritable,
-        getJustTheAddressIntoAX, isArrayOffset,
+        getJustTheAddressIntoAX, offset_is_in_cx,
         currentComponentOffset, pointerIsOnStack /* means that it's in MAR now*/,
         accessActualPointer,
         firstVariableSym, firstVariableType,
@@ -3660,7 +3653,6 @@ int AccessData(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len, boo
     // for the bit between each dot
     VariableSymlist variablePath[MAX_VARIABLE_PATH];
     size_t variablePathSize;
-
     int retval = AccessData_SplitPathIntoParts(variablePath, syml, syml_len, variablePathSize);
     if (retval < 0) return retval;
     if (variablePathSize < 1)
@@ -3672,20 +3664,24 @@ int AccessData(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len, boo
 
     // Symbol and type of the first variable in the list 
     // (since that determines whether this is global/local)
-    AGS::Symbol firstVariableSym = variablePath[0].syml[0];
-    AGS::Symbol firstVariableType = sym.get_type(firstVariableSym);
-    bool isArrayOffset = false;
-    bool isDynamicArray = false;
+    AGS::Symbol const firstVariableSym = variablePath[0].syml[0];
+    AGS::Symbol const firstVariableType = sym.get_type(firstVariableSym);
 
     bool pointerIsOnStack = false;
+    bool isDynamicArray = false;
+    bool offset_is_in_cx = false;
 
     for (size_t vp_idx = 0; vp_idx < variablePathSize; vp_idx++)
     {
         VariableSymlist *thisClause = &variablePath[vp_idx];
-        bool isLastClause = (vp_idx == variablePathSize - 1);
 
-        AGS::Symbol variableSym = thisClause->syml[0];
-        int variableSymType = sym.get_type(variableSym);
+        bool const isLastClause = (vp_idx == variablePathSize - 1);
+        // the memory access only wants to write if this is the
+        // end of the path, not an intermediate pathing attribute
+        bool const writingThisTime = isLastClause && writing;
+
+        AGS::Symbol const variableSym = thisClause->syml[0];
+        AGS::Symbol const variableSymType = sym.get_type(variableSym);
 
         bool getJustTheAddressIntoAX = false;
         bool doMemoryAccessNow = false;
@@ -3694,14 +3690,10 @@ int AccessData(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len, boo
         bool is_attribute = false;
         bool accessActualPointer = false;
 
-        // the memory access only wants to write if this is the
-        // end of the path, not an intermediate pathing attribute
-        bool writingThisTime = isLastClause && writing;
-
         // Mark the component as accessed
         SetFlag(sym.entries[variableSym].flags, SFLG_ACCESSED, true);
 
-        int retval = AccessData_PrepareComponentAccess(scrip, variableSym, variableSymType, isLastClause, thisClause, writing, mustBeWritable, writingThisTime, firstVariableType, firstVariableSym, currentComponentOffset, getJustTheAddressIntoAX, doMemoryAccessNow, is_attribute, isArrayOffset, write_same_as_read_access, isDynamicArray, pointerIsOnStack, accessActualPointer, cannotAssign);
+        int retval = AccessData_PrepareComponentAccess(scrip, variableSym, variableSymType, isLastClause, thisClause, writing, mustBeWritable, writingThisTime, firstVariableType, firstVariableSym, currentComponentOffset, getJustTheAddressIntoAX, doMemoryAccessNow, is_attribute, offset_is_in_cx, write_same_as_read_access, isDynamicArray, pointerIsOnStack, accessActualPointer, cannotAssign);
         if (retval < 0) return retval;
 
         retval = AccessData_CheckAccess(variableSym, variablePath, writing, mustBeWritable, write_same_as_read_access, isLastClause, vp_idx, cannotAssign);
@@ -3710,10 +3702,10 @@ int AccessData(ccCompiledScript*scrip, AGS::SymbolScript syml, int syml_len, boo
         if (!doMemoryAccessNow && !isLastClause)
             continue;
 
-        retval = AccessData_ActualMemoryAccess(scrip, variableSym, variableSymType, pointerIsOnStack, writing, writingThisTime, is_attribute, mustBeWritable, getJustTheAddressIntoAX, isArrayOffset, currentComponentOffset, accessActualPointer, firstVariableSym, firstVariableType, isDynamicArray, negateLiteral, isLastClause, variablePath, vp_idx);
+        retval = AccessData_ActualMemoryAccess(scrip, variableSym, variableSymType, pointerIsOnStack, writing, writingThisTime, is_attribute, mustBeWritable, getJustTheAddressIntoAX, offset_is_in_cx, currentComponentOffset, accessActualPointer, firstVariableSym, firstVariableType, isDynamicArray, negateLiteral, isLastClause, variablePath, vp_idx);
         if (retval < 0) return retval;
 
-
+        offset_is_in_cx = false;
     }
 
     // free the VariablePaths
@@ -3890,7 +3882,7 @@ int MemoryAccess_LitFloat(ccCompiledScript * scrip, AGS::Symbol variableSym, boo
 
 
 // a "normal" variable or a pointer
-int MemoryAccess_Variable(ccCompiledScript * scrip, AGS::Symbol mainVariableSym, int mainVariableType, AGS::Symbol variableSym, bool pointerIsInMAR, bool &wholePointerAccess, bool addressof, int soffset, bool isArrayOffset, bool isDynamicArray, bool writing, int &gotValType)
+int MemoryAccess_Variable(ccCompiledScript * scrip, AGS::Symbol mainVariableSym, int mainVariableType, AGS::Symbol variableSym, bool pointerIsInMAR, bool &wholePointerAccess, bool addressof, int soffset, bool offset_is_in_cx, bool isDynamicArray, bool writing, int &gotValType)
 {
     int readwritecmd = GetReadWriteCmdForSize(sym.entries[variableSym].ssize, writing);
 
@@ -3901,7 +3893,7 @@ int MemoryAccess_Variable(ccCompiledScript * scrip, AGS::Symbol mainVariableSym,
     if (pointerIsInMAR)
     {
         // the address is already in MAR by the caller
-        if ((!wholePointerAccess) && ((!addressof) || (soffset) || (isArrayOffset)))
+        if ((!wholePointerAccess) && ((!addressof) || (soffset) || (offset_is_in_cx)))
             scrip->write_cmd(SCMD_CHECKNULL);
         if (soffset != 0)
             scrip->write_cmd2(SCMD_ADD, SREG_MAR, soffset);
@@ -3929,7 +3921,7 @@ int MemoryAccess_Variable(ccCompiledScript * scrip, AGS::Symbol mainVariableSym,
         }
     }
 
-    if (isArrayOffset)
+    if (offset_is_in_cx)
     {
         if (isDynamicArray)
         {
@@ -4000,7 +3992,7 @@ int MemoryAccess_Null(ccCompiledScript * scrip, bool writing, int &gotValType)
 }
 
 
-int MemoryAccess_ActualAccess(ccCompiledScript * scrip, AGS::Symbol mainVariableSym, int mainVariableType, AGS::Symbol variableSym, bool writing, bool mustBeWritable, bool negateLiteral, bool pointerIsInMAR, bool addressof, int soffset, bool isArrayOffset, bool isDynamicArray, bool is_attribute, bool &wholePointerAccess, int &gotValType)
+int MemoryAccess_ActualAccess(ccCompiledScript * scrip, AGS::Symbol mainVariableSym, int mainVariableType, AGS::Symbol variableSym, bool writing, bool mustBeWritable, bool negateLiteral, bool pointerIsInMAR, bool addressof, int soffset, bool offset_is_in_cx, bool isDynamicArray, bool is_attribute, bool &wholePointerAccess, int &gotValType)
 {
     switch (mainVariableType)
     {
@@ -4011,7 +4003,7 @@ int MemoryAccess_ActualAccess(ccCompiledScript * scrip, AGS::Symbol mainVariable
         return MemoryAccess_LitOrConst(scrip, mainVariableType, variableSym, writing, mustBeWritable, negateLiteral, gotValType);
 
     case SYM_GLOBALVAR:
-        return MemoryAccess_Variable(scrip, mainVariableSym, mainVariableType, variableSym, pointerIsInMAR, wholePointerAccess, addressof, soffset, isArrayOffset, isDynamicArray, writing, gotValType);
+        return MemoryAccess_Variable(scrip, mainVariableSym, mainVariableType, variableSym, pointerIsInMAR, wholePointerAccess, addressof, soffset, offset_is_in_cx, isDynamicArray, writing, gotValType);
 
     case SYM_LITERALFLOAT:
         return MemoryAccess_LitFloat(scrip, variableSym, writing, mustBeWritable, gotValType);
@@ -4020,7 +4012,7 @@ int MemoryAccess_ActualAccess(ccCompiledScript * scrip, AGS::Symbol mainVariable
         return MemoryAccess_LitOrConst(scrip, mainVariableType, variableSym, writing, mustBeWritable, negateLiteral, gotValType);
 
     case SYM_LOCALVAR:
-        return MemoryAccess_Variable(scrip, mainVariableSym, mainVariableType, variableSym, pointerIsInMAR, wholePointerAccess, addressof, soffset, isArrayOffset, isDynamicArray, writing, gotValType);
+        return MemoryAccess_Variable(scrip, mainVariableSym, mainVariableType, variableSym, pointerIsInMAR, wholePointerAccess, addressof, soffset, offset_is_in_cx, isDynamicArray, writing, gotValType);
 
     case SYM_NULL:
         return MemoryAccess_Null(scrip, writing, gotValType);
@@ -4045,14 +4037,17 @@ int MemoryAccess(
     ccCompiledScript *scrip, AGS::Symbol variableSym,
     int variableSymType, bool is_attribute,
     bool writing, bool mustBeWritable,
-    bool addressof, bool isArrayOffset,
+    bool addressof, bool offset_is_in_cx,
     int soffset, bool pointerIsInMAR,
     bool wholePointerAccess,
     AGS::Symbol mainVariableSym, int mainVariableType,
     bool isDynamicArray, bool negateLiteral)
 {
     int gotValType;
-    int retval = MemoryAccess_ActualAccess(scrip, mainVariableSym, mainVariableType, variableSym, writing, mustBeWritable, negateLiteral, pointerIsInMAR, addressof, soffset, isArrayOffset, isDynamicArray, is_attribute, wholePointerAccess, gotValType);
+    int retval = MemoryAccess_ActualAccess(
+        scrip, mainVariableSym, mainVariableType,
+        variableSym, writing, mustBeWritable,
+        negateLiteral, pointerIsInMAR, addressof, soffset, offset_is_in_cx, isDynamicArray, is_attribute, wholePointerAccess, gotValType);
     if (retval < 0) return retval;
 
     if ((!is_attribute && addressof) ||

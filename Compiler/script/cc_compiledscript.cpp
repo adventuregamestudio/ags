@@ -68,16 +68,14 @@ int ccCompiledScript::add_string(const char *strr)
 {
     // Note: processing  of '\\' and '[' combinations moved to the scanner
     // because the scanner must deal with '\\' anyway.
-    size_t const strsize_needed = strlen(strr) + 1;
+    size_t const strr_len = strlen(strr) + 1; // length including the terminating '\0'
+    
+    strings = (char *) realloc(strings, stringssize + strr_len);
     size_t const start_of_new_string = stringssize;
-    // [fw] BUG: As soon as realloc relocates the whole block, all the previous
-    // return addresses will point into the wild. The correct way would be to
-    // store addresses that are relative to the start of the block and to add
-    // the block start to such addresses before they are used. There are
-    // fixups that implement this AFAIK, but strangely, those aren't used here.
-    strings = (char *)realloc(strings, stringssize + strsize_needed);
-    memcpy(&strings[start_of_new_string], strr, strsize_needed);
-    stringssize += strsize_needed;
+
+    memcpy(&strings[start_of_new_string], strr, strr_len);   
+    stringssize += strr_len
+        ;
     return start_of_new_string;
 }
 

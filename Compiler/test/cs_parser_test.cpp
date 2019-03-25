@@ -1348,5 +1348,49 @@ TEST(Compile, Recursive1) {
     ccCompiledScript *scrip = newScriptFixture();
     int compileResult = cc_compile(agscode, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
 
+TEST(Compile, GlobalFuncStructFunc) {
+
+    char *agscode = "\
+        import int Foo2 (int);      \n\
+                                    \n\
+        struct Struct               \n\
+        {                           \n\
+            import int Foo2(int);   \n\
+        };                          \n\
+                                    \n\
+        int Struct::Foo2(int a)     \n\
+        {                           \n\
+            return 17;              \n\
+        }                           \n\
+        ";
+
+    clear_error();
+    ccCompiledScript *scrip = newScriptFixture();
+    int compileResult = cc_compile(agscode, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+
+TEST(Compile, VariadicFunc) {
+
+    std::string agscode = "\
+        String payload;                 \n\
+                                        \n\
+        void main()                     \n\
+        {                               \n\
+            payload = String.Format(    \n\
+                \"%d bats are %s.\",    \n\
+                17, \"fat\");           \n\
+            return;                     \n\
+        }                               \n\
+        ";
+    agscode = g_Input_String + agscode;
+    agscode = g_Input_Bool + agscode;
+
+    clear_error();
+    ccCompiledScript *scrip = newScriptFixture();
+    int compileResult = cc_compile(agscode.c_str(), scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }

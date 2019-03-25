@@ -887,7 +887,7 @@ extern volatile char want_exit;
 
 void update_mp3_thread()
 {
-    while(switching_away_from_game) {}
+	if (switching_away_from_game) { return; }
 
     AudioChannelsLock lock;
 

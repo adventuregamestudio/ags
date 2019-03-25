@@ -1757,7 +1757,7 @@ void stop_fast_forwarding() {
     AudioChannelsLock lock;
 
     // Restore actual volume of sounds
-    for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
+    for (int aa = 0; aa <= MAX_SOUND_CHANNELS; aa++)
     {
         auto* ch = lock.GetChannelIfPlaying(aa);
         if (ch)

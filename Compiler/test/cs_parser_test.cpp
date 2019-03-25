@@ -1312,3 +1312,41 @@ TEST(Compile, Import2GlobalAllocation)
     SymbolTableEntry &entry = sym.entries[idx];
     ASSERT_EQ(4, entry.soffs);
 }
+
+TEST(Compile, LocalImportVar) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        import int Var;     \n\
+        int Var;            \n\
+        export Var;         \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, Recursive1) {
+
+    char *agscode = "\
+        import int Foo2 (int);    \n\
+                                  \n\
+        int Foo1(int a)           \n\
+        {                         \n\
+            if (a >= 0)           \n\
+              return Foo2(a - 1); \n\
+        }                         \n\
+                                  \n\
+        int Foo2(int a)           \n\
+        {                         \n\
+            return Foo1 (a - 2);  \n\
+        }                         \n\
+        ";
+
+    clear_error();
+    ccCompiledScript *scrip = newScriptFixture();
+    int compileResult = cc_compile(agscode, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+}

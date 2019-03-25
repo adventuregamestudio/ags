@@ -140,4 +140,16 @@ dos_setup:
 	@type builds\newline
 	@echo The following settings are used:
 	@type builds\newline
-	@echo   platform
+	@echo   platform                     $(PLATFORM)
+	@echo   compiler                     $(CC)
+	@echo   configuration directory      $(BUILD)
+	@echo   configuration rules          $(CONFIG_RULES)
+	@type builds\newline
+	@echo If this does not correspond to your system or settings please remove the file
+	@echo '$(CONFIG_MK)' from this directory then read the INSTALL file for help.
+	@type builds\newline
+	@echo Otherwise, simply type 'make' again to build the library.
+	@type builds\newline
+	@$(COPY) $(subst /,\,$(CONFIG_RULES) $(CONFIG_MK)) > nul
+
+# EOF

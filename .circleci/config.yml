@@ -1,0 +1,10 @@
+version: 1
+jobs:
+  build:
+    docker:
+      - image: ericoporto/ags-primary:0.0.1
+
+    steps:
+      - checkout
+
+      - run: fakeroot debian/rules binary

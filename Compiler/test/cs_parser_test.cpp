@@ -1394,3 +1394,22 @@ TEST(Compile, VariadicFunc) {
     int compileResult = cc_compile(agscode.c_str(), scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, DynamicAndNull) {
+
+    std::string agscode = "\
+        int main()                          \n\
+        {                                   \n\
+            int DynArray[] = new int[10];   \n\
+            if (DynArray == null)           \n\
+                return 1;                   \n\
+            else                            \n\
+                return -77;                 \n\
+        }                                   \n\
+        ";
+
+    clear_error();
+    ccCompiledScript *scrip = newScriptFixture();
+    int compileResult = cc_compile(agscode.c_str(), scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

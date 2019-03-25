@@ -1866,10 +1866,16 @@ inline bool is_string(int valtype)
 
 
 // Change the generic operator vcpuOp to the one that is correct for the types
+// Also check whether the operator can handle the types at all
 int GetOperatorValidForType(int type1, int type2, int &vcpuOp)
 {
     if ((type1 == sym.normalFloatSym) || (type2 == sym.normalFloatSym))
     {
+        if (type1 != type2)
+        {
+            cc_error("The operator cannot be applied to a float and a non-float value");
+            return -1;
+        }
         switch (vcpuOp)
         {
         default:
@@ -1888,37 +1894,42 @@ int GetOperatorValidForType(int type1, int type2, int &vcpuOp)
         case SCMD_SUB:      vcpuOp = SCMD_FSUB; break;
         case SCMD_SUBREG:   vcpuOp = SCMD_FSUBREG; break;
         }
+        return 0;
     }
 
-    if (is_any_type_of_string(type1) && is_any_type_of_string(type2))
+    if (is_any_type_of_string(type1) || is_any_type_of_string(type2))
     {
+        if (type1 != type2)
+        {
+            cc_error("A string type value cannot be compared to a value that isn't a string type");
+            return -1;
+        }
         switch (vcpuOp)
         {
         default:
-            cc_error("The operator cannot be applied to string values");
+            cc_error("The operator cannot be applied to string type values");
             return -1;
         case SCMD_ISEQUAL:  vcpuOp = SCMD_STRINGSEQUAL; return 0;
         case SCMD_NOTEQUAL: vcpuOp = SCMD_STRINGSNOTEQ; return 0;
         }
     }
 
-    if ((type1 & STYPE_POINTER) != 0 && (type2 & STYPE_POINTER) != 0)
+    if ((type1 & (STYPE_POINTER | STYPE_DYNARRAY)) != 0 &&
+        (type2 & (STYPE_POINTER | STYPE_DYNARRAY)) != 0)
     {
         switch (vcpuOp)
         {
         default:
-            cc_error("The operator cannot be applied to pointers");
+            cc_error("The operator cannot be applied to pointers or dynamic arrays");
             return -1;
         case SCMD_ISEQUAL:  return 0;
         case SCMD_NOTEQUAL: return 0;
         }
     }
 
-    // Other combinations of pointers and/or strings won't mingle
-    if (is_string(type1) ||
-        is_string(type2) ||
-        (type1 & STYPE_POINTER) != 0 ||
-        (type2 & STYPE_POINTER) != 0)
+    // Other combinations of pointers and/or dynamic arrays won't mingle
+    if ((type1 & (STYPE_POINTER | STYPE_DYNARRAY)) != 0 ||
+        (type2 & (STYPE_POINTER | STYPE_DYNARRAY)) != 0)
     {
         cc_error("The operator cannot be applied to values of these types");
         return -1;

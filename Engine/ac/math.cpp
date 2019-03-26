@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include <cmath>
+#include <random>
 #include "ac/math.h"
 #include "ac/common.h" // quit
 #include "platform/base/override_defines.h"
@@ -147,12 +148,19 @@ float Math_Sqrt(float value)
     return ::sqrt(value);
 }
 
+static std::random_device seed_generator; 
+static std::mt19937 random_engine(seed_generator());
+
+int Math_Random_Range(int lower, int upper) {
+    std::uniform_int_distribution<> distribution(lower, upper);
+    return distribution(random_engine);
+}
+
 int __Rand(int upto)
 {
-    upto++;
-    if (upto < 1)
+    if (upto < 0)
         quit("!Random: invalid parameter passed -- must be at least 0.");
-    return rand()%upto;
+    return Math_Random_Range(0, upto);
 }
 
 

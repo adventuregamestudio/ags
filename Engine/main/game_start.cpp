@@ -137,7 +137,6 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
             game.options[OPT_ALWAYSSPCH] = oldalways;
         }
 
-        srand (play.randseed);
         if (override_start_room)
             playerchar->room = override_start_room;
 

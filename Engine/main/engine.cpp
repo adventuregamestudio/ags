@@ -16,6 +16,7 @@
 // Engine initialization
 //
 
+#include <limits>
 #include "main/mainheader.h"
 #include "ac/asset_helper.h"
 #include "ac/common.h"
@@ -694,8 +695,8 @@ void engine_init_exit_handler()
 
 void engine_init_rand()
 {
-    play.randseed = time(NULL);
-    srand (play.randseed);
+    // random number to identify the game
+    play.randseed = Math_Random_Range(1, std::numeric_limits<int32_t>::max());
 }
 
 void engine_init_pathfinder()

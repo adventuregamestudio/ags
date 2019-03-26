@@ -37,8 +37,6 @@ extern int char_speaking;
 extern RoomStruct thisroom;
 extern unsigned int loopcounter;
 
-#define Random __Rand
-
 int CharacterInfo::get_effective_y() {
     return y - z;
 }
@@ -404,7 +402,7 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
         }
       }
       // wait a bit, so we're not constantly walking
-      else if (Random(100) < (followinfo & 0x00ff)) ;
+      else if (Math_Random_Range(0, 100) < (followinfo & 0x00ff)) ;
       // the followed character has changed room
       else if ((room != game.chars[following].room)
             && (game.chars[following].on == 0))
@@ -451,12 +449,12 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
         (abs(game.chars[following].y - y) > distaway+30) |
         ((followinfo & 0x00ff) == 0)) {
         // in same room
-        int goxoffs=(Random(50)-25);
+        int goxoffs = Math_Random_Range(-25, 25);
         // make sure he's not standing on top of the other man
         if (goxoffs < 0) goxoffs-=distaway;
         else goxoffs+=distaway;
         walk_character(aa,game.chars[following].x + goxoffs,
-          game.chars[following].y + (Random(50)-25),0, true);
+          game.chars[following].y + Math_Random_Range(-25, 25), 0, true);
         doing_nothing = 0;
       }
     }

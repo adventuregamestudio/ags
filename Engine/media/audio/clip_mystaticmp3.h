@@ -26,12 +26,10 @@ struct MYSTATICMP3:public SOUNDCLIP
     ALMP3_MP3 *tune;
     char *mp3buffer;
 
-    int poll();
+    void poll();
 
     void set_volume(int newvol);
     void set_speed(int new_speed);
-
-    void internal_destroy();
 
     void destroy();
 
@@ -43,8 +41,6 @@ struct MYSTATICMP3:public SOUNDCLIP
 
     int get_length_ms();
 
-    int get_voice();
-
     int get_sound_type();
 
     int play();
@@ -52,6 +48,7 @@ struct MYSTATICMP3:public SOUNDCLIP
     MYSTATICMP3();
 
 protected:
+    int get_voice();
     virtual void adjust_volume();
 private:
     void adjust_stream();

@@ -22,13 +22,10 @@ struct MYWAVE:public SOUNDCLIP
 {
     SAMPLE *wave;
     int voice;
-    int firstTime;
 
-    int poll();
+    void poll();
 
     void set_volume(int new_speed);
-
-    void internal_destroy();
 
     void destroy();
 
@@ -39,8 +36,6 @@ struct MYWAVE:public SOUNDCLIP
 
     int get_length_ms();
 
-    int get_voice();
-
     int get_sound_type();
 
     int play();
@@ -48,6 +43,7 @@ struct MYWAVE:public SOUNDCLIP
     MYWAVE();
 
 protected:
+    int get_voice();
     virtual void adjust_volume();
 };
 

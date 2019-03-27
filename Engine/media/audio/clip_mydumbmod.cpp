@@ -31,26 +31,19 @@ void al_duh_set_loop(AL_DUH_PLAYER *dp, int loop) {
         dumb_it_set_loop_callback(itsr, dumb_it_callback_terminate, itsr);
 }
 
-int MYMOD::poll()
+void MYMOD::poll()
 {
-    if (done)
-        return done;
+    if (state_ != SoundClipPlaying) { return; }
 
-    if (duhPlayer == NULL) {
-        done = 1;
-        return done;
+    if (al_poll_duh(duhPlayer)) {
+        state_ = SoundClipStopped;
     }
-
-    if (al_poll_duh(duhPlayer))
-        done = 1;
-
-    return done;
 }
 
 void MYMOD::adjust_volume()
 {
-    if (duhPlayer)
-        al_duh_set_volume(duhPlayer, VOLUME_TO_DUMB_VOL(get_final_volume()));
+    if (!is_playing()) { return; }
+    al_duh_set_volume(duhPlayer, VOLUME_TO_DUMB_VOL(get_final_volume()));
 }
 
 void MYMOD::set_volume(int newvol)
@@ -63,32 +56,38 @@ void MYMOD::destroy()
 {
     if (duhPlayer) {
         al_stop_duh(duhPlayer);
-        duhPlayer = NULL;
     }
+    duhPlayer = nullptr;
+
     if (tune) {
         unload_duh(tune);
-        tune = NULL;
     }
+    tune = nullptr;
+
+    state_ = SoundClipStopped;
 }
 
 void MYMOD::seek(int patnum)
 {
-    if ((!done) && (duhPlayer)) {
-        al_stop_duh(duhPlayer);
-        done = 0;
-        DUH_SIGRENDERER *sr = dumb_it_start_at_order(tune, 2, patnum);
-        duhPlayer = al_duh_encapsulate_sigrenderer(sr, VOLUME_TO_DUMB_VOL(vol), 8192, 22050);
-        if (!duhPlayer)
-            duh_end_sigrenderer(sr);
-        else
-            al_duh_set_loop(duhPlayer, repeat);
+    if (!is_playing()) { return; }
+
+    al_stop_duh(duhPlayer);
+    state_ = SoundClipInitial;
+
+    DUH_SIGRENDERER *sr = dumb_it_start_at_order(tune, 2, patnum);
+    duhPlayer = al_duh_encapsulate_sigrenderer(sr, VOLUME_TO_DUMB_VOL(vol), 8192, 22050);
+    if (!duhPlayer) {
+        duh_end_sigrenderer(sr);
+        return;
     }
+
+    al_duh_set_loop(duhPlayer, repeat);
+    state_ = SoundClipPlaying;
 }
 
 int MYMOD::get_pos()
 {
-    if ((duhPlayer == NULL) || (done))
-        return -1;
+    if (!is_playing()) { return -1; }
 
     // determine the current track number (DUMB calls them 'orders')
     DUH_SIGRENDERER *sr = al_duh_get_sigrenderer(duhPlayer);
@@ -101,13 +100,13 @@ int MYMOD::get_pos()
 
 int MYMOD::get_real_mod_pos()
 {
-    if ((duhPlayer == NULL) || (done))
-        return -1;
+    if (!is_playing()) { return -1; }
     return al_duh_get_position(duhPlayer);
 }
 
 int MYMOD::get_pos_ms()
 {
+    if (!is_playing()) { return -1; }
     return (get_real_mod_pos() * 10) / 655;
 }
 
@@ -127,15 +126,15 @@ int MYMOD::get_voice()
 }
 
 void MYMOD::pause() {
-    if (tune != NULL) {
-        al_pause_duh(duhPlayer);
-    }
+    if (state_ != SoundClipPlaying) { return; }
+    al_pause_duh(duhPlayer);
+    state_ = SoundClipPaused;
 }
 
 void MYMOD::resume() {
-    if (tune != NULL) {
-        al_resume_duh(duhPlayer);
-    }
+    if (state_ != SoundClipPaused) { return; }
+    al_resume_duh(duhPlayer);
+    state_ = SoundClipPlaying;
 }
 
 int MYMOD::get_sound_type() {
@@ -143,10 +142,16 @@ int MYMOD::get_sound_type() {
 }
 
 int MYMOD::play() {
+    if (tune == nullptr) { return 0; }
+    
     duhPlayer = al_start_duh(tune, 2, 0, 1.0, 8192, 22050);
+    if (!duhPlayer) {
+        return 0;
+    }
     al_duh_set_loop(duhPlayer, repeat);
     set_volume(vol);
 
+    state_ = SoundClipPlaying;
     return 1;
 }  
 

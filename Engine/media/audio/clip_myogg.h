@@ -29,12 +29,10 @@ struct MYOGG:public SOUNDCLIP
     int last_but_one;
     int last_ms_offs;
 
-    int poll();
+    void poll();
 
     void set_volume(int newvol);
     void set_speed(int new_speed);
-
-    void internal_destroy();
 
     void destroy();
 
@@ -46,8 +44,6 @@ struct MYOGG:public SOUNDCLIP
 
     int get_length_ms();
 
-    int get_voice();
-
     int get_sound_type();
 
     int play();
@@ -55,6 +51,7 @@ struct MYOGG:public SOUNDCLIP
     MYOGG();
 
 protected:
+    int get_voice();
     virtual void adjust_volume();
 private:
     void adjust_stream();

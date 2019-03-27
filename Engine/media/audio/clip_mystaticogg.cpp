@@ -29,35 +29,23 @@ extern "C" {
 
 extern int use_extra_sound_offset;  // defined in ac.cpp
 
-int MYSTATICOGG::poll()
+void MYSTATICOGG::poll()
 {
-    // TODO: must be called AudioChannelsLock
+    if (state_ != SoundClipPlaying) { return; }
 
-    if (tune && !done && _destroyThis)
-    {
-      internal_destroy();
-      _destroyThis = false;
-    }
-
-    if ((tune == NULL) || (!ready))
-        ; // Do nothing
-    else if (alogg_poll_ogg(tune) == ALOGG_POLL_PLAYJUSTFINISHED) {
+    if (alogg_poll_ogg(tune) == ALOGG_POLL_PLAYJUSTFINISHED) {
         if (!repeat)
         {
-            done = 1;
-            if (psp_audio_multithreaded)
-                internal_destroy();
+            state_ = SoundClipStopped;
         }
     }
     else get_pos();  // call this to keep the last_but_one stuff up to date
-
-    return done;
 }
 
 void MYSTATICOGG::adjust_stream()
 {
-    if (tune)
-        alogg_adjust_ogg(tune, get_final_volume(), panning, speed, repeat);
+    if (!is_playing()) { return; }
+    alogg_adjust_ogg(tune, get_final_volume(), panning, speed, repeat);
 }
 
 void MYSTATICOGG::adjust_volume()
@@ -77,59 +65,48 @@ void MYSTATICOGG::set_speed(int new_speed)
     adjust_stream();
 }
 
-void MYSTATICOGG::internal_destroy()
-{
-    if (tune != NULL) {
-        alogg_stop_ogg(tune);
-        alogg_destroy_ogg(tune);
-        tune = NULL;
-    }
-
-    if (mp3buffer != NULL) {
-        sound_cache_free(mp3buffer, false);
-        mp3buffer = NULL;
-    }
-
-    _destroyThis = false;
-    done = 1;
-}
-
 void MYSTATICOGG::destroy()
 {
-    //must be called AudioChannelsLock
+    if (tune) {
+        alogg_stop_ogg(tune);
+        alogg_destroy_ogg(tune);
+    }
+    tune = nullptr;
 
-    if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
-    else
-      internal_destroy();
+    if (mp3buffer) {
+        sound_cache_free(mp3buffer, false);
+    }
+    mp3buffer = nullptr;
 
-    // TODO: warning: scary for this to be done under a lock
-    while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+    state_ = SoundClipStopped;
 }
 
 void MYSTATICOGG::seek(int pos)
 {
-    // TODO: must be called AudioChannelsLock
+    if (!is_playing()) { return; }
 
     // we stop and restart it because otherwise the buffer finishes
     // playing first and the seek isn't quite accurate
     alogg_stop_ogg(tune);
+    state_ = SoundClipInitial;
     play_from(pos);
 }
 
 int MYSTATICOGG::get_pos()
 {
+    if (!is_playing()) { return -1; }
     return get_pos_ms();
 }
 
 int MYSTATICOGG::get_pos_ms()
 {
+    if (!is_playing()) { return -1; }
+
     // Unfortunately the alogg_get_pos_msecs function
     // returns the ms offset that was last decoded, so it's always
     // ahead of the actual playback. Therefore we have this
     // hideous hack below to sort it out.
-    if ((done) || (!alogg_is_playing_ogg(tune)))
+    if (!alogg_is_playing_ogg(tune))
         return 0;
 
     AUDIOSTREAM *str = alogg_get_audiostream_ogg(tune);
@@ -160,7 +137,6 @@ case 1:
     }
 
     if (end_of_stream == 1) {
-
         return offs + last_but_one + extraOffset;
     }
 
@@ -169,11 +145,13 @@ case 1:
 
 int MYSTATICOGG::get_length_ms()
 {
+    if (tune == nullptr) { return -1; }
     return alogg_get_length_msecs_ogg(tune);
 }
 
 int MYSTATICOGG::get_voice()
 {
+    if (!is_playing()) { return -1; }
     AUDIOSTREAM *ast = alogg_get_audiostream_ogg(tune);
     if (ast)
         return ast->voice;
@@ -186,14 +164,14 @@ int MYSTATICOGG::get_sound_type() {
 
 int MYSTATICOGG::play_from(int position)
 {
+    if (tune == nullptr) { return 0; }
+
     if (use_extra_sound_offset) 
         extraOffset = ((16384 / (alogg_get_wave_is_stereo_ogg(tune) ? 2 : 1)) * 1000) / alogg_get_wave_freq_ogg(tune);
     else
         extraOffset = 0;
 
     if (alogg_play_ex_ogg(tune, 16384, vol, panning, 1000, repeat) != ALOGG_OK) {
-        destroy();
-        delete this;
         return 0;
     }
 
@@ -204,6 +182,8 @@ int MYSTATICOGG::play_from(int position)
     if (position > 0)
         alogg_seek_abs_msecs_ogg(tune, position);
 
+    state_ = SoundClipPlaying;
+
     if (!psp_audio_multithreaded)
       poll();
 
@@ -211,7 +191,6 @@ int MYSTATICOGG::play_from(int position)
 }
 
 int MYSTATICOGG::play() {
-    _playing = true;
     return play_from(0);
 }
 

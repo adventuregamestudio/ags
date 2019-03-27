@@ -24,61 +24,42 @@
 #include "platform/base/agsplatformdriver.h"
 
 
-int MYMP3::poll()
+void MYMP3::poll()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    if (state_ != SoundClipPlaying) { return; }
 
-    if (!done && _destroyThis)
+    // update the buffer
+    char *tempbuf = nullptr;
     {
-      internal_destroy();
-      _destroyThis = false;
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        tempbuf = (char *)almp3_get_mp3stream_buffer(stream);
     }
 
-    if (done)
-    {
-        return done;
-    }
-    if (paused)
-    {
-        return 0;
-    }
+    if (tempbuf != NULL) {
+        int free_val = -1;
+        if (chunksize >= in->todo) {
+            chunksize = in->todo;
+            free_val = chunksize;
+        }
+        pack_fread(tempbuf, chunksize, in);
 
-    if (!done) {
-        // update the buffer
-		AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-        char *tempbuf = (char *)almp3_get_mp3stream_buffer(stream);
-		_lockMp3.Release(); // forced release
-
-        if (tempbuf != NULL) {
-            int free_val = -1;
-            if (chunksize >= in->todo) {
-                chunksize = in->todo;
-                free_val = chunksize;
-            }
-            pack_fread(tempbuf, chunksize, in);
-
-			_lockMp3.Acquire(_mp3_mutex);
+        {
+            AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
             almp3_free_mp3stream_buffer(stream, free_val);
-			_lockMp3.Release(); // forced release
         }
     }
 
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-    int result = almp3_poll_mp3stream(stream);
-	_lockMp3.Release();
-
-    if (result == ALMP3_POLL_PLAYJUSTFINISHED)
     {
-        done = 1;
-        if (psp_audio_multithreaded)
-            internal_destroy();
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        if (almp3_poll_mp3stream(stream) == ALMP3_POLL_PLAYJUSTFINISHED) {
+            state_ = SoundClipStopped;
+        }
     }
-
-    return done;
 }
 
 void MYMP3::adjust_stream()
 {
+    if (!is_playing()) { return; }
     AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     almp3_adjust_mp3stream(stream, get_final_volume(), panning, speed);
 }
@@ -105,46 +86,27 @@ void MYMP3::set_speed(int new_speed)
     adjust_stream();
 }
 
-void MYMP3::internal_destroy()
-{
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-		
-	if (!done)
-		almp3_stop_mp3stream(stream);
-		
-	almp3_destroy_mp3stream(stream);
-
-	_lockMp3.Release(); // this would happen anyway, just force it to release NOW
-
-    stream = NULL;
-
-    if (buffer != NULL)
-        free(buffer);
-
-    buffer = NULL;
-    pack_fclose(in);
-
-    _destroyThis = false;
-    done = 1;
-}
-
 void MYMP3::destroy()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    if (stream) {
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        almp3_stop_mp3stream(stream);
+        almp3_destroy_mp3stream(stream);
+    }
+    stream = nullptr;
 
-    if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
-    else
-      internal_destroy();
+    if (buffer)
+        free(buffer);
+    buffer = nullptr;
 
-	_lock.Release();
+    pack_fclose(in);
 
-    while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+    state_ = SoundClipStopped;
 }
 
 void MYMP3::seek(int pos)
 {
+    if (!is_playing()) { return; }
     quit("Tried to seek an mp3stream");
 }
 
@@ -156,18 +118,21 @@ int MYMP3::get_pos()
 
 int MYMP3::get_pos_ms()
 {
+    if (!is_playing()) { return -1; }
 	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     return almp3_get_pos_msecs_mp3stream(stream);
 }
 
 int MYMP3::get_length_ms()
 {
+    if (!is_playing()) { return -1; }
 	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     return almp3_get_length_msecs_mp3stream(stream, filesize);
 }
 
 int MYMP3::get_voice()
 {
+    if (!is_playing()) { return -1; }
 	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     AUDIOSTREAM *ast = almp3_get_audiostream_mp3stream(stream);
     return (ast != NULL ? ast->voice : -1);
@@ -178,14 +143,19 @@ int MYMP3::get_sound_type() {
 }
 
 int MYMP3::play() {
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-    almp3_play_mp3stream(stream, chunksize, (vol > 230) ? vol : vol + 20, panning);
-	_lockMp3.Release();
+    if (in == nullptr) { return 0; }
+
+    {
+	    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        if (almp3_play_mp3stream(stream, chunksize, (vol > 230) ? vol : vol + 20, panning) != ALMP3_OK) {
+            return 0;
+        }
+    }
+
+    state_ = SoundClipPlaying;
 
     if (!psp_audio_multithreaded)
       poll();
-
-    _playing = true;
 
     return 1;
 }

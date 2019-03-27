@@ -19,12 +19,10 @@
 #ifndef __AC_SOUNDCLIP_H
 #define __AC_SOUNDCLIP_H
 
-#undef BITMAP
 #include "util/mutex.h"
 
 // JJS: This is needed for the derieved classes
 extern volatile int psp_audio_multithreaded;
-extern volatile bool _audio_doing_crossfade;
 
 // TODO: one of the biggest problems with sound clips currently is that it
 // provides several methods of applying volume, which may ignore or override
@@ -32,14 +30,12 @@ extern volatile bool _audio_doing_crossfade;
 // Improving this situation is only possible with massive refactory of
 // sound clip use, taking backwards-compatible audio system in account.
 
+enum SoundClipState { SoundClipInitial, SoundClipPlaying, SoundClipPaused, SoundClipStopped };
+
 struct SOUNDCLIP
 {
-    bool _destroyThis;
-    bool _playing;
-
-    int done;
     int priority;
-    int soundType;
+    int sourceClipType;
     // absolute volume, set by implementations only!
     int vol;
     // current relative volume, in percents
@@ -47,19 +43,15 @@ struct SOUNDCLIP
     // volModifier is used when there's a need to temporarily change and
     // the restore the clip's absolute volume (vol)
     int volModifier;
-    int paused;
     int panning;
     int panningAsPercentage;
-    int speed; // speed of playback, in clip ms per real second
     int xSource, ySource;
     int maximumPossibleDistanceAway;
     int directionalVolModifier;
     bool repeat;
     void *sourceClip;
-    bool ready;
-    AGS::Engine::Mutex _mutex;
 
-    virtual int poll() = 0;
+    virtual void poll() = 0;
     virtual void destroy() = 0;
     // apply volume directly to playback; volume is given in units of 255
     // NOTE: this completely ignores volAsPercentage and muted property
@@ -68,19 +60,18 @@ struct SOUNDCLIP
     virtual int get_pos() = 0;    // return 0 to indicate seek not supported
     virtual int get_pos_ms() = 0; // this must always return valid value if poss
     virtual int get_length_ms() = 0; // return total track length in ms (or 0)
-    virtual int get_voice() = 0;  // return the allegro voice number (or -1 if none)
     virtual int get_sound_type() = 0;
     virtual int play() = 0;
 
     virtual int play_from(int position);
 
     virtual void set_panning(int newPanning);
-    virtual void set_speed(int) { /* not supported by default */ }
+    virtual void set_speed(int new_speed) { speed = new_speed; }
 
     virtual void pause();
     virtual void resume();
 
-    inline bool is_playing() const { return done == 0; }
+    inline bool is_playing() const { return state_ == SoundClipPlaying || state_ == SoundClipPaused; }
 
     inline int get_speed() const
     {
@@ -152,10 +143,21 @@ struct SOUNDCLIP
     SOUNDCLIP();
     virtual ~SOUNDCLIP();
 
+
 protected:
+
+    SoundClipState state_;
+
     // mute mode overrides the volume; if set, any volume assigned is stored
     // in properties, but not applied to playback itself
     bool muted;
+
+    // speed of playback, in clip ms per real second
+    int speed; 
+
+    // Return the allegro voice number (or -1 if none)
+    // Used by generic pause/resume functions.
+    virtual int get_voice() = 0;
 
     // helper function for calculating volume with applied modifiers
     inline int get_final_volume() const

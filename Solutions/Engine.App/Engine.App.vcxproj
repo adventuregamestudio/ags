@@ -675,6 +675,7 @@
     <ClInclude Include="..\..\Engine\media\audio\audio.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiointernaldefs.h" />
+    <ClInclude Include="..\..\Engine\media\audio\audio_system.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_mydumbmod.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_myjgmod.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_mymidi.h" />

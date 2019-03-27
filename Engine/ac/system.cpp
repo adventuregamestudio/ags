@@ -197,14 +197,12 @@ void System_SetVolume(int newvol)
 
     // allegro's set_volume can lose the volumes of all the channels
     // if it was previously set low; so restore them
+    AudioChannelsLock lock;
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) 
     {
-        AudioChannelsLock _lock;
-        auto* ch = _lock.GetChannel(i);
-        if ((ch != nullptr) && (ch->done == 0)) 
-        {
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if (ch)
             ch->adjust_volume();
-        }
     }
 }
 

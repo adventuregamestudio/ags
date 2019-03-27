@@ -274,14 +274,15 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
     if ((changeType == VOL_CHANGEEXISTING) ||
         (changeType == VOL_BOTH))
     {
-        AudioChannelsLock _lock;
+        AudioChannelsLock lock;
         for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
         {
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
             if ((clip != NULL) && (clip->type == audioType))
             {
-                auto* ch = _lock.GetChannel(aa);
-                ch->set_volume_percent(volume);
+                auto* ch = lock.GetChannel(aa);
+                if (ch)
+                    ch->set_volume_percent(volume);
             }
         }
     }
@@ -298,12 +299,11 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 }
 
 int Game_GetMODPattern() {
-    AudioChannelsLock _lock;
-    auto* music_ch = _lock.GetChannel(SCHAN_MUSIC);
-    if (current_music_type == MUS_MOD && music_ch) {
-        return music_ch->get_pos();
-    }
-    return -1;
+    if (current_music_type != MUS_MOD)
+        return -1;
+    AudioChannelsLock lock;
+    auto* music_ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    return music_ch ? music_ch->get_pos() : -1;
 }
 
 //=============================================================================
@@ -1754,13 +1754,13 @@ void stop_fast_forwarding() {
         newmusic(play.end_cutscene_music);
 
     {
-    AudioChannelsLock _lock;
+    AudioChannelsLock lock;
 
     // Restore actual volume of sounds
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
-        auto* ch = _lock.GetChannel(aa);
-        if ((ch != nullptr) && (!ch->done))
+        auto* ch = lock.GetChannelIfPlaying(aa);
+        if (ch)
         {
             ch->set_mute(false);
         }
@@ -1876,10 +1876,10 @@ void display_switch_out_suspend()
 
     {
     // stop the sound stuttering
-    AudioChannelsLock _lock;
+    AudioChannelsLock lock;
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
-        auto* ch = _lock.GetChannel(i);
-        if ((ch != nullptr) && (ch->done == 0)) {
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if (ch) {
             ch->pause();
         }
     }
@@ -1915,10 +1915,10 @@ void display_switch_in_resume()
     display_switch_in();
 
     {
-    AudioChannelsLock _lock;
+    AudioChannelsLock lock;
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
-        auto* ch = _lock.GetChannel(i);
-        if ((ch != nullptr) && (ch->done == 0)) {
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if (ch) {
             ch->resume();
         }
     }

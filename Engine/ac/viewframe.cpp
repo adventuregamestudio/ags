@@ -146,9 +146,10 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
     }
     if (sound_volume != SCR_NO_VALUE && channel != NULL)
     {
-        AudioChannelsLock _lock;
-        auto* ch = _lock.GetChannel(channel->id);
-        ch->set_volume_percent(ch->get_volume() * sound_volume / 100);
+        AudioChannelsLock lock;
+        auto* ch = lock.GetChannel(channel->id);
+        if (ch)
+            ch->set_volume_percent(ch->get_volume() * sound_volume / 100);
     }
     
 }

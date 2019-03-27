@@ -40,11 +40,11 @@ int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
 
 void AudioClip_Stop(ScriptAudioClip *clip)
 {
-    AudioChannelsLock _lock;
+    AudioChannelsLock lock;
     for (int i = 0; i < MAX_SOUND_CHANNELS; i++)
     {
-        auto* ch = _lock.GetChannel(i);
-        if ((ch != nullptr) && (!ch->done) && (ch->sourceClip == clip))
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if ((ch != nullptr) && (ch->sourceClip == clip))
         {
             AudioChannel_Stop(&scrAudioChannel[i]);
         }

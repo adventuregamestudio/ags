@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "media/audio/ambientsound.h"
-#include "media/audio/audiodefines.h"
+#include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "util/stream.h"
 

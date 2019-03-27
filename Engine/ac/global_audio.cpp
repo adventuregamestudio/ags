@@ -58,11 +58,8 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
         return;
 
-    AudioChannelsLock _lock;
-
     // only play the sound if it's not already playing
-    if ((ambient[channel].channel < 1) || (_lock.GetChannel(ambient[channel].channel) == nullptr) ||
-        (_lock.GetChannel(ambient[channel].channel)->done == 1) ||
+    if ((ambient[channel].channel < 1) || (!channel_is_playing(ambient[channel].channel)) ||
         (ambient[channel].num != sndnum)) {
 
             StopAmbientSound(channel);
@@ -79,7 +76,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
             debug_script_log("Playing ambient sound %d on channel %d", sndnum, channel);
             ambient[channel].channel = channel;
             asound->priority = 15;  // ambient sound higher priority than normal sfx
-            _lock.SetChannel(channel, asound);
+            set_clip_to_channel(channel, asound);
     }
     // calculate the maximum distance away the player can be, using X
     // only (since X centred is still more-or-less total Y)
@@ -108,12 +105,10 @@ int IsSoundPlaying() {
     if (play.fast_forward)
         return 0;
 
-    AudioChannelsLock _lock;
-
     // find if there's a sound playing
+    AudioChannelsLock lock;
     for (int i = SCHAN_NORMAL; i < MAX_SOUND_CHANNELS; i++) {
-        auto* ch = _lock.GetChannel(i);
-        if ((ch != nullptr) && (ch->done == 0))
+        if (lock.GetChannelIfPlaying(i))
             return 1;
     }
 
@@ -132,8 +127,6 @@ int PlaySoundEx(int val1, int channel) {
 
     if ((channel < SCHAN_NORMAL) || (channel >= MAX_SOUND_CHANNELS))
         quit("!PlaySoundEx: invalid channel specified, must be 3-7");
-
-    AudioChannelsLock _lock;
 
     // if an ambient sound is playing on this channel, abort it
     StopAmbientSound(channel);
@@ -159,7 +152,7 @@ int PlaySoundEx(int val1, int channel) {
 
     soundfx->priority = 10;
     soundfx->set_volume (play.sound_volume);
-    _lock.SetChannel(channel,soundfx);
+    set_clip_to_channel(channel,soundfx);
     return channel;
 }
 
@@ -201,19 +194,19 @@ int IsMusicPlaying() {
     if ((play.fast_forward) && (play.skip_until_char_stops < 0))
         return 0;
 
-    AudioChannelsLock _lock;
-
     // This only returns positive if there was a music started by old audio API
     if (current_music_type == 0)
         return 0;
 
-    if (_lock.GetChannel(SCHAN_MUSIC) == nullptr)
+    AudioChannelsLock lock;
+    auto *ch = lock.GetChannel(SCHAN_MUSIC);
+    if (ch == nullptr)
     { // This was probably a hacky fix in case it was not reset by game update; TODO: find out if needed
         current_music_type = 0;
         return 0;
     }
 
-    bool result = (_lock.GetChannel(SCHAN_MUSIC)->done == 0) || (crossFading > 0 && (_lock.GetChannel(crossFading) != nullptr));
+    bool result = (ch->is_playing()) || (crossFading > 0 && (lock.GetChannelIfPlaying(crossFading) != nullptr));
     return result ? 1 : 0;
 }
 
@@ -266,23 +259,26 @@ void scr_StopMusic() {
 }
 
 void SeekMODPattern(int patnum) {
-    AudioChannelsLock _lock;
-    auto* ch = _lock.GetChannel(SCHAN_MUSIC);
-    if (current_music_type == MUS_MOD && ch) {
+    if (current_music_type != MUS_MOD)
+        return;
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    if (ch) {
         ch->seek (patnum);
         debug_script_log("Seek MOD/XM to pattern %d", patnum);
     }
 }
 void SeekMP3PosMillis (int posn) {
-    AudioChannelsLock _lock;
-    auto* ch = _lock.GetChannel(crossFading);
-    if (current_music_type) {
-        debug_script_log("Seek MP3/OGG to %d ms", posn);
-        if (crossFading && ch)
-            ch->seek (posn);
-        else if (_lock.GetChannel(SCHAN_MUSIC))
-            _lock.GetChannel(SCHAN_MUSIC)->seek (posn);
-    }
+    if (current_music_type == 0)
+        return;
+
+    AudioChannelsLock lock;
+    auto *mus_ch = lock.GetChannel(SCHAN_MUSIC);
+    auto *cf_ch = (crossFading > 0) ? lock.GetChannel(crossFading) : nullptr;
+    if (cf_ch)
+        cf_ch->seek(posn);
+    else if (mus_ch)
+        mus_ch->seek(posn);
 }
 
 int GetMP3PosMillis () {
@@ -290,10 +286,12 @@ int GetMP3PosMillis () {
     if (play.fast_forward)
         return 999999;
 
-    AudioChannelsLock _lock;
-    auto* ch = _lock.GetChannel(SCHAN_MUSIC);
+    if (current_music_type == 0)
+        return 0;
 
-    if (current_music_type && ch) {
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    if (ch) {
         int result = ch->get_pos_ms();
         if (result >= 0)
             return result;
@@ -335,10 +333,10 @@ void SetChannelVolume(int chan, int newvol) {
     if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
         quit("!SetChannelVolume: invalid channel id");
 
-    AudioChannelsLock _lock;
-    auto* ch = _lock.GetChannel(chan);
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(chan);
 
-    if ((ch != nullptr) && (ch->done == 0)) {
+    if (ch) {
         if (chan == ambient[chan].channel) {
             ambient[chan].vol = newvol;
             update_ambient_sound_vol();
@@ -374,11 +372,10 @@ void PlayMP3File (const char *filename) {
     int useChan = prepare_for_new_music ();
     bool doLoop = (play.music_repeat > 0);
 
-    AudioChannelsLock _lock;
     SOUNDCLIP *clip = my_load_static_ogg(asset_name, 150, doLoop);
     if (clip != nullptr) {
         clip->play();
-        _lock.SetChannel(useChan, clip);
+        set_clip_to_channel(useChan, clip);
         current_music_type = MUS_OGG;
         play.cur_music_number = 1000;
         // save the filename (if it's not what we were supplied with)
@@ -390,7 +387,7 @@ void PlayMP3File (const char *filename) {
         clip = my_load_static_mp3(asset_name, 150, doLoop);
         if (clip != nullptr) {
             clip->play();
-            _lock.SetChannel(useChan, clip);
+            set_clip_to_channel(useChan, clip);
             current_music_type = MUS_MP3;
             play.cur_music_number = 1000;
             // save the filename (if it's not what we were supplied with)
@@ -398,7 +395,6 @@ void PlayMP3File (const char *filename) {
                 strcpy(play.playmp3file_name, filename);
         }
         else {
-            _lock.SetChannel(useChan, nullptr);
             debug_script_warn ("PlayMP3File: file '%s' not found or cannot play", filename);
         }
     }
@@ -417,29 +413,25 @@ void PlaySilentMIDI (int mnum) {
     play.silent_midi_channel = SCHAN_SPEECH;
     stop_and_destroy_channel(play.silent_midi_channel);
 
-    AudioChannelsLock _lock;
-
-    _lock.SetChannel(play.silent_midi_channel,load_sound_clip_from_old_style_number(true, mnum, false));
-    
-    auto* ch = _lock.GetChannel(play.silent_midi_channel);
-    if (ch == nullptr)
+    AudioChannelsLock lock;
+    SOUNDCLIP *clip = load_sound_clip_from_old_style_number(true, mnum, false);
+    if (clip == nullptr)
     {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
-    ch->play();
-    ch->set_volume_percent(0);
+    lock.SetChannel(play.silent_midi_channel, clip);
+    clip->play();
+    clip->set_volume_percent(0);
 }
 
 void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
-    AudioChannelsLock _lock;
-    auto* ch = _lock.GetChannel(SCHAN_SPEECH);
-
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannel(SCHAN_SPEECH);
     if (ch)
         ch->set_volume (newvol);
-
     play.speech_volume = newvol;
 }
 
@@ -542,9 +534,7 @@ int play_speech(int charid,int sndid) {
         return 0;
     }
 
-    AudioChannelsLock _lock;
-
-    _lock.SetChannel(SCHAN_SPEECH,speechmp3);
+    set_clip_to_channel(SCHAN_SPEECH,speechmp3);
 
     play.music_vol_was = play.music_master_volume;
 

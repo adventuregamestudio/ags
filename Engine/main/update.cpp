@@ -250,10 +250,10 @@ void update_speech_and_messages()
   // we need to know if there is/was voice-over
   bool is_voice, is_voice_playing;
   {
-      AudioChannelsLock _lock;
-      auto *ch = _lock.GetChannel(SCHAN_SPEECH);
+      AudioChannelsLock lock;
+      auto *ch = lock.GetChannel(SCHAN_SPEECH);
       is_voice = ch != nullptr;
-      is_voice_playing = is_voice && !ch->done;
+      is_voice_playing = is_voice && ch->is_playing();
   }
 
   // determine if speech text should be removed
@@ -301,8 +301,8 @@ void update_sierra_speech()
   bool is_voice;
   int voice_pos_ms;
   {
-      AudioChannelsLock _lock;
-      auto *ch = _lock.GetChannel(SCHAN_SPEECH);
+      AudioChannelsLock lock;
+      auto *ch = lock.GetChannel(SCHAN_SPEECH);
       is_voice = ch != nullptr;
       voice_pos_ms = is_voice ? ch->get_pos_ms() : -1;
   }

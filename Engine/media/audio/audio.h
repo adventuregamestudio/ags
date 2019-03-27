@@ -45,9 +45,25 @@ public:
     {
     }
 
-    SOUNDCLIP* GetChannel(int index);
-    void SetChannel(int index, SOUNDCLIP* ch);
+    // Gets a clip from the channel
+    SOUNDCLIP *GetChannel(int index);
+    // Gets a clip from the channel but only if it's in playback state
+    SOUNDCLIP *GetChannelIfPlaying(int index);
+    // Assign new clip to the channel
+    SOUNDCLIP *SetChannel(int index, SOUNDCLIP *clip);
+    // Move clip from one channel to another, clearing the first channel
+    SOUNDCLIP *MoveChannel(int to, int from);
 };
+
+//
+// Channel helpers, autolock and perform a simple action on a channel.
+//
+// Tells if channel has got a clip; does not care about its state
+bool channel_has_clip(int chanid);
+// Tells if channel has got a clip and clip is in playback state
+bool channel_is_playing(int chanid);
+// Sets new clip to the channel
+void set_clip_to_channel(int chanid, SOUNDCLIP *clip);
 
 
 void        calculate_reserved_channel_count();

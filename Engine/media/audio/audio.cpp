@@ -737,7 +737,7 @@ static int play_sound_priority (int val1, int priority) {
             const int usechan = PlaySoundEx(val1, i);
             if (usechan >= 0)
             { // channel will hold a different clip here
-                assert(usechan == playSoundCh);
+                assert(usechan == i);
                 auto *ch = lock.GetChannel(usechan);
                 if (ch)
                     ch->priority = priority;

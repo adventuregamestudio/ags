@@ -26,13 +26,11 @@ class BaseThread
 public:
   typedef void(* AGSThreadEntry)();
 
-  BaseThread()
-  {
-  };
+  BaseThread() { };
+  virtual ~BaseThread() { };
 
-  virtual ~BaseThread()
-  {
-  };
+  BaseThread &operator=(const BaseThread &) = delete;
+  BaseThread(const BaseThread &) = delete;
 
   virtual bool Create(AGSThreadEntry entryPoint, bool looping) = 0;
   virtual bool Start() = 0;
@@ -40,38 +38,21 @@ public:
 
   inline bool CreateAndStart(AGSThreadEntry entryPoint, bool looping)
   {
-    if (Create(entryPoint, looping))
-    {
-      if (Start())
-      {
-        return true;
-      }
-    }
-
-    return false;
+    if (!Create(entryPoint, looping)) { return false; }
+    return Start();
   }
 };
-
 
 } // namespace Engine
 } // namespace AGS
 
 
-#if defined(WINDOWS_VERSION)
-#include "thread_windows.h"
-
-#elif defined(PSP_VERSION)
+#if defined(PSP_VERSION)
 #include "thread_psp.h"
-
 #elif defined(WII_VERSION)
 #include "thread_wii.h"
-
-#elif defined(LINUX_VERSION) \
-   || defined(MAC_VERSION) \
-   || defined(IOS_VERSION) \
-   || defined(ANDROID_VERSION)
-#include "thread_pthread.h"
-
+#else
+#include "thread_std.h"
 #endif
 
 

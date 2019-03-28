@@ -27,25 +27,11 @@ extern "C" {
     extern int alogg_get_ogg_stereo(ALOGG_OGG *ogg);
 }
 
-int MYOGG::poll()
+void MYOGG::poll()
 {
-    // TODO: must be called AudioChannelsLock
-    if (!done && _destroyThis)
-    {
-      internal_destroy();
-      _destroyThis = false;
-    }
+    if (state_ != SoundClipPlaying) { return; }
 
-    if (done)
-    {
-        return done;
-    }
-    if (paused)
-    {
-        return 0;
-    }
-
-    if ((!done) && (in->todo > 0))
+    if (in->todo > 0)
     {
         // update the buffer
         char *tempbuf = (char *)alogg_get_oggstream_buffer(stream);
@@ -67,15 +53,13 @@ int MYOGG::poll()
         get_pos_ms();  // call this to keep the last_but_one stuff up to date
     else {
         // finished playing or error
-        done = 1;
-        if (psp_audio_multithreaded)
-            internal_destroy();
+        state_ = SoundClipStopped;
     }
-    return done;
 }
 
 void MYOGG::adjust_stream()
 {
+    if (!is_playing()) { return; }
     alogg_adjust_oggstream(stream, get_final_volume(), panning, speed);
 }
 
@@ -100,38 +84,26 @@ void MYOGG::set_speed(int new_speed)
     adjust_stream();
 }
 
-void MYOGG::internal_destroy()
-{
-    if (!done)
-        alogg_stop_oggstream(stream);
-
-    alogg_destroy_oggstream(stream);
-    stream = NULL;
-    if (buffer != NULL)
-        free(buffer);
-    buffer = NULL;
-    pack_fclose(in);
-
-    _destroyThis = false;
-    done = 1;
-}
-
 void MYOGG::destroy()
 {
-    // TODO: must be called AudioChannelsLock
+    if (stream) {
+        alogg_stop_oggstream(stream);
+        alogg_destroy_oggstream(stream);
+    }
+    stream = nullptr;
 
-    if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
-    else
-      internal_destroy();
+    if (buffer)
+        free(buffer);
+    buffer = nullptr;
 
-    // TODO: warning: scary for this to be done under a lock
-    while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+    pack_fclose(in);
+
+    state_ = SoundClipStopped;
 }
 
 void MYOGG::seek(int pos)
 {
+    if (!is_playing()) { return; }
     quit("Attempted to seek an oggstream; operation not permitted");
 }
 
@@ -146,7 +118,7 @@ int MYOGG::get_pos_ms()
     // returns the ms offset that was last decoded, so it's always
     // ahead of the actual playback. Therefore we have this
     // hideous hack below to sort it out.
-    if ((done) || (!alogg_is_playing_oggstream(stream)))
+    if ((!is_playing()) || (!alogg_is_playing_oggstream(stream)))
         return 0;
 
     AUDIOSTREAM *str = alogg_get_audiostream_oggstream(stream);
@@ -191,6 +163,8 @@ int MYOGG::get_length_ms()
 
 int MYOGG::get_voice()
 {
+    if (!is_playing()) { return -1; }
+
     AUDIOSTREAM *ast = alogg_get_audiostream_oggstream(stream);
     if (ast)
         return ast->voice;
@@ -202,12 +176,16 @@ int MYOGG::get_sound_type() {
 }
 
 int MYOGG::play() {
-    alogg_play_oggstream(stream, MP3CHUNKSIZE, (vol > 230) ? vol : vol + 20, panning);
+    if (in == nullptr) { return 0; }
+    
+    if (alogg_play_oggstream(stream, MP3CHUNKSIZE, (vol > 230) ? vol : vol + 20, panning) != ALOGG_OK) {
+        return 0;
+    }
+
+    state_ = SoundClipPlaying;
 
     if (!psp_audio_multithreaded)
       poll();
-
-    _playing = true;
 
     return 1;
 }

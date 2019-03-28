@@ -372,31 +372,48 @@ void PlayMP3File (const char *filename) {
     int useChan = prepare_for_new_music ();
     bool doLoop = (play.music_repeat > 0);
 
-    SOUNDCLIP *clip = my_load_static_ogg(asset_name, 150, doLoop);
-    if (clip != nullptr) {
-        clip->play();
-        set_clip_to_channel(useChan, clip);
-        current_music_type = MUS_OGG;
-        play.cur_music_number = 1000;
-        // save the filename (if it's not what we were supplied with)
-        if (filename != &play.playmp3file_name[0])
-            strcpy (play.playmp3file_name, filename);
+    SOUNDCLIP *clip = nullptr;
+    
+    if (!clip) {
+        clip = my_load_static_ogg(asset_name, 150, doLoop);
+        if (clip) {
+            if (clip->play()) {
+                set_clip_to_channel(useChan, clip);
+                current_music_type = MUS_OGG;
+                play.cur_music_number = 1000;
+                // save the filename (if it's not what we were supplied with)
+                if (filename != &play.playmp3file_name[0])
+                    strcpy (play.playmp3file_name, filename);
+            } else {
+                clip->destroy();
+                delete clip;
+                clip = nullptr;
+            }
+        }
     }
-    else
+
+    if (!clip)
     {
         clip = my_load_static_mp3(asset_name, 150, doLoop);
-        if (clip != nullptr) {
-            clip->play();
-            set_clip_to_channel(useChan, clip);
-            current_music_type = MUS_MP3;
-            play.cur_music_number = 1000;
-            // save the filename (if it's not what we were supplied with)
-            if (filename != &play.playmp3file_name[0])
-                strcpy(play.playmp3file_name, filename);
+        if (clip) {
+            if (clip->play()) {
+                set_clip_to_channel(useChan, clip);
+                current_music_type = MUS_MP3;
+                play.cur_music_number = 1000;
+                // save the filename (if it's not what we were supplied with)
+                if (filename != &play.playmp3file_name[0])
+                    strcpy(play.playmp3file_name, filename);
+            } else {
+                clip->destroy();
+                delete clip;
+                clip = nullptr;
+            }
         }
-        else {
-            debug_script_warn ("PlayMP3File: file '%s' not found or cannot play", filename);
-        }
+    }
+
+    if (!clip) {
+        set_clip_to_channel(useChan, nullptr);
+        debug_script_warn ("PlayMP3File: file '%s' not found or cannot play", filename);
     }
 
     post_new_music_check(useChan);
@@ -420,7 +437,12 @@ void PlaySilentMIDI (int mnum) {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
     lock.SetChannel(play.silent_midi_channel, clip);
-    clip->play();
+    if (!clip->play()) {
+        clip->destroy();
+        delete clip;
+        clip = nullptr;
+        quitprintf("!PlaySilentMIDI: failed to play aMusic%d", mnum);
+    }
     clip->set_volume_percent(0);
 }
 
@@ -524,8 +546,12 @@ int play_speech(int charid,int sndid) {
     }
 
     if (speechmp3 != NULL) {
-        if (speechmp3->play() == 0)
-            speechmp3 = NULL;
+        if (!speechmp3->play()) {
+            // not assigned to a channel, so clean up manually.
+            speechmp3->destroy();
+            delete speechmp3;
+            speechmp3 = nullptr;
+        }
     }
 
     if (speechmp3 == NULL) {

@@ -215,7 +215,7 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
             break;
         }
         if ((ch->priority < lowestPrioritySoFar) &&
-            (ch->soundType == clip->type))
+            (ch->sourceClipType == clip->type))
         {
             lowestPrioritySoFar = ch->priority;
             lowestPriorityID = i;
@@ -280,8 +280,8 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     if (soundClip != NULL)
     {
         soundClip->set_volume_percent(audioClip->defaultVolume);
-        soundClip->soundType = audioClip->type;
         soundClip->sourceClip = audioClip;
+        soundClip->sourceClipType = audioClip->type;
     }
     return soundClip;
 }
@@ -356,7 +356,7 @@ static void audio_update_polled_stuff()
 // Applies a volume drop modifier to the clip, in accordance to its audio type
 static void apply_volume_drop_to_clip(SOUNDCLIP *clip)
 {
-    int audiotype = ((ScriptAudioClip*)clip->sourceClip)->type;
+    int audiotype = clip->sourceClipType;
     clip->apply_volume_modifier(-(game.audioClipTypes[audiotype].volume_reduction_while_speech_playing * 255 / 100));
 }
 
@@ -420,8 +420,12 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
 
     if (soundfx->play_from(fromOffset) == 0)
     {
+        // not assigned to a channel, so clean up manually.
+        soundfx->destroy();
+        delete soundfx;
+        soundfx = nullptr;
         debug_script_log("AudioClip.Play: failed to play sound file");
-        return NULL;
+        return nullptr;
     }
 
     // Apply volume drop if any speech voice-over is currently playing
@@ -510,6 +514,7 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
         ch->destroy();
         delete ch;
         lock.SetChannel(chid, NULL);
+        ch = nullptr;
     }
 
     if (play.crossfading_in_channel == chid)
@@ -678,10 +683,13 @@ void update_ambient_sound_vol ()
 SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
 {
     SOUNDCLIP *soundfx = load_sound_clip(aclip, repeat);
+    if (!soundfx) { return nullptr; }
 
-    if (soundfx != NULL) {
-        if (soundfx->play() == 0)
-            soundfx = NULL;
+    if (soundfx->play() == 0) {
+        // not assigned to a channel, so clean up manually.
+        soundfx->destroy();
+        delete soundfx;
+        return nullptr;
     }
 
     return soundfx;
@@ -724,10 +732,12 @@ static int play_sound_priority (int val1, int priority) {
             if (ch)
                 stop_and_destroy_channel (i);
         }
-        else if (!ch) {
+        else if (!ch->is_playing()) {
+            // PlaySoundEx will destroy the previous channel value.
             const int usechan = PlaySoundEx(val1, i);
             if (usechan >= 0)
             { // channel will hold a different clip here
+                assert(usechan == playSoundCh);
                 auto *ch = lock.GetChannel(usechan);
                 if (ch)
                     ch->priority = priority;
@@ -748,6 +758,7 @@ static int play_sound_priority (int val1, int priority) {
     if (priority >= lowest_pri) {
         const int usechan = PlaySoundEx(val1, lowest_pri_id);
         if (usechan >= 0) {
+            assert(usechan == lowest_pri_id);
             auto *ch = lock.GetChannel(usechan);
             if (ch)
                 ch->priority = priority;
@@ -887,7 +898,7 @@ extern volatile char want_exit;
 
 void update_mp3_thread()
 {
-    while(switching_away_from_game) {}
+	if (switching_away_from_game) { return; }
 
     AudioChannelsLock lock;
 
@@ -1174,9 +1185,13 @@ static void play_new_music(int mnum, SOUNDCLIP *music)
     AudioChannelsLock lock;
     auto* ch = lock.SetChannel(useChannel, new_clip);
     if (ch != nullptr) {
-        if (ch->play() == 0)
+        if (!ch->play()) {
+            // previous behavior was to set channel[] to null on error, so continue to do that here.
+            ch->destroy();
+            delete ch;
+            ch = nullptr;
             lock.SetChannel(useChannel, nullptr);
-        else
+        } else
             current_music_type = ch->get_sound_type();
     }
 

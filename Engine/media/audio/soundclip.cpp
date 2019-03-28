@@ -29,6 +29,8 @@ int SOUNDCLIP::play_from(int position)
 }
 
 void SOUNDCLIP::set_panning(int newPanning) {
+    if (!is_playing()) { return; }
+    
     int voice = get_voice();
     if (voice >= 0) {
         voice_set_pan(voice, newPanning);
@@ -37,29 +39,33 @@ void SOUNDCLIP::set_panning(int newPanning) {
 }
 
 void SOUNDCLIP::pause() {
+    if (state_ != SoundClipPlaying) { return; }
+
     int voice = get_voice();
     if (voice >= 0) {
         voice_stop(voice);
-        paused = 1;
+        state_ = SoundClipPaused;
     }
 }
+
 void SOUNDCLIP::resume() {
+    if (state_ != SoundClipPaused) { return; }
+
     int voice = get_voice();
-    if (voice >= 0)
+    if (voice >= 0) {
         voice_start(voice);
-    paused = 0;
+        state_ = SoundClipPlaying;
+    }
 }
 
 SOUNDCLIP::SOUNDCLIP() {
-    ready = false;
-    done = 0;
-    paused = 0;
+    state_ = SoundClipInitial;
     priority = 50;
     panning = 128;
     panningAsPercentage = 0;
     speed = 1000;
-    soundType = -1;
-    sourceClip = NULL;
+    sourceClipType = 0;
+    sourceClip = nullptr;
     vol = 0;
     volAsPercentage = 0;
     volModifier = 0;
@@ -69,8 +75,6 @@ SOUNDCLIP::SOUNDCLIP() {
     ySource = -1;
     maximumPossibleDistanceAway = 0;
     directionalVolModifier = 0;
-    _destroyThis = false;
-    _playing = false;
 }
 
 SOUNDCLIP::~SOUNDCLIP()

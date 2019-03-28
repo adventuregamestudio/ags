@@ -21,45 +21,21 @@
 
 #include "platform/base/agsplatformdriver.h"
 
-int MYWAVE::poll()
+void MYWAVE::poll()
 {
-    // TODO: must be called AudioChannelsLock
-
-    if (!done && _destroyThis)
-    {
-      internal_destroy();
-      _destroyThis = false;
-    }
-
-    if (wave == NULL)
-    {
-        return 1;
-    }
-    if (paused)
-    {
-        return 0;
-    }
-
-    if (firstTime) {
-        // need to wait until here so that we have been assigned a channel
-        //sample_update_callback(wave, voice);
-        firstTime = 0;
-    }
+    if (state_ != SoundClipPlaying) { return; }
 
     if (voice_get_position(voice) < 0)
     {
-        done = 1;
-        if (psp_audio_multithreaded)
-            internal_destroy();
+        state_ = SoundClipStopped;
     }
-
-    return done;
 }
 
 void MYWAVE::adjust_volume()
 {
-    if (voice >= 0)
-        voice_set_volume(voice, get_final_volume());
+    if (!is_playing()) { return; }
+    if (voice < 0) { return; }
+    voice_set_volume(voice, get_final_volume());
 }
 
 void MYWAVE::set_volume(int newvol)
@@ -68,38 +44,27 @@ void MYWAVE::set_volume(int newvol)
     adjust_volume();
 }
 
-void MYWAVE::internal_destroy()
-{
-    // Stop sound and decrease reference count.
-    stop_sample(wave);
-    sound_cache_free((char*)wave, true);
-    wave = NULL;
-
-    _destroyThis = false;
-    done = 1;
-}
-
 void MYWAVE::destroy()
 {
-    // TODO: must be called AudioChannelsLock
+    // Stop sound and decrease reference count.
+    if (wave) {
+        stop_sample(wave);
+        sound_cache_free((char*)wave, true);
+    }
+    wave = nullptr; 
 
-    if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
-    else
-      internal_destroy();
-
-    // TODO: warning: scary for this to be done under a lock
-    while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+    state_ = SoundClipStopped;
 }
 
 void MYWAVE::seek(int pos)
 {
+    if (!is_playing()) { return; }
     voice_set_position(voice, pos);
 }
 
 int MYWAVE::get_pos()
 {
+    if (!is_playing()) { return -1; }
     return voice_get_position(voice);
 }
 
@@ -116,6 +81,7 @@ int MYWAVE::get_pos_ms()
 
 int MYWAVE::get_length_ms()
 {
+    if (wave == NULL) { return -1; }
     if (wave->freq < 100)
         return 0;
     return (wave->len / (wave->freq / 100)) * 10;
@@ -123,6 +89,7 @@ int MYWAVE::get_length_ms()
 
 int MYWAVE::get_voice()
 {
+    if (!is_playing()) { return -1; }
     return voice;
 }
 
@@ -131,9 +98,14 @@ int MYWAVE::get_sound_type() {
 }
 
 int MYWAVE::play() {
-    voice = play_sample(wave, vol, panning, 1000, repeat);
+    if (wave == NULL) { return 0; }
 
-    _playing = true;
+    voice = play_sample(wave, vol, panning, 1000, repeat);
+    if (voice < 0) {
+        return 0;
+    }
+
+    state_ = SoundClipPlaying;
 
     return 1;
 }
@@ -141,5 +113,4 @@ int MYWAVE::play() {
 MYWAVE::MYWAVE() : SOUNDCLIP() {
     wave = NULL;
     voice = -1;
-    firstTime = 0;
 }

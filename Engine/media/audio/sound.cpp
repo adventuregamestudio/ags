@@ -75,7 +75,6 @@ SOUNDCLIP *my_load_wave(const AssetPath &asset_name, int voll, int loop)
     thiswave = new MYWAVE();
     thiswave->wave = new_sample;
     thiswave->vol = voll;
-    thiswave->firstTime = 1;
     thiswave->repeat = (loop != 0);
 
     return thiswave;
@@ -101,7 +100,6 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
     thistune->in = mp3in;
     thistune->chunksize = MP3CHUNKSIZE;
     thistune->filesize = mp3in->todo;
-    thistune->done = 0;
     thistune->vol = voll;
 
     if (thistune->chunksize > mp3in->todo)
@@ -111,9 +109,10 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
 
     thistune->buffer = (char *)tmpbuffer;
 
-    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-    thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->todo < 1));
-	_lockMp3.Release();
+    {
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->todo < 1));
+    }
 
     if (thistune->stream == NULL) {
         free(tmpbuffer);
@@ -146,11 +145,10 @@ SOUNDCLIP *my_load_static_mp3(const AssetPath &asset_name, int voll, bool loop)
     thismp3->mp3buffer = NULL;
     thismp3->repeat = loop;
 
-    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-    thismp3->tune = almp3_create_mp3(mp3buffer, muslen);
-	_lockMp3.Release();
-    thismp3->done = 0;
-    thismp3->ready = true;
+    {
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        thismp3->tune = almp3_create_mp3(mp3buffer, muslen);
+    }
 
     if (thismp3->tune == NULL) {
         free(mp3buffer);
@@ -192,12 +190,10 @@ SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
     thissogg = new MYSTATICOGG();
     thissogg->vol = voll;
     thissogg->repeat = loop;
-    thissogg->done = 0;
     thissogg->mp3buffer = mp3buffer;
     thissogg->mp3buffersize = muslen;
 
     thissogg->tune = alogg_create_ogg_from_buffer(mp3buffer, muslen);
-    thissogg->ready = true;
 
     if (thissogg->tune == NULL) {
         thissogg->destroy();
@@ -225,7 +221,6 @@ SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
     thisogg->in = mp3in;
     thisogg->vol = voll;
     thisogg->chunksize = MP3CHUNKSIZE;
-    thisogg->done = 0;
     thisogg->last_but_one = 0;
     thisogg->last_ms_offs = 0;
     thisogg->last_but_one_but_one = 0;
@@ -268,10 +263,8 @@ SOUNDCLIP *my_load_midi(const AssetPath &asset_name, int repet)
         return NULL;
 
     thismidi = new MYMIDI();
-    thismidi->done = 0;
     thismidi->tune = midiPtr;
     thismidi->repeat = (repet != 0);
-    thismidi->initializing = true;
 
     return thismidi;
 }
@@ -288,7 +281,6 @@ SOUNDCLIP *my_load_mod(const char *filname, int repet)
         return NULL;
 
     thismod = new MYMOD();
-    thismod->done = 0;
     thismod->tune = modPtr;
     thismod->repeat = (repet != 0);
 
@@ -343,7 +335,6 @@ SOUNDCLIP *my_load_mod(const AssetPath &asset_name, int repet)
         return NULL;
 
     thismod = new MYMOD();
-    thismod->done = 0;
     thismod->tune = modPtr;
     thismod->vol = 255;
     thismod->repeat = (repet != 0);

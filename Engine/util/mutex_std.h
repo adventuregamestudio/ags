@@ -12,44 +12,35 @@
 //
 //=============================================================================
 
-#ifndef __AC_MYMIDI_H
-#define __AC_MYMIDI_H
+#ifndef __AGS_EE_UTIL__MUTEX_STD_H
+#define __AGS_EE_UTIL__MUTEX_STD_H
 
-#include "media/audio/soundclip.h"
+#include <mutex>
 
-// MIDI
-struct MYMIDI:public SOUNDCLIP
+namespace AGS
 {
-    MIDI *tune;
-    int lengthInSeconds;
+namespace Engine
+{
 
-    void poll();
+class StdMutex : public BaseMutex
+{
+  public:
+    inline StdMutex() : mutex_() {}
+    inline ~StdMutex() {}
 
-    void set_volume(int newvol);
+    StdMutex &operator=(const StdMutex &) = delete;
+    StdMutex(const StdMutex &) = delete;
 
-    void destroy();
+    inline void Lock() { mutex_.lock(); }
+    inline void Unlock() { mutex_.unlock(); }
 
-    void seek(int pos);
-
-    int get_pos();
-
-    int get_pos_ms();
-
-    int get_length_ms();
-
-    virtual void pause();
-
-    virtual void resume();
-
-    int get_sound_type();
-
-    int play();
-
-    MYMIDI();
-
-protected:
-    int get_voice();
-    virtual void adjust_volume();
+  private:
+    std::recursive_mutex mutex_;
 };
 
-#endif // __AC_MYMIDI_H
+typedef StdMutex Mutex;
+
+} // namespace Engine
+} // namespace AGS
+
+#endif // __AGS_EE_UTIL__MUTEX_STD_H

@@ -28,7 +28,7 @@ struct MYMOD : public SOUNDCLIP
     DUH *tune;
     AL_DUH_PLAYER *duhPlayer;
 
-    int poll();
+    void poll();
 
     void set_volume(int newvol);
 
@@ -45,14 +45,9 @@ struct MYMOD : public SOUNDCLIP
     // TODO: find a way to redesign this behavior
     int get_pos();
 
-    // Returns real MOD/XM playing position
-    int get_real_mod_pos();
-
     int get_pos_ms();
 
     int get_length_ms();
-
-    int get_voice();
 
     virtual void pause();
 
@@ -65,7 +60,10 @@ struct MYMOD : public SOUNDCLIP
     MYMOD();
 
 protected:
+    int get_voice();
     virtual void adjust_volume();
+    // Returns real MOD/XM playing position
+    int get_real_mod_pos();
 };
 
 #endif // __AC_MYDUMBMOD_H

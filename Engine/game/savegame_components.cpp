@@ -281,7 +281,7 @@ HSaveError WriteAudio(PStream out)
             out->WriteInt32(ch->panning);
             out->WriteInt32(ch->volAsPercentage);
             out->WriteInt32(ch->panningAsPercentage);
-            out->WriteInt32(ch->speed);
+            out->WriteInt32(ch->get_speed());
         }
         else
         {

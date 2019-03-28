@@ -555,6 +555,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     const int cf_out_chan = play.crossfading_out_channel;
     play.crossfading_in_channel = 0;
     play.crossfading_out_channel = 0;
+    
+    {
+    AudioChannelsLock lock;
     // NOTE: channels are array of MAX_SOUND_CHANNELS+1 size
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
@@ -568,17 +571,19 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         }
         play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);
-        if (channel_is_playing(i))
+
+        auto* ch = lock.GetChannel(i);
+        if (ch != NULL)
         {
-            channels[i]->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
-            channels[i]->set_speed(chan_info.Speed);
-            channels[i]->set_panning(chan_info.Pan);
-            channels[i]->panningAsPercentage = chan_info.PanAsPercent;
+            ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
+            ch->set_speed(chan_info.Speed);
+            ch->set_panning(chan_info.Pan);
+            ch->panningAsPercentage = chan_info.PanAsPercent;
         }
     }
-    if ((cf_in_chan > 0) && channel_is_playing(cf_in_chan))
+    if ((cf_in_chan > 0) && (lock.GetChannel(cf_in_chan) != nullptr))
         play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && channel_is_playing(cf_out_chan))
+    if ((cf_out_chan > 0) && (lock.GetChannel(cf_out_chan) != nullptr))
         play.crossfading_out_channel = cf_out_chan;
 
     // If there were synced audio tracks, the time taken to load in the
@@ -586,12 +591,14 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // NOTE: channels are array of MAX_SOUND_CHANNELS+1 size
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
+        auto* ch = lock.GetChannelIfPlaying(i);
         int pos = r_data.AudioChans[i].Pos;
-        if ((pos > 0) && channel_is_playing(i))
+        if ((pos > 0) && (ch != nullptr))
         {
-            channels[i]->seek(pos);
+            ch->seek(pos);
         }
     }
+    } // -- AudioChannelsLock
 
     // TODO: investigate loop range
     for (int i = 1; i < MAX_SOUND_CHANNELS; ++i)
@@ -635,8 +642,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // Test if the old-style audio had playing music and it was properly loaded
     if (current_music_type > 0)
     {
-        if ((crossFading > 0 && !channel_is_playing(crossFading)) ||
-            (crossFading <= 0 && !channel_is_playing(SCHAN_MUSIC)))
+        AudioChannelsLock lock;
+
+        if (crossFading > 0 && !lock.GetChannelIfPlaying(crossFading) ||
+            crossFading <= 0 && !lock.GetChannelIfPlaying(SCHAN_MUSIC))
         {
             current_music_type = 0; // playback failed, reset flag
         }

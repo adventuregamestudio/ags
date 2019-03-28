@@ -269,18 +269,20 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
         quitprintf("!Game.SetAudioTypeVolume: volume %d is not between 0..100", volume);
     if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
         quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
-    int aa;
 
     Debug::Printf("Game.SetAudioTypeVolume: type: %d, volume: %d, change: %d", audioType, volume, changeType);
     if ((changeType == VOL_CHANGEEXISTING) ||
         (changeType == VOL_BOTH))
     {
-        for (aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
+        AudioChannelsLock lock;
+        for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
         {
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
             if ((clip != NULL) && (clip->type == audioType))
             {
-                channels[aa]->set_volume_percent(volume);
+                auto* ch = lock.GetChannel(aa);
+                if (ch)
+                    ch->set_volume_percent(volume);
             }
         }
     }
@@ -297,10 +299,11 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 }
 
 int Game_GetMODPattern() {
-    if (current_music_type == MUS_MOD && channel_is_playing(SCHAN_MUSIC)) {
-        return channels[SCHAN_MUSIC]->get_pos();
-    }
-    return -1;
+    if (current_music_type != MUS_MOD)
+        return -1;
+    AudioChannelsLock lock;
+    auto* music_ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    return music_ch ? music_ch->get_pos() : -1;
 }
 
 //=============================================================================
@@ -1316,14 +1319,12 @@ void restore_game_thisroom(Stream *in, RestoredData &r_data)
 
 void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
 {
-    int bb;
-
     for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
     {
         ambient[i].ReadFromFile(in);
     }
 
-    for (bb = 1; bb < MAX_SOUND_CHANNELS; bb++) {
+    for (int bb = 1; bb < MAX_SOUND_CHANNELS; bb++) {
         if (ambient[bb].channel == 0)
             r_data.DoAmbient[bb] = 0;
         else {
@@ -1752,14 +1753,19 @@ void stop_fast_forwarding() {
     if (play.end_cutscene_music >= 0)
         newmusic(play.end_cutscene_music);
 
+    {
+    AudioChannelsLock lock;
+
     // Restore actual volume of sounds
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
-        if (channel_is_playing(aa))
+        auto* ch = lock.GetChannelIfPlaying(aa);
+        if (ch)
         {
-            channels[aa]->set_mute(false);
+            ch->set_mute(false);
         }
     }
+    } // -- AudioChannelsLock
 
     update_music_volume();
 }
@@ -1868,12 +1874,16 @@ void display_switch_out_suspend()
     if (set_display_switch_mode(SWITCH_BACKGROUND) == -1)
         set_display_switch_mode(SWITCH_BACKAMNESIA);
 
+    {
     // stop the sound stuttering
+    AudioChannelsLock lock;
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
-        if (channel_is_playing(i)) {
-            channels[i]->pause();
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if (ch) {
+            ch->pause();
         }
     }
+    } // -- AudioChannelsLock
 
     platform->Delay(1000);
 
@@ -1904,11 +1914,15 @@ void display_switch_in_resume()
 {
     display_switch_in();
 
+    {
+    AudioChannelsLock lock;
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
-        if (channel_is_playing(i)) {
-            channels[i]->resume();
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if (ch) {
+            ch->resume();
         }
     }
+    } // -- AudioChannelsLock
 
     // clear the screen if necessary
     if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())

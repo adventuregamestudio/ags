@@ -1859,6 +1859,9 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\audio_system.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml">

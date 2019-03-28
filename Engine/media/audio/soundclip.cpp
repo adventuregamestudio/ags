@@ -13,11 +13,10 @@
 //=============================================================================
 
 #include "util/wgt2allg.h"
+#include "media/audio/audio.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
 #include "media/audio/audiointernaldefs.h"
-
-SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for update_mp3_thread
 
 int SOUNDCLIP::play_from(int position) 
 {
@@ -76,13 +75,4 @@ SOUNDCLIP::SOUNDCLIP() {
 
 SOUNDCLIP::~SOUNDCLIP()
 {
-}
-
-bool channel_has_clip(int chanid) {
-    return channels[chanid] != nullptr;
-}
-
-bool channel_is_playing(int chanid) {
-    auto ch = channels[chanid];
-    return ch != nullptr && ch->done == 0;
 }

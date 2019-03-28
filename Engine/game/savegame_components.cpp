@@ -255,6 +255,8 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
 
 HSaveError WriteAudio(PStream out)
 {
+    AudioChannelsLock lock;
+
     // Game content assertion
     out->WriteInt32(game.audioClipTypeCount);
     out->WriteInt32(game.audioClipCount);
@@ -268,17 +270,18 @@ HSaveError WriteAudio(PStream out)
     // Audio clips and crossfade
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++)
     {
-        if (channel_is_playing(i) && (channels[i]->sourceClip != NULL))
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if ((ch != nullptr) && (ch->sourceClip != NULL))
         {
-            out->WriteInt32(((ScriptAudioClip*)channels[i]->sourceClip)->id);
-            out->WriteInt32(channels[i]->get_pos());
-            out->WriteInt32(channels[i]->priority);
-            out->WriteInt32(channels[i]->repeat ? 1 : 0);
-            out->WriteInt32(channels[i]->vol);
-            out->WriteInt32(channels[i]->panning);
-            out->WriteInt32(channels[i]->volAsPercentage);
-            out->WriteInt32(channels[i]->panningAsPercentage);
-            out->WriteInt32(channels[i]->speed);
+            out->WriteInt32(((ScriptAudioClip*)ch->sourceClip)->id);
+            out->WriteInt32(ch->get_pos());
+            out->WriteInt32(ch->priority);
+            out->WriteInt32(ch->repeat ? 1 : 0);
+            out->WriteInt32(ch->vol);
+            out->WriteInt32(ch->panning);
+            out->WriteInt32(ch->volAsPercentage);
+            out->WriteInt32(ch->panningAsPercentage);
+            out->WriteInt32(ch->speed);
         }
         else
         {

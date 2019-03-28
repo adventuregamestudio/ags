@@ -39,8 +39,65 @@
 #include "main/game_run.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
-AGS::Engine::Mutex _audio_mutex;
+//-----------------------
+//sound channel management; all access goes through here, which can't be done without a lock
+
+static std::array<SOUNDCLIP *,MAX_SOUND_CHANNELS+1> _channels;
+AGS::Engine::Mutex AudioChannelsLock::s_mutex;
+
+SOUNDCLIP *AudioChannelsLock::GetChannel(int index)
+{
+    return _channels[index];
+}
+
+SOUNDCLIP *AudioChannelsLock::GetChannelIfPlaying(int index)
+{
+    auto *ch = _channels[index];
+    return (ch != nullptr && ch->is_playing()) ? ch : nullptr;
+}
+
+SOUNDCLIP *AudioChannelsLock::SetChannel(int index, SOUNDCLIP* ch)
+{
+    // TODO: store clips in smart pointers
+    if (_channels[index] == ch)
+        Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - same clip assigned", index);
+    else if (_channels[index] != nullptr && ch != nullptr)
+        Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
+    _channels[index] = ch;
+    return ch;
+}
+
+SOUNDCLIP *AudioChannelsLock::MoveChannel(int to, int from)
+{
+    auto from_ch = _channels[from];
+    _channels[from] = nullptr;
+    return SetChannel(to, from_ch);
+}
+
+//-----------------------
+// Channel helpers
+
+bool channel_has_clip(int chanid)
+{
+    AudioChannelsLock lock;
+    return lock.GetChannel(chanid) != nullptr;
+}
+
+bool channel_is_playing(int chanid)
+{
+    AudioChannelsLock lock;
+    return lock.GetChannelIfPlaying(chanid) != nullptr;
+}
+
+void set_clip_to_channel(int chanid, SOUNDCLIP *clip)
+{
+    AudioChannelsLock lock;
+    lock.SetChannel(chanid, clip);
+}
+//-----------------------
+
 volatile bool _audio_doing_crossfade;
 
 extern GameSetupStruct game;
@@ -91,15 +148,17 @@ void start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip 
     }
 }
 
-void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int fadeInChannel, ScriptAudioClip *newSound)
+static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int fadeInChannel, ScriptAudioClip *newSound)
 {
+    AudioChannelsLock lock;
     stop_and_destroy_channel(SPECIAL_CROSSFADE_CHANNEL);
-    channels[SPECIAL_CROSSFADE_CHANNEL] = channels[currentChannel];
-    channels[currentChannel] = NULL;
+    auto *cfade_clip = lock.MoveChannel(SPECIAL_CROSSFADE_CHANNEL, currentChannel);
+    if (!cfade_clip)
+        return;
 
     play.crossfading_out_channel = SPECIAL_CROSSFADE_CHANNEL;
     play.crossfade_step = 0;
-    play.crossfade_initial_volume_out = channels[SPECIAL_CROSSFADE_CHANNEL]->get_volume();
+    play.crossfade_initial_volume_out = cfade_clip->get_volume();
     play.crossfade_out_volume_per_step = crossfadeSpeed;
 
     play.crossfading_in_channel = fadeInChannel;
@@ -122,9 +181,10 @@ void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudio
     }
 }
 
-
-int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptEqualPriority)
+static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptEqualPriority)
 {
+    AudioChannelsLock lock;
+
     int lowestPrioritySoFar = 9999999;
     int lowestPriorityID = -1;
     int channelToUse = -1;
@@ -147,16 +207,17 @@ int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptE
 
     for (int i = startAtChannel; i < endBeforeChannel; i++)
     {
-        if (!channel_is_playing(i))
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if (ch == nullptr)
         {
             channelToUse = i;
             stop_and_destroy_channel(i);
             break;
         }
-        if ((channels[i]->priority < lowestPrioritySoFar) &&
-            (channels[i]->soundType == clip->type))
+        if ((ch->priority < lowestPrioritySoFar) &&
+            (ch->soundType == clip->type))
         {
-            lowestPrioritySoFar = channels[i]->priority;
+            lowestPrioritySoFar = ch->priority;
             lowestPriorityID = i;
         }
     }
@@ -225,17 +286,19 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     return soundClip;
 }
 
-void audio_update_polled_stuff()
+static void audio_update_polled_stuff()
 {
     play.crossfade_step++;
 
-    if ((play.crossfading_out_channel > 0) && !channel_is_playing(play.crossfading_out_channel)) {
+    AudioChannelsLock lock;
+
+    if (play.crossfading_out_channel > 0 && !lock.GetChannelIfPlaying(play.crossfading_out_channel))
         play.crossfading_out_channel = 0;
-    }
 
     if (play.crossfading_out_channel > 0)
     {
-        int newVolume = channels[play.crossfading_out_channel]->get_volume() - play.crossfade_out_volume_per_step;
+        SOUNDCLIP* ch = lock.GetChannel(play.crossfading_out_channel);
+        int newVolume = ch ? ch->get_volume() - play.crossfade_out_volume_per_step : 0;
         if (newVolume > 0)
         {
             AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_out_channel], newVolume);
@@ -247,9 +310,13 @@ void audio_update_polled_stuff()
         }
     }
 
+    if (play.crossfading_in_channel > 0 && !lock.GetChannelIfPlaying(play.crossfading_in_channel))
+        play.crossfading_in_channel = 0;
+
     if (play.crossfading_in_channel > 0)
     {
-        int newVolume = channels[play.crossfading_in_channel]->get_volume() + play.crossfade_in_volume_per_step;
+        SOUNDCLIP* ch = lock.GetChannel(play.crossfading_in_channel);
+        int newVolume = ch ? ch->get_volume() + play.crossfade_in_volume_per_step : 0;
         if (newVolume > play.crossfade_final_volume_in)
         {
             newVolume = play.crossfade_final_volume_in;
@@ -287,13 +354,13 @@ void audio_update_polled_stuff()
 }
 
 // Applies a volume drop modifier to the clip, in accordance to its audio type
-void apply_volume_drop_to_clip(SOUNDCLIP *clip)
+static void apply_volume_drop_to_clip(SOUNDCLIP *clip)
 {
     int audiotype = ((ScriptAudioClip*)clip->sourceClip)->type;
     clip->apply_volume_modifier(-(game.audioClipTypes[audiotype].volume_reduction_while_speech_playing * 255 / 100));
 }
 
-void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
+static void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
 {
     if (play.new_music_queue_size >= MAX_QUEUED_MUSIC) {
         debug_script_log("Too many queued music, cannot add %s", clip->scriptName);
@@ -364,7 +431,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     if (!play.fast_forward && channel_has_clip(SCHAN_SPEECH))
         apply_volume_drop_to_clip(soundfx);
 
-    channels[channel] = soundfx;
+    set_clip_to_channel(channel, soundfx);
     return &scrAudioChannel[channel];
 }
 
@@ -431,14 +498,18 @@ ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
         return NULL;
 }
 
-void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
+void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
+{
     if ((chid < 0) || (chid > MAX_SOUND_CHANNELS))
         quit("!StopChannel: invalid channel ID");
 
-    if (channels[chid] != NULL) {
-        channels[chid]->destroy();
-        delete channels[chid];
-        channels[chid] = NULL;
+    AudioChannelsLock lock;
+    SOUNDCLIP* ch = lock.GetChannel(chid);
+
+    if (ch != NULL) {
+        ch->destroy();
+        delete ch;
+        lock.SetChannel(chid, NULL);
     }
 
     if (play.crossfading_in_channel == chid)
@@ -458,7 +529,7 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
     }
 }
 
-void stop_and_destroy_channel (int chid) 
+void stop_and_destroy_channel(int chid)
 {
     stop_and_destroy_channel_ex(chid, true);
 }
@@ -516,7 +587,8 @@ void force_audiostream_include() {
     stop_audio_stream(NULL);
 }
 
-AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array iterations
+// TODO: double check that ambient sounds array actually needs +1
+std::array<AmbientSound,MAX_SOUND_CHANNELS+1> ambient;
 
 int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist)
 {
@@ -541,22 +613,27 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
 
 void update_directional_sound_vol()
 {
-    for (int chan = 1; chan < MAX_SOUND_CHANNELS; chan++) 
+    AudioChannelsLock lock;
+
+    for (int chnum = 1; chnum < MAX_SOUND_CHANNELS; chnum++) 
     {
-        if (channel_is_playing(chan) &&
-            (channels[chan]->xSource >= 0)) 
+        auto* ch = lock.GetChannelIfPlaying(chnum);
+        if ((ch != nullptr) && (ch->xSource >= 0)) 
         {
-            channels[chan]->apply_directional_modifier(
-                get_volume_adjusted_for_distance(channels[chan]->vol, 
-                channels[chan]->xSource,
-                channels[chan]->ySource,
-                channels[chan]->maximumPossibleDistanceAway) -
-                channels[chan]->vol);
+            ch->apply_directional_modifier(
+                get_volume_adjusted_for_distance(ch->vol, 
+                    ch->xSource,
+                    ch->ySource,
+                    ch->maximumPossibleDistanceAway) -
+                ch->vol);
         }
     }
 }
 
-void update_ambient_sound_vol () {
+void update_ambient_sound_vol ()
+{
+    AudioChannelsLock lock;
+    const bool is_voice_playing = lock.GetChannelIfPlaying(SCHAN_SPEECH) != nullptr;
 
     for (int chan = 1; chan < MAX_SOUND_CHANNELS; chan++) {
 
@@ -567,7 +644,7 @@ void update_ambient_sound_vol () {
 
         int sourceVolume = thisSound->vol;
 
-        if (channel_is_playing(SCHAN_SPEECH)) {
+        if (is_voice_playing) {
             // Negative value means set exactly; positive means drop that amount
             if (play.speech_music_drop < 0)
                 sourceVolume = -play.speech_music_drop;
@@ -592,9 +669,9 @@ void update_ambient_sound_vol () {
             wantvol = get_volume_adjusted_for_distance(ambientvol, thisSound->x, thisSound->y, thisSound->maxdist);
         }
 
-        if (channel_is_playing(thisSound->channel)) {
-            channels[thisSound->channel]->set_volume(wantvol);
-        }
+        auto *ch = lock.GetChannelIfPlaying(thisSound->channel);
+        if (ch)
+            ch->set_volume(wantvol);
     }
 }
 
@@ -634,23 +711,31 @@ void shutdown_sound()
 
 // the sound will only be played if there is a free channel or
 // it has a priority >= an existing sound to override
-int play_sound_priority (int val1, int priority) {
+static int play_sound_priority (int val1, int priority) {
     int lowest_pri = 9999, lowest_pri_id = -1;
+
+    AudioChannelsLock lock;
 
     // find a free channel to play it on
     for (int i = SCHAN_NORMAL; i < MAX_SOUND_CHANNELS; i++) {
+        auto* ch = lock.GetChannelIfPlaying(i);
         if (val1 < 0) {
             // Playing sound -1 means iterate through and stop all sound
-            if (channel_is_playing(i))
+            if (ch)
                 stop_and_destroy_channel (i);
         }
-        else if (!channel_is_playing(i)) {
-            if (PlaySoundEx(val1, i) >= 0)
-                channels[i]->priority = priority;
-            return i;
+        else if (!ch) {
+            const int usechan = PlaySoundEx(val1, i);
+            if (usechan >= 0)
+            { // channel will hold a different clip here
+                auto *ch = lock.GetChannel(usechan);
+                if (ch)
+                    ch->priority = priority;
+            }
+            return usechan;
         }
-        else if (channels[i]->priority < lowest_pri) {
-            lowest_pri = channels[i]->priority;
+        else if (ch->priority < lowest_pri) {
+            lowest_pri = ch->priority;
             lowest_pri_id = i;
         }
 
@@ -661,9 +746,12 @@ int play_sound_priority (int val1, int priority) {
     // no free channels, see if we have a high enough priority
     // to override one
     if (priority >= lowest_pri) {
-        if (PlaySoundEx(val1, lowest_pri_id) >= 0) {
-            channels[lowest_pri_id]->priority = priority;
-            return lowest_pri_id;
+        const int usechan = PlaySoundEx(val1, lowest_pri_id);
+        if (usechan >= 0) {
+            auto *ch = lock.GetChannel(usechan);
+            if (ch)
+                ch->priority = priority;
+            return usechan;
         }
     }
 
@@ -673,6 +761,7 @@ int play_sound_priority (int val1, int priority) {
 int play_sound(int val1) {
     return play_sound_priority(val1, 10);
 }
+
 
 //=============================================================================
 
@@ -685,8 +774,6 @@ int current_music_type = 0;
 int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
 int crossFadeVolumeAtStart = 0;
 SOUNDCLIP *cachedQueuedMusic = NULL;
-
-int musicPollIterator; // long name so it doesn't interfere with anything else
 
 static bool music_update_scheduled = false;
 static auto music_update_at = AGS_Clock::now();
@@ -723,6 +810,8 @@ void clear_music_cache() {
     }
 
 }
+
+static void play_new_music(int mnum, SOUNDCLIP *music);
 
 void play_next_queued() {
     // check if there's a queued one to play
@@ -773,14 +862,17 @@ int calculate_max_volume() {
 // add/remove the volume drop to the audio channels while speech is playing
 void apply_volume_drop_modifier(bool applyModifier)
 {
+    AudioChannelsLock lock;
+
     for (int i = 0; i < MAX_SOUND_CHANNELS; i++) 
     {
-        if (channel_is_playing(i) && channels[i]->sourceClip != NULL)
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if (ch && ch->sourceClip != nullptr)
         {
             if (applyModifier)
-                apply_volume_drop_to_clip(channels[i]);
+                apply_volume_drop_to_clip(ch);
             else
-                channels[i]->apply_volume_modifier(0); // reset modifier
+                ch->apply_volume_modifier(0); // reset modifier
         }
     }
 }
@@ -795,15 +887,21 @@ extern volatile char want_exit;
 
 void update_mp3_thread()
 {
-	while (switching_away_from_game) { }
-	AGS::Engine::MutexLock _lock(_audio_mutex);
-	for (musicPollIterator = 0; musicPollIterator <= MAX_SOUND_CHANNELS; ++musicPollIterator)
-	{
-		if (channel_is_playing(musicPollIterator))
-			channels[musicPollIterator]->poll();
-	}
+    while(switching_away_from_game) {}
+
+    AudioChannelsLock lock;
+
+    for(int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
+    {
+        auto* ch = lock.GetChannel(i);
+        if (ch)
+            ch->poll();
+    }
 }
 
+//this is called at various points to give streaming logic a chance to update
+//it seems those calls have been littered around and points where it ameliorated skipping
+//a better solution would be to forcibly thread the streaming logic
 void update_polled_mp3()
 {
 	if (psp_audio_multithreaded) { return; }
@@ -816,7 +914,7 @@ void update_audio_system_on_game_loop ()
 {
 	update_polled_stuff_if_runtime ();
 
-	AGS::Engine::MutexLock _lock(_audio_mutex);
+    AudioChannelsLock lock;
 
     process_scheduled_music_update();
 
@@ -839,15 +937,18 @@ void update_audio_system_on_game_loop ()
         else if ((game.options[OPT_CROSSFADEMUSIC] > 0) &&
             (play.music_queue_size > 0) && (!crossFading)) {
                 // want to crossfade, and new tune in the queue
-                int curpos = channels[SCHAN_MUSIC]->get_pos_ms();
-                int muslen = channels[SCHAN_MUSIC]->get_length_ms();
-                if ((curpos > 0) && (muslen > 0)) {
-                    // we want to crossfade, and we know how far through
-                    // the tune we are
-                    int takesSteps = calculate_max_volume() / game.options[OPT_CROSSFADEMUSIC];
-                    int takesMs = std::lround(takesSteps * 1000.0f / get_current_fps());
-                    if (curpos >= muslen - takesMs)
-                        play_next_queued();
+                auto *ch = lock.GetChannel(SCHAN_MUSIC);
+                if (ch) {
+                    int curpos = ch->get_pos_ms();
+                    int muslen = ch->get_length_ms();
+                    if ((curpos > 0) && (muslen > 0)) {
+                        // we want to crossfade, and we know how far through
+                        // the tune we are
+                        int takesSteps = calculate_max_volume() / game.options[OPT_CROSSFADEMUSIC];
+                        int takesMs = std::lround(takesSteps * 1000.0f / get_current_fps());
+                        if (curpos >= muslen - takesMs)
+                            play_next_queued();
+                    }
                 }
         }
     }
@@ -856,8 +957,9 @@ void update_audio_system_on_game_loop ()
 
 }
 
-
-void stopmusic() {
+void stopmusic()
+{
+    AudioChannelsLock lock;
 
     if (crossFading > 0) {
         // stop in the middle of a new track fading in
@@ -876,15 +978,15 @@ void stopmusic() {
         }
     }
     else if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && channel_is_playing(SCHAN_MUSIC)
+        && (lock.GetChannelIfPlaying(SCHAN_MUSIC) != NULL)
         && (current_music_type != 0)
         && (current_music_type != MUS_MIDI)
         && (current_music_type != MUS_MOD)) {
 
-            crossFading = -1;
-            crossFadeStep = 0;
-            crossFadeVolumePerStep = game.options[OPT_CROSSFADEMUSIC];
-            crossFadeVolumeAtStart = calculate_max_volume();
+        crossFading = -1;
+        crossFadeStep = 0;
+        crossFadeVolumePerStep = game.options[OPT_CROSSFADEMUSIC];
+        crossFadeVolumeAtStart = calculate_max_volume();
     }
     else
         stop_and_destroy_channel (SCHAN_MUSIC);
@@ -893,7 +995,9 @@ void stopmusic() {
     current_music_type = 0;
 }
 
-void update_music_volume() {
+void update_music_volume()
+{
+    AudioChannelsLock lock;
 
     if ((current_music_type) || (crossFading < 0)) 
     {
@@ -918,53 +1022,58 @@ void update_music_volume() {
                 newvol = targetVol;
                 stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
                 if (crossFading > 0) {
-                    channels[SCHAN_MUSIC] = channels[crossFading];
-                    channels[crossFading] = nullptr;
+                    lock.MoveChannel(SCHAN_MUSIC, crossFading);
                 }
                 crossFading = 0;
             }
             else {
                 if (crossFading > 0)
-                    channels[crossFading]->set_volume((curvol > targetVol) ? targetVol : curvol);
+                {
+                    auto *ch = lock.GetChannel(crossFading);
+                    if (ch)
+                        ch->set_volume((curvol > targetVol) ? targetVol : curvol);
+                }
 
                 newvol -= curvol;
                 if (newvol < 0)
                     newvol = 0;
             }
         }
-        if (channel_is_playing(SCHAN_MUSIC))
-            channels[SCHAN_MUSIC]->set_volume (newvol);
+        auto *ch = lock.GetChannel(SCHAN_MUSIC);
+        if (ch)
+            ch->set_volume(newvol);
     }
 }
 
 // Ensures crossfader is stable after loading (or failing to load)
 // new music
-void post_new_music_check (int newchannel) {
-    if ((crossFading > 0) && !channel_is_playing(crossFading)) {
+void post_new_music_check (int newchannel)
+{
+    AudioChannelsLock lock;
+    if ((crossFading > 0) && (lock.GetChannel(crossFading) == nullptr)) {
         crossFading = 0;
-        // Was fading out but then they played invalid music, continue
-        // to fade out
-        if (channel_is_playing(SCHAN_MUSIC))
+        // Was fading out but then they played invalid music, continue to fade out
+        if (lock.GetChannel(SCHAN_MUSIC) != nullptr)
             crossFading = -1;
     }
 
 }
 
-// Sets up the crossfading for playing the new music track,
-// and returns the channel number to use
-int prepare_for_new_music () {
+int prepare_for_new_music ()
+{
+    AudioChannelsLock lock;
+
     int useChannel = SCHAN_MUSIC;
 
     if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && channel_is_playing(SCHAN_MUSIC)
+        && (lock.GetChannelIfPlaying(SCHAN_MUSIC) != NULL)
         && (current_music_type != MUS_MIDI)
         && (current_music_type != MUS_MOD)) {
 
             if (crossFading > 0) {
                 // It's still crossfading to the previous track
                 stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
-                channels[SCHAN_MUSIC] = channels[crossFading];
-                channels[crossFading] = NULL;
+                lock.MoveChannel(SCHAN_MUSIC, crossFading);
                 crossFading = 0;
                 update_music_volume();
             }
@@ -990,7 +1099,7 @@ int prepare_for_new_music () {
     }
 
     // Just make sure, because it will be overwritten in a sec
-    if (channels[useChannel] != NULL)
+    if (lock.GetChannel(useChannel) != nullptr)
         stop_and_destroy_channel (useChannel);
 
     return useChannel;
@@ -1021,8 +1130,8 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
     return loaded;
 }
 
-
-void play_new_music(int mnum, SOUNDCLIP *music) {
+static void play_new_music(int mnum, SOUNDCLIP *music)
+{
     if (debug_flags & DBG_NOMUSIC)
         return;
 
@@ -1049,36 +1158,33 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
         return;
     }
 
-    useChannel = prepare_for_new_music ();
-
-    play.cur_music_number=mnum;
+    useChannel = prepare_for_new_music();
+    play.cur_music_number = mnum;
     current_music_type = 0;
-    channels[useChannel] = NULL;
 
     play.current_music_repeating = play.music_repeat;
     // now that all the previous music is unloaded, load in the new one
 
-    if (music != NULL) {
-        channels[useChannel] = music;
-    }
-    else {
-        channels[useChannel] = load_music_from_disk(mnum, (play.music_repeat > 0));
-    }
+    SOUNDCLIP *new_clip;
+    if (music != nullptr)
+        new_clip = music;
+    else
+        new_clip = load_music_from_disk(mnum, (play.music_repeat > 0));
 
-    if (channels[useChannel] != NULL) {
-
-        if (channels[useChannel]->play() == 0)
-            channels[useChannel] = NULL;
+    AudioChannelsLock lock;
+    auto* ch = lock.SetChannel(useChannel, new_clip);
+    if (ch != nullptr) {
+        if (ch->play() == 0)
+            lock.SetChannel(useChannel, nullptr);
         else
-            current_music_type = channels[useChannel]->get_sound_type();
+            current_music_type = ch->get_sound_type();
     }
 
     post_new_music_check(useChannel);
-
     update_music_volume();
-
 }
 
-void newmusic(int mnum) {
+void newmusic(int mnum)
+{
     play_new_music(mnum, NULL);
 }

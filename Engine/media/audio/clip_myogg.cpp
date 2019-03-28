@@ -20,7 +20,6 @@
 
 #include "platform/base/agsplatformdriver.h"
 
-
 extern "C" {
     extern int alogg_is_end_of_oggstream(ALOGG_OGGSTREAM *ogg);
     extern int alogg_is_end_of_ogg(ALOGG_OGG *ogg);
@@ -30,8 +29,7 @@ extern "C" {
 
 int MYOGG::poll()
 {
-    AGS::Engine::MutexLock _lock(_mutex);
-
+    // TODO: must be called AudioChannelsLock
     if (!done && _destroyThis)
     {
       internal_destroy();
@@ -120,15 +118,14 @@ void MYOGG::internal_destroy()
 
 void MYOGG::destroy()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    // TODO: must be called AudioChannelsLock
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
       _destroyThis = true;
     else
       internal_destroy();
 
-	_lock.Release();
-
+    // TODO: warning: scary for this to be done under a lock
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();
 }

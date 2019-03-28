@@ -248,14 +248,20 @@ void update_overlay_timers()
 void update_speech_and_messages()
 {
   // we need to know if there is/was voice-over
-  const bool is_voice = channel_has_clip(SCHAN_SPEECH);
+  bool is_voice, is_voice_playing;
+  {
+      AudioChannelsLock lock;
+      auto *ch = lock.GetChannel(SCHAN_SPEECH);
+      is_voice = ch != nullptr;
+      is_voice_playing = is_voice && ch->is_playing();
+  }
 
   // determine if speech text should be removed
   if (play.messagetime>=0) {
     play.messagetime--;
     // extend life of text if the voice hasn't finished yet
     if (is_voice && !play.speech_in_post_state) {
-      if (channel_is_playing(SCHAN_SPEECH) && (play.fast_forward == 0)) {
+      if ((is_voice_playing) && (play.fast_forward == 0)) {
         if (play.messagetime <= 1)
           play.messagetime = 1;
       }
@@ -288,12 +294,19 @@ void update_speech_and_messages()
   }
 }
 
+// update sierra-style speech
 void update_sierra_speech()
 {
   // we need to know if there is/was voice-over
-  const bool is_voice = channel_has_clip(SCHAN_SPEECH);
+  bool is_voice;
+  int voice_pos_ms;
+  {
+      AudioChannelsLock lock;
+      auto *ch = lock.GetChannel(SCHAN_SPEECH);
+      is_voice = ch != nullptr;
+      voice_pos_ms = is_voice ? ch->get_pos_ms() : -1;
+  }
 
-	// update sierra-style speech
   if ((face_talking >= 0) && (play.fast_forward == 0)) 
   {
     int updatedFrame = 0;
@@ -334,9 +347,8 @@ void update_sierra_speech()
       }
       else 
       {
-        const int spchOffs = is_voice ? channels[SCHAN_SPEECH]->get_pos_ms() : -1;
         while ((curLipLinePhoneme < splipsync[curLipLine].numPhonemes) &&
-          ((curLipLinePhoneme < 0) || (spchOffs >= splipsync[curLipLine].endtimeoffs[curLipLinePhoneme])))
+          ((curLipLinePhoneme < 0) || (voice_pos_ms >= splipsync[curLipLine].endtimeoffs[curLipLinePhoneme])))
         {
           curLipLinePhoneme ++;
           if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes)

@@ -18,7 +18,6 @@
 
 // ********* LINUX PLACEHOLDER DRIVER *********
 
-#include <thread>
 #include <stdio.h>
 #include <allegro.h>
 #include <xalleg.h>
@@ -31,8 +30,6 @@
 
 #include <pwd.h>
 #include <sys/stat.h>
-#include "ac/timer.h"
-#include "media/audio/audio_system.h"
 
 using AGS::Common::String;
 
@@ -46,7 +43,6 @@ String LinuxOutputDirectory;
 struct AGSLinux : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
-  virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetUserSavedgamesDirectory();
   virtual const char *GetUserConfigDirectory();
@@ -141,26 +137,6 @@ const char *AGSLinux::GetAppOutputDirectory()
 {
   DetermineAppOutputDirectory();
   return LinuxOutputDirectory;
-}
-
-void AGSLinux::Delay(int millis) {
-  auto delayUntil = AGS_Clock::now() + std::chrono::milliseconds(millis);
-
-  for (;;) {
-    if (AGS_Clock::now() < delayUntil) { break; }
-    
-    auto duration = delayUntil - AGS_Clock::now();
-    if (duration > std::chrono::milliseconds(25)) {
-      duration = std::chrono::milliseconds(25);
-    }
-    std::this_thread::sleep_for(duration);
-
-    if (AGS_Clock::now() < delayUntil) { break; }
-
-    // don't allow it to check for debug messages, since this Delay()
-    // call might be from within a debugger polling loop
-    update_polled_mp3();
-  }
 }
 
 unsigned long AGSLinux::GetDiskFreeSpaceMB() {

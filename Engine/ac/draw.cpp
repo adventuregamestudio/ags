@@ -2129,18 +2129,28 @@ void draw_fps()
     }
     fpsDisplay->ClearTransparent();
     
-    char tbuffer[60];
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
+
+    char base_buffer[60];
+    if (frames_per_second < 1000) {
+        sprintf(base_buffer, "%d", frames_per_second);
+    } else {
+        sprintf(base_buffer, "unlimited");
+    }
+
+    char fps_buffer[60];
     // Don't display fps if we don't have enough information (because loop count was just reset)
     if (!std::isnan(fps)) {
-        sprintf(tbuffer, "FPS: %2.1f / %d", fps, frames_per_second);
+        sprintf(fps_buffer, "FPS: %2.1f / %s", fps, base_buffer);
     } else {
-        sprintf(tbuffer, "FPS: --.- / %d", frames_per_second);
+        sprintf(fps_buffer, "FPS: --.- / %s", base_buffer);
     }
-    wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, tbuffer);
-    sprintf(tbuffer, "Loop %u", loopcounter);
-    int textw = wgettextwidth(tbuffer, FONT_SPEECH);
-    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, tbuffer);
+    wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, fps_buffer);
+
+    char loop_buffer[60];
+    sprintf(loop_buffer, "Loop %u", loopcounter);
+    int textw = wgettextwidth(loop_buffer, FONT_SPEECH);
+    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
 
     if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);

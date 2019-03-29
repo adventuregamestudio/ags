@@ -16,6 +16,7 @@
 // Game loop
 //
 
+#include <limits>
 #include <chrono>
 #include "ac/common.h"
 #include "ac/characterextras.h"
@@ -696,7 +697,7 @@ void set_loop_counter(unsigned int new_counter) {
     loopcounter = new_counter;
     t1 = AGS_Clock::now();
     lastcounter = loopcounter;
-    fps = NAN;
+    fps = std::numeric_limits<float>::quiet_NaN();
 }
 
 void PollUntilNextFrame()

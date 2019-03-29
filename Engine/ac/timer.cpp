@@ -25,13 +25,13 @@ namespace {
 const auto MAXIMUM_FALL_BEHIND = 3;
 
 auto last_tick_time = AGS_Clock::now();
-auto tick_duration = std::chrono::milliseconds(1000/40);
+auto tick_duration = std::chrono::microseconds(1000000LL/40);
 auto framerate_maxed = false;
 
 }
 
 void setTimerFps(int new_fps) {
-    tick_duration = std::chrono::milliseconds(1000/new_fps);
+    tick_duration = std::chrono::microseconds(1000000LL/new_fps);
     last_tick_time = AGS_Clock::now();
     framerate_maxed = new_fps >= 1000;
 }

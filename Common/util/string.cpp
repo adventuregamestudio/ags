@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "util/math.h"
 #include "util/stream.h"
 #include "util/string.h"
@@ -735,10 +736,12 @@ void String::TrimLeft(char c)
     }
 
     const char *trim_ptr = _meta->CStr;
-    while (*trim_ptr &&
-        (c && *trim_ptr == c ||
-        !c && (*trim_ptr == ' ' || *trim_ptr == '\t' || *trim_ptr == '\r' || *trim_ptr == '\n')))
+    for (;;)
     {
+        auto t = *trim_ptr;
+        if (t == 0) { break; }
+        if (c && t != c) { break; }
+        if (!c && !isspace(t)) { break; }
         trim_ptr++;
     }
     size_t trimmed = trim_ptr - _meta->CStr;
@@ -758,10 +761,12 @@ void String::TrimRight(char c)
     }
 
     const char *trim_ptr = _meta->CStr + _meta->Length - 1;
-    while (trim_ptr >= _meta->CStr &&
-        (c && *trim_ptr == c ||
-        !c && (*trim_ptr == ' ' || *trim_ptr == '\t' || *trim_ptr == '\r' || *trim_ptr == '\n')))
+    for (;;) 
     {
+        if (trim_ptr < _meta->CStr) { break; }
+        auto t = *trim_ptr;
+        if (c && t != c) { break; }
+        if (!c && !isspace(t)) { break; }
         trim_ptr--;
     }
     size_t trimmed = (_meta->CStr + _meta->Length - 1) - trim_ptr;

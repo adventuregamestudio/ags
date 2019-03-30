@@ -369,7 +369,7 @@ void GUIButton::DrawTextButton(Bitmap *ds, bool draw_disabled)
     ds->DrawLine(Line(X, Y + Height - 1, X + Width - 1, Y + Height - 1), draw_color);
     ds->DrawLine(Line(X + Width - 1, Y, X + Width - 1, Y + Height - 1), draw_color);
 
-    if (draw_disabled || IsMouseOver && IsPushed)
+    if (draw_disabled || (IsMouseOver && IsPushed))
         draw_color = ds->GetCompatibleColor(8);
     else
         draw_color = ds->GetCompatibleColor(15);

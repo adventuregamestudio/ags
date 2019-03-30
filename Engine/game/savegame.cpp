@@ -642,8 +642,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     {
         AudioChannelsLock lock;
 
-        if (crossFading > 0 && !lock.GetChannelIfPlaying(crossFading) ||
-            crossFading <= 0 && !lock.GetChannelIfPlaying(SCHAN_MUSIC))
+        if ((crossFading > 0 && !lock.GetChannelIfPlaying(crossFading)) ||
+            (crossFading <= 0 && !lock.GetChannelIfPlaying(SCHAN_MUSIC)))
         {
             current_music_type = 0; // playback failed, reset flag
         }

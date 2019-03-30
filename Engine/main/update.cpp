@@ -375,9 +375,9 @@ void update_sierra_speech()
       // Close mouth at end of sentence: if speech has entered the "post" state,
       // or if this is a text only mode and close_mouth_speech_time is set
       if (play.speech_in_post_state ||
-          !is_voice &&
+          (!is_voice &&
           (play.messagetime < play.close_mouth_speech_time) &&
-          (play.close_mouth_speech_time > 0)) {
+          (play.close_mouth_speech_time > 0))) {
         facetalkframe = 0;
         facetalkwait = play.messagetime;
       }

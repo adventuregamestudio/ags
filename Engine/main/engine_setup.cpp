@@ -307,7 +307,7 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
     // Whether mouse movement should be controlled by the engine - this is
     // determined based on related config option.
     const bool should_control_mouse = usetup.mouse_control == kMouseCtrl_Always ||
-        usetup.mouse_control == kMouseCtrl_Fullscreen && !dm.Windowed;
+        (usetup.mouse_control == kMouseCtrl_Fullscreen && !dm.Windowed);
     // Whether mouse movement control is supported by the engine - this is
     // determined on per platform basis. Some builds may not have such
     // capability, e.g. because of how backend library implements mouse utils.

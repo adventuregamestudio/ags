@@ -190,8 +190,8 @@ bool find_nearest_supported_mode(const IGfxModeList &modes, const Size &wanted_s
         bool same_diff_h_higher = (diff_h == nearest_height_diff && nearest_height < wanted_size.Height);
 
         if (nearest_width == 0 ||
-            (diff_w < nearest_width_diff || same_diff_w_higher) && diff_h <= nearest_height_diff ||
-            (diff_h < nearest_height_diff || same_diff_h_higher) && diff_w <= nearest_width_diff)
+            ((diff_w < nearest_width_diff || same_diff_w_higher) && diff_h <= nearest_height_diff) ||
+            ((diff_h < nearest_height_diff || same_diff_h_higher) && diff_w <= nearest_width_diff))
         {
             nearest_width = mode.Width;
             nearest_width_diff = diff_w;

@@ -373,7 +373,7 @@ bool LocateAsset(const AssetPath &path, AssetLocation &loc)
     // will let us skip this step, and also make this operation much faster.
     if (!assetlib.IsEmpty() && assetlib.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
-        AssetManager::SetDataFile(find_assetlib(assetlib));
+        AssetManager::SetDataFile(get_known_assetlib(assetlib));
         needsetback = true;
     }
     bool res = AssetManager::GetAssetLocation(assetname, loc);
@@ -414,7 +414,7 @@ bool DoesAssetExistInLib(const AssetPath &assetname)
     // will let us skip this step, and also make this operation much faster.
     if (!assetname.first.IsEmpty() && assetname.first.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
-        AssetManager::SetDataFile(find_assetlib(assetname.first));
+        AssetManager::SetDataFile(get_known_assetlib(assetname.first));
         needsetback = true;
     }
     bool res = AssetManager::DoesAssetExist(assetname.second);
@@ -472,6 +472,20 @@ String find_assetlib(const String &filename)
         return libname;
     }
     return "";
+}
+
+// Looks up for known valid asset library and returns path, or empty string if failed
+String get_known_assetlib(const String &filename)
+{
+    // TODO: write now there's only 3 regular PAKs, so we may do this quick
+    // string comparison, but if we support more maybe we could use a table.
+    if (filename.CompareNoCase(ResPaths.GamePak.Name) == 0)
+        return ResPaths.GamePak.Path;
+    if (filename.CompareNoCase(ResPaths.AudioPak.Name) == 0)
+        return ResPaths.AudioPak.Path;
+    if (filename.CompareNoCase(ResPaths.SpeechPak.Name) == 0)
+        return ResPaths.SpeechPak.Path;
+    return String();
 }
 
 Stream *find_open_asset(const String &filename)

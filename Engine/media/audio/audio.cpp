@@ -732,7 +732,7 @@ static int play_sound_priority (int val1, int priority) {
             if (ch)
                 stop_and_destroy_channel (i);
         }
-        else if (!ch->is_playing()) {
+        else if (ch == nullptr || !ch->is_playing()) {
             // PlaySoundEx will destroy the previous channel value.
             const int usechan = PlaySoundEx(val1, i);
             if (usechan >= 0)

@@ -406,38 +406,16 @@ void engine_init_fonts()
     init_font_renderer();
 }
 
-int engine_init_mouse()
+void engine_init_mouse()
 {
     int res = minstalled();
     if (res < 0)
         Debug::Printf(kDbgMsg_Init, "Initializing mouse: failed");
     else
         Debug::Printf(kDbgMsg_Init, "Initializing mouse: number of buttons reported is %d", res);
-	return RETURN_CONTINUE;
 }
 
-int engine_check_memory()
-{
-    Debug::Printf(kDbgMsg_Init, "Checking memory");
-
-    char*memcheck=(char*)malloc(4000000);
-    if (memcheck==nullptr) {
-        platform->DisplayAlert("There is not enough memory available to run this game. You need 4 Mb free\n"
-            "extended memory to run the game.\n"
-            "If you are running from Windows, check the 'DPMI memory' setting on the DOS box\n"
-            "properties.\n");
-        return EXIT_NORMAL;
-    }
-    free(memcheck);
-    return RETURN_CONTINUE;
-}
-
-void engine_init_rooms()
-{
-    // Obsolete now since room statuses are allocated only when needed
-}
-
-void engine_init_speech()
+void engine_locate_speech_pak()
 {
     play.want_speech=-2;
 
@@ -451,6 +429,7 @@ void engine_init_speech()
                 AssetManager::SetDataFile(game_file_name); // switch back to the main data pack
                 return;
             }
+            // TODO: why is this read right here??? move this to InitGameState!
             Stream *speechsync = AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != nullptr) {
                 // this game has voice lip sync
@@ -487,7 +466,7 @@ void engine_init_speech()
     }
 }
 
-void engine_init_digital_audio()
+void engine_locate_audio_pak()
 {
     play.separate_music_lib = 0;
     music_file = game.GetAudioVOXName();
@@ -573,7 +552,7 @@ bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = nullptr)
     return false;
 }
 
-void engine_init_sound()
+void engine_init_audio()
 {
     if (opts.mod_player)
         reserve_voices(NUM_DIGI_VOICES, -1);
@@ -632,8 +611,6 @@ void engine_init_sound()
     AlMidiToChars(usetup.midicard, midi_id);
     Debug::Printf(kDbgMsg_Init, "Installed digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
         digi_id, usetup.digicard, midi_id, usetup.midicard);
-
-    our_eip = -181;
 
     if (usetup.digicard == DIGI_NONE)
     {
@@ -1347,69 +1324,64 @@ int initialize_engine(int argc,char*argv[])
     if (engine_pre_init_callback) {
         engine_pre_init_callback();
     }
-    
-    int res;
+
+    //-----------------------------------------------------
+    // Install backend
     if (!engine_init_allegro())
         return EXIT_NORMAL;
 
+    //-----------------------------------------------------
+    // Locate game data and assemble game config
     const String exe_path = argv[0];
     if (!engine_init_gamefile(exe_path))
         return EXIT_NORMAL;
     if (!engine_do_config(exe_path))
         return EXIT_NORMAL;
-
     engine_setup_allegro();
-
-    engine_setup_window();
-
-    our_eip = -196;
-
     engine_force_window();
 
-    our_eip = -195;
+    our_eip = -190;
+
+    //-----------------------------------------------------
+    // Init data paths and other directories, locate general data files
+    engine_init_directories();
+
+    our_eip = -191;
+
+    engine_locate_speech_pak();
 
     our_eip = -192;
 
+    engine_locate_audio_pak();
+
+    our_eip = -193;
+
+    //-----------------------------------------------------
+    // Begin setting up systems
+    engine_setup_window();    
+
+    our_eip = -194;
+
     engine_init_fonts();
 
-    our_eip = -188;
-
-    res = engine_init_mouse();
-	if (res != RETURN_CONTINUE) {
-        return res;
-    }
-
-    our_eip = -187;
-
-    res = engine_check_memory();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
-
-    engine_init_directories();
-
-    engine_init_rooms();
-
-    our_eip = -186;
-    
-    engine_init_speech();
-
-    our_eip = -185;
-    
-    engine_init_digital_audio();
-
-    our_eip = -184;
+    our_eip = -195;
 
     engine_init_keyboard();
 
-    our_eip = -183;
+    our_eip = -196;
+
+    engine_init_mouse();
+
+    our_eip = -197;
 
     // Original timer was initialised here.
     skipMissedTicks();
 
-    our_eip = -182;
+    our_eip = -198;
 
-    engine_init_sound();
+    engine_init_audio();
+
+    our_eip = -199;
 
     engine_init_debug();
 
@@ -1417,24 +1389,16 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_exit_handler();
 
-    // [IKM] I seriously don't get it why do we need to delete warnings.log
-    // in the middle of procedure; some warnings may have already being
-    // written there at this point, no?
-    unlink("warnings.log");
-
     engine_init_rand();
 
     engine_init_pathfinder();
 
-    //engine_pre_init_gfx();
-
     set_game_speed(40);
 
     our_eip=-20;
-    //thisroom.allocall();
     our_eip=-19;
 
-    res = engine_load_game_data();
+    int res = engine_load_game_data();
     if (res != RETURN_CONTINUE) {
         return res;
     }

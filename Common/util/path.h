@@ -52,6 +52,8 @@ namespace Path
     // Fixups path and removes trailing slash
     String  MakePathNoSlash(const String &path);
     String  MakeAbsolutePath(const String &path);
+    // Concatenates parent and relative paths
+    String  ConcatPaths(const String &parent, const String &child);
 
     // Subsitutes illegal characters with '_'. This function uses a combined set
     // of illegal chars from all the supported platforms to make a name that

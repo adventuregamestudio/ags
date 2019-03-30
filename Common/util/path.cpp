@@ -61,14 +61,18 @@ int ComparePaths(const String &path1, const String &path2)
 
 String GetDirectoryPath(const String &path)
 {
+    if (IsDirectory(path))
+        return path;
+
     String dir = path;
-    if (IsFile(dir))
+    FixupPath(dir);
+    size_t slash_at = dir.FindCharReverse('/');
+    if (slash_at != -1)
     {
-        size_t slash_at = dir.FindCharReverse('/');
-        if (slash_at != -1)
-            dir.ClipMid(slash_at);
+        dir.ClipMid(slash_at);
+        return dir;
     }
-    return dir;
+    return ".";
 }
 
 bool IsSameOrSubDir(const String &parent, const String &path)
@@ -135,6 +139,16 @@ String MakeAbsolutePath(const String &path)
     abs_path = buf;
     FixupPath(abs_path);
     return abs_path;
+}
+
+String ConcatPaths(const String &parent, const String &child)
+{
+    String path = parent;
+    FixupPath(path);
+    if (path.GetLast() != '/')
+        path.AppendChar('/');
+    path.Append(child);
+    return path;
 }
 
 String FixupSharedFilename(const String &filename)

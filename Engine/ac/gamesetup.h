@@ -16,6 +16,7 @@
 #define __AC_GAMESETUP_H
 
 #include "main/graphics_mode.h"
+#include "util/string.h"
 
 
 // Mouse control activation type
@@ -35,6 +36,11 @@ enum MouseSpeedDef
     kNumMouseSpeedDefs
 };
 
+using AGS::Common::String;
+
+// TODO: work further on remove the uses of this struct from the engine
+// and restrict it to only config/init stage. Apply its values to
+// respective game/engine subcomponents at init stage.
 struct GameSetup {
     int digicard;
     int midicard;
@@ -43,14 +49,15 @@ struct GameSetup {
     bool  no_speech_pack;
     bool  enable_antialiasing;
     bool  disable_exception_handling;
-    AGS::Common::String data_files_dir;
-    AGS::Common::String main_data_filename;
-    AGS::Common::String install_dir; // optional custom install dir path
-    AGS::Common::String install_audio_dir; // optional custom install audio dir path
-    AGS::Common::String install_voice_dir; // optional custom install voice-over dir path
-    AGS::Common::String user_data_dir; // directory to write savedgames and user files to
-    AGS::Common::String shared_data_dir; // directory to write shared game files to
-    AGS::Common::String translation;
+    String data_files_dir;
+    String main_data_filename;
+    String main_data_filepath;
+    String install_dir; // optional custom install dir path
+    String install_audio_dir; // optional custom install audio dir path
+    String install_voice_dir; // optional custom install voice-over dir path
+    String user_data_dir; // directory to write savedgames and user files to
+    String shared_data_dir; // directory to write shared game files to
+    String translation;
     bool  mouse_auto_lock;
     int   override_script_os;
     char  override_multitasking;

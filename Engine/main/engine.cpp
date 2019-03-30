@@ -93,8 +93,7 @@ extern CharacterInfo*playerchar;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 
-String music_file;
-String speech_file;
+ResourcePaths ResPaths;
 
 t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 
@@ -359,6 +358,7 @@ bool engine_init_game_data()
 {
     // Search for an available game package in the known locations
     AssetError err;
+    String game_file_name;
     if (search_for_game_data_file(game_file_name))
         err = AssetManager::SetDataFile(game_file_name);
     else
@@ -385,6 +385,7 @@ bool engine_init_game_data()
     }
 
     // Save data file name and data folder
+    usetup.main_data_filepath = game_file_name;
     usetup.main_data_filename = get_filename(game_file_name);
     // There is a path in the game file name (and the user/ has not specified
     // another one) save the path, so that it can load the VOX files, etc
@@ -420,13 +421,13 @@ void engine_locate_speech_pak()
     play.want_speech=-2;
 
     if (!usetup.no_speech_pack) {
-        speech_file = "speech.vox";
+        String speech_file = "speech.vox";
         String speech_filepath = find_assetlib(speech_file);
         if (!speech_filepath.IsEmpty()) {
             Debug::Printf("Initializing speech vox");
             if (AssetManager::SetDataFile(speech_filepath)!=Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to read voice pack, file could be corrupted or of unknown format.\nSpeech voice-over will be disabled.");
-                AssetManager::SetDataFile(game_file_name); // switch back to the main data pack
+                AssetManager::SetDataFile(ResPaths.GamePak.Path); // switch back to the main data pack
                 return;
             }
             // TODO: why is this read right here??? move this to InitGameState!
@@ -453,31 +454,35 @@ void engine_locate_speech_pak()
                 }
                 delete speechsync;
             }
-            AssetManager::SetDataFile(game_file_name); // switch back to the main data pack
+            AssetManager::SetDataFile(ResPaths.GamePak.Path); // switch back to the main data pack
             Debug::Printf(kDbgMsg_Init, "Voice pack found and initialized.");
             play.want_speech=1;
         }
-        else if (Path::ComparePaths(usetup.data_files_dir, get_voice_install_dir()) != 0)
+        else if (Path::ComparePaths(ResPaths.DataDir, get_voice_install_dir()) != 0)
         {
             // If we have custom voice directory set, we will enable voice-over even if speech.vox does not exist
             Debug::Printf(kDbgMsg_Init, "Voice pack was not found, but voice installation directory is defined: enabling voice-over.");
             play.want_speech=1;
         }
+        ResPaths.SpeechPak.Name = speech_file;
+        ResPaths.SpeechPak.Path = speech_filepath;
     }
 }
 
 void engine_locate_audio_pak()
 {
     play.separate_music_lib = 0;
-    music_file = game.GetAudioVOXName();
+    String music_file = game.GetAudioVOXName();
     String music_filepath = find_assetlib(music_file);
     if (!music_filepath.IsEmpty())
     {
         if (AssetManager::SetDataFile(music_filepath) == kAssetNoError)
         {
-            AssetManager::SetDataFile(game_file_name);
+            AssetManager::SetDataFile(ResPaths.GamePak.Path);
             Debug::Printf(kDbgMsg_Init, "%s found and initialized.", music_file.GetCStr());
             play.separate_music_lib = 1;
+            ResPaths.AudioPak.Name = music_file;
+            ResPaths.AudioPak.Path = music_filepath;
         }
         else
         {
@@ -739,23 +744,27 @@ void engine_init_directories()
     if (!usetup.shared_data_dir.IsEmpty())
         Debug::Printf(kDbgMsg_Init, "Shared data directory: %s", usetup.shared_data_dir.GetCStr());
 
+    ResPaths.DataDir = usetup.data_files_dir;
+    ResPaths.GamePak.Path = usetup.main_data_filepath;
+    ResPaths.GamePak.Name = get_filename(usetup.main_data_filepath);
+
     set_install_dir(usetup.install_dir, usetup.install_audio_dir, usetup.install_voice_dir);
     if (!usetup.install_dir.IsEmpty())
     {
         // running in debugger: don't redirect to the game exe folder (_Debug)
         // TODO: find out why we need to do this (and do we?)
-        usetup.data_files_dir = ".";
+        ResPaths.DataDir = ".";
     }
 
     // if end-user specified custom save path, use it
     bool res = false;
-    if (!usetup.user_data_dir.IsEmpty())
+    if (!ResPaths.DataDir.IsEmpty())
     {
-        res = SetCustomSaveParent(usetup.user_data_dir);
+        res = SetCustomSaveParent(ResPaths.DataDir);
         if (!res)
         {
             Debug::Printf(kDbgMsg_Warn, "WARNING: custom user save path failed, using default system paths");
-            usetup.user_data_dir.Empty();
+            ResPaths.DataDir.Empty();
             res = false;
         }
     }

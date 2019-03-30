@@ -57,8 +57,6 @@ extern DialogTopic *dialog;
 extern AGSPlatformDriver *platform;
 extern int numScriptModules;
 
-String game_file_name;
-
 
 // Test if engine supports extended capabilities required to run the game
 bool test_game_caps(const std::set<String> &caps, std::set<String> &failed_caps)

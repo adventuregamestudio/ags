@@ -880,7 +880,7 @@ int AGSWin32::InitializeCDPlayer() {
 void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
   char useloc[250];
-  sprintf(useloc,"%s\\%s",usetup.data_files_dir.GetCStr(), name);
+  sprintf(useloc, "%s\\%s", ResPaths.DataDir.GetCStr(), name);
 
   bool useSound = true;
   if (flags >= 10) {

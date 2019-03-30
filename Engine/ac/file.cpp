@@ -371,14 +371,14 @@ bool LocateAsset(const AssetPath &path, AssetLocation &loc)
     // Change to the different library, if required
     // TODO: teaching AssetManager to register multiple libraries simultaneously
     // will let us skip this step, and also make this operation much faster.
-    if (!assetlib.IsEmpty() && assetlib.CompareNoCase(game_file_name) != 0)
+    if (!assetlib.IsEmpty() && assetlib.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
         AssetManager::SetDataFile(find_assetlib(assetlib));
         needsetback = true;
     }
     bool res = AssetManager::GetAssetLocation(assetname, loc);
     if (needsetback)
-        AssetManager::SetDataFile(game_file_name);
+        AssetManager::SetDataFile(ResPaths.GamePak.Path);
     return res;
 }
 
@@ -412,14 +412,14 @@ bool DoesAssetExistInLib(const AssetPath &assetname)
     // Change to the different library, if required
     // TODO: teaching AssetManager to register multiple libraries simultaneously
     // will let us skip this step, and also make this operation much faster.
-    if (!assetname.first.IsEmpty() && assetname.first.CompareNoCase(game_file_name) != 0)
+    if (!assetname.first.IsEmpty() && assetname.first.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
         AssetManager::SetDataFile(find_assetlib(assetname.first));
         needsetback = true;
     }
     bool res = AssetManager::DoesAssetExist(assetname.second);
     if (needsetback)
-        AssetManager::SetDataFile(game_file_name);
+        AssetManager::SetDataFile(ResPaths.GamePak.Path);
     return res;
 }
 
@@ -461,10 +461,10 @@ void get_install_dir_path(char* buffer, const char *fileName)
 
 String find_assetlib(const String &filename)
 {
-    String libname = cbuf_to_string_and_free( ci_find_file(usetup.data_files_dir, filename) );
+    String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir, filename) );
     if (AssetManager::IsDataFile(libname))
         return libname;
-    if (Path::ComparePaths(usetup.data_files_dir, installDirectory) != 0)
+    if (Path::ComparePaths(ResPaths.DataDir, installDirectory) != 0)
     {
       // Hack for running in Debugger
       libname = cbuf_to_string_and_free( ci_find_file(installDirectory, filename) );
@@ -477,7 +477,7 @@ String find_assetlib(const String &filename)
 Stream *find_open_asset(const String &filename)
 {
     Stream *asset_s = Common::AssetManager::OpenAsset(filename);
-    if (!asset_s && Path::ComparePaths(usetup.data_files_dir, installDirectory) != 0) 
+    if (!asset_s && Path::ComparePaths(ResPaths.DataDir, installDirectory) != 0)
     {
         // Just in case they're running in Debug, try standalone file in compiled folder
         asset_s = ci_fopen(String::FromFormat("%s/%s", installDirectory.GetCStr(), filename.GetCStr()));
@@ -489,7 +489,7 @@ AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
 {
     // Special case is explicitly defined audio directory, which should be
     // tried first regardless of bundling type.
-    if (Path::ComparePaths(usetup.data_files_dir, installAudioDirectory) != 0)
+    if (Path::ComparePaths(ResPaths.DataDir, installAudioDirectory) != 0)
     {
         String filepath = String::FromFormat("%s/%s", installAudioDirectory.GetCStr(), filename.GetCStr());
         if (Path::IsFile(filepath))
@@ -497,7 +497,7 @@ AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
     }
 
     if (bundling_type == AUCL_BUNDLE_EXE)
-        return AssetPath(game_file_name, filename);
+        return AssetPath(ResPaths.GamePak.Name, filename);
     else if (bundling_type == AUCL_BUNDLE_VOX)
         return AssetPath(game.GetAudioVOXName(), filename);
     return AssetPath();
@@ -507,13 +507,13 @@ AssetPath get_voice_over_assetpath(const String &filename)
 {
     // Special case is explicitly defined voice-over directory, which should be
     // tried first.
-    if (Path::ComparePaths(usetup.data_files_dir, installVoiceDirectory) != 0)
+    if (Path::ComparePaths(ResPaths.DataDir, installVoiceDirectory) != 0)
     {
         String filepath = String::FromFormat("%s/%s", installVoiceDirectory.GetCStr(), filename.GetCStr());
         if (Path::IsFile(filepath))
             return AssetPath("", filepath);
     }
-    return AssetPath(speech_file, filename);
+    return AssetPath(ResPaths.SpeechPak.Name, filename);
 }
 
 ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];

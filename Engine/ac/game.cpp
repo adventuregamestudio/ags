@@ -786,10 +786,7 @@ const char *Game_GetName() {
 void Game_SetName(const char *newName) {
     strncpy(play.game_name, newName, 99);
     play.game_name[99] = 0;
-
-#if (ALLEGRO_DATE > 19990103)
     set_window_title(play.game_name);
-#endif
 }
 
 int Game_GetSkippingCutscene()

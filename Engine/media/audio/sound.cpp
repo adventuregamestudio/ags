@@ -99,11 +99,11 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
     thistune = new MYMP3();
     thistune->in = mp3in;
     thistune->chunksize = MP3CHUNKSIZE;
-    thistune->filesize = mp3in->todo;
+    thistune->filesize = mp3in->normal.todo;
     thistune->vol = voll;
 
-    if (thistune->chunksize > mp3in->todo)
-        thistune->chunksize = mp3in->todo;
+    if (thistune->chunksize > mp3in->normal.todo)
+        thistune->chunksize = mp3in->normal.todo;
 
     pack_fread(tmpbuffer, thistune->chunksize, mp3in);
 
@@ -111,7 +111,7 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
 
     {
         AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-        thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->todo < 1));
+        thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->normal.todo < 1));
     }
 
     if (thistune->stream == NULL) {
@@ -225,13 +225,13 @@ SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
     thisogg->last_ms_offs = 0;
     thisogg->last_but_one_but_one = 0;
 
-    if (thisogg->chunksize > mp3in->todo)
-        thisogg->chunksize = mp3in->todo;
+    if (thisogg->chunksize > mp3in->normal.todo)
+        thisogg->chunksize = mp3in->normal.todo;
 
     pack_fread(tmpbuffer, thisogg->chunksize, mp3in);
 
     thisogg->buffer = (char *)tmpbuffer;
-    thisogg->stream = alogg_create_oggstream(tmpbuffer, thisogg->chunksize, (mp3in->todo < 1));
+    thisogg->stream = alogg_create_oggstream(tmpbuffer, thisogg->chunksize, (mp3in->normal.todo < 1));
 
     if (thisogg->stream == NULL) {
         free(tmpbuffer);

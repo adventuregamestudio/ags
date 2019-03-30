@@ -182,7 +182,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
     }
     else
     {
-        *size = mp3in->todo;
+        *size = mp3in->normal.todo;
         newdata = (char *)malloc(*size);
 
         if (newdata == NULL)

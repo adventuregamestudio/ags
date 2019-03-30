@@ -507,9 +507,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // ensure that the current cursor is locked
     spriteset.Precache(game.mcurs[r_data.CursorID].pic);
 
-#if (ALLEGRO_DATE > 19990103)
     set_window_title(play.game_name);
-#endif
 
     update_polled_stuff_if_runtime();
 

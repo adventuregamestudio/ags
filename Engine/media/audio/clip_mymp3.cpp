@@ -37,8 +37,8 @@ void MYMP3::poll()
 
     if (tempbuf != NULL) {
         int free_val = -1;
-        if (chunksize >= in->todo) {
-            chunksize = in->todo;
+        if (chunksize >= in->normal.todo) {
+            chunksize = in->normal.todo;
             free_val = chunksize;
         }
         pack_fread(tempbuf, chunksize, in);

@@ -145,16 +145,9 @@ void engine_setup_window()
     Debug::Printf(kDbgMsg_Init, "Setting up window");
 
     our_eip = -198;
-#if (ALLEGRO_DATE > 19990103)
     set_window_title("Adventure Game Studio");
-#if (ALLEGRO_DATE > 20021115)
     set_close_button_callback (winclosehook);
-#else
-    set_window_close_hook (winclosehook);
-#endif
-
     our_eip = -197;
-#endif
 
     platform->SetGameWindowIcon();
 }
@@ -750,12 +743,8 @@ int engine_check_register_game()
 
 void engine_init_title()
 {
-    //platform->DisplayAlert("loaded game");
     our_eip=-91;
-#if (ALLEGRO_DATE > 19990103)
     set_window_title(game.gamename);
-#endif
-
     Debug::Printf(kDbgMsg_Init, "Game title: '%s'", game.gamename);
 }
 

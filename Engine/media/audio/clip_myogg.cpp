@@ -31,16 +31,16 @@ void MYOGG::poll()
 {
     if (state_ != SoundClipPlaying) { return; }
 
-    if (in->todo > 0)
+    if (in->normal.todo > 0)
     {
         // update the buffer
         char *tempbuf = (char *)alogg_get_oggstream_buffer(stream);
         if (tempbuf != NULL)
         {
             int free_val = -1;
-            if (chunksize >= in->todo)
+            if (chunksize >= in->normal.todo)
             {
-                chunksize = in->todo;
+                chunksize = in->normal.todo;
                 free_val = chunksize;
             }
             pack_fread(tempbuf, chunksize, in);

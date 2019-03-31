@@ -47,6 +47,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 String appDirectory; // Needed for library loading
+String cmdGameDataPath;
 
 #ifdef MAC_VERSION
 extern "C"
@@ -80,7 +81,7 @@ extern char editor_debugger_instance_token[100];
 
 
 // Startup flags, set from parameters to engine
-int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
+int force_window = 0;
 int override_start_room = 0;
 bool justDisplayHelp = false;
 bool justDisplayVersion = false;
@@ -98,7 +99,7 @@ int psp_clear_cache_on_room_change = 0;
 
 int psp_midi_preload_patches = 0;
 int psp_audio_cachesize = 10;
-char psp_game_file_name[] = "ac2game.dat";
+char psp_game_file_name[] = "";
 char psp_translation[] = "default";
 
 int psp_gfx_renderer = 0;
@@ -209,6 +210,7 @@ void main_print_help() {
 
 int main_process_cmdline(int argc,char*argv[])
 {
+    int datafile_argv = 0;
     for (int ee=1;ee<argc;ee++) {
         if (stricmp(argv[ee],"--help") == 0 || stricmp(argv[ee],"/?") == 0 || stricmp(argv[ee],"-?") == 0)
         {
@@ -217,8 +219,6 @@ int main_process_cmdline(int argc,char*argv[])
         }
         if (stricmp(argv[ee],"-v") == 0 || stricmp(argv[ee],"--version") == 0)
             justDisplayVersion = true;
-        else if (stricmp(argv[ee],"-shelllaunch") == 0)
-            change_to_game_dir = 1;
         else if (stricmp(argv[ee],"-updatereg") == 0)
             debug_flags |= DBG_REGONLY;
         else if (stricmp(argv[ee],"-windowed") == 0 || stricmp(argv[ee],"--windowed") == 0)
@@ -313,6 +313,16 @@ int main_process_cmdline(int argc,char*argv[])
         else if (argv[ee][0]!='-') datafile_argv=ee;
     }
 
+    if (datafile_argv > 0)
+    {
+        cmdGameDataPath = GetPathFromCmdArg(datafile_argv);
+    }
+    else
+    {
+        // assign standard path for mobile/consoles (defined in their own platform implementation)
+        cmdGameDataPath = psp_game_file_name;
+    }
+
     return RETURN_CONTINUE;
 }
 
@@ -356,14 +366,14 @@ String GetPathInASCII(const String &path)
 }
 #endif
 
-void main_set_gamedir(int argc,char*argv[])
+void main_set_gamedir(int argc, char*argv[])
 {
     appDirectory = Path::GetDirectoryPath(GetPathFromCmdArg(0));
 
-    if (datafile_argv > 0)
+    if (!cmdGameDataPath.IsEmpty())
     {
         // If running data file pointed by command argument, change to that folder
-        Directory::SetCurrentDirectory(Path::GetDirectoryPath(GetPathFromCmdArg(datafile_argv)));
+        Directory::SetCurrentDirectory(Path::GetDirectoryPath(cmdGameDataPath));
     }
     else if ((loadSaveGameOnStartup != nullptr) && (argv[0] != nullptr))
     {

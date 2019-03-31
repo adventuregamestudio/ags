@@ -220,17 +220,6 @@ void engine_force_window()
     }
 }
 
-String init_game_filepath_from_cmdline(int argn)
-{
-    String filename;
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(MAC_VERSION)
-    filename = psp_game_file_name;
-#else
-    filename = GetPathFromCmdArg(argn);
-#endif
-    return filename;
-}
-
 String find_game_data_in_directory(const String &path)
 {
     al_ffblk ff;
@@ -284,10 +273,10 @@ bool search_for_game_data_file(String &filename, String &search_path)
 {
     Debug::Printf("Looking for the game data file");
     // 1. From command line argument, treated as a directory
-    if (datafile_argv > 0)
+    if (!cmdGameDataPath.IsEmpty())
     {
         // set from cmd arg (do any conversions if needed)
-        filename = init_game_filepath_from_cmdline(datafile_argv);
+        filename = cmdGameDataPath;
         if (!filename.IsEmpty() && Path::IsDirectory(filename))
         {
             search_path = filename;
@@ -306,7 +295,7 @@ bool search_for_game_data_file(String &filename, String &search_path)
         // 3.1. Look for attachment in the running executable
         //
         // this will use argument zero, the executable's name
-        filename = init_game_filepath_from_cmdline(0);
+        filename = GetPathFromCmdArg(0);
         if (filename.IsEmpty() || !Common::AssetManager::IsDataFile(filename))
         {
             // 3.2 Look in current directory
@@ -1207,10 +1196,9 @@ void allegro_bitmap_test_init()
 HError define_gamedata_location_checkall(const String &exe_path)
 {
     // First try if they provided a command-line argument, treated as a file.
-    // "psp_game_file_name" from mobile/consoles also is tried here.
-    if (datafile_argv > 0)
+    if (!cmdGameDataPath.IsEmpty())
     {
-        String path = init_game_filepath_from_cmdline(datafile_argv);
+        String path = cmdGameDataPath;
         if (!path.IsEmpty() && !Path::IsDirectory(path))
         {
             usetup.main_data_filepath = path;

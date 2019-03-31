@@ -20,10 +20,6 @@
 
 #include "gui/guidialogdefines.h"
 
-#if !defined (WINDOWS_VERSION)
-#define _getcwd getcwd
-#endif
-
 #define _export
 #ifdef WINAPI
 #undef WINAPI

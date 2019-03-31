@@ -11,7 +11,7 @@ CFLAGS := -O2 -g \
     -fsigned-char -fno-strict-aliasing -fwrapv \
     -Wunused-result \
     -Wno-unused-value  \
-    -Werror=write-strings -Werror=format-security -Werror=implicit-function-declaration \
+    -Werror=write-strings -Werror=format -Werror=format-security -Werror=implicit-function-declaration \
     -DNDEBUG \
     -DALLEGRO_STATICLINK -DALLEGRO_NO_COMPATIBILITY -DALLEGRO_NO_FIX_ALIASES -DALLEGRO_NO_FIX_CLASS \
     -DLINUX_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DAGS_HAS_CD_AUDIO -DAGS_RUNTIME_PATCH_ALLEGRO \

@@ -421,8 +421,7 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
   CSCIMessage mes;
 
   lpTemp = NULL;
-  //sprintf(buffer2, "%d", currentRoom);
-  sprintf(buffer2, "");
+  buffer2[0] = 0;
 
   int ctrltbox = CSCICreateControl(CNT_TEXTBOX, boxleft + 10, boxtop + 29, 120, 0, NULL);
   CSCISendControlMessage(ctrltbox, CTB_SETTEXT, 0, (long)&buffer2[0]);

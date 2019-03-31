@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include <algorithm>
+#include <cmath>
 #include "aastr.h"
 #include "ac/common.h"
 #include "util/compress.h"

@@ -370,12 +370,7 @@ void main_set_gamedir(int argc, char*argv[])
 {
     appDirectory = Path::GetDirectoryPath(GetPathFromCmdArg(0));
 
-    if (!cmdGameDataPath.IsEmpty())
-    {
-        // If running data file pointed by command argument, change to that folder
-        Directory::SetCurrentDirectory(Path::GetDirectoryPath(cmdGameDataPath));
-    }
-    else if ((loadSaveGameOnStartup != nullptr) && (argv[0] != nullptr))
+    if ((loadSaveGameOnStartup != nullptr) && (argv[0] != nullptr))
     {
         // When launched by double-clicking a save game file, the curdir will
         // be the save game folder unless we correct it
@@ -413,7 +408,7 @@ String GetPathFromCmdArg(int arg_index)
     if (GetShortPathNameW(arg_path, short_path, MAX_PATH) == 0)
     {
         Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetShortPathNameW failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
-        return "";
+        return global_argv[arg_index];
     }
     WideCharToMultiByte(CP_ACP, 0, short_path, -1, ascii_buffer, MAX_PATH, NULL, NULL);
     path = ascii_buffer;

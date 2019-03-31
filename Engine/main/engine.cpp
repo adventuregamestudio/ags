@@ -1195,15 +1195,20 @@ void allegro_bitmap_test_init()
 // for the available resource packs in common locations
 HError define_gamedata_location_checkall(const String &exe_path)
 {
-    // First try if they provided a command-line argument, treated as a file.
+    // First try if they provided a startup option
     if (!cmdGameDataPath.IsEmpty())
     {
-        String path = cmdGameDataPath;
-        if (!path.IsEmpty() && !Path::IsDirectory(path))
+        // If not a valid path - bail out
+        if (!Path::IsFileOrDir(cmdGameDataPath))
+            return new Error(String::FromFormat("Defined game location is not a valid path.\nPath: %s", cmdGameDataPath.GetCStr()));
+        // If it's a file, then keep it and proceed
+        if (Path::IsFile(cmdGameDataPath))
         {
-            usetup.main_data_filepath = path;
+            usetup.main_data_filepath = cmdGameDataPath;
             return HError::None();
         }
+        // Otherwise switch working dir to this path and look for config there
+        Directory::SetCurrentDirectory(Path::GetDirectoryPath(cmdGameDataPath));
     }
     // Read game data location from the default config file.
     // This is an optional setting that may instruct which game file to use as a primary asset library.

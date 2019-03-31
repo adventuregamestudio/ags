@@ -1088,12 +1088,46 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
+BITMAP *wrapGlReadPixelsBuffer(int width, int height, unsigned char *pixels) {
+  auto bmp = (BITMAP *)calloc(1, sizeof(BITMAP) + (sizeof(char *) * height));
+  bmp->w = width;
+  bmp->cr = width;
+  bmp->h = height;
+  bmp->cb = height;
+  bmp->clip = true;
+  bmp->cl = 0;
+  bmp->ct = 0;
+  bmp->id = 0;
+  bmp->extra = nullptr;
+  bmp->x_ofs = 0;
+  bmp->y_ofs = 0;
+  bmp->dat = nullptr;
+
+  // crete a fake bitmap to grab the vtable and whatno.
+  auto tmpbitmap = create_bitmap_ex(32, 1, 1);
+  bmp->vtable = tmpbitmap->vtable;
+  bmp->write_bank = tmpbitmap->write_bank;
+  bmp->read_bank = tmpbitmap->read_bank;
+  destroy_bitmap(tmpbitmap);
+
+  // glGetPixels returns image upside down, correct for this:
+  bmp->dat = pixels;
+  auto p = pixels;
+  for (int i=height-1; i>=0; i--) {
+    bmp->line[i] = p;
+    p += width * 4;
+  }
+
+  return bmp;
+}
+
+
 bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
 {
   (void)at_native_res; // TODO: support this at some point
 
   Size need_size = _do_render_to_texture ? _backRenderSize : _dstRect.GetSize();
-  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
+  if (destination == nullptr || destination->GetSize() != need_size)
   {
     if (want_size)
       *want_size = need_size;
@@ -1110,44 +1144,27 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   {
 #if defined(IOS_VERSION)
     ios_select_buffer();
-#elif defined(WINDOWS_VERSION) || defined (LINUX_VERSION)
+#else
     glReadBuffer(GL_FRONT);
 #endif
     retr_rect = _dstRect;
   }
 
-  int bpp = _mode.ColorDepth / 8;
-  int bufferSize = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
-
+  int bufferSize = retr_rect.GetWidth() * retr_rect.GetHeight() * 4;  // GL_RGBA is 4 bytes per pixel
   unsigned char* buffer = new unsigned char[bufferSize];
-  if (buffer)
-  {
-    glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+  
+  glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
-    unsigned char* surfaceData = buffer;
-    unsigned char* sourcePtr;
-    unsigned char* destPtr;
-    
-	for (int y = destination->GetHeight() - 1; y >= 0; y--)
-    {
-        sourcePtr = surfaceData;
-        destPtr = &destination->GetScanLineForWriting(y)[0];
-        for (int x = 0; x < destination->GetWidth() * bpp; x += bpp)
-        {
-            // TODO: find out if it's possible to retrieve pixels in the matching format
-            destPtr[x]     = sourcePtr[x + 2];
-            destPtr[x + 1] = sourcePtr[x + 1];
-            destPtr[x + 2] = sourcePtr[x];
-            destPtr[x + 3] = sourcePtr[x + 3];
-        }
-        surfaceData += retr_rect.GetWidth() * bpp;
-    }
+  // wrap in an allegro buffer to blit
+  auto *bufferBmp = wrapGlReadPixelsBuffer(retr_rect.GetWidth(), retr_rect.GetHeight(), buffer);
+  blit(bufferBmp, destination->GetAllegroBitmap(), 0, 0, 0, 0, retr_rect.GetWidth(), retr_rect.GetHeight());
+  free(bufferBmp);
 
-    if (_pollingCallback)
-        _pollingCallback();
+  if (_pollingCallback)
+      _pollingCallback();
 
-    delete [] buffer;
-  }
+  delete [] buffer;
+
   return true;
 }
 

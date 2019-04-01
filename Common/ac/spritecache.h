@@ -46,12 +46,12 @@ typedef AGS::Common::HError HAGSError;
 
 struct SpriteInfo;
 
-// We can't rely on offsets[slot]==0 because when the engine is running
-// this is changed to reference the Bluecup sprite. Therefore we need
-// a definite way of knowing whether the sprite existed in the sprite file.
+// Tells that the sprite does not exist in the game resources.
 #define SPRCACHEFLAG_DOESNOTEXIST   0x01
 // Locked sprites are ones that should not be freed when clearing cache space.
 #define SPRCACHEFLAG_LOCKED         0x02
+// Tells that the sprite index was remapped to another existing sprite.
+#define SPRCACHEFLAG_REMAPPED       0x04
 
 // Max size of the sprite cache, in bytes
 #if defined (PSP_VERSION)
@@ -98,6 +98,8 @@ public:
 
     // Tells if there is a sprite registered for the given index
     bool        DoesSpriteExist(sprkey_t index) const;
+    // Tells if sprite was added externally, not loaded from game resources
+    bool        IsExternalSprite(sprkey_t index) const;
     // Makes sure sprite cache has registered slots for all sprites up to the given exclusive limit
     sprkey_t    EnlargeTo(sprkey_t newsize);
     // Finds a free slot index, if all slots are occupied enlarges sprite bank; returns index
@@ -158,7 +160,7 @@ private:
     {
         soff_t          Offset; // data offset
         soff_t          Size;   // cache size of element, in bytes
-        uint8_t         Flags;
+        uint32_t        Flags;
         // TODO: investigate if we may safely use unique_ptr here
         // (some of these bitmaps may be assigned from outside of the cache)
         Common::Bitmap *Image; // actual bitmap
@@ -172,7 +174,6 @@ private:
     // Array of sprite references
     std::vector<SpriteData> _spriteData;
     bool _compressed;        // are sprites compressed
-    soff_t _sprite0InitialOffset; // offset of the first sprite in the stream
 
     std::unique_ptr<Common::Stream> _stream; // the sprite stream
     sprkey_t _lastLoad; // last loaded sprite index

@@ -15,6 +15,8 @@
 #ifndef __AGS_CN_CORE__ENDIANNESS_H
 #define __AGS_CN_CORE__ENDIANNESS_H
 
+#ifndef AGS_BIG_ENDIAN
+
 #if !defined (WINDOWS_VERSION)
 
 #if defined (LINUX_VERSION)
@@ -34,5 +36,7 @@
 #endif
 
 #endif // !WINDOWS_VERSION
+
+#endif // ifndef AGS_BIG_ENDIAN
 
 #endif // __AGS_CN_CORE__ENDIANNESS_H

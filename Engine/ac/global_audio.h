@@ -53,8 +53,9 @@ int     IsVoxAvailable();
 int     IsMusicVoxAvailable ();
 
 //=============================================================================
-
-int     play_speech(int charid,int sndid);
-void    stop_speech();
+// Play voice-over for the active speech and initialize relevant data
+bool    play_voice_speech(int charid, int sndid);
+// Stop voice-over for the active speech and reset relevant data
+void    stop_voice_speech();
 
 #endif // __AGS_EE_AC__GLOBALAUDIO_H

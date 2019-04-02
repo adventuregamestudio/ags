@@ -350,24 +350,37 @@ void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch,
 
     EndSkippingUntilCharStops();
 
-    if (todis[0]=='&') {
-        // auto-speech
-        int igr=atoi(&todis[1]);
-        while ((todis[0]!=' ') & (todis[0]!=0)) todis++;
-        if (todis[0]==' ') todis++;
-        if (igr <= 0)
-            quit("Display: auto-voice symbol '&' not followed by valid integer");
-        if (play_speech(play.narrator_speech,igr)) {
-            // if Voice Only, then blank out the text
-            if (play.want_speech == 2)
-                todis = "  ";
-        }
+    if (try_auto_play_speech(todis, todis, play.narrator_speech))
+    {// TODO: is there any need for this flag?
         need_stop_speech = true;
     }
     _display_main(xx,yy,wii,todis,blocking,usingfont,asspch, isThought, allowShrink, overlayPositionFixed);
 
     if (need_stop_speech)
-        stop_speech();
+        stop_voice_speech();
+}
+
+bool try_auto_play_speech(const char *text, const char *&replace_text, int charid)
+{
+    const char *src = text;
+    if (src[0] != '&')
+        return false;
+
+    int sndid = atoi(&src[1]);
+    while ((src[0] != ' ') & (src[0] != 0)) src++;
+    if (src[0] == ' ') src++;
+    if (sndid <= 0)
+        quit("DisplaySpeech: auto-voice symbol '&' not followed by valid integer");
+
+    replace_text = src; // skip voice tag
+    if (play_voice_speech(charid, sndid))
+    {
+        // if Voice Only, then blank out the text
+        if (play.want_speech == 2)
+            replace_text = "  ";
+        return true;
+    }
+    return false;
 }
 
 // TODO: refactor this global variable out; currently it is set at the every get_translation call.

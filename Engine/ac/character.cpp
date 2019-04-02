@@ -2448,21 +2448,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     Bitmap *closeupface=nullptr;
     // TODO: we always call _display_at later which may also start voice-over;
     // find out if this may be refactored and voice started only in one place.
-    if (texx[0]=='&') {
-        // auto-speech
-        int igr=atoi(&texx[1]);
-        while ((texx[0]!=' ') & (texx[0]!=0)) texx++;
-        if (texx[0]==' ') texx++;
-        if (igr <= 0)
-            quit("DisplaySpeech: auto-voice symbol '&' not followed by valid integer");
+    try_auto_play_speech(texx, texx, aschar);
 
-        text_lips_text = texx;
-
-        if (play_speech(aschar,igr)) {
-            if (play.want_speech == 2)
-                texx = "  ";  // speech only, no text.
-        }
-    }
     if (game.options[OPT_SPEECHTYPE] == 3)
         remove_screen_overlay(OVER_COMPLETE);
     our_eip=1500;
@@ -2838,7 +2825,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     }
     char_speaking = -1;
     char_thinking = -1;
-    stop_speech();
+    stop_voice_speech();
 }
 
 int get_character_currently_talking() {

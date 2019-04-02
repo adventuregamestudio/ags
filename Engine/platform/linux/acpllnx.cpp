@@ -74,7 +74,7 @@ void AGSLinux::DisplayAlert(const char *text, ...) {
   va_start(ap, text);
   vsprintf(displbuf, text, ap);
   va_end(ap);
-  printf("%s", displbuf);
+  printf("%s\n", displbuf);
 }
 
 size_t BuildXDGPath(char *destPath, size_t destSize)

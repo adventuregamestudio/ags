@@ -582,8 +582,7 @@ void engine_init_debug()
             "These options cause many parts of the game to behave abnormally, and you\n"
             "may not see the game as you are used to it. The point is to test whether\n"
             "the engine passes a point where it is crashing on you normally.\n"
-            "[Debug flags enabled: 0x%02X]\n"
-            "Press a key to continue.\n",debug_flags);
+            "[Debug flags enabled: 0x%02X]",debug_flags);
     }
 }
 
@@ -592,7 +591,7 @@ void atexit_handler() {
         sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
             "Program pointer: %+03d  (write this number down), ACI version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
-            "developers. Otherwise, note down any other information displayed.\n",
+            "developers. Otherwise, note down any other information displayed.",
             our_eip, EngineVersion.LongString.GetCStr());
         platform->DisplayAlert(pexbuf);
     }
@@ -1200,7 +1199,7 @@ HError define_gamedata_location_checkall(const String &exe_path)
     {
         // If not a valid path - bail out
         if (!Path::IsFileOrDir(cmdGameDataPath))
-            return new Error(String::FromFormat("Defined game location is not a valid path.\nPath: %s", cmdGameDataPath.GetCStr()));
+            return new Error(String::FromFormat("Defined game location is not a valid path.\nPath: '%s'", cmdGameDataPath.GetCStr()));
         // If it's a file, then keep it and proceed
         if (Path::IsFile(cmdGameDataPath))
         {

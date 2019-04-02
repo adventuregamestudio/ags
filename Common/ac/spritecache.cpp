@@ -413,21 +413,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     if (this->_compressed) 
     {
         _stream->ReadInt32(); // skip data size
-        if (coldep == 1)
-        {
-            for (hh = 0; hh < htt; hh++)
-                cunpackbitl(&image->GetScanLineForWriting(hh)[0], wdd, _stream.get());
-        }
-        else if (coldep == 2)
-        {
-            for (hh = 0; hh < htt; hh++)
-                cunpackbitl16((unsigned short*)&image->GetScanLine(hh)[0], wdd, _stream.get());
-        }
-        else
-        {
-            for (hh = 0; hh < htt; hh++)
-                cunpackbitl32((unsigned int*)&image->GetScanLine(hh)[0], wdd, _stream.get());
-        }
+        UnCompressSprite(image, _stream.get());
     }
     else
     {
@@ -480,22 +466,41 @@ const char *spriteFileSig = " Sprite File ";
 
 void SpriteCache::CompressSprite(Bitmap *sprite, Stream *out)
 {
-    int depth = sprite->GetColorDepth() / 8;
-
+    const int depth = sprite->GetBPP();
     if (depth == 1)
     {
-        for (int yy = 0; yy < sprite->GetHeight(); yy++)
-            cpackbitl(&sprite->GetScanLineForWriting(yy)[0], sprite->GetWidth(), out);
+        for (int y = 0; y < sprite->GetHeight(); y++)
+            cpackbitl(&sprite->GetScanLineForWriting(y)[0], sprite->GetWidth(), out);
     }
     else if (depth == 2)
     {
-        for (int yy = 0; yy < sprite->GetHeight(); yy++)
-            cpackbitl16((unsigned short *)&sprite->GetScanLine(yy)[0], sprite->GetWidth(), out);
+        for (int y = 0; y < sprite->GetHeight(); y++)
+            cpackbitl16((unsigned short *)&sprite->GetScanLine(y)[0], sprite->GetWidth(), out);
     }
     else
     {
-        for (int yy = 0; yy < sprite->GetHeight(); yy++)
-            cpackbitl32((unsigned int *)&sprite->GetScanLine(yy)[0], sprite->GetWidth(), out);
+        for (int y = 0; y < sprite->GetHeight(); y++)
+            cpackbitl32((unsigned int *)&sprite->GetScanLine(y)[0], sprite->GetWidth(), out);
+    }
+}
+
+void SpriteCache::UnCompressSprite(Bitmap *sprite, Stream *in)
+{
+    const int depth = sprite->GetBPP();
+    if (depth == 1)
+    {
+        for (int y = 0; y < sprite->GetHeight(); y++)
+            cunpackbitl(&sprite->GetScanLineForWriting(y)[0], sprite->GetWidth(), in);
+    }
+    else if (depth == 2)
+    {
+        for (int y = 0; y < sprite->GetHeight(); y++)
+            cunpackbitl16((unsigned short*)&sprite->GetScanLineForWriting(y)[0], sprite->GetWidth(), in);
+    }
+    else
+    {
+        for (int y = 0; y < sprite->GetHeight(); y++)
+            cunpackbitl32((unsigned int*)&sprite->GetScanLineForWriting(y)[0], sprite->GetWidth(), in);
     }
 }
 

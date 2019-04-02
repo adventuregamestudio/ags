@@ -153,8 +153,6 @@ private:
     void        RemoveOldest();
 
     // Information required for the sprite streaming
-    // TODO: make compatible with large (over 2GB) files
-    // (may need some data conversion when loading sprite index file)
     // TODO: split into sprite cache and sprite stream data
     struct SpriteData
     {
@@ -196,6 +194,8 @@ private:
     HAGSError   RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers);
     // Writes compressed sprite to the stream
     void        CompressSprite(Common::Bitmap *sprite, Common::Stream *out);
+    // Uncompresses sprite from stream into the given bitmap
+    void        UnCompressSprite(Common::Bitmap *sprite, Common::Stream *in);
 
     void initFile_initNullSpriteParams(sprkey_t index);
 };

@@ -27,7 +27,7 @@
 
 using namespace AGS::Common;
 
-void cpackbitl(unsigned char *line, int size, Stream *out)
+void cpackbitl(const uint8_t *line, int size, Stream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -63,7 +63,7 @@ void cpackbitl(unsigned char *line, int size, Stream *out)
   } // end while
 }
 
-void cpackbitl16(unsigned short *line, int size, Stream *out)
+void cpackbitl16(const uint16_t *line, int size, Stream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -99,7 +99,7 @@ void cpackbitl16(unsigned short *line, int size, Stream *out)
   } // end while
 }
 
-void cpackbitl32(unsigned int *line, int size, Stream *out)
+void cpackbitl32(const uint32_t *line, int size, Stream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -166,7 +166,7 @@ void csavecompressed(Stream *out, const unsigned char * tobesaved, const color p
   free(ress);
 }
 
-int cunpackbitl(unsigned char *line, int size, Stream *in)
+int cunpackbitl(uint8_t *line, int size, Stream *in)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -204,7 +204,7 @@ int cunpackbitl(unsigned char *line, int size, Stream *in)
   return in->HasErrors() ? -1 : 0;
 }
 
-int cunpackbitl16(unsigned short *line, int size, Stream *in)
+int cunpackbitl16(uint16_t *line, int size, Stream *in)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -242,7 +242,7 @@ int cunpackbitl16(unsigned short *line, int size, Stream *in)
   return in->HasErrors() ? -1 : 0;
 }
 
-int cunpackbitl32(unsigned int *line, int size, Stream *in)
+int cunpackbitl32(uint32_t *line, int size, Stream *in)
 {
   int n = 0;                    // number of bytes decoded
 

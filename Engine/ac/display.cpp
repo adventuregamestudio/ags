@@ -267,7 +267,6 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         // 4 = mouse only
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
-        auto wasSpeaking = channel_has_clip(SCHAN_SPEECH);
         while (1) {
             /*      if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_UPDATE);
@@ -294,7 +293,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             PollUntilNextFrame();
             countdown--;
 
-            if (wasSpeaking) {
+            if (play.speech_has_voice) {
                 // extend life of text if the voice hasn't finished yet
                 if (channel_is_playing(SCHAN_SPEECH) && (play.fast_forward == 0)) {
                     if (countdown <= 1)
@@ -344,7 +343,10 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch, int isThought, int allowShrink, bool overlayPositionFixed) {
     int usingfont=FONT_NORMAL;
     if (asspch) usingfont=FONT_SPEECH;
-    int needStopSpeech = 0;
+    // TODO: _display_at may be called from _displayspeech, which can start
+    // and finalize voice speech on its own. Find out if we really need to
+    // keep track of this and not just stop voice regardless.
+    bool need_stop_speech = false;
 
     EndSkippingUntilCharStops();
 
@@ -360,11 +362,11 @@ void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch,
             if (play.want_speech == 2)
                 todis = "  ";
         }
-        needStopSpeech = 1;
+        need_stop_speech = true;
     }
     _display_main(xx,yy,wii,todis,blocking,usingfont,asspch, isThought, allowShrink, overlayPositionFixed);
 
-    if (needStopSpeech)
+    if (need_stop_speech)
         stop_speech();
 }
 

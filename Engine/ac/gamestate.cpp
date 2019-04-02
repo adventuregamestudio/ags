@@ -466,9 +466,12 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
-    ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(in->ReadInt32());
+    if (svg_ver < kGSSvgVersion_3509)
+        in->ReadInt32(); // ignore_user_input_until_time -- do not apply from savegame
     if (old_save)
         in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
+    if (svg_ver >= kGSSvgVersion_3509)
+        speech_has_voice = in->ReadInt32();
 }
 
 void GameState::WriteForSavegame(Common::Stream *out) const
@@ -649,8 +652,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     }
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);
-    auto ignore_user_input_until_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(ignore_user_input_until_time - AGS_Clock::now());
-    out->WriteInt32( ignore_user_input_until_time_ms.count() );
+    out->WriteInt32( speech_has_voice );
 }
 
 void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)

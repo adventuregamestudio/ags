@@ -561,7 +561,7 @@ int play_speech(int charid,int sndid) {
     }
 
     set_clip_to_channel(SCHAN_SPEECH,speechmp3);
-
+    play.speech_has_voice = true;
     play.music_vol_was = play.music_master_volume;
 
     // Negative value means set exactly; positive means drop that amount
@@ -588,9 +588,7 @@ int play_speech(int charid,int sndid) {
 
 void stop_speech()
 {
-    // NOTE: here we should know only if there *was* any voice-over playing
-    // TODO: refactor speech and replace with a state variable to check instead
-    if (channel_has_clip(SCHAN_SPEECH))
+    if (play.speech_has_voice)
     {
         play.music_master_volume = play.music_vol_was;
         // update the music in a bit (fixes two speeches follow each other
@@ -604,5 +602,6 @@ void stop_speech()
             play.no_textbg_when_voice = 1;
             game.options[OPT_SPEECHTYPE] = 2;
         }
+        play.speech_has_voice = false;
     }
 }

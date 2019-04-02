@@ -44,7 +44,8 @@ enum GameStateSvgVersion
 {
     kGSSvgVersion_OldFormat = -1, // TODO: remove after old save support is dropped
     kGSSvgVersion_Initial   = 0,
-    kGSSvgVersion_350       = 1
+    kGSSvgVersion_350       = 1,
+    kGSSvgVersion_3509      = 2,
 };
 
 // A result of coordinate conversion between screen and the room,
@@ -216,6 +217,10 @@ struct GameState {
     std::vector<AGS::Common::StringIMap> charProps;
     AGS::Common::StringIMap invProps[MAX_INV];
 
+    // Dynamic speech state
+    //
+    // Tells whether there is a voice-over played during current speech
+    bool  speech_has_voice;
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
 

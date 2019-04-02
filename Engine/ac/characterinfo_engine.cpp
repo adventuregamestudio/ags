@@ -264,9 +264,6 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         ((walking == 0) || ((flags & CHF_MOVENOTWALK) != 0)) &&
         (room == displayed_room)) 
     {
-      // we need to know if there is/was voice-over
-      const bool is_voice = channel_has_clip(SCHAN_SPEECH);
-
       doing_nothing = 0;
       // idle anim doesn't count as doing something
       if (idleleft < 0)
@@ -323,7 +320,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
 
         if ((aa == char_speaking) &&
              (play.speech_in_post_state ||
-             ((!is_voice) &&
+             ((!play.speech_has_voice) &&
              (play.close_mouth_speech_time > 0) &&
              (play.messagetime < play.close_mouth_speech_time)))) {
           // finished talking - stop animation

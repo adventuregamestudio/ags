@@ -2446,6 +2446,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     text_lips_text = texx;
 
     Bitmap *closeupface=nullptr;
+    // TODO: we always call _display_at later which may also start voice-over;
+    // find out if this may be refactored and voice started only in one place.
     if (texx[0]=='&') {
         // auto-speech
         int igr=atoi(&texx[1]);

@@ -119,11 +119,19 @@ void FixupPath(String &path)
     path.Replace('\\', '/');
 }
 
-String  MakePathNoSlash(const String &path)
+String MakePathNoSlash(const String &path)
 {
     String dir_path = path;
     FixupPath(dir_path);
-    dir_path.TrimRight('/');
+#if defined (WINDOWS_VERSION)
+    // if the path is 'x:/' don't strip the slash
+    if (path.GetLength() == 3 && path[1u] == ':')
+        ;
+    else
+#endif
+    // if the path is '/' don't strip the slash
+    if (dir_path.GetLength() > 1)
+        dir_path.TrimRight('/');
     return dir_path;
 }
 

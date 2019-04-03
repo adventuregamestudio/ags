@@ -23,26 +23,26 @@
 struct CCDynamicArray final : ICCDynamicObject
 {
     // return the type name of the object
-    virtual const char *GetType();
-    virtual int Dispose(const char *address, bool force);
+    const char *GetType() override;
+    int Dispose(const char *address, bool force) override;
     // serialize the object into BUFFER (which is BUFSIZE bytes)
     // return number of bytes used
-    virtual int Serialize(const char *address, char *buffer, int bufsize);
+    int Serialize(const char *address, char *buffer, int bufsize) override;
     virtual void Unserialize(int index, const char *serializedData, int dataSize);
     int32_t Create(int numElements, int elementSize, bool isManagedType);
 
     // Legacy support for reading and writing object values by their relative offset
-    virtual const char* GetFieldPtr(const char *address, intptr_t offset);
-    virtual void    Read(const char *address, intptr_t offset, void *dest, int size);
-    virtual uint8_t ReadInt8(const char *address, intptr_t offset);
-    virtual int16_t ReadInt16(const char *address, intptr_t offset);
-    virtual int32_t ReadInt32(const char *address, intptr_t offset);
-    virtual float   ReadFloat(const char *address, intptr_t offset);
-    virtual void    Write(const char *address, intptr_t offset, void *src, int size);
-    virtual void    WriteInt8(const char *address, intptr_t offset, uint8_t val);
-    virtual void    WriteInt16(const char *address, intptr_t offset, int16_t val);
-    virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val);
-    virtual void    WriteFloat(const char *address, intptr_t offset, float val);
+    const char* GetFieldPtr(const char *address, intptr_t offset) override;
+    void    Read(const char *address, intptr_t offset, void *dest, int size) override;
+    uint8_t ReadInt8(const char *address, intptr_t offset) override;
+    int16_t ReadInt16(const char *address, intptr_t offset) override;
+    int32_t ReadInt32(const char *address, intptr_t offset) override;
+    float   ReadFloat(const char *address, intptr_t offset) override;
+    void    Write(const char *address, intptr_t offset, void *src, int size) override;
+    void    WriteInt8(const char *address, intptr_t offset, uint8_t val) override;
+    void    WriteInt16(const char *address, intptr_t offset, int16_t val) override;
+    void    WriteInt32(const char *address, intptr_t offset, int32_t val) override;
+    void    WriteFloat(const char *address, intptr_t offset, float val) override;
 };
 
 extern CCDynamicArray globalDynamicArray;

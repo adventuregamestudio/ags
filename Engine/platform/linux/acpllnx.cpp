@@ -42,25 +42,25 @@ String LinuxOutputDirectory;
 
 struct AGSLinux : AGSPlatformDriver {
 
-  virtual int  CDPlayerCommand(int cmdd, int datt);
-  virtual void DisplayAlert(const char*, ...);
-  virtual const char *GetUserSavedgamesDirectory();
-  virtual const char *GetUserConfigDirectory();
-  virtual const char *GetUserGlobalConfigDirectory();
-  virtual const char *GetAppOutputDirectory();
-  virtual unsigned long GetDiskFreeSpaceMB();
-  virtual const char* GetNoMouseErrorString();
-  virtual bool IsMouseControlSupported(bool windowed);
-  virtual const char* GetAllegroFailUserHint();
-  virtual eScriptSystemOSID GetSystemOSID();
-  virtual int  InitializeCDPlayer();
-  virtual void PlayVideo(const char* name, int skip, int flags);
-  virtual void PostAllegroExit();
-  virtual void SetGameWindowIcon();
-  virtual void ShutdownCDPlayer();
-  virtual bool LockMouseToWindow();
-  virtual void UnlockMouse();
-  virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
+  int  CDPlayerCommand(int cmdd, int datt) override;
+  void DisplayAlert(const char*, ...) override;
+  const char *GetUserSavedgamesDirectory() override;
+  const char *GetUserConfigDirectory() override;
+  const char *GetUserGlobalConfigDirectory() override;
+  const char *GetAppOutputDirectory() override;
+  unsigned long GetDiskFreeSpaceMB() override;
+  const char* GetNoMouseErrorString() override;
+  bool IsMouseControlSupported(bool windowed) override;
+  const char* GetAllegroFailUserHint() override;
+  eScriptSystemOSID GetSystemOSID() override;
+  int  InitializeCDPlayer() override;
+  void PlayVideo(const char* name, int skip, int flags) override;
+  void PostAllegroExit() override;
+  void SetGameWindowIcon() override;
+  void ShutdownCDPlayer() override;
+  bool LockMouseToWindow() override;
+  void UnlockMouse() override;
+  void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms) override;
 };
 
 

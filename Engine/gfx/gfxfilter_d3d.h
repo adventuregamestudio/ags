@@ -31,7 +31,7 @@ namespace D3D
 class D3DGfxFilter : public ScalingGfxFilter
 {
 public:
-    virtual const GfxFilterInfo &GetInfo() const;
+    const GfxFilterInfo &GetInfo() const override;
 
     virtual void SetSamplerStateForStandardSprite(void *direct3ddevice9);
     virtual bool NeedToColourEdgeLines();

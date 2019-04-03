@@ -26,30 +26,30 @@ struct MYSTATICMP3:public SOUNDCLIP
     ALMP3_MP3 *tune;
     char *mp3buffer;
 
-    void poll();
+    void poll() override;
 
-    void set_volume(int newvol);
-    void set_speed(int new_speed);
+    void set_volume(int newvol) override;
+    void set_speed(int new_speed) override;
 
-    void destroy();
+    void destroy() override;
 
-    void seek(int pos);
+    void seek(int pos) override;
 
-    int get_pos();
+    int get_pos() override;
 
-    int get_pos_ms();
+    int get_pos_ms() override;
 
-    int get_length_ms();
+    int get_length_ms() override;
 
-    int get_sound_type();
+    int get_sound_type() override;
 
-    int play();
+    int play() override;
 
     MYSTATICMP3();
 
 protected:
-    int get_voice();
-    virtual void adjust_volume();
+    int get_voice() override;
+    void adjust_volume() override;
 private:
     void adjust_stream();
 };

@@ -30,10 +30,10 @@ namespace Engine
 class ScalingGfxFilter : public IGfxFilter
 {
 public:
-    virtual bool Initialize(const int color_depth, String &err_str);
-    virtual void UnInitialize();
-    virtual Rect SetTranslation(const Size src_size, const Rect dst_rect);
-    virtual Rect GetDestination() const;
+    bool Initialize(const int color_depth, String &err_str) override;
+    void UnInitialize() override;
+    Rect SetTranslation(const Size src_size, const Rect dst_rect) override;
+    Rect GetDestination() const override;
 
 protected:
     Rect            _dstRect;

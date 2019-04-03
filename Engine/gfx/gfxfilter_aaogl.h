@@ -31,10 +31,10 @@ namespace OGL
 class AAOGLGfxFilter : public OGLGfxFilter
 {
 public:
-    virtual const GfxFilterInfo &GetInfo() const;
+    const GfxFilterInfo &GetInfo() const override;
 
-    virtual bool UseLinearFiltering() const;
-    virtual void SetFilteringForStandardSprite();
+    bool UseLinearFiltering() const override;
+    void SetFilteringForStandardSprite() override;
 
     static const GfxFilterInfo FilterInfo;
 };

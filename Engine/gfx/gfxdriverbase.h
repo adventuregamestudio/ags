@@ -85,22 +85,22 @@ class GraphicsDriverBase : public IGraphicsDriver
 public:
     GraphicsDriverBase();
 
-    virtual bool        IsModeSet() const;
-    virtual bool        IsNativeSizeValid() const;
-    virtual bool        IsRenderFrameValid() const;
-    virtual DisplayMode GetDisplayMode() const;
-    virtual Size        GetNativeSize() const;
-    virtual Rect        GetRenderDestination() const;
-    virtual void        SetNativeRenderOffset(int x, int y);
+    bool        IsModeSet() const override;
+    bool        IsNativeSizeValid() const override;
+    bool        IsRenderFrameValid() const override;
+    DisplayMode GetDisplayMode() const override;
+    Size        GetNativeSize() const override;
+    Rect        GetRenderDestination() const override;
+    void        SetNativeRenderOffset(int x, int y) override;
 
-    virtual void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = NULL);
-    virtual void        ClearDrawLists();
+    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = NULL) override;
+    void        ClearDrawLists() override;
 
-    virtual void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
-    virtual void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
-    virtual void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
-    virtual void        SetCallbackOnSurfaceUpdate(GFXDRV_CLIENTCALLBACKSURFACEUPDATE callback) { _initSurfaceUpdateCallback = callback; }
-    virtual void        SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
+    void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) override { _pollingCallback = callback; }
+    void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) override { _drawScreenCallback = callback; }
+    void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) override { _initGfxCallback = callback; }
+    void        SetCallbackOnSurfaceUpdate(GFXDRV_CLIENTCALLBACKSURFACEUPDATE callback) override { _initSurfaceUpdateCallback = callback; }
+    void        SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) override { _nullSpriteCallback = callback; }
 
 protected:
     // Called after graphics driver was initialized for use for the first time
@@ -157,9 +157,9 @@ struct TextureTile
 class VideoMemDDB : public IDriverDependantBitmap
 {
 public:
-    virtual int GetWidth() { return _width; }
-    virtual int GetHeight() { return _height; }
-    virtual int GetColorDepth() { return _colDepth; }
+    int GetWidth() override { return _width; }
+    int GetHeight() override { return _height; }
+    int GetColorDepth() override { return _colDepth; }
 
     int _width, _height;
     int _colDepth;
@@ -173,12 +173,12 @@ class VideoMemoryGraphicsDriver : public GraphicsDriverBase
 {
 public:
     VideoMemoryGraphicsDriver();
-    virtual ~VideoMemoryGraphicsDriver();
+    ~VideoMemoryGraphicsDriver() override;
 
-    virtual bool UsesMemoryBackBuffer();
-    virtual Bitmap *GetMemoryBackBuffer();
-    virtual void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy);
-    virtual Bitmap* GetStageBackBuffer();
+    bool UsesMemoryBackBuffer() override;
+    Bitmap *GetMemoryBackBuffer() override;
+    void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy) override;
+    Bitmap* GetStageBackBuffer() override;
 
 protected:
     // Stage screens are raw bitmap buffers meant to be sent to plugins on demand

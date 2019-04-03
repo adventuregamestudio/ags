@@ -22,9 +22,9 @@ struct MyTextBox:public NewControl
 {
   char text[TEXTBOX_MAXLEN + 1];
   MyTextBox(int xx, int yy, int wii, const char *tee);
-  void draw(Common::Bitmap *ds);
-  int pressedon(int mousex, int mousey);
-  int processmessage(int mcode, int wParam, long lParam);
+  void draw(Common::Bitmap *ds) override;
+  int pressedon(int mousex, int mousey) override;
+  int processmessage(int mcode, int wParam, long lParam) override;
 };
 
 #endif // __AC_MYTEXTBOX_H

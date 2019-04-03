@@ -131,7 +131,7 @@ struct AGSPlatformDriver
     // IOutputHandler implementation
     //-----------------------------------------------
     // Writes to the standard platform's output, prepending "AGS: " prefix to the message
-    virtual void PrintMessage(const AGS::Common::DebugMessage &msg);
+    void PrintMessage(const AGS::Common::DebugMessage &msg) override;
 
 private:
     static AGSPlatformDriver *instance;

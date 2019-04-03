@@ -73,7 +73,7 @@ struct GameSetupStructBase {
     // pointer is used for that instead.
 
     GameSetupStructBase();
-    virtual ~GameSetupStructBase();
+    ~GameSetupStructBase();
     void Free();
     void SetDefaultResolution(GameResolutionType type);
     void SetDefaultResolution(Size game_res);

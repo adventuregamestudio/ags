@@ -42,34 +42,34 @@ public:
     //-----------------------------------------------------
     // Helper methods
     //-----------------------------------------------------
-    virtual inline int8_t ReadInt8()
+    inline int8_t ReadInt8() override
     {
         return ReadByte();
     }
 
-    virtual inline size_t WriteInt8(int8_t val)
+    inline size_t WriteInt8(int8_t val) override
     {
         int32_t ival = WriteByte(val);
         return ival >= 0 ? ival : 0;
     }
 
-    virtual inline bool ReadBool()
+    inline bool ReadBool() override
     {
         return ReadInt8() != 0;
     }
 
-    virtual inline size_t WriteBool(bool val)
+    inline size_t WriteBool(bool val) override
     {
         return WriteInt8(val ? 1 : 0);
     }
 
     // Practically identical to Read() and Write(), these two helpers' only
     // meaning is to underline the purpose of data being (de)serialized
-    virtual inline size_t ReadArrayOfInt8(int8_t *buffer, size_t count)
+    inline size_t ReadArrayOfInt8(int8_t *buffer, size_t count) override
     {
         return Read(buffer, count);
     }
-    virtual inline size_t WriteArrayOfInt8(const int8_t *buffer, size_t count)
+    inline size_t WriteArrayOfInt8(const int8_t *buffer, size_t count) override
     {
         return Write(buffer, count);
     }

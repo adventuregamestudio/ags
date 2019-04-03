@@ -41,7 +41,7 @@ public:
   {
   };
 
-  virtual ~PosixLibrary()
+  ~PosixLibrary() override
   {
     Unload();
   };
@@ -67,7 +67,7 @@ public:
     return platformLibraryName;
   }
 
-  bool Load(AGS::Common::String libraryName)
+  bool Load(AGS::Common::String libraryName) override
   {
     Unload();
 
@@ -102,7 +102,7 @@ public:
     return (_library != NULL);
   }
 
-  bool Unload()
+  bool Unload() override
   {
     if (_library)
     {
@@ -114,7 +114,7 @@ public:
     }
   }
 
-  void *GetFunctionAddress(AGS::Common::String functionName)
+  void *GetFunctionAddress(AGS::Common::String functionName) override
   {
     if (_library)
     {

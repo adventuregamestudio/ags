@@ -177,7 +177,7 @@ public:
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual bool IsModeSupported(const DisplayMode &mode);
     virtual PGfxFilter GetGraphicsFilter() const;
-    virtual void UnInit();
+    void UnInit();
     virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
     virtual int  GetCompatibleBitmapFormat(int color_depth);
     virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);

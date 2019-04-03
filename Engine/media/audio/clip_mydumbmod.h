@@ -28,13 +28,13 @@ struct MYMOD : public SOUNDCLIP
     DUH *tune;
     AL_DUH_PLAYER *duhPlayer;
 
-    void poll();
+    void poll() override;
 
-    void set_volume(int newvol);
+    void set_volume(int newvol) override;
 
-    void destroy();
+    void destroy() override;
 
-    void seek(int patnum);
+    void seek(int patnum) override;
 
     // NOTE: this implementation of the virtual function returns a MOD/XM
     // "order" index, not actual playing position;
@@ -43,25 +43,25 @@ struct MYMOD : public SOUNDCLIP
     // deprecated "GetMODPattern" script function.
     // (see Game_GetMODPattern(), and documentation for AudioChannel.Position property)
     // TODO: find a way to redesign this behavior
-    int get_pos();
+    int get_pos() override;
 
-    int get_pos_ms();
+    int get_pos_ms() override;
 
-    int get_length_ms();
+    int get_length_ms() override;
 
-    virtual void pause();
+    void pause() override;
 
-    virtual void resume();
+    void resume() override;
 
-    int get_sound_type();
+    int get_sound_type() override;
 
-    int play();
+    int play() override;
 
     MYMOD();
 
 protected:
-    int get_voice();
-    virtual void adjust_volume();
+    int get_voice() override;
+    void adjust_volume() override;
     // Returns real MOD/XM playing position
     int get_real_mod_pos();
 };

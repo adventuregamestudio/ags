@@ -26,13 +26,13 @@ class StdMutex : public BaseMutex
 {
   public:
     inline StdMutex() : mutex_() {}
-    inline ~StdMutex() {}
+    inline ~StdMutex() override {}
 
     StdMutex &operator=(const StdMutex &) = delete;
     StdMutex(const StdMutex &) = delete;
 
-    inline void Lock() { mutex_.lock(); }
-    inline void Unlock() { mutex_.unlock(); }
+    inline void Lock() override { mutex_.lock(); }
+    inline void Unlock() override { mutex_.unlock(); }
 
   private:
     std::recursive_mutex mutex_;

@@ -29,7 +29,7 @@ public:
   {
   }
 
-  ~StdThread()
+  ~StdThread() override
   {
     Stop();
   }
@@ -37,7 +37,7 @@ public:
   StdThread &operator=(const StdThread &) = delete;
   StdThread(const StdThread &) = delete;
 
-  virtual bool Create(AGSThreadEntry entryPoint, bool looping)
+  bool Create(AGSThreadEntry entryPoint, bool looping) override
   {
     if (!entryPoint) { return false; }
 
@@ -46,7 +46,7 @@ public:
     return true;
   }
 
-  virtual bool Start()
+  bool Start() override
   {
     if (thread_.joinable()) { return true; }
     if (!entry_) { return false; }
@@ -59,7 +59,7 @@ public:
     return thread_.joinable();
   }
 
-  bool Stop()
+  bool Stop() override
   {
     if (!thread_.joinable()) { return true; }
 

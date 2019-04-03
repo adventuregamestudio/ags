@@ -282,7 +282,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
     // NOTE: the CLIP flag only clips the image, not the text
     if (IsClippingImage())
         ds->SetClip(Rect(X, Y, X + Width - 1, Y + Height - 1));
-    if (spriteset[CurrentImage] != NULL)
+    if (spriteset[CurrentImage] != nullptr)
         draw_gui_sprite(ds, CurrentImage, X, Y, true);
 
     // Draw active inventory item

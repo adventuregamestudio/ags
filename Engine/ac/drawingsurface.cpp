@@ -69,7 +69,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
         {
             int tt;
             // force a refresh of any cached object or character images
-            if (croom != NULL) 
+            if (croom != nullptr) 
             {
                 for (tt = 0; tt < croom->numobj; tt++) 
                 {
@@ -98,7 +98,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
     if (sds->dynamicSurfaceNumber >= 0)
     {
         delete dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber];
-        dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber] = NULL;
+        dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber] = nullptr;
         sds->dynamicSurfaceNumber = -1;
     }
     sds->modified = 0;
@@ -131,7 +131,7 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
 
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; i++)
     {
-        if (dynamicallyCreatedSurfaces[i] == NULL)
+        if (dynamicallyCreatedSurfaces[i] == nullptr)
         {
             dynamicallyCreatedSurfaces[i] = BitmapHelper::CreateBitmapCopy(sourceBitmap);
             ScriptDrawingSurface *newSurface = new ScriptDrawingSurface();
@@ -143,7 +143,7 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
     }
 
     quit("!DrawingSurface.CreateCopy: too many copied surfaces created");
-    return NULL;
+    return nullptr;
 }
 
 void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurface* source, int translev) {
@@ -174,7 +174,7 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
 
 void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slot, int trans, int width, int height)
 {
-    if ((slot < 0) || (spriteset[slot] == NULL))
+    if ((slot < 0) || (spriteset[slot] == nullptr))
         quit("!DrawingSurface.DrawImage: invalid sprite slot number specified");
 
     if ((trans < 0) || (trans > 100))

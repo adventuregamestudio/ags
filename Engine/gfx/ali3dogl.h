@@ -109,8 +109,8 @@ public:
         _lightLevel = 0;
         _transparency = 0;
         _opaque = opaque;
-        _vertex = NULL;
-        _tiles = NULL;
+        _vertex = nullptr;
+        _tiles = nullptr;
         _numTiles = 0;
     }
 

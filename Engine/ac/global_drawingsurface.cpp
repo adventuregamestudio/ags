@@ -47,7 +47,7 @@ extern GameSetupStruct game;
 
 // RawSaveScreen: copy the current screen to a backup bitmap
 void RawSaveScreen () {
-    if (raw_saved_screen != NULL)
+    if (raw_saved_screen != nullptr)
         delete raw_saved_screen;
     PBitmap source = thisroom.BgFrames[play.bg_frame].Graphic;
     raw_saved_screen = BitmapHelper::CreateBitmapCopy(source.get());
@@ -56,7 +56,7 @@ void RawSaveScreen () {
 // deliberately don't free the Bitmap *cos they can multiple restore
 // and it gets freed on room exit anyway
 void RawRestoreScreen() {
-    if (raw_saved_screen == NULL) {
+    if (raw_saved_screen == nullptr) {
         debug_script_warn("RawRestoreScreen: unable to restore, since the screen hasn't been saved previously.");
         return;
     }
@@ -67,7 +67,7 @@ void RawRestoreScreen() {
 }
 // Restores the backup bitmap, but tints it to the specified level
 void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
-    if (raw_saved_screen == NULL) {
+    if (raw_saved_screen == nullptr) {
         debug_script_warn("RawRestoreScreenTinted: unable to restore, since the screen hasn't been saved previously.");
         return;
     }
@@ -169,7 +169,7 @@ void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
 }
 
 void RawDrawImageCore(int xx, int yy, int slot, int alpha) {
-    if ((slot < 0) || (spriteset[slot] == NULL))
+    if ((slot < 0) || (spriteset[slot] == nullptr))
         quit("!RawDrawImage: invalid sprite slot number specified");
     RAW_START();
 
@@ -227,7 +227,7 @@ void RawDrawImageTransparent(int xx, int yy, int slot, int legacy_transparency) 
     update_polled_stuff_if_runtime();  // this operation can be slow so stop music skipping
 }
 void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
-    if ((gotSlot < 0) || (spriteset[gotSlot] == NULL))
+    if ((gotSlot < 0) || (spriteset[gotSlot] == nullptr))
         quit("!RawDrawImageResized: invalid sprite slot number specified");
     // very small, don't draw it
     if ((width < 1) || (height < 1))

@@ -40,11 +40,11 @@ GameSetupStructBase::GameSetupStructBase()
     , numcursors(0)
     , default_lipsync_frame(0)
     , invhotdotsprite(0)
-    , dict(NULL)
-    , globalscript(NULL)
-    , chars(NULL)
-    , compiled_script(NULL)
-    , load_messages(NULL)
+    , dict(nullptr)
+    , globalscript(nullptr)
+    , chars(nullptr)
+    , compiled_script(nullptr)
+    , load_messages(nullptr)
     , load_dictionary(false)
     , load_compiled_script(false)
     , _resolutionType(kGameResolution_Undefined)
@@ -69,18 +69,18 @@ void GameSetupStructBase::Free()
     for (int i = 0; i < MAXGLOBALMES; ++i)
     {
         delete[] messages[i];
-        messages[i] = NULL;
+        messages[i] = nullptr;
     }
     delete[] load_messages;
-    load_messages = NULL;
+    load_messages = nullptr;
     delete dict;
-    dict = NULL;
+    dict = nullptr;
     delete globalscript;
-    globalscript = NULL;
+    globalscript = nullptr;
     delete compiled_script;
-    compiled_script = NULL;
+    compiled_script = nullptr;
     delete[] chars;
-    chars = NULL;
+    chars = nullptr;
 }
 
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType type)

@@ -35,12 +35,12 @@ int Parser_FindWordID(const char *wordToFind)
 
 const char* Parser_SaidUnknownWord() {
     if (play.bad_parsed_word[0] == 0)
-        return NULL;
+        return nullptr;
     return CreateNewScriptString(play.bad_parsed_word);
 }
 
 void ParseText (const char*text) {
-    parse_sentence (text, &play.num_parsed_words, play.parsed_words, NULL, 0);
+    parse_sentence (text, &play.num_parsed_words, play.parsed_words, nullptr, 0);
 }
 
 // Said: call with argument for example "get apple"; we then check
@@ -56,7 +56,7 @@ int Said (const char *checkwords) {
 
 int find_word_in_dictionary (const char *lookfor) {
     int j;
-    if (game.dict == NULL)
+    if (game.dict == nullptr)
         return -1;
 
     for (j = 0; j < game.dict->num_words; j++) {
@@ -90,7 +90,7 @@ int FindMatchingMultiWordWord(char *thisword, const char **text) {
     // that match -- if so, use them
     const char *tempptr = *text;
     char tempword[150] = "";
-    if (thisword != NULL)
+    if (thisword != nullptr)
         strcpy(tempword, thisword);
 
     int bestMatchFound = -1, word;
@@ -121,7 +121,7 @@ int FindMatchingMultiWordWord(char *thisword, const char **text) {
     if (word >= 0) {
         // yes, a word like "pick up" was found
         *text = tempptrAtBestMatch;
-        if (thisword != NULL)
+        if (thisword != nullptr)
             strcpy(thisword, tempword);
     }
 
@@ -137,17 +137,17 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
     int  optional_start = 0;
 
     numwords[0] = 0;
-    if (compareto == NULL)
+    if (compareto == nullptr)
         play.bad_parsed_word[0] = 0;
 
     String uniform_text = src_text;
     uniform_text.MakeLower();
     const char *text = uniform_text.GetCStr();
     while (1) {
-        if ((compareto != NULL) && (compareto[comparing] == RESTOFLINE))
+        if ((compareto != nullptr) && (compareto[comparing] == RESTOFLINE))
             return 1;
 
-        if ((text[0] == ']') && (compareto != NULL)) {
+        if ((text[0] == ']') && (compareto != nullptr)) {
             if (!in_optional)
                 quit("!Said: unexpected ']'");
             do_word_now = 1;
@@ -158,7 +158,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
             thisword[i] = text[0];
             i++;
         }
-        else if ((text[0] == '[') && (compareto != NULL)) {
+        else if ((text[0] == '[') && (compareto != nullptr)) {
             if (in_optional)
                 quit("!Said: nested optional words");
 

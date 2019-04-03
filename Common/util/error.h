@@ -96,12 +96,12 @@ template <class T> class ErrorHandle
 public:
     static ErrorHandle<T> None() { return ErrorHandle(); }
 
-    ErrorHandle() {}
+    ErrorHandle() = default;
     ErrorHandle(T *err) : _error(err) {}
     ErrorHandle(std::shared_ptr<T> err) : _error(err) {}
 
     bool HasError() const { return _error.get() != NULL; }
-    explicit operator bool() const { return _error.get() == NULL; }
+    explicit operator bool() const { return _error.get() == nullptr; }
     operator PError() const { return _error; }
     T *operator ->() const { return _error.operator->(); }
     T &operator *() const { return _error.operator*(); }

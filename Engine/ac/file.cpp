@@ -87,7 +87,7 @@ void *sc_OpenFile(const char *fnmm, int mode) {
   sc_File *scf = new sc_File();
   if (scf->OpenFile(fnmm, mode) == 0) {
     delete scf;
-    return 0;
+    return nullptr;
   }
   ccRegisterManagedObject(scf, scf);
   return scf;
@@ -395,7 +395,7 @@ PACKFILE *PackfileFromAsset(const AssetPath &path)
         }
         return pf;
     }
-    return NULL;
+    return nullptr;
 }
 
 DUMBFILE *DUMBfileFromAsset(const AssetPath &path)
@@ -403,7 +403,7 @@ DUMBFILE *DUMBfileFromAsset(const AssetPath &path)
     PACKFILE *pf = PackfileFromAsset(path);
     if (pf)
         return dumbfile_open_packfile(pf);
-    return NULL;
+    return nullptr;
 }
 
 bool DoesAssetExistInLib(const AssetPath &assetname)
@@ -535,7 +535,7 @@ ScriptFileHandle *check_valid_file_handle_ptr(Stream *stream_ptr, const char *op
 
   String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
   quit(exmsg);
-  return NULL;
+  return nullptr;
 }
 
 ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *operation_name)
@@ -553,13 +553,13 @@ ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *oper
 
   String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
   quit(exmsg);
-  return NULL;
+  return nullptr;
 }
 
 Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name)
 {
     ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle, operation_name);
-    return sc_handle ? sc_handle->stream : NULL;
+    return sc_handle ? sc_handle->stream : nullptr;
 }
 
 //=============================================================================

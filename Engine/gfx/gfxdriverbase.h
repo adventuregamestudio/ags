@@ -61,7 +61,7 @@ struct SpriteDrawListEntry
     bool skip;
 
     SpriteDrawListEntry()
-        : bitmap(NULL)
+        : bitmap(nullptr)
         , x(0)
         , y(0)
         , skip(false)
@@ -93,7 +93,7 @@ public:
     Rect        GetRenderDestination() const override;
     void        SetNativeRenderOffset(int x, int y) override;
 
-    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = NULL) override;
+    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = nullptr) override;
     void        ClearDrawLists() override;
 
     void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) override { _pollingCallback = callback; }

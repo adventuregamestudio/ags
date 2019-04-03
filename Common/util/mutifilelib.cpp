@@ -60,7 +60,7 @@ namespace MFLUtil
 MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)
 {
     MFLVersion lib_version;
-    MFLError err = ReadSigsAndVersion(in, &lib_version, NULL);
+    MFLError err = ReadSigsAndVersion(in, &lib_version, nullptr);
     if (err == kMFLNoError)
     {
         if (lib_version >= kMFLVersion_MultiV10 && test_is_main)

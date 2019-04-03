@@ -47,7 +47,7 @@ extern GameSetupStruct game;
 int editor_debugging_enabled = 0;
 int editor_debugging_initialized = 0;
 char editor_debugger_instance_token[100];
-IAGSEditorDebugger *editor_debugger = NULL;
+IAGSEditorDebugger *editor_debugger = nullptr;
 int break_on_next_script_step = 0;
 volatile int game_paused_in_debugger = 0;
 HWND editor_window_handle = 0;
@@ -65,7 +65,7 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 
 IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {
-    return NULL;
+    return nullptr;
 }
 
 #endif
@@ -165,7 +165,7 @@ void shutdown_debug()
 
 void debug_set_console(bool enable)
 {
-    if (enable && DebugConsole.get() == NULL)
+    if (enable && DebugConsole.get() == nullptr)
     {
         DebugConsole.reset(new ConsoleOutputTarget());
         PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_Errors);
@@ -174,7 +174,7 @@ void debug_set_console(bool enable)
         if (DebugMsgBuff.get())
             DebugMsgBuff->Send(OutputGameConsoleID);
     }
-    else if (!enable && DebugConsole.get() != NULL)
+    else if (!enable && DebugConsole.get() != nullptr)
     {
         DbgMgr.UnregisterOutput(OutputGameConsoleID);
         DebugConsole.reset();
@@ -186,7 +186,7 @@ void debug_script_print(const String &msg, MessageType mt)
 {
     String script_ref;
     ccInstance *curinst = ccInstance::GetCurrentInstance();
-    if (curinst != NULL) {
+    if (curinst != nullptr) {
         String scriptname;
         if (curinst->instanceof == gamescript)
             scriptname = "G ";
@@ -264,7 +264,7 @@ bool send_message_to_editor(const char *msg, const char *errorMsg)
     sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", (int)win_get_window());
 #endif
     sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack.GetCStr());
-    if (errorMsg != NULL)
+    if (errorMsg != nullptr)
     {
         sprintf(&messageToSend[strlen(messageToSend)], "  <ErrorMessage><![CDATA[%s]]></ErrorMessage> ", errorMsg);
     }
@@ -277,7 +277,7 @@ bool send_message_to_editor(const char *msg, const char *errorMsg)
 
 bool send_message_to_editor(const char *msg) 
 {
-    return send_message_to_editor(msg, NULL);
+    return send_message_to_editor(msg, nullptr);
 }
 
 bool init_editor_debugging() 
@@ -286,10 +286,10 @@ bool init_editor_debugging()
     editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
 #else
     // Editor isn't ported yet
-    editor_debugger = NULL;
+    editor_debugger = nullptr;
 #endif
 
-    if (editor_debugger == NULL)
+    if (editor_debugger == nullptr)
         quit("editor_debugger is NULL but debugger enabled");
 
     if (editor_debugger->Initialize())
@@ -315,7 +315,7 @@ int check_for_messages_from_editor()
     if (editor_debugger->IsMessageAvailable())
     {
         char *msg = editor_debugger->GetNextMessage();
-        if (msg == NULL)
+        if (msg == nullptr)
         {
             return 0;
         }
@@ -461,7 +461,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
 
     // no plugin, use built-in debugger
 
-    if (ccinst == NULL) 
+    if (ccinst == nullptr) 
     {
         // come out of script
         return;

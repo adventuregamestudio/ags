@@ -56,8 +56,8 @@ public:
     {
         Type        = kScValUndefined;
         IValue      = 0;
-        Ptr         = NULL;
-        MgrPtr      = NULL;
+        Ptr         = nullptr;
+        MgrPtr      = nullptr;
         Size        = 0;
     }
 
@@ -65,8 +65,8 @@ public:
     {
         Type        = kScValInteger;
         IValue      = val;
-        Ptr         = NULL;
-        MgrPtr      = NULL;
+        Ptr         = nullptr;
+        MgrPtr      = nullptr;
         Size        = 4;
     }
 
@@ -111,7 +111,7 @@ public:
     }
     inline bool IsNull() const
     {
-        return Ptr == 0 && IValue == 0;
+        return Ptr == nullptr && IValue == 0;
     }
     
     inline bool GetAsBool() const
@@ -127,8 +127,8 @@ public:
     {
         Type    = kScValUndefined;
         IValue   = 0;
-        Ptr     = NULL;
-        MgrPtr  = NULL;
+        Ptr     = nullptr;
+        MgrPtr  = nullptr;
         Size    = 0;
         return *this;
     }
@@ -136,8 +136,8 @@ public:
     {
         Type    = kScValInteger;
         IValue  = val;
-        Ptr     = NULL;
-        MgrPtr  = NULL;
+        Ptr     = nullptr;
+        MgrPtr  = nullptr;
         Size    = 1;
         return *this;
     }
@@ -145,8 +145,8 @@ public:
     {
         Type    = kScValInteger;
         IValue  = val;
-        Ptr     = NULL;
-        MgrPtr  = NULL;
+        Ptr     = nullptr;
+        MgrPtr  = nullptr;
         Size    = 2;
         return *this;
     }
@@ -154,8 +154,8 @@ public:
     {
         Type    = kScValInteger;
         IValue  = val;
-        Ptr     = NULL;
-        MgrPtr  = NULL;
+        Ptr     = nullptr;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
@@ -163,8 +163,8 @@ public:
     {
         Type    = kScValFloat;
         FValue  = val;
-        Ptr     = NULL;
-        MgrPtr  = NULL;
+        Ptr     = nullptr;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
@@ -180,8 +180,8 @@ public:
     {
         Type    = kScValPluginArg;
         IValue  = val;
-        Ptr     = NULL;
-        MgrPtr  = NULL;
+        Ptr     = nullptr;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
@@ -190,7 +190,7 @@ public:
         Type    = kScValStackPtr;
         IValue  = 0;
         RValue  = stack_entry;
-        MgrPtr  = NULL;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
@@ -199,7 +199,7 @@ public:
         Type    = kScValData;
         IValue  = 0;
         Ptr     = data;
-        MgrPtr  = NULL;
+        MgrPtr  = nullptr;
         Size    = size;
         return *this;
     }
@@ -208,7 +208,7 @@ public:
         Type    = kScValGlobalVar;
         IValue  = 0;
         RValue  = glvar_value;
-        MgrPtr  = NULL;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
@@ -218,7 +218,7 @@ public:
         Type    = kScValStringLiteral;
         IValue  = 0;
         Ptr     = const_cast<char *>(str);
-        MgrPtr  = NULL;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
@@ -263,7 +263,7 @@ public:
         Type    = kScValStaticFunction;
         IValue  = 0;
         SPfn    = pfn;
-        MgrPtr  = NULL;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
@@ -272,7 +272,7 @@ public:
         Type    = kScValPluginFunction;
         IValue  = 0;
         Ptr     = (char*)pfn;
-        MgrPtr  = NULL;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
@@ -281,7 +281,7 @@ public:
         Type    = kScValObjectFunction;
         IValue  = 0;
         ObjPfn  = pfn;
-        MgrPtr  = NULL;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
@@ -290,7 +290,7 @@ public:
         Type    = kScValCodePtr;
         IValue  = 0;
         Ptr     = ptr;
-        MgrPtr  = NULL;
+        MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }

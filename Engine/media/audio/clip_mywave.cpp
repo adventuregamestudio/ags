@@ -81,7 +81,7 @@ int MYWAVE::get_pos_ms()
 
 int MYWAVE::get_length_ms()
 {
-    if (wave == NULL) { return -1; }
+    if (wave == nullptr) { return -1; }
     if (wave->freq < 100)
         return 0;
     return (wave->len / (wave->freq / 100)) * 10;
@@ -98,7 +98,7 @@ int MYWAVE::get_sound_type() {
 }
 
 int MYWAVE::play() {
-    if (wave == NULL) { return 0; }
+    if (wave == nullptr) { return 0; }
 
     voice = play_sample(wave, vol, panning, 1000, repeat);
     if (voice < 0) {
@@ -111,6 +111,6 @@ int MYWAVE::play() {
 }
 
 MYWAVE::MYWAVE() : SOUNDCLIP() {
-    wave = NULL;
+    wave = nullptr;
     voice = -1;
 }

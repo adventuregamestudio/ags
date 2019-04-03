@@ -35,8 +35,8 @@ using namespace AGS::Engine;
 #include "libcda.h"
 #endif
 
-AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
-AGSPlatformDriver *platform = NULL;
+AGSPlatformDriver* AGSPlatformDriver::instance = nullptr;
+AGSPlatformDriver *platform = nullptr;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 

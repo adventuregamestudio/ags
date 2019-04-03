@@ -128,7 +128,7 @@ void lzwcompress(Stream *lzw_in, Stream *out)
   char buf[17];
 
   lzbuffer = (char *)malloc(N + F + (N + 1 + N + N + 256) * sizeof(int));       // 28.5 k !
-  if (lzbuffer == NULL) {
+  if (lzbuffer == nullptr) {
     quit("unable to compress: out of memory");
   }
 
@@ -197,7 +197,7 @@ void lzwcompress(Stream *lzw_in, Stream *out)
 }
 
 int expand_to_mem = 0;
-unsigned char *membfptr = NULL;
+unsigned char *membfptr = nullptr;
 void myputc(int ccc, Stream *out)
 {
   if (maxsize > 0) {
@@ -222,7 +222,7 @@ void lzwexpand(Stream *lzw_in, Stream *out)
   putbytes = 0;
 
   lzbuffer = (char *)malloc(N);
-  if (lzbuffer == NULL) {
+  if (lzbuffer == nullptr) {
     quit("compress.cpp: unable to decompress: insufficient memory");
   }
   i = N - F;
@@ -270,6 +270,6 @@ unsigned char *lzwexpand_to_mem(Stream *in)
   unsigned char *membuff = (unsigned char *)malloc(maxsize + 10);
   expand_to_mem = 1;
   membfptr = membuff;
-  lzwexpand(in, NULL);
+  lzwexpand(in, nullptr);
   return membuff;
 }

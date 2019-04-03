@@ -52,13 +52,13 @@ extern int our_eip;
 extern CharacterInfo*playerchar;
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-ExecutingScript*curscript = NULL;
+ExecutingScript*curscript = nullptr;
 
 PScript gamescript;
 PScript dialogScriptsScript;
-ccInstance *gameinst = NULL, *roominst = NULL;
-ccInstance *dialogScriptsInst = NULL;
-ccInstance *gameinstFork = NULL, *roominstFork = NULL;
+ccInstance *gameinst = nullptr, *roominst = nullptr;
+ccInstance *dialogScriptsInst = nullptr;
+ccInstance *gameinstFork = nullptr, *roominstFork = nullptr;
 
 int num_scripts=0;
 int post_script_cleanup_stack = 0;
@@ -151,13 +151,13 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
 
     if (evnt < 0 || (size_t)evnt >= nint->Events.size() ||
-        (nint->Events[evnt].Response.get() == NULL) || (nint->Events[evnt].Response->Cmds.size() == 0)) {
+        (nint->Events[evnt].Response.get() == nullptr) || (nint->Events[evnt].Response->Cmds.size() == 0)) {
         // no response defined for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
         if (chkAny < 0) ;
         else if ((size_t)chkAny < nint->Events.size() &&
-                (nint->Events[chkAny].Response.get() != NULL) && (nint->Events[chkAny].Response->Cmds.size() > 0))
+                (nint->Events[chkAny].Response.get() != nullptr) && (nint->Events[chkAny].Response->Cmds.size() > 0))
             return 0;
 
         // Otherwise, run unhandled_event
@@ -187,12 +187,12 @@ int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
 // (eg. a room change occured)
 int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int isInv) {
 
-    if ((nint->ScriptFuncNames[evnt] == NULL) || (nint->ScriptFuncNames[evnt][0u] == 0)) {
+    if ((nint->ScriptFuncNames[evnt] == nullptr) || (nint->ScriptFuncNames[evnt][0u] == 0)) {
         // no response defined for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
         if (chkAny < 0) ;
-        else if ((nint->ScriptFuncNames[chkAny] != NULL) && (nint->ScriptFuncNames[chkAny][0u] != 0))
+        else if ((nint->ScriptFuncNames[chkAny] != nullptr) && (nint->ScriptFuncNames[chkAny][0u] != 0))
             return 0;
 
         // Otherwise, run unhandled_event
@@ -211,7 +211,7 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
     RuntimeScriptValue rval_null;
 
     update_polled_mp3();
-        if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
+        if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
             // Character or Inventory (global script)
             QueueScriptFunction(kScInstGame, nint->ScriptFuncNames[evnt]);
         }
@@ -233,27 +233,27 @@ int create_global_script() {
     ccSetOption(SCOPT_AUTOIMPORT, 1);
     for (int kk = 0; kk < numScriptModules; kk++) {
         moduleInst[kk] = ccInstance::CreateFromScript(scriptModules[kk]);
-        if (moduleInst[kk] == NULL)
+        if (moduleInst[kk] == nullptr)
             return -3;
         // create a forked instance for rep_exec_always
         moduleInstFork[kk] = moduleInst[kk]->Fork();
-        if (moduleInstFork[kk] == NULL)
+        if (moduleInstFork[kk] == nullptr)
             return -3;
 
         moduleRepExecAddr[kk] = moduleInst[kk]->GetSymbolAddress(REP_EXEC_NAME);
     }
     gameinst = ccInstance::CreateFromScript(gamescript);
-    if (gameinst == NULL)
+    if (gameinst == nullptr)
         return -3;
     // create a forked instance for rep_exec_always
     gameinstFork = gameinst->Fork();
-    if (gameinstFork == NULL)
+    if (gameinstFork == nullptr)
         return -3;
 
-    if (dialogScriptsScript != NULL)
+    if (dialogScriptsScript != nullptr)
     {
         dialogScriptsInst = ccInstance::CreateFromScript(dialogScriptsScript);
-        if (dialogScriptsInst == NULL)
+        if (dialogScriptsInst == nullptr)
             return -3;
     }
 
@@ -282,7 +282,7 @@ ccInstance *GetScriptInstanceByType(ScriptInstType sc_inst)
         return gameinst;
     else if (sc_inst == kScInstRoom)
         return roominst;
-    return NULL;
+    return nullptr;
 }
 
 void QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count, const RuntimeScriptValue &p1, const RuntimeScriptValue &p2)
@@ -347,7 +347,7 @@ int PrepareTextScript(ccInstance *sci, const char**tsname)
 {
     ccError = 0;
     // FIXME: try to make it so this function is not called with NULL sci
-    if (sci == NULL) return -1;
+    if (sci == nullptr) return -1;
     if (sci->GetSymbolAddress(tsname[0]).IsNull()) {
         ccErrorString = "no such function in script";
         return -2;
@@ -362,7 +362,7 @@ int PrepareTextScript(ccInstance *sci, const char**tsname)
     // function would have quit earlier (deprecated functionality?)
     if (sci->IsBeingRun()) {
         scripts[num_scripts].inst = sci->Fork();
-        if (scripts[num_scripts].inst == NULL)
+        if (scripts[num_scripts].inst == nullptr)
             quit("unable to fork instance for secondary script");
         scripts[num_scripts].forked = 1;
     }
@@ -443,7 +443,7 @@ int RunTextScript(ccInstance *sci, const char *tsname)
 
         for (int kk = 0; kk < numScriptModules; kk++) {
             if (!moduleRepExecAddr[kk].IsNull())
-                RunScriptFunctionIfExists(moduleInst[kk], tsname, 0, NULL);
+                RunScriptFunctionIfExists(moduleInst[kk], tsname, 0, nullptr);
 
             if ((room_changes_was != play.room_changes) ||
                 (restore_game_count_was != gameHasBeenRestored))
@@ -451,7 +451,7 @@ int RunTextScript(ccInstance *sci, const char *tsname)
         }
     }
 
-    int toret = RunScriptFunctionIfExists(sci, tsname, 0, NULL);
+    int toret = RunScriptFunctionIfExists(sci, tsname, 0, nullptr);
     if ((toret == -18) && (sci == roominst)) {
         // functions in room script must exist
         quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)", toret, ccErrorString.GetCStr(), tsname, displayed_room);
@@ -528,7 +528,7 @@ void post_script_cleanup() {
     if (num_scripts > 0)
         curscript = &scripts[num_scripts-1];
     else {
-        curscript = NULL;
+        curscript = nullptr;
     }
     //  if (abort_executor) user_disabled_data2=aborted_ip;
 
@@ -640,7 +640,7 @@ InteractionVariable *FindGraphicalVariable(const char *varName) {
         if (stricmp (thisroom.LocalVariables[i].Name, varName) == 0)
             return &thisroom.LocalVariables[i];
     }
-    return NULL;
+    return nullptr;
 }
 
 #define IPARAM1 get_nivalue(nicl, i, 0)
@@ -664,7 +664,7 @@ struct TempEip {
 int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, int*cmdsrun) {
     size_t i;
 
-    if (nicl == NULL)
+    if (nicl == nullptr)
         return -1;
 
     for (i = 0; i < nicl->Cmds.size(); i++) {
@@ -679,7 +679,7 @@ int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, in
               TempEip tempip(4001);
               RuntimeScriptValue rval_null;
               update_polled_mp3();
-                  if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
+                  if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
                       // Character or Inventory (global script)
                       const char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
                       // we are already inside the mouseclick event of the script, can't nest calls

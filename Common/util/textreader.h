@@ -28,7 +28,7 @@ namespace Common
 class TextReader
 {
 public:
-    virtual ~TextReader(){}
+    virtual ~TextReader() = default;
 
     virtual bool IsValid() const            = 0;
 

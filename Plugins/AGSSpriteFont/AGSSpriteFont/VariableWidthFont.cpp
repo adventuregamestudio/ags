@@ -9,9 +9,7 @@ VariableWidthFont::VariableWidthFont(void)
 }
 
 
-VariableWidthFont::~VariableWidthFont(void)
-{
-}
+VariableWidthFont::~VariableWidthFont(void) = default;
 
 void VariableWidthFont::SetGlyph(int character, int x, int y, int width, int height)
 {

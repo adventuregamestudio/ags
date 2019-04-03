@@ -75,9 +75,9 @@ int g_FollowCharacterDy = 0;
 int g_FollowCharacterHorz = 0;
 int g_FollowCharacterVert = 0;
 
-AGSCharacter* g_FollowCharacter = NULL;
+AGSCharacter* g_FollowCharacter = nullptr;
 
-BITMAP* g_LightBitmap = NULL;
+BITMAP* g_LightBitmap = nullptr;
 
 
 // This function is from Allegro, split for more performance.
@@ -423,7 +423,7 @@ void CreateLightBitmap()
    {
 	   engine->GetMousePosition(&g_FlashlightX, &g_FlashlightY);
    }
-   else if (g_FollowCharacter != NULL)
+   else if (g_FollowCharacter != nullptr)
    {
      g_FlashlightX = g_FollowCharacter->x + g_FollowCharacterDx;
      g_FlashlightY = g_FollowCharacter->y + g_FollowCharacterDy;

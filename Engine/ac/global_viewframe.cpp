@@ -41,7 +41,7 @@ void SetFrameSound (int vii, int loop, int frame, int sound) {
     else
     {
         ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
-        if (clip == NULL)
+        if (clip == nullptr)
             quitprintf("!SetFrameSound: audio clip aSound%d not found", sound);
 
         views[vii].loops[loop].frames[frame].sound = clip->id + (game.IsLegacyAudioSystem() ? 0x10000000 : 0);

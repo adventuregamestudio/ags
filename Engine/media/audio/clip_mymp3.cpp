@@ -35,7 +35,7 @@ void MYMP3::poll()
         tempbuf = (char *)almp3_get_mp3stream_buffer(stream);
     }
 
-    if (tempbuf != NULL) {
+    if (tempbuf != nullptr) {
         int free_val = -1;
         if (chunksize >= in->normal.todo) {
             chunksize = in->normal.todo;
@@ -135,7 +135,7 @@ int MYMP3::get_voice()
     if (!is_playing()) { return -1; }
 	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     AUDIOSTREAM *ast = almp3_get_audiostream_mp3stream(stream);
-    return (ast != NULL ? ast->voice : -1);
+    return (ast != nullptr ? ast->voice : -1);
 }
 
 int MYMP3::get_sound_type() {
@@ -161,10 +161,10 @@ int MYMP3::play() {
 }
 
 MYMP3::MYMP3() : SOUNDCLIP() {
-    stream = NULL;
-    in = NULL;
+    stream = nullptr;
+    in = nullptr;
     filesize = 0;
-    buffer = NULL;
+    buffer = nullptr;
     chunksize = 0;
 }
 

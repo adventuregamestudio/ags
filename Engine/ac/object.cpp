@@ -58,7 +58,7 @@ int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {
 ScriptObject *GetObjectAtScreen(int xx, int yy) {
     int hsnum = GetObjectIDAtScreen(xx, yy);
     if (hsnum < 0)
-        return NULL;
+        return nullptr;
     return &scrObj[hsnum];
 }
 
@@ -66,7 +66,7 @@ ScriptObject *GetObjectAtRoom(int x, int y)
 {
     int hsnum = GetObjectIDAtRoom(x, y);
     if (hsnum < 0)
-        return NULL;
+        return nullptr;
     return &scrObj[hsnum];
 }
 

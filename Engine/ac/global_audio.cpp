@@ -66,8 +66,8 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
             // in case a normal non-ambient sound was playing, stop it too
             stop_and_destroy_channel(channel);
 
-            SOUNDCLIP *asound = aclip ? load_sound_and_play(aclip, true) : NULL;
-            if (asound == NULL) {
+            SOUNDCLIP *asound = aclip ? load_sound_and_play(aclip, true) : nullptr;
+            if (asound == nullptr) {
                 debug_script_warn ("Cannot load ambient sound %d", sndnum);
                 debug_script_log("FAILED to load ambient sound %d", sndnum);
                 return;
@@ -143,8 +143,8 @@ int PlaySoundEx(int val1, int channel) {
     stop_and_destroy_channel (channel);
     debug_script_log("Playing sound %d on channel %d", val1, channel);
 
-    SOUNDCLIP *soundfx = aclip ? load_sound_and_play(aclip, false) : NULL;
-    if (soundfx == NULL) {
+    SOUNDCLIP *soundfx = aclip ? load_sound_and_play(aclip, false) : nullptr;
+    if (soundfx == nullptr) {
         debug_script_warn("Sound sample load failure: cannot load sound %d", val1);
         debug_script_log("FAILED to load sound %d", val1);
         return -1;
@@ -535,17 +535,17 @@ int play_speech(int charid,int sndid) {
     asset_name.Append(".wav");
     speechmp3 = my_load_wave(get_voice_over_assetpath(asset_name), play.speech_volume, 0);
 
-    if (speechmp3 == NULL) {
+    if (speechmp3 == nullptr) {
         asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "ogg");
         speechmp3 = my_load_ogg(get_voice_over_assetpath(asset_name), play.speech_volume);
     }
 
-    if (speechmp3 == NULL) {
+    if (speechmp3 == nullptr) {
         asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "mp3");
         speechmp3 = my_load_mp3(get_voice_over_assetpath(asset_name), play.speech_volume);
     }
 
-    if (speechmp3 != NULL) {
+    if (speechmp3 != nullptr) {
         if (!speechmp3->play()) {
             // not assigned to a channel, so clean up manually.
             speechmp3->destroy();
@@ -554,7 +554,7 @@ int play_speech(int charid,int sndid) {
         }
     }
 
-    if (speechmp3 == NULL) {
+    if (speechmp3 == nullptr) {
         debug_script_warn("Speech load failure: '%s'", voice_file.GetCStr());
         curLipLine = -1;
         return 0;

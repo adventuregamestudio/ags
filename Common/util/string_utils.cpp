@@ -35,7 +35,7 @@ void unescape(char *buffer) {
     else
         offset = buffer;
     // Replace all other occurrences as they're found
-    while((offset = strchr(offset, '[')) != NULL) {
+    while((offset = strchr(offset, '[')) != nullptr) {
         if(offset[-1] != '\\')
             offset[0] = '\n';
         else

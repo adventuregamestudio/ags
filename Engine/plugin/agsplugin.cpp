@@ -136,11 +136,11 @@ struct EnginePlugin {
     int         savedatasize;
     int         wantHook;
     int         invalidatedRegion;
-    void      (*engineStartup) (IAGSEngine *) = NULL;
-    void      (*engineShutdown) () = NULL;
-    int       (*onEvent) (int, int) = NULL;
-    void      (*initGfxHook) (const char *driverName, void *data) = NULL;
-    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = NULL;
+    void      (*engineStartup) (IAGSEngine *) = nullptr;
+    void      (*engineShutdown) () = nullptr;
+    int       (*onEvent) (int, int) = nullptr;
+    void      (*initGfxHook) (const char *driverName, void *data) = nullptr;
+    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = nullptr;
     IAGSEngine  eiface;
     bool        builtin;
 
@@ -148,7 +148,7 @@ struct EnginePlugin {
         filename[0] = 0;
         wantHook = 0;
         invalidatedRegion = 0;
-        savedata = NULL;
+        savedata = nullptr;
         savedatasize = 0;
         builtin = false;
         available = false;
@@ -174,8 +174,8 @@ void IAGSEngine::RegisterScriptFunction (const char*name, void*addy) {
 }
 const char* IAGSEngine::GetGraphicsDriverID()
 {
-    if (gfxDriver == NULL)
-        return NULL;
+    if (gfxDriver == nullptr)
+        return nullptr;
 
     return gfxDriver->GetDriverID();
 }
@@ -187,20 +187,20 @@ BITMAP *IAGSEngine::GetScreen ()
         quit("!This plugin requires software graphics driver.");
 
     Bitmap *buffer = gfxDriver->GetMemoryBackBuffer();
-    return buffer ? (BITMAP*)buffer->GetAllegroBitmap() : NULL;
+    return buffer ? (BITMAP*)buffer->GetAllegroBitmap() : nullptr;
 }
 
 BITMAP *IAGSEngine::GetVirtualScreen () 
 {
     Bitmap *stage = gfxDriver->GetStageBackBuffer();
-    return stage ? (BITMAP*)stage->GetAllegroBitmap() : NULL;
+    return stage ? (BITMAP*)stage->GetAllegroBitmap() : nullptr;
 }
 
 void IAGSEngine::RequestEventHook (int32 event) {
     if (event >= AGSE_TOOHIGH) 
         quit("!IAGSEngine::RequestEventHook: invalid event requested");
 
-    if (plugins[this->pluginId].onEvent == NULL)
+    if (plugins[this->pluginId].onEvent == nullptr)
         quit("!IAGSEngine::RequestEventHook: no callback AGS_EngineOnEvent function exported from plugin");
 
     if ((event & AGSE_SCRIPTDEBUG) &&
@@ -225,7 +225,7 @@ void IAGSEngine::UnrequestEventHook(int32 event) {
         (plugins[this->pluginId].wantHook & AGSE_SCRIPTDEBUG)) {
             pluginsWantingDebugHooks--;
             if (pluginsWantingDebugHooks < 1)
-                ccSetDebugHook(NULL);
+                ccSetDebugHook(nullptr);
     }
 
     plugins[this->pluginId].wantHook &= ~event;
@@ -253,11 +253,11 @@ void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text
 }
 
 void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth) {
-    if (width != NULL)
+    if (width != nullptr)
         width[0] = play.GetMainViewport().GetWidth();
-    if (height != NULL)
+    if (height != nullptr)
         height[0] = play.GetMainViewport().GetHeight();
-    if (coldepth != NULL)
+    if (coldepth != nullptr)
         coldepth[0] = scsystem.coldepth;
 }
 
@@ -305,14 +305,14 @@ BITMAP *IAGSEngine::GetBackgroundScene (int32 index) {
     return (BITMAP*)thisroom.BgFrames[index].Graphic->GetAllegroBitmap();
 }
 void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth) {
-    if (bmp == NULL)
+    if (bmp == nullptr)
         return;
 
-    if (width != NULL)
+    if (width != nullptr)
         width[0] = bmp->w;
-    if (height != NULL)
+    if (height != nullptr)
         height[0] = bmp->h;
-    if (coldepth != NULL)
+    if (coldepth != nullptr)
         coldepth[0] = bitmap_color_depth(bmp);
 }
 
@@ -385,7 +385,7 @@ void IAGSEngine::SetVirtualScreen (BITMAP *bmp)
     else
     {
         glVirtualScreenWrap.Destroy();
-        gfxDriver->SetMemoryBackBuffer(NULL);
+        gfxDriver->SetMemoryBackBuffer(nullptr);
     }
 }
 
@@ -510,7 +510,7 @@ BITMAP *IAGSEngine::GetRoomMask (int32 index) {
         return (BITMAP*)thisroom.RegionMask->GetAllegroBitmap();
     else
         quit("!IAGSEngine::GetRoomMask: invalid mask requested");
-    return NULL;
+    return nullptr;
 }
 AGSViewFrame *IAGSEngine::GetViewFrame (int32 view, int32 loop, int32 frame) {
     view--;
@@ -519,7 +519,7 @@ AGSViewFrame *IAGSEngine::GetViewFrame (int32 view, int32 loop, int32 frame) {
     if ((loop < 0) || (loop >= views[view].numLoops))
         quit("!IAGSEngine::GetViewFrame: invalid loop");
     if ((frame < 0) || (frame >= views[view].loops[loop].numFrames))
-        return NULL;
+        return nullptr;
 
     return (AGSViewFrame*)&views[view].loops[loop].frames[frame];
 }
@@ -560,14 +560,14 @@ int IAGSEngine::GetSpriteHeight (int32 slot) {
 }
 void IAGSEngine::GetTextExtent (int32 font, const char *text, int32 *width, int32 *height) {
     if ((font < 0) || (font >= game.numfonts)) {
-        if (width != NULL) width[0] = 0;
-        if (height != NULL) height[0] = 0;
+        if (width != nullptr) width[0] = 0;
+        if (height != nullptr) height[0] = 0;
         return;
     }
 
-    if (width != NULL)
+    if (width != nullptr)
         width[0] = wgettextwidth_compensate (text, font);
-    if (height != NULL)
+    if (height != nullptr)
         height[0] = wgettextheight ((char*)text, font);
 }
 void IAGSEngine::PrintDebugConsole (const char *text) {
@@ -579,7 +579,7 @@ int IAGSEngine::IsChannelPlaying (int32 channel) {
 }
 void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume, int32 loop, const char *filename) {
     stop_and_destroy_channel (channel);
-    SOUNDCLIP *newcha = NULL;
+    SOUNDCLIP *newcha = nullptr;
 
     if (((soundType == PSND_MP3STREAM) || (soundType == PSND_OGGSTREAM)) 
         && (loop != 0))
@@ -622,7 +622,7 @@ void IAGSEngine::MarkRegionDirty(int32 left, int32 top, int32 right, int32 botto
 }
 AGSMouseCursor * IAGSEngine::GetMouseCursor(int32 cursor) {
     if ((cursor < 0) || (cursor >= game.numcursors))
-        return NULL;
+        return nullptr;
 
     return (AGSMouseCursor*)&game.mcurs[cursor];
 }
@@ -662,7 +662,7 @@ int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
 
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, coldepth);
-    if (newPic == NULL)
+    if (newPic == nullptr)
         return 0;
 
     // add it into the sprite set
@@ -683,7 +683,7 @@ void IAGSEngine::DisableSound() {
     shutdown_sound();
     usetup.digicard = DIGI_NONE;
     usetup.midicard = MIDI_NONE;
-    install_sound(usetup.digicard,usetup.midicard,NULL);
+    install_sound(usetup.digicard,usetup.midicard,nullptr);
 }
 int IAGSEngine::CanRunScriptFunctionNow() {
     if (inside_script)
@@ -710,16 +710,16 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot) {
     for (ff = 0; ff < game.numcharacters; ff++) {
         if ((charcache[ff].inUse) && (charcache[ff].sppic == slot)) {
             delete charcache[ff].image;
-            charcache[ff].image = NULL;
+            charcache[ff].image = nullptr;
             charcache[ff].inUse = 0;
         }
     }
 
     // clear the object cache
     for (ff = 0; ff < MAX_ROOM_OBJECTS; ff++) {
-        if ((objcache[ff].image != NULL) && (objcache[ff].sppic == slot)) {
+        if ((objcache[ff].image != nullptr) && (objcache[ff].sppic == slot)) {
             delete objcache[ff].image;
-            objcache[ff].image = NULL;
+            objcache[ff].image = nullptr;
         }
     }
 }
@@ -754,7 +754,7 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
     if (numPluginReaders >= MAX_PLUGIN_OBJECT_READERS) 
         quit("Plugin error: IAGSEngine::AddObjectReader: Too many object readers added");
 
-    if ((typeName == NULL) || (typeName[0] == 0))
+    if ((typeName == nullptr) || (typeName[0] == 0))
         quit("Plugin error: IAGSEngine::AddObjectReader: invalid name for type");
 
     for (int ii = 0; ii < numPluginReaders; ii++) {
@@ -858,16 +858,16 @@ IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRender
 
 void pl_stop_plugins() {
     int a;
-    ccSetDebugHook(NULL);
+    ccSetDebugHook(nullptr);
 
     for (a = 0; a < numPlugins; a++) {
         if (plugins[a].available) {
-            if (plugins[a].engineShutdown != NULL)
+            if (plugins[a].engineShutdown != nullptr)
                 plugins[a].engineShutdown();
             plugins[a].wantHook = 0;
             if (plugins[a].savedata) {
                 free(plugins[a].savedata);
-                plugins[a].savedata = NULL;
+                plugins[a].savedata = nullptr;
             }
             if (!plugins[a].builtin) {
               plugins[a].library.Unload();
@@ -912,7 +912,7 @@ int pl_run_plugin_debug_hooks (const char *scriptfile, int linenum) {
 void pl_run_plugin_init_gfx_hooks (const char *driverName, void *data) {
     for (int i = 0; i < numPlugins; i++) 
     {
-        if (plugins[i].initGfxHook != NULL)
+        if (plugins[i].initGfxHook != nullptr)
         {
             plugins[i].initGfxHook(driverName, data);
         }
@@ -1054,13 +1054,13 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         {
           AGS::Common::Debug::Printf(kDbgMsg_Init, "Plugin '%s' loading succeeded, resolving imports...", apl->filename);
 
-          if (apl->library.GetFunctionAddress("AGS_PluginV2") == NULL) {
+          if (apl->library.GetFunctionAddress("AGS_PluginV2") == nullptr) {
               quitprintf("Plugin '%s' is an old incompatible version.", apl->filename);
           }
           apl->engineStartup = (void(*)(IAGSEngine*))apl->library.GetFunctionAddress("AGS_EngineStartup");
           apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
 
-          if (apl->engineStartup == NULL) {
+          if (apl->engineStartup == nullptr) {
               quitprintf("Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
           }
           apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");

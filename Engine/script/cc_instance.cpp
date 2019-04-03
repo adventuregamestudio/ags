@@ -199,7 +199,7 @@ ccInstance *ccInstance::GetCurrentInstance()
 
 ccInstance *ccInstance::CreateFromScript(PScript scri)
 {
-    return CreateEx(scri, NULL);
+    return CreateEx(scri, nullptr);
 }
 
 ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
@@ -209,7 +209,7 @@ ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
     if (!cinst->_Create(scri, joined))
     {
         delete cinst;
-        return NULL;
+        return nullptr;
     }
 
     return cinst;
@@ -218,27 +218,27 @@ ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
 ccInstance::ccInstance()
 {
     flags               = 0;
-    globaldata          = NULL;
+    globaldata          = nullptr;
     globaldatasize      = 0;
-    code                = NULL;
-    runningInst         = NULL;
+    code                = nullptr;
+    runningInst         = nullptr;
     codesize            = 0;
-    strings             = NULL;
+    strings             = nullptr;
     stringssize         = 0;
-    exports             = NULL;
-    stack               = NULL;
+    exports             = nullptr;
+    stack               = nullptr;
     num_stackentries    = 0;
-    stackdata           = NULL;
+    stackdata           = nullptr;
     stackdatasize       = 0;
-    stackdata_ptr       = NULL;
+    stackdata_ptr       = nullptr;
     pc                  = 0;
     line_number         = 0;
     callStackSize       = 0;
     loadedInstanceId    = 0;
     returnValue         = 0;
     numimports = 0;
-    resolved_imports = NULL;
-    code_fixups         = NULL;
+    resolved_imports = nullptr;
+    code_fixups         = nullptr;
 
     memset(callStackLineNumber, 0, sizeof(callStackLineNumber));
     memset(callStackAddr, 0, sizeof(callStackAddr));
@@ -257,13 +257,13 @@ ccInstance *ccInstance::Fork()
 
 void ccInstance::Abort()
 {
-    if ((this != NULL) && (pc != 0))
+    if ((this != nullptr) && (pc != 0))
         flags |= INSTF_ABORTED;
 }
 
 void ccInstance::AbortAndDestroy()
 {
-    if (this != NULL) {
+    if (this != nullptr) {
         Abort();
         flags |= INSTF_FREE;
     }
@@ -345,7 +345,7 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     flags &= ~INSTF_ABORTED;
 
     // object pointer needs to start zeroed
-    registers[SREG_OP].SetDynamicObject(0, NULL);
+    registers[SREG_OP].SetDynamicObject(nullptr, nullptr);
 
     ccInstance* currentInstanceWas = current_instance;
     registers[SREG_SP].SetStackPtr( &stack[0] );
@@ -376,7 +376,7 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     pool.RunGarbageCollectionIfAppropriate();
 
     if (new_line_hook)
-        new_line_hook(NULL, 0);
+        new_line_hook(nullptr, 0);
 
     if (reterr)
         return -6;
@@ -887,7 +887,7 @@ int ccInstance::Run(int32_t curpc)
       case SCMD_MEMWRITEPTR: {
 
           int32_t handle = registers[SREG_MAR].ReadInt32();
-          char *address = NULL;
+          char *address = nullptr;
 
           if (reg1.Type == kScValStaticArray && reg1.StcArr->GetDynamicManager())
           {
@@ -921,7 +921,7 @@ int ccInstance::Run(int32_t curpc)
           break;
                              }
       case SCMD_MEMINITPTR: { 
-          char *address = NULL;
+          char *address = nullptr;
 
           if (reg1.Type == kScValStaticArray && reg1.StcArr->GetDynamicManager())
           {
@@ -967,7 +967,7 @@ int ccInstance::Run(int32_t curpc)
           // CHECKME!! what type of data may reg1 point to?
           pool.disableDisposeForObject = (const char*)registers[SREG_AX].Ptr;
           ccReleaseObjectReference(handle);
-          pool.disableDisposeForObject = NULL;
+          pool.disableDisposeForObject = nullptr;
           registers[SREG_MAR].WriteInt32(0);
           break;
                               }
@@ -1077,7 +1077,7 @@ int ccInstance::Run(int32_t curpc)
               }
               else
               {
-                  int_ret_val = call_function((intptr_t)reg1.Ptr, NULL, num_args_to_func, func_callstack.GetHead() + 1);
+                  int_ret_val = call_function((intptr_t)reg1.Ptr, nullptr, num_args_to_func, func_callstack.GetHead() + 1);
               }
 
               if (GlobalReturnValue.IsValid())
@@ -1267,7 +1267,7 @@ int ccInstance::Run(int32_t curpc)
           }
           break;
       case SCMD_CREATESTRING:
-          if (stringClassImpl == NULL) {
+          if (stringClassImpl == nullptr) {
               cc_error("No string class implementation set, but opcode was used");
               return -1;
           }
@@ -1399,15 +1399,15 @@ bool ccInstance::_Create(PScript scri, ccInstance * joined)
 {
     int i;
     currentline = -1;
-    if ((scri == NULL) && (joined != NULL))
+    if ((scri == nullptr) && (joined != nullptr))
         scri = joined->instanceof;
 
-    if (scri == NULL) {
+    if (scri == nullptr) {
         cc_error("null pointer passed");
         return false;
     }
 
-    if (joined != NULL) {
+    if (joined != nullptr) {
         // share memory space with an existing instance (ie. this is a thread/fork)
         globalvars = joined->globalvars;
         globaldatasize = joined->globaldatasize;
@@ -1420,7 +1420,7 @@ bool ccInstance::_Create(PScript scri, ccInstance * joined)
         // NOTE: globalvars are created in CreateGlobalVars()
         globalvars.reset(new ScVarMap());
         globaldatasize = scri->globaldatasize;
-        globaldata = NULL;
+        globaldata = nullptr;
         if (globaldatasize > 0)
         {
             globaldata = (char *)malloc(globaldatasize);
@@ -1428,7 +1428,7 @@ bool ccInstance::_Create(PScript scri, ccInstance * joined)
         }
 
         codesize = scri->codesize;
-        code = NULL;
+        code = nullptr;
         if (codesize > 0)
         {
             code = (intptr_t*)malloc(codesize * sizeof(intptr_t));
@@ -1449,14 +1449,14 @@ bool ccInstance::_Create(PScript scri, ccInstance * joined)
     num_stackentries = CC_STACK_SIZE;
     stack       = new RuntimeScriptValue[num_stackentries];
     stackdata   = new char[stackdatasize];
-    if (stack == NULL || stackdata == NULL) {
+    if (stack == nullptr || stackdata == nullptr) {
         cc_error("not enough memory to allocate stack");
         return false;
     }
 
     // find a LoadedInstance slot for it
     for (i = 0; i < MAX_LOADED_INSTANCES; i++) {
-        if (loadedInstances[i] == NULL) {
+        if (loadedInstances[i] == nullptr) {
             loadedInstances[i] = this;
             loadedInstanceId = i;
             break;
@@ -1521,7 +1521,7 @@ bool ccInstance::_Create(PScript scri, ccInstance * joined)
     instanceof = scri;
     pc = 0;
     flags = 0;
-    if (joined != NULL)
+    if (joined != nullptr)
         flags = INSTF_SHAREDATA;
     scri->instances++;
 
@@ -1539,7 +1539,7 @@ bool ccInstance::_Create(PScript scri, ccInstance * joined)
 
 void ccInstance::Free()
 {
-    if (instanceof != NULL) {
+    if (instanceof != nullptr) {
         instanceof->instances--;
         if (instanceof->instances == 0)
         {
@@ -1549,7 +1549,7 @@ void ccInstance::Free()
 
     // remove from the Active Instances list
     if (loadedInstances[loadedInstanceId] == this)
-        loadedInstances[loadedInstanceId] = NULL;
+        loadedInstances[loadedInstanceId] = nullptr;
 
     if ((flags & INSTF_SHAREDATA) == 0)
     {
@@ -1557,24 +1557,24 @@ void ccInstance::Free()
         nullfree(code);
     }
     globalvars.reset();
-    globaldata = NULL;
-    code = NULL;
-    strings = NULL;
+    globaldata = nullptr;
+    code = nullptr;
+    strings = nullptr;
 
     delete [] stack;
     delete [] stackdata;
     delete [] exports;
-    stack = NULL;
-    stackdata = NULL;
-    exports = NULL;
+    stack = nullptr;
+    stackdata = nullptr;
+    exports = nullptr;
 
     if ((flags & INSTF_SHAREDATA) == 0)
     {
         delete [] resolved_imports;
         delete [] code_fixups;
     }
-    resolved_imports = NULL;
-    code_fixups = NULL;
+    resolved_imports = nullptr;
+    code_fixups = nullptr;
 }
 
 bool ccInstance::ResolveScriptImports(PScript scri)
@@ -1592,14 +1592,14 @@ bool ccInstance::ResolveScriptImports(PScript scri)
     numimports = scri->numimports;
     if (numimports == 0)
     {
-        resolved_imports = NULL;
+        resolved_imports = nullptr;
         return false;
     }
     resolved_imports = new int[numimports];
 
     for (int i = 0; i < scri->numimports; ++i) {
         // MACPORT FIX 9/6/5: changed from NULL TO 0
-        if (scri->imports[i] == 0) {
+        if (scri->imports[i] == nullptr) {
             continue;
         }
 
@@ -1703,7 +1703,7 @@ ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr)
         Debug::Printf(kDbgMsg_Warn, "WARNING: looking up for global variable beyond allocated buffer (%d, %d)", var_addr, globaldatasize);
     }
     ScVarMap::iterator it = globalvars->find(var_addr);
-    return it != globalvars->end() ? &it->second : NULL;
+    return it != globalvars->end() ? &it->second : nullptr;
 }
 
 bool ccInstance::CreateRuntimeCodeFixups(PScript scri)
@@ -1752,7 +1752,7 @@ bool ccInstance::CreateRuntimeCodeFixups(PScript scri)
                 code[fixup] = import_index;
                 // If the call is to another script function next CALLEXT
                 // must be replaced with CALLAS
-                if (import->InstancePtr != NULL && (code[fixup + 1] & INSTANCE_ID_REMOVEMASK) == SCMD_CALLEXT)
+                if (import->InstancePtr != nullptr && (code[fixup + 1] & INSTANCE_ID_REMOVEMASK) == SCMD_CALLEXT)
                 {
                     code[fixup + 1] = SCMD_CALLAS | (import->InstancePtr->loadedInstanceId << INSTANCE_ID_SHIFT);
                 }

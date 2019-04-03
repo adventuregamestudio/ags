@@ -740,7 +740,7 @@ int IsKeyPressed (int keycode) {
 int SaveScreenShot(const char*namm) {
     char fileName[MAX_PATH];
 
-    if (strchr(namm,'.') == NULL)
+    if (strchr(namm,'.') == nullptr)
         sprintf(fileName, "%s%s.bmp", saveGameDirectory, namm);
     else
         sprintf(fileName, "%s%s", saveGameDirectory, namm);
@@ -889,7 +889,7 @@ void _sc_AbortGame(const char* text) {
 
 int GetGraphicalVariable (const char *varName) {
     InteractionVariable *theVar = FindGraphicalVariable(varName);
-    if (theVar == NULL) {
+    if (theVar == nullptr) {
         quitprintf("!GetGraphicalVariable: interaction variable '%s' not found", varName);
         return 0;
     }
@@ -898,7 +898,7 @@ int GetGraphicalVariable (const char *varName) {
 
 void SetGraphicalVariable (const char *varName, int p_value) {
     InteractionVariable *theVar = FindGraphicalVariable(varName);
-    if (theVar == NULL) {
+    if (theVar == nullptr) {
         quitprintf("!SetGraphicalVariable: interaction variable '%s' not found", varName);
     }
     else

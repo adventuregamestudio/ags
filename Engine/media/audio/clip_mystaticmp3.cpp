@@ -122,7 +122,7 @@ int MYSTATICMP3::get_voice()
     if (!is_playing()) { return -1; }
 	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     AUDIOSTREAM *ast = almp3_get_audiostream_mp3(tune);
-	return (ast != NULL ? ast->voice : -1);
+	return (ast != nullptr ? ast->voice : -1);
 }
 
 int MYSTATICMP3::get_sound_type() {
@@ -149,8 +149,8 @@ int MYSTATICMP3::play() {
 }
 
 MYSTATICMP3::MYSTATICMP3() : SOUNDCLIP() {
-    tune = NULL;
-    mp3buffer = NULL;
+    tune = nullptr;
+    mp3buffer = nullptr;
 }
 
 #endif // !NO_MP3_PLAYER

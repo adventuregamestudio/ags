@@ -156,10 +156,10 @@ void engine_post_gfxmode_driver_setup()
 // Reset gfx driver callbacks
 void engine_pre_gfxmode_driver_cleanup()
 {
-    gfxDriver->SetCallbackForPolling(NULL);
-    gfxDriver->SetCallbackToDrawScreen(NULL);
-    gfxDriver->SetCallbackForNullSprite(NULL);
-    gfxDriver->SetMemoryBackBuffer(NULL);
+    gfxDriver->SetCallbackForPolling(nullptr);
+    gfxDriver->SetCallbackToDrawScreen(nullptr);
+    gfxDriver->SetCallbackForNullSprite(nullptr);
+    gfxDriver->SetMemoryBackBuffer(nullptr);
 }
 
 // Setup virtual screen
@@ -181,7 +181,7 @@ void engine_pre_gfxmode_screen_cleanup()
 void engine_pre_gfxsystem_screen_destroy()
 {
     delete sub_vscreen;
-    sub_vscreen = NULL;
+    sub_vscreen = nullptr;
 }
 
 // Setup color conversion parameters

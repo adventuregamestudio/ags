@@ -793,7 +793,7 @@ void Raycast_Render (int slot)
 	int32 w=sWidth,h=sHeight;
 	BITMAP *screen = engine->GetSpriteGraphic (slot);
 	if (!screen) engine->AbortGame ("Raycast_Render: No valid sprite to draw on.");
-	engine->GetBitmapDimensions (screen,&w,&h,NULL);
+	engine->GetBitmapDimensions (screen,&w,&h,nullptr);
 	BITMAP *sbBm = engine->GetSpriteGraphic (skybox);
 	if (!sbBm) engine->AbortGame ("Raycast_Render: No valid skybox sprite.");
 	if (skybox > 0)
@@ -1410,7 +1410,7 @@ void Raycast_Render (int slot)
 			else if (sprdeg > 247 && sprdeg < 293) loop = 2;
 			else if (sprdeg > 292 && sprdeg < 337) loop = 4;
 			AGSViewFrame *vf = engine->GetViewFrame (sprite[spriteOrder[i]].view,loop,sprite[spriteOrder[i]].frame);
-			if (vf == NULL) engine->AbortGame ("Raycast_Render: Unable to load viewframe of sprite.");
+			if (vf == nullptr) engine->AbortGame ("Raycast_Render: Unable to load viewframe of sprite.");
 			else
 			{
 				sprite[spriteOrder[i]].texture = vf->pic;

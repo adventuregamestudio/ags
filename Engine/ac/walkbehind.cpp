@@ -27,8 +27,8 @@ extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 
 
-char *walkBehindExists = NULL;  // whether a WB area is in this column
-int *walkBehindStartY = NULL, *walkBehindEndY = NULL;
+char *walkBehindExists = nullptr;  // whether a WB area is in this column
+int *walkBehindStartY = nullptr, *walkBehindEndY = nullptr;
 char noWalkBehindsAtAll = 0;
 int walkBehindLeft[MAX_WALK_BEHINDS], walkBehindTop[MAX_WALK_BEHINDS];
 int walkBehindRight[MAX_WALK_BEHINDS], walkBehindBottom[MAX_WALK_BEHINDS];
@@ -67,7 +67,7 @@ void update_walk_behind_images()
 
       update_polled_stuff_if_runtime();
 
-      if (walkBehindBitmap[ee] != NULL)
+      if (walkBehindBitmap[ee] != nullptr)
       {
         gfxDriver->DestroyDDB(walkBehindBitmap[ee]);
       }
@@ -101,10 +101,10 @@ void recache_walk_behinds () {
     walkBehindRight[ee] = 0;
     walkBehindBottom[ee] = 0;
 
-    if (walkBehindBitmap[ee] != NULL)
+    if (walkBehindBitmap[ee] != nullptr)
     {
       gfxDriver->DestroyDDB(walkBehindBitmap[ee]);
-      walkBehindBitmap[ee] = NULL;
+      walkBehindBitmap[ee] = nullptr;
     }
   }
 

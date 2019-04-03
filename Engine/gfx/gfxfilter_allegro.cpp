@@ -26,10 +26,10 @@ using namespace Common;
 const GfxFilterInfo AllegroGfxFilter::FilterInfo = GfxFilterInfo("StdScale", "Nearest-neighbour");
 
 AllegroGfxFilter::AllegroGfxFilter()
-    : realScreen(NULL)
-    , virtualScreen(NULL)
-    , realScreenSizedBuffer(NULL)
-    , lastBlitFrom(NULL)
+    : realScreen(nullptr)
+    , virtualScreen(nullptr)
+    , realScreenSizedBuffer(nullptr)
+    , lastBlitFrom(nullptr)
     , lastBlitX(0)
     , lastBlitY(0)
 {
@@ -50,7 +50,7 @@ Bitmap* AllegroGfxFilter::InitVirtualScreen(Bitmap *screen, const Size src_size,
     if (src_size == dst_rect.GetSize() && dst_rect.Top == 0 && dst_rect.Left == 0)
     {
         // Speed up software rendering if no scaling is performed
-        realScreenSizedBuffer = NULL;
+        realScreenSizedBuffer = nullptr;
         virtualScreen = realScreen;
     }
     else
@@ -66,10 +66,10 @@ Bitmap *AllegroGfxFilter::ShutdownAndReturnRealScreen()
     if (virtualScreen != realScreen)
         delete virtualScreen;
     delete realScreenSizedBuffer;
-    virtualScreen = NULL;
-    realScreenSizedBuffer = NULL;
+    virtualScreen = nullptr;
+    realScreenSizedBuffer = nullptr;
     Bitmap *real_scr = realScreen;
-    realScreen = NULL;
+    realScreen = nullptr;
     return real_scr;
 }
 

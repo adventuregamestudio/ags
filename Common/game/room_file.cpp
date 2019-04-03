@@ -84,7 +84,7 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
     src = RoomDataSource();
     // Try to open room file
     Stream *in = AssetManager::OpenAsset(filename);
-    if (in == NULL)
+    if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     // Read room header
     src.Filename = filename;
@@ -376,7 +376,7 @@ HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_
 
     update_polled_stuff_if_runtime();
     // Primary background
-    Bitmap *mask = NULL;
+    Bitmap *mask = nullptr;
     if (data_ver >= kRoomVersion_pre114_5)
         load_lzw(in, &mask, room->BackgroundBPP, room->Palette);
     else
@@ -394,7 +394,7 @@ HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_
         // an old version - clear the 'shadow' area into a blank regions bmp
         loadcompressed_allegro(in, &mask, room->Palette);
         delete mask;
-        mask = NULL;
+        mask = nullptr;
     }
     room->RegionMask.reset(mask);
     update_polled_stuff_if_runtime();
@@ -425,7 +425,7 @@ HRoomFileError ReadScriptBlock(char *&buf, Stream *in, RoomFileVersion data_ver)
 HRoomFileError ReadCompSc3Block(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
     room->CompiledScript.reset(ccScript::CreateFromStream(in));
-    if (room->CompiledScript == NULL)
+    if (room->CompiledScript == nullptr)
         return new RoomFileError(kRoomFileErr_ScriptLoadFailed, ccErrorString);
     return HRoomFileError::None();
 }
@@ -483,7 +483,7 @@ HRoomFileError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion dat
     for (size_t i = 1; i < room->BgFrameCount; ++i)
     {
         update_polled_stuff_if_runtime();
-        Bitmap *frame = NULL;
+        Bitmap *frame = nullptr;
         load_lzw(in, &frame, room->BackgroundBPP, room->BgFrames[i].Palette);
         room->BgFrames[i].Graphic.reset(frame);
     }
@@ -756,7 +756,7 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
         block = (RoomFileBlock)b;
         if (block == kRoomFblk_Script)
         {
-            char *buf = NULL;
+            char *buf = nullptr;
             HRoomFileError err = ReadScriptBlock(buf, in, data_ver);
             if (err)
             {

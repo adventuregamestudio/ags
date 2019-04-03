@@ -425,8 +425,8 @@ void check_keyboard_controls()
                 sprintf(&infobuf[strlen(infobuf)],
                     "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
                     ff, objs[ff].x, objs[ff].y,
-                    (spriteset[objs[ff].num] != NULL) ? game.SpriteInfos[objs[ff].num].Width : 0,
-                    (spriteset[objs[ff].num] != NULL) ? game.SpriteInfos[objs[ff].num].Height : 0,
+                    (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Width : 0,
+                    (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Height : 0,
                     objs[ff].on,
                     (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
                     objs[ff].num, objs[ff].transparent,
@@ -944,7 +944,7 @@ void RunGameUntilAborted()
         GameTick();
 
         if (load_new_game) {
-            RunAGSGame (NULL, load_new_game, 0);
+            RunAGSGame (nullptr, load_new_game, 0);
             load_new_game = 0;
         }
     }

@@ -146,11 +146,11 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
 void remove_screen_overlay_index(int cc) {
     int dd;
     delete screenover[cc].pic;
-    screenover[cc].pic=NULL;
+    screenover[cc].pic=nullptr;
 
-    if (screenover[cc].bmp != NULL)
+    if (screenover[cc].bmp != nullptr)
         gfxDriver->DestroyDDB(screenover[cc].bmp);
-    screenover[cc].bmp = NULL;
+    screenover[cc].bmp = nullptr;
 
     if (screenover[cc].type==OVER_COMPLETE) is_complete_overlay--;
     if (screenover[cc].type==OVER_TEXTMSG) is_text_overlay--;
@@ -267,7 +267,7 @@ void recreate_overlay_ddbs()
         if (screenover[i].pic)
             screenover[i].bmp = gfxDriver->CreateDDBFromBitmap(screenover[i].pic, false);
         else
-            screenover[i].bmp = NULL;
+            screenover[i].bmp = nullptr;
     }
 }
 

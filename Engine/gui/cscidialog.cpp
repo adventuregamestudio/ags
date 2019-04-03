@@ -142,7 +142,7 @@ void CSCIEraseWindow(int handl)
 int CSCIWaitMessage(CSCIMessage * cscim)
 {
     for (int uu = 0; uu < MAXCONTROLS; uu++) {
-        if (vobjs[uu] != NULL) {
+        if (vobjs[uu] != nullptr) {
             //      ags_domouse(DOMOUSE_DISABLE);
             vobjs[uu]->drawifneeded();
             //      ags_domouse(DOMOUSE_ENABLE);
@@ -206,7 +206,7 @@ int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const 
     multiply_up(&xx, &yy, &wii, &hii);
     int usec = -1;
     for (int hh = 1; hh < MAXCONTROLS; hh++) {
-        if (vobjs[hh] == NULL) {
+        if (vobjs[hh] == nullptr) {
             usec = hh;
             break;
         }
@@ -242,12 +242,12 @@ int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const 
 void CSCIDeleteControl(int haa)
 {
     delete vobjs[haa];
-    vobjs[haa] = NULL;
+    vobjs[haa] = nullptr;
 }
 
 int CSCISendControlMessage(int haa, int mess, int wPar, long lPar)
 {
-    if (vobjs[haa] == NULL)
+    if (vobjs[haa] == nullptr)
         return -1;
     return vobjs[haa]->processmessage(mess, wPar, lPar);
 }
@@ -288,7 +288,7 @@ int checkcontrols()
 
     smcode = 0;
     for (int kk = 0; kk < MAXCONTROLS; kk++) {
-        if (vobjs[kk] != NULL) {
+        if (vobjs[kk] != nullptr) {
             if (vobjs[kk]->mouseisinarea(mousex, mousey)) {
                 controlid = kk;
                 return vobjs[kk]->pressedon(mousex, mousey);
@@ -301,7 +301,7 @@ int checkcontrols()
 int finddefaultcontrol(int flagmask)
 {
     for (int ff = 0; ff < MAXCONTROLS; ff++) {
-        if (vobjs[ff] == NULL)
+        if (vobjs[ff] == nullptr)
             continue;
 
         if (vobjs[ff]->wlevel != topwindowhandle)

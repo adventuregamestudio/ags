@@ -36,7 +36,7 @@ void ProxyStream::Close()
     {
         delete _stream;
     }
-    _stream = NULL;
+    _stream = nullptr;
 }
 
 bool ProxyStream::Flush()

@@ -1028,7 +1028,7 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
-bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
+bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   // Currently don't support copying in screen resolution when we are rendering in native
   if (!_renderSprAtScreenRes)
@@ -1036,8 +1036,8 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   Size need_size = at_native_res ? _srcRect.GetSize() : _dstRect.GetSize();
   if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
   {
-    if (want_size)
-      *want_size = need_size;
+    if (want_fmt)
+      *want_fmt = GraphicResolution(need_size.Width, need_size.Height, _mode.ColorDepth);
     return false;
   }
   // If we are rendering sprites at the screen resolution, and requested native res,

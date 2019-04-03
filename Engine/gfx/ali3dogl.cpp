@@ -1088,15 +1088,21 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
-bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
+bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   (void)at_native_res; // TODO: support this at some point
 
+  // TODO: follow implementation currently only reads GL pixels in 32-bit RGBA.
+  // this **should** work regardless of actual display mode because OpenGL is
+  // responsible to convert and fill pixel buffer correctly.
+  // If you like to support writing directly into 16-bit bitmap, please take
+  // care of ammending the pixel reading code below.
+  const int read_in_colordepth = 32;
   Size need_size = _do_render_to_texture ? _backRenderSize : _dstRect.GetSize();
-  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
+  if (destination->GetColorDepth() != read_in_colordepth || destination->GetSize() != need_size)
   {
-    if (want_size)
-      *want_size = need_size;
+    if (want_fmt)
+      *want_fmt = GraphicResolution(need_size.Width, need_size.Height, read_in_colordepth);
     return false;
   }
 
@@ -1116,7 +1122,7 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     retr_rect = _dstRect;
   }
 
-  int bpp = _mode.ColorDepth / 8;
+  int bpp = read_in_colordepth / 8;
   int bufferSize = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
 
   unsigned char* buffer = new unsigned char[bufferSize];

@@ -374,12 +374,12 @@ PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
 Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
 {
     Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
-    Size want_size;
+    GraphicResolution want_fmt;
     // If the size and color depth are supported we may copy right into our bitmap
-    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_size))
+    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_fmt))
         return dst;
     // Otherwise we might need to copy between few bitmaps...
-    Bitmap *buf_screenfmt = new Bitmap(want_size.Width, want_size.Height, gfxDriver->GetDisplayMode().ColorDepth);
+    Bitmap *buf_screenfmt = new Bitmap(want_fmt.Width, want_fmt.Height, want_fmt.ColorDepth);
     gfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt, at_native_res);
     // If at least size matches then we may blit
     if (dst->GetSize() == buf_screenfmt->GetSize())

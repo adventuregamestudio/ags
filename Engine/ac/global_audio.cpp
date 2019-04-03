@@ -429,13 +429,17 @@ void PlaySilentMIDI (int mnum) {
     play.silent_midi = mnum;
     play.silent_midi_channel = SCHAN_SPEECH;
     stop_and_destroy_channel(play.silent_midi_channel);
+    // No idea why it uses speech voice channel, but since it does (and until this is changed)
+    // we have to correctly reset speech voice in case there was a nonblocking speech
+    if (play.IsNonBlockingVoiceSpeech())
+        stop_voice_nonblocking();
 
-    AudioChannelsLock lock;
     SOUNDCLIP *clip = load_sound_clip_from_old_style_number(true, mnum, false);
     if (clip == nullptr)
     {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
+    AudioChannelsLock lock;
     lock.SetChannel(play.silent_midi_channel, clip);
     if (!clip->play()) {
         clip->destroy();
@@ -455,12 +459,6 @@ void SetSpeechVolume(int newvol) {
     if (ch)
         ch->set_volume (newvol);
     play.speech_volume = newvol;
-}
-
-void __scr_play_speech(int who, int which) {
-    // *** implement this - needs to call stop_voice_speech as well
-    // to reset the volume
-    quit("PlaySpeech not yet implemented");
 }
 
 // 0 = text only
@@ -490,6 +488,15 @@ int IsVoxAvailable() {
 
 int IsMusicVoxAvailable () {
     return play.separate_music_lib;
+}
+
+extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+
+ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
+{
+    if (!play_voice_nonblocking(ch->index_id, sndid, as_speech))
+        return NULL;
+    return &scrAudioChannel[SCHAN_SPEECH];
 }
 
 // Construct an asset name for the voice-over clip for the given character and cue id
@@ -546,16 +553,20 @@ static bool play_voice_clip_on_channel(const String &voice_name)
     }
 
     set_clip_to_channel(SCHAN_SPEECH,speechmp3);
+    return true;
 }
 
 // Play voice-over clip and adjust audio volumes;
 // voice_name should be bare clip name without extension
-static bool play_voice_clip_impl(const String &voice_name)
+static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool is_blocking)
 {
     if (!play_voice_clip_on_channel(voice_name))
         return false;
+    if (!as_speech)
+        return true;
 
     play.speech_has_voice = true;
+    play.speech_voice_blocking = is_blocking;
 
     cancel_scheduled_music_update();
     play.music_vol_was = play.music_master_volume;
@@ -583,13 +594,11 @@ static void stop_voice_clip_impl()
 bool play_voice_speech(int charid, int sndid)
 {
     // don't play speech if we're skipping a cutscene
-    if (play.fast_forward)
-        return false;
-    if ((play.want_speech < 1) || (speech_file.IsEmpty()))
+    if (!play.ShouldPlayVoiceSpeech())
         return false;
 
     String voice_file = get_cue_filename(charid, sndid);
-    if (!play_voice_clip_impl(voice_file))
+    if (!play_voice_clip_impl(voice_file, true, true))
         return false;
 
     int ii;  // Compare the base file name to the .pam file name
@@ -615,6 +624,19 @@ bool play_voice_speech(int charid, int sndid)
     return true;
 }
 
+bool play_voice_nonblocking(int charid, int sndid, bool as_speech)
+{
+    // don't play voice if we're skipping a cutscene
+    if (!play.ShouldPlayVoiceSpeech())
+        return false;
+    // don't play voice if there's a blocking speech with voice-over already
+    if (play.IsBlockingVoiceSpeech())
+        return false;
+
+    String voice_file = get_cue_filename(charid, sndid);
+    return play_voice_clip_impl(voice_file, as_speech, false);
+}
+
 void stop_voice_speech()
 {
     if (!play.speech_has_voice)
@@ -631,4 +653,21 @@ void stop_voice_speech()
         game.options[OPT_SPEECHTYPE] = 2;
     }
     play.speech_has_voice = false;
+    play.speech_voice_blocking = false;
+}
+
+void stop_voice_nonblocking()
+{
+    if (!play.speech_has_voice)
+        return;
+    stop_voice_clip_impl();
+    // Only reset speech flags if we are truly playing a non-blocking voice;
+    // otherwise we might be inside blocking speech function and should let
+    // it keep these flags to be able to finalize properly.
+    // This is an imperfection of current speech implementation.
+    if (!play.speech_voice_blocking)
+    {
+        play.speech_has_voice = false;
+        play.speech_voice_blocking = false;
+    }
 }

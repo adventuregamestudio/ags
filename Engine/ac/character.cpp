@@ -2448,7 +2448,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     Bitmap *closeupface=nullptr;
     // TODO: we always call _display_at later which may also start voice-over;
     // find out if this may be refactored and voice started only in one place.
-    try_auto_play_speech(texx, texx, aschar);
+    try_auto_play_speech(texx, texx, aschar, true);
 
     if (game.options[OPT_SPEECHTYPE] == 3)
         remove_screen_overlay(OVER_COMPLETE);
@@ -2825,7 +2825,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     }
     char_speaking = -1;
     char_thinking = -1;
-    stop_voice_speech();
+    if (play.IsBlockingVoiceSpeech())
+        stop_voice_speech();
 }
 
 int get_character_currently_talking() {

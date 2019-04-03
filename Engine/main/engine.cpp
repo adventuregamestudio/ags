@@ -1145,6 +1145,7 @@ void engine_init_game_settings()
     play.speech_display_post_time_ms = 0;
     play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
     play.speech_has_voice = false;
+    play.speech_voice_blocking = false;
     play.speech_in_post_state = false;
     play.narrator_speech = game.playercharacter;
     play.crossfading_out_channel = 0;

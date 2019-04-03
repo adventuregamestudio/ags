@@ -2533,6 +2533,10 @@ builtin managed struct Game {
   /// Accesses the audio clips collection.
   readonly import static attribute AudioClip *AudioClips[];
 #endif
+#ifdef SCRIPT_API_v350
+  /// Play speech voice-over in non-blocking mode, optionally apply music and sound volume reduction
+  import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
+#endif
 };
 
 builtin struct GameState {

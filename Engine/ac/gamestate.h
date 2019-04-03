@@ -221,8 +221,14 @@ struct GameState {
     //
     // Tells whether there is a voice-over played during current speech
     bool  speech_has_voice;
+    // Tells whether the voice was played in blocking mode;
+    // atm blocking speech handles itself, and we only need to finalize
+    // non-blocking voice speech during game update; speech refactor would be
+    // required to get rid of this rule.
+    bool  speech_voice_blocking;
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
+
 
     GameState();
     // Free game resources
@@ -287,6 +293,13 @@ struct GameState {
     // usually this depends on how the arguments are created (whether they are in "variadic" or true coords)
     VpPoint ScreenToRoom(int scrx, int scry, bool clip_viewport = true);
     VpPoint ScreenToRoomDivDown(int scrx, int scry, bool clip_viewport = true); // native "variadic" coords variant
+
+    // Tells if there's a blocking voice speech playing right now
+    bool IsBlockingVoiceSpeech() const;
+    // Tells whether we have to finalize voice speech when stopping or reusing the channel
+    bool IsNonBlockingVoiceSpeech() const;
+    // Speech helpers
+    bool ShouldPlayVoiceSpeech() const;
 
     // Serialization
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);

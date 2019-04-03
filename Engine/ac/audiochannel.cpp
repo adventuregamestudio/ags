@@ -14,6 +14,7 @@
 
 #include "ac/audiochannel.h"
 #include "ac/gamestate.h"
+#include "ac/global_audio.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
@@ -174,7 +175,10 @@ void AudioChannel_SetSpeed(ScriptAudioChannel *channel, int new_speed)
 
 void AudioChannel_Stop(ScriptAudioChannel *channel)
 {
-    stop_or_fade_out_channel(channel->id, -1, nullptr);
+    if (channel->id == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
+        stop_voice_nonblocking();
+    else
+        stop_or_fade_out_channel(channel->id, -1, nullptr);
 }
 
 void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)

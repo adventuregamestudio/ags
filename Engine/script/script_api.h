@@ -280,6 +280,10 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     ASSERT_PARAM_COUNT(FUNCTION, 1); \
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION(params[0].IValue), &RET_MGR)
 
+#define API_SCALL_OBJ_POBJ_PINT_PBOOL(RET_CLASS, RET_MGR, FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3); \
+    return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, params[1].IValue, params[2].GetAsBool()), &RET_MGR)
+
 #define API_SCALL_OBJ_PINT2(RET_CLASS, RET_MGR, FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 2); \
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION(params[0].IValue, params[1].IValue), &RET_MGR)

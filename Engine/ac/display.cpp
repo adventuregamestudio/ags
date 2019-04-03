@@ -350,7 +350,7 @@ void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch,
 
     EndSkippingUntilCharStops();
 
-    if (try_auto_play_speech(todis, todis, play.narrator_speech))
+    if (try_auto_play_speech(todis, todis, play.narrator_speech, true))
     {// TODO: is there any need for this flag?
         need_stop_speech = true;
     }
@@ -360,7 +360,7 @@ void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch,
         stop_voice_speech();
 }
 
-bool try_auto_play_speech(const char *text, const char *&replace_text, int charid)
+bool try_auto_play_speech(const char *text, const char *&replace_text, int charid, bool blocking)
 {
     const char *src = text;
     if (src[0] != '&')

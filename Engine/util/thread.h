@@ -26,8 +26,8 @@ class BaseThread
 public:
   typedef void(* AGSThreadEntry)();
 
-  BaseThread() { };
-  virtual ~BaseThread() { };
+  BaseThread() = default;
+  virtual ~BaseThread() = default;
 
   BaseThread &operator=(const BaseThread &) = delete;
   BaseThread(const BaseThread &) = delete;

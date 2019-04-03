@@ -143,7 +143,7 @@ struct Pixel32{
       
       public:
              Pixel32();
-             ~Pixel32() {}
+             ~Pixel32() = default;
 			 int GetColorAsInt();
              int Red;
              int Green;

@@ -154,9 +154,7 @@ Weather::Weather(bool IsSnow)
 }
 
 
-Weather::~Weather()
-{
-}
+Weather::~Weather() = default;
 
 
 void Weather::Update()

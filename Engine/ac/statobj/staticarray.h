@@ -24,7 +24,7 @@ struct ICCDynamicObject;
 
 struct StaticArray : public ICCStaticObject {
 public:
-    ~StaticArray() override{}
+    ~StaticArray() override = default;
 
     void Create(int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
     void Create(ICCStaticObject *stcmgr, int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);

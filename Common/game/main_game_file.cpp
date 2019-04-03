@@ -94,9 +94,7 @@ LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dial
 {
 }
 
-LoadedGameEntities::~LoadedGameEntities()
-{
-}
+LoadedGameEntities::~LoadedGameEntities() = default;
 
 bool IsMainGameLibrary(const String &filename)
 {

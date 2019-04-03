@@ -21,7 +21,7 @@
 #include "ac/statobj/staticobject.h"
 
 struct AGSStaticObject : public ICCStaticObject {
-    ~AGSStaticObject() override{}
+    ~AGSStaticObject() override = default;
 
     // Legacy support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;

@@ -19,7 +19,7 @@
 
 struct AGSCCDynamicObject : ICCDynamicObject {
 protected:
-    virtual ~AGSCCDynamicObject(){}
+    virtual ~AGSCCDynamicObject() = default;
 public:
     // default implementation
     int Dispose(const char *address, bool force) override;

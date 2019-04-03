@@ -44,7 +44,7 @@ class GUIObject
 {
 public:
     GUIObject();
-    virtual ~GUIObject(){}
+    virtual ~GUIObject() = default;
     
     String          GetEventArgs(int event) const;
     int             GetEventCount() const;

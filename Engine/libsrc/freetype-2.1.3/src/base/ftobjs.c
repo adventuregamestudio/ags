@@ -798,7 +798,7 @@
   /* there's a Mac-specific extended implementation of FT_New_Face() */
   /* in src/base/ftmac.c                                             */
 
-#ifndef FT_MACINTOSH
+//#ifndef FT_MACINTOSH
 
   /* documentation is in freetype.h */
 
@@ -821,7 +821,7 @@
     return FT_Open_Face( library, &args, face_index, aface );
   }
 
-#endif  /* !FT_MACINTOSH */
+//#endif  /* !FT_MACINTOSH */
 
 
   /* documentation is in freetype.h */

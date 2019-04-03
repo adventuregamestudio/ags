@@ -24,16 +24,16 @@ using namespace AGS::Common;
 
 GameSetupStruct::GameSetupStruct()
     : filever(0)
-    , intrChar(NULL)
-    , charScripts(NULL)
-    , invScripts(NULL)
+    , intrChar(nullptr)
+    , charScripts(nullptr)
+    , invScripts(nullptr)
     , roomCount(0)
-    , roomNumbers(NULL)
-    , roomNames(NULL)
+    , roomNumbers(nullptr)
+    , roomNames(nullptr)
     , audioClipCount(0)
-    , audioClips(NULL)
+    , audioClips(nullptr)
     , audioClipTypeCount(0)
-    , audioClipTypes(NULL)
+    , audioClipTypes(nullptr)
     , scoreClipID(0)
 {
     memset(invinfo, 0, sizeof(invinfo));
@@ -59,7 +59,7 @@ void GameSetupStruct::Free()
         for (int i = 0; i < numcharacters; ++i)
             delete intrChar[i];
         delete[] intrChar;
-        intrChar = NULL;
+        intrChar = nullptr;
     }
 
     if (charScripts)
@@ -67,7 +67,7 @@ void GameSetupStruct::Free()
         for (int i = 0; i < numcharacters; ++i)
             delete charScripts[i];
         delete[] charScripts;
-        charScripts = NULL;
+        charScripts = nullptr;
     }
     numcharacters = 0;
 
@@ -79,7 +79,7 @@ void GameSetupStruct::Free()
         for (int i = 1; i < numinvitems; i++)
             delete invScripts[i];
         delete invScripts;
-        invScripts = NULL;
+        invScripts = nullptr;
     }
     numinvitems = 0;
 
@@ -90,9 +90,9 @@ void GameSetupStruct::Free()
     roomCount = 0;
 
     delete[] audioClips;
-    audioClips = NULL;
+    audioClips = nullptr;
     delete[] audioClipTypes;
-    audioClipTypes = NULL;
+    audioClipTypes = nullptr;
     audioClipCount = 0;
     audioClipTypeCount = 0;
 
@@ -130,7 +130,7 @@ ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_mu
         if (clip_name.Compare(game.audioClips[i].scriptName) == 0)
             return &game.audioClips[i];
     }
-    return NULL;
+    return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -228,8 +228,8 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
     {
         int bb;
 
-        charScripts = NULL;
-        invScripts = NULL;
+        charScripts = nullptr;
+        invScripts = nullptr;
         intrChar = new Interaction*[numcharacters];
 
         for (bb = 0; bb < numcharacters; bb++) {
@@ -313,7 +313,7 @@ void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver
             read_string_decrypt(in, messages[ee], GLOBALMESLENGTH);
     }
     delete [] load_messages;
-    load_messages = NULL;
+    load_messages = nullptr;
 }
 
 void GameSetupStruct::ReadCharacters_Aligned(Stream *in)
@@ -440,7 +440,7 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     ReadInvInfo_Aligned(in);
     ReadMouseCursors_Aligned(in);
 
-    if (invScripts == NULL)
+    if (invScripts == nullptr)
     {
         for (bb = 0; bb < numinvitems; bb++)
             intrInv[bb]->ReadTimesRunFromSavedgame(in);
@@ -501,7 +501,7 @@ void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {
         gss->messages[i] = ogss->messages[i];
     gss->dict = ogss->dict;
     gss->globalscript = ogss->globalscript;
-    gss->chars = NULL; //ogss->chars;
+    gss->chars = nullptr; //ogss->chars;
     gss->compiled_script = ogss->compiled_script;
     gss->numcursors = 10;
 }

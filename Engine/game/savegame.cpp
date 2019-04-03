@@ -168,7 +168,7 @@ Bitmap *RestoreSaveImage(Stream *in)
 {
     if (in->ReadInt32())
         return read_serialized_bitmap(in);
-    return NULL;
+    return nullptr;
 }
 
 void SkipSaveImage(Stream *in)
@@ -336,7 +336,7 @@ HSaveError OpenSavegame(const String &filename, SavegameSource &src, SavegameDes
 
 HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems)
 {
-    return OpenSavegameBase(filename, NULL, &desc, elems);
+    return OpenSavegameBase(filename, nullptr, &desc, elems);
 }
 
 // Prepares engine for actual save restore (stops processes, cleans up memory)
@@ -347,7 +347,7 @@ void DoBeforeRestore(PreservedParams &pp)
 
     unload_old_room();
     delete raw_saved_screen;
-    raw_saved_screen = NULL;
+    raw_saved_screen = nullptr;
     remove_screen_overlay(-1);
     is_complete_overlay = 0;
     is_text_overlay = 0;
@@ -368,37 +368,37 @@ void DoBeforeRestore(PreservedParams &pp)
     for (int i = 0; i < game.numgui; ++i)
     {
         delete guibg[i];
-        guibg[i] = NULL;
+        guibg[i] = nullptr;
 
         if (guibgbmp[i])
             gfxDriver->DestroyDDB(guibgbmp[i]);
-        guibgbmp[i] = NULL;
+        guibgbmp[i] = nullptr;
     }
 
     // preserve script data sizes and cleanup scripts
     pp.GlScDataSize = gameinst->globaldatasize;
     delete gameinstFork;
     delete gameinst;
-    gameinstFork = NULL;
-    gameinst = NULL;
+    gameinstFork = nullptr;
+    gameinst = nullptr;
     pp.ScMdDataSize.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; ++i)
     {
         pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
         delete moduleInstFork[i];
         delete moduleInst[i];
-        moduleInst[i] = NULL;
+        moduleInst[i] = nullptr;
     }
 
     play.FreeProperties();
 
     delete roominstFork;
     delete roominst;
-    roominstFork = NULL;
-    roominst = NULL;
+    roominstFork = nullptr;
+    roominst = nullptr;
 
     delete dialogScriptsInst;
-    dialogScriptsInst = NULL;
+    dialogScriptsInst = nullptr;
 
     resetRoomStatuses();
     troom.FreeScriptData();
@@ -441,7 +441,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // recache queued clips
     for (int i = 0; i < play.new_music_queue_size; ++i)
     {
-        play.new_music_queue[i].cachedClip = NULL;
+        play.new_music_queue[i].cachedClip = nullptr;
     }
 
     // restore these to the ones retrieved from the save game
@@ -489,7 +489,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     // load the room the game was saved in
     if (displayed_room >= 0)
-        load_new_room(displayed_room, NULL);
+        load_new_room(displayed_room, nullptr);
 
     update_polled_stuff_if_runtime();
 
@@ -571,7 +571,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);
 
         auto* ch = lock.GetChannel(i);
-        if (ch != NULL)
+        if (ch != nullptr)
         {
             ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
             ch->set_speed(chan_info.Speed);
@@ -632,7 +632,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         first_room_initialization();
     }
 
-    if ((play.music_queue_size > 0) && (cachedQueuedMusic == NULL))
+    if ((play.music_queue_size > 0) && (cachedQueuedMusic == nullptr))
     {
         cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
     }
@@ -673,7 +673,7 @@ HSaveError RestoreGameState(PStream in, SavegameVersion svg_version)
 void WriteSaveImage(Stream *out, const Bitmap *screenshot)
 {
     // store the screenshot at the start to make it easily accesible
-    out->WriteInt32((screenshot == NULL) ? 0 : 1);
+    out->WriteInt32((screenshot == nullptr) ? 0 : 1);
 
     if (screenshot)
         serialize_bitmap(screenshot, out);

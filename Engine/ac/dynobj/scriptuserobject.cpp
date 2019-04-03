@@ -23,7 +23,7 @@ const char *ScriptUserObject::GetType()
 
 ScriptUserObject::ScriptUserObject()
     : _size(0)
-    , _data(NULL)
+    , _data(nullptr)
 {
 }
 
@@ -35,7 +35,7 @@ ScriptUserObject::~ScriptUserObject()
 /* static */ ScriptUserObject *ScriptUserObject::CreateManaged(size_t size)
 {
     ScriptUserObject *suo = new ScriptUserObject();
-    suo->Create(NULL, size);
+    suo->Create(nullptr, size);
     ccRegisterManagedObject(suo, suo);
     return suo;
 }
@@ -43,7 +43,7 @@ ScriptUserObject::~ScriptUserObject()
 void ScriptUserObject::Create(const char *data, size_t size)
 {
     delete [] _data;
-    _data = NULL;
+    _data = nullptr;
 
     _size = size;
     if (_size > 0)

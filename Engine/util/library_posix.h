@@ -37,7 +37,7 @@ class PosixLibrary : BaseLibrary
 {
 public:
   PosixLibrary()
-    : _library(NULL)
+    : _library(nullptr)
   {
   };
 
@@ -72,9 +72,9 @@ public:
     Unload();
 
     // Try rpath first
-    _library = dlopen(BuildPath(NULL, libraryName).GetCStr(), RTLD_LAZY);
+    _library = dlopen(BuildPath(nullptr, libraryName).GetCStr(), RTLD_LAZY);
     AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
-    if (_library != NULL)
+    if (_library != nullptr)
     {
       return true;
     }
@@ -84,7 +84,7 @@ public:
 
     AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
 
-    if (_library == NULL)
+    if (_library == nullptr)
     {
       // Try the engine directory
 
@@ -99,7 +99,7 @@ public:
       AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
     }
 
-    return (_library != NULL);
+    return (_library != nullptr);
   }
 
   bool Unload() override
@@ -122,7 +122,7 @@ public:
     }
     else
     {
-      return NULL;
+      return nullptr;
     }
   }
 

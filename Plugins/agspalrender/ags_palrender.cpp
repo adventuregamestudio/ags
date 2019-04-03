@@ -601,7 +601,7 @@ FLOAT_RETURN_TYPE AGSFastCos (SCRIPT_FLOAT(x))
 void DrawLens (int ox,int oy)
 {
 	int32 sh,sw=0;
-	engine->GetScreenDimensions (&sw,&sh,NULL);
+	engine->GetScreenDimensions (&sw,&sh,nullptr);
 	BITMAP *virtsc = engine->GetVirtualScreen ();
 	if (!virtsc) engine->AbortGame ("DrawLens: Cannot get virtual screen.");
 	BITMAP *lenswrite = engine->CreateBlankBitmap (LensOption.lenswidth,LensOption.lenswidth,8);
@@ -713,7 +713,7 @@ void LensInitialize (int width, int zoom, int lensx,int lensy,int level,int clam
 		if (width < 1) engine->AbortGame ("Invalid lens dimension!");
 		radius = width>>1;
 		lens = new LensDistort [width*width]();
-		engine->GetScreenDimensions (&sw,&sh,NULL);
+		engine->GetScreenDimensions (&sw,&sh,nullptr);
 		int radsq = radius*radius;
 		int zoomsq = zoom * zoom;
 	    for (int y = 0; y < radius; y++) 
@@ -827,7 +827,7 @@ void DrawPlasma (int slot, int palstart, int palend)
 		range = palstart - palend;
 		basecol = palend;
 	}
-	engine->GetBitmapDimensions (plasmaspr,&w,&h,NULL);
+	engine->GetBitmapDimensions (plasmaspr,&w,&h,nullptr);
 	unsigned char **plasmarray = engine->GetRawBitmapSurface (plasmaspr);
 	double frange = range/2.0;
 	int complex = 0;
@@ -894,7 +894,7 @@ void DoFire (int sprite, int masksprite, int palstart,int palend, int strength, 
 		dir=-1;
 	}
 	int divider = 256/range;
-	engine->GetBitmapDimensions (firespr,&w,&h,NULL);
+	engine->GetBitmapDimensions (firespr,&w,&h,nullptr);
 	unsigned char **fire = engine->GetRawBitmapSurface (firespr);
 	unsigned char **color = engine->GetRawBitmapSurface (firecolorspr);
 	int sparky=0;
@@ -1115,7 +1115,7 @@ void InitializeStars (int slot,int maxstars)
 {
         int32 sw,sh=0;
         BITMAP *canvas = engine->GetSpriteGraphic (slot);
-		engine->GetBitmapDimensions (canvas,&sw,&sh,NULL);
+		engine->GetBitmapDimensions (canvas,&sw,&sh,nullptr);
 		Starfield.maxstars = maxstars;
 		Starfield.overscan = 20;
 		stars = new starstype [Starfield.maxstars];
@@ -1291,7 +1291,7 @@ void DrawStars (int slot, int maskslot)
 		if (!canvas) engine->AbortGame ("DrawStars: Can't load sprite slot.");
 		BITMAP *maskcanvas = engine->GetSpriteGraphic (maskslot);
 		if (!maskcanvas) engine->AbortGame ("DrawStars: Can't load mask slot.");
-		engine->GetBitmapDimensions (canvas,&sw,&sh,NULL);
+		engine->GetBitmapDimensions (canvas,&sw,&sh,nullptr);
         unsigned char** screenarray = engine->GetRawBitmapSurface (canvas);
 		unsigned char** maskarray = engine->GetRawBitmapSurface (maskcanvas);
 		for (int i=0;i<Starfield.maxstars;i++)
@@ -1379,7 +1379,7 @@ void DrawStars (int slot, int maskslot)
 							unsigned char** orig = engine->GetRawBitmapSurface (origspr);
 							int32 h1,h2,w1,w2=0;
 							double fw2,fh2;
-							engine->GetBitmapDimensions (origspr,&w1,&h1,NULL);
+							engine->GetBitmapDimensions (origspr,&w1,&h1,nullptr);
 							fh2 = h1 * (scale / 100.0);
 							fw2 = w1 * (scale / 100.0);
 							h2 = static_cast<int>(fh2);
@@ -1595,21 +1595,21 @@ int DrawReflections (int id, int charobj=0)
 {
 	int32 screenw,screenh;
 	int32 bgw,bgh;
-	engine->GetScreenDimensions (&screenw,&screenh,NULL);
+	engine->GetScreenDimensions (&screenw,&screenh,nullptr);
 	BITMAP *bgmask= engine->GetBackgroundScene (1);
-	if (bgmask == NULL) return 1;
+	if (bgmask == nullptr) return 1;
 	//BITMAP *virtsc = engine->GetVirtualScreen();
 	BITMAP *walkbehind = engine->GetRoomMask(MASK_WALKBEHIND);
 	//if (!virtsc) engine->AbortGame ("Can't load virtual screen.");
 	if (!walkbehind) engine->AbortGame ("DrawRelfections: Can't load Walkbehind into memory.");
-	engine->GetBitmapDimensions (walkbehind,&bgw,&bgh,NULL);
+	engine->GetBitmapDimensions (walkbehind,&bgw,&bgh,nullptr);
 	if (!bgmask) engine->AbortGame ("DrawReflections: Can't load reflection mask.");
 	//unsigned char **charbuffer = engine->GetRawBitmapSurface (virtsc);
 	unsigned char **wbarray = engine->GetRawBitmapSurface (walkbehind);
 	unsigned char **maskarray = engine->GetRawBitmapSurface (bgmask);
 	//Initialize stuff
-	BITMAP *charsprite = NULL;
-	BITMAP *charsprite2 = NULL;
+	BITMAP *charsprite = nullptr;
+	BITMAP *charsprite2 = nullptr;
 	AGSCharacter *currchar;
 	AGSObject *currobj;
 	int cox,coy,coz=0;
@@ -1644,7 +1644,7 @@ int DrawReflections (int id, int charobj=0)
 	}
 	bool scaled;
 	int32 w,h;
-	engine->GetBitmapDimensions (charsprite,&w,&h,NULL);
+	engine->GetBitmapDimensions (charsprite,&w,&h,nullptr);
 	if (scale != 100)
 	{
 		unsigned char** orig = engine->GetRawBitmapSurface (charsprite);
@@ -2111,7 +2111,7 @@ int AGS_EngineOnEvent (int event, int data) {
 		if (drawreflections)
 		{
 			int32 sh,sw=0;
-			engine->GetScreenDimensions (&sw,&sh,NULL);
+			engine->GetScreenDimensions (&sw,&sh,nullptr);
 			reflectionmap = new long[sw*sh]();
 			rcolormap = engine->CreateBlankBitmap (sw,sh,8);
 			ralphamap = engine->CreateBlankBitmap (sw,sh,8);

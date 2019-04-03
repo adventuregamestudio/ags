@@ -157,7 +157,7 @@ void RunRegionInteraction (int regnum, int mood) {
     evblockbasename = "region%d";
     evblocknum = regnum;
 
-    if (thisroom.Regions[regnum].EventHandlers != NULL)
+    if (thisroom.Regions[regnum].EventHandlers != nullptr)
     {
         run_interaction_script(thisroom.Regions[regnum].EventHandlers.get(), mood);
     }

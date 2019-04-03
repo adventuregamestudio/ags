@@ -271,7 +271,7 @@ HSaveError WriteAudio(PStream out)
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++)
     {
         auto* ch = lock.GetChannelIfPlaying(i);
-        if ((ch != nullptr) && (ch->sourceClip != NULL))
+        if ((ch != nullptr) && (ch->sourceClip != nullptr))
         {
             out->WriteInt32(((ScriptAudioClip*)ch->sourceClip)->id);
             out->WriteInt32(ch->get_pos());
@@ -703,7 +703,7 @@ HSaveError WriteDynamicSurfaces(PStream out)
     out->WriteInt32(MAX_DYNAMIC_SURFACES);
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
     {
-        if (dynamicallyCreatedSurfaces[i] == NULL)
+        if (dynamicallyCreatedSurfaces[i] == nullptr)
         {
             out->WriteInt8(0);
         }
@@ -726,7 +726,7 @@ HSaveError ReadDynamicSurfaces(PStream in, int32_t cmp_ver, const PreservedParam
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
     {
         if (in->ReadInt8() == 0)
-            r_data.DynamicSurfaces[i] = NULL;
+            r_data.DynamicSurfaces[i] = nullptr;
         else
             r_data.DynamicSurfaces[i] = read_serialized_bitmap(in.get());
     }
@@ -839,7 +839,7 @@ HSaveError WriteThisRoom(PStream out)
         if (play.raw_modified[i])
             serialize_bitmap(thisroom.BgFrames[i].Graphic.get(), out.get());
     }
-    out->WriteBool(raw_saved_screen != NULL);
+    out->WriteBool(raw_saved_screen != nullptr);
     if (raw_saved_screen)
         serialize_bitmap(raw_saved_screen, out.get());
 
@@ -888,7 +888,7 @@ HSaveError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
         if (play.raw_modified[i])
             r_data.RoomBkgScene[i].reset(read_serialized_bitmap(in.get()));
         else
-            r_data.RoomBkgScene[i] = NULL;
+            r_data.RoomBkgScene[i] = nullptr;
     }
     if (in->ReadBool())
         raw_saved_screen = read_serialized_bitmap(in.get());
@@ -1086,7 +1086,7 @@ ComponentHandler ComponentHandlers[] =
         WritePluginData,
         ReadPluginData
     },
-    { NULL, 0, 0, NULL, NULL } // end of array
+    { nullptr, 0, 0, nullptr, nullptr } // end of array
 };
 
 
@@ -1138,7 +1138,7 @@ HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     info.DataSize = hlp.Version >= kSvgVersion_Cmp_64bit ? in->ReadInt64() : in->ReadInt32();
     info.DataOffset = in->GetPosition();
 
-    const ComponentHandler *handler = NULL;
+    const ComponentHandler *handler = nullptr;
     std::map<String, ComponentHandler>::const_iterator it_hdr = hlp.Handlers.find(info.Name);
     if (it_hdr != hlp.Handlers.end())
         handler = &it_hdr->second;

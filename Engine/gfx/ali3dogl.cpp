@@ -128,29 +128,29 @@ GFX_DRIVER gfx_opengl =
    empty_string,
    empty_string,
    "OpenGL",
-   NULL,    // init
-   NULL,   // exit
-   NULL,                        // AL_METHOD(int, scroll, (int x, int y)); 
+   nullptr,    // init
+   nullptr,   // exit
+   nullptr,                        // AL_METHOD(int, scroll, (int x, int y)); 
    ogl_dummy_vsync,   // vsync
-   NULL,  // setpalette
-   NULL,                        // AL_METHOD(int, request_scroll, (int x, int y));
-   NULL,                        // AL_METHOD(int, poll_scroll, (void));
-   NULL,                        // AL_METHOD(void, enable_triple_buffer, (void));
-   NULL,  //create_video_bitmap
-   NULL,  //destroy_video_bitmap
-   NULL,   //show_video_bitmap
-   NULL,
-   NULL,  //gfx_directx_create_system_bitmap,
-   NULL, //gfx_directx_destroy_system_bitmap,
-   NULL, //gfx_directx_set_mouse_sprite,
-   NULL, //gfx_directx_show_mouse,
-   NULL, //gfx_directx_hide_mouse,
-   NULL, //gfx_directx_move_mouse,
-   NULL,                        // AL_METHOD(void, drawing_mode, (void));
-   NULL,                        // AL_METHOD(void, save_video_state, (void*));
-   NULL,                        // AL_METHOD(void, restore_video_state, (void*));
-   NULL,                        // AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a));
-   NULL,                        // AL_METHOD(int, fetch_mode_list, (void));
+   nullptr,  // setpalette
+   nullptr,                        // AL_METHOD(int, request_scroll, (int x, int y));
+   nullptr,                        // AL_METHOD(int, poll_scroll, (void));
+   nullptr,                        // AL_METHOD(void, enable_triple_buffer, (void));
+   nullptr,  //create_video_bitmap
+   nullptr,  //destroy_video_bitmap
+   nullptr,   //show_video_bitmap
+   nullptr,
+   nullptr,  //gfx_directx_create_system_bitmap,
+   nullptr, //gfx_directx_destroy_system_bitmap,
+   nullptr, //gfx_directx_set_mouse_sprite,
+   nullptr, //gfx_directx_show_mouse,
+   nullptr, //gfx_directx_hide_mouse,
+   nullptr, //gfx_directx_move_mouse,
+   nullptr,                        // AL_METHOD(void, drawing_mode, (void));
+   nullptr,                        // AL_METHOD(void, save_video_state, (void*));
+   nullptr,                        // AL_METHOD(void, restore_video_state, (void*));
+   nullptr,                        // AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a));
+   nullptr,                        // AL_METHOD(int, fetch_mode_list, (void));
    0, 0,                        // int w, h;
    FALSE,                        // int linear;
    0,                           // long bank_size;
@@ -162,19 +162,19 @@ GFX_DRIVER gfx_opengl =
 
 void OGLBitmap::Dispose()
 {
-    if (_tiles != NULL)
+    if (_tiles != nullptr)
     {
         for (int i = 0; i < _numTiles; i++)
             glDeleteTextures(1, &(_tiles[i].texture));
 
         free(_tiles);
-        _tiles = NULL;
+        _tiles = nullptr;
         _numTiles = 0;
     }
-    if (_vertex != NULL)
+    if (_vertex != nullptr)
     {
         free(_vertex);
-        _vertex = NULL;
+        _vertex = nullptr;
     }
 }
 
@@ -194,7 +194,7 @@ OGLGraphicsDriver::OGLGraphicsDriver()
 #elif defined (LINUX_VERSION)
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
-  _glxContext = 0;
+  _glxContext = nullptr;
   _have_window = false;
 #elif defined (ANDROID_VERSION)
   device_screen_physical_width  = android_screen_physical_width;
@@ -210,8 +210,8 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
-  _screenTintLayer = NULL;
-  _screenTintLayerDDB = NULL;
+  _screenTintLayer = nullptr;
+  _screenTintLayerDDB = nullptr;
   _screenTintSprite.skip = true;
   _screenTintSprite.x = 0;
   _screenTintSprite.y = 0;
@@ -662,9 +662,9 @@ void OGLGraphicsDriver::DeleteGlContext()
 #elif defined (LINUX_VERSION)
   if (_glxContext)
   {
-    glXMakeCurrent(_xwin.display, None, NULL);
+    glXMakeCurrent(_xwin.display, None, nullptr);
     glXDestroyContext(_xwin.display, _glxContext);
-    _glxContext = NULL;
+    _glxContext = nullptr;
   }
 #endif
 }
@@ -811,7 +811,7 @@ void OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const char *name
                                             const char *sampler_var, const char *color_var, const char *aux_var)
 {
   GLint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
+  glShaderSource(fragment_shader, 1, &fragment_shader_src, nullptr);
   glCompileShader(fragment_shader);
   GLint result;
   glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
@@ -906,7 +906,7 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backTextureSize.Width, _backTextureSize.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backTextureSize.Width, _backTextureSize.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
   glBindTexture(GL_TEXTURE_2D, 0);
 
   glGenFramebuffersEXT(1, &_fbo);
@@ -1046,18 +1046,18 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   OnModeReleased();
   DeleteBackbufferTexture();
 
-  if (_screenTintLayerDDB != NULL) 
+  if (_screenTintLayerDDB != nullptr) 
   {
     this->DestroyDDB(_screenTintLayerDDB);
-    _screenTintLayerDDB = NULL;
-    _screenTintSprite.bitmap = NULL;
+    _screenTintLayerDDB = nullptr;
+    _screenTintSprite.bitmap = nullptr;
   }
   delete _screenTintLayer;
-  _screenTintLayer = NULL;
+  _screenTintLayer = nullptr;
 
   DestroyAllStageScreens();
 
-  gfx_driver = NULL;
+  gfx_driver = nullptr;
 
   if (platform->ExitFullscreenMode())
     platform->RestoreWindowStyle();
@@ -1354,7 +1354,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    if (bmpToDraw->_vertex != NULL)
+    if (bmpToDraw->_vertex != nullptr)
     {
       glTexCoordPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].tu));
       glVertexPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].position));
@@ -1522,7 +1522,7 @@ void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFli
       continue;
 
     const OGLDrawListEntry *sprite = &listToDraw[i];
-    if (listToDraw[i].bitmap == NULL)
+    if (listToDraw[i].bitmap == nullptr)
     {
       if (DoNullSpriteCallback(listToDraw[i].x, listToDraw[i].y))
         stageEntry = OGLDrawListEntry((OGLBitmap*)_stageVirtualScreenDDB);
@@ -1771,7 +1771,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   OGLTextureTile *tiles = (OGLTextureTile*)malloc(sizeof(OGLTextureTile) * numTiles);
   memset(tiles, 0, sizeof(OGLTextureTile) * numTiles);
 
-  OGLCUSTOMVERTEX *vertices = NULL;
+  OGLCUSTOMVERTEX *vertices = nullptr;
 
   if ((numTiles == 1) &&
       (allocatedWidth == bitmap->GetWidth()) &&
@@ -1812,7 +1812,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
         AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
       }
 
-      if (vertices != NULL)
+      if (vertices != nullptr)
       {
         for (int vidx = 0; vidx < 4; vidx++)
         {
@@ -1837,7 +1837,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
       // NOTE: pay attention that the texture format depends on the **display mode**'s format,
       // rather than source bitmap's color depth!
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     }
   }
 
@@ -1855,7 +1855,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   {
     this->_reDrawLastFrame();
   }
-  else if (_drawScreenCallback != NULL)
+  else if (_drawScreenCallback != nullptr)
     _drawScreenCallback();
   
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
@@ -1908,7 +1908,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   {
     this->_reDrawLastFrame();
   }
-  else if (_drawScreenCallback != NULL)
+  else if (_drawScreenCallback != nullptr)
     _drawScreenCallback();
   
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
@@ -2000,11 +2000,11 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 }
 
 
-OGLGraphicsFactory *OGLGraphicsFactory::_factory = NULL;
+OGLGraphicsFactory *OGLGraphicsFactory::_factory = nullptr;
 
 OGLGraphicsFactory::~OGLGraphicsFactory()
 {
-    _factory = NULL;
+    _factory = nullptr;
 }
 
 size_t OGLGraphicsFactory::GetFilterCount() const
@@ -2021,7 +2021,7 @@ const GfxFilterInfo *OGLGraphicsFactory::GetFilterInfo(size_t index) const
     case 1:
         return &AAOGLGfxFilter::FilterInfo;
     default:
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -2050,7 +2050,7 @@ OGLGfxFilter *OGLGraphicsFactory::CreateFilter(const String &id)
         return new OGLGfxFilter();
     else if (AAOGLGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
         return new AAOGLGfxFilter();
-    return NULL;
+    return nullptr;
 }
 
 } // namespace OGL

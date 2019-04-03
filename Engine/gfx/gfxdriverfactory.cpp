@@ -57,7 +57,7 @@ IGfxDriverFactory *GetGfxDriverFactory(const String id)
     if (id.CompareNoCase("Software") == 0)
         return ALSW::ALSWGraphicsFactory::GetFactory();
     set_allegro_error("No graphics factory with such id: %s", id.GetCStr());
-    return NULL;
+    return nullptr;
 }
 
 } // namespace Engine

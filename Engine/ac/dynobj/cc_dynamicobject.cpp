@@ -37,7 +37,7 @@
 
 using namespace AGS::Common;
 
-ICCStringClass *stringClassImpl = NULL;
+ICCStringClass *stringClassImpl = nullptr;
 
 // set the class that will be used for dynamic strings
 void ccSetStringClassImpl(ICCStringClass *theClass) {
@@ -90,7 +90,7 @@ void ccAttemptDisposeObject(int32_t handle) {
 // translate between object handles and memory addresses
 int32_t ccGetObjectHandleFromAddress(const char *address) {
     // set to null
-    if (address == NULL)
+    if (address == nullptr)
         return 0;
 
     int32_t handl = pool.AddressToHandle(address);
@@ -106,15 +106,15 @@ int32_t ccGetObjectHandleFromAddress(const char *address) {
 
 const char *ccGetObjectAddressFromHandle(int32_t handle) {
     if (handle == 0) {
-        return NULL;
+        return nullptr;
     }
     const char *addr = pool.HandleToAddress(handle);
 
     ManagedObjectLog("Line %d ReadPtr: %d to %08X", currentline, handle, addr);
 
-    if (addr == NULL) {
+    if (addr == nullptr) {
         cc_error("Error retrieving pointer: invalid handle %d", handle);
-        return NULL;
+        return nullptr;
     }
     return addr;
 }
@@ -122,8 +122,8 @@ const char *ccGetObjectAddressFromHandle(int32_t handle) {
 ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, ICCDynamicObject *&manager)
 {
     if (handle == 0) {
-        object = NULL;
-        manager = NULL;
+        object = nullptr;
+        manager = nullptr;
         return kScValUndefined;
     }
     ScriptValueType obj_type = pool.HandleToAddressAndManager(handle, object, manager);
@@ -144,7 +144,7 @@ int ccReleaseObjectReference(int32_t handle) {
     if (handle == 0)
         return 0;
 
-    if (pool.HandleToAddress(handle) == NULL) {
+    if (pool.HandleToAddress(handle) == nullptr) {
         cc_error("Error releasing pointer: invalid handle %d", handle);
         return -1;
     }

@@ -62,7 +62,7 @@ void INIgetdirec(char *wasgv, const char *inifil) {
 
     if (u <= 0) {
         // no slashes - either the path is just "f:acwin.exe"
-        if (strchr(wasgv, ':') != NULL)
+        if (strchr(wasgv, ':') != nullptr)
             memcpy(strchr(wasgv, ':') + 1, inifil, strlen(inifil) + 1);
         // or it's just "acwin.exe" (unlikely)
         else
@@ -261,7 +261,7 @@ String find_user_cfg_file()
 
 void config_defaults()
 {
-    usetup.translation = NULL;
+    usetup.translation = nullptr;
 #ifdef WINDOWS_VERSION
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif

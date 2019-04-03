@@ -57,7 +57,7 @@ public:
     void DestroyDriver() override
     {
         delete _driver;
-        _driver = NULL;
+        _driver = nullptr;
     }
 
     PGfxFilter SetFilter(const String &id, String &filter_error) override
@@ -94,7 +94,7 @@ public:
 
 protected:
     GfxDriverFactoryBase()
-        : _driver(NULL)
+        : _driver(nullptr)
     {
     }
 

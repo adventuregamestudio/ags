@@ -50,7 +50,7 @@ ScriptAudioClip* ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
 {
   int soundIndex = views[svf->view].loops[svf->loop].frames[svf->frame].sound;
   if (soundIndex < 0)
-    return NULL;
+    return nullptr;
 
   return &game.audioClips[soundIndex];
 }
@@ -58,7 +58,7 @@ ScriptAudioClip* ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
 void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip* clip) 
 {
   int newSoundIndex = -1;
-  if (clip != NULL)
+  if (clip != nullptr)
     newSoundIndex = clip->id;
 
   views[svf->view].loops[svf->loop].frames[svf->frame].sound = newSoundIndex;
@@ -79,7 +79,7 @@ void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound)
   {
     // convert sound number to audio clip
     ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, newSound);
-    if (clip == NULL)
+    if (clip == nullptr)
       quitprintf("!SetFrameSound: audio clip aSound%d not found", newSound);
 
     views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id + (game.IsLegacyAudioSystem() ? 0x10000000 : 0);
@@ -118,7 +118,7 @@ void precache_view(int view)
 // the specified frame has just appeared, see if we need
 // to play a sound or whatever
 void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
-    ScriptAudioChannel *channel = NULL;
+    ScriptAudioChannel *channel = nullptr;
     if (game.IsLegacyAudioSystem())
     {
         if (views[view].loops[loop].frames[frame].sound > 0)
@@ -144,7 +144,7 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
             channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
         }
     }
-    if (sound_volume != SCR_NO_VALUE && channel != NULL)
+    if (sound_volume != SCR_NO_VALUE && channel != nullptr)
     {
         AudioChannelsLock lock;
         auto* ch = lock.GetChannel(channel->id);

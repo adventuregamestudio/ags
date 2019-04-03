@@ -136,7 +136,7 @@ GameSetup usetup;
 GameSetupStruct game;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
 RoomObject*objs;
-RoomStatus*croom=NULL;
+RoomStatus*croom=nullptr;
 RoomStruct thisroom;
 
 volatile int switching_away_from_game = 0;
@@ -173,18 +173,18 @@ ScriptString myScriptStringImpl;
 // system. Noteably we would need an alternate to StaticArray class to track
 // access to their elements.
 ScriptObject scrObj[MAX_ROOM_OBJECTS];
-ScriptGUI    *scrGui = NULL;
+ScriptGUI    *scrGui = nullptr;
 ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 ScriptInvItem scrInv[MAX_INV];
 ScriptDialog *scrDialog;
 
-ViewStruct*views=NULL;
+ViewStruct*views=nullptr;
 
-CharacterCache *charcache = NULL;
+CharacterCache *charcache = nullptr;
 ObjectCache objcache[MAX_ROOM_OBJECTS];
 
-MoveList *mls = NULL;
+MoveList *mls = nullptr;
 
 //=============================================================================
 
@@ -223,7 +223,7 @@ void Game_StopAudio(int audioType)
         else
         {
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-            if ((clip != NULL) && (clip->type == audioType))
+            if ((clip != nullptr) && (clip->type == audioType))
                 stop_or_fade_out_channel(aa);
         }
     }
@@ -242,7 +242,7 @@ int Game_IsAudioPlaying(int audioType)
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
         ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-        if (clip != NULL)
+        if (clip != nullptr)
         {
             if ((clip->type == audioType) || (audioType == SCR_NO_VALUE))
             {
@@ -278,7 +278,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
         for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
         {
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-            if ((clip != NULL) && (clip->type == audioType))
+            if ((clip != nullptr) && (clip->type == audioType))
             {
                 auto* ch = lock.GetChannel(aa);
                 if (ch)
@@ -433,7 +433,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
     char restartGamePath[260];
     sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
     Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
-    if (restartGameFile != NULL)
+    if (restartGameFile != nullptr)
 	{
         long fileSize = restartGameFile->GetLength();
         char *mbuffer = (char*)malloc(fileSize);
@@ -462,7 +462,7 @@ const char* Game_GetSaveSlotDescription(int slnum) {
     {
         return CreateNewScriptString(description);
     }
-    return NULL;
+    return nullptr;
 }
 
 
@@ -518,7 +518,7 @@ void unload_game_file()
     free(actspswbbmp);
     free(actspswbcache);
 
-    if ((gameinst != NULL) && (gameinst->pc != 0))
+    if ((gameinst != nullptr) && (gameinst->pc != 0))
     {
         quit("Error: unload_game called while script still running");
     }
@@ -526,20 +526,20 @@ void unload_game_file()
     {
         delete gameinstFork;
         delete gameinst;
-        gameinstFork = NULL;
-        gameinst = NULL;
+        gameinstFork = nullptr;
+        gameinst = nullptr;
     }
 
     gamescript.reset();
 
-    if ((dialogScriptsInst != NULL) && (dialogScriptsInst->pc != 0))
+    if ((dialogScriptsInst != nullptr) && (dialogScriptsInst->pc != 0))
     {
         quit("Error: unload_game called while dialog script still running");
     }
-    else if (dialogScriptsInst != NULL)
+    else if (dialogScriptsInst != nullptr)
     {
         delete dialogScriptsInst;
-        dialogScriptsInst = NULL;
+        dialogScriptsInst = nullptr;
     }
 
     dialogScriptsScript.reset();
@@ -564,12 +564,12 @@ void unload_game_file()
     numScriptModules = 0;
 
     free(views);
-    views = NULL;
+    views = nullptr;
 
     free(charcache);
-    charcache = NULL;
+    charcache = nullptr;
 
-    if (splipsync != NULL)
+    if (splipsync != nullptr)
     {
         for (int i = 0; i < numLipLines; ++i)
         {
@@ -577,25 +577,25 @@ void unload_game_file()
             free(splipsync[i].frame);
         }
         free(splipsync);
-        splipsync = NULL;
+        splipsync = nullptr;
         numLipLines = 0;
         curLipLine = -1;
     }
 
     for (int i = 0; i < game.numdialog; ++i)
     {
-        if (dialog[i].optionscripts != NULL)
+        if (dialog[i].optionscripts != nullptr)
             free(dialog[i].optionscripts);
-        dialog[i].optionscripts = NULL;
+        dialog[i].optionscripts = nullptr;
     }
     free(dialog);
-    dialog = NULL;
+    dialog = nullptr;
     delete[] scrDialog;
-    scrDialog = NULL;
+    scrDialog = nullptr;
 
     for (int i = 0; i < game.numgui; ++i) {
         free(guibg[i]);
-        guibg[i] = NULL;
+        guibg[i] = nullptr;
     }
 
     guiScriptObjNames.clear();
@@ -837,7 +837,7 @@ const char* Game_GetLocationName(int x, int y) {
 
 const char* Game_GetGlobalMessages(int index) {
     if ((index < 500) || (index >= MAXGLOBALMES + 500)) {
-        return NULL;
+        return nullptr;
     }
     char buffer[STD_BUFFER_SIZE];
     buffer[0] = 0;
@@ -860,7 +860,7 @@ const char* Game_GetTranslationFilename() {
 
 int Game_ChangeTranslation(const char *newFilename)
 {
-    if ((newFilename == NULL) || (newFilename[0] == 0))
+    if ((newFilename == nullptr) || (newFilename[0] == 0))
     {
         close_translation();
         strcpy(transFileName, "");
@@ -882,7 +882,7 @@ int Game_ChangeTranslation(const char *newFilename)
 ScriptAudioClip *Game_GetAudioClip(int index)
 {
     if (index < 0 || index >= game.audioClipCount)
-        return NULL;
+        return nullptr;
     return &game.audioClips[index];
 }
 
@@ -893,7 +893,7 @@ ScriptAudioClip *Game_GetAudioClip(int index)
 
 
 void serialize_bitmap(const Common::Bitmap *thispic, Stream *out) {
-    if (thispic != NULL) {
+    if (thispic != nullptr) {
         out->WriteInt32(thispic->GetWidth());
         out->WriteInt32(thispic->GetHeight());
         out->WriteInt32(thispic->GetColorDepth());
@@ -952,8 +952,8 @@ Bitmap *read_serialized_bitmap(Stream *in) {
     int pichit = in->ReadInt32();
     int piccoldep = in->ReadInt32();
     thispic = BitmapHelper::CreateBitmap(picwid,pichit,piccoldep);
-    if (thispic == NULL)
-        return NULL;
+    if (thispic == nullptr)
+        return nullptr;
     for (int vv=0; vv < pichit; vv++)
     {
       switch (piccoldep)
@@ -1057,13 +1057,13 @@ void save_game(int slotn, const char*descript) {
     String nametouse;
     nametouse = get_save_game_path(slotn);
 
-    Bitmap *screenShot = NULL;
+    Bitmap *screenShot = nullptr;
 
     // Screenshot
     create_savegame_screenshot(screenShot);
 
     Common::PStream out = StartSavegame(nametouse, descript, screenShot);
-    if (out == NULL)
+    if (out == nullptr)
         quit("save_game: unable to open savegame file for writing");
 
     update_polled_stuff_if_runtime();
@@ -1071,7 +1071,7 @@ void save_game(int slotn, const char*descript) {
     // Actual dynamic game data is saved here
     SaveGameState(out);
 
-    if (screenShot != NULL)
+    if (screenShot != nullptr)
     {
         int screenShotOffset = out->GetPosition() - sizeof(RICH_GAME_MEDIA_HEADER);
         int screenShotSize = write_screen_shot_for_vista(out.get(), screenShot);
@@ -1085,7 +1085,7 @@ void save_game(int slotn, const char*descript) {
         out->WriteInt32(screenShotSize);
     }
 
-    if (screenShot != NULL)
+    if (screenShot != nullptr)
         delete screenShot;
 }
 
@@ -1360,7 +1360,7 @@ void restore_game_dynamic_surfaces(Stream *in, RestoredData &r_data)
     {
         if (in->ReadInt8() == 0)
         {
-            r_data.DynamicSurfaces[i] = NULL;
+            r_data.DynamicSurfaces[i] = nullptr;
         }
         else
         {
@@ -1378,7 +1378,7 @@ void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
     if (displayed_room >= 0) {
 
         for (bb = 0; bb < MAX_ROOM_BGFRAMES; bb++) {
-            r_data.RoomBkgScene[bb] = NULL;
+            r_data.RoomBkgScene[bb] = nullptr;
             if (play.raw_modified[bb]) {
                 r_data.RoomBkgScene[bb].reset(read_serialized_bitmap(in));
             }
@@ -1396,7 +1396,7 @@ void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
             in->Read(&troom.tsdata[0],troom.tsdatasize);
         }
         else
-            troom.tsdata = NULL;
+            troom.tsdata = nullptr;
     }
 }
 
@@ -1509,7 +1509,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     // Delete unneeded data
     // TODO: reorganize this (may be solved by optimizing safe format too)
     delete [] game.load_messages;
-    game.load_messages = NULL;
+    game.load_messages = nullptr;
 
     if (game.numdialog!=numdiwas)
     {
@@ -1923,7 +1923,7 @@ void display_switch_in_resume()
 
     // clear the screen if necessary
     if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, NULL);
+        gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
 
     platform->ResumeApplication();
 }
@@ -1973,7 +1973,7 @@ void replace_tokens(const char*srcmes,char*destm, int maxlen) {
 }
 
 const char *get_global_message (int msnum) {
-    if (game.messages[msnum-500] == NULL)
+    if (game.messages[msnum-500] == nullptr)
         return "";
     return get_translation(game.messages[msnum-500]);
 }
@@ -1985,7 +1985,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
 
     if (msnum>=500) {
 
-        if ((msnum >= MAXGLOBALMES + 500) || (game.messages[msnum-500]==NULL)) {
+        if ((msnum >= MAXGLOBALMES + 500) || (game.messages[msnum-500]==nullptr)) {
             if (giveErr)
                 quit("!DisplayGlobalMessage: message does not exist");
             buffer[0] = 0;

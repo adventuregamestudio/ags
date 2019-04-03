@@ -523,7 +523,7 @@ int wgettextwidth_compensate(const char *tex, int font) {
 
 void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
     if (sprn<0) return;
-    if (spriteset[sprn] == NULL)
+    if (spriteset[sprn] == nullptr)
     {
         sprn = 0;
     }
@@ -541,7 +541,7 @@ int get_but_pic(GUIMain*guo,int indx)
 
 void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
     color_t draw_color;
-    if (iep==NULL) {  // standard window
+    if (iep==nullptr) {  // standard window
         draw_color = ds->GetCompatibleColor(15);
         ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
         draw_color = ds->GetCompatibleColor(16);
@@ -668,7 +668,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
     if (ifnum <= 0) {
         if (ovrheight)
             quit("!Cannot use QFG4 style options without custom text window");
-        draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,NULL);
+        draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,nullptr);
         if (set_text_color)
             *set_text_color = ds->GetCompatibleColor(16);
         xins[0]=3;

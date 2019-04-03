@@ -5,8 +5,8 @@
 
 void StaticArray::Create(int elem_legacy_size, int elem_real_size, int elem_count)
 {
-    _staticMgr      = NULL;
-    _dynamicMgr     = NULL;
+    _staticMgr      = nullptr;
+    _dynamicMgr     = nullptr;
     _elemLegacySize = elem_legacy_size;
     _elemRealSize   = elem_real_size;
     _elemCount      = elem_count;
@@ -15,7 +15,7 @@ void StaticArray::Create(int elem_legacy_size, int elem_real_size, int elem_coun
 void StaticArray::Create(ICCStaticObject *stcmgr, int elem_legacy_size, int elem_real_size, int elem_count)
 {
     _staticMgr      = stcmgr;
-    _dynamicMgr     = NULL;
+    _dynamicMgr     = nullptr;
     _elemLegacySize = elem_legacy_size;
     _elemRealSize   = elem_real_size;
     _elemCount      = elem_count;
@@ -23,7 +23,7 @@ void StaticArray::Create(ICCStaticObject *stcmgr, int elem_legacy_size, int elem
 
 void StaticArray::Create(ICCDynamicObject *dynmgr, int elem_legacy_size, int elem_real_size, int elem_count)
 {
-    _staticMgr      = NULL;
+    _staticMgr      = nullptr;
     _dynamicMgr     = dynmgr;
     _elemLegacySize = elem_legacy_size;
     _elemRealSize   = elem_real_size;

@@ -51,7 +51,7 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
   // find a free file handle to use
   for (useindx = 0; useindx < num_open_script_files; useindx++) 
   {
-    if (valid_handles[useindx].stream == NULL)
+    if (valid_handles[useindx].stream == nullptr)
       break;
   }
 
@@ -60,7 +60,7 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
     s = File::OpenFile(alt_path, open_mode, work_mode);
 
   valid_handles[useindx].stream = s;
-  if (valid_handles[useindx].stream == NULL)
+  if (valid_handles[useindx].stream == nullptr)
     return 0;
   valid_handles[useindx].handle = useindx + 1; // make handle indexes 1-based
 
@@ -76,7 +76,7 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
 void FileClose(int32_t handle) {
   ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle,"FileClose");
   delete sc_handle->stream;
-  sc_handle->stream = NULL;
+  sc_handle->stream = nullptr;
   sc_handle->handle = 0;
   }
 void FileWrite(int32_t handle, const char *towrite) {

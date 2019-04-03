@@ -39,12 +39,12 @@ Bitmap* ScriptDrawingSurface::GetBitmapSurface()
         return spriteset[dynamicSpriteNumber];
     else if (dynamicSurfaceNumber >= 0)
         return dynamicallyCreatedSurfaces[dynamicSurfaceNumber];
-    else if (linkedBitmapOnly != NULL)
+    else if (linkedBitmapOnly != nullptr)
         return linkedBitmapOnly;
     else
         quit("!DrawingSurface: attempted to use surface after Release was called");
 
-    return NULL;
+    return nullptr;
 }
 
 Bitmap *ScriptDrawingSurface::StartDrawing()
@@ -110,7 +110,7 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     dynamicSpriteNumber = -1;
     dynamicSurfaceNumber = -1;
     isLinkedBitmapOnly = false;
-    linkedBitmapOnly = NULL;
+    linkedBitmapOnly = nullptr;
     currentColour = play.raw_color;
     currentColourScript = 0;
     modified = 0;

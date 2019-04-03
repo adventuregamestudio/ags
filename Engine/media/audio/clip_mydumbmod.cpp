@@ -22,11 +22,11 @@
 void al_duh_set_loop(AL_DUH_PLAYER *dp, int loop) {
     DUH_SIGRENDERER *sr = al_duh_get_sigrenderer(dp);
     DUMB_IT_SIGRENDERER *itsr = duh_get_it_sigrenderer(sr);
-    if (itsr == NULL)
+    if (itsr == nullptr)
         return;
 
     if (loop)
-        dumb_it_set_loop_callback(itsr, NULL, NULL);
+        dumb_it_set_loop_callback(itsr, nullptr, nullptr);
     else
         dumb_it_set_loop_callback(itsr, dumb_it_callback_terminate, itsr);
 }
@@ -92,7 +92,7 @@ int MYMOD::get_pos()
     // determine the current track number (DUMB calls them 'orders')
     DUH_SIGRENDERER *sr = al_duh_get_sigrenderer(duhPlayer);
     DUMB_IT_SIGRENDERER *itsr = duh_get_it_sigrenderer(sr);
-    if (itsr == NULL)
+    if (itsr == nullptr)
         return -1;
 
     return dumb_it_sr_get_current_order(itsr);
@@ -112,7 +112,7 @@ int MYMOD::get_pos_ms()
 
 int MYMOD::get_length_ms()
 {
-    if (tune == NULL)
+    if (tune == nullptr)
         return 0;
 
     // duh_get_length represents time as 65536ths of a second
@@ -156,8 +156,8 @@ int MYMOD::play() {
 }  
 
 MYMOD::MYMOD() : SOUNDCLIP() {
-    tune = NULL;
-    duhPlayer = NULL;
+    tune = nullptr;
+    duhPlayer = nullptr;
 }
 
 #endif // DUMB_MOD_PLAYER

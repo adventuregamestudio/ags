@@ -53,12 +53,12 @@ enum VideoPlaybackType
 VideoPlaybackType video_type = kVideoNone;
 
 // FLIC player start
-Bitmap *fli_buffer = NULL;
+Bitmap *fli_buffer = nullptr;
 short fliwidth,fliheight;
 int canabort=0, stretch_flc = 1;
-Bitmap *hicol_buf=NULL;
-IDriverDependantBitmap *fli_ddb = NULL;
-Bitmap *fli_target = NULL;
+Bitmap *hicol_buf=nullptr;
+IDriverDependantBitmap *fli_ddb = nullptr;
+Bitmap *fli_target = nullptr;
 int fliTargetWidth, fliTargetHeight;
 int check_if_user_input_should_cancel_video()
 {
@@ -158,7 +158,7 @@ void play_flc_file(int numb,int playflags) {
     else if ((fliwidth > view.GetWidth()) || (fliheight >view.GetHeight()))
         stretch_flc = 1;
     fli_buffer=BitmapHelper::CreateBitmap(fliwidth,fliheight,8);
-    if (fli_buffer==NULL) quit("Not enough memory to play animation");
+    if (fli_buffer==nullptr) quit("Not enough memory to play animation");
     fli_buffer->Clear();
 
     if (clearScreenAtStart)
@@ -195,7 +195,7 @@ void play_flc_file(int numb,int playflags) {
 
     video_type = kVideoNone;
     delete fli_buffer;
-    fli_buffer = NULL;
+    fli_buffer = nullptr;
     // NOTE: the screen bitmap could change in the meanwhile, if the display mode has changed
     if (gfxDriver->UsesMemoryBackBuffer())
     {
@@ -207,12 +207,12 @@ void play_flc_file(int numb,int playflags) {
 
     delete fli_target;
     gfxDriver->DestroyDDB(fli_ddb);
-    fli_target = NULL;
-    fli_ddb = NULL;
+    fli_target = nullptr;
+    fli_ddb = nullptr;
 
 
     delete hicol_buf;
-    hicol_buf=NULL;
+    hicol_buf=nullptr;
     //  SetVirtualScreen(screen); wputblock(0,0,backbuffer,0);
     while (ags_mgetbutton()!=NONE) { } // clear any queued mouse events.
     invalidate_screen();
@@ -225,7 +225,7 @@ void play_flc_file(int numb,int playflags) {
 Bitmap gl_TheoraBuffer;
 int theora_playing_callback(BITMAP *theoraBuffer)
 {
-	if (theoraBuffer == NULL)
+	if (theoraBuffer == nullptr)
     {
         // No video, only sound
         return check_if_user_input_should_cancel_video();
@@ -235,7 +235,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
 
     int drawAtX = 0, drawAtY = 0;
     const Rect &viewport = play.GetMainViewport();
-    if (fli_ddb == NULL)
+    if (fli_ddb == nullptr)
     {
         fli_ddb = gfxDriver->CreateDDBFromBitmap(&gl_TheoraBuffer, false, true);
     }
@@ -283,21 +283,21 @@ int theora_playing_callback(BITMAP *theoraBuffer)
 class ApegStreamReader
 {
 public:
-    ApegStreamReader(const AssetPath path) : _path(path), _pf(NULL) {}
+    ApegStreamReader(const AssetPath path) : _path(path), _pf(nullptr) {}
     ~ApegStreamReader() { Close(); }
 
     bool Open()
     {
         Close(); // PACKFILE cannot be rewinded, sadly
         _pf = PackfileFromAsset(_path);
-        return _pf != NULL;
+        return _pf != nullptr;
     }
 
     void Close()
     {
         if (_pf)
             pack_fclose(_pf);
-        _pf = NULL;
+        _pf = nullptr;
     }
 
     int Read(void *buffer, int bytes)
@@ -338,7 +338,7 @@ void apeg_stream_skip(int bytes, void *ptr)
 APEG_STREAM* get_theora_size(ApegStreamReader &reader, int *width, int *height)
 {
     APEG_STREAM* oggVid = apeg_open_stream_ex(&reader);
-    if (oggVid != NULL)
+    if (oggVid != nullptr)
     {
         apeg_get_video_size(oggVid, width, height);
     }
@@ -422,7 +422,7 @@ void play_theora_video(const char *name, int skip, int flags)
     }
     else
     {
-        fli_ddb = NULL;
+        fli_ddb = nullptr;
     }
 
     update_polled_stuff_if_runtime();
@@ -431,7 +431,7 @@ void play_theora_video(const char *name, int skip, int flags)
         gfxDriver->GetMemoryBackBuffer()->Clear();
 
     video_type = kVideoTheora;
-    if (apeg_play_apeg_stream(oggVid, NULL, 0, theora_playing_callback) == APEG_ERROR)
+    if (apeg_play_apeg_stream(oggVid, nullptr, 0, theora_playing_callback) == APEG_ERROR)
     {
         Display("Error playing theora video '%s'", name);
     }
@@ -441,8 +441,8 @@ void play_theora_video(const char *name, int skip, int flags)
     //destroy_bitmap(fli_buffer);
     delete fli_target;
     gfxDriver->DestroyDDB(fli_ddb);
-    fli_target = NULL;
-    fli_ddb = NULL;
+    fli_target = nullptr;
+    fli_ddb = nullptr;
     invalidate_screen();
 }
 // Theora player end

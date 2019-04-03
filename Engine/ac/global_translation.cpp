@@ -33,7 +33,7 @@ extern TreeMap *transtree;
 extern char transFileName[MAX_PATH];
 
 const char *get_translation (const char *text) {
-    if (text == NULL)
+    if (text == nullptr)
         quit("!Null string supplied to CheckForTranslations");
 
     source_text_length = GetTextDisplayLength(text);
@@ -47,10 +47,10 @@ const char *get_translation (const char *text) {
     }
 #endif
 
-    if (transtree != NULL) {
+    if (transtree != nullptr) {
         // translate the text using the translation file
         char * transl = transtree->findValue (text);
-        if (transl != NULL)
+        if (transl != nullptr)
             return transl;
     }
     // return the original text
@@ -58,7 +58,7 @@ const char *get_translation (const char *text) {
 }
 
 int IsTranslationAvailable () {
-    if (transtree != NULL)
+    if (transtree != nullptr)
         return 1;
     return 0;
 }
@@ -67,18 +67,18 @@ int GetTranslationName (char* buffer) {
     VALIDATE_STRING (buffer);
     const char *copyFrom = transFileName;
 
-    while (strchr(copyFrom, '\\') != NULL)
+    while (strchr(copyFrom, '\\') != nullptr)
     {
         copyFrom = strchr(copyFrom, '\\') + 1;
     }
-    while (strchr(copyFrom, '/') != NULL)
+    while (strchr(copyFrom, '/') != nullptr)
     {
         copyFrom = strchr(copyFrom, '/') + 1;
     }
 
     strcpy (buffer, copyFrom);
     // remove the ".tra" from the end of the filename
-    if (strstr (buffer, ".tra") != NULL)
+    if (strstr (buffer, ".tra") != nullptr)
         strstr (buffer, ".tra")[0] = 0;
 
     return IsTranslationAvailable();

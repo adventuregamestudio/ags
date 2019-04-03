@@ -63,7 +63,7 @@ LPWSTR *wArgv;
 
 #endif
 
-char **global_argv = NULL;
+char **global_argv = nullptr;
 int    global_argc = 0;
 
 
@@ -87,7 +87,7 @@ bool justDisplayVersion = false;
 bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
-const char *loadSaveGameOnStartup = NULL;
+const char *loadSaveGameOnStartup = nullptr;
 
 #if !defined(MAC_VERSION) && !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 int psp_video_framedrop = 1;
@@ -365,7 +365,7 @@ void main_set_gamedir(int argc,char*argv[])
         // If running data file pointed by command argument, change to that folder
         Directory::SetCurrentDirectory(Path::GetDirectoryPath(GetPathFromCmdArg(datafile_argv)));
     }
-    else if ((loadSaveGameOnStartup != NULL) && (argv[0] != NULL))
+    else if ((loadSaveGameOnStartup != nullptr) && (argv[0] != nullptr))
     {
         // When launched by double-clicking a save game file, the curdir will
         // be the save game folder unless we correct it

@@ -58,7 +58,7 @@ void ViewFrame::WriteToFile(Stream *out)
 ViewLoopNew::ViewLoopNew()
     : numFrames(0)
     , flags(0)
-    , frames(NULL)
+    , frames(nullptr)
 {
 }
 
@@ -76,10 +76,10 @@ void ViewLoopNew::Initialize(int frameCount)
 
 void ViewLoopNew::Dispose()
 {
-    if (frames != NULL)
+    if (frames != nullptr)
     {
         free(frames);
-        frames = NULL;
+        frames = nullptr;
         numFrames = 0;
     }
 }
@@ -124,7 +124,7 @@ void ViewLoopNew::ReadFrames_Aligned(Stream *in)
 
 ViewStruct::ViewStruct()
     : numLoops(0)
-    , loops(NULL)
+    , loops(nullptr)
 {
 }
 

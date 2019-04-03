@@ -250,7 +250,7 @@ void MergeObject(int obn) {
     if (!is_valid_object(obn)) quit("!MergeObject: invalid object specified");
     int theHeight;
 
-    construct_object_gfx(obn, NULL, &theHeight, true);
+    construct_object_gfx(obn, nullptr, &theHeight, true);
 
     //Bitmap *oldabuf = graphics->bmp;
     //abuf = thisroom.BgFrames.Graphic[play.bg_frame];
@@ -402,7 +402,7 @@ void RunObjectInteraction (int aa, int mood) {
     play.usedinv=cdata; }
     evblockbasename="object%d"; evblocknum=aa;
 
-    if (thisroom.Objects[aa].EventHandlers != NULL)
+    if (thisroom.Objects[aa].EventHandlers != nullptr)
     {
         if (passon>=0) 
         {
@@ -500,7 +500,7 @@ Bitmap *GetObjectImage(int obj, int *isFlipped)
 {
     if (!gfxDriver->HasAcceleratedTransform())
     {
-        if (actsps[obj] != NULL) {
+        if (actsps[obj] != nullptr) {
             // the actsps image is pre-flipped, so no longer register the image as such
             if (isFlipped)
                 *isFlipped = 0;

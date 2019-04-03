@@ -24,27 +24,27 @@ namespace Common
 {
 
 Bitmap::Bitmap()
-    : _alBitmap(NULL)
+    : _alBitmap(nullptr)
     , _isDataOwner(false)
 {
 }
 
 Bitmap::Bitmap(int width, int height, int color_depth)
-    : _alBitmap(NULL)
+    : _alBitmap(nullptr)
     , _isDataOwner(false)
 {
     Create(width, height, color_depth);
 }
 
 Bitmap::Bitmap(Bitmap *src, const Rect &rc)
-    : _alBitmap(NULL)
+    : _alBitmap(nullptr)
     , _isDataOwner(false)
 {
     CreateSubBitmap(src, rc);
 }
 
 Bitmap::Bitmap(BITMAP *al_bmp, bool shared_data)
-    : _alBitmap(NULL)
+    : _alBitmap(nullptr)
     , _isDataOwner(false)
 {
     WrapAllegroBitmap(al_bmp, shared_data);
@@ -71,7 +71,7 @@ bool Bitmap::Create(int width, int height, int color_depth)
         _alBitmap = create_bitmap(width, height);
     }
     _isDataOwner = true;
-    return _alBitmap != NULL;
+    return _alBitmap != nullptr;
 }
 
 bool Bitmap::CreateTransparent(int width, int height, int color_depth)
@@ -89,7 +89,7 @@ bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)
     Destroy();
     _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
     _isDataOwner = true;
-    return _alBitmap != NULL;
+    return _alBitmap != nullptr;
 }
 
 bool Bitmap::CreateCopy(Bitmap *src, int color_depth)
@@ -107,7 +107,7 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
     Destroy();
     _alBitmap = al_bmp;
     _isDataOwner = !shared_data;
-    return _alBitmap != NULL;
+    return _alBitmap != nullptr;
 }
 
 void Bitmap::Destroy()
@@ -116,7 +116,7 @@ void Bitmap::Destroy()
     {
         destroy_bitmap(_alBitmap);
     }
-    _alBitmap = NULL;
+    _alBitmap = nullptr;
     _isDataOwner = false;
 }
 
@@ -124,13 +124,13 @@ bool Bitmap::LoadFromFile(const char *filename)
 {
     Destroy();
 
-	BITMAP *al_bmp = load_bitmap(filename, NULL);
+	BITMAP *al_bmp = load_bitmap(filename, nullptr);
 	if (al_bmp)
 	{
 		_alBitmap = al_bmp;
         _isDataOwner = true;
 	}
-	return _alBitmap != NULL;
+	return _alBitmap != nullptr;
 }
 
 bool Bitmap::SaveToFile(const char *filename, const void *palette)
@@ -474,7 +474,7 @@ Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp)
 	if (!bitmap->WrapAllegroBitmap(al_bmp, false))
 	{
 		delete bitmap;
-		bitmap = NULL;
+		bitmap = nullptr;
 	}
 	return bitmap;
 }
@@ -485,7 +485,7 @@ Bitmap *CreateRawBitmapWrapper(BITMAP *al_bmp)
 	if (!bitmap->WrapAllegroBitmap(al_bmp, true))
 	{
 		delete bitmap;
-		bitmap = NULL;
+		bitmap = nullptr;
 	}
 	return bitmap;
 }

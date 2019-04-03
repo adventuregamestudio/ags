@@ -39,13 +39,13 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
 // Sprintf that takes script values as arguments
 inline const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, const RuntimeScriptValue *args, int32_t argc)
 {
-    return ScriptSprintf(buffer, buf_length, format, args, argc, NULL);
+    return ScriptSprintf(buffer, buf_length, format, args, argc, nullptr);
 }
 // Variadic sprintf (needed, because all arguments are pushed as pointer-sized values). Currently used only when plugin calls
 // exported engine function. Should be removed when this plugin issue is resolved.
 inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, va_list &arg_ptr)
 {
-    return ScriptSprintf(buffer, buf_length, format, NULL, 0, &arg_ptr);
+    return ScriptSprintf(buffer, buf_length, format, nullptr, 0, &arg_ptr);
 }
 
 // Helper macros for script functions

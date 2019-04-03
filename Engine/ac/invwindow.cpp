@@ -57,7 +57,7 @@ int in_inv_screen = 0, inv_screen_newroom = -1;
 // *** INV WINDOW FUNCTIONS
 
 void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa) {
-  if (chaa == NULL)
+  if (chaa == nullptr)
     guii->CharId = -1;
   else
     guii->CharId = chaa->index_id;
@@ -69,7 +69,7 @@ void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa) {
 
 CharacterInfo* InvWindow_GetCharacterToUse(GUIInvWindow *guii) {
   if (guii->CharId < 0)
-    return NULL;
+    return nullptr;
 
   return &game.chars[guii->CharId];
 }
@@ -135,7 +135,7 @@ void InvWindow_ScrollUp(GUIInvWindow *guii) {
 
 ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
   if ((index < 0) || (index >= charextra[guii->GetCharacterId()].invorder_count))
-    return NULL;
+    return nullptr;
   return &scrInv[charextra[guii->GetCharacterId()].invorder[index]];
 }
 
@@ -221,11 +221,11 @@ void InventoryScreen::Prepare()
 
     // sprites 2041, 2042 and 2043 were hardcoded in the older versions
     // of the engine to be used in the built-in inventory window
-    if (spriteset[2041] == NULL || spriteset[2042] == NULL || spriteset[2043] == NULL)
+    if (spriteset[2041] == nullptr || spriteset[2042] == nullptr || spriteset[2043] == nullptr)
         debug_script_warn("InventoryScreen: one or more of the inventory screen graphics (sprites 2041, 2042, 2043) does not exist, using sprite 0 instead");
-    btn_look_sprite = spriteset[2041] != NULL ? 2041 : 0;
-    btn_select_sprite = spriteset[2042] != NULL ? 2042 : 0;
-    btn_ok_sprite = spriteset[2043] != NULL ? 2043 : 0;
+    btn_look_sprite = spriteset[2041] != nullptr ? 2041 : 0;
+    btn_select_sprite = spriteset[2042] != nullptr ? 2042 : 0;
+    btn_ok_sprite = spriteset[2043] != nullptr ? 2043 : 0;
 
     break_code = 0;
 }

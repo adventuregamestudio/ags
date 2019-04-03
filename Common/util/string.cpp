@@ -32,35 +32,35 @@ String::Header::Header()
     : RefCount(0)
     , Capacity(0)
     , Length(0)
-    , CStr(NULL)
+    , CStr(nullptr)
 {
 }
 
 String::String()
-    : _data(NULL)
+    : _data(nullptr)
 {
 }
 
 String::String(const String &str)
-    : _data(NULL)
+    : _data(nullptr)
 {
     *this = str;
 }
 
 String::String(const char *cstr)
-    :_data(NULL)
+    :_data(nullptr)
 {
     *this = cstr;
 }
 
 String::String(const char *cstr, size_t length)
-    : _data(NULL)
+    : _data(nullptr)
 {
     SetString(cstr, length);
 }
 
 String::String(char c, size_t count)
-    : _data(NULL)
+    : _data(nullptr)
 {
     FillString(c, count);
 }
@@ -595,7 +595,7 @@ void String::FormatV(const char *fcstr, va_list argptr)
     fcstr = fcstr ? fcstr : "";
     va_list argptr_cpy;
     va_copy(argptr_cpy, argptr);
-    size_t length = vsnprintf(NULL, 0u, fcstr, argptr);
+    size_t length = vsnprintf(nullptr, 0u, fcstr, argptr);
     ReserveAndShift(false, Math::Surplus(length, GetLength()));
     vsprintf(_meta->CStr, fcstr, argptr_cpy);
     va_end(argptr_cpy);
@@ -614,7 +614,7 @@ void String::Free()
             delete [] _data;
         }
     }
-    _data = NULL;
+    _data = nullptr;
 }
 
 void String::MakeLower()

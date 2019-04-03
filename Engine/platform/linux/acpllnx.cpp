@@ -183,7 +183,7 @@ void AGSLinux::ShutdownCDPlayer() {
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == NULL)
+  if (instance == nullptr)
     instance = new AGSLinux();
   return instance;
 }

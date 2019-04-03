@@ -124,7 +124,7 @@ int MYSTATICOGG::get_pos_ms()
 
     int end_of_stream = alogg_is_end_of_ogg(tune);
 
-    if ((str->active == 1) && (last_but_one_but_one > 0) && (str->locked == NULL)) {
+    if ((str->active == 1) && (last_but_one_but_one > 0) && (str->locked == nullptr)) {
         switch (end_of_stream) {
 case 0:
 case 2:
@@ -195,8 +195,8 @@ int MYSTATICOGG::play() {
 }
 
 MYSTATICOGG::MYSTATICOGG() : SOUNDCLIP() {
-    tune = NULL;
-    mp3buffer = NULL;
+    tune = nullptr;
+    mp3buffer = nullptr;
     mp3buffersize = 0;
     extraOffset = 0;
     last_but_one = 0;

@@ -61,10 +61,10 @@ bool FileBasedAGSDebugger::IsMessageAvailable()
 char* FileBasedAGSDebugger::GetNextMessage()
 {
     Stream *in = Common::File::OpenFileRead("dbgsend.tmp");
-    if (in == NULL)
+    if (in == nullptr)
     {
         // check again, because the editor might have deleted the file in the meantime
-        return NULL;
+        return nullptr;
     }
     int fileSize = in->GetLength();
     char *msg = (char*)malloc(fileSize + 1);

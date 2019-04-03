@@ -70,11 +70,11 @@ void start_game_init_editor_debugging()
 
 void start_game_load_savegame_on_startup()
 {
-    if (loadSaveGameOnStartup != NULL)
+    if (loadSaveGameOnStartup != nullptr)
     {
         int saveGameNumber = 1000;
         const char *sgName = strstr(loadSaveGameOnStartup, "agssave.");
-        if (sgName != NULL)
+        if (sgName != nullptr)
         {
             sscanf(sgName, "agssave.%03d", &saveGameNumber);
         }

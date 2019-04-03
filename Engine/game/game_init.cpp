@@ -328,8 +328,8 @@ void LoadFonts(GameDataVersion data_ver)
 
 void AllocScriptModules()
 {
-    moduleInst.resize(numScriptModules, NULL);
-    moduleInstFork.resize(numScriptModules, NULL);
+    moduleInst.resize(numScriptModules, nullptr);
+    moduleInstFork.resize(numScriptModules, nullptr);
     moduleRepExecAddr.resize(numScriptModules);
     repExecAlways.moduleHasFunction.resize(numScriptModules, true);
     lateRepExecAlways.moduleHasFunction.resize(numScriptModules, true);

@@ -96,7 +96,7 @@ extern IDriverDependantBitmap **guibgbmp;
 String music_file;
 String speech_file;
 
-t_engine_pre_init_callback engine_pre_init_callback = 0;
+t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 
 #define ALLEGRO_KEYBOARD_HANDLER
 // KEYBOARD HANDLER
@@ -421,7 +421,7 @@ int engine_check_memory()
     Debug::Printf(kDbgMsg_Init, "Checking memory");
 
     char*memcheck=(char*)malloc(4000000);
-    if (memcheck==NULL) {
+    if (memcheck==nullptr) {
         platform->DisplayAlert("There is not enough memory available to run this game. You need 4 Mb free\n"
             "extended memory to run the game.\n"
             "If you are running from Windows, check the 'DPMI memory' setting on the DOS box\n"
@@ -452,7 +452,7 @@ void engine_init_speech()
                 return;
             }
             Stream *speechsync = AssetManager::OpenAsset("syncdata.dat");
-            if (speechsync != NULL) {
+            if (speechsync != nullptr) {
                 // this game has voice lip sync
                 int lipsync_fmt = speechsync->ReadInt32();
                 if (lipsync_fmt != 4)
@@ -548,9 +548,9 @@ void AlMidiToChars(int midi_id, AlIDStr &id_str)
         AlIDToChars(midi_id, id_str);
 }
 
-bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = NULL)
+bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = nullptr)
 {
-    if (install_sound(digi_id, midi_id, NULL) == 0)
+    if (install_sound(digi_id, midi_id, nullptr) == 0)
         return true;
     // Allegro does not let you try digital and MIDI drivers separately,
     // and does not indicate which driver failed by return value.
@@ -560,13 +560,13 @@ bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = NULL)
     if (midi_id != MIDI_NONE)
     {
         Debug::Printf(kDbgMsg_Error, "Failed to init one of the drivers; Error: '%s'.\nWill try to start without MIDI", get_allegro_error());
-        if (install_sound(digi_id, MIDI_NONE, NULL) == 0)
+        if (install_sound(digi_id, MIDI_NONE, nullptr) == 0)
             return true;
     }
     if (digi_id != DIGI_NONE)
     {
         Debug::Printf(kDbgMsg_Error, "Failed to init one of the drivers; Error: '%s'.\nWill try to start without DIGI", get_allegro_error());
-        if (install_sound(DIGI_NONE, midi_id, NULL) == 0)
+        if (install_sound(DIGI_NONE, midi_id, nullptr) == 0)
             return true;
     }
     Debug::Printf(kDbgMsg_Error, "Failed to init sound drivers. Error: %s", get_allegro_error());
@@ -612,7 +612,7 @@ void engine_init_sound()
     {
         Debug::Printf("Everything failed, installing dummy no-sound drivers.");
         reserve_voices(0, 0);
-        install_sound(DIGI_NONE, MIDI_NONE, NULL);
+        install_sound(DIGI_NONE, MIDI_NONE, nullptr);
     }
     // Only display a warning if they wanted a sound card
     const bool digi_failed = usetup.digicard != DIGI_NONE && digi_card == DIGI_NONE;
@@ -687,7 +687,7 @@ void engine_init_exit_handler()
 
 void engine_init_rand()
 {
-    play.randseed = time(NULL);
+    play.randseed = time(nullptr);
     srand (play.randseed);
 }
 
@@ -883,7 +883,7 @@ void show_preload()
 {
     color temppal[256];
 	Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
-    if (splashsc != NULL)
+    if (splashsc != nullptr)
     {
         Debug::Printf("Displaying preload image");
         if (splashsc->GetColorDepth() == 8)
@@ -938,7 +938,7 @@ void engine_init_game_settings()
     int ee;
 
     for (ee = 0; ee < MAX_ROOM_OBJECTS + game.numcharacters; ee++)
-        actsps[ee] = NULL;
+        actsps[ee] = nullptr;
 
     for (ee=0;ee<256;ee++) {
         if (game.paluses[ee]!=PAL_BACKGROUND)
@@ -964,7 +964,7 @@ void engine_init_game_settings()
         precache_view (playerchar->view);
 
     for (ee = 0; ee < MAX_ROOM_OBJECTS; ee++)
-        objcache[ee].image = NULL;
+        objcache[ee].image = nullptr;
 
     /*  dummygui.guiId = -1;
     dummyguicontrol.guin = -1;
@@ -1009,8 +1009,8 @@ void engine_init_game_settings()
     guibg = (Bitmap **)malloc(sizeof(Bitmap *) * game.numgui);
     guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
     for (ee=0;ee<game.numgui;ee++) {
-        guibg[ee] = NULL;
-        guibgbmp[ee] = NULL;
+        guibg[ee] = nullptr;
+        guibgbmp[ee] = nullptr;
     }
 
     our_eip=-5;
@@ -1253,7 +1253,7 @@ Bitmap *test_allegro_bitmap;
 IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_init()
 {
-	test_allegro_bitmap = NULL;
+	test_allegro_bitmap = nullptr;
 	// Switched the test off for now
 	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
 }

@@ -120,7 +120,7 @@ void PreReadSaveFileInfo(Stream *in, GameDataVersion data_ver)
     game.ReadFromFile(&align_s);
     // Discard game messages we do not need here
     delete [] game.load_messages;
-    game.load_messages = NULL;
+    game.load_messages = nullptr;
     game.read_savegame_info(in, data_ver);
 }
 

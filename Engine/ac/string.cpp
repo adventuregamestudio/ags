@@ -33,7 +33,7 @@ extern ScriptString myScriptStringImpl;
 
 int String_IsNullOrEmpty(const char *thisString) 
 {
-    if ((thisString == NULL) || (thisString[0] == 0))
+    if ((thisString == nullptr) || (thisString[0] == 0))
         return 1;
 
     return 0;
@@ -205,7 +205,7 @@ int StrContains (const char *s1, const char *s2) {
     free(tempbuf1);
     free(tempbuf2);
 
-    if (offs == NULL)
+    if (offs == nullptr)
         return -1;
 
     return (offs - tempbuf1);

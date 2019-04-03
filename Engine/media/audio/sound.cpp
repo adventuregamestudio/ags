@@ -69,8 +69,8 @@ SOUNDCLIP *my_load_wave(const AssetPath &asset_name, int voll, int loop)
     long dummy;
     SAMPLE *new_sample = (SAMPLE*)get_cached_sound(asset_name, true, &dummy);
 
-    if (new_sample == NULL)
-        return NULL;
+    if (new_sample == nullptr)
+        return nullptr;
 
     thiswave = new MYWAVE();
     thiswave->wave = new_sample;
@@ -88,13 +88,13 @@ MYMP3 *thistune;
 SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
 {
     mp3in = PackfileFromAsset(asset_name);
-    if (mp3in == NULL)
-        return NULL;
+    if (mp3in == nullptr)
+        return nullptr;
 
     char *tmpbuffer = (char *)malloc(MP3CHUNKSIZE);
-    if (tmpbuffer == NULL) {
+    if (tmpbuffer == nullptr) {
         pack_fclose(mp3in);
-        return NULL;
+        return nullptr;
     }
     thistune = new MYMP3();
     thistune->in = mp3in;
@@ -114,11 +114,11 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, int voll)
         thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->normal.todo < 1));
     }
 
-    if (thistune->stream == NULL) {
+    if (thistune->stream == nullptr) {
         free(tmpbuffer);
         pack_fclose(mp3in);
         delete thistune;
-        return NULL;
+        return nullptr;
     }
 
     return thistune;
@@ -132,17 +132,17 @@ SOUNDCLIP *my_load_static_mp3(const AssetPath &asset_name, int voll, bool loop)
     // Load via soundcache.
     long muslen = 0;
     char* mp3buffer = get_cached_sound(asset_name, false, &muslen);
-    if (mp3buffer == NULL)
-        return NULL;
+    if (mp3buffer == nullptr)
+        return nullptr;
 
     // now, create an MP3 structure for it
     thismp3 = new MYSTATICMP3();
-    if (thismp3 == NULL) {
+    if (thismp3 == nullptr) {
         free(mp3buffer);
-        return NULL;
+        return nullptr;
     }
     thismp3->vol = voll;
-    thismp3->mp3buffer = NULL;
+    thismp3->mp3buffer = nullptr;
     thismp3->repeat = loop;
 
     {
@@ -150,10 +150,10 @@ SOUNDCLIP *my_load_static_mp3(const AssetPath &asset_name, int voll, bool loop)
         thismp3->tune = almp3_create_mp3(mp3buffer, muslen);
     }
 
-    if (thismp3->tune == NULL) {
+    if (thismp3->tune == nullptr) {
         free(mp3buffer);
         delete thismp3;
-        return NULL;
+        return nullptr;
     }
 
     thismp3->mp3buffer = mp3buffer;
@@ -183,8 +183,8 @@ SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
     // Load via soundcache.
     long muslen = 0;
     char* mp3buffer = get_cached_sound(asset_name, false, &muslen);
-    if (mp3buffer == NULL)
-        return NULL;
+    if (mp3buffer == nullptr)
+        return nullptr;
 
     // now, create an OGG structure for it
     thissogg = new MYSTATICOGG();
@@ -195,10 +195,10 @@ SOUNDCLIP *my_load_static_ogg(const AssetPath &asset_name, int voll, bool loop)
 
     thissogg->tune = alogg_create_ogg_from_buffer(mp3buffer, muslen);
 
-    if (thissogg->tune == NULL) {
+    if (thissogg->tune == nullptr) {
         thissogg->destroy();
         delete thissogg;
-        return NULL;
+        return nullptr;
     }
 
     return thissogg;
@@ -208,13 +208,13 @@ MYOGG *thisogg;
 SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
 {
     mp3in = PackfileFromAsset(asset_name);
-    if (mp3in == NULL)
-        return NULL;
+    if (mp3in == nullptr)
+        return nullptr;
 
     char *tmpbuffer = (char *)malloc(MP3CHUNKSIZE);
-    if (tmpbuffer == NULL) {
+    if (tmpbuffer == nullptr) {
         pack_fclose(mp3in);
-        return NULL;
+        return nullptr;
     }
 
     thisogg = new MYOGG();
@@ -233,11 +233,11 @@ SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, int voll)
     thisogg->buffer = (char *)tmpbuffer;
     thisogg->stream = alogg_create_oggstream(tmpbuffer, thisogg->chunksize, (mp3in->normal.todo < 1));
 
-    if (thisogg->stream == NULL) {
+    if (thisogg->stream == nullptr) {
         free(tmpbuffer);
         pack_fclose(mp3in);
         delete thisogg;
-        return NULL;
+        return nullptr;
     }
 
     return thisogg;
@@ -254,13 +254,13 @@ SOUNDCLIP *my_load_midi(const AssetPath &asset_name, int repet)
 
     PACKFILE *pf = PackfileFromAsset(asset_name);
     if (!pf)
-        return NULL;
+        return nullptr;
 
     MIDI* midiPtr = load_midi_pf(pf);
     pack_fclose(pf);
 
-    if (midiPtr == NULL)
-        return NULL;
+    if (midiPtr == nullptr)
+        return nullptr;
 
     thismidi = new MYMIDI();
     thismidi->tune = midiPtr;
@@ -298,20 +298,20 @@ void remove_mod_player() {
 //#endif   // JGMOD_MOD_PLAYER
 #elif defined DUMB_MOD_PLAYER
 
-MYMOD *thismod = NULL;
+MYMOD *thismod = nullptr;
 SOUNDCLIP *my_load_mod(const AssetPath &asset_name, int repet)
 {
     DUMBFILE *df = DUMBfileFromAsset(asset_name);
     if (!df)
-        return NULL;
+        return nullptr;
 
-    DUH *modPtr = NULL;
+    DUH *modPtr = nullptr;
     // determine the file extension
     const char *lastDot = strrchr(asset_name.second, '.');
-    if (lastDot == NULL)
+    if (lastDot == nullptr)
     {
         dumbfile_close(df);
-        return NULL;
+        return nullptr;
     }
     // get the first char of the extensin
     int charAfterDot = toupper(lastDot[1]);
@@ -331,8 +331,8 @@ SOUNDCLIP *my_load_mod(const AssetPath &asset_name, int repet)
     }
 
     dumbfile_close(df);
-    if (modPtr == NULL)
-        return NULL;
+    if (modPtr == nullptr)
+        return nullptr;
 
     thismod = new MYMOD();
     thismod->tune = modPtr;

@@ -128,7 +128,7 @@ int RenderChar(Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_ch
 
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  return LoadFromDiskEx(fontNumber, fontSize, NULL);
+  return LoadFromDiskEx(fontNumber, fontSize, nullptr);
 }
 
 bool WFNFontRenderer::IsBitmapFont()
@@ -139,16 +139,16 @@ bool WFNFontRenderer::IsBitmapFont()
 bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params)
 {
   String file_name;
-  Stream *ffi = NULL;
+  Stream *ffi = nullptr;
 
   file_name.Format("agsfnt%d.wfn", fontNumber);
   ffi = AssetManager::OpenAsset(file_name);
-  if (ffi == NULL)
+  if (ffi == nullptr)
   {
     // actual font not found, try font 0 instead
     file_name = "agsfnt0.wfn";
     ffi = AssetManager::OpenAsset(file_name);
-    if (ffi == NULL)
+    if (ffi == nullptr)
       return false;
   }
 

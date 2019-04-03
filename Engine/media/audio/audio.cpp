@@ -162,7 +162,7 @@ static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpe
     play.crossfade_out_volume_per_step = crossfadeSpeed;
 
     play.crossfading_in_channel = fadeInChannel;
-    if (newSound != NULL)
+    if (newSound != nullptr)
     {
         start_fading_in_new_track_if_applicable(fadeInChannel, newSound);
     }
@@ -171,7 +171,7 @@ static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpe
 void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudioClip *newSound)
 {
     ScriptAudioClip *sourceClip = AudioChannel_GetPlayingClip(&scrAudioChannel[fadeOutChannel]);
-    if ((sourceClip != NULL) && (game.audioClipTypes[sourceClip->type].crossfadeSpeed > 0))
+    if ((sourceClip != nullptr) && (game.audioClipTypes[sourceClip->type].crossfadeSpeed > 0))
     {
         move_track_to_crossfade_channel(fadeOutChannel, game.audioClipTypes[sourceClip->type].crossfadeSpeed, fadeInChannel, newSound);
     }
@@ -245,12 +245,12 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 {
     if (!is_audiotype_allowed_to_play((AudioFileType)audioClip->fileType))
     {
-        return NULL;
+        return nullptr;
     }
 
     update_clip_default_volume(audioClip);
 
-    SOUNDCLIP *soundClip = NULL;
+    SOUNDCLIP *soundClip = nullptr;
     AssetPath asset_name = get_audio_clip_assetpath(audioClip->bundlingType, audioClip->fileName);
     switch (audioClip->fileType)
     {
@@ -277,7 +277,7 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     default:
         quitprintf("AudioClip.Play: invalid audio file type encountered: %d", audioClip->fileType);
     }
-    if (soundClip != NULL)
+    if (soundClip != nullptr)
     {
         soundClip->set_volume_percent(audioClip->defaultVolume);
         soundClip->sourceClip = audioClip;
@@ -368,7 +368,7 @@ static void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int re
     }
 
     SOUNDCLIP *cachedClip = load_sound_clip(clip, (repeat != 0));
-    if (cachedClip != NULL) 
+    if (cachedClip != nullptr) 
     {
         play.new_music_queue[play.new_music_queue_size].audioClipIndex = clip->id;
         play.new_music_queue[play.new_music_queue_size].priority = priority;
@@ -382,18 +382,18 @@ static void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int re
 
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx)
 {
-    if (soundfx == NULL)
+    if (soundfx == nullptr)
     {
         soundfx = load_sound_clip(clip, (repeat) ? true : false);
     }
-    if (soundfx == NULL)
+    if (soundfx == nullptr)
     {
         debug_script_log("AudioClip.Play: unable to load sound file");
         if (play.crossfading_in_channel == channel)
         {
             play.crossfading_in_channel = 0;
         }
-        return NULL;
+        return nullptr;
     }
     soundfx->priority = priority;
 
@@ -488,7 +488,7 @@ ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int rep
         else
             debug_script_log("AudioClip.Play: no channels available to interrupt PRI:%d TYPE:%d", priority, clip->type);
 
-        return NULL;
+        return nullptr;
     }
 
     return play_audio_clip_on_channel(channel, clip, priority, repeat, fromOffset);
@@ -499,7 +499,7 @@ ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
     if ((audioClipIndex >= 0) && (audioClipIndex < game.audioClipCount))
         return AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
     else 
-        return NULL;
+        return nullptr;
 }
 
 void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
@@ -510,10 +510,10 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
     AudioChannelsLock lock;
     SOUNDCLIP* ch = lock.GetChannel(chid);
 
-    if (ch != NULL) {
+    if (ch != nullptr) {
         ch->destroy();
         delete ch;
-        lock.SetChannel(chid, NULL);
+        lock.SetChannel(chid, nullptr);
         ch = nullptr;
     }
 
@@ -576,12 +576,12 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 {
     ScriptAudioClip* audioClip = GetAudioClipForOldStyleNumber(game, isMusic, indexNumber);
 
-    if (audioClip != NULL)
+    if (audioClip != nullptr)
     {
         return load_sound_clip(audioClip, repeat);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 //=============================================================================
@@ -589,7 +589,7 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 void force_audiostream_include() {
     // This should never happen, but the call is here to make it
     // link the audiostream libraries
-    stop_audio_stream(NULL);
+    stop_audio_stream(nullptr);
 }
 
 // TODO: double check that ambient sounds array actually needs +1
@@ -784,7 +784,7 @@ int current_music_type = 0;
 // track fading out, no new track)
 int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
 int crossFadeVolumeAtStart = 0;
-SOUNDCLIP *cachedQueuedMusic = NULL;
+SOUNDCLIP *cachedQueuedMusic = nullptr;
 
 static bool music_update_scheduled = false;
 static auto music_update_at = AGS_Clock::now();
@@ -814,10 +814,10 @@ void process_scheduled_music_update() {
 
 void clear_music_cache() {
 
-    if (cachedQueuedMusic != NULL) {
+    if (cachedQueuedMusic != nullptr) {
         cachedQueuedMusic->destroy();
         delete cachedQueuedMusic;
-        cachedQueuedMusic = NULL;
+        cachedQueuedMusic = nullptr;
     }
 
 }
@@ -846,7 +846,7 @@ void play_next_queued() {
 
         // don't free the memory, as it has been transferred onto the
         // main music channel
-        cachedQueuedMusic = NULL;
+        cachedQueuedMusic = nullptr;
 
         play.music_queue_size--;
         for (int i = 0; i < play.music_queue_size; i++)
@@ -989,7 +989,7 @@ void stopmusic()
         }
     }
     else if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && (lock.GetChannelIfPlaying(SCHAN_MUSIC) != NULL)
+        && (lock.GetChannelIfPlaying(SCHAN_MUSIC) != nullptr)
         && (current_music_type != 0)
         && (current_music_type != MUS_MIDI)
         && (current_music_type != MUS_MOD)) {
@@ -1077,7 +1077,7 @@ int prepare_for_new_music ()
     int useChannel = SCHAN_MUSIC;
 
     if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && (lock.GetChannelIfPlaying(SCHAN_MUSIC) != NULL)
+        && (lock.GetChannelIfPlaying(SCHAN_MUSIC) != nullptr)
         && (current_music_type != MUS_MIDI)
         && (current_music_type != MUS_MOD)) {
 
@@ -1132,7 +1132,7 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
 
     SOUNDCLIP *loaded = load_sound_clip_from_old_style_number(true, mnum, doRepeat);
 
-    if ((loaded == NULL) && (mnum > 0)) 
+    if ((loaded == nullptr) && (mnum > 0)) 
     {
         debug_script_warn("Music %d not found",mnum);
         debug_script_log("FAILED to load music %d", mnum);
@@ -1146,7 +1146,7 @@ static void play_new_music(int mnum, SOUNDCLIP *music)
     if (debug_flags & DBG_NOMUSIC)
         return;
 
-    if ((play.cur_music_number == mnum) && (music == NULL)) {
+    if ((play.cur_music_number == mnum) && (music == nullptr)) {
         debug_script_log("PlayMusic %d but already playing", mnum);
         return;  // don't play the music if it's already playing
     }
@@ -1201,5 +1201,5 @@ static void play_new_music(int mnum, SOUNDCLIP *music)
 
 void newmusic(int mnum)
 {
-    play_new_music(mnum, NULL);
+    play_new_music(mnum, nullptr);
 }

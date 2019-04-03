@@ -77,7 +77,7 @@ ScriptAudioClip* AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
     {
         return (ScriptAudioClip*)ch->sourceClip;
     }
-    return NULL;
+    return nullptr;
 }
 
 int AudioChannel_GetPosition(ScriptAudioChannel *channel)

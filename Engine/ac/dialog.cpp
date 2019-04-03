@@ -228,12 +228,12 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
           break;
 
         case DCMD_OPTOFF:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           SetDialogOption(dialogID, param1 + 1, 0, true);
           break;
 
         case DCMD_OPTON:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           SetDialogOption(dialogID, param1 + 1, DFLG_ON, true);
           break;
 
@@ -247,29 +247,29 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
           break;
 
         case DCMD_OPTOFFFOREVER:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           SetDialogOption(dialogID, param1 + 1, DFLG_OFFPERM, true);
           break;
 
         case DCMD_RUNTEXTSCRIPT:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           result = run_dialog_request(param1);
           script_running = (result == RUN_DIALOG_STAY);
           break;
 
         case DCMD_GOTODIALOG:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           result = param1;
           script_running = false;
           break;
 
         case DCMD_PLAYSOUND:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           play_sound(param1);
           break;
 
         case DCMD_ADDINV:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           add_inventory(param1);
           break;
 
@@ -279,7 +279,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
           break;
 
         case DCMD_NEWROOM:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           NewRoom(param1);
           in_new_room = 1;
           result = RUN_DIALOG_STOP_DIALOG;
@@ -292,7 +292,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
           break;
 
         case DCMD_GIVESCORE:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           GiveScore(param1);
           break;
 
@@ -302,7 +302,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
           break;
 
         case DCMD_LOSEINV:
-          get_dialog_script_parameters(script, &param1, NULL);
+          get_dialog_script_parameters(script, &param1, nullptr);
           lose_inventory(param1);
           break;
 
@@ -486,10 +486,10 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   linespacing = getfontspacing_outlined(usingfont);
   curswas=cur_cursor;
   bullet_wid = 0;
-  ddb = NULL;
-  subBitmap = NULL;
-  parserInput = NULL;
-  dtop = NULL;
+  ddb = nullptr;
+  subBitmap = nullptr;
+  parserInput = nullptr;
+  dtop = nullptr;
 
   if ((dlgnum < 0) || (dlgnum >= game.numdialog))
     quit("!RunDialog: invalid dialog number specified");
@@ -543,7 +543,7 @@ void DialogOptions::Show()
   if (numdisp<1) quit("!DoDialog: all options have been turned off");
   // Don't display the options if there is only one and the parser
   // is not enabled.
-  if (!((numdisp > 1) || (parserInput != NULL) || (play.show_single_dialog_option)))
+  if (!((numdisp > 1) || (parserInput != nullptr) || (play.show_single_dialog_option)))
   {
       chose = disporder[0];  // only one choice, so select it
       return;
@@ -709,8 +709,8 @@ void DialogOptions::Redraw()
         xspos = (ui_view.GetWidth() - areawid) - get_fixed_pixel_size(10);
 
       // needs to draw the right text window, not the default
-      Bitmap *text_window_ds = NULL;
-      draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,NULL,needheight, game.options[OPT_DIALOGIFACE]);
+      Bitmap *text_window_ds = nullptr;
+      draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,nullptr,needheight, game.options[OPT_DIALOGIFACE]);
       options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
       // since draw_text_window incrases the width, restore it
       areawid = savedwid;
@@ -829,15 +829,15 @@ void DialogOptions::Redraw()
       subBitmap->Blit(tempScrn, dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
     }
 
-    if ((ddb != NULL) && 
+    if ((ddb != nullptr) && 
       ((ddb->GetWidth() != dirtywidth) ||
        (ddb->GetHeight() != dirtyheight)))
     {
       gfxDriver->DestroyDDB(ddb);
-      ddb = NULL;
+      ddb = nullptr;
     }
     
-    if (ddb == NULL)
+    if (ddb == nullptr)
       ddb = gfxDriver->CreateDDBFromBitmap(subBitmap, options_surface_has_alpha, false);
     else
       gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap, options_surface_has_alpha);
@@ -942,7 +942,7 @@ bool DialogOptions::Run()
         if ((mouseison<0) | (mouseison>=numdisp)) mouseison=-1;
       }
 
-      if (parserInput != NULL) {
+      if (parserInput != nullptr) {
         int relativeMousey = mousey;
         if (usingCustomRendering)
           relativeMousey -= dirtyy;
@@ -1063,10 +1063,10 @@ void DialogOptions::Close()
 
   if (parserInput) {
     delete parserInput;
-    parserInput = NULL;
+    parserInput = nullptr;
   }
 
-  if (ddb != NULL)
+  if (ddb != nullptr)
     gfxDriver->DestroyDDB(ddb);
   delete subBitmap;
 

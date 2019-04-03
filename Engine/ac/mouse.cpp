@@ -53,9 +53,9 @@ int cur_mode,cur_cursor;
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
 char alpha_blend_cursor = 0;
-Bitmap *dotted_mouse_cursor = NULL;
-IDriverDependantBitmap *mouseCursor = NULL;
-Bitmap *blank_mouse_cursor = NULL;
+Bitmap *dotted_mouse_cursor = nullptr;
+IDriverDependantBitmap *mouseCursor = nullptr;
+Bitmap *blank_mouse_cursor = nullptr;
 
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
@@ -110,7 +110,7 @@ void set_mouse_cursor(int newcurs) {
 
     set_new_cursor_graphic(game.mcurs[newcurs].pic);
     delete dotted_mouse_cursor;
-    dotted_mouse_cursor = NULL;
+    dotted_mouse_cursor = nullptr;
 
     if ((newcurs == MODE_USE) && (game.mcurs[newcurs].pic > 0) &&
         ((game.hotdot > 0) || (game.invhotdotsprite > 0)) ) {
@@ -345,7 +345,7 @@ void update_inv_cursor(int invnum) {
 
 void update_cached_mouse_cursor() 
 {
-    if (mouseCursor != NULL)
+    if (mouseCursor != nullptr)
         gfxDriver->DestroyDDB(mouseCursor);
     mouseCursor = gfxDriver->CreateDDBFromBitmap(mousecurs[0], alpha_blend_cursor != 0);
 }
@@ -355,9 +355,9 @@ void set_new_cursor_graphic (int spriteslot) {
 
     // It looks like spriteslot 0 can be used in games with version 2.72 and lower.
     // The NULL check should ensure that the sprite is valid anyway.
-    if (((spriteslot < 1) && (loaded_game_file_version > kGameVersion_272)) || (mousecurs[0] == NULL))
+    if (((spriteslot < 1) && (loaded_game_file_version > kGameVersion_272)) || (mousecurs[0] == nullptr))
     {
-        if (blank_mouse_cursor == NULL)
+        if (blank_mouse_cursor == nullptr)
         {
             blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, game.GetColorDepth());
         }

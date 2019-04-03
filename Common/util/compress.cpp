@@ -372,7 +372,7 @@ void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
   update_polled_stuff_if_runtime();
 
   Bitmap *bmm = BitmapHelper::CreateBitmap((loptr[0] / dst_bpp), loptr[1], dst_bpp * 8);
-  if (bmm == NULL)
+  if (bmm == nullptr)
     quit("!load_room: not enough memory to load room background");
 
   update_polled_stuff_if_runtime();
@@ -416,7 +416,7 @@ void loadcompressed_allegro(Stream *in, Bitmap **bimpp, color *pall) {
   widd = in->ReadInt16();
   hitt = in->ReadInt16();
   Bitmap *bim = BitmapHelper::CreateBitmap(widd, hitt, 8);
-  if (bim == NULL)
+  if (bim == nullptr)
     quit("!load_room: not enough memory to decompress masks");
 
   for (ii = 0; ii < hitt; ii++) {

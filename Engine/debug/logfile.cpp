@@ -70,7 +70,7 @@ bool LogFile::OpenFile(const String &file_path, LogFileOpenMode open_mode, bool 
                            open_mode == kLogFile_OpenAppend ? Common::kFile_Create : Common::kFile_CreateAlways,
                            Common::kFile_Write));
     }
-    return _file.get() != NULL || open_at_first_msg;
+    return _file.get() != nullptr || open_at_first_msg;
 }
 
 void LogFile::CloseFile()

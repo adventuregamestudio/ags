@@ -76,7 +76,7 @@ String GetRuntimeInfo()
         runtimeInfo.Append("[AUDIO.VOX enabled");
     if (play.want_speech >= 1)
         runtimeInfo.Append("[SPEECH.VOX enabled");
-    if (transtree != NULL) {
+    if (transtree != nullptr) {
         runtimeInfo.Append("[Using translation ");
         runtimeInfo.Append(transFileName);
     }

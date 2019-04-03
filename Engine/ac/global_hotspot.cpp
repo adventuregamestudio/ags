@@ -117,7 +117,7 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     evblockbasename="hotspot%d";
     evblocknum=hotspothere;
 
-    if (thisroom.Hotspots[hotspothere].EventHandlers != NULL)
+    if (thisroom.Hotspots[hotspothere].EventHandlers != nullptr)
     {
         if (passon>=0)
             run_interaction_script(thisroom.Hotspots[hotspothere].EventHandlers.get(), passon, 5, (passon == 3));

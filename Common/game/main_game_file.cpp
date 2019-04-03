@@ -186,7 +186,7 @@ HGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVers
     if (data_ver > kGameVersion_310) // 3.1.1+ dialog script
     {
         dialog_script.reset(ccScript::CreateFromStream(in));
-        if (dialog_script == NULL)
+        if (dialog_script == nullptr)
             return new MainGameFileError(kMGFErr_CreateDialogScriptFailed, ccErrorString);
     }
     else // 2.x and < 3.1.1 dialog
@@ -205,7 +205,7 @@ HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, Stream *in, Game
         for (int i = 0; i < count; ++i)
         {
             sc_mods[i].reset(ccScript::CreateFromStream(in));
-            if (sc_mods[i] == NULL)
+            if (sc_mods[i] == nullptr)
                 return new MainGameFileError(kMGFErr_CreateScriptModuleFailed, ccErrorString);
         }
     }
@@ -629,7 +629,7 @@ void SetDefaultGlmsg(GameSetupStruct &game, int msgnum, const char *val)
     // TODO: find out why the index should be lowered by 500
     // (or rather if we may pass correct index right away)
     msgnum -= 500;
-    if (game.messages[msgnum] == NULL)
+    if (game.messages[msgnum] == nullptr)
         game.messages[msgnum] = strdup(val);
 }
 

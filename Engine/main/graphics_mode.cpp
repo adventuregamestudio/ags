@@ -44,7 +44,7 @@ extern AGSPlatformDriver *platform;
 extern IGraphicsDriver *gfxDriver;
 
 
-IGfxDriverFactory *GfxFactory = NULL;
+IGfxDriverFactory *GfxFactory = nullptr;
 
 // Last saved fullscreen and windowed configs; they are used when switching
 // between between fullscreen and windowed modes at runtime.
@@ -314,9 +314,9 @@ bool try_init_compatible_mode(const DisplayMode &dm, const bool match_device_rat
         if (modes.get())
         {
             if (match_device_ratio)
-                mode_found = find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, &device_size, NULL, dm_compat);
+                mode_found = find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, &device_size, nullptr, dm_compat);
             if (!mode_found)
-                mode_found = find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, NULL, NULL, dm_compat);
+                mode_found = find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, nullptr, nullptr, dm_compat);
         }
         if (!mode_found)
             Debug::Printf("Could not find compatible fullscreen mode. Will try to force-set mode requested by user and fallback to windowed mode if that fails.");
@@ -330,7 +330,7 @@ bool try_init_compatible_mode(const DisplayMode &dm, const bool match_device_rat
         // When initializing windowed mode we could start with any random window size;
         // if that did not work, try to find nearest supported mode, as with fullscreen mode,
         // except refering to max window size as an upper bound
-        if (find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, NULL, &device_size, dm_compat))
+        if (find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, nullptr, &device_size, dm_compat))
         {
             dm_compat.Vsync = dm.Vsync;
             dm_compat.Windowed = true;
@@ -666,8 +666,8 @@ void graphics_mode_shutdown()
 {
     if (GfxFactory)
         GfxFactory->Shutdown();
-    GfxFactory = NULL;
-    gfxDriver = NULL;
+    GfxFactory = nullptr;
+    gfxDriver = nullptr;
 
     // Tell Allegro that we are no longer in graphics mode
     set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);

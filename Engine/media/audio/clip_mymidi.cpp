@@ -44,7 +44,7 @@ void MYMIDI::destroy()
     if (tune) {
         destroy_midi(tune);
     }
-    tune = NULL;
+    tune = nullptr;
 
     state_ = SoundClipStopped;
 }
@@ -106,6 +106,6 @@ int MYMIDI::play() {
 }
 
 MYMIDI::MYMIDI() : SOUNDCLIP() {
-    tune = NULL;
+    tune = nullptr;
     lengthInSeconds = 0;
 }

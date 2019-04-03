@@ -35,7 +35,7 @@ void MYOGG::poll()
     {
         // update the buffer
         char *tempbuf = (char *)alogg_get_oggstream_buffer(stream);
-        if (tempbuf != NULL)
+        if (tempbuf != nullptr)
         {
             int free_val = -1;
             if (chunksize >= in->normal.todo)
@@ -136,7 +136,7 @@ int MYOGG::get_pos_ms()
 
     int end_of_stream = alogg_is_end_of_oggstream(stream);
 
-    if ((str->active == 1) && (last_but_one_but_one > 0) && (str->locked == NULL)) {
+    if ((str->active == 1) && (last_but_one_but_one > 0) && (str->locked == nullptr)) {
         switch (end_of_stream) {
 case 0:
 case 2:
@@ -191,9 +191,9 @@ int MYOGG::play() {
 }
 
 MYOGG::MYOGG() : SOUNDCLIP() {
-    stream = NULL;
-    in = NULL;
-    buffer = NULL;
+    stream = nullptr;
+    in = nullptr;
+    buffer = nullptr;
     chunksize = 0;
     last_but_one_but_one = 0;
     last_but_one = 0;

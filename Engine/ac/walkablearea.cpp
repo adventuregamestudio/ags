@@ -34,7 +34,7 @@ extern int displayed_room;
 extern RoomStatus*croom;
 extern RoomObject*objs;
 
-Bitmap *walkareabackup=NULL, *walkable_areas_temp = NULL;
+Bitmap *walkareabackup=nullptr, *walkable_areas_temp = nullptr;
 
 void redo_walkable_areas() {
 
@@ -164,7 +164,7 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
 
         if (is_char_on_another(sourceChar, ww, &fromx, &cwidth))
             continue;
-        if ((sourceChar >= 0) && (is_char_on_another(ww, sourceChar, NULL, NULL)))
+        if ((sourceChar >= 0) && (is_char_on_another(ww, sourceChar, nullptr, nullptr)))
             continue;
 
         remove_walkable_areas_from_temp(fromx, cwidth, char1->get_blocking_top(), char1->get_blocking_bottom());

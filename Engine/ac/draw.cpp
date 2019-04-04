@@ -2022,23 +2022,7 @@ void prepare_characters_for_drawing() {
 void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
     // TODO: dont use static vars!!
     static int offsetxWas = -100, offsetyWas = -100;
-
     screen_reset = 1;
-
-    if (is_complete_overlay) {
-        // this is normally called as part of drawing sprites - clear it
-        // here instead
-        clear_draw_list();
-        return;
-    }
-
-    // don't draw it before the room fades in
-    /*  if ((in_new_room > 0) & (game.color_depth > 1)) {
-    clear(ds);
-    return;
-    }*/
-    our_eip=30;
-    play.UpdateRoomCamera();
 
     our_eip=31;
 
@@ -2095,25 +2079,22 @@ void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
 
         update_black_invreg_and_reset(ds);
         update_room_invreg_and_reset(0, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), no_transform);
-        // TODO: remember that we also would need to rotate here if we support camera rotation!
     }
 
     clear_sprite_list();
 
-    if ((debug_flags & DBG_NOOBJECTS)==0) {
-
+    if ((debug_flags & DBG_NOOBJECTS)==0)
+    {
         prepare_objects_for_drawing();
-
         prepare_characters_for_drawing ();
 
-        if ((debug_flags & DBG_NODRAWSPRITES)==0) {
+        if ((debug_flags & DBG_NODRAWSPRITES)==0)
+        {
             our_eip=34;
             draw_sprite_list();
         }
     }
     our_eip=36;
-
-	//allegro_bitmap_test_draw();
 }
 
 
@@ -2193,14 +2174,8 @@ void draw_gui_and_overlays() {
         }
         if (playerchar->activeinv < 1) gui_inv_pic=-1;
         else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
-        /*    for (aa=0;aa<game.numgui;aa++) {
-        if (guis[aa].on<1) continue;
-        guis[aa].draw();
-        guis[aa].poll();
-        }*/
         our_eip = 37;
         if (guis_need_update) {
-            //Bitmap *abufwas = ds;
             guis_need_update = 0;
             for (aa=0;aa<game.numgui;aa++) {
                 if (!guis[aa].IsDisplayed()) continue;
@@ -2211,7 +2186,6 @@ void draw_gui_and_overlays() {
                 eip_guinum = aa;
                 our_eip = 370;
                 guibg[aa]->ClearTransparent();
-                //ds = guibg[aa];
                 our_eip = 372;
                 guis[aa].DrawAt(guibg[aa], 0,0);
                 our_eip = 373;
@@ -2238,7 +2212,6 @@ void draw_gui_and_overlays() {
                 }
                 our_eip = 374;
             }
-            //ds = abufwas;
         }
         our_eip = 38;
         // Draw the GUIs
@@ -2448,6 +2421,53 @@ void update_screen() {
     screen_is_dirty = false;
 }
 
+// Schedule room rendering
+static void construct_room_view(bool full_redraw)
+{
+    const Rect &room_viewport = play.GetRoomViewportAbs();
+    const Rect &camera = play.GetRoomCamera();
+    // TODO: have camera Left/Top used as a prescale (source) offset!
+    SpriteTransform room_trans(0, 0,
+        (float)room_viewport.GetWidth() / (float)camera.GetWidth(),
+        (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
+        0.f);
+    gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraFrame);
+    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
+
+    if (full_redraw)
+        invalidate_screen();
+
+    // For the sake of software renderer, if there is any kind of camera transform required
+    // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
+    // There are few reasons for this, primary is that Allegro does not support StretchBlt
+    // between different colour depths (i.e. it won't correctly stretch blit 16-bit rooms to
+    // 32-bit virtual screen).
+    // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
+    bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
+    Bitmap *room_bmp = translate_only ? ds : RoomCameraFrame.get();
+    draw_room(ds, room_bmp, !translate_only);
+    // reset the Baselines Changed flag now that we've drawn stuff
+    walk_behind_baselines_changed = 0;
+    put_sprite_list_on_screen(true);
+}
+
+// Schedule ui rendering
+static void construct_ui_view()
+{
+    const Rect &ui_viewport = play.GetUIViewportAbs();
+    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform());
+    draw_gui_and_overlays();
+    put_sprite_list_on_screen(false);
+}
+
+// Schedule misc rendering
+static void construct_misc_view()
+{
+    const Rect &main_viewport = play.GetMainViewport();
+    gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
+    draw_misc_info();
+}
+
 void construct_virtual_screen(bool fullRedraw) 
 {
     gfxDriver->ClearDrawLists();
@@ -2462,65 +2482,36 @@ void construct_virtual_screen(bool fullRedraw)
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 
-    //
-    // Batch 1: room viewports
-    //
-    const Rect &main_viewport = play.GetMainViewport();
-    const Rect &room_viewport = play.GetRoomViewportAbs();
-    const Rect &camera = play.GetRoomCamera();
-    // TODO: have camera Left/Top used as a prescale (source) offset!
-    SpriteTransform room_trans(0, 0,
-        (float)room_viewport.GetWidth() / (float)camera.GetWidth(),
-        (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
-        0.f);
-    gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraFrame);
-    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
-    if (displayed_room >= 0 && play.screen_is_faded_out == 0)
-    {
-        if (fullRedraw)
-            invalidate_screen();
+    // TODO: move to game update! don't call update during rendering pass!
+    // IMPORTANT: keep the order same because sometimes script may depend on it
+    if (displayed_room >= 0)
+        play.UpdateRoomCamera();
 
-        // For the sake of software renderer, if there is any kind of camera transform required
-        // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
-        // There are few reasons for this, primary is that Allegro does not support StretchBlt
-        // between different colour depths (i.e. it won't correctly stretch blit 16-bit rooms to
-        // 32-bit virtual screen).
-        // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
-        bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
-        Bitmap *room_bmp = translate_only ? ds : RoomCameraFrame.get();
-        draw_room(ds, room_bmp, !translate_only);
-        // reset the Baselines Changed flag now that we've drawn stuff
-        walk_behind_baselines_changed = 0;
-        put_sprite_list_on_screen(true);
+    // Stage 1: room viewports
+    if (displayed_room >= 0 && play.screen_is_faded_out == 0 && is_complete_overlay == 0)
+    {
+        construct_room_view(fullRedraw);
+        update_polled_mp3();
     }
-    else if (!gfxDriver->RequiresFullRedrawEachFrame()) 
+    else if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
         // if the driver is not going to redraw the screen,
         // black it out so we don't get cursor trails
         // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
+        Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
         ds->Fill(0);
     }
 
-    // make sure that the mp3 is always playing smoothly
-    update_polled_mp3();
     our_eip=4;
 
-    //
-    // Batch 2: UI overlay
-    //
-    const Rect &ui_viewport = play.GetUIViewportAbs();
-    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform());
+    // Stage 2: UI overlay
     if (play.screen_is_faded_out == 0)
     {
-        draw_gui_and_overlays();
-        put_sprite_list_on_screen(false);
+        construct_ui_view();
     }
 
-    //
-    // Batch 3: auxiliary info
-    //
-    gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
-    draw_misc_info();
+    // Stage 3: auxiliary info
+    construct_misc_view();
 
     if (fullRedraw)
     {

@@ -9,9 +9,6 @@
 #define DISABLE_MPEG_AUDIO // we have ALMP3 for that separately
 #endif
 
-#ifndef __GNUC__
-#include "util/c99_snprintf.h"
-#endif
 #include <string.h>
 #include <stdio.h>
 

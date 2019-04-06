@@ -6,6 +6,8 @@
 #include <algorithm>  // for std::max and std::min
 #include <cstring>  // for memcpy
 
+#undef min
+#undef max
 
 #ifndef _WIN32
 #define __forceinline __attribute__((always_inline))

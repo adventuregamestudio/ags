@@ -533,8 +533,9 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
 
     VALIDATE_STRING(tempo);
 
+    tempo[0] = 0;
+
     if (GetGUIAt(xxx, yyy) >= 0) {
-        tempo[0]=0;
         int mover = GetInvAt (xxx, yyy);
         if (mover > 0) {
             if (play.get_loc_name_last_time != 1000 + mover)
@@ -549,13 +550,13 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         }
         return;
     }
-    int loctype = GetLocationType (xxx, yyy);
+
+    int loctype = GetLocationType(xxx, yyy); // GetLocationType takes screen coords
     VpPoint vpt = play.ScreenToRoomDivDown(xxx, yyy);
     if (vpt.second < 0)
         return;
     xxx = vpt.first.X;
     yyy = vpt.first.Y;
-    tempo[0]=0;
     if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return;
 

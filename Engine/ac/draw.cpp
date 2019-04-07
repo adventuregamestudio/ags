@@ -187,29 +187,6 @@ SpriteListEntry::SpriteListEntry()
 {
 }
 
-
-// TODO: move to test unit
-extern Bitmap *test_allegro_bitmap;
-extern IDriverDependantBitmap *test_allegro_ddb;
-void allegro_bitmap_test_draw()
-{
-	if (test_allegro_bitmap)
-	{
-        test_allegro_bitmap->FillTransparent();
-		test_allegro_bitmap->FillRect(Rect(50,50,150,150), 15);
-
-		if (test_allegro_ddb == nullptr) 
-        {
-            test_allegro_ddb = gfxDriver->CreateDDBFromBitmap(test_allegro_bitmap, false, true);
-        }
-        else
-        {
-            gfxDriver->UpdateDDBFromBitmap(test_allegro_ddb, test_allegro_bitmap, false);
-        }
-        gfxDriver->DrawSprite(-play.GetRoomCamera().Left, -play.GetRoomCamera().Top, test_allegro_ddb);
-	}
-}
-
 void setpal() {
     set_palette_range(palette, 0, 255, 0);
 }
@@ -1011,8 +988,7 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
 
     if (actspswbcache[actspsIndex].isWalkBehindHere)
     {
-        // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
-        add_to_sprite_list(actspswbbmp[actspsIndex], xx - play.GetRoomCamera().Left, yy - play.GetRoomCamera().Top, basel, 0, -1, true);
+        add_to_sprite_list(actspswbbmp[actspsIndex], xx, yy, basel, 0, -1, true);
     }
 }
 
@@ -1137,8 +1113,7 @@ void draw_sprite_list() {
         {
             if (walkBehindBitmap[ee] != nullptr)
             {
-                // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
-                add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee] - play.GetRoomCamera().Left, walkBehindTop[ee] - play.GetRoomCamera().Top,
+                add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee], walkBehindTop[ee],
                     croom->walkbehind_base[ee], 0, -1, true);
             }
         }
@@ -1606,30 +1581,23 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 // This is only called from draw_screen_background, but it's seperated
 // to help with profiling the program
 void prepare_objects_for_drawing() {
-    int aa,atxp,atyp,useindx;
     our_eip=32;
 
-    for (aa=0;aa<croom->numobj;aa++) {
+    for (int aa=0; aa<croom->numobj; aa++) {
         if (objs[aa].on != 1) continue;
         // offscreen, don't draw
         if ((objs[aa].x >= thisroom.Width) || (objs[aa].y < 1))
             continue;
 
-        useindx = aa;
+        const int useindx = aa;
         int tehHeight;
-
         int actspsIntact = construct_object_gfx(aa, nullptr, &tehHeight, false);
 
         // update the cache for next time
         objcache[aa].xwas = objs[aa].x;
         objcache[aa].ywas = objs[aa].y;
-
-        // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
-        const Rect &camera = play.GetRoomCamera();
-        int offsetx = camera.Left;
-        int offsety = camera.Top;
-        atxp = data_to_game_coord(objs[aa].x) - offsetx;
-        atyp = (data_to_game_coord(objs[aa].y) - tehHeight) - offsety;
+        int atxp = data_to_game_coord(objs[aa].x);
+        int atyp = data_to_game_coord(objs[aa].y) - tehHeight;
 
         int usebasel = objs[aa].get_baseline();
 
@@ -1642,11 +1610,11 @@ void prepare_objects_for_drawing() {
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
         {
-            sort_out_char_sprite_walk_behind(useindx, atxp+offsetx, atyp+offsety, usebasel, objs[aa].last_zoom, objs[aa].last_width, objs[aa].last_height);
+            sort_out_char_sprite_walk_behind(useindx, atxp, atyp, usebasel, objs[aa].last_zoom, objs[aa].last_width, objs[aa].last_height);
         }
         else if ((!actspsIntact) && (walkBehindMethod == DrawOverCharSprite))
         {
-            sort_out_walk_behinds(actsps[useindx],atxp+offsetx,atyp+offsety,usebasel);
+            sort_out_walk_behinds(actsps[useindx], atxp, atyp, usebasel);
         }
 
         if ((!actspsIntact) || (actspsbmp[useindx] == nullptr))
@@ -1679,9 +1647,8 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        add_to_sprite_list(actspsbmp[useindx],atxp,atyp,usebasel,objs[aa].transparent,objs[aa].num);
+        add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, objs[aa].transparent,objs[aa].num);
     }
-
 }
 
 
@@ -1734,23 +1701,18 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
 
 
 void prepare_characters_for_drawing() {
-    int zoom_level,newwidth,newheight,onarea,sppic,atxp,atyp,useindx;
-    int light_level,coldept,aa;
+    int zoom_level,newwidth,newheight,onarea,sppic;
+    int light_level,coldept;
     int tint_red, tint_green, tint_blue, tint_amount, tint_light = 255;
 
     our_eip=33;
 
-    // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
-    const Rect &camera = play.GetRoomCamera();
-    int offsetx = camera.Left;
-    int offsety = camera.Top;
-
     // draw characters
-    for (aa=0;aa<game.numcharacters;aa++) {
+    for (int aa=0; aa < game.numcharacters; aa++) {
         if (game.chars[aa].on==0) continue;
         if (game.chars[aa].room!=displayed_room) continue;
         eip_guinum = aa;
-        useindx = aa + MAX_ROOM_OBJECTS;
+        const int useindx = aa + MAX_ROOM_OBJECTS;
 
         CharacterInfo*chin=&game.chars[aa];
         our_eip = 330;
@@ -1809,11 +1771,6 @@ void prepare_characters_for_drawing() {
                 &tint_amount, &tint_red, &tint_green, &tint_blue,
                 &tint_light, &light_level);
         }
-
-        /*if (actsps[useindx]!=NULL) {
-        wfreeblock(actsps[useindx]);
-        actsps[useindx] = NULL;
-        }*/
 
         our_eip = 3330;
         int isMirrored = 0, specialpic = sppic;
@@ -1883,8 +1840,10 @@ void prepare_characters_for_drawing() {
         our_eip = 3336;
 
         // Calculate the X & Y co-ordinates of where the sprite will be
-        atxp=(data_to_game_coord(chin->x) - offsetx) - newwidth/2;
-        atyp=(data_to_game_coord(chin->y) - newheight) - offsety;
+        const int atxp =(data_to_game_coord(chin->x)) - newwidth/2;
+        const int atyp =(data_to_game_coord(chin->y) - newheight)
+            // adjust the Y positioning for the character's Z co-ord
+            - data_to_game_coord(chin->z);
 
         charcache[aa].scaling = zoom_level;
         charcache[aa].sppic = specialpic;
@@ -1942,13 +1901,10 @@ void prepare_characters_for_drawing() {
 
         int usebasel = chin->get_baseline();
 
-        // adjust the Y positioning for the character's Z co-ord
-        atyp -= data_to_game_coord(chin->z);
-
         our_eip = 336;
 
-        int bgX = atxp + offsetx + chin->pic_xoffs;
-        int bgY = atyp + offsety + chin->pic_yoffs;
+        const int bgX = atxp + chin->pic_xoffs;
+        const int bgY = atyp + chin->pic_yoffs;
 
         if (chin->flags & CHF_NOWALKBEHINDS) {
             // ignore walk-behinds, do nothing
@@ -1996,14 +1952,11 @@ void prepare_characters_for_drawing() {
         }
 
         our_eip = 337;
-        // disable alpha blending with tinted sprites (because the
-        // alpha channel was lost in the tinting process)
-        //if (((tint_level) && (tint_amount < 100)) || (light_level))
-        //sppic = -1;
-        add_to_sprite_list(actspsbmp[useindx], atxp + chin->pic_xoffs, atyp + chin->pic_yoffs, usebasel, chin->transparency, sppic);
 
-        chin->actx=atxp+offsetx;
-        chin->acty=atyp+offsety;
+        chin->actx = atxp;
+        chin->acty = atyp;
+
+        add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, chin->transparency, sppic);
     }
 }
 
@@ -2062,7 +2015,7 @@ void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
                 update_walk_behind_images();
             }
         }
-        gfxDriver->DrawSprite(-offsetx, -offsety, roomBackgroundBmp);
+        gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
     }
     else
     {
@@ -2426,8 +2379,7 @@ static void construct_room_view(bool full_redraw)
 {
     const Rect &room_viewport = play.GetRoomViewportAbs();
     const Rect &camera = play.GetRoomCamera();
-    // TODO: have camera Left/Top used as a prescale (source) offset!
-    SpriteTransform room_trans(0, 0,
+    SpriteTransform room_trans(-camera.Left, -camera.Top,
         (float)room_viewport.GetWidth() / (float)camera.GetWidth(),
         (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
         0.f);

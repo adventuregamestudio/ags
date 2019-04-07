@@ -452,22 +452,21 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
 
         virtualScreen->SetClip(Rect::MoveBy(viewport, -_virtualScrOff.X, -_virtualScrOff.Y));
         Bitmap *surface = batch.Surface.get();
-        // TODO: correct transform offsets to have pre-scale (source) and post-scale (dest) offsets!
-        int view_offx = viewport.Left + transform.X - _virtualScrOff.X;
-        int view_offy = viewport.Top + transform.Y - _virtualScrOff.Y;
+        int view_offx = viewport.Left - _virtualScrOff.X;
+        int view_offy = viewport.Top - _virtualScrOff.Y;
         if (surface)
         {
             if (!batch.Opaque)
                 surface->ClearTransparent();
             _stageVirtualScreen = surface;
-            RenderSpriteBatch(batch, surface, 0, 0);
+            RenderSpriteBatch(batch, surface, transform.X, transform.Y);
             // TODO: extract this to the generic software blit-with-transform function
             virtualScreen->StretchBlt(surface, RectWH(view_offx, view_offy, viewport.GetWidth(), viewport.GetHeight()),
                 batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
         }
         else
         {
-            RenderSpriteBatch(batch, virtualScreen, view_offx, view_offy);
+            RenderSpriteBatch(batch, virtualScreen, view_offx + transform.X, view_offy + transform.Y);
         }
         _stageVirtualScreen = virtualScreen;
     }

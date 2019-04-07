@@ -1329,8 +1329,9 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
 
     // Global batch transform
     glMultMatrixf(matGlobal.m);
-    // Self sprite transform (first scale, then translate, reversed)
+    // Self sprite transform (first scale, then rotate and then translate, reversed)
     glTranslatef((float)thisX, (float)thisY, 0.0f);
+    glRotatef(0.f, 0.f, 0.f, 1.f);
     glScalef(widthToScale, heightToScale, 1.0f);
 
     glBindTexture(GL_TEXTURE_2D, bmpToDraw->_tiles[ti].texture);
@@ -1541,18 +1542,21 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         _spriteBatches.resize(index + 1);
     _spriteBatches[index].List.clear();
     // Combine both world transform and viewport transform into one matrix for faster perfomance
+    // NOTE: in OpenGL order of transformation is REVERSE to the order of commands!
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    // NOTE: last step is translate to viewport position; remove this if this
+    // is changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    // TODO: is this the only way in OpenGL to construct matrixes for future use?
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
-    // is it possible to do with matrixes?
-    glTranslatef((float)(desc.Transform.X + desc.Viewport.Left - scaled_offx),
-        (float)-(desc.Transform.Y + desc.Viewport.Top - scaled_offy), 0.0f);
-    glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f);
-    glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f);
+    glTranslatef((float)(desc.Viewport.Left - scaled_offx), (float)-(desc.Viewport.Top - scaled_offy), 0.0f);
+    // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
+    // the camera's transformation is essentially reverse world transformation. And the operations
+    // are inverse: Translate-Rotate-Scale (here they are double inverse because OpenGL).
+    glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f); // scale camera
+    glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f); // rotate camera
+    glTranslatef((float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f); // translate camera
     glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
     glLoadIdentity();
 

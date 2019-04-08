@@ -179,11 +179,6 @@ else()
     target_compile_definitions(common PUBLIC AGS_LITTLE_ENDIAN)
 endif()
 
-if (NOT LINUX)
-    target_compile_definitions(common INTERFACE ALLEGRO_STATICLINK)
-endif()
-target_compile_definitions(common PRIVATE ALLEGRO_NO_COMPATIBILITY ALLEGRO_NO_FIX_ALIASES ALLEGRO_NO_FIX_CLASS)
-
 # NOTE: You can optionally create case sensitive filesystems on Macos and Windows now.
 if (LINUX)
     target_compile_definitions(common PRIVATE AGS_CASE_SENSITIVE_FILESYSTEM)

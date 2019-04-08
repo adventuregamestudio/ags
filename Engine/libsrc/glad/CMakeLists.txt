@@ -3,9 +3,6 @@ add_library(glad)
 set_target_properties(glad PROPERTIES
     C_STANDARD          11
     C_EXTENSIONS        NO
-    $<$<PLATFORM_ID:Linux>:
-        INTERFACE_LINK_LIBRARIES dl
-    >
 )
 
 target_include_directories(glad PUBLIC include)
@@ -24,5 +21,10 @@ target_sources(glad
             src/glad_glx.c
         >
 )
+
+target_link_libraries(glad PUBLIC ${CMAKE_DL_LIBS})
+if (WIN32)
+    target_link_libraries(glad PUBLIC opengl32)
+endif()
 
 add_library(Glad::Glad ALIAS glad)

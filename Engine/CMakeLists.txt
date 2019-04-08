@@ -569,13 +569,14 @@ target_link_libraries(engine PUBLIC
     HQ2X::hq2x
 )
 
+if (WIN32 OR LINUX)
+    target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
+    target_link_libraries(engine PUBLIC Cda::Cda)
+endif ()
+
 if (WIN32)
-    target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
-    target_link_libraries(engine PUBLIC Cda::Cda)
-    target_link_libraries(engine PUBLIC DirectX::Direct3D9 amstrmid quartz shlwapi winmm opengl32)
+    target_link_libraries(engine PUBLIC DirectX::Direct3D9 amstrmid quartz shlwapi winmm)
 elseif (LINUX)
-    target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
-    target_link_libraries(engine PUBLIC Cda::Cda)
     target_link_libraries(engine PUBLIC X11::X11)
 endif()
 
@@ -594,13 +595,20 @@ set_target_properties(ags PROPERTIES
     CXX_EXTENSIONS NO
 )
 
+target_include_directories(ags PRIVATE .)
+
 target_sources(ags
     PRIVATE
     main/main.cpp
     main/main.h
 )
 
-target_link_libraries(ags PRIVATE engine)
+if (LINUX)
+    # common and engine have circular dependencies, so tell the linker to link as a group
+    target_link_libraries(ags PRIVATE -Wl,--start-group common engine -Wl,--end-group)
+else ()
+    target_link_libraries(ags PRIVATE engine)
+endif ()
 
 set_target_properties(ags PROPERTIES
     RUNTIME_OUTPUT_NAME ags
@@ -624,6 +632,8 @@ if (MACOS)
         CXX_STANDARD 11
         CXX_EXTENSIONS NO
     )
+
+    target_include_directories(ags-app PRIVATE .)
 
     target_sources(ags-app
         PRIVATE

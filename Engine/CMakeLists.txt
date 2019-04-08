@@ -1,13 +1,17 @@
 include(CheckLoadMidiPf)
 
-add_executable(engine)
+
+# Engine
+# -----------------------------------------------------------------------------
+
+add_library(engine)
 
 set_target_properties(engine PROPERTIES
     CXX_STANDARD 11
     CXX_EXTENSIONS NO
 )
 
-target_include_directories(engine PRIVATE .)
+target_include_directories(engine PUBLIC .)
 
 target_sources(engine
     PRIVATE
@@ -369,7 +373,6 @@ target_sources(engine
     main/game_start.h
     main/graphics_mode.cpp
     main/graphics_mode.h
-    main/main.cpp
     main/main.h
     main/main_allegro.h
     main/maindefines_ex.h
@@ -499,7 +502,7 @@ elseif(LINUX)
 endif()
 
 if (BUILTIN_PLUGINS)
-    target_compile_definitions(engine PUBLIC BUILTIN_PLUGINS)
+    target_compile_definitions(engine PRIVATE BUILTIN_PLUGINS)
 
     target_sources(engine PRIVATE 
         ../Plugins/agsblend/AGSBlend.cpp
@@ -553,7 +556,7 @@ if (BUILD_STR)
 endif()
 
 
-target_link_libraries(engine PRIVATE 
+target_link_libraries(engine PUBLIC 
     AGS::Common 
     ${CMAKE_DL_LIBS} 
     Glad::Glad 
@@ -568,35 +571,75 @@ target_link_libraries(engine PRIVATE
 
 if (WIN32)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
-    target_link_libraries(engine PRIVATE Cda::Cda)
-    target_link_libraries(engine PRIVATE DirectX::Direct3D9 amstrmid quartz shlwapi winmm opengl32)
+    target_link_libraries(engine PUBLIC Cda::Cda)
+    target_link_libraries(engine PUBLIC DirectX::Direct3D9 amstrmid quartz shlwapi winmm opengl32)
 elseif (LINUX)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
-    target_link_libraries(engine PRIVATE Cda::Cda)
-    target_link_libraries(engine PRIVATE X11::X11)
+    target_link_libraries(engine PUBLIC Cda::Cda)
+    target_link_libraries(engine PUBLIC X11::X11)
 endif()
 
+get_target_property(ENGINE_SOURCES engine SOURCES)
+# Set ROOT to parent directory to include Plugins/
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX "Source Files" FILES ${ENGINE_SOURCES})
 
-set_target_properties(engine PROPERTIES
+
+# Standalone exe
+# -----------------------------------------------------------------------------
+
+add_executable(ags)
+
+set_target_properties(ags PROPERTIES
+    CXX_STANDARD 11
+    CXX_EXTENSIONS NO
+)
+
+target_sources(ags
+    PRIVATE
+    main/main.cpp
+    main/main.h
+)
+
+target_link_libraries(ags PRIVATE engine)
+
+set_target_properties(ags PROPERTIES
     RUNTIME_OUTPUT_NAME ags
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
 if (WIN32)
-    set_target_properties(engine PROPERTIES
+    set_target_properties(ags PROPERTIES
         WIN32_EXECUTABLE TRUE
     )
-elseif (MACOS)
-    #set_target_properties(engine PROPERTIES
-    #    MACOSX_BUNDLE TRUE
-    #    MACOSX_BUNDLE_GUI_IDENTIFIER uk.co.adventuregamestudio.AGS
-    #    RESOURCE "${resources}"  # *must* be part of target sources too
-    # SET_SOURCE_FILES_PROPERTIES(${Textures} PROPERTIES MACOSX_PACKAGE_LOCATION Resources) 
-    # use MACOSX_PACKAGE_LOCATION for nested
-    #)
 endif()
 
 
-get_target_property(ENGINE_SOURCES engine SOURCES)
-# Set ROOT to parent directory to include Plugins/
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX "Source Files" FILES ${ENGINE_SOURCES})
+# macOS App Bundle
+# -----------------------------------------------------------------------------
+
+if (MACOS)
+    add_executable(ags-app)
+
+    set_target_properties(ags-app PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+    )
+
+    target_sources(ags-app
+        PRIVATE
+        main/main.cpp
+        main/main.h
+    )
+
+    target_link_libraries(ags-app PRIVATE engine)
+
+    set_target_properties(ags-app PROPERTIES
+        RUNTIME_OUTPUT_NAME AGS
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_GUI_IDENTIFIER uk.co.adventuregamestudio.AGS
+        #RESOURCE "${resources}"  # *must* be part of target sources too
+        #SET_SOURCE_FILES_PROPERTIES(${Textures} PROPERTIES MACOSX_PACKAGE_LOCATION Resources) 
+        #use MACOSX_PACKAGE_LOCATION for nested
+    )
+endif()

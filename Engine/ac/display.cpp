@@ -267,7 +267,6 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         // 4 = mouse only
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
-        auto wasSpeaking = channel_has_clip(SCHAN_SPEECH);
         while (1) {
             /*      if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_UPDATE);
@@ -294,7 +293,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             PollUntilNextFrame();
             countdown--;
 
-            if (wasSpeaking) {
+            if (play.speech_has_voice) {
                 // extend life of text if the voice hasn't finished yet
                 if (channel_is_playing(SCHAN_SPEECH) && (play.fast_forward == 0)) {
                     if (countdown <= 1)
@@ -344,28 +343,44 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch, int isThought, int allowShrink, bool overlayPositionFixed) {
     int usingfont=FONT_NORMAL;
     if (asspch) usingfont=FONT_SPEECH;
-    int needStopSpeech = 0;
+    // TODO: _display_at may be called from _displayspeech, which can start
+    // and finalize voice speech on its own. Find out if we really need to
+    // keep track of this and not just stop voice regardless.
+    bool need_stop_speech = false;
 
     EndSkippingUntilCharStops();
 
-    if (todis[0]=='&') {
-        // auto-speech
-        int igr=atoi(&todis[1]);
-        while ((todis[0]!=' ') & (todis[0]!=0)) todis++;
-        if (todis[0]==' ') todis++;
-        if (igr <= 0)
-            quit("Display: auto-voice symbol '&' not followed by valid integer");
-        if (play_speech(play.narrator_speech,igr)) {
-            // if Voice Only, then blank out the text
-            if (play.want_speech == 2)
-                todis = "  ";
-        }
-        needStopSpeech = 1;
+    if (try_auto_play_speech(todis, todis, play.narrator_speech, true))
+    {// TODO: is there any need for this flag?
+        need_stop_speech = true;
     }
     _display_main(xx,yy,wii,todis,blocking,usingfont,asspch, isThought, allowShrink, overlayPositionFixed);
 
-    if (needStopSpeech)
-        stop_speech();
+    if (need_stop_speech)
+        stop_voice_speech();
+}
+
+bool try_auto_play_speech(const char *text, const char *&replace_text, int charid, bool blocking)
+{
+    const char *src = text;
+    if (src[0] != '&')
+        return false;
+
+    int sndid = atoi(&src[1]);
+    while ((src[0] != ' ') & (src[0] != 0)) src++;
+    if (src[0] == ' ') src++;
+    if (sndid <= 0)
+        quit("DisplaySpeech: auto-voice symbol '&' not followed by valid integer");
+
+    replace_text = src; // skip voice tag
+    if (play_voice_speech(charid, sndid))
+    {
+        // if Voice Only, then blank out the text
+        if (play.want_speech == 2)
+            replace_text = "  ";
+        return true;
+    }
+    return false;
 }
 
 // TODO: refactor this global variable out; currently it is set at the every get_translation call.

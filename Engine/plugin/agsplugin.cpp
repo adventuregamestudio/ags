@@ -579,6 +579,11 @@ int IAGSEngine::IsChannelPlaying (int32 channel) {
 }
 void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume, int32 loop, const char *filename) {
     stop_and_destroy_channel (channel);
+    // Not sure if it's right to let it play on *any* channel, but this is plugin so let it go...
+    // we must correctly stop background voice speech if it takes over speech chan
+    if (channel == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
+        stop_voice_nonblocking();
+
     SOUNDCLIP *newcha = nullptr;
 
     if (((soundType == PSND_MP3STREAM) || (soundType == PSND_OGGSTREAM)) 

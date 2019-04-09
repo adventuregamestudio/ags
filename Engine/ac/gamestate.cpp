@@ -32,6 +32,7 @@ extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern CharacterInfo *playerchar;
 extern ScriptSystem scsystem;
+extern String speech_file;
 
 GameState::GameState()
 {
@@ -245,6 +246,22 @@ VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry, bool clip_viewport)
     p.X += game_to_data_coord(_roomCamera.Position.Left);
     p.Y += game_to_data_coord(_roomCamera.Position.Top);
     return std::make_pair(p, 0);
+}
+
+bool GameState::IsBlockingVoiceSpeech() const
+{
+    return speech_has_voice && speech_voice_blocking;
+}
+
+bool GameState::IsNonBlockingVoiceSpeech() const
+{
+    return speech_has_voice && !speech_voice_blocking;
+}
+
+bool GameState::ShouldPlayVoiceSpeech() const
+{
+    return !play.fast_forward &&
+        (play.want_speech >= 1) && (!speech_file.IsEmpty());
 }
 
 void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)
@@ -466,9 +483,16 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
-    ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(in->ReadInt32());
+    if (svg_ver < kGSSvgVersion_3509)
+        in->ReadInt32(); // ignore_user_input_until_time -- do not apply from savegame
     if (old_save)
         in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
+    if (svg_ver >= kGSSvgVersion_3509)
+    {
+        int voice_speech_flags = in->ReadInt32();
+        speech_has_voice = voice_speech_flags != 0;
+        speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
+    }
 }
 
 void GameState::WriteForSavegame(Common::Stream *out) const
@@ -649,8 +673,11 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     }
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);
-    auto ignore_user_input_until_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(ignore_user_input_until_time - AGS_Clock::now());
-    out->WriteInt32( ignore_user_input_until_time_ms.count() );
+
+    int voice_speech_flags = speech_has_voice ? 0x01 : 0;
+    if (speech_voice_blocking)
+        voice_speech_flags |= 0x02;
+    out->WriteInt32(voice_speech_flags);
 }
 
 void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)

@@ -429,13 +429,17 @@ void PlaySilentMIDI (int mnum) {
     play.silent_midi = mnum;
     play.silent_midi_channel = SCHAN_SPEECH;
     stop_and_destroy_channel(play.silent_midi_channel);
+    // No idea why it uses speech voice channel, but since it does (and until this is changed)
+    // we have to correctly reset speech voice in case there was a nonblocking speech
+    if (play.IsNonBlockingVoiceSpeech())
+        stop_voice_nonblocking();
 
-    AudioChannelsLock lock;
     SOUNDCLIP *clip = load_sound_clip_from_old_style_number(true, mnum, false);
     if (clip == nullptr)
     {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
+    AudioChannelsLock lock;
     lock.SetChannel(play.silent_midi_channel, clip);
     if (!clip->play()) {
         clip->destroy();
@@ -455,12 +459,6 @@ void SetSpeechVolume(int newvol) {
     if (ch)
         ch->set_volume (newvol);
     play.speech_volume = newvol;
-}
-
-void __scr_play_speech(int who, int which) {
-    // *** implement this - needs to call stop_speech as well
-    // to reset the volume
-    quit("PlaySpeech not yet implemented");
 }
 
 // 0 = text only
@@ -492,19 +490,21 @@ int IsMusicVoxAvailable () {
     return play.separate_music_lib;
 }
 
-int play_speech(int charid,int sndid) {
-    stop_and_destroy_channel (SCHAN_SPEECH);
+extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 
-    // don't play speech if we're skipping a cutscene
-    if (play.fast_forward)
-        return 0;
-    if ((play.want_speech < 1) || (speech_file.IsEmpty()))
-        return 0;
+ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
+{
+    if (!play_voice_nonblocking(ch->index_id, sndid, as_speech))
+        return NULL;
+    return &scrAudioChannel[SCHAN_SPEECH];
+}
 
-    SOUNDCLIP *speechmp3;
+// Construct an asset name for the voice-over clip for the given character and cue id
+String get_cue_filename(int charid, int sndid)
+{
     String script_name;
-
-    if (charid >= 0) {
+    if (charid >= 0)
+    {
         // append the first 4 characters of the script name to the filename
         if (game.chars[charid].scrname[0] == 'c')
             script_name.SetString(&game.chars[charid].scrname[1], 4);
@@ -512,28 +512,21 @@ int play_speech(int charid,int sndid) {
             script_name.SetString(game.chars[charid].scrname, 4);
     }
     else
+    {
         script_name = "NARR";
-
-    // append the speech number and create voice file name
-    String voice_file = String::FromFormat("%s%d", script_name.GetCStr(), sndid);
-
-    int ii;  // Compare the base file name to the .pam file name
-    curLipLine = -1;  // See if we have voice lip sync for this line
-    curLipLinePhoneme = -1;
-    for (ii = 0; ii < numLipLines; ii++) {
-        if (stricmp(splipsync[ii].filename, voice_file) == 0) {
-            curLipLine = ii;
-            break;
-        }
     }
-    // if the lip-sync is being used for voice sync, disable
-    // the text-related lipsync
-    if (numLipLines > 0)
-        game.options[OPT_LIPSYNCTEXT] = 0;
+    return String::FromFormat("%s%d", script_name.GetCStr(), sndid);
+}
 
-    String asset_name = voice_file;
+// Play voice-over clip on the common channel;
+// voice_name should be bare clip name without extension
+static bool play_voice_clip_on_channel(const String &voice_name)
+{
+    stop_and_destroy_channel(SCHAN_SPEECH);
+
+    String asset_name = voice_name;
     asset_name.Append(".wav");
-    speechmp3 = my_load_wave(get_voice_over_assetpath(asset_name), play.speech_volume, 0);
+    SOUNDCLIP *speechmp3 = my_load_wave(get_voice_over_assetpath(asset_name), play.speech_volume, 0);
 
     if (speechmp3 == nullptr) {
         asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "ogg");
@@ -555,26 +548,72 @@ int play_speech(int charid,int sndid) {
     }
 
     if (speechmp3 == nullptr) {
-        debug_script_warn("Speech load failure: '%s'", voice_file.GetCStr());
-        curLipLine = -1;
-        return 0;
+        debug_script_warn("Speech load failure: '%s'", voice_name.GetCStr());
+        return false;
     }
 
     set_clip_to_channel(SCHAN_SPEECH,speechmp3);
+    return true;
+}
 
+// Play voice-over clip and adjust audio volumes;
+// voice_name should be bare clip name without extension
+static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool is_blocking)
+{
+    if (!play_voice_clip_on_channel(voice_name))
+        return false;
+    if (!as_speech)
+        return true;
+
+    play.speech_has_voice = true;
+    play.speech_voice_blocking = is_blocking;
+
+    cancel_scheduled_music_update();
     play.music_vol_was = play.music_master_volume;
-
     // Negative value means set exactly; positive means drop that amount
     if (play.speech_music_drop < 0)
         play.music_master_volume = -play.speech_music_drop;
     else
         play.music_master_volume -= play.speech_music_drop;
-
-    cancel_scheduled_music_update();
     apply_volume_drop_modifier(true);
     update_music_volume();
-
     update_ambient_sound_vol();
+    return true;
+}
+
+// Stop voice-over clip and schedule audio volume reset
+static void stop_voice_clip_impl()
+{
+    play.music_master_volume = play.music_vol_was;
+    // update the music in a bit (fixes two speeches follow each other
+    // and music going up-then-down)
+    schedule_music_update_at(AGS_Clock::now() + std::chrono::milliseconds(500));
+    stop_and_destroy_channel(SCHAN_SPEECH);
+}
+
+bool play_voice_speech(int charid, int sndid)
+{
+    // don't play speech if we're skipping a cutscene
+    if (!play.ShouldPlayVoiceSpeech())
+        return false;
+
+    String voice_file = get_cue_filename(charid, sndid);
+    if (!play_voice_clip_impl(voice_file, true, true))
+        return false;
+
+    int ii;  // Compare the base file name to the .pam file name
+    curLipLine = -1;  // See if we have voice lip sync for this line
+    curLipLinePhoneme = -1;
+    for (ii = 0; ii < numLipLines; ii++) {
+        if (stricmp(splipsync[ii].filename, voice_file) == 0) {
+            curLipLine = ii;
+            break;
+        }
+    }
+    // if the lip-sync is being used for voice sync, disable
+    // the text-related lipsync
+    if (numLipLines > 0)
+        game.options[OPT_LIPSYNCTEXT] = 0;
 
     // change Sierra w/bgrnd  to Sierra without background when voice
     // is available (for Tierra)
@@ -582,27 +621,53 @@ int play_speech(int charid,int sndid) {
         game.options[OPT_SPEECHTYPE] = 1;
         play.no_textbg_when_voice = 2;
     }
-
-    return 1;
+    return true;
 }
 
-void stop_speech()
+bool play_voice_nonblocking(int charid, int sndid, bool as_speech)
 {
-    // NOTE: here we should know only if there *was* any voice-over playing
-    // TODO: refactor speech and replace with a state variable to check instead
-    if (channel_has_clip(SCHAN_SPEECH))
-    {
-        play.music_master_volume = play.music_vol_was;
-        // update the music in a bit (fixes two speeches follow each other
-        // and music going up-then-down)
-        schedule_music_update_at(AGS_Clock::now() + std::chrono::milliseconds(500));
-        stop_and_destroy_channel (SCHAN_SPEECH);
-        curLipLine = -1;
+    // don't play voice if we're skipping a cutscene
+    if (!play.ShouldPlayVoiceSpeech())
+        return false;
+    // don't play voice if there's a blocking speech with voice-over already
+    if (play.IsBlockingVoiceSpeech())
+        return false;
 
-        if (play.no_textbg_when_voice == 2) {
-            // set back to Sierra w/bgrnd
-            play.no_textbg_when_voice = 1;
-            game.options[OPT_SPEECHTYPE] = 2;
-        }
+    String voice_file = get_cue_filename(charid, sndid);
+    return play_voice_clip_impl(voice_file, as_speech, false);
+}
+
+void stop_voice_speech()
+{
+    if (!play.speech_has_voice)
+        return;
+
+    stop_voice_clip_impl();
+
+    // Reset lipsync
+    curLipLine = -1;
+    // Set back to Sierra w/bgrnd
+    if (play.no_textbg_when_voice == 2)
+    {
+        play.no_textbg_when_voice = 1;
+        game.options[OPT_SPEECHTYPE] = 2;
+    }
+    play.speech_has_voice = false;
+    play.speech_voice_blocking = false;
+}
+
+void stop_voice_nonblocking()
+{
+    if (!play.speech_has_voice)
+        return;
+    stop_voice_clip_impl();
+    // Only reset speech flags if we are truly playing a non-blocking voice;
+    // otherwise we might be inside blocking speech function and should let
+    // it keep these flags to be able to finalize properly.
+    // This is an imperfection of current speech implementation.
+    if (!play.speech_voice_blocking)
+    {
+        play.speech_has_voice = false;
+        play.speech_voice_blocking = false;
     }
 }

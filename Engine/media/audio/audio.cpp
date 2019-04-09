@@ -288,6 +288,8 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 
 static void audio_update_polled_stuff()
 {
+    ///////////////////////////////////////////////////////////////////////////
+    // Do crossfade
     play.crossfade_step++;
 
     AudioChannelsLock lock;
@@ -330,6 +332,8 @@ static void audio_update_polled_stuff()
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Do audio queue
     if (play.new_music_queue_size > 0)
     {
         for (int i = 0; i < play.new_music_queue_size; i++)
@@ -349,6 +353,19 @@ static void audio_update_polled_stuff()
                 play_audio_clip_on_channel(channel, clip, itemToPlay.priority, itemToPlay.repeat, 0, itemToPlay.cachedClip);
                 i--;
             }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Do non-blocking voice speech
+    // NOTE: there's only one speech channel, therefore it's either blocking
+    // or non-blocking at any given time. If it's changed, we'd need to keep
+    // record of every channel, or keep a count of active channels.
+    if (play.IsNonBlockingVoiceSpeech())
+    {
+        if (!channel_is_playing(SCHAN_SPEECH))
+        {
+            stop_voice_nonblocking();
         }
     }
 }
@@ -432,7 +449,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     // NOTE: there is a confusing logic in sound clip classes, that they do not use
     // any modifiers when begin playing, therefore we must apply this only after
     // playback was started.
-    if (!play.fast_forward && channel_has_clip(SCHAN_SPEECH))
+    if (!play.fast_forward && play.speech_has_voice)
         apply_volume_drop_to_clip(soundfx);
 
     set_clip_to_channel(channel, soundfx);
@@ -638,7 +655,6 @@ void update_directional_sound_vol()
 void update_ambient_sound_vol ()
 {
     AudioChannelsLock lock;
-    const bool is_voice_playing = lock.GetChannelIfPlaying(SCHAN_SPEECH) != nullptr;
 
     for (int chan = 1; chan < MAX_SOUND_CHANNELS; chan++) {
 
@@ -649,7 +665,7 @@ void update_ambient_sound_vol ()
 
         int sourceVolume = thisSound->vol;
 
-        if (is_voice_playing) {
+        if (play.speech_has_voice) {
             // Negative value means set exactly; positive means drop that amount
             if (play.speech_music_drop < 0)
                 sourceVolume = -play.speech_music_drop;
@@ -699,6 +715,7 @@ void stop_all_sound_and_music()
 {
     int a;
     stopmusic();
+    stop_voice_nonblocking();
     // make sure it doesn't start crossfading when it comes back
     crossFading = 0;
     // any ambient sound will be aborted
@@ -786,6 +803,9 @@ int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
 int crossFadeVolumeAtStart = 0;
 SOUNDCLIP *cachedQueuedMusic = nullptr;
 
+//=============================================================================
+// Music update is scheduled when the voice speech stops;
+// we do a small delay before reverting any volume adjustments
 static bool music_update_scheduled = false;
 static auto music_update_at = AGS_Clock::now();
 
@@ -811,6 +831,8 @@ void process_scheduled_music_update() {
     apply_volume_drop_modifier(false);
     update_ambient_sound_vol();
 }
+// end scheduled music update functions
+//=============================================================================
 
 void clear_music_cache() {
 
@@ -891,7 +913,7 @@ void apply_volume_drop_modifier(bool applyModifier)
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
 void update_volume_drop_if_voiceover()
 {
-    apply_volume_drop_modifier(channel_has_clip(SCHAN_SPEECH));
+    apply_volume_drop_modifier(play.speech_has_voice);
 }
 
 extern volatile char want_exit;

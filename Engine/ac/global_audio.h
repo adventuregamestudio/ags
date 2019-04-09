@@ -46,15 +46,26 @@ void    PlayMP3File (const char *filename);
 void    PlaySilentMIDI (int mnum);
 
 void    SetSpeechVolume(int newvol);
-void    __scr_play_speech(int who, int which);
 void    SetVoiceMode (int newmod);
 int     GetVoiceMode ();
 int     IsVoxAvailable();
 int     IsMusicVoxAvailable ();
 
-//=============================================================================
+struct CharacterInfo;
+struct ScriptAudioChannel;
+// Starts voice-over playback and returns audio channel it is played on;
+// as_speech flag determines whether engine should apply speech-related logic
+// as well, such as temporary volume reduction.
+ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech);
 
-int     play_speech(int charid,int sndid);
-void    stop_speech();
+//=============================================================================
+// Play voice-over for the active blocking speech and initialize relevant data
+bool    play_voice_speech(int charid, int sndid);
+// Play voice-over clip in non-blocking manner
+bool    play_voice_nonblocking(int charid, int sndid, bool as_speech);
+// Stop voice-over for the active speech and reset relevant data
+void    stop_voice_speech();
+// Stop non-blocking voice-over and revert audio volumes if necessary
+void    stop_voice_nonblocking();
 
 #endif // __AGS_EE_AC__GLOBALAUDIO_H

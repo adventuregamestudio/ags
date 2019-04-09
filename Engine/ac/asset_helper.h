@@ -27,6 +27,8 @@ using AGS::Common::String;
 
 // Looks for valid asset library everywhere and returns path, or empty string if failed
 String  find_assetlib(const String &filename);
+// Looks up for known valid asset library and returns path, or empty string if failed
+String  get_known_assetlib(const String &filename);
 // Looks for asset everywhere and returns opened stream, or NULL if failed
 Stream *find_open_asset(const String &filename);
 

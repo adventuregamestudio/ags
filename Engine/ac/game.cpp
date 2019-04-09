@@ -70,8 +70,10 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
+#include "main/engine.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
+#include "media/audio/audio_system.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
@@ -83,8 +85,6 @@
 #include "util/filestream.h" // TODO: needed only because plugins expect file handle
 #include "util/path.h"
 #include "util/string_utils.h"
-#include "ac/mouse.h"
-#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -776,7 +776,7 @@ void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs)
 }
 
 const char *Game_GetFileName() {
-    return CreateNewScriptString(usetup.main_data_filename);
+    return CreateNewScriptString(ResPaths.GamePak.Name);
 }
 
 const char *Game_GetName() {
@@ -1649,7 +1649,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
         return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth));
 
     // saved with different game file
-    if (Path::ComparePaths(desc.MainDataFilename, usetup.main_data_filename))
+    if (Path::ComparePaths(desc.MainDataFilename, ResPaths.GamePak.Name))
     {
         // [IKM] 2012-11-26: this is a workaround, indeed.
         // Try to find wanted game's executable; if it does not exist,

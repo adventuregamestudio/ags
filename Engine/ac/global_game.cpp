@@ -243,8 +243,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     if ((mode & RAGMODE_LOADNOW) == 0) {
         // need to copy, since the script gets destroyed
         get_install_dir_path(gamefilenamebuf, newgame);
-        game_file_name = gamefilenamebuf;
-        usetup.main_data_filename = game_file_name;
+        ResPaths.GamePak.Path = gamefilenamebuf;
+        ResPaths.GamePak.Name = get_filename(gamefilenamebuf);
         play.takeover_data = data;
         load_new_game_restore = -1;
 
@@ -265,8 +265,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
 
     unload_game_file();
 
-    if (Common::AssetManager::SetDataFile(game_file_name) != Common::kAssetNoError)
-        quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name.GetCStr());
+    if (Common::AssetManager::SetDataFile(ResPaths.GamePak.Path) != Common::kAssetNoError)
+        quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
 
     show_preload();
 

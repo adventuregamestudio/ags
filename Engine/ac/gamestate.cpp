@@ -16,15 +16,16 @@
 #include "ac/game_version.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/timer.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
 #include "game/roomstruct.h"
+#include "main/engine.h"
+#include "media/audio/audio_system.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
-#include "media/audio/audio_system.h"
-#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -32,7 +33,6 @@ extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern CharacterInfo *playerchar;
 extern ScriptSystem scsystem;
-extern String speech_file;
 
 GameState::GameState()
 {
@@ -261,7 +261,7 @@ bool GameState::IsNonBlockingVoiceSpeech() const
 bool GameState::ShouldPlayVoiceSpeech() const
 {
     return !play.fast_forward &&
-        (play.want_speech >= 1) && (!speech_file.IsEmpty());
+        (play.want_speech >= 1) && (!ResPaths.SpeechPak.Name.IsEmpty());
 }
 
 void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)

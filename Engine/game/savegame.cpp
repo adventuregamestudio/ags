@@ -32,6 +32,7 @@
 #include "ac/roomstatus.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
+#include "ac/timer.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
@@ -40,6 +41,7 @@
 #include "game/savegame.h"
 #include "game/savegame_components.h"
 #include "game/savegame_internal.h"
+#include "main/engine.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -51,7 +53,6 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
-#include "ac/timer.h"
 
 using namespace Common;
 using namespace Engine;
@@ -688,7 +689,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     StrUtil::WriteString(EngineVersion.LongString, out);
     StrUtil::WriteString(game.guid, out);
     StrUtil::WriteString(game.gamename, out);
-    StrUtil::WriteString(usetup.main_data_filename, out);
+    StrUtil::WriteString(ResPaths.GamePak.Name, out);
     out->WriteInt32(loaded_game_file_version);
     out->WriteInt32(game.GetColorDepth());
     // User description

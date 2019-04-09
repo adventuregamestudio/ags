@@ -292,8 +292,6 @@ void preparesavegamelist(int ctrllist)
   toomanygames = 0;
   al_ffblk ffb;
   int bufix = 0;
-  char curdir[255];
-  _getcwd(curdir, 255);
 
   char searchPath[260];
   sprintf(searchPath, "%s""agssave.*%s", saveGameDirectory, saveGameSuffix.GetCStr());

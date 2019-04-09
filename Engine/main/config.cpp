@@ -27,7 +27,6 @@
 #include "main/mainheader.h"
 #include "main/config.h"
 #include "platform/base/agsplatformdriver.h"
-#include "platform/base/override_defines.h" //_getcwd()
 #include "util/directory.h"
 #include "util/ini_util.h"
 #include "util/textstreamreader.h"
@@ -233,15 +232,9 @@ String find_default_cfg_file(const char *alt_cfg_file)
     {
         char conffilebuf[512];
         strcpy(conffilebuf, alt_cfg_file);
-
-        /*    for (int ee=0;ee<(int)strlen(conffilebuf);ee++) {
-        if (conffilebuf[ee]=='/') conffilebuf[ee]='\\';
-        }*/
         fix_filename_case(conffilebuf);
         fix_filename_slashes(conffilebuf);
-
         INIgetdirec(conffilebuf, DefaultConfigFileName);
-        //    printf("Using config: '%s'\n",conffilebuf);
         filename = conffilebuf;
     }
     return filename;

@@ -36,7 +36,6 @@
 
 #if !defined (WINDOWS_VERSION)
 #define HWND long
-#define _getcwd getcwd
 #endif
 
 #endif // __AGS_EE_PLATFORM__OVERRIDE_DEFINES_H

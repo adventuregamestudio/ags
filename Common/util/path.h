@@ -31,6 +31,9 @@ namespace Path
     bool    IsDirectory(const String &directory);
     // Tells if the given path is a file
     bool    IsFile(const String &filename);
+    // Tells if the given path is file or directory;
+    // may be used to check if it's valid to use
+    bool    IsFileOrDir(const String &filename);
 
     // Makes a platform-dependant path comparison.
     // This takes into consideration platform's filename case (in)sensivity and
@@ -52,6 +55,8 @@ namespace Path
     // Fixups path and removes trailing slash
     String  MakePathNoSlash(const String &path);
     String  MakeAbsolutePath(const String &path);
+    // Concatenates parent and relative paths
+    String  ConcatPaths(const String &parent, const String &child);
 
     // Subsitutes illegal characters with '_'. This function uses a combined set
     // of illegal chars from all the supported platforms to make a name that

@@ -6,9 +6,9 @@ project(AGS
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMake")
 
-option(NO_MP3_PLAYER "Disable MP3" OFF)
-option(BUILTIN_PLUGINS "Built in plugins" OFF)
-set(BUILD_STR "" CACHE STRING "Engine Build Information")
+option(AGS_NO_MP3_PLAYER "Disable MP3" OFF)
+option(AGS_BUILTIN_PLUGINS "Built in plugins" OFF)
+set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
 
 # todo use platform id (from generators)
 if(UNIX AND NOT APPLE)

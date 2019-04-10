@@ -6,9 +6,9 @@ if (WIN32)
     add_library(allegro STATIC IMPORTED GLOBAL)
     set_property(TARGET allegro PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/Solutions/.lib/alleg-static.lib)
     target_compile_definitions(allegro INTERFACE ALLEGRO_STATICLINK)
-    set_property(TARGET allegro PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/Windows/include)
+    target_include_directories(allegro INTERFACE {PROJECT_SOURCE_DIR}/Windows/include)
 
-    set_property(TARGET allegro PROPERTY INTERFACE_LINK_LIBRARIES 
+    target_link_libraries(allegro INTERFACE
 		winmm
 		DirectX::DirectDraw
         DirectX::DirectInput
@@ -20,10 +20,9 @@ if (WIN32)
 endif()
 
 if (LINUX)
-    pkg_check_modules(ALLEGRO REQUIRED allegro)
-
     add_library(allegro INTERFACE IMPORTED GLOBAL)
 
+    pkg_check_modules(ALLEGRO REQUIRED allegro)
     if(ALLEGRO_INCLUDE_DIRS)
         set_property(TARGET allegro PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${ALLEGRO_INCLUDE_DIRS}")
     endif()
@@ -39,25 +38,34 @@ if (LINUX)
 endif ()
 
 if (MACOS)
-    find_library(FW_AUDIO_TOOLBOX AudioToolbox)
-    find_library(FW_CORE_AUDIO CoreAudio)
-    find_library(FW_COCOA Cocoa)
-    find_library(FW_CORE_VIDEO CoreVideo)
-    find_library(FW_IO_KIT IOKit)
-    find_library(FW_OPEN_GL OpenGL)
-
     add_library(allegro STATIC IMPORTED GLOBAL)
     set_property(TARGET allegro PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/OSX/lib/liballeg.a)
     target_compile_definitions(allegro INTERFACE ALLEGRO_STATICLINK)
-    set_property(TARGET allegro PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/OSX/include)
-    set_property(TARGET allegro PROPERTY INTERFACE_LINK_LIBRARIES 
-        ${FW_AUDIO_TOOLBOX}
-        ${FW_CORE_AUDIO}
-        ${FW_COCOA}
-        ${FW_CORE_VIDEO}
-        ${FW_IO_KIT}
-        ${FW_OPEN_GL}
-        )
+    target_include_directories(allegro INTERFACE ${PROJECT_SOURCE_DIR}/OSX/include)
+
+    find_library(AUDIO_TOOLBOX_FRAMEWORK AudioToolbox)
+    mark_as_advanced(AUDIO_TOOLBOX_FRAMEWORK)
+    target_link_libraries(allegro INTERFACE ${AUDIO_TOOLBOX_FRAMEWORK})
+
+    find_library(COCOA_FRAMEWORK Cocoa)
+    mark_as_advanced(COCOA_FRAMEWORK)
+    target_link_libraries(allegro INTERFACE ${COCOA_FRAMEWORK})
+
+    find_library(CORE_AUDIO_FRAMEWORK CoreAudio)
+    mark_as_advanced(CORE_AUDIO_FRAMEWORK)
+    target_link_libraries(allegro INTERFACE ${CORE_AUDIO_FRAMEWORK})
+
+    find_library(CORE_VIDEO_FRAMEWORK CoreVideo)
+    mark_as_advanced(CORE_VIDEO_FRAMEWORK)
+    target_link_libraries(allegro INTERFACE ${CORE_VIDEO_FRAMEWORK})
+
+    find_library(IO_KIT_FRAMEWORK IOKit)
+    mark_as_advanced(IO_KIT_FRAMEWORK)
+    target_link_libraries(allegro INTERFACE ${IO_KIT_FRAMEWORK})
+
+    find_library(OPEN_GL_FRAMEWORK OpenGL)
+    mark_as_advanced(OPEN_GL_FRAMEWORK)
+    target_link_libraries(allegro INTERFACE ${OPEN_GL_FRAMEWORK})
 endif()
 
 

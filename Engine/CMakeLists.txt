@@ -501,7 +501,7 @@ elseif(LINUX)
     )
 endif()
 
-if (BUILTIN_PLUGINS)
+if (AGS_BUILTIN_PLUGINS)
     target_compile_definitions(engine PRIVATE BUILTIN_PLUGINS)
 
     target_sources(engine PRIVATE 
@@ -551,8 +551,8 @@ target_compile_definitions(engine PRIVATE
     $<$<CONFIG:DEBUG>:DEBUG_MANAGED_OBJECTS>
 )
 
-if (BUILD_STR)
-    target_compile_definitions(engine PUBLIC BUILD_STR=\"${BUILD_STR}\")
+if (AGS_BUILD_STR)
+    AGS_target_compile_definitions(engine PUBLIC BUILD_STR=\"${AGS_BUILD_STR}\")
 endif()
 
 

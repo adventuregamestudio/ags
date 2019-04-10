@@ -28,13 +28,7 @@ add_compile_definitions("_FILE_OFFSET_BITS=64")
 add_compile_definitions("$<$<CONFIG:DEBUG>:_DEBUG>")
 add_compile_definitions("$<$<CONFIG:RELEASE>:NDEBUG>")
 
-if(MSVC)
-    add_compile_options($<$<CONFIG:Debug>:/Zi>) # debug info format
-    add_compile_options(
-        /W2     # warning level
-        /GR     # run time type information
-    )
-else()
+if(NOT MSVC)
     add_compile_options(
         -fsigned-char 
         -fno-strict-aliasing 

@@ -552,7 +552,7 @@ target_compile_definitions(engine PRIVATE
 )
 
 if (AGS_BUILD_STR)
-    AGS_target_compile_definitions(engine PUBLIC BUILD_STR=\"${AGS_BUILD_STR}\")
+    target_compile_definitions(engine PUBLIC BUILD_STR=\"${AGS_BUILD_STR}\")
 endif()
 
 
@@ -568,6 +568,9 @@ target_link_libraries(engine PUBLIC
     AlOgg::AlOgg 
     HQ2X::hq2x
 )
+
+# common has a circular dependency on engine
+target_link_libraries(common PUBLIC engine)
 
 if (WIN32 OR LINUX)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
@@ -603,12 +606,7 @@ target_sources(ags
     main/main.h
 )
 
-if (LINUX)
-    # common and engine have circular dependencies, so tell the linker to link as a group
-    target_link_libraries(ags PRIVATE -Wl,--start-group common engine -Wl,--end-group)
-else ()
-    target_link_libraries(ags PRIVATE engine)
-endif ()
+target_link_libraries(ags PRIVATE engine)
 
 set_target_properties(ags PROPERTIES
     RUNTIME_OUTPUT_NAME ags

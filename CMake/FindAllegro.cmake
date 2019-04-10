@@ -1,21 +1,17 @@
-if (TARGET Allegro::Allegro)
-    return()
-endif()
-
 if (WIN32)
     add_library(allegro STATIC IMPORTED GLOBAL)
     set_property(TARGET allegro PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/Solutions/.lib/alleg-static.lib)
     target_compile_definitions(allegro INTERFACE ALLEGRO_STATICLINK)
-    target_include_directories(allegro INTERFACE {PROJECT_SOURCE_DIR}/Windows/include)
+    target_include_directories(allegro INTERFACE ${PROJECT_SOURCE_DIR}/Windows/include)
 
     target_link_libraries(allegro INTERFACE
 		winmm
-		DirectX::DirectDraw
-        DirectX::DirectInput
-        DirectX::DirectSound
-        DirectX::DirectXGUID
-        DirectX::Direct3D9
-        DirectX::Direct3DX9
+		ddraw
+        ddinput
+        dsound
+        dxguid
+        d3d9
+        d3dx9
     )
 endif()
 

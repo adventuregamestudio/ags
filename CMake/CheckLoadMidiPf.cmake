@@ -1,4 +1,4 @@
-include(CheckCXXSourceCompiles)
+include(CheckSymbolExists)
 set(CMAKE_REQUIRED_LIBRARIES allegro)
 set(CMAKE_REQUIRED_DEFINITIONS -DALLEGRO_NO_MAGIC_MAIN)
 check_symbol_exists(load_midi_pf allegro.h HAVE_LOAD_MIDI_PF)

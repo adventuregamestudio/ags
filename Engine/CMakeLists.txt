@@ -614,6 +614,7 @@ set_target_properties(ags PROPERTIES
 )
 
 if (WIN32)
+    target_sources(ags PRIVATE resource/version.rc) # for setup dialog and d3d shaders
     set_target_properties(ags PROPERTIES
         WIN32_EXECUTABLE TRUE
     )

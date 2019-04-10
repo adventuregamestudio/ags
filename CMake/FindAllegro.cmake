@@ -7,7 +7,7 @@ if (WIN32)
     target_link_libraries(allegro INTERFACE
 		winmm
 		ddraw
-        ddinput
+        dinput
         dsound
         dxguid
         d3d9

@@ -48,7 +48,7 @@ bool waitingForNextTick() {
     if (is_lagging) {
 #if defined (_DEBUG) && defined (__GNUC__)
         auto missed_ticks = ((now - last_tick_time)/tick_duration);
-        printf("Lagging! Missed %lld ticks!\n", missed_ticks);
+        printf("Lagging! Missed %lld ticks!\n", (long long)missed_ticks);
         void *array[10];
         auto size = backtrace(array, 10);
         backtrace_symbols_fd(array, size, STDOUT_FILENO);

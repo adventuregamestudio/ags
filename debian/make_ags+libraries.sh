@@ -17,8 +17,8 @@ set -e
 
 # Create the (chroot) environments that will be used for building ags:
 
-# pbuilder-dist jessie i386 create
-# pbuilder-dist jessie amd64 create
+# pbuilder-dist jessie i386 --security-only create
+# pbuilder-dist jessie amd64 --security-only create
 
 # The only other thing you should take care of is that your ags
 # source tree is git clean. That means: check 'git status', commit any
@@ -27,8 +27,8 @@ set -e
 # The chroots can later be updated, which becomes necessary if
 # this script fails because some Debian package cannot be downloaded:
 
-# pbuilder-dist jessie i386 update
-# pbuilder-dist jessie amd64 update
+# pbuilder-dist jessie i386 --security-only update
+# pbuilder-dist jessie amd64 --security-only update
 
 BASEPATH=$(dirname $(dirname $(readlink -f $0)))
 

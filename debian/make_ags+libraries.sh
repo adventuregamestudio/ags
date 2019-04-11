@@ -61,10 +61,10 @@ debuild -us -uc -S
 # Build ags binary package in i386 chroot, also use a hook script to copy libraries and licenses
 # from the chroot to a folder that is mounted into the chroot via --bindmounts.
 DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib32" pbuilder-dist jessie i386 build \
-  $BASEPATH/../ags_$VERSION.dsc \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
-  --bindmounts "$BASEPATH/ags+libraries"
+  --bindmounts "$BASEPATH/ags+libraries" \
+  $BASEPATH/../ags_$VERSION.dsc
 
 # Get the ags binary out of the binary Debian package and clean up.
 cd $BASEPATH/ags+libraries
@@ -75,10 +75,10 @@ rm -rf $BASEPATH/ags+libraries/ags_* $BASEPATH/ags+libraries/ags-dbg_* $BASEPATH
 # Repeat for amd64.
 sed -i -r "5s/.*/BIT=64/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
 DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib64" pbuilder-dist jessie amd64 build \
-  $BASEPATH/../ags_$VERSION.dsc \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
-  --bindmounts "$BASEPATH/ags+libraries"
+  --bindmounts "$BASEPATH/ags+libraries" \
+  $BASEPATH/../ags_$VERSION.dsc
 
 cd $BASEPATH/ags+libraries
 ar p $BASEPATH/ags+libraries/ags_${VERSION}_amd64.deb data.tar.xz | unxz | tar x

@@ -728,9 +728,6 @@ ScriptViewFrame* Game_GetViewFrame(int viewNumber, int loopNumber, int frame) {
 
 int Game_DoOnceOnly(const char *token)
 {
-    if (strlen(token) > 199)
-        quit("!Game.DoOnceOnly: token length cannot be more than 200 chars");
-
     for (int i = 0; i < (int)play.do_once_tokens.size(); i++)
     {
         if (play.do_once_tokens[i] == token)

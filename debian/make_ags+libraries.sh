@@ -56,7 +56,7 @@ CHANGELOG_VERSION=$(head -1 debian/changelog | sed 's/.*(\(.*\)).*/\1/')
 VERSION=$(grep '#define ACI_VERSION_STR' Common/core/def_version.h | sed 's/.*"\(.*\)".*/\1/')
 sed -i -- "s/$CHANGELOG_VERSION/$VERSION/" debian/changelog
 debian/rules get-orig-source
-debuild -us -uc -S
+debuild -us -uc -d -S
 
 # Build ags binary package in i386 chroot, also use a hook script to copy libraries and licenses
 # from the chroot to a folder that is mounted into the chroot via --bindmounts.

@@ -11,7 +11,7 @@ set -e
 
 # Preliminaries for running this script:
 # This script is intended for use on Debian or Ubuntu
-# Install ubuntu-dev-scripts and pbuilder:
+# Install ubuntu-dev-tools and pbuilder:
 
 # sudo apt-get install ubuntu-dev-tools pbuilder
 

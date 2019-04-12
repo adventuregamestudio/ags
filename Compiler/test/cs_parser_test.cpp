@@ -1413,3 +1413,26 @@ TEST(Compile, DynamicAndNull) {
     int compileResult = cc_compile(agscode.c_str(), scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, AssignPtr2ArrayOfPtr) {
+
+    std::string agscode = "\
+        builtin managed struct DynamicSprite    \n\
+        {                                       \n\
+            import static DynamicSprite         \n\
+                *Create(int width, int height, bool hasAlphaChannel = false);   \n\
+        };                                      \n\
+                                                \n\
+        int main()                              \n\
+        {                                       \n\
+            DynamicSprite *sprites[] = new DynamicSprite[10];       \n\
+            DynamicSprite *spr = DynamicSprite.Create(100, 100);    \n\
+            sprites[0] = spr;                   \n\
+        }                                       \n\
+        ";
+    agscode = g_Input_Bool + agscode;
+    clear_error();
+    ccCompiledScript *scrip = newScriptFixture();
+    int compileResult = cc_compile(agscode.c_str(), scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

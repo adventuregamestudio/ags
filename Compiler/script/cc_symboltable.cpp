@@ -99,7 +99,7 @@ SymbolTable::SymbolTable()
     _findCache.clear();
 }
 
-// just return the real type, regardless of pointerness/constness
+// Ignore the pointerness/constness of the symbol and get its type
 AGS::Symbol SymbolTable::get_type(AGS::Symbol symbol)
 {
     symbol &= STYPE_MASK;

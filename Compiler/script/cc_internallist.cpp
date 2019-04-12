@@ -75,7 +75,6 @@ void ccInternalList::write(AGS::Symbol value) {
             allocated *= 2;
 
         script = static_cast<AGS::SymbolScript>(realloc(script, allocated));
-        // TODO: this doesn't check realloc result
     }
     script[length] = value;
     length++;

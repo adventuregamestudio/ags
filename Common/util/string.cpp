@@ -26,8 +26,6 @@ namespace AGS
 namespace Common
 {
 
-/* static */ char String::_internalBuffer[3001];
-
 String::Header::Header()
     : RefCount(0)
     , Capacity(0)
@@ -82,7 +80,8 @@ void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
         return;
     }
 
-    char *read_ptr = _internalBuffer;
+    char buffer[1024];
+    char *read_ptr = buffer;
     size_t read_size = 0;
     int ichar;
     do
@@ -94,11 +93,11 @@ void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
             continue;
         }
         *read_ptr = (char)(ichar >= 0 ? ichar : 0);
-        if (!*read_ptr || read_ptr - _internalBuffer == _internalBufferLength - 1)
+        if (!*read_ptr || ((read_ptr - buffer) == (sizeof(buffer) - 1 - 1)))
         {
-            _internalBuffer[_internalBufferLength] = 0;
-            Append(_internalBuffer);
-            read_ptr = _internalBuffer;
+            buffer[sizeof(buffer) - 1] = 0;
+            Append(buffer);
+            read_ptr = buffer;
         }
         else
         {

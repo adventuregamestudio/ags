@@ -13,7 +13,7 @@ ifneq (,$(filter rpath=%,$(DEB_BUILD_OPTIONS)))
 endif
 
 %:
-	dh $@ --parallel
+	dh $@ --parallel --buildsystem makefile
 
 override_dh_auto_clean:
 	$(MAKE) clean

@@ -11,9 +11,9 @@ set -e
 
 # Preliminaries for running this script:
 # This script is intended for use on Debian or Ubuntu
-# Install ubuntu-dev-tools and pbuilder:
+# Install ubuntu-dev-tools and pbuilder, Ubuntu also needs debhelper:
 
-# sudo apt-get install ubuntu-dev-tools pbuilder
+# sudo apt-get install ubuntu-dev-tools pbuilder debhelper
 
 # Create the (chroot) environments that will be used for building ags:
 

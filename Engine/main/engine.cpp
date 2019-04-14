@@ -16,6 +16,8 @@
 // Engine initialization
 //
 
+#include <errno.h>
+
 #include "main/mainheader.h"
 #include "ac/asset_helper.h"
 #include "ac/common.h"
@@ -98,13 +100,6 @@ ResourcePaths ResPaths;
 t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 
 #define ALLEGRO_KEYBOARD_HANDLER
-// KEYBOARD HANDLER
-#if !defined (WINDOWS_VERSION)
-int myerrno;
-#else
-int errno;
-#define myerrno errno
-#endif
 
 bool engine_init_allegro()
 {
@@ -113,7 +108,7 @@ bool engine_init_allegro()
     our_eip = -199;
     // Initialize allegro
     set_uformat(U_ASCII);
-    if (install_allegro(SYSTEM_AUTODETECT, &myerrno, atexit))
+    if (install_allegro(SYSTEM_AUTODETECT, &errno, atexit))
     {
         const char *al_err = get_allegro_error();
         const char *user_hint = platform->GetAllegroFailUserHint();

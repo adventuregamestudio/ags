@@ -14,32 +14,21 @@
 #ifndef __AGS_CN_UTIL__STDTR1COMPAT_H
 #define __AGS_CN_UTIL__STDTR1COMPAT_H
 
+#if defined(WINDOWS_VERSION)
+    // MSVC didn't report correct __cplusplus value until 2017
+    #if !defined(_MSC_VER) || (_MSC_VER < 1900)
+    #error Visual Studio 2015 or later required.
+    #endif
+#else
+    #if __cplusplus < 201103L
+    #error C++11 or later required.
+    #endif
+#endif
+
 #define MAKE_HEADER(arg) <arg>
 #define TR1INCLUDE(arg) MAKE_HEADER(arg) // default for C++11 compilers and MSVC (no tr1 folder)
 
-#if __cplusplus >= 201103L
-// C++11, doesn't need TR1
 namespace std {}
 namespace stdtr1compat = std;
-#elif defined(_MSC_VER)
-#if _MSC_VER < 1600
-// MSVC prior to VS2010 needs TR1
-#define AGS_NEEDS_TR1
-#define AGS_NEEDS_TR1_MSVC // additional macro because MSVC headers aren't in tr1 folder
-namespace std { namespace tr1 {} }
-namespace stdtr1compat = std::tr1;
-#else
-// MSVC2010 and later do not need TR1
-namespace std {}
-namespace stdtr1compat = std;
-#endif // _MSC_VER < 1600
-#else // !_MSC_VER
-// not C++11, needs TR1
-#define AGS_NEEDS_TR1
-#undef TR1INCLUDE
-#define TR1INCLUDE(arg) MAKE_HEADER(tr1/arg) // non-MSVC compilers prior to C++11 need tr1 folder
-namespace std { namespace tr1 {} }
-namespace stdtr1compat = std::tr1;
-#endif // C++11
 
 #endif // __AGS_CN_UTIL__STDTR1COMPAT_H

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.13..3.14)
 
+set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/CMake/c_flag_overrides.cmake)
+set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_CURRENT_SOURCE_DIR}/CMake/cxx_flag_overrides.cmake)
+
 project(AGS
     VERSION 3.5.0.8
     LANGUAGES CXX C)
@@ -22,7 +25,7 @@ if(UNIX AND APPLE)
     set(MACOS TRUE)
 endif()
 
-if (MSVC AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
+if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Windows builds only support 32bit for now")
 endif()
 
@@ -31,7 +34,11 @@ add_compile_definitions("_FILE_OFFSET_BITS=64")
 add_compile_definitions("$<$<CONFIG:DEBUG>:_DEBUG>")
 add_compile_definitions("$<$<CONFIG:RELEASE>:NDEBUG>")
 
-if(NOT MSVC)
+if(MSVC)
+    add_compile_options(/MP)    # Build with Multiple Processes
+    add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
+    add_compile_definitions(_CRT_NONSTDC_NO_DEPRECATE)
+else()
     add_compile_options(
         -fsigned-char 
         -fno-strict-aliasing 

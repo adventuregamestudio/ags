@@ -608,6 +608,11 @@ target_sources(ags
 
 target_link_libraries(ags PRIVATE engine)
 
+if (LINUX)
+    # We may override `allegro_icon` and `load_midi_pf` depending on the version
+    target_link_options(ags PRIVATE -Wl,--allow-multiple-definition)
+endif ()
+
 set_target_properties(ags PROPERTIES
     RUNTIME_OUTPUT_NAME ags
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}

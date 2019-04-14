@@ -4,11 +4,14 @@ project(AGS
     VERSION 3.5.0.8
     LANGUAGES CXX C)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 option(AGS_NO_MP3_PLAYER "Disable MP3" OFF)
 option(AGS_BUILTIN_PLUGINS "Built in plugins" OFF)
 set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
+
+include(FetchContent)
+set(FETCHCONTENT_UPDATES_DISCONNECTED on)
 
 # todo use platform id (from generators)
 if(UNIX AND NOT APPLE)
@@ -39,6 +42,8 @@ if(NOT MSVC)
 
         -Wendif-labels
         -Wfloat-equal
+        -Wformat
+        -Wformat-security
         -Winit-self
         -Winline
         -Wmissing-noreturn
@@ -61,8 +66,6 @@ if(NOT MSVC)
         -Wno-redundant-decls
 
         -Werror=write-strings
-        -Werror=format
-        -Werror=format-security
         #-Werror=implicit-function-declaration
         #-Werror=unused-result
     )
@@ -87,10 +90,10 @@ elseif (LINUX)
     find_package(X11)
 endif()
 
-find_package(Allegro)
-find_package(Ogg)
-find_package(Vorbis)
-find_package(Theora)
+include(FetchAllegro)
+include(FetchOgg)
+include(FetchVorbis)
+include(FetchTheora)
 
 add_subdirectory(Common/libsrc/aastr-0.1.1      EXCLUDE_FROM_ALL)
 add_subdirectory(Common                         EXCLUDE_FROM_ALL)

@@ -93,8 +93,8 @@ int ShouldStayInWaitMode();
 int numEventsAtStartOfFunction;
 auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 
-long user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
-int user_disabled_data3=0;
+long user_disabled_for = 0;
+const void *user_disabled_data = nullptr;
 
 int restrict_until=0;
 
@@ -898,7 +898,7 @@ int GameTick()
     return 0;
 }
 
-void SetupLoopParameters(int untilwhat,long udata,int mousestuff) {
+void SetupLoopParameters(int untilwhat,const void* udata,int mousestuff) {
     play.disabled_user_interface++;
     guis_need_update = 1;
     // Only change the mouse cursor if it hasn't been specifically changed first
@@ -915,7 +915,7 @@ void SetupLoopParameters(int untilwhat,long udata,int mousestuff) {
 
 // This function is called from lot of various functions
 // in the game core, character, room object etc
-void GameLoopUntilEvent(int untilwhat,long daaa) {
+void GameLoopUntilEvent(int untilwhat,const void* daaa) {
   // blocking cutscene - end skipping
   EndSkippingUntilCharStops();
 
@@ -923,7 +923,7 @@ void GameLoopUntilEvent(int untilwhat,long daaa) {
   // remember the state of these vars in case a higher level
   // call needs them
   int cached_restrict_until = restrict_until;
-  int cached_user_disabled_data = user_disabled_data;
+  const void* cached_user_disabled_data = user_disabled_data;
   int cached_user_disabled_for = user_disabled_for;
 
   SetupLoopParameters(untilwhat,daaa,0);

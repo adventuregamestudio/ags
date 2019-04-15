@@ -198,7 +198,7 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int
     animate_character(chaa, loop, delay, repeat, 0, direction);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        GameLoopUntilEvent(UNTIL_SHORTIS0,(long)&chaa->animating);
+        GameLoopUntilEvent(UNTIL_SHORTIS0,&chaa->animating);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Animate: Invalid BLOCKING parameter");
 }
@@ -396,7 +396,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
                     start_character_turning (char1, direction, no_diagonal);
 
                     if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-                        GameLoopUntilEvent(UNTIL_MOVEEND, (long) &char1->walking);
+                        GameLoopUntilEvent(UNTIL_MOVEEND, &char1->walking);
                 }
                 else
                     char1->loop = direction;
@@ -1062,7 +1062,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     walk_character(chaa->index_id, movetox, movetoy, 1, true);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        GameLoopUntilEvent(UNTIL_MOVEEND,(long)&chaa->walking);
+        GameLoopUntilEvent(UNTIL_MOVEEND,&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -2019,7 +2019,7 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
         quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        GameLoopUntilEvent(UNTIL_MOVEEND,(long)&chaa->walking);
+        GameLoopUntilEvent(UNTIL_MOVEEND,&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -2402,7 +2402,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
     if (isPause) {
         postpone_scheduled_music_update_by(std::chrono::milliseconds(play.messagetime * 1000 / frames_per_second));
-        GameLoopUntilEvent(UNTIL_INTISNEG,(long)&play.messagetime);
+        GameLoopUntilEvent(UNTIL_INTISNEG,&play.messagetime);
         return;
     }
 

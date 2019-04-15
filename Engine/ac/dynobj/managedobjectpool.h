@@ -29,6 +29,8 @@ private:
     struct ManagedObject {
         ScriptValueType obj_type;
         int32_t handle;
+        // TODO: this makes no sense having this as "const char*",
+        // void* will be proper (and in all related functions)
         const char *addr;
         ICCDynamicObject *callback;
         int refCount;

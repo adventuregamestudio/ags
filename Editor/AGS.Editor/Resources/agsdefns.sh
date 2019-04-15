@@ -457,6 +457,32 @@ internalstring autoptr builtin managed struct String {
   readonly import attribute int Length;
 };
 
+#ifdef SCRIPT_API_v350
+builtin managed struct Set
+{
+  /// Creates a new empty Set of the given properties.
+  import static Set* Create(bool sorted = false, bool caseSensitive = false); // $AUTOCOMPLETESTATICONLY$
+
+  /// Adds item to the set, fails if such item was already existing.
+  import bool Add(String item);
+  /// Removes all items from the set.
+  import void Clear();
+  /// Tells if given item is in the set.
+  import bool Contains(String item);
+  /// Removes item from the set, fails if there was no such item.
+  import bool Remove(String item);
+
+  /// Gets if this set is case-sensitive.
+  import readonly attribute bool CaseSensitive;
+  /// Gets if this set is sorted in alphabetical order.
+  import readonly attribute bool Sorted;
+  /// Gets the number of items currently in the set.
+  import readonly attribute int ItemCount;
+  /// Creates a dynamic array filled with items in same order as they are stored in the Set.
+  import String[] GetItemsAsArray();
+};
+#endif
+
 builtin managed struct AudioClip;
 
 builtin managed struct ViewFrame {

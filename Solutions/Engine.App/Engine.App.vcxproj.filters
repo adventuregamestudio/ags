@@ -1002,6 +1002,12 @@
     <ClCompile Include="..\..\Engine\libsrc\glad\src\glad_wgl.c">
       <Filter>Library Sources\glad</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptset.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1861,6 +1867,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\audio_system.h">
       <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h">
+      <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

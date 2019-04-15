@@ -25,7 +25,7 @@ struct ScriptString final : AGSCCDynamicObject, ICCStringClass {
     int Serialize(const char *address, char *buffer, int bufsize) override;
     void Unserialize(int index, const char *serializedData, int dataSize) override;
 
-    void* CreateString(const char *fromText) override;
+    DynObjectRef CreateString(const char *fromText) override;
 
     ScriptString();
     ScriptString(const char *fromText);

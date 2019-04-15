@@ -199,6 +199,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewport.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptset.cpp" />
     <ClCompile Include="..\..\Engine\ac\event.cpp" />
     <ClCompile Include="..\..\Engine\ac\file.cpp" />
     <ClCompile Include="..\..\Engine\ac\game.cpp" />
@@ -258,6 +259,7 @@
     <ClCompile Include="..\..\Engine\ac\overlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\parser.cpp" />
     <ClCompile Include="..\..\Engine\ac\properties.cpp" />
+    <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp" />
     <ClCompile Include="..\..\Engine\ac\sys_events.cpp" />
     <ClCompile Include="..\..\Engine\ac\region.cpp" />
     <ClCompile Include="..\..\Engine\ac\richgamemedia.cpp" />
@@ -518,6 +520,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptregion.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h" />

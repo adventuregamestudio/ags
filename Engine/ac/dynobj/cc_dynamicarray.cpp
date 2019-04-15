@@ -66,7 +66,7 @@ void CCDynamicArray::Unserialize(int index, const char *serializedData, int data
     ccRegisterUnserializedObject(index, &newArray[8], this);
 }
 
-int32_t CCDynamicArray::Create(int numElements, int elementSize, bool isManagedType)
+DynObjectRef CCDynamicArray::Create(int numElements, int elementSize, bool isManagedType)
 {
     char *newArray = new char[numElements * elementSize + 8];
     memset(newArray, 0, numElements * elementSize + 8);
@@ -75,7 +75,14 @@ int32_t CCDynamicArray::Create(int numElements, int elementSize, bool isManagedT
     sizePtr[1] = numElements * elementSize;
     if (isManagedType) 
         sizePtr[0] |= ARRAY_MANAGED_TYPE_FLAG;
-    return ccRegisterManagedObject(&newArray[8], this);
+    void *obj_ptr = &newArray[8];
+    int32_t handle = ccRegisterManagedObject(obj_ptr, this);
+    if (handle == 0)
+    {
+        delete[] newArray;
+        return DynObjectRef(0, nullptr);
+    }
+    return DynObjectRef(handle, obj_ptr);
 }
 
 

@@ -29,7 +29,8 @@ struct CCDynamicArray final : ICCDynamicObject
     // return number of bytes used
     int Serialize(const char *address, char *buffer, int bufsize) override;
     virtual void Unserialize(int index, const char *serializedData, int dataSize);
-    int32_t Create(int numElements, int elementSize, bool isManagedType);
+    // Create managed array object and return a pointer to the beginning of a buffer
+    DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
 
     // Legacy support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;

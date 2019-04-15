@@ -16,14 +16,15 @@ set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
 include(FetchContent)
 set(FETCHCONTENT_UPDATES_DISCONNECTED on)
 
-# todo use platform id (from generators)
-if(UNIX AND NOT APPLE)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # WIN32 is set by CMake for any Windows platform
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LINUX TRUE)
-endif()
-
-if(UNIX AND APPLE)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOS TRUE)
-endif()
+else()
+    message(FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}")
+endif ()
 
 if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Windows builds only support 32bit for now")

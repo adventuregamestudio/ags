@@ -11,10 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __CC_DYNAMICARRAY_H
 #define __CC_DYNAMICARRAY_H
 
+#include <vector>
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
 
 #define CC_DYNAMIC_ARRAY_TYPE_NAME "CCDynamicArray"
@@ -47,5 +47,12 @@ struct CCDynamicArray final : ICCDynamicObject
 };
 
 extern CCDynamicArray globalDynamicArray;
+
+// Helper functions for setting up dynamic arrays.
+namespace DynamicArrayHelpers
+{
+    // Create array of managed strings
+    DynObjectRef CreateStringArray(const std::vector<const char*>);
+};
 
 #endif

@@ -191,6 +191,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptcamera.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdatetime.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdict.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptfile.cpp" />
@@ -510,6 +511,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdatetime.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialog.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdict.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptfile.h" />

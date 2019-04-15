@@ -17,10 +17,151 @@
 //=============================================================================
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/scriptdict.h"
 #include "ac/dynobj/scriptset.h"
 #include "ac/dynobj/scriptstring.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
+
+extern ScriptString myScriptStringImpl;
+
+//=============================================================================
+//
+// Dictionary of strings script API.
+//
+//=============================================================================
+
+ScriptDictBase *Dict_Create(bool sorted, bool case_sensitive)
+{
+    ScriptDictBase *dic;
+    if (sorted)
+    {
+        if (case_sensitive)
+            dic = new ScriptDict();
+        else
+            dic = new ScriptDictCI();
+    }
+    else
+    {
+        if (case_sensitive)
+            dic = new ScriptHashDict();
+        else
+            dic = new ScriptHashDictCI();
+    }
+    ccRegisterManagedObject(dic, dic);
+    return dic;
+}
+
+void Dict_Clear(ScriptDictBase *dic)
+{
+    dic->Clear();
+}
+
+bool Dict_Contains(ScriptDictBase *dic, const char *key)
+{
+    return dic->Contains(key);
+}
+
+const char *Dict_Get(ScriptDictBase *dic, const char *key)
+{
+    return dic->Get(key);
+}
+
+bool Dict_Remove(ScriptDictBase *dic, const char *key)
+{
+    return dic->Remove(key);
+}
+
+bool Dict_Set(ScriptDictBase *dic, const char *key, const char *value)
+{
+    return dic->Set(key, value);
+}
+
+bool Dict_GetCaseSensitive(ScriptDictBase *dic)
+{
+    return dic->IsCaseSensitive();
+}
+
+bool Dict_GetSorted(ScriptDictBase *dic)
+{
+    return dic->IsSorted();
+}
+
+int Dict_GetItemCount(ScriptDictBase *dic)
+{
+    return dic->GetItemCount();
+}
+
+void *Dict_GetKeysAsArray(ScriptDictBase *dic)
+{
+    std::vector<const char*> items;
+    dic->GetKeys(items);
+    DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(items);
+    return arr.second;
+}
+
+void *Dict_GetValuesAsArray(ScriptDictBase *dic)
+{
+    std::vector<const char*> items;
+    dic->GetValues(items);
+    DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(items);
+    return arr.second;
+}
+
+RuntimeScriptValue Sc_Dict_Create(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PBOOL2(ScriptDictBase, Dict_Create);
+}
+
+RuntimeScriptValue Sc_Dict_Clear(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptDictBase, Dict_Clear);
+}
+
+RuntimeScriptValue Sc_Dict_Contains(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ(ScriptDictBase, Dict_Contains, const char);
+}
+
+RuntimeScriptValue Sc_Dict_Get(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(ScriptDictBase, const char, myScriptStringImpl, Dict_Get, const char);
+}
+
+RuntimeScriptValue Sc_Dict_Remove(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ(ScriptDictBase, Dict_Remove, const char);
+}
+
+RuntimeScriptValue Sc_Dict_Set(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_POBJ2(ScriptDictBase, Dict_Set, const char, const char);
+}
+
+RuntimeScriptValue Sc_Dict_GetCaseSensitive(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptDictBase, Dict_GetCaseSensitive);
+}
+
+RuntimeScriptValue Sc_Dict_GetSorted(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptDictBase, Dict_GetSorted);
+}
+
+RuntimeScriptValue Sc_Dict_GetItemCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDictBase, Dict_GetItemCount);
+}
+
+RuntimeScriptValue Sc_Dict_GetKeysAsArray(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptDictBase, void, globalDynamicArray, Dict_GetKeysAsArray);
+}
+
+RuntimeScriptValue Sc_Dict_GetValuesAsArray(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptDictBase, void, globalDynamicArray, Dict_GetValuesAsArray);
+}
 
 //=============================================================================
 //
@@ -88,17 +229,7 @@ void *Set_GetItemsAsArray(ScriptSetBase *set)
 {
     std::vector<const char*> items;
     set->GetItems(items);
-    // NOTE: we need element size of "handle" for array of managed pointers
-    DynObjectRef arr = globalDynamicArray.Create(items.size(), sizeof(int32_t), true);
-    if (!arr.second)
-        return nullptr;
-    // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.second);
-    for (auto s : items)
-    {
-        DynObjectRef str = stringClassImpl->CreateString(s);
-        *(slots++) = str.first;
-    }
+    DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(items);
     return arr.second;
 }
 
@@ -151,6 +282,18 @@ RuntimeScriptValue Sc_Set_GetItemAsArray(void *self, const RuntimeScriptValue *p
 
 void RegisterContainerAPI()
 {
+    ccAddExternalStaticFunction("Dictionary::Create", Sc_Dict_Create);
+    ccAddExternalObjectFunction("Dictionary::Clear", Sc_Dict_Clear);
+    ccAddExternalObjectFunction("Dictionary::Contains", Sc_Dict_Contains);
+    ccAddExternalObjectFunction("Dictionary::Get", Sc_Dict_Get);
+    ccAddExternalObjectFunction("Dictionary::Remove", Sc_Dict_Remove);
+    ccAddExternalObjectFunction("Dictionary::Set", Sc_Dict_Set);
+    ccAddExternalObjectFunction("Dictionary::get_CaseSensitive", Sc_Dict_GetCaseSensitive);
+    ccAddExternalObjectFunction("Dictionary::get_Sorted", Sc_Dict_GetSorted);
+    ccAddExternalObjectFunction("Dictionary::get_ItemCount", Sc_Dict_GetItemCount);
+    ccAddExternalObjectFunction("Dictionary::GetKeysAsArray", Sc_Dict_GetKeysAsArray);
+    ccAddExternalObjectFunction("Dictionary::GetValuesAsArray", Sc_Dict_GetValuesAsArray);
+
     ccAddExternalStaticFunction("Set::Create", Sc_Set_Create);
     ccAddExternalObjectFunction("Set::Add", Sc_Set_Add);
     ccAddExternalObjectFunction("Set::Clear", Sc_Set_Clear);

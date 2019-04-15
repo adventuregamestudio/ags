@@ -1008,6 +1008,9 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptset.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdict.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1869,6 +1872,9 @@
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdict.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>

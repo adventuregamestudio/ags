@@ -64,10 +64,15 @@ public:
     String(char c, size_t count);
     ~String();
 
-    // Get underlying C-string for reading
+    // Get underlying C-string for reading; this method guarantees valid C-string
     inline const char *GetCStr() const
     {
         return _meta ? _meta->CStr : "";
+    }
+    // Get C-string or nullptr
+    inline const char *GetNullableCStr() const
+    {
+        return _meta ? _meta->CStr : nullptr;
     }
     // Get character count
     inline size_t GetLength() const

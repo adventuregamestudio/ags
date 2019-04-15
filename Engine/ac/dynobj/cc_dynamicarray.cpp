@@ -142,3 +142,20 @@ void CCDynamicArray::WriteFloat(const char *address, intptr_t offset, float val)
 }
 
 CCDynamicArray globalDynamicArray;
+
+
+DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char*> items)
+{
+    // NOTE: we need element size of "handle" for array of managed pointers
+    DynObjectRef arr = globalDynamicArray.Create(items.size(), sizeof(int32_t), true);
+    if (!arr.second)
+        return arr;
+    // Create script strings and put handles into array
+    int32_t *slots = static_cast<int32_t*>(arr.second);
+    for (auto s : items)
+    {
+        DynObjectRef str = stringClassImpl->CreateString(s);
+        *(slots++) = str.first;
+    }
+    return arr;
+}

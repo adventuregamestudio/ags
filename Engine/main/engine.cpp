@@ -690,13 +690,12 @@ void engine_init_directories()
 
     // if end-user specified custom save path, use it
     bool res = false;
-    if (!ResPaths.DataDir.IsEmpty())
+    if (!usetup.user_data_dir.IsEmpty())
     {
-        res = SetCustomSaveParent(ResPaths.DataDir);
+        res = SetCustomSaveParent(usetup.user_data_dir);
         if (!res)
         {
             Debug::Printf(kDbgMsg_Warn, "WARNING: custom user save path failed, using default system paths");
-            ResPaths.DataDir.Empty();
             res = false;
         }
     }

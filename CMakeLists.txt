@@ -29,6 +29,16 @@ if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Windows builds only support 32bit for now")
 endif()
 
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT ipo_not_supported_reason)
+if(ipo_supported)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+    message(STATUS "Interprocedural optimisation (IPO/LTO) not supported: <${ipo_not_supported_reason}>")
+endif()
+
+
 add_compile_definitions("_FILE_OFFSET_BITS=64")
 
 add_compile_definitions("$<$<CONFIG:DEBUG>:_DEBUG>")

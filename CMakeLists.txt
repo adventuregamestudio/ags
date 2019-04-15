@@ -1,34 +1,55 @@
 cmake_minimum_required(VERSION 3.13..3.14)
 
+set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/CMake/c_flag_overrides.cmake)
+set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_CURRENT_SOURCE_DIR}/CMake/cxx_flag_overrides.cmake)
+
 project(AGS
     VERSION 3.5.0.8
     LANGUAGES CXX C)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 option(AGS_NO_MP3_PLAYER "Disable MP3" OFF)
 option(AGS_BUILTIN_PLUGINS "Built in plugins" OFF)
 set(AGS_BUILD_STR "" CACHE STRING "Engine Build Information")
 
-# todo use platform id (from generators)
-if(UNIX AND NOT APPLE)
+include(FetchContent)
+set(FETCHCONTENT_UPDATES_DISCONNECTED on)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # WIN32 is set by CMake for any Windows platform
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LINUX TRUE)
-endif()
-
-if(UNIX AND APPLE)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOS TRUE)
-endif()
+else()
+    message(FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}")
+endif ()
 
-if (MSVC AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
+if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Windows builds only support 32bit for now")
 endif()
+
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT ipo_not_supported_reason)
+if(ipo_supported)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+    message(STATUS "Interprocedural optimisation (IPO/LTO) not supported: <${ipo_not_supported_reason}>")
+endif()
+
 
 add_compile_definitions("_FILE_OFFSET_BITS=64")
 
 add_compile_definitions("$<$<CONFIG:DEBUG>:_DEBUG>")
 add_compile_definitions("$<$<CONFIG:RELEASE>:NDEBUG>")
 
-if(NOT MSVC)
+if(MSVC)
+    add_compile_options(/MP)    # Build with Multiple Processes
+    add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
+    add_compile_definitions(_CRT_NONSTDC_NO_DEPRECATE)
+else()
     add_compile_options(
         -fsigned-char 
         -fno-strict-aliasing 
@@ -39,6 +60,8 @@ if(NOT MSVC)
 
         -Wendif-labels
         -Wfloat-equal
+        -Wformat
+        -Wformat-security
         -Winit-self
         -Winline
         -Wmissing-noreturn
@@ -61,8 +84,6 @@ if(NOT MSVC)
         -Wno-redundant-decls
 
         -Werror=write-strings
-        -Werror=format
-        -Werror=format-security
         #-Werror=implicit-function-declaration
         #-Werror=unused-result
     )
@@ -87,10 +108,10 @@ elseif (LINUX)
     find_package(X11)
 endif()
 
-find_package(Allegro)
-find_package(Ogg)
-find_package(Vorbis)
-find_package(Theora)
+include(FetchAllegro)
+include(FetchOgg)
+include(FetchVorbis)
+include(FetchTheora)
 
 add_subdirectory(Common/libsrc/aastr-0.1.1      EXCLUDE_FROM_ALL)
 add_subdirectory(Common                         EXCLUDE_FROM_ALL)

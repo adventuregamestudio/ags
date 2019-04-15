@@ -9,18 +9,30 @@ The latest version of CMake is recommended and available as source and pre-built
 
 https://cmake.org/download/
 
+Kitware now provide Ubuntu packges:
+
+https://blog.kitware.com/ubuntu-cmake-repository-now-available/
+
 
 ## Example Building on macOS
 
 CMake can create Xcode projects, which allow multi-configs (like Debug, Release, RelWithDebInfo)
 
+Configuring:
+
  - Install XCode and ensure command line tools are installed.
  - Install CMake 3.14 (via homebrew or from the above site)
- - make -C OSX/buildlibs install 
  - mkdir build
  - cd build
  - cmake -GXcode ..
- - cmake --build . --config Debug
+
+Building:
+
+There are multiple options from command line or IDE:
+
+   - cmake --build . --config Debug --parallel
+   - cmake --build . --config Release --parallel
+   - use XCode to open AGS.xcodeproj
 
 
 ## Example Building on Linux
@@ -30,7 +42,7 @@ CMake can create Makefile and Ninja projects. These are single config systems so
  - Install recommended dev packages
  - Install CMake 3.14 (via above site)
  - mkdir build-debug
- - cmake .. -DCMAKE_BUILD_TYPE=Debug ..
+ - cmake .. -DCMAKE_BUILD_TYPE=Debug
  - cmake --build . --parallel
 
 
@@ -38,10 +50,32 @@ CMake can create Makefile and Ninja projects. These are single config systems so
 
 CMake can create Visual Studio projects. Different versions of Visual Studio are supported. It also supports multi-config.
 
+Configuring:
+
  - Install Visual Studio (2015, 2017, 2019 should work)
- - Install DirectX SDK (August 2017)
+ - Install DirectX SDK (August 2007)
  - Install CMake (via above site)
- - Build ogg, vorbis, theora, allegro using /MD. Use directory names of libogg, libvorbis, libtheora
- - Copy include files and libs in Windows/Include and Solutions/.lib (allegro and ogg may have an extra include file in the build dir)
- - cmake -G "Visual Studio 16 2019" -A Win32 ..
- - cmake --build . --parallel --config Debug
+ - cmake -A Win32 ..
+
+Building:
+
+There are multiple options from command line or IDE:
+
+ - cmake --build . --config Debug
+ - cmake --build . --config Release
+ - use Visual Studio to open AGS.sln
+
+
+## Configuration
+
+Cmake can be configured with `ccmake` or `cmake-gui` commands or provide options on the command line:
+
+    cmake -DCMAKE_BUILD_TYPE=Debug
+
+The relevant options include
+
+ AGS_BUILD_STR - optionally append information to version string
+ AGS_BUILTIN_PLUGINS - build and include plugins. Works on linux and macos.
+ AGS_NO_MP3_PLAYER - disable mp3 playing for license reasons.
+ CMAKE_BUILD_TYPE - Debug, Release, RelWithDebInfo and MinSizeRel
+

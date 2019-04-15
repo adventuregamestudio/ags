@@ -1,6 +1,3 @@
-include(CheckLoadMidiPf)
-
-
 # Engine
 # -----------------------------------------------------------------------------
 
@@ -541,10 +538,6 @@ if (AGS_BUILTIN_PLUGINS)
     )
 endif()
 
-if (NOT HAVE_LOAD_MIDI_PF)
-    target_sources(engine PRIVATE libsrc/allegro-4.2.2-agspatch/midi.c)
-endif()
-
 
 target_compile_definitions(engine PRIVATE 
     $<$<CONFIG:DEBUG>:SOUND_CACHE_DEBUG>
@@ -607,6 +600,11 @@ target_sources(ags
 )
 
 target_link_libraries(ags PRIVATE engine)
+
+if (LINUX)
+    # We may override `allegro_icon` and `load_midi_pf` depending on the version
+    target_link_options(ags PRIVATE -Wl,--allow-multiple-definition)
+endif ()
 
 set_target_properties(ags PROPERTIES
     RUNTIME_OUTPUT_NAME ags

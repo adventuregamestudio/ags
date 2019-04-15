@@ -1,6 +1,3 @@
-include(CheckLoadMidiPf)
-
-
 # Engine
 # -----------------------------------------------------------------------------
 
@@ -539,10 +536,6 @@ if (AGS_BUILTIN_PLUGINS)
         ../Plugins/agspalrender/raycast.cpp
         ../Plugins/agspalrender/raycast.h
     )
-endif()
-
-if (NOT HAVE_LOAD_MIDI_PF)
-    target_sources(engine PRIVATE libsrc/allegro-4.2.2-agspatch/midi.c)
 endif()
 
 

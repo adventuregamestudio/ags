@@ -289,7 +289,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
     while (!available_ids.empty()) { available_ids.pop(); }
     nextHandle = 1;
 
-    for (auto o : objects) {
+    for (const auto &o : objects) {
         if (o.isUsed()) { 
             nextHandle = o.handle + 1;
         }

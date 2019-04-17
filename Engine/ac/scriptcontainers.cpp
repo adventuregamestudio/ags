@@ -15,6 +15,7 @@
 // Containers script API.
 //
 //=============================================================================
+#include "ac/common.h" // quit
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/scriptdict.h"
@@ -22,6 +23,7 @@
 #include "ac/dynobj/scriptstring.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
+#include "util/bbop.h"
 
 extern ScriptString myScriptStringImpl;
 
@@ -31,7 +33,7 @@ extern ScriptString myScriptStringImpl;
 //
 //=============================================================================
 
-ScriptDictBase *Dict_Create(bool sorted, bool case_sensitive)
+ScriptDictBase *Dict_CreateImpl(bool sorted, bool case_sensitive)
 {
     ScriptDictBase *dic;
     if (sorted)
@@ -48,7 +50,26 @@ ScriptDictBase *Dict_Create(bool sorted, bool case_sensitive)
         else
             dic = new ScriptHashDictCI();
     }
+    return dic;
+}
+
+ScriptDictBase *Dict_Create(bool sorted, bool case_sensitive)
+{
+    ScriptDictBase *dic = Dict_CreateImpl(sorted, case_sensitive);
     ccRegisterManagedObject(dic, dic);
+    return dic;
+}
+
+// TODO: we need memory streams
+ScriptDictBase *Dict_Unserialize(int index, const char *serializedData, int dataSize)
+{
+    if (dataSize < sizeof(int32_t) * 2)
+        quit("Dict_Unserialize: not enough data.");
+    const char *ptr = serializedData;
+    const int sorted = BBOp::Int32FromLE(*((int*)ptr)); ptr += sizeof(int32_t);
+    const int cs = BBOp::Int32FromLE(*((int*)ptr)); ptr += sizeof(int32_t);
+    ScriptDictBase *dic = Dict_CreateImpl(sorted != 0, cs != 0);
+    dic->Unserialize(index, ptr, dataSize -= sizeof(int32_t) * 2);
     return dic;
 }
 
@@ -169,7 +190,7 @@ RuntimeScriptValue Sc_Dict_GetValuesAsArray(void *self, const RuntimeScriptValue
 //
 //=============================================================================
 
-ScriptSetBase *Set_Create(bool sorted, bool case_sensitive)
+ScriptSetBase *Set_CreateImpl(bool sorted, bool case_sensitive)
 {
     ScriptSetBase *set;
     if (sorted)
@@ -186,7 +207,26 @@ ScriptSetBase *Set_Create(bool sorted, bool case_sensitive)
         else
             set = new ScriptHashSetCI();
     }
+    return set;
+}
+
+ScriptSetBase *Set_Create(bool sorted, bool case_sensitive)
+{
+    ScriptSetBase *set = Set_CreateImpl(sorted, case_sensitive);
     ccRegisterManagedObject(set, set);
+    return set;
+}
+
+// TODO: we need memory streams
+ScriptSetBase *Set_Unserialize(int index, const char *serializedData, int dataSize)
+{
+    if (dataSize < sizeof(int32_t) * 2)
+        quit("Set_Unserialize: not enough data.");
+    const char *ptr = serializedData;
+    const int sorted = BBOp::Int32FromLE(*((int*)ptr)); ptr += sizeof(int32_t);
+    const int cs = BBOp::Int32FromLE(*((int*)ptr)); ptr += sizeof(int32_t);
+    ScriptSetBase *set = Set_CreateImpl(sorted != 0, cs != 0);
+    set->Unserialize(index, ptr, dataSize -= sizeof(int32_t) * 2);
     return set;
 }
 

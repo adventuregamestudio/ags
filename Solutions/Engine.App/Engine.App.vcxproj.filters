@@ -1877,6 +1877,9 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdict.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptcontainers.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml">

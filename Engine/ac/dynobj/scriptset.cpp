@@ -22,7 +22,7 @@ int ScriptSetBase::Dispose(const char *address, bool force)
 
 const char *ScriptSetBase::GetType()
 {
-    return "ScriptSet";
+    return "StringSet";
 }
 
 int ScriptSetBase::Serialize(const char *address, char *buffer, int bufsize)
@@ -34,12 +34,16 @@ int ScriptSetBase::Serialize(const char *address, char *buffer, int bufsize)
         return -((int)total_sz);
     }
     StartSerialize(buffer);
+    SerializeInt(IsSorted());
+    SerializeInt(IsCaseSensitive());
     SerializeContainer();
     return EndSerialize();
 }
 
 void ScriptSetBase::Unserialize(int index, const char *serializedData, int dataSize)
 {
+    // NOTE: we expect sorted/case flags are read by external reader;
+    // this is awkward, but I did not find better design solution atm
     StartUnserialize(serializedData, dataSize);
     UnserializeContainer(serializedData);
     ccRegisterUnserializedObject(index, this, this);

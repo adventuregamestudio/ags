@@ -457,6 +457,60 @@ internalstring autoptr builtin managed struct String {
   readonly import attribute int Length;
 };
 
+#ifdef SCRIPT_API_v350
+builtin managed struct Dictionary
+{
+  /// Creates a new empty Dictionary of the given properties.
+  import static Dictionary* Create(bool sorted = false, bool caseSensitive = false); // $AUTOCOMPLETESTATICONLY$
+
+  /// Removes all items from the dictionary.
+  import void Clear();
+  /// Tells if given key is in the dictionary.
+  import bool Contains(String key);
+  /// Gets value by the key; returns null if such key does not exist.
+  import String Get(String key);
+  /// Removes key/value pair from the dictionary, fails if there was no such key.
+  import bool Remove(String key);
+  /// Assigns a value to the given key, adds this key if it did not exist yet.
+  import bool Set(String key, String value);
+
+  /// Gets if this dictionary is case-sensitive.
+  import readonly attribute bool CaseSensitive;
+  /// Gets if this dictionary is sorted by keys in alphabetical order.
+  import readonly attribute bool Sorted;
+  /// Gets the number of key/value pairs currently in the dictionary.
+  import readonly attribute int ItemCount;
+  /// Creates a dynamic array filled with keys in same order as they are stored in the Dictionary.
+  import String[] GetKeysAsArray();
+  /// Creates a dynamic array filled with values in same order as they are stored in the Dictionary.
+  import String[] GetValuesAsArray();
+};
+
+builtin managed struct Set
+{
+  /// Creates a new empty Set of the given properties.
+  import static Set* Create(bool sorted = false, bool caseSensitive = false); // $AUTOCOMPLETESTATICONLY$
+
+  /// Adds item to the set, fails if such item was already existing.
+  import bool Add(String item);
+  /// Removes all items from the set.
+  import void Clear();
+  /// Tells if given item is in the set.
+  import bool Contains(String item);
+  /// Removes item from the set, fails if there was no such item.
+  import bool Remove(String item);
+
+  /// Gets if this set is case-sensitive.
+  import readonly attribute bool CaseSensitive;
+  /// Gets if this set is sorted in alphabetical order.
+  import readonly attribute bool Sorted;
+  /// Gets the number of items currently in the set.
+  import readonly attribute int ItemCount;
+  /// Creates a dynamic array filled with items in same order as they are stored in the Set.
+  import String[] GetItemsAsArray();
+};
+#endif
+
 builtin managed struct AudioClip;
 
 builtin managed struct ViewFrame {

@@ -1191,8 +1191,8 @@ int ccInstance::Run(int32_t curpc)
                   cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
                   return -1;
               }
-              int32_t handle = globalDynamicArray.Create(numElements, arg2.IValue, arg3.GetAsBool());
-              reg1.SetDynamicObject((void*)ccGetObjectAddressFromHandle(handle), &globalDynamicArray);
+              DynObjectRef ref = globalDynamicArray.Create(numElements, arg2.IValue, arg3.GetAsBool());
+              reg1.SetDynamicObject(ref.second, &globalDynamicArray);
               break;
           }
       case SCMD_NEWUSEROBJECT:
@@ -1273,7 +1273,7 @@ int ccInstance::Run(int32_t curpc)
           }
           direct_ptr1 = (const char*)reg1.GetDirectPtr();
           reg1.SetDynamicObject(
-              (void*)stringClassImpl->CreateString(direct_ptr1),
+              stringClassImpl->CreateString(direct_ptr1).second,
               &myScriptStringImpl);
           break;
       case SCMD_STRINGSEQUAL:

@@ -11,10 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __CC_DYNAMICARRAY_H
 #define __CC_DYNAMICARRAY_H
 
+#include <vector>
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
 
 #define CC_DYNAMIC_ARRAY_TYPE_NAME "CCDynamicArray"
@@ -29,7 +29,8 @@ struct CCDynamicArray final : ICCDynamicObject
     // return number of bytes used
     int Serialize(const char *address, char *buffer, int bufsize) override;
     virtual void Unserialize(int index, const char *serializedData, int dataSize);
-    int32_t Create(int numElements, int elementSize, bool isManagedType);
+    // Create managed array object and return a pointer to the beginning of a buffer
+    DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
 
     // Legacy support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;
@@ -46,5 +47,12 @@ struct CCDynamicArray final : ICCDynamicObject
 };
 
 extern CCDynamicArray globalDynamicArray;
+
+// Helper functions for setting up dynamic arrays.
+namespace DynamicArrayHelpers
+{
+    // Create array of managed strings
+    DynObjectRef CreateStringArray(const std::vector<const char*>);
+};
 
 #endif

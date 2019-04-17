@@ -54,6 +54,7 @@ namespace std
 namespace tr1
 {
 #endif
+// std::hash for String object
 template<>
 struct hash<AGS::Common::String> : public unary_function<AGS::Common::String, size_t>
 {
@@ -73,7 +74,12 @@ namespace AGS
 namespace Common
 {
 
-struct StrCmpNoCase : public std::binary_function<String, String, bool>
+//
+// Various comparison functors
+//
+
+// Test case-insensitive String equality
+struct StrEqNoCase : public std::binary_function<String, String, bool>
 {
     bool operator()(const String &s1, const String &s2) const
     {
@@ -81,6 +87,16 @@ struct StrCmpNoCase : public std::binary_function<String, String, bool>
     }
 };
 
+// Case-insensitive String less
+struct StrLessNoCase : public std::binary_function<String, String, bool>
+{
+    bool operator()(const String &s1, const String &s2) const
+    {
+        return s1.CompareNoCase(s2) < 0;
+    }
+};
+
+// Compute case-insensitive hash for a String object
 struct HashStrNoCase : public std::unary_function<String, size_t>
 {
     size_t operator ()(const String &key) const
@@ -91,7 +107,7 @@ struct HashStrNoCase : public std::unary_function<String, size_t>
 
 typedef std::vector<String> StringV;
 typedef stdtr1compat::unordered_map<String, String> StringMap;
-typedef stdtr1compat::unordered_map<String, String, HashStrNoCase, StrCmpNoCase> StringIMap;
+typedef stdtr1compat::unordered_map<String, String, HashStrNoCase, StrEqNoCase> StringIMap;
 
 } // namespace Common
 } // namespace AGS

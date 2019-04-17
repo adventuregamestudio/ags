@@ -56,6 +56,7 @@ Editor:
  - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
+ - Fixed Audio folders were displaying internal "AllItemsFlat" property on property grid.
  - Fixed MIDI audio preview was resetting all instruments to default (piano) after pausing
    and resuming playback.
  - Fixed MIDI audio preview had wrong control states set when pausing a playback.
@@ -67,6 +68,8 @@ Editor:
 
 Script API:
  - Introduced new managed struct Point describing (x,y) coordinates.
+ - Implemented Dictionary and Set script classes supporting storage and lookup of strings and
+   key/value pairs in sorted or unsorted way.
  - Implemented Viewport and Camera script classes which control how room is displayed on screen.
  - Implemented Screen struct with a number of static functions and properties, which notably
    features a reference to the primary Viewport. Deprecated System's ScreenWidth, ScreenHeight,
@@ -90,6 +93,7 @@ Script API:
    TextColor.
  - Replaced ListBox.HideBorder and HideArrows with ShowBorder and ShowArrows.
  - Added TextBox.ShowBorder.
+ - Added Game.PlayVoiceClip() for playing non-blocking voice.
  - Added SkipCutscene() and eSkipScriptOnly cutscene mode.
  - Deprecated DrawingSurface.UseHighResCoordinates. Also, assigning it will be ignored if game's
    "Allow relative asset resolutions" option is disabled.
@@ -101,19 +105,30 @@ Engine:
    The engine is still capable of loading older saves, temporarily.
  - Implemented support for sprite batch transformations.
  - Implemented custom room viewport and camera.
+ - Removed 200 chars limit for DoOnceOnly token length.
+ - Reimplemented threaded audio, should now work correctly on all platforms.
  - Improved performance of hardware-accelerated renderers by not preparing a stage bitmap
    for plugins unless any plugin hooked for the particular drawing events.
  - Reimplemented FRead and FWrite plugin API functions, should now work in 64-bit mode too.
+ - Made fps display more stable and timing correct when framerate is maxed out for test purposes.
  - Completely removed old and unsupported record/replay functionality.
  - Replaced number of fatal errors reported for incorrectly called script functions with
    a warning to the warnings.log instead. This is done either when arguments may be fixed
    automatically, or script command simply cannot be executed under current circumstances.
  - Expanded some of the error messages providing more information to end-user and developers.
- - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
+ - Fixed engine could not locate game data if relative path was passed in command line.
  - Fixed potential bug which could cause DoOnceOnly tokens to be read incorrectly from a savedgame.
  - Fixed DynamicSprite.SaveToFile() not appending ".bmp" if no extension was specified.
  - Fixed IsMusicVoxAvailable() not working correctly in old games which use 'music.vox'.
+ - Fixed a bug in mp3/ogg decoder where it assumed creating an audiostream succeeded without
+   actually testing one.
  - Added Scavenger's palgorithms plugin to the list of builtins, for ports that use ones.
+
+Linux:
+ - Support for OpenGL renderer.
+ - Use same FreeType library sources as Windows version, which suppose to fix TTF font glitches.
+ - Re-enabled threaded audio setting.
+ - Improved CPU yield function, this supposedly may reduce CPU usage.
 
 Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.

@@ -839,7 +839,7 @@ int ShouldStayInWaitMode() {
     }
     else if (restrict_until==UNTIL_INTIS0) {
         int*wkptr=(int*)user_disabled_data;
-        if (wkptr[0]<0) retval=0;
+        if (wkptr[0]==0) retval=0;
     }
     else if (restrict_until==UNTIL_SHORTIS0) {
         short*wkptr=(short*)user_disabled_data;

@@ -333,7 +333,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             screenover[nse].y = vpt.first.Y;
         }
 
-        GameLoopUntilEvent(UNTIL_NOOVERLAY,0);
+        GameLoopUntilNoOverlay();
     }
 
     play.messagetime=-1;

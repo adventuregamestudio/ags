@@ -22,7 +22,15 @@ namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 using namespace AGS::Engine; // FIXME later
 
 // Loops game frames until certain event takes place (for blocking actions)
-void GameLoopUntilEvent(int untilwhat,long daaa);
+void GameLoopUntilValueIsZero(const char *value);
+void GameLoopUntilValueIsZero(const short *value);
+void GameLoopUntilValueIsZero(const int *value);
+void GameLoopUntilValueIsZeroOrLess(const short *move);
+void GameLoopUntilValueIsNegative(const short *value);
+void GameLoopUntilValueIsNegative(const int *value);
+void GameLoopUntilNotMoving(const short *move);
+void GameLoopUntilNoOverlay();
+
 // Polls audio until the end of current game frame
 void PollUntilNextFrame();
 // Run the actual game until it ends, or aborted by player/error; loops GameTick() internally

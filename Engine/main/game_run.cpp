@@ -95,6 +95,15 @@ static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very app
 static int user_disabled_for = 0;
 static const void *user_disabled_data = nullptr;
 
+#define UNTIL_ANIMEND   1
+#define UNTIL_MOVEEND   2
+#define UNTIL_CHARIS0   3
+#define UNTIL_NOOVERLAY 4
+#define UNTIL_NEGATIVE  5
+#define UNTIL_INTIS0    6
+#define UNTIL_SHORTIS0  7
+#define UNTIL_INTISNEG  8
+
 static int restrict_until=0;
 
 unsigned int loopcounter=0;
@@ -915,7 +924,7 @@ static void SetupLoopParameters(int untilwhat,const void* udata) {
 
 // This function is called from lot of various functions
 // in the game core, character, room object etc
-void GameLoopUntilEvent(int untilwhat,const void* daaa) {
+static void GameLoopUntilEvent(int untilwhat,const void* daaa) {
   // blocking cutscene - end skipping
   EndSkippingUntilCharStops();
 
@@ -935,6 +944,47 @@ void GameLoopUntilEvent(int untilwhat,const void* daaa) {
   user_disabled_data = cached_user_disabled_data;
   user_disabled_for = cached_user_disabled_for;
 }
+
+void GameLoopUntilValueIsZero(const char *value) 
+{
+    GameLoopUntilEvent(UNTIL_CHARIS0, value);
+}
+
+void GameLoopUntilValueIsZero(const short *value) 
+{
+    GameLoopUntilEvent(UNTIL_SHORTIS0, value);
+}
+
+void GameLoopUntilValueIsZero(const int *value) 
+{
+    GameLoopUntilEvent(UNTIL_INTIS0, value);
+}
+
+void GameLoopUntilValueIsZeroOrLess(const short *value) 
+{
+    GameLoopUntilEvent(UNTIL_MOVEEND, value);
+}
+
+void GameLoopUntilValueIsNegative(const short *value) 
+{
+    GameLoopUntilEvent(UNTIL_NEGATIVE, value);
+}
+
+void GameLoopUntilValueIsNegative(const int *value) 
+{
+    GameLoopUntilEvent(UNTIL_INTISNEG, value);
+}
+
+void GameLoopUntilNotMoving(const short *move) 
+{
+    GameLoopUntilEvent(UNTIL_MOVEEND, move);
+}
+
+void GameLoopUntilNoOverlay() 
+{
+    GameLoopUntilEvent(UNTIL_NOOVERLAY, 0);
+}
+
 
 extern unsigned int load_new_game;
 void RunGameUntilAborted()

@@ -119,14 +119,6 @@ const int LegacyRoomVolumeFactor            = 30;
 #define SKIP_KEYPRESS   2
 #define SKIP_MOUSECLICK 4
 
-#define UNTIL_ANIMEND   1
-#define UNTIL_MOVEEND   2
-#define UNTIL_CHARIS0   3
-#define UNTIL_NOOVERLAY 4
-#define UNTIL_NEGATIVE  5
-#define UNTIL_INTIS0    6
-#define UNTIL_SHORTIS0  7
-#define UNTIL_INTISNEG  8
 #define MANOBJNUM 99
 
 #define STD_BUFFER_SIZE 3000

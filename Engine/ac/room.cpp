@@ -98,7 +98,7 @@ extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;
-extern unsigned int loopcounter,lastcounter;
+extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *raw_saved_screen;
@@ -945,8 +945,6 @@ int find_highest_room_entered() {
     //if (fndas<0) quit("find_highest_room: been in no rooms?");
     return fndas;
 }
-
-extern long t1;  // defined in ac_main
 
 void first_room_initialization() {
     starting_room = displayed_room;

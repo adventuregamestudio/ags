@@ -84,30 +84,30 @@ extern char noWalkBehindsAtAll;
 extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
-extern unsigned int loopcounter,lastcounter;
 extern int cur_mode,cur_cursor;
 
 // Checks if user interface should remain disabled for now
-int ShouldStayInWaitMode();
+static int ShouldStayInWaitMode();
 
-int numEventsAtStartOfFunction;
-auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
+static int numEventsAtStartOfFunction;
+static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 
-long user_disabled_for = 0;
-const void *user_disabled_data = nullptr;
+static int user_disabled_for = 0;
+static const void *user_disabled_data = nullptr;
 
-int restrict_until=0;
+static int restrict_until=0;
 
-unsigned int loopcounter=0,lastcounter=0;
+unsigned int loopcounter=0;
+static unsigned int lastcounter=0;
 
-void ProperExit()
+static void ProperExit()
 {
     want_exit = 0;
     proper_exit = 1;
     quit("||exit!");
 }
 
-void game_loop_check_problems_at_start()
+static void game_loop_check_problems_at_start()
 {
     if ((in_enters_screen != 0) & (displayed_room == starting_room))
         quit("!A text script run in the Player Enters Screen event caused the\n"
@@ -120,7 +120,7 @@ void game_loop_check_problems_at_start()
         quit("!A blocking function was called from within a non-blocking event such as " REP_EXEC_ALWAYS_NAME);
 }
 
-void game_loop_check_new_room()
+static void game_loop_check_new_room()
 {
     if (in_new_room == 0) {
         // Run the room and game script repeatedly_execute
@@ -133,7 +133,7 @@ void game_loop_check_new_room()
     check_new_room ();
 }
 
-void game_loop_do_late_update()
+static void game_loop_do_late_update()
 {
     if (in_new_room == 0)
     {
@@ -142,7 +142,7 @@ void game_loop_do_late_update()
     }
 }
 
-int game_loop_check_ground_level_interactions()
+static int game_loop_check_ground_level_interactions()
 {
     if ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0) {
         // check if he's standing on a hotspot
@@ -189,13 +189,13 @@ int game_loop_check_ground_level_interactions()
     return RETURN_CONTINUE;
 }
 
-void lock_mouse_on_click()
+static void lock_mouse_on_click()
 {
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();
 }
 
-void toggle_mouse_lock()
+static void toggle_mouse_lock()
 {
     if (scsystem.windowed)
     {
@@ -207,7 +207,7 @@ void toggle_mouse_lock()
 }
 
 // Runs default mouse button handling
-void check_mouse_controls()
+static void check_mouse_controls()
 {
     int mongu=-1;
     
@@ -275,7 +275,7 @@ void check_mouse_controls()
 // Allegro API's 'key_shifts' variable seem to be always one step behind real
 // situation: if first modifier gets pressed, 'key_shifts' will be zero,
 // when second modifier gets pressed it will only contain first one, and so on.
-int get_active_shifts()
+static int get_active_shifts()
 {
     int shifts = 0;
     if (key[KEY_LSHIFT] || key[KEY_RSHIFT])
@@ -358,7 +358,7 @@ bool run_service_key_controls(int &kgn)
 }
 
 // Runs default keyboard handling
-void check_keyboard_controls()
+static void check_keyboard_controls()
 {
     int kgn;
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
@@ -510,14 +510,14 @@ void check_keyboard_controls()
 }
 
 // check_controls: checks mouse & keyboard interface
-void check_controls() {
+static void check_controls() {
     our_eip = 1007;
 
     check_mouse_controls();
     check_keyboard_controls();
 }
 
-void check_room_edges(int numevents_was)
+static void check_room_edges(int numevents_was)
 {
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
         (in_new_room == 0) && (new_room_was == 0)) {
@@ -556,7 +556,7 @@ void check_room_edges(int numevents_was)
 
 }
 
-void game_loop_check_controls(bool checkControls)
+static void game_loop_check_controls(bool checkControls)
 {
     // don't let the player do anything before the screen fades in
     if ((in_new_room == 0) && (checkControls)) {
@@ -570,13 +570,13 @@ void game_loop_check_controls(bool checkControls)
     }
 }
 
-void game_loop_do_update()
+static void game_loop_do_update()
 {
     if (debug_flags & DBG_NOUPDATE) ;
     else if (game_paused==0) update_stuff();
 }
 
-void game_loop_update_animated_buttons()
+static void game_loop_update_animated_buttons()
 {
     // update animating GUI buttons
     // this bit isn't in update_stuff because it always needs to
@@ -589,7 +589,7 @@ void game_loop_update_animated_buttons()
     }
 }
 
-void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
+static void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
 {
     if (!play.fast_forward) {
         int mwasatx=mousex,mwasaty=mousey;
@@ -622,7 +622,7 @@ void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, in
     }
 }
 
-void game_loop_update_events()
+static void game_loop_update_events()
 {
     new_room_was = in_new_room;
     if (in_new_room>0)
@@ -640,7 +640,7 @@ void game_loop_update_events()
     }
 }
 
-void game_loop_update_background_animation()
+static void game_loop_update_background_animation()
 {
     if (play.bg_anim_delay > 0) play.bg_anim_delay--;
     else if (play.bg_frame_locked) ;
@@ -656,7 +656,7 @@ void game_loop_update_background_animation()
     }
 }
 
-void game_loop_update_loop_counter()
+static void game_loop_update_loop_counter()
 {
     loopcounter++;
 
@@ -670,7 +670,7 @@ void game_loop_update_loop_counter()
     }
 }
 
-void game_loop_update_fps()
+static void game_loop_update_fps()
 {
     auto t2 = AGS_Clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
@@ -787,7 +787,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     PollUntilNextFrame();
 }
 
-void UpdateMouseOverLocation()
+static void UpdateMouseOverLocation()
 {
     // Call GetLocationName - it will internally force a GUI refresh
     // if the result it returns has changed from last time
@@ -813,7 +813,7 @@ void UpdateMouseOverLocation()
 }
 
 // Checks if user interface should remain disabled for now
-int ShouldStayInWaitMode() {
+static int ShouldStayInWaitMode() {
     if (restrict_until == 0)
         quit("end_wait_loop called but game not in loop_until state");
     int retval = restrict_until;
@@ -850,36 +850,41 @@ int ShouldStayInWaitMode() {
     return retval;
 }
 
-int UpdateWaitMode()
+static int UpdateWaitMode()
 {
-    if (restrict_until==0) ;
-    else {
-        restrict_until = ShouldStayInWaitMode();
-        our_eip = 77;
+    if (restrict_until==0) { return RETURN_CONTINUE; }
 
-        if (restrict_until==0) {
-            set_default_cursor();
-            guis_need_update = 1;
-            play.disabled_user_interface--;
-            /*      if (user_disabled_for==FOR_ANIMATION)
-            run_animation((FullAnimation*)user_disabled_data2,user_disabled_data3);
-            else*/ if (user_disabled_for==FOR_EXITLOOP) {
-                user_disabled_for=0; return -1; }
-            else if (user_disabled_for==FOR_SCRIPT) {
-                quit("err: for_script obsolete (v2.1 and earlier only)");
-            }
-            else
-                quit("Unknown user_disabled_for in end restrict_until");
+    restrict_until = ShouldStayInWaitMode();
+    our_eip = 77;
 
-            user_disabled_for=0;
-        }
+    if (restrict_until!=0) { return RETURN_CONTINUE; }
+
+    auto was_disabled_for = user_disabled_for;
+
+    set_default_cursor();
+    guis_need_update = 1;
+    play.disabled_user_interface--;
+    user_disabled_for = 0; 
+
+    switch (was_disabled_for) {
+        // case FOR_ANIMATION:
+        //     run_animation((FullAnimation*)user_disabled_data2,user_disabled_data3);
+        //     break;
+        case FOR_EXITLOOP:
+            return -1;
+        case FOR_SCRIPT:
+            quit("err: for_script obsolete (v2.1 and earlier only)");
+            break;
+        default:
+            quit("Unknown user_disabled_for in end restrict_until");
     }
 
+    // we shouldn't get here.
     return RETURN_CONTINUE;
 }
 
 // Run single game iteration; calls UpdateGameOnce() internally
-int GameTick()
+static int GameTick()
 {
     if (displayed_room < 0)
         quit("!A blocking function was called before the first room has been loaded");
@@ -890,15 +895,11 @@ int GameTick()
     our_eip=76;
 
     int res = UpdateWaitMode();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
-
-    our_eip = 78;
-    return 0;
+    if (res == RETURN_CONTINUE) { return 0; } // continue looping 
+    return res;
 }
 
-void SetupLoopParameters(int untilwhat,const void* udata,int mousestuff) {
+static void SetupLoopParameters(int untilwhat,const void* udata) {
     play.disabled_user_interface++;
     guis_need_update = 1;
     // Only change the mouse cursor if it hasn't been specifically changed first
@@ -910,7 +911,6 @@ void SetupLoopParameters(int untilwhat,const void* udata,int mousestuff) {
     restrict_until=untilwhat;
     user_disabled_data=udata;
     user_disabled_for=FOR_EXITLOOP;
-    return;
 }
 
 // This function is called from lot of various functions
@@ -922,12 +922,14 @@ void GameLoopUntilEvent(int untilwhat,const void* daaa) {
   // this function can get called in a nested context, so
   // remember the state of these vars in case a higher level
   // call needs them
-  int cached_restrict_until = restrict_until;
-  const void* cached_user_disabled_data = user_disabled_data;
-  int cached_user_disabled_for = user_disabled_for;
+  auto cached_restrict_until = restrict_until;
+  auto cached_user_disabled_data = user_disabled_data;
+  auto cached_user_disabled_for = user_disabled_for;
 
-  SetupLoopParameters(untilwhat,daaa,0);
+  SetupLoopParameters(untilwhat,daaa);
   while (GameTick()==0);
+
+  our_eip = 78;
 
   restrict_until = cached_restrict_until;
   user_disabled_data = cached_user_disabled_data;

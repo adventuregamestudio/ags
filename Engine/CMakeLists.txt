@@ -468,6 +468,12 @@ target_sources(engine
     util/thread.h
     util/thread_pthread.h
     util/thread_std.h
+    ac/scriptcontainers.cpp
+    ac/dynobj/scriptcontainers.h
+    ac/dynobj/scriptdict.cpp
+    ac/dynobj/scriptdict.h
+    ac/dynobj/scriptset.cpp
+    ac/dynobj/scriptset.h
 )
 
 if(WIN32)

@@ -27,6 +27,7 @@
 
 #include <map>
 #include <unordered_map>
+#include <string.h>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "util/string.h"
 #include "util/string_types.h"

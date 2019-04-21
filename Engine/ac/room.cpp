@@ -210,9 +210,7 @@ const char* Room_GetMessages(int index) {
 
 ScriptCamera* Room_GetCamera()
 {
-    ScriptCamera *camera = new ScriptCamera(0);
-    ccRegisterManagedObject(camera, camera);
-    return camera;
+    return play.GetScriptCamera(0);
 }
 
 

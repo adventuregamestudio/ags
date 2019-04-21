@@ -137,9 +137,7 @@ void Screen_SetAutoSizeViewport(bool on)
 
 ScriptViewport* Screen_GetViewport()
 {
-    ScriptViewport *viewport = new ScriptViewport(0);
-    ccRegisterManagedObject(viewport, viewport);
-    return viewport;
+    return play.GetScriptViewport(0);
 }
 
 ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)

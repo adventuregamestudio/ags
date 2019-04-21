@@ -22,6 +22,14 @@ const char *ScriptViewport::GetType()
     return "Viewport2";
 }
 
+int ScriptViewport::Dispose(const char *address, bool force)
+{
+    // Note that ScriptViewport is a reference to actual Viewport object,
+    // and this deletes the reference, while viewport may remain in GameState.
+    delete this;
+    return 1;
+}
+
 int ScriptViewport::Serialize(const char *address, char *buffer, int bufsize)
 {
     StartSerialize(buffer);

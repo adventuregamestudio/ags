@@ -17,7 +17,9 @@
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/timer.h"
+#include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptsystem.h"
+#include "ac/dynobj/scriptviewport.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
@@ -40,10 +42,10 @@ GameState::GameState()
     _mainViewportHasChanged = false;
 
     // Precreate primary viewport and camera
-    _roomViewports.push_back(PViewport(new Viewport()));
-    _roomCameras.push_back(PCamera(new Camera()));
-    _roomViewports[0]->LinkCamera(_roomCameras[0]);
-    _roomCameras[0]->LinkToViewport(_roomViewports[0]);
+    auto view = CreateRoomViewport();
+    auto cam = CreateRoomCamera();
+    view->LinkCamera(cam);
+    cam->LinkToViewport(view);
 }
 
 void GameState::Free()
@@ -256,6 +258,93 @@ VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry, int view_index, bool 
     if ((size_t)view_index >= _roomViewports.size())
         return VpPoint(Point(), -1);
     return ScreenToRoomImpl(scrx, scry, view_index, clip_viewport, true);
+}
+
+PViewport GameState::CreateRoomViewport()
+{
+    int index = (int)_roomViewports.size();
+    PViewport viewport(new Viewport());
+    viewport->SetID(index);
+    viewport->SetRect(_mainViewport.GetRect());
+    ScriptViewport *scv = new ScriptViewport(index);
+    int handle = ccRegisterManagedObject(scv, scv);
+    ccAddObjectReference(handle); // one reference for the GameState
+    _roomViewports.push_back(viewport);
+    _scViewportRefs.push_back(std::make_pair(scv, handle));
+    return viewport;
+}
+
+void GameState::DeleteRoomViewport(int index)
+{
+    // NOTE: viewport 0 can not be deleted
+    if (index <= 0 || (size_t)index >= _roomViewports.size())
+        return;
+    auto scobj = _scViewportRefs[index];
+    scobj.first->Invalidate();
+    ccReleaseObjectReference(scobj.second);
+    _roomViewports.erase(_roomViewports.begin() + index);
+    _scViewportRefs.erase(_scViewportRefs.begin() + index);
+    for (size_t i = index; i < _roomViewports.size(); ++i)
+    {
+        _roomViewports[i]->SetID(i);
+        _scViewportRefs[i].first->SetID(i);
+    }
+}
+
+int GameState::GetRoomViewportCount() const
+{
+    return (int)_roomViewports.size();
+}
+
+PCamera GameState::CreateRoomCamera()
+{
+    int index = (int)_roomCameras.size();
+    PCamera camera(new Camera());
+    camera->SetID(index);
+    camera->SetAt(0, 0);
+    camera->SetSize(_mainViewport.GetRect().GetSize());
+    ScriptCamera *scam = new ScriptCamera(index);
+    int handle = ccRegisterManagedObject(scam, scam);
+    ccAddObjectReference(handle); // one reference for the GameState
+    _scCameraRefs.push_back(std::make_pair(scam, handle));
+    _roomCameras.push_back(camera);
+    return camera;
+}
+
+void GameState::DeleteRoomCamera(int index)
+{
+    // NOTE: camera 0 can not be deleted
+    if (index <= 0 || (size_t)index >= _roomCameras.size())
+        return;
+    auto scobj = _scCameraRefs[index];
+    scobj.first->Invalidate();
+    ccReleaseObjectReference(scobj.second);
+    _roomCameras.erase(_roomCameras.begin() + index);
+    _scCameraRefs.erase(_scCameraRefs.begin() + index);
+    for (size_t i = index; i < _roomCameras.size(); ++i)
+    {
+        _roomCameras[i]->SetID(i);
+        _scCameraRefs[i].first->SetID(i);
+    }
+}
+
+int GameState::GetRoomCameraCount() const
+{
+    return (int)_roomCameras.size();
+}
+
+ScriptViewport *GameState::GetScriptViewport(int index)
+{
+    if (index < 0 || (size_t)index >= _roomViewports.size())
+        return NULL;
+    return _scViewportRefs[index].first;
+}
+
+ScriptCamera *GameState::GetScriptCamera(int index)
+{
+    if (index < 0 || (size_t)index >= _roomCameras.size())
+        return NULL;
+    return _scCameraRefs[index].first;
 }
 
 bool GameState::IsBlockingVoiceSpeech() const

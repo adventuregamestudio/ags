@@ -22,6 +22,14 @@ const char *ScriptCamera::GetType()
     return "Camera2";
 }
 
+int ScriptCamera::Dispose(const char *address, bool force)
+{
+    // Note that ScriptCamera is a reference to actual Camera object,
+    // and this deletes the reference, while camera may remain in GameState.
+    delete this;
+    return 1;
+}
+
 int ScriptCamera::Serialize(const char *address, char *buffer, int bufsize)
 {
     StartSerialize(buffer);

@@ -36,6 +36,8 @@ namespace AGS { namespace Common {
     typedef stdtr1compat::shared_ptr<Bitmap> PBitmap;
 } }
 using namespace AGS; // FIXME later
+struct ScriptViewport;
+struct ScriptCamera;
 
 #define GAME_STATE_RESERVED_INTS 5
 
@@ -288,6 +290,28 @@ struct GameState {
     VpPoint ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport);
     VpPoint ScreenToRoomDivDown(int scrx, int scry, int view_index, bool clip_viewport); // native "variadic" coords variant
 
+    // Creates new room viewport
+    PViewport CreateRoomViewport();
+    // Deletes existing room viewport
+    void DeleteRoomViewport(int index);
+    // Get number of room viewports
+    int GetRoomViewportCount() const;
+    // Creates new room camera
+    PCamera CreateRoomCamera();
+    // Deletes existing room camera
+    void DeleteRoomCamera(int index);
+    // Get number of room cameras
+    int GetRoomCameraCount() const;
+    // Gets script viewport reference; does NOT increment refcount
+    // because script interpreter does this when acquiring managed pointer.
+    ScriptViewport *GetScriptViewport(int index);
+    // Gets script camera reference; does NOT increment refcount
+    // because script interpreter does this when acquiring managed pointer.
+    ScriptCamera *GetScriptCamera(int index);
+
+    //
+    // Voice speech management
+    //
     // Tells if there's a blocking voice speech playing right now
     bool IsBlockingVoiceSpeech() const;
     // Tells whether we have to finalize voice speech when stopping or reusing the channel
@@ -295,7 +319,9 @@ struct GameState {
     // Speech helpers
     bool ShouldPlayVoiceSpeech() const;
 
+    //
     // Serialization
+    //
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
     void ReadCustomProperties_v340(Common::Stream *in);
     void WriteCustomProperties_v340(Common::Stream *out) const;
@@ -319,6 +345,11 @@ private:
     std::vector<PViewport> _roomViewports;
     // Cameras defines the position of a "looking eye" inside the room.
     std::vector<PCamera> _roomCameras;
+    // Script viewports and cameras are references to real data export to
+    // user script. They became invalidated as the actual object gets
+    // destroyed, but are kept in memory to prevent script errors.
+    std::vector<std::pair<ScriptViewport*, int32_t>> _scViewportRefs;
+    std::vector<std::pair<ScriptCamera*, int32_t>> _scCameraRefs;
 
     // Tells that the main viewport's position has changed since last game update
     bool  _mainViewportHasChanged;

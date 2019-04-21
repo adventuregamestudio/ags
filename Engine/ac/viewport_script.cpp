@@ -236,9 +236,10 @@ void Viewport_SetHeight(ScriptViewport *scv, int height)
 ScriptCamera* Viewport_GetCamera(ScriptViewport *scv)
 {
     auto view = play.GetRoomViewportObj(scv->GetID());
-    ScriptCamera *camera = new ScriptCamera(view->GetCamera()->GetID());
-    ccRegisterManagedObject(camera, camera);
-    return camera;
+    auto cam = view->GetCamera();
+    if (!cam)
+        return nullptr;
+    return play.GetScriptCamera(cam->GetID());
 }
 
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
@@ -247,9 +248,7 @@ ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
     PViewport view = play.GetRoomViewportAt(x, y);
     if (!view)
         return nullptr;
-    ScriptViewport *viewport = new ScriptViewport(view->GetID());
-    ccRegisterManagedObject(viewport, viewport);
-    return viewport;
+    return play.GetScriptViewport(view->GetID());
 }
 
 void Viewport_SetPosition(ScriptViewport *scv, int x, int y, int width, int height)

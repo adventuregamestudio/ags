@@ -622,6 +622,15 @@ builtin managed struct Room {
 #ifdef SCRIPT_API_v3507
   /// Gets the room camera
   import static readonly attribute Camera *Camera;
+
+  /// Gets the Camera by index.
+  import static readonly attribute Camera *Cameras[];
+  /// Gets the number of cameras.
+  import static readonly attribute int CameraCount;
+  /// Creates a new Camera.
+  import static Camera *CreateCamera();
+  /// Removes an existing camera; primary camera will never be removed
+  import static void RemoveCamera(int id);
 #endif
 };
 
@@ -2777,8 +2786,8 @@ builtin managed struct Viewport {
   import attribute int Width;
   /// Gets/sets the viewport's height in screen coordinates.
   import attribute int Height;
-  /// Gets the room camera displayed in this viewport.
-  import readonly attribute Camera *Camera;
+  /// Gets/sets the room camera displayed in this viewport.
+  import attribute Camera *Camera;
 
   /// Returns the viewport at the specified screen location.
   import static Viewport *GetAtScreenXY(int x, int y);
@@ -2795,12 +2804,21 @@ builtin struct Screen {
   import static readonly attribute int Width;
   /// Gets the height of the game resolution.
   import static readonly attribute int Height;
-  /// Gets/sets whether the viewport should automatically adjust itself and camera to the new room's background size
+  /// Gets/sets whether the viewport should automatically adjust itself and camera to the new room's background size.
   import static attribute bool AutoSizeViewportOnRoomLoad;
-  /// Gets the primary room viewport
+  /// Gets the primary room viewport.
   import static readonly attribute Viewport *Viewport;
 
-  /// Returns the point in room which is displayed at the given screen coordinates
+  /// Gets a Viewport by index.
+  import static readonly attribute Viewport *Viewports[];
+  /// Gets the number of viewports.
+  import static readonly attribute int ViewportCount;
+  /// Creates a new Viewport.
+  import static Viewport *CreateViewport();
+  /// Removes an existing viewport; primary viewport will never be removed
+  import static void RemoveViewport(int id);
+
+  /// Returns the point in room which is displayed at the given screen coordinates.
   import static Point *ScreenToRoomPoint(int sx, int sy);
   /// Returns the point on screen corresponding to the given room coordinates relative to the main viewport.
   import static Point *RoomToScreenPoint(int rx, int ry);

@@ -213,6 +213,29 @@ ScriptCamera* Room_GetCamera()
     return play.GetScriptCamera(0);
 }
 
+int Room_GetCameraCount()
+{
+    return play.GetRoomCameraCount();
+}
+
+ScriptCamera* Room_GetAnyCamera(int index)
+{
+    return play.GetScriptCamera(index);
+}
+
+ScriptCamera* Room_CreateCamera()
+{
+    auto cam = play.CreateRoomCamera();
+    if (!cam)
+        return NULL;
+    return play.GetScriptCamera(cam->GetID());
+}
+
+void Room_RemoveCamera(int index)
+{
+    play.DeleteRoomCamera(index);
+}
+
 
 //=============================================================================
 
@@ -1159,6 +1182,26 @@ RuntimeScriptValue Sc_Room_GetCamera(const RuntimeScriptValue *params, int32_t p
     API_SCALL_OBJAUTO(ScriptCamera, Room_GetCamera);
 }
 
+RuntimeScriptValue Sc_Room_GetCameraCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetCameraCount);
+}
+
+RuntimeScriptValue Sc_Room_GetAnyCamera(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT(ScriptCamera, Room_GetAnyCamera);
+}
+
+RuntimeScriptValue Sc_Room_CreateCamera(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptCamera, Room_CreateCamera);
+}
+
+RuntimeScriptValue Sc_Room_RemoveCamera(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(ScriptCamera, Room_RemoveCamera);
+}
+
 
 void RegisterRoomAPI()
 {
@@ -1180,6 +1223,10 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
     ccAddExternalStaticFunction("Room::get_Width",                          Sc_Room_GetWidth);
     ccAddExternalStaticFunction("Room::get_Camera",                         Sc_Room_GetCamera);
+    ccAddExternalStaticFunction("Room::get_CameraCount",                    Sc_Room_GetCameraCount);
+    ccAddExternalStaticFunction("Room::geti_Cameras",                       Sc_Room_GetAnyCamera);
+    ccAddExternalStaticFunction("Room::CreateCamera",                       Sc_Room_CreateCamera);
+    ccAddExternalStaticFunction("Room::RemoveCamera",                       Sc_Room_RemoveCamera);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

@@ -106,7 +106,7 @@ PViewport GameState::GetRoomViewportObj(int index) const
 PViewport GameState::GetRoomViewportAt(int x, int y) const
 {
     for (auto vp : _roomViewports)
-        if (vp->GetRect().IsInside(x, y))
+        if (vp->IsVisible() && vp->GetRect().IsInside(x, y))
             return vp;
     return nullptr;
 }

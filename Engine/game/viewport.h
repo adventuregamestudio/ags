@@ -110,8 +110,14 @@ public:
     // Set viewport's position on screen
     void SetRect(const Rect &rc);
 
+    // Tells whether viewport content is rendered on screen
+    bool IsVisible() const { return _visible; }
+    // Changes viewport visibility
+    void SetVisible(bool on);
+
     // Calculates room-to-viewport coordinate conversion.
     void AdjustTransformation();
+    // Returns linked camera
     PCamera GetCamera() const;
     // Links new camera to this viewport, overriding existing link;
     // pass nullptr to leave viewport without a camera link
@@ -133,6 +139,7 @@ private:
     AGS::Engine::PlaneScaling _transform;
     // Linked camera reference
     CameraRef _camera;
+    bool _visible = true;
     // Flag that tells whether this viewport has changed recently
     bool _hasChanged = false;;
 };

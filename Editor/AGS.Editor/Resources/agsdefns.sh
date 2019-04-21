@@ -2788,6 +2788,8 @@ builtin managed struct Viewport {
   import attribute int Height;
   /// Gets/sets the room camera displayed in this viewport.
   import attribute Camera *Camera;
+  /// Gets/sets whether the viewport is drawn on screen.
+  import attribute bool Visible;
 
   /// Returns the viewport at the specified screen location.
   import static Viewport *GetAtScreenXY(int x, int y);

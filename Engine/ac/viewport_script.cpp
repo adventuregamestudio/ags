@@ -253,6 +253,21 @@ void Viewport_SetCamera(ScriptViewport *scv, ScriptCamera *scam)
     }
 }
 
+bool Viewport_GetVisible(ScriptViewport *scv)
+{
+    auto view = play.GetRoomViewportObj(scv->GetID());
+    if (view != nullptr)
+        return view->IsVisible();
+    return false;
+}
+
+void Viewport_SetVisible(ScriptViewport *scv, bool on)
+{
+    auto view = play.GetRoomViewportObj(scv->GetID());
+    if (view != nullptr)
+        view->SetVisible(on);
+}
+
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
 {
     data_to_game_coords(&x, &y);
@@ -344,6 +359,16 @@ RuntimeScriptValue Sc_Viewport_SetCamera(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_POBJ(ScriptViewport, Viewport_SetCamera, ScriptCamera);
 }
 
+RuntimeScriptValue Sc_Viewport_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptViewport, Viewport_GetVisible);
+}
+
+RuntimeScriptValue Sc_Viewport_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(ScriptViewport, Viewport_SetVisible);
+}
+
 RuntimeScriptValue Sc_Viewport_GetAtScreenXY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT2(ScriptViewport, Viewport_GetAtScreenXY);
@@ -391,6 +416,8 @@ void RegisterViewportAPI()
     ccAddExternalObjectFunction("Viewport::set_Height", Sc_Viewport_SetHeight);
     ccAddExternalObjectFunction("Viewport::get_Camera", Sc_Viewport_GetCamera);
     ccAddExternalObjectFunction("Viewport::set_Camera", Sc_Viewport_SetCamera);
+    ccAddExternalObjectFunction("Viewport::get_Visible", Sc_Viewport_GetVisible);
+    ccAddExternalObjectFunction("Viewport::set_Visible", Sc_Viewport_SetVisible);
     ccAddExternalObjectFunction("Viewport::GetAtScreenXY", Sc_Viewport_GetAtScreenXY);
     ccAddExternalObjectFunction("Viewport::SetPosition", Sc_Viewport_SetPosition);
     ccAddExternalObjectFunction("Viewport::ScreenToRoomPoint", Sc_Viewport_ScreenToRoomPoint);

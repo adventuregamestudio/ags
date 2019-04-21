@@ -131,6 +131,12 @@ void Viewport::SetRect(const Rect &rc)
     _hasChanged = true;
 }
 
+void Viewport::SetVisible(bool on)
+{
+    _visible = on;
+    _hasChanged = true;
+}
+
 void Viewport::AdjustTransformation()
 {
     auto locked_cam = _camera.lock();

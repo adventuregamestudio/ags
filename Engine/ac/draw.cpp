@@ -2400,6 +2400,8 @@ static void construct_room_view()
     for (int i = 0; i < play.GetRoomViewportCount(); ++i)
     {
         auto viewport = play.GetRoomViewportObj(i);
+        if (!viewport->IsVisible())
+            continue;
         auto camera = viewport->GetCamera();
         if (!camera)
             continue;

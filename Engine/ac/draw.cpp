@@ -107,7 +107,6 @@ extern CharacterInfo*playerchar;
 extern int eip_guinum;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
-extern int screen_reset;
 extern int is_complete_overlay;
 extern int cur_mode,cur_cursor;
 extern int mouse_frame,mouse_delay;
@@ -1961,41 +1960,13 @@ void prepare_characters_for_drawing() {
 }
 
 
-
-// Draws the room and its contents: background, objects, characters
-//
-// NOTE that the bitmap arguments are **strictly** for software rendering.
-// ds is a full game screen surface, and roomcam_surface is a surface for drawing room camera content to.
-// ds and roomcam_surface may be the same bitmap.
-// TODO: if we support multiple cameras we would in fact need to split this function into calling
-// dirty rects drawing for the full surface and room drawing on room surface.
-// (maybe even split it into software/hardware variant)
-// no_transform flag tells to copy dirty regions on roomcam_surface without any coordinate conversion
-// whatsoever.
-void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
-    // TODO: dont use static vars!!
-    static int offsetxWas = -100, offsetyWas = -100;
-    screen_reset = 1;
-
-    our_eip=31;
-
-    const Rect &camera = play.GetRoomCamera();
-    const int offsetx = camera.Left;
-    const int offsety = camera.Top;
-
-    if ((offsetx != offsetxWas) || (offsety != offsetyWas)) {
-        invalidate_screen();
-
-        offsetxWas = offsetx;
-        offsetyWas = offsety;
-    }
-
-    if (play.screen_tint >= 0)
-        invalidate_screen();
-
+// Compiles a list of room sprites (characters, objects, background)
+void prepare_room_sprites()
+{
+    // Background sprite for the non-software renderer
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
-        if (roomBackgroundBmp == nullptr) 
+        if (roomBackgroundBmp == nullptr)
         {
             update_polled_stuff_if_runtime();
             roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
@@ -2017,7 +1988,69 @@ void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
         }
         gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
     }
-    else
+
+    clear_sprite_list();
+
+    if ((debug_flags & DBG_NOOBJECTS) == 0)
+    {
+        prepare_objects_for_drawing();
+        prepare_characters_for_drawing();
+
+        if ((debug_flags & DBG_NODRAWSPRITES) == 0)
+        {
+            our_eip = 34;
+            draw_sprite_list();
+        }
+    }
+    our_eip = 36;
+}
+
+// Draws the black surface behind(or rather between) the room viewports
+void draw_preroom_background()
+{
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    update_black_invreg_and_reset(gfxDriver->GetMemoryBackBuffer());
+}
+
+// Draws the room background on the given surface.
+//
+// NOTE that the bitmap arguments are **strictly** for software rendering.
+// ds is a full game screen surface, and roomcam_surface is a surface for drawing room camera content to.
+// ds and roomcam_surface may be the same bitmap.
+// no_transform flag tells to copy dirty regions on roomcam_surface without any coordinate conversion
+// whatsoever.
+PBitmap draw_room_background(const SpriteTransform &room_trans)
+{
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return nullptr;
+
+    our_eip = 31;
+
+    // TODO: dont use static vars!!
+    static int offsetxWas = -100, offsetyWas = -100;
+
+    const Rect &camera = play.GetRoomCamera();
+    const int offsetx = camera.Left;
+    const int offsety = camera.Top;
+
+    if ((offsetx != offsetxWas) || (offsety != offsetyWas)) {
+        invalidate_screen();
+
+        offsetxWas = offsetx;
+        offsetyWas = offsety;
+    }
+
+    // For the sake of software renderer, if there is any kind of camera transform required
+    // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
+    // There are few reasons for this, primary is that Allegro does not support StretchBlt
+    // between different colour depths (i.e. it won't correctly stretch blit 16-bit rooms to
+    // 32-bit virtual screen).
+    // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
+    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
+    const bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
+    Bitmap *roomcam_surface = translate_only ? ds : RoomCameraFrame.get();
+    const bool no_transform = !translate_only; // this is correct, we do non-transform paint, and only scale/rotate later
     {
         // For software renderer: copy dirty rects onto the virtual screen.
         // TODO: that would be SUPER NICE to reorganize the code and move this operation into SoftwareGraphicDriver somehow.
@@ -2030,24 +2063,10 @@ void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
 
-        update_black_invreg_and_reset(ds);
         update_room_invreg_and_reset(0, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), no_transform);
     }
 
-    clear_sprite_list();
-
-    if ((debug_flags & DBG_NOOBJECTS)==0)
-    {
-        prepare_objects_for_drawing();
-        prepare_characters_for_drawing ();
-
-        if ((debug_flags & DBG_NODRAWSPRITES)==0)
-        {
-            our_eip=34;
-            draw_sprite_list();
-        }
-    }
-    our_eip=36;
+    return RoomCameraFrame;
 }
 
 
@@ -2374,32 +2393,22 @@ void update_screen() {
     screen_is_dirty = false;
 }
 
-// Schedule room rendering
-static void construct_room_view(bool full_redraw)
+// Schedule room rendering: background, objects, characters
+static void construct_room_view()
 {
+    draw_preroom_background();
+    prepare_room_sprites();
+    // reset the Baselines Changed flag now that we've drawn stuff
+    walk_behind_baselines_changed = 0;
+
     const Rect &room_viewport = play.GetRoomViewportAbs();
     const Rect &camera = play.GetRoomCamera();
     SpriteTransform room_trans(-camera.Left, -camera.Top,
         (float)room_viewport.GetWidth() / (float)camera.GetWidth(),
         (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
         0.f);
-    gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraFrame);
-    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
-
-    if (full_redraw)
-        invalidate_screen();
-
-    // For the sake of software renderer, if there is any kind of camera transform required
-    // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
-    // There are few reasons for this, primary is that Allegro does not support StretchBlt
-    // between different colour depths (i.e. it won't correctly stretch blit 16-bit rooms to
-    // 32-bit virtual screen).
-    // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
-    bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
-    Bitmap *room_bmp = translate_only ? ds : RoomCameraFrame.get();
-    draw_room(ds, room_bmp, !translate_only);
-    // reset the Baselines Changed flag now that we've drawn stuff
-    walk_behind_baselines_changed = 0;
+    PBitmap bg_surface = draw_room_background(room_trans);
+    gfxDriver->BeginSpriteBatch(room_viewport, room_trans, bg_surface);
     put_sprite_list_on_screen(true);
 }
 
@@ -2434,6 +2443,10 @@ void construct_virtual_screen(bool fullRedraw)
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 
+    // Possible reasons to invalidate whole screen for the software renderer
+    if (fullRedraw || play.screen_tint >= 0)
+        invalidate_screen();
+
     // TODO: move to game update! don't call update during rendering pass!
     // IMPORTANT: keep the order same because sometimes script may depend on it
     if (displayed_room >= 0)
@@ -2442,7 +2455,7 @@ void construct_virtual_screen(bool fullRedraw)
     // Stage 1: room viewports
     if (displayed_room >= 0 && play.screen_is_faded_out == 0 && is_complete_overlay == 0)
     {
-        construct_room_view(fullRedraw);
+        construct_room_view();
         update_polled_mp3();
     }
     else if (!gfxDriver->RequiresFullRedrawEachFrame())

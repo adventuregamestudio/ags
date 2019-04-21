@@ -1120,8 +1120,6 @@ void draw_sprite_list() {
 
     std::sort(sprlist.begin(), sprlist.end(), spritelistentry_less);
 
-    clear_draw_list();
-
     if(pl_any_want_hook(AGSE_PRESCREENDRAW))
         add_thing_to_draw(nullptr, AGSE_PRESCREENDRAW, 0, TRANS_RUN_PLUGIN, false);
 
@@ -1986,7 +1984,7 @@ void prepare_room_sprites()
                 update_walk_behind_images();
             }
         }
-        gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
+        add_thing_to_draw(roomBackgroundBmp, 0, 0, 0, false);
     }
 
     clear_sprite_list();
@@ -2259,8 +2257,6 @@ void put_sprite_list_on_screen(bool in_room)
             quit("Unknown entry in draw list");
     }
 
-    clear_draw_list();
-
     our_eip = 1100;
 }
 
@@ -2401,15 +2397,24 @@ static void construct_room_view()
     // reset the Baselines Changed flag now that we've drawn stuff
     walk_behind_baselines_changed = 0;
 
-    const Rect &room_viewport = play.GetRoomViewportAbs(0);
-    const Rect &camera = play.GetRoomCamera(0)->GetRect();
-    SpriteTransform room_trans(-camera.Left, -camera.Top,
-        (float)room_viewport.GetWidth() / (float)camera.GetWidth(),
-        (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
-        0.f);
-    PBitmap bg_surface = draw_room_background(room_trans);
-    gfxDriver->BeginSpriteBatch(room_viewport, room_trans, bg_surface);
-    put_sprite_list_on_screen(true);
+    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
+    {
+        auto viewport = play.GetRoomViewportObj(i);
+        auto camera = viewport->GetCamera();
+        if (!camera)
+            continue;
+        const Rect &view_rc = play.GetRoomViewportAbs(i);
+        const Rect &cam_rc = camera->GetRect();
+        SpriteTransform room_trans(-cam_rc.Left, -cam_rc.Top,
+            (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),
+            (float)view_rc.GetHeight() / (float)cam_rc.GetHeight(),
+            0.f);
+        PBitmap bg_surface = draw_room_background(room_trans);
+        gfxDriver->BeginSpriteBatch(view_rc, room_trans, bg_surface);
+        put_sprite_list_on_screen(true);
+    }
+
+    clear_draw_list();
 }
 
 // Schedule ui rendering
@@ -2419,6 +2424,7 @@ static void construct_ui_view()
     gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform());
     draw_gui_and_overlays();
     put_sprite_list_on_screen(false);
+    clear_draw_list();
 }
 
 // Schedule misc rendering

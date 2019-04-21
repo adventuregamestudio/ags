@@ -610,16 +610,23 @@ static void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBit
         render_graphics(extraBitmap, extraX, extraY);
 
         // Check Mouse Moves Over Hotspot event
+        // TODO: move this out of render related function? find out why we remember mwasatx and mwasaty before render
         // TODO: do not use static variables!
         // TODO: if we support rotation then we also need to compare full transform!
-        static int offsetxWas = -100, offsetyWas = -100;
-        auto cam = play.GetRoomCamera(0);
+        if (displayed_room < 0)
+            return;
+        auto view = play.GetRoomViewportAt(mousex, mousey);
+        auto cam = view ? view->GetCamera() : nullptr;
+        if (cam)
+        {
+        // NOTE: all cameras are in same room right now, so their positions are in same coordinate system;
+        // therefore we may use this as an indication that mouse is over different camera too.
+        static int offsetxWas = -1000, offsetyWas = -1000;
         int offsetx = cam->GetRect().Left;
         int offsety = cam->GetRect().Top;
 
         if (((mwasatx!=mousex) || (mwasaty!=mousey) ||
-            (offsetxWas != offsetx) || (offsetyWas != offsety)) &&
-            (displayed_room >= 0)) 
+            (offsetxWas != offsetx) || (offsetyWas != offsety))) 
         {
             // mouse moves over hotspot
             if (__GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey), 1) == LOCTYPE_HOTSPOT) {
@@ -631,6 +638,7 @@ static void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBit
 
         offsetxWas = offsetx;
         offsetyWas = offsety;
+        } // camera found under mouse
     }
 }
 

@@ -38,8 +38,12 @@ GameState::GameState()
 {
     _isAutoRoomViewport = true;
     _mainViewportHasChanged = false;
-    _roomViewportHasChanged = false;
-    _cameraHasChanged = false;
+
+    // Precreate primary viewport and camera
+    _roomViewports.push_back(PViewport(new Viewport()));
+    _roomCameras.push_back(PCamera(new Camera()));
+    _roomViewports[0]->LinkCamera(_roomCameras[0]);
+    _roomCameras[0]->LinkToViewport(_roomViewports[0]);
 }
 
 void GameState::Free()
@@ -66,186 +70,192 @@ Rect FixupViewport(const Rect &viewport, const Rect &parent)
 
 void GameState::SetMainViewport(const Rect &viewport)
 {
-    _mainViewport.Position = FixupViewport(viewport, RectWH(game.GetGameRes()));
+    _mainViewport.SetRect(FixupViewport(viewport, RectWH(game.GetGameRes())));
     Mouse::SetGraphicArea();
-    scsystem.viewport_width = game_to_data_coord(_mainViewport.Position.GetWidth());
-    scsystem.viewport_height = game_to_data_coord(_mainViewport.Position.GetHeight());
+    scsystem.viewport_width = game_to_data_coord(_mainViewport.GetRect().GetWidth());
+    scsystem.viewport_height = game_to_data_coord(_mainViewport.GetRect().GetHeight());
     _mainViewportHasChanged = true;
     // Update sub-viewports in case main viewport became smaller
-    SetUIViewport(_uiViewport.Position);
-    SetRoomViewport(_roomViewport.Position);
+    SetUIViewport(_uiViewport.GetRect());
+    for (size_t i = 0; i < _roomViewports.size(); ++i)
+        SetRoomViewport(i, _roomViewports[i]->GetRect());
 }
 
 const Rect &GameState::GetMainViewport() const
 {
-    return _mainViewport.Position;
+    return _mainViewport.GetRect();
 }
 
 const Rect &GameState::GetUIViewport() const
 {
-    return _uiViewport.Position;
+    return _uiViewport.GetRect();
 }
 
-const Rect &GameState::GetRoomViewport() const
+const Rect &GameState::GetRoomViewport(int index) const
 {
-    return _roomViewport.Position;
+    return _roomViewports[index]->GetRect();
+}
+
+PViewport GameState::GetRoomViewportObj(int index) const
+{
+    return _roomViewports[index];
+}
+
+PViewport GameState::GetRoomViewportAt(int x, int y) const
+{
+    for (auto vp : _roomViewports)
+        if (vp->GetRect().IsInside(x, y))
+            return vp;
+    return nullptr;
 }
 
 Rect GameState::GetUIViewportAbs() const
 {
-    return Rect::MoveBy(_uiViewport.Position, _mainViewport.Position.Left, _mainViewport.Position.Top);
+    return Rect::MoveBy(_uiViewport.GetRect(), _mainViewport.GetRect().Left, _mainViewport.GetRect().Top);
 }
 
-Rect GameState::GetRoomViewportAbs() const
+Rect GameState::GetRoomViewportAbs(int index) const
 {
-    return Rect::MoveBy(_roomViewport.Position, _mainViewport.Position.Left, _mainViewport.Position.Top);
+    return Rect::MoveBy(_roomViewports[index]->GetRect(), _mainViewport.GetRect().Left, _mainViewport.GetRect().Top);
 }
 
 void GameState::SetUIViewport(const Rect &viewport)
 {
-    _uiViewport.Position = FixupViewport(viewport, RectWH(_mainViewport.Position.GetSize()));
+    _uiViewport.SetRect(FixupViewport(viewport, RectWH(_mainViewport.GetRect().GetSize())));
 }
 
-void GameState::SetRoomViewport(const Rect &viewport)
+void GameState::SetRoomViewport(int index, const Rect &viewport)
 {
-    _roomViewport.Position = FixupViewport(viewport, RectWH(_mainViewport.Position.GetSize()));
-    AdjustRoomToViewport();
-    _roomViewportHasChanged = true;
+    _roomViewports[index]->SetRect(FixupViewport(viewport, RectWH(_mainViewport.GetRect().GetSize())));
 }
 
 void GameState::UpdateViewports()
 {
     if (_mainViewportHasChanged)
+    {
         on_mainviewport_changed();
-    if (_roomViewportHasChanged)
-        on_roomviewport_changed();
-    if (_cameraHasChanged)
-        on_camera_size_changed();
-    _mainViewportHasChanged = false;
-    _roomViewportHasChanged = false;
-    _cameraHasChanged = false;
+        _mainViewportHasChanged = false;
+    }
+    for (auto vp : _roomViewports)
+    {
+        if (vp->HasChanged())
+        {
+            on_roomviewport_changed(vp->GetID());
+            vp->ClearChangedFlag();
+        }
+    }
+    for (auto cam : _roomCameras)
+    {
+        if (cam->HasChanged())
+        {
+            on_camera_size_changed(cam->GetID());
+            cam->ClearChangedFlag();
+        }
+    }
 }
 
-const Rect &GameState::GetRoomCamera() const
+PCamera GameState::GetRoomCamera(int index) const
 {
-    return _roomCamera.Position;
+    return _roomCameras[index];
 }
 
-const RoomCamera &GameState::GetRoomCameraObj() const
+void GameState::UpdateRoomCameras()
 {
-    return _roomCamera;
+    for (size_t i = 0; i < _roomCameras.size(); ++i)
+        UpdateRoomCamera(i);
 }
 
-void GameState::SetRoomCameraSize(const Size &cam_size)
+void GameState::UpdateRoomCamera(int index)
 {
-    // TODO: currently we don't support having camera larger than room background
-    // (or rather - looking outside of the room background); look into this later
+    auto cam = _roomCameras[index];
+    const Rect &rc = cam->GetRect();
     const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
-    Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
-
-    _roomCamera.Position.SetWidth(real_size.Width);
-    _roomCamera.Position.SetHeight(real_size.Height);
-    AdjustRoomToViewport();
-    _cameraHasChanged = true;
-}
-
-void GameState::SetRoomCameraAt(int x, int y)
-{
-    int cw = _roomCamera.Position.GetWidth();
-    int ch = _roomCamera.Position.GetHeight();
-    int room_width = data_to_game_coord(thisroom.Width);
-    int room_height = data_to_game_coord(thisroom.Height);
-    x = Math::Clamp(x, 0, room_width - cw);
-    y = Math::Clamp(y, 0, room_height - ch);
-    _roomCamera.Position.MoveTo(Point(x, y));
-}
-
-bool GameState::IsRoomCameraLocked() const
-{
-    return _roomCamera.Locked;
-}
-
-void GameState::LockRoomCamera()
-{
-    debug_script_log("Room camera locked");
-    _roomCamera.Locked = true;
-}
-
-void GameState::LockRoomCameraAt(int x, int y)
-{
-    debug_script_log("Room camera locked to %d,%d", x, y);
-    SetRoomCameraAt(x, y);
-    _roomCamera.Locked = true;
-}
-
-void GameState::ReleaseRoomCamera()
-{
-    _roomCamera.Locked = false;
-    debug_script_log("Room camera released back to engine control");
-}
-
-void GameState::UpdateRoomCamera()
-{
-    const Rect &camera = _roomCamera.Position;
-    const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
-    if ((real_room_sz.Width > camera.GetWidth()) || (real_room_sz.Height > camera.GetHeight()))
+    if ((real_room_sz.Width > rc.GetWidth()) || (real_room_sz.Height > rc.GetHeight()))
     {
         // TODO: split out into Camera Behavior
-        if (!play.IsRoomCameraLocked())
+        if (!cam->IsLocked())
         {
-            int x = data_to_game_coord(playerchar->x) - camera.GetWidth() / 2;
-            int y = data_to_game_coord(playerchar->y) - camera.GetHeight() / 2;
-            SetRoomCameraAt(x, y);
+            int x = data_to_game_coord(playerchar->x) - rc.GetWidth() / 2;
+            int y = data_to_game_coord(playerchar->y) - rc.GetHeight() / 2;
+            cam->SetAt(x, y);
         }
     }
     else
     {
-        SetRoomCameraAt(0, 0);
+        cam->SetAt(0, 0);
     }
-}
-
-void GameState::AdjustRoomToViewport()
-{
-    _roomViewport.Transform.Init(_roomCamera.Position.GetSize(), _roomViewport.Position);
 }
 
 Point GameState::RoomToScreen(int roomx, int roomy)
 {
-    return _roomViewport.Transform.Scale(Point(roomx - _roomCamera.Position.Left, roomy - _roomCamera.Position.Top));
+    return _roomViewports[0]->GetTransform().Scale(Point(roomx - _roomCameras[0]->GetRect().Left, roomy - _roomCameras[0]->GetRect().Top));
 }
 
 int GameState::RoomToScreenX(int roomx)
 {
-    return _roomViewport.Transform.X.ScalePt(roomx - _roomCamera.Position.Left);
+    return _roomViewports[0]->GetTransform().X.ScalePt(roomx - _roomCameras[0]->GetRect().Left);
 }
 
 int GameState::RoomToScreenY(int roomy)
 {
-    return _roomViewport.Transform.Y.ScalePt(roomy - _roomCamera.Position.Top);
+    return _roomViewports[0]->GetTransform().Y.ScalePt(roomy - _roomCameras[0]->GetRect().Top);
 }
 
-VpPoint GameState::ScreenToRoom(int scrx, int scry, bool clip_viewport)
+VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport, bool convert_cam_to_data)
 {
     clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507;
     Point screen_pt(scrx, scry);
-    if (clip_viewport && !_roomViewport.Position.IsInside(screen_pt))
-        return std::make_pair(Point(), -1);
-    Point p = _roomViewport.Transform.UnScale(screen_pt);
-    p.X += _roomCamera.Position.Left;
-    p.Y += _roomCamera.Position.Top;
+    PViewport view;
+    if (view_index < 0)
+    {
+        view = GetRoomViewportAt(scrx, scry);
+        if (!view)
+            return std::make_pair(Point(), -1);
+    }
+    else
+    {
+        view = _roomViewports[view_index];
+        if (clip_viewport && !view->GetRect().IsInside(screen_pt))
+            return std::make_pair(Point(), -1);
+    }
+    
+    Point p = view->GetTransform().UnScale(screen_pt);
+    auto cam = view->GetCamera();
+    if (convert_cam_to_data)
+    {
+        p.X += game_to_data_coord(cam->GetRect().Left);
+        p.Y += game_to_data_coord(cam->GetRect().Top);
+    }
+    else
+    {
+        p.X += cam->GetRect().Left;
+        p.Y += cam->GetRect().Top;
+    }
     return std::make_pair(p, 0);
 }
 
-VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry, bool clip_viewport)
+VpPoint GameState::ScreenToRoom(int scrx, int scry)
 {
-    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507;
-    Point screen_pt(scrx, scry);
-    if (clip_viewport && !_roomViewport.Position.IsInside(screen_pt))
-        return std::make_pair(Point(), -1);
-    Point p = _roomViewport.Transform.UnScale(screen_pt);
-    p.X += game_to_data_coord(_roomCamera.Position.Left);
-    p.Y += game_to_data_coord(_roomCamera.Position.Top);
-    return std::make_pair(p, 0);
+    return ScreenToRoomImpl(scrx, scry, -1, true, false);
+}
+
+VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry)
+{
+    return ScreenToRoomImpl(scrx, scry, -1, true, true);
+}
+
+VpPoint GameState::ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport)
+{
+    if ((size_t)view_index >= _roomViewports.size())
+        return VpPoint(Point(), -1);
+    return ScreenToRoomImpl(scrx, scry, view_index, clip_viewport, false);
+}
+
+VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry, int view_index, bool clip_viewport)
+{
+    if ((size_t)view_index >= _roomViewports.size())
+        return VpPoint(Point(), -1);
+    return ScreenToRoomImpl(scrx, scry, view_index, clip_viewport, true);
 }
 
 bool GameState::IsBlockingVoiceSpeech() const
@@ -386,9 +396,9 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     screen_flipped = in->ReadInt16();
     short offsets_locked = in->ReadInt16();
     if (offsets_locked != 0)
-        LockRoomCamera();
+        _roomCameras[0]->Lock();
     else
-        ReleaseRoomCamera();
+        _roomCameras[0]->Release();
     entered_at_x = in->ReadInt32();
     entered_at_y = in->ReadInt32();
     entered_edge = in->ReadInt32();
@@ -600,7 +610,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( digital_master_volume);
     out->Write(walkable_areas_on, MAX_WALK_AREAS+1);
     out->WriteInt16( screen_flipped);
-    out->WriteInt16( IsRoomCameraLocked() ? 1 : 0 );
+    out->WriteInt16( _roomCameras[0]->IsLocked() ? 1 : 0 );
     out->WriteInt32( entered_at_x);
     out->WriteInt32( entered_at_y);
     out->WriteInt32( entered_edge);

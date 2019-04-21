@@ -18,13 +18,18 @@
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
 // ScriptViewport manages room Viewport struct in script.
-// Currently it has no members and actual data is stored in "GameState" struct.
-// Also in practice there is only single room viewport at the moment.
 struct ScriptViewport final : AGSCCDynamicObject
 {
+public:
+    ScriptViewport(int id);
+
+    int GetID() const { return _id; }
     const char *GetType() override;
     int Serialize(const char *address, char *buffer, int bufsize) override;
     void Unserialize(int index, const char *serializedData, int dataSize) override;
+
+private:
+    int _id = 0;
 };
 
 #endif // __AC_SCRIPTVIEWPORT_H

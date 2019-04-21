@@ -15,6 +15,8 @@
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/gamestate.h"
 
+ScriptViewport::ScriptViewport(int id) : _id(id) {}
+
 const char *ScriptViewport::GetType()
 {
     return "Viewport2";
@@ -23,13 +25,13 @@ const char *ScriptViewport::GetType()
 int ScriptViewport::Serialize(const char *address, char *buffer, int bufsize)
 {
     StartSerialize(buffer);
-    SerializeInt(0); // ID
+    SerializeInt(_id);
     return EndSerialize();
 }
 
 void ScriptViewport::Unserialize(int index, const char *serializedData, int dataSize)
 {
     StartUnserialize(serializedData, dataSize);
-    UnserializeInt(); // ID, reserved for the future
+    _id = UnserializeInt();
     ccRegisterUnserializedObject(index, this, this);
 }

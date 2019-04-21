@@ -535,8 +535,8 @@ void init_draw_method()
     }
 
     on_mainviewport_changed();
-    on_roomviewport_changed();
-    on_camera_size_changed();
+    on_roomviewport_changed(0);
+    on_camera_size_changed(0);
 }
 
 void dispose_draw_method()
@@ -577,9 +577,9 @@ void on_mainviewport_changed()
 // Syncs room viewport and camera in case anything has changed
 void sync_roomview()
 {
-    const Size &cam_sz = play.GetRoomCamera().GetSize();
-    const Size &view_sz = play.GetRoomViewport().GetSize();
-    init_invalid_regions(0, cam_sz, play.GetRoomViewport());
+    const Size &cam_sz = play.GetRoomCamera(0)->GetRect().GetSize();
+    const Size &view_sz = play.GetRoomViewport(0).GetSize();
+    init_invalid_regions(0, cam_sz, play.GetRoomViewport(0));
     if (cam_sz == view_sz)
     { // note we keep the buffer allocated in case it will become useful later
         RoomCameraFrame.reset();
@@ -602,7 +602,7 @@ void sync_roomview()
     }
 }
 
-void on_roomviewport_changed()
+void on_roomviewport_changed(int index)
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
@@ -614,7 +614,7 @@ void on_roomviewport_changed()
     }
 }
 
-void on_camera_size_changed()
+void on_camera_size_changed(int index)
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
@@ -2030,9 +2030,9 @@ PBitmap draw_room_background(const SpriteTransform &room_trans)
     // TODO: dont use static vars!!
     static int offsetxWas = -100, offsetyWas = -100;
 
-    const Rect &camera = play.GetRoomCamera();
-    const int offsetx = camera.Left;
-    const int offsety = camera.Top;
+    auto camera = play.GetRoomCamera(0);
+    const int offsetx = camera->GetRect().Left;
+    const int offsety = camera->GetRect().Top;
 
     if ((offsetx != offsetxWas) || (offsety != offsetyWas)) {
         invalidate_screen();
@@ -2401,8 +2401,8 @@ static void construct_room_view()
     // reset the Baselines Changed flag now that we've drawn stuff
     walk_behind_baselines_changed = 0;
 
-    const Rect &room_viewport = play.GetRoomViewportAbs();
-    const Rect &camera = play.GetRoomCamera();
+    const Rect &room_viewport = play.GetRoomViewportAbs(0);
+    const Rect &camera = play.GetRoomCamera(0)->GetRect();
     SpriteTransform room_trans(-camera.Left, -camera.Top,
         (float)room_viewport.GetWidth() / (float)camera.GetWidth(),
         (float)room_viewport.GetHeight() / (float)camera.GetHeight(),
@@ -2450,7 +2450,7 @@ void construct_virtual_screen(bool fullRedraw)
     // TODO: move to game update! don't call update during rendering pass!
     // IMPORTANT: keep the order same because sometimes script may depend on it
     if (displayed_room >= 0)
-        play.UpdateRoomCamera();
+        play.UpdateRoomCameras();
 
     // Stage 1: room viewports
     if (displayed_room >= 0 && play.screen_is_faded_out == 0 && is_complete_overlay == 0)

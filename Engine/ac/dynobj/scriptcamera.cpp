@@ -15,6 +15,8 @@
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/gamestate.h"
 
+ScriptCamera::ScriptCamera(int id) : _id(id) {}
+
 const char *ScriptCamera::GetType()
 {
     return "Camera2";
@@ -23,13 +25,13 @@ const char *ScriptCamera::GetType()
 int ScriptCamera::Serialize(const char *address, char *buffer, int bufsize)
 {
     StartSerialize(buffer);
-    SerializeInt(0); // ID
+    SerializeInt(_id);
     return EndSerialize();
 }
 
 void ScriptCamera::Unserialize(int index, const char *serializedData, int dataSize)
 {
     StartUnserialize(serializedData, dataSize);
-    UnserializeInt(); // ID, reserved for the future
+    _id = UnserializeInt();
     ccRegisterUnserializedObject(index, this, this);
 }

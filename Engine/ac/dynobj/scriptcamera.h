@@ -18,13 +18,18 @@
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
 // ScriptCamera manages room Camera struct in script.
-// Currently it has no members and actual data is stored in "GameState" struct.
-// Also in practice there is only single room camera at the moment.
 struct ScriptCamera final : AGSCCDynamicObject
 {
+public:
+    ScriptCamera(int id);
+
+    int GetID() const { return _id; }
     const char *GetType() override;
     int Serialize(const char *address, char *buffer, int bufsize) override;
     void Unserialize(int index, const char *serializedData, int dataSize) override;
+
+private:
+    int _id = 0;
 };
 
 #endif // __AC_SCRIPTCAMERA_H

@@ -107,8 +107,8 @@ void script_debug(int cmdd,int dataa) {
         // TODO: support multiple viewports?!
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
-        const Rect &viewport = play.GetRoomViewport();
-        const Rect &camera = play.GetRoomCamera();
+        const Rect &viewport = play.GetRoomViewport(0);
+        const Rect &camera = play.GetRoomCamera(0)->GetRect();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
         Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
@@ -165,8 +165,8 @@ void script_debug(int cmdd,int dataa) {
             tempw->DrawLine(Line(srcx, srcy, targetx, targety), MakeColor(i+1));
         }
 
-        const Rect &viewport = play.GetRoomViewport();
-        const Rect &camera = play.GetRoomCamera();
+        const Rect &viewport = play.GetRoomViewport(0);
+        const Rect &camera = play.GetRoomCamera(0)->GetRect();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
         Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);

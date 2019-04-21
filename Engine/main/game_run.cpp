@@ -602,7 +602,6 @@ static void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBit
 {
     if (!play.fast_forward) {
         int mwasatx=mousex,mwasaty=mousey;
-        const Rect &camera = play.GetRoomCamera();
 
         // React to changes to viewports and cameras (possibly from script) just before the render
         play.UpdateViewports();
@@ -612,10 +611,14 @@ static void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBit
 
         // Check Mouse Moves Over Hotspot event
         // TODO: do not use static variables!
+        // TODO: if we support rotation then we also need to compare full transform!
         static int offsetxWas = -100, offsetyWas = -100;
+        auto cam = play.GetRoomCamera(0);
+        int offsetx = cam->GetRect().Left;
+        int offsety = cam->GetRect().Top;
 
         if (((mwasatx!=mousex) || (mwasaty!=mousey) ||
-            (offsetxWas != camera.Left) || (offsetyWas != camera.Top)) &&
+            (offsetxWas != offsetx) || (offsetyWas != offsety)) &&
             (displayed_room >= 0)) 
         {
             // mouse moves over hotspot
@@ -626,8 +629,8 @@ static void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBit
             }
         }
 
-        offsetxWas = camera.Left;
-        offsetyWas = camera.Top;
+        offsetxWas = offsetx;
+        offsetyWas = offsety;
     }
 }
 

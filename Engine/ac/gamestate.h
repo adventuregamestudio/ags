@@ -246,11 +246,15 @@ struct GameState {
     // Returns UI viewport position on screen, this is the GUI layer
     const Rect &GetUIViewport() const;
     // Returns Room viewport position, which works as a "window" into the room
-    const Rect &GetRoomViewport() const;
+    const Rect &GetRoomViewport(int index) const;
+    // Returns Room viewport object by index
+    PViewport  GetRoomViewportObj(int index) const;
+    // Finds room viewport at the given screen coordinates; returns nullptr if non found
+    PViewport  GetRoomViewportAt(int x, int y) const;
     // Returns UI viewport position in absolute coordinates (with main viewport offset)
     Rect       GetUIViewportAbs() const;
     // Returns Room viewport position in absolute coordinates (with main viewport offset)
-    Rect       GetRoomViewportAbs() const;
+    Rect       GetRoomViewportAbs(int index) const;
     // Sets if the room viewport should be adjusted automatically each time a new room is loaded
     void SetAutoRoomViewport(bool on);
     // Main viewport defines the location of all things drawn and interactable on the game screen.
@@ -259,27 +263,13 @@ struct GameState {
     // UI viewport is a formal dummy viewport for GUI and Overlays (like speech).
     void SetUIViewport(const Rect &viewport);
     // Room viewport defines location of a room view inside the main viewport.
-    void SetRoomViewport(const Rect &viewport);
+    void SetRoomViewport(int index, const Rect &viewport);
     // Applies all the pending changes to viewports and cameras
     void UpdateViewports();
-    // Returns Room camera position and size inside the room (in room coordinates)
-    const Rect &GetRoomCamera() const;
-    // Returns constant camera object letting read its properties directly
-    const RoomCamera &GetRoomCameraObj() const;
-    // Sets explicit room camera's orthographic size
-    void SetRoomCameraSize(const Size &cam_size);
-    // Puts room camera to the new location in the room
-    void SetRoomCameraAt(int x, int y);
-    // Tells if camera is currently locked at custom position
-    bool IsRoomCameraLocked() const;
-    // Locks room camera at its current position
-    void LockRoomCamera();
-    // Similar to SetRoomCameraAt, but also locks camera preventing it from following player character
-    void LockRoomCameraAt(int x, int y);
-    // Releases camera lock, letting it follow player character
-    void ReleaseRoomCamera();
-    // Runs camera behavior
-    void UpdateRoomCamera();
+    // Returns room camera object chosen by index
+    PCamera GetRoomCamera(int index) const;
+    // Runs cameras behaviors
+    void UpdateRoomCameras();
     // Converts room coordinates to the game screen coordinates through the room viewport
     // This group of functions always tries to pass a point through the **primary** room viewport
     // TODO: also support using arbitrary viewport (for multiple viewports).
@@ -287,12 +277,16 @@ struct GameState {
     int  RoomToScreenX(int roomx);
     int  RoomToScreenY(int roomy);
     // Converts game screen coordinates to the room coordinates through the room viewport
-    // These functions first try to find if there is any viewport at the given coords
-    // TODO: also support using arbitrary viewport (for multiple viewports)
+    // First pair of functions try to find if there is any viewport at the given coords and result
+    // in failure if there is none.
     // TODO: find out if possible to refactor and get rid of "variadic" variants;
     // usually this depends on how the arguments are created (whether they are in "variadic" or true coords)
-    VpPoint ScreenToRoom(int scrx, int scry, bool clip_viewport = true);
-    VpPoint ScreenToRoomDivDown(int scrx, int scry, bool clip_viewport = true); // native "variadic" coords variant
+    VpPoint ScreenToRoom(int scrx, int scry);
+    VpPoint ScreenToRoomDivDown(int scrx, int scry); // native "variadic" coords variant
+    // Following pair of function check for the particular viewport only, and optonally "clip"
+    // coordinates with its bounds, which means that they would fail if coordinates lie outside.
+    VpPoint ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport);
+    VpPoint ScreenToRoomDivDown(int scrx, int scry, int view_index, bool clip_viewport); // native "variadic" coords variant
 
     // Tells if there's a blocking voice speech playing right now
     bool IsBlockingVoiceSpeech() const;
@@ -310,28 +304,24 @@ struct GameState {
     void FreeProperties();
 
 private:
+    VpPoint ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport, bool convert_cam_to_data);
+    void UpdateRoomCamera(int index);
+
     // Defines if the room viewport should be adjusted to the room size automatically.
     bool _isAutoRoomViewport;
-    // Viewport defines the rectangle of the drawn and interactable area
+    // Main viewport defines the rectangle of the drawn and interactable area
     // in the most basic case it will be equal to the game size.
     Viewport _mainViewport;
-    // Viewport defines the render and interaction rectangle of game's UI.
+    // UI viewport defines the render and interaction rectangle of game's UI.
     Viewport _uiViewport;
-    // Primary room viewport, defines place on screen where the room camera
+    // Room viewports define place on screen where the room camera's
     // contents are drawn.
-    Viewport _roomViewport;
-    // Camera defines the position of an "looking eye" inside the room.
-    RoomCamera _roomCamera;
+    std::vector<PViewport> _roomViewports;
+    // Cameras defines the position of a "looking eye" inside the room.
+    std::vector<PCamera> _roomCameras;
 
     // Tells that the main viewport's position has changed since last game update
     bool  _mainViewportHasChanged;
-    // Tells that the room viewport's position has changed since last game update
-    bool  _roomViewportHasChanged;
-    // Tells that the room camera's size has changed since last game update
-    bool  _cameraHasChanged;
-
-    // Calculates room-to-viewport coordinate conversion.
-    void AdjustRoomToViewport();
 };
 
 // Converts legacy alignment type used in script API

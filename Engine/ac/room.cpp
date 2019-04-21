@@ -210,7 +210,7 @@ const char* Room_GetMessages(int index) {
 
 ScriptCamera* Room_GetCamera()
 {
-    ScriptCamera *camera = new ScriptCamera();
+    ScriptCamera *camera = new ScriptCamera(0);
     ccRegisterManagedObject(camera, camera);
     return camera;
 }
@@ -292,7 +292,7 @@ void unload_old_room() {
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     play.bg_frame=0;
     play.bg_frame_locked=0;
-    play.ReleaseRoomCamera();
+    play.GetRoomCamera(0)->Release();
     remove_screen_overlay(-1);
     delete raw_saved_screen;
     raw_saved_screen = nullptr;
@@ -424,14 +424,15 @@ void update_letterbox_mode()
     play.SetUIViewport(new_main_view);
 }
 
-void adjust_viewport_to_room()
+// Automatically resize primary room viewport and camera to match the new room size
+static void adjust_viewport_to_room()
 {
     const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
     const Rect main_view = play.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
-    play.SetRoomViewport(new_room_view);
-    play.SetRoomCameraSize(new_room_view.GetSize());
+    play.SetRoomViewport(0, new_room_view);
+    play.GetRoomCamera(0)->SetSize(new_room_view.GetSize());
 }
 
 // forchar = playerchar on NewRoom, or NULL if restore saved game
@@ -703,7 +704,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             }
         }
 
-        play.SetRoomCameraAt(0, 0);
+        play.GetRoomCamera(0)->SetAt(0, 0);
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
         // only stop moving if it's a new room, not a restore game
@@ -852,7 +853,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     generate_light_table();
     update_music_volume();
-    play.UpdateRoomCamera();
+    play.UpdateRoomCameras();
     our_eip = 212;
     invalidate_screen();
     for (cc=0;cc<croom->numobj;cc++) {

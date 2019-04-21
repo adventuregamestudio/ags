@@ -993,14 +993,17 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptcamera.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\viewport.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\libsrc\glad\src\glad.c">
       <Filter>Library Sources\glad</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\libsrc\glad\src\glad_wgl.c">
       <Filter>Library Sources\glad</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\game\viewport.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\viewport_script.cpp">
+      <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp">
       <Filter>Source Files\ac</Filter>

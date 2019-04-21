@@ -137,7 +137,7 @@ void Screen_SetAutoSizeViewport(bool on)
 
 ScriptViewport* Screen_GetViewport()
 {
-    ScriptViewport *viewport = new ScriptViewport();
+    ScriptViewport *viewport = new ScriptViewport(0);
     ccRegisterManagedObject(viewport, viewport);
     return viewport;
 }

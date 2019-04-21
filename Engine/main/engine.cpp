@@ -326,8 +326,7 @@ bool engine_try_init_gamedata(String gamepak_path)
     AssetError err = AssetManager::SetDataFile(gamepak_path);
     if (err != kAssetNoError)
     {
-        String err = String::FromFormat("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", gamepak_path.GetCStr());
-        platform->DisplayAlert(err);
+        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", gamepak_path.GetCStr());
         return false;
     }
     return true;
@@ -583,12 +582,11 @@ void engine_init_debug()
 
 void atexit_handler() {
     if (proper_exit==0) {
-        sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
+        platform->DisplayAlert("Error: the program has exited without requesting it.\n"
             "Program pointer: %+03d  (write this number down), ACI version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
             "developers. Otherwise, note down any other information displayed.",
             our_eip, EngineVersion.LongString.GetCStr());
-        platform->DisplayAlert(pexbuf);
     }
 }
 

@@ -192,7 +192,7 @@ void quit_message_on_exit(const char *qmsg, String &alertis, QuitReason qreason)
         // Display the message (at this point the window still exists)
         sprintf(pexbuf,"%s\n",qmsg);
         alertis.Append(pexbuf);
-        platform->DisplayAlert(alertis);
+        platform->DisplayAlert("%s", alertis.GetCStr());
     }
 }
 

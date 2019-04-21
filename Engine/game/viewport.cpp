@@ -119,6 +119,11 @@ void Camera::UnlinkFromViewport(int id)
     }
 }
 
+const std::vector<ViewportRef> &Camera::GetLinkedViewports() const
+{
+    return _viewportRefs;
+}
+
 void Viewport::SetID(int id)
 {
     _id = id;

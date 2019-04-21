@@ -28,7 +28,10 @@
 void init_invalid_regions(int view_index, const Size &surf_size, const Rect &viewport);
 // Update the coordinate transformation for the particular dirty rects object
 void set_invalidrects_cameraoffs(int view_index, int x, int y);
+// Mark the whole screen dirty
 void invalidate_all_rects();
+// Mark the whole camera surface dirty
+void invalidate_all_camera_rects(int view_index);
 void invalidate_rect_ds(int x1, int y1, int x2, int y2, bool in_room);
 // Paints the black screen background in the regions marked as dirty
 void update_black_invreg_and_reset(AGS::Common::Bitmap *ds);

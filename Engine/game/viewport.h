@@ -74,6 +74,8 @@ public:
     void LinkToViewport(ViewportRef viewport);
     // Unlinks this camera from a given viewport; does nothing if link did not exist
     void UnlinkFromViewport(int id);
+    // Get the array of linked viewport references
+    const std::vector<ViewportRef> &GetLinkedViewports() const;
 
     // Tells if this camera has changed recently
     inline bool HasChanged() const { return _hasChanged; }

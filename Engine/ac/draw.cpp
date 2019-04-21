@@ -157,8 +157,8 @@ IDriverDependantBitmap* roomBackgroundBmp = nullptr;
 // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
 // to the virtual screen.
 // For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
-PBitmap RoomCameraBuffer;  // this is the actual bitmap
-PBitmap RoomCameraFrame;   // this is either same bitmap reference or sub-bitmap
+std::vector<PBitmap> RoomCameraBuffer;  // this is the actual bitmap
+std::vector<PBitmap> RoomCameraFrame;   // this is either same bitmap reference or sub-bitmap
 
 
 std::vector<SpriteListEntry> sprlist;
@@ -548,8 +548,8 @@ void dispose_draw_method()
 
 void dispose_room_drawdata()
 {
-    RoomCameraBuffer.reset();
-    RoomCameraFrame.reset();
+    RoomCameraBuffer.clear();
+    RoomCameraFrame.clear();
 }
 
 void on_mainviewport_changed()
@@ -574,30 +574,49 @@ void on_mainviewport_changed()
     }
 }
 
-// Syncs room viewport and camera in case anything has changed
-void sync_roomview()
+// Initialize dirty rect and background buffers for software renderer
+void init_invalid_room_regions(int view_index, const Size &surf_size, const Rect &viewport)
 {
-    const Size &cam_sz = play.GetRoomCamera(0)->GetRect().GetSize();
-    const Size &view_sz = play.GetRoomViewport(0).GetSize();
-    init_invalid_regions(0, cam_sz, play.GetRoomViewport(0));
+    if (RoomCameraBuffer.size() <= view_index)
+    {
+        RoomCameraBuffer.resize(view_index + 1);
+        RoomCameraFrame.resize(view_index + 1);
+    }
+    init_invalid_regions(view_index, surf_size, viewport);
+}
+
+// Syncs room viewport and camera in case anything has changed
+void sync_roomview(PViewport view)
+{
+    auto cam = view->GetCamera();
+    if (!cam)
+        return;
+
+    const int view_index = view->GetID();
+    const Size &view_sz = view->GetRect().GetSize();
+    const Size &cam_sz = cam->GetRect().GetSize();
+    init_invalid_room_regions(view_index, cam_sz, view->GetRect());
+
+    PBitmap &camera_frame = RoomCameraFrame[view_index];
+    PBitmap &camera_buffer = RoomCameraBuffer[view_index];
     if (cam_sz == view_sz)
     { // note we keep the buffer allocated in case it will become useful later
-        RoomCameraFrame.reset();
+        camera_frame.reset();
     }
     else
     {
-        if (!RoomCameraBuffer || RoomCameraBuffer->GetWidth() < cam_sz.Width || RoomCameraBuffer->GetHeight() < cam_sz.Height)
+        if (!camera_buffer || camera_buffer->GetWidth() < cam_sz.Width || camera_buffer->GetHeight() < cam_sz.Height)
         {
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
             int room_width = data_to_game_coord(thisroom.Width);
             int room_height = data_to_game_coord(thisroom.Height);
             Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(room_width, room_height));
-            RoomCameraBuffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height));
+            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height));
         }
 
-        if (!RoomCameraFrame || RoomCameraFrame->GetSize() != cam_sz)
+        if (!camera_frame || camera_frame->GetSize() != cam_sz)
         {
-            RoomCameraFrame.reset(BitmapHelper::CreateSubBitmap(RoomCameraBuffer.get(), RectWH(cam_sz)));
+            camera_frame.reset(BitmapHelper::CreateSubBitmap(camera_buffer.get(), RectWH(cam_sz)));
         }
     }
 }
@@ -606,7 +625,7 @@ void on_roomviewport_changed(int index)
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
-        sync_roomview();
+        sync_roomview(play.GetRoomViewportObj(index));
         invalidate_screen();
         // TODO: don't have to do this all the time, perhaps do "dirty rect" method
         // and only clear previous viewport location?
@@ -618,7 +637,14 @@ void on_camera_size_changed(int index)
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
-        sync_roomview();
+        auto cam = play.GetRoomCamera(index);
+        auto viewrefs = cam->GetLinkedViewports();
+        for (auto vr : viewrefs)
+        {
+            PViewport vp = vr.lock();
+            if (vp)
+                sync_roomview(vp);
+        }
         invalidate_screen();
     }
 }
@@ -636,6 +662,11 @@ bool is_screen_dirty()
 void invalidate_screen()
 {
     invalidate_all_rects();
+}
+
+void invalidate_camera_frame(int index)
+{
+    invalidate_all_camera_rects(index);
 }
 
 void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room)
@@ -2003,7 +2034,7 @@ void prepare_room_sprites()
     our_eip = 36;
 }
 
-// Draws the black surface behind(or rather between) the room viewports
+// Draws the black surface behind (or rather between) the room viewports
 void draw_preroom_background()
 {
     if (gfxDriver->RequiresFullRedrawEachFrame())
@@ -2013,31 +2044,17 @@ void draw_preroom_background()
 
 // Draws the room background on the given surface.
 //
-// NOTE that the bitmap arguments are **strictly** for software rendering.
+// NOTE that this is **strictly** for software rendering.
 // ds is a full game screen surface, and roomcam_surface is a surface for drawing room camera content to.
 // ds and roomcam_surface may be the same bitmap.
 // no_transform flag tells to copy dirty regions on roomcam_surface without any coordinate conversion
 // whatsoever.
-PBitmap draw_room_background(const SpriteTransform &room_trans)
+PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
 {
     if (gfxDriver->RequiresFullRedrawEachFrame())
         return nullptr;
 
     our_eip = 31;
-
-    // TODO: dont use static vars!!
-    static int offsetxWas = -100, offsetyWas = -100;
-
-    auto camera = play.GetRoomCamera(0);
-    const int offsetx = camera->GetRect().Left;
-    const int offsety = camera->GetRect().Top;
-
-    if ((offsetx != offsetxWas) || (offsety != offsetyWas)) {
-        invalidate_screen();
-
-        offsetxWas = offsetx;
-        offsetyWas = offsety;
-    }
 
     // For the sake of software renderer, if there is any kind of camera transform required
     // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
@@ -2045,26 +2062,27 @@ PBitmap draw_room_background(const SpriteTransform &room_trans)
     // between different colour depths (i.e. it won't correctly stretch blit 16-bit rooms to
     // 32-bit virtual screen).
     // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
+    const int view_index = view->GetID();
     Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
     const bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
-    Bitmap *roomcam_surface = translate_only ? ds : RoomCameraFrame.get();
+    Bitmap *roomcam_surface = translate_only ? ds : RoomCameraFrame[view_index].get();
     const bool no_transform = !translate_only; // this is correct, we do non-transform paint, and only scale/rotate later
     {
         // For software renderer: copy dirty rects onto the virtual screen.
         // TODO: that would be SUPER NICE to reorganize the code and move this operation into SoftwareGraphicDriver somehow.
         // Because basically we duplicate sprite batch transform here.
 
-        set_invalidrects_cameraoffs(0, offsetx, offsety);
+        auto camera = view->GetCamera();
+        set_invalidrects_cameraoffs(view_index, camera->GetRect().Left, camera->GetRect().Top);
 
         // TODO: (by CJ)
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-
-        update_room_invreg_and_reset(0, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), no_transform);
+        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), no_transform);
     }
 
-    return RoomCameraFrame;
+    return RoomCameraFrame[view_index];
 }
 
 
@@ -2411,7 +2429,7 @@ static void construct_room_view()
             (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),
             (float)view_rc.GetHeight() / (float)cam_rc.GetHeight(),
             0.f);
-        PBitmap bg_surface = draw_room_background(room_trans);
+        PBitmap bg_surface = draw_room_background(viewport, room_trans);
         gfxDriver->BeginSpriteBatch(view_rc, room_trans, bg_surface);
         put_sprite_list_on_screen(true);
     }

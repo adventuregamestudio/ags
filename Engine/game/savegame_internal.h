@@ -15,8 +15,7 @@
 #ifndef __AGS_EE_GAME__SAVEGAMEINTERNAL_H
 #define __AGS_EE_GAME__SAVEGAMEINTERNAL_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include <vector>
 
 #include "ac/common_defines.h"
@@ -28,7 +27,7 @@ namespace AGS
 namespace Engine
 {
 
-typedef stdtr1compat::shared_ptr<Bitmap> PBitmap;
+typedef std::shared_ptr<Bitmap> PBitmap;
 
 // PreservedParams keeps old values of particular gameplay
 // parameters that are saved before the save restoration
@@ -56,7 +55,7 @@ struct RestoredData
     // Scripts global data
     struct ScriptData
     {
-        stdtr1compat::shared_ptr<char> Data;
+        std::shared_ptr<char> Data;
         size_t              Len;
 
         ScriptData();

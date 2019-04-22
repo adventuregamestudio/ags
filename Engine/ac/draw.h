@@ -18,8 +18,7 @@
 #ifndef __AGS_EE_AC__DRAW_H
 #define __AGS_EE_AC__DRAW_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "core/types.h"
 #include "ac/common_defines.h"
 #include "gfx/gfx_def.h"
@@ -30,7 +29,7 @@ namespace AGS
     namespace Common
     {
         class Bitmap;
-        typedef stdtr1compat::shared_ptr<Common::Bitmap> PBitmap;
+        typedef std::shared_ptr<Common::Bitmap> PBitmap;
     }
     namespace Engine { class IDriverDependantBitmap; }
 }

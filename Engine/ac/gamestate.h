@@ -15,7 +15,6 @@
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
-#include "util/stdtr1compat.h"
 
 #include <memory>
 #include <vector>
@@ -33,7 +32,7 @@
 // Forward declaration
 namespace AGS { namespace Common {
     class Bitmap; class Stream;
-    typedef stdtr1compat::shared_ptr<Bitmap> PBitmap;
+    typedef std::shared_ptr<Bitmap> PBitmap;
 } }
 using namespace AGS; // FIXME later
 

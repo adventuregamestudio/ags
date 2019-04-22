@@ -172,7 +172,7 @@ struct Interaction
     Interaction &operator =(const Interaction &inter);
 };
 
-typedef stdtr1compat::shared_ptr<Interaction> PInteraction;
+typedef std::shared_ptr<Interaction> PInteraction;
 
 
 // Legacy pre-3.0 kind of global and local room variables
@@ -200,7 +200,7 @@ struct InteractionScripts
     static InteractionScripts *CreateFromStream(Stream *in);
 };
 
-typedef stdtr1compat::shared_ptr<InteractionScripts> PInteractionScripts;
+typedef std::shared_ptr<InteractionScripts> PInteractionScripts;
 
 } // namespace Common
 } // namespace AGS

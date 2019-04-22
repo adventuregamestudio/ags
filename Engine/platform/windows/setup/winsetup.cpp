@@ -21,8 +21,7 @@
 #include <crtdbg.h>
 #include <shlobj.h>
 #include <shlwapi.h>
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include <algorithm>
 #include <set>
 #include <vector>
@@ -482,7 +481,7 @@ private:
     Size _winSize;
     Size _baseSize;
     // Driver descriptions
-    typedef stdtr1compat::shared_ptr<DriverDesc> PDriverDesc;
+    typedef std::shared_ptr<DriverDesc> PDriverDesc;
     typedef std::map<String, PDriverDesc> DriverDescMap;
     DriverDescMap _drvDescMap;
     PDriverDesc _drvDesc;

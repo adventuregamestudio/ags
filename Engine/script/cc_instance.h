@@ -19,9 +19,8 @@
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
-#include TR1INCLUDE(unordered_map)
+#include <memory>
+#include <unordered_map>
 
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
@@ -108,8 +107,8 @@ struct ccInstance
 {
 public:
     // TODO: change to std:: if moved to C++11
-    typedef stdtr1compat::unordered_map<int32_t, ScriptVariable> ScVarMap;
-    typedef stdtr1compat::shared_ptr<ScVarMap>                   PScVarMap;
+    typedef std::unordered_map<int32_t, ScriptVariable> ScVarMap;
+    typedef std::shared_ptr<ScVarMap>                   PScVarMap;
 public:
     int32_t flags;
     PScVarMap globalvars;

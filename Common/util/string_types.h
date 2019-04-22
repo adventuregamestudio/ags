@@ -15,9 +15,8 @@
 #define __AGS_CN_UTIL__STRINGTYPES_H
 
 #include <cctype>
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(functional)
-#include TR1INCLUDE(unordered_map)
+#include <functional>
+#include <unordered_map>
 
 #include <vector>
 #include "util/string.h"
@@ -106,8 +105,8 @@ struct HashStrNoCase : public std::unary_function<String, size_t>
 };
 
 typedef std::vector<String> StringV;
-typedef stdtr1compat::unordered_map<String, String> StringMap;
-typedef stdtr1compat::unordered_map<String, String, HashStrNoCase, StrEqNoCase> StringIMap;
+typedef std::unordered_map<String, String> StringMap;
+typedef std::unordered_map<String, String, HashStrNoCase, StrEqNoCase> StringIMap;
 
 } // namespace Common
 } // namespace AGS

@@ -23,8 +23,7 @@
 #error This file should only be included on the Windows build
 #endif
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include <allegro.h>
 #include <winalleg.h>
 #include <d3d9.h>
@@ -202,7 +201,7 @@ public:
     virtual bool HasAcceleratedTransform() { return true; }
     virtual void SetScreenTint(int red, int green, int blue);
 
-    typedef stdtr1compat::shared_ptr<D3DGfxFilter> PD3DFilter;
+    typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
 
     void SetGraphicsFilter(PD3DFilter filter);
 

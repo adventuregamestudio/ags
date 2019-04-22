@@ -19,8 +19,7 @@
 #ifndef __AGS_CN_UTIL__ERROR_H
 #define __AGS_CN_UTIL__ERROR_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "util/string.h"
 
 namespace AGS

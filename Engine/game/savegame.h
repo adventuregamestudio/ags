@@ -15,8 +15,7 @@
 #ifndef __AGS_EE_GAME__SAVEGAME_H
 #define __AGS_EE_GAME__SAVEGAME_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "ac/game_version.h"
 #include "util/error.h"
 #include "util/version.h"
@@ -37,7 +36,7 @@ using Common::Stream;
 using Common::String;
 using Common::Version;
 
-typedef stdtr1compat::shared_ptr<Stream> PStream;
+typedef std::shared_ptr<Stream> PStream;
 
 //-----------------------------------------------------------------------------
 // Savegame version history

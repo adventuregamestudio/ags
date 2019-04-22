@@ -71,7 +71,7 @@ ScriptDrawingSurface* dialogOptionsRenderingSurface;
 int said_speech_line; // used while in dialog to track whether screen needs updating
 
 // Old dialog support
-std::vector< stdtr1compat::shared_ptr<unsigned char> > old_dialog_scripts;
+std::vector< std::shared_ptr<unsigned char> > old_dialog_scripts;
 std::vector<String> old_speech_lines;
 
 int said_text = 0;

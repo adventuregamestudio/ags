@@ -19,7 +19,9 @@
 #ifndef __AGS_EE_GFX__ALI3DD3D_H
 #define __AGS_EE_GFX__ALI3DD3D_H
 
-#ifndef WINDOWS_VERSION
+#include "core/platform.h"
+
+#if ! AGS_PLATFORM_OS_WINDOWS
 #error This file should only be included on the Windows build
 #endif
 

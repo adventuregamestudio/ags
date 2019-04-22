@@ -48,7 +48,6 @@ target_sources(common
     core/assetmanager.cpp
     core/assetmanager.h
     core/def_version.h
-    core/endianness.h
     core/types.h
     debug/assert.h
     debug/debugmanager.cpp
@@ -161,27 +160,6 @@ target_sources(common
 
 target_link_libraries(common PUBLIC Allegro::Allegro AlFont::AlFont AAStr::AAStr)
 
-if(WIN32)
-    target_compile_definitions(common PUBLIC WINDOWS_VERSION)
-elseif(MACOS)
-    target_compile_definitions(common PUBLIC MAC_VERSION)
-elseif(LINUX)
-    target_compile_definitions(common PUBLIC LINUX_VERSION)
-else()
-    message(FATAL_ERROR "Unsupported platform.")
-endif()
-
-test_big_endian(AGS_BIG_ENDIAN)
-if(AGS_BIG_ENDIAN)
-    target_compile_definitions(common PUBLIC AGS_BIG_ENDIAN)
-else()
-    target_compile_definitions(common PUBLIC AGS_LITTLE_ENDIAN)
-endif()
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    target_compile_definitions(common PUBLIC AGS_64BIT)
-endif()
-
 # NOTE: You can optionally create case sensitive filesystems on Macos and Windows now.
 if (LINUX)
     target_compile_definitions(common PRIVATE AGS_CASE_SENSITIVE_FILESYSTEM)
@@ -193,6 +171,10 @@ endif()
 
 if (AGS_NO_MP3_PLAYER)
     target_compile_definitions(common PUBLIC NO_MP3_PLAYER)
+endif()
+
+if(NOT MSVC)
+    target_compile_options(common PUBLIC -Werror=undef)
 endif()
 
 target_compile_definitions(common PUBLIC "$<$<CONFIG:DEBUG>:DEBUG_SPRITECACHE>")

@@ -17,6 +17,10 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
+
 //#define ALLEGRO_STATICLINK  // already defined in project settings
 #include <allegro.h>
 #include <winalleg.h>
@@ -144,7 +148,7 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
 
 //#include <atlbase.h>
 
-#ifdef _DEBUG
+#if AGS_PLATFORM_DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
@@ -957,5 +961,4 @@ BOOL CVMR9Graph::SetLayerZOrder(int nLayer, DWORD dwZOrder)
 	return TRUE;
 }
 
-
-
+#endif // AGS_PLATFORM_OS_WINDOWS

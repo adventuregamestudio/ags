@@ -11,10 +11,12 @@
 
 #pragma region Defines_and_Includes
 
+#include "core/platform.h"
+
 #define MIN_EDITOR_VERSION 1
 #define MIN_ENGINE_VERSION 3
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <WinBase.h>
@@ -64,7 +66,7 @@
 #pragma endregion
 
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 // The standard Windows DLL entry point
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -119,7 +121,7 @@ void SetSpacing(int fontNum, int spacing)
 }
 //==============================================================================
 
-#if defined(WINDOWS_VERSION) && !defined(BUILTIN_PLUGINS)
+#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
 // ***** Design time *****
 
 IAGSEditor *editor; // Editor interface

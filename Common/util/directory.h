@@ -18,9 +18,10 @@
 #ifndef __AGS_CN_UTIL__DIRECTORY_H
 #define __AGS_CN_UTIL__DIRECTORY_H
 
+#include "core/platform.h"
 #include "util/string.h"
 
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 // undef the declarations from winbase.h
 #undef CreateDirectory
 #undef SetCurrentDirectory

@@ -16,6 +16,8 @@
 //
 //=============================================================================
 
+#if defined(ANDROID) || defined(PSP)
+
 #include "pe.h"
 
 #include <string.h>
@@ -305,3 +307,5 @@ error_exit:
   fclose(pe);
   return 0;
 }
+
+#endif

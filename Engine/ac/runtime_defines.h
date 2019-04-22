@@ -131,10 +131,6 @@ const int LegacyRoomVolumeFactor            = 30;
 #define MAX_PATH 260
 #endif
 
-#if !defined (WINDOWS_VERSION)
-#define HWND long
-#endif
-
 #define TRANS_ALPHA_CHANNEL 20000
 #define TRANS_OPAQUE        20001
 #define TRANS_RUN_PLUGIN    20002

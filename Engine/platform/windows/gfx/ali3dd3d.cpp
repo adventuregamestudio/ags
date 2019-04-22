@@ -16,6 +16,12 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
+
+#include "platform/windows/gfx/ali3dd3d.h"
+
 #include <allegro.h>
 #include <allegro/platform/aintwin.h>
 #include "ac/timer.h"
@@ -27,7 +33,6 @@
 #include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
-#include "platform/windows/gfx/ali3dd3d.h"
 #include "util/library.h"
 
 using namespace AGS::Common;
@@ -2049,3 +2054,5 @@ bool D3DGraphicsFactory::Init()
 } // namespace D3D
 } // namespace Engine
 } // namespace AGS
+
+#endif // AGS_PLATFORM_OS_WINDOWS

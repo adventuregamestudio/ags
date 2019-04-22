@@ -16,7 +16,9 @@
 //
 //=============================================================================
 
-#if !defined(_WIN32)
+#include "core/platform.h"
+
+#if ! AGS_PLATFORM_OS_WINDOWS
 
 #include <string.h>
 #include <stdio.h>
@@ -49,4 +51,4 @@ size_t wcstombs(char* mbstr, const wchar_t *wcstr, size_t max)
   return count;
 }
 
-#endif // ! _WIN32
+#endif // ! AGS_PLATFORM_OS_WINDOWS

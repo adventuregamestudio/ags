@@ -1,5 +1,6 @@
 
-#if defined (WINDOWS_VERSION)
+#include "core/platform.h"
+#if AGS_PLATFORM_OS_WINDOWS
 #include <windows.h>
 #endif
 #include "allegro/file.h"
@@ -107,7 +108,7 @@ String MakePathNoSlash(const String &path)
 {
     String dir_path = path;
     FixupPath(dir_path);
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     // if the path is 'x:/' don't strip the slash
     if (path.GetLength() == 3 && path[1u] == ':')
         ;
@@ -127,7 +128,7 @@ String MakeAbsolutePath(const String &path)
     }
     // canonicalize_filename treats "." as "./." (file in working dir)
     String abs_path = path == "." ? "./" : path;
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     // NOTE: cannot use long path names in the engine, because it does not have unicode strings support
     //
     //char long_path_buffer[MAX_PATH];
@@ -135,9 +136,6 @@ String MakeAbsolutePath(const String &path)
     //{
     //    abs_path = long_path_buffer;
     //}
-#elif defined (PSP_VERSION)
-    // FIXME: Properly construct a full PSP path
-    return path;
 #endif
     char buf[512];
     canonicalize_filename(buf, abs_path, 512);

@@ -39,6 +39,7 @@
 #define __AGS_CN_UTIL__STRING_H
 
 #include <stdarg.h>
+#include "core/platform.h"
 #include "core/types.h"
 #include "debug/assert.h"
 
@@ -85,8 +86,8 @@ public:
         return _meta ? _meta->Length == 0 : true;
     }
 
-    // Those getters are for tests only, hence ifdef _DEBUG
-#ifdef _DEBUG
+    // Those getters are for tests only, hence if AGS_PLATFORM_DEBUG
+#if AGS_PLATFORM_DEBUG
     inline const char *GetData() const
     {
         return _data;

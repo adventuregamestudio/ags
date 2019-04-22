@@ -3,6 +3,8 @@
  * Peter Wang <tjaden@users.sf.net>
  */
 
+#ifdef __linux__
+
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -314,3 +316,5 @@ void cd_close()
 {
     ioctl(fd, CDROMCLOSETRAY);
 }
+
+#endif // __linux__

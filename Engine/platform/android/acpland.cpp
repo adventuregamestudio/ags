@@ -12,13 +12,12 @@
 //
 //=============================================================================
 
-#if !defined(ANDROID_VERSION)
-#error This file should only be included on the Android build
-#endif
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_ANDROID
 
 #include <allegro.h>
 #include "platform/base/agsplatformdriver.h"
-#include "platform/base/override_defines.h"
 #include "ac/runtime_defines.h"
 #include "main/config.h"
 #include "plugin/agsplugin.h"
@@ -745,3 +744,5 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
 
   return instance;
 }
+
+#endif

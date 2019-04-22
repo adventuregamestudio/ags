@@ -12,7 +12,8 @@
 //
 //=============================================================================
 
-#ifdef _DEBUG
+#include "core/platform.h"
+#if AGS_PLATFORM_DEBUG
 
 #include "test/test_all.h"
 
@@ -30,4 +31,4 @@ void Test_DoAllTests()
     Test_Gfx();
 }
 
-#endif // _DEBUG
+#endif // AGS_PLATFORM_DEBUG

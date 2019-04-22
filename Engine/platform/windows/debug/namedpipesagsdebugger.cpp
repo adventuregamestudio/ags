@@ -12,6 +12,10 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
+
 #include "platform/windows/debug/namedpipesagsdebugger.h"
 
 #include <stdio.h> // sprintf
@@ -92,3 +96,5 @@ char* NamedPipesAGSDebugger::GetNextMessage()
     }
 
 }
+
+#endif // AGS_PLATFORM_OS_WINDOWS

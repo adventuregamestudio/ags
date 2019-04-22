@@ -12,6 +12,9 @@
 //
 //=============================================================================
 
+#include <ctype.h> // for toupper
+
+#include "core/platform.h"
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
 #include "ac/charactercache.h"
@@ -68,11 +71,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-#if !defined (WINDOWS_VERSION)
-// for toupper
-#include <ctype.h>
-#endif
 
 extern GameSetup usetup;
 extern GameSetupStruct game;

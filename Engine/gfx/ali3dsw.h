@@ -20,8 +20,13 @@
 #define __AGS_EE_GFX__ALI3DSW_H
 
 #include <memory>
+
+#include "core/platform.h"
+#define AGS_DDRAW_GAMMA_CONTROL (AGS_PLATFORM_OS_WINDOWS)
+
 #include <allegro.h>
-#if defined (WINDOWS_VERSION)
+
+#if AGS_DDRAW_GAMMA_CONTROL
 #include <winalleg.h>
 #include <ddraw.h>
 #endif
@@ -213,7 +218,7 @@ private:
     ALSpriteBatches _spriteBatches;
     GFX_MODE_LIST *_gfxModeList;
 
-#ifdef _WIN32
+#if AGS_DDRAW_GAMMA_CONTROL
     IDirectDrawGammaControl* dxGammaControl;
     // The gamma ramp is a lookup table for each possible R, G and B value
     // in 32-bit colour (from 0-255) it maps them to a brightness value

@@ -14,6 +14,7 @@
 
 #include "util/file.h"
 
+#include "core/platform.h"
 #include "util/stdio_compat.h"
 #include <errno.h>
 #include "util/filestream.h"
@@ -67,7 +68,7 @@ bool File::DeleteFile(const String &filename)
     if (::remove(filename) != 0)
     {
         int err;
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
         _get_errno(&err);
 #else
         err = errno;

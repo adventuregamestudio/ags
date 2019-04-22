@@ -16,6 +16,7 @@
 // Quit game procedure
 //
 
+#include "core/platform.h"
 #include "ac/cdaudio.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -222,7 +223,7 @@ void quit_delete_temp_files()
 
 void free_globals()
 {
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     if (wArgv)
     {
         LocalFree(wArgv);

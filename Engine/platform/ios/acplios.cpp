@@ -12,9 +12,9 @@
 //
 //=============================================================================
 
-#if !defined(IOS_VERSION)
-#error This file should only be included on the iOS build
-#endif
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_IOS
 
 #include <stdio.h>
 #include <dirent.h>
@@ -23,7 +23,6 @@
 
 #include <allegro.h>
 #include "platform/base/agsplatformdriver.h"
-#include "platform/base/override_defines.h"
 #include "ac/runtime_defines.h"
 #include "main/config.h"
 #include "plugin/agsplugin.h"
@@ -646,3 +645,5 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
     instance = new AGSIOS();
   return instance;
 }
+
+#endif

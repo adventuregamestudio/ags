@@ -6,6 +6,8 @@
  * Peter Wang <tjaden@users.sf.net> 
  */
 
+#ifdef _WIN32
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -197,3 +199,5 @@ void cd_close(void)
     command("set cdaudio door closed");
     paused = 0;
 }
+
+#endif // WIN32

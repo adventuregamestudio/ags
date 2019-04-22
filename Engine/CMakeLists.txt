@@ -475,33 +475,26 @@ target_sources(engine
     ac/dynobj/scriptdict.h
     ac/dynobj/scriptset.cpp
     ac/dynobj/scriptset.h
+
+    platform/windows/acplwin.cpp
+    platform/windows/debug/namedpipesagsdebugger.cpp
+    platform/windows/gfx/ali3dd3d.cpp
+    platform/windows/media/video/acwavi.cpp
+    platform/windows/media/video/acwavi3d.cpp
+    platform/windows/setup/winsetup.cpp
+
+    platform/linux/acpllnx.cpp
+
+    platform/osx/acplmac.cpp
+
+    platform/android/acpland.cpp
+
+    platform/ios/acplios.cpp
 )
 
-if(WIN32)
+if(MACOS)
     target_sources(engine PRIVATE 
-        platform/windows/acplwin.cpp
-        platform/windows/debug/namedpipesagsdebugger.cpp
-        platform/windows/debug/namedpipesagsdebugger.h
-        platform/windows/gfx/ali3dd3d.cpp
-        platform/windows/gfx/ali3dd3d.h
-        platform/windows/media/video/acwavi.cpp
-        platform/windows/media/video/acwavi3d.cpp
-        platform/windows/setup/winsetup.cpp
-        platform/windows/setup/winsetup.h
-        util/mutex_windows.h
-        util/library_windows.h
-        util/thread_windows.h
-    )
-elseif(MACOS)
-    #file(GLOB_RECURSE resources .game_files/*)
-    target_sources(engine PRIVATE 
-        platform/osx/acplmac.cpp
         platform/osx/alplmac.mm
-        #${resources}
-    )
-elseif(LINUX)
-    target_sources(engine PRIVATE 
-        platform/linux/acpllnx.cpp
     )
 endif()
 
@@ -567,6 +560,7 @@ target_link_libraries(engine PUBLIC
     Apeg::Apeg 
     AlOgg::AlOgg 
     HQ2X::hq2x
+    Cda::Cda
 )
 
 # common has a circular dependency on engine
@@ -574,7 +568,6 @@ target_link_libraries(common PUBLIC engine)
 
 if (WIN32 OR LINUX)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
-    target_link_libraries(engine PUBLIC Cda::Cda)
 endif ()
 
 if (WIN32)

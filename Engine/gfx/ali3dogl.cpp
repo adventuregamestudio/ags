@@ -12,7 +12,9 @@
 //
 //=============================================================================
 
-#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(LINUX_VERSION)
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_LINUX
 
 #include <algorithm>
 #include "gfx/ali3dexception.h"
@@ -25,7 +27,7 @@
 #include "util/math.h"
 #include "ac/timer.h"
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
@@ -65,7 +67,7 @@ const void (*glSwapIntervalEXT)(int) = NULL;
 #define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
 #define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
 
-#elif defined(IOS_VERSION)
+#elif AGS_PLATFORM_OS_IOS
 
 extern "C" 
 {
@@ -184,22 +186,22 @@ OGLGraphicsDriver::ShaderProgram::ShaderProgram() : Program(0), SamplerVar(0), C
 
 OGLGraphicsDriver::OGLGraphicsDriver() 
 {
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
   _hDC = NULL;
   _hRC = NULL;
   _hWnd = NULL;
   _hInstance = NULL;
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
-#elif defined (LINUX_VERSION)
+#elif AGS_PLATFORM_OS_LINUX
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
   _glxContext = nullptr;
   _have_window = false;
-#elif defined (ANDROID_VERSION)
+#elif AGS_PLATFORM_OS_ANDROID
   device_screen_physical_width  = android_screen_physical_width;
   device_screen_physical_height = android_screen_physical_height;
-#elif defined (IOS_VERSION)
+#elif AGS_PLATFORM_OS_IOS
   device_screen_physical_width  = ios_screen_physical_width;
   device_screen_physical_height = ios_screen_physical_height;
 #endif
@@ -256,7 +258,7 @@ void OGLGraphicsDriver::SetupDefaultVertices()
   defaultVertices[3].tv=1.0;
 }
 
-#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX
 
 void OGLGraphicsDriver::CreateDesktopScreen(int width, int height, int depth)
 {
@@ -264,14 +266,14 @@ void OGLGraphicsDriver::CreateDesktopScreen(int width, int height, int depth)
   device_screen_physical_height = height;
 }
 
-#elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
+#elif AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
 
 void OGLGraphicsDriver::UpdateDeviceScreen()
 {
-#if defined (ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
     device_screen_physical_width  = android_screen_physical_width;
     device_screen_physical_height = android_screen_physical_height;
-#elif defined (IOS_VERSION)
+#elif AGS_PLATFORM_OS_IOS
     device_screen_physical_width  = ios_screen_physical_width;
     device_screen_physical_height = ios_screen_physical_height;
 #endif
@@ -355,7 +357,7 @@ void OGLGraphicsDriver::FirstTimeInit()
   _firstTimeInit = true;
 }
 
-#if defined (LINUX_VERSION)
+#if AGS_PLATFORM_OS_LINUX
 Atom get_x_atom (const char *atom_name)
 {
   Atom atom = XInternAtom(_xwin.display, atom_name, False);
@@ -369,12 +371,12 @@ Atom get_x_atom (const char *atom_name)
 
 bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 {
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
   android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
-#elif defined(IOS_VERSION)
+#elif AGS_PLATFORM_OS_IOS
   ios_create_screen();
   ios_select_buffer();
-#elif defined (WINDOWS_VERSION)
+#elif AGS_PLATFORM_OS_WINDOWS
   if (!mode.Windowed)
   {
     if (platform->EnterFullscreenMode(mode))
@@ -422,7 +424,7 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 
   CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
   win_grab_input();
-#elif defined (LINUX_VERSION)
+#elif AGS_PLATFORM_OS_LINUX
   if (!_have_window)
   {
     // Use Allegro to create our window. We don't care what size Allegro uses
@@ -551,13 +553,13 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   auto interval = mode.Vsync ? 1 : 0;
   bool vsyncEnabled = false;
 
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
   if (GLAD_WGL_EXT_swap_control) {
     vsyncEnabled = wglSwapIntervalEXT(interval) != FALSE;
   }
 #endif
 
-#ifdef LINUX_VERSION
+#if AGS_PLATFORM_OS_LINUX
   if (GLAD_GLX_EXT_swap_control) {
     glXSwapIntervalEXT(_xwin.display, _xwin.window, interval);
     // glx requires hooking into XSetErrorHandler to test for BadWindow or BadValue
@@ -575,7 +577,7 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
     Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync could not be enabled. Setting will be kept at driver default.");
   }
 
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
   // Setup library mouse to have 1:1 coordinate transformation.
   // NOTE: cannot move this call to general mouse handling mode. Unfortunately, much of the setup and rendering
   // is duplicated in the Android/iOS ports' Allegro library patches, and is run when the Software renderer
@@ -586,7 +588,7 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
 
 bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
 {
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
   PIXELFORMATDESCRIPTOR pfd =
   {
     sizeof(PIXELFORMATDESCRIPTOR),
@@ -622,8 +624,8 @@ bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
 
   if(!wglMakeCurrent(_hDC, _hRC))
     return false;
-#endif // WINDOWS_VERSION
-#if defined (LINUX_VERSION)
+#endif // AGS_PLATFORM_OS_WINDOWS
+#if AGS_PLATFORM_OS_LINUX
   int attrib[] = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
   XVisualInfo *vi = glXChooseVisual(_xwin.display, DefaultScreen(_xwin.display), attrib);
   if (!vi)
@@ -649,7 +651,7 @@ bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
 
 void OGLGraphicsDriver::DeleteGlContext()
 {
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
   if (_hRC)
   {
     wglMakeCurrent(NULL, NULL);
@@ -659,7 +661,7 @@ void OGLGraphicsDriver::DeleteGlContext()
 
   if (_oldPixelFormat > 0)
     SetPixelFormat(_hDC, _oldPixelFormat, &_oldPixelFormatDesc);
-#elif defined (LINUX_VERSION)
+#elif AGS_PLATFORM_OS_LINUX
   if (_glxContext)
   {
     glXMakeCurrent(_xwin.display, None, nullptr);
@@ -674,7 +676,7 @@ inline bool CanDoFrameBuffer()
 #ifdef GLAPI
   return GLAD_GL_EXT_framebuffer_object != 0;
 #else
-#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
   const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #else
   const char* fbo_extension_string = "GL_EXT_framebuffer_object";
@@ -1069,7 +1071,7 @@ void OGLGraphicsDriver::UnInit()
   ReleaseDisplayMode();
 
   DeleteGlContext();
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
   _hWnd = NULL;
   _hDC = NULL;
 #endif
@@ -1114,9 +1116,9 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   }
   else
   {
-#if defined(IOS_VERSION)
+#if AGS_PLATFORM_OS_IOS
     ios_select_buffer();
-#elif defined(WINDOWS_VERSION) || defined (LINUX_VERSION)
+#elif AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX
     glReadBuffer(GL_FRONT);
 #endif
     retr_rect = _dstRect;
@@ -1373,11 +1375,11 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
 
 void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
-#if defined(IOS_VERSION)
+#if AGS_PLATFORM_OS_IOS
   ios_select_buffer();
 #endif
 
-#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
   // TODO:
   // For some reason, mobile ports initialize actual display size after a short delay.
   // This is why we update display mode and related parameters (projection, viewport)
@@ -1424,7 +1426,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   if (_do_render_to_texture)
   {
     // Texture is ready, now create rectangle in the world space and draw texture upon it
-#if defined(IOS_VERSION)
+#if AGS_PLATFORM_OS_IOS
     ios_select_buffer();
 #else
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
@@ -1455,11 +1457,11 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   glFinish();
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
   SwapBuffers(_hDC);
-#elif defined(LINUX_VERSION)
+#elif AGS_PLATFORM_OS_LINUX
   glXSwapBuffers(_xwin.display, _xwin.window);
-#elif defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#elif AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
   device_swap_buffers();
 #endif
 

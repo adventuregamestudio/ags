@@ -16,11 +16,12 @@
 #define __AGS_EE_UTIL__LIBRARY_POSIX_H
 
 #include <dlfcn.h>
+#include "core/platform.h"
 #include "util/string.h"
 #include "debug/out.h"
 
 // FIXME: Replace with a unified way to get the directory which contains the engine binary
-#if defined (ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
 extern char android_app_directory[256];
 #else
 extern AGS::Common::String appDirectory;
@@ -57,7 +58,7 @@ public:
     platformLibraryName.Append("lib");
     platformLibraryName.Append(libraryName);
 
-#if defined (MAC_VERSION)
+#if AGS_PLATFORM_OS_MACOS
     platformLibraryName.Append(".dylib");
 #else
     platformLibraryName.Append(".so");
@@ -88,7 +89,7 @@ public:
     {
       // Try the engine directory
 
-#if defined (ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
       char buffer[200];
       sprintf(buffer, "%s%s", android_app_directory, "/lib");
       _library = dlopen(BuildPath(buffer, libraryName).GetCStr(), RTLD_LAZY);

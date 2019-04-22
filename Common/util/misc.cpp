@@ -41,16 +41,19 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "core/platform.h"
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifndef WINDOWS_VERSION
+#if !AGS_PLATFORM_OS_WINDOWS
 #include <dirent.h>
 #endif
 
 #include "allegro.h"
 #include "util/file.h"
 #include "util/stream.h"
+
 
 using namespace AGS::Common;
 
@@ -152,9 +155,9 @@ char *ci_find_file(const char *dir_name, const char *file_name)
     lstat(entry->d_name, &statbuf);
     if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
       if (strcasecmp(filename, entry->d_name) == 0) {
-#ifdef _DEBUG
+#if AGS_PLATFORM_DEBUG
         fprintf(stderr, "ci_find_file: Looked for %s in rough %s, found diamond %s.\n", filename, directory, entry->d_name);
-#endif // _DEBUG
+#endif // AGS_PLATFORM_DEBUG
         diamond = (char *)malloc(strlen(directory) + strlen(entry->d_name) + 2);
         append_filename(diamond, directory, entry->d_name, strlen(directory) + strlen(entry->d_name) + 2);
         break;

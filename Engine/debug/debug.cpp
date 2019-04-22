@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <limits>
+#include "core/platform.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/runtime_defines.h"
@@ -51,18 +52,19 @@ char editor_debugger_instance_token[100];
 IAGSEditorDebugger *editor_debugger = nullptr;
 int break_on_next_script_step = 0;
 volatile int game_paused_in_debugger = 0;
-HWND editor_window_handle = 0;
 
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
 
 #include "platform/windows/debug/namedpipesagsdebugger.h"
+
+HWND editor_window_handle = 0;
 
 IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {
     return new NamedPipesAGSDebugger(instanceToken);
 }
 
-#else   // WINDOWS_VERSION
+#else   // AGS_PLATFORM_OS_WINDOWS
 
 IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {
@@ -259,7 +261,7 @@ bool send_message_to_editor(const char *msg, const char *errorMsg)
 
     char messageToSend[STD_BUFFER_SIZE];
     sprintf(messageToSend, "<?xml version=\"1.0\" encoding=\"Windows-1252\"?><Debugger Command=\"%s\">", msg);
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", (int)win_get_window());
 #endif
     sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack.GetCStr());
@@ -281,7 +283,7 @@ bool send_message_to_editor(const char *msg)
 
 bool init_editor_debugging() 
 {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
 #else
     // Editor isn't ported yet
@@ -331,8 +333,10 @@ int check_for_messages_from_editor()
 
         if (strncmp(msgPtr, "START", 5) == 0)
         {
+#if AGS_PLATFORM_OS_WINDOWS
             const char *windowHandle = strstr(msgPtr, "EditorWindow") + 14;
             editor_window_handle = (HWND)atoi(windowHandle);
+#endif
         }
         else if (strncmp(msgPtr, "READY", 5) == 0)
         {
@@ -407,7 +411,7 @@ int check_for_messages_from_editor()
 
 bool send_exception_to_editor(const char *qmsg)
 {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     want_exit = 0;
     // allow the editor to break with the error message
     if (editor_window_handle != NULL)
@@ -428,7 +432,7 @@ bool send_exception_to_editor(const char *qmsg)
 
 void break_into_debugger() 
 {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
 
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);

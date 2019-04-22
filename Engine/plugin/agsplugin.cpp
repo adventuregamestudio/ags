@@ -14,6 +14,7 @@
 
 #include <vector>
 
+#include "core/platform.h"
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/view.h"
@@ -73,28 +74,10 @@ using namespace AGS::Engine;
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
 #include "../Plugins/ags_parallax/ags_parallax.h"
 #include "../Plugins/agspalrender/agspalrender.h"
-#if defined(IOS_VERSION)
+#if AGS_PLATFORM_OS_IOS
 #include "../Plugins/agstouch/agstouch.h"
-#endif // IOS_VERSION
+#endif // AGS_PLATFORM_OS_IOS
 #endif // BUILTIN_PLUGINS
-
-#if defined(MAC_VERSION)
-extern "C"
-{
-    int osx_sys_question(AL_CONST char *msg, AL_CONST char *but1, AL_CONST char *but2);
-}
-#endif
-
-#if defined(PSP_VERSION)
-#include <pspsdk.h>
-#include <pspkernel.h>
-extern "C"
-{
-#include <systemctrl.h>
-}
-#include "../PSP/kernel/kernel.h"
-#endif
-
 
 
 extern IGraphicsDriver *gfxDriver;
@@ -991,7 +974,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-#if defined(IOS_VERSION)
+#if AGS_PLATFORM_OS_IOS
     else if (ags_stricmp(apl->filename, "agstouch") == 0)
     {
         apl->engineStartup = agstouch::AGS_EngineStartup;

@@ -14,11 +14,12 @@
 
 #include "util/stdio_compat.h"
 
+#include "core/platform.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
 #include <windows.h>
 #include <shlwapi.h>
 #endif
@@ -27,7 +28,7 @@ int	 ags_fseek(FILE * stream, file_off_t offset, int whence)
 {
 #if defined(HAVE_FSEEKO) // Contemporary POSIX libc
     return fseeko(stream, offset, whence);
-#elif WINDOWS_VERSION // MSVC
+#elif AGS_PLATFORM_OS_WINDOWS // MSVC
     return _fseeki64(stream, offset, whence); 
 #else // No distinct interface with off_t
     return fseek(stream, offset, whence);
@@ -38,7 +39,7 @@ file_off_t ags_ftell(FILE * stream)
 {
     #if defined(HAVE_FSEEKO) // Contemporary POSIX libc
         return ftello(stream);
-    #elif WINDOWS_VERSION // MSVC
+    #elif AGS_PLATFORM_OS_WINDOWS // MSVC
         return _ftelli64(stream); 
     #else // No distinct interface with off_t
         return ftell(stream);
@@ -47,7 +48,7 @@ file_off_t ags_ftell(FILE * stream)
 
 int  ags_file_exists(const char *path) 
 {
-#if WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     return PathFileExistsA(path);
 #else
     struct stat path_stat;
@@ -60,7 +61,7 @@ int  ags_file_exists(const char *path)
 
 int ags_directory_exists(const char *path)
 {
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     return PathIsDirectoryA(path);
 #else
     struct stat path_stat;
@@ -73,7 +74,7 @@ int ags_directory_exists(const char *path)
 
 int ags_path_exists(const char *path)
 {
-    #if defined(WINDOWS_VERSION)
+    #if AGS_PLATFORM_OS_WINDOWS
         return PathIsDirectoryA(path);
     #else
         struct stat path_stat;

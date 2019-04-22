@@ -22,6 +22,9 @@
 // What about other platforms?
 //
 
+#include "core/platform.h"
+#define AGS_PLATFORM_DEFINES_PSP_VARS (AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID)
+
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -39,8 +42,15 @@
 #include "util/directory.h"
 #include "util/path.h"
 
-#ifdef _DEBUG
+#if AGS_PLATFORM_DEBUG
 #include "test/test_all.h"
+#endif
+
+#if AGS_PLATFORM_OS_WINDOWS
+// undef the declarations from winbase.h
+#undef CreateDirectory
+#undef SetCurrentDirectory
+#undef GetCurrentDirectory
 #endif
 
 using namespace AGS::Common;
@@ -49,15 +59,7 @@ using namespace AGS::Engine;
 String appDirectory; // Needed for library loading
 String cmdGameDataPath;
 
-#ifdef MAC_VERSION
-extern "C"
-{
-    int osx_sys_question(const char *msg, const char *but1, const char *but2);
-}
-#endif
-
-
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
 
 int wArgc;
 LPWSTR *wArgv;
@@ -88,7 +90,7 @@ bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 const char *loadSaveGameOnStartup = nullptr;
 
-#if !defined(MAC_VERSION) && !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if ! AGS_PLATFORM_DEFINES_PSP_VARS
 int psp_video_framedrop = 1;
 int psp_audio_enabled = 1;
 int psp_midi_enabled = 1;
@@ -167,7 +169,7 @@ String get_engine_string()
 
 int main_preprocess_cmdline(int argc,char*argv[])
 {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     wArgv = CommandLineToArgvW(GetCommandLineW(), &wArgc);
     if (wArgv == NULL)
     {
@@ -190,7 +192,7 @@ void main_print_help() {
            "  --fps                        Display fps counter\n"
            "  --fullscreen                 Force display mode to fullscreen\n"
            "  --gfxdriver <id>             Request graphics driver. Available options:\n"
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
            "                                 d3d9, dx5, ogl, software\n"
 #else
            "                                 ogl, software\n"
@@ -205,7 +207,7 @@ void main_print_help() {
            "  --log                        Enable program output to the log file\n"
            "  --no-log                     Disable program output to the log file,\n"
            "                                 overriding configuration file setting\n"
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
            "  --version                    Print engine's version and stop\n"
@@ -236,7 +238,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             justDisplayVersion = true;
         else if (ags_stricmp(arg,"-updatereg") == 0)
             debug_flags |= DBG_REGONLY;
-#ifdef _DEBUG
+#if AGS_PLATFORM_DEBUG
         else if ((ags_stricmp(arg,"--startr") == 0) && (ee < argc-1)) {
             override_start_room = atoi(argv[ee+1]);
             ee++;
@@ -342,7 +344,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 
 void main_init_crt_report()
 {
-#ifdef _DEBUG
+#if AGS_PLATFORM_DEBUG
     /* logfile=fopen("g:\\ags.log","at");
     //_CrtSetReportHook( OurReportingFunction );
     int tmpDbgFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
@@ -367,7 +369,7 @@ void main_init_crt_report()
 #endif
 }
 
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 String GetPathInASCII(const String &path)
 {
     char ascii_buffer[MAX_PATH];
@@ -390,7 +392,7 @@ void main_set_gamedir(int argc, char*argv[])
         // be the save game folder unless we correct it
         Directory::SetCurrentDirectory(appDirectory);
     }
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     else
     {
         // It looks like Allegro library does not like ANSI (ACP) paths.
@@ -411,7 +413,7 @@ String GetPathFromCmdArg(int arg_index)
     }
 
     String path;
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     // Hack for Windows in case there are unicode chars in the path.
     // The normal argv[] array has ????? instead of the unicode chars
     // and fails, so instead we manually get the short file name, which
@@ -446,17 +448,17 @@ const char *set_allegro_error(const char *format, ...)
     return allegro_error;
 }
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 #include <new.h>
 
-#ifndef _DEBUG
+#if ! AGS_PLATFORM_DEBUG
 extern void CreateMiniDump( EXCEPTION_POINTERS* pep );
 #endif
 
 char tempmsg[100];
 char*printfworkingspace;
 int malloc_fail_handler(size_t amountwanted) {
-#ifndef _DEBUG
+#if ! AGS_PLATFORM_DEBUG
   CreateMiniDump(NULL);
 #endif
   free(printfworkingspace);
@@ -468,7 +470,7 @@ int malloc_fail_handler(size_t amountwanted) {
 
 int main(int argc,char*argv[]) { 
 
-#ifdef _DEBUG
+#if AGS_PLATFORM_DEBUG
     Test_DoAllTests();
 #endif
     
@@ -480,7 +482,7 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     _set_new_handler(malloc_fail_handler);
     _set_new_mode(1);
     printfworkingspace=(char*)malloc(7000);

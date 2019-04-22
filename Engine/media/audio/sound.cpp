@@ -16,6 +16,9 @@
 //
 //=============================================================================
 
+#include <ctype.h> // for toupper
+
+#include "core/platform.h"
 #include "util/wgt2allg.h"
 #include "ac/file.h"
 #include "media/audio/audiodefines.h"
@@ -51,11 +54,6 @@ extern "C"
 // Load MIDI from PACKFILE stream
 MIDI *load_midi_pf(PACKFILE *pf);
 }
-
-#if !defined (WINDOWS_VERSION)
-// for toupper
-#include <ctype.h>
-#endif
 
 
 int use_extra_sound_offset = 0;

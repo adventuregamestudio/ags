@@ -13,8 +13,8 @@
 #include "vorbis/vorbisfile.h"
 #include "vorbis/codec.h"
 
-#include "core/endianness.h" /* For bigendian detection */
-#if defined(AGS_BIG_ENDIAN)
+#include "core/platform.h" /* For bigendian detection */
+#if AGS_PLATFORM_ENDIAN_BIG
 #define WANT_BIG_ENDIAN 1
 #else
 #define WANT_BIG_ENDIAN 0

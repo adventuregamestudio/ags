@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "core/platform.h"
 #include "gui/guidefines.h" // MAXLINE
 #include "util/math.h"
 #include "util/string_utils.h"
@@ -40,7 +41,7 @@ extern "C" char *ags_strupr(char *s) {
 }
 
 extern "C" int ags_stricmp(const char *s1, const char *s2) {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     return stricmp(s1, s2);
 #else
     return strcasecmp(s1, s2);
@@ -48,7 +49,7 @@ extern "C" int ags_stricmp(const char *s1, const char *s2) {
 }
 
 extern "C" int ags_strnicmp(const char *s1, const char *s2, size_t n) {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     return strnicmp(s1, s2, n);
 #else
     return strncasecmp(s1, s2, n);

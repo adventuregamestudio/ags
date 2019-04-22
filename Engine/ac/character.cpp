@@ -53,7 +53,6 @@
 #include "util/string_utils.h"
 #include <math.h>
 #include "gfx/graphicsdriver.h"
-#include "platform/base/override_defines.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"

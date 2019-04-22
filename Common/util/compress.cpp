@@ -336,7 +336,7 @@ void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
 
   loptr = (int *)&membuffer[0];
   membuffer += 8;
-#if defined(AGS_BIG_ENDIAN)
+#if AGS_PLATFORM_ENDIAN_BIG
   loptr[0] = BBOp::SwapBytesInt32(loptr[0]);
   loptr[1] = BBOp::SwapBytesInt32(loptr[1]);
   int bitmapNumPixels = loptr[0]*loptr[1]/ dst_bpp;
@@ -368,7 +368,7 @@ void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
       break;
     }
   }
-#endif // defined(AGS_BIG_ENDIAN)
+#endif // AGS_PLATFORM_ENDIAN_BIG
 
   update_polled_stuff_if_runtime();
 

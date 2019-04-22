@@ -116,6 +116,10 @@ public:
     bool IsVisible() const { return _visible; }
     // Changes viewport visibility
     void SetVisible(bool on);
+    // Gets the order viewport is displayed on screen
+    int GetZOrder() const { return _zorder; }
+    // Sets the viewport's z-order on screen
+    void SetZOrder(int zorder);
 
     // Calculates room-to-viewport coordinate conversion.
     void AdjustTransformation();
@@ -142,6 +146,7 @@ private:
     // Linked camera reference
     CameraRef _camera;
     bool _visible = true;
+    int _zorder = 0;
     // Flag that tells whether this viewport has changed recently
     bool _hasChanged = false;;
 };

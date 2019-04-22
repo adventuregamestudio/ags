@@ -103,11 +103,17 @@ PViewport GameState::GetRoomViewportObj(int index) const
     return _roomViewports[index];
 }
 
+PViewport GameState::GetRoomViewportZOrdered(int index) const
+{
+    return _roomViewportsSorted[index];
+}
+
 PViewport GameState::GetRoomViewportAt(int x, int y) const
 {
-    for (auto vp : _roomViewports)
-        if (vp->IsVisible() && vp->GetRect().IsInside(x, y))
-            return vp;
+    // We iterate backwards, because in AGS low z-order means bottom
+    for (auto it = _roomViewportsSorted.rbegin(); it != _roomViewportsSorted.rend(); ++it)
+        if ((*it)->IsVisible() && (*it)->GetRect().IsInside(x, y))
+            return *it;
     return nullptr;
 }
 
@@ -131,12 +137,29 @@ void GameState::SetRoomViewport(int index, const Rect &viewport)
     _roomViewports[index]->SetRect(FixupViewport(viewport, RectWH(_mainViewport.GetRect().GetSize())));
 }
 
+static bool ViewportZOrder(const PViewport e1, const PViewport e2)
+{
+    return e1->GetZOrder() < e2->GetZOrder();
+}
+
 void GameState::UpdateViewports()
 {
     if (_mainViewportHasChanged)
     {
         on_mainviewport_changed();
         _mainViewportHasChanged = false;
+    }
+    if (_roomViewportZOrderChanged)
+    {
+        auto old_sort = _roomViewportsSorted;
+        _roomViewportsSorted = _roomViewports;
+        std::sort(_roomViewportsSorted.begin(), _roomViewportsSorted.end(), ViewportZOrder);
+        for (size_t i = 0; i < _roomViewportsSorted.size(); ++i)
+        {
+            if (i >= old_sort.size() || _roomViewportsSorted[i] != old_sort[i])
+                _roomViewportsSorted[i]->HasChanged();
+        }
+        _roomViewportZOrderChanged = false;
     }
     for (auto vp : _roomViewports)
     {
@@ -154,6 +177,11 @@ void GameState::UpdateViewports()
             cam->ClearChangedFlag();
         }
     }
+}
+
+void GameState::InvalidateViewportZOrder()
+{
+    _roomViewportZOrderChanged = true;
 }
 
 PCamera GameState::GetRoomCamera(int index) const
@@ -271,6 +299,7 @@ PViewport GameState::CreateRoomViewport()
     ccAddObjectReference(handle); // one reference for the GameState
     _roomViewports.push_back(viewport);
     _scViewportRefs.push_back(std::make_pair(scv, handle));
+    _roomViewportZOrderChanged = true;
     return viewport;
 }
 
@@ -289,6 +318,7 @@ void GameState::DeleteRoomViewport(int index)
         _roomViewports[i]->SetID(i);
         _scViewportRefs[i].first->SetID(i);
     }
+    _roomViewportZOrderChanged = true;
 }
 
 int GameState::GetRoomViewportCount() const

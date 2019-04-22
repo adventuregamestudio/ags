@@ -249,8 +249,10 @@ struct GameState {
     const Rect &GetUIViewport() const;
     // Returns Room viewport position, which works as a "window" into the room
     const Rect &GetRoomViewport(int index) const;
-    // Returns Room viewport object by index
+    // Returns Room viewport object by it's main index
     PViewport  GetRoomViewportObj(int index) const;
+    // Returns Room viewport object by index in z-order
+    PViewport  GetRoomViewportZOrdered(int index) const;
     // Finds room viewport at the given screen coordinates; returns nullptr if non found
     PViewport  GetRoomViewportAt(int x, int y) const;
     // Returns UI viewport position in absolute coordinates (with main viewport offset)
@@ -266,8 +268,12 @@ struct GameState {
     void SetUIViewport(const Rect &viewport);
     // Room viewport defines location of a room view inside the main viewport.
     void SetRoomViewport(int index, const Rect &viewport);
-    // Applies all the pending changes to viewports and cameras
+    // Applies all the pending changes to viewports and cameras;
+    // NOTE: this function may be slow, thus recommended to be called only once
+    // and during the main game update.
     void UpdateViewports();
+    // Notifies game state that viewports need z-order resorting upon next update.
+    void InvalidateViewportZOrder();
     // Returns room camera object chosen by index
     PCamera GetRoomCamera(int index) const;
     // Runs cameras behaviors
@@ -343,6 +349,8 @@ private:
     // Room viewports define place on screen where the room camera's
     // contents are drawn.
     std::vector<PViewport> _roomViewports;
+    // Vector of viewports sorted in z-order.
+    std::vector<PViewport> _roomViewportsSorted;
     // Cameras defines the position of a "looking eye" inside the room.
     std::vector<PCamera> _roomCameras;
     // Script viewports and cameras are references to real data export to
@@ -353,6 +361,8 @@ private:
 
     // Tells that the main viewport's position has changed since last game update
     bool  _mainViewportHasChanged;
+    // Tells that room viewports need z-order resort
+    bool  _roomViewportZOrderChanged;
 };
 
 // Converts legacy alignment type used in script API

@@ -2790,6 +2790,8 @@ builtin managed struct Viewport {
   import attribute Camera *Camera;
   /// Gets/sets whether the viewport is drawn on screen.
   import attribute bool Visible;
+  /// Gets/sets the Viewport's z-order relative to other viewports.
+  import attribute int ZOrder;
 
   /// Returns the viewport at the specified screen location.
   import static Viewport *GetAtScreenXY(int x, int y);

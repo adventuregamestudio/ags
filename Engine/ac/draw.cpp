@@ -2417,13 +2417,13 @@ static void construct_room_view()
 
     for (int i = 0; i < play.GetRoomViewportCount(); ++i)
     {
-        auto viewport = play.GetRoomViewportObj(i);
+        auto viewport = play.GetRoomViewportZOrdered(i);
         if (!viewport->IsVisible())
             continue;
         auto camera = viewport->GetCamera();
         if (!camera)
             continue;
-        const Rect &view_rc = play.GetRoomViewportAbs(i);
+        const Rect &view_rc = play.GetRoomViewportAbs(viewport->GetID());
         const Rect &cam_rc = camera->GetRect();
         SpriteTransform room_trans(-cam_rc.Left, -cam_rc.Top,
             (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),

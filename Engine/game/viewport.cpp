@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/draw.h"
+#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "game/viewport.h"
@@ -140,6 +141,13 @@ void Viewport::SetVisible(bool on)
 {
     _visible = on;
     _hasChanged = true;
+}
+
+void Viewport::SetZOrder(int zorder)
+{
+    _zorder = zorder;
+    _hasChanged = true;
+    play.InvalidateViewportZOrder();
 }
 
 void Viewport::AdjustTransformation()

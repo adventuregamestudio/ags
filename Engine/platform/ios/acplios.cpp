@@ -373,7 +373,7 @@ int getAvailableTranslations(char* translations)
       length = strlen(entry->d_name);
       if (length > 4)
       {
-        if (stricmp(&entry->d_name[length - 4], ".tra") == 0)
+        if (ags_stricmp(&entry->d_name[length - 4], ".tra") == 0)
         {
           memset(buffer, 0, 200);
           strncpy(buffer, entry->d_name, length - 4);
@@ -408,9 +408,9 @@ void selectLatestSavegame()
   {
     while ((entry = readdir(dir)) != 0)
     {
-      if (strnicmp(entry->d_name, "agssave", 7) == 0)
+      if (ags_strnicmp(entry->d_name, "agssave", 7) == 0)
       {
-        if (stricmp(entry->d_name, "agssave.999") != 0)
+        if (ags_stricmp(entry->d_name, "agssave.999") != 0)
         {
           strcpy(buffer, saveGameDirectory);
           strcat(buffer, entry->d_name);

@@ -54,13 +54,13 @@ bool RegisterPluginStubs(const char* name)
 {
   // Stubs for plugin functions.
 
-  if (stricmp(name, "ags_shell") == 0)
+  if (ags_stricmp(name, "ags_shell") == 0)
   {
     // ags_shell.dll
     ccAddExternalStaticFunction("ShellExecute",                 Sc_PluginStub_Void);
     return true;
   }
-  else if (stricmp(name, "ags_snowrain") == 0)
+  else if (ags_stricmp(name, "ags_snowrain") == 0)
   {
     // ags_snowrain.dll
     ccAddExternalStaticFunction("srSetSnowDriftRange",          Sc_PluginStub_Void);
@@ -85,7 +85,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("srSetBaseline",                Sc_PluginStub_Void);
     return true;
   }
-  else if (stricmp(name, "agsjoy") == 0)
+  else if (ags_stricmp(name, "agsjoy") == 0)
   {
     // agsjoy.dll
     ccAddExternalStaticFunction("JoystickCount",                Sc_PluginStub_Int0);
@@ -106,7 +106,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("Joystick::EnableEvents^1",     Sc_PluginStub_Void);
     return true;
   }
-  else if (stricmp(name, "agsblend") == 0)
+  else if (ags_stricmp(name, "agsblend") == 0)
   {
     // agsblend.dll
     ccAddExternalStaticFunction("DrawAlpha",                    Sc_PluginStub_Int0);
@@ -117,7 +117,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("DrawAdd",                      Sc_PluginStub_Int0);
     return true;
   }
-  else if (stricmp(name, "agsflashlight") == 0)
+  else if (ags_stricmp(name, "agsflashlight") == 0)
   {
     // agsflashlight.dll
     ccAddExternalStaticFunction("SetFlashlightTint",            Sc_PluginStub_Void);
@@ -149,7 +149,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("GetFlashlightMask",            Sc_PluginStub_Int0);
     return true;
   }
-  else if (stricmp(name, "agswadjetutil") == 0)
+  else if (ags_stricmp(name, "agswadjetutil") == 0)
   {
     // agswadjetutil.dll
     ccAddExternalStaticFunction("IsOnPhone",                    Sc_PluginStub_Int0);

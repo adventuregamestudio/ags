@@ -487,7 +487,7 @@ int RunTextScript2IParam(ccInstance *sci, const char*tsname, const RuntimeScript
     }
 
     // response to a button click, better update guis
-    if (strnicmp(tsname, "interface_click", 15) == 0)
+    if (ags_strnicmp(tsname, "interface_click", 15) == 0)
         guis_need_update = 1;
 
     return RunScriptFunctionIfExists(sci, tsname, 2, params);
@@ -633,11 +633,11 @@ InteractionVariable *get_interaction_variable (int varindx) {
 InteractionVariable *FindGraphicalVariable(const char *varName) {
     int ii;
     for (ii = 0; ii < numGlobalVars; ii++) {
-        if (stricmp (globalvars[ii].Name, varName) == 0)
+        if (ags_stricmp (globalvars[ii].Name, varName) == 0)
             return &globalvars[ii];
     }
     for (size_t i = 0; i < thisroom.LocalVariables.size(); ++i) {
-        if (stricmp (thisroom.LocalVariables[i].Name, varName) == 0)
+        if (ags_stricmp (thisroom.LocalVariables[i].Name, varName) == 0)
             return &thisroom.LocalVariables[i];
     }
     return nullptr;
@@ -896,11 +896,11 @@ void run_unhandled_event (int evnt) {
         return;
 
     int evtype=0;
-    if (strnicmp(evblockbasename,"hotspot",7)==0) evtype=1;
-    else if (strnicmp(evblockbasename,"object",6)==0) evtype=2;
-    else if (strnicmp(evblockbasename,"character",9)==0) evtype=3;
-    else if (strnicmp(evblockbasename,"inventory",9)==0) evtype=5;
-    else if (strnicmp(evblockbasename,"region",6)==0)
+    if (ags_strnicmp(evblockbasename,"hotspot",7)==0) evtype=1;
+    else if (ags_strnicmp(evblockbasename,"object",6)==0) evtype=2;
+    else if (ags_strnicmp(evblockbasename,"character",9)==0) evtype=3;
+    else if (ags_strnicmp(evblockbasename,"inventory",9)==0) evtype=5;
+    else if (ags_strnicmp(evblockbasename,"region",6)==0)
         return;  // no unhandled_events for regions
 
     // clicked Hotspot 0, so change the type code

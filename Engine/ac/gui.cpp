@@ -44,6 +44,8 @@
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "script/runtimescriptvalue.h"
+#include "util/string_utils.h"
+
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -409,15 +411,15 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
             }
             macroname[idd]=0; 
             tempo[0]=0;
-            if (stricmp(macroname,"score")==0)
+            if (ags_stricmp(macroname,"score")==0)
                 sprintf(tempo,"%d",play.score);
-            else if (stricmp(macroname,"totalscore")==0)
+            else if (ags_stricmp(macroname,"totalscore")==0)
                 sprintf(tempo,"%d",MAXSCORE);
-            else if (stricmp(macroname,"scoretext")==0)
+            else if (ags_stricmp(macroname,"scoretext")==0)
                 sprintf(tempo,"%d of %d",play.score,MAXSCORE);
-            else if (stricmp(macroname,"gamename")==0)
+            else if (ags_stricmp(macroname,"gamename")==0)
                 strcpy(tempo, play.game_name);
-            else if (stricmp(macroname,"overhotspot")==0) {
+            else if (ags_stricmp(macroname,"overhotspot")==0) {
                 // While game is in Wait mode, no overhotspot text
                 if (!IsInterfaceEnabled())
                     tempo[0] = 0;

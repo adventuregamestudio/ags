@@ -400,7 +400,7 @@ void AGSWin32::update_game_explorer(bool add)
   }
   else 
   {
-    strupr(game.guid);
+    ags_strupr(game.guid);
     WCHAR wstrTemp[MAX_PATH] = {0};
     GUID guid = GUID_NULL;
     MultiByteToWideChar(CP_ACP, 0, game.guid, MAX_GUID_LENGTH, wstrTemp, MAX_GUID_LENGTH);

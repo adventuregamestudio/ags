@@ -60,7 +60,7 @@ int find_word_in_dictionary (const char *lookfor) {
         return -1;
 
     for (j = 0; j < game.dict->num_words; j++) {
-        if (stricmp(lookfor, game.dict->word[j]) == 0) {
+        if (ags_stricmp(lookfor, game.dict->word[j]) == 0) {
             return game.dict->wordnum[j];
         }
     }

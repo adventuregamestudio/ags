@@ -936,7 +936,7 @@ int pl_register_builtin_plugin(InbuiltPluginDetails const &details) {
 bool pl_use_builtin_plugin(EnginePlugin* apl)
 {
 #if defined(BUILTIN_PLUGINS)
-    if (stricmp(apl->filename, "agsflashlight") == 0)
+    if (ags_stricmp(apl->filename, "agsflashlight") == 0)
     {
         apl->engineStartup = agsflashlight::AGS_EngineStartup;
         apl->engineShutdown = agsflashlight::AGS_EngineShutdown;
@@ -947,7 +947,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (stricmp(apl->filename, "agsblend") == 0)
+    else if (ags_stricmp(apl->filename, "agsblend") == 0)
     {
         apl->engineStartup = agsblend::AGS_EngineStartup;
         apl->engineShutdown = agsblend::AGS_EngineShutdown;
@@ -958,7 +958,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (stricmp(apl->filename, "ags_snowrain") == 0)
+    else if (ags_stricmp(apl->filename, "ags_snowrain") == 0)
     {
         apl->engineStartup = ags_snowrain::AGS_EngineStartup;
         apl->engineShutdown = ags_snowrain::AGS_EngineShutdown;
@@ -969,7 +969,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (stricmp(apl->filename, "ags_parallax") == 0)
+    else if (ags_stricmp(apl->filename, "ags_parallax") == 0)
     {
         apl->engineStartup = ags_parallax::AGS_EngineStartup;
         apl->engineShutdown = ags_parallax::AGS_EngineShutdown;
@@ -980,7 +980,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (stricmp(apl->filename, "agspalrender") == 0)
+    else if (ags_stricmp(apl->filename, "agspalrender") == 0)
     {
         apl->engineStartup = agspalrender::AGS_EngineStartup;
         apl->engineShutdown = agspalrender::AGS_EngineShutdown;
@@ -992,7 +992,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         return true;
     }
 #if defined(IOS_VERSION)
-    else if (stricmp(apl->filename, "agstouch") == 0)
+    else if (ags_stricmp(apl->filename, "agstouch") == 0)
     {
         apl->engineStartup = agstouch::AGS_EngineStartup;
         apl->engineShutdown = agstouch::AGS_EngineShutdown;
@@ -1007,7 +1007,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
 #endif // BUILTIN_PLUGINS
 
     for(std::vector<InbuiltPluginDetails>::iterator it = _registered_builtin_plugins.begin(); it != _registered_builtin_plugins.end(); ++it) {
-        if (stricmp(apl->filename, it->filename) == 0) {
+        if (ags_stricmp(apl->filename, it->filename) == 0) {
             apl->engineStartup = it->engineStartup;
             apl->engineShutdown = it->engineShutdown;
             apl->onEvent = it->onEvent;
@@ -1055,7 +1055,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         apl->savedatasize = info.DataLen;
 
         // Compatibility with the old SnowRain module
-        if (stricmp(apl->filename, "ags_SnowRain20") == 0) {
+        if (ags_stricmp(apl->filename, "ags_SnowRain20") == 0) {
             strcpy(apl->filename, "ags_snowrain");
         }
 
@@ -1106,7 +1106,7 @@ bool pl_is_plugin_loaded(const char *pl_name)
 
     for (int i = 0; i < numPlugins; ++i)
     {
-        if (stricmp(pl_name, plugins[i].filename) == 0)
+        if (ags_stricmp(pl_name, plugins[i].filename) == 0)
             return plugins[i].available;
     }
     return false;

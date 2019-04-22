@@ -99,7 +99,7 @@ int String_CompareTo(const char *thisString, const char *otherString, bool caseS
         return strcmp(thisString, otherString);
     }
     else {
-        return stricmp(thisString, otherString);
+        return ags_stricmp(thisString, otherString);
     }
 }
 
@@ -109,7 +109,7 @@ int String_StartsWith(const char *thisString, const char *checkForString, bool c
         return (strncmp(thisString, checkForString, strlen(checkForString)) == 0) ? 1 : 0;
     }
     else {
-        return (strnicmp(thisString, checkForString, strlen(checkForString)) == 0) ? 1 : 0;
+        return (ags_strnicmp(thisString, checkForString, strlen(checkForString)) == 0) ? 1 : 0;
     }
 }
 
@@ -128,7 +128,7 @@ int String_EndsWith(const char *thisString, const char *checkForString, bool cas
     }
     else 
     {
-        return (stricmp(&thisString[checkAtOffset], checkForString) == 0) ? 1 : 0;
+        return (ags_stricmp(&thisString[checkAtOffset], checkForString) == 0) ? 1 : 0;
     }
 }
 
@@ -146,7 +146,7 @@ const char* String_Replace(const char *thisString, const char *lookForText, cons
         }
         else
         {
-            matchHere = (strnicmp(&thisString[i], lookForText, strlen(lookForText)) == 0);
+            matchHere = (ags_strnicmp(&thisString[i], lookForText, strlen(lookForText)) == 0);
         }
 
         if (matchHere)
@@ -170,14 +170,14 @@ const char* String_Replace(const char *thisString, const char *lookForText, cons
 const char* String_LowerCase(const char *thisString) {
     char *buffer = (char*)malloc(strlen(thisString) + 1);
     strcpy(buffer, thisString);
-    strlwr(buffer);
+    ags_strlwr(buffer);
     return CreateNewScriptString(buffer, false);
 }
 
 const char* String_UpperCase(const char *thisString) {
     char *buffer = (char*)malloc(strlen(thisString) + 1);
     strcpy(buffer, thisString);
-    strupr(buffer);
+    ags_strupr(buffer);
     return CreateNewScriptString(buffer, false);
 }
 
@@ -198,8 +198,8 @@ int StrContains (const char *s1, const char *s2) {
     char *tempbuf2 = (char*)malloc(strlen(s2) + 1);
     strcpy(tempbuf1, s1);
     strcpy(tempbuf2, s2);
-    strlwr(tempbuf1);
-    strlwr(tempbuf2);
+    ags_strlwr(tempbuf1);
+    ags_strlwr(tempbuf2);
 
     char *offs = strstr (tempbuf1, tempbuf2);
     free(tempbuf1);

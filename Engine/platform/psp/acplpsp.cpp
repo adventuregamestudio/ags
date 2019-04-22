@@ -210,7 +210,7 @@ int GetScancodeFromKeyname(const char* keyname)
   int i;
   for (i = 0; i < KEY_MAX; i++)
   {
-    if (stricmp(keyname, _keyboard_common_names[i]) == 0)
+    if (ags_stricmp(keyname, _keyboard_common_names[i]) == 0)
       return i;
   }
 
@@ -252,37 +252,37 @@ void ReadButtonMapping(const ConfigTree &cfg, char* section, psp_button_mapping_
     }    
 
     // Check for mouse command.
-    if (stricmp(value, "mouse_up") == 0)
+    if (ags_stricmp(value, "mouse_up") == 0)
       mouse_mapping->move_up = psp_buttons_value[i];
-    else if (stricmp(value, "mouse_down") == 0)
+    else if (ags_stricmp(value, "mouse_down") == 0)
       mouse_mapping->move_down = psp_buttons_value[i];
-    else if (stricmp(value, "mouse_left") == 0)
+    else if (ags_stricmp(value, "mouse_left") == 0)
       mouse_mapping->move_left = psp_buttons_value[i];
-    else if (stricmp(value, "mouse_right") == 0)
+    else if (ags_stricmp(value, "mouse_right") == 0)
       mouse_mapping->move_right = psp_buttons_value[i];
-    else if (stricmp(value, "mouse_click_left") == 0)
+    else if (ags_stricmp(value, "mouse_click_left") == 0)
       mouse_mapping->click_left = psp_buttons_value[i];
-    else if (stricmp(value, "mouse_click_right") == 0)
+    else if (ags_stricmp(value, "mouse_click_right") == 0)
       mouse_mapping->click_right = psp_buttons_value[i];
-    else if (stricmp(value, "mouse_click_middle") == 0)
+    else if (ags_stricmp(value, "mouse_click_middle") == 0)
       mouse_mapping->click_middle = psp_buttons_value[i];
-    else if (stricmp(value, "mouse_slow_down") == 0)
+    else if (ags_stricmp(value, "mouse_slow_down") == 0)
       mouse_mapping->slow_down = psp_buttons_value[i];
 
     // Check for onscreen keybord command.
     if (keyboard_mapping)
     {
-      if (stricmp(value, "keyboard_toggle") == 0)
+      if (ags_stricmp(value, "keyboard_toggle") == 0)
         keyboard_mapping->toggle = psp_buttons_value[i];
-      else if (stricmp(value, "keyboard_enter_char") == 0)
+      else if (ags_stricmp(value, "keyboard_enter_char") == 0)
         keyboard_mapping->enter_char = psp_buttons_value[i];
-      else if (stricmp(value, "keyboard_next_char") == 0)
+      else if (ags_stricmp(value, "keyboard_next_char") == 0)
         keyboard_mapping->next_char = psp_buttons_value[i];
-      else if (stricmp(value, "keyboard_previous_char") == 0)
+      else if (ags_stricmp(value, "keyboard_previous_char") == 0)
         keyboard_mapping->previous_char = psp_buttons_value[i];
-      else if (stricmp(value, "keyboard_next_keyset") == 0)
+      else if (ags_stricmp(value, "keyboard_next_keyset") == 0)
         keyboard_mapping->next_keyset = psp_buttons_value[i];
-      else if (stricmp(value, "keyboard_previous_keyset") == 0)
+      else if (ags_stricmp(value, "keyboard_previous_keyset") == 0)
         keyboard_mapping->previous_keyset = psp_buttons_value[i];
     }
   }

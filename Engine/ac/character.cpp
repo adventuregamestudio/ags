@@ -2858,7 +2858,7 @@ int GetLipSyncFrame (const char *curtex, int *stroffs) {
             if (strchr(tptr, '/'))
                 lenthisbit = strchr(tptr, '/') - tptr;
 
-            if ((strnicmp (curtex, tptr, lenthisbit) == 0) && (lenthisbit > bestfit_len)) {
+            if ((ags_strnicmp (curtex, tptr, lenthisbit) == 0) && (lenthisbit > bestfit_len)) {
                 bestfit = aa;
                 bestfit_len = lenthisbit;
             }

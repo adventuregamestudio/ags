@@ -109,7 +109,6 @@ target_sources(common
     util/alignedstream.cpp
     util/alignedstream.h
     util/bbop.h
-    util/c99_snprintf.h
     util/compress.cpp
     util/compress.h
     util/datastream.cpp

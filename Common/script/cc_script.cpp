@@ -18,6 +18,7 @@
 #include "script/cc_script.h"
 #include "script/script_common.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 using AGS::Common::Stream;
 
@@ -135,7 +136,7 @@ ccScript::ccScript(const ccScript &src)
     {
         imports = (char**)malloc(sizeof(char*) * numimports);
         for (int i = 0; i < numimports; ++i)
-            imports[i] = strdup(src.imports[i]);
+            imports[i] = ags_strdup(src.imports[i]);
     }
     else
     {
@@ -150,7 +151,7 @@ ccScript::ccScript(const ccScript &src)
         export_addr = (int32_t*)malloc(sizeof(int32_t) * numexports);
         for (int i = 0; i < numexports; ++i)
         {
-            exports[i] = strdup(src.exports[i]);
+            exports[i] = ags_strdup(src.exports[i]);
             export_addr[i] = src.export_addr[i];
         }
     }
@@ -168,7 +169,7 @@ ccScript::ccScript(const ccScript &src)
         sectionOffsets = (int32_t*)malloc(numSections * sizeof(int32_t));
         for (int i = 0; i < numSections; ++i)
         {
-            sectionNames[i] = strdup(src.sectionNames[i]);
+            sectionNames[i] = ags_strdup(src.sectionNames[i]);
             sectionOffsets[i] = src.sectionOffsets[i];
         }
     }

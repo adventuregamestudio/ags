@@ -21,37 +21,21 @@ namespace Path
 
 bool IsDirectory(const String &filename)
 {
-    struct stat_t st;
     // stat() does not like trailing slashes, remove them
     String fixed_path = MakePathNoSlash(filename);
-    if (stat_fn(fixed_path, &st) == 0)
-    {
-        return (st.st_mode & S_IFMT) == S_IFDIR;
-    }
-    return false;
+    return ags_directory_exists(fixed_path.GetCStr());
 }
 
 bool IsFile(const String &filename)
 {
-    struct stat_t st;
-    if (stat_fn(filename, &st) == 0)
-    {
-        return (st.st_mode & S_IFMT) == S_IFREG;
-    }
-    return false;
+    return ags_file_exists(filename.GetCStr());
 }
 
 bool IsFileOrDir(const String &filename)
 {
-    struct stat_t st;
     // stat() does not like trailing slashes, remove them
     String fixed_path = MakePathNoSlash(filename);
-    if (stat_fn(fixed_path, &st) == 0)
-    {
-        return (st.st_mode & S_IFMT) == S_IFDIR ||
-            (st.st_mode & S_IFMT) == S_IFREG;
-    }
-    return false;
+    return ags_path_exists(fixed_path.GetCStr());
 }
 
 int ComparePaths(const String &path1, const String &path2)

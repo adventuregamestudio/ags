@@ -1016,7 +1016,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
         Stream *temp_in = Common::File::OpenFileRead(tempFileName);
         temp_in->Read(buffer, fileSize);
         delete temp_in;
-        unlink(tempFileName);
+        ::remove(tempFileName);
 
         out->Write(buffer, fileSize);
         free(buffer);

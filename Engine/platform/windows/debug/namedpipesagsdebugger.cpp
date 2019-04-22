@@ -12,8 +12,9 @@
 //
 //=============================================================================
 
-#include <stdio.h> // sprintf
 #include "platform/windows/debug/namedpipesagsdebugger.h"
+
+#include <stdio.h> // sprintf
 
 void NamedPipesAGSDebugger::SendAcknowledgement()
 {

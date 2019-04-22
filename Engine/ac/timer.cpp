@@ -12,12 +12,13 @@
 //
 //=============================================================================
 
-#include <stdio.h>
+#include "ac/timer.h"
+
 #if defined (_DEBUG) && defined (__GNUC__)
+#include <stdio.h>
 #include <execinfo.h>
 #include <unistd.h>
 #endif
-#include "ac/timer.h"
 #include "platform/base/agsplatformdriver.h"
 
 namespace {

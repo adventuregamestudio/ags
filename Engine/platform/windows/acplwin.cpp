@@ -290,7 +290,7 @@ void AGSWin32::add_tasks_for_game(const char *guidAsText, const char *gameEXE, c
   // Remove any existing "Play.lnk" from a previous version
   char shortcutLocation[MAX_PATH];
   sprintf(shortcutLocation, "%s\\Play.lnk", pathBuffer);
-  unlink(shortcutLocation);
+  ::remove(shortcutLocation);
 
   // Generate the shortcut file name (because it can appear on
   // the start menu's Recent area)
@@ -372,7 +372,7 @@ void delete_files_in_directory(const char *directoryName, const char *fileMask)
   al_ffblk dfb;
   int	dun = al_findfirst(srchBuffer, &dfb, FA_SEARCH);
   while (!dun) {
-    unlink(dfb.name);
+    ::remove(dfb.name);
     dun = al_findnext(&dfb);
   }
   al_findclose(&dfb);

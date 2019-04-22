@@ -758,7 +758,7 @@ int check_write_access() {
 
   our_eip = -1897;
 
-  if (unlink(tempPath))
+  if (::remove(tempPath))
     return 0;
 
   return 1;

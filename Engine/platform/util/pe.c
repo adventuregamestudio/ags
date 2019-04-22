@@ -16,10 +16,11 @@
 //
 //=============================================================================
 
-#include <stdio.h>
+#include "pe.h"
+
 #include <string.h>
 #include <stdlib.h>
-#include "pe.h"
+#include "util/stdio_compat.h"
 
 
 // Simplified structs for PE files
@@ -217,7 +218,7 @@ int seekToResource(FILE* pe, int id)
     if ((!resource_directory_entry.NameIsString) && (resource_directory_entry.Id == id))
     {
       // Seek to end of subdirectory
-      fseek(pe, resource_start + resource_directory_entry.OffsetToDirectory, SEEK_SET);
+      ags_fseek(pe, resource_start + resource_directory_entry.OffsetToDirectory, SEEK_SET);
       return 1;
     }
   }
@@ -236,7 +237,7 @@ int getVersionInformation(char* filename, version_info_t* version_info)
 
   // Read in the DOS header, get the offset to the PE header and seek
   fread(&dos_header, sizeof(IMAGE_DOS_HEADER), 1, pe);
-  fseek(pe, dos_header.e_lfanew, SEEK_SET);
+  ags_fseek(pe, dos_header.e_lfanew, SEEK_SET);
 
   // Read in the PE header
   fread(&nt_headers, sizeof(IMAGE_NT_HEADERS), 1, pe);
@@ -258,7 +259,7 @@ int getVersionInformation(char* filename, version_info_t* version_info)
   resource_virtual_address = section_header.VirtualAddress;
 
   // Seek to the resource section
-  fseek(pe, section_header.PointerToRawData, SEEK_SET);
+  ags_fseek(pe, section_header.PointerToRawData, SEEK_SET);
 
   // Save file offset to the resource section
   resource_start = section_header.PointerToRawData;
@@ -278,13 +279,13 @@ int getVersionInformation(char* filename, version_info_t* version_info)
   fread(&resource_directory_entry, sizeof(IMAGE_RESOURCE_DIRECTORY_ENTRY), 1, pe);
 
   // Seek to the resource data
-  fseek(pe, resource_start + resource_directory_entry.OffsetToData, SEEK_SET);
+  ags_fseek(pe, resource_start + resource_directory_entry.OffsetToData, SEEK_SET);
 
   // Read in version info
   fread(&resource_data_entry, sizeof(IMAGE_RESOURCE_DATA_ENTRY), 1, pe);
 
   // Finally we got a virtual address of the resource, now seek to it
-  fseek(pe, resource_start + resource_data_entry.OffsetToData - resource_virtual_address, SEEK_SET);
+  ags_fseek(pe, resource_start + resource_data_entry.OffsetToData - resource_virtual_address, SEEK_SET);
   
   // Read version resource
   char* version_data = (char*)malloc(resource_data_entry.Size);

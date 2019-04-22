@@ -12,11 +12,9 @@
 //
 //=============================================================================
 
-#if defined(WINDOWS_VERSION)
-#include <io.h>
-#else
-#include <unistd.h> // for unlink()
-#endif
+#include "util/file.h"
+
+#include "util/stdio_compat.h"
 #include <errno.h>
 #include "util/filestream.h"
 
@@ -27,10 +25,7 @@ namespace Common
 
 soff_t File::GetFileSize(const String &filename)
 {
-    struct stat_t st;
-    if (stat_fn(filename, &st) == 0)
-        return st.st_size;
-    return -1;
+    return ags_file_size(filename.GetCStr());
 }
 
 bool File::TestReadFile(const String &filename)
@@ -61,7 +56,7 @@ bool File::TestCreateFile(const String &filename)
     if (test_file)
     {
         fclose(test_file);
-        unlink(filename);
+        ::remove(filename);
         return true;
     }
     return false;
@@ -69,7 +64,7 @@ bool File::TestCreateFile(const String &filename)
 
 bool File::DeleteFile(const String &filename)
 {
-    if (unlink(filename) != 0)
+    if (::remove(filename) != 0)
     {
         int err;
 #if defined(WINDOWS_VERSION)

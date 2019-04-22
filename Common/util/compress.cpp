@@ -18,6 +18,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "ac/common.h"	// quit, update_polled_stuff
 #include "gfx/bitmap.h"
 #include "util/compress.h"
@@ -310,7 +311,7 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
 
   // Delete temp file
   delete lz_temp_s;
-  unlink(lztempfnm);
+  ::remove(lztempfnm);
 
   // Seek back to the end of the output stream
   out->Seek(toret, kSeekBegin);

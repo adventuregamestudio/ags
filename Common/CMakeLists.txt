@@ -138,6 +138,7 @@ target_sources(common
     util/path.h
     util/proxystream.cpp
     util/proxystream.h
+    util/stdio_compat.c
     util/stdio_compat.h
     util/stream.cpp
     util/stream.h

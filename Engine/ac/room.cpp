@@ -1199,7 +1199,7 @@ RuntimeScriptValue Sc_Room_CreateCamera(const RuntimeScriptValue *params, int32_
 
 RuntimeScriptValue Sc_Room_RemoveCamera(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(ScriptCamera, Room_RemoveCamera);
+    API_SCALL_VOID_PINT(Room_RemoveCamera);
 }
 
 

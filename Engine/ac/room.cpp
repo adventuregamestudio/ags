@@ -477,6 +477,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     int cc;
     done_es_error = 0;
     play.room_changes ++;
+    // TODO: find out why do we need to temporarily lower color depth to 8-bit.
+    // Or do we? There's a serious usability problem in this: if any bitmap is
+    // created meanwhile it will have this color depth by default, which may
+    // lead to unexpected errors.
     set_color_depth(8);
     displayed_room=newnum;
 
@@ -542,8 +546,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         update_letterbox_mode();
     if (play.IsAutoRoomViewport())
         adjust_viewport_to_room();
-    update_all_viewcams_with_newroom();
-    init_room_drawdata();
 
     SetMouseBounds(0, 0, 0, 0);
 
@@ -570,6 +572,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     convert_room_background_to_game_res();
     recache_walk_behinds();
     update_polled_stuff_if_runtime();
+
+    update_all_viewcams_with_newroom();
+    init_room_drawdata();
 
     our_eip=205;
     // setup objects

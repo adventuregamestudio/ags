@@ -172,13 +172,13 @@ DirtyRects BlackRects;
 std::vector<DirtyRects> RoomCamRects;
 // Saved room camera offsets to know if we must invalidate whole surface.
 // TODO: if we support rotation then we also need to compare full transform!
-typedef std::pair<int, int> SavedCamPosition;
-std::vector<SavedCamPosition> RoomCamPositions;
+std::vector<std::pair<int, int>> RoomCamPositions;
 
 
-void destroy_invalid_regions()
+void dispose_invalid_regions(bool /* room_only */)
 {
     RoomCamRects.clear();
+    RoomCamPositions.clear();
 }
 
 void init_invalid_regions(int view_index, const Size &surf_size, const Rect &viewport)

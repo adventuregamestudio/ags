@@ -542,7 +542,7 @@ void init_draw_method()
 void dispose_draw_method()
 {
     dispose_room_drawdata();
-    destroy_invalid_regions();
+    dispose_invalid_regions(false);
     destroy_blank_image();
 }
 
@@ -550,6 +550,7 @@ void dispose_room_drawdata()
 {
     RoomCameraBuffer.clear();
     RoomCameraFrame.clear();
+    dispose_invalid_regions(true);
 }
 
 void on_mainviewport_changed()
@@ -611,7 +612,7 @@ void sync_roomview(PViewport view)
             int room_width = data_to_game_coord(thisroom.Width);
             int room_height = data_to_game_coord(thisroom.Height);
             Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(room_width, room_height));
-            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height));
+            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height, thisroom.BackgroundBPP * 8));
         }
 
         if (!camera_frame || camera_frame->GetSize() != cam_sz)

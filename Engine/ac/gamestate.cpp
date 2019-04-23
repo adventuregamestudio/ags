@@ -58,10 +58,10 @@ void GameState::SetAutoRoomViewport(bool on)
     _isAutoRoomViewport = on;
 }
 
-Rect FixupViewport(const Rect &viewport, const Rect &parent)
+Rect FixupViewport(const Rect &viewport, const Rect & /* parent */)
 {
     Size real_size = viewport.GetSize().IsNull() ? Size(1, 1) : viewport.GetSize();
-    return ClampToRect(parent, RectWH(viewport.Left, viewport.Top, real_size.Width, real_size.Height));
+    return RectWH(viewport.Left, viewport.Top, real_size.Width, real_size.Height);
 }
 
 void GameState::SetMainViewport(const Rect &viewport)

@@ -295,12 +295,28 @@ PViewport GameState::CreateRoomViewport()
     viewport->SetID(index);
     viewport->SetRect(_mainViewport.GetRect());
     ScriptViewport *scv = new ScriptViewport(index);
-    int handle = ccRegisterManagedObject(scv, scv);
-    ccAddObjectReference(handle); // one reference for the GameState
     _roomViewports.push_back(viewport);
-    _scViewportRefs.push_back(std::make_pair(scv, handle));
+    _scViewportRefs.push_back(std::make_pair(scv, 0));
     _roomViewportZOrderChanged = true;
     return viewport;
+}
+
+ScriptViewport *GameState::RegisterRoomViewport(int index, int32_t handle)
+{
+    if (index < 0 || (size_t)index >= _roomViewports.size())
+        return nullptr;
+    auto &scobj = _scViewportRefs[index];
+    if (handle == 0)
+    {
+        handle = ccRegisterManagedObject(scobj.first, scobj.first);
+        ccAddObjectReference(handle); // one reference for the GameState
+    }
+    else
+    {
+        ccRegisterUnserializedObject(handle, scobj.first, scobj.first);
+    }
+    scobj.second = handle;
+    return scobj.first;
 }
 
 void GameState::DeleteRoomViewport(int index)
@@ -334,11 +350,27 @@ PCamera GameState::CreateRoomCamera()
     camera->SetAt(0, 0);
     camera->SetSize(_mainViewport.GetRect().GetSize());
     ScriptCamera *scam = new ScriptCamera(index);
-    int handle = ccRegisterManagedObject(scam, scam);
-    ccAddObjectReference(handle); // one reference for the GameState
-    _scCameraRefs.push_back(std::make_pair(scam, handle));
+    _scCameraRefs.push_back(std::make_pair(scam, 0));
     _roomCameras.push_back(camera);
     return camera;
+}
+
+ScriptCamera *GameState::RegisterRoomCamera(int index, int32_t handle)
+{
+    if (index < 0 || (size_t)index >= _roomCameras.size())
+        return nullptr;
+    auto &scobj = _scCameraRefs[index];
+    if (handle == 0)
+    {
+        handle = ccRegisterManagedObject(scobj.first, scobj.first);
+        ccAddObjectReference(handle); // one reference for the GameState
+    }
+    else
+    {
+        ccRegisterUnserializedObject(handle, scobj.first, scobj.first);
+    }
+    scobj.second = handle;
+    return scobj.first;
 }
 
 void GameState::DeleteRoomCamera(int index)
@@ -513,11 +545,14 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     digital_master_volume = in->ReadInt32();
     in->Read(walkable_areas_on, MAX_WALK_AREAS+1);
     screen_flipped = in->ReadInt16();
-    short offsets_locked = in->ReadInt16();
-    if (offsets_locked != 0)
-        _roomCameras[0]->Lock();
-    else
-        _roomCameras[0]->Release();
+    if (svg_ver < kGSSvgVersion_3510)
+    {
+        short offsets_locked = in->ReadInt16();
+        if (offsets_locked != 0)
+            _roomCameras[0]->Lock();
+        else
+            _roomCameras[0]->Release();
+    }
     entered_at_x = in->ReadInt32();
     entered_at_y = in->ReadInt32();
     entered_edge = in->ReadInt32();
@@ -729,7 +764,6 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( digital_master_volume);
     out->Write(walkable_areas_on, MAX_WALK_AREAS+1);
     out->WriteInt16( screen_flipped);
-    out->WriteInt16( _roomCameras[0]->IsLocked() ? 1 : 0 );
     out->WriteInt32( entered_at_x);
     out->WriteInt32( entered_at_y);
     out->WriteInt32( entered_edge);
@@ -825,6 +859,25 @@ void GameState::FreeProperties()
         charProps[i].clear();
     for (int i = 0; i < game.numinvitems; ++i)
         invProps[i].clear();
+}
+
+void GameState::FreeViewportsAndCameras()
+{
+    _roomViewports.clear();
+    _roomViewportsSorted.clear();
+    for (auto scobj : _scViewportRefs)
+    {
+        scobj.first->Invalidate();
+        ccReleaseObjectReference(scobj.second);
+    }
+    _scViewportRefs.clear();
+    _roomCameras.clear();
+    for (auto scobj : _scCameraRefs)
+    {
+        scobj.first->Invalidate();
+        ccReleaseObjectReference(scobj.second);
+    }
+    _scCameraRefs.clear();
 }
 
 void GameState::ReadCustomProperties_v340(Common::Stream *in)

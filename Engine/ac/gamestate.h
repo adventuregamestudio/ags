@@ -48,6 +48,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_Initial   = 0,
     kGSSvgVersion_350       = 1,
     kGSSvgVersion_3509      = 2,
+    kGSSvgVersion_3510      = 3,
 };
 
 // A result of coordinate conversion between screen and the room,
@@ -298,12 +299,16 @@ struct GameState {
 
     // Creates new room viewport
     PViewport CreateRoomViewport();
+    // Register camera in the managed system; optionally links to existing handle
+    ScriptViewport *RegisterRoomViewport(int index, int32_t handle = 0);
     // Deletes existing room viewport
     void DeleteRoomViewport(int index);
     // Get number of room viewports
     int GetRoomViewportCount() const;
     // Creates new room camera
     PCamera CreateRoomCamera();
+    // Register camera in the managed system; optionally links to existing handle
+    ScriptCamera *RegisterRoomCamera(int index, int32_t handle = 0);
     // Deletes existing room camera
     void DeleteRoomCamera(int index);
     // Get number of room cameras
@@ -334,6 +339,7 @@ struct GameState {
     void ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver);
     void WriteForSavegame(Common::Stream *out) const;
     void FreeProperties();
+    void FreeViewportsAndCameras();
 
 private:
     VpPoint ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport, bool convert_cam_to_data);

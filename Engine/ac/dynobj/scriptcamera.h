@@ -38,4 +38,7 @@ private:
     int _id = -1; // index of camera in the game state array
 };
 
+// Unserialize camera from the memory stream
+ScriptCamera *Camera_Unserialize(int handle, const char *serializedData, int dataSize);
+
 #endif // __AC_SCRIPTCAMERA_H

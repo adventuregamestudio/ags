@@ -37,4 +37,7 @@ private:
     int _id = -1; // index of viewport in the game state array
 };
 
+// Unserialize viewport from the memory stream
+ScriptViewport *Viewport_Unserialize(int handle, const char *serializedData, int dataSize);
+
 #endif // __AC_SCRIPTVIEWPORT_H

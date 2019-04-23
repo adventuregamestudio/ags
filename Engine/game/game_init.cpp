@@ -309,6 +309,10 @@ HError InitAndRegisterGameEntities()
     InitAndRegisterRegions();
     InitAndRegisterRoomObjects();
 
+    // Primary viewport and camera
+    play.RegisterRoomViewport(0);
+    play.RegisterRoomCamera(0);
+
     RegisterStaticArrays();
 
     setup_player_character(game.playercharacter);

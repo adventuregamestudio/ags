@@ -14,6 +14,9 @@
 
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/gamestate.h"
+#include "util/bbop.h"
+
+using namespace AGS::Common;
 
 ScriptCamera::ScriptCamera(int id) : _id(id) {}
 
@@ -42,4 +45,20 @@ void ScriptCamera::Unserialize(int index, const char *serializedData, int dataSi
     StartUnserialize(serializedData, dataSize);
     _id = UnserializeInt();
     ccRegisterUnserializedObject(index, this, this);
+}
+
+ScriptCamera *Camera_Unserialize(int handle, const char *serializedData, int dataSize)
+{
+    // The way it works now, we must not create a new script object,
+    // but acquire one from the GameState, which keeps the first reference.
+    // This is essential because GameState should be able to invalidate any
+    // script references when Camera gets removed.
+    const int id = BBOp::Int32FromLE(*((int*)serializedData));
+    if (id >= 0)
+    {
+        auto scam = play.RegisterRoomCamera(id, handle);
+        if (scam)
+            return scam;
+    }
+    return new ScriptCamera(-1); // make invalid reference
 }

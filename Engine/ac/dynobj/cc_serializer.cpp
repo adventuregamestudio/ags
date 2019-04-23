@@ -16,9 +16,11 @@
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
+#include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptcontainers.h"
 #include "ac/dynobj/scriptfile.h"
 #include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/scriptviewport.h"
 #include "ac/game.h"
 #include "debug/debug_log.h"
 
@@ -114,6 +116,14 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     else if (strcmp(objectType, "StringSet") == 0)
     {
         Set_Unserialize(index, serializedData, dataSize);
+    }
+    else if (strcmp(objectType, "Viewport2") == 0)
+    {
+        Viewport_Unserialize(index, serializedData, dataSize);
+    }
+    else if (strcmp(objectType, "Camera2") == 0)
+    {
+        Camera_Unserialize(index, serializedData, dataSize);
     }
     else if (strcmp(objectType, "UserObject") == 0) {
         ScriptUserObject *suo = new ScriptUserObject();

@@ -14,6 +14,9 @@
 
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/gamestate.h"
+#include "util/bbop.h"
+
+using namespace AGS::Common;
 
 ScriptViewport::ScriptViewport(int id) : _id(id) {}
 
@@ -42,4 +45,20 @@ void ScriptViewport::Unserialize(int index, const char *serializedData, int data
     StartUnserialize(serializedData, dataSize);
     _id = UnserializeInt();
     ccRegisterUnserializedObject(index, this, this);
+}
+
+ScriptViewport *Viewport_Unserialize(int handle, const char *serializedData, int dataSize)
+{
+    // The way it works now, we must not create a new script object,
+    // but acquire one from the GameState, which keeps the first reference.
+    // This is essential because GameState should be able to invalidate any
+    // script references when Viewport gets removed.
+    const int id = BBOp::Int32FromLE(*((int*)serializedData));
+    if (id >= 0)
+    {
+        auto scview = play.RegisterRoomViewport(id, handle);
+        if (scview)
+            return scview;
+    }
+    return new ScriptViewport(-1); // make invalid reference
 }

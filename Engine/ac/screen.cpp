@@ -155,7 +155,7 @@ ScriptViewport* Screen_CreateViewport()
     auto view = play.CreateRoomViewport();
     if (!view)
         return NULL;
-    return play.GetScriptViewport(view->GetID());
+    return play.RegisterRoomViewport(view->GetID());
 }
 
 void Screen_RemoveViewport(int index)

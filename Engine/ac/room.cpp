@@ -228,7 +228,7 @@ ScriptCamera* Room_CreateCamera()
     auto cam = play.CreateRoomCamera();
     if (!cam)
         return NULL;
-    return play.GetScriptCamera(cam->GetID());
+    return play.RegisterRoomCamera(cam->GetID());
 }
 
 void Room_RemoveCamera(int index)

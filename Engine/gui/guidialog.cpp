@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "gui/guidialog.h"
+
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game.h"
@@ -33,6 +34,8 @@ extern GameSetupStruct game;
 // from ac_game
 extern char saveGameDirectory[260];
 
+namespace {
+
 // TODO: store drawing surface inside old gui classes instead
 int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
 Bitmap *windowBuffer;
@@ -51,6 +54,13 @@ CSCIMessage smes;
 
 char buff[200];
 int myscrnwid = 320, myscrnhit = 200;
+
+}
+
+char *get_gui_dialog_buffer()
+{
+  return buffer2;
+}
 
 //
 // TODO: rewrite the whole thing to work inside the main game update and render loop!

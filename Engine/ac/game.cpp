@@ -12,6 +12,9 @@
 //
 //=============================================================================
 
+#include "ac/game.h"
+
+#include "core/platform.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiocliptype.h"
@@ -23,7 +26,6 @@
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
-#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -329,7 +331,6 @@ void set_game_speed(int new_fps) {
 extern int cbuttfont;
 extern int acdialog_font;
 
-extern char buffer2[60];
 int oldmouse;
 void setup_for_dialog() {
     cbuttfont = play.normal_font;
@@ -497,7 +498,7 @@ void save_game_dialog() {
     int toload=savegamedialog();
     restore_after_dialog();
     if (toload>=0)
-        save_game(toload,buffer2);
+        save_game(toload, get_gui_dialog_buffer());
 }
 
 void free_do_once_tokens()

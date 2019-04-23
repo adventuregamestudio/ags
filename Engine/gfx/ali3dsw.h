@@ -20,7 +20,6 @@
 #define __AGS_EE_GFX__ALI3DSW_H
 
 #include <memory>
-#include "core/platform.h"
 #include <allegro.h>
 #if defined (WINDOWS_VERSION)
 #include <winalleg.h>

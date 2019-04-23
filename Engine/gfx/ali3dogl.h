@@ -20,7 +20,6 @@
 #define __AGS_EE_GFX__ALI3DOGL_H
 
 #include <memory>
-#include "core/platform.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"

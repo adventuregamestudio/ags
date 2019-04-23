@@ -14,7 +14,6 @@
 
 #include "ac/game.h"
 
-#include "core/platform.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiocliptype.h"

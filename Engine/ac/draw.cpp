@@ -116,17 +116,6 @@ extern IDriverDependantBitmap *mouseCursor;
 extern int hotx,hoty;
 extern int bg_just_changed;
 
-// How is this actually used??
-// We need COLOR_DEPTH_24 to allow it to load the preload PCX in hi-col
-BEGIN_COLOR_DEPTH_LIST
-    COLOR_DEPTH_8
-    COLOR_DEPTH_15
-    COLOR_DEPTH_16
-    COLOR_DEPTH_24
-    COLOR_DEPTH_32
-END_COLOR_DEPTH_LIST
-
-
 color palette[256];
 
 COLOR_MAP maincoltable;

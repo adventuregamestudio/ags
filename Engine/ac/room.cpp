@@ -456,6 +456,18 @@ static void adjust_viewport_to_room()
     play.GetRoomCamera(0)->SetSize(new_room_view.GetSize());
 }
 
+// Run through all viewports and cameras to make sure they can work in new room's bounds
+static void update_all_viewcams_with_newroom()
+{
+    for (int i = 0; i < play.GetRoomCameraCount(); ++i)
+    {
+        auto cam = play.GetRoomCamera(i);
+        const Rect old_pos = cam->GetRect();
+        cam->SetSize(old_pos.GetSize());
+        cam->SetAt(old_pos.Left, old_pos.Top);
+    }
+}
+
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
 
@@ -530,6 +542,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         update_letterbox_mode();
     if (play.IsAutoRoomViewport())
         adjust_viewport_to_room();
+    update_all_viewcams_with_newroom();
+    init_room_drawdata();
 
     SetMouseBounds(0, 0, 0, 0);
 

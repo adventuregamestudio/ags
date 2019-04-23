@@ -621,6 +621,13 @@ void sync_roomview(PViewport view)
     }
 }
 
+void init_room_drawdata()
+{
+    // Make sure all frame buffers are created for software drawing
+    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
+        sync_roomview(play.GetRoomViewportObj(i));
+}
+
 void on_roomviewport_changed(int index)
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())

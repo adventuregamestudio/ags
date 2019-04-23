@@ -61,6 +61,8 @@ int MakeColor(int color_index);
 
 // Initializes drawing methods and optimisation
 void init_draw_method();
+// Initializes drawing resources upon entering new room
+void init_room_drawdata();
 // Disposes resources related to the current drawing methods
 void dispose_draw_method();
 // Disposes any temporary resources on leaving current room

@@ -70,4 +70,6 @@ extern char psp_translation[];
 
 void main_print_help();
 
+int ags_entry_point(int argc, char *argv[]);
+
 #endif // __AGS_EE_MAIN__MAIN_H

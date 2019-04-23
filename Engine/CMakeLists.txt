@@ -371,6 +371,7 @@ target_sources(engine
     main/game_start.h
     main/graphics_mode.cpp
     main/graphics_mode.h
+    main/main.cpp
     main/main.h
     main/main_allegro.h
     main/maindefines_ex.h
@@ -595,8 +596,7 @@ target_include_directories(ags PRIVATE .)
 
 target_sources(ags
     PRIVATE
-    main/main.cpp
-    main/main.h
+    main/main_allegro.cpp
 )
 
 target_link_libraries(ags PRIVATE engine)
@@ -634,8 +634,7 @@ if (MACOS)
 
     target_sources(ags-app
         PRIVATE
-        main/main.cpp
-        main/main.h
+        main/main_allegro.cpp
     )
 
     target_link_libraries(ags-app PRIVATE engine)

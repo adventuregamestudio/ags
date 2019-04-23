@@ -468,7 +468,7 @@ int malloc_fail_handler(size_t amountwanted) {
 }
 #endif
 
-int main(int argc,char*argv[]) { 
+int ags_entry_point(int argc, char *argv[]) { 
 
 #if AGS_PLATFORM_DEBUG
     Test_DoAllTests();
@@ -535,5 +535,3 @@ int main(int argc,char*argv[]) {
         return initialize_engine_with_exception_handling(startup_opts);
     }
 }
-
-END_OF_MAIN()

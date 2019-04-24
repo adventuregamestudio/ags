@@ -117,7 +117,7 @@ void quit_shutdown_audio()
     game.options[OPT_CROSSFADEMUSIC] = 0;
     stopmusic();
 #ifndef PSP_NO_MOD_PLAYBACK
-    if (opts.mod_player)
+    if (usetup.mod_player)
         remove_mod_player();
 #endif
 

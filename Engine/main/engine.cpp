@@ -491,7 +491,7 @@ bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = nullptr)
 
 void engine_init_audio()
 {
-    if (opts.mod_player)
+    if (usetup.mod_player)
         reserve_voices(NUM_DIGI_VOICES, -1);
     // maybe this line will solve the sound volume? [??? wth is this]
     set_volume_per_voice(1);
@@ -517,11 +517,11 @@ void engine_init_audio()
 
     String err_msg;
     bool sound_res = try_install_sound(usetup.digicard, usetup.midicard, &err_msg);
-    if (!sound_res && opts.mod_player)
+    if (!sound_res && usetup.mod_player)
     {
         Debug::Printf("Resetting to default sound parameters and trying again.");
         reserve_voices(-1, -1); // this resets voice number to defaults
-        opts.mod_player = 0;
+        usetup.mod_player = 0;
         sound_res = try_install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT);
     }
     if (!sound_res)
@@ -777,18 +777,18 @@ void engine_init_modxm_player()
 {
 #ifndef PSP_NO_MOD_PLAYBACK
     if (game.options[OPT_NOMODMUSIC])
-        opts.mod_player = 0;
+        usetup.mod_player = 0;
 
-    if (opts.mod_player) {
+    if (usetup.mod_player) {
         Debug::Printf(kDbgMsg_Init, "Initializing MOD/XM player");
 
         if (init_mod_player(NUM_MOD_DIGI_VOICES) < 0) {
             platform->DisplayAlert("Warning: install_mod: MOD player failed to initialize.");
-            opts.mod_player=0;
+            usetup.mod_player=0;
         }
     }
 #else
-    opts.mod_player = 0;
+    usetup.mod_player = 0;
     Debug::Printf(kDbgMsg_Init, "Compiled without MOD/XM player");
 #endif
 }

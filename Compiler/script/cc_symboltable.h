@@ -20,16 +20,16 @@
 // There's another symbol definition in cc_symboldef.h which is deprecated
 struct SymbolTableEntry {
     std::string sname;
-    short stype;
-    long flags;
-    long vartype; // may contain typeflags and must be "long"
+    AGS::SType stype; // e.g., SYM_GLOBALVAR
+    AGS::Flags flags;
+    AGS::Vartype vartype; // may contain typeflags
     int soffs;
     long ssize; // or return type size for function
     short sscope; // or num arguments for function
     long arrsize; // num of bytes needed to contain the whole array (not num of elements)
     short extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
-    std::vector<unsigned long> funcparamtypes;
+    std::vector<AGS::Vartype> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
     std::vector<bool> funcParamHasDefaultValues;
 
@@ -90,10 +90,10 @@ struct SymbolTable {
     std::string const SymbolTable::get_name_string(int idx) const;
 
     // The symbol type, as given by the SYM_... constants
-    AGS::Symbol SymbolTable::get_type(AGS::Symbol symb);
+    AGS::SType SymbolTable::get_type(AGS::Symbol symb);
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
-    inline long SymbolTable::get_vartype(AGS::Symbol symb) { return (symb >= 0 && symb < entries.size()) ? entries[symb].vartype : -1; }
+    inline AGS::Vartype SymbolTable::get_vartype(AGS::Symbol symb) { return (symb >= 0 && symb < entries.size()) ? entries[symb].vartype : -1; }
 
     // return the printable name of the vartype
     std::string const SymbolTable::get_vartype_name_string(long typ) const;

@@ -112,17 +112,14 @@ extern int is_alphanum(int chrac);
 
 namespace AGS
 {
-// A symbol (result of scanner preprocessing)
-typedef int Symbol;
 
-// A buffer of symbols 
-typedef Symbol *SymbolScript;
-
-// A code cell (content)
-typedef std::intptr_t CodeCell;
-
-// A code location, may be negative
-typedef std::intptr_t CodeLoc;
+typedef int Symbol; // A symbol (result of scanner preprocessing)
+typedef long Flags; // Collection of bits that are set and reset
+typedef long Vartype;   // e.g., "int"
+typedef short SType;    // e.g. SYM_GLOBAL
+typedef Symbol *SymbolScript;   // A buffer of symbols 
+typedef std::intptr_t CodeCell; // A code cell (content)
+typedef std::intptr_t CodeLoc; // A code location, may be negative
 } // namespace AGS
 
 #endif // __CS_PARSER_COMMON_H

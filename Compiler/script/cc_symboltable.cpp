@@ -15,7 +15,7 @@ SymbolTableEntry::SymbolTableEntry()
     , sscope(0)
     , arrsize(0)
     , extends(0)
-    , funcparamtypes (std::vector<unsigned long>(1)) // Function must have at least the return param
+    , funcparamtypes (std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , funcParamDefaultValues(std::vector<int>(1))
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
@@ -30,7 +30,7 @@ SymbolTableEntry::SymbolTableEntry(const char *name, int typo, char sizee)
     , sscope(0)
     , arrsize(0)
     , extends(0)
-    , funcparamtypes(std::vector<unsigned long>(1)) // Function must have at least the return param
+    , funcparamtypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , funcParamDefaultValues(std::vector<int>(1))
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
@@ -99,7 +99,7 @@ SymbolTable::SymbolTable()
     _findCache.clear();
 }
 
-AGS::Symbol SymbolTable::get_type(AGS::Symbol symbol)
+AGS::SType SymbolTable::get_type(AGS::Symbol symbol)
 {
     symbol &= STYPE_MASK;
 

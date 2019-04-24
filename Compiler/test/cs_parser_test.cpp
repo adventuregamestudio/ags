@@ -105,13 +105,14 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        managed struct DynamicSprite { };\
-        \
-        int[] Func()\
-        {\
-          DynamicSprite *r[] = new DynamicSprite[10];\
-          return r;\
-        }";
+        managed struct DynamicSprite { };   \n\
+                                            \n\
+        int[] Func()                        \n\
+        {                                   \n\
+          DynamicSprite *r[] = new DynamicSprite[10]; \n\
+          return r;                         \n\
+        }                                   \n\
+    ";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
@@ -389,10 +390,10 @@ TEST(Compile, SubtractionWithoutSpaces) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        int MyFunction()\
-        {\
-            int data0 = 2-4;\
-        }\
+        int MyFunction()\n\
+        {\n\
+            int data0 = 2-4;\n\
+        }\n\
         ";
 
     clear_error();
@@ -562,7 +563,7 @@ TEST(Compile, Writeprotected) {
 TEST(Compile, Protected1) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    // Directly taken from the doc on writeprotected, simplified.
+    // Directly taken from the doc on protected, simplified.
     char *inpl = "\
         struct Weapon {                        \n\
             protected int Damage;              \n\
@@ -573,7 +574,34 @@ TEST(Compile, Protected1) {
         void main()                            \n\
         {                                      \n\
             wp.Damage = 7;                     \n\
-            return false;                      \n\
+            return;                            \n\
+        }                                      \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    // Should fail, no modifying of protected components from the outside.
+    ASSERT_NE(nullptr, last_seen_cc_error());
+    ASSERT_GE(0, compileResult);
+    std::string err = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, err.find("Damage"));
+}
+
+TEST(Compile, Protected2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Directly taken from the doc on protected, simplified.
+    char *inpl = "\
+        struct Weapon {                        \n\
+            protected int Damage;              \n\
+        };                                     \n\
+                                               \n\
+        Weapon wp;                             \n\
+                                               \n\
+        int main()                             \n\
+        {                                      \n\
+            return wp.Damage;                  \n\
         }                                      \n\
         ";
 
@@ -627,6 +655,7 @@ TEST(Compile, Do2Wrong) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_GE(0, compileResult);
     // Offer some leeway in the error message
+    // Should balk because the "while" clause is missing.
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("while"));
 }

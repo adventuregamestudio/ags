@@ -79,12 +79,8 @@ void AGS::Tokenizer::ProcessScannerSymstring(
     bool &eof_encountered,
     bool &error_encountered)
 {
-    if ((symbol_type == Scanner::kSct_Identifier) && (last_token >= 0) && (TokenType(last_token) == SYM_DOT))
-    {
-        // Prepend a "." so that identifiers inside structs have a different name space from those outside of structs.
-        symstring.insert(0, ".");
-    }
-
+    // Note: Do NOT prepend a dot to symbols that appear to be struct components. (Parser's job)
+    
     token = ConvertSymstringToTokenIndex(symstring);
     if (token < 0)
     {

@@ -17,7 +17,7 @@ struct ccCompiledScript : public ccScript {
     long numfunctions;
     long cur_sp;
     int  next_line;  // line number of next code
-    int  ax_val_type;  // type of value in AX, usually equiv. to type of the current expression
+    long  ax_val_type;  // type of value in AX, usually equiv. to type of the current expression
     int  ax_val_scope;  // SYM_LOCALVAR or SYM_GLOBALVAR, needed to prevent a return of a local string
 
     void init();

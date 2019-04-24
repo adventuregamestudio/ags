@@ -75,10 +75,10 @@
 #define SYM_DEFAULT    61
 #define SYM_LABEL      62 // : appearing at the end of a label
 
-#define SFLG_PARAMETER  1
-#define SFLG_ARRAY      2
-#define SFLG_IMPORTED   4   // this is an import variable
-#define SFLG_ACCESSED   8   // if not set, the variable is never used
+#define SFLG_PARAMETER    0x01
+#define xSFLG_ARRAY       0x02
+#define SFLG_IMPORTED     0x04   // this is an import variable
+#define SFLG_ACCESSED     0x08   // if not set, the variable is never used
 #define SFLG_STRBUFFER    0x10  // was allocated a string buffer
 #define SFLG_ISSTRING     0x20  // is a pointer
 #define SFLG_READONLY     0x40  // user cannot change
@@ -103,6 +103,7 @@
 */
 #define SFLG_HASDYNAMICARRAY  0x100000
 #define TEMP_SYMLIST_LENGTH 100
+#define SIZE_OF_POINTER 4
 
 extern int is_whitespace(char cht);
 extern void skip_whitespace(char **pttt);

@@ -69,8 +69,8 @@ void ccInternalList::write(AGS::Symbol value) {
     if ((length + 1) * sizeof(AGS::Symbol) >= (unsigned long)allocated)
     {
 
-        if (allocated < 1000)
-            allocated += 1000;
+        if (allocated < 64)
+            allocated += 64;
         else
             allocated *= 2;
 

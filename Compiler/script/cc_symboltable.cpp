@@ -99,7 +99,6 @@ SymbolTable::SymbolTable()
     _findCache.clear();
 }
 
-// Ignore the pointerness/constness of the symbol and get its type
 AGS::Symbol SymbolTable::get_type(AGS::Symbol symbol)
 {
     symbol &= STYPE_MASK;
@@ -199,6 +198,7 @@ void SymbolTable::reset()
     add_ex("internalstring", SYM_STRINGSTRUCT, 0);
     add_ex("autoptr", SYM_AUTOPTR, 0);
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
+    normalThisSym = add_ex("this", 0, 0);
     lastPredefSym = add_ex("builtin", SYM_BUILTIN, 0);
 }
 
@@ -219,27 +219,41 @@ AGS::Symbol SymbolTable::find_or_add(const char *ntf)
 }
 
 
-std::string const SymbolTable::get_name_string(int idx)
+std::string const SymbolTable::get_name_string(int idx) const
 {
     int const short_idx = (idx & STYPE_MASK);
     if (short_idx < 0)
         return std::string("(end of input)");
     if (short_idx >= entries.size())
         return std::string("(invalid symbol)");
-    if (short_idx == idx)
-        return entries[short_idx].sname;
-
+    
     std::string result = entries[short_idx].sname;
 
     if (idx & STYPE_POINTER)
         result += "*";
-    if (idx & STYPE_DYNARRAY)
+    if (idx & (STYPE_ARRAY|STYPE_DYNARRAY))
         result += "[]";
     if (idx & STYPE_CONST)
         result = "const " + result;
 
     return result;
 }
+
+std::string const SymbolTable::get_vartype_name_string(long vartype) const
+{
+    AGS::Symbol const core_type = (vartype & STYPE_MASK);
+
+    std::string result = (core_type >= 0 && core_type < entries.size()) ? entries[core_type].sname : "UNKNOWNTYPE";
+    if ((vartype & STYPE_POINTER) && !(entries[core_type].flags & SFLG_AUTOPTR))
+        result += "*";
+    if (vartype & (STYPE_ARRAY|STYPE_DYNARRAY))
+        result += "[]";
+    if (vartype & STYPE_CONST)
+        result = "const " + result;
+
+    return result;
+}
+
 
 char const *SymbolTable::get_name(int idx)
 {

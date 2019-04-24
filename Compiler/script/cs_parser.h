@@ -244,3 +244,7 @@ extern int cc_compile(
     ccCompiledScript *scrip);   // store for the compiled text
 
 #endif // __CS_PARSER_H
+
+int AccessData_StaticFunctionCall(size_t & syml_len, AGS::SymbolScript & syml, ccCompiledScript * scrip, size_t &zero_mar_offset, AGS::Symbol & vartype);
+
+int AccessData_NonstaticFunctionCall(ccCompiledScript * scrip, AGS::SymbolScript & syml, size_t & syml_len, AGS::Symbol & vartype);

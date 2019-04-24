@@ -19,7 +19,7 @@
 
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if AGS_PLATFORM_OS_WINDOWS && ! defined (AGS_NO_VIDEO_PLAYER)
 
 //#define ALLEGRO_STATICLINK  // already defined in project settings
 #include <allegro.h>

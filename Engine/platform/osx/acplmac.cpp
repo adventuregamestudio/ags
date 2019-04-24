@@ -47,7 +47,6 @@ struct AGSMac : AGSPlatformDriver {
   virtual const char* GetNoMouseErrorString() override;
   virtual eScriptSystemOSID GetSystemOSID() override;
   virtual int  InitializeCDPlayer() override;
-  virtual void PlayVideo(const char* name, int skip, int flags) override;
   virtual void PostAllegroExit() override;
   virtual void SetGameWindowIcon() override;
   virtual void ShutdownCDPlayer() override;
@@ -99,17 +98,6 @@ eScriptSystemOSID AGSMac::GetSystemOSID() {
 int AGSMac::InitializeCDPlayer() {
   //return cd_player_init();
   return 0;
-}
-
-void AGSMac::PlayVideo(const char *name, int skip, int flags) {
-/*
-  if (!PlayMovie(name, skip))
-  {
-    char useloc[512];
-    sprintf(useloc, "%s/%s", get_filename(usetup.data_files_dir), name);
-    PlayMovie(useloc, skip);
-  }
-*/
 }
 
 void AGSMac::PostAllegroExit() {

@@ -558,7 +558,6 @@ target_link_libraries(engine PUBLIC
     Allegro::Allegro 
     AlDumb::AlDumb 
     AlMp3::AlMp3 
-    Apeg::Apeg 
     AlOgg::AlOgg 
     HQ2X::hq2x
     Cda::Cda
@@ -571,8 +570,17 @@ if (WIN32 OR LINUX)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
 endif ()
 
+if (AGS_NO_VIDEO_PLAYER)
+    target_compile_definitions(engine PRIVATE AGS_NO_VIDEO_PLAYER)
+else()
+    target_link_libraries(engine PUBLIC Apeg::Apeg)
+    if (WIN32)
+        target_link_libraries(engine PUBLIC amstrmid quartz)
+    endif()
+endif()
+
 if (WIN32)
-    target_link_libraries(engine PUBLIC DirectX::Direct3D9 amstrmid quartz shlwapi winmm)
+    target_link_libraries(engine PUBLIC DirectX::Direct3D9 shlwapi)
 elseif (LINUX)
     target_link_libraries(engine PUBLIC X11::X11)
 endif()

@@ -123,7 +123,6 @@ struct AGSIOS : AGSPlatformDriver {
   virtual bool IsBackendResponsibleForMouseScaling() { return true; }
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
-  virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
@@ -615,10 +614,6 @@ eScriptSystemOSID AGSIOS::GetSystemOSID() {
 
 int AGSIOS::InitializeCDPlayer() {
   return 0;//cd_player_init();
-}
-
-void AGSIOS::PlayVideo(const char *name, int skip, int flags) {
-  // do nothing
 }
 
 void AGSIOS::PostAllegroExit() {

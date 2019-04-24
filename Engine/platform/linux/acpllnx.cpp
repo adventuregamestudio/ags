@@ -54,7 +54,6 @@ struct AGSLinux : AGSPlatformDriver {
   const char* GetAllegroFailUserHint() override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
-  void PlayVideo(const char* name, int skip, int flags) override;
   void PostAllegroExit() override;
   void SetGameWindowIcon() override;
   void ShutdownCDPlayer() override;
@@ -164,10 +163,6 @@ eScriptSystemOSID AGSLinux::GetSystemOSID() {
 
 int AGSLinux::InitializeCDPlayer() {
   return cd_player_init();
-}
-
-void AGSLinux::PlayVideo(const char *name, int skip, int flags) {
-  // do nothing
 }
 
 void AGSLinux::PostAllegroExit() {

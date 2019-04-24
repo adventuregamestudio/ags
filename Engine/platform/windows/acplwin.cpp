@@ -40,6 +40,13 @@
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
 
+#ifndef AGS_NO_VIDEO_PLAYER
+extern void dxmedia_abort_video();
+extern void dxmedia_pause_video();
+extern void dxmedia_resume_video();
+extern char lastError[200];
+#endif
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -84,10 +91,6 @@ String win32OutputDirectory;
 
 const unsigned int win32TimerPeriod = 1;
 
-extern void dxmedia_abort_video();
-extern void dxmedia_pause_video();
-extern void dxmedia_resume_video();
-extern char lastError[200];
 extern SetupReturnValue acwsetup(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &game_data_dir, const char*, const char*);
 
 struct AGSWin32 : AGSPlatformDriver {
@@ -110,7 +113,6 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual const char* GetAllegroFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
-  virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
   virtual SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out);
@@ -132,6 +134,11 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void ValidateWindowSize(int &x, int &y, bool borderless) const;
   virtual bool LockMouseToWindow();
   virtual void UnlockMouse();
+
+#ifndef AGS_NO_VIDEO_PLAYER
+  virtual void PlayVideo(const char* name, int skip, int flags);
+#endif
+
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -728,12 +735,16 @@ void AGSWin32::DisplaySwitchIn() {
 
 void AGSWin32::PauseApplication()
 {
-    dxmedia_pause_video();
+#ifndef AGS_NO_VIDEO_PLAYER
+  dxmedia_pause_video();
+#endif
 }
 
 void AGSWin32::ResumeApplication()
 {
-    dxmedia_resume_video();
+#ifndef AGS_NO_VIDEO_PLAYER
+  dxmedia_resume_video();
+#endif
 }
 
 void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)
@@ -877,6 +888,8 @@ int AGSWin32::InitializeCDPlayer() {
 #endif
 }
 
+#ifndef AGS_NO_VIDEO_PLAYER
+
 void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
   char useloc[250];
@@ -924,9 +937,13 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
   set_palette_range(palette, 0, 255, 0);
 }
 
+#endif
+
 void AGSWin32::AboutToQuitGame() 
 {
+#ifndef AGS_NO_VIDEO_PLAYER
   dxmedia_abort_video();
+#endif
 }
 
 void AGSWin32::PostAllegroExit() {

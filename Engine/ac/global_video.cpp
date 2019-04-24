@@ -43,6 +43,9 @@ void scrPlayVideo(const char* name, int skip, int flags) {
     pause_sound_if_necessary_and_play_video(name, skip, flags);
 }
 
+
+#ifndef AGS_NO_VIDEO_PLAYER
+
 void pause_sound_if_necessary_and_play_video(const char *name, int skip, int flags)
 {
     int musplaying = play.cur_music_number, i;
@@ -74,3 +77,9 @@ void pause_sound_if_necessary_and_play_video(const char *name, int skip, int fla
         }
     }
 }
+
+#else
+
+void pause_sound_if_necessary_and_play_video(const char *name, int skip, int flags) {}
+
+#endif

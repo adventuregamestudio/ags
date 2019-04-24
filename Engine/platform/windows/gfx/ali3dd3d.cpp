@@ -35,10 +35,12 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/library.h"
 
-using namespace AGS::Common;
-
+#ifndef AGS_NO_VIDEO_PLAYER
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
+#endif
+
+using namespace AGS::Common;
 
 // Necessary to update textures from 8-bit bitmaps
 extern RGB palette[256];
@@ -995,7 +997,9 @@ void D3DGraphicsDriver::UnInit()
   OnUnInit();
   ReleaseDisplayMode();
 
+#ifndef AGS_NO_VIDEO_PLAYER
   dxmedia_shutdown_3d();
+#endif
 
   if (pNativeSurface)
   {
@@ -1900,6 +1904,8 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   this->ClearDrawLists();
 }
 
+#ifndef AGS_NO_VIDEO_PLAYER
+
 bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)
 {
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0.5f, 0);
@@ -1907,6 +1913,8 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
   int result = dxmedia_play_video_3d(filename, direct3ddevice, useAVISound, skipType, stretchToFullScreen ? 1 : 0);
   return (result == 0);
 }
+
+#endif
 
 void D3DGraphicsDriver::create_screen_tint_bitmap() 
 {

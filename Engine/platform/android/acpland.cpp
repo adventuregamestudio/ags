@@ -51,7 +51,6 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual bool IsBackendResponsibleForMouseScaling() { return true; }
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
-  virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
@@ -702,10 +701,6 @@ eScriptSystemOSID AGSAndroid::GetSystemOSID() {
 
 int AGSAndroid::InitializeCDPlayer() {
   return 1;//cd_player_init();
-}
-
-void AGSAndroid::PlayVideo(const char *name, int skip, int flags) {
-  // do nothing
 }
 
 void AGSAndroid::PostAllegroExit() {

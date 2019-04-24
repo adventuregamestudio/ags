@@ -1971,11 +1971,6 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   this->ClearDrawLists();
 }
 
-bool OGLGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)
-{
- return true;
-}
-
 void OGLGraphicsDriver::create_screen_tint_bitmap() 
 {
   // Some work on textures depends on current scaling filter, sadly

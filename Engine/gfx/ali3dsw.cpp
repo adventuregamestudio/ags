@@ -42,7 +42,7 @@ extern "C" extern LPDIRECTDRAW2 directdraw;
 extern "C" DDRAW_SURFACE *gfx_directx_primary_surface;
 #endif // AGS_DDRAW_GAMMA_CONTROL
 
-#if AGS_PLATFORM_OS_WINDOWS
+#ifndef AGS_NO_VIDEO_PLAYER
 extern int dxmedia_play_video (const char*, bool, int, int);
 #endif
 
@@ -779,6 +779,8 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
 }
 // end fading routines
 
+#ifndef AGS_NO_VIDEO_PLAYER
+
 bool ALSoftwareGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)
 {
 #if AGS_PLATFORM_OS_WINDOWS
@@ -788,6 +790,8 @@ bool ALSoftwareGraphicsDriver::PlayVideo(const char *filename, bool useAVISound,
   return 0;
 #endif
 }
+
+#endif;
 
 // add the alpha values together, used for compositing alpha images
 unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n)

@@ -13,6 +13,9 @@
 //=============================================================================
 
 #include "media/video/video.h"
+
+#ifndef AGS_NO_VIDEO_PLAYER
+
 #include "apeg.h"
 #include "core/platform.h"
 #define AGS_FLI_FROM_PACK_FILE (AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_MACOS)
@@ -458,3 +461,11 @@ void video_on_gfxmode_changed()
         set_palette_range(fli_palette, 0, 255, 0);
     }
 }
+
+#else
+
+void play_theora_video(const char *name, int skip, int flags) {}
+void play_flc_file(int numb,int playflags) {}
+void video_on_gfxmode_changed() {}
+
+#endif

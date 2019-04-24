@@ -405,24 +405,24 @@ TEST(Compile, NegationLHSOfExpression) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        enum MyEnum\
-        {\
-            cat\
-        };\
-        \
-        int MyFunctionA()\
-        {\
-            return 0;\
-        }\
-        \
-        int MyFunctionB()\
-        {\
-            int data0 = - 4 * 4;\
-            int data1 = - MyFunctionA() * 4;\
-            int data2 = -cat * 4;\
-            \
-            return 0;\
-        }\
+        enum MyEnum         \n\
+        {                   \n\
+            cat             \n\
+        };                  \n\
+                            \n\
+        int MyFunctionA()   \n\
+        {                   \n\
+            return 0;       \n\
+        }                   \n\
+                            \n\
+        int MyFunctionB()   \n\
+        {                   \n\
+            int data0 = - 4 * 4;                \n\
+            int data1 = - MyFunctionA() * 4;    \n\
+            int data2 = -cat * 4;               \n\
+                            \n\
+            return 0;       \n\
+        }                   \n\
         ";
 
     clear_error();

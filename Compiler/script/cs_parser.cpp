@@ -2716,36 +2716,18 @@ int AccessData_FunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, A
 
 int ParseSubexpr_NoOps(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len)
 {
-
-    // Can't check whether type is 0, because e.g. "this" doesn't have a type
-
     if (SYM_OPENPARENTHESIS == sym.get_type(symlist[0]))
         return ParseSubexpr_OpenParenthesis(scrip, symlist, symlist_len);
 
-    if (SYM_OPERATOR == sym.get_type(symlist[0]))
-    {
-        // check for unary minus
-        if (SCMD_SUBREG == sym.entries[symlist[0]].operatorToVCPUCmd())
-        {
-            if (symlist_len == 2)
-                return ReadDataIntoAX(scrip, &symlist[1], 1, true);
+    if (SYM_OPERATOR != sym.get_type(symlist[0]))
+        return ReadDataIntoAX(scrip, symlist, symlist_len);
 
-            // If there are bogus tokens after a term that begins with unary minus, 
-            // then the problem is the bogus tokens, beginning at index 2. 
-            // Otherwise, the problem is the unary minus itself, at index 0. 
-            cc_error(
-                "Parse error: unexpected '%s'",
-                sym.get_name_string(symlist[(symlist_len > 2) ? 2 : 0]).c_str());
-            return -1;
-        }
+    // The operator at the beginning must be a unary minus
+    if (SCMD_SUBREG == sym.entries[symlist[0]].operatorToVCPUCmd())
+        return ReadDataIntoAX(scrip, &symlist[1], symlist_len - 1, true);
 
-        // We don't know this unary operator. "new", perhaps?
-        cc_error("Parse error: Unexpected '%s'", sym.get_name_string(symlist[0]).c_str());
-        return -1;
-    }
-
-    // So this is a literal, variable or func call, simply read it.
-    return ReadDataIntoAX(scrip, symlist, symlist_len);
+    cc_error("Parse error: Unexpected '%s'", sym.get_name_string(symlist[0]).c_str());
+    return -1;
 }
 
 int ParseSubexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len)

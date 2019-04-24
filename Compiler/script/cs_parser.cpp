@@ -35,7 +35,7 @@ The second phase has the following main components:
         In ParseWhile() etc., DealWithEndOf..(), and class AGS::NestingStack.
 
     Expression parsing
-        In ParseExpression() and ParseSubexpr()
+        In ParseExpression() and ParseExpression_Subexpr()
         Note that "++" and "--" are treated as assignment symbols, not as operators.
 
     Memory access
@@ -91,7 +91,7 @@ extern int currentline;
 char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2019 others";
 
 int ParseExpression(ccInternalList *targ, ccCompiledScript *script);
-int ParseSubexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len);
+int ParseExpression_Subexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len);
 int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len, bool negate = false);
 
 enum FxFixupType // see script_common.h
@@ -2107,7 +2107,7 @@ inline int GetReadWriteCmdForSize(int the_size, bool write_operation)
 }
 
 
-int ParseSubexpr_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
+int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
 {
     if (symlist_len < 2 || sym.get_type(symlist[1]) != SYM_VARTYPE)
     {
@@ -2136,7 +2136,7 @@ int ParseSubexpr_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &sy
 
         // Expression for length of array begins after "[", ends before "]"
         // So expression_length = whole_length - 3 - 1
-        int retval = ParseSubexpr(scrip, &symlist[3], symlist_len - 4);
+        int retval = ParseExpression_Subexpr(scrip, &symlist[3], symlist_len - 4);
         if (retval < 0) return retval;
 
         if (scrip->ax_val_type != sym.normalIntSym)
@@ -2173,7 +2173,7 @@ int ParseSubexpr_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &sy
 
 
 // We're parsing an expression that starts with '-' (unary minus)
-int ParseSubexpr_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
+int ParseExpression_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
 {
     if (symlist_len < 2)
     {
@@ -2181,7 +2181,7 @@ int ParseSubexpr_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::SymbolScr
         return -1;
     }
     // parse the rest of the expression into AX
-    int retval = ParseSubexpr(scrip, &symlist[1], symlist_len - 1);
+    int retval = ParseExpression_Subexpr(scrip, &symlist[1], symlist_len - 1);
     if (retval < 0) return retval;
 
     // now, subtract the result from 0 (which negates it)
@@ -2197,7 +2197,7 @@ int ParseSubexpr_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::SymbolScr
 
 
 // We're parsing an expression that starts with '!' (boolean NOT)
-int ParseSubexpr_NotIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript & symlist, size_t symlist_len)
+int ParseExpression_NotIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript & symlist, size_t symlist_len)
 {
 
     if (symlist_len < 2)
@@ -2207,7 +2207,7 @@ int ParseSubexpr_NotIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript & s
     }
 
     // parse the rest of the expression into AX
-    int retval = ParseSubexpr(scrip, &symlist[1], symlist_len - 1);
+    int retval = ParseExpression_Subexpr(scrip, &symlist[1], symlist_len - 1);
     if (retval < 0) return retval;
 
     // negate the result
@@ -2224,24 +2224,24 @@ int ParseSubexpr_NotIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript & s
 
 // The lowest-binding operator is the first thing in the expression
 // This means that the op must be an unary op.
-int ParseSubexpr_OpIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
+int ParseExpression_OpIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
 {
     if (SYM_NEW == sym.get_type(symlist[0]))
     {
         // we're parsing something like "new foo"
-        return ParseSubexpr_NewIsFirst(scrip, symlist, symlist_len);
+        return ParseExpression_NewIsFirst(scrip, symlist, symlist_len);
     }
 
     if (sym.entries[symlist[0]].operatorToVCPUCmd() == SCMD_SUBREG)
     {
         // we're parsing something like "- foo"
-        return ParseSubexpr_UnaryMinusIsFirst(scrip, symlist, symlist_len);
+        return ParseExpression_UnaryMinusIsFirst(scrip, symlist, symlist_len);
     }
 
     if (sym.entries[symlist[0]].operatorToVCPUCmd() == SCMD_NOTREG)
     {
         // we're parsing something like "! foo"
-        return ParseSubexpr_NotIsFirst(scrip, symlist, symlist_len);
+        return ParseExpression_NotIsFirst(scrip, symlist, symlist_len);
     }
 
     // All the other operators need a non-empty left hand side
@@ -2251,7 +2251,7 @@ int ParseSubexpr_OpIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &sym
 
 
 // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len)
+int ParseExpression_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len)
 {
 
     int vcpuOperator = sym.entries[symlist[op_idx]].operatorToVCPUCmd();
@@ -2276,7 +2276,7 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, const
     // process the left hand side and save result onto stack
     // This will be in vain if we find out later on that there isn't any right hand side,
     // but doing the left hand side first means that any errors will be generated from left to right
-    int retval = ParseSubexpr(scrip, &symlist[0], op_idx);
+    int retval = ParseExpression_Subexpr(scrip, &symlist[0], op_idx);
     if (retval < 0) return retval;
 
     if (op_idx + 1 >= symlist_len)
@@ -2311,7 +2311,7 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, const
     int vartype_leftsize = scrip->ax_val_type;
 
     scrip->push_reg(SREG_AX);
-    retval = ParseSubexpr(scrip, &symlist[op_idx + 1], symlist_len - (op_idx + 1));
+    retval = ParseExpression_Subexpr(scrip, &symlist[op_idx + 1], symlist_len - (op_idx + 1));
     if (retval < 0) return retval;
     scrip->pop_reg(SREG_BX); // <-- note, we pop to BX although we have pushed AX
     // now the result of the left side is in BX, of the right side is in AX
@@ -2341,7 +2341,7 @@ int ParseSubexpr_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, const
 }
 
 
-int ParseSubexpr_OpenParenthesis(ccCompiledScript *scrip, AGS::SymbolScript & symlist, size_t symlist_len)
+int ParseExpression_OpenParenthesis(ccCompiledScript *scrip, AGS::SymbolScript & symlist, size_t symlist_len)
 {
     int matching_paren_idx = -1;
     size_t paren_nesting_depth = 1; // we've already read a '('
@@ -2381,7 +2381,7 @@ int ParseSubexpr_OpenParenthesis(ccCompiledScript *scrip, AGS::SymbolScript & sy
     }
 
     // Recursively compile the subexpression
-    int retval = ParseSubexpr(scrip, &symlist[1], matching_paren_idx - 1);
+    int retval = ParseExpression_Subexpr(scrip, &symlist[1], matching_paren_idx - 1);
     if (retval < 0) return retval;
 
     symlist += matching_paren_idx + 1;
@@ -2471,7 +2471,7 @@ int AccessData_FunctionCall_PushParams(ccCompiledScript *scrip, const AGS::Symbo
 
         if (keep_mar) // mustn't clobber MAR
             scrip->push_reg(SREG_MAR);
-        int retval = ParseSubexpr(scrip, &paramList[start_of_this_param], end_of_this_param - start_of_this_param);
+        int retval = ParseExpression_Subexpr(scrip, &paramList[start_of_this_param], end_of_this_param - start_of_this_param);
         if (retval < 0) return retval;
         if (keep_mar)
             scrip->pop_reg(SREG_MAR);
@@ -2714,10 +2714,10 @@ int AccessData_FunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, A
     return 0;
 }
 
-int ParseSubexpr_NoOps(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len)
+int ParseExpression_NoOps(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len)
 {
     if (SYM_OPENPARENTHESIS == sym.get_type(symlist[0]))
-        return ParseSubexpr_OpenParenthesis(scrip, symlist, symlist_len);
+        return ParseExpression_OpenParenthesis(scrip, symlist, symlist_len);
 
     if (SYM_OPERATOR != sym.get_type(symlist[0]))
         return ReadDataIntoAX(scrip, symlist, symlist_len);
@@ -2730,7 +2730,7 @@ int ParseSubexpr_NoOps(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_
     return -1;
 }
 
-int ParseSubexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len)
+int ParseExpression_Subexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len)
 {
     if (symlist_len == 0)
     {
@@ -2757,21 +2757,21 @@ int ParseSubexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t syml
     }
 
     if (lowest_op_idx == 0)
-        return ParseSubexpr_OpIsFirst(scrip, symlist, symlist_len);
+        return ParseExpression_OpIsFirst(scrip, symlist, symlist_len);
 
     if (lowest_op_idx > 0)
-        return ParseSubexpr_OpIsSecondOrLater(scrip, static_cast<size_t>(lowest_op_idx), symlist, symlist_len);
+        return ParseExpression_OpIsSecondOrLater(scrip, static_cast<size_t>(lowest_op_idx), symlist, symlist_len);
 
     // There is no operator in the expression -- therefore, there will
     // just be a variable name or function call or a parenthesized expression
 
-    return ParseSubexpr_NoOps(scrip, symlist, symlist_len);
+    return ParseExpression_NoOps(scrip, symlist, symlist_len);
 }
 
 // symlist starts a bracketed expression; parse it
 int AccessData_ArrayIndexIntoAX(ccCompiledScript *scrip, SymbolScript symlist, size_t symlist_len)
 {
-    int retval = ParseSubexpr(scrip, symlist, symlist_len);
+    int retval = ParseExpression_Subexpr(scrip, symlist, symlist_len);
     if (retval < 0) return retval;
 
     symlist++;
@@ -3639,7 +3639,7 @@ int ParseExpression(ccInternalList *targ, ccCompiledScript *scrip)
     if (retval < 0) return retval;
 
     // we now have the expression in expr_script, parse it
-    return ParseSubexpr(scrip, expr_script.script, expr_script.length);
+    return ParseExpression_Subexpr(scrip, expr_script.script, expr_script.length);
 }
 
 // We are parsing the left hand side of a += or similar statement.
@@ -5986,7 +5986,7 @@ int ParseAssignmentOrFunccall(ccInternalList *targ, ccCompiledScript *scrip, AGS
     if (expr_script.length > 0)
     {
         if (nexttype == SYM_SEMICOLON)
-            return ParseSubexpr(scrip, expr_script.script, expr_script.length);
+            return ParseExpression_Subexpr(scrip, expr_script.script, expr_script.length);
 
         if (nexttype == SYM_ASSIGN || nexttype == SYM_MASSIGN || nexttype == SYM_SASSIGN)
             return ParseAssignment(targ, scrip, nextsym, SYM_SEMICOLON, &expr_script);

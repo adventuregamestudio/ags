@@ -23,7 +23,7 @@ void ccCompiledScript::pop_reg(int regg)
 ccCompiledScript::ccCompiledScript() 
 {
     init();
-    ax_val_type = 0;
+    ax_vartype = 0;
     ax_val_scope = 0;
 }
 

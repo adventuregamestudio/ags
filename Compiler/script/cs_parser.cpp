@@ -2050,7 +2050,7 @@ inline bool IsBooleanVCPUOperator(int scmdtype)
 void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 {
 
-    if (((scrip->ax_val_type & (~STYPE_POINTER)) == sym.stringStructSym) &&
+    if (((scrip->ax_vartype & (~STYPE_POINTER)) == sym.stringStructSym) &&
         ((valTypeTo & (~STYPE_CONST)) == sym.normalStringSym))
     {
         scrip->write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
@@ -2063,11 +2063,11 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 // then convert AX into a String object and set its type accordingly
 void ConvertAXIntoStringObject(ccCompiledScript *scrip, int valTypeTo)
 {
-    if (((scrip->ax_val_type & (~STYPE_CONST)) == sym.normalStringSym) &&
+    if (((scrip->ax_vartype & (~STYPE_CONST)) == sym.normalStringSym) &&
         ((valTypeTo & (~STYPE_POINTER)) == sym.stringStructSym))
     {
         scrip->write_cmd1(SCMD_CREATESTRING, SREG_AX); // convert AX
-        scrip->ax_val_type = STYPE_POINTER | sym.stringStructSym; // set type of AX
+        scrip->ax_vartype = STYPE_POINTER | sym.stringStructSym; // set type of AX
     }
 }
 
@@ -2125,7 +2125,7 @@ int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
         }
         const size_t size = sym.entries[symlist[1]].ssize;
         scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
-        scrip->ax_val_type = symlist[1] | STYPE_POINTER;
+        scrip->ax_vartype = symlist[1] | STYPE_POINTER;
         return 0;
     }
 
@@ -2139,7 +2139,7 @@ int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
         int retval = ParseExpression_Subexpr(scrip, &symlist[3], symlist_len - 4);
         if (retval < 0) return retval;
 
-        if (scrip->ax_val_type != sym.normalIntSym)
+        if (scrip->ax_vartype != sym.normalIntSym)
         {
             cc_error("Array size must be an int");
             return -1;
@@ -2159,10 +2159,10 @@ int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
         }
 
         scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
-        scrip->ax_val_type = arrayType | STYPE_DYNARRAY | STYPE_ARRAY;
+        scrip->ax_vartype = arrayType | STYPE_DYNARRAY | STYPE_ARRAY;
 
         if (isManagedType)
-            scrip->ax_val_type |= STYPE_POINTER;
+            scrip->ax_vartype |= STYPE_POINTER;
 
         return 0;
     }
@@ -2186,7 +2186,7 @@ int ParseExpression_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::Symbol
 
     // now, subtract the result from 0 (which negates it)
     int cpuOp = SCMD_SUBREG; // get correct bytecode for the subtraction
-    retval = GetOperatorValidForType(scrip->ax_val_type, sym.normalIntSym, cpuOp);
+    retval = GetOperatorValidForType(scrip->ax_vartype, sym.normalIntSym, cpuOp);
     if (retval < 0) return retval;
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_BX, 0);
@@ -2213,7 +2213,7 @@ int ParseExpression_NotIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
     // negate the result
     // First determine the correct bytecode for the negation
     int cpuOp = SCMD_NOTREG;
-    retval = GetOperatorValidForType(scrip->ax_val_type, 0, cpuOp);
+    retval = GetOperatorValidForType(scrip->ax_vartype, 0, cpuOp);
     if (retval < 0) return retval;
 
     // now, NOT the result
@@ -2308,7 +2308,7 @@ int ParseExpression_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, co
         jump_dest_loc_to_patch = scrip->codesize - 1;
     }
 
-    int vartype_leftsize = scrip->ax_val_type;
+    int vartype_leftsize = scrip->ax_vartype;
 
     scrip->push_reg(SREG_AX);
     retval = ParseExpression_Subexpr(scrip, &symlist[op_idx + 1], symlist_len - (op_idx + 1));
@@ -2317,10 +2317,10 @@ int ParseExpression_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, co
     // now the result of the left side is in BX, of the right side is in AX
 
     // Check whether the left side type and right side type match either way
-    retval = IsVartypeMismatch(scrip->ax_val_type, vartype_leftsize, false);
+    retval = IsVartypeMismatch(scrip->ax_vartype, vartype_leftsize, false);
     if (retval < 0) return retval;
 
-    retval = GetOperatorValidForType(scrip->ax_val_type, vartype_leftsize, vcpuOperator);
+    retval = GetOperatorValidForType(scrip->ax_vartype, vartype_leftsize, vcpuOperator);
     if (retval < 0) return retval;
 
     scrip->write_cmd2(vcpuOperator, SREG_BX, SREG_AX);
@@ -2335,7 +2335,7 @@ int ParseExpression_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, co
     // Operators like == return a bool (in our case, that's an int);
     // other operators like + return the type that they're operating on
     if (IsBooleanVCPUOperator(vcpuOperator))
-        scrip->ax_val_type = sym.normalIntSym;
+        scrip->ax_vartype = sym.normalIntSym;
 
     return 0;
 }
@@ -2482,7 +2482,7 @@ int AccessData_FunctionCall_PushParams(ccCompiledScript *scrip, const AGS::Symbo
             int parameterType = sym.entries[funcSymbol].funcparamtypes[param_num];
             ConvertAXIntoStringObject(scrip, parameterType);
 
-            if (IsVartypeMismatch(scrip->ax_val_type, parameterType, true))
+            if (IsVartypeMismatch(scrip->ax_vartype, parameterType, true))
                 return -1;
 
             // If we need a normal string but AX contains a string object ptr, 
@@ -2701,7 +2701,7 @@ int AccessData_FunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, A
     AccessData_GenerateFunctionCall(scrip, name_of_func, num_args, func_is_import);
 
     // function return type
-    rettype = scrip->ax_val_type = sym.entries[name_of_func].funcparamtypes[0];
+    rettype = scrip->ax_vartype = sym.entries[name_of_func].funcparamtypes[0];
     scrip->ax_val_scope = SYM_LOCALVAR;
 
     // At runtime, we have returned from the func call,
@@ -2778,7 +2778,7 @@ int AccessData_ArrayIndexIntoAX(ccCompiledScript *scrip, SymbolScript symlist, s
     symlist_len--;
 
     // array index must be convertible to an int
-    return IsVartypeMismatch(scrip->ax_val_type, sym.normalIntSym, true);
+    return IsVartypeMismatch(scrip->ax_vartype, sym.normalIntSym, true);
 }
 
 
@@ -2900,13 +2900,13 @@ int AccessData_Attribute(ccCompiledScript *scrip, SymbolScript symlist, size_t s
     scrip->ax_val_scope = SYM_LOCALVAR;
     if (is_attribute_set_func)
     {
-        scrip->ax_val_type = sym.normalVoidSym;
+        scrip->ax_vartype = sym.normalVoidSym;
     }
     else
     {
-        scrip->ax_val_type = sym.get_vartype(name_of_attribute);
+        scrip->ax_vartype = sym.get_vartype(name_of_attribute);
         if (FlagIsSet(sym.entries[name_of_attribute].flags, SFLG_CONST))
-            scrip->ax_val_type |= STYPE_CONST;
+            scrip->ax_vartype |= STYPE_CONST;
     }
 
     // Attribute has been accessed
@@ -3049,7 +3049,7 @@ int AccessData_LitFloat(ccCompiledScript *scrip, bool negate, AGS::SymbolScript 
     int const i = InterpretFloatAsInt(f);
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, i);
-    scrip->ax_val_type = vartype = sym.normalFloatSym;
+    scrip->ax_vartype = vartype = sym.normalFloatSym;
     scrip->ax_val_scope = SYM_GLOBALVAR;
     symlist++;
     symlist_len--;
@@ -3065,7 +3065,7 @@ int AccessData_LitOrConst(ccCompiledScript *scrip, bool negateLiteral, AGS::Symb
     symlist_len--;
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, varSymValue);
-    scrip->ax_val_type = vartype = sym.normalIntSym;
+    scrip->ax_vartype = vartype = sym.normalIntSym;
     scrip->ax_val_scope = SYM_GLOBALVAR;
 
     return 0;
@@ -3080,7 +3080,7 @@ int AccessData_Null(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &sym
     }
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
-    scrip->ax_val_type = vartype = sym.normalNullSym | STYPE_POINTER;
+    scrip->ax_vartype = vartype = sym.normalNullSym | STYPE_POINTER;
     scrip->ax_val_scope = SYM_GLOBALVAR;
     symlist++;
     symlist_len--;
@@ -3098,7 +3098,7 @@ int AccessData_String(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &s
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[symlist[0]].soffs);
     scrip->fixup_previous(FIXUP_STRING);
-    scrip->ax_val_type = vartype = sym.normalStringSym | STYPE_CONST;
+    scrip->ax_vartype = vartype = sym.normalStringSym | STYPE_CONST;
     symlist++;
     symlist_len--;
     return 0;
@@ -3472,7 +3472,7 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
 
     if (vloc == kVL_ax_is_value)
     {
-        scrip->ax_val_type = vartype;
+        scrip->ax_vartype = vartype;
         scrip->ax_val_scope = scope;
         return 0;
     }
@@ -3494,7 +3494,7 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
 {
     // AX contains the result of evaluating the RHS of the assignment
     // Save on the stack so that it isn't clobbered
-    AGS::Vartype rhsvartype = scrip->ax_val_type;
+    AGS::Vartype rhsvartype = scrip->ax_vartype;
     int rhsscope = scrip->ax_val_scope;
     scrip->write_cmd1(SCMD_PUSHREG, SREG_AX);
 
@@ -3515,7 +3515,7 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     }
         
     scrip->write_cmd1(SCMD_POPREG, SREG_AX);
-    scrip->ax_val_type = rhsvartype;
+    scrip->ax_vartype = rhsvartype;
     scrip->ax_val_scope = rhsscope;
 
     ConvertAXIntoStringObject(scrip, lhsvartype);
@@ -3551,7 +3551,7 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
 
     // Get the result into AX
     scrip->write_cmd1(SCMD_MEMREAD, SREG_AX);
-    scrip->ax_val_type = vartype;
+    scrip->ax_vartype = vartype;
     scrip->ax_val_scope = scope;
     return 0;
 }
@@ -3664,7 +3664,7 @@ int ParseAssignment_ReadLHSForModification(ccCompiledScript *scrip, ccInternalLi
     if (kVL_mar_pointsto_value == vloc)
     {
         // write memory to AX
-        scrip->ax_val_type = lhstype;
+        scrip->ax_vartype = lhstype;
         scrip->ax_val_scope = scope;
         AGS::Symbol memread = GetReadCommandForSize(sym.entries[lhstype].ssize);
         scrip->write_cmd1(memread, SREG_AX);
@@ -3686,7 +3686,7 @@ int ParseAssignment_MAssign(ccInternalList *targ, ccCompiledScript *scrip, AGS::
     int retval = ParseExpression(targ, scrip);
     if (retval < 0) return retval;
     scrip->write_cmd1(SCMD_PUSHREG, SREG_AX);
-    AGS::Vartype rhsvartype = scrip->ax_val_type;
+    AGS::Vartype rhsvartype = scrip->ax_vartype;
 
     // Parse LHS
     ValueLocation vloc;
@@ -3787,7 +3787,7 @@ int ParseVardecl_InitialValAssignment_ToLocal(ccInternalList *targ, ccCompiledSc
     ConvertAXIntoStringObject(scrip, vartype);
 
     // Check whether the types match
-    retval = IsVartypeMismatch(scrip->ax_val_type, vartype, true);
+    retval = IsVartypeMismatch(scrip->ax_vartype, vartype, true);
     if (retval < 0) return retval;
     return 0;
 }
@@ -5712,10 +5712,10 @@ int ParseReturn(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol inFun
         ConvertAXIntoStringObject(scrip, functionReturnType);
 
         // check return type is correct
-        retval = IsVartypeMismatch(scrip->ax_val_type, functionReturnType, true);
+        retval = IsVartypeMismatch(scrip->ax_vartype, functionReturnType, true);
         if (retval < 0) return retval;
 
-        if ((is_string(scrip->ax_val_type)) &&
+        if ((is_string(scrip->ax_vartype)) &&
             (scrip->ax_val_scope == SYM_LOCALVAR))
         {
             cc_error("Cannot return local string from function");
@@ -6102,7 +6102,7 @@ int ParseSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack
     }
 
     // Remember the type of this expression to enforce it later
-    int switch_expr_type = scrip->ax_val_type;
+    int switch_expr_type = scrip->ax_vartype;
 
     // Copy the result to the BX register, ready for case statements
     scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_BX);
@@ -6172,7 +6172,7 @@ int ParseCasedefault(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol 
         if (retval < 0) return retval;  // case n: label expression, result is in AX
 
         // check that the types of the "case" expression and the "switch" expression match
-        retval = IsVartypeMismatch(scrip->ax_val_type, nesting_stack->SwitchExprType(), false);
+        retval = IsVartypeMismatch(scrip->ax_vartype, nesting_stack->SwitchExprType(), false);
         if (retval < 0) return retval;
 
         // Pop the switch variable, ready for comparison
@@ -6180,7 +6180,7 @@ int ParseCasedefault(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol 
 
         // get the right equality operator for the type
         int eq_op = SCMD_ISEQUAL;
-        retval = GetOperatorValidForType(scrip->ax_val_type, nesting_stack->SwitchExprType(), eq_op);
+        retval = GetOperatorValidForType(scrip->ax_vartype, nesting_stack->SwitchExprType(), eq_op);
         if (retval < 0) return retval;
 
         // [fw] Comparison operation may be missing here.

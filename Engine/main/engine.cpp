@@ -433,18 +433,6 @@ void engine_init_keyboard()
 #endif
 }
 
-typedef struct { char s[5]; } AlIDStr;
-
-AlIDStr AlIDToChars(int al_id)
-{
-    if (al_id == 0)
-        return AlIDStr{ 'N', 'O', 'N', 'E', 0 };
-    else if (al_id == -1)
-        return AlIDStr{ 'A', 'U', 'T', 'O', 0 };
-    else
-        return AlIDStr{ (al_id >> 24) & 0xFF, (al_id >> 16) & 0xFF, (al_id >> 8) & 0xFF, (al_id) & 0xFF, 0 };
-}
-
 bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = nullptr)
 {
     Debug::Printf(kDbgMsg_Init, "Trying to init: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",

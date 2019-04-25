@@ -21,9 +21,6 @@
     <ClCompile Include="..\..\Compiler\test\cc_symboltable_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Compiler\test\cc_treemap_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Compiler\test\cs_parser_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

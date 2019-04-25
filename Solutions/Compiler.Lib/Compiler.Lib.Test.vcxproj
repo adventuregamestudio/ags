@@ -99,7 +99,6 @@
     <ClCompile Include="..\..\Compiler\test\cc_byte_compat_test.cpp" />
     <ClCompile Include="..\..\Compiler\test\cc_internallist_test.cpp" />
     <ClCompile Include="..\..\Compiler\test\cc_symboltable_test.cpp" />
-    <ClCompile Include="..\..\Compiler\test\cc_treemap_test.cpp" />
     <ClCompile Include="..\..\Compiler\test\cs_parser_test.cpp" />
     <ClCompile Include="..\..\Compiler\test\cs_scanner_test.cpp" />
     <ClCompile Include="..\..\Compiler\test\cs_tokenizer_test.cpp" />

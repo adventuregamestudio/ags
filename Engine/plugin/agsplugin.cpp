@@ -688,7 +688,8 @@ void IAGSEngine::DisableSound() {
     shutdown_sound();
     usetup.digicard = DIGI_NONE;
     usetup.midicard = MIDI_NONE;
-    install_sound(usetup.digicard,usetup.midicard,nullptr);
+    reserve_voices(0, 0);
+    install_sound(DIGI_NONE, MIDI_NONE, nullptr);
 }
 int IAGSEngine::CanRunScriptFunctionNow() {
     if (inside_script)

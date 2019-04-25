@@ -915,8 +915,7 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
   if (useSound)
   {
-    if (usetup.mod_player)
-      reserve_voices(NUM_DIGI_VOICES, -1);
+    // Restore sound system
     install_sound(usetup.digicard,usetup.midicard,NULL);
     if (usetup.mod_player)
       init_mod_player(NUM_MOD_DIGI_VOICES);

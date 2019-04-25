@@ -325,6 +325,8 @@ extern int psp_gfx_scaling;
 extern int psp_gfx_super_sampling;
 extern int psp_gfx_smoothing;
 extern int psp_gfx_smooth_sprites;
+extern int psp_audio_enabled;
+extern int psp_midi_enabled;
 
 void override_config_ext(ConfigTree &cfg)
 {
@@ -408,6 +410,13 @@ void apply_config(const ConfigTree &cfg)
             idx = MIDI_AUTODETECT;
         usetup.midicard = idx;
 #endif
+        if (!psp_audio_enabled)
+        {
+            usetup.digicard = DIGI_NONE;
+            usetup.midicard = MIDI_NONE;
+        }
+        if (!psp_midi_enabled)
+            usetup.midicard = MIDI_NONE;
         psp_audio_multithreaded = INIreadint(cfg, "sound", "threaded", psp_audio_multithreaded);
 
         // Filter can also be set by command line

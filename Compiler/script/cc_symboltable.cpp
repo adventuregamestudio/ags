@@ -81,15 +81,15 @@ int SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
 }
 
 SymbolTable::SymbolTable()
-    : normalCharSym(0)
-    , normalFloatSym(0)
-    , normalIntSym(0)
-    , normalNullSym(0)
-    , normalPointerSym(0)
-    , normalStringSym(0)
-    , normalVoidSym(0)
-    , stringStructSym(0)
-    , lastPredefSym(0)
+    : _charSym(0)
+    , _floatSym(0)
+    , _intSym(0)
+    , _nullSym(0)
+    , _pointerSym(0)
+    , _stringSym(0)
+    , _voidSym(0)
+    , _stringStructSym(0)
+    , _lastPredefSym(0)
 {
     _findCache.clear();
 }
@@ -110,34 +110,34 @@ void SymbolTable::reset()
 
     entries.clear();
 
-    stringStructSym = 0;
+    setStringStructSym(0);
 
     add_ex("___dummy__sym0", static_cast<SymbolType>(999), 0);
 
     // Primitive types
-    normalCharSym =
+    _charSym =
         add_ex("char", kSYM_Vartype, 1);
-    normalFloatSym =
+    _floatSym =
         add_ex("float", kSYM_Vartype, 4);
-    normalIntSym =
+    _intSym =
         add_ex("int", kSYM_Vartype, 4);
     add_ex("long", kSYM_Vartype, 4);
     add_ex("short", kSYM_Vartype, 2);
-    normalStringSym =
+    _stringSym =
         add_ex("string", kSYM_Vartype, 4);
-    normalVoidSym =
+    _voidSym =
         add_ex("void", kSYM_Vartype, 0);
 
     // can be part of expression
     add_ex("]", kSYM_CloseBracket, 0);
     add_ex(")", kSYM_CloseParenthesis, 0);
     add_ex(".", kSYM_Dot, 0);
-    normalNullSym = add_ex("null", kSYM_Null, 0);
+    _nullSym = add_ex("null", kSYM_Null, 0);
     add_ex("[", kSYM_OpenBracket, 0);
     add_ex("(", kSYM_OpenParenthesis, 0);
     // the second argument to the operators is their precedence: 1 is highest
     add_operator("!", 1, SCMD_NOTREG);
-    normalPointerSym =
+    _pointerSym =
         add_operator("*", 2, SCMD_MULREG);
     add_operator("/", 3, SCMD_DIVREG);
     add_operator("%", 4, SCMD_MODREG);
@@ -156,7 +156,7 @@ void SymbolTable::reset()
     add_operator("<=", 17, SCMD_LTE);
     add_operator("&&", 18, SCMD_AND);
     add_operator("||", 19, SCMD_OR);
-    normalThisSym =
+    _thisSym =
         add_ex("this", kSYM_NoType, 0);
 
     // other keywords and symbols
@@ -207,7 +207,7 @@ void SymbolTable::reset()
     add_ex("switch", kSYM_Switch, 0);
     add_ex("...", kSYM_Varargs, 0);
     add_ex("while", kSYM_While, 0);
-    lastPredefSym =
+    _lastPredefSym =
         add_ex("writeprotected", kSYM_WriteProtected, 0); 
 }
 

@@ -178,7 +178,7 @@ void AGS::Tokenizer::ProcessScannerSymstring(
 void AGS::Tokenizer::TokenizeStringLiteral(AGS::Symbol token, std::string const &symstring)
 {
     SetTokenType(token, kSYM_LiteralString);
-    SetTokenVartype(token, _symbolTable->normalStringSym);
+    SetTokenVartype(token, _symbolTable->getOldStringSym());
 
     // Enter the string into the string collector
     std::string s_content = symstring.substr(1, symstring.size() - 2); // i.e., without the surrounding quotes

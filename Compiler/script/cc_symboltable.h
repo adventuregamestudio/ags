@@ -48,22 +48,36 @@ struct SymbolTableEntry {
 };
 
 struct SymbolTable {
+private:
     // index for predefined symbols
-    int normalCharSym;      // the symbol that corresponds to "char"
-    int normalFloatSym;     // the symbol that corresponds to "float"
-    int normalIntSym;       // the symbol that corresponds to "int"
-    int normalNullSym;      // the symbol that corresponds to "null"
-    int normalPointerSym;   // the symbol that corresponds to "*"
-    int normalStringSym;    // the symbol that corresponds to "string"
-    int normalThisSym;      // the symbol that corresponds to "this"
-    int normalVoidSym;      // the symbol that corresponds to "void"
-    int stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
-    int lastPredefSym;      // last predefined symbol
+    AGS::Symbol _charSym;      // the symbol that corresponds to "char"
+    AGS::Symbol _floatSym;     // the symbol that corresponds to "float"
+    AGS::Symbol _intSym;       // the symbol that corresponds to "int"
+    AGS::Symbol _nullSym;      // the symbol that corresponds to "null"
+    AGS::Symbol _pointerSym;   // the symbol that corresponds to "*"
+    AGS::Symbol _stringSym;    // the symbol that corresponds to "string"
+    AGS::Symbol _thisSym;      // the symbol that corresponds to "this"
+    AGS::Symbol _voidSym;      // the symbol that corresponds to "void"
+    AGS::Symbol _stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
+    AGS::Symbol _lastPredefSym;      // last predefined symbol
 
+public:
     std::vector<SymbolTableEntry> entries;
 
     SymbolTable();
     void reset();
+
+    inline AGS::Symbol getCharSym() { return _charSym; }
+    inline AGS::Symbol getFloatSym() { return _floatSym; }
+    inline AGS::Symbol getIntSym() { return _intSym; }
+    inline AGS::Symbol getNullSym() { return _nullSym; }
+    inline AGS::Symbol getPointerSym() { return _pointerSym; }
+    inline AGS::Symbol getOldStringSym() { return _stringSym; }
+    inline AGS::Symbol getThisSym() { return _thisSym; }
+    inline AGS::Symbol getVoidSym() { return _voidSym; }
+    inline AGS::Symbol getStringStructSym() { return _stringStructSym; }
+    inline void setStringStructSym(AGS::Symbol s) { _stringStructSym = s; }
+    inline AGS::Symbol getLastPredefSym() { return _lastPredefSym; }
 
     // Return the symbol to the name, or -1 if not found
     AGS::Symbol find(const char *name);  

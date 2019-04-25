@@ -139,7 +139,7 @@ inline void SetFlag(AGS::Flags &fl_set, long flag, bool val) { if (val) fl_set |
 
 bool IsIdentifier(AGS::Symbol symb)
 {
-    if (symb <= sym.lastPredefSym || symb > sym.entries.size())
+    if (symb <= sym.getLastPredefSym() || symb > sym.entries.size())
         return false;
     std::string name = sym.get_name_string(symb);
     if (name.size() == 0)
@@ -670,7 +670,7 @@ void FreePointersOfStruct(ccCompiledScript *scrip, AGS::Symbol structVarSym)
 inline bool is_any_type_of_string(AGS::Vartype symtype)
 {
     symtype &= ~(kVTYPE_Const | kVTYPE_Pointer);
-    if ((symtype == sym.normalStringSym) || (symtype == sym.stringStructSym))
+    if ((symtype == sym.getOldStringSym()) || (symtype == sym.getStringStructSym()))
         return true;
     return false;
 }
@@ -743,7 +743,7 @@ int FreePointersOfLocals(ccCompiledScript *scrip, int from_level)
             continue;
 
         // don't touch the this pointer
-        if (sym.normalThisSym == entries_idx)
+        if (entries_idx == sym.getThisSym())
             continue;
 
         AGS::Vartype const vartype = sym.get_vartype(entries_idx);
@@ -1178,7 +1178,7 @@ int ParseFuncdecl_ExtenderPreparations(
     if ((sym.get_type(targ->peeknext()) != kSYM_Comma) &&
         (sym.get_type(targ->peeknext()) != kSYM_CloseParenthesis))
     {
-        if (targ->getnext() == sym.normalPointerSym)
+        if (targ->getnext() == sym.getPointerSym())
             cc_error("Static extender function cannot be pointer");
         else
             cc_error("Parameter name cannot be defined for extender type");
@@ -1196,7 +1196,7 @@ int ParseParamlist_ParamType(ccInternalList *targ, AGS::Symbol param_type, bool 
 {
     // Determine whether the type is a pointer
     bool const param_is_natural_ptr =
-        (sym.normalPointerSym == targ->peeknext());
+        (sym.getPointerSym() == targ->peeknext());
     if (param_is_natural_ptr)
         targ->getnext(); // gobble the '*'
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(param_type);
@@ -1207,7 +1207,7 @@ int ParseParamlist_ParamType(ccInternalList *targ, AGS::Symbol param_type, bool 
         return 0;
 
     // Safety checks on the parameter type
-    if (param_type == sym.normalVoidSym)
+    if (sym.getVoidSym() == param_type)
     {
         cc_error("A function parameter must not have the type 'void'");
         return -1;
@@ -1670,7 +1670,7 @@ int ParseFuncdecl(
     }
 
     bool const func_is_static_extender = (kSYM_Static == sym.get_type(targ->peeknext()));
-    bool const func_is_extender = (func_is_static_extender) || (sym.normalThisSym == targ->peeknext());
+    bool const func_is_extender = (func_is_static_extender) || (sym.getThisSym() == targ->peeknext());
 
     // Rewrite extender function as if it were a component function of the corresponding struct.
     if (func_is_extender)
@@ -1846,11 +1846,11 @@ int IndexOfLowestBondingOperator(AGS::SymbolScript slist, size_t slist_len)
 
 inline bool is_string(AGS::Vartype vartype)
 {
-    if (vartype == sym.normalStringSym)
+    if (vartype == sym.getOldStringSym())
         return true;
-    if (vartype == (sym.normalStringSym | kVTYPE_Const))
+    if (vartype == (sym.getOldStringSym() | kVTYPE_Const))
         return true;
-    if (vartype == (sym.normalCharSym | kVTYPE_Const | kVTYPE_Array))
+    if (vartype == (sym.getCharSym() | kVTYPE_Const | kVTYPE_Array))
         return true;
     return false;
 }
@@ -1860,7 +1860,7 @@ inline bool is_string(AGS::Vartype vartype)
 // Also check whether the operator can handle the types at all
 int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::CodeCell &vcpuOp)
 {
-    if ((type1 == sym.normalFloatSym) || (type2 == sym.normalFloatSym))
+    if (sym.getFloatSym() == type1 || sym.getFloatSym() == type2)
     {
         if (type1 != type2)
         {
@@ -1934,7 +1934,7 @@ int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::Code
 bool IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_wants_to_be)
 {
     // cannot convert 'void' to anything
-    if (vartype_is == sym.normalVoidSym)
+    if (sym.getVoidSym() == vartype_is)
         return true;
 
     // Don't convert if no conversion is called for
@@ -1946,8 +1946,8 @@ bool IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_want
         return true;
 
     // can convert String* to const string
-    if ((vartype_is == (kVTYPE_Pointer | sym.stringStructSym)) &&
-        (vartype_wants_to_be == (kVTYPE_Const | sym.normalStringSym)))
+    if ((vartype_is == (kVTYPE_Pointer | sym.getStringStructSym())) &&
+        (vartype_wants_to_be == (kVTYPE_Const | sym.getOldStringSym())))
     {
         return false;
     }
@@ -1957,7 +1957,7 @@ bool IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_want
         return false;
 
     // Can convert from NULL to pointer
-    if ((vartype_is == (kVTYPE_Pointer | sym.normalNullSym)) && ((vartype_wants_to_be & kVTYPE_DynArray) != 0))
+    if ((vartype_is == (kVTYPE_Pointer | sym.getNullSym())) && ((vartype_wants_to_be & kVTYPE_DynArray) != 0))
         return false;
 
     // Cannot convert non-dynarray to dynarray or vice versa
@@ -1969,14 +1969,14 @@ bool IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_want
     vartype_wants_to_be &= ~(kVTYPE_Const | kVTYPE_DynArray);
 
     // floats cannot mingle with other types
-    if ((vartype_is == sym.normalFloatSym) != (vartype_wants_to_be == sym.normalFloatSym))
+    if ((vartype_is == sym.getFloatSym()) != (vartype_wants_to_be == sym.getFloatSym()))
         return true;
 
     // Checks to do if at least one is a pointer
     if ((vartype_is & kVTYPE_Pointer) || (vartype_wants_to_be & kVTYPE_Pointer))
     {
         // null can be cast to any pointer type
-        if (vartype_is == (kVTYPE_Pointer | sym.normalNullSym))
+        if (vartype_is == (kVTYPE_Pointer | sym.getNullSym()))
         {
             if (vartype_wants_to_be & kVTYPE_Pointer)
                 return false;
@@ -2054,8 +2054,8 @@ inline bool IsBooleanVCPUOperator(int scmdtype)
 void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 {
 
-    if (((scrip->ax_vartype & (~kVTYPE_Pointer)) == sym.stringStructSym) &&
-        ((valTypeTo & (~kVTYPE_Const)) == sym.normalStringSym))
+    if (((scrip->ax_vartype & (~kVTYPE_Pointer)) == sym.getStringStructSym()) &&
+        ((valTypeTo & (~kVTYPE_Const)) == sym.getOldStringSym()))
     {
         scrip->write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
     }
@@ -2067,11 +2067,11 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 // then convert AX into a String object and set its type accordingly
 void ConvertAXIntoStringObject(ccCompiledScript *scrip, int valTypeTo)
 {
-    if (((scrip->ax_vartype & (~kVTYPE_Const)) == sym.normalStringSym) &&
-        ((valTypeTo & (~kVTYPE_Pointer)) == sym.stringStructSym))
+    if (((scrip->ax_vartype & (~kVTYPE_Const)) == sym.getOldStringSym()) &&
+        ((valTypeTo & (~kVTYPE_Pointer)) == sym.getStringStructSym()))
     {
         scrip->write_cmd1(SCMD_CREATESTRING, SREG_AX); // convert AX
-        scrip->ax_vartype = kVTYPE_Pointer | sym.stringStructSym; // set type of AX
+        scrip->ax_vartype = kVTYPE_Pointer | sym.getStringStructSym(); // set type of AX
     }
 }
 
@@ -2143,7 +2143,7 @@ int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
         int retval = ParseExpression_Subexpr(scrip, &symlist[3], symlist_len - 4);
         if (retval < 0) return retval;
 
-        if (scrip->ax_vartype != sym.normalIntSym)
+        if (sym.getIntSym() != scrip->ax_vartype)
         {
             cc_error("Array size must be an int");
             return -1;
@@ -2190,7 +2190,7 @@ int ParseExpression_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::Symbol
 
     // now, subtract the result from 0 (which negates it)
     int cpuOp = SCMD_SUBREG; // get correct bytecode for the subtraction
-    retval = GetOperatorValidForVartype(scrip->ax_vartype, sym.normalIntSym, cpuOp);
+    retval = GetOperatorValidForVartype(scrip->ax_vartype, sym.getIntSym(), cpuOp);
     if (retval < 0) return retval;
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_BX, 0);
@@ -2337,7 +2337,7 @@ int ParseExpression_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, co
     // Operators like == return a bool (in our case, that's an int);
     // other operators like + return the type that they're operating on
     if (IsBooleanVCPUOperator(vcpuOperator))
-        scrip->ax_vartype = sym.normalIntSym;
+        scrip->ax_vartype = sym.getIntSym();
 
     return 0;
 }
@@ -2780,7 +2780,7 @@ int AccessData_ArrayIndexIntoAX(ccCompiledScript *scrip, SymbolScript symlist, s
     symlist_len--;
 
     // array index must be convertible to an int
-    return IsVartypeMismatch(scrip->ax_vartype, sym.normalIntSym, true);
+    return IsVartypeMismatch(scrip->ax_vartype, sym.getIntSym(), true);
 }
 
 
@@ -2900,7 +2900,7 @@ int AccessData_Attribute(ccCompiledScript *scrip, SymbolScript symlist, size_t s
 
     // attribute return type
     scrip->ax_val_scope = kSYM_LocalVar;
-    scrip->ax_vartype = (is_attribute_set_func) ? sym.normalVoidSym : sym.get_vartype(name_of_attribute);
+    scrip->ax_vartype = (is_attribute_set_func) ? sym.getVoidSym() : sym.get_vartype(name_of_attribute);
 
     // Attribute has been accessed
     SetFlag(sym.entries[name_of_attribute].flags, kSFLG_Accessed, true);
@@ -3042,7 +3042,7 @@ int AccessData_LitFloat(ccCompiledScript *scrip, bool negate, AGS::SymbolScript 
     int const i = InterpretFloatAsInt(f);
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, i);
-    scrip->ax_vartype = vartype = sym.normalFloatSym;
+    scrip->ax_vartype = vartype = sym.getFloatSym();
     scrip->ax_val_scope = kSYM_GlobalVar;
     symlist++;
     symlist_len--;
@@ -3058,7 +3058,7 @@ int AccessData_LitOrConst(ccCompiledScript *scrip, bool negateLiteral, AGS::Symb
     symlist_len--;
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, varSymValue);
-    scrip->ax_vartype = vartype = sym.normalIntSym;
+    scrip->ax_vartype = vartype = sym.getIntSym();
     scrip->ax_val_scope = kSYM_GlobalVar;
 
     return 0;
@@ -3073,7 +3073,7 @@ int AccessData_Null(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &sym
     }
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
-    scrip->ax_vartype = vartype = sym.normalNullSym | kVTYPE_Pointer;
+    scrip->ax_vartype = vartype = sym.getNullSym() | kVTYPE_Pointer;
     scrip->ax_val_scope = kSYM_GlobalVar;
     symlist++;
     symlist_len--;
@@ -3091,7 +3091,7 @@ int AccessData_String(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &s
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[symlist[0]].soffs);
     scrip->fixup_previous(FIXUP_STRING);
-    scrip->ax_vartype = vartype = sym.normalStringSym | kVTYPE_Const;
+    scrip->ax_vartype = vartype = sym.getOldStringSym() | kVTYPE_Const;
     symlist++;
     symlist_len--;
     return 0;
@@ -3165,9 +3165,9 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
         return -99;
     }
 
-    if (sym.normalThisSym == symlist[0])
+    if (sym.getThisSym() == symlist[0])
     {
-        vartype = sym.get_vartype(sym.normalThisSym);
+        vartype = sym.get_vartype(sym.getThisSym());
         if (0 >= vartype)
         {
             cc_error("'this' is only legal in non-static struct functions");
@@ -3185,7 +3185,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
     {
         // If this unknown symbol can be interpreted as a component of this,
         // treat it that way.
-        vartype = sym.get_vartype(sym.normalThisSym);
+        vartype = sym.get_vartype(sym.getThisSym());
         AGS::Symbol const thiscomponent = MangleStructFunc(vartype, symlist[0]);
         if (0 != sym.entries[thiscomponent].stype)
         {
@@ -3767,7 +3767,7 @@ int ParseAssignment(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol a
 // true if the symbol is "int" and the like.
 inline bool is_primitive_vartype(AGS::Symbol symbl)
 {
-    return (symbl > 0 && symbl <= sym.normalVoidSym);
+    return (symbl > 0 && symbl <= sym.getVoidSym());
 }
 
 int ParseVardecl_InitialValAssignment_ToLocal(ccInternalList *targ, ccCompiledScript *scrip, AGS::Vartype vartype)
@@ -3865,7 +3865,7 @@ int ParseVardecl_InitialValAssignment_ToGlobal(ccInternalList *targ, AGS::Symbol
     }
 
     // Do actual assignment
-    if (sym.get_vartype(varname) == sym.normalFloatSym)
+    if (sym.get_vartype(varname) == sym.getFloatSym())
         return ParseVardecl_InitialValAssignment_ToGlobalFloat(targ, is_neg, initial_val_ptr);
     return ParseVardecl_InitialValAssignment_ToGlobalNonFloat(targ, is_neg, initial_val_ptr);
 }
@@ -3887,7 +3887,7 @@ int ParseVardecl_InitialValAssignment(ccInternalList *targ, ccCompiledScript *sc
         cc_error("Cannot assign a value to an array");
         return -1;
     }
-    if (sym.entries[varname].vartype == sym.normalStringSym)
+    if (sym.entries[varname].vartype == sym.getOldStringSym())
     {
         cc_error("Cannot assign a value to a string, use StrCopy");
         return -1;
@@ -3942,7 +3942,7 @@ int ParseVardecl_ArrayDecl(ccInternalList *targ, int var_name, int type_of_defn,
         size_of_defn = SIZE_OF_POINTER;
         sym.entries[var_name].arrsize = 0;
         initial_value_ptr = calloc(1, size_of_defn);
-        if (type_of_defn == sym.normalStringSym)
+        if (type_of_defn == sym.getOldStringSym())
         {
             cc_error("Dynamic arrays of old-style strings are not supported");
             return -1;
@@ -4086,13 +4086,13 @@ void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript *scrip, int var_name, FxFi
 
 int ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, bool is_pointer, Globalness is_global)
 {
-    if (vartype == sym.normalStringSym && ccGetOption(SCOPT_OLDSTRINGS) == 0)
+    if (vartype == sym.getOldStringSym() && ccGetOption(SCOPT_OLDSTRINGS) == 0)
     {
         cc_error("Type 'string' is no longer supported; use String instead");
         return -1;
     }
 
-    if (vartype == sym.normalStringSym && is_global == kGl_GlobalImport)
+    if (vartype == sym.getOldStringSym() && is_global == kGl_GlobalImport)
     {
         // cannot import, because string is really char *, and the pointer won't resolve properly
         cc_error("Cannot import string; use char[] instead");
@@ -4108,7 +4108,7 @@ int ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, bool is_pointer, Globa
         return -1;
     }
 
-    if (vartype == sym.normalVoidSym)
+    if (vartype == sym.getVoidSym())
     {
         cc_error("'void' not a valid variable type");
         return -1;
@@ -4188,7 +4188,7 @@ int ParseVardecl0(
 
         next_type = sym.get_type(targ->peeknext());
     }
-    else if (sym.normalStringSym != vartype)
+    else if (sym.getOldStringSym() != vartype)
     {
         initial_value_ptr = calloc(1, size_of_defn);
     }
@@ -4213,7 +4213,7 @@ int ParseVardecl0(
     case kGl_GlobalImport:
         if (g_GIVM[var_name])
             break; // Skip this since the global non-import decl will come later
-        if (sym.get_type(var_name) == sym.normalStringSym)
+        if (sym.get_type(var_name) == sym.getOldStringSym())
         {
             cc_error("Cannot import string; use char[200] instead");
             return -1;
@@ -4318,7 +4318,7 @@ void ParseOpenbrace_FuncBody(ccCompiledScript *scrip, AGS::Symbol name_of_func, 
     }
 
     // declare "this" inside non-static member functions only
-    SymbolTableEntry &this_entry = sym.entries[sym.normalThisSym];
+    SymbolTableEntry &this_entry = sym.entries[sym.getThisSym()];
     this_entry.vartype = 0;
     if (struct_of_func > 0 && !FlagIsSet(sym.entries[name_of_func].flags, kSFLG_Static))
     {
@@ -4571,7 +4571,7 @@ int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, AGS::Symbo
     }
 
     // [fw] Where's the problem?
-    if (cursym == sym.normalStringSym)
+    if (cursym == sym.getOldStringSym())
     {
         cc_error("'string' not allowed inside struct");
         return -1;
@@ -4685,7 +4685,7 @@ int ParseStruct_CheckAttributeFunc(AGS::Symbol func, bool setter, bool indexed, 
         return -1;
     }
     size_t const index_param_num = 1 + (setter ? 1 : 0);
-    if (indexed && entry.funcparamtypes[index_param_num] != sym.normalIntSym)
+    if (indexed && entry.funcparamtypes[index_param_num] != sym.getIntSym())
     {
         cc_error(
             "Parameter #%d of attribute function '%s' must have type integer but doesn't.",
@@ -5024,7 +5024,7 @@ int ParseStruct_MemberStmt(
     {
         type_is_pointer = true;
     }
-    else if (sym.normalPointerSym == targ->peeknext())
+    else if (sym.getPointerSym() == targ->peeknext())
     {
         type_is_pointer = true;
         targ->getnext();
@@ -5095,12 +5095,12 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
     // Declare the struct type that implements new strings
     if (FlagIsSet(tqs, kTQ_Stringstruct))
     {
-        if (sym.stringStructSym > 0 && stname != sym.stringStructSym)
+        if (sym.getStringStructSym() > 0 && stname != sym.getStringStructSym())
         {
-            cc_error("The stringstruct type is already defined to be %s", sym.get_name_string(sym.stringStructSym).c_str());
+            cc_error("The stringstruct type is already defined to be %s", sym.get_name_string(sym.getStringStructSym()).c_str());
             return -1;
         }
-        sym.stringStructSym = stname;
+        sym.setStringStructSym(stname);
     }
 
     // Sums up the size of the struct
@@ -5211,7 +5211,7 @@ int ParseEnum_Name2Symtable(AGS::Symbol enumName)
 
     entry.stype = kSYM_Vartype;
     entry.ssize = size_of_int;
-    entry.vartype = sym.normalIntSym;
+    entry.vartype = sym.getIntSym();
 
     return 0;
 }
@@ -5332,7 +5332,7 @@ int ParseExport(ccInternalList *targ, ccCompiledScript *scrip)
             cc_error("Cannot export an import");
             return -1;
         }
-        if (sym.get_vartype(cursym) == sym.normalStringSym)
+        if (sym.get_vartype(cursym) == sym.getOldStringSym())
         {
             cc_error("Cannot export string; use char[200] instead");
             return -1;
@@ -5691,7 +5691,7 @@ int ParseReturn(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol inFun
 
     if (sym.get_type(targ->peeknext()) != kSYM_Semicolon)
     {
-        if (functionReturnType == sym.normalVoidSym)
+        if (functionReturnType == sym.getVoidSym())
         {
             cc_error("Cannot return value from void function");
             return -1;
@@ -5715,7 +5715,7 @@ int ParseReturn(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol inFun
             return -1;
         }
     }
-    else if ((functionReturnType != sym.normalIntSym) && (functionReturnType != sym.normalVoidSym))
+    else if ((functionReturnType != sym.getIntSym()) && (functionReturnType != sym.getVoidSym()))
     {
         cc_error("Must return a '%s' value from function", sym.get_name_string(functionReturnType).c_str());
         return -1;
@@ -5865,7 +5865,7 @@ int ParseFor_InitClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symb
 
         bool isPointer = false;
 
-        if (sym.normalPointerSym == targ->peeknext())
+        if (sym.getPointerSym() == targ->peeknext())
         {
             // only allow pointers to structs
             if (!FlagIsSet(sym.entries[vtwas].flags, kSFLG_StructType))

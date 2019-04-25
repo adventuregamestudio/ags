@@ -92,8 +92,8 @@ struct WinConfig
     bool   RenderAtScreenRes;
     bool   AntialiasSprites;
 
-    int    DigiWinIdx;
-    int    MidiWinIdx;
+    int    DigiID;
+    int    MidiID;
     bool   UseVoicePack;
 
     bool   MouseAutoLock;
@@ -135,8 +135,8 @@ void WinConfig::SetDefaults()
     MouseAutoLock = false;
     MouseSpeed = 1.f;
 
-    DigiWinIdx = 0;
-    MidiWinIdx = 0;
+    DigiID = -1; // autodetect
+    MidiID = -1;
     UseVoicePack = true;
 
     SpriteCacheSize = 1024 * 128;
@@ -173,8 +173,8 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     AntialiasSprites = INIreadint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
-    DigiWinIdx = INIreadint(cfg, "sound", "digiwinindx", DigiWinIdx);
-    MidiWinIdx = INIreadint(cfg, "sound", "midiwinindx", MidiWinIdx);
+    DigiID = read_driverid(cfg, "sound", "digiid", DigiID);
+    MidiID = read_driverid(cfg, "sound", "midiid", MidiID);
     UseVoicePack = INIreadint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0) != 0;
 
     MouseAutoLock = INIreadint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0) != 0;
@@ -207,8 +207,8 @@ void WinConfig::Save(ConfigTree &cfg)
 
     INIwriteint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
 
-    INIwriteint(cfg, "sound", "digiwinindx", DigiWinIdx);
-    INIwriteint(cfg, "sound", "midiwinindx", MidiWinIdx);
+    write_driverid(cfg, "sound", "digiid", DigiID);
+    write_driverid(cfg, "sound", "midiid", MidiID);
     INIwriteint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0);
 
     INIwriteint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
@@ -637,32 +637,16 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     SetCheck(_hRenderAtScreenRes, _winCfg.RenderAtScreenRes);
 
     AddString(_hDigiDriverList, "No Digital Sound", DIGI_NONE);
+    AddString(_hDigiDriverList, "Default device (auto)", MIDI_AUTODETECT);
     AddString(_hDigiDriverList, "Default DirectSound Device", DIGI_DIRECTAMX(0));
     AddString(_hDigiDriverList, "Default WaveOut Device", DIGI_WAVOUTID(0));
     AddString(_hDigiDriverList, "DirectSound (Hardware mixer)", DIGI_DIRECTX(0));
-    // converting from legacy hard-coded indexes
-    int digiwin_drv;
-    switch (_winCfg.DigiWinIdx)
-    {
-    case 0:  digiwin_drv = DIGI_DIRECTAMX(0); break;
-    case 1:  digiwin_drv = DIGI_WAVOUTID(0); break;
-    case 3:  digiwin_drv = DIGI_DIRECTX(0); break;
-    default: digiwin_drv = DIGI_NONE; break;
-    }
-    SetCurSelToItemData(_hDigiDriverList, digiwin_drv);
+    SetCurSelToItemData(_hDigiDriverList, _winCfg.DigiID);
 
-    AddString(_hMidiDriverList, "Disable MIDI music", MIDI_NONE);
-    AddString(_hMidiDriverList, "Default MCI Music Device", MIDI_AUTODETECT);
+    AddString(_hMidiDriverList, "No MIDI music", MIDI_NONE);
+    AddString(_hMidiDriverList, "Default device (auto)", MIDI_AUTODETECT);
     AddString(_hMidiDriverList, "Win32 MIDI Mapper", MIDI_WIN32MAPPER);
-    // converting from legacy hard-coded indexes
-    int midiwin_drv;
-    switch (_winCfg.MidiWinIdx)
-    {
-    case 1:  midiwin_drv = MIDI_NONE; break;
-    case 2:  midiwin_drv = MIDI_WIN32MAPPER; break;
-    default: midiwin_drv = MIDI_AUTODETECT; break;
-    }
-    SetCurSelToItemData(_hMidiDriverList, midiwin_drv);
+    SetCurSelToItemData(_hMidiDriverList, _winCfg.MidiID);
 
     FillLanguageList();
 
@@ -1141,24 +1125,8 @@ void WinSetupDialog::SaveSetup()
         _winCfg.UserSaveDir = "";
     }
 
-    int digiwin_drv = GetCurItemData(_hDigiDriverList);
-    // converting to legacy hard-coded indexes
-    switch (digiwin_drv)
-    {
-    case DIGI_DIRECTAMX(0): _winCfg.DigiWinIdx = 0; break;
-    case DIGI_WAVOUTID(0):  _winCfg.DigiWinIdx = 1; break;
-    case DIGI_DIRECTX(0):   _winCfg.DigiWinIdx = 3; break;
-    default:                _winCfg.DigiWinIdx = 2; break;
-    }
-
-    int midiwin_drv = GetCurItemData(_hMidiDriverList);
-    // converting to legacy hard-coded indexes
-    switch (midiwin_drv)
-    {
-    case MIDI_NONE:        _winCfg.MidiWinIdx = 1; break;
-    case MIDI_WIN32MAPPER: _winCfg.MidiWinIdx = 2; break;
-    default:               _winCfg.MidiWinIdx = 0; break;
-    }
+    _winCfg.DigiID = GetCurItemData(_hDigiDriverList);
+    _winCfg.MidiID = GetCurItemData(_hMidiDriverList);
 
     if (GetCurSel(_hLanguageList) == 0)
         _winCfg.Language.Empty();

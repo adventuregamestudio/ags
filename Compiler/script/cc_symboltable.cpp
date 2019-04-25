@@ -114,6 +114,20 @@ void SymbolTable::reset()
 
     add_ex("___dummy__sym0", static_cast<SymbolType>(999), 0);
 
+    // Primitive types
+    normalCharSym =
+        add_ex("char", kSYM_Vartype, 1);
+    normalFloatSym =
+        add_ex("float", kSYM_Vartype, 4);
+    normalIntSym =
+        add_ex("int", kSYM_Vartype, 4);
+    add_ex("long", kSYM_Vartype, 4);
+    add_ex("short", kSYM_Vartype, 2);
+    normalStringSym =
+        add_ex("string", kSYM_Vartype, 4);
+    normalVoidSym =
+        add_ex("void", kSYM_Vartype, 0);
+
     // can be part of expression
     add_ex("]", kSYM_CloseBracket, 0);
     add_ex(")", kSYM_CloseParenthesis, 0);
@@ -192,18 +206,6 @@ void SymbolTable::reset()
     add_ex("struct", kSYM_Struct, 0);
     add_ex("switch", kSYM_Switch, 0);
     add_ex("...", kSYM_Varargs, 0);
-    normalCharSym =
-        add_ex("char", kSYM_Vartype, 1);
-    normalFloatSym =
-        add_ex("float", kSYM_Vartype, 4);
-    normalIntSym =
-        add_ex("int", kSYM_Vartype, 4);
-    add_ex("long", kSYM_Vartype, 4);
-    add_ex("short", kSYM_Vartype, 2);
-    normalStringSym =
-        add_ex("string", kSYM_Vartype, 4);
-    normalVoidSym =
-        add_ex("void", kSYM_Vartype, 0);
     add_ex("while", kSYM_While, 0);
     lastPredefSym =
         add_ex("writeprotected", kSYM_WriteProtected, 0); 

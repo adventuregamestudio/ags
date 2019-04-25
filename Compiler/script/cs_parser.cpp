@@ -667,7 +667,7 @@ void FreePointersOfStruct(ccCompiledScript *scrip, AGS::Symbol structVarSym)
 }
 
 
-inline bool is_any_type_of_string(AGS::SType symtype)
+inline bool is_any_type_of_string(AGS::Vartype symtype)
 {
     symtype &= ~(kVTYPE_Const | kVTYPE_Pointer);
     if ((symtype == sym.normalStringSym) || (symtype == sym.stringStructSym))
@@ -1856,9 +1856,9 @@ inline bool is_string(AGS::Vartype vartype)
 }
 
 
-// Change the generic operator vcpuOp to the one that is correct for the types
+// Change the generic operator vcpuOp to the one that is correct for the vartypes
 // Also check whether the operator can handle the types at all
-int GetOperatorValidForType(int type1, int type2, int &vcpuOp)
+int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::CodeCell &vcpuOp)
 {
     if ((type1 == sym.normalFloatSym) || (type2 == sym.normalFloatSym))
     {
@@ -2190,7 +2190,7 @@ int ParseExpression_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::Symbol
 
     // now, subtract the result from 0 (which negates it)
     int cpuOp = SCMD_SUBREG; // get correct bytecode for the subtraction
-    retval = GetOperatorValidForType(scrip->ax_vartype, sym.normalIntSym, cpuOp);
+    retval = GetOperatorValidForVartype(scrip->ax_vartype, sym.normalIntSym, cpuOp);
     if (retval < 0) return retval;
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_BX, 0);
@@ -2198,7 +2198,6 @@ int ParseExpression_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::Symbol
     scrip->write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_AX);
     return 0;
 }
-
 
 // We're parsing an expression that starts with '!' (boolean NOT)
 int ParseExpression_NotIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript & symlist, size_t symlist_len)
@@ -2217,14 +2216,13 @@ int ParseExpression_NotIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
     // negate the result
     // First determine the correct bytecode for the negation
     int cpuOp = SCMD_NOTREG;
-    retval = GetOperatorValidForType(scrip->ax_vartype, 0, cpuOp);
+    retval = GetOperatorValidForVartype(scrip->ax_vartype, 0, cpuOp);
     if (retval < 0) return retval;
 
     // now, NOT the result
     scrip->write_cmd1(SCMD_NOTREG, SREG_AX);
     return 0;
 }
-
 
 // The lowest-binding operator is the first thing in the expression
 // This means that the op must be an unary op.
@@ -2324,7 +2322,7 @@ int ParseExpression_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, co
     retval = IsVartypeMismatch(scrip->ax_vartype, vartype_leftsize, false);
     if (retval < 0) return retval;
 
-    retval = GetOperatorValidForType(scrip->ax_vartype, vartype_leftsize, vcpuOperator);
+    retval = GetOperatorValidForVartype(scrip->ax_vartype, vartype_leftsize, vcpuOperator);
     if (retval < 0) return retval;
 
     scrip->write_cmd2(vcpuOperator, SREG_BX, SREG_AX);
@@ -3691,7 +3689,7 @@ int ParseAssignment_MAssign(ccInternalList *targ, ccCompiledScript *scrip, AGS::
 
     // Use the operator on LHS and RHS
     int cpuOp = sym.entries[ass_symbol].ssize;
-    retval = GetOperatorValidForType(lhsvartype, rhsvartype, cpuOp);
+    retval = GetOperatorValidForVartype(lhsvartype, rhsvartype, cpuOp);
     if (retval < 0) return retval;
     scrip->write_cmd1(SCMD_POPREG, SREG_BX); 
     scrip->write_cmd2(cpuOp, SREG_AX, SREG_BX);
@@ -3717,7 +3715,7 @@ int ParseAssignment_SAssign(ccInternalList *targ, ccCompiledScript *scrip, AGS::
 
     // increment or decrement AX, using the correct bytecode
     int cpuOp = sym.entries[ass_symbol].ssize;
-    retval = GetOperatorValidForType(lhsvartype, 0, cpuOp);
+    retval = GetOperatorValidForVartype(lhsvartype, 0, cpuOp);
     if (retval < 0) return retval;
     scrip->write_cmd2(cpuOp, SREG_AX, 1);
 
@@ -3767,9 +3765,9 @@ int ParseAssignment(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol a
 }
 
 // true if the symbol is "int" and the like.
-inline bool sym_is_predef_typename(AGS::Symbol symbl)
+inline bool is_primitive_vartype(AGS::Symbol symbl)
 {
-    return (symbl >= 0 && symbl <= sym.normalFloatSym);
+    return (symbl > 0 && symbl <= sym.normalVoidSym);
 }
 
 int ParseVardecl_InitialValAssignment_ToLocal(ccInternalList *targ, ccCompiledScript *scrip, AGS::Vartype vartype)
@@ -4938,13 +4936,13 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     if (!isFunction)
     {
         // Allow "struct ... { int S2 }" when S2 is a non-predefined type
-        if (kSYM_Vartype == sym.get_type(vname) && !sym_is_predef_typename(vname))
+        if (kSYM_Vartype == sym.get_type(vname) && !is_primitive_vartype(vname))
             vname = sym.find_or_add(GetFullNameOfMember(stname, vname).c_str());
 
         // Detect multiple declarations
         if (kPP_Main == g_PP &&
             sym.get_type(vname) != 0 &&
-            (sym.get_type(vname) != kSYM_Vartype || sym_is_predef_typename(vname)))
+            (sym.get_type(vname) != kSYM_Vartype || is_primitive_vartype(vname)))
         {
             cc_error("'%s' is already defined", sym.get_name_string(vname).c_str());
             return -1;
@@ -5626,7 +5624,7 @@ int ParseVartype0(
         retval = ParseVartype_GetVarName(targ, var_or_func_name, struct_of_current_func);
         if (retval < 0) return retval;
 
-        if (kSYM_Vartype == sym.get_type(var_or_func_name) || sym_is_predef_typename(var_or_func_name))
+        if (kSYM_Vartype == sym.get_type(var_or_func_name) || is_primitive_vartype(var_or_func_name))
         {
             cc_error("'%s' is already in use as a type name", sym.get_name_string(var_or_func_name).c_str());
             return -1;
@@ -6175,7 +6173,7 @@ int ParseCasedefault(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol 
 
         // get the right equality operator for the type
         int eq_op = SCMD_ISEQUAL;
-        retval = GetOperatorValidForType(scrip->ax_vartype, nesting_stack->SwitchExprType(), eq_op);
+        retval = GetOperatorValidForVartype(scrip->ax_vartype, nesting_stack->SwitchExprType(), eq_op);
         if (retval < 0) return retval;
 
         // [fw] Comparison operation may be missing here.

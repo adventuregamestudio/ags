@@ -87,7 +87,7 @@ TEST(Tokenize, BasicStruct)
     token_str = sym.get_name_string(token);
     ASSERT_EQ(0, token_str.compare("struct"));
     token_type = sym.get_type(token);
-    ASSERT_EQ(SYM_STRUCT, token_type);
+    ASSERT_EQ(kSYM_Struct, token_type);
 
     // B 
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);
@@ -103,7 +103,7 @@ TEST(Tokenize, BasicStruct)
     ASSERT_FALSE(eof_encountered);
     ASSERT_FALSE(error_encountered);
     token_type = sym.get_type(token);
-    ASSERT_EQ(SYM_OPENBRACE, token_type);
+    ASSERT_EQ(kSYM_OpenBrace, token_type);
 
     // String 
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);
@@ -125,7 +125,7 @@ TEST(Tokenize, BasicStruct)
     ASSERT_FALSE(eof_encountered);
     ASSERT_FALSE(error_encountered);
     token_type = sym.get_type(token);
-    ASSERT_EQ(SYM_SEMICOLON, token_type);
+    ASSERT_EQ(kSYM_Semicolon, token_type);
 
     // float
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);
@@ -146,14 +146,14 @@ TEST(Tokenize, BasicStruct)
     ASSERT_FALSE(eof_encountered);
     ASSERT_FALSE(error_encountered);
     token_type = sym.get_type(token);
-    ASSERT_EQ(SYM_SEMICOLON, token_type);
+    ASSERT_EQ(kSYM_Semicolon, token_type);
 
     // }
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);
     ASSERT_FALSE(eof_encountered);
     ASSERT_FALSE(error_encountered);
     token_type = sym.get_type(token);
-    ASSERT_EQ(SYM_CLOSEBRACE, token_type);
+    ASSERT_EQ(kSYM_CloseBrace, token_type);
 
     // ;
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);
@@ -178,7 +178,7 @@ TEST(Tokenize, BasicStruct)
     ASSERT_FALSE(eof_encountered);
     ASSERT_FALSE(error_encountered);
     token_type = sym.get_type(token);
-    ASSERT_EQ(SYM_SEMICOLON, token_type);
+    ASSERT_EQ(kSYM_Semicolon, token_type);
 
     // EOF
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);

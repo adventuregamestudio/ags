@@ -55,27 +55,11 @@ void AGS::Tokenizer::Reset()
     _lastError = "";
 }
 
-
-const std::string AGS::Tokenizer::GetLastError()
-{
-    return _lastError;
-}
-
-void AGS::Tokenizer::ResetTemporaryTypesInSymbolTable()
-{
-    // clear any temporary types set
-    for (size_t tok = 0; tok < _symbolTable->entries.size(); tok++)
-    {
-        if (TokenType(tok) == SYM_TEMPORARYTYPE)
-            SetTokenType(tok, static_cast<AGS::Symbol>(0));
-    }
-}
-
 void AGS::Tokenizer::ProcessScannerSymstring(
-    Scanner::ScanType symbol_type,
+    Scanner::ScanType scan_type,
     std::string &symstring,
-    int last_token,
-    int &token,
+    Symbol last_token,
+    Symbol &token,
     bool &eof_encountered,
     bool &error_encountered)
 {
@@ -89,21 +73,21 @@ void AGS::Tokenizer::ProcessScannerSymstring(
         return;
     }
 
-    if (symbol_type == Scanner::kSct_StringLiteral)
+    if (scan_type == Scanner::kSct_StringLiteral)
     {
         TokenizeStringLiteral(token, symstring);
         return;
     }
 
-    if (symbol_type == Scanner::kSct_IntLiteral)
+    if (scan_type == Scanner::kSct_IntLiteral)
     {
-        SetTokenType(token, SYM_LITERALVALUE);
+        SetTokenType(token, kSYM_LiteralInt);
         return;
     }
 
-    if (symbol_type == Scanner::kSct_FloatLiteral)
+    if (scan_type == Scanner::kSct_FloatLiteral)
     {
-        SetTokenType(token, SYM_LITERALFLOAT);
+        SetTokenType(token, kSYM_LiteralFloat);
         return;
     }
 
@@ -113,8 +97,8 @@ void AGS::Tokenizer::ProcessScannerSymstring(
         return;
 
     // Count parenthesis nesting separately, is needed in a late rewriting of struct member names later on
-    if (TokenType(token) == SYM_OPENPARENTHESIS) ++_parenthesisNestingDepth;
-    if (TokenType(token) == SYM_CLOSEPARENTHESIS) --_parenthesisNestingDepth;
+    if (TokenType(token) == kSYM_OpenParenthesis) ++_parenthesisNestingDepth;
+    if (TokenType(token) == kSYM_CloseParenthesis) --_parenthesisNestingDepth;
 
 
     // If we are in a parameter declaration where the parameter is declared with the type and not the name
@@ -125,7 +109,7 @@ void AGS::Tokenizer::ProcessScannerSymstring(
     //      but doable in principle.
 
     // We enter struct declaration mode after encountering the keyword "struct".
-    if ((last_token >= 0) && (TokenType(last_token) == SYM_STRUCT))
+    if ((last_token >= 0) && (TokenType(last_token) == kSYM_Struct))
     {
         _currentMode = kMode_StructDecl;
         _inTypeSubmode = true;
@@ -137,15 +121,15 @@ void AGS::Tokenizer::ProcessScannerSymstring(
     if (_currentMode == kMode_StructDecl)
     {
         // The mode ends as soon as the { ... } after the "struct X" ends.
-        if (TokenType(token) == SYM_OPENBRACE) ++_braceNestingDepthInStructDecl;
-        if (TokenType(token) == SYM_CLOSEBRACE)
+        if (TokenType(token) == kSYM_OpenBrace) ++_braceNestingDepthInStructDecl;
+        if (TokenType(token) == kSYM_CloseBrace)
         {
             if (--_braceNestingDepthInStructDecl == 0)
                 _currentMode = kMode_Standard;
         }
 
         // The mode also ends if we never had any { ... } to begin with, i.e. a simple "struct X;".
-        if ((TokenType(token) == SYM_SEMICOLON) && (_braceNestingDepthInStructDecl == 0))
+        if ((TokenType(token) == kSYM_Semicolon) && (_braceNestingDepthInStructDecl == 0))
             _currentMode = kMode_Standard;
     }
 
@@ -157,7 +141,7 @@ void AGS::Tokenizer::ProcessScannerSymstring(
         return;
 
     if (!_inTypeSubmode && // see below, comment for "switch (TokenType(token))"
-        ((TokenType(token) == 0) || (TokenType(token) == SYM_GLOBALVAR)))
+        ((TokenType(token) == 0) || (TokenType(token) == kSYM_GlobalVar)))
     {
         std::string full_name = FullNameFromStructAndMember(_structBeingDeclared, token);
         token = ConvertSymstringToTokenIndex(full_name);
@@ -185,15 +169,15 @@ void AGS::Tokenizer::ProcessScannerSymstring(
     {
     default: break;
     case 0:             _inTypeSubmode = false; break; // unclassified symbol
-    case SYM_SEMICOLON: _inTypeSubmode = true;  break;
-    case SYM_VARTYPE:   _inTypeSubmode = false; break; // e.g., "int", "float"
+    case kSYM_Semicolon: _inTypeSubmode = true;  break;
+    case kSYM_Vartype:   _inTypeSubmode = false; break; // e.g., "int", "float"
     }
 }
 
 
-void AGS::Tokenizer::TokenizeStringLiteral(int token, std::string const &symstring)
+void AGS::Tokenizer::TokenizeStringLiteral(AGS::Symbol token, std::string const &symstring)
 {
-    SetTokenType(token, SYM_STRING);
+    SetTokenType(token, kSYM_LiteralString);
     SetTokenVartype(token, _symbolTable->normalStringSym);
 
     // Enter the string into the string collector
@@ -203,7 +187,7 @@ void AGS::Tokenizer::TokenizeStringLiteral(int token, std::string const &symstri
 }
 
 
-void AGS::Tokenizer::GetNextToken(int &token, bool &eof_encountered, bool &error_encountered)
+void AGS::Tokenizer::GetNextToken(AGS::Symbol &token, bool &eof_encountered, bool &error_encountered)
 {
     token = -1;
 
@@ -212,8 +196,8 @@ void AGS::Tokenizer::GetNextToken(int &token, bool &eof_encountered, bool &error
     {
         // Get the next symbol from the scanner
         std::string symstring;
-        Scanner::ScanType symbol_type;
-        _scanner->GetNextSymstring(symstring, symbol_type, eof_encountered, error_encountered);
+        Scanner::ScanType scan_type;
+        _scanner->GetNextSymstring(symstring, scan_type, eof_encountered, error_encountered);
         if (error_encountered)
         {
             // copy the error from the scanner
@@ -229,9 +213,9 @@ void AGS::Tokenizer::GetNextToken(int &token, bool &eof_encountered, bool &error
 
         if (_tokenBuffer.empty())
             _tokenBuffer.push_back(-1);
-        int last_token = _tokenBuffer.back();
+        AGS::Symbol last_token = _tokenBuffer.back();
 
-        ProcessScannerSymstring(symbol_type, symstring, last_token, token, eof_encountered, error_encountered);
+        ProcessScannerSymstring(scan_type, symstring, last_token, token, eof_encountered, error_encountered);
         if (eof_encountered || error_encountered)
             return;
 
@@ -255,36 +239,36 @@ void AGS::Tokenizer::GetNextToken(int &token, bool &eof_encountered, bool &error
 
 
 // Check the nesting of () [] {}, error if mismatch
-void AGS::Tokenizer::CheckMatcherNesting(int token, bool &error_encountered)
+void AGS::Tokenizer::CheckMatcherNesting(Symbol token, bool &error_encountered)
 {
     switch (TokenType(token))
     {
     default: return;
-    case SYM_OPENPARENTHESIS:
+    case kSYM_OpenParenthesis:
         _ocMatcher.Push("(", ")", _scanner->GetLineno());
         return;
 
-    case SYM_OPENBRACKET:
+    case kSYM_OpenBracket:
         _ocMatcher.Push("[", "]", _scanner->GetLineno());
         return;
 
-    case SYM_OPENBRACE:
+    case kSYM_OpenBrace:
         _ocMatcher.Push("{", "}", _scanner->GetLineno());
         return;
 
-    case SYM_CLOSEPARENTHESIS:
+    case kSYM_CloseParenthesis:
         _ocMatcher.PopAndCheck(")", _scanner->GetLineno(), error_encountered);
         if (error_encountered)
             _lastError = _ocMatcher.GetLastError();
         return;
 
-    case SYM_CLOSEBRACKET:
+    case kSYM_CloseBracket:
         _ocMatcher.PopAndCheck("]", _scanner->GetLineno(), error_encountered);
         if (error_encountered)
             _lastError = _ocMatcher.GetLastError();
         return;
 
-    case SYM_CLOSEBRACE:
+    case kSYM_CloseBrace:
         _ocMatcher.PopAndCheck("}", _scanner->GetLineno(), error_encountered);
         if (error_encountered)
             _lastError = _ocMatcher.GetLastError();
@@ -293,7 +277,7 @@ void AGS::Tokenizer::CheckMatcherNesting(int token, bool &error_encountered)
 }
 
 
-std::string AGS::Tokenizer::FullNameFromStructAndMember(int struct_name_token, int member_name_token)
+std::string AGS::Tokenizer::FullNameFromStructAndMember(AGS::Symbol struct_name_token, AGS::Symbol member_name_token)
 {
     std::string member_name = _symbolTable->get_name_string(member_name_token);
     if (member_name.at(0) == '.')

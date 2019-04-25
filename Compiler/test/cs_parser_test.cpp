@@ -368,7 +368,7 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
 
     ASSERT_TRUE(funcidx != -1);
 
-    EXPECT_EQ(STYPE_DYNARRAY, sym.entries[funcidx].funcparamtypes[0] & STYPE_DYNARRAY);
+    EXPECT_EQ(kVTYPE_DynArray, sym.entries[funcidx].funcparamtypes[0] & kVTYPE_DynArray);
 }
 
 TEST(Compile, DoubleNegatedConstant) {

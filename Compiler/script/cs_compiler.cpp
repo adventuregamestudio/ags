@@ -55,15 +55,15 @@ void ccCompileText_KillUnusedImports(ccCompiledScript * compiled_script)
         int stype = sym.get_type(entries_idx);
         // blank out the name for imports that are not used, to save space
         // in the output file
-        if (((sym.entries[entries_idx].flags & SFLG_IMPORTED) != 0) && ((sym.entries[entries_idx].flags & SFLG_ACCESSED) == 0))
+        if (((sym.entries[entries_idx].flags & kSFLG_Imported) != 0) && ((sym.entries[entries_idx].flags & kSFLG_Accessed) == 0))
         {
 
-            if ((stype == SYM_FUNCTION) || (stype == SYM_GLOBALVAR))
+            if ((stype == kSYM_Function) || (stype == kSYM_GlobalVar))
             {
                 // unused func/variable
                 compiled_script->imports[sym.entries[entries_idx].soffs][0] = '\0';
             }
-            else if (sym.entries[entries_idx].flags & SFLG_ATTRIBUTE)
+            else if (sym.entries[entries_idx].flags & kSFLG_Attribute)
             {
                 // unused attribute -- get rid of the getter and setter
                 int attr_get = sym.entries[entries_idx].get_attrget();
@@ -75,14 +75,14 @@ void ccCompileText_KillUnusedImports(ccCompiledScript * compiled_script)
             }
         }
 
-        if ((sym.get_type(entries_idx) != SYM_GLOBALVAR) &&
-            (sym.get_type(entries_idx) != SYM_LOCALVAR))
+        if ((sym.get_type(entries_idx) != kSYM_GlobalVar) &&
+            (sym.get_type(entries_idx) != kSYM_LocalVar))
             continue;
 
-        if (sym.entries[entries_idx].flags & SFLG_IMPORTED)
+        if (sym.entries[entries_idx].flags & kSFLG_Imported)
             continue;
         if (ccGetOption(SCOPT_SHOWWARNINGS) == 0);
-        else if ((sym.entries[entries_idx].flags & SFLG_ACCESSED) == 0)
+        else if ((sym.entries[entries_idx].flags & kSFLG_Accessed) == 0)
         {
             printf("warning: variable '%s' is never used\n", sym.get_name_string(entries_idx).c_str());
         }

@@ -129,11 +129,11 @@ int ccCompiledScript::remove_any_import(const char *namm, SymbolDef *oldSym)
     sidx = sym.find(namm);
     if (sidx < 0)
         return 0;
-    if ((sym.entries[sidx].flags & SFLG_IMPORTED) == 0)
+    if ((sym.entries[sidx].flags & kSFLG_Imported) == 0)
         return 0;
 
     // if this import has been referenced, flag an error
-    if (sym.entries[sidx].flags & SFLG_ACCESSED)
+    if (sym.entries[sidx].flags & kSFLG_Accessed)
     {
         cc_error("Already referenced name as import; you must define it before using it");
         return -1;
@@ -151,20 +151,20 @@ int ccCompiledScript::remove_any_import(const char *namm, SymbolDef *oldSym)
         // Copy the import declaration to a backup struct
         // This allows a type comparison to be done
         // strip the imported flag, since it the real def won't be
-        oldSym->flags = sym.entries[sidx].flags & ~SFLG_IMPORTED;
+        oldSym->flags = sym.entries[sidx].flags & ~kSFLG_Imported;
         oldSym->stype = sym.entries[sidx].stype;
         oldSym->sscope = sym.entries[sidx].sscope;
         // Return size may have been unknown at the time of forward declaration. Check the actual return type for those cases.
-        if (sym.entries[sidx].stype == SYM_FUNCTION && sym.entries[sidx].ssize == 0)
+        if (sym.entries[sidx].stype == kSYM_Function && sym.entries[sidx].ssize == 0)
         {
-            oldSym->ssize = sym.entries[sym.entries[sidx].funcparamtypes[0] & ~(STYPE_POINTER | STYPE_DYNARRAY)].ssize;
+            oldSym->ssize = sym.entries[sym.entries[sidx].funcparamtypes[0] & ~(kVTYPE_Pointer | kVTYPE_DynArray)].ssize;
         }
         else
         {
             oldSym->ssize = sym.entries[sidx].ssize;
         }
         oldSym->arrsize = sym.entries[sidx].arrsize;
-        if (sym.entries[sidx].stype == SYM_FUNCTION)
+        if (sym.entries[sidx].stype == kSYM_Function)
         {
             // <= because of return type
             for (i = 0; i <= sym.entries[sidx].get_num_args(); i++)
@@ -177,7 +177,7 @@ int ccCompiledScript::remove_any_import(const char *namm, SymbolDef *oldSym)
     }
 
     // remove its type so that it can be declared
-    sym.entries[sidx].stype = 0;
+    sym.entries[sidx].stype = kSYM_NoType;
     sym.entries[sidx].flags = 0;
 
     // check also for a number-of-parameters appended version
@@ -214,13 +214,13 @@ int ccCompiledScript::copy_import_symbol_table_entry(AGS::Symbol idx, SymbolTabl
     dest->sscope = sym.entries[entries_idx].sscope;
     dest->ssize = sym.entries[entries_idx].ssize;
     // Return size may have been unknown at the time of forward declaration. Check the actual return type for those cases.
-    if (dest->ssize == 0 && sym.entries[entries_idx].stype == SYM_FUNCTION)
+    if (dest->ssize == 0 && sym.entries[entries_idx].stype == kSYM_Function)
     {
-        dest->ssize = sym.entries[sym.entries[entries_idx].funcparamtypes[0] & ~(STYPE_POINTER | STYPE_DYNARRAY)].ssize;
+        dest->ssize = sym.entries[sym.entries[entries_idx].funcparamtypes[0] & ~(kVTYPE_Pointer | kVTYPE_DynArray)].ssize;
     }
     dest->arrsize = sym.entries[entries_idx].arrsize;
 
-    if (sym.entries[entries_idx].stype == SYM_FUNCTION)
+    if (sym.entries[entries_idx].stype == kSYM_Function)
     {
         for (size_t arg = 0; static_cast<int>(arg) <= sym.entries[entries_idx].get_num_args(); arg++)
         {
@@ -239,10 +239,10 @@ int ccCompiledScript::just_remove_any_import(AGS::Symbol idx)
     std::string name_with_hat = name;
     name_with_hat.push_back('^');
 
-    if ((sym.entries[idx].flags & SFLG_IMPORTED) == 0) return 0;
+    if ((sym.entries[idx].flags & kSFLG_Imported) == 0) return 0;
 
     // if this import has been referenced, flag an error
-    if (sym.entries[idx].flags & SFLG_ACCESSED)
+    if (sym.entries[idx].flags & kSFLG_Accessed)
     {
         cc_error("Already referenced name as import; you must define it before using it");
         return -1;
@@ -256,7 +256,7 @@ int ccCompiledScript::just_remove_any_import(AGS::Symbol idx)
     }
 
     // remove its type so that it can be declared
-    sym.entries[idx].stype = 0;
+    sym.entries[idx].stype = kSYM_NoType;
     sym.entries[idx].flags = 0;
 
     // check also for a number-of-parameters appended version

@@ -12,16 +12,16 @@ TEST(SymbolTable, GetNameNonExistent) {
     EXPECT_STREQ("(invalid symbol)", testSym.get_name(2));
 
     // check edge conditions. index immediately after 'c' should be null
-    int a_sym = testSym.add_ex("a", 0, 0);
-    int b_sym = testSym.add_ex("b", 0, 0);
-    int c_sym = testSym.add_ex("c", 0, 0);
+    int a_sym = testSym.add_ex("a", kSYM_NoType, 0);
+    int b_sym = testSym.add_ex("b", kSYM_NoType, 0);
+    int c_sym = testSym.add_ex("c", kSYM_NoType, 0);
     EXPECT_STREQ("(invalid symbol)", testSym.get_name(c_sym + 1));
 }
 
 TEST(SymbolTable, GetNameNormal) {
     SymbolTable testSym;
 
-    int foo_sym = testSym.add_ex("foo", 0, 0);
+    int foo_sym = testSym.add_ex("foo", kSYM_NoType, 0);
 
     EXPECT_STREQ("foo", testSym.get_name(foo_sym));
 }
@@ -29,28 +29,28 @@ TEST(SymbolTable, GetNameNormal) {
 TEST(SymbolTable, GetNameFlags) {
     SymbolTable testSym;
 
-    int foo_sym = testSym.add_ex("foo", 0, 0);
+    int foo_sym = testSym.add_ex("foo", kSYM_NoType, 0);
 
     // const
-    EXPECT_STREQ("const foo", testSym.get_name(foo_sym | STYPE_CONST));
+    EXPECT_STREQ("const foo", testSym.get_name(foo_sym | kVTYPE_Const));
 
     // dynarray
-    EXPECT_STREQ("foo[]", testSym.get_name(foo_sym | STYPE_DYNARRAY));
+    EXPECT_STREQ("foo[]", testSym.get_name(foo_sym | kVTYPE_DynArray));
 
    // pointer
-    EXPECT_STREQ("foo*", testSym.get_name(foo_sym | STYPE_POINTER));
+    EXPECT_STREQ("foo*", testSym.get_name(foo_sym | kVTYPE_Pointer));
 
 
-    int bar_sym = testSym.add_ex("bar", 0, 0);
+    int bar_sym = testSym.add_ex("bar", kSYM_NoType, 0);
 
     // const dynarray
-    EXPECT_STREQ("const bar[]", testSym.get_name(bar_sym | STYPE_CONST | STYPE_DYNARRAY));
+    EXPECT_STREQ("const bar[]", testSym.get_name(bar_sym | kVTYPE_Const | kVTYPE_DynArray));
 
     // const pointer
-    EXPECT_STREQ("const bar*", testSym.get_name(bar_sym | STYPE_CONST | STYPE_POINTER));
+    EXPECT_STREQ("const bar*", testSym.get_name(bar_sym | kVTYPE_Const | kVTYPE_Pointer));
 
     // const dynarray/pointer
-    EXPECT_STREQ("const bar*[]", testSym.get_name(bar_sym | STYPE_CONST | STYPE_DYNARRAY | STYPE_POINTER));
+    EXPECT_STREQ("const bar*[]", testSym.get_name(bar_sym | kVTYPE_Const | kVTYPE_DynArray | kVTYPE_Pointer));
 }
 
 
@@ -66,58 +66,58 @@ TEST(SymbolTable, GetNameNonExistentFlags) {
     EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym));
 
     // const
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | STYPE_CONST));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Const));
 
     // dynarray
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | STYPE_DYNARRAY));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_DynArray));
 
     // dynarray + pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | STYPE_DYNARRAY | STYPE_POINTER));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_DynArray | kVTYPE_Pointer));
 
     // pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | STYPE_POINTER));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Pointer));
 
     // combinations
     // -------------------
 
     // const dynarray
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_DYNARRAY));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Const | kVTYPE_DynArray));
 
     // const pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_POINTER));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Const | kVTYPE_Pointer));
 
     // const dynarray/pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_DYNARRAY | STYPE_POINTER));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Const | kVTYPE_DynArray | kVTYPE_Pointer));
 }
 
 TEST(SymbolTable, AddExAlreadyExists) {
 	SymbolTable testSym;
 
-    int a_sym = testSym.add_ex("a", 0, 0);
-    ASSERT_TRUE(testSym.add_ex("a", 0, 0) == -1);
+    int a_sym = testSym.add_ex("a", kSYM_NoType, 0);
+    ASSERT_TRUE(testSym.add_ex("a", kSYM_NoType, 0) == -1);
 }
 
 TEST(SymbolTable, AddExUnique) {
 	SymbolTable testSym;
 
-    int a_sym = testSym.add_ex("a", 0, 0);
-    int b_sym = testSym.add_ex("b", 0, 0);
+    int a_sym = testSym.add_ex("a", kSYM_NoType, 0);
+    int b_sym = testSym.add_ex("b", kSYM_NoType, 0);
     ASSERT_TRUE(a_sym != b_sym);
 }
 
 TEST(SymbolTable, AddExDefaultValues) {
 	SymbolTable testSym;
 
-    int typo = 1;
-    int sizee = 2;
-    int a_sym = testSym.add_ex("a", typo, sizee);
+    SymbolType stype = kSYM_Assign;
+    int ssize = 2;
+    int a_sym = testSym.add_ex("a", stype, ssize);
 
     ASSERT_TRUE(testSym.entries[a_sym].sname == std::string("a"));
-    ASSERT_TRUE(testSym.entries[a_sym].stype == typo);
+    ASSERT_TRUE(testSym.entries[a_sym].stype == stype);
     ASSERT_TRUE(testSym.entries[a_sym].flags == 0);
     ASSERT_TRUE(testSym.entries[a_sym].vartype == 0);
     ASSERT_TRUE(testSym.entries[a_sym].soffs == 0);
-    ASSERT_TRUE(testSym.entries[a_sym].ssize == sizee);
+    ASSERT_TRUE(testSym.entries[a_sym].ssize == ssize);
     ASSERT_TRUE(testSym.entries[a_sym].sscope == 0);
     ASSERT_TRUE(testSym.entries[a_sym].arrsize == 0);
     ASSERT_TRUE(testSym.entries[a_sym].extends == 0);
@@ -127,7 +127,7 @@ TEST(SymbolTable, AddExDefaultValues) {
 TEST(SymbolTable, AddExAvailableAfterwards) {
 	SymbolTable testSym;
 
-    int a_sym = testSym.add_ex("x", 0, 0);
+    int a_sym = testSym.add_ex("x", kSYM_NoType, 0);
 
     // no test is available.. but we can try to get name.
     const char *name = testSym.get_name(a_sym);
@@ -138,7 +138,7 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
 	SymbolTable testSym;
 
     // ensure reading and writing to entries actually works!
-    int a_sym = testSym.add_ex("x", 0, 0);
+    int a_sym = testSym.add_ex("x", kSYM_NoType, 0);
     testSym.entries[a_sym].flags = 10;
     ASSERT_TRUE(testSym.entries[a_sym].flags == 10);
 }
@@ -160,20 +160,6 @@ TEST(SymbolTable, GetNumArgs) {
     ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 1);
     testSym.entries[sym_01].sscope = 102;
     ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 2);
-}
-
-TEST(SymbolTable, IsLoadableVariable) {
-	SymbolTable testSym;
-	int sym_01 = testSym.add("supergreen");
-
-    ASSERT_TRUE(!testSym.entries[sym_01].is_loadable_variable());
-
-    testSym.entries[sym_01].stype = SYM_GLOBALVAR;
-    ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
-    testSym.entries[sym_01].stype = SYM_LOCALVAR;
-    ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
-    testSym.entries[sym_01].stype = SYM_CONSTANT;
-    ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
 }
 
 TEST(SymbolTable, AttrFuncs) {

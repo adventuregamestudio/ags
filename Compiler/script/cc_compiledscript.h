@@ -18,7 +18,7 @@ struct ccCompiledScript : public ccScript {
     long cur_sp;
     int  next_line;  // line number of next code
     AGS::Vartype ax_vartype;  // type of value in AX, usually equiv. to type of the current expression
-    AGS::SType  ax_val_scope;  // SYM_LOCALVAR or SYM_GLOBALVAR, needed to prevent a return of a local string
+    AGS::SType  ax_val_scope;  // kSYM_LocalVar or kSYM_GlobalVar, needed to prevent a return of a local string
 
     void init();
     void shutdown();

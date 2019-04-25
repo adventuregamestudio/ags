@@ -8,19 +8,19 @@
 #include <string>
 #include <vector>
 
-#define STYPE_DYNARRAY  (0x10000000)
-#define STYPE_CONST     (0x20000000)
-#define STYPE_POINTER   (0x40000000)
-#define STYPE_ARRAY     (0x80000000)
-
-#define STYPE_MASK       (0xFFFFFFF)
-
-#define SYM_TEMPORARYTYPE -99
+enum VartypeFlag : AGS::Vartype
+{
+    kVTYPE_Array = (0x10000000 << 0),
+    kVTYPE_Const = (0x10000000 << 1),
+    kVTYPE_DynArray = (0x10000000 << 2),
+    kVTYPE_Pointer = (0x10000000 << 3),
+    kVTYPE_FlagMask = (0x0FFFFFFF),
+};
 
 // There's another symbol definition in cc_symboldef.h which is deprecated
 struct SymbolTableEntry {
     std::string sname;
-    AGS::SType stype; // e.g., SYM_GLOBALVAR
+    SymbolType stype; // e.g., kSYM_GlobalVar
     AGS::Flags flags;
     AGS::Vartype vartype; // may contain typeflags
     int soffs;
@@ -34,12 +34,10 @@ struct SymbolTableEntry {
     std::vector<bool> funcParamHasDefaultValues;
 
     SymbolTableEntry();
-    SymbolTableEntry(const char *name, int stype, char ssize);
+    SymbolTableEntry(const char *name, SymbolType stype, char ssize);
 
     inline int get_num_args() { return sscope % 100; }
     inline bool is_varargs() { return (sscope >= 100); }
-
-    bool is_loadable_variable();
 
     void set_attrfuncs(int attrget, int attrset);
     int get_attrget();
@@ -75,10 +73,10 @@ struct SymbolTable {
     AGS::Symbol find_or_add(const char *name); 
 
     // add the name to the symbol table, give it the type stype and the size ssize
-    AGS::Symbol SymbolTable::add_ex(char const *name, AGS::Symbol stype, int ssize);
+    AGS::Symbol SymbolTable::add_ex(char const *name, SymbolType stype, int ssize);
 
     // add the name to the symbol table, empty type and size
-    inline AGS::Symbol add(const char *name) { return add_ex(name, 0, 0); };
+    inline AGS::Symbol add(const char *name) { return add_ex(name, kSYM_NoType, 0); };
 
     // add the operator to the symbol table
     int  add_operator(const char *opname , int priority, int vcpucmd);
@@ -90,7 +88,7 @@ struct SymbolTable {
     std::string const SymbolTable::get_name_string(int idx) const;
 
     // The symbol type, as given by the SYM_... constants
-    AGS::SType SymbolTable::get_type(AGS::Symbol symb);
+    SymbolType SymbolTable::get_type(AGS::Symbol symb);
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
     inline AGS::Vartype SymbolTable::get_vartype(AGS::Symbol symb) { return (symb >= 0 && symb < entries.size()) ? entries[symb].vartype : -1; }

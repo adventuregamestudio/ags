@@ -2,124 +2,116 @@
 #define __CS_PARSER_COMMON_H
 #include <cstdint>
 
-#define NEW_SCRIPT_TOKEN_PREFIX "\"__NEWSCRIPTSTART_"
-#define STRING_LENGTH 200   // how big to make strings
+namespace AGS
+{
+typedef int Symbol; // A symbol (result of scanner preprocessing)
+typedef long Flags; // Collection of bits that are set and reset
+typedef long Vartype; // e.g., "int"
+typedef short SType; // e.g. SYM_GLOBAL
+typedef Symbol *SymbolScript; // A buffer of symbols 
+typedef std::intptr_t CodeCell; // A Bytecode cell (content)
+typedef std::intptr_t CodeLoc; // A Bytecode location, may be negative
+} // namespace AGS
 
-// unused
-// #define MAX_NESTED_LEVEL 75
-// [fw] NOTE: NEST_ macros are converted into an enum in cs_parser.h
+#define NEW_SCRIPT_TOKEN_PREFIX "\"__NEWSCRIPTSTART_"
+#define STRING_LENGTH 200   // how big to make oldstyle strings
 
 #define MAX_FUNCTIONS 2000
 #define MAX_FUNCTION_PARAMETERS 15
 #define VARARGS_INDICATOR 100
 
-// This is the maximum length of a "static string" in the script
-// unused
-// #define MAX_SYM_LEN 500
-#define SYM_GLOBALVAR 1
-#define SYM_LOCALVAR  2
-#define SYM_OPERATOR  3
-#define SYM_FUNCTION  4
-#define SYM_OPENPARENTHESIS  5
-#define SYM_CLOSEPARENTHESIS 6
-#define SYM_OPENBRACKET   7
-#define SYM_CLOSEBRACKET  8
-#define SYM_DOT           9
-#define SYM_STRUCTMEMBER 10   // variable names of struct members
-#define SYM_STRING       18
-#define SYM_LITERALVALUE 19   // it's just a number
-#define SYM_CONSTANT     20   // constant variable (eg. literal "1")
-#define SYM_NULL         21   // const variable
-#define SYM_LITERALFLOAT 22   // it's just a floating point number
-// types below are not parts of expressions
-#define NOTEXPRESSION  23
-#define SYM_OPENBRACE  23
-#define SYM_CLOSEBRACE 24
-#define SYM_ASSIGN     25
-#define SYM_MASSIGN    26
-#define SYM_VARARGS    27
-#define SYM_IF         28
-#define SYM_ELSE       29
-#define SYM_STRUCT     30
-#define SYM_WHILE      31
-#define SYM_IMPORT     32
-#define SYM_EXPORT     33
-#define SYM_SASSIGN    34  // single-op assignemnt, eg "++", "--"
-#define SYM_RETURN     35
-#define SYM_READONLY   36
-#define SYM_MEMBERACCESS 37  // ::
-#define SYM_PROPERTY   38  // deprecated
-#define SYM_ATTRIBUTE  38  // struct member as attribute
-#define SYM_ENUM       39
-#define SYM_SEMICOLON  40
-#define SYM_MANAGED    41  // "managed" struct allocated on heap
-#define SYM_COMMA      42
-#define SYM_EXTENDS    43  // inheritance
-#define SYM_STATIC     44  // static function
-#define SYM_PROTECTED  45  // protected member
-#define SYM_VARTYPE    46
-#define SYM_UNDEFINEDSTRUCT 47  // forward-declared struct
-#define SYM_WRITEPROTECTED  48  // write-protected member
-#define SYM_CONST      49  // "const" keyword
-#define SYM_STRINGSTRUCT 50  // special string struct
-#define SYM_AUTOPTR    51  // automatic pointer
-#define SYM_LOOPCHECKOFF 52  // disable loop count checking
-#define SYM_NEW        53  // "new" keyword
-#define SYM_FOR        54
-#define SYM_BREAK      55
-#define SYM_CONTINUE   56
-#define SYM_DO         57
-#define SYM_BUILTIN    58 // Used to indicate that a managed object can't be instantiated directly by the user
-#define SYM_SWITCH     59
-#define SYM_CASE       60
-#define SYM_DEFAULT    61
-#define SYM_LABEL      62 // : appearing at the end of a label
+enum SymbolType : AGS::SType
+{
+    kSYM_NoType,
 
-#define SFLG_PARAMETER    0x01
-#define xSFLG_ARRAY       0x02
-#define SFLG_IMPORTED     0x04   // this is an import variable
-#define SFLG_ACCESSED     0x08   // if not set, the variable is never used
-#define SFLG_STRBUFFER    0x10  // was allocated a string buffer
-#define SFLG_ISSTRING     0x20  // is a pointer
-#define SFLG_READONLY     0x40  // user cannot change
-#define SFLG_STRUCTMEMBER 0x80  // set for member vars & funcs
-#define SFLG_POINTER     0x100  // pointer to object
-#define SFLG_ATTRIBUTE   0x200  // is an attribute variable
-#define SFLG_PROPERTY    0x200  // deprecated -- is an attribute variable
-#define SFLG_STRUCTTYPE  0x400  // is a struct type (type will be SYM_VARTYPE)
-#define SFLG_THISPTR     0x800  // is the "this" pointer
-#define SFLG_MANAGED    0x1000  // managed struct (SYM_VARTYPE)
-#define SFLG_STATIC     0x2000  // static member func/var
-#define SFLG_PROTECTED  0x4000  // protected member func/var
-#define SFLG_WRITEPROTECTED 0x8000  // only the this pointer can write the var
-#define SFLG_CONST     0x10000  // const variable
-#define SFLG_AUTOPTR   0x20000  // automatically convert definition to pointer
-#define SFLG_DYNAMICARRAY 0x40000  // array allocated at runtime
-#define SFLG_BUILTIN   0x80000  // direct instantiation/extension not allowed
-/*
-   The flag below is only present because the variable path parser
-   (e.g. something[2].something[3].something = 17) cannot yet handle
-   arrays within arrays
-*/
-#define SFLG_HASDYNAMICARRAY  0x100000
-#define TEMP_SYMLIST_LENGTH 100
+    // Types below can appear in expressions
+    kSYM_CloseBracket,
+    kSYM_CloseParenthesis,
+    kSYM_Constant,
+    kSYM_Dot,
+    kSYM_Function,
+    kSYM_GlobalVar,
+    kSYM_LiteralFloat,
+    kSYM_LiteralInt,
+    kSYM_LiteralString,
+    kSYM_LocalVar,
+    kSYM_Null,
+    kSYM_OpenBracket,
+    kSYM_OpenParenthesis,
+    kSYM_Operator,
+    kSYM_StructMember,
+
+    // Types below cannot appear in expressions
+    kSYM_Assign,
+#define NOTEXPRESSION  kSYM_Assign // STypes starting (numerically) with this aren't part of expressions
+    kSYM_AssignMod,         // Modifying assign, e.g. "+="
+    kSYM_AssignSOp,         // single-op assignemnt, eg "++", "--"
+    kSYM_Attribute,         // struct member as attribute
+    kSYM_AutoPtr,           // automatic pointer
+    kSYM_Break,
+    kSYM_Builtin,           // can't be instantiated directly by the user
+    kSYM_Case,
+    kSYM_CloseBrace,
+    kSYM_Comma,
+    kSYM_Const,  
+    kSYM_Continue,
+    kSYM_Default,
+    kSYM_Do,
+    kSYM_Else,
+    kSYM_Enum,
+    kSYM_Export,
+    kSYM_Extends,           // inheritance
+    kSYM_For,
+    kSYM_If,
+    kSYM_Import,
+    kSYM_InternalString,    // special string struct
+    kSYM_Label,             // : appearing at the end of a label
+    kSYM_NoLoopCheck,       // disable loop count checking
+    kSYM_Managed,           // struct allocated on heap
+    kSYM_MemberAccess,      // ::
+    kSYM_New,  
+    kSYM_OpenBrace,
+    kSYM_Protected,  
+    kSYM_ReadOnly,
+    kSYM_Return,
+    kSYM_Semicolon,
+    kSYM_Static,            
+    kSYM_Struct,
+    kSYM_Switch,
+    kSYM_UndefinedStruct,   // forward-declared struct
+    kSYM_Varargs,
+    kSYM_Vartype,
+    kSYM_While,
+    kSYM_WriteProtected,    // write-protected member
+};
+
+enum SymbolTableFlag : AGS::Flags
+{
+    kSFLG_Accessed     = 1 <<  0, // if not set, the variable is never used
+    kSFLG_Attribute    = 1 <<  1, // is an attribute variable
+    kSFLG_Autoptr      = 1 <<  2, // automatically convert definition to pointer
+    kSFLG_Builtin      = 1 <<  3, // direct instantiation/extension not allowed
+    // The flag below only exists because the variable path parser cannot yet handle
+    // arrays within arrays (e.g.something[2].something[3].something = 17) 
+    kSFLG_HasDynArray  = 1 <<  4, 
+    kSFLG_Imported     = 1 <<  5, // this is an import variable
+    kSFLG_Managed      = 1 <<  6, // managed struct (kSYM_Vartype)
+    kSFLG_Parameter    = 1 <<  7,
+    kSFLG_Protected    = 1 <<  8, // protected member func/var
+    kSFLG_Readonly     = 1 <<  9, // user cannot change
+    kSFLG_Static       = 1 << 10, // static member func/var
+    kSFLG_StrBuffer    = 1 << 11, // was allocated a string buffer
+    kSFLG_StructMember = 1 << 12, // set for member vars & funcs
+    kSFLG_StructType   = 1 << 13, // is a struct type (type will be kSYM_Vartype)
+    kSFLG_WriteProtected = 1 << 14,  // only the this pointer can write the var
+};
+
 #define SIZE_OF_POINTER 4
+#define SIZE_OF_INT 4
 
 extern int is_whitespace(char cht);
 extern void skip_whitespace(char **pttt);
 extern int is_digit(int chrac);
 extern int is_alphanum(int chrac);
-
-namespace AGS
-{
-
-typedef int Symbol; // A symbol (result of scanner preprocessing)
-typedef long Flags; // Collection of bits that are set and reset
-typedef long Vartype;   // e.g., "int"
-typedef short SType;    // e.g. SYM_GLOBAL
-typedef Symbol *SymbolScript;   // A buffer of symbols 
-typedef std::intptr_t CodeCell; // A code cell (content)
-typedef std::intptr_t CodeLoc; // A code location, may be negative
-} // namespace AGS
 
 #endif // __CS_PARSER_COMMON_H

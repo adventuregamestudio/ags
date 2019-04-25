@@ -6,7 +6,6 @@
 #include "script/cc_script.h"   
 #include "cs_parser_common.h"   // macro definitions
 #include "cc_symboltable.h"     // SymbolTableEntry
-#include "cc_symboldef.h"       // deprecated
 
 
 struct ccCompiledScript : public ccScript {
@@ -38,7 +37,6 @@ struct ccCompiledScript : public ccScript {
     void write_code(intptr_t);
     inline void set_line_number(int nlum) { next_line = nlum; }
     void flush_line_numbers();
-    int  remove_any_import(const char *, SymbolDef *oldSym); // deprecated
     const char *start_new_section(const char *name);
 
     inline void write_cmd(int cmdd) { write_code(cmdd); };

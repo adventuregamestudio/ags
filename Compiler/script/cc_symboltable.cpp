@@ -35,28 +35,6 @@ SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, char size
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
 
-void SymbolTableEntry::set_attrfuncs(int attrget, int attrset)
-{
-    // TODO check ranges and throw exception
-    soffs = (attrget << 16) | attrset;
-}
-
-int SymbolTableEntry::get_attrget()
-{
-    int toret = (soffs >> 16) & 0x00ffff;
-    if (toret == 0xffff) return -1;
-
-    return toret;
-}
-
-int SymbolTableEntry::get_attrset()
-{
-    int toret = soffs & 0x00ffff;
-    if (toret == 0xffff) return -1;
-
-    return toret;
-}
-
 int SymbolTableEntry::operatorToVCPUCmd()
 {
     //return ssize + 8;
@@ -94,9 +72,9 @@ SymbolTable::SymbolTable()
     _findCache.clear();
 }
 
-SymbolType SymbolTable::get_type(AGS::Symbol symbol)
+SymbolType SymbolTable::get_type(AGS::Symbol symbol)  const
 {
-    symbol &= kVTYPE_FlagMask;
+    symbol &= kVTY_FlagMask;
 
     if ((symbol < 0) || (symbol >= entries.size()))
         return kSYM_NoType;
@@ -157,7 +135,7 @@ void SymbolTable::reset()
     add_operator("&&", 18, SCMD_AND);
     add_operator("||", 19, SCMD_OR);
     _thisSym =
-        add_ex("this", kSYM_NoType, 0);
+        add("this");
 
     // other keywords and symbols
     add_ex("=", kSYM_Assign, 0);
@@ -211,26 +189,9 @@ void SymbolTable::reset()
         add_ex("writeprotected", kSYM_WriteProtected, 0); 
 }
 
-AGS::Symbol SymbolTable::find(const char *ntf)
+std::string const SymbolTable::get_name_string(AGS::Symbol idx) const
 {
-    auto it = _findCache.find(ntf);
-    if (it != _findCache.end())
-        return it->second;
-    return -1;
-}
-
-AGS::Symbol SymbolTable::find_or_add(const char *ntf)
-{
-    AGS::Symbol ret = find(ntf);
-    if (ret >= 0)
-        return ret;
-    return add(ntf);
-}
-
-
-std::string const SymbolTable::get_name_string(int idx) const
-{
-    int const short_idx = (idx & kVTYPE_FlagMask);
+    int const short_idx = (idx & kVTY_FlagMask);
     if (short_idx < 0)
         return std::string("(end of input)");
     if (short_idx >= entries.size())
@@ -238,37 +199,29 @@ std::string const SymbolTable::get_name_string(int idx) const
     
     std::string result = entries[short_idx].sname;
 
-    if (idx & kVTYPE_Pointer)
+    if (idx & kVTY_Pointer)
         result += "*";
-    if (idx & (kVTYPE_Array|kVTYPE_DynArray))
+    if (idx & (kVTY_Array|kVTY_DynArray))
         result += "[]";
-    if (idx & kVTYPE_Const)
+    if (idx & kVTY_Const)
         result = "const " + result;
 
     return result;
 }
 
-std::string const SymbolTable::get_vartype_name_string(long vartype) const
+std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const
 {
-    AGS::Symbol const core_type = (vartype & kVTYPE_FlagMask);
+    AGS::Symbol const core_type = (vartype & kVTY_FlagMask);
 
     std::string result = (core_type >= 0 && core_type < entries.size()) ? entries[core_type].sname : "UNKNOWNTYPE";
-    if ((vartype & kVTYPE_Pointer) && !(entries[core_type].flags & kSFLG_Autoptr))
+    if ((vartype & kVTY_Pointer) && !(entries[core_type].flags & kSFLG_Autoptr))
         result += "*";
-    if (vartype & (kVTYPE_Array|kVTYPE_DynArray))
+    if (vartype & (kVTY_Array|kVTY_DynArray))
         result += "[]";
-    if (vartype & kVTYPE_Const)
+    if (vartype & kVTY_Const)
         result = "const " + result;
 
     return result;
-}
-
-
-char const *SymbolTable::get_name(int idx)
-{
-    static std::string str;
-    str = get_name_string(idx);
-    return str.c_str();
 }
 
 AGS::Symbol SymbolTable::add_ex(char const *name, SymbolType stype, int ssize)

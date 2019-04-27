@@ -9,24 +9,23 @@
 
 enum VartypeFlag : AGS::Vartype
 {
-    kVTYPE_Array = (0x10000000 << 0),
-    kVTYPE_Const = (0x10000000 << 1),
-    kVTYPE_DynArray = (0x10000000 << 2),
-    kVTYPE_Pointer = (0x10000000 << 3),
-    kVTYPE_FlagMask = (0x0FFFFFFF),
+    kVTY_Array = (0x10000000 << 0),
+    kVTY_Const = (0x10000000 << 1),
+    kVTY_DynArray = (0x10000000 << 2),
+    kVTY_Pointer = (0x10000000 << 3),
+    kVTY_FlagMask = (0x0FFFFFFF),
 };
 
-// There's another symbol definition in cc_symboldef.h which is deprecated
 struct SymbolTableEntry {
     std::string sname;
     SymbolType stype; // e.g., kSYM_GlobalVar
     AGS::Flags flags;
     AGS::Vartype vartype; // may contain typeflags
-    int soffs;
-    long ssize; // or return type size for function
-    short sscope; // or num arguments for function
-    long arrsize; // num of bytes needed to contain the whole array (not num of elements)
-    short extends; // inherits another class (classes) / owning class (member vars)
+    AGS::CodeLoc soffs;
+    int ssize; // or return type size for function
+    int sscope; // or num arguments for function
+    int arrsize; // num of bytes needed to contain the whole array (not num of elements)
+    AGS::Vartype extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<AGS::Vartype> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
@@ -37,10 +36,6 @@ struct SymbolTableEntry {
 
     inline int get_num_args() { return sscope % 100; }
     inline bool is_varargs() { return (sscope >= 100); }
-
-    void set_attrfuncs(int attrget, int attrset);
-    int get_attrget();
-    int get_attrset();
 
     int operatorToVCPUCmd();
 
@@ -60,6 +55,7 @@ private:
     AGS::Symbol _voidSym;      // the symbol that corresponds to "void"
     AGS::Symbol _stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
     AGS::Symbol _lastPredefSym;      // last predefined symbol
+    std::unordered_map<std::string, int> _findCache;
 
 public:
     std::vector<SymbolTableEntry> entries;
@@ -67,53 +63,51 @@ public:
     SymbolTable();
     void reset();
 
-    inline AGS::Symbol getCharSym() { return _charSym; }
-    inline AGS::Symbol getFloatSym() { return _floatSym; }
-    inline AGS::Symbol getIntSym() { return _intSym; }
-    inline AGS::Symbol getNullSym() { return _nullSym; }
-    inline AGS::Symbol getPointerSym() { return _pointerSym; }
-    inline AGS::Symbol getOldStringSym() { return _stringSym; }
-    inline AGS::Symbol getThisSym() { return _thisSym; }
-    inline AGS::Symbol getVoidSym() { return _voidSym; }
-    inline AGS::Symbol getStringStructSym() { return _stringStructSym; }
+    inline AGS::Symbol getCharSym() const { return _charSym; }
+    inline AGS::Symbol getFloatSym() const { return _floatSym; }
+    inline AGS::Symbol getIntSym() const { return _intSym; }
+    inline AGS::Symbol getNullSym() const { return _nullSym; }
+    inline AGS::Symbol getOldStringSym() const { return _stringSym; }
+    inline AGS::Symbol getPointerSym() const { return _pointerSym; }
+    inline AGS::Symbol getThisSym() const { return _thisSym; }
+    inline AGS::Symbol getVoidSym() const { return _voidSym; }
+    inline AGS::Symbol getStringStructSym() const { return _stringStructSym; }
     inline void setStringStructSym(AGS::Symbol s) { _stringStructSym = s; }
-    inline AGS::Symbol getLastPredefSym() { return _lastPredefSym; }
-
-    // Return the symbol to the name, or -1 if not found
-    AGS::Symbol find(const char *name);  
-
-    // Add to the symbol table if not in there already; in any case return the symbol
-    AGS::Symbol find_or_add(const char *name); 
+    inline AGS::Symbol getLastPredefSym() const { return _lastPredefSym; }
 
     // add the name to the symbol table, give it the type stype and the size ssize
     AGS::Symbol SymbolTable::add_ex(char const *name, SymbolType stype, int ssize);
 
     // add the name to the symbol table, empty type and size
-    inline AGS::Symbol add(const char *name) { return add_ex(name, kSYM_NoType, 0); };
+    inline AGS::Symbol add(char const *name) { return add_ex(name, kSYM_NoType, 0); };
 
     // add the operator to the symbol table
-    int  add_operator(const char *opname , int priority, int vcpucmd);
+    int add_operator(const char *opname , int priority, int vcpucmd);
+
+    // Return the symbol to the name, or -1 if not found
+    inline AGS::Symbol find(char const *name) { auto it = _findCache.find(name); return (_findCache.end() == it) ? -1 : it->second; }
+
+    // Add to the symbol table if not in there already; in any case return the symbol
+    inline AGS::Symbol find_or_add(char const *name) { AGS::Symbol ret = find(name); return (ret >= 0) ? ret : add(name); }
 
     // return name as char *, statically allocated
-    char const *SymbolTable::get_name(int idx);
+    inline char const *SymbolTable::get_name(AGS::Symbol sym) { static std::string str; str = get_name_string(sym); return str.c_str(); }
 
     // return the name to the symbol including "const" qualifier, including "*" or "[]"
-    std::string const SymbolTable::get_name_string(int idx) const;
+    std::string const SymbolTable::get_name_string(AGS::Symbol sym) const;
 
-    // The symbol type, as given by the SYM_... constants
-    SymbolType SymbolTable::get_type(AGS::Symbol symb);
+    // The symbol type, as given by the kSYM_... constants
+    SymbolType SymbolTable::get_type(AGS::Symbol symb) const;
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
     inline AGS::Vartype SymbolTable::get_vartype(AGS::Symbol symb) { return (symb >= 0 && symb < entries.size()) ? entries[symb].vartype : -1; }
 
+    // the flags of a vartype, as given by the symbol table entry to its core type
+    // -or- the flags of a symbol, as given by its symbol table entry
+    inline AGS::Flags SymbolTable::get_flags(AGS::Vartype vt) { size_t idx = vt & kVTY_FlagMask; return (vt >= 0 && idx < entries.size()) ? entries[idx].flags : 0; }
     // return the printable name of the vartype
-    std::string const SymbolTable::get_vartype_name_string(long typ) const;
-
-
-
-private:
-
-    std::unordered_map<std::string, int> _findCache;
+    std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const;
+   
 };
 
 

@@ -131,7 +131,7 @@ int ccCompiledScript::copy_import_symbol_table_entry(AGS::Symbol idx, SymbolTabl
     // Return size may have been unknown at the time of forward declaration. Check the actual return type for those cases.
     if (dest->ssize == 0 && sym.entries[entries_idx].stype == kSYM_Function)
     {
-        dest->ssize = sym.entries[sym.entries[entries_idx].funcparamtypes[0] & ~(kVTYPE_Pointer | kVTYPE_DynArray)].ssize;
+        dest->ssize = sym.entries[sym.entries[entries_idx].funcparamtypes[0] & ~(kVTY_Pointer | kVTY_DynArray)].ssize;
     }
     dest->arrsize = sym.entries[entries_idx].arrsize;
 

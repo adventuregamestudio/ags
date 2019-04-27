@@ -31,25 +31,25 @@ TEST(SymbolTable, GetNameFlags) {
     int foo_sym = testSym.add_ex("foo", kSYM_NoType, 0);
 
     // const
-    EXPECT_STREQ("const foo", testSym.get_name(foo_sym | kVTYPE_Const));
+    EXPECT_STREQ("const foo", testSym.get_name(foo_sym | kVTY_Const));
 
     // dynarray
-    EXPECT_STREQ("foo[]", testSym.get_name(foo_sym | kVTYPE_DynArray));
+    EXPECT_STREQ("foo[]", testSym.get_name(foo_sym | kVTY_DynArray));
 
    // pointer
-    EXPECT_STREQ("foo*", testSym.get_name(foo_sym | kVTYPE_Pointer));
+    EXPECT_STREQ("foo*", testSym.get_name(foo_sym | kVTY_Pointer));
 
 
     int bar_sym = testSym.add_ex("bar", kSYM_NoType, 0);
 
     // const dynarray
-    EXPECT_STREQ("const bar[]", testSym.get_name(bar_sym | kVTYPE_Const | kVTYPE_DynArray));
+    EXPECT_STREQ("const bar[]", testSym.get_name(bar_sym | kVTY_Const | kVTY_DynArray));
 
     // const pointer
-    EXPECT_STREQ("const bar*", testSym.get_name(bar_sym | kVTYPE_Const | kVTYPE_Pointer));
+    EXPECT_STREQ("const bar*", testSym.get_name(bar_sym | kVTY_Const | kVTY_Pointer));
 
     // const dynarray/pointer
-    EXPECT_STREQ("const bar*[]", testSym.get_name(bar_sym | kVTYPE_Const | kVTYPE_DynArray | kVTYPE_Pointer));
+    EXPECT_STREQ("const bar*[]", testSym.get_name(bar_sym | kVTY_Const | kVTY_DynArray | kVTY_Pointer));
 }
 
 
@@ -65,28 +65,28 @@ TEST(SymbolTable, GetNameNonExistentFlags) {
     EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym));
 
     // const
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Const));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const));
 
     // dynarray
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_DynArray));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_DynArray));
 
     // dynarray + pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_DynArray | kVTYPE_Pointer));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_DynArray | kVTY_Pointer));
 
     // pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Pointer));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Pointer));
 
     // combinations
     // -------------------
 
     // const dynarray
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Const | kVTYPE_DynArray));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_DynArray));
 
     // const pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Const | kVTYPE_Pointer));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_Pointer));
 
     // const dynarray/pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTYPE_Const | kVTYPE_DynArray | kVTYPE_Pointer));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_DynArray | kVTY_Pointer));
 }
 
 TEST(SymbolTable, AddExAlreadyExists) {
@@ -159,28 +159,6 @@ TEST(SymbolTable, GetNumArgs) {
     ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 1);
     testSym.entries[sym_01].sscope = 102;
     ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 2);
-}
-
-TEST(SymbolTable, AttrFuncs) {
-
-	SymbolTable testSym;
-	int sym_01 = testSym.add("cup");
-
-	testSym.entries[sym_01].set_attrfuncs(0, 0);
-	ASSERT_TRUE(testSym.entries[sym_01].get_attrget() == 0);
-	ASSERT_TRUE(testSym.entries[sym_01].get_attrset() == 0);
-
-	testSym.entries[sym_01].set_attrfuncs(1, 2);
-	ASSERT_TRUE(testSym.entries[sym_01].get_attrget() == 1);
-	ASSERT_TRUE(testSym.entries[sym_01].get_attrset() == 2);
-
-	testSym.entries[sym_01].set_attrfuncs(100, 200);
-	ASSERT_TRUE(testSym.entries[sym_01].get_attrget() == 100);
-	ASSERT_TRUE(testSym.entries[sym_01].get_attrset() == 200);
-
-	testSym.entries[sym_01].set_attrfuncs(0xFFFF, 0xFFFF);
-	ASSERT_TRUE(testSym.entries[sym_01].get_attrget() == -1);
-	ASSERT_TRUE(testSym.entries[sym_01].get_attrset() == -1);
 }
 
 TEST(SymbolTable, OperatorToVCPUCmd) {

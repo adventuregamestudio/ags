@@ -19,14 +19,21 @@ namespace AGS.Editor
 
         private const string GUI_XML_ROOT_NODE = "ExportedGUI";
         private const string GUI_XML_VERSION_ATTRIBUTE = "Version";
-        private const string GUI_XML_CURRENT_VERSION = "1";
+        // TODO: split XML versions for base object (GUI/Character) and
+        // nested items (like sprites) to allow converting from future versions
+        // if only nested items format changed (when still possible)
+        // *  1: Initial
+        // *  2: Sprites have "real resolution"
+        private const string GUI_XML_CURRENT_VERSION = "2";
         private const string GUI_XML_PALETTE_NODE = "Palette";
         private const string GUI_XML_SPRITES_NODE = "UsedSprites";
         private const string GUI_XML_SPRITE_NODE = "SpriteData";
 
         private const string CHARACTER_XML_ROOT_NODE = "ExportedCharacter";
         private const string CHARACTER_XML_VERSION_ATTRIBUTE = "Version";
-        private const string CHARACTER_XML_CURRENT_VERSION = "1";
+        // *  1: Initial
+        // *  2: Sprites have "real resolution"
+        private const string CHARACTER_XML_CURRENT_VERSION = "2";
         private const string CHARACTER_XML_PALETTE_NODE = "Palette";
         private const string CHARACTER_XML_VIEWS_NODE = "Views";
 
@@ -37,7 +44,7 @@ namespace AGS.Editor
         private const string GUI_XML_SPRITE_HEIGHT = "Height";
         private const string GUI_XML_SPRITE_RESOLUTION = "Resolution";
 
-        private static int SPRITE_FLAG_ALPHA_CHANNEL = 0x10;
+        private static int SPRITE_FLAG_ALPHA_CHANNEL = NativeConstants.SPF_ALPHACHANNEL;
         private static int EDITOR_DAT_LATEST_FILE_VERSION = 7;
         private static Dictionary<string, ImageFormat> ImageFileTypes = new Dictionary<string, ImageFormat>();
 
@@ -1067,6 +1074,7 @@ namespace AGS.Editor
             int colDepth = GetColorDepthForPixelFormat(bmp.PixelFormat);
             writer.Write(colDepth);
             int spriteFlags = 0;
+            // TODO: why we are not saving resolution flags?
             if (bmp.PixelFormat == PixelFormat.Format32bppArgb)
             {
                 spriteFlags |= SPRITE_FLAG_ALPHA_CHANNEL;

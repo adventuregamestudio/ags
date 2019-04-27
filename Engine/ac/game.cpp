@@ -42,7 +42,7 @@
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/region.h"
 #include "ac/richgamemedia.h"
 #include "ac/room.h"
@@ -86,6 +86,7 @@
 #include "util/filestream.h" // TODO: needed only because plugins expect file handle
 #include "util/path.h"
 #include "util/string_utils.h"
+#include "ac/mouse.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -335,13 +336,13 @@ void setup_for_dialog() {
     cbuttfont = play.normal_font;
     acdialog_font = play.normal_font;
     if (!play.mouse_cursor_hidden)
-        domouse(1);
+        ags_domouse(DOMOUSE_ENABLE);
     oldmouse=cur_cursor; set_mouse_cursor(CURS_ARROW);
 }
 void restore_after_dialog() {
     set_mouse_cursor(oldmouse);
     if (!play.mouse_cursor_hidden)
-        domouse(2);
+        ags_domouse(DOMOUSE_DISABLE);
     construct_virtual_screen(true);
 }
 
@@ -502,16 +503,7 @@ void save_game_dialog() {
 
 void free_do_once_tokens()
 {
-    for (int i = 0; i < play.num_do_once_tokens; i++)
-    {
-        free(play.do_once_tokens[i]);
-    }
-    if (play.do_once_tokens != NULL)
-    {
-        free(play.do_once_tokens);
-        play.do_once_tokens = NULL;
-    }
-    play.num_do_once_tokens = 0;
+    play.do_once_tokens.resize(0);
 }
 
 
@@ -736,17 +728,14 @@ int Game_DoOnceOnly(const char *token)
     if (strlen(token) > 199)
         quit("!Game.DoOnceOnly: token length cannot be more than 200 chars");
 
-    for (int i = 0; i < play.num_do_once_tokens; i++)
+    for (int i = 0; i < (int)play.do_once_tokens.size(); i++)
     {
-        if (strcmp(play.do_once_tokens[i], token) == 0)
+        if (play.do_once_tokens[i] == token)
         {
             return 0;
         }
     }
-    play.do_once_tokens = (char**)realloc(play.do_once_tokens, sizeof(char*) * (play.num_do_once_tokens + 1));
-    play.do_once_tokens[play.num_do_once_tokens] = (char*)malloc(strlen(token) + 1);
-    strcpy(play.do_once_tokens[play.num_do_once_tokens], token);
-    play.num_do_once_tokens++;
+    play.do_once_tokens.push_back(token);
     return 1;
 }
 
@@ -1204,15 +1193,10 @@ void ReadGameState_Aligned(Stream *in)
 
 void restore_game_play_ex_data(Stream *in)
 {
-    if (play.num_do_once_tokens > 0)
+    for (int bb = 0; (int)bb < play.do_once_tokens.size(); bb++)
     {
-        play.do_once_tokens = (char**)malloc(sizeof(char*) * play.num_do_once_tokens);
-        for (int bb = 0; bb < play.num_do_once_tokens; bb++)
-        {
-            fgetstring_limit(rbuffer, in, 200);
-            play.do_once_tokens[bb] = (char*)malloc(strlen(rbuffer) + 1);
-            strcpy(play.do_once_tokens[bb], rbuffer);
-        }
+        StrUtil::ReadCStr(rbuffer, in, sizeof(rbuffer));
+        play.do_once_tokens[bb] = rbuffer;
     }
 
     in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
@@ -1220,9 +1204,6 @@ void restore_game_play_ex_data(Stream *in)
 
 void restore_game_play(Stream *in)
 {
-    // preserve the replay settings
-    int playback_was = play.playback, recording_was = play.recording;
-    int gamestep_was = play.gamestep;
     int screenfadedout_was = play.screen_is_faded_out;
     int roomchanges_was = play.room_changes;
     // make sure the pointer is preserved
@@ -1231,9 +1212,6 @@ void restore_game_play(Stream *in)
     ReadGameState_Aligned(in);
 
     play.screen_is_faded_out = screenfadedout_was;
-    play.playback = playback_was;
-    play.recording = recording_was;
-    play.gamestep = gamestep_was;
     play.room_changes = roomchanges_was;
     play.gui_draw_order = gui_draw_order_was;
 
@@ -1593,8 +1571,10 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     if (!err)
         return err;
 
-    // [IKM] Plugins expect FILE pointer! // TODO something with this later
-    pl_run_plugin_hooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
+    auto pluginFileHandle = AGSE_RESTOREGAME;
+    pl_set_file_handle(pluginFileHandle, in);
+    pl_run_plugin_hooks(AGSE_RESTOREGAME, pluginFileHandle);
+    pl_clear_file_handle();
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)
         return new SavegameError(kSvgErr_InconsistentPlugin);
 
@@ -1695,9 +1675,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     our_eip = oldeip;
 
     // ensure keyboard buffer is clean
-    // use the raw versions rather than the rec_ versions so we don't
-    // interfere with the replay sync
-    while (keypressed()) readkey();
+    ags_clear_input_buffer();
     // call "After Restore" event callback
     run_on_event(GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
     return HSaveError::None();
@@ -1728,6 +1706,16 @@ bool try_restore_save(const Common::String &path, int slot)
     return true;
 }
 
+bool is_in_cutscene()
+{
+    return play.in_cutscene > 0;
+}
+
+CutsceneSkipStyle get_cutscene_skipstyle()
+{
+    return static_cast<CutsceneSkipStyle>(play.in_cutscene);
+}
+
 void start_skipping_cutscene () {
     play.fast_forward = 1;
     // if a drop-down icon bar is up, remove it as it will pause the game
@@ -1742,13 +1730,12 @@ void start_skipping_cutscene () {
 
 void check_skip_cutscene_keypress (int kgn) {
 
-    if ((play.in_cutscene > 0) && (play.in_cutscene != 3)) {
-        if ((kgn != 27) && ((play.in_cutscene == 1) || (play.in_cutscene == 5)))
-            ;
-        else
-            start_skipping_cutscene();
+    CutsceneSkipStyle skip = get_cutscene_skipstyle();
+    if (skip == eSkipSceneAnyKey || skip == eSkipSceneKeyMouse ||
+        (kgn == 27 && (skip == eSkipSceneEscOnly || skip == eSkipSceneEscOrRMB)))
+    {
+        start_skipping_cutscene();
     }
-
 }
 
 // Helper functions used by StartCutscene/EndCutscene, but also
@@ -1857,7 +1844,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 void display_switch_out()
 {
     switched_away = true;
-    clear_input_buffer();
+    ags_clear_input_buffer();
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
     platform->DisplaySwitchOut();
@@ -1904,7 +1891,7 @@ void display_switch_in()
             platform->EnterFullscreenMode(mode);
     }
     platform->DisplaySwitchIn();
-    clear_input_buffer();
+    ags_clear_input_buffer();
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();
@@ -1922,7 +1909,7 @@ void display_switch_in_resume()
 
     // clear the screen if necessary
     if (gfxDriver && gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, game.size.Height - 1, NULL);
+        gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, NULL);
 
     platform->ResumeApplication();
 }

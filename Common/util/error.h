@@ -40,8 +40,8 @@ class Error
 public:
     Error(int code, String general, PError inner_error = PError()) : _code(code), _general(general), _innerError(inner_error) {}
     Error(int code, String general, String comment, PError inner_error = PError()) : _code(code), _general(general), _comment(comment), _innerError(inner_error) {}
-    Error(String general, PError inner_error = PError()) : _general(general), _innerError(inner_error) {}
-    Error(String general, String comment, PError inner_error = PError()) : _general(general), _comment(comment), _innerError(inner_error) {}
+    Error(String general, PError inner_error = PError()) : _code(0), _general(general), _innerError(inner_error) {}
+    Error(String general, String comment, PError inner_error = PError()) : _code(0), _general(general), _comment(comment), _innerError(inner_error) {}
     
 
     // Error code is a number, defining error subtype. It is not much use to the end-user,

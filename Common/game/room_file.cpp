@@ -266,9 +266,8 @@ HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_
 
     for (size_t i = 0; i < room->ObjectCount; ++i)
         room->Objects[i].Flags = in->ReadInt16();
-    // TODO: remove this when we change gamedata format
-    in->ReadInt16();  // room->resolution
 
+    room->MaskResolution = in->ReadInt16();
     room->WalkAreaCount = in->ReadInt32();
     if (room->WalkAreaCount > MAX_WALK_AREAS + 1)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many walkable areas (in room: %d, max: %d).", room->WalkAreaCount, MAX_WALK_AREAS + 1));
@@ -532,10 +531,18 @@ HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_v
 
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos)
 {
-    // Upgade object script names
+    if (data_ver < kRoomVersion_3508)
+    {
+        // Save legacy resolution if it DOES NOT match game's;
+        // otherwise it gets promoted to "real resolution"
+        if (room->MaskResolution == 1 && game_is_hires)
+            room->SetResolution(kRoomLoRes);
+        else if (room->MaskResolution > 1 && !game_is_hires)
+            room->SetResolution(kRoomHiRes);
+    }
     if (data_ver < kRoomVersion_300a)
     {
-        for (size_t i = 0; i < (size_t)room->ObjectCount; ++i)
+        for (size_t i = 0; i < room->ObjectCount; ++i)
         {
             if (room->Objects[i].ScriptName.GetLength() > 0)
             {
@@ -701,8 +708,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
 
     for (size_t i = 0; i < room->ObjectCount; ++i)
         out->WriteInt16(room->Objects[i].Flags);
-
-    out->WriteInt16(1); // CLNUP remove this after gamedata format change (room->resolution)
+    out->WriteInt16(room->MaskResolution);
 
     // write the zoom and light levels
     out->WriteInt32(MAX_WALK_AREAS + 1);

@@ -45,66 +45,60 @@ extern IGraphicsDriver *gfxDriver;
 // CLNUP most likely remove these
 int convert_16bit_bgr = 0;
 
-int ff; // whatever!
-
-// CLNUP remove this
-int adjust_pixel_size_for_loaded_data(int size, int filever)
+// CLNUP check if it can be remove
+// Convert guis position and size to proper game resolution.
+// Necessary for pre 3.1.0 games only to sync with modern engine.
+void convert_gui_to_game_resolution(GameDataVersion filever)
 {
-    return size;
-}
+    if (filever > kGameVersion_310)
+        return;
 
-// CLNUP there won't be nothing to adjust
-void adjust_pixel_sizes_for_loaded_data(int *x, int *y, int filever)
-{
-    x[0] = adjust_pixel_size_for_loaded_data(x[0], filever);
-    y[0] = adjust_pixel_size_for_loaded_data(y[0], filever);
-}
-
-// CLNUP check if it can be removed
-void adjust_sizes_for_resolution(int filever)
-{
-    int ee;
-    for (ee = 0; ee < game.numcursors; ee++) 
+    const int mul = game.GetDataUpscaleMult();
+    for (int i = 0; i < game.numcursors; ++i)
     {
-        game.mcurs[ee].hotx = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hotx, filever);
-        game.mcurs[ee].hoty = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hoty, filever);
+        game.mcurs[i].hotx *= mul;
+        game.mcurs[i].hoty *= mul;
     }
 
-    for (ee = 0; ee < game.numinvitems; ee++) 
+    for (int i = 0; i < game.numinvitems; ++i)
     {
-        adjust_pixel_sizes_for_loaded_data(&game.invinfo[ee].hotx, &game.invinfo[ee].hoty, filever);
+        game.invinfo[i].hotx *= mul;
+        game.invinfo[i].hoty *= mul;
     }
 
-    for (ee = 0; ee < game.numgui; ee++) 
+    for (int i = 0; i < game.numgui; ++i)
     {
-        GUIMain*cgp=&guis[ee];
-        adjust_pixel_sizes_for_loaded_data(&cgp->X, &cgp->Y, filever);
+        GUIMain*cgp = &guis[i];
+        cgp->X *= mul;
+        cgp->Y *= mul;
         if (cgp->Width < 1)
             cgp->Width = 1;
         if (cgp->Height < 1)
             cgp->Height = 1;
-        // Temp fix for older games
-        if (cgp->Width == play.GetNativeSize().Width - 1)
-            cgp->Width = play.GetNativeSize().Width;
+        // This is probably a way to fix GUIs meant to be covering whole screen
+        if (cgp->Width == game.GetDataRes().Width - 1)
+            cgp->Width = game.GetDataRes().Width;
 
-        adjust_pixel_sizes_for_loaded_data(&cgp->Width, &cgp->Height, filever);
+        cgp->Width *= mul;
+        cgp->Height *= mul;
 
-        cgp->PopupAtMouseY = adjust_pixel_size_for_loaded_data(cgp->PopupAtMouseY, filever);
+        cgp->PopupAtMouseY *= mul;
 
-        for (ff = 0; ff < cgp->GetControlCount(); ff++)
+        for (int j = 0; j < cgp->GetControlCount(); ++j)
         {
-            GUIObject *guio = cgp->GetControl(ff);
-            adjust_pixel_sizes_for_loaded_data(&guio->X, &guio->Y, filever);
-            adjust_pixel_sizes_for_loaded_data(&guio->Width, &guio->Height, filever);
+            GUIObject *guio = cgp->GetControl(j);
+            guio->X *= mul;
+            guio->Y *= mul;
+            guio->Width *= mul;
+            guio->Height *= mul;
             guio->IsActivated = false;
         }
     }
 }
-
 void engine_setup_system_gamesize()
 {
-    scsystem.width = game.size.Width;
-    scsystem.height = game.size.Height;
+    scsystem.width = game.GetGameRes().Width;
+    scsystem.height = game.GetGameRes().Height;
     scsystem.viewport_width = play.GetMainViewport().GetWidth();
     scsystem.viewport_height = play.GetMainViewport().GetHeight();
 }
@@ -121,15 +115,14 @@ void engine_init_resolution_settings(const Size game_size)
     play.SetRoomViewport(viewport);
     play.SetRoomCameraSize(viewport.GetSize());
 
-    wtext_multiply = 1;
-    play.SetNativeSize(game_size);
-
     usetup.textheight = getfontheight_outlined(0) + 1;
 
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
 
-    adjust_sizes_for_resolution(loaded_game_file_version);
+    convert_gui_to_game_resolution(loaded_game_file_version);
+    convert_objects_to_data_resolution(loaded_game_file_version);
+
     engine_setup_system_gamesize();
 }
 

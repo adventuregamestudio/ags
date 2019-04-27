@@ -32,7 +32,7 @@
 #include "ac/overlay.h"
 #include "ac/mouse.h"
 #include "ac/parser.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/string.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
@@ -50,6 +50,7 @@
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
+#include "ac/mouse.h"
 
 using namespace AGS::Common;
 
@@ -506,14 +507,14 @@ void DialogOptions::Show()
     
     update_polled_stuff_if_runtime();
     if (!play.mouse_cursor_hidden)
-      domouse(1);
+      ags_domouse(DOMOUSE_ENABLE);
     update_polled_stuff_if_runtime();
 
     Redraw();
     while(Run());
 
     if (!play.mouse_cursor_hidden)
-      domouse(2);
+      ags_domouse(DOMOUSE_DISABLE);
 }
 
 void DialogOptions::Redraw()
@@ -741,7 +742,6 @@ bool DialogOptions::Run()
       else
       {
         timerloop = 0;
-        NEXT_ITERATION();
 
         render_graphics(ddb, dirtyx, dirtyy);
       
@@ -764,14 +764,14 @@ bool DialogOptions::Run()
             for (unsigned int i = strlen(parserInput->Text); i < strlen(play.lastParserEntry); i++) {
               parserInput->OnKeyPress(play.lastParserEntry[i]);
             }
-            //domouse(2);
+            //ags_domouse(DOMOUSE_DISABLE);
             Redraw();
             return true; // continue running loop
           }
           else if ((gkey >= 32) || (gkey == 13) || (gkey == 8)) {
             parserInput->OnKeyPress(gkey);
             if (!parserInput->IsActivated) {
-              //domouse(2);
+              //ags_domouse(DOMOUSE_DISABLE);
               Redraw();
               return true; // continue running loop
             }
@@ -839,7 +839,7 @@ bool DialogOptions::Run()
           parserActivated = 1;
       }
 
-      int mouseButtonPressed = mgetbutton();
+      int mouseButtonPressed = ags_mgetbutton();
 
       if (mouseButtonPressed != NONE)
       {
@@ -882,7 +882,7 @@ bool DialogOptions::Run()
 
       if (usingCustomRendering)
       {
-        int mouseWheelTurn = check_mouse_wheel();
+        int mouseWheelTurn = ags_check_mouse_wheel();
         if (mouseWheelTurn != 0)
         {
             runDialogOptionMouseClickHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
@@ -910,7 +910,7 @@ bool DialogOptions::Run()
         }
       }
       if (mousewason != mouseison) {
-        //domouse(2);
+        //ags_domouse(DOMOUSE_DISABLE);
         Redraw();
         return true; // continue running loop
       }
@@ -934,7 +934,7 @@ bool DialogOptions::Run()
 
 void DialogOptions::Close()
 {
-  clear_input_buffer();
+  ags_clear_input_buffer();
   //leave_real_screen();
   construct_virtual_screen(true);
 

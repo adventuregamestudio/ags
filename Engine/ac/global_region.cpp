@@ -35,6 +35,8 @@ int GetRegionIDAtRoom(int xxx, int yyy) {
     // if the co-ordinates are off the edge of the screen,
     // correct them to be just within
     // this fixes walk-off-screen problems
+    xxx = room_to_mask_coord(xxx);
+    yyy = room_to_mask_coord(yyy);
 
     if (xxx >= thisroom.RegionMask->GetWidth())
         xxx = thisroom.RegionMask->GetWidth() - 1;

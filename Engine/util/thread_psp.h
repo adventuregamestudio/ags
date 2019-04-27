@@ -31,7 +31,9 @@ public:
   PSPThread()
   {
     _thread = -1;
+    _entry = NULL;
     _running = false;
+    _looping = false;
   }
 
   ~PSPThread()

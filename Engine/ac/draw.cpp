@@ -33,7 +33,7 @@
 #include "ac/mouse.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
@@ -111,7 +111,6 @@ extern int is_complete_overlay;
 extern int cur_mode,cur_cursor;
 extern int mouse_frame,mouse_delay;
 extern int lastmx,lastmy;
-extern int replay_time;
 extern IDriverDependantBitmap *mouseCursor;
 extern int hotx,hoty;
 extern int bg_just_changed;
@@ -398,6 +397,16 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
     return dst;
 }
 
+AGS_INLINE int room_to_mask_coord(int coord)
+{
+    return coord / thisroom.MaskResolution;
+}
+
+AGS_INLINE int mask_to_room_coord(int coord)
+{
+    return coord * thisroom.MaskResolution;
+}
+
 void create_blank_image(int coldepth)
 {
     // this is the first time that we try to use the graphics driver,
@@ -470,7 +479,7 @@ void on_mainviewport_changed()
     {
         const Rect &main_view = play.GetMainViewport();
         gfxDriver->SetMemoryBackBuffer(NULL); // make it restore original virtual screen
-        if (main_view.GetSize() != game.size)
+        if (main_view.GetSize() != game.GetGameRes())
         {
             delete sub_vscreen;
             sub_vscreen = BitmapHelper::CreateSubBitmap(gfxDriver->GetMemoryBackBuffer(), main_view);
@@ -481,7 +490,7 @@ void on_mainviewport_changed()
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
         init_invalid_regions(-1, play.GetMainViewport().GetSize(), RectWH(play.GetMainViewport().GetSize()));
-        if (game.size.ExceedsByAny(play.GetMainViewport().GetSize()))
+        if (game.GetGameRes().ExceedsByAny(play.GetMainViewport().GetSize()))
             clear_letterbox_borders();
     }
 }
@@ -580,7 +589,7 @@ void render_black_borders(int atx, int aty)
         if (aty > 0)
         {
             // letterbox borders
-            blankImage->SetStretch(game.size.Width, aty, false);
+            blankImage->SetStretch(game.GetGameRes().Width, aty, false);
             gfxDriver->DrawSprite(-atx, -aty, blankImage);
             gfxDriver->DrawSprite(0, viewport.GetHeight(), blankImage);
         }
@@ -604,15 +613,8 @@ void render_to_screen(int atx, int aty)
         gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, aty, NULL);
     render_black_borders(atx, aty);
 
-    gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
-
-    if (play.screen_is_faded_out)
-    {
-        if (gfxDriver->UsesMemoryBackBuffer())
-            gfxDriver->RenderToBackBuffer();
-        gfxDriver->ClearDrawLists();
-        return;
-    }
+    if(pl_any_want_hook(AGSE_FINALSCREENDRAW))
+        gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
 
     // only vsync in full screen mode, it makes things worse
     // in a window
@@ -646,8 +648,8 @@ void render_to_screen(int atx, int aty)
 void clear_letterbox_borders()
 {
     const Rect &viewport = play.GetMainViewport();
-    gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, viewport.Top - 1, NULL);
-    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.size.Width - 1, game.size.Height - 1, NULL);
+    gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, NULL);
+    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, NULL);
 }
 
 // writes the virtual screen to the screen, converting colours if
@@ -1014,7 +1016,8 @@ void draw_sprite_list() {
 
     clear_draw_list();
 
-    add_thing_to_draw(NULL, AGSE_PRESCREENDRAW, 0, TRANS_RUN_PLUGIN, false);
+    if(pl_any_want_hook(AGSE_PRESCREENDRAW))
+        add_thing_to_draw(NULL, AGSE_PRESCREENDRAW, 0, TRANS_RUN_PLUGIN, false);
 
     // copy the sorted sprites into the Things To Draw list
     thingsToDrawList.insert(thingsToDrawList.end(), sprlist.begin(), sprlist.end());
@@ -1078,7 +1081,7 @@ void get_local_tint(int xpp, int ypp, int nolight,
             }
         }
 
-        if ((onRegion > 0) && (onRegion <= MAX_ROOM_REGIONS)) {
+        if ((onRegion > 0) && (onRegion < MAX_ROOM_REGIONS)) {
             light_level = thisroom.Regions[onRegion].Light;
             tint_level = thisroom.Regions[onRegion].Tint;
         }
@@ -2016,7 +2019,8 @@ void draw_fps()
 void draw_gui_and_overlays() {
     int gg;
 
-    add_thing_to_draw(NULL, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
+    if(pl_any_want_hook(AGSE_PREGUIDRAW))
+        add_thing_to_draw(NULL, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
 
     // draw overlays, except text boxes and portraits
     for (gg=0;gg<numscreenover;gg++) {
@@ -2194,11 +2198,13 @@ void update_screen() {
     // cos hi-color doesn't fade in, don't draw it the first time
     if ((in_new_room > 0) & (game.color_depth > 1))
         return;
-    gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, NULL);
+
+    if(pl_any_want_hook(AGSE_POSTSCREENDRAW))
+        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, NULL);
 
     // update animating mouse cursor
     if (game.mcurs[cur_cursor].view>=0) {
-        domouse (DOMOUSE_NOCURSOR);
+        ags_domouse(DOMOUSE_NOCURSOR);
         // only on mousemove, and it's not moving
         if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE)!=0) &&
             (mousex==lastmx) && (mousey==lastmy)) ;
@@ -2257,20 +2263,20 @@ void update_screen() {
         invalidate_sprite(0, 0, debugConsole, false);
     }
 
-    domouse(DOMOUSE_NOCURSOR);
+    ags_domouse(DOMOUSE_NOCURSOR);
 
-    if (!play.mouse_cursor_hidden)
+    if (!play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
     {
         gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
         invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
     }
 
     /*
-    domouse(1);
+    ags_domouse(DOMOUSE_ENABLE);
     // if the cursor is hidden, remove it again. However, it needs
     // to go on-off in order to update the stored mouse coordinates
     if (play.mouse_cursor_hidden)
-    domouse(2);*/
+    ags_domouse(DOMOUSE_DISABLE);*/
 
     write_screen();
 
@@ -2284,7 +2290,7 @@ void update_screen() {
     }
 
     //if (!play.mouse_cursor_hidden)
-    //    domouse(2);
+    //    ags_domouse(DOMOUSE_DISABLE);
 
     screen_is_dirty = false;
 }
@@ -2316,8 +2322,8 @@ void construct_virtual_screen(bool fullRedraw)
         0.f);
     gfxDriver->BeginSpriteBatch(room_viewport, room_trans, RoomCameraFrame);
     Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
-    if (displayed_room >= 0) {
-
+    if (displayed_room >= 0 && play.screen_is_faded_out == 0)
+    {
         if (fullRedraw)
             invalidate_screen();
 
@@ -2330,6 +2336,9 @@ void construct_virtual_screen(bool fullRedraw)
         bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
         Bitmap *room_bmp = translate_only ? ds : RoomCameraFrame.get();
         draw_room(ds, room_bmp, !translate_only);
+        // reset the Baselines Changed flag now that we've drawn stuff
+        walk_behind_baselines_changed = 0;
+        put_sprite_list_on_screen(true);
     }
     else if (!gfxDriver->RequiresFullRedrawEachFrame()) 
     {
@@ -2338,9 +2347,6 @@ void construct_virtual_screen(bool fullRedraw)
         // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
         ds->Fill(0);
     }
-    // reset the Baselines Changed flag now that we've drawn stuff
-    walk_behind_baselines_changed = 0;
-    put_sprite_list_on_screen(true);
 
     // make sure that the mp3 is always playing smoothly
     update_mp3();
@@ -2351,8 +2357,11 @@ void construct_virtual_screen(bool fullRedraw)
     //
     const Rect &ui_viewport = play.GetUIViewportAbs();
     gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform());
-    draw_gui_and_overlays();
-    put_sprite_list_on_screen(false);
+    if (play.screen_is_faded_out == 0)
+    {
+        draw_gui_and_overlays();
+        put_sprite_list_on_screen(false);
+    }
 
     //
     // Batch 3: auxiliary info

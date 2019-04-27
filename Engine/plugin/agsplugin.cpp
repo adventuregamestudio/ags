@@ -32,7 +32,6 @@
 #include "ac/objectcache.h"
 #include "ac/parser.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "ac/dynobj/scriptobject.h"
@@ -49,6 +48,7 @@
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_builtin.h"
 #include "plugin/plugin_engine.h"
+#include "plugin/plugin_builtin.h"
 #include "plugin/pluginobjectreader.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -63,6 +63,7 @@
 #include "main/graphics_mode.h"
 #include "gfx/gfx_util.h"
 #include "util/memory.h"
+#include "util/filestream.h"
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
@@ -74,6 +75,7 @@ using namespace AGS::Engine;
 #include "../Plugins/agsblend/agsblend.h"
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
 #include "../Plugins/ags_parallax/ags_parallax.h"
+#include "../Plugins/agspalrender/agspalrender.h"
 #if defined(IOS_VERSION)
 #include "../Plugins/agstouch/agstouch.h"
 #endif // IOS_VERSION
@@ -138,11 +140,11 @@ struct EnginePlugin {
     int         savedatasize;
     int         wantHook;
     int         invalidatedRegion;
-    void      (*engineStartup) (IAGSEngine *);
-    void      (*engineShutdown) ();
-    int       (*onEvent) (int, int);
-    void      (*initGfxHook) (const char *driverName, void *data);
-    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved);
+    void      (*engineStartup) (IAGSEngine *) = NULL;
+    void      (*engineShutdown) () = NULL;
+    int       (*onEvent) (int, int) = NULL;
+    void      (*initGfxHook) (const char *driverName, void *data) = NULL;
+    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = NULL;
     IAGSEngine  eiface;
     bool        builtin;
 
@@ -151,8 +153,11 @@ struct EnginePlugin {
         wantHook = 0;
         invalidatedRegion = 0;
         savedata = NULL;
+        savedatasize = 0;
         builtin = false;
         available = false;
+        eiface.version = 0;
+        eiface.pluginId = 0;
     }
 };
 #define MAXPLUGINS 20
@@ -314,14 +319,41 @@ void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, 
     if (coldepth != NULL)
         coldepth[0] = bitmap_color_depth(bmp);
 }
-// [IKM] Interesting, why does AGS need those two functions?
-// Can it be that it was planned to change implementation in the future?
-// TODO: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
-int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
-    return fread (buffer, 1, len, Int32ToPtr<FILE>(handle));
+
+// On save/restore, the Engine will provide the plugin with a handle. Because we only ever save to one file at a time,
+// we can reuse the same handle.
+
+static long pl_file_handle = -1;
+static Stream *pl_file_stream = nullptr;
+
+void pl_set_file_handle(long data, Stream *stream) {
+    pl_file_handle = data;
+    pl_file_stream = stream;
 }
+
+void pl_clear_file_handle() {
+    pl_file_handle = -1;
+    pl_file_stream = nullptr;
+}
+
+int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
+    if (handle != pl_file_handle) {
+        quitprintf("IAGSEngine::FRead: invalid file handle: %d", handle);
+    }
+    if (!pl_file_stream) {
+        quit("IAGSEngine::FRead: file stream not set");
+    }
+    return pl_file_stream->Read(buffer, len);
+}
+
 int IAGSEngine::FWrite (void *buffer, int32 len, int32 handle) {
-    return fwrite (buffer, 1, len, Int32ToPtr<FILE>(handle));
+    if (handle != pl_file_handle) {
+        quitprintf("IAGSEngine::FWrite: invalid file handle: %d", handle);
+    }
+    if (!pl_file_stream) {
+        quit("IAGSEngine::FWrite: file stream not set");
+    }
+    return pl_file_stream->Write(buffer, len);
 }
 
 void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int32 color, const char*text)
@@ -399,7 +431,6 @@ extern int  mgetbutton();
 
 void IAGSEngine::PollSystem () {
 
-    NEXT_ITERATION();
     domouse(DOMOUSE_NOCURSOR);
     update_polled_stuff_if_runtime();
     int mbut = mgetbutton();
@@ -938,6 +969,17 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
+    else if (stricmp(apl->filename, "agspalrender") == 0)
+    {
+        apl->engineStartup = agspalrender::AGS_EngineStartup;
+        apl->engineShutdown = agspalrender::AGS_EngineShutdown;
+        apl->onEvent = agspalrender::AGS_EngineOnEvent;
+        apl->debugHook = agspalrender::AGS_EngineDebugHook;
+        apl->initGfxHook = agspalrender::AGS_EngineInitGfx;
+        apl->available = true;
+        apl->builtin = true;
+        return true;
+    }
 #if defined(IOS_VERSION)
     else if (stricmp(apl->filename, "agstouch") == 0)
     {
@@ -1055,6 +1097,16 @@ bool pl_is_plugin_loaded(const char *pl_name)
     {
         if (stricmp(pl_name, plugins[i].filename) == 0)
             return plugins[i].available;
+    }
+    return false;
+}
+
+bool pl_any_want_hook(int event)
+{
+    for (int i = 0; i < numPlugins; ++i)
+    {
+        if(plugins[i].wantHook & event)
+            return true;
     }
     return false;
 }

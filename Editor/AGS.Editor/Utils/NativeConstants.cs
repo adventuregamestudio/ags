@@ -15,7 +15,7 @@ namespace AGS.Editor
         public static readonly int MAX_SG_EXT_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_EXT_LENGTH");
         public static readonly int MAX_SG_FOLDER_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_FOLDER_LEN");
         public static readonly int MAX_SCRIPT_NAME_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_SCRIPT_NAME_LEN");
-        public static readonly int FFLG_SIZEMASK = (int)Factory.NativeProxy.GetNativeConstant("FFLG_SIZEMASK");
+        public static readonly int FFLG_SIZEMULTIPLIER = (int)Factory.NativeProxy.GetNativeConstant("FFLG_SIZEMULTIPLIER");
         public static readonly char IFLG_STARTWITH = (char)(int)Factory.NativeProxy.GetNativeConstant("IFLG_STARTWITH");
         public static readonly char MCF_ANIMMOVE = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_ANIMMOVE");
         public static readonly char MCF_STANDARD = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_STANDARD");
@@ -44,7 +44,8 @@ namespace AGS.Editor
         public static readonly int GAME_RESOLUTION_CUSTOM = (int)Factory.NativeProxy.GetNativeConstant("GAME_RESOLUTION_CUSTOM");
         public static readonly int CHUNKSIZE = (int)Factory.NativeProxy.GetNativeConstant("CHUNKSIZE");
         public static readonly string SPRSET_NAME = (string)Factory.NativeProxy.GetNativeConstant("SPRSET_NAME");
-        public static readonly byte SPF_640x400 = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_640x400");
+        public static readonly byte SPF_VAR_RESOLUTION = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_VAR_RESOLUTION");
+        public static readonly byte SPF_HIRES = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_HIRES");
         public static readonly byte SPF_ALPHACHANNEL = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_ALPHACHANNEL");
         public static readonly byte[] PASSWORD_ENC_STRING = (byte[])Factory.NativeProxy.GetNativeConstant("PASSWORD_ENC_STRING");
         public static readonly int LOOPFLAG_RUNNEXTLOOP = (int)Factory.NativeProxy.GetNativeConstant("LOOPFLAG_RUNNEXTLOOP");
@@ -99,7 +100,7 @@ namespace AGS.Editor
             public static readonly int OPT_NOWALKMODE = (int)Factory.NativeProxy.GetNativeConstant("OPT_NOWALKMODE");
             public static readonly int OPT_LETTERBOX = (int)Factory.NativeProxy.GetNativeConstant("OPT_LETTERBOX");
             public static readonly int OPT_FIXEDINVCURSOR = (int)Factory.NativeProxy.GetNativeConstant("OPT_FIXEDINVCURSOR");
-            public static readonly int OPT_NOSCALEFNT = (int)Factory.NativeProxy.GetNativeConstant("OPT_NOSCALEFNT");
+            public static readonly int OPT_HIRES_FONTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_HIRES_FONTS");
             public static readonly int OPT_SPLITRESOURCES = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPLITRESOURCES");
             public static readonly int OPT_ROTATECHARS = (int)Factory.NativeProxy.GetNativeConstant("OPT_ROTATECHARS");
             public static readonly int OPT_FADETYPE = (int)Factory.NativeProxy.GetNativeConstant("OPT_FADETYPE");
@@ -124,6 +125,7 @@ namespace AGS.Editor
             public static readonly int OPT_BASESCRIPTAPI = (int)Factory.NativeProxy.GetNativeConstant("OPT_BASESCRIPTAPI");
             public static readonly int OPT_SCRIPTCOMPATLEV = (int)Factory.NativeProxy.GetNativeConstant("OPT_SCRIPTCOMPATLEV");
             public static readonly int OPT_RENDERATSCREENRES = (int)Factory.NativeProxy.GetNativeConstant("OPT_RENDERATSCREENRES");
+            public static readonly int OPT_RELATIVEASSETRES = (int)Factory.NativeProxy.GetNativeConstant("OPT_RELATIVEASSETRES");
             public static readonly int OPT_LIPSYNCTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_LIPSYNCTEXT");
         }
     }

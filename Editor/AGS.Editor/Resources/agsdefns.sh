@@ -186,7 +186,8 @@ enum CutsceneSkipType {
   eSkipAnyKey = 2,
   eSkipMouseClick = 3,
   eSkipAnyKeyOrMouseClick = 4,
-  eSkipESCOrRightButton = 5
+  eSkipESCOrRightButton = 5,
+  eSkipScriptOnly = 6
 };
 
 enum DialogOptionState {
@@ -499,6 +500,8 @@ builtin managed struct DrawingSurface {
   import attribute int DrawingColor;
   /// Gets the height of this surface.
   readonly import attribute int Height;
+#ifdef SCRIPT_COMPAT_v341
+#endif
   /// Gets the width of the surface.
   readonly import attribute int Width;
 };
@@ -1039,6 +1042,11 @@ import void ClaimEvent();
 // Changes the GUI used to render standard game text windows.
 import void SetTextWindowGUI (int gui);
 import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
+
+#ifdef SCRIPT_API_v3507
+/// Skip current cutscene (if one is currently in progress)
+import void SkipCutscene();
+#endif
 
 enum EventType {
   eEventLeaveRoom = 1,
@@ -1985,7 +1993,7 @@ builtin struct GameState {
   int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
   int  score_sound;
   int  previous_game_data;
-  int  replay_hotkey;
+  readonly int unused__041; // $AUTOCOMPLETEIGNORE$
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;
@@ -2121,6 +2129,8 @@ builtin struct Screen {
 
   /// Returns the point in room which is displayed at the given screen coordinates
   import static Point *ScreenToRoomPoint(int sx, int sy);
+  /// Returns the point on screen corresponding to the given room coordinates relative to the main viewport.
+  import static Point *RoomToScreenPoint(int rx, int ry);
 };
 #endif
 

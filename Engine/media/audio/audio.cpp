@@ -1068,7 +1068,6 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
 
     if (music != NULL) {
         channels[useChannel] = music;
-        music = NULL;
     }
     else {
         channels[useChannel] = load_music_from_disk(mnum, (play.music_repeat > 0));

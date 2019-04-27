@@ -260,7 +260,7 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _vmem_a_shift_32 = 24;
 
   // Initialize default sprite batch, it will be used when no other batch was activated
-  InitSpriteBatch(0, _spriteBatchDesc[0]);
+  OGLGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 
@@ -1008,7 +1008,7 @@ void OGLGraphicsDriver::UnInit()
 
 OGLGraphicsDriver::~OGLGraphicsDriver()
 {
-  UnInit();
+  OGLGraphicsDriver::UnInit();
 }
 
 void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)

@@ -108,5 +108,7 @@ int MYMIDI::play() {
 }
 
 MYMIDI::MYMIDI() : SOUNDCLIP() {
+    tune = NULL;
     lengthInSeconds = 0;
+    initializing = false;
 }

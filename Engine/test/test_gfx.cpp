@@ -14,6 +14,7 @@
 
 #ifdef _DEBUG
 
+#include <stdlib.h>
 #include "gfx/gfx_def.h"
 #include "debug/assert.h"
 

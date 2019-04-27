@@ -54,9 +54,9 @@ void InteractionValue::Write(Stream *out) const
 //-----------------------------------------------------------------------------
 
 InteractionCommand::InteractionCommand()
+    : Type(0)
+    , Parent(NULL)
 {
-    Type = 0;
-    memset(Data, 0, sizeof(Data));
 }
 
 InteractionCommand::InteractionCommand(const InteractionCommand &ic)

@@ -40,7 +40,7 @@ inline void calc_x_n(unsigned long bla) __attribute__((always_inline));
 #endif
 
 const unsigned int Magic = 0xBABE0000;
-const unsigned int Version = 1;
+const unsigned int Version = 2;
 const unsigned int SaveMagic = Magic + Version;
 const float PI = 3.14159265f;
 
@@ -485,96 +485,78 @@ void CreateLightBitmap()
    engine->MarkRegionDirty(0, 0, screen_width, screen_height);
 }
 
+static size_t engineFileRead(void * ptr, size_t size, size_t count, long fileHandle) {
+  auto totalBytes = engine->FRead(ptr, size*count, fileHandle);
+  return totalBytes/size;
+}
 
-void RestoreGame(FILE* file)
+static size_t engineFileWrite(const void *ptr, size_t size, size_t count, long fileHandle) {
+  auto totalBytes = engine->FWrite(const_cast<void *>(ptr), size*count, fileHandle);
+  return totalBytes/size;
+}
+
+void RestoreGame(long file)
 {
-  unsigned int Position = ftell(file);
-  unsigned int DataSize;
-
   unsigned int SaveVersion = 0;
-  fread(&SaveVersion, 4, 1, file);
+  engineFileRead(&SaveVersion, sizeof(SaveVersion), 1, file);
 
-  if (SaveVersion == SaveMagic)
-  {
-    fread(&DataSize, 4, 1, file);
-
-    // Current version
-    fread(&g_RedTint, 4, 1, file);
-    fread(&g_GreenTint, 4, 1, file);
-    fread(&g_BlueTint, 4, 1, file);
-
-    fread(&g_DarknessLightLevel, 4, 1, file);
-    fread(&g_BrightnessLightLevel, 4, 1, file);
-    fread(&g_DarknessSize, 4, 1, file);
-    fread(&g_DarknessDiameter, 4, 1, file);
-    fread(&g_BrightnessSize, 4, 1, file);
-
-    fread(&g_FlashlightX, 4, 1, file);
-    fread(&g_FlashlightY, 4, 1, file);
-
-    fread(&g_FlashlightFollowMouse, 4, 1, file);
-
-    fread(&g_FollowCharacterId, 4, 1, file);
-    fread(&g_FollowCharacterDx, 4, 1, file);
-    fread(&g_FollowCharacterDy, 4, 1, file);
-    fread(&g_FollowCharacterHorz, 4, 1, file);
-    fread(&g_FollowCharacterVert, 4, 1, file);
-    
-    if (g_FollowCharacterId != 0)
-      g_FollowCharacter = engine->GetCharacter(g_FollowCharacterId);
-
-    g_BitmapMustBeUpdated = true;
+  if (SaveVersion != SaveMagic) {
+    engine->AbortGame("agsflashlight: bad save.");
   }
-  else if ((SaveVersion & 0xFFFF0000) == Magic)
-  {
-    // Unsupported version, skip it
-    DataSize = 0;
-    fread(&DataSize, 4, 1, file);
 
-    fseek(file, Position + DataSize - 8, SEEK_SET);
-  }
-  else
-  {
-    // Unknown data, loading might fail but we cannot help it
-    fseek(file, Position, SEEK_SET);
-  }
+  // Current version
+  engineFileRead(&g_RedTint, 4, 1, file);
+  engineFileRead(&g_GreenTint, 4, 1, file);
+  engineFileRead(&g_BlueTint, 4, 1, file);
+
+  engineFileRead(&g_DarknessLightLevel, 4, 1, file);
+  engineFileRead(&g_BrightnessLightLevel, 4, 1, file);
+  engineFileRead(&g_DarknessSize, 4, 1, file);
+  engineFileRead(&g_DarknessDiameter, 4, 1, file);
+  engineFileRead(&g_BrightnessSize, 4, 1, file);
+
+  engineFileRead(&g_FlashlightX, 4, 1, file);
+  engineFileRead(&g_FlashlightY, 4, 1, file);
+
+  engineFileRead(&g_FlashlightFollowMouse, 4, 1, file);
+
+  engineFileRead(&g_FollowCharacterId, 4, 1, file);
+  engineFileRead(&g_FollowCharacterDx, 4, 1, file);
+  engineFileRead(&g_FollowCharacterDy, 4, 1, file);
+  engineFileRead(&g_FollowCharacterHorz, 4, 1, file);
+  engineFileRead(&g_FollowCharacterVert, 4, 1, file);
+  
+  if (g_FollowCharacterId != 0)
+    g_FollowCharacter = engine->GetCharacter(g_FollowCharacterId);
+
+  g_BitmapMustBeUpdated = true;
 }
 
 
-void SaveGame(FILE* file)
+void SaveGame(long file)
 {
-  unsigned int StartPosition = ftell(file);
+  engineFileWrite(&SaveMagic, sizeof(SaveMagic), 1, file);
 
-  fwrite(&SaveMagic, 4, 1, file);
-  fwrite(&StartPosition, 4, 1, file); // Update later with the correct size
+  engineFileWrite(&g_RedTint, 4, 1, file);
+  engineFileWrite(&g_GreenTint, 4, 1, file);
+  engineFileWrite(&g_BlueTint, 4, 1, file);
 
-  fwrite(&g_RedTint, 4, 1, file);
-  fwrite(&g_GreenTint, 4, 1, file);
-  fwrite(&g_BlueTint, 4, 1, file);
+  engineFileWrite(&g_DarknessLightLevel, 4, 1, file);
+  engineFileWrite(&g_BrightnessLightLevel, 4, 1, file);
+  engineFileWrite(&g_DarknessSize, 4, 1, file);
+  engineFileWrite(&g_DarknessDiameter, 4, 1, file);
+  engineFileWrite(&g_BrightnessSize, 4, 1, file);
 
-  fwrite(&g_DarknessLightLevel, 4, 1, file);
-  fwrite(&g_BrightnessLightLevel, 4, 1, file);
-  fwrite(&g_DarknessSize, 4, 1, file);
-  fwrite(&g_DarknessDiameter, 4, 1, file);
-  fwrite(&g_BrightnessSize, 4, 1, file);
+  engineFileWrite(&g_FlashlightX, 4, 1, file);
+  engineFileWrite(&g_FlashlightY, 4, 1, file);
 
-  fwrite(&g_FlashlightX, 4, 1, file);
-  fwrite(&g_FlashlightY, 4, 1, file);
+  engineFileWrite(&g_FlashlightFollowMouse, 4, 1, file);
 
-  fwrite(&g_FlashlightFollowMouse, 4, 1, file);
-
-  fwrite(&g_FollowCharacterId, 4, 1, file);
-  fwrite(&g_FollowCharacterDx, 4, 1, file);
-  fwrite(&g_FollowCharacterDy, 4, 1, file);
-  fwrite(&g_FollowCharacterHorz, 4, 1, file);
-  fwrite(&g_FollowCharacterVert, 4, 1, file);
-
-  unsigned int EndPosition = ftell(file);
-  unsigned int SaveSize = EndPosition - StartPosition;
-  fseek(file, StartPosition + 4, SEEK_SET);
-  fwrite(&SaveSize, 4, 1, file);
-
-  fseek(file, EndPosition, SEEK_SET);
+  engineFileWrite(&g_FollowCharacterId, 4, 1, file);
+  engineFileWrite(&g_FollowCharacterDx, 4, 1, file);
+  engineFileWrite(&g_FollowCharacterDy, 4, 1, file);
+  engineFileWrite(&g_FollowCharacterHorz, 4, 1, file);
+  engineFileWrite(&g_FollowCharacterVert, 4, 1, file);
 }
 
 
@@ -813,11 +795,8 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   
   engine->RequestEventHook(AGSE_PREGUIDRAW);
   engine->RequestEventHook(AGSE_PRESCREENDRAW);
-
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
   engine->RequestEventHook(AGSE_SAVEGAME);
   engine->RequestEventHook(AGSE_RESTOREGAME);
-#endif
 }
 
 void AGS_EngineShutdown()
@@ -831,16 +810,14 @@ int AGS_EngineOnEvent(int event, int data)
   {
     Update();
   }
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
   else if (event == AGSE_RESTOREGAME)
   {
-    RestoreGame((FILE*)data);
+    RestoreGame(data);
   }
   else if (event == AGSE_SAVEGAME)
   {
-    SaveGame((FILE*)data);
+    SaveGame(data);
   }
-#endif
   else if (event == AGSE_PRESCREENDRAW)
   {
     // Get screen size once here.
@@ -852,11 +829,8 @@ int AGS_EngineOnEvent(int event, int data)
     {
       engine->UnrequestEventHook(AGSE_PREGUIDRAW);
       engine->UnrequestEventHook(AGSE_PRESCREENDRAW);
-
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
       engine->UnrequestEventHook(AGSE_SAVEGAME);
       engine->UnrequestEventHook(AGSE_RESTOREGAME);
-#endif
     }
   }
 

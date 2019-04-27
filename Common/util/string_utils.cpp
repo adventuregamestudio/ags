@@ -124,35 +124,8 @@ void split_lines(const char *todis, int wii, int fonnt) {
 }
 
 //=============================================================================
-// FIXME: remove later when arrays of chars are replaced by string class
-void fputstring(const char *sss, Common::Stream *out)
-{
-    int b = 0;
-    while (sss[b] != 0) {
-        out->WriteInt8(sss[b]);
-        b++;
-    }
-    out->WriteInt8(0);
-}
 
-void fgetstring_limit(char *sss, Common::Stream *in, int bufsize)
-{
-    int b = -1;
-    do {
-        if (b < bufsize - 1)
-            b++;
-        sss[b] = in->ReadInt8();
-        if (in->EOS())
-            return;
-    } while (sss[b] != 0);
-}
-
-void fgetstring(char *sss, Common::Stream *in)
-{
-    fgetstring_limit (sss, in, 50000000);
-}
-
-String free_char_to_string(char *char_buf)
+String cbuf_to_string_and_free(char *char_buf)
 {
     String s = char_buf;
     free(char_buf);
@@ -206,12 +179,22 @@ String StrUtil::ReadString(Stream *in)
 void StrUtil::ReadString(char *cstr, Stream *in, size_t buf_limit)
 {
     size_t len = in->ReadInt32();
-    if (buf_limit > 0)
-        len = Math::Min(len, buf_limit - 1);
+    if (buf_limit == 0)
+    {
+        in->Seek(len);
+        return;
+    }
+
+    len = Math::Min(len, buf_limit - 1);
     if (len > 0)
         in->Read(cstr, len);
-    else
-        cstr[0] = 0;
+    cstr[len] = 0;
+}
+
+void StrUtil::ReadString(String &s, Stream *in)
+{
+    size_t len = in->ReadInt32();
+    s.ReadCount(in, len);
 }
 
 void StrUtil::ReadString(char **cstr, Stream *in)
@@ -220,8 +203,7 @@ void StrUtil::ReadString(char **cstr, Stream *in)
     *cstr = new char[len + 1];
     if (len > 0)
         in->Read(*cstr, len);
-    else
-        (*cstr)[0] = 0;
+    (*cstr)[len] = 0;
 }
 
 void StrUtil::SkipString(Stream *in)
@@ -240,10 +222,49 @@ void StrUtil::WriteString(const String &s, Stream *out)
 
 void StrUtil::WriteString(const char *cstr, Stream *out)
 {
-    size_t len = (int)strlen(cstr);
+    size_t len = strlen(cstr);
     out->WriteInt32(len);
     if (len > 0)
         out->Write(cstr, len);
+}
+
+void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
+{
+    if (buf_limit == 0)
+    {
+        while (in->ReadByte() > 0);
+        return;
+    }
+
+    auto ptr = buf;
+    auto last = buf + buf_limit - 1;
+    for (;;)
+    {
+        if (ptr >= last) {
+            *ptr = 0;
+            while (in->ReadByte() > 0); // must still read until 0
+            break;
+        }
+
+        auto ichar = in->ReadByte();
+        if (ichar <= 0) {
+            *ptr = 0;
+            break;
+        }
+        *ptr = static_cast<char>(ichar);
+        ptr++;
+    }
+}
+
+void StrUtil::SkipCStr(Stream *in)
+{
+    while (in->ReadByte() > 0);
+}
+
+void StrUtil::WriteCStr(const char *cstr, Stream *out)
+{
+    size_t len = strlen(cstr);
+    out->Write(cstr, len + 1);
 }
 
 void StrUtil::WriteCStr(const String &s, Stream *out)

@@ -32,7 +32,7 @@
 #include "ac/lipsync.h"
 #include "ac/objectcache.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/roomstatus.h"
 #include "ac/speech.h"
 #include "ac/translation.h"
@@ -82,7 +82,6 @@ extern ViewStruct*views;
 extern int displayed_room;
 extern int eip_guinum;
 extern int eip_guiobj;
-extern const char *replayTempFile;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScriptSystem scsystem;
@@ -174,10 +173,10 @@ bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
 
             // Add information about game resolution and let setup application
             // display some properties to the user
-            INIwriteint(cfg, "misc", "defaultres", game.GetDefaultResolution());
+            INIwriteint(cfg, "misc", "defaultres", game.GetResolutionType());
             INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
-            INIwriteint(cfg, "misc", "game_width", game.size.Width);
-            INIwriteint(cfg, "misc", "game_height", game.size.Height);
+            INIwriteint(cfg, "misc", "game_width", game.GetDefaultRes().Width);
+            INIwriteint(cfg, "misc", "game_height", game.GetDefaultRes().Height);
             INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
             if (game.options[OPT_RENDERATSCREENRES] != kRenderAtScreenRes_UserDefined)
             {
@@ -437,7 +436,6 @@ int engine_check_memory()
         return EXIT_NORMAL;
     }
     free(memcheck);
-    unlink (replayTempFile);
     return RETURN_CONTINUE;
 }
 
@@ -496,27 +494,25 @@ void engine_init_speech()
     }
 }
 
-int engine_init_music()
+void engine_init_digital_audio()
 {
     play.separate_music_lib = 0;
-
-    music_file = "audio.vox";
+    music_file = game.GetAudioVOXName();
     String music_filepath = find_assetlib(music_file);
-    if (!music_filepath.IsEmpty()) {
-
-        Debug::Printf("Initializing audio vox");
-
-        //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
-        if (Common::AssetManager::SetDataFile(music_filepath)!=Common::kAssetNoError) {
-            platform->DisplayAlert("Unable to initialize music library - check for corruption and that\nit belongs to this game.\n");
-            return EXIT_NORMAL;
+    if (!music_filepath.IsEmpty())
+    {
+        if (AssetManager::SetDataFile(music_filepath) == kAssetNoError)
+        {
+            AssetManager::SetDataFile(game_file_name);
+            Debug::Printf(kDbgMsg_Init, "%s found and initialized.", music_file.GetCStr());
+            play.separate_music_lib = 1;
         }
-        Common::AssetManager::SetDataFile(game_file_name);
-        Debug::Printf(kDbgMsg_Init, "Audio vox found and initialized.");
-        play.separate_music_lib = 1;
+        else
+        {
+            platform->DisplayAlert("Unable to initialize digital audio pack '%s', file could be corrupt or of unsupported format.",
+                music_file.GetCStr());
+        }
     }
-
-    return RETURN_CONTINUE;
 }
 
 void engine_init_keyboard()
@@ -966,8 +962,6 @@ void engine_init_game_settings()
             palette[ee]=game.defpal[ee];
     }
 
-    if (game.options[OPT_NOSCALEFNT]) wtext_multiply=1;
-
     for (ee = 0; ee < game.numcursors; ee++) 
     {
         // The cursor graphics are assigned to mousecurs[] and so cannot
@@ -1096,8 +1090,7 @@ void engine_init_game_settings()
     play.temporarily_turned_off_character = -1;
     play.inv_backwards_compatibility = 0;
     play.gamma_adjustment = 100;
-    play.num_do_once_tokens = 0;
-    play.do_once_tokens = NULL;
+    play.do_once_tokens.resize(0);
     play.music_queue_size = 0;
     play.shakesc_length = 0;
     play.wait_counter=0;
@@ -1136,7 +1129,7 @@ void engine_init_game_settings()
     play.speech_music_drop = 60;
     play.room_changes = 0;
     play.check_interaction_only = 0;
-    play.replay_hotkey = 318;  // Alt+R
+    play.replay_hotkey_unused = -1;  // StartRecording: not supported.
     play.dialog_options_x = 0;
     play.dialog_options_y = 0;
     play.min_dialogoption_width = 0;
@@ -1360,6 +1353,9 @@ bool engine_do_config(const String &exe_path)
     return engine_check_run_setup(exe_path, cfg);
 }
 
+// TODO: this function is still a big mess, engine/system-related initialization
+// is mixed with game-related data adjustments. Divide it in parts, move game
+// data init into either InitGameState() or other game method as appropriate.
 int initialize_engine(int argc,char*argv[])
 {
     if (engine_pre_init_callback) {
@@ -1414,10 +1410,7 @@ int initialize_engine(int argc,char*argv[])
 
     our_eip = -185;
     
-    res = engine_init_music();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
+    engine_init_digital_audio();
 
     our_eip = -184;
 
@@ -1487,7 +1480,7 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_modxm_player();
 
-    engine_init_resolution_settings(game.size);
+    engine_init_resolution_settings(game.GetGameRes());
 
     // Attempt to initialize graphics mode
     if (!engine_try_set_gfxmode_any(usetup.Screen))
@@ -1523,7 +1516,7 @@ bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
     engine_shutdown_gfxmode();
 
     const Size init_desktop = get_desktop_size();
-    if (!graphics_mode_init_any(game.size, setup, ColorDepthOption(game.GetColorDepth())))
+    if (!graphics_mode_init_any(game.GetGameRes(), setup, ColorDepthOption(game.GetColorDepth())))
         return false;
 
     engine_post_gfxmode_setup(init_desktop);
@@ -1561,7 +1554,7 @@ bool engine_try_switch_windowed_gfxmode()
         DisplayModeSetup dm_setup = usetup.Screen.DisplayMode;
         dm_setup.Windowed = !old_dm.Windowed;
         graphics_mode_get_defaults(dm_setup.Windowed, dm_setup.ScreenSize, use_frame_setup);
-        res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, use_frame_setup);
+        res = graphics_mode_set_dm_any(game.GetGameRes(), dm_setup, old_dm.ColorDepth, use_frame_setup);
     }
 
     // Apply corresponding frame render method
@@ -1583,7 +1576,7 @@ bool engine_try_switch_windowed_gfxmode()
             init_desktop = get_desktop_size();
         engine_post_gfxmode_setup(init_desktop);
     }
-    clear_input_buffer();
+    ags_clear_input_buffer();
     return res;
 }
 

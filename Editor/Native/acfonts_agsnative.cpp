@@ -15,6 +15,7 @@
 //=============================================================================
 
 extern GameSetupStruct thisgame;
+extern int antiAliasFonts;
 
 void check_font(int *fontnum)
 {
@@ -31,4 +32,9 @@ void set_our_eip(int eip)
 int get_our_eip()
 {
   return 0;
+}
+
+bool ShouldAntiAliasText()
+{
+    return (antiAliasFonts != 0);
 }

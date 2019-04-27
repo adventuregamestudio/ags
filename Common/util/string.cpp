@@ -31,6 +31,7 @@ String::Header::Header()
     : RefCount(0)
     , Capacity(0)
     , Length(0)
+    , CStr(NULL)
 {
 }
 

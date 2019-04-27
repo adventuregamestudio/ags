@@ -230,13 +230,19 @@ ccInstance::ccInstance()
     num_stackentries    = 0;
     stackdata           = NULL;
     stackdatasize       = 0;
+    stackdata_ptr       = NULL;
     pc                  = 0;
     line_number         = 0;
     callStackSize       = 0;
     loadedInstanceId    = 0;
     returnValue         = 0;
-
+    numimports = 0;
+    resolved_imports = NULL;
     code_fixups         = NULL;
+
+    memset(callStackLineNumber, 0, sizeof(callStackLineNumber));
+    memset(callStackAddr, 0, sizeof(callStackAddr));
+    memset(callStackCodeInst, 0, sizeof(callStackCodeInst));
 }
 
 ccInstance::~ccInstance()

@@ -42,7 +42,6 @@ extern GameSetup usetup;
 extern SpriteCache spriteset;
 extern int force_window;
 extern char psp_translation[];
-extern char replayfile[MAX_PATH];
 extern GameState play;
 
 // Filename of the default config file, the one found in the game installation
@@ -477,14 +476,6 @@ void apply_config(const ConfigTree &cfg)
         // the config file specifies cache size in KB, here we convert it to bytes
         spriteset.SetMaxCacheSize(INIreadint (cfg, "misc", "cachemax", DEFAULTCACHESIZE / 1024) * 1024);
 #endif
-
-        String repfile = INIreadstring(cfg, "misc", "replay");
-        if (repfile != NULL) {
-            strcpy (replayfile, repfile);
-            play.playback = 1;
-        }
-        else
-            play.playback = 0;
 
         usetup.mouse_auto_lock = INIreadint(cfg, "mouse", "auto_lock") > 0;
 

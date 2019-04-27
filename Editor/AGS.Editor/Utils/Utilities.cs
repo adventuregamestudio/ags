@@ -311,6 +311,23 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Tests if its possible to "promote" sprite's resolution to "Real"
+        /// if it is matching current game resolution type.
+        /// </summary>
+        public static SpriteImportResolution FixupSpriteResolution(SpriteImportResolution res)
+        {
+            if (res == SpriteImportResolution.Real ||
+                Factory.AGSEditor.CurrentGame.IsHighResolution &&
+                res == SpriteImportResolution.HighRes ||
+                !Factory.AGSEditor.CurrentGame.IsHighResolution &&
+                res == SpriteImportResolution.LowRes)
+            {
+                return SpriteImportResolution.Real;
+            }
+            return res;
+        }
+
+        /// <summary>
         /// Gets the size at which the sprite will be rendered in the game.
         /// This will be the sprite size, but doubled if it is a 320-res sprite
         /// in a 640-res game.
@@ -318,13 +335,22 @@ namespace AGS.Editor
         public static void GetSizeSpriteWillBeRenderedInGame(int spriteSlot, out int width, out int height)
         {
             // CLNUP maybe remove, the scale factor shouldn't belong to the sprite itself
-            width = Factory.NativeProxy.GetSpriteWidth(spriteSlot);
-            height = Factory.NativeProxy.GetSpriteHeight(spriteSlot);
+            SpriteInfo info = Factory.NativeProxy.GetSpriteInfo(spriteSlot);
+            width = info.Width;
+            height = info.Height;
             /*
-            if (Factory.AGSEditor.CurrentGame.IsHighResolution)
+            if (info.Resolution != SpriteImportResolution.Real)
             {
-                width *= Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot);
-                height *= Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot);
+                if (Factory.AGSEditor.CurrentGame.IsHighResolution && info.Resolution == SpriteImportResolution.LowRes)
+                {
+                    width *= 2;
+                    height *= 2;
+                }
+                else if (!Factory.AGSEditor.CurrentGame.IsHighResolution && info.Resolution == SpriteImportResolution.HighRes)
+                {
+                    width /= 2;
+                    height /= 2;
+                }
             }
             */
         }

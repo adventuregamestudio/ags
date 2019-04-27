@@ -59,12 +59,14 @@ void redo_walkable_areas() {
 
 int get_walkable_area_pixel(int x, int y)
 {
-    return thisroom.WalkAreaMask->GetPixel(x, y);
+    return thisroom.WalkAreaMask->GetPixel(room_to_mask_coord(x), room_to_mask_coord(y));
 }
 
 int get_area_scaling (int onarea, int xx, int yy) {
 
     int zoom_level = 100;
+    xx = room_to_mask_coord(xx);
+    yy = room_to_mask_coord(yy);
 
     if ((onarea >= 0) && (onarea <= MAX_WALK_AREAS) &&
         (thisroom.WalkAreas[onarea].ScalingNear != NOT_VECTOR_SCALED)) {
@@ -111,6 +113,10 @@ void scale_sprite_size(int sppic, int zoom_level, int *newwidth, int *newheight)
 }
 
 void remove_walkable_areas_from_temp(int fromx, int cwidth, int starty, int endy) {
+    fromx = room_to_mask_coord(fromx);
+    cwidth = room_to_mask_coord(cwidth);
+    starty = room_to_mask_coord(starty);
+    endy = room_to_mask_coord(endy);
     int yyy;
     if (endy >= walkable_areas_temp->GetHeight())
         endy = walkable_areas_temp->GetHeight() - 1;
@@ -147,8 +153,8 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
         if (game.chars[ww].room != displayed_room) continue;
         if (ww == sourceChar) continue;
         if (game.chars[ww].flags & CHF_NOBLOCKING) continue;
-        if (game.chars[ww].y >= walkable_areas_temp->GetHeight()) continue;
-        if (game.chars[ww].x >= walkable_areas_temp->GetWidth()) continue;
+        if (room_to_mask_coord(game.chars[ww].y) >= walkable_areas_temp->GetHeight()) continue;
+        if (room_to_mask_coord(game.chars[ww].x) >= walkable_areas_temp->GetWidth()) continue;
         if ((game.chars[ww].y < 0) || (game.chars[ww].x < 0)) continue;
 
         CharacterInfo *char1 = &game.chars[ww];
@@ -168,8 +174,8 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
         if (objs[ww].on != 1) continue;
         if ((objs[ww].flags & OBJF_SOLID) == 0)
             continue;
-        if (objs[ww].y >= walkable_areas_temp->GetHeight()) continue;
-        if (objs[ww].x >= walkable_areas_temp->GetWidth()) continue;
+        if (room_to_mask_coord(objs[ww].y) >= walkable_areas_temp->GetHeight()) continue;
+        if (room_to_mask_coord(objs[ww].x) >= walkable_areas_temp->GetWidth()) continue;
         if ((objs[ww].y < 0) || (objs[ww].x < 0)) continue;
 
         int x1, y1, width, y2;

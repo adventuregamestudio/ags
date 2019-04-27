@@ -31,6 +31,7 @@ public:
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber);
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
+  virtual bool IsBitmapFont();
   virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params);
 
 private:

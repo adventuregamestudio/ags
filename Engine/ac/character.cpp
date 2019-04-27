@@ -37,6 +37,7 @@
 #include "ac/object.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
+#include "ac/room.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "ac/system.h"
@@ -1025,14 +1026,14 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
 
     wallscreen = prepare_walkable_areas(chaa->index_id);
 
-    int fromX = chaa->x;
-    int fromY = chaa->y;
-    int toX = xx;
-    int toY = yy;
+    int fromXLowres = room_to_mask_coord(chaa->x);
+    int fromYLowres = room_to_mask_coord(chaa->y);
+    int toXLowres = room_to_mask_coord(xx);
+    int toYLowres = room_to_mask_coord(yy);
 
     if (!can_see_from(fromX, fromY, toX, toY)) {
-        movetox = lastcx;
-        movetoy = lastcy;
+        movetox = mask_to_room_coord(lastcx);
+        movetoy = mask_to_room_coord(lastcy);
     }
 
     walk_character(chaa->index_id, movetox, movetoy, 1, true);
@@ -1641,8 +1642,10 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     chin->flags &= ~CHF_MOVENOTWALK;
 
     int toxPassedIn = tox, toyPassedIn = toy;
-    int charX = chin->x;
-    int charY = chin->y;
+    int charX = room_to_mask_coord(chin->x);
+    int charY = room_to_mask_coord(chin->y);
+    tox = room_to_mask_coord(tox);
+    toy = room_to_mask_coord(toy);
 
     if ((tox == charX) && (toy == charY)) {
         StopMoving(chac);
@@ -1692,6 +1695,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     if (mslot>0) {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;
+        convert_move_path_to_room_resolution(&mls[mslot]);
 
         // cancel any pending waits on current animations
         // or if they were already moving, keep the current wait - 
@@ -1886,16 +1890,16 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 {
     int ex, ey, nearest = 99999, thisis, nearx = 0, neary = 0;
     int startx = 0, starty = 14;
-    int roomWidthLowRes = thisroom.Width;
-    int roomHeightLowRes = thisroom.Height;
+    int roomWidthLowRes = room_to_mask_coord(thisroom.Width);
+    int roomHeightLowRes = room_to_mask_coord(thisroom.Height);
     int xwidth = roomWidthLowRes, yheight = roomHeightLowRes;
 
-    int x = xx[0];
-    int y = yy[0];
-    int rightEdge = thisroom.Edges.Right;
-    int leftEdge = thisroom.Edges.Left;
-    int topEdge = thisroom.Edges.Top;
-    int bottomEdge = thisroom.Edges.Bottom;
+    int xLowRes = room_to_mask_coord(xx[0]);
+    int yLowRes = room_to_mask_coord(yy[0]);
+    int rightEdge = room_to_mask_coord(thisroom.Edges.Right);
+    int leftEdge = room_to_mask_coord(thisroom.Edges.Left);
+    int topEdge = room_to_mask_coord(thisroom.Edges.Top);
+    int bottomEdge = room_to_mask_coord(thisroom.Edges.Bottom);
 	
     // tweak because people forget to move the edges sometimes
     // if the player is already over the edge, ignore it
@@ -1931,8 +1935,8 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
     }
     if (nearest < 90000) 
     {
-        xx[0] = nearx;
-        yy[0] = neary;
+        xx[0] = mask_to_room_coord(nearx);
+        yy[0] = mask_to_room_coord(neary);
         return 1;
     }
 
@@ -1941,7 +1945,7 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 
 void find_nearest_walkable_area (int *xx, int *yy) {
 
-    int pixValue = thisroom.WalkAreaMask->GetPixel(xx[0], yy[0]);
+    int pixValue = thisroom.WalkAreaMask->GetPixel(room_to_mask_coord(xx[0]), room_to_mask_coord(yy[0]));
     if (pixValue == 0 || pixValue < 1)
     {
         // First, check every 2 pixels within immediate area
@@ -2224,8 +2228,8 @@ void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {
         cwidth += fromx;
         fromx = 0;
     }
-    if (fromx + cwidth >= walkable_areas_temp->GetWidth())
-        cwidth = walkable_areas_temp->GetWidth() - fromx;
+    if (fromx + cwidth >= mask_to_room_coord(walkable_areas_temp->GetWidth()))
+        cwidth = mask_to_room_coord(walkable_areas_temp->GetWidth()) - fromx;
 
     if (x1)
         *x1 = fromx;

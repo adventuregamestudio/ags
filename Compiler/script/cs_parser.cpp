@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cerrno>
 #include <string>
+#include <vector>
 #include "cs_parser.h"
 #include "cc_internallist.h"    // ccInternalList
 #include "cs_parser_common.h"
@@ -1012,8 +1013,13 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 
 // return the float as an int32 (but not actually converted to int)
 int float_to_int_raw(float toconv) {
-    int *memptr = (int*)&toconv;
-    return memptr[0];
+    union
+    {
+        float   f;
+        int32_t i32;
+    } conv;
+    conv.f = toconv;
+    return conv.i32;
 }
 
 int isPartOfExpression(ccInternalList *targ, int j) {
@@ -3116,6 +3122,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     int varsize,ccCompiledScript*scrip,ccInternalList*targ, int vtwas,
     int isPointer) {
   long lbuffer = 0;
+  std::vector<char> xbuffer;
   long *getsvalue = &lbuffer;
   int need_fixup = 0;
   int array_size = 1;
@@ -3194,10 +3201,12 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     }
 
     next_type[0] = sym.get_type(targ->peeknext());
-    getsvalue = (long*)calloc(1,varsize+1);
+    xbuffer.resize(varsize + 1);
+    getsvalue = (long*)&xbuffer.front();
   }
   else if (varsize > 4) {
-    getsvalue = (long*)calloc(1, varsize + 1);
+    xbuffer.resize(varsize + 1);
+    getsvalue = (long*)&xbuffer.front();
   }
 
   if (strcmp(sym.get_name(vtwas),"string")==0) {
@@ -3355,8 +3364,6 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
       scrip->write_cmd2(SCMD_ADD,SREG_SP,varsize);
     }
   }
-  if ((getsvalue != &lbuffer) && (getsvalue != NULL))
-    free(getsvalue);
   if (next_type[0] == SYM_COMMA) {
     targ->getnext();  // skip the comma
     return 2;

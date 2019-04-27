@@ -89,7 +89,7 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
   _stageVirtualScreen = NULL;
 
   // Initialize default sprite batch, it will be used when no other batch was activated
-  InitSpriteBatch(0, _spriteBatchDesc[0]);
+  ALSoftwareGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -317,7 +317,7 @@ void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RG
 
 ALSoftwareGraphicsDriver::~ALSoftwareGraphicsDriver()
 {
-  UnInit();
+  ALSoftwareGraphicsDriver::UnInit();
 }
 
 void ALSoftwareGraphicsDriver::UnInit()

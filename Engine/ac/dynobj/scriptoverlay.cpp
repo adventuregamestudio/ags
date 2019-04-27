@@ -79,4 +79,7 @@ void ScriptOverlay::Remove()
 
 ScriptOverlay::ScriptOverlay() {
     overlayId = -1;
+    borderWidth = 0;
+    borderHeight = 0;
+    isBackgroundSpeech = 0;
 }

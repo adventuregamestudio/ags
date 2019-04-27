@@ -2031,6 +2031,11 @@ RuntimeScriptValue Sc_ShowMouseCursor(const RuntimeScriptValue *params, int32_t 
     API_SCALL_VOID(ShowMouseCursor);
 }
 
+RuntimeScriptValue Sc_SkipCutscene(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(SkipCutscene);
+}
+
 // void (int cc)
 RuntimeScriptValue Sc_SkipUntilCharacterStops(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2153,7 +2158,7 @@ RuntimeScriptValue Sc_strlen(const RuntimeScriptValue *params, int32_t param_cou
 // [DEPRECATED] void  (char *strin, int posn, int nchar)
 /*RuntimeScriptValue Sc_StrSetCharAt(const RuntimeScriptValue *params, int32_t param_count)
 {
-    ASSERT_PARAM_COUNT(StrSetCharAt, 3) \
+    ASSERT_PARAM_COUNT(StrSetCharAt, 3);
     StrSetCharAt((char*)params[0].Ptr, params[1].IValue, params[2].IValue);
     return params[0];
 }
@@ -2638,6 +2643,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("ShakeScreen",              Sc_ShakeScreen);
 	ccAddExternalStaticFunction("ShakeScreenBackground",    Sc_ShakeScreenBackground);
 	ccAddExternalStaticFunction("ShowMouseCursor",          Sc_ShowMouseCursor);
+    ccAddExternalStaticFunction("SkipCutscene",             Sc_SkipCutscene);
 	ccAddExternalStaticFunction("SkipUntilCharacterStops",  Sc_SkipUntilCharacterStops);
 	ccAddExternalStaticFunction("StartCutscene",            Sc_StartCutscene);
 	ccAddExternalStaticFunction("StartRecording",           Sc_scStartRecording);

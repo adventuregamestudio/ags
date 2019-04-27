@@ -230,4 +230,11 @@ int MYOGG::play() {
 }
 
 MYOGG::MYOGG() : SOUNDCLIP() {
+    stream = NULL;
+    in = NULL;
+    buffer = NULL;
+    chunksize = 0;
+    last_but_one_but_one = 0;
+    last_but_one = 0;
+    last_ms_offs = 0;
 }

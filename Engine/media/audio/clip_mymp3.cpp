@@ -206,6 +206,11 @@ int MYMP3::play() {
 }
 
 MYMP3::MYMP3() : SOUNDCLIP() {
+    stream = NULL;
+    in = NULL;
+    filesize = 0;
+    buffer = NULL;
+    chunksize = 0;
 }
 
 #endif // !NO_MP3_PLAYER

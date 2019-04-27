@@ -24,7 +24,7 @@
 #include "ac/global_display.h"
 #include "ac/global_room.h"
 #include "ac/mouse.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "debug/debug_log.h"
 #include "gui/guidialog.h"
 #include "main/game_run.h"
@@ -283,7 +283,7 @@ int InventoryScreen::Redraw()
 
     Bitmap *ds = prepare_gui_screen(windowxp, windowyp, windowwid, windowhit, true);
     Draw(ds);
-    //domouse(1);
+    //ags_domouse(DOMOUSE_ENABLE);
     set_mouse_cursor(cmode);
     wasonitem = -1;
     return 0;
@@ -346,15 +346,14 @@ void InventoryScreen::RedrawOverItem(Bitmap *ds, int isonitem)
 
 bool InventoryScreen::Run()
 {
-    if (kbhit() != 0)
+    if (ags_kbhit() != 0)
     {
         return false; // end inventory screen loop
     }
 
         timerloop = 0;
-        NEXT_ITERATION();
         refresh_gui_screen();
-        //domouse(0);
+        //ags_domouse(DOMOUSE_UPDATE);
         update_polled_audio_and_crossfade();
 
         // NOTE: this is because old code was working with full game screen
@@ -367,7 +366,7 @@ bool InventoryScreen::Run()
         if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
             isonitem=-1;
 
-        int mclick = mgetbutton();
+        int mclick = ags_mgetbutton();
         if (mclick == LEFT) {
             if ((mousey<0) | (mousey>windowhit) | (mousex<0) | (mousex>windowwid))
                 return true; // continue inventory screen loop
@@ -378,7 +377,7 @@ bool InventoryScreen::Run()
                 play.used_inv_on = dii[clickedon].num;
 
                 if (cmode==MODE_LOOK) {
-                    //domouse(2);
+                    //ags_domouse(DOMOUSE_DISABLE);
                     run_event_block_inv(dii[clickedon].num, 0); 
                     // in case the script did anything to the screen, redraw it
                     UpdateGameOnce();
@@ -394,7 +393,7 @@ bool InventoryScreen::Run()
                     int activeinvwas = playerchar->activeinv;
                     playerchar->activeinv = toret;
 
-                    //domouse(2);
+                    //ags_domouse(DOMOUSE_DISABLE);
                     run_event_block_inv(dii[clickedon].num, 3);
 
                     // if the script didn't change it, then put it back
@@ -428,7 +427,7 @@ bool InventoryScreen::Run()
                     if (mousey < buttonyp + 2 + ARROWBUTTONWID) {
                         if (top_item > 0) {
                             top_item -= ICONSPERLINE;
-                            //domouse(2);
+                            //ags_domouse(DOMOUSE_DISABLE);
 
                             break_code = Redraw();
                             return break_code == 0;
@@ -436,7 +435,7 @@ bool InventoryScreen::Run()
                     }
                     else if ((mousey < buttonyp + 4 + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems)) {
                         top_item += ICONSPERLINE;
-                        //domouse(2);
+                        //ags_domouse(DOMOUSE_DISABLE);
                         
                         break_code = Redraw();
                         return break_code == 0;
@@ -467,9 +466,9 @@ bool InventoryScreen::Run()
         }
         else if (isonitem!=wasonitem)
         {
-            //domouse(2);
+            //ags_domouse(DOMOUSE_DISABLE);
             RedrawOverItem(get_gui_screen(), isonitem);
-            //domouse(1);
+            //ags_domouse(DOMOUSE_ENABLE);
         }
         wasonitem=isonitem;
         PollUntilNextFrame();
@@ -481,7 +480,7 @@ void InventoryScreen::Close()
 {
     clear_gui_screen();
     set_default_cursor();
-    //domouse(2);
+    //ags_domouse(DOMOUSE_DISABLE);
     construct_virtual_screen(true);
     in_inv_screen--;
 }
@@ -502,7 +501,7 @@ int __actual_invscreen()
         return InvScr.break_code;
     }
 
-    clear_input_buffer();
+    ags_clear_input_buffer();
 
     InvScr.Close();
     return InvScr.toret;

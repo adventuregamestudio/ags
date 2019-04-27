@@ -130,8 +130,6 @@ const int LegacyRoomVolumeFactor            = 30;
 
 #define MAX_PLUGIN_OBJECT_READERS 50
 
-#define NEXT_ITERATION() play.gamestep++
-
 #ifndef MAX_PATH
 #define MAX_PATH 260
 #endif

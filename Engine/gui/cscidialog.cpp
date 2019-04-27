@@ -21,7 +21,7 @@
 #include "ac/gui.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/runtime_defines.h"
 #include "font/fonts.h"
 #include "gui/cscidialog.h"
@@ -79,7 +79,9 @@ void __my_wbutt(Bitmap *ds, int x1, int y1, int x2, int y2)
 
 OnScreenWindow::OnScreenWindow()
 {
+    x = y = 0;
     handle = -1;
+    oldtop = -1;
 }
 
 int CSCIGetVersion()
@@ -105,7 +107,7 @@ int CSCIDrawWindow(int xx, int yy, int wid, int hit)
         quit("Too many windows created.");
 
     windowcount++;
-    //  domouse(2);
+    //  ags_domouse(DOMOUSE_DISABLE);
     xx -= 2;
     yy -= 2;
     wid += 4;
@@ -114,7 +116,7 @@ int CSCIDrawWindow(int xx, int yy, int wid, int hit)
     oswi[drawit].x = xx;
     oswi[drawit].y = yy;
     __my_wbutt(ds, 0, 0, wid - 1, hit - 1);    // wbutt goes outside its area
-    //  domouse(1);
+    //  ags_domouse(DOMOUSE_ENABLE);
     oswi[drawit].oldtop = topwindowhandle;
     topwindowhandle = drawit;
     oswi[drawit].handle = topwindowhandle;
@@ -127,23 +129,22 @@ int CSCIDrawWindow(int xx, int yy, int wid, int hit)
 
 void CSCIEraseWindow(int handl)
 {
-    //  domouse(2);
+    //  ags_domouse(DOMOUSE_DISABLE);
     ignore_bounds--;
     topwindowhandle = oswi[handl].oldtop;
     oswi[handl].handle = -1;
-    //  domouse(1);
+    //  ags_domouse(DOMOUSE_ENABLE);
     windowcount--;
     clear_gui_screen();
 }
 
 int CSCIWaitMessage(CSCIMessage * cscim)
 {
-    NextIteration();
     for (int uu = 0; uu < MAXCONTROLS; uu++) {
         if (vobjs[uu] != NULL) {
-            //      domouse(2);
+            //      ags_domouse(DOMOUSE_DISABLE);
             vobjs[uu]->drawifneeded();
-            //      domouse(1);
+            //      ags_domouse(DOMOUSE_ENABLE);
         }
     }
 
@@ -151,7 +152,6 @@ int CSCIWaitMessage(CSCIMessage * cscim)
 
     while (1) {
         timerloop = 0;
-        NextIteration();
         refresh_gui_screen();
 
         cscim->id = -1;
@@ -177,7 +177,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
             }
         }
 
-        if (rec_mgetbutton() != NONE) {
+        if (ags_mgetbutton() != NONE) {
             if (checkcontrols()) {
                 cscim->id = controlid;
                 cscim->code = CM_COMMAND;
@@ -230,9 +230,9 @@ int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const 
 
     vobjs[usec]->typeandflags = typeandflags;
     vobjs[usec]->wlevel = topwindowhandle;
-    //  domouse(2);
+    //  ags_domouse(DOMOUSE_DISABLE);
     vobjs[usec]->draw( get_gui_screen() );
-    //  domouse(1);
+    //  ags_domouse(DOMOUSE_ENABLE);
     return usec;
 }
 

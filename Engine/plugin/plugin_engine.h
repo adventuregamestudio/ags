@@ -34,4 +34,8 @@ int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
 Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> &infos);
 bool pl_is_plugin_loaded(const char *pl_name);
 
+//returns whether _any_ plugins want a particular event
+bool pl_any_want_hook(int event);
+void pl_set_file_handle(long data, AGS::Common::Stream *stream);
+void pl_clear_file_handle();
 #endif // __AGS_EE_PLUGIN__PLUGINENGINE_H

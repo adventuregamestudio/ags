@@ -71,12 +71,8 @@ namespace AGS.Editor
             _room = room;
             sldZoomLevel.Maximum = ZOOM_MAX_VALUE / ZOOM_STEP_VALUE;
             sldZoomLevel.Value = 100 / ZOOM_STEP_VALUE;
-            // If the room is very small, we will display it with x2 zoom by default
-            // TODO: implement some option in preferences, and/or relative to the desktop size?
-            if (_room.Width < 640 || _room.Height < 400)
-                SetZoomSliderToMultiplier(2);
-            else
-                SetZoomSliderToMultiplier(1);
+            // TODO: choose default zoom based on the room size vs window size?
+            SetZoomSliderToMultiplier(_room.Width <= 320 ? 2 : 1);
 
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
             _characterLayer = new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame);
@@ -487,13 +483,9 @@ namespace AGS.Editor
                             }
                         }
 
-                        // If the room is very small, we will display it with x2 zoom by default
-                        // TODO: implement some option in preferences, and/or relative to the desktop size?
-                        if (_room.Width < 640 || _room.Height < 400)
-                            SetZoomSliderToMultiplier(2);
-                        else
-                            SetZoomSliderToMultiplier(1);
-                        sldZoomLevel_Scroll(null, null);
+                        // TODO: choose default zoom based on the room size vs window size?
+                        SetZoomSliderToMultiplier(_room.Width <= 320 ? 2 : 1);
+						sldZoomLevel_Scroll(null, null);
 						UpdateScrollableWindowSize();
                     }
                 }
@@ -661,7 +653,13 @@ namespace AGS.Editor
 
             layerNode.IsVisible = true;
             SelectLayer(layerNode.Layer);
-            layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
+
+            // only select the item if the room editor is the active tab; this could
+            // be a refresh from another tab e.g. changing a character's starting room
+            if (Factory.GUIController.ActivePane.Control == this)
+            {
+                layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
+            }
         }
 
         private void SelectLayer(IRoomEditorFilter layer)
@@ -953,7 +951,7 @@ namespace AGS.Editor
         /// <summary>
         /// Scale of the Room image on screen.
         /// </summary>
-        public float Scale
+        internal float Scale
         {
             get { return _scale; }
             set
@@ -973,6 +971,36 @@ namespace AGS.Editor
         {
             _scrollOffsetX = -scrollPt.X;
             _scrollOffsetY = -scrollPt.Y;
+        }
+
+        // Refactor following static methods and/or move elsewhere.
+        // I made them static and put into RoomEditorState because room filters
+        // need to have these methods accessible at random times.
+        // Perhaps filters may acquire this object in constructor instead.
+        // Also, room reference does not have to be passed as an argument like
+        // this either.
+
+        /// <summary>
+        /// Tells if script coordinates have 1:2 resolution in this room.
+        /// </summary>
+        internal static bool IsHighResRoomWithLowResScript(Room room)
+        {
+            return Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript &&
+                (room.Resolution == RoomResolution.HighRes ||
+                room.Resolution == RoomResolution.Real && Factory.AGSEditor.CurrentGame.IsHighResolution);
+        }
+
+        /// <summary>
+        /// Adjusts given coordinates to match resolution that script will
+        /// have in this room when the game is run by the engine.
+        /// </summary>
+        internal static void AdjustCoordsToMatchEngine(Room room, ref int x, ref int y)
+        {
+            if (IsHighResRoomWithLowResScript(room))
+            {
+                x /= 2;
+                y /= 2;
+            }
         }
     }
 }

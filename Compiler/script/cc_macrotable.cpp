@@ -4,6 +4,11 @@
 #include "cc_macrotable.h"
 #include "script/cc_error.h"
 
+void MacroTable::init() {
+    num = 0;
+    memset(name, 0, sizeof(name));
+    memset(macro, 0, sizeof(macro));
+}
 void MacroTable::shutdown() {
     int rr;
     for (rr=0;rr<num;rr++) {

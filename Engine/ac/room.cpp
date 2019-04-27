@@ -28,12 +28,13 @@
 #include "ac/global_game.h"
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
+#include "ac/movelist.h"
 #include "ac/mouse.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
 #include "ac/region.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
@@ -348,16 +349,16 @@ extern int convert_16bit_bgr;
 void update_letterbox_mode()
 {
     const Size real_room_sz = Size(thisroom.Width, thisroom.Height);
-    const Rect game_frame = RectWH(game.size);
+    const Rect game_frame = RectWH(game.GetGameRes());
     Rect new_main_view = game_frame;
     // In the original engine the letterbox feature only allowed viewports of
     // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
     // Also, the UI viewport should be matching room viewport in that case.
     // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
     const int viewport_height =
-        real_room_sz.Height < game.altsize.Height ? real_room_sz.Height :
-        (real_room_sz.Height >= game.altsize.Height && real_room_sz.Height < game.size.Height) ? game.altsize.Height :
-        game.size.Height;
+        real_room_sz.Height < game.GetLetterboxSize().Height ? real_room_sz.Height :
+        (real_room_sz.Height >= game.GetLetterboxSize().Height && real_room_sz.Height < game.GetGameRes().Height) ? game.GetLetterboxSize().Height :
+        game.GetGameRes().Height;
     new_main_view.SetHeight(viewport_height);
 
     play.SetMainViewport(CenterInRect(game_frame, new_main_view));
@@ -457,14 +458,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=204;
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
-    thisroom.WalkBehindMask = thisroom.WalkBehindMask;
     update_polled_stuff_if_runtime();
 
     set_color_depth(game.GetColorDepth());
-        for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
-            thisroom.BgFrames[i].Graphic = thisroom.BgFrames[i].Graphic;
-
     recache_walk_behinds();
+    update_polled_stuff_if_runtime();
 
     our_eip=205;
     // setup objects
@@ -761,7 +759,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     play.gscript_timer=-1;  // avoid screw-ups with changing screens
     play.player_on_region = 0;
     // trash any input which they might have done while it was loading
-    clear_input_buffer();
+    ags_clear_input_buffer();
     // no fade in, so set the palette immediately in case of 256-col sprites
     if (game.color_depth > 1)
         setpal();
@@ -925,6 +923,28 @@ void croom_ptr_clear()
 {
     croom = NULL;
     objs = NULL;
+}
+
+void convert_move_path_to_room_resolution(MoveList *ml)
+{ // TODO: refer to room mask own setting here instead
+    if (thisroom.MaskResolution == 1)
+        return;
+
+    const int mul = thisroom.MaskResolution;
+    ml->fromx *= mul;
+    ml->fromy *= mul;
+    ml->lastx *= mul;
+    ml->lasty *= mul;
+
+    for (int i = 0; i < ml->numstage; i++)
+    {
+        short lowPart = (ml->pos[i] & 0x0000ffff) * mul;
+        short highPart = ((ml->pos[i] >> 16) & 0x0000ffff) * mul;
+        ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
+
+        ml->xpermove[i] *= mul;
+        ml->ypermove[i] *= mul;
+    }
 }
 
 //=============================================================================

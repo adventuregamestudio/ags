@@ -34,7 +34,7 @@
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
@@ -76,7 +76,6 @@ extern GameState play;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;
 extern RoomObject*objs;
-extern int replay_start_this_time;
 extern char noWalkBehindsAtAll;
 extern RoomStatus*croom;
 extern CharacterExtras *charextra;
@@ -216,22 +215,24 @@ void check_mouse_controls()
     // check mouse clicks on GUIs
     static int wasbutdown=0,wasongui=0;
 
-    if ((wasbutdown>0) && (misbuttondown(wasbutdown-1))) {
+    if ((wasbutdown>0) && (ags_misbuttondown(wasbutdown-1))) {
         gui_on_mouse_hold(wasongui, wasbutdown);
     }
-    else if ((wasbutdown>0) && (!misbuttondown(wasbutdown-1))) {
+    else if ((wasbutdown>0) && (!ags_misbuttondown(wasbutdown-1))) {
         gui_on_mouse_up(wasongui, wasbutdown);
         wasbutdown=0;
     }
 
-    int mbut =mgetbutton();
+    int mbut = ags_mgetbutton();
     if (mbut>NONE) {
         lock_mouse_on_click();
 
-        if ((play.in_cutscene == 3) || (play.in_cutscene == 4))
+        CutsceneSkipStyle skip = get_cutscene_skipstyle();
+        if (skip == eSkipSceneMouse || skip == eSkipSceneKeyMouse ||
+            (mbut == RIGHT && skip == eSkipSceneEscOrRMB))
+        {
             start_skipping_cutscene();
-        if ((play.in_cutscene == 5) && (mbut == RIGHT))
-            start_skipping_cutscene();
+        }
 
         if (play.fast_forward) { }
         else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
@@ -255,7 +256,7 @@ void check_mouse_controls()
         else setevent(EV_TEXTSCRIPT,TS_MCLICK,mbut+1);
         //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
     }
-    mbut = check_mouse_wheel();
+    mbut = ags_check_mouse_wheel();
     if (mbut !=0)
         lock_mouse_on_click();
     if (mbut < 0)
@@ -293,7 +294,7 @@ bool run_service_key_controls(int &kgn)
     static int old_key_shifts = 0; // for saving shift modes
 
     bool handled = false;
-    int kbhit_res = kbhit();
+    int kbhit_res = ags_kbhit();
     // First, check shifts
     const int act_shifts = get_active_shifts();
     // If shifts combination have already triggered an action, then do nothing
@@ -334,9 +335,9 @@ bool run_service_key_controls(int &kgn)
     if (!kbhit_res || handled)
         return false;
 
-    int keycode = getch();
+    int keycode = ags_getch();
     if (keycode == 0)
-        keycode = getch() + AGS_EXT_KEY_SHIFT;
+        keycode = ags_getch() + AGS_EXT_KEY_SHIFT;
 
     // LAlt or RAlt + Enter
     // NOTE: for some reason LAlt + Enter produces same code as F9
@@ -360,9 +361,6 @@ void check_keyboard_controls()
         return;
     // Now check for in-game controls
     {
-        // in case they press the finish-recording button, make sure we know
-        int was_playing = play.playback;
-        
         //    if (kgn==367) restart_game();
         //    if (kgn==2) Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed);
         //    if (kgn==2) CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear");
@@ -371,16 +369,6 @@ void check_keyboard_controls()
         //if (kgn == 2) SetCharacterIdle (game.playercharacter, 5, 0);
         //if (kgn == 2) Display("Some for?ign text");
         //if (kgn == 2) do_conversation(5);
-
-        if (kgn == play.replay_hotkey) {
-            // start/stop recording
-            if (play.recording)
-                stop_recording();
-            else if ((play.playback) || (was_playing))
-                ;  // do nothing (we got the replay of the stop key)
-            else
-                replay_start_this_time = 1;
-        }
 
         check_skip_cutscene_keypress (kgn);
 
@@ -519,7 +507,6 @@ void check_keyboard_controls()
 // check_controls: checks mouse & keyboard interface
 void check_controls() {
     our_eip = 1007;
-    NEXT_ITERATION();
 
     check_mouse_controls();
     check_keyboard_controls();
@@ -684,14 +671,6 @@ void game_loop_update_loop_counter()
     }
 }
 
-void game_loop_check_replay_record()
-{
-    if (replay_start_this_time) {
-        replay_start_this_time = 0;
-        start_replay_record();
-    }
-}
-
 void game_loop_update_fps()
 {
     if (time(NULL) != t1) {
@@ -772,14 +751,12 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     our_eip=7;
 
-    //    if (mgetbutton()>NONE) break;
+    //    if (ags_mgetbutton()>NONE) break;
     update_polled_stuff_if_runtime();
 
     game_loop_update_background_animation();
 
     game_loop_update_loop_counter();
-
-    game_loop_check_replay_record();
 
     // Immediately start the next frame if we are skipping a cutscene
     if (play.fast_forward)
@@ -937,11 +914,6 @@ void GameLoopUntilEvent(int untilwhat,long daaa) {
   restrict_until = cached_restrict_until;
   user_disabled_data = cached_user_disabled_data;
   user_disabled_for = cached_user_disabled_for;
-}
-
-// for external modules to call
-void NextIteration() {
-    NEXT_ITERATION();
 }
 
 extern unsigned int load_new_game;

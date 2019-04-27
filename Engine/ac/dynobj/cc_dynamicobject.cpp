@@ -57,7 +57,7 @@ int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *callback, 
 
 // register a de-serialized object
 int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *callback, bool plugin_object) {
-    return pool.AddObject((const char*)object, callback, plugin_object, index);
+    return pool.AddUnserializedObject((const char*)object, callback, plugin_object, index);
 }
 
 // unregister a particular object
@@ -84,8 +84,7 @@ int ccUnserializeAllObjects(Stream *in, ICCObjectReader *callback) {
 
 // dispose the object if RefCount==0
 void ccAttemptDisposeObject(int32_t handle) {
-    if (pool.HandleToAddress(handle) != NULL)
-        pool.CheckDispose(handle);
+    pool.CheckDispose(handle);
 }
 
 // translate between object handles and memory addresses
@@ -128,7 +127,7 @@ ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&ob
         return kScValUndefined;
     }
     ScriptValueType obj_type = pool.HandleToAddressAndManager(handle, object, manager);
-    if (object == NULL) {
+    if (obj_type == kScValUndefined) {
         cc_error("Error retrieving pointer: invalid handle %d", handle);
     }
     return obj_type;

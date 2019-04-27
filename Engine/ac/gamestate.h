@@ -15,6 +15,11 @@
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
+#include "util/stdtr1compat.h"
+
+#include <memory>
+#include <vector>
+
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 #include "game/roomstruct.h"
@@ -22,9 +27,13 @@
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
+#include "util/string.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS { namespace Common {
+    class Bitmap; class Stream;
+    typedef stdtr1compat::shared_ptr<Bitmap> PBitmap;
+} }
 using namespace AGS; // FIXME later
 
 #define GAME_STATE_RESERVED_INTS 5
@@ -79,7 +88,7 @@ struct GameState {
     int  game_speed_modifier;
     int  score_sound;
     int  takeover_data;  // value passed to RunAGSGame in previous game
-    int  replay_hotkey;
+    int  replay_hotkey_unused;  // (UNUSED!) StartRecording: not supported
     int  dialog_options_x;
     int  dialog_options_y;
     int  narrator_speech;
@@ -121,9 +130,6 @@ struct GameState {
                                       // no speech animation is supposed to be played at this time
     int  dialog_options_highlight_color; // The colour used for highlighted (hovered over) text in dialog options
     int  reserved[GAME_STATE_RESERVED_INTS];  // make sure if a future version adds a var, it doesn't mess anything up
-    int   recording;   // user is recording their moves
-    int   playback;    // playing back recording
-    short gamestep;    // step number for matching recordings
     long  randseed;    // random seed
     int   player_on_region;    // player's current region
     int   screen_is_faded_out; // the screen is currently black
@@ -157,6 +163,7 @@ struct GameState {
     char  bad_parsed_word[100];
     int   raw_color;
     int   raw_modified[MAX_ROOM_BGFRAMES];
+    Common::PBitmap raw_drawing_surface;
     short filenumbers[MAXSAVEGAMES]; // [OBSOLETE]
     int   room_changes;
     int   mouse_cursor_hidden;
@@ -195,8 +202,7 @@ struct GameState {
     short temporarily_turned_off_character;  // Hide Player Charactr ticked
     short inv_backwards_compatibility; // CLNUP probably remove, need to check
     int  *gui_draw_order;
-    char**do_once_tokens;
-    int   num_do_once_tokens;
+    std::vector<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms;
     int   ignore_user_input_after_text_timeout_ms;
     unsigned long ignore_user_input_until_time;
@@ -210,9 +216,8 @@ struct GameState {
     bool  speech_in_post_state;
 
     GameState();
-
-    const Size &GetNativeSize() const;
-    void SetNativeSize(const Size &size);
+    // Free game resources
+    void Free();
 
     //
     // Viewport and camera control.
@@ -280,12 +285,6 @@ struct GameState {
     void FreeProperties();
 
 private:
-    // Determines the game's size in "native" units, used to convert coordinate
-    // arguments in game data and scripts to screen coordinates.
-    // Equals real game size by default, which results in 1:1 conversion.
-    // (atm used only for backwards-compatibility in high-res games that wanted
-    // to keep coordinates in 320x200 range in scripts)
-    Size _nativeSize;
     // Defines if the room viewport should be adjusted to the room size automatically.
     bool _isAutoRoomViewport;
     // Viewport defines the rectangle of the drawn and interactable area

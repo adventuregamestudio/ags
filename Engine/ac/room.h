@@ -51,6 +51,10 @@ void  on_background_frame_change ();
 // Clear the current room pointer if room status is no longer valid
 void  croom_ptr_clear();
 
+struct MoveList;
+// Convert move path from room's mask resolution to room resolution
+void convert_move_path_to_room_resolution(MoveList *ml);
+
 extern AGS::Common::RoomStruct thisroom;
 
 #endif // __AGS_EE_AC__ROOM_H

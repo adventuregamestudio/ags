@@ -76,15 +76,15 @@ struct RestoredData
     // General audio
     struct ChannelInfo
     {
-        int ClipID;
-        int Pos;
-        int Priority;
-        int Repeat;
-        int Vol;
-        int VolAsPercent;
-        int Pan;
-        int PanAsPercent;
-        int Speed;
+        int ClipID = 0;
+        int Pos = 0;
+        int Priority = 0;
+        int Repeat = 0;
+        int Vol = 0;
+        int VolAsPercent = 0;
+        int Pan = 0;
+        int PanAsPercent = 0;
+        int Speed = 0;
     };
     ChannelInfo             AudioChans[MAX_SOUND_CHANNELS + 1];
     // Ambient sounds

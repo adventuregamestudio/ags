@@ -81,6 +81,8 @@ struct ScreenSizeSetup
     ScreenSizeDefinition SizeDef;       // a method used to determine screen size
     ::Size               Size;          // explicitly defined screen metrics
     bool                 MatchDeviceRatio; // whether to choose resolution matching device aspect ratio
+
+    ScreenSizeSetup();
 };
 
 // Display mode configuration

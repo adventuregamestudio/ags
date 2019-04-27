@@ -113,8 +113,6 @@ void main_pre_init()
 {
     our_eip = -999;
     Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
-    play.recording = 0;
-    play.playback = 0;
     play.takeover_data = 0;
 }
 
@@ -228,10 +226,6 @@ int main_process_cmdline(int argc,char*argv[])
             force_window = 1;
         else if (stricmp(argv[ee],"-fullscreen") == 0 || stricmp(argv[ee],"--fullscreen") == 0)
             force_window = 2;
-        else if (stricmp(argv[ee],"-record") == 0)
-            play.recording = 1;
-        else if (stricmp(argv[ee],"-playback") == 0)
-            play.playback = 1;
         else if ((stricmp(argv[ee],"-gfxfilter") == 0 || stricmp(argv[ee],"--gfxfilter") == 0) && (argc > ee + 1))
         {
             // TODO: we make an assumption here that if user provides scaling factor,

@@ -27,7 +27,7 @@ ProxyStream::ProxyStream(Stream *stream, ObjectOwnershipPolicy stream_ownership_
 
 ProxyStream::~ProxyStream()
 {
-    Close();
+    ProxyStream::Close();
 }
 
 void ProxyStream::Close()

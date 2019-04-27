@@ -33,7 +33,9 @@ public:
   WindowsThread()
   {
     _thread = NULL;
+    _entry = NULL;
     _running = false;
+    _looping = false;
   }
 
   ~WindowsThread()

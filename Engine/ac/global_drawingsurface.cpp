@@ -43,11 +43,9 @@ extern SpriteCache spriteset;
 extern GameSetupStruct game;
 
 // Raw screen writing routines - similar to old CapturedStuff
-#define RAW_START() raw_drawing_surface = thisroom.BgFrames[play.bg_frame].Graphic; play.raw_modified[play.bg_frame] = 1
+#define RAW_START() play.raw_drawing_surface = thisroom.BgFrames[play.bg_frame].Graphic; play.raw_modified[play.bg_frame] = 1
 #define RAW_END()
-#define RAW_SURFACE() (raw_drawing_surface.get())
-
-PBitmap raw_drawing_surface;
+#define RAW_SURFACE() (play.raw_drawing_surface.get())
 
 // [DEPRECATED] RawSaveScreen: copy the current screen to a backup bitmap
 void RawSaveScreen () {

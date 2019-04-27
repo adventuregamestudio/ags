@@ -268,7 +268,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _vmem_b_shift_32 = 0;
 
   // Initialize default sprite batch, it will be used when no other batch was activated
-  InitSpriteBatch(0, _spriteBatchDesc[0]);
+  D3DGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -1004,7 +1004,7 @@ void D3DGraphicsDriver::UnInit()
 
 D3DGraphicsDriver::~D3DGraphicsDriver()
 {
-  UnInit();
+  D3DGraphicsDriver::UnInit();
 
   if (direct3d)
     direct3d->Release();
@@ -1675,6 +1675,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
      if (hr != D3D_OK) 
      {
+        free(tiles);
         char errorMessage[200];
         sprintf(errorMessage, "Direct3DDevice9::CreateVertexBuffer(Length=%d) for texture failed: error code %08X", vertexBufferSize, hr);
         throw Ali3DException(errorMessage);
@@ -1682,6 +1683,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
      if (ddb->_vertex->Lock(0, 0, (void**)&vertices, D3DLOCK_DISCARD) != D3D_OK)
      {
+       free(tiles);
        throw Ali3DException("Failed to lock vertex buffer");
      }
   }

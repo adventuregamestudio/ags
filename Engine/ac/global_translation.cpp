@@ -23,6 +23,7 @@
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "util/memory.h"
+#include "core/types.h"
 
 using namespace AGS::Common::Memory;
 
@@ -37,12 +38,14 @@ const char *get_translation (const char *text) {
 
     source_text_length = GetTextDisplayLength(text);
 
+#ifndef AGS_64BIT
     // check if a plugin wants to translate it - if so, return that
     // TODO: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
     char *plResult = Int32ToPtr<char>(pl_run_plugin_hooks(AGSE_TRANSLATETEXT, PtrToInt32(text)));
     if (plResult) {
         return plResult;
     }
+#endif
 
     if (transtree != NULL) {
         // translate the text using the translation file

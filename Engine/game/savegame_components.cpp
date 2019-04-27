@@ -917,15 +917,19 @@ HSaveError ReadManagedPool(PStream in, int32_t cmp_ver, const PreservedParams &p
 
 HSaveError WritePluginData(PStream out)
 {
-    // [IKM] Plugins expect FILE pointer! // TODO something with this later...
-    pl_run_plugin_hooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out.get())->GetHandle());
+    auto pluginFileHandle = AGSE_SAVEGAME;
+    pl_set_file_handle(pluginFileHandle, out.get());
+    pl_run_plugin_hooks(AGSE_SAVEGAME, pluginFileHandle);
+    pl_clear_file_handle();
     return HSaveError::None();
 }
 
 HSaveError ReadPluginData(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    // [IKM] Plugins expect FILE pointer! // TODO something with this later
-    pl_run_plugin_hooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in.get())->GetHandle());
+    auto pluginFileHandle = AGSE_RESTOREGAME;
+    pl_set_file_handle(pluginFileHandle, in.get());
+    pl_run_plugin_hooks(AGSE_RESTOREGAME, pluginFileHandle);
+    pl_clear_file_handle();
     return HSaveError::None();
 }
 

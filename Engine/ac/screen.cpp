@@ -117,12 +117,12 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
 
 int Screen_GetScreenWidth()
 {
-    return game.size.Width;
+    return game.GetGameRes().Width;
 }
 
 int Screen_GetScreenHeight()
 {
-    return game.size.Height;
+    return game.GetGameRes().Height;
 }
 
 bool Screen_GetAutoSizeViewport()
@@ -148,6 +148,14 @@ ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
     if (vpt.second < 0)
         return NULL;
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
+}
+
+ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
+{
+    data_to_game_coords(&roomx, &roomy);
+    Point pt = play.RoomToScreen(roomx, roomy);
+    game_to_data_coords(pt.X, pt.Y);
+    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 
 RuntimeScriptValue Sc_Screen_GetScreenHeight(const RuntimeScriptValue *params, int32_t param_count)
@@ -180,6 +188,11 @@ RuntimeScriptValue Sc_Screen_ScreenToRoomPoint(const RuntimeScriptValue *params,
     API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_ScreenToRoomPoint);
 }
 
+RuntimeScriptValue Sc_Screen_RoomToScreenPoint(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_RoomToScreenPoint);
+}
+
 void RegisterScreenAPI()
 {
     ccAddExternalStaticFunction("Screen::get_Height", Sc_Screen_GetScreenHeight);
@@ -188,4 +201,5 @@ void RegisterScreenAPI()
     ccAddExternalStaticFunction("Screen::set_AutoSizeViewportOnRoomLoad", Sc_Screen_SetAutoSizeViewport);
     ccAddExternalStaticFunction("Screen::get_Viewport", Sc_Screen_GetViewport);
     ccAddExternalStaticFunction("Screen::ScreenToRoomPoint", Sc_Screen_ScreenToRoomPoint);
+    ccAddExternalStaticFunction("Screen::RoomToScreenPoint", Sc_Screen_RoomToScreenPoint);
 }

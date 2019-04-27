@@ -19,7 +19,6 @@
 #define __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H
 
 #include "gui/guidialogdefines.h"
-#include "ac/record.h"
 
 #if !defined (WINDOWS_VERSION)
 #define _getcwd getcwd
@@ -30,7 +29,8 @@
 #undef WINAPI
 #endif
 #define WINAPI
-#define mbutrelease(X) (!rec_misbuttondown(X))
+extern int ags_misbuttondown (int but);
+#define mbutrelease(X) (!ags_misbuttondown(X))
 #define TEXT_HT usetup.textheight
 
 #endif // __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H

@@ -237,6 +237,10 @@ int MYSTATICOGG::play() {
 }
 
 MYSTATICOGG::MYSTATICOGG() : SOUNDCLIP() {
+    tune = NULL;
+    mp3buffer = NULL;
+    mp3buffersize = 0;
+    extraOffset = 0;
     last_but_one = 0;
     last_ms_offs = 0;
     last_but_one_but_one = 0;

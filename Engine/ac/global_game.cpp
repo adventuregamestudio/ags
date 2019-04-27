@@ -35,7 +35,7 @@
 #include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
@@ -445,7 +445,7 @@ void SkipUntilCharacterStops(int cc) {
     if (!game.chars[cc].walking)
         return;
 
-    if (play.in_cutscene)
+    if (is_in_cutscene())
         quit("!SkipUntilCharacterStops: cannot be used within a cutscene");
 
     initialize_skippable_cutscene();
@@ -462,21 +462,15 @@ void EndSkippingUntilCharStops() {
     play.skip_until_char_stops = -1;
 }
 
-// skipwith decides how it can be skipped:
-// 1 = ESC only
-// 2 = any key
-// 3 = mouse button
-// 4 = mouse button or any key
-// 5 = right click or ESC only
 void StartCutscene (int skipwith) {
     static ScriptPosition last_cutscene_script_pos;
 
-    if (play.in_cutscene) {
+    if (is_in_cutscene()) {
         quitprintf("!StartCutscene: already in a cutscene; previous started in \"%s\", line %d",
             last_cutscene_script_pos.Section.GetCStr(), last_cutscene_script_pos.Line);
     }
 
-    if ((skipwith < 1) || (skipwith > 5))
+    if ((skipwith < 1) || (skipwith > 6))
         quit("!StartCutscene: invalid argument, must be 1 to 5.");
 
     get_script_position(last_cutscene_script_pos);
@@ -488,8 +482,14 @@ void StartCutscene (int skipwith) {
     initialize_skippable_cutscene();
 }
 
+void SkipCutscene()
+{
+    if (is_in_cutscene())
+        start_skipping_cutscene();
+}
+
 int EndCutscene () {
-    if (play.in_cutscene == 0)
+    if (!is_in_cutscene())
         quit("!EndCutscene: not in a cutscene");
 
     int retval = play.fast_forward;
@@ -636,31 +636,31 @@ int IsKeyPressed (int keycode) {
         else if (keycode == 407) keycode = KEY_ALT;
         else keycode -= AGS_EXT_KEY_SHIFT;
 
-        if (rec_iskeypressed(keycode))
+        if (ags_iskeypressed(keycode))
             return 1;
         // deal with numeric pad keys having different codes to arrow keys
-        if ((keycode == KEY_LEFT) && (rec_iskeypressed(KEY_4_PAD) != 0))
+        if ((keycode == KEY_LEFT) && (ags_iskeypressed(KEY_4_PAD) != 0))
             return 1;
-        if ((keycode == KEY_RIGHT) && (rec_iskeypressed(KEY_6_PAD) != 0))
+        if ((keycode == KEY_RIGHT) && (ags_iskeypressed(KEY_6_PAD) != 0))
             return 1;
-        if ((keycode == KEY_UP) && (rec_iskeypressed(KEY_8_PAD) != 0))
+        if ((keycode == KEY_UP) && (ags_iskeypressed(KEY_8_PAD) != 0))
             return 1;
-        if ((keycode == KEY_DOWN) && (rec_iskeypressed(KEY_2_PAD) != 0))
+        if ((keycode == KEY_DOWN) && (ags_iskeypressed(KEY_2_PAD) != 0))
             return 1;
         // PgDn/PgUp are equivalent to 3 and 9 on numeric pad
-        if ((keycode == KEY_9_PAD) && (rec_iskeypressed(KEY_PGUP) != 0))
+        if ((keycode == KEY_9_PAD) && (ags_iskeypressed(KEY_PGUP) != 0))
             return 1;
-        if ((keycode == KEY_3_PAD) && (rec_iskeypressed(KEY_PGDN) != 0))
+        if ((keycode == KEY_3_PAD) && (ags_iskeypressed(KEY_PGDN) != 0))
             return 1;
         // Home/End are equivalent to 7 and 1
-        if ((keycode == KEY_7_PAD) && (rec_iskeypressed(KEY_HOME) != 0))
+        if ((keycode == KEY_7_PAD) && (ags_iskeypressed(KEY_HOME) != 0))
             return 1;
-        if ((keycode == KEY_1_PAD) && (rec_iskeypressed(KEY_END) != 0))
+        if ((keycode == KEY_1_PAD) && (ags_iskeypressed(KEY_END) != 0))
             return 1;
         // insert/delete have numpad equivalents
-        if ((keycode == KEY_INSERT) && (rec_iskeypressed(KEY_0_PAD) != 0))
+        if ((keycode == KEY_INSERT) && (ags_iskeypressed(KEY_0_PAD) != 0))
             return 1;
-        if ((keycode == KEY_DEL) && (rec_iskeypressed(KEY_DEL_PAD) != 0))
+        if ((keycode == KEY_DEL) && (ags_iskeypressed(KEY_DEL_PAD) != 0))
             return 1;
 
         return 0;
@@ -678,7 +678,7 @@ int IsKeyPressed (int keycode) {
         keycode = KEY_TAB;
     else if (keycode == 13) {
         // check both the main return key and the numeric pad enter
-        if (rec_iskeypressed(KEY_ENTER))
+        if (ags_iskeypressed(KEY_ENTER))
             return 1;
         keycode = KEY_ENTER_PAD;
     }
@@ -688,19 +688,19 @@ int IsKeyPressed (int keycode) {
         keycode = KEY_ESC;
     else if (keycode == '-') {
         // check both the main - key and the numeric pad
-        if (rec_iskeypressed(KEY_MINUS))
+        if (ags_iskeypressed(KEY_MINUS))
             return 1;
         keycode = KEY_MINUS_PAD;
     }
     else if (keycode == '+') {
         // check both the main + key and the numeric pad
-        if (rec_iskeypressed(KEY_EQUALS))
+        if (ags_iskeypressed(KEY_EQUALS))
             return 1;
         keycode = KEY_PLUS_PAD;
     }
     else if (keycode == '/') {
         // check both the main / key and the numeric pad
-        if (rec_iskeypressed(KEY_SLASH))
+        if (ags_iskeypressed(KEY_SLASH))
             return 1;
         keycode = KEY_SLASH_PAD;
     }
@@ -725,7 +725,7 @@ int IsKeyPressed (int keycode) {
         return 0;
     }
 
-    if (rec_iskeypressed(keycode))
+    if (ags_iskeypressed(keycode))
         return 1;
     return 0;
 #else

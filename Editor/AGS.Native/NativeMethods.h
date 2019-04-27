@@ -43,9 +43,9 @@ namespace AGS
       Bitmap^ GetBitmapForSpritePreserveColDepth(int spriteSlot);
 			void DeleteSprite(int spriteSlot);
 			int  GetFreeSpriteSlot();
+            Types::SpriteInfo^ GetSpriteInfo(int spriteSlot);
 			int  GetSpriteWidth(int spriteSlot);
 			int  GetSpriteHeight(int spriteSlot);
-            int  GetResolutionMultiplier();
 			bool CropSpriteEdges(System::Collections::Generic::IList<Sprite^>^ sprites, bool symmetric);
 			bool DoesSpriteExist(int spriteNumber);
 			void ChangeSpriteNumber(Sprite^ sprite, int newNumber);
@@ -63,6 +63,7 @@ namespace AGS
 			void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 			void DeleteBackground(Room ^room, int backgroundNumber);
 			Bitmap^ GetBitmapForBackground(Room ^room, int backgroundNumber);
+            void AdjustRoomMaskResolution(Room ^room);
 			void DrawLineOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color);
 			void DrawFilledRectOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color);
 			void DrawFillOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int color);

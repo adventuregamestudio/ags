@@ -17,12 +17,8 @@
 #include "util/geometry.h"
 #include "gfx/gfxdefines.h"
 
-struct ColorDepthOption;
-
-// Get color depth settings depending on game settings and user config
-ColorDepthOption engine_get_color_depth();
-// Sets up game viewport and object scaling parameters depending on game and
-// user config; fills in color depth options.
+// Sets up game viewport and object scaling parameters depending on game.
+// TODO: this is part of the game init, not engine init, move it later
 void engine_init_resolution_settings(const Size game_size);
 // Setup engine after the graphics mode has changed
 void engine_post_gfxmode_setup(const Size &init_desktop);

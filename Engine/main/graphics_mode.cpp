@@ -75,6 +75,12 @@ bool GameFrameSetup::IsValid() const
     return ScaleDef != kFrame_IntScale || ScaleFactor > 0;
 }
 
+ScreenSizeSetup::ScreenSizeSetup()
+    : SizeDef(kScreenDef_MaxDisplay)
+    , MatchDeviceRatio(true)
+{
+}
+
 DisplayModeSetup::DisplayModeSetup()
     : RefreshRate(0)
     , VSync(false)

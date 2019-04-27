@@ -52,7 +52,7 @@ class Stream;
 class String
 {
 public:
-    // Standart constructor: intialize empty string
+    // Standard constructor: intialize empty string
     String();
     // Copy constructor
     String(const String&);

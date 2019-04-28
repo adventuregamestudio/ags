@@ -611,7 +611,7 @@ void FreePointersOfStruct(ccCompiledScript *scrip, AGS::Symbol structVarSym)
     for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
     {
         SymbolTableEntry &entry = sym.entries[entries_idx];
-        if (kSYM_StructMember != entry.stype)
+        if (kSYM_StructComponent != entry.stype)
             continue;
         if (structType != entry.extends)
             continue;
@@ -972,16 +972,20 @@ int FindOrAddComponent(AGS::Symbol stname, AGS::Symbol &componame, bool errorOnF
         return 0;
     }
 
-    // If we can find it in one of the direct or indirect ancesters, copy it over
+    // Look for it in the ancesters
     AGS::Symbol const parent = sym.entries[stname].extends;
     if (parent > 0)
     {
         if (0 == FindOrAddComponent(parent, componame, false))
         {
-            std::string const save_sname = sym.entries[fullname].sname;
-            sym.entries[componame].CopyTo(sym.entries[fullname]);
-            sym.entries[fullname].sname = save_sname;
-            componame = fullname;
+            if (kSYM_StructComponent == sym.get_type(componame))
+            {
+                // Copy it over
+                std::string const save_sname = sym.entries[fullname].sname;
+                sym.entries[componame].CopyTo(sym.entries[fullname]);
+                sym.entries[fullname].sname = save_sname;
+                componame = fullname;
+            }
             return 0;
         }
     }
@@ -2803,14 +2807,17 @@ int AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via
 }
 
 // Get the symbol for the get or set function corresponding to the attribute given.
-int GetAttributeFunction(AGS::Symbol structsym, AGS::Symbol attribsym, bool writing, bool indexed, AGS::Symbol &func)
+int ConstructAttributeFuncName(AGS::Symbol attribsym, bool writing, bool indexed, AGS::Symbol &func)
 {
-    std::string const struct_str = sym.get_name_string(structsym);
-    std::string const member_str = sym.get_name_string(attribsym);
-    char const *stem_str = writing ? "::set" : "::get";
+    std::string member_str = sym.get_name_string(attribsym);
+    // If "::" in the name, take the part after the last "::"
+    size_t const m_access_position = member_str.rfind("::");
+    if (std::string::npos != m_access_position)
+        member_str = member_str.substr(m_access_position + 2);
+    char const *stem_str = writing ? "set" : "get";
     char const *indx_str = indexed ? "i_" : "_";
-    std::string attr_func_str = struct_str + stem_str + indx_str + member_str;
-    func = sym.find_or_add(attr_func_str.c_str());
+    std::string func_str = stem_str + (indx_str + member_str);
+    func = sym.find_or_add(func_str.c_str());
     return 0;
 }
 
@@ -2819,19 +2826,22 @@ int AccessData_Attribute(ccCompiledScript *scrip, SymbolScript symlist, size_t s
 {
     AGS::Symbol const component_of_attribute = symlist[0];
     AGS::Symbol const struct_of_attribute = vartype & kVTY_FlagMask;
-    AGS::Symbol const name_of_attribute =
-        MangleStructAndComponent(struct_of_attribute, component_of_attribute);
-    // static attributes generate func calls, the others method calls
+    AGS::Symbol name_of_attribute = component_of_attribute;
+    int retval = FindOrAddComponent(struct_of_attribute, name_of_attribute);
+    if (retval < 0) return retval;
+        
     bool const attrib_uses_this =
         !FlagIsSet(sym.get_flags(name_of_attribute), kSFLG_Static);
-    // Indexed attributes have a [...] clause
-    bool const indexed =
+    bool const is_indexed =
         (symlist_len > 1 && kSYM_OpenBracket == sym.get_type(symlist[1]));
 
     // Get the appropriate access function (as a symbol)
     AGS::Symbol name_of_func = -1;
-    int retval = GetAttributeFunction(struct_of_attribute, component_of_attribute, is_attribute_set_func, indexed, name_of_func);
+    retval = ConstructAttributeFuncName(component_of_attribute, is_attribute_set_func, is_indexed, name_of_func);
     if (retval < 0) return retval;
+    retval = FindOrAddComponent(struct_of_attribute, name_of_func);
+    if (retval < 0) return retval;
+
     bool const func_is_import = FlagIsSet(sym.get_flags(name_of_func), kSYM_Import);
 
     if (attrib_uses_this)
@@ -2848,7 +2858,7 @@ int AccessData_Attribute(ccCompiledScript *scrip, SymbolScript symlist, size_t s
         ++num_of_args;
     }
 
-    if (indexed)
+    if (is_indexed)
     {
         if (kSYM_CloseBracket != sym.get_type(symlist[symlist_len - 1]))
         {
@@ -3278,9 +3288,10 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
     SymbolType component_type = sym.get_type(component);
     if (kSYM_Attribute != component_type &&
         kSYM_Function != component_type &&
-        kSYM_StructMember != component_type)
+        kSYM_StructComponent != component_type)
     {
-        component = MangleStructAndComponent(vartype, symlist[0]);
+        int retval = FindOrAddComponent(vartype & kVTY_FlagMask, component);
+        if (retval < 0) return retval;
         component_type = sym.get_type(component);
     }
 
@@ -3288,7 +3299,9 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
     switch (component_type)
     {
     default:
-        cc_error("Unexpected '%s'", sym.get_name_string(symlist[0]).c_str());
+        cc_error(
+            "Unexpected '%s'",
+            sym.get_name_string(symlist[0]).c_str());
         return -1;
 
     case kSYM_Attribute:
@@ -3319,7 +3332,7 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
         return AccessData_ProcessAnyArrayIndex(scrip, kVL_ax_pointsto_value, symlist, symlist_len, vloc, mar_offset, vartype);
     }
 
-    case kSYM_StructMember:
+    case kSYM_StructComponent:
         vloc = kVL_mar_pointsto_value;
         retval = AccessData_StructMember(component, writing, access_via_this, symlist, symlist_len, mar_offset, vartype);
         if (retval < 0) return retval;
@@ -4476,7 +4489,7 @@ void ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQualifierSet tqs)
 // We have accepted something like "struct foo" and are waiting for "extends"
 int ParseStruct_ExtendsClause(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol &parent, size_t &size_so_far)
 {
-    targ->getnext(); // gobble "extends"
+    targ->getnext(); // Eat "extends"
     parent = targ->getnext(); // name of the extended struct
 
     if (kPP_PreAnalyze == g_PP)
@@ -4788,13 +4801,9 @@ int ParseStruct_Attribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::Ty
     // Declare attribute get func, e.g. get_ATTRIB()
     AGS::Symbol attrib_func = -1;
     bool func_is_setter = false;
-    // Un-mangle vname.
-    std::string vname_str = sym.get_name_string(vname);
-    vname_str = vname_str.substr(vname_str.find(':') + 2);
-    AGS::Symbol const short_vname = sym.find(vname_str.c_str());
-    int retval = GetAttributeFunction(stname, short_vname, func_is_setter, attribute_is_indexed, attrib_func);
+    int retval = ConstructAttributeFuncName(vname, func_is_setter, attribute_is_indexed, attrib_func);
     if (retval < 0) return retval;
-    retval = ParseStruct_DeclareAttributeFunc(scrip, attrib_func, func_is_setter, attribute_is_indexed, sym.get_vartype(vname));
+    retval = ParseStruct_DeclareAttributeFunc(scrip, MangleStructAndComponent(stname, attrib_func), func_is_setter, attribute_is_indexed, sym.get_vartype(vname));
     if (retval < 0) return retval;
 
     if (FlagIsSet(tqs, kTQ_Readonly))
@@ -4802,9 +4811,9 @@ int ParseStruct_Attribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::Ty
 
     // Declare attribute set func, e.g. set_ATTRIB(value)
     func_is_setter = true;
-    retval = GetAttributeFunction(stname, short_vname, func_is_setter, attribute_is_indexed, attrib_func);
+    retval = ConstructAttributeFuncName(vname, func_is_setter, attribute_is_indexed, attrib_func);
     if (retval < 0) return retval;
-    retval = ParseStruct_DeclareAttributeFunc(scrip, attrib_func, func_is_setter, attribute_is_indexed, sym.get_vartype(vname));
+    retval = ParseStruct_DeclareAttributeFunc(scrip, MangleStructAndComponent(stname, attrib_func), func_is_setter, attribute_is_indexed, sym.get_vartype(vname));
     if (retval < 0) return retval;
 
     return 0;
@@ -4869,7 +4878,7 @@ int ParseStruct_VariableOrAttribute(ccInternalList *targ, ccCompiledScript *scri
     if (kPP_Main == g_PP)
     {
         SymbolTableEntry &entry = sym.entries[vname];
-        entry.stype = kSYM_StructMember;
+        entry.stype = kSYM_StructComponent;
         entry.extends = stname;  // save which struct it belongs to
         entry.ssize = sym.entries[curtype].ssize;
         entry.soffs = size_so_far;

@@ -39,7 +39,7 @@ enum SymbolType : AGS::SType
     kSYM_OpenBracket,
     kSYM_OpenParenthesis,
     kSYM_Operator,
-    kSYM_StructMember,
+    kSYM_StructComponent,
 
     // Types below cannot appear in expressions
     kSYM_Assign,

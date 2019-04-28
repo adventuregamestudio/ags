@@ -229,17 +229,9 @@ int find_free_sprite_slot() {
 }
 
 // CLNUP probably to remove
-void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes)
+void update_sprite_resolution(int spriteNum)
 {
 	thisgame.SpriteInfos[spriteNum].Flags &= ~(SPF_HIRES | SPF_VAR_RESOLUTION);
-	/*
-    if (isVarRes)
-    {
-        thisgame.SpriteInfos[spriteNum].Flags |= SPF_VAR_RESOLUTION;
-        if (isHighRes)
-            thisgame.SpriteInfos[spriteNum].Flags |= SPF_HIRES;
-    }
-	*/
 }
 
 void change_sprite_number(int oldNumber, int newNumber) {
@@ -994,11 +986,9 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   if (!is_font_loaded(fontnum))
     reload_font(fontnum);
 
+  // TODO: rewrite this, use actual font size (maybe related to window size) and not game's resolution type
   int doubleSize = 2;
   int blockSize = 1;
-  // TODO: rewrite this, use actual font size (maybe related to window size) and not game's resolution type
-  int doubleSize = (!thisgame.IsLegacyHiRes()) ? 2 : 1;
-  int blockSize = (!thisgame.IsLegacyHiRes()) ? 1 : 2;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   int char_height = thisgame.fonts[fontnum].SizePt * thisgame.fonts[fontnum].SizeMultiplier;
@@ -1123,11 +1113,7 @@ int get_adjusted_spritewidth(int spr) {
   if (tsp == NULL)
       return 0;
   int retval = tsp->GetWidth();
-  /*
-  if (!thisgame.AllowRelativeRes() || !thisgame.SpriteInfos[spr].IsRelativeRes())
-  */
-      return retval;
-  return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsLegacyHiRes());
+  return retval;
 }
 
 // CLNUP probably to remove
@@ -1136,11 +1122,7 @@ int get_adjusted_spriteheight(int spr) {
   if (tsp == NULL)
       return 0;
   int retval = tsp->GetHeight();
-  /*
-  if (!thisgame.AllowRelativeRes() || !thisgame.SpriteInfos[spr].IsRelativeRes())
-  */
-      return retval;
-  return ctx_data_to_game_size(retval, thisgame.SpriteInfos[spr].IsLegacyHiRes());
+  return retval;
 }
 
 void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
@@ -1224,9 +1206,7 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float sca
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
     // CLNUP I wish there was an option or a slider so the user can adjust base zoom
-    int scaleFactor = GetResolutionMultiplier();
-	int scaleFactor = (thisgame.AllowRelativeRes() && thisgame.SpriteInfos[spriteNum].IsRelativeRes()) ?
-        (thisgame.SpriteInfos[spriteNum].IsLegacyHiRes() ? 1 : 2) : 1;
+	int scaleFactor = 1;
 
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
@@ -1654,8 +1634,6 @@ void fix_mask_area_size(Common::Bitmap *&mask) {
 }
 
 const char* load_room_file(const char*rtlo) {
-  load_room(rtlo, &thisroom, thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
-
   load_room(rtlo, &thisroom, thisgame.SpriteInfos);
 
   // Update room palette with gamewide colours
@@ -2108,9 +2086,9 @@ void SetGameResolution(Game ^game)
     // For backwards compatibility, save letterbox-by-design games as having non-custom resolution
     thisgame.options[OPT_LETTERBOX] = game->Settings->LetterboxMode;
     if (game->Settings->LetterboxMode)
-        thisgame.SetDefaultResolution((GameResolutionType)game->Settings->LegacyLetterboxResolution);
+        thisgame.SetGameResolution((GameResolutionType)game->Settings->LegacyLetterboxResolution);
     else
-        thisgame.SetDefaultResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
+        thisgame.SetGameResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
 }
 
 void GameFontUpdated(Game ^game, int fontNumber);
@@ -2815,7 +2793,6 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 		if (spr != NULL)
 		{
 			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(),
-                thisgame.SpriteInfos[i].IsRelativeRes() ? (thisgame.SpriteInfos[i].IsLegacyHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real,
                 (thisgame.SpriteInfos[i].Flags & SPF_ALPHACHANNEL) ? true : false));
 		}
 	}

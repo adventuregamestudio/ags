@@ -106,7 +106,6 @@ namespace AGS.Editor
 
 			_menuClickX = state.WindowXToRoom(e.X);
 			_menuClickY = state.WindowYToRoom(e.Y);
-            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref _menuClickX, ref _menuClickY);
             menu.Show(_panel, e.X, e.Y);
 		}
 

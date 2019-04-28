@@ -145,7 +145,6 @@ namespace AGS.Editor
         {
             int tempx = _menuClickX;
             int tempy = _menuClickY;
-            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref tempx, ref tempy);
             string textToCopy = tempx.ToString() + ", " + tempy.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
         }
@@ -166,7 +165,6 @@ namespace AGS.Editor
         {
             int tempx = _selectedCharacter.StartX;
             int tempy = _selectedCharacter.StartY;
-            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref tempx, ref tempy);
             string textToCopy = tempx.ToString() + ", " + tempy.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
         }

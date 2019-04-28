@@ -37,7 +37,6 @@ namespace AGS.Types
         private bool _showPlayerCharacter = true;
         private int _playerCharacterView;
         private RoomVolumeAdjustment _musicVolumeAdjustment;
-        private RoomResolution _resolution = RoomResolution.Real;
         private int _maskResolution = 1;
         private int _colorDepth;
         private int _width;
@@ -126,8 +125,6 @@ namespace AGS.Types
             }
         }
 
-        }
-
         [Description("What resolution do room region masks have relative to the room size")]
         [Category("Regions")]
         [DefaultValue(1)]
@@ -136,6 +133,8 @@ namespace AGS.Types
         {
             get { return _maskResolution; }
             set { _maskResolution = value; }
+        }
+
         [Browsable(false)]
         public int BackgroundCount
         {

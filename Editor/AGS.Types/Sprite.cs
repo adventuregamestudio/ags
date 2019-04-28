@@ -39,7 +39,7 @@ namespace AGS.Types
 		/// around and use this as an entity.
 		/// </summary>
 		public Sprite(int number, int width, int height)
-			: this(number, width, height, 0, SpriteImportResolution.Real, false)
+			: this(number, width, height, 0, false)
 		{
 		}
 
@@ -212,7 +212,7 @@ namespace AGS.Types
             writer.WriteAttributeString("Width", _width.ToString());
             writer.WriteAttributeString("Height", _height.ToString());
             writer.WriteAttributeString("ColorDepth", _colorDepth.ToString());
-            writer.WriteAttributeString("Resolution", "0"); // CLNUP keep saving a value for now
+            writer.WriteAttributeString("Resolution", SpriteImportResolution.Real.ToString()); // CLNUP keep saving a value for now
             writer.WriteAttributeString("AlphaChannel", _alphaChannel.ToString());
 
             if (_coloursLockedToRoom.HasValue)

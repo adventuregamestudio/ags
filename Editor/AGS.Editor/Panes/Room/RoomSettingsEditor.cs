@@ -972,35 +972,5 @@ namespace AGS.Editor
             _scrollOffsetX = -scrollPt.X;
             _scrollOffsetY = -scrollPt.Y;
         }
-
-        // Refactor following static methods and/or move elsewhere.
-        // I made them static and put into RoomEditorState because room filters
-        // need to have these methods accessible at random times.
-        // Perhaps filters may acquire this object in constructor instead.
-        // Also, room reference does not have to be passed as an argument like
-        // this either.
-
-        /// <summary>
-        /// Tells if script coordinates have 1:2 resolution in this room.
-        /// </summary>
-        internal static bool IsHighResRoomWithLowResScript(Room room)
-        {
-            return Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript &&
-                (room.Resolution == RoomResolution.HighRes ||
-                room.Resolution == RoomResolution.Real && Factory.AGSEditor.CurrentGame.IsHighResolution);
-        }
-
-        /// <summary>
-        /// Adjusts given coordinates to match resolution that script will
-        /// have in this room when the game is run by the engine.
-        /// </summary>
-        internal static void AdjustCoordsToMatchEngine(Room room, ref int x, ref int y)
-        {
-            if (IsHighResRoomWithLowResScript(room))
-            {
-                x /= 2;
-                y /= 2;
-            }
-        }
     }
 }

@@ -254,8 +254,7 @@ namespace AGS
         {
             ::SpriteInfo info;
             ::GetSpriteInfo(spriteSlot, info);
-            return gcnew AGS::Types::SpriteInfo(info.Width, info.Height,
-                info.IsRelativeRes() ? (info.IsLegacyHiRes() ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes) : SpriteImportResolution::Real);
+            return gcnew AGS::Types::SpriteInfo(info.Width, info.Height, SpriteImportResolution::Real);
         }
 
 		int NativeMethods::GetSpriteWidth(int spriteSlot) 
@@ -288,9 +287,9 @@ namespace AGS
 
 		Sprite^ NativeMethods::SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 		{
-            SpriteImportResolution spriteRes = SetNewSpriteFromBitmap(spriteSlot, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
+            SetNewSpriteFromBitmap(spriteSlot, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
       int colDepth = GetSpriteColorDepth(spriteSlot);
-			Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, spriteRes, alphaChannel);
+			Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, alphaChannel);
       int roomNumber = GetCurrentlyLoadedRoomNumber();
       if ((colDepth == 8) && (useRoomBackgroundColours) && (roomNumber >= 0))
       {
@@ -301,8 +300,7 @@ namespace AGS
 
 		void NativeMethods::ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 		{
-            SpriteImportResolution spriteRes = SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
-			spr->Resolution = spriteRes;
+            SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
 			spr->ColorDepth = GetSpriteColorDepth(spr->Number);
 			spr->Width = bmp->Width;
 			spr->Height = bmp->Height;

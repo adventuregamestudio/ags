@@ -551,18 +551,6 @@ inline SymbolType GetSymbolTypeAnyPhase(AGS::Symbol symb)
     return GetSymbolTableEntryAnyPhase(symb & kVTY_FlagMask).stype;
 }
 
-std::string GetFullNameOfMember(AGS::Symbol structSym, AGS::Symbol memberSym)
-{
-
-    // Get C-string of member, de-mangle it if appropriate
-    std::string memberNameStr = sym.get_name_string(memberSym);
-    if (memberNameStr[0] == '.')
-        memberNameStr.erase(0, 1);
-    std::string ret = sym.get_name_string(structSym) + "::" + memberNameStr;
-    return ret;
-}
-
-
 // Scan inpl into scan tokens, write line number opcodes, build a symbol table, mangle complex symbols
 int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
 {
@@ -577,7 +565,6 @@ int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
     int pgb_counter = 0;
     while (true)
     {
-        pgb_counter++;
         AGS::Symbol token;
         tokenizer.GetNextToken(token, eof_encountered, error_encountered);
         if (error_encountered)
@@ -974,40 +961,37 @@ int DealWithEndOfSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nest
     return 0;
 }
 
-// Given a struct STRUCT and a member MEMBER, 
-// finds the symbol of the fully qualified name STRUCT::MEMBER and returns it in memSym.
-// Gives error if the fully qualified symbol is protected.
-int FindMemberSym(AGS::Symbol structSym, AGS::Symbol &memSym, bool allowProtected, bool errorOnFail = true)
+// We are looking for a component in a struct type or any of its ancesters.
+// If it's in one of the ancesters, copy it into the struct before returning it.
+int FindOrAddComponent(AGS::Symbol stname, AGS::Symbol &componame, bool errorOnFail = true)
 {
-
-    AGS::Symbol full_name = sym.find(GetFullNameOfMember(structSym, memSym).c_str());
-
-    if (full_name < 0)
+    AGS::Symbol const fullname = MangleStructAndComponent(stname, componame);
+    if (kSYM_NoType != sym.get_type(fullname))
     {
-        if (sym.entries[structSym].extends > 0)
+        componame = fullname;
+        return 0;
+    }
+
+    // If we can find it in one of the direct or indirect ancesters, copy it over
+    AGS::Symbol const parent = sym.entries[stname].extends;
+    if (parent > 0)
+    {
+        if (0 == FindOrAddComponent(parent, componame, false))
         {
-            // look for the member in the ancesters recursively
-            if (FindMemberSym(sym.entries[structSym].extends, memSym, allowProtected) == 0)
-                return 0;
+            std::string const save_sname = sym.entries[fullname].sname;
+            sym.entries[componame].CopyTo(sym.entries[fullname]);
+            sym.entries[fullname].sname = save_sname;
+            componame = fullname;
+            return 0;
         }
-        if (errorOnFail)
-            cc_error(
-                "'%s' is not a public member of '%s'. Are you sure you spelt it correctly (remember, capital letters are important)?",
-                sym.get_name_string(memSym).c_str(),
-                sym.get_name_string(structSym).c_str());
-        return -1;
     }
 
-    if ((!allowProtected) && FlagIsSet(sym.entries[full_name].flags, kSFLG_Protected))
-    {
-        if (errorOnFail)
-            cc_error(
-                "Cannot access protected member '%s'",
-                sym.get_name_string(full_name).c_str());
-        return -1;
-    }
-    memSym = full_name;
-    return 0;
+    if (errorOnFail)
+        cc_error(
+            "'%s' isn't a member of '%s'. Are you sure you spelt it correctly (remember, capital letters are important)?",
+            sym.get_name_string(componame).c_str(),
+            sym.get_name_string(stname).c_str());
+    return -1;
 }
 
 
@@ -1889,9 +1873,12 @@ int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::Code
         return 0;
     }
 
-    if (is_any_type_of_string(type1) || is_any_type_of_string(type2))
+    bool const iatos1 = is_any_type_of_string(type1);
+    bool const iatos2 = is_any_type_of_string(type2);
+
+    if (iatos1 || iatos2)
     {
-        if (type1 != type2)
+        if (iatos1 != iatos2)
         {
             cc_error("A string type value cannot be compared to a value that isn't a string type");
             return -1;
@@ -1906,8 +1893,8 @@ int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::Code
         }
     }
 
-    if ((type1 & (kVTY_Pointer | kVTY_DynArray)) != 0 &&
-        (type2 & (kVTY_Pointer | kVTY_DynArray)) != 0)
+    if (FlagIsSet(type1, kVTY_Pointer | kVTY_DynArray) &&
+        FlagIsSet(type2, kVTY_Pointer | kVTY_DynArray))
     {
         switch (vcpuOp)
         {
@@ -2787,7 +2774,7 @@ int AccessData_ArrayIndexIntoAX(ccCompiledScript *scrip, SymbolScript symlist, s
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a simple member of the struct.
-int AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via_this, size_t &mar_offset, AGS::Vartype &vartype)
+int AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, size_t &mar_offset, AGS::Vartype &vartype)
 {
     SymbolTableEntry &entry = sym.entries[component];
 
@@ -2810,6 +2797,8 @@ int AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via
     // the offset value which will be written to MAR
     mar_offset += entry.soffs;
     vartype = sym.get_vartype(component);
+    symlist++;
+    symlist_len--;
     return 0;
 }
 
@@ -2952,7 +2941,6 @@ int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_
         return -1;
     }
 
-    AGS::Vartype const element_coretype = vartype & kVTY_FlagMask;
     size_t const element_coresize = sym.entries[core_vartype].ssize;
     AGS::Vartype const element_type = vartype & ~kVTY_Array & ~kVTY_DynArray;
     size_t const element_size = FlagIsSet(element_type, kVTY_Pointer) ? SIZE_OF_POINTER : element_coresize;
@@ -3161,7 +3149,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
     if (sym.getThisSym() == symlist[0])
     {
         vartype = sym.get_vartype(sym.getThisSym());
-        if (0 >= vartype)
+        if (0 == vartype)
         {
             cc_error("'this' is only legal in non-static struct functions");
             return -1;
@@ -3169,6 +3157,8 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
         vloc = kVL_mar_pointsto_value;
         scrip->write_cmd2(SCMD_REGTOREG, SREG_OP, SREG_MAR);
         access_via_this = true;
+        symlist++;
+        symlist_len--;
         return 0;
     }
 
@@ -3286,7 +3276,9 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
 {
     AGS::Symbol component = symlist[0];
     SymbolType component_type = sym.get_type(component);
-    if (0 >= component_type)
+    if (kSYM_Attribute != component_type &&
+        kSYM_Function != component_type &&
+        kSYM_StructMember != component_type)
     {
         component = MangleStructAndComponent(vartype, symlist[0]);
         component_type = sym.get_type(component);
@@ -3329,9 +3321,9 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
 
     case kSYM_StructMember:
         vloc = kVL_mar_pointsto_value;
-        retval = AccessData_StructMember(component, writing, access_via_this, mar_offset, vartype);
+        retval = AccessData_StructMember(component, writing, access_via_this, symlist, symlist_len, mar_offset, vartype);
         if (retval < 0) return retval;
-        return AccessData_ProcessAnyArrayIndex(scrip, kVL_ax_pointsto_value, symlist, symlist_len, vloc, mar_offset, vartype);
+        return AccessData_ProcessAnyArrayIndex(scrip, vloc, symlist, symlist_len, vloc, mar_offset, vartype);
     }
     
     return 0; // Can't reach
@@ -3416,7 +3408,7 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
         // Here, if kVL_mar_pointsto_value == vloc then the first byte of outer is at m[MAR + mar_offset].
         // We accumulate mar_offset at compile time as long as possible to save computing.
         outer_vartype = vartype;
-        AGS::Flags const outer_vartype_flags = sym.entries[outer_vartype & kVTY_FlagMask].flags;
+        AGS::Flags const outer_vartype_flags = sym.get_flags(outer_vartype);
         bool outer_is_dynarray = false;
 
         if (!FlagIsSet(outer_vartype_flags, kSFLG_StructType))
@@ -4209,7 +4201,7 @@ int ParseVardecl0(
     case kGl_GlobalImport:
         if (g_GIVM[var_name])
             break; // Skip this since the global non-import decl will come later
-        if (sym.get_type(var_name) == sym.getOldStringSym())
+        if (vartype == sym.getOldStringSym())
         {
             cc_error("Cannot import string; use char[200] instead");
             return -1;
@@ -4482,21 +4474,21 @@ void ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQualifierSet tqs)
 
 
 // We have accepted something like "struct foo" and are waiting for "extends"
-int ParseStruct_ExtendsClause(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol &extendsWhat, size_t &size_so_far)
+int ParseStruct_ExtendsClause(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol &parent, size_t &size_so_far)
 {
     targ->getnext(); // gobble "extends"
-    extendsWhat = targ->getnext(); // name of the extended struct
+    parent = targ->getnext(); // name of the extended struct
 
     if (kPP_PreAnalyze == g_PP)
         return 0; // No further analysis necessary in first phase
 
-    if (kSYM_Vartype != sym.get_type(extendsWhat))
+    if (kSYM_Vartype != sym.get_type(parent))
     {
         cc_error("Expected a struct type here");
         return -1;
     }
     SymbolTableEntry &struct_entry = sym.entries[stname];
-    SymbolTableEntry const &extends_entry = sym.entries[extendsWhat];
+    SymbolTableEntry const &extends_entry = sym.entries[parent];
 
     if (!FlagIsSet(extends_entry.flags, kSFLG_StructType))
     {
@@ -4505,21 +4497,21 @@ int ParseStruct_ExtendsClause(ccInternalList *targ, AGS::Symbol stname, AGS::Sym
     }
     if (!FlagIsSet(extends_entry.flags, kSFLG_Managed) && FlagIsSet(struct_entry.flags, kSFLG_Managed))
     {
-        cc_error("Managed struct cannot extend the unmanaged struct '%s'", sym.get_name_string(extendsWhat).c_str());
+        cc_error("Managed struct cannot extend the unmanaged struct '%s'", sym.get_name_string(parent).c_str());
         return -1;
     }
     if (FlagIsSet(extends_entry.flags, kSFLG_Managed) && !FlagIsSet(struct_entry.flags, kSFLG_Managed))
     {
-        cc_error("Unmanaged struct cannot extend the managed struct '%s'", sym.get_name_string(extendsWhat).c_str());
+        cc_error("Unmanaged struct cannot extend the managed struct '%s'", sym.get_name_string(parent).c_str());
         return -1;
     }
     if (FlagIsSet(extends_entry.flags, kSFLG_Builtin) && !FlagIsSet(struct_entry.flags, kSFLG_Builtin))
     {
-        cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name_string(extendsWhat).c_str());
+        cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name_string(parent).c_str());
         return -1;
     }
     size_so_far = static_cast<size_t>(extends_entry.ssize);
-    struct_entry.extends = extendsWhat;
+    struct_entry.extends = parent;
 
     return 0;
 }
@@ -4548,102 +4540,97 @@ void ParseStruct_MemberQualifiers(ccInternalList *targ, AGS::Symbol &cursym, Typ
     return;
 }
 
-int ParseStruct_IsMemberTypeIllegal(ccInternalList *targ, int stname, AGS::Symbol cursym, bool member_is_pointer, bool member_is_import)
+int ParseStruct_CheckComponentVartype(ccInternalList *targ, int stname, AGS::Symbol vartype, bool member_is_pointer, bool member_is_import)
 {
-    SymbolType const curtype = sym.get_type(cursym);
-    // must either have a type of a struct here.
-    if (kSYM_Vartype != curtype && kSYM_UndefinedStruct != curtype)
+    if ((vartype == stname) && (!member_is_pointer))
     {
-        // Complain about non-type
-        std::string type_name = sym.get_name_string(cursym).c_str();
-        std::string prefix = sym.get_name_string(stname).c_str();
-        prefix += "::";
-        if (type_name.substr(0, prefix.length()) == prefix)
-        {
-            // The tokenizer has mangled the symbol, undo that.
-            type_name = type_name.substr(prefix.length(), type_name.length());
-        }
-        cc_error("Expected a variable type instead of '%s'", type_name.c_str());
+        // cannot do "struct A { A a; }", this struct would be infinitely large
+        cc_error("Struct '%s' can't be a member of itself", sym.get_name_string(vartype).c_str());
         return -1;
     }
-
-    // [fw] Where's the problem?
-    if (cursym == sym.getOldStringSym())
+    
+    SymbolType const vartype_type = sym.get_type(vartype);
+    if (vartype_type == kSYM_NoType)
     {
-        cc_error("'string' not allowed inside struct");
+        cc_error(
+            "Type '%s' is undefined",
+            sym.get_vartype_name_string(vartype).c_str());
         return -1;
     }
-
-    if (targ->peeknext() < 0)
+    if (kSYM_Vartype != vartype_type && kSYM_UndefinedStruct != vartype_type)
     {
-        cc_error("Invalid syntax near '%s'", sym.get_name_string(cursym).c_str());
+        cc_error(
+            "'%s' should be a typename but is already in use differently",
+            sym.get_vartype_name_string(vartype).c_str());
         return -1;
     }
-
-    if (ReachedEOF(targ))
-    {
-        cc_error("Unexpected end of input");
-        return -1;
-    }
-
-    if ((curtype == kSYM_UndefinedStruct) && !member_is_pointer)
+    if (kSYM_UndefinedStruct == vartype_type && !member_is_pointer)
     {
         cc_error("You can only declare a pointer to a struct that hasn't been completely defined yet");
         return -1;
     }
+    
+    if (vartype == sym.getOldStringSym()) // [fw] Where's the problem?
+    {
+        cc_error("'string' not allowed inside a struct");
+        return -1;
+    }
 
-    AGS::Flags const curflags = sym.entries[cursym].flags;
+    AGS::Flags const vartype_flags = sym.get_flags(vartype);
 
-    // [fw] Where is the problem?
-    if (FlagIsSet(curflags, kSFLG_StructType) && !member_is_pointer)
+    if (FlagIsSet(vartype_flags, kSFLG_StructType) && !member_is_pointer)
     {
-        cc_error("Member variable cannot be struct");
+        if (FlagIsSet(vartype_flags, kSFLG_Builtin))
+        {
+            cc_error("You can only declare a pointer to a builtin type");
+            return -1;
+        }
+        if (FlagIsSet(vartype_flags, kSFLG_Managed))
+        {
+            cc_error("You can only declare a pointer to a managed type");
+            return -1;
+        }
+    }
+
+    AGS::Flags const stname_flags = sym.get_flags(stname);
+
+    if (member_is_pointer && FlagIsSet(stname_flags, kSFLG_Managed) && !member_is_import)
+    {
+        cc_error("Member variable of a managed struct cannot be a pointer");
         return -1;
     }
-    if (member_is_pointer && FlagIsSet(sym.entries[stname].flags, kSFLG_Managed) && !member_is_import)
+
+    if (!FlagIsSet(vartype_flags, kSFLG_Managed) && member_is_pointer)
     {
-        cc_error("Member variable of managed struct cannot be pointer");
+        cc_error("Cannot declare a pointer to non-managed type");
         return -1;
     }
-    else if (FlagIsSet(curflags, kSFLG_Managed) && !member_is_pointer)
-    {
-        cc_error("Cannot declare non-pointer of managed type");
-        return -1;
-    }
-    else if (!FlagIsSet(curflags, kSFLG_Managed) && member_is_pointer)
-    {
-        cc_error("Cannot declare pointer to non-managed type");
-        return -1;
-    }
+
     return 0;
 }
 
 // check that we haven't extended a struct that already contains a member with the same name
-int ParseStruct_CheckMemberNotInASuperStruct(
-    std::string nakedComponentNameStr,
-    AGS::Symbol super_struct)
+int ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS::Symbol compo, AGS::Symbol act_struct)
 {
-    AGS::Symbol member = sym.find_or_add(nakedComponentNameStr.c_str());
-
-    if (FindMemberSym(super_struct, member, true, false) >= 0)
+    if (act_struct <= 0)
+        return 0;
+    AGS::Symbol const member = MangleStructAndComponent(act_struct, compo);
+    if (kSYM_NoType != sym.get_type(member))
     {
-        // Calculate name of the struct that contains the variable
-        std::string super_name_str = sym.get_name_string(member);
-        int struct_end_idx = super_name_str.rfind("::");
-        if (struct_end_idx == std::string::npos) struct_end_idx = super_name_str.length();
-        super_name_str.resize(struct_end_idx);
         cc_error(
-            "This struct extends '%s', and '%s' is already defined",
-            super_name_str.c_str(),
-            sym.get_name_string(member).c_str());
+            "The struct '%s' extends '%s', and '%s::%s' is already defined",
+            sym.get_name_string(orig).c_str(),
+            sym.get_name_string(act_struct).c_str(),
+            sym.get_name_string(act_struct).c_str(),
+            sym.get_name_string(compo).c_str());
         return -1;
     }
-    return 0;
+
+    return ParseStruct_CheckForCompoInAncester(orig, compo, sym.entries[act_struct].extends);
 }
 
 int ParseStruct_Function(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Vartype curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_pointer, bool isDynamicArray)
 {
-
     if (FlagIsSet(tqs, kTQ_Writeprotected))
     {
         cc_error("'writeprotected' does not apply to functions");
@@ -4759,6 +4746,7 @@ int ParseStruct_DeclareAttributeFunc(ccCompiledScript *scrip, AGS::Symbol func, 
     return ParseStruct_EnterAttributeFunc(scrip, entry, is_setter, is_indexed, vartype);
 }
 
+// We're in a struct declaration, parsing a struct attribute
 int ParseStruct_Attribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Symbol stname, AGS::Symbol vname)
 {
     if (kPP_PreAnalyze == g_PP)
@@ -4800,8 +4788,7 @@ int ParseStruct_Attribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::Ty
     // Declare attribute get func, e.g. get_ATTRIB()
     AGS::Symbol attrib_func = -1;
     bool func_is_setter = false;
-    // [fw] Currently the tokenizer tries to do the parser's job, so vname is
-    //      already mangled. This is unhelpful here. Un-mangle vname.
+    // Un-mangle vname.
     std::string vname_str = sym.get_name_string(vname);
     vname_str = vname_str.substr(vname_str.find(':') + 2);
     AGS::Symbol const short_vname = sym.find(vname_str.c_str());
@@ -4877,7 +4864,7 @@ int ParseStruct_Array(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol vnam
 }
 
 // We're inside a struct decl, processing a member variable
-int ParseStruct_Variable(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_pointer, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far)
+int ParseStruct_VariableOrAttribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_pointer, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far)
 {
     if (kPP_Main == g_PP)
     {
@@ -4908,6 +4895,13 @@ int ParseStruct_Variable(ccInternalList *targ, ccCompiledScript *scrip, AGS::Typ
     if (FlagIsSet(tqs, kTQ_Attribute))
         return ParseStruct_Attribute(targ, scrip, tqs, stname, vname);
 
+    if (FlagIsSet(tqs, kTQ_Import))
+    {
+        // member variable cannot be an import
+        cc_error("Can't import struct component variables; import the whole struct instead");
+        return -1;
+    }
+
     if (sym.get_type(targ->peeknext()) == kSYM_OpenBracket)
         return ParseStruct_Array(targ, stname, vname, size_so_far);
 
@@ -4920,99 +4914,76 @@ int ParseStruct_Variable(ccInternalList *targ, ccCompiledScript *scrip, AGS::Typ
 int ParseStruct_MemberDefnVarOrFuncOrArray(
     ccInternalList *targ,
     ccCompiledScript *scrip,
-    AGS::Symbol super_struct,
+    AGS::Symbol parent,
     AGS::Symbol stname,
-    AGS::Symbol name_of_current_func, // ONLY used for funcs in structs
+    AGS::Symbol current_func,
     TypeQualifierSet tqs,
     AGS::Vartype curtype,
     bool type_is_pointer,
     size_t &size_so_far)
 {
-    AGS::Symbol vname = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
-    bool isDynamicArray = false;
-
+    AGS::Symbol cursym = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
+    
     // Check whether "[]" is behind the type.  "struct foo { int [] bar; }" 
-    if (sym.get_type(vname) == kSYM_OpenBracket && sym.get_type(targ->peeknext()) == kSYM_CloseBracket)
+    bool isDynamicArray = false;
+    if (sym.get_type(cursym) == kSYM_OpenBracket && sym.get_type(targ->peeknext()) == kSYM_CloseBracket)
     {
         isDynamicArray = true;
         if (kSYM_CloseBracket != sym.get_type(targ->getnext()))
         {
-            cc_error("Expected ']'");
+            cc_error("Can only use '[]' directly after a type");
             return -1;
         }
-        vname = targ->getnext();
+        cursym = targ->getnext();
     }
 
-    // The Tokenizer prefixes all unknown symbols within a struct declaration with "STRUCT::".
-    // Get the name without this prefix.
-    std::string nakedComponentNameStr = sym.get_name_string(vname);
-    size_t component_index = nakedComponentNameStr.find("::");
-    if (component_index != std::string::npos)
-        nakedComponentNameStr = nakedComponentNameStr.substr(component_index + 2);
+    AGS::Symbol const component = cursym;
+    AGS::Symbol const mangled_name = MangleStructAndComponent(stname, component);
+    if (kSYM_Vartype == sym.get_type(component) && is_primitive_vartype(component))
+    {
+        cc_error("Can't use primitive type '%s' as a struct component");
+        return -1;
+    }
 
     bool const isFunction = sym.get_type(targ->peeknext()) == kSYM_OpenParenthesis;
 
-    if (!isFunction)
+    if (kPP_Main == g_PP && !isFunction)
     {
-        // Allow "struct ... { int S2 }" when S2 is a non-predefined type
-        if (kSYM_Vartype == sym.get_type(vname) && !is_primitive_vartype(vname))
-            vname = sym.find_or_add(GetFullNameOfMember(stname, vname).c_str());
-
-        // Detect multiple declarations
-        if (kPP_Main == g_PP &&
-            sym.get_type(vname) != 0 &&
-            (sym.get_type(vname) != kSYM_Vartype || is_primitive_vartype(vname)))
+        if (sym.get_type(mangled_name) != 0)
         {
-            cc_error("'%s' is already defined", sym.get_name_string(vname).c_str());
+            cc_error(
+                "'%s' is already defined",
+                sym.get_name_string(mangled_name).c_str());
             return -1;
         }
-    }
-
-    if (kPP_Main == g_PP && super_struct > 0)
-    {
-        // If this is an extension of another type, then we must make sure that names don't clash. 
-        int retval = ParseStruct_CheckMemberNotInASuperStruct(nakedComponentNameStr, super_struct);
+    
+        // Mustn't be in any ancester
+        int retval = ParseStruct_CheckForCompoInAncester(stname, component, parent);
         if (retval < 0) return retval;
     }
 
     // All struct members get this flag, even functions
     if (kPP_Main == g_PP)
-        SetFlag(sym.entries[vname].flags, kSFLG_StructMember, true);
+        SetFlag(sym.entries[mangled_name].flags, kSFLG_StructMember, true);
 
     if (isFunction)
     {
-        if (name_of_current_func > 0)
+        if (current_func > 0)
         {
             cc_error("Cannot declare struct member function inside a function body");
             return -1;
         }
-        return ParseStruct_Function(targ, scrip, tqs, curtype, stname, vname, name_of_current_func, type_is_pointer, isDynamicArray);
+        return ParseStruct_Function(targ, scrip, tqs, curtype, stname, mangled_name, current_func, type_is_pointer, isDynamicArray);
     }
 
     if (isDynamicArray)
     {
-        // Someone tried to declare the function syntax for a dynamic array
-        // But there was no function declaration
+        // "int []" etc. only allowed as a function return declaration
         cc_error("Expected '('");
         return -1;
     }
 
-    if (FlagIsSet(tqs, kTQ_Import) && (!FlagIsSet(tqs, kTQ_Attribute)))
-    {
-        // member variable cannot be an import
-        cc_error("Only struct member functions may be declared with 'import'");
-        return -1;
-    }
-
-    if ((curtype == stname) && (!type_is_pointer))
-    {
-        // cannot do  struct A { A a; }
-        // since we don't know the size of A, recursiveness
-        cc_error("Struct '%s' cannot be a member of itself", sym.get_name_string(curtype).c_str());
-        return -1;
-    }
-    
-    return ParseStruct_Variable(targ, scrip, tqs, curtype, type_is_pointer, stname, vname, size_so_far);
+    return ParseStruct_VariableOrAttribute(targ, scrip, tqs, curtype, type_is_pointer, stname, mangled_name, size_so_far);
 }
 
 int ParseStruct_MemberStmt(
@@ -5020,7 +4991,7 @@ int ParseStruct_MemberStmt(
     ccCompiledScript *scrip,
     AGS::Symbol stname,
     AGS::Symbol name_of_current_func,
-    AGS::Symbol extendsWhat,
+    AGS::Symbol parent,
     size_t &size_so_far)
 {
     AGS::Symbol vartype; // the type of the current members being defined, given as a symbol
@@ -5034,7 +5005,7 @@ int ParseStruct_MemberStmt(
         return -1;
     }
 
-    // curtype can now be: typename or typename *
+    // vartype can now be: vartypename or vartypename *
 
     // A member defn. is a pointer if it is AUTOPOINTER or it has an explicit "*"
     bool type_is_pointer = false;
@@ -5052,38 +5023,25 @@ int ParseStruct_MemberStmt(
     // Certain types of members are not allowed in structs; check this
     if (kPP_Main == g_PP)
     {
-        int retval = ParseStruct_IsMemberTypeIllegal(targ, stname, vartype, type_is_pointer, FlagIsSet(tqs, kTQ_Import));
+        int retval = ParseStruct_CheckComponentVartype(targ, stname, vartype, type_is_pointer, FlagIsSet(tqs, kTQ_Import));
         if (retval < 0) return retval;
     }
-
-    // [fw] "struct foo { int * a, b, c;}"
-    //      This declares b to be an int pointer; but in C or C++, b would be an int
-    //      Bug?
 
     // run through all variables declared on this member defn.
     while (true)
     {
         int retval = ParseStruct_MemberDefnVarOrFuncOrArray(
-            targ,
-            scrip,
-            extendsWhat,        // Parent struct
-            stname,             // struct
-            name_of_current_func,
-            tqs,
-            vartype,             // core type
-            type_is_pointer,
-            size_so_far);
+            targ, scrip, parent, stname, name_of_current_func, tqs, vartype, type_is_pointer, size_so_far);
         if (retval < 0) return retval;
 
         if (sym.get_type(targ->peeknext()) == kSYM_Comma)
         {
-            targ->getnext(); // gobble the comma
+            targ->getnext(); // Eat ','
             continue;
         }
         break;
     }
 
-    // line must end with semicolon
     if (sym.get_type(targ->getnext()) != kSYM_Semicolon)
     {
         cc_error("Expected ';'");
@@ -5108,7 +5066,6 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
         return -1;
     }
 
-    // Write the type of stname into the symbol table
     ParseStruct_SetTypeInSymboltable(stname, tqs);
 
     // Declare the struct type that implements new strings
@@ -5122,20 +5079,19 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
         sym.setStringStructSym(stname);
     }
 
-    // Sums up the size of the struct
-    size_t size_so_far = 0;
+    size_t size_so_far = 0; // Will sum up the size of the struct
 
     // If the struct extends another struct, the token of the other struct's name
-    AGS::Symbol extendsWhat = 0;
+    AGS::Symbol parent = 0;
 
     // optional "extends" clause
     if (sym.get_type(targ->peeknext()) == kSYM_Extends)
-        ParseStruct_ExtendsClause(targ, stname, extendsWhat, size_so_far);
+        ParseStruct_ExtendsClause(targ, stname, parent, size_so_far);
 
     // forward-declaration of struct type
     if (sym.get_type(targ->peeknext()) == kSYM_Semicolon)
     {
-        targ->getnext(); // gobble the ";"
+        targ->getnext(); // Eat ';'
         SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(stname);
         entry.stype = kSYM_UndefinedStruct;
         entry.ssize = 0;
@@ -5143,7 +5099,6 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
     }
 
     // So we are in the declaration of the components
-    // mandatory "{"
     if (sym.get_type(targ->getnext()) != kSYM_OpenBrace)
     {
         cc_error("Expected '{'");
@@ -5153,7 +5108,7 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
     // Process every member of the struct in turn
     while (sym.get_type(targ->peeknext()) != kSYM_CloseBrace)
     {
-        int retval = ParseStruct_MemberStmt(targ, scrip, stname, name_of_current_func, extendsWhat, size_so_far);
+        int retval = ParseStruct_MemberStmt(targ, scrip, stname, name_of_current_func, parent, size_so_far);
         if (retval < 0) return retval;
     }
 
@@ -5396,7 +5351,7 @@ int ParseVartype_GetVarName(ccInternalList *targ, AGS::Symbol &varname, AGS::Sym
     AGS::Symbol member_of_member_function = targ->getnext();
 
     // change varname to be the full function name
-    varname = sym.find(GetFullNameOfMember(struct_of_member_fct, member_of_member_function).c_str());
+    varname = MangleStructAndComponent(struct_of_member_fct, member_of_member_function);
     if (varname < 0)
     {
         cc_error("'%s' does not contain a function '%s'",
@@ -5564,7 +5519,12 @@ int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symb
         // Apart from this, we aren't interested in var defns at this stage, so skip this defn
         AGS::Symbol const stoplist[] = { kSYM_Comma, kSYM_Semicolon };
         SkipTo(targ, stoplist, 2);
-        another_var_follows = (targ->getnext() == kSYM_Comma);
+        another_var_follows = false;
+        if (kSYM_Comma == sym.get_type(targ->peeknext()))
+        {
+            another_var_follows = true;
+            targ->getnext(); // Eat ','
+        }
         return 0;
     }
 
@@ -5574,21 +5534,14 @@ int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symb
         SetFlag(sym.entries[var_name].flags, kSFLG_Readonly, true);
 
     // parse the definition
-    int retval = ParseVardecl(targ, scrip, var_name, type_of_defn, next_type, is_global, isPointer, another_var_follows);
-    if (retval < 0) return retval;
-    if (sym.get_type(targ->getnext()) != kSYM_Semicolon)
-    {
-        cc_error("Expected ';'");
-        return -1;
-    }
-    return 0;
+    return ParseVardecl(targ, scrip, var_name, type_of_defn, next_type, is_global, isPointer, another_var_follows);
 }
 
 // We accepted a variable type such as "int", so what follows is a function or variable definition
 int ParseVartype0(
     ccInternalList *targ,
     ccCompiledScript *scrip,
-    AGS::Symbol type_of_defn,           // e.g., "int"
+    AGS::Symbol vartype,           // e.g., "int"
     AGS::NestingStack *nesting_stack,
     TypeQualifierSet tqs,
     AGS::Symbol &name_of_current_func,
@@ -5607,12 +5560,12 @@ int ParseVartype0(
 
     // Calculate whether this is a pointer definition, gobbling "*" if present
     bool isPointer = false;
-    retval = ParseVartype_GetPointerStatus(targ, type_of_defn, isPointer);
+    retval = ParseVartype_GetPointerStatus(targ, vartype, isPointer);
     if (retval < 0) return retval;
 
     // Look for "[]"; if present, gobble it and call this a dynamic array.
     // "int [] func(...)"
-    int dynArrayStatus = ParseParamlist_Param_DynArrayMarker(targ, type_of_defn, isPointer);
+    int dynArrayStatus = ParseParamlist_Param_DynArrayMarker(targ, vartype, isPointer);
     if (dynArrayStatus < 0) return dynArrayStatus;
     bool isDynamicArray = (dynArrayStatus > 0);
 
@@ -5667,17 +5620,19 @@ int ParseVartype0(
                 return -1;
             }
 
-            retval = ParseVartype_FuncDef(targ, scrip, var_or_func_name, type_of_defn, isPointer, isDynamicArray, tqs, struct_of_current_func, name_of_current_func);
-            if (retval < 0) return retval;
-            another_ident_follows = false; // Can't join another func or var with ','
-            break;
+            return ParseVartype_FuncDef(targ, scrip, var_or_func_name, vartype, isPointer, isDynamicArray, tqs, struct_of_current_func, name_of_current_func);
         }
 
-        retval = ParseVartype_VarDef(targ, scrip, var_or_func_name, is_global, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), type_of_defn, next_type, isPointer, another_ident_follows);
+        retval = ParseVartype_VarDef(targ, scrip, var_or_func_name, is_global, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), vartype, next_type, isPointer, another_ident_follows);
         if (retval < 0) return retval;
     }
     while (another_ident_follows);
 
+    if (sym.get_type(targ->getnext()) != kSYM_Semicolon)
+    {
+        cc_error("Expected ';'");
+        return -1;
+    }
     return 0;
 }
 
@@ -5975,7 +5930,6 @@ int ParseFor_WhileClause(ccInternalList *targ, ccCompiledScript *scrip)
         // Not having a while clause is tantamount to the while condition "true".
         // So let's write "true" to the AX register.
         scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 1);
-        targ->getnext();
         return 0;
     }
 
@@ -6139,7 +6093,7 @@ int ParseSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack
     return 0;
 }
 
-int ParseCasedefault(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
+int ParseSwitchLabel(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack)
 {
     if (nesting_stack->Type() != AGS::NestingStack::kNT_Switch)
     {
@@ -6323,7 +6277,7 @@ int ParseCommand(
         break;
 
     case kSYM_Case:
-        retval = ParseCasedefault(targ, scrip, cursym, nesting_stack);
+        retval = ParseSwitchLabel(targ, scrip, cursym, nesting_stack);
         if (retval < 0) return retval;
         break;
 
@@ -6336,7 +6290,7 @@ int ParseCommand(
         break;
 
     case kSYM_Default:
-        retval = ParseCasedefault(targ, scrip, cursym, nesting_stack);
+        retval = ParseSwitchLabel(targ, scrip, cursym, nesting_stack);
         if (retval < 0) return retval;
         break;
 

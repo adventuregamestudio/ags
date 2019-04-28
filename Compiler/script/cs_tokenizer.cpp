@@ -51,7 +51,6 @@ void AGS::Tokenizer::Reset()
     _braceNestingDepthInStructDecl = 0;
     _structBeingDeclared = -1; // no struct open
     _tokenBuffer.clear();
-    _parenthesisNestingDepth = 0;
     _lastError = "";
 }
 
@@ -63,8 +62,11 @@ void AGS::Tokenizer::ProcessScannerSymstring(
     bool &eof_encountered,
     bool &error_encountered)
 {
-    // Note: Do NOT prepend a dot to symbols that appear to be struct components. (Parser's job)
-    
+    // Note: Do NOT prepend a dot to symbols that appear to be struct components. That's the parser's job
+    // Note: Do NOT try to guess what might be components of what structs,
+    // do NOT concatenate them as STRUCTNAME::COMPONENTNAME. That's the parser's job
+    // In both cases, the tokenizer is lacking critical information to do that job properly.
+
     token = ConvertSymstringToTokenIndex(symstring);
     if (token < 0)
     {
@@ -93,85 +95,6 @@ void AGS::Tokenizer::ProcessScannerSymstring(
 
     // Check the nesting of () [] {}
     CheckMatcherNesting(token, error_encountered);
-    if (error_encountered)
-        return;
-
-    // Count parenthesis nesting separately, is needed in a late rewriting of struct member names later on
-    if (TokenType(token) == kSYM_OpenParenthesis) ++_parenthesisNestingDepth;
-    if (TokenType(token) == kSYM_CloseParenthesis) --_parenthesisNestingDepth;
-
-
-    // If we are in a parameter declaration where the parameter is declared with the type and not the name
-    // and an initialization follows, then "*=" should be interpreted as the separate symbols "*" and "=".
-    // e.g.: "import void someMethod(someClass *= 0);"
-    // [fw] This won't work here because we don't know about the types in the tokenizer.
-    //      If we want to do it, the "*=" needs to be broken up in the parser, which is a hassle
-    //      but doable in principle.
-
-    // We enter struct declaration mode after encountering the keyword "struct".
-    if ((last_token >= 0) && (TokenType(last_token) == kSYM_Struct))
-    {
-        _currentMode = kMode_StructDecl;
-        _inTypeSubmode = true;
-        _braceNestingDepthInStructDecl = 0;
-        _structBeingDeclared = token;
-        return;
-    }
-
-    if (_currentMode == kMode_StructDecl)
-    {
-        // The mode ends as soon as the { ... } after the "struct X" ends.
-        if (TokenType(token) == kSYM_OpenBrace) ++_braceNestingDepthInStructDecl;
-        if (TokenType(token) == kSYM_CloseBrace)
-        {
-            if (--_braceNestingDepthInStructDecl == 0)
-                _currentMode = kMode_Standard;
-        }
-
-        // The mode also ends if we never had any { ... } to begin with, i.e. a simple "struct X;".
-        if ((TokenType(token) == kSYM_Semicolon) && (_braceNestingDepthInStructDecl == 0))
-            _currentMode = kMode_Standard;
-    }
-
-    // If we're in the "root" of a struct declaration, 
-    // then all var and func names must have the struct name prepended.
-    if ((_currentMode != kMode_StructDecl) ||
-        (_braceNestingDepthInStructDecl != 1) ||
-        (_parenthesisNestingDepth > 0))
-        return;
-
-    if (!_inTypeSubmode && // see below, comment for "switch (TokenType(token))"
-        ((TokenType(token) == 0) || (TokenType(token) == kSYM_GlobalVar)))
-    {
-        std::string full_name = FullNameFromStructAndMember(_structBeingDeclared, token);
-        token = ConvertSymstringToTokenIndex(full_name);
-        if (token < 0)
-        {
-            error_encountered = true;
-            _lastError = "Symbol table overflow - could not add new symbol";
-            return;
-        }
-    }
-
-    // "Type" submode is defined in such a way that we are in it whenever we 
-    // wait for the type of struct variables or functions. 
-    // We must NOT prepend the struct name to the keywords or variables 
-    // encountered when in this submode.
-    // We enter it directly after passing "struct X {" and whenever we pass a ";" 
-    // while we are within the outermost brace level of the struct.
-    // As soon as we have passed the first unclassified symbol or type symbol, 
-    // we assume it is a type name (or the name of an enum) and we leave Type submode
-    // NOTE that this heuristic might fail when we intermingle tokenizing with parsing.
-    // We don't try to reproduce parsing in the scanner, we only do it far enough for 
-    // the parser to work with proper input and for the parser to give meaningful 
-    // errors with improper input.
-    switch (TokenType(token))
-    {
-    default: break;
-    case 0:             _inTypeSubmode = false; break; // unclassified symbol
-    case kSYM_Semicolon: _inTypeSubmode = true;  break;
-    case kSYM_Vartype:   _inTypeSubmode = false; break; // e.g., "int", "float"
-    }
 }
 
 
@@ -274,18 +197,6 @@ void AGS::Tokenizer::CheckMatcherNesting(Symbol token, bool &error_encountered)
             _lastError = _ocMatcher.GetLastError();
         return;
     }
-}
-
-
-std::string AGS::Tokenizer::FullNameFromStructAndMember(AGS::Symbol struct_name_token, AGS::Symbol member_name_token)
-{
-    std::string member_name = _symbolTable->get_name_string(member_name_token);
-    if (member_name.at(0) == '.')
-        member_name.erase(0, 1);
-
-    std::string struct_name = _symbolTable->get_name_string(struct_name_token);
-    struct_name.append("::").append(member_name);
-    return struct_name;
 }
 
 

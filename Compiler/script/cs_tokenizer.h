@@ -66,9 +66,6 @@ protected:
     // Collect parentheses, brackets, braces as they come up; check whether they match
     void CheckMatcherNesting(Symbol token, bool &error_encountered);
 
-    // Given the token of a struct name and a member name, generate a string denoting the full name of the member
-    std::string FullNameFromStructAndMember(Symbol struct_name_token, Symbol member_name_token);
-
     inline int ConvertSymstringToTokenIndex(std::string symstring) { return _symbolTable->find_or_add(symstring.c_str()); }
 
 private:
@@ -118,7 +115,6 @@ private:
     bool _inTypeSubmode;
     int _braceNestingDepthInStructDecl; // only used in StructDeclMode
     int _structBeingDeclared;
-    int _parenthesisNestingDepth;
     std::deque<Symbol> _tokenBuffer;
 
     inline Symbol TokenType(Symbol token) { return _symbolTable->get_type(token); }

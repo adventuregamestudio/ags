@@ -104,7 +104,7 @@ public:
 
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry
-    inline AGS::Flags SymbolTable::get_flags(AGS::Vartype vt) { size_t idx = vt & kVTY_FlagMask; return (vt >= 0 && idx < entries.size()) ? entries[idx].flags : 0; }
+    inline AGS::Flags SymbolTable::get_flags(AGS::Vartype vt) { size_t idx = vt & kVTY_FlagMask; return (idx >= 0 && idx < entries.size()) ? entries[idx].flags : 0; }
     // return the printable name of the vartype
     std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const;
    

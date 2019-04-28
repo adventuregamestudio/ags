@@ -115,13 +115,13 @@ void initialize_sprite (int ee) {
     if ((ee < 0) || (ee > spriteset.GetSpriteSlotCount()))
         quit("initialize_sprite: invalid sprite number");
 
-    if ((spriteset[ee] == NULL) && (ee > 0)) {
+    if ((spriteset[ee] == nullptr) && (ee > 0)) {
         // replace empty sprites with blue cups, to avoid crashes
         spriteset.Set(ee, spriteset[0]);
         game.SpriteInfos[ee].Width = game.SpriteInfos[0].Width;
         game.SpriteInfos[ee].Height = game.SpriteInfos[0].Height;
     }
-    else if (spriteset[ee]==NULL) {
+    else if (spriteset[ee]==nullptr) {
         game.SpriteInfos[ee].Width=0;
         game.SpriteInfos[ee].Height=0;
     }

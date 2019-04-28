@@ -41,7 +41,7 @@ extern int cc_compile(const char*inpl, ccCompiledScript*scrip);
 
 // A section of compiled code that needs to be moved or copied to a new location
 struct ccChunk {
-    std::vector<intptr_t> code;
+    std::vector<int32_t> code;
     std::vector<int32_t> fixups;
     std::vector<char> fixuptypes;
     int codeoffset;

@@ -78,7 +78,7 @@ const char* get_text_property_dynamic_string(const StringIMap &st_prop, const St
 {
     PropertyDesc desc;
     if (!get_property_desc(desc, property, kPropertyString))
-        return NULL;
+        return nullptr;
 
     String val = get_property_value(st_prop, rt_prop, property, desc.DefaultValue);
     return CreateNewScriptString(val);

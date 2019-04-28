@@ -128,7 +128,7 @@ int Game_ChangeTranslation(const char *newFilename);
 //=============================================================================
 
 void set_debug_mode(bool on);
-void set_game_speed(int fps);
+void set_game_speed(int new_fps);
 void setup_for_dialog();
 void restore_after_dialog();
 Common::String get_save_game_path(int slotNum);
@@ -182,6 +182,7 @@ extern int new_room_x, new_room_y, new_room_loop;
 extern int displayed_room;
 extern int frames_per_second;
 extern unsigned int loopcounter;
+extern void set_loop_counter(unsigned int new_counter);
 extern Common::String saveGameSuffix;
 extern int game_paused;
 

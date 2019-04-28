@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include <algorithm>
+#include <cmath>
 #include "aastr.h"
 #include "ac/common.h"
 #include "util/compress.h"
@@ -50,8 +51,6 @@
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -60,6 +59,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/blender.h"
+#include "media/audio/audio_system.h"
+#include "ac/game.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -131,9 +132,9 @@ color palette[256];
 COLOR_MAP maincoltable;
 
 IGraphicsDriver *gfxDriver;
-IDriverDependantBitmap *blankImage = NULL;
-IDriverDependantBitmap *blankSidebarImage = NULL;
-IDriverDependantBitmap *debugConsole = NULL;
+IDriverDependantBitmap *blankImage = nullptr;
+IDriverDependantBitmap *blankSidebarImage = nullptr;
+IDriverDependantBitmap *debugConsole = nullptr;
 
 // actsps is used for temporary storage of the bitamp image
 // of the latest version of the sprite
@@ -147,11 +148,11 @@ CachedActSpsData* actspswbcache;
 
 bool current_background_is_dirty = false;
 
-Bitmap *sub_vscreen = NULL;
+Bitmap *sub_vscreen = nullptr;
 int wasShakingScreen = 0;
 
 // Room background sprite
-IDriverDependantBitmap* roomBackgroundBmp = NULL;
+IDriverDependantBitmap* roomBackgroundBmp = nullptr;
 // Intermediate bitmap for the software drawing method.
 // We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
 // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
@@ -164,22 +165,22 @@ PBitmap RoomCameraFrame;   // this is either same bitmap reference or sub-bitmap
 std::vector<SpriteListEntry> sprlist;
 std::vector<SpriteListEntry> thingsToDrawList;
 
-Bitmap **guibg = NULL;
-IDriverDependantBitmap **guibgbmp = NULL;
+Bitmap **guibg = nullptr;
+IDriverDependantBitmap **guibgbmp = nullptr;
 
 
-Bitmap *debugConsoleBuffer = NULL;
+Bitmap *debugConsoleBuffer = nullptr;
 
 // whether there are currently remnants of a DisplaySpeech
 bool screen_is_dirty = false;
 
-Bitmap *raw_saved_screen = NULL;
+Bitmap *raw_saved_screen = nullptr;
 Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 
 SpriteListEntry::SpriteListEntry()
-    : bmp(NULL)
-    , pic(NULL)
+    : bmp(nullptr)
+    , pic(nullptr)
     , baseline(0), x(0), y(0)
     , transparent(0)
     , takesPriorityIfEqual(false), hasAlphaChannel(false)
@@ -197,7 +198,7 @@ void allegro_bitmap_test_draw()
         test_allegro_bitmap->FillTransparent();
 		test_allegro_bitmap->FillRect(Rect(50,50,150,150), 15);
 
-		if (test_allegro_ddb == NULL) 
+		if (test_allegro_ddb == nullptr) 
         {
             test_allegro_ddb = gfxDriver->CreateDDBFromBitmap(test_allegro_bitmap, false, true);
         }
@@ -373,12 +374,12 @@ PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
 Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
 {
     Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
-    Size want_size;
+    GraphicResolution want_fmt;
     // If the size and color depth are supported we may copy right into our bitmap
-    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_size))
+    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_fmt))
         return dst;
     // Otherwise we might need to copy between few bitmaps...
-    Bitmap *buf_screenfmt = new Bitmap(want_size.Width, want_size.Height, gfxDriver->GetDisplayMode().ColorDepth);
+    Bitmap *buf_screenfmt = new Bitmap(want_fmt.Width, want_fmt.Height, want_fmt.ColorDepth);
     gfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt, at_native_res);
     // If at least size matches then we may blit
     if (dst->GetSize() == buf_screenfmt->GetSize())
@@ -432,8 +433,8 @@ void destroy_blank_image()
         gfxDriver->DestroyDDB(blankImage);
     if (blankSidebarImage)
         gfxDriver->DestroyDDB(blankSidebarImage);
-    blankImage = NULL;
-    blankSidebarImage = NULL;
+    blankImage = nullptr;
+    blankSidebarImage = nullptr;
 }
 
 int MakeColor(int color_index)
@@ -478,7 +479,7 @@ void on_mainviewport_changed()
     if (gfxDriver->UsesMemoryBackBuffer())
     {
         const Rect &main_view = play.GetMainViewport();
-        gfxDriver->SetMemoryBackBuffer(NULL); // make it restore original virtual screen
+        gfxDriver->SetMemoryBackBuffer(nullptr); // make it restore original virtual screen
         if (main_view.GetSize() != game.GetGameRes())
         {
             delete sub_vscreen;
@@ -610,11 +611,11 @@ void render_to_screen(int atx, int aty)
     const Rect &viewport = play.GetMainViewport();
     // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
     if (aty > 0 && wasShakingScreen && gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, aty, NULL);
+        gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, aty, nullptr);
     render_black_borders(atx, aty);
 
     if(pl_any_want_hook(AGSE_FINALSCREENDRAW))
-        gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
+        gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
 
     // only vsync in full screen mode, it makes things worse
     // in a window
@@ -648,8 +649,8 @@ void render_to_screen(int atx, int aty)
 void clear_letterbox_borders()
 {
     const Rect &viewport = play.GetMainViewport();
-    gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, NULL);
-    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, NULL);
+    gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
+    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
 }
 
 // writes the virtual screen to the screen, converting colours if
@@ -725,7 +726,7 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
 
 
 IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha, bool opaque) {
-    if (bimp != NULL) {
+    if (bimp != nullptr) {
         // same colour depth, width and height -> reuse
         if (((bimp->GetColorDepth() + 1) / 8 == source->GetBPP()) && 
             (bimp->GetWidth() == source->GetWidth()) && (bimp->GetHeight() == source->GetHeight()))
@@ -748,7 +749,7 @@ void invalidate_cached_walkbehinds()
 // sort_out_walk_behinds: modifies the supplied sprite by overwriting parts
 // of it with transparent pixels where there are walk-behind areas
 // Returns whether any pixels were updated
-int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPixelsFrom = NULL, Bitmap *checkPixelsFrom = NULL, int zoom=100) {
+int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPixelsFrom = nullptr, Bitmap *checkPixelsFrom = nullptr, int zoom=100) {
     if (noWalkBehindsAtAll)
         return 0;
 
@@ -768,7 +769,7 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
     if (xx < 0)
         ee = 0 - xx;
 
-    if ((checkPixelsFrom != NULL) && (checkPixelsFrom->GetColorDepth() != spcoldep))
+    if ((checkPixelsFrom != nullptr) && (checkPixelsFrom->GetColorDepth() != spcoldep))
         quit("sprite colour depth does not match background colour depth");
 
     for ( ; ee < sprit->GetWidth(); ee++) {
@@ -807,7 +808,7 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
             if (tmm<1) continue;
             if (croom->walkbehind_base[tmm] <= basel) continue;
 
-            if (copyPixelsFrom != NULL)
+            if (copyPixelsFrom != nullptr)
             {
                 if (spcoldep <= 8)
                 {
@@ -903,7 +904,7 @@ void clear_draw_list() {
 }
 void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, bool alphaChannel) {
     SpriteListEntry sprite;
-    sprite.pic = NULL;
+    sprite.pic = nullptr;
     sprite.bmp = bmp;
     sprite.x = x;
     sprite.y = y;
@@ -920,7 +921,7 @@ void clear_sprite_list() {
 }
 void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind) {
 
-    if (spp == NULL)
+    if (spp == nullptr)
         quit("add_to_sprite_list: attempted to draw NULL sprite");
     // completely invisible, so don't draw it at all
     if (trans == 255)
@@ -1003,7 +1004,7 @@ void draw_sprite_list() {
     {
         for (int ee = 1; ee < MAX_WALK_BEHINDS; ee++)
         {
-            if (walkBehindBitmap[ee] != NULL)
+            if (walkBehindBitmap[ee] != nullptr)
             {
                 // TODO: perhaps do not add camera position here, instead let the renderer do coordinate transform
                 add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee] - play.GetRoomCamera().Left, walkBehindTop[ee] - play.GetRoomCamera().Top,
@@ -1017,7 +1018,7 @@ void draw_sprite_list() {
     clear_draw_list();
 
     if(pl_any_want_hook(AGSE_PRESCREENDRAW))
-        add_thing_to_draw(NULL, AGSE_PRESCREENDRAW, 0, TRANS_RUN_PLUGIN, false);
+        add_thing_to_draw(nullptr, AGSE_PRESCREENDRAW, 0, TRANS_RUN_PLUGIN, false);
 
     // copy the sorted sprites into the Things To Draw list
     thingsToDrawList.insert(thingsToDrawList.end(), sprlist.begin(), sprlist.end());
@@ -1025,7 +1026,7 @@ void draw_sprite_list() {
 
 // Avoid freeing and reallocating the memory if possible
 Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent) {
-    if (bimp != NULL) {
+    if (bimp != nullptr) {
         // same colour depth, width and height -> reuse
         if ((bimp->GetColorDepth() == coldep) && (bimp->GetWidth() == wid)
                 && (bimp->GetHeight() == hit))
@@ -1294,7 +1295,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     int useindx = aa;
     bool hardwareAccelerated = !alwaysUseSoftware && gfxDriver->HasAcceleratedTransform();
 
-    if (spriteset[objs[aa].num] == NULL)
+    if (spriteset[objs[aa].num] == nullptr)
         quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", aa, objs[aa].num);
 
     int coldept = spriteset[objs[aa].num]->GetColorDepth();
@@ -1369,9 +1370,9 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 
     if ((hardwareAccelerated) &&
         (walkBehindMethod != DrawOverCharSprite) &&
-        (objcache[aa].image != NULL) &&
+        (objcache[aa].image != nullptr) &&
         (objcache[aa].sppic == objs[aa].num) &&
-        (actsps[useindx] != NULL))
+        (actsps[useindx] != nullptr))
     {
         // HW acceleration
         objcache[aa].tintamntwas = tint_level;
@@ -1394,7 +1395,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     }
 
     // If we have the image cached, use it
-    if ((objcache[aa].image != NULL) &&
+    if ((objcache[aa].image != nullptr) &&
         (objcache[aa].sppic == objs[aa].num) &&
         (objcache[aa].tintamntwas == tint_level) &&
         (objcache[aa].tintlightwas == tint_light) &&
@@ -1406,13 +1407,13 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         (objcache[aa].mirroredWas == isMirrored)) {
             // the image is the same, we can use it cached!
             if ((walkBehindMethod != DrawOverCharSprite) &&
-                (actsps[useindx] != NULL))
+                (actsps[useindx] != nullptr))
                 return 1;
             // Check if the X & Y co-ords are the same, too -- if so, there
             // is scope for further optimisations
             if ((objcache[aa].xwas == objs[aa].x) &&
                 (objcache[aa].ywas == objs[aa].y) &&
-                (actsps[useindx] != NULL) &&
+                (actsps[useindx] != nullptr) &&
                 (walk_behind_baselines_changed == 0))
                 return 1;
             actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, sprwidth, sprheight);
@@ -1436,7 +1437,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     }
 
     // direct read from source bitmap, where possible
-    Bitmap *comeFrom = NULL;
+    Bitmap *comeFrom = nullptr;
     if (!actspsUsed)
         comeFrom = spriteset[objs[aa].num];
 
@@ -1486,7 +1487,7 @@ void prepare_objects_for_drawing() {
         useindx = aa;
         int tehHeight;
 
-        int actspsIntact = construct_object_gfx(aa, NULL, &tehHeight, false);
+        int actspsIntact = construct_object_gfx(aa, nullptr, &tehHeight, false);
 
         // update the cache for next time
         objcache[aa].xwas = objs[aa].x;
@@ -1517,11 +1518,11 @@ void prepare_objects_for_drawing() {
             sort_out_walk_behinds(actsps[useindx],atxp+offsetx,atyp+offsety,usebasel);
         }
 
-        if ((!actspsIntact) || (actspsbmp[useindx] == NULL))
+        if ((!actspsIntact) || (actspsbmp[useindx] == nullptr))
         {
             bool hasAlpha = (game.SpriteInfos[objs[aa].num].Flags & SPF_ALPHACHANNEL) != 0;
 
-            if (actspsbmp[useindx] != NULL)
+            if (actspsbmp[useindx] != nullptr)
                 gfxDriver->DestroyDDB(actspsbmp[useindx]);
             actspsbmp[useindx] = gfxDriver->CreateDDBFromBitmap(actsps[useindx], hasAlpha);
         }
@@ -1786,7 +1787,7 @@ void prepare_characters_for_drawing() {
             if (((light_level != 0) || (tint_amount != 0)) &&
                 (!gfxDriver->HasAcceleratedTransform())) {
                     // apply the lightening or tinting
-                    Bitmap *comeFrom = NULL;
+                    Bitmap *comeFrom = nullptr;
                     // if possible, direct read from the source image
                     if (!actspsUsed)
                         comeFrom = spriteset[sppic];
@@ -1834,7 +1835,7 @@ void prepare_characters_for_drawing() {
             sort_out_walk_behinds(actsps[useindx], bgX, bgY, usebasel);
         }
 
-        if ((!usingCachedImage) || (actspsbmp[useindx] == NULL))
+        if ((!usingCachedImage) || (actspsbmp[useindx] == nullptr))
         {
             bool hasAlpha = (game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) != 0;
 
@@ -1926,7 +1927,7 @@ void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
 
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
-        if (roomBackgroundBmp == NULL) 
+        if (roomBackgroundBmp == nullptr) 
         {
             update_polled_stuff_if_runtime();
             roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
@@ -1987,24 +1988,39 @@ void draw_room(Bitmap *ds, Bitmap *roomcam_surface, bool no_transform) {
 
 void draw_fps()
 {
-    static IDriverDependantBitmap* ddb = NULL;
-    static Bitmap *fpsDisplay = NULL;
+    static IDriverDependantBitmap* ddb = nullptr;
+    static Bitmap *fpsDisplay = nullptr;
 
     const Rect &ui_view = play.GetUIViewport();
-    if (fpsDisplay == NULL)
+    if (fpsDisplay == nullptr)
     {
         fpsDisplay = BitmapHelper::CreateBitmap(ui_view.GetWidth(), (getfontheight_outlined(FONT_SPEECH) + 5), game.GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
     
-    char tbuffer[60];
-    sprintf(tbuffer,"FPS: %d",fps);
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
-    wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, tbuffer);
-    sprintf(tbuffer, "Loop %u", loopcounter);
-    int textw = wgettextwidth(tbuffer, FONT_SPEECH);
-    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, tbuffer);
+
+    char base_buffer[60];
+    if (frames_per_second < 1000) {
+        sprintf(base_buffer, "%d", frames_per_second);
+    } else {
+        sprintf(base_buffer, "unlimited");
+    }
+
+    char fps_buffer[60];
+    // Don't display fps if we don't have enough information (because loop count was just reset)
+    if (!std::isnan(fps)) {
+        sprintf(fps_buffer, "FPS: %2.1f / %s", fps, base_buffer);
+    } else {
+        sprintf(fps_buffer, "FPS: --.- / %s", base_buffer);
+    }
+    wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, fps_buffer);
+
+    char loop_buffer[60];
+    sprintf(loop_buffer, "Loop %u", loopcounter);
+    int textw = wgettextwidth(loop_buffer, FONT_SPEECH);
+    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
 
     if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
@@ -2020,7 +2036,7 @@ void draw_gui_and_overlays() {
     int gg;
 
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
-        add_thing_to_draw(NULL, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
+        add_thing_to_draw(nullptr, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
 
     // draw overlays, except text boxes and portraits
     for (gg=0;gg<numscreenover;gg++) {
@@ -2058,7 +2074,7 @@ void draw_gui_and_overlays() {
             for (aa=0;aa<game.numgui;aa++) {
                 if (!guis[aa].IsDisplayed()) continue;
 
-                if (guibg[aa] == NULL)
+                if (guibg[aa] == nullptr)
                     recreate_guibg_image(&guis[aa]);
 
                 eip_guinum = aa;
@@ -2075,7 +2091,7 @@ void draw_gui_and_overlays() {
                     isAlpha = true;
                 }
 
-                if (guibgbmp[aa] != NULL) 
+                if (guibgbmp[aa] != nullptr) 
                 {
                     gfxDriver->UpdateDDBFromBitmap(guibgbmp[aa], guibg[aa], isAlpha);
                 }
@@ -2133,17 +2149,17 @@ void put_sprite_list_on_screen(bool in_room)
     {
         thisThing = &thingsToDrawList[i];
 
-        if (thisThing->bmp != NULL) {
+        if (thisThing->bmp != nullptr) {
             // mark the image's region as dirty
             invalidate_sprite(thisThing->x, thisThing->y, thisThing->bmp, in_room);
         }
         else if ((thisThing->transparent != TRANS_RUN_PLUGIN) &&
-            (thisThing->bmp == NULL)) 
+            (thisThing->bmp == nullptr)) 
         {
             quit("Null pointer added to draw list");
         }
 
-        if (thisThing->bmp != NULL)
+        if (thisThing->bmp != nullptr)
         {
             if (thisThing->transparent <= 255)
             {
@@ -2155,7 +2171,7 @@ void put_sprite_list_on_screen(bool in_room)
         else if (thisThing->transparent == TRANS_RUN_PLUGIN) 
         {
             // meta entry to run the plugin hook
-            gfxDriver->DrawSprite(thisThing->x, thisThing->y, NULL);
+            gfxDriver->DrawSprite(thisThing->x, thisThing->y, nullptr);
         }
         else
             quit("Unknown entry in draw list");
@@ -2200,7 +2216,7 @@ void update_screen() {
         return;
 
     if(pl_any_want_hook(AGSE_POSTSCREENDRAW))
-        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, NULL);
+        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
 
     // update animating mouse cursor
     if (game.mcurs[cur_cursor].view>=0) {
@@ -2240,7 +2256,7 @@ void update_screen() {
         int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
 
         const Rect &viewport = play.GetMainViewport();
-        if (debugConsoleBuffer == NULL)
+        if (debugConsoleBuffer == nullptr)
         {
             debugConsoleBuffer = BitmapHelper::CreateBitmap(viewport.GetWidth(), barheight,game.GetColorDepth());
             debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
@@ -2254,7 +2270,7 @@ void update_screen() {
             ypp += txtspacing;
         }
 
-        if (debugConsole == NULL)
+        if (debugConsole == nullptr)
             debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
         else
             gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
@@ -2349,7 +2365,7 @@ void construct_virtual_screen(bool fullRedraw)
     }
 
     // make sure that the mp3 is always playing smoothly
-    update_mp3();
+    update_polled_mp3();
     our_eip=4;
 
     //
@@ -2385,7 +2401,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     construct_virtual_screen(false);
     our_eip=5;
 
-    if (extraBitmap != NULL) {
+    if (extraBitmap != nullptr) {
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
     }

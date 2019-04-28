@@ -440,6 +440,60 @@ internalstring autoptr builtin managed struct String {
   readonly import attribute int Length;
 };
 
+#ifdef SCRIPT_API_v350
+builtin managed struct Dictionary
+{
+  /// Creates a new empty Dictionary of the given properties.
+  import static Dictionary* Create(bool sorted = false, bool caseSensitive = false); // $AUTOCOMPLETESTATICONLY$
+
+  /// Removes all items from the dictionary.
+  import void Clear();
+  /// Tells if given key is in the dictionary.
+  import bool Contains(String key);
+  /// Gets value by the key; returns null if such key does not exist.
+  import String Get(String key);
+  /// Removes key/value pair from the dictionary, fails if there was no such key.
+  import bool Remove(String key);
+  /// Assigns a value to the given key, adds this key if it did not exist yet.
+  import bool Set(String key, String value);
+
+  /// Gets if this dictionary is case-sensitive.
+  import readonly attribute bool CaseSensitive;
+  /// Gets if this dictionary is sorted by keys in alphabetical order.
+  import readonly attribute bool Sorted;
+  /// Gets the number of key/value pairs currently in the dictionary.
+  import readonly attribute int ItemCount;
+  /// Creates a dynamic array filled with keys in same order as they are stored in the Dictionary.
+  import String[] GetKeysAsArray();
+  /// Creates a dynamic array filled with values in same order as they are stored in the Dictionary.
+  import String[] GetValuesAsArray();
+};
+
+builtin managed struct Set
+{
+  /// Creates a new empty Set of the given properties.
+  import static Set* Create(bool sorted = false, bool caseSensitive = false); // $AUTOCOMPLETESTATICONLY$
+
+  /// Adds item to the set, fails if such item was already existing.
+  import bool Add(String item);
+  /// Removes all items from the set.
+  import void Clear();
+  /// Tells if given item is in the set.
+  import bool Contains(String item);
+  /// Removes item from the set, fails if there was no such item.
+  import bool Remove(String item);
+
+  /// Gets if this set is case-sensitive.
+  import readonly attribute bool CaseSensitive;
+  /// Gets if this set is sorted in alphabetical order.
+  import readonly attribute bool Sorted;
+  /// Gets the number of items currently in the set.
+  import readonly attribute int ItemCount;
+  /// Creates a dynamic array filled with items in same order as they are stored in the Set.
+  import String[] GetItemsAsArray();
+};
+#endif
+
 builtin managed struct AudioClip;
 
 builtin managed struct ViewFrame {
@@ -548,89 +602,6 @@ builtin managed struct Room {
   /// Gets the room camera
   import static readonly attribute Camera *Camera;
 #endif
-};
-
-builtin managed struct Game {
-  /// Changes the active translation.
-  import static bool   ChangeTranslation(const string newTranslationFileName);
-  /// Returns true the first time this command is called with this token.
-  import static bool   DoOnceOnly(const string token);
-  /// Gets the AGS Colour Number for the specified RGB colour.
-  import static int    GetColorFromRGB(int red, int green, int blue);
-  /// Gets the number of frames in the specified view loop.
-  import static int    GetFrameCountForLoop(int view, int loop);
-  /// Gets the name of whatever is on the screen at (x,y)
-  import static String GetLocationName(int x, int y);
-  /// Gets the number of loops in the specified view.
-  import static int    GetLoopCountForView(int view);
-  /// Returns the current pattern/track number if the current music is MOD or XM.
-  import static int    GetMODPattern();
-  /// Gets whether the "Run next loop after this" setting is checked for the specified loop.
-  import static bool   GetRunNextSettingForLoop(int view, int loop);
-  /// Gets the description of the specified save game slot.
-  import static String GetSaveSlotDescription(int saveSlot);
-  /// Gets the ViewFrame instance for the specified view frame.
-  import static ViewFrame* GetViewFrame(int view, int loop, int frame);
-  /// Prompts the user to type in a string, and returns the text that they type in.
-  import static String InputBox(const string prompt);
-  /// Gets whether any audio (of this type) is currently playing.
-  import static bool   IsAudioPlaying(AudioType audioType=SCR_NO_VALUE);
-  /// Changes the volume drop applied to this audio type when speech is played
-  import static void   SetAudioTypeSpeechVolumeDrop(AudioType, int volumeDrop);
-  /// Changes the default volume of audio clips of the specified type.
-  import static void   SetAudioTypeVolume(AudioType, int volume, ChangeVolumeType);
-  /// Sets the directory where AGS will save and load saved games.
-  import static bool   SetSaveGameDirectory(const string directory);
-  /// Stops all currently playing audio (optionally of the specified type).
-  import static void   StopAudio(AudioType audioType=SCR_NO_VALUE);
-  /// Gets the number of characters in the game.
-  readonly import static attribute int CharacterCount;
-  /// Gets the number of dialogs in the game.
-  readonly import static attribute int DialogCount;
-  /// Gets the name of the game EXE file.
-  readonly import static attribute String FileName;
-  /// Gets the number of fonts in the game.
-  readonly import static attribute int FontCount;
-  /// Accesses the legacy Global Messages, from AGS 2.x
-  readonly import static attribute String GlobalMessages[];
-  /// Accesses the global strings collection. This is obsolete.
-  import static attribute String GlobalStrings[];
-  /// Gets the number of GUIs in the game.
-  readonly import static attribute int GUICount;
-  /// Gets/sets the time for which user input is ignored after some text is automatically removed
-  import static attribute int IgnoreUserInputAfterTextTimeoutMs;
-  /// Checks whether the game is currently in the middle of a skippable cutscene.
-  readonly import static attribute bool InSkippableCutscene;
-  /// Gets the number of inventory items in the game.
-  readonly import static attribute int InventoryItemCount;
-  /// Gets/sets the minimum time that a piece of speech text stays on screen (in milliseconds)
-  import static attribute int MinimumTextDisplayTimeMs;
-  /// Gets the number of mouse cursors in the game.
-  readonly import static attribute int MouseCursorCount;
-  /// Gets/sets the game name.
-  import static attribute String Name;
-  /// Gets/sets the normal font used for displaying text.
-  import static attribute FontType NormalFont;
-  /// Checks whether the game is currently skipping over a cutscene.
-  readonly import static attribute bool SkippingCutscene;
-  /// Gets/sets the font used for displaying speech text.
-  import static attribute FontType SpeechFont;
-  /// Gets the height of the specified sprite.
-  readonly import static attribute int SpriteHeight[];
-  /// Gets the width of the specified sprite.
-  readonly import static attribute int SpriteWidth[];
-  /// Gets/sets how fast speech text is removed from the screen.
-  import static attribute int TextReadingSpeed;
-  /// Gets name of the currently active translation.
-  readonly import static attribute String TranslationFilename;
-  /// Gets the number of views in the game.
-  readonly import static attribute int ViewCount;
-  /// Returns true if the given plugin is currently loaded.
-  import static bool   IsPluginLoaded(const string name);
-  /// Gets the number of audio clips in the game.
-  readonly import static attribute int AudioClipCount;
-  /// Accesses the audio clips collection.
-  readonly import static attribute AudioClip *AudioClips[];
 };
 
 builtin managed struct Parser {
@@ -1953,6 +1924,101 @@ builtin managed struct Character {
   // TODO: find out if Visible property may work as a proper analogue, otherwise add new one
   char  on;  // $AUTOCOMPLETEIGNORE$
   };
+
+builtin managed struct Game {
+  /// Changes the active translation.
+  import static bool   ChangeTranslation(const string newTranslationFileName);
+  /// Returns true the first time this command is called with this token.
+  import static bool   DoOnceOnly(const string token);
+  /// Gets the AGS Colour Number for the specified RGB colour.
+  import static int    GetColorFromRGB(int red, int green, int blue);
+  /// Gets the number of frames in the specified view loop.
+  import static int    GetFrameCountForLoop(int view, int loop);
+  /// Gets the name of whatever is on the screen at (x,y)
+  import static String GetLocationName(int x, int y);
+  /// Gets the number of loops in the specified view.
+  import static int    GetLoopCountForView(int view);
+  /// Returns the current pattern/track number if the current music is MOD or XM.
+  import static int    GetMODPattern();
+  /// Gets whether the "Run next loop after this" setting is checked for the specified loop.
+  import static bool   GetRunNextSettingForLoop(int view, int loop);
+  /// Gets the description of the specified save game slot.
+  import static String GetSaveSlotDescription(int saveSlot);
+  /// Gets the ViewFrame instance for the specified view frame.
+  import static ViewFrame* GetViewFrame(int view, int loop, int frame);
+  /// Prompts the user to type in a string, and returns the text that they type in.
+  import static String InputBox(const string prompt);
+  /// Gets whether any audio (of this type) is currently playing.
+  import static bool   IsAudioPlaying(AudioType audioType=SCR_NO_VALUE);
+  /// Changes the volume drop applied to this audio type when speech is played
+  import static void   SetAudioTypeSpeechVolumeDrop(AudioType, int volumeDrop);
+  /// Changes the default volume of audio clips of the specified type.
+  import static void   SetAudioTypeVolume(AudioType, int volume, ChangeVolumeType);
+  /// Sets the directory where AGS will save and load saved games.
+  import static bool   SetSaveGameDirectory(const string directory);
+  /// Stops all currently playing audio (optionally of the specified type).
+  import static void   StopAudio(AudioType audioType=SCR_NO_VALUE);
+#ifndef STRICT_AUDIO
+  /// Stops all currently playing sound effects.
+  import static void   StopSound(bool includeAmbientSounds=false);   // $AUTOCOMPLETEIGNORE$
+#endif
+  /// Gets the number of characters in the game.
+  readonly import static attribute int CharacterCount;
+  /// Gets the number of dialogs in the game.
+  readonly import static attribute int DialogCount;
+  /// Gets the name of the game EXE file.
+  readonly import static attribute String FileName;
+  /// Gets the number of fonts in the game.
+  readonly import static attribute int FontCount;
+  /// Accesses the legacy Global Messages, from AGS 2.x
+  readonly import static attribute String GlobalMessages[];
+  /// Accesses the global strings collection. This is obsolete.
+  import static attribute String GlobalStrings[];
+  /// Gets the number of GUIs in the game.
+  readonly import static attribute int GUICount;
+  /// Gets/sets the time for which user input is ignored after some text is automatically removed
+  import static attribute int IgnoreUserInputAfterTextTimeoutMs;
+  /// Checks whether the game is currently in the middle of a skippable cutscene.
+  readonly import static attribute bool InSkippableCutscene;
+  /// Gets the number of inventory items in the game.
+  readonly import static attribute int InventoryItemCount;
+  /// Gets/sets the minimum time that a piece of speech text stays on screen (in milliseconds)
+  import static attribute int MinimumTextDisplayTimeMs;
+  /// Gets the number of mouse cursors in the game.
+  readonly import static attribute int MouseCursorCount;
+  /// Gets/sets the game name.
+  import static attribute String Name;
+  /// Gets/sets the normal font used for displaying text.
+  import static attribute FontType NormalFont;
+  /// Checks whether the game is currently skipping over a cutscene.
+  readonly import static attribute bool SkippingCutscene;
+  /// Gets/sets the font used for displaying speech text.
+  import static attribute FontType SpeechFont;
+  /// Gets the height of the specified sprite.
+  readonly import static attribute int SpriteHeight[];
+  /// Gets the width of the specified sprite.
+  readonly import static attribute int SpriteWidth[];
+  /// Gets/sets how fast speech text is removed from the screen.
+  import static attribute int TextReadingSpeed;
+  /// Gets name of the currently active translation.
+  readonly import static attribute String TranslationFilename;
+  /// Gets whether the game is using native co-ordinates.
+  readonly import static attribute bool UseNativeCoordinates;
+  /// Gets the number of views in the game.
+  readonly import static attribute int ViewCount;
+#ifdef SCRIPT_API_v340
+  /// Returns true if the given plugin is currently loaded.
+  import static bool   IsPluginLoaded(const string name);
+  /// Gets the number of audio clips in the game.
+  readonly import static attribute int AudioClipCount;
+  /// Accesses the audio clips collection.
+  readonly import static attribute AudioClip *AudioClips[];
+#endif
+#ifdef SCRIPT_API_v350
+  /// Play speech voice-over in non-blocking mode, optionally apply music and sound volume reduction
+  import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
+#endif
+};
 
 builtin struct GameState {
   int  score;

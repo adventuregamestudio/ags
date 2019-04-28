@@ -14,7 +14,6 @@
 
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
-#include "media/audio/audiodefines.h"
 #include "ac/charactercache.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
@@ -51,7 +50,6 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "game/room_version.h"
-#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -67,6 +65,7 @@
 #include "gfx/gfxfilter.h"
 #include "util/math.h"
 #include "ac/dynobj/scriptcamera.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -201,7 +200,7 @@ bool Room_SetTextProperty(const char *property, const char *value)
 
 const char* Room_GetMessages(int index) {
     if ((index < 0) || ((size_t)index >= thisroom.MessageCount)) {
-        return NULL;
+        return nullptr;
     }
     char buffer[STD_BUFFER_SIZE];
     buffer[0]=0;
@@ -254,19 +253,19 @@ void unload_old_room() {
     cancel_all_scripts();
     numevents = 0;  // cancel any pending room events
 
-    if (roomBackgroundBmp != NULL)
+    if (roomBackgroundBmp != nullptr)
     {
         gfxDriver->DestroyDDB(roomBackgroundBmp);
-        roomBackgroundBmp = NULL;
+        roomBackgroundBmp = nullptr;
     }
 
-    if (croom==NULL) ;
-    else if (roominst!=NULL) {
+    if (croom==nullptr) ;
+    else if (roominst!=nullptr) {
         save_room_data_segment();
         delete roominstFork;
         delete roominst;
-        roominstFork = NULL;
-        roominst=NULL;
+        roominstFork = nullptr;
+        roominst=nullptr;
     }
     else croom->tsdatasize=0;
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
@@ -275,7 +274,7 @@ void unload_old_room() {
     play.ReleaseRoomCamera();
     remove_screen_overlay(-1);
     delete raw_saved_screen;
-    raw_saved_screen = NULL;
+    raw_saved_screen = nullptr;
     for (ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
         play.raw_modified[ff] = 0;
 
@@ -283,7 +282,7 @@ void unload_old_room() {
     for (ff = 0; ff < game.numcharacters; ff++) {
         if (charcache[ff].inUse) {
             delete charcache[ff].image;
-            charcache[ff].image = NULL;
+            charcache[ff].image = nullptr;
             charcache[ff].inUse = 0;
         }
         // ensure that any half-moves (eg. with scaled movement) are stopped
@@ -313,25 +312,25 @@ void unload_old_room() {
     // clear the object cache
     for (ff = 0; ff < MAX_ROOM_OBJECTS; ff++) {
         delete objcache[ff].image;
-        objcache[ff].image = NULL;
+        objcache[ff].image = nullptr;
     }
     // clear the actsps buffers to save memory, since the
     // objects/characters involved probably aren't on the
     // new screen. this also ensures all cached data is flushed
     for (ff = 0; ff < MAX_ROOM_OBJECTS + game.numcharacters; ff++) {
         delete actsps[ff];
-        actsps[ff] = NULL;
+        actsps[ff] = nullptr;
 
-        if (actspsbmp[ff] != NULL)
+        if (actspsbmp[ff] != nullptr)
             gfxDriver->DestroyDDB(actspsbmp[ff]);
-        actspsbmp[ff] = NULL;
+        actspsbmp[ff] = nullptr;
 
         delete actspswb[ff];
-        actspswb[ff] = NULL;
+        actspswb[ff] = nullptr;
 
-        if (actspswbbmp[ff] != NULL)
+        if (actspswbbmp[ff] != nullptr)
             gfxDriver->DestroyDDB(actspswbbmp[ff]);
-        actspswbbmp[ff] = NULL;
+        actspswbbmp[ff] = nullptr;
 
         actspswbcache[ff].valid = 0;
     }
@@ -466,7 +465,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     our_eip=205;
     // setup objects
-    if (forchar != NULL) {
+    if (forchar != nullptr) {
         // if not restoring a game, always reset this room
         troom.beenhere=0;  
         troom.FreeScriptData();
@@ -578,11 +577,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             if (palette[ff].b > 63)
                 palette[ff].b = 63;
         }
-        create_rgb_table (&rgb_table, palette, NULL);
+        create_rgb_table (&rgb_table, palette, nullptr);
         rgb_map = &rgb_table;
     }
     our_eip = 211;
-    if (forchar!=NULL) {
+    if (forchar!=nullptr) {
         // if it's not a Restore Game
 
         // if a following character is still waiting to come into the
@@ -610,9 +609,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     update_polled_stuff_if_runtime();
 
-    roominst=NULL;
+    roominst=nullptr;
     if (debug_flags & DBG_NOSCRIPT) ;
-    else if (thisroom.CompiledScript!=NULL) {
+    else if (thisroom.CompiledScript!=nullptr) {
         compile_room_script();
         if (croom->tsdatasize>0) {
             if (croom->tsdatasize != roominst->globaldatasize)
@@ -623,7 +622,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=207;
     play.entered_edge = -1;
 
-    if ((new_room_x != SCR_NO_VALUE) && (forchar != NULL))
+    if ((new_room_x != SCR_NO_VALUE) && (forchar != nullptr))
     {
         forchar->x = new_room_x;
         forchar->y = new_room_y;
@@ -634,7 +633,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     new_room_x = SCR_NO_VALUE;
 	new_room_loop = SCR_NO_VALUE;
 
-    if ((new_room_pos>0) & (forchar!=NULL)) {
+    if ((new_room_pos>0) & (forchar!=nullptr)) {
         if (new_room_pos>=4000) {
             play.entered_edge = 3;
             forchar->y = thisroom.Edges.Top + 1;
@@ -710,7 +709,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
         new_room_pos=0;
     }
-    if (forchar!=NULL) {
+    if (forchar!=nullptr) {
         play.entered_at_x=forchar->x;
         play.entered_at_y=forchar->y;
         if (forchar->x >= thisroom.Edges.Right)
@@ -726,7 +725,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         PlayMusicResetQueue(thisroom.Options.StartupMusic);
 
     our_eip=208;
-    if (forchar!=NULL) {
+    if (forchar!=nullptr) {
         if (thisroom.Options.PlayerCharOff==0) { forchar->on=1;
         enable_cursor_mode(0); }
         else {
@@ -742,7 +741,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         else forchar->view=thisroom.Options.PlayerView-1;
         forchar->frame=0;   // make him standing
     }
-    color_map = NULL;
+    color_map = nullptr;
 
     our_eip = 209;
     update_polled_stuff_if_runtime();
@@ -817,11 +816,11 @@ void new_room(int newnum,CharacterInfo*forchar) {
         for (int i = 0; i < game.numgui; i++)
         {
             delete guibg[i];
-            guibg[i] = NULL;
+            guibg[i] = nullptr;
 
             if (guibgbmp[i])
                 gfxDriver->DestroyDDB(guibgbmp[i]);
-            guibgbmp[i] = NULL;
+            guibgbmp[i] = nullptr;
         }
         guis_need_update = 1;
     }
@@ -846,9 +845,7 @@ extern long t1;  // defined in ac_main
 
 void first_room_initialization() {
     starting_room = displayed_room;
-    t1 = time(NULL);
-    lastcounter=0;
-    loopcounter=0;
+    set_loop_counter(0);
     mouse_z_was = mouse_z;
 }
 
@@ -877,12 +874,12 @@ void compile_room_script() {
 
     roominst = ccInstance::CreateFromScript(thisroom.CompiledScript);
 
-    if ((ccError!=0) || (roominst==NULL)) {
+    if ((ccError!=0) || (roominst==nullptr)) {
         quitprintf("Unable to create local script: %s", ccErrorString.GetCStr());
     }
 
     roominstFork = roominst->Fork();
-    if (roominstFork == NULL)
+    if (roominstFork == nullptr)
         quitprintf("Unable to create forked room instance: %s", ccErrorString.GetCStr());
 
     repExecAlways.roomHasFunction = true;
@@ -921,8 +918,8 @@ void on_background_frame_change () {
 
 void croom_ptr_clear()
 {
-    croom = NULL;
-    objs = NULL;
+    croom = nullptr;
+    objs = nullptr;
 }
 
 void convert_move_path_to_room_resolution(MoveList *ml)

@@ -169,6 +169,9 @@
     <Filter Include="Common Header Files\util">
       <UniqueIdentifier>{a832a3a0-309b-4d5c-ae1b-70c7f67b14e1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Library Sources\glad">
+      <UniqueIdentifier>{cc80bf30-3415-4302-a50e-1e7a1689c282}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Engine\ac\audiochannel.cpp">
@@ -998,6 +1001,21 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\viewport.cpp">
       <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\libsrc\glad\src\glad.c">
+      <Filter>Library Sources\glad</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\libsrc\glad\src\glad_wgl.c">
+      <Filter>Library Sources\glad</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptset.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdict.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1848,6 +1866,18 @@
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\audio_system.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdict.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptcontainers.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\statobj\staticgame.h">

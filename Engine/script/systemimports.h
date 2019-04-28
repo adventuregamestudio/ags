@@ -27,7 +27,7 @@ struct ScriptImport
 {
     ScriptImport()
     {
-        InstancePtr = NULL;
+        InstancePtr = nullptr;
     }
 
     String              Name;           // import's uid

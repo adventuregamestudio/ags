@@ -24,8 +24,8 @@
 #include "debug/debugger.h"
 #include "game/roomstruct.h"
 #include "main/engine.h"
-#include "media/audio/audio.h"
-#include "media/audio/sound.h"
+#include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -59,16 +59,15 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
         return;
 
     // only play the sound if it's not already playing
-    if ((ambient[channel].channel < 1) || (channels[ambient[channel].channel] == NULL) ||
-        (channels[ambient[channel].channel]->done == 1) ||
+    if ((ambient[channel].channel < 1) || (!channel_is_playing(ambient[channel].channel)) ||
         (ambient[channel].num != sndnum)) {
 
             StopAmbientSound(channel);
             // in case a normal non-ambient sound was playing, stop it too
             stop_and_destroy_channel(channel);
 
-            SOUNDCLIP *asound = aclip ? load_sound_and_play(aclip, true) : NULL;
-            if (asound == NULL) {
+            SOUNDCLIP *asound = aclip ? load_sound_and_play(aclip, true) : nullptr;
+            if (asound == nullptr) {
                 debug_script_warn ("Cannot load ambient sound %d", sndnum);
                 debug_script_log("FAILED to load ambient sound %d", sndnum);
                 return;
@@ -76,8 +75,8 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
 
             debug_script_log("Playing ambient sound %d on channel %d", sndnum, channel);
             ambient[channel].channel = channel;
-            channels[channel] = asound;
-            channels[channel]->priority = 15;  // ambient sound higher priority than normal sfx
+            asound->priority = 15;  // ambient sound higher priority than normal sfx
+            set_clip_to_channel(channel, asound);
     }
     // calculate the maximum distance away the player can be, using X
     // only (since X centred is still more-or-less total Y)
@@ -96,7 +95,7 @@ int IsChannelPlaying(int chan) {
     if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
         quit("!IsChannelPlaying: invalid sound channel");
 
-    if ((channels[chan] != NULL) && (channels[chan]->done == 0))
+    if (channel_is_playing(chan))
         return 1;
 
     return 0;
@@ -107,8 +106,9 @@ int IsSoundPlaying() {
         return 0;
 
     // find if there's a sound playing
-    for (int i = SCHAN_NORMAL; i < numSoundChannels; i++) {
-        if ((channels[i] != NULL) && (channels[i]->done == 0))
+    AudioChannelsLock lock;
+    for (int i = SCHAN_NORMAL; i < MAX_SOUND_CHANNELS; i++) {
+        if (lock.GetChannelIfPlaying(i))
             return 1;
     }
 
@@ -139,33 +139,20 @@ int PlaySoundEx(int val1, int channel) {
     if (play.fast_forward)
         return -1;
 
-    // that sound is already in memory, play it
-    if (!psp_audio_multithreaded)
-    {
-        if ((last_sound_played[channel] == val1) && (channels[channel] != NULL)) {
-            debug_script_log("Playing sound %d on channel %d; cached", val1, channel);
-            channels[channel]->restart();
-            channels[channel]->set_volume (play.sound_volume);
-            return channel;
-        }
-    }
-
     // free the old sound
     stop_and_destroy_channel (channel);
     debug_script_log("Playing sound %d on channel %d", val1, channel);
 
-    last_sound_played[channel] = val1;
-
-    SOUNDCLIP *soundfx = aclip ? load_sound_and_play(aclip, false) : NULL;
-    if (soundfx == NULL) {
+    SOUNDCLIP *soundfx = aclip ? load_sound_and_play(aclip, false) : nullptr;
+    if (soundfx == nullptr) {
         debug_script_warn("Sound sample load failure: cannot load sound %d", val1);
         debug_script_log("FAILED to load sound %d", val1);
         return -1;
     }
 
-    channels[channel] = soundfx;
-    channels[channel]->priority = 10;
-    channels[channel]->set_volume (play.sound_volume);
+    soundfx->priority = 10;
+    soundfx->set_volume (play.sound_volume);
+    set_clip_to_channel(channel,soundfx);
     return channel;
 }
 
@@ -207,17 +194,20 @@ int IsMusicPlaying() {
     if ((play.fast_forward) && (play.skip_until_char_stops < 0))
         return 0;
 
-    if (current_music_type != 0) {
-        if (channels[SCHAN_MUSIC] == NULL)
-            current_music_type = 0;
-        else if (channels[SCHAN_MUSIC]->done == 0)
-            return 1;
-        else if ((crossFading > 0) && (channels[crossFading] != NULL))
-            return 1;
+    // This only returns positive if there was a music started by old audio API
+    if (current_music_type == 0)
+        return 0;
+
+    AudioChannelsLock lock;
+    auto *ch = lock.GetChannel(SCHAN_MUSIC);
+    if (ch == nullptr)
+    { // This was probably a hacky fix in case it was not reset by game update; TODO: find out if needed
+        current_music_type = 0;
         return 0;
     }
 
-    return 0;
+    bool result = (ch->is_playing()) || (crossFading > 0 && (lock.GetChannelIfPlaying(crossFading) != nullptr));
+    return result ? 1 : 0;
 }
 
 int PlayMusicQueued(int musnum) {
@@ -269,19 +259,26 @@ void scr_StopMusic() {
 }
 
 void SeekMODPattern(int patnum) {
-    if (current_music_type == MUS_MOD && channels[SCHAN_MUSIC]) {
-        channels[SCHAN_MUSIC]->seek (patnum);
+    if (current_music_type != MUS_MOD)
+        return;
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    if (ch) {
+        ch->seek (patnum);
         debug_script_log("Seek MOD/XM to pattern %d", patnum);
     }
 }
 void SeekMP3PosMillis (int posn) {
-    if (current_music_type) {
-        debug_script_log("Seek MP3/OGG to %d ms", posn);
-        if (crossFading && channels[crossFading])
-            channels[crossFading]->seek (posn);
-        else if (channels[SCHAN_MUSIC])
-            channels[SCHAN_MUSIC]->seek (posn);
-    }
+    if (current_music_type == 0)
+        return;
+
+    AudioChannelsLock lock;
+    auto *mus_ch = lock.GetChannel(SCHAN_MUSIC);
+    auto *cf_ch = (crossFading > 0) ? lock.GetChannel(crossFading) : nullptr;
+    if (cf_ch)
+        cf_ch->seek(posn);
+    else if (mus_ch)
+        mus_ch->seek(posn);
 }
 
 int GetMP3PosMillis () {
@@ -289,12 +286,17 @@ int GetMP3PosMillis () {
     if (play.fast_forward)
         return 999999;
 
-    if (current_music_type && channels[SCHAN_MUSIC]) {
-        int result = channels[SCHAN_MUSIC]->get_pos_ms();
+    if (current_music_type == 0)
+        return 0;
+
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(SCHAN_MUSIC);
+    if (ch) {
+        int result = ch->get_pos_ms();
         if (result >= 0)
             return result;
 
-        return channels[SCHAN_MUSIC]->get_pos ();
+        return ch->get_pos ();
     }
 
     return 0;
@@ -330,13 +332,16 @@ void SetChannelVolume(int chan, int newvol) {
     if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
         quit("!SetChannelVolume: invalid channel id");
 
-    if ((channels[chan] != NULL) && (channels[chan]->done == 0)) {
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(chan);
+
+    if (ch) {
         if (chan == ambient[chan].channel) {
             ambient[chan].vol = newvol;
             update_ambient_sound_vol();
         }
         else
-            channels[chan]->set_volume (newvol);
+            ch->set_volume (newvol);
     }
 }
 
@@ -366,24 +371,49 @@ void PlayMP3File (const char *filename) {
     int useChan = prepare_for_new_music ();
     bool doLoop = (play.music_repeat > 0);
 
-    if ((channels[useChan] = my_load_static_ogg(asset_name, 150, doLoop)) != NULL) {
-        channels[useChan]->play();
-        current_music_type = MUS_OGG;
-        play.cur_music_number = 1000;
-        // save the filename (if it's not what we were supplied with)
-        if (filename != &play.playmp3file_name[0])
-            strcpy (play.playmp3file_name, filename);
+    SOUNDCLIP *clip = nullptr;
+    
+    if (!clip) {
+        clip = my_load_static_ogg(asset_name, 150, doLoop);
+        if (clip) {
+            if (clip->play()) {
+                set_clip_to_channel(useChan, clip);
+                current_music_type = MUS_OGG;
+                play.cur_music_number = 1000;
+                // save the filename (if it's not what we were supplied with)
+                if (filename != &play.playmp3file_name[0])
+                    strcpy (play.playmp3file_name, filename);
+            } else {
+                clip->destroy();
+                delete clip;
+                clip = nullptr;
+            }
+        }
     }
-    else if ((channels[useChan] = my_load_static_mp3(asset_name, 150, doLoop)) != NULL) {
-        channels[useChan]->play();
-        current_music_type = MUS_MP3;
-        play.cur_music_number = 1000;
-        // save the filename (if it's not what we were supplied with)
-        if (filename != &play.playmp3file_name[0])
-            strcpy (play.playmp3file_name, filename);
+
+    if (!clip)
+    {
+        clip = my_load_static_mp3(asset_name, 150, doLoop);
+        if (clip) {
+            if (clip->play()) {
+                set_clip_to_channel(useChan, clip);
+                current_music_type = MUS_MP3;
+                play.cur_music_number = 1000;
+                // save the filename (if it's not what we were supplied with)
+                if (filename != &play.playmp3file_name[0])
+                    strcpy(play.playmp3file_name, filename);
+            } else {
+                clip->destroy();
+                delete clip;
+                clip = nullptr;
+            }
+        }
     }
-    else
+
+    if (!clip) {
+        set_clip_to_channel(useChan, nullptr);
         debug_script_warn ("PlayMP3File: file '%s' not found or cannot play", filename);
+    }
 
     post_new_music_check(useChan);
 
@@ -398,29 +428,36 @@ void PlaySilentMIDI (int mnum) {
     play.silent_midi = mnum;
     play.silent_midi_channel = SCHAN_SPEECH;
     stop_and_destroy_channel(play.silent_midi_channel);
-    channels[play.silent_midi_channel] = load_sound_clip_from_old_style_number(true, mnum, false);
-    if (channels[play.silent_midi_channel] == NULL)
+    // No idea why it uses speech voice channel, but since it does (and until this is changed)
+    // we have to correctly reset speech voice in case there was a nonblocking speech
+    if (play.IsNonBlockingVoiceSpeech())
+        stop_voice_nonblocking();
+
+    SOUNDCLIP *clip = load_sound_clip_from_old_style_number(true, mnum, false);
+    if (clip == nullptr)
     {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
-    channels[play.silent_midi_channel]->play();
-    channels[play.silent_midi_channel]->set_volume_percent(0);
+    AudioChannelsLock lock;
+    lock.SetChannel(play.silent_midi_channel, clip);
+    if (!clip->play()) {
+        clip->destroy();
+        delete clip;
+        clip = nullptr;
+        quitprintf("!PlaySilentMIDI: failed to play aMusic%d", mnum);
+    }
+    clip->set_volume_percent(0);
 }
 
 void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
-    if (channels[SCHAN_SPEECH])
-        channels[SCHAN_SPEECH]->set_volume (newvol);
-
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannel(SCHAN_SPEECH);
+    if (ch)
+        ch->set_volume (newvol);
     play.speech_volume = newvol;
-}
-
-void __scr_play_speech(int who, int which) {
-    // *** implement this - needs to call stop_speech as well
-    // to reset the volume
-    quit("PlaySpeech not yet implemented");
 }
 
 // 0 = text only
@@ -452,19 +489,21 @@ int IsMusicVoxAvailable () {
     return play.separate_music_lib;
 }
 
-int play_speech(int charid,int sndid) {
-    stop_and_destroy_channel (SCHAN_SPEECH);
+extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 
-    // don't play speech if we're skipping a cutscene
-    if (play.fast_forward)
-        return 0;
-    if ((play.want_speech < 1) || (speech_file.IsEmpty()))
-        return 0;
+ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
+{
+    if (!play_voice_nonblocking(ch->index_id, sndid, as_speech))
+        return NULL;
+    return &scrAudioChannel[SCHAN_SPEECH];
+}
 
-    SOUNDCLIP *speechmp3;
+// Construct an asset name for the voice-over clip for the given character and cue id
+String get_cue_filename(int charid, int sndid)
+{
     String script_name;
-
-    if (charid >= 0) {
+    if (charid >= 0)
+    {
         // append the first 4 characters of the script name to the filename
         if (game.chars[charid].scrname[0] == 'c')
             script_name.SetString(&game.chars[charid].scrname[1], 4);
@@ -472,10 +511,94 @@ int play_speech(int charid,int sndid) {
             script_name.SetString(game.chars[charid].scrname, 4);
     }
     else
+    {
         script_name = "NARR";
+    }
+    return String::FromFormat("%s%d", script_name.GetCStr(), sndid);
+}
 
-    // append the speech number and create voice file name
-    String voice_file = String::FromFormat("%s%d", script_name.GetCStr(), sndid);
+// Play voice-over clip on the common channel;
+// voice_name should be bare clip name without extension
+static bool play_voice_clip_on_channel(const String &voice_name)
+{
+    stop_and_destroy_channel(SCHAN_SPEECH);
+
+    String asset_name = voice_name;
+    asset_name.Append(".wav");
+    SOUNDCLIP *speechmp3 = my_load_wave(get_voice_over_assetpath(asset_name), play.speech_volume, 0);
+
+    if (speechmp3 == nullptr) {
+        asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "ogg");
+        speechmp3 = my_load_ogg(get_voice_over_assetpath(asset_name), play.speech_volume);
+    }
+
+    if (speechmp3 == nullptr) {
+        asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "mp3");
+        speechmp3 = my_load_mp3(get_voice_over_assetpath(asset_name), play.speech_volume);
+    }
+
+    if (speechmp3 != nullptr) {
+        if (!speechmp3->play()) {
+            // not assigned to a channel, so clean up manually.
+            speechmp3->destroy();
+            delete speechmp3;
+            speechmp3 = nullptr;
+        }
+    }
+
+    if (speechmp3 == nullptr) {
+        debug_script_warn("Speech load failure: '%s'", voice_name.GetCStr());
+        return false;
+    }
+
+    set_clip_to_channel(SCHAN_SPEECH,speechmp3);
+    return true;
+}
+
+// Play voice-over clip and adjust audio volumes;
+// voice_name should be bare clip name without extension
+static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool is_blocking)
+{
+    if (!play_voice_clip_on_channel(voice_name))
+        return false;
+    if (!as_speech)
+        return true;
+
+    play.speech_has_voice = true;
+    play.speech_voice_blocking = is_blocking;
+
+    cancel_scheduled_music_update();
+    play.music_vol_was = play.music_master_volume;
+    // Negative value means set exactly; positive means drop that amount
+    if (play.speech_music_drop < 0)
+        play.music_master_volume = -play.speech_music_drop;
+    else
+        play.music_master_volume -= play.speech_music_drop;
+    apply_volume_drop_modifier(true);
+    update_music_volume();
+    update_ambient_sound_vol();
+    return true;
+}
+
+// Stop voice-over clip and schedule audio volume reset
+static void stop_voice_clip_impl()
+{
+    play.music_master_volume = play.music_vol_was;
+    // update the music in a bit (fixes two speeches follow each other
+    // and music going up-then-down)
+    schedule_music_update_at(AGS_Clock::now() + std::chrono::milliseconds(500));
+    stop_and_destroy_channel(SCHAN_SPEECH);
+}
+
+bool play_voice_speech(int charid, int sndid)
+{
+    // don't play speech if we're skipping a cutscene
+    if (!play.ShouldPlayVoiceSpeech())
+        return false;
+
+    String voice_file = get_cue_filename(charid, sndid);
+    if (!play_voice_clip_impl(voice_file, true, true))
+        return false;
 
     int ii;  // Compare the base file name to the .pam file name
     curLipLine = -1;  // See if we have voice lip sync for this line
@@ -491,71 +614,59 @@ int play_speech(int charid,int sndid) {
     if (numLipLines > 0)
         game.options[OPT_LIPSYNCTEXT] = 0;
 
-    String asset_name = voice_file;
-    asset_name.Append(".wav");
-    speechmp3 = my_load_wave(get_voice_over_assetpath(asset_name), play.speech_volume, 0);
-
-    if (speechmp3 == NULL) {
-        asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "ogg");
-        speechmp3 = my_load_ogg(get_voice_over_assetpath(asset_name), play.speech_volume);
-    }
-
-    if (speechmp3 == NULL) {
-        asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "mp3");
-        speechmp3 = my_load_mp3(get_voice_over_assetpath(asset_name), play.speech_volume);
-    }
-
-    if (speechmp3 != NULL) {
-        if (speechmp3->play() == 0)
-            speechmp3 = NULL;
-    }
-
-    if (speechmp3 == NULL) {
-        debug_script_warn("Speech load failure: '%s'", voice_file.GetCStr());
-        curLipLine = -1;
-        return 0;
-    }
-
-    channels[SCHAN_SPEECH] = speechmp3;
-    play.music_vol_was = play.music_master_volume;
-
-    // Negative value means set exactly; positive means drop that amount
-    if (play.speech_music_drop < 0)
-        play.music_master_volume = -play.speech_music_drop;
-    else
-        play.music_master_volume -= play.speech_music_drop;
-
-    apply_volume_drop_modifier(true);
-    update_music_volume();
-    update_music_at = 0;
-    mvolcounter = 0;
-
-    update_ambient_sound_vol();
-
     // change Sierra w/bgrnd  to Sierra without background when voice
     // is available (for Tierra)
     if ((game.options[OPT_SPEECHTYPE] == 2) && (play.no_textbg_when_voice > 0)) {
         game.options[OPT_SPEECHTYPE] = 1;
         play.no_textbg_when_voice = 2;
     }
-
-    return 1;
+    return true;
 }
 
-void stop_speech() {
-    if (channels[SCHAN_SPEECH] != NULL) {
-        play.music_master_volume = play.music_vol_was;
-        // update the music in a bit (fixes two speeches follow each other
-        // and music going up-then-down)
-        update_music_at = 20;
-        mvolcounter = 1;
-        stop_and_destroy_channel (SCHAN_SPEECH);
-        curLipLine = -1;
+bool play_voice_nonblocking(int charid, int sndid, bool as_speech)
+{
+    // don't play voice if we're skipping a cutscene
+    if (!play.ShouldPlayVoiceSpeech())
+        return false;
+    // don't play voice if there's a blocking speech with voice-over already
+    if (play.IsBlockingVoiceSpeech())
+        return false;
 
-        if (play.no_textbg_when_voice == 2) {
-            // set back to Sierra w/bgrnd
-            play.no_textbg_when_voice = 1;
-            game.options[OPT_SPEECHTYPE] = 2;
-        }
+    String voice_file = get_cue_filename(charid, sndid);
+    return play_voice_clip_impl(voice_file, as_speech, false);
+}
+
+void stop_voice_speech()
+{
+    if (!play.speech_has_voice)
+        return;
+
+    stop_voice_clip_impl();
+
+    // Reset lipsync
+    curLipLine = -1;
+    // Set back to Sierra w/bgrnd
+    if (play.no_textbg_when_voice == 2)
+    {
+        play.no_textbg_when_voice = 1;
+        game.options[OPT_SPEECHTYPE] = 2;
+    }
+    play.speech_has_voice = false;
+    play.speech_voice_blocking = false;
+}
+
+void stop_voice_nonblocking()
+{
+    if (!play.speech_has_voice)
+        return;
+    stop_voice_clip_impl();
+    // Only reset speech flags if we are truly playing a non-blocking voice;
+    // otherwise we might be inside blocking speech function and should let
+    // it keep these flags to be able to finalize properly.
+    // This is an imperfection of current speech implementation.
+    if (!play.speech_voice_blocking)
+    {
+        play.speech_has_voice = false;
+        play.speech_voice_blocking = false;
     }
 }

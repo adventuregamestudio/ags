@@ -221,7 +221,7 @@ ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
 {
     const Rect &view = play.GetRoomViewport();
     if (!view.IsInside(x, y))
-        return NULL;
+        return nullptr;
 
     ScriptViewport *viewport = new ScriptViewport();
     ccRegisterManagedObject(viewport, viewport);
@@ -237,7 +237,7 @@ ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *, int scrx, int scr
 {
     VpPoint vpt = play.ScreenToRoom(scrx, scry, clipViewport);
     if (vpt.second < 0)
-        return NULL;
+        return nullptr;
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
@@ -246,7 +246,7 @@ ScriptUserObject *Viewport_RoomToScreenPoint(ScriptViewport *, int roomx, int ro
     const Rect &view = play.GetRoomViewport();
     Point pt = play.RoomToScreen(roomx, roomy);
     if (clipViewport && !view.IsInside(pt.X, pt.Y))
-        return NULL;
+        return nullptr;
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 

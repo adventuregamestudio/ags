@@ -161,9 +161,7 @@ Weather::Weather(bool IsSnow)
 }
 
 
-Weather::~Weather()
-{
-}
+Weather::~Weather() = default;
 
 
 void Weather::Update()
@@ -331,7 +329,7 @@ bool Weather::ReinitializeViews()
   int i;
   for (i = 0; i < 5; i++)
   {
-    if (mViews[i].bitmap != NULL)
+    if (mViews[i].bitmap != nullptr)
     {
       if (mViews[i].is_default)
         mViews[i].bitmap = default_bitmap;
@@ -391,7 +389,7 @@ void Weather::Initialize()
     mViews[i].is_default = true;
     mViews[i].view = -1;
     mViews[i].loop = -1;
-    mViews[i].bitmap = NULL;
+    mViews[i].bitmap = nullptr;
   }
   
   SetAmount(0);

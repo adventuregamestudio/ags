@@ -47,6 +47,9 @@ extern "C" DDRAW_SURFACE *gfx_directx_primary_surface;
 extern int dxmedia_play_video (const char*, bool, int, int);
 #endif // WINDOWS_VERSION
 
+#include "ac/timer.h"
+
+
 namespace AGS
 {
 namespace Engine
@@ -78,15 +81,15 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
   _tint_green = 0;
   _tint_blue = 0;
   _autoVsync = false;
-  _spareTintingScreen = NULL;
-  _gfxModeList = NULL;
+  _spareTintingScreen = nullptr;
+  _gfxModeList = nullptr;
 #ifdef _WIN32
   dxGammaControl = NULL;
 #endif
-  _allegroScreenWrapper = NULL;
-  _origVirtualScreen = NULL;
-  virtualScreen = NULL;
-  _stageVirtualScreen = NULL;
+  _allegroScreenWrapper = nullptr;
+  _origVirtualScreen = nullptr;
+  virtualScreen = nullptr;
+  _stageVirtualScreen = nullptr;
 
   // Initialize default sprite batch, it will be used when no other batch was activated
   ALSoftwareGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
@@ -108,11 +111,11 @@ bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
   {
     return true;
   }
-  if (_gfxModeList == NULL)
+  if (_gfxModeList == nullptr)
   {
     _gfxModeList = get_gfx_mode_list(GetAllegroGfxDriverID(mode.Windowed));
   }
-  if (_gfxModeList != NULL)
+  if (_gfxModeList != nullptr)
   {
     // if a list is available, check if the mode exists. This prevents the screen flicking
     // between loads of unsupported resolutions
@@ -141,13 +144,13 @@ int ALSoftwareGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_dep
 
 IGfxModeList *ALSoftwareGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-  if (_gfxModeList == NULL)
+  if (_gfxModeList == nullptr)
   {
     _gfxModeList = get_gfx_mode_list(GetAllegroGfxDriverID(false));
   }
-  if (_gfxModeList == NULL)
+  if (_gfxModeList == nullptr)
   {
-    return NULL;
+    return nullptr;
   }
   return new ALSoftwareGfxModeList(_gfxModeList);
 }
@@ -201,8 +204,8 @@ bool ALSoftwareGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile 
 
   set_color_depth(mode.ColorDepth);
 
-  if (_initGfxCallback != NULL)
-    _initGfxCallback(NULL);
+  if (_initGfxCallback != nullptr)
+    _initGfxCallback(nullptr);
 
   if (!IsModeSupported(mode) || set_gfx_mode(driver, mode.Width, mode.Height, 0, 0) != 0)
     return false;
@@ -264,9 +267,9 @@ void ALSoftwareGraphicsDriver::DestroyVirtualScreen()
   {
     screen = (BITMAP*)_filter->ShutdownAndReturnRealScreen()->GetAllegroBitmap();
   }
-  _origVirtualScreen = NULL;
-  virtualScreen = NULL;
-  _stageVirtualScreen = NULL;
+  _origVirtualScreen = nullptr;
+  virtualScreen = nullptr;
+  _stageVirtualScreen = nullptr;
 }
 
 void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
@@ -286,7 +289,7 @@ void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
 
   // Note this does not destroy the underlying allegro screen bitmap, only wrapper.
   delete _allegroScreenWrapper;
-  _allegroScreenWrapper = NULL;
+  _allegroScreenWrapper = nullptr;
 }
 
 bool ALSoftwareGraphicsDriver::SetNativeSize(const Size &src_size)
@@ -308,7 +311,7 @@ bool ALSoftwareGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
 {
   int color = 0;
-  if (colorToUse != NULL) 
+  if (colorToUse != nullptr) 
     color = makecol_depth(_mode.ColorDepth, colorToUse->r, colorToUse->g, colorToUse->b);
   // TODO: hardware renderers do not scale these coordinates, but software filter does!
   // find out what's the expected behavior and sync them
@@ -325,10 +328,10 @@ void ALSoftwareGraphicsDriver::UnInit()
   OnUnInit();
   ReleaseDisplayMode();
 
-  if (_gfxModeList != NULL)
+  if (_gfxModeList != nullptr)
   {
     destroy_gfx_mode_list(_gfxModeList);
-    _gfxModeList = NULL;
+    _gfxModeList = nullptr;
   }
 }
 
@@ -394,7 +397,7 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
     int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
     int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
-    if (desc.Surface != NULL)
+    if (desc.Surface != nullptr)
     {
         batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
         batch.Opaque = true;
@@ -449,22 +452,21 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
 
         virtualScreen->SetClip(Rect::MoveBy(viewport, -_virtualScrOff.X, -_virtualScrOff.Y));
         Bitmap *surface = batch.Surface.get();
-        // TODO: correct transform offsets to have pre-scale (source) and post-scale (dest) offsets!
-        int view_offx = viewport.Left + transform.X - _virtualScrOff.X;
-        int view_offy = viewport.Top + transform.Y - _virtualScrOff.Y;
+        int view_offx = viewport.Left - _virtualScrOff.X;
+        int view_offy = viewport.Top - _virtualScrOff.Y;
         if (surface)
         {
             if (!batch.Opaque)
                 surface->ClearTransparent();
             _stageVirtualScreen = surface;
-            RenderSpriteBatch(batch, surface, 0, 0);
+            RenderSpriteBatch(batch, surface, transform.X, transform.Y);
             // TODO: extract this to the generic software blit-with-transform function
             virtualScreen->StretchBlt(surface, RectWH(view_offx, view_offy, viewport.GetWidth(), viewport.GetHeight()),
                 batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
         }
         else
         {
-            RenderSpriteBatch(batch, virtualScreen, view_offx, view_offy);
+            RenderSpriteBatch(batch, virtualScreen, view_offx + transform.X, view_offy + transform.Y);
         }
         _stageVirtualScreen = virtualScreen;
     }
@@ -476,7 +478,7 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
   const std::vector<ALDrawListEntry> &drawlist = batch.List;
   for (size_t i = 0; i < drawlist.size(); i++)
   {
-    if (drawlist[i].bitmap == NULL)
+    if (drawlist[i].bitmap == nullptr)
     {
       if (_nullSpriteCallback)
         _nullSpriteCallback(drawlist[i].x, drawlist[i].y);
@@ -506,7 +508,7 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
         set_alpha_blender();
       else
         // here _transparency is used as alpha (between 1 and 254)
-        set_blender_mode(NULL, NULL, _trans_alpha_blender32, 0, 0, 0, bitmap->_transparency);
+        set_blender_mode(nullptr, nullptr, _trans_alpha_blender32, 0, 0, 0, bitmap->_transparency);
 
       surface->TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
     }
@@ -588,13 +590,14 @@ Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer()
     return _stageVirtualScreen;
 }
 
-bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
+bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   (void)at_native_res; // software driver always renders at native resolution at the moment
+  // software filter is taught to copy to any size
   if (destination->GetColorDepth() != _mode.ColorDepth)
   {
-    if (want_size)
-        *want_size = destination->GetSize(); // software filter is taught to copy to any size
+    if (want_fmt)
+        *want_fmt = GraphicResolution(destination->GetWidth(), destination->GetHeight(), _mode.ColorDepth);
     return false;
   }
   _filter->GetCopyOfScreenIntoBitmap(destination);
@@ -631,7 +634,6 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
 
    for (a = 0; a < 256; a+=speed)
    {
-       int timerValue = *_loopTimer;
        bmp_buff->Fill(clearColor);
        set_trans_blender(0,0,0,a);
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
@@ -641,9 +643,8 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
        {
          if (_pollingCallback)
            _pollingCallback();
-         platform->Delay(1);
        }
-       while (timerValue == *_loopTimer);
+       while (waitingForNextTick());
    }
    delete bmp_buff;
 
@@ -670,7 +671,6 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
 			
             for (a = 255-speed; a > 0; a-=speed)
             {
-                int timerValue = *_loopTimer;
                 bmp_buff->Fill(clearColor);
                 set_trans_blender(0,0,0,a);
                 bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
@@ -680,9 +680,8 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
                 {
                   if (_pollingCallback)
                     _pollingCallback();
-                  platform->Delay(1);
                 }
-                while (timerValue == *_loopTimer);
+                while (waitingForNextTick());
             }
             delete bmp_buff;
         }
@@ -768,14 +767,14 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
       this->Vsync();
       int vcentre = _srcRect.GetHeight() / 2;
       this->ClearRectangle(_srcRect.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
-          _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2, NULL);
+          _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2, nullptr);
     
       if (_pollingCallback)
         _pollingCallback();
 
       platform->Delay(delay);
     }
-    this->ClearRectangle(0, 0, _srcRect.GetWidth() - 1, _srcRect.GetHeight() - 1, NULL);
+    this->ClearRectangle(0, 0, _srcRect.GetWidth() - 1, _srcRect.GetHeight() - 1, nullptr);
   }
   else
   {
@@ -816,11 +815,11 @@ unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned 
 }
 
 
-ALSWGraphicsFactory *ALSWGraphicsFactory::_factory = NULL;
+ALSWGraphicsFactory *ALSWGraphicsFactory::_factory = nullptr;
 
 ALSWGraphicsFactory::~ALSWGraphicsFactory()
 {
-    _factory = NULL;
+    _factory = nullptr;
 }
 
 size_t ALSWGraphicsFactory::GetFilterCount() const
@@ -837,7 +836,7 @@ const GfxFilterInfo *ALSWGraphicsFactory::GetFilterInfo(size_t index) const
     case 1:
         return &HqxGfxFilter::FilterInfo;
     default:
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -866,7 +865,7 @@ AllegroGfxFilter *ALSWGraphicsFactory::CreateFilter(const String &id)
         return new AllegroGfxFilter();
     else if (HqxGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
         return new HqxGfxFilter();
-    return NULL;
+    return nullptr;
 }
 
 } // namespace ALSW

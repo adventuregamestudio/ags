@@ -58,7 +58,7 @@ int InventoryItem_GetID(ScriptInvItem *scii) {
 ScriptInvItem *GetInvAtLocation(int xx, int yy) {
   int hsnum = GetInvAt(xx, yy);
   if (hsnum <= 0)
-    return NULL;
+    return nullptr;
   return &scrInv[hsnum];
 }
 

@@ -31,7 +31,7 @@ struct ccScript
 public:
     char *globaldata;
     int32_t globaldatasize;
-    intptr_t *code;
+    int32_t *code;                // executable byte-code, 32-bit per op or arg
     int32_t codesize;
     char *strings;
     int32_t stringssize;

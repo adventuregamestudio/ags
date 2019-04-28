@@ -75,7 +75,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -101,7 +101,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -131,7 +131,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;NO_MP3_PLAYER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -190,6 +190,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptcamera.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdatetime.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdict.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptfile.cpp" />
@@ -200,6 +201,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewport.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptset.cpp" />
     <ClCompile Include="..\..\Engine\ac\event.cpp" />
     <ClCompile Include="..\..\Engine\ac\file.cpp" />
     <ClCompile Include="..\..\Engine\ac\game.cpp" />
@@ -259,6 +261,7 @@
     <ClCompile Include="..\..\Engine\ac\overlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\parser.cpp" />
     <ClCompile Include="..\..\Engine\ac\properties.cpp" />
+    <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp" />
     <ClCompile Include="..\..\Engine\ac\sys_events.cpp" />
     <ClCompile Include="..\..\Engine\ac\region.cpp" />
     <ClCompile Include="..\..\Engine\ac\richgamemedia.cpp" />
@@ -378,6 +381,8 @@
     <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\READS3M.C" />
     <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\READXM.C" />
     <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\XMEFFECT.C" />
+    <ClCompile Include="..\..\Engine\libsrc\glad\src\glad.c" />
+    <ClCompile Include="..\..\Engine\libsrc\glad\src\glad_wgl.c" />
     <ClCompile Include="..\..\Engine\libsrc\hq2x\hq2x3x.cpp" />
     <ClCompile Include="..\..\Engine\libsrc\libcda-0.5\windows.c" />
     <ClCompile Include="..\..\Engine\main\config.cpp" />
@@ -503,9 +508,11 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptaudiochannel.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptcontainers.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdatetime.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialog.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdict.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptfile.h" />
@@ -516,6 +523,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptregion.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h" />
@@ -674,6 +682,7 @@
     <ClInclude Include="..\..\Engine\media\audio\audio.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiointernaldefs.h" />
+    <ClInclude Include="..\..\Engine\media\audio\audio_system.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_mydumbmod.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_myjgmod.h" />
     <ClInclude Include="..\..\Engine\media\audio\clip_mymidi.h" />

@@ -59,6 +59,7 @@
 #include "ac/dynobj/cc_inventory.h"
 #include "script/script_runtime.h"
 #include "gfx/gfx_def.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 
@@ -79,8 +80,6 @@ extern int said_speech_line;
 extern int numscreenover;
 extern int said_text;
 extern int our_eip;
-extern int update_music_at;
-extern int cur_mode;
 extern CCCharacter ccDynamicCharacter;
 extern CCInventory ccDynamicInv;
 
@@ -96,7 +95,7 @@ int char_lowest_yp;
 int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
 int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
 int facetalkBlinkLoop = 0;
-CharacterInfo *facetalkchar = NULL;
+CharacterInfo *facetalkchar = nullptr;
 // Do override default portrait position during QFG4-style speech overlay update
 bool facetalk_qfg4_override_placement_x = false;
 bool facetalk_qfg4_override_placement_y = false;
@@ -104,8 +103,8 @@ bool facetalk_qfg4_override_placement_y = false;
 // lip-sync speech settings
 int loops_per_character, text_lips_offset, char_speaking = -1;
 int char_thinking = -1;
-const char *text_lips_text = NULL;
-SpeechLipSyncLine *splipsync = NULL;
+const char *text_lips_text = nullptr;
+SpeechLipSyncLine *splipsync = nullptr;
 int numLipLines = 0, curLipLine = -1, curLipLinePhoneme = 0;
 
 // **** CHARACTER: FUNCTIONS ****
@@ -113,7 +112,7 @@ int numLipLines = 0, curLipLine = -1, curLipLinePhoneme = 0;
 void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex) {
     int ee;
 
-    if (invi == NULL)
+    if (invi == nullptr)
         quit("!AddInventoryToCharacter: invalid inventory number");
 
     int inum = invi->id;
@@ -418,7 +417,7 @@ void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
 
 void Character_FaceDirection(CharacterInfo *char1, int direction, int blockingStyle)
 {
-    if (char1 == NULL)
+    if (char1 == nullptr)
         quit("!FaceDirection: invalid character specified");
 
     if (direction != SCR_NO_VALUE)
@@ -432,21 +431,21 @@ void Character_FaceDirection(CharacterInfo *char1, int direction, int blockingSt
 
 void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle)
 {
-    if (char1 == NULL)
+    if (char1 == nullptr)
         quit("!FaceLocation: invalid character specified");
 
     FaceLocationXY(char1, xx, yy, blockingStyle);
 }
 
 void Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blockingStyle) {
-    if (obj == NULL) 
+    if (obj == nullptr) 
         quit("!FaceObject: invalid object specified");
 
     FaceLocationXY(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
 }
 
 void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle) {
-    if (char2 == NULL) 
+    if (char2 == nullptr) 
         quit("!FaceCharacter: invalid character specified");
 
     if (char1->room != char2->room)
@@ -460,11 +459,11 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
     if ((eagerness < 0) || (eagerness > 250))
         quit("!FollowCharacterEx: invalid eagerness: must be 0-250");
 
-    if ((chaa->index_id == game.playercharacter) && (tofollow != NULL) && 
+    if ((chaa->index_id == game.playercharacter) && (tofollow != nullptr) && 
         (tofollow->room != chaa->room))
         quit("!FollowCharacterEx: you cannot tell the player character to follow a character in another room");
 
-    if (tofollow != NULL) {
+    if (tofollow != nullptr) {
         debug_script_log("%s: Start following %s (dist %d, eager %d)", chaa->scrname, tofollow->scrname, distaway, eagerness);
     }
     else {
@@ -478,7 +477,7 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
             chaa->baseline = -1;
     }
 
-    if (tofollow == NULL)
+    if (tofollow == nullptr)
         chaa->following = -1;
     else
         chaa->following = tofollow->index_id;
@@ -500,7 +499,7 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
 }
 
 int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {
-    if (char2 == NULL)
+    if (char2 == nullptr)
         quit("!AreCharactersColliding: invalid char2");
 
     if (char1->room != char2->room) return 0; // not colliding
@@ -519,7 +518,7 @@ int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {
 }
 
 int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
-    if (objid == NULL)
+    if (objid == nullptr)
         quit("!AreCharObjColliding: invalid object number");
 
     if (chin->room != displayed_room)
@@ -527,13 +526,13 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
     if (objs[objid->id].on != 1)
         return 0;
 
-    Bitmap *checkblk = GetObjectImage(objid->id, NULL);
+    Bitmap *checkblk = GetObjectImage(objid->id, nullptr);
     int objWidth = checkblk->GetWidth();
     int objHeight = checkblk->GetHeight();
     int o1x = objs[objid->id].x;
     int o1y = objs[objid->id].y - objHeight;
 
-    Bitmap *charpic = GetCharacterImage(chin->index_id, NULL);
+    Bitmap *charpic = GetCharacterImage(chin->index_id, nullptr);
 
     int charWidth = charpic->GetWidth();
     int charHeight = charpic->GetHeight();
@@ -681,7 +680,7 @@ void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yof
 
 void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
 
-    if (invi == NULL)
+    if (invi == nullptr)
         quit("!LoseInventoryFromCharacter: invalid invnetory number");
 
     int inum = invi->id;
@@ -1080,7 +1079,7 @@ bool Character_SetTextProperty(CharacterInfo *chaa, const char *property, const 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
 
     if (chaa->activeinv <= 0)
-        return NULL;
+        return nullptr;
 
     return &scrInv[chaa->activeinv];
 }
@@ -1088,7 +1087,7 @@ ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
 void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
     guis_need_update = 1;
 
-    if (iit == NULL) {
+    if (iit == nullptr) {
         chaa->activeinv = -1;
 
         if (chaa->index_id == game.playercharacter) {
@@ -1263,7 +1262,7 @@ int Character_GetIInventoryQuantity(CharacterInfo *chaa, int index) {
 
 int Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi)
 {
-    if (invi == NULL)
+    if (invi == nullptr)
         quit("!Character.HasInventory: NULL inventory item supplied");
 
     return (chaa->inv[invi->id] > 0) ? 1 : 0;
@@ -1836,7 +1835,7 @@ int has_hit_another_character(int sourceChar) {
         if (ww == sourceChar) continue;
         if (game.chars[ww].flags & CHF_NOBLOCKING) continue;
 
-        if (is_char_on_another (sourceChar, ww, NULL, NULL)) {
+        if (is_char_on_another (sourceChar, ww, nullptr, nullptr)) {
             // we are now overlapping character 'ww'
             if ((game.chars[ww].walking) && 
                 ((game.chars[ww].flags & CHF_AWAITINGMOVE) == 0))
@@ -2144,7 +2143,7 @@ Bitmap *GetCharacterImage(int charid, int *isFlipped)
 {
     if (!gfxDriver->HasAcceleratedTransform())
     {
-        if (actsps[charid + MAX_ROOM_OBJECTS] != NULL) 
+        if (actsps[charid + MAX_ROOM_OBJECTS] != nullptr) 
         {
             // the actsps image is pre-flipped, so no longer register the image as such
             if (isFlipped)
@@ -2160,7 +2159,7 @@ Bitmap *GetCharacterImage(int charid, int *isFlipped)
 CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
     int hsnum = GetCharIDAtScreen(xx, yy);
     if (hsnum < 0)
-        return NULL;
+        return nullptr;
     return &game.chars[hsnum];
 }
 
@@ -2168,7 +2167,7 @@ CharacterInfo *GetCharacterAtRoom(int x, int y)
 {
     int hsnum = is_pos_on_character(x, y);
     if (hsnum < 0)
-        return NULL;
+        return nullptr;
     return &game.chars[hsnum];
 }
 
@@ -2375,8 +2374,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     play.speech_in_post_state = false;
 
     if (isPause) {
-        if (update_music_at > 0)
-            update_music_at += play.messagetime;
+        postpone_scheduled_music_update_by(std::chrono::milliseconds(play.messagetime * 1000 / frames_per_second));
         GameLoopUntilEvent(UNTIL_INTISNEG,(long)&play.messagetime);
         return;
     }
@@ -2420,22 +2418,11 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     text_lips_offset = 0;
     text_lips_text = texx;
 
-    Bitmap *closeupface=NULL;
-    if (texx[0]=='&') {
-        // auto-speech
-        int igr=atoi(&texx[1]);
-        while ((texx[0]!=' ') & (texx[0]!=0)) texx++;
-        if (texx[0]==' ') texx++;
-        if (igr <= 0)
-            quit("DisplaySpeech: auto-voice symbol '&' not followed by valid integer");
+    Bitmap *closeupface=nullptr;
+    // TODO: we always call _display_at later which may also start voice-over;
+    // find out if this may be refactored and voice started only in one place.
+    try_auto_play_speech(texx, texx, aschar, true);
 
-        text_lips_text = texx;
-
-        if (play_speech(aschar,igr)) {
-            if (play.want_speech == 2)
-                texx = "  ";  // speech only, no text.
-        }
-    }
     if (game.options[OPT_SPEECHTYPE] == 3)
         remove_screen_overlay(OVER_COMPLETE);
     our_eip=1500;
@@ -2785,12 +2772,12 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     _display_at(tdxp,tdyp,bwidth,texx,0,textcol, isThought, allowShrink, overlayPositionFixed);
     our_eip=156;
     if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
-        closeupface = NULL;
-    if (closeupface!=NULL)
+        closeupface = nullptr;
+    if (closeupface!=nullptr)
         remove_screen_overlay(ovr_type);
     mark_screen_dirty();
     face_talking = -1;
-    facetalkchar = NULL;
+    facetalkchar = nullptr;
     our_eip=157;
     if (oldview>=0) {
         speakingChar->flags &= ~CHF_FIXVIEW;
@@ -2806,7 +2793,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     }
     char_speaking = -1;
     char_thinking = -1;
-    stop_speech();
+    if (play.IsBlockingVoiceSpeech())
+        stop_voice_speech();
 }
 
 int get_character_currently_talking() {

@@ -75,9 +75,9 @@ int g_FollowCharacterDy = 0;
 int g_FollowCharacterHorz = 0;
 int g_FollowCharacterVert = 0;
 
-AGSCharacter* g_FollowCharacter = NULL;
+AGSCharacter* g_FollowCharacter = nullptr;
 
-BITMAP* g_LightBitmap = NULL;
+BITMAP* g_LightBitmap = nullptr;
 
 // Imported script functions
 typedef int (*SCAPI_CHARACTER_GETX)(AGSCharacter *ch);
@@ -431,7 +431,7 @@ void CreateLightBitmap()
    {
 	   engine->GetMousePosition(&g_FlashlightX, &g_FlashlightY);
    }
-   else if (g_FollowCharacter != NULL)
+   else if (g_FollowCharacter != nullptr)
    {
      int char_x = Character_GetX(g_FollowCharacter);
      int char_y = Character_GetY(g_FollowCharacter);

@@ -1,0 +1,40 @@
+FREETYPE_SRCS := \
+	builds/unix/ftsystem.c \
+	src/base/ftdebug.c \
+	src/base/ftinit.c \
+	src/base/ftbase.c \
+	src/base/ftglyph.c \
+	src/base/ftmm.c \
+	src/base/ftbdf.c \
+	src/base/fttype1.c \
+	src/base/ftxf86.c \
+	src/base/ftpfr.c \
+	src/base/ftbbox.c \
+	src/winfonts/winfnt.c \
+	src/truetype/truetype.c \
+	src/pfr/pfr.c \
+	src/type1/type1.c \
+	src/cff/cff.c \
+	src/smooth/smooth.c \
+	src/bdf/bdf.c \
+	src/raster/raster.c \
+	src/cid/type1cid.c \
+	src/psnames/psmodule.c \
+	src/sfnt/sfnt.c \
+	src/psaux/psaux.c \
+	src/cache/ftcache.c \
+	src/type42/type42.c \
+	src/pcf/pcf.c \
+	src/pshinter/pshinter.c \
+	src/autohint/autohint.c \
+	src/gzip/ftgzip.c
+
+FREETYPE_SRCDIR := ../Engine/libsrc/freetype-2.1.3
+FREETYPE := $(foreach file,$(FREETYPE_SRCS),$(FREETYPE_SRCDIR)/$(file))
+FREETYPE_OBJS := $(FREETYPE:.c=.o)
+FREETYPE_INC := $(FREETYPE_SRCDIR)/include
+$(FREETYPE_SRCDIR)%.o: CFLAGS += -I $(FREETYPE_INC) -I $(FREETYPE_SRCDIR)/builds/unix
+
+FT_CFLAGS := -I $(FREETYPE_INC)
+FT_LDFLAGS :=
+

@@ -87,7 +87,7 @@ void *sc_OpenFile(const char *fnmm, int mode) {
   sc_File *scf = new sc_File();
   if (scf->OpenFile(fnmm, mode) == 0) {
     delete scf;
-    return 0;
+    return nullptr;
   }
   ccRegisterManagedObject(scf, scf);
   return scf;
@@ -371,14 +371,14 @@ bool LocateAsset(const AssetPath &path, AssetLocation &loc)
     // Change to the different library, if required
     // TODO: teaching AssetManager to register multiple libraries simultaneously
     // will let us skip this step, and also make this operation much faster.
-    if (!assetlib.IsEmpty() && assetlib.CompareNoCase(game_file_name) != 0)
+    if (!assetlib.IsEmpty() && assetlib.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
-        AssetManager::SetDataFile(find_assetlib(assetlib));
+        AssetManager::SetDataFile(get_known_assetlib(assetlib));
         needsetback = true;
     }
     bool res = AssetManager::GetAssetLocation(assetname, loc);
     if (needsetback)
-        AssetManager::SetDataFile(game_file_name);
+        AssetManager::SetDataFile(ResPaths.GamePak.Path);
     return res;
 }
 
@@ -395,7 +395,7 @@ PACKFILE *PackfileFromAsset(const AssetPath &path)
         }
         return pf;
     }
-    return NULL;
+    return nullptr;
 }
 
 DUMBFILE *DUMBfileFromAsset(const AssetPath &path)
@@ -403,7 +403,7 @@ DUMBFILE *DUMBfileFromAsset(const AssetPath &path)
     PACKFILE *pf = PackfileFromAsset(path);
     if (pf)
         return dumbfile_open_packfile(pf);
-    return NULL;
+    return nullptr;
 }
 
 bool DoesAssetExistInLib(const AssetPath &assetname)
@@ -412,14 +412,14 @@ bool DoesAssetExistInLib(const AssetPath &assetname)
     // Change to the different library, if required
     // TODO: teaching AssetManager to register multiple libraries simultaneously
     // will let us skip this step, and also make this operation much faster.
-    if (!assetname.first.IsEmpty() && assetname.first.CompareNoCase(game_file_name) != 0)
+    if (!assetname.first.IsEmpty() && assetname.first.CompareNoCase(ResPaths.GamePak.Name) != 0)
     {
-        AssetManager::SetDataFile(find_assetlib(assetname.first));
+        AssetManager::SetDataFile(get_known_assetlib(assetname.first));
         needsetback = true;
     }
     bool res = AssetManager::DoesAssetExist(assetname.second);
     if (needsetback)
-        AssetManager::SetDataFile(game_file_name);
+        AssetManager::SetDataFile(ResPaths.GamePak.Path);
     return res;
 }
 
@@ -461,10 +461,10 @@ void get_install_dir_path(char* buffer, const char *fileName)
 
 String find_assetlib(const String &filename)
 {
-    String libname = cbuf_to_string_and_free( ci_find_file(usetup.data_files_dir, filename) );
+    String libname = cbuf_to_string_and_free( ci_find_file(ResPaths.DataDir, filename) );
     if (AssetManager::IsDataFile(libname))
         return libname;
-    if (Path::ComparePaths(usetup.data_files_dir, installDirectory) != 0)
+    if (Path::ComparePaths(ResPaths.DataDir, installDirectory) != 0)
     {
       // Hack for running in Debugger
       libname = cbuf_to_string_and_free( ci_find_file(installDirectory, filename) );
@@ -474,10 +474,24 @@ String find_assetlib(const String &filename)
     return "";
 }
 
+// Looks up for known valid asset library and returns path, or empty string if failed
+String get_known_assetlib(const String &filename)
+{
+    // TODO: write now there's only 3 regular PAKs, so we may do this quick
+    // string comparison, but if we support more maybe we could use a table.
+    if (filename.CompareNoCase(ResPaths.GamePak.Name) == 0)
+        return ResPaths.GamePak.Path;
+    if (filename.CompareNoCase(ResPaths.AudioPak.Name) == 0)
+        return ResPaths.AudioPak.Path;
+    if (filename.CompareNoCase(ResPaths.SpeechPak.Name) == 0)
+        return ResPaths.SpeechPak.Path;
+    return String();
+}
+
 Stream *find_open_asset(const String &filename)
 {
     Stream *asset_s = Common::AssetManager::OpenAsset(filename);
-    if (!asset_s && Path::ComparePaths(usetup.data_files_dir, installDirectory) != 0) 
+    if (!asset_s && Path::ComparePaths(ResPaths.DataDir, installDirectory) != 0)
     {
         // Just in case they're running in Debug, try standalone file in compiled folder
         asset_s = ci_fopen(String::FromFormat("%s/%s", installDirectory.GetCStr(), filename.GetCStr()));
@@ -489,7 +503,7 @@ AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
 {
     // Special case is explicitly defined audio directory, which should be
     // tried first regardless of bundling type.
-    if (Path::ComparePaths(usetup.data_files_dir, installAudioDirectory) != 0)
+    if (Path::ComparePaths(ResPaths.DataDir, installAudioDirectory) != 0)
     {
         String filepath = String::FromFormat("%s/%s", installAudioDirectory.GetCStr(), filename.GetCStr());
         if (Path::IsFile(filepath))
@@ -497,7 +511,7 @@ AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
     }
 
     if (bundling_type == AUCL_BUNDLE_EXE)
-        return AssetPath(game_file_name, filename);
+        return AssetPath(ResPaths.GamePak.Name, filename);
     else if (bundling_type == AUCL_BUNDLE_VOX)
         return AssetPath(game.GetAudioVOXName(), filename);
     return AssetPath();
@@ -507,13 +521,13 @@ AssetPath get_voice_over_assetpath(const String &filename)
 {
     // Special case is explicitly defined voice-over directory, which should be
     // tried first.
-    if (Path::ComparePaths(usetup.data_files_dir, installVoiceDirectory) != 0)
+    if (Path::ComparePaths(ResPaths.DataDir, installVoiceDirectory) != 0)
     {
         String filepath = String::FromFormat("%s/%s", installVoiceDirectory.GetCStr(), filename.GetCStr());
         if (Path::IsFile(filepath))
             return AssetPath("", filepath);
     }
-    return AssetPath(speech_file, filename);
+    return AssetPath(ResPaths.SpeechPak.Name, filename);
 }
 
 ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
@@ -535,7 +549,7 @@ ScriptFileHandle *check_valid_file_handle_ptr(Stream *stream_ptr, const char *op
 
   String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
   quit(exmsg);
-  return NULL;
+  return nullptr;
 }
 
 ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *operation_name)
@@ -553,13 +567,13 @@ ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *oper
 
   String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
   quit(exmsg);
-  return NULL;
+  return nullptr;
 }
 
 Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name)
 {
     ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle, operation_name);
-    return sc_handle ? sc_handle->stream : NULL;
+    return sc_handle ? sc_handle->stream : nullptr;
 }
 
 //=============================================================================

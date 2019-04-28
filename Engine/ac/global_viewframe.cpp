@@ -17,7 +17,7 @@
 #include "ac/view.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
-#include "media/audio/audio.h"
+#include "media/audio/audio_system.h"
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
@@ -41,7 +41,7 @@ void SetFrameSound (int vii, int loop, int frame, int sound) {
     else
     {
         ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
-        if (clip == NULL)
+        if (clip == nullptr)
             quitprintf("!SetFrameSound: audio clip aSound%d not found", sound);
 
         views[vii].loops[loop].frames[frame].sound = clip->id;

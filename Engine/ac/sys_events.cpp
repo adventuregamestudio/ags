@@ -13,14 +13,14 @@
 //=============================================================================
 
 #include "ac/common.h"
-#include "media/audio/audiodefines.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/sys_events.h"
-#include "media/audio/soundclip.h"
 #include "device/mousew32.h"
+#include "platform/base/agsplatformdriver.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -29,7 +29,6 @@ extern GameSetupStruct game;
 extern GameState play;
 
 extern volatile unsigned long globalTimerCounter;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern int pluginSimulatedClick;
 extern int displayed_room;
 extern char check_dynamic_sprites_at_exit;
@@ -42,7 +41,7 @@ int mouse_z_was = 0;
 
 int ags_kbhit () {
     int result = keypressed();
-    if ((result) && (globalTimerCounter < play.ignore_user_input_until_time))
+    if ((result) && (AGS_Clock::now() < play.ignore_user_input_until_time))
     {
         // ignoring user input
         ags_getch();
@@ -70,7 +69,7 @@ int ags_mgetbutton() {
         result = mgetbutton();
     }
 
-    if ((result >= 0) && (globalTimerCounter < play.ignore_user_input_until_time))
+    if ((result >= 0) && (AGS_Clock::now() < play.ignore_user_input_until_time))
     {
         // ignoring user input
         result = NONE;
@@ -191,6 +190,8 @@ void ags_clear_input_buffer()
 
 void ags_wait_until_keypress()
 {
-    while (!ags_kbhit());
+    while (!ags_kbhit()) {
+        platform->YieldCPU();
+    }
     ags_getch();
 }

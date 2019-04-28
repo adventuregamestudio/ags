@@ -33,7 +33,7 @@ extern ScriptString myScriptStringImpl;
 
 int String_IsNullOrEmpty(const char *thisString) 
 {
-    if ((thisString == NULL) || (thisString[0] == 0))
+    if ((thisString == nullptr) || (thisString[0] == 0))
         return 1;
 
     return 0;
@@ -205,7 +205,7 @@ int StrContains (const char *s1, const char *s2) {
     free(tempbuf1);
     free(tempbuf2);
 
-    if (offs == NULL)
+    if (offs == nullptr)
         return -1;
 
     return (offs - tempbuf1);
@@ -214,6 +214,11 @@ int StrContains (const char *s1, const char *s2) {
 //=============================================================================
 
 const char *CreateNewScriptString(const char *fromText, bool reAllocate) {
+    return (const char*)CreateNewScriptStringObj(fromText, reAllocate).second;
+}
+
+DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate)
+{
     ScriptString *str;
     if (reAllocate) {
         str = new ScriptString(fromText);
@@ -222,10 +227,14 @@ const char *CreateNewScriptString(const char *fromText, bool reAllocate) {
         str = new ScriptString();
         str->text = (char*)fromText;
     }
-
-    ccRegisterManagedObject(str->text, str);
-
-    return str->text;
+    void *obj_ptr = str->text;
+    int32_t handle = ccRegisterManagedObject(obj_ptr, str);
+    if (handle == 0)
+    {
+        delete str;
+        return DynObjectRef(0, nullptr);
+    }
+    return DynObjectRef(handle, obj_ptr);
 }
 
 void reverse_text(char *text) {

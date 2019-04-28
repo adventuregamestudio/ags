@@ -225,11 +225,11 @@ void ccCompiledScript::flush_line_numbers() {
         write_code(linum);
     }
 }
-void ccCompiledScript::write_code(intptr_t byy) {
+void ccCompiledScript::write_code(int32_t byy) {
     flush_line_numbers();
     if (codesize >= codeallocated - 2) {
         codeallocated += 500;
-        code = (intptr_t*)realloc(code,codeallocated*sizeof(intptr_t));
+        code = (int32_t*)realloc(code,codeallocated*sizeof(int32_t));
     }
     code[codesize] = byy;
     codesize++;

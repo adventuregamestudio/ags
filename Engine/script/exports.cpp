@@ -22,6 +22,7 @@ extern void RegisterAudioChannelAPI();
 extern void RegisterAudioClipAPI();
 extern void RegisterButtonAPI();
 extern void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
+extern void RegisterContainerAPI();
 extern void RegisterDateTimeAPI();
 extern void RegisterDialogAPI();
 extern void RegisterDialogOptionsRenderingAPI();
@@ -61,6 +62,7 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     RegisterAudioClipAPI();
     RegisterButtonAPI();
     RegisterCharacterAPI(base_api, compat_api);
+    RegisterContainerAPI();
     RegisterDateTimeAPI();
     RegisterDialogAPI();
     RegisterDialogOptionsRenderingAPI();

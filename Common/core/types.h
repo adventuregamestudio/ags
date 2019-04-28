@@ -18,14 +18,30 @@
 #ifndef __AGS_CN_CORE__TYPES_H
 #define __AGS_CN_CORE__TYPES_H
 
-#include "endianness.h"
-
 #if defined (_WINDOWS) && !defined (WINDOWS_VERSION)
 #define WINDOWS_VERSION
 #endif
 
+#if defined(WINDOWS_VERSION)
+    // MSVC didn't report correct __cplusplus value until 2017
+    #if !defined(_MSC_VER) || (_MSC_VER < 1900)
+    #error Visual Studio 2015 or later required.
+    #endif
+#else
+    #if __cplusplus < 201103L
+    #error C++11 or later required.
+    #endif
+#endif
+
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h> // for size_t
+#include <limits.h> // for _WORDSIZE
+
+#include "endianness.h"
+
 #ifndef NULL
-#define NULL 0
+#define NULL nullptr
 #endif
 
 #ifndef FORCEINLINE
@@ -38,59 +54,15 @@
 #endif
 #endif
 
-#include <stddef.h>
-#if !defined (WINDOWS_VERSION)
-#include <stdint.h>
-#include <cstdlib> // for size_t
-#include <limits.h> // for _WORDSIZE
-#endif
-
 // Detect 64 bit environment
+#ifndef AGS_64BIT
 #if defined (_WIN64) || (__WORDSIZE == 64)
 #define AGS_64BIT
 #endif
-
-#if defined(WINDOWS_VERSION)
-#if defined(_MSC_VER) && (_MSC_VER >= 1600)
-
-#include <stdint.h>
-
-#else
-
-#define int8_t       signed char
-#define uint8_t      unsigned char
-#define int16_t      signed short
-#define uint16_t     unsigned short
-#define int32_t      signed int
-#define uint32_t     unsigned int
-#define int64_t      signed __int64
-#define uint64_t     unsigned __int64
-
-#if defined (AGS_64BIT)
-#define intptr_t     int64_t
-#define uintptr_t    uint64_t
-#else // AGS_32BIT
-#define intptr_t     int32_t
-#define uintptr_t    uint32_t
-#endif
-// tell Windows headers that we already have defined out intptr_t types
-#define _INTPTR_T_DEFINED
-#define _UINTPTR_T_DEFINED
-
-#endif // _MSC_VER >= 1600
-
-#endif // WINDOWS_VERSION
+#endif // AGS_64BIT
 
 // Stream offset type
 typedef int64_t soff_t;
-
-
-// Suppress override keyword for compilers that do not support it
-// TODO: this should be reviewed if project would demand C++11 or higher
-#if !(defined (_MSC_VER) && _MSC_VER >= 1700 || __cplusplus >= 201103L)
-#define override
-#endif
-
 
 #define fixed_t int32_t // fixed point type
 #define color_t int32_t

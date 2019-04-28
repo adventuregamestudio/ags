@@ -6,6 +6,8 @@
 #include <algorithm>  // for std::max and std::min
 #include <cstring>  // for memcpy
 
+#undef min
+#undef max
 
 #ifndef _WIN32
 #define __forceinline __attribute__((always_inline))
@@ -21,7 +23,9 @@
 #define RETURN_FLOAT(x) __int32 __ret##x; memcpy(&__ret##x, &x, sizeof(float)); return __ret##x
 #endif
 
+#if defined(BUILTIN_PLUGINS)
 namespace agspalrender {
+#endif
 
 struct PALSTRUCT
 {
@@ -189,6 +193,8 @@ unsigned short root(unsigned short x);
 float FastSin(float x);
 float FastCos(float x);
 
-}
+#if defined(BUILTIN_PLUGINS)
+} // namespace agspalrender
+#endif
 
 #endif

@@ -26,7 +26,7 @@
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
-AGS_INLINE int is_valid_object(int obtest);
+extern AGS_INLINE int is_valid_object(int obtest);
 int     Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
 ScriptObject *GetObjectAtScreen(int xx, int yy);
 void    Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);

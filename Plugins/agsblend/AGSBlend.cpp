@@ -143,7 +143,7 @@ struct Pixel32{
       
       public:
              Pixel32();
-             ~Pixel32() {}
+             ~Pixel32() = default;
 			 int GetColorAsInt();
              int Red;
              int Green;
@@ -224,7 +224,7 @@ int HighPass(int sprite, int threshold){
     BITMAP* src = engine->GetSpriteGraphic(sprite);
     int srcWidth, srcHeight;
     
-	engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, NULL);
+	engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, nullptr);
 
     unsigned char **srccharbuffer = engine->GetRawBitmapSurface (src);
     unsigned int **srclongbuffer = (unsigned int**)srccharbuffer;
@@ -257,7 +257,7 @@ int Blur (int sprite, int radius) {
     BITMAP* src = engine->GetSpriteGraphic(sprite);
     
     int srcWidth, srcHeight;
-    engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, NULL);
+    engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, nullptr);
 
     unsigned char **srccharbuffer = engine->GetRawBitmapSurface (src);
     unsigned int **srclongbuffer = (unsigned int**)srccharbuffer;
@@ -432,8 +432,8 @@ int DrawSprite(int destination, int sprite, int x, int y, int DrawMode, int tran
     BITMAP* src = engine->GetSpriteGraphic(sprite);
     BITMAP* dest = engine->GetSpriteGraphic(destination);
         
-    engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, NULL);
-    engine->GetBitmapDimensions(dest, &destWidth, &destHeight, NULL);
+    engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, nullptr);
+    engine->GetBitmapDimensions(dest, &destWidth, &destHeight, nullptr);
     
     if (x > destWidth || y > destHeight || x + srcWidth < 0 || y + srcHeight < 0) return 1; // offscreen
     
@@ -713,8 +713,8 @@ int DrawAdd(int destination, int sprite, int x, int y, float scale){
     BITMAP* src = engine->GetSpriteGraphic(sprite);
     BITMAP* dest = engine->GetSpriteGraphic(destination);
     
-    engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, NULL);
-    engine->GetBitmapDimensions(dest, &destWidth, &destHeight, NULL);
+    engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, nullptr);
+    engine->GetBitmapDimensions(dest, &destWidth, &destHeight, nullptr);
     
     if (x > destWidth || y > destHeight) return 1; // offscreen
 
@@ -804,8 +804,8 @@ int DrawAlpha(int destination, int sprite, int x, int y, int trans)
     BITMAP* src = engine->GetSpriteGraphic(sprite);
     BITMAP* dest = engine->GetSpriteGraphic(destination);
     
-    engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, NULL);
-    engine->GetBitmapDimensions(dest, &destWidth, &destHeight, NULL);
+    engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, nullptr);
+    engine->GetBitmapDimensions(dest, &destWidth, &destHeight, nullptr);
     
     if (x > destWidth || y > destHeight) return 1; // offscreen
 

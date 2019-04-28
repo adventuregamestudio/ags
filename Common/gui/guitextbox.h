@@ -29,20 +29,20 @@ class GUITextBox : public GUIObject
 public:
     GUITextBox();
 
-    bool         IsBorderShown() const;
+    bool IsBorderShown() const;
 
     // Operations
-    virtual void Draw(Bitmap *ds) override;
-    void         SetShowBorder(bool on);
+    void Draw(Bitmap *ds) override;
+    void SetShowBorder(bool on);
  
     // Events
-    virtual void OnKeyPress(int keycode) override;
+    void OnKeyPress(int keycode) override;
  
     // Serialization
-    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void WriteToFile(Stream *out) const override;
-    virtual void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
-    virtual void WriteToSavegame(Stream *out) const override;
+    void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+    void WriteToFile(Stream *out) const override;
+    void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
+    void WriteToSavegame(Stream *out) const override;
  
 // TODO: these members are currently public; hide them later
 public:

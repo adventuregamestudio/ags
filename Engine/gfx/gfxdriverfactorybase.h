@@ -36,31 +36,31 @@ template <class TGfxDriverClass, class TGfxFilterClass>
 class GfxDriverFactoryBase : public IGfxDriverFactory
 {
 protected:
-    virtual ~GfxDriverFactoryBase()
+    ~GfxDriverFactoryBase() override
     {
         delete _driver;
     }
 
 public:
-    virtual void Shutdown()
+    void Shutdown() override
     {
         delete this;
     }
 
-    virtual IGraphicsDriver *GetDriver()
+    IGraphicsDriver *GetDriver() override
     {
         if (!_driver)
             _driver = EnsureDriverCreated();
         return _driver;
     }
 
-    virtual void DestroyDriver()
+    void DestroyDriver() override
     {
         delete _driver;
-        _driver = NULL;
+        _driver = nullptr;
     }
 
-    virtual PGfxFilter SetFilter(const String &id, String &filter_error)
+    PGfxFilter SetFilter(const String &id, String &filter_error) override
     {
         TGfxDriverClass *driver = EnsureDriverCreated();
         if (!driver)
@@ -94,7 +94,7 @@ public:
 
 protected:
     GfxDriverFactoryBase()
-        : _driver(NULL)
+        : _driver(nullptr)
     {
     }
 

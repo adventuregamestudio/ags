@@ -36,7 +36,7 @@ class MessageBuffer : public AGS::Common::IOutputHandler
 public:
     MessageBuffer(size_t buffer_limit = 1024);
 
-    virtual void PrintMessage(const DebugMessage &msg);
+    void PrintMessage(const DebugMessage &msg) override;
 
     // Clears buffer
     void         Clear();

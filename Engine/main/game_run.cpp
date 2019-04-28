@@ -16,6 +16,8 @@
 // Game loop
 //
 
+#include <limits>
+#include <chrono>
 #include "ac/common.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -47,11 +49,13 @@
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "main/update.h"
-#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
+#include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -81,19 +85,20 @@ extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 extern unsigned int loopcounter,lastcounter;
-extern volatile int timerloop;
 extern int cur_mode,cur_cursor;
 
 // Checks if user interface should remain disabled for now
 int ShouldStayInWaitMode();
 
 int numEventsAtStartOfFunction;
-long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
+auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 
 long user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
 
 int restrict_until=0;
+
+unsigned int loopcounter=0,lastcounter=0;
 
 void ProperExit()
 {
@@ -420,8 +425,8 @@ void check_keyboard_controls()
                 sprintf(&infobuf[strlen(infobuf)],
                     "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
                     ff, objs[ff].x, objs[ff].y,
-                    (spriteset[objs[ff].num] != NULL) ? game.SpriteInfos[objs[ff].num].Width : 0,
-                    (spriteset[objs[ff].num] != NULL) ? game.SpriteInfos[objs[ff].num].Height : 0,
+                    (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Width : 0,
+                    (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Height : 0,
                     objs[ff].on,
                     (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
                     objs[ff].num, objs[ff].transparent,
@@ -614,12 +619,6 @@ void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, in
 
         offsetxWas = camera.Left;
         offsetyWas = camera.Top;
-
-#ifdef MAC_VERSION
-        // take a breather after the heavy work
-        // cuts down on CPU usage and reduces the fan noise
-        rest(2);
-#endif
     }
 }
 
@@ -673,20 +672,40 @@ void game_loop_update_loop_counter()
 
 void game_loop_update_fps()
 {
-    if (time(NULL) != t1) {
-        t1 = time(NULL);
-        fps = loopcounter - lastcounter;
+    auto t2 = AGS_Clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    auto frames = loopcounter - lastcounter;
+
+    if (duration >= std::chrono::milliseconds(1000) && frames > 0) {
+        fps = 1000.0f * frames / duration.count();
+        t1 = t2;
         lastcounter = loopcounter;
     }
 }
 
+float get_current_fps() {
+    // if wanted frames_per_second is >= 1000, that means we have maxed out framerate so return the frame rate we're seeing instead
+    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
+    // fps must be greater that 0 or some timings will take forever.
+    if (maxed_framerate && fps > 0.0f) {
+        return fps;
+    }
+    return frames_per_second;
+}
+
+void set_loop_counter(unsigned int new_counter) {
+    loopcounter = new_counter;
+    t1 = AGS_Clock::now();
+    lastcounter = loopcounter;
+    fps = std::numeric_limits<float>::quiet_NaN();
+}
+
 void PollUntilNextFrame()
 {
-    // make sure we poll, cos a low framerate (eg 5 fps) could stutter
-    // mp3 music
-    while (timerloop == 0 && play.fast_forward == 0) {
+    if (play.fast_forward) { return; }
+    while (waitingForNextTick()) {
+        // make sure we poll, cos a low framerate (eg 5 fps) could stutter mp3 music
         update_polled_stuff_if_runtime();
-        platform->YieldCPU();
     }
 }
 
@@ -694,7 +713,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     int res;
 
-    update_mp3();
+    update_polled_mp3();
 
     numEventsAtStartOfFunction = numevents;
 
@@ -704,7 +723,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     ccNotifyScriptStillAlive ();
     our_eip=1;
-    timerloop=0;
 
     game_loop_check_problems_at_start();
 
@@ -741,7 +759,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_do_late_update();
 
-    update_polled_audio_and_crossfade();
+    update_audio_system_on_game_loop();
 
     game_loop_do_render_and_check_mouse(extraBitmap, extraX, extraY);
 
@@ -909,7 +927,7 @@ void GameLoopUntilEvent(int untilwhat,long daaa) {
   int cached_user_disabled_for = user_disabled_for;
 
   SetupLoopParameters(untilwhat,daaa,0);
-  while (GameTick()==0) ;
+  while (GameTick()==0);
 
   restrict_until = cached_restrict_until;
   user_disabled_data = cached_user_disabled_data;
@@ -919,11 +937,14 @@ void GameLoopUntilEvent(int untilwhat,long daaa) {
 extern unsigned int load_new_game;
 void RunGameUntilAborted()
 {
+    // skip ticks to account for time spent starting game.
+    skipMissedTicks();
+
     while (!abort_engine) {
         GameTick();
 
         if (load_new_game) {
-            RunAGSGame (NULL, load_new_game, 0);
+            RunAGSGame (nullptr, load_new_game, 0);
             load_new_game = 0;
         }
     }
@@ -936,8 +957,7 @@ void update_polled_stuff_if_runtime()
         quit("||exit!");
     }
 
-    if (!psp_audio_multithreaded)
-        update_polled_mp3();
+    update_polled_mp3();
 
     if (editor_debugging_initialized)
         check_for_messages_from_editor();

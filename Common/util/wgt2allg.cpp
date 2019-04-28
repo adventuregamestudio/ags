@@ -67,8 +67,8 @@ extern "C"
 
     tempbitm = BitmapHelper::CreateBitmap(twid, thit);
 
-    if (tempbitm == NULL)
-      return NULL;
+    if (tempbitm == nullptr)
+      return nullptr;
 
     tempbitm->Blit(src, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
     return tempbitm;
@@ -81,7 +81,7 @@ extern "C"
     int numspri = 0, vv, hh, wdd, htt;
 
     Stream *in = Common::AssetManager::OpenAsset(filnam);
-    if (in == NULL)
+    if (in == nullptr)
       return -1;
 
     vers = in->ReadInt16();
@@ -101,13 +101,13 @@ extern "C"
     }
 
     for (vv = strt; vv <= eend; vv++)
-      sarray[vv] = NULL;
+      sarray[vv] = nullptr;
 
     for (vv = 0; vv <= numspri; vv++) {
       int coldep = in->ReadInt16();
 
       if (coldep == 0) {
-        sarray[vv] = NULL;
+        sarray[vv] = nullptr;
         if (in->EOS())
           break;
 
@@ -128,7 +128,7 @@ extern "C"
       }
       sarray[vv] = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);
 
-      if (sarray[vv] == NULL) {
+      if (sarray[vv] == nullptr) {
         delete in;
         return -1;
       }

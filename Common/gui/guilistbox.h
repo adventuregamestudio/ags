@@ -29,34 +29,34 @@ class GUIListBox : public GUIObject
 public:
     GUIListBox();
 
-    bool         AreArrowsShown() const;
-    bool         IsBorderShown() const;
-    bool         IsSvgIndex() const;
-    bool         IsInRightMargin(int x) const;
-    int          GetItemAt(int x, int y) const;
+    bool AreArrowsShown() const;
+    bool IsBorderShown() const;
+    bool IsSvgIndex() const;
+    bool IsInRightMargin(int x) const;
+    int  GetItemAt(int x, int y) const;
 
     // Operations
-    int          AddItem(const String &text);
-    void         Clear();
-    virtual void Draw(Bitmap *ds) override;
-    int          InsertItem(int index, const String &text);
-    void         RemoveItem(int index);
-    void         SetShowArrows(bool on);
-    void         SetShowBorder(bool on);
-    void         SetSvgIndex(bool on); // TODO: work around this
-    void         SetFont(int font);
-    void         SetItemText(int index, const String &textt);
+    int  AddItem(const String &text);
+    void Clear();
+    void Draw(Bitmap *ds) override;
+    int  InsertItem(int index, const String &text);
+    void RemoveItem(int index);
+    void SetShowArrows(bool on);
+    void SetShowBorder(bool on);
+    void SetSvgIndex(bool on); // TODO: work around this
+    void SetFont(int font);
+    void SetItemText(int index, const String &textt);
 
     // Events
-    virtual bool OnMouseDown() override;
-    virtual void OnMouseMove(int x, int y) override;
-    virtual void OnResized() override;
+    bool OnMouseDown() override;
+    void OnMouseMove(int x, int y) override;
+    void OnResized() override;
 
     // Serialization
-    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void WriteToFile(Stream *out) const override;
-    virtual void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
-    virtual void WriteToSavegame(Common::Stream *out) const override;
+    void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+    void WriteToFile(Stream *out) const override;
+    void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
+    void WriteToSavegame(Common::Stream *out) const override;
 
 // TODO: these members are currently public; hide them later
 public:

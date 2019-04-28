@@ -18,6 +18,7 @@
 
 #include <allegro.h>
 #include <allegro/platform/aintwin.h>
+#include "ac/timer.h"
 #include "debug/assert.h"
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"
@@ -87,15 +88,29 @@ void MatrixMultiply(D3DMATRIX &mr, const D3DMATRIX &m1, const D3DMATRIX &m2)
 void MatrixTransform2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez)
 {
     D3DMATRIX translate;
-    D3DMATRIX scale;
     D3DMATRIX rotate;
+    D3DMATRIX scale;
     MatrixTranslate(translate, x, y, 0.f);
-    MatrixScale(scale, sx, sy, 1.f);
     MatrixRotateZ(rotate, anglez);
+    MatrixScale(scale, sx, sy, 1.f);
 
     D3DMATRIX tr1;
-    MatrixMultiply(tr1, rotate, scale);
+    MatrixMultiply(tr1, scale, rotate);
     MatrixMultiply(m, tr1, translate);
+}
+// Setup inverse 2D transformation matrix
+void MatrixTransformInverse2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez)
+{
+    D3DMATRIX translate;
+    D3DMATRIX rotate;
+    D3DMATRIX scale;
+    MatrixTranslate(translate, x, y, 0.f);
+    MatrixRotateZ(rotate, anglez);
+    MatrixScale(scale, sx, sy, 1.f);
+
+    D3DMATRIX tr1;
+    MatrixMultiply(tr1, translate, rotate);
+    MatrixMultiply(m, tr1, scale);
 }
 
 
@@ -1027,7 +1042,7 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
-bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
+bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   // Currently don't support copying in screen resolution when we are rendering in native
   if (!_renderSprAtScreenRes)
@@ -1035,8 +1050,8 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   Size need_size = at_native_res ? _srcRect.GetSize() : _dstRect.GetSize();
   if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
   {
-    if (want_size)
-      *want_size = need_size;
+    if (want_fmt)
+      *want_fmt = GraphicResolution(need_size.Width, need_size.Height, _mode.ColorDepth);
     return false;
   }
   // If we are rendering sprites at the screen resolution, and requested native res,
@@ -1449,14 +1464,20 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         _spriteBatches.resize(index + 1);
     _spriteBatches[index].List.clear();
     // Combine both world transform and viewport transform into one matrix for faster perfomance
+    D3DMATRIX matRoomToViewport, matViewport;
+    // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
+    // the camera's transformation is essentially reverse world transformation. And the operations
+    // are inverse: Translate-Rotate-Scale
+    MatrixTransformInverse2D(matRoomToViewport,
+        desc.Transform.X, -(desc.Transform.Y),
+        desc.Transform.ScaleX, desc.Transform.ScaleY, desc.Transform.Rotate);
+    // Last step is translate to viewport position; remove this if this is
+    // changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
-    // is it possible to do with matrixes?
-    MatrixTransform2D(_spriteBatches[index].Matrix,
-        desc.Transform.X + desc.Viewport.Left - scaled_offx, -(desc.Transform.Y + desc.Viewport.Top - scaled_offy),
-        desc.Transform.ScaleX, desc.Transform.ScaleY, desc.Transform.Rotate);
+    MatrixTranslate(matViewport, desc.Viewport.Left - scaled_offx, -(desc.Viewport.Top - scaled_offy), 0.f);
+    MatrixMultiply(_spriteBatches[index].Matrix, matRoomToViewport, matViewport);
 
     // create stage screen for plugin raw drawing
     int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
@@ -1781,18 +1802,13 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   speed *= 2;  // harmonise speeds with software driver which is faster
   for (int a = 1; a < 255; a += speed)
   {
-    int timerValue = *_loopTimer;
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_renderAndPresent(flipTypeLastTime, false);
 
-    do
-    {
+    do {
       if (_pollingCallback)
         _pollingCallback();
-      platform->YieldCPU();
-    }
-    while (timerValue == *_loopTimer);
-
+    } while (waitingForNextTick());
   }
 
   if (fadingOut)

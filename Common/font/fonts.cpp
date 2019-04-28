@@ -38,8 +38,8 @@ struct Font
 };
 
 Font::Font()
-    : Renderer(NULL)
-    , Renderer2(NULL)
+    : Renderer(nullptr)
+    , Renderer2(nullptr)
 {}
 
 } // Common
@@ -81,21 +81,21 @@ void adjust_y_coordinate_for_text(int* ypos, size_t fontnum)
 
 bool font_first_renderer_loaded()
 {
-  return fonts.size() > 0 && fonts[0].Renderer != NULL;
+  return fonts.size() > 0 && fonts[0].Renderer != nullptr;
 }
 
 bool is_font_loaded(size_t fontNumber)
 {
-    return fontNumber < fonts.size() && fonts[fontNumber].Renderer != NULL;;
+    return fontNumber < fonts.size() && fonts[fontNumber].Renderer != nullptr;;
 }
 
 IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer)
 {
   if (fontNumber >= fonts.size())
-    return NULL;
+    return nullptr;
   IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
   fonts[fontNumber].Renderer = renderer;
-  fonts[fontNumber].Renderer2 = NULL;
+  fonts[fontNumber].Renderer2 = nullptr;
   return oldRender;
 }
 
@@ -192,7 +192,7 @@ void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t
   if (yyy > ds->GetClip().Bottom)
     return;                   // each char is clipped but this speeds it up
 
-  if (fonts[fontNumber].Renderer != NULL)
+  if (fonts[fontNumber].Renderer != nullptr)
   {
     fonts[fontNumber].Renderer->RenderText(texx, fontNumber, (BITMAP*)ds->GetAllegroBitmap(), xxx, yyy, text_color);
   }
@@ -249,8 +249,8 @@ void wfreefont(size_t fontNumber)
   if (fontNumber >= fonts.size())
     return;
 
-  if (fonts[fontNumber].Renderer != NULL)
+  if (fonts[fontNumber].Renderer != nullptr)
     fonts[fontNumber].Renderer->FreeMemory(fontNumber);
 
-  fonts[fontNumber].Renderer = NULL;
+  fonts[fontNumber].Renderer = nullptr;
 }

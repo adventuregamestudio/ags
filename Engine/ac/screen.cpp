@@ -50,7 +50,7 @@ void my_fade_in(PALETTE p, int speed) {
     gfxDriver->FadeIn(speed, p, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
 }
 
-Bitmap *saved_viewport_bitmap = NULL;
+Bitmap *saved_viewport_bitmap = nullptr;
 color old_palette[256];
 void current_fade_out_effect () {
     if (pl_run_plugin_hooks(AGSE_TRANSITIONOUT, 0))
@@ -85,7 +85,7 @@ void current_fade_out_effect () {
 
 IDriverDependantBitmap* prepare_screen_for_transition_in()
 {
-    if (saved_viewport_bitmap == NULL)
+    if (saved_viewport_bitmap == nullptr)
         quit("Crossfade: buffer is null attempting transition");
 
     saved_viewport_bitmap = ReplaceBitmapWithSupportedFormat(saved_viewport_bitmap);
@@ -146,7 +146,7 @@ ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
 {
     VpPoint vpt = play.ScreenToRoom(scrx, scry);
     if (vpt.second < 0)
-        return NULL;
+        return nullptr;
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 

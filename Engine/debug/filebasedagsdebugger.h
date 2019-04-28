@@ -22,11 +22,11 @@ struct FileBasedAGSDebugger : IAGSEditorDebugger
 {
 public:
 
-    bool Initialize();
-    void Shutdown();
-    bool SendMessageToEditor(const char *message);
-    bool IsMessageAvailable();
-    char* GetNextMessage();
+    bool Initialize() override;
+    void Shutdown() override;
+    bool SendMessageToEditor(const char *message) override;
+    bool IsMessageAvailable() override;
+    char* GetNextMessage() override;
 
 };
 

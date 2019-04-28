@@ -23,15 +23,15 @@ using namespace AGS::Common;
 
 GameSetupStruct::GameSetupStruct()
     : filever(0)
-    , charScripts(NULL)
-    , invScripts(NULL)
+    , charScripts(nullptr)
+    , invScripts(nullptr)
     , roomCount(0)
-    , roomNumbers(NULL)
-    , roomNames(NULL)
+    , roomNumbers(nullptr)
+    , roomNames(nullptr)
     , audioClipCount(0)
-    , audioClips(NULL)
+    , audioClips(nullptr)
     , audioClipTypeCount(0)
-    , audioClipTypes(NULL)
+    , audioClipTypes(nullptr)
     , scoreClipID(0)
 {
     memset(invinfo, 0, sizeof(invinfo));
@@ -56,7 +56,7 @@ void GameSetupStruct::Free()
         for (int i = 0; i < numcharacters; ++i)
             delete charScripts[i];
         delete[] charScripts;
-        charScripts = NULL;
+        charScripts = nullptr;
     }
     numcharacters = 0;
 
@@ -65,7 +65,7 @@ void GameSetupStruct::Free()
         for (int i = 1; i < numinvitems; i++)
             delete invScripts[i];
         delete invScripts;
-        invScripts = NULL;
+        invScripts = nullptr;
     }
     numinvitems = 0;
 
@@ -76,9 +76,9 @@ void GameSetupStruct::Free()
     roomCount = 0;
 
     delete[] audioClips;
-    audioClips = NULL;
+    audioClips = nullptr;
     delete[] audioClipTypes;
-    audioClipTypes = NULL;
+    audioClipTypes = nullptr;
     audioClipCount = 0;
     audioClipTypeCount = 0;
 
@@ -116,7 +116,7 @@ ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_mu
         if (clip_name.Compare(game.audioClips[i].scriptName) == 0)
             return &game.audioClips[i];
     }
-    return NULL;
+    return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -259,7 +259,7 @@ void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver
         read_string_decrypt(in, messages[ee], GLOBALMESLENGTH);
     }
     delete [] load_messages;
-    load_messages = NULL;
+    load_messages = nullptr;
 }
 
 void GameSetupStruct::ReadCharacters_Aligned(Stream *in)

@@ -37,11 +37,11 @@ class PosixLibrary : BaseLibrary
 {
 public:
   PosixLibrary()
-    : _library(NULL)
+    : _library(nullptr)
   {
   };
 
-  virtual ~PosixLibrary()
+  ~PosixLibrary() override
   {
     Unload();
   };
@@ -67,14 +67,14 @@ public:
     return platformLibraryName;
   }
 
-  bool Load(AGS::Common::String libraryName)
+  bool Load(AGS::Common::String libraryName) override
   {
     Unload();
 
     // Try rpath first
-    _library = dlopen(BuildPath(NULL, libraryName).GetCStr(), RTLD_LAZY);
+    _library = dlopen(BuildPath(nullptr, libraryName).GetCStr(), RTLD_LAZY);
     AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
-    if (_library != NULL)
+    if (_library != nullptr)
     {
       return true;
     }
@@ -84,7 +84,7 @@ public:
 
     AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
 
-    if (_library == NULL)
+    if (_library == nullptr)
     {
       // Try the engine directory
 
@@ -99,10 +99,10 @@ public:
       AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
     }
 
-    return (_library != NULL);
+    return (_library != nullptr);
   }
 
-  bool Unload()
+  bool Unload() override
   {
     if (_library)
     {
@@ -114,7 +114,7 @@ public:
     }
   }
 
-  void *GetFunctionAddress(AGS::Common::String functionName)
+  void *GetFunctionAddress(AGS::Common::String functionName) override
   {
     if (_library)
     {
@@ -122,7 +122,7 @@ public:
     }
     else
     {
-      return NULL;
+      return nullptr;
     }
   }
 

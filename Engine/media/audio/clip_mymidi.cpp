@@ -17,22 +17,17 @@
 #include "media/audio/clip_mymidi.h"
 #include "media/audio/audiointernaldefs.h"
 
-int MYMIDI::poll()
+void MYMIDI::poll()
 {
-    if (initializing)
-        return 0;
-
-    if (done)
-        return done;
+    if (state_ != SoundClipPlaying) { return; }
 
     if (midi_pos < 0)
-        done = 1;
-
-    return done;
+        state_ = SoundClipStopped;
 }
 
 void MYMIDI::adjust_volume()
 {
+    if (!is_playing()) { return; }
     ::set_volume(-1, get_final_volume());
 }
 
@@ -45,17 +40,24 @@ void MYMIDI::set_volume(int newvol)
 void MYMIDI::destroy()
 {
     stop_midi();
-    destroy_midi(tune);
-    tune = NULL;
+    
+    if (tune) {
+        destroy_midi(tune);
+    }
+    tune = nullptr;
+
+    state_ = SoundClipStopped;
 }
 
 void MYMIDI::seek(int pos)
 {
+    if (!is_playing()) { return; }
     midi_seek(pos);
 }
 
 int MYMIDI::get_pos()
 {
+    if (!is_playing()) { return -1; }
     return midi_pos;
 }
 
@@ -69,15 +71,6 @@ int MYMIDI::get_length_ms()
     return lengthInSeconds * 1000;
 }
 
-void MYMIDI::restart()
-{
-    if (tune != NULL) {
-        stop_midi();
-        done = 0;
-        play_midi(tune, 0);
-    }
-}
-
 int MYMIDI::get_voice()
 {
     // voice is N/A for midi
@@ -85,11 +78,15 @@ int MYMIDI::get_voice()
 }
 
 void MYMIDI::pause() {
+    if (state_ != SoundClipPlaying) { return; }
     midi_pause();
+    state_ = SoundClipPaused;
 }
 
 void MYMIDI::resume() {
+    if (state_ != SoundClipPaused) { return; }
     midi_resume();
+    state_ = SoundClipPlaying;
 }
 
 int MYMIDI::get_sound_type() {
@@ -97,18 +94,18 @@ int MYMIDI::get_sound_type() {
 }
 
 int MYMIDI::play() {
+    if (tune == nullptr) { return 0; }
+
     lengthInSeconds = get_midi_length(tune);
     if (::play_midi(tune, repeat)) {
-        delete this;
         return 0;
     }
-    initializing = false;
 
+    state_ = SoundClipPlaying;
     return 1;
 }
 
 MYMIDI::MYMIDI() : SOUNDCLIP() {
-    tune = NULL;
+    tune = nullptr;
     lengthInSeconds = 0;
-    initializing = false;
 }

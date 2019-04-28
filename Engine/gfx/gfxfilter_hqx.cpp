@@ -28,8 +28,8 @@ using namespace Common;
 const GfxFilterInfo HqxGfxFilter::FilterInfo = GfxFilterInfo("Hqx", "Hqx (High Quality)", 2, 3);
 
 HqxGfxFilter::HqxGfxFilter()
-    : _pfnHqx(NULL)
-    , _hqxScalingBuffer(NULL)
+    : _pfnHqx(nullptr)
+    , _hqxScalingBuffer(nullptr)
 {
 }
 
@@ -74,7 +74,7 @@ Bitmap *HqxGfxFilter::ShutdownAndReturnRealScreen()
 {
     Bitmap *real_screen = AllegroGfxFilter::ShutdownAndReturnRealScreen();
     delete _hqxScalingBuffer;
-    _hqxScalingBuffer = NULL;
+    _hqxScalingBuffer = nullptr;
     return real_screen;
 }
 

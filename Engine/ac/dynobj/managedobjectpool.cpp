@@ -33,6 +33,7 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     bool canBeRemovedFromPool = o.callback->Dispose(o.addr, force);
     if (!(canBeRemovedFromPool || force)) { return 0; }
 
+    auto handle = o.handle;
     available_ids.push(o.handle);
 
     handleByAddress.erase(o.addr);
@@ -288,7 +289,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
     while (!available_ids.empty()) { available_ids.pop(); }
     nextHandle = 1;
 
-    for (auto o : objects) {
+    for (const auto &o : objects) {
         if (o.isUsed()) { 
             nextHandle = o.handle + 1;
         }

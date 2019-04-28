@@ -36,7 +36,7 @@ extern CCGUIObject ccDynamicGUIObject;
 GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     int guinum = GetGUIAt(xx, yy);
     if (guinum == -1)
-        return NULL;
+        return nullptr;
 
     int oldmousex = mousex, oldmousey = mousey;
     mousex = xx - guis[guinum].X;
@@ -45,7 +45,7 @@ GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     mousex = oldmousex;
     mousey = oldmousey;
     if (toret < 0)
-        return NULL;
+        return nullptr;
 
     return guis[guinum].GetControl(toret);
 }
@@ -106,42 +106,42 @@ ScriptGUI* GUIControl_GetOwningGUI(GUIObject *guio) {
 
 GUIButton* GUIControl_GetAsButton(GUIObject *guio) {
   if (guis[guio->ParentId].GetControlType(guio->Id) != kGUIButton)
-    return NULL;
+    return nullptr;
 
   return (GUIButton*)guio;
 }
 
 GUIInvWindow* GUIControl_GetAsInvWindow(GUIObject *guio) {
   if (guis[guio->ParentId].GetControlType(guio->Id) != kGUIInvWindow)
-    return NULL;
+    return nullptr;
 
   return (GUIInvWindow*)guio;
 }
 
 GUILabel* GUIControl_GetAsLabel(GUIObject *guio) {
   if (guis[guio->ParentId].GetControlType(guio->Id) != kGUILabel)
-    return NULL;
+    return nullptr;
 
   return (GUILabel*)guio;
 }
 
 GUIListBox* GUIControl_GetAsListBox(GUIObject *guio) {
   if (guis[guio->ParentId].GetControlType(guio->Id) != kGUIListBox)
-    return NULL;
+    return nullptr;
 
   return (GUIListBox*)guio;
 }
 
 GUISlider* GUIControl_GetAsSlider(GUIObject *guio) {
   if (guis[guio->ParentId].GetControlType(guio->Id) != kGUISlider)
-    return NULL;
+    return nullptr;
 
   return (GUISlider*)guio;
 }
 
 GUITextBox* GUIControl_GetAsTextBox(GUIObject *guio) {
   if (guis[guio->ParentId].GetControlType(guio->Id) != kGUITextBox)
-    return NULL;
+    return nullptr;
 
   return (GUITextBox*)guio;
 }

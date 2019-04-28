@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+#include <cmath>
+
 #include "ac/audiocliptype.h"
 #include "ac/global_game.h"
 #include "ac/common.h"
@@ -47,7 +49,6 @@
 #include "main/game_start.h"
 #include "main/game_run.h"
 #include "main/graphics_mode.h"
-#include "media/audio/audio.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
@@ -56,6 +57,7 @@
 #include "core/assetmanager.h"
 #include "main/game_file.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 
@@ -67,7 +69,6 @@ extern int displayed_room;
 extern int game_paused;
 extern SpriteCache spriteset;
 extern int frames_per_second;
-extern int time_between_timers;
 extern char gamefilenamebuf[200];
 extern GameSetup usetup;
 extern unsigned int load_new_game;
@@ -246,8 +247,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     if ((mode & RAGMODE_LOADNOW) == 0) {
         // need to copy, since the script gets destroyed
         get_install_dir_path(gamefilenamebuf, newgame);
-        game_file_name = gamefilenamebuf;
-        usetup.main_data_filename = game_file_name;
+        ResPaths.GamePak.Path = gamefilenamebuf;
+        ResPaths.GamePak.Name = get_filename(gamefilenamebuf);
         play.takeover_data = data;
         load_new_game_restore = -1;
 
@@ -268,8 +269,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
 
     unload_game_file();
 
-    if (Common::AssetManager::SetDataFile(game_file_name) != Common::kAssetNoError)
-        quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name.GetCStr());
+    if (Common::AssetManager::SetDataFile(ResPaths.GamePak.Path) != Common::kAssetNoError)
+        quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
 
     show_preload();
 
@@ -377,8 +378,8 @@ void SetRestartPoint() {
 
 void SetGameSpeed(int newspd) {
     // if Ctrl+E has been used to max out frame rate, lock it there
-    if ((frames_per_second == 1000) && (display_fps == 2))
-        return;
+    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
+    if (maxed_framerate) { return; }
 
     newspd += play.game_speed_modifier;
     if (newspd>1000) newspd=1000;
@@ -388,7 +389,7 @@ void SetGameSpeed(int newspd) {
 }
 
 int GetGameSpeed() {
-    return frames_per_second - play.game_speed_modifier;
+    return std::lround(get_current_fps()) - play.game_speed_modifier;
 }
 
 int SetGameOption (int opt, int setting) {
@@ -536,8 +537,9 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
 
     VALIDATE_STRING(tempo);
 
+    tempo[0] = 0;
+
     if (GetGUIAt(xxx, yyy) >= 0) {
-        tempo[0]=0;
         int mover = GetInvAt (xxx, yyy);
         if (mover > 0) {
             if (play.get_loc_name_last_time != 1000 + mover)
@@ -552,13 +554,13 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         }
         return;
     }
-    int loctype = GetLocationType (xxx, yyy);
+
+    int loctype = GetLocationType(xxx, yyy); // GetLocationType takes screen coords
     VpPoint vpt = play.ScreenToRoom(xxx, yyy);
     if (vpt.second < 0)
         return;
     xxx = vpt.first.X;
     yyy = vpt.first.Y;
-    tempo[0]=0;
     if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return;
 
@@ -737,7 +739,7 @@ int IsKeyPressed (int keycode) {
 int SaveScreenShot(const char*namm) {
     char fileName[MAX_PATH];
 
-    if (strchr(namm,'.') == NULL)
+    if (strchr(namm,'.') == nullptr)
         sprintf(fileName, "%s%s.bmp", saveGameDirectory, namm);
     else
         sprintf(fileName, "%s%s", saveGameDirectory, namm);
@@ -887,7 +889,7 @@ void _sc_AbortGame(const char* text) {
 
 int GetGraphicalVariable (const char *varName) {
     InteractionVariable *theVar = FindGraphicalVariable(varName);
-    if (theVar == NULL) {
+    if (theVar == nullptr) {
         quitprintf("!GetGraphicalVariable: interaction variable '%s' not found", varName);
         return 0;
     }
@@ -896,7 +898,7 @@ int GetGraphicalVariable (const char *varName) {
 
 void SetGraphicalVariable (const char *varName, int p_value) {
     InteractionVariable *theVar = FindGraphicalVariable(varName);
-    if (theVar == NULL) {
+    if (theVar == nullptr) {
         quitprintf("!SetGraphicalVariable: interaction variable '%s' not found", varName);
     }
     else

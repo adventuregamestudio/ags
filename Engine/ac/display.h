@@ -24,6 +24,11 @@ using AGS::Common::GUIMain;
 
 int  _display_main(int xx,int yy,int wii,const char*todis,int blocking,int usingfont,int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
 void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
+// Tests the given string for the voice-over tags and plays cue clip for the given character;
+// will assign replacement string, which will be blank string if game is in "voice-only" mode
+// and clip was started, or string cleaned from voice-over tags which is safe to display on screen.
+// Returns whether voice-over clip was started successfully.
+bool try_auto_play_speech(const char *text, const char *&replace_text, int charid, bool blocking);
 bool ShouldAntiAliasText();
 // Calculates meaningful length of the displayed text
 int GetTextDisplayLength(const char *text);

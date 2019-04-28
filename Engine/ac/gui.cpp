@@ -73,7 +73,7 @@ int eip_guinum, eip_guiobj;
 
 ScriptGUI* GUI_AsTextWindow(ScriptGUI *tehgui)
 { // Internally both GUI and TextWindow are implemented by same class
-    return guis[tehgui->id].IsTextWindow() ? &scrGui[tehgui->id] : NULL;
+    return guis[tehgui->id].IsTextWindow() ? &scrGui[tehgui->id] : nullptr;
 }
 
 int GUI_GetPopupStyle(ScriptGUI *tehgui)
@@ -172,7 +172,7 @@ int GUI_GetID(ScriptGUI *tehgui) {
 
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
   if ((idx < 0) || (idx >= guis[tehgui->id].GetControlCount()))
-    return NULL;
+    return nullptr;
   return guis[tehgui->id].GetControl(idx);
 }
 
@@ -290,7 +290,7 @@ void GUI_SetTextPadding(ScriptGUI *tehgui, int newpos)
 ScriptGUI *GetGUIAtLocation(int xx, int yy) {
     int guiid = GetGUIAt(xx, yy);
     if (guiid < 0)
-        return NULL;
+        return nullptr;
     return &scrGui[guiid];
 }
 
@@ -365,7 +365,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
             (!theObj->EventHandlers[0].IsEmpty()) &&
             (!gameinst->GetSymbolAddress(theObj->EventHandlers[0]).IsNull())) {
                 // control-specific event handler
-                if (strchr(theObj->GetEventArgs(0), ',') != NULL)
+                if (strchr(theObj->GetEventArgs(0), ',') != nullptr)
                     QueueScriptFunction(kScInstGame, theObj->EventHandlers[0], 2,
                         RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
                         RuntimeScriptValue().SetInt32(mbut));
@@ -575,14 +575,14 @@ void recreate_guibg_image(GUIMain *tehgui)
   int ifn = tehgui->ID;
   delete guibg[ifn];
   guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, game.GetColorDepth());
-  if (guibg[ifn] == NULL)
+  if (guibg[ifn] == nullptr)
     quit("SetGUISize: internal error: unable to reallocate gui cache");
   guibg[ifn] = ReplaceBitmapWithSupportedFormat(guibg[ifn]);
 
-  if (guibgbmp[ifn] != NULL)
+  if (guibgbmp[ifn] != nullptr)
   {
     gfxDriver->DestroyDDB(guibgbmp[ifn]);
-    guibgbmp[ifn] = NULL;
+    guibgbmp[ifn] = nullptr;
   }
 }
 

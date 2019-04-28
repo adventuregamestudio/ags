@@ -15,16 +15,19 @@
 // Managed script object interface.
 //
 //=============================================================================
-
 #ifndef __CC_DYNAMICOBJECT_H
 #define __CC_DYNAMICOBJECT_H
 
+#include <utility>
 #include "core/types.h"
 #include "script/runtimescriptvalue.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
+
+// A pair of managed handle and abstract object pointer
+typedef std::pair<int32_t, void*> DynObjectRef;
 
 
 // OBJECT-BASED SCRIPTING RUNTIME FUNCTIONS
@@ -79,7 +82,7 @@ struct ICCObjectReader {
     virtual void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) = 0;
 };
 struct ICCStringClass {
-    virtual void* CreateString(const char *fromText) = 0;
+    virtual DynObjectRef CreateString(const char *fromText) = 0;
 };
 
 // set the class that will be used for dynamic strings
@@ -101,6 +104,8 @@ extern int   ccUnserializeAllObjects(Common::Stream *in, ICCObjectReader *callba
 extern void  ccAttemptDisposeObject(int32_t handle);
 // translate between object handles and memory addresses
 extern int32_t ccGetObjectHandleFromAddress(const char *address);
+// TODO: not sure if it makes any sense whatsoever to use "const char*"
+// in these functions, might as well change to char* or just void*.
 extern const char *ccGetObjectAddressFromHandle(int32_t handle);
 extern ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, ICCDynamicObject *&manager);
 

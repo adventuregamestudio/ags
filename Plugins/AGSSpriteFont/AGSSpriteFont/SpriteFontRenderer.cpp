@@ -11,9 +11,7 @@ SpriteFontRenderer::SpriteFontRenderer(IAGSEngine *engine)
 }
 
 
-SpriteFontRenderer::~SpriteFontRenderer(void)
-{
-}
+SpriteFontRenderer::~SpriteFontRenderer(void) = default;
 
 void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth, int charHeight, int charMin, int charMax, bool use32bit)
 {

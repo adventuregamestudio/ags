@@ -22,8 +22,8 @@ using AGS::Common::Stream;
 
 WordsDictionary::WordsDictionary()
     : num_words(0)
-    , word(NULL)
-    , wordnum(NULL)
+    , word(nullptr)
+    , wordnum(nullptr)
 {
 }
 
@@ -54,8 +54,8 @@ void WordsDictionary::free_memory()
         delete [] word[0];
         delete [] word;
         delete [] wordnum;
-        word = NULL;
-        wordnum = NULL;
+        word = nullptr;
+        wordnum = nullptr;
         num_words = 0;
     }
 }

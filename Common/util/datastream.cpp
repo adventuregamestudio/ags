@@ -24,9 +24,7 @@ DataStream::DataStream(DataEndianess stream_endianess)
 {
 }
 
-DataStream::~DataStream()
-{
-}
+DataStream::~DataStream() = default;
 
 int16_t DataStream::ReadInt16()
 {

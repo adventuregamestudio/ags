@@ -64,9 +64,9 @@
 #include "ac/parser.h"
 #include "ac/string.h"
 #include "ac/room.h"
-#include "media/audio/audio.h"
 #include "media/video/video.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 #include "ac/dynobj/scriptstring.h"
 extern ScriptString myScriptStringImpl;
@@ -1230,12 +1230,6 @@ RuntimeScriptValue Sc_play_sound(const RuntimeScriptValue *params, int32_t param
 RuntimeScriptValue Sc_PlaySoundEx(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(PlaySoundEx);
-}
-
-// void (int who, int which)
-RuntimeScriptValue Sc_scr_play_speech(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(__scr_play_speech);
 }
 
 // void (const char* name, int skip, int flags)
@@ -2502,7 +2496,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("PlaySilentMIDI",           Sc_PlaySilentMIDI);
 	ccAddExternalStaticFunction("PlaySound",                Sc_play_sound);
 	ccAddExternalStaticFunction("PlaySoundEx",              Sc_PlaySoundEx);
-	ccAddExternalStaticFunction("PlaySpeech",               Sc_scr_play_speech);
 	ccAddExternalStaticFunction("PlayVideo",                Sc_scrPlayVideo);
 	ccAddExternalStaticFunction("QuitGame",                 Sc_QuitGame);
 	ccAddExternalStaticFunction("Random",                   Sc_Rand);
@@ -2871,7 +2864,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("PlaySilentMIDI",           (void*)PlaySilentMIDI);
     ccAddExternalFunctionForPlugin("PlaySound",                (void*)play_sound);
     ccAddExternalFunctionForPlugin("PlaySoundEx",              (void*)PlaySoundEx);
-    ccAddExternalFunctionForPlugin("PlaySpeech",               (void*)__scr_play_speech);
     ccAddExternalFunctionForPlugin("PlayVideo",                (void*)scrPlayVideo);
     ccAddExternalFunctionForPlugin("ProcessClick",             (void*)RoomProcessClick);
     ccAddExternalFunctionForPlugin("QuitGame",                 (void*)QuitGame);

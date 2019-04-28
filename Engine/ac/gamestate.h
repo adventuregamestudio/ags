@@ -28,6 +28,7 @@
 #include "util/geometry.h"
 #include "util/string_types.h"
 #include "util/string.h"
+#include "ac/timer.h"
 
 // Forward declaration
 namespace AGS { namespace Common {
@@ -43,7 +44,8 @@ enum GameStateSvgVersion
 {
     kGSSvgVersion_OldFormat = -1, // TODO: remove after old save support is dropped
     kGSSvgVersion_Initial   = 0,
-    kGSSvgVersion_350       = 1
+    kGSSvgVersion_350       = 1,
+    kGSSvgVersion_3509      = 2,
 };
 
 // A result of coordinate conversion between screen and the room,
@@ -205,15 +207,25 @@ struct GameState {
     std::vector<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms;
     int   ignore_user_input_after_text_timeout_ms;
-    unsigned long ignore_user_input_until_time;
+    AGS_Clock::time_point ignore_user_input_until_time;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];
 
     // Dynamic custom property values for characters and items
     std::vector<AGS::Common::StringIMap> charProps;
     AGS::Common::StringIMap invProps[MAX_INV];
 
+    // Dynamic speech state
+    //
+    // Tells whether there is a voice-over played during current speech
+    bool  speech_has_voice;
+    // Tells whether the voice was played in blocking mode;
+    // atm blocking speech handles itself, and we only need to finalize
+    // non-blocking voice speech during game update; speech refactor would be
+    // required to get rid of this rule.
+    bool  speech_voice_blocking;
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
+
 
     GameState();
     // Free game resources
@@ -275,6 +287,13 @@ struct GameState {
     // These functions first try to find if there is any viewport at the given coords
     // TODO: also support using arbitrary viewport (for multiple viewports)
     VpPoint ScreenToRoom(int scrx, int scry, bool clip_viewport = true);
+
+    // Tells if there's a blocking voice speech playing right now
+    bool IsBlockingVoiceSpeech() const;
+    // Tells whether we have to finalize voice speech when stopping or reusing the channel
+    bool IsNonBlockingVoiceSpeech() const;
+    // Speech helpers
+    bool ShouldPlayVoiceSpeech() const;
 
     // Serialization
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);

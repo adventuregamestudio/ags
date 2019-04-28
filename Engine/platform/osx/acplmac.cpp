@@ -23,11 +23,10 @@
 //#include "ac/runtime_defines.h"
 //#include "main/config.h"
 //#include "plugin/agsplugin.h"
-//#include "media/audio/audio.h"
 //#include <libcda.h>
 //#include <pwd.h>
 //#include <sys/stat.h>
- #include <unistd.h>
+#include <unistd.h>
 #include "platform/base/agsplatformdriver.h"
 #include "util/directory.h"
 #include "ac/common.h"
@@ -64,7 +63,6 @@ static char commonDataPath[PATH_MAX];
 struct AGSMac : AGSPlatformDriver
 {
   AGSMac();
-  virtual void Delay(int millis) override;
   virtual void DisplayAlert(const char*, ...) override;
   virtual unsigned long GetDiskFreeSpaceMB() override;
   virtual const char* GetNoMouseErrorString() override;
@@ -96,11 +94,7 @@ void AGSMac::DisplayAlert(const char *text, ...) {
   va_start(ap, text);
   vsprintf(displbuf, text, ap);
   va_end(ap);
-  printf("%s", displbuf);
-}
-
-void AGSMac::Delay(int millis) {
-  usleep(millis);
+  printf("%s\n", displbuf);
 }
 
 unsigned long AGSMac::GetDiskFreeSpaceMB() {

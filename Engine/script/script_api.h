@@ -39,13 +39,13 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
 // Sprintf that takes script values as arguments
 inline const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, const RuntimeScriptValue *args, int32_t argc)
 {
-    return ScriptSprintf(buffer, buf_length, format, args, argc, NULL);
+    return ScriptSprintf(buffer, buf_length, format, args, argc, nullptr);
 }
 // Variadic sprintf (needed, because all arguments are pushed as pointer-sized values). Currently used only when plugin calls
 // exported engine function. Should be removed when this plugin issue is resolved.
 inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, va_list &arg_ptr)
 {
-    return ScriptSprintf(buffer, buf_length, format, NULL, 0, &arg_ptr);
+    return ScriptSprintf(buffer, buf_length, format, nullptr, 0, &arg_ptr);
 }
 
 // Helper macros for script functions
@@ -280,6 +280,10 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     ASSERT_PARAM_COUNT(FUNCTION, 1); \
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION(params[0].IValue), &RET_MGR)
 
+#define API_SCALL_OBJ_POBJ_PINT_PBOOL(RET_CLASS, RET_MGR, FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3); \
+    return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, params[1].IValue, params[2].GetAsBool()), &RET_MGR)
+
 #define API_SCALL_OBJ_PINT2(RET_CLASS, RET_MGR, FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 2); \
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION(params[0].IValue, params[1].IValue), &RET_MGR)
@@ -319,6 +323,11 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define API_SCALL_OBJAUTO_PINT5(RET_CLASS, FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 5); \
     RET_CLASS* ret_obj = FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue); \
+    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj)
+
+#define API_SCALL_OBJAUTO_PBOOL2(RET_CLASS, FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2); \
+    RET_CLASS* ret_obj = FUNCTION(params[0].GetAsBool(), params[1].GetAsBool()); \
     return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj)
 
 #define API_SCALL_OBJAUTO_POBJ(RET_CLASS, FUNCTION, P1CLASS) \
@@ -474,6 +483,10 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define API_OBJCALL_BOOL_PINT(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     return RuntimeScriptValue().SetInt32AsBool(METHOD((CLASS*)self, params[0].IValue))
+
+#define API_OBJCALL_BOOL_POBJ(CLASS, METHOD, P1CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
+    return RuntimeScriptValue().SetInt32AsBool(METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr))
 
 #define API_OBJCALL_BOOL_POBJ_PINT(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \

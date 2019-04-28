@@ -84,10 +84,10 @@ void engine_post_gfxmode_driver_setup()
 // Reset gfx driver callbacks
 void engine_pre_gfxmode_driver_cleanup()
 {
-    gfxDriver->SetCallbackForPolling(NULL);
-    gfxDriver->SetCallbackToDrawScreen(NULL);
-    gfxDriver->SetCallbackForNullSprite(NULL);
-    gfxDriver->SetMemoryBackBuffer(NULL);
+    gfxDriver->SetCallbackForPolling(nullptr);
+    gfxDriver->SetCallbackToDrawScreen(nullptr);
+    gfxDriver->SetCallbackForNullSprite(nullptr);
+    gfxDriver->SetMemoryBackBuffer(nullptr);
 }
 
 // Setup virtual screen
@@ -109,7 +109,7 @@ void engine_pre_gfxmode_screen_cleanup()
 void engine_pre_gfxsystem_screen_destroy()
 {
     delete sub_vscreen;
-    sub_vscreen = NULL;
+    sub_vscreen = nullptr;
 }
 
 // Setup color conversion parameters
@@ -236,7 +236,7 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
     // Whether mouse movement should be controlled by the engine - this is
     // determined based on related config option.
     const bool should_control_mouse = usetup.mouse_control == kMouseCtrl_Always ||
-        usetup.mouse_control == kMouseCtrl_Fullscreen && !dm.Windowed;
+        (usetup.mouse_control == kMouseCtrl_Fullscreen && !dm.Windowed);
     // Whether mouse movement control is supported by the engine - this is
     // determined on per platform basis. Some builds may not have such
     // capability, e.g. because of how backend library implements mouse utils.

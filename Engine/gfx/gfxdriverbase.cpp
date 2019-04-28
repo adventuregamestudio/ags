@@ -27,12 +27,11 @@ namespace Engine
 {
 
 GraphicsDriverBase::GraphicsDriverBase()
-    : _loopTimer(NULL)
-    , _pollingCallback(NULL)
-    , _drawScreenCallback(NULL)
-    , _nullSpriteCallback(NULL)
-    , _initGfxCallback(NULL)
-    , _initSurfaceUpdateCallback(NULL)
+    : _pollingCallback(nullptr)
+    , _drawScreenCallback(nullptr)
+    , _nullSpriteCallback(nullptr)
+    , _initGfxCallback(nullptr)
+    , _initSurfaceUpdateCallback(nullptr)
 {
     // Initialize default sprite batch, it will be used when no other batch was activated
     _actSpriteBatch = 0;
@@ -90,7 +89,6 @@ void GraphicsDriverBase::ClearDrawLists()
 
 void GraphicsDriverBase::OnInit(volatile int *loopTimer)
 {
-    _loopTimer = loopTimer;
 }
 
 void GraphicsDriverBase::OnUnInit()
@@ -141,7 +139,7 @@ void GraphicsDriverBase::OnSetFilter()
 
 
 VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
-    : _stageVirtualScreenDDB(NULL)
+    : _stageVirtualScreenDDB(nullptr)
     , _stageScreenDirty(false)
 {
     // Only to have something meaningful as default
@@ -166,7 +164,7 @@ bool VideoMemoryGraphicsDriver::UsesMemoryBackBuffer()
 
 Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
 {
-    return NULL;
+    return nullptr;
 }
 
 void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
@@ -185,7 +183,7 @@ PBitmap VideoMemoryGraphicsDriver::CreateStageScreen(size_t index, const Size &s
         _stageScreens.resize(index + 1);
     if (sz.IsNull())
         _stageScreens[index].reset();
-    else if (_stageScreens[index] == NULL || _stageScreens[index]->GetSize() != sz)
+    else if (_stageScreens[index] == nullptr || _stageScreens[index]->GetSize() != sz)
         _stageScreens[index].reset(new Bitmap(sz.Width, sz.Height, _mode.ColorDepth));
     return _stageScreens[index];
 }
@@ -194,14 +192,14 @@ PBitmap VideoMemoryGraphicsDriver::GetStageScreen(size_t index)
 {
     if (index < _stageScreens.size())
         return _stageScreens[index];
-    return NULL;
+    return nullptr;
 }
 
 void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
 {
     if (_stageVirtualScreenDDB)
         this->DestroyDDB(_stageVirtualScreenDDB);
-    _stageVirtualScreenDDB = NULL;
+    _stageVirtualScreenDDB = nullptr;
 
     for (size_t i = 0; i < _stageScreens.size(); ++i)
         _stageScreens[i].reset();

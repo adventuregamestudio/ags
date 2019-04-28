@@ -255,7 +255,7 @@ void FixRoomMasks(RoomStruct *room)
     if (room->MaskResolution <= 0)
         return;
     Bitmap *bkg = room->BgFrames[0].Graphic.get();
-    if (bkg == NULL)
+    if (bkg == nullptr)
         return;
     // TODO: this issue is somewhat complicated. Original code was relying on
     // room->Width and Height properties. But in the engine these are saved

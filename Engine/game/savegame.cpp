@@ -32,6 +32,7 @@
 #include "ac/roomstatus.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
+#include "ac/timer.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
@@ -40,9 +41,8 @@
 #include "game/savegame.h"
 #include "game/savegame_components.h"
 #include "game/savegame_internal.h"
+#include "main/engine.h"
 #include "main/main.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -52,6 +52,7 @@
 #include "util/file.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace Common;
 using namespace Engine;
@@ -168,7 +169,7 @@ Bitmap *RestoreSaveImage(Stream *in)
 {
     if (in->ReadInt32())
         return read_serialized_bitmap(in);
-    return NULL;
+    return nullptr;
 }
 
 void SkipSaveImage(Stream *in)
@@ -336,7 +337,7 @@ HSaveError OpenSavegame(const String &filename, SavegameSource &src, SavegameDes
 
 HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems)
 {
-    return OpenSavegameBase(filename, NULL, &desc, elems);
+    return OpenSavegameBase(filename, nullptr, &desc, elems);
 }
 
 // Prepares engine for actual save restore (stops processes, cleans up memory)
@@ -347,7 +348,7 @@ void DoBeforeRestore(PreservedParams &pp)
 
     unload_old_room();
     delete raw_saved_screen;
-    raw_saved_screen = NULL;
+    raw_saved_screen = nullptr;
     remove_screen_overlay(-1);
     is_complete_overlay = 0;
     is_text_overlay = 0;
@@ -368,37 +369,37 @@ void DoBeforeRestore(PreservedParams &pp)
     for (int i = 0; i < game.numgui; ++i)
     {
         delete guibg[i];
-        guibg[i] = NULL;
+        guibg[i] = nullptr;
 
         if (guibgbmp[i])
             gfxDriver->DestroyDDB(guibgbmp[i]);
-        guibgbmp[i] = NULL;
+        guibgbmp[i] = nullptr;
     }
 
     // preserve script data sizes and cleanup scripts
     pp.GlScDataSize = gameinst->globaldatasize;
     delete gameinstFork;
     delete gameinst;
-    gameinstFork = NULL;
-    gameinst = NULL;
+    gameinstFork = nullptr;
+    gameinst = nullptr;
     pp.ScMdDataSize.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; ++i)
     {
         pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
         delete moduleInstFork[i];
         delete moduleInst[i];
-        moduleInst[i] = NULL;
+        moduleInst[i] = nullptr;
     }
 
     play.FreeProperties();
 
     delete roominstFork;
     delete roominst;
-    roominstFork = NULL;
-    roominst = NULL;
+    roominstFork = nullptr;
+    roominst = nullptr;
 
     delete dialogScriptsInst;
-    dialogScriptsInst = NULL;
+    dialogScriptsInst = nullptr;
 
     resetRoomStatuses();
     troom.FreeScriptData();
@@ -436,7 +437,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // recache queued clips
     for (int i = 0; i < play.new_music_queue_size; ++i)
     {
-        play.new_music_queue[i].cachedClip = NULL;
+        play.new_music_queue[i].cachedClip = nullptr;
     }
 
     // restore these to the ones retrieved from the save game
@@ -484,7 +485,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     // load the room the game was saved in
     if (displayed_room >= 0)
-        load_new_room(displayed_room, NULL);
+        load_new_room(displayed_room, nullptr);
 
     update_polled_stuff_if_runtime();
 
@@ -502,9 +503,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // ensure that the current cursor is locked
     spriteset.Precache(game.mcurs[r_data.CursorID].pic);
 
-#if (ALLEGRO_DATE > 19990103)
     set_window_title(play.game_name);
-#endif
 
     update_polled_stuff_if_runtime();
 
@@ -550,6 +549,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     const int cf_out_chan = play.crossfading_out_channel;
     play.crossfading_in_channel = 0;
     play.crossfading_out_channel = 0;
+    
+    {
+    AudioChannelsLock lock;
     // NOTE: channels are array of MAX_SOUND_CHANNELS+1 size
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
@@ -563,17 +565,19 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         }
         play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);
-        if (channels[i] != NULL)
+
+        auto* ch = lock.GetChannel(i);
+        if (ch != nullptr)
         {
-            channels[i]->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
-            channels[i]->set_speed(chan_info.Speed);
-            channels[i]->set_panning(chan_info.Pan);
-            channels[i]->panningAsPercentage = chan_info.PanAsPercent;
+            ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
+            ch->set_speed(chan_info.Speed);
+            ch->set_panning(chan_info.Pan);
+            ch->panningAsPercentage = chan_info.PanAsPercent;
         }
     }
-    if ((cf_in_chan > 0) && (channels[cf_in_chan] != NULL))
+    if ((cf_in_chan > 0) && (lock.GetChannel(cf_in_chan) != nullptr))
         play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && (channels[cf_out_chan] != NULL))
+    if ((cf_out_chan > 0) && (lock.GetChannel(cf_out_chan) != nullptr))
         play.crossfading_out_channel = cf_out_chan;
 
     // If there were synced audio tracks, the time taken to load in the
@@ -581,12 +585,14 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // NOTE: channels are array of MAX_SOUND_CHANNELS+1 size
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
+        auto* ch = lock.GetChannelIfPlaying(i);
         int pos = r_data.AudioChans[i].Pos;
-        if ((pos > 0) && (channels[i] != NULL) && (channels[i]->done == 0))
+        if ((pos > 0) && (ch != nullptr))
         {
-            channels[i]->seek(pos);
+            ch->seek(pos);
         }
     }
+    } // -- AudioChannelsLock
 
     // TODO: investigate loop range
     for (int i = 1; i < MAX_SOUND_CHANNELS; ++i)
@@ -605,7 +611,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     guis_need_update = 1;
 
-    play.ignore_user_input_until_time = 0;
+    // if savegame contained a global time and not an offset, this will be way off.
+    if ((play.ignore_user_input_until_time - AGS_Clock::now()) > std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms)) {
+        play.ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms);
+    }
     update_polled_stuff_if_runtime();
 
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
@@ -619,18 +628,20 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         first_room_initialization();
     }
 
-    if ((play.music_queue_size > 0) && (cachedQueuedMusic == NULL))
+    if ((play.music_queue_size > 0) && (cachedQueuedMusic == nullptr))
     {
         cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
     }
 
-    // test if the playing music was properly loaded
+    // Test if the old-style audio had playing music and it was properly loaded
     if (current_music_type > 0)
     {
-        if (crossFading > 0 && !channels[crossFading] ||
-            crossFading <= 0 && !channels[SCHAN_MUSIC])
+        AudioChannelsLock lock;
+
+        if ((crossFading > 0 && !lock.GetChannelIfPlaying(crossFading)) ||
+            (crossFading <= 0 && !lock.GetChannelIfPlaying(SCHAN_MUSIC)))
         {
-            current_music_type = 0;
+            current_music_type = 0; // playback failed, reset flag
         }
     }
 
@@ -658,7 +669,7 @@ HSaveError RestoreGameState(PStream in, SavegameVersion svg_version)
 void WriteSaveImage(Stream *out, const Bitmap *screenshot)
 {
     // store the screenshot at the start to make it easily accesible
-    out->WriteInt32((screenshot == NULL) ? 0 : 1);
+    out->WriteInt32((screenshot == nullptr) ? 0 : 1);
 
     if (screenshot)
         serialize_bitmap(screenshot, out);
@@ -673,7 +684,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     StrUtil::WriteString(EngineVersion.LongString, out);
     StrUtil::WriteString(game.guid, out);
     StrUtil::WriteString(game.gamename, out);
-    StrUtil::WriteString(usetup.main_data_filename, out);
+    StrUtil::WriteString(ResPaths.GamePak.Name, out);
     out->WriteInt32(loaded_game_file_version);
     out->WriteInt32(game.GetColorDepth());
     // User description

@@ -32,9 +32,9 @@ class TextStreamReader : public TextReader
 public:
     // TODO: use shared ptr
     TextStreamReader(Stream *stream);
-    virtual ~TextStreamReader();
+    ~TextStreamReader() override;
 
-    virtual bool    IsValid() const;
+    bool    IsValid() const override;
     const Stream   *GetStream() const;
     // TODO: use shared ptr instead
     void            ReleaseStream();
@@ -42,13 +42,13 @@ public:
     bool            EOS() const;
 
     // Read single character
-    virtual char    ReadChar();
+    char    ReadChar() override;
     // Read defined number of characters
-    virtual String  ReadString(size_t length);
+    String  ReadString(size_t length) override;
     // Read till line break
-    virtual String  ReadLine();
+    String  ReadLine() override;
     // Read till end of available data
-    virtual String  ReadAll();
+    String  ReadAll() override;
 
 private:
     Stream *_stream;

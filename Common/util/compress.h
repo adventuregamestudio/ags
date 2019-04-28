@@ -21,12 +21,14 @@ namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
 
 void csavecompressed(Common::Stream *out, const unsigned char * tobesaved, const color pala[256]);
-void cpackbitl(unsigned char *line, int size, Common::Stream *out);
-void cpackbitl16(unsigned short *line, int size, Common::Stream *out);
-void cpackbitl32(unsigned int *line, int size, Common::Stream *out);
-int  cunpackbitl(unsigned char *line, int size, Common::Stream *in);
-int  cunpackbitl16(unsigned short *line, int size, Common::Stream *in);
-int  cunpackbitl32(unsigned int *line, int size, Common::Stream *in);
+// RLE compression
+void cpackbitl(const uint8_t *line, int size, Common::Stream *out);
+void cpackbitl16(const uint16_t *line, int size, Common::Stream *out);
+void cpackbitl32(const uint32_t *line, int size, Common::Stream *out);
+// RLE decompression
+int  cunpackbitl(uint8_t *line, int size, Common::Stream *in);
+int  cunpackbitl16(uint16_t *line, int size, Common::Stream *in);
+int  cunpackbitl32(uint32_t *line, int size, Common::Stream *in);
 
 //=============================================================================
 

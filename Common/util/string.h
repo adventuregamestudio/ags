@@ -64,10 +64,15 @@ public:
     String(char c, size_t count);
     ~String();
 
-    // Get underlying C-string for reading
+    // Get underlying C-string for reading; this method guarantees valid C-string
     inline const char *GetCStr() const
     {
         return _meta ? _meta->CStr : "";
+    }
+    // Get C-string or nullptr
+    inline const char *GetNullableCStr() const
+    {
+        return _meta ? _meta->CStr : nullptr;
     }
     // Get character count
     inline size_t GetLength() const
@@ -105,7 +110,7 @@ public:
     // the data will be read until null-terminator or EOS is met, and buffer
     // will contain only leftmost part of the longer string that fits in.
     // This method is better fit for reading from binary streams.
-    void    Read(Stream *in, size_t max_chars = 5000000, bool stop_at_limit = false);
+    void    Read(Stream *in, size_t max_chars = 5 * 1024 * 1024, bool stop_at_limit = false);
     // ReadCount() reads up to N characters from stream, ignoring null-
     // terminator. This method is better fit for reading from text
     // streams, or when the length of string is known beforehand.
@@ -178,7 +183,7 @@ public:
     static String FromFormat(const char *fcstr, ...);
     static String FromFormatV(const char *fcstr, va_list argptr);
     // Reads stream until null-terminator or EOS
-    static String FromStream(Stream *in, size_t max_chars = 5000000, bool stop_at_limit = false);
+    static String FromStream(Stream *in, size_t max_chars = 5 * 1024 * 1024, bool stop_at_limit = false);
     // Reads up to N chars from stream
     static String FromStreamCount(Stream *in, size_t count);
 
@@ -353,9 +358,6 @@ private:
         char    *_data;
         Header  *_meta;
     };
-
-    static const size_t _internalBufferLength = 3000;
-    static char _internalBuffer[3001];
 };
 
 } // namespace Common

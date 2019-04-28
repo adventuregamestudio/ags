@@ -85,9 +85,9 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 
 //define engine
 
-IAGSEngine *engine = 0;
-SpriteFontRenderer *fontRenderer = 0;
-VariableWidthSpriteFontRenderer *vWidthRenderer = 0;
+IAGSEngine *engine = nullptr;
+SpriteFontRenderer *fontRenderer = nullptr;
+VariableWidthSpriteFontRenderer *vWidthRenderer = nullptr;
 
                 
 

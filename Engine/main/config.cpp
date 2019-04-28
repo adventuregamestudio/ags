@@ -27,12 +27,12 @@
 #include "main/mainheader.h"
 #include "main/config.h"
 #include "platform/base/agsplatformdriver.h"
-#include "platform/base/override_defines.h" //_getcwd()
 #include "util/directory.h"
 #include "util/ini_util.h"
 #include "util/textstreamreader.h"
 #include "util/path.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -61,7 +61,7 @@ void INIgetdirec(char *wasgv, const char *inifil) {
 
     if (u <= 0) {
         // no slashes - either the path is just "f:acwin.exe"
-        if (strchr(wasgv, ':') != NULL)
+        if (strchr(wasgv, ':') != nullptr)
             memcpy(strchr(wasgv, ':') + 1, inifil, strlen(inifil) + 1);
         // or it's just "acwin.exe" (unlikely)
         else
@@ -232,15 +232,9 @@ String find_default_cfg_file(const char *alt_cfg_file)
     {
         char conffilebuf[512];
         strcpy(conffilebuf, alt_cfg_file);
-
-        /*    for (int ee=0;ee<(int)strlen(conffilebuf);ee++) {
-        if (conffilebuf[ee]=='/') conffilebuf[ee]='\\';
-        }*/
         fix_filename_case(conffilebuf);
         fix_filename_slashes(conffilebuf);
-
         INIgetdirec(conffilebuf, DefaultConfigFileName);
-        //    printf("Using config: '%s'\n",conffilebuf);
         filename = conffilebuf;
     }
     return filename;
@@ -260,7 +254,7 @@ String find_user_cfg_file()
 
 void config_defaults()
 {
-    usetup.translation = NULL;
+    usetup.translation = nullptr;
 #ifdef WINDOWS_VERSION
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
@@ -414,9 +408,7 @@ void apply_config(const ConfigTree &cfg)
             idx = MIDI_AUTODETECT;
         usetup.midicard = idx;
 #endif
-#if !defined (LINUX_VERSION)
         psp_audio_multithreaded = INIreadint(cfg, "sound", "threaded", psp_audio_multithreaded);
-#endif
 
         // Filter can also be set by command line
         // TODO: apply command line arguments to ConfigTree instead to override options read from config file

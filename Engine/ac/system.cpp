@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/common.h"
-#include "media/audio/audiodefines.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -25,18 +24,17 @@
 #include "debug/debug_log.h"
 #include "main/engine.h"
 #include "main/main.h"
-#include "media/audio/soundclip.h"
 #include "gfx/graphicsdriver.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "main/graphics_mode.h"
 #include "ac/global_debug.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
@@ -199,12 +197,12 @@ void System_SetVolume(int newvol)
 
     // allegro's set_volume can lose the volumes of all the channels
     // if it was previously set low; so restore them
+    AudioChannelsLock lock;
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) 
     {
-        if ((channels[i] != NULL) && (channels[i]->done == 0)) 
-        {
-            channels[i]->adjust_volume();
-        }
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if (ch)
+            ch->adjust_volume();
     }
 }
 

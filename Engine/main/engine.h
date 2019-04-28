@@ -11,12 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_MAIN__ENGINE_H
 #define __AGS_EE_MAIN__ENGINE_H
+
+#include "util/string.h"
 
 const char *get_engine_version();
 void		show_preload();
@@ -35,9 +33,22 @@ bool        engine_try_switch_windowed_gfxmode();
 // Shutdown graphics mode (used before shutting down tha application)
 void        engine_shutdown_gfxmode();
 
-// Names of the data files containing music and speech, respectively
-extern String music_file;
-extern String speech_file;
+using AGS::Common::String;
+// Defines a package file location
+struct PackLocation
+{
+    String Name; // filename, for the reference or to use as an ID
+    String Path; // full path
+};
+// Game resource paths
+struct ResourcePaths
+{
+    String       DataDir;    // path to the data directory
+    PackLocation GamePak;    // main game package
+    PackLocation AudioPak;   // audio package
+    PackLocation SpeechPak;  // voice-over package
+};
+extern ResourcePaths ResPaths;
 
 // Register a callback that will be called before engine is initialised.
 // Used for apps to register their own plugins and other configuration

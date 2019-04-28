@@ -1,17 +1,16 @@
 USE_BUILT_IN_LIBSRC = 0
 USE_MIDI_PATCH = 1
 
-FT_CFLAGS := $(shell pkg-config --cflags freetype2)
-FT_LDFLAGS := $(shell pkg-config --libs freetype2)
+include Makefile-defs.freetype
 
-INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
+INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins ../Engine/libsrc/glad/include
 LIBDIR =
 
 CFLAGS := -O2 -g \
     -fsigned-char -fno-strict-aliasing -fwrapv \
     -Wunused-result \
     -Wno-unused-value  \
-    -Werror=write-strings -Werror=format-security -Werror=implicit-function-declaration \
+    -Werror=write-strings -Werror=format -Werror=format-security -Werror=implicit-function-declaration \
     -DNDEBUG \
     -DALLEGRO_STATICLINK -DALLEGRO_NO_COMPATIBILITY -DALLEGRO_NO_FIX_ALIASES -DALLEGRO_NO_FIX_CLASS \
     -DLINUX_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DAGS_HAS_CD_AUDIO -DAGS_RUNTIME_PATCH_ALLEGRO \
@@ -68,3 +67,4 @@ platform/util/pe.c \
 platform/util/libc.c
 
 CDA := libsrc/libcda-0.5/linux.c
+GLAD := libsrc/glad/src/glad.c libsrc/glad/src/glad_glx.c

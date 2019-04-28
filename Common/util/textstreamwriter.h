@@ -32,9 +32,9 @@ class TextStreamWriter : public TextWriter
 public:
     // TODO: use shared ptr
     TextStreamWriter(Stream *stream);
-    virtual ~TextStreamWriter();
+    ~TextStreamWriter() override;
 
-    virtual bool    IsValid() const;
+    bool    IsValid() const override;
     const Stream   *GetStream() const;
     // TODO: use shared ptr instead
     void            ReleaseStream();
@@ -42,14 +42,14 @@ public:
     bool            EOS() const;
 
     // Write single character
-    virtual void    WriteChar(char c);
+    void    WriteChar(char c) override;
     // Write string as a plain text (without null-terminator)
-    virtual void    WriteString(const String &str);
+    void    WriteString(const String &str) override;
     // Write string and add line break at the end
-    virtual void    WriteLine(const String &str);
+    void    WriteLine(const String &str) override;
     // Write formatted string (see *printf)
-    virtual void    WriteFormat(const char *fmt, ...);
-    virtual void    WriteLineBreak();
+    void    WriteFormat(const char *fmt, ...) override;
+    void    WriteLineBreak() override;
 
 private:
     Stream *_stream;

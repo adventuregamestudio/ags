@@ -29,16 +29,17 @@
 #include "gui/guimain.h"
 #include "gui/mycontrols.h"
 #include "main/game_run.h"
-#include "media/audio/audio.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
+#include "ac/timer.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern char ignore_bounds; // from mousew32
 extern IGraphicsDriver *gfxDriver;
-extern volatile int timerloop; // ac_timer
 extern GameSetup usetup;
 
 //extern void get_save_game_path(int slotNum, char *buffer);
@@ -141,7 +142,7 @@ void CSCIEraseWindow(int handl)
 int CSCIWaitMessage(CSCIMessage * cscim)
 {
     for (int uu = 0; uu < MAXCONTROLS; uu++) {
-        if (vobjs[uu] != NULL) {
+        if (vobjs[uu] != nullptr) {
             //      ags_domouse(DOMOUSE_DISABLE);
             vobjs[uu]->drawifneeded();
             //      ags_domouse(DOMOUSE_ENABLE);
@@ -151,7 +152,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
     prepare_gui_screen(win_x, win_y, win_width, win_height, true);
 
     while (1) {
-        timerloop = 0;
+        update_audio_system_on_game_loop();
         refresh_gui_screen();
 
         cscim->id = -1;
@@ -192,8 +193,9 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         if (cscim->code > 0)
             break;
 
-        update_polled_audio_and_crossfade();
-        while (timerloop == 0) ;
+        while (waitingForNextTick()) {
+            update_polled_stuff_if_runtime();
+        }
     }
 
     return 0;
@@ -203,7 +205,7 @@ int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const 
 {
     int usec = -1;
     for (int hh = 1; hh < MAXCONTROLS; hh++) {
-        if (vobjs[hh] == NULL) {
+        if (vobjs[hh] == nullptr) {
             usec = hh;
             break;
         }
@@ -239,12 +241,12 @@ int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const 
 void CSCIDeleteControl(int haa)
 {
     delete vobjs[haa];
-    vobjs[haa] = NULL;
+    vobjs[haa] = nullptr;
 }
 
 int CSCISendControlMessage(int haa, int mess, int wPar, long lPar)
 {
-    if (vobjs[haa] == NULL)
+    if (vobjs[haa] == nullptr)
         return -1;
     return vobjs[haa]->processmessage(mess, wPar, lPar);
 }
@@ -258,7 +260,7 @@ int checkcontrols()
 
     smcode = 0;
     for (int kk = 0; kk < MAXCONTROLS; kk++) {
-        if (vobjs[kk] != NULL) {
+        if (vobjs[kk] != nullptr) {
             if (vobjs[kk]->mouseisinarea(mousex, mousey)) {
                 controlid = kk;
                 return vobjs[kk]->pressedon(mousex, mousey);
@@ -271,7 +273,7 @@ int checkcontrols()
 int finddefaultcontrol(int flagmask)
 {
     for (int ff = 0; ff < MAXCONTROLS; ff++) {
-        if (vobjs[ff] == NULL)
+        if (vobjs[ff] == nullptr)
             continue;
 
         if (vobjs[ff]->wlevel != topwindowhandle)

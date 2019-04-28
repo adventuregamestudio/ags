@@ -28,7 +28,7 @@ RoomStatus::RoomStatus()
     numobj = 0;
     memset(&flagstates, 0, sizeof(flagstates));
     tsdatasize = 0;
-    tsdata = NULL;
+    tsdata = nullptr;
     
     memset(&hotspot_enabled, 0, sizeof(hotspot_enabled));
     memset(&region_enabled, 0, sizeof(region_enabled));
@@ -46,7 +46,7 @@ void RoomStatus::FreeScriptData()
 {
     if (tsdata)
         delete [] tsdata;
-    tsdata = NULL;
+    tsdata = nullptr;
     tsdatasize = 0;
 }
 
@@ -184,7 +184,7 @@ RoomStatus* room_statuses[MAX_ROOMS];
 // Replaces all accesses to the roomstats array
 RoomStatus* getRoomStatus(int room)
 {
-    if (room_statuses[room] == NULL)
+    if (room_statuses[room] == nullptr)
     {
         // First access, allocate and initialise the status
         room_statuses[room] = new RoomStatus();
@@ -198,17 +198,17 @@ RoomStatus* getRoomStatus(int room)
 // a room if the status is already initialised.
 bool isRoomStatusValid(int room)
 {
-    return (room_statuses[room] != NULL);
+    return (room_statuses[room] != nullptr);
 }
 
 void resetRoomStatuses()
 {
     for (int i = 0; i < MAX_ROOMS; i++)
     {
-        if (room_statuses[i] != NULL)
+        if (room_statuses[i] != nullptr)
         {
             delete room_statuses[i];
-            room_statuses[i] = NULL;
+            room_statuses[i] = nullptr;
         }
     }
 }

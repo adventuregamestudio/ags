@@ -531,15 +531,6 @@ HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_v
 
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos)
 {
-    if (data_ver < kRoomVersion_3508)
-    {
-        // Save legacy resolution if it DOES NOT match game's;
-        // otherwise it gets promoted to "real resolution"
-        if (room->MaskResolution == 1 && game_is_hires)
-            room->SetResolution(kRoomLoRes);
-        else if (room->MaskResolution > 1 && !game_is_hires)
-            room->SetResolution(kRoomHiRes);
-    }
     if (data_ver < kRoomVersion_300a)
     {
         for (size_t i = 0; i < room->ObjectCount; ++i)

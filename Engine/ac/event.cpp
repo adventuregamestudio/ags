@@ -230,9 +230,9 @@ void process_event(EventHappened*evp) {
             theTransition = FADE_NORMAL;
         }
 
-		// TODO: use normal coordinates instead of "native_size" and multiply_up_*?
-        const Size &data_res = game.GetDataRes();
-        const Rect &viewport = play.GetMainViewport();
+		const Rect &viewport = play.GetMainViewport();
+        // CLNUP: this is remains of legacy code refactoring, cleanup later
+        const Size &native_size = viewport.GetSize();
 
         if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
             set_palette_range(palette, 0, 255, 0);

@@ -175,8 +175,8 @@ bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
             // display some properties to the user
             INIwriteint(cfg, "misc", "defaultres", game.GetResolutionType());
             INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
-            INIwriteint(cfg, "misc", "game_width", game.GetDefaultRes().Width);
-            INIwriteint(cfg, "misc", "game_height", game.GetDefaultRes().Height);
+            INIwriteint(cfg, "misc", "game_width", game.GetGameRes().Width);
+            INIwriteint(cfg, "misc", "game_height", game.GetGameRes().Height);
             INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
             if (game.options[OPT_RENDERATSCREENRES] != kRenderAtScreenRes_UserDefined)
             {

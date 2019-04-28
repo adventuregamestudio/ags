@@ -48,8 +48,6 @@ GameSetupStructBase::GameSetupStructBase()
     , load_dictionary(false)
     , load_compiled_script(false)
     , _resolutionType(kGameResolution_Undefined)
-    , _dataUpscaleMult(1)
-    , _screenUpscaleMult(1)
 {
     memset(gamename, 0, sizeof(gamename));
     memset(options, 0, sizeof(options));
@@ -79,30 +77,6 @@ void GameSetupStructBase::Free()
     globalscript = NULL;
     delete[] chars;
     chars = NULL;
-}
-
-void GameSetupStructBase::SetDefaultResolution(GameResolutionType type)
-{
-    SetDefaultResolution(type, Size());
-}
-
-void GameSetupStructBase::SetDefaultResolution(Size size)
-{
-    SetDefaultResolution(kGameResolution_Custom, size);
-}
-
-void GameSetupStructBase::SetDefaultResolution(GameResolutionType type, Size size)
-{
-    // Calculate native res first then remember it
-    SetNativeResolution(type, size);
-    _defGameResolution = _gameResolution;
-    // Setup data resolution according to legacy settings (if set)
-    _dataResolution = _defGameResolution;
-    if (IsLegacyHiRes() && options[OPT_NATIVECOORDINATES] == 0)
-    {
-        _dataResolution = _defGameResolution / HIRES_COORD_MULTIPLIER;
-    }
-    OnResolutionSet();
 }
 
 void GameSetupStructBase::SetNativeResolution(GameResolutionType type, Size game_res)
@@ -135,9 +109,6 @@ void GameSetupStructBase::SetGameResolution(Size game_res)
 
 void GameSetupStructBase::OnResolutionSet()
 {
-    // The final data-to-game multiplier is always set after actual game resolution (not default one)
-    _dataUpscaleMult = _gameResolution.Width / _dataResolution.Width;
-    _screenUpscaleMult = _gameResolution.Width / _defGameResolution.Width;
 }
 
 void GameSetupStructBase::ReadFromFile(Stream *in)
@@ -176,8 +147,12 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     {
         game_size.Width = in->ReadInt32();
         game_size.Height = in->ReadInt32();
+        SetGameResolution(game_size);
     }
-    SetDefaultResolution(resolution_type, game_size);
+    else
+    {
+        SetGameResolution(resolution_type);
+    }
 
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
@@ -219,8 +194,8 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteInt32(_resolutionType);
     if (_resolutionType == kGameResolution_Custom)
     {
-        out->WriteInt32(_defGameResolution.Width);
-        out->WriteInt32(_defGameResolution.Height);
+        out->WriteInt32(_gameResolution.Width);
+        out->WriteInt32(_gameResolution.Height);
     }
     out->WriteInt32(default_lipsync_frame);
     out->WriteInt32(invhotdotsprite);

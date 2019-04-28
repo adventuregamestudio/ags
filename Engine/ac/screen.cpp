@@ -152,9 +152,7 @@ ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
 
 ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
 {
-    data_to_game_coords(&roomx, &roomy);
     Point pt = play.RoomToScreen(roomx, roomy);
-    game_to_data_coords(pt.X, pt.Y);
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 

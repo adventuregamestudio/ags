@@ -382,63 +382,29 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
     {
         game.SpriteInfos[i].Flags = ents.SpriteFlags[i];
     }
-
-    // Promote sprite resolutions and mark legacy resolution setting
-    if (data_ver < kGameVersion_350)
-    {
-        for (size_t i = 0; i < ents.SpriteCount; ++i)
-        {
-            SpriteInfo &info = game.SpriteInfos[i];
-            if (game.IsLegacyHiRes() == info.IsLegacyHiRes())
-                info.Flags &= ~(SPF_HIRES | SPF_VAR_RESOLUTION);
-            else
-                info.Flags |= SPF_VAR_RESOLUTION;
-        }
-    }
 }
 
 void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
-    if (data_ver < kGameVersion_350)
-    {
-        for (int i = 0; i < game.numfonts; ++i)
-        {
-            FontInfo &finfo = game.fonts[i];
-            // If the game is hi-res but font is designed for low-res, then scale it up
-            if (game.IsLegacyHiRes() && game.options[OPT_HIRES_FONTS] == 0)
-            {
-                finfo.SizeMultiplier = HIRES_COORD_MULTIPLIER;
-            }
-            else
-            {
-                finfo.SizeMultiplier = 1;
-            }
-        }
-    }
 }
 
 // Convert audio data to the current version
 void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
 {
-    if (data_ver >= kGameVersion_320)
-        return;
 }
 
 // Convert character data to the current version
 void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
 {
-
 }
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 {
-
 }
 
 // Adjusts score clip id, depending on game data version
 void AdjustScoreSound(GameSetupStruct &game, GameDataVersion data_ver)
 {
-
 }
 
 // Assigns default global message at given index

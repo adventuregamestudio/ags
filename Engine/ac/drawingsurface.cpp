@@ -223,8 +223,6 @@ int DrawingSurface_GetDrawingColor(ScriptDrawingSurface *sds)
     return sds->currentColourScript;
 }
 
-
-
 int DrawingSurface_GetHeight(ScriptDrawingSurface *sds) 
 {
     Bitmap *ds = sds->StartDrawing();

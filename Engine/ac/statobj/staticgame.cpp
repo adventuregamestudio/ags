@@ -56,7 +56,7 @@ int32_t StaticGame::ReadInt32(const char *address, intptr_t offset)
     case 87: return play.game_speed_modifier;
     case 88: return play.score_sound;
     case 89: return play.takeover_data;
-    case 90: return play.replay_hotkey;
+    case 90: return 0; // play.replay_hotkey
     case 91: return play.dialog_options_x;
     case 92: return play.dialog_options_y;
     case 93: return play.narrator_speech;
@@ -154,7 +154,7 @@ void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
     case 87:  play.game_speed_modifier = val; break;
     case 88:  play.score_sound = val; break;
     case 89:  play.takeover_data = val; break;
-    case 90:  play.replay_hotkey = val; break;
+    case 90:  break; // play.replay_hotkey
     case 91:  play.dialog_options_x = val; break;
     case 92:  play.dialog_options_y = val; break;
     case 93:  play.narrator_speech = val; break;

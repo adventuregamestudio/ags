@@ -188,16 +188,6 @@ struct SpriteInfo
     int      Height;
 
     SpriteInfo();
-
-    //
-    // Legacy game support
-    //
-    // Gets if sprite should adjust its base size depending on game's resolution
-    inline bool IsRelativeRes() const { return (Flags & SPF_VAR_RESOLUTION) != 0; }
-    // Gets if sprite belongs to high resolution; hi-res sprites should be
-    // downscaled in low-res games, and low-res sprites should be upscaled
-    // in hi-res games
-    inline bool IsLegacyHiRes() const { return (Flags & SPF_HIRES) != 0; }
 };
 
 // Various font parameters, defining and extending font rendering behavior.

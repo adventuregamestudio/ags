@@ -45,56 +45,6 @@ extern IGraphicsDriver *gfxDriver;
 // CLNUP most likely remove these
 int convert_16bit_bgr = 0;
 
-// CLNUP check if it can be remove
-// Convert guis position and size to proper game resolution.
-// Necessary for pre 3.1.0 games only to sync with modern engine.
-void convert_gui_to_game_resolution(GameDataVersion filever)
-{
-    if (filever > kGameVersion_310)
-        return;
-
-    const int mul = game.GetDataUpscaleMult();
-    for (int i = 0; i < game.numcursors; ++i)
-    {
-        game.mcurs[i].hotx *= mul;
-        game.mcurs[i].hoty *= mul;
-    }
-
-    for (int i = 0; i < game.numinvitems; ++i)
-    {
-        game.invinfo[i].hotx *= mul;
-        game.invinfo[i].hoty *= mul;
-    }
-
-    for (int i = 0; i < game.numgui; ++i)
-    {
-        GUIMain*cgp = &guis[i];
-        cgp->X *= mul;
-        cgp->Y *= mul;
-        if (cgp->Width < 1)
-            cgp->Width = 1;
-        if (cgp->Height < 1)
-            cgp->Height = 1;
-        // This is probably a way to fix GUIs meant to be covering whole screen
-        if (cgp->Width == game.GetDataRes().Width - 1)
-            cgp->Width = game.GetDataRes().Width;
-
-        cgp->Width *= mul;
-        cgp->Height *= mul;
-
-        cgp->PopupAtMouseY *= mul;
-
-        for (int j = 0; j < cgp->GetControlCount(); ++j)
-        {
-            GUIObject *guio = cgp->GetControl(j);
-            guio->X *= mul;
-            guio->Y *= mul;
-            guio->Width *= mul;
-            guio->Height *= mul;
-            guio->IsActivated = false;
-        }
-    }
-}
 void engine_setup_system_gamesize()
 {
     scsystem.width = game.GetGameRes().Width;
@@ -119,9 +69,6 @@ void engine_init_resolution_settings(const Size game_size)
 
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
-
-    convert_gui_to_game_resolution(loaded_game_file_version);
-    convert_objects_to_data_resolution(loaded_game_file_version);
 
     engine_setup_system_gamesize();
 }

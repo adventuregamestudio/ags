@@ -1026,10 +1026,11 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
 
     wallscreen = prepare_walkable_areas(chaa->index_id);
 
-    int fromXLowres = room_to_mask_coord(chaa->x);
-    int fromYLowres = room_to_mask_coord(chaa->y);
-    int toXLowres = room_to_mask_coord(xx);
-    int toYLowres = room_to_mask_coord(yy);
+    // TODO: hide these conversions, maybe make can_see_from() function do them internally in and out?
+    int fromX = room_to_mask_coord(chaa->x);
+    int fromY = room_to_mask_coord(chaa->y);
+    int toX = room_to_mask_coord(xx);
+    int toY = room_to_mask_coord(yy);
 
     if (!can_see_from(fromX, fromY, toX, toY)) {
         movetox = mask_to_room_coord(lastcx);
@@ -1894,8 +1895,8 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
     int roomHeightLowRes = room_to_mask_coord(thisroom.Height);
     int xwidth = roomWidthLowRes, yheight = roomHeightLowRes;
 
-    int xLowRes = room_to_mask_coord(xx[0]);
-    int yLowRes = room_to_mask_coord(yy[0]);
+    int xmask = room_to_mask_coord(xx[0]);
+    int ymask = room_to_mask_coord(yy[0]);
     int rightEdge = room_to_mask_coord(thisroom.Edges.Right);
     int leftEdge = room_to_mask_coord(thisroom.Edges.Left);
     int topEdge = room_to_mask_coord(thisroom.Edges.Top);
@@ -1903,15 +1904,15 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 	
     // tweak because people forget to move the edges sometimes
     // if the player is already over the edge, ignore it
-    if (x >= rightEdge) rightEdge = roomWidthLowRes;
-    if (x <= leftEdge) leftEdge = 0;
-    if (y >= bottomEdge) bottomEdge = roomHeightLowRes;
-    if (y <= topEdge) topEdge = 0;
+    if (xmask >= rightEdge) rightEdge = roomWidthLowRes;
+    if (xmask <= leftEdge) leftEdge = 0;
+    if (ymask >= bottomEdge) bottomEdge = roomHeightLowRes;
+    if (ymask <= topEdge) topEdge = 0;
 
     if (range > 0) 
     {
-        startx = x - range;
-        starty = y - range;
+        startx = xmask - range;
+        starty = ymask - range;
         xwidth = startx + range * 2;
         yheight = starty + range * 2;
         if (startx < 0) startx = 0;
@@ -1929,7 +1930,7 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
                 (ey <= topEdge) || (ey >= bottomEdge))
                 continue;
             // otherwise, calculate distance from target
-            thisis=(int) ::sqrt((double)((ex - x) * (ex - x) + (ey - y) * (ey - y)));
+            thisis=(int) ::sqrt((double)((ex - xmask) * (ex - xmask) + (ey - ymask) * (ey - ymask)));
             if (thisis<nearest) { nearest=thisis; nearx=ex; neary=ey; }
         }
     }

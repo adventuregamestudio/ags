@@ -252,12 +252,6 @@ public:
     RoomStruct();
     ~RoomStruct();
 
-    // Gets if room should adjust its base size depending on game's resolution
-    inline bool IsRelativeRes() const { return _resolution != kRoomRealRes; }
-    // Gets if room belongs to high resolution
-    inline bool IsLegacyHiRes() const { return _resolution == kRoomHiRes; }
-    inline RoomResolutionType GetResolutionType() const { return _resolution; }
-
     // Releases room resources
     void            Free();
     // Release room messages and scripts correspondingly. These two functions are needed
@@ -266,8 +260,6 @@ public:
     void            FreeScripts();
     // Init default room state
     void            InitDefaults();
-    // Set legacy resolution type
-    void            SetResolution(RoomResolutionType type);
 
     // TODO: see later whether it may be more convenient to move these to the Region class instead.
     // Gets if the given region has light level set
@@ -338,10 +330,6 @@ public:
     PInteractionScripts     EventHandlers;
     // Compiled room script
     PScript                 CompiledScript;
-
-private:
-    // Room's legacy resolution type, defines relation room and game's resolution
-    RoomResolutionType      _resolution;
 };
 
 

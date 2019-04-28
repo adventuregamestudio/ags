@@ -1619,20 +1619,6 @@ void copy_global_palette_to_room_palette()
   }
 }
 
-// CLNUP mostly for importing from 341 format, could be removed in the future
-// this is necessary because we no longer use the "resolution" and the mask might be low res while the room high res
-void fix_mask_area_size(Common::Bitmap *&mask) {
-    if (mask == NULL) return;
-    if (mask->GetWidth() != thisroom.Width || mask->GetHeight() != thisroom.Height) {
-        int oldw = mask->GetWidth(), oldh = mask->GetHeight();
-        Common::Bitmap *resized = Common::BitmapHelper::CreateBitmap(thisroom.Width, thisroom.Height, 8);
-        resized->Clear();
-        resized->StretchBlt(mask, RectWH(0, 0, oldw, oldh), RectWH(0, 0, resized->GetWidth(), resized->GetHeight()));
-        delete mask;
-        mask = resized;
-    }
-}
-
 const char* load_room_file(const char*rtlo) {
   load_room(rtlo, &thisroom, thisgame.SpriteInfos);
 

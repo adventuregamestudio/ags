@@ -120,29 +120,6 @@ enum RoomFileBlock
     kRoomFile_EOF               = 0xFF
 };
 
-
-// CLNUP only for importing from 341 format, could be removed in the future
-// this is necessary because we no longer use the "resolution" and the mask might be low res while the room high res
-// there's a similar routine on ags.native so the editor can import and resize masks
-// 
-// TODO: we need a --hidden-- coordinate conversion between mask and room coordinate space.
-// return back to this after RoomStruct is refactored.
-//
-PBitmap fix_mask_area_size(const RoomStruct *room, PBitmap mask)
-{
-    if (!mask)
-        return NULL;
-    if (mask->GetWidth() != room->Width || mask->GetHeight() != room->Height)
-    {
-        int oldw = mask->GetWidth(), oldh = mask->GetHeight();
-        Bitmap *resized = BitmapHelper::CreateBitmap(room->Width, room->Height, 8);
-        resized->Clear();
-        resized->StretchBlt(mask.get(), RectWH(0, 0, oldw, oldh), RectWH(0, 0, resized->GetWidth(), resized->GetHeight()));
-        return PBitmap(resized);
-    }
-    return mask;
-}
-
 void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
 {
     obj.Sprite = in->ReadInt16();
@@ -574,12 +551,6 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
             }
         }
     }
-
-    // CLNUP ensure masks are correct size so we can test 3.4.1 games that haven't been upgraded by the editor (which fixes them upon importing the project)
-    room->RegionMask = fix_mask_area_size(room, room->RegionMask);
-    room->WalkAreaMask = fix_mask_area_size(room, room->WalkAreaMask);
-    room->WalkBehindMask = fix_mask_area_size(room, room->WalkBehindMask);
-    room->HotspotMask = fix_mask_area_size(room, room->HotspotMask);
 
     // sync bpalettes[0] with room.pal
     memcpy(room->BgFrames[0].Palette, room->Palette, sizeof(color) * 256);

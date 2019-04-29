@@ -1,0 +1,31 @@
+language: minimal
+
+addons:
+  apt:
+    packages:
+      - debhelper
+      - debian-archive-keyring
+      - fakeroot
+      - pbuilder
+      - ubuntu-dev-tools
+
+cache:
+  directories:
+    - /var/cache/pbuilder
+
+before_script:
+  - pbuilder-dist jessie i386 --security-only create
+  - pbuilder-dist jessie amd64 --security-only create
+
+script:
+  - ./debian/make_ags+libraries.sh
+
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key: $GITHUB_TOKEN
+  file_glob: true
+  file: 
+    - ags+libraries_*.tar.xz
+  on:
+    tags: true

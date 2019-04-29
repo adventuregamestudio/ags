@@ -60,6 +60,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/scriptcamera.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -881,6 +882,34 @@ ScriptAudioClip *Game_GetAudioClip(int index)
     if (index < 0 || index >= game.audioClipCount)
         return nullptr;
     return &game.audioClips[index];
+}
+
+ScriptCamera* Game_GetCamera()
+{
+    return play.GetScriptCamera(0);
+}
+
+int Game_GetCameraCount()
+{
+    return play.GetRoomCameraCount();
+}
+
+ScriptCamera* Game_GetAnyCamera(int index)
+{
+    return play.GetScriptCamera(index);
+}
+
+ScriptCamera* Game_CreateCamera()
+{
+    auto cam = play.CreateRoomCamera();
+    if (!cam)
+        return NULL;
+    return play.RegisterRoomCamera(cam->GetID());
+}
+
+void Game_RemoveCamera(int index)
+{
+    play.DeleteRoomCamera(index);
 }
 
 //=============================================================================
@@ -2326,6 +2355,30 @@ RuntimeScriptValue Sc_Game_PlayVoiceClip(const RuntimeScriptValue *params, int32
     API_SCALL_OBJ_POBJ_PINT_PBOOL(ScriptAudioChannel, ccDynamicAudio, PlayVoiceClip, CharacterInfo);
 }
 
+RuntimeScriptValue Sc_Game_GetCamera(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptCamera, Game_GetCamera);
+}
+
+RuntimeScriptValue Sc_Game_GetCameraCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetCameraCount);
+}
+
+RuntimeScriptValue Sc_Game_GetAnyCamera(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT(ScriptCamera, Game_GetAnyCamera);
+}
+
+RuntimeScriptValue Sc_Game_CreateCamera(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptCamera, Game_CreateCamera);
+}
+
+RuntimeScriptValue Sc_Game_RemoveCamera(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_RemoveCamera);
+}
 
 void RegisterGameAPI()
 {
@@ -2379,6 +2432,12 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::geti_AudioClips",                        Sc_Game_GetAudioClip);
     ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
     ccAddExternalStaticFunction("Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip);
+
+    ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);
+    ccAddExternalStaticFunction("Game::get_CameraCount",                        Sc_Game_GetCameraCount);
+    ccAddExternalStaticFunction("Game::geti_Cameras",                           Sc_Game_GetAnyCamera);
+    ccAddExternalStaticFunction("Game::CreateCamera",                           Sc_Game_CreateCamera);
+    ccAddExternalStaticFunction("Game::RemoveCamera",                           Sc_Game_RemoveCamera);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

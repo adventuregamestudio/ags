@@ -619,19 +619,6 @@ builtin managed struct Room {
   /// Performs default processing of a mouse click at the specified co-ordinates.
   import static void ProcessClick(int x, int y, CursorMode);
 #endif
-#ifdef SCRIPT_API_v3507
-  /// Gets the room camera
-  import static readonly attribute Camera *Camera;
-
-  /// Gets the Camera by index.
-  import static readonly attribute Camera *Cameras[];
-  /// Gets the number of cameras.
-  import static readonly attribute int CameraCount;
-  /// Creates a new Camera.
-  import static Camera *CreateCamera();
-  /// Removes an existing camera; primary camera will never be removed
-  import static void RemoveCamera(int id);
-#endif
 };
 
 builtin managed struct Parser {
@@ -2599,6 +2586,19 @@ builtin managed struct Game {
 #ifdef SCRIPT_API_v350
   /// Play speech voice-over in non-blocking mode, optionally apply music and sound volume reduction
   import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
+#endif
+#ifdef SCRIPT_API_v3507
+  /// Gets the room camera
+  import static readonly attribute Camera *Camera;
+
+  /// Gets the Camera by index.
+  import static readonly attribute Camera *Cameras[];
+  /// Gets the number of cameras.
+  import static readonly attribute int CameraCount;
+  /// Creates a new Camera.
+  import static Camera *CreateCamera();
+  /// Removes an existing camera; primary camera will never be removed
+  import static void RemoveCamera(int id);
 #endif
 };
 

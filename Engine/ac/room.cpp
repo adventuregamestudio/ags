@@ -715,7 +715,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             }
         }
 
-        play.GetRoomCamera(0)->SetAt(0, 0);
+        if (play.IsAutoRoomViewport())
+            play.GetRoomCamera(0)->SetAt(0, 0);
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
         // only stop moving if it's a new room, not a restore game

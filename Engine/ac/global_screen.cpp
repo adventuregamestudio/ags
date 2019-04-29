@@ -40,8 +40,6 @@ extern color palette[256];
 extern unsigned int loopcounter;
 extern int wasShakingScreen;
 
-int screen_reset = 0;
-
 void FlipScreen(int amount) {
     if ((amount<0) | (amount>3)) quit("!FlipScreen: invalid argument (0-3)");
     play.screen_flipped=amount;

@@ -88,6 +88,16 @@ struct RestoredData
     ChannelInfo             AudioChans[MAX_SOUND_CHANNELS + 1];
     // Ambient sounds
     int                     DoAmbient[MAX_SOUND_CHANNELS];
+    // TODO: this is ugly, but we have to keep this data and apply only after
+    // room gets loaded, otherwise it will override restored settings.
+    // Same may refer to few other settings above.
+    // This could be fixed if we split load_new_room() into 2 functions that
+    // load room data with or without applying additional changes. Since code
+    // is pretty complex there this has to be done with careful research.
+    std::vector<Viewport>   Viewports;
+    std::vector<Camera>     Cameras;
+    // Viewport -> camera links
+    std::vector<int>        ViewCamLinks;
 
     RestoredData();
 };

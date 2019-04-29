@@ -469,7 +469,10 @@ void IAGSEngine::RoomToViewport (int32 *x, int32 *y) {
         *y = scrp.Y;
 }
 void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
-    VpPoint vpt = play.ScreenToRoom(x ? game_to_data_coord(*x) : 0, y ? game_to_data_coord(*y) : 0, false);
+    // NOTE: This is an old function that did not account for custom/multiple viewports
+    // and does not expect to fail, therefore we always use primary viewport here.
+    // (Not sure if it's good though)
+    VpPoint vpt = play.ScreenToRoom(x ? game_to_data_coord(*x) : 0, y ? game_to_data_coord(*y) : 0, 0, false);
     if (x)
         *x = vpt.first.X;
     if (y)

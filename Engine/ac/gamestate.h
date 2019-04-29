@@ -35,6 +35,8 @@ namespace AGS { namespace Common {
     typedef std::shared_ptr<Bitmap> PBitmap;
 } }
 using namespace AGS; // FIXME later
+struct ScriptViewport;
+struct ScriptCamera;
 
 #define GAME_STATE_RESERVED_INTS 5
 
@@ -45,6 +47,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_Initial   = 0,
     kGSSvgVersion_350       = 1,
     kGSSvgVersion_3509      = 2,
+    kGSSvgVersion_3510      = 3,
 };
 
 // A result of coordinate conversion between screen and the room,
@@ -245,11 +248,17 @@ struct GameState {
     // Returns UI viewport position on screen, this is the GUI layer
     const Rect &GetUIViewport() const;
     // Returns Room viewport position, which works as a "window" into the room
-    const Rect &GetRoomViewport() const;
+    const Rect &GetRoomViewport(int index) const;
+    // Returns Room viewport object by it's main index
+    PViewport  GetRoomViewportObj(int index) const;
+    // Returns Room viewport object by index in z-order
+    PViewport  GetRoomViewportZOrdered(int index) const;
+    // Finds room viewport at the given screen coordinates; returns nullptr if non found
+    PViewport  GetRoomViewportAt(int x, int y) const;
     // Returns UI viewport position in absolute coordinates (with main viewport offset)
     Rect       GetUIViewportAbs() const;
     // Returns Room viewport position in absolute coordinates (with main viewport offset)
-    Rect       GetRoomViewportAbs() const;
+    Rect       GetRoomViewportAbs(int index) const;
     // Sets if the room viewport should be adjusted automatically each time a new room is loaded
     void SetAutoRoomViewport(bool on);
     // Main viewport defines the location of all things drawn and interactable on the game screen.
@@ -258,27 +267,17 @@ struct GameState {
     // UI viewport is a formal dummy viewport for GUI and Overlays (like speech).
     void SetUIViewport(const Rect &viewport);
     // Room viewport defines location of a room view inside the main viewport.
-    void SetRoomViewport(const Rect &viewport);
-    // Applies all the pending changes to viewports and cameras
+    void SetRoomViewport(int index, const Rect &viewport);
+    // Applies all the pending changes to viewports and cameras;
+    // NOTE: this function may be slow, thus recommended to be called only once
+    // and during the main game update.
     void UpdateViewports();
-    // Returns Room camera position and size inside the room (in room coordinates)
-    const Rect &GetRoomCamera() const;
-    // Returns constant camera object letting read its properties directly
-    const RoomCamera &GetRoomCameraObj() const;
-    // Sets explicit room camera's orthographic size
-    void SetRoomCameraSize(const Size &cam_size);
-    // Puts room camera to the new location in the room
-    void SetRoomCameraAt(int x, int y);
-    // Tells if camera is currently locked at custom position
-    bool IsRoomCameraLocked() const;
-    // Locks room camera at its current position
-    void LockRoomCamera();
-    // Similar to SetRoomCameraAt, but also locks camera preventing it from following player character
-    void LockRoomCameraAt(int x, int y);
-    // Releases camera lock, letting it follow player character
-    void ReleaseRoomCamera();
-    // Runs camera behavior
-    void UpdateRoomCamera();
+    // Notifies game state that viewports need z-order resorting upon next update.
+    void InvalidateViewportZOrder();
+    // Returns room camera object chosen by index
+    PCamera GetRoomCamera(int index) const;
+    // Runs cameras behaviors
+    void UpdateRoomCameras();
     // Converts room coordinates to the game screen coordinates through the room viewport
     // This group of functions always tries to pass a point through the **primary** room viewport
     // TODO: also support using arbitrary viewport (for multiple viewports).
@@ -286,13 +285,43 @@ struct GameState {
     int  RoomToScreenX(int roomx);
     int  RoomToScreenY(int roomy);
     // Converts game screen coordinates to the room coordinates through the room viewport
-    // These functions first try to find if there is any viewport at the given coords
-    // TODO: also support using arbitrary viewport (for multiple viewports)
+    // First pair of functions try to find if there is any viewport at the given coords and result
+    // in failure if there is none.
     // TODO: find out if possible to refactor and get rid of "variadic" variants;
     // usually this depends on how the arguments are created (whether they are in "variadic" or true coords)
-    VpPoint ScreenToRoom(int scrx, int scry, bool clip_viewport = true);
-    VpPoint ScreenToRoomDivDown(int scrx, int scry, bool clip_viewport = true); // native "variadic" coords variant
+    VpPoint ScreenToRoom(int scrx, int scry);
+    VpPoint ScreenToRoomDivDown(int scrx, int scry); // native "variadic" coords variant
+    // Following pair of function check for the particular viewport only, and optonally "clip"
+    // coordinates with its bounds, which means that they would fail if coordinates lie outside.
+    VpPoint ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport);
+    VpPoint ScreenToRoomDivDown(int scrx, int scry, int view_index, bool clip_viewport); // native "variadic" coords variant
 
+    // Creates new room viewport
+    PViewport CreateRoomViewport();
+    // Register camera in the managed system; optionally links to existing handle
+    ScriptViewport *RegisterRoomViewport(int index, int32_t handle = 0);
+    // Deletes existing room viewport
+    void DeleteRoomViewport(int index);
+    // Get number of room viewports
+    int GetRoomViewportCount() const;
+    // Creates new room camera
+    PCamera CreateRoomCamera();
+    // Register camera in the managed system; optionally links to existing handle
+    ScriptCamera *RegisterRoomCamera(int index, int32_t handle = 0);
+    // Deletes existing room camera
+    void DeleteRoomCamera(int index);
+    // Get number of room cameras
+    int GetRoomCameraCount() const;
+    // Gets script viewport reference; does NOT increment refcount
+    // because script interpreter does this when acquiring managed pointer.
+    ScriptViewport *GetScriptViewport(int index);
+    // Gets script camera reference; does NOT increment refcount
+    // because script interpreter does this when acquiring managed pointer.
+    ScriptCamera *GetScriptCamera(int index);
+
+    //
+    // Voice speech management
+    //
     // Tells if there's a blocking voice speech playing right now
     bool IsBlockingVoiceSpeech() const;
     // Tells whether we have to finalize voice speech when stopping or reusing the channel
@@ -300,37 +329,45 @@ struct GameState {
     // Speech helpers
     bool ShouldPlayVoiceSpeech() const;
 
+    //
     // Serialization
+    //
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
     void ReadCustomProperties_v340(Common::Stream *in);
     void WriteCustomProperties_v340(Common::Stream *out) const;
     void ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver);
     void WriteForSavegame(Common::Stream *out) const;
     void FreeProperties();
+    void FreeViewportsAndCameras();
 
 private:
+    VpPoint ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport, bool convert_cam_to_data);
+    void UpdateRoomCamera(int index);
+
     // Defines if the room viewport should be adjusted to the room size automatically.
     bool _isAutoRoomViewport;
-    // Viewport defines the rectangle of the drawn and interactable area
+    // Main viewport defines the rectangle of the drawn and interactable area
     // in the most basic case it will be equal to the game size.
     Viewport _mainViewport;
-    // Viewport defines the render and interaction rectangle of game's UI.
+    // UI viewport defines the render and interaction rectangle of game's UI.
     Viewport _uiViewport;
-    // Primary room viewport, defines place on screen where the room camera
+    // Room viewports define place on screen where the room camera's
     // contents are drawn.
-    Viewport _roomViewport;
-    // Camera defines the position of an "looking eye" inside the room.
-    RoomCamera _roomCamera;
+    std::vector<PViewport> _roomViewports;
+    // Vector of viewports sorted in z-order.
+    std::vector<PViewport> _roomViewportsSorted;
+    // Cameras defines the position of a "looking eye" inside the room.
+    std::vector<PCamera> _roomCameras;
+    // Script viewports and cameras are references to real data export to
+    // user script. They became invalidated as the actual object gets
+    // destroyed, but are kept in memory to prevent script errors.
+    std::vector<std::pair<ScriptViewport*, int32_t>> _scViewportRefs;
+    std::vector<std::pair<ScriptCamera*, int32_t>> _scCameraRefs;
 
     // Tells that the main viewport's position has changed since last game update
     bool  _mainViewportHasChanged;
-    // Tells that the room viewport's position has changed since last game update
-    bool  _roomViewportHasChanged;
-    // Tells that the room camera's size has changed since last game update
-    bool  _cameraHasChanged;
-
-    // Calculates room-to-viewport coordinate conversion.
-    void AdjustRoomToViewport();
+    // Tells that room viewports need z-order resort
+    bool  _roomViewportZOrderChanged;
 };
 
 // Converts legacy alignment type used in script API

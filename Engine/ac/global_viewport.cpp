@@ -19,14 +19,14 @@
 void SetViewport(int offsx, int offsy) {
     offsx = data_to_game_coord(offsx);
     offsy = data_to_game_coord(offsy);
-    play.LockRoomCameraAt(offsx, offsy);
+    play.GetRoomCamera(0)->LockAt(offsx, offsy);
 }
 void ReleaseViewport() {
-    play.ReleaseRoomCamera();
+    play.GetRoomCamera(0)->Release();
 }
 int GetViewportX () {
-    return game_to_data_coord(play.GetRoomCamera().Left);
+    return game_to_data_coord(play.GetRoomCamera(0)->GetRect().Left);
 }
 int GetViewportY () {
-    return game_to_data_coord(play.GetRoomCamera().Top);
+    return game_to_data_coord(play.GetRoomCamera(0)->GetRect().Top);
 }

@@ -15,7 +15,7 @@
 //
 // Game configuration
 //
-
+#include <ctype.h> // toupper
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -204,6 +204,63 @@ int convert_fp_to_scaling(uint32_t scaling)
     return scaling >= kUnit ? (scaling >> kShift) : -kUnit / (int32_t)scaling;
 }
 
+AlIDStr AlIDToChars(int al_id)
+{
+    if (al_id == 0)
+        return AlIDStr{ 'N', 'O', 'N', 'E', 0 };
+    else if (al_id == -1)
+        return AlIDStr{ 'A', 'U', 'T', 'O', 0 };
+    else
+        return AlIDStr{ (al_id >> 24) & 0xFF, (al_id >> 16) & 0xFF, (al_id >> 8) & 0xFF, (al_id) & 0xFF, 0 };
+}
+
+AlIDStr AlIDToChars(const String &s)
+{
+    AlIDStr id_str;
+    size_t i = 0;
+    for (; i < s.GetLength(); ++i)
+        id_str.s[i] = toupper(s[i]);
+    for (; i < 4; ++i)
+        id_str.s[i] = ' ';
+    id_str.s[4] = 0;
+    return id_str;
+}
+
+int StringToAlID(const char *cstr)
+{
+    return (int)(AL_ID(cstr[0u], cstr[1u], cstr[2u], cstr[3u]));
+}
+
+// Parses a config string which may hold plain driver's ID or 4-char ID packed
+// as a 32-bit integer.
+int parse_driverid(const String &id)
+{
+    int asint;
+    if (StrUtil::StringToInt(id, asint, 0) == StrUtil::kNoError)
+        return asint;
+    if (id.GetLength() > 4)
+        return -1; // autodetect
+    if (id.CompareNoCase("AUTO") == 0)
+        return -1; // autodetect
+    if (id.CompareNoCase("NONE") == 0)
+        return 0; // no driver
+    return StringToAlID(AlIDToChars(id).s);
+}
+
+// Reads driver ID from config, where it may be represented as string or number
+int read_driverid(const ConfigTree &cfg, const String &sectn, const String &item, int def_value)
+{
+    String s = INIreadstring(cfg, sectn, item);
+    if (s.IsEmpty())
+        return def_value;
+    return parse_driverid(s);
+}
+
+void write_driverid(ConfigTree &cfg, const String &sectn, const String &item, int value)
+{
+    INIwritestring(cfg, sectn, item, AlIDToChars(value).s);
+}
+
 void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, GameFrameSetup &frame_setup)
 {
     scsz_setup.Size = Size();
@@ -258,6 +315,7 @@ void config_defaults()
 #ifdef WINDOWS_VERSION
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
+    usetup.midicard = MIDI_AUTODETECT;
 }
 
 void read_game_data_location(const ConfigTree &cfg)
@@ -279,6 +337,33 @@ void read_game_data_location(const ConfigTree &cfg)
 #endif
     }
     usetup.main_data_filename = INIreadstring(cfg, "misc", "datafile", usetup.main_data_filename);
+}
+
+void read_legacy_audio_config(const ConfigTree &cfg)
+{
+#ifdef WINDOWS_VERSION
+    int idx = INIreadint(cfg, "sound", "digiwinindx", -1);
+    if (idx == 0)
+        idx = DIGI_DIRECTAMX(0);
+    else if (idx == 1)
+        idx = DIGI_WAVOUTID(0);
+    else if (idx == 2)
+        idx = DIGI_NONE;
+    else if (idx == 3)
+        idx = DIGI_DIRECTX(0);
+    else
+        idx = DIGI_AUTODETECT;
+    usetup.digicard = idx;
+
+    idx = INIreadint(cfg, "sound", "midiwinindx", -1);
+    if (idx == 1)
+        idx = MIDI_NONE;
+    else if (idx == 2)
+        idx = MIDI_WIN32MAPPER;
+    else
+        idx = MIDI_AUTODETECT;
+    usetup.midicard = idx;
+#endif
 }
 
 void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_filter)
@@ -325,6 +410,8 @@ extern int psp_gfx_scaling;
 extern int psp_gfx_super_sampling;
 extern int psp_gfx_smoothing;
 extern int psp_gfx_smooth_sprites;
+extern int psp_audio_enabled;
+extern int psp_midi_enabled;
 
 void override_config_ext(ConfigTree &cfg)
 {
@@ -382,32 +469,23 @@ void override_config_ext(ConfigTree &cfg)
 void apply_config(const ConfigTree &cfg)
 {
     {
-#ifndef WINDOWS_VERSION
-        usetup.digicard=INIreadint(cfg, "sound","digiid", DIGI_AUTODETECT);
-        usetup.midicard=INIreadint(cfg, "sound","midiid", MIDI_AUTODETECT);
-#else
-        int idx = INIreadint(cfg, "sound","digiwinindx", -1);
-        if (idx == 0)
-            idx = DIGI_DIRECTAMX(0);
-        else if (idx == 1)
-            idx = DIGI_WAVOUTID(0);
-        else if (idx == 2)
-            idx = DIGI_NONE;
-        else if (idx == 3) 
-            idx = DIGI_DIRECTX(0);
-        else 
-            idx = DIGI_AUTODETECT;
-        usetup.digicard = idx;
-
-        idx = INIreadint(cfg, "sound","midiwinindx", -1);
-        if (idx == 1)
-            idx = MIDI_NONE;
-        else if (idx == 2)
-            idx = MIDI_WIN32MAPPER;
+        // Legacy settings has to be translated into new options;
+        // they must be read first, to let newer options override them, if ones are present
+        read_legacy_audio_config(cfg);
+        if (psp_audio_enabled)
+        {
+            usetup.digicard = read_driverid(cfg, "sound", "digiid", usetup.digicard);
+            if (psp_midi_enabled)
+                usetup.midicard = read_driverid(cfg, "sound", "midiid", usetup.midicard);
+            else
+                usetup.midicard = MIDI_NONE;
+        }
         else
-            idx = MIDI_AUTODETECT;
-        usetup.midicard = idx;
-#endif
+        {
+            usetup.digicard = DIGI_NONE;
+            usetup.midicard = MIDI_NONE;
+        }
+
         psp_audio_multithreaded = INIreadint(cfg, "sound", "threaded", psp_audio_multithreaded);
 
         // Filter can also be set by command line

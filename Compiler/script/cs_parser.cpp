@@ -584,24 +584,55 @@ int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
     return 0;
 }
 
+// Returns the relative distance in a jump instruction
+// "here" is the location of the bytecode int that will contain
+// the (relative) destination.It is not the location of the
+// start of the command.
+inline int RelativeJumpDist(AGS::CodeLoc here, AGS::CodeLoc dest)
+{
+    // JMP 0 jumps to the bytecode symbol directly behind the command.
+    // So if dest == here, -1 must be returned.
+    return static_cast<int>(dest - here - 1);
+}
 
 void FreePointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, AGS::Symbol arraySym)
 {
     scrip->write_cmd1(SCMD_LOADSPOFFS, spOffset);
     scrip->write_cmd0(zeroCmd);
 
-    if (FlagIsSet(sym.entries[arraySym].vartype, kVTY_Array) &&
-        !FlagIsSet(sym.entries[arraySym].vartype, kVTY_DynArray))
+    const size_t arrsize = sym.entries[arraySym].arrsize;
+    if (!FlagIsSet(sym.entries[arraySym].vartype, kVTY_Array) ||
+        FlagIsSet(sym.entries[arraySym].vartype, kVTY_DynArray))
+        return; // done
+
+    // array of pointers - first pointer has already been released
+    // release each of the following pointers, too
+    if (arrsize <= 1)
+        return; // done: there aren't any following pointers
+
+    size_t const num_of_ptr = arrsize - 1;
+    if (num_of_ptr < 3) 
     {
-        // array of pointers -- release each one
-        const size_t arrsize = sym.entries[arraySym].arrsize;
-        for (size_t entry = 1; entry < arrsize; entry++)
+        // individual releases need less bytes than a loop
+        for (int loop = num_of_ptr; loop > 0; loop--)
         {
             scrip->write_cmd2(SCMD_ADD, SREG_MAR, 4);
             scrip->write_cmd0(zeroCmd);
         }
+        return;
     }
+
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, num_of_ptr);
+    AGS::CodeLoc start_of_loop = scrip->codesize;
+    scrip->write_cmd2(SCMD_ADD, SREG_MAR, 4);
+    scrip->write_cmd0(zeroCmd);
+    scrip->write_cmd2(SCMD_SUB, SREG_AX, 1);
+    scrip->write_cmd1(
+        SCMD_JNZ,
+        RelativeJumpDist(scrip->codesize + 1, start_of_loop));    
+    return;
 }
+
 
 
 void FreePointersOfStruct(ccCompiledScript *scrip, AGS::Symbol structVarSym)
@@ -663,19 +694,6 @@ bool is_any_type_of_string(AGS::Vartype symtype)
         return true;
     return false;
 }
-
-
-// Returns the relative distance in a jump instruction
-// "here" is the location of the bytecode int that will contain
-// the (relative) destination.It is not the location of the
-// start of the command.
-inline int RelativeJumpDist(AGS::CodeLoc here, AGS::CodeLoc dest)
-{
-    // JMP 0 jumps to the bytecode symbol directly behind the command.
-    // So if dest == here, -1 must be returned.
-    return static_cast<int>(dest - here - 1);
-}
-
 
 // Return number of bytes to remove from stack to unallocate local vars
 // of level from_level or higher
@@ -768,7 +786,6 @@ int RemoveLocalsFromSymtable(int from_level)
     }
     return 0;
 }
-
 
 // The type NT(Un)bracedElse isn't only used for ELSE branches, but also for the
 // body of WHILE and other statements. 
@@ -3979,7 +3996,7 @@ int ParseVardecl_ArrayDecl(ccInternalList *targ, int var_name, int type_of_defn,
             return -1;
         }
 
-        size_of_defn = size_of_defn + array_size;
+        size_of_defn = size_of_defn * array_size;
         initial_value_ptr = calloc(1, size_of_defn + 4);
         static_cast<int *>(initial_value_ptr)[0] = size_of_defn;
         sym.entries[var_name].arrsize = array_size;
@@ -4066,7 +4083,6 @@ void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript *scrip, int var_name, FxFi
         // expression worked out into ax
         if (FlagIsSet(sym.get_vartype(var_name), (kVTY_Pointer | kVTY_DynArray)))
             scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
-
         else
             scrip->write_cmd1(GetReadWriteCmdForSize(size_of_defn, true), SREG_AX);
     }

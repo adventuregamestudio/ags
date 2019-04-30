@@ -72,9 +72,9 @@ Script API:
    key/value pairs in sorted or unsorted way.
  - Implemented Viewport and Camera script classes which control how room is displayed on screen.
  - Implemented Screen struct with a number of static functions and properties, which notably
-   features a reference to the primary Viewport. Deprecated System's ScreenWidth, ScreenHeight,
+   features references to the existing Viewports. Deprecated System's ScreenWidth, ScreenHeight,
    ViewportWidth and ViewportHeight in favor of Screen's properties.
- - Added Room.Camera property that references primary room camera.
+ - Added Game.Camera, Game.Cameras and Game.CameraCount properties.
  - All functions that find room objects under screen coordinates are now being clipped by the
    viewport (fail if there's no room viewport at these coordinates). This refers to:
    GetLocationName, GetLocationType, IsInteractionAvailable, Room.ProcessClick, GetWalkableAreaAt
@@ -111,6 +111,8 @@ Engine:
    for plugins unless any plugin hooked for the particular drawing events.
  - Reimplemented FRead and FWrite plugin API functions, should now work in 64-bit mode too.
  - Made fps display more stable and timing correct when framerate is maxed out for test purposes.
+ - Use "digiid" and "midiid" config options to be used on all platforms alike and allow these to
+   represent driver ID as a plain string and encoded as an integer value (for compatibility).
  - Completely removed old and unsupported record/replay functionality.
  - Replaced number of fatal errors reported for incorrectly called script functions with
    a warning to the warnings.log instead. This is done either when arguments may be fixed

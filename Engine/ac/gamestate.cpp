@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include <algorithm>
 #include "ac/draw.h"
 #include "ac/game_version.h"
 #include "ac/gamestate.h"

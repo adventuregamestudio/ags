@@ -150,19 +150,6 @@ ScriptViewport* Screen_GetAnyViewport(int index)
     return play.GetScriptViewport(index);
 }
 
-ScriptViewport* Screen_CreateViewport()
-{
-    auto view = play.CreateRoomViewport();
-    if (!view)
-        return NULL;
-    return play.RegisterRoomViewport(view->GetID());
-}
-
-void Screen_RemoveViewport(int index)
-{
-    play.DeleteRoomViewport(index);
-}
-
 ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
 {
     data_to_game_coords(&scrx, &scry);
@@ -218,16 +205,6 @@ RuntimeScriptValue Sc_Screen_GetAnyViewport(const RuntimeScriptValue *params, in
     API_SCALL_OBJAUTO_PINT(ScriptViewport, Screen_GetAnyViewport);
 }
 
-RuntimeScriptValue Sc_Screen_CreateViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptViewport, Screen_CreateViewport);
-}
-
-RuntimeScriptValue Sc_Screen_RemoveViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Screen_RemoveViewport);
-}
-
 RuntimeScriptValue Sc_Screen_ScreenToRoomPoint(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_ScreenToRoomPoint);
@@ -247,8 +224,6 @@ void RegisterScreenAPI()
     ccAddExternalStaticFunction("Screen::get_Viewport", Sc_Screen_GetViewport);
     ccAddExternalStaticFunction("Screen::get_ViewportCount", Sc_Screen_GetViewportCount);
     ccAddExternalStaticFunction("Screen::geti_Viewports", Sc_Screen_GetAnyViewport);
-    ccAddExternalStaticFunction("Screen::CreateViewport", Sc_Screen_CreateViewport);
-    ccAddExternalStaticFunction("Screen::RemoveViewport", Sc_Screen_RemoveViewport);
     ccAddExternalStaticFunction("Screen::ScreenToRoomPoint", Sc_Screen_ScreenToRoomPoint);
     ccAddExternalStaticFunction("Screen::RoomToScreenPoint", Sc_Screen_RoomToScreenPoint);
 }

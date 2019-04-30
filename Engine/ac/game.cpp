@@ -899,19 +899,6 @@ ScriptCamera* Game_GetAnyCamera(int index)
     return play.GetScriptCamera(index);
 }
 
-ScriptCamera* Game_CreateCamera()
-{
-    auto cam = play.CreateRoomCamera();
-    if (!cam)
-        return NULL;
-    return play.RegisterRoomCamera(cam->GetID());
-}
-
-void Game_RemoveCamera(int index)
-{
-    play.DeleteRoomCamera(index);
-}
-
 //=============================================================================
 
 // save game functions
@@ -2370,16 +2357,6 @@ RuntimeScriptValue Sc_Game_GetAnyCamera(const RuntimeScriptValue *params, int32_
     API_SCALL_OBJAUTO_PINT(ScriptCamera, Game_GetAnyCamera);
 }
 
-RuntimeScriptValue Sc_Game_CreateCamera(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptCamera, Game_CreateCamera);
-}
-
-RuntimeScriptValue Sc_Game_RemoveCamera(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Game_RemoveCamera);
-}
-
 void RegisterGameAPI()
 {
     ccAddExternalStaticFunction("Game::IsAudioPlaying^1",                       Sc_Game_IsAudioPlaying);
@@ -2436,8 +2413,6 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);
     ccAddExternalStaticFunction("Game::get_CameraCount",                        Sc_Game_GetCameraCount);
     ccAddExternalStaticFunction("Game::geti_Cameras",                           Sc_Game_GetAnyCamera);
-    ccAddExternalStaticFunction("Game::CreateCamera",                           Sc_Game_CreateCamera);
-    ccAddExternalStaticFunction("Game::RemoveCamera",                           Sc_Game_RemoveCamera);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

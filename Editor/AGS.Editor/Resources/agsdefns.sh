@@ -2588,17 +2588,12 @@ builtin managed struct Game {
   import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
 #endif
 #ifdef SCRIPT_API_v3507
-  /// Gets the room camera
+  /// Gets the primary camera
   import static readonly attribute Camera *Camera;
-
   /// Gets the Camera by index.
   import static readonly attribute Camera *Cameras[];
   /// Gets the number of cameras.
   import static readonly attribute int CameraCount;
-  /// Creates a new Camera.
-  import static Camera *CreateCamera();
-  /// Removes an existing camera; primary camera will never be removed
-  import static void RemoveCamera(int id);
 #endif
 };
 
@@ -2771,6 +2766,10 @@ builtin managed struct Camera {
   /// Gets/sets whether this camera will follow the player character automatically.
   import attribute bool AutoTracking;
 
+  /// Creates a new Camera.
+  import static Camera *Create();
+  /// Removes an existing camera; note that primary camera will never be removed
+  import void Delete();
   /// Changes camera position in the room and disables automatic tracking of the player character.
   import void SetAt(int x, int y);
   /// Changes camera's capture dimensions in room coordinates.
@@ -2793,8 +2792,12 @@ builtin managed struct Viewport {
   /// Gets/sets the Viewport's z-order relative to other viewports.
   import attribute int ZOrder;
 
+  /// Creates a new Viewport.
+  import static Viewport *Create();
   /// Returns the viewport at the specified screen location.
   import static Viewport *GetAtScreenXY(int x, int y);
+  /// Removes an existing viewport; note that primary viewport will never be removed
+  import void Delete();
   /// Changes viewport's position on the screen
   import void SetPosition(int x, int y, int width, int height);
   /// Returns the point in room corresponding to the given screen coordinates if seen through this viewport.
@@ -2812,15 +2815,10 @@ builtin struct Screen {
   import static attribute bool AutoSizeViewportOnRoomLoad;
   /// Gets the primary room viewport.
   import static readonly attribute Viewport *Viewport;
-
   /// Gets a Viewport by index.
   import static readonly attribute Viewport *Viewports[];
   /// Gets the number of viewports.
   import static readonly attribute int ViewportCount;
-  /// Creates a new Viewport.
-  import static Viewport *CreateViewport();
-  /// Removes an existing viewport; primary viewport will never be removed
-  import static void RemoveViewport(int id);
 
   /// Returns the point in room which is displayed at the given screen coordinates.
   import static Point *ScreenToRoomPoint(int sx, int sy);

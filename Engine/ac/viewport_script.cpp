@@ -32,6 +32,19 @@ using namespace AGS::Common;
 //
 //=============================================================================
 
+ScriptCamera* Camera_Create()
+{
+    auto cam = play.CreateRoomCamera();
+    if (!cam)
+        return NULL;
+    return play.RegisterRoomCamera(cam->GetID());
+}
+
+void Camera_Delete(ScriptCamera *scam)
+{
+    play.DeleteRoomCamera(scam->GetID());
+}
+
 int Camera_GetX(ScriptCamera *scam)
 {
     int x = play.GetRoomCamera(scam->GetID())->GetRect().Left;
@@ -110,6 +123,16 @@ void Camera_SetSize(ScriptCamera *scam, int width, int height)
     play.GetRoomCamera(scam->GetID())->SetSize(Size(width, height));
 }
 
+RuntimeScriptValue Sc_Camera_Create(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptCamera, Camera_Create);
+}
+
+RuntimeScriptValue Sc_Camera_Delete(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptCamera, Camera_Delete);
+}
+
 RuntimeScriptValue Sc_Camera_GetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptCamera, Camera_GetX);
@@ -176,6 +199,19 @@ RuntimeScriptValue Sc_Camera_SetSize(void *self, const RuntimeScriptValue *param
 // Viewport script API.
 //
 //=============================================================================
+
+ScriptViewport* Viewport_Create()
+{
+    auto view = play.CreateRoomViewport();
+    if (!view)
+        return NULL;
+    return play.RegisterRoomViewport(view->GetID());
+}
+
+void Viewport_Delete(ScriptViewport *scv)
+{
+    play.DeleteRoomViewport(scv->GetID());
+}
 
 int Viewport_GetX(ScriptViewport *scv)
 {
@@ -324,6 +360,16 @@ ScriptUserObject *Viewport_RoomToScreenPoint(ScriptViewport *scv, int roomx, int
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 
+RuntimeScriptValue Sc_Viewport_Create(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptViewport, Viewport_Create);
+}
+
+RuntimeScriptValue Sc_Viewport_Delete(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptViewport, Viewport_Delete);
+}
+
 RuntimeScriptValue Sc_Viewport_GetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptViewport, Viewport_GetX);
@@ -418,6 +464,8 @@ RuntimeScriptValue Sc_Viewport_RoomToScreenPoint(void *self, const RuntimeScript
 
 void RegisterViewportAPI()
 {
+    ccAddExternalStaticFunction("Camera::Create", Sc_Camera_Create);
+    ccAddExternalObjectFunction("Camera::Delete", Sc_Camera_Delete);
     ccAddExternalObjectFunction("Camera::get_X", Sc_Camera_GetX);
     ccAddExternalObjectFunction("Camera::set_X", Sc_Camera_SetX);
     ccAddExternalObjectFunction("Camera::get_Y", Sc_Camera_GetY);
@@ -431,6 +479,8 @@ void RegisterViewportAPI()
     ccAddExternalObjectFunction("Camera::SetAt", Sc_Camera_SetAt);
     ccAddExternalObjectFunction("Camera::SetSize", Sc_Camera_SetSize);
 
+    ccAddExternalStaticFunction("Viewport::Create", Sc_Viewport_Create);
+    ccAddExternalObjectFunction("Viewport::Delete", Sc_Viewport_Delete);
     ccAddExternalObjectFunction("Viewport::get_X", Sc_Viewport_GetX);
     ccAddExternalObjectFunction("Viewport::set_X", Sc_Viewport_SetX);
     ccAddExternalObjectFunction("Viewport::get_Y", Sc_Viewport_GetY);

@@ -588,7 +588,7 @@ int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
 void FreePointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, AGS::Symbol arraySym)
 {
     scrip->write_cmd1(SCMD_LOADSPOFFS, spOffset);
-    scrip->write_cmd(zeroCmd);
+    scrip->write_cmd0(zeroCmd);
 
     if (FlagIsSet(sym.entries[arraySym].vartype, kVTY_Array) &&
         !FlagIsSet(sym.entries[arraySym].vartype, kVTY_DynArray))
@@ -598,7 +598,7 @@ void FreePointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, AGS::Symbol
         for (size_t entry = 1; entry < arrsize; entry++)
         {
             scrip->write_cmd2(SCMD_ADD, SREG_MAR, 4);
-            scrip->write_cmd(zeroCmd);
+            scrip->write_cmd0(zeroCmd);
         }
     }
 }
@@ -2924,7 +2924,7 @@ enum ValueLocation
 
 // We're processing some struct component or global or local variable.
 // If an array index follows, parse it and shorten symlist accordingly
-int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_of_array, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, size_t &mar_offset, AGS::Vartype &vartype)
+int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_of_array, int array_size, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, size_t &mar_offset, AGS::Vartype &vartype)
 {
     if (0 == symlist_len || kSYM_OpenBracket != sym.get_type(symlist[0]))
         return 0;
@@ -2964,15 +2964,19 @@ int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_
     }
     
     if (is_dynarray)
-        scrip->write_cmd1(SCMD_MEMREAD, SREG_MAR); // m[MAR] -> MAR (dereference)
+        scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR); // m[MAR] -> MAR (dereference)
     scrip->push_reg(SREG_MAR); // save MAR from being clobbered
     
     int retval = AccessData_ArrayIndexIntoAX(scrip, symlist + 1, bracketed_expr_length - 2);
     if (retval < 0) return retval;
-    scrip->pop_reg(SREG_MAR); // Get array memory location into MAR
-    scrip->write_cmd2(SCMD_MUL, SREG_AX, element_size); // Multiply offset with length of one array entry
     if (is_dynarray)
         scrip->write_cmd1(SCMD_DYNAMICBOUNDS, SREG_AX);
+    else if (array_size > 0)
+        scrip->write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, array_size);
+    else // it's a static array, and we don't know the size
+        ;   // don't check the bounds
+    scrip->pop_reg(SREG_MAR); // Get array memory location into MAR
+    scrip->write_cmd2(SCMD_MUL, SREG_AX, element_size); // Multiply offset with length of one array entry
     scrip->write_cmd2(SCMD_ADDREG, SREG_MAR, SREG_AX); // Add offset
 
     symlist = close_brac_loc + 1;
@@ -3006,11 +3010,12 @@ int AccessData_GlobalOrLocalVar(ccCompiledScript *scrip, bool is_global, bool wr
     }
     
     vartype = sym.get_vartype(varname);
+    int const array_size = sym.entries[varname].arrsize;
 
     // Process an array index if it follows
     size_t mar_offset_dummy = 0;
     ValueLocation vl_dummy = kVL_mar_pointsto_value;
-    return AccessData_ProcessAnyArrayIndex(scrip, kVL_mar_pointsto_value, symlist, symlist_len, vl_dummy, mar_offset_dummy, vartype);
+    return AccessData_ProcessAnyArrayIndex(scrip, kVL_mar_pointsto_value, array_size, symlist, symlist_len, vl_dummy, mar_offset_dummy, vartype);
 }
 
 int AccessData_LitFloat(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
@@ -3315,7 +3320,7 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
             return 0;
         }
         vloc = kVL_ax_is_value;
-        scrip->write_cmd(SCMD_CHECKNULL);
+        scrip->write_cmd0(SCMD_CHECKNULL);
         AccessData_MakeMARCurrent(scrip, mar_offset);
         bool const is_attribute_set_func = false;
         return AccessData_Attribute(scrip, symlist, symlist_len, is_attribute_set_func, vartype);
@@ -3326,17 +3331,18 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
         vloc = kVL_ax_is_value;
         scope = kSYM_LocalVar;
         retval = AccessData_FunctionCall(scrip, component, symlist, symlist_len, mar_offset, vartype);
-        if (retval < 0) return retval;
+        if (retval < 0) return retval;        
+        int const zero_array_size_dummy = 0; // A function cannot return a static array.
         // We've just called a function, so its ret value will be in AX.
         // Thus _if_ an array index follows, it must be AX that points to that array.
-        return AccessData_ProcessAnyArrayIndex(scrip, kVL_ax_pointsto_value, symlist, symlist_len, vloc, mar_offset, vartype);
+        return AccessData_ProcessAnyArrayIndex(scrip, kVL_ax_pointsto_value, zero_array_size_dummy, symlist, symlist_len, vloc, mar_offset, vartype);
     }
 
     case kSYM_StructComponent:
         vloc = kVL_mar_pointsto_value;
         retval = AccessData_StructMember(component, writing, access_via_this, symlist, symlist_len, mar_offset, vartype);
         if (retval < 0) return retval;
-        return AccessData_ProcessAnyArrayIndex(scrip, vloc, symlist, symlist_len, vloc, mar_offset, vartype);
+        return AccessData_ProcessAnyArrayIndex(scrip, vloc, sym.entries[component].arrsize, symlist, symlist_len, vloc, mar_offset, vartype);
     }
     
     return 0; // Can't reach
@@ -3363,8 +3369,8 @@ int AccessData_Dereference(ccCompiledScript *scrip, ValueLocation &vloc, size_t 
     if (kVL_mar_pointsto_value == vloc)
     {
         AccessData_MakeMARCurrent(scrip, mar_offset);
-        scrip->write_cmd(SCMD_CHECKNULL);
-        scrip->write_cmd1(SCMD_MEMREAD, SREG_MAR);
+        scrip->write_cmd0(SCMD_CHECKNULL);
+        scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
         mar_offset = 0;
         
     }
@@ -3480,7 +3486,7 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
 
     if (mar_offset != 0)
     {
-        scrip->write_cmd(SCMD_CHECKNULL);
+        scrip->write_cmd0(SCMD_CHECKNULL);
         AccessData_MakeMARCurrent(scrip, mar_offset);
     }
 
@@ -3497,7 +3503,7 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     // Save on the stack so that it isn't clobbered
     AGS::Vartype rhsvartype = scrip->ax_vartype;
     int rhsscope = scrip->ax_val_scope;
-    scrip->write_cmd1(SCMD_PUSHREG, SREG_AX);
+    scrip->push_reg(SREG_AX);
 
     bool const writing = true;
     bool const negate_dummy = false; // when writing, this parameter is pointless
@@ -3508,7 +3514,7 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     int retval = AccessData(scrip, writing, negate_dummy, symlist, symlist_len, vloc, lhsscope, lhsvartype);
     if (retval < 0) return retval;
 
-    scrip->write_cmd1(SCMD_POPREG, SREG_AX);
+    scrip->pop_reg(SREG_AX);
     scrip->ax_vartype = rhsvartype;
     scrip->ax_val_scope = rhsscope;
 
@@ -3539,7 +3545,9 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     }
 
     // MAR points to the value
-    scrip->write_cmd1(SCMD_MEMWRITE, SREG_AX); // location to modify is m[MAR]
+    scrip->write_cmd1(
+        FlagIsSet(rhsvartype, kVTY_DynArray | kVTY_Pointer) ? SCMD_MEMWRITEPTR : SCMD_MEMWRITE,
+        SREG_AX); 
     return 0;
     }
 
@@ -3555,7 +3563,9 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
         return 0;
 
     // Get the result into AX
-    scrip->write_cmd1(SCMD_MEMREAD, SREG_AX);
+    scrip->write_cmd1(
+        FlagIsSet(vartype, kVTY_DynArray | kVTY_Pointer) ? SCMD_MEMREADPTR : SCMD_MEMREAD,
+        SREG_AX);
     scrip->ax_vartype = vartype;
     scrip->ax_val_scope = scope;
     return 0;
@@ -3692,7 +3702,7 @@ int ParseAssignment_MAssign(ccInternalList *targ, ccCompiledScript *scrip, AGS::
     // Parse RHS
     int retval = ParseExpression(targ, scrip);
     if (retval < 0) return retval;
-    scrip->write_cmd1(SCMD_PUSHREG, SREG_AX);
+    scrip->push_reg(SREG_AX);
     AGS::Vartype rhsvartype = scrip->ax_vartype;
 
     // Parse LHS
@@ -3705,7 +3715,7 @@ int ParseAssignment_MAssign(ccInternalList *targ, ccCompiledScript *scrip, AGS::
     int cpuOp = sym.entries[ass_symbol].ssize;
     retval = GetOperatorValidForVartype(lhsvartype, rhsvartype, cpuOp);
     if (retval < 0) return retval;
-    scrip->write_cmd1(SCMD_POPREG, SREG_BX); 
+    scrip->pop_reg(SREG_BX);
     scrip->write_cmd2(cpuOp, SREG_AX, SREG_BX);
 
     if (kVL_mar_pointsto_value == vloc)
@@ -4056,6 +4066,7 @@ void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript *scrip, int var_name, FxFi
         // expression worked out into ax
         if (FlagIsSet(sym.get_vartype(var_name), (kVTY_Pointer | kVTY_DynArray)))
             scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
+
         else
             scrip->write_cmd1(GetReadWriteCmdForSize(size_of_defn, true), SREG_AX);
     }
@@ -4301,7 +4312,7 @@ void ParseOpenbrace_FuncBody(ccCompiledScript *scrip, AGS::Symbol name_of_func, 
     // write base address of function for any relocation needed later
     scrip->write_cmd1(SCMD_THISBASE, scrip->codesize);
     if (is_noloopcheck)
-        scrip->write_cmd(SCMD_LOOPCHECKOFF);
+        scrip->write_cmd0(SCMD_LOOPCHECKOFF);
 
     // loop through all parameters and check whether they are pointers
     // the first entry is the return value, so skip that
@@ -4410,7 +4421,7 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingS
         // Write code to return from the function.
         // This pops the return address from the stack, 
         // so adjust the "high point" of stack allocation appropriately
-        scrip->write_cmd(SCMD_RET);
+        scrip->write_cmd0(SCMD_RET);
         scrip->cur_sp -= 4;
 
         nesting_stack->Pop();
@@ -5722,7 +5733,7 @@ int ParseReturn(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol inFun
     int totalsub = StacksizeOfLocals(0);
     if (totalsub > 0)
         scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
-    scrip->write_cmd(SCMD_RET);
+    scrip->write_cmd0(SCMD_RET);
     // We don't alter cur_sp since there can be code after the RETURN
 
     return 0;

@@ -4820,7 +4820,7 @@ TEST(Compatibility, ArrayOfPointers1) {
                                          \n\
     int main()                           \n\
     {                                    \n\
-        for(int i = 0; i < 9; i++)       \n\
+        for (int i = 0; i < 9; i++)       \n\
             arr[i] = new Struct;         \n\
                                          \n\
         int test = (arr[10] == null);    \n\
@@ -4834,31 +4834,27 @@ TEST(Compatibility, ArrayOfPointers1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayOfPointers1", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 130;
+    // hand checked Bytecode
+    const size_t codesize = 124;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    3,            0,    3,    1,    2,    // 7
        8,    3,    1,    1,            4,   51,    4,    7,    // 15
        3,   29,    3,    6,            3,    9,   30,    4,    // 23
-      18,    4,    3,    3,            4,    3,   28,   43,    // 31
-      73,    3,    8,   29,            3,   51,    8,    7,    // 39
-       3,   46,    3,   50,            3,    3,    7,   30,    // 47
-       3,    6,    2,    0,           32,    7,    4,   11,    // 55
-       2,    7,   29,    2,           30,    2,   47,    3,    // 63
-      51,    4,    7,    3,            1,    3,    1,    8,    // 71
-       3,   31,  -62,    2,            1,    4,    6,    3,    // 79
-      10,   46,    3,   50,            3,    3,    7,    6,    // 87
-       2,    0,   32,    7,            4,   11,    2,    7,    // 95
-      29,    2,   30,    2,           48,    3,   29,    3,    // 103
-       6,    3,    0,   30,            4,   15,    4,    3,    // 111
-       3,    4,    3,    3,            1,    2,    8,    3,    // 119
-       1,    1,    4,    6,            3,    0,    2,    1,    // 127
-       4,    5,  -999
+      18,    4,    3,    3,            4,    3,   28,   40,    // 31
+      73,    3,    8,   29,            3,    6,    2,    0,    // 39
+      29,    2,   51,   12,            7,    3,   46,    3,    // 47
+      50,   30,    2,   32,            3,    4,   11,    2,    // 55
+       3,   30,    3,   47,            3,   51,    4,    7,    // 63
+       3,    1,    3,    1,            8,    3,   31,  -59,    // 71
+       2,    1,    4,    6,            2,    0,   29,    2,    // 79
+       6,    3,   10,   46,            3,   50,   30,    2,    // 87
+      32,    3,    4,   11,            2,    3,   48,    3,    // 95
+      29,    3,    6,    3,            0,   30,    4,   15,    // 103
+       4,    3,    3,    4,            3,    3,    1,    2,    // 111
+       8,    3,    1,    1,            4,    6,    3,    0,    // 119
+       2,    1,    4,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -4875,7 +4871,7 @@ TEST(Compatibility, ArrayOfPointers1) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      51,   89,  -999
+      39,   77,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -4956,7 +4952,7 @@ TEST(Compatibility, ArrayOfPointers2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("ArrayOfPointers2", scrip);
+    WriteOutput("ArrayOfPointers2", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -5079,23 +5075,18 @@ TEST(Compatibility, ArrayInStruct) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("ArrayInStruct", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 67;
+    // Hand checked new code
+    const size_t codesize = 53;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   73,    3,           40,    3,    1,    2,    // 7
       50,    3,    1,    1,            4,    6,    3,    1,    // 15
-      51,    4,   29,    2,           30,    2,   29,    3,    // 23
-      48,    3,   30,    4,           29,    3,    3,    4,    // 31
-       3,   29,    3,    6,            3,    4,   46,    3,    // 39
-      10,   32,    3,    4,            3,    3,    5,   30,    // 47
-       3,   30,    2,   52,           11,    2,    5,    8,    // 55
-       3,    6,    3,    0,           51,    4,   69,    2,    // 63
-       1,    4,    5,  -999
+      29,    3,   51,    8,           52,   48,    2,   29,    // 23
+       2,    6,    3,    4,           46,    3,   10,   30,    // 31
+       2,   32,    3,    4,           11,    2,    3,   30,    // 39
+       3,    8,    3,    6,            3,    0,   51,    4,    // 47
+      69,    2,    1,    4,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)

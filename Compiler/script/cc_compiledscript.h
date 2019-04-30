@@ -39,7 +39,7 @@ struct ccCompiledScript : public ccScript {
     void flush_line_numbers();
     const char *start_new_section(const char *name);
 
-    inline void write_cmd(int cmdd) { write_code(cmdd); };
+    inline void write_cmd0(int cmdd) { write_code(cmdd); };
     inline void write_cmd1(int cmdd, int param) { write_code(cmdd); write_code(param); };
     inline void write_cmd2(int cmdd, int param1, int param2) { write_code(cmdd); write_code(param1); write_code(param2); };
     inline void write_cmd3(int cmdd, int param1, int param2, int param3) { write_code(cmdd); write_code(param1); write_code(param2); write_code(param3); };

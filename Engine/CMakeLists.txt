@@ -272,7 +272,7 @@ target_sources(engine
     ac/tree_map.h
     ac/viewframe.cpp
     ac/viewframe.h
-    ac/viewport.cpp
+    ac/viewport_script.cpp
     ac/walkablearea.cpp
     ac/walkablearea.h
     ac/walkbehind.cpp
@@ -300,6 +300,7 @@ target_sources(engine
     game/savegame_components.cpp
     game/savegame_components.h
     game/savegame_internal.h
+    game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h
     gfx/ali3dogl.cpp

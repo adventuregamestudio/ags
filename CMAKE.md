@@ -42,6 +42,7 @@ CMake can create Makefile and Ninja projects. These are single config systems so
  - Install recommended dev packages
  - Install CMake 3.14 (via above site)
  - mkdir build-debug
+ - cd build-debug  # otherwise your build artifacts will be in the source directory!
  - cmake .. -DCMAKE_BUILD_TYPE=Debug
  - cmake --build . --parallel
 

@@ -207,11 +207,17 @@ int convert_fp_to_scaling(uint32_t scaling)
 AlIDStr AlIDToChars(int al_id)
 {
     if (al_id == 0)
-        return AlIDStr{ 'N', 'O', 'N', 'E', 0 };
+        return AlIDStr {{ 'N', 'O', 'N', 'E', '\0' }};
     else if (al_id == -1)
-        return AlIDStr{ 'A', 'U', 'T', 'O', 0 };
+        return AlIDStr {{ 'A', 'U', 'T', 'O', '\0' }};
     else
-        return AlIDStr{ (al_id >> 24) & 0xFF, (al_id >> 16) & 0xFF, (al_id >> 8) & 0xFF, (al_id) & 0xFF, 0 };
+        return AlIDStr {{
+            static_cast<char>((al_id >> 24) & 0xFF),
+            static_cast<char>((al_id >> 16) & 0xFF),
+            static_cast<char>((al_id >> 8) & 0xFF),
+            static_cast<char>((al_id) & 0xFF),
+            '\0'
+        }};
 }
 
 AlIDStr AlIDToChars(const String &s)

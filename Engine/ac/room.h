@@ -51,6 +51,18 @@ void  on_background_frame_change ();
 // Clear the current room pointer if room status is no longer valid
 void  croom_ptr_clear();
 
+// These functions convert coordinates between data resolution and region mask.
+// In hi-res games region masks are 1:2 (or smaller) of the room size.
+// In legacy games with low-res data resolution there's additional conversion
+// between data and room coordinates.
+//
+// gets multiplier for converting from room mask to data coordinate
+extern AGS_INLINE int get_roommask_to_data_mul();
+// coordinate conversion data ---> room ---> mask
+extern AGS_INLINE int room_to_mask_coord(int coord);
+// coordinate conversion mask ---> room ---> data
+extern AGS_INLINE int mask_to_room_coord(int coord);
+
 struct MoveList;
 // Convert move path from room's mask resolution to room resolution
 void convert_move_path_to_room_resolution(MoveList *ml);

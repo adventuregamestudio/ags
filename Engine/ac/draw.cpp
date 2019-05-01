@@ -373,16 +373,6 @@ AGS_INLINE int get_fixed_pixel_size(int pixels)
     return pixels * game.GetDataUpscaleMult();
 }
 
-AGS_INLINE int room_to_mask_coord(int coord)
-{
-    return coord / thisroom.MaskResolution;
-}
-
-AGS_INLINE int mask_to_room_coord(int coord)
-{
-    return coord * thisroom.MaskResolution;
-}
-
 AGS_INLINE int data_to_game_coord(int coord)
 {
     return coord * game.GetDataUpscaleMult();

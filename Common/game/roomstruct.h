@@ -261,6 +261,7 @@ public:
     inline bool IsRelativeRes() const { return _resolution != kRoomRealRes; }
     // Gets if room belongs to high resolution
     inline bool IsLegacyHiRes() const { return _resolution == kRoomHiRes; }
+    // Gets legacy resolution type
     inline RoomResolutionType GetResolutionType() const { return _resolution; }
 
     // Releases room resources

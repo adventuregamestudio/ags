@@ -2649,7 +2649,12 @@ builtin struct GameState {
   int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
   int  score_sound;
   int  previous_game_data;
+#ifndef SCRIPT_COMPAT_v341
   readonly int unused__041; // $AUTOCOMPLETEIGNORE$
+#endif
+#ifdef SCRIPT_COMPAT_v341
+  int  replay_hotkey;
+#endif
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;

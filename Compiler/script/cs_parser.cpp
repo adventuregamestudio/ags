@@ -4633,14 +4633,6 @@ int ParseStruct_CheckComponentVartype(ccInternalList *targ, int stname, AGS::Sym
         }
     }
 
-    AGS::Flags const stname_flags = sym.get_flags(stname);
-
-    if (member_is_pointer && FlagIsSet(stname_flags, kSFLG_Managed) && !member_is_import)
-    {
-        cc_error("Member variable of a managed struct cannot be a pointer");
-        return -1;
-    }
-
     if (!FlagIsSet(vartype_flags, kSFLG_Managed) && member_is_pointer)
     {
         cc_error("Cannot declare a pointer to non-managed type");
@@ -4964,9 +4956,15 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
         return -1;
     }
 
-    bool const isFunction = sym.get_type(targ->peeknext()) == kSYM_OpenParenthesis;
+    bool const is_function = sym.get_type(targ->peeknext()) == kSYM_OpenParenthesis;
 
-    if (kPP_Main == g_PP && !isFunction)
+    if (type_is_pointer && FlagIsSet(sym.get_flags(stname), kSFLG_Managed) && !is_function)
+    {
+        cc_error("Member variable of a managed struct cannot be a pointer");
+        return -1;
+    }
+
+    if (kPP_Main == g_PP && !is_function)
     {
         if (sym.get_type(mangled_name) != 0)
         {
@@ -4985,7 +4983,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     if (kPP_Main == g_PP)
         SetFlag(sym.entries[mangled_name].flags, kSFLG_StructMember, true);
 
-    if (isFunction)
+    if (is_function)
     {
         if (current_func > 0)
         {

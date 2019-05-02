@@ -1531,3 +1531,23 @@ TEST(Compile, Attribute3) {
     std::string res(last_seen_cc_error());
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
+
+TEST(Compile, StructPtrFunc) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Func is ptr to managed, but it is a function not a variable
+    // so ought to be let through.
+
+    char *inpl = "\
+        managed struct ManagedStruct {                  \n\
+            ManagedStruct *Func();                      \n\
+        };                                              \n\
+        ManagedStruct *ManagedStruct::Func()            \n\
+        {}                                              \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

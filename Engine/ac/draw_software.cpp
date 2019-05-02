@@ -343,6 +343,13 @@ void invalidate_rect_ds(DirtyRects &rects, int x1, int y1, int x2, int y2, bool 
         y1 = rects.Screen2DirtySurf.Y.ScalePt(y1);
         y2 = rects.Screen2DirtySurf.Y.ScalePt(y2);
     }
+    else
+    {
+        x1 -= rects.Room2Screen.X.GetSrcOffset();
+        y1 -= rects.Room2Screen.Y.GetSrcOffset();
+        x2 -= rects.Room2Screen.X.GetSrcOffset();
+        y2 -= rects.Room2Screen.Y.GetSrcOffset();
+    }
 
     invalidate_rect_on_surf(x1, y1, x2, y2, rects);
 }

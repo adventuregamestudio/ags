@@ -317,11 +317,16 @@ String find_user_cfg_file()
 
 void config_defaults()
 {
-    usetup.translation = nullptr;
+#ifdef WINDOWS_VERSION
+    usetup.Screen.DriverID = "D3D";
+#else
+    usetup.Screen.DriverID = "OGL";
+#endif
 #ifdef WINDOWS_VERSION
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
     usetup.midicard = MIDI_AUTODETECT;
+    usetup.translation = "";
 }
 
 void read_game_data_location(const ConfigTree &cfg)
@@ -375,7 +380,7 @@ void read_legacy_audio_config(const ConfigTree &cfg)
 void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_filter)
 {
     usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "misc", "windowed") > 0;
-    usetup.Screen.DriverID = INIreadstring(cfg, "misc", "gfxdriver");
+    usetup.Screen.DriverID = INIreadstring(cfg, "misc", "gfxdriver", usetup.Screen.DriverID);
 
     if (should_read_filter)
     {
@@ -502,7 +507,7 @@ void apply_config(const ConfigTree &cfg)
         read_legacy_graphics_config(cfg, should_read_filter);
 
         // Graphics mode
-        usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver");
+        usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver", usetup.Screen.DriverID);
 
         usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
         const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };

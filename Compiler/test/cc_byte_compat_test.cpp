@@ -1314,31 +1314,28 @@ TEST(Compatibility, DoNCall) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("DoNCall", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 130;
+    // hand-checked bytecode
+    const size_t codesize = 128;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    3,            0,    3,    1,    2,    // 7
        8,    3,    1,    1,            4,   31,    2,   31,    // 15
-      63,    6,    3,  500,           29,    3,    6,    2,    // 23
+      61,    6,    3,  500,           29,    3,    6,    2,    // 23
        0,   24,    3,   30,            4,   14,    4,    3,    // 31
        3,    4,    3,   29,            3,   51,    8,    7,    // 39
-       3,   30,    4,   12,            3,    4,   51,    4,    // 47
-       8,    3,    6,    2,            0,   24,    3,    2,    // 55
-       3,    1,   26,    3,            6,    2,    0,   24,    // 63
-       3,   29,    3,    6,            3,    0,   30,    4,    // 71
-      17,    4,    3,    3,            4,    3,   70,  -63,    // 79
-      51,    4,    7,    3,            2,    1,    4,    5,    // 87
-       6,    3,    0,    2,            1,    4,    5,   38,    // 95
-      95,   51,    8,    7,            3,   29,    3,   51,    // 103
-      12,    7,    3,   30,            4,   41,    4,    3,    // 111
-       3,    4,    3,   29,            3,    6,    3,    0,    // 119
-      23,    3,    2,    1,            4,    5,    6,    3,    // 127
-       0,    5,  -999
+       3,   30,    4,   12,            3,    4,    8,    3,    // 47
+       6,    2,    0,   24,            3,    2,    3,    1,    // 55
+      26,    3,    6,    2,            0,   24,    3,   29,    // 63
+       3,    6,    3,    0,           30,    4,   17,    4,    // 71
+       3,    3,    4,    3,           70,  -61,   51,    4,    // 79
+       7,    3,    2,    1,            4,    5,    6,    3,    // 87
+       0,    2,    1,    4,            5,   38,   93,   51,    // 95
+       8,    7,    3,   29,            3,   51,   12,    7,    // 103
+       3,   30,    4,   41,            4,    3,    3,    4,    // 111
+       3,   29,    3,    6,            3,    0,   23,    3,    // 119
+       2,    1,    4,    5,            6,    3,    0,    5,    // 127
+     -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1355,7 +1352,7 @@ TEST(Compatibility, DoNCall) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      24,   52,   62,  119,        -999
+      24,   50,   60,  117,        -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -1407,10 +1404,9 @@ TEST(Compatibility, DoNCall) {
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
 
-
 }
 
-TEST(Compatibility, Do2) {
+TEST(Compatibility, DoUnbracedIf) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1430,27 +1426,23 @@ TEST(Compatibility, Do2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Do2", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 88;
+    // WriteOutput("DoUnbracedIf", scrip);
+    // hand-checked bytecode 
+    const size_t codesize = 86;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   68,    6,            3,    0,    3,    1,    // 7
        2,    8,    3,    1,            1,    4,   31,    2,    // 15
-      31,   63,   51,    4,            7,    3,   29,    3,    // 23
+      31,   61,   51,    4,            7,    3,   29,    3,    // 23
        6,    3,  100,   30,            4,   18,    4,    3,    // 31
-       3,    4,    3,   28,           20,    6,    3,   10,    // 39
+       3,    4,    3,   28,           18,    6,    3,   10,    // 39
       29,    3,   51,    8,            7,    3,   30,    4,    // 47
-      11,    3,    4,   51,            4,    8,    3,   31,    // 55
-       5,    6,    3,    0,           31,  -46,   51,    4,    // 63
-       7,    3,   29,    3,            6,    3,   -1,   30,    // 71
-       4,   19,    4,    3,            3,    4,    3,   70,    // 79
-     -63,    6,    3,    0,            2,    1,    4,    5,    // 87
-     -999
+      11,    3,    4,    8,            3,   31,    5,    6,    // 55
+       3,    0,   31,  -44,           51,    4,    7,    3,    // 63
+      29,    3,    6,    3,           -1,   30,    4,   19,    // 71
+       4,    3,    3,    4,            3,   70,  -61,    6,    // 79
+       3,    0,    2,    1,            4,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)

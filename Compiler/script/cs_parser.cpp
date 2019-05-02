@@ -3581,8 +3581,9 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
         return 0;
 
     // Get the result into AX
+    AGS::CodeCell const readOp = GetReadCommandForSize(sym.entries[vartype & kVTY_FlagMask].ssize);
     scrip->write_cmd1(
-        FlagIsSet(vartype, kVTY_DynArray | kVTY_Pointer) ? SCMD_MEMREADPTR : SCMD_MEMREAD,
+        FlagIsSet(vartype, kVTY_DynArray | kVTY_Pointer) ? SCMD_MEMREADPTR : readOp,
         SREG_AX);
     scrip->ax_vartype = vartype;
     scrip->ax_val_scope = scope;

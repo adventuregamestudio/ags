@@ -120,12 +120,6 @@ RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
 int gs_to_newroom=-1;
 
-// Room mask to room data resolution factor; used when a coordinate of data
-// resolution is converted to the room mask resolution.
-// In this case there is combined conversion: data->game and game->mask.
-// This variable helps to reduce operations.
-int room_mask_to_data_mul;
-
 ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 {
     if (displayed_room < 0)
@@ -234,15 +228,6 @@ void convert_room_background_to_game_res()
     // Fix walk-behinds to match room background
     // TODO: would not we need to do similar to each mask if they were 1:1 in hires room?
     thisroom.WalkBehindMask = FixBitmap(thisroom.WalkBehindMask, bkg_width, bkg_height);
-}
-
-// Setups coordinate conversions between room and masks
-void init_room_coordinate_conv()
-{
-    // Make a multiplier from mask to data resolution for faster conversions.
-    // Normally a coordinate would be converted first from mask to game res,
-    // and then from game to data res (and in opposite direction).
-    room_mask_to_data_mul = thisroom.MaskResolution / game.GetDataUpscaleMult();
 }
 
 
@@ -556,7 +541,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     set_color_depth(game.GetColorDepth());
     convert_room_background_to_game_res();
-    init_room_coordinate_conv();
     recache_walk_behinds();
     update_polled_stuff_if_runtime();
 
@@ -1055,40 +1039,34 @@ void croom_ptr_clear()
 }
 
 
-AGS_INLINE int get_roommask_to_data_mul()
-{
-    return room_mask_to_data_mul;
-}
-
 AGS_INLINE int room_to_mask_coord(int coord)
 {
-    return coord / room_mask_to_data_mul;
+    return coord * game.GetDataUpscaleMult() / thisroom.MaskResolution;
 }
 
 AGS_INLINE int mask_to_room_coord(int coord)
 {
-    return coord * room_mask_to_data_mul;
+    return coord * thisroom.MaskResolution / game.GetDataUpscaleMult();
 }
 
 void convert_move_path_to_room_resolution(MoveList *ml)
 {
-    const int mul = get_roommask_to_data_mul();
-    if (mul == 1)
+    if (thisroom.MaskResolution == game.GetDataUpscaleMult())
         return;
 
-    ml->fromx *= mul;
-    ml->fromy *= mul;
-    ml->lastx *= mul;
-    ml->lasty *= mul;
+    ml->fromx = mask_to_room_coord(ml->fromx);
+    ml->fromy = mask_to_room_coord(ml->fromy);
+    ml->lastx = mask_to_room_coord(ml->lastx);
+    ml->lasty = mask_to_room_coord(ml->lasty);
 
     for (int i = 0; i < ml->numstage; i++)
     {
-        short lowPart = (ml->pos[i] & 0x0000ffff) * mul;
-        short highPart = ((ml->pos[i] >> 16) & 0x0000ffff) * mul;
+        uint16_t lowPart = mask_to_room_coord(ml->pos[i] & 0x0000ffff);
+        uint16_t highPart = mask_to_room_coord((ml->pos[i] >> 16) & 0x0000ffff);
         ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
 
-        ml->xpermove[i] *= mul;
-        ml->ypermove[i] *= mul;
+        ml->xpermove[i] = mask_to_room_coord(ml->xpermove[i]);
+        ml->ypermove[i] = mask_to_room_coord(ml->ypermove[i]);
     }
 }
 

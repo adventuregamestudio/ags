@@ -6073,44 +6073,34 @@ TEST(Compatibility, Attributes) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Attributes", scrip);
-    // run the test, comment out the previous line
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-    const size_t codesize = 242;
+    // hand-checked bytecode
+    const size_t codesize = 181;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,   63,    4,    1,    // 7
-       1,    4,   51,    4,           29,    2,   30,    2,    // 15
-      48,    3,   29,    3,           30,    2,    3,    2,    // 23
-       3,   29,    6,   45,            3,   39,    0,    6,    // 31
-       3,    0,   33,    3,           30,    6,   28,  157,    // 39
-       6,    3,   17,   51,            4,   29,    2,   30,    // 47
-       2,   29,    3,   48,            3,   30,    4,   29,    // 55
-       3,    3,    4,    3,            3,    3,    4,   30,    // 63
-       2,    3,    2,    3,           29,    6,   45,    3,    // 71
-      34,    4,   39,    1,            6,    3,    2,   33,    // 79
-       3,   35,    1,   30,            6,   51,    4,   29,    // 87
-       2,   30,    2,   48,            3,   29,    3,   30,    // 95
-       2,    3,    2,    3,           29,    6,   45,    3,    // 103
-      39,    0,    6,    3,            3,   33,    3,   30,    // 111
-       6,   29,    3,   51,            8,   29,    2,   30,    // 119
-       2,   48,    3,   29,            3,   30,    2,    3,    // 127
-       2,    3,   29,    6,           45,    3,   39,    0,    // 135
-       6,    3,    3,   33,            3,   30,    6,   30,    // 143
-       4,   57,    4,    3,            3,    4,    3,    3,    // 151
-       1,    2,    8,    3,            1,    1,    4,   51,    // 159
-       8,   29,    2,   30,            2,   48,    3,   29,    // 167
-       3,   30,    2,    3,            2,    3,   29,    6,    // 175
-      45,    3,   39,    0,            6,    3,    1,   33,    // 183
-       3,   30,    6,   51,            8,   69,    2,    1,    // 191
-       8,    5,    2,    1,            4,   51,    4,   29,    // 199
-       2,   30,    2,   48,            3,   29,    3,   30,    // 207
-       2,    3,    2,    3,           29,    6,   45,    3,    // 215
-      39,    0,    6,    3,            0,   33,    3,   30,    // 223
-       6,   51,    4,   69,            2,    1,    4,    5,    // 231
-       6,    3,    0,   51,            4,   69,    2,    1,    // 239
-       4,    5,  -999
+       1,    4,   51,    4,           52,   48,    2,   52,    // 15
+      29,    6,   45,    2,           39,    0,    6,    3,    // 23
+       0,   33,    3,   30,            6,   28,  114,    6,    // 31
+       3,   17,   29,    3,           51,    8,   52,   48,    // 39
+       2,   30,    3,   29,            6,   34,    3,   45,    // 47
+       2,   39,    1,    6,            3,    2,   33,    3,    // 55
+      35,    1,   30,    6,           51,    4,   52,   48,    // 63
+       2,   52,   29,    6,           45,    2,   39,    0,    // 71
+       6,    3,    3,   33,            3,   30,    6,   29,    // 79
+       3,   51,    8,   52,           48,    2,   52,   29,    // 87
+       6,   45,    2,   39,            0,    6,    3,    3,    // 95
+      33,    3,   30,    6,           30,    4,   57,    4,    // 103
+       3,    3,    4,    3,            3,    1,    2,    8,    // 111
+       3,    1,    1,    4,           51,    8,   52,   48,    // 119
+       2,   52,   29,    6,           45,    2,   39,    0,    // 127
+       6,    3,    1,   33,            3,   30,    6,   51,    // 135
+       8,   69,    2,    1,            8,    5,    2,    1,    // 143
+       4,   51,    4,   52,           48,    2,   52,   29,    // 151
+       6,   45,    2,   39,            0,    6,    3,    0,    // 159
+      33,    3,   30,    6,           51,    4,   69,    2,    // 167
+       1,    4,    5,    6,            3,    0,   51,    4,    // 175
+      69,    2,    1,    4,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6127,7 +6117,7 @@ TEST(Compatibility, Attributes) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      33,   78,  108,  138,        182,  220,  -999
+      24,   53,   74,   95,        130,  159,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -6154,10 +6144,10 @@ TEST(Compatibility, Attributes) {
         ASSERT_EQ(is_val, test_val);
     }
 
-    const int numimports = 5;
+    const int numimports = 4;
     std::string imports[] = {
-    "ViewFrame::get_Flipped",     "ViewFrame::get_Graphic",     // 1
-    "ViewFrame::set_Graphic",     "ViewFrame::get_AsFloat",      "[[SENTINEL]]"
+    "ViewFrame::get_Flipped^0",   "ViewFrame::get_Graphic^0",   "ViewFrame::set_Graphic^1",   // 2
+    "ViewFrame::get_AsFloat^0",    "[[SENTINEL]]"
     };
 
     int idx2 = -1;

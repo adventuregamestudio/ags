@@ -1686,11 +1686,12 @@ int ParseFuncdecl(
     }
 
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(name_of_func);
-    if (entry.stype != kSYM_Function && entry.stype != 0)
+    if (kSYM_Function != entry.stype && kSYM_NoType != entry.stype)
     {
         cc_error("'%s' is already defined", sym.get_name_string(name_of_func).c_str());
         return -1;
     }
+
     if ((!func_returns_ptr) && (!func_returns_dynarray) &&
         FlagIsSet(entry.flags, kSFLG_StructType))
     {
@@ -4699,11 +4700,11 @@ int ParseStruct_Function(ccInternalList *targ, ccCompiledScript *scrip, AGS::Typ
 
 int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype)
 {
-    bool const sscope_wanted = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
+    size_t const sscope_wanted = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
     if (entry.sscope != sscope_wanted)
     {
         cc_error(
-            "The attribute function '%s' should have %d parameters but has %d parameters instead",
+            "The attribute function '%s' should have %d parameter(s) but is declared with %d parameter(s) instead",
             entry.sname.c_str(), sscope_wanted, entry.sscope);
         return -1;
     }
@@ -4711,8 +4712,10 @@ int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool
     if (!entry.funcparamtypes[0] != ret_vartype)
     {
         cc_error(
-            "Return of attribute function '%s' must have type '%s'",
-            entry.sname.c_str(), sym.get_name_string(ret_vartype).c_str());
+            "The attribute function '%s' must return type '%s' but returns '%s' instead",
+            entry.sname.c_str(),
+            sym.get_name_string(ret_vartype).c_str(),
+            sym.get_vartype_name_string(entry.funcparamtypes[0]).c_str());
         return -1;
     }
     size_t p_idx = 1;
@@ -4739,18 +4742,19 @@ int ParseStruct_EnterAttributeFunc(ccCompiledScript *scrip, SymbolTableEntry &en
 {
     entry.stype = kSYM_Function;
     SetFlag(entry.flags, kSFLG_Imported, true);
-    int idx = g_ImportMgr.FindOrAdd(entry.sname);
+    entry.soffs = g_ImportMgr.FindOrAdd(entry.sname);
     char  *num_param_suffix;
     if (is_setter)
         num_param_suffix = (is_indexed ? "^2" : "^1");
     else // getter
         num_param_suffix = (is_indexed ? "^1" : "^0");
-    strcat(scrip->imports[idx], num_param_suffix);
+    strcat(scrip->imports[entry.soffs], num_param_suffix);
 
     AGS::Vartype const retvartype = entry.funcparamtypes[0] =
         is_setter ? sym.getVoidSym() : vartype;
     entry.ssize = sym.entries[retvartype & kVTY_FlagMask].ssize;
     entry.sscope = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
+
     entry.funcparamtypes.resize(entry.sscope + 1);
 
     size_t p_idx = 1;
@@ -4769,16 +4773,13 @@ int ParseStruct_EnterAttributeFunc(ccCompiledScript *scrip, SymbolTableEntry &en
 int ParseStruct_DeclareAttributeFunc(ccCompiledScript *scrip, AGS::Symbol func, bool is_setter, bool is_indexed, AGS::Vartype vartype)
 {
     SymbolTableEntry &entry = sym.entries[func];
-    if (kSYM_Function != entry.stype && 0 != entry.stype)
+    if (kSYM_Function != entry.stype && kSYM_NoType != entry.stype)
     {
         cc_error(
-            "Attribute uses '%s' as a function, this clashes with a different use elsewhere",
+            "Attribute uses '%s' as a function, this clashes with a declaration elsewhere",
             entry.sname.c_str());
         return -1;
     }
-
-    if (kSYM_NoType == entry.stype || FlagIsSet(entry.flags, kSFLG_Imported))
-        g_ImportMgr.FindOrAdd(entry.sname);
 
     if (kSYM_Function == entry.stype) // func has already been declared
         return ParseStruct_CheckAttributeFunc(entry, is_setter, is_indexed, vartype);
@@ -4789,38 +4790,23 @@ int ParseStruct_DeclareAttributeFunc(ccCompiledScript *scrip, AGS::Symbol func, 
 // We're in a struct declaration, parsing a struct attribute
 int ParseStruct_Attribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Symbol stname, AGS::Symbol vname)
 {
-    if (kPP_PreAnalyze == g_PP)
-    {
-        if (kSYM_OpenBracket == sym.get_type(targ->peeknext()))
-        {
-            targ->getnext();
-            if (kSYM_CloseBracket != sym.get_type(targ->getnext()))
-            {
-                cc_error("Cannot specify array size for attribute");
-                return -1;
-            }
-        }
-        return 0;
-    }
-
-    // We don't care whether the attribute is declared import or not;
-    // it is shorthand for the getter/setter functions so they are
-    // what matters anyway
-    SetFlag(sym.entries[vname].flags, kSFLG_Imported, true);
-    sym.entries[vname].stype = kSYM_Attribute;
-
     bool attribute_is_indexed = false;
 
-    if (sym.get_type(targ->peeknext()) == kSYM_OpenBracket)
+    if (kSYM_OpenBracket == sym.get_type(targ->peeknext()))
     {
-        attribute_is_indexed = true;
-        targ->getnext();  // skip the [
-        if (sym.get_type(targ->getnext()) != kSYM_CloseBracket)
+        targ->getnext();
+        if (kSYM_CloseBracket != sym.get_type(targ->getnext()))
         {
             cc_error("Cannot specify array size for attribute");
             return -1;
         }
+    }
+    if (kPP_PreAnalyze == g_PP)
+        return 0;
 
+    sym.entries[vname].stype = kSYM_Attribute;
+    if (attribute_is_indexed)
+    {
         SetFlag(sym.entries[vname].vartype, kVTY_Array, true);
         sym.entries[vname].arrsize = 0;
     }
@@ -4840,10 +4826,7 @@ int ParseStruct_Attribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::Ty
     func_is_setter = true;
     retval = ConstructAttributeFuncName(vname, func_is_setter, attribute_is_indexed, attrib_func);
     if (retval < 0) return retval;
-    retval = ParseStruct_DeclareAttributeFunc(scrip, MangleStructAndComponent(stname, attrib_func), func_is_setter, attribute_is_indexed, sym.get_vartype(vname));
-    if (retval < 0) return retval;
-
-    return 0;
+    return ParseStruct_DeclareAttributeFunc(scrip, MangleStructAndComponent(stname, attrib_func), func_is_setter, attribute_is_indexed, sym.get_vartype(vname));
 }
 
 // We're inside a struct decl, parsing an array var.

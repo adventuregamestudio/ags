@@ -1465,3 +1465,69 @@ TEST(Compile, AssignPtr2ArrayOfPtr) {
     int compileResult = cc_compile(agscode.c_str(), scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, Attribute1) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // get_Flipped is implicitly declared with attribute Flipped so defns clash
+
+    char *inpl = "\
+        enum bool { false = 0, true = 1 };              \n\
+        builtin managed struct ViewFrame {              \n\
+            float get_Flipped;                          \n\
+            readonly import attribute bool Flipped;     \n\
+        };                                              \n\                                                \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    // Error message must name culprit
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
+}
+
+TEST(Compile, Attribute2) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // get_Flipped is implicitly declared with attribute Flipped so defns clash
+
+    char *inpl = "\
+        enum bool { false = 0, true = 1 };              \n\
+        builtin managed struct ViewFrame {              \n\
+            import bool get_Flipped(int Holzschuh);     \n\
+            readonly import attribute bool Flipped;     \n\
+        };                                              \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    // Error message must name culprit
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
+}
+
+TEST(Compile, Attribute3) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // get_Flipped is implicitly declared with attribute Flipped so defns clash
+
+    char *inpl = "\
+        enum bool { false = 0, true = 1 };              \n\
+        builtin managed struct ViewFrame {              \n\
+            readonly import attribute bool Flipped;     \n\
+            import ViewFrame *get_Flipped();            \n\
+        };                                              \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    // Error message must name culprit
+    std::string res(last_seen_cc_error());
+    EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
+}

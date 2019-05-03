@@ -1217,10 +1217,10 @@ void ReadGameState_Aligned(Stream *in)
 
 void restore_game_play_ex_data(Stream *in)
 {
-    for (int bb = 0; (int)bb < play.do_once_tokens.size(); bb++)
+    for (size_t i = 0; i < play.do_once_tokens.size(); ++i)
     {
         StrUtil::ReadCStr(rbuffer, in, sizeof(rbuffer));
-        play.do_once_tokens[bb] = rbuffer;
+        play.do_once_tokens[i] = rbuffer;
     }
 
     in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);

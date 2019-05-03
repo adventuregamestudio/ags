@@ -1434,7 +1434,7 @@ bool ccInstance::_Create(PScript scri, ccInstance * joined)
             code = (intptr_t*)malloc(codesize * sizeof(intptr_t));
             // 64 bit: Read code into 8 byte array, necessary for being able to perform
             // relocations on the references.
-            for (size_t i = 0; i < codesize; ++i)
+            for (int i = 0; i < codesize; ++i)
                 code[i] = scri->code[i];
         }
     }

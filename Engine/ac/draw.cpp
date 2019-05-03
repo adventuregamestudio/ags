@@ -558,7 +558,7 @@ void on_mainviewport_changed()
 // Initialize dirty rect and background buffers for software renderer
 void init_invalid_room_regions(int view_index, const Size &surf_size, const Rect &viewport)
 {
-    if (RoomCameraBuffer.size() <= view_index)
+    if (view_index >= 0 && RoomCameraBuffer.size() <= (size_t)view_index)
     {
         RoomCameraBuffer.resize(view_index + 1);
         RoomCameraFrame.resize(view_index + 1);

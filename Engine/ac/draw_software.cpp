@@ -189,7 +189,7 @@ void init_invalid_regions(int view_index, const Size &surf_size, const Rect &vie
     }
     else
     {
-        if (RoomCamRects.size() <= view_index)
+        if (RoomCamRects.size() <= (size_t)view_index)
         {
             RoomCamRects.resize(view_index + 1);
             RoomCamPositions.resize(view_index + 1);

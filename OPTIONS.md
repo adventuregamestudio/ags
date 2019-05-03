@@ -22,14 +22,14 @@ Locations of two latter files differ between running platforms:
 
 * **\[graphics\]** - display mode and various graphics options
   * driver = \[string\] - id of the graphics renderer to use. Supported names are:
-    * Software - software renderer.
-    * D3D9 - Direct3D9 (MS Windows version only).
-    * OGL - OpenGL (currently supported on Android, iOS and Windows).
+    * D3D9 - Direct3D9 (MS Windows version only);
+    * OGL - OpenGL;
+	* Software - software renderer.
   * windowed = \[0; 1\] - when enabled, runs game in windowed mode.
   * screen_def = \[string\] - determines how display mode is deduced:
     * explicit - use screen_width and screen_height parameters;
     * scaling - sets equal to scaled game size;
-    * max - sets equal to device/desktop size;
+    * max - sets equal to device/desktop size.
   * screen_width = \[integer\] - if screen_def is 'explicit', defines display mode width; otherwise ignored.
   * screen_height = \[integer\] - if screen_def is 'explicit', defines display mode height; otherwise ignored.
   * match_device_ratio = \[0; 1\] - when looking for appropriate fullscreen mode, prioritise ones which have same aspect ration as current device/desktop mode.
@@ -38,23 +38,21 @@ Locations of two latter files differ between running platforms:
     * any integer number - positive number means upscale multiplier, negative number means downscale divisor;
     * max_round - deduce maximal integer multiplier that fits in current desktop/device size;
     * stretch - stretch to current desktop/device size;
-    * proportional - similar to stretch, but keep game's aspect ratio;
+    * proportional - similar to stretch, but keep game's aspect ratio.
   * filter = \[string\] - id of the scaling filter to use. Supported filter names are:
     * none - run in native game size;
     * stdscale - nearest-neighbour scaling;
     * hqx - high quality scaling filter; only usable in 32-bit games with software renderer;
-    * linear - anti-aliased scaling; only usable with hardware-accelerated renderer;
+    * linear - anti-aliased scaling; only usable with hardware-accelerated renderer.
   * refresh = \[integer\] - refresh rate for the display mode.
   * render_at_screenres = \[0; 1\] - whether the sprites are transformed and rendered in native game's or current display resolution;
   * supersampling = \[integer\] - supersampling multiplier, default is 1, used with render_at_screenres = 0 (currently supported only by OpenGL renderer);
   * vsync = \[0; 1\] - enable or disable vertical sync.
 * **\[sound\]** - sound options
-  * digiid = \[integer\] - digital driver id, not used on Windows.
-  * midiid = \[integer\] - MIDI driver id, not used on Windows.
-  * digiwinindx = \[integer\] - digital driver id, used only on Windows.
-  * midiwinindx = \[integer\] - MIDI driver id, used only on Windows.
+  * digiid = \[string; 0; -1\] - digital driver id, '0' or 'none', '-1' or 'auto'.
+  * midiid = \[string; 0; -1\] - MIDI driver id, '0' or 'none', '-1' or 'auto'.
   * usespeech = \[0; 1\] - enable or disable in-game speech (voice-overs).
-  * threaded = \[0; 1\] - when enabled, engine runs audio on a separate thread; WARNING: incomplete and unsafe feature that does not work well on every platform.
+  * threaded = \[0; 1\] - when enabled, engine runs audio on a separate thread.
 * **\[mouse\]** - mouse options
   * auto_lock = \[0; 1\] - enables mouse autolock in window: mouse cursor locks inside the window whenever it receives input focus.
   * control = \[string\] - determines when the mouse cursor speed control is enabled, acceptable values are:
@@ -82,7 +80,7 @@ Locations of two latter files differ between running platforms:
     * dos - MS DOS;
     * win - Windows;
     * linux - Linux;
-    * mac - MacOS;
+    * mac - MacOS.
   * upscale = \[0; 1\] - run game in the "upscale mode". The earlier versions of AGS provided support for "upscaling" low-res games to hi-res. The script API has means for detecting if the game is running upscaled, and game developer could use this opportunity to setup game accordingly (e.g. assign hi-res fonts, etc). This options works **only** for games created before AGS 3.1.0 with low-res native resolution, such as 320x200 or 320x240, and it may somewhat improve
   game looks.
 * **\[disabled\]** - special instructions for the setup program hinting to disable particular options or lock some in the certain state. Ignored by the engine.
@@ -101,13 +99,15 @@ Following OPTIONS are supported when running from command line:
 
 * -? / --help - prints most useful command line arguments and quits.
 * -v / --version - prints engine version and quits.
-* --setup - run setup dialog. Currently only supported by Windows version.
-* --log - write debug messages to log file.
-* --no-log - prevent from writing to log file.
+* --fps - display fps counter.
 * --fullscreen - run in fullscreen mode.
-* --windowed - run in windowed mode.
+* --gfxdriver \<name\> - use specified graphics driver (see list above).
 * --gfxfilter \<name\> [ \<game_scaling\> ] - use specified graphics filter and scaling factor (see explanation above).
 * --hicolor - force hicolor (16-bit) mode when running 32-bit games. This option may only be useful on old low-end machines.
-* --fps - display fps counter.
+* --log - write debug messages to log file.
+* --no-log - prevent from writing to log file.
+* --setup - run setup dialog. Currently only supported by Windows version.
+* --windowed - run in windowed mode.
+
 
 Command line arguments override options from configuration file where applicable.

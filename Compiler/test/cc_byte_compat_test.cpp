@@ -1021,11 +1021,8 @@ TEST(Compatibility, IfThenElse1) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IfThenElse1", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 111;
+    // hand-checked Bytecode
+    const size_t codesize = 107;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -1036,13 +1033,13 @@ TEST(Compatibility, IfThenElse1) {
        1,    2,    8,    3,            1,    1,    4,   51,    // 39
        4,    7,    3,   29,            3,    6,    3,    5,    // 47
       30,    4,   18,    4,            3,    3,    4,    3,    // 55
-      28,   20,    6,    3,            2,   29,    3,   51,    // 63
+      28,   18,    6,    3,            2,   29,    3,   51,    // 63
        8,    7,    3,   30,            4,   44,    3,    4,    // 71
-      51,    4,    8,    3,           31,   18,    6,    3,    // 79
-       3,   29,    3,   51,            8,    7,    3,   30,    // 87
-       4,   43,    3,    4,           51,    4,    8,    3,    // 95
-      51,    4,    7,    3,            2,    1,    4,    5,    // 103
-       6,    3,    0,    2,            1,    4,    5,  -999
+       8,    3,   31,   16,            6,    3,    3,   29,    // 79
+       3,   51,    8,    7,            3,   30,    4,   43,    // 87
+       3,    4,    8,    3,           51,    4,    7,    3,    // 95
+       2,    1,    4,    5,            6,    3,    0,    2,    // 103
+       1,    4,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1106,11 +1103,8 @@ TEST(Compatibility, IfThenElse2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IfThenElse2", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 111;
+    // hand-checked Bytecode
+    const size_t codesize = 107;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -1121,13 +1115,13 @@ TEST(Compatibility, IfThenElse2) {
        1,    2,    8,    3,            1,    1,    4,   51,    // 39
        4,    7,    3,   29,            3,    6,    3,    5,    // 47
       30,    4,   19,    4,            3,    3,    4,    3,    // 55
-      28,   20,    6,    3,            2,   29,    3,   51,    // 63
+      28,   18,    6,    3,            2,   29,    3,   51,    // 63
        8,    7,    3,   30,            4,   12,    3,    4,    // 71
-      51,    4,    8,    3,           31,   18,    6,    3,    // 79
-       3,   29,    3,   51,            8,    7,    3,   30,    // 87
-       4,   11,    3,    4,           51,    4,    8,    3,    // 95
-      51,    4,    7,    3,            2,    1,    4,    5,    // 103
-       6,    3,    0,    2,            1,    4,    5,  -999
+       8,    3,   31,   16,            6,    3,    3,   29,    // 79
+       3,   51,    8,    7,            3,   30,    4,   11,    // 87
+       3,    4,    8,    3,           51,    4,    7,    3,    // 95
+       2,    1,    4,    5,            6,    3,    0,    2,    // 103
+       1,    4,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -2307,11 +2301,8 @@ TEST(Compatibility, IfDoWhile) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IfDoWhile", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 200;
+    // hand-checked Bytecode
+    const size_t codesize = 194;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -2321,26 +2312,25 @@ TEST(Compatibility, IfDoWhile) {
        3,    1,    2,    8,            3,    1,    1,    4,    // 31
       51,   12,    7,    3,           29,    3,    6,    3,    // 39
       10,   30,    4,   18,            4,    3,    3,    4,    // 47
-       3,   28,   94,    6,            3,    0,   51,    4,    // 55
+       3,   28,   90,    6,            3,    0,   51,    4,    // 55
        8,    3,   51,    4,            7,    3,   29,    3,    // 63
        6,    3,   10,   30,            4,   18,    4,    3,    // 71
-       3,    4,    3,   28,           66,   51,    4,    7,    // 79
+       3,    4,    3,   28,           62,   51,    4,    7,    // 79
        3,   29,    3,   51,           12,    7,    3,   30,    // 87
-       4,   11,    3,    4,           51,    8,    8,    3,    // 95
-      51,    4,    7,    3,           29,    3,    6,    3,    // 103
-       6,   30,    4,   15,            4,    3,    3,    4,    // 111
-       3,   28,    8,   51,            4,    7,    3,    2,    // 119
-       1,   12,    5,    6,            3,    3,   29,    3,    // 127
-      51,    8,    7,    3,           30,    4,   11,    3,    // 135
-       4,   51,    4,    8,            3,   31,  -85,   31,    // 143
-      41,   31,    2,   31,           37,    6,    3,    1,    // 151
-      29,    3,   51,    8,            7,    3,   30,    4,    // 159
-      11,    3,    4,   51,            4,    8,    3,   51,    // 167
-       4,    7,    3,   29,            3,    6,    3,  100,    // 175
-      30,    4,   18,    4,            3,    3,    4,    3,    // 183
-      70,  -37,    6,    3,            0,    2,    1,   12,    // 191
-       5,    6,    3,    0,            2,    1,   12,    5,    // 199
-     -999
+       4,   11,    3,    4,            8,    3,   51,    4,    // 95
+       7,    3,   29,    3,            6,    3,    6,   30,    // 103
+       4,   15,    4,    3,            3,    4,    3,   28,    // 111
+       8,   51,    4,    7,            3,    2,    1,   12,    // 119
+       5,    6,    3,    3,           29,    3,   51,    8,    // 127
+       7,    3,   30,    4,           11,    3,    4,    8,    // 135
+       3,   31,  -81,   31,           39,   31,    2,   31,    // 143
+      35,    6,    3,    1,           29,    3,   51,    8,    // 151
+       7,    3,   30,    4,           11,    3,    4,    8,    // 159
+       3,   51,    4,    7,            3,   29,    3,    6,    // 167
+       3,  100,   30,    4,           18,    4,    3,    3,    // 175
+       4,    3,   70,  -35,            6,    3,    0,    2,    // 183
+       1,   12,    5,    6,            3,    0,    2,    1,    // 191
+      12,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)

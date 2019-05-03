@@ -1506,7 +1506,7 @@ TEST(Compatibility, For1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("For1", scrip);
+    WriteOutput("For1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2167,6 +2167,46 @@ TEST(Compatibility, For5a) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Compatibility, For6) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Initializer and iterator of a for() need not be assignments,
+    // they can be func calls.
+
+    char *inpl = "\
+        int i;                          \n\
+        void main()                     \n\
+        {                               \n\
+            for(Start(); Check(); Cont())   \n\
+                if (i >= 5)             \n\
+                    i = 100 - i;        \n\
+        }                               \n\
+        short Start()                   \n\
+        {                               \n\
+            i = 1;                      \n\
+            return -77;                 \n\
+        }                               \n\
+        int Check()                     \n\
+        {                               \n\
+            return i < 10;              \n\
+        }                               \n\
+        void Cont()                     \n\
+        {                               \n\
+            i++;                        \n\
+        }                               \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("For6", scrip);
+    // run the test, comment out the previous line 
+    // and append its output below.
+    // Then run the test in earnest after changes have been made to the code
 }
 
 TEST(Compatibility, IfDoWhile) {
@@ -4711,19 +4751,18 @@ TEST(Compatibility, Export) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Export", scrip);
+    WriteOutput("Export", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 59;
+    const size_t codesize = 51;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,   63,    8,    1,    // 7
-       1,    8,    6,    3,            3,   29,    3,   51,    // 15
-       8,   30,    3,    8,            3,    6,    3, 1066192077,    // 23
-      29,    3,    6,    3,         1074580685,   30,    4,   56,    // 31
-       4,    3,    3,    4,            3,   29,    3,   51,    // 39
-      12,   30,    3,    8,            3,    6,    3,   -2,    // 47
-       2,    1,    8,    5,            6,    3,    0,    2,    // 55
+       1,    8,    6,    3,            3,   51,    4,    8,    // 15
+       3,    6,    3, 1066192077,           29,    3,    6,    3,    // 23
+    1074580685,   30,    4,   56,            4,    3,    3,    4,    // 31
+       3,   51,    8,    8,            3,    6,    3,   -2,    // 39
+       2,    1,    8,    5,            6,    3,    0,    2,    // 47
        1,    8,    5,  -999
     };
 
@@ -6062,33 +6101,32 @@ TEST(Compatibility, Attributes) {
 
     // WriteOutput("Attributes", scrip);
     // hand-checked bytecode
-    const size_t codesize = 176;
+    const size_t codesize = 172;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,   63,    4,    1,    // 7
        1,    4,   51,    4,           52,   48,    2,   29,    // 15
        6,   45,    2,   39,            0,    6,    3,    0,    // 23
-      33,    3,   30,    6,           28,  111,    6,    3,    // 31
-      17,   29,    3,   51,            8,   52,   48,    2,    // 39
-      30,    3,   29,    6,           34,    3,   45,    2,    // 47
-      39,    1,    6,    3,            2,   33,    3,   35,    // 55
-       1,   30,    6,   51,            4,   52,   48,    2,    // 63
-      29,    6,   45,    2,           39,    0,    6,    3,    // 71
-       3,   33,    3,   30,            6,   29,    3,   51,    // 79
-       8,   52,   48,    2,           29,    6,   45,    2,    // 87
-      39,    0,    6,    3,            3,   33,    3,   30,    // 95
-       6,   30,    4,   57,            4,    3,    3,    4,    // 103
-       3,    3,    1,    2,            8,    3,    1,    1,    // 111
-       4,   51,    8,   52,           48,    2,   29,    6,    // 119
-      45,    2,   39,    0,            6,    3,    1,   33,    // 127
-       3,   30,    6,   51,            8,   69,    2,    1,    // 135
-       8,    5,    2,    1,            4,   51,    4,   52,    // 143
-      48,    2,   29,    6,           45,    2,   39,    0,    // 151
-       6,    3,    0,   33,            3,   30,    6,   51,    // 159
-       4,   69,    2,    1,            4,    5,    6,    3,    // 167
-       0,   51,    4,   69,            2,    1,    4,    5,    // 175
-     -999
+      33,    3,   30,    6,           28,  107,    6,    3,    // 31
+      17,   51,    4,   52,           48,    2,   29,    6,    // 39
+      34,    3,   45,    2,           39,    1,    6,    3,    // 47
+       2,   33,    3,   35,            1,   30,    6,   51,    // 55
+       4,   52,   48,    2,           29,    6,   45,    2,    // 63
+      39,    0,    6,    3,            3,   33,    3,   30,    // 71
+       6,   29,    3,   51,            8,   52,   48,    2,    // 79
+      29,    6,   45,    2,           39,    0,    6,    3,    // 87
+       3,   33,    3,   30,            6,   30,    4,   57,    // 95
+       4,    3,    3,    4,            3,    3,    1,    2,    // 103
+       8,    3,    1,    1,            4,   51,    8,   52,    // 111
+      48,    2,   29,    6,           45,    2,   39,    0,    // 119
+       6,    3,    1,   33,            3,   30,    6,   51,    // 127
+       8,   69,    2,    1,            8,    5,    2,    1,    // 135
+       4,   51,    4,   52,           48,    2,   29,    6,    // 143
+      45,    2,   39,    0,            6,    3,    0,   33,    // 151
+       3,   30,    6,   51,            4,   69,    2,    1,    // 159
+       4,    5,    6,    3,            0,   51,    4,   69,    // 167
+       2,    1,    4,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6105,7 +6143,7 @@ TEST(Compatibility, Attributes) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      23,   52,   72,   92,        126,  154,  -999
+      23,   48,   68,   88,        122,  150,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)

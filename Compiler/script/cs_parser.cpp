@@ -3548,6 +3548,26 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
     return 0;
 }
 
+// In order to avoid push AX/pop AX, find out common cases that don't clobber AX
+bool AccessData_MayAccessClobberAX(ccCompiledScript *scrip, SymbolScript symlist, size_t symlist_len)
+{
+    if (kSYM_GlobalVar != sym.get_type(symlist[0]) && kSYM_LocalVar != sym.get_type(symlist[0]))
+        return true;
+
+    if (symlist_len == 1)
+        return false;
+
+    for (size_t symlist_idx = 0; symlist_idx < symlist_len - 3; symlist_idx += 2)
+    {
+        if (kSYM_Dot != sym.get_type(symlist[symlist_idx + 1]))
+            return true;
+        AGS::Symbol const compo = MangleStructAndComponent(symlist[0], symlist[2]);
+        if (kSYM_StructComponent != sym.get_type(compo))
+            return true;
+    }
+    return false;
+}
+
 // We are typically in an assignment LHS = RHS; the RHS has already been
 // evaluated, and the result of that evaluation is in AX.
 // Store AX into the memory location that corresponds to LHS, or
@@ -3558,7 +3578,9 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     // Save on the stack so that it isn't clobbered
     AGS::Vartype rhsvartype = scrip->ax_vartype;
     int rhsscope = scrip->ax_val_scope;
-    scrip->push_reg(SREG_AX);
+    bool const may_clobber = AccessData_MayAccessClobberAX(scrip, symlist, symlist_len);
+    if (may_clobber)
+        scrip->push_reg(SREG_AX);
 
     bool const writing = true;
     bool const negate_dummy = false; // when writing, this parameter is pointless
@@ -3569,7 +3591,8 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     int retval = AccessData(scrip, writing, negate_dummy, symlist, symlist_len, vloc, lhsscope, lhsvartype);
     if (retval < 0) return retval;
 
-    scrip->pop_reg(SREG_AX);
+    if (may_clobber)
+        scrip->pop_reg(SREG_AX);
     scrip->ax_vartype = rhsvartype;
     scrip->ax_val_scope = rhsscope;
 

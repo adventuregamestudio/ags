@@ -32,6 +32,11 @@
 #include "util/file.h"
 #include "util/stream.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+// undef the declarations from winbase.h
+#undef CreateFile
+#endif
+
 using namespace AGS::Common;
 
 // [IKM] We have to forward-declare these because their implementations are in the Engine
@@ -741,7 +746,7 @@ HError SpriteCache::InitFile(const char *filnam)
 
     // failed, delete the index file because it's invalid
     // TODO: refactor loading process and make it NOT delete file running the game!!
-    unlink(spindexfilename);
+    ::remove(spindexfilename);
 
     return RebuildSpriteIndex(_stream.get(), topmost, vers);
 }

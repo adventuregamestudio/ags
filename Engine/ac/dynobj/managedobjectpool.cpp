@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <vector>
+#include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
 #include "debug/out.h"

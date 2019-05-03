@@ -16,14 +16,10 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
+
 #include "util/wgt2allg.h"
 #include "gfx/bitmap.h"
-
-// Note: define if needed for platform
-//#define SWAP_RB_HICOL_FOR_32to24_32
-#if defined(PSP_VERSION)
-#define SWAP_RB_HICOL_FOR_32to15_16
-#endif
 
 void __my_setcolor(int *ctset, int newcol, int wantColDep)
   {
@@ -41,15 +37,11 @@ void __my_setcolor(int *ctset, int newcol, int wantColDep)
     }
     else if (newcol >= 32) {
 
-#ifdef SWAP_RB_HICOL_FOR_32to15_16
-      ctset[0] = makecol16(getb16(newcol), getg16(newcol), getr16(newcol));
-#else
       // If it's 15-bit, convert the color
       if (wantColDep == 15)
         ctset[0] = (newcol & 0x001f) | ((newcol >> 1) & 0x7fe0);
       else
         ctset[0] = newcol;
-#endif
     } 
     else
     {

@@ -54,6 +54,11 @@
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+// undef the declarations from winbase.h
+#undef CreateFile
+#endif
+
 using namespace Common;
 using namespace Engine;
 

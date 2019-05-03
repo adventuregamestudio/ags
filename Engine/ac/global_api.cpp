@@ -2080,8 +2080,8 @@ RuntimeScriptValue Sc_sc_strcat(const RuntimeScriptValue *params, int32_t param_
 
 RuntimeScriptValue Sc_stricmp(const RuntimeScriptValue *params, int32_t param_count)
 {
-    // Calling C stdlib function stricmp
-    API_SCALL_INT_POBJ2(stricmp, const char, const char);
+    // Calling C stdlib function ags_stricmp
+    API_SCALL_INT_POBJ2(ags_stricmp, const char, const char);
 }
 
 RuntimeScriptValue Sc_strcmp(const RuntimeScriptValue *params, int32_t param_count)
@@ -2993,7 +2993,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("StopMusic",                (void*)scr_StopMusic);
     ccAddExternalFunctionForPlugin("StopObjectMoving",         (void*)StopObjectMoving);
     ccAddExternalFunctionForPlugin("StrCat",                   (void*)_sc_strcat);
-    ccAddExternalFunctionForPlugin("StrCaseComp",              (void*)stricmp);
+    ccAddExternalFunctionForPlugin("StrCaseComp",              (void*)ags_stricmp);
     ccAddExternalFunctionForPlugin("StrComp",                  (void*)strcmp);
     ccAddExternalFunctionForPlugin("StrContains",              (void*)StrContains);
     ccAddExternalFunctionForPlugin("StrCopy",                  (void*)_sc_strcpy);

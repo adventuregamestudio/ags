@@ -12,7 +12,8 @@
 //
 //=============================================================================
 
-#ifdef _DEBUG
+#include "core/platform.h"
+#if AGS_PLATFORM_DEBUG
 
 #include <string.h>
 #include "debug/assert.h"
@@ -189,4 +190,4 @@ void Test_File()
     assert(!File::TestReadFile("test.tmp"));
 }
 
-#endif // _DEBUG
+#endif // AGS_PLATFORM_DEBUG

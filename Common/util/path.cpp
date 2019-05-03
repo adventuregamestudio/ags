@@ -1,5 +1,6 @@
 
-#if defined (WINDOWS_VERSION)
+#include "core/platform.h"
+#if AGS_PLATFORM_OS_WINDOWS
 #include <windows.h>
 #endif
 #include "allegro/file.h"
@@ -21,37 +22,21 @@ namespace Path
 
 bool IsDirectory(const String &filename)
 {
-    struct stat_t st;
     // stat() does not like trailing slashes, remove them
     String fixed_path = MakePathNoSlash(filename);
-    if (stat_fn(fixed_path, &st) == 0)
-    {
-        return (st.st_mode & S_IFMT) == S_IFDIR;
-    }
-    return false;
+    return ags_directory_exists(fixed_path.GetCStr());
 }
 
 bool IsFile(const String &filename)
 {
-    struct stat_t st;
-    if (stat_fn(filename, &st) == 0)
-    {
-        return (st.st_mode & S_IFMT) == S_IFREG;
-    }
-    return false;
+    return ags_file_exists(filename.GetCStr());
 }
 
 bool IsFileOrDir(const String &filename)
 {
-    struct stat_t st;
     // stat() does not like trailing slashes, remove them
     String fixed_path = MakePathNoSlash(filename);
-    if (stat_fn(fixed_path, &st) == 0)
-    {
-        return (st.st_mode & S_IFMT) == S_IFDIR ||
-            (st.st_mode & S_IFMT) == S_IFREG;
-    }
-    return false;
+    return ags_path_exists(fixed_path.GetCStr());
 }
 
 int ComparePaths(const String &path1, const String &path2)
@@ -123,7 +108,7 @@ String MakePathNoSlash(const String &path)
 {
     String dir_path = path;
     FixupPath(dir_path);
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     // if the path is 'x:/' don't strip the slash
     if (path.GetLength() == 3 && path[1u] == ':')
         ;
@@ -143,7 +128,7 @@ String MakeAbsolutePath(const String &path)
     }
     // canonicalize_filename treats "." as "./." (file in working dir)
     String abs_path = path == "." ? "./" : path;
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     // NOTE: cannot use long path names in the engine, because it does not have unicode strings support
     //
     //char long_path_buffer[MAX_PATH];
@@ -151,9 +136,6 @@ String MakeAbsolutePath(const String &path)
     //{
     //    abs_path = long_path_buffer;
     //}
-#elif defined (PSP_VERSION)
-    // FIXME: Properly construct a full PSP path
-    return path;
 #endif
     char buf[512];
     canonicalize_filename(buf, abs_path, 512);

@@ -2,7 +2,7 @@
 /* to play OGG files with Allegro */
 
 /* OGG decoder part of Ogg Vorbis (Xiph.org Foundation) */
-/* Allegro OGG is copyright (c) 2002 Javier Gonz lez */
+/* Allegro OGG is copyright (c) 2002 Javier Gonzalez */
 
 /* See COPYING.txt for license */
 
@@ -13,12 +13,14 @@
 #include "vorbis/vorbisfile.h"
 #include "vorbis/codec.h"
 
-#include "core/endianness.h" /* For bigendian detection */
-#if defined(AGS_BIG_ENDIAN)
+#include "core/platform.h" /* For bigendian detection */
+#if AGS_PLATFORM_ENDIAN_BIG
 #define WANT_BIG_ENDIAN 1
 #else
 #define WANT_BIG_ENDIAN 0
 #endif
+
+#include "util/stdio_compat.h"
 
 /* standard ALOGG_OGG structure */
 
@@ -215,10 +217,10 @@ ALOGG_OGG *alogg_create_ogg_from_file(FILE *f) {
   ogg->data = NULL;
   ogg->data_cursor = NULL;
   {
-    int pos = ftell(f);
-    fseek(f, 0, SEEK_END);
-    ogg->data_len = ftell(f);
-    fseek(f, pos, SEEK_SET);
+    int pos = ags_ftell(f);
+    ags_fseek(f, 0, SEEK_END);
+    ogg->data_len = ags_ftell(f);
+    ags_fseek(f, pos, SEEK_SET);
   }
   memset((void *)&ogg->vf, 0, sizeof(ogg->vf));
   ogg->audiostream = NULL;

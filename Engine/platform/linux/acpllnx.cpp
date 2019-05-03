@@ -12,9 +12,9 @@
 //
 //=============================================================================
 
-#if !defined(LINUX_VERSION)
-#error This file should only be included on the Linux or BSD build
-#endif
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_LINUX
 
 // ********* LINUX PLACEHOLDER DRIVER *********
 
@@ -54,7 +54,6 @@ struct AGSLinux : AGSPlatformDriver {
   const char* GetAllegroFailUserHint() override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
-  void PlayVideo(const char* name, int skip, int flags) override;
   void PostAllegroExit() override;
   void SetGameWindowIcon() override;
   void ShutdownCDPlayer() override;
@@ -166,10 +165,6 @@ int AGSLinux::InitializeCDPlayer() {
   return cd_player_init();
 }
 
-void AGSLinux::PlayVideo(const char *name, int skip, int flags) {
-  // do nothing
-}
-
 void AGSLinux::PostAllegroExit() {
   // do nothing
 }
@@ -211,3 +206,5 @@ void AGSLinux::GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms)
     }
     destroy_gfx_mode_list(gmlist);
 }
+
+#endif

@@ -16,7 +16,12 @@
 // Engine initialization
 //
 
+#include "core/platform.h"
+
 #include <errno.h>
+#if AGS_PLATFORM_OS_WINDOWS
+#include <process.h>  // _spawnl
+#endif
 
 #include "main/mainheader.h"
 #include "ac/asset_helper.h"
@@ -64,6 +69,14 @@
 #include "util/error.h"
 #include "util/misc.h"
 #include "util/path.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
+// undef the declarations from winbase.h
+#undef CreateDirectory
+#undef SetCurrentDirectory
+#undef GetCurrentDirectory
+#undef CreateFile
+#endif
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -148,7 +161,7 @@ void engine_setup_window()
 
 bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
 {
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     // check if Setup needs to be run instead
     if (justRunSetup)
     {
@@ -574,7 +587,7 @@ void engine_init_audio()
         usetup.mod_player = 0;
     }
 
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     if (digi_card == DIGI_DIRECTX(0))
     {
         // DirectX mixer seems to buffer an extra sample itself
@@ -722,9 +735,9 @@ void engine_init_directories()
     }
 }
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
 extern char android_base_directory[256];
-#endif // ANDROID_VERSION
+#endif // AGS_PLATFORM_OS_ANDROID
 
 int check_write_access() {
 
@@ -739,7 +752,7 @@ int check_write_access() {
   Stream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
       // TODO: move this somewhere else (Android platform driver init?)
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
   {
 	  put_backslash(android_base_directory);
 	  sprintf(tempPath, "%s""tmptest.tmp", android_base_directory);
@@ -749,7 +762,7 @@ int check_write_access() {
   }
 #else
     return 0;
-#endif // ANDROID_VERSION
+#endif // AGS_PLATFORM_OS_ANDROID
 
   our_eip = -1896;
 
@@ -758,7 +771,7 @@ int check_write_access() {
 
   our_eip = -1897;
 
-  if (unlink(tempPath))
+  if (::remove(tempPath))
     return 0;
 
   return 1;
@@ -1139,7 +1152,7 @@ void engine_update_mp3_thread()
 {
     update_mp3_thread();
     // reduce polling period to encourage more multithreading bugs.
-#ifndef _DEBUG
+#if ! AGS_PLATFORM_DEBUG
     platform->Delay(50);
 #endif
 }
@@ -1175,7 +1188,7 @@ void engine_prepare_to_start_game()
     engine_setup_scsystem_auxiliary();
     engine_start_multithreaded_audio();
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
     if (psp_load_latest_savegame)
         selectLatestSavegame();
 #endif
@@ -1194,7 +1207,7 @@ void allegro_bitmap_test_init()
 // Only allow searching around for game data on desktop systems;
 // otherwise use explicit argument either from program wrapper, command-line
 // or read from default config.
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION) || defined(PSP_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS
     #define AGS_SEARCH_FOR_GAME_ON_LAUNCH
 #endif
 
@@ -1301,7 +1314,7 @@ void engine_read_config(const String &exe_path, ConfigTree &cfg)
     // Disabled on Windows because people were afraid that this config could be mistakenly
     // created by some installer and screw up their games. Until any kind of solution is found.
     String user_global_cfg_file;
-#if !defined (WINDOWS_VERSION)
+#if ! AGS_PLATFORM_OS_WINDOWS
     // Read user global configuration file
     user_global_cfg_file = find_user_global_cfg_file();
     if (Path::ComparePaths(user_global_cfg_file, def_cfg_file) != 0)
@@ -1563,7 +1576,7 @@ void engine_shutdown_gfxmode()
 }
 
 
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
 // in ac_minidump
 extern int CustomExceptionHandler (LPEXCEPTION_POINTERS exinfo);
 extern EXCEPTION_RECORD excinfo;

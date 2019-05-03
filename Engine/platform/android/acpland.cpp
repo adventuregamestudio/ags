@@ -12,13 +12,12 @@
 //
 //=============================================================================
 
-#if !defined(ANDROID_VERSION)
-#error This file should only be included on the Android build
-#endif
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_ANDROID
 
 #include <allegro.h>
 #include "platform/base/agsplatformdriver.h"
-#include "platform/base/override_defines.h"
 #include "ac/runtime_defines.h"
 #include "main/config.h"
 #include "plugin/agsplugin.h"
@@ -52,7 +51,6 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual bool IsBackendResponsibleForMouseScaling() { return true; }
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
-  virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
@@ -406,7 +404,7 @@ Java_com_bigbluecup_android_PreferencesActivity_getAvailableTranslations(JNIEnv*
       length = strlen(entry->d_name);
       if (length > 4)
       {
-        if (stricmp(&entry->d_name[length - 4], ".tra") == 0)
+        if (ags_stricmp(&entry->d_name[length - 4], ".tra") == 0)
         {
           memset(buffer, 0, 200);
           strncpy(buffer, entry->d_name, length - 4);
@@ -530,9 +528,9 @@ void selectLatestSavegame()
   {
     while ((entry = readdir(dir)) != 0)
     {
-      if (strnicmp(entry->d_name, "agssave", 7) == 0)
+      if (ags_strnicmp(entry->d_name, "agssave", 7) == 0)
       {
-        if (stricmp(entry->d_name, "agssave.999") != 0)
+        if (ags_stricmp(entry->d_name, "agssave.999") != 0)
         {
           strcpy(buffer, saveGameDirectory);
           strcat(buffer, entry->d_name);
@@ -705,10 +703,6 @@ int AGSAndroid::InitializeCDPlayer() {
   return 1;//cd_player_init();
 }
 
-void AGSAndroid::PlayVideo(const char *name, int skip, int flags) {
-  // do nothing
-}
-
 void AGSAndroid::PostAllegroExit() {
   java_environment->DeleteGlobalRef(java_class);
 }
@@ -745,3 +739,5 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
 
   return instance;
 }
+
+#endif

@@ -18,7 +18,13 @@
 #ifndef __AGS_CN_UTIL__FILE_H
 #define __AGS_CN_UTIL__FILE_H
 
+#include "core/platform.h"
 #include "util/string.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
+// undef the declarations from winbase.h
+#undef CreateFile
+#endif
 
 namespace AGS
 {

@@ -18,9 +18,10 @@
 #ifndef __AGS_CN_UTIL__FILESTREAM_H
 #define __AGS_CN_UTIL__FILESTREAM_H
 
+#include <stdio.h>
+
 #include "util/datastream.h"
 #include "util/file.h" // TODO: extract filestream mode constants
-#include "util/stdio_compat.h"
 
 namespace AGS
 {

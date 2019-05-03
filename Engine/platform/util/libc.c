@@ -16,17 +16,11 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
+
+#if ! AGS_PLATFORM_OS_WINDOWS
+
 #include <string.h>
-
-// Only a dummy. It is used in a function of alfont, but never called in AGS.
-size_t malloc_usable_size(const void* allocation)
-{
-  return 0;
-}
-
-
-#if defined (LINUX_VERSION) || defined (ANDROID_VERSION) || defined (IOS_VERSION) || defined (MAC_VERSION)
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <wchar.h>
@@ -57,40 +51,4 @@ size_t wcstombs(char* mbstr, const wchar_t *wcstr, size_t max)
   return count;
 }
 
-int getw(FILE *fp)
-{
-  int result;
-  
-  if (fread((char*)&result, 4, 1, fp) != 1)
-    return EOF;
-  
-  return result;
-}
-
-char* strupr(char* s)
-{
-  char *original = s;
-  
-  while (*s)
-  {
-    *s = toupper(*s);
-    s++;
-  }
-
-  return original;
-}
-
-char* strlwr(char* s)
-{
-  char *original = s;
-  
-  while (*s)
-  {
-    *s = tolower(*s);
-    s++;
-  }
-  
-  return original;
-}
-
-#endif // defined (LINUX_VERSION) || defined (ANDROID_VERSION) || defined (IOS_VERSION) || defined (MAC_VERSION)
+#endif // ! AGS_PLATFORM_OS_WINDOWS

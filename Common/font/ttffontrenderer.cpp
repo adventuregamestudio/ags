@@ -13,10 +13,15 @@
 //=============================================================================
 
 #include <alfont.h>
+#include "core/platform.h"
+
+#define AGS_OUTLINE_FONT_FIX (!AGS_PLATFORM_OS_WINDOWS)
+
 #include "core/assetmanager.h"
 #include "font/ttffontrenderer.h"
 #include "util/stream.h"
-#if !defined(WINDOWS_VERSION) // TODO: factor out the hack in LoadFromDiskEx
+
+#if AGS_OUTLINE_FONT_FIX // TODO: factor out the hack in LoadFromDiskEx
 #include "ac/gamestructdefines.h"
 #include "font/fonts.h"
 #endif
@@ -104,7 +109,7 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const FontRen
     return false;
 
   // TODO: move this somewhere, should not be right here
-#if !defined(WINDOWS_VERSION)
+#if AGS_OUTLINE_FONT_FIX
   // FIXME: (!!!) this fix should be done differently:
   // 1. Find out which OUTLINE font was causing troubles;
   // 2. Replace outline method ONLY if that troublesome font is used as outline.

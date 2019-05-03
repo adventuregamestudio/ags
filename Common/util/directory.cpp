@@ -1,6 +1,7 @@
 
+#include "core/platform.h"
 #include <errno.h>
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 #include <direct.h>
 #else
 #include <sys/stat.h>
@@ -20,7 +21,7 @@ namespace Directory
 bool CreateDirectory(const String &path)
 {
     return mkdir(path
-#if !defined (WINDOWS_VERSION)
+#if ! AGS_PLATFORM_OS_WINDOWS
         , 0755
 #endif
         ) == 0 || errno == EEXIST;

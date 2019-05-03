@@ -12,8 +12,9 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
 #include "gfx/gfxfilter_d3d.h"
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
 #include <d3d9.h>
 #endif
 
@@ -33,7 +34,7 @@ const GfxFilterInfo &D3DGfxFilter::GetInfo() const
 
 void D3DGfxFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
 {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     IDirect3DDevice9* d3d9 = ((IDirect3DDevice9*)direct3ddevice9);
     d3d9->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
     d3d9->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);

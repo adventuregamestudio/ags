@@ -401,15 +401,15 @@ void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &
         {
             audioclips.push_back(ScriptAudioClip());
             ScriptAudioClip &clip = audioclips.back();
-            if (stricmp(temp_name, "music") == 0)
+            if (ags_stricmp(temp_name, "music") == 0)
             {
                 sprintf(clip.scriptName, "aMusic%d", temp_number);
                 sprintf(clip.fileName, "music%d.%s", temp_number, temp_extension);
-                clip.bundlingType = (stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
+                clip.bundlingType = (ags_stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
                 clip.type = 2;
                 clip.defaultRepeat = 1;
             }
-            else if (stricmp(temp_name, "sound") == 0)
+            else if (ags_stricmp(temp_name, "sound") == 0)
             {
                 sprintf(clip.scriptName, "aSound%d", temp_number);
                 sprintf(clip.fileName, "sound%d.%s", temp_number, temp_extension);
@@ -426,18 +426,18 @@ void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &
             clip.defaultPriority = 50;
             clip.id = audioclips.size() - 1;
 
-            if (stricmp(temp_extension, "mp3") == 0)
+            if (ags_stricmp(temp_extension, "mp3") == 0)
                 clip.fileType = eAudioFileMP3;
-            else if (stricmp(temp_extension, "wav") == 0)
+            else if (ags_stricmp(temp_extension, "wav") == 0)
                 clip.fileType = eAudioFileWAV;
-            else if (stricmp(temp_extension, "voc") == 0)
+            else if (ags_stricmp(temp_extension, "voc") == 0)
                 clip.fileType = eAudioFileVOC;
-            else if (stricmp(temp_extension, "mid") == 0)
+            else if (ags_stricmp(temp_extension, "mid") == 0)
                 clip.fileType = eAudioFileMIDI;
-            else if ((stricmp(temp_extension, "mod") == 0) || (stricmp(temp_extension, "xm") == 0)
-                || (stricmp(temp_extension, "s3m") == 0) || (stricmp(temp_extension, "it") == 0))
+            else if ((ags_stricmp(temp_extension, "mod") == 0) || (ags_stricmp(temp_extension, "xm") == 0)
+                || (ags_stricmp(temp_extension, "s3m") == 0) || (ags_stricmp(temp_extension, "it") == 0))
                 clip.fileType = eAudioFileMOD;
-            else if (stricmp(temp_extension, "ogg") == 0)
+            else if (ags_stricmp(temp_extension, "ogg") == 0)
                 clip.fileType = eAudioFileOGG;
         }
     }
@@ -566,7 +566,7 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
         {
             if (chars[i].scrname[0] == 0)
                 continue;
-            tempbuffer.Format("c%c%s", chars[i].scrname[0], strlwr(&chars[i].scrname[1]));
+            tempbuffer.Format("c%c%s", chars[i].scrname[0], ags_strlwr(&chars[i].scrname[1]));
             snprintf(chars[i].scrname, MAX_SCRIPT_NAME_LEN, "%s", tempbuffer.GetCStr());
         }
     }
@@ -628,7 +628,7 @@ void SetDefaultGlmsg(GameSetupStruct &game, int msgnum, const char *val)
     // (or rather if we may pass correct index right away)
     msgnum -= 500;
     if (game.messages[msgnum] == nullptr)
-        game.messages[msgnum] = strdup(val);
+        game.messages[msgnum] = ags_strdup(val);
 }
 
 // Sets up default global messages (these are used mainly in older games)

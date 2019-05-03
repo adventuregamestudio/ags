@@ -14,6 +14,7 @@
 
 #include <cmath>
 
+#include "core/platform.h"
 #include "util/wgt2allg.h"
 #include "media/audio/audio.h"
 #include "ac/audiocliptype.h"
@@ -108,7 +109,7 @@ extern CharacterInfo*playerchar;
 
 extern volatile int switching_away_from_game;
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if ! AGS_PLATFORM_OS_IOS && ! AGS_PLATFORM_OS_ANDROID
 volatile int psp_audio_multithreaded = 0;
 #endif
 

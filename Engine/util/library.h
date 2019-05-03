@@ -15,6 +15,7 @@
 #ifndef __AGS_EE_UTIL__LIBRARY_H
 #define __AGS_EE_UTIL__LIBRARY_H
 
+#include "core/platform.h"
 #include "util/string.h"
 
 namespace AGS
@@ -42,19 +43,15 @@ public:
 } // namespace AGS
 
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 #include "library_windows.h"
 
-#elif defined(PSP_VERSION)
-#include "library_psp.h"
-
-#elif defined(LINUX_VERSION) \
-   || defined(MAC_VERSION) \
-   || defined(ANDROID_VERSION)
+#elif AGS_PLATFORM_OS_LINUX \
+   || AGS_PLATFORM_OS_MACOS \
+   || AGS_PLATFORM_OS_ANDROID
 #include "library_posix.h"
 
-#elif defined(IOS_VERSION) \
-   || defined(WII_VERSION)
+#elif AGS_PLATFORM_OS_IOS
 #include "library_dummy.h"
 
 #endif

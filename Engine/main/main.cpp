@@ -22,6 +22,9 @@
 // What about other platforms?
 //
 
+#include "core/platform.h"
+#define AGS_PLATFORM_DEFINES_PSP_VARS (AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID)
+
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -39,8 +42,15 @@
 #include "util/directory.h"
 #include "util/path.h"
 
-#ifdef _DEBUG
+#if AGS_PLATFORM_DEBUG
 #include "test/test_all.h"
+#endif
+
+#if AGS_PLATFORM_OS_WINDOWS
+// undef the declarations from winbase.h
+#undef CreateDirectory
+#undef SetCurrentDirectory
+#undef GetCurrentDirectory
 #endif
 
 using namespace AGS::Common;
@@ -49,15 +59,7 @@ using namespace AGS::Engine;
 String appDirectory; // Needed for library loading
 String cmdGameDataPath;
 
-#ifdef MAC_VERSION
-extern "C"
-{
-    int osx_sys_question(const char *msg, const char *but1, const char *but2);
-}
-#endif
-
-
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
 
 int wArgc;
 LPWSTR *wArgv;
@@ -88,7 +90,7 @@ bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 const char *loadSaveGameOnStartup = nullptr;
 
-#if !defined(MAC_VERSION) && !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if ! AGS_PLATFORM_DEFINES_PSP_VARS
 int psp_video_framedrop = 1;
 int psp_audio_enabled = 1;
 int psp_midi_enabled = 1;
@@ -167,7 +169,7 @@ String get_engine_string()
 
 int main_preprocess_cmdline(int argc,char*argv[])
 {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     wArgv = CommandLineToArgvW(GetCommandLineW(), &wArgc);
     if (wArgv == NULL)
     {
@@ -190,7 +192,7 @@ void main_print_help() {
            "  --fps                        Display fps counter\n"
            "  --fullscreen                 Force display mode to fullscreen\n"
            "  --gfxdriver <id>             Request graphics driver. Available options:\n"
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
            "                                 d3d9, dx5, ogl, software\n"
 #else
            "                                 ogl, software\n"
@@ -205,7 +207,7 @@ void main_print_help() {
            "  --log                        Enable program output to the log file\n"
            "  --no-log                     Disable program output to the log file,\n"
            "                                 overriding configuration file setting\n"
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
            "  --version                    Print engine's version and stop\n"
@@ -227,59 +229,59 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         //
         // Startup options
         //
-        if (stricmp(arg,"--help") == 0 || stricmp(arg,"/?") == 0 || stricmp(arg,"-?") == 0)
+        if (ags_stricmp(arg,"--help") == 0 || ags_stricmp(arg,"/?") == 0 || ags_stricmp(arg,"-?") == 0)
         {
             justDisplayHelp = true;
             return RETURN_CONTINUE;
         }
-        if (stricmp(arg,"-v") == 0 || stricmp(arg,"--version") == 0)
+        if (ags_stricmp(arg,"-v") == 0 || ags_stricmp(arg,"--version") == 0)
             justDisplayVersion = true;
-        else if (stricmp(arg,"-updatereg") == 0)
+        else if (ags_stricmp(arg,"-updatereg") == 0)
             debug_flags |= DBG_REGONLY;
-#ifdef _DEBUG
-        else if ((stricmp(arg,"--startr") == 0) && (ee < argc-1)) {
+#if AGS_PLATFORM_DEBUG
+        else if ((ags_stricmp(arg,"--startr") == 0) && (ee < argc-1)) {
             override_start_room = atoi(argv[ee+1]);
             ee++;
         }
 #endif
-        else if ((stricmp(arg,"--testre") == 0) && (ee < argc-2)) {
+        else if ((ags_stricmp(arg,"--testre") == 0) && (ee < argc-2)) {
             strcpy(return_to_roomedit, argv[ee+1]);
             strcpy(return_to_room, argv[ee+2]);
             ee+=2;
         }
-        else if (stricmp(arg,"-noexceptionhandler")==0) usetup.disable_exception_handling = true;
-        else if (stricmp(arg, "--setup") == 0)
+        else if (ags_stricmp(arg,"-noexceptionhandler")==0) usetup.disable_exception_handling = true;
+        else if (ags_stricmp(arg, "--setup") == 0)
         {
             justRunSetup = true;
         }
-        else if (stricmp(arg,"-registergame") == 0)
+        else if (ags_stricmp(arg,"-registergame") == 0)
         {
             justRegisterGame = true;
         }
-        else if (stricmp(arg,"-unregistergame") == 0)
+        else if (ags_stricmp(arg,"-unregistergame") == 0)
         {
             justUnRegisterGame = true;
         }
-        else if ((stricmp(arg,"-loadsavedgame") == 0) && (argc > ee + 1))
+        else if ((ags_stricmp(arg,"-loadsavedgame") == 0) && (argc > ee + 1))
         {
             loadSaveGameOnStartup = argv[ee + 1];
             ee++;
         }
-        else if ((stricmp(arg,"--enabledebugger") == 0) && (argc > ee + 1))
+        else if ((ags_stricmp(arg,"--enabledebugger") == 0) && (argc > ee + 1))
         {
             strcpy(editor_debugger_instance_token, argv[ee + 1]);
             editor_debugging_enabled = 1;
             force_window = 1;
             ee++;
         }
-        else if (stricmp(arg, "--runfromide") == 0 && (argc > ee + 3))
+        else if (ags_stricmp(arg, "--runfromide") == 0 && (argc > ee + 3))
         {
             usetup.install_dir = argv[ee + 1];
             usetup.install_audio_dir = argv[ee + 2];
             usetup.install_voice_dir = argv[ee + 3];
             ee += 3;
         }
-        else if (stricmp(arg,"--takeover")==0) {
+        else if (ags_stricmp(arg,"--takeover")==0) {
             if (argc < ee+2)
                 break;
             play.takeover_data = atoi (argv[ee + 1]);
@@ -290,15 +292,15 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         //
         // Config overrides
         //
-        else if (stricmp(arg, "-windowed") == 0 || stricmp(arg, "--windowed") == 0)
+        else if (ags_stricmp(arg, "-windowed") == 0 || ags_stricmp(arg, "--windowed") == 0)
             force_window = 1;
-        else if (stricmp(arg, "-fullscreen") == 0 || stricmp(arg, "--fullscreen") == 0)
+        else if (ags_stricmp(arg, "-fullscreen") == 0 || ags_stricmp(arg, "--fullscreen") == 0)
             force_window = 2;
-        else if ((stricmp(arg, "-gfxdriver") == 0 || stricmp(arg, "--gfxdriver") == 0) && (argc > ee + 1))
+        else if ((ags_stricmp(arg, "-gfxdriver") == 0 || ags_stricmp(arg, "--gfxdriver") == 0) && (argc > ee + 1))
         {
             INIwritestring(cfg, "graphics", "driver", argv[++ee]);
         }
-        else if ((stricmp(arg, "-gfxfilter") == 0 || stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
+        else if ((ags_stricmp(arg, "-gfxfilter") == 0 || ags_stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
         {
             // NOTE: we make an assumption here that if user provides scaling factor,
             // this factor means to be applied to windowed mode only.
@@ -308,19 +310,19 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             else
                 INIwritestring(cfg, "graphics", "game_scale_win", "max_round");
         }
-        else if (stricmp(arg, "--fps") == 0) display_fps = 2;
-        else if (stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;
-        else if (stricmp(arg, "-noiface") == 0) debug_flags |= DBG_NOIFACE;
-        else if (stricmp(arg, "-nosprdisp") == 0) debug_flags |= DBG_NODRAWSPRITES;
-        else if (stricmp(arg, "-nospr") == 0) debug_flags |= DBG_NOOBJECTS;
-        else if (stricmp(arg, "-noupdate") == 0) debug_flags |= DBG_NOUPDATE;
-        else if (stricmp(arg, "-nosound") == 0) debug_flags |= DBG_NOSFX;
-        else if (stricmp(arg, "-nomusic") == 0) debug_flags |= DBG_NOMUSIC;
-        else if (stricmp(arg, "-noscript") == 0) debug_flags |= DBG_NOSCRIPT;
-        else if (stricmp(arg, "-novideo") == 0) debug_flags |= DBG_NOVIDEO;
-        else if (stricmp(arg, "-dbgscript") == 0) debug_flags |= DBG_DBGSCRIPT;
-        else if (stricmp(arg, "--log") == 0) INIwriteint(cfg, "misc", "log", 1);
-        else if (stricmp(arg, "--no-log") == 0) INIwriteint(cfg, "misc", "log", 0);
+        else if (ags_stricmp(arg, "--fps") == 0) display_fps = 2;
+        else if (ags_stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;
+        else if (ags_stricmp(arg, "-noiface") == 0) debug_flags |= DBG_NOIFACE;
+        else if (ags_stricmp(arg, "-nosprdisp") == 0) debug_flags |= DBG_NODRAWSPRITES;
+        else if (ags_stricmp(arg, "-nospr") == 0) debug_flags |= DBG_NOOBJECTS;
+        else if (ags_stricmp(arg, "-noupdate") == 0) debug_flags |= DBG_NOUPDATE;
+        else if (ags_stricmp(arg, "-nosound") == 0) debug_flags |= DBG_NOSFX;
+        else if (ags_stricmp(arg, "-nomusic") == 0) debug_flags |= DBG_NOMUSIC;
+        else if (ags_stricmp(arg, "-noscript") == 0) debug_flags |= DBG_NOSCRIPT;
+        else if (ags_stricmp(arg, "-novideo") == 0) debug_flags |= DBG_NOVIDEO;
+        else if (ags_stricmp(arg, "-dbgscript") == 0) debug_flags |= DBG_DBGSCRIPT;
+        else if (ags_stricmp(arg, "--log") == 0) INIwriteint(cfg, "misc", "log", 1);
+        else if (ags_stricmp(arg, "--no-log") == 0) INIwriteint(cfg, "misc", "log", 0);
         //
         // Special case: data file location
         //
@@ -342,7 +344,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 
 void main_init_crt_report()
 {
-#ifdef _DEBUG
+#if AGS_PLATFORM_DEBUG
     /* logfile=fopen("g:\\ags.log","at");
     //_CrtSetReportHook( OurReportingFunction );
     int tmpDbgFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
@@ -367,7 +369,7 @@ void main_init_crt_report()
 #endif
 }
 
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 String GetPathInASCII(const String &path)
 {
     char ascii_buffer[MAX_PATH];
@@ -390,7 +392,7 @@ void main_set_gamedir(int argc, char*argv[])
         // be the save game folder unless we correct it
         Directory::SetCurrentDirectory(appDirectory);
     }
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     else
     {
         // It looks like Allegro library does not like ANSI (ACP) paths.
@@ -411,7 +413,7 @@ String GetPathFromCmdArg(int arg_index)
     }
 
     String path;
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     // Hack for Windows in case there are unicode chars in the path.
     // The normal argv[] array has ????? instead of the unicode chars
     // and fails, so instead we manually get the short file name, which
@@ -446,17 +448,17 @@ const char *set_allegro_error(const char *format, ...)
     return allegro_error;
 }
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 #include <new.h>
 
-#ifndef _DEBUG
+#if ! AGS_PLATFORM_DEBUG
 extern void CreateMiniDump( EXCEPTION_POINTERS* pep );
 #endif
 
 char tempmsg[100];
 char*printfworkingspace;
 int malloc_fail_handler(size_t amountwanted) {
-#ifndef _DEBUG
+#if ! AGS_PLATFORM_DEBUG
   CreateMiniDump(NULL);
 #endif
   free(printfworkingspace);
@@ -466,9 +468,9 @@ int malloc_fail_handler(size_t amountwanted) {
 }
 #endif
 
-int main(int argc,char*argv[]) { 
+int ags_entry_point(int argc, char *argv[]) { 
 
-#ifdef _DEBUG
+#if AGS_PLATFORM_DEBUG
     Test_DoAllTests();
 #endif
     
@@ -480,7 +482,7 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     _set_new_handler(malloc_fail_handler);
     _set_new_mode(1);
     printfworkingspace=(char*)malloc(7000);
@@ -533,5 +535,3 @@ int main(int argc,char*argv[]) {
         return initialize_engine_with_exception_handling(startup_opts);
     }
 }
-
-END_OF_MAIN()

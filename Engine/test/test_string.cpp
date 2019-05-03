@@ -12,7 +12,8 @@
 //
 //=============================================================================
 
-#ifdef _DEBUG
+#include "core/platform.h"
+#if AGS_PLATFORM_DEBUG
 
 #include <string.h>
 #include "util/path.h"
@@ -457,4 +458,4 @@ void Test_String()
     }
 }
 
-#endif // _DEBUG
+#endif // AGS_PLATFORM_DEBUG

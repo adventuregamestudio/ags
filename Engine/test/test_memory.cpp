@@ -12,7 +12,8 @@
 //
 //=============================================================================
 
-#ifdef _DEBUG
+#include "core/platform.h"
+#if AGS_PLATFORM_DEBUG
 
 #include "util/memory.h"
 #include "debug/assert.h"
@@ -79,4 +80,4 @@ void Test_Memory()
     assert(dst_i64 == (int64_t)0x9078563412EFCDAB);
 }
 
-#endif // _DEBUG
+#endif // AGS_PLATFORM_DEBUG

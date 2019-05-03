@@ -16,6 +16,8 @@
 // Game configuration
 //
 #include <ctype.h> // toupper
+
+#include "core/platform.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -34,6 +36,14 @@
 #include "util/path.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
+// undef the declarations from winbase.h
+#undef CreateDirectory
+#undef SetCurrentDirectory
+#undef GetCurrentDirectory
+#endif
+
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -317,12 +327,12 @@ String find_user_cfg_file()
 
 void config_defaults()
 {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     usetup.Screen.DriverID = "D3D9";
 #else
     usetup.Screen.DriverID = "OGL";
 #endif
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
     usetup.midicard = MIDI_AUTODETECT;
@@ -337,7 +347,7 @@ void read_game_data_location(const ConfigTree &cfg)
         // strip any trailing slash
         // TODO: move this to Path namespace later
         AGS::Common::Path::FixupPath(usetup.data_files_dir);
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
         // if the path is just x:\ don't strip the slash
         if (!(usetup.data_files_dir.GetLength() == 3 && usetup.data_files_dir[1u] == ':'))
         {
@@ -352,7 +362,7 @@ void read_game_data_location(const ConfigTree &cfg)
 
 void read_legacy_audio_config(const ConfigTree &cfg)
 {
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     int idx = INIreadint(cfg, "sound", "digiwinindx", -1);
     if (idx == 0)
         idx = DIGI_DIRECTAMX(0);
@@ -427,7 +437,7 @@ extern char psp_translation[];
 void override_config_ext(ConfigTree &cfg)
 {
     // Mobile ports always run in fullscreen mode
-#if defined (ANDROID_VERSION) || defined (IOS_VERSION) || defined (PSP_VERSION)
+#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
     INIwriteint(cfg, "graphics", "windowed", 0);
 #endif
 
@@ -523,7 +533,7 @@ void apply_config(const ConfigTree &cfg)
                                                         INIreadint(cfg, "graphics", "screen_height"));
         usetup.Screen.DisplayMode.ScreenSize.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
         // TODO: move to config overrides (replace values during config load)
-#if defined(MAC_VERSION)
+#if AGS_PLATFORM_OS_MACOS
         usetup.Screen.Filter.ID = "none";
 #else
         usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
@@ -547,11 +557,9 @@ void apply_config(const ConfigTree &cfg)
         usetup.translation = INIreadstring(cfg, "language", "translation");
 
         // TODO: move to config overrides (replace values during config load)
-        // PSP: Don't let the setup determine the cache size as it is always too big.
-#if !defined(PSP_VERSION)
+
         // the config file specifies cache size in KB, here we convert it to bytes
         spriteset.SetMaxCacheSize(INIreadint (cfg, "misc", "cachemax", DEFAULTCACHESIZE / 1024) * 1024);
-#endif
 
         usetup.mouse_auto_lock = INIreadint(cfg, "mouse", "auto_lock") > 0;
 

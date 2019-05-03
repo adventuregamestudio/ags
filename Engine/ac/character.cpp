@@ -53,7 +53,6 @@
 #include "util/string_utils.h"
 #include <math.h>
 #include "gfx/graphicsdriver.h"
-#include "platform/base/override_defines.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
@@ -2858,7 +2857,7 @@ int GetLipSyncFrame (const char *curtex, int *stroffs) {
             if (strchr(tptr, '/'))
                 lenthisbit = strchr(tptr, '/') - tptr;
 
-            if ((strnicmp (curtex, tptr, lenthisbit) == 0) && (lenthisbit > bestfit_len)) {
+            if ((ags_strnicmp (curtex, tptr, lenthisbit) == 0) && (lenthisbit > bestfit_len)) {
                 bestfit = aa;
                 bestfit_len = lenthisbit;
             }

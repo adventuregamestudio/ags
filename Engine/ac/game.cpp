@@ -88,6 +88,14 @@
 #include "util/path.h"
 #include "util/string_utils.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+// undef the declarations from winbase.h
+#undef CreateDirectory
+#undef SetCurrentDirectory
+#undef GetCurrentDirectory
+#undef CreateFile
+#endif
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -110,7 +118,7 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_complete_overlay,is_text_overlay;
 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
 extern int psp_gfx_renderer;
 #endif
 
@@ -1016,7 +1024,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
         Stream *temp_in = Common::File::OpenFileRead(tempFileName);
         temp_in->Read(buffer, fileSize);
         delete temp_in;
-        unlink(tempFileName);
+        ::remove(tempFileName);
 
         out->Write(buffer, fileSize);
         free(buffer);

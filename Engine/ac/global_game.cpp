@@ -14,6 +14,7 @@
 
 #include <cmath>
 
+#include "core/platform.h"
 #include "ac/audiocliptype.h"
 #include "ac/global_game.h"
 #include "ac/common.h"
@@ -83,7 +84,7 @@ extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
 extern int psp_gfx_renderer;
 #endif
 
@@ -122,7 +123,7 @@ void RestoreGameSlot(int slnum) {
 void DeleteSaveSlot (int slnum) {
     String nametouse;
     nametouse = get_save_game_path(slnum);
-    unlink (nametouse);
+    ::remove (nametouse);
     if ((slnum >= 1) && (slnum <= MAXSAVEGAMES)) {
         String thisname;
         for (int i = MAXSAVEGAMES; i > slnum; i--) {

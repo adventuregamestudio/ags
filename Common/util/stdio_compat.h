@@ -11,33 +11,29 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+
 #ifndef __AGS_CN_UTIL__STDIOCOMPAT_H
 #define __AGS_CN_UTIL__STDIOCOMPAT_H
 
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <stdint.h>
 
-// 64-bit fseek/ftell
-#if defined(HAVE_FSEEKO) // Contemporary POSIX libc
-#define file_off_t  off_t
-#define fseek       fseeko
-#define ftell       ftello
-#elif defined(_MSC_VER) // MSVC
-#define file_off_t  __int64
-#define fseek       _fseeki64
-#define ftell       _ftelli64
-#else // No distinct interface with off_t
-#define file_off_t  long
+typedef int64_t file_off_t;
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-// 64-bit stat support for MSVC
-#if defined(_MSC_VER) // MSVC
-#define stat_t      _stat64
-#define stat_fn     _stati64
-#else
-#define stat_t      stat
-#define stat_fn     stat
+int	 ags_fseek(FILE * stream, file_off_t offset, int whence);
+file_off_t	 ags_ftell(FILE * stream);
+
+int ags_file_exists(const char *path);
+int ags_directory_exists(const char *path);
+int ags_path_exists(const char *path);
+file_off_t ags_file_size(const char *path);
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif // __AGS_CN_UTIL__STDIOCOMPAT_H

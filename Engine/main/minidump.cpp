@@ -12,7 +12,9 @@
 //
 //=============================================================================
 
-#ifdef WINDOWS_VERSION
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
 #define UNICODE
 #include <stdio.h> // sprintf
 #include "windows.h"
@@ -116,4 +118,4 @@ int OurReportingFunction( int reportType, char *userMessage, int *retVal ) {
     fflush (logfile);
     return 0;
 }
-#endif	// WINDOWS_VERSION
+#endif	// AGS_PLATFORM_OS_WINDOWS

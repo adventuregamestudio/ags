@@ -16,7 +16,7 @@
 #include <string.h>
 #include "ac/wordsdictionary.h"
 #include "util/stream.h"
-#include "util/string_utils.h" // stricmp
+#include "util/string_utils.h" // ags_stricmp
 
 using AGS::Common::Stream;
 
@@ -64,7 +64,7 @@ void WordsDictionary::sort () {
     int aa, bb;
     for (aa = 0; aa < num_words; aa++) {
         for (bb = aa + 1; bb < num_words; bb++) {
-            if (((wordnum[aa] == wordnum[bb]) && (stricmp(word[aa], word[bb]) > 0))
+            if (((wordnum[aa] == wordnum[bb]) && (ags_stricmp(word[aa], word[bb]) > 0))
                 || (wordnum[aa] > wordnum[bb])) {
                     short temp = wordnum[aa];
                     char tempst[30];
@@ -83,7 +83,7 @@ void WordsDictionary::sort () {
 int WordsDictionary::find_index (const char*wrem) {
     int aa;
     for (aa = 0; aa < num_words; aa++) {
-        if (stricmp (wrem, word[aa]) == 0)
+        if (ags_stricmp (wrem, word[aa]) == 0)
             return aa;
     }
     return -1;
@@ -156,7 +156,7 @@ void write_string_encrypt(Stream *out, const char *s) {
   int stlent = (int)strlen(s) + 1;
 
   out->WriteInt32(stlent);
-  char *enc = strdup(s);
+  char *enc = ags_strdup(s);
   encrypt_text(enc);
   out->WriteArray(enc, stlent, 1);
   free(enc);

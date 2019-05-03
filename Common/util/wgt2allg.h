@@ -18,13 +18,15 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
+
 #define _WGT45_
 
 #ifndef __WGT4_H
 #define __WGT4_H
 
 #include "allegro.h"
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
 #include "winalleg.h"
 #endif
 
@@ -76,8 +78,5 @@ extern "C"
 // archive attributes to search for - al_findfirst breaks with 0
 #define FA_SEARCH -1
 
-#if defined (WINDOWS_VERSION)
-#undef CreateFile  // undef the declaration from winbase.h
-#endif
 
 #endif // __WGT4_H

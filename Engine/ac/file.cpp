@@ -37,6 +37,13 @@
 #include "util/string.h"
 #include "util/string_utils.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+// undef the declarations from winbase.h
+#undef CreateDirectory
+#undef SetCurrentDirectory
+#undef GetCurrentDirectory
+#endif
+
 using namespace AGS::Common;
 
 extern GameSetup usetup;
@@ -73,10 +80,10 @@ int File_Delete(const char *fnmm) {
   if (!ResolveScriptPath(fnmm, false, path, alt_path))
     return 0;
 
-  if (unlink(path) == 0)
+  if (::remove(path) == 0)
       return 1;
   if (errno == ENOENT && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
-      return unlink(alt_path) == 0 ? 1 : 0;
+      return ::remove(alt_path) == 0 ? 1 : 0;
   return 0;
 }
 

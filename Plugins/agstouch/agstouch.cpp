@@ -4,8 +4,9 @@ Helper functions for touch devices
 
 */
 
-#ifdef WIN32
-#define WINDOWS_VERSION
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #pragma warning(disable : 4244)
@@ -98,7 +99,7 @@ void AGS_EngineInitGfx(const char *driverID, void *data)
 
 
 
-#if defined(WINDOWS_VERSION) && !defined(BUILTIN_PLUGINS)
+#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
 
 // ********************************************
 // ***********  Editor Interface  *************

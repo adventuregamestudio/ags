@@ -82,7 +82,7 @@ struct AGSPlatformDriver
     virtual const char* GetAllegroFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);
-    virtual void PlayVideo(const char* name, int skip, int flags) = 0;
+    virtual void PlayVideo(const char* name, int skip, int flags);
     virtual void InitialiseAbufAtStartup();
     virtual void PostAllegroInit(bool windowed);
     virtual void PostAllegroExit() = 0;

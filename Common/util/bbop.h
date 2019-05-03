@@ -18,9 +18,10 @@
 #ifndef __AGS_CN_UTIL__BBOP_H
 #define __AGS_CN_UTIL__BBOP_H
 
+#include "core/platform.h"
 #include "core/types.h"
 
-#if defined (AGS_BIG_ENDIAN) || defined (TEST_BIGENDIAN)
+#if AGS_PLATFORM_ENDIAN_BIG || defined (TEST_BIGENDIAN)
 #define BITBYTE_BIG_ENDIAN
 #endif
 

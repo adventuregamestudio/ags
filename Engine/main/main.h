@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_MAIN__MAIN_H
 #define __AGS_EE_MAIN__MAIN_H
 
+#include "core/platform.h"
 #include "util/version.h"
 
 // Current engine version
@@ -27,13 +28,13 @@ extern AGS::Common::Version SavedgameLowestBackwardCompatVersion;
 // Lowest engine version, which would accept current savedgames
 extern AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
-#if defined(WINDOWS_VERSION) && !defined(_DEBUG)
+#if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
 #define USE_CUSTOM_EXCEPTION_HANDLER
 #endif
 
 //=============================================================================
 
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
 #ifndef _WINNT_
 typedef void *LPWSTR;
 #endif
@@ -41,6 +42,7 @@ extern int wArgc;
 extern LPWSTR *wArgv;
 #endif
 extern char **global_argv;
+
 // Location of the engine executable
 extern AGS::Common::String appDirectory;
 // Game path from the startup options (before reading config)
@@ -67,5 +69,7 @@ extern char psp_game_file_name[];
 extern char psp_translation[];
 
 void main_print_help();
+
+int ags_entry_point(int argc, char *argv[]);
 
 #endif // __AGS_EE_MAIN__MAIN_H

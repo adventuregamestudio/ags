@@ -29,6 +29,7 @@
 #include "main/graphics_mode.h"
 #include "ac/global_debug.h"
 #include "media/audio/audio_system.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Engine;
 
@@ -131,7 +132,7 @@ int System_GetVsync() {
 }
 
 void System_SetVsync(int newValue) {
-    if(stricmp(gfxDriver->GetDriverID(), "D3D9") != 0)
+    if(ags_stricmp(gfxDriver->GetDriverID(), "D3D9") != 0)
         scsystem.vsync = newValue;
 }
 

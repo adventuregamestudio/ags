@@ -19,7 +19,9 @@
 #ifndef __AGS_EE_GFX__ALI3DD3D_H
 #define __AGS_EE_GFX__ALI3DD3D_H
 
-#ifndef WINDOWS_VERSION
+#include "core/platform.h"
+
+#if ! AGS_PLATFORM_OS_WINDOWS
 #error This file should only be included on the Windows build
 #endif
 
@@ -193,7 +195,9 @@ public:
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
+#ifndef AGS_NO_VIDEO_PLAYER
     virtual bool PlayVideo(const char *filename, bool useSound, VideoSkipType skipType, bool stretchToFullScreen);
+#endif
     virtual bool SupportsGammaControl();
     virtual void SetGamma(int newGamma);
     virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }

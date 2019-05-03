@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include "aastr.h"
+#include "core/platform.h"
 #include "ac/common.h"
 #include "util/compress.h"
 #include "ac/view.h"
@@ -65,14 +66,14 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
 #include <sys/stat.h>
 #include <android/log.h>
 
 extern "C" void android_render();
 #endif
 
-#if defined(IOS_VERSION)
+#if AGS_PLATFORM_OS_IOS
 extern "C" void ios_render();
 #endif
 
@@ -726,10 +727,10 @@ void render_to_screen(int atx, int aty)
         {
             gfxDriver->Render((GlobalFlipType)play.screen_flipped);
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
             if (game.color_depth == 1)
                 android_render();
-#elif defined(IOS_VERSION)
+#elif AGS_PLATFORM_OS_IOS
             if (game.color_depth == 1)
                 ios_render();
 #endif

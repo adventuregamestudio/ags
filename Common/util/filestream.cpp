@@ -14,6 +14,9 @@
 
 #include "util/filestream.h"
 
+#include "util/stdio_compat.h"
+#include "util/string.h"
+
 namespace AGS
 {
 namespace Common
@@ -71,10 +74,10 @@ soff_t FileStream::GetLength() const
 {
     if (IsValid())
     {
-        soff_t pos = (soff_t)ftell(_file);
-        fseek(_file, 0, SEEK_END);
-        soff_t end = (soff_t)ftell(_file);
-        fseek(_file, pos, SEEK_SET);
+        soff_t pos = (soff_t)ags_ftell(_file);
+        ags_fseek(_file, 0, SEEK_END);
+        soff_t end = (soff_t)ags_ftell(_file);
+        ags_fseek(_file, pos, SEEK_SET);
         return end;
     }
 
@@ -85,7 +88,7 @@ soff_t FileStream::GetPosition() const
 {
     if (IsValid())
     {
-        return (soff_t) ftell(_file);
+        return (soff_t) ags_ftell(_file);
     }
     return -1;
 }
@@ -159,7 +162,7 @@ soff_t FileStream::Seek(soff_t offset, StreamSeek origin)
         return -1;
     }
 
-    fseek(_file, (file_off_t)offset, stdclib_origin);
+    ags_fseek(_file, (file_off_t)offset, stdclib_origin);
     return GetPosition();
 }
 

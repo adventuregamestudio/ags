@@ -41,21 +41,20 @@ typedef char BITMAP;
 #endif
 
 // If not using windows.h, define HWND
-#if !defined(_WINDOWS_) && !defined(HWND)
+#if !defined(_WINDOWS_)
 typedef int HWND;
 #endif
 
 // This file is distributed as part of the Plugin API docs, so
 // ensure that WINDOWS_VERSION is defined (if applicable)
-#if defined(_WINDOWS_) || defined(_WIN32)
-  #ifndef WINDOWS_VERSION
+#if defined(_WIN32)
+  #undef WINDOWS_VERSION
   #define WINDOWS_VERSION
-  #endif
 #endif
 
 // DOS engine doesn't know about stdcall / neither does Linux version
-#if !defined (WINDOWS_VERSION)
-#define __stdcall
+#if !defined (_WIN32)
+  #define __stdcall
 #endif
 
 #ifndef int32

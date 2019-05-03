@@ -23,12 +23,6 @@
 
 //#define SOUND_CACHE_DEBUG
 
-// PSP: Additional header for the sound cache.
-#if defined(PSP_VERSION)
-#include <pspsdk.h>
-#include <psprtc.h>
-#endif
-
 typedef struct
 {
     char* file_name;

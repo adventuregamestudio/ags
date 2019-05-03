@@ -12,8 +12,14 @@
 //
 //=============================================================================
 
-#include "video.h"
+#include "media/video/video.h"
+
+#ifndef AGS_NO_VIDEO_PLAYER
+
 #include "apeg.h"
+#include "core/platform.h"
+#define AGS_FLI_FROM_PACK_FILE (AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_MACOS)
+
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "ac/asset_helper.h"
@@ -75,7 +81,7 @@ int check_if_user_input_should_cancel_video()
     return 0;
 }
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 int __cdecl fli_callback() {
 #else
 extern "C" int fli_callback() {
@@ -179,7 +185,7 @@ void play_flc_file(int numb,int playflags) {
     // Make only certain versions of the engineuse play_fli_pf from the patched version of Allegro for now.
     // Add more versions as their Allegro lib becomes patched too, or they use newer version of Allegro 4.
     // Ports can still play FLI if separate file is put into game's directory.
-#if defined (WINDOWS_VERSION) || defined (ANDROID_VERSION)
+#if AGS_FLI_FROM_PACK_FILE
     PACKFILE *pf = PackfileFromAsset(AssetPath("", flicname));
     if (play_fli_pf(pf, (BITMAP*)fli_buffer->GetAllegroBitmap(), fli_callback)==FLI_ERROR)
 #else
@@ -189,7 +195,7 @@ void play_flc_file(int numb,int playflags) {
         // This is not a fatal error that should prevent the game from continuing
         Debug::Printf("FLI/FLC animation play error");
     }
-#if defined WINDOWS_VERSION
+#if AGS_FLI_FROM_PACK_FILE
     pack_fclose(pf);
 #endif
 
@@ -455,3 +461,11 @@ void video_on_gfxmode_changed()
         set_palette_range(fli_palette, 0, 255, 0);
     }
 }
+
+#else
+
+void play_theora_video(const char *name, int skip, int flags) {}
+void play_flc_file(int numb,int playflags) {}
+void video_on_gfxmode_changed() {}
+
+#endif

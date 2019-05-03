@@ -282,6 +282,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             force_window = 1;
         else if (stricmp(arg, "-fullscreen") == 0 || stricmp(arg, "--fullscreen") == 0)
             force_window = 2;
+        else if ((stricmp(arg, "-gfxdriver") == 0 || stricmp(arg, "--gfxdriver") == 0) && (argc > ee + 1))
+        {
+            INIwritestring(cfg, "graphics", "driver", argv[++ee]);
+        }
         else if ((stricmp(arg, "-gfxfilter") == 0 || stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
         {
             // NOTE: we make an assumption here that if user provides scaling factor,

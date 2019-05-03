@@ -270,6 +270,7 @@
     <ClCompile Include="..\..\Common\util\mutifilelib.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />
     <ClCompile Include="..\..\Common\util\proxystream.cpp" />
+    <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
@@ -301,7 +302,7 @@
     <ClInclude Include="..\..\Common\core\asset.h" />
     <ClInclude Include="..\..\Common\core\assetmanager.h" />
     <ClInclude Include="..\..\Common\core\def_version.h" />
-    <ClInclude Include="..\..\Common\core\endianness.h" />
+    <ClInclude Include="..\..\Common\core\platform.h" />
     <ClInclude Include="..\..\Common\core\types.h" />
     <ClInclude Include="..\..\Common\debug\assert.h" />
     <ClInclude Include="..\..\Common\debug\debugmanager.h" />
@@ -337,7 +338,6 @@
     <ClInclude Include="..\..\Common\script\script_common.h" />
     <ClInclude Include="..\..\Common\util\alignedstream.h" />
     <ClInclude Include="..\..\Common\util\bbop.h" />
-    <ClInclude Include="..\..\Common\util\c99_snprintf.h" />
     <ClInclude Include="..\..\Common\util\compress.h" />
     <ClInclude Include="..\..\Common\util\datastream.h" />
     <ClInclude Include="..\..\Common\util\directory.h" />

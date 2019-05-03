@@ -392,6 +392,7 @@
     <ClCompile Include="..\..\Engine\main\game_start.cpp" />
     <ClCompile Include="..\..\Engine\main\graphics_mode.cpp" />
     <ClCompile Include="..\..\Engine\main\main.cpp" />
+    <ClCompile Include="..\..\Engine\main\main_allegro.cpp" />
     <ClCompile Include="..\..\Engine\main\minidump.cpp" />
     <ClCompile Include="..\..\Engine\main\quit.cpp" />
     <ClCompile Include="..\..\Engine\main\update.cpp" />

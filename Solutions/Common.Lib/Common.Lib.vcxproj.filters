@@ -266,6 +266,9 @@
     <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aarot.c">
       <Filter>Library Sources\aastr</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\stdio_compat.c">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -370,9 +373,6 @@
     <ClInclude Include="..\..\Common\util\bbop.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\util\c99_snprintf.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\util\compress.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
@@ -475,9 +475,6 @@
     <ClInclude Include="..\..\Common\core\def_version.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\core\endianness.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\core\types.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
@@ -531,6 +528,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\stdio_compat.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\core\platform.h">
+      <Filter>Header Files\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

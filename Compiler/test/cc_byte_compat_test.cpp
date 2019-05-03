@@ -3659,7 +3659,7 @@ TEST(Compatibility, StructExtender) {
 }
 
 
-TEST(Compatibility, Func1) {
+TEST(Compatibility, Func01) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3688,7 +3688,7 @@ TEST(Compatibility, Func1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func1", scrip);
+    // WriteOutput("Func01", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -3778,7 +3778,7 @@ TEST(Compatibility, Func1) {
 
 }
 
-TEST(Compatibility, Func1A) {
+TEST(Compatibility, Func02) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3807,7 +3807,7 @@ TEST(Compatibility, Func1A) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func1A", scrip);
+    // WriteOutput("Func02", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -3897,7 +3897,7 @@ TEST(Compatibility, Func1A) {
 
 }
 
-TEST(Compatibility, Func2) {
+TEST(Compatibility, Func03) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3931,7 +3931,7 @@ TEST(Compatibility, Func2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func2", scrip);
+    // WriteOutput("Func03", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -4026,7 +4026,7 @@ TEST(Compatibility, Func2) {
 }
 
 
-TEST(Compatibility, Func3A) {
+TEST(Compatibility, Func04) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4052,7 +4052,7 @@ TEST(Compatibility, Func3A) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func3A", scrip);
+    // WriteOutput("Func04", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -4139,7 +4139,7 @@ TEST(Compatibility, Func3A) {
 }
 
 
-TEST(Compatibility, Func4) {
+TEST(Compatibility, Func05) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4161,7 +4161,7 @@ TEST(Compatibility, Func4) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func4", scrip);
+    // WriteOutput("Func05", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -4248,7 +4248,7 @@ TEST(Compatibility, Func4) {
 
 }
 
-TEST(Compatibility, Func5) {
+TEST(Compatibility, Func06) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4266,7 +4266,7 @@ TEST(Compatibility, Func5) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func5", scrip);
+    // WriteOutput("Func06", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -4353,7 +4353,7 @@ TEST(Compatibility, Func5) {
 
 }
 
-TEST(Compatibility, Func5a) {
+TEST(Compatibility, Func07) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4371,7 +4371,7 @@ TEST(Compatibility, Func5a) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func5a", scrip);
+    // WriteOutput("Func07", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -4458,7 +4458,7 @@ TEST(Compatibility, Func5a) {
 
 }
 
-TEST(Compatibility, Func6) {
+TEST(Compatibility, Func08) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4477,7 +4477,7 @@ TEST(Compatibility, Func6) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func6", scrip);
+    // WriteOutput("Func08", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -4565,7 +4565,7 @@ TEST(Compatibility, Func6) {
 }
 
 
-TEST(Compatibility, Func7) {
+TEST(Compatibility, Func09) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4587,7 +4587,7 @@ TEST(Compatibility, Func7) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func7", scrip);
+    // WriteOutput("Func09", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -4674,7 +4674,7 @@ TEST(Compatibility, Func7) {
 
 }
 
-TEST(Compatibility, Func8) {
+TEST(Compatibility, Func10) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4702,7 +4702,7 @@ TEST(Compatibility, Func8) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Func8", scrip);
+    // WriteOutput("Func10", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

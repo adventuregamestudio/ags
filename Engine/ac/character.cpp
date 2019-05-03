@@ -1394,7 +1394,7 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
 int Character_GetDestinationY(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-        return cmls->pos[cmls->numstage - 1] & 0x00ff;
+        return cmls->pos[cmls->numstage - 1] & 0xFFFF;
     }
     else
         return chaa->y;

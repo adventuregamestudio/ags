@@ -32,6 +32,7 @@
 #include "script/cc_error.h"
 #include "util/textstreamwriter.h"
 #include "platform/base/agsplatformdriver.h"
+#include "debug/agseditordebugger.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

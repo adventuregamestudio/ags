@@ -59,13 +59,6 @@ using namespace AGS::Engine;
 String appDirectory; // Needed for library loading
 String cmdGameDataPath;
 
-#if AGS_PLATFORM_OS_WINDOWS
-
-int wArgc;
-LPWSTR *wArgv;
-
-#endif
-
 char **global_argv = nullptr;
 int    global_argc = 0;
 
@@ -169,14 +162,6 @@ String get_engine_string()
 
 int main_preprocess_cmdline(int argc,char*argv[])
 {
-#if AGS_PLATFORM_OS_WINDOWS
-    wArgv = CommandLineToArgvW(GetCommandLineW(), &wArgc);
-    if (wArgv == NULL)
-    {
-        platform->DisplayAlert("CommandLineToArgvW failed, unable to start the game.");
-        return 9;
-    }
-#endif
     global_argv = argv;
     global_argc = argc;
     return RETURN_CONTINUE;
@@ -369,19 +354,6 @@ void main_init_crt_report()
 #endif
 }
 
-#if AGS_PLATFORM_OS_WINDOWS
-String GetPathInASCII(const String &path)
-{
-    char ascii_buffer[MAX_PATH];
-    if (GetShortPathNameA(path, ascii_buffer, MAX_PATH) == 0)
-    {
-        Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetShortPathNameA failed.\nArg: %s", path.GetCStr());
-        return "";
-    }
-    return Path::MakeAbsolutePath(ascii_buffer);
-}
-#endif
-
 void main_set_gamedir(int argc, char*argv[])
 {
     appDirectory = Path::GetDirectoryPath(GetPathFromCmdArg(0));
@@ -392,7 +364,6 @@ void main_set_gamedir(int argc, char*argv[])
         // be the save game folder unless we correct it
         Directory::SetCurrentDirectory(appDirectory);
     }
-#if AGS_PLATFORM_OS_WINDOWS
     else
     {
         // It looks like Allegro library does not like ANSI (ACP) paths.
@@ -400,38 +371,24 @@ void main_set_gamedir(int argc, char*argv[])
         // current directory for its own operations, it "fixes" it by
         // substituting non-ASCII symbols with '^'.
         // Here we explicitly set current directory to ASCII path.
-        Directory::SetCurrentDirectory(GetPathInASCII(Directory::GetCurrentDirectory()));
+        String cur_dir = Directory::GetCurrentDirectory();
+        String path = Path::GetPathInASCII(cur_dir);
+        if (!path.IsEmpty())
+            Directory::SetCurrentDirectory(Path::MakeAbsolutePath(path));
+        else
+            Debug::Printf(kDbgMsg_Error, "Unable to determine current directory: GetPathInASCII failed.\nArg: %s", cur_dir.GetCStr());
     }
-#endif
 }
 
 String GetPathFromCmdArg(int arg_index)
 {
     if (arg_index < 0 || arg_index >= global_argc)
-    {
         return "";
-    }
-
-    String path;
-#if AGS_PLATFORM_OS_WINDOWS
-    // Hack for Windows in case there are unicode chars in the path.
-    // The normal argv[] array has ????? instead of the unicode chars
-    // and fails, so instead we manually get the short file name, which
-    // is always using ASCII chars.
-    WCHAR short_path[MAX_PATH];
-    char ascii_buffer[MAX_PATH];
-    LPCWSTR arg_path = wArgv[arg_index];
-    if (GetShortPathNameW(arg_path, short_path, MAX_PATH) == 0)
-    {
-        Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetShortPathNameW failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
-        return global_argv[arg_index];
-    }
-    WideCharToMultiByte(CP_ACP, 0, short_path, -1, ascii_buffer, MAX_PATH, NULL, NULL);
-    path = ascii_buffer;
-#else
-    path = global_argv[arg_index];
-#endif
-    return Path::MakeAbsolutePath(path);
+    String path = Path::GetCmdLinePathInASCII(global_argv[arg_index], arg_index);
+    if (!path.IsEmpty())
+        return Path::MakeAbsolutePath(path);
+    Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetCmdLinePathInASCII failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
+    return global_argv[arg_index];
 }
 
 const char *get_allegro_error()

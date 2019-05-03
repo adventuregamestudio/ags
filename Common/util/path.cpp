@@ -174,6 +174,54 @@ String FixupSharedFilename(const String &filename)
     return fixed_name;
 }
 
+String GetPathInASCII(const String &path)
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    char ascii_buffer[MAX_PATH];
+    if (GetShortPathNameA(path, ascii_buffer, MAX_PATH) == 0)
+        return "";
+    return ascii_buffer;
+#else
+    // TODO: implement conversion for other platforms!
+    return path;
+#endif
+}
+
+#if AGS_PLATFORM_OS_WINDOWS
+String WidePathNameToAnsi(LPCWSTR pathw)
+{
+    WCHAR short_path[MAX_PATH];
+    char ascii_buffer[MAX_PATH];
+    LPCWSTR arg_path = pathw;
+    if (GetShortPathNameW(arg_path, short_path, MAX_PATH) == 0)
+        return "";
+    WideCharToMultiByte(CP_ACP, 0, short_path, -1, ascii_buffer, MAX_PATH, NULL, NULL);
+    return ascii_buffer;
+}
+#endif
+
+String GetCmdLinePathInASCII(const char *arg, int arg_index)
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    // Hack for Windows in case there are unicode chars in the path.
+    // The normal argv[] array has ????? instead of the unicode chars
+    // and fails, so instead we manually get the short file name, which
+    // is always using ASCII chars.
+    int wargc = 0;
+    LPWSTR *wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
+    if (wargv == nullptr)
+        return "";
+    String path;
+    if (wargc <= arg_index)
+        path = WidePathNameToAnsi(wargv[arg_index]);
+    LocalFree(wargv);
+    return path;
+#else
+    // TODO: implement conversion for other platforms!
+    return arg;
+#endif
+}
+
 } // namespace Path
 
 } // namespace Common

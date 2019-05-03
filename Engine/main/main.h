@@ -34,13 +34,6 @@ extern AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
 //=============================================================================
 
-#if AGS_PLATFORM_OS_WINDOWS
-#ifndef _WINNT_
-typedef void *LPWSTR;
-#endif
-extern int wArgc;
-extern LPWSTR *wArgv;
-#endif
 extern char **global_argv;
 
 // Location of the engine executable

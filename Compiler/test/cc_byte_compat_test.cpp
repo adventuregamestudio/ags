@@ -1506,19 +1506,16 @@ TEST(Compatibility, For1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("For1", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 130;
+    // WriteOutput("For1", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 127;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    3,            0,    6,    2,    0,    // 7
        8,    3,    6,    2,            0,    7,    3,   29,    // 15
        3,    6,    3,   10,           30,    4,   18,    4,    // 23
-       3,    3,    4,    3,           28,   92,    6,    2,    // 31
+       3,    3,    4,    3,           28,   89,    6,    2,    // 31
        0,    7,    3,   29,            3,    6,    3,    4,    // 39
       30,    4,   12,    4,            3,    3,    4,    3,    // 47
       29,    3,    6,    3,            7,   30,    4,   12,    // 55
@@ -1529,9 +1526,8 @@ TEST(Compatibility, For1) {
        8,    2,    1,    4,            6,    3,    0,   31,    // 95
      -69,    2,    1,    4,            6,    3,    3,   29,    // 103
        3,    6,    2,    0,            7,    3,   30,    4,    // 111
-      11,    3,    4,    6,            2,    0,    8,    3,    // 119
-      31, -112,    6,    3,            0,    5,    6,    3,    // 127
-       0,    5,  -999
+      11,    3,    4,    8,            3,   31, -109,    6,    // 119
+       3,    0,    5,    6,            3,    0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1544,11 +1540,11 @@ TEST(Compatibility, For1) {
         ASSERT_EQ(is_val, test_val);
     }
 
-    const size_t numfixups = 6;
+    const size_t numfixups = 5;
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       7,   12,   32,   71,        107,  117,  -999
+       7,   12,   32,   71,        107,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -1562,7 +1558,7 @@ TEST(Compatibility, For1) {
     }
 
     char fixuptypes[] = {
-      1,   1,   1,   1,      1,   1,  '\0'
+      1,   1,   1,   1,      1,  '\0'
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -1632,58 +1628,52 @@ TEST(Compatibility, For2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For2", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 345;
+    // Hand-checked Bytecode
+    const size_t codesize = 325;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,   63,    4,    1,    // 7
        1,    4,    3,    1,            2,   63,    4,    1,    // 15
-       1,    4,    6,    3,            1,   28,   39,   51,    // 23
+       1,    4,    6,    3,            1,   28,   35,   51,    // 23
        8,    7,    3,   29,            3,   51,    8,    7,    // 31
-       3,   30,    4,   11,            3,    4,   51,    4,    // 39
-       8,    3,    6,    3,            1,   29,    3,   51,    // 47
-      12,    7,    3,   30,            4,   11,    3,    4,    // 55
-      51,    8,    8,    3,           31,  -44,    6,    3,    // 63
-       1,   28,   21,   51,            8,    7,    3,   29,    // 71
-       3,   51,    8,    7,            3,   30,    4,   12,    // 79
-       3,    4,   51,    4,            8,    3,   31,  -26,    // 87
-      51,    8,    7,    3,           29,    3,    6,    3,    // 95
-       2,   30,    4,   18,            4,    3,    3,    4,    // 103
-       3,   28,   39,   51,            8,    7,    3,   29,    // 111
-       3,   51,    8,    7,            3,   30,    4,    9,    // 119
-       3,    4,   51,    4,            8,    3,    6,    3,    // 127
-       3,   29,    3,   51,           12,    7,    3,   30,    // 135
-       4,   11,    3,    4,           51,    8,    8,    3,    // 143
-      31,  -58,   51,    8,            7,    3,   29,    3,    // 151
-       6,    3,    4,   30,            4,   18,    4,    3,    // 159
-       3,    4,    3,   28,           21,   51,    8,    7,    // 167
-       3,   29,    3,   51,            8,    7,    3,   30,    // 175
-       4,   10,    3,    4,           51,    4,    8,    3,    // 183
-      31,  -40,    6,    3,            5,   51,    8,    8,    // 191
-       3,    6,    3,    1,           28,   39,   51,    8,    // 199
-       7,    3,   29,    3,           51,    8,    7,    3,    // 207
-      30,    4,   10,    3,            4,   51,    4,    8,    // 215
-       3,    6,    3,    6,           29,    3,   51,   12,    // 223
-       7,    3,   30,    4,           11,    3,    4,   51,    // 231
-       8,    8,    3,   31,          -44,    6,    3,    7,    // 239
-       3,    1,    2,    8,            3,    1,    1,    4,    // 247
-       6,    3,    1,   28,           21,   51,    4,    7,    // 255
-       3,   29,    3,   51,           12,    7,    3,   30,    // 263
-       4,   13,    3,    4,           51,    8,    8,    3,    // 271
-      31,  -26,    2,    1,            4,    6,    3,    8,    // 279
-       3,    1,    2,    8,            3,    1,    1,    4,    // 287
-      51,    4,    7,    3,           29,    3,    6,    3,    // 295
-       9,   30,    4,   18,            4,    3,    3,    4,    // 303
-       3,   28,   21,   51,            4,    7,    3,   29,    // 311
-       3,   51,   12,    7,            3,   30,    4,   14,    // 319
-       3,    4,   51,    8,            8,    3,   31,  -40,    // 327
-       2,    1,    4,    6,            3,    0,    2,    1,    // 335
-       8,    5,    6,    3,            0,    2,    1,    8,    // 343
-       5,  -999
+       3,   30,    4,   11,            3,    4,    8,    3,    // 39
+       6,    3,    1,   29,            3,   51,   12,    7,    // 47
+       3,   30,    4,   11,            3,    4,    8,    3,    // 55
+      31,  -40,    6,    3,            1,   28,   19,   51,    // 63
+       8,    7,    3,   29,            3,   51,    8,    7,    // 71
+       3,   30,    4,   12,            3,    4,    8,    3,    // 79
+      31,  -24,   51,    8,            7,    3,   29,    3,    // 87
+       6,    3,    2,   30,            4,   18,    4,    3,    // 95
+       3,    4,    3,   28,           35,   51,    8,    7,    // 103
+       3,   29,    3,   51,            8,    7,    3,   30,    // 111
+       4,    9,    3,    4,            8,    3,    6,    3,    // 119
+       3,   29,    3,   51,           12,    7,    3,   30,    // 127
+       4,   11,    3,    4,            8,    3,   31,  -54,    // 135
+      51,    8,    7,    3,           29,    3,    6,    3,    // 143
+       4,   30,    4,   18,            4,    3,    3,    4,    // 151
+       3,   28,   19,   51,            8,    7,    3,   29,    // 159
+       3,   51,    8,    7,            3,   30,    4,   10,    // 167
+       3,    4,    8,    3,           31,  -38,    6,    3,    // 175
+       5,   51,    8,    8,            3,    6,    3,    1,    // 183
+      28,   35,   51,    8,            7,    3,   29,    3,    // 191
+      51,    8,    7,    3,           30,    4,   10,    3,    // 199
+       4,    8,    3,    6,            3,    6,   29,    3,    // 207
+      51,   12,    7,    3,           30,    4,   11,    3,    // 215
+       4,    8,    3,   31,          -40,    6,    3,    7,    // 223
+       3,    1,    2,    8,            3,    1,    1,    4,    // 231
+       6,    3,    1,   28,           19,   51,    4,    7,    // 239
+       3,   29,    3,   51,           12,    7,    3,   30,    // 247
+       4,   13,    3,    4,            8,    3,   31,  -24,    // 255
+       2,    1,    4,    6,            3,    8,    3,    1,    // 263
+       2,    8,    3,    1,            1,    4,   51,    4,    // 271
+       7,    3,   29,    3,            6,    3,    9,   30,    // 279
+       4,   18,    4,    3,            3,    4,    3,   28,    // 287
+      19,   51,    4,    7,            3,   29,    3,   51,    // 295
+      12,    7,    3,   30,            4,   14,    3,    4,    // 303
+       8,    3,   31,  -38,            2,    1,    4,    6,    // 311
+       3,    0,    2,    1,            8,    5,    6,    3,    // 319
+       0,    2,    1,    8,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1752,22 +1742,18 @@ TEST(Compatibility, For3) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("For3", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 65;
+    // Hand-checked Bytecode
+    const size_t codesize = 57;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,   63,    4,    1,    // 7
-       1,    4,    6,    3,            1,   28,   36,   51,    // 15
-       4,   29,    2,   30,            2,   48,    3,   29,    // 23
-       3,    6,    2,    0,           29,    2,   30,    2,    // 31
-      48,    3,   30,    4,           15,    4,    3,    3,    // 39
-       4,    3,   51,    4,           69,    2,    1,    4,    // 47
-       5,   31,  -41,   51,            4,   49,    2,    1,    // 55
-       4,    6,    3,   -7,            5,    6,    3,    0,    // 63
+       1,    4,    6,    3,            1,   28,   28,   51,    // 15
+       4,   48,    3,   29,            3,    6,    2,    0,    // 23
+      48,    3,   30,    4,           15,    4,    3,    3,    // 31
+       4,    3,   51,    4,           69,    2,    1,    4,    // 39
+       5,   31,  -33,   51,            4,   49,    2,    1,    // 47
+       4,    6,    3,   -7,            5,    6,    3,    0,    // 55
        5,  -999
     };
 
@@ -1785,7 +1771,7 @@ TEST(Compatibility, For3) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      27,  -999
+      23,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -2044,7 +2030,7 @@ TEST(Compatibility, For5) {
     EXPECT_EQ(stringssize, scrip->stringssize);
 }
 
-TEST(Compatibility, For5a) {
+TEST(Compatibility, For6) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -2073,7 +2059,7 @@ TEST(Compatibility, For5a) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("For5a", scrip);
+    // WriteOutput("For6", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2169,7 +2155,7 @@ TEST(Compatibility, For5a) {
     EXPECT_EQ(stringssize, scrip->stringssize);
 }
 
-TEST(Compatibility, For6) {
+TEST(Compatibility, For7) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Initializer and iterator of a for() need not be assignments,
@@ -2203,10 +2189,99 @@ TEST(Compatibility, For6) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("For6", scrip);
+    // WriteOutput("For7", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
+    const size_t codesize = 127;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,           68,   23,    3,    6,    // 7
+       3,   86,   23,    3,           28,   50,    6,    2,    // 15
+       0,    7,    3,   29,            3,    6,    3,    5,    // 23
+      30,    4,   19,    4,            3,    3,    4,    3,    // 31
+      28,   23,    6,    3,          100,   29,    3,    6,    // 39
+       2,    0,    7,    3,           30,    4,   12,    4,    // 47
+       3,    3,    4,    3,            6,    2,    0,    8,    // 55
+       3,    6,    3,  111,           23,    3,   31,  -57,    // 63
+       6,    3,    0,    5,           38,   68,    6,    3,    // 71
+       1,    6,    2,    0,            8,    3,    6,    3,    // 79
+     -77,    5,    6,    3,            0,    5,   38,   86,    // 87
+       6,    2,    0,    7,            3,   29,    3,    6,    // 95
+       3,   10,   30,    4,           18,    4,    3,    3,    // 103
+       4,    3,    5,    6,            3,    0,    5,   38,    // 111
+     111,    6,    2,    0,            7,    3,    1,    3,    // 119
+       1,    8,    3,    6,            3,    0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (idx >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 9;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+       4,    9,   16,   41,         54,   59,   75,   90,    // 7
+     115,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      2,   2,   1,   1,      1,   2,   1,   1,    // 7
+      1,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
 }
 
 TEST(Compatibility, IfDoWhile) {

@@ -1020,7 +1020,6 @@ int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative
 {
     if (fromSym >= 0)
     {
-        // sym.get_type() won't work in the Pre-Analyse phase for compile-time constants
         SymbolTableEntry &from_entry = GetSymbolTableEntryAnyPhase(fromSym); 
         if (from_entry.stype == kSYM_Constant)
         {
@@ -2105,22 +2104,6 @@ inline int GetWriteCommandForSize(int the_size)
     }
 }
 
-
-// [fw] Passing info around through a global variable: That is a HUGE code smell.
-int SizeUsedInLastReadCommand = 0;
-
-
-// Get the bytecode for reading or writing memory of size the_size
-inline int GetReadWriteCmdForSize(int the_size, bool write_operation)
-{
-    // [fw] Passing info around through a global variable: That is a HUGE code smell.
-    if (the_size != 0)
-        SizeUsedInLastReadCommand = the_size;
-
-    return (write_operation) ? GetWriteCommandForSize(the_size) : GetReadCommandForSize(the_size);
-}
-
-
 int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
 {
     if (symlist_len < 2 || sym.get_type(symlist[1]) != kSYM_Vartype)
@@ -2409,14 +2392,47 @@ int ParseExpression_OpenParenthesis(ccCompiledScript *scrip, AGS::SymbolScript &
     return 0;
 }
 
-// At compile time, we accumulate an offset that is to be added to MAR.
-// Make MAR current by adding this offset to MAR now.
-inline void AccessData_MakeMARCurrent(ccCompiledScript *scrip, size_t &mar_offset)
+struct MemoryLocation
 {
-    if (mar_offset == 0)
-        return;
-    scrip->write_cmd2(SCMD_ADD, SREG_MAR, mar_offset);
-    mar_offset = 0;
+    SymbolType LType; // import, global or local
+    size_t StartOffs;
+    size_t ComponentOffs;
+};
+
+// We set MAR lazily at the last minute
+// so that offsets can be accumulated at compile time instead of runtime.
+// Set MAR now.
+void AccessData_MakeMARCurrent(ccCompiledScript *scrip, MemoryLocation &mloc)
+{
+    switch (mloc.LType)
+    {
+    default: // The memory location of the struct is up-to-date, but an offset might have accumulated 
+        if (mloc.ComponentOffs > 0)
+            scrip->write_cmd2(SCMD_ADD, SREG_MAR, mloc.ComponentOffs > 0);
+        break;
+
+    case kSYM_GlobalVar:
+        scrip->write_cmd2(
+            SCMD_LITTOREG,
+            SREG_MAR, mloc.StartOffs + mloc.ComponentOffs);
+        scrip->fixup_previous(FIXUP_GLOBALDATA);
+        break;
+
+    case kSYM_Import:
+        scrip->write_cmd2(
+            SCMD_LITTOREG,
+            SREG_MAR, mloc.StartOffs + mloc.ComponentOffs);
+        scrip->fixup_previous(FIXUP_IMPORT);
+        break;
+
+    case kSYM_LocalVar:
+        scrip->write_cmd1(
+            SCMD_LOADSPOFFS,
+            scrip->cur_sp - mloc.StartOffs - mloc.ComponentOffs);
+        break;
+    }
+    mloc.LType = kSYM_NoType;
+    mloc.ComponentOffs = 0;
     return;
 }
 
@@ -2667,7 +2683,7 @@ int AccessData_PushFunctionCallParams(ccCompiledScript *scrip, AGS::Symbol name_
     return 0;
 }
 
-int AccessData_FunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, size_t &mar_offset, AGS::Vartype &rettype)
+int AccessData_FunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &rettype)
 {
     bool const func_is_import = FlagIsSet(sym.get_flags(name_of_func), kSFLG_Imported);
 
@@ -2693,7 +2709,7 @@ int AccessData_FunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, A
     if (func_uses_this)
     {
         // Get address of outer into MAR; this is the object that the func will use
-        AccessData_MakeMARCurrent(scrip, mar_offset);
+        AccessData_MakeMARCurrent(scrip, mloc);
         // Save OP since we must restore it after the func call
         scrip->push_reg(SREG_OP);
     }
@@ -2796,7 +2812,7 @@ int AccessData_ArrayIndexIntoAX(ccCompiledScript *scrip, SymbolScript symlist, s
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a simple member of the struct.
-int AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, size_t &mar_offset, AGS::Vartype &vartype)
+int AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     SymbolTableEntry &entry = sym.entries[component];
 
@@ -2814,10 +2830,8 @@ int AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via
             sym.get_name_string(component).c_str());
         return -1;
     }
-    // since the member has a fixed offset into the structure, don't
-    // write out any code to calculate the offset - instead, modify
-    // the offset value which will be written to MAR
-    mar_offset += entry.soffs;
+
+    mloc.ComponentOffs += entry.soffs;
     vartype = sym.get_vartype(component);
     symlist++;
     symlist_len--;
@@ -2940,9 +2954,54 @@ enum ValueLocation
     kVL_attribute            // The value must be modified by function call
 };
 
+int AccessData_Dereference(ccCompiledScript *scrip, ValueLocation &vloc, MemoryLocation &mloc)
+{
+    if (kVL_ax_pointsto_value == vloc)
+    {
+        scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        vloc = kVL_mar_pointsto_value;
+    }
+    if (kVL_mar_pointsto_value == vloc)
+    {
+        AccessData_MakeMARCurrent(scrip, mloc);
+        scrip->write_cmd0(SCMD_CHECKNULL);
+        scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
+    }
+    else
+    {
+        cc_error("Cannot access value");
+        return -1;
+    }
+    mloc.LType = kSYM_NoType;
+    mloc.ComponentOffs = 0;
+    return 0;
+}
+
+int AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, int array_size, size_t element_size, MemoryLocation &mloc)
+{
+    int array_index = -1;
+    int retval = ParseLiteralOrConstvalue(index_symbol, array_index, false, "Error parsing integer");
+    if (retval < 0) return retval;
+    if (array_size > 0 && array_index >= array_size)
+    {
+        cc_error(
+            "Array index %d out of bounds (maximum is %d)",
+            array_index,
+            array_size - 1);
+        return -1;
+    }
+    if (array_index < 0)
+    {
+        cc_error("Array index %d out of bounds (minimum is 0)", array_index);
+        return -1;
+    }
+    mloc.ComponentOffs += array_index * element_size;
+    return 0;
+}
+
 // We're processing some struct component or global or local variable.
 // If an array index follows, parse it and shorten symlist accordingly
-int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_of_array, int array_size, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, size_t &mar_offset, AGS::Vartype &vartype)
+int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_of_array, int array_size, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     if (0 == symlist_len || kSYM_OpenBracket != sym.get_type(symlist[0]))
         return 0;
@@ -2973,18 +3032,33 @@ int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_
     AGS::Vartype const element_type = vartype & ~kVTY_Array & ~kVTY_DynArray;
     size_t const element_size = FlagIsSet(element_type, kVTY_Pointer) ? SIZE_OF_POINTER : element_coresize;
     vartype = element_type;
-    mar_offset = 0;
 
-    if (kVL_ax_pointsto_value == vloc_of_array)
+    if (is_dynarray)
+        AccessData_Dereference(scrip, vloc, mloc);
+
+    if (kVL_ax_pointsto_value == vloc)
     {
         scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_MAR);
-        vloc_of_array = kVL_mar_pointsto_value;
+        vloc = kVL_mar_pointsto_value;
+        mloc = { kSYM_NoType, 0, 0 };
     }
-    
-    if (is_dynarray)
-        scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR); // m[MAR] -> MAR (dereference)
-    scrip->push_reg(SREG_MAR); // save MAR from being clobbered
-    
+
+    // Ideally, we would calculate compile time constants here. For now, only
+    // process the special case [INT] where INT is a non-negative integer or constant.
+    if (1 == bracketed_expr_length &&
+        (kSYM_LiteralInt == sym.get_type(symlist[1]) || kSYM_Const == sym.get_type(symlist[1])))
+    {
+        int retval = AccessData_ProcessArrayIndexConstant(symlist[1], array_size, element_size, mloc);
+        if (retval < 0) return retval;
+        symlist = close_brac_loc + 1;
+        symlist_len = len_starting_with_close_brac - 1;
+        return 0;
+    }
+
+    // Save MAR from being clobbered if it may have been (partially) set
+    if (mloc.LType == kSYM_NoType)
+        scrip->push_reg(SREG_MAR);
+
     int retval = AccessData_ArrayIndexIntoAX(scrip, symlist + 1, bracketed_expr_length - 2);
     if (retval < 0) return retval;
     if (is_dynarray)
@@ -2993,16 +3067,20 @@ int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_
         scrip->write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, array_size);
     else // it's a static array, and we don't know the size
         ;   // don't check the bounds
-    scrip->pop_reg(SREG_MAR); // Get array memory location into MAR
+
+    if (mloc.LType == kSYM_NoType)
+        scrip->pop_reg(SREG_MAR);
+
+    AccessData_MakeMARCurrent(scrip, mloc);
+
     scrip->write_cmd2(SCMD_MUL, SREG_AX, element_size); // Multiply offset with length of one array entry
     scrip->write_cmd2(SCMD_ADDREG, SREG_MAR, SREG_AX); // Add offset
 
     symlist = close_brac_loc + 1;
     symlist_len = len_starting_with_close_brac - 1;
-
 }
 
-int AccessData_GlobalOrLocalVar(ccCompiledScript *scrip, bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
+int AccessData_GlobalOrLocalVar(ccCompiledScript *scrip, bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     AGS::Symbol const varname = symlist[0];
     SymbolTableEntry &entry = sym.entries[varname];
@@ -3016,24 +3094,15 @@ int AccessData_GlobalOrLocalVar(ccCompiledScript *scrip, bool is_global, bool wr
         return -1;
     }
 
-    if (is_global)
-    {
-        scrip->write_cmd2(SCMD_LITTOREG, SREG_MAR, soffs);
-        scrip->fixup_previous(
-            FlagIsSet(entry.flags, kSFLG_Imported) ? FIXUP_IMPORT : FIXUP_GLOBALDATA);
-    }
-    else
-    {
-        scrip->write_cmd1(SCMD_LOADSPOFFS, scrip->cur_sp - soffs);
-    }
+    mloc.LType = is_global ? kSYM_GlobalVar : kSYM_LocalVar;
+    mloc.StartOffs = soffs;
+    mloc.ComponentOffs = 0;
     
     vartype = sym.get_vartype(varname);
-    int const array_size = sym.entries[varname].arrsize;
 
     // Process an array index if it follows
-    size_t mar_offset_dummy = 0;
     ValueLocation vl_dummy = kVL_mar_pointsto_value;
-    return AccessData_ProcessAnyArrayIndex(scrip, kVL_mar_pointsto_value, array_size, symlist, symlist_len, vl_dummy, mar_offset_dummy, vartype);
+    return AccessData_ProcessAnyArrayIndex(scrip, kVL_mar_pointsto_value, sym.entries[varname].arrsize, symlist, symlist_len, vl_dummy, mloc, vartype);
 }
 
 int AccessData_LitFloat(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
@@ -3116,7 +3185,6 @@ int AccessData_String(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &s
 
 int AccessData_StaticFunctionCallOrAttribute(ccCompiledScript *scrip, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::Vartype &vartype)
 {
-    size_t zero_mar_offset = 0;
     if (symlist_len < 2 || kSYM_Dot != sym.get_type(symlist[1]))
     {
         cc_error("Expected '.' after '%s'", sym.get_name_string(symlist[0]));
@@ -3132,8 +3200,9 @@ int AccessData_StaticFunctionCallOrAttribute(ccCompiledScript *scrip, bool writi
     symlist_len -= 2;
 
     vloc = kVL_ax_is_value;
+    MemoryLocation mloc = { kSYM_NoType, 0, 0 };
     if (kSYM_Function == sym.get_type(staticname))       
-        return AccessData_FunctionCall(scrip, staticname, symlist, symlist_len, zero_mar_offset, vartype);
+        return AccessData_FunctionCall(scrip, staticname, symlist, symlist_len, mloc, vartype);
     if (kSYM_Attribute == sym.get_type(staticname))
     {
         if (writing)
@@ -3147,12 +3216,6 @@ int AccessData_StaticFunctionCallOrAttribute(ccCompiledScript *scrip, bool writi
 
     cc_error("Function or attribute '%s' unknown", sym.get_name_string(staticname).c_str());
     return -1;
-}
-
-inline int AccessData_NonstaticFunctionCall(ccCompiledScript *scrip, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
-{
-    size_t zero_mar_offset = 0;
-    return AccessData_FunctionCall(scrip, symlist[0], symlist, symlist_len, zero_mar_offset, vartype);
 }
 
 // Negates the value; this clobbers AX and BX
@@ -3171,7 +3234,7 @@ void AccessData_Negate(ccCompiledScript *scrip, ValueLocation vloc)
 // This moves symlist in all cases except for the cascade to the end of what is parsed,
 // and in case of a cascade, to the end of the first element of the cascade, i.e.,
 // to the position of the '.'. 
-int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype, bool &access_via_this)
+int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this)
 {
     if (symlist_len < 1)
     {
@@ -3230,7 +3293,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
     {
         scope = kSYM_GlobalVar;
         vloc = kVL_ax_is_value;
-        int retval = AccessData_NonstaticFunctionCall(scrip, symlist, symlist_len, vartype);
+        int retval = AccessData_FunctionCall(scrip, symlist[0], symlist, symlist_len, mloc, vartype);
         if (retval < 0) return retval;
         if (negate)
             AccessData_Negate(scrip, vloc);
@@ -3242,7 +3305,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
         scope = kSYM_GlobalVar;
         vloc = kVL_mar_pointsto_value;
         bool const is_global = true;
-        int retval = AccessData_GlobalOrLocalVar(scrip, is_global, writing, symlist, symlist_len, vartype);
+        int retval = AccessData_GlobalOrLocalVar(scrip, is_global, writing, symlist, symlist_len, mloc, vartype);
         if (retval < 0) return retval;
         if (negate)
             AccessData_Negate(scrip, vloc);
@@ -3268,7 +3331,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
             kSYM_GlobalVar : kSYM_LocalVar;
         vloc = kVL_mar_pointsto_value;
         bool const is_global = false;
-        int retval = AccessData_GlobalOrLocalVar(scrip, is_global, writing, symlist, symlist_len, vartype);
+        int retval = AccessData_GlobalOrLocalVar(scrip, is_global, writing, symlist, symlist_len, mloc, vartype);
         if (retval < 0) return retval;
         if (negate)
             AccessData_Negate(scrip, vloc);
@@ -3305,7 +3368,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
 // We're processing a STRUCT.STRUCT. ... clause.
 // We've already processed some structs, and the type of the last one is vartype.
 // Now we process a component of vartype.
-int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool access_via_this, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, size_t &mar_offset, AGS::Vartype &vartype)
+int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool access_via_this, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype)
 {
     AGS::Symbol component = symlist[0];
     SymbolType component_type = sym.get_type(component);
@@ -3338,8 +3401,6 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
             return 0;
         }
         vloc = kVL_ax_is_value;
-        scrip->write_cmd0(SCMD_CHECKNULL);
-        AccessData_MakeMARCurrent(scrip, mar_offset);
         bool const is_attribute_set_func = false;
         return AccessData_Attribute(scrip, symlist, symlist_len, is_attribute_set_func, vartype);
     }
@@ -3348,19 +3409,19 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
     {
         vloc = kVL_ax_is_value;
         scope = kSYM_LocalVar;
-        retval = AccessData_FunctionCall(scrip, component, symlist, symlist_len, mar_offset, vartype);
+        retval = AccessData_FunctionCall(scrip, component, symlist, symlist_len, mloc, vartype);
         if (retval < 0) return retval;        
         int const zero_array_size_dummy = 0; // A function cannot return a static array.
         // We've just called a function, so its ret value will be in AX.
         // Thus _if_ an array index follows, it must be AX that points to that array.
-        return AccessData_ProcessAnyArrayIndex(scrip, kVL_ax_pointsto_value, zero_array_size_dummy, symlist, symlist_len, vloc, mar_offset, vartype);
+        return AccessData_ProcessAnyArrayIndex(scrip, kVL_ax_pointsto_value, zero_array_size_dummy, symlist, symlist_len, vloc, mloc, vartype);
     }
 
     case kSYM_StructComponent:
         vloc = kVL_mar_pointsto_value;
-        retval = AccessData_StructMember(component, writing, access_via_this, symlist, symlist_len, mar_offset, vartype);
+        retval = AccessData_StructMember(component, writing, access_via_this, symlist, symlist_len, mloc, vartype);
         if (retval < 0) return retval;
-        return AccessData_ProcessAnyArrayIndex(scrip, vloc, sym.entries[component].arrsize, symlist, symlist_len, vloc, mar_offset, vartype);
+        return AccessData_ProcessAnyArrayIndex(scrip, vloc, sym.entries[component].arrsize, symlist, symlist_len, vloc, mloc, vartype);
     }
     
     return 0; // Can't reach
@@ -3373,30 +3434,6 @@ int AccessData_IsClauseLast(AGS::SymbolScript symlist, size_t symlist_len, bool 
     AGS::Symbol const stoplist[] = { kSYM_Dot };
     SkipToScript(stoplist, 1, symlist, symlist_len);
     is_last = (0 == symlist_len || kSYM_Dot != sym.get_type(symlist[0]));
-    return 0;
-}
-
-int AccessData_Dereference(ccCompiledScript *scrip, ValueLocation &vloc, size_t &mar_offset)
-{
-    if (kVL_ax_pointsto_value == vloc)
-    {
-        scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_MAR);
-        vloc = kVL_mar_pointsto_value;
-        mar_offset = 0;
-    }
-    if (kVL_mar_pointsto_value == vloc)
-    {
-        AccessData_MakeMARCurrent(scrip, mar_offset);
-        scrip->write_cmd0(SCMD_CHECKNULL);
-        scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
-        mar_offset = 0;
-        
-    }
-    else
-    {
-        cc_error("Cannot access value");
-        return -1;
-    }
     return 0;
 }
 
@@ -3413,20 +3450,23 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
         cc_error("Internal error: empty expression");
         return -99;
     }
+    // For memory accesses, we set the MAR register lazily so that we can
+    // accumulate offsets at runtime instead of compile time.
+    // This struct tracks what we will need to do to set the MAR register.
+    MemoryLocation mloc = { kSYM_NoType, 0, 0 };
 
-    // Process the only clause or the clause before the first dot.
-    bool  clause_is_last;
+    bool clause_is_last = false;
     int retval = AccessData_IsClauseLast(symlist, symlist_len, clause_is_last);
     if (retval < 0) return retval;
 
     bool access_via_this = false; // only true when "this" has just been parsed
+
     // If we are reading, then all the accesses are for reading.
     // If we are writing, then all the accesses except for the last one
     // are for reading and the last one will be for writing.
-    retval = AccessData_FirstClause(scrip, (writing && clause_is_last), negate, symlist, symlist_len,  vloc, scope, vartype, access_via_this);
+    retval = AccessData_FirstClause(scrip, (writing && clause_is_last), negate, symlist, symlist_len,  vloc, scope, mloc, vartype, access_via_this);
     if (retval < 0) return retval;
 
-    size_t mar_offset = 0;
     AGS::Vartype outer_vartype = 0;
 
     // Unfortunately, the while condition is ugly:
@@ -3457,18 +3497,19 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
         if (FlagIsSet(vartype, kVTY_DynArray))
         {
             // Dereference the dynarray
-            int retval = AccessData_Dereference(scrip, vloc, mar_offset);
+            int retval = AccessData_Dereference(scrip, vloc, mloc);
             if (retval < 0) return retval;
             SetFlag(vartype, kVTY_DynArray, false);
             outer_is_dynarray = true;
         }
 
-        // If _both_ kVTY_Pointer and kVTY_Array is set,
-        // then this is an array of pointers instead of a pointer.
+        // Note: If _both_ kVTY_Pointer and kVTY_Array is set,
+        // then this is an array of pointers instead of a pointer
+        // and this array must NOT be dereferenced.
         if (FlagIsSet(vartype, kVTY_Pointer) && !FlagIsSet(vartype, kVTY_Array))
         {
             // Dereference the pointer
-            int retval = AccessData_Dereference(scrip, vloc, mar_offset);
+            int retval = AccessData_Dereference(scrip, vloc, mloc);
             if (retval < 0) return retval;
             SetFlag(vartype, kVTY_Pointer, false);
         }
@@ -3479,10 +3520,11 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
         // If we are reading, then all the accesses are for reading.
         // If we are writing, then all the accesses except for the last one
         // are for reading and the last one will be for writing.
-        retval = AccessData_SubsequentClause(scrip, (clause_is_last && writing), access_via_this, symlist, symlist_len, vloc, scope, mar_offset, vartype);
+        retval = AccessData_SubsequentClause(scrip, (clause_is_last && writing), access_via_this, symlist, symlist_len, vloc, scope, mloc, vartype);
         if (retval < 0) return retval;
 
-        // Only the immediate access via 'this.' counts, so reset this here.
+        // Only the _immediate_ access via 'this.' counts for this flag.
+        // This has passed now, so reset the flag.
         access_via_this = false;
     }
 
@@ -3502,12 +3544,7 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
         return 0;
     }
 
-    if (mar_offset != 0)
-    {
-        scrip->write_cmd0(SCMD_CHECKNULL);
-        AccessData_MakeMARCurrent(scrip, mar_offset);
-    }
-
+    AccessData_MakeMARCurrent(scrip, mloc);
     return 0;
 }
 
@@ -3563,10 +3600,12 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     }
 
     // MAR points to the value
-    scrip->write_cmd1(
-        FlagIsSet(rhsvartype, kVTY_DynArray | kVTY_Pointer) ? SCMD_MEMWRITEPTR : SCMD_MEMWRITE,
-        SREG_AX); 
-    return 0;
+    if (FlagIsSet(rhsvartype, kVTY_DynArray | kVTY_Pointer))
+        scrip->write_cmd1(SCMD_MEMWRITEPTR, SREG_AX);
+    else
+        scrip->write_cmd1(
+            GetWriteCommandForSize(sym.entries[lhsvartype & kVTY_FlagMask].ssize),
+            SREG_AX);
     }
 
 
@@ -3581,10 +3620,12 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
         return 0;
 
     // Get the result into AX
-    AGS::CodeCell const readOp = GetReadCommandForSize(sym.entries[vartype & kVTY_FlagMask].ssize);
-    scrip->write_cmd1(
-        FlagIsSet(vartype, kVTY_DynArray | kVTY_Pointer) ? SCMD_MEMREADPTR : readOp,
-        SREG_AX);
+    if (FlagIsSet(vartype, kVTY_DynArray | kVTY_Pointer))
+        scrip->write_cmd1(SCMD_MEMREADPTR, SREG_AX);
+    else
+        scrip->write_cmd1(
+            GetReadCommandForSize(sym.entries[vartype & kVTY_FlagMask].ssize),
+            SREG_AX);
     scrip->ax_vartype = vartype;
     scrip->ax_val_scope = scope;
     return 0;
@@ -3701,8 +3742,9 @@ int ParseAssignment_ReadLHSForModification(ccCompiledScript *scrip, ccInternalLi
         // write memory to AX
         scrip->ax_vartype = lhstype;
         scrip->ax_val_scope = scope;
-        AGS::Symbol memread = GetReadCommandForSize(sym.entries[lhstype].ssize);
-        scrip->write_cmd1(memread, SREG_AX);
+        scrip->write_cmd1(
+            GetReadCommandForSize(sym.entries[lhstype].ssize),
+            SREG_AX);
     }
     return 0;
 }
@@ -4086,7 +4128,7 @@ void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript *scrip, int var_name, FxFi
         if (FlagIsSet(sym.get_vartype(var_name), (kVTY_Pointer | kVTY_DynArray)))
             scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
         else
-            scrip->write_cmd1(GetReadWriteCmdForSize(size_of_defn, true), SREG_AX);
+            scrip->write_cmd1(GetWriteCommandForSize(size_of_defn), SREG_AX);
     }
     else if (initial_value == NULL)
     {

@@ -187,17 +187,29 @@ void main_print_help() {
     platform->WriteStdOut(
            "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
            "Options:\n"
-           "  --windowed                   Force display mode to windowed\n"
+           "  --fps                        Display fps counter\n"
            "  --fullscreen                 Force display mode to fullscreen\n"
-           "  --hicolor                    Downmix 32bit colors to 16bit\n"
+           "  --gfxdriver <id>             Request graphics driver. Available options:\n"
+#if defined (WINDOWS_VERSION)
+           "                                 d3d9, dx5, ogl, software\n"
+#else
+           "                                 ogl, software\n"
+#endif
            "  --gfxfilter <filter> [<scaling>]\n"
-           "                               Request graphics filter. Available options:\n"
-           "                                 none, stdscale, hqx;\n"
+           "                               Request graphics filter. Available options:\n"           
+           "                                 hqx, linear, none, stdscale\n"
+           "                                 (support differs between graphic drivers);\n"
            "                                 scaling is specified by integer number\n"
+           "  --help                       Print this help message and stop\n"
+           "  --hicolor                    Downmix 32bit colors to 16bit\n"
            "  --log                        Enable program output to the log file\n"
            "  --no-log                     Disable program output to the log file,\n"
            "                                 overriding configuration file setting\n"
-           "  --help                       Print this help message\n"
+#if defined (WINDOWS_VERSION)
+           "  --setup                      Run setup application\n"
+#endif
+           "  --version                    Print engine's version and stop\n"
+           "  --windowed                   Force display mode to windowed\n"
            "\n"
            "Gamefile options:\n"
            "  /dir/path/game/              Launch the game in specified directory\n"

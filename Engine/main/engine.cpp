@@ -1331,7 +1331,7 @@ bool engine_do_config(const String &exe_path, const ConfigTree &startup_opts)
     engine_read_config(exe_path, cfg);
     // Merge startup options in
     for (const auto &opt : startup_opts)
-        cfg.insert_or_assign(opt.first, opt.second);
+        cfg[opt.first] = opt.second;
     // Set up game options from user config
     apply_config(cfg);
     // Fixup configuration if necessary

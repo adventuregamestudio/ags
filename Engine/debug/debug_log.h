@@ -39,12 +39,8 @@ bool init_editor_debugging();
 // allow LShift to single-step,  RShift to pause flow
 void scriptDebugHook (ccInstance *ccinst, int linenum) ;
 
-extern int debug_flags;
-
 extern AGS::Common::String debug_line[DEBUG_CONSOLE_NUMLINES];
 extern int first_debug_line, last_debug_line, display_console;
-extern bool enable_log_file;
-extern bool disable_log_file;
 
 
 extern AGSPlatformDriver *platform;

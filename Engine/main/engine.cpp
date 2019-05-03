@@ -1319,16 +1319,9 @@ void engine_read_config(const String &exe_path, ConfigTree &cfg)
     // NOTE: the variable is historically called "ignore" but we use it in "override" meaning here
     if (psp_ignore_acsetup_cfg_file)
         override_config_ext(cfg);
-
-    // Apply overriding options from command line
-    // TODO: override config tree with all the command-line args.
-    if (disable_log_file)
-        INIwriteint(cfg, "misc", "log", 0);
-    else if (enable_log_file)
-        INIwriteint(cfg, "misc", "log", 1);
 }
 
-bool engine_do_config(const String &exe_path)
+bool engine_do_config(const String &exe_path, const ConfigTree &startup_opts)
 {
     Debug::Printf(kDbgMsg_Init, "Setting up game configuration");
     // Init default options
@@ -1336,6 +1329,9 @@ bool engine_do_config(const String &exe_path)
     ConfigTree cfg;
     // Read configuration files
     engine_read_config(exe_path, cfg);
+    // Merge startup options in
+    for (const auto &opt : startup_opts)
+        cfg.insert_or_assign(opt.first, opt.second);
     // Set up game options from user config
     apply_config(cfg);
     // Fixup configuration if necessary
@@ -1347,7 +1343,7 @@ bool engine_do_config(const String &exe_path)
 // TODO: this function is still a big mess, engine/system-related initialization
 // is mixed with game-related data adjustments. Divide it in parts, move game
 // data init into either InitGameState() or other game method as appropriate.
-int initialize_engine(int argc,char*argv[])
+int initialize_engine(const ConfigTree &startup_opts)
 {
     if (engine_pre_init_callback) {
         engine_pre_init_callback();
@@ -1360,10 +1356,10 @@ int initialize_engine(int argc,char*argv[])
 
     //-----------------------------------------------------
     // Locate game data and assemble game config
-    const String exe_path = argv[0];
+    const String exe_path = global_argv[0];
     if (!engine_init_gamedata(exe_path))
         return EXIT_NORMAL;
-    if (!engine_do_config(exe_path))
+    if (!engine_do_config(exe_path, startup_opts))
         return EXIT_NORMAL;
     engine_setup_allegro();
     engine_force_window();
@@ -1591,7 +1587,7 @@ void DisplayException()
 }
 #endif // USE_CUSTOM_EXCEPTION_HANDLER
 
-int initialize_engine_with_exception_handling(int argc,char*argv[])
+int initialize_engine_with_exception_handling(const ConfigTree &startup_opts)
 {
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     __try 
@@ -1599,7 +1595,7 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
         Debug::Printf(kDbgMsg_Init, "Installing exception handler");
 #endif
 
-        return initialize_engine(argc, argv);
+        return initialize_engine(startup_opts);
 
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     }

@@ -19,10 +19,10 @@
 #include "ac/global_game.h"
 #include "ac/global_video.h"
 #include "ac/path_helper.h"
-#include "debug/agseditordebugger.h"
-#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "media/video/video.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
 
 
 void scrPlayVideo(const char* name, int skip, int flags) {

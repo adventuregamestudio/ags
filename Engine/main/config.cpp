@@ -23,6 +23,7 @@
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
+#include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "main/mainheader.h"
 #include "main/config.h"
@@ -41,7 +42,6 @@ extern GameSetupStruct game;
 extern GameSetup usetup;
 extern SpriteCache spriteset;
 extern int force_window;
-extern char psp_translation[];
 extern GameState play;
 
 // Filename of the default config file, the one found in the game installation
@@ -377,12 +377,11 @@ void read_legacy_audio_config(const ConfigTree &cfg)
 #endif
 }
 
-void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_filter)
+void read_legacy_graphics_config(const ConfigTree &cfg)
 {
     usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "misc", "windowed") > 0;
     usetup.Screen.DriverID = INIreadstring(cfg, "misc", "gfxdriver", usetup.Screen.DriverID);
 
-    if (should_read_filter)
     {
         String legacy_filter = INIreadstring(cfg, "misc", "gfxfilter");
         if (!legacy_filter.IsEmpty())
@@ -423,6 +422,7 @@ extern int psp_gfx_smoothing;
 extern int psp_gfx_smooth_sprites;
 extern int psp_audio_enabled;
 extern int psp_midi_enabled;
+extern char psp_translation[];
 
 void override_config_ext(ConfigTree &cfg)
 {
@@ -499,12 +499,9 @@ void apply_config(const ConfigTree &cfg)
 
         psp_audio_multithreaded = INIreadint(cfg, "sound", "threaded", psp_audio_multithreaded);
 
-        // Filter can also be set by command line
-        // TODO: apply command line arguments to ConfigTree instead to override options read from config file
-        const bool should_read_filter = usetup.Screen.Filter.ID.IsEmpty();
         // Legacy graphics settings has to be translated into new options;
         // they must be read first, to let newer options override them, if ones are present
-        read_legacy_graphics_config(cfg, should_read_filter);
+        read_legacy_graphics_config(cfg);
 
         // Graphics mode
         usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver", usetup.Screen.DriverID);
@@ -529,11 +526,9 @@ void apply_config(const ConfigTree &cfg)
 #if defined(MAC_VERSION)
         usetup.Screen.Filter.ID = "none";
 #else
-        if (should_read_filter)
-            usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
+        usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
         parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs", "proportional"), usetup.Screen.FsGameFrame);
-        if (should_read_filter)
-            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", "max_round"), usetup.Screen.WinGameFrame);
+        parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", "max_round"), usetup.Screen.WinGameFrame);
 #endif
 
         usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "graphics", "refresh");

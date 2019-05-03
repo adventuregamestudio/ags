@@ -26,7 +26,7 @@
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "core/def_version.h"
-#include "debug/agseditordebugger.h"
+#include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "main/config.h"
@@ -72,9 +72,7 @@ extern GameSetup usetup;
 extern GameState play;
 extern int our_eip;
 extern AGSPlatformDriver *platform;
-extern int debug_flags;
 extern int convert_16bit_bgr;
-extern int display_fps;
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
 extern char editor_debugger_instance_token[100];
@@ -208,93 +206,68 @@ void main_print_help() {
     );
 }
 
-int main_process_cmdline(int argc,char*argv[])
+static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 {
     int datafile_argv = 0;
-    for (int ee=1;ee<argc;ee++) {
-        if (stricmp(argv[ee],"--help") == 0 || stricmp(argv[ee],"/?") == 0 || stricmp(argv[ee],"-?") == 0)
+    for (int ee = 1; ee < argc; ++ee)
+    {
+        const char *arg = argv[ee];
+        //
+        // Startup options
+        //
+        if (stricmp(arg,"--help") == 0 || stricmp(arg,"/?") == 0 || stricmp(arg,"-?") == 0)
         {
             justDisplayHelp = true;
             return RETURN_CONTINUE;
         }
-        if (stricmp(argv[ee],"-v") == 0 || stricmp(argv[ee],"--version") == 0)
+        if (stricmp(arg,"-v") == 0 || stricmp(arg,"--version") == 0)
             justDisplayVersion = true;
-        else if (stricmp(argv[ee],"-updatereg") == 0)
+        else if (stricmp(arg,"-updatereg") == 0)
             debug_flags |= DBG_REGONLY;
-        else if (stricmp(argv[ee],"-windowed") == 0 || stricmp(argv[ee],"--windowed") == 0)
-            force_window = 1;
-        else if (stricmp(argv[ee],"-fullscreen") == 0 || stricmp(argv[ee],"--fullscreen") == 0)
-            force_window = 2;
-        else if ((stricmp(argv[ee],"-gfxfilter") == 0 || stricmp(argv[ee],"--gfxfilter") == 0) && (argc > ee + 1))
-        {
-            // TODO: we make an assumption here that if user provides scaling factor,
-            // this factor means to be applied to windowed mode only.
-            usetup.Screen.Filter.ID = argv[++ee];
-            if (argc > ee + 1 && argv[ee + 1][0] != '-')
-            {
-                parse_scaling_option(argv[++ee], usetup.Screen.WinGameFrame);
-            }
-            else
-            {
-                usetup.Screen.WinGameFrame.ScaleDef = kFrame_MaxRound;
-            }
-            
-        }
 #ifdef _DEBUG
-        else if ((stricmp(argv[ee],"--startr") == 0) && (ee < argc-1)) {
+        else if ((stricmp(arg,"--startr") == 0) && (ee < argc-1)) {
             override_start_room = atoi(argv[ee+1]);
             ee++;
         }
 #endif
-        else if ((stricmp(argv[ee],"--testre") == 0) && (ee < argc-2)) {
+        else if ((stricmp(arg,"--testre") == 0) && (ee < argc-2)) {
             strcpy(return_to_roomedit, argv[ee+1]);
             strcpy(return_to_room, argv[ee+2]);
             ee+=2;
         }
-        else if (stricmp(argv[ee],"--fps")==0) display_fps = 2;
-        else if (stricmp(argv[ee],"--test")==0) debug_flags|=DBG_DEBUGMODE;
-        else if (stricmp(argv[ee],"-noiface")==0) debug_flags|=DBG_NOIFACE;
-        else if (stricmp(argv[ee],"-nosprdisp")==0) debug_flags|=DBG_NODRAWSPRITES;
-        else if (stricmp(argv[ee],"-nospr")==0) debug_flags|=DBG_NOOBJECTS;
-        else if (stricmp(argv[ee],"-noupdate")==0) debug_flags|=DBG_NOUPDATE;
-        else if (stricmp(argv[ee],"-nosound")==0) debug_flags|=DBG_NOSFX;
-        else if (stricmp(argv[ee],"-nomusic")==0) debug_flags|=DBG_NOMUSIC;
-        else if (stricmp(argv[ee],"-noscript")==0) debug_flags|=DBG_NOSCRIPT;
-        else if (stricmp(argv[ee],"-novideo")==0) debug_flags|=DBG_NOVIDEO;
-        else if (stricmp(argv[ee],"-noexceptionhandler")==0) usetup.disable_exception_handling = true;
-        else if (stricmp(argv[ee],"-dbgscript")==0) debug_flags|=DBG_DBGSCRIPT;
-        else if (stricmp(argv[ee], "--setup") == 0)
+        else if (stricmp(arg,"-noexceptionhandler")==0) usetup.disable_exception_handling = true;
+        else if (stricmp(arg, "--setup") == 0)
         {
             justRunSetup = true;
         }
-        else if (stricmp(argv[ee],"-registergame") == 0)
+        else if (stricmp(arg,"-registergame") == 0)
         {
             justRegisterGame = true;
         }
-        else if (stricmp(argv[ee],"-unregistergame") == 0)
+        else if (stricmp(arg,"-unregistergame") == 0)
         {
             justUnRegisterGame = true;
         }
-        else if ((stricmp(argv[ee],"-loadsavedgame") == 0) && (argc > ee + 1))
+        else if ((stricmp(arg,"-loadsavedgame") == 0) && (argc > ee + 1))
         {
             loadSaveGameOnStartup = argv[ee + 1];
             ee++;
         }
-        else if ((stricmp(argv[ee],"--enabledebugger") == 0) && (argc > ee + 1))
+        else if ((stricmp(arg,"--enabledebugger") == 0) && (argc > ee + 1))
         {
             strcpy(editor_debugger_instance_token, argv[ee + 1]);
             editor_debugging_enabled = 1;
             force_window = 1;
             ee++;
         }
-        else if (stricmp(argv[ee], "--runfromide") == 0 && (argc > ee + 3))
+        else if (stricmp(arg, "--runfromide") == 0 && (argc > ee + 3))
         {
             usetup.install_dir = argv[ee + 1];
             usetup.install_audio_dir = argv[ee + 2];
             usetup.install_voice_dir = argv[ee + 3];
             ee += 3;
         }
-        else if (stricmp(argv[ee],"--takeover")==0) {
+        else if (stricmp(arg,"--takeover")==0) {
             if (argc < ee+2)
                 break;
             play.takeover_data = atoi (argv[ee + 1]);
@@ -302,15 +275,40 @@ int main_process_cmdline(int argc,char*argv[])
             play.takeover_from[49] = 0;
             ee += 2;
         }
-        else if (stricmp(argv[ee], "--log") == 0)
+        //
+        // Config overrides
+        //
+        else if (stricmp(arg, "-windowed") == 0 || stricmp(arg, "--windowed") == 0)
+            force_window = 1;
+        else if (stricmp(arg, "-fullscreen") == 0 || stricmp(arg, "--fullscreen") == 0)
+            force_window = 2;
+        else if ((stricmp(arg, "-gfxfilter") == 0 || stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
         {
-            enable_log_file = true;
+            // NOTE: we make an assumption here that if user provides scaling factor,
+            // this factor means to be applied to windowed mode only.
+            INIwritestring(cfg, "graphics", "filter", argv[++ee]);
+            if (argc > ee + 1 && argv[ee + 1][0] != '-')
+                INIwritestring(cfg, "graphics", "game_scale_win", argv[++ee]);
+            else
+                INIwritestring(cfg, "graphics", "game_scale_win", "max_round");
         }
-        else if (stricmp(argv[ee], "--no-log") == 0)
-        {
-            disable_log_file = true;
-        }
-        else if (argv[ee][0]!='-') datafile_argv=ee;
+        else if (stricmp(arg, "--fps") == 0) display_fps = 2;
+        else if (stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;
+        else if (stricmp(arg, "-noiface") == 0) debug_flags |= DBG_NOIFACE;
+        else if (stricmp(arg, "-nosprdisp") == 0) debug_flags |= DBG_NODRAWSPRITES;
+        else if (stricmp(arg, "-nospr") == 0) debug_flags |= DBG_NOOBJECTS;
+        else if (stricmp(arg, "-noupdate") == 0) debug_flags |= DBG_NOUPDATE;
+        else if (stricmp(arg, "-nosound") == 0) debug_flags |= DBG_NOSFX;
+        else if (stricmp(arg, "-nomusic") == 0) debug_flags |= DBG_NOMUSIC;
+        else if (stricmp(arg, "-noscript") == 0) debug_flags |= DBG_NOSCRIPT;
+        else if (stricmp(arg, "-novideo") == 0) debug_flags |= DBG_NOVIDEO;
+        else if (stricmp(arg, "-dbgscript") == 0) debug_flags |= DBG_DBGSCRIPT;
+        else if (stricmp(arg, "--log") == 0) INIwriteint(cfg, "misc", "log", 1);
+        else if (stricmp(arg, "--no-log") == 0) INIwriteint(cfg, "misc", "log", 0);
+        //
+        // Special case: data file location
+        //
+        else if (arg[0]!='-') datafile_argv=ee;
     }
 
     if (datafile_argv > 0)
@@ -473,7 +471,8 @@ int main(int argc,char*argv[]) {
 #endif
     debug_flags=0;
 
-    res = main_process_cmdline(argc, argv);
+    ConfigTree startup_opts;
+    res = main_process_cmdline(startup_opts, argc, argv);
     if (res != RETURN_CONTINUE) {
         return res;
     }
@@ -507,7 +506,7 @@ int main(int argc,char*argv[]) {
 
     if (usetup.disable_exception_handling)
     {
-        int result = initialize_engine(argc, argv);
+        int result = initialize_engine(startup_opts);
         // TODO: refactor engine shutdown routine (must shutdown and delete everything started and created)
         allegro_exit();
         platform->PostAllegroExit();
@@ -515,7 +514,7 @@ int main(int argc,char*argv[]) {
     }
     else
     {
-        return initialize_engine_with_exception_handling(argc, argv);
+        return initialize_engine_with_exception_handling(startup_opts);
     }
 }
 

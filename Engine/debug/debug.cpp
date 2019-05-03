@@ -71,8 +71,6 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 #endif
 
 int debug_flags=0;
-bool enable_log_file = false;
-bool disable_log_file = false;
 
 String debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;

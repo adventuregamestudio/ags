@@ -21,11 +21,11 @@ struct DummyAGSDebugger : IAGSEditorDebugger
 {
 public:
 
-    virtual bool Initialize() { return false; }
-    virtual void Shutdown() { }
-    virtual bool SendMessageToEditor(const char *message) { return false; }
-    virtual bool IsMessageAvailable() { return false; }
-    virtual char* GetNextMessage() { return NULL; }
+    virtual bool Initialize() override { return false; }
+    virtual void Shutdown() override { }
+    virtual bool SendMessageToEditor(const char *message) override { return false; }
+    virtual bool IsMessageAvailable() override { return false; }
+    virtual char* GetNextMessage() override { return NULL; }
 };
 
 #endif // __AC_DUMMYAGSDEBUGGER_H

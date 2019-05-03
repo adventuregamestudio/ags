@@ -21,6 +21,8 @@
 struct IAGSEditorDebugger
 {
 public:
+    virtual ~IAGSEditorDebugger() = default;
+
     virtual bool Initialize() = 0;
     virtual void Shutdown() = 0;
     virtual bool SendMessageToEditor(const char *message) = 0;

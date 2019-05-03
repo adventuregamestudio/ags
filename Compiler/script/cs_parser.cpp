@@ -4414,24 +4414,20 @@ void ParseOpenbrace_FuncBody(ccCompiledScript *scrip, AGS::Symbol name_of_func, 
         }
     }
 
-    // declare "this" inside non-static member functions only
     SymbolTableEntry &this_entry = sym.entries[sym.getThisSym()];
     this_entry.vartype = 0;
     if (struct_of_func > 0 && !FlagIsSet(sym.get_flags(name_of_func), kSFLG_Static))
     {
+        // Declare the "this" pointer (allocated memory for it will never be used)
         this_entry.stype = kSYM_LocalVar;
-        this_entry.ssize = SIZE_OF_POINTER; // pointer to struct
+        this_entry.ssize = SIZE_OF_POINTER;
         this_entry.vartype = struct_of_func | kVTY_Pointer;
-        this_entry.sscope = static_cast<short>(nesting_stack->Depth() - 1);
+        this_entry.sscope = nesting_stack->Depth() - 1;
         this_entry.flags = kSFLG_Readonly | kSFLG_Accessed;
-        // declare as local variable
+        // Allocate 4 empty bytes on stack for the "this" pointer
         this_entry.soffs = scrip->cur_sp;
         scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
-        // first of all, write NULL to the pointer 
-        scrip->write_cmd2(SCMD_WRITELIT, SIZE_OF_POINTER, 0);
-        // the "this" ptr is allocated a space on the stack,
-        // even though it's not used (since accesses go directly
-        // via the OP)
+        scrip->write_cmd2(SCMD_WRITELIT, SIZE_OF_POINTER, 0); 
         scrip->cur_sp += SIZE_OF_POINTER;
         scrip->write_cmd2(SCMD_ADD, SREG_SP, SIZE_OF_POINTER);
     }

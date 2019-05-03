@@ -46,6 +46,8 @@ struct DebugMessage
 class IOutputHandler
 {
 public:
+    virtual ~IOutputHandler() = default;
+    
     // Print the given text sent from the debug group.
     // Implementations are free to decide which message components are to be printed, and how.
     virtual void PrintMessage(const DebugMessage &msg) = 0;

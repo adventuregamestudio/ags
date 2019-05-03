@@ -318,7 +318,7 @@ String find_user_cfg_file()
 void config_defaults()
 {
 #ifdef WINDOWS_VERSION
-    usetup.Screen.DriverID = "D3D";
+    usetup.Screen.DriverID = "D3D9";
 #else
     usetup.Screen.DriverID = "OGL";
 #endif

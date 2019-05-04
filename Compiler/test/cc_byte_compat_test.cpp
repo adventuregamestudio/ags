@@ -2791,24 +2791,21 @@ TEST(Compatibility, Struct01) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct01", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
+    // Hand-checked Bytecode
     const size_t codesize = 90;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,    4,    4,    0,    // 7
-       1,    1,    4,    6,            3,    0,   29,    6,    // 15
-      30,    2,   52,    8,            3,    6,    3,    5,    // 23
-      72,    3,    4,    0,            6,    2,    0,   47,    // 31
-       3,    6,    2,    0,           48,    3,    2,    1,    // 39
-       4,    5,    6,    3,            0,    2,    1,    4,    // 47
-       5,   38,   49,    3,            1,    2,   63,    4,    // 55
-       1,    1,    4,   29,            6,    6,    3,   -1,    // 63
-      29,    3,   51,   12,            3,    2,    3,   45,    // 71
-       3,    6,    3,    0,           23,    3,    2,    1,    // 79
+       1,    1,    4,    6,            3,    0,    3,    6,    // 15
+       2,   52,    8,    3,            6,    3,    5,   72,    // 23
+       3,    4,    0,    6,            2,    0,   47,    3,    // 31
+       6,    2,    0,   48,            3,    2,    1,    4,    // 39
+       5,    6,    3,    0,            2,    1,    4,    5,    // 47
+      38,   48,    3,    1,            2,   63,    4,    1,    // 55
+       1,    4,   51,    4,           29,    6,   29,    2,    // 63
+       6,    3,   -1,   30,            2,   29,    3,   45,    // 71
+       2,    6,    3,    0,           23,    3,    2,    1,    // 79
        4,   30,    6,    6,            3,    0,    2,    1,    // 87
        4,    5,  -999
     };
@@ -2827,7 +2824,7 @@ TEST(Compatibility, Struct01) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      30,   35,   75,  -999
+      29,   34,   75,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -2910,29 +2907,25 @@ TEST(Compatibility, Struct02) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct02", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 118;
+    // hand-checked Bytecode
+    const size_t codesize = 106;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    3,            5,    6,    2,   68,    // 7
        8,    3,    6,    3,            3,   29,    3,    6,    // 15
-       3,    2,   46,    3,            5,   32,    3,    4,    // 23
-       3,    3,    5,   30,            3,    6,    2,   72,    // 31
-      11,    2,    5,    8,            3,    6,    3,   42,    // 39
-      29,    3,    6,    3,            2,   46,    3,    5,    // 47
-      32,    3,    4,    3,            3,    5,    6,    2,    // 55
-      72,   11,    2,    5,            7,    3,   46,    3,    // 63
-      17,   32,    3,    4,            3,    3,    5,   30,    // 71
-       3,    6,    2,    0,           11,    2,    5,    8,    // 79
-       3,    6,    3,   19,           29,    3,    6,    2,    // 87
-      68,    7,    3,   46,            3,   17,   32,    3,    // 95
-       4,    3,    3,    5,           30,    3,    6,    2,    // 103
-       0,   11,    2,    5,            8,    3,    6,    3,    // 111
-       0,    5,    6,    3,            0,    5,  -999
+       3,    2,   46,    3,            5,    6,    2,   72,    // 23
+      32,    3,    4,   11,            2,    3,   30,    3,    // 31
+       8,    3,    6,    3,           42,   29,    3,    6,    // 39
+       3,    2,   46,    3,            5,    6,    2,   72,    // 47
+      32,    3,    4,   11,            2,    3,    7,    3,    // 55
+      46,    3,   17,    6,            2,    0,   32,    3,    // 63
+       4,   11,    2,    3,           30,    3,    8,    3,    // 71
+       6,    3,   19,   29,            3,    6,    2,   68,    // 79
+       7,    3,   46,    3,           17,    6,    2,    0,    // 87
+      32,    3,    4,   11,            2,    3,   30,    3,    // 95
+       8,    3,    6,    3,            0,    5,    6,    3,    // 103
+       0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -2949,7 +2942,7 @@ TEST(Compatibility, Struct02) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       7,   31,   56,   75,         88,  104,  -999
+       7,   23,   47,   61,         79,   87,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -3030,29 +3023,25 @@ TEST(Compatibility, Struct03) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct03", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 118;
+    // hand-checked Bytecode
+    const size_t codesize = 106;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    3,            5,    6,    2,   68,    // 7
        8,    3,    6,    3,            3,   29,    3,    6,    // 15
-       3,    2,   46,    3,            5,   32,    3,    4,    // 23
-       3,    3,    5,   30,            3,    6,    2,   72,    // 31
-      11,    2,    5,    8,            3,    6,    3,   42,    // 39
-      29,    3,    6,    3,            2,   46,    3,    5,    // 47
-      32,    3,    4,    3,            3,    5,    6,    2,    // 55
-      72,   11,    2,    5,            7,    3,   46,    3,    // 63
-      17,   32,    3,    4,            3,    3,    5,   30,    // 71
-       3,    6,    2,    0,           11,    2,    5,    8,    // 79
-       3,    6,    3,   19,           29,    3,    6,    2,    // 87
-      68,    7,    3,   46,            3,   17,   32,    3,    // 95
-       4,    3,    3,    5,           30,    3,    6,    2,    // 103
-       0,   11,    2,    5,            8,    3,    6,    3,    // 111
-       0,    5,    6,    3,            0,    5,  -999
+       3,    2,   46,    3,            5,    6,    2,   72,    // 23
+      32,    3,    4,   11,            2,    3,   30,    3,    // 31
+       8,    3,    6,    3,           42,   29,    3,    6,    // 39
+       3,    2,   46,    3,            5,    6,    2,   72,    // 47
+      32,    3,    4,   11,            2,    3,    7,    3,    // 55
+      46,    3,   17,    6,            2,    0,   32,    3,    // 63
+       4,   11,    2,    3,           30,    3,    8,    3,    // 71
+       6,    3,   19,   29,            3,    6,    2,   68,    // 79
+       7,    3,   46,    3,           17,    6,    2,    0,    // 87
+      32,    3,    4,   11,            2,    3,   30,    3,    // 95
+       8,    3,    6,    3,            0,    5,    6,    3,    // 103
+       0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -3069,7 +3058,7 @@ TEST(Compatibility, Struct03) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       7,   31,   56,   75,         88,  104,  -999
+       7,   23,   47,   61,         79,   87,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)

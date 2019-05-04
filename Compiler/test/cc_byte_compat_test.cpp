@@ -5265,6 +5265,7 @@ TEST(Compatibility, Writeprotected) {
     // Directly taken from the doc on writeprotected, simplified.
     char *inpl = "\
         struct Weapon {                         \n\
+            short Beauty;                       \n\
             writeprotected int Damage;          \n\
             import int SetDamage(int damage);   \n\
         } wp;                                   \n\
@@ -5286,18 +5287,19 @@ TEST(Compatibility, Writeprotected) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Writeprotected", scrip);
+    WriteOutput("Writeprotected", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 47;
+    const size_t codesize = 50;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,    4,    4,    0,    // 7
        1,    1,    4,   51,           12,    7,    3,    3,    // 15
-       6,    2,   52,    8,            3,    6,    3,    0,    // 23
-       2,    1,    4,    5,            6,    3,    0,    2,    // 31
-       1,    4,    5,   38,           35,    6,    2,    0,    // 39
-       7,    3,    5,    6,            3,    0,    5,  -999
+       6,    2,   52,    1,            2,    2,    8,    3,    // 23
+       6,    3,    0,    2,            1,    4,    5,    6,    // 31
+       3,    0,    2,    1,            4,    5,   38,   38,    // 39
+       6,    2,    2,    7,            3,    5,    6,    3,    // 47
+       0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -5314,7 +5316,7 @@ TEST(Compatibility, Writeprotected) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      39,  -999
+      42,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)

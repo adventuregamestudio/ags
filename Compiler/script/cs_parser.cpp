@@ -2408,7 +2408,7 @@ void AccessData_MakeMARCurrent(ccCompiledScript *scrip, MemoryLocation &mloc)
     {
     default: // The memory location of the struct is up-to-date, but an offset might have accumulated 
         if (mloc.ComponentOffs > 0)
-            scrip->write_cmd2(SCMD_ADD, SREG_MAR, mloc.ComponentOffs > 0);
+            scrip->write_cmd2(SCMD_ADD, SREG_MAR, mloc.ComponentOffs);
         break;
 
     case kSYM_GlobalVar:
@@ -3253,6 +3253,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
         vloc = kVL_mar_pointsto_value;
         scrip->write_cmd2(SCMD_REGTOREG, SREG_OP, SREG_MAR);
         scrip->write_cmd0(SCMD_CHECKNULL);
+        mloc.LType = kSYM_NoType;
         access_via_this = true;
         symlist++;
         symlist_len--;
@@ -3276,6 +3277,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
             // We _should_ prepend "this." to symlist here but can't do that (easily).
             // So we don't and the '.' that should be prepended doesn't exist.
             // To compensate for that, we back up symlist by one index
+            mloc.LType = kSYM_NoType;
             symlist--; 
             symlist_len++;
             return 0;

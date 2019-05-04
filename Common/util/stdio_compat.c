@@ -49,7 +49,7 @@ file_off_t ags_ftell(FILE * stream)
 int  ags_file_exists(const char *path) 
 {
 #if AGS_PLATFORM_OS_WINDOWS
-    return PathFileExistsA(path);
+    return PathFileExistsA(path) && ! PathIsDirectoryA(path);
 #else
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
@@ -62,7 +62,7 @@ int  ags_file_exists(const char *path)
 int ags_directory_exists(const char *path)
 {
 #if AGS_PLATFORM_OS_WINDOWS
-    return PathIsDirectoryA(path);
+    return PathFileExistsA(path) && PathIsDirectoryA(path);
 #else
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
@@ -75,7 +75,7 @@ int ags_directory_exists(const char *path)
 int ags_path_exists(const char *path)
 {
     #if AGS_PLATFORM_OS_WINDOWS
-        return PathIsDirectoryA(path);
+        return PathFileExistsA(path);
     #else
         struct stat path_stat;
         if (stat(path, &path_stat) != 0) {

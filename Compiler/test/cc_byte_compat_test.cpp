@@ -1186,11 +1186,8 @@ TEST(Compatibility, While) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("While", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 118;
+    // Hand-checked Bytecode
+    const size_t codesize = 116;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -1198,17 +1195,17 @@ TEST(Compatibility, While) {
        8,    3,    1,    1,            4,    6,    2,    0,    // 15
       24,    3,   29,    3,            6,    3,    0,   30,    // 23
        4,   19,    4,    3,            3,    4,    3,   28,    // 31
-      70,    6,    3,  500,           29,    3,    6,    2,    // 39
+      68,    6,    3,  500,           29,    3,    6,    2,    // 39
        0,   24,    3,   30,            4,   13,    4,    3,    // 47
        3,    4,    3,   29,            3,   51,    8,    7,    // 55
-       3,   30,    4,   11,            3,    4,   51,    4,    // 63
-       8,    3,    6,    2,            0,   24,    3,    2,    // 71
-       3,    1,   26,    3,            6,    2,    0,   24,    // 79
-       3,   29,    3,    6,            3,    1,   30,    4,    // 87
-      15,    4,    3,    3,            4,    3,   28,    5,    // 95
-       6,    3,    0,   31,          -88,   31,  -90,   51,    // 103
-       4,    7,    3,    2,            1,    4,    5,    6,    // 111
-       3,    0,    2,    1,            4,    5,  -999
+       3,   30,    4,   11,            3,    4,    8,    3,    // 63
+       6,    2,    0,   24,            3,    2,    3,    1,    // 71
+      26,    3,    6,    2,            0,   24,    3,   29,    // 79
+       3,    6,    3,    1,           30,    4,   15,    4,    // 87
+       3,    3,    4,    3,           28,    5,    6,    3,    // 95
+       0,   31,  -86,   31,          -88,   51,    4,    7,    // 103
+       3,    2,    1,    4,            5,    6,    3,    0,    // 111
+       2,    1,    4,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1225,7 +1222,7 @@ TEST(Compatibility, While) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      15,   40,   68,   78,        -999
+      15,   40,   66,   76,        -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)

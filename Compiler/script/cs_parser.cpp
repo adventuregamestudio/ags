@@ -94,11 +94,17 @@ int ParseExpression(ccInternalList *targ, ccCompiledScript *script);
 int ParseExpression_Subexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len);
 int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len, bool negate = false);
 
+// [fw] This ought to replace the #defines in script_common.h
 enum FxFixupType // see script_common.h
 {
     kFx_NoFixup = 0,
-    kFx_FixupDataData = FIXUP_DATADATA, // globaldata[fixup] += &globaldata[0]
-    kFx_FixupFunction = FIXUP_FUNCTION,  // code[fixup] += &code[0]
+    kFx_DataData = FIXUP_DATADATA,     // globaldata[fixup] += &globaldata[0]
+    kFx_Function = FIXUP_FUNCTION,     // code[fixup] += &code[0]
+    kFx_GlobalData = FIXUP_GLOBALDATA, //  code[fixup] += &globaldata[0]
+    kFx_Import = FIXUP_IMPORT,         // code[fixup] = &imported_thing[code[fixup]]
+    kFx_Stack = FIXUP_STACK,           // code[fixup] += &stack[0]
+    kFx_String = FIXUP_STRING,         // code[fixup] += &strings[0]
+    
 };
 
 enum Globalness
@@ -2415,14 +2421,14 @@ void AccessData_MakeMARCurrent(ccCompiledScript *scrip, MemoryLocation &mloc)
         scrip->write_cmd2(
             SCMD_LITTOREG,
             SREG_MAR, mloc.StartOffs + mloc.ComponentOffs);
-        scrip->fixup_previous(FIXUP_GLOBALDATA);
+        scrip->fixup_previous(kFx_GlobalData);
         break;
 
     case kSYM_Import:
         scrip->write_cmd2(
             SCMD_LITTOREG,
             SREG_MAR, mloc.StartOffs + mloc.ComponentOffs);
-        scrip->fixup_previous(FIXUP_IMPORT);
+        scrip->fixup_previous(kFx_Import);
         break;
 
     case kSYM_LocalVar:
@@ -2619,7 +2625,7 @@ void AccessData_GenerateFunctionCall(ccCompiledScript *scrip, AGS::Symbol name_o
 
     if (func_is_import)
     {
-        scrip->fixup_previous(FIXUP_IMPORT);
+        scrip->fixup_previous(kFx_Import);
         scrip->write_cmd1(SCMD_CALLEXT, SREG_AX); // do the call
         // At runtime, we will arrive here when the function call has returned
         // restore the stack
@@ -2631,7 +2637,7 @@ void AccessData_GenerateFunctionCall(ccCompiledScript *scrip, AGS::Symbol name_o
     // Func is non-import
     if (g_FCM.IsForwardDecl(name_of_func))
         g_FCM.TrackForwardDeclFuncCall(scrip, name_of_func, scrip->codesize - 1);
-    scrip->fixup_previous(FIXUP_FUNCTION);
+    scrip->fixup_previous(kFx_Function);
     scrip->write_cmd1(SCMD_CALL, SREG_AX);  // do the call
 
     // At runtime, we will arrive here when the function call has returned
@@ -3173,7 +3179,7 @@ int AccessData_String(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &s
     }
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[symlist[0]].soffs);
-    scrip->fixup_previous(FIXUP_STRING);
+    scrip->fixup_previous(kFx_String);
     scrip->ax_vartype = vartype = sym.getOldStringSym() | kVTY_Const;
     symlist++;
     symlist_len--;
@@ -4000,7 +4006,7 @@ int ParseVardecl_InitialValAssignment(ccInternalList *targ, ccCompiledScript *sc
         int retval = ParseVardecl_InitialValAssignment_ToLocal(targ, scrip, sym.get_vartype(varname));
         if (retval < 0) return retval;
 
-        need_fixup = kFx_FixupFunction;   // code[fixup] += &code[0]
+        need_fixup = kFx_Function;   // code[fixup] += &code[0]
     }
     else // global var
     {
@@ -4102,7 +4108,7 @@ int ParseVardecl_StringDecl_GlobalNoImport(ccCompiledScript *scrip, void *&initi
     }
 
     reinterpret_cast<int *>(initial_value_ptr)[0] = offset_of_init_string;
-    fixup_needed = kFx_FixupDataData;
+    fixup_needed = kFx_DataData;
     return 0;
 }
 
@@ -4149,7 +4155,7 @@ void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript *scrip, int var_name, FxFi
     scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR); // MAR = SP
 
     // code for the initial assignment or the initialization to zeros
-    if (fixup_needed == kFx_FixupFunction)
+    if (fixup_needed == kFx_Function)
     {
         // expression worked out into ax
         if (FlagIsSet(sym.get_vartype(var_name), (kVTY_Pointer | kVTY_DynArray)))
@@ -4168,10 +4174,10 @@ void ParseVardecl_CodeForDefnOfLocal(ccCompiledScript *scrip, int var_name, FxFi
         scrip->write_cmd1(SCMD_ZEROMEMORY, size_of_defn); // memory[MAR+0, 1... ] = 0;
     }
 
-    if (fixup_needed == kFx_FixupDataData)
+    if (fixup_needed == kFx_DataData)
     {
         SetFlag(sym.entries[var_name].flags, kSFLG_StrBuffer, true);
-        scrip->fixup_previous(FIXUP_STACK);
+        scrip->fixup_previous(kFx_Stack);
     }
 
     // Allocate space on the stack
@@ -4330,8 +4336,8 @@ int ParseVardecl0(
         sym.entries[var_name].soffs = scrip->add_global(size_of_defn, reinterpret_cast<const char *>(initial_value_ptr));
         if (sym.entries[var_name].soffs < 0)
             return -1;
-        if (fixup_needed == kFx_FixupDataData)
-            scrip->add_fixup(sym.entries[var_name].soffs, FIXUP_DATADATA);
+        if (fixup_needed == kFx_DataData)
+            scrip->add_fixup(sym.entries[var_name].soffs, kFx_DataData);
         break;
 
     case kGl_Local:

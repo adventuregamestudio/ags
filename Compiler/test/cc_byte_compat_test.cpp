@@ -2373,7 +2373,7 @@ TEST(Compatibility, IfDoWhile) {
 
 }
 
-TEST(Compatibility, Switch) {
+TEST(Compatibility, Switch01) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -2394,37 +2394,34 @@ TEST(Compatibility, Switch) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Switch", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 174;
+    // WriteOutput("Switch01", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 170;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
       51,   12,    7,    3,           30,    4,    9,    4,    // 15
        3,    3,    4,    3,            3,    3,    4,   31,    // 23
-      91,   31,  139,    6,            3,   10,    5,    6,    // 31
+      87,   31,  135,    6,            3,   10,    5,    6,    // 31
        3,    0,   31,  -11,            6,    3,    2,   29,    // 39
        3,   51,   12,    7,            3,   30,    4,    9,    // 47
-       3,    4,   51,    8,            8,    3,   51,    8,    // 55
-       7,    3,    5,    6,            3,    0,   51,    8,    // 63
-       8,    3,    6,    3,            5,   29,    3,   51,    // 71
-      12,    7,    3,   30,            4,   12,    4,    3,    // 79
-       3,    4,    3,   29,            3,    6,    3,    4,    // 87
-      30,    4,   12,    4,            3,    3,    4,    3,    // 95
-      29,    3,   51,   12,            7,    3,   30,    4,    // 103
-      11,    3,    4,   51,            8,    8,    3,    6,    // 111
-       3,    0,   31,   50,           29,    4,    6,    3,    // 119
-       2,   30,    4,   16,            3,    4,   28, -101,    // 127
-      29,    4,    6,    3,            3,   30,    4,   16,    // 135
-       3,    4,   28,  -81,           29,    4,    6,    3,    // 143
-       4,   30,    4,   16,            3,    4,   28,  -93,    // 151
-      29,    4,    6,    3,            5,   30,    4,   16,    // 159
-       3,    4,   28,  -98,           31, -130,    6,    3,    // 167
-       0,    5,    6,    3,            0,    5,  -999
+       3,    4,    8,    3,           51,    8,    7,    3,    // 55
+       5,    6,    3,    0,           51,    8,    8,    3,    // 63
+       6,    3,    5,   29,            3,   51,   12,    7,    // 71
+       3,   30,    4,   12,            4,    3,    3,    4,    // 79
+       3,   29,    3,    6,            3,    4,   30,    4,    // 87
+      12,    4,    3,    3,            4,    3,   29,    3,    // 95
+      51,   12,    7,    3,           30,    4,   11,    3,    // 103
+       4,    8,    3,    6,            3,    0,   31,   50,    // 111
+      29,    4,    6,    3,            2,   30,    4,   16,    // 119
+       3,    4,   28,  -97,           29,    4,    6,    3,    // 127
+       3,   30,    4,   16,            3,    4,   28,  -79,    // 135
+      29,    4,    6,    3,            4,   30,    4,   16,    // 143
+       3,    4,   28,  -91,           29,    4,    6,    3,    // 151
+       5,   30,    4,   16,            3,    4,   28,  -96,    // 159
+      31, -126,    6,    3,            0,    5,    6,    3,    // 167
+       0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6000,7 +5997,7 @@ TEST(Compatibility, StandardString) {
     }
 }
 
-TEST(Compatibility, SwitchNoBreak) {
+TEST(Compatibility, Switch02) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Last switch clause no "break"
@@ -6022,7 +6019,7 @@ TEST(Compatibility, SwitchNoBreak) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("SwitchNoBreak", scrip);
+    // WriteOutput("Switch02", scrip);
     // run the test, comment out the previous line
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

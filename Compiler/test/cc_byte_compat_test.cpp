@@ -5264,23 +5264,21 @@ TEST(Compatibility, Writeprotected) {
 
     // Directly taken from the doc on writeprotected, simplified.
     char *inpl = "\
-        struct Weapon {                        \n\
-            writeprotected int Damage;         \n\
-            import int SetDamage(int damage);  \n\
-        };                                     \n\
-                                               \n\
-        Weapon wp;                             \n\
-                                               \n\
-        int  Weapon::SetDamage(int damage)     \n\
-        {                                      \n\
-            this.Damage = damage;              \n\
-            return 0;                          \n\
-        }                                      \n\
-                                               \n\
-        int main()                             \n\
-        {                                      \n\
-            return wp.Damage;                  \n\
-        }                                      \n\
+        struct Weapon {                         \n\
+            writeprotected int Damage;          \n\
+            import int SetDamage(int damage);   \n\
+        } wp;                                   \n\
+                                                \n\
+        int  Weapon::SetDamage(int damage)      \n\
+        {                                       \n\
+            this.Damage = damage;               \n\
+            return 0;                           \n\
+        }                                       \n\
+                                                \n\
+        int main()                              \n\
+        {                                       \n\
+            return wp.Damage;                   \n\
+        }                                       \n\
         ";
 
     clear_error();
@@ -5289,21 +5287,17 @@ TEST(Compatibility, Writeprotected) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Writeprotected", scrip);
-    // run the test, comment out the previous line
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 48;
+    // hand-checked Bytecode
+    const size_t codesize = 47;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,    4,    4,    0,    // 7
-       1,    1,    4,   51,           12,    7,    3,   29,    // 15
-       6,   30,    2,   52,            8,    3,    6,    3,    // 23
-       0,    2,    1,    4,            5,    6,    3,    0,    // 31
-       2,    1,    4,    5,           38,   36,    6,    2,    // 39
-       0,    7,    3,    5,            6,    3,    0,    5,    // 47
-     -999
+       1,    1,    4,   51,           12,    7,    3,    3,    // 15
+       6,    2,   52,    8,            3,    6,    3,    0,    // 23
+       2,    1,    4,    5,            6,    3,    0,    2,    // 31
+       1,    4,    5,   38,           35,    6,    2,    0,    // 39
+       7,    3,    5,    6,            3,    0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -5320,7 +5314,7 @@ TEST(Compatibility, Writeprotected) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      40,  -999
+      39,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -5374,10 +5368,10 @@ TEST(Compatibility, Writeprotected) {
 
 }
 
-TEST(Compatibility, Protected) {
+TEST(Compatibility, Protected1) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    // Directly taken from the doc on writeprotected, simplified.
+    // Directly taken from the doc on protected, simplified.
     char *inpl = "\
         struct Weapon {                        \n\
             protected int Damage;              \n\
@@ -5398,20 +5392,17 @@ TEST(Compatibility, Protected) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Protected", scrip);
-    // run the test, comment out the previous line
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 36;
+    // WriteOutput("Protected1", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 35;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,    4,    4,    0,    // 7
-       1,    1,    4,   51,           12,    7,    3,   29,    // 15
-       6,   30,    2,   52,            8,    3,    6,    3,    // 23
-       0,    2,    1,    4,            5,    6,    3,    0,    // 31
-       2,    1,    4,    5,          -999
+       1,    1,    4,   51,           12,    7,    3,    3,    // 15
+       6,    2,   52,    8,            3,    6,    3,    0,    // 23
+       2,    1,    4,    5,            6,    3,    0,    2,    // 31
+       1,    4,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -5684,13 +5675,17 @@ TEST(Compatibility, Static2) {
 
 }
 
-TEST(Compatibility, Readonly) {
+TEST(Compatibility, Protected2) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    // Directly taken from the doc on writeprotected, simplified.
+    // In a struct func, a variable that can't be found otherwise
+    // should be taken to be out of the current struct.
+    // (Note that this will currently compile to slightly more
+    // inefficient code than "this.Damage = damage")
+
     char *inpl = "\
         struct Weapon {                        \n\
-            writeprotected int Damage;         \n\
+            protected int Damage;              \n\
             import int SetDamage(int damage);  \n\
         };                                     \n\
                                                \n\
@@ -5698,13 +5693,8 @@ TEST(Compatibility, Readonly) {
                                                \n\
         int  Weapon::SetDamage(int damage)     \n\
         {                                      \n\
-            this.Damage = damage;              \n\
+            Damage = damage;                   \n\
             return 0;                          \n\
-        }                                      \n\
-                                               \n\
-        int main()                             \n\
-        {                                      \n\
-            return wp.Damage;                  \n\
         }                                      \n\
         ";
 
@@ -5713,22 +5703,17 @@ TEST(Compatibility, Readonly) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Readonly", scrip);
-    // run the test, comment out the previous line
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 48;
+    WriteOutput("Protected2", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 39;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,    4,    4,    0,    // 7
        1,    1,    4,   51,           12,    7,    3,   29,    // 15
-       6,   30,    2,   52,            8,    3,    6,    3,    // 23
-       0,    2,    1,    4,            5,    6,    3,    0,    // 31
-       2,    1,    4,    5,           38,   36,    6,    2,    // 39
-       0,    7,    3,    5,            6,    3,    0,    5,    // 47
-     -999
+       3,    3,    6,    2,           52,   30,    3,    8,    // 23
+       3,    6,    3,    0,            2,    1,    4,    5,    // 31
+       6,    3,    0,    2,            1,    4,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -5741,36 +5726,8 @@ TEST(Compatibility, Readonly) {
         ASSERT_EQ(is_val, test_val);
     }
 
-    const size_t numfixups = 1;
+    const size_t numfixups = 0;
     EXPECT_EQ(numfixups, scrip->numfixups);
-
-    intptr_t fixups[] = {
-      40,  -999
-    };
-
-    for (size_t idx = 0; idx < numfixups; idx++)
-    {
-        if (idx >= scrip->numfixups) break;
-        std::string prefix = "fixups[";
-        prefix += std::to_string(idx) + "] == ";
-        std::string   is_val = prefix + std::to_string(fixups[idx]);
-        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
-        ASSERT_EQ(is_val, test_val);
-    }
-
-    char fixuptypes[] = {
-      1,  '\0'
-    };
-
-    for (size_t idx = 0; idx < numfixups; idx++)
-    {
-        if (idx >= scrip->numfixups) break;
-        std::string prefix = "fixuptypes[";
-        prefix += std::to_string(idx) + "] == ";
-        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
-        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
-        ASSERT_EQ(is_val, test_val);
-    }
 
     const int numimports = 0;
     std::string imports[] = {
@@ -5796,7 +5753,6 @@ TEST(Compatibility, Readonly) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
-
 }
 
 TEST(Compatibility, Import) {

@@ -3252,6 +3252,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
         }
         vloc = kVL_mar_pointsto_value;
         scrip->write_cmd2(SCMD_REGTOREG, SREG_OP, SREG_MAR);
+        scrip->write_cmd0(SCMD_CHECKNULL);
         access_via_this = true;
         symlist++;
         symlist_len--;
@@ -3270,6 +3271,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
         {
             vloc = kVL_mar_pointsto_value;
             scrip->write_cmd2(SCMD_REGTOREG, SREG_OP, SREG_MAR);
+            scrip->write_cmd0(SCMD_CHECKNULL);
             access_via_this = true;
             // We _should_ prepend "this." to symlist here but can't do that (easily).
             // So we don't and the '.' that should be prepended doesn't exist.
@@ -4421,10 +4423,11 @@ void ParseOpenbrace_FuncBody(ccCompiledScript *scrip, AGS::Symbol name_of_func, 
         // Declare the "this" pointer (allocated memory for it will never be used)
         this_entry.stype = kSYM_LocalVar;
         this_entry.ssize = SIZE_OF_POINTER;
-        this_entry.vartype = struct_of_func | kVTY_Pointer;
+        // Don't declare this as a kVTY_Pointer to prevent it being dereferenced twice
+        this_entry.vartype = struct_of_func;
         this_entry.sscope = nesting_stack->Depth() - 1;
         this_entry.flags = kSFLG_Readonly | kSFLG_Accessed;
-        // Allocate 4 empty bytes on stack for the "this" pointer
+        // Allocate 4 unused empty bytes on stack for the "this" pointer
         this_entry.soffs = scrip->cur_sp;
         scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
         scrip->write_cmd2(SCMD_WRITELIT, SIZE_OF_POINTER, 0); 
@@ -6595,6 +6598,13 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
         default: break;
 
         case 0:
+            // let it through if "this" can be implied
+            if (struct_of_current_func > 0)
+            {
+                AGS::Symbol combined = MangleStructAndComponent(struct_of_current_func, cursym);
+                if (kSYM_NoType != sym.get_type(combined))
+                    break;
+            }
             cc_error("Unexpected token '%s'", sym.get_name_string(cursym).c_str());
             return -1;
 

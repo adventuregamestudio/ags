@@ -2400,14 +2400,13 @@ int ParseExpression_OpenParenthesis(ccCompiledScript *scrip, AGS::SymbolScript &
 
 struct MemoryLocation
 {
-    SymbolType LType; // import, global or local
+    SymbolType LType; // kSYM_GlobalVar, kSYM_Import, kSYM_LocalVar, kSYM_NoType
     size_t StartOffs;
     size_t ComponentOffs;
 };
 
-// We set MAR lazily at the last minute
+// Set the MAR register now: We set it lazily at the last minute
 // so that offsets can be accumulated at compile time instead of runtime.
-// Set MAR now.
 void AccessData_MakeMARCurrent(ccCompiledScript *scrip, MemoryLocation &mloc)
 {
     switch (mloc.LType)
@@ -3100,7 +3099,10 @@ int AccessData_GlobalOrLocalVar(ccCompiledScript *scrip, bool is_global, bool wr
         return -1;
     }
 
-    mloc.LType = is_global ? kSYM_GlobalVar : kSYM_LocalVar;
+    if (FlagIsSet(sym.entries[varname].flags, kSFLG_Imported))
+        mloc.LType = kSYM_Import;
+    else
+        mloc.LType = is_global ? kSYM_GlobalVar : kSYM_LocalVar;
     mloc.StartOffs = soffs;
     mloc.ComponentOffs = 0;
     

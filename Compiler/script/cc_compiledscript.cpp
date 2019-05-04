@@ -88,11 +88,6 @@ void ccCompiledScript::add_fixup(int32_t locc, char ftype)
     numfixups++;
 }
 
-void ccCompiledScript::fixup_previous(char ftype)
-{
-    add_fixup(codesize - 1, ftype);
-}
-
 int ccCompiledScript::add_new_function(const char *namm, int *idx)
 {
     if (numfunctions >= MAX_FUNCTIONS) return -1;

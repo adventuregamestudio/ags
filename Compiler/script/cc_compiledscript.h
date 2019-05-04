@@ -30,7 +30,7 @@ struct ccCompiledScript : public ccScript {
 
     int  add_string(const char *);
     void add_fixup(int32_t, char);
-    void fixup_previous(char);
+    inline void fixup_previous(char ftype) { add_fixup(codesize - 1, ftype); };
     int  add_new_function(const char *, int *idx);
     int  add_new_import(const char *);
     int  add_new_export(const char *, int, long, int);

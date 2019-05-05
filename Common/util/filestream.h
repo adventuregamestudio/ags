@@ -58,10 +58,9 @@ public:
 
     bool    Seek(soff_t offset, StreamSeek origin) override;
 
-protected:
+private:
     void            Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
 
-private:
     FILE                *_file;
     const FileOpenMode  _openMode;
     const FileWorkMode  _workMode;

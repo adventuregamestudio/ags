@@ -14,6 +14,7 @@
 
 #include "util/filestream.h"
 
+#include <stdexcept>
 #include "util/stdio_compat.h"
 #include "util/string.h"
 
@@ -168,10 +169,13 @@ bool FileStream::Seek(soff_t offset, StreamSeek origin)
 void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
 {
     String mode = File::GetCMode(open_mode, work_mode);
-    if (mode.IsEmpty())
-        // TODO: warning to the log
-        return;
+    if (mode.IsEmpty()) {
+        throw std::runtime_error("Error determining open mode");
+    }
     _file = fopen(file_name, mode);
+    if (_file == nullptr) {
+        throw std::runtime_error("Error opening file.");
+    }
 }
 
 } // namespace Common

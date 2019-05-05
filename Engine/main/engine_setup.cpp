@@ -127,14 +127,6 @@ void engine_setup_system_gamesize()
 void engine_init_resolution_settings(const Size game_size)
 {
     Debug::Printf("Initializing resolution settings");
-
-    // Initialize default viewports and room camera
-    Rect viewport = RectWH(game_size);
-    play.SetMainViewport(viewport);
-    play.SetUIViewport(viewport);
-    play.SetRoomViewport(0, viewport);
-    play.GetRoomCamera(0)->SetSize(viewport.GetSize());
-
     usetup.textheight = getfontheight_outlined(0) + 1;
 
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
@@ -143,6 +135,9 @@ void engine_init_resolution_settings(const Size game_size)
     convert_gui_to_game_resolution(loaded_game_file_version);
     convert_objects_to_data_resolution(loaded_game_file_version);
 
+    Rect viewport = RectWH(game_size);
+    play.SetMainViewport(viewport);
+    play.SetUIViewport(viewport);
     engine_setup_system_gamesize();
 }
 

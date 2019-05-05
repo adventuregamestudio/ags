@@ -518,6 +518,8 @@ void free_do_once_tokens()
 // Free all the memory associated with the game
 void unload_game_file()
 {
+    play.FreeViewportsAndCameras();
+
     characterScriptObjNames.clear();
     free(charextra);
     free(mls);

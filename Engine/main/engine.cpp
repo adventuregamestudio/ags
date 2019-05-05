@@ -1027,7 +1027,6 @@ void engine_init_game_settings()
     play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
     play.digital_master_volume = 100;
     play.screen_flipped=0;
-    play.GetRoomCamera(0)->Release();
     play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
     play.sound_volume = 255;
     play.speech_volume = 255;
@@ -1132,6 +1131,12 @@ void engine_init_game_settings()
     usetup.RenderAtScreenRes = 
         (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && usetup.RenderAtScreenRes) ||
          game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
+
+    // Precreate primary viewport and camera
+    auto view = play.CreateRoomViewport();
+    auto cam = play.CreateRoomCamera();
+    view->LinkCamera(cam);
+    cam->LinkToViewport(view);
 }
 
 void engine_setup_scsystem_auxiliary()

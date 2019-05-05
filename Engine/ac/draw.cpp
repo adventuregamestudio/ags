@@ -515,8 +515,11 @@ void init_draw_method()
     }
 
     on_mainviewport_changed();
-    on_roomviewport_changed(0);
-    on_camera_size_changed(0);
+
+    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
+        on_roomviewport_changed(i);
+    for (int i = 0; i < play.GetRoomCameraCount(); ++i)
+        on_camera_size_changed(i);
 }
 
 void dispose_draw_method()

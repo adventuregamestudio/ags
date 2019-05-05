@@ -40,12 +40,6 @@ GameState::GameState()
 {
     _isAutoRoomViewport = true;
     _mainViewportHasChanged = false;
-
-    // Precreate primary viewport and camera
-    auto view = CreateRoomViewport();
-    auto cam = CreateRoomCamera();
-    view->LinkCamera(cam);
-    cam->LinkToViewport(view);
 }
 
 void GameState::Free()

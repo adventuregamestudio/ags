@@ -228,9 +228,6 @@ void process_event(EventHappened*evp) {
             play.next_screen_transition = -1;
         }
 
-        // React to changes to viewports and cameras (possibly from script) just before the render
-        play.UpdateViewports();
-
         if (pl_run_plugin_hooks(AGSE_TRANSITIONIN, 0))
             return;
 

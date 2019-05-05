@@ -2452,6 +2452,9 @@ void construct_virtual_screen(bool fullRedraw)
 
     our_eip=3;
 
+    // React to changes to viewports and cameras (possibly from script) just before the render
+    play.UpdateViewports();
+
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
     gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes, usetup.Supersampling);
 

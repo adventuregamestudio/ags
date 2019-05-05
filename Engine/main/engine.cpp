@@ -1292,6 +1292,8 @@ bool engine_init_gamedata(const String &exe_path)
     if (!engine_try_init_gamedata(usetup.main_data_filepath))
         return false;
 
+    // Set working directory to the main data file's location
+    Directory::SetCurrentDirectory(usetup.data_files_dir);
     // Pre-load game name and savegame folder names from data file
     // TODO: research if that is possible to avoid this step and just
     // read the full head game data at this point. This might require

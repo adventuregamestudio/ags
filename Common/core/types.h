@@ -27,13 +27,21 @@
 #define NULL nullptr
 #endif
 
+// Not all compilers have this. Added in clang and gcc followed
+#ifndef __has_attribute
+    #define __has_attribute(x) 0
+#endif
+
 #ifndef FORCEINLINE
-    #if defined(_MSC_VER)
+    #ifdef _MSC_VER
         #define FORCEINLINE __forceinline
-    #elif __has_attribute(always_inline)
-        #define FORCEINLINE __attribute__((always_inline))
+
+    #elif defined (__GNUC__) || __has_attribute(__always_inline__)
+        #define FORCEINLINE inline __attribute__((__always_inline__))
+
     #else
-        #define FORCEINLINE
+        #define FORCEINLINE inline
+
     #endif
 #endif
 

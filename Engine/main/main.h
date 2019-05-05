@@ -28,10 +28,6 @@ extern AGS::Common::Version SavedgameLowestBackwardCompatVersion;
 // Lowest engine version, which would accept current savedgames
 extern AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
-#if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
-#define USE_CUSTOM_EXCEPTION_HANDLER
-#endif
-
 //=============================================================================
 
 extern char **global_argv;

@@ -393,7 +393,6 @@
     <ClCompile Include="..\..\Engine\main\graphics_mode.cpp" />
     <ClCompile Include="..\..\Engine\main\main.cpp" />
     <ClCompile Include="..\..\Engine\main\main_allegro.cpp" />
-    <ClCompile Include="..\..\Engine\main\minidump.cpp" />
     <ClCompile Include="..\..\Engine\main\quit.cpp" />
     <ClCompile Include="..\..\Engine\main\update.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\ambientsound.cpp" />
@@ -413,10 +412,12 @@
     <ClCompile Include="..\..\Engine\media\video\video.cpp" />
     <ClCompile Include="..\..\Engine\platform\base\agsplatformdriver.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\acplwin.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\win_ex_handling.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\media\video\acwavi.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\media\video\acwavi3d.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\minidump.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\setup\winsetup.cpp" />
     <ClCompile Include="..\..\Engine\plugin\agsplugin.cpp" />
     <ClCompile Include="..\..\Engine\plugin\global_plugin.cpp" />
@@ -701,6 +702,7 @@
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
     <ClInclude Include="..\..\Engine\platform\base\override_defines.h" />
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />
+    <ClInclude Include="..\..\Engine\platform\windows\win_ex_handling.h" />
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h" />
     <ClInclude Include="..\..\Engine\plugin\agsplugin.h" />

@@ -42,6 +42,9 @@
 #include "util/directory.h"
 #include "util/path.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+#include "platform/windows/win_ex_handling.h"
+#endif
 #if AGS_PLATFORM_DEBUG
 #include "test/test_all.h"
 #endif
@@ -51,6 +54,10 @@
 #undef CreateDirectory
 #undef SetCurrentDirectory
 #undef GetCurrentDirectory
+#endif
+
+#if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
+#define USE_CUSTOM_EXCEPTION_HANDLER
 #endif
 
 using namespace AGS::Common;
@@ -327,33 +334,6 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
     return RETURN_CONTINUE;
 }
 
-void main_init_crt_report()
-{
-#if AGS_PLATFORM_DEBUG
-    /* logfile=fopen("g:\\ags.log","at");
-    //_CrtSetReportHook( OurReportingFunction );
-    int tmpDbgFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-    //tmpDbgFlag |= _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF;
-
-    tmpDbgFlag = (tmpDbgFlag & 0x0000FFFF) | _CRTDBG_CHECK_EVERY_16_DF | _CRTDBG_DELAY_FREE_MEM_DF;
-
-    _CrtSetDbgFlag(tmpDbgFlag);
-
-    /*
-    //  _CrtMemState memstart,memnow;
-    _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_WNDW );
-    _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_WNDW );
-    _CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_WNDW );
-    /*
-    //   _CrtSetReportFile( _CRT_WARN, _CRTDBG_FILE_STDERR );
-    //   _CrtSetReportFile( _CRT_ERROR, _CRTDBG_FILE_STDERR );
-    //   _CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDERR );
-
-    //  _CrtMemCheckpoint(&memstart);
-    //  _CrtMemDumpStatistics( &memstart );*/
-#endif
-}
-
 void main_set_gamedir(int argc, char*argv[])
 {
     appDirectory = Path::GetDirectoryPath(GetPathFromCmdArg(0));
@@ -405,26 +385,6 @@ const char *set_allegro_error(const char *format, ...)
     return allegro_error;
 }
 
-#if AGS_PLATFORM_OS_WINDOWS
-#include <new.h>
-
-#if ! AGS_PLATFORM_DEBUG
-extern void CreateMiniDump( EXCEPTION_POINTERS* pep );
-#endif
-
-char tempmsg[100];
-char*printfworkingspace;
-int malloc_fail_handler(size_t amountwanted) {
-#if ! AGS_PLATFORM_DEBUG
-  CreateMiniDump(NULL);
-#endif
-  free(printfworkingspace);
-  sprintf(tempmsg,"Out of memory: failed to allocate %ld bytes (at PP=%d)",amountwanted, our_eip);
-  quit(tempmsg);
-  return 0;
-}
-#endif
-
 int ags_entry_point(int argc, char *argv[]) { 
 
 #if AGS_PLATFORM_DEBUG
@@ -440,9 +400,7 @@ int ags_entry_point(int argc, char *argv[]) {
     }
 
 #if AGS_PLATFORM_OS_WINDOWS
-    _set_new_handler(malloc_fail_handler);
-    _set_new_mode(1);
-    printfworkingspace=(char*)malloc(7000);
+    setup_malloc_handling();
 #endif
     debug_flags=0;
 
@@ -467,19 +425,15 @@ int ags_entry_point(int argc, char *argv[]) {
     init_debug();
     Debug::Printf(kDbgMsg_Init, get_engine_string());
 
-    main_init_crt_report();
-
     main_set_gamedir(argc, argv);    
 
     // Update shell associations and exit
     if (debug_flags & DBG_REGONLY)
         exit(0);
 
-#ifndef USE_CUSTOM_EXCEPTION_HANDLER
-    usetup.disable_exception_handling = true;
-#endif
-
+#ifdef USE_CUSTOM_EXCEPTION_HANDLER
     if (usetup.disable_exception_handling)
+#endif
     {
         int result = initialize_engine(startup_opts);
         // TODO: refactor engine shutdown routine (must shutdown and delete everything started and created)
@@ -487,8 +441,10 @@ int ags_entry_point(int argc, char *argv[]) {
         platform->PostAllegroExit();
         return result;
     }
+#ifdef USE_CUSTOM_EXCEPTION_HANDLER
     else
     {
-        return initialize_engine_with_exception_handling(startup_opts);
+        return initialize_engine_with_exception_handling(initialize_engine, startup_opts);
     }
+#endif
 }

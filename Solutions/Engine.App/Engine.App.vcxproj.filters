@@ -172,6 +172,9 @@
     <Filter Include="Library Sources\glad">
       <UniqueIdentifier>{cc80bf30-3415-4302-a50e-1e7a1689c282}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\platform\windows">
+      <UniqueIdentifier>{c3e78d00-def2-49a7-9fa4-d5f693d14655}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Engine\ac\audiochannel.cpp">
@@ -789,9 +792,6 @@
     <ClCompile Include="..\..\Engine\game\savegame.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\main\minidump.cpp">
-      <Filter>Header Files\main</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\libsrc\allegro-4.2.2-agspatch\midi.c">
       <Filter>Library Sources\AllegroPatches</Filter>
     </ClCompile>
@@ -1016,6 +1016,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\main\main_allegro.cpp">
       <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\platform\windows\minidump.cpp">
+      <Filter>Source Files\platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\platform\windows\win_ex_handling.cpp">
+      <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1885,6 +1891,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcontainers.h">
       <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\windows\win_ex_handling.h">
+      <Filter>Header Files\platform\windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -37,13 +37,6 @@
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
-// undef the declarations from winbase.h
-#undef CreateDirectory
-#undef SetCurrentDirectory
-#undef GetCurrentDirectory
-#endif
-
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

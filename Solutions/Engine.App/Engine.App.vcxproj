@@ -700,11 +700,11 @@
     <ClInclude Include="..\..\Engine\media\video\video.h" />
     <ClInclude Include="..\..\Engine\media\video\VMR9Graph.h" />
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
-    <ClInclude Include="..\..\Engine\platform\base\override_defines.h" />
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />
     <ClInclude Include="..\..\Engine\platform\windows\win_ex_handling.h" />
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h" />
+    <ClInclude Include="..\..\Engine\platform\windows\winapi_exclusive.h" />
     <ClInclude Include="..\..\Engine\plugin\agsplugin.h" />
     <ClInclude Include="..\..\Engine\plugin\pluginobjectreader.h" />
     <ClInclude Include="..\..\Engine\plugin\plugin_engine.h" />

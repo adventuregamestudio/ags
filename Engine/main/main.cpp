@@ -49,13 +49,6 @@
 #include "test/test_all.h"
 #endif
 
-#if AGS_PLATFORM_OS_WINDOWS
-// undef the declarations from winbase.h
-#undef CreateDirectory
-#undef SetCurrentDirectory
-#undef GetCurrentDirectory
-#endif
-
 #if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
 #define USE_CUSTOM_EXCEPTION_HANDLER
 #endif

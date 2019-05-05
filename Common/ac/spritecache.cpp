@@ -32,11 +32,6 @@
 #include "util/file.h"
 #include "util/stream.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
-// undef the declarations from winbase.h
-#undef CreateFile
-#endif
-
 using namespace AGS::Common;
 
 // [IKM] We have to forward-declare these because their implementations are in the Engine

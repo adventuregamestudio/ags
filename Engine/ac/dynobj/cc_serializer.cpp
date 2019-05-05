@@ -23,8 +23,6 @@
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/game.h"
 #include "debug/debug_log.h"
-
-#undef _WINGDI_ // FIXME later (prevents conflict with BITMAP declaration)
 #include "plugin/agsplugin.h"
 #include "plugin/pluginobjectreader.h"
 

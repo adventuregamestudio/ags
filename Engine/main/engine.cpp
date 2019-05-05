@@ -70,14 +70,6 @@
 #include "util/misc.h"
 #include "util/path.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
-// undef the declarations from winbase.h
-#undef CreateDirectory
-#undef SetCurrentDirectory
-#undef GetCurrentDirectory
-#undef CreateFile
-#endif
-
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

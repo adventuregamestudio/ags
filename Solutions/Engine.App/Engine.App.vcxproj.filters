@@ -1538,9 +1538,6 @@
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h">
       <Filter>Header Files\platform\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\platform\base\override_defines.h">
-      <Filter>Header Files\platform\base</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\ambientsound.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
@@ -1891,6 +1888,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcontainers.h">
       <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\windows\winapi_exclusive.h">
+      <Filter>Header Files\platform\windows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\win_ex_handling.h">
       <Filter>Header Files\platform\windows</Filter>

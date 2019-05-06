@@ -47,6 +47,17 @@ public:
     Unload();
   };
 
+  AGS::Common::String BuildFilename(AGS::Common::String libraryName)
+  {
+    return String::FromFormat(
+#if AGS_PLATFORM_OS_MACOS
+        "lib%s.dylib"
+#else
+        "lib%s.so"
+#endif
+        , libraryName.GetCStr());
+  }
+
   AGS::Common::String BuildPath(const char *path, AGS::Common::String libraryName)
   {
     AGS::Common::String platformLibraryName = "";
@@ -55,17 +66,15 @@ public:
       platformLibraryName = path;
       platformLibraryName.Append("/");
     }
-    platformLibraryName.Append("lib");
-    platformLibraryName.Append(libraryName);
-
-#if AGS_PLATFORM_OS_MACOS
-    platformLibraryName.Append(".dylib");
-#else
-    platformLibraryName.Append(".so");
-#endif
+    platformLibraryName.Append(BuildFilename(libraryName));
 
     AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
     return platformLibraryName;
+  }
+
+  AGS::Common::String GetFilenameForLib(AGS::Common::String libraryName) override
+  {
+    return BuildFilename(libraryName);
   }
 
   bool Load(AGS::Common::String libraryName) override

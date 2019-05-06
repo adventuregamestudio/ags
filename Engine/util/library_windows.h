@@ -38,14 +38,23 @@ public:
     Unload();
   };
 
+  AGS::Common::String BuildFilename(AGS::Common::String libraryName)
+  {
+    return String::FromFormat("%s.dll", libraryName.GetCStr());
+  }
+
   AGS::Common::String BuildPath(AGS::Common::String libraryName)
   {
-    AGS::Common::String platformLibraryName = libraryName;
-    platformLibraryName.Append(".dll");
+    AGS::Common::String platformLibraryName = BuildFilename(libraryName);
 
     AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
 
     return platformLibraryName;
+  }
+
+  AGS::Common::String GetFilenameForLib(AGS::Common::String libraryName) override
+  {
+    return BuildFilename(libraryName);
   }
 
   bool Load(AGS::Common::String libraryName)

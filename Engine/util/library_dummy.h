@@ -29,21 +29,26 @@ public:
   {
   };
 
-  virtual ~DummyLibrary()
+  ~DummyLibrary() override
   {
   };
 
-  bool Load(AGS::Common::String libraryName)
+  AGS::Common::String GetFilenameForLib(AGS::Common::String libraryName) override
+  {
+      return libraryName;
+  }
+
+  bool Load(AGS::Common::String libraryName) override
   {
     return false;
   }
 
-  bool Unload()
+  bool Unload() override
   {
     return true;
   }
 
-  void *GetFunctionAddress(AGS::Common::String functionName)
+  void *GetFunctionAddress(AGS::Common::String functionName) override
   {
     return NULL;
   }

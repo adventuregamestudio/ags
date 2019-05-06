@@ -37,7 +37,7 @@ typedef IniFile::ConstItemIterator    CItemIterator;
 
 static bool ReadIni(const String &file, IniFile &ini)
 {
-    auto fs = File::OpenFileRead(file);
+    auto fs = std::shared_ptr<AGS::Common::Stream>(AGS::Common::File::OpenFileRead(file));
     if (fs)
     {
         ini.Read(fs);
@@ -71,7 +71,7 @@ bool IniUtil::Read(const String &file, ConfigTree &tree)
 
 void IniUtil::Write(const String &file, const ConfigTree &tree)
 {
-    auto fs = File::CreateFile(file);
+    auto fs = std::shared_ptr<AGS::Common::Stream>(File::CreateFile(file));
     TextStreamWriter writer(fs);
 
     for (ConfigNode it_sec = tree.begin(); it_sec != tree.end(); ++it_sec)
@@ -171,7 +171,7 @@ bool IniUtil::Merge(const String &file, const ConfigTree &tree)
     }
 
     // Write the resulting set of lines
-    auto fs = File::CreateFile(file);
+    auto fs = std::shared_ptr<AGS::Common::Stream>(File::CreateFile(file));
     if (!fs)
         return false;
     ini.Write(fs);

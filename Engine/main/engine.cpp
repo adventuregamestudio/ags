@@ -749,7 +749,7 @@ int check_write_access() {
   // The Save Game Dir is the only place that we should write to
   char tempPath[MAX_PATH];
   sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
-  std::shared_ptr<AGS::Common::Stream> temp_s = Common::File::CreateFile(tempPath);
+  auto temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
       // TODO: move this somewhere else (Android platform driver init?)
 #if AGS_PLATFORM_OS_ANDROID

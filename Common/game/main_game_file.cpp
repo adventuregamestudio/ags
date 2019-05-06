@@ -154,7 +154,7 @@ HGameFileError OpenMainGameFile(const String &filename, MainGameSource &src)
     // Cleanup source struct
     src = MainGameSource();
     // Try to open given file
-    PStream in(File::OpenFileRead(filename));
+    auto in = std::shared_ptr<AGS::Common::Stream>(AGS::Common::File::OpenFileRead(filename));
     if (!in)
         return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;

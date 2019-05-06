@@ -81,7 +81,7 @@ void Test_IniFile()
     fs = nullptr;
 
     IniFile ini;
-    fs = File::OpenFileRead("test.ini");
+    fs = AGS::Common::File::OpenFileRead("test.ini");
     ini.Read(fs);
     fs = nullptr;
 
@@ -188,7 +188,7 @@ void Test_IniFile()
         ini.Write(fs);
         fs = nullptr;
 
-        fs = File::OpenFileRead("test.ini");
+        fs = AGS::Common::File::OpenFileRead("test.ini");
         String ini_content;
         ini_content.ReadCount(fs, static_cast<size_t>(fs->GetLength()));
         

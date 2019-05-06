@@ -511,7 +511,7 @@ void SpriteCache::UnCompressSprite(Bitmap *sprite, std::shared_ptr<AGS::Common::
 
 int SpriteCache::SaveToFile(const char *filnam, bool compressOutput)
 {
-    std::shared_ptr<AGS::Common::Stream> output = Common::File::CreateFile(filnam);
+    auto output = std::shared_ptr<AGS::Common::Stream>(AGS::Common::File::CreateFile(filnam));
     if (output == nullptr)
         return -1;
 
@@ -656,7 +656,7 @@ int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sp
                                     const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs)
 {
     // write the sprite index file
-    std::shared_ptr<AGS::Common::Stream> spindex_out = File::CreateFile(spindexfilename);
+    auto spindex_out = AGS::Common::File::CreateFile(spindexfilename);
     // write "SPRINDEX" id
     spindex_out->WriteArray(&spindexid[0], strlen(spindexid), 1);
     // write version

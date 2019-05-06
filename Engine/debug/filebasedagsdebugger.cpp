@@ -49,12 +49,11 @@ bool FileBasedAGSDebugger::SendMessageToEditor(const char *message)
         platform->YieldCPU();
     }
 
-    std::shared_ptr<AGS::Common::Stream> out = Common::File::CreateFile(SENT_MESSAGE_FILE_NAME);
+    auto out = Common::File::CreateFile(SENT_MESSAGE_FILE_NAME);
     // CHECKME: originally the file was opened as "wb" for some reason,
     // which means the message should be written as a binary array;
     // or shouldn't it?
     out->Write(message, strlen(message));
-    out = nullptr;
     return true;
 }
 
@@ -65,7 +64,8 @@ bool FileBasedAGSDebugger::IsMessageAvailable()
 
 char* FileBasedAGSDebugger::GetNextMessage()
 {
-    std::shared_ptr<AGS::Common::Stream> in = Common::File::OpenFileRead("dbgsend.tmp");
+    auto in = std::shared_ptr<AGS::Common::Stream>(AGS::Common::File::OpenFileRead("dbgsend.tmp"));
+
     if (in == nullptr)
     {
         // check again, because the editor might have deleted the file in the meantime

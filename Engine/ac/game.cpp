@@ -440,18 +440,16 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
     // copy the Restart Game file, if applicable
     char restartGamePath[260];
     sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
-    std::shared_ptr<AGS::Common::Stream> restartGameFile = Common::File::OpenFileRead(restartGamePath);
+    auto restartGameFile = AGS::Common::File::OpenFileRead(restartGamePath);
     if (restartGameFile != nullptr)
 	{
         long fileSize = restartGameFile->GetLength();
         char *mbuffer = (char*)malloc(fileSize);
         restartGameFile->Read(mbuffer, fileSize);
-        restartGameFile = nullptr;
 
         sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
-        restartGameFile = Common::File::CreateFile(restartGamePath);
+        restartGameFile = AGS::Common::File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
-        restartGameFile = nullptr;
         free(mbuffer);
     }
 
@@ -1022,9 +1020,10 @@ long write_screen_shot_for_vista(std::shared_ptr<AGS::Common::Stream> out, Bitma
         fileSize = file_size_ex(tempFileName);
         char *buffer = (char*)malloc(fileSize);
 
-        std::shared_ptr<AGS::Common::Stream> temp_in = Common::File::OpenFileRead(tempFileName);
-        temp_in->Read(buffer, fileSize);
-        temp_in = nullptr;
+        {
+            auto temp_in = Common::File::OpenFileRead(tempFileName);
+            temp_in->Read(buffer, fileSize);
+        }
         ::remove(tempFileName);
 
         out->Write(buffer, fileSize);

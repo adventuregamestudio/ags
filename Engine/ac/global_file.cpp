@@ -55,7 +55,7 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
       break;
   }
 
-  std::shared_ptr<AGS::Common::Stream> s = File::OpenFile(path, open_mode, work_mode);
+  auto s = std::shared_ptr<AGS::Common::Stream>(AGS::Common::File::OpenFile(path, open_mode, work_mode));
   if (!s && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
     s = File::OpenFile(alt_path, open_mode, work_mode);
 

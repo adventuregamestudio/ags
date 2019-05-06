@@ -274,7 +274,7 @@ HSaveError ReadDescription_v321(std::shared_ptr<AGS::Common::Stream> in, Savegam
 
 HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
 {
-    auto in = File::OpenFileRead(filename);
+    auto in = std::shared_ptr<AGS::Common::Stream>(AGS::Common::File::OpenFileRead(filename));
     if (!in)
         return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
 

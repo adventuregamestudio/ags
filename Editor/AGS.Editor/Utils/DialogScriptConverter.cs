@@ -15,6 +15,8 @@ namespace AGS.Editor
         private bool _hadFirstEntryPoint = false;
         private Dictionary<int, object> _existingEntryPoints = new Dictionary<int, object>();
         private Game _game;
+        private string _sayFnName;
+        private string _narrateFnName;
 
         private static readonly string _DefaultDialogScriptsScript = null;
 
@@ -61,6 +63,12 @@ namespace AGS.Editor
             _currentlyInsideCodeArea = false;
             _hadFirstEntryPoint = false;
             _game = game;
+            _sayFnName = game.Settings.DialogScriptSayFunction;
+            if (string.IsNullOrWhiteSpace(_sayFnName))
+                _sayFnName = "Say";
+            _narrateFnName = game.Settings.DialogScriptNarrateFunction;
+            if (string.IsNullOrWhiteSpace(_narrateFnName))
+                _narrateFnName = "Display";
             _currentDialog = dialog;
             _existingEntryPoints.Clear();
             _currentLineNumber = 0;
@@ -365,16 +373,16 @@ namespace AGS.Editor
             textToSay = textToSay.Replace("\"", "\\\"");
             if (charName == "player")
             {
-                scriptToReturn = string.Format("player.Say(\"{0}\");", textToSay);
+                scriptToReturn = string.Format("player.{0}(\"{1}\");", _sayFnName, textToSay);
             }
             else if (charName == "narrator")
             {
-                scriptToReturn = string.Format("Display(\"{0}\");", textToSay);
+                scriptToReturn = string.Format("{0}(\"{1}\");", _narrateFnName, textToSay);
             }
             else
             {
                 Character character = FindCharacterByScriptName(charName);
-                scriptToReturn = string.Format("{0}.Say(\"{1}\");", character.ScriptName, textToSay);
+                scriptToReturn = string.Format("{0}.{1}(\"{2}\");", character.ScriptName, _sayFnName, textToSay);
             }
             return scriptToReturn;
         }

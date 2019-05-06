@@ -1561,7 +1561,7 @@ builtin managed struct Label extends GUIControl {
   /// Gets/sets the colour in which the label text is drawn.
   import attribute int  TextColor;
 #ifdef SCRIPT_API_v350
-  /// Gets/sets list item's text alignment.
+  /// Gets/sets label's text alignment.
   import attribute HorizontalAlignment TextAlignment;
 #endif
 };

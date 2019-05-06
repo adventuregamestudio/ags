@@ -42,7 +42,6 @@ target_sources(common
     ac/view.h
     ac/wordsdictionary.cpp
     ac/wordsdictionary.h
-    api/stream_api.h
     core/asset.cpp
     core/asset.h
     core/assetmanager.cpp
@@ -105,20 +104,14 @@ target_sources(common
     script/cc_script.cpp
     script/cc_script.h
     script/script_common.h
-    util/alignedstream.cpp
-    util/alignedstream.h
     util/bbop.h
     util/compress.cpp
     util/compress.h
-    util/datastream.cpp
-    util/datastream.h
     util/directory.cpp
     util/directory.h
     util/error.h
     util/file.cpp
     util/file.h
-    util/filestream.cpp
-    util/filestream.h
     util/geometry.cpp
     util/geometry.h
     util/ini_util.cpp
@@ -135,8 +128,6 @@ target_sources(common
     util/mutifilelib.cpp
     util/path.cpp
     util/path.h
-    util/proxystream.cpp
-    util/proxystream.h
     util/stdio_compat.c
     util/stdio_compat.h
     util/stream.cpp

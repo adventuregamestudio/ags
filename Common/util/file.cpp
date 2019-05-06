@@ -17,7 +17,7 @@
 #include "core/platform.h"
 #include "util/stdio_compat.h"
 #include <errno.h>
-#include "util/filestream.h"
+#include "util/stream.h"
 
 namespace AGS
 {
@@ -153,15 +153,15 @@ String File::GetCMode(FileOpenMode open_mode, FileWorkMode work_mode)
     return mode;
 }
 
-Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
+std::shared_ptr<Stream> File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    FileStream *fs = new FileStream(filename, open_mode, work_mode);
-    if (!fs->IsValid())
-    {
-        delete fs;
+    try {
+        auto fs = std::unique_ptr<ICoreStream>(new FileStream(filename, open_mode, work_mode));
+        auto bs = std::unique_ptr<ICoreStream>(new BufferedStream(std::move(fs)));
+        return std::make_shared<DataStream>(std::move(bs));
+    } catch(...) {
         return nullptr;
     }
-    return fs;
 }
 
 } // namespace Common

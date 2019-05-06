@@ -67,7 +67,7 @@ namespace File
     // Gets C-style file mode from FileOpenMode and FileWorkMode
     String      GetCMode(FileOpenMode open_mode, FileWorkMode work_mode);
 
-    std::shared_ptr<Stream> OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+    std::shared_ptr<AGS::Common::Stream> OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
 
     // Convenience helpers
     // Create a totally new file, overwrite existing one

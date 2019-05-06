@@ -153,7 +153,7 @@ String File::GetCMode(FileOpenMode open_mode, FileWorkMode work_mode)
     return mode;
 }
 
-std::shared_ptr<Stream> File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
+std::shared_ptr<AGS::Common::Stream> File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
     try {
         auto fs = std::unique_ptr<ICoreStream>(new FileStream(filename, open_mode, work_mode));

@@ -146,12 +146,12 @@ RuntimeScriptValue Sc_Label_SetColor(void *self, const RuntimeScriptValue *param
 
 
 
-void RegisterLabelBoxAPI()
+void RegisterLabelAPI()
 {
     ccAddExternalObjectFunction("Label::GetText^1",     Sc_Label_GetText);
     ccAddExternalObjectFunction("Label::SetText^1",     Sc_Label_SetText);
-    ccAddExternalObjectFunction("Label::get_Alignment", Sc_Label_GetTextAlignment);
-    ccAddExternalObjectFunction("Label::set_Alignment", Sc_Label_SetTextAlignment);
+    ccAddExternalObjectFunction("Label::get_TextAlignment", Sc_Label_GetTextAlignment);
+    ccAddExternalObjectFunction("Label::set_TextAlignment", Sc_Label_SetTextAlignment);
     ccAddExternalObjectFunction("Label::get_Font",      Sc_Label_GetFont);
     ccAddExternalObjectFunction("Label::set_Font",      Sc_Label_SetFont);
     ccAddExternalObjectFunction("Label::get_Text",      Sc_Label_GetText_New);

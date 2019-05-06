@@ -27,7 +27,7 @@ namespace Engine
 {
 
 using Common::Stream;
-typedef std::shared_ptr<Stream> PStream;
+typedef std::shared_ptr<AGS::Common::Stream> PStream;
 
 struct PreservedParams;
 struct RestoredData;

@@ -67,7 +67,7 @@ public:
     void         CloseFile();
 
 private:
-        std::shared_ptr<Stream> _file;
+        std::shared_ptr<AGS::Common::Stream> _file;
         String                _filePath;
         LogFileOpenMode       _openMode;
 };

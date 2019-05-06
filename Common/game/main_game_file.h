@@ -69,7 +69,7 @@ String GetMainGameFileErrorText(MainGameFileErrorType err);
 
 typedef TypedCodeError<MainGameFileErrorType, GetMainGameFileErrorText> MainGameFileError;
 typedef ErrorHandle<MainGameFileError> HGameFileError;
-typedef std::shared_ptr<Stream> PStream;
+typedef std::shared_ptr<AGS::Common::Stream> PStream;
 
 // MainGameSource defines a successfully opened main game file
 struct MainGameSource

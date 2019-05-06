@@ -71,17 +71,17 @@ namespace File
 
     // Convenience helpers
     // Create a totally new file, overwrite existing one
-    inline std::shared_ptr<Stream> CreateFile(const String &filename)
+    inline std::shared_ptr<AGS::Common::Stream> CreateFile(const String &filename)
     {
         return OpenFile(filename, kFile_CreateAlways, kFile_Write);
     }
     // Open existing file for reading
-    inline std::shared_ptr<Stream> OpenFileRead(const String &filename)
+    inline std::shared_ptr<AGS::Common::Stream> OpenFileRead(const String &filename)
     {
         return OpenFile(filename, kFile_Open, kFile_Read);
     }
     // Open existing file for writing (append) or create if it does not exist
-    inline std::shared_ptr<Stream> OpenFileWrite(const String &filename)
+    inline std::shared_ptr<StrAGS::Common::Streameam> OpenFileWrite(const String &filename)
     {
         return OpenFile(filename, kFile_Create, kFile_Write);
     }

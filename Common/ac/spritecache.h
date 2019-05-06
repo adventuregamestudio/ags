@@ -170,7 +170,7 @@ private:
     std::vector<SpriteData> _spriteData;
     bool _compressed;        // are sprites compressed
 
-    std::shared_ptr<Common::Stream> _stream; // the sprite stream
+    std::shared_ptr<AGS::Common::Stream> _stream; // the sprite stream
     sprkey_t _lastLoad; // last loaded sprite index
 
     size_t _maxCacheSize;  // cache size limit

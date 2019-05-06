@@ -57,7 +57,7 @@ String GetRoomFileErrorText(RoomFileErrorType err);
 
 typedef TypedCodeError<RoomFileErrorType, GetRoomFileErrorText> RoomFileError;
 typedef ErrorHandle<RoomFileError> HRoomFileError;
-typedef std::shared_ptr<Stream> PStream;
+typedef std::shared_ptr<AGS::Common::Stream> PStream;
 
 
 // RoomDataSource defines a successfully opened room file

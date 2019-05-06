@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void AudioClipType::ReadFromFile(Stream *in)
+void AudioClipType::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     id = in->ReadInt32();
     reservedChannels = in->ReadInt32();
@@ -26,7 +26,7 @@ void AudioClipType::ReadFromFile(Stream *in)
     reservedForFuture = in->ReadInt32();
 }
 
-void AudioClipType::WriteToFile(Stream *out)
+void AudioClipType::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(id);
     out->WriteInt32(reservedChannels);
@@ -35,13 +35,13 @@ void AudioClipType::WriteToFile(Stream *out)
     out->WriteInt32(reservedForFuture);
 }
 
-void AudioClipType::ReadFromSavegame(Common::Stream *in)
+void AudioClipType::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in)
 {
     volume_reduction_while_speech_playing = in->ReadInt32();
     crossfadeSpeed = in->ReadInt32();
 }
 
-void AudioClipType::WriteToSavegame(Common::Stream *out) const
+void AudioClipType::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteInt32(volume_reduction_while_speech_playing);
     out->WriteInt32(crossfadeSpeed);

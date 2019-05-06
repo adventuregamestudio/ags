@@ -15,6 +15,8 @@
 #ifndef __AC_INVENTORYITEMINFO_H
 #define __AC_INVENTORYITEMINFO_H
 
+#include <memory>
+
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
@@ -26,10 +28,10 @@ struct InventoryItemInfo {
     int  reserved[5];
     char flags;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
-    void ReadFromSavegame(Common::Stream *in);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out);
+    void ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const;
 };
 
 #endif // __AC_INVENTORYITEMINFO_H

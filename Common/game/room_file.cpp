@@ -83,7 +83,7 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
     // Cleanup source struct
     src = RoomDataSource();
     // Try to open room file
-    Stream *in = AssetManager::OpenAsset(filename);
+    std::shared_ptr<AGS::Common::Stream> in = AssetManager::OpenAsset(filename);
     if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     // Read room header
@@ -92,7 +92,7 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
     if (src.DataVersion < kRoomVersion_250b || src.DataVersion > kRoomVersion_Current)
         return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kRoomVersion_250b, kRoomVersion_Current));
     // Everything is fine, return opened stream
-    src.InputStream.reset(in);
+    src.InputStream = in;
     return HRoomFileError::None();
 }
 
@@ -122,7 +122,7 @@ enum RoomFileBlock
 };
 
 
-void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
+void ReadRoomObject(RoomObjectInfo &obj, std::shared_ptr<AGS::Common::Stream> in)
 {
     obj.Sprite = in->ReadInt16();
     obj.X = in->ReadInt16();
@@ -131,7 +131,7 @@ void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
     obj.IsOn = in->ReadInt16() != 0;
 }
 
-void WriteRoomObject(const RoomObjectInfo &obj, Stream *out)
+void WriteRoomObject(const RoomObjectInfo &obj, std::shared_ptr<AGS::Common::Stream> out)
 {
     // TODO: expand serialization into 32-bit values at least for the sprite index!!
     out->WriteInt16((int16_t)obj.Sprite);
@@ -143,7 +143,7 @@ void WriteRoomObject(const RoomObjectInfo &obj, Stream *out)
 
 
 // Main room data
-HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ReadMainBlock(RoomStruct *room, std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     int bpp;
     if (data_ver >= kRoomVersion_208)
@@ -410,7 +410,7 @@ HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_
 }
 
 // Room script sources (original text)
-HRoomFileError ReadScriptBlock(char *&buf, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ReadScriptBlock(char *&buf, std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     size_t len = in->ReadInt32();
     buf = new char[len + 1];
@@ -422,7 +422,7 @@ HRoomFileError ReadScriptBlock(char *&buf, Stream *in, RoomFileVersion data_ver)
 }
 
 // Compiled room script
-HRoomFileError ReadCompSc3Block(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ReadCompSc3Block(RoomStruct *room, std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     room->CompiledScript.reset(ccScript::CreateFromStream(in));
     if (room->CompiledScript == nullptr)
@@ -431,7 +431,7 @@ HRoomFileError ReadCompSc3Block(RoomStruct *room, Stream *in, RoomFileVersion da
 }
 
 // Room object names
-HRoomFileError ReadObjNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ReadObjNamesBlock(RoomStruct *room, std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     int name_count = in->ReadByte();
     if (name_count != room->ObjectCount)
@@ -449,7 +449,7 @@ HRoomFileError ReadObjNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion d
 }
 
 // Room object script names
-HRoomFileError ReadObjScNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ReadObjScNamesBlock(RoomStruct *room, std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     int name_count = in->ReadByte();
     if (name_count != room->ObjectCount)
@@ -467,7 +467,7 @@ HRoomFileError ReadObjScNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion
 }
 
 // Secondary backgrounds
-HRoomFileError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ReadAnimBgBlock(RoomStruct *room, std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     room->BgFrameCount = in->ReadByte();
     if (room->BgFrameCount > MAX_ROOM_BGFRAMES)
@@ -491,7 +491,7 @@ HRoomFileError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion dat
 }
 
 // Read custom properties
-HRoomFileError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ReadPropertiesBlock(RoomStruct *room, std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     int prop_ver = in->ReadInt32();
     if (prop_ver != 1)
@@ -509,7 +509,7 @@ HRoomFileError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion
     return HRoomFileError::None();
 }
 
-HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, RoomFileVersion data_ver)
+HRoomFileError ReadRoomBlock(RoomStruct *room, std::shared_ptr<AGS::Common::Stream> in, RoomFileBlock block, RoomFileVersion data_ver)
 {
     soff_t block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
     soff_t block_end = in->GetPosition() + block_len;
@@ -565,14 +565,14 @@ HRoomFileError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, 
     return HRoomFileError::None();
 }
 
-void SkipRoomBlock(Stream *in, RoomFileVersion data_ver)
+void SkipRoomBlock(std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     soff_t block_len = data_ver < kRoomVersion_350 ? in->ReadInt32() : in->ReadInt64();
     in->Seek(block_len);
 }
 
 
-HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ReadRoomData(RoomStruct *room, std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
 
@@ -745,7 +745,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
     return HRoomFileError::None();
 }
 
-HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ExtractScriptText(String &script, std::shared_ptr<AGS::Common::Stream> in, RoomFileVersion data_ver)
 {
     RoomFileBlock block;
     do
@@ -773,9 +773,9 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
 
 
 // Type of function that writes single room block.
-typedef void(*PfnWriteBlock)(const RoomStruct *room, Stream *out);
+typedef void(*PfnWriteBlock)(const RoomStruct *room, std::shared_ptr<AGS::Common::Stream> out);
 // Generic function that saves a block and automatically adds its size into header
-void WriteBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteBlock writer, Stream *out)
+void WriteBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteBlock writer, std::shared_ptr<AGS::Common::Stream> out)
 {
     // Write block's header
     out->WriteByte(block);
@@ -794,14 +794,14 @@ void WriteBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteBlock write
     out->Seek(0, Common::kSeekEnd);
 }
 
-void WriteInteractionScripts(const InteractionScripts *interactions, Stream *out)
+void WriteInteractionScripts(const InteractionScripts *interactions, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(interactions->ScriptFuncNames.size());
     for (size_t i = 0; i < interactions->ScriptFuncNames.size(); ++i)
         interactions->ScriptFuncNames[i].Write(out);
 }
 
-void WriteMainBlock(const RoomStruct *room, Stream *out)
+void WriteMainBlock(const RoomStruct *room, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(room->BackgroundBPP);
     out->WriteInt16((int16_t)room->WalkBehindCount);
@@ -896,26 +896,26 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     savecompressed_allegro(out, room->HotspotMask.get(), room->Palette);
 }
 
-void WriteCompSc3Block(const RoomStruct *room, Stream *out)
+void WriteCompSc3Block(const RoomStruct *room, std::shared_ptr<AGS::Common::Stream> out)
 {
     room->CompiledScript->Write(out);
 }
 
-void WriteObjNamesBlock(const RoomStruct *room, Stream *out)
+void WriteObjNamesBlock(const RoomStruct *room, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteByte((int8_t)room->ObjectCount);
     for (size_t i = 0; i < room->ObjectCount; ++i)
         Common::StrUtil::WriteString(room->Objects[i].Name, out);
 }
 
-void WriteObjScNamesBlock(const RoomStruct *room, Stream *out)
+void WriteObjScNamesBlock(const RoomStruct *room, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteByte((int8_t)room->ObjectCount);
     for (size_t i = 0; i < room->ObjectCount; ++i)
         Common::StrUtil::WriteString(room->Objects[i].ScriptName, out);
 }
 
-void WriteAnimBgBlock(const RoomStruct *room, Stream *out)
+void WriteAnimBgBlock(const RoomStruct *room, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteByte((int8_t)room->BgFrameCount);
     out->WriteByte(room->BgAnimSpeed);
@@ -926,7 +926,7 @@ void WriteAnimBgBlock(const RoomStruct *room, Stream *out)
         save_lzw(out, room->BgFrames[i].Graphic.get(), room->BgFrames[i].Palette);
 }
 
-void WritePropertiesBlock(const RoomStruct *room, Stream *out)
+void WritePropertiesBlock(const RoomStruct *room, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(1);  // Version 1 of properties block
     Properties::WriteValues(room->Properties, out);
@@ -936,7 +936,7 @@ void WritePropertiesBlock(const RoomStruct *room, Stream *out)
         Properties::WriteValues(room->Objects[i].Properties, out);
 }
 
-HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver)
+HRoomFileError WriteRoomData(const RoomStruct *room, std::shared_ptr<AGS::Common::Stream> out, RoomFileVersion data_ver)
 {
     if (data_ver < kRoomVersion_Current)
         return new RoomFileError(kRoomFileErr_FormatNotSupported, "We no longer support saving room in the older format.");

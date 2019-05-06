@@ -25,7 +25,7 @@ bool AmbientSound::IsPlaying () {
     return channel_is_playing(channel);
 }
 
-void AmbientSound::ReadFromFile(Stream *in)
+void AmbientSound::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     channel = in->ReadInt32();
     x = in->ReadInt32();
@@ -35,7 +35,7 @@ void AmbientSound::ReadFromFile(Stream *in)
     maxdist = in->ReadInt32();
 }
 
-void AmbientSound::WriteToFile(Stream *out)
+void AmbientSound::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(channel);
     out->WriteInt32(x);

@@ -245,7 +245,7 @@ void load_room(const char *filename, RoomStruct *room, bool game_is_hires, const
     if (err)
     {
         update_polled_stuff_if_runtime();  // it can take a while to load the file sometimes
-        err = ReadRoomData(room, src.InputStream.get(), src.DataVersion);
+        err = ReadRoomData(room, src.InputStream, src.DataVersion);
         if (err)
             err = UpdateRoomData(room, src.DataVersion, game_is_hires, sprinfos);
     }

@@ -19,6 +19,8 @@
 #ifndef __AGS_EE_AC__GAME_H
 #define __AGS_EE_AC__GAME_H
 
+#include <memory>
+
 #include "ac/dynobj/scriptviewframe.h"
 #include "main/game_file.h"
 #include "util/string.h"
@@ -141,17 +143,17 @@ void unload_game_file();
 void save_game(int slotn, const char*descript);
 bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
 bool read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);
-void save_game_data(Common::Stream *out);
+void save_game_data(std::shared_ptr<AGS::Common::Stream> out);
 // Tries to restore saved game and displays an error on failure; if the error occured
 // too late, when the game data was already overwritten, shuts engine down.
 bool try_restore_save(int slot);
 bool try_restore_save(const Common::String &path, int slot);
-void serialize_bitmap(const Common::Bitmap *thispic, Common::Stream *out);
+void serialize_bitmap(const Common::Bitmap *thispic, std::shared_ptr<AGS::Common::Stream> out);
 // On Windows we could just use IIDFromString but this is platform-independant
 void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffer);
-Common::Bitmap *read_serialized_bitmap(Common::Stream *in);
-void skip_serialized_bitmap(Common::Stream *in);
-long write_screen_shot_for_vista(Common::Stream *out, Common::Bitmap *screenshot);
+Common::Bitmap *read_serialized_bitmap(std::shared_ptr<AGS::Common::Stream> in);
+void skip_serialized_bitmap(std::shared_ptr<AGS::Common::Stream> in);
+long write_screen_shot_for_vista(std::shared_ptr<AGS::Common::Stream> out, Common::Bitmap *screenshot);
 
 bool is_in_cutscene();
 CutsceneSkipStyle get_cutscene_skipstyle();

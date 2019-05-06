@@ -115,7 +115,7 @@ void GUIObject::SetVisible(bool on)
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUIObject::WriteToFile(Stream *out) const
+void GUIObject::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteInt32(Flags);
     out->WriteInt32(X);
@@ -129,7 +129,7 @@ void GUIObject::WriteToFile(Stream *out) const
         EventHandlers[i].Write(out);
 }
 
-void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUIObject::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version)
 {
     Flags    = in->ReadInt32();
     // reverse particular flags from older format
@@ -167,7 +167,7 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 }
 
-void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
+void GUIObject::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_ver)
 {
     // Properties
     Flags = in->ReadInt32();
@@ -183,7 +183,7 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     IsActivated = in->ReadBool() ? 1 : 0;
 }
 
-void GUIObject::WriteToSavegame(Stream *out) const
+void GUIObject::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     // Properties
     out->WriteInt32(Flags);

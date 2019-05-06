@@ -68,11 +68,10 @@ AssetManager::~AssetManager()
 
 /* static */ bool AssetManager::IsDataFile(const String &data_file)
 {
-    Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
+    std::shared_ptr<AGS::Common::Stream> in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
     if (in)
     {
         MFLUtil::MFLError err = MFLUtil::TestIsMFL(in, true);
-        delete in;
         return err == MFLUtil::kMFLNoError;
     }
     return false;
@@ -80,11 +79,10 @@ AssetManager::~AssetManager()
 
 AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &lib)
 {
-    Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
+    std::shared_ptr<AGS::Common::Stream> in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
     if (in)
     {
         MFLUtil::MFLError err = MFLUtil::ReadHeader(lib, in);
-        delete in;
         return (err != MFLUtil::kMFLNoError) ? kAssetErrLibParse : kAssetNoError;
     }
     return kAssetErrNoLibFile;
@@ -160,7 +158,7 @@ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &
     return _theAssetManager->_DoesAssetExist(asset_name);
 }
 
-/* static */ Stream *AssetManager::OpenAsset(const String &asset_name,
+/* static */ std::shared_ptr<AGS::Common::Stream> AssetManager::OpenAsset(const String &asset_name,
                                                   FileOpenMode open_mode,
                                                   FileWorkMode work_mode)
 {
@@ -288,14 +286,14 @@ AssetError AssetManager::RegisterAssetLib(const String &data_file, const String 
     _basePath = ".";
 
     // open data library
-    Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
+    std::shared_ptr<AGS::Common::Stream> in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
     if (!in)
         return kAssetErrNoLibFile; // can't be opened, return error code
 
     // read MultiFileLibrary header (CLIB)
     // PSP: allocate struct on the heap to avoid overflowing the stack.
     MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(_assetLib, in);
-    delete in;
+    in = nullptr;
 
     if (mfl_err != MFLUtil::kMFLNoError)
     {
@@ -391,12 +389,12 @@ bool AssetManager::GetAssetByPriority(const String &asset_name, AssetLocation &l
     return false;
 }
 
-Stream *AssetManager::OpenAssetAsStream(const String &asset_name, FileOpenMode open_mode, FileWorkMode work_mode)
+std::shared_ptr<AGS::Common::Stream> AssetManager::OpenAssetAsStream(const String &asset_name, FileOpenMode open_mode, FileWorkMode work_mode)
 {
     AssetLocation loc;
     if (GetAssetByPriority(asset_name, loc, open_mode, work_mode))
     {
-        Stream *s = File::OpenFile(loc.FileName, open_mode, work_mode);
+        std::shared_ptr<AGS::Common::Stream> s = File::OpenFile(loc.FileName, open_mode, work_mode);
         if (s)
         {
             s->Seek(loc.Offset, kSeekBegin);

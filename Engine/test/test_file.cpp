@@ -17,7 +17,7 @@
 
 #include <string.h>
 #include "debug/assert.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 #include "util/file.h"
 
 using namespace AGS::Common;
@@ -53,7 +53,7 @@ void Test_File()
 {
     //-----------------------------------------------------
     // Operations
-    Stream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
+    std::shared_ptr<AGS::Common::Stream> out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
@@ -130,13 +130,14 @@ void Test_File()
 #endif
     }
 
+    // Test that FinalizeBlock does its job
     out->WriteInt32(20);
 
-    delete out;
+    out = nullptr;
 
     //-------------------------------------------------------------------------
 
-    Stream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
+    std::shared_ptr<AGS::Common::Stream> in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
 
     int16_t int16val    = in->ReadInt16();
     int64_t int64val    = in->ReadInt64();
@@ -146,35 +147,36 @@ void Test_File()
     TTrickyAlignedData tricky_data_in;
     memset(&tricky_data_in, 0xAA, sizeof(tricky_data_in));
     {
-        AlignedStream as(in, AGS::Common::kAligned_Read);
-        tricky_data_in.a = as.ReadInt8();
-        tricky_data_in.b = as.ReadInt32();
-        tricky_data_in.c = as.ReadInt32();
-        as.ReadArrayOfInt16(tricky_data_in.d, 3);
-        tricky_data_in.e = as.ReadInt32();
-        as.Read(tricky_data_in.f, 17);
-        as.ReadArrayOfInt32(tricky_data_in.g, 4);
-        as.ReadArrayOfInt16(tricky_data_in.h, 13);
-        as.Read(tricky_data_in.i, 3);
-        tricky_data_in.j = as.ReadInt16();
-        tricky_data_in.k = as.ReadInt32();
-        tricky_data_in.l = as.ReadInt16();
-        tricky_data_in.m = as.ReadInt16();
-        tricky_data_in.n = as.ReadInt32();
-        tricky_data_in.i64a = as.ReadInt64();
-        tricky_data_in.o = as.ReadInt8();
-        tricky_data_in.i64b = as.ReadInt64();
-        tricky_data_in.p = as.ReadInt16();
-        tricky_data_in.i64c = as.ReadInt64();
-        tricky_data_in.q = as.ReadInt16();
-        tricky_data_in.r = as.ReadInt16();
-        tricky_data_in.i64d = as.ReadInt64();
-        tricky_data_in.final = as.ReadInt8();
+        auto as = std::make_shared<AlignedStream>(in, AGS::Common::kAligned_Read);
+        tricky_data_in.a = as->ReadInt8();
+        tricky_data_in.b = as->ReadInt32();
+        tricky_data_in.c = as->ReadInt32();
+        as->ReadArrayOfInt16(tricky_data_in.d, 3);
+        tricky_data_in.e = as->ReadInt32();
+        as->Read(tricky_data_in.f, 17);
+        as->ReadArrayOfInt32(tricky_data_in.g, 4);
+        as->ReadArrayOfInt16(tricky_data_in.h, 13);
+        as->Read(tricky_data_in.i, 3);
+        tricky_data_in.j = as->ReadInt16();
+        tricky_data_in.k = as->ReadInt32();
+        tricky_data_in.l = as->ReadInt16();
+        tricky_data_in.m = as->ReadInt16();
+        tricky_data_in.n = as->ReadInt32();
+        tricky_data_in.i64a = as->ReadInt64();
+        tricky_data_in.o = as->ReadInt8();
+        tricky_data_in.i64b = as->ReadInt64();
+        tricky_data_in.p = as->ReadInt16();
+        tricky_data_in.i64c = as->ReadInt64();
+        tricky_data_in.q = as->ReadInt16();
+        tricky_data_in.r = as->ReadInt16();
+        tricky_data_in.i64d = as->ReadInt64();
+        tricky_data_in.final = as->ReadInt8();
     }
 
+    // Test that FinalizeBlock does its job
     int32_t int32val    = in->ReadInt32();
 
-    delete in;
+    in = nullptr;
 
     File::DeleteFile("test.tmp");
 

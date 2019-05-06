@@ -82,9 +82,8 @@
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 #include "util/directory.h"
-#include "util/filestream.h" // TODO: needed only because plugins expect file handle
 #include "util/path.h"
 #include "util/string_utils.h"
 
@@ -441,18 +440,18 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
     // copy the Restart Game file, if applicable
     char restartGamePath[260];
     sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
-    Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
+    std::shared_ptr<AGS::Common::Stream> restartGameFile = Common::File::OpenFileRead(restartGamePath);
     if (restartGameFile != nullptr)
 	{
         long fileSize = restartGameFile->GetLength();
         char *mbuffer = (char*)malloc(fileSize);
         restartGameFile->Read(mbuffer, fileSize);
-        delete restartGameFile;
+        restartGameFile = nullptr;
 
         sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
         restartGameFile = Common::File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
-        delete restartGameFile;
+        restartGameFile = nullptr;
         free(mbuffer);
     }
 
@@ -915,7 +914,7 @@ ScriptCamera* Game_GetAnyCamera(int index)
 
 
 
-void serialize_bitmap(const Common::Bitmap *thispic, Stream *out) {
+void serialize_bitmap(const Common::Bitmap *thispic, std::shared_ptr<AGS::Common::Stream> out) {
     if (thispic != nullptr) {
         out->WriteInt32(thispic->GetWidth());
         out->WriteInt32(thispic->GetHeight());
@@ -969,7 +968,7 @@ void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffe
     temp = buffer[6]; buffer[6] = buffer[7]; buffer[7] = temp;
 }
 
-Bitmap *read_serialized_bitmap(Stream *in) {
+Bitmap *read_serialized_bitmap(std::shared_ptr<AGS::Common::Stream> in) {
     Bitmap *thispic;
     int picwid = in->ReadInt32();
     int pichit = in->ReadInt32();
@@ -998,7 +997,7 @@ Bitmap *read_serialized_bitmap(Stream *in) {
     return thispic;
 }
 
-void skip_serialized_bitmap(Stream *in)
+void skip_serialized_bitmap(std::shared_ptr<AGS::Common::Stream> in)
 {
     int picwid = in->ReadInt32();
     int pichit = in->ReadInt32();
@@ -1008,7 +1007,7 @@ void skip_serialized_bitmap(Stream *in)
     in->Seek(picwid * pichit * bpp);
 }
 
-long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
+long write_screen_shot_for_vista(std::shared_ptr<AGS::Common::Stream> out, Bitmap *screenshot)
 {
     long fileSize = 0;
     char tempFileName[MAX_PATH];
@@ -1023,9 +1022,9 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
         fileSize = file_size_ex(tempFileName);
         char *buffer = (char*)malloc(fileSize);
 
-        Stream *temp_in = Common::File::OpenFileRead(tempFileName);
+        std::shared_ptr<AGS::Common::Stream> temp_in = Common::File::OpenFileRead(tempFileName);
         temp_in->Read(buffer, fileSize);
-        delete temp_in;
+        temp_in = nullptr;
         ::remove(tempFileName);
 
         out->Write(buffer, fileSize);
@@ -1034,10 +1033,10 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
     return fileSize;
 }
 
-void WriteGameSetupStructBase_Aligned(Stream *out)
+void WriteGameSetupStructBase_Aligned(std::shared_ptr<AGS::Common::Stream> out)
 {
-    AlignedStream align_s(out, Common::kAligned_Write);
-    game.GameSetupStructBase::WriteToFile(&align_s);
+    auto align_s = std::make_shared<AlignedStream>(out, Common::kAligned_Write);
+    game.GameSetupStructBase::WriteToFile(align_s);
 }
 
 #define MAGICNUMBER 0xbeefcafe
@@ -1097,11 +1096,11 @@ void save_game(int slotn, const char*descript) {
     if (screenShot != nullptr)
     {
         int screenShotOffset = out->GetPosition() - sizeof(RICH_GAME_MEDIA_HEADER);
-        int screenShotSize = write_screen_shot_for_vista(out.get(), screenShot);
+        int screenShotSize = write_screen_shot_for_vista(out, screenShot);
 
         update_polled_stuff_if_runtime();
 
-        out.reset(Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite));
+        out = Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite);
         out->Seek(12, kSeekBegin);
         out->WriteInt32(screenShotOffset);
         out->Seek(4);
@@ -1114,7 +1113,7 @@ void save_game(int slotn, const char*descript) {
 
 char rbuffer[200];
 
-HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
+HSaveError restore_game_head_dynamic_values(std::shared_ptr<AGS::Common::Stream> in, RestoredData &r_data)
 {
     r_data.FPS = in->ReadInt32();
     r_data.CursorMode = in->ReadInt32();
@@ -1129,7 +1128,7 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     return HSaveError::None();
 }
 
-void restore_game_spriteset(Stream *in)
+void restore_game_spriteset(std::shared_ptr<AGS::Common::Stream> in)
 {
     // ensure the sprite set is at least as large as it was
     // when the game was saved
@@ -1144,7 +1143,7 @@ void restore_game_spriteset(Stream *in)
     }
 }
 
-HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredData &r_data)
+HSaveError restore_game_scripts(std::shared_ptr<AGS::Common::Stream> in, const PreservedParams &pp, RestoredData &r_data)
 {
     // read the global script data segment
     int gdatasize = in->ReadInt32();
@@ -1175,13 +1174,13 @@ HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredD
     return HSaveError::None();
 }
 
-void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in)
+void ReadRoomStatus_Aligned(RoomStatus *roomstat, std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
-    roomstat->ReadFromFile_v321(&align_s);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
+    roomstat->ReadFromFile_v321(align_s);
 }
 
-void restore_game_room_state(Stream *in)
+void restore_game_room_state(std::shared_ptr<AGS::Common::Stream> in)
 {
     int vv;
 
@@ -1211,13 +1210,13 @@ void restore_game_room_state(Stream *in)
     }
 }
 
-void ReadGameState_Aligned(Stream *in)
+void ReadGameState_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
-    play.ReadFromSavegame(&align_s, kGSSvgVersion_OldFormat);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
+    play.ReadFromSavegame(align_s, kGSSvgVersion_OldFormat);
 }
 
-void restore_game_play_ex_data(Stream *in)
+void restore_game_play_ex_data(std::shared_ptr<AGS::Common::Stream> in)
 {
     for (size_t i = 0; i < play.do_once_tokens.size(); ++i)
     {
@@ -1228,7 +1227,7 @@ void restore_game_play_ex_data(Stream *in)
     in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
-void restore_game_play(Stream *in)
+void restore_game_play(std::shared_ptr<AGS::Common::Stream> in)
 {
     int screenfadedout_was = play.screen_is_faded_out;
     int roomchanges_was = play.room_changes;
@@ -1244,45 +1243,45 @@ void restore_game_play(Stream *in)
     restore_game_play_ex_data(in);
 }
 
-void ReadMoveList_Aligned(Stream *in)
+void ReadMoveList_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters + MAX_ROOM_OBJECTS + 1; ++i)
     {
-        mls[i].ReadFromFile_Legacy(&align_s);
+        mls[i].ReadFromFile_Legacy(align_s);
 
-        align_s.Reset();
+        align_s->Reset();
     }
 }
 
-void ReadGameSetupStructBase_Aligned(Stream *in)
+void ReadGameSetupStructBase_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
-    game.GameSetupStructBase::ReadFromFile(&align_s);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
+    game.GameSetupStructBase::ReadFromFile(align_s);
 }
 
-void ReadCharacterExtras_Aligned(Stream *in)
+void ReadCharacterExtras_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        charextra[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        charextra[i].ReadFromFile(align_s);
+        align_s->Reset();
     }
 }
 
-void restore_game_palette(Stream *in)
+void restore_game_palette(std::shared_ptr<AGS::Common::Stream> in)
 {
     in->ReadArray(&palette[0],sizeof(color),256);
 }
 
-void restore_game_dialogs(Stream *in)
+void restore_game_dialogs(std::shared_ptr<AGS::Common::Stream> in)
 {
     for (int vv=0;vv<game.numdialog;vv++)
         in->ReadArrayOfInt32(&dialog[vv].optionflags[0],MAXTOPICOPTIONS);
 }
 
-void restore_game_more_dynamic_values(Stream *in)
+void restore_game_more_dynamic_values(std::shared_ptr<AGS::Common::Stream> in)
 {
     mouse_on_iface=in->ReadInt32();
     in->ReadInt32(); // mouse_on_iface_button
@@ -1291,17 +1290,17 @@ void restore_game_more_dynamic_values(Stream *in)
     game_paused=in->ReadInt32();
 }
 
-void ReadAnimatedButtons_Aligned(Stream *in)
+void ReadAnimatedButtons_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     for (int i = 0; i < numAnimButs; ++i)
     {
-        animbuts[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        animbuts[i].ReadFromFile(align_s);
+        align_s->Reset();
     }
 }
 
-HSaveError restore_game_gui(Stream *in, int numGuisWas)
+HSaveError restore_game_gui(std::shared_ptr<AGS::Common::Stream> in, int numGuisWas)
 {
     HError err = GUI::ReadGUI(guis, in, true);
     if (!err)
@@ -1318,7 +1317,7 @@ HSaveError restore_game_gui(Stream *in, int numGuisWas)
     return HSaveError::None();
 }
 
-HSaveError restore_game_audiocliptypes(Stream *in)
+HSaveError restore_game_audiocliptypes(std::shared_ptr<AGS::Common::Stream> in)
 {
     if (in->ReadInt32() != game.audioClipTypeCount)
     {
@@ -1332,7 +1331,7 @@ HSaveError restore_game_audiocliptypes(Stream *in)
     return HSaveError::None();
 }
 
-void restore_game_thisroom(Stream *in, RestoredData &r_data)
+void restore_game_thisroom(std::shared_ptr<AGS::Common::Stream> in, RestoredData &r_data)
 {
     in->ReadArrayOfInt16(r_data.RoomLightLevels, MAX_ROOM_REGIONS);
     in->ReadArrayOfInt32(r_data.RoomTintLevels, MAX_ROOM_REGIONS);
@@ -1340,7 +1339,7 @@ void restore_game_thisroom(Stream *in, RestoredData &r_data)
     in->ReadArrayOfInt16(r_data.RoomZoomLevels2, MAX_WALK_AREAS + 1);
 }
 
-void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
+void restore_game_ambientsounds(std::shared_ptr<AGS::Common::Stream> in, RestoredData &r_data)
 {
     for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
     {
@@ -1357,17 +1356,17 @@ void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
     }
 }
 
-void ReadOverlays_Aligned(Stream *in)
+void ReadOverlays_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     for (int i = 0; i < numscreenover; ++i)
     {
-        screenover[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        screenover[i].ReadFromFile(align_s);
+        align_s->Reset();
     }
 }
 
-void restore_game_overlays(Stream *in)
+void restore_game_overlays(std::shared_ptr<AGS::Common::Stream> in)
 {
     numscreenover = in->ReadInt32();
     ReadOverlays_Aligned(in);
@@ -1377,7 +1376,7 @@ void restore_game_overlays(Stream *in)
     }
 }
 
-void restore_game_dynamic_surfaces(Stream *in, RestoredData &r_data)
+void restore_game_dynamic_surfaces(std::shared_ptr<AGS::Common::Stream> in, RestoredData &r_data)
 {
     // load into a temp array since ccUnserialiseObjects will destroy
     // it otherwise
@@ -1395,7 +1394,7 @@ void restore_game_dynamic_surfaces(Stream *in, RestoredData &r_data)
     }
 }
 
-void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
+void restore_game_displayed_room_status(std::shared_ptr<AGS::Common::Stream> in, RestoredData &r_data)
 {
     int bb;
     for (bb = 0; bb < MAX_ROOM_BGFRAMES; bb++)
@@ -1426,7 +1425,7 @@ void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
     }
 }
 
-HSaveError restore_game_globalvars(Stream *in)
+HSaveError restore_game_globalvars(std::shared_ptr<AGS::Common::Stream> in)
 {
     if (in->ReadInt32() != numGlobalVars)
     {
@@ -1440,7 +1439,7 @@ HSaveError restore_game_globalvars(Stream *in)
     return HSaveError::None();
 }
 
-HSaveError restore_game_views(Stream *in)
+HSaveError restore_game_views(std::shared_ptr<AGS::Common::Stream> in)
 {
     if (in->ReadInt32() != game.numviews)
     {
@@ -1459,7 +1458,7 @@ HSaveError restore_game_views(Stream *in)
     return HSaveError::None();
 }
 
-HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
+HSaveError restore_game_audioclips_and_crossfade(std::shared_ptr<AGS::Common::Stream> in, RestoredData &r_data)
 {
     if (in->ReadInt32() != game.audioClipCount)
     {
@@ -1499,7 +1498,7 @@ HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_dat
     return HSaveError::None();
 }
 
-HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+HSaveError restore_game_data(std::shared_ptr<AGS::Common::Stream> in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
 {
     int vv;
 

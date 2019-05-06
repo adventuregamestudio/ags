@@ -15,6 +15,8 @@
 #ifndef __AC_GUIMAIN_H
 #define __AC_GUIMAIN_H
 
+#include <memory>
+
 #include <vector>
 #include "ac/common_defines.h" // TODO: split out gui drawing helpers
 #include "gfx/gfx_def.h" // TODO: split out gui drawing helpers
@@ -134,12 +136,12 @@ public:
     void    OnControlPositionChanged();
   
     // Serialization
-    void    ReadFromFile(Stream *in, GuiVersion gui_version);
-    void    WriteToFile(Stream *out) const;
+    void    ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version);
+    void    WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const;
     // TODO: move to engine, into gui savegame component unit
     // (should read/write GUI properties accessing them by interface)
-    void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_version);
-    void    WriteToSavegame(Stream *out) const;
+    void    ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_version);
+    void    WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const;
 
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
@@ -198,8 +200,8 @@ namespace GUI
 
     // TODO: remove is_savegame param after dropping support for old saves
     // because only they use ReadGUI to read runtime GUI data
-    HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame = false);
-    void WriteGUI(const std::vector<GUIMain> &guis, Stream *out);
+    HError ReadGUI(std::vector<GUIMain> &guis, std::shared_ptr<AGS::Common::Stream> in, bool is_savegame = false);
+    void WriteGUI(const std::vector<GUIMain> &guis, std::shared_ptr<AGS::Common::Stream> out);
     // Converts legacy GUIVisibility into appropriate GUIMain properties
     void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);
 }

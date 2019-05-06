@@ -52,16 +52,16 @@ public:
     int numSections;
     int capacitySections;
 
-    static ccScript *CreateFromStream(Common::Stream *in);
+    static ccScript *CreateFromStream(std::shared_ptr<AGS::Common::Stream> in);
 
     ccScript();
     ccScript(const ccScript &src);
     virtual ~ccScript(); // there are few derived classes, so dtor should be virtual
 
     // write the script to disk (after compiling)
-    void        Write(Common::Stream *out);
+    void        Write(std::shared_ptr<AGS::Common::Stream> out);
     // read back a script written with Write
-    bool        Read(Common::Stream *in);
+    bool        Read(std::shared_ptr<AGS::Common::Stream> in);
     const char* GetSectionName(int32_t offset);
 
 protected:

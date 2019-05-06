@@ -26,7 +26,7 @@
 #include "game/roomstruct.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -427,7 +427,7 @@ bool GameState::ShouldPlayVoiceSpeech() const
         (play.want_speech >= 1) && (!ResPaths.SpeechPak.Name.IsEmpty());
 }
 
-void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)
+void GameState::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GameStateSvgVersion svg_ver)
 {
     const bool old_save = svg_ver < kGSSvgVersion_Initial;
     score = in->ReadInt32();
@@ -661,7 +661,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     }
 }
 
-void GameState::WriteForSavegame(Common::Stream *out) const
+void GameState::WriteForSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     // NOTE: following parameters are never saved:
     // recording, playback, gamestep, screen_is_faded_out, room_changes
@@ -845,13 +845,13 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(voice_speech_flags);
 }
 
-void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)
+void GameState::ReadQueuedAudioItems_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        new_music_queue[i].ReadFromFile(align_s);
+        align_s->Reset();
     }
 }
 
@@ -882,7 +882,7 @@ void GameState::FreeViewportsAndCameras()
     _scCameraRefs.clear();
 }
 
-void GameState::ReadCustomProperties_v340(Common::Stream *in)
+void GameState::ReadCustomProperties_v340(std::shared_ptr<AGS::Common::Stream> in)
 {
     if (loaded_game_file_version >= kGameVersion_340_4)
     {
@@ -897,7 +897,7 @@ void GameState::ReadCustomProperties_v340(Common::Stream *in)
     }
 }
 
-void GameState::WriteCustomProperties_v340(Common::Stream *out) const
+void GameState::WriteCustomProperties_v340(std::shared_ptr<AGS::Common::Stream> out) const
 {
     if (loaded_game_file_version >= kGameVersion_340_4)
     {

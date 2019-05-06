@@ -514,7 +514,7 @@ void GUIMain::OnMouseButtonUp()
     guis_need_update = 1;
 }
 
-void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUIMain::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version)
 {
     // Legacy text window tag
     char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
@@ -589,7 +589,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
         in->Seek((LEGACY_MAX_OBJS_ON_GUI - ctrl_count) * sizeof(int32_t));
 }
 
-void GUIMain::WriteToFile(Stream *out) const
+void GUIMain::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     StrUtil::WriteString(Name, out);
     StrUtil::WriteString(OnClickHandler, out);
@@ -615,7 +615,7 @@ void GUIMain::WriteToFile(Stream *out) const
     }
 }
 
-void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
+void GUIMain::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_version)
 {
     // Properties
     _flags = in->ReadInt32();
@@ -650,7 +650,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     MouseWasAt.Y = in->ReadInt32();
 }
 
-void GUIMain::WriteToSavegame(Common::Stream *out) const
+void GUIMain::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     // Properties
     out->WriteInt32(_flags);
@@ -730,7 +730,7 @@ HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
     return HError::None();
 }
 
-HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
+HError ReadGUI(std::vector<GUIMain> &guis, std::shared_ptr<AGS::Common::Stream> in, bool is_savegame)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
@@ -850,7 +850,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, Stream *in, bool is_savegame)
     return ResortGUI(guis, GameGuiVersion < kGuiVersion_272e);
 }
 
-void WriteGUI(const std::vector<GUIMain> &guis, Stream *out)
+void WriteGUI(const std::vector<GUIMain> &guis, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(GUIMAGIC);
     out->WriteInt32(kGuiVersion_Current);

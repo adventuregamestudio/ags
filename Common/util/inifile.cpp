@@ -201,7 +201,7 @@ IniFile::IniFile()
     _sections.push_back(SectionDef(""));
 }
 
-void IniFile::Read(Stream *in)
+void IniFile::Read(std::shared_ptr<AGS::Common::Stream> in)
 {
     TextStreamReader reader(in);
     
@@ -284,7 +284,7 @@ void IniFile::Read(Stream *in)
     reader.ReleaseStream();
 }
 
-void IniFile::Write(Stream *out) const
+void IniFile::Write(std::shared_ptr<AGS::Common::Stream> out) const
 {
     TextStreamWriter writer(out);
     for (ConstSectionIterator sec = _sections.begin(); sec != _sections.end(); ++sec)

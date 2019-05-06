@@ -19,7 +19,7 @@ using AGS::Common::Stream;
 
 MouseCursor::MouseCursor() { pic = 2054; hotx = 0; hoty = 0; name[0] = 0; flags = 0; view = -1; }
 
-void MouseCursor::ReadFromFile(Stream *in)
+void MouseCursor::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     pic = in->ReadInt32();
     hotx = in->ReadInt16();
@@ -29,7 +29,7 @@ void MouseCursor::ReadFromFile(Stream *in)
     flags = in->ReadInt8();
 }
 
-void MouseCursor::WriteToFile(Stream *out)
+void MouseCursor::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(pic);
     out->WriteInt16(hotx);
@@ -39,7 +39,7 @@ void MouseCursor::WriteToFile(Stream *out)
     out->WriteInt8(flags);
 }
 
-void MouseCursor::ReadFromSavegame(Stream *in)
+void MouseCursor::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in)
 {
     pic = in->ReadInt32();
     hotx = in->ReadInt32();
@@ -48,7 +48,7 @@ void MouseCursor::ReadFromSavegame(Stream *in)
     flags = in->ReadInt32();
 }
 
-void MouseCursor::WriteToSavegame(Stream *out) const
+void MouseCursor::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteInt32(pic);
     out->WriteInt32(hotx);

@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__SCREENOVERLAY_H
 #define __AGS_EE_AC__SCREENOVERLAY_H
 
+#include <memory>
+
 // Forward declaration
 namespace AGS { namespace Common { class Bitmap; class Stream; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
@@ -34,8 +36,8 @@ struct ScreenOverlay {
     bool positionRelativeToScreen;
     bool hasSerializedBitmap;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out);
 };
 
 #endif // __AGS_EE_AC__SCREENOVERLAY_H

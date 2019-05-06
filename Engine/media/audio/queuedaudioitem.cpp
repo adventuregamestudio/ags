@@ -21,7 +21,7 @@ using AGS::Common::Stream;
 // [IKM] 2012-07-02: these functions are used during load/save game,
 // and read/written as-is, hence cachedClip pointer should be serialized
 // simply like pointer (although that probably does not mean much sense?)
-void QueuedAudioItem::ReadFromFile(Stream *in)
+void QueuedAudioItem::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     audioClipIndex = in->ReadInt16();
     priority = in->ReadInt16();
@@ -29,7 +29,7 @@ void QueuedAudioItem::ReadFromFile(Stream *in)
     in->ReadInt32(); // cachedClip
 }
 
-void QueuedAudioItem::WriteToFile(Stream *out) const
+void QueuedAudioItem::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteInt16(audioClipIndex);
     out->WriteInt16(priority);

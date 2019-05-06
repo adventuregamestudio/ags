@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void DialogTopic::ReadFromFile(Stream *in)
+void DialogTopic::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     in->ReadArray(optionnames, 150*sizeof(char), MAXTOPICOPTIONS);
     in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
@@ -31,12 +31,12 @@ void DialogTopic::ReadFromFile(Stream *in)
     topicFlags = in->ReadInt32();
 }
 
-void DialogTopic::ReadFromSavegame(Common::Stream *in)
+void DialogTopic::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in)
 {
     in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
 }
 
-void DialogTopic::WriteToSavegame(Common::Stream *out) const
+void DialogTopic::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteArrayOfInt32(optionflags, MAXTOPICOPTIONS);
 }

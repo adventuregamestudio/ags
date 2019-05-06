@@ -72,7 +72,7 @@ void GUILabel::SetText(const String &text)
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUILabel::WriteToFile(Stream *out) const
+void GUILabel::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToFile(out);
     StrUtil::WriteString(Text, out);
@@ -81,7 +81,7 @@ void GUILabel::WriteToFile(Stream *out) const
     out->WriteInt32(TextAlignment);
 }
 
-void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUILabel::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
 
@@ -103,7 +103,7 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
     Flags |= kGUICtrl_Translated;
 }
 
-void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
+void GUILabel::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
     Font = in->ReadInt32();
@@ -113,7 +113,7 @@ void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         TextAlignment = (HorAlignment)in->ReadInt32();
 }
 
-void GUILabel::WriteToSavegame(Stream *out) const
+void GUILabel::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToSavegame(out);
     out->WriteInt32(Font);

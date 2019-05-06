@@ -74,8 +74,8 @@ struct InteractionValue
 
     InteractionValue();
 
-    void Read(Stream *in);
-    void Write(Stream *out) const;
+    void Read(std::shared_ptr<AGS::Common::Stream> in);
+    void Write(std::shared_ptr<AGS::Common::Stream> out) const;
 };
 
 
@@ -96,14 +96,14 @@ struct InteractionCommand
     void Assign(const InteractionCommand &ic, InteractionCommandList *parent);
     void Reset();
 
-    void Read_v321(Stream *in, bool &has_children);
-    void Write_v321(Stream *out) const;
+    void Read_v321(std::shared_ptr<AGS::Common::Stream> in, bool &has_children);
+    void Write_v321(std::shared_ptr<AGS::Common::Stream> out) const;
 
     InteractionCommand &operator = (const InteractionCommand &ic);
 
 private:
-    void ReadValues_Aligned(Stream *in);
-    void WriteValues_Aligned(Stream *out) const;
+    void ReadValues_Aligned(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteValues_Aligned(std::shared_ptr<AGS::Common::Stream> out) const;
 };
 
 
@@ -120,12 +120,12 @@ struct InteractionCommandList
 
     void Reset();
 
-    void Read_v321(Stream *in);
-    void Write_v321(Stream *out) const;
+    void Read_v321(std::shared_ptr<AGS::Common::Stream> in);
+    void Write_v321(std::shared_ptr<AGS::Common::Stream> out) const;
 
 protected:
-    void Read_Aligned(Common::Stream *in, std::vector<bool> &cmd_children);
-    void Write_Aligned(Common::Stream *out) const;
+    void Read_Aligned(std::shared_ptr<AGS::Common::Stream> in, std::vector<bool> &cmd_children);
+    void Write_Aligned(std::shared_ptr<AGS::Common::Stream> out) const;
 };
 
 
@@ -158,16 +158,16 @@ struct Interaction
     void Reset();
 
     // Game static data (de)serialization
-    static Interaction *CreateFromStream(Stream *in);
-    void                Write(Stream *out) const;
+    static Interaction *CreateFromStream(std::shared_ptr<AGS::Common::Stream> in);
+    void                Write(std::shared_ptr<AGS::Common::Stream> out) const;
 
     // Reading and writing runtime data from/to savedgame;
     // NOTE: these are backwards-compatible methods, that do not always
     // have practical sense
-    void ReadFromSavedgame_v321(Stream *in);
-    void WriteToSavedgame_v321(Stream *out) const;
-    void ReadTimesRunFromSave_v321(Stream *in);
-    void WriteTimesRunToSave_v321(Stream *out) const;
+    void ReadFromSavedgame_v321(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToSavedgame_v321(std::shared_ptr<AGS::Common::Stream> out) const;
+    void ReadTimesRunFromSave_v321(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteTimesRunToSave_v321(std::shared_ptr<AGS::Common::Stream> out) const;
 
     Interaction &operator =(const Interaction &inter);
 };
@@ -185,8 +185,8 @@ struct InteractionVariable
     InteractionVariable();
     InteractionVariable(const String &name, char type, int val);
 
-    void Read(Stream *in);
-    void Write(Stream *out) const;
+    void Read(std::shared_ptr<AGS::Common::Stream> in);
+    void Write(std::shared_ptr<AGS::Common::Stream> out) const;
 };
 
 typedef std::vector<InteractionVariable> InterVarVector;
@@ -197,7 +197,7 @@ struct InteractionScripts
 {
     StringV ScriptFuncNames;
 
-    static InteractionScripts *CreateFromStream(Stream *in);
+    static InteractionScripts *CreateFromStream(std::shared_ptr<AGS::Common::Stream> in);
 };
 
 typedef std::shared_ptr<InteractionScripts> PInteractionScripts;

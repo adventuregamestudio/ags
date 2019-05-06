@@ -180,7 +180,7 @@ void GUIButton::OnMouseUp()
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUIButton::WriteToFile(Stream *out) const
+void GUIButton::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToFile(out);
 
@@ -198,7 +198,7 @@ void GUIButton::WriteToFile(Stream *out) const
     out->WriteInt32(TextAlignment);
 }
 
-void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUIButton::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
 
@@ -246,7 +246,7 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     Flags |= kGUICtrl_Translated;
 }
 
-void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
+void GUIButton::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
     // Properties
@@ -262,7 +262,7 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     Image = in->ReadInt32();
 }
 
-void GUIButton::WriteToSavegame(Stream *out) const
+void GUIButton::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     // Properties
     GUIObject::WriteToSavegame(out);

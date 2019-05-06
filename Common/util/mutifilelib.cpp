@@ -37,27 +37,27 @@ namespace MFLUtil
     static const int EncryptionRandSeed  = 9338638;
     static const String EncryptionString = "My\x1\xde\x4Jibzle";
 
-    MFLError ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_version, soff_t *p_abs_offset);
-    MFLError ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
-    MFLError ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
-    MFLError ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
-    MFLError ReadV20(AssetLibInfo &lib, Stream *in);
-    MFLError ReadV21(AssetLibInfo &lib, Stream *in);
-    MFLError ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
+    MFLError ReadSigsAndVersion(std::shared_ptr<AGS::Common::Stream> in, MFLVersion *p_lib_version, soff_t *p_abs_offset);
+    MFLError ReadSingleFileLib(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in, MFLVersion lib_version);
+    MFLError ReadMultiFileLib(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in, MFLVersion lib_version);
+    MFLError ReadV10(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in, MFLVersion lib_version);
+    MFLError ReadV20(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in);
+    MFLError ReadV21(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in);
+    MFLError ReadV30(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in, MFLVersion lib_version);
 
-    void     WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *out);
+    void     WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, std::shared_ptr<AGS::Common::Stream> out);
 
     // Encryption / decryption 
     int      GetNextPseudoRand(int &rand_val);
     void     DecryptText(char *text);
-    void     ReadEncArray(void *data, size_t size, size_t count, Stream *in, int &rand_val);
-    int8_t   ReadEncInt8(Stream *in, int &rand_val);
-    int32_t  ReadEncInt32(Stream *in, int &rand_val);
-    void     ReadEncString(char *buffer, size_t max_len, Stream *in, int &rand_val);
+    void     ReadEncArray(void *data, size_t size, size_t count, std::shared_ptr<AGS::Common::Stream> in, int &rand_val);
+    int8_t   ReadEncInt8(std::shared_ptr<AGS::Common::Stream> in, int &rand_val);
+    int32_t  ReadEncInt32(std::shared_ptr<AGS::Common::Stream> in, int &rand_val);
+    void     ReadEncString(char *buffer, size_t max_len, std::shared_ptr<AGS::Common::Stream> in, int &rand_val);
 };
 
 
-MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)
+MFLUtil::MFLError MFLUtil::TestIsMFL(std::shared_ptr<AGS::Common::Stream> in, bool test_is_main)
 {
     MFLVersion lib_version;
     MFLError err = ReadSigsAndVersion(in, &lib_version, nullptr);
@@ -73,7 +73,7 @@ MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)
     return err;
 }
 
-MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
+MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in)
 {
     MFLVersion lib_version;
     soff_t abs_offset;
@@ -106,7 +106,7 @@ MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
     return err;
 }
 
-MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_version, soff_t *p_abs_offset)
+MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(std::shared_ptr<AGS::Common::Stream> in, MFLVersion *p_lib_version, soff_t *p_abs_offset)
 {
     soff_t abs_offset = 0; // library offset in this file
     String sig;
@@ -161,7 +161,7 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
     return kMFLNoError;
 }
 
-MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version)
+MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in, MFLVersion lib_version)
 {
     int passwmodifier = in->ReadByte();
     in->ReadInt8(); // unused byte
@@ -196,7 +196,7 @@ MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, MFLV
     return kMFLNoError;
 }
 
-MFLUtil::MFLError MFLUtil::ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version)
+MFLUtil::MFLError MFLUtil::ReadMultiFileLib(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in, MFLVersion lib_version)
 {
     if (in->ReadByte() != 0)
         return kMFLErrNoLibBase; // not first datafile in chain
@@ -220,7 +220,7 @@ MFLUtil::MFLError MFLUtil::ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVe
     return ReadV10(lib, in, lib_version);
 }
 
-MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib_version)
+MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in, MFLVersion lib_version)
 {
     // number of clib parts
     size_t mf_count = in->ReadInt32();
@@ -253,7 +253,7 @@ MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib
     return kMFLNoError;
 }
 
-MFLUtil::MFLError MFLUtil::ReadV20(AssetLibInfo &lib, Stream *in)
+MFLUtil::MFLError MFLUtil::ReadV20(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in)
 {
     // number of clib parts
     size_t mf_count = in->ReadInt32();
@@ -287,7 +287,7 @@ MFLUtil::MFLError MFLUtil::ReadV20(AssetLibInfo &lib, Stream *in)
     return kMFLNoError;
 }
 
-MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, Stream *in)
+MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in)
 {
     // init randomizer
     int rand_val = in->ReadInt32() + EncryptionRandSeed;
@@ -320,7 +320,7 @@ MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, Stream *in)
     return kMFLNoError;
 }
 
-MFLUtil::MFLError MFLUtil::ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion /* lib_version */)
+MFLUtil::MFLError MFLUtil::ReadV30(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in, MFLVersion /* lib_version */)
 {
     // NOTE: removed encryption like in v21, because it makes little sense
     // with open-source program. But if really wanted it may be restored
@@ -347,7 +347,7 @@ MFLUtil::MFLError MFLUtil::ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion /* 
     return kMFLNoError;
 }
 
-void MFLUtil::WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out)
+void MFLUtil::WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
     out->WriteByte(lib_version);
@@ -360,7 +360,7 @@ void MFLUtil::WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int l
     }
 }
 
-void MFLUtil::WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *out)
+void MFLUtil::WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(0); // reserved options
     // filenames for all library parts
@@ -381,7 +381,7 @@ void MFLUtil::WriteV30(const AssetLibInfo &lib, MFLVersion lib_version, Stream *
     }
 }
 
-void MFLUtil::WriteEnder(soff_t lib_offset, MFLVersion lib_index, Stream *out)
+void MFLUtil::WriteEnder(soff_t lib_offset, MFLVersion lib_index, std::shared_ptr<AGS::Common::Stream> out)
 {
     if (lib_index < kMFLVersion_MultiV30)
         out->WriteInt32((int32_t)lib_offset);
@@ -413,7 +413,7 @@ int MFLUtil::GetNextPseudoRand(int &rand_val)
         + 2531011L) >> 16) & 0x7fff );
 }
 
-void MFLUtil::ReadEncArray(void *data, size_t size, size_t count, Stream *in, int &rand_val)
+void MFLUtil::ReadEncArray(void *data, size_t size, size_t count, std::shared_ptr<AGS::Common::Stream> in, int &rand_val)
 {
     in->ReadArray(data, size, count);
     uint8_t *ch = (uint8_t*)data;
@@ -424,12 +424,12 @@ void MFLUtil::ReadEncArray(void *data, size_t size, size_t count, Stream *in, in
     }
 }
 
-int8_t MFLUtil::ReadEncInt8(Stream *in, int &rand_val)
+int8_t MFLUtil::ReadEncInt8(std::shared_ptr<AGS::Common::Stream> in, int &rand_val)
 {
     return in->ReadByte() - GetNextPseudoRand(rand_val);
 }
 
-int32_t MFLUtil::ReadEncInt32(Stream *in, int &rand_val)
+int32_t MFLUtil::ReadEncInt32(std::shared_ptr<AGS::Common::Stream> in, int &rand_val)
 {
     int val;
     ReadEncArray(&val, sizeof(int32_t), 1, in, rand_val);
@@ -439,7 +439,7 @@ int32_t MFLUtil::ReadEncInt32(Stream *in, int &rand_val)
     return val;
 }
 
-void MFLUtil::ReadEncString(char *buffer, size_t max_len, Stream *in, int &rand_val)
+void MFLUtil::ReadEncString(char *buffer, size_t max_len, std::shared_ptr<AGS::Common::Stream> in, int &rand_val)
 {
     size_t i = 0;
     while ((i == 0) || (buffer[i - 1] != 0))

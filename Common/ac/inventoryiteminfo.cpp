@@ -18,7 +18,7 @@
 
 using namespace AGS::Common;
 
-void InventoryItemInfo::ReadFromFile(Stream *in)
+void InventoryItemInfo::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     in->Read(name, 25);
     pic = in->ReadInt32();
@@ -29,7 +29,7 @@ void InventoryItemInfo::ReadFromFile(Stream *in)
     flags = in->ReadInt8();
 }
 
-void InventoryItemInfo::WriteToFile(Stream *out)
+void InventoryItemInfo::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->Write(name, 25);
     out->WriteInt32(pic);
@@ -40,14 +40,14 @@ void InventoryItemInfo::WriteToFile(Stream *out)
     out->WriteInt8(flags);
 }
 
-void InventoryItemInfo::ReadFromSavegame(Stream *in)
+void InventoryItemInfo::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in)
 {
     StrUtil::ReadString(name, in, 25);
     pic = in->ReadInt32();
     cursorPic = in->ReadInt32();
 }
 
-void InventoryItemInfo::WriteToSavegame(Stream *out) const
+void InventoryItemInfo::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     StrUtil::WriteString(name, out);
     out->WriteInt32(pic);

@@ -83,10 +83,10 @@ public:
     virtual void    OnResized() { }
 
     // Serialization
-    virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-    virtual void    WriteToFile(Common::Stream *out) const;
-    virtual void    ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
-    virtual void    WriteToSavegame(Common::Stream *out) const;
+    virtual void    ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version);
+    virtual void    WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const;
+    virtual void    ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_ver);
+    virtual void    WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const;
 
 // TODO: these members are currently public; hide them later
 public:

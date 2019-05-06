@@ -118,7 +118,7 @@ void _delete(int z)
   }
 }
 
-void lzwcompress(Stream *lzw_in, Stream *out)
+void lzwcompress(std::shared_ptr<AGS::Common::Stream> lzw_in, std::shared_ptr<AGS::Common::Stream> out)
 {
   int ch, i, run, len, match, size, mask;
   char buf[17];
@@ -194,7 +194,7 @@ void lzwcompress(Stream *lzw_in, Stream *out)
 
 int expand_to_mem = 0;
 unsigned char *membfptr = nullptr;
-void myputc(int ccc, Stream *out)
+void myputc(int ccc, std::shared_ptr<AGS::Common::Stream> out)
 {
   if (maxsize > 0) {
     putbytes++;
@@ -210,7 +210,7 @@ void myputc(int ccc, Stream *out)
     out->WriteInt8(ccc);
 }
 
-void lzwexpand(Stream *lzw_in, Stream *out)
+void lzwexpand(std::shared_ptr<AGS::Common::Stream> lzw_in, std::shared_ptr<AGS::Common::Stream> out)
 {
   int bits, ch, i, j, len, mask;
   char *lzbuffer;
@@ -261,7 +261,7 @@ void lzwexpand(Stream *lzw_in, Stream *out)
   expand_to_mem = 0;
 }
 
-unsigned char *lzwexpand_to_mem(Stream *in)
+unsigned char *lzwexpand_to_mem(std::shared_ptr<AGS::Common::Stream> in)
 {
   unsigned char *membuff = (unsigned char *)malloc(maxsize + 10);
   expand_to_mem = 1;

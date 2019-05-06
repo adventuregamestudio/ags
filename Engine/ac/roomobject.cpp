@@ -149,7 +149,7 @@ void RoomObject::update_cycle_view_backwards()
       }
 }
 
-void RoomObject::ReadFromFile(Stream *in)
+void RoomObject::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     in->ReadArrayOfInt32(&x, 3);
     in->ReadArrayOfInt16(&tint_r, 15);
@@ -157,7 +157,7 @@ void RoomObject::ReadFromFile(Stream *in)
     in->ReadArrayOfInt16(&blocking_width, 2);
 }
 
-void RoomObject::WriteToFile(Stream *out) const
+void RoomObject::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteArrayOfInt32(&x, 3);
     out->WriteArrayOfInt16(&tint_r, 15);

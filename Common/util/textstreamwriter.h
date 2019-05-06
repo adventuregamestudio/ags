@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_UTIL__TEXTSTREAMWRITER_H
 #define __AGS_CN_UTIL__TEXTSTREAMWRITER_H
 
+#include <memory>
+
 #include "util/textwriter.h"
 
 namespace AGS
@@ -31,11 +33,11 @@ class TextStreamWriter : public TextWriter
 {
 public:
     // TODO: use shared ptr
-    TextStreamWriter(Stream *stream);
+    TextStreamWriter(std::shared_ptr<AGS::Common::Stream> stream);
     ~TextStreamWriter() override;
 
     bool    IsValid() const override;
-    const Stream   *GetStream() const;
+    const std::shared_ptr<AGS::Common::Stream> GetStream() const;
     // TODO: use shared ptr instead
     void            ReleaseStream();
 
@@ -52,7 +54,7 @@ public:
     void    WriteLineBreak() override;
 
 private:
-    Stream *_stream;
+    std::shared_ptr<AGS::Common::Stream> _stream;
 };
 
 } // namespace Common

@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
 #define __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
 
+#include <memory>
+
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
@@ -44,7 +46,7 @@ struct ScriptAudioClip {
     short defaultVolume;
     int  reserved;
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
 };
 
 #endif // __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H

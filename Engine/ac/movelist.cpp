@@ -19,7 +19,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-void MoveList::ReadFromFile_Legacy(Stream *in)
+void MoveList::ReadFromFile_Legacy(std::shared_ptr<AGS::Common::Stream> in)
 {
     in->ReadArrayOfInt32(pos, MAXNEEDSTAGES_LEGACY);
     numstage = in->ReadInt32();
@@ -35,7 +35,7 @@ void MoveList::ReadFromFile_Legacy(Stream *in)
     direct = in->ReadInt8();
 }
 
-HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
+HSaveError MoveList::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, int32_t cmp_ver)
 {
     if (cmp_ver < 1)
     {
@@ -66,7 +66,7 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     return HSaveError::None();
 }
 
-void MoveList::WriteToFile(Stream *out)
+void MoveList::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(numstage);
     out->WriteInt32(fromx);

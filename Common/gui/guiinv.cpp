@@ -61,7 +61,7 @@ void GUIInvWindow::OnResized()
     CalculateNumCells();
 }
 
-void GUIInvWindow::WriteToFile(Stream *out) const
+void GUIInvWindow::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(CharId);
@@ -69,7 +69,7 @@ void GUIInvWindow::WriteToFile(Stream *out) const
     out->WriteInt32(ItemHeight);
 }
 
-void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUIInvWindow::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
     if (gui_version >= kGuiVersion_unkn_109)
@@ -102,7 +102,7 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
     CalculateNumCells();
 }
 
-void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
+void GUIInvWindow::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
     ItemWidth = in->ReadInt32();
@@ -112,7 +112,7 @@ void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     CalculateNumCells();
 }
 
-void GUIInvWindow::WriteToSavegame(Stream *out) const
+void GUIInvWindow::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToSavegame(out);
     out->WriteInt32(ItemWidth);

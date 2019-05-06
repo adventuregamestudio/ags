@@ -37,10 +37,10 @@ typedef IniFile::ConstItemIterator    CItemIterator;
 
 static bool ReadIni(const String &file, IniFile &ini)
 {
-    UStream fs(File::OpenFileRead(file));
-    if (fs.get())
+    auto fs = File::OpenFileRead(file);
+    if (fs)
     {
-        ini.Read(fs.get());
+        ini.Read(fs);
         return true;
     }
     return false;
@@ -71,8 +71,8 @@ bool IniUtil::Read(const String &file, ConfigTree &tree)
 
 void IniUtil::Write(const String &file, const ConfigTree &tree)
 {
-    UStream fs(File::CreateFile(file));
-    TextStreamWriter writer(fs.get());
+    auto fs = File::CreateFile(file);
+    TextStreamWriter writer(fs);
 
     for (ConfigNode it_sec = tree.begin(); it_sec != tree.end(); ++it_sec)
     {
@@ -171,10 +171,10 @@ bool IniUtil::Merge(const String &file, const ConfigTree &tree)
     }
 
     // Write the resulting set of lines
-    UStream fs(File::CreateFile(file));
-    if (!fs.get())
+    auto fs = File::CreateFile(file);
+    if (!fs)
         return false;
-    ini.Write(fs.get());
+    ini.Write(fs);
     return true;
 }
 

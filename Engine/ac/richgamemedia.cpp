@@ -4,7 +4,7 @@
 
 using AGS::Common::Stream;
 
-void RICH_GAME_MEDIA_HEADER::ReadFromFile(Stream *in)
+void RICH_GAME_MEDIA_HEADER::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     dwMagicNumber = in->ReadInt32();
     dwHeaderVersion = in->ReadInt32();
@@ -19,7 +19,7 @@ void RICH_GAME_MEDIA_HEADER::ReadFromFile(Stream *in)
     in->ReadArrayOfInt16((int16_t*)szComments, RM_MAXLENGTH);
 }
 
-void RICH_GAME_MEDIA_HEADER::WriteToFile(Stream *out)
+void RICH_GAME_MEDIA_HEADER::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(dwMagicNumber);
     out->WriteInt32(dwHeaderVersion);

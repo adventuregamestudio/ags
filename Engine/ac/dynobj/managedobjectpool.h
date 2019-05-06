@@ -15,6 +15,7 @@
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
+#include <memory>
 #include <vector>
 #include <queue>
 #include <unordered_map>
@@ -68,8 +69,8 @@ public:
     void RunGarbageCollectionIfAppropriate();
     int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object);
     int AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int handle);
-    void WriteToDisk(Common::Stream *out);
-    int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
+    void WriteToDisk(std::shared_ptr<AGS::Common::Stream> out);
+    int ReadFromDisk(std::shared_ptr<AGS::Common::Stream> in, ICCObjectReader *reader);
     void reset();
     ManagedObjectPool();
 

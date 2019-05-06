@@ -48,9 +48,8 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_error.h"
-#include "util/alignedstream.h"
-#include "util/file.h"
 #include "util/stream.h"
+#include "util/file.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
 
@@ -63,8 +62,8 @@ using namespace Common;
 using namespace Engine;
 
 // function is currently implemented in game.cpp
-HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
-void save_game_data(Stream *out);
+HSaveError restore_game_data(std::shared_ptr<AGS::Common::Stream> in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
+void save_game_data(std::shared_ptr<AGS::Common::Stream> out);
 
 extern GameSetupStruct game;
 extern Bitmap **guibg;
@@ -170,20 +169,20 @@ String GetSavegameErrorText(SavegameErrorType err)
     return "Unknown error.";
 }
 
-Bitmap *RestoreSaveImage(Stream *in)
+Bitmap *RestoreSaveImage(std::shared_ptr<AGS::Common::Stream> in)
 {
     if (in->ReadInt32())
         return read_serialized_bitmap(in);
     return nullptr;
 }
 
-void SkipSaveImage(Stream *in)
+void SkipSaveImage(std::shared_ptr<AGS::Common::Stream> in)
 {
     if (in->ReadInt32())
         skip_serialized_bitmap(in);
 }
 
-HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
+HSaveError ReadDescription(std::shared_ptr<AGS::Common::Stream> in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
 {
     svg_ver = (SavegameVersion)in->ReadInt32();
     if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
@@ -226,7 +225,7 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
     return HSaveError::None();
 }
 
-HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
+HSaveError ReadDescription_v321(std::shared_ptr<AGS::Common::Stream> in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
 {
     // Legacy savegame header
     if (elems & kSvgDesc_UserText)
@@ -275,18 +274,18 @@ HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDe
 
 HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
 {
-    UStream in(File::OpenFileRead(filename));
-    if (!in.get())
+    auto in = File::OpenFileRead(filename);
+    if (!in)
         return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
 
     // Skip MS Windows Vista rich media header
     RICH_GAME_MEDIA_HEADER rich_media_header;
-    rich_media_header.ReadFromFile(in.get());
+    rich_media_header.ReadFromFile(in);
 
     // Check saved game signature
     bool is_new_save = false;
     size_t pre_sig_pos = in->GetPosition();
-    String svg_sig = String::FromStreamCount(in.get(), SavegameSource::Signature.GetLength());
+    String svg_sig = String::FromStreamCount(in, SavegameSource::Signature.GetLength());
     if (svg_sig.Compare(SavegameSource::Signature) == 0)
     {
         is_new_save = true;
@@ -294,7 +293,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
     else
     {
         in->Seek(pre_sig_pos, kSeekBegin);
-        svg_sig = String::FromStreamCount(in.get(), SavegameSource::LegacySignature.GetLength());
+        svg_sig = String::FromStreamCount(in, SavegameSource::LegacySignature.GetLength());
         if (svg_sig.Compare(SavegameSource::LegacySignature) != 0)
             return new SavegameError(kSvgErr_SignatureFailed);
     }
@@ -303,9 +302,9 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
     SavegameDescription temp_desc;
     HSaveError err;
     if (is_new_save)
-        err = ReadDescription(in.get(), svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
+        err = ReadDescription(in, svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
     else
-        err = ReadDescription_v321(in.get(), svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
+        err = ReadDescription_v321(in, svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
     if (!err)
         return err;
 
@@ -313,7 +312,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
     {
         src->Filename = filename;
         src->Version = svg_ver;
-        src->InputStream.reset(in.release()); // give the stream away to the caller
+        src->InputStream = std::move(in); // give the stream away to the caller
     }
     if (desc)
     {
@@ -697,14 +696,14 @@ HSaveError RestoreGameState(PStream in, SavegameVersion svg_version)
     if (svg_version >= kSvgVersion_Components)
         err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
     else
-        err = restore_game_data(in.get(), svg_version, pp, r_data);
+        err = restore_game_data(in, svg_version, pp, r_data);
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data);
 }
 
 
-void WriteSaveImage(Stream *out, const Bitmap *screenshot)
+void WriteSaveImage(std::shared_ptr<AGS::Common::Stream> out, const Bitmap *screenshot)
 {
     // store the screenshot at the start to make it easily accesible
     out->WriteInt32((screenshot == nullptr) ? 0 : 1);
@@ -713,7 +712,7 @@ void WriteSaveImage(Stream *out, const Bitmap *screenshot)
         serialize_bitmap(screenshot, out);
 }
 
-void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image)
+void WriteDescription(std::shared_ptr<AGS::Common::Stream> out, const String &user_text, const Bitmap *user_image)
 {
     // Data format version
     out->WriteInt32(kSvgVersion_Current);
@@ -732,7 +731,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
 
 PStream StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image)
 {
-    Stream *out = Common::File::CreateFile(filename);
+    std::shared_ptr<AGS::Common::Stream> out = Common::File::CreateFile(filename);
     if (!out)
         return PStream();
 

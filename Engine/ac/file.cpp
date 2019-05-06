@@ -121,7 +121,7 @@ void File_WriteRawLine(sc_File *fil, const char *towrite) {
 }
 
 void File_ReadRawLine(sc_File *fil, char* buffer) {
-  Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadRawLine");
+  std::shared_ptr<AGS::Common::Stream> in = get_valid_file_stream_from_handle(fil->handle, "File.ReadRawLine");
   check_strlen(buffer);
   int i = 0;
   while (i < MAXSTRLEN - 1) {
@@ -151,7 +151,7 @@ void File_ReadString(sc_File *fil, char *toread) {
 }
 
 const char* File_ReadStringBack(sc_File *fil) {
-  Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadStringBack");
+  std::shared_ptr<AGS::Common::Stream> in = get_valid_file_stream_from_handle(fil->handle, "File.ReadStringBack");
   if (in->EOS()) {
     return CreateNewScriptString("");
   }
@@ -180,7 +180,7 @@ int File_ReadRawInt(sc_File *fil) {
 
 int File_Seek(sc_File *fil, int offset, int origin)
 {
-    Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.Seek");
+    std::shared_ptr<AGS::Common::Stream> in = get_valid_file_stream_from_handle(fil->handle, "File.Seek");
     return (int)in->Seek(offset, (StreamSeek)origin);
 }
 
@@ -200,7 +200,7 @@ int File_GetPosition(sc_File *fil)
 {
     if (fil->handle <= 0)
         return -1;
-    Stream *stream = get_valid_file_stream_from_handle(fil->handle, "File.Position");
+    std::shared_ptr<AGS::Common::Stream> stream = get_valid_file_stream_from_handle(fil->handle, "File.Position");
     // TODO: a problem is that AGS script does not support unsigned or long int
     return (int)stream->GetPosition();
 }
@@ -495,9 +495,9 @@ String get_known_assetlib(const String &filename)
     return String();
 }
 
-Stream *find_open_asset(const String &filename)
+std::shared_ptr<AGS::Common::Stream> find_open_asset(const String &filename)
 {
-    Stream *asset_s = Common::AssetManager::OpenAsset(filename);
+    std::shared_ptr<AGS::Common::Stream> asset_s = Common::AssetManager::OpenAsset(filename);
     if (!asset_s && Path::ComparePaths(ResPaths.DataDir, installDirectory) != 0)
     {
         // Just in case they're running in Debug, try standalone file in compiled folder
@@ -541,7 +541,7 @@ ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
 // [IKM] NOTE: this is not precisely the number of files opened at this moment,
 // but rather maximal number of handles that were used simultaneously during game run
 int num_open_script_files = 0;
-ScriptFileHandle *check_valid_file_handle_ptr(Stream *stream_ptr, const char *operation_name)
+ScriptFileHandle *check_valid_file_handle_ptr(std::shared_ptr<AGS::Common::Stream> stream_ptr, const char *operation_name)
 {
   if (stream_ptr)
   {
@@ -577,7 +577,7 @@ ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *oper
   return nullptr;
 }
 
-Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name)
+std::shared_ptr<AGS::Common::Stream> get_valid_file_stream_from_handle(int32_t handle, const char *operation_name)
 {
     ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle, operation_name);
     return sc_handle ? sc_handle->stream : nullptr;

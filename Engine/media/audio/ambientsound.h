@@ -15,6 +15,8 @@
 #ifndef __AC_AMBIENTSOUND_H
 #define __AC_AMBIENTSOUND_H
 
+#include <memory>
+
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -30,8 +32,8 @@ struct AmbientSound {
 
     bool IsPlaying();
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out);
 };
 
 #endif // __AC_AMBIENTSOUND_H

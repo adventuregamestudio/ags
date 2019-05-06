@@ -60,7 +60,6 @@
 #include "main/graphics_mode.h"
 #include "gfx/gfx_util.h"
 #include "util/memory.h"
-#include "util/filestream.h"
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
@@ -303,9 +302,9 @@ void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, 
 // we can reuse the same handle.
 
 static long pl_file_handle = -1;
-static Stream *pl_file_stream = nullptr;
+static std::shared_ptr<AGS::Common::Stream> pl_file_stream = nullptr;
 
-void pl_set_file_handle(long data, Stream *stream) {
+void pl_set_file_handle(long data, std::shared_ptr<AGS::Common::Stream> stream) {
     pl_file_handle = data;
     pl_file_stream = stream;
 }

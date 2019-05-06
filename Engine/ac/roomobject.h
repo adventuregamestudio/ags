@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__ROOMOBJECT_H
 #define __AGS_EE_AC__ROOMOBJECT_H
 
+#include <memory>
+
 #include "ac/common_defines.h"
 
 namespace AGS { namespace Common { class Stream; }}
@@ -56,8 +58,8 @@ struct RoomObject {
 	void update_cycle_view_forwards();
 	void update_cycle_view_backwards();
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const;
 };
 
 #endif // __AGS_EE_AC__ROOMOBJECT_H

@@ -15,6 +15,8 @@
 #ifndef __AC_MOVE_H
 #define __AC_MOVE_H
 
+#include <memory>
+
 #include "util/wgt2allg.h" // fixed type
 #include "game/savegame.h"
 
@@ -35,9 +37,9 @@ struct MoveList {
     char  doneflag;
     char  direct;  // MoveCharDirect was used or not
 
-    void ReadFromFile_Legacy(Common::Stream *in);
-    AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile_Legacy(std::shared_ptr<AGS::Common::Stream> in);
+    AGS::Engine::HSaveError ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, int32_t cmp_ver);
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out);
 };
 
 #endif // __AC_MOVE_H

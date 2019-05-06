@@ -96,7 +96,7 @@ void GUITextBox::SetShowBorder(bool on)
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUITextBox::WriteToFile(Stream *out) const
+void GUITextBox::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToFile(out);
     StrUtil::WriteString(Text, out);
@@ -105,7 +105,7 @@ void GUITextBox::WriteToFile(Stream *out) const
     out->WriteInt32(TextBoxFlags);
 }
 
-void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUITextBox::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
     if (gui_version < kGuiVersion_350)
@@ -123,7 +123,7 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
         TextColor = 16;
 }
 
-void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
+void GUITextBox::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
     Font = in->ReadInt32();
@@ -133,7 +133,7 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         TextBoxFlags = in->ReadInt32();
 }
 
-void GUITextBox::WriteToSavegame(Stream *out) const
+void GUITextBox::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToSavegame(out);
     out->WriteInt32(Font);

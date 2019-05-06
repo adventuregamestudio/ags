@@ -19,6 +19,7 @@
 #ifndef __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 #define __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 
+#include <memory>
 #include <errno.h>
 #include <vector>
 #include "ac/datetime.h"

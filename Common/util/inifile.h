@@ -109,8 +109,8 @@ public:
     ConstSectionIterator CBegin() const { return _sections.begin(); }
     ConstSectionIterator CEnd()   const { return _sections.end(); }
 
-    void Read(Stream *in);
-    void Write(Stream *out) const;
+    void Read(std::shared_ptr<AGS::Common::Stream> in);
+    void Write(std::shared_ptr<AGS::Common::Stream> out) const;
 
     // Return number of sections
     size_t GetSectionCount() const { return _sections.size(); }

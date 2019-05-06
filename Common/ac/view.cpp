@@ -14,7 +14,7 @@
 
 #include <string.h>
 #include "ac/view.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
@@ -31,7 +31,7 @@ ViewFrame::ViewFrame()
     reserved_for_future[1] = 0;
 }
 
-void ViewFrame::ReadFromFile(Stream *in)
+void ViewFrame::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     pic = in->ReadInt32();
     xoffs = in->ReadInt16();
@@ -43,7 +43,7 @@ void ViewFrame::ReadFromFile(Stream *in)
     reserved_for_future[1] = in->ReadInt32();
 }
 
-void ViewFrame::WriteToFile(Stream *out)
+void ViewFrame::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(pic);
     out->WriteInt16(xoffs);
@@ -84,24 +84,24 @@ void ViewLoopNew::Dispose()
     }
 }
 
-void ViewLoopNew::WriteToFile_v321(Stream *out)
+void ViewLoopNew::WriteToFile_v321(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt16(numFrames);
     out->WriteInt32(flags);
     WriteFrames_Aligned(out);
 }
 
-void ViewLoopNew::WriteFrames_Aligned(Stream *out)
+void ViewLoopNew::WriteFrames_Aligned(std::shared_ptr<AGS::Common::Stream> out)
 {
-    AlignedStream align_s(out, Common::kAligned_Write);
+    auto align_s = std::make_shared<AlignedStream>(out, Common::kAligned_Write);
     for (int i = 0; i < numFrames; ++i)
     {
-        frames[i].WriteToFile(&align_s);
-        align_s.Reset();
+        frames[i].WriteToFile(align_s);
+        align_s->Reset();
     }
 }
 
-void ViewLoopNew::ReadFromFile_v321(Stream *in)
+void ViewLoopNew::ReadFromFile_v321(std::shared_ptr<AGS::Common::Stream> in)
 {
     Initialize(in->ReadInt16());
     flags = in->ReadInt32();
@@ -112,13 +112,13 @@ void ViewLoopNew::ReadFromFile_v321(Stream *in)
     frames[numFrames].pic = 0;
 }
 
-void ViewLoopNew::ReadFrames_Aligned(Stream *in)
+void ViewLoopNew::ReadFrames_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     for (int i = 0; i < numFrames; ++i)
     {
-        frames[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        frames[i].ReadFromFile(align_s);
+        align_s->Reset();
     }
 }
 
@@ -146,7 +146,7 @@ void ViewStruct::Dispose()
     }
 }
 
-void ViewStruct::WriteToFile(Stream *out)
+void ViewStruct::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt16(numLoops);
     for (int i = 0; i < numLoops; i++)
@@ -155,7 +155,7 @@ void ViewStruct::WriteToFile(Stream *out)
     }
 }
 
-void ViewStruct::ReadFromFile(Stream *in)
+void ViewStruct::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     Initialize(in->ReadInt16());
 
@@ -172,7 +172,7 @@ ViewStruct272::ViewStruct272()
     memset(loopflags, 0, sizeof(loopflags));
 }
 
-void ViewStruct272::ReadFromFile(Stream *in)
+void ViewStruct272::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     numloops = in->ReadInt16();
     for (int i = 0; i < 16; ++i)

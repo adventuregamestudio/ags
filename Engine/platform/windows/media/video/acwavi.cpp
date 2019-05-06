@@ -64,9 +64,9 @@ extern "C" extern LPDIRECTDRAW2 directdraw;
 extern "C" extern BITMAP *gfx_directx_create_system_bitmap(int width, int height);
 
 //Global MultiMedia streaming interfaces
-IMultiMediaStream		*g_pMMStream=NULL;
-IMediaStream			*g_pPrimaryVidStream=NULL;    
-IDirectDrawMediaStream	*g_pDDStream=NULL;
+IMultiMediastd::shared_ptr<AGS::Common::Stream> g_pMMStream=NULL;
+IMediastd::shared_ptr<AGS::Common::Stream> g_pPrimaryVidStream=NULL;    
+IDirectDrawMediastd::shared_ptr<AGS::Common::Stream> g_pDDStream=NULL;
 IDirectDrawStreamSample *g_pSample=NULL;
 
 Bitmap *vscreen = NULL;
@@ -177,7 +177,7 @@ HRESULT InitRenderToSurface() {
 //Renders a file to a multimedia stream
 HRESULT RenderFileToMMStream(LPCTSTR szFilename) {	
   HRESULT hr;
-  IAMMultiMediaStream *pAMStream=NULL;
+  IAMMultiMediastd::shared_ptr<AGS::Common::Stream> pAMStream=NULL;
 
   //Convert filename to Unicode
   WCHAR wFile[MAX_PATH];

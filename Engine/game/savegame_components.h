@@ -41,10 +41,10 @@ namespace SavegameComponents
 
     // Utility functions for reading and writing legacy interactions,
     // or their "times run" counters separately.
-    void ReadTimesRun272(Interaction &intr, Stream *in);
-    HSaveError ReadInteraction272(Interaction &intr, Stream *in);
-    void WriteTimesRun272(const Interaction &intr, Stream *out);
-    void WriteInteraction272(const Interaction &intr, Stream *out);
+    void ReadTimesRun272(Interaction &intr, std::shared_ptr<AGS::Common::Stream> in);
+    HSaveError ReadInteraction272(Interaction &intr, std::shared_ptr<AGS::Common::Stream> in);
+    void WriteTimesRun272(const Interaction &intr, std::shared_ptr<AGS::Common::Stream> out);
+    void WriteInteraction272(const Interaction &intr, std::shared_ptr<AGS::Common::Stream> out);
 }
 
 } // namespace Engine

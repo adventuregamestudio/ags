@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__ASSETHELPER_H
 #define __AGS_EE_AC__ASSETHELPER_H
 
+#include <memory>
 #include <utility>
 #include "util/string.h"
 
@@ -30,7 +31,7 @@ String  find_assetlib(const String &filename);
 // Looks up for known valid asset library and returns path, or empty string if failed
 String  get_known_assetlib(const String &filename);
 // Looks for asset everywhere and returns opened stream, or NULL if failed
-Stream *find_open_asset(const String &filename);
+std::shared_ptr<AGS::Common::Stream> find_open_asset(const String &filename);
 
 extern "C" {
     struct PACKFILE; // Allegro 4's own stream type

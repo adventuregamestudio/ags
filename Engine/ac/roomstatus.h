@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__ROOMSTATUS_H
 #define __AGS_EE_AC__ROOMSTATUS_H
 
+#include <memory>
+
 #include "ac/roomobject.h"
 #include "game/roomstruct.h"
 #include "game/interactions.h"
@@ -62,10 +64,10 @@ struct RoomStatus {
     void FreeScriptData();
     void FreeProperties();
 
-    void ReadFromFile_v321(Common::Stream *in);
-    void ReadRoomObjects_Aligned(Common::Stream *in);
-    void ReadFromSavegame(Common::Stream *in);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromFile_v321(std::shared_ptr<AGS::Common::Stream> in);
+    void ReadRoomObjects_Aligned(std::shared_ptr<AGS::Common::Stream> in);
+    void ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const;
 };
 
 // Replaces all accesses to the roomstats array

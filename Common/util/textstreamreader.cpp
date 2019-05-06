@@ -21,23 +21,21 @@ namespace AGS
 namespace Common
 {
 
-TextStreamReader::TextStreamReader(Stream *stream)
+TextStreamReader::TextStreamReader(std::shared_ptr<AGS::Common::Stream> stream)
     : _stream(stream)
 {
 }
 
 TextStreamReader::~TextStreamReader()
 {
-    // TODO: use shared ptr
-    delete _stream;
 }
 
 bool TextStreamReader::IsValid() const
 {
-    return _stream && _stream->CanRead();
+    return true;
 }
 
-const Stream *TextStreamReader::GetStream() const
+const std::shared_ptr<AGS::Common::Stream> TextStreamReader::GetStream() const
 {
     return _stream;
 }

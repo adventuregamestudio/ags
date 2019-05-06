@@ -170,7 +170,7 @@ private:
     std::vector<SpriteData> _spriteData;
     bool _compressed;        // are sprites compressed
 
-    std::unique_ptr<Common::Stream> _stream; // the sprite stream
+    std::shared_ptr<Common::Stream> _stream; // the sprite stream
     sprkey_t _lastLoad; // last loaded sprite index
 
     size_t _maxCacheSize;  // cache size limit
@@ -188,11 +188,11 @@ private:
     // Loads sprite index file
     bool        LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost);
     // Rebuilds sprite index from the main sprite file
-    HAGSError   RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers);
+    HAGSError   RebuildSpriteIndex(std::shared_ptr<AGS::Common::Stream> in, sprkey_t topmost, SpriteFileVersion vers);
     // Writes compressed sprite to the stream
-    void        CompressSprite(Common::Bitmap *sprite, Common::Stream *out);
+    void        CompressSprite(Common::Bitmap *sprite, std::shared_ptr<AGS::Common::Stream> out);
     // Uncompresses sprite from stream into the given bitmap
-    void        UnCompressSprite(Common::Bitmap *sprite, Common::Stream *in);
+    void        UnCompressSprite(Common::Bitmap *sprite, std::shared_ptr<AGS::Common::Stream> in);
 
     void initFile_initNullSpriteParams(sprkey_t index);
 };

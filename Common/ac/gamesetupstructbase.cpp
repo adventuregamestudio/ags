@@ -142,7 +142,7 @@ void GameSetupStructBase::OnResolutionSet()
     _screenUpscaleMult = _gameResolution.Width / _defGameResolution.Width;
 }
 
-void GameSetupStructBase::ReadFromFile(Stream *in)
+void GameSetupStructBase::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     in->Read(&gamename[0], GAME_NAME_LENGTH);
     in->ReadArrayOfInt32(options, MAX_OPTIONS);
@@ -194,7 +194,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     load_compiled_script = in->ReadInt32() != 0;
 }
 
-void GameSetupStructBase::WriteToFile(Stream *out)
+void GameSetupStructBase::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->Write(&gamename[0], 50);
     out->WriteArrayOfInt32(options, 100);

@@ -80,7 +80,7 @@ extern "C"
     char buff[20];
     int numspri = 0, vv, hh, wdd, htt;
 
-    Stream *in = Common::AssetManager::OpenAsset(filnam);
+    std::shared_ptr<AGS::Common::Stream> in = Common::AssetManager::OpenAsset(filnam);
     if (in == nullptr)
       return -1;
 
@@ -129,14 +129,12 @@ extern "C"
       sarray[vv] = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);
 
       if (sarray[vv] == nullptr) {
-        delete in;
         return -1;
       }
 
       for (hh = 0; hh < htt; hh++)
         in->ReadArray(&sarray[vv]->GetScanLineForWriting(hh)[0], wdd * coldep, 1);
     }
-    delete in;
     return 0;
   }
 

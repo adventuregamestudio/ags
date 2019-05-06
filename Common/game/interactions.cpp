@@ -15,7 +15,7 @@
 #include <string.h>
 #include "ac/common.h" // quit
 #include "game/interactions.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 #include "util/math.h"
 
 using namespace AGS::Common;
@@ -35,14 +35,14 @@ InteractionValue::InteractionValue()
     Extra = 0;
 }
 
-void InteractionValue::Read(Stream *in)
+void InteractionValue::Read(std::shared_ptr<AGS::Common::Stream> in)
 {
     Type  = (InterValType)in->ReadInt8();
     Value = in->ReadInt32();
     Extra = in->ReadInt32();
 }
 
-void InteractionValue::Write(Stream *out) const
+void InteractionValue::Write(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteInt8(Type);
     out->WriteInt32(Value);
@@ -78,17 +78,17 @@ void InteractionCommand::Reset()
     Parent = nullptr;
 }
 
-void InteractionCommand::ReadValues_Aligned(Stream *in)
+void InteractionCommand::ReadValues_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     for (int i = 0; i < MAX_ACTION_ARGS; ++i)
     {
-        Data[i].Read(&align_s);
-        align_s.Reset();
+        Data[i].Read(align_s);
+        align_s->Reset();
     }
 }
 
-void InteractionCommand::Read_v321(Stream *in, bool &has_children)
+void InteractionCommand::Read_v321(std::shared_ptr<AGS::Common::Stream> in, bool &has_children)
 {
     in->ReadInt32(); // skip the 32-bit vtbl ptr (the old serialization peculiarity)
     Type = in->ReadInt32();
@@ -97,17 +97,17 @@ void InteractionCommand::Read_v321(Stream *in, bool &has_children)
     in->ReadInt32(); // skip 32-bit Parent pointer
 }
 
-void InteractionCommand::WriteValues_Aligned(Stream *out) const
+void InteractionCommand::WriteValues_Aligned(std::shared_ptr<AGS::Common::Stream> out) const
 {
-    AlignedStream align_s(out, Common::kAligned_Write);
+    auto align_s = std::make_shared<AlignedStream>(out, Common::kAligned_Write);
     for (int i = 0; i < MAX_ACTION_ARGS; ++i)
     {
-        Data[i].Write(&align_s);
-        align_s.Reset();
+        Data[i].Write(align_s);
+        align_s->Reset();
     }
 }
 
-void InteractionCommand::Write_v321(Stream *out) const
+void InteractionCommand::Write_v321(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteInt32(0); // write dummy 32-bit vtbl ptr
     out->WriteInt32(Type);
@@ -148,19 +148,19 @@ void InteractionCommandList::Reset()
     TimesRun = 0;
 }
 
-void InteractionCommandList::Read_Aligned(Stream *in, std::vector<bool> &cmd_children)
+void InteractionCommandList::Read_Aligned(std::shared_ptr<AGS::Common::Stream> in, std::vector<bool> &cmd_children)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     for (size_t i = 0; i < Cmds.size(); ++i)
     {
         bool has_children;
-        Cmds[i].Read_v321(&align_s, has_children);
+        Cmds[i].Read_v321(align_s, has_children);
         cmd_children[i] = has_children;
-        align_s.Reset();
+        align_s->Reset();
     }
 }
 
-void InteractionCommandList::Read_v321(Stream *in)
+void InteractionCommandList::Read_v321(std::shared_ptr<AGS::Common::Stream> in)
 {
     size_t cmd_count = in->ReadInt32();
     TimesRun = in->ReadInt32();
@@ -181,17 +181,17 @@ void InteractionCommandList::Read_v321(Stream *in)
     }
 }
 
-void InteractionCommandList::Write_Aligned(Stream *out) const
+void InteractionCommandList::Write_Aligned(std::shared_ptr<AGS::Common::Stream> out) const
 {
-    AlignedStream align_s(out, Common::kAligned_Write);
+    auto align_s = std::make_shared<AlignedStream>(out, Common::kAligned_Write);
     for (InterCmdVector::const_iterator it = Cmds.begin(); it != Cmds.end(); ++it)
     {
-        it->Write_v321(&align_s);
-        align_s.Reset();
+        it->Write_v321(align_s);
+        align_s->Reset();
     }
 }
 
-void InteractionCommandList::Write_v321(Stream *out) const
+void InteractionCommandList::Write_v321(std::shared_ptr<AGS::Common::Stream> out) const
 {
     size_t cmd_count = Cmds.size();
     out->WriteInt32(cmd_count);
@@ -263,7 +263,7 @@ void Interaction::Reset()
     Events.clear();
 }
 
-Interaction *Interaction::CreateFromStream(Stream *in)
+Interaction *Interaction::CreateFromStream(std::shared_ptr<AGS::Common::Stream> in)
 {
     if (in->ReadInt32() != kInteractionVersion_Initial)
         return nullptr; // unsupported format
@@ -292,7 +292,7 @@ Interaction *Interaction::CreateFromStream(Stream *in)
     return inter;
 }
 
-void Interaction::Write(Stream *out) const
+void Interaction::Write(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteInt32(kInteractionVersion_Initial);  // Version
     const size_t evt_count = Events.size();
@@ -315,7 +315,7 @@ void Interaction::Write(Stream *out) const
     }
 }
 
-void Interaction::ReadFromSavedgame_v321(Stream *in)
+void Interaction::ReadFromSavedgame_v321(std::shared_ptr<AGS::Common::Stream> in)
 {
     const size_t evt_count = in->ReadInt32();
     if (evt_count > MAX_NEWINTERACTION_EVENTS)
@@ -336,7 +336,7 @@ void Interaction::ReadFromSavedgame_v321(Stream *in)
         in->ReadInt32();
 }
 
-void Interaction::WriteToSavedgame_v321(Stream *out) const
+void Interaction::WriteToSavedgame_v321(std::shared_ptr<AGS::Common::Stream> out) const
 {
     const size_t evt_count = Events.size();
     out->WriteInt32(evt_count);
@@ -352,7 +352,7 @@ void Interaction::WriteToSavedgame_v321(Stream *out) const
     out->WriteByteCount(0, MAX_NEWINTERACTION_EVENTS * sizeof(int32_t));
 }
 
-void Interaction::ReadTimesRunFromSave_v321(Stream *in)
+void Interaction::ReadTimesRunFromSave_v321(std::shared_ptr<AGS::Common::Stream> in)
 {
     const size_t evt_count = Events.size();
     for (size_t i = 0; i < evt_count; ++i)
@@ -364,7 +364,7 @@ void Interaction::ReadTimesRunFromSave_v321(Stream *in)
         in->ReadInt32(); // cannot skip when reading aligned structs
 }
 
-void Interaction::WriteTimesRunToSave_v321(Stream *out) const
+void Interaction::WriteTimesRunToSave_v321(std::shared_ptr<AGS::Common::Stream> out) const
 {
     const size_t evt_count = Events.size();
     for (size_t i = 0; i < Events.size(); ++i)
@@ -391,14 +391,14 @@ InteractionVariable::InteractionVariable(const String &name, char type, int val)
 {
 }
 
-void InteractionVariable::Read(Stream *in)
+void InteractionVariable::Read(std::shared_ptr<AGS::Common::Stream> in)
 {
     Name.ReadCount(in, INTER_VAR_NAME_LENGTH);
     Type  = in->ReadInt8();
     Value = in->ReadInt32();
 }
 
-void InteractionVariable::Write(Common::Stream *out) const
+void InteractionVariable::Write(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->Write(Name, INTER_VAR_NAME_LENGTH);
     out->WriteInt8(Type);
@@ -407,7 +407,7 @@ void InteractionVariable::Write(Common::Stream *out) const
 
 //-----------------------------------------------------------------------------
 
-InteractionScripts *InteractionScripts::CreateFromStream(Stream *in)
+InteractionScripts *InteractionScripts::CreateFromStream(std::shared_ptr<AGS::Common::Stream> in)
 {
     const size_t evt_count = in->ReadInt32();
     if (evt_count > MAX_NEWINTERACTION_EVENTS)

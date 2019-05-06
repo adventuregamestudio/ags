@@ -134,7 +134,7 @@ HGameFileError     OpenMainGameFile(const String &filename, MainGameSource &src)
 // Opens main game file for reading from the asset library (uses default asset name)
 HGameFileError     OpenMainGameFileFromDefaultAsset(MainGameSource &src);
 // Reads game data, applies necessary conversions to match current format version
-HGameFileError     ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver);
+HGameFileError     ReadGameData(LoadedGameEntities &ents, std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
 HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);

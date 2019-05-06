@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__GLOBALFILE_H
 #define __AGS_EE_AC__GLOBALFILE_H
 
+#include <memory>
+
 #include "util/file.h"
 
 namespace AGS { namespace Common { class Stream; } }

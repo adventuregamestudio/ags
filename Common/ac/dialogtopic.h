@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_AC__DIALOGTOPIC_H
 #define __AGS_CN_AC__DIALOGTOPIC_H
 
+#include <memory>
+
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
@@ -58,10 +60,10 @@ struct DialogTopic {
     int           numoptions;
     int           topicFlags;
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
 
-    void ReadFromSavegame(Common::Stream *in);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const;
 };
 
 

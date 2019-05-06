@@ -30,23 +30,21 @@ static const char Endl[1] = {'\n'};
 #endif
 
 
-TextStreamWriter::TextStreamWriter(Stream *stream)
+TextStreamWriter::TextStreamWriter(std::shared_ptr<AGS::Common::Stream> stream)
     : _stream(stream)
 {
 }
 
 TextStreamWriter::~TextStreamWriter()
 {
-    // TODO use shared ptr
-    delete _stream;
 }
 
 bool TextStreamWriter::IsValid() const
 {
-    return _stream && _stream->CanWrite();
+    return true;
 }
 
-const Stream *TextStreamWriter::GetStream() const
+const std::shared_ptr<AGS::Common::Stream> TextStreamWriter::GetStream() const
 {
     return _stream;
 }

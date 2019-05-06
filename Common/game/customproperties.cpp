@@ -38,7 +38,7 @@ PropertyDesc::PropertyDesc(const String &name, PropertyType type, const String &
 namespace Properties
 {
 
-PropertyError ReadSchema(PropertySchema &schema, Stream *in)
+PropertyError ReadSchema(PropertySchema &schema, std::shared_ptr<AGS::Common::Stream> in)
 {
     PropertyVersion version = (PropertyVersion)in->ReadInt32();
     if (version < kPropertyVersion_Initial ||
@@ -74,7 +74,7 @@ PropertyError ReadSchema(PropertySchema &schema, Stream *in)
     return kPropertyErr_NoError;
 }
 
-void WriteSchema(const PropertySchema &schema, Stream *out)
+void WriteSchema(const PropertySchema &schema, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(kPropertyVersion_Current);
     out->WriteInt32(schema.size());
@@ -89,7 +89,7 @@ void WriteSchema(const PropertySchema &schema, Stream *out)
     }
 }
 
-PropertyError ReadValues(StringIMap &map, Stream *in)
+PropertyError ReadValues(StringIMap &map, std::shared_ptr<AGS::Common::Stream> in)
 {
     PropertyVersion version = (PropertyVersion)in->ReadInt32();
     if (version < kPropertyVersion_Initial ||
@@ -118,7 +118,7 @@ PropertyError ReadValues(StringIMap &map, Stream *in)
     return kPropertyErr_NoError;
 }
 
-void WriteValues(const StringIMap &map, Stream *out)
+void WriteValues(const StringIMap &map, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt32(kPropertyVersion_Current);
     out->WriteInt32(map.size());

@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 
+#include <memory>
+
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
 #include "util/string.h"
@@ -79,8 +81,8 @@ struct GameSetupStructBase {
     void SetDefaultResolution(Size game_res);
     void SetGameResolution(GameResolutionType type);
     void SetGameResolution(Size game_res);
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out);
 
 
     //

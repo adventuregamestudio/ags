@@ -18,11 +18,13 @@
 #ifndef __AGS_CN_UTIL__LZW_H
 #define __AGS_CN_UTIL__LZW_H
 
+#include <memory>
+
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-void lzwcompress(Common::Stream *lzw_in, Common::Stream *out);
-unsigned char *lzwexpand_to_mem(Common::Stream *in);
+void lzwcompress(std::shared_ptr<AGS::Common::Stream> lzw_in, std::shared_ptr<AGS::Common::Stream> out);
+unsigned char *lzwexpand_to_mem(std::shared_ptr<AGS::Common::Stream> in);
 
 extern long outbytes, maxsize, putbytes;
 

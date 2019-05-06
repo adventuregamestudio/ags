@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void CharacterExtras::ReadFromFile(Stream *in)
+void CharacterExtras::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
@@ -36,7 +36,7 @@ void CharacterExtras::ReadFromFile(Stream *in)
     animwait = in->ReadInt16();
 }
 
-void CharacterExtras::WriteToFile(Stream *out)
+void CharacterExtras::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteArrayOfInt16(invorder, MAX_INVORDER);
     out->WriteInt16(invorder_count);

@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
 #define __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
 
+#include <memory>
+
 #include "ac/runtime_defines.h"
 
 // Forward declaration
@@ -31,8 +33,8 @@ struct AnimatingGUIButton {
     short view, loop, frame;
     short speed, repeat, wait;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out);
 };
 
 #endif // __AGS_EE_GUI__ANIMATINGGUIBUTTON_H

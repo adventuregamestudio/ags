@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_PLUGIN__PLUGINENGINE_H
 #define __AGS_EE_PLUGIN__PLUGINENGINE_H
 
+#include <memory>
 #include <vector>
 #include "game/game_init.h"
 #include "game/plugininfo.h"
@@ -40,7 +41,7 @@ bool pl_is_plugin_loaded(const char *pl_name);
 //returns whether _any_ plugins want a particular event
 bool pl_any_want_hook(int event);
 
-void pl_set_file_handle(long data, AGS::Common::Stream *stream);
+void pl_set_file_handle(long data, std::shared_ptr<AGS::Common::Stream> stream);
 void pl_clear_file_handle();
 
 #endif // __AGS_EE_PLUGIN__PLUGINENGINE_H

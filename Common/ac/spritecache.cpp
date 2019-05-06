@@ -418,7 +418,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     if (this->_compressed) 
     {
         _stream->ReadInt32(); // skip data size
-        UnCompressSprite(image, _stream.get());
+        UnCompressSprite(image, _stream);
     }
     else
     {
@@ -469,7 +469,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
 
 const char *spriteFileSig = " Sprite File ";
 
-void SpriteCache::CompressSprite(Bitmap *sprite, Stream *out)
+void SpriteCache::CompressSprite(Bitmap *sprite, std::shared_ptr<AGS::Common::Stream> out)
 {
     const int depth = sprite->GetBPP();
     if (depth == 1)
@@ -489,7 +489,7 @@ void SpriteCache::CompressSprite(Bitmap *sprite, Stream *out)
     }
 }
 
-void SpriteCache::UnCompressSprite(Bitmap *sprite, Stream *in)
+void SpriteCache::UnCompressSprite(Bitmap *sprite, std::shared_ptr<AGS::Common::Stream> in)
 {
     const int depth = sprite->GetBPP();
     if (depth == 1)
@@ -511,14 +511,13 @@ void SpriteCache::UnCompressSprite(Bitmap *sprite, Stream *in)
 
 int SpriteCache::SaveToFile(const char *filnam, bool compressOutput)
 {
-    Stream *output = Common::File::CreateFile(filnam);
+    std::shared_ptr<AGS::Common::Stream> output = Common::File::CreateFile(filnam);
     if (output == nullptr)
         return -1;
 
     if (compressOutput)
     {
         // re-open the file so that it can be seeked
-        delete output;
         output = File::OpenFile(filnam, Common::kFile_Open, Common::kFile_ReadWrite); // CHECKME why mode was "r+" here?
         if (output == nullptr)
             return -1;
@@ -613,7 +612,6 @@ int SpriteCache::SaveToFile(const char *filnam, bool compressOutput)
         {
             // shouldn't be able to get here
             delete [] memBuffer;
-            delete output;
             return -2;
         }
 
@@ -650,7 +648,6 @@ int SpriteCache::SaveToFile(const char *filnam, bool compressOutput)
     }
 
     delete [] memBuffer;
-    delete output;
 
     return SaveSpriteIndex(spindexfilename, spriteFileIDCheck, lastslot, numsprits, spritewidths, spriteheights, spriteoffs);
 }
@@ -659,7 +656,7 @@ int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sp
                                     const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs)
 {
     // write the sprite index file
-    Stream *spindex_out = File::CreateFile(spindexfilename);
+    std::shared_ptr<AGS::Common::Stream> spindex_out = File::CreateFile(spindexfilename);
     // write "SPRINDEX" id
     spindex_out->WriteArray(&spindexid[0], strlen(spindexid), 1);
     // write version
@@ -672,7 +669,6 @@ int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sp
     spindex_out->WriteArrayOfInt16(&spritewidths[0], numsprits);
     spindex_out->WriteArrayOfInt16(&spriteheights[0], numsprits);
     spindex_out->WriteArrayOfInt64(&spriteoffs[0], numsprits);
-    delete spindex_out;
     return 0;
 }
 
@@ -683,7 +679,7 @@ HError SpriteCache::InitFile(const char *filnam)
     soff_t spr_initial_offs = 0;
     int spriteFileID = 0;
 
-    _stream.reset(Common::AssetManager::OpenAsset(filnam));
+    _stream = Common::AssetManager::OpenAsset(filnam);
     if (_stream == nullptr)
         return new Error(String::FromFormat("Failed to open spriteset file '%s'.", filnam));
 
@@ -695,7 +691,7 @@ HError SpriteCache::InitFile(const char *filnam)
 
     if (vers < kSprfVersion_Uncompressed || vers > kSprfVersion_Current)
     {
-        _stream.reset();
+        _stream = nullptr;
         return new Error(String::FromFormat("Unsupported spriteset format (requested %d, supported %d - %d).", vers, kSprfVersion_Uncompressed, kSprfVersion_Current));
     }
 
@@ -703,7 +699,7 @@ HError SpriteCache::InitFile(const char *filnam)
     buff[13] = 0;
     if (strcmp(buff, spriteFileSig))
     {
-        _stream.reset();
+        _stream = nullptr;
         return new Error("Uknown spriteset format.");
     }
 
@@ -748,10 +744,10 @@ HError SpriteCache::InitFile(const char *filnam)
     // TODO: refactor loading process and make it NOT delete file running the game!!
     ::remove(spindexfilename);
 
-    return RebuildSpriteIndex(_stream.get(), topmost, vers);
+    return RebuildSpriteIndex(_stream, topmost, vers);
 }
 
-HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers)
+HError SpriteCache::RebuildSpriteIndex(std::shared_ptr<AGS::Common::Stream> in, sprkey_t topmost, SpriteFileVersion vers)
 {
     // no sprite index file, manually index it
     for (sprkey_t i = 0; i <= topmost; ++i)
@@ -808,7 +804,7 @@ HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost
 
 bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost)
 {
-    Stream *fidx = Common::AssetManager::OpenAsset((char*)spindexfilename);
+    std::shared_ptr<AGS::Common::Stream> fidx = Common::AssetManager::OpenAsset((char*)spindexfilename);
     if (fidx == nullptr) 
     {
         return false;
@@ -820,21 +816,18 @@ bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
     buffer[8] = 0;
     if (strcmp(buffer, spindexid))
     {
-        delete fidx;
         return false;
     }
     // check version
     SpriteIndexFileVersion vers = (SpriteIndexFileVersion)fidx->ReadInt32();
     if (vers < kSpridxfVersion_Initial || vers > kSpridxfVersion_Current)
     {
-        delete fidx;
         return false;
     }
     if (vers >= kSpridxfVersion_Last32bit)
     {
         if (fidx->ReadInt32() != expectedFileID)
         {
-            delete fidx;
             return false;
         }
     }
@@ -843,13 +836,11 @@ bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
     // end index+1 should be the same as num sprites
     if (fidx->ReadInt32() != topmost_index + 1)
     {
-        delete fidx;
         return false;
     }
 
     if (topmost_index != topmost)
     {
-        delete fidx;
         return false;
     }
 
@@ -887,19 +878,18 @@ bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
     delete [] rspritewidths;
     delete [] rspriteheights;
     delete [] spriteoffs;
-    delete fidx;
     return true;
 }
 
 void SpriteCache::DetachFile()
 {
-    _stream.reset();
+    _stream = nullptr;
     _lastLoad = -2;
 }
 
 int SpriteCache::AttachFile(const char *filename)
 {
-    _stream.reset(Common::AssetManager::OpenAsset((char *)filename));
+    _stream = Common::AssetManager::OpenAsset((char *)filename);
     if (_stream == nullptr)
         return -1;
     return 0;

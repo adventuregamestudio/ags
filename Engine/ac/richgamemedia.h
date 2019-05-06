@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__RICHGAMEMEDIA_H
 #define __AGS_EE_AC__RICHGAMEMEDIA_H
 
+#include <memory>
+
 // Windows Vista Rich Save Games, modified to be platform-agnostic
 
 #define RM_MAXLENGTH    1024
@@ -43,8 +45,8 @@ typedef struct _RICH_GAME_MEDIA_HEADER
     unsigned short szLevelName[RM_MAXLENGTH];
     unsigned short szComments[RM_MAXLENGTH];
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out);
 } RICH_GAME_MEDIA_HEADER;
 #pragma pack(pop)
 

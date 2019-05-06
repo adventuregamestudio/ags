@@ -67,11 +67,11 @@ bool LogFile::OpenFile(const String &file_path, LogFileOpenMode open_mode, bool 
     _openMode = open_mode;
     if (!open_at_first_msg)
     {
-        _file.reset(File::OpenFile(file_path,
+        _file = File::OpenFile(file_path,
                            open_mode == kLogFile_OpenAppend ? Common::kFile_Create : Common::kFile_CreateAlways,
-                           Common::kFile_Write));
+                           Common::kFile_Write);
     }
-    return _file.get() != nullptr || open_at_first_msg;
+    return _file != nullptr || open_at_first_msg;
 }
 
 void LogFile::CloseFile()

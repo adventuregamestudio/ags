@@ -28,7 +28,7 @@ int currentline;
 const char scfilesig[5] = "SCOM";
 
 // [IKM] I reckon this function is almost identical to fgetstring in string_utils
-void freadstring(char **strptr, Stream *in)
+void freadstring(char **strptr, std::shared_ptr<AGS::Common::Stream> in)
 {
     static char ibuffer[300];
     int idxx = 0;
@@ -45,7 +45,7 @@ void freadstring(char **strptr, Stream *in)
     strcpy(strptr[0], ibuffer);
 }
 
-ccScript *ccScript::CreateFromStream(Stream *in)
+ccScript *ccScript::CreateFromStream(std::shared_ptr<AGS::Common::Stream> in)
 {
     ccScript *scri = new ccScript();
     if (!scri->Read(in))
@@ -188,7 +188,7 @@ ccScript::~ccScript()
     Free();
 }
 
-void ccScript::Write(Stream *out) {
+void ccScript::Write(std::shared_ptr<AGS::Common::Stream> out) {
     int n;
     out->Write(scfilesig,4);
     out->WriteInt32(SCOM_VERSION);
@@ -222,7 +222,7 @@ void ccScript::Write(Stream *out) {
     out->WriteInt32(ENDFILESIG);
 }
 
-bool ccScript::Read(Stream *in)
+bool ccScript::Read(std::shared_ptr<AGS::Common::Stream> in)
 {
   instances = 0;
   int n;

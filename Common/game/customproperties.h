@@ -85,14 +85,14 @@ typedef std::unordered_map<String, PropertyDesc, HashStrNoCase, StrEqNoCase> Pro
 
 namespace Properties
 {
-    PropertyError ReadSchema(PropertySchema &schema, Stream *in);
-    void          WriteSchema(const PropertySchema &schema, Stream *out);
+    PropertyError ReadSchema(PropertySchema &schema, std::shared_ptr<AGS::Common::Stream> in);
+    void          WriteSchema(const PropertySchema &schema, std::shared_ptr<AGS::Common::Stream> out);
 
     // Reads property values from the stream and assign them to map.
     // The non-matching existing map items, if any, are NOT erased.
-    PropertyError ReadValues(StringIMap &map, Stream *in);
+    PropertyError ReadValues(StringIMap &map, std::shared_ptr<AGS::Common::Stream> in);
     // Writes property values chunk to the stream
-    void          WriteValues(const StringIMap &map, Stream *out);
+    void          WriteValues(const StringIMap &map, std::shared_ptr<AGS::Common::Stream> out);
 
 } // namespace Properties
 

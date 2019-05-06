@@ -176,7 +176,7 @@ int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObje
     return o.handle;
 }
 
-void ManagedObjectPool::WriteToDisk(Stream *out) {
+void ManagedObjectPool::WriteToDisk(std::shared_ptr<AGS::Common::Stream> out) {
 
     // use this opportunity to clean up any non-referenced pointers
     RunGarbageCollection();
@@ -221,7 +221,7 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
     }
 }
 
-int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
+int ManagedObjectPool::ReadFromDisk(std::shared_ptr<AGS::Common::Stream> in, ICCObjectReader *reader) {
     if (in->ReadInt32() != OBJECT_CACHE_MAGIC_NUMBER) {
         cc_error("Data was not written by ccSeralize");
         return -1;

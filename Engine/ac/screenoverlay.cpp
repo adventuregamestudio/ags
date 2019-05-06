@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void ScreenOverlay::ReadFromFile(Stream *in)
+void ScreenOverlay::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     // Skipping bmp and pic pointer values
     bmp = nullptr;
@@ -34,7 +34,7 @@ void ScreenOverlay::ReadFromFile(Stream *in)
     positionRelativeToScreen = in->ReadBool();
 }
 
-void ScreenOverlay::WriteToFile(Stream *out)
+void ScreenOverlay::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     // Writing bitmap "pointers" to correspond to full structure writing
     out->WriteInt32(0); // bmp

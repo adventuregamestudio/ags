@@ -208,7 +208,7 @@ StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def
     return StrUtil::kNoError;
 }
 
-String StrUtil::ReadString(Stream *in)
+String StrUtil::ReadString(std::shared_ptr<AGS::Common::Stream> in)
 {
     size_t len = in->ReadInt32();
     if (len > 0)
@@ -216,7 +216,7 @@ String StrUtil::ReadString(Stream *in)
     return String();
 }
 
-void StrUtil::ReadString(char *cstr, Stream *in, size_t buf_limit)
+void StrUtil::ReadString(char *cstr, std::shared_ptr<AGS::Common::Stream> in, size_t buf_limit)
 {
     size_t len = in->ReadInt32();
     if (buf_limit == 0)
@@ -231,13 +231,13 @@ void StrUtil::ReadString(char *cstr, Stream *in, size_t buf_limit)
     cstr[len] = 0;
 }
 
-void StrUtil::ReadString(String &s, Stream *in)
+void StrUtil::ReadString(String &s, std::shared_ptr<AGS::Common::Stream> in)
 {
     size_t len = in->ReadInt32();
     s.ReadCount(in, len);
 }
 
-void StrUtil::ReadString(char **cstr, Stream *in)
+void StrUtil::ReadString(char **cstr, std::shared_ptr<AGS::Common::Stream> in)
 {
     size_t len = in->ReadInt32();
     *cstr = new char[len + 1];
@@ -246,13 +246,13 @@ void StrUtil::ReadString(char **cstr, Stream *in)
     (*cstr)[len] = 0;
 }
 
-void StrUtil::SkipString(Stream *in)
+void StrUtil::SkipString(std::shared_ptr<AGS::Common::Stream> in)
 {
     size_t len = in->ReadInt32();
     in->Seek(len);
 }
 
-void StrUtil::WriteString(const String &s, Stream *out)
+void StrUtil::WriteString(const String &s, std::shared_ptr<AGS::Common::Stream> out)
 {
     size_t len = s.GetLength();
     out->WriteInt32(len);
@@ -260,7 +260,7 @@ void StrUtil::WriteString(const String &s, Stream *out)
         out->Write(s.GetCStr(), len);
 }
 
-void StrUtil::WriteString(const char *cstr, Stream *out)
+void StrUtil::WriteString(const char *cstr, std::shared_ptr<AGS::Common::Stream> out)
 {
     size_t len = strlen(cstr);
     out->WriteInt32(len);
@@ -268,7 +268,7 @@ void StrUtil::WriteString(const char *cstr, Stream *out)
         out->Write(cstr, len);
 }
 
-void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
+void StrUtil::ReadCStr(char *buf, std::shared_ptr<AGS::Common::Stream> in, size_t buf_limit)
 {
     if (buf_limit == 0)
     {
@@ -296,18 +296,18 @@ void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
     }
 }
 
-void StrUtil::SkipCStr(Stream *in)
+void StrUtil::SkipCStr(std::shared_ptr<AGS::Common::Stream> in)
 {
     while (in->ReadByte() > 0);
 }
 
-void StrUtil::WriteCStr(const char *cstr, Stream *out)
+void StrUtil::WriteCStr(const char *cstr, std::shared_ptr<AGS::Common::Stream> out)
 {
     size_t len = strlen(cstr);
     out->Write(cstr, len + 1);
 }
 
-void StrUtil::WriteCStr(const String &s, Stream *out)
+void StrUtil::WriteCStr(const String &s, std::shared_ptr<AGS::Common::Stream> out)
 {
     out->Write(s.GetCStr(), s.GetLength() + 1);
 }

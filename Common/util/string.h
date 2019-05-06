@@ -38,6 +38,8 @@
 #ifndef __AGS_CN_UTIL__STRING_H
 #define __AGS_CN_UTIL__STRING_H
 
+#include <memory>
+
 #include <stdarg.h>
 #include "core/platform.h"
 #include "core/types.h"
@@ -111,18 +113,18 @@ public:
     // the data will be read until null-terminator or EOS is met, and buffer
     // will contain only leftmost part of the longer string that fits in.
     // This method is better fit for reading from binary streams.
-    void    Read(Stream *in, size_t max_chars = 5 * 1024 * 1024, bool stop_at_limit = false);
+    void    Read(std::shared_ptr<AGS::Common::Stream> in, size_t max_chars = 5 * 1024 * 1024, bool stop_at_limit = false);
     // ReadCount() reads up to N characters from stream, ignoring null-
     // terminator. This method is better fit for reading from text
     // streams, or when the length of string is known beforehand.
-    void    ReadCount(Stream *in, size_t count);
+    void    ReadCount(std::shared_ptr<AGS::Common::Stream> in, size_t count);
     // Write() puts the null-terminated string into the stream.
-    void    Write(Stream *out) const;
+    void    Write(std::shared_ptr<AGS::Common::Stream> out) const;
     // WriteCount() writes N characters to stream, filling the remaining
     // space with null-terminators when needed.
-    void    WriteCount(Stream *out, size_t count) const;
+    void    WriteCount(std::shared_ptr<AGS::Common::Stream> out, size_t count) const;
 
-    static void WriteString(const char *cstr, Stream *out);
+    static void WriteString(const char *cstr, std::shared_ptr<AGS::Common::Stream> out);
 
     //-------------------------------------------------------------------------
     // String analysis methods
@@ -184,9 +186,9 @@ public:
     static String FromFormat(const char *fcstr, ...);
     static String FromFormatV(const char *fcstr, va_list argptr);
     // Reads stream until null-terminator or EOS
-    static String FromStream(Stream *in, size_t max_chars = 5 * 1024 * 1024, bool stop_at_limit = false);
+    static String FromStream(std::shared_ptr<AGS::Common::Stream> in, size_t max_chars = 5 * 1024 * 1024, bool stop_at_limit = false);
     // Reads up to N chars from stream
-    static String FromStreamCount(Stream *in, size_t count);
+    static String FromStreamCount(std::shared_ptr<AGS::Common::Stream> in, size_t count);
 
     // Creates a lowercased copy of the string
     String  Lower() const;

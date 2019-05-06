@@ -46,7 +46,7 @@ void close_translation () {
     }
 }
 
-bool parse_translation(Stream *language_file, String &parse_error);
+bool parse_translation(std::shared_ptr<AGS::Common::Stream> language_file, String &parse_error);
 
 bool init_translation (const String &lang, const String &fallback_lang, bool quit_on_error) {
 
@@ -54,7 +54,7 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
         return false;
     sprintf(transFileName, "%s.tra", lang.GetCStr());
 
-    Stream *language_file = find_open_asset(transFileName);
+    std::shared_ptr<AGS::Common::Stream> language_file = find_open_asset(transFileName);
     if (language_file == nullptr)
     {
         Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", transFileName);
@@ -67,7 +67,6 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
     language_file->Read(transsig, 15);
     if (strcmp(transsig, "AGSTranslation") != 0) {
         Debug::Printf(kDbgMsg_Error, "Translation signature mismatch: %s", transFileName);
-        delete language_file;
         return false;
     }
 
@@ -79,7 +78,7 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
 
     String parse_error;
     bool result = parse_translation(language_file, parse_error);
-    delete language_file;
+    language_file = nullptr;
 
     if (!result)
     {
@@ -105,7 +104,7 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
     return true;
 }
 
-bool parse_translation(Stream *language_file, String &parse_error)
+bool parse_translation(std::shared_ptr<AGS::Common::Stream> language_file, String &parse_error)
 {
     while (!language_file->EOS()) {
         int blockType = language_file->ReadInt32();

@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_UTIL__FILE_H
 #define __AGS_CN_UTIL__FILE_H
 
+#include <memory>
 #include "core/platform.h"
 #include "util/string.h"
 
@@ -66,20 +67,21 @@ namespace File
     // Gets C-style file mode from FileOpenMode and FileWorkMode
     String      GetCMode(FileOpenMode open_mode, FileWorkMode work_mode);
 
-    Stream      *OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+    std::shared_ptr<Stream> OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+
     // Convenience helpers
     // Create a totally new file, overwrite existing one
-    inline Stream *CreateFile(const String &filename)
+    inline std::shared_ptr<Stream> CreateFile(const String &filename)
     {
         return OpenFile(filename, kFile_CreateAlways, kFile_Write);
     }
     // Open existing file for reading
-    inline Stream *OpenFileRead(const String &filename)
+    inline std::shared_ptr<Stream> OpenFileRead(const String &filename)
     {
         return OpenFile(filename, kFile_Open, kFile_Read);
     }
     // Open existing file for writing (append) or create if it does not exist
-    inline Stream *OpenFileWrite(const String &filename)
+    inline std::shared_ptr<Stream> OpenFileWrite(const String &filename)
     {
         return OpenFile(filename, kFile_Create, kFile_Write);
     }

@@ -206,7 +206,7 @@ void GUISlider::OnMouseUp()
     IsMousePressed = false;
 }
 
-void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUISlider::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
     MinValue = in->ReadInt32();
@@ -230,7 +230,7 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 }
 
-void GUISlider::WriteToFile(Stream *out) const
+void GUISlider::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(MinValue);
@@ -241,7 +241,7 @@ void GUISlider::WriteToFile(Stream *out) const
     out->WriteInt32(BgImage);
 }
 
-void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
+void GUISlider::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
     BgImage = in->ReadInt32();
@@ -252,7 +252,7 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     Value = in->ReadInt32();
 }
 
-void GUISlider::WriteToSavegame(Stream *out) const
+void GUISlider::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToSavegame(out);
     out->WriteInt32(BgImage);

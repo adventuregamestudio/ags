@@ -38,7 +38,6 @@
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 #include "core/assetmanager.h"
-#include "util/alignedstream.h"
 #include "ac/gamesetup.h"
 #include "game/main_game_file.h"
 #include "game/game_init.h"
@@ -112,10 +111,10 @@ HGameFileError game_file_first_open(MainGameSource &src)
     return HGameFileError::None();
 }
 
-void PreReadSaveFileInfo(Stream *in, GameDataVersion data_ver)
+void PreReadSaveFileInfo(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
-    game.ReadFromFile(&align_s);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
+    game.ReadFromFile(align_s);
     // Discard game messages we do not need here
     delete [] game.load_messages;
     game.load_messages = nullptr;
@@ -129,7 +128,7 @@ HError preload_game_data()
     if (!err)
         return (HError)err;
     // Read only the particular data we need for preliminary game analysis
-    PreReadSaveFileInfo(src.InputStream.get(), src.DataVersion);
+    PreReadSaveFileInfo(src.InputStream, src.DataVersion);
     FixupSaveDirectory(game);
     return HError::None();
 }
@@ -141,7 +140,7 @@ HError load_game_file()
     HGameFileError load_err = OpenMainGameFileFromDefaultAsset(src);
     if (load_err)
     {
-        load_err = ReadGameData(ents, src.InputStream.get(), src.DataVersion);
+        load_err = ReadGameData(ents, src.InputStream, src.DataVersion);
         if (load_err)
             load_err = UpdateGameData(ents, src.DataVersion);
     }

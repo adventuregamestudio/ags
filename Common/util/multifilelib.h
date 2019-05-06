@@ -60,11 +60,11 @@ namespace MFLUtil
     // Maximal number of the data files in one library chain (1-byte index)
     const size_t MaxMultiLibFiles = 256;
 
-    MFLError TestIsMFL(Stream *in, bool test_is_main = false);
-    MFLError ReadHeader(AssetLibInfo &lib, Stream *in);
+    MFLError TestIsMFL(std::shared_ptr<AGS::Common::Stream> in, bool test_is_main = false);
+    MFLError ReadHeader(AssetLibInfo &lib, std::shared_ptr<AGS::Common::Stream> in);
 
-    void     WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out);
-    void     WriteEnder(soff_t lib_offset, MFLVersion lib_index, Stream *out);
+    void     WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, std::shared_ptr<AGS::Common::Stream> out);
+    void     WriteEnder(soff_t lib_offset, MFLVersion lib_index, std::shared_ptr<AGS::Common::Stream> out);
 };
 
 } // namespace Common

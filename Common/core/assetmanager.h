@@ -34,6 +34,8 @@
 #ifndef __AGS_CN_CORE__ASSETMANAGER_H
 #define __AGS_CN_CORE__ASSETMANAGER_H
 
+#include <memory>
+
 #include "util/file.h" // TODO: extract filestream mode constants or introduce generic ones
 
 namespace AGS
@@ -107,7 +109,7 @@ public:
     static bool         GetAssetLocation(const String &asset_name, AssetLocation &loc);
 
     static bool         DoesAssetExist(const String &asset_name);
-    static Stream       *OpenAsset(const String &asset_name,
+    static std::shared_ptr<AGS::Common::Stream> OpenAsset(const String &asset_name,
                                    FileOpenMode open_mode = kFile_Open,
                                    FileWorkMode work_mode = kFile_Read);
 
@@ -136,7 +138,7 @@ private:
     bool        GetAssetFromLib(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
     bool        GetAssetFromDir(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
     bool        GetAssetByPriority(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
-    Stream      *OpenAssetAsStream(const String &asset_name, FileOpenMode open_mode, FileWorkMode work_mode);
+    std::shared_ptr<AGS::Common::Stream> OpenAssetAsStream(const String &asset_name, FileOpenMode open_mode, FileWorkMode work_mode);
 
     static AssetManager     *_theAssetManager;
     AssetSearchPriority     _searchPriority;

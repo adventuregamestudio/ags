@@ -90,7 +90,7 @@ bool TTFFontRenderer::IsBitmapFont()
 bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params)
 {
   String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
-  Stream *reader = AssetManager::OpenAsset(file_name);
+  std::shared_ptr<AGS::Common::Stream> reader = AssetManager::OpenAsset(file_name);
   char *membuffer;
 
   if (reader == nullptr)
@@ -100,7 +100,7 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const FontRen
 
   membuffer = (char *)malloc(lenof);
   reader->ReadArray(membuffer, lenof, 1);
-  delete reader;
+  reader = nullptr;
 
   ALFONT_FONT *alfptr = alfont_load_font_from_mem(membuffer, lenof);
   free(membuffer);

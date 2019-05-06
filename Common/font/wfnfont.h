@@ -36,6 +36,8 @@
 #ifndef __AGS_CN_FONT__WFNFONT_H
 #define __AGS_CN_FONT__WFNFONT_H
 
+#include <memory>
+
 #include <vector>
 #include "core/types.h"
 
@@ -89,7 +91,7 @@ public:
     void Clear();
     // Reads WFNFont object, using data_size bytes from stream; if data_size = 0,
     // the available stream's length is used instead. Returns error code.
-    WFNError ReadFromFile(AGS::Common::Stream *in, const soff_t data_size = 0);
+    WFNError ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, const soff_t data_size = 0);
 
 protected:
     std::vector<const WFNChar*> _refs;      // reference array, contains pointers to elements of _items

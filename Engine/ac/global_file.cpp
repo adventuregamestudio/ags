@@ -55,7 +55,7 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
       break;
   }
 
-  Stream *s = File::OpenFile(path, open_mode, work_mode);
+  std::shared_ptr<AGS::Common::Stream> s = File::OpenFile(path, open_mode, work_mode);
   if (!s && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
     s = File::OpenFile(alt_path, open_mode, work_mode);
 
@@ -75,24 +75,23 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
 
 void FileClose(int32_t handle) {
   ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle,"FileClose");
-  delete sc_handle->stream;
   sc_handle->stream = nullptr;
   sc_handle->handle = 0;
   }
 void FileWrite(int32_t handle, const char *towrite) {
-  Stream *out = get_valid_file_stream_from_handle(handle,"FileWrite");
+  std::shared_ptr<AGS::Common::Stream> out = get_valid_file_stream_from_handle(handle,"FileWrite");
   out->WriteInt32(strlen(towrite)+1);
   out->Write(towrite,strlen(towrite)+1);
   }
 void FileWriteRawLine(int32_t handle, const char*towrite) {
-  Stream *out = get_valid_file_stream_from_handle(handle,"FileWriteRawLine");
+  std::shared_ptr<AGS::Common::Stream> out = get_valid_file_stream_from_handle(handle,"FileWriteRawLine");
   out->Write(towrite,strlen(towrite));
   out->WriteInt8 (13);
   out->WriteInt8 (10);
   }
 void FileRead(int32_t handle,char*toread) {
   VALIDATE_STRING(toread);
-  Stream *in = get_valid_file_stream_from_handle(handle,"FileRead");
+  std::shared_ptr<AGS::Common::Stream> in = get_valid_file_stream_from_handle(handle,"FileRead");
   if (in->EOS()) {
     toread[0] = 0;
     return;
@@ -102,7 +101,7 @@ void FileRead(int32_t handle,char*toread) {
   in->Read(toread,lle);
   }
 int FileIsEOF (int32_t handle) {
-  Stream *stream = get_valid_file_stream_from_handle(handle,"FileIsEOF");
+  std::shared_ptr<AGS::Common::Stream> stream = get_valid_file_stream_from_handle(handle,"FileIsEOF");
   if (stream->EOS())
     return 1;
 
@@ -115,7 +114,7 @@ int FileIsEOF (int32_t handle) {
   return 0;
 }
 int FileIsError(int32_t handle) {
-  Stream *stream = get_valid_file_stream_from_handle(handle,"FileIsError");
+  std::shared_ptr<AGS::Common::Stream> stream = get_valid_file_stream_from_handle(handle,"FileIsError");
 
   // TODO: stream errors
   if (stream->HasErrors())
@@ -124,12 +123,12 @@ int FileIsError(int32_t handle) {
   return 0;
 }
 void FileWriteInt(int32_t handle,int into) {
-  Stream *out = get_valid_file_stream_from_handle(handle,"FileWriteInt");
+  std::shared_ptr<AGS::Common::Stream> out = get_valid_file_stream_from_handle(handle,"FileWriteInt");
   out->WriteInt8('I');
   out->WriteInt32(into);
   }
 int FileReadInt(int32_t handle) {
-  Stream *in = get_valid_file_stream_from_handle(handle,"FileReadInt");
+  std::shared_ptr<AGS::Common::Stream> in = get_valid_file_stream_from_handle(handle,"FileReadInt");
   if (in->EOS())
     return -1;
   if (in->ReadInt8()!='I')
@@ -137,19 +136,19 @@ int FileReadInt(int32_t handle) {
   return in->ReadInt32();
   }
 char FileReadRawChar(int32_t handle) {
-  Stream *in = get_valid_file_stream_from_handle(handle,"FileReadRawChar");
+  std::shared_ptr<AGS::Common::Stream> in = get_valid_file_stream_from_handle(handle,"FileReadRawChar");
   if (in->EOS())
     return -1;
   return in->ReadInt8();
   }
 int FileReadRawInt(int32_t handle) {
-  Stream *in = get_valid_file_stream_from_handle(handle,"FileReadRawInt");
+  std::shared_ptr<AGS::Common::Stream> in = get_valid_file_stream_from_handle(handle,"FileReadRawInt");
   if (in->EOS())
     return -1;
   return in->ReadInt32();
 }
 void FileWriteRawChar(int32_t handle, int chartoWrite) {
-  Stream *out = get_valid_file_stream_from_handle(handle,"FileWriteRawChar");
+  std::shared_ptr<AGS::Common::Stream> out = get_valid_file_stream_from_handle(handle,"FileWriteRawChar");
   if ((chartoWrite < 0) || (chartoWrite > 255))
     quit("!FileWriteRawChar: can only write values 0-255");
 

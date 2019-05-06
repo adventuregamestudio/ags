@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_UTIL__STRINGUTILS_H
 #define __AGS_CN_UTIL__STRINGUTILS_H
 
+#include <memory>
+
 #include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }
@@ -65,19 +67,19 @@ namespace StrUtil
 
     // Serialize and unserialize unterminated string prefixed with 32-bit length;
     // length is presented as 32-bit integer integer
-    String          ReadString(Stream *in);
-    void            ReadString(char *cstr, Stream *in, size_t buf_limit);
-    void            ReadString(char **cstr, Stream *in);
-    void            ReadString(String &s, Stream *in);
-    void            SkipString(Stream *in);
-    void            WriteString(const String &s, Stream *out);
-    void            WriteString(const char *cstr, Stream *out);
+    String          ReadString(std::shared_ptr<AGS::Common::Stream> in);
+    void            ReadString(char *cstr, std::shared_ptr<AGS::Common::Stream> in, size_t buf_limit);
+    void            ReadString(char **cstr, std::shared_ptr<AGS::Common::Stream> in);
+    void            ReadString(String &s, std::shared_ptr<AGS::Common::Stream> in);
+    void            SkipString(std::shared_ptr<AGS::Common::Stream> in);
+    void            WriteString(const String &s, std::shared_ptr<AGS::Common::Stream> out);
+    void            WriteString(const char *cstr, std::shared_ptr<AGS::Common::Stream> out);
 
     // Serialize and unserialize string as c-string (null-terminated sequence)
-    void            ReadCStr(char *buf, Stream *in, size_t buf_limit);
-    void            SkipCStr(Stream *in);
-    void            WriteCStr(const char *cstr, Stream *out);
-    void            WriteCStr(const String &s, Stream *out);
+    void            ReadCStr(char *buf, std::shared_ptr<AGS::Common::Stream> in, size_t buf_limit);
+    void            SkipCStr(std::shared_ptr<AGS::Common::Stream> in);
+    void            WriteCStr(const char *cstr, std::shared_ptr<AGS::Common::Stream> out);
+    void            WriteCStr(const String &s, std::shared_ptr<AGS::Common::Stream> out);
 }
 } // namespace Common
 } // namespace AGS

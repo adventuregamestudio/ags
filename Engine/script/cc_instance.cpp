@@ -1362,7 +1362,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
         return;
     }
 
-    Stream *data_s = ci_fopen("script.log", kFile_Create, kFile_Write);
+    std::shared_ptr<AGS::Common::Stream> data_s = ci_fopen("script.log", kFile_Create, kFile_Write);
     TextStreamWriter writer(data_s);
     writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, pc, registers[SREG_SP].RValue);
 

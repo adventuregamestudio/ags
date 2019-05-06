@@ -54,7 +54,7 @@ struct PolyPoints
     void add_point(int x, int y);
     PolyPoints() { numpoints = 0; }
 
-    void Read(AGS::Common::Stream *in);
+    void Read(std::shared_ptr<AGS::Common::Stream> in);
 };
 
 
@@ -84,7 +84,7 @@ void PolyPoints::add_point(int x, int y)
         quit("too many poly points added");
 }
 
-void PolyPoints::Read(Stream *in)
+void PolyPoints::Read(std::shared_ptr<AGS::Common::Stream> in)
 {
     in->ReadArrayOfInt32(x, MAXPOINTS);
     in->ReadArrayOfInt32(y, MAXPOINTS);
@@ -96,7 +96,7 @@ void PolyPoints::Read(Stream *in)
 // Pre-2.5 scripts (we don't know how to convert them for the modern engine)
 //
 #define SCRIPT_CONFIG_VERSION 1
-HRoomFileError ReadAncientScriptConfig(Stream *in)
+HRoomFileError ReadAncientScriptConfig(std::shared_ptr<AGS::Common::Stream> in)
 {
     int fmt = in->ReadInt32();
     if (fmt != SCRIPT_CONFIG_VERSION)
@@ -111,7 +111,7 @@ HRoomFileError ReadAncientScriptConfig(Stream *in)
     return HRoomFileError::None();
 }
 
-HRoomFileError ReadAncientGraphicalScripts(Stream *in)
+HRoomFileError ReadAncientGraphicalScripts(std::shared_ptr<AGS::Common::Stream> in)
 {
     do
     {
@@ -124,7 +124,7 @@ HRoomFileError ReadAncientGraphicalScripts(Stream *in)
     return HRoomFileError::None();
 }
 
-HRoomFileError ReadPre250Scripts(Stream *in)
+HRoomFileError ReadPre250Scripts(std::shared_ptr<AGS::Common::Stream> in)
 {
     HRoomFileError err = ReadAncientScriptConfig(in);
     if (err)

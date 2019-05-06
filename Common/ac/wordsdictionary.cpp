@@ -107,7 +107,7 @@ void decrypt_text(char*toenc) {
   }
 }
 
-void read_string_decrypt(Stream *in, char *buf, size_t buf_sz) {
+void read_string_decrypt(std::shared_ptr<AGS::Common::Stream> in, char *buf, size_t buf_sz) {
   size_t len = in->ReadInt32();
   size_t slen = std::min(buf_sz - 1, len);
   in->Read(buf, slen);
@@ -117,7 +117,7 @@ void read_string_decrypt(Stream *in, char *buf, size_t buf_sz) {
   decrypt_text(buf);
 }
 
-void read_dictionary (WordsDictionary *dict, Stream *out) {
+void read_dictionary (WordsDictionary *dict, std::shared_ptr<AGS::Common::Stream> out) {
   int ii;
 
   dict->allocate_memory(out->ReadInt32());
@@ -129,7 +129,7 @@ void read_dictionary (WordsDictionary *dict, Stream *out) {
 
 #if defined (OBSOLETE)
 // TODO: not a part of wordsdictionary, move to obsoletes
-void freadmissout(short *pptr, Stream *in) {
+void freadmissout(short *pptr, std::shared_ptr<AGS::Common::Stream> in) {
   in->ReadArrayOfInt16(&pptr[0], 5);
   in->ReadArrayOfInt16(&pptr[7], NUM_CONDIT - 7);
   pptr[5] = pptr[6] = 0;
@@ -152,7 +152,7 @@ void encrypt_text(char *toenc) {
   }
 }
 
-void write_string_encrypt(Stream *out, const char *s) {
+void write_string_encrypt(std::shared_ptr<AGS::Common::Stream> out, const char *s) {
   int stlent = (int)strlen(s) + 1;
 
   out->WriteInt32(stlent);
@@ -162,7 +162,7 @@ void write_string_encrypt(Stream *out, const char *s) {
   free(enc);
 }
 
-void write_dictionary (WordsDictionary *dict, Stream *out) {
+void write_dictionary (WordsDictionary *dict, std::shared_ptr<AGS::Common::Stream> out) {
   int ii;
 
   out->WriteInt32(dict->num_words);

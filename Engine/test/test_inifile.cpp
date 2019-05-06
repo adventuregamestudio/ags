@@ -76,14 +76,14 @@ const char *IniFileText2 = ""
 
 void Test_IniFile()
 {
-    Stream *fs = File::CreateFile("test.ini");
+    std::shared_ptr<AGS::Common::Stream> fs = File::CreateFile("test.ini");
     fs->Write(IniFileText, strlen(IniFileText));
-    delete fs;
+    fs = nullptr;
 
     IniFile ini;
     fs = File::OpenFileRead("test.ini");
     ini.Read(fs);
-    delete fs;
+    fs = nullptr;
 
     // there are explicit sections and 1 implicit global one
     const int section_count = 5;
@@ -186,7 +186,7 @@ void Test_IniFile()
 
         fs = File::CreateFile("test.ini");
         ini.Write(fs);
-        delete fs;
+        fs = nullptr;
 
         fs = File::OpenFileRead("test.ini");
         String ini_content;

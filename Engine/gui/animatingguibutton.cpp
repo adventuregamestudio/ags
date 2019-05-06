@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void AnimatingGUIButton::ReadFromFile(Stream *in)
+void AnimatingGUIButton::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     buttonid = in->ReadInt16();
     ongui = in->ReadInt16();
@@ -30,7 +30,7 @@ void AnimatingGUIButton::ReadFromFile(Stream *in)
     wait = in->ReadInt16();
 }
 
-void AnimatingGUIButton::WriteToFile(Stream *out)
+void AnimatingGUIButton::WriteToFile(std::shared_ptr<AGS::Common::Stream> out)
 {
     out->WriteInt16(buttonid);
     out->WriteInt16(ongui);

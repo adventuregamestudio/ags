@@ -24,7 +24,7 @@
 #include "game/main_game_file.h"
 #include "gui/guimain.h"
 #include "script/cc_error.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 #include "util/path.h"
 #include "util/string_utils.h"
 
@@ -120,13 +120,13 @@ bool IsMainGameLibrary(const String &filename)
 HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
 {
     // Check data signature
-    String data_sig = String::FromStreamCount(in.get(), MainGameSource::Signature.GetLength());
+    String data_sig = String::FromStreamCount(in, MainGameSource::Signature.GetLength());
     if (data_sig.Compare(MainGameSource::Signature))
         return new MainGameFileError(kMGFErr_SignatureFailed);
     // Read data format version and requested engine version
     src.DataVersion = (GameDataVersion)in->ReadInt32();
     if (src.DataVersion >= kGameVersion_230)
-        src.CompiledWith = StrUtil::ReadString(in.get());
+        src.CompiledWith = StrUtil::ReadString(in);
     if (src.DataVersion < kGameVersion_250)
         return new MainGameFileError(kMGFErr_FormatVersionTooOld, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kGameVersion_250, kGameVersion_Current));
     if (src.DataVersion > kGameVersion_Current)
@@ -137,7 +137,7 @@ HGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
     {
         size_t count = in->ReadInt32();
         for (size_t i = 0; i < count; ++i)
-            src.Caps.insert(StrUtil::ReadString(in.get()));
+            src.Caps.insert(StrUtil::ReadString(in));
     }
     // Everything is fine, return opened stream
     src.InputStream = in;
@@ -179,7 +179,7 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src)
     return OpenMainGameFileBase(in, src);
 }
 
-HGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVersion data_ver)
+HGameFileError ReadDialogScript(PScript &dialog_script, std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver)
 {
     if (data_ver > kGameVersion_310) // 3.1.1+ dialog script
     {
@@ -194,7 +194,7 @@ HGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVers
     return HGameFileError::None();
 }
 
-HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, Stream *in, GameDataVersion data_ver)
+HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_270) // 2.7.0+ script modules
     {
@@ -214,18 +214,18 @@ HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, Stream *in, Game
     return HGameFileError::None();
 }
 
-void ReadViewStruct272_Aligned(std::vector<ViewStruct272> &oldv, Stream *in, size_t count)
+void ReadViewStruct272_Aligned(std::vector<ViewStruct272> &oldv, std::shared_ptr<AGS::Common::Stream> in, size_t count)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     oldv.resize(count);
     for (size_t i = 0; i < count; ++i)
     {
-        oldv[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        oldv[i].ReadFromFile(align_s);
+        align_s->Reset();
     }
 }
 
-void ReadViews(GameSetupStruct &game, ViewStruct *&views, Stream *in, GameDataVersion data_ver)
+void ReadViews(GameSetupStruct &game, ViewStruct *&views, std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver)
 {
     int count = game.numviews;
     views = (ViewStruct*)calloc(sizeof(ViewStruct) * count, 1);
@@ -248,7 +248,7 @@ void ReadDialogs(DialogTopic *&dialog,
                  std::vector< std::shared_ptr<unsigned char> > &old_dialog_scripts,
                  std::vector<String> &old_dialog_src,
                  std::vector<String> &old_speech_lines,
-                 Stream *in, GameDataVersion data_ver, int dlg_count)
+                 std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver, int dlg_count)
 {
     // TODO: I suspect +5 was a hacky way to "supress" memory access mistakes;
     // double check and remove if proved unnecessary
@@ -357,7 +357,7 @@ void ReadDialogs(DialogTopic *&dialog,
     }
 }
 
-HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
+HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, std::shared_ptr<AGS::Common::Stream> in)
 {
     int fmt_ver = in->ReadInt32();
     if (fmt_ver != 1)
@@ -668,7 +668,7 @@ void FixupSaveDirectory(GameSetupStruct &game)
     snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", s.GetCStr());
 }
 
-HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
+HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver)
 {
     uint32_t sprcount;
     if (data_ver < kGameVersion_256)
@@ -684,13 +684,13 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
     return HGameFileError::None();
 }
 
-HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
+HGameFileError ReadGameData(LoadedGameEntities &ents, std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
 
     {
-        AlignedStream align_s(in, Common::kAligned_Read);
-        game.GameSetupStructBase::ReadFromFile(&align_s);
+        auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
+        game.GameSetupStructBase::ReadFromFile(align_s);
     }
 
     if (game.GetGameRes().IsNull())

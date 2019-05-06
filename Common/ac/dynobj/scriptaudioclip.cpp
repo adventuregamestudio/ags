@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void ScriptAudioClip::ReadFromFile(Stream *in)
+void ScriptAudioClip::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in)
 {
     id = in->ReadInt32();
     in->Read(scriptName, SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH);

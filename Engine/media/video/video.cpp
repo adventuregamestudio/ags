@@ -136,7 +136,7 @@ void play_flc_file(int numb,int playflags) {
         clearScreenAtStart = 0;
 
     String flicname = String::FromFormat("flic%d.flc", numb);
-    Stream *in = AssetManager::OpenAsset(flicname);
+    std::shared_ptr<AGS::Common::Stream> in = AssetManager::OpenAsset(flicname);
     if (!in)
     {
         flicname.Format("flic%d.fli", numb);
@@ -151,7 +151,7 @@ void play_flc_file(int numb,int playflags) {
     in->Seek(8);
     fliwidth = in->ReadInt16();
     fliheight = in->ReadInt16();
-    delete in;
+    in = nullptr;
 
     if (game.color_depth > 1) {
         hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,game.GetColorDepth());

@@ -28,7 +28,7 @@
 
 using namespace AGS::Common;
 
-void cpackbitl(const uint8_t *line, int size, Stream *out)
+void cpackbitl(const uint8_t *line, int size, std::shared_ptr<AGS::Common::Stream> out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -64,7 +64,7 @@ void cpackbitl(const uint8_t *line, int size, Stream *out)
   } // end while
 }
 
-void cpackbitl16(const uint16_t *line, int size, Stream *out)
+void cpackbitl16(const uint16_t *line, int size, std::shared_ptr<AGS::Common::Stream> out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -100,7 +100,7 @@ void cpackbitl16(const uint16_t *line, int size, Stream *out)
   } // end while
 }
 
-void cpackbitl32(const uint32_t *line, int size, Stream *out)
+void cpackbitl32(const uint32_t *line, int size, std::shared_ptr<AGS::Common::Stream> out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -137,7 +137,7 @@ void cpackbitl32(const uint32_t *line, int size, Stream *out)
 }
 
 
-void csavecompressed(Stream *out, const unsigned char * tobesaved, const color pala[256])
+void csavecompressed(std::shared_ptr<AGS::Common::Stream> out, const unsigned char * tobesaved, const color pala[256])
 {
   int widt, hit;
   widt = *tobesaved++;
@@ -167,7 +167,7 @@ void csavecompressed(Stream *out, const unsigned char * tobesaved, const color p
   free(ress);
 }
 
-int cunpackbitl(uint8_t *line, int size, Stream *in)
+int cunpackbitl(uint8_t *line, int size, std::shared_ptr<AGS::Common::Stream> in)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -205,7 +205,7 @@ int cunpackbitl(uint8_t *line, int size, Stream *in)
   return in->HasErrors() ? -1 : 0;
 }
 
-int cunpackbitl16(uint16_t *line, int size, Stream *in)
+int cunpackbitl16(uint16_t *line, int size, std::shared_ptr<AGS::Common::Stream> in)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -243,7 +243,7 @@ int cunpackbitl16(uint16_t *line, int size, Stream *in)
   return in->HasErrors() ? -1 : 0;
 }
 
-int cunpackbitl32(uint32_t *line, int size, Stream *in)
+int cunpackbitl32(uint32_t *line, int size, std::shared_ptr<AGS::Common::Stream> in)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -285,14 +285,14 @@ int cunpackbitl32(uint32_t *line, int size, Stream *in)
 
 const char *lztempfnm = "~aclzw.tmp";
 
-void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
+void save_lzw(std::shared_ptr<AGS::Common::Stream> out, const Bitmap *bmpp, const color *pall)
 {
   // First write original bitmap into temporary file
-  Stream *lz_temp_s = ci_fopen(lztempfnm, kFile_CreateAlways, kFile_Write);
+  std::shared_ptr<AGS::Common::Stream> lz_temp_s = ci_fopen(lztempfnm, kFile_CreateAlways, kFile_Write);
   lz_temp_s->WriteInt32(bmpp->GetWidth() * bmpp->GetBPP());
   lz_temp_s->WriteInt32(bmpp->GetHeight());
   lz_temp_s->WriteArray(bmpp->GetData(), bmpp->GetLineLength(), bmpp->GetHeight());
-  delete lz_temp_s;
+  lz_temp_s = nullptr;
 
   // Now open same file for reading, and begin writing compressed data into required output stream
   lz_temp_s = ci_fopen(lztempfnm);
@@ -310,14 +310,14 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const color *pall)
   out->WriteInt32(compressed_sz);      // write compressed size
 
   // Delete temp file
-  delete lz_temp_s;
+  lz_temp_s = nullptr;
   ::remove(lztempfnm);
 
   // Seek back to the end of the output stream
   out->Seek(toret, kSeekBegin);
 }
 
-void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
+void load_lzw(std::shared_ptr<AGS::Common::Stream> in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
   soff_t        uncompsiz;
   int           *loptr;
   unsigned char *membuffer;
@@ -397,7 +397,7 @@ void load_lzw(Stream *in, Bitmap **dst_bmp, int dst_bpp, color *pall) {
   *dst_bmp = bmm;
 }
 
-void savecompressed_allegro(Stream *out, const Bitmap *bmpp, const color *pall) {
+void savecompressed_allegro(std::shared_ptr<AGS::Common::Stream> out, const Bitmap *bmpp, const color *pall) {
   unsigned char *wgtbl = (unsigned char *)malloc(bmpp->GetWidth() * bmpp->GetHeight() + 4);
   short         *sss = (short *)wgtbl;
 
@@ -410,7 +410,7 @@ void savecompressed_allegro(Stream *out, const Bitmap *bmpp, const color *pall) 
   free(wgtbl);
 }
 
-void loadcompressed_allegro(Stream *in, Bitmap **bimpp, color *pall) {
+void loadcompressed_allegro(std::shared_ptr<AGS::Common::Stream> in, Bitmap **bimpp, color *pall) {
   short widd,hitt;
   int   ii;
 

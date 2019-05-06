@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_UTIL__TEXTSTREAMREADER_H
 #define __AGS_CN_UTIL__TEXTSTREAMREADER_H
 
+#include <memory>
+
 #include "util/textreader.h"
 
 namespace AGS
@@ -31,11 +33,11 @@ class TextStreamReader : public TextReader
 {
 public:
     // TODO: use shared ptr
-    TextStreamReader(Stream *stream);
+    TextStreamReader(std::shared_ptr<AGS::Common::Stream> stream);
     ~TextStreamReader() override;
 
     bool    IsValid() const override;
-    const Stream   *GetStream() const;
+    const std::shared_ptr<AGS::Common::Stream> GetStream() const;
     // TODO: use shared ptr instead
     void            ReleaseStream();
 
@@ -51,7 +53,7 @@ public:
     String  ReadAll() override;
 
 private:
-    Stream *_stream;
+    std::shared_ptr<AGS::Common::Stream> _stream;
 };
 
 } // namespace Common

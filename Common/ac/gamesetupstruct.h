@@ -120,35 +120,35 @@ struct GameSetupStruct: public GameSetupStructBase {
     // Do not call these directly
     //------------------------------
     // Part 1
-    void read_savegame_info(Common::Stream *in, GameDataVersion data_ver);
-    void read_font_infos(Common::Stream *in, GameDataVersion data_ver);
-    HGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver);
-    void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
-    void read_words_dictionary(Common::Stream *in);
+    void read_savegame_info(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
+    void read_font_infos(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
+    HGameFileError read_cursors(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
+    void read_interaction_scripts(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
+    void read_words_dictionary(std::shared_ptr<AGS::Common::Stream> in);
 
-    void ReadInvInfo_Aligned(Common::Stream *in);
-    void WriteInvInfo_Aligned(Common::Stream *out);
-    void ReadMouseCursors_Aligned(Common::Stream *in);
-    void WriteMouseCursors_Aligned(Common::Stream *out);
+    void ReadInvInfo_Aligned(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteInvInfo_Aligned(std::shared_ptr<AGS::Common::Stream> out);
+    void ReadMouseCursors_Aligned(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteMouseCursors_Aligned(std::shared_ptr<AGS::Common::Stream> out);
     //------------------------------
     // Part 2
-    void read_characters(Common::Stream *in, GameDataVersion data_ver);
-    void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
-    void read_messages(Common::Stream *in, GameDataVersion data_ver);
+    void read_characters(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
+    void read_lipsync(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
+    void read_messages(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
 
-    void ReadCharacters_Aligned(Common::Stream *in);
-    void WriteCharacters_Aligned(Common::Stream *out);
+    void ReadCharacters_Aligned(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteCharacters_Aligned(std::shared_ptr<AGS::Common::Stream> out);
     //------------------------------
     // Part 3
-    HGameFileError read_customprops(Common::Stream *in, GameDataVersion data_ver);
-    HGameFileError read_audio(Common::Stream *in, GameDataVersion data_ver);
-    void read_room_names(Common::Stream *in, GameDataVersion data_ver);
+    HGameFileError read_customprops(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
+    HGameFileError read_audio(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
+    void read_room_names(std::shared_ptr<AGS::Common::Stream> in, GameDataVersion data_ver);
 
-    void ReadAudioClips_Aligned(Common::Stream *in);
+    void ReadAudioClips_Aligned(std::shared_ptr<AGS::Common::Stream> in);
     //--------------------------------------------------------------------
 
     // Functions for reading and writing appropriate data from/to save game
-    void ReadFromSaveGame_v321(Common::Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
+    void ReadFromSaveGame_v321(std::shared_ptr<AGS::Common::Stream> in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                    WordsDictionary *olddict, char** mesbk);
 
     void ReadFromSavegame(Common::PStream in);

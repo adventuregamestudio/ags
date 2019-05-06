@@ -286,7 +286,7 @@ void GUIListBox::OnResized()
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
-void GUIListBox::WriteToFile(Stream *out) const
+void GUIListBox::WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToFile(out);
     out->WriteInt32(ItemCount);
@@ -300,7 +300,7 @@ void GUIListBox::WriteToFile(Stream *out) const
         Items[i].Write(out);
 }
 
-void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUIListBox::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version)
 {
     Clear();
 
@@ -371,7 +371,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
         TextColor = 16;
 }
 
-void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
+void GUIListBox::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
     // Properties
@@ -407,7 +407,7 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     SelectedItem = in->ReadInt32();
 }
 
-void GUIListBox::WriteToSavegame(Stream *out) const
+void GUIListBox::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     GUIObject::WriteToSavegame(out);
     // Properties

@@ -36,10 +36,10 @@ public:
     void SetText(const String &text);
 
     // Serialization
-    void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    void WriteToFile(Stream *out) const override;
-    void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
-    void WriteToSavegame(Common::Stream *out) const override;
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, GuiVersion gui_version) override;
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const override;
+    void ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in, GuiSvgVersion svg_ver) override;
+    void WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const override;
 
 // TODO: these members are currently public; hide them later
 public:

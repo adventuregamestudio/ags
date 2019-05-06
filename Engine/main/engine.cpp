@@ -376,7 +376,7 @@ void engine_locate_speech_pak()
                 return;
             }
             // TODO: why is this read right here??? move this to InitGameState!
-            Stream *speechsync = AssetManager::OpenAsset("syncdata.dat");
+            std::shared_ptr<AGS::Common::Stream> speechsync = AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != nullptr) {
                 // this game has voice lip sync
                 int lipsync_fmt = speechsync->ReadInt32();
@@ -397,7 +397,7 @@ void engine_locate_speech_pak()
                         speechsync->ReadArrayOfInt16(splipsync[ee].frame, splipsync[ee].numPhonemes);
                     }
                 }
-                delete speechsync;
+                speechsync = nullptr;
             }
             AssetManager::SetDataFile(ResPaths.GamePak.Path); // switch back to the main data pack
             Debug::Printf(kDbgMsg_Init, "Voice pack found and initialized.");
@@ -749,7 +749,7 @@ int check_write_access() {
   // The Save Game Dir is the only place that we should write to
   char tempPath[MAX_PATH];
   sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
-  Stream *temp_s = Common::File::CreateFile(tempPath);
+  std::shared_ptr<AGS::Common::Stream> temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
       // TODO: move this somewhere else (Android platform driver init?)
 #if AGS_PLATFORM_OS_ANDROID
@@ -767,7 +767,7 @@ int check_write_access() {
   our_eip = -1896;
 
   temp_s->Write("just to test the drive free space", 30);
-  delete temp_s;
+  temp_s = nullptr;
 
   our_eip = -1897;
 

@@ -15,6 +15,8 @@
 #ifndef __AC_QUEUEDAUDIOITEM_H
 #define __AC_QUEUEDAUDIOITEM_H
 
+#include <memory>
+
 struct SOUNDCLIP;
 
 namespace AGS { namespace Common { class Stream; } }
@@ -26,8 +28,8 @@ struct QueuedAudioItem {
     bool  repeat;
     SOUNDCLIP *cachedClip;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromFile(std::shared_ptr<AGS::Common::Stream> in);
+    void WriteToFile(std::shared_ptr<AGS::Common::Stream> out) const;
 };
 
 #endif // __AC_QUEUEDAUDIOITEM_H

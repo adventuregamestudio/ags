@@ -46,7 +46,7 @@ void WFNFont::Clear()
     _pixelData.clear();
 }
 
-WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
+WFNError WFNFont::ReadFromFile(std::shared_ptr<AGS::Common::Stream> in, const soff_t data_size)
 {
     Clear();
 

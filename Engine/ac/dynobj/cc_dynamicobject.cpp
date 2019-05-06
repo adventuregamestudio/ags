@@ -71,12 +71,12 @@ void ccUnregisterAllObjects() {
 }
 
 // serialize all objects to disk
-void ccSerializeAllObjects(Stream *out) {
+void ccSerializeAllObjects(std::shared_ptr<AGS::Common::Stream> out) {
     pool.WriteToDisk(out);
 }
 
 // un-serialise all objects (will remove all currently registered ones)
-int ccUnserializeAllObjects(Stream *in, ICCObjectReader *callback) {
+int ccUnserializeAllObjects(std::shared_ptr<AGS::Common::Stream> in, ICCObjectReader *callback) {
     return pool.ReadFromDisk(in, callback);
 }
 

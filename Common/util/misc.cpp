@@ -178,12 +178,12 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 
 
 /* Case Insensitive fopen */
-Stream *ci_fopen(const char *file_name, FileOpenMode open_mode, FileWorkMode work_mode)
+std::shared_ptr<AGS::Common::Stream> ci_fopen(const char *file_name, FileOpenMode open_mode, FileWorkMode work_mode)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
   return File::OpenFile(file_name, open_mode, work_mode);
 #else
-  Stream *fs = nullptr;
+  std::shared_ptr<AGS::Common::Stream> fs = nullptr;
   char *fullpath = ci_find_file(nullptr, (char*)file_name);
 
   /* If I didn't find a file, this could be writing a new file,

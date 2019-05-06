@@ -19,7 +19,7 @@
 #include "ac/roomstatus.h"
 #include "game/customproperties.h"
 #include "game/savegame_components.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -65,7 +65,7 @@ void RoomStatus::FreeProperties()
     }
 }
 
-void RoomStatus::ReadFromFile_v321(Stream *in)
+void RoomStatus::ReadFromFile_v321(std::shared_ptr<AGS::Common::Stream> in)
 {
     beenhere = in->ReadInt32();
     numobj = in->ReadInt32();
@@ -105,17 +105,17 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
     }
 }
 
-void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)
+void RoomStatus::ReadRoomObjects_Aligned(std::shared_ptr<AGS::Common::Stream> in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
+    auto align_s = std::make_shared<AlignedStream>(in, Common::kAligned_Read);
     for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
-        obj[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        obj[i].ReadFromFile(align_s);
+        align_s->Reset();
     }
 }
 
-void RoomStatus::ReadFromSavegame(Stream *in)
+void RoomStatus::ReadFromSavegame(std::shared_ptr<AGS::Common::Stream> in)
 {
     FreeScriptData();
     FreeProperties();
@@ -162,7 +162,7 @@ void RoomStatus::ReadFromSavegame(Stream *in)
     }
 }
 
-void RoomStatus::WriteToSavegame(Stream *out) const
+void RoomStatus::WriteToSavegame(std::shared_ptr<AGS::Common::Stream> out) const
 {
     out->WriteInt8(beenhere);
     out->WriteInt32(numobj);

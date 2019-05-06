@@ -68,7 +68,7 @@ String::~String()
     Free();
 }
 
-void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
+void String::Read(std::shared_ptr<AGS::Common::Stream> in, size_t max_chars, bool stop_at_limit)
 {
     Empty();
     if (!in)
@@ -107,7 +107,7 @@ void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
     while(ichar > 0 && !(stop_at_limit && read_size == max_chars));
 }
 
-void String::ReadCount(Stream *in, size_t count)
+void String::ReadCount(std::shared_ptr<AGS::Common::Stream> in, size_t count)
 {
     Empty();
     if (in && count > 0)
@@ -119,7 +119,7 @@ void String::ReadCount(Stream *in, size_t count)
     }
 }
 
-void String::Write(Stream *out) const
+void String::Write(std::shared_ptr<AGS::Common::Stream> out) const
 {
     if (out)
     {
@@ -127,7 +127,7 @@ void String::Write(Stream *out) const
     }
 }
 
-void String::WriteCount(Stream *out, size_t count) const
+void String::WriteCount(std::shared_ptr<AGS::Common::Stream> out, size_t count) const
 {
     if (out)
     {
@@ -140,7 +140,7 @@ void String::WriteCount(Stream *out, size_t count) const
     }
 }
 
-/* static */ void String::WriteString(const char *cstr, Stream *out)
+/* static */ void String::WriteString(const char *cstr, std::shared_ptr<AGS::Common::Stream> out)
 {
     if (out)
     {
@@ -317,14 +317,14 @@ int String::ToInt() const
     return str;
 }
 
-/* static */ String String::FromStream(Stream *in, size_t max_chars, bool stop_at_limit)
+/* static */ String String::FromStream(std::shared_ptr<AGS::Common::Stream> in, size_t max_chars, bool stop_at_limit)
 {
     String str;
     str.Read(in, max_chars, stop_at_limit);
     return str;
 }
 
-/* static */ String String::FromStreamCount(Stream *in, size_t count)
+/* static */ String String::FromStreamCount(std::shared_ptr<AGS::Common::Stream> in, size_t count)
 {
     String str;
     str.ReadCount(in, count);

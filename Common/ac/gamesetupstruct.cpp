@@ -443,9 +443,9 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     if (invScripts == nullptr)
     {
         for (bb = 0; bb < numinvitems; bb++)
-            intrInv[bb]->ReadTimesRunFromSavedgame(in);
+            intrInv[bb]->ReadTimesRunFromSave_v321(in);
         for (bb = 0; bb < numcharacters; bb++)
-            intrChar[bb]->ReadTimesRunFromSavedgame(in);
+            intrChar[bb]->ReadTimesRunFromSave_v321(in);
     }
 
     // restore pointer members

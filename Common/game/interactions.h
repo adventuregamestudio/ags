@@ -166,8 +166,8 @@ struct Interaction
     // have practical sense
     void ReadFromSavedgame_v321(Stream *in);
     void WriteToSavedgame_v321(Stream *out) const;
-    void ReadTimesRunFromSavedgame(Stream *in);
-    void WriteTimesRunToSavedgame(Stream *out) const;
+    void ReadTimesRunFromSave_v321(Stream *in);
+    void WriteTimesRunToSave_v321(Stream *out) const;
 
     Interaction &operator =(const Interaction &inter);
 };

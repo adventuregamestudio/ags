@@ -15,23 +15,22 @@
 #ifndef __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
 #define __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
 
-#include <memory>
 #include "game/savegame.h"
-#include "game/savegame_internal.h"
-#include "gfx/bitmap.h"
 #include "util/stream.h"
-#include "util/string.h"
 
 namespace AGS
 {
+
+namespace Common { struct Interaction; }
+
 namespace Engine
 {
 
-using Common::Bitmap;
 using Common::Stream;
-using Common::String;
-
 typedef std::shared_ptr<Stream> PStream;
+
+struct PreservedParams;
+struct RestoredData;
 
 namespace SavegameComponents
 {
@@ -39,6 +38,13 @@ namespace SavegameComponents
     HSaveError    ReadAll(PStream in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
     // Writes a full list of common components to the stream
     HSaveError    WriteAllCommon(PStream out);
+
+    // Utility functions for reading and writing legacy interactions,
+    // or their "times run" counters separately.
+    void ReadTimesRun272(Interaction &intr, Stream *in);
+    HSaveError ReadInteraction272(Interaction &intr, Stream *in);
+    void WriteTimesRun272(const Interaction &intr, Stream *out);
+    void WriteInteraction272(const Interaction &intr, Stream *out);
 }
 
 } // namespace Engine

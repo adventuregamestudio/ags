@@ -34,6 +34,7 @@
 #include "ac/dynobj/cc_serializer.h"
 #include "debug/out.h"
 #include "game/savegame_components.h"
+#include "game/savegame_internal.h"
 #include "gfx/bitmap.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guibutton.h"
@@ -480,6 +481,40 @@ HSaveError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, Res
     return err;
 }
 
+void WriteTimesRun272(const Interaction &intr, Stream *out)
+{
+    for (size_t i = 0; i < intr.Events.size(); ++i)
+        out->WriteInt32(intr.Events[i].TimesRun);
+}
+
+void WriteInteraction272(const Interaction &intr, Stream *out)
+{
+    const size_t evt_count = intr.Events.size();
+    out->WriteInt32(evt_count);
+    for (size_t i = 0; i < evt_count; ++i)
+        out->WriteInt32(intr.Events[i].Type);
+    WriteTimesRun272(intr, out);
+}
+
+void ReadTimesRun272(Interaction &intr, Stream *in)
+{
+    for (size_t i = 0; i < intr.Events.size(); ++i)
+        intr.Events[i].TimesRun = in->ReadInt32();
+}
+
+HSaveError ReadInteraction272(Interaction &intr, Stream *in)
+{
+    HSaveError err;
+    const size_t evt_count = in->ReadInt32();
+    if (!AssertCompatLimit(err, evt_count, MAX_NEWINTERACTION_EVENTS, "interactions"))
+        return err;
+    intr.Events.resize(evt_count);
+    for (size_t i = 0; i < evt_count; ++i)
+        intr.Events[i].Type = in->ReadInt32();
+    ReadTimesRun272(intr, in);
+    return err;
+}
+
 HSaveError WriteCharacters(PStream out)
 {
     out->WriteInt32(game.numcharacters);
@@ -489,7 +524,7 @@ HSaveError WriteCharacters(PStream out)
         charextra[i].WriteToFile(out.get());
         Properties::WriteValues(play.charProps[i], out.get());
         if (loaded_game_file_version <= kGameVersion_272)
-            game.intrChar[i]->WriteTimesRunToSavedgame(out.get());
+            WriteTimesRun272(*game.intrChar[i], out.get());
         // character movement path cache
         mls[CHMLSOFFS + i].WriteToFile(out.get());
     }
@@ -507,7 +542,7 @@ HSaveError ReadCharacters(PStream in, int32_t cmp_ver, const PreservedParams &pp
         charextra[i].ReadFromFile(in.get());
         Properties::ReadValues(play.charProps[i], in.get());
         if (loaded_game_file_version <= kGameVersion_272)
-            game.intrChar[i]->ReadTimesRunFromSavedgame(in.get());
+            ReadTimesRun272(*game.intrChar[i], in.get());
         // character movement path cache
         err = mls[CHMLSOFFS + i].ReadFromFile(in.get(), cmp_ver > 0 ? 1 : 0);
         if (!err)
@@ -658,7 +693,7 @@ HSaveError WriteInventory(PStream out)
         game.invinfo[i].WriteToSavegame(out.get());
         Properties::WriteValues(play.invProps[i], out.get());
         if (loaded_game_file_version <= kGameVersion_272)
-            game.intrInv[i]->WriteTimesRunToSavedgame(out.get());
+            WriteTimesRun272(*game.intrInv[i], out.get());
     }
     return HSaveError::None();
 }
@@ -673,7 +708,7 @@ HSaveError ReadInventory(PStream in, int32_t cmp_ver, const PreservedParams &pp,
         game.invinfo[i].ReadFromSavegame(in.get());
         Properties::ReadValues(play.invProps[i], in.get());
         if (loaded_game_file_version <= kGameVersion_272)
-            game.intrInv[i]->ReadTimesRunFromSavedgame(in.get());
+            ReadTimesRun272(*game.intrInv[i], in.get());
     }
     return err;
 }

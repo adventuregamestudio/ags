@@ -1226,14 +1226,14 @@ HError define_gamedata_location_checkall(const String &exe_path)
         // If not a valid path - bail out
         if (!Path::IsFileOrDir(cmdGameDataPath))
             return new Error(String::FromFormat("Defined game location is not a valid path.\nPath: '%s'", cmdGameDataPath.GetCStr()));
+        // Switch working dir to this path to be able to look for config and other assets there
+        Directory::SetCurrentDirectory(Path::GetDirectoryPath(cmdGameDataPath));
         // If it's a file, then keep it and proceed
         if (Path::IsFile(cmdGameDataPath))
         {
             usetup.main_data_filepath = cmdGameDataPath;
             return HError::None();
         }
-        // Otherwise switch working dir to this path and look for config there
-        Directory::SetCurrentDirectory(Path::GetDirectoryPath(cmdGameDataPath));
     }
     // Read game data location from the default config file.
     // This is an optional setting that may instruct which game file to use as a primary asset library.
@@ -1297,8 +1297,6 @@ bool engine_init_gamedata(const String &exe_path)
     if (!engine_try_init_gamedata(usetup.main_data_filepath))
         return false;
 
-    // Set working directory to the main data file's location
-    Directory::SetCurrentDirectory(usetup.data_files_dir);
     // Pre-load game name and savegame folder names from data file
     // TODO: research if that is possible to avoid this step and just
     // read the full head game data at this point. This might require

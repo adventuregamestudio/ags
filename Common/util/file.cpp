@@ -153,16 +153,36 @@ String File::GetCMode(FileOpenMode open_mode, FileWorkMode work_mode)
     return mode;
 }
 
-std::shared_ptr<AGS::Common::Stream> File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
+std::unique_ptr<AGS::Common::Stream> File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
     try {
         auto fs = std::unique_ptr<ICoreStream>(new FileStream(filename, open_mode, work_mode));
         auto bs = std::unique_ptr<ICoreStream>(new BufferedStream(std::move(fs)));
-        return std::make_shared<DataStream>(std::move(bs));
+        return std::unique_ptr<DataStream>(new DataStream(std::move(bs)));
     } catch(...) {
         return nullptr;
     }
 }
+
+// Convenience helpers
+// Create a totally new file, overwrite existing one
+std::unique_ptr<AGS::Common::Stream> File::CreateFile(const String &filename)
+{
+    return OpenFile(filename, kFile_CreateAlways, kFile_Write);
+}
+
+// Open existing file for reading
+std::unique_ptr<AGS::Common::Stream> File::OpenFileRead(const String &filename)
+{
+    return OpenFile(filename, kFile_Open, kFile_Read);
+}
+
+// Open existing file for writing (append) or create if it does not exist
+std::unique_ptr<AGS::Common::Stream> File::OpenFileWrite(const String &filename)
+{
+    return OpenFile(filename, kFile_Create, kFile_Write);
+}
+
 
 } // namespace Common
 } // namespace AGS

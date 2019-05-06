@@ -67,24 +67,16 @@ namespace File
     // Gets C-style file mode from FileOpenMode and FileWorkMode
     String      GetCMode(FileOpenMode open_mode, FileWorkMode work_mode);
 
-    std::shared_ptr<AGS::Common::Stream> OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+    std::unique_ptr<AGS::Common::Stream> OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
 
     // Convenience helpers
     // Create a totally new file, overwrite existing one
-    inline std::shared_ptr<AGS::Common::Stream> CreateFile(const String &filename)
-    {
-        return OpenFile(filename, kFile_CreateAlways, kFile_Write);
-    }
+    std::unique_ptr<AGS::Common::Stream> CreateFile(const String &filename);
     // Open existing file for reading
-    inline std::shared_ptr<AGS::Common::Stream> OpenFileRead(const String &filename)
-    {
-        return OpenFile(filename, kFile_Open, kFile_Read);
-    }
+    std::unique_ptr<AGS::Common::Stream> OpenFileRead(const String &filename);
     // Open existing file for writing (append) or create if it does not exist
-    inline std::shared_ptr<StrAGS::Common::Streameam> OpenFileWrite(const String &filename)
-    {
-        return OpenFile(filename, kFile_Create, kFile_Write);
-    }
+    std::unique_ptr<AGS::Common::Stream> OpenFileWrite(const String &filename);
+    
 } // namespace File
 
 } // namespace Common

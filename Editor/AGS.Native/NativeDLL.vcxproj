@@ -95,7 +95,7 @@
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md_d.lib;Compiler_md_d.lib;winmm.lib;imm32.lib;alleg-debug-static.lib;alfont_md_d.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md_d.lib;Compiler_md_d.lib;winmm.lib;imm32.lib;shlwapi.lib;alleg-debug-static.lib;alfont_md_d.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\Debug_MD;$(SolutionDir)\..\Windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile />
@@ -145,7 +145,7 @@
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md.lib;Compiler_md.lib;winmm.lib;imm32.lib;alleg-static.lib;alfont_md.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md.lib;Compiler_md.lib;winmm.lib;imm32.lib;shlwapi.lib;alleg-static.lib;alfont_md.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\Release_MD;$(SolutionDir)\..\Windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile />

@@ -791,7 +791,7 @@ bool ALSoftwareGraphicsDriver::PlayVideo(const char *filename, bool useAVISound,
 #endif
 }
 
-#endif;
+#endif
 
 // add the alpha values together, used for compositing alpha images
 unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n)

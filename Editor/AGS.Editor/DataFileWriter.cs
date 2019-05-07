@@ -1610,7 +1610,9 @@ namespace AGS.Editor
                 {
                     DialogOption option = curDialog.Options[i];
                     int flags = 0;
-                    if (!option.Say) flags |= NativeConstants.DFLG_NOREPEAT;
+                    // NOTE: we always force "no-say" flag, because "say" checkbox is processed when
+                    // the dialog script is converted into regular script now.
+                    flags |= NativeConstants.DFLG_NOREPEAT;
                     if (option.Show) flags |= NativeConstants.DFLG_ON;
                     writer.Write(flags); // optionflags
                 }

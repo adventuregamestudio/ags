@@ -360,31 +360,37 @@ namespace AGS.Editor
             return string.Format("dialog[{0}].SetOptionState({1}, {2});", _currentDialog.ID, optionNumber, optionStateEnum);
         }
 
-        private string ProcessCharacterSpeechLine(string dlgScriptCommand)
+        private string MakeCharacterSpeechLine(string charName, string textToSay)
         {
+            // Note that textToSay does not have to be a literal string, could be a function call for example
             string scriptToReturn = string.Empty;
-            int colonAtIndex = dlgScriptCommand.IndexOf(':');
-            string charName = dlgScriptCommand.Substring(0, colonAtIndex).Trim().ToLower();
-            string textToSay = dlgScriptCommand.Substring(colonAtIndex + 1).Trim();
-            if (textToSay == string.Empty)
-            {
-                textToSay = "...";
-            }
-            textToSay = textToSay.Replace("\"", "\\\"");
             if (charName == "player")
             {
-                scriptToReturn = string.Format("player.{0}(\"{1}\");", _sayFnName, textToSay);
+                scriptToReturn = string.Format("player.{0}({1});", _sayFnName, textToSay);
             }
             else if (charName == "narrator")
             {
-                scriptToReturn = string.Format("{0}(\"{1}\");", _narrateFnName, textToSay);
+                scriptToReturn = string.Format("{0}({1});", _narrateFnName, textToSay);
             }
             else
             {
                 Character character = FindCharacterByScriptName(charName);
-                scriptToReturn = string.Format("{0}.{1}(\"{2}\");", character.ScriptName, _sayFnName, textToSay);
+                scriptToReturn = string.Format("{0}.{1}({2});", character.ScriptName, _sayFnName, textToSay);
             }
             return scriptToReturn;
+        }
+
+        private string ProcessCharacterSpeechLine(string dlgScriptCommand)
+        {
+            int colonAtIndex = dlgScriptCommand.IndexOf(':');
+            string charName = dlgScriptCommand.Substring(0, colonAtIndex).Trim().ToLower();
+            string textToSay = dlgScriptCommand.Substring(colonAtIndex + 1).Trim();
+            if (textToSay == string.Empty)
+                textToSay = "...";
+            else
+                textToSay = textToSay.Replace("\"", "\\\"");
+            textToSay = string.Format("\"{0}\"", textToSay);
+            return MakeCharacterSpeechLine(charName, textToSay);
         }
 
         private Character FindCharacterByScriptName(string scriptName)
@@ -444,6 +450,17 @@ namespace AGS.Editor
             scriptToWrite += string.Format("if (entryPoint == {0}) {1}", entryPointID, "{");
             _hadFirstEntryPoint = true;
             _currentlyInsideCodeArea = true;
+
+            // Add player.Say if the Say checkbox is set for this option
+            if (entryPointID > 0)
+            {
+                int optionID = entryPointID - 1;
+                string dlgName = _currentDialog.Name;
+                if (_currentDialog.Options[optionID].Say)
+                    // Use GetOptionText here in case future script API supports changing option text at runtime
+                    scriptToWrite += MakeCharacterSpeechLine("player", string.Format("{0}.GetOptionText({1})", dlgName, optionID + 1));
+            }
+
             return scriptToWrite;
         }
 

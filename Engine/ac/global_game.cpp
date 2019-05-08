@@ -742,10 +742,13 @@ int IsKeyPressed (int keycode) {
 int SaveScreenShot(const char*namm) {
     char fileName[MAX_PATH];
 
+    int err;
     if (strchr(namm,'.') == nullptr)
-        sprintf(fileName, "%s%s.bmp", saveGameDirectory, namm);
+        err = snprintf(fileName, sizeof(fileName), "%s%s.bmp", saveGameDirectory, namm);
     else
-        sprintf(fileName, "%s%s", saveGameDirectory, namm);
+        err = snprintf(fileName, sizeof(fileName), "%s%s", saveGameDirectory, namm);
+    if (err >= sizeof(fileName))
+        debug_script_warn("Screenshot path length exceeded: %d", err);
 
     Bitmap *buffer = CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     if (!buffer->SaveToFile(fileName, palette) != 0)

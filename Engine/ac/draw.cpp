@@ -2101,11 +2101,14 @@ void draw_fps()
 
     char fps_buffer[60];
     // Don't display fps if we don't have enough information (because loop count was just reset)
+    int err;
     if (!std::isnan(fps)) {
-        sprintf(fps_buffer, "FPS: %2.1f / %s", fps, base_buffer);
+        err = snprintf(fps_buffer, sizeof(fps_buffer), "FPS: %2.1f / %s", fps, base_buffer);
     } else {
-        sprintf(fps_buffer, "FPS: --.- / %s", base_buffer);
+        err = snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
+    if (err >= sizeof(fps_buffer))
+        debug_script_warn("FPS string length exceeded: %d", err);
     wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, fps_buffer);
 
     char loop_buffer[60];

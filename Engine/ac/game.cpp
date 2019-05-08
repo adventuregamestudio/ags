@@ -440,16 +440,20 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
 
     // copy the Restart Game file, if applicable
     char restartGamePath[260];
-    sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
+    int err = snprintf(restartGamePath, sizeof(restartGamePath), "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
+    if (err >= sizeof(restartGamePath))
+        debug_script_warn("Savegame path length exceeded: %d", err);
     Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
     if (restartGameFile != nullptr)
-	{
+    {
         long fileSize = restartGameFile->GetLength();
         char *mbuffer = (char*)malloc(fileSize);
         restartGameFile->Read(mbuffer, fileSize);
         delete restartGameFile;
 
-        sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
+        err = snprintf(restartGamePath, sizeof(restartGamePath), "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
+        if (err >= sizeof(restartGamePath))
+            debug_script_warn("Savegame path length exceeded: %d", err);
         restartGameFile = Common::File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
         delete restartGameFile;
@@ -1012,9 +1016,11 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 {
     long fileSize = 0;
     char tempFileName[MAX_PATH];
-    sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory);
+    int err = snprintf(tempFileName, sizeof(tempFileName), "%s""_tmpscht.bmp", saveGameDirectory);
+    if (err >= sizeof(tempFileName))
+        debug_script_warn("Screenshot path length exceeded: %d", err);
 
-	screenshot->SaveToFile(tempFileName, palette);
+    screenshot->SaveToFile(tempFileName, palette);
 
     update_polled_stuff_if_runtime();
 
@@ -1977,12 +1983,12 @@ void replace_tokens(const char*srcmes,char*destm, int maxlen) {
             if (tokentype==1) {
                 if ((inx<1) | (inx>=game.numinvitems))
                     quit("!Display: invalid inv item specified in @IN@");
-                sprintf(tval,"%d",playerchar->inv[inx]);
+                snprintf(tval,sizeof(tval),"%d",playerchar->inv[inx]);
             }
             else {
                 if ((inx<0) | (inx>=MAXGSVALUES))
                     quit("!Display: invalid global int index speicifed in @GI@");
-                sprintf(tval,"%d",GetGlobalInt(inx));
+                snprintf(tval,sizeof(tval),"%d",GetGlobalInt(inx));
             }
             strcpy(destp,tval);
             indxdest+=strlen(tval);

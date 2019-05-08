@@ -23,6 +23,7 @@
 #include <cctype> //isdigit()
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
+#include "debug/debug_log.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -304,7 +305,9 @@ void preparesavegamelist(int ctrllist)
   int bufix = 0;
 
   char searchPath[260];
-  sprintf(searchPath, "%s""agssave.*%s", saveGameDirectory, saveGameSuffix.GetCStr());
+  int err = snprintf(searchPath, sizeof(searchPath), "%s""agssave.*%s", saveGameDirectory, saveGameSuffix.GetCStr());
+  if (err >= sizeof(searchPath))
+    debug_script_warn("Savegame path length exceeded: %d", err);
 
   int don = al_findfirst(searchPath, &ffb, -1);
   while (!don) {

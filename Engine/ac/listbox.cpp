@@ -21,6 +21,7 @@
 #include "ac/path_helper.h"
 #include "ac/string.h"
 #include "gui/guimain.h"
+#include "debug/debug_log.h"
 
 using namespace AGS::Common;
 
@@ -98,7 +99,9 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
   char buff[200];
 
   char searchPath[260];
-  sprintf(searchPath, "%s""agssave.*", saveGameDirectory);
+  int err = snprintf(searchPath, sizeof(searchPath), "%s""agssave.*", saveGameDirectory);
+  if (err >= sizeof(searchPath))
+    debug_script_warn("Savegame path length exceeded: %d", err);
 
   int don = al_findfirst(searchPath, &ffb, FA_SEARCH);
   while (!don) {

@@ -27,6 +27,7 @@
 #include "util/alignedstream.h"
 #include "util/path.h"
 #include "util/string_utils.h"
+#include "debug/debug_log.h"
 
 namespace AGS
 {
@@ -403,16 +404,24 @@ void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &
             ScriptAudioClip &clip = audioclips.back();
             if (ags_stricmp(temp_name, "music") == 0)
             {
-                sprintf(clip.scriptName, "aMusic%d", temp_number);
-                sprintf(clip.fileName, "music%d.%s", temp_number, temp_extension);
+                int err = snprintf(clip.scriptName, sizeof(clip.scriptName), "aMusic%d", temp_number);
+                if (err >= sizeof(clip.scriptName))
+                    debug_script_warn("Script name length exceeded: %d", err);
+                err = snprintf(clip.fileName, sizeof(clip.fileName), "music%d.%s", temp_number, temp_extension);
+                if (err >= sizeof(clip.fileName))
+                    debug_script_warn("Clip file name length exceeded: %d", err);
                 clip.bundlingType = (ags_stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
                 clip.type = 2;
                 clip.defaultRepeat = 1;
             }
             else if (ags_stricmp(temp_name, "sound") == 0)
             {
-                sprintf(clip.scriptName, "aSound%d", temp_number);
-                sprintf(clip.fileName, "sound%d.%s", temp_number, temp_extension);
+                int err = snprintf(clip.scriptName, sizeof(clip.scriptName), "aSound%d", temp_number);
+                if (err >= sizeof(clip.scriptName))
+                    debug_script_warn("Script name length exceeded: %d", err);
+                err = snprintf(clip.fileName, sizeof(clip.fileName), "sound%d.%s", temp_number, temp_extension);
+                if (err >= sizeof(clip.fileName))
+                    debug_script_warn("Clip file name length exceeded: %d", err);
                 clip.bundlingType = AUCL_BUNDLE_EXE;
                 clip.type = 3;
             }

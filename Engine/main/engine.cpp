@@ -748,14 +748,18 @@ int check_write_access() {
 
   // The Save Game Dir is the only place that we should write to
   char tempPath[MAX_PATH];
-  sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
+  int err = snprintf(tempPath, sizeof(tempPath), "%s""tmptest.tmp", saveGameDirectory);
+  if (err >= sizeof(tempPath))
+    debug_script_warn("Savegame path length exceeded: %d", err);
   Stream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
       // TODO: move this somewhere else (Android platform driver init?)
 #if AGS_PLATFORM_OS_ANDROID
   {
 	  put_backslash(android_base_directory);
-	  sprintf(tempPath, "%s""tmptest.tmp", android_base_directory);
+	  int err = snprintf(tempPath, sizeof(tempPath), "%s""tmptest.tmp", android_base_directory);
+	  if (err >= sizeof(tempPath))
+	    debug_script_warn("Savegame path length exceeded: %d", err);
 	  temp_s = Common::File::CreateFile(tempPath);
 	  if (temp_s == NULL) return 0;
 	  else SetCustomSaveParent(android_base_directory);

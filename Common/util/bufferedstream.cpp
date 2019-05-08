@@ -83,7 +83,7 @@ size_t BufferedStream::Read(void *toBuffer, size_t toSize) {
         toSize -= chunkSize;
     }
 
-    return to - toBuffer;
+    return to - (char*)toBuffer;
 }
 
 int32_t BufferedStream::ReadByte() {

@@ -144,11 +144,11 @@ int32_t FileStream::WriteByte(uint8_t val)
     return -1;
 }
 
-soff_t FileStream::Seek(soff_t offset, StreamSeek origin)
+bool FileStream::Seek(soff_t offset, StreamSeek origin)
 {
     if (!_file)
     {
-        return -1;
+        return false;
     }
 
     int stdclib_origin;
@@ -159,11 +159,10 @@ soff_t FileStream::Seek(soff_t offset, StreamSeek origin)
     case kSeekEnd:      stdclib_origin = SEEK_END; break;
     default:
         // TODO: warning to the log
-        return -1;
+        return false;
     }
 
-    ags_fseek(_file, (file_off_t)offset, stdclib_origin);
-    return GetPosition();
+    return ags_fseek(_file, (file_off_t)offset, stdclib_origin) == 0;
 }
 
 void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)

@@ -74,7 +74,7 @@ public:
     size_t  WriteArrayOfInt32(const int32_t *buffer, size_t count) override;
     size_t  WriteArrayOfInt64(const int64_t *buffer, size_t count) override;
 
-    soff_t  Seek(soff_t offset, StreamSeek origin) override;
+    bool    Seek(soff_t offset, StreamSeek origin) override;
 
 protected:
     Stream                  *_stream;

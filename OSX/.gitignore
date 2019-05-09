@@ -1,0 +1,5 @@
+# OSX output and temporary files
+buildlibs/opt/
+buildlibs/build/
+include/
+lib/

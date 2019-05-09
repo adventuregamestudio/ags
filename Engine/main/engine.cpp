@@ -473,11 +473,10 @@ std::pair<int, int> autodetect_driver(_DRIVER_INFO *driver_list, int (*detect_au
         if (driver_list[i].autodetect)
         {
             int voices = detect_audio_driver(driver_list[i].id);
-            if (voices == 0)
-                Debug::Printf(kDbgMsg_Warn, "Failed to detect %s driver %s; Error: '%s'.",
-                    type, AlIDToChars(driver_list[i].id).s, get_allegro_error());
-            if (voices > 0)
+            if (voices != 0)
                 return std::make_pair(driver_list[i].id, voices);
+            Debug::Printf(kDbgMsg_Warn, "Failed to detect %s driver %s; Error: '%s'.",
+                    type, AlIDToChars(driver_list[i].id).s, get_allegro_error());
         }
     }
     return std::make_pair(0, 0);
@@ -494,7 +493,7 @@ std::pair<int, int> decide_audiodriver(int try_id, _DRIVER_INFO *driver_list,
     if (try_id > 0)
     {
         int voices = detect_audio_driver(try_id);
-        if (al_drv_id == try_id && voices > 0) // found and detected
+        if (al_drv_id == try_id && voices != 0) // found and detected
             return std::make_pair(try_id, voices);
         if (voices == 0) // found in list but detect failed
             Debug::Printf(kDbgMsg_Error, "Failed to detect %s driver %s; Error: '%s'.", type, AlIDToChars(try_id).s, get_allegro_error());

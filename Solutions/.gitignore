@@ -2,20 +2,9 @@
 Engine.App/allegro.log
 Engine.App/test.ini
 
-
 # MSVS solution output and temporary files
-.build/
-.lib/
-.test/
-Common.Lib/Debug/
-Common.Lib/Debug_MD/
-Common.Lib/Release
-Common.Lib/Release_MD/
-Common.Lib/Release_NoMP3/
-Compiler.Lib/Debug
-Compiler.Lib/Debug_MD/
-Compiler.Lib/Release
-Compiler.Lib/Release_MD/
-Engine.App/Debug/
-Engine.App/Release
-Engine.App/Release_NoMP3
+**/Debug
+**/Debug_MD
+**/Release
+**/Release_MD
+**/Release_NoMP3

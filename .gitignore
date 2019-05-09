@@ -2,8 +2,8 @@
 .pc
 
 ## Xcode Build generated
-build/
-DerivedData/
+**/build
+**/DerivedData
 
 ## Xcode Various settings
 *.pbxuser
@@ -14,7 +14,7 @@ DerivedData/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-xcuserdata/
+**/xcuserdata
 
 ## Xcode Other
 *.moved-aside
@@ -33,7 +33,7 @@ Engine/resource/version.aps
 
 
 # MSVS solution output and temporary files
-*/.vs/
+**/.vs
 *.csproj.user
 *.ncb
 *.suo
@@ -41,6 +41,12 @@ Engine/resource/version.aps
 *.VC.opendb
 *.vcproj.*.user
 *.vcxproj.user
+**/Debug
+**/Develop
+**/Release
+**/.build
+**/.lib
+**/.test
 
 
 # Tools output and temporary files
@@ -78,4 +84,4 @@ build*/**
 
 
 # VSCode project configuration
-.vscode
+**/.vscode

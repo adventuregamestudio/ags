@@ -1,11 +1,5 @@
 # Manual output and temporary files
 *.htm
 *.con
-ags.ref
-ags.chm
-ags.chw
-ags.hhc
-ags.hhk
-ags.hhp
-ags.htx
-ags-help.chm
+ags.*
+!ags.tex

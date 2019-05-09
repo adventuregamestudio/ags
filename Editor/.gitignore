@@ -1,12 +1,6 @@
 # Editor output and temporary files
-AGS.Controls/bin
-AGS.Controls/obj
-AGS.CScript.Compiler/bin
-AGS.CScript.Compiler/obj
-AGS.Editor/bin
-AGS.Editor/obj
-AGS.Native/Debug
-AGS.Native/Release
-AGS.Types/bin
-AGS.Types/obj
+**/bin
+**/obj
+**/Debug
+**/Release
 References/*.dll

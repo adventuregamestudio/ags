@@ -404,7 +404,7 @@ int SetGameOption (int opt, int setting) {
         }
     }
 
-    if ((opt == OPT_CROSSFADEMUSIC) && (game.audioClipTypeCount > AUDIOTYPE_LEGACY_MUSIC))
+    if ((opt == OPT_CROSSFADEMUSIC) && (game.audioClipTypes.size() > AUDIOTYPE_LEGACY_MUSIC))
     {
         // legacy compatibility -- changing crossfade speed here also
         // updates the new audio clip type style

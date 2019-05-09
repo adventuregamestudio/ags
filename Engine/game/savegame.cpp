@@ -589,10 +589,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
         if (chan_info.ClipID < 0)
             continue;
-        if (chan_info.ClipID >= game.audioClipCount)
+        if ((size_t)chan_info.ClipID >= game.audioClips.size())
         {
             return new SavegameError(kSvgErr_GameObjectInitFailed,
-                String::FromFormat("Invalid audio clip index: %d (clip count: %d).", chan_info.ClipID, game.audioClipCount));
+                String::FromFormat("Invalid audio clip index: %d (clip count: %u).", chan_info.ClipID, game.audioClips.size()));
         }
         play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);

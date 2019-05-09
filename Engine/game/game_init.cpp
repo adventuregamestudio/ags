@@ -139,7 +139,7 @@ void InitAndRegisterAudioObjects()
         ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);
     }
 
-    for (int i = 0; i < game.audioClipCount; ++i)
+    for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
         game.audioClips[i].id = i;
         ccRegisterManagedObject(&game.audioClips[i], &ccDynamicAudioClip);
@@ -372,8 +372,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     if (game.numfonts == 0)
         return new GameInitError(kGameInitErr_NoFonts);
-    if (game.audioClipTypeCount > MAX_AUDIO_TYPES)
-        return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %d, max: %d", game.audioClipTypeCount, MAX_AUDIO_TYPES));
+    if (game.audioClipTypes.size() > MAX_AUDIO_TYPES)
+        return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %u, max: %d", game.audioClipTypes.size(), MAX_AUDIO_TYPES));
 
     //
     // 2. Apply overriding config settings

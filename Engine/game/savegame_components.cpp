@@ -376,10 +376,10 @@ HSaveError WriteAudio(PStream out)
     AudioChannelsLock lock;
 
     // Game content assertion
-    out->WriteInt32(game.audioClipTypeCount);
-    out->WriteInt32(game.audioClipCount);
+    out->WriteInt32(game.audioClipTypes.size());
+    out->WriteInt32(game.audioClips.size());
     // Audio types
-    for (int i = 0; i < game.audioClipTypeCount; ++i)
+    for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
     {
         game.audioClipTypes[i].WriteToSavegame(out.get());
         out->WriteInt32(play.default_audio_type_volumes[i]);
@@ -423,13 +423,13 @@ HSaveError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, Res
 {
     HSaveError err;
     // Game content assertion
-    if (!AssertGameContent(err, in->ReadInt32(), game.audioClipTypeCount, "Audio Clip Types"))
+    if (!AssertGameContent(err, in->ReadInt32(), game.audioClipTypes.size(), "Audio Clip Types"))
         return err;
-    if (!AssertGameContent(err, in->ReadInt32(), game.audioClipCount, "Audio Clips"))
+    if (!AssertGameContent(err, in->ReadInt32(), game.audioClips.size(), "Audio Clips"))
         return err;
 
     // Audio types
-    for (int i = 0; i < game.audioClipTypeCount; ++i)
+    for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
     {
         game.audioClipTypes[i].ReadFromSavegame(in.get());
         play.default_audio_type_volumes[i] = in->ReadInt32();

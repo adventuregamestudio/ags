@@ -122,7 +122,7 @@ AGS::Engine::Thread audioThread;
 void calculate_reserved_channel_count()
 {
     int reservedChannels = 0;
-    for (int i = 0; i < game.audioClipTypeCount; i++)
+    for (size_t i = 0; i < game.audioClipTypes.size(); i++)
     {
         reservedChannels += game.audioClipTypes[i].reservedChannels;
     }
@@ -514,7 +514,7 @@ ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int rep
 
 ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
 {
-    if ((audioClipIndex >= 0) && (audioClipIndex < game.audioClipCount))
+    if ((audioClipIndex >= 0) && ((size_t)audioClipIndex < game.audioClips.size()))
         return AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
     else 
         return nullptr;

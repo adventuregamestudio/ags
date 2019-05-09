@@ -212,7 +212,7 @@ int getloctype_index = 0, getloctype_throughgui = 0;
 
 void Game_StopAudio(int audioType)
 {
-    if (((audioType < 0) || (audioType >= game.audioClipTypeCount)) && (audioType != SCR_NO_VALUE))
+    if (((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size())) && (audioType != SCR_NO_VALUE))
         quitprintf("!Game.StopAudio: invalid audio type %d", audioType);
     int aa;
 
@@ -235,7 +235,7 @@ void Game_StopAudio(int audioType)
 
 int Game_IsAudioPlaying(int audioType)
 {
-    if (((audioType < 0) || (audioType >= game.audioClipTypeCount)) && (audioType != SCR_NO_VALUE))
+    if (((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size())) && (audioType != SCR_NO_VALUE))
         quitprintf("!Game.IsAudioPlaying: invalid audio type %d", audioType);
 
     if (play.fast_forward)
@@ -257,7 +257,7 @@ int Game_IsAudioPlaying(int audioType)
 
 void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop)
 {
-    if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
+    if ((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size()))
         quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
 
     Debug::Printf("Game.SetAudioTypeSpeechVolumeDrop: type: %d, drop: %d", audioType, volumeDrop);
@@ -269,7 +269,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 {
     if ((volume < 0) || (volume > 100))
         quitprintf("!Game.SetAudioTypeVolume: volume %d is not between 0..100", volume);
-    if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
+    if ((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size()))
         quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
 
     Debug::Printf("Game.SetAudioTypeVolume: type: %d, volume: %d, change: %d", audioType, volume, changeType);
@@ -885,7 +885,7 @@ int Game_ChangeTranslation(const char *newFilename)
 
 ScriptAudioClip *Game_GetAudioClip(int index)
 {
-    if (index < 0 || index >= game.audioClipCount)
+    if (index < 0 || (size_t)index >= game.audioClips.size())
         return nullptr;
     return &game.audioClips[index];
 }
@@ -1318,12 +1318,12 @@ HSaveError restore_game_gui(Stream *in, int numGuisWas)
 
 HSaveError restore_game_audiocliptypes(Stream *in)
 {
-    if (in->ReadInt32() != game.audioClipTypeCount)
+    if (in->ReadInt32() != game.audioClipTypes.size())
     {
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clip Types.");
     }
 
-    for (int i = 0; i < game.audioClipTypeCount; ++i)
+    for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
     {
         game.audioClipTypes[i].ReadFromFile(in);
     }
@@ -1459,7 +1459,7 @@ HSaveError restore_game_views(Stream *in)
 
 HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
 {
-    if (in->ReadInt32() != game.audioClipCount)
+    if (in->ReadInt32() != game.audioClips.size())
     {
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clips.");
     }
@@ -1471,7 +1471,7 @@ HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_dat
         chan_info.ClipID = in->ReadInt32();
         if (chan_info.ClipID >= 0)
         {
-            if (chan_info.ClipID >= game.audioClipCount)
+            if ((size_t)chan_info.ClipID >= game.audioClips.size())
             {
                 return new SavegameError(kSvgErr_GameObjectInitFailed, "Invalid audio clip index.");
             }
@@ -2335,7 +2335,7 @@ RuntimeScriptValue Sc_Game_GetViewCount(const RuntimeScriptValue *params, int32_
 
 RuntimeScriptValue Sc_Game_GetAudioClipCount(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARGET_INT(game.audioClipCount);
+    API_VARGET_INT(game.audioClips.size());
 }
 
 RuntimeScriptValue Sc_Game_GetAudioClip(const RuntimeScriptValue *params, int32_t param_count)

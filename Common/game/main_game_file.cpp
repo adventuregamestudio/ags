@@ -412,7 +412,7 @@ void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &
             else if (ags_stricmp(temp_name, "sound") == 0)
             {
                 clip.scriptName.Format("aSound%d", temp_number);
-                clip.scriptName.Format("sound%d.%s", temp_number, temp_extension);
+                clip.fileName.Format("sound%d.%s", temp_number, temp_extension);
                 clip.bundlingType = AUCL_BUNDLE_EXE;
                 clip.type = 3;
             }

@@ -381,7 +381,7 @@ static void apply_volume_drop_to_clip(SOUNDCLIP *clip)
 static void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
 {
     if (play.new_music_queue_size >= MAX_QUEUED_MUSIC) {
-        debug_script_log("Too many queued music, cannot add %s", clip->scriptName);
+        debug_script_log("Too many queued music, cannot add %s", clip->scriptName.GetCStr());
         return;
     }
 
@@ -584,7 +584,7 @@ int get_old_style_number_for_sound(int sound_number)
     if (audio_clip_id >= 0)
     {
         int old_style_number = 0;
-        if (sscanf(game.audioClips[audio_clip_id].scriptName, "aSound%d", &old_style_number) == 1)
+        if (sscanf(game.audioClips[audio_clip_id].scriptName.GetCStr(), "aSound%d", &old_style_number) == 1)
             return old_style_number;    
     }
     return 0;

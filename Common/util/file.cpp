@@ -14,6 +14,7 @@
 
 #include "util/file.h"
 
+#include <stdexcept>
 #include "core/platform.h"
 #include "util/stdio_compat.h"
 #include <errno.h>

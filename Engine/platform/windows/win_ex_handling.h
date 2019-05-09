@@ -11,12 +11,14 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-// Platform-specific macro overrides
-//
-//=============================================================================
-#ifndef __AGS_EE_PLATFORM__OVERRIDE_DEFINES_H
-#define __AGS_EE_PLATFORM__OVERRIDE_DEFINES_H
+#ifndef __AGS_EE_PLATFORM__WIN_EXCEPTION_HANDLING_H
+#define __AGS_EE_PLATFORM__WIN_EXCEPTION_HANDLING_H
 
+#include "util/ini_util.h"
 
-#endif // __AGS_EE_PLATFORM__OVERRIDE_DEFINES_H
+void setup_malloc_handling();
+int  initialize_engine_with_exception_handling(
+    int (initialize_engine)(const AGS::Common::ConfigTree &startup_opts),
+    const AGS::Common::ConfigTree &startup_opts);
+
+#endif // __AGS_EE_PLATFORM__WIN_EXCEPTION_HANDLING_H

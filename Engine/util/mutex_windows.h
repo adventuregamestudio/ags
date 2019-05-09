@@ -11,17 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_EE_UTIL__WINDOWS_MUTEX_H
 #define __AGS_EE_UTIL__WINDOWS_MUTEX_H
-
-// FIXME: This is a horrible hack to avoid conflicts between Allegro and Windows
-#define BITMAP WINDOWS_BITMAP
-#include <windows.h>
-#undef BITMAP
-
-#include <crtdbg.h>
-
 
 namespace AGS
 {

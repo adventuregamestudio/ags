@@ -19,11 +19,6 @@
 #include "util/wgt2allg.h"              // exists()
 #include "platform/base/agsplatformdriver.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
-// undef the declarations from winbase.h
-#undef CreateFile
-#endif
-
 using AGS::Common::Stream;
 using AGS::Common::TextStreamWriter;
 

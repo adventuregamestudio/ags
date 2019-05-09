@@ -26,9 +26,6 @@
 #define __WGT4_H
 
 #include "allegro.h"
-#if AGS_PLATFORM_OS_WINDOWS
-#include "winalleg.h"
-#endif
 
 namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later

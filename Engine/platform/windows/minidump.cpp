@@ -11,10 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
 #define UNICODE
 #include <stdio.h> // sprintf
 #include "windows.h"
@@ -109,13 +108,4 @@ int CustomExceptionHandler (LPEXCEPTION_POINTERS exinfo) {
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-FILE *logfile;
-int OurReportingFunction( int reportType, char *userMessage, int *retVal ) {
-
-    // [IKM] How's this supposed to work without opening the file?
-    // This functions does not seem to be called from anywhere
-    fprintf(logfile,"%s: %s\n",(reportType == _CRT_ASSERT) ? "Assertion failed" : "Warning",userMessage);
-    fflush (logfile);
-    return 0;
-}
-#endif	// AGS_PLATFORM_OS_WINDOWS
+#endif	// AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG

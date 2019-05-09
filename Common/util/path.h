@@ -62,6 +62,11 @@ namespace Path
     // of illegal chars from all the supported platforms to make a name that
     // could be copied across systems without problems.
     String  FixupSharedFilename(const String &filename);
+
+    // Converts filepath into ASCII variant; returns empty string on failure
+    String  GetPathInASCII(const String &path);
+    // Converts filepath from command line's argument into ASCII variant
+    String  GetCmdLinePathInASCII(const char *arg, int arg_index);
 } // namespace Path
 
 } // namespace Common

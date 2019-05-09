@@ -17,10 +17,9 @@
 #include "util/ini_util.h"
 
 const char *get_engine_version();
-void		show_preload();
-void		engine_init_game_settings();
+void        show_preload();
+void        engine_init_game_settings();
 int         initialize_engine(const AGS::Common::ConfigTree &startup_opts);
-int			initialize_engine_with_exception_handling(const AGS::Common::ConfigTree &startup_opts);
 
 struct ScreenSetup;
 // Try to set new graphics mode deduced from given configuration;

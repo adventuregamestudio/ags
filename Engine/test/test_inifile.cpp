@@ -23,11 +23,6 @@
 #include "util/inifile.h"
 #include "util/stream.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
-// undef the declarations from winbase.h
-#undef CreateFile
-#endif
-
 using namespace AGS::Common;
 
 #if AGS_PLATFORM_OS_WINDOWS

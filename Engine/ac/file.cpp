@@ -37,13 +37,6 @@
 #include "util/string.h"
 #include "util/string_utils.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
-// undef the declarations from winbase.h
-#undef CreateDirectory
-#undef SetCurrentDirectory
-#undef GetCurrentDirectory
-#endif
-
 using namespace AGS::Common;
 
 extern GameSetup usetup;

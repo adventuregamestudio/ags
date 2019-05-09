@@ -42,15 +42,15 @@
 #include "util/directory.h"
 #include "util/path.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+#include "platform/windows/win_ex_handling.h"
+#endif
 #if AGS_PLATFORM_DEBUG
 #include "test/test_all.h"
 #endif
 
-#if AGS_PLATFORM_OS_WINDOWS
-// undef the declarations from winbase.h
-#undef CreateDirectory
-#undef SetCurrentDirectory
-#undef GetCurrentDirectory
+#if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
+#define USE_CUSTOM_EXCEPTION_HANDLER
 #endif
 
 using namespace AGS::Common;
@@ -58,13 +58,6 @@ using namespace AGS::Engine;
 
 String appDirectory; // Needed for library loading
 String cmdGameDataPath;
-
-#if AGS_PLATFORM_OS_WINDOWS
-
-int wArgc;
-LPWSTR *wArgv;
-
-#endif
 
 char **global_argv = nullptr;
 int    global_argc = 0;
@@ -169,14 +162,6 @@ String get_engine_string()
 
 int main_preprocess_cmdline(int argc,char*argv[])
 {
-#if AGS_PLATFORM_OS_WINDOWS
-    wArgv = CommandLineToArgvW(GetCommandLineW(), &wArgc);
-    if (wArgv == NULL)
-    {
-        platform->DisplayAlert("CommandLineToArgvW failed, unable to start the game.");
-        return 9;
-    }
-#endif
     global_argv = argv;
     global_argc = argc;
     return RETURN_CONTINUE;
@@ -342,46 +327,6 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
     return RETURN_CONTINUE;
 }
 
-void main_init_crt_report()
-{
-#if AGS_PLATFORM_DEBUG
-    /* logfile=fopen("g:\\ags.log","at");
-    //_CrtSetReportHook( OurReportingFunction );
-    int tmpDbgFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-    //tmpDbgFlag |= _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF;
-
-    tmpDbgFlag = (tmpDbgFlag & 0x0000FFFF) | _CRTDBG_CHECK_EVERY_16_DF | _CRTDBG_DELAY_FREE_MEM_DF;
-
-    _CrtSetDbgFlag(tmpDbgFlag);
-
-    /*
-    //  _CrtMemState memstart,memnow;
-    _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_WNDW );
-    _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_WNDW );
-    _CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_WNDW );
-    /*
-    //   _CrtSetReportFile( _CRT_WARN, _CRTDBG_FILE_STDERR );
-    //   _CrtSetReportFile( _CRT_ERROR, _CRTDBG_FILE_STDERR );
-    //   _CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDERR );
-
-    //  _CrtMemCheckpoint(&memstart);
-    //  _CrtMemDumpStatistics( &memstart );*/
-#endif
-}
-
-#if AGS_PLATFORM_OS_WINDOWS
-String GetPathInASCII(const String &path)
-{
-    char ascii_buffer[MAX_PATH];
-    if (GetShortPathNameA(path, ascii_buffer, MAX_PATH) == 0)
-    {
-        Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetShortPathNameA failed.\nArg: %s", path.GetCStr());
-        return "";
-    }
-    return Path::MakeAbsolutePath(ascii_buffer);
-}
-#endif
-
 void main_set_gamedir(int argc, char*argv[])
 {
     appDirectory = Path::GetDirectoryPath(GetPathFromCmdArg(0));
@@ -392,7 +337,6 @@ void main_set_gamedir(int argc, char*argv[])
         // be the save game folder unless we correct it
         Directory::SetCurrentDirectory(appDirectory);
     }
-#if AGS_PLATFORM_OS_WINDOWS
     else
     {
         // It looks like Allegro library does not like ANSI (ACP) paths.
@@ -400,38 +344,24 @@ void main_set_gamedir(int argc, char*argv[])
         // current directory for its own operations, it "fixes" it by
         // substituting non-ASCII symbols with '^'.
         // Here we explicitly set current directory to ASCII path.
-        Directory::SetCurrentDirectory(GetPathInASCII(Directory::GetCurrentDirectory()));
+        String cur_dir = Directory::GetCurrentDirectory();
+        String path = Path::GetPathInASCII(cur_dir);
+        if (!path.IsEmpty())
+            Directory::SetCurrentDirectory(Path::MakeAbsolutePath(path));
+        else
+            Debug::Printf(kDbgMsg_Error, "Unable to determine current directory: GetPathInASCII failed.\nArg: %s", cur_dir.GetCStr());
     }
-#endif
 }
 
 String GetPathFromCmdArg(int arg_index)
 {
     if (arg_index < 0 || arg_index >= global_argc)
-    {
         return "";
-    }
-
-    String path;
-#if AGS_PLATFORM_OS_WINDOWS
-    // Hack for Windows in case there are unicode chars in the path.
-    // The normal argv[] array has ????? instead of the unicode chars
-    // and fails, so instead we manually get the short file name, which
-    // is always using ASCII chars.
-    WCHAR short_path[MAX_PATH];
-    char ascii_buffer[MAX_PATH];
-    LPCWSTR arg_path = wArgv[arg_index];
-    if (GetShortPathNameW(arg_path, short_path, MAX_PATH) == 0)
-    {
-        Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetShortPathNameW failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
-        return global_argv[arg_index];
-    }
-    WideCharToMultiByte(CP_ACP, 0, short_path, -1, ascii_buffer, MAX_PATH, NULL, NULL);
-    path = ascii_buffer;
-#else
-    path = global_argv[arg_index];
-#endif
-    return Path::MakeAbsolutePath(path);
+    String path = Path::GetCmdLinePathInASCII(global_argv[arg_index], arg_index);
+    if (!path.IsEmpty())
+        return Path::MakeAbsolutePath(path);
+    Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetCmdLinePathInASCII failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
+    return global_argv[arg_index];
 }
 
 const char *get_allegro_error()
@@ -448,26 +378,6 @@ const char *set_allegro_error(const char *format, ...)
     return allegro_error;
 }
 
-#if AGS_PLATFORM_OS_WINDOWS
-#include <new.h>
-
-#if ! AGS_PLATFORM_DEBUG
-extern void CreateMiniDump( EXCEPTION_POINTERS* pep );
-#endif
-
-char tempmsg[100];
-char*printfworkingspace;
-int malloc_fail_handler(size_t amountwanted) {
-#if ! AGS_PLATFORM_DEBUG
-  CreateMiniDump(NULL);
-#endif
-  free(printfworkingspace);
-  sprintf(tempmsg,"Out of memory: failed to allocate %ld bytes (at PP=%d)",amountwanted, our_eip);
-  quit(tempmsg);
-  return 0;
-}
-#endif
-
 int ags_entry_point(int argc, char *argv[]) { 
 
 #if AGS_PLATFORM_DEBUG
@@ -483,9 +393,7 @@ int ags_entry_point(int argc, char *argv[]) {
     }
 
 #if AGS_PLATFORM_OS_WINDOWS
-    _set_new_handler(malloc_fail_handler);
-    _set_new_mode(1);
-    printfworkingspace=(char*)malloc(7000);
+    setup_malloc_handling();
 #endif
     debug_flags=0;
 
@@ -510,19 +418,15 @@ int ags_entry_point(int argc, char *argv[]) {
     init_debug();
     Debug::Printf(kDbgMsg_Init, get_engine_string());
 
-    main_init_crt_report();
-
     main_set_gamedir(argc, argv);    
 
     // Update shell associations and exit
     if (debug_flags & DBG_REGONLY)
         exit(0);
 
-#ifndef USE_CUSTOM_EXCEPTION_HANDLER
-    usetup.disable_exception_handling = true;
-#endif
-
+#ifdef USE_CUSTOM_EXCEPTION_HANDLER
     if (usetup.disable_exception_handling)
+#endif
     {
         int result = initialize_engine(startup_opts);
         // TODO: refactor engine shutdown routine (must shutdown and delete everything started and created)
@@ -530,8 +434,10 @@ int ags_entry_point(int argc, char *argv[]) {
         platform->PostAllegroExit();
         return result;
     }
+#ifdef USE_CUSTOM_EXCEPTION_HANDLER
     else
     {
-        return initialize_engine_with_exception_handling(startup_opts);
+        return initialize_engine_with_exception_handling(initialize_engine, startup_opts);
     }
+#endif
 }

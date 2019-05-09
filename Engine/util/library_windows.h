@@ -11,13 +11,27 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_EE_UTIL__LIBRARY_WINDOWS_H
 #define __AGS_EE_UTIL__LIBRARY_WINDOWS_H
 
-#include <windows.h>
-#include "util/string.h"
 #include "debug/out.h"
+#include "platform/windows/winapi_exclusive.h"
+#include "util/string.h"
+
+// Because this class may be exposed to generic code in sake of inlining,
+// we should avoid including <windows.h> full of macros with common names.
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule);
+    WINBASEAPI FARPROC WINAPI GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
+    WINBASEAPI HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
 
 namespace AGS
 {
@@ -61,7 +75,7 @@ public:
   {
     Unload();
 
-    _library = LoadLibrary(BuildPath(libraryName).GetCStr());
+    _library = LoadLibraryA(BuildPath(libraryName).GetCStr());
 
     return (_library != NULL);
   }

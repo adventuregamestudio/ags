@@ -13,8 +13,10 @@
 //=============================================================================
 
 #include <vector>
-
 #include "core/platform.h"
+#if AGS_PLATFORM_OS_WINDOWS
+#include "platform/windows/winapi_exclusive.h"
+#endif
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/view.h"

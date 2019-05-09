@@ -158,19 +158,7 @@ void initialize_sprite (int ee) {
                 quit("Not enough memory to load sprite graphics");
             tmpdbl->Acquire ();
             curspr->Acquire ();
-            /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
-            __try {
-            #endif*/
             tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
-            /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
-            } __except (1) {
-            // I can't trace this fault, but occasionally stretch_sprite
-            // crashes, even with valid source and dest bitmaps. So,
-            // for now, just ignore the exception, since the stretch
-            // looks successful
-            //MessageBox (allegro_wnd, "ERROR", "FATAL ERROR", MB_OK);
-            }
-            #endif*/
             curspr->Release ();
             tmpdbl->Release ();
             delete curspr;

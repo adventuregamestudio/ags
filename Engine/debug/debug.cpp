@@ -35,6 +35,10 @@
 #include "platform/base/agsplatformdriver.h"
 #include "debug/agseditordebugger.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+#include <winalleg.h>
+#endif
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 

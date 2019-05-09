@@ -19,11 +19,6 @@
 #include "util/stream.h"
 #include "util/textstreamwriter.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
-// undef the declarations from winbase.h
-#undef CreateFile
-#endif
-
 namespace AGS
 {
 namespace Common

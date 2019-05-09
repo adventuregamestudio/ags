@@ -28,19 +28,8 @@ extern AGS::Common::Version SavedgameLowestBackwardCompatVersion;
 // Lowest engine version, which would accept current savedgames
 extern AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
-#if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
-#define USE_CUSTOM_EXCEPTION_HANDLER
-#endif
-
 //=============================================================================
 
-#if AGS_PLATFORM_OS_WINDOWS
-#ifndef _WINNT_
-typedef void *LPWSTR;
-#endif
-extern int wArgc;
-extern LPWSTR *wArgv;
-#endif
 extern char **global_argv;
 
 // Location of the engine executable

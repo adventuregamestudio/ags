@@ -15,6 +15,7 @@
 #ifndef __AGS_EE_PLATFORM__THREAD_STD_H
 #define __AGS_EE_PLATFORM__THREAD_STD_H
 
+#include <system_error>
 #include <thread>
 
 namespace AGS

@@ -513,10 +513,10 @@ char bname[MAX_FUNCTION_NAME_LEN+1],bne[MAX_FUNCTION_NAME_LEN+1];
 char* make_ts_func_name(const char*base,int iii,int subd) {
     int err = snprintf(bname,MAX_FUNCTION_NAME_LEN,base,iii);
     if (err >= sizeof(bname))
-      debug_script_warn("Function string length exceeded: %d", err);
+      debug_script_warn("Function name length limit exceeded: %s (%d)", base, iii);
     err = snprintf(bne,MAX_FUNCTION_NAME_LEN,"%s_%c",bname,subd+'a');
     if (err >= sizeof(bne))
-      debug_script_warn("Function string length exceeded: %d", err);
+      debug_script_warn("Function name length limit exceeded: %s", bname);
     return &bne[0];
 }
 

@@ -159,8 +159,8 @@ Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkM
 {
     FileStream *fs = nullptr;
     try {
-		//fs = new FileStream(filename, open_mode, work_mode);
-		fs = new BufferedStream(filename, open_mode, work_mode);
+        //fs = new FileStream(filename, open_mode, work_mode);
+        fs = new BufferedStream(filename, open_mode, work_mode);
         if (!fs->IsValid()) {
             delete fs;
             fs = nullptr;

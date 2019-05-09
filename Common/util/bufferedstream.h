@@ -47,11 +47,11 @@ public:
 
 private:
 
-    soff_t bufferPosition_;
-    std::vector<char> buffer_;
+    soff_t _bufferPosition;
+    std::vector<char> _buffer;
 
-    soff_t position_;
-    soff_t end_;
+    soff_t _position;
+    soff_t _end;
 
     void FillBufferFromPosition(soff_t position);
 };

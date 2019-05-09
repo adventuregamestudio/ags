@@ -32,9 +32,6 @@ extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
 extern GameSetupStruct game;
 
-// from ac_game
-extern char saveGameDirectory[260];
-
 namespace {
 
 // TODO: store drawing surface inside old gui classes instead
@@ -304,10 +301,9 @@ void preparesavegamelist(int ctrllist)
   al_ffblk ffb;
   int bufix = 0;
 
-  char searchPath[260];
-  int err = snprintf(searchPath, sizeof(searchPath), "%s""agssave.*%s", saveGameDirectory, saveGameSuffix.GetCStr());
-  if (err >= sizeof(searchPath))
-    debug_script_warn("Savegame path length exceeded: %d", err);
+  String svg_dir = get_save_game_directory();
+  String svg_suff = get_save_game_suffix();
+  String searchPath = String::FromFormat("%s""agssave.*%s", svg_dir.GetCStr(), svg_suff.GetCStr());
 
   int don = al_findfirst(searchPath, &ffb, -1);
   while (!don) {

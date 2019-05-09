@@ -81,7 +81,6 @@ extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
-extern char saveGameDirectory[260];
 extern SpriteCache spriteset;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
@@ -739,19 +738,15 @@ int check_write_access() {
   our_eip = -1895;
 
   // The Save Game Dir is the only place that we should write to
-  char tempPath[MAX_PATH];
-  int err = snprintf(tempPath, sizeof(tempPath), "%s""tmptest.tmp", saveGameDirectory);
-  if (err >= sizeof(tempPath))
-    debug_script_warn("Savegame path length exceeded: %d", err);
+  String svg_dir = get_save_game_directory();
+  String tempPath = String::FromFormat("%s""tmptest.tmp", svg_dir.GetCStr());
   Stream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
       // TODO: move this somewhere else (Android platform driver init?)
 #if AGS_PLATFORM_OS_ANDROID
   {
 	  put_backslash(android_base_directory);
-	  int err = snprintf(tempPath, sizeof(tempPath), "%s""tmptest.tmp", android_base_directory);
-	  if (err >= sizeof(tempPath))
-	    debug_script_warn("Savegame path length exceeded: %d", err);
+      tempPath.Format("%s""tmptest.tmp", android_base_directory);
 	  temp_s = Common::File::CreateFile(tempPath);
 	  if (temp_s == NULL) return 0;
 	  else SetCustomSaveParent(android_base_directory);

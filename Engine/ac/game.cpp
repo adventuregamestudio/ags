@@ -190,7 +190,7 @@ MoveList *mls = nullptr;
 
 //=============================================================================
 
-char saveGameDirectory[260] = "./";
+String saveGameDirectory = "./";
 // Custom save game parent directory
 String saveGameParent;
 
@@ -348,6 +348,21 @@ void restore_after_dialog() {
 
 
 
+String get_save_game_directory()
+{
+    return saveGameDirectory;
+}
+
+String get_save_game_suffix()
+{
+    return saveGameSuffix;
+}
+
+void set_save_game_suffix(const String &suffix)
+{
+    saveGameSuffix = suffix;
+}
+
 String get_save_game_path(int slotNum) {
     String filename;
     filename.Format(sgnametemplate, slotNum);
@@ -424,17 +439,12 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
         return false;
     newSaveGameDir.AppendChar('/');
 
-    char newFolderTempFile[260];
-    strcpy(newFolderTempFile, newSaveGameDir);
-    strcat(newFolderTempFile, "agstmp.tmp");
+    String newFolderTempFile = String::FromFormat("%s/agstmp.tmp", newSaveGameDir.GetCStr());
     if (!Common::File::TestCreateFile(newFolderTempFile))
         return false;
 
     // copy the Restart Game file, if applicable
-    char restartGamePath[260];
-    int err = snprintf(restartGamePath, sizeof(restartGamePath), "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
-    if (err >= sizeof(restartGamePath))
-        debug_script_warn("Savegame path length exceeded: %d", err);
+    String restartGamePath = String::FromFormat("%s""agssave.%d%s", saveGameDirectory.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
     Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
     if (restartGameFile != nullptr)
     {
@@ -443,16 +453,14 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
         restartGameFile->Read(mbuffer, fileSize);
         delete restartGameFile;
 
-        err = snprintf(restartGamePath, sizeof(restartGamePath), "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
-        if (err >= sizeof(restartGamePath))
-            debug_script_warn("Savegame path length exceeded: %d", err);
+        restartGamePath.Format("%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
         restartGameFile = Common::File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
         delete restartGameFile;
         free(mbuffer);
     }
 
-    strcpy(saveGameDirectory, newSaveGameDir);
+    saveGameDirectory = newSaveGameDir;
     return true;
 }
 
@@ -1007,10 +1015,7 @@ void skip_serialized_bitmap(Stream *in)
 long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 {
     long fileSize = 0;
-    char tempFileName[MAX_PATH];
-    int err = snprintf(tempFileName, sizeof(tempFileName), "%s""_tmpscht.bmp", saveGameDirectory);
-    if (err >= sizeof(tempFileName))
-        debug_script_warn("Screenshot path length exceeded: %d", err);
+    String tempFileName = String::FromFormat("%s""_tmpscht.bmp", saveGameDirectory.GetCStr());
 
     screenshot->SaveToFile(tempFileName, palette);
 

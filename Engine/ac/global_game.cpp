@@ -80,7 +80,6 @@ extern RoomStatus*croom;
 extern int gui_disabled_style;
 extern RoomStruct thisroom;
 extern int getloctype_index;
-extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
 
@@ -740,15 +739,13 @@ int IsKeyPressed (int keycode) {
 }
 
 int SaveScreenShot(const char*namm) {
-    char fileName[MAX_PATH];
+    String fileName;
+    String svg_dir = get_save_game_directory();
 
-    int err;
     if (strchr(namm,'.') == nullptr)
-        err = snprintf(fileName, sizeof(fileName), "%s%s.bmp", saveGameDirectory, namm);
+        fileName.Format("%s%s.bmp", svg_dir.GetCStr(), namm);
     else
-        err = snprintf(fileName, sizeof(fileName), "%s%s", saveGameDirectory, namm);
-    if (err >= sizeof(fileName))
-        debug_script_warn("Screenshot path length exceeded: %d", err);
+        fileName.Format("%s%s", svg_dir.GetCStr(), namm);
 
     Bitmap *buffer = CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     if (!buffer->SaveToFile(fileName, palette) != 0)

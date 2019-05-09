@@ -132,6 +132,9 @@ void set_debug_mode(bool on);
 void set_game_speed(int new_fps);
 void setup_for_dialog();
 void restore_after_dialog();
+Common::String get_save_game_directory();
+Common::String get_save_game_suffix();
+void set_save_game_suffix(const Common::String &suffix);
 Common::String get_save_game_path(int slotNum);
 void restore_game_dialog();
 void save_game_dialog();
@@ -183,7 +186,6 @@ extern int displayed_room;
 extern int frames_per_second;
 extern unsigned int loopcounter;
 extern void set_loop_counter(unsigned int new_counter);
-extern Common::String saveGameSuffix;
 extern int game_paused;
 
 #endif // __AGS_EE_AC__GAME_H

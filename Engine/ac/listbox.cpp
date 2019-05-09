@@ -15,6 +15,7 @@
 #include <set>
 #include "ac/listbox.h"
 #include "ac/common.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
@@ -25,7 +26,6 @@
 
 using namespace AGS::Common;
 
-extern char saveGameDirectory[260];
 extern GameState play;
 extern GameSetupStruct game;
 
@@ -98,10 +98,8 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
   long filedates[MAXSAVEGAMES];
   char buff[200];
 
-  char searchPath[260];
-  int err = snprintf(searchPath, sizeof(searchPath), "%s""agssave.*", saveGameDirectory);
-  if (err >= sizeof(searchPath))
-    debug_script_warn("Savegame path length exceeded: %d", err);
+  String svg_dir = get_save_game_directory();
+  String searchPath = String::FromFormat("%s""agssave.*", svg_dir.GetCStr());
 
   int don = al_findfirst(searchPath, &ffb, FA_SEARCH);
   while (!don) {

@@ -17,6 +17,7 @@
 #include "ac/audiocliptype.h"
 #include "ac/file.h"
 #include "ac/common.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_file.h"
@@ -41,7 +42,6 @@ using namespace AGS::Common;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
-extern char saveGameDirectory[260];
 extern AGSPlatformDriver *platform;
 
 extern int MAXSTRLEN;
@@ -310,7 +310,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
     }
     else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
     {
-        parent_dir = saveGameDirectory;
+        parent_dir = get_save_game_directory();
         child_path = sc_path.Mid(GameSavedgamesDirToken.GetLength());
     }
     else if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)

@@ -59,7 +59,6 @@ using namespace Engine;
 
 // function is currently implemented in game.cpp
 HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
-void save_game_data(Stream *out);
 
 extern GameSetupStruct game;
 extern Bitmap **guibg;

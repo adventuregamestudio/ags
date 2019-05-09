@@ -32,6 +32,12 @@ const auto BufferStreamSize = 8*1024;
 class BufferedStream : public FileStream
 {
 public:
+    // Represents an open _buffered_ file object
+    // The constructor may raise std::runtime_error if 
+    // - there is an issue opening the file (does not exist, locked, permissions, etc)
+    // - the open mode could not be determined
+    // - could not determine the length of the stream
+    // It is recommended to use File::OpenFile to safely construct this object.
     BufferedStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess = kLittleEndian);
 
     bool    EOS() const override; ///< Is end of stream

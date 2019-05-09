@@ -161,7 +161,7 @@ Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkM
     try {
         //fs = new FileStream(filename, open_mode, work_mode);
         fs = new BufferedStream(filename, open_mode, work_mode);
-        if (!fs->IsValid()) {
+        if (fs != nullptr && !fs->IsValid()) {
             delete fs;
             fs = nullptr;
         }

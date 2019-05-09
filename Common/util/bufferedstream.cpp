@@ -66,12 +66,14 @@ size_t BufferedStream::Read(void *toBuffer, size_t toSize) {
     while(toSize > 0) {
         if (_position < _bufferPosition || _position >= _bufferPosition + _buffer.size()) {
             FillBufferFromPosition(_position);
-            if (_buffer.size() <= 0) { break; } // reached EOS
         }
+        if (_buffer.size() <= 0) { break; } // reached EOS
+        assert(_position >= _bufferPosition && _position < _bufferPosition + _buffer.size());  // sanity check only, should be checked by above.
 
-        auto bufferOffset = _position - _bufferPosition;
-        auto bytesLeft = _buffer.size() - bufferOffset;
-        auto chunkSize = std::min<size_t>(bytesLeft, toSize);
+        soff_t bufferOffset = _position - _bufferPosition;
+        assert(bufferOffset >= 0);
+        size_t bytesLeft = _buffer.size() - (size_t)bufferOffset;
+        size_t chunkSize = std::min<size_t>(bytesLeft, toSize);
 
         std::memcpy(to, _buffer.data()+bufferOffset, chunkSize);
 

@@ -376,7 +376,6 @@ target_sources(engine
     main/main_allegro.h
     main/maindefines_ex.h
     main/mainheader.h
-    main/minidump.cpp
     main/quit.cpp
     main/quit.h
     main/update.cpp
@@ -417,7 +416,6 @@ target_sources(engine
     media/video/video.h
     platform/base/agsplatformdriver.cpp
     platform/base/agsplatformdriver.h
-    platform/base/override_defines.h
     platform/util/libc.c
     platform/util/pe.c
     platform/util/pe.h
@@ -491,6 +489,12 @@ target_sources(engine
     platform/android/acpland.cpp
 
     platform/ios/acplios.cpp
+
+
+    platform/windows/win_ex_handling.cpp
+    platform/windows/win_ex_handling.h
+    platform/windows/minidump.cpp
+    platform/windows/winapi_exclusive.h
 )
 
 if(MACOS)
@@ -539,6 +543,13 @@ if (AGS_BUILTIN_PLUGINS)
     )
 endif()
 
+if (LINUX OR MACOS)
+    target_sources(engine 
+        PRIVATE 
+        platform/linux/binreloc.c
+        platform/linux/binreloc.h
+    )
+endif ()
 
 target_compile_definitions(engine PRIVATE 
     $<$<CONFIG:DEBUG>:SOUND_CACHE_DEBUG>

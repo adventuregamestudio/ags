@@ -180,6 +180,7 @@ public:
     bool IsModeSupported(const DisplayMode &mode) override;
     PGfxFilter GetGraphicsFilter() const override;
     void UnInit();
+    // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;

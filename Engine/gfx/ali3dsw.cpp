@@ -309,8 +309,7 @@ void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RG
   int color = 0;
   if (colorToUse != nullptr) 
     color = makecol_depth(_mode.ColorDepth, colorToUse->r, colorToUse->g, colorToUse->b);
-  // TODO: hardware renderers do not scale these coordinates, but software filter does!
-  // find out what's the expected behavior and sync them
+  // NOTE: filter will do coordinate scaling for us
   _filter->ClearRect(x1, y1, x2, y2, color);
 }
 

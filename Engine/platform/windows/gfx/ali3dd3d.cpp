@@ -850,7 +850,7 @@ void D3DGraphicsDriver::SetupViewport()
   _pixelRenderYOffset = (src_height / disp_height) / 2.0f;
 
   // Clear the screen before setting a viewport.
-  ClearRectangle(0, 0, _mode.Width, _mode.Height, 0);
+  ClearScreenRect(RectWH(0, 0, _mode.Width, _mode.Height), nullptr);
 
   // Set Viewport.
   D3DVIEWPORT9 d3dViewport;
@@ -1039,6 +1039,11 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   // NOTE: this function is practically useless at the moment, because D3D redraws whole game frame each time
   Rect r(x1, y1, x2, y2);
   r = _scaling.ScaleRange(r);
+  ClearScreenRect(r, colorToUse);
+}
+
+void D3DGraphicsDriver::ClearScreenRect(const Rect &r, RGB *colorToUse)
+{
   D3DRECT rectToClear;
   rectToClear.x1 = r.Left;
   rectToClear.y1 = r.Top;
@@ -1047,7 +1052,6 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   DWORD colorDword = 0;
   if (colorToUse != NULL)
     colorDword = D3DCOLOR_XRGB(colorToUse->r, colorToUse->g, colorToUse->b);
-
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 

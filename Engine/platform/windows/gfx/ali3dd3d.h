@@ -178,6 +178,7 @@ public:
     IGfxModeList *GetSupportedModeList(int color_depth) override;
     bool IsModeSupported(const DisplayMode &mode) override;
     PGfxFilter GetGraphicsFilter() const override;
+    // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
@@ -206,6 +207,8 @@ public:
 
     typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
 
+    // Clears screen rect, coordinates are expected in display resolution
+    void ClearScreenRect(const Rect &r, RGB *colorToUse);
     void UnInit();
     void SetGraphicsFilter(PD3DFilter filter);
 

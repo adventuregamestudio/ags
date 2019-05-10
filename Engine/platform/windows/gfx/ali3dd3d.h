@@ -57,16 +57,16 @@ class D3DBitmap : public VideoMemDDB
 public:
     // Transparency is a bit counter-intuitive
     // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
-    virtual void SetTransparency(int transparency) { _transparency = transparency; }
-    virtual void SetFlippedLeftRight(bool isFlipped) { _flipped = isFlipped; }
-    virtual void SetStretch(int width, int height, bool useResampler = true)
+    void SetTransparency(int transparency) override { _transparency = transparency; }
+    void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
+    void SetStretch(int width, int height, bool useResampler = true) override
     {
         _stretchToWidth = width;
         _stretchToHeight = height;
         _useResampler = useResampler;
     }
-    virtual void SetLightLevel(int lightLevel)  { _lightLevel = lightLevel; }
-    virtual void SetTint(int red, int green, int blue, int tintSaturation) 
+    void SetLightLevel(int lightLevel) override { _lightLevel = lightLevel; }
+    void SetTint(int red, int green, int blue, int tintSaturation) override
     {
         _red = red;
         _green = green;
@@ -111,7 +111,7 @@ public:
 
     void Dispose();
 
-    ~D3DBitmap()
+    ~D3DBitmap() override
     {
         Dispose();
     }
@@ -127,18 +127,18 @@ public:
         _modeCount = _direct3d ? _direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, _pixelFormat) : 0;
     }
 
-    ~D3DGfxModeList()
+    ~D3DGfxModeList() override
     {
         if (_direct3d)
             _direct3d->Release();
     }
 
-    virtual int GetModeCount() const
+    int GetModeCount() const override
     {
         return _modeCount;
     }
 
-    virtual bool GetMode(int index, DisplayMode &mode) const;
+    bool GetMode(int index, DisplayMode &mode) const override;
 
 private:
     IDirect3D9 *_direct3d;
@@ -168,45 +168,45 @@ typedef std::vector<D3DSpriteBatch>    D3DSpriteBatches;
 class D3DGraphicsDriver : public VideoMemoryGraphicsDriver
 {
 public:
-    virtual const char*GetDriverName() { return "Direct3D 9"; }
-    virtual const char*GetDriverID() { return "D3D9"; }
-    virtual void SetTintMethod(TintMethod method);
-    virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer);
-    virtual bool SetNativeSize(const Size &src_size);
-    virtual bool SetRenderFrame(const Rect &dst_rect);
-    virtual int  GetDisplayDepthForNativeDepth(int native_color_depth) const;
-    virtual IGfxModeList *GetSupportedModeList(int color_depth);
-    virtual bool IsModeSupported(const DisplayMode &mode);
-    virtual PGfxFilter GetGraphicsFilter() const;
-    void UnInit();
-    virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-    virtual int  GetCompatibleBitmapFormat(int color_depth);
-    virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
-    virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
-    virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
-    virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
-    virtual void RenderToBackBuffer();
-    virtual void Render();
-    virtual void Render(GlobalFlipType flip);
-    virtual bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt);
-    virtual void EnableVsyncBeforeRender(bool enabled) { }
-    virtual void Vsync();
-    virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling) { _renderSprAtScreenRes = enabled; };
-    virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
+    const char*GetDriverName() override { return "Direct3D 9"; }
+    const char*GetDriverID() override { return "D3D9"; }
+    void SetTintMethod(TintMethod method) override;
+    bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) override;
+    bool SetNativeSize(const Size &src_size) override;
+    bool SetRenderFrame(const Rect &dst_rect) override;
+    int  GetDisplayDepthForNativeDepth(int native_color_depth) const override;
+    IGfxModeList *GetSupportedModeList(int color_depth) override;
+    bool IsModeSupported(const DisplayMode &mode) override;
+    PGfxFilter GetGraphicsFilter() const override;
+    void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
+    int  GetCompatibleBitmapFormat(int color_depth) override;
+    IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
+    void DestroyDDB(IDriverDependantBitmap* bitmap) override;
+    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
+    void RenderToBackBuffer() override;
+    void Render() override;
+    void Render(GlobalFlipType flip) override;
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
+    void EnableVsyncBeforeRender(bool enabled) override { }
+    void Vsync() override;
+    void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override { _renderSprAtScreenRes = enabled; };
+    void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
+    void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
+    void BoxOutEffect(bool blackingOut, int speed, int delay) override;
 #ifndef AGS_NO_VIDEO_PLAYER
-    virtual bool PlayVideo(const char *filename, bool useSound, VideoSkipType skipType, bool stretchToFullScreen);
+    bool PlayVideo(const char *filename, bool useSound, VideoSkipType skipType, bool stretchToFullScreen) override;
 #endif
-    virtual bool SupportsGammaControl();
-    virtual void SetGamma(int newGamma);
-    virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }
-    virtual bool RequiresFullRedrawEachFrame() { return true; }
-    virtual bool HasAcceleratedTransform() { return true; }
-    virtual void SetScreenTint(int red, int green, int blue);
+    bool SupportsGammaControl() override;
+    void SetGamma(int newGamma) override;
+    void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
+    bool RequiresFullRedrawEachFrame() override { return true; }
+    bool HasAcceleratedTransform() override { return true; }
+    void SetScreenTint(int red, int green, int blue) override;
 
     typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
 
+    void UnInit();
     void SetGraphicsFilter(PD3DFilter filter);
 
     // Internal; TODO: find a way to hide these
@@ -214,7 +214,7 @@ public:
     int _resetDeviceIfNecessary();
 
     D3DGraphicsDriver(IDirect3D9 *d3d);
-    virtual ~D3DGraphicsDriver();
+    ~D3DGraphicsDriver() override;
 
 private:
     PD3DFilter _filter;
@@ -252,9 +252,9 @@ private:
     D3DSpriteBatches _backupBatches;
 
     // Called after new mode was successfully initialized
-    virtual void OnModeSet(const DisplayMode &mode);
-    virtual void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc);
-    virtual void ResetAllBatches();
+    void OnModeSet(const DisplayMode &mode) override;
+    void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
+    void ResetAllBatches() override;
     // Called when the direct3d device is created for the first time
     int  FirstTimeInit();
     void initD3DDLL(const DisplayMode &mode);
@@ -288,11 +288,11 @@ private:
 class D3DGraphicsFactory : public GfxDriverFactoryBase<D3DGraphicsDriver, D3DGfxFilter>
 {
 public:
-    virtual ~D3DGraphicsFactory();
+    ~D3DGraphicsFactory() override;
 
-    virtual size_t               GetFilterCount() const;
-    virtual const GfxFilterInfo *GetFilterInfo(size_t index) const;
-    virtual String               GetDefaultFilterID() const;
+    size_t               GetFilterCount() const override;
+    const GfxFilterInfo *GetFilterInfo(size_t index) const override;
+    String               GetDefaultFilterID() const override;
 
     static D3DGraphicsFactory   *GetFactory();
     static D3DGraphicsDriver    *GetD3DDriver();
@@ -300,8 +300,8 @@ public:
 private:
     D3DGraphicsFactory();
 
-    virtual D3DGraphicsDriver   *EnsureDriverCreated();
-    virtual D3DGfxFilter        *CreateFilter(const String &id);
+    D3DGraphicsDriver   *EnsureDriverCreated() override;
+    D3DGfxFilter        *CreateFilter(const String &id) override;
 
     bool Init();
 

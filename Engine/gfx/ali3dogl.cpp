@@ -1633,41 +1633,73 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   // when texture is just created. Check later if this operation here may be removed.
   AdjustSizeToNearestSupportedByCard(&textureWidth, &textureHeight);
 
-  int tileWidth = (textureWidth > tile->width) ? tile->width + 1 : tile->width;
-  int tileHeight = (textureHeight > tile->height) ? tile->height + 1 : tile->height;
+  int tilex = 0, tiley = 0, tileWidth = tile->width, tileHeight = tile->height;
+  if (textureWidth > tile->width)
+  {
+      int texxoff = Math::Min(textureWidth - tile->width, 1);
+      tilex = texxoff;
+      tileWidth += 1 + texxoff;
+  }
+  if (textureHeight > tile->height)
+  {
+      int texyoff = Math::Min(textureHeight - tile->height, 1);
+      tiley = texyoff;
+      tileHeight += 1 + texyoff;
+  }
 
-  bool usingLinearFiltering = _filter->UseLinearFiltering();
+  const bool usingLinearFiltering = _filter->UseLinearFiltering();
   char *origPtr = (char*)malloc(sizeof(int) * tileWidth * tileHeight);
-  char *memPtr = origPtr;
+  const int pitch = tileWidth * sizeof(int);
+  char *memPtr = origPtr + pitch * tiley + tilex * sizeof(int);
 
   TextureTile fixedTile;
   fixedTile.x = tile->x;
   fixedTile.y = tile->y;
   fixedTile.width = Math::Min(tile->width, tileWidth);
   fixedTile.height = Math::Min(tile->height, tileHeight);
-  int pitch = tileWidth * sizeof(int);
   BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, target, memPtr, pitch, usingLinearFiltering);
 
-  // Mimic the behaviour of GL_CLAMP_EDGE for the rightmost and bottom edges
-  // NOTE: we would not normally have to do this for the rightmost column, but on some platforms
-  // GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
+  // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
+  // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
+  if (usingLinearFiltering)
+  {
   if (tile->width < tileWidth)
   {
+    if (tilex > 0)
+    {
+      for (int y = 0; y < tileHeight; y++)
+      {
+        unsigned int* edge_left_col = (unsigned int*)(origPtr + y * pitch + (tilex - 1) * sizeof(int));
+        unsigned int* bm_left_col = (unsigned int*)(origPtr + y * pitch + (tilex) * sizeof(int));
+        *edge_left_col = *bm_left_col & 0x00FFFFFF;
+      }
+    }
     for (int y = 0; y < tileHeight; y++)
     {
-      unsigned int* memPtrLong = (unsigned int*)(memPtr + y * pitch + tile->width * sizeof(int));
-      unsigned int* memPtrLong_previous = memPtrLong - 1;
-      *memPtrLong = *memPtrLong_previous & 0x00FFFFFF;
+      unsigned int* edge_right_col = (unsigned int*)(origPtr + y * pitch + (tilex + tile->width) * sizeof(int));
+      unsigned int* bm_right_col = edge_right_col - 1;
+      *edge_right_col = *bm_right_col & 0x00FFFFFF;
     }
   }
   if (tile->height < tileHeight)
   {
-    unsigned int* memPtrLong = (unsigned int*)(memPtr + pitch * tile->height);
-    unsigned int* memPtrLong_previous = (unsigned int*)(memPtr + pitch * (tile->height - 1));
-
+    if (tiley > 0)
+    {
+      unsigned int* edge_top_row = (unsigned int*)(origPtr + pitch * (tiley - 1));
+      unsigned int* bm_top_row = (unsigned int*)(origPtr + pitch * (tiley));
       for (int x = 0; x < tileWidth; x++)
-        memPtrLong[x] = memPtrLong_previous[x] & 0x00FFFFFF;
+      {
+        edge_top_row[x] = bm_top_row[x] & 0x00FFFFFF;
+      }
+    }
+    unsigned int* edge_bottom_row = (unsigned int*)(origPtr + pitch * (tiley + tile->height));
+    unsigned int* bm_bottom_row = (unsigned int*)(origPtr + pitch * (tiley + tile->height - 1));
+    for (int x = 0; x < tileWidth; x++)
+    {
+      edge_bottom_row[x] = bm_bottom_row[x] & 0x00FFFFFF;
+    }
   }
+  } // usingLinearFiltering
 
   glBindTexture(GL_TEXTURE_2D, tile->texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
@@ -1749,11 +1781,6 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
   int tilesAcross = 1, tilesDown = 1;
 
-  // *************** REMOVE THESE LINES *************
-  //direct3ddevicecaps.MaxTextureWidth = 64;
-  //direct3ddevicecaps.MaxTextureHeight = 256;
-  // *************** END REMOVE THESE LINES *************
-
   // Calculate how many textures will be necessary to
   // store this image
 
@@ -1820,17 +1847,27 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
       if (vertices != nullptr)
       {
+        const int texxoff = (thisAllocatedWidth - thisTile->width) > 1 ? 1 : 0;
+        const int texyoff = (thisAllocatedHeight - thisTile->height) > 1 ? 1 : 0;
         for (int vidx = 0; vidx < 4; vidx++)
         {
           int i = (y * tilesAcross + x) * 4 + vidx;
           vertices[i] = defaultVertices[vidx];
           if (vertices[i].tu > 0.0)
           {
-            vertices[i].tu = (float)thisTile->width / (float)thisAllocatedWidth;
+            vertices[i].tu = (float)(texxoff + thisTile->width) / (float)thisAllocatedWidth;
+          }
+          else
+          {
+            vertices[i].tu = (float)(texxoff) / (float)thisAllocatedWidth;
           }
           if (vertices[i].tv > 0.0)
           {
-            vertices[i].tv = (float)thisTile->height / (float)thisAllocatedHeight;
+            vertices[i].tv = (float)(texyoff + thisTile->height) / (float)thisAllocatedHeight;
+          }
+          else
+          {
+            vertices[i].tv = (float)(texyoff) / (float)thisAllocatedHeight;
           }
         }
       }

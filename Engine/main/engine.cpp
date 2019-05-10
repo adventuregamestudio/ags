@@ -1121,12 +1121,6 @@ void engine_init_game_settings()
     usetup.RenderAtScreenRes = 
         (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && usetup.RenderAtScreenRes) ||
          game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
-
-    // Precreate primary viewport and camera
-    auto view = play.CreateRoomViewport();
-    auto cam = play.CreateRoomCamera();
-    view->LinkCamera(cam);
-    cam->LinkToViewport(view);
 }
 
 void engine_setup_scsystem_auxiliary()

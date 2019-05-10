@@ -36,6 +36,7 @@
 #include "ac/roomobject.h"
 #include "script/cc_error.h"
 #include "script/cc_options.h"
+#include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "media/video/video.h"
@@ -612,7 +613,13 @@ void post_script_cleanup() {
 
 void quit_with_script_error(const char *functionName)
 {
-    quitprintf("%sError running function '%s':\n%s", (ccErrorIsUserError ? "!" : ""), functionName, ccErrorString.GetCStr());
+    // TODO: clean up the error reporting logic. Now engine will append call
+    // stack info in quit_check_for_error_state() but only in case of explicit
+    // script error ("!" type), and not in other case.
+    if (ccErrorIsUserError)
+        quitprintf("!Error running function '%s':\n%s", functionName, ccErrorString.GetCStr());
+    else
+        quitprintf("Error running function '%s':\n%s\n\n%s", functionName, ccErrorString.GetCStr(), get_cur_script(5).GetCStr());
 }
 
 int get_nivalue (InteractionCommandList *nic, int idx, int parm) {

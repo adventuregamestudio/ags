@@ -101,6 +101,8 @@ size_t BufferedStream::Write(const void *buffer, size_t size)
 { 
     FileStream::Seek(_position, kSeekBegin);
     auto sz = FileStream::Write(buffer, size);
+    if (_position == _end)
+        _end += sz;
     _position += sz;
     return sz;
 }
@@ -114,19 +116,18 @@ int32_t BufferedStream::WriteByte(uint8_t val)
 
 bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
 {
+    soff_t want_pos = -1;
     switch(origin)
     {
-        case StreamSeek::kSeekCurrent:  _position = _position   + offset; break;
-        case StreamSeek::kSeekBegin:    _position = 0           + offset; break;
-        case StreamSeek::kSeekEnd:      _position = _end        + offset; break;
+        case StreamSeek::kSeekCurrent:  want_pos = _position   + offset; break;
+        case StreamSeek::kSeekBegin:    want_pos = 0           + offset; break;
+        case StreamSeek::kSeekEnd:      want_pos = _end        + offset; break;
         break;
     }
 
     // clamp
-    _position = std::min(_position, _end);
-    _position = std::max(_position, (soff_t)0);
-
-    return _position;
+    _position = std::min(std::max(want_pos, (soff_t)0), _end);
+    return _position == want_pos;
 }
 
 } // namespace Common

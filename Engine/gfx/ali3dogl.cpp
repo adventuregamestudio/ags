@@ -1636,13 +1636,13 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   int tilex = 0, tiley = 0, tileWidth = tile->width, tileHeight = tile->height;
   if (textureWidth > tile->width)
   {
-      int texxoff = Math::Min(textureWidth - tile->width, 1);
+      int texxoff = Math::Min(textureWidth - tile->width - 1, 1);
       tilex = texxoff;
       tileWidth += 1 + texxoff;
   }
   if (textureHeight > tile->height)
   {
-      int texyoff = Math::Min(textureHeight - tile->height, 1);
+      int texyoff = Math::Min(textureHeight - tile->height - 1, 1);
       tiley = texyoff;
       tileHeight += 1 + texyoff;
   }

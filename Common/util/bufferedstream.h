@@ -15,46 +15,33 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__FILESTREAM_H
-#define __AGS_CN_UTIL__FILESTREAM_H
+#ifndef __AGS_CN_UTIL__BUFFEREDSTREAM_H
+#define __AGS_CN_UTIL__BUFFEREDSTREAM_H
 
-#include <stdio.h>
+#include <vector>
 
-#include "util/datastream.h"
+#include "util/filestream.h"
 #include "util/file.h" // TODO: extract filestream mode constants
 
-namespace AGS
-{
-namespace Common
-{
+namespace AGS {
+namespace Common {
 
-class FileStream : public DataStream
+// Needs tuning depending on the platform.
+const auto BufferStreamSize = 8*1024;
+
+class BufferedStream : public FileStream
 {
 public:
-
-    // Represents an open file object
+    // Represents an open _buffered_ file object
     // The constructor may raise std::runtime_error if 
     // - there is an issue opening the file (does not exist, locked, permissions, etc)
     // - the open mode could not be determined
-    FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
-        DataEndianess stream_endianess = kLittleEndian);
-    ~FileStream() override;
+    // - could not determine the length of the stream
+    // It is recommended to use File::OpenFile to safely construct this object.
+    BufferedStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess = kLittleEndian);
 
-    bool    HasErrors() const override;
-    void    Close() override;
-    bool    Flush() override;
-
-    // Is stream valid (underlying data initialized properly)
-    bool    IsValid() const override;
-    // Is end of stream
-    bool    EOS() const override;
-    // Total length of stream (if known)
-    soff_t  GetLength() const override;
-    // Current position (if known)
-    soff_t  GetPosition() const override;
-    bool    CanRead() const override;
-    bool    CanWrite() const override;
-    bool    CanSeek() const override;
+    bool    EOS() const override; ///< Is end of stream
+    soff_t  GetPosition() const override; ///< Current position (if known)
 
     size_t  Read(void *buffer, size_t size) override;
     int32_t ReadByte() override;
@@ -63,15 +50,19 @@ public:
 
     bool    Seek(soff_t offset, StreamSeek origin) override;
 
-private:
-    void            Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
 
-    FILE                *_file;
-    const FileOpenMode  _openMode;
-    const FileWorkMode  _workMode;
+private:
+
+    soff_t _bufferPosition;
+    std::vector<char> _buffer;
+
+    soff_t _position;
+    soff_t _end;
+
+    void FillBufferFromPosition(soff_t position);
 };
 
 } // namespace Common
 } // namespace AGS
 
-#endif // __AGS_CN_UTIL__FILESTREAM_H
+#endif // __AGS_CN_UTIL__BUFFEREDSTREAM_H

@@ -14,10 +14,12 @@
 
 #include "util/file.h"
 
+#include <stdexcept>
 #include "core/platform.h"
 #include "util/stdio_compat.h"
 #include <errno.h>
 #include "util/filestream.h"
+#include "util/bufferedstream.h"
 
 namespace AGS
 {
@@ -155,11 +157,16 @@ String File::GetCMode(FileOpenMode open_mode, FileWorkMode work_mode)
 
 Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    FileStream *fs = new FileStream(filename, open_mode, work_mode);
-    if (!fs->IsValid())
-    {
-        delete fs;
-        return nullptr;
+    FileStream *fs = nullptr;
+    try {
+        //fs = new FileStream(filename, open_mode, work_mode);
+        fs = new BufferedStream(filename, open_mode, work_mode);
+        if (fs != nullptr && !fs->IsValid()) {
+            delete fs;
+            fs = nullptr;
+        }
+    } catch(std::runtime_error) {
+        fs = nullptr;
     }
     return fs;
 }

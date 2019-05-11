@@ -174,7 +174,8 @@ int File_ReadRawInt(sc_File *fil) {
 int File_Seek(sc_File *fil, int offset, int origin)
 {
     Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.Seek");
-    return (int)in->Seek(offset, (StreamSeek)origin);
+    if (!in->Seek(offset, (StreamSeek)origin)) { return -1; }
+    return in->GetPosition();
 }
 
 int File_GetEOF(sc_File *fil) {

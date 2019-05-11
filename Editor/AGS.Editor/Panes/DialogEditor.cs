@@ -54,7 +54,7 @@ namespace AGS.Editor
             flowLayoutPanel1.Controls.Remove(btnNewOption);
             foreach (DialogOption option in _dialog.Options)
             {
-                DialogOptionEditor optionEditor = new DialogOptionEditor(option);
+                DialogOptionEditor optionEditor = new DialogOptionEditor(option, DialogOptionChanged);
                 _optionPanes.Add(optionEditor);
                 flowLayoutPanel1.Controls.Add(optionEditor);
             }
@@ -290,7 +290,7 @@ namespace AGS.Editor
                 newOption.Show = true;
             }
             _dialog.Options.Add(newOption);
-            DialogOptionEditor newEditor = new DialogOptionEditor(newOption);
+            DialogOptionEditor newEditor = new DialogOptionEditor(newOption, DialogOptionChanged);
             _optionPanes.Add(newEditor);
             flowLayoutPanel1.Controls.Remove(btnNewOption);
             flowLayoutPanel1.Controls.Remove(btnDeleteOption);
@@ -320,6 +320,11 @@ namespace AGS.Editor
                 _dialog.Script += "@" + newOption.ID + Environment.NewLine + "return" + Environment.NewLine;
                 scintillaEditor.SetText(_dialog.Script);
             }
+        }
+
+        private void DialogOptionChanged(object sender, EventArgs e)
+        {
+            _dialog.ScriptChangedSinceLastConverted = true;
         }
 
         private void LoadColorTheme(ColorTheme t)

@@ -324,7 +324,8 @@ namespace AGS.Editor
 
         private void DialogOptionChanged(object sender, EventArgs e)
         {
-            _dialog.ScriptChangedSinceLastConverted = true;
+            // --- disabled until Dialog.DisplayOptions(eSayAlways/eSayNever) question is resolved ---
+            //_dialog.ScriptChangedSinceLastConverted = true;
         }
 
         private void LoadColorTheme(ColorTheme t)

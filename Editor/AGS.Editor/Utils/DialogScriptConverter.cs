@@ -451,6 +451,8 @@ namespace AGS.Editor
             _hadFirstEntryPoint = true;
             _currentlyInsideCodeArea = true;
 
+            /* --- disabled until Dialog.DisplayOptions(eSayAlways/eSayNever) question is resolved ---
+             *
             // Add player.Say if the Say checkbox is set for this option
             if (entryPointID > 0)
             {
@@ -460,6 +462,7 @@ namespace AGS.Editor
                     // Use GetOptionText here in case future script API supports changing option text at runtime
                     scriptToWrite += MakeCharacterSpeechLine("player", string.Format("{0}.GetOptionText({1})", dlgName, optionID + 1));
             }
+            */
 
             return scriptToWrite;
         }

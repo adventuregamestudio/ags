@@ -19,12 +19,13 @@
 #define __AGS_CN_UTIL__BUFFEREDSTREAM_H
 
 #include <vector>
-
 #include "util/filestream.h"
 #include "util/file.h" // TODO: extract filestream mode constants
 
-namespace AGS {
-namespace Common {
+namespace AGS
+{
+namespace Common
+{
 
 // Needs tuning depending on the platform.
 const auto BufferStreamSize = 8*1024;

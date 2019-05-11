@@ -269,6 +269,9 @@
     <ClCompile Include="..\..\Common\util\stdio_compat.c">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">

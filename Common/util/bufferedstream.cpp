@@ -11,19 +11,17 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include "util/bufferedstream.h"
-
-#include <stdexcept>
-
-#include <cstring>
 #include <algorithm>
-
+#include <cstring>
+#include <stdexcept>
+#include "util/bufferedstream.h"
 #include "util/stdio_compat.h"
 #include "util/string.h"
 
-namespace AGS {
-namespace Common {
+namespace AGS
+{
+namespace Common
+{
 
 BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess)
         : FileStream(file_name, open_mode, work_mode, stream_endianess), _buffer(BufferStreamSize), _bufferPosition(0), _position(0)
@@ -42,7 +40,8 @@ BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode, 
 
 }
 
-void BufferedStream::FillBufferFromPosition(soff_t position) {
+void BufferedStream::FillBufferFromPosition(soff_t position)
+{
     FileStream::Seek(position, kSeekBegin);
 
     _buffer.resize(BufferStreamSize);
@@ -52,19 +51,24 @@ void BufferedStream::FillBufferFromPosition(soff_t position) {
     _bufferPosition = position;
 }
 
-bool BufferedStream::EOS() const {
+bool BufferedStream::EOS() const
+{
     return _position == _end;
 }
 
-soff_t BufferedStream::GetPosition() const {
+soff_t BufferedStream::GetPosition() const
+{
     return _position;
 }
 
-size_t BufferedStream::Read(void *toBuffer, size_t toSize) {
+size_t BufferedStream::Read(void *toBuffer, size_t toSize)
+{
     auto to = static_cast<char *>(toBuffer);
 
-    while(toSize > 0) {
-        if (_position < _bufferPosition || _position >= _bufferPosition + _buffer.size()) {
+    while(toSize > 0)
+    {
+        if (_position < _bufferPosition || _position >= _bufferPosition + _buffer.size())
+        {
             FillBufferFromPosition(_position);
         }
         if (_buffer.size() <= 0) { break; } // reached EOS
@@ -85,28 +89,33 @@ size_t BufferedStream::Read(void *toBuffer, size_t toSize) {
     return to - (char*)toBuffer;
 }
 
-int32_t BufferedStream::ReadByte() {
+int32_t BufferedStream::ReadByte()
+{
     uint8_t ch;
     auto bytesRead = Read(&ch, 1);
     if (bytesRead != 1) { return EOF; }
     return ch;
 }
 
-size_t BufferedStream::Write(const void *buffer, size_t size) { 
+size_t BufferedStream::Write(const void *buffer, size_t size)
+{ 
     FileStream::Seek(_position, kSeekBegin);
     auto sz = FileStream::Write(buffer, size);
     _position += sz;
     return sz;
 }
 
-int32_t BufferedStream::WriteByte(uint8_t val) {
+int32_t BufferedStream::WriteByte(uint8_t val)
+{
     auto sz = Write(&val, 1);
     if (sz != 1) { return -1; }
     return sz;
 }
 
-bool BufferedStream::Seek(soff_t offset, StreamSeek origin) {
-    switch(origin) {
+bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
+{
+    switch(origin)
+    {
         case StreamSeek::kSeekCurrent:  _position = _position   + offset; break;
         case StreamSeek::kSeekBegin:    _position = 0           + offset; break;
         case StreamSeek::kSeekEnd:      _position = _end        + offset; break;

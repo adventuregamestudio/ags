@@ -212,7 +212,7 @@ String GetCmdLinePathInASCII(const char *arg, int arg_index)
     if (wargv == nullptr)
         return "";
     String path;
-    if (wargc <= arg_index)
+    if (arg_index <= wargc)
         path = WidePathNameToAnsi(wargv[arg_index]);
     LocalFree(wargv);
     return path;

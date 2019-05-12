@@ -370,7 +370,7 @@ bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
         return false;
     if (!Directory::CreateAllDirectories(rp.BaseDir, Path::GetDirectoryPath(rp.FullPath)))
     {
-        debug_script_warn("ResolveScriptPath: failed to create all subdirectories: %s", rp.FullPath);
+        debug_script_warn("ResolveScriptPath: failed to create all subdirectories: %s", rp.FullPath.GetCStr());
         return false;
     }
     return true;

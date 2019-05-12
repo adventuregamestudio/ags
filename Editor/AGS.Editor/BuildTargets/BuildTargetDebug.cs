@@ -34,6 +34,12 @@ namespace AGS.Editor
             return GetCompiledPath(parts);
         }
 
+        public override void DeleteMainGameData(string name)
+        {
+            string filename = Path.Combine(Path.Combine(OutputDirectoryFullPath, DEBUG_DIRECTORY), name + ".exe");
+            Utilities.DeleteFileIfExists(filename);
+        }
+
         private object CreateDebugFiles(object parameter)
         {
             Factory.AGSEditor.SetMODMusicFlag();

@@ -226,6 +226,13 @@ namespace AGS.Editor
             if (xmlVersionIndex < 19)
             {
                 game.Settings.GameFileName = AGSEditor.Instance.BaseGameFileName;
+
+                var buildNames = new Dictionary<string, string>();
+                foreach (IBuildTarget target in BuildTargetsInfo.GetRegisteredBuildTargets())
+                {
+                    buildNames[target.Name] = AGSEditor.Instance.BaseGameFileName;
+                }
+                game.WorkspaceState.SetLastBuildGameFiles(buildNames);
             }
 
             game.SetScriptAPIForOldProject();

@@ -137,11 +137,26 @@ String MakeAbsolutePath(const String &path)
     //    abs_path = long_path_buffer;
     //}
 #endif
-    char buf[512];
-    canonicalize_filename(buf, abs_path, 512);
+    char buf[MAX_PATH];
+    canonicalize_filename(buf, abs_path, MAX_PATH);
     abs_path = buf;
     FixupPath(abs_path);
     return abs_path;
+}
+
+String MakeRelativePath(const String &base, const String &path)
+{
+    char can_parent[MAX_PATH];
+    char can_path[MAX_PATH];
+    char relative[MAX_PATH];
+    // canonicalize_filename treats "." as "./." (file in working dir)
+    const char *use_parent = base == "." ? "./" : base;
+    const char *use_path = path == "." ? "./" : path;
+    canonicalize_filename(can_parent, use_parent, MAX_PATH);
+    canonicalize_filename(can_path, use_path, MAX_PATH);
+    String rel_path = make_relative_filename(relative, can_parent, can_path, MAX_PATH);
+    FixupPath(rel_path);
+    return rel_path;
 }
 
 String ConcatPaths(const String &parent, const String &child)

@@ -364,6 +364,18 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     return true;
 }
 
+bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
+{
+    if (!ResolveScriptPath(sc_path, false, rp))
+        return false;
+    if (!Directory::CreateAllDirectories(rp.BaseDir, Path::GetDirectoryPath(rp.FullPath)))
+    {
+        debug_script_warn("ResolveScriptPath: failed to create all subdirectories: %s", rp.FullPath);
+        return false;
+    }
+    return true;
+}
+
 bool LocateAsset(const AssetPath &path, AssetLocation &loc)
 {
     String assetlib = path.first;

@@ -19,6 +19,9 @@
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "debug/debug_log.h"
+#include "util/directory.h"
+#include "util/path.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -65,8 +68,16 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
     return 0;
 
   ResolvedPath rp;
-  if (!ResolveScriptPath(fnmm, (open_mode == Common::kFile_Open && work_mode == Common::kFile_Read), rp))
-    return 0;
+  if (open_mode == kFile_Open && work_mode == kFile_Read)
+  {
+    if (!ResolveScriptPath(fnmm, true, rp))
+      return 0;
+  }
+  else
+  {
+    if (!ResolveWritePathAndCreateDirs(fnmm, rp))
+      return 0;
+  }
 
   Stream *s = File::OpenFile(rp.FullPath, open_mode, work_mode);
   if (!s && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)

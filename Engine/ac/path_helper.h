@@ -57,6 +57,11 @@ struct ResolvedPath
 // Returns 'true' on success, and 'false' if either path is impossible to resolve
 // or if the file path is forbidden to be accessed in current situation.
 bool ResolveScriptPath(const String &sc_path, bool read_only, ResolvedPath &rp);
+// Resolves a user file path for writing, and makes sure all the sub-directories are
+// created along the actual path.
+// Returns 'true' on success, and 'false' if either path is impossible to resolve,
+// forbidden for writing, or if failed to create any subdirectories.
+bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp);
 
 // Sets an optional path to treat like game's installation directory
 void    set_install_dir(const String &path, const String &audio_path, const String &voice_path);

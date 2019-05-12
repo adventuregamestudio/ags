@@ -67,10 +67,10 @@ String GetDirectoryPath(const String &path)
     size_t slash_at = dir.FindCharReverse('/');
     if (slash_at != -1)
     {
-        dir.ClipMid(slash_at);
+        dir.ClipMid(slash_at + 1);
         return dir;
     }
-    return ".";
+    return "./";
 }
 
 bool IsSameOrSubDir(const String &parent, const String &path)

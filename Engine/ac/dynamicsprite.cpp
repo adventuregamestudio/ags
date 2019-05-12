@@ -273,10 +273,10 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm)
     if (filename.FindChar('.') == -1)
         filename.Append(".bmp");
 
-    String path, alt_path; // alt_path is unused here, because it's a write op
-    if (!ResolveScriptPath(filename, false, path, alt_path))
+    ResolvedPath rp;
+    if (!ResolveScriptPath(filename, false, rp))
         return 0;
-    return spriteset[sds->slot]->SaveToFile(path, palette) ? 1 : 0;
+    return spriteset[sds->slot]->SaveToFile(rp.FullPath, palette) ? 1 : 0;
 }
 
 ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height) {

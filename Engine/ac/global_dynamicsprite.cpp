@@ -30,13 +30,13 @@ extern IGraphicsDriver *gfxDriver;
 
 int LoadImageFile(const char *filename)
 {
-    String path, alt_path;
-    if (!ResolveScriptPath(filename, true, path, alt_path))
+    ResolvedPath rp;
+    if (!ResolveScriptPath(filename, true, rp))
         return 0;
 
-    Bitmap *loadedFile = BitmapHelper::LoadFromFile(path);
-    if (!loadedFile && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
-        loadedFile = BitmapHelper::LoadFromFile(alt_path);
+    Bitmap *loadedFile = BitmapHelper::LoadFromFile(rp.FullPath);
+    if (!loadedFile && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
+        loadedFile = BitmapHelper::LoadFromFile(rp.AltPath);
     if (!loadedFile)
         return 0;
 

@@ -43,12 +43,20 @@ String FixSlashAfterToken(const String &path);
 // custom game's directory name.
 // If the path is relative, keeps it unmodified (no extra subdir added).
 String MakeSpecialSubDir(const String &sp_dir);
+
+// ResolvedPath describes an actual location pointed by a user path (e.g. from script)
+struct ResolvedPath
+{
+    String BaseDir; // base directory, one of the special path roots
+    String FullPath;// full path
+    String AltPath; // alternative full path, for backwards compatibility
+};
 // Resolves a file path provided by user (e.g. script) into actual file path,
 // by substituting special keywords with actual platform-specific directory names.
-// Sets a primary and alternate paths; the latter is for backwards compatibility only.
+// Fills in ResolvedPath object on success.
 // Returns 'true' on success, and 'false' if either path is impossible to resolve
 // or if the file path is forbidden to be accessed in current situation.
-bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path);
+bool ResolveScriptPath(const String &sc_path, bool read_only, ResolvedPath &rp);
 
 // Sets an optional path to treat like game's installation directory
 void    set_install_dir(const String &path, const String &audio_path, const String &voice_path);

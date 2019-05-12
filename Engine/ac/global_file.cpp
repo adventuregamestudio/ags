@@ -43,9 +43,8 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
 {
   int useindx = 0;
 
-  String path, alt_path;
-  if (!ResolveScriptPath(fnmm, (open_mode == Common::kFile_Open && work_mode == Common::kFile_Read),
-      path, alt_path))
+  ResolvedPath rp;
+  if (!ResolveScriptPath(fnmm, (open_mode == Common::kFile_Open && work_mode == Common::kFile_Read), rp))
     return 0;
 
   // find a free file handle to use
@@ -55,9 +54,9 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
       break;
   }
 
-  Stream *s = File::OpenFile(path, open_mode, work_mode);
-  if (!s && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
-    s = File::OpenFile(alt_path, open_mode, work_mode);
+  Stream *s = File::OpenFile(rp.FullPath, open_mode, work_mode);
+  if (!s && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
+    s = File::OpenFile(rp.AltPath, open_mode, work_mode);
 
   valid_handles[useindx].stream = s;
   if (valid_handles[useindx].stream == nullptr)

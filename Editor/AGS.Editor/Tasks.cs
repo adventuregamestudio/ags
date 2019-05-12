@@ -127,9 +127,9 @@ namespace AGS.Editor
 
             if (game != null)
             {
+                game.DirectoryPath = gameDirectory;
                 SetDefaultValuesForNewFeatures(game);
 
-                game.DirectoryPath = gameDirectory;
                 Utilities.EnsureStandardSubFoldersExist();
 
                 RecentGame recentGame = new RecentGame(game.Settings.GameName, gameDirectory);
@@ -221,6 +221,11 @@ namespace AGS.Editor
             {
                 game.Settings.AllowRelativeAssetResolutions = true;
                 game.Settings.DefaultRoomMaskResolution = game.IsHighResolution ? 2 : 1;
+            }
+
+            if (xmlVersionIndex < 19)
+            {
+                game.Settings.GameFileName = AGSEditor.Instance.BaseGameFileName;
             }
 
             game.SetScriptAPIForOldProject();

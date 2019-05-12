@@ -78,7 +78,7 @@ namespace AGS.Editor
          * 17: 3.5.0.4    - Extended sprite source properties
          * 18: 3.5.0.8    - Disallow relative asset resolutions by default, added flag for compatibility;
          *                  Real sprite resolution; Individual font scaling; Default room mask resolution
-         * 19: 3.5.0.11   - Custom Say and Narrate functions for dialog scripts.
+         * 19: 3.5.0.11   - Custom Say and Narrate functions for dialog scripts. GameFileName.
         */
         public const int    LATEST_XML_VERSION_INDEX = 19;
         /*
@@ -207,7 +207,11 @@ namespace AGS.Editor
 
         public string BaseGameFileName
         {
-            get { return Path.GetFileName(this.GameDirectory); }
+            get
+            {
+                return string.IsNullOrWhiteSpace(_game.Settings.GameFileName) ?
+                    Path.GetFileName(this.GameDirectory) : _game.Settings.GameFileName;
+            }
         }
 
         public Script BuiltInScriptHeader

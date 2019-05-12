@@ -39,20 +39,34 @@ int32_t FileOpenCMode(const char*fnmm, const char* cmode)
   return FileOpen(fnmm, open_mode, work_mode);
 }
 
-int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+// Find a free file slot to use
+int32_t FindFreeFileSlot()
 {
   int useindx = 0;
-
-  ResolvedPath rp;
-  if (!ResolveScriptPath(fnmm, (open_mode == Common::kFile_Open && work_mode == Common::kFile_Read), rp))
-    return 0;
-
-  // find a free file handle to use
-  for (useindx = 0; useindx < num_open_script_files; useindx++) 
+  for (; useindx < num_open_script_files; useindx++) 
   {
     if (valid_handles[useindx].stream == nullptr)
       break;
   }
+
+  if (useindx >= num_open_script_files &&
+      num_open_script_files >= MAX_OPEN_SCRIPT_FILES)
+  {
+    quit("!FileOpen: tried to open more than 10 files simultaneously - close some first");
+    return -1;
+  }
+  return useindx;
+}
+
+int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+{
+  int32_t useindx = FindFreeFileSlot();
+  if (useindx < 0)
+    return 0;
+
+  ResolvedPath rp;
+  if (!ResolveScriptPath(fnmm, (open_mode == Common::kFile_Open && work_mode == Common::kFile_Read), rp))
+    return 0;
 
   Stream *s = File::OpenFile(rp.FullPath, open_mode, work_mode);
   if (!s && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
@@ -63,12 +77,8 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
     return 0;
   valid_handles[useindx].handle = useindx + 1; // make handle indexes 1-based
 
-  if (useindx >= num_open_script_files) 
-  {
-    if (num_open_script_files >= MAX_OPEN_SCRIPT_FILES)
-      quit("!FileOpen: tried to open more than 10 files simultaneously - close some first");
+  if (useindx >= num_open_script_files)
     num_open_script_files++;
-  }
   return valid_handles[useindx].handle;
 }
 

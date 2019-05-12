@@ -120,6 +120,15 @@ String MakePathNoSlash(const String &path)
     return dir_path;
 }
 
+String MakeTrailingSlash(const String &path)
+{
+    String dir_path = path;
+    FixupPath(dir_path);
+    if (dir_path.GetLast() != '/')
+        dir_path.AppendChar('/');
+    return dir_path;
+}
+
 String MakeAbsolutePath(const String &path)
 {
     if (path.IsEmpty())

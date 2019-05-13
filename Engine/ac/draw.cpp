@@ -371,7 +371,7 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
 // resolution, to give a relatively fixed size at any game res
 AGS_INLINE int get_fixed_pixel_size(int pixels)
 {
-    return pixels * game.GetDataUpscaleMult();
+    return pixels * game.GetRelativeUIMult();
 }
 
 AGS_INLINE int data_to_game_coord(int coord)

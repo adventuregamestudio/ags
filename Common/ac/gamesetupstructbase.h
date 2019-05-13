@@ -146,6 +146,10 @@ struct GameSetupStructBase {
     const Size &GetDataRes() const { return _dataResolution; }
     // Get game data-->final game resolution coordinate multiplier
     inline int GetDataUpscaleMult() const { return _dataUpscaleMult; }
+    // Get multiplier for various default UI sizes, meant to keep UI looks
+    // more or less readable in any game resolution.
+    // TODO: find a better solution for UI sizes, perhaps make variables.
+    inline int GetRelativeUIMult() const { return _relativeUIMult; }
     // Get game default res-->final game resolution coordinate multiplier;
     // used to convert coordinates from original game res to actual one
     inline int GetScreenUpscaleMult() const { return _screenUpscaleMult; }
@@ -209,6 +213,8 @@ private:
 
     // Game logic to game resolution coordinate factor
     int _dataUpscaleMult;
+    // Multiplier for various UI drawin sizes, meant to keep UI elements readable
+    int _relativeUIMult;
     // Game default resolution to actual game resolution factor
     int _screenUpscaleMult;
 };

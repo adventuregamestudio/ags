@@ -16,7 +16,7 @@
 // Game update procedure
 //
 
-#include <cmath>
+#include <math.h>
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
@@ -272,7 +272,7 @@ void update_speech_and_messages()
     {
         if (!play.speech_in_post_state)
         {
-            play.messagetime = std::lround(play.speech_display_post_time_ms * get_current_fps() / 1000.0f);
+            play.messagetime = ::lround(play.speech_display_post_time_ms * get_current_fps() / 1000.0f);
         }
         play.speech_in_post_state = !play.speech_in_post_state;
     }

@@ -97,6 +97,7 @@
     <ClCompile Include="..\..\Common\libsrc\googletest\src\gtest_main.cc" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
+    <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Compiler\test\cc_internallist_test.cpp" />
     <ClCompile Include="..\..\Compiler\test\cc_symboltable_test.cpp" />
     <ClCompile Include="..\..\Compiler\test\cc_treemap_test.cpp" />

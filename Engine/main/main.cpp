@@ -41,6 +41,7 @@
 #include "core/assetmanager.h"
 #include "util/directory.h"
 #include "util/path.h"
+#include "util/string_compat.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/win_ex_handling.h"

@@ -19,7 +19,7 @@
 #include <string.h>
 #include "ac/global_plugin.h"
 #include "ac/mouse.h"
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 
 int pluginSimulatedClick = NONE;
 

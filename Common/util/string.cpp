@@ -11,15 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "util/math.h"
 #include "util/stream.h"
 #include "util/string.h"
-#include "util/string_utils.h" // ags_stricmp
+#include "util/string_compat.h"
 
 namespace AGS
 {

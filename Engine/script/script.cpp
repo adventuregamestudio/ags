@@ -41,7 +41,7 @@
 #include "main/game_run.h"
 #include "media/video/video.h"
 #include "script/script_runtime.h"
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 #include "media/audio/audio_system.h"
 
 extern GameSetupStruct game;

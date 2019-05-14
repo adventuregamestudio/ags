@@ -38,7 +38,7 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "font/fonts.h"
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "device/mousew32.h"

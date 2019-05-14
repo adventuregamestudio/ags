@@ -18,7 +18,7 @@
 #include "script/cc_script.h"
 #include "script/script_common.h"
 #include "util/stream.h"
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 
 using AGS::Common::Stream;
 

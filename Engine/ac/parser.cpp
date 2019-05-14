@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include <cctype> //isalnum()
-#include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -22,6 +21,7 @@
 #include "ac/wordsdictionary.h"
 #include "debug/debug_log.h"
 #include "util/string.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 

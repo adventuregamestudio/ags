@@ -274,6 +274,7 @@
     <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
+    <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
     <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
     <ClCompile Include="..\..\Common\util\textstreamwriter.cpp" />
@@ -356,9 +357,9 @@
     <ClInclude Include="..\..\Common\util\path.h" />
     <ClInclude Include="..\..\Common\util\proxystream.h" />
     <ClInclude Include="..\..\Common\util\stdio_compat.h" />
-    <ClInclude Include="..\..\Common\util\stdtr1compat.h" />
     <ClInclude Include="..\..\Common\util\stream.h" />
     <ClInclude Include="..\..\Common\util\string.h" />
+    <ClInclude Include="..\..\Common\util\string_compat.h" />
     <ClInclude Include="..\..\Common\util\string_types.h" />
     <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\Common\util\textreader.h" />

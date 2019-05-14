@@ -26,7 +26,7 @@
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "ac/timer.h"
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 

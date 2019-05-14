@@ -43,6 +43,7 @@ bool font_supports_extended_characters(size_t fontNumber);
 // Need to check whether it is safe to completely remove it.
 void ensure_text_valid_for_font(char *text, size_t fontnum);
 int get_font_scaling_mul(size_t fontNumber);
+// Calculate actual width of a line of text
 int wgettextwidth(const char *texx, size_t fontNumber);
 // Calculates actual height of a line of text
 int wgettextheight(const char *text, size_t fontNumber);
@@ -56,6 +57,9 @@ int  get_font_outline(size_t font_number);
 void set_font_outline(size_t font_number, int outline_type);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
 int getfontlinespacing(size_t fontNumber);
+// Break up the text into lines restricted by the given width
+void split_lines(const char *texx, int width, int fontNumber);
+// Print text on a surface using a given font
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
 // Assigns FontInfo to the font
 void set_fontinfo(size_t fontNumber, const FontInfo &finfo);

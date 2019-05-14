@@ -272,6 +272,9 @@
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_compat.c">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -421,9 +424,6 @@
     <ClInclude Include="..\..\Common\util\proxystream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\util\stdtr1compat.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\util\stream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
@@ -534,6 +534,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\core\platform.h">
       <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string_compat.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

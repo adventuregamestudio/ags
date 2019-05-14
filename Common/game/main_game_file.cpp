@@ -26,6 +26,7 @@
 #include "script/cc_error.h"
 #include "util/alignedstream.h"
 #include "util/path.h"
+#include "util/string_compat.h"
 #include "util/string_utils.h"
 
 namespace AGS

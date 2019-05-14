@@ -20,9 +20,10 @@
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptstring.h"
+#include "font/fonts.h"
 #include "debug/debug_log.h"
-#include "util/string_utils.h"
 #include "script/runtimescriptvalue.h"
+#include "util/string_compat.h"
 
 extern char lines[MAXLINE][200];
 extern int  numlines;

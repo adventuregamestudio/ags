@@ -44,7 +44,7 @@
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "script/runtimescriptvalue.h"
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 
 
 using namespace AGS::Common;

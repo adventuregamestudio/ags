@@ -24,7 +24,7 @@ ifdef TARGET_ARCH_ABI
 # For Android: make the path relative to the build directory to search for
 # the files and then strip the path again
 BASE_subdirs_width_prefix := $(addprefix $(LOCAL_PATH)/,$(BASE_subdirs))
-BASE_subdirs_complete := $(addsuffix /*.cpp,$(BASE_subdirs_width_prefix))
+BASE_subdirs_complete := $(addsuffix /*.cpp,$(BASE_subdirs_width_prefix)) $(wildcard $(addsuffix /*.c,$(BASE_subdirs_width_prefix)))
 BASE_full := $(wildcard $(BASE_subdirs_complete))
 BASE := $(subst $(LOCAL_PATH)/,,$(BASE_full))
 else
@@ -48,7 +48,7 @@ ifdef TARGET_ARCH_ABI
 # For Android: make the path relative to the build directory to search for
 # the files and then strip the path again
 COMMON_subdirs_width_prefix := $(addprefix $(LOCAL_PATH)/,$(COMMON_subdirs))
-COMMON_subdirs_complete := $(addsuffix /*.cpp,$(COMMON_subdirs_width_prefix))
+COMMON_subdirs_complete := $(addsuffix /*.cpp,$(COMMON_subdirs_width_prefix)) $(wildcard $(addsuffix /*.c,$(COMMON_subdirs_width_prefix)))
 COMMON_full := $(wildcard $(COMMON_subdirs_complete))
 COMMON := $(subst $(LOCAL_PATH)/,,$(COMMON_full))
 else

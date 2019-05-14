@@ -22,8 +22,7 @@ int SymbolTableEntry::get_num_args() {
 
 int symbolTable::get_type(int ii) {
     // just return the real type, regardless of pointerness/constness
-    ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
-
+    ii &= STYPE_MASK;
 	if ((ii < 0) || ((size_t)ii >= entries.size())) { return -1; }
     return entries[ii].stype;
 }

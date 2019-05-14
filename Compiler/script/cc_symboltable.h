@@ -28,8 +28,11 @@ struct SymbolTableEntry {
 
 	int is_loadable_variable();
 
+    // Set indexes of get/set property handlers; 0xffff for no entry
 	void set_propfuncs(int propget, int propset);
+    // Returns an index of get property handler; -1 means no entry
 	int get_propget();
+    // Returns an index of set property handler; -1 means no entry
 	int get_propset();
 
 	int operatorToVCPUCmd();

@@ -34,7 +34,7 @@ int SymbolTableEntry::is_loadable_variable() {
 
 void SymbolTableEntry::set_propfuncs(int propget, int propset) {
     // TODO check ranges and throw exception
-    soffs = (propget << 16) | propset;
+    soffs = (propget << 16) | (propset & 0xffff);
 }
 int SymbolTableEntry::get_propget() {
     int toret = (soffs >> 16) & 0x00ffff;
@@ -44,7 +44,7 @@ int SymbolTableEntry::get_propget() {
     return toret;
 }
 int SymbolTableEntry::get_propset() {
-    int toret = soffs & 0x00ffff;
+    int toret = soffs & 0xffff;
 	if (toret == 0xffff) {
         return -1;
 	}

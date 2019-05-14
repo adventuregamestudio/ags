@@ -106,9 +106,9 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
                 // unused property -- get rid of the getter and setter
                 int propGet = sym.entries[t].get_propget();
                 int propSet = sym.entries[t].get_propset();
-                if (propGet > 0)
+                if (propGet >= 0)
                     cctemp->imports[propGet][0] = 0;
-                if (propSet > 0)
+                if (propSet >= 0)
                     cctemp->imports[propSet][0] = 0;
             }
         }

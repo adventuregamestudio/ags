@@ -1845,7 +1845,7 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   else
     propFunc = sym.entries[propSym].get_propget();
 
-  if (propFunc == 0) {
+  if (propFunc < 0) {
     cc_error("Internal error: property in use but not set");
     return -1;
   }
@@ -3944,7 +3944,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             sprintf(propFuncName, "%s::get%s_%s", sym.get_name(stname), namePrefix, memberPart);
 
                             int propGet = scrip->add_new_import(propFuncName);
-                            int propSet = 0;
+                            int propSet = 0xffff;
                             if (!member_is_readonly) {
                                 // setter only if it's not read-only
                                 sprintf(propFuncName, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);

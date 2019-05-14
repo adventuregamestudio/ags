@@ -24,7 +24,7 @@ int symbolTable::get_type(int ii) {
     // just return the real type, regardless of pointerness/constness
     ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
 
-	if ((ii < 0) || (ii >= entries.size())) { return -1; }
+	if ((ii < 0) || ((size_t)ii >= entries.size())) { return -1; }
     return entries[ii].stype;
 }
 
@@ -199,8 +199,8 @@ const char *symbolTable::get_name(int idx) {
 		return nameGenCache[idx];
 	}
 
-	std::size_t actualIdx = idx & STYPE_MASK;
-	if (actualIdx < 0 || actualIdx >= entries.size()) { return NULL; }
+	int actualIdx = idx & STYPE_MASK;
+	if (actualIdx < 0 || (size_t)actualIdx >= entries.size()) { return NULL; }
 
 	std::string resultString = get_name_string(idx);
 	char *result = (char *)malloc(resultString.length() + 1);

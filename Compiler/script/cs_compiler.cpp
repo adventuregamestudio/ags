@@ -92,7 +92,7 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
         return NULL;
     }
 
-    for (t=0;t<sym.entries.size();t++) {
+    for (t=0; (size_t)t<sym.entries.size();t++) {
         int stype = sym.get_type(t);
         // blank out the name for imports that are not used, to save space
         // in the output file

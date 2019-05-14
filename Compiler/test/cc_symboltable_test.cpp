@@ -169,14 +169,14 @@ TEST(SymbolTable, IsLoadableVariable) {
 	symbolTable testSym;
 	int sym_01 = testSym.add("supergreen");
 
-	ASSERT_TRUE(!testSym.entries[sym_01].is_loadable_variable());
+	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable() == 0);
 
 	testSym.entries[sym_01].stype = SYM_GLOBALVAR;
-	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
+	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable() != 0);
 	testSym.entries[sym_01].stype = SYM_LOCALVAR;
-	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
+	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable() != 0);
 	testSym.entries[sym_01].stype = SYM_CONSTANT;
-	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
+	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable() != 0);
 }
 
 TEST(SymbolTable, PropFuncs) {

@@ -55,7 +55,6 @@ struct symbolTable {
 
     // TODO: why is there "friendly name" and "name", and what's the difference?
     std::string symbolTable::get_friendly_name(int idx);  // inclue ptr
-    std::string symbolTable::get_name_string(int idx);
     const char *get_name(int idx); // gets symbol name of index
 
     int  get_type(int ii);
@@ -69,6 +68,7 @@ private:
     std::vector<char *> symbolTreeNames;
 
     int  add_operator(const char*, int priority, int vcpucmd); // adds new operator
+    std::string symbolTable::get_name_string(int idx);
 };
 
 

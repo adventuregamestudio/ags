@@ -27,7 +27,7 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := pe
-LOCAL_SRC_FILES := ../Android/library/jni/pe_jni.c ../Engine/platform/util/pe.c
+LOCAL_SRC_FILES := ../Android/library/jni/pe_jni.c ../Common/util/stdio_compat.c ../Engine/platform/util/pe.c
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -I$(AGS_COMMON_PATH)
 LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
 LOCAL_LDLIBS    := -lc -llog

@@ -3,6 +3,7 @@ LOCAL_PATH := $(call my-dir)/../../../Engine
 ADDITIONAL_LIBRARY_PATH := $(call my-dir)/../../nativelibs/$(TARGET_ARCH_ABI)
 AGS_COMMON_PATH := $(call my-dir)/../../../Common
 AGS_ENGINE_PATH := $(call my-dir)/../../../Engine
+AGS_DEFAULT_CXXFLAGS = -std=c++11 -Wno-write-strings -Wno-reserved-user-defined-literal
 
 include $(CLEAR_VARS)
 
@@ -15,7 +16,7 @@ include ../../Engine/Makefile-objs
 LOCAL_MODULE    := agsengine
 LOCAL_SRC_FILES := $(BASE) $(BASE_PLATFORM) $(COMMON) $(COMMON_PLATFORM) $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(AL_MIDI_PATCH)
 LOCAL_CFLAGS    := -g -ffast-math -fsigned-char -Wall -Wfatal-errors -Wno-deprecated-declarations -Wno-psabi -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses -Wno-logical-not-parentheses -Wno-unknown-pragmas -Wno-unknown-warning-option -DAGS_INVERTED_COLOR_ORDER -DALLEGRO_STATICLINK -DANDROID_VERSION -DDISABLE_MPEG_AUDIO -DUSE_TREMOR -I$(ADDITIONAL_LIBRARY_PATH)/include -I$(ADDITIONAL_LIBRARY_PATH)/include/freetype2 -I$(AGS_ENGINE_PATH) -I$(AGS_COMMON_PATH) -I$(AGS_COMMON_PATH)/libinclude
-LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -std=c++11 -Wno-write-strings -Wno-reserved-user-defined-literal
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) $(AGS_DEFAULT_CXXFLAGS)
 LOCAL_LDLIBS    := -Wl,-Bstatic -lalleg -lfreetype -lvorbisidec -ltheora -logg -laldmb -ldumb -lstdc++ -Wl,-Bdynamic -lc -ldl -lm -lz -llog -lGLESv1_CM -lGLESv2
 LOCAL_LDFLAGS   := -Wl,-L$(ADDITIONAL_LIBRARY_PATH)/lib,--allow-multiple-definition
 LOCAL_ARM_MODE  := arm
@@ -42,7 +43,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := ags_snowrain
 LOCAL_SRC_FILES := ../Plugins/ags_snowrain/ags_snowrain.cpp
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH)
-LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) $(AGS_DEFAULT_CXXFLAGS)
 LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lm -llog
 LOCAL_LDFLAGS   :=
 
@@ -55,7 +56,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := agsblend
 LOCAL_SRC_FILES := ../Plugins/agsblend/AGSBlend.cpp
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH)
-LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) $(AGS_DEFAULT_CXXFLAGS)
 LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lm -llog
 LOCAL_LDFLAGS   :=
 
@@ -68,7 +69,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := agsflashlight
 LOCAL_SRC_FILES := ../Plugins/AGSflashlight/agsflashlight.cpp
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH)
-LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) $(AGS_DEFAULT_CXXFLAGS)
 LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lm -llog
 LOCAL_LDFLAGS   :=
 
@@ -94,7 +95,7 @@ LOCAL_SRC_FILES := ../Plugins/agslua/agslua/agslua/agslua_autogen.cpp \
 ../Plugins/agslua/agslua/agslua/pdep.c \
 ../Plugins/agslua/agslua/agslua/lzio.c
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DTHIS_IS_THE_PLUGIN -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH) -I$(AGS_COMMON_PATH)/../Plugins/agslua/agslua/lualibhelp/include -I$(ADDITIONAL_LIBRARY_PATH)/include
-LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) $(AGS_DEFAULT_CXXFLAGS)
 LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -llua -Wl,-Bdynamic -lc -lm -llog -lz
 LOCAL_LDFLAGS   := -Wl,-L$(ADDITIONAL_LIBRARY_PATH)/lib
 
@@ -113,7 +114,7 @@ LOCAL_SRC_FILES := ../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.cpp \
 ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthFont.cpp \
 ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthSpriteFont.cpp
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DTHIS_IS_THE_PLUGIN -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH) -I$(ADDITIONAL_LIBRARY_PATH)/include
-LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) $(AGS_DEFAULT_CXXFLAGS)
 LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lm -llog -lz
 LOCAL_LDFLAGS   := -Wl,-L$(ADDITIONAL_LIBRARY_PATH)/lib,--allow-multiple-definition
 
@@ -126,7 +127,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := ags_parallax
 LOCAL_SRC_FILES := ../Plugins/ags_parallax/ags_parallax.cpp
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH)
-LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) $(AGS_DEFAULT_CXXFLAGS)
 LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lm
 LOCAL_LDFLAGS   :=
 
@@ -139,7 +140,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := agspalrender
 LOCAL_SRC_FILES := ../Plugins/agspalrender/ags_palrender.cpp ../Plugins/agspalrender/raycast.cpp
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH)
-LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -std=c++11 -Wno-write-strings -Wno-reserved-user-defined-literal
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) $(AGS_DEFAULT_CXXFLAGS)
 LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lm
 LOCAL_LDFLAGS   :=
 

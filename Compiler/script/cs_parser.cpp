@@ -1347,6 +1347,7 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
         reallywant = fsym;
       }
       else {
+        mustBeStaticMember = 0;
         reallywant = sym.entries[fsym].vartype;
         if (reallywant < 1) {
           cc_error("structure required on left side of '.'");

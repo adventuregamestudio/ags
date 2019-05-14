@@ -2110,7 +2110,6 @@ void draw_fps()
 
     char loop_buffer[60];
     sprintf(loop_buffer, "Loop %u", loopcounter);
-    int textw = wgettextwidth(loop_buffer, FONT_SPEECH);
     wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
 
     if (ddb)

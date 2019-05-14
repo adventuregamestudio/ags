@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <errno.h>
 #include <string.h>
 #include "core/platform.h"
 #include "util/math.h"

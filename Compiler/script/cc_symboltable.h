@@ -53,6 +53,7 @@ struct symbolTable {
     int  add_ex(const char*,int,char);  // adds new symbol of type and size
     int  add(const char*);   // adds new symbol, returns -1 if already exists
 
+    // TODO: why is there "friendly name" and "name", and what's the difference?
     std::string symbolTable::get_friendly_name(int idx);  // inclue ptr
     std::string symbolTable::get_name_string(int idx);
     const char *get_name(int idx); // gets symbol name of index

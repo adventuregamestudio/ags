@@ -62,6 +62,8 @@ String GetRoomFileErrorText(RoomFileErrorType err)
         return "Unknown block type.";
     case kRoomFileErr_OldBlockNotSupported:
         return "Block type is too old and not supported by this version of the engine.";
+    case kRoomFileErr_BlockDataOverlapping:
+        return "Block data overlapping.";
     case kRoomFileErr_IncompatibleEngine:
         return "This engine cannot handle requested room content.";
     case kRoomFileErr_ScriptLoadFailed:

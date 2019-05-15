@@ -18,14 +18,16 @@
 
 char *ags_strlwr(char *s)
 {
-    for (char *p = s; *p; p++)
+    char *p = s;
+    for (; *p; p++)
         *p = tolower(*p);
     return s;
 }
 
 char *ags_strupr(char *s)
 {
-    for (char *p = s; *p; p++)
+    char *p = s;
+    for (; *p; p++)
         *p = toupper(*p);
     return s;
 }

@@ -1,0 +1,6 @@
+# Editor output and temporary files
+**/bin
+**/obj
+**/Debug
+**/Release
+References/*.dll

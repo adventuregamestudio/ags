@@ -91,6 +91,7 @@ void convert_gui_to_game_resolution(GameDataVersion filever)
             guio->Width *= mul;
             guio->Height *= mul;
             guio->IsActivated = false;
+            guio->OnResized();
         }
     }
 }
@@ -113,6 +114,7 @@ void convert_objects_to_data_resolution(GameDataVersion filever)
     {
         guiinv[i].ItemWidth /= mul;
         guiinv[i].ItemHeight /= mul;
+        guiinv[i].OnResized();
     }
 }
 

@@ -60,23 +60,23 @@ String installVoiceDirectory;
 
 int File_Exists(const char *fnmm) {
 
-  String path, alt_path;
-  if (!ResolveScriptPath(fnmm, true, path, alt_path))
+  ResolvedPath rp;
+  if (!ResolveScriptPath(fnmm, true, rp))
     return 0;
 
-  return (File::TestReadFile(path) || File::TestReadFile(alt_path)) ? 1 : 0;
+  return (File::TestReadFile(rp.FullPath) || File::TestReadFile(rp.AltPath)) ? 1 : 0;
 }
 
 int File_Delete(const char *fnmm) {
 
-  String path, alt_path;
-  if (!ResolveScriptPath(fnmm, false, path, alt_path))
+  ResolvedPath rp;
+  if (!ResolveScriptPath(fnmm, false, rp))
     return 0;
 
-  if (::remove(path) == 0)
+  if (::remove(rp.FullPath) == 0)
       return 1;
-  if (errno == ENOENT && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
-      return ::remove(alt_path) == 0 ? 1 : 0;
+  if (errno == ENOENT && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
+      return ::remove(rp.AltPath) == 0 ? 1 : 0;
   return 0;
 }
 
@@ -274,10 +274,9 @@ String MakeAppDataPath()
     return app_data_path;
 }
 
-bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path, String &alt_path)
+bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath &rp)
 {
-    path.Empty();
-    alt_path.Empty();
+    rp = ResolvedPath();
 
     bool is_absolute = !is_relative_filename(orig_sc_path);
     if (is_absolute && !read_only)
@@ -286,17 +285,16 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
         return false;
     }
 
-    String parent_dir;
-    String child_path;
-
     if (is_absolute)
     {
-        path = orig_sc_path;
+        rp.FullPath = orig_sc_path;
         return true;
     }
 
     String sc_path = FixSlashAfterToken(orig_sc_path);
-    
+    String parent_dir;
+    String child_path;
+    String alt_path;
     if (sc_path.CompareLeft(GameInstallRootToken, GameInstallRootToken.GetLength()) == 0)
     {
         if (!read_only)
@@ -350,16 +348,30 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
     if (child_path[0u] == '\\' || child_path[0u] == '/')
         child_path.ClipLeft(1);
 
-    path = String::FromFormat("%s%s", parent_dir.GetCStr(), child_path.GetCStr());
+    String full_path = String::FromFormat("%s%s", parent_dir.GetCStr(), child_path.GetCStr());
     // don't allow write operations for relative paths outside game dir
     if (!read_only)
     {
-        if (!Path::IsSameOrSubDir(parent_dir, path))
+        if (!Path::IsSameOrSubDir(parent_dir, full_path))
         {
             debug_script_warn("Attempt to access file '%s' denied (outside of game directory)", sc_path.GetCStr());
-            path = "";
             return false;
         }
+    }
+    rp.BaseDir = parent_dir;
+    rp.FullPath = full_path;
+    rp.AltPath = alt_path;
+    return true;
+}
+
+bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
+{
+    if (!ResolveScriptPath(sc_path, false, rp))
+        return false;
+    if (!Directory::CreateAllDirectories(rp.BaseDir, Path::GetDirectoryPath(rp.FullPath)))
+    {
+        debug_script_warn("ResolveScriptPath: failed to create all subdirectories: %s", rp.FullPath.GetCStr());
+        return false;
     }
     return true;
 }

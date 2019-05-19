@@ -407,6 +407,24 @@ String String::Section(char separator, size_t first, size_t last,
     return String();
 }
 
+std::vector<String> String::Split(char separator) const
+{
+    std::vector<String> result;
+    if (!_meta || !separator)
+        return result;
+    const char *ptr = _meta->CStr;
+    while (*ptr)
+    {
+        const char *found_cstr = strchr(ptr, separator);
+        if (!found_cstr) break;
+        result.push_back(String(ptr, found_cstr - ptr));
+        ptr = found_cstr + 1;
+    }
+    if (*ptr)
+        result.push_back(String(ptr));
+    return result;
+}
+
 void String::Reserve(size_t max_length)
 {
     if (_meta)

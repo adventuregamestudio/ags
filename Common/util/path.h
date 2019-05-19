@@ -54,7 +54,14 @@ namespace Path
     void    FixupPath(String &path);
     // Fixups path and removes trailing slash
     String  MakePathNoSlash(const String &path);
+    // Fixups path and adds trailing slash if it's missing
+    String  MakeTrailingSlash(const String &path);
+    // Converts any path to an absolute path; relative paths are assumed to
+    // refer to the current working directory.
     String  MakeAbsolutePath(const String &path);
+    // Tries to create a relative path that would point to 'path' location
+    // if walking out of the 'base'. Returns empty string on failure.
+    String  MakeRelativePath(const String &base, const String &path);
     // Concatenates parent and relative paths
     String  ConcatPaths(const String &parent, const String &child);
 

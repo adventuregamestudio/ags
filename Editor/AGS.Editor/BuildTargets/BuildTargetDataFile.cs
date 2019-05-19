@@ -19,6 +19,12 @@ namespace AGS.Editor
             return new string[] { GetCompiledPath() };
         }
 
+        public override void DeleteMainGameData(string name)
+        {
+            string filename = Path.Combine(OutputDirectoryFullPath, name + ".ags");
+            Utilities.DeleteFileIfExists(filename);
+        }
+
         private void DeleteAnyExistingSplitResourceFiles()
         {
             foreach (string fileName in Utilities.GetDirectoryFileList(GetCompiledPath(), Factory.AGSEditor.BaseGameFileName + ".0*"))

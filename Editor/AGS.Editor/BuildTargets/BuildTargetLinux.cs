@@ -68,6 +68,12 @@ namespace AGS.Editor
             };
         }
 
+        public override void DeleteMainGameData(string name)
+        {
+            string filename = Path.Combine(Path.Combine(OutputDirectoryFullPath, LINUX_DATA_DIR), name + ".ags");
+            Utilities.DeleteFileIfExists(filename);
+        }
+
         private bool CheckPluginsHaveSharedLibraries()
         {
             _plugins.Clear();

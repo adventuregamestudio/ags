@@ -78,7 +78,7 @@ namespace AGS.Editor
          * 17: 3.5.0.4    - Extended sprite source properties
          * 18: 3.5.0.8    - Disallow relative asset resolutions by default, added flag for compatibility;
          *                  Real sprite resolution; Individual font scaling; Default room mask resolution
-         * 19: 3.5.0.11   - Custom Say and Narrate functions for dialog scripts.
+         * 19: 3.5.0.11   - Custom Say and Narrate functions for dialog scripts. GameFileName.
         */
         public const int    LATEST_XML_VERSION_INDEX = 19;
         /*
@@ -90,8 +90,9 @@ namespace AGS.Editor
         /*
          * 1: 3.0.2.1
          * 2: 3.4.0.1    - WorkspaceState section
+         * 3: 3.5.0.11
         */
-        public const int LATEST_USER_DATA_XML_VERSION_INDEX = 2;
+        public const int LATEST_USER_DATA_XML_VERSION_INDEX = 3;
         public const string AUDIO_VOX_FILE_NAME = "audio.vox";
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
@@ -207,7 +208,11 @@ namespace AGS.Editor
 
         public string BaseGameFileName
         {
-            get { return Path.GetFileName(this.GameDirectory); }
+            get
+            {
+                return string.IsNullOrWhiteSpace(_game.Settings.GameFileName) ?
+                    Path.GetFileName(this.GameDirectory) : _game.Settings.GameFileName;
+            }
         }
 
         public Script BuiltInScriptHeader
@@ -1014,6 +1019,19 @@ namespace AGS.Editor
             CompileScriptsParameters parameters = (CompileScriptsParameters)parameter;
             CompileMessages errors = parameters.Errors;
             bool forceRebuild = parameters.RebuildAll;
+
+            // TODO: This is also awkward, we call Cleanup for active targets to make sure
+            // that in case they changed the game binary name an old one gets removed.
+            // Also please see the comment about build steps below.
+            var buildNames = Factory.AGSEditor.CurrentGame.WorkspaceState.GetLastBuildGameFiles();
+            foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
+            {
+                string oldName;
+                if (!buildNames.TryGetValue(target.Name, out oldName)) continue;
+                if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
+                    target.DeleteMainGameData(oldName);
+            }
+
             IBuildTarget targetDataFile = BuildTargetsInfo.FindBuildTargetByName(BuildTargetsInfo.DATAFILE_TARGET_NAME);
             targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
             if (ExtraOutputCreationStep != null)
@@ -1032,7 +1050,9 @@ namespace AGS.Editor
             foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
             {
                 if (target != targetDataFile) target.Build(errors, forceRebuild);
+                buildNames[target.Name] = Factory.AGSEditor.BaseGameFileName;
             }
+            Factory.AGSEditor.CurrentGame.WorkspaceState.SetLastBuildGameFiles(buildNames);
             return null;
         }
 
@@ -1274,11 +1294,23 @@ namespace AGS.Editor
         private void CreateMiniEXEForDebugging(CompileMessages errors)
         {
             IBuildTarget target = BuildTargetsInfo.FindBuildTargetByName(BuildTargetDebug.DEBUG_TARGET_NAME);
+
+            var buildNames = Factory.AGSEditor.CurrentGame.WorkspaceState.GetLastBuildGameFiles();
+            string oldName;
+            if (buildNames.TryGetValue(target.Name, out oldName))
+            {
+                if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
+                    target.DeleteMainGameData(oldName);
+            }
+
             target.Build(errors, false);
             if (ExtraOutputCreationStep != null)
             {
                 ExtraOutputCreationStep(true);
             }
+
+            buildNames[target.Name] = Factory.AGSEditor.BaseGameFileName;
+            Factory.AGSEditor.CurrentGame.WorkspaceState.SetLastBuildGameFiles(buildNames);
         }
 
         private void CreateCompiledFiles(CompileMessages errors, bool forceRebuild)

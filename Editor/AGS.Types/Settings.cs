@@ -16,7 +16,7 @@ namespace AGS.Types
     {
         // TODO: reimplement the handling of property value changes in the Editor assembly
         // so that relying on property labels is no longer necessary!
-        public const string PROPERTY_GAME_NAME = "Game name";
+        public const string PROPERTY_GAME_NAME = "Game title";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
         public const string PROPERTY_LEGACY_HIRES_FONTS = "Fonts designed for high resolution";
@@ -36,6 +36,7 @@ namespace AGS.Types
 			GenerateNewGameID();
         }
 
+        private string _gameFileName = "";
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.HighColor;
@@ -150,7 +151,16 @@ namespace AGS.Types
 			_guid = Guid.NewGuid();
 		}
 
-		[DisplayName(PROPERTY_GAME_NAME)]
+        [DisplayName("Game file name")]
+        [Description("The game's binary name (the name of the file AGS will create after compiling the game). Leave empty to use project folder's name.")]
+        [Category("(Basic properties)")]
+        public string GameFileName
+        {
+            get { return _gameFileName; }
+            set { _gameFileName = value; }
+        }
+
+        [DisplayName(PROPERTY_GAME_NAME)]
         [Description("The game's name (for display in the title bar)")]
         [Category("(Basic properties)")]
         public string GameName

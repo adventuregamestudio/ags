@@ -496,3 +496,46 @@ TEST(Compile, AccessMembersInSequence) {
     ASSERT_EQ(0, compileResult);
 }
 
+TEST(Compile, AccessNonStaticMemberOfAType) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct A {\
+            import attribute int x;\
+        };\
+        \
+        builtin struct B {\
+            import readonly attribute A *a;\
+        };\
+        \
+        void Func() {\
+            int a = B.a.x;\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("must have an instance of the struct to access a non-static member", last_seen_cc_error());
+}
+
+TEST(Compile, AccessNonStaticMemberOfAStaticMember) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct A {\
+            import attribute int x;\
+        };\
+        \
+        builtin struct B {\
+            import static readonly attribute A *a;\
+        };\
+        \
+        void Func() {\
+            int a = B.a.x;\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    printf("Error: %s\n", last_seen_cc_error());
+    ASSERT_EQ(0, compileResult);
+}

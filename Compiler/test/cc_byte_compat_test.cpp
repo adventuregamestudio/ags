@@ -418,16 +418,13 @@ TEST(Compatibility, SimpleVoidFunction) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("SimpleVoidFunction", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 10;
+    // hand-checked Bytecode
+    const size_t codesize = 11;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
-      38,    0,    6,    3,            0,    5,    6,    3,    // 7
-       0,    5,  -999
+      38,    0,    6,    3,            0,   31,    3,    6,    // 7
+       3,    0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -484,16 +481,13 @@ TEST(Compatibility, SimpleIntFunction) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("SimpleIntFunction", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 10;
+    // hand-checked Bytecode
+    const size_t codesize = 11;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
-      38,    0,    6,    3,           15,    5,    6,    3,    // 7
-       0,    5,  -999
+      38,    0,    6,    3,           15,   31,    3,    6,    // 7
+       3,    0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -550,19 +544,16 @@ TEST(Compatibility, IntFunctionLocalV) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("IntFunctionLocalV", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 28;
+    WriteOutput("IntFunctionLocalV", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 29;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    3,           15,    3,    1,    2,    // 7
        8,    3,    1,    1,            4,   51,    4,    7,    // 15
-       3,    2,    1,    4,            5,    6,    3,    0,    // 23
-       2,    1,    4,    5,          -999
+       3,    2,    1,    4,           31,    6,    6,    3,    // 23
+       0,    2,    1,    4,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -619,16 +610,13 @@ TEST(Compatibility, IntFunctionParam) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IntFunctionParam", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 11;
+    // hand-checked Bytecode
+    const size_t codesize = 12;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
-      38,    0,   51,    8,            7,    3,    5,    6,    // 7
-       3,    0,    5,  -999
+      38,    0,   51,    8,            7,    3,   31,    3,    // 7
+       6,    3,    0,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -686,16 +674,13 @@ TEST(Compatibility, IntFunctionGlobalV) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("IntFunctionGlobalV", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 12;
+    // hand-checked Bytecode
+    const size_t codesize = 13;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
-      38,    0,    6,    2,            0,    7,    3,    5,    // 7
-       6,    3,    0,    5,          -999
+      38,    0,    6,    2,            0,    7,    3,   31,    // 7
+       3,    6,    3,    0,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -765,7 +750,6 @@ TEST(Compatibility, IntFunctionGlobalV) {
     EXPECT_EQ(stringssize, scrip->stringssize);
 
 }
-
 
 TEST(Compatibility, FloatExpr1) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -1016,7 +1000,7 @@ TEST(Compatibility, IfThenElse1) {
 
     // WriteOutput("IfThenElse1", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 107;
+    const size_t codesize = 108;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -1032,8 +1016,8 @@ TEST(Compatibility, IfThenElse1) {
        8,    3,   31,   16,            6,    3,    3,   29,    // 79
        3,   51,    8,    7,            3,   30,    4,   43,    // 87
        3,    4,    8,    3,           51,    4,    7,    3,    // 95
-       2,    1,    4,    5,            6,    3,    0,    2,    // 103
-       1,    4,    5,  -999
+       2,    1,    4,   31,            6,    6,    3,    0,    // 103
+       2,    1,    4,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -1098,7 +1082,7 @@ TEST(Compatibility, IfThenElse2) {
 
     // WriteOutput("IfThenElse2", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 107;
+    const size_t codesize = 108;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -1114,8 +1098,8 @@ TEST(Compatibility, IfThenElse2) {
        8,    3,   31,   16,            6,    3,    3,   29,    // 79
        3,   51,    8,    7,            3,   30,    4,   11,    // 87
        3,    4,    8,    3,           51,    4,    7,    3,    // 95
-       2,    1,    4,    5,            6,    3,    0,    2,    // 103
-       1,    4,    5,  -999
+       2,    1,    4,   31,            6,    6,    3,    0,    // 103
+       2,    1,    4,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -2291,7 +2275,7 @@ TEST(Compatibility, IfDoWhile) {
 
     // WriteOutput("IfDoWhile", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 194;
+    const size_t codesize = 196;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -2301,25 +2285,25 @@ TEST(Compatibility, IfDoWhile) {
        3,    1,    2,    8,            3,    1,    1,    4,    // 31
       51,   12,    7,    3,           29,    3,    6,    3,    // 39
       10,   30,    4,   18,            4,    3,    3,    4,    // 47
-       3,   28,   90,    6,            3,    0,   51,    4,    // 55
+       3,   28,   91,    6,            3,    0,   51,    4,    // 55
        8,    3,   51,    4,            7,    3,   29,    3,    // 63
        6,    3,   10,   30,            4,   18,    4,    3,    // 71
-       3,    4,    3,   28,           62,   51,    4,    7,    // 79
+       3,    4,    3,   28,           63,   51,    4,    7,    // 79
        3,   29,    3,   51,           12,    7,    3,   30,    // 87
        4,   11,    3,    4,            8,    3,   51,    4,    // 95
        7,    3,   29,    3,            6,    3,    6,   30,    // 103
        4,   15,    4,    3,            3,    4,    3,   28,    // 111
-       8,   51,    4,    7,            3,    2,    1,   12,    // 119
-       5,    6,    3,    3,           29,    3,   51,    8,    // 127
-       7,    3,   30,    4,           11,    3,    4,    8,    // 135
-       3,   31,  -81,   31,           39,   31,    2,   31,    // 143
-      35,    6,    3,    1,           29,    3,   51,    8,    // 151
-       7,    3,   30,    4,           11,    3,    4,    8,    // 159
-       3,   51,    4,    7,            3,   29,    3,    6,    // 167
-       3,  100,   30,    4,           18,    4,    3,    3,    // 175
-       4,    3,   70,  -35,            6,    3,    0,    2,    // 183
-       1,   12,    5,    6,            3,    0,    2,    1,    // 191
-      12,    5,  -999
+       9,   51,    4,    7,            3,    2,    1,   12,    // 119
+      31,   73,    6,    3,            3,   29,    3,   51,    // 127
+       8,    7,    3,   30,            4,   11,    3,    4,    // 135
+       8,    3,   31,  -82,           31,   39,   31,    2,    // 143
+      31,   35,    6,    3,            1,   29,    3,   51,    // 151
+       8,    7,    3,   30,            4,   11,    3,    4,    // 159
+       8,    3,   51,    4,            7,    3,   29,    3,    // 167
+       6,    3,  100,   30,            4,   18,    4,    3,    // 175
+       3,    4,    3,   70,          -35,    6,    3,    0,    // 183
+       2,    1,   12,   31,            6,    6,    3,    0,    // 191
+       2,    1,   12,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -4092,22 +4076,19 @@ TEST(Compatibility, Func05) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func05", scrip);
-    // run the test, comment out the previous line
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 60;
+    // hand-checked Bytecode
+    const size_t codesize = 61;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
       51,   16,    7,    3,           30,    4,   11,    4,    // 15
-       3,    3,    4,    3,            5,    6,    3,    0,    // 23
-       5,   38,   25,    6,            3,    5,   29,    3,    // 31
-       6,    3,    4,   29,            3,    6,    3,    0,    // 39
-      23,    3,    2,    1,            8,    3,    1,    2,    // 47
-       8,    3,    1,    1,            4,    6,    3,    0,    // 55
-       2,    1,    4,    5,          -999
+       3,    3,    4,    3,           31,    3,    6,    3,    // 23
+       0,    5,   38,   26,            6,    3,    5,   29,    // 31
+       3,    6,    3,    4,           29,    3,    6,    3,    // 39
+       0,   23,    3,    2,            1,    8,    3,    1,    // 47
+       2,    8,    3,    1,            1,    4,    6,    3,    // 55
+       0,    2,    1,    4,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -4124,7 +4105,7 @@ TEST(Compatibility, Func05) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      39,  -999
+      40,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -4518,22 +4499,20 @@ TEST(Compatibility, Func09) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Func09", scrip);
-    // run the test, comment out the previous line
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
+    // hand-checked Bytecode
 
-    const size_t codesize = 60;
+    const size_t codesize = 61;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
       51,   16,    7,    3,           30,    4,   11,    4,    // 15
-       3,    3,    4,    3,            5,    6,    3,    0,    // 23
-       5,   38,   25,    6,            3,  -99,   29,    3,    // 31
-       6,    3,    4,   29,            3,    6,    3,    0,    // 39
-      23,    3,    2,    1,            8,    3,    1,    2,    // 47
-       8,    3,    1,    1,            4,    6,    3,    0,    // 55
-       2,    1,    4,    5,          -999
+       3,    3,    4,    3,           31,    3,    6,    3,    // 23
+       0,    5,   38,   26,            6,    3,  -99,   29,    // 31
+       3,    6,    3,    4,           29,    3,    6,    3,    // 39
+       0,   23,    3,    2,            1,    8,    3,    1,    // 47
+       2,    8,    3,    1,            1,    4,    6,    3,    // 55
+       0,    2,    1,    4,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -4550,7 +4529,7 @@ TEST(Compatibility, Func09) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      39,  -999
+      40,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -4638,21 +4617,21 @@ TEST(Compatibility, Func10) {
 
     // WriteOutput("Func10", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 84;
+    const size_t codesize = 86;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,    4,    4,    0,    // 7
        1,    1,    4,    6,            3,    5,    2,    1,    // 15
-       4,    5,    6,    3,            0,    2,    1,    4,    // 23
-       5,   38,   25,    3,            1,    2,   63,    4,    // 31
-       1,    1,    4,   51,            4,   29,    6,   45,    // 39
-       2,    6,    3,    0,           23,    3,   30,    6,    // 47
-      29,    3,    6,    3,            3,   30,    4,   40,    // 55
-       4,    3,    3,    4,            3,    3,    1,    2,    // 63
-       8,    3,    1,    1,            4,   51,    4,    7,    // 71
-       3,    2,    1,    8,            5,    6,    3,    0,    // 79
-       2,    1,    8,    5,          -999
+       4,   31,    6,    6,            3,    0,    2,    1,    // 23
+       4,    5,   38,   26,            3,    1,    2,   63,    // 31
+       4,    1,    1,    4,           51,    4,   29,    6,    // 39
+      45,    2,    6,    3,            0,   23,    3,   30,    // 47
+       6,   29,    3,    6,            3,    3,   30,    4,    // 55
+      40,    4,    3,    3,            4,    3,    3,    1,    // 63
+       2,    8,    3,    1,            1,    4,   51,    4,    // 71
+       7,    3,    2,    1,            8,   31,    6,    6,    // 79
+       3,    0,    2,    1,            8,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -4669,7 +4648,7 @@ TEST(Compatibility, Func10) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      43,  -999
+      44,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -5134,7 +5113,7 @@ TEST(Compatibility, ArrayInStruct) {
 }
 
 
-TEST(Compatibility, FuncVarargs1) {
+TEST(Compatibility, Func11) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -5154,12 +5133,9 @@ TEST(Compatibility, FuncVarargs1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("FuncVarargs1", scrip);
-    // run the test, comment out the previous line 
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-
-    const size_t codesize = 49;
+    // WriteOutput("Func11", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 51;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -5167,9 +5143,9 @@ TEST(Compatibility, FuncVarargs1) {
       51,   12,    7,    3,           29,    3,   51,   16,    // 15
        7,    3,   30,    4,           10,    4,    3,    3,    // 23
        4,    3,   30,    4,           11,    4,    3,    3,    // 31
-       4,    3,    5,    6,            3,    0,    5,   38,    // 39
-      39,    6,    3,    0,            5,    6,    3,    0,    // 47
-       5,  -999
+       4,    3,   31,    3,            6,    3,    0,    5,    // 39
+      38,   40,    6,    3,            0,   31,    3,    6,    // 47
+       3,    0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -5349,15 +5325,15 @@ TEST(Compatibility, Protected1) {
 
     // WriteOutput("Protected1", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 35;
+    const size_t codesize = 36;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,    4,    4,    0,    // 7
        1,    1,    4,   51,           12,    7,    3,    3,    // 15
        6,    2,   52,    8,            3,    6,    3,    0,    // 23
-       2,    1,    4,    5,            6,    3,    0,    2,    // 31
-       1,    4,    5,  -999
+       2,    1,    4,   31,            6,    6,    3,    0,    // 31
+       2,    1,    4,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -5658,17 +5634,18 @@ TEST(Compatibility, Protected2) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Protected2", scrip);
+    // WriteOutput("Protected2", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 39;
+    const size_t codesize = 40;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,    4,    4,    0,    // 7
        1,    1,    4,   51,           12,    7,    3,   29,    // 15
        3,    3,    6,    2,           52,   30,    3,    8,    // 23
-       3,    6,    3,    0,            2,    1,    4,    5,    // 31
-       6,    3,    0,    2,            1,    4,    5,  -999
+       3,    6,    3,    0,            2,    1,    4,   31,    // 31
+       6,    6,    3,    0,            2,    1,    4,    5,    // 39
+     -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -5708,6 +5685,7 @@ TEST(Compatibility, Protected2) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
+
 }
 
 TEST(Compatibility, Import) {

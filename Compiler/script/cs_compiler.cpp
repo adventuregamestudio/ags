@@ -118,7 +118,7 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
     if (ccGetOption(SCOPT_EXPORTALL))
     {
         // export all functions
-        for (size_t func_num = 0; func_num < compiled_script->numfunctions; func_num++)
+        for (size_t func_num = 0; func_num < static_cast<size_t>(compiled_script->numfunctions); func_num++)
         {
             if (compiled_script->add_new_export(compiled_script->functions[func_num], EXPORT_FUNCTION,
                 compiled_script->funccodeoffs[func_num], compiled_script->funcnumparams[func_num]) == -1)

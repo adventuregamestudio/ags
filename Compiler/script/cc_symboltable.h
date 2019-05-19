@@ -24,8 +24,8 @@ struct SymbolTableEntry {
     AGS::CodeLoc soffs;
     int ssize; // or return type size for function
     int sscope; // or num arguments for function
-    int arrsize; // num of bytes needed to contain the whole array (not num of elements)
-    AGS::Vartype extends; // inherits another class (classes) / owning class (member vars)
+    int arrsize; // num of elements in a standard (non-dynamic) array
+    AGS::Vartype extends; // parent struct (for structs) / owning struct (for members)
     // functions only, save types of return value and all parameters
     std::vector<AGS::Vartype> funcparamtypes;
     std::vector<int> funcParamDefaultValues;

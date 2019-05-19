@@ -52,9 +52,9 @@ int SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
     dest.sscope = this->sscope;
     dest.arrsize = this->arrsize;
     dest.extends = this->extends;
-    dest.funcparamtypes.assign(this->funcparamtypes.begin(), this->funcparamtypes.end());
-    dest.funcParamDefaultValues.assign(this->funcParamDefaultValues.begin(), this->funcParamDefaultValues.end());
-    dest.funcParamHasDefaultValues.assign(this->funcParamHasDefaultValues.begin(), this->funcParamHasDefaultValues.end());
+    dest.funcparamtypes = this->funcparamtypes;
+    dest.funcParamDefaultValues = this->funcParamDefaultValues;
+    dest.funcParamHasDefaultValues = this->funcParamHasDefaultValues;
     return 0;
 }
 
@@ -189,21 +189,21 @@ void SymbolTable::reset()
         add_ex("writeprotected", kSYM_WriteProtected, 0); 
 }
 
-std::string const SymbolTable::get_name_string(AGS::Symbol idx) const
+std::string const SymbolTable::get_name_string(AGS::Symbol symbl) const
 {
-    int const short_idx = (idx & kVTY_FlagMask);
-    if (short_idx < 0)
+    int const core_symbl = (symbl & kVTY_FlagMask);
+    if (core_symbl < 0)
         return std::string("(end of input)");
-    if (short_idx >= entries.size())
+    if (core_symbl >= entries.size())
         return std::string("(invalid symbol)");
     
-    std::string result = entries[short_idx].sname;
+    std::string result = entries[core_symbl].sname;
 
-    if (idx & kVTY_Pointer)
+    if (symbl & kVTY_Pointer)
         result += "*";
-    if (idx & (kVTY_Array|kVTY_DynArray))
+    if (symbl & (kVTY_Array|kVTY_DynArray))
         result += "[]";
-    if (idx & kVTY_Const)
+    if (symbl & kVTY_Const)
         result = "const " + result;
 
     return result;

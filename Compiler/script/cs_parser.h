@@ -179,14 +179,14 @@ private:
     };
     typedef std::vector<PatchInfo> PatchList;
 
-    struct FuncInfo
+    struct CallpointInfo
     {
         CodeLoc Callpoint;
         PatchList List;
-        FuncInfo();
+        CallpointInfo();
     };
 
-    typedef std::map<Symbol, FuncInfo> CallMap;
+    typedef std::map<Symbol, CallpointInfo> CallMap;
     CallMap _funcCallpointMap;
 
 
@@ -195,6 +195,9 @@ public:
     
     // Enter a code location where a function is called that hasn't been defined yet.
     int TrackForwardDeclFuncCall(::ccCompiledScript *scrip, Symbol func, CodeLoc idx);
+
+    // Enter a code location to jump to in order to end a function
+    int TrackExitJumppoint(::ccCompiledScript *scrip, Symbol func, CodeLoc idx);
 
     // When code is ripped out of the codebase: 
     // Update list of calls to forward declared functions 
@@ -208,11 +211,15 @@ public:
     // Patch all the function calls of the given function to point to dest
     int SetFuncCallpoint(::ccCompiledScript *scrip, Symbol func, AGS::CodeLoc dest);
 
+    // Set the exit point of a function.
+    // Patch this address into all the jumps to exit points.
+    int SetFuncExitJumppoint(::ccCompiledScript *scrip, Symbol func, AGS::CodeLoc dest);
+
     inline int HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
 
     inline bool IsForwardDecl(AGS::Symbol func) { return (0 == _funcCallpointMap.count(func)); }
 
-    // Gives an error message and returns a value < 0 iff there are still functions
+    // Gives an error message and returns a value < 0 iff there are still callpoints
     // without a location
     int CheckForUnresolvedFuncs();
 };
@@ -244,5 +251,3 @@ extern int cc_compile(
     ccCompiledScript *scrip);   // store for the compiled text
 
 #endif // __CS_PARSER_H
-
-int ParseFor_InitClauseVardecl(AGS::Symbol & cursym, ccInternalList * targ, const size_t &nested_level, ccCompiledScript * scrip);

@@ -93,6 +93,7 @@ char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris 
 int ParseExpression(ccInternalList *targ, ccCompiledScript *script);
 int ParseExpression_Subexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len);
 int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len, bool negate = false);
+void FreePointersOfStdArray(ccCompiledScript *scrip, SymbolTableEntry &entry, AGS::CodeCell release_memory_cmd);
 
 // [fw] This ought to replace the #defines in script_common.h
 enum FxFixupType // see script_common.h
@@ -145,7 +146,7 @@ inline void SetFlag(AGS::Flags &fl_set, long flag, bool val) { if (val) fl_set |
 
 bool IsIdentifier(AGS::Symbol symb)
 {
-    if (symb <= sym.getLastPredefSym() || symb > sym.entries.size())
+    if (symb <= sym.getLastPredefSym() || symb > static_cast<int>(sym.entries.size()))
         return false;
     std::string name = sym.get_name_string(symb);
     if (name.size() == 0)
@@ -287,6 +288,17 @@ int SkipToScript(const AGS::Symbol stoplist[], size_t stoplist_len, SymbolScript
     return retval;
 }
 
+// Returns the relative distance in a jump instruction
+// "here" is the location of the bytecode int that will contain
+// the (relative) destination.It is not the location of the
+// start of the command but the location of its first parameter
+inline int RelativeJumpDist(AGS::CodeLoc here, AGS::CodeLoc dest)
+{
+    // JMP 0 jumps to the bytecode symbol directly behind the command.
+    // So if dest == here, -1 must be returned.
+    return static_cast<int>(dest) - static_cast<int>(here) - 1;
+}
+
 // For assigning unique IDs to chunks
 int AGS::NestingStack::_chunkIdCtr = 0;
 
@@ -318,10 +330,12 @@ void AGS::NestingStack::YankChunk(ccCompiledScript *scrip, AGS::CodeLoc codeoffs
 {
     AGS::NestingStack::Chunk item;
 
-    for (size_t code_idx = codeoffset; code_idx < scrip->codesize; code_idx++)
+    size_t const codesize = std::max(0, scrip->codesize);
+    for (size_t code_idx = codeoffset; code_idx < codesize; code_idx++)
         item.Code.push_back(scrip->code[code_idx]);
 
-    for (size_t fixups_idx = fixupoffset; fixups_idx < scrip->numfixups; fixups_idx++)
+    size_t numfixups = std::max(0, scrip->numfixups);
+    for (size_t fixups_idx = fixupoffset; fixups_idx < numfixups; fixups_idx++)
     {
         item.Fixups.push_back(scrip->fixups[fixups_idx]);
         item.FixupTypes.push_back(scrip->fixuptypes[fixups_idx]);
@@ -375,6 +389,16 @@ int AGS::FuncCallpointMgr::TrackForwardDeclFuncCall(::ccCompiledScript *scrip, S
     pinfo.ChunkId = CodeBaseId;
     pinfo.Offset = loc;
     _funcCallpointMap[func].List.push_back(pinfo);
+
+    return 0;
+}
+
+int AGS::FuncCallpointMgr::TrackExitJumppoint(::ccCompiledScript *scrip, Symbol func, CodeLoc loc)
+{
+    PatchInfo pinfo;
+    pinfo.ChunkId = CodeBaseId;
+    pinfo.Offset = loc;
+    _funcCallpointMap[-func].List.push_back(pinfo);
 
     return 0;
 }
@@ -451,6 +475,23 @@ int AGS::FuncCallpointMgr::SetFuncCallpoint(ccCompiledScript *scrip, AGS::Symbol
     return 0;
 }
 
+int AGS::FuncCallpointMgr::SetFuncExitJumppoint(ccCompiledScript *scrip, AGS::Symbol func, AGS::CodeLoc dest)
+{
+    // Exit points of functions are stored under the negative function number
+    _funcCallpointMap[-func].Callpoint = dest;
+    PatchList &pl = _funcCallpointMap[-func].List;
+    size_t const pl_size = pl.size();
+    for (auto pl_it = pl.begin(); pl_it != pl.end(); ++pl_it)
+        if (pl_it->ChunkId == CodeBaseId)
+        {
+            size_t const here = pl_it->Offset;
+            scrip->code[here] = RelativeJumpDist(here, dest);
+            pl_it->ChunkId = PatchedId;
+        }
+    pl.clear();
+    return 0;
+}
+
 int AGS::FuncCallpointMgr::CheckForUnresolvedFuncs()
 {
     for (CallMap::iterator fcm_it = _funcCallpointMap.begin(); fcm_it != _funcCallpointMap.end(); ++fcm_it)
@@ -469,7 +510,7 @@ int AGS::FuncCallpointMgr::CheckForUnresolvedFuncs()
     return 0;
 }
 
-AGS::FuncCallpointMgr::FuncInfo::FuncInfo()
+AGS::FuncCallpointMgr::CallpointInfo::CallpointInfo()
     : Callpoint(-1)
 { }
 
@@ -590,106 +631,6 @@ int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
     return 0;
 }
 
-// Returns the relative distance in a jump instruction
-// "here" is the location of the bytecode int that will contain
-// the (relative) destination.It is not the location of the
-// start of the command.
-inline int RelativeJumpDist(AGS::CodeLoc here, AGS::CodeLoc dest)
-{
-    // JMP 0 jumps to the bytecode symbol directly behind the command.
-    // So if dest == here, -1 must be returned.
-    return static_cast<int>(dest - here - 1);
-}
-
-void FreePointer(ccCompiledScript *scrip, int spOffset, int zeroCmd, AGS::Symbol arraySym)
-{
-    scrip->write_cmd1(SCMD_LOADSPOFFS, spOffset);
-    scrip->write_cmd0(zeroCmd);
-
-    const size_t arrsize = sym.entries[arraySym].arrsize;
-    if (!FlagIsSet(sym.entries[arraySym].vartype, kVTY_Array) ||
-        FlagIsSet(sym.entries[arraySym].vartype, kVTY_DynArray))
-        return; // done
-
-    // array of pointers - first pointer has already been released
-    // release each of the following pointers, too
-    if (arrsize <= 1)
-        return; // done: there aren't any following pointers
-
-    size_t const num_of_ptr = arrsize - 1;
-    if (num_of_ptr < 3) 
-    {
-        // individual releases need less bytes than a loop
-        for (int loop = num_of_ptr; loop > 0; loop--)
-        {
-            scrip->write_cmd2(SCMD_ADD, SREG_MAR, 4);
-            scrip->write_cmd0(zeroCmd);
-        }
-        return;
-    }
-
-    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, num_of_ptr);
-    AGS::CodeLoc start_of_loop = scrip->codesize;
-    scrip->write_cmd2(SCMD_ADD, SREG_MAR, 4);
-    scrip->write_cmd0(zeroCmd);
-    scrip->write_cmd2(SCMD_SUB, SREG_AX, 1);
-    scrip->write_cmd1(
-        SCMD_JNZ,
-        RelativeJumpDist(scrip->codesize + 1, start_of_loop));    
-    return;
-}
-
-
-
-void FreePointersOfStruct(ccCompiledScript *scrip, AGS::Symbol structVarSym)
-{
-    AGS::Vartype const structType = sym.entries[structVarSym].vartype;
-
-    for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
-    {
-        SymbolTableEntry &entry = sym.entries[entries_idx];
-        if (kSYM_StructComponent != entry.stype)
-            continue;
-        if (structType != entry.extends)
-            continue;
-        if (FlagIsSet(entry.flags, kSFLG_Imported))
-            continue;
-        if (FlagIsSet(entry.flags, kSFLG_Attribute))
-            continue;
-
-        if (!FlagIsSet(sym.get_vartype(entries_idx), kVTY_Pointer))
-        {
-            // original comment: "if non-pointer struct, need to process its members
-            // **** TODO"
-            // [fw] depends on how that struct of struct is in the symbol table;
-            //      STRUCTSYM.SUBSTRUCTSYM perhaps?
-            //      AGS:Symbol substruct = find(....);
-            //      if (substruct is not in the symtable) continue;
-
-            //      FreePointersOfStruct(scrip, substruct);
-
-            continue;
-        }
-
-        // Locate where the pointer is on the stack
-        int spOffs = (scrip->cur_sp - sym.entries[structVarSym].soffs) - sym.entries[entries_idx].soffs;
-
-        FreePointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<AGS::Symbol>(entries_idx));
-
-        if (FlagIsSet(sym.entries[structVarSym].vartype, kVTY_Array))
-        {
-            // an array of structs, free any pointers in them
-            const size_t arrsize = sym.entries[structVarSym].arrsize;
-            for (size_t entry = 1; entry < arrsize; entry++)
-            {
-                spOffs -= sym.entries[structType].ssize;
-                FreePointer(scrip, spOffs, SCMD_MEMZEROPTR, static_cast<AGS::Symbol>(entries_idx));
-            }
-        }
-    }
-}
-
-
 bool is_any_type_of_string(AGS::Vartype symtype)
 {
     SetFlag(symtype, kVTY_Const, false);
@@ -738,41 +679,210 @@ int StacksizeOfLocals(int from_level)
     return totalsub;
 }
 
-
-// Free the pointers of any locals in level from_level or higher
-int FreePointersOfLocals(ccCompiledScript *scrip, int from_level)
+// Does vartype v contain releasable pointers?
+bool ContainsReleasablePointers(AGS::Vartype v)
 {
-    int totalsub = 0;
-    int zeroPtrCmd = SCMD_MEMZEROPTR;
-    if (from_level == 0)
-        zeroPtrCmd = SCMD_MEMZEROPTRND;
+    if (FlagIsSet(v, kVTY_DynArray) || FlagIsSet(v, kVTY_Pointer))
+        return true;
 
+    AGS::Vartype const coretype = (v & kVTY_FlagMask);
+    if (!FlagIsSet(sym.entries[coretype].flags, kSFLG_StructType))
+        return false; // primitive types can't have pointers
     for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
     {
-        if (sym.entries[entries_idx].sscope <= from_level)
+        SymbolTableEntry &entry = sym.entries[entries_idx];
+        if (!FlagIsSet(entry.flags, kSFLG_StructMember))
             continue;
-        if (sym.entries[entries_idx].stype != kSYM_LocalVar)
+        if (coretype != entry.extends)
             continue;
+        if (ContainsReleasablePointers(entry.vartype))
+            return true;
+    }
+    return false;
+}
 
-        // don't touch the this pointer
-        if (entries_idx == sym.getThisSym())
-            continue;
 
-        AGS::Vartype const vartype = sym.get_vartype(entries_idx);
-        if (FlagIsSet(vartype, kVTY_Pointer) || FlagIsSet(vartype, kVTY_DynArray))
+// We're at the end of a block and releasing a standard array of pointers.
+// MAR points to the array start. Release each array element (pointer).
+int FreePointersOfStdArray_OfPointer(ccCompiledScript *scrip, size_t arrsize, AGS::CodeCell zero_cmd)
+{
+    if (0 == arrsize)
+        return 0;
+
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, arrsize);
+    
+    AGS::CodeLoc const loop_start = scrip->codesize;
+    scrip->write_cmd0(zero_cmd);
+    scrip->write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_POINTER);
+    scrip->write_cmd2(SCMD_SUB, SREG_AX, 1);
+    scrip->write_cmd1(SCMD_JNZ, RelativeJumpDist(scrip->codesize + 1, loop_start));
+    return 0;
+}
+
+// We're at the end of a block and releasing all the pointers in a struct.
+// MAR already points to the start of the struct.
+void FreePointersOfStruct(ccCompiledScript *scrip, AGS::Symbol struct_vtype, AGS::CodeCell release_memory_cmd)
+{
+    std::vector <size_t> compo_list;
+    for (size_t compo = 0; compo < sym.entries.size(); compo++)
+    {
+        SymbolTableEntry &entry = sym.entries[compo];
+        if (!FlagIsSet(entry.flags, kSFLG_StructMember))
+            continue;
+        if (entry.extends != struct_vtype)
+            continue;
+        if (!ContainsReleasablePointers(entry.vartype))
+            continue;
+        compo_list.push_back(compo);
+    }
+
+    size_t offset_so_far = 0;
+    for (auto compo_it = compo_list.cbegin(); compo_it != compo_list.cend(); ++compo_it)
+    {
+        SymbolTableEntry &entry = sym.entries[*compo_it];
+
+        // Let MAR point to the component
+        size_t const diff = entry.soffs - offset_so_far;
+        if (diff > 0)
+            scrip->write_cmd2(SCMD_ADD, SREG_MAR, diff);
+        offset_so_far = entry.soffs;
+
+        if ((FlagIsSet(entry.vartype, kVTY_DynArray) || FlagIsSet(entry.vartype, kVTY_Pointer)) && entry.arrsize <= 1)
         {
-            FreePointer(scrip, scrip->cur_sp - sym.entries[entries_idx].soffs, zeroPtrCmd, static_cast<AGS::Symbol>(entries_idx));
+            scrip->write_cmd0(release_memory_cmd);
             continue;
         }
 
-        if (FlagIsSet(sym.get_flags(sym.entries[entries_idx].vartype), kSFLG_StructType))
+        if (compo_list.back() != *compo_it)
+            scrip->push_reg(SREG_MAR);
+        if (FlagIsSet(entry.vartype, kVTY_Array))
+            FreePointersOfStdArray(scrip, entry, release_memory_cmd);
+        else if (FlagIsSet(sym.entries[entry.vartype & kVTY_FlagMask].flags, kSFLG_StructType))
+            FreePointersOfStruct(scrip, entry.vartype & kVTY_FlagMask, SCMD_MEMZEROPTR);
+        if (compo_list.back() != *compo_it)
+            scrip->pop_reg(SREG_MAR);
+    }
+}
+
+// We're at the end of a block and we're releasing a standard array of struct.
+// MAR points to the start of the array. Release all the pointers in the array.
+void FreePointersOfStdArray_OfStruct(ccCompiledScript *scrip, AGS::Symbol struct_vtype, SymbolTableEntry &entry, AGS::CodeCell zero_cmd)
+{
+    // AX will be the index of the current element
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, entry.arrsize);
+
+    AGS::CodeLoc loop_start = scrip->codesize;
+    scrip->push_reg(SREG_MAR);
+    scrip->push_reg(SREG_AX); // FreePointersOfStruct might call funcs that clobber AX
+    FreePointersOfStruct(scrip, struct_vtype, zero_cmd);
+    scrip->pop_reg(SREG_AX);
+    scrip->pop_reg(SREG_MAR);
+    scrip->write_cmd2(SCMD_ADD, SREG_MAR, entry.ssize);
+    scrip->write_cmd2(SCMD_SUB, SREG_AX, 1);
+    scrip->write_cmd1(SCMD_JNZ, RelativeJumpDist(scrip->codesize + 1, loop_start));
+    return;
+}
+
+// We're at the end of a block and releasing a standard array. MAR points to the start.
+// Release the pointers that the array contains.
+void FreePointersOfStdArray(ccCompiledScript *scrip, SymbolTableEntry &entry, AGS::CodeCell release_memory_cmd)
+{
+    if (entry.arrsize < 1)
+        return;
+
+    if (FlagIsSet(entry.vartype, kVTY_Pointer) || FlagIsSet(entry.vartype, kVTY_DynArray))
+    {
+        FreePointersOfStdArray_OfPointer(scrip, entry.arrsize, release_memory_cmd);
+        return;
+    }
+
+    AGS::Symbol const coretype = entry.vartype & kVTY_FlagMask;
+    if (!FlagIsSet(sym.entries[coretype].flags, kSFLG_StructType))
+        return; // nothing to do
+
+    FreePointersOfStdArray_OfStruct(scrip, coretype, entry, release_memory_cmd);
+    return;
+}
+
+
+// Note: Currently, the structs/arrays that are pointed to cannot contain
+// pointers in their turn.
+// If they do, we need a solution at runtime to chase the pointers to release;
+// we can't do it at compile time. Also, the pointers might form "rings"
+// (e.g., A contains a field that points to B; B contains a field that
+// points to A), so we can't rely on reference counting for identifying
+// _all_ the unreachable memory chunks. (If nothing else points to A or B,
+// both are unreachable so _could_ be released, but they still point to each
+// other and so have a reference count of 1; the reference count will never reach 0).
+
+// Free the pointers of any locals in level from_level or higher
+int FreePointersOfLocals(ccCompiledScript *scrip, int from_level, AGS::Symbol name_of_current_func = 0)
+{
+    bool function_returns_a_pointer = false;
+    if (0 == from_level)
+    {
+        AGS::Vartype const func_return_type = sym.entries[name_of_current_func].funcparamtypes.at(0);
+        function_returns_a_pointer = FlagIsSet(func_return_type, kVTY_Pointer | kVTY_DynArray);
+        if (function_returns_a_pointer)
         {
-            // free any pointers that this struct contains
-            FreePointersOfStruct(scrip, static_cast<AGS::Symbol>(entries_idx));
-            continue;
+            // We're ending the current function; AX is containing the result of the func call.
+            // The dynamic object that AX points to mustn't be freed so that it can be returned
+            // to the caller. So allocate a local variable that will point to the dynamic object.
+            // This will prevent the reference counter of the dynamic object to drop to zero.
+            scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
+            scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
         }
     }
-    return 0;
+
+    size_t const codesize_before_push = scrip->codesize;
+    if (0 == from_level)
+        scrip->push_reg(SREG_AX);
+    
+    for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
+    {
+        SymbolTableEntry &entry = sym.entries[entries_idx];
+        if (entry.sscope <= from_level)
+            continue;
+        if (kSYM_LocalVar != entry.stype)
+            continue;
+        if (sym.getThisSym() == entries_idx)
+            continue; // don't touch the this pointer
+        if (!ContainsReleasablePointers(entry.vartype))
+            continue;
+ 
+        int const sp_offset = scrip->cur_sp - entry.soffs;
+        if ((FlagIsSet(entry.vartype, kVTY_Pointer) || FlagIsSet(entry.vartype, kVTY_DynArray)) &&
+            entry.arrsize <= 1)
+        {
+            // Simply release the pointer
+            scrip->write_cmd1(SCMD_LOADSPOFFS, sp_offset);
+            scrip->write_cmd0(SCMD_MEMZEROPTR);
+            continue;
+        }
+
+        // Set MAR to the start of the construct that contains releasable pointers
+        scrip->write_cmd1(SCMD_LOADSPOFFS, sp_offset);
+
+        if (FlagIsSet(entry.vartype, kVTY_Array))
+            FreePointersOfStdArray(scrip, entry, SCMD_MEMZEROPTR);
+        else if (FlagIsSet(sym.get_flags(entry.vartype), kSFLG_StructType))
+            FreePointersOfStruct(scrip, entry.vartype & kVTY_FlagMask, SCMD_MEMZEROPTR);
+    }
+
+    if (0 != from_level)
+        return 0;
+
+    scrip->pop_reg(SREG_AX);
+    if (codesize_before_push + 4 == scrip->codesize)
+        scrip->codesize = codesize_before_push; // Rip out the unneeded push AX/pop AX
+
+    if (function_returns_a_pointer)
+    {
+        // Now release the dynamic memory block with a special command that
+        // prevents de-allocation as long as AX has the address, too
+        scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
+        scrip->write_cmd0(SCMD_MEMZEROPTRND);
+    }
 }
 
 // Remove defns from the sym table of vars defined on from_level or higher
@@ -1636,6 +1746,7 @@ int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_
 
     // Index of the function in the ccScript::imports[] array
     function_soffs = g_ImportMgr.FindOrAdd(sym.get_name_string(name_of_func));
+    return 0;
 }
 
 
@@ -3083,6 +3194,7 @@ int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_
 
     symlist = close_brac_loc + 1;
     symlist_len = len_starting_with_close_brac - 1;
+    return 0;
 }
 
 int AccessData_GlobalOrLocalVar(ccCompiledScript *scrip, bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype)
@@ -3599,7 +3711,6 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     ValueLocation vloc;
     AGS::Vartype lhsvartype;
     int lhsscope;
-    AGS::Symbol rattrib;
     int retval = AccessData(scrip, writing, negate_dummy, symlist, symlist_len, vloc, lhsscope, lhsvartype);
     if (retval < 0) return retval;
 
@@ -3641,7 +3752,8 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
         scrip->write_cmd1(
             GetWriteCommandForSize(sym.entries[lhsvartype & kVTY_FlagMask].ssize),
             SREG_AX);
-    }
+    return 0;
+}
 
 
 int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len, bool negate)
@@ -4347,7 +4459,9 @@ int ParseVardecl0(
 
         // Output the code for defining the local and initializing it
         ParseVardecl_CodeForDefnOfLocal(scrip, var_name, fixup_needed, size_of_defn, initial_value_ptr);
+        break;
     }
+    return 0;
 }
 
 // wrapper around ParseVardecl0() to prevent memory leakage
@@ -4491,7 +4605,7 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingS
         scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
     }
 
-    FreePointersOfLocals(scrip, nesting_level - 1);
+    FreePointersOfLocals(scrip, nesting_level - 1, name_of_current_func);
     int totalsub = StacksizeOfLocals(nesting_level - 1);
     if (totalsub > 0)
     {
@@ -4506,6 +4620,7 @@ int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingS
 
     if (nesting_level == 1)
     {
+        g_FCM.SetFuncExitJumppoint(scrip, name_of_current_func, scrip->codesize);
         // We've just finished the body of the current function.
         name_of_current_func = -1;
         struct_of_current_func = -1;
@@ -4589,6 +4704,36 @@ void ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQualifierSet tqs)
 }
 
 
+// We're processing the extends clause of a struct. Copy over all the parent elements
+// except for functions and attributes into the current struct.
+int ParseStruct_Extends_CopyParentComponents(AGS::Symbol parent, AGS::Symbol stname)
+{
+    for (size_t entries_idx = 0; entries_idx < sym.entries.size(); entries_idx++)
+    {
+        SymbolTableEntry &entry = sym.entries[entries_idx];
+        if (!FlagIsSet(entry.flags, kSFLG_StructMember))
+            continue;
+        if (entry.extends != parent)
+            continue;
+        if (kSYM_Function == entry.stype || kSYM_Attribute == entry.stype)
+            continue;
+        int const compo_start = entry.sname.rfind(':');
+        if (std::string::npos == compo_start)
+        {
+            cc_error("Internal error: Component '%s' of '%s' does not have a struct prefix",
+                entry.sname.c_str(), sym.get_name_string(parent).c_str());
+            return -1;
+        }
+        std::string const compo_name_str = entry.sname.substr(compo_start + 1);
+        AGS::Symbol const compocorename = sym.find_or_add(compo_name_str.c_str());
+        AGS::Symbol const compo = MangleStructAndComponent(stname, compocorename);
+        std::string const sname = sym.entries[compo].sname;
+        entry.CopyTo(sym.entries[compo]);
+        sym.entries[compo].sname = sname;
+    }
+    return 0;
+}
+
 // We have accepted something like "struct foo" and are waiting for "extends"
 int ParseStruct_ExtendsClause(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol &parent, size_t &size_so_far)
 {
@@ -4629,7 +4774,7 @@ int ParseStruct_ExtendsClause(ccInternalList *targ, AGS::Symbol stname, AGS::Sym
     size_so_far = static_cast<size_t>(extends_entry.ssize);
     struct_entry.extends = parent;
 
-    return 0;
+    return ParseStruct_Extends_CopyParentComponents(parent, stname);
 }
 
 
@@ -5227,7 +5372,7 @@ int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet 
     }
 
     bool dummy;
-    ParseVartype0(targ, scrip, stname, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, dummy);
+    return ParseVartype0(targ, scrip, stname, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, dummy);
 }
 
 // We've accepted something like "enum foo { bar"; '=' follows
@@ -5752,9 +5897,9 @@ int ParseCommand_EndOfDoIfElse(ccInternalList *targ, ccCompiledScript *scrip, AG
     return 0;
 }
 
-int ParseReturn(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol inFuncSym)
+int ParseReturn(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol name_of_current_func)
 {
-    AGS::Symbol const functionReturnType = sym.entries[inFuncSym].funcparamtypes[0];
+    AGS::Symbol const functionReturnType = sym.entries[name_of_current_func].funcparamtypes[0];
 
     if (sym.get_type(targ->peeknext()) != kSYM_Semicolon)
     {
@@ -5799,14 +5944,14 @@ int ParseReturn(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol inFun
         return -1;
     }
 
-    // count total space taken by all local variables
-    FreePointersOfLocals(scrip, 0);
-
+    FreePointersOfLocals(scrip, 0, name_of_current_func);
     int totalsub = StacksizeOfLocals(0);
     if (totalsub > 0)
         scrip->write_cmd2(SCMD_SUB, SREG_SP, totalsub);
-    scrip->write_cmd0(SCMD_RET);
-    // We don't alter cur_sp since there can be code after the RETURN
+
+    // Jump to the exit point of the function
+    scrip->write_cmd1(SCMD_JMP, 0);
+    g_FCM.TrackExitJumppoint(scrip, name_of_current_func, scrip->codesize - 1);
 
     return 0;
 }

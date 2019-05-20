@@ -543,7 +543,7 @@ TEST(Compatibility, IntFunctionLocalV) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("IntFunctionLocalV", scrip);
+    // WriteOutput("IntFunctionLocalV", scrip);
     // hand-checked Bytecode
     const size_t codesize = 29;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -1164,7 +1164,7 @@ TEST(Compatibility, While) {
 
     // WriteOutput("While", scrip);
     // Hand-checked Bytecode
-    const size_t codesize = 116;
+    const size_t codesize = 117;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -1181,8 +1181,8 @@ TEST(Compatibility, While) {
        3,    6,    3,    1,           30,    4,   15,    4,    // 87
        3,    3,    4,    3,           28,    5,    6,    3,    // 95
        0,   31,  -86,   31,          -88,   51,    4,    7,    // 103
-       3,    2,    1,    4,            5,    6,    3,    0,    // 111
-       2,    1,    4,    5,          -999
+       3,    2,    1,    4,           31,    6,    6,    3,    // 111
+       0,    2,    1,    4,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -2022,7 +2022,7 @@ TEST(Compatibility, For6) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("For6", scrip);
+    // WriteOutput("For6", scrip);
     // hand-checked Bytecode
     const size_t codesize = 149;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -2363,32 +2363,32 @@ TEST(Compatibility, Switch01) {
 
     // WriteOutput("Switch01", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 170;
+    const size_t codesize = 173;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   51,    8,            7,    3,   29,    3,    // 7
       51,   12,    7,    3,           30,    4,    9,    4,    // 15
        3,    3,    4,    3,            3,    3,    4,   31,    // 23
-      87,   31,  135,    6,            3,   10,    5,    6,    // 31
-       3,    0,   31,  -11,            6,    3,    2,   29,    // 39
-       3,   51,   12,    7,            3,   30,    4,    9,    // 47
-       3,    4,    8,    3,           51,    8,    7,    3,    // 55
-       5,    6,    3,    0,           51,    8,    8,    3,    // 63
-       6,    3,    5,   29,            3,   51,   12,    7,    // 71
-       3,   30,    4,   12,            4,    3,    3,    4,    // 79
-       3,   29,    3,    6,            3,    4,   30,    4,    // 87
-      12,    4,    3,    3,            4,    3,   29,    3,    // 95
-      51,   12,    7,    3,           30,    4,   11,    3,    // 103
-       4,    8,    3,    6,            3,    0,   31,   50,    // 111
-      29,    4,    6,    3,            2,   30,    4,   16,    // 119
-       3,    4,   28,  -97,           29,    4,    6,    3,    // 127
-       3,   30,    4,   16,            3,    4,   28,  -79,    // 135
-      29,    4,    6,    3,            4,   30,    4,   16,    // 143
-       3,    4,   28,  -91,           29,    4,    6,    3,    // 151
-       5,   30,    4,   16,            3,    4,   28,  -96,    // 159
-      31, -126,    6,    3,            0,    5,    6,    3,    // 167
-       0,    5,  -999
+      89,   31,  137,    6,            3,   10,   31,  140,    // 31
+       6,    3,    0,   31,          -12,    6,    3,    2,    // 39
+      29,    3,   51,   12,            7,    3,   30,    4,    // 47
+       9,    3,    4,    8,            3,   51,    8,    7,    // 55
+       3,   31,  113,    6,            3,    0,   51,    8,    // 63
+       8,    3,    6,    3,            5,   29,    3,   51,    // 71
+      12,    7,    3,   30,            4,   12,    4,    3,    // 79
+       3,    4,    3,   29,            3,    6,    3,    4,    // 87
+      30,    4,   12,    4,            3,    3,    4,    3,    // 95
+      29,    3,   51,   12,            7,    3,   30,    4,    // 103
+      11,    3,    4,    8,            3,    6,    3,    0,    // 111
+      31,   50,   29,    4,            6,    3,    2,   30,    // 119
+       4,   16,    3,    4,           28,  -99,   29,    4,    // 127
+       6,    3,    3,   30,            4,   16,    3,    4,    // 135
+      28,  -79,   29,    4,            6,    3,    4,   30,    // 143
+       4,   16,    3,    4,           28,  -91,   29,    4,    // 151
+       6,    3,    5,   30,            4,   16,    3,    4,    // 159
+      28,  -96,   31, -127,            6,    3,    0,   31,    // 167
+       3,    6,    3,    0,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -3110,7 +3110,7 @@ TEST(Compatibility, Struct04) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Struct04", scrip);
+    // WriteOutput("Struct04", scrip);
     // hand-checked Bytecode
     const size_t codesize = 122;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -4269,7 +4269,7 @@ TEST(Compatibility, Func07) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Func07", scrip);
+    // WriteOutput("Func07", scrip);
     // hand-checked Bytecode
     const size_t codesize = 60;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -4372,7 +4372,7 @@ TEST(Compatibility, Func08) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Func08", scrip);
+    // WriteOutput("Func08", scrip);
     // hand-checked Bytecode
     const size_t codesize = 60;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -5195,19 +5195,19 @@ TEST(Compatibility, Writeprotected) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Writeprotected", scrip);
+    // WriteOutput("Writeprotected", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 50;
+    const size_t codesize = 52;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    3,    1,            2,    4,    4,    0,    // 7
        1,    1,    4,   51,           12,    7,    3,    3,    // 15
        6,    2,   52,    1,            2,    2,    8,    3,    // 23
-       6,    3,    0,    2,            1,    4,    5,    6,    // 31
-       3,    0,    2,    1,            4,    5,   38,   38,    // 39
-       6,    2,    2,    7,            3,    5,    6,    3,    // 47
-       0,    5,  -999
+       6,    3,    0,    2,            1,    4,   31,    6,    // 31
+       6,    3,    0,    2,            1,    4,    5,   38,    // 39
+      39,    6,    2,    2,            7,    3,   31,    3,    // 47
+       6,    3,    0,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -5224,7 +5224,7 @@ TEST(Compatibility, Writeprotected) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      42,  -999
+      43,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -5496,7 +5496,7 @@ TEST(Compatibility, Static2) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Static2", scrip);
+    // WriteOutput("Static2", scrip);
     // hand-checked Bytecode
 
     const size_t codesize = 52;
@@ -5925,10 +5925,8 @@ TEST(Compatibility, Switch02) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Switch02", scrip);
-    // run the test, comment out the previous line
-    // and append its output below.
-    // Then run the test in earnest after changes have been made to the code
-    const size_t codesize = 66;
+    // hand-checked Bytecode
+    const size_t codesize = 61;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -5938,9 +5936,8 @@ TEST(Compatibility, Switch02) {
        6,    3,    0,   31,           -7,    6,    3,    0,    // 31
       51,    4,    8,    3,           31,   14,   29,    4,    // 39
        6,    3,    5,   30,            4,   16,    3,    4,    // 47
-      28,  -21,   31,  -28,            6,    3,    0,    2,    // 55
-       1,    4,    5,    6,            3,    0,    2,    1,    // 63
-       4,    5,  -999
+      28,  -21,   31,  -28,            2,    1,    4,   31,    // 55
+       3,    2,    1,    4,            5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -5980,6 +5977,7 @@ TEST(Compatibility, Switch02) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
+
 }
 
 TEST(Compatibility, Attributes) {

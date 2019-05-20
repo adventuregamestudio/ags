@@ -1154,7 +1154,7 @@ void restore_game_spriteset(Stream *in)
 {
     // ensure the sprite set is at least as large as it was
     // when the game was saved
-    spriteset.EnlargeTo(in->ReadInt32());
+    spriteset.EnlargeTo(in->ReadInt32() - 1); // they saved top_index + 1
     // get serialized dynamic sprites
     int sprnum = in->ReadInt32();
     while (sprnum) {

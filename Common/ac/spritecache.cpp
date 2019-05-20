@@ -146,13 +146,15 @@ void SpriteCache::Reset()
 
 void SpriteCache::Set(sprkey_t index, Bitmap *sprite)
 {
-    EnlargeTo(index + 1);
+    if (index < 0 || EnlargeTo(index) != index)
+        return;
     _spriteData[index].Image = sprite;
 }
 
 void SpriteCache::SetSpriteAndLock(sprkey_t index, Bitmap *sprite)
 {
-    EnlargeTo(index + 1);
+    if (index < 0 || EnlargeTo(index) != index)
+        return;
     _spriteData[index].Image = sprite;
     _spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
 }
@@ -166,25 +168,23 @@ void SpriteCache::RemoveSprite(sprkey_t index, bool freeMemory)
     _spriteData[index].Offset = 0;
 }
 
-sprkey_t SpriteCache::EnlargeTo(sprkey_t newsize)
+sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
 {
-    if (newsize < 0 || (size_t)newsize <= _spriteData.size())
-        return 0;
-    if (newsize > MAX_SPRITE_INDEX + 1)
-        newsize = MAX_SPRITE_INDEX + 1;
+    if (topmost < 0 || topmost > MAX_SPRITE_INDEX)
+        return -1;
+    if ((size_t)topmost < _spriteData.size())
+        return topmost;
 
-    sprkey_t elementsWas = (sprkey_t)_spriteData.size();
+    size_t newsize = topmost + 1;
     _sprInfos.resize(newsize);
     _spriteData.resize(newsize);
     _mrulist.resize(newsize);
     _mrubacklink.resize(newsize);
-    return elementsWas;
+    return topmost;
 }
 
 sprkey_t SpriteCache::AddNewSprite()
 {
-    if (_spriteData.size() == MAX_SPRITE_SLOTS)
-        return -1; // no more sprite allowed
     for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
     {
         // slot empty
@@ -196,7 +196,7 @@ sprkey_t SpriteCache::AddNewSprite()
         }
     }
     // enlarge the sprite bank to find a free slot and return the first new free slot
-    return EnlargeTo(_spriteData.size() + 1); // we use +1 here to let std container decide the actual reserve size
+    return EnlargeTo(_spriteData.size());
 }
 
 bool SpriteCache::SpriteData::DoesSpriteExist() const
@@ -746,7 +746,7 @@ HError SpriteCache::InitFile(const char *filnam)
     if (vers < kSprfVersion_Uncompressed)
         topmost = 200;
 
-    EnlargeTo(topmost + 1);
+    EnlargeTo(topmost);
 
     // if there is a sprite index file, use it
     if (LoadSpriteIndexFile(spriteFileID, spr_initial_offs, topmost))

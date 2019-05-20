@@ -308,14 +308,7 @@ HError InitAndRegisterGameEntities()
     InitAndRegisterHotspots();
     InitAndRegisterRegions();
     InitAndRegisterRoomObjects();
-
-    // Precreate primary viewport and camera
-    auto view = play.CreateRoomViewport();
-    auto cam = play.CreateRoomCamera();
-    view->LinkCamera(cam);
-    cam->LinkToViewport(view);
-    play.RegisterRoomViewport(0);
-    play.RegisterRoomCamera(0);
+    play.CreatePrimaryViewportAndCamera();
 
     RegisterStaticArrays();
 

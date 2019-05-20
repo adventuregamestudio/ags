@@ -1146,9 +1146,7 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     r_data.CursorID = in->ReadInt32();
     int camx = in->ReadInt32();
     int camy = in->ReadInt32();
-    // Recreate primary viewport and camera
-    play.CreateRoomCamera();
-    play.CreateRoomViewport();
+    play.CreatePrimaryViewportAndCamera();
     play.GetRoomCamera(0)->SetAt(camx, camy);
     set_loop_counter(in->ReadInt32());
     return HSaveError::None();

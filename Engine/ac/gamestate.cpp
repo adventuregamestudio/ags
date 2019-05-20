@@ -285,6 +285,22 @@ VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry, int view_index, bool 
     return ScreenToRoomImpl(scrx, scry, view_index, clip_viewport, true);
 }
 
+void GameState::CreatePrimaryViewportAndCamera()
+{
+    if (_roomViewports.size() == 0)
+    {
+        play.CreateRoomViewport();
+        play.RegisterRoomViewport(0);
+    }
+    if (_roomCameras.size() == 0)
+    {
+        play.CreateRoomCamera();
+        play.RegisterRoomCamera(0);
+    }
+    _roomViewports[0]->LinkCamera(_roomCameras[0]);
+    _roomCameras[0]->LinkToViewport(_roomViewports[0]);
+}
+
 PViewport GameState::CreateRoomViewport()
 {
     int index = (int)_roomViewports.size();

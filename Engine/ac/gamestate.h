@@ -296,6 +296,8 @@ struct GameState {
     VpPoint ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport);
     VpPoint ScreenToRoomDivDown(int scrx, int scry, int view_index, bool clip_viewport); // native "variadic" coords variant
 
+    // Makes sure primary viewport and camera are created and linked together
+    void CreatePrimaryViewportAndCamera();
     // Creates new room viewport
     PViewport CreateRoomViewport();
     // Register camera in the managed system; optionally links to existing handle

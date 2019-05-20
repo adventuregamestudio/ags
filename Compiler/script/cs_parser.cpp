@@ -4954,7 +4954,7 @@ int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool
         return -1;
     }
     AGS::Vartype const ret_vartype = is_setter ? sym.getVoidSym() : vartype;
-    if (!entry.funcparamtypes[0] != ret_vartype)
+    if (entry.funcparamtypes[0] != ret_vartype)
     {
         cc_error(
             "The attribute function '%s' must return type '%s' but returns '%s' instead",
@@ -4964,14 +4964,17 @@ int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool
         return -1;
     }
     size_t p_idx = 1;
-    if (is_indexed && entry.funcparamtypes[p_idx] != sym.getIntSym())
+    if (is_indexed)
     {
-        cc_error(
-            "Parameter #%d of attribute function '%s' must have type integer but doesn't.",
-            p_idx, entry.sname.c_str());
-        return -1;
+        if (entry.funcparamtypes[p_idx] != sym.getIntSym())
+        {
+            cc_error(
+                "Parameter #%d of attribute function '%s' must have type integer but doesn't.",
+                p_idx, entry.sname.c_str());
+            return -1;
+        }
+        p_idx++;
     }
-    p_idx++;
     if (is_setter && entry.funcparamtypes[p_idx] != vartype)
     {
         cc_error(

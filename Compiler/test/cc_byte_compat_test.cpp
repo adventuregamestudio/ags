@@ -6009,7 +6009,7 @@ TEST(Bytecode, Attributes01) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Attributes", scrip);
+    // WriteOutput("Attributes01", scrip);
     // hand-checked bytecode
     const size_t codesize = 174;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -6106,3 +6106,252 @@ TEST(Bytecode, Attributes01) {
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
 }
+
+TEST(Bytecode, Attributes02) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // The getter and setter functions are defined locally, so
+    // they ought to be exported instead of imported.
+    // Assigning the attribute should generate the same call
+    // as calling the setter; reading the same as calling the getter.
+    // Armor:: functions should be allowed to access _damage.
+
+    char *inpl = "\
+        managed struct Armor {                          \n\
+            attribute int Damage;                       \n\
+            writeprotected short _aura;                 \n\
+            protected int _damage;                      \n\
+        };                                              \n\
+                                                        \n\
+        int main()                                      \n\
+        {                                               \n\
+            Armor *armor = new Armor;                   \n\
+            armor.Damage = 17;                          \n\
+            return (armor.Damage > 10);                 \n\
+        }                                               \n\
+                                                        \n\
+        void Armor::set_Damage(int damage)              \n\
+        {                                               \n\
+            if (damage >= 0)                            \n\
+                _damage = damage;                       \n\
+        }                                               \n\
+                                                        \n\
+        int Armor::get_Damage()                         \n\
+        {                                               \n\
+            return _damage;                             \n\
+        }                                               \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Attributes02", scrip);
+    // hand-checked bytecode
+    const size_t codesize = 167;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   73,    3,            8,    3,    1,    2,    // 7
+      50,    3,    1,    1,            4,    6,    3,   17,    // 15
+      51,    4,   52,   48,            2,   29,    6,   29,    // 23
+       3,   45,    2,    6,            3,   84,   23,    3,    // 31
+       2,    1,    4,   30,            6,   51,    4,   52,    // 39
+      48,    2,   29,    6,           45,    2,    6,    3,    // 47
+     135,   23,    3,   30,            6,   29,    3,    6,    // 55
+       3,   10,   30,    4,           17,    4,    3,    3,    // 63
+       4,    3,   51,    4,           49,    2,    1,    4,    // 71
+      31,    9,    6,    3,            0,   51,    4,   49,    // 79
+       2,    1,    4,    5,           38,   84,    3,    1,    // 87
+       2,    4,    4,    0,            1,    1,    4,   51,    // 95
+      12,    7,    3,   29,            3,    6,    3,    0,    // 103
+      30,    4,   19,    4,            3,    3,    4,    3,    // 111
+      28,   17,   51,   12,            7,    3,   29,    3,    // 119
+       3,    6,    2,   52,            1,    2,    2,   30,    // 127
+       3,    8,    3,    2,            1,    4,    5,   38,    // 135
+     135,    3,    1,    2,            4,    4,    0,    1,    // 143
+       1,    4,    3,    6,            2,   52,    1,    2,    // 151
+       2,    7,    3,    2,            1,    4,   31,    6,    // 159
+       6,    3,    0,    2,            1,    4,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (idx >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      29,   48,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      2,   2,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, Attributes03) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // The getters and setters are NOT defined locally, so
+    // import decls should be generated for them.
+    // The getters and setters should be called as import funcs.
+
+    char *inpl = "\
+        managed struct Armor {                          \n\
+            attribute int Damage;                       \n\
+            writeprotected short _aura;                 \n\
+            protected int _damage;                      \n\
+        };                                              \n\
+                                                        \n\
+        int main()                                      \n\
+        {                                               \n\
+            Armor *armor = new Armor;                   \n\
+            armor.Damage = 17;                          \n\
+            return (armor.Damage > 10);                 \n\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("Attributes03", scrip);
+    // hand-checked bytecode
+    const size_t codesize = 87;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   73,    3,            8,    3,    1,    2,    // 7
+      50,    3,    1,    1,            4,    6,    3,   17,    // 15
+      51,    4,   52,   48,            2,   29,    6,   34,    // 23
+       3,   45,    2,   39,            1,    6,    3,    1,    // 31
+      33,    3,   35,    1,           30,    6,   51,    4,    // 39
+      52,   48,    2,   29,            6,   45,    2,   39,    // 47
+       0,    6,    3,    0,           33,    3,   30,    6,    // 55
+      29,    3,    6,    3,           10,   30,    4,   17,    // 63
+       4,    3,    3,    4,            3,   51,    4,   49,    // 71
+       2,    1,    4,   31,            9,    6,    3,    0,    // 79
+      51,    4,   49,    2,            1,    4,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (idx >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 2;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      31,   51,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,   4,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 2;
+    std::string imports[] = {
+    "Armor::get_Damage^0",        "Armor::set_Damage^1",         "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+}
+

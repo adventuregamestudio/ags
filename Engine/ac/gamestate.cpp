@@ -243,8 +243,11 @@ VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool cli
             return std::make_pair(Point(), -1);
     }
     
-    Point p = view->GetTransform().UnScale(screen_pt);
     auto cam = view->GetCamera();
+    if (!cam)
+        return std::make_pair(Point(), -1);
+
+    Point p = view->GetTransform().UnScale(screen_pt);
     if (convert_cam_to_data)
     {
         p.X += game_to_data_coord(cam->GetRect().Left);

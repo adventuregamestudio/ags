@@ -56,7 +56,7 @@ SpriteInfo::SpriteInfo()
 SpriteCache::SpriteData::SpriteData()
     : Offset(0)
     , Size(0)
-    , Flags(SPRCACHEFLAG_DOESNOTEXIST)
+    , Flags(0)
     , Image(nullptr)
 {
 }
@@ -188,7 +188,7 @@ sprkey_t SpriteCache::AddNewSprite()
     for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
     {
         // slot empty
-        if ((_spriteData[i].Image == nullptr) && ((_spriteData[i].Flags & SPRCACHEFLAG_DOESNOTEXIST) != 0))
+        if (!DoesSpriteExist(i))
         {
             _sprInfos[i] = SpriteInfo();
             _spriteData[i] = SpriteData();
@@ -199,18 +199,32 @@ sprkey_t SpriteCache::AddNewSprite()
     return EnlargeTo(_spriteData.size() + 1); // we use +1 here to let std container decide the actual reserve size
 }
 
-bool SpriteCache::DoesSpriteExist(sprkey_t index) const
+bool SpriteCache::SpriteData::DoesSpriteExist() const
 {
-    return (_spriteData[index].Image != nullptr) || // HAS loaded bitmap
-        ((_spriteData[index].Flags & SPRCACHEFLAG_DOESNOTEXIST) == 0) || // OR found in the game resources
-        ((_spriteData[index].Flags & SPRCACHEFLAG_REMAPPED) != 0); // OR was remapped to another sprite
+    return (Image != nullptr) || // HAS loaded bitmap
+        ((Flags & SPRCACHEFLAG_ISASSET) != 0); // OR found in the game resources
 }
 
-bool SpriteCache::IsExternalSprite(sprkey_t index) const
+bool SpriteCache::SpriteData::IsAssetSprite() const
 {
-    return (_spriteData[index].Image != nullptr) &&  // HAS loaded bitmap
-        ((_spriteData[index].Flags & SPRCACHEFLAG_DOESNOTEXIST) != 0) && // AND NOT found in game resources
-        ((_spriteData[index].Flags & SPRCACHEFLAG_REMAPPED) == 0); // AND was NOT remapped to another sprite
+    return (Flags & SPRCACHEFLAG_ISASSET) != 0; // found in game resources
+}
+
+bool SpriteCache::SpriteData::IsExternalSprite() const
+{
+    return (Image != nullptr) &&  // HAS loaded bitmap
+        ((Flags & SPRCACHEFLAG_ISASSET) == 0) && // AND NOT found in game resources
+        ((Flags & SPRCACHEFLAG_REMAPPED) == 0); // AND was NOT remapped to another sprite
+}
+
+bool SpriteCache::SpriteData::IsLocked() const
+{
+    return (Flags & SPRCACHEFLAG_LOCKED) != 0;
+}
+
+bool SpriteCache::DoesSpriteExist(sprkey_t index) const
+{
+    return index >= 0 && (size_t)index < _spriteData.size() && _spriteData[index].DoesSpriteExist();
 }
 
 Bitmap *SpriteCache::operator [] (sprkey_t index)
@@ -219,17 +233,16 @@ Bitmap *SpriteCache::operator [] (sprkey_t index)
     if (index < 0 || (size_t)index >= _spriteData.size())
         return nullptr;
 
-    // Dynamically added sprite, don't put it on the sprite list
-    if (IsExternalSprite(index))
+    // Externally added sprite, don't put it into MRU list
+    if (_spriteData[index].IsExternalSprite())
         return _spriteData[index].Image;
 
-    // if sprite exists in file but is not in mem, load it
-    if ((_spriteData[index].Image == nullptr) &&
-            (((_spriteData[index].Flags & SPRCACHEFLAG_DOESNOTEXIST) == 0) || ((_spriteData[index].Flags & SPRCACHEFLAG_REMAPPED) != 0)))
+    // Sprite exists in file but is not in mem, load it
+    if ((_spriteData[index].Image == nullptr) && _spriteData[index].IsAssetSprite())
         LoadSprite(index);
 
-    // Locked sprite, eg. mouse cursor, that shouldn't be discarded
-    if ((_spriteData[index].Flags & SPRCACHEFLAG_LOCKED) != 0)
+    // Locked sprite that shouldn't be put into MRU list
+    if (_spriteData[index].IsLocked())
         return _spriteData[index].Image;
 
     if (_liststart < 0)
@@ -272,11 +285,14 @@ void SpriteCache::RemoveOldest()
 
     sprkey_t sprnum = _liststart;
 
-    if ((_spriteData[sprnum].Image != nullptr) && ((_spriteData[sprnum].Flags & SPRCACHEFLAG_LOCKED) == 0)) {
+    if ((_spriteData[sprnum].Image != nullptr) && !_spriteData[sprnum].IsLocked())
+    {
         // Free the memory
-        if ((_spriteData[sprnum].Flags & SPRCACHEFLAG_DOESNOTEXIST) != 0)
+        // Sprites that are not from the game resources should not normally be in a MRU list;
+        // if such is met here there's something wrong with the internal cache logic!
+        if (!_spriteData[sprnum].IsAssetSprite())
         {
-            quitprintf("SpriteCache::removeOldest: Attempted to remove sprite %d that was either remapped or added externally", sprnum);
+            quitprintf("SpriteCache::RemoveOldest: attempted to remove sprite %d that was added externally or does not exist", sprnum);
         }
         _cacheSize -= _spriteData[sprnum].Size;
 
@@ -325,8 +341,8 @@ void SpriteCache::RemoveAll()
     _listend = -1;
     for (size_t i = 0; i < _spriteData.size(); ++i)
     {
-        if (((_spriteData[i].Flags & SPRCACHEFLAG_LOCKED) == 0) && // not locked
-            ((_spriteData[i].Flags & SPRCACHEFLAG_DOESNOTEXIST) == 0)) // sprite from game resource
+        if (!_spriteData[i].IsLocked() && // not locked
+            _spriteData[i].IsAssetSprite()) // sprite from game resource
         {
             delete _spriteData[i].Image;
             _spriteData[i].Image = nullptr;
@@ -346,7 +362,7 @@ void SpriteCache::Precache(sprkey_t index)
 
     if (_spriteData[index].Image == nullptr)
         sprSize = LoadSprite(index);
-    else if ((_spriteData[index].Flags & SPRCACHEFLAG_LOCKED) == 0)
+    else if (!_spriteData[index].IsLocked())
         sprSize = _spriteData[index].Size;
 
     // make sure locked sprites can't fill the cache
@@ -405,7 +421,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     if (_spriteData[index].Image == nullptr)
     {
         // TODO: does it have to remap to sprite 0 here?
-        _spriteData[index].Flags |= SPRCACHEFLAG_DOESNOTEXIST;
+        _spriteData[index].Flags &= ~SPRCACHEFLAG_ISASSET;
         return 0;
     }
 
@@ -775,6 +791,7 @@ HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost
         if ((size_t)i >= _spriteData.size())
             break;
 
+        _spriteData[i].Flags = SPRCACHEFLAG_ISASSET;
         _spriteData[i].Image = nullptr;
 
         int wdd = in->ReadInt16();
@@ -867,9 +884,9 @@ bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
 
     for (sprkey_t i = 0; i <= topmost_index; ++i)
     {
-        _spriteData[i].Flags = 0;
         if (spriteoffs[i] != 0)
         {
+            _spriteData[i].Flags = SPRCACHEFLAG_ISASSET;
             _spriteData[i].Offset = spriteoffs[i] + spr_initial_offs;
             get_new_size_for_sprite(i, rspritewidths[i], rspriteheights[i], _sprInfos[i].Width, _sprInfos[i].Height);
         }

@@ -37,5 +37,5 @@ void SpriteCache::initFile_initNullSpriteParams(sprkey_t index)
     _sprInfos[index].Width = _sprInfos[0].Width;
     _sprInfos[index].Height = _sprInfos[0].Height;
     _spriteData[index].Offset = _spriteData[0].Offset;
-    _spriteData[index].Flags = SPRCACHEFLAG_DOESNOTEXIST | SPRCACHEFLAG_REMAPPED;
+    _spriteData[index].Flags = SPRCACHEFLAG_REMAPPED;
 }

@@ -46,12 +46,12 @@ typedef AGS::Common::HError HAGSError;
 
 struct SpriteInfo;
 
-// Tells that the sprite does not exist in the game resources.
-#define SPRCACHEFLAG_DOESNOTEXIST   0x01
-// Locked sprites are ones that should not be freed when clearing cache space.
-#define SPRCACHEFLAG_LOCKED         0x02
+// Tells that the sprite is found in the game resources.
+#define SPRCACHEFLAG_ISASSET        0x01
 // Tells that the sprite index was remapped to another existing sprite.
-#define SPRCACHEFLAG_REMAPPED       0x04
+#define SPRCACHEFLAG_REMAPPED       0x02
+// Locked sprites are ones that should not be freed when out of cache space.
+#define SPRCACHEFLAG_LOCKED         0x04
 
 // Max size of the sprite cache, in bytes
 #if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
@@ -93,10 +93,9 @@ public:
     SpriteCache(std::vector<SpriteInfo> &sprInfos);
     ~SpriteCache();
 
-    // Tells if there is a sprite registered for the given index
+    // Tells if there is a sprite registered for the given index;
+    // this includes sprites that were explicitly assigned but failed to init and were remapped
     bool        DoesSpriteExist(sprkey_t index) const;
-    // Tells if sprite was added externally, not loaded from game resources
-    bool        IsExternalSprite(sprkey_t index) const;
     // Makes sure sprite cache has registered slots for all sprites up to the given exclusive limit
     sprkey_t    EnlargeTo(sprkey_t newsize);
     // Finds a free slot index, if all slots are occupied enlarges sprite bank; returns index
@@ -159,6 +158,15 @@ private:
         // TODO: investigate if we may safely use unique_ptr here
         // (some of these bitmaps may be assigned from outside of the cache)
         Common::Bitmap *Image; // actual bitmap
+
+        // Tells if there actually is a registered sprite in this slot
+        bool DoesSpriteExist() const;
+        // Tells if there's a game resource corresponding to this slot
+        bool IsAssetSprite() const;
+        // Tells if sprite was added externally, not loaded from game resources
+        bool IsExternalSprite() const;
+        // Tells if sprite is locked and should not be disposed by cache logic
+        bool IsLocked() const;
 
         SpriteData();
         ~SpriteData();

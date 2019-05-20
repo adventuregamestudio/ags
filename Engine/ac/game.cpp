@@ -1137,8 +1137,6 @@ void save_game(int slotn, const char*descript) {
         delete screenShot;
 }
 
-char rbuffer[200];
-
 HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
 {
     r_data.FPS = in->ReadInt32();
@@ -1242,6 +1240,7 @@ void ReadGameState_Aligned(Stream *in)
 
 void restore_game_play_ex_data(Stream *in)
 {
+    char rbuffer[200];
     for (size_t i = 0; i < play.do_once_tokens.size(); ++i)
     {
         StrUtil::ReadCStr(rbuffer, in, sizeof(rbuffer));

@@ -381,7 +381,7 @@ void WriteReducedOutput(char *fname, ccCompiledScript *scrip)
 
 /*    PROTOTYPE
 
-TEST(Compatibility, P_r_o_t_o_t_y_p_e) {
+TEST(Bytecode, P_r_o_t_o_t_y_p_e) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -403,7 +403,7 @@ TEST(Compatibility, P_r_o_t_o_t_y_p_e) {
 }
 */
 
-TEST(Compatibility, SimpleVoidFunction) {
+TEST(Bytecode, SimpleVoidFunction) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -466,7 +466,7 @@ TEST(Compatibility, SimpleVoidFunction) {
 
 }
 
-TEST(Compatibility, SimpleIntFunction) {
+TEST(Bytecode, SimpleIntFunction) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -529,7 +529,7 @@ TEST(Compatibility, SimpleIntFunction) {
 
 }
 
-TEST(Compatibility, IntFunctionLocalV) {
+TEST(Bytecode, IntFunctionLocalV) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -595,7 +595,7 @@ TEST(Compatibility, IntFunctionLocalV) {
 
 }
 
-TEST(Compatibility, IntFunctionParam) {
+TEST(Bytecode, IntFunctionParam) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -658,7 +658,7 @@ TEST(Compatibility, IntFunctionParam) {
 
 }
 
-TEST(Compatibility, IntFunctionGlobalV) {
+TEST(Bytecode, IntFunctionGlobalV) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -750,7 +750,7 @@ TEST(Compatibility, IntFunctionGlobalV) {
 
 }
 
-TEST(Compatibility, FloatExpr1) {
+TEST(Bytecode, FloatExpr1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -849,7 +849,7 @@ TEST(Compatibility, FloatExpr1) {
 }
 
 
-TEST(Compatibility, FloatExpr2) {
+TEST(Bytecode, FloatExpr2) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -979,7 +979,7 @@ TEST(Compatibility, FloatExpr2) {
 
 }
 
-TEST(Compatibility, IfThenElse1) {
+TEST(Bytecode, IfThenElse1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1060,7 +1060,7 @@ TEST(Compatibility, IfThenElse1) {
 }
 
 
-TEST(Compatibility, IfThenElse2) {
+TEST(Bytecode, IfThenElse2) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1141,7 +1141,7 @@ TEST(Compatibility, IfThenElse2) {
 
 }
 
-TEST(Compatibility, While) {
+TEST(Bytecode, While) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1255,7 +1255,7 @@ TEST(Compatibility, While) {
 
 
 
-TEST(Compatibility, DoNCall) {
+TEST(Bytecode, DoNCall) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1375,7 +1375,7 @@ TEST(Compatibility, DoNCall) {
 
 }
 
-TEST(Compatibility, DoUnbracedIf) {
+TEST(Bytecode, DoUnbracedIf) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1455,7 +1455,7 @@ TEST(Compatibility, DoUnbracedIf) {
 }
 
 
-TEST(Compatibility, For1) {
+TEST(Bytecode, For1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1568,7 +1568,7 @@ TEST(Compatibility, For1) {
 }
 
 
-TEST(Compatibility, For2) {
+TEST(Bytecode, For2) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1685,7 +1685,7 @@ TEST(Compatibility, For2) {
 
 }
 
-TEST(Compatibility, For3) {
+TEST(Bytecode, For3) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1793,7 +1793,7 @@ TEST(Compatibility, For3) {
 
 }
 
-TEST(Compatibility, For4) {
+TEST(Bytecode, For4) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1868,7 +1868,7 @@ TEST(Compatibility, For4) {
 
 }
 
-TEST(Compatibility, For5) {
+TEST(Bytecode, For5) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -1993,7 +1993,7 @@ TEST(Compatibility, For5) {
 
 }
 
-TEST(Compatibility, For6) {
+TEST(Bytecode, For6) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -2117,7 +2117,7 @@ TEST(Compatibility, For6) {
 
 }
 
-TEST(Compatibility, For7) {
+TEST(Bytecode, For7) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Initializer and iterator of a for() need not be assignments,
@@ -2245,7 +2245,7 @@ TEST(Compatibility, For7) {
 
 }
 
-TEST(Compatibility, IfDoWhile) {
+TEST(Bytecode, IfDoWhile) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -2340,7 +2340,7 @@ TEST(Compatibility, IfDoWhile) {
 
 }
 
-TEST(Compatibility, Switch01) {
+TEST(Bytecode, Switch01) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -2431,7 +2431,7 @@ TEST(Compatibility, Switch01) {
 
 }
 
-TEST(Compatibility, FreeLocalPtr) {
+TEST(Bytecode, FreeLocalPtr) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -2510,7 +2510,7 @@ TEST(Compatibility, FreeLocalPtr) {
 
 }
 
-TEST(Compatibility, Strings1) {
+TEST(Bytecode, Strings1) {
     ccSetOption(SCOPT_OLDSTRINGS, true);
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -2612,7 +2612,7 @@ TEST(Compatibility, Strings1) {
 
 }
 
-TEST(Compatibility, Strings2) {
+TEST(Bytecode, Strings2) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
     ccCompiledScript *scrip = newScriptFixture();
@@ -2730,7 +2730,7 @@ TEST(Compatibility, Strings2) {
 
 }
 
-TEST(Compatibility, Struct01) {
+TEST(Bytecode, Struct01) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -2849,7 +2849,7 @@ TEST(Compatibility, Struct01) {
 
 }
 
-TEST(Compatibility, Struct02) {
+TEST(Bytecode, Struct02) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // test arrays; arrays in structs;
@@ -2966,7 +2966,7 @@ TEST(Compatibility, Struct02) {
 
 }
 
-TEST(Compatibility, Struct03) {
+TEST(Bytecode, Struct03) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // test arrays; arrays in structs;
@@ -3081,7 +3081,7 @@ TEST(Compatibility, Struct03) {
 
 }
 
-TEST(Compatibility, Struct04) {
+TEST(Bytecode, Struct04) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3174,7 +3174,7 @@ TEST(Compatibility, Struct04) {
 
 }
 
-TEST(Compatibility, Struct05) {
+TEST(Bytecode, Struct05) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3277,7 +3277,7 @@ TEST(Compatibility, Struct05) {
 }
 
 
-TEST(Compatibility, Struct06) {
+TEST(Bytecode, Struct06) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3363,7 +3363,7 @@ TEST(Compatibility, Struct06) {
 }
 
 
-TEST(Compatibility, Struct07) {
+TEST(Bytecode, Struct07) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3491,7 +3491,7 @@ TEST(Compatibility, Struct07) {
 }
 
 
-TEST(Compatibility, Struct08) {
+TEST(Bytecode, Struct08) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3577,7 +3577,7 @@ TEST(Compatibility, Struct08) {
 }
 
 
-TEST(Compatibility, Func01) {
+TEST(Bytecode, Func01) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3692,7 +3692,7 @@ TEST(Compatibility, Func01) {
 
 }
 
-TEST(Compatibility, Func02) {
+TEST(Bytecode, Func02) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3807,7 +3807,7 @@ TEST(Compatibility, Func02) {
 
 }
 
-TEST(Compatibility, Func03) {
+TEST(Bytecode, Func03) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -3931,7 +3931,7 @@ TEST(Compatibility, Func03) {
 
 }
 
-TEST(Compatibility, Func04) {
+TEST(Bytecode, Func04) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4043,7 +4043,7 @@ TEST(Compatibility, Func04) {
 }
 
 
-TEST(Compatibility, Func05) {
+TEST(Bytecode, Func05) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4149,7 +4149,7 @@ TEST(Compatibility, Func05) {
 
 }
 
-TEST(Compatibility, Func06) {
+TEST(Bytecode, Func06) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4251,7 +4251,7 @@ TEST(Compatibility, Func06) {
 
 }
 
-TEST(Compatibility, Func07) {
+TEST(Bytecode, Func07) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4353,7 +4353,7 @@ TEST(Compatibility, Func07) {
 
 }
 
-TEST(Compatibility, Func08) {
+TEST(Bytecode, Func08) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4457,7 +4457,7 @@ TEST(Compatibility, Func08) {
 }
 
 
-TEST(Compatibility, Func09) {
+TEST(Bytecode, Func09) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4563,7 +4563,7 @@ TEST(Compatibility, Func09) {
 
 }
 
-TEST(Compatibility, Func10) {
+TEST(Bytecode, Func10) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Note that currently, the compiler will add an empty local pointer variable
@@ -4683,7 +4683,7 @@ TEST(Compatibility, Func10) {
 }
 
 
-TEST(Compatibility, Export) {
+TEST(Bytecode, Export) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4800,7 +4800,7 @@ TEST(Compatibility, Export) {
 }
 
 
-TEST(Compatibility, ArrayOfPointers1) {
+TEST(Bytecode, ArrayOfPointers1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -4918,7 +4918,7 @@ TEST(Compatibility, ArrayOfPointers1) {
 }
 
 
-TEST(Compatibility, ArrayOfPointers2) {
+TEST(Bytecode, ArrayOfPointers2) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -5015,7 +5015,7 @@ TEST(Compatibility, ArrayOfPointers2) {
 
 }
 
-TEST(Compatibility, ArrayInStruct) {
+TEST(Bytecode, ArrayInStruct) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -5092,7 +5092,7 @@ TEST(Compatibility, ArrayInStruct) {
 }
 
 
-TEST(Compatibility, Func11) {
+TEST(Bytecode, Func11) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -5167,7 +5167,7 @@ TEST(Compatibility, Func11) {
 
 }
 
-TEST(Compatibility, Writeprotected) {
+TEST(Bytecode, Writeprotected) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Directly taken from the doc on writeprotected, simplified.
@@ -5278,7 +5278,7 @@ TEST(Compatibility, Writeprotected) {
 
 }
 
-TEST(Compatibility, Protected1) {
+TEST(Bytecode, Protected1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Directly taken from the doc on protected, simplified.
@@ -5355,7 +5355,7 @@ TEST(Compatibility, Protected1) {
 
 }
 
-TEST(Compatibility, Static1) {
+TEST(Bytecode, Static1) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -5473,7 +5473,7 @@ TEST(Compatibility, Static1) {
 
 }
 
-TEST(Compatibility, Static2) {
+TEST(Bytecode, Static2) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -5580,7 +5580,7 @@ TEST(Compatibility, Static2) {
 
 }
 
-TEST(Compatibility, Protected2) {
+TEST(Bytecode, Protected2) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // In a struct func, a variable that can't be found otherwise
@@ -5662,7 +5662,7 @@ TEST(Compatibility, Protected2) {
 
 }
 
-TEST(Compatibility, Import) {
+TEST(Bytecode, Import) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
@@ -5774,7 +5774,7 @@ TEST(Compatibility, Import) {
 
 }
 
-TEST(Compatibility, StandardString) {
+TEST(Bytecode, StandardString) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char inpl[] = "\
@@ -5902,7 +5902,7 @@ TEST(Compatibility, StandardString) {
     }
 }
 
-TEST(Compatibility, Switch02) {
+TEST(Bytecode, Switch02) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // Last switch clause no "break"
@@ -5980,7 +5980,7 @@ TEST(Compatibility, Switch02) {
 
 }
 
-TEST(Compatibility, Attributes) {
+TEST(Bytecode, Attributes01) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\

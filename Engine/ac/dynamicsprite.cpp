@@ -445,7 +445,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 
 void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
 
-  spriteset.Set(gotSlot, redin);
+  spriteset.SetSprite(gotSlot, redin);
 
   game.SpriteInfos[gotSlot].Flags = SPF_DYNAMICALLOC;
 
@@ -469,8 +469,7 @@ void free_dynamic_sprite (int gotSlot) {
   if ((game.SpriteInfos[gotSlot].Flags & SPF_DYNAMICALLOC) == 0)
     quitprintf("!DeleteSprite: Attempted to free static sprite %d that was not loaded by the script", gotSlot);
 
-  delete spriteset[gotSlot];
-  spriteset.Set(gotSlot, nullptr);
+  spriteset.RemoveSprite(gotSlot, true);
 
   game.SpriteInfos[gotSlot].Flags = 0;
   game.SpriteInfos[gotSlot].Width = 0;

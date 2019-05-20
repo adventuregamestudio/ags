@@ -101,8 +101,6 @@ public:
     sprkey_t    EnlargeTo(sprkey_t topmost);
     // Finds a free slot index, if all slots are occupied enlarges sprite bank; returns index
     sprkey_t    GetFreeIndex();
-    // Assigns bitmap to the given slot and locks it to prevent release from cache
-    void        SetSpriteAndLock(sprkey_t index, Common::Bitmap *);
     // Returns current size of the cache, in bytes
     size_t      GetCacheSize() const;
     // Gets the total size of the locked sprites, in bytes
@@ -115,6 +113,8 @@ public:
     sprkey_t    FindTopmostSprite() const;
     // Loads sprite and and locks in memory (so it cannot get removed implicitly)
     void        Precache(sprkey_t index);
+    // Remap the given index to the sprite 0
+    void        RemapSpriteToSprite0(sprkey_t index);
     // Unregisters sprite from the bank and optionally deletes bitmap
     void        RemoveSprite(sprkey_t index, bool freeMemory);
     // Deletes all loaded (non-locked, non-external) images from the cache;
@@ -122,8 +122,10 @@ public:
     void        DisposeAll();
     // Deletes all data and resets cache to the clear state
     void        Reset();
-    // Assigns new bitmap for the given sprite index
-    void        Set(sprkey_t index, Common::Bitmap *);
+    // Assigns new sprite for the given index; this sprite won't be auto disposed
+    void        SetSprite(sprkey_t index, Common::Bitmap *);
+    // Assigns new bitmap for the *registered* sprite without changing its properties
+    void        SubstituteBitmap(sprkey_t index, Common::Bitmap *);
     // Sets max cache size in bytes
     void        SetMaxCacheSize(size_t size);
 

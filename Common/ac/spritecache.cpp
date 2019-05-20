@@ -144,28 +144,39 @@ void SpriteCache::Reset()
     Init();
 }
 
-void SpriteCache::Set(sprkey_t index, Bitmap *sprite)
+void SpriteCache::SetSprite(sprkey_t index, Bitmap *sprite)
 {
     if (index < 0 || EnlargeTo(index) != index)
+    {
+        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetSprite: unable to use index %d", index);
         return;
+    }
+    if (!sprite)
+    {
+        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetSprite: attempt to assign nullptr to index %d", index);
+        return;
+    }
     _spriteData[index].Image = sprite;
+    _spriteData[index].Flags = SPRCACHEFLAG_LOCKED; // NOT from asset file
+    _spriteData[index].Offset = 0;
+    _spriteData[index].Size = 0;
 }
 
-void SpriteCache::SetSpriteAndLock(sprkey_t index, Bitmap *sprite)
+void SpriteCache::SubstituteBitmap(sprkey_t index, Common::Bitmap *sprite)
 {
-    if (index < 0 || EnlargeTo(index) != index)
+    if (!DoesSpriteExist(index))
+    {
+        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SubstituteBitmap: attempt to set for non-existing sprite %d", index);
         return;
+    }
     _spriteData[index].Image = sprite;
-    _spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
 }
 
 void SpriteCache::RemoveSprite(sprkey_t index, bool freeMemory)
 {
-    if ((_spriteData[index].Image != nullptr) && (freeMemory))
+    if (freeMemory)
         delete _spriteData[index].Image;
-
-    _spriteData[index].Image = nullptr;
-    _spriteData[index].Offset = 0;
+    InitNullSpriteParams(index);
 }
 
 sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
@@ -406,6 +417,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
 
     if (coldep == 0)
     {
+        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "LoadSprite: asked to load sprite %d which does not exist.", index);
         _lastLoad = index;
         return 0;
     }
@@ -419,8 +431,8 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     _spriteData[index].Image = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);
     if (_spriteData[index].Image == nullptr)
     {
-        // TODO: does it have to remap to sprite 0 here?
-        _spriteData[index].Flags &= ~SPRCACHEFLAG_ISASSET;
+        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn, "LoadSprite: failed to init sprite %d, remapping to sprite 0.", index);
+        RemapSpriteToSprite0(index);
         return 0;
     }
 
@@ -457,7 +469,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     _spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
 
     // TODO: this is ugly: asks the engine to convert the sprite using its own knowledge.
-    // And engine assigns new bitmap using SpriteCache::Set().
+    // And engine assigns new bitmap using SpriteCache::SubstituteBitmap().
     // Perhaps change to the callback function pointer?
     initialize_sprite(index);
 
@@ -475,6 +487,15 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
 #endif
 
     return size;
+}
+
+void SpriteCache::RemapSpriteToSprite0(sprkey_t index)
+{
+    _sprInfos[index].Flags = _sprInfos[0].Flags;
+    _sprInfos[index].Width = _sprInfos[0].Width;
+    _sprInfos[index].Height = _sprInfos[0].Height;
+    _spriteData[index].Offset = _spriteData[0].Offset;
+    _spriteData[index].Flags |= SPRCACHEFLAG_REMAPPED;
 }
 
 const char *spriteFileSig = " Sprite File ";
@@ -773,14 +794,12 @@ HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost
 
         if (coldep == 0)
         {
-            _spriteData[i].Offset = 0;
-            _spriteData[i].Image = nullptr;
-
-            InitNullSpriteParams(i);
+            // Empty slot
+            if (i > 0)
+                InitNullSpriteParams(i);
 
             if (in->EOS())
                 break;
-
             continue;
         }
 

@@ -2510,7 +2510,7 @@ TEST(Bytecode, FreeLocalPtr) {
 
 }
 
-TEST(Bytecode, Strings1) {
+TEST(Bytecode, OldstyleStrings1) {
     ccSetOption(SCOPT_OLDSTRINGS, true);
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -2528,7 +2528,7 @@ TEST(Bytecode, Strings1) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Strings1", scrip);
+    // WriteOutput("OldstyleStrings1", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code
@@ -2612,7 +2612,7 @@ TEST(Bytecode, Strings1) {
 
 }
 
-TEST(Bytecode, Strings2) {
+TEST(Bytecode, OldstyleStrings2) {
 
     ccSetOption(SCOPT_OLDSTRINGS, true);
     ccCompiledScript *scrip = newScriptFixture();
@@ -2633,7 +2633,7 @@ TEST(Bytecode, Strings2) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    // WriteOutput("Strings2", scrip);
+    // WriteOutput("OldstyleStrings2", scrip);
     // run the test, comment out the previous line 
     // and append its output below.
     // Then run the test in earnest after changes have been made to the code

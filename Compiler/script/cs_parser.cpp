@@ -1125,44 +1125,6 @@ int DealWithEndOfSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::Nest
     return 0;
 }
 
-// We are looking for a component in a struct type or any of its ancesters.
-// If it's in one of the ancesters, copy it into the struct before returning it.
-int FindOrAddComponent(AGS::Symbol stname, AGS::Symbol &componame, bool errorOnFail = true)
-{
-    AGS::Symbol const fullname = MangleStructAndComponent(stname, componame);
-    if (kSYM_NoType != sym.get_type(fullname))
-    {
-        componame = fullname;
-        return 0;
-    }
-
-    // Look for it in the ancesters
-    AGS::Symbol const parent = sym.entries[stname].extends;
-    if (parent > 0)
-    {
-        if (0 == FindOrAddComponent(parent, componame, false))
-        {
-            if (kSYM_StructComponent == sym.get_type(componame))
-            {
-                // Copy it over
-                std::string const save_sname = sym.entries[fullname].sname;
-                sym.entries[componame].CopyTo(sym.entries[fullname]);
-                sym.entries[fullname].sname = save_sname;
-                componame = fullname;
-            }
-            return 0;
-        }
-    }
-
-    if (errorOnFail)
-        cc_error(
-            "'%s' isn't a member of '%s'. Are you sure you spelt it correctly (remember, capital letters are important)?",
-            sym.get_name_string(componame).c_str(),
-            sym.get_name_string(stname).c_str());
-    return -1;
-}
-
-
 int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative, std::string errorMsg)
 {
     if (fromSym >= 0)
@@ -3005,9 +2967,8 @@ int AccessData_Attribute(ccCompiledScript *scrip, SymbolScript symlist, size_t s
 {
     AGS::Symbol const component_of_attribute = symlist[0];
     AGS::Symbol const struct_of_attribute = vartype & kVTY_FlagMask;
-    AGS::Symbol name_of_attribute = component_of_attribute;
-    int retval = FindOrAddComponent(struct_of_attribute, name_of_attribute);
-    if (retval < 0) return retval;
+    AGS::Symbol name_of_attribute =
+        MangleStructAndComponent(struct_of_attribute, component_of_attribute);
         
     bool const attrib_uses_this =
         !FlagIsSet(sym.get_flags(name_of_attribute), kSFLG_Static);
@@ -3016,9 +2977,9 @@ int AccessData_Attribute(ccCompiledScript *scrip, SymbolScript symlist, size_t s
 
     // Get the appropriate access function (as a symbol)
     AGS::Symbol name_of_func = -1;
-    retval = ConstructAttributeFuncName(component_of_attribute, is_attribute_set_func, is_indexed, name_of_func);
+    int retval = ConstructAttributeFuncName(component_of_attribute, is_attribute_set_func, is_indexed, name_of_func);
     if (retval < 0) return retval;
-    retval = FindOrAddComponent(struct_of_attribute, name_of_func);
+    name_of_func = MangleStructAndComponent(struct_of_attribute, name_of_func);
     if (retval < 0) return retval;
 
     bool const func_is_import = FlagIsSet(sym.get_flags(name_of_func), kSYM_Import);
@@ -3532,8 +3493,7 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
         kSYM_Function != component_type &&
         kSYM_StructComponent != component_type)
     {
-        int retval = FindOrAddComponent(vartype & kVTY_FlagMask, component);
-        if (retval < 0) return retval;
+        component = MangleStructAndComponent(vartype & kVTY_FlagMask, component);
         component_type = sym.get_type(component);
     }
 

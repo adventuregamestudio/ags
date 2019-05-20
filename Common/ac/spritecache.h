@@ -100,7 +100,7 @@ public:
     // returns requested index on success, or -1 on failure.
     sprkey_t    EnlargeTo(sprkey_t topmost);
     // Finds a free slot index, if all slots are occupied enlarges sprite bank; returns index
-    sprkey_t    AddNewSprite();
+    sprkey_t    GetFreeIndex();
     // Assigns bitmap to the given slot and locks it to prevent release from cache
     void        SetSpriteAndLock(sprkey_t index, Common::Bitmap *);
     // Returns current size of the cache, in bytes
@@ -117,8 +117,9 @@ public:
     void        Precache(sprkey_t index);
     // Unregisters sprite from the bank and optionally deletes bitmap
     void        RemoveSprite(sprkey_t index, bool freeMemory);
-    // Removes all loaded images from the cache
-    void        RemoveAll();
+    // Deletes all loaded (non-locked, non-external) images from the cache;
+    // this keeps all the auxiliary sprite information intact
+    void        DisposeAll();
     // Deletes all data and resets cache to the clear state
     void        Reset();
     // Assigns new bitmap for the given sprite index
@@ -145,9 +146,12 @@ public:
 
 private:
     void        Init();
+    // Load sprite from game resource
     size_t      LoadSprite(sprkey_t index);
+    // Seek stream to sprite
     void        SeekToSprite(sprkey_t index);
-    void        RemoveOldest();
+    // Delete the oldest image in cache
+    void        DisposeOldest();
 
     // Information required for the sprite streaming
     // TODO: split into sprite cache and sprite stream data
@@ -203,7 +207,8 @@ private:
     // Uncompresses sprite from stream into the given bitmap
     void        UnCompressSprite(Common::Bitmap *sprite, Common::Stream *in);
 
-    void initFile_initNullSpriteParams(sprkey_t index);
+    // Initialize the empty sprite slot
+    void        InitNullSpriteParams(sprkey_t index);
 };
 
 extern SpriteCache spriteset;

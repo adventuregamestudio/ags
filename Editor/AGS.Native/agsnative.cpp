@@ -241,7 +241,7 @@ void transform_string(char *text) {
 }
 
 int find_free_sprite_slot() {
-  return spriteset.AddNewSprite();
+  return spriteset.GetFreeIndex();
 }
 
 void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes)

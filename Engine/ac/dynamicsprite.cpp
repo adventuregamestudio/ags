@@ -301,7 +301,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
 
     // TODO: refactor and merge with create_savegame_screenshot()
 
-    int gotSlot = spriteset.AddNewSprite();
+    int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return nullptr;
 
@@ -328,7 +328,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
 
 ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preserveAlphaChannel) {
 
-    int gotSlot = spriteset.AddNewSprite();
+    int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return nullptr;
 
@@ -350,7 +350,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
 
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height) 
 {
-    int gotSlot = spriteset.AddNewSprite();
+    int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return nullptr;
 
@@ -382,7 +382,7 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
 {
     data_to_game_coords(&width, &height);
 
-    int gotSlot = spriteset.AddNewSprite();
+    int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return nullptr;
 
@@ -424,7 +424,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     data_to_game_coords(&x1, &y1);
     data_to_game_coords(&width, &height);
 
-    int gotSlot = spriteset.AddNewSprite();
+    int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return nullptr;
 

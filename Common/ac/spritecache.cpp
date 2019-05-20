@@ -183,7 +183,7 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
     return topmost;
 }
 
-sprkey_t SpriteCache::AddNewSprite()
+sprkey_t SpriteCache::GetFreeIndex()
 {
     for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
     {
@@ -277,8 +277,7 @@ Bitmap *SpriteCache::operator [] (sprkey_t index)
     return _spriteData[index].Image;
 }
 
-// Remove the oldest cache element
-void SpriteCache::RemoveOldest()
+void SpriteCache::DisposeOldest()
 {
     if (_liststart < 0)
         return;
@@ -292,7 +291,7 @@ void SpriteCache::RemoveOldest()
         // if such is met here there's something wrong with the internal cache logic!
         if (!_spriteData[sprnum].IsAssetSprite())
         {
-            quitprintf("SpriteCache::RemoveOldest: attempted to remove sprite %d that was added externally or does not exist", sprnum);
+            quitprintf("SpriteCache::DisposeOldest: attempted to remove sprite %d that was added externally or does not exist", sprnum);
         }
         _cacheSize -= _spriteData[sprnum].Size;
 
@@ -326,7 +325,7 @@ void SpriteCache::RemoveOldest()
             // let's just reset the cache
             Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "RUNTIME CACHE ERROR: CACHE INCONSISTENT: RESETTING\n\tAt size %d (of %d), start %d end %d  fwdlink=%d",
                         _cacheSize, _maxCacheSize, oldstart, _listend, _liststart);
-            RemoveAll();
+            DisposeAll();
         }
     }
 
@@ -335,7 +334,7 @@ void SpriteCache::RemoveOldest()
 #endif
 }
 
-void SpriteCache::RemoveAll()
+void SpriteCache::DisposeAll()
 {
     _liststart = -1;
     _listend = -1;
@@ -388,12 +387,12 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
 
     while (_cacheSize > _maxCacheSize)
     {
-        RemoveOldest();
+        DisposeOldest();
         hh++;
         if (hh > 1000)
         {
             Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "RUNTIME CACHE ERROR: STUCK IN FREE_UP_MEM; RESETTING CACHE");
-            RemoveAll();
+            DisposeAll();
         }
     }
 
@@ -777,7 +776,7 @@ HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost
             _spriteData[i].Offset = 0;
             _spriteData[i].Image = nullptr;
 
-            initFile_initNullSpriteParams(i);
+            InitNullSpriteParams(i);
 
             if (in->EOS())
                 break;
@@ -892,7 +891,7 @@ bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_off
         }
         else if (i > 0)
         {
-            initFile_initNullSpriteParams(i);
+            InitNullSpriteParams(i);
         }
     }
 

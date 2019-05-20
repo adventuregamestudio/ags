@@ -926,7 +926,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     if (psp_clear_cache_on_room_change)
     {
         // Delete all cached sprites
-        spriteset.RemoveAll();
+        spriteset.DisposeAll();
 
         // Delete all gui background images
         for (int i = 0; i < game.numgui; i++)

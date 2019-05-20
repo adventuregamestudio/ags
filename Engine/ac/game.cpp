@@ -1665,7 +1665,7 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
 
     if (desc.UserImage.get())
     {
-        int slot = spriteset.AddNewSprite();
+        int slot = spriteset.GetFreeIndex();
         if (slot > 0)
         {
             // add it into the sprite set

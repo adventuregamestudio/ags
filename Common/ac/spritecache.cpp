@@ -503,7 +503,9 @@ void SpriteCache::RemapSpriteToSprite0(sprkey_t index)
     _sprInfos[index].Flags = _sprInfos[0].Flags;
     _sprInfos[index].Width = _sprInfos[0].Width;
     _sprInfos[index].Height = _sprInfos[0].Height;
+    _spriteData[index].Image = nullptr;
     _spriteData[index].Offset = _spriteData[0].Offset;
+    _spriteData[index].Size = _spriteData[0].Size;
     _spriteData[index].Flags |= SPRCACHEFLAG_REMAPPED;
 #ifdef DEBUG_SPRITECACHE
     Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "RemapSpriteToSprite0: %d", index);

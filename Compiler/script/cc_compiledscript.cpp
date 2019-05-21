@@ -34,7 +34,7 @@ ccCompiledScript::~ccCompiledScript()
 
 // [fw] Note: Existing callers expected this function to return < 0 on overflow
 // [fw] TODO: All this should become an STL vector for automatic memory management
-int ccCompiledScript::add_global(int siz, const char *vall)
+int ccCompiledScript::add_global(int siz, void *vall)
 {
     // The new global variable will be moved to &(globaldata[offset])
     int offset = globaldatasize;

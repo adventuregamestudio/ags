@@ -26,7 +26,7 @@ struct ccCompiledScript : public ccScript {
     // Reserve siz bytes of memory for global data;
     // copy the value at vall into this new memory space if given; 
     // return the offset at which the new space begins.
-    int  add_global(int siz, const char *vall);
+    int  add_global(int siz, void *vall);
 
     int  add_string(const char *);
     void add_fixup(int32_t, char);

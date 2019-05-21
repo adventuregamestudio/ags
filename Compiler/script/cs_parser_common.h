@@ -14,7 +14,7 @@ typedef std::intptr_t CodeLoc; // A Bytecode location, may be negative
 } // namespace AGS
 
 #define NEW_SCRIPT_TOKEN_PREFIX "\"__NEWSCRIPTSTART_"
-#define STRING_LENGTH 200   // how big to make oldstyle strings
+#define OLDSTRING_LENGTH 200   // how big to make oldstyle strings
 
 #define MAX_FUNCTIONS 2000
 #define MAX_FUNCTION_PARAMETERS 15

@@ -214,7 +214,9 @@ std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) con
     AGS::Symbol const core_type = (vartype & kVTY_FlagMask);
 
     std::string result = (core_type >= 0 && core_type < entries.size()) ? entries[core_type].sname : "UNKNOWNTYPE";
-    if ((vartype & kVTY_Pointer) && !(entries[core_type].flags & kSFLG_Autoptr))
+    if ((vartype & kVTY_Pointer) &&
+        !(vartype & kVTY_DynArray) &&
+        !(entries[core_type].flags & kSFLG_Autoptr))
         result += "*";
     if (vartype & (kVTY_Array|kVTY_DynArray))
         result += "[]";

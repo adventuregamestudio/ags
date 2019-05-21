@@ -118,7 +118,7 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_GE(0, compileResult);
-    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite*[]' to 'int[]'", last_seen_cc_error());
+    EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite[]' to 'int[]'", last_seen_cc_error());
 }
 
 TEST(Compile, DynamicTypeReturnNonPointerManaged) {
@@ -1550,4 +1550,64 @@ TEST(Compile, StructPtrFunc) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, StringOldstyle01) {
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Can't return a local string because it will be already de-allocated when
+    // the function returns
+
+    char *inpl = "\
+        string MyFunction(int a)    \n\
+        {                           \n\
+            string x;               \n\
+            return x;               \n\
+        }                           \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string lerr = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, lerr.find("local string"));
+}
+
+TEST(Compile, StringOldstyle02) {
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // If a function expects a non-const string, it mustn't be passed a const string
+
+    char *inpl = "\
+        void Func(string s)         \n\
+        {                           \n\
+            Func(\"Holzschuh\");    \n\
+        }                           \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string lerr = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, lerr.find("ype mismatch"));
+}
+
+TEST(Compile, StringOldstyle03) {
+    ccSetOption(SCOPT_OLDSTRINGS, true);
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // A string literal is a constant string, so you should not be able to
+    // return it as a string.
+
+    char *inpl = "\
+        string Func()                   \n\
+        {                               \n\
+            return \"Parameter\";       \n\
+        }                               \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    std::string lerr = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, lerr.find("ype mismatch"));
 }

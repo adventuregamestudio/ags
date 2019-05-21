@@ -46,12 +46,12 @@ typedef AGS::Common::HError HAGSError;
 
 struct SpriteInfo;
 
-// Tells that the sprite does not exist in the game resources.
-#define SPRCACHEFLAG_DOESNOTEXIST   0x01
-// Locked sprites are ones that should not be freed when clearing cache space.
-#define SPRCACHEFLAG_LOCKED         0x02
+// Tells that the sprite is found in the game resources.
+#define SPRCACHEFLAG_ISASSET        0x01
 // Tells that the sprite index was remapped to another existing sprite.
-#define SPRCACHEFLAG_REMAPPED       0x04
+#define SPRCACHEFLAG_REMAPPED       0x02
+// Locked sprites are ones that should not be freed when out of cache space.
+#define SPRCACHEFLAG_LOCKED         0x04
 
 // Max size of the sprite cache, in bytes
 #if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
@@ -93,16 +93,14 @@ public:
     SpriteCache(std::vector<SpriteInfo> &sprInfos);
     ~SpriteCache();
 
-    // Tells if there is a sprite registered for the given index
+    // Tells if there is a sprite registered for the given index;
+    // this includes sprites that were explicitly assigned but failed to init and were remapped
     bool        DoesSpriteExist(sprkey_t index) const;
-    // Tells if sprite was added externally, not loaded from game resources
-    bool        IsExternalSprite(sprkey_t index) const;
-    // Makes sure sprite cache has registered slots for all sprites up to the given exclusive limit
-    sprkey_t    EnlargeTo(sprkey_t newsize);
+    // Makes sure sprite cache has allocated slots for all sprites up to the given inclusive limit;
+    // returns requested index on success, or -1 on failure.
+    sprkey_t    EnlargeTo(sprkey_t topmost);
     // Finds a free slot index, if all slots are occupied enlarges sprite bank; returns index
-    sprkey_t    AddNewSprite();
-    // Assigns bitmap to the given slot and locks it to prevent release from cache
-    void        SetSpriteAndLock(sprkey_t index, Common::Bitmap *);
+    sprkey_t    GetFreeIndex();
     // Returns current size of the cache, in bytes
     size_t      GetCacheSize() const;
     // Gets the total size of the locked sprites, in bytes
@@ -115,14 +113,19 @@ public:
     sprkey_t    FindTopmostSprite() const;
     // Loads sprite and and locks in memory (so it cannot get removed implicitly)
     void        Precache(sprkey_t index);
+    // Remap the given index to the sprite 0
+    void        RemapSpriteToSprite0(sprkey_t index);
     // Unregisters sprite from the bank and optionally deletes bitmap
     void        RemoveSprite(sprkey_t index, bool freeMemory);
-    // Removes all loaded images from the cache
-    void        RemoveAll();
+    // Deletes all loaded (non-locked, non-external) images from the cache;
+    // this keeps all the auxiliary sprite information intact
+    void        DisposeAll();
     // Deletes all data and resets cache to the clear state
     void        Reset();
-    // Assigns new bitmap for the given sprite index
-    void        Set(sprkey_t index, Common::Bitmap *);
+    // Assigns new sprite for the given index; this sprite won't be auto disposed
+    void        SetSprite(sprkey_t index, Common::Bitmap *);
+    // Assigns new bitmap for the *registered* sprite without changing its properties
+    void        SubstituteBitmap(sprkey_t index, Common::Bitmap *);
     // Sets max cache size in bytes
     void        SetMaxCacheSize(size_t size);
 
@@ -145,9 +148,12 @@ public:
 
 private:
     void        Init();
+    // Load sprite from game resource
     size_t      LoadSprite(sprkey_t index);
+    // Seek stream to sprite
     void        SeekToSprite(sprkey_t index);
-    void        RemoveOldest();
+    // Delete the oldest image in cache
+    void        DisposeOldest();
 
     // Information required for the sprite streaming
     // TODO: split into sprite cache and sprite stream data
@@ -159,6 +165,15 @@ private:
         // TODO: investigate if we may safely use unique_ptr here
         // (some of these bitmaps may be assigned from outside of the cache)
         Common::Bitmap *Image; // actual bitmap
+
+        // Tells if there actually is a registered sprite in this slot
+        bool DoesSpriteExist() const;
+        // Tells if there's a game resource corresponding to this slot
+        bool IsAssetSprite() const;
+        // Tells if sprite was added externally, not loaded from game resources
+        bool IsExternalSprite() const;
+        // Tells if sprite is locked and should not be disposed by cache logic
+        bool IsLocked() const;
 
         SpriteData();
         ~SpriteData();
@@ -194,7 +209,8 @@ private:
     // Uncompresses sprite from stream into the given bitmap
     void        UnCompressSprite(Common::Bitmap *sprite, Common::Stream *in);
 
-    void initFile_initNullSpriteParams(sprkey_t index);
+    // Initialize the empty sprite slot
+    void        InitNullSpriteParams(sprkey_t index);
 };
 
 extern SpriteCache spriteset;

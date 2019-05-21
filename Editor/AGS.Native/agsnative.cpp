@@ -179,7 +179,7 @@ Common::Bitmap *get_sprite (int spnr) {
 void SetNewSprite(int slot, Common::Bitmap *sprit) {
   delete spriteset[slot];
 
-  spriteset.SetSpriteAndLock(slot, sprit);
+  spriteset.SetSprite(slot, sprit);
   spritesModified = true;
 }
 
@@ -241,7 +241,7 @@ void transform_string(char *text) {
 }
 
 int find_free_sprite_slot() {
-  return spriteset.AddNewSprite();
+  return spriteset.GetFreeIndex();
 }
 
 void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes)
@@ -257,7 +257,7 @@ void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes)
 
 void change_sprite_number(int oldNumber, int newNumber) {
 
-  spriteset.SetSpriteAndLock(newNumber, spriteset[oldNumber]);
+  spriteset.SetSprite(newNumber, spriteset[oldNumber]);
   spriteset.RemoveSprite(oldNumber, false);
 
   thisgame.SpriteInfos[newNumber].Flags = thisgame.SpriteInfos[oldNumber].Flags;
@@ -358,7 +358,7 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
     newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     delete sprit;
 
-    spriteset.SetSpriteAndLock(sprites[aa], newsprit);
+    spriteset.SetSprite(sprites[aa], newsprit);
   }
 
   spritesModified = true;

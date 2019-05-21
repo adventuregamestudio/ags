@@ -646,7 +646,7 @@ int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
     // TODO: why is this implemented right here, should not an existing
     // script handling implementation be called instead?
 
-    int gotSlot = spriteset.AddNewSprite();
+    int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return 0;
 

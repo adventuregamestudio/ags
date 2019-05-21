@@ -447,7 +447,7 @@ void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &
 void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     // Apply sprite flags read from original format (sequential array)
-    spriteset.EnlargeTo(ents.SpriteCount);
+    spriteset.EnlargeTo(ents.SpriteCount - 1);
     for (size_t i = 0; i < ents.SpriteCount; ++i)
     {
         game.SpriteInfos[i].Flags = ents.SpriteFlags[i];

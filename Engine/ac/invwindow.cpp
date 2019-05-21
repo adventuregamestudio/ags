@@ -219,13 +219,17 @@ void InventoryScreen::Prepare()
     in_inv_screen++;
     inv_screen_newroom = -1;
 
-    // sprites 2041, 2042 and 2043 were hardcoded in the older versions
-    // of the engine to be used in the built-in inventory window
+    // Sprites 2041, 2042 and 2043 were hardcoded in the older versions of
+    // the engine to be used in the built-in inventory window.
+    // If they did not exist engine first fell back to sprites 0, 1, 2 instead.
+    // Fun fact: this fallback does not seem to be intentional, and was a
+    // coincidental result of SpriteCache incorrectly remembering "last seeked
+    // sprite" as 2041/2042/2043 while in fact stream was after sprite 0.
     if (spriteset[2041] == nullptr || spriteset[2042] == nullptr || spriteset[2043] == nullptr)
-        debug_script_warn("InventoryScreen: one or more of the inventory screen graphics (sprites 2041, 2042, 2043) does not exist, using sprite 0 instead");
+        debug_script_warn("InventoryScreen: one or more of the inventory screen graphics (sprites 2041, 2042, 2043) does not exist, fallback to sprites 0, 1, 2 instead");
     btn_look_sprite = spriteset[2041] != nullptr ? 2041 : 0;
-    btn_select_sprite = spriteset[2042] != nullptr ? 2042 : 0;
-    btn_ok_sprite = spriteset[2043] != nullptr ? 2043 : 0;
+    btn_select_sprite = spriteset[2042] != nullptr ? 2042 : (spriteset[1] != nullptr ? 1 : 0);
+    btn_ok_sprite = spriteset[2043] != nullptr ? 2043 : (spriteset[2] != nullptr ? 2 : 0);
 
     break_code = 0;
 }

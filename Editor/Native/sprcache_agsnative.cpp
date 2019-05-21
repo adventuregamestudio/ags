@@ -23,7 +23,7 @@ void get_new_size_for_sprite(int ee, int ww, int hh, int &newwid, int &newhit)
   newhit = hh;
 }
 
-void SpriteCache::initFile_initNullSpriteParams(sprkey_t index)
+void SpriteCache::InitNullSpriteParams(sprkey_t index)
 {
     // no sprite ... blank it out
     _sprInfos[index] = SpriteInfo();

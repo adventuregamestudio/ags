@@ -173,6 +173,21 @@ enum RenderAtScreenRes
     kRenderAtScreenRes_Disabled     = 2,
 };
 
+// Method to use when blending two sprites with alpha channel
+enum GameSpriteAlphaRenderingStyle
+{
+    kSpriteAlphaRender_Legacy = 0,
+    kSpriteAlphaRender_Proper
+};
+
+// Method to use when blending two GUI elements with alpha channel
+enum GameGuiAlphaRenderingStyle
+{
+    kGuiAlphaRender_Legacy = 0,
+    kGuiAlphaRender_AdditiveAlpha,
+    kGuiAlphaRender_Proper
+};
+
 
 // Sprite flags (serialized as 8-bit)
 #define SPF_HIRES           0x01  // sized for high native resolution (legacy option)

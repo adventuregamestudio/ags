@@ -397,6 +397,7 @@ void SpriteCache::Precache(sprkey_t index)
 
 void SpriteCache::SeekToSprite(sprkey_t index)
 {
+    // If we didn't just load the previous sprite, seek to it
     if (index - 1 != _lastLoad)
         _stream->Seek(_spriteData[index].Offset, kSeekBegin);
 }
@@ -419,15 +420,15 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     if (index < 0 || (size_t)index >= _spriteData.size())
         quit("sprite cache array index out of bounds");
 
-    // If we didn't just load the previous sprite, seek to it
-    SeekToSprite(index);
+    sprkey_t load_index = (_spriteData[index].Flags & SPRCACHEFLAG_REMAPPED) == 0 ? index : 0;
+    SeekToSprite(load_index);
 
     int coldep = _stream->ReadInt16();
 
     if (coldep == 0)
     {
-        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "LoadSprite: asked to load sprite %d which does not exist.", index);
-        _lastLoad = index;
+        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "LoadSprite: asked to load sprite %d (for slot %d) which does not exist.", load_index, index);
+        _lastLoad = load_index;
         return 0;
     }
 
@@ -470,7 +471,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
         }
     }
 
-    _lastLoad = index;
+    _lastLoad = load_index;
 
     // Stop it adding the sprite to the used list just because it's loaded
     // TODO: this messy hack is required, because initialize_sprite calls operator[]

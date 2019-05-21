@@ -160,6 +160,9 @@ void SpriteCache::SetSprite(sprkey_t index, Bitmap *sprite)
     _spriteData[index].Flags = SPRCACHEFLAG_LOCKED; // NOT from asset file
     _spriteData[index].Offset = 0;
     _spriteData[index].Size = 0;
+#ifdef DEBUG_SPRITECACHE
+    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "SetSprite: (external) %d", index);
+#endif
 }
 
 void SpriteCache::SubstituteBitmap(sprkey_t index, Common::Bitmap *sprite)
@@ -170,6 +173,9 @@ void SpriteCache::SubstituteBitmap(sprkey_t index, Common::Bitmap *sprite)
         return;
     }
     _spriteData[index].Image = sprite;
+#ifdef DEBUG_SPRITECACHE
+    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "SubstituteBitmap: %d", index);
+#endif
 }
 
 void SpriteCache::RemoveSprite(sprkey_t index, bool freeMemory)
@@ -177,6 +183,9 @@ void SpriteCache::RemoveSprite(sprkey_t index, bool freeMemory)
     if (freeMemory)
         delete _spriteData[index].Image;
     InitNullSpriteParams(index);
+#ifdef DEBUG_SPRITECACHE
+    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "RemoveSprite: %d", index);
+#endif
 }
 
 sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
@@ -341,7 +350,7 @@ void SpriteCache::DisposeOldest()
     }
 
 #ifdef DEBUG_SPRITECACHE
-    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Removed %d, size now %d KB", sprnum, _cacheSize / 1024);
+    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "DisposeOldest: disposed %d, size now %d KB", sprnum, _cacheSize / 1024);
 #endif
 }
 
@@ -483,7 +492,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     _cacheSize += size;
 
 #ifdef DEBUG_SPRITECACHE
-    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Loaded %lld, size now %u KB", index, _cacheSize / 1024);
+    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Loaded %d, size now %u KB", index, _cacheSize / 1024);
 #endif
 
     return size;
@@ -496,6 +505,9 @@ void SpriteCache::RemapSpriteToSprite0(sprkey_t index)
     _sprInfos[index].Height = _sprInfos[0].Height;
     _spriteData[index].Offset = _spriteData[0].Offset;
     _spriteData[index].Flags |= SPRCACHEFLAG_REMAPPED;
+#ifdef DEBUG_SPRITECACHE
+    Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "RemapSpriteToSprite0: %d", index);
+#endif
 }
 
 const char *spriteFileSig = " Sprite File ";

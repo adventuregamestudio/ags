@@ -867,7 +867,7 @@ void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos
     if (alpha <= 0)
         return;
 
-    if (game.options[OPT_SPRITEALPHA] == kSpriteAlphaRender_Improved)
+    if (game.options[OPT_SPRITEALPHA] == kSpriteAlphaRender_Proper)
     {
         GfxUtil::DrawSpriteBlend(ds, Point(xpos, ypos), image, blend_mode, ds_has_alpha, src_has_alpha, alpha);
     }
@@ -1137,7 +1137,7 @@ void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMod
     const bool ds_has_alpha  = ds->GetColorDepth() == 32;
     const bool src_has_alpha = (game.spriteflags[pic] & SPF_ALPHACHANNEL) != 0;
 
-    if (use_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Improved)
+    if (use_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Proper)
     {
         GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha);
     }
@@ -2232,7 +2232,7 @@ void draw_screen_overlay() {
                 {
                     isAlpha = true;
 
-                    if ((game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Classic) && (guis[aa].BgImage > 0))
+                    if ((game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Legacy) && (guis[aa].BgImage > 0))
                     {
                         // old-style (pre-3.0.2) GUI alpha rendering
                         repair_alpha_channel(guibg[aa], spriteset[guis[aa].BgImage]);

@@ -1611,3 +1611,22 @@ TEST(Compile, StringOldstyle03) {
     std::string lerr = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lerr.find("ype mismatch"));
 }
+
+TEST(Compile, StructPointerAttribute) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // It's okay for a managed struct to have a pointer import attribute.
+    char *inpl = "\
+        builtin managed struct AudioClip {          \n\
+            import void Stop();                     \n\
+        };                                          \n\
+        builtin managed struct ViewFrame {          \n\
+            import attribute AudioClip* LinkedAudio;    \n\
+        };                                          \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

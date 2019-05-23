@@ -3805,7 +3805,7 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
     int retval = AccessData(scrip, false, negate, symlist, symlist_len, vloc, scope, vartype);
     if (retval < 0) return retval;
     if (kVL_mar_pointsto_value != vloc)
-        return 0;
+        return 0; // So it's already in AX 
 
     if (FlagIsSet(vartype, kVTY_Array))
     {
@@ -3817,8 +3817,14 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
         !FlagIsSet(vartype, kVTY_DynArray) &&
         FlagIsSet(sym.get_flags(vartype), kSFLG_StructType))
     {
-        cc_error("Cannot access struct as a whole");
-        return -1;
+        if (!FlagIsSet(sym.get_flags(vartype), kSFLG_Managed))
+        {
+            cc_error("Cannot access non-managed struct as a whole");
+            return -1;
+        }
+        // Assume a pointer to the struct is being requested
+        SetFlag(vartype, kVTY_Pointer, true);
+        scrip->write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
     }
 
     scrip->ax_vartype = vartype;
@@ -5130,7 +5136,10 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
 
     bool const is_function = sym.get_type(targ->peeknext()) == kSYM_OpenParenthesis;
 
-    if (type_is_pointer && FlagIsSet(sym.get_flags(stname), kSFLG_Managed) && !is_function)
+    if (type_is_pointer &&
+        FlagIsSet(sym.get_flags(stname), kSFLG_Managed) &&
+        !FlagIsSet(tqs, kTQ_Attribute) &&
+        !is_function)
     {
         cc_error("Member variable of a managed struct cannot be a pointer");
         return -1;

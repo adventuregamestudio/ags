@@ -165,6 +165,16 @@ void SpriteCache::SetSprite(sprkey_t index, Bitmap *sprite)
 #endif
 }
 
+void SpriteCache::SetEmptySprite(sprkey_t index)
+{
+    if (index < 0 || EnlargeTo(index) != index)
+    {
+        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetEmptySprite: unable to use index %d", index);
+        return;
+    }
+    RemapSpriteToSprite0(index);
+}
+
 void SpriteCache::SubstituteBitmap(sprkey_t index, Common::Bitmap *sprite)
 {
     if (!DoesSpriteExist(index))

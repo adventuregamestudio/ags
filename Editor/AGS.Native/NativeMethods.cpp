@@ -66,7 +66,7 @@ extern HAGSError reset_sprite_file();
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameUpdated(Game ^game);
 extern void GameFontUpdated(Game ^game, int fontNumber);
-extern void UpdateSpriteFlags(SpriteFolder ^folder) ;
+extern void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors);
 extern void draw_room_background(void *roomptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency);
 extern void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 extern void DeleteBackground(Room ^room, int backgroundNumber);
@@ -156,11 +156,11 @@ namespace AGS
 			}
 		}
 
-		void NativeMethods::NewGameLoaded(Game ^game)
+		void NativeMethods::NewGameLoaded(Game ^game, List<String^> ^errors)
 		{
 			this->PaletteColoursUpdated(game);
 			GameUpdated(game);
-			UpdateSpriteFlags(game->RootSpriteFolder);
+			UpdateNativeSpritesToGame(game, errors);
 		}
 
 		void NativeMethods::PaletteColoursUpdated(Game ^game)

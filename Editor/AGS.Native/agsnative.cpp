@@ -2110,10 +2110,16 @@ void RenderBufferToHDC(int hdc)
 	blit_to_hdc(drawBuffer->GetAllegroBitmap(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
 }
 
-void UpdateSpriteFlags(SpriteFolder ^folder) 
+void UpdateNativeSprites(SpriteFolder ^folder, size_t &missing_count)
 {
 	for each (Sprite ^sprite in folder->Sprites)
 	{
+        if (!spriteset.DoesSpriteExist(sprite->Number))
+        {
+            missing_count++;
+            spriteset.SetEmptySprite(sprite->Number);
+        }
+
         int flags = 0;
         if (sprite->Resolution != SpriteImportResolution::Real)
         {
@@ -2128,8 +2134,21 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 
 	for each (SpriteFolder^ subFolder in folder->SubFolders) 
 	{
-		UpdateSpriteFlags(subFolder);
+        UpdateNativeSprites(subFolder, missing_count);
 	}
+}
+
+void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
+{
+    size_t missing_count = 0;
+    UpdateNativeSprites(game->RootSpriteFolder, missing_count);
+    if (missing_count > 0)
+    {
+        spritesModified = true;
+        errors->Add(String::Format(
+            "Sprite file (acsprset.spr) contained less sprites than the game project referenced ({0} sprites were missing). This could happen if it was not saved properly last time. Some sprites could be missing actual images. You may try restoring them by reimporting from the source files.",
+            missing_count));
+    }
 }
 
 void SetGameResolution(Game ^game)

@@ -2974,9 +2974,11 @@ int ConstructAttributeFuncName(AGS::Symbol attribsym, bool writing, bool indexed
 }
 
 // We call the getter or setter of an attribute
-int AccessData_Attribute(ccCompiledScript *scrip, SymbolScript symlist, size_t symlist_len, bool is_attribute_set_func, AGS::Vartype &vartype)
+int AccessData_Attribute(ccCompiledScript *scrip, bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
 {
     AGS::Symbol const component_of_attribute = symlist[0];
+    symlist++;  // eat component
+    symlist_len--; // eat component ct'd.
     AGS::Symbol const struct_of_attribute = vartype & kVTY_FlagMask;
     AGS::Symbol name_of_attribute =
         MangleStructAndComponent(struct_of_attribute, component_of_attribute);
@@ -2984,7 +2986,7 @@ int AccessData_Attribute(ccCompiledScript *scrip, SymbolScript symlist, size_t s
     bool const attrib_uses_this =
         !FlagIsSet(sym.get_flags(name_of_attribute), kSFLG_Static);
     bool const is_indexed =
-        (symlist_len > 1 && kSYM_OpenBracket == sym.get_type(symlist[1]));
+        (symlist_len > 0 && kSYM_OpenBracket == sym.get_type(symlist[0]));
 
     // Get the appropriate access function (as a symbol)
     AGS::Symbol name_of_func = -1;
@@ -3020,8 +3022,10 @@ int AccessData_Attribute(ccCompiledScript *scrip, SymbolScript symlist, size_t s
         // get it and push it as the first parameter
         if (attrib_uses_this)
             scrip->push_reg(SREG_MAR); // must not be clobbered
-        int retval = AccessData_ArrayIndexIntoAX(scrip, &symlist[2], symlist_len - 3);
+        int retval = AccessData_ArrayIndexIntoAX(scrip, &symlist[1], symlist_len - 2);
         if (retval < 0) return retval;
+        symlist += symlist_len; // Eat the index
+        symlist_len = 0; // Eat the index, ct'd
         if (attrib_uses_this)
             scrip->pop_reg(SREG_MAR);
 
@@ -3336,7 +3340,7 @@ int AccessData_StaticFunctionCallOrAttribute(ccCompiledScript *scrip, bool writi
             vloc = kVL_attribute;
             return 0;
         }
-        return AccessData_Attribute(scrip, symlist, symlist_len, writing, vartype);
+        return AccessData_Attribute(scrip, writing, symlist, symlist_len, vartype);
     }
 
     cc_error("Function or attribute '%s' unknown", sym.get_name_string(staticname).c_str());
@@ -3530,7 +3534,7 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
         }
         vloc = kVL_ax_is_value;
         bool const is_attribute_set_func = false;
-        return AccessData_Attribute(scrip, symlist, symlist_len, is_attribute_set_func, vartype);
+        return AccessData_Attribute(scrip, is_attribute_set_func, symlist, symlist_len, vartype);
     }
 
     case kSYM_Function:
@@ -3757,7 +3761,7 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
         AGS::Vartype struct_of_attribute = lhsvartype;
 
         bool const is_attribute_set_func = true;
-        return AccessData_Attribute(scrip, symlist, symlist_len, is_attribute_set_func, struct_of_attribute);
+        return AccessData_Attribute(scrip, is_attribute_set_func, symlist, symlist_len, struct_of_attribute);
     }
 
     if (kVL_ax_is_value == vloc)
@@ -3948,11 +3952,7 @@ int ParseAssignment_ReadLHSForModification(ccCompiledScript *scrip, ccInternalLi
         cc_error("Internal error: Unexpected symbols following expression");
         return -99;
     }
-    if (kVL_ax_is_value == vloc)
-    {
-        cc_error("This operator cannot be used here");
-        return -1;
-    }
+
     if (kVL_mar_pointsto_value == vloc)
     {
         // write memory to AX
@@ -4002,8 +4002,7 @@ int ParseAssignment_MAssign(ccInternalList *targ, ccCompiledScript *scrip, AGS::
         scrip->write_cmd1(memwrite, SREG_AX);
         return 0;
     }
-
-    return ParseAssignment_Assign(targ, scrip, lhs);
+    return AccessData_Assign(scrip, lhs->script, lhs->length);
 }
 
 // "var++" or "var--"
@@ -6027,6 +6026,7 @@ int ParseAssignmentOrFunccall(ccInternalList *targ, ccCompiledScript *scrip, AGS
     ccInternalList expr_script;
     expr_script.write(cursym); // expression starts with this
     int retval = BufferExpression(targ, expr_script);
+    expr_script.startread();
     if (retval < 0) return retval;
 
     AGS::Symbol nextsym = targ->peeknext();

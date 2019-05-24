@@ -1616,6 +1616,7 @@ TEST(Compile, StructPointerAttribute) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // It's okay for a managed struct to have a pointer import attribute.
+
     char *inpl = "\
         builtin managed struct AudioClip {          \n\
             import void Stop();                     \n\

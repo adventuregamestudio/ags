@@ -6968,3 +6968,109 @@ TEST(Bytecode, AccessStructAsPointer)
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
 }
+
+TEST(Bytecode, Attributes04) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Attribute func was not called properly
+
+    char *inpl = "\
+        builtin managed struct Character {      \n\
+            import attribute int  x;            \n\
+        };                                      \n\
+        import readonly Character *player;      \n\
+                                                \n\
+        int LinkattusStoop(int x, int y)        \n\
+        {                                       \n\
+            player.x += 77;                     \n\
+        }                                       \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    // WriteOutput("Attributes04", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 58;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,    6,    3,           77,   29,    3,    6,    // 7
+       2,    2,   52,   48,            2,   29,    6,   45,    // 15
+       2,   39,    0,    6,            3,    0,   33,    3,    // 23
+      30,    6,   30,    4,           11,    3,    4,    6,    // 31
+       2,    2,   52,   48,            2,   29,    6,   34,    // 39
+       3,   45,    2,   39,            1,    6,    3,    1,    // 47
+      33,    3,   35,    1,           30,    6,    6,    3,    // 55
+       0,    5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (idx >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 4;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+       9,   21,   33,   47,        -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,   4,   4,   4,     '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 3;
+    std::string imports[] = {
+    "Character::get_x^0",         "Character::set_x^1",         "player",      // 2
+     "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+
+}

@@ -7074,3 +7074,114 @@ TEST(Bytecode, Attributes04) {
     EXPECT_EQ(stringssize, scrip->stringssize);
 
 }
+
+TEST(Bytecode, Attributes05) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Test static attribute
+
+    char *inpl = "\
+        enum bool                               \n\
+        {                                       \n\
+            false = 0,                          \n\
+            true = 1                            \n\
+        };                                      \n\
+                                                \n\
+        builtin managed struct Game             \n\
+        {                                       \n\
+            readonly import static attribute    \n\
+                bool SkippingCutscene;          \n\
+        };                                      \n\
+                                                \n\
+        void Hook3()                            \n\
+        {                                       \n\
+            if (Game.SkippingCutscene)          \n\
+            {                                   \n\
+                int i = 99;                     \n\
+            }                                   \n\
+        }                                       \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    WriteOutput("Attributes05", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 25;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   39,    0,            6,    3,    0,   33,    // 7
+       3,   28,   13,    1,            1,    4,    6,    3,    // 15
+      99,   51,    4,    8,            3,    2,    1,    4,    // 23
+       5,  -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (idx >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 1;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+       6,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (idx >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 1;
+    std::string imports[] = {
+    "Game::get_SkippingCutscene^0",               "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
+
+}

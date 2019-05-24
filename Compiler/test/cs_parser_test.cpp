@@ -1466,7 +1466,7 @@ TEST(Compile, AssignPtr2ArrayOfPtr) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-TEST(Compile, Attribute1) {
+TEST(Compile, Attributes01) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
@@ -1488,7 +1488,7 @@ TEST(Compile, Attribute1) {
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
 
-TEST(Compile, Attribute2) {
+TEST(Compile, Attributes02) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
@@ -1510,7 +1510,7 @@ TEST(Compile, Attribute2) {
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
 
-TEST(Compile, Attribute3) {
+TEST(Compile, Attributes03) {
     ccCompiledScript *scrip = newScriptFixture();
 
     // get_Flipped is implicitly declared with attribute Flipped so defns clash

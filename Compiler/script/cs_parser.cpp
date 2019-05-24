@@ -1904,7 +1904,6 @@ inline int InterpretFloatAsInt(float floatval)
     return *intptr; // return the int that the pointer points to
 }
 
-
 // The higher the MATHEMATICAL priority of an operator, the MORE binding it is.
 // For example, "*" has a higher mathematical priority than "-".
 // In contrast to this, "size" gives the priority in the INVERSE way: 
@@ -1915,7 +1914,6 @@ inline int MathPrio(AGS::Symbol op)
 {
     return 100 - sym.entries[op].ssize;
 }
-
 
 // return the index of the lowest MATHEMATICAL priority operator in the list,
 // so that either side of it can be evaluated first.
@@ -1969,7 +1967,6 @@ int IndexOfLowestBondingOperator(AGS::SymbolScript slist, size_t slist_len)
     return index_of_lowest_MathPrio;
 }
 
-
 inline bool is_string(AGS::Vartype vartype)
 {
     if (vartype == sym.getOldStringSym())
@@ -1980,7 +1977,6 @@ inline bool is_string(AGS::Vartype vartype)
         return true;
     return false;
 }
-
 
 // Change the generic operator vcpuOp to the one that is correct for the vartypes
 // Also check whether the operator can handle the types at all
@@ -2057,7 +2053,6 @@ int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::Code
 
     return 0;
 }
-
 
 // Check for a type mismatch in one direction only
 bool IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_wants_to_be)
@@ -2179,7 +2174,6 @@ inline bool IsBooleanVCPUOperator(int scmdtype)
     return false;
 }
 
-
 void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 {
 
@@ -2190,7 +2184,6 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
     }
 
 }
-
 
 // If we need a StringStruct but AX contains a string, 
 // then convert AX into a String object and set its type accordingly
@@ -2289,7 +2282,6 @@ int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
     return -1;
 }
 
-
 // We're parsing an expression that starts with '-' (unary minus)
 int ParseExpression_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len)
 {
@@ -2364,7 +2356,6 @@ int ParseExpression_OpIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &
     cc_error("Unexpected operator '%s' without a preceding expression", sym.get_name_string(symlist[0]).c_str());
     return -1;
 }
-
 
 // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
 int ParseExpression_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len)
@@ -2455,7 +2446,6 @@ int ParseExpression_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, co
 
     return 0;
 }
-
 
 int ParseExpression_OpenParenthesis(ccCompiledScript *scrip, AGS::SymbolScript & symlist, size_t symlist_len)
 {
@@ -3297,7 +3287,7 @@ int AccessData_String(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &s
 {
     if (negate)
     {
-        cc_error("Can't calculate the negative value of a string");
+        cc_error("The negative value of a string is undefined");
         return -1;
     }
 
@@ -3309,9 +3299,7 @@ int AccessData_String(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &s
     return 0;
 }
 
-// We are parsing the first part of a STRUCT.STRUCT.STRUCT... clause.
-// This first part can also be a literal or constant instead of a struct.
-
+// We're parsing STRUCT_VARTYPE.COMPONENT 
 int AccessData_StaticFunctionCallOrAttribute(ccCompiledScript *scrip, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::Vartype &vartype)
 {
     if (symlist_len < 2 || kSYM_Dot != sym.get_type(symlist[1]))
@@ -3324,27 +3312,36 @@ int AccessData_StaticFunctionCallOrAttribute(ccCompiledScript *scrip, bool writi
         cc_error("Expected component after '%s.'", sym.get_name_string(symlist[0]));
         return -1;
     }
-    AGS::Symbol const staticname = MangleStructAndComponent(symlist[0], symlist[2]);
+    AGS::Symbol const struct_name = symlist[0];
+    AGS::Symbol const component_name = symlist[2];
+    AGS::Symbol const staticname = MangleStructAndComponent(struct_name, component_name);
     symlist += 2; // skip '.' and component
     symlist_len -= 2;
 
-    vloc = kVL_ax_is_value;
-    MemoryLocation mloc = { kSYM_NoType, 0, 0 };
-    if (kSYM_Function == sym.get_type(staticname))       
-        return AccessData_FunctionCall(scrip, staticname, symlist, symlist_len, mloc, vartype);
-    if (kSYM_Attribute == sym.get_type(staticname))
+    switch (sym.get_type(staticname))
     {
+    default:
+        cc_error("Function or attribute '%s' unknown", sym.get_name_string(staticname).c_str());
+        return -1;
+
+    case kSYM_Attribute:
         if (writing)
         {
             // We can't process that here, so return to the assignment we came from
             vloc = kVL_attribute;
             return 0;
         }
+        vloc = kVL_ax_is_value;
+        vartype = struct_name;
         return AccessData_Attribute(scrip, writing, symlist, symlist_len, vartype);
-    }
 
-    cc_error("Function or attribute '%s' unknown", sym.get_name_string(staticname).c_str());
-    return -1;
+    case kSYM_Function:
+    {
+        vloc = kVL_ax_is_value;
+        MemoryLocation mloc = { kSYM_NoType, 0, 0 };
+        return AccessData_FunctionCall(scrip, staticname, symlist, symlist_len, mloc, vartype);
+    }
+    }
 }
 
 // Negates the value; this clobbers AX and BX
@@ -3723,7 +3720,7 @@ void AccessData_StrCpy(ccCompiledScript * scrip)
     scrip->write_cmd1(
         SCMD_JMP,
         RelativeJumpDist(scrip->codesize + 1, loop_start)); // jumpto LOOP_START
-    AGS::CodeLoc const loop_end = scrip->codesize; // Label LOOP_START
+    AGS::CodeLoc const loop_end = scrip->codesize; // Label LOOP_END
     scrip->code[jumpout1_pos] = RelativeJumpDist(jumpout1_pos, loop_end);
     scrip->code[jumpout2_pos] = RelativeJumpDist(jumpout2_pos, loop_end);
 }
@@ -3738,8 +3735,9 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     // Save on the stack so that it isn't clobbered
     AGS::Vartype rhsvartype = scrip->ax_vartype;
     int rhsscope = scrip->ax_val_scope;
+    // Save AX unless we are sure that it won't be clobbered
     bool const may_clobber = AccessData_MayAccessClobberAX(scrip, symlist, symlist_len);
-    if (may_clobber)
+    if (may_clobber) 
         scrip->push_reg(SREG_AX);
 
     bool const writing = true;

@@ -1631,3 +1631,28 @@ TEST(Compile, StructPointerAttribute) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, StringNullCompare) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // It's okay to compare strings to null
+
+    char inpl[] = "\
+        void main()                         \n\
+        {                                   \n\
+            String SS;                      \n\
+            int compare3 = (SS == null);    \n\
+            int compare4 = (null == SS);    \n\
+        }                                   \n\
+    ";
+
+    std::string input = "";
+    input += g_Input_Bool;
+    input += g_Input_String;
+    input += inpl;
+
+    clear_error();
+    int compileResult = cc_compile(input.c_str(), scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

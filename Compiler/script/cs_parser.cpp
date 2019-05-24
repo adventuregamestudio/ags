@@ -632,13 +632,11 @@ int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
     return 0;
 }
 
-bool is_any_type_of_string(AGS::Vartype symtype)
+inline bool is_any_type_of_string(AGS::Vartype symtype)
 {
-    SetFlag(symtype, kVTY_Const, false);
-    if (symtype == sym.getOldStringSym())
+    if (sym.getOldStringSym() == (symtype & ~kVTY_Const))
         return true;
-    SetFlag(symtype, kVTY_Pointer, false);
-    if (symtype && symtype == sym.getStringStructSym())
+    if (sym.getStringStructSym() == symtype & ~kVTY_Pointer)
         return true;
     return false;
 }
@@ -2015,6 +2013,9 @@ int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::Code
 
     if (iatos1 || iatos2)
     {
+        if (sym.getNullSym() == (type1 & ~kVTY_Pointer) || sym.getNullSym() == type2 & ~kVTY_Pointer)
+            return 0;
+
         if (iatos1 != iatos2)
         {
             cc_error("A string type value cannot be compared to a value that isn't a string type");

@@ -3857,61 +3857,66 @@ int BufferExpression(ccInternalList *targ, ccInternalList &expr_script)
 {
     int nesting_depth = 0;
 
-    for (AGS::Symbol nextsym = targ->peeknext(); 
-        nextsym >= 0;
-        nextsym = targ->peeknext())
+    AGS::Symbol peeksym;
+    while(0 <= (peeksym = targ->peeknext())) // note assignment in while condition
     {
         size_t const pos = targ->pos; // for backing up if necessary
 
         // Skip over parts that are enclosed in braces, brackets, or parens
-        SymbolType const nexttype = sym.get_type(nextsym);
-        if (kSYM_OpenParenthesis == nexttype || kSYM_OpenBracket == nexttype || kSYM_OpenBrace == nexttype)
+        SymbolType const peektype = sym.get_type(peeksym);
+        if (kSYM_OpenParenthesis == peektype || kSYM_OpenBracket == peektype || kSYM_OpenBrace == peektype)
             ++nesting_depth;
-        if (kSYM_CloseParenthesis == nexttype || kSYM_CloseBracket == nexttype || kSYM_CloseBrace == nexttype)
+        if (kSYM_CloseParenthesis == peektype || kSYM_CloseBracket == peektype || kSYM_CloseBrace == peektype)
             if (--nesting_depth < 0)
                 break; // this symbol can't be part of the current expression
         if (nesting_depth == 0)
         {
+            if (kSYM_Dot == peektype)
+            {
+                expr_script.write(targ->getnext()); // '.'
+                // Eat and write next symbol, is a component name
+                if (targ->peeknext() > 0)
+                    expr_script.write(targ->getnext());
+                continue;
+            }
 
-            if (kSYM_New == nexttype)
+            if (kSYM_New == peektype)
             {
                 // This is only allowed if a type follows
-                targ->getnext(); // eat the nexttype
+                targ->getnext(); // Eat 'new'
                 AGS::Symbol nextnextsym = targ->getnext();
                 if (kSYM_Vartype == sym.get_type(nextnextsym))
                 {
-                    expr_script.write(nextsym);
+                    expr_script.write(peeksym);
                     expr_script.write(nextnextsym);
                     continue;
                 }
-                targ->pos = pos; // Back up so that the nexttype is still unread
+                targ->pos = pos; // Back up so that 'new' is still unread
                 break;
             }
 
-            if (kSYM_Vartype == nexttype)
+            if (kSYM_Vartype == peektype)
             {
                 // This is only allowed if a dot follows
-                targ->getnext(); // eat the nexttype
-                AGS::Symbol nextnextsym = targ->getnext();
-                if (kSYM_Dot == sym.get_type(nextnextsym))
+                targ->getnext(); // Eat the vartype
+                AGS::Symbol nextsym = targ->getnext();
+                if (kSYM_Dot == sym.get_type(nextsym))
                 {
+                    expr_script.write(peeksym);
                     expr_script.write(nextsym);
-                    expr_script.write(nextnextsym);
                     continue;
                 }
-                targ->pos = pos; // Back up so that the nexttype is still unread
+                targ->pos = pos; // Back up so that the vartype is still unread
                 break;
             }
-        
 
             // Apart from the exceptions above, all symbols starting at NOTEXPRESSION can't
             // be part of an expression
-            if (nexttype >= NOTEXPRESSION)
+            if (peektype >= NOTEXPRESSION)
                 break;
         }
 
-        targ->getnext(); // Eat the nextsym
-        expr_script.write(nextsym);
+        expr_script.write(targ->getnext());
     }
 
     if (expr_script.length <= 0)

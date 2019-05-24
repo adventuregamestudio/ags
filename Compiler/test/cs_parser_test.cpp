@@ -1656,3 +1656,29 @@ TEST(Compile, StringNullCompare) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, Attributes04) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Components may have the same name as vartypes.
+
+    char *inpl = "\
+        builtin managed struct Character {  \n\
+            readonly import attribute int Room;     \n\
+        };                                  \n\
+        builtin managed struct Room {       \n\
+        };                                  \n\
+        import readonly Character *player;  \n\
+                                            \n\
+        void main()                         \n\
+        {                                   \n\
+            if (player.Room == 1)           \n\
+                return;                     \n\
+        }                                   \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

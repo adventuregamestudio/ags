@@ -636,7 +636,8 @@ inline bool is_any_type_of_string(AGS::Vartype symtype)
 {
     if (sym.getOldStringSym() == (symtype & ~kVTY_Const))
         return true;
-    if (sym.getStringStructSym() == symtype & ~kVTY_Pointer)
+    if (0 != symtype &&
+        sym.getStringStructSym() == (symtype & ~kVTY_Pointer & ~kVTY_Const))
         return true;
     return false;
 }
@@ -2013,7 +2014,7 @@ int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::Code
 
     if (iatos1 || iatos2)
     {
-        if (sym.getNullSym() == (type1 & ~kVTY_Pointer) || sym.getNullSym() == type2 & ~kVTY_Pointer)
+        if (sym.getNullSym() == (type1 & ~kVTY_Pointer) || sym.getNullSym() == (type2 & ~kVTY_Pointer))
             return 0;
 
         if (iatos1 != iatos2)

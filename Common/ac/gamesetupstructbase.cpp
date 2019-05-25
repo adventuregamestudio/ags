@@ -138,8 +138,14 @@ void GameSetupStructBase::SetGameResolution(Size game_res)
 void GameSetupStructBase::OnResolutionSet()
 {
     // The final data-to-game multiplier is always set after actual game resolution (not default one)
-    _dataUpscaleMult = _gameResolution.Width / _dataResolution.Width;
-    _screenUpscaleMult = _gameResolution.Width / _defGameResolution.Width;
+    if (!_dataResolution.IsNull())
+        _dataUpscaleMult = _gameResolution.Width / _dataResolution.Width;
+    else
+        _dataUpscaleMult = 1;
+    if (!_defGameResolution.IsNull())
+        _screenUpscaleMult = _gameResolution.Width / _defGameResolution.Width;
+    else
+        _screenUpscaleMult = 1;
     _relativeUIMult = IsLegacyHiRes() ? HIRES_COORD_MULTIPLIER : 1;
 }
 

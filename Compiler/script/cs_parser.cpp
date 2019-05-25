@@ -2591,7 +2591,7 @@ int AccessData_FunctionCall_PushParams(ccCompiledScript *scrip, const AGS::Symbo
     size_t param_num = num_supplied_args + 1;
     size_t start_of_this_param = 0;
     int end_of_this_param = closedParenIdx;  // can become < 0, points to (last byte of parameter + 1)
-    // Go backwards through the parameters, since they must be pushed that way
+    // Go backwards through the parameters since they must be pushed that way
     do
     {
         // Find the start of the next parameter
@@ -2825,11 +2825,8 @@ int AccessData_FunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, A
     bool func_uses_this = false;
     if (std::string::npos != sym.get_name_string(name_of_func).find("::"))
     {
-        if (!FlagIsSet(sym.get_flags(name_of_func), kSFLG_Static))
-            func_uses_this = true;
-        // static functions don't have an object instance, so no "this"
         if (FlagIsSet(sym.get_flags(name_of_func), kSFLG_Static))
-            func_uses_this = false;
+            func_uses_this = false; // static functions don't have an object instance, so no "this"
     }
 
     if (func_uses_this)
@@ -2934,7 +2931,6 @@ int AccessData_ArrayIndexIntoAX(ccCompiledScript *scrip, SymbolScript symlist, s
     // array index must be convertible to an int
     return IsVartypeMismatch(scrip->ax_vartype, sym.getIntSym(), true);
 }
-
 
 // We access a variable or a component of a struct in order to read or write it.
 // This is a simple member of the struct.
@@ -3065,16 +3061,11 @@ int AccessData_Attribute(ccCompiledScript *scrip, bool is_attribute_set_func, Sy
 // When reading, we need the value itself (but see below for arrays and structs)
 // - It can be in AX (kVL_ax_is_value)
 // - or in m(MAR) (kVL_mar_pointsto_value).
-// - Attributes must be read through their getter function, but afterwards,
-//   the value can be put into AX, so we don't need any special case for this.
 // When writing, we can't use a value itself. Instead, we need a pointer
 // to the adress that has to be modified.
 // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_mar_pointsto_value).
-// - or AX, i.e., the value to modify is in m(AX) (kVL_ax_pointsto_value)
+// - or AX, i.e., the value to modify is in m(AX) (kVL_ax_is_value)
 // - attributes must be modified by calling their setter function (kVL_attribute)
-// Arrays and structs can't fit into AX, so they are usually referenced
-// as kVL_mar_pointsto_value or kVL_ax_pointsto_value
-// Since this is a pointer in both cases, it can be used for reading and writing
 enum ValueLocation
 {
     kVL_ax_is_value,         // The value is in register AX
@@ -3320,7 +3311,9 @@ void AccessData_Negate(ccCompiledScript *scrip, ValueLocation vloc)
         scrip->write_cmd1(SCMD_MEMREAD, SREG_AX);
     scrip->write_cmd2(SCMD_SUBREG, SREG_BX, SREG_AX);
     if (kVL_mar_pointsto_value == vloc)
-        scrip->write_cmd1(SCMD_MEMWRITE, SREG_AX);
+        scrip->write_cmd1(SCMD_MEMWRITE, SREG_BX);
+    else
+        scrip->write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_AX);
 }
 
 // We're getting a variable, literal, constant, func call or the first element
@@ -3426,6 +3419,12 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, AGS::SymbolScr
         vloc = kVL_ax_is_value;
         return AccessData_LitOrConst(scrip, input_negate, symlist, symlist_len, vartype);
 
+    case kSYM_LiteralString:
+        if (writing) break; // to error msg
+        scope = kSYM_GlobalVar;
+        vloc = kVL_ax_is_value;
+        return AccessData_String(scrip, need_to_negate, symlist, symlist_len, vartype);
+
     case kSYM_LocalVar:
     {
         scope =
@@ -3442,12 +3441,6 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, AGS::SymbolScr
         scope = kSYM_GlobalVar;
         vloc = kVL_ax_is_value;
         return AccessData_Null(scrip, need_to_negate, symlist, symlist_len, vartype);
-
-    case kSYM_LiteralString:
-        if (writing) break; // to error msg
-        scope = kSYM_GlobalVar;
-        vloc = kVL_ax_is_value;
-        return AccessData_String(scrip, need_to_negate, symlist, symlist_len, vartype);
 
     case kSYM_Vartype:
         scope = kSYM_GlobalVar;
@@ -3625,7 +3618,7 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool need_to_negate, AGS::
         // Only the _immediate_ access via 'this.' counts for this flag.
         // This has passed now, so reset the flag.
         access_via_this = false;
-        static_access = false;
+        static_access = false; // Same for 'vartype.'
     }
 
     if (need_to_negate)

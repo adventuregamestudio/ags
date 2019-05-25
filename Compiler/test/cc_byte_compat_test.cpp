@@ -2753,7 +2753,7 @@ TEST(Bytecode, Struct01) {
 
     // WriteOutput("Struct01", scrip);
     // Hand-checked Bytecode
-    const size_t codesize = 86;
+    const size_t codesize = 74;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -2764,10 +2764,9 @@ TEST(Bytecode, Struct01) {
        2,    0,    7,    3,            2,    1,    4,   31,    // 39
        6,    2,    1,    4,            6,    3,    0,    5,    // 47
       38,   48,   51,    0,           63,    4,    1,    1,    // 55
-       4,   51,    4,   29,            6,   29,    2,    6,    // 63
-       3,   -1,   30,    2,           29,    3,   45,    2,    // 71
-       6,    3,    0,   23,            3,    2,    1,    4,    // 79
-      30,    6,    2,    1,            4,    5,  -999
+       4,    6,    3,   -1,           29,    3,    6,    3,    // 63
+       0,   23,    3,    2,            1,    4,    2,    1,    // 71
+       4,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -2784,7 +2783,7 @@ TEST(Bytecode, Struct01) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      28,   33,   74,  -999
+      28,   33,   64,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)

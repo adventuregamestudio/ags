@@ -97,7 +97,8 @@ void FreePointersOfStdArray(ccCompiledScript *scrip, SymbolTableEntry &entry, bo
 int ParseVartype0(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &noloopcheck_is_set);
 
 // [fw] This ought to replace the #defines in script_common.h
-enum FxFixupType // see script_common.h
+//      but we can't touch them since the engine uses them, too
+enum FxFixupType : AGS::FixupType // see script_common.h
 {
     kFx_NoFixup = 0,
     kFx_DataData = FIXUP_DATADATA,     // globaldata[fixup] += &globaldata[0]
@@ -1733,7 +1734,7 @@ int ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, bool b
 }
 
 // Enter the function in the imports[] or functions[] array; get its index   
-int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_of_func, bool body_follows, bool func_is_import, int &function_soffs, int &function_idx)
+int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_of_func, bool body_follows, bool func_is_import, AGS::CodeLoc &function_soffs, int &function_idx)
 {
     if (body_follows)
     {
@@ -1743,7 +1744,7 @@ int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_
             return -1;
         }
         // Index of the function in the ccCompiledScript::functions[] array
-        function_soffs = scrip->add_new_function(sym.get_name_string(name_of_func).c_str(), &function_idx);
+        function_soffs = scrip->add_new_function(sym.get_name_string(name_of_func), &function_idx);
         if (function_soffs < 0)
         {
             cc_error("Max. number of functions exceeded");
@@ -1880,7 +1881,7 @@ int ParseFuncdecl(
         if (retval < 0) return retval;
         entry.soffs = func_startoffs;
         if (function_idx >= 0)
-            scrip->funcnumparams[function_idx] = (numparams - 1);
+            scrip->functions[function_idx].NumOfParams = (numparams - 1);
     }
 
     if (!FlagIsSet(tqs, kTQ_Import))

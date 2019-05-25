@@ -5,20 +5,23 @@
 namespace AGS
 {
 typedef int Symbol; // A symbol (result of scanner preprocessing)
-typedef long Flags; // Collection of bits that are set and reset
-typedef long Vartype; // e.g., "int"
-typedef short SType; // e.g. SYM_GLOBAL
 typedef Symbol *SymbolScript; // A buffer of symbols 
-typedef std::intptr_t CodeCell; // A Bytecode cell (content)
-typedef std::intptr_t CodeLoc; // A Bytecode location, may be negative
+typedef long Flags; // Collection of bits that are set and reset TODO convert to std::bitset
+typedef long Vartype; // e.g., "int"
+typedef int Exporttype; // e.g., EXPORT_FUNCTION
+typedef short SType; // e.g. kSYM_Global
+typedef std::int32_t CodeCell; // A Bytecode cell (content) or an opcode
+typedef std::int32_t CodeLoc; // An offset to code[0], may be negative
+typedef int32_t StringsLoc; // An offset into the strings repository
+typedef int32_t GlobalLoc; // An offset into the global space
+typedef char FixupType; // the type of a fixup
 } // namespace AGS
 
-#define NEW_SCRIPT_TOKEN_PREFIX "\"__NEWSCRIPTSTART_"
-#define OLDSTRING_LENGTH 200   // how big to make oldstyle strings
+constexpr char const *NEW_SCRIPT_TOKEN_PREFIX = "\"__NEWSCRIPTSTART_";
+constexpr size_t OLDSTRING_LENGTH = 200;   // how big to make oldstyle string buffers
 
-#define MAX_FUNCTIONS 2000
-#define MAX_FUNCTION_PARAMETERS 15
-#define VARARGS_INDICATOR 100
+constexpr size_t MAX_FUNCTION_PARAMETERS = 15;
+constexpr size_t VARARGS_INDICATOR = 100;
 
 enum SymbolType : AGS::SType
 {
@@ -43,7 +46,6 @@ enum SymbolType : AGS::SType
 
     // Types below cannot appear in expressions
     kSYM_Assign,
-#define NOTEXPRESSION  kSYM_Assign // STypes starting (numerically) with this aren't part of expressions
     kSYM_AssignMod,         // Modifying assign, e.g. "+="
     kSYM_AssignSOp,         // single-op assignemnt, eg "++", "--"
     kSYM_Attribute,         // struct member as attribute
@@ -84,6 +86,7 @@ enum SymbolType : AGS::SType
     kSYM_While,
     kSYM_WriteProtected,    // write-protected member
 };
+constexpr AGS::SType NOTEXPRESSION = kSYM_Assign; // STypes starting (numerically) with this aren't part of expressions
 
 enum SymbolTableFlag : AGS::Flags
 {
@@ -110,7 +113,6 @@ constexpr size_t SIZE_OF_POINTER = 4;
 constexpr size_t SIZE_OF_INT = 4;
 
 extern int is_whitespace(char cht);
-extern void skip_whitespace(char **pttt);
 extern int is_digit(int chrac);
 extern int is_alphanum(int chrac);
 

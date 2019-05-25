@@ -717,15 +717,8 @@ void set_loop_counter(unsigned int new_counter) {
     fps = std::numeric_limits<float>::quiet_NaN();
 }
 
-void PollUntilNextFrame()
-{
-    if (play.fast_forward) { return; }
-    while (waitingForNextTick()) {
-        // make sure we poll, cos a low framerate (eg 5 fps) could stutter mp3 music
-        update_polled_stuff_if_runtime();
-    }
-}
-
+// MAIN GAME LOOP - mostly called by GameTick but can be called by dialog, speech, inventory windows for updating background.
+// actual loop is either in GameLoopUntilEvent or RunGameUntilAborted
 void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
 
     int res;
@@ -780,6 +773,8 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_do_render_and_check_mouse(extraBitmap, extraX, extraY);
 
+    // GAME LOOP DELAY has occured by this point.
+
     our_eip=6;
 
     game_loop_update_events();
@@ -801,7 +796,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_update_fps();
 
-    PollUntilNextFrame();
+    update_polled_stuff_if_runtime();
 }
 
 static void UpdateMouseOverLocation()
@@ -993,13 +988,9 @@ void GameLoopUntilNoOverlay()
     GameLoopUntilEvent(UNTIL_NOOVERLAY, 0);
 }
 
-
 extern unsigned int load_new_game;
 void RunGameUntilAborted()
 {
-    // skip ticks to account for time spent starting game.
-    skipMissedTicks();
-
     while (!abort_engine) {
         GameTick();
 

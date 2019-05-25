@@ -1915,16 +1915,17 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
   if (speed <= 0) speed = 16;
   speed *= 2;  // harmonise speeds with software driver which is faster
+  
+  // INNER GAME LOOP - opengl fade
   for (int a = 1; a < 255; a += speed)
   {
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_render(flipTypeLastTime, false);
 
-    do {
-      if (_pollingCallback)
-        _pollingCallback();
-    } while (waitingForNextTick());
+    // GAME LOOP DELAY has occured by this point.
 
+    if (_pollingCallback)
+      _pollingCallback();
   }
 
   if (fadingOut)
@@ -1977,6 +1978,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   int boxWidth = speed;
   int boxHeight = yspeed;
 
+  // INNER GAME LOOP - opengl boxout 
   while (boxWidth < _srcRect.GetWidth())
   {
     boxWidth += speed;
@@ -2001,9 +2003,10 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     
     this->_render(flipTypeLastTime, false);
 
+    // GAME LOOP DELAY has occured by this point.
+
     if (_pollingCallback)
       _pollingCallback();
-    platform->Delay(delay);
   }
 
   this->DestroyDDB(d3db);

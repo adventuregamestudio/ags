@@ -109,6 +109,10 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
   }
 
 
+	// At this point, video is playing in the background, so just poll occasionally
+	// to see if we need to exit early.
+
+  // INNER GAME LOOP - waiting for video
   OAFilterState filterState = State_Running;
   while ((filterState != State_Stopped) && (!want_exit))
   {
@@ -129,10 +133,12 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
 
     //device->Present(NULL, NULL, 0, NULL);
 
-		while (waitingForNextTick()) {
+      platform->Delay(100);
+
+      // GAME LOOP DELAY has occured at this point.
+
       update_polled_stuff_if_runtime();
-		}
-	}
+  }
 
   graph->StopGraph();
 

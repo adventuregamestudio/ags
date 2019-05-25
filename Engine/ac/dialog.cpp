@@ -848,6 +848,8 @@ void DialogOptions::Redraw()
     }
 }
 
+
+// INNER GAME LOOP - processing dialog. Called as part of ::Show()
 bool DialogOptions::Run()
 {
     const bool new_custom_render = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
@@ -863,6 +865,8 @@ bool DialogOptions::Run()
         update_audio_system_on_game_loop();
         render_graphics(ddb, dirtyx, dirtyy);
       }
+
+      // GAME LOOP DELAY has occured by this point.
 
       if (new_custom_render)
       {
@@ -1044,7 +1048,9 @@ bool DialogOptions::Run()
             return true; // continue running loop
         }
       }
-      PollUntilNextFrame();
+
+      update_polled_stuff_if_runtime();
+
       return true; // continue running loop
 }
 

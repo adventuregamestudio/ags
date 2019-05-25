@@ -90,9 +90,6 @@ void start_game() {
 
     our_eip = -42;
 
-    // skip ticks to account for initialisation or a restored game.
-    skipMissedTicks();
-
     for (int kk = 0; kk < numScriptModules; kk++)
         RunTextScript(moduleInst[kk], "game_start");
 

@@ -629,6 +629,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    int a;
    if (speed <= 0) speed = 16;
 
+   // INNER GAME LOOP - highcolor fade in
    for (a = 0; a < 256; a+=speed)
    {
        bmp_buff->Fill(clearColor);
@@ -636,12 +637,11 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
        this->Vsync();
        _filter->RenderScreen(bmp_buff, 0, 0);
-       do
-       {
-         if (_pollingCallback)
-           _pollingCallback();
-       }
-       while (waitingForNextTick());
+
+      // GAME LOOP DELAY has occured by this point.
+
+       if (_pollingCallback)
+         _pollingCallback();
    }
    delete bmp_buff;
 
@@ -666,6 +666,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
             _filter->GetCopyOfScreenIntoBitmap(bmp_orig, false);
             if (speed <= 0) speed = 16;
 			
+            // INNER GAME LOOP - highcolor fade out
             for (a = 255-speed; a > 0; a-=speed)
             {
                 bmp_buff->Fill(clearColor);
@@ -673,12 +674,11 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
                 bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
                 this->Vsync();
                 _filter->RenderScreen(bmp_buff, 0, 0);
-                do
-                {
-                  if (_pollingCallback)
-                    _pollingCallback();
-                }
-                while (waitingForNextTick());
+
+                // GAME LOOP DELAY has occured by this point.
+
+                if (_pollingCallback)
+                  _pollingCallback();
             }
             delete bmp_buff;
         }
@@ -710,13 +710,15 @@ void ALSoftwareGraphicsDriver::__fade_from_range(PALETTE source, PALETTE dest, i
 
    for (c=0; c<PAL_SIZE; c++)
       temp[c] = source[c];
-
+   
+   // INNER GAME LOOP - software fade
    for (c=0; c<64; c+=speed) {
       fade_interpolate(source, dest, temp, c, from, to);
       set_palette_range(temp, from, to, TRUE);
       if (_pollingCallback) _pollingCallback();
       set_palette_range(temp, from, to, TRUE);
       DelayUntilEndOfFrame();
+      // GAME LOOP DELAY has occured at this point.
    }
 
    set_palette_range(dest, from, to, TRUE);
@@ -759,6 +761,7 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
     int yspeed = _srcRect.GetHeight() / (_srcRect.GetWidth() / speed);
     int boxwid = speed, boxhit = yspeed;
 
+    // INNER GAME LOOP - software boxout effect
     while (boxwid < _srcRect.GetWidth()) {
       boxwid += speed;
       boxhit += yspeed;
@@ -768,10 +771,10 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
           _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2, nullptr);
     
       DelayUntilEndOfFrame();
+      // GAME LOOP DELAY has occured at this point.
+
       if (_pollingCallback)
         _pollingCallback();
-
-      platform->Delay(delay);
     }
     this->ClearRectangle(0, 0, _srcRect.GetWidth() - 1, _srcRect.GetHeight() - 1, nullptr);
   }

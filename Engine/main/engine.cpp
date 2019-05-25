@@ -1140,10 +1140,7 @@ void engine_setup_scsystem_auxiliary()
 void engine_update_mp3_thread()
 {
     update_mp3_thread();
-    // reduce polling period to encourage more multithreading bugs.
-#if ! AGS_PLATFORM_DEBUG
     platform->Delay(50);
-#endif
 }
 
 void engine_start_multithreaded_audio()
@@ -1402,7 +1399,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     our_eip = -197;
 
     // Original timer was initialised here.
-    skipMissedTicks();
 
     our_eip = -198;
 

@@ -267,6 +267,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         // 4 = mouse only
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
+
+        // INNER GAME LOOP - blocking display
         while (1) {
             /*      if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_UPDATE);
@@ -274,6 +276,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
             update_audio_system_on_game_loop();
             render_graphics();
+
+            // GAME LOOP DELAY has occured by this point.
 
             if (ags_mgetbutton()>NONE) {
                 // If we're allowed, skip with mouse
@@ -290,7 +294,9 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 if (skip_setting & SKIP_KEYPRESS)
                     break;
             }
-            PollUntilNextFrame();
+
+            update_polled_stuff_if_runtime();
+
             countdown--;
 
             if (play.speech_has_voice) {

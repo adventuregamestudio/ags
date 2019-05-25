@@ -757,7 +757,9 @@ void clear_letterbox_borders()
 
 // writes the virtual screen to the screen, converting colours if
 // necessary
-void write_screen() {
+void write_screen() 
+{
+    // NOTE: we still completely skip rendering (and any delays) if fast forwarding.
 
     if (play.fast_forward)
         return;

@@ -74,6 +74,8 @@ void MyPushButton::draw(Bitmap *ds)
 int MyPushButton::pressedon(int mousex, int mousey)
 {
     int wasstat;
+
+    // INNER GAME LOOP - holding push button.
     while (mbutrelease(LEFT) == 0) {
 
         wasstat = state;
@@ -90,9 +92,9 @@ int MyPushButton::pressedon(int mousex, int mousey)
 
         refresh_gui_screen();
 
-        while (waitingForNextTick()) {
-            update_polled_stuff_if_runtime();
-        }
+        // GAME LOOP DELAY has occured by this point.
+
+        update_polled_stuff_if_runtime();
     }
     wasstat = state;
     state = 0;

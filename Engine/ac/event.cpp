@@ -278,6 +278,7 @@ void process_event(EventHappened*evp) {
 
                 int boxwid = get_fixed_pixel_size(16);
                 int boxhit = data_to_game_coord(data_res.Height / 20);
+                // INNER GAME LOOP - software boxout fade
                 while (boxwid < temp_scr->GetWidth()) {
                     boxwid += get_fixed_pixel_size(16);
                     boxhit += data_to_game_coord(data_res.Height / 20);
@@ -288,9 +289,8 @@ void process_event(EventHappened*evp) {
                     temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp, 
                         boxwid, boxhit);
                     render_to_screen(viewport.Left, viewport.Top);
-                    do {
-                        update_polled_stuff_if_runtime();
-                    } while (waitingForNextTick());
+                    // GAME LOOP DELAY has occured by this point.
+                    update_polled_stuff_if_runtime();
                 }
                 gfxDriver->SetMemoryBackBuffer(saved_backbuf, viewport.Left, viewport.Top);
             }
@@ -305,6 +305,7 @@ void process_event(EventHappened*evp) {
 
             int transparency = 254;
 
+            // INNER GAME LOOP - software cross fade
             while (transparency > 0) {
                 // do the crossfade
                 ddb->SetTransparency(transparency);
@@ -318,9 +319,10 @@ void process_event(EventHappened*evp) {
                     gfxDriver->DrawSprite(0, 0, ddb);
                 }
                 render_to_screen();
-                do {
-                    update_polled_stuff_if_runtime();
-                } while (waitingForNextTick());
+
+                // GAME LOOP DELAY has occured by this point.
+
+                update_polled_stuff_if_runtime();
                 transparency -= 16;
             }
             saved_viewport_bitmap->Release();
@@ -337,6 +339,7 @@ void process_event(EventHappened*evp) {
 
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
 
+            // INNER GAME LOOP - software dissolve fade
             for (aa=0;aa<16;aa++) {
                 // merge the palette while dithering
                 if (game.color_depth == 1) 
@@ -356,9 +359,10 @@ void process_event(EventHappened*evp) {
                 draw_screen_callback();
                 gfxDriver->DrawSprite(0, 0, ddb);
                 render_to_screen();
-                do {
-                    update_polled_stuff_if_runtime();
-                } while (waitingForNextTick());
+
+                // GAME LOOP DELAY has occured by this point.
+
+                update_polled_stuff_if_runtime();
             }
             saved_viewport_bitmap->Release();
 

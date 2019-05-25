@@ -63,11 +63,14 @@ void ShakeScreen(int severe) {
         play.shakesc_amount = severe;
         play.mouse_cursor_hidden++;
 
+        // INNER GAME LOOP - hardware gfx shake
         for (hh = 0; hh < 40; hh++) {
             loopcounter++;
             platform->Delay(50);
 
             render_graphics();
+
+            // GAME LOOP DELAY has occured by this point.
 
             update_polled_stuff_if_runtime();
         }
@@ -80,6 +83,8 @@ void ShakeScreen(int severe) {
     {
         // TODO: support shaking room viewport separately
         Bitmap *tty = CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
+
+        // INNER GAME LOOP - software gfx shake
         for (hh=0;hh<40;hh++) {
             platform->Delay(50);
 
@@ -87,6 +92,8 @@ void ShakeScreen(int severe) {
                 render_to_screen();
             else
                 render_to_screen(0, severe);
+
+            // GAME LOOP DELAY has occured by this point.
 
             update_polled_stuff_if_runtime();
         }

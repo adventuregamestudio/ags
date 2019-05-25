@@ -148,9 +148,12 @@ int CSCIWaitMessage(CSCIMessage * cscim)
 
     prepare_gui_screen(win_x, win_y, win_width, win_height, true);
 
+    // INNER GAME LOOP - legacy gui - wait for message
     while (1) {
         update_audio_system_on_game_loop();
         refresh_gui_screen();
+
+        // GAME LOOP DELAY has occured by this point.
 
         cscim->id = -1;
         cscim->code = 0;
@@ -190,9 +193,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         if (cscim->code > 0)
             break;
 
-        while (waitingForNextTick()) {
-            update_polled_stuff_if_runtime();
-        }
+        update_polled_stuff_if_runtime();
     }
 
     return 0;

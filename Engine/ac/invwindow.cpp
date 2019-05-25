@@ -348,6 +348,9 @@ void InventoryScreen::RedrawOverItem(Bitmap *ds, int isonitem)
     }
 }
 
+
+
+// INNER GAME LOOP - inventory screen. Loop in __actual_invscreen
 bool InventoryScreen::Run()
 {
     if (ags_kbhit() != 0)
@@ -358,6 +361,8 @@ bool InventoryScreen::Run()
         //ags_domouse(DOMOUSE_UPDATE);
         update_audio_system_on_game_loop();
         refresh_gui_screen();
+
+        // GAME LOOP DELAY has occured by this point.
 
         // NOTE: this is because old code was working with full game screen
         const int mousex = ::mousex - windowxp;
@@ -474,7 +479,7 @@ bool InventoryScreen::Run()
             //ags_domouse(DOMOUSE_ENABLE);
         }
         wasonitem=isonitem;
-        PollUntilNextFrame();
+        update_polled_stuff_if_runtime();
 
     return true; // continue inventory screen loop
 }

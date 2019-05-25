@@ -6486,7 +6486,7 @@ int ParseCommand(
     return ParseCommand_EndOfDoIfElse(targ, scrip, nesting_stack);
 }
 
-int cc_parse_HandleLines(ccInternalList *targ, ccCompiledScript *scrip, int &currentlinewas)
+int Parse_HandleLines(ccInternalList *targ, ccCompiledScript *scrip, int &currentlinewas)
 {
     if (currentline == -10)
         return 1; // end of stream was reached
@@ -6501,7 +6501,7 @@ int cc_parse_HandleLines(ccInternalList *targ, ccCompiledScript *scrip, int &cur
     return 0;
 }
 
-int cc_parse_TQCombiError(TypeQualifierSet tqs)
+int Parse_TQCombiError(TypeQualifierSet tqs)
 {
     std::map<TypeQualifier, std::string> const tq2String =
     {
@@ -6530,7 +6530,7 @@ int cc_parse_TQCombiError(TypeQualifierSet tqs)
 }
 
 // Check whether the qualifiers that accumulated for this decl go together
-int cc_parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
+int Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
 {
     if (FlagIsSet(tqs, kTQ_Autoptr))
     {
@@ -6555,7 +6555,7 @@ int cc_parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
 
     if (FlagIsSet(tqs, kTQ_Import) && 0 != (tqs & ~kTQ_Readonly &~kTQ_Import))
     {
-        cc_parse_TQCombiError((tqs & ~kTQ_Readonly));
+        Parse_TQCombiError((tqs & ~kTQ_Readonly));
         return -1;
     }
 
@@ -6567,7 +6567,7 @@ int cc_parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
 
     if (FlagIsSet(tqs, kTQ_Protected) && 0 != (tqs & ~kTQ_Static & ~kTQ_Readonly))
     {
-        cc_parse_TQCombiError((tqs & ~kTQ_Static & ~kTQ_Readonly));
+        Parse_TQCombiError((tqs & ~kTQ_Static & ~kTQ_Readonly));
         return -1;
     }
 
@@ -6585,7 +6585,7 @@ int cc_parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
 
     if (FlagIsSet(tqs, kTQ_Static) && 0 != (tqs & ~kTQ_Static & ~kTQ_Protected & ~kTQ_Readonly))
     {
-        cc_parse_TQCombiError((tqs & ~kTQ_Static & ~kTQ_Readonly));
+        Parse_TQCombiError((tqs & ~kTQ_Static & ~kTQ_Readonly));
         return -1;
     }
 
@@ -6603,7 +6603,7 @@ int cc_parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
 
     if (kSYM_Export == decl_type && 0 != tqs)
     {
-        cc_parse_TQCombiError(tqs);
+        Parse_TQCombiError(tqs);
         return -1;
     }
     return 0;
@@ -6612,12 +6612,12 @@ int cc_parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
 int ParseVartype(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &set_nlc_flag)
 {
     // func or variable definition
-    int retval = cc_parse_CheckTQ(tqs, kSYM_Vartype);
+    int retval = Parse_CheckTQ(tqs, kSYM_Vartype);
     if (retval < 0) return retval;
     return ParseVartype0(targ, scrip, cursym, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, set_nlc_flag);
 }
 
-void cc_parse_SkipToEndingBrace(ccInternalList *targ)
+void Parse_SkipToEndingBrace(ccInternalList *targ)
 {
     // Skip to matching '}'
     AGS::Symbol const stoplist[] = { 0 };
@@ -6628,7 +6628,7 @@ void cc_parse_SkipToEndingBrace(ccInternalList *targ)
 // Buffer for the script name
 std::string g_ScriptNameBuffer;
 
-void cc_parse_StartNewSection(ccCompiledScript *scrip, AGS::Symbol mangled_section_name)
+void Parse_StartNewSection(ccCompiledScript *scrip, AGS::Symbol mangled_section_name)
 {
     g_ScriptNameBuffer = sym.get_name_string(mangled_section_name).substr(18);
     g_ScriptNameBuffer.pop_back(); // strip closing speech mark
@@ -6640,7 +6640,7 @@ void cc_parse_StartNewSection(ccCompiledScript *scrip, AGS::Symbol mangled_secti
         scrip->start_new_section(g_ScriptNameBuffer.c_str());
 }
 
-int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
+int Parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
 {
     AGS::NestingStack nesting_stack = AGS::NestingStack();
     size_t nested_level = 0;
@@ -6663,11 +6663,11 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
 
         if (0 == sym.get_name_string(cursym).compare(0, 18, NEW_SCRIPT_TOKEN_PREFIX))
         {
-            cc_parse_StartNewSection(scrip, cursym);           
+            Parse_StartNewSection(scrip, cursym);           
             continue;
         }
 
-        int retval = cc_parse_HandleLines(targ, scrip, currentlinewas);
+        int retval = Parse_HandleLines(targ, scrip, currentlinewas);
         if (retval > 0)
             break; // end of input
 
@@ -6708,7 +6708,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
 
         case kSYM_Enum:
         {
-            int retval = cc_parse_CheckTQ(tqs, kSYM_Export);
+            int retval = Parse_CheckTQ(tqs, kSYM_Export);
             if (retval < 0) return retval;
             retval = ParseEnum(targ, name_of_current_func);
             if (retval < 0) return retval;
@@ -6718,7 +6718,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
 
         case kSYM_Export:
         {
-            int retval = cc_parse_CheckTQ(tqs, kSYM_Export);
+            int retval = Parse_CheckTQ(tqs, kSYM_Export);
             if (retval < 0) return retval;
             retval = ParseExport(targ, scrip);
             if (retval < 0) return retval;
@@ -6757,7 +6757,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
             if (kPP_Main == g_PP)
                 break; // treat as a command, below the switch
 
-            cc_parse_SkipToEndingBrace(targ);
+            Parse_SkipToEndingBrace(targ);
             tqs = 0;
             name_of_current_func = -1;
             struct_of_current_func = -1;
@@ -6794,7 +6794,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
 
         case  kSYM_Struct:
         {
-            int retval = cc_parse_CheckTQ(tqs, kSYM_Struct);
+            int retval = Parse_CheckTQ(tqs, kSYM_Struct);
             if (retval < 0) return retval;
             retval = ParseStruct(targ, scrip, tqs, nesting_stack, name_of_current_func, struct_of_current_func);
             if (retval < 0) return retval;
@@ -6833,7 +6833,7 @@ int cc_parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip)
 }
 
 // Copy all the func headers from the PreAnalyse phase into the "real" symbol table
-int cc_parse_FuncHeaders2Sym()
+int Parse_FuncHeaders2Sym()
 {
     for (TSym1Table::iterator sym_it = g_Sym1.begin(); sym_it != g_Sym1.end(); ++sym_it)
     {
@@ -6849,7 +6849,7 @@ int cc_parse_FuncHeaders2Sym()
     return 0;
 }
 
-int cc_parse(ccInternalList *targ, ccCompiledScript *scrip)
+int Parse(ccInternalList *targ, ccCompiledScript *scrip)
 {
     g_GIVM.clear();
     g_ImportMgr.Init(scrip);
@@ -6861,11 +6861,11 @@ int cc_parse(ccInternalList *targ, ccCompiledScript *scrip)
         g_Sym1[idx] = sym.entries[idx];
 
     g_PP = kPP_PreAnalyze;
-    int retval = cc_parse_ParseInput(targ, scrip);
+    int retval = Parse_ParseInput(targ, scrip);
     if (retval < 0) return retval;
 
     // Copy (just) the headers of functions that have a body to the main symbol table
-    retval = cc_parse_FuncHeaders2Sym();
+    retval = Parse_FuncHeaders2Sym();
     if (retval < 0) return retval;
     g_Sym1.clear();
 
@@ -6873,7 +6873,7 @@ int cc_parse(ccInternalList *targ, ccCompiledScript *scrip)
     targ->pos = start_of_input;
     g_PP = kPP_Main;
     g_FCM.Init();
-    retval = cc_parse_ParseInput(targ, scrip);
+    retval = Parse_ParseInput(targ, scrip);
     if (retval < 0) return retval;
 
     return g_FCM.CheckForUnresolvedFuncs();
@@ -6890,5 +6890,5 @@ int cc_compile(const char *inpl, ccCompiledScript *scrip)
     if (retval < 0) return retval;
 
     targ.startread();
-    return cc_parse(&targ, scrip);
+    return Parse(&targ, scrip);
 }

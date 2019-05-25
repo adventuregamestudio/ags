@@ -876,10 +876,10 @@ void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)
 
 void GameState::FreeProperties()
 {
-    for (int i = 0; i < game.numcharacters; ++i)
-        charProps[i].clear();
-    for (int i = 0; i < game.numinvitems; ++i)
-        invProps[i].clear();
+    for (auto p : charProps)
+        p.clear();
+    for (auto p : invProps)
+        p.clear();
 }
 
 void GameState::FreeViewportsAndCameras()

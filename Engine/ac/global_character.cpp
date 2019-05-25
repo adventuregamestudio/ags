@@ -398,17 +398,17 @@ void RunCharacterInteraction (int cc, int mood) {
     else if (mood==MODE_CUSTOM2) passon = 7;
 
     evblockbasename="character%d"; evblocknum=cc;
-    if (game.charScripts != nullptr) 
+    if (loaded_game_file_version > kGameVersion_272)
     {
         if (passon>=0)
-            run_interaction_script(game.charScripts[cc], passon, 4, (passon == 3));
-        run_interaction_script(game.charScripts[cc], 4);  // any click on char
+            run_interaction_script(game.charScripts[cc].get(), passon, 4, (passon == 3));
+        run_interaction_script(game.charScripts[cc].get(), 4);  // any click on char
     }
     else 
     {
         if (passon>=0)
-            run_interaction_event(game.intrChar[cc],passon, 4, (passon == 3));
-        run_interaction_event(game.intrChar[cc],4);  // any click on char
+            run_interaction_event(game.intrChar[cc].get(),passon, 4, (passon == 3));
+        run_interaction_event(game.intrChar[cc].get(),4);  // any click on char
     }
 }
 

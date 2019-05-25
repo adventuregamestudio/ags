@@ -35,11 +35,13 @@ namespace AGS
         struct AssetLibInfo;
         struct Interaction;
         struct InteractionScripts;
+        typedef std::shared_ptr<Interaction> PInteraction;
+        typedef std::shared_ptr<InteractionScripts> PInteractionScripts;
     }
 }
 
-using AGS::Common::Interaction;
-using AGS::Common::InteractionScripts;
+using AGS::Common::PInteraction;
+using AGS::Common::PInteractionScripts;
 using AGS::Common::HGameFileError;
 struct OldGameSetupStruct;
 
@@ -52,10 +54,10 @@ struct GameSetupStruct: public GameSetupStructBase {
     std::vector<FontInfo> fonts;
     InventoryItemInfo invinfo[MAX_INV];
     MouseCursor       mcurs[MAX_CURSOR];
-    Interaction     **intrChar;
-    Interaction      *intrInv[MAX_INV];
-    InteractionScripts **charScripts;
-    InteractionScripts **invScripts;
+    std::vector<PInteraction> intrChar;
+    PInteraction intrInv[MAX_INV];
+    std::vector<PInteractionScripts> charScripts;
+    std::vector<PInteractionScripts> invScripts;
     // TODO: why we do not use this in the engine instead of
     // loaded_game_file_version?
     int               filever;  // just used by editor

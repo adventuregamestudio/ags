@@ -24,9 +24,6 @@ using namespace AGS::Common;
 
 GameSetupStruct::GameSetupStruct()
     : filever(0)
-    , intrChar(nullptr)
-    , charScripts(nullptr)
-    , invScripts(nullptr)
     , roomCount(0)
     , roomNumbers(nullptr)
     , roomNames(nullptr)
@@ -34,7 +31,6 @@ GameSetupStruct::GameSetupStruct()
 {
     memset(invinfo, 0, sizeof(invinfo));
     memset(mcurs, 0, sizeof(mcurs));
-    memset(intrInv, 0, sizeof(intrInv));
     memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
     memset(guid, 0, sizeof(guid));
     memset(saveGameFileExtension, 0, sizeof(saveGameFileExtension));
@@ -50,33 +46,14 @@ void GameSetupStruct::Free()
 {
     GameSetupStructBase::Free();
 
-    if (intrChar)
-    {
-        for (int i = 0; i < numcharacters; ++i)
-            delete intrChar[i];
-        delete[] intrChar;
-        intrChar = nullptr;
-    }
-
-    if (charScripts)
-    {
-        for (int i = 0; i < numcharacters; ++i)
-            delete charScripts[i];
-        delete[] charScripts;
-        charScripts = nullptr;
-    }
+    intrChar.clear();
+    charScripts.clear();
     numcharacters = 0;
 
-    for (int i = 1; i < numinvitems; i++)
-        delete intrInv[i];
-
-    if (invScripts)
-    {
-        for (int i = 1; i < numinvitems; i++)
-            delete invScripts[i];
-        delete invScripts;
-        invScripts = nullptr;
-    }
+    // TODO: find out if it really needs to begin with 1 here?
+    for (size_t i = 1; i < (size_t)MAX_INV; i++)
+        intrInv[i].reset();
+    invScripts.clear();
     numinvitems = 0;
 
     for (int i = 0; i < roomCount; i++)
@@ -205,36 +182,25 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
 
     if (data_ver > kGameVersion_272) // 3.x
     {
-        int bb;
-
-        charScripts = new InteractionScripts*[numcharacters];
-        invScripts = new InteractionScripts*[numinvitems];
-        for (bb = 0; bb < numcharacters; bb++) {
-            charScripts[bb] = InteractionScripts::CreateFromStream(in);
-        }
-        for (bb = 1; bb < numinvitems; bb++) {
-            invScripts[bb] = InteractionScripts::CreateFromStream(in);
-        }
+        charScripts.resize(numcharacters);
+        invScripts.resize(numinvitems);
+        for (size_t i = 0; i < (size_t)numcharacters; ++i)
+            charScripts[i].reset(InteractionScripts::CreateFromStream(in));
+        // NOTE: new inventory items' events are loaded starting from 1 for some reason
+        for (size_t i = 1; i < (size_t)numinvitems; ++i)
+            invScripts[i].reset(InteractionScripts::CreateFromStream(in));
     }
     else // 2.x
     {
-        int bb;
-
-        charScripts = nullptr;
-        invScripts = nullptr;
-        intrChar = new Interaction*[numcharacters];
-
-        for (bb = 0; bb < numcharacters; bb++) {
-            intrChar[bb] = Interaction::CreateFromStream(in);
-        }
-        for (bb = 0; bb < numinvitems; bb++) {
-            intrInv[bb] = Interaction::CreateFromStream(in);
-        }
+        intrChar.resize(numcharacters);
+        for (size_t i = 0; i < (size_t)numcharacters; ++i)
+            intrChar[i].reset(Interaction::CreateFromStream(in));
+        for (size_t i = 0; i < (size_t)numinvitems; ++i)
+            intrInv[i].reset(Interaction::CreateFromStream(in));
 
         numGlobalVars = in->ReadInt32();
-        for (bb = 0; bb < numGlobalVars; bb++) {
-            globalvars[bb].Read(in);
-        }
+        for (size_t i = 0; i < (size_t)numGlobalVars; ++i)
+            globalvars[i].Read(in);
     }
 }
 
@@ -431,7 +397,7 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     ReadInvInfo_Aligned(in);
     ReadMouseCursors_Aligned(in);
 
-    if (invScripts == nullptr)
+    if (loaded_game_file_version <= kGameVersion_272)
     {
         for (bb = 0; bb < numinvitems; bb++)
             intrInv[bb]->ReadTimesRunFromSave_v321(in);

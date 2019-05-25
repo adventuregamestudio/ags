@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(LINUX_VERSION)
 
 #include <algorithm>
 #include "gfx/ali3dexception.h"
@@ -23,45 +23,9 @@
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/math.h"
+#include "ac/timer.h"
 
-
-#if defined(WINDOWS_VERSION)
-
-const char* fbo_extension_string = "GL_EXT_framebuffer_object";
-const char* vsync_extension_string = "WGL_EXT_swap_control";
-
-// TODO: linking to glew32 library might be a better option
-PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT = 0;
-PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffersEXT = 0;
-PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT = 0;
-PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatusEXT = 0;
-PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC glGetFramebufferAttachmentParameterivEXT = 0;
-PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT = 0;
-PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = 0;
-PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
-PFNWGLSWAPINTERVALEXTPROC glSwapIntervalEXT = 0;
-// Shaders stuff
-PFNGLCREATESHADERPROC glCreateShader = 0;
-PFNGLSHADERSOURCEPROC glShaderSource = 0;
-PFNGLCOMPILESHADERPROC glCompileShader = 0;
-PFNGLGETSHADERIVPROC glGetShaderiv = 0;
-PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog = 0;
-PFNGLATTACHSHADERPROC glAttachShader = 0;
-PFNGLDETACHSHADERPROC glDetachShader = 0;
-PFNGLDELETESHADERPROC glDeleteShader = 0;
-PFNGLCREATEPROGRAMPROC glCreateProgram = 0;
-PFNGLLINKPROGRAMPROC glLinkProgram = 0;
-PFNGLGETPROGRAMIVPROC glGetProgramiv = 0;
-PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog = 0;
-PFNGLUSEPROGRAMPROC glUseProgram = 0;
-PFNGLDELETEPROGRAMPROC glDeleteProgram = 0;
-PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = 0;
-PFNGLUNIFORM1IPROC glUniform1i = 0;
-PFNGLUNIFORM1FPROC glUniform1f = 0;
-PFNGLUNIFORM3FPROC glUniform3f = 0;
-
-
-#elif defined(ANDROID_VERSION)
+#if defined(ANDROID_VERSION)
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
@@ -164,29 +128,29 @@ GFX_DRIVER gfx_opengl =
    empty_string,
    empty_string,
    "OpenGL",
-   NULL,    // init
-   NULL,   // exit
-   NULL,                        // AL_METHOD(int, scroll, (int x, int y)); 
+   nullptr,    // init
+   nullptr,   // exit
+   nullptr,                        // AL_METHOD(int, scroll, (int x, int y)); 
    ogl_dummy_vsync,   // vsync
-   NULL,  // setpalette
-   NULL,                        // AL_METHOD(int, request_scroll, (int x, int y));
-   NULL,                        // AL_METHOD(int, poll_scroll, (void));
-   NULL,                        // AL_METHOD(void, enable_triple_buffer, (void));
-   NULL,  //create_video_bitmap
-   NULL,  //destroy_video_bitmap
-   NULL,   //show_video_bitmap
-   NULL,
-   NULL,  //gfx_directx_create_system_bitmap,
-   NULL, //gfx_directx_destroy_system_bitmap,
-   NULL, //gfx_directx_set_mouse_sprite,
-   NULL, //gfx_directx_show_mouse,
-   NULL, //gfx_directx_hide_mouse,
-   NULL, //gfx_directx_move_mouse,
-   NULL,                        // AL_METHOD(void, drawing_mode, (void));
-   NULL,                        // AL_METHOD(void, save_video_state, (void*));
-   NULL,                        // AL_METHOD(void, restore_video_state, (void*));
-   NULL,                        // AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a));
-   NULL,                        // AL_METHOD(int, fetch_mode_list, (void));
+   nullptr,  // setpalette
+   nullptr,                        // AL_METHOD(int, request_scroll, (int x, int y));
+   nullptr,                        // AL_METHOD(int, poll_scroll, (void));
+   nullptr,                        // AL_METHOD(void, enable_triple_buffer, (void));
+   nullptr,  //create_video_bitmap
+   nullptr,  //destroy_video_bitmap
+   nullptr,   //show_video_bitmap
+   nullptr,
+   nullptr,  //gfx_directx_create_system_bitmap,
+   nullptr, //gfx_directx_destroy_system_bitmap,
+   nullptr, //gfx_directx_set_mouse_sprite,
+   nullptr, //gfx_directx_show_mouse,
+   nullptr, //gfx_directx_hide_mouse,
+   nullptr, //gfx_directx_move_mouse,
+   nullptr,                        // AL_METHOD(void, drawing_mode, (void));
+   nullptr,                        // AL_METHOD(void, save_video_state, (void*));
+   nullptr,                        // AL_METHOD(void, restore_video_state, (void*));
+   nullptr,                        // AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a));
+   nullptr,                        // AL_METHOD(int, fetch_mode_list, (void));
    0, 0,                        // int w, h;
    FALSE,                        // int linear;
    0,                           // long bank_size;
@@ -198,19 +162,19 @@ GFX_DRIVER gfx_opengl =
 
 void OGLBitmap::Dispose()
 {
-    if (_tiles != NULL)
+    if (_tiles != nullptr)
     {
         for (int i = 0; i < _numTiles; i++)
             glDeleteTextures(1, &(_tiles[i].texture));
 
         free(_tiles);
-        _tiles = NULL;
+        _tiles = nullptr;
         _numTiles = 0;
     }
-    if (_vertex != NULL)
+    if (_vertex != nullptr)
     {
         free(_vertex);
-        _vertex = NULL;
+        _vertex = nullptr;
     }
 }
 
@@ -227,6 +191,11 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _hInstance = NULL;
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
+#elif defined (LINUX_VERSION)
+  device_screen_physical_width  = 0;
+  device_screen_physical_height = 0;
+  _glxContext = nullptr;
+  _have_window = false;
 #elif defined (ANDROID_VERSION)
   device_screen_physical_width  = android_screen_physical_width;
   device_screen_physical_height = android_screen_physical_height;
@@ -241,8 +210,8 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
-  _screenTintLayer = NULL;
-  _screenTintLayerDDB = NULL;
+  _screenTintLayer = nullptr;
+  _screenTintLayerDDB = nullptr;
   _screenTintSprite.skip = true;
   _screenTintSprite.x = 0;
   _screenTintSprite.y = 0;
@@ -258,9 +227,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 16;
   _vmem_a_shift_32 = 24;
-
-  // Initialize default sprite batch, it will be used when no other batch was activated
-  InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 
@@ -290,7 +256,7 @@ void OGLGraphicsDriver::SetupDefaultVertices()
   defaultVertices[3].tv=1.0;
 }
 
-#if defined (WINDOWS_VERSION)
+#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
 
 void OGLGraphicsDriver::CreateDesktopScreen(int width, int height, int depth)
 {
@@ -366,29 +332,40 @@ void OGLGraphicsDriver::SetGraphicsFilter(POGLFilter filter)
   create_screen_tint_bitmap();
 }
 
-void OGLGraphicsDriver::SetTintMethod(TintMethod method) 
+void OGLGraphicsDriver::SetTintMethod(TintMethod method)
 {
   _legacyPixelShader = (method == TintReColourise);
 }
 
 void OGLGraphicsDriver::FirstTimeInit()
 {
-  // It was told that GL_VERSION is supposed to begin with digits and may have
-  // custom string after, but mobile version of OpenGL seem to have different
-  // version string format.
-  String ogl_v_str = (const char*)glGetString(GL_VERSION);
-  String digits = "1234567890";
-  const char *digits_ptr = std::find_first_of(ogl_v_str.GetCStr(), ogl_v_str.GetCStr() + ogl_v_str.GetLength(),
-      digits.GetCStr(), digits.GetCStr() + digits.GetLength());
-  if (digits_ptr < ogl_v_str.GetCStr() + ogl_v_str.GetLength())
-    _oglVersion.SetFromString(digits_ptr);
+  String ogl_v_str;
+#ifdef GLAPI
+  ogl_v_str.Format("%d.%d", GLVersion.major, GLVersion.minor);
+#else
+  ogl_v_str = (const char*)glGetString(GL_VERSION);
+#endif
   Debug::Printf(kDbgMsg_Init, "Running OpenGL: %s", ogl_v_str.GetCStr());
 
-  TestVSync();
+  // Initialize default sprite batch, it will be used when no other batch was activated
+  OGLGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
+  
   TestRenderToTexture();
   CreateShaders();
   _firstTimeInit = true;
 }
+
+#if defined (LINUX_VERSION)
+Atom get_x_atom (const char *atom_name)
+{
+  Atom atom = XInternAtom(_xwin.display, atom_name, False);
+  if (atom == None)
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: X11 atom \"%s\" not found.\n", atom_name);
+  }
+  return atom;
+}
+#endif
 
 bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 {
@@ -433,8 +410,110 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
       return false;
   }
 
+  if (!gladLoadWGL(_hDC)) {
+	  Debug::Printf(kDbgMsg_Error, "Failed to load WGL.");
+	  return false;
+  }
+
+  if (!gladLoadGL()) {
+	  Debug::Printf(kDbgMsg_Error, "Failed to load GL.");
+	  return false;
+  }
+
   CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
   win_grab_input();
+#elif defined (LINUX_VERSION)
+  if (!_have_window)
+  {
+    // Use Allegro to create our window. We don't care what size Allegro uses
+    // here, we will set that ourselves below by manipulating members of
+    // Allegro's_xwin structure. We need to use the Allegro routine here (rather
+    // than create our own X window) to remain compatible with Allegro's mouse &
+    // keyboard handling.
+    //
+    // Note that although _xwin contains a special "fullscreen" Window member
+    // (_xwin.fs_window), we do not use it for going fullscreen. Instead we ask
+    // the window manager to take the "managed" Window (_xwin.wm_window)
+    // fullscreen for us. All drawing goes to the "real" Window (_xwin.window).
+    if (set_gfx_mode(GFX_AUTODETECT_WINDOWED, 0, 0, 0, 0) != 0) 
+      return false;
+    _have_window = true;
+  }
+
+  if (!gladLoadGLX(_xwin.display, DefaultScreen(_xwin.display))) {
+    Debug::Printf(kDbgMsg_Error, "Failed to load GLX.");
+    return false;
+  }
+
+  if (!_glxContext && !CreateGlContext(mode))
+    return false;
+
+  if(!gladLoadGL()) {
+    Debug::Printf(kDbgMsg_Error, "Failed to load GL.");
+    return false;
+  }
+
+  {
+    // Set the size of our "managed" window.
+    XSizeHints *hints = XAllocSizeHints();
+
+    if (hints)
+    {
+      if (mode.Windowed)
+      {
+        // Set a fixed-size window. This is copied from Allegro 4's
+        // _xwin_private_create_screen().
+        hints->flags = PMinSize | PMaxSize | PBaseSize;
+        hints->min_width  = hints->max_width  = hints->base_width  = mode.Width;
+        hints->min_height = hints->max_height = hints->base_height = mode.Height;
+      }
+      else
+      {
+        // Clear any previously set demand for a fixed-size window, otherwise
+        // the window manager will ignore our request to go full-screen.
+        hints->flags = 0;
+      }
+
+      XSetWMNormalHints(_xwin.display, _xwin.wm_window, hints);
+    }
+
+    XFree(hints);
+  }
+
+  // Set the window we are actually drawing into to the desired size.
+  XResizeWindow(_xwin.display, _xwin.window, mode.Width, mode.Height);
+
+  // Make Allegro aware of the new window size, otherwise the mouse cursor
+  // movement may be erratic.
+  _xwin.window_width = mode.Width;
+  _xwin.window_height = mode.Height;
+
+  {
+    // Ask the window manager to add (or remove) the "fullscreen" property on
+    // our top-level window.
+    const Atom wm_state = get_x_atom("_NET_WM_STATE");
+    const Atom fullscreen = get_x_atom("_NET_WM_STATE_FULLSCREEN");
+    const long remove_property = 0;
+    const long add_property = 1;
+
+    XEvent xev;
+    memset(&xev, 0, sizeof(xev));
+    xev.type = ClientMessage;
+    xev.xclient.window = _xwin.wm_window;
+    xev.xclient.message_type = wm_state;
+    xev.xclient.format = 32;
+    xev.xclient.data.l[0] = mode.Windowed ? remove_property : add_property;
+    xev.xclient.data.l[1] = fullscreen;
+    xev.xclient.data.l[2] = 0;
+    xev.xclient.data.l[3] = 1; // Message source is a regular application.
+    Status status = XSendEvent(_xwin.display, DefaultRootWindow(_xwin.display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+    if (status == 0)
+    {
+      Debug::Printf(kDbgMsg_Error, "ERROR: Failed to encode window state message.\n");
+    }
+  }
+
+  CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
 #endif
 
   gfx_driver = &gfx_opengl;
@@ -469,12 +548,31 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  if (glSwapIntervalEXT)
-  {
-    if(mode.Vsync)
-      glSwapIntervalEXT(1);
-    else
-      glSwapIntervalEXT(0);
+  auto interval = mode.Vsync ? 1 : 0;
+  bool vsyncEnabled = false;
+
+#ifdef WINDOWS_VERSION
+  if (GLAD_WGL_EXT_swap_control) {
+    vsyncEnabled = wglSwapIntervalEXT(interval) != FALSE;
+  }
+#endif
+
+#ifdef LINUX_VERSION
+  if (GLAD_GLX_EXT_swap_control) {
+    glXSwapIntervalEXT(_xwin.display, _xwin.window, interval);
+    // glx requires hooking into XSetErrorHandler to test for BadWindow or BadValue
+    vsyncEnabled = true;
+  } else if (GLAD_GLX_MESA_swap_control) {
+    vsyncEnabled = glXSwapIntervalMESA(interval) == 0;
+  } else if (GLAD_GLX_SGI_swap_control) {
+    vsyncEnabled = glXSwapIntervalSGI(interval) == 0;
+  }
+#endif
+
+  // TODO: find out how to implement SwapInterval on other platforms, and how to check if it's supported
+
+  if (mode.Vsync && !vsyncEnabled) {
+    Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync could not be enabled. Setting will be kept at driver default.");
   }
 
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION)
@@ -525,6 +623,27 @@ bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
   if(!wglMakeCurrent(_hDC, _hRC))
     return false;
 #endif // WINDOWS_VERSION
+#if defined (LINUX_VERSION)
+  int attrib[] = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
+  XVisualInfo *vi = glXChooseVisual(_xwin.display, DefaultScreen(_xwin.display), attrib);
+  if (!vi)
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: glXChooseVisual() failed.\n");
+    return false;
+  }
+
+  if (!(_glxContext = glXCreateContext(_xwin.display, vi, None, True)))
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: glXCreateContext() failed.\n");
+    return false;
+  }
+
+  if (!glXMakeCurrent(_xwin.display, _xwin.window, _glxContext))
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: glXMakeCurrent() failed.\n");
+    return false;
+  }
+#endif
   return true;
 }
 
@@ -540,56 +659,39 @@ void OGLGraphicsDriver::DeleteGlContext()
 
   if (_oldPixelFormat > 0)
     SetPixelFormat(_hDC, _oldPixelFormat, &_oldPixelFormatDesc);
+#elif defined (LINUX_VERSION)
+  if (_glxContext)
+  {
+    glXMakeCurrent(_xwin.display, None, nullptr);
+    glXDestroyContext(_xwin.display, _glxContext);
+    _glxContext = nullptr;
+  }
 #endif
 }
 
-void OGLGraphicsDriver::TestVSync()
+inline bool CanDoFrameBuffer()
 {
-// TODO: find out how to implement SwapInterval on other platforms, and how to check if it's supported
-#if defined(WINDOWS_VERSION)
+#ifdef GLAPI
+  return GLAD_GL_EXT_framebuffer_object != 0;
+#else
+#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+  const char* fbo_extension_string = "GL_OES_framebuffer_object";
+#else
+  const char* fbo_extension_string = "GL_EXT_framebuffer_object";
+#endif
   const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
-  const char* extensionsARB = NULL;
-//#if defined(WINDOWS_VERSION)
-  PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
-  extensionsARB = wglGetExtensionsStringARB ? (const char*)wglGetExtensionsStringARB(_hDC) : NULL;
-//#endif
-
-  if (extensions && strstr(extensions, vsync_extension_string) != NULL ||
-        extensionsARB && strstr(extensionsARB, vsync_extension_string) != NULL)
-  {
-//#if defined(WINDOWS_VERSION)
-    glSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-//#endif
-  }
-  if (!glSwapIntervalEXT)
-    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension '%s' not supported, vertical sync will be kept at driver default.", vsync_extension_string);
+  return extensions && strstr(extensions, fbo_extension_string) != NULL;
 #endif
 }
 
 void OGLGraphicsDriver::TestRenderToTexture()
 {
-  const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
-
-  if (extensions && strstr(extensions, fbo_extension_string) != NULL)
-  {
-  #if defined(WINDOWS_VERSION)
-    glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
-    glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
-    glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
-    glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
-    glGetFramebufferAttachmentParameterivEXT = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC)wglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
-    glGenerateMipmapEXT = (PFNGLGENERATEMIPMAPEXTPROC)wglGetProcAddress("glGenerateMipmapEXT");
-    glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
-    glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
-  #endif
-
+  if (CanDoFrameBuffer()) {
     _can_render_to_texture = true;
     TestSupersampling();
-  }
-  else
-  {
+  } else {
     _can_render_to_texture = false;
-    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension '%s' not supported, rendering to texture mode will be disabled.", fbo_extension_string);
+    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension 'GL_EXT_framebuffer_object' not supported, rendering to texture mode will be disabled.");
   }
 
   if (!_can_render_to_texture)
@@ -612,38 +714,10 @@ void OGLGraphicsDriver::TestSupersampling()
 
 void OGLGraphicsDriver::CreateShaders()
 {
-  // We need at least OpenGL 3.0 to run our tinting shader
-  if (_oglVersion.Major < 3)
-    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL 3.0 or higher is required for tinting shader.");
-
-  // TODO: linking with GLEW library might be a better idea
-  #if defined(WINDOWS_VERSION)
-    glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
-    glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
-    glCompileShader = (PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader");
-    glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
-    glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)wglGetProcAddress("glGetShaderInfoLog");
-    glAttachShader = (PFNGLATTACHSHADERPROC)wglGetProcAddress("glAttachShader");
-    glDetachShader = (PFNGLDETACHSHADERPROC)wglGetProcAddress("glDetachShader");
-    glDeleteShader = (PFNGLDELETESHADERPROC)wglGetProcAddress("glDeleteShader");
-    glCreateProgram = (PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram");
-    glLinkProgram = (PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram");
-    glGetProgramiv = (PFNGLGETPROGRAMIVPROC)wglGetProcAddress("glGetProgramiv");
-    glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)wglGetProcAddress("glGetProgramInfoLog");
-    glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
-    glDeleteProgram = (PFNGLDELETEPROGRAMPROC)wglGetProcAddress("glDeleteProgram");
-    glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
-    glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
-    glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
-    glUniform3f = (PFNGLUNIFORM3FPROC)wglGetProcAddress("glUniform3f");
-  #endif
-
-  if (!glCreateShader)
-  {
-    Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL shader functions could not be linked.");
+  if (!GLAD_GL_VERSION_2_0) {
+    Debug::Printf(kDbgMsg_Error, "ERROR: Shaders require a minimum of OpenGL 2.0 support.");
     return;
   }
-
   CreateTintShader();
   CreateLightShader();
 }
@@ -661,8 +735,7 @@ void OGLGraphicsDriver::CreateTintShader()
     // tintHSV - tint color in HSV,
     // tintAmnTrsLum - tint parameters: amount, translucence (alpha), luminance.
     "\
-                                #version 130\n\
-                                out vec4 gl_FragColor;\n\
+                                #version 120\n\
                                 uniform sampler2D textID;\n\
                                 uniform vec3 tintHSV;\n\
                                 uniform vec3 tintAmnTrsLum;\n\
@@ -717,8 +790,7 @@ void OGLGraphicsDriver::CreateLightShader()
     // light - light level,
     // alpha - color alpha value.
     "\
-                                #version 130\n\
-                                out vec4 gl_FragColor;\n\
+                                #version 120\n\
                                 uniform sampler2D textID;\n\
                                 uniform float light;\n\
                                 uniform float alpha;\n\
@@ -739,7 +811,7 @@ void OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const char *name
                                             const char *sampler_var, const char *color_var, const char *aux_var)
 {
   GLint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
+  glShaderSource(fragment_shader, 1, &fragment_shader_src, nullptr);
   glCompileShader(fragment_shader);
   GLint result;
   glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
@@ -834,7 +906,7 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backTextureSize.Width, _backTextureSize.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backTextureSize.Width, _backTextureSize.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
   glBindTexture(GL_TEXTURE_2D, 0);
 
   glGenFramebuffersEXT(1, &_fbo);
@@ -974,18 +1046,18 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   OnModeReleased();
   DeleteBackbufferTexture();
 
-  if (_screenTintLayerDDB != NULL) 
+  if (_screenTintLayerDDB != nullptr) 
   {
     this->DestroyDDB(_screenTintLayerDDB);
-    _screenTintLayerDDB = NULL;
-    _screenTintSprite.bitmap = NULL;
+    _screenTintLayerDDB = nullptr;
+    _screenTintSprite.bitmap = nullptr;
   }
   delete _screenTintLayer;
-  _screenTintLayer = NULL;
+  _screenTintLayer = nullptr;
 
   DestroyAllStageScreens();
 
-  gfx_driver = NULL;
+  gfx_driver = nullptr;
 
   if (platform->ExitFullscreenMode())
     platform->RestoreWindowStyle();
@@ -1008,7 +1080,7 @@ void OGLGraphicsDriver::UnInit()
 
 OGLGraphicsDriver::~OGLGraphicsDriver()
 {
-  UnInit();
+  OGLGraphicsDriver::UnInit();
 }
 
 void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
@@ -1016,15 +1088,21 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
-bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size)
+bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   (void)at_native_res; // TODO: support this at some point
 
+  // TODO: follow implementation currently only reads GL pixels in 32-bit RGBA.
+  // this **should** work regardless of actual display mode because OpenGL is
+  // responsible to convert and fill pixel buffer correctly.
+  // If you like to support writing directly into 16-bit bitmap, please take
+  // care of ammending the pixel reading code below.
+  const int read_in_colordepth = 32;
   Size need_size = _do_render_to_texture ? _backRenderSize : _dstRect.GetSize();
-  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
+  if (destination->GetColorDepth() != read_in_colordepth || destination->GetSize() != need_size)
   {
-    if (want_size)
-      *want_size = need_size;
+    if (want_fmt)
+      *want_fmt = GraphicResolution(need_size.Width, need_size.Height, read_in_colordepth);
     return false;
   }
 
@@ -1038,13 +1116,13 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   {
 #if defined(IOS_VERSION)
     ios_select_buffer();
-#elif defined(WINDOWS_VERSION)
+#elif defined(WINDOWS_VERSION) || defined (LINUX_VERSION)
     glReadBuffer(GL_FRONT);
 #endif
     retr_rect = _dstRect;
   }
 
-  int bpp = _mode.ColorDepth / 8;
+  int bpp = read_in_colordepth / 8;
   int bufferSize = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
 
   unsigned char* buffer = new unsigned char[bufferSize];
@@ -1251,8 +1329,9 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
 
     // Global batch transform
     glMultMatrixf(matGlobal.m);
-    // Self sprite transform (first scale, then translate, reversed)
+    // Self sprite transform (first scale, then rotate and then translate, reversed)
     glTranslatef((float)thisX, (float)thisY, 0.0f);
+    glRotatef(0.f, 0.f, 0.f, 1.f);
     glScalef(widthToScale, heightToScale, 1.0f);
 
     glBindTexture(GL_TEXTURE_2D, bmpToDraw->_tiles[ti].texture);
@@ -1276,7 +1355,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    if (bmpToDraw->_vertex != NULL)
+    if (bmpToDraw->_vertex != nullptr)
     {
       glTexCoordPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].tu));
       glVertexPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].position));
@@ -1378,6 +1457,8 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
 #if defined(WINDOWS_VERSION)
   SwapBuffers(_hDC);
+#elif defined(LINUX_VERSION)
+  glXSwapBuffers(_xwin.display, _xwin.window);
 #elif defined(ANDROID_VERSION) || defined(IOS_VERSION)
   device_swap_buffers();
 #endif
@@ -1442,7 +1523,7 @@ void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFli
       continue;
 
     const OGLDrawListEntry *sprite = &listToDraw[i];
-    if (listToDraw[i].bitmap == NULL)
+    if (listToDraw[i].bitmap == nullptr)
     {
       if (DoNullSpriteCallback(listToDraw[i].x, listToDraw[i].y))
         stageEntry = OGLDrawListEntry((OGLBitmap*)_stageVirtualScreenDDB);
@@ -1461,18 +1542,21 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         _spriteBatches.resize(index + 1);
     _spriteBatches[index].List.clear();
     // Combine both world transform and viewport transform into one matrix for faster perfomance
+    // NOTE: in OpenGL order of transformation is REVERSE to the order of commands!
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    // NOTE: last step is translate to viewport position; remove this if this
+    // is changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    // TODO: is this the only way in OpenGL to construct matrixes for future use?
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
-    // is it possible to do with matrixes?
-    glTranslatef((float)(desc.Transform.X + desc.Viewport.Left - scaled_offx),
-        (float)-(desc.Transform.Y + desc.Viewport.Top - scaled_offy), 0.0f);
-    glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f);
-    glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f);
+    glTranslatef((float)(desc.Viewport.Left - scaled_offx), (float)-(desc.Viewport.Top - scaled_offy), 0.0f);
+    // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
+    // the camera's transformation is essentially reverse world transformation. And the operations
+    // are inverse: Translate-Rotate-Scale (here they are double inverse because OpenGL).
+    glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f); // scale camera
+    glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f); // rotate camera
+    glTranslatef((float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f); // translate camera
     glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
     glLoadIdentity();
 
@@ -1691,7 +1775,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   OGLTextureTile *tiles = (OGLTextureTile*)malloc(sizeof(OGLTextureTile) * numTiles);
   memset(tiles, 0, sizeof(OGLTextureTile) * numTiles);
 
-  OGLCUSTOMVERTEX *vertices = NULL;
+  OGLCUSTOMVERTEX *vertices = nullptr;
 
   if ((numTiles == 1) &&
       (allocatedWidth == bitmap->GetWidth()) &&
@@ -1732,7 +1816,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
         AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
       }
 
-      if (vertices != NULL)
+      if (vertices != nullptr)
       {
         for (int vidx = 0; vidx < 4; vidx++)
         {
@@ -1757,7 +1841,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
       // NOTE: pay attention that the texture format depends on the **display mode**'s format,
       // rather than source bitmap's color depth!
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     }
   }
 
@@ -1775,7 +1859,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   {
     this->_reDrawLastFrame();
   }
-  else if (_drawScreenCallback != NULL)
+  else if (_drawScreenCallback != nullptr)
     _drawScreenCallback();
   
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
@@ -1792,17 +1876,13 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   speed *= 2;  // harmonise speeds with software driver which is faster
   for (int a = 1; a < 255; a += speed)
   {
-    int timerValue = *_loopTimer;
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_render(flipTypeLastTime, false);
 
-    do
-    {
+    do {
       if (_pollingCallback)
         _pollingCallback();
-      platform->YieldCPU();
-    }
-    while (timerValue == *_loopTimer);
+    } while (waitingForNextTick());
 
   }
 
@@ -1832,7 +1912,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   {
     this->_reDrawLastFrame();
   }
-  else if (_drawScreenCallback != NULL)
+  else if (_drawScreenCallback != nullptr)
     _drawScreenCallback();
   
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
@@ -1924,11 +2004,11 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 }
 
 
-OGLGraphicsFactory *OGLGraphicsFactory::_factory = NULL;
+OGLGraphicsFactory *OGLGraphicsFactory::_factory = nullptr;
 
 OGLGraphicsFactory::~OGLGraphicsFactory()
 {
-    _factory = NULL;
+    _factory = nullptr;
 }
 
 size_t OGLGraphicsFactory::GetFilterCount() const
@@ -1945,7 +2025,7 @@ const GfxFilterInfo *OGLGraphicsFactory::GetFilterInfo(size_t index) const
     case 1:
         return &AAOGLGfxFilter::FilterInfo;
     default:
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -1974,7 +2054,7 @@ OGLGfxFilter *OGLGraphicsFactory::CreateFilter(const String &id)
         return new OGLGfxFilter();
     else if (AAOGLGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
         return new AAOGLGfxFilter();
-    return NULL;
+    return nullptr;
 }
 
 } // namespace OGL

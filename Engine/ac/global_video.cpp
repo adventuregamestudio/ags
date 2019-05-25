@@ -21,8 +21,8 @@
 #include "ac/path_helper.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
-#include "media/audio/audio.h"
 #include "media/video/video.h"
+#include "media/audio/audio_system.h"
 
 
 void scrPlayVideo(const char* name, int skip, int flags) {

@@ -32,13 +32,13 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "main/engine.h"
-#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/windows/setup/winsetup.h"
 #include "plugin/agsplugin.h"
 #include "util/file.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -94,7 +94,6 @@ struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
 
   virtual void AboutToQuitGame() override;
-  virtual void Delay(int millis) override;
   virtual void DisplayAlert(const char*, ...) override;
   virtual int  GetLastSystemError() override;
   virtual const char *GetAllUsersDataDirectory() override;
@@ -816,21 +815,6 @@ int AGSWin32::GetLastSystemError()
   return ::GetLastError();
 }
 
-void AGSWin32::Delay(int millis) 
-{
-  while (millis >= 5)
-  {
-    Sleep(5);
-    millis -= 5;
-    // don't allow it to check for debug messages, since this Delay()
-    // call might be from within a debugger polling loop
-    update_polled_mp3();
-  }
-
-  if (millis > 0)
-    Sleep(millis);
-}
-
 unsigned long AGSWin32::GetDiskFreeSpaceMB() {
   DWORD returnMb = 0;
   BOOL fResult;
@@ -877,7 +861,7 @@ eScriptSystemOSID AGSWin32::GetSystemOSID() {
 void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
   char useloc[250];
-  sprintf(useloc,"%s\\%s",usetup.data_files_dir.GetCStr(), name);
+  sprintf(useloc, "%s\\%s", ResPaths.DataDir.GetCStr(), name);
 
   bool useSound = true;
   if (flags >= 10) {

@@ -21,7 +21,7 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game name";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
-        public const string PROPERTY_SCALE_FONTS = "Fonts designed for high resolution";
+        public const string PROPERTY_LEGACY_HIRES_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
@@ -39,6 +39,7 @@ namespace AGS.Types
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
+        private bool _allowRelativeAssetResolution = false;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;
@@ -90,8 +91,9 @@ namespace AGS.Types
         private bool _binaryFilesInSourceControl = false;
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
+        private int _defRoomMaskResolution = 1;
         // Windows game explorer fields
-		private bool _enableGameExplorer = false;
+        private bool _enableGameExplorer = false;
 		private string _description = string.Empty;
 		private DateTime _releaseDate = DateTime.Now;
 		private string _genre = DEFAULT_GENRE;
@@ -230,19 +232,29 @@ namespace AGS.Types
             }
         }
 
+        [DisplayName("Allow relative asset resolutions")]
+        [Description("Allow sprites and room backgrounds to define whether they are low- or high-resolution assets. If this does not match the game type then images will be scaled up or down in game." +
+            "\nThis option will only be useful when importing games made before AGS 3.1.")]
+        [Category("Backwards Compatibility")]
+        [DefaultValue(false)]
+        public bool AllowRelativeAssetResolutions
+        {
+            get { return _allowRelativeAssetResolution; }
+            set { _allowRelativeAssetResolution = value; }
+        }
+
         /// <summary>
-        /// Tells if the game should be considered low-resolution.
+        /// Tells if the game should be considered high-resolution.
         /// For backwards-compatble logic only.
-        /// The "low resolution" assumes that game does not exceed
-        /// 320x240 pixels.
+        /// The "high resolution" assumes that game exceeds 320x240 pixels.
         /// </summary>
         [Browsable(false)]
         // CLNUP I think this also tells the editor if scaling up GUIs in low res games
-        public bool LowResolution
+        public bool HighResolution
         {
             get
             {
-                return (CustomResolution.Width * CustomResolution.Height) <= (320 * 240);
+                return (CustomResolution.Width * CustomResolution.Height) > (320 * 240);
             }
         }
 
@@ -748,7 +760,9 @@ namespace AGS.Types
             set { _alwaysDisplayTextAsSpeech = value; }
         }
 
-        [DisplayName(PROPERTY_SCALE_FONTS)]
+        [AGSNoSerialize]
+        [Browsable(false)]
+        [DisplayName(PROPERTY_LEGACY_HIRES_FONTS)]
         [Description("Tells AGS that your fonts are designed for high resolution (higher than 320x240), and therefore not to scale them up in hi-res game")]
         [DefaultValue(false)]
         [Category("Text output")]
@@ -804,7 +818,18 @@ namespace AGS.Types
             set { _hasMODMusic = value; }
         }
 
-		[DisplayName("Enable Game Explorer integration")]
+        [DisplayName("Default mask resolution")]
+        [Description("What resolution do room region masks have relative to the room size")]
+        [Category("Rooms")]
+        [DefaultValue(1)]
+        [TypeConverter(typeof(RoomMaskResolutionTypeConverter))]
+        public int DefaultRoomMaskResolution
+        {
+            get { return _defRoomMaskResolution; }
+            set { _defRoomMaskResolution = value; }
+        }
+
+        [DisplayName("Enable Game Explorer integration")]
 		[Description("Whether or not this game can be added to the Vista Game Explorer")]
 		[Category("Windows Game Explorer")]
 		public bool GameExplorerEnabled

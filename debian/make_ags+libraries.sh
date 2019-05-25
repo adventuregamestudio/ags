@@ -11,14 +11,14 @@ set -e
 
 # Preliminaries for running this script:
 # This script is intended for use on Debian or Ubuntu
-# Install ubuntu-dev-scripts and cowbuilder:
+# Install ubuntu-dev-tools and pbuilder, Ubuntu also needs debhelper:
 
-# sudo apt-get install ubuntu-dev-tools cowbuilder
+# sudo apt-get install ubuntu-dev-tools pbuilder debhelper
 
 # Create the (chroot) environments that will be used for building ags:
 
-# cowbuilder-dist jessie i386 create
-# cowbuilder-dist jessie amd64 create
+# pbuilder-dist jessie i386 --security-only create
+# pbuilder-dist jessie amd64 --security-only create
 
 # The only other thing you should take care of is that your ags
 # source tree is git clean. That means: check 'git status', commit any
@@ -27,8 +27,8 @@ set -e
 # The chroots can later be updated, which becomes necessary if
 # this script fails because some Debian package cannot be downloaded:
 
-# cowbuilder-dist jessie i386 update
-# cowbuilder-dist jessie amd64 update
+# pbuilder-dist jessie i386 --security-only update
+# pbuilder-dist jessie amd64 --security-only update
 
 BASEPATH=$(dirname $(dirname $(readlink -f $0)))
 
@@ -56,15 +56,15 @@ CHANGELOG_VERSION=$(head -1 debian/changelog | sed 's/.*(\(.*\)).*/\1/')
 VERSION=$(grep '#define ACI_VERSION_STR' Common/core/def_version.h | sed 's/.*"\(.*\)".*/\1/')
 sed -i -- "s/$CHANGELOG_VERSION/$VERSION/" debian/changelog
 debian/rules get-orig-source
-debuild -us -uc -S
+debuild -us -uc -d -S
 
 # Build ags binary package in i386 chroot, also use a hook script to copy libraries and licenses
 # from the chroot to a folder that is mounted into the chroot via --bindmounts.
-DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib32" cowbuilder-dist jessie i386 build \
-  $BASEPATH/../ags_$VERSION.dsc \
+DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib32" pbuilder-dist jessie i386 build \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
-  --bindmounts "$BASEPATH/ags+libraries"
+  --bindmounts "$BASEPATH/ags+libraries" \
+  $BASEPATH/../ags_$VERSION.dsc
 
 # Get the ags binary out of the binary Debian package and clean up.
 cd $BASEPATH/ags+libraries
@@ -74,11 +74,11 @@ rm -rf $BASEPATH/ags+libraries/ags_* $BASEPATH/ags+libraries/ags-dbg_* $BASEPATH
 
 # Repeat for amd64.
 sed -i -r "5s/.*/BIT=64/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
-DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib64" cowbuilder-dist jessie amd64 build \
-  $BASEPATH/../ags_$VERSION.dsc \
+DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib64" pbuilder-dist jessie amd64 build \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
-  --bindmounts "$BASEPATH/ags+libraries"
+  --bindmounts "$BASEPATH/ags+libraries" \
+  $BASEPATH/../ags_$VERSION.dsc
 
 cd $BASEPATH/ags+libraries
 ar p $BASEPATH/ags+libraries/ags_${VERSION}_amd64.deb data.tar.xz | unxz | tar x

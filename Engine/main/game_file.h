@@ -23,10 +23,6 @@
 
 using AGS::Common::HError;
 
-void set_default_glmsg (int msgnum, const char* val);
-
-extern AGS::Common::String game_file_name;
-
 // Preload particular game-describing parameters from the game data header (title, save game dir name, etc)
 HError preload_game_data();
 // Loads game data and reinitializes the game state; assigns error message in case of failure

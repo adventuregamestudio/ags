@@ -45,66 +45,10 @@ extern IGraphicsDriver *gfxDriver;
 // CLNUP most likely remove these
 int convert_16bit_bgr = 0;
 
-int ff; // whatever!
-
-// CLNUP remove this
-int adjust_pixel_size_for_loaded_data(int size, int filever)
-{
-    return size;
-}
-
-// CLNUP there won't be nothing to adjust
-void adjust_pixel_sizes_for_loaded_data(int *x, int *y, int filever)
-{
-    x[0] = adjust_pixel_size_for_loaded_data(x[0], filever);
-    y[0] = adjust_pixel_size_for_loaded_data(y[0], filever);
-}
-
-// CLNUP check if it can be removed
-void adjust_sizes_for_resolution(int filever)
-{
-    int ee;
-    for (ee = 0; ee < game.numcursors; ee++) 
-    {
-        game.mcurs[ee].hotx = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hotx, filever);
-        game.mcurs[ee].hoty = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hoty, filever);
-    }
-
-    for (ee = 0; ee < game.numinvitems; ee++) 
-    {
-        adjust_pixel_sizes_for_loaded_data(&game.invinfo[ee].hotx, &game.invinfo[ee].hoty, filever);
-    }
-
-    for (ee = 0; ee < game.numgui; ee++) 
-    {
-        GUIMain*cgp=&guis[ee];
-        adjust_pixel_sizes_for_loaded_data(&cgp->X, &cgp->Y, filever);
-        if (cgp->Width < 1)
-            cgp->Width = 1;
-        if (cgp->Height < 1)
-            cgp->Height = 1;
-        // Temp fix for older games
-        if (cgp->Width == play.GetNativeSize().Width - 1)
-            cgp->Width = play.GetNativeSize().Width;
-
-        adjust_pixel_sizes_for_loaded_data(&cgp->Width, &cgp->Height, filever);
-
-        cgp->PopupAtMouseY = adjust_pixel_size_for_loaded_data(cgp->PopupAtMouseY, filever);
-
-        for (ff = 0; ff < cgp->GetControlCount(); ff++)
-        {
-            GUIObject *guio = cgp->GetControl(ff);
-            adjust_pixel_sizes_for_loaded_data(&guio->X, &guio->Y, filever);
-            adjust_pixel_sizes_for_loaded_data(&guio->Width, &guio->Height, filever);
-            guio->IsActivated = false;
-        }
-    }
-}
-
 void engine_setup_system_gamesize()
 {
-    scsystem.width = game.size.Width;
-    scsystem.height = game.size.Height;
+    scsystem.width = game.GetGameRes().Width;
+    scsystem.height = game.GetGameRes().Height;
     scsystem.viewport_width = play.GetMainViewport().GetWidth();
     scsystem.viewport_height = play.GetMainViewport().GetHeight();
 }
@@ -121,15 +65,11 @@ void engine_init_resolution_settings(const Size game_size)
     play.SetRoomViewport(viewport);
     play.SetRoomCameraSize(viewport.GetSize());
 
-    wtext_multiply = 1;
-    play.SetNativeSize(game_size);
-
     usetup.textheight = getfontheight_outlined(0) + 1;
 
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
 
-    adjust_sizes_for_resolution(loaded_game_file_version);
     engine_setup_system_gamesize();
 }
 
@@ -144,10 +84,10 @@ void engine_post_gfxmode_driver_setup()
 // Reset gfx driver callbacks
 void engine_pre_gfxmode_driver_cleanup()
 {
-    gfxDriver->SetCallbackForPolling(NULL);
-    gfxDriver->SetCallbackToDrawScreen(NULL);
-    gfxDriver->SetCallbackForNullSprite(NULL);
-    gfxDriver->SetMemoryBackBuffer(NULL);
+    gfxDriver->SetCallbackForPolling(nullptr);
+    gfxDriver->SetCallbackToDrawScreen(nullptr);
+    gfxDriver->SetCallbackForNullSprite(nullptr);
+    gfxDriver->SetMemoryBackBuffer(nullptr);
 }
 
 // Setup virtual screen
@@ -169,7 +109,7 @@ void engine_pre_gfxmode_screen_cleanup()
 void engine_pre_gfxsystem_screen_destroy()
 {
     delete sub_vscreen;
-    sub_vscreen = NULL;
+    sub_vscreen = nullptr;
 }
 
 // Setup color conversion parameters
@@ -296,7 +236,7 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
     // Whether mouse movement should be controlled by the engine - this is
     // determined based on related config option.
     const bool should_control_mouse = usetup.mouse_control == kMouseCtrl_Always ||
-        usetup.mouse_control == kMouseCtrl_Fullscreen && !dm.Windowed;
+        (usetup.mouse_control == kMouseCtrl_Fullscreen && !dm.Windowed);
     // Whether mouse movement control is supported by the engine - this is
     // determined on per platform basis. Some builds may not have such
     // capability, e.g. because of how backend library implements mouse utils.

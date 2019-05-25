@@ -28,23 +28,21 @@ struct MYMP3:public SOUNDCLIP
     char *buffer;
     int chunksize;
 
-    int poll();
-    void set_volume(int newvol);
-    void set_speed(int new_speed);
-    void internal_destroy();
-    void destroy();
-    void seek(int pos);
-    int get_pos();
-    int get_pos_ms();
-    int get_length_ms();
-    void restart();
-    int get_voice();
-    int get_sound_type();
-    int play();
+    void poll() override;
+    void set_volume(int newvol) override;
+    void set_speed(int new_speed) override;
+    void destroy() override;
+    void seek(int pos) override;
+    int get_pos() override;
+    int get_pos_ms() override;
+    int get_length_ms() override;
+    int get_sound_type() override;
+    int play() override;
     MYMP3();
 
 protected:
-    virtual void adjust_volume();
+    int get_voice() override;
+    void adjust_volume() override;
 private:
     void adjust_stream();
 };

@@ -218,9 +218,12 @@ namespace AGS.Editor
 			}
         }
 
-        public int GetResolutionMultiplier()
+        public SpriteInfo GetSpriteInfo(int spriteSlot)
         {
-            return _native.GetResolutionMultiplier();
+            lock (_spriteSetLock)
+            {
+                return _native.GetSpriteInfo(spriteSlot);
+            }
         }
 
         public int GetSpriteWidth(int spriteSlot)
@@ -267,6 +270,11 @@ namespace AGS.Editor
         public Bitmap GetBitmapForBackground(Room room, int backgroundNumber)
         {
             return _native.GetBitmapForBackground(room, backgroundNumber);
+        }
+
+        public void AdjustRoomMaskResolution(Room room)
+        {
+            _native.AdjustRoomMaskResolution(room);
         }
 
         public void CreateBuffer(int width, int height)

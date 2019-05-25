@@ -41,6 +41,7 @@ int ccCompiledScript::add_global(int siz, void *vall)
     // Extend global data to make space for the new variable; 
     // note that this may change globaldata
     globaldatasize += siz;
+
     void *new_memoryspace = realloc(globaldata, globaldatasize);
     if (!new_memoryspace)
     {
@@ -61,6 +62,7 @@ int ccCompiledScript::add_global(int siz, void *vall)
     }
 
     return offset;
+
 }
 
 int ccCompiledScript::add_string(const char *strr)
@@ -233,14 +235,13 @@ void ccCompiledScript::flush_line_numbers()
         write_code(linum);
     }
 }
-
-void ccCompiledScript::write_code(intptr_t byy)
+void ccCompiledScript::write_code(int32_t byy)
 {
     flush_line_numbers();
     if (codesize >= codeallocated - 2)
     {
         codeallocated += 500;
-        code = (intptr_t *)realloc(code, codeallocated * sizeof(intptr_t));
+        code = (int32_t *)realloc(code, codeallocated * sizeof(intptr_t));
     }
     code[codesize] = byy;
     codesize++;
@@ -301,6 +302,11 @@ void ccCompiledScript::init()
     sectionNames = NULL;
     sectionOffsets = NULL;
     next_line = 0;
+    ax_val_type = 0;
+    ax_val_scope = 0;
+    memset(functions, 0, sizeof(functions));
+    memset(funccodeoffs, 0, sizeof(funccodeoffs));
+    memset(funcnumparams, 0, sizeof(funcnumparams));
 }
 
 // free the extra bits that ccScript doesn't have

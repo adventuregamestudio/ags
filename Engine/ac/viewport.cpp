@@ -221,7 +221,7 @@ ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
 {
     const Rect &view = play.GetRoomViewport();
     if (!view.IsInside(x, y))
-        return NULL;
+        return nullptr;
 
     ScriptViewport *viewport = new ScriptViewport();
     ccRegisterManagedObject(viewport, viewport);
@@ -237,16 +237,16 @@ ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *, int scrx, int scr
 {
     VpPoint vpt = play.ScreenToRoom(scrx, scry, clipViewport);
     if (vpt.second < 0)
-        return NULL;
+        return nullptr;
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
-ScriptUserObject *Sc_Viewport_RoomToScreenPoint(ScriptViewport *, int roomx, int roomy, bool clipViewport)
+ScriptUserObject *Viewport_RoomToScreenPoint(ScriptViewport *, int roomx, int roomy, bool clipViewport)
 {
     const Rect &view = play.GetRoomViewport();
     Point pt = play.RoomToScreen(roomx, roomy);
     if (clipViewport && !view.IsInside(pt.X, pt.Y))
-        return NULL;
+        return nullptr;
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 
@@ -312,7 +312,7 @@ RuntimeScriptValue Sc_Viewport_ScreenToRoomPoint(void *self, const RuntimeScript
 
 RuntimeScriptValue Sc_Viewport_RoomToScreenPoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptViewport, ScriptUserObject, Sc_Viewport_RoomToScreenPoint);
+    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptViewport, ScriptUserObject, Viewport_RoomToScreenPoint);
 }
 
 

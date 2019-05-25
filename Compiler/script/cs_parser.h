@@ -160,6 +160,7 @@ public:
     // Returns the unique ID of this code in id
     void YankChunk(::ccCompiledScript *scrip, AGS::CodeLoc codeoffset, AGS::CodeLoc fixupoffset, int &id);
 
+
     // Write chunk of code back into the codebase that has been stashed in level given, at index
     void WriteChunk(::ccCompiledScript *scrip, size_t level, size_t index, int &id);
     // Write chunk of code back into the codebase stashed in the innermost level, at index

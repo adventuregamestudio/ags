@@ -27,7 +27,7 @@ static const size_t  MinCharDataSize     = sizeof(uint16_t) * 2;
 WFNChar::WFNChar()
     : Width(0)
     , Height(0)
-    , Data(NULL)
+    , Data(nullptr)
 {
 }
 

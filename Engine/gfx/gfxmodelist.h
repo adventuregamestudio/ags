@@ -29,7 +29,7 @@ namespace Engine
 class IGfxModeList
 {
 public:
-    virtual ~IGfxModeList(){}
+    virtual ~IGfxModeList() = default;
     virtual int  GetModeCount() const = 0;
     virtual bool GetMode(int index, DisplayMode &mode) const = 0;
 };

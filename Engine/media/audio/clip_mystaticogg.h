@@ -30,37 +30,32 @@ struct MYSTATICOGG:public SOUNDCLIP
     int last_but_one;
     int last_ms_offs;
 
-    int poll();
+    void poll() override;
 
-    void set_volume(int newvol);
-    void set_speed(int new_speed);
+    void set_volume(int newvol) override;
+    void set_speed(int new_speed) override;
 
-    void internal_destroy();
+    void destroy() override;
 
-    void destroy();
+    void seek(int pos) override;
 
-    void seek(int pos);
+    int get_pos() override;    
 
-    int get_pos();    
+    int get_pos_ms() override;
 
-    int get_pos_ms();
+    int get_length_ms() override;
 
-    int get_length_ms();
+    int get_sound_type() override;
 
-    void restart();
+    int play_from(int position) override;
 
-    int get_voice();
-
-    int get_sound_type();
-
-    virtual int play_from(int position);
-
-    int play();
+    int play() override;
 
     MYSTATICOGG();
 
 protected:
-    virtual void adjust_volume();
+    int get_voice() override;
+    void adjust_volume() override;
 private:
     void adjust_stream();
 };

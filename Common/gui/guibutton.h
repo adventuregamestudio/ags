@@ -59,24 +59,24 @@ public:
     GUIButton();
 
     const String &GetText() const;
-    bool         IsClippingImage() const;
+    bool IsClippingImage() const;
 
     // Operations
-    virtual void Draw(Bitmap *ds) override;
-    void         SetClipImage(bool on);
-    void         SetText(const String &text);
+    void Draw(Bitmap *ds) override;
+    void SetClipImage(bool on);
+    void SetText(const String &text);
 
     // Events
-    virtual bool OnMouseDown() override;
-    virtual void OnMouseEnter() override;
-    virtual void OnMouseLeave() override;
-    virtual void OnMouseUp() override;
+    bool OnMouseDown() override;
+    void OnMouseEnter() override;
+    void OnMouseLeave() override;
+    void OnMouseUp() override;
   
     // Serialization
-    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void WriteToFile(Stream *out) const override;
-    virtual void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
-    virtual void WriteToSavegame(Common::Stream *out) const override;
+    void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+    void WriteToFile(Stream *out) const override;
+    void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
+    void WriteToSavegame(Common::Stream *out) const override;
 
 // TODO: these members are currently public; hide them later
 public:

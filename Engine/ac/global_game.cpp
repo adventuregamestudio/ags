@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+#include <cmath>
+
 #include "ac/audiocliptype.h"
 #include "ac/global_game.h"
 #include "ac/common.h"
@@ -35,7 +37,7 @@
 #include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
@@ -47,7 +49,6 @@
 #include "main/game_start.h"
 #include "main/game_run.h"
 #include "main/graphics_mode.h"
-#include "media/audio/audio.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
@@ -56,6 +57,7 @@
 #include "core/assetmanager.h"
 #include "main/game_file.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 
@@ -67,7 +69,6 @@ extern int displayed_room;
 extern int game_paused;
 extern SpriteCache spriteset;
 extern int frames_per_second;
-extern int time_between_timers;
 extern char gamefilenamebuf[200];
 extern GameSetup usetup;
 extern unsigned int load_new_game;
@@ -246,8 +247,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     if ((mode & RAGMODE_LOADNOW) == 0) {
         // need to copy, since the script gets destroyed
         get_install_dir_path(gamefilenamebuf, newgame);
-        game_file_name = gamefilenamebuf;
-        usetup.main_data_filename = game_file_name;
+        ResPaths.GamePak.Path = gamefilenamebuf;
+        ResPaths.GamePak.Name = get_filename(gamefilenamebuf);
         play.takeover_data = data;
         load_new_game_restore = -1;
 
@@ -268,8 +269,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
 
     unload_game_file();
 
-    if (Common::AssetManager::SetDataFile(game_file_name) != Common::kAssetNoError)
-        quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name.GetCStr());
+    if (Common::AssetManager::SetDataFile(ResPaths.GamePak.Path) != Common::kAssetNoError)
+        quitprintf("!RunAGSGame: unable to load new game file '%s'", ResPaths.GamePak.Path.GetCStr());
 
     show_preload();
 
@@ -377,8 +378,8 @@ void SetRestartPoint() {
 
 void SetGameSpeed(int newspd) {
     // if Ctrl+E has been used to max out frame rate, lock it there
-    if ((frames_per_second == 1000) && (display_fps == 2))
-        return;
+    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
+    if (maxed_framerate) { return; }
 
     newspd += play.game_speed_modifier;
     if (newspd>1000) newspd=1000;
@@ -388,7 +389,7 @@ void SetGameSpeed(int newspd) {
 }
 
 int GetGameSpeed() {
-    return frames_per_second - play.game_speed_modifier;
+    return std::lround(get_current_fps()) - play.game_speed_modifier;
 }
 
 int SetGameOption (int opt, int setting) {
@@ -445,7 +446,7 @@ void SkipUntilCharacterStops(int cc) {
     if (!game.chars[cc].walking)
         return;
 
-    if (play.in_cutscene)
+    if (is_in_cutscene())
         quit("!SkipUntilCharacterStops: cannot be used within a cutscene");
 
     initialize_skippable_cutscene();
@@ -462,21 +463,15 @@ void EndSkippingUntilCharStops() {
     play.skip_until_char_stops = -1;
 }
 
-// skipwith decides how it can be skipped:
-// 1 = ESC only
-// 2 = any key
-// 3 = mouse button
-// 4 = mouse button or any key
-// 5 = right click or ESC only
 void StartCutscene (int skipwith) {
     static ScriptPosition last_cutscene_script_pos;
 
-    if (play.in_cutscene) {
+    if (is_in_cutscene()) {
         quitprintf("!StartCutscene: already in a cutscene; previous started in \"%s\", line %d",
             last_cutscene_script_pos.Section.GetCStr(), last_cutscene_script_pos.Line);
     }
 
-    if ((skipwith < 1) || (skipwith > 5))
+    if ((skipwith < 1) || (skipwith > 6))
         quit("!StartCutscene: invalid argument, must be 1 to 5.");
 
     get_script_position(last_cutscene_script_pos);
@@ -488,8 +483,14 @@ void StartCutscene (int skipwith) {
     initialize_skippable_cutscene();
 }
 
+void SkipCutscene()
+{
+    if (is_in_cutscene())
+        start_skipping_cutscene();
+}
+
 int EndCutscene () {
-    if (play.in_cutscene == 0)
+    if (!is_in_cutscene())
         quit("!EndCutscene: not in a cutscene");
 
     int retval = play.fast_forward;
@@ -536,8 +537,9 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
 
     VALIDATE_STRING(tempo);
 
+    tempo[0] = 0;
+
     if (GetGUIAt(xxx, yyy) >= 0) {
-        tempo[0]=0;
         int mover = GetInvAt (xxx, yyy);
         if (mover > 0) {
             if (play.get_loc_name_last_time != 1000 + mover)
@@ -552,13 +554,13 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         }
         return;
     }
-    int loctype = GetLocationType (xxx, yyy);
+
+    int loctype = GetLocationType(xxx, yyy); // GetLocationType takes screen coords
     VpPoint vpt = play.ScreenToRoom(xxx, yyy);
     if (vpt.second < 0)
         return;
     xxx = vpt.first.X;
     yyy = vpt.first.Y;
-    tempo[0]=0;
     if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return;
 
@@ -636,31 +638,31 @@ int IsKeyPressed (int keycode) {
         else if (keycode == 407) keycode = KEY_ALT;
         else keycode -= AGS_EXT_KEY_SHIFT;
 
-        if (rec_iskeypressed(keycode))
+        if (ags_iskeypressed(keycode))
             return 1;
         // deal with numeric pad keys having different codes to arrow keys
-        if ((keycode == KEY_LEFT) && (rec_iskeypressed(KEY_4_PAD) != 0))
+        if ((keycode == KEY_LEFT) && (ags_iskeypressed(KEY_4_PAD) != 0))
             return 1;
-        if ((keycode == KEY_RIGHT) && (rec_iskeypressed(KEY_6_PAD) != 0))
+        if ((keycode == KEY_RIGHT) && (ags_iskeypressed(KEY_6_PAD) != 0))
             return 1;
-        if ((keycode == KEY_UP) && (rec_iskeypressed(KEY_8_PAD) != 0))
+        if ((keycode == KEY_UP) && (ags_iskeypressed(KEY_8_PAD) != 0))
             return 1;
-        if ((keycode == KEY_DOWN) && (rec_iskeypressed(KEY_2_PAD) != 0))
+        if ((keycode == KEY_DOWN) && (ags_iskeypressed(KEY_2_PAD) != 0))
             return 1;
         // PgDn/PgUp are equivalent to 3 and 9 on numeric pad
-        if ((keycode == KEY_9_PAD) && (rec_iskeypressed(KEY_PGUP) != 0))
+        if ((keycode == KEY_9_PAD) && (ags_iskeypressed(KEY_PGUP) != 0))
             return 1;
-        if ((keycode == KEY_3_PAD) && (rec_iskeypressed(KEY_PGDN) != 0))
+        if ((keycode == KEY_3_PAD) && (ags_iskeypressed(KEY_PGDN) != 0))
             return 1;
         // Home/End are equivalent to 7 and 1
-        if ((keycode == KEY_7_PAD) && (rec_iskeypressed(KEY_HOME) != 0))
+        if ((keycode == KEY_7_PAD) && (ags_iskeypressed(KEY_HOME) != 0))
             return 1;
-        if ((keycode == KEY_1_PAD) && (rec_iskeypressed(KEY_END) != 0))
+        if ((keycode == KEY_1_PAD) && (ags_iskeypressed(KEY_END) != 0))
             return 1;
         // insert/delete have numpad equivalents
-        if ((keycode == KEY_INSERT) && (rec_iskeypressed(KEY_0_PAD) != 0))
+        if ((keycode == KEY_INSERT) && (ags_iskeypressed(KEY_0_PAD) != 0))
             return 1;
-        if ((keycode == KEY_DEL) && (rec_iskeypressed(KEY_DEL_PAD) != 0))
+        if ((keycode == KEY_DEL) && (ags_iskeypressed(KEY_DEL_PAD) != 0))
             return 1;
 
         return 0;
@@ -678,7 +680,7 @@ int IsKeyPressed (int keycode) {
         keycode = KEY_TAB;
     else if (keycode == 13) {
         // check both the main return key and the numeric pad enter
-        if (rec_iskeypressed(KEY_ENTER))
+        if (ags_iskeypressed(KEY_ENTER))
             return 1;
         keycode = KEY_ENTER_PAD;
     }
@@ -688,19 +690,19 @@ int IsKeyPressed (int keycode) {
         keycode = KEY_ESC;
     else if (keycode == '-') {
         // check both the main - key and the numeric pad
-        if (rec_iskeypressed(KEY_MINUS))
+        if (ags_iskeypressed(KEY_MINUS))
             return 1;
         keycode = KEY_MINUS_PAD;
     }
     else if (keycode == '+') {
         // check both the main + key and the numeric pad
-        if (rec_iskeypressed(KEY_EQUALS))
+        if (ags_iskeypressed(KEY_EQUALS))
             return 1;
         keycode = KEY_PLUS_PAD;
     }
     else if (keycode == '/') {
         // check both the main / key and the numeric pad
-        if (rec_iskeypressed(KEY_SLASH))
+        if (ags_iskeypressed(KEY_SLASH))
             return 1;
         keycode = KEY_SLASH_PAD;
     }
@@ -725,7 +727,7 @@ int IsKeyPressed (int keycode) {
         return 0;
     }
 
-    if (rec_iskeypressed(keycode))
+    if (ags_iskeypressed(keycode))
         return 1;
     return 0;
 #else
@@ -737,7 +739,7 @@ int IsKeyPressed (int keycode) {
 int SaveScreenShot(const char*namm) {
     char fileName[MAX_PATH];
 
-    if (strchr(namm,'.') == NULL)
+    if (strchr(namm,'.') == nullptr)
         sprintf(fileName, "%s%s.bmp", saveGameDirectory, namm);
     else
         sprintf(fileName, "%s%s", saveGameDirectory, namm);
@@ -887,7 +889,7 @@ void _sc_AbortGame(const char* text) {
 
 int GetGraphicalVariable (const char *varName) {
     InteractionVariable *theVar = FindGraphicalVariable(varName);
-    if (theVar == NULL) {
+    if (theVar == nullptr) {
         quitprintf("!GetGraphicalVariable: interaction variable '%s' not found", varName);
         return 0;
     }
@@ -896,7 +898,7 @@ int GetGraphicalVariable (const char *varName) {
 
 void SetGraphicalVariable (const char *varName, int p_value) {
     InteractionVariable *theVar = FindGraphicalVariable(varName);
-    if (theVar == NULL) {
+    if (theVar == nullptr) {
         quitprintf("!SetGraphicalVariable: interaction variable '%s' not found", varName);
     }
     else

@@ -29,18 +29,19 @@
 #include "ac/statobj/staticarray.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/game_init.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gui/guilabel.h"
-#include "media/audio/audio.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
 #include "script/exports.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace Common;
 using namespace Engine;
@@ -325,32 +326,22 @@ HError InitAndRegisterGameEntities()
     return HError::None();
 }
 
-void LoadFonts()
+void LoadFonts(GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
-        FontInfo finfo = game.fonts[i];
-
-        // Apply compatibility adjustments
-        if (finfo.SizePt == 0)
-            finfo.SizePt = 8;
-
+        if (!wloadfont_size(i, game.fonts[i]))
         // CLNUP decide what to do about arbitrary font scaling, might become an option
-        // TODO: for some reason these compat fixes are different in the editor, investigate
         /*
-        if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
-            finfo.SizePt *= 2;
         */
-
-        if (!wloadfont_size(i, finfo, NULL))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
     }
 }
 
 void AllocScriptModules()
 {
-    moduleInst.resize(numScriptModules, NULL);
-    moduleInstFork.resize(numScriptModules, NULL);
+    moduleInst.resize(numScriptModules, nullptr);
+    moduleInstFork.resize(numScriptModules, nullptr);
     moduleRepExecAddr.resize(numScriptModules);
     repExecAlways.moduleHasFunction.resize(numScriptModules, true);
     lateRepExecAlways.moduleHasFunction.resize(numScriptModules, true);
@@ -395,22 +386,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 2. Apply overriding config settings
     //
-    // The earlier versions of AGS provided support for "upscaling" low-res
-    // games (320x200 and 320x240) to hi-res (640x400 and 640x480
-    // respectively). The script API has means for detecting if the game is
-    // running upscaled, and game developer could use this opportunity to setup
-    // game accordingly (e.g. assign hi-res fonts, etc).
-    // This feature is officially deprecated since 3.1.0, however the engine
-    // itself still supports it, technically.
-    // This overriding option re-enables "upscaling". It works ONLY for low-res
-    // resolutions, such as 320x200 and 320x240.
-    if (usetup.override_upscale)
-    {
-        if (game.GetDefaultResolution() == kGameResolution_320x200)
-            game.SetDefaultResolution(kGameResolution_640x400);
-        else if (game.GetDefaultResolution() == kGameResolution_320x240)
-            game.SetDefaultResolution(kGameResolution_640x480);
-    }
+    // CLNUP: this stage is removed
 
     //
     // 3. Allocate and init game objects
@@ -428,7 +404,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     HError err = InitAndRegisterGameEntities();
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
-    LoadFonts();
+    LoadFonts(data_ver);
 
     //
     // 4. Initialize certain runtime variables

@@ -21,6 +21,7 @@
 #include "ac/global_translation.h"
 #include "ac/objectcache.h"
 #include "ac/properties.h"
+#include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
@@ -56,7 +57,7 @@ int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {
 ScriptObject *GetObjectAtScreen(int xx, int yy) {
     int hsnum = GetObjectIDAtScreen(xx, yy);
     if (hsnum < 0)
-        return NULL;
+        return nullptr;
     return &scrObj[hsnum];
 }
 
@@ -64,7 +65,7 @@ ScriptObject *GetObjectAtRoom(int x, int y)
 {
     int hsnum = GetObjectIDAtRoom(x, y);
     if (hsnum < 0)
-        return NULL;
+        return nullptr;
     return &scrObj[hsnum];
 }
 
@@ -383,8 +384,10 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
 
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
-    int objX = objs[objj].x;
-    int objY = objs[objj].y;
+    int objX = room_to_mask_coord(objs[objj].x);
+    int objY = room_to_mask_coord(objs[objj].y);
+    tox = room_to_mask_coord(tox);
+    toy = room_to_mask_coord(toy);
 
     set_route_move_speed(spee, spee);
     set_color_depth(8);
@@ -393,6 +396,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     if (mslot>0) {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;
+        convert_move_path_to_room_resolution(&mls[mslot]);
     }
 }
 
@@ -437,8 +441,8 @@ void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) 
         cwidth += fromx;
         fromx = 0;
     }
-    if (fromx + cwidth >= walkable_areas_temp->GetWidth())
-        cwidth = walkable_areas_temp->GetWidth() - fromx;
+    if (fromx + cwidth >= mask_to_room_coord(walkable_areas_temp->GetWidth()))
+        cwidth = mask_to_room_coord(walkable_areas_temp->GetWidth()) - fromx;
 
     if (x1)
         *x1 = fromx;

@@ -43,13 +43,12 @@
 #include "gui/guimain.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
 #include "script/script.h"
 #include "util/filestream.h" // TODO: needed only because plugins expect file handle
+#include "media/audio/audio_system.h"
 
 using namespace Common;
 
@@ -223,7 +222,7 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
 
     // Other dynamic values
     r_data.FPS = in->ReadInt32();
-    loopcounter = in->ReadInt32();
+    set_loop_counter(in->ReadInt32());
     ifacepopped = in->ReadInt32();
     game_paused = in->ReadInt32();
     // Mouse cursor state
@@ -239,6 +238,8 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
 
 HSaveError WriteAudio(PStream out)
 {
+    AudioChannelsLock lock;
+
     // Game content assertion
     out->WriteInt32(game.audioClipTypeCount);
     out->WriteInt32(game.audioClipCount);
@@ -252,17 +253,18 @@ HSaveError WriteAudio(PStream out)
     // Audio clips and crossfade
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++)
     {
-        if ((channels[i] != NULL) && (channels[i]->done == 0) && (channels[i]->sourceClip != NULL))
+        auto* ch = lock.GetChannelIfPlaying(i);
+        if ((ch != nullptr) && (ch->sourceClip != nullptr))
         {
-            out->WriteInt32(((ScriptAudioClip*)channels[i]->sourceClip)->id);
-            out->WriteInt32(channels[i]->get_pos());
-            out->WriteInt32(channels[i]->priority);
-            out->WriteInt32(channels[i]->repeat ? 1 : 0);
-            out->WriteInt32(channels[i]->vol);
-            out->WriteInt32(channels[i]->panning);
-            out->WriteInt32(channels[i]->volAsPercentage);
-            out->WriteInt32(channels[i]->panningAsPercentage);
-            out->WriteInt32(channels[i]->speed);
+            out->WriteInt32(((ScriptAudioClip*)ch->sourceClip)->id);
+            out->WriteInt32(ch->get_pos());
+            out->WriteInt32(ch->priority);
+            out->WriteInt32(ch->repeat ? 1 : 0);
+            out->WriteInt32(ch->vol);
+            out->WriteInt32(ch->panning);
+            out->WriteInt32(ch->volAsPercentage);
+            out->WriteInt32(ch->panningAsPercentage);
+            out->WriteInt32(ch->get_speed());
         }
         else
         {
@@ -676,7 +678,7 @@ HSaveError WriteDynamicSurfaces(PStream out)
     out->WriteInt32(MAX_DYNAMIC_SURFACES);
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
     {
-        if (dynamicallyCreatedSurfaces[i] == NULL)
+        if (dynamicallyCreatedSurfaces[i] == nullptr)
         {
             out->WriteInt8(0);
         }
@@ -699,7 +701,7 @@ HSaveError ReadDynamicSurfaces(PStream in, int32_t cmp_ver, const PreservedParam
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
     {
         if (in->ReadInt8() == 0)
-            r_data.DynamicSurfaces[i] = NULL;
+            r_data.DynamicSurfaces[i] = nullptr;
         else
             r_data.DynamicSurfaces[i] = read_serialized_bitmap(in.get());
     }
@@ -812,7 +814,7 @@ HSaveError WriteThisRoom(PStream out)
         if (play.raw_modified[i])
             serialize_bitmap(thisroom.BgFrames[i].Graphic.get(), out.get());
     }
-    out->WriteBool(raw_saved_screen != NULL);
+    out->WriteBool(raw_saved_screen != nullptr);
     if (raw_saved_screen)
         serialize_bitmap(raw_saved_screen, out.get());
 
@@ -861,7 +863,7 @@ HSaveError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
         if (play.raw_modified[i])
             r_data.RoomBkgScene[i].reset(read_serialized_bitmap(in.get()));
         else
-            r_data.RoomBkgScene[i] = NULL;
+            r_data.RoomBkgScene[i] = nullptr;
     }
     if (in->ReadBool())
         raw_saved_screen = read_serialized_bitmap(in.get());
@@ -917,15 +919,19 @@ HSaveError ReadManagedPool(PStream in, int32_t cmp_ver, const PreservedParams &p
 
 HSaveError WritePluginData(PStream out)
 {
-    // [IKM] Plugins expect FILE pointer! // TODO something with this later...
-    pl_run_plugin_hooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out.get())->GetHandle());
+    auto pluginFileHandle = AGSE_SAVEGAME;
+    pl_set_file_handle(pluginFileHandle, out.get());
+    pl_run_plugin_hooks(AGSE_SAVEGAME, pluginFileHandle);
+    pl_clear_file_handle();
     return HSaveError::None();
 }
 
 HSaveError ReadPluginData(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    // [IKM] Plugins expect FILE pointer! // TODO something with this later
-    pl_run_plugin_hooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in.get())->GetHandle());
+    auto pluginFileHandle = AGSE_RESTOREGAME;
+    pl_set_file_handle(pluginFileHandle, in.get());
+    pl_run_plugin_hooks(AGSE_RESTOREGAME, pluginFileHandle);
+    pl_clear_file_handle();
     return HSaveError::None();
 }
 
@@ -945,8 +951,8 @@ ComponentHandler ComponentHandlers[] =
 {
     {
         "Game State",
-        0,
-        0,
+        kGSSvgVersion_3509,
+        kGSSvgVersion_Initial,
         WriteGameState,
         ReadGameState
     },
@@ -1055,7 +1061,7 @@ ComponentHandler ComponentHandlers[] =
         WritePluginData,
         ReadPluginData
     },
-    { NULL, 0, 0, NULL, NULL } // end of array
+    { nullptr, 0, 0, nullptr, nullptr } // end of array
 };
 
 
@@ -1107,7 +1113,7 @@ HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     info.DataSize = hlp.Version >= kSvgVersion_Cmp_64bit ? in->ReadInt64() : in->ReadInt32();
     info.DataOffset = in->GetPosition();
 
-    const ComponentHandler *handler = NULL;
+    const ComponentHandler *handler = nullptr;
     std::map<String, ComponentHandler>::const_iterator it_hdr = hlp.Handlers.find(info.Name);
     if (it_hdr != hlp.Handlers.end())
         handler = &it_hdr->second;

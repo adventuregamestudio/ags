@@ -200,7 +200,7 @@ void AnimateCharacterEx(int chh, int loopn, int sppd, int rept, int direction, i
 void FollowCharacter(int who, int tofollow, int distaway, int eagerness) {
     if (!is_valid_character(who))
         quit("!FollowCharacter: Invalid character specified");
-    CharacterInfo *chtofollow = NULL;
+    CharacterInfo *chtofollow = nullptr;
     if (tofollow != -1)
     {
         if (!is_valid_character(tofollow))
@@ -413,7 +413,7 @@ void RunCharacterInteraction (int cc, int mood) {
     else if (mood==MODE_CUSTOM2) passon = 7;
 
     evblockbasename="character%d"; evblocknum=cc;
-    if (game.charScripts != NULL) 
+    if (game.charScripts != nullptr) 
     {
         if (passon>=0)
             run_interaction_script(game.charScripts[cc], passon, 4, (passon == 3));
@@ -473,7 +473,7 @@ int GetCharIDAtScreen(int xx, int yy) {
 // [DEPRECATED] still used by Character_SetAsPlayer
 void SetActiveInventory(int iit) {
 
-    ScriptInvItem *tosend = NULL;
+    ScriptInvItem *tosend = nullptr;
     if ((iit > 0) && (iit < game.numinvitems))
         tosend = &scrInv[iit];
     else if (iit != -1)

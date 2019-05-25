@@ -81,7 +81,7 @@ struct PropertyDesc
 
 // NOTE: AGS has case-insensitive property IDs
 // Schema - a map of property descriptions
-typedef stdtr1compat::unordered_map<String, PropertyDesc, HashStrNoCase, StrCmpNoCase> PropertySchema;
+typedef stdtr1compat::unordered_map<String, PropertyDesc, HashStrNoCase, StrEqNoCase> PropertySchema;
 
 
 namespace Properties

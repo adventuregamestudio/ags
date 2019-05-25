@@ -18,7 +18,6 @@
 
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/translation.h"
 #include "debug/agseditordebugger.h"
@@ -36,6 +35,7 @@
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "plugin/plugin_engine.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -188,6 +188,7 @@ void quit_release_data()
 {
     resetRoomStatuses();
     thisroom.Free();
+    play.Free();
 
     /*  _CrtMemState memstart;
     _CrtMemCheckpoint(&memstart);
@@ -256,7 +257,6 @@ void quit(const char *quitmsg)
 
     our_eip = 9900;
 
-    stop_recording();
 
     our_eip = 9020;
 

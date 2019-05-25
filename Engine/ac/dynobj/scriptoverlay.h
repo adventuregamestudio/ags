@@ -23,10 +23,10 @@ struct ScriptOverlay final : AGSCCDynamicObject {
     int borderHeight;
     int isBackgroundSpeech;
 
-    virtual int Dispose(const char *address, bool force);
-    virtual const char *GetType();
-    virtual int Serialize(const char *address, char *buffer, int bufsize);
-    virtual void Unserialize(int index, const char *serializedData, int dataSize);
+    int Dispose(const char *address, bool force) override;
+    const char *GetType() override;
+    int Serialize(const char *address, char *buffer, int bufsize) override;
+    void Unserialize(int index, const char *serializedData, int dataSize) override;
     void Remove();
     ScriptOverlay();
 };

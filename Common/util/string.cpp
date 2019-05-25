@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "util/math.h"
 #include "util/stream.h"
 #include "util/string.h"
@@ -25,40 +26,39 @@ namespace AGS
 namespace Common
 {
 
-/* static */ char String::_internalBuffer[3001];
-
 String::Header::Header()
     : RefCount(0)
     , Capacity(0)
     , Length(0)
+    , CStr(nullptr)
 {
 }
 
 String::String()
-    : _data(NULL)
+    : _data(nullptr)
 {
 }
 
 String::String(const String &str)
-    : _data(NULL)
+    : _data(nullptr)
 {
     *this = str;
 }
 
 String::String(const char *cstr)
-    :_data(NULL)
+    :_data(nullptr)
 {
     *this = cstr;
 }
 
 String::String(const char *cstr, size_t length)
-    : _data(NULL)
+    : _data(nullptr)
 {
     SetString(cstr, length);
 }
 
 String::String(char c, size_t count)
-    : _data(NULL)
+    : _data(nullptr)
 {
     FillString(c, count);
 }
@@ -80,7 +80,8 @@ void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
         return;
     }
 
-    char *read_ptr = _internalBuffer;
+    char buffer[1024];
+    char *read_ptr = buffer;
     size_t read_size = 0;
     int ichar;
     do
@@ -92,11 +93,11 @@ void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
             continue;
         }
         *read_ptr = (char)(ichar >= 0 ? ichar : 0);
-        if (!*read_ptr || read_ptr - _internalBuffer == _internalBufferLength - 1)
+        if (!*read_ptr || ((read_ptr - buffer) == (sizeof(buffer) - 1 - 1)))
         {
-            _internalBuffer[_internalBufferLength] = 0;
-            Append(_internalBuffer);
-            read_ptr = _internalBuffer;
+            buffer[sizeof(buffer) - 1] = 0;
+            Append(buffer);
+            read_ptr = buffer;
         }
         else
         {
@@ -593,7 +594,7 @@ void String::FormatV(const char *fcstr, va_list argptr)
     fcstr = fcstr ? fcstr : "";
     va_list argptr_cpy;
     va_copy(argptr_cpy, argptr);
-    size_t length = vsnprintf(NULL, 0u, fcstr, argptr);
+    size_t length = vsnprintf(nullptr, 0u, fcstr, argptr);
     ReserveAndShift(false, Math::Surplus(length, GetLength()));
     vsprintf(_meta->CStr, fcstr, argptr_cpy);
     va_end(argptr_cpy);
@@ -612,7 +613,7 @@ void String::Free()
             delete [] _data;
         }
     }
-    _data = NULL;
+    _data = nullptr;
 }
 
 void String::MakeLower()
@@ -734,10 +735,12 @@ void String::TrimLeft(char c)
     }
 
     const char *trim_ptr = _meta->CStr;
-    while (*trim_ptr &&
-        (c && *trim_ptr == c ||
-        !c && (*trim_ptr == ' ' || *trim_ptr == '\t' || *trim_ptr == '\r' || *trim_ptr == '\n')))
+    for (;;)
     {
+        auto t = *trim_ptr;
+        if (t == 0) { break; }
+        if (c && t != c) { break; }
+        if (!c && !isspace(t)) { break; }
         trim_ptr++;
     }
     size_t trimmed = trim_ptr - _meta->CStr;
@@ -757,10 +760,12 @@ void String::TrimRight(char c)
     }
 
     const char *trim_ptr = _meta->CStr + _meta->Length - 1;
-    while (trim_ptr >= _meta->CStr &&
-        (c && *trim_ptr == c ||
-        !c && (*trim_ptr == ' ' || *trim_ptr == '\t' || *trim_ptr == '\r' || *trim_ptr == '\n')))
+    for (;;) 
     {
+        if (trim_ptr < _meta->CStr) { break; }
+        auto t = *trim_ptr;
+        if (c && t != c) { break; }
+        if (!c && !isspace(t)) { break; }
         trim_ptr--;
     }
     size_t trimmed = (_meta->CStr + _meta->Length - 1) - trim_ptr;

@@ -21,6 +21,7 @@ GameSetup::GameSetup()
     midicard=MIDI_AUTODETECT;
     mod_player=1;
     no_speech_pack = false;
+    textheight = 0;
     enable_antialiasing = false;
     disable_exception_handling = false;
     mouse_auto_lock = false;

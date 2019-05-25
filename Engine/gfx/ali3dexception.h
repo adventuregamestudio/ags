@@ -41,8 +41,6 @@ public:
     Ali3DFullscreenLostException() : Ali3DException("User has switched away from application")
     {
     }
-
-    const char *_message;
 };
 
 } // namespace Engine

@@ -24,17 +24,18 @@
 #include "ac/global_display.h"
 #include "ac/global_room.h"
 #include "ac/mouse.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "debug/debug_log.h"
 #include "gui/guidialog.h"
 #include "main/game_run.h"
-#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "util/math.h"
+#include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -45,7 +46,6 @@ extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern SpriteCache spriteset;
 extern int mousex,mousey;
-extern volatile int timerloop;
 extern int evblocknum;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
@@ -57,7 +57,7 @@ int in_inv_screen = 0, inv_screen_newroom = -1;
 // *** INV WINDOW FUNCTIONS
 
 void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa) {
-  if (chaa == NULL)
+  if (chaa == nullptr)
     guii->CharId = -1;
   else
     guii->CharId = chaa->index_id;
@@ -69,7 +69,7 @@ void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa) {
 
 CharacterInfo* InvWindow_GetCharacterToUse(GUIInvWindow *guii) {
   if (guii->CharId < 0)
-    return NULL;
+    return nullptr;
 
   return &game.chars[guii->CharId];
 }
@@ -135,7 +135,7 @@ void InvWindow_ScrollUp(GUIInvWindow *guii) {
 
 ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
   if ((index < 0) || (index >= charextra[guii->GetCharacterId()].invorder_count))
-    return NULL;
+    return nullptr;
   return &scrInv[charextra[guii->GetCharacterId()].invorder[index]];
 }
 
@@ -221,11 +221,11 @@ void InventoryScreen::Prepare()
 
     // sprites 2041, 2042 and 2043 were hardcoded in the older versions
     // of the engine to be used in the built-in inventory window
-    if (spriteset[2041] == NULL || spriteset[2042] == NULL || spriteset[2043] == NULL)
+    if (spriteset[2041] == nullptr || spriteset[2042] == nullptr || spriteset[2043] == nullptr)
         debug_script_warn("InventoryScreen: one or more of the inventory screen graphics (sprites 2041, 2042, 2043) does not exist, using sprite 0 instead");
-    btn_look_sprite = spriteset[2041] != NULL ? 2041 : 0;
-    btn_select_sprite = spriteset[2042] != NULL ? 2042 : 0;
-    btn_ok_sprite = spriteset[2043] != NULL ? 2043 : 0;
+    btn_look_sprite = spriteset[2041] != nullptr ? 2041 : 0;
+    btn_select_sprite = spriteset[2042] != nullptr ? 2042 : 0;
+    btn_ok_sprite = spriteset[2043] != nullptr ? 2043 : 0;
 
     break_code = 0;
 }
@@ -283,7 +283,7 @@ int InventoryScreen::Redraw()
 
     Bitmap *ds = prepare_gui_screen(windowxp, windowyp, windowwid, windowhit, true);
     Draw(ds);
-    //domouse(1);
+    //ags_domouse(DOMOUSE_ENABLE);
     set_mouse_cursor(cmode);
     wasonitem = -1;
     return 0;
@@ -346,16 +346,14 @@ void InventoryScreen::RedrawOverItem(Bitmap *ds, int isonitem)
 
 bool InventoryScreen::Run()
 {
-    if (kbhit() != 0)
+    if (ags_kbhit() != 0)
     {
         return false; // end inventory screen loop
     }
 
-        timerloop = 0;
-        NEXT_ITERATION();
+        //ags_domouse(DOMOUSE_UPDATE);
+        update_audio_system_on_game_loop();
         refresh_gui_screen();
-        //domouse(0);
-        update_polled_audio_and_crossfade();
 
         // NOTE: this is because old code was working with full game screen
         const int mousex = ::mousex - windowxp;
@@ -367,7 +365,7 @@ bool InventoryScreen::Run()
         if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
             isonitem=-1;
 
-        int mclick = mgetbutton();
+        int mclick = ags_mgetbutton();
         if (mclick == LEFT) {
             if ((mousey<0) | (mousey>windowhit) | (mousex<0) | (mousex>windowwid))
                 return true; // continue inventory screen loop
@@ -378,7 +376,7 @@ bool InventoryScreen::Run()
                 play.used_inv_on = dii[clickedon].num;
 
                 if (cmode==MODE_LOOK) {
-                    //domouse(2);
+                    //ags_domouse(DOMOUSE_DISABLE);
                     run_event_block_inv(dii[clickedon].num, 0); 
                     // in case the script did anything to the screen, redraw it
                     UpdateGameOnce();
@@ -394,7 +392,7 @@ bool InventoryScreen::Run()
                     int activeinvwas = playerchar->activeinv;
                     playerchar->activeinv = toret;
 
-                    //domouse(2);
+                    //ags_domouse(DOMOUSE_DISABLE);
                     run_event_block_inv(dii[clickedon].num, 3);
 
                     // if the script didn't change it, then put it back
@@ -428,7 +426,7 @@ bool InventoryScreen::Run()
                     if (mousey < buttonyp + 2 + ARROWBUTTONWID) {
                         if (top_item > 0) {
                             top_item -= ICONSPERLINE;
-                            //domouse(2);
+                            //ags_domouse(DOMOUSE_DISABLE);
 
                             break_code = Redraw();
                             return break_code == 0;
@@ -436,7 +434,7 @@ bool InventoryScreen::Run()
                     }
                     else if ((mousey < buttonyp + 4 + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems)) {
                         top_item += ICONSPERLINE;
-                        //domouse(2);
+                        //ags_domouse(DOMOUSE_DISABLE);
                         
                         break_code = Redraw();
                         return break_code == 0;
@@ -467,9 +465,9 @@ bool InventoryScreen::Run()
         }
         else if (isonitem!=wasonitem)
         {
-            //domouse(2);
+            //ags_domouse(DOMOUSE_DISABLE);
             RedrawOverItem(get_gui_screen(), isonitem);
-            //domouse(1);
+            //ags_domouse(DOMOUSE_ENABLE);
         }
         wasonitem=isonitem;
         PollUntilNextFrame();
@@ -481,7 +479,7 @@ void InventoryScreen::Close()
 {
     clear_gui_screen();
     set_default_cursor();
-    //domouse(2);
+    //ags_domouse(DOMOUSE_DISABLE);
     construct_virtual_screen(true);
     in_inv_screen--;
 }
@@ -502,7 +500,7 @@ int __actual_invscreen()
         return InvScr.break_code;
     }
 
-    clear_input_buffer();
+    ags_clear_input_buffer();
 
     InvScr.Close();
     return InvScr.toret;

@@ -112,9 +112,9 @@ namespace AGS.Editor
                 ViewFrame thisFrame = view.Loops[0].Frames[0];
                 spriteNum = thisFrame.Image;
             }
-
-            int width = GetSpriteWidthForGameResolution(spriteNum);
-            int height = GetSpriteHeightForGameResolution(spriteNum);
+            
+            int width, height;
+            Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out width, out height);
 
             return ((x >= character.StartX - (width / 2)) && (x < character.StartX + (width / 2)) &&
                 (y >= character.StartY - height) && (y < character.StartY));          
@@ -145,7 +145,6 @@ namespace AGS.Editor
         {
             int tempx = _menuClickX;
             int tempy = _menuClickY;
-
             string textToCopy = tempx.ToString() + ", " + tempy.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
         }
@@ -166,7 +165,6 @@ namespace AGS.Editor
         {
             int tempx = _selectedCharacter.StartX;
             int tempy = _selectedCharacter.StartY;
-
             string textToCopy = tempx.ToString() + ", " + tempy.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
         }
@@ -216,18 +214,6 @@ namespace AGS.Editor
             }
         }
 
-        // CLNUP need to check
-        private int GetSpriteHeightForGameResolution(int spriteSlot)
-        {
-            return Factory.NativeProxy.GetSpriteHeight(spriteSlot);
-        }
-
-        // CLNUP need to check
-        private int GetSpriteWidthForGameResolution(int spriteSlot)
-        {
-            return Factory.NativeProxy.GetSpriteWidth(spriteSlot);
-        }
-
         public void Paint(Graphics graphics, RoomEditorState state)
         {
             Pen pen = new Pen(Color.Goldenrod);
@@ -270,8 +256,10 @@ namespace AGS.Editor
                 }
                 int xPos = state.RoomXToWindow(character.StartX);
                 int yPos = state.RoomYToWindow(character.StartY);
-                int spriteWidth = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(spriteNum));
-                int spriteHeight = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(spriteNum));
+                int spriteWidth, spriteHeight;
+                Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out spriteWidth, out spriteHeight);
+                spriteWidth = state.RoomSizeToWindow(spriteWidth);
+                spriteHeight = state.RoomSizeToWindow(spriteHeight);
 
                 Factory.NativeProxy.DrawSpriteToBuffer(spriteNum, xPos - spriteWidth / 2, yPos - spriteHeight, state.Scale);
             }
@@ -291,8 +279,10 @@ namespace AGS.Editor
             int spriteNum = 0;
             if (view.Loops[0].Frames.Count > 0)
                 spriteNum = _game.FindViewByID(character.NormalView).Loops[0].Frames[0].Image;
-            int spriteWidth = state.RoomSizeToWindow(GetSpriteWidthForGameResolution(spriteNum));
-            int spriteHeight = state.RoomSizeToWindow(GetSpriteHeightForGameResolution(spriteNum));
+            int spriteWidth, spriteHeight;
+            Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out spriteWidth, out spriteHeight);
+            spriteWidth = state.RoomSizeToWindow(spriteWidth);
+            spriteHeight = state.RoomSizeToWindow(spriteHeight);
             return new Rectangle(xPos - spriteWidth / 2, yPos - spriteHeight, spriteWidth, spriteHeight);
         }
 

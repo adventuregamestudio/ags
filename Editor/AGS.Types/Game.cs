@@ -539,18 +539,12 @@ namespace AGS.Types
             return null;
         }
 
-        // CLNUP this is a little confusing, IsHighResolution depends on GUIScaleFactor which depends on LowResolution
+        // CLNUP
+        // TODO: remove this after we have proper zoom controls in all editors;
+        // default zoom-in should be relied on the actual image size if on anything
         public int GUIScaleFactor
         {
-            get
-            {
-                if (_settings.LowResolution)
-                {
-                    return 2;
-                }
-
-                return 1;
-            }
+            get { return _settings.HighResolution ? 1 : 2; }
         }
 
         public int GetNextAudioIndex()

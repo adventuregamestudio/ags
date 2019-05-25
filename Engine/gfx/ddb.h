@@ -26,7 +26,7 @@ namespace Engine
 class IDriverDependantBitmap
 {
 public:
-  virtual ~IDriverDependantBitmap(){}
+  virtual ~IDriverDependantBitmap() = default;
 
   virtual void SetTransparency(int transparency) = 0;  // 0-255
   virtual void SetFlippedLeftRight(bool isFlipped) = 0;

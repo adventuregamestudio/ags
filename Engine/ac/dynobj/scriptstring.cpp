@@ -17,8 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-void* ScriptString::CreateString(const char *fromText) {
-    return (void*)CreateNewScriptString(fromText);
+DynObjectRef ScriptString::CreateString(const char *fromText) {
+    return CreateNewScriptStringObj(fromText);
 }
 
 int ScriptString::Dispose(const char *address, bool force) {

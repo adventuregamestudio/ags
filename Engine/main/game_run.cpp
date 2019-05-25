@@ -16,6 +16,8 @@
 // Game loop
 //
 
+#include <limits>
+#include <chrono>
 #include "ac/common.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -34,7 +36,7 @@
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
@@ -47,11 +49,13 @@
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "main/update.h"
-#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
+#include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -76,25 +80,25 @@ extern GameState play;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;
 extern RoomObject*objs;
-extern int replay_start_this_time;
 extern char noWalkBehindsAtAll;
 extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 extern unsigned int loopcounter,lastcounter;
-extern volatile int timerloop;
 extern int cur_mode,cur_cursor;
 
 // Checks if user interface should remain disabled for now
 int ShouldStayInWaitMode();
 
 int numEventsAtStartOfFunction;
-long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
+auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 
 long user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
 
 int restrict_until=0;
+
+unsigned int loopcounter=0,lastcounter=0;
 
 void ProperExit()
 {
@@ -216,22 +220,24 @@ void check_mouse_controls()
     // check mouse clicks on GUIs
     static int wasbutdown=0,wasongui=0;
 
-    if ((wasbutdown>0) && (misbuttondown(wasbutdown-1))) {
+    if ((wasbutdown>0) && (ags_misbuttondown(wasbutdown-1))) {
         gui_on_mouse_hold(wasongui, wasbutdown);
     }
-    else if ((wasbutdown>0) && (!misbuttondown(wasbutdown-1))) {
+    else if ((wasbutdown>0) && (!ags_misbuttondown(wasbutdown-1))) {
         gui_on_mouse_up(wasongui, wasbutdown);
         wasbutdown=0;
     }
 
-    int mbut =mgetbutton();
+    int mbut = ags_mgetbutton();
     if (mbut>NONE) {
         lock_mouse_on_click();
 
-        if ((play.in_cutscene == 3) || (play.in_cutscene == 4))
+        CutsceneSkipStyle skip = get_cutscene_skipstyle();
+        if (skip == eSkipSceneMouse || skip == eSkipSceneKeyMouse ||
+            (mbut == RIGHT && skip == eSkipSceneEscOrRMB))
+        {
             start_skipping_cutscene();
-        if ((play.in_cutscene == 5) && (mbut == RIGHT))
-            start_skipping_cutscene();
+        }
 
         if (play.fast_forward) { }
         else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
@@ -255,7 +261,7 @@ void check_mouse_controls()
         else setevent(EV_TEXTSCRIPT,TS_MCLICK,mbut+1);
         //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
     }
-    mbut = check_mouse_wheel();
+    mbut = ags_check_mouse_wheel();
     if (mbut !=0)
         lock_mouse_on_click();
     if (mbut < 0)
@@ -293,7 +299,7 @@ bool run_service_key_controls(int &kgn)
     static int old_key_shifts = 0; // for saving shift modes
 
     bool handled = false;
-    int kbhit_res = kbhit();
+    int kbhit_res = ags_kbhit();
     // First, check shifts
     const int act_shifts = get_active_shifts();
     // If shifts combination have already triggered an action, then do nothing
@@ -334,9 +340,9 @@ bool run_service_key_controls(int &kgn)
     if (!kbhit_res || handled)
         return false;
 
-    int keycode = getch();
+    int keycode = ags_getch();
     if (keycode == 0)
-        keycode = getch() + AGS_EXT_KEY_SHIFT;
+        keycode = ags_getch() + AGS_EXT_KEY_SHIFT;
 
     // LAlt or RAlt + Enter
     // NOTE: for some reason LAlt + Enter produces same code as F9
@@ -360,9 +366,6 @@ void check_keyboard_controls()
         return;
     // Now check for in-game controls
     {
-        // in case they press the finish-recording button, make sure we know
-        int was_playing = play.playback;
-        
         //    if (kgn==367) restart_game();
         //    if (kgn==2) Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed);
         //    if (kgn==2) CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear");
@@ -371,16 +374,6 @@ void check_keyboard_controls()
         //if (kgn == 2) SetCharacterIdle (game.playercharacter, 5, 0);
         //if (kgn == 2) Display("Some for?ign text");
         //if (kgn == 2) do_conversation(5);
-
-        if (kgn == play.replay_hotkey) {
-            // start/stop recording
-            if (play.recording)
-                stop_recording();
-            else if ((play.playback) || (was_playing))
-                ;  // do nothing (we got the replay of the stop key)
-            else
-                replay_start_this_time = 1;
-        }
 
         check_skip_cutscene_keypress (kgn);
 
@@ -432,8 +425,8 @@ void check_keyboard_controls()
                 sprintf(&infobuf[strlen(infobuf)],
                     "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
                     ff, objs[ff].x, objs[ff].y,
-                    (spriteset[objs[ff].num] != NULL) ? game.SpriteInfos[objs[ff].num].Width : 0,
-                    (spriteset[objs[ff].num] != NULL) ? game.SpriteInfos[objs[ff].num].Height : 0,
+                    (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Width : 0,
+                    (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Height : 0,
                     objs[ff].on,
                     (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
                     objs[ff].num, objs[ff].transparent,
@@ -519,7 +512,6 @@ void check_keyboard_controls()
 // check_controls: checks mouse & keyboard interface
 void check_controls() {
     our_eip = 1007;
-    NEXT_ITERATION();
 
     check_mouse_controls();
     check_keyboard_controls();
@@ -627,12 +619,6 @@ void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, in
 
         offsetxWas = camera.Left;
         offsetyWas = camera.Top;
-
-#ifdef MAC_VERSION
-        // take a breather after the heavy work
-        // cuts down on CPU usage and reduces the fan noise
-        rest(2);
-#endif
     }
 }
 
@@ -684,30 +670,42 @@ void game_loop_update_loop_counter()
     }
 }
 
-void game_loop_check_replay_record()
-{
-    if (replay_start_this_time) {
-        replay_start_this_time = 0;
-        start_replay_record();
-    }
-}
-
 void game_loop_update_fps()
 {
-    if (time(NULL) != t1) {
-        t1 = time(NULL);
-        fps = loopcounter - lastcounter;
+    auto t2 = AGS_Clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    auto frames = loopcounter - lastcounter;
+
+    if (duration >= std::chrono::milliseconds(1000) && frames > 0) {
+        fps = 1000.0f * frames / duration.count();
+        t1 = t2;
         lastcounter = loopcounter;
     }
 }
 
+float get_current_fps() {
+    // if wanted frames_per_second is >= 1000, that means we have maxed out framerate so return the frame rate we're seeing instead
+    auto maxed_framerate = (frames_per_second >= 1000) && (display_fps == 2);
+    // fps must be greater that 0 or some timings will take forever.
+    if (maxed_framerate && fps > 0.0f) {
+        return fps;
+    }
+    return frames_per_second;
+}
+
+void set_loop_counter(unsigned int new_counter) {
+    loopcounter = new_counter;
+    t1 = AGS_Clock::now();
+    lastcounter = loopcounter;
+    fps = std::numeric_limits<float>::quiet_NaN();
+}
+
 void PollUntilNextFrame()
 {
-    // make sure we poll, cos a low framerate (eg 5 fps) could stutter
-    // mp3 music
-    while (timerloop == 0 && play.fast_forward == 0) {
+    if (play.fast_forward) { return; }
+    while (waitingForNextTick()) {
+        // make sure we poll, cos a low framerate (eg 5 fps) could stutter mp3 music
         update_polled_stuff_if_runtime();
-        platform->YieldCPU();
     }
 }
 
@@ -715,7 +713,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     int res;
 
-    update_mp3();
+    update_polled_mp3();
 
     numEventsAtStartOfFunction = numevents;
 
@@ -725,7 +723,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     ccNotifyScriptStillAlive ();
     our_eip=1;
-    timerloop=0;
 
     game_loop_check_problems_at_start();
 
@@ -762,7 +759,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_do_late_update();
 
-    update_polled_audio_and_crossfade();
+    update_audio_system_on_game_loop();
 
     game_loop_do_render_and_check_mouse(extraBitmap, extraX, extraY);
 
@@ -772,14 +769,12 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     our_eip=7;
 
-    //    if (mgetbutton()>NONE) break;
+    //    if (ags_mgetbutton()>NONE) break;
     update_polled_stuff_if_runtime();
 
     game_loop_update_background_animation();
 
     game_loop_update_loop_counter();
-
-    game_loop_check_replay_record();
 
     // Immediately start the next frame if we are skipping a cutscene
     if (play.fast_forward)
@@ -932,26 +927,24 @@ void GameLoopUntilEvent(int untilwhat,long daaa) {
   int cached_user_disabled_for = user_disabled_for;
 
   SetupLoopParameters(untilwhat,daaa,0);
-  while (GameTick()==0) ;
+  while (GameTick()==0);
 
   restrict_until = cached_restrict_until;
   user_disabled_data = cached_user_disabled_data;
   user_disabled_for = cached_user_disabled_for;
 }
 
-// for external modules to call
-void NextIteration() {
-    NEXT_ITERATION();
-}
-
 extern unsigned int load_new_game;
 void RunGameUntilAborted()
 {
+    // skip ticks to account for time spent starting game.
+    skipMissedTicks();
+
     while (!abort_engine) {
         GameTick();
 
         if (load_new_game) {
-            RunAGSGame (NULL, load_new_game, 0);
+            RunAGSGame (nullptr, load_new_game, 0);
             load_new_game = 0;
         }
     }
@@ -964,8 +957,7 @@ void update_polled_stuff_if_runtime()
         quit("||exit!");
     }
 
-    if (!psp_audio_multithreaded)
-        update_polled_mp3();
+    update_polled_mp3();
 
     if (editor_debugging_initialized)
         check_for_messages_from_editor();

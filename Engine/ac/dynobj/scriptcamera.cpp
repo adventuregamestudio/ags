@@ -15,27 +15,15 @@
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/gamestate.h"
 
-enum ScriptCameraSaveFlags
-{
-    kScCamPosLocked = 0x01
-};
-
 const char *ScriptCamera::GetType()
 {
-    return "Camera";
+    return "Camera2";
 }
 
 int ScriptCamera::Serialize(const char *address, char *buffer, int bufsize)
 {
-    const RoomCamera &cam = play.GetRoomCameraObj();
-
     StartSerialize(buffer);
     SerializeInt(0); // ID
-    SerializeInt(cam.Locked ? kScCamPosLocked : 0); // flags
-    SerializeInt(cam.Position.Left);
-    SerializeInt(cam.Position.Top);
-    SerializeInt(cam.Position.GetWidth());
-    SerializeInt(cam.Position.GetHeight());
     return EndSerialize();
 }
 
@@ -43,15 +31,5 @@ void ScriptCamera::Unserialize(int index, const char *serializedData, int dataSi
 {
     StartUnserialize(serializedData, dataSize);
     UnserializeInt(); // ID, reserved for the future
-    int flags = UnserializeInt();
-    int x = UnserializeInt();
-    int y = UnserializeInt();
-    int w = UnserializeInt();
-    int h = UnserializeInt();
-    play.SetRoomCameraSize(Size(w, h));
-    if (flags & kScCamPosLocked)
-        play.LockRoomCameraAt(x, y);
-    else
-        play.SetRoomCameraAt(x, y);
     ccRegisterUnserializedObject(index, this, this);
 }

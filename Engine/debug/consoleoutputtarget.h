@@ -35,7 +35,7 @@ public:
     ConsoleOutputTarget();
     virtual ~ConsoleOutputTarget();
 
-    virtual void PrintMessage(const DebugMessage &msg);
+    void PrintMessage(const DebugMessage &msg) override;
 };
 
 }   // namespace Engine

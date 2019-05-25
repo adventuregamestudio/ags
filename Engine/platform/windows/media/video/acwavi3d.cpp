@@ -29,16 +29,14 @@
 #define _D3DTYPES_H_
 #define _STRSAFE_H_INCLUDED_
 typedef float D3DVALUE, *LPD3DVALUE;
+#include "ac/common.h"
 #include "main/game_run.h"
 #include "media/video/VMR9Graph.h"
 #include "platform/base/agsplatformdriver.h"
 //#include <atlbase.h>
+#include "media/audio/audio_system.h"
 
-#ifndef _DEBUG
-	#define USES_CONVERSION int _convert; _convert; UINT _acp = CP_ACP; _acp; LPCWSTR _lpw; _lpw; LPCSTR _lpa; _lpa
-#else
-	#define USES_CONVERSION int _convert = 0; _convert; UINT _acp = CP_ACP; _acp; LPCWSTR _lpw = NULL; _lpw; LPCSTR _lpa = NULL; _lpa
-#endif
+#define USES_CONVERSION int _convert = 0; _convert; UINT _acp = CP_ACP; _acp; LPCWSTR _lpw = NULL; _lpw; LPCSTR _lpa = NULL; _lpa
 
 inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars, UINT acp)
 {
@@ -63,12 +61,10 @@ inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars)
 
 // Interface from main game
 
-extern int rec_mgetbutton();
-extern void update_polled_audio_and_crossfade();
+extern int ags_mgetbutton();
+extern void update_audio_system_on_game_loop();
 extern volatile char want_exit;
-extern volatile int timerloop;
 extern char lastError[300];
-extern void NextIteration();
 CVMR9Graph *graph = NULL;
 
 void dxmedia_shutdown_3d()
@@ -90,7 +86,7 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
   }
 
   if (!useAVISound)
-    update_polled_audio_and_crossfade();
+    update_audio_system_on_game_loop();
 
   if (!graph->SetMediaFile(filename, useAVISound))
   {
@@ -100,7 +96,7 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
   graph->SetLayerZOrder(0, 0);
 
   if (!useAVISound)
-    update_polled_audio_and_crossfade();
+    update_audio_system_on_game_loop();
 
   if (!graph->PlayGraph())
   {
@@ -108,17 +104,13 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
     return -1;
   }
 
+
   OAFilterState filterState = State_Running;
   while ((filterState != State_Stopped) && (!want_exit))
   {
-    while (timerloop == 0)
-      platform->Delay(1);
-    timerloop = 0;
-
     if (!useAVISound)
-      update_polled_audio_and_crossfade();
+      update_audio_system_on_game_loop();
 
-    NextIteration();
     filterState = graph->GetState();
 
     int key;
@@ -128,10 +120,14 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
       if (canskip >= 2)
         break;
     }
-    if ((rec_mgetbutton() >= 0) && (canskip == 3))
+    if ((ags_mgetbutton() >= 0) && (canskip == 3))
       break;
 
     //device->Present(NULL, NULL, 0, NULL);
+
+		while (waitingForNextTick()) {
+      update_polled_stuff_if_runtime();
+		}
 	}
 
   graph->StopGraph();

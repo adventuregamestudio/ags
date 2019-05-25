@@ -1601,10 +1601,12 @@ namespace AGS.Editor
             }
         }
 
-		void IGUIController.DrawSprite(Graphics g, int spriteNumber, int x, int y, int width, int height, bool centreHorizontally)
+        void IGUIController.DrawSprite(Graphics g, int spriteNumber, int x, int y, int width, int height, bool centreHorizontally)
 		{
-			int spriteWidth = Factory.NativeProxy.GetSpriteWidth(spriteNumber) * 2;
-			int spriteHeight = Factory.NativeProxy.GetSpriteHeight(spriteNumber) * 2;
+            SpriteInfo info = Factory.NativeProxy.GetSpriteInfo(spriteNumber);
+
+            int spriteWidth = info.Width;
+			int spriteHeight = info.Height;
 			Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNumber, spriteWidth, spriteHeight), width, height, centreHorizontally, false, SystemColors.Control);
 			g.DrawImage(bmp, x, y);
 			bmp.Dispose();

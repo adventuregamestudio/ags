@@ -28,7 +28,10 @@ class WiiThread : public BaseThread
 public:
   WiiThread()
   {
+    _thread = (lwp_t)NULL;
+    _entry = NULL;
     _running = false;
+    _looping = false;
   }
 
   ~WiiThread()

@@ -32,7 +32,6 @@
 #include "ac/objectcache.h"
 #include "ac/parser.h"
 #include "ac/path_helper.h"
-#include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "ac/dynobj/scriptobject.h"
@@ -44,11 +43,10 @@
 #include "gui/guidefines.h"
 #include "main/game_run.h"
 #include "main/engine.h"
-#include "media/audio/audio.h"
-#include "media/audio/sound.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_builtin.h"
 #include "plugin/plugin_engine.h"
+#include "plugin/plugin_builtin.h"
 #include "plugin/pluginobjectreader.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -63,6 +61,8 @@
 #include "main/graphics_mode.h"
 #include "gfx/gfx_util.h"
 #include "util/memory.h"
+#include "util/filestream.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
@@ -74,6 +74,7 @@ using namespace AGS::Engine;
 #include "../Plugins/agsblend/agsblend.h"
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
 #include "../Plugins/ags_parallax/ags_parallax.h"
+#include "../Plugins/agspalrender/agspalrender.h"
 #if defined(IOS_VERSION)
 #include "../Plugins/agstouch/agstouch.h"
 #endif // IOS_VERSION
@@ -138,11 +139,11 @@ struct EnginePlugin {
     int         savedatasize;
     int         wantHook;
     int         invalidatedRegion;
-    void      (*engineStartup) (IAGSEngine *);
-    void      (*engineShutdown) ();
-    int       (*onEvent) (int, int);
-    void      (*initGfxHook) (const char *driverName, void *data);
-    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved);
+    void      (*engineStartup) (IAGSEngine *) = nullptr;
+    void      (*engineShutdown) () = nullptr;
+    int       (*onEvent) (int, int) = nullptr;
+    void      (*initGfxHook) (const char *driverName, void *data) = nullptr;
+    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = nullptr;
     IAGSEngine  eiface;
     bool        builtin;
 
@@ -150,9 +151,12 @@ struct EnginePlugin {
         filename[0] = 0;
         wantHook = 0;
         invalidatedRegion = 0;
-        savedata = NULL;
+        savedata = nullptr;
+        savedatasize = 0;
         builtin = false;
         available = false;
+        eiface.version = 0;
+        eiface.pluginId = 0;
     }
 };
 #define MAXPLUGINS 20
@@ -173,8 +177,8 @@ void IAGSEngine::RegisterScriptFunction (const char*name, void*addy) {
 }
 const char* IAGSEngine::GetGraphicsDriverID()
 {
-    if (gfxDriver == NULL)
-        return NULL;
+    if (gfxDriver == nullptr)
+        return nullptr;
 
     return gfxDriver->GetDriverID();
 }
@@ -186,20 +190,20 @@ BITMAP *IAGSEngine::GetScreen ()
         quit("!This plugin requires software graphics driver.");
 
     Bitmap *buffer = gfxDriver->GetMemoryBackBuffer();
-    return buffer ? (BITMAP*)buffer->GetAllegroBitmap() : NULL;
+    return buffer ? (BITMAP*)buffer->GetAllegroBitmap() : nullptr;
 }
 
 BITMAP *IAGSEngine::GetVirtualScreen () 
 {
     Bitmap *stage = gfxDriver->GetStageBackBuffer();
-    return stage ? (BITMAP*)stage->GetAllegroBitmap() : NULL;
+    return stage ? (BITMAP*)stage->GetAllegroBitmap() : nullptr;
 }
 
 void IAGSEngine::RequestEventHook (int32 event) {
     if (event >= AGSE_TOOHIGH) 
         quit("!IAGSEngine::RequestEventHook: invalid event requested");
 
-    if (plugins[this->pluginId].onEvent == NULL)
+    if (plugins[this->pluginId].onEvent == nullptr)
         quit("!IAGSEngine::RequestEventHook: no callback AGS_EngineOnEvent function exported from plugin");
 
     if ((event & AGSE_SCRIPTDEBUG) &&
@@ -224,7 +228,7 @@ void IAGSEngine::UnrequestEventHook(int32 event) {
         (plugins[this->pluginId].wantHook & AGSE_SCRIPTDEBUG)) {
             pluginsWantingDebugHooks--;
             if (pluginsWantingDebugHooks < 1)
-                ccSetDebugHook(NULL);
+                ccSetDebugHook(nullptr);
     }
 
     plugins[this->pluginId].wantHook &= ~event;
@@ -252,11 +256,11 @@ void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text
 }
 
 void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth) {
-    if (width != NULL)
+    if (width != nullptr)
         width[0] = play.GetMainViewport().GetWidth();
-    if (height != NULL)
+    if (height != nullptr)
         height[0] = play.GetMainViewport().GetHeight();
-    if (coldepth != NULL)
+    if (coldepth != nullptr)
         coldepth[0] = scsystem.coldepth;
 }
 
@@ -304,24 +308,51 @@ BITMAP *IAGSEngine::GetBackgroundScene (int32 index) {
     return (BITMAP*)thisroom.BgFrames[index].Graphic->GetAllegroBitmap();
 }
 void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth) {
-    if (bmp == NULL)
+    if (bmp == nullptr)
         return;
 
-    if (width != NULL)
+    if (width != nullptr)
         width[0] = bmp->w;
-    if (height != NULL)
+    if (height != nullptr)
         height[0] = bmp->h;
-    if (coldepth != NULL)
+    if (coldepth != nullptr)
         coldepth[0] = bitmap_color_depth(bmp);
 }
-// [IKM] Interesting, why does AGS need those two functions?
-// Can it be that it was planned to change implementation in the future?
-// TODO: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
-int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
-    return fread (buffer, 1, len, Int32ToPtr<FILE>(handle));
+
+// On save/restore, the Engine will provide the plugin with a handle. Because we only ever save to one file at a time,
+// we can reuse the same handle.
+
+static long pl_file_handle = -1;
+static Stream *pl_file_stream = nullptr;
+
+void pl_set_file_handle(long data, Stream *stream) {
+    pl_file_handle = data;
+    pl_file_stream = stream;
 }
+
+void pl_clear_file_handle() {
+    pl_file_handle = -1;
+    pl_file_stream = nullptr;
+}
+
+int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
+    if (handle != pl_file_handle) {
+        quitprintf("IAGSEngine::FRead: invalid file handle: %d", handle);
+    }
+    if (!pl_file_stream) {
+        quit("IAGSEngine::FRead: file stream not set");
+    }
+    return pl_file_stream->Read(buffer, len);
+}
+
 int IAGSEngine::FWrite (void *buffer, int32 len, int32 handle) {
-    return fwrite (buffer, 1, len, Int32ToPtr<FILE>(handle));
+    if (handle != pl_file_handle) {
+        quitprintf("IAGSEngine::FWrite: invalid file handle: %d", handle);
+    }
+    if (!pl_file_stream) {
+        quit("IAGSEngine::FWrite: file stream not set");
+    }
+    return pl_file_stream->Write(buffer, len);
 }
 
 void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int32 color, const char*text)
@@ -356,7 +387,7 @@ void IAGSEngine::SetVirtualScreen (BITMAP *bmp)
     else
     {
         glVirtualScreenWrap.Destroy();
-        gfxDriver->SetMemoryBackBuffer(NULL);
+        gfxDriver->SetMemoryBackBuffer(nullptr);
     }
 }
 
@@ -399,7 +430,6 @@ extern int  mgetbutton();
 
 void IAGSEngine::PollSystem () {
 
-    NEXT_ITERATION();
     domouse(DOMOUSE_NOCURSOR);
     update_polled_stuff_if_runtime();
     int mbut = mgetbutton();
@@ -484,12 +514,12 @@ BITMAP *IAGSEngine::GetRoomMask (int32 index) {
         return (BITMAP*)thisroom.RegionMask->GetAllegroBitmap();
     else
         quit("!IAGSEngine::GetRoomMask: invalid mask requested");
-    return NULL;
+    return nullptr;
 }
 // [DEPRECATED]
 AGSViewFrame *IAGSEngine::GetViewFrame (int32 view, int32 loop, int32 frame) {
     quit("!AGSEngine::GetViewFrame() is no longer supported. Use Game_GetViewFrame() of the script API instead.");
-    return NULL;
+    return nullptr;
 }
 
 int IAGSEngine::GetRawPixelColor(int32 color)
@@ -528,14 +558,14 @@ int IAGSEngine::GetSpriteHeight (int32 slot) {
 }
 void IAGSEngine::GetTextExtent (int32 font, const char *text, int32 *width, int32 *height) {
     if ((font < 0) || (font >= game.numfonts)) {
-        if (width != NULL) width[0] = 0;
-        if (height != NULL) height[0] = 0;
+        if (width != nullptr) width[0] = 0;
+        if (height != nullptr) height[0] = 0;
         return;
     }
 
-    if (width != NULL)
+    if (width != nullptr)
         width[0] = wgettextwidth_compensate (text, font);
-    if (height != NULL)
+    if (height != nullptr)
         height[0] = wgettextheight ((char*)text, font);
 }
 void IAGSEngine::PrintDebugConsole (const char *text) {
@@ -547,7 +577,12 @@ int IAGSEngine::IsChannelPlaying (int32 channel) {
 }
 void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume, int32 loop, const char *filename) {
     stop_and_destroy_channel (channel);
-    SOUNDCLIP *newcha = NULL;
+    // Not sure if it's right to let it play on *any* channel, but this is plugin so let it go...
+    // we must correctly stop background voice speech if it takes over speech chan
+    if (channel == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
+        stop_voice_nonblocking();
+
+    SOUNDCLIP *newcha = nullptr;
 
     if (((soundType == PSND_MP3STREAM) || (soundType == PSND_OGGSTREAM)) 
         && (loop != 0))
@@ -581,7 +616,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
     else
         quit("!IAGSEngine::PlaySoundChannel: unknown sound type");
 
-    channels[channel] = newcha;
+    set_clip_to_channel(channel, newcha);
 }
 // Engine interface 12 and above are below
 void IAGSEngine::MarkRegionDirty(int32 left, int32 top, int32 right, int32 bottom) {
@@ -591,7 +626,7 @@ void IAGSEngine::MarkRegionDirty(int32 left, int32 top, int32 right, int32 botto
 AGSMouseCursor * IAGSEngine::GetMouseCursor(int32 cursor) {
     // We should not return anything, because (at this time) script functions do not require actual cursor instance
     quit("!AGSEngine::GetMouseCursor() is no longer supported. Use related script API instead.");
-    return NULL;
+    return nullptr;
 }
 void IAGSEngine::GetRawColorComponents(int32 coldepth, int32 color, int32 *red, int32 *green, int32 *blue, int32 *alpha) {
     if (red)
@@ -629,7 +664,7 @@ int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
 
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, coldepth);
-    if (newPic == NULL)
+    if (newPic == nullptr)
         return 0;
 
     // add it into the sprite set
@@ -650,7 +685,7 @@ void IAGSEngine::DisableSound() {
     shutdown_sound();
     usetup.digicard = DIGI_NONE;
     usetup.midicard = MIDI_NONE;
-    install_sound(usetup.digicard,usetup.midicard,NULL);
+    install_sound(usetup.digicard,usetup.midicard,nullptr);
 }
 int IAGSEngine::CanRunScriptFunctionNow() {
     if (inside_script)
@@ -677,16 +712,16 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot) {
     for (ff = 0; ff < game.numcharacters; ff++) {
         if ((charcache[ff].inUse) && (charcache[ff].sppic == slot)) {
             delete charcache[ff].image;
-            charcache[ff].image = NULL;
+            charcache[ff].image = nullptr;
             charcache[ff].inUse = 0;
         }
     }
 
     // clear the object cache
     for (ff = 0; ff < MAX_ROOM_OBJECTS; ff++) {
-        if ((objcache[ff].image != NULL) && (objcache[ff].sppic == slot)) {
+        if ((objcache[ff].image != nullptr) && (objcache[ff].sppic == slot)) {
             delete objcache[ff].image;
-            objcache[ff].image = NULL;
+            objcache[ff].image = nullptr;
         }
     }
 }
@@ -721,7 +756,7 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
     if (numPluginReaders >= MAX_PLUGIN_OBJECT_READERS) 
         quit("Plugin error: IAGSEngine::AddObjectReader: Too many object readers added");
 
-    if ((typeName == NULL) || (typeName[0] == 0))
+    if ((typeName == nullptr) || (typeName[0] == 0))
         quit("Plugin error: IAGSEngine::AddObjectReader: invalid name for type");
 
     for (int ii = 0; ii < numPluginReaders; ii++) {
@@ -825,16 +860,16 @@ IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRender
 
 void pl_stop_plugins() {
     int a;
-    ccSetDebugHook(NULL);
+    ccSetDebugHook(nullptr);
 
     for (a = 0; a < numPlugins; a++) {
         if (plugins[a].available) {
-            if (plugins[a].engineShutdown != NULL)
+            if (plugins[a].engineShutdown != nullptr)
                 plugins[a].engineShutdown();
             plugins[a].wantHook = 0;
             if (plugins[a].savedata) {
                 free(plugins[a].savedata);
-                plugins[a].savedata = NULL;
+                plugins[a].savedata = nullptr;
             }
             if (!plugins[a].builtin) {
               plugins[a].library.Unload();
@@ -879,7 +914,7 @@ int pl_run_plugin_debug_hooks (const char *scriptfile, int linenum) {
 void pl_run_plugin_init_gfx_hooks (const char *driverName, void *data) {
     for (int i = 0; i < numPlugins; i++) 
     {
-        if (plugins[i].initGfxHook != NULL)
+        if (plugins[i].initGfxHook != nullptr)
         {
             plugins[i].initGfxHook(driverName, data);
         }
@@ -934,6 +969,17 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->onEvent = ags_parallax::AGS_EngineOnEvent;
         apl->debugHook = ags_parallax::AGS_EngineDebugHook;
         apl->initGfxHook = ags_parallax::AGS_EngineInitGfx;
+        apl->available = true;
+        apl->builtin = true;
+        return true;
+    }
+    else if (stricmp(apl->filename, "agspalrender") == 0)
+    {
+        apl->engineStartup = agspalrender::AGS_EngineStartup;
+        apl->engineShutdown = agspalrender::AGS_EngineShutdown;
+        apl->onEvent = agspalrender::AGS_EngineOnEvent;
+        apl->debugHook = agspalrender::AGS_EngineDebugHook;
+        apl->initGfxHook = agspalrender::AGS_EngineInitGfx;
         apl->available = true;
         apl->builtin = true;
         return true;
@@ -1010,13 +1056,13 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         {
           AGS::Common::Debug::Printf(kDbgMsg_Init, "Plugin '%s' loading succeeded, resolving imports...", apl->filename);
 
-          if (apl->library.GetFunctionAddress("AGS_PluginV2") == NULL) {
+          if (apl->library.GetFunctionAddress("AGS_PluginV2") == nullptr) {
               quitprintf("Plugin '%s' is an old incompatible version.", apl->filename);
           }
           apl->engineStartup = (void(*)(IAGSEngine*))apl->library.GetFunctionAddress("AGS_EngineStartup");
           apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
 
-          if (apl->engineStartup == NULL) {
+          if (apl->engineStartup == nullptr) {
               quitprintf("Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
           }
           apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
@@ -1055,6 +1101,16 @@ bool pl_is_plugin_loaded(const char *pl_name)
     {
         if (stricmp(pl_name, plugins[i].filename) == 0)
             return plugins[i].available;
+    }
+    return false;
+}
+
+bool pl_any_want_hook(int event)
+{
+    for (int i = 0; i < numPlugins; ++i)
+    {
+        if(plugins[i].wantHook & event)
+            return true;
     }
     return false;
 }

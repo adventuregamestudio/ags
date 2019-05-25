@@ -104,6 +104,9 @@
 #define AGS_INLINE
 #endif
 
+// The game to screen coordinate conversion multiplier in hi-res type games
+#define HIRES_COORD_MULTIPLIER 2
+
 // object flags (currently only a char)
 #define OBJF_NOINTERACT        1  // not clickable
 #define OBJF_NOWALKBEHINDS     2  // ignore walk-behinds

@@ -507,7 +507,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_DUPLICATEINV] = (game.Settings.DisplayMultipleInventory ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_STRICTSTRINGS] = (game.Settings.EnforceNewStrings ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_STRICTSCRIPTING] = (game.Settings.EnforceObjectBasedScript ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_NOSCALEFNT] = (game.Settings.FontsForHiRes ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_HIRES_FONTS] = 0; // always ignore this setting
             options[NativeConstants.GameOptions.OPT_HANDLEINVCLICKS] = (game.Settings.HandleInvClicksInScript ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_FIXEDINVCURSOR] = (game.Settings.InventoryCursors ? 0 : 1);
             options[NativeConstants.GameOptions.OPT_GLOBALTALKANIMSPD] = (game.Settings.UseGlobalSpeechAnimationDelay ?
@@ -534,6 +534,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_BASESCRIPTAPI] = (int)game.Settings.ScriptAPIVersionReal;
             options[NativeConstants.GameOptions.OPT_SCRIPTCOMPATLEV] = (int)game.Settings.ScriptCompatLevelReal;
             options[NativeConstants.GameOptions.OPT_RENDERATSCREENRES] = (int)game.Settings.RenderAtScreenResolution;
+            options[NativeConstants.GameOptions.OPT_RELATIVEASSETRES] = (game.Settings.AllowRelativeAssetResolutions ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
             {
@@ -1386,25 +1387,24 @@ namespace AGS.Editor
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
-                writer.Write((byte)(game.Fonts[i].PointSize & NativeConstants.FFLG_SIZEMASK));
-            }
-            for (int i = 0; i < game.Fonts.Count; ++i)
-            {
-                if (game.Fonts[i].OutlineStyle == FontOutlineStyle.None)
+                int flags = 0;
+                if (game.Fonts[i].PointSize == 0)
                 {
-                    writer.Write((sbyte)-1);
+                    flags = NativeConstants.FFLG_SIZEMULTIPLIER;
                 }
-                else if (game.Fonts[i].OutlineStyle == FontOutlineStyle.Automatic)
-                {
-                    writer.Write(NativeConstants.FONT_OUTLINE_AUTO);
-                }
+                writer.Write(flags);
+                if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
+                    writer.Write(game.Fonts[i].PointSize * game.Fonts[i].SizeMultiplier);
                 else
-                {
-                    writer.Write((byte)game.Fonts[i].OutlineFont);
-                }
-            }
-            for (int i = 0; i < game.Fonts.Count; ++i)
-            {
+                    writer.Write(game.Fonts[i].SizeMultiplier);
+
+                int outline = -1;
+                if (game.Fonts[i].OutlineStyle == FontOutlineStyle.Automatic)
+                    outline = NativeConstants.FONT_OUTLINE_AUTO;
+                else if (game.Fonts[i].OutlineStyle != FontOutlineStyle.None)
+                    outline = game.Fonts[i].OutlineFont;
+                writer.Write(outline);
+
                 writer.Write(game.Fonts[i].VerticalOffset);
                 writer.Write(game.Fonts[i].LineSpacing);
             }

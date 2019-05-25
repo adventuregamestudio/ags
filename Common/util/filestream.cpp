@@ -22,7 +22,7 @@ namespace Common
 FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
             DataEndianess stream_endianess)
     : DataStream(stream_endianess)
-    , _file(NULL)
+    , _file(nullptr)
     , _openMode(open_mode)
     , _workMode(work_mode)
 {
@@ -31,7 +31,7 @@ FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWork
 
 FileStream::~FileStream()
 {
-    Close();
+    FileStream::Close();
 }
 
 bool FileStream::HasErrors() const
@@ -45,7 +45,7 @@ void FileStream::Close()
     {
         fclose(_file);
     }
-    _file = NULL;
+    _file = nullptr;
 }
 
 bool FileStream::Flush()
@@ -59,7 +59,7 @@ bool FileStream::Flush()
 
 bool FileStream::IsValid() const
 {
-    return _file != NULL;
+    return _file != nullptr;
 }
 
 bool FileStream::EOS() const

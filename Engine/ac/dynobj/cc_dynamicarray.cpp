@@ -66,7 +66,7 @@ void CCDynamicArray::Unserialize(int index, const char *serializedData, int data
     ccRegisterUnserializedObject(index, &newArray[8], this);
 }
 
-int32_t CCDynamicArray::Create(int numElements, int elementSize, bool isManagedType)
+DynObjectRef CCDynamicArray::Create(int numElements, int elementSize, bool isManagedType)
 {
     char *newArray = new char[numElements * elementSize + 8];
     memset(newArray, 0, numElements * elementSize + 8);
@@ -75,7 +75,14 @@ int32_t CCDynamicArray::Create(int numElements, int elementSize, bool isManagedT
     sizePtr[1] = numElements * elementSize;
     if (isManagedType) 
         sizePtr[0] |= ARRAY_MANAGED_TYPE_FLAG;
-    return ccRegisterManagedObject(&newArray[8], this);
+    void *obj_ptr = &newArray[8];
+    int32_t handle = ccRegisterManagedObject(obj_ptr, this);
+    if (handle == 0)
+    {
+        delete[] newArray;
+        return DynObjectRef(0, nullptr);
+    }
+    return DynObjectRef(handle, obj_ptr);
 }
 
 
@@ -135,3 +142,20 @@ void CCDynamicArray::WriteFloat(const char *address, intptr_t offset, float val)
 }
 
 CCDynamicArray globalDynamicArray;
+
+
+DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char*> items)
+{
+    // NOTE: we need element size of "handle" for array of managed pointers
+    DynObjectRef arr = globalDynamicArray.Create(items.size(), sizeof(int32_t), true);
+    if (!arr.second)
+        return arr;
+    // Create script strings and put handles into array
+    int32_t *slots = static_cast<int32_t*>(arr.second);
+    for (auto s : items)
+    {
+        DynObjectRef str = stringClassImpl->CreateString(s);
+        *(slots++) = str.first;
+    }
+    return arr;
+}

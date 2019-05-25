@@ -89,7 +89,7 @@ Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hi
 Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *bimp, Common::Bitmap *source, bool hasAlpha = false, bool opaque = false);
 void update_screen();
 // Draw everything 
-void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
+void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 void construct_virtual_screen(bool fullRedraw) ;
 void add_to_sprite_list(Engine::IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
@@ -118,6 +118,16 @@ void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, colo
 
 void setpal();
 
+// These functions are separate, they help to convert from room coordinates
+// to the region mask coordinates. They were necessary because in hi-res
+// games region masks are 1:2 of the room background size.
+// TODO: they really should depend only on room mask setting, not on global game setting.
+// coordinate conversion room ---> mask
+extern AGS_INLINE int room_to_mask_coord(int coord);
+// coordinate conversion mask ---> room
+extern AGS_INLINE int mask_to_room_coord(int coord);
+// This function converts game coordinates coming from script to the actual game resolution.
+extern AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y);
 // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
 // had to be created (by default).
 // TODO: this helper function was meant to remove bitmap deletion from the GraphicsDriver's

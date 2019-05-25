@@ -27,7 +27,7 @@ ProxyStream::ProxyStream(Stream *stream, ObjectOwnershipPolicy stream_ownership_
 
 ProxyStream::~ProxyStream()
 {
-    Close();
+    ProxyStream::Close();
 }
 
 void ProxyStream::Close()
@@ -36,7 +36,7 @@ void ProxyStream::Close()
     {
         delete _stream;
     }
-    _stream = NULL;
+    _stream = nullptr;
 }
 
 bool ProxyStream::Flush()

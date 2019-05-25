@@ -33,8 +33,8 @@ private:
 public:
 	void Release()
 	{
-		if (_m != NULL) _m->Unlock();
-		_m = NULL;
+		if (_m != nullptr) _m->Unlock();
+		_m = nullptr;
 	}
 
 	void Acquire(BaseMutex &mutex)
@@ -44,11 +44,11 @@ public:
 		_m->Lock();
 	}
 
-	MutexLock() : _m(NULL)
+	MutexLock() : _m(nullptr)
 	{
 	}
 
-	explicit MutexLock(BaseMutex &mutex) : _m(NULL)
+	explicit MutexLock(BaseMutex &mutex) : _m(nullptr)
 	{
 		Acquire(mutex);
 	}

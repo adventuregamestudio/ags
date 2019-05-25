@@ -106,7 +106,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
     if (numsaves >= MAXSAVEGAMES)
       break;
     // only list games .000 to .099 (to allow higher slots for other perposes)
-    if (strstr(ffb.name,".0")==NULL) {
+    if (strstr(ffb.name,".0")==nullptr) {
       don = al_findnext(&ffb);
       continue;
     }

@@ -17,20 +17,13 @@
 
 const char *ScriptViewport::GetType()
 {
-    return "Viewport";
+    return "Viewport2";
 }
 
 int ScriptViewport::Serialize(const char *address, char *buffer, int bufsize)
 {
-    const Rect &view = play.GetRoomViewport();
-
     StartSerialize(buffer);
     SerializeInt(0); // ID
-    SerializeInt(view.Left);
-    SerializeInt(view.Top);
-    SerializeInt(view.GetWidth());
-    SerializeInt(view.GetHeight());
-    SerializeInt(0); // camera reference (ID)
     return EndSerialize();
 }
 
@@ -38,11 +31,5 @@ void ScriptViewport::Unserialize(int index, const char *serializedData, int data
 {
     StartUnserialize(serializedData, dataSize);
     UnserializeInt(); // ID, reserved for the future
-    int x = UnserializeInt();
-    int y = UnserializeInt();
-    int w = UnserializeInt();
-    int h = UnserializeInt();
-    UnserializeInt(); // camera ID, reserved for the future
-    play.SetRoomViewport(RectWH(x, y, w, h));
     ccRegisterUnserializedObject(index, this, this);
 }

@@ -37,7 +37,7 @@ class AllegroGfxFilter : public ScalingGfxFilter
 public:
     AllegroGfxFilter();
 
-    virtual const GfxFilterInfo &GetInfo() const;
+    const GfxFilterInfo &GetInfo() const override;
     
     virtual Bitmap *InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect);
     virtual Bitmap *ShutdownAndReturnRealScreen();

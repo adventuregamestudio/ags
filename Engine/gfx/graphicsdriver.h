@@ -124,7 +124,7 @@ public:
   // Prepares next sprite batch, a list of sprites with defined viewport and optional
   // global model transformation; all subsequent calls to DrawSprite will be adding
   // sprites to this batch's list.
-  virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = NULL) = 0;
+  virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = nullptr) = 0;
   // Adds sprite to the active batch
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
   // Clears all sprite batches, resets batch counter
@@ -141,8 +141,8 @@ public:
   virtual void Render(GlobalFlipType flip) = 0;
   // Copies contents of the game screen into bitmap using simple blit or pixel copy.
   // Bitmap must be of supported size and pixel format. If it's not the method will
-  // fail and optionally write wanted destination size into 'want_size' pointer.
-  virtual bool GetCopyOfScreenIntoBitmap(Common::Bitmap *destination, bool at_native_res, Size *want_size = NULL) = 0;
+  // fail and optionally write wanted destination format into 'want_fmt' pointer.
+  virtual bool GetCopyOfScreenIntoBitmap(Common::Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt = nullptr) = 0;
   virtual void EnableVsyncBeforeRender(bool enabled) = 0;
   virtual void Vsync() = 0;
   // Enables or disables rendering mode that draws sprite list directly into
@@ -178,7 +178,7 @@ public:
   virtual bool RequiresFullRedrawEachFrame() = 0;
   virtual bool HasAcceleratedTransform() = 0;
   virtual bool UsesMemoryBackBuffer() = 0;
-  virtual ~IGraphicsDriver() { }
+  virtual ~IGraphicsDriver() = default;
 };
 
 } // namespace Engine

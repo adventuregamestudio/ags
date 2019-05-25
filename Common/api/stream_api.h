@@ -42,7 +42,7 @@ enum StreamSeek
 class IAGSStream
 {
 public:
-    virtual ~IAGSStream(){}
+    virtual ~IAGSStream() = default;
 
     virtual void        Close() = 0;
 

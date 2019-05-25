@@ -39,6 +39,7 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
+#include "ac/common_defines.h"
 #include "game/interactions.h"
 #include "util/geometry.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
@@ -231,6 +232,15 @@ struct MessageInfo
 };
 
 
+// Room's legacy resolution type
+enum RoomResolutionType
+{
+    kRoomRealRes = 0, // room should always be treated as-is
+    kRoomLoRes = 1, // created for low-resolution game
+    kRoomHiRes = 2 // created for high-resolution game
+};
+
+
 //
 // Description of a single room.
 // This class contains initial room data. Some of it may still be modified
@@ -272,6 +282,9 @@ public:
     // the room must have behavior specific to certain version of AGS.
     int32_t                 DataVersion;
 
+    // Room region masks resolution. Defines the relation between room and mask units.
+    // Mask point is calculated as roompt / MaskResolution. Must be >= 1.
+    int32_t                 MaskResolution;
     // Size of the room, in logical coordinates (= pixels)
     int32_t                 Width;
     int32_t                 Height;
@@ -320,7 +333,13 @@ public:
 };
 
 
+// Loads new room data into the given RoomStruct object
 void load_room(const char *filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos);
+// Ensures that all existing room masks match room background size and
+// MaskResolution property, resizes mask bitmaps if necessary.
+void FixRoomMasks(RoomStruct *room);
+// Adjusts bitmap size if necessary and returns either new or old bitmap.
+PBitmap FixBitmap(PBitmap bmp, int dst_width, int dst_height);
 
 } // namespace Common
 } // namespace AGS

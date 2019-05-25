@@ -116,76 +116,6 @@ int ccCompiledScript::add_new_import(const char *namm)
     return numimports - 1;
 }
 
-// Copy the symbol table entry of an import (or forward) declaration
-int ccCompiledScript::copy_import_symbol_table_entry(AGS::Symbol idx, SymbolTableEntry *dest)
-{
-    size_t entries_idx = idx;
-    dest->flags = sym.entries[entries_idx].flags;
-    dest->stype = sym.entries[entries_idx].stype;
-    dest->sscope = sym.entries[entries_idx].sscope;
-    dest->ssize = sym.entries[entries_idx].ssize;
-    // Return size may have been unknown at the time of forward declaration. Check the actual return type for those cases.
-    if (dest->ssize == 0 && sym.entries[entries_idx].stype == kSYM_Function)
-    {
-        dest->ssize = sym.entries[sym.entries[entries_idx].funcparamtypes[0] & ~(kVTY_Pointer | kVTY_DynArray)].ssize;
-    }
-    dest->arrsize = sym.entries[entries_idx].arrsize;
-
-    if (sym.entries[entries_idx].stype == kSYM_Function)
-    {
-        for (size_t arg = 0; static_cast<int>(arg) <= sym.entries[entries_idx].get_num_args(); arg++)
-        {
-            dest->funcparamtypes.push_back(sym.entries[entries_idx].funcparamtypes.at(arg));
-            dest->funcParamDefaultValues.push_back(sym.entries[entries_idx].funcParamDefaultValues.at(arg));
-            dest->funcParamHasDefaultValues.push_back(sym.entries[entries_idx].funcParamHasDefaultValues.at(arg));
-        }
-    }
-    return 0;
-}
-
-// Remove any import with the specified name, using the modern SymbolTableEntry
-int ccCompiledScript::just_remove_any_import(AGS::Symbol idx)
-{
-    std::string name = sym.get_name_string(idx);
-    std::string name_with_hat = name;
-    name_with_hat.push_back('^');
-
-    if ((sym.entries[idx].flags & kSFLG_Imported) == 0) return 0;
-
-    // if this import has been referenced, flag an error
-    if (sym.entries[idx].flags & kSFLG_Accessed)
-    {
-        cc_error("Already referenced name as import; you must define it before using it");
-        return -1;
-    }
-
-    // if they set the No Override Imports flag, don't allow it
-    if (ccGetOption(SCOPT_NOIMPORTOVERRIDE))
-    {
-        cc_error("Variable '%s' is already imported", sym.get_name_string(idx).c_str());
-        return -1;
-    }
-
-    // remove its type so that it can be declared
-    sym.entries[idx].stype = kSYM_NoType;
-    sym.entries[idx].flags = 0;
-
-    // check also for a number-of-parameters appended version
-
-    for (size_t imports_idx = 0; static_cast<int>(imports_idx) < numimports; imports_idx++)
-    {
-        if ((name.compare(imports[imports_idx]) == 0) ||
-            (strncmp(imports[imports_idx], name_with_hat.c_str(), name_with_hat.length()) == 0))
-        {
-            // Just null the name of the import
-            // DO NOT remove the import from the list, as some other
-            // import indexes might already be referenced by the code
-            // compiled so far.
-            imports[imports_idx][0] = '\0';
-        }
-    }
-    return 0;
-}
 
 int ccCompiledScript::add_new_export(const char *namm, int etype, long eoffs, int numArgs)
 {
@@ -302,7 +232,7 @@ void ccCompiledScript::init()
     sectionNames = NULL;
     sectionOffsets = NULL;
     next_line = 0;
-    ax_val_type = 0;
+    ax_vartype = 0;
     ax_val_scope = 0;
     memset(functions, 0, sizeof(functions));
     memset(funccodeoffs, 0, sizeof(funccodeoffs));

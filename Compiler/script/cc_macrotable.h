@@ -8,7 +8,7 @@ struct MacroTable {
 
     char *name[MAXDEFINES];
     char *macro[MAXDEFINES];
-    void init() { num=0; }
+    void init();
 
     void shutdown();
     int  find_name(char *);

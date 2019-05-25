@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,26 +7,26 @@
 #include "script/cc_options.h"      // ccGetOption
 #include "script/cc_error.h"
 
-void ccCompiledScript::push_reg(int regg) 
+void ccCompiledScript::push_reg(int regg)
 {
     write_cmd1(SCMD_PUSHREG, regg);
     cur_sp += 4;
 }
 
-void ccCompiledScript::pop_reg(int regg) 
+void ccCompiledScript::pop_reg(int regg)
 {
     write_cmd1(SCMD_POPREG, regg);
     cur_sp -= 4;
 }
 
-ccCompiledScript::ccCompiledScript() 
+ccCompiledScript::ccCompiledScript()
 {
     init();
     ax_vartype = 0;
     ax_val_scope = 0;
 }
 
-ccCompiledScript::~ccCompiledScript() 
+ccCompiledScript::~ccCompiledScript()
 {
     shutdown();
 }
@@ -69,11 +68,11 @@ int ccCompiledScript::add_string(const char *strr)
     // Note: processing  of '\\' and '[' combinations moved to the scanner
     // because the scanner must deal with '\\' anyway.
     size_t const strr_len = strlen(strr) + 1; // length including the terminating '\0'
-    
-    strings = (char *) realloc(strings, stringssize + strr_len);
+
+    strings = (char *)realloc(strings, stringssize + strr_len);
     size_t const start_of_new_string = stringssize;
 
-    memcpy(&strings[start_of_new_string], strr, strr_len);   
+    memcpy(&strings[start_of_new_string], strr, strr_len);
     stringssize += strr_len
         ;
     return start_of_new_string;
@@ -167,24 +166,6 @@ int ccCompiledScript::just_remove_any_import(AGS::Symbol idx)
 
     // remove its type so that it can be declared
     sym.entries[idx].stype = kSYM_NoType;
-    sym.entries[idx].flags = 0;
-
-    // check also for a number-of-parameters appended version
-
-    for (size_t imports_idx = 0; static_cast<int>(imports_idx) < numimports; imports_idx++)
-    {
-        if ((name.compare(imports[imports_idx]) == 0) ||
-            (strncmp(imports[imports_idx], name_with_hat.c_str(), name_with_hat.length()) == 0))
-        {
-            // Just null the name of the import
-            // DO NOT remove the import from the list, as some other
-            // import indexes might already be referenced by the code
-            // compiled so far.
-            imports[imports_idx][0] = '\0';
-        }
-
-    // remove its type so that it can be declared
-    sym.entries[idx].stype = 0;
     sym.entries[idx].flags = 0;
 
     // check also for a number-of-parameters appended version

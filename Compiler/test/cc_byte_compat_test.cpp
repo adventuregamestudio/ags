@@ -4582,7 +4582,7 @@ TEST(Bytecode, Func10) {
 
     // WriteOutput("Func10", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 83;
+    const size_t codesize = 75;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -4590,12 +4590,11 @@ TEST(Bytecode, Func10) {
        1,    4,    6,    3,            5,    2,    1,    4,    // 15
       31,    6,    2,    1,            4,    6,    3,    0,    // 23
        5,   38,   25,   51,            0,   63,    4,    1,    // 31
-       1,    4,    1,    1,            4,   51,    8,   29,    // 39
-       6,   45,    2,    6,            3,    0,   23,    3,    // 47
-      30,    6,   29,    3,            6,    3,    3,   30,    // 55
-       4,   40,    4,    3,            3,    4,    3,   51,    // 63
-       4,    8,    3,   51,            4,    7,    3,    2,    // 71
-       1,    8,   31,    6,            2,    1,    8,    6,    // 79
+       1,    4,    1,    1,            4,    6,    3,    0,    // 39
+      23,    3,   29,    3,            6,    3,    3,   30,    // 47
+       4,   40,    4,    3,            3,    4,    3,   51,    // 55
+       4,    8,    3,   51,            4,    7,    3,    2,    // 63
+       1,    8,   31,    6,            2,    1,    8,    6,    // 71
        3,    0,    5,  -999
     };
 
@@ -4613,7 +4612,7 @@ TEST(Bytecode, Func10) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      45,  -999
+      39,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)

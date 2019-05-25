@@ -182,6 +182,24 @@ int ccCompiledScript::just_remove_any_import(AGS::Symbol idx)
             // compiled so far.
             imports[imports_idx][0] = '\0';
         }
+
+    // remove its type so that it can be declared
+    sym.entries[idx].stype = 0;
+    sym.entries[idx].flags = 0;
+
+    // check also for a number-of-parameters appended version
+
+    for (size_t imports_idx = 0; static_cast<int>(imports_idx) < numimports; imports_idx++)
+    {
+        if ((name.compare(imports[imports_idx]) == 0) ||
+            (strncmp(imports[imports_idx], name_with_hat.c_str(), name_with_hat.length()) == 0))
+        {
+            // Just null the name of the import
+            // DO NOT remove the import from the list, as some other
+            // import indexes might already be referenced by the code
+            // compiled so far.
+            imports[imports_idx][0] = '\0';
+        }
     }
     return 0;
 }

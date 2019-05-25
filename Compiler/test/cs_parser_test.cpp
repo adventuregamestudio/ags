@@ -1682,3 +1682,54 @@ TEST(Compile, Attributes04) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, Attributes05) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Assignment to static attribute should call the setter.
+
+    char *inpl = "\
+        builtin managed struct Game {       \n\
+            import static attribute int MinimumTextDisplayTimeMs;     \n\
+        };                                  \n\
+                                            \n\
+        void main()                         \n\
+        {                                   \n\
+            Game.MinimumTextDisplayTimeMs = 3000;   \n\
+        }                                   \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, Attributes06) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Assignment to static indexed attribute
+
+    char *inpl = "\
+        builtin managed struct Dialog {                             \n\
+            readonly import attribute int OptionCount;              \n\
+        };                                                          \n\
+                                                                    \n\
+        builtin managed struct DialogOptionsRenderingInfo {         \n\
+            readonly import attribute Dialog *DialogToRender;       \n\
+        };                                                          \n\
+                                                                    \n\
+        int main()                                                  \n\
+        {                                                           \n\
+            DialogOptionsRenderingInfo *info;                       \n\
+            int DialogOptionYPos[];                                 \n\
+            DialogOptionYPos = new int[info.DialogToRender.OptionCount+2];  \n\
+        }                                                           \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+

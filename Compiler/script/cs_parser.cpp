@@ -642,6 +642,19 @@ inline bool is_any_type_of_string(AGS::Vartype symtype)
     return false;
 }
 
+inline bool is_pointer_vartype(AGS::Vartype vartype)
+{
+    return
+        FlagIsSet(vartype, kVTY_DynArray) ||
+        (FlagIsSet(vartype, kVTY_Pointer) && !FlagIsSet(vartype, kVTY_Array));
+}
+
+// true if the symbol is "int" and the like.
+inline bool is_primitive_vartype(AGS::Symbol symbl)
+{
+    return (symbl > 0 && symbl <= sym.getVoidSym());
+}
+
 // Return number of bytes to remove from stack to unallocate local vars
 // of level from_level or higher
 int StacksizeOfLocals(int from_level)
@@ -2812,7 +2825,8 @@ int AccessData_FunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, A
     bool func_uses_this = false;
     if (std::string::npos != sym.get_name_string(name_of_func).find("::"))
     {
-        func_uses_this = true;
+        if (!FlagIsSet(sym.get_flags(name_of_func), kSFLG_Static))
+            func_uses_this = true;
         // static functions don't have an object instance, so no "this"
         if (FlagIsSet(sym.get_flags(name_of_func), kSFLG_Static))
             func_uses_this = false;
@@ -3064,7 +3078,6 @@ int AccessData_Attribute(ccCompiledScript *scrip, bool is_attribute_set_func, Sy
 enum ValueLocation
 {
     kVL_ax_is_value,         // The value is in register AX
-    kVL_ax_pointsto_value,   // The value is in m(AX)
     kVL_mar_pointsto_value,  // The value is in m(MAR)
     kVL_attribute            // The value must be modified by calling an attribute setter
 };
@@ -3072,24 +3085,20 @@ enum ValueLocation
 // Location contains a pointer to another address. Get that address.
 int AccessData_Dereference(ccCompiledScript *scrip, ValueLocation &vloc, MemoryLocation &mloc)
 {
-    if (kVL_ax_pointsto_value == vloc)
+    if (kVL_ax_is_value == vloc)
     {
         scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        scrip->write_cmd0(SCMD_CHECKNULL);
         vloc = kVL_mar_pointsto_value;
     }
-    if (kVL_mar_pointsto_value == vloc)
+    else
     {
         AccessData_MakeMARCurrent(scrip, mloc);
         scrip->write_cmd0(SCMD_CHECKNULL);
         scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
     }
-    else
-    {
-        cc_error("Cannot access value");
-        return -1;
-    }
-    mloc.LType = kSYM_NoType;
-    mloc.ComponentOffs = 0;
+
+    mloc = { kSYM_NoType, 0, 0 };
     return 0;
 }
 
@@ -3134,11 +3143,11 @@ int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_
     }
     size_t bracketed_expr_length = close_brac_loc + 1 - symlist;
     
-    // Must be any sort of array; if AX points to it, must be a dynarray
+    // Must be any sort of array
     bool const is_dynarray = FlagIsSet(vartype, kVTY_DynArray);
     bool const is_array = FlagIsSet(vartype, kVTY_Array);
     AGS::Vartype const core_vartype = vartype & kVTY_FlagMask;
-    if (!is_dynarray && (!is_array || kVL_ax_pointsto_value == vloc_of_array))
+    if (!is_dynarray && !is_array)
     {
         cc_error("Array index is only legal after an array");
         return -1;
@@ -3151,13 +3160,6 @@ int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_
 
     if (is_dynarray)
         AccessData_Dereference(scrip, vloc, mloc);
-
-    if (kVL_ax_pointsto_value == vloc)
-    {
-        scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_MAR);
-        vloc = kVL_mar_pointsto_value;
-        mloc = { kSYM_NoType, 0, 0 };
-    }
 
     // Ideally, we would calculate compile time constants here. For now, only
     // process the special case [INT] where INT is a non-negative integer or constant.
@@ -3224,6 +3226,15 @@ int AccessData_GlobalOrLocalVar(ccCompiledScript *scrip, bool is_global, bool wr
     // Process an array index if it follows
     ValueLocation vl_dummy = kVL_mar_pointsto_value;
     return AccessData_ProcessAnyArrayIndex(scrip, kVL_mar_pointsto_value, sym.entries[varname].arrsize, symlist, symlist_len, vl_dummy, mloc, vartype);
+}
+
+int AccessData_Static(AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype)
+{
+    vartype = symlist[0];
+    symlist++;
+    symlist_len--;
+    mloc = { kSYM_NoType, 0, 0 };
+    return 0;
 }
 
 int AccessData_LitFloat(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
@@ -3301,51 +3312,6 @@ int AccessData_String(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &s
     return 0;
 }
 
-// We're parsing STRUCT_VARTYPE.COMPONENT 
-int AccessData_StaticFunctionCallOrAttribute(ccCompiledScript *scrip, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::Vartype &vartype)
-{
-    if (symlist_len < 2 || kSYM_Dot != sym.get_type(symlist[1]))
-    {
-        cc_error("Expected '.' after '%s'", sym.get_name_string(symlist[0]));
-        return -1;
-    }
-    if (symlist_len < 3)
-    {
-        cc_error("Expected component after '%s.'", sym.get_name_string(symlist[0]));
-        return -1;
-    }
-    AGS::Symbol const struct_name = symlist[0];
-    AGS::Symbol const component_name = symlist[2];
-    AGS::Symbol const staticname = MangleStructAndComponent(struct_name, component_name);
-    symlist += 2; // skip '.' and component
-    symlist_len -= 2;
-
-    switch (sym.get_type(staticname))
-    {
-    default:
-        cc_error("Function or attribute '%s' unknown", sym.get_name_string(staticname).c_str());
-        return -1;
-
-    case kSYM_Attribute:
-        if (writing)
-        {
-            // We can't process that here, so return to the assignment we came from
-            vloc = kVL_attribute;
-            return 0;
-        }
-        vloc = kVL_ax_is_value;
-        vartype = struct_name;
-        return AccessData_Attribute(scrip, writing, symlist, symlist_len, vartype);
-
-    case kSYM_Function:
-    {
-        vloc = kVL_ax_is_value;
-        MemoryLocation mloc = { kSYM_NoType, 0, 0 };
-        return AccessData_FunctionCall(scrip, staticname, symlist, symlist_len, mloc, vartype);
-    }
-    }
-}
-
 // Negates the value; this clobbers AX and BX
 void AccessData_Negate(ccCompiledScript *scrip, ValueLocation vloc)
 {
@@ -3362,13 +3328,18 @@ void AccessData_Negate(ccCompiledScript *scrip, ValueLocation vloc)
 // This moves symlist in all cases except for the cascade to the end of what is parsed,
 // and in case of a cascade, to the end of the first element of the cascade, i.e.,
 // to the position of the '.'. 
-int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this)
+int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate)
 {
     if (symlist_len < 1)
     {
         cc_error("Internal error: Empty variable");
         return -99;
     }
+
+    // In many cases, we can handle the negation here, so we reset the flag.
+    // If we find that we _cannot_ handle negation later on, we'll undo that
+    bool const input_negate = need_to_negate;
+    need_to_negate = false;
 
     if (sym.getThisSym() == symlist[0])
     {
@@ -3381,7 +3352,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
         vloc = kVL_mar_pointsto_value;
         scrip->write_cmd2(SCMD_REGTOREG, SREG_OP, SREG_MAR);
         scrip->write_cmd0(SCMD_CHECKNULL);
-        mloc.LType = kSYM_NoType;
+        mloc = { kSYM_NoType, 0, 0 };
         access_via_this = true;
         symlist++;
         symlist_len--;
@@ -3405,7 +3376,7 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
             // We _should_ prepend "this." to symlist here but can't do that (easily).
             // So we don't and the '.' that should be prepended doesn't exist.
             // To compensate for that, we back up symlist by one index
-            mloc.LType = kSYM_NoType;
+            mloc = { kSYM_NoType, 0, 0 };
             symlist--; 
             symlist_len++;
             return 0;
@@ -3419,16 +3390,18 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
         if (writing) break; // to error msg
         scope = kSYM_GlobalVar;
         vloc = kVL_ax_is_value;
-        return AccessData_LitOrConst(scrip, negate, symlist, symlist_len, vartype);
+        return AccessData_LitOrConst(scrip, input_negate, symlist, symlist_len, vartype);
 
     case kSYM_Function:
     {
         scope = kSYM_GlobalVar;
         vloc = kVL_ax_is_value;
+        need_to_negate = input_negate;
         int retval = AccessData_FunctionCall(scrip, symlist[0], symlist, symlist_len, mloc, vartype);
         if (retval < 0) return retval;
-        if (negate)
-            AccessData_Negate(scrip, vloc);
+        int const zero_array_size_dummy = 0; // A function cannot return a static array.
+        if (FlagIsSet(vartype, kVTY_DynArray))
+            return AccessData_ProcessAnyArrayIndex(scrip, vloc, zero_array_size_dummy, symlist, symlist_len, vloc, mloc, vartype);
         return 0;
     }
 
@@ -3437,24 +3410,21 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
         scope = kSYM_GlobalVar;
         vloc = kVL_mar_pointsto_value;
         bool const is_global = true;
-        int retval = AccessData_GlobalOrLocalVar(scrip, is_global, writing, symlist, symlist_len, mloc, vartype);
-        if (retval < 0) return retval;
-        if (negate)
-            AccessData_Negate(scrip, vloc);
-        return 0;
+        need_to_negate = input_negate;
+        return AccessData_GlobalOrLocalVar(scrip, is_global, writing, symlist, symlist_len, mloc, vartype);
     }
 
     case kSYM_LiteralFloat:
         if (writing) break; // to error msg
         scope = kSYM_GlobalVar;
         vloc = kVL_ax_is_value;
-        return AccessData_LitFloat(scrip, negate, symlist, symlist_len, vartype);
+        return AccessData_LitFloat(scrip, input_negate, symlist, symlist_len, vartype);
 
     case kSYM_LiteralInt:
         if (writing) break; // to error msg
         scope = kSYM_GlobalVar;
         vloc = kVL_ax_is_value;
-        return AccessData_LitOrConst(scrip, negate, symlist, symlist_len, vartype);
+        return AccessData_LitOrConst(scrip, input_negate, symlist, symlist_len, vartype);
 
     case kSYM_LocalVar:
     {
@@ -3463,34 +3433,27 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
             kSYM_GlobalVar : kSYM_LocalVar;
         vloc = kVL_mar_pointsto_value;
         bool const is_global = false;
-        int retval = AccessData_GlobalOrLocalVar(scrip, is_global, writing, symlist, symlist_len, mloc, vartype);
-        if (retval < 0) return retval;
-        if (negate)
-            AccessData_Negate(scrip, vloc);
-        return 0;
+        need_to_negate = input_negate;
+        return AccessData_GlobalOrLocalVar(scrip, is_global, writing, symlist, symlist_len, mloc, vartype);
     }
 
     case kSYM_Null:
         if (writing) break; // to error msg
         scope = kSYM_GlobalVar;
         vloc = kVL_ax_is_value;
-        return AccessData_Null(scrip, negate, symlist, symlist_len, vartype);
+        return AccessData_Null(scrip, need_to_negate, symlist, symlist_len, vartype);
 
     case kSYM_LiteralString:
         if (writing) break; // to error msg
         scope = kSYM_GlobalVar;
         vloc = kVL_ax_is_value;
-        return AccessData_String(scrip, negate, symlist, symlist_len, vartype);
+        return AccessData_String(scrip, need_to_negate, symlist, symlist_len, vartype);
 
     case kSYM_Vartype:
-    {
         scope = kSYM_GlobalVar;
-        int retval = AccessData_StaticFunctionCallOrAttribute(scrip, writing, symlist, symlist_len, vloc, vartype);
-        if (retval < 0) return retval;
-        if (negate)
-            AccessData_Negate(scrip, vloc);
-        return 0;
-    }
+        static_access = true;
+        need_to_negate = input_negate;
+        return AccessData_Static(symlist, symlist_len, mloc, vartype);
     }
 
     cc_error("Cannot assign a value to '%s'", sym.get_name_string(symlist[0]).c_str());
@@ -3500,16 +3463,15 @@ int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, bool negate, A
 // We're processing a STRUCT.STRUCT. ... clause.
 // We've already processed some structs, and the type of the last one is vartype.
 // Now we process a component of vartype.
-int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool access_via_this, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype)
+int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool access_via_this, bool static_access, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype)
 {
-    AGS::Symbol component = symlist[0];
-    SymbolType component_type = sym.get_type(component);
-    if (kSYM_Attribute != component_type &&
-        kSYM_Function != component_type &&
-        kSYM_StructComponent != component_type)
+    AGS::Symbol const component = MangleStructAndComponent(vartype & kVTY_FlagMask, symlist[0]);
+    SymbolType const component_type = sym.get_type(component);
+
+    if (static_access && !FlagIsSet(sym.get_flags(component), kSFLG_Static))
     {
-        component = MangleStructAndComponent(vartype & kVTY_FlagMask, component);
-        component_type = sym.get_type(component);
+        cc_error("Must specify a specific struct for this non-static component");
+        return -1;
     }
 
     int retval = 0;
@@ -3541,11 +3503,11 @@ int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool acce
         vloc = kVL_ax_is_value;
         scope = kSYM_LocalVar;
         retval = AccessData_FunctionCall(scrip, component, symlist, symlist_len, mloc, vartype);
-        if (retval < 0) return retval;        
+        if (retval < 0) return retval;
         int const zero_array_size_dummy = 0; // A function cannot return a static array.
-        // We've just called a function, so its ret value will be in AX.
-        // Thus _if_ an array index follows, it must be AX that points to that array.
-        return AccessData_ProcessAnyArrayIndex(scrip, kVL_ax_pointsto_value, zero_array_size_dummy, symlist, symlist_len, vloc, mloc, vartype);
+        if (FlagIsSet(vartype, kVTY_DynArray))
+            return AccessData_ProcessAnyArrayIndex(scrip, vloc, zero_array_size_dummy, symlist, symlist_len, vloc, mloc, vartype);
+        return 0;
     }
 
     case kSYM_StructComponent:
@@ -3574,13 +3536,19 @@ int AccessData_IsClauseLast(AGS::SymbolScript symlist, size_t symlist_len, bool 
 // that has not been processed yet
 // NOTE: If this selects an attribute for writing, then the corresponding function will
 // _not_ be called and symlist[0] will be the attribute.
-int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AccessData(ccCompiledScript *scrip, bool writing, bool need_to_negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (symlist_len == 0)
     {
         cc_error("Internal error: empty expression");
         return -99;
     }
+    if (writing && need_to_negate)
+    {
+        cc_error("Can't apply unary minus to a value you are modifying");
+        return -1;
+    }
+
     // For memory accesses, we set the MAR register lazily so that we can
     // accumulate offsets at runtime instead of compile time.
     // This struct tracks what we will need to do to set the MAR register.
@@ -3591,11 +3559,12 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
     if (retval < 0) return retval;
 
     bool access_via_this = false; // only true when "this" has just been parsed
+    bool static_access = false; // only true when a vartype has just been parsed
 
     // If we are reading, then all the accesses are for reading.
     // If we are writing, then all the accesses except for the last one
     // are for reading and the last one will be for writing.
-    retval = AccessData_FirstClause(scrip, (writing && clause_is_last), negate, symlist, symlist_len,  vloc, scope, mloc, vartype, access_via_this);
+    retval = AccessData_FirstClause(scrip, (writing && clause_is_last), symlist, symlist_len,  vloc, scope, mloc, vartype, access_via_this, static_access, need_to_negate);
     if (retval < 0) return retval;
 
     AGS::Vartype outer_vartype = 0;
@@ -3650,13 +3619,17 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool negate, AGS::SymbolSc
         // If we are reading, then all the accesses are for reading.
         // If we are writing, then all the accesses except for the last one
         // are for reading and the last one will be for writing.
-        retval = AccessData_SubsequentClause(scrip, (clause_is_last && writing), access_via_this, symlist, symlist_len, vloc, scope, mloc, vartype);
+        retval = AccessData_SubsequentClause(scrip, (clause_is_last && writing), access_via_this, static_access, symlist, symlist_len, vloc, scope, mloc, vartype);
         if (retval < 0) return retval;
 
         // Only the _immediate_ access via 'this.' counts for this flag.
         // This has passed now, so reset the flag.
         access_via_this = false;
+        static_access = false;
     }
+
+    if (need_to_negate)
+        AccessData_Negate(scrip, vloc);
 
     if (kVL_attribute == vloc)
     {
@@ -3749,6 +3722,17 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     int lhsscope;
     int retval = AccessData(scrip, writing, negate_dummy, symlist, symlist_len, vloc, lhsscope, lhsvartype);
     if (retval < 0) return retval;
+    if (kVL_ax_is_value == vloc)
+    {
+        if (!is_pointer_vartype(lhsvartype))
+        {
+            cc_error("Cannot modify this value");
+            return -1;
+        }
+        scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_MAR);
+        scrip->write_cmd0(SCMD_CHECKNULL);
+        vloc = kVL_mar_pointsto_value;
+    }
 
     if (may_clobber)
         scrip->pop_reg(SREG_AX);
@@ -3762,13 +3746,6 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
 
         bool const is_attribute_set_func = true;
         return AccessData_Attribute(scrip, is_attribute_set_func, symlist, symlist_len, struct_of_attribute);
-    }
-
-    if (kVL_ax_is_value == vloc)
-    {
-        // This is a non-writable value (e.g., a literal)
-        cc_error("Cannot assign to this value");
-        return -1;
     }
 
     // MAR points to the value
@@ -3790,7 +3767,6 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
             sym.get_vartype_name_string(lhsvartype).c_str());
         return -1;
     }
-    
     
     if (FlagIsSet(rhsvartype, kVTY_DynArray | kVTY_Pointer))
         scrip->write_cmd1(SCMD_MEMWRITEPTR, SREG_AX);
@@ -3817,9 +3793,7 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
         return -1;
     }
 
-    if (!FlagIsSet(vartype, kVTY_Pointer) &&
-        !FlagIsSet(vartype, kVTY_DynArray) &&
-        FlagIsSet(sym.get_flags(vartype), kSFLG_StructType))
+    if (FlagIsSet(sym.get_flags(vartype & kVTY_FlagMask), kSFLG_StructType) && !is_pointer_vartype(vartype))
     {
         if (!FlagIsSet(sym.get_flags(vartype), kSFLG_Managed))
         {
@@ -4054,12 +4028,6 @@ int ParseAssignment(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol a
     case kSYM_AssignSOp:
         return ParseAssignment_SAssign(targ, scrip, ass_symbol, lhs);
     }
-}
-
-// true if the symbol is "int" and the like.
-inline bool is_primitive_vartype(AGS::Symbol symbl)
-{
-    return (symbl > 0 && symbl <= sym.getVoidSym());
 }
 
 int ParseVardecl_InitialValAssignment_Float(ccInternalList *targ, bool is_neg, void *& initial_val_ptr)
@@ -4969,6 +4937,7 @@ int ParseStruct_Attribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::Ty
 
     if (kSYM_OpenBracket == sym.get_type(targ->peeknext()))
     {
+        attribute_is_indexed = true;
         targ->getnext();
         if (kSYM_CloseBracket != sym.get_type(targ->getnext()))
         {

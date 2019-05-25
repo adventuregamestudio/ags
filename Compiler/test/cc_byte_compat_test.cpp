@@ -6298,7 +6298,7 @@ TEST(Bytecode, StringStandard01) {
     "String::LowerCase^0",        "String::Replace^3",          "String::ReplaceCharAt^2",    // 11
     "String::StartsWith^2",       "String::Substring^2",        "String::Truncate^1",         // 14
     "String::UpperCase^0",        "String::get_AsFloat^0",      "String::get_AsInt^0",        // 17
-    "String::get_Chars^0",        "String::get_Length^0",        "[[SENTINEL]]"
+    "String::geti_Chars^1",       "String::get_Length^0",        "[[SENTINEL]]"
     };
 
     int idx2 = -1;
@@ -6674,7 +6674,7 @@ TEST(Bytecode, StringStandard02) {
     "String::LowerCase^0",        "String::Replace^3",          "String::ReplaceCharAt^2",    // 11
     "String::StartsWith^2",       "String::Substring^2",        "String::Truncate^1",         // 14
     "String::UpperCase^0",        "String::get_AsFloat^0",      "String::get_AsInt^0",        // 17
-    "String::get_Chars^0",        "String::get_Length^0",       "I",           // 20
+    "String::geti_Chars^1",       "String::get_Length^0",       "I",           // 20
      "[[SENTINEL]]"
     };
 
@@ -6712,6 +6712,7 @@ TEST(Bytecode, StringStandard02) {
         std::string test_val = prefix + std::to_string(scrip->strings[idx]);
         ASSERT_EQ(is_val, test_val);
     }
+
 }
 
 TEST(Bytecode, StringStandardOldstyle) {
@@ -6820,7 +6821,7 @@ TEST(Bytecode, StringStandardOldstyle) {
     "String::LowerCase^0",        "String::Replace^3",          "String::ReplaceCharAt^2",    // 11
     "String::StartsWith^2",       "String::Substring^2",        "String::Truncate^1",         // 14
     "String::UpperCase^0",        "String::get_AsFloat^0",      "String::get_AsInt^0",        // 17
-    "String::get_Chars^0",        "String::get_Length^0",        "[[SENTINEL]]"
+    "String::geti_Chars^1",       "String::get_Length^0",        "[[SENTINEL]]"
     };
 
     int idx2 = -1;

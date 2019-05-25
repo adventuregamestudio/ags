@@ -32,4 +32,7 @@ extern void setTimerFps(int new_fps);
 extern bool waitingForNextTick();  // store last tick time.
 extern void skipMissedTicks();  // if more than N frames, just skip all, start a fresh.
 
+extern std::chrono::microseconds getFrameDuration();
+extern void DelayUntilEndOfFrame();
+
 #endif // __AGS_EE_AC__TIMER_H

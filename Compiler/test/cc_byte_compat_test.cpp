@@ -6890,16 +6890,14 @@ TEST(Bytecode, AccessStructAsPointer)
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("AccessStructAsPointer", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 41;
+    const size_t codesize = 31;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    2,            2,   52,   48,    2,    // 7
-      29,    6,   29,    2,            6,    2,    0,    3,    // 15
-       2,    3,   48,    3,           30,    2,   34,    3,    // 23
-      45,    2,   39,    1,            6,    3,    1,   33,    // 31
-       3,   35,    1,   30,            6,    6,    3,    0,    // 39
-       5,  -999
+       6,    2,    0,    3,            2,    3,   48,    3,    // 15
+      34,    3,   39,    1,            6,    3,    1,   33,    // 23
+       3,   35,    1,    6,            3,    0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6916,7 +6914,7 @@ TEST(Bytecode, AccessStructAsPointer)
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       4,   14,   30,  -999
+       4,   10,   22,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -6968,6 +6966,7 @@ TEST(Bytecode, AccessStructAsPointer)
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
+
 }
 
 TEST(Bytecode, Attributes04) {

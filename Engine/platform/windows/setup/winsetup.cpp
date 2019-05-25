@@ -1018,7 +1018,8 @@ void WinSetupDialog::FillScalingList(HWND hlist, GameFrameSetup &frame_setup, bo
 
     const int min_scale = min(_winCfg.GameResolution.Width / _minGameSize.Width, _winCfg.GameResolution.Height / _minGameSize.Height);
     const Size max_size = windowed ? _maxWindowSize : _winCfg.ScreenSize;
-    const int max_scale = min(max_size.Width / _winCfg.GameResolution.Width, max_size.Height / _winCfg.GameResolution.Height);
+    const int max_scale = _winCfg.GameResolution.IsNull() ? 1 :
+        min(max_size.Width / _winCfg.GameResolution.Width, max_size.Height / _winCfg.GameResolution.Height);
     _maxGameScale = max(1, max_scale);
     _minGameScale = -max(1, min_scale);
 

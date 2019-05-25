@@ -599,7 +599,7 @@ inline SymbolType GetSymbolTypeAnyPhase(AGS::Symbol symb)
     return GetSymbolTableEntryAnyPhase(symb & kVTY_FlagMask).stype;
 }
 
-// Scan inpl into scan tokens, write line number opcodes, build a symbol table, mangle complex symbols
+// Scan inpl into scan tokens, write line number opcodes, build a symbol table
 int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
 {
     AGS::Scanner scanner(inpl, 1, targ);
@@ -610,7 +610,6 @@ int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip)
 
     bool eof_encountered = false;
     bool error_encountered = false;
-    int pgb_counter = 0;
     while (true)
     {
         AGS::Symbol token;

@@ -1471,6 +1471,8 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     flipTypeLastTime = flip;
     ClearDrawLists();
   }
+
+  DelayUntilEndOfFrame();
 }
 
 void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)

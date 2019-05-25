@@ -34,6 +34,7 @@
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/library.h"
+#include "ac/timer.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
@@ -1339,6 +1340,7 @@ void D3DGraphicsDriver::_renderAndPresent(GlobalFlipType flip, bool clearDrawLis
 {
   _render(flip, clearDrawListAfterwards);
   direct3ddevice->Present(NULL, NULL, NULL, NULL);
+  DelayUntilEndOfFrame();
 }
 
 void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)

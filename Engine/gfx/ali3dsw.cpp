@@ -548,6 +548,8 @@ void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
     _filter->RenderScreen(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y);
   else
     _filter->RenderScreenFlipped(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y, flip);
+
+  DelayUntilEndOfFrame();
 }
 
 void ALSoftwareGraphicsDriver::Render()
@@ -714,6 +716,7 @@ void ALSoftwareGraphicsDriver::__fade_from_range(PALETTE source, PALETTE dest, i
       set_palette_range(temp, from, to, TRUE);
       if (_pollingCallback) _pollingCallback();
       set_palette_range(temp, from, to, TRUE);
+      DelayUntilEndOfFrame();
    }
 
    set_palette_range(dest, from, to, TRUE);
@@ -764,6 +767,7 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
       this->ClearRectangle(_srcRect.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
           _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2, nullptr);
     
+      DelayUntilEndOfFrame();
       if (_pollingCallback)
         _pollingCallback();
 

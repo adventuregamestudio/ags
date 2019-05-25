@@ -39,12 +39,11 @@ The second phase has the following main components:
         Note that "++" and "--" are treated as assignment symbols, not as operators.
 
     Memory access
-        In MemoryAccess() and AccessData()
+        In AccessData()
         In order to read data or write to data, the respective piece of data must
         be located first. This also encompasses literals of the program code.
         Note that "." and "[]" are not treated as normal operators (operators like +).
-        Rather, a whole term such as a.b.c[d].e(f, g, h) is read in all at once and
-        processed together. The memory offset of struct components in relation to the
+        The memory offset of struct components in relation to the
         location of the respective struct is calculated at compile time, whereas array
         offsets are calculated at run time.
 
@@ -637,16 +636,16 @@ inline bool is_any_type_of_string(AGS::Vartype symtype)
     if (sym.getOldStringSym() == (symtype & ~kVTY_Const))
         return true;
     if (0 != symtype &&
-        sym.getStringStructSym() == (symtype & ~kVTY_Pointer & ~kVTY_Const))
+        sym.getStringStructSym() == (symtype & ~kVTY_DynPointer & ~kVTY_Const))
         return true;
     return false;
 }
 
-inline bool is_pointer_vartype(AGS::Vartype vartype)
+inline bool is_dynpointer_vartype(AGS::Vartype vartype)
 {
     return
         FlagIsSet(vartype, kVTY_DynArray) ||
-        (FlagIsSet(vartype, kVTY_Pointer) && !FlagIsSet(vartype, kVTY_Array));
+        (FlagIsSet(vartype, kVTY_DynPointer) && !FlagIsSet(vartype, kVTY_Array));
 }
 
 // true if the symbol is "int" and the like.
@@ -673,7 +672,7 @@ int StacksizeOfLocals(int from_level)
 
         if (FlagIsSet(sym.get_vartype(entries_idx), kVTY_DynArray))
         {
-            totalsub += SIZE_OF_POINTER;
+            totalsub += SIZE_OF_DYNPOINTER;
             continue;
         }
 
@@ -697,7 +696,7 @@ int StacksizeOfLocals(int from_level)
 // Also determines whether vartype contains standard (non-dynamic) arrays.
 bool ContainsReleasablePointers(AGS::Vartype v)
 {
-    if (FlagIsSet(v, kVTY_DynArray) || FlagIsSet(v, kVTY_Pointer))
+    if (FlagIsSet(v, kVTY_DynArray) || FlagIsSet(v, kVTY_DynPointer))
         return true;
 
     AGS::Vartype const coretype = (v & kVTY_FlagMask);
@@ -729,7 +728,7 @@ int FreePointersOfStdArrayOfPointer(ccCompiledScript *scrip, size_t arrsize, boo
         scrip->write_cmd0(SCMD_MEMZEROPTR);
         for (size_t loop = 1; loop < arrsize; ++loop)
         {
-            scrip->write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_POINTER);
+            scrip->write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
             scrip->write_cmd0(SCMD_MEMZEROPTR);
         }
         return 0;
@@ -740,7 +739,7 @@ int FreePointersOfStdArrayOfPointer(ccCompiledScript *scrip, size_t arrsize, boo
     
     AGS::CodeLoc const loop_start = scrip->codesize;
     scrip->write_cmd0(SCMD_MEMZEROPTR);
-    scrip->write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_POINTER);
+    scrip->write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
     scrip->write_cmd2(SCMD_SUB, SREG_AX, 1);
     scrip->write_cmd1(SCMD_JNZ, RelativeJumpDist(scrip->codesize + 1, loop_start));
     return 0;
@@ -774,7 +773,7 @@ void FreePointersOfStruct(ccCompiledScript *scrip, AGS::Symbol struct_vtype, boo
             scrip->write_cmd2(SCMD_ADD, SREG_MAR, diff);
         offset_so_far = entry.soffs;
 
-        if ((FlagIsSet(entry.vartype, kVTY_DynArray) || FlagIsSet(entry.vartype, kVTY_Pointer)) && entry.arrsize <= 1)
+        if ((FlagIsSet(entry.vartype, kVTY_DynArray) || FlagIsSet(entry.vartype, kVTY_DynPointer)) && entry.arrsize <= 1)
         {
             scrip->write_cmd0(SCMD_MEMZEROPTR);
             continue;
@@ -819,7 +818,7 @@ void FreePointersOfStdArray(ccCompiledScript *scrip, SymbolTableEntry &entry, bo
     if (entry.arrsize < 1)
         return;
 
-    if (FlagIsSet(entry.vartype, kVTY_Pointer) || FlagIsSet(entry.vartype, kVTY_DynArray))
+    if (FlagIsSet(entry.vartype, kVTY_DynPointer) || FlagIsSet(entry.vartype, kVTY_DynArray))
     {
         FreePointersOfStdArrayOfPointer(scrip, entry.arrsize, clobbers_ax);
         return;
@@ -860,7 +859,7 @@ void FreePointersOfLocals0(ccCompiledScript *scrip, int from_level, bool &clobbe
 
         clobbers_mar = true;
         int const sp_offset = scrip->cur_sp - entry.soffs;
-        if ((FlagIsSet(entry.vartype, kVTY_Pointer) || FlagIsSet(entry.vartype, kVTY_DynArray)) &&
+        if ((FlagIsSet(entry.vartype, kVTY_DynPointer) || FlagIsSet(entry.vartype, kVTY_DynArray)) &&
             entry.arrsize <= 1)
         {
             // Simply release the pointer
@@ -892,8 +891,8 @@ int FreePointersOfLocals(ccCompiledScript *scrip, int from_level, AGS::Symbol na
     // We're ending the current function; AX is containing the result of the func call.
     AGS::Vartype const func_return_type = sym.entries[name_of_current_func].funcparamtypes.at(0);
     bool const function_returns_void = sym.getVoidSym() == func_return_type;
-    bool const function_returns_a_pointer = FlagIsSet(func_return_type, kVTY_Pointer | kVTY_DynArray);
-    if (function_returns_a_pointer && !ax_irrelevant)
+    bool const function_returns_dynpointer = FlagIsSet(func_return_type, kVTY_DynPointer | kVTY_DynArray);
+    if (function_returns_dynpointer && !ax_irrelevant)
     {
         // The return value AX might point to a local dynamic object. So if we
         // now free the dynamic references and we don't take precautions,
@@ -903,7 +902,7 @@ int FreePointersOfLocals(ccCompiledScript *scrip, int from_level, AGS::Symbol na
 
         // Allocate a local dynamic pointer to hold the return value.
         scrip->push_reg(SREG_AX);
-        scrip->write_cmd1(SCMD_LOADSPOFFS, SIZE_OF_POINTER);
+        scrip->write_cmd1(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
         scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
 
         AGS::CodeLoc const codesize_before_freeing = scrip->codesize;
@@ -916,7 +915,7 @@ int FreePointersOfLocals(ccCompiledScript *scrip, int from_level, AGS::Symbol na
         // Now release the dynamic pointer with a special opcode that prevents 
         // memory de-allocation as long as AX still has this pointer, too
         if (mar_may_be_clobbered)
-            scrip->write_cmd1(SCMD_LOADSPOFFS, SIZE_OF_POINTER);
+            scrip->write_cmd1(SCMD_LOADSPOFFS, SIZE_OF_DYNPOINTER);
         scrip->write_cmd1(SCMD_MEMREADPTR, SREG_AX);
         scrip->write_cmd0(SCMD_MEMZEROPTRND); // special opcode
         scrip->pop_reg(SREG_BX); // do NOT pop AX here
@@ -1254,7 +1253,7 @@ int CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info)
     // If the return type is unset, deduce it
     if (0 == known_info.ssize && known_info.funcparamtypes.size() > 1)
     {
-        AGS::Symbol const rettype = known_info.funcparamtypes.at(0) & ~(kVTY_Pointer | kVTY_DynArray);
+        AGS::Symbol const rettype = known_info.funcparamtypes.at(0) & ~(kVTY_DynPointer | kVTY_DynArray);
         known_info.ssize = sym.entries[rettype].ssize;
     }
 
@@ -1418,7 +1417,7 @@ void ParseParamlist_Param_AsVar2Sym(ccCompiledScript *scrip, AGS::Symbol param_n
     if (param_is_dynarray)
         SetFlag(param_entry.vartype, kVTY_DynArray, true);
     if (param_is_ptr)
-        SetFlag(param_entry.vartype, kVTY_Pointer, true);
+        SetFlag(param_entry.vartype, kVTY_DynPointer, true);
     size_t const param_size = 4; // We can only deal with parameters of size 4
     param_entry.ssize = param_size;
     param_entry.sscope = 1;
@@ -1447,7 +1446,7 @@ void ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS:
 
     func_entry.funcparamtypes[param_idx] = param_type;
     if (param_is_ptr)
-        func_entry.funcparamtypes[param_idx] |= kVTY_Pointer;
+        func_entry.funcparamtypes[param_idx] |= kVTY_DynPointer;
     if (param_is_const)
         func_entry.funcparamtypes[param_idx] |= kVTY_Const;
     if (param_is_dynarray)
@@ -1572,18 +1571,16 @@ void ParseFuncdecl_SetFunctype(
     bool func_is_protected,
     int numparams)
 {
-    int const size_of_a_pointer = 4;
-
     entry.stype = kSYM_Function;
     SymbolTableEntry &ret_type_entry = GetSymbolTableEntryAnyPhase(return_type);
     entry.ssize = ret_type_entry.ssize;
     if (func_returns_ptr)
-        entry.ssize = size_of_a_pointer;
+        entry.ssize = SIZE_OF_DYNPOINTER;
     entry.sscope = numparams - 1;
 
     entry.funcparamtypes[0] = return_type;
     if (func_returns_ptr)
-        entry.funcparamtypes[0] |= kVTY_Pointer;
+        entry.funcparamtypes[0] |= kVTY_DynPointer;
     if (func_returns_dynarray)
         entry.funcparamtypes[0] |= kVTY_DynArray;
     if (func_is_static)
@@ -2028,7 +2025,7 @@ int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::Code
 
     if (iatos1 || iatos2)
     {
-        if (sym.getNullSym() == (type1 & ~kVTY_Pointer) || sym.getNullSym() == (type2 & ~kVTY_Pointer))
+        if (sym.getNullSym() == (type1 & ~kVTY_DynPointer) || sym.getNullSym() == (type2 & ~kVTY_DynPointer))
             return 0;
 
         if (iatos1 != iatos2)
@@ -2046,8 +2043,8 @@ int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::Code
         }
     }
 
-    if (FlagIsSet(type1, kVTY_Pointer | kVTY_DynArray) &&
-        FlagIsSet(type2, kVTY_Pointer | kVTY_DynArray))
+    if (FlagIsSet(type1, kVTY_DynPointer | kVTY_DynArray) &&
+        FlagIsSet(type2, kVTY_DynPointer | kVTY_DynArray))
     {
         switch (vcpuOp)
         {
@@ -2060,8 +2057,8 @@ int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::Code
     }
 
     // Other combinations of pointers and/or dynamic arrays won't mingle
-    if ((type1 & (kVTY_Pointer | kVTY_DynArray)) != 0 ||
-        (type2 & (kVTY_Pointer | kVTY_DynArray)) != 0)
+    if ((type1 & (kVTY_DynPointer | kVTY_DynArray)) != 0 ||
+        (type2 & (kVTY_DynPointer | kVTY_DynArray)) != 0)
     {
         cc_error("The operator cannot be applied to values of these types");
         return -1;
@@ -2086,7 +2083,7 @@ bool IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_want
         return true;
 
     // can convert String* to const string
-    if ((vartype_is == (kVTY_Pointer | sym.getStringStructSym())) &&
+    if ((vartype_is == (kVTY_DynPointer | sym.getStringStructSym())) &&
         (vartype_wants_to_be == (kVTY_Const | sym.getOldStringSym())))
     {
         return false;
@@ -2097,7 +2094,7 @@ bool IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_want
         return false;
 
     // Can convert from NULL to pointer
-    if ((vartype_is == (kVTY_Pointer | sym.getNullSym())) && ((vartype_wants_to_be & kVTY_DynArray) != 0))
+    if ((vartype_is == (kVTY_DynPointer | sym.getNullSym())) && ((vartype_wants_to_be & kVTY_DynArray) != 0))
         return false;
 
     // Cannot convert non-dynarray to dynarray or vice versa
@@ -2113,25 +2110,25 @@ bool IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_want
         return true;
 
     // Checks to do if at least one is a pointer
-    if ((vartype_is & kVTY_Pointer) || (vartype_wants_to_be & kVTY_Pointer))
+    if ((vartype_is & kVTY_DynPointer) || (vartype_wants_to_be & kVTY_DynPointer))
     {
         // null can be cast to any pointer type
-        if (vartype_is == (kVTY_Pointer | sym.getNullSym()))
+        if (vartype_is == (kVTY_DynPointer | sym.getNullSym()))
         {
-            if (vartype_wants_to_be & kVTY_Pointer)
+            if (vartype_wants_to_be & kVTY_DynPointer)
                 return false;
         }
 
         // BOTH sides must be pointers
-        if ((vartype_is & kVTY_Pointer) != (vartype_wants_to_be & kVTY_Pointer))
+        if ((vartype_is & kVTY_DynPointer) != (vartype_wants_to_be & kVTY_DynPointer))
             return true;
 
         // Types need not be identical here, but check against inherited classes
-        int isClass = vartype_is & ~kVTY_Pointer;
+        int isClass = vartype_is & ~kVTY_DynPointer;
         while (sym.entries[isClass].extends > 0)
         {
             isClass = sym.entries[isClass].extends;
-            if ((isClass | kVTY_Pointer) == vartype_wants_to_be)
+            if ((isClass | kVTY_DynPointer) == vartype_wants_to_be)
                 return false;
         }
         return true;
@@ -2194,7 +2191,7 @@ inline bool IsBooleanVCPUOperator(int scmdtype)
 void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 {
 
-    if (((scrip->ax_vartype & (~kVTY_Pointer)) == sym.getStringStructSym()) &&
+    if (((scrip->ax_vartype & (~kVTY_DynPointer)) == sym.getStringStructSym()) &&
         ((valTypeTo & (~kVTY_Const)) == sym.getOldStringSym()))
     {
         scrip->write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
@@ -2207,11 +2204,11 @@ void DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo)
 void ConvertAXStringToStringObject(ccCompiledScript *scrip, AGS::Vartype vartype_wanted)
 {
     if (((scrip->ax_vartype & (~kVTY_Const)) == sym.getOldStringSym()) &&
-        ((vartype_wanted & (~kVTY_Pointer)) == sym.getStringStructSym()))
+        ((vartype_wanted & (~kVTY_DynPointer)) == sym.getStringStructSym()))
     {
         scrip->write_cmd1(SCMD_CREATESTRING, SREG_AX); // convert AX
         scrip->ax_vartype = 
-            kVTY_Pointer | sym.getStringStructSym(); // set type of AX
+            kVTY_DynPointer | sym.getStringStructSym(); // set type of AX
     }
 }
 
@@ -2253,7 +2250,7 @@ int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
         }
         const size_t size = sym.entries[symlist[1]].ssize;
         scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
-        scrip->ax_vartype = symlist[1] | kVTY_Pointer;
+        scrip->ax_vartype = symlist[1] | kVTY_DynPointer;
         return 0;
     }
 
@@ -2278,7 +2275,7 @@ int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
         if (FlagIsSet(sym.get_flags(arrayType), kSFLG_Managed))
         {
             isManagedType = true;
-            size = SIZE_OF_POINTER;
+            size = SIZE_OF_DYNPOINTER;
         }
         else if (FlagIsSet(sym.get_flags(arrayType), kSFLG_StructType))
         {
@@ -2290,7 +2287,7 @@ int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript 
         scrip->ax_vartype = arrayType | kVTY_DynArray;
 
         if (isManagedType)
-            scrip->ax_vartype |= kVTY_Pointer;
+            scrip->ax_vartype |= kVTY_DynPointer;
 
         return 0;
     }
@@ -3148,7 +3145,7 @@ int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_
 
     size_t const element_coresize = sym.entries[core_vartype].ssize;
     AGS::Vartype const element_type = vartype & ~kVTY_Array & ~kVTY_DynArray;
-    size_t const element_size = FlagIsSet(element_type, kVTY_Pointer) ? SIZE_OF_POINTER : element_coresize;
+    size_t const element_size = FlagIsSet(element_type, kVTY_DynPointer) ? SIZE_OF_DYNPOINTER : element_coresize;
     vartype = element_type;
 
     if (is_dynarray)
@@ -3281,7 +3278,7 @@ int AccessData_Null(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &sym
     }
 
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
-    scrip->ax_vartype = vartype = sym.getNullSym() | kVTY_Pointer;
+    scrip->ax_vartype = vartype = sym.getNullSym() | kVTY_DynPointer;
     scrip->ax_val_scope = kSYM_GlobalVar;
     symlist++;
     symlist_len--;
@@ -3598,14 +3595,14 @@ int AccessData(ccCompiledScript *scrip, bool writing, bool need_to_negate, AGS::
             outer_is_dynarray = true;
         }
 
-        // Note: If _both_ kVTY_Pointer and kVTY_Array is set,
+        // Note: If _both_ kVTY_DynPointer and kVTY_Array is set,
         // then this is an array of pointers instead of a pointer
         // and this array must NOT be dereferenced.
-        if (FlagIsSet(vartype, kVTY_Pointer) && !FlagIsSet(vartype, kVTY_Array))
+        if (FlagIsSet(vartype, kVTY_DynPointer) && !FlagIsSet(vartype, kVTY_Array))
         {
             int retval = AccessData_Dereference(scrip, vloc, mloc);
             if (retval < 0) return retval;
-            SetFlag(vartype, kVTY_Pointer, false);
+            SetFlag(vartype, kVTY_DynPointer, false);
         }
 
         retval = AccessData_IsClauseLast(symlist, symlist_len, clause_is_last);
@@ -3719,7 +3716,7 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
     if (retval < 0) return retval;
     if (kVL_ax_is_value == vloc)
     {
-        if (!is_pointer_vartype(lhsvartype))
+        if (!is_dynpointer_vartype(lhsvartype))
         {
             cc_error("Cannot modify this value");
             return -1;
@@ -3763,7 +3760,7 @@ int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t syml
         return -1;
     }
     
-    if (FlagIsSet(rhsvartype, kVTY_DynArray | kVTY_Pointer))
+    if (FlagIsSet(rhsvartype, kVTY_DynArray | kVTY_DynPointer))
         scrip->write_cmd1(SCMD_MEMWRITEPTR, SREG_AX);
     else
         scrip->write_cmd1(
@@ -3788,7 +3785,7 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
         return -1;
     }
 
-    if (FlagIsSet(sym.get_flags(vartype & kVTY_FlagMask), kSFLG_StructType) && !is_pointer_vartype(vartype))
+    if (FlagIsSet(sym.get_flags(vartype & kVTY_FlagMask), kSFLG_StructType) && !is_dynpointer_vartype(vartype))
     {
         if (!FlagIsSet(sym.get_flags(vartype), kSFLG_Managed))
         {
@@ -3796,7 +3793,7 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
             return -1;
         }
         // Assume a pointer to the struct is being requested
-        SetFlag(vartype, kVTY_Pointer, true);
+        SetFlag(vartype, kVTY_DynPointer, true);
         scrip->write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
     }
 
@@ -3811,7 +3808,7 @@ int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t sy
         return 0;
     }
 
-    if (FlagIsSet(vartype, kVTY_Pointer))
+    if (FlagIsSet(vartype, kVTY_DynPointer))
         scrip->write_cmd1(SCMD_MEMREADPTR, SREG_AX);
     else
         scrip->write_cmd1(
@@ -4106,7 +4103,7 @@ int ParseVardecl_InitialValAssignment(ccInternalList *targ, AGS::Symbol varname,
     initial_val_ptr = nullptr;
     targ->getnext(); // Eat '='
 
-    if (FlagIsSet(sym.get_flags(varname), kVTY_Pointer))
+    if (FlagIsSet(sym.get_flags(varname), kVTY_DynPointer))
     {
         // TODO Initialize String
         cc_error("Cannot assign an initial value to a global pointer");
@@ -4144,7 +4141,7 @@ int ParseVardecl_InitialValAssignment(ccInternalList *targ, AGS::Symbol varname,
 }
 
 // Move variable information into the symbol table
-void ParseVardecl_Var2SymTable(int var_name, Globalness is_global, bool is_pointer, int size_of_defn, AGS::Vartype vartype)
+void ParseVardecl_Var2SymTable(int var_name, Globalness is_global, bool is_dynpointer, int size_of_defn, AGS::Vartype vartype)
 {
     SymbolTableEntry &entry = sym.entries[var_name];
     entry.extends = 0;
@@ -4152,8 +4149,8 @@ void ParseVardecl_Var2SymTable(int var_name, Globalness is_global, bool is_point
     entry.ssize = size_of_defn;
     entry.arrsize = 0;
     entry.vartype = vartype;
-    if (is_pointer)
-        SetFlag(entry.vartype, kVTY_Pointer, true);
+    if (is_dynpointer)
+        SetFlag(entry.vartype, kVTY_DynPointer, true);
 }
 
 // we have accepted something like "int a" and we're expecting "["
@@ -4172,7 +4169,7 @@ int ParseVardecl_ArrayDecl(ccInternalList *targ, AGS::Symbol var_name, AGS::Vart
         // this means var_name does not contain the first element of the array,
         // but points to it, instead.
         SetFlag(sym.entries[var_name].vartype, kVTY_DynArray, true);
-        size_of_defn = SIZE_OF_POINTER;
+        size_of_defn = SIZE_OF_DYNPOINTER;
         sym.entries[var_name].arrsize = 0;
     }
     else
@@ -4203,7 +4200,7 @@ int ParseVardecl_ArrayDecl(ccInternalList *targ, AGS::Symbol var_name, AGS::Vart
     return 0;
 }
 
-int ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, bool is_pointer, Globalness is_global)
+int ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, bool is_dynpointer, Globalness is_global)
 {
     if (vartype == sym.getOldStringSym() && ccGetOption(SCOPT_OLDSTRINGS) == 0)
     {
@@ -4219,7 +4216,7 @@ int ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, bool is_pointer, Globa
     }
 
 
-    if (FlagIsSet(sym.get_flags(vartype), kSFLG_Managed) && (!is_pointer) && (is_global != kGl_GlobalImport))
+    if (FlagIsSet(sym.get_flags(vartype), kSFLG_Managed) && (!is_dynpointer) && (is_global != kGl_GlobalImport))
     {
         // managed structs must be allocated via ccRegisterObject,
         // and cannot be declared normally in the script (unless imported)
@@ -4233,7 +4230,7 @@ int ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, bool is_pointer, Globa
         return -1;
     }
 
-    if (is_pointer && !FlagIsSet(sym.get_flags(vartype), kSFLG_Managed))
+    if (is_dynpointer && !FlagIsSet(sym.get_flags(vartype), kSFLG_Managed))
     {
         // can only point to managed structs
         cc_error("Cannot declare pointer to non-managed type");
@@ -4354,15 +4351,15 @@ int ParseVardecl0(
     AGS::Vartype vartype,
     SymbolType next_type, // type of the following symbol
     Globalness globalness,
-    bool is_pointer,
+    bool is_dynpointer,
     bool &another_var_follows)
 {
-    size_t size_of_defn = (is_pointer)? SIZE_OF_POINTER : sym.entries[vartype].ssize;
+    size_t size_of_defn = (is_dynpointer)? SIZE_OF_DYNPOINTER : sym.entries[vartype].ssize;
     if (sym.getOldStringSym() == vartype)
         size_of_defn = OLDSTRING_LENGTH;
 
     // Enter the variable into the symbol table
-    ParseVardecl_Var2SymTable(var_name, globalness, is_pointer, size_of_defn, vartype);
+    ParseVardecl_Var2SymTable(var_name, globalness, is_dynpointer, size_of_defn, vartype);
 
     if (kSYM_OpenBracket == next_type)
     {
@@ -4404,17 +4401,17 @@ int ParseVardecl(
     AGS::Vartype vartype,
     SymbolType next_type, // type of the following symbol
     Globalness is_global,
-    bool is_pointer,
+    bool is_dynpointer,
     bool &another_var_follows)
 {
-    int retval = ParseVardecl_CheckIllegalCombis(vartype, is_pointer, is_global);
+    int retval = ParseVardecl_CheckIllegalCombis(vartype, is_dynpointer, is_global);
     if (retval < 0) return retval;
 
     SymbolTableEntry known_info;
     if (sym.get_type(var_name) != 0)
         CopyKnownSymInfo(sym.entries[var_name], known_info);
 
-    retval = ParseVardecl0(targ, scrip, var_name, vartype, next_type, is_global, is_pointer, another_var_follows);
+    retval = ParseVardecl0(targ, scrip, var_name, vartype, next_type, is_global, is_dynpointer, another_var_follows);
     if (retval < 0) return retval;
 
     retval = ParseVardecl_CheckThatKnownInfoMatches(&sym.entries[var_name], &known_info);
@@ -4454,7 +4451,7 @@ void ParseOpenbrace_FuncBody(ccCompiledScript *scrip, AGS::Symbol name_of_func, 
     for (size_t pa = 1; pa <= num_args; pa++)
     {
         AGS::Vartype const param_type = sym.entries[name_of_func].funcparamtypes[pa];
-        if (!FlagIsSet(param_type, kVTY_Pointer | kVTY_DynArray))
+        if (!FlagIsSet(param_type, kVTY_DynPointer | kVTY_DynArray))
             continue;
 
         // pointers are passed in on the stack with the real
@@ -4472,17 +4469,17 @@ void ParseOpenbrace_FuncBody(ccCompiledScript *scrip, AGS::Symbol name_of_func, 
     {
         // Declare the "this" pointer (allocated memory for it will never be used)
         this_entry.stype = kSYM_LocalVar;
-        this_entry.ssize = SIZE_OF_POINTER;
-        // Don't declare this as a kVTY_Pointer to prevent it being dereferenced twice
+        this_entry.ssize = SIZE_OF_DYNPOINTER;
+        // Don't declare this as a kVTY_DynPointer to prevent it being dereferenced twice
         this_entry.vartype = struct_of_func;
         this_entry.sscope = nesting_stack->Depth() - 1;
         this_entry.flags = kSFLG_Readonly | kSFLG_Accessed;
         // Allocate 4 unused empty bytes on stack for the "this" pointer
         this_entry.soffs = scrip->cur_sp;
         scrip->write_cmd1(SCMD_LOADSPOFFS, 0);
-        scrip->write_cmd2(SCMD_WRITELIT, SIZE_OF_POINTER, 0); 
-        scrip->cur_sp += SIZE_OF_POINTER;
-        scrip->write_cmd2(SCMD_ADD, SREG_SP, SIZE_OF_POINTER);
+        scrip->write_cmd2(SCMD_WRITELIT, SIZE_OF_DYNPOINTER, 0); 
+        scrip->cur_sp += SIZE_OF_DYNPOINTER;
+        scrip->write_cmd2(SCMD_ADD, SREG_SP, SIZE_OF_DYNPOINTER);
     }
 }
 
@@ -4724,9 +4721,9 @@ void ParseStruct_MemberQualifiers(ccInternalList *targ, AGS::Symbol &cursym, Typ
     return;
 }
 
-int ParseStruct_CheckComponentVartype(ccInternalList *targ, int stname, AGS::Symbol vartype, bool member_is_pointer, bool member_is_import)
+int ParseStruct_CheckComponentVartype(ccInternalList *targ, int stname, AGS::Symbol vartype, bool member_is_dynpointer, bool member_is_import)
 {
-    if ((vartype == stname) && (!member_is_pointer))
+    if ((vartype == stname) && (!member_is_dynpointer))
     {
         // cannot do "struct A { A a; }", this struct would be infinitely large
         cc_error("Struct '%s' can't be a member of itself", sym.get_name_string(vartype).c_str());
@@ -4748,7 +4745,7 @@ int ParseStruct_CheckComponentVartype(ccInternalList *targ, int stname, AGS::Sym
             sym.get_vartype_name_string(vartype).c_str());
         return -1;
     }
-    if (kSYM_UndefinedStruct == vartype_type && !member_is_pointer)
+    if (kSYM_UndefinedStruct == vartype_type && !member_is_dynpointer)
     {
         cc_error("You can only declare a pointer to a struct that hasn't been completely defined yet");
         return -1;
@@ -4762,7 +4759,7 @@ int ParseStruct_CheckComponentVartype(ccInternalList *targ, int stname, AGS::Sym
 
     AGS::Flags const vartype_flags = sym.get_flags(vartype);
 
-    if (FlagIsSet(vartype_flags, kSFLG_StructType) && !member_is_pointer)
+    if (FlagIsSet(vartype_flags, kSFLG_StructType) && !member_is_dynpointer)
     {
         if (FlagIsSet(vartype_flags, kSFLG_Builtin))
         {
@@ -4776,7 +4773,7 @@ int ParseStruct_CheckComponentVartype(ccInternalList *targ, int stname, AGS::Sym
         }
     }
 
-    if (!FlagIsSet(vartype_flags, kSFLG_Managed) && member_is_pointer)
+    if (!FlagIsSet(vartype_flags, kSFLG_Managed) && member_is_dynpointer)
     {
         cc_error("Cannot declare a pointer to non-managed type");
         return -1;
@@ -4805,7 +4802,7 @@ int ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS::Symbol compo, AGS
     return ParseStruct_CheckForCompoInAncester(orig, compo, sym.entries[act_struct].extends);
 }
 
-int ParseStruct_Function(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Vartype curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_pointer, bool isDynamicArray)
+int ParseStruct_Function(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Vartype curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_dynpointer, bool isDynamicArray)
 {
     if (FlagIsSet(tqs, kTQ_Writeprotected))
     {
@@ -4815,7 +4812,7 @@ int ParseStruct_Function(ccInternalList *targ, ccCompiledScript *scrip, AGS::Typ
 
     bool body_follows;
     int retval = ParseFuncdecl(
-        targ, scrip, vname, curtype, type_is_pointer, isDynamicArray, tqs, stname, body_follows);
+        targ, scrip, vname, curtype, type_is_dynpointer, isDynamicArray, tqs, stname, body_follows);
     if (retval < 0) return retval;
     if (body_follows)
     {
@@ -4995,7 +4992,7 @@ int ParseStruct_Array(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol vnam
         SetFlag(sym.entries[stname].flags, kSFLG_HasDynArray, true);
         SetFlag(sym.entries[vname].vartype, kVTY_DynArray, true);
         array_size = 0;
-        size_so_far += SIZE_OF_POINTER;
+        size_so_far += SIZE_OF_DYNPOINTER;
     }
     else
     {
@@ -5021,7 +5018,7 @@ int ParseStruct_Array(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol vnam
 }
 
 // We're inside a struct decl, processing a member variable
-int ParseStruct_VariableOrAttribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_pointer, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far)
+int ParseStruct_VariableOrAttribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far)
 {
     if (kPP_Main == g_PP)
     {
@@ -5031,9 +5028,9 @@ int ParseStruct_VariableOrAttribute(ccInternalList *targ, ccCompiledScript *scri
         entry.ssize = sym.entries[curtype].ssize;
         entry.soffs = size_so_far;
         entry.vartype = curtype;
-        if (type_is_pointer)
+        if (type_is_dynpointer)
         {
-            SetFlag(entry.vartype, kVTY_Pointer, true);
+            SetFlag(entry.vartype, kVTY_DynPointer, true);
             sym.entries[vname].ssize = 4;
         }
         if (FlagIsSet(tqs, kTQ_Readonly))
@@ -5076,7 +5073,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
     AGS::Symbol current_func,
     TypeQualifierSet tqs,
     AGS::Vartype curtype,
-    bool type_is_pointer,
+    bool type_is_dynpointer,
     size_t &size_so_far)
 {
     AGS::Symbol cursym = targ->getnext(); // normally variable name, array name, or function name, but can be [ too
@@ -5104,7 +5101,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
 
     bool const is_function = sym.get_type(targ->peeknext()) == kSYM_OpenParenthesis;
 
-    if (type_is_pointer &&
+    if (type_is_dynpointer &&
         FlagIsSet(sym.get_flags(stname), kSFLG_Managed) &&
         !FlagIsSet(tqs, kTQ_Attribute) &&
         !is_function)
@@ -5139,7 +5136,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
             cc_error("Cannot declare struct member function inside a function body");
             return -1;
         }
-        return ParseStruct_Function(targ, scrip, tqs, curtype, stname, mangled_name, current_func, type_is_pointer, isDynamicArray);
+        return ParseStruct_Function(targ, scrip, tqs, curtype, stname, mangled_name, current_func, type_is_dynpointer, isDynamicArray);
     }
 
     if (isDynamicArray)
@@ -5149,7 +5146,7 @@ int ParseStruct_MemberDefnVarOrFuncOrArray(
         return -1;
     }
 
-    return ParseStruct_VariableOrAttribute(targ, scrip, tqs, curtype, type_is_pointer, stname, mangled_name, size_so_far);
+    return ParseStruct_VariableOrAttribute(targ, scrip, tqs, curtype, type_is_dynpointer, stname, mangled_name, size_so_far);
 }
 
 int ParseStruct_MemberStmt(
@@ -5174,22 +5171,22 @@ int ParseStruct_MemberStmt(
     // vartype can now be: vartypename or vartypename *
 
     // A member defn. is a pointer if it is AUTOPOINTER or it has an explicit "*"
-    bool type_is_pointer = false;
+    bool type_is_dynpointer = false;
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(vartype);
     if (FlagIsSet(entry.flags, kSFLG_Autoptr))
     {
-        type_is_pointer = true;
+        type_is_dynpointer = true;
     }
     else if (sym.getPointerSym() == targ->peeknext())
     {
-        type_is_pointer = true;
+        type_is_dynpointer = true;
         targ->getnext();
     }
 
     // Certain types of members are not allowed in structs; check this
     if (kPP_Main == g_PP)
     {
-        int retval = ParseStruct_CheckComponentVartype(targ, stname, vartype, type_is_pointer, FlagIsSet(tqs, kTQ_Import));
+        int retval = ParseStruct_CheckComponentVartype(targ, stname, vartype, type_is_dynpointer, FlagIsSet(tqs, kTQ_Import));
         if (retval < 0) return retval;
     }
 
@@ -5197,7 +5194,7 @@ int ParseStruct_MemberStmt(
     while (true)
     {
         int retval = ParseStruct_MemberDefnVarOrFuncOrArray(
-            targ, scrip, parent, stname, name_of_current_func, tqs, vartype, type_is_pointer, size_so_far);
+            targ, scrip, parent, stname, name_of_current_func, tqs, vartype, type_is_dynpointer, size_so_far);
         if (retval < 0) return retval;
 
         if (sym.get_type(targ->peeknext()) == kSYM_Comma)

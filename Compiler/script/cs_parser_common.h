@@ -109,7 +109,7 @@ enum SymbolTableFlag : AGS::Flags
     kSFLG_WriteProtected = 1 << 14,  // only the this pointer can write the var
 };
 
-constexpr size_t SIZE_OF_POINTER = 4;
+constexpr size_t SIZE_OF_DYNPOINTER = 4;
 constexpr size_t SIZE_OF_INT = 4;
 
 extern int is_whitespace(char cht);

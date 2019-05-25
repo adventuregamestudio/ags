@@ -12,7 +12,7 @@ enum VartypeFlag : AGS::Vartype
     kVTY_Array = (0x10000000 << 0),
     kVTY_Const = (0x10000000 << 1),
     kVTY_DynArray = (0x10000000 << 2),
-    kVTY_Pointer = (0x10000000 << 3),
+    kVTY_DynPointer = (0x10000000 << 3),
     kVTY_FlagMask = (0x0FFFFFFF),
 };
 

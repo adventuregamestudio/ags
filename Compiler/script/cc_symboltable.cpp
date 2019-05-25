@@ -199,7 +199,7 @@ std::string const SymbolTable::get_name_string(AGS::Symbol symbl) const
     
     std::string result = entries[core_symbl].sname;
 
-    if (symbl & kVTY_Pointer)
+    if (symbl & kVTY_DynPointer)
         result += "*";
     if (symbl & (kVTY_Array|kVTY_DynArray))
         result += "[]";
@@ -214,7 +214,7 @@ std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) con
     AGS::Symbol const core_type = (vartype & kVTY_FlagMask);
 
     std::string result = (core_type >= 0 && core_type < entries.size()) ? entries[core_type].sname : "UNKNOWNTYPE";
-    if ((vartype & kVTY_Pointer) &&
+    if ((vartype & kVTY_DynPointer) &&
         !(vartype & kVTY_DynArray) &&
         !(entries[core_type].flags & kSFLG_Autoptr))
         result += "*";

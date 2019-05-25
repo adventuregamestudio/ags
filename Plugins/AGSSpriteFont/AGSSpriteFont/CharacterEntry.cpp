@@ -11,6 +11,4 @@ CharacterEntry::CharacterEntry(void)
 }
 
 
-CharacterEntry::~CharacterEntry(void)
-{
-}
+CharacterEntry::~CharacterEntry(void) = default;

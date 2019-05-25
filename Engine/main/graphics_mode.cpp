@@ -42,10 +42,9 @@ using namespace AGS::Engine;
 extern int proper_exit;
 extern AGSPlatformDriver *platform;
 extern IGraphicsDriver *gfxDriver;
-extern volatile int timerloop;
 
 
-IGfxDriverFactory *GfxFactory = NULL;
+IGfxDriverFactory *GfxFactory = nullptr;
 
 // Last saved fullscreen and windowed configs; they are used when switching
 // between between fullscreen and windowed modes at runtime.
@@ -73,6 +72,12 @@ GameFrameSetup::GameFrameSetup(FrameScaleDefinition def, int factor)
 bool GameFrameSetup::IsValid() const
 {
     return ScaleDef != kFrame_IntScale || ScaleFactor > 0;
+}
+
+ScreenSizeSetup::ScreenSizeSetup()
+    : SizeDef(kScreenDef_MaxDisplay)
+    , MatchDeviceRatio(true)
+{
 }
 
 DisplayModeSetup::DisplayModeSetup()
@@ -185,8 +190,8 @@ bool find_nearest_supported_mode(const IGfxModeList &modes, const Size &wanted_s
         bool same_diff_h_higher = (diff_h == nearest_height_diff && nearest_height < wanted_size.Height);
 
         if (nearest_width == 0 ||
-            (diff_w < nearest_width_diff || same_diff_w_higher) && diff_h <= nearest_height_diff ||
-            (diff_h < nearest_height_diff || same_diff_h_higher) && diff_w <= nearest_width_diff)
+            ((diff_w < nearest_width_diff || same_diff_w_higher) && diff_h <= nearest_height_diff) ||
+            ((diff_h < nearest_height_diff || same_diff_h_higher) && diff_w <= nearest_width_diff))
         {
             nearest_width = mode.Width;
             nearest_width_diff = diff_w;
@@ -309,9 +314,9 @@ bool try_init_compatible_mode(const DisplayMode &dm, const bool match_device_rat
         if (modes.get())
         {
             if (match_device_ratio)
-                mode_found = find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, &device_size, NULL, dm_compat);
+                mode_found = find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, &device_size, nullptr, dm_compat);
             if (!mode_found)
-                mode_found = find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, NULL, NULL, dm_compat);
+                mode_found = find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, nullptr, nullptr, dm_compat);
         }
         if (!mode_found)
             Debug::Printf("Could not find compatible fullscreen mode. Will try to force-set mode requested by user and fallback to windowed mode if that fails.");
@@ -325,7 +330,7 @@ bool try_init_compatible_mode(const DisplayMode &dm, const bool match_device_rat
         // When initializing windowed mode we could start with any random window size;
         // if that did not work, try to find nearest supported mode, as with fullscreen mode,
         // except refering to max window size as an upper bound
-        if (find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, NULL, &device_size, dm_compat))
+        if (find_nearest_supported_mode(*modes.get(), screen_size, dm.ColorDepth, nullptr, &device_size, dm_compat))
         {
             dm_compat.Vsync = dm.Vsync;
             dm_compat.Windowed = true;
@@ -566,7 +571,7 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     if (dm.RefreshRate >= 50)
         request_refresh_rate(dm.RefreshRate);
 
-    if (!gfxDriver->SetDisplayMode(dm, &timerloop))
+    if (!gfxDriver->SetDisplayMode(dm, nullptr))
     {
         Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", get_allegro_error());
         return false;
@@ -661,8 +666,8 @@ void graphics_mode_shutdown()
 {
     if (GfxFactory)
         GfxFactory->Shutdown();
-    GfxFactory = NULL;
-    gfxDriver = NULL;
+    GfxFactory = nullptr;
+    gfxDriver = nullptr;
 
     // Tell Allegro that we are no longer in graphics mode
     set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);

@@ -52,7 +52,7 @@ const Stream *TextStreamWriter::GetStream() const
 
 void TextStreamWriter::ReleaseStream()
 {
-    _stream = NULL;
+    _stream = nullptr;
 }
 
 bool TextStreamWriter::EOS() const
@@ -100,7 +100,7 @@ void TextStreamWriter::WriteFormat(const char *fmt, ...)
 
     va_list argptr;
     va_start(argptr, fmt);
-    int need_length = vsnprintf(NULL, 0, fmt, argptr);
+    int need_length = vsnprintf(nullptr, 0, fmt, argptr);
     va_start(argptr, fmt); // Reset argptr
     char *buffer    = new char[need_length + 1];
     vsprintf(buffer, fmt, argptr);

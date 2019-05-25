@@ -318,15 +318,9 @@ namespace AGS.Editor
         public static void GetSizeSpriteWillBeRenderedInGame(int spriteSlot, out int width, out int height)
         {
             // CLNUP maybe remove, the scale factor shouldn't belong to the sprite itself
-            width = Factory.NativeProxy.GetSpriteWidth(spriteSlot);
-            height = Factory.NativeProxy.GetSpriteHeight(spriteSlot);
-            /*
-            if (Factory.AGSEditor.CurrentGame.IsHighResolution)
-            {
-                width *= Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot);
-                height *= Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot);
-            }
-            */
+            SpriteInfo info = Factory.NativeProxy.GetSpriteInfo(spriteSlot);
+            width = info.Width;
+            height = info.Height;
         }
 
         public static void CheckLabelWidthsOnForm(Control parentControl)

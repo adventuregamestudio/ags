@@ -1,4 +1,3 @@
-#define USE_CLIB
 #include <stdio.h>
 void ThrowManagedException(const char *message);
 #pragma unmanaged
@@ -6,10 +5,6 @@ void ThrowManagedException(const char *message);
 extern bool Scintilla_RegisterClasses(void *hInstance);
 extern int Scintilla_LinkLexers();
 
-int antiAliasFonts = 0;
-bool ShouldAntiAliasText() { return (antiAliasFonts != 0); }
-
-int mousex, mousey;
 #include "agsnative.h"
 #include "util/wgt2allg.h"
 #include "util/misc.h"
@@ -70,9 +65,11 @@ inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int
 
 void save_room_file(const char *path);
 
+int mousex = 0, mousey = 0;
+int antiAliasFonts = 0;
 bool enable_greyed_out_masks = true;
-bool outlineGuiObjects;
-color*palette;
+bool outlineGuiObjects = false;
+color*palette = NULL;
 GameSetupStruct thisgame;
 SpriteCache spriteset(thisgame.SpriteInfos);
 GUIMain tempgui;
@@ -85,25 +82,31 @@ const char *ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
 RoomStruct thisroom;
-bool roomModified = false;
-std::unique_ptr<AGSBitmap> drawBuffer;
-std::unique_ptr<AGSBitmap> undoBuffer;
-std::unique_ptr<AGSBitmap> roomBkgBuffer;
-int loaded_room_number = -1;
 
 GameDataVersion loaded_game_file_version = kGameVersion_Current;
 
 // stuff for importing old games
-int numScriptModules;
+int numScriptModules = 0;
 ScriptModule* scModules = NULL;
-DialogTopic *dialog;
+DialogTopic *dialog = NULL;
 std::vector<GUIMain> guis;
-ViewStruct *newViews;
+ViewStruct *newViews = NULL;
 int numNewViews = 0;
 
 // A reference color depth, for correct color selection;
 // originally was defined by 'abuf' bitmap.
-int BaseColorDepth;
+int BaseColorDepth = 0;
+
+
+struct NativeRoomTools
+{
+    bool roomModified = false;
+    int loaded_room_number = -1;
+    std::unique_ptr<AGSBitmap> drawBuffer;
+    std::unique_ptr<AGSBitmap> undoBuffer;
+    std::unique_ptr<AGSBitmap> roomBkgBuffer;
+};
+std::unique_ptr<NativeRoomTools> RoomTools;
 
 
 bool reload_font(int curFont);
@@ -197,12 +200,12 @@ int GetSpriteHeight(int slot) {
 	return get_sprite(slot)->GetHeight();
 }
 
-// [AVD] decides which multiplier to upscale sprites, it would be nice to have a slider instead, like in the room panel
-// there's another scaleSomething elsewhere from the RoomEditor, need to check it
-int GetResolutionMultiplier() {
-    int width_height = thisgame.size.Width + thisgame.size.Height;
-    int scaleFactor = max(1, std::ceil((float)1400 / (float)width_height));
-    return scaleFactor;
+void GetSpriteInfo(int slot, ::SpriteInfo &info) {
+    // TODO: find out if we may get width/height from SpriteInfos
+    // or it is necessary to go through get_sprite and check bitmaps in cache?
+    info.Width = GetSpriteWidth(slot);
+    info.Height = GetSpriteHeight(slot);
+    info.Flags = thisgame.SpriteInfos[slot].Flags;
 }
 
 unsigned char* GetRawSpriteData(int spriteSlot) {
@@ -228,13 +231,7 @@ int find_free_sprite_slot() {
 // CLNUP probably to remove
 void update_sprite_resolution(int spriteNum)
 {
-	thisgame.SpriteInfos[spriteNum].Flags &= ~SPF_640x400;
-	/*
-	if (isHighRes)
-	{
-		thisgame.SpriteInfos[spriteNum].Flags |= SPF_640x400;
-	}
-	*/
+	thisgame.SpriteInfos[spriteNum].Flags &= ~(SPF_HIRES | SPF_VAR_RESOLUTION);
 }
 
 void change_sprite_number(int oldNumber, int newNumber) {
@@ -647,6 +644,7 @@ enum RoomAreaMask
 };
 
 // TODO: mask's bitmap, as well as coordinate factor, should be a property of the room or some room's mask class
+// TODO: create weak_ptr here?
 AGSBitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
     // TODO: create weak_ptr here?
@@ -659,18 +657,19 @@ AGSBitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 	}
     return NULL;
 }
-    // TODO: create weak_ptr here?
+
 float get_scale_for_mask(RoomStruct *roomptr, RoomAreaMask maskType)
 {
     switch (maskType)
     {
-    case RoomAreaMask::Hotspots: return 1.f;
-    case RoomAreaMask::Regions: return 1.f;
-    case RoomAreaMask::WalkableAreas: return 1.f;
-    case RoomAreaMask::WalkBehinds: return 1.f;
+    case RoomAreaMask::Hotspots: return 1.f / roomptr->MaskResolution;
+    case RoomAreaMask::Regions: return 1.f / roomptr->MaskResolution;
+    case RoomAreaMask::WalkableAreas: return 1.f / roomptr->MaskResolution;
+    case RoomAreaMask::WalkBehinds: return 1.f; // walk-behinds always 1:1 with room size
     }
     return 0.f;
 }
+
 
 void copy_walkable_to_regions (void *roomptr) {
 	RoomStruct *theRoom = (RoomStruct*)roomptr;
@@ -708,6 +707,7 @@ void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 void create_undo_buffer(void *roomptr, int maskType) 
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    auto &undoBuffer = RoomTools->undoBuffer;
   if (undoBuffer != NULL)
   {
     if ((undoBuffer->GetWidth() != mask->GetWidth()) || (undoBuffer->GetHeight() != mask->GetHeight())) 
@@ -724,14 +724,14 @@ void create_undo_buffer(void *roomptr, int maskType)
 
 bool does_undo_buffer_exist()
 {
-  return (undoBuffer != NULL);
+  return (RoomTools->undoBuffer != NULL);
 }
 
 void clear_undo_buffer() 
 {
   if (does_undo_buffer_exist()) 
   {
-    undoBuffer.reset();
+      RoomTools->undoBuffer.reset();
   }
 }
 
@@ -740,7 +740,7 @@ void restore_from_undo_buffer(void *roomptr, int maskType)
   if (does_undo_buffer_exist())
   {
   	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
-    mask->Blit(undoBuffer.get(), 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
+    mask->Blit(RoomTools->undoBuffer.get(), 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
   }
 }
 
@@ -853,6 +853,8 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
   if (srcBlock == NULL)
     return;
 
+    auto &drawBuffer = RoomTools->drawBuffer;
+    auto &roomBkgBuffer = RoomTools->roomBkgBuffer;
 	if (drawBuffer != NULL) 
 	{
         if (!roomBkgBuffer || roomBkgBuffer->GetSize() != srcBlock->GetSize() || roomBkgBuffer->GetColorDepth() != srcBlock->GetColorDepth())
@@ -906,24 +908,7 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 }
 
 // CLNUP scaling stuff, need to check
-void update_font_sizes() {
-  int multiplyWas = wtext_multiply;
-
-  // scale up fonts if necessary
-  wtext_multiply = 1;
   // TODO maybe turn OPT_NOSCALEFNT into the multiplier value, see also drawFontAt
-  
-  if (multiplyWas != wtext_multiply) {
-    // resolution or Scale Up Fonts has changed, reload at new size
-    for (int bb=0;bb<thisgame.numfonts;bb++)
-      reload_font (bb);
-  }
-  /*
-  sxmult = 1;
-  symult = 1;
-  */
-}
-
 const char* import_sci_font(const char*fnn,int fslot) {
   char wgtfontname[100];
   sprintf(wgtfontname,"agsfnt%d.wfn",fslot);
@@ -998,13 +983,15 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
     return 0;
   }
 
-  update_font_sizes();
+  if (!is_font_loaded(fontnum))
+    reload_font(fontnum);
 
+  // TODO: rewrite this, use actual font size (maybe related to window size) and not game's resolution type
   int doubleSize = 2;
   int blockSize = 1;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
-  int char_height = thisgame.fonts[fontnum].SizePt;
+  int char_height = thisgame.fonts[fontnum].SizePt * thisgame.fonts[fontnum].SizeMultiplier;
   int grid_size   = max(10, char_height);
   int grid_margin = max(4, grid_size / 4);
   grid_size += grid_margin * 2;
@@ -1123,38 +1110,18 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
 // CLNUP probably to remove, need to check how the flag is involved
 int get_adjusted_spritewidth(int spr) {
   Common::Bitmap *tsp = get_sprite(spr);
-  if (tsp == NULL) return 0;
-
+  if (tsp == NULL)
+      return 0;
   int retval = tsp->GetWidth();
-  /*
-  if (thisgame.SpriteInfos[spr].Flags & SPF_640x400) {
-    if (sxmult == 1)
-      retval /= 2;
-  }
-  else {
-    if (sxmult == 2)
-      retval *= 2;
-  }
-  */
   return retval;
 }
 
 // CLNUP probably to remove
 int get_adjusted_spriteheight(int spr) {
   Common::Bitmap *tsp = get_sprite(spr);
-  if (tsp == NULL) return 0;
-
+  if (tsp == NULL)
+      return 0;
   int retval = tsp->GetHeight();
-  /*
-  if (thisgame.SpriteInfos[spr].Flags & SPF_640x400) {
-    if (symult == 1)
-      retval /= 2;
-  }
-  else {
-    if (symult == 2)
-      retval *= 2;
-  }
-  */
   return retval;
 }
 
@@ -1192,7 +1159,7 @@ bool initialize_native()
 {
     Common::AssetManager::CreateInstance();
 
-  set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
+	set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
 	install_allegro(SYSTEM_NONE, &errno, atexit);
 	//set_gdi_color_format();
 	palette = &thisgame.defpal[0];
@@ -1211,19 +1178,17 @@ bool initialize_native()
 	if (!Scintilla_RegisterClasses (GetModuleHandle(NULL)))
       return false;
 
-  init_font_renderer();
+	init_font_renderer();
 
+	RoomTools.reset(new NativeRoomTools());
 	return true;
 }
 
 void shutdown_native()
 {
+    RoomTools.reset();
     // We must dispose all native bitmaps before shutting down the library
     thisroom.Free();
-    drawBuffer.reset();
-    undoBuffer.reset();
-    roomBkgBuffer.reset();
-
     shutdown_font_renderer();
     spriteset.Reset();
     allegro_exit();
@@ -1241,7 +1206,7 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, float sca
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
     // CLNUP I wish there was an option or a slider so the user can adjust base zoom
-    int scaleFactor = GetResolutionMultiplier();
+	int scaleFactor = 1;
 
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
@@ -1397,12 +1362,7 @@ void update_abuf_coldepth() {
 bool reload_font(int curFont)
 {
   wfreefont(curFont);
-
-  FontInfo fi = thisgame.fonts[curFont];
-
-  // TODO: for some reason these compat fixes are different in the engine, investigate
-
-  return wloadfont_size(curFont, fi);
+  return wloadfont_size(curFont, thisgame.fonts[curFont]);
 }
 
 HAGSError reset_sprite_file() {
@@ -1634,7 +1594,7 @@ void validate_mask(Common::Bitmap *toValidate, const char *name, int maxColour) 
        "entry 0 corresponds to No Area, palette index 1 corresponds to area 1, and "
        "so forth.", name);
 	MessageBox(NULL, errorBuf, "Mask Error", MB_OK);
-    roomModified = true;
+    RoomTools->roomModified = true;
   }
 }
 
@@ -1659,22 +1619,7 @@ void copy_global_palette_to_room_palette()
   }
 }
 
-// CLNUP mostly for importing from 341 format, could be removed in the future
-// this is necessary because we no longer use the "resolution" and the mask might be low res while the room high res
-void fix_mask_area_size(Common::Bitmap *&mask) {
-    if (mask == NULL) return;
-    if (mask->GetWidth() != thisroom.Width || mask->GetHeight() != thisroom.Height) {
-        int oldw = mask->GetWidth(), oldh = mask->GetHeight();
-        Common::Bitmap *resized = Common::BitmapHelper::CreateBitmap(thisroom.Width, thisroom.Height, 8);
-        resized->Clear();
-        resized->StretchBlt(mask, RectWH(0, 0, oldw, oldh), RectWH(0, 0, resized->GetWidth(), resized->GetHeight()));
-        delete mask;
-        mask = resized;
-    }
-}
-
 const char* load_room_file(const char*rtlo) {
-
   load_room(rtlo, &thisroom, thisgame.SpriteInfos);
 
   // Update room palette with gamewide colours
@@ -1690,6 +1635,7 @@ const char* load_room_file(const char*rtlo) {
   // Fix hi-color screens
   // TODO: find out why this is necessary. Probably has something to do with
   // Allegro switching color components at certain version update long time ago.
+  // do we need to do this in the engine too?
   for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
     fix_block (thisroom.BgFrames[i].Graphic.get());
 
@@ -1699,7 +1645,7 @@ const char* load_room_file(const char*rtlo) {
       (thisgame.color_depth == 1))
     MessageBox(NULL,"WARNING: This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor.", "Colour depth warning", MB_OK);
 
-  roomModified = false;
+  RoomTools->roomModified = false;
 
   validate_mask(thisroom.HotspotMask.get(), "hotspot", MAX_ROOM_HOTSPOTS);
   validate_mask(thisroom.WalkBehindMask.get(), "walk-behind", MAX_WALK_AREAS + 1);
@@ -2050,6 +1996,7 @@ void save_game(bool compressSprites)
 
 void CreateBuffer(int width, int height)
 {
+    auto &drawBuffer = RoomTools->drawBuffer;
     if (!drawBuffer || drawBuffer->GetWidth() != width || drawBuffer->GetHeight() != height || drawBuffer->GetColorDepth() != 32)
         drawBuffer.reset(new AGSBitmap(width, height, 32));
     drawBuffer->Clear(0x00D0D0D0);
@@ -2061,7 +2008,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	  todraw = spriteset[0];
 
 	Common::Bitmap *imageToDraw = todraw;
-
+    auto &drawBuffer = RoomTools->drawBuffer;
 	if (todraw->GetColorDepth() != drawBuffer->GetColorDepth()) 
 	{
 		int oldColorConv = get_color_conversion();
@@ -2100,6 +2047,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 
 void RenderBufferToHDC(int hdc) 
 {
+    auto &drawBuffer = RoomTools->drawBuffer;
 	blit_to_hdc(drawBuffer->GetAllegroBitmap(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
 }
 
@@ -2107,9 +2055,10 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 {
 	for each (Sprite ^sprite in folder->Sprites)
 	{
-		thisgame.SpriteInfos[sprite->Number].Flags = 0;
+        int flags = 0;
 		if (sprite->AlphaChannel)
-			thisgame.SpriteInfos[sprite->Number].Flags |= SPF_ALPHACHANNEL;
+            flags |= SPF_ALPHACHANNEL;
+        thisgame.SpriteInfos[sprite->Number].Flags = flags;
 	}
 
 	for each (SpriteFolder^ subFolder in folder->SubFolders) 
@@ -2123,10 +2072,12 @@ void SetGameResolution(Game ^game)
     // For backwards compatibility, save letterbox-by-design games as having non-custom resolution
     thisgame.options[OPT_LETTERBOX] = game->Settings->LetterboxMode;
     if (game->Settings->LetterboxMode)
-        thisgame.SetDefaultResolution((GameResolutionType)game->Settings->LegacyLetterboxResolution);
+        thisgame.SetGameResolution((GameResolutionType)game->Settings->LegacyLetterboxResolution);
     else
-        thisgame.SetCustomResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
+        thisgame.SetGameResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
 }
+
+void GameFontUpdated(Game ^game, int fontNumber);
 
 void GameUpdated(Game ^game) {
   // TODO: this function may get called when only one item is added/removed or edited;
@@ -2134,10 +2085,8 @@ void GameUpdated(Game ^game) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
-  thisgame.options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
-  update_font_sizes();
 
   //delete abuf;
   //abuf = Common::BitmapHelper::CreateBitmap(32, 32, thisgame.color_depth * 8);
@@ -2160,19 +2109,31 @@ void GameUpdated(Game ^game) {
   thisgame.fonts.resize(thisgame.numfonts);
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
-	  thisgame.fonts[i].SizePt = game->Fonts[i]->PointSize;
-      thisgame.fonts[i].YOffset = game->Fonts[i]->VerticalOffset;
-      thisgame.fonts[i].LineSpacing = game->Fonts[i]->LineSpacing;
-	  reload_font(i);
-	  game->Fonts[i]->Height = getfontheight(i);
+      GameFontUpdated(game, i);
   }
 }
 
 void GameFontUpdated(Game ^game, int fontNumber)
 {
-    thisgame.fonts[fontNumber].YOffset = game->Fonts[fontNumber]->VerticalOffset;
-    thisgame.fonts[fontNumber].LineSpacing = game->Fonts[fontNumber]->LineSpacing;
-    set_fontinfo(fontNumber, thisgame.fonts[fontNumber]);
+    FontInfo &font_info = thisgame.fonts[fontNumber];
+    AGS::Types::Font ^font = game->Fonts[fontNumber];
+
+    int old_sizept = font_info.SizePt;
+    int old_scaling = font_info.SizeMultiplier;
+
+    font_info.SizePt = font->PointSize;
+    font_info.SizeMultiplier = font->SizeMultiplier;
+    font_info.YOffset = font->VerticalOffset;
+    font_info.LineSpacing = font->LineSpacing;
+    set_fontinfo(fontNumber, font_info);
+
+    if (font_info.SizePt != old_sizept ||
+        font_info.SizeMultiplier != old_scaling)
+    {
+        reload_font(fontNumber);
+    }
+
+    font->Height = getfontheight(fontNumber);
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)
@@ -2356,6 +2317,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
+    theRoom->MaskResolution = theRoom->MaskResolution;
 
 	if (newbg->GetColorDepth() == 8) 
 	{
@@ -2393,14 +2355,14 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||
       (theRoom->Width != theRoom->WalkBehindMask->GetWidth()) )
 	{
-		theRoom->WalkAreaMask.reset(Common::BitmapHelper::CreateBitmap(theRoom->Width, theRoom->Height,8));
-		theRoom->HotspotMask.reset(Common::BitmapHelper::CreateBitmap(theRoom->Width, theRoom->Height,8));
-		theRoom->WalkBehindMask.reset(Common::BitmapHelper::CreateBitmap(theRoom->Width, theRoom->Height,8));
-		theRoom->RegionMask.reset(Common::BitmapHelper::CreateBitmap(theRoom->Width, theRoom->Height,8));
-		theRoom->WalkAreaMask->Clear();
-		theRoom->HotspotMask->Clear();
-		theRoom->WalkBehindMask->Clear();
-		theRoom->RegionMask->Clear();
+        theRoom->WalkAreaMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
+        theRoom->HotspotMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
+        theRoom->WalkBehindMask.reset(new AGSBitmap(theRoom->Width, theRoom->Height, 8));
+        theRoom->RegionMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
+        theRoom->WalkAreaMask->Clear();
+        theRoom->HotspotMask->Clear();
+        theRoom->WalkBehindMask->Clear();
+        theRoom->RegionMask->Clear();
 	}
 
 	room->BackgroundCount = theRoom->BgFrameCount;
@@ -2461,7 +2423,7 @@ void set_opaque_alpha_channel(Common::Bitmap *image)
 	}
 }
 
-int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel) 
+AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
 	color imgPalBuf[256];
   int importedColourDepth;
@@ -2472,11 +2434,10 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
 		sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
 	}
 
-	thisgame.SpriteInfos[slot].Flags = 0;
+    int flags = 0;
 	if (alphaChannel)
 	{
-		thisgame.SpriteInfos[slot].Flags |= SPF_ALPHACHANNEL;
-
+        flags |= SPF_ALPHACHANNEL;
 		if (tempsprite->GetColorDepth() == 32)
 		{
 			set_rgb_mask_from_alpha_channel(tempsprite);
@@ -2486,10 +2447,11 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
 	{
 		set_opaque_alpha_channel(tempsprite);
 	}
+    thisgame.SpriteInfos[slot].Flags = flags;
 
 	SetNewSprite(slot, tempsprite);
 
-	return 0;
+	return AGS::Types::SpriteImportResolution::Real;
 }
 
 void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)
@@ -2615,6 +2577,13 @@ System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber)
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
   return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
+}
+
+void FixRoomMasks(Room ^room)
+{
+    RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
+    roomptr->MaskResolution = room->MaskResolution;
+    AGS::Common::FixRoomMasks(roomptr);
 }
 
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
@@ -2809,7 +2778,8 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 		Common::Bitmap *spr = spriteset[i];
 		if (spr != NULL)
 		{
-			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), (thisgame.SpriteInfos[i].Flags & SPF_ALPHACHANNEL) ? true : false));
+			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(),
+                (thisgame.SpriteInfos[i].Flags & SPF_ALPHACHANNEL) ? true : false));
 		}
 	}
 
@@ -2884,7 +2854,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 	}
 
 	Game^ game = gcnew Game();
-	game->Settings->AlwaysDisplayTextAsSpeech = (thisgame.options[OPT_ALWAYSSPCH] != 0);
+    game->Settings->AlwaysDisplayTextAsSpeech = (thisgame.options[OPT_ALWAYSSPCH] != 0);
 	game->Settings->AntiAliasFonts = (thisgame.options[OPT_ANTIALIASFONTS] != 0);
 	game->Settings->AntiGlideMode = (thisgame.options[OPT_ANTIGLIDE] != 0);
 	game->Settings->AutoMoveInWalkMode = !thisgame.options[OPT_NOWALKMODE];
@@ -2901,7 +2871,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 	game->Settings->EnforceNewStrings = (thisgame.options[OPT_STRICTSTRINGS] != 0);
   game->Settings->EnforceNewAudio = false;
 	game->Settings->EnforceObjectBasedScript = (thisgame.options[OPT_STRICTSCRIPTING] != 0);
-	game->Settings->FontsForHiRes = (thisgame.options[OPT_NOSCALEFNT] != 0);
+	game->Settings->FontsForHiRes = (thisgame.options[OPT_HIRES_FONTS] != 0);
 	game->Settings->GameName = gcnew String(thisgame.gamename);
 	game->Settings->UseGlobalSpeechAnimationDelay = true; // this was always on in pre-3.0 games
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
@@ -2912,7 +2882,7 @@ Game^ import_compiled_game_dta(const char *fileName)
     game->Settings->NumberDialogOptions = (thisgame.options[OPT_DIALOGNUMBERED] != 0) ? DialogOptionsNumbering::Normal : DialogOptionsNumbering::KeyShortcutsOnly;
 	game->Settings->PixelPerfect = (thisgame.options[OPT_PIXPERFECT] != 0);
 	game->Settings->PlaySoundOnScore = thisgame.options[OPT_SCORESOUND];
-	game->Settings->Resolution = (GameResolutions)thisgame.GetDefaultResolution();
+	game->Settings->Resolution = (GameResolutions)thisgame.GetResolutionType();
 	game->Settings->RoomTransition = (RoomTransitionStyle)thisgame.options[OPT_FADETYPE];
 	game->Settings->SaveScreenshots = (thisgame.options[OPT_SAVESCREENSHOT] != 0);
 	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.options[OPT_NOSKIPTEXT];
@@ -2926,8 +2896,9 @@ Game^ import_compiled_game_dta(const char *fileName)
 	game->Settings->WalkInLookMode = (thisgame.options[OPT_WALKONLOOK] != 0);
 	game->Settings->WhenInterfaceDisabled = (InterfaceDisabledAction)thisgame.options[OPT_DISABLEOFF];
 	game->Settings->UniqueID = thisgame.uniqueid;
-  game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
-  game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
+    game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
+    game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
+    game->Settings->AllowRelativeAssetResolutions = (thisgame.options[OPT_RELATIVEASSETRES] != 0);
 
 	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
 	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;
@@ -3341,7 +3312,7 @@ System::String ^load_room_script(System::String ^fileName)
 
 int GetCurrentlyLoadedRoomNumber()
 {
-  return loaded_room_number;
+  return RoomTools->loaded_room_number;
 }
 
 AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
@@ -3354,7 +3325,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		throw gcnew AGSEditorException(gcnew String(errorMsg));
 	}
 
-  loaded_room_number = roomToLoad->Number;
+    RoomTools->loaded_room_number = roomToLoad->Number;
 
 	Room ^room = gcnew Room(roomToLoad->Number);
 	room->Description = roomToLoad->Description;
@@ -3373,6 +3344,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	room->ColorDepth = thisroom.BgFrames[0].Graphic->GetColorDepth();
 	room->BackgroundAnimationDelay = thisroom.BgAnimSpeed;
 	room->BackgroundCount = thisroom.BgFrameCount;
+    room->MaskResolution = thisroom.MaskResolution;
 
 	for (size_t i = 0; i < thisroom.MessageCount; ++i) 
 	{
@@ -3487,6 +3459,7 @@ void save_crm_file(Room ^room)
     // Convert managed Room object into the native roomstruct that is going
     // to be saved using native procedure.
     //
+    thisroom.MaskResolution = room->MaskResolution;
 
 	thisroom.GameID = room->GameID;
 	thisroom.Edges.Bottom = room->BottomEdgeY;

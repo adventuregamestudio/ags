@@ -32,18 +32,18 @@ class HqxGfxFilter : public AllegroGfxFilter
 {
 public:
     HqxGfxFilter();
-    ~HqxGfxFilter();
+    ~HqxGfxFilter() override;
 
-    virtual const GfxFilterInfo &GetInfo() const;
+    const GfxFilterInfo &GetInfo() const override;
 
-    virtual bool Initialize(const int color_depth, String &err_str);
-    virtual Bitmap *InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect);
-    virtual Bitmap *ShutdownAndReturnRealScreen();
+    bool Initialize(const int color_depth, String &err_str) override;
+    Bitmap *InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect) override;
+    Bitmap *ShutdownAndReturnRealScreen() override;
 
     static const GfxFilterInfo FilterInfo;
 
 protected:
-    virtual Bitmap *PreRenderPass(Bitmap *toRender);
+    Bitmap *PreRenderPass(Bitmap *toRender) override;
 
     typedef void (*PfnHqx)(unsigned char *in, unsigned char *out, int src_w, int src_h, int bpl);
 

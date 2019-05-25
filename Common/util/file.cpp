@@ -163,7 +163,7 @@ Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkM
     if (!fs->IsValid())
     {
         delete fs;
-        return NULL;
+        return nullptr;
     }
     return fs;
 }

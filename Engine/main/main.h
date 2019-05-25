@@ -41,12 +41,15 @@ extern int wArgc;
 extern LPWSTR *wArgv;
 #endif
 extern char **global_argv;
+// Location of the engine executable
 extern AGS::Common::String appDirectory;
+// Game path from the startup options (before reading config)
+extern AGS::Common::String cmdGameDataPath;
 
 AGS::Common::String GetPathFromCmdArg(int arg_index);
 
 // Startup flags, set from parameters to engine
-extern int datafile_argv, change_to_game_dir, force_window;
+extern int force_window;
 extern int override_start_room;
 extern bool justRegisterGame;
 extern bool justUnRegisterGame;

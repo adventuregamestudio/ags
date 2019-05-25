@@ -22,35 +22,29 @@ struct MYWAVE:public SOUNDCLIP
 {
     SAMPLE *wave;
     int voice;
-    int firstTime;
 
-    int poll();
+    void poll() override;
 
-    void set_volume(int new_speed);
+    void set_volume(int new_speed) override;
 
-    void internal_destroy();
+    void destroy() override;
 
-    void destroy();
+    void seek(int pos) override;
 
-    void seek(int pos);
+    int get_pos() override;
+    int get_pos_ms() override;
 
-    int get_pos();
-    int get_pos_ms();
+    int get_length_ms() override;
 
-    int get_length_ms();
+    int get_sound_type() override;
 
-    void restart();
-
-    int get_voice();
-
-    int get_sound_type();
-
-    int play();
+    int play() override;
 
     MYWAVE();
 
 protected:
-    virtual void adjust_volume();
+    int get_voice() override;
+    void adjust_volume() override;
 };
 
 #endif // __AC_MYWAVE_H

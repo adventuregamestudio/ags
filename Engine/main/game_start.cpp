@@ -23,7 +23,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
-#include "ac/record.h"
 #include "ac/room.h"
 #include "ac/screen.h"
 #include "debug/debug_log.h"
@@ -34,6 +33,8 @@
 #include "main/game_run.h"
 #include "main/game_start.h"
 #include "script/script.h"
+#include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -42,25 +43,11 @@ extern int our_eip, displayed_room;
 extern volatile char want_exit, abort_engine;
 extern GameSetupStruct game;
 extern GameState play;
-extern volatile int timerloop;
 extern const char *loadSaveGameOnStartup;
 extern std::vector<ccInstance *> moduleInst;
 extern int numScriptModules;
 extern CharacterInfo*playerchar;
 extern int convert_16bit_bgr;
-
-
-void start_game_check_replay()
-{
-    Debug::Printf("Checking replay status");
-
-    if (play.recording) {
-        start_recording();
-    }
-    else if (play.playback) {
-        start_playback();
-    }
-}
 
 void start_game_init_editor_debugging()
 {
@@ -69,8 +56,8 @@ void start_game_init_editor_debugging()
         SetMultitasking(1);
         if (init_editor_debugging())
         {
-            timerloop = 0;
-            while (timerloop < 20)
+            auto waitUntil = AGS_Clock::now() + std::chrono::milliseconds(500);
+            while (waitUntil > AGS_Clock::now())
             {
                 // pick up any breakpoints in game_start
                 check_for_messages_from_editor();
@@ -83,11 +70,11 @@ void start_game_init_editor_debugging()
 
 void start_game_load_savegame_on_startup()
 {
-    if (loadSaveGameOnStartup != NULL)
+    if (loadSaveGameOnStartup != nullptr)
     {
         int saveGameNumber = 1000;
         const char *sgName = strstr(loadSaveGameOnStartup, "agssave.");
-        if (sgName != NULL)
+        if (sgName != nullptr)
         {
             sscanf(sgName, "agssave.%03d", &saveGameNumber);
         }
@@ -102,6 +89,9 @@ void start_game() {
     newmusic(0);
 
     our_eip = -42;
+
+    // skip ticks to account for initialisation or a restored game.
+    skipMissedTicks();
 
     for (int kk = 0; kk < numScriptModules; kk++)
         RunTextScript(moduleInst[kk], "game_start");
@@ -148,11 +138,8 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
         }
 
         srand (play.randseed);
-        play.gamestep = 0;
         if (override_start_room)
             playerchar->room = override_start_room;
-
-        start_game_check_replay();
 
         Debug::Printf(kDbgMsg_Init, "Engine initialization complete");
         Debug::Printf(kDbgMsg_Init, "Starting game");

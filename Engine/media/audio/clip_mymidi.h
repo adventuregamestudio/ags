@@ -23,40 +23,33 @@ struct MYMIDI:public SOUNDCLIP
     MIDI *tune;
     int lengthInSeconds;
 
-    // The PSP takes a while to play a midi, therefore poll() can be called
-    // before the music is ready and immediately returns done.
-    volatile bool initializing;
+    void poll() override;
 
-    int poll();
+    void set_volume(int newvol) override;
 
-    void set_volume(int newvol);
+    void destroy() override;
 
-    void destroy();
+    void seek(int pos) override;
 
-    void seek(int pos);
+    int get_pos() override;
 
-    int get_pos();
+    int get_pos_ms() override;
 
-    int get_pos_ms();
+    int get_length_ms() override;
 
-    int get_length_ms();
+    void pause() override;
 
-    void restart();
+    void resume() override;
 
-    int get_voice();
+    int get_sound_type() override;
 
-    virtual void pause();
-
-    virtual void resume();
-
-    int get_sound_type();
-
-    int play();
+    int play() override;
 
     MYMIDI();
 
 protected:
-    virtual void adjust_volume();
+    int get_voice() override;
+    void adjust_volume() override;
 };
 
 #endif // __AC_MYMIDI_H

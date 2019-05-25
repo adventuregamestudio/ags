@@ -31,10 +31,10 @@ struct ScriptDrawingSurface final : AGSCCDynamicObject {
     int hasAlphaChannel;
     //Common::Bitmap* abufBackup;
 
-    virtual int Dispose(const char *address, bool force);
-    virtual const char *GetType();
-    virtual int Serialize(const char *address, char *buffer, int bufsize);
-    virtual void Unserialize(int index, const char *serializedData, int dataSize);
+    int Dispose(const char *address, bool force) override;
+    const char *GetType() override;
+    int Serialize(const char *address, char *buffer, int bufsize) override;
+    void Unserialize(int index, const char *serializedData, int dataSize) override;
     Common::Bitmap* GetBitmapSurface();
     Common::Bitmap *StartDrawing();
     void FinishedDrawing();

@@ -29,22 +29,22 @@ public:
     GUISlider();
 
     // Tells if the slider is horizontal (otherwise - vertical)
-    bool         IsHorizontal() const;
-    virtual bool IsOverControl(int x, int y, int leeway) const override;
+    bool IsHorizontal() const;
+    bool IsOverControl(int x, int y, int leeway) const override;
 
     // Operations
-    virtual void Draw(Bitmap *ds) override;
+    void Draw(Bitmap *ds) override;
 
     // Events
-    virtual bool OnMouseDown() override;
-    virtual void OnMouseMove(int xp, int yp) override;
-    virtual void OnMouseUp() override;
+    bool OnMouseDown() override;
+    void OnMouseMove(int xp, int yp) override;
+    void OnMouseUp() override;
 
     // Serialization
-    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void WriteToFile(Stream *out) const override;
-    virtual void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
-    virtual void WriteToSavegame(Stream *out) const override;
+    void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+    void WriteToFile(Stream *out) const override;
+    void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
+    void WriteToSavegame(Stream *out) const override;
 
 // TODO: these members are currently public; hide them later
 public:

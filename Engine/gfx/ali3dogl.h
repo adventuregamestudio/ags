@@ -65,16 +65,16 @@ class OGLBitmap : public VideoMemDDB
 public:
     // Transparency is a bit counter-intuitive
     // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
-    virtual void SetTransparency(int transparency) { _transparency = transparency; }
-    virtual void SetFlippedLeftRight(bool isFlipped) { _flipped = isFlipped; }
-    virtual void SetStretch(int width, int height, bool useResampler = true)
+    void SetTransparency(int transparency) override { _transparency = transparency; }
+    void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
+    void SetStretch(int width, int height, bool useResampler = true) override
     {
         _stretchToWidth = width;
         _stretchToHeight = height;
         _useResampler = useResampler;
     }
-    virtual void SetLightLevel(int lightLevel)  { _lightLevel = lightLevel; }
-    virtual void SetTint(int red, int green, int blue, int tintSaturation) 
+    void SetLightLevel(int lightLevel) override  { _lightLevel = lightLevel; }
+    void SetTint(int red, int green, int blue, int tintSaturation) override 
     {
         _red = red;
         _green = green;
@@ -104,12 +104,13 @@ public:
         _stretchToWidth = 0;
         _stretchToHeight = 0;
         _useResampler = false;
+        _red = _green = _blue = 0;
         _tintSaturation = 0;
         _lightLevel = 0;
         _transparency = 0;
         _opaque = opaque;
-        _vertex = NULL;
-        _tiles = NULL;
+        _vertex = nullptr;
+        _tiles = nullptr;
         _numTiles = 0;
     }
 
@@ -118,7 +119,7 @@ public:
 
     void Dispose();
 
-    ~OGLBitmap()
+    ~OGLBitmap() override
     {
         Dispose();
     }
@@ -144,12 +145,12 @@ public:
     {
     }
 
-    virtual int GetModeCount() const
+    int GetModeCount() const override
     {
         return _modes.size();
     }
 
-    virtual bool GetMode(int index, DisplayMode &mode) const
+    bool GetMode(int index, DisplayMode &mode) const override
     {
         if (index >= 0 && (size_t)index < _modes.size())
         {
@@ -169,47 +170,47 @@ class OGLGfxFilter;
 class OGLGraphicsDriver : public VideoMemoryGraphicsDriver
 {
 public:
-    virtual const char*GetDriverName() { return "OpenGL"; }
-    virtual const char*GetDriverID() { return "OGL"; }
-    virtual void SetTintMethod(TintMethod method);
-    virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer);
-    virtual bool SetNativeSize(const Size &src_size);
-    virtual bool SetRenderFrame(const Rect &dst_rect);
-    virtual int GetDisplayDepthForNativeDepth(int native_color_depth) const;
-    virtual IGfxModeList *GetSupportedModeList(int color_depth);
-    virtual bool IsModeSupported(const DisplayMode &mode);
-    virtual PGfxFilter GetGraphicsFilter() const;
-    virtual void UnInit();
-    virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-    virtual int  GetCompatibleBitmapFormat(int color_depth);
-    virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
-    virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
-    virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
-    virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
-    virtual void RenderToBackBuffer();
-    virtual void Render();
-    virtual void Render(GlobalFlipType flip);
-    virtual bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, Size *want_size);
-    virtual void EnableVsyncBeforeRender(bool enabled) { }
-    virtual void Vsync();
-    virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling);
-    virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
-    virtual bool PlayVideo(const char *filename, bool useSound, VideoSkipType skipType, bool stretchToFullScreen);
-    virtual bool SupportsGammaControl();
-    virtual void SetGamma(int newGamma);
-    virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }
-    virtual bool RequiresFullRedrawEachFrame() { return true; }
-    virtual bool HasAcceleratedTransform() { return true; }
-    virtual void SetScreenTint(int red, int green, int blue);
+    const char*GetDriverName() override { return "OpenGL"; }
+    const char*GetDriverID() override { return "OGL"; }
+    void SetTintMethod(TintMethod method) override;
+    bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) override;
+    bool SetNativeSize(const Size &src_size) override;
+    bool SetRenderFrame(const Rect &dst_rect) override;
+    int GetDisplayDepthForNativeDepth(int native_color_depth) const override;
+    IGfxModeList *GetSupportedModeList(int color_depth) override;
+    bool IsModeSupported(const DisplayMode &mode) override;
+    PGfxFilter GetGraphicsFilter() const override;
+    void UnInit();
+    void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
+    int  GetCompatibleBitmapFormat(int color_depth) override;
+    IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
+    void DestroyDDB(IDriverDependantBitmap* bitmap) override;
+    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
+    void RenderToBackBuffer() override;
+    void Render() override;
+    void Render(GlobalFlipType flip) override;
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
+    void EnableVsyncBeforeRender(bool enabled) override { }
+    void Vsync() override;
+    void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override;
+    void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
+    void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
+    void BoxOutEffect(bool blackingOut, int speed, int delay) override;
+    bool PlayVideo(const char *filename, bool useSound, VideoSkipType skipType, bool stretchToFullScreen) override;
+    bool SupportsGammaControl() override;
+    void SetGamma(int newGamma) override;
+    void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
+    bool RequiresFullRedrawEachFrame() override { return true; }
+    bool HasAcceleratedTransform() override { return true; }
+    void SetScreenTint(int red, int green, int blue) override;
 
     typedef stdtr1compat::shared_ptr<OGLGfxFilter> POGLFilter;
 
     void SetGraphicsFilter(POGLFilter filter);
 
     OGLGraphicsDriver();
-    virtual ~OGLGraphicsDriver();
+    ~OGLGraphicsDriver() override;
 
 private:
     POGLFilter _filter;
@@ -222,7 +223,10 @@ private:
     GLuint _oldPixelFormat;
     PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
 #endif
-    Version _oglVersion;
+#if defined (LINUX_VERSION)
+    bool _have_window;
+    GLXContext _glxContext;
+#endif
     bool _firstTimeInit;
     int _tint_red, _tint_green, _tint_blue;
     // Position of backbuffer texture in world space
@@ -282,8 +286,8 @@ private:
     SpriteBatchDescs _backupBatchDescs;
     OGLSpriteBatches _backupBatches;
 
-    virtual void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc);
-    virtual void ResetAllBatches();
+    void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
+    void ResetAllBatches() override;
 
     // Sets up GL objects not related to particular display mode
     void FirstTimeInit();
@@ -294,8 +298,6 @@ private:
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
     void SetupDefaultVertices();
-    // Test if swap interval (used for vsync) is supported
-    void TestVSync();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
     // Test if supersampling should be allowed with the current setup
@@ -311,7 +313,7 @@ private:
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();
-#if defined (WINDOWS_VERSION)
+#if defined (WINDOWS_VERSION) || defined(LINUX_VERSION)
     void CreateDesktopScreen(int width, int height, int depth);
 #elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
     void UpdateDeviceScreen();
@@ -344,17 +346,17 @@ private:
 class OGLGraphicsFactory : public GfxDriverFactoryBase<OGLGraphicsDriver, OGLGfxFilter>
 {
 public:
-    virtual ~OGLGraphicsFactory();
+    ~OGLGraphicsFactory() override;
 
-    virtual size_t               GetFilterCount() const;
-    virtual const GfxFilterInfo *GetFilterInfo(size_t index) const;
-    virtual String               GetDefaultFilterID() const;
+    size_t               GetFilterCount() const override;
+    const GfxFilterInfo *GetFilterInfo(size_t index) const override;
+    String               GetDefaultFilterID() const override;
 
     static OGLGraphicsFactory   *GetFactory();
 
 private:
-    virtual OGLGraphicsDriver   *EnsureDriverCreated();
-    virtual OGLGfxFilter        *CreateFilter(const String &id);
+    OGLGraphicsDriver   *EnsureDriverCreated() override;
+    OGLGfxFilter        *CreateFilter(const String &id) override;
 
     static OGLGraphicsFactory *_factory;
 };

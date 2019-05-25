@@ -24,6 +24,8 @@ void NamedPipesAGSDebugger::SendAcknowledgement()
 
 NamedPipesAGSDebugger::NamedPipesAGSDebugger(const char *instanceToken)
 {
+    _hPipeSending = NULL;
+    _hPipeReading = NULL;
     _instanceToken = instanceToken;
 }
 

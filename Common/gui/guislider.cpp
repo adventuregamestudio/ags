@@ -154,7 +154,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
     {
         // an image for the slider handle
         // TODO: react to sprites initialization/deletion instead!
-        if (spriteset[HandleImage] == NULL)
+        if (spriteset[HandleImage] == nullptr)
             HandleImage = 0;
 
         handle.Left -= get_adjusted_spritewidth(HandleImage) / 2;

@@ -47,6 +47,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 String appDirectory; // Needed for library loading
+String cmdGameDataPath;
 
 #ifdef MAC_VERSION
 extern "C"
@@ -63,7 +64,7 @@ LPWSTR *wArgv;
 
 #endif
 
-char **global_argv = NULL;
+char **global_argv = nullptr;
 int    global_argc = 0;
 
 
@@ -80,14 +81,14 @@ extern char editor_debugger_instance_token[100];
 
 
 // Startup flags, set from parameters to engine
-int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
+int force_window = 0;
 int override_start_room = 0;
 bool justDisplayHelp = false;
 bool justDisplayVersion = false;
 bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
-const char *loadSaveGameOnStartup = NULL;
+const char *loadSaveGameOnStartup = nullptr;
 
 #if !defined(MAC_VERSION) && !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 int psp_video_framedrop = 1;
@@ -98,7 +99,7 @@ int psp_clear_cache_on_room_change = 0;
 
 int psp_midi_preload_patches = 0;
 int psp_audio_cachesize = 10;
-char psp_game_file_name[] = "ac2game.dat";
+char psp_game_file_name[] = "";
 char psp_translation[] = "default";
 
 int psp_gfx_renderer = 0;
@@ -113,8 +114,6 @@ void main_pre_init()
 {
     our_eip = -999;
     Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
-    play.recording = 0;
-    play.playback = 0;
     play.takeover_data = 0;
 }
 
@@ -212,6 +211,7 @@ void main_print_help() {
 
 int main_process_cmdline(int argc,char*argv[])
 {
+    int datafile_argv = 0;
     for (int ee=1;ee<argc;ee++) {
         if (stricmp(argv[ee],"--help") == 0 || stricmp(argv[ee],"/?") == 0 || stricmp(argv[ee],"-?") == 0)
         {
@@ -220,18 +220,12 @@ int main_process_cmdline(int argc,char*argv[])
         }
         if (stricmp(argv[ee],"-v") == 0 || stricmp(argv[ee],"--version") == 0)
             justDisplayVersion = true;
-        else if (stricmp(argv[ee],"-shelllaunch") == 0)
-            change_to_game_dir = 1;
         else if (stricmp(argv[ee],"-updatereg") == 0)
             debug_flags |= DBG_REGONLY;
         else if (stricmp(argv[ee],"-windowed") == 0 || stricmp(argv[ee],"--windowed") == 0)
             force_window = 1;
         else if (stricmp(argv[ee],"-fullscreen") == 0 || stricmp(argv[ee],"--fullscreen") == 0)
             force_window = 2;
-        else if (stricmp(argv[ee],"-record") == 0)
-            play.recording = 1;
-        else if (stricmp(argv[ee],"-playback") == 0)
-            play.playback = 1;
         else if ((stricmp(argv[ee],"-gfxfilter") == 0 || stricmp(argv[ee],"--gfxfilter") == 0) && (argc > ee + 1))
         {
             // TODO: we make an assumption here that if user provides scaling factor,
@@ -321,6 +315,16 @@ int main_process_cmdline(int argc,char*argv[])
         else if (argv[ee][0]!='-') datafile_argv=ee;
     }
 
+    if (datafile_argv > 0)
+    {
+        cmdGameDataPath = GetPathFromCmdArg(datafile_argv);
+    }
+    else
+    {
+        // assign standard path for mobile/consoles (defined in their own platform implementation)
+        cmdGameDataPath = psp_game_file_name;
+    }
+
     return RETURN_CONTINUE;
 }
 
@@ -364,16 +368,11 @@ String GetPathInASCII(const String &path)
 }
 #endif
 
-void main_set_gamedir(int argc,char*argv[])
+void main_set_gamedir(int argc, char*argv[])
 {
     appDirectory = Path::GetDirectoryPath(GetPathFromCmdArg(0));
 
-    if (datafile_argv > 0)
-    {
-        // If running data file pointed by command argument, change to that folder
-        Directory::SetCurrentDirectory(Path::GetDirectoryPath(GetPathFromCmdArg(datafile_argv)));
-    }
-    else if ((loadSaveGameOnStartup != NULL) && (argv[0] != NULL))
+    if ((loadSaveGameOnStartup != nullptr) && (argv[0] != nullptr))
     {
         // When launched by double-clicking a save game file, the curdir will
         // be the save game folder unless we correct it
@@ -411,7 +410,7 @@ String GetPathFromCmdArg(int arg_index)
     if (GetShortPathNameW(arg_path, short_path, MAX_PATH) == 0)
     {
         Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetShortPathNameW failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
-        return "";
+        return global_argv[arg_index];
     }
     WideCharToMultiByte(CP_ACP, 0, short_path, -1, ascii_buffer, MAX_PATH, NULL, NULL);
     path = ascii_buffer;

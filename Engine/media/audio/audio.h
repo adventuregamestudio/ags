@@ -15,6 +15,7 @@
 #ifndef __AC_AUDIO_H
 #define __AC_AUDIO_H
 
+#include <array>
 #include "media/audio/audiodefines.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
@@ -22,19 +23,55 @@
 #include "util/mutex.h"
 #include "util/mutex_lock.h"
 #include "util/thread.h"
+#include "ac/timer.h"
 
 struct SOUNDCLIP;
+
+//controls access to the channels, since that's the main point of synchronization between the streaming thread and the user code
+//this is going to be dependent on the underlying mutexes being recursive
+//yes, we will have more recursive traffic on mutexes than we need
+//however this should mostly be happening only when playing sounds, and possibly when sounds numbering only several
+//the load should not be high
+class AudioChannelsLock : public AGS::Engine::MutexLock
+{
+private:
+    AudioChannelsLock(AudioChannelsLock const &); // non-copyable
+    AudioChannelsLock& operator=(AudioChannelsLock const &); // not copy-assignable
+
+public:
+    static AGS::Engine::Mutex s_mutex;
+    AudioChannelsLock()
+        : MutexLock(s_mutex)
+    {
+    }
+
+    // Gets a clip from the channel
+    SOUNDCLIP *GetChannel(int index);
+    // Gets a clip from the channel but only if it's in playback state
+    SOUNDCLIP *GetChannelIfPlaying(int index);
+    // Assign new clip to the channel
+    SOUNDCLIP *SetChannel(int index, SOUNDCLIP *clip);
+    // Move clip from one channel to another, clearing the first channel
+    SOUNDCLIP *MoveChannel(int to, int from);
+};
+
+//
+// Channel helpers, autolock and perform a simple action on a channel.
+//
+// Tells if channel has got a clip; does not care about its state
+bool channel_has_clip(int chanid);
+// Tells if channel has got a clip and clip is in playback state
+bool channel_is_playing(int chanid);
+// Sets new clip to the channel
+void set_clip_to_channel(int chanid, SOUNDCLIP *clip);
+
 
 void        calculate_reserved_channel_count();
 void        update_clip_default_volume(ScriptAudioClip *audioClip);
 void        start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip *newSound);
-void        move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int fadeInChannel, ScriptAudioClip *newSound);
-void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, ScriptAudioClip *newSound = NULL);
-int         find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptEqualPriority);
+void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, ScriptAudioClip *newSound = nullptr);
 SOUNDCLIP*  load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
-void        audio_update_polled_stuff();
-void        queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat);
-ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = NULL);
+ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = nullptr);
 void        remove_clips_of_type_from_queue(int audioType);
 void        update_queued_clips_volume(int audioType, int new_vol);
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
@@ -63,11 +100,14 @@ bool        is_audiotype_allowed_to_play(AudioFileType type);
 SOUNDCLIP * load_sound_and_play(ScriptAudioClip *aclip, bool repeat);
 void        stop_all_sound_and_music();
 void        shutdown_sound();
-int         play_sound_priority (int val1, int priority);
 int         play_sound(int val1);
 
 //=============================================================================
 
+// This is an indicator of a music played by an old audio system
+// (to distinguish from the new system API); if it is not set, then old API
+// should "think" that no music is played regardless of channel state
+// TODO: refactor this and hide behind some good interface to prevent misuse!
 extern int current_music_type;
 
 void        clear_music_cache();
@@ -75,31 +115,30 @@ void        play_next_queued();
 int         calculate_max_volume();
 // add/remove the volume drop to the audio channels while speech is playing
 void        apply_volume_drop_modifier(bool applyModifier);
-void        update_polled_mp3();
 // Update the music, and advance the crossfade on a step
 // (this should only be called once per game loop);
-void        update_polled_audio_and_crossfade ();
+void        update_audio_system_on_game_loop ();
 void        stopmusic();
 void        update_music_volume();
 void        post_new_music_check (int newchannel);
+// Sets up the crossfading for playing the new music track,
+// and returns the channel number to use; the channel is guaranteed to be free
 int         prepare_for_new_music ();
 // Gets audio clip from legacy music number, which also may contain queue flag
 ScriptAudioClip *get_audio_clip_for_music(int mnum);
 SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
-void        play_new_music(int mnum, SOUNDCLIP *music);
 void        newmusic(int mnum);
 
 extern AGS::Engine::Thread audioThread;
-extern AGS::Engine::Mutex _audio_mutex;
 extern volatile bool _audio_doing_crossfade;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for update_mp3_thread
 extern volatile int psp_audio_multithreaded;
 
-void update_mp3();
+void update_polled_mp3();
 void update_mp3_thread();
 
-extern volatile int mvolcounter;
-extern int update_music_at;
+extern void cancel_scheduled_music_update();
+extern void schedule_music_update_at(AGS_Clock::time_point);
+extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
 
 // crossFading is >0 (channel number of new track), or -1 (old
 // track fading out, no new track)
@@ -108,7 +147,7 @@ extern int crossFadeVolumeAtStart;
 
 extern SOUNDCLIP *cachedQueuedMusic;
 
-extern int last_sound_played[MAX_SOUND_CHANNELS + 1];
-extern AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array iterations
+// TODO: double check that ambient sounds array actually needs +1
+extern std::array<AmbientSound,MAX_SOUND_CHANNELS+1> ambient;
 
 #endif // __AC_AUDIO_H

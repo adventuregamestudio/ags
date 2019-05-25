@@ -87,7 +87,7 @@ private:
     // Set of permitted groups' numeric IDs
     std::vector<MessageType> _groupFilter;
     // Set of unresolved groups, which numeric IDs are not yet known
-    typedef stdtr1compat::unordered_map<String, MessageType, HashStrNoCase, StrCmpNoCase> GroupNameToMTMap;
+    typedef stdtr1compat::unordered_map<String, MessageType, HashStrNoCase, StrEqNoCase> GroupNameToMTMap;
     GroupNameToMTMap _unresolvedGroups;
 };
 
@@ -137,8 +137,8 @@ private:
     };
 
     typedef std::vector<DebugGroup> GroupVector;
-    typedef stdtr1compat::unordered_map<String, DebugGroupID, HashStrNoCase, StrCmpNoCase> GroupByStringMap;
-    typedef stdtr1compat::unordered_map<String, OutputSlot, HashStrNoCase, StrCmpNoCase> OutMap;
+    typedef stdtr1compat::unordered_map<String, DebugGroupID, HashStrNoCase, StrEqNoCase> GroupByStringMap;
+    typedef stdtr1compat::unordered_map<String, OutputSlot, HashStrNoCase, StrEqNoCase> OutMap;
 
     void RegisterGroup(const DebugGroup &id);
     void SendMessage(OutputSlot &out, const DebugMessage &msg);

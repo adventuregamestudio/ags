@@ -31,10 +31,10 @@ namespace D3D
 class AAD3DGfxFilter : public D3DGfxFilter
 {
 public:
-    virtual const GfxFilterInfo &GetInfo() const;
+    const GfxFilterInfo &GetInfo() const override;
 
-    virtual void SetSamplerStateForStandardSprite(void *direct3ddevice9);
-    virtual bool NeedToColourEdgeLines();
+    void SetSamplerStateForStandardSprite(void *direct3ddevice9) override;
+    bool NeedToColourEdgeLines() override;
 
     static const GfxFilterInfo FilterInfo;
 };

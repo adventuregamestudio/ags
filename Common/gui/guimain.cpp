@@ -111,7 +111,7 @@ int GUIMain::GetControlCount() const
 GUIObject *GUIMain::GetControl(int index) const
 {
     if (index < 0 || (size_t)index >= _controls.size())
-        return NULL;
+        return nullptr;
     return _controls[index];
 }
 
@@ -216,7 +216,7 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
     SET_EIP(378)
 
-    if (BgImage > 0 && spriteset[BgImage] != NULL)
+    if (BgImage > 0 && spriteset[BgImage] != nullptr)
         draw_gui_sprite(&subbmp, BgImage, 0, 0, false);
 
     SET_EIP(379)

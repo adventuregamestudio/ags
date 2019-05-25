@@ -41,6 +41,19 @@ bool IsFile(const String &filename)
     return false;
 }
 
+bool IsFileOrDir(const String &filename)
+{
+    struct stat_t st;
+    // stat() does not like trailing slashes, remove them
+    String fixed_path = MakePathNoSlash(filename);
+    if (stat_fn(fixed_path, &st) == 0)
+    {
+        return (st.st_mode & S_IFMT) == S_IFDIR ||
+            (st.st_mode & S_IFMT) == S_IFREG;
+    }
+    return false;
+}
+
 int ComparePaths(const String &path1, const String &path2)
 {
     // Make minimal absolute paths
@@ -61,14 +74,18 @@ int ComparePaths(const String &path1, const String &path2)
 
 String GetDirectoryPath(const String &path)
 {
+    if (IsDirectory(path))
+        return path;
+
     String dir = path;
-    if (IsFile(dir))
+    FixupPath(dir);
+    size_t slash_at = dir.FindCharReverse('/');
+    if (slash_at != -1)
     {
-        size_t slash_at = dir.FindCharReverse('/');
-        if (slash_at != -1)
-            dir.ClipMid(slash_at);
+        dir.ClipMid(slash_at);
+        return dir;
     }
-    return dir;
+    return ".";
 }
 
 bool IsSameOrSubDir(const String &parent, const String &path)
@@ -102,11 +119,19 @@ void FixupPath(String &path)
     path.Replace('\\', '/');
 }
 
-String  MakePathNoSlash(const String &path)
+String MakePathNoSlash(const String &path)
 {
     String dir_path = path;
     FixupPath(dir_path);
-    dir_path.TrimRight('/');
+#if defined (WINDOWS_VERSION)
+    // if the path is 'x:/' don't strip the slash
+    if (path.GetLength() == 3 && path[1u] == ':')
+        ;
+    else
+#endif
+    // if the path is '/' don't strip the slash
+    if (dir_path.GetLength() > 1)
+        dir_path.TrimRight('/');
     return dir_path;
 }
 
@@ -135,6 +160,16 @@ String MakeAbsolutePath(const String &path)
     abs_path = buf;
     FixupPath(abs_path);
     return abs_path;
+}
+
+String ConcatPaths(const String &parent, const String &child)
+{
+    String path = parent;
+    FixupPath(path);
+    if (path.GetLast() != '/')
+        path.AppendChar('/');
+    path.Append(child);
+    return path;
 }
 
 String FixupSharedFilename(const String &filename)

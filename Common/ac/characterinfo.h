@@ -66,13 +66,15 @@ struct CharacterInfo {
     int   thinkview;
     short blinkview, blinkinterval; // design time
     short blinktimer, blinkframe;   // run time
-    short walkspeed_y, pic_yoffs;
+    short walkspeed_y;
+    short pic_yoffs; // this is fixed in screen coordinates
     int   z;    // z-location, for flying etc
     int   walkwait;
     short speech_anim_speed, reserved1;  // only 1 reserved left!!
     short blocking_width, blocking_height;
     int   index_id;  // used for object functions to know the id
-    short pic_xoffs, walkwaitcounter;
+    short pic_xoffs; // this is fixed in screen coordinates
+    short walkwaitcounter;
     short loop, frame;
     short walking, animating;
     short walkspeed, animspeed;

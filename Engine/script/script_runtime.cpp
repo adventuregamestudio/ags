@@ -32,7 +32,6 @@
 #include "script/cc_error.h"
 #include "script/cc_options.h"
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/managedobjectpool.h"
 #include "script/systemimports.h"
 #include "ac/statobj/staticobject.h"
 
@@ -40,32 +39,32 @@ extern ccInstance *current_instance; // in script/cc_instance
 
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), nullptr) == 0;
 }
 
 bool ccAddExternalPluginFunction(const String &name, void *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetPluginFunction(pfn), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) == 0;
 }
 
 bool ccAddExternalStaticObject(const String &name, void *ptr, ICCStaticObject *manager)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticObject(ptr, manager), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetStaticObject(ptr, manager), nullptr) == 0;
 }
 
 bool ccAddExternalStaticArray(const String &name, void *ptr, StaticArray *array_mgr)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), nullptr) == 0;
 }
 
 bool ccAddExternalDynamicObject(const String &name, void *ptr, ICCDynamicObject *manager)
 {
-    return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), nullptr) == 0;
 }
 
 bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), nullptr) == 0;
 }
 
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)
@@ -83,13 +82,13 @@ void ccRemoveAllSymbols()
     simp.clear();
 }
 
-ccInstance *loadedInstances[MAX_LOADED_INSTANCES] = {NULL,
-NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
-NULL, NULL, NULL, NULL, NULL, NULL};
+ccInstance *loadedInstances[MAX_LOADED_INSTANCES] = {nullptr,
+nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
+nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 
 void nullfree(void *data)
 {
-    if (data != NULL)
+    if (data != nullptr)
         free(data);
 }
 
@@ -100,12 +99,12 @@ void *ccGetSymbolAddress(const String &name)
     {
         return import->Value.Ptr;
     }
-    return NULL;
+    return nullptr;
 }
 
 bool ccAddExternalFunctionForPlugin(const String &name, void *pfn)
 {
-    return simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(pfn), NULL) == 0;
+    return simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) == 0;
 }
 
 void *ccGetSymbolAddressForPlugin(const String &name)
@@ -124,10 +123,10 @@ void *ccGetSymbolAddressForPlugin(const String &name)
             return import->Value.Ptr;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
-new_line_hook_type new_line_hook = NULL;
+new_line_hook_type new_line_hook = nullptr;
 
 char ccRunnerCopyright[] = "ScriptExecuter32 v" SCOM_VERSIONSTR " (c) 2001 Chris Jones";
 int maxWhileLoops = 0;
@@ -140,7 +139,7 @@ void ccSetScriptAliveTimer (int numloop) {
 }
 
 void ccNotifyScriptStillAlive () {
-    if (current_instance != NULL)
+    if (current_instance != nullptr)
         current_instance->flags |= INSTF_RUNNING;
 }
 

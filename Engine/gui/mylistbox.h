@@ -26,12 +26,12 @@ struct MyListBox:public NewControl
   char *itemnames[MAXLISTITEM];
   MyListBox(int xx, int yy, int wii, int hii);
   void clearlist();
-  ~MyListBox();
+  ~MyListBox() override;
 
-  void draw(Common::Bitmap *ds);
-  int pressedon(int mousex, int mousey);
+  void draw(Common::Bitmap *ds) override;
+  int pressedon(int mousex, int mousey) override;
   void additem(char *texx);
-  int processmessage(int mcode, int wParam, long lParam);
+  int processmessage(int mcode, int wParam, long lParam) override;
 };
 
 #endif // __AC_MYLISTBOX_H

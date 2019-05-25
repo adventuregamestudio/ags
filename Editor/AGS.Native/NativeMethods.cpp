@@ -39,7 +39,7 @@ extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int s
 extern void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum);
 extern void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel);
 extern void SetNewSpriteFromHBitmap(int slot, int hBmp);
-extern int SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 extern int GetSpriteAsHBitmap(int spriteSlot);
 extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
@@ -48,6 +48,7 @@ extern unsigned char* GetRawSpriteData(int spriteSlot);
 extern int find_free_sprite_slot();
 extern int crop_sprite_edges(int numSprites, int *sprites, bool symmetric);
 extern void deleteSprite(int sprslot);
+extern void GetSpriteInfo(int slot, ::SpriteInfo &info);
 extern int GetSpriteWidth(int slot);
 extern int GetSpriteHeight(int slot);
 extern int GetSpriteColorDepth(int slot);
@@ -62,7 +63,6 @@ extern void change_sprite_number(int oldNumber, int newNumber);
 extern void update_sprite_resolution(int spriteNum);
 extern void save_game(bool compressSprites);
 extern HAGSError reset_sprite_file();
-extern int GetResolutionMultiplier();
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameUpdated(Game ^game);
 extern void GameFontUpdated(Game ^game, int fontNumber);
@@ -76,6 +76,7 @@ extern void DrawSpriteToBuffer(int sprNum, int x, int y, float scale);
 extern void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color);
+extern void FixRoomMasks(Room ^room);
 extern void copy_walkable_to_regions(void *roomptr);
 extern int get_mask_pixel(void *roomptr, int maskType, int x, int y);
 extern void import_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
@@ -248,9 +249,12 @@ namespace AGS
     {
         GameFontUpdated(game, fontSlot);
     }
-        int NativeMethods::GetResolutionMultiplier()
+
+        AGS::Types::SpriteInfo^ NativeMethods::GetSpriteInfo(int spriteSlot)
         {
-            return ::GetResolutionMultiplier();
+            ::SpriteInfo info;
+            ::GetSpriteInfo(spriteSlot, info);
+            return gcnew AGS::Types::SpriteInfo(info.Width, info.Height, SpriteImportResolution::Real);
         }
 
 		int NativeMethods::GetSpriteWidth(int spriteSlot) 
@@ -262,7 +266,6 @@ namespace AGS
 		{
 			return ::GetSpriteHeight(spriteSlot);
 		}
-
 
 		void NativeMethods::ChangeSpriteNumber(Sprite^ sprite, int newNumber)
 		{
@@ -284,7 +287,7 @@ namespace AGS
 
 		Sprite^ NativeMethods::SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 		{
-			int spriteRes = SetNewSpriteFromBitmap(spriteSlot, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
+            SetNewSpriteFromBitmap(spriteSlot, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
       int colDepth = GetSpriteColorDepth(spriteSlot);
 			Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, alphaChannel);
       int roomNumber = GetCurrentlyLoadedRoomNumber();
@@ -297,7 +300,7 @@ namespace AGS
 
 		void NativeMethods::ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 		{
-			int spriteRes = SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
+            SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
 			spr->ColorDepth = GetSpriteColorDepth(spr->Number);
 			spr->Width = bmp->Width;
 			spr->Height = bmp->Height;
@@ -467,6 +470,11 @@ namespace AGS
 		{
 			return getBackgroundAsBitmap(room, backgroundNumber);
 		}
+
+        void NativeMethods::AdjustRoomMaskResolution(Room ^room)
+        {
+            FixRoomMasks(room);
+        }
 
 		void NativeMethods::DrawLineOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color)
 		{
@@ -642,7 +650,7 @@ namespace AGS
             if (name->Equals("MAX_SG_EXT_LENGTH")) return MAX_SG_EXT_LENGTH;
             if (name->Equals("MAX_SG_FOLDER_LEN")) return MAX_SG_FOLDER_LEN;
             if (name->Equals("MAX_SCRIPT_NAME_LEN")) return MAX_SCRIPT_NAME_LEN;
-            if (name->Equals("FFLG_SIZEMASK")) return FFLG_SIZEMASK;
+            if (name->Equals("FFLG_SIZEMULTIPLIER")) return FFLG_SIZEMULTIPLIER;
             if (name->Equals("IFLG_STARTWITH")) return IFLG_STARTWITH;
             if (name->Equals("MCF_ANIMMOVE")) return MCF_ANIMMOVE;
             if (name->Equals("MCF_STANDARD")) return MCF_STANDARD;
@@ -671,7 +679,8 @@ namespace AGS
             if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;
             if (name->Equals("CHUNKSIZE")) return CHUNKSIZE;
             if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
-            if (name->Equals("SPF_640x400")) return SPF_640x400;
+            if (name->Equals("SPF_VAR_RESOLUTION")) return SPF_VAR_RESOLUTION;
+            if (name->Equals("SPF_HIRES")) return SPF_HIRES;
             if (name->Equals("SPF_ALPHACHANNEL")) return SPF_ALPHACHANNEL;
             if (name->Equals("PASSWORD_ENC_STRING"))
             {
@@ -720,7 +729,7 @@ namespace AGS
             if (name->Equals("OPT_NOWALKMODE")) return OPT_NOWALKMODE;
             if (name->Equals("OPT_LETTERBOX")) return OPT_LETTERBOX;
             if (name->Equals("OPT_FIXEDINVCURSOR")) return OPT_FIXEDINVCURSOR;
-            if (name->Equals("OPT_NOSCALEFNT")) return OPT_NOSCALEFNT;
+            if (name->Equals("OPT_HIRES_FONTS")) return OPT_HIRES_FONTS;
             if (name->Equals("OPT_SPLITRESOURCES")) return OPT_SPLITRESOURCES;
             if (name->Equals("OPT_ROTATECHARS")) return OPT_ROTATECHARS;
             if (name->Equals("OPT_FADETYPE")) return OPT_FADETYPE;
@@ -745,6 +754,7 @@ namespace AGS
             if (name->Equals("OPT_BASESCRIPTAPI")) return OPT_BASESCRIPTAPI;
             if (name->Equals("OPT_SCRIPTCOMPATLEV")) return OPT_SCRIPTCOMPATLEV;
             if (name->Equals("OPT_RENDERATSCREENRES")) return OPT_RENDERATSCREENRES;
+            if (name->Equals("OPT_RELATIVEASSETRES")) return OPT_RELATIVEASSETRES;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
 			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
             return nullptr;

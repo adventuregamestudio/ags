@@ -31,7 +31,7 @@ AssetLocation::AssetLocation()
 }
 
 
-AssetManager *AssetManager::_theAssetManager = NULL;
+AssetManager *AssetManager::_theAssetManager = nullptr;
 
 /* static */ bool AssetManager::CreateInstance()
 {
@@ -40,13 +40,13 @@ AssetManager *AssetManager::_theAssetManager = NULL;
     delete _theAssetManager;
     _theAssetManager = new AssetManager();
     _theAssetManager->SetSearchPriority(kAssetPriorityDir);
-    return _theAssetManager != NULL; // well, we should return _something_
+    return _theAssetManager != nullptr; // well, we should return _something_
 }
 
 /* static */ void AssetManager::DestroyInstance()
 {
     delete _theAssetManager;
-    _theAssetManager = NULL;
+    _theAssetManager = nullptr;
 }
 
 AssetManager::~AssetManager()
@@ -141,7 +141,7 @@ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &
 /* static */ const AssetLibInfo *AssetManager::GetLibraryTOC()
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? &_theAssetManager->_GetLibraryTOC() : NULL;
+    return _theAssetManager ? &_theAssetManager->_GetLibraryTOC() : nullptr;
 }
 
 /* static */ bool AssetManager::GetAssetLocation(const String &asset_name, AssetLocation &loc)
@@ -167,13 +167,15 @@ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &
     assert(_theAssetManager != NULL);
     if (!_theAssetManager)
     {
-        return NULL;
+        return nullptr;
     }
     return _theAssetManager->OpenAssetAsStream(asset_name, open_mode, work_mode);
 }
 
 AssetManager::AssetManager()
     : _assetLib(*new AssetLibInfo())
+    , _searchPriority(kAssetPriorityDir)
+    , _lastAssetSize(0)
 {
 }
 
@@ -259,7 +261,7 @@ int AssetManager::_GetAssetCount()
 String AssetManager::_GetAssetFileByIndex(int index)
 {
     if ((index < 0) || ((size_t)index >= _assetLib.AssetInfos.size()))
-        return NULL;
+        return nullptr;
 
     return _assetLib.AssetInfos[index].FileName;
 }
@@ -276,7 +278,7 @@ const AssetLibInfo &AssetManager::_GetLibraryTOC() const
 
 bool AssetManager::_DoesAssetExist(const String &asset_name)
 {
-    return FindAssetByFileName(asset_name) != NULL ||
+    return FindAssetByFileName(asset_name) != nullptr ||
         File::TestReadFile(asset_name);
 }
 
@@ -333,7 +335,7 @@ AssetInfo *AssetManager::FindAssetByFileName(const String &asset_name)
             return &_assetLib.AssetInfos[i];
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 String AssetManager::MakeLibraryFileNameForAsset(const AssetInfo *asset)
@@ -351,7 +353,7 @@ bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc,
     if (!asset)
         return false; // asset not found
 
-    String libfile = free_char_to_string( ci_find_file(NULL, MakeLibraryFileNameForAsset(asset)) );
+    String libfile = cbuf_to_string_and_free( ci_find_file(nullptr, MakeLibraryFileNameForAsset(asset)) );
     if (libfile.IsEmpty())
         return false;
     loc.FileName = libfile;
@@ -362,7 +364,7 @@ bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc,
 
 bool AssetManager::GetAssetFromDir(const String &file_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    String exfile = free_char_to_string( ci_find_file(NULL, file_name) );
+    String exfile = cbuf_to_string_and_free( ci_find_file(nullptr, file_name) );
     if (exfile.IsEmpty() || !Path::IsFile(exfile))
         return false;
     loc.FileName = exfile;
@@ -401,7 +403,7 @@ Stream *AssetManager::OpenAssetAsStream(const String &asset_name, FileOpenMode o
         }
         return s;
     }
-    return NULL;
+    return nullptr;
 }
 
 } // namespace Common

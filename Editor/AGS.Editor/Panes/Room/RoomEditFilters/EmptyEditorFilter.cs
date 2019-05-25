@@ -106,8 +106,7 @@ namespace AGS.Editor
 
 			_menuClickX = state.WindowXToRoom(e.X);
 			_menuClickY = state.WindowYToRoom(e.Y);
-
-			menu.Show(_panel, e.X, e.Y);
+            menu.Show(_panel, e.X, e.Y);
 		}
 
         public bool MouseMove(int x, int y, RoomEditorState state)

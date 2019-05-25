@@ -14,12 +14,12 @@
 
 #include "ac/audiochannel.h"
 #include "ac/gamestate.h"
+#include "ac/global_audio.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "script/runtimescriptvalue.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 
@@ -39,20 +39,17 @@ int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel)
         return 0;
     }
 
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
-    {
-        return 1;
-    }
-    return 0;
+    return channel_is_playing(channel->id) ? 1 : 0;
 }
 
 int AudioChannel_GetPanning(ScriptAudioChannel *channel)
 {
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
-        return channels[channel->id]->panningAsPercentage;
+        return ch->panningAsPercentage;
     }
     return 0;
 }
@@ -62,66 +59,78 @@ void AudioChannel_SetPanning(ScriptAudioChannel *channel, int newPanning)
     if ((newPanning < -100) || (newPanning > 100))
         quitprintf("!AudioChannel.Panning: panning value must be between -100 and 100 (passed=%d)", newPanning);
 
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
-        channels[channel->id]->set_panning(((newPanning + 100) * 255) / 200);
-        channels[channel->id]->panningAsPercentage = newPanning;
+        ch->set_panning(((newPanning + 100) * 255) / 200);
+        ch->panningAsPercentage = newPanning;
     }
 }
 
 ScriptAudioClip* AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
 {
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
-        return (ScriptAudioClip*)channels[channel->id]->sourceClip;
+        return (ScriptAudioClip*)ch->sourceClip;
     }
-    return NULL;
+    return nullptr;
 }
 
 int AudioChannel_GetPosition(ScriptAudioChannel *channel)
 {
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
         if (play.fast_forward)
             return 999999999;
 
-        return channels[channel->id]->get_pos();
+        return ch->get_pos();
     }
     return 0;
 }
 
 int AudioChannel_GetPositionMs(ScriptAudioChannel *channel)
 {
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
         if (play.fast_forward)
             return 999999999;
 
-        return channels[channel->id]->get_pos_ms();
+        return ch->get_pos_ms();
     }
     return 0;
 }
 
 int AudioChannel_GetLengthMs(ScriptAudioChannel *channel)
 {
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
-        return channels[channel->id]->get_length_ms();
+        return ch->get_length_ms();
     }
     return 0;
 }
 
 int AudioChannel_GetVolume(ScriptAudioChannel *channel)
 {
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
-        return channels[channel->id]->get_volume();
+        return ch->get_volume();
     }
     return 0;
 }
@@ -131,36 +140,45 @@ int AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume)
     if ((newVolume < 0) || (newVolume > 100))
         quitprintf("!AudioChannel.Volume: new value out of range (supplied: %d, range: 0..100)", newVolume);
 
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
-        channels[channel->id]->set_volume_percent(newVolume);
+        ch->set_volume_percent(newVolume);
     }
     return 0;
 }
 
 int AudioChannel_GetSpeed(ScriptAudioChannel *channel)
 {
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
-        return channels[channel->id]->get_speed();
+        return ch->get_speed();
     }
     return 0;
 }
 
 void AudioChannel_SetSpeed(ScriptAudioChannel *channel, int new_speed)
 {
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
-        channels[channel->id]->set_speed(new_speed);
+        ch->set_speed(new_speed);
     }
 }
 
 void AudioChannel_Stop(ScriptAudioChannel *channel)
 {
-    stop_or_fade_out_channel(channel->id, -1, NULL);
+    if (channel->id == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
+        stop_voice_nonblocking();
+    else
+        stop_or_fade_out_channel(channel->id, -1, nullptr);
 }
 
 void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)
@@ -168,29 +186,33 @@ void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)
     if (newPosition < 0)
         quitprintf("!AudioChannel.Seek: invalid seek position %d", newPosition);
 
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
-        channels[channel->id]->seek(newPosition);
+        ch->seek(newPosition);
     }
 }
 
 void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPos)
 {
-    if ((channels[channel->id] != NULL) &&
-        (channels[channel->id]->done == 0))
+    AudioChannelsLock lock;
+    auto* ch = lock.GetChannelIfPlaying(channel->id);
+
+    if (ch)
     {
         int maxDist = ((xPos > thisroom.Width / 2) ? xPos : (thisroom.Width - xPos)) - AMBIENCE_FULL_DIST;
-        channels[channel->id]->xSource = (xPos > 0) ? xPos : -1;
-        channels[channel->id]->ySource = yPos;
-        channels[channel->id]->maximumPossibleDistanceAway = maxDist;
+        ch->xSource = (xPos > 0) ? xPos : -1;
+        ch->ySource = yPos;
+        ch->maximumPossibleDistanceAway = maxDist;
         if (xPos > 0)
         {
             update_directional_sound_vol();
         }
         else
         {
-            channels[channel->id]->apply_directional_modifier(0);
+            ch->apply_directional_modifier(0);
         }
     }
 }

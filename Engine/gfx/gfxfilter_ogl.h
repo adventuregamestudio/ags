@@ -31,7 +31,7 @@ namespace OGL
 class OGLGfxFilter : public ScalingGfxFilter
 {
 public:
-    virtual const GfxFilterInfo &GetInfo() const;
+    const GfxFilterInfo &GetInfo() const override;
 
     virtual bool UseLinearFiltering() const;
     virtual void SetFilteringForStandardSprite();

@@ -40,7 +40,7 @@ void ScriptDialogOptionsRendering::Reset()
     parserTextboxY = 0;
     parserTextboxWidth = 0;
     dialogID = 0;
-    surfaceToRenderTo = NULL;
+    surfaceToRenderTo = nullptr;
     surfaceAccessed = false;
     activeOptionID = -1;
     chosenOptionID = -1;

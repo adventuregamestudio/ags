@@ -222,7 +222,7 @@ int IsInterfaceEnabled() {
 
 int GetGUIObjectAt (int xx, int yy) {
     GUIObject *toret = GetGUIControlAtLocation(xx, yy);
-    if (toret == NULL)
+    if (toret == nullptr)
         return -1;
 
     return toret->Id;

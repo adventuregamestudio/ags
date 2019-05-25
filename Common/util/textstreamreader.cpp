@@ -44,7 +44,7 @@ const Stream *TextStreamReader::GetStream() const
 
 void TextStreamReader::ReleaseStream()
 {
-    _stream = NULL;
+    _stream = nullptr;
 }
 
 bool TextStreamReader::EOS() const

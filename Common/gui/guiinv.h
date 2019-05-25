@@ -29,23 +29,23 @@ public:
     GUIInvWindow();
 
     // This function has distinct implementations in Engine and Editor
-    int          GetCharacterId() const;
+    int GetCharacterId() const;
 
     // Operations
     // This function has distinct implementations in Engine and Editor
-    virtual void Draw(Bitmap *ds) override;
+    void Draw(Bitmap *ds) override;
 
     // Events
-    virtual void OnMouseEnter() override;
-    virtual void OnMouseLeave() override;
-    virtual void OnMouseUp() override;
-    virtual void OnResized() override;
+    void OnMouseEnter() override;
+    void OnMouseLeave() override;
+    void OnMouseUp() override;
+    void OnResized() override;
 
     // Serialization
-    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
-    virtual void WriteToFile(Stream *out) const override;
-    virtual void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
-    virtual void WriteToSavegame(Common::Stream *out) const override;
+    void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+    void WriteToFile(Stream *out) const override;
+    void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
+    void WriteToSavegame(Common::Stream *out) const override;
 
 // TODO: these members are currently public; hide them later
 public:

@@ -25,7 +25,7 @@
 #include "ac/global_room.h"
 #include "ac/movelist.h"
 #include "ac/properties.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/tree_map.h"
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
@@ -66,7 +66,7 @@ String GetRuntimeInfo()
         "[Game resolution %d x %d (%d-bit)"
         "[Running %d x %d at %d-bit%s%s[GFX: %s; %s[Draw frame %d x %d["
         "Sprite cache size: %d KB (limit %d KB; %d locked)",
-        EngineVersion.LongString.GetCStr(), game.size.Width, game.size.Height, game.GetColorDepth(),
+        EngineVersion.LongString.GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
         mode.Width, mode.Height, mode.ColorDepth, (convert_16bit_bgr) ? " BGR" : "",
         mode.Windowed ? " W" : "",
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
@@ -76,7 +76,7 @@ String GetRuntimeInfo()
         runtimeInfo.Append("[AUDIO.VOX enabled");
     if (play.want_speech >= 1)
         runtimeInfo.Append("[SPEECH.VOX enabled");
-    if (transtree != NULL) {
+    if (transtree != nullptr) {
         runtimeInfo.Append("[Using translation ");
         runtimeInfo.Append(transFileName);
     }
@@ -110,7 +110,7 @@ void script_debug(int cmdd,int dataa) {
         const Rect &viewport = play.GetRoomViewport();
         const Rect &camera = play.GetRoomCamera();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        Rect mask_src = Rect(camera.Left, camera.Top, camera.Right, camera.Bottom);
+        Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);
@@ -119,7 +119,7 @@ void script_debug(int cmdd,int dataa) {
         delete tempw;
         delete view_bmp;
         gfxDriver->DestroyDDB(ddb);
-        wait_until_keypress();
+        ags_wait_until_keypress();
         invalidate_screen();
     }
     else if (cmdd==3) 
@@ -168,7 +168,7 @@ void script_debug(int cmdd,int dataa) {
         const Rect &viewport = play.GetRoomViewport();
         const Rect &camera = play.GetRoomCamera();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
-        Rect mask_src = Rect(camera.Left, camera.Top, camera.Right, camera.Bottom);
+        Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(view_bmp, false, true);
@@ -177,7 +177,7 @@ void script_debug(int cmdd,int dataa) {
         delete tempw;
         delete view_bmp;
         gfxDriver->DestroyDDB(ddb);
-        wait_until_keypress();
+        ags_wait_until_keypress();
     }
     else if (cmdd == 99)
         ccSetOption(SCOPT_DEBUGRUN, dataa);

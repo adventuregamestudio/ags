@@ -15,6 +15,12 @@
 #ifndef __AC_RUNTIMEDEFINES_H
 #define __AC_RUNTIMEDEFINES_H
 
+// xalleg.h pulls in an Allegro-internal definition of MAX_TIMERS which
+// conflicts with the definition in runtime_defines.h. Forget it.
+#ifdef MAX_TIMERS
+#undef MAX_TIMERS
+#endif
+
 // Max script string length
 #define MAX_MAXSTRLEN 200
 #define MAXGLOBALVARS 50
@@ -129,8 +135,6 @@ const int LegacyRoomVolumeFactor            = 30;
 #define TURNING_BACKWARDS 10000
 
 #define MAX_PLUGIN_OBJECT_READERS 50
-
-#define NEXT_ITERATION() play.gamestep++
 
 #ifndef MAX_PATH
 #define MAX_PATH 260

@@ -31,6 +31,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
+#include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -38,12 +39,9 @@ using namespace AGS::Engine;
 //link with the following libraries under project/settings/link...
 //amstrmid.lib quartz.lib strmbase.lib ddraw.lib 
 
-extern void update_polled_audio_and_crossfade();
+extern void update_audio_system_on_game_loop();
 extern void update_polled_stuff_if_runtime();
-extern int rec_mgetbutton();
-extern void NextIteration();
-extern void update_music_volume();
-extern int crossFading, crossFadeStep;
+extern int ags_mgetbutton();
 extern volatile char want_exit;
 extern IGraphicsDriver *gfxDriver;
 //int errno;
@@ -266,10 +264,11 @@ void RenderToSurface(Bitmap *vscreen) {
     }
     screen_bmp->Release();
 
-    render_to_screen();
-    // if we're not playing AVI sound, poll the game MP3
+    // if we're not playing AVI sound, poll the audio system
     if (!useSound)
-      update_polled_audio_and_crossfade();
+      update_audio_system_on_game_loop();
+
+    render_to_screen();
   }	
 }
 
@@ -382,9 +381,10 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
 
   while ((g_bAppactive) && (!want_exit)) {
 
-    while (currentlyPaused) ;
+    while (currentlyPaused) {
+      platform->YieldCPU();
+    }
 
-    NextIteration();
     RenderToSurface(vscreen);
     //Sleep(0);
     int key;
@@ -394,7 +394,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
       if (canskip >= 2)
         break;
     }
-    if ((rec_mgetbutton() >= 0) && (canskip == 3))
+    if ((ags_mgetbutton() >= 0) && (canskip == 3))
       break;
   }
 

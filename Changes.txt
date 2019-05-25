@@ -4,6 +4,9 @@ VERSION 3.5.0 - Alpha
 
 Common features:
  - Support for large files: compiled game, sprite set, room files now may exceed 2 GB.
+ - Deprecated relative assets resolutions: now sprites, rooms and fonts are considered to
+   match game's resolution by default and not resized, unless running in backwards-compatibility
+   mode.
  - Allow room size to be smaller than the game's resolution.
  - Removed fonts count limit.
  - Raised imported sprites count limit to 90000 and removed total sprite count limit
@@ -17,21 +20,32 @@ Editor:
  - Added support for custom UI color themes.
  - Game and room templates are now by default saved in AppData/Local/AGS folder.
    Editor finds them in both program folder and AppData.
+ - Added "Allow relative asset resolutions" option to "Backwards Compatibility" section.
+   Disabled by default, it makes game treat all sprites and rooms resolution as real one.
  - New revamped sprite import window.
  - Sprites that were created using tiled import can now be properly reimported from source.
  - Added context menu command to open sprite's source file location.
  - Using Magick.NET library as a GIF loader. This should fix faulty GIF imports.
  - New sprite export dialog that lets you configure some export preferences, including
    remapping sprite source paths.
+ - Sprites have "Real" resolution type by default. "Low" and "High resolution" are kept
+   for backwards compatibility only. When importing older games resolution type will be
+   promoted to "Real" whenever it matches the game.
  - New navigation bar in the room editor, which allows to select any room object
    or region for editing, show/hide and lock room objects and regions in any combination.
    These settings are saved in the special roomXXX.crm.user files.
  - Improved how Room zoom slider works, now supports downscale.
  - Added "Export mask to file" tool button to the Room Editor.
+ - Added MaskResolution property to Rooms. It ranges from 1:1 to 1:4 and lets you define
+   the precision of Hotspot, Regions and Walkable Areas relative to room background.
+ - Added "Default room mask resolution" to General Settings, which value will be applied
+   to any room opened for editing in this game for the first time.
  - Removed Locked property from the Room Object, objects are now locked by the navbar.
  - Split GUI's Visibility property into PopupStyle and Visible properties.
  - Added Clickable, Enabled and Visible properties to GUI Controls.
  - "Import over font" command now supports importing WFN fonts too.
+ - Removed "Fonts designed for high resolution" option from General Settings. Instead added
+   individual SizeMultiplier property to Fonts.
  - Display audio clip length on the preview pane without starting playback.
  - Added "Always"choice to "Popup message on compile" preference. Successful compilation
    popup will only be displayed if "Always" choice is selected.
@@ -42,12 +56,20 @@ Editor:
  - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
+ - Fixed Audio folders were displaying internal "AllItemsFlat" property on property grid.
  - Fixed MIDI audio preview was resetting all instruments to default (piano) after pausing
    and resuming playback.
  - Fixed MIDI audio preview had wrong control states set when pausing a playback.
+ - Fixed script compiler could leave extra padding inside the compiled scripts filled with
+   random garbage if script strings contained escaped sequences like "\n" (this was not good
+   for source control).
+ - Fixed crash when editor was updating file version in compiled EXE but failed and tried to
+   report about that.
 
 Script API:
  - Introduced new managed struct Point describing (x,y) coordinates.
+ - Implemented Dictionary and Set script classes supporting storage and lookup of strings and
+   key/value pairs in sorted or unsorted way.
  - Implemented Viewport and Camera script classes which control how room is displayed on screen.
  - Implemented Screen struct with a number of static functions and properties, which notably
    features a reference to the primary Viewport. Deprecated System's ScreenWidth, ScreenHeight,
@@ -71,6 +93,10 @@ Script API:
    TextColor.
  - Replaced ListBox.HideBorder and HideArrows with ShowBorder and ShowArrows.
  - Added TextBox.ShowBorder.
+ - Added Game.PlayVoiceClip() for playing non-blocking voice.
+ - Added SkipCutscene() and eSkipScriptOnly cutscene mode.
+ - Deprecated DrawingSurface.UseHighResCoordinates. Also, assigning it will be ignored if game's
+   "Allow relative asset resolutions" option is disabled.
 
 Engine:
  - New pathfinder based on the A* jump point search.
@@ -79,11 +105,30 @@ Engine:
    The engine is still capable of loading older saves, temporarily.
  - Implemented support for sprite batch transformations.
  - Implemented custom room viewport and camera.
+ - Removed 200 chars limit for DoOnceOnly token length.
+ - Reimplemented threaded audio, should now work correctly on all platforms.
+ - Improved performance of hardware-accelerated renderers by not preparing a stage bitmap
+   for plugins unless any plugin hooked for the particular drawing events.
+ - Reimplemented FRead and FWrite plugin API functions, should now work in 64-bit mode too.
+ - Made fps display more stable and timing correct when framerate is maxed out for test purposes.
+ - Completely removed old and unsupported record/replay functionality.
  - Replaced number of fatal errors reported for incorrectly called script functions with
    a warning to the warnings.log instead. This is done either when arguments may be fixed
    automatically, or script command simply cannot be executed under current circumstances.
  - Expanded some of the error messages providing more information to end-user and developers.
- - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
+ - Fixed engine could not locate game data if relative path was passed in command line.
+ - Fixed potential bug which could cause DoOnceOnly tokens to be read incorrectly from a savedgame.
+ - Fixed DynamicSprite.SaveToFile() not appending ".bmp" if no extension was specified.
+ - Fixed IsMusicVoxAvailable() not working correctly in old games which use 'music.vox'.
+ - Fixed a bug in mp3/ogg decoder where it assumed creating an audiostream succeeded without
+   actually testing one.
+ - Added Scavenger's palgorithms plugin to the list of builtins, for ports that use ones.
+
+Linux:
+ - Support for OpenGL renderer.
+ - Use same FreeType library sources as Windows version, which suppose to fix TTF font glitches.
+ - Re-enabled threaded audio setting.
+ - Improved CPU yield function, this supposedly may reduce CPU usage.
 
 Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.

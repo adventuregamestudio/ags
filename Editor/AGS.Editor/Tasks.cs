@@ -154,6 +154,9 @@ namespace AGS.Editor
 
         private void SetDefaultValuesForNewFeatures(Game game)
         {
+            // TODO: this may be noticably if upgrading lots of items. Display some kind of
+            // progress window to notify user.
+
             int xmlVersionIndex = 0;
             if (game.SavedXmlVersionIndex.HasValue)
             {
@@ -181,6 +184,34 @@ namespace AGS.Editor
             if (xmlVersionIndex < 15)
             {
                 game.DefaultSetup.SetDefaults();
+            }
+
+            if (xmlVersionIndex < 18)
+            {
+                foreach (Font font in game.Fonts)
+                    font.SizeMultiplier = 1;
+                // Apply font scaling to each individual font settings.
+                // Bitmap fonts save multiplier explicitly, while vector fonts have their size doubled.
+                if (game.Settings.HighResolution && !game.Settings.FontsForHiRes)
+                {
+                    foreach (Font font in game.Fonts)
+                    {
+                        if (font.PointSize == 0)
+                        {
+                            font.SizeMultiplier = 2;
+                        }
+                        else
+                        {
+                            font.PointSize *= 2;
+                        }
+                    }
+                }
+            }
+
+            if (xmlVersionIndex < 18)
+            {
+                game.Settings.AllowRelativeAssetResolutions = true;
+                game.Settings.DefaultRoomMaskResolution = 1;
             }
 
             game.SetScriptAPIForOldProject();

@@ -55,7 +55,7 @@ struct AGSPlatformDriver
     : public AGS::Common::IOutputHandler
 {
     virtual void AboutToQuitGame();
-    virtual void Delay(int millis) = 0;
+    virtual void Delay(int millis);
     virtual void DisplayAlert(const char*, ...) = 0;
     virtual int  GetLastSystemError() { return errno; }
     // Get root directory for storing per-game shared data
@@ -127,7 +127,7 @@ struct AGSPlatformDriver
     // IOutputHandler implementation
     //-----------------------------------------------
     // Writes to the standard platform's output, prepending "AGS: " prefix to the message
-    virtual void PrintMessage(const AGS::Common::DebugMessage &msg);
+    void PrintMessage(const AGS::Common::DebugMessage &msg) override;
 
 private:
     static AGSPlatformDriver *instance;

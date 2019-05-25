@@ -16,11 +16,14 @@
 #include "ac/game_version.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/timer.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
 #include "game/roomstruct.h"
+#include "main/engine.h"
+#include "media/audio/audio_system.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
 
@@ -39,14 +42,10 @@ GameState::GameState()
     _cameraHasChanged = false;
 }
 
-const Size &GameState::GetNativeSize() const
+void GameState::Free()
 {
-    return _nativeSize;
-}
-
-void GameState::SetNativeSize(const Size &size)
-{
-    _nativeSize = size;
+    raw_drawing_surface.reset();
+    FreeProperties();
 }
 
 bool GameState::IsAutoRoomViewport() const
@@ -67,7 +66,7 @@ Rect FixupViewport(const Rect &viewport, const Rect &parent)
 
 void GameState::SetMainViewport(const Rect &viewport)
 {
-    _mainViewport.Position = FixupViewport(viewport, RectWH(game.size));
+    _mainViewport.Position = FixupViewport(viewport, RectWH(game.GetGameRes()));
     Mouse::SetGraphicArea();
     scsystem.viewport_width = _mainViewport.Position.GetWidth();
     scsystem.viewport_height = _mainViewport.Position.GetHeight();
@@ -237,6 +236,22 @@ VpPoint GameState::ScreenToRoom(int scrx, int scry, bool clip_viewport)
     return std::make_pair(p, 0);
 }
 
+bool GameState::IsBlockingVoiceSpeech() const
+{
+    return speech_has_voice && speech_voice_blocking;
+}
+
+bool GameState::IsNonBlockingVoiceSpeech() const
+{
+    return speech_has_voice && !speech_voice_blocking;
+}
+
+bool GameState::ShouldPlayVoiceSpeech() const
+{
+    return !play.fast_forward &&
+        (play.want_speech >= 1) && (!ResPaths.SpeechPak.Name.IsEmpty());
+}
+
 void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)
 {
     const bool old_save = svg_ver < kGSSvgVersion_Initial;
@@ -281,7 +296,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     game_speed_modifier = in->ReadInt32();
     score_sound = in->ReadInt32();
     takeover_data = in->ReadInt32();
-    replay_hotkey = in->ReadInt32();
+    replay_hotkey_unused = in->ReadInt32();
     dialog_options_x = in->ReadInt32();
     dialog_options_y = in->ReadInt32();
     narrator_speech = in->ReadInt32();
@@ -445,20 +460,27 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
         in->ReadInt32(); // gui_draw_order
         in->ReadInt32(); // do_once_tokens;
     }
-    num_do_once_tokens = in->ReadInt32();
+    int num_do_once_tokens = in->ReadInt32();
+    do_once_tokens.resize(num_do_once_tokens);
     if (!old_save)
     {
-        do_once_tokens = new char*[num_do_once_tokens];
         for (int i = 0; i < num_do_once_tokens; ++i)
         {
-            StrUtil::ReadString(&do_once_tokens[i], in);
+            StrUtil::ReadString(do_once_tokens[i], in);
         }
     }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
-    ignore_user_input_until_time = in->ReadInt32();
+    if (svg_ver < kGSSvgVersion_3509)
+        in->ReadInt32(); // ignore_user_input_until_time -- do not apply from savegame
     if (old_save)
         in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
+    if (svg_ver >= kGSSvgVersion_3509)
+    {
+        int voice_speech_flags = in->ReadInt32();
+        speech_has_voice = voice_speech_flags != 0;
+        speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
+    }
 }
 
 void GameState::WriteForSavegame(Common::Stream *out) const
@@ -506,7 +528,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(game_speed_modifier);
     out->WriteInt32(score_sound);
     out->WriteInt32(takeover_data);
-    out->WriteInt32(replay_hotkey);
+    out->WriteInt32(replay_hotkey_unused);         // StartRecording: not supported
     out->WriteInt32(dialog_options_x);
     out->WriteInt32(dialog_options_y);
     out->WriteInt32(narrator_speech);
@@ -632,14 +654,18 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( gamma_adjustment);
     out->WriteInt16(temporarily_turned_off_character);
     out->WriteInt16(inv_backwards_compatibility);
-    out->WriteInt32( num_do_once_tokens);
-    for (int i = 0; i < num_do_once_tokens; ++i)
+    out->WriteInt32(do_once_tokens.size());
+    for (int i = 0; i < (int)do_once_tokens.size(); ++i)
     {
         StrUtil::WriteString(do_once_tokens[i], out);
     }
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);
-    out->WriteInt32( ignore_user_input_until_time);
+
+    int voice_speech_flags = speech_has_voice ? 0x01 : 0;
+    if (speech_voice_blocking)
+        voice_speech_flags |= 0x02;
+    out->WriteInt32(voice_speech_flags);
 }
 
 void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)

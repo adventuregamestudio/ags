@@ -36,5 +36,5 @@ int sc_GetTime(int whatti) {
 
 int GetRawTime () {
     // TODO: we might need to modify script API to support larger time type
-    return static_cast<int>(time(NULL));
+    return static_cast<int>(time(nullptr));
 }

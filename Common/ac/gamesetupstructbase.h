@@ -18,7 +18,9 @@
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 
+#include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
+#include "util/string.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 // Forward declaration
@@ -61,8 +63,6 @@ struct GameSetupStructBase {
     char             *globalscript;
     CharacterInfo    *chars;
     ccScript         *CompiledScript;
-    Size              size;                 // native game size in pixels
-    Size              altsize;              // alternate, lesser, game size for letterbox-by-design games
 
     int             *load_messages;
     bool             load_dictionary;
@@ -73,25 +73,49 @@ struct GameSetupStructBase {
     // pointer is used for that instead.
 
     GameSetupStructBase();
-    virtual ~GameSetupStructBase();
+    ~GameSetupStructBase();
     void Free();
-    void SetDefaultResolution(GameResolutionType resolution_type);
-    void SetCustomResolution(Size game_res);
+    void SetGameResolution(GameResolutionType type);
+    void SetGameResolution(Size game_res);
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
 
-    inline GameResolutionType GetDefaultResolution() const
+    // Game resolution is a size of a native game screen in pixels.
+    // This is the "game resolution" that developer sets up in AGS Editor.
+    // It is in the same units in which sprite and font sizes are defined.
+    //
+    // Graphic renderer may scale and stretch game's frame as requested by
+    // player or system, which will not affect native coordinates in any way.
+    inline GameResolutionType GetResolutionType() const
     {
-        return default_resolution;
+        return _resolutionType;
     }
 
-    inline bool IsLegacyLetterbox() const
+    // Get actual game's resolution
+    const Size &GetGameRes() const { return _gameResolution; }
+    
+    // Tells if game runs in native letterbox mode (legacy option)
+    inline bool IsLegacyLetterbox() const { return options[OPT_LETTERBOX] != 0; }
+    // Get letterboxed frame size
+    const Size &GetLetterboxSize() const { return _letterboxSize; }
+
+    // Returns the expected filename of a digital audio package
+    inline AGS::Common::String GetAudioVOXName() const
     {
-        return options[OPT_LETTERBOX] != 0;
+        return "audio.vox";
     }
 
 private:
-    GameResolutionType default_resolution; // game size identifier
+    void SetNativeResolution(GameResolutionType type, Size game_res);
+    void OnResolutionSet();
+
+    // Game's native resolution ID, used to init following values.
+    GameResolutionType _resolutionType;
+    // Determines game's actual resolution.
+    Size _gameResolution;
+    // Letterboxed frame size. Used when old game is run in native letterbox
+    // mode. In all other situations is equal to game's resolution.
+    Size _letterboxSize;
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

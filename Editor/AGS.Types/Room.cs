@@ -21,6 +21,8 @@ namespace AGS.Types
 
         public const string EVENT_SUFFIX_ROOM_LOAD = "Load";
 
+        public const string PROPERTY_NAME_MASKRESOLUTION = "MaskResolution";
+
         private static InteractionSchema _interactionSchema;
 
         public delegate void RoomModifiedChangedHandler(bool isModified);
@@ -35,6 +37,7 @@ namespace AGS.Types
         private bool _showPlayerCharacter = true;
         private int _playerCharacterView;
         private RoomVolumeAdjustment _musicVolumeAdjustment;
+        private int _maskResolution = 1;
         private int _colorDepth;
         private int _width;
         private int _height;
@@ -120,6 +123,16 @@ namespace AGS.Types
                     }
                 }
             }
+        }
+
+        [Description("What resolution do room region masks have relative to the room size")]
+        [Category("Regions")]
+        [DefaultValue(1)]
+        [TypeConverter(typeof(RoomMaskResolutionTypeConverter))]
+        public int MaskResolution
+        {
+            get { return _maskResolution; }
+            set { _maskResolution = value; }
         }
 
         [Browsable(false)]

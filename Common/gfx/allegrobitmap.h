@@ -134,7 +134,7 @@ public:
     // Get scanline for direct reading
 	inline const unsigned char *GetScanLine(int index) const
     {
-        return (index >= 0 && index < GetHeight()) ? _alBitmap->line[index] : NULL;
+        return (index >= 0 && index < GetHeight()) ? _alBitmap->line[index] : nullptr;
     }
 
     void    SetMaskColor(color_t color);
@@ -216,7 +216,7 @@ public:
 	// Gets scanline for directly writing into it
     inline unsigned char *GetScanLineForWriting(int index)
     {
-        return (index >= 0 && index < GetHeight()) ? _alBitmap->line[index] : NULL;
+        return (index >= 0 && index < GetHeight()) ? _alBitmap->line[index] : nullptr;
     }
     inline unsigned char *GetDataForWriting()
     {

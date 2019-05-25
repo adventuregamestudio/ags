@@ -50,7 +50,7 @@ void my_fade_in(PALETTE p, int speed) {
     gfxDriver->FadeIn(speed, p, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
 }
 
-Bitmap *saved_viewport_bitmap = NULL;
+Bitmap *saved_viewport_bitmap = nullptr;
 color old_palette[256];
 void current_fade_out_effect () {
     if (pl_run_plugin_hooks(AGSE_TRANSITIONOUT, 0))
@@ -85,7 +85,7 @@ void current_fade_out_effect () {
 
 IDriverDependantBitmap* prepare_screen_for_transition_in()
 {
-    if (saved_viewport_bitmap == NULL)
+    if (saved_viewport_bitmap == nullptr)
         quit("Crossfade: buffer is null attempting transition");
 
     saved_viewport_bitmap = ReplaceBitmapWithSupportedFormat(saved_viewport_bitmap);
@@ -117,12 +117,12 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
 
 int Screen_GetScreenWidth()
 {
-    return game.size.Width;
+    return game.GetGameRes().Width;
 }
 
 int Screen_GetScreenHeight()
 {
-    return game.size.Height;
+    return game.GetGameRes().Height;
 }
 
 bool Screen_GetAutoSizeViewport()
@@ -146,8 +146,14 @@ ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
 {
     VpPoint vpt = play.ScreenToRoom(scrx, scry);
     if (vpt.second < 0)
-        return NULL;
+        return nullptr;
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
+}
+
+ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
+{
+    Point pt = play.RoomToScreen(roomx, roomy);
+    return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
 }
 
 RuntimeScriptValue Sc_Screen_GetScreenHeight(const RuntimeScriptValue *params, int32_t param_count)
@@ -180,6 +186,11 @@ RuntimeScriptValue Sc_Screen_ScreenToRoomPoint(const RuntimeScriptValue *params,
     API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_ScreenToRoomPoint);
 }
 
+RuntimeScriptValue Sc_Screen_RoomToScreenPoint(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_RoomToScreenPoint);
+}
+
 void RegisterScreenAPI()
 {
     ccAddExternalStaticFunction("Screen::get_Height", Sc_Screen_GetScreenHeight);
@@ -188,4 +199,5 @@ void RegisterScreenAPI()
     ccAddExternalStaticFunction("Screen::set_AutoSizeViewportOnRoomLoad", Sc_Screen_SetAutoSizeViewport);
     ccAddExternalStaticFunction("Screen::get_Viewport", Sc_Screen_GetViewport);
     ccAddExternalStaticFunction("Screen::ScreenToRoomPoint", Sc_Screen_ScreenToRoomPoint);
+    ccAddExternalStaticFunction("Screen::RoomToScreenPoint", Sc_Screen_RoomToScreenPoint);
 }

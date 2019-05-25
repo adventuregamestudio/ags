@@ -97,6 +97,10 @@ OPT_RENDERATSCREENRES, extended engine caps check, font vertical offset.
 49 : 3.4.1.2
 Font custom line spacing.
 
+50 : 3.5.0.8
+Sprites have "real" resolution. Expanded FontInfo data format.
+Option to allow legacy relative asset resolutions.
+
 */
 
 enum GameDataVersion
@@ -129,7 +133,8 @@ enum GameDataVersion
     kGameVersion_340_4          = 47,
     kGameVersion_341            = 48,
     kGameVersion_341_2          = 49,
-    kGameVersion_Current        = kGameVersion_341_2
+    kGameVersion_350            = 50,
+    kGameVersion_Current        = kGameVersion_350
 };
 
 extern GameDataVersion loaded_game_file_version;

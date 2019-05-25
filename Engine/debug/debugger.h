@@ -34,6 +34,7 @@ AGS::Common::String get_cur_script(int numberOfLinesOfCallStack);
 bool get_script_position(ScriptPosition &script_pos);
 void check_debug_keys();
 
-extern int fps,display_fps;
+extern float fps;
+extern int display_fps;
 
 #endif // __AC_DEBUGGER_H

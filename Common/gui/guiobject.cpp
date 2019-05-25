@@ -33,6 +33,7 @@ GUIObject::GUIObject()
     Height      = 0;
     ZOrder      = -1;
     IsActivated    = false;
+    _scEventCount = 0;
 }
 
 int GUIObject::GetEventCount() const

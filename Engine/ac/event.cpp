@@ -24,8 +24,6 @@
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
 #include "script/cc_error.h"
-#include "media/audio/audio.h"
-#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -33,6 +31,8 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "media/audio/audio_system.h"
+#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -45,7 +45,6 @@ extern GameState play;
 extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern volatile int timerloop;
 extern color old_palette[256];
 
 int in_enters_screen=0,done_es_error = 0;
@@ -60,7 +59,7 @@ int evblocknum;
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
 
-const char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
+const char*tsnames[4]={nullptr, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
 
 
 int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {
@@ -106,7 +105,7 @@ void run_on_event (int evtype, RuntimeScriptValue &wparam)
 void run_room_event(int id) {
     evblockbasename="room";
 
-    if (thisroom.EventHandlers != NULL)
+    if (thisroom.EventHandlers != nullptr)
     {
         run_interaction_script(thisroom.EventHandlers.get(), id);
     }
@@ -114,7 +113,7 @@ void run_room_event(int id) {
 
 void run_event_block_inv(int invNum, int event) {
     evblockbasename="inventory%d";
-    if (game.invScripts != NULL)
+    if (game.invScripts != nullptr)
     {
         run_interaction_script(game.invScripts[invNum], event);
     }
@@ -157,13 +156,13 @@ void process_event(EventHappened*evp) {
         NewRoom(evp->data1);
     }
     else if (evp->type==EV_RUNEVBLOCK) {
-        PInteractionScripts scriptPtr = NULL;
+        PInteractionScripts scriptPtr = nullptr;
         const char *oldbasename = evblockbasename;
         int   oldblocknum = evblocknum;
 
         if (evp->data1==EVB_HOTSPOT) {
 
-            if (thisroom.Hotspots[evp->data2].EventHandlers != NULL)
+            if (thisroom.Hotspots[evp->data2].EventHandlers != nullptr)
                 scriptPtr = thisroom.Hotspots[evp->data2].EventHandlers;
 
             evblockbasename="hotspot%d";
@@ -172,7 +171,7 @@ void process_event(EventHappened*evp) {
         }
         else if (evp->data1==EVB_ROOM) {
 
-            if (thisroom.EventHandlers != NULL)
+            if (thisroom.EventHandlers != nullptr)
                 scriptPtr = thisroom.EventHandlers;
 
             evblockbasename="room";
@@ -184,7 +183,7 @@ void process_event(EventHappened*evp) {
             //Debug::Printf("Running room interaction, event %d", evp->data3);
         }
 
-        if (scriptPtr != NULL)
+        if (scriptPtr != nullptr)
         {
             run_interaction_script(scriptPtr.get(), evp->data3);
         }
@@ -221,7 +220,7 @@ void process_event(EventHappened*evp) {
             return;
 
         if (((theTransition == FADE_CROSSFADE) || (theTransition == FADE_DISSOLVE)) &&
-            (saved_viewport_bitmap == NULL)) 
+            (saved_viewport_bitmap == nullptr)) 
         {
             // transition type was not crossfade/dissolve when the screen faded out,
             // but it is now when the screen fades in (Eg. a save game was restored
@@ -230,9 +229,9 @@ void process_event(EventHappened*evp) {
             theTransition = FADE_NORMAL;
         }
 
-		// TODO: use normal coordinates instead of "native_size" and multiply_up_*?
-        const Size &native_size = play.GetNativeSize();
-        const Rect &viewport = play.GetMainViewport();
+		const Rect &viewport = play.GetMainViewport();
+        // CLNUP: this is remains of legacy code refactoring, cleanup later
+        const Size &native_size = viewport.GetSize();
 
         if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
             set_palette_range(palette, 0, 255, 0);
@@ -265,19 +264,18 @@ void process_event(EventHappened*evp) {
                 int boxwid = 16;
                 int boxhit = native_size.Height / 20;
                 while (boxwid < temp_scr->GetWidth()) {
-                    timerloop = 0;
                     boxwid += 16;
                     boxhit += native_size.Height / 20;
                     boxwid = Math::Clamp(boxwid, 0, viewport.GetWidth());
                     boxhit = Math::Clamp(boxhit, 0, viewport.GetHeight());
                     int lxp = viewport.GetWidth() / 2 - boxwid / 2;
                     int lyp = viewport.GetHeight() / 2 - boxhit / 2;
-                    gfxDriver->Vsync();
-                    temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp,
+                    temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp, 
                         boxwid, boxhit);
                     render_to_screen(viewport.Left, viewport.Top);
-                    update_mp3();
-                        while (timerloop == 0) ;
+                    do {
+                        update_polled_stuff_if_runtime();
+                    } while (waitingForNextTick());
                 }
                 gfxDriver->SetMemoryBackBuffer(saved_backbuf, viewport.Left, viewport.Top);
             }
@@ -293,7 +291,6 @@ void process_event(EventHappened*evp) {
             int transparency = 254;
 
             while (transparency > 0) {
-                timerloop=0;
                 // do the crossfade
                 ddb->SetTransparency(transparency);
                 invalidate_screen();
@@ -305,15 +302,16 @@ void process_event(EventHappened*evp) {
                     // draw the old screen on top
                     gfxDriver->DrawSprite(0, 0, ddb);
                 }
-				render_to_screen();
-                update_polled_stuff_if_runtime();
-                while (timerloop == 0) ;
+                render_to_screen();
+                do {
+                    update_polled_stuff_if_runtime();
+                } while (waitingForNextTick());
                 transparency -= 16;
             }
             saved_viewport_bitmap->Release();
 
             delete saved_viewport_bitmap;
-            saved_viewport_bitmap = NULL;
+            saved_viewport_bitmap = nullptr;
             set_palette_range(palette, 0, 255, 0);
             gfxDriver->DestroyDDB(ddb);
         }
@@ -325,7 +323,6 @@ void process_event(EventHappened*evp) {
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
 
             for (aa=0;aa<16;aa++) {
-                timerloop=0;
                 // merge the palette while dithering
                 if (game.color_depth == 1) 
                 {
@@ -343,14 +340,15 @@ void process_event(EventHappened*evp) {
                 invalidate_screen();
                 draw_screen_callback();
                 gfxDriver->DrawSprite(0, 0, ddb);
-				render_to_screen();
-                update_polled_stuff_if_runtime();
-                while (timerloop == 0) ;
+                render_to_screen();
+                do {
+                    update_polled_stuff_if_runtime();
+                } while (waitingForNextTick());
             }
             saved_viewport_bitmap->Release();
 
             delete saved_viewport_bitmap;
-            saved_viewport_bitmap = NULL;
+            saved_viewport_bitmap = nullptr;
             set_palette_range(palette, 0, 255, 0);
             gfxDriver->DestroyDDB(ddb);
         }

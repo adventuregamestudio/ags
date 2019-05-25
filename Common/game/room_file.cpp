@@ -83,7 +83,7 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
     src = RoomDataSource();
     // Try to open room file
     Stream *in = AssetManager::OpenAsset(filename);
-    if (in == NULL)
+    if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     // Read room header
     src.Filename = filename;
@@ -119,29 +119,6 @@ enum RoomFileBlock
     // End of room data tag
     kRoomFile_EOF               = 0xFF
 };
-
-
-// CLNUP only for importing from 341 format, could be removed in the future
-// this is necessary because we no longer use the "resolution" and the mask might be low res while the room high res
-// there's a similar routine on ags.native so the editor can import and resize masks
-// 
-// TODO: we need a --hidden-- coordinate conversion between mask and room coordinate space.
-// return back to this after RoomStruct is refactored.
-//
-PBitmap fix_mask_area_size(const RoomStruct *room, PBitmap mask)
-{
-    if (!mask)
-        return NULL;
-    if (mask->GetWidth() != room->Width || mask->GetHeight() != room->Height)
-    {
-        int oldw = mask->GetWidth(), oldh = mask->GetHeight();
-        Bitmap *resized = BitmapHelper::CreateBitmap(room->Width, room->Height, 8);
-        resized->Clear();
-        resized->StretchBlt(mask.get(), RectWH(0, 0, oldw, oldh), RectWH(0, 0, resized->GetWidth(), resized->GetHeight()));
-        return PBitmap(resized);
-    }
-    return mask;
-}
 
 void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
 {
@@ -266,9 +243,8 @@ HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_
 
     for (size_t i = 0; i < room->ObjectCount; ++i)
         room->Objects[i].Flags = in->ReadInt16();
-    // TODO: remove this when we change gamedata format
-    in->ReadInt16();  // room->resolution
 
+    room->MaskResolution = in->ReadInt16();
     room->WalkAreaCount = in->ReadInt32();
     if (room->WalkAreaCount > MAX_WALK_AREAS + 1)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many walkable areas (in room: %d, max: %d).", room->WalkAreaCount, MAX_WALK_AREAS + 1));
@@ -322,7 +298,7 @@ HRoomFileError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_
 
     update_polled_stuff_if_runtime();
     // Primary background
-    Bitmap *mask = NULL;
+    Bitmap *mask = nullptr;
     load_lzw(in, &mask, room->BackgroundBPP, room->Palette);
     room->BgFrames[0].Graphic.reset(mask);
 
@@ -363,7 +339,7 @@ HRoomFileError ReadScriptBlock(char *&buf, Stream *in, RoomFileVersion data_ver)
 HRoomFileError ReadCompSc3Block(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
     room->CompiledScript.reset(ccScript::CreateFromStream(in));
-    if (room->CompiledScript == NULL)
+    if (room->CompiledScript == nullptr)
         return new RoomFileError(kRoomFileErr_ScriptLoadFailed, ccErrorString);
     return HRoomFileError::None();
 }
@@ -418,7 +394,7 @@ HRoomFileError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion dat
     for (size_t i = 1; i < room->BgFrameCount; ++i)
     {
         update_polled_stuff_if_runtime();
-        Bitmap *frame = NULL;
+        Bitmap *frame = nullptr;
         load_lzw(in, &frame, room->BackgroundBPP, room->BgFrames[i].Palette);
         room->BgFrames[i].Graphic.reset(frame);
     }
@@ -532,10 +508,9 @@ HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_v
 
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos)
 {
-    // Upgade object script names
     if (data_ver < kRoomVersion_300a)
     {
-        for (size_t i = 0; i < (size_t)room->ObjectCount; ++i)
+        for (size_t i = 0; i < room->ObjectCount; ++i)
         {
             if (room->Objects[i].ScriptName.GetLength() > 0)
             {
@@ -577,12 +552,6 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
         }
     }
 
-    // CLNUP ensure masks are correct size so we can test 3.4.1 games that haven't been upgraded by the editor (which fixes them upon importing the project)
-    room->RegionMask = fix_mask_area_size(room, room->RegionMask);
-    room->WalkAreaMask = fix_mask_area_size(room, room->WalkAreaMask);
-    room->WalkBehindMask = fix_mask_area_size(room, room->WalkBehindMask);
-    room->HotspotMask = fix_mask_area_size(room, room->HotspotMask);
-
     // sync bpalettes[0] with room.pal
     memcpy(room->BgFrames[0].Palette, room->Palette, sizeof(color) * 256);
     return HRoomFileError::None();
@@ -599,7 +568,7 @@ HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion dat
         block = (RoomFileBlock)b;
         if (block == kRoomFblk_Script)
         {
-            char *buf = NULL;
+            char *buf = nullptr;
             HRoomFileError err = ReadScriptBlock(buf, in, data_ver);
             if (err)
             {
@@ -701,8 +670,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
 
     for (size_t i = 0; i < room->ObjectCount; ++i)
         out->WriteInt16(room->Objects[i].Flags);
-
-    out->WriteInt16(1); // CLNUP remove this after gamedata format change (room->resolution)
+    out->WriteInt16(room->MaskResolution);
 
     // write the zoom and light levels
     out->WriteInt32(MAX_WALK_AREAS + 1);

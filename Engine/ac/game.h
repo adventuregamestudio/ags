@@ -45,6 +45,17 @@ using namespace AGS; // FIXME later
 #define GP_NUMINVITEMS   12
 #define GP_ISFRAMEFLIPPED 13
 
+enum CutsceneSkipStyle
+{
+    kSkipSceneUndefined = 0,
+    eSkipSceneEscOnly = 1,
+    eSkipSceneAnyKey = 2,
+    eSkipSceneMouse = 3,
+    eSkipSceneKeyMouse = 4,
+    eSkipSceneEscOrRMB = 5,
+    eSkipSceneScriptOnly = 6
+};
+
 //=============================================================================
 // Audio
 //=============================================================================
@@ -117,7 +128,7 @@ int Game_ChangeTranslation(const char *newFilename);
 //=============================================================================
 
 void set_debug_mode(bool on);
-void set_game_speed(int fps);
+void set_game_speed(int new_fps);
 void setup_for_dialog();
 void restore_after_dialog();
 Common::String get_save_game_path(int slotNum);
@@ -141,6 +152,8 @@ Common::Bitmap *read_serialized_bitmap(Common::Stream *in);
 void skip_serialized_bitmap(Common::Stream *in);
 long write_screen_shot_for_vista(Common::Stream *out, Common::Bitmap *screenshot);
 
+bool is_in_cutscene();
+CutsceneSkipStyle get_cutscene_skipstyle();
 void start_skipping_cutscene ();
 void check_skip_cutscene_keypress (int kgn);
 void initialize_skippable_cutscene();
@@ -169,6 +182,7 @@ extern int new_room_x, new_room_y, new_room_loop;
 extern int displayed_room;
 extern int frames_per_second;
 extern unsigned int loopcounter;
+extern void set_loop_counter(unsigned int new_counter);
 extern Common::String saveGameSuffix;
 extern int game_paused;
 

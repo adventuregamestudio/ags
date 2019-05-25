@@ -16,6 +16,7 @@
 // Game update procedure
 //
 
+#include <cmath>
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
@@ -25,7 +26,7 @@
 #include "ac/global_character.h"
 #include "ac/lipsync.h"
 #include "ac/overlay.h"
-#include "ac/record.h"
+#include "ac/sys_events.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "main/mainheader.h"
@@ -35,7 +36,9 @@
 #include "ac/walkablearea.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "media/audio/soundclip.h"
+#include "media/audio/audio_system.h"
+#include "ac/timer.h"
+#include "main/game_run.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -55,16 +58,12 @@ extern int face_talking,facetalkview,facetalkwait,facetalkframe;
 extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
 extern int facetalkBlinkLoop;
 extern bool facetalk_qfg4_override_placement_x, facetalk_qfg4_override_placement_y;
-extern volatile unsigned long globalTimerCounter;
-extern int time_between_timers;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_text_overlay;
 extern IGraphicsDriver *gfxDriver;
-extern int frames_per_second;
-
 
 int do_movelist_move(short*mlnum,int*xx,int*yy) {
   int need_to_fix_sprite=0;
@@ -248,15 +247,19 @@ void update_overlay_timers()
 
 void update_speech_and_messages()
 {
-  const bool is_voice = channels[SCHAN_SPEECH] != NULL;
-
+  bool is_voice_playing = false;
+  if (play.speech_has_voice)
+  {
+      AudioChannelsLock lock;
+      auto *ch = lock.GetChannel(SCHAN_SPEECH);
+      is_voice_playing = ch && ch->is_playing();
+  }
   // determine if speech text should be removed
   if (play.messagetime>=0) {
     play.messagetime--;
     // extend life of text if the voice hasn't finished yet
-    if (is_voice && !play.speech_in_post_state) {
-      if ((!rec_isSpeechFinished()) && (play.fast_forward == 0)) {
-      //if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
+    if (play.speech_has_voice && !play.speech_in_post_state) {
+      if ((is_voice_playing) && (play.fast_forward == 0)) {
         if (play.messagetime <= 1)
           play.messagetime = 1;
       }
@@ -269,7 +272,7 @@ void update_speech_and_messages()
     {
         if (!play.speech_in_post_state)
         {
-            play.messagetime = play.speech_display_post_time_ms * frames_per_second / 1000;
+            play.messagetime = std::lround(play.speech_display_post_time_ms * get_current_fps() / 1000.0f);
         }
         play.speech_in_post_state = !play.speech_in_post_state;
     }
@@ -283,16 +286,22 @@ void update_speech_and_messages()
       else if (play.cant_skip_speech & SKIP_AUTOTIMER)
       {
         remove_screen_overlay(OVER_TEXTMSG);
-        play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms / time_between_timers);
+        play.ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms);
       }
     }
   }
 }
 
+// update sierra-style speech
 void update_sierra_speech()
 {
-  const bool is_voice = channels[SCHAN_SPEECH] != NULL;
-	// update sierra-style speech
+  int voice_pos_ms = -1;
+  if (play.speech_has_voice)
+  {
+      AudioChannelsLock lock;
+      auto *ch = lock.GetChannel(SCHAN_SPEECH);
+      voice_pos_ms = ch ? ch->get_pos_ms() : -1;
+  }
   if ((face_talking >= 0) && (play.fast_forward == 0)) 
   {
     int updatedFrame = 0;
@@ -328,14 +337,13 @@ void update_sierra_speech()
 
     if (curLipLine >= 0) {
       // check voice lip sync
-      int spchOffs = channels[SCHAN_SPEECH]->get_pos_ms ();
       if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes) {
         // the lip-sync has finished, so just stay idle
       }
       else 
       {
         while ((curLipLinePhoneme < splipsync[curLipLine].numPhonemes) &&
-          ((curLipLinePhoneme < 0) || (spchOffs >= splipsync[curLipLine].endtimeoffs[curLipLinePhoneme])))
+          ((curLipLinePhoneme < 0) || (voice_pos_ms >= splipsync[curLipLine].endtimeoffs[curLipLinePhoneme])))
         {
           curLipLinePhoneme ++;
           if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes)
@@ -356,15 +364,15 @@ void update_sierra_speech()
              // if play.close_mouth_speech_time = 0, this means animation should play till
              // the speech ends; but this should not work in voice mode, and also if the
              // speech is in the "post" state
-             (is_voice || play.speech_in_post_state || play.close_mouth_speech_time > 0))
+             (play.speech_has_voice || play.speech_in_post_state || play.close_mouth_speech_time > 0))
       ;
     else {
       // Close mouth at end of sentence: if speech has entered the "post" state,
       // or if this is a text only mode and close_mouth_speech_time is set
       if (play.speech_in_post_state ||
-          !is_voice &&
+          (!play.speech_has_voice &&
           (play.messagetime < play.close_mouth_speech_time) &&
-          (play.close_mouth_speech_time > 0)) {
+          (play.close_mouth_speech_time > 0))) {
         facetalkframe = 0;
         facetalkwait = play.messagetime;
       }
@@ -379,7 +387,7 @@ void update_sierra_speech()
         // normal non-lip-sync
         facetalkframe++;
         if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) ||
-            (!is_voice && (play.messagetime < 1) && (play.close_mouth_speech_time > 0))) {
+            (!play.speech_has_voice && (play.messagetime < 1) && (play.close_mouth_speech_time > 0))) {
 
           if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) &&
               (views[facetalkview].loops[facetalkloop].RunNextLoop())) 

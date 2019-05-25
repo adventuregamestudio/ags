@@ -23,10 +23,10 @@
 //#include "ac/runtime_defines.h"
 //#include "main/config.h"
 //#include "plugin/agsplugin.h"
-//#include "media/audio/audio.h"
 //#include <libcda.h>
 //#include <pwd.h>
 //#include <sys/stat.h>
+#include <unistd.h>
 #include "platform/base/agsplatformdriver.h"
 #include "util/directory.h"
 #include "ac/common.h"
@@ -51,13 +51,18 @@ int psp_video_framedrop = 0;
 int psp_gfx_smooth_sprites = 0;
 
 char psp_game_file_name[256];
+
+int psp_gfx_renderer = 0;
+int psp_gfx_scaling = 1;
+int psp_gfx_smoothing = 0;
+int psp_gfx_super_sampling = 1;
+
 static char libraryApplicationSupport[PATH_MAX];
 static char commonDataPath[PATH_MAX];
 
 struct AGSMac : AGSPlatformDriver
 {
   AGSMac();
-  virtual void Delay(int millis) override;
   virtual void DisplayAlert(const char*, ...) override;
   virtual unsigned long GetDiskFreeSpaceMB() override;
   virtual const char* GetNoMouseErrorString() override;
@@ -89,17 +94,7 @@ void AGSMac::DisplayAlert(const char *text, ...) {
   va_start(ap, text);
   vsprintf(displbuf, text, ap);
   va_end(ap);
-  printf("%s", displbuf);
-}
-
-void AGSMac::Delay(int millis) {
-  while (millis >= 5) {
-    usleep(5);
-    millis -= 5;
-    update_polled_stuff_if_runtime();
-  }
-  if (millis > 0)
-    usleep(millis);
+  printf("%s\n", displbuf);
 }
 
 unsigned long AGSMac::GetDiskFreeSpaceMB() {

@@ -15,38 +15,45 @@
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
+#include <vector>
+#include <queue>
+#include <unordered_map>
+
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
 
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-#define OBJECT_CACHE_MAGIC_NUMBER 0xa30b
-#define SERIALIZE_BUFFER_SIZE 10240
-const int ARRAY_INCREMENT_SIZE = 100;
-const int GARBAGE_COLLECTION_INTERVAL = 100;
-
-struct ManagedObjectPool {
+struct ManagedObjectPool final {
+private:
     struct ManagedObject {
         ScriptValueType obj_type;
         int32_t handle;
+        // TODO: this makes no sense having this as "const char*",
+        // void* will be proper (and in all related functions)
         const char *addr;
-        ICCDynamicObject * callback;
-        int  refCount;
+        ICCDynamicObject *callback;
+        int refCount;
 
-        void init(int32_t theHandle, const char *theAddress,
-            ICCDynamicObject *theCallback, ScriptValueType objType);
-        int remove(bool force = false);
-        int AddRef();
-        int CheckDispose();
-        int SubRef();
-        void SubRefNoDispose();
+        bool isUsed() const { return obj_type != kScValUndefined; }
+
+        ManagedObject() 
+            : obj_type(kScValUndefined), handle(0), addr(nullptr), callback(nullptr), refCount(0) {}
+        ManagedObject(ScriptValueType obj_type, int32_t handle, const char *addr, ICCDynamicObject * callback) 
+            : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
     };
-private:
 
-    ManagedObject *objects;
-    int arrayAllocLimit;
-    int numObjects;  // not actually numObjects, but the highest index used
     int objectCreationCounter;  // used to do garbage collection every so often
+
+    int32_t nextHandle {};
+    std::queue<int32_t> available_ids;
+    std::vector<ManagedObject> objects;
+    std::unordered_map<const char *, int32_t> handleByAddress;
+
+    void Init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback, ScriptValueType objType);
+    int Remove(ManagedObject &o, bool force = false); 
+
+    void RunGarbageCollection();
 
 public:
 
@@ -58,14 +65,14 @@ public:
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
-    void RunGarbageCollection();
-    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot = -1);
+    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object);
+    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
     void reset();
     ManagedObjectPool();
 
-    const char* disableDisposeForObject;
+    const char* disableDisposeForObject {nullptr};
 };
 
 extern ManagedObjectPool pool;

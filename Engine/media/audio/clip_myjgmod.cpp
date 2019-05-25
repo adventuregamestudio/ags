@@ -67,15 +67,6 @@ int MYMOD::get_length_ms()
     return 0;
 }
 
-void MYMOD::restart()
-{
-    if (tune != NULL) {
-        stop_mod();
-        done = 0;
-        play_mod(tune, 0);
-    }
-}
-
 int MYMOD::get_voice()
 {
     // MOD uses so many different voices it's not practical to keep track

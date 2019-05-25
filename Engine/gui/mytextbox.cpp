@@ -31,7 +31,7 @@ MyTextBox::MyTextBox(int xx, int yy, int wii, const char *tee)
     x = xx;
     y = yy;
     wid = wii;
-    if (tee != NULL)
+    if (tee != nullptr)
         strcpy(text, tee);
     else
         text[0] = 0;

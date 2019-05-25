@@ -120,7 +120,8 @@ namespace AGS.Editor.Components
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {
-            AGS.Types.Font itemBeingEdited = ((FontEditor)_guiController.ActivePane.Control).ItemToEdit;
+            FontEditor editor = ((FontEditor)_guiController.ActivePane.Control);
+            AGS.Types.Font itemBeingEdited = editor.ItemToEdit;
 
             if (propertyName == "Name")
             {
@@ -136,6 +137,8 @@ namespace AGS.Editor.Components
             else
             {
                 Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID);
+                if (propertyName == "SizeMultiplier")
+                    editor.OnFontUpdated();
             }
         }
 

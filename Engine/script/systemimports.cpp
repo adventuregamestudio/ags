@@ -28,7 +28,7 @@ int SystemImports::add(const String &name, const RuntimeScriptValue &value, ccIn
 
     if ((ixof = get_index_of(name)) >= 0) {
         // Only allow override if not a script-exported function
-        if (anotherscr == NULL) {
+        if (anotherscr == nullptr) {
             imports[ixof].Value = value;
             imports[ixof].InstancePtr = anotherscr;
         }
@@ -38,7 +38,7 @@ int SystemImports::add(const String &name, const RuntimeScriptValue &value, ccIn
     ixof = imports.size();
     for (size_t i = 0; i < imports.size(); ++i)
     {
-        if (imports[i].Name == NULL)
+        if (imports[i].Name == nullptr)
         {
             ixof = i;
             break;
@@ -59,16 +59,16 @@ void SystemImports::remove(const String &name) {
     if (idx < 0)
         return;
     btree.erase(imports[idx].Name);
-    imports[idx].Name = NULL;
+    imports[idx].Name = nullptr;
     imports[idx].Value.Invalidate();
-    imports[idx].InstancePtr = NULL;
+    imports[idx].InstancePtr = nullptr;
 }
 
 const ScriptImport *SystemImports::getByName(const String &name)
 {
     int o = get_index_of(name);
     if (o < 0)
-        return NULL;
+        return nullptr;
 
     return &imports[o];
 }
@@ -76,7 +76,7 @@ const ScriptImport *SystemImports::getByName(const String &name)
 const ScriptImport *SystemImports::getByIndex(int index)
 {
     if ((size_t)index >= imports.size())
-        return NULL;
+        return nullptr;
 
     return &imports[index];
 }
@@ -116,15 +116,15 @@ void SystemImports::RemoveScriptExports(ccInstance *inst)
 
     for (size_t i = 0; i < imports.size(); ++i)
     {
-        if (imports[i].Name == NULL)
+        if (imports[i].Name == nullptr)
             continue;
 
         if (imports[i].InstancePtr == inst)
         {
             btree.erase(imports[i].Name);
-            imports[i].Name = NULL;
+            imports[i].Name = nullptr;
             imports[i].Value.Invalidate();
-            imports[i].InstancePtr = 0;
+            imports[i].InstancePtr = nullptr;
         }
     }
 }

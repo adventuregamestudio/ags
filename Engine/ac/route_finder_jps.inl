@@ -55,7 +55,7 @@ public:
 	NavResult Navigate(int sx, int sy, int ex, int ey, std::vector<int> &opath);
 
 	bool TraceLine(int srcx, int srcy, int targx, int targy, int &lastValidX, int &lastValidY) const;
-	bool TraceLine(int srcx, int srcy, int targx, int targy, std::vector<int> *rpath = NULL) const;
+	bool TraceLine(int srcx, int srcy, int targx, int targy, std::vector<int> *rpath = nullptr) const;
 
 	inline void SetMapRow(int y, const unsigned char *row) {map[y] = row;}
 
@@ -69,7 +69,7 @@ private:
 		float cost;
 		int index;
 
-		inline Entry() {}
+		inline Entry() = default;
 
 		inline Entry(float ncost, int nindex)
 			: cost(ncost)

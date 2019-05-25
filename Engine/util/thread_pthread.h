@@ -28,7 +28,10 @@ class PThreadThread : public BaseThread
 public:
   PThreadThread()
   {
+    _thread = 0;
+    _entry = NULL;
     _running = false;
+    _looping = false;
   }
 
   ~PThreadThread()

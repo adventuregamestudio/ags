@@ -90,12 +90,11 @@ LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dial
     : Game(game)
     , Dialogs(dialogs)
     , Views(views)
+    , SpriteCount(0)
 {
 }
 
-LoadedGameEntities::~LoadedGameEntities()
-{
-}
+LoadedGameEntities::~LoadedGameEntities() = default;
 
 bool IsMainGameLibrary(const String &filename)
 {
@@ -185,7 +184,7 @@ HGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVers
     if (data_ver > kGameVersion_310) // 3.1.1+ dialog script
     {
         dialog_script.reset(ccScript::CreateFromStream(in));
-        if (dialog_script == NULL)
+        if (dialog_script == nullptr)
             return new MainGameFileError(kMGFErr_CreateDialogScriptFailed, ccErrorString);
     }
     return HGameFileError::None();
@@ -200,7 +199,7 @@ HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, Stream *in, Game
         for (int i = 0; i < count; ++i)
         {
             sc_mods[i].reset(ccScript::CreateFromStream(in));
-            if (sc_mods[i] == NULL)
+            if (sc_mods[i] == nullptr)
                 return new MainGameFileError(kMGFErr_CreateScriptModuleFailed, ccErrorString);
         }
     }
@@ -318,95 +317,92 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
 // Create the missing audioClips data structure for 3.1.x games.
 // This is done by going through the data files and adding all music*.*
 // and sound*.* files to it.
-void BuildAudioClipArray(GameSetupStruct &game, const AssetLibInfo &lib)
+void BuildAudioClipArray(const AssetLibInfo &lib, std::vector<ScriptAudioClip> &audioclips)
 {
     char temp_name[30];
     int temp_number;
     char temp_extension[10];
-
-    // TODO: this was done to simplify code transition; ideally we should be
-    // working with GameSetupStruct's getters and setters here
-    int &audioClipCount            = game.audioClipCount;
-    ScriptAudioClip *&audioClips   = game.audioClips;
 
     size_t number_of_files = lib.AssetInfos.size();
     for (size_t i = 0; i < number_of_files; ++i)
     {
         if (sscanf(lib.AssetInfos[i].FileName, "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
         {
+            audioclips.push_back(ScriptAudioClip());
+            ScriptAudioClip &clip = audioclips.back();
             if (stricmp(temp_name, "music") == 0)
             {
-                sprintf(audioClips[audioClipCount].scriptName, "aMusic%d", temp_number);
-                sprintf(audioClips[audioClipCount].fileName, "music%d.%s", temp_number, temp_extension);
-                audioClips[audioClipCount].bundlingType = (stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
-                audioClips[audioClipCount].type = 2;
-                audioClips[audioClipCount].defaultRepeat = 1;
+                sprintf(clip.scriptName, "aMusic%d", temp_number);
+                sprintf(clip.fileName, "music%d.%s", temp_number, temp_extension);
+                clip.bundlingType = (stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
+                clip.type = 2;
+                clip.defaultRepeat = 1;
             }
             else if (stricmp(temp_name, "sound") == 0)
             {
-                sprintf(audioClips[audioClipCount].scriptName, "aSound%d", temp_number);
-                sprintf(audioClips[audioClipCount].fileName, "sound%d.%s", temp_number, temp_extension);
-                audioClips[audioClipCount].bundlingType = AUCL_BUNDLE_EXE;
-                audioClips[audioClipCount].type = 3;
+                sprintf(clip.scriptName, "aSound%d", temp_number);
+                sprintf(clip.fileName, "sound%d.%s", temp_number, temp_extension);
+                clip.bundlingType = AUCL_BUNDLE_EXE;
+                clip.type = 3;
             }
             else
             {
+                audioclips.pop_back();
                 continue;
             }
 
-            audioClips[audioClipCount].defaultVolume = 100;
-            audioClips[audioClipCount].defaultPriority = 50;
-            audioClips[audioClipCount].id = audioClipCount;
+            clip.defaultVolume = 100;
+            clip.defaultPriority = 50;
+            clip.id = audioclips.size() - 1;
 
             if (stricmp(temp_extension, "mp3") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileMP3;
+                clip.fileType = eAudioFileMP3;
             else if (stricmp(temp_extension, "wav") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileWAV;
+                clip.fileType = eAudioFileWAV;
             else if (stricmp(temp_extension, "voc") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileVOC;
+                clip.fileType = eAudioFileVOC;
             else if (stricmp(temp_extension, "mid") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileMIDI;
+                clip.fileType = eAudioFileMIDI;
             else if ((stricmp(temp_extension, "mod") == 0) || (stricmp(temp_extension, "xm") == 0)
                 || (stricmp(temp_extension, "s3m") == 0) || (stricmp(temp_extension, "it") == 0))
-                audioClips[audioClipCount].fileType = eAudioFileMOD;
+                clip.fileType = eAudioFileMOD;
             else if (stricmp(temp_extension, "ogg") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileOGG;
-
-            audioClipCount++;
+                clip.fileType = eAudioFileOGG;
         }
     }
 }
 
-void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents)
+void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     // Apply sprite flags read from original format (sequential array)
     spriteset.EnlargeTo(ents.SpriteCount);
     for (size_t i = 0; i < ents.SpriteCount; ++i)
+    {
         game.SpriteInfos[i].Flags = ents.SpriteFlags[i];
+    }
+}
+
+void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
+{
 }
 
 // Convert audio data to the current version
 void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
 {
-    if (data_ver >= kGameVersion_320)
-        return;
 }
 
 // Convert character data to the current version
 void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
 {
-
 }
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 {
-
 }
 
 // Adjusts score clip id, depending on game data version
 void AdjustScoreSound(GameSetupStruct &game, GameDataVersion data_ver)
 {
-
 }
 
 // Assigns default global message at given index
@@ -415,7 +411,7 @@ void SetDefaultGlmsg(GameSetupStruct &game, int msgnum, const char *val)
     // TODO: find out why the index should be lowered by 500
     // (or rather if we may pass correct index right away)
     msgnum -= 500;
-    if (game.messages[msgnum] == NULL)
+    if (game.messages[msgnum] == nullptr)
         game.messages[msgnum] = strdup(val);
 }
 
@@ -482,11 +478,11 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
         game.GameSetupStructBase::ReadFromFile(&align_s);
     }
 
-    if (game.size.IsNull())
+    if (game.GetGameRes().IsNull())
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);
 
     game.read_savegame_info(in, data_ver);
-    game.read_font_flags(in, data_ver);
+    game.read_font_infos(in, data_ver);
     HGameFileError err = ReadSpriteFlags(ents, in, data_ver);
     if (!err)
         return err;
@@ -541,7 +537,8 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
-    ApplySpriteData(game, ents);
+    ApplySpriteData(game, ents, data_ver);
+    UpgradeFonts(game, data_ver);
     UpgradeAudio(game, data_ver);
     AdjustScoreSound(game, data_ver);
     UpgradeCharacters(game, data_ver);
@@ -549,7 +546,14 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     SetDefaultGlobalMessages(game);
     // Old dialog options API for pre-3.4.0.2 games
     if (data_ver < kGameVersion_340_2)
+    {
         game.options[OPT_DIALOGOPTIONSAPI] = -1;
+    }
+    // Relative asset resolution in pre-3.5.0.8 (always enabled)
+    if (data_ver < kGameVersion_350)
+    {
+        game.options[OPT_RELATIVEASSETRES] = 1;
+    }
     FixupSaveDirectory(game);
     return HGameFileError::None();
 }

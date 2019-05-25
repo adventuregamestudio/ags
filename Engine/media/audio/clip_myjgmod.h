@@ -37,8 +37,6 @@ struct MYMOD:public SOUNDCLIP
 
     int get_length_ms();
 
-    void restart();
-
     int get_voice();
 
     int get_sound_type();

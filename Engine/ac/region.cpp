@@ -44,7 +44,7 @@ ScriptRegion *GetRegionAtScreen(int x, int y)
 {
     VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
-        return 0;
+        return nullptr;
     return GetRegionAtRoom(vpt.first.X, vpt.first.Y);
 }
 
@@ -120,9 +120,9 @@ void Region_RunInteraction(ScriptRegion *ssr, int mood) {
 
 void generate_light_table()
 {
-    if (game.color_depth == 1 && color_map == NULL)
+    if (game.color_depth == 1 && color_map == nullptr)
     {
-        create_light_table(&maincoltable, palette, 0, 0, 0, NULL);
+        create_light_table(&maincoltable, palette, 0, 0, 0, nullptr);
         color_map = &maincoltable;
     }
 }

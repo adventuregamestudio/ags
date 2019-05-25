@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 245be10..105c923 100644
+index 245be10fb..6147a68b3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -65,7 +65,7 @@ if(WIN32)
@@ -28,7 +28,38 @@ index 245be10..105c923 100644
  
  set(FRAMEWORK_INSTALL_PREFIX "/Library/Frameworks" CACHE STRING
      "Directory in which to install Mac OS X frameworks")
-@@ -451,6 +452,15 @@ if(ALLEGRO_UNIX) # not MACOSX
+@@ -224,8 +225,6 @@ endif(UNIX)
+ 
+ option(STRICT_WARN "Halt at warnings" off)
+ 
+-set(INSTALL_PREFIX "")
+-
+ if(CMAKE_COMPILER_IS_GNUCC)
+     set(COMPILER_GCC 1)
+     set(ALLEGRO_GCC 1)
+@@ -254,11 +253,9 @@ if(MINGW)
+     set(CMAKE_PREFIX_PATH "${MINGDIR}")
+ 
+     # Install to MINGDIR
+-    if(INSTALL_PREFIX STREQUAL "")
++    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+         set(CMAKE_INSTALL_PREFIX ${MINGDIR})
+-    else(INSTALL_PREFIX STREQUAL "")
+-        set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
+-    endif(INSTALL_PREFIX STREQUAL "")
++    endif()
+ 
+     message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
+ endif(MINGW)
+@@ -310,7 +307,6 @@ if(PSP)
+     set(ALLEGRO_PSP 1)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -G0")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -G0 -fno-exceptions -fno-rtti")
+-    set(CMAKE_INSTALL_PREFIX ${PSP_PREFIX})
+ endif(PSP)
+ 
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WFLAGS} ${WFLAGS_C_ONLY}")
+@@ -451,6 +447,15 @@ if(ALLEGRO_UNIX) # not MACOSX
          endif(ALSA_FOUND)
      endif(WANT_ALSA)
  
@@ -44,7 +75,7 @@ index 245be10..105c923 100644
      if(WANT_JACK)
          pkg_check_modules(JACK jack)
          if(JACK_FOUND)
-@@ -538,6 +548,7 @@ option(WANT_LINUX_CONSOLE "Want Linux console support (Linux)" off)
+@@ -538,6 +543,7 @@ option(WANT_LINUX_CONSOLE "Want Linux console support (Linux)" off)
  option(WANT_LINUX_VGA "Want Linux console VGA driver (Linux)" on)
  option(WANT_LINUX_FBCON "Want Linux console fbcon driver (Linux)" on)
  option(WANT_LINUX_SVGALIB "Want Linux console SVGAlib driver (Linux)" on)
@@ -52,7 +83,7 @@ index 245be10..105c923 100644
  
  if(WANT_LINUX_CONSOLE AND CMAKE_SYSTEM_NAME STREQUAL Linux)
      set(ALLEGRO_LINUX 1)
-@@ -582,6 +593,16 @@ if(WANT_LINUX_CONSOLE AND CMAKE_SYSTEM_NAME STREQUAL Linux)
+@@ -582,6 +588,16 @@ if(WANT_LINUX_CONSOLE AND CMAKE_SYSTEM_NAME STREQUAL Linux)
                  ${SVGALIB_LIBRARY})
          endif()
      endif()
@@ -69,7 +100,7 @@ index 245be10..105c923 100644
  endif(WANT_LINUX_CONSOLE AND CMAKE_SYSTEM_NAME STREQUAL Linux)
  
  # -- Windows --
-@@ -637,6 +658,13 @@ endif(BEOS)
+@@ -637,29 +653,33 @@ endif(BEOS)
  
  if(ALLEGRO_MACOSX)
      list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_MACOSX_FILES})
@@ -83,26 +114,42 @@ index 245be10..105c923 100644
      if(NOT SHARED)
  	list(APPEND PLATFORM_SOURCES src/macosx/main.m)
      endif(NOT SHARED)
-@@ -647,8 +675,9 @@ if(ALLEGRO_MACOSX)
+ 
+     find_library(COCOA_LIBRARY Cocoa)
+-    find_library(CARBON_LIBRARY Carbon)
+     find_library(IOKIT_LIBRARY IOKit)
      find_library(COREAUDIO_LIBRARY CoreAudio)
      find_library(AUDIOUNIT_LIBRARY AudioUnit)
      find_library(AUDIOTOOLBOX_LIBRARY AudioToolbox)
-+    find_library(OPENGL_LIBRARY OpenGL)
-     find_package(QuickTime)
+-    find_package(QuickTime)
 -    mark_as_advanced(COCOA_LIBRARY CARBON_LIBRARY IOKIT_LIBRARY)
-+    mark_as_advanced(COCOA_LIBRARY CARBON_LIBRARY IOKIT_LIBRARY OPENGL_LIBRARY)
++    find_library(OPENGL_LIBRARY OpenGL)
++    mark_as_advanced(COCOA_LIBRARY IOKIT_LIBRARY OPENGL_LIBRARY)
      mark_as_advanced(COREAUDIO_LIBRARY AUDIOUNIT_LIBRARY AUDIOTOOLBOX_LIBRARY)
-     mark_as_advanced(QUICKTIME_INCLUDE_DIR QUICKTIME_LIBRARY)
+-    mark_as_advanced(QUICKTIME_INCLUDE_DIR QUICKTIME_LIBRARY)
  
-@@ -660,6 +689,7 @@ if(ALLEGRO_MACOSX)
+     list(APPEND PLATFORM_LIBS
+ 	${COCOA_LIBRARY}
+-	${CARBON_LIBRARY}
+ 	${IOKIT_LIBRARY}
+ 	${COREAUDIO_LIBRARY}
  	${AUDIOUNIT_LIBRARY}
  	${AUDIOTOOLBOX_LIBRARY}
- 	${QUICKTIME_LIBRARY}
+-	${QUICKTIME_LIBRARY}
 +	${OPENGL_LIBRARY}
  	)
  endif(ALLEGRO_MACOSX)
  
-@@ -907,12 +937,17 @@ option(WANT_LOADPNG "Enable loadpng" on)
+@@ -879,7 +899,7 @@ if(UNIX) # including MACOSX
+         if(BUILD_SHARED_LIBS)
+             set(FRAMEWORKS "-framework Cocoa -framework Allegro -lalleg-main${BUILD_TYPE_SUFFIX}")
+         else(BUILD_SHARED_LIBS)
+-            set(FRAMEWORKS "-framework Cocoa -framework Allegro -lalleg-main${BUILD_TYPE_SUFFIX} -framework Carbon -framework IOKit -framework System -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework QuickTime")
++            set(FRAMEWORKS "-framework Cocoa -framework Allegro -lalleg-main${BUILD_TYPE_SUFFIX} -framework IOKit -framework System -framework CoreAudio -framework AudioUnit -framework AudioToolbox")
+         endif(BUILD_SHARED_LIBS)
+     else()
+         set(ACCEPT_FRAMEWORKS no)
+@@ -907,12 +927,17 @@ option(WANT_LOADPNG "Enable loadpng" on)
  option(WANT_LOGG "Enable logg" on)
  option(WANT_JPGALLEG "Enable JPGAlleg" on)
  
@@ -122,7 +169,7 @@ index 245be10..105c923 100644
      add_subdirectory(addons/allegrogl)
  endif()
 diff --git a/addons/allegrogl/src/fontconv.c b/addons/allegrogl/src/fontconv.c
-index a660d30..ee363ff 100644
+index a660d30e7..ee363ff8a 100644
 --- a/addons/allegrogl/src/fontconv.c
 +++ b/addons/allegrogl/src/fontconv.c
 @@ -4,10 +4,10 @@
@@ -623,7 +670,7 @@ index a660d30..ee363ff 100644
  	dest->type = AGL_FONT_TYPE_BITMAP;
  	dest->start = beg;
 diff --git a/addons/jpgalleg/include/jpgalleg.h b/addons/jpgalleg/include/jpgalleg.h
-index a532823..64894f4 100644
+index a53282356..64894f481 100644
 --- a/addons/jpgalleg/include/jpgalleg.h
 +++ b/addons/jpgalleg/include/jpgalleg.h
 @@ -22,6 +22,26 @@
@@ -685,8 +732,21 @@ index a532823..64894f4 100644
  
  
  #ifdef __cplusplus
+diff --git a/addons/jpgalleg/src/decode.c b/addons/jpgalleg/src/decode.c
+index 6d5510c69..db1b9f2fc 100644
+--- a/addons/jpgalleg/src/decode.c
++++ b/addons/jpgalleg/src/decode.c
+@@ -477,7 +477,7 @@ get_bits(int num_bits)
+  *  Reads a string of bits from the input stream and returns a properly signed
+  *  number given the category.
+  */
+-INLINE int
++static INLINE int
+ get_value(int category)
+ {
+ 	int result = get_bits(category);
 diff --git a/addons/loadpng/CHANGES.txt b/addons/loadpng/CHANGES.txt
-index 351bb6b..3759d60 100644
+index 351bb6be2..3759d6081 100644
 --- a/addons/loadpng/CHANGES.txt
 +++ b/addons/loadpng/CHANGES.txt
 @@ -163,3 +163,6 @@
@@ -698,7 +758,7 @@ index 351bb6b..3759d60 100644
 +This file is no longer updated.
 diff --git a/addons/loadpng/LICENSE.txt b/addons/loadpng/LICENSE.txt
 new file mode 100644
-index 0000000..af62ca5
+index 000000000..af62ca56f
 --- /dev/null
 +++ b/addons/loadpng/LICENSE.txt
 @@ -0,0 +1,21 @@
@@ -724,7 +784,7 @@ index 0000000..af62ca5
 +    distribution.
 +
 diff --git a/addons/loadpng/README.txt b/addons/loadpng/README.txt
-index c545f61..fb9b2d0 100644
+index c545f6108..fb9b2d068 100644
 --- a/addons/loadpng/README.txt
 +++ b/addons/loadpng/README.txt
 @@ -4,8 +4,8 @@
@@ -739,7 +799,7 @@ index c545f61..fb9b2d0 100644
  
  Requirements:
 diff --git a/addons/loadpng/loadpng.c b/addons/loadpng/loadpng.c
-index 95fe4b9..f45f6ac 100644
+index 95fe4b924..f45f6acfa 100644
 --- a/addons/loadpng/loadpng.c
 +++ b/addons/loadpng/loadpng.c
 @@ -1,7 +1,5 @@
@@ -751,7 +811,7 @@ index 95fe4b9..f45f6ac 100644
  
  
 diff --git a/addons/loadpng/loadpng.h b/addons/loadpng/loadpng.h
-index 9d584de..35111d6 100644
+index 9d584de15..35111d6e0 100644
 --- a/addons/loadpng/loadpng.h
 +++ b/addons/loadpng/loadpng.h
 @@ -1,5 +1,4 @@
@@ -842,7 +902,7 @@ index 9d584de..35111d6 100644
  
  #ifdef __cplusplus
 diff --git a/addons/loadpng/regpng.c b/addons/loadpng/regpng.c
-index 1681e4b..1d570ea 100644
+index 1681e4b8b..1d570eacb 100644
 --- a/addons/loadpng/regpng.c
 +++ b/addons/loadpng/regpng.c
 @@ -1,7 +1,5 @@
@@ -854,7 +914,7 @@ index 1681e4b..1d570ea 100644
  
  
 diff --git a/addons/loadpng/savepng.c b/addons/loadpng/savepng.c
-index e2d04f9..5274944 100644
+index e2d04f953..527494474 100644
 --- a/addons/loadpng/savepng.c
 +++ b/addons/loadpng/savepng.c
 @@ -1,7 +1,5 @@
@@ -866,7 +926,7 @@ index e2d04f9..5274944 100644
  
  
 diff --git a/addons/logg/logg.c b/addons/logg/logg.c
-index 01ee0e8..bfd7284 100644
+index 01ee0e826..bfd7284ad 100644
 --- a/addons/logg/logg.c
 +++ b/addons/logg/logg.c
 @@ -2,7 +2,7 @@
@@ -888,7 +948,7 @@ index 01ee0e8..bfd7284 100644
  		int thisRead = ov_read(&s->ovf, s->buf[page]+read,
  				logg_bufsize-read,
 diff --git a/addons/logg/logg.h b/addons/logg/logg.h
-index 454d1c8..761c5a7 100644
+index 454d1c897..761c5a7fc 100644
 --- a/addons/logg/logg.h
 +++ b/addons/logg/logg.h
 @@ -1,40 +1,46 @@
@@ -970,7 +1030,7 @@ index 454d1c8..761c5a7 100644
  }
 diff --git a/addons/logg/loggint.h b/addons/logg/loggint.h
 new file mode 100644
-index 0000000..3708f38
+index 000000000..3708f38cd
 --- /dev/null
 +++ b/addons/logg/loggint.h
 @@ -0,0 +1,36 @@
@@ -1011,7 +1071,7 @@ index 0000000..3708f38
 +#endif
 +
 diff --git a/addons/logg/play_ogg.c b/addons/logg/play_ogg.c
-index da23da8..f51a097 100644
+index da23da83d..f51a097fa 100644
 --- a/addons/logg/play_ogg.c
 +++ b/addons/logg/play_ogg.c
 @@ -1,3 +1,4 @@
@@ -1020,7 +1080,7 @@ index da23da8..f51a097 100644
  
  int main(int argc, char** argv)
 diff --git a/cmake/FileList.cmake b/cmake/FileList.cmake
-index 5604958..d2a0bc4 100644
+index 560495803..d2a0bc495 100644
 --- a/cmake/FileList.cmake
 +++ b/cmake/FileList.cmake
 @@ -245,6 +245,7 @@ set(ALLEGRO_SRC_LINUX_FILES
@@ -1094,7 +1154,7 @@ index 5604958..d2a0bc4 100644
          include/allegro/platform/alucfg.h
 diff --git a/cmake/FindTslib.cmake b/cmake/FindTslib.cmake
 new file mode 100644
-index 0000000..e7605c1
+index 000000000..e7605c120
 --- /dev/null
 +++ b/cmake/FindTslib.cmake
 @@ -0,0 +1,20 @@
@@ -1119,7 +1179,7 @@ index 0000000..e7605c1
 +mark_as_advanced(TSLIB_INCLUDE_DIR)
 +mark_as_advanced(TSLIB_LIBRARY)
 diff --git a/docs/src/allegro._tx b/docs/src/allegro._tx
-index c16aa36..f6568b7 100644
+index c16aa3612..f6568b76f 100644
 --- a/docs/src/allegro._tx
 +++ b/docs/src/allegro._tx
 @@ -18,7 +18,7 @@
@@ -1147,7 +1207,7 @@ index c16aa36..f6568b7 100644
  		See the AUTHORS file for a
  	       complete list of contributors.
 diff --git a/docs/src/readme._tx b/docs/src/readme._tx
-index 082ea21..aa8f677 100644
+index 082ea21b9..aa8f677ff 100644
 --- a/docs/src/readme._tx
 +++ b/docs/src/readme._tx
 @@ -31,12 +31,12 @@
@@ -1166,7 +1226,7 @@ index 082ea21..aa8f677 100644
  		See the AUTHORS file for a
  	       complete list of contributors.
 diff --git a/examples/exkeys.c b/examples/exkeys.c
-index 9ea8485..75d3b3c 100644
+index 9ea8485f5..75d3b3cd4 100644
 --- a/examples/exkeys.c
 +++ b/examples/exkeys.c
 @@ -73,7 +73,7 @@ void keypress_handler(int scancode)
@@ -1197,7 +1257,7 @@ index 9ea8485..75d3b3c 100644
     } while (!keypressed() || (readkey() >> 8) != KEY_ESC);
  
 diff --git a/examples/extrans2.c b/examples/extrans2.c
-index 4400a11..d5c1630 100644
+index 4400a117b..d5c163099 100644
 --- a/examples/extrans2.c
 +++ b/examples/extrans2.c
 @@ -211,7 +211,7 @@ int main(int argc, char **argv)
@@ -1210,7 +1270,7 @@ index 4400a11..d5c1630 100644
        /* finally blit the back buffer on the screen */
        blit(buffer, screen, 0, 0, 0, 0, buffer->w, buffer->h);
 diff --git a/include/allegro/base.h b/include/allegro/base.h
-index 967b75c..a93736f 100644
+index 967b75c2e..a93736fcb 100644
 --- a/include/allegro/base.h
 +++ b/include/allegro/base.h
 @@ -46,10 +46,10 @@
@@ -1227,8 +1287,32 @@ index 967b75c..a93736f 100644
  
  /*******************************************/
  /************ Some global stuff ************/
+diff --git a/include/allegro/fli.h b/include/allegro/fli.h
+index dda652edd..3ed3c62d5 100644
+--- a/include/allegro/fli.h
++++ b/include/allegro/fli.h
+@@ -20,6 +20,7 @@
+ #define ALLEGRO_FLI_H
+ 
+ #include "base.h"
++#include "file.h"
+ #include "palette.h"
+ 
+ #ifdef __cplusplus
+@@ -34,9 +35,11 @@ struct BITMAP;
+ #define FLI_NOT_OPEN    -3
+ 
+ AL_FUNC(int, play_fli, (AL_CONST char *filename, struct BITMAP *bmp, int loop, AL_METHOD(int, callback, (void))));
++AL_FUNC(int, play_fli_pf, (PACKFILE *pf, struct BITMAP *bmp, AL_METHOD(int, callback, (void))));
+ AL_FUNC(int, play_memory_fli, (void *fli_data, struct BITMAP *bmp, int loop, AL_METHOD(int, callback, (void))));
+ 
+ AL_FUNC(int, open_fli, (AL_CONST char *filename));
++AL_FUNC(int, open_fli_pf, (PACKFILE *pf));
+ AL_FUNC(int, open_memory_fli, (void *fli_data));
+ AL_FUNC(void, close_fli, (void));
+ AL_FUNC(int, next_fli_frame, (int loop));
 diff --git a/include/allegro/internal/alconfig.h b/include/allegro/internal/alconfig.h
-index 68ec3e4..948ed64 100644
+index 68ec3e42d..948ed6408 100644
 --- a/include/allegro/internal/alconfig.h
 +++ b/include/allegro/internal/alconfig.h
 @@ -14,7 +14,7 @@
@@ -1249,9 +1333,32 @@ index 68ec3e4..948ed64 100644
     #else
        #error platform not supported
     #endif
+diff --git a/include/allegro/midi.h b/include/allegro/midi.h
+index 55830e582..9ed80f0f7 100644
+--- a/include/allegro/midi.h
++++ b/include/allegro/midi.h
+@@ -24,6 +24,10 @@
+ #ifdef __cplusplus
+    extern "C" {
+ #endif
++
++struct PACKFILE;
++
++
+                                        /* Theoretical maximums: */
+ #define MIDI_VOICES           64       /* actual drivers may not be */
+ #define MIDI_TRACKS           32       /* able to handle this many */
+@@ -116,6 +120,7 @@ AL_VAR(long, midi_loop_end);           /* loop when we hit this position */
+ AL_FUNC(int, detect_midi_driver, (int driver_id));
+ 
+ AL_FUNC(MIDI *, load_midi, (AL_CONST char *filename));
++AL_FUNC(MIDI *, load_midi_pf, (struct PACKFILE *f));
+ AL_FUNC(void, destroy_midi, (MIDI *midi));
+ AL_FUNC(int, play_midi, (MIDI *midi, int loop));
+ AL_FUNC(int, play_looped_midi, (MIDI *midi, int loop_start, int loop_end));
 diff --git a/include/allegro/platform/aintios.h b/include/allegro/platform/aintios.h
 new file mode 100644
-index 0000000..4d18946
+index 000000000..4d189465f
 --- /dev/null
 +++ b/include/allegro/platform/aintios.h
 @@ -0,0 +1,31 @@
@@ -1287,7 +1394,7 @@ index 0000000..4d18946
 +#endif
 +
 diff --git a/include/allegro/platform/aintosx.h b/include/allegro/platform/aintosx.h
-index dcd21b2..9c9a408 100644
+index dcd21b20d..e19201979 100644
 --- a/include/allegro/platform/aintosx.h
 +++ b/include/allegro/platform/aintosx.h
 @@ -42,6 +42,7 @@
@@ -1307,7 +1414,7 @@ index dcd21b2..9c9a408 100644
  - (BOOL)application: (NSApplication *)theApplication openFile: (NSString *)filename;
  - (void)applicationDidFinishLaunching: (NSNotification *)aNotification;
  - (void)applicationDidChangeScreenParameters: (NSNotification *)aNotification;
-@@ -71,8 +72,12 @@
+@@ -71,21 +72,35 @@
  
  
  @interface AllegroWindow : NSWindow
@@ -1320,8 +1427,15 @@ index dcd21b2..9c9a408 100644
  @end
  
  
-@@ -81,11 +86,15 @@
+ @interface AllegroWindowDelegate : NSObject
+ - (BOOL)windowShouldClose: (id)sender;
  - (void)windowDidDeminiaturize: (NSNotification *)aNotification;
++- (void)windowDidBecomeKey:(NSNotification *)notification;
++- (void)windowDidResignKey:(NSNotification *)notification;
++- (void)windowWillEnterFullScreen:(NSNotification *)notification;
++- (void)windowWillExitFullScreen:(NSNotification *)notification;
++- (void)windowDidBecomeMain:(NSNotification *)notification;
++- (void)windowDidResignMain:(NSNotification *)notification;
  @end
  
 -
@@ -1337,7 +1451,7 @@ index dcd21b2..9c9a408 100644
  
  typedef void RETSIGTYPE;
  
-@@ -129,7 +138,6 @@ typedef struct
+@@ -129,7 +144,6 @@ typedef struct
  
  
  void osx_event_handler(void);
@@ -1345,7 +1459,7 @@ index dcd21b2..9c9a408 100644
  
  void setup_direct_shifts(void);
  void osx_init_fade_system(void);
-@@ -160,6 +168,7 @@ void osx_mouse_move(int x, int y);
+@@ -160,6 +174,7 @@ void osx_mouse_move(int x, int y);
  HID_DEVICE_COLLECTION *osx_hid_scan(int type, HID_DEVICE_COLLECTION*);
  void osx_hid_free(HID_DEVICE_COLLECTION *);
  
@@ -1353,7 +1467,7 @@ index dcd21b2..9c9a408 100644
  
  AL_VAR(NSBundle *, osx_bundle);
  AL_VAR(void *, osx_event_mutex);
-@@ -173,7 +182,9 @@ AL_ARRAY(char, osx_window_title);
+@@ -173,7 +188,9 @@ AL_ARRAY(char, osx_window_title);
  AL_VAR(int, osx_window_first_expose);
  AL_VAR(int, osx_skip_events_processing);
  AL_VAR(void *, osx_skip_events_processing_mutex);
@@ -1365,7 +1479,7 @@ index dcd21b2..9c9a408 100644
  AL_VAR(int, osx_skip_mouse_move);
 diff --git a/include/allegro/platform/alios.h b/include/allegro/platform/alios.h
 new file mode 100644
-index 0000000..1d04056
+index 000000000..1d040560e
 --- /dev/null
 +++ b/include/allegro/platform/alios.h
 @@ -0,0 +1,65 @@
@@ -1436,7 +1550,7 @@ index 0000000..1d04056
 +#endif
 diff --git a/include/allegro/platform/alioscfg.h b/include/allegro/platform/alioscfg.h
 new file mode 100644
-index 0000000..be35c3d
+index 000000000..be35c3d91
 --- /dev/null
 +++ b/include/allegro/platform/alioscfg.h
 @@ -0,0 +1,70 @@
@@ -1510,11 +1624,38 @@ index 0000000..be35c3d
 +
 +
 +#endif
+diff --git a/include/allegro/platform/almsvc.h b/include/allegro/platform/almsvc.h
+index 063e98dc7..2098fa9ab 100644
+--- a/include/allegro/platform/almsvc.h
++++ b/include/allegro/platform/almsvc.h
+@@ -78,8 +78,12 @@
+ #define INLINE       __inline
+ 
+ #define LONG_LONG    __int64
+-#define int64_t      signed __int64
+-#define uint64_t     unsigned __int64
++#if (_MSC_VER >= 1600)
++   #define ALLEGRO_HAVE_STDINT_H
++#else
++   #define int64_t      signed __int64
++   #define uint64_t     unsigned __int64
++#endif
+ 
+ #define AL_CONST     const
+ 
 diff --git a/include/allegro/platform/alosx.h b/include/allegro/platform/alosx.h
-index 20787f3..9c2a4e9 100644
+index 20787f375..79bd040ea 100644
 --- a/include/allegro/platform/alosx.h
 +++ b/include/allegro/platform/alosx.h
-@@ -92,8 +92,12 @@ AL_VAR(MOUSE_DRIVER, mouse_macosx);
+@@ -42,7 +42,6 @@
+       #import <CoreAudio/CoreAudio.h>
+       #import <AudioUnit/AudioUnit.h>
+       #import <AudioToolbox/AudioToolbox.h>
+-      #import <QuickTime/QuickTime.h>
+       #import <IOKit/IOKitLib.h>
+       #import <IOKit/IOCFPlugIn.h>
+       #import <IOKit/hid/IOHIDLib.h>
+@@ -92,8 +91,12 @@ AL_VAR(MOUSE_DRIVER, mouse_macosx);
  /* Gfx drivers */
  #define GFX_QUARTZ_WINDOW       AL_ID('Q','Z','W','N')
  #define GFX_QUARTZ_FULLSCREEN   AL_ID('Q','Z','F','L')
@@ -1527,8 +1668,18 @@ index 20787f3..9c2a4e9 100644
  
  /* Digital sound drivers */
  #define DIGI_CORE_AUDIO         AL_ID('D','C','A',' ')
+@@ -103,9 +106,7 @@ AL_VAR(DIGI_DRIVER, digi_sound_manager);
+ 
+ /* MIDI music drivers */
+ #define MIDI_CORE_AUDIO         AL_ID('M','C','A',' ')
+-#define MIDI_QUICKTIME          AL_ID('Q','T','M',' ')
+ AL_VAR(MIDI_DRIVER, midi_core_audio);
+-AL_VAR(MIDI_DRIVER, midi_quicktime);
+ 
+ /* Joystick drivers */
+ #define JOYSTICK_HID            AL_ID('H','I','D','J')
 diff --git a/include/allegro/platform/alunix.h b/include/allegro/platform/alunix.h
-index c0196f5..f179854 100644
+index c0196f554..f1798541a 100644
 --- a/include/allegro/platform/alunix.h
 +++ b/include/allegro/platform/alunix.h
 @@ -69,6 +69,7 @@ AL_VAR(TIMER_DRIVER, timerdrv_unix_sigalrm);
@@ -1569,7 +1720,7 @@ index c0196f5..f179854 100644
  AL_FUNC_DEPRECATED(void, split_modex_screen, (int lyne));
  
 diff --git a/include/allegro/platform/alunixac.h.cmake b/include/allegro/platform/alunixac.h.cmake
-index 5adb3aa..25186d0 100644
+index 5adb3aa7f..25186d099 100644
 --- a/include/allegro/platform/alunixac.h.cmake
 +++ b/include/allegro/platform/alunixac.h.cmake
 @@ -123,6 +123,9 @@
@@ -1593,7 +1744,7 @@ index 5adb3aa..25186d0 100644
  
  /* Define to (void *)-1, if MAP_FAILED is not defined. */
 diff --git a/include/allegro/system.h b/include/allegro/system.h
-index 2aa6a59..e218bff 100644
+index 2aa6a594c..e218bff61 100644
 --- a/include/allegro/system.h
 +++ b/include/allegro/system.h
 @@ -66,6 +66,7 @@ AL_ARRAY(char, allegro_error);
@@ -1604,8 +1755,21 @@ index 2aa6a59..e218bff 100644
  
  AL_VAR(int, os_type);
  AL_VAR(int, os_version);
+diff --git a/include/osxalleg.h b/include/osxalleg.h
+index 96ade1883..52102fc47 100644
+--- a/include/osxalleg.h
++++ b/include/osxalleg.h
+@@ -29,6 +29,8 @@
+ extern "C" {
+ #endif
+ 
++// just a monotonically increasing number using `date '+%s'`
++#define MACOS_PORT_VERSION (1524488744L)
+ 
+ #ifdef __cplusplus
+ }
 diff --git a/misc/allegro-config.in b/misc/allegro-config.in
-index 84223cd..d032272 100644
+index 84223cd3d..d0322724d 100644
 --- a/misc/allegro-config.in
 +++ b/misc/allegro-config.in
 @@ -12,7 +12,7 @@
@@ -1618,7 +1782,7 @@ index 84223cd..d032272 100644
  prefix=@prefix@
  exec_prefix=$prefix
 diff --git a/misc/pkgreadme._tx b/misc/pkgreadme._tx
-index 465f4b4..3a49284 100644
+index 465f4b49d..3a49284fe 100644
 --- a/misc/pkgreadme._tx
 +++ b/misc/pkgreadme._tx
 @@ -12,12 +12,12 @@
@@ -1637,7 +1801,7 @@ index 465f4b4..3a49284 100644
  		See the AUTHORS file for a
  	       complete list of contributors.
 diff --git a/setup/setup.c b/setup/setup.c
-index 894bacb..df56485 100644
+index 894bacbe2..df564857e 100644
 --- a/setup/setup.c
 +++ b/setup/setup.c
 @@ -1163,7 +1163,7 @@ static void plot_joystick_state(BITMAP *bmp, int i)
@@ -1659,7 +1823,7 @@ index 894bacb..df56485 100644
        return 1;
     }
 diff --git a/src/config.c b/src/config.c
-index 7824a09..c49d424 100644
+index 7824a09be..c49d42474 100644
 --- a/src/config.c
 +++ b/src/config.c
 @@ -1,6 +1,6 @@
@@ -1778,7 +1942,7 @@ index 7824a09..c49d424 100644
      *names = NULL;
  }
 diff --git a/src/digmid.c b/src/digmid.c
-index 04b82af..c823e84 100644
+index 04b82aff0..c823e84f9 100644
 --- a/src/digmid.c
 +++ b/src/digmid.c
 @@ -13,6 +13,8 @@
@@ -1871,9 +2035,127 @@ index 04b82af..c823e84 100644
 +   return -1;
  }
  
+ 
+diff --git a/src/file.c b/src/file.c
+index c89024c14..b73e2d9c6 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -35,7 +35,7 @@
+    #include <sys/stat.h>
+ #endif
+ 
+-#ifdef ALLEGRO_UNIX
++#if defined (ALLEGRO_UNIX) || defined (ALLEGRO_MACOSX)
+    #include <pwd.h>                 /* for tilde expansion */
+ #endif
+ 
+@@ -174,7 +174,7 @@ char *canonicalize_filename(char *dest, AL_CONST char *filename, int size)
+ 
+    #endif
+ 
+-   #ifdef ALLEGRO_UNIX
++   #if defined (ALLEGRO_UNIX) || defined (ALLEGRO_MACOSX)
+ 
+       /* if the filename starts with ~ then it's relative to a home directory */
+       if ((ugetc(filename) == '~')) {
+@@ -256,7 +256,7 @@ char *canonicalize_filename(char *dest, AL_CONST char *filename, int size)
+       pos = ustrsize(buf);
+    }
+ 
+- #ifdef ALLEGRO_UNIX
++ #if defined (ALLEGRO_UNIX) || defined (ALLEGRO_MACOSX)
+    no_relativisation:
+  #endif
+ 
+diff --git a/src/fli.c b/src/fli.c
+index d71915929..a26fedaf5 100644
+--- a/src/fli.c
++++ b/src/fli.c
+@@ -908,6 +908,24 @@ int play_fli(AL_CONST char *filename, BITMAP *bmp, int loop, int (*callback)(voi
+ 
+ 
+ 
++/* play_fli_pf:
++ *  Like play_fli(), but loads fli from the given packfile.
++ *  Automatic looping is currently not supported, because there is no way 
++ *  to rewind packfile without knowing how to reopen it.
++ */
++int play_fli_pf(PACKFILE *fp, BITMAP *bmp, int (*callback)(void))
++{
++   ASSERT(fp);
++   ASSERT(bmp);
++   
++   if (open_fli_pf(fp) != FLI_OK)
++      return FLI_ERROR;
++
++   return do_play_fli(bmp, 0, callback);
++}
++
++
++
+ /* play_memory_fli:
+  *  Like play_fli(), but for files which have already been loaded into 
+  *  memory. Pass a pointer to the memory containing the FLI data.
+@@ -1010,6 +1028,30 @@ int open_fli(AL_CONST char *filename)
+ 
+ 
+ 
++/* open_fli_pf:
++ *  Opens an FLI from packfile stream ready for playing.
++ */
++int open_fli_pf(PACKFILE *fp)
++{
++   ASSERT(fp);
++   
++   if (fli_status != FLI_NOT_OPEN)
++      return FLI_ERROR;
++
++   if (fli_filename) {
++      _AL_FREE(fli_filename);
++      fli_filename = NULL;
++   }
++
++   fli_file = fp;
++   if (!fli_file)
++      return FLI_ERROR;
++
++   return do_open_fli();
++}
++
++
++
+ /* open_memory_fli:
+  *  Like open_fli(), but for files which have already been loaded into 
+  *  memory. Pass a pointer to the memory containing the FLI data.
+@@ -1037,7 +1079,11 @@ void close_fli(void)
+    remove_int(fli_timer_callback);
+ 
+    if (fli_file) {
+-      pack_fclose(fli_file);
++      /* if fli_filename is NULL this means that the packfile was 
++       * provided by external program.
++       */
++      if (fli_filename)
++         pack_fclose(fli_file);
+       fli_file = NULL;
+    }
+ 
+@@ -1069,6 +1115,12 @@ void close_fli(void)
+  */
+ int next_fli_frame(int loop)
+ {
++   /* looping is not supported if fli is read from custom packfile, 
++    * because it cannot be rewinded.
++    */
++   if (fli_file && fli_filename == NULL)
++      loop = 0;
++
+    if (fli_status != FLI_OK)
+       return fli_status;
+ 
 diff --git a/src/ios/idrivers.c b/src/ios/idrivers.c
 new file mode 100644
-index 0000000..f5c9e20
+index 000000000..f5c9e20aa
 --- /dev/null
 +++ b/src/ios/idrivers.c
 @@ -0,0 +1,75 @@
@@ -1954,7 +2236,7 @@ index 0000000..f5c9e20
 +END_JOYSTICK_DRIVER_LIST
 diff --git a/src/ios/ifile.c b/src/ios/ifile.c
 new file mode 100644
-index 0000000..d681c90
+index 000000000..d681c90c9
 --- /dev/null
 +++ b/src/ios/ifile.c
 @@ -0,0 +1,536 @@
@@ -2496,7 +2778,7 @@ index 0000000..d681c90
 +
 diff --git a/src/ios/igfx.c b/src/ios/igfx.c
 new file mode 100644
-index 0000000..ac93e31
+index 000000000..ac93e31ca
 --- /dev/null
 +++ b/src/ios/igfx.c
 @@ -0,0 +1,377 @@
@@ -2879,7 +3161,7 @@ index 0000000..ac93e31
 +}
 diff --git a/src/ios/ikey.c b/src/ios/ikey.c
 new file mode 100644
-index 0000000..83d47f6
+index 000000000..83d47f671
 --- /dev/null
 +++ b/src/ios/ikey.c
 @@ -0,0 +1,243 @@
@@ -3128,7 +3410,7 @@ index 0000000..83d47f6
 +}
 diff --git a/src/ios/imouse.c b/src/ios/imouse.c
 new file mode 100644
-index 0000000..1212e74
+index 000000000..1212e74ee
 --- /dev/null
 +++ b/src/ios/imouse.c
 @@ -0,0 +1,212 @@
@@ -3346,7 +3628,7 @@ index 0000000..1212e74
 +
 diff --git a/src/ios/isound.c b/src/ios/isound.c
 new file mode 100644
-index 0000000..b1ca27b
+index 000000000..b1ca27bb4
 --- /dev/null
 +++ b/src/ios/isound.c
 @@ -0,0 +1,223 @@
@@ -3575,7 +3857,7 @@ index 0000000..b1ca27b
 +}
 diff --git a/src/ios/isystem.c b/src/ios/isystem.c
 new file mode 100644
-index 0000000..7eb7b93
+index 000000000..7eb7b9397
 --- /dev/null
 +++ b/src/ios/isystem.c
 @@ -0,0 +1,102 @@
@@ -3683,7 +3965,7 @@ index 0000000..7eb7b93
 +}
 diff --git a/src/ios/ithreads.c b/src/ios/ithreads.c
 new file mode 100644
-index 0000000..35a9bc9
+index 000000000..35a9bc935
 --- /dev/null
 +++ b/src/ios/ithreads.c
 @@ -0,0 +1,113 @@
@@ -3802,7 +4084,7 @@ index 0000000..35a9bc9
 +}
 diff --git a/src/ios/itimer.c b/src/ios/itimer.c
 new file mode 100644
-index 0000000..b1c561e
+index 000000000..b1c561e85
 --- /dev/null
 +++ b/src/ios/itimer.c
 @@ -0,0 +1,232 @@
@@ -4039,7 +4321,7 @@ index 0000000..b1c561e
 +   }
 +}
 diff --git a/src/keyboard.c b/src/keyboard.c
-index 56f60da..c433268 100644
+index 56f60daca..7e73066e1 100644
 --- a/src/keyboard.c
 +++ b/src/keyboard.c
 @@ -1,6 +1,6 @@
@@ -4082,9 +4364,20 @@ index 56f60da..c433268 100644
   */
  int readkey(void)
  {
-@@ -388,12 +397,12 @@ END_OF_STATIC_FUNCTION(repeat_timer);
+@@ -387,13 +396,23 @@ END_OF_STATIC_FUNCTION(repeat_timer);
  
  
+ 
++void _hack_stop_keyboard_repeat()
++{
++   if (repeat_key >= 0) {
++      remove_int(repeat_timer);
++      repeat_key = -1;
++      repeat_scan = -1;
++   }
++}
++
++
  /* install_keyboard_hooks:
 - *  You should only use this function if you *aren't* using the rest of the 
 - *  keyboard handler. It can be called in the place of install_keyboard(), 
@@ -4101,7 +4394,7 @@ index 56f60da..c433268 100644
   *  input from your own code.
   */
  void install_keyboard_hooks(int (*keypressed)(void), int (*readkey)(void))
-@@ -464,7 +473,7 @@ void _handle_key_press(int keycode, int scancode)
+@@ -464,7 +483,7 @@ void _handle_key_press(int keycode, int scancode)
     }
  
     /* autorepeat? */
@@ -4110,7 +4403,7 @@ index 56f60da..c433268 100644
         (keycode >= 0) && (scancode > 0) && (scancode != KEY_PAUSE) &&
         ((keycode != repeat_key) || (scancode != repeat_scan))) {
        repeat_key = keycode;
-@@ -519,6 +528,7 @@ END_OF_FUNCTION(_handle_key_release);
+@@ -519,6 +538,7 @@ END_OF_FUNCTION(_handle_key_release);
   *  switch into polling mode and will no longer operate asynchronously
   *  even if the driver actually does support that.
   */
@@ -4118,7 +4411,7 @@ index 56f60da..c433268 100644
  int poll_keyboard(void)
  {
     int i;
-@@ -549,7 +559,7 @@ int poll_keyboard(void)
+@@ -549,7 +569,7 @@ int poll_keyboard(void)
        }
  
        while (_key_buffer.start != _key_buffer.end) {
@@ -4127,7 +4420,7 @@ index 56f60da..c433268 100644
  			      _key_buffer.scancode[_key_buffer.start]);
  
  	 if (_key_buffer.start < KEY_BUFFER_SIZE-1)
-@@ -617,7 +627,7 @@ AL_CONST char *scancode_to_name(int scancode)
+@@ -617,7 +637,7 @@ AL_CONST char *scancode_to_name(int scancode)
  
  
  /* install_keyboard:
@@ -4136,7 +4429,7 @@ index 56f60da..c433268 100644
   *  any of the keyboard input routines. Returns -1 on failure.
   */
  int install_keyboard(void)
-@@ -690,7 +700,7 @@ int install_keyboard(void)
+@@ -690,7 +710,7 @@ int install_keyboard(void)
  
  
  /* remove_keyboard:
@@ -4146,7 +4439,7 @@ index 56f60da..c433268 100644
   */
  void remove_keyboard(void)
 diff --git a/src/linux/ljoy.c b/src/linux/ljoy.c
-index 283b809..75c49bb 100644
+index 283b8093c..75c49bb0e 100644
 --- a/src/linux/ljoy.c
 +++ b/src/linux/ljoy.c
 @@ -53,9 +53,6 @@ static int joy_init(void)
@@ -4176,23 +4469,24 @@ index 283b809..75c49bb 100644
        ioctl(joy_fd[i], JSIOCGBUTTONS, &num_buttons);
  
 diff --git a/src/linux/lmsedrv.c b/src/linux/lmsedrv.c
-index ce2bfbf..0cc7bb8 100644
+index ce2bfbf61..0cc7bb8e4 100644
 --- a/src/linux/lmsedrv.c
 +++ b/src/linux/lmsedrv.c
-@@ -31,7 +31,9 @@ _DRIVER_INFO _linux_mouse_driver_list[] =
+@@ -30,8 +30,10 @@ _DRIVER_INFO _linux_mouse_driver_list[] =
+    {  MOUSEDRV_LINUX_GPMDATA,  &mousedrv_linux_gpmdata,  TRUE  },
  #ifdef ALLEGRO_HAVE_LINUX_INPUT_H
     {  MOUSEDRV_LINUX_EVDEV,    &mousedrv_linux_evdev,    TRUE  },
- #endif
++#endif
 +#ifdef ALLEGRO_LINUX_TSLIB
 +   {  MOUSEDRV_LINUX_TSLIB,    &mousedrv_linux_tslib,    TRUE  },
-+#endif
+ #endif
     {  MOUSEDRV_NONE,           &mousedrv_none,           TRUE  },
     {  0,                       NULL,                     0     }
  };
 -
 diff --git a/src/linux/tslib.c b/src/linux/tslib.c
 new file mode 100644
-index 0000000..35b7631
+index 000000000..35b76311a
 --- /dev/null
 +++ b/src/linux/tslib.c
 @@ -0,0 +1,169 @@
@@ -4365,12 +4659,298 @@ index 0000000..35b7631
 +};
 +
 +#endif
+diff --git a/src/macosx/cadigi.m b/src/macosx/cadigi.m
+index 3c151c2f8..23462e6c0 100644
+--- a/src/macosx/cadigi.m
++++ b/src/macosx/cadigi.m
+@@ -32,8 +32,15 @@
+ 
+ 
+ static AUGraph graph;
+-static AudioUnit output_unit, converter_unit;
++   
++static AudioUnit converter_unit;
++static AudioUnit mixer_unit;
++static AudioUnit output_unit;
++
+ static int audio_buffer_size = 0;
++static unsigned char *audio_buffer = NULL;
++static int audio_buffer_offset = 0;
++
+ static char ca_desc[512] = EMPTY_STRING;
+ 
+ 
+@@ -94,11 +101,40 @@
+ };
+ 
+ 
++/*
++A frame is a set of samples for each channel at one point of time
++A packet is a set of frames. PCM just has one frame per packet, but other formats may differ
++*/
+ 
++// https://developer.apple.com/library/content/documentation/MusicAudio/Conceptual/AudioUnitHostingGuide_iOS/AudioUnitHostingFundamentals/AudioUnitHostingFundamentals.html#//apple_ref/doc/uid/TP40009492-CH3-SW27
+ static OSStatus render_callback(void *inRefCon, AudioUnitRenderActionFlags *inActionFlags,
+    const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumFrames, AudioBufferList *ioData)
+ {
+-   _mix_some_samples((unsigned long)ioData->mBuffers[0].mData, 0, TRUE);
++   // printf("render numbuf=%d numframes=%d bufferSize=%d\n", ioData->mNumberBuffers, inNumFrames, ioData->mBuffers[0].mDataByteSize);
++    
++   unsigned char *mData = ioData->mBuffers[0].mData;
++   UInt32 mDataByteRemaining = ioData->mBuffers[0].mDataByteSize;
++   // UInt32 mDataByteRemaining = inNumFrames*2*sizeof(short);
++
++   while (mDataByteRemaining > 0) {
++      if (audio_buffer_offset >= audio_buffer_size) {
++         _mix_some_samples(audio_buffer, 0, TRUE);
++         audio_buffer_offset = 0;
++      }
++
++      UInt32 byteCopyCount = audio_buffer_size - audio_buffer_offset;
++      if (byteCopyCount > mDataByteRemaining) {
++         byteCopyCount = mDataByteRemaining;
++      }
++
++      memcpy(mData, audio_buffer+audio_buffer_offset, byteCopyCount);
++
++      mData += byteCopyCount;
++      mDataByteRemaining -= byteCopyCount;
++      audio_buffer_offset += byteCopyCount;
++
++      // printf("  - transferred %d bytes\n", byteCopyCount);
++   }
+    return 0;
+ }
+ 
+@@ -119,15 +155,7 @@ static int ca_detect(int input)
+ 
+ static int ca_init(int input, int voices)
+ {
+-   AudioDeviceID audio_device;
+-   ComponentDescription desc;
+-   AUNode output_node, converter_node;
+-   AURenderCallbackStruct render_cb;
+-   UInt32 property_size, buffer_size;
+-   AudioStreamBasicDescription input_format_desc, output_format_desc;
+-   char device_name[64], manufacturer[64];
+-   UInt32 device_name_size, manufacturer_size;
+-   char tmp1[256], tmp2[256], tmp3[256];
++   UInt32 property_size;
+ 
+    if (input) {
+       ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Input is not supported"));
+@@ -140,33 +168,69 @@ static int ca_init(int input, int voices)
+    
+    NewAUGraph(&graph);
+ 
+-   desc.componentType = kAudioUnitType_FormatConverter;
+-   desc.componentSubType = kAudioUnitSubType_AUConverter;
+-   desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+-   desc.componentFlags = 0;        
+-   desc.componentFlagsMask = 0;   
+-   AUGraphNewNode(graph, &desc, 0, NULL, &converter_node);
+-   
+-   desc.componentType = kAudioUnitType_Output;
+-   desc.componentSubType = kAudioUnitSubType_DefaultOutput;
+-   desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+-   desc.componentFlags = 0;        
+-   desc.componentFlagsMask = 0;   
+-   AUGraphNewNode(graph, &desc, 0, NULL, &output_node);
+-   
+-   AUGraphOpen(graph);
+-   AUGraphInitialize(graph);
++   AUNode converter_node;
++   AudioComponentDescription converter_desc = {0};
++   converter_desc.componentManufacturer = kAudioUnitManufacturer_Apple;
++   converter_desc.componentSubType = kAudioUnitSubType_AUConverter;
++   converter_desc.componentType = kAudioUnitType_FormatConverter;
++   AUGraphAddNode(graph, &converter_desc, &converter_node);
++
++   AUNode mixer_node;
++   AudioComponentDescription mixer_desc = {0};
++   mixer_desc.componentManufacturer = kAudioUnitManufacturer_Apple;
++   mixer_desc.componentSubType = kAudioUnitSubType_StereoMixer;
++   mixer_desc.componentType = kAudioUnitType_Mixer;
++   AUGraphAddNode(graph, &mixer_desc, &mixer_node);
++
++   AUNode output_node;
++   AudioComponentDescription output_desc = {0};
++   output_desc.componentManufacturer = kAudioUnitManufacturer_Apple;
++   output_desc.componentSubType = kAudioUnitSubType_DefaultOutput;
++   output_desc.componentType = kAudioUnitType_Output;
++   AUGraphAddNode(graph, &output_desc, &output_node);
++
++   AUGraphConnectNodeInput(graph, converter_node, 0, mixer_node, 0);
++   AUGraphConnectNodeInput(graph, mixer_node, 0, output_node, 0);
++
++   if (AUGraphOpen(graph)) {
++      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Error opening graph"));
++      ca_exit(FALSE);
++      return -1; 
++   }
+    
+-   AUGraphGetNodeInfo(graph, output_node, NULL, NULL, NULL, &output_unit);
+-   AUGraphGetNodeInfo(graph, converter_node, NULL, NULL, NULL, &converter_unit);
++   AUGraphNodeInfo(graph, converter_node, &converter_desc, &converter_unit);
++   AUGraphNodeInfo(graph, mixer_node, &mixer_desc, &mixer_unit);
++   AUGraphNodeInfo(graph, output_node, &output_desc, &output_unit);
+ 
++   UInt32 buscount = 1;
++   if (AudioUnitSetProperty(mixer_unit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &buscount, sizeof(buscount))) {
++      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Error initialising mixer"));
++      ca_exit(FALSE);
++      return -1; 
++   }
++
++   AURenderCallbackStruct render_cb = {0};
++   render_cb.inputProc = render_callback;
++    if (AUGraphSetNodeInputCallback(graph, converter_node, 0, &render_cb)) {
++      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Cannot set audio rendering callback"));
++      ca_exit(FALSE);
++      return -1;
++   }
++
++
++   AudioStreamBasicDescription output_format_desc = {0};
+    property_size = sizeof(output_format_desc);
+    if (AudioUnitGetProperty(output_unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &output_format_desc, &property_size)) {
+       ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Cannot detect output audio format"));
+       ca_exit(FALSE);
+       return -1;
+    }
++   // printf("output sample rate: %f\n", output_format_desc.mSampleRate);
+    
++
++   AudioStreamBasicDescription input_format_desc = {0};
++//    input_format_desc.mSampleRate = 22050.0;
++//    input_format_desc.mSampleRate = 44100.0;
+    input_format_desc.mSampleRate = output_format_desc.mSampleRate;
+    input_format_desc.mFormatID = kAudioFormatLinearPCM;
+ #ifdef ALLEGRO_BIG_ENDIAN
+@@ -180,59 +244,67 @@ static int ca_init(int input, int voices)
+    input_format_desc.mChannelsPerFrame = 2;
+    input_format_desc.mBitsPerChannel = 16;
+    
+-   if (AudioUnitSetProperty(converter_unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &output_format_desc, sizeof(output_format_desc)) ||
+-       AudioUnitSetProperty(converter_unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &input_format_desc, sizeof(input_format_desc))) {
++   if( AudioUnitSetProperty(converter_unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &input_format_desc, sizeof(input_format_desc))) {
+       ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Cannot configure format converter audio unit"));
+       ca_exit(FALSE);
+       return -1;
+    }
+-   
++
+    _sound_bits = 16;
+    _sound_stereo = TRUE;
+-   _sound_freq = (int)output_format_desc.mSampleRate;
+-   
+-   AUGraphConnectNodeInput(graph, converter_node, 0, output_node, 0);
+-   
+-   render_cb.inputProc = render_callback;
+-   render_cb.inputProcRefCon = NULL;
+-   if (AudioUnitSetProperty(converter_unit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &render_cb, sizeof(render_cb))) {
+-      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Cannot set audio rendering callback"));
++   _sound_freq = (int)input_format_desc.mSampleRate;
++
++
++   // essentially we were guessing what the buffer size would be, but size changes over time if the output
++   // device changes.
++
++   int audio_buffer_size_in_frames = 512;  // Seems to be initally 512 on average
++   int audio_buffer_size_in_samples = audio_buffer_size_in_frames * 2;
++   audio_buffer_size /* in bytes */ = audio_buffer_size_in_samples * sizeof(short);
++   audio_buffer = _AL_MALLOC_ATOMIC(audio_buffer_size);
++   audio_buffer_offset = audio_buffer_size; // set to end so it will fill immediately
++
++   digi_core_audio.voices = voices;
++   if (_mixer_init(audio_buffer_size_in_samples, _sound_freq, _sound_stereo, TRUE, &digi_core_audio.voices)) {
++      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Error initialising mixer"));
+       ca_exit(FALSE);
+       return -1;
+    }
+ 
++
++   AUGraphInitialize(graph);
++
++   AUGraphStart(graph);
++
++
++   AudioDeviceID audio_device;
++
+    property_size = sizeof(audio_device);
+    if (AudioUnitGetProperty(output_unit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Output, 0, &audio_device, &property_size)) {
+       ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Cannot get CoreAudio device"));
+       ca_exit(FALSE);
+       return -1;
+    }
+-   
+-   property_size = sizeof(buffer_size);
+-   if (AudioDeviceGetProperty(audio_device, 0, false, kAudioDevicePropertyBufferSize, &property_size, &buffer_size)) {
+-      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Cannot get CoreAudio device buffer size"));
+-      ca_exit(FALSE);
+-      return -1;
+-   }
+-   audio_buffer_size = buffer_size / sizeof(float) * sizeof(short);
+-   digi_core_audio.voices = voices;
+-   if (_mixer_init(audio_buffer_size / sizeof(short), _sound_freq, _sound_stereo, TRUE, &digi_core_audio.voices)) {
+-      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Error initializing mixer"));
+-      ca_exit(FALSE);
+-      return -1;
+-   }
+-   
+-   AUGraphStart(graph);
+-   
+-   device_name_size = sizeof(device_name);
+-   manufacturer_size = sizeof(manufacturer);
+-   if (!AudioDeviceGetProperty(audio_device, 0, false, kAudioDevicePropertyDeviceName, &device_name_size, device_name) &&
+-       !AudioDeviceGetProperty(audio_device, 0, false, kAudioDevicePropertyDeviceManufacturer, &manufacturer_size, manufacturer)) {
++
++   // describe audio device, write to digi_core_audio.desc
++   char device_name[64];
++   char manufacturer[64];
++   UInt32 device_name_size = sizeof(device_name);
++   UInt32 manufacturer_size = sizeof(manufacturer);
++   AudioObjectPropertyAddress deviceNameAddr = {kAudioDevicePropertyDeviceName, kAudioDevicePropertyScopeOutput, 0};
++   AudioObjectPropertyAddress deviceManuAddr = {kAudioDevicePropertyDeviceManufacturer, kAudioDevicePropertyScopeOutput, 0};
++   if (!AudioObjectGetPropertyData(audio_device, &deviceNameAddr, 0, NULL, &device_name_size, device_name) &&
++       !AudioObjectGetPropertyData(audio_device, &deviceManuAddr, 0, NULL, &manufacturer_size, manufacturer)) 
++   {
++      char tmp1[256];
++      char tmp2[256];
++      char tmp3[256];
+       uszprintf(ca_desc, sizeof(ca_desc), get_config_text("%s (%s), 16 bits (%d real), %d bps, %s"),
+          uconvert_ascii(device_name, tmp1), uconvert_ascii(manufacturer, tmp2), output_format_desc.mBitsPerChannel,
+ 	 _sound_freq, uconvert_ascii(_sound_stereo ? "stereo" : "mono", tmp3));
+    }
+    else {
++      char tmp3[256];
+       uszprintf(ca_desc, sizeof(ca_desc), get_config_text("16 bits (%d real), %d bps, %s"), output_format_desc.mBitsPerChannel,
+ 	 _sound_freq, uconvert_ascii(_sound_stereo ? "stereo" : "mono", tmp3));
+    }
+@@ -252,6 +324,8 @@ static void ca_exit(int input)
+    AUGraphClose(graph);
+    DisposeAUGraph(graph);
+    _mixer_exit();
++   _AL_FREE(audio_buffer);
++   audio_buffer = NULL;
+ }
+ 
+ 
+@@ -266,7 +340,6 @@ static int ca_buffer_size()
+ static int ca_set_mixer_volume(int volume)
+ {
+    float value = (float)volume / 255.0;
+-
+-   return AudioUnitSetParameter(converter_unit, kAudioUnitParameterUnit_LinearGain, kAudioUnitScope_Output, 0, value, 0);
++   return AudioUnitSetParameter(output_unit, kAudioUnitParameterUnit_LinearGain, kAudioUnitScope_Output, 0, value, 0);
+ }
+ 
 diff --git a/src/macosx/cocoagl.m b/src/macosx/cocoagl.m
 new file mode 100644
-index 0000000..556bb4f
+index 000000000..0ad16ee80
 --- /dev/null
 +++ b/src/macosx/cocoagl.m
-@@ -0,0 +1,573 @@
+@@ -0,0 +1,574 @@
 +/*         ______   ___    ___ 
 + *        /\  _  \ /\_ \  /\_ \ 
 + *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___ 
@@ -4398,6 +4978,7 @@ index 0000000..556bb4f
 +#endif
 +
 +#include <OpenGL/gl.h>
++#include <math.h>
 +
 +#define PREFIX_I "al-osxgl INFO: "
 +#define PREFIX_W "al-osxgl WARNING: "
@@ -4414,81 +4995,74 @@ index 0000000..556bb4f
 +
 +GFX_DRIVER gfx_cocoagl_window =
 +{
-+   GFX_COCOAGL_WINDOW,
-+   empty_string,
-+   empty_string,
-+   "Cocoa GL window",
-+   osx_gl_window_init,
-+   osx_gl_window_exit,
-+   NULL,                         /* AL_METHOD(int, scroll, (int x, int y)); */
-+   NULL,                         /* AL_METHOD(void, vsync, (void)); */
-+   NULL,                         /* AL_METHOD(void, set_palette, (AL_CONST struct RGB *p, int from, int to, int retracesync)); */
-+   NULL,                         /* AL_METHOD(int, request_scroll, (int x, int y)); */
-+   NULL,                         /* AL_METHOD(int, poll_scroll, (void)); */
-+   NULL,                         /* AL_METHOD(void, enable_triple_buffer, (void)); */
-+   NULL,                         /* AL_METHOD(struct BITMAP *, create_video_bitmap, (int width, int height)); */
-+   NULL,                         /* AL_METHOD(void, destroy_video_bitmap, (struct BITMAP *bitmap)); */
-+   NULL,                         /* AL_METHOD(int, show_video_bitmap, (BITMAP *bitmap)); */
-+   NULL,                         /* AL_METHOD(int, request_video_bitmap, (BITMAP *bitmap)); */
-+   NULL,                         /* AL_METHOD(BITMAP *, create_system_bitmap, (int width, int height)); */
-+   NULL,                         /* AL_METHOD(void, destroy_system_bitmap, (BITMAP *bitmap)); */
-+   osx_mouse_set_sprite,         /* AL_METHOD(int, set_mouse_sprite, (BITMAP *sprite, int xfocus, int yfocus)); */
-+   osx_mouse_show,               /* AL_METHOD(int, show_mouse, (BITMAP *bmp, int x, int y)); */
-+   osx_mouse_hide,               /* AL_METHOD(void, hide_mouse, (void)); */
-+   osx_mouse_move,               /* AL_METHOD(void, move_mouse, (int x, int y)); */
-+   NULL,                         /* AL_METHOD(void, drawing_mode, (void)); */
-+   NULL,                         /* AL_METHOD(void, save_video_state, (void)); */
-+   NULL,                         /* AL_METHOD(void, restore_video_state, (void)); */
-+   NULL,                         /* AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a)); */
-+   NULL,                         /* AL_METHOD(int, fetch_mode_list, (void)); */
-+   0, 0,                         /* physical (not virtual!) screen size */
-+   TRUE,                         /* true if video memory is linear */
-+   0,                            /* bank size, in bytes */
-+   0,                            /* bank granularity, in bytes */
-+   0,                            /* video memory size, in bytes */
-+   0,                            /* physical address of video memory */
-+   TRUE                          /* true if driver runs windowed */
++    .id = GFX_COCOAGL_WINDOW,
++    .name = empty_string,
++    .desc = empty_string,
++    .ascii_name = "Cocoa GL window",
++    .init = osx_gl_window_init,
++    .exit = osx_gl_window_exit,
++    .set_mouse_sprite = osx_mouse_set_sprite,
++    .show_mouse = osx_mouse_show,
++    .hide_mouse = osx_mouse_hide,
++    .move_mouse = osx_mouse_move,
++    .linear = TRUE,
++    .windowed = TRUE,
 +};
 +
 +GFX_DRIVER gfx_cocoagl_full =
 +{
-+    GFX_COCOAGL_FULLSCREEN,
-+    empty_string,
-+    empty_string,
-+    "Cocoa GL full",
-+    osx_gl_full_init,
-+    osx_gl_full_exit,
-+    NULL,                         /* AL_METHOD(int, scroll, (int x, int y)); */
-+    NULL,                         /* AL_METHOD(void, vsync, (void)); */
-+    NULL,                         /* AL_METHOD(void, set_palette, (AL_CONST struct RGB *p, int from, int to, int retracesync)); */
-+    NULL,                         /* AL_METHOD(int, request_scroll, (int x, int y)); */
-+    NULL,                         /* AL_METHOD(int, poll_scroll, (void)); */
-+    NULL,                         /* AL_METHOD(void, enable_triple_buffer, (void)); */
-+    NULL,                         /* AL_METHOD(struct BITMAP *, create_video_bitmap, (int width, int height)); */
-+    NULL,                         /* AL_METHOD(void, destroy_video_bitmap, (struct BITMAP *bitmap)); */
-+    NULL,                         /* AL_METHOD(int, show_video_bitmap, (BITMAP *bitmap)); */
-+    NULL,                         /* AL_METHOD(int, request_video_bitmap, (BITMAP *bitmap)); */
-+    NULL,                         /* AL_METHOD(BITMAP *, create_system_bitmap, (int width, int height)); */
-+    NULL,                         /* AL_METHOD(void, destroy_system_bitmap, (BITMAP *bitmap)); */
-+    osx_mouse_set_sprite,         /* AL_METHOD(int, set_mouse_sprite, (BITMAP *sprite, int xfocus, int yfocus)); */
-+    osx_mouse_show,               /* AL_METHOD(int, show_mouse, (BITMAP *bmp, int x, int y)); */
-+    osx_mouse_hide,               /* AL_METHOD(void, hide_mouse, (void)); */
-+    osx_mouse_move,               /* AL_METHOD(void, move_mouse, (int x, int y)); */
-+    NULL,                         /* AL_METHOD(void, drawing_mode, (void)); */
-+    NULL,                         /* AL_METHOD(void, save_video_state, (void)); */
-+    NULL,                         /* AL_METHOD(void, restore_video_state, (void)); */
-+    NULL,                         /* AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a)); */
-+    NULL,                         /* AL_METHOD(int, fetch_mode_list, (void)); */
-+    0, 0,                         /* physical (not virtual!) screen size */
-+    TRUE,                         /* true if video memory is linear */
-+    0,                            /* bank size, in bytes */
-+    0,                            /* bank granularity, in bytes */
-+    0,                            /* video memory size, in bytes */
-+    0,                            /* physical address of video memory */
-+    FALSE                         /* true if driver runs windowed */
++    .id = GFX_COCOAGL_FULLSCREEN,
++    .name = empty_string,
++    .desc = empty_string,
++    .ascii_name = "Cocoa GL full",
++    .init = osx_gl_full_init,
++    .exit = osx_gl_full_exit,
++    .set_mouse_sprite = osx_mouse_set_sprite,
++    .show_mouse = osx_mouse_show,
++    .hide_mouse = osx_mouse_hide,
++    .move_mouse = osx_mouse_move,
++    .linear = TRUE,
++    .windowed = FALSE,
 +};
 +
 +
++static float calc_aspect_ratio(NSSize size) {
++    float display_aspect = ((float)size.width) / size.height;
++
++#ifdef ALLEGRO_MACOSX_ALLOW_NON_SQUARE_PIXELS    
++    /* if 320x200 or 640x400 - non square pixels */
++    if ( ((size.width == 320) && (size.height == 200)) ||
++        ((size.width == 640) && (size.height == 400)) ) {
++        display_aspect = 4.0/3.0;
++    }
++#endif
++
++    return display_aspect;
++}
++
++static NSSize adjust_display_size(NSSize size) 
++{
++    const float display_aspect = calc_aspect_ratio(size);
++    return NSMakeSize (ceil(size.width), ceil(size.width / display_aspect));
++}
++
++static NSSize scale_display_size(NSSize size) 
++{
++    int display_w = size.width;
++    int display_h = size.height;
++
++    NSRect screenRect = [[NSScreen mainScreen] visibleFrame];
++    int w_scale = screenRect.size.width / display_w;
++    int h_scale = screenRect.size.height / display_h;
++    int scale = w_scale;
++    if (h_scale < scale) { scale = h_scale; }
++    if (scale < 1) { scale = 1; }
++
++    display_w = display_w * scale;
++    display_h = display_h * scale;
++
++    return NSMakeSize (display_w, display_h);
++}
 +
 +static BITMAP *osx_gl_real_init(int w, int h, int v_w, int v_h, int color_depth, GFX_DRIVER * driver)
 +{
@@ -4510,15 +5084,18 @@ index 0000000..556bb4f
 +    // Run on the main thread because we're manipulating the API
 +    runOnMainQueueWithoutDeadlocking(^{
 +
++    const NSSize suggestedSize = NSMakeSize(w, h);
++    const NSSize adjustedSize = adjust_display_size(suggestedSize);
++    const NSSize scaledSize = scale_display_size(adjustedSize);
++
 +    // setup REAL window
-+    NSRect rect = NSMakeRect(0, 0, w, h);
 +    NSUInteger styleMask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask;
 +    //if (is_fullscreen) {
 +      //  rect = [[NSScreen mainScreen] frame];
 +      //  styleMask = NSBorderlessWindowMask;
 +    //}
 +
-+    osx_window = [[AllegroWindow alloc] initWithContentRect: rect
++    osx_window = [[AllegroWindow alloc] initWithContentRect: (NSRect){.origin=NSZeroPoint, .size=scaledSize}
 +                                                  styleMask: styleMask
 +                                                    backing: NSBackingStoreBuffered
 +                                                      defer: NO
@@ -4526,27 +5103,31 @@ index 0000000..556bb4f
 +
 +    AllegroWindowDelegate *osx_window_delegate = [[AllegroWindowDelegate alloc] init];
 +    [osx_window setDelegate: (id<NSWindowDelegate>)osx_window_delegate];
-+    [osx_window setOneShot: YES];
-+    [osx_window setAcceptsMouseMovedEvents: YES];
-+    [osx_window setViewsNeedDisplay: NO];
 +    [osx_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-+
 +    [osx_window center];
-+    if (is_fullscreen) {
-+        [osx_window  toggleFullScreen:nil];
-+//        [osx_window setLevel:NSMainMenuWindowLevel+1];
-+//        [osx_window setOpaque:YES];
-+//        [osx_window setHidesOnDeactivate:YES];
-+    }
 +
 +    set_window_title(osx_window_title);
 +
-+    AllegroCocoaGLView *osx_gl_view = [[[AllegroCocoaGLView alloc] initWithFrame: rect windowed:driver->windowed backing: displayed_video_bitmap] autorelease];
++    AllegroCocoaGLView *osx_gl_view = [[[AllegroCocoaGLView alloc] initWithFrame: (NSRect){.origin=NSZeroPoint, .size=scaledSize} windowed:driver->windowed backing: displayed_video_bitmap] autorelease];
 +    [osx_window setContentView: osx_gl_view];
 +
++    [osx_window setContentMinSize: adjustedSize];
++    [osx_window setContentAspectRatio: adjustedSize];
++
++    [osx_window setLevel: NSNormalWindowLevel];
++    [osx_window orderFrontRegardless];
 +    [osx_window makeKeyAndOrderFront: nil];
 +
 +    });
++
++    // NS: this must be toggled after window and view has been completely configured. If not, the dock may interact
++    // with the mouse cursor in weird ways, showing the system cursor if you hover where the dock would appear.
++    // The use of 'dispatch_after' might not be necessary, but I wanted to let the runloop iterate a few times.
++    if (is_fullscreen) {
++      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(50 * NSEC_PER_MSEC)), dispatch_get_main_queue(), ^{
++        [osx_window toggleFullScreen:nil];
++      });
++    }
 +
 +    osx_keyboard_focused(FALSE, 0);
 +    clear_keybuf();
@@ -4675,9 +5256,18 @@ index 0000000..556bb4f
 +- (void)resetCursorRects
 +{
 +    [super resetCursorRects];
-+    [self addCursorRect: [self visibleRect]
-+                 cursor: osx_cursor];
++    [self addCursorRect: [self visibleRect] cursor: osx_cursor];
 +    [osx_cursor setOnMouseEntered: YES];
++
++    if (osx_mouse_tracking_rect != -1) {
++      [self removeTrackingRect: osx_mouse_tracking_rect];
++    }
++
++    osx_mouse_tracking_rect = [self addTrackingRect: [self visibleRect]
++                                                     owner: NSApp
++                                                  userData: nil
++                                              assumeInside: YES];
++
 +}
 +
 +/* Custom view: when created, select a suitable pixel format */
@@ -4901,30 +5491,21 @@ index 0000000..556bb4f
 +{
 +    [super reshape];
 +
-+    if (osx_mouse_tracking_rect != -1) {
-+      [self removeTrackingRect: osx_mouse_tracking_rect];
-+    }
-+
-+    osx_mouse_tracking_rect = [self addTrackingRect: self.frame
-+                                                     owner: NSApp
-+                                                  userData: nil
-+                                              assumeInside: YES];
-+
 +    CGLLockContext([[self openGLContext] CGLContextObj]);
 +    @try {
 +        [[self openGLContext] makeCurrentContext];
 +
 +        NSSize myNSWindowSize = [ self frame ].size;
 +
-+        float aspect = ((float)_gameWidth) / _gameHeight;
++        float aspect = calc_aspect_ratio(NSMakeSize(_gameWidth, _gameHeight));
 +
-+        /* if 320x200 or 640x400 - non square pixels */
-+        if ( (_gameWidth == 320) && (_gameHeight == 200) ||
-+            (_gameWidth == 640) && (_gameHeight == 400) ) {
-+            aspect = 1.333333333333;
++        NSRect viewport;
++        viewport.size = NSMakeSize(myNSWindowSize.height * aspect, myNSWindowSize.height);
++        if (viewport.size.width > myNSWindowSize.width) {
++            viewport.size = NSMakeSize(myNSWindowSize.width, myNSWindowSize.width/aspect);
 +        }
++        viewport.origin = NSMakePoint((myNSWindowSize.width - viewport.size.width)/2, (myNSWindowSize.height - viewport.size.height)/2 );
 +
-+        NSRect viewport = NSMakeRect((myNSWindowSize.width - myNSWindowSize.height * aspect)/2, 0, myNSWindowSize.height * aspect, myNSWindowSize.height);
 +        glViewport(viewport.origin.x, viewport.origin.y, viewport.size.width, viewport.size.height);
 +        glScissor(viewport.origin.x, viewport.origin.y, viewport.size.width, viewport.size.height);
 +        
@@ -4946,10 +5527,10 @@ index 0000000..556bb4f
 +@end
 diff --git a/src/macosx/cocoashared.m b/src/macosx/cocoashared.m
 new file mode 100644
-index 0000000..27d8c9e
+index 000000000..733666e04
 --- /dev/null
 +++ b/src/macosx/cocoashared.m
-@@ -0,0 +1,124 @@
+@@ -0,0 +1,170 @@
 +#include "allegro.h"
 +#include "allegro/internal/aintern.h"
 +#include "allegro/platform/aintosx.h"
@@ -4963,6 +5544,10 @@ index 0000000..27d8c9e
 +void osx_qz_mark_dirty();
 +void prepare_window_for_animation(int refresh_view);
 +#endif
++
++extern void _hack_stop_keyboard_repeat();
++extern void osx_mouse_available();
++extern void osx_mouse_not_available();
 +
 +@implementation AllegroWindow
 +
@@ -5000,6 +5585,7 @@ index 0000000..27d8c9e
 +
 +@end
 +
++static int _isFullScreen = 0;
 +
 +@implementation AllegroWindowDelegate
 +
@@ -5029,7 +5615,18 @@ index 0000000..27d8c9e
 +#endif
 +}
 +
++// We call osx_mouse_* here because we sometimes don't detect mouse entering window area if alt-tabbing from another context
 +
++- (void)windowDidBecomeMain:(NSNotification *)notification
++{
++    if (_isFullScreen) {
++        [[NSApplication sharedApplication] setPresentationOptions:NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationHideDock];
++    }
++}
++
++- (void)windowDidResignMain:(NSNotification *)notification
++{
++}
 +
 +/* windowDidBecomeKey:
 + * Sent by the default notification center immediately after an NSWindow
@@ -5037,12 +5634,15 @@ index 0000000..27d8c9e
 + */
 +- (void)windowDidBecomeKey:(NSNotification *)notification
 +{
++    if (_isFullScreen) {
++        [[NSApplication sharedApplication] setPresentationOptions:NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationHideDock];
++    }
 +    _unix_lock_mutex(osx_skip_events_processing_mutex);
 +    osx_skip_events_processing = FALSE;
 +    _unix_unlock_mutex(osx_skip_events_processing_mutex);
++
++    osx_mouse_available();
 +}
-+
-+
 +
 +/* windowDidResignKey:
 + * Sent by the default notification center immediately after an NSWindow
@@ -5053,6 +5653,33 @@ index 0000000..27d8c9e
 +    _unix_lock_mutex(osx_skip_events_processing_mutex);
 +    osx_skip_events_processing = TRUE;
 +    _unix_unlock_mutex(osx_skip_events_processing_mutex);
++
++    osx_mouse_not_available();
++
++    // Stop repeating keys since we might not actually see the "key up" event.
++    _hack_stop_keyboard_repeat();
++}
++
++- (void)windowWillEnterFullScreen:(NSNotification *)notification
++{
++    [[NSApplication sharedApplication] setPresentationOptions:NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationHideDock];
++    _hack_stop_keyboard_repeat();
++}
++
++- (void)windowWillExitFullScreen:(NSNotification *)notification
++{
++    [[NSApplication sharedApplication] setPresentationOptions:NSApplicationPresentationDefault];
++    _hack_stop_keyboard_repeat();
++}
++
++- (void)windowDidEnterFullScreen:(NSNotification *)notification
++{
++    _isFullScreen = 1;
++}
++
++- (void)windowDidExitFullScreen:(NSNotification *)notification
++{
++    _isFullScreen = 0;
 +}
 +
 +@end
@@ -5075,10 +5702,10 @@ index 0000000..27d8c9e
 +/* c-file-style: "linux" */
 +/* End:                   */
 diff --git a/src/macosx/drivers.m b/src/macosx/drivers.m
-index 9284d67..8f28f7f 100644
+index 9284d6767..8f28f7f8e 100644
 --- a/src/macosx/drivers.m
 +++ b/src/macosx/drivers.m
-@@ -47,20 +47,22 @@ _DRIVER_INFO _mouse_driver_list[] =
+@@ -47,20 +47,22 @@
  
  
  BEGIN_GFX_DRIVER_LIST
@@ -5104,10 +5731,10 @@ index 9284d67..8f28f7f 100644
  
  
 diff --git a/src/macosx/main.m b/src/macosx/main.m
-index 33f60fa..602a3b9 100644
+index 33f60faf8..602a3b97d 100644
 --- a/src/macosx/main.m
 +++ b/src/macosx/main.m
-@@ -34,10 +34,11 @@ extern char **__crt0_argv;
+@@ -34,10 +34,11 @@
  extern void *_mangled_main_address;
  
  static char *arg0, *arg1 = NULL;
@@ -5137,7 +5764,7 @@ index 33f60fa..602a3b9 100644
  @implementation AllegroAppDelegate
  
  - (BOOL)application: (NSApplication *)theApplication openFile: (NSString *)filename
-@@ -63,14 +67,13 @@ static BOOL in_bundle(void)
+@@ -63,14 +67,13 @@ - (BOOL)application: (NSApplication *)theApplication openFile: (NSString *)filen
  }
  
  
@@ -5153,7 +5780,7 @@ index 33f60fa..602a3b9 100644
     CFDictionaryRef mode;
     NSString* exename, *resdir;
     NSFileManager* fm;
-@@ -79,9 +82,8 @@ static BOOL in_bundle(void)
+@@ -79,9 +82,8 @@ - (void)applicationDidFinishLaunching: (NSNotification *)aNotification
     /* create mutex */
     osx_event_mutex = _unix_create_mutex();
     osx_skip_events_processing_mutex = _unix_create_mutex();
@@ -5165,7 +5792,7 @@ index 33f60fa..602a3b9 100644
     {
        /* In a bundle, so chdir to the containing directory,
         * or to the 'magic' resource directory if it exists.
-@@ -92,7 +94,7 @@ static BOOL in_bundle(void)
+@@ -92,7 +94,7 @@ - (void)applicationDidFinishLaunching: (NSNotification *)aNotification
        resdir = [[osx_bundle resourcePath] stringByAppendingPathComponent: exename];
        fm = [NSFileManager defaultManager];
        if ([fm fileExistsAtPath: resdir isDirectory: &isDir] && isDir) {
@@ -5174,7 +5801,7 @@ index 33f60fa..602a3b9 100644
            [fm changeCurrentDirectoryPath: resdir];
        }
        else {
-@@ -106,10 +108,10 @@ static BOOL in_bundle(void)
+@@ -106,10 +108,10 @@ - (void)applicationDidFinishLaunching: (NSNotification *)aNotification
        arg0 = strdup([[osx_bundle bundlePath] fileSystemRepresentation]);
        if (arg1) {
           static char *args[2];
@@ -5189,7 +5816,7 @@ index 33f60fa..602a3b9 100644
        }
        else {
           __crt0_argv = &arg0;
-@@ -117,57 +119,19 @@ static BOOL in_bundle(void)
+@@ -117,57 +119,19 @@ - (void)applicationDidFinishLaunching: (NSNotification *)aNotification
        }
     }
     /* else: not in a bundle so don't chdir */
@@ -5279,7 +5906,7 @@ index 33f60fa..602a3b9 100644
  /* applicationShouldTerminate:
   *  Called upon Command-Q or "Quit" menu item selection.
   *  If the window close callback is set, calls it, otherwise does
-@@ -242,37 +206,23 @@ static void call_user_main(void)
+@@ -242,37 +206,23 @@ - (BOOL) validateMenuItem: (NSMenuItem*) item {
  
  
  
@@ -5376,7 +6003,7 @@ index 33f60fa..602a3b9 100644
  
  /* Local variables:       */
 diff --git a/src/macosx/quartz.m b/src/macosx/quartz.m
-index e7e76e7..09fc09b 100644
+index e7e76e7df..09fc09b23 100644
 --- a/src/macosx/quartz.m
 +++ b/src/macosx/quartz.m
 @@ -49,7 +49,7 @@ void setup_direct_shifts(void)
@@ -5396,7 +6023,7 @@ index e7e76e7..09fc09b 100644
 +#endif
 \ No newline at end of file
 diff --git a/src/macosx/qzfull.m b/src/macosx/qzfull.m
-index 7df89ad..d4f967b 100644
+index 7df89ad76..d4f967b78 100644
 --- a/src/macosx/qzfull.m
 +++ b/src/macosx/qzfull.m
 @@ -24,6 +24,7 @@
@@ -5407,15 +6034,24 @@ index 7df89ad..d4f967b 100644
  
  #define FADE_STEPS               16
  
-@@ -455,3 +456,4 @@ static GFX_MODE_LIST *osx_qz_fetch_mode_list(void)
+@@ -455,3 +456,4 @@ static int osx_qz_show_video_bitmap(BITMAP *bmp)
     return gfx_mode_list;
  }
  
 +#endif
 diff --git a/src/macosx/qzmouse.m b/src/macosx/qzmouse.m
-index 5da32af..79f171c 100644
+index 5da32afda..0f264b1e0 100644
 --- a/src/macosx/qzmouse.m
 +++ b/src/macosx/qzmouse.m
+@@ -103,7 +103,7 @@ void osx_mouse_handler(int ax, int ay, int x, int y, int z, int buttons)
+ 
+    if (osx_cursor != current_cursor) {
+       if (osx_window) {
+-         NSView* vw = [osx_window contentView];
++         NSView *vw = [osx_window contentView];
+          [osx_window invalidateCursorRectsForView: vw];
+       }
+       else {
 @@ -211,8 +211,7 @@ static void osx_mouse_exit(void)
  static void osx_mouse_position(int x, int y)
  {
@@ -5473,7 +6109,7 @@ index 5da32af..79f171c 100644
     [cursor release];
  
 diff --git a/src/macosx/qzwindow.m b/src/macosx/qzwindow.m
-index 8e4a606..e62e6ae 100644
+index 8e4a60674..e62e6aed0 100644
 --- a/src/macosx/qzwindow.m
 +++ b/src/macosx/qzwindow.m
 @@ -24,6 +24,7 @@
@@ -5484,7 +6120,7 @@ index 8e4a606..e62e6ae 100644
  
  static BITMAP *osx_qz_window_init(int, int, int, int, int);
  static void osx_qz_window_exit(BITMAP *);
-@@ -56,8 +57,6 @@ static GFX_VTABLE _special_vtable; /* special vtable for active video page */
+@@ -56,8 +57,6 @@
  static GFX_VTABLE _unspecial_vtable; /* special vtable for inactive video page */
  static BITMAP* current_video_page = NULL;
  
@@ -5493,7 +6129,7 @@ index 8e4a606..e62e6ae 100644
  
  GFX_DRIVER gfx_quartz_window =
  {
-@@ -97,8 +96,6 @@ GFX_DRIVER gfx_quartz_window =
+@@ -97,8 +96,6 @@
     TRUE
  };
  
@@ -5502,7 +6138,7 @@ index 8e4a606..e62e6ae 100644
  /* prepare_window_for_animation:
   *  Prepares the window for a (de)miniaturization animation.
   *  Called by the window display method when the window is about to be
-@@ -107,124 +104,41 @@ GFX_DRIVER gfx_quartz_window =
+@@ -107,124 +104,41 @@
   *  When called from the miniaturize window method, only the alpha value
   *  is updated.
   */
@@ -5682,7 +6318,7 @@ index 8e4a606..e62e6ae 100644
  /* c-basic-offset: 3      */
  /* indent-tabs-mode: nil  */
 diff --git a/src/macosx/system.m b/src/macosx/system.m
-index 1b01839..3ff7bdf 100644
+index 1b018393f..6b15e5b9e 100644
 --- a/src/macosx/system.m
 +++ b/src/macosx/system.m
 @@ -26,8 +26,6 @@
@@ -5694,7 +6330,7 @@ index 1b01839..3ff7bdf 100644
  #endif
  
  
-@@ -137,26 +135,31 @@ SYSTEM_DRIVER system_macosx =
+@@ -137,268 +135,310 @@
  static RETSIGTYPE osx_signal_handler(int num)
  {
     _unix_unlock_mutex(osx_event_mutex);
@@ -5718,10 +6354,11 @@ index 1b01839..3ff7bdf 100644
 - *  Event handling function; gets repeatedly called inside a dedicated thread.
 - */
 -void osx_event_handler()
-+inline static void osx_scale_mouse(NSPointPointer position, const NSRectPointer window, const NSRectPointer view)
++static void osx_scale_mouse(NSPointPointer position, const NSRectPointer window, const NSRectPointer view)
  {
 -   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 -   NSEvent *event;
+-   NSDate *distant_past = [NSDate distantPast];
 +    // flip the vertical to top down
 +    position->y = window->size.height - position->y;
 +    if (!NSEqualSizes(window->size, view->size)) {
@@ -5730,18 +6367,54 @@ index 1b01839..3ff7bdf 100644
 +    }
 +}
 +
++static NSPoint locationInView (NSEvent *event, NSView *inTermsOfView) {
++   NSPoint windowLocation;
 +
-+void osx_add_event_monitor() {
++   NSWindow *viewWindow = [inTermsOfView window];
 +
-+   [NSEvent addLocalMonitorForEventsMatchingMask:NSAnyEventMask handler:^NSEvent * (NSEvent *event) {
++   if (event) {
++      NSWindow *eventWindow = [event window];
 +
-    NSDate *distant_past = [NSDate distantPast];
++      if (eventWindow) {
++         if (eventWindow == viewWindow) {
++            windowLocation = [event locationInWindow];
++         } else {
++            // event from a completely different window.. convert to global and back to _our_ window
++            NSPoint globalLocation = [eventWindow convertBaseToScreen: windowLocation];
++            windowLocation = [viewWindow convertScreenToBase: globalLocation];
++         }
++      } else {
++         // if window is nil, then it's assumed to be screen coordinates.
++         NSPoint globalLocation = [event locationInWindow];
++         windowLocation = [viewWindow convertScreenToBase: globalLocation ];
++      }  
++   } else {
++      NSPoint globalLocation = [NSEvent mouseLocation];
++      windowLocation = [viewWindow convertScreenToBase: globalLocation ];
++   }
++
++   return [inTermsOfView convertPoint: windowLocation fromView: nil];
++}
++
++
++static BOOL cursor_hidden = NO;  // need to keep track because nscursor requires balanced hide/unhide
++static int dx = 0, dy = 0, dz = 0;
++static int mx=0;
++static int my=0;
++static int buttons = 0;
++
++void update_cursor() {
++   if (!_mouse_installed) { return; }
++   if (!_mouse_on) { return; }
++
     NSPoint point;
     NSRect frame, view;
-@@ -166,251 +169,171 @@ void osx_event_handler()
-    static int buttons = 0;
-    int event_type;
-    BOOL gotmouseevent = NO;
+-   int dx = 0, dy = 0, dz = 0;
+-   int mx=_mouse_x;
+-   int my=_mouse_y;
+-   static int buttons = 0;
+-   int event_type;
+-   BOOL gotmouseevent = NO;
 -   
 -   while ((event = [NSApp nextEventMatchingMask: NSAnyEventMask
 -         untilDate: distant_past
@@ -5751,7 +6424,7 @@ index 1b01839..3ff7bdf 100644
 -      _unix_lock_mutex(osx_skip_events_processing_mutex);
 -      int skip_events_processing = osx_skip_events_processing;
 -      _unix_unlock_mutex(osx_skip_events_processing_mutex);
- 
+-
 -      if ((skip_events_processing) || (osx_gfx_mode == OSX_GFX_NONE)) {
 -         [NSApp sendEvent: event];
 -	 continue;
@@ -5766,7 +6439,28 @@ index 1b01839..3ff7bdf 100644
 -      else
 -      {
 -	 frame = [[NSScreen mainScreen] frame];
--      }
++   view = NSMakeRect(0, 0, gfx_driver->w, gfx_driver->h);
++
++   point = NSMakePoint(0, 0);
++   if (osx_window) {
++      frame = [[osx_window contentView] frame];
++      point = locationInView (nil, [osx_window contentView]);
++   } else {
++      frame = [[NSScreen mainScreen] frame];
++   }
++   osx_scale_mouse(&point, &frame, &view);
++
++   if (NSPointInRect(point, view)) {
++
++      // hide the cursor because sometimes osx will reshow cursor for no reason
++      if (!cursor_hidden) {
++         [NSCursor hide];
++         cursor_hidden = YES;
++      } else {
++         // if dock is shown, having the mouse near the edge might show the cursor, so unhide/hide
++         [NSCursor unhide];
++         [NSCursor hide];
+       }
 -      event_type = [event type];
 -      switch (event_type) {
 -	 
@@ -5923,29 +6617,48 @@ index 1b01839..3ff7bdf 100644
 -	 default:
 -	    [NSApp sendEvent: event];
 -	    break;
--      }
--   }
--   if (gotmouseevent == YES)
--      osx_mouse_handler(mx, my, dx, dy, dz, buttons);
--   [pool release];
--}
-+   _unix_lock_mutex(osx_skip_events_processing_mutex);
-+   int skip_events_processing = osx_skip_events_processing;
-+   _unix_unlock_mutex(osx_skip_events_processing_mutex);
- 
-+   if ((skip_events_processing) || (osx_gfx_mode == OSX_GFX_NONE)) {
-+      return event;
-+   }
- 
+       }
++}
++
++void osx_mouse_available() 
++{
++   if (!_mouse_installed) { return; }
++
++   NSPoint point;
++   NSRect frame, view;
 +   view = NSMakeRect(0, 0, gfx_driver->w, gfx_driver->h);
-+   point = [event locationInWindow];
-+   if (osx_window)
-+   {
++
++   point = NSMakePoint(0, 0);
++   if (osx_window) {
 +      frame = [[osx_window contentView] frame];
++      point = locationInView (nil, [osx_window contentView]);
++   } else {
++      frame = [[NSScreen mainScreen] frame];
+    }
+-   if (gotmouseevent == YES)
++   osx_scale_mouse(&point, &frame, &view);
++
++   if (NSPointInRect(point, view)) {
++
++      mx = point.x;
++      my = point.y;
++      buttons = 0;
++      _mouse_on = TRUE;
++
++      update_cursor();
++
+       osx_mouse_handler(mx, my, dx, dy, dz, buttons);
+-   [pool release];
 +   }
-+   else
-+   {
-+       frame = [[NSScreen mainScreen] frame];
+ }
+ 
++void osx_mouse_not_available()
++{
++   if (!_mouse_installed) { return; }
+ 
++   if (cursor_hidden) {
++      [NSCursor unhide];
++      cursor_hidden = NO;
 +   }
  
 -/* osx_tell_dock:
@@ -5958,6 +6671,68 @@ index 1b01839..3ff7bdf 100644
 -static void osx_tell_dock(void)
 -{
 -   struct CPSProcessSerNum psn;
++   _mouse_on = FALSE;
+ 
+-   if ((!CPSGetCurrentProcess(&psn)) &&
+-       (!CPSEnableForegroundOperation(&psn, 0x03, 0x3C, 0x2C, 0x1103)) &&
+-       (!CPSSetFrontProcess(&psn)))
+-      [NSApplication sharedApplication];
++   osx_mouse_handler(mx, my, dx, dy, dz, buttons);
+ }
+ 
++void osx_add_event_monitor() {
+ 
++   [NSEvent addLocalMonitorForEventsMatchingMask:NSAnyEventMask handler:^NSEvent * (NSEvent *event) {
+ 
+-/* osx_bootstrap_ok:
+- *  Check if the current bootstrap context is privilege. If it's not, we can't
+- *  use NSApplication, and instead have to go directly to main.
+- *  Returns 1 if ok, 0 if not.
+- */
+-int osx_bootstrap_ok(void)
+-{
+-   static int _ok = -1;
+-   mach_port_t bp;
+-   kern_return_t ret;
+-   CFMachPortRef cfport;
+-
+-   /* If have tested once, just return that answer */
+-   if (_ok >= 0)
+-      return _ok;
+-   cfport = CFMachPortCreate(NULL, NULL, NULL, NULL);
+-   task_get_bootstrap_port(mach_task_self(), &bp);
+-   ret = bootstrap_register(bp, "bootstrap-ok-test", CFMachPortGetPort(cfport));
+-   CFRelease(cfport);
+-   _ok = (ret == KERN_SUCCESS) ? 1 : 0;
+-   return _ok;
+-}
++   NSDate *distant_past = [NSDate distantPast];
++   NSPoint point;
++   NSRect frame, view;
++   dx = 0, dy = 0, dz = 0;
++   mx=_mouse_x;
++   my=_mouse_y;
++   int event_type;
++   BOOL gotmouseevent = NO;
++   static int alt_left_mouse_up_event = -1;
++
++   _unix_lock_mutex(osx_skip_events_processing_mutex);
++   int skip_events_processing = osx_skip_events_processing;
++   _unix_unlock_mutex(osx_skip_events_processing_mutex);
++
++   if ((skip_events_processing) || (osx_gfx_mode == OSX_GFX_NONE)) {
++      return event;
++   }
++
++   view = NSMakeRect(0, 0, gfx_driver->w, gfx_driver->h);
++
++   point = NSMakePoint(0, 0);
++   if (osx_window) {
++      frame = [[osx_window contentView] frame];
++      point = locationInView (event, [osx_window contentView]);
++   } else {
++      frame = [[NSScreen mainScreen] frame];
++   }
 +   osx_scale_mouse(&point, &frame, &view);
 +
 +   event_type = [event type];
@@ -5998,14 +6773,13 @@ index 1b01839..3ff7bdf 100644
 +            /* App is regaining focus */
 +            if (_mouse_installed) {
 +               if ((osx_window) && (NSPointInRect(point, view))) {
-+              mx = point.x;
-+              my = point.y;
-+              buttons = 0;
-+              _mouse_on = TRUE;
++                  mx = point.x;
++                  my = point.y;
++                  buttons = 0;
++                  alt_left_mouse_up_event = -1;
++                  _mouse_on = TRUE;
 +               }
 +            }
-+            if (osx_window)
-+               [osx_window invalidateCursorRectsForView: [osx_window contentView]];
 +            if (_keyboard_installed)
 +               osx_keyboard_focused(TRUE, 0);
 +            _switch_in();
@@ -6016,37 +6790,50 @@ index 1b01839..3ff7bdf 100644
 +      case NSLeftMouseUp:
 +      case NSOtherMouseUp:
 +      case NSRightMouseUp:
-+         if (osx_emulate_mouse_buttons) {
-+            if (event_type == NSLeftMouseDown) {
-+               if ((!osx_window) || (NSPointInRect(point, view))) {
-+                  buttons = 0x1;
-+                  if (key[KEY_ALT])
-+                     buttons = 0x4;
-+                  if (key[KEY_LCONTROL])
-+                     buttons = 0x2;
++         {
++            int mouse_event_type = event_type;
++
++            if (mouse_event_type == NSLeftMouseDown) {
++               //  TODO: if mouse down but hasn't clearned alt-mouse.. keep with the alt.
++               if (osx_emulate_mouse_buttons) {
++                  if (key[KEY_ALT]) {
++                     mouse_event_type = NSOtherMouseDown;
++                     alt_left_mouse_up_event = NSOtherMouseUp;
++                  }
++                  if (key[KEY_LCONTROL]) {
++                     mouse_event_type = NSRightMouseDown;
++                     alt_left_mouse_up_event = NSRightMouseUp;
++                  }
 +               }
 +            }
-+            else if (event_type == NSLeftMouseUp)
-+               buttons &= ~0x7;
-+         }
-+         else {
++
++            if ((mouse_event_type == NSLeftMouseUp) && (alt_left_mouse_up_event >= 0)) {
++               mouse_event_type = alt_left_mouse_up_event;
++               alt_left_mouse_up_event = -1;
++            }
++
 +            if ((!osx_window) || (NSPointInRect(point, view))) {
 +               /* Deliver mouse downs only if cursor is on the window */
-+               buttons |= ((event_type == NSLeftMouseDown) ? 0x1 : 0);
-+               buttons |= ((event_type == NSRightMouseDown) ? 0x2 : 0);
-+               buttons |= ((event_type == NSOtherMouseDown) ? 0x4 : 0);
++               buttons |= ((mouse_event_type == NSLeftMouseDown) ? 0x1 : 0);
++               buttons |= ((mouse_event_type == NSRightMouseDown) ? 0x2 : 0);
++               buttons |= ((mouse_event_type == NSOtherMouseDown) ? 0x4 : 0);
 +            }
-+            buttons &= ~((event_type == NSLeftMouseUp) ? 0x1 : 0);
-+            buttons &= ~((event_type == NSRightMouseUp) ? 0x2 : 0);
-+            buttons &= ~((event_type == NSOtherMouseUp) ? 0x4 : 0);
++            buttons &= ~((mouse_event_type == NSLeftMouseUp) ? 0x1 : 0);
++            buttons &= ~((mouse_event_type == NSRightMouseUp) ? 0x2 : 0);
++            buttons &= ~((mouse_event_type == NSOtherMouseUp) ? 0x4 : 0);
++
++            gotmouseevent = YES;
 +         }
-+         gotmouseevent = YES;
 +         break;
 +
 +      case NSLeftMouseDragged:
 +      case NSRightMouseDragged:
 +      case NSOtherMouseDragged:
 +      case NSMouseMoved:
++
++         // a bit dodgy but hide mouse cursor 
++         update_cursor();
++
 +         dx += [event deltaX];
 +         dy += [event deltaY];
 +
@@ -6063,71 +6850,35 @@ index 1b01839..3ff7bdf 100644
 +
 +      case NSMouseEntered:
 +         if (([event trackingNumber] == osx_mouse_tracking_rect) && ([NSApp isActive])) {
-+            if (_mouse_installed) {
-+               mx = point.x;
-+               my = point.y;
-+               buttons = 0;
-+               _mouse_on = TRUE;
-+               gotmouseevent = YES;
-+            }
++            osx_mouse_available();
++            return event;  // return immediately since osx_mouse_available will call handler.
 +         }
 +         break;
 +
 +      case NSMouseExited:
 +         if ([event trackingNumber] == osx_mouse_tracking_rect) {
-+            if (_mouse_installed) {
-+               _mouse_on = FALSE;
-+               gotmouseevent = YES;
-+            }
++            osx_mouse_not_available();
++            return event;  // return immediately since osx_mouse_available will call handler.
 +         }
 +         break;
-+
 +
 +      default:
 +         break;
 +   }
- 
--   if ((!CPSGetCurrentProcess(&psn)) &&
--       (!CPSEnableForegroundOperation(&psn, 0x03, 0x3C, 0x2C, 0x1103)) &&
--       (!CPSSetFrontProcess(&psn)))
--      [NSApplication sharedApplication];
--}
++
 +   if (gotmouseevent == YES) {
 +      osx_mouse_handler(mx, my, dx, dy, dz, buttons);
 +   }
- 
++
 +   return event;
  
 +   }];
  
--/* osx_bootstrap_ok:
-- *  Check if the current bootstrap context is privilege. If it's not, we can't
-- *  use NSApplication, and instead have to go directly to main.
-- *  Returns 1 if ok, 0 if not.
-- */
--int osx_bootstrap_ok(void)
--{
--   static int _ok = -1;
--   mach_port_t bp;
--   kern_return_t ret;
--   CFMachPortRef cfport;
--
--   /* If have tested once, just return that answer */
--   if (_ok >= 0)
--      return _ok;
--   cfport = CFMachPortCreate(NULL, NULL, NULL, NULL);
--   task_get_bootstrap_port(mach_task_self(), &bp);
--   ret = bootstrap_register(bp, "bootstrap-ok-test", CFMachPortGetPort(cfport));
--   CFRelease(cfport);
--   _ok = (ret == KERN_SUCCESS) ? 1 : 0;
--   return _ok;
- }
++}
  
--
--
  /* osx_sys_init:
   *  Initalizes the MacOS X system driver.
-  */
+@@ -406,11 +446,6 @@ int osx_bootstrap_ok(void)
  static int osx_sys_init(void)
  {
     long result;
@@ -6139,7 +6890,7 @@ index 1b01839..3ff7bdf 100644
  
     /* Install emergency-exit signal handlers */
     old_sig_abrt = signal(SIGABRT, osx_signal_handler);
-@@ -420,21 +343,15 @@ static int osx_sys_init(void)
+@@ -420,21 +455,15 @@ static int osx_sys_init(void)
     old_sig_term = signal(SIGTERM, osx_signal_handler);
     old_sig_int  = signal(SIGINT,  osx_signal_handler);
     old_sig_quit = signal(SIGQUIT, osx_signal_handler);
@@ -6163,7 +6914,7 @@ index 1b01839..3ff7bdf 100644
     /* Setup a blank cursor */
     cursor_data = calloc(1, 16 * 16 * 4);
     cursor_rep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes: &cursor_data
-@@ -595,10 +512,17 @@ static int osx_sys_set_display_switch_mode(int mode)
+@@ -595,10 +624,17 @@ static int osx_sys_set_display_switch_mode(int mode)
   */
  static void osx_sys_get_gfx_safe_mode(int *driver, struct GFX_MODE *mode)
  {
@@ -6181,7 +6932,7 @@ index 1b01839..3ff7bdf 100644
  }
  
  
-@@ -608,13 +532,10 @@ static void osx_sys_get_gfx_safe_mode(int *driver, struct GFX_MODE *mode)
+@@ -608,13 +644,10 @@ static void osx_sys_get_gfx_safe_mode(int *driver, struct GFX_MODE *mode)
   */
  static int osx_sys_desktop_color_depth(void)
  {
@@ -6197,7 +6948,7 @@ index 1b01839..3ff7bdf 100644
     
     return color_depth == 16 ? 15 : color_depth;
  }
-@@ -625,13 +546,9 @@ static int osx_sys_desktop_color_depth(void)
+@@ -625,13 +658,9 @@ static int osx_sys_desktop_color_depth(void)
   */
  static int osx_sys_get_desktop_resolution(int *width, int *height)
  {
@@ -6216,8 +6967,80 @@ index 1b01839..3ff7bdf 100644
 +
 +    return 0;
  }
+diff --git a/src/midi.c b/src/midi.c
+index 7c81025f6..e449d3aba 100644
+--- a/src/midi.c
++++ b/src/midi.c
+@@ -154,24 +154,44 @@ void lock_midi(MIDI *midi)
+  *  or NULL on error. 
+  */
+ MIDI *load_midi(AL_CONST char *filename)
++{
++   PACKFILE *f;
++   MIDI *midi;
++   ASSERT(filename);
++
++   f = pack_fopen(filename, F_READ);
++   if (!f)
++      return NULL;
++
++   midi = load_midi_pf(f);
++
++   pack_fclose(f);
++
++   return midi;
++}
++
++
++
++/* load_midi_pf:
++ *  Reads a standard MIDI file from the packfile given, returning a MIDI
++ *  structure, or NULL on error.
++ *
++ *  If unsuccessful the offset into the file is unspecified, i.e. you must
++ *  either reset the offset to some known place or close the packfile. The
++ *  packfile is not closed by this function.
++ */
++MIDI *load_midi_pf(PACKFILE *fp)
+ {
+    int c;
+    char buf[4];
+    long data;
+-   PACKFILE *fp;
+    MIDI *midi;
+    int num_tracks;
+-   ASSERT(filename);
+-
+-   fp = pack_fopen(filename, F_READ);        /* open the file */
+-   if (!fp)
+-      return NULL;
++   ASSERT(fp);
+ 
+    midi = _AL_MALLOC(sizeof(MIDI));              /* get some memory */
+-   if (!midi) {
+-      pack_fclose(fp);
++   if (!midi)
+       return NULL;
+-   }
+ 
+    for (c=0; c<MIDI_TRACKS; c++) {
+       midi->track[c].data = NULL;
+@@ -230,13 +250,11 @@ MIDI *load_midi(AL_CONST char *filename)
+ 	 goto err;
+    }
+ 
+-   pack_fclose(fp);
+    lock_midi(midi);
+    return midi;
+ 
+    /* oh dear... */
+    err:
+-   pack_fclose(fp);
+    destroy_midi(midi);
+    return NULL;
+ }
 diff --git a/src/mouse.c b/src/mouse.c
-index 96b25b2..02d7bb2 100644
+index 96b25b284..02d7bb2bc 100644
 --- a/src/mouse.c
 +++ b/src/mouse.c
 @@ -1012,9 +1012,9 @@ static void set_mouse_etc(void)
@@ -6232,7 +7055,7 @@ index 96b25b2..02d7bb2 100644
  
  
 diff --git a/src/poly3d.c b/src/poly3d.c
-index b950589..18b97c2 100644
+index b950589a6..18b97c23f 100644
 --- a/src/poly3d.c
 +++ b/src/poly3d.c
 @@ -1708,7 +1708,7 @@ void _soft_triangle3d_f(BITMAP *bmp, int type, BITMAP *texture, V3D_f *v1, V3D_f
@@ -6254,7 +7077,7 @@ index b950589..18b97c2 100644
  
        /* dodgy assumption alert! See comments for triangle() */
 diff --git a/src/polygon.c b/src/polygon.c
-index c39e7f3..d221046 100644
+index c39e7f32c..d221046bc 100644
 --- a/src/polygon.c
 +++ b/src/polygon.c
 @@ -260,7 +260,8 @@ void _soft_triangle(BITMAP *bmp, int x1, int y1, int x2, int y2, int x3, int y3,
@@ -6268,7 +7091,7 @@ index c39e7f3..d221046 100644
        /* note: this depends on a dodgy assumption about parameter passing 
         * conventions. I assume that the point coordinates are all on the 
 diff --git a/src/tga.c b/src/tga.c
-index d40762e..2340fbb 100644
+index d40762e8b..2340fbba9 100644
 --- a/src/tga.c
 +++ b/src/tga.c
 @@ -280,8 +280,8 @@ BITMAP *load_tga_pf(PACKFILE *f, RGB *pal)
@@ -6299,7 +7122,7 @@ index d40762e..2340fbb 100644
     bpp = pack_getc(f);
 diff --git a/src/unix/sdl2digi.c b/src/unix/sdl2digi.c
 new file mode 100644
-index 0000000..68ef461
+index 000000000..68ef46120
 --- /dev/null
 +++ b/src/unix/sdl2digi.c
 @@ -0,0 +1,233 @@
@@ -6537,7 +7360,7 @@ index 0000000..68ef461
 +
 +#endif
 diff --git a/src/unix/umodules.c b/src/unix/umodules.c
-index aaa070c..9511e7b 100644
+index aaa070c48..9511e7b39 100644
 --- a/src/unix/umodules.c
 +++ b/src/unix/umodules.c
 @@ -126,11 +126,11 @@ void _unix_load_modules(int system_driver)
@@ -6555,7 +7378,7 @@ index aaa070c..9511e7b 100644
        }
        
 diff --git a/src/unix/usystem.c b/src/unix/usystem.c
-index a8a171c..3812c8e 100644
+index a8a171cc3..3812c8e46 100644
 --- a/src/unix/usystem.c
 +++ b/src/unix/usystem.c
 @@ -370,7 +370,7 @@ void _unix_get_executable_name(char *output, int size)
@@ -6568,7 +7391,7 @@ index a8a171c..3812c8e 100644
           close(fd);
     
 diff --git a/src/win/dllver.rc b/src/win/dllver.rc
-index d6b986b..59ecf65 100644
+index d6b986baa..59ecf653c 100644
 --- a/src/win/dllver.rc
 +++ b/src/win/dllver.rc
 @@ -5,8 +5,8 @@
@@ -6598,7 +7421,7 @@ index d6b986b..59ecf65 100644
     END
  
 diff --git a/src/win/wddbmpl.c b/src/win/wddbmpl.c
-index c65a5ec..9b5b57e 100644
+index c65a5ec7d..9b5b57e34 100644
 --- a/src/win/wddbmpl.c
 +++ b/src/win/wddbmpl.c
 @@ -113,11 +113,13 @@ void unregister_all_ddraw_surfaces(void)
@@ -6617,7 +7440,7 @@ index c65a5ec..9b5b57e 100644
        hr = IDirectDrawSurface2_Restore(item->id);
        if (FAILED(hr)) {
 diff --git a/src/win/wddovl.c b/src/win/wddovl.c
-index 02de59c..72fca29 100644
+index 02de59c25..72fca29c3 100644
 --- a/src/win/wddovl.c
 +++ b/src/win/wddovl.c
 @@ -320,7 +320,7 @@ static struct BITMAP *init_directx_ovl(int w, int h, int v_w, int v_h, int color
@@ -6639,10 +7462,39 @@ index 02de59c..72fca29 100644
        gfx_directx_destroy_surface(overlay_surface);
        overlay_surface = NULL;
 diff --git a/src/win/wdispsw.c b/src/win/wdispsw.c
-index 258565f..8707ea1 100644
+index 258565fe7..c2841c0f6 100644
 --- a/src/win/wdispsw.c
 +++ b/src/win/wdispsw.c
-@@ -165,8 +165,8 @@ void _win_switch_out(void)
+@@ -111,6 +111,8 @@ void _win_switch_in(void)
+ 
+    _TRACE(PREFIX_I "switch in\n");
+ 
++   _enter_gfx_critical();
++
+    _win_app_foreground = TRUE;
+ 
+    key_dinput_acquire();
+@@ -132,6 +134,8 @@ void _win_switch_in(void)
+    }
+ 
+    _switch_in();
++
++   _exit_gfx_critical();
+ }
+ 
+ 
+@@ -145,6 +149,10 @@ void _win_switch_out(void)
+ 
+    _TRACE(PREFIX_I "switch out\n");
+ 
++   _enter_gfx_critical();
++
++   _switch_out();
++
+    _win_app_foreground = FALSE;
+ 
+    key_dinput_unacquire();
+@@ -165,11 +173,11 @@ void _win_switch_out(void)
  
        /* if the thread doesn't stop, lower its priority only if another window is active */ 
        allegro_thread_priority = GetThreadPriority(allegro_thread); 
@@ -6652,9 +7504,13 @@ index 258565f..8707ea1 100644
 +         SetThreadPriority(allegro_thread, THREAD_PRIORITY_LOWEST);
     }
  
-    _switch_out();
+-   _switch_out();
++   _exit_gfx_critical();
+ }
+ 
+ 
 diff --git a/src/win/winput.c b/src/win/winput.c
-index 3d8a095..9bad0b1 100644
+index 3d8a09542..9bad0b1aa 100644
 --- a/src/win/winput.c
 +++ b/src/win/winput.c
 @@ -1,6 +1,6 @@
@@ -6699,7 +7555,7 @@ index 3d8a095..9bad0b1 100644
     _win_input_event_handler[0] = register_pending_event;
     _win_input_event_id[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
 diff --git a/src/win/wjoydx.c b/src/win/wjoydx.c
-index 655cb21..61abf3a 100644
+index 655cb214e..61abf3a2c 100644
 --- a/src/win/wjoydx.c
 +++ b/src/win/wjoydx.c
 @@ -1,6 +1,6 @@
@@ -6763,7 +7619,7 @@ index 655cb21..61abf3a 100644
        return -1;
  
 diff --git a/src/win/wkeybd.c b/src/win/wkeybd.c
-index d85f079..f8ab424 100644
+index d85f07915..f8ab424d2 100644
 --- a/src/win/wkeybd.c
 +++ b/src/win/wkeybd.c
 @@ -13,6 +13,9 @@
@@ -6838,7 +7694,7 @@ index d85f079..f8ab424 100644
        goto Error;
  
 diff --git a/src/win/wmouse.c b/src/win/wmouse.c
-index ff85b73..b3d599d 100644
+index ff85b734a..b3d599d21 100644
 --- a/src/win/wmouse.c
 +++ b/src/win/wmouse.c
 @@ -1,6 +1,6 @@
@@ -6930,7 +7786,7 @@ index ff85b73..b3d599d 100644
     return cursor;
  }
 diff --git a/src/win/wsystem.c b/src/win/wsystem.c
-index 45008c4..7a34080 100644
+index 45008c4e7..7a340805c 100644
 --- a/src/win/wsystem.c
 +++ b/src/win/wsystem.c
 @@ -31,7 +31,7 @@
@@ -6952,7 +7808,7 @@ index 45008c4..7a34080 100644
     memcpy(argbuf, cmdline, i);
  
 diff --git a/src/win/wwnd.c b/src/win/wwnd.c
-index fc19076..96d0cdd 100644
+index fc19076e4..ce1fa288e 100644
 --- a/src/win/wwnd.c
 +++ b/src/win/wwnd.c
 @@ -1,6 +1,6 @@
@@ -6965,7 +7821,7 @@ index fc19076..96d0cdd 100644
   *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
   *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
   *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
-@@ -13,6 +13,8 @@
+@@ -13,12 +13,15 @@
   *      By Stefan Schimanski.
   *
   *      See readme.txt for copyright information.
@@ -6974,7 +7830,14 @@ index fc19076..96d0cdd 100644
   */
  
  
-@@ -36,7 +38,7 @@
+ #include "allegro.h"
+ #include "allegro/internal/aintern.h"
+ #include "allegro/platform/aintwin.h"
++#include "wddraw.h"
+ 
+ #ifndef SCAN_DEPEND
+    #include <string.h>
+@@ -36,7 +39,7 @@
  
  
  /* general */
@@ -6983,7 +7846,7 @@ index fc19076..96d0cdd 100644
  char wnd_title[WND_TITLE_SIZE];  /* ASCII string */
  int wnd_x = 0;
  int wnd_y = 0;
-@@ -189,7 +191,7 @@ static void exit_window_modules(struct WINDOW_MODULES *wm)
+@@ -189,7 +192,7 @@ static void exit_window_modules(struct WINDOW_MODULES *wm)
   */
  int wnd_call_proc(int (*proc) (void))
  {
@@ -6992,7 +7855,7 @@ index fc19076..96d0cdd 100644
  }
  
  
-@@ -200,7 +202,7 @@ int wnd_call_proc(int (*proc) (void))
+@@ -200,7 +203,7 @@ int wnd_call_proc(int (*proc) (void))
   */
  void wnd_schedule_proc(int (*proc) (void))
  {
@@ -7001,7 +7864,7 @@ index fc19076..96d0cdd 100644
  }
  
  
-@@ -213,7 +215,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
+@@ -213,7 +216,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
     PAINTSTRUCT ps;
  
     if (message == msg_call_proc)
@@ -7010,7 +7873,7 @@ index fc19076..96d0cdd 100644
  
     if (message == msg_suicide) {
        DestroyWindow(wnd);
-@@ -224,7 +226,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
+@@ -224,7 +227,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
     if (wnd_msg_pre_proc){
        int retval = 0;
        if (wnd_msg_pre_proc(wnd, message, wparam, lparam, &retval) == 0)
@@ -7019,7 +7882,7 @@ index fc19076..96d0cdd 100644
     }
  
     /* See get_reverse_mapping() in wkeybd.c to see what this is for. */
-@@ -373,7 +375,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
+@@ -373,7 +376,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
  
        case WM_MENUCHAR :
           return (MNC_CLOSE<<16)|(wparam&0xffff);
@@ -7028,7 +7891,31 @@ index fc19076..96d0cdd 100644
        case WM_CLOSE:
           if (!user_wnd_proc) {
              if (user_close_proc)
-@@ -456,7 +458,7 @@ static HWND create_directx_window(void)
+@@ -381,6 +384,15 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
+             return 0;
+          }
+          break;
++
++      case WM_QUERYNEWPALETTE:
++      case WM_PALETTECHANGED:
++         if ((HWND)wparam != wnd && gfx_directx_primary_surface) {
++            IDirectDrawSurface2_SetPalette(gfx_directx_primary_surface->id, ddpalette);
++            InvalidateRect(wnd, NULL, 1);
++            return 1;
++         }
++         break;
+    }
+ 
+    /* pass message to default window proc */
+@@ -442,6 +454,7 @@ static HWND create_directx_window(void)
+       return NULL;
+    }
+ 
++   SetSystemPaletteUse(GetDC(wnd), SYSPAL_NOSTATIC256);
+    ShowWindow(wnd, SW_SHOWNORMAL);
+    SetForegroundWindow(wnd);
+    UpdateWindow(wnd);
+@@ -456,7 +469,7 @@ static HWND create_directx_window(void)
   */
  static void wnd_thread_proc(HANDLE setup_event)
  {
@@ -7037,7 +7924,7 @@ index fc19076..96d0cdd 100644
     MSG msg;
  
     _win_thread_init();
-@@ -477,7 +479,7 @@ static void wnd_thread_proc(HANDLE setup_event)
+@@ -477,7 +490,7 @@ static void wnd_thread_proc(HANDLE setup_event)
     /* message loop */
     while (TRUE) {
        result = MsgWaitForMultipleObjects(_win_input_events, _win_input_event_id, FALSE, INFINITE, QS_ALLINPUT);
@@ -7046,7 +7933,15 @@ index fc19076..96d0cdd 100644
           /* one of the registered events is in signaled state */
           (*_win_input_event_handler[result - WAIT_OBJECT_0])();
        }
-@@ -523,7 +525,7 @@ int init_directx_window(void)
+@@ -518,12 +531,15 @@ int init_directx_window(void)
+    msg_call_proc = RegisterWindowMessage("Allegro call proc");
+    msg_suicide = RegisterWindowMessage("Allegro window suicide");
+ 
++   /* initialize gfx critical section */
++   InitializeCriticalSection(&gfx_crit_sect);
++
+    if (user_wnd) {
+       /* initializes input module and requests dedicated thread */
        _win_input_init(TRUE);
  
        /* hook the user window */
@@ -7055,7 +7950,7 @@ index fc19076..96d0cdd 100644
        if (!user_wnd_proc)
           return -1;
  
-@@ -557,7 +559,7 @@ int init_directx_window(void)
+@@ -557,12 +573,9 @@ int init_directx_window(void)
  
  	 default:               /* thread failed to create window */
  	    return -1;
@@ -7063,8 +7958,13 @@ index fc19076..96d0cdd 100644
 +      }
     }
  
-    /* initialize gfx critical section */
-@@ -579,7 +581,7 @@ void exit_directx_window(void)
+-   /* initialize gfx critical section */
+-   InitializeCriticalSection(&gfx_crit_sect);
+-
+    /* save window style */
+    old_style = GetWindowLong(allegro_wnd, GWL_STYLE);
+ 
+@@ -579,7 +592,7 @@ void exit_directx_window(void)
  {
     if (user_wnd) {
        /* restore old window proc */
@@ -7073,7 +7973,7 @@ index fc19076..96d0cdd 100644
        user_wnd_proc = NULL;
        user_wnd = NULL;
        allegro_wnd = NULL;
-@@ -598,7 +600,7 @@ void exit_directx_window(void)
+@@ -598,7 +611,7 @@ void exit_directx_window(void)
     DeleteCriticalSection(&gfx_crit_sect);
  
     _win_input_exit();
@@ -7082,7 +7982,7 @@ index fc19076..96d0cdd 100644
     window_is_initialized = FALSE;
  }
  
-@@ -651,11 +653,11 @@ int adjust_window(int w, int h)
+@@ -651,11 +664,11 @@ int adjust_window(int w, int h)
           }
           if (!user32_handle || !get_title_bar_info)
              tb_height = GetSystemMetrics(SM_CYSIZE);
@@ -7096,7 +7996,7 @@ index fc19076..96d0cdd 100644
  	 if (last_wnd_x + w >= working_area.right)
  	    last_wnd_x = working_area.right - w;
  	 if (last_wnd_y + h >= working_area.bottom)
-@@ -680,7 +682,7 @@ int adjust_window(int w, int h)
+@@ -680,7 +693,7 @@ int adjust_window(int w, int h)
  
        /* retrieve the size of the decorated window */
        AdjustWindowRect(&win_size, GetWindowLong(allegro_wnd, GWL_STYLE), FALSE);
@@ -7105,7 +8005,7 @@ index fc19076..96d0cdd 100644
        /* display the window */
        MoveWindow(allegro_wnd, win_size.left, win_size.top,
                   win_size.right - win_size.left, win_size.bottom - win_size.top, TRUE);
-@@ -702,7 +704,7 @@ int adjust_window(int w, int h)
+@@ -702,7 +715,7 @@ int adjust_window(int w, int h)
  
  
  /* save_window_pos:
@@ -7114,7 +8014,7 @@ index fc19076..96d0cdd 100644
   *  it can be used as the initial position for the next window.
   */
  void save_window_pos(void)
-@@ -746,7 +748,7 @@ void win_set_window(HWND wnd)
+@@ -746,7 +759,7 @@ void win_set_window(HWND wnd)
        init_directx_window();
        init_window_modules(&wm);
     }
@@ -7124,7 +8024,7 @@ index fc19076..96d0cdd 100644
  }
  
 diff --git a/src/x/xdga2.c b/src/x/xdga2.c
-index 0199d49..abf087a 100644
+index 0199d4909..abf087a40 100644
 --- a/src/x/xdga2.c
 +++ b/src/x/xdga2.c
 @@ -23,7 +23,7 @@
@@ -7137,7 +8037,7 @@ index 0199d49..abf087a 100644
  
  #define RESYNC()     XDGASync(_xwin.display, _xwin.screen);
 diff --git a/tests/play.c b/tests/play.c
-index c282302..4885223 100644
+index c28230286..4885223ae 100644
 --- a/tests/play.c
 +++ b/tests/play.c
 @@ -74,7 +74,7 @@ void usage(void)
@@ -7150,7 +8050,7 @@ index c282302..4885223 100644
  }
  
 diff --git a/tools/pack.c b/tools/pack.c
-index 0941853..58d7f17 100644
+index 09418530e..58d7f17b8 100644
 --- a/tools/pack.c
 +++ b/tools/pack.c
 @@ -42,7 +42,7 @@ static void err(char *s1, char *s2)
@@ -7163,7 +8063,7 @@ index 0941853..58d7f17 100644
     printf("\n");
  
 diff --git a/tools/textconv.c b/tools/textconv.c
-index 499536b..4f44d3c 100644
+index 499536bf9..4f44d3c2a 100644
 --- a/tools/textconv.c
 +++ b/tools/textconv.c
 @@ -62,8 +62,8 @@ void usage(void)

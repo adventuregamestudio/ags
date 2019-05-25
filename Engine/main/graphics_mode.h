@@ -31,7 +31,7 @@ String make_scaling_factor_string(uint32_t scaling);
 namespace AGS { namespace Engine { class IGfxModeList; }}
 bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, const Size &wanted_size,
                                  const int color_depth, const Size *ratio_reference, const Size *upper_bound,
-                                 AGS::Engine::DisplayMode &dm, int *mode_index = NULL);
+                                 AGS::Engine::DisplayMode &dm, int *mode_index = nullptr);
 
 
 // The game-to-screen transformation
@@ -81,6 +81,8 @@ struct ScreenSizeSetup
     ScreenSizeDefinition SizeDef;       // a method used to determine screen size
     ::Size               Size;          // explicitly defined screen metrics
     bool                 MatchDeviceRatio; // whether to choose resolution matching device aspect ratio
+
+    ScreenSizeSetup();
 };
 
 // Display mode configuration

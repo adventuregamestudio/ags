@@ -30,7 +30,7 @@ Bitmap *CreateBitmap(int width, int height, int color_depth)
 	if (!bitmap->Create(width, height, color_depth))
 	{
 		delete bitmap;
-		bitmap = NULL;
+		bitmap = nullptr;
 	}
 	return bitmap;
 }
@@ -41,7 +41,7 @@ Bitmap *CreateTransparentBitmap(int width, int height, int color_depth)
 	if (!bitmap->CreateTransparent(width, height, color_depth))
 	{
 		delete bitmap;
-		bitmap = NULL;
+		bitmap = nullptr;
 	}
 	return bitmap;
 }
@@ -52,7 +52,7 @@ Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc)
 	if (!bitmap->CreateSubBitmap(src, rc))
 	{
 		delete bitmap;
-		bitmap = NULL;
+		bitmap = nullptr;
 	}
 	return bitmap;
 }
@@ -63,7 +63,7 @@ Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth)
 	if (!bitmap->CreateCopy(src, color_depth))
 	{
 		delete bitmap;
-		bitmap = NULL;
+		bitmap = nullptr;
 	}
 	return bitmap;
 }
@@ -74,11 +74,20 @@ Bitmap *LoadFromFile(const char *filename)
 	if (!bitmap->LoadFromFile(filename))
 	{
 		delete bitmap;
-		bitmap = NULL;
+		bitmap = nullptr;
 	}
 	return bitmap;
 }
 
+Bitmap *AdjustBitmapSize(Bitmap *src, int width, int height)
+{
+    int oldw = src->GetWidth(), oldh = src->GetHeight();
+    if ((oldw == width) && (oldh == height))
+        return src;
+    Bitmap *bmp = BitmapHelper::CreateBitmap(width, height, src->GetColorDepth());
+    bmp->StretchBlt(src, RectWH(0, 0, oldw, oldh), RectWH(0, 0, width, height));
+    return bmp;
+}
 
 template <class TPx, size_t BPP_>
 struct PixelTransCpy
@@ -135,7 +144,7 @@ struct PixelTransSkip32
 {
     inline bool operator ()(uint8_t *data, color_t mask_color, bool use_alpha) const
     {
-        return *(uint32_t*)data == mask_color || use_alpha && data[3] == 0;
+        return *(uint32_t*)data == mask_color || (use_alpha && data[3] == 0);
     }
 };
 

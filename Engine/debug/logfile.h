@@ -51,7 +51,7 @@ public:
 public:
         LogFile();
 
-    virtual void PrintMessage(const Common::DebugMessage &msg);
+    void PrintMessage(const Common::DebugMessage &msg) override;
 
     // Open file using given file path, optionally appending if one exists
     //

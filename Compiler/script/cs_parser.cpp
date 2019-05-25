@@ -691,6 +691,7 @@ int StacksizeOfLocals(int from_level)
     return totalsub;
 }
 
+
 // Does vartype v contain releasable pointers?
 // Also determines whether vartype contains standard (non-dynamic) arrays.
 bool ContainsReleasablePointers(AGS::Vartype v)
@@ -2157,6 +2158,7 @@ int IsVartypeMismatch(AGS::Vartype vartype_is, AGS::Vartype vartype_wants_to_be,
         return 0;
     if (!orderMatters && !IsVartypeMismatch_Oneway(vartype_wants_to_be, vartype_is))
         return 0;
+
 
     cc_error(
         "Type mismatch: cannot convert '%s' to '%s'",

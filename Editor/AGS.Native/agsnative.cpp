@@ -3115,7 +3115,7 @@ void ConvertInteractionCommandList(System::Text::StringBuilder^ sb, InteractionC
 	}
 }
 
-void CopyInteractions(AGS::Types::Interactions ^destination, ::InteractionScripts *source)
+void CopyInteractions(AGS::Types::Interactions ^destination, AGS::Common::InteractionScripts *source)
 {
     if (source->ScriptFuncNames.size() > (size_t)destination->ScriptFunctionNames->Length) 
 	{
@@ -3331,7 +3331,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 		char scriptFuncPrefix[100];
 		sprintf(scriptFuncPrefix, "character%d_", i);
-		ConvertInteractions(character->Interactions, thisgame.intrChar[i], gcnew String(scriptFuncPrefix), game, 3);
+		ConvertInteractions(character->Interactions, thisgame.intrChar[i].get(), gcnew String(scriptFuncPrefix), game, 3);
 	}
 	game->PlayerCharacter = game->Characters[thisgame.playercharacter];
 
@@ -3444,7 +3444,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 		char scriptFuncPrefix[100];
 		sprintf(scriptFuncPrefix, "inventory%d_", i);
-		ConvertInteractions(invItem->Interactions, thisgame.intrInv[i], gcnew String(scriptFuncPrefix), game, 5);
+		ConvertInteractions(invItem->Interactions, thisgame.intrInv[i].get(), gcnew String(scriptFuncPrefix), game, 5);
 
 		game->InventoryItems->Add(invItem);
 	}
@@ -3952,7 +3952,7 @@ void save_crm_file(Room ^room)
 
 PInteractionScripts convert_interaction_scripts(Interactions ^interactions)
 {
-    InteractionScripts *native_scripts = new InteractionScripts();
+    AGS::Common::InteractionScripts *native_scripts = new AGS::Common::InteractionScripts();
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
         native_scripts->ScriptFuncNames.push_back(ConvertStringToNativeString(funcName));

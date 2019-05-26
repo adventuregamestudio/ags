@@ -238,6 +238,32 @@ public:
     int FindOrAdd(std::string s);
 };
 
+// We set the MAR register lazily to save on runtime computation. This object
+// encapsulates the stashed operations that haven't been done on MAR yet.
+class MemoryLocation
+{
+private:
+    SymbolType _Type; // kSYM_GlobalVar, kSYM_Import, kSYM_LocalVar, kSYM_NoType (determines what fixup to use)
+    size_t _StartOffs;
+    size_t _ComponentOffs;
+
+public:
+    MemoryLocation()
+        : _Type(kSYM_NoType)
+        , _StartOffs(0)
+        , _ComponentOffs(0) {};
+
+    // Set the type and the offset of the MAR register
+    void SetStart(SymbolType type, size_t offset);
+    // Add an offset
+    inline void AddComponentOffset(size_t offset) { _ComponentOffs += offset; };
+    // Write out the opcodes necessary to bring MAR up-to-date
+    void MakeMARCurrent(ccCompiledScript *scrip);
+
+    inline bool NothingDoneYet() { return _Type != kSYM_NoType; };
+    
+    inline void Reset() { SetStart(kSYM_NoType, 0); };
+};
 
 } // namespace AGS
 

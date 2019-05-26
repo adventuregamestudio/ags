@@ -9,9 +9,10 @@
 #include "script/cs_tokenizer.h"
 
 extern int cc_tokenize(
-    const char * inpl,         // preprocessed text to be tokenized
-    ccInternalList * targ,     // store for the tokenized text
-    ccCompiledScript * scrip); // store for the strings in the text
+    const char * inpl,          // preprocessed text to be tokenized
+    ccInternalList * targ,      // store for the tokenized text
+    ccCompiledScript * scrip,   // store for the strings in the text
+    SymbolTable &sym); 
 
 extern ccCompiledScript *newScriptFixture(); // cs_parser_test.cpp
 
@@ -26,7 +27,7 @@ TEST(Tokenize, UnknownKeywordAfterReadonly) {
         };";
 
     ccInternalList targ;
-    int tokenizeResult = cc_tokenize(inpl, &targ, scrip);
+    int tokenizeResult = cc_tokenize(inpl, &targ, scrip, sym);
 
     ASSERT_EQ(0, tokenizeResult);
 }

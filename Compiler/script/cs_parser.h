@@ -13,10 +13,9 @@ The processing is done in the following layers:
 * Tokenizing
     Enter all the symbols into a symbol table (thus recognizing keywords)
     Enter all literal strings into a strings table
-    Recognize structs and prepend "." to struct component names
 These two steps are piped. They are performed separately _before_ the Parsing (below) begins.
 The result is:
-    the symbol table, a global sym that is a struct SymbolTable.
+    the symbol table, a parameter sym that is a struct SymbolTable.
     the sequence of tokens, a parameter targ that is a struct ccInternalList *.
     the collected string literals that go into a struct ccCompiledScript.
 
@@ -49,7 +48,7 @@ and has the following key components (amongst many other components):
 #include "cc_compiledscript.h"
 #include "cc_internallist.h"
 #include "cc_symboltable.h"
-
+#include "script/script_common.h"
 
 namespace AGS
 {
@@ -173,6 +172,8 @@ private:
     int const CodeBaseId = 0;  // Magic number, means: This is in codebase, not in a yanked piece of code
     int const PatchedId = -1;  // Magic number, means: This is in codebase and has already been patched in
 
+    SymbolTable _Sym;
+
     struct PatchInfo
     {
         int ChunkId;
@@ -265,13 +266,602 @@ public:
     inline void Reset() { SetStart(kSYM_NoType, 0); };
 };
 
+class Parser
+{
+public:
+    enum ParsingPhases
+    {
+        kPP_PreAnalyze = 0, // A pre-phase that finds out, amongst others, what functions have (local) bodies
+        kPP_Main,           // The main phase that generates the bytecode.
+    };
+
+    enum FunctionType
+    {
+        kFT_PureForward = 0,
+        kFT_Import = 1,
+        kFT_LocalBody = 2,
+    };
+
+    // This indicates where a value is stored.
+    // When reading, we need the value itself (but see below for arrays and structs)
+    // - It can be in AX (kVL_ax_is_value)
+    // - or in m(MAR) (kVL_mar_pointsto_value).
+    // When writing, we can't use a value itself. Instead, we need a pointer
+    // to the adress that has to be modified.
+    // - This can be MAR, i.e., the value to modify is in m(MAR) (kVL_mar_pointsto_value).
+    // - or AX, i.e., the value to modify is in m(AX) (kVL_ax_is_value)
+    // - attributes must be modified by calling their setter function (kVL_attribute)
+    enum ValueLocation
+    {
+        kVL_ax_is_value,         // The value is in register AX
+        kVL_mar_pointsto_value,  // The value is in m(MAR)
+        kVL_attribute            // The value must be modified by calling an attribute setter
+    };
+
+    // [fw] This ought to replace the #defines in script_common.h
+    //      but we can't touch them since the engine uses them, too
+    enum FxFixupType : AGS::FixupType // see script_common.h
+    {
+        kFx_NoFixup = 0,
+        kFx_DataData = FIXUP_DATADATA,     // globaldata[fixup] += &globaldata[0]
+        kFx_Code = FIXUP_FUNCTION,         // code[fixup] += &code[0]
+        kFx_GlobalData = FIXUP_GLOBALDATA, // code[fixup] += &globaldata[0]
+        kFx_Import = FIXUP_IMPORT,         // code[fixup] = &imported_thing[code[fixup]]
+        kFx_Stack = FIXUP_STACK,           // code[fixup] += &stack[0]
+        kFx_String = FIXUP_STRING,         // code[fixup] += &strings[0]
+
+    };
+
+    enum Globalness
+    {
+        kGl_Local = 0,            // Local
+        kGl_GlobalNoImport = 1,   // Global, not imported
+        kGl_GlobalImport = 2,     // Global, imported
+    };
+
+    enum Importness
+    {
+        kIm_NoImport = 0,
+        kIm_ImportType1 = 1,
+        kIm_ImportType2 = 2,
+    };
+
+    enum TypeQualifier
+    {
+        kTQ_Attribute = 1 << 0,
+        kTQ_Autoptr = 1 << 1,
+        kTQ_Builtin = 1 << 2,
+        kTQ_Const = 1 << 3,
+        kTQ_ImportStd = 1 << 4,
+        kTQ_ImportTry = 1 << 5,
+        kTQ_Noloopcheck = 1 << 6,
+        kTQ_Managed = 1 << 7,
+        kTQ_Protected = 1 << 8,
+        kTQ_Readonly = 1 << 9,
+        kTQ_Static = 1 << 10,
+        kTQ_Stringstruct = 1 << 11,
+        kTQ_Writeprotected = 1 << 12,
+        kTQ_Import = kTQ_ImportStd | kTQ_ImportTry,
+    };
+    inline static bool FlagIsSet(AGS::Flags fl_set, long flag) { return 0 != (fl_set & flag); }
+    inline static void SetFlag(AGS::Flags &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
+
+private:
+    // Measurements show that the checks whether imports already exist take up
+    // considerable time. The Import Manager speeds this up by caching the lookups.
+    AGS::ImportMgr _ImportMgr;
+    
+    // Manage a list of all global import variables and track whether they are
+    // re-defined as non-import later on.
+    // Symbol maps to TRUE if it is global import, to FALSE if it is global non-import.
+    // Only a global import may have a repeated identical definition.
+    // Only a global import may be re-defined as a global non-import (identical except for the "import" declarator),
+    //    and this may only happen if the options don't forbid this.
+    std::map<AGS::Symbol, bool> _GIVM; // Global Import Variable Manager
+    // Track the phase the parser is in.
+    ParsingPhases _PP;
+
+    // Main symbol table
+    SymbolTable &_Sym;
+
+    // Auxiliary symbol table that is used in the first phase.
+    typedef std::map<AGS::Symbol, SymbolTableEntry> TSym1Table;
+    TSym1Table _Sym1;
+
+    // Manage a map of all the functions that have bodies (in the current source).
+    // Nearly all the functions need this directly or indirectly, and so
+    // it is here.
+    AGS::FuncCallpointMgr _FCM;
+
+private:
+    void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(ccCompiledScript *scrip, int valTypeTo);
+    static int AGS::Parser::String2Int(std::string str, int &val, bool send_error);
+
+    // The higher the MATHEMATICAL priority of an operator, the MORE binding it is.
+    // For example, "*" has a higher mathematical priority than "-".
+    // In contrast to this, "size" gives the priority in the INVERSE way: 
+    // The higher _Sym.entries[op].ssize is, the LESS binding is the operator op.
+    // To convert, we must subtract this value from some suitable value 
+    // (any will do that doesn't cause underflow of the subtraction).
+    inline int MathPrio(AGS::Symbol op) { return 100 - _Sym.entries[op].ssize; };
+
+    bool IsIdentifier(AGS::Symbol symb);
+
+    bool IsPrimitiveVartype(AGS::Symbol symbl);
+
+    bool AGS::Parser::IsAnyTypeOfString(AGS::Vartype symtype);
+
+    bool AGS::Parser::IsDynpointerVartype(AGS::Vartype vartype);
+
+    // Combine the arguments to stname::component, get the symbol for that
+    AGS::Symbol MangleStructAndComponent(AGS::Symbol stname, AGS::Symbol component);
+
+    static bool ReachedEOF(ccInternalList *targ);
+
+    int AGS::Parser::SkipTo(ccInternalList *targ, const AGS::Symbol stoplist[], size_t stoplist_len);
+
+    int SkipToScript0(AGS::Symbol *end_sym_ptr, const AGS::Symbol stoplist[], size_t stoplist_len, AGS::Symbol *&act_sym_ptr);
+
+    // Like SkipTo, but for symbol scripts
+    int SkipToScript(const AGS::Symbol stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
+
+    // Reference to the symbol table that works irrespective of the phase we are in
+    inline SymbolTableEntry &GetSymbolTableEntryAnyPhase(AGS::Symbol symb) { return (kPP_Main == _PP) ? sym.entries[symb] : _Sym1[symb]; }
+
+    // Get the type of symb; this will work irrespective of the phase we are in
+    inline SymbolType GetSymbolTypeAnyPhase(AGS::Symbol symb) { return (symb < 0) ? kSYM_NoType : GetSymbolTableEntryAnyPhase(symb & kVTY_FlagMask).stype; };
+     
+    // Return number of bytes to remove from stack to unallocate local vars
+    // of level from_level or higher
+    int StacksizeOfLocals(size_t from_level);
+
+    // Does vartype v contain releasable pointers?
+    // Also determines whether vartype contains standard (non-dynamic) arrays.
+    bool ContainsReleasablePointers(AGS::Vartype v);
+
+    // We're at the end of a block and releasing a standard array of pointers.
+    // MAR points to the array start. Release each array element (pointer).
+    int FreePointersOfStdArrayOfPointer(ccCompiledScript *scrip, size_t arrsize, bool &clobbers_ax);
+
+    // We're at the end of a block and releasing all the pointers in a struct.
+    // MAR already points to the start of the struct.
+    void FreePointersOfStruct(ccCompiledScript *scrip, AGS::Symbol struct_vtype, bool &clobbers_ax);
+
+    // We're at the end of a block and we're releasing a standard array of struct.
+    // MAR points to the start of the array. Release all the pointers in the array.
+    void FreePointersOfStdArrayOfStruct(ccCompiledScript *scrip, AGS::Symbol struct_vtype, SymbolTableEntry &entry, bool &clobbers_ax);
+
+    // We're at the end of a block and releasing a standard array. MAR points to the start.
+    // Release the pointers that the array contains.
+    void FreePointersOfStdArray(ccCompiledScript *scrip, SymbolTableEntry &entry, bool &clobbers_ax);
+
+    void FreePointersOfLocals0(ccCompiledScript *scrip, int from_level, bool &clobbers_ax, bool &clobbers_mar);
+
+    // Free the pointers of any locals in level from_level or higher
+    int FreePointersOfLocals(ccCompiledScript *scrip, int from_level, AGS::Symbol name_of_current_func = 0, bool ax_irrelevant = false);
+
+    int RemoveLocalsFromSymtable(int from_level);
+
+    int DealWithEndOfElse(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack, bool &else_after_then);
+
+    int DealWithEndOfDo(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack);
+
+    int DealWithEndOfSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack);
+
+    int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative, std::string errorMsg);
+
+    // We're parsing a parameter list and we have accepted something like "(...int i"
+    // We accept a default value clause like "= 15" if it follows at this point.
+    int ParseParamlist_Param_DefaultValue(ccInternalList *targ, bool &has_default_int, int &default_int_value);
+
+    // process a dynamic array declaration, when present
+    // We have accepted something like "int foo" and we might expect a trailing "[]" here
+    // Return values:  0 -- not an array, 1 -- an array, -1 -- error occurred
+    int ParseParamlist_Param_DynArrayMarker(ccInternalList *targ, AGS::Symbol typeSym, bool isPointer);
+
+    // Copy so that the forward decl can be compared afterwards to the real one     
+    int CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info);
+
+    // Extender function, eg. function GoAway(this Character *someone)
+    // We've just accepted something like "int func(", we expect "this" --OR-- "static" (!)
+    // We'll accept something like "this Character *"
+    int ParseFuncdecl_ExtenderPreparations(ccInternalList *targ, bool is_static_extender, AGS::Symbol &name_of_func, AGS::Symbol &struct_of_func);
+
+    int ParseParamlist_ParamType(ccInternalList *targ, AGS::Symbol param_vartype, bool &param_is_ptr);
+
+    // We're accepting a parameter list. We've accepted something like "int".
+    // We accept a param name such as "i" if present
+    int ParseParamlist_Param_Name(ccInternalList *targ, bool body_follows, AGS::Symbol &param_name);
+
+    void ParseParamlist_Param_AsVar2Sym(ccCompiledScript *scrip, AGS::Symbol param_name, AGS::Vartype param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, int param_idx);
+
+    void ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, bool param_has_int_default, int param_int_default);
+
+    // process a parameter decl in a function parameter list, something like int foo(INT BAR
+    int ParseParamlist_Param(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol name_of_func, bool body_follows, AGS::Symbol param_type, bool param_is_const, int param_idx);
+
+    int ParseFuncdecl_Paramlist(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol funcsym, bool body_follows, int &numparams);
+
+    void ParseFuncdecl_SetFunctype(SymbolTableEntry &entry, int return_type, bool func_returns_dynpointer, bool func_returns_dynarray, bool func_is_static, bool func_is_protected, int numparams);
+
+    int ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info);
+
+        // there was a forward declaration -- check that the real declaration matches it
+    int ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info);
+
+    // Enter the function in the imports[] or functions[] array; get its index   
+    int ParseFuncdecl_EnterAsImportOrFunc(ccCompiledScript *scrip, AGS::Symbol name_of_func, bool body_follows, bool func_is_import, AGS::CodeLoc &function_soffs, int &function_idx);
+
+    // We're at something like "int foo(", directly before the "("
+    // Get the symbol after the corresponding ")"
+    int ParseFuncdecl_GetSymbolAfterParmlist(ccInternalList *targ, AGS::Symbol &symbol);
+
+    // We're at something like "int foo(", directly before the "("
+    // This might or might not be within a struct defn
+    int ParseFuncdecl(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &name_of_func, int return_type, bool func_returns_dynpointer, bool func_returns_dynarray, TypeQualifierSet tqs, AGS::Symbol &struct_of_func, bool &body_follows);
+
+    // return the index of the lowest MATHEMATICAL priority operator in the list,
+    // so that either side of it can be evaluated first.
+    // returns -1 if no operator was found
+    int IndexOfLowestBondingOperator(AGS::SymbolScript slist, size_t slist_len);
+
+    bool IsOldstring(AGS::Vartype vartype);
+
+    // Change the generic operator vcpuOp to the one that is correct for the vartypes
+    // Also check whether the operator can handle the types at all
+    int GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype type2, AGS::CodeCell &vcpuOp);
+
+    // Check for a type mismatch in one direction only
+    bool IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype vartype_wants_to_be);
+
+    // Check whether there is a type mismatch; if so, give an error
+    int IsVartypeMismatch(AGS::Vartype vartype_is, AGS::Vartype vartype_wants_to_be, bool orderMatters);
+
+    // returns whether this operator's val type is always bool
+    static bool IsBooleanVCPUOperator(int scmdtype);
+
+    // If we need a StringStruct but AX contains a string, 
+    // then convert AX into a String object and set its type accordingly
+    void ConvertAXStringToStringObject(ccCompiledScript *scrip, AGS::Vartype vartype_wanted);
+
+    int GetReadCommandForSize(int the_size);
+
+    int GetWriteCommandForSize(int the_size);
+
+    int ParseExpression_NewIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len);
+
+    // We're parsing an expression that starts with '-' (unary minus)
+    int ParseExpression_UnaryMinusIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len);
+
+    // We're parsing an expression that starts with '!' (boolean NOT)
+    int ParseExpression_NotIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript & symlist, size_t symlist_len);
+
+    // The lowest-binding operator is the first thing in the expression
+    // This means that the op must be an unary op.
+    int ParseExpression_OpIsFirst(ccCompiledScript *scrip, const AGS::SymbolScript &symlist, size_t symlist_len);
+
+    // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
+    int ParseExpression_OpIsSecondOrLater(ccCompiledScript *scrip, size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len);
+
+    int ParseExpression_OpenParenthesis(ccCompiledScript *scrip, AGS::SymbolScript & symlist, size_t symlist_len);
+
+    // We're in the parameter list of a function call, and we have less parameters than declared.
+    // Provide defaults for the missing values
+    int AccessData_FunctionCall_ProvideDefaults(ccCompiledScript *scrip, int num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import);
+
+    int AccessData_FunctionCall_PushParams(ccCompiledScript *scrip, const AGS::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import, bool keep_mar);
+
+    // Count parameters, check that all the parameters are non-empty; find closing paren
+    int AccessData_FunctionCall_CountAndCheckParm(const AGS::SymbolScript &paramList, size_t paramListLen, AGS::Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args);
+
+    // We are processing a function call. General the actual function call
+    void AccessData_GenerateFunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, size_t num_args, bool func_is_import);
+
+    // We are processing a function call.
+    // Get the parameters of the call and push them onto the stack.
+    // Return the number of the parameters pushed
+    // NOTE: If keep_mar, we must be careful not to clobber the MAR register
+    int AccessData_PushFunctionCallParams(ccCompiledScript *scrip, AGS::Symbol name_of_func, bool func_is_import, AGS::SymbolScript &paramList, size_t paramListLen, bool keep_mar, size_t &actual_num_args);
+
+    int AccessData_FunctionCall(ccCompiledScript *scrip, AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &rettype);
+
+    int ParseExpression_NoOps(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len);
+
+    int ParseExpression_Subexpr(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len);
+
+    // symlist starts a bracketed expression; parse it
+    int AccessData_ArrayIndexIntoAX(ccCompiledScript *scrip, SymbolScript symlist, size_t symlist_len);
+
+    // We access a variable or a component of a struct in order to read or write it.
+    // This is a simple member of the struct.
+    int AccessData_StructMember(AGS::Symbol component, bool writing, bool access_via_this, SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &vartype);
+
+    // Get the symbol for the get or set function corresponding to the attribute given.
+    int ConstructAttributeFuncName(AGS::Symbol attribsym, bool writing, bool indexed, AGS::Symbol &func);
+
+    // We call the getter or setter of an attribute
+    int AccessData_Attribute(ccCompiledScript *scrip, bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+
+    // Location contains a pointer to another address. Get that address.
+    int AccessData_Dereference(ccCompiledScript *scrip, ValueLocation &vloc, AGS::MemoryLocation &mloc);
+
+    int AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, int array_size, size_t element_size, AGS::MemoryLocation &mloc);
+
+    // We're processing some struct component or global or local variable.
+    // If an array index follows, parse it and shorten symlist accordingly
+    int AccessData_ProcessAnyArrayIndex(ccCompiledScript *scrip, ValueLocation vloc_of_array, int array_size, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::MemoryLocation &mloc, AGS::Vartype &vartype);
+
+    int AccessData_GlobalOrLocalVar(ccCompiledScript *scrip, bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &vartype);
+
+    int AccessData_Static(AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype);
+
+    int AccessData_LitFloat(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+
+    int AccessData_LitOrConst(ccCompiledScript *scrip, bool negateLiteral, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+
+    int AccessData_Null(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+
+    int AccessData_String(ccCompiledScript *scrip, bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+
+    // Negates the value; this clobbers AX and BX
+    void AccessData_Negate(ccCompiledScript *scrip, ValueLocation vloc);
+
+    // We're getting a variable, literal, constant, func call or the first element
+    // of a STRUCT.STRUCT.STRUCT... cascade.
+    // This moves symlist in all cases except for the cascade to the end of what is parsed,
+    // and in case of a cascade, to the end of the first element of the cascade, i.e.,
+    // to the position of the '.'. 
+    int AccessData_FirstClause(ccCompiledScript *scrip, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate);
+
+    // We're processing a STRUCT.STRUCT. ... clause.
+    // We've already processed some structs, and the type of the last one is vartype.
+    // Now we process a component of vartype.
+    int AccessData_SubsequentClause(ccCompiledScript *scrip, bool writing, bool access_via_this, bool static_access, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype);
+
+    // We are in a STRUCT.STRUCT.STRUCT... cascade.
+    // Check whether we have passed the last dot
+    int AccessData_IsClauseLast(AGS::SymbolScript symlist, size_t symlist_len, bool &is_last);
+
+    // Access a variable, constant, literal, func call, struct.component.component cascade, etc.
+    // Result is in AX or m[MAR], dependent on vloc. Type is in vartype.
+    // At end of function, symlist and symlist_len will point to the part of the symbol string
+    // that has not been processed yet
+    // NOTE: If this selects an attribute for writing, then the corresponding function will
+    // _not_ be called and symlist[0] will be the attribute.
+    int AccessData(ccCompiledScript *scrip, bool writing, bool need_to_negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    // In order to avoid push AX/pop AX, find out common cases that don't clobber AX
+    bool AccessData_MayAccessClobberAX(ccCompiledScript *scrip, SymbolScript symlist, size_t symlist_len);
+
+    // Insert Bytecode for:
+    // Copy at most OLDSTRING_SIZE-1 bytes from m[MAR...] to m[AX...]
+    // Stop when encountering a 0
+    void AccessData_StrCpy(ccCompiledScript * scrip);
+
+    // We are typically in an assignment LHS = RHS; the RHS has already been
+    // evaluated, and the result of that evaluation is in AX.
+    // Store AX into the memory location that corresponds to LHS, or
+    // call the attribute function corresponding to LHS.
+    int AccessData_Assign(ccCompiledScript *scrip, SymbolScript symlist, size_t symlist_len);
+
+    int ReadDataIntoAX(ccCompiledScript *scrip, AGS::SymbolScript symlist, size_t symlist_len, bool negate = false);
+
+    // Read the symbols of an expression and buffer them into expr_script
+    // At end of routine, the cursor will be positioned in such a way
+    // that targ->getnext() will get the symbol after the expression
+    int BufferExpression(ccInternalList *targ, ccInternalList &expr_script);
+
+    // evaluate the supplied expression, putting the result into AX
+    // returns 0 on success or -1 if compile error
+    // leaves targ pointing to last token in expression, so do getnext() to get the following ; or whatever
+    int ParseExpression(ccInternalList *targ, ccCompiledScript *scrip);
+
+    // We are parsing the left hand side of a += or similar statement.
+    int ParseAssignment_ReadLHSForModification(ccCompiledScript *scrip, ccInternalList const *lhs, ValueLocation &vloc, AGS::Vartype &lhstype);
+
+    // "var = expression"; lhs is the variable
+    int ParseAssignment_Assign(ccInternalList *targ, ccCompiledScript *scrip, ccInternalList const *lhs);
+
+    // We compile something like "var += expression"
+    int ParseAssignment_MAssign(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol ass_symbol, ccInternalList const *lhs);
+
+    // "var++" or "var--"
+    int ParseAssignment_SAssign(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol ass_symbol, ccInternalList const *lhs);
+
+    // We've read a variable or selector of a struct into symlist[], the last identifying component is in cursym.
+    // An assignment symbol is following. Compile the assignment.
+    int ParseAssignment(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol ass_symbol, ccInternalList const *lhs);
+
+    int ParseVardecl_InitialValAssignment_Float(ccInternalList *targ, bool is_neg, void *& initial_val_ptr);
+
+    int ParseVardecl_InitialValAssignment_OldString(ccInternalList *targ, void *&initial_val_ptr);
+
+    int ParseVardecl_InitialValAssignment_Inttype(ccInternalList *targ, bool is_neg, void *&initial_val_ptr);
+
+    // if initial_value is non-null, it returns malloc'd memory that must be free
+    int ParseVardecl_InitialValAssignment(ccInternalList *targ, AGS::Symbol varname, void *&initial_val_ptr);
+
+    // Move variable information into the symbol table
+    void ParseVardecl_Var2SymTable(int var_name, Globalness is_global, bool is_dynpointer, int size_of_defn, AGS::Vartype vartype);
+
+    // we have accepted something like "int a" and we're expecting "["
+    int ParseVardecl_ArrayDecl(ccInternalList *targ, AGS::Symbol var_name, AGS::Vartype vartype, size_t &size_of_defn);
+
+    int ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, bool is_dynpointer, Globalness is_global);
+
+    // there was a forward declaration -- check that the real declaration matches it
+    int ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info);
+
+    int ParseVardecl_GlobalImport(ccCompiledScript * scrip, AGS::Symbol var_name, bool has_initial_assignment);
+
+    int ParseVardecl_GlobalNoImport(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol var_name, const AGS::Vartype vartype, size_t size_of_defn, bool has_initial_assignment, void *initial_val_ptr);
+
+    int ParseVardecl_Local(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol var_name, size_t size_of_defn, bool has_initial_assignment);
+
+    int ParseVardecl0(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool is_dynpointer, bool &another_var_follows);
+
+    int ParseVardecl(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness is_global, bool is_dynpointer, bool &another_var_follows);
+
+    void ParseOpenbrace_FuncBody(ccCompiledScript *scrip, AGS::Symbol name_of_func, int struct_of_func, bool is_noloopcheck, AGS::NestingStack *nesting_stack);
+
+    int ParseOpenbrace(ccCompiledScript *scrip, AGS::NestingStack *nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func, bool is_noloopcheck);
+
+    int ParseClosebrace(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func);
+
+    void ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQualifierSet tqs);
+
+    // We're processing the extends clause of a struct. Copy over all the parent elements
+    // except for functions and attributes into the current struct.
+    int ParseStruct_Extends_CopyParentComponents(AGS::Symbol parent, AGS::Symbol stname);
+
+    // We have accepted something like "struct foo" and are waiting for "extends"
+    int ParseStruct_ExtendsClause(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol &parent, size_t &size_so_far);
+
+    void ParseStruct_MemberQualifiers(ccInternalList *targ, AGS::Symbol &cursym, TypeQualifierSet &tqs);
+
+    int ParseStruct_CheckComponentVartype(ccInternalList *targ, int stname, AGS::Symbol vartype, bool member_is_dynpointer, bool member_is_import);
+
+    // check that we haven't extended a struct that already contains a member with the same name
+    int ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS::Symbol compo, AGS::Symbol act_struct);
+
+    int ParseStruct_Function(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Vartype curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_dynpointer, bool isDynamicArray);
+
+    int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype);
+
+    int ParseStruct_EnterAttributeFunc(ccCompiledScript *scrip, SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype);
+
+    // We are processing an attribute.
+    // This corresponds to a getter func and a setter func, declare one of them
+    int ParseStruct_DeclareAttributeFunc(ccCompiledScript *scrip, AGS::Symbol func, bool is_setter, bool is_indexed, AGS::Vartype vartype);
+
+    // We're in a struct declaration, parsing a struct attribute
+    int ParseStruct_Attribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Symbol stname, AGS::Symbol vname);
+
+    // We're inside a struct decl, parsing an array var.
+    int ParseStruct_Array(ccInternalList *targ, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far);
+
+    // We're inside a struct decl, processing a member variable
+    int ParseStruct_VariableOrAttribute(ccInternalList *targ, ccCompiledScript *scrip, AGS::TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far);
+
+    // We have accepted something like "struct foo extends bar { const int".
+    // We're waiting for the name of the member.
+    int ParseStruct_MemberDefnVarOrFuncOrArray(ccInternalList *targ,ccCompiledScript *scrip, AGS::Symbol parent, AGS::Symbol stname, AGS::Symbol current_func, TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, size_t &size_so_far);
+
+    int ParseStruct_MemberStmt(ccInternalList *targ,ccCompiledScript *scrip,AGS::Symbol stname,AGS::Symbol name_of_current_func,AGS::Symbol parent,size_t &size_so_far);
+
+    // Handle a "struct" definition clause
+    int ParseStruct(ccInternalList *targ, ccCompiledScript *scrip, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func);
+
+    // We've accepted something like "enum foo { bar"; '=' follows
+    int ParseEnum_AssignedValue(ccInternalList *targ, int &currentValue);
+
+    void ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol item_name, int currentValue);
+
+    int ParseEnum_Name2Symtable(AGS::Symbol enumName);
+
+    // enum EnumName { value1, value2 }
+    int ParseEnum0(ccInternalList *targ);
+
+    // enum eEnumName { value1, value2 };
+    int ParseEnum(ccInternalList *targ, AGS::Symbol name_of_current_function);
+
+    int ParseExport(ccInternalList *targ, ccCompiledScript *scrip);
+
+    int ParseVartype_GetVarName(ccInternalList *targ, AGS::Symbol &varname, AGS::Symbol &struct_of_member_fct);
+
+    int ParseVartype_CheckForIllegalContext(AGS::NestingStack *nesting_stack);
+
+    int ParseVartype_GetPointerStatus(ccInternalList *targ, AGS::Symbol vartype, bool &isPointer);
+
+    int ParseVartype_CheckIllegalCombis(bool is_function, bool is_member_definition, TypeQualifierSet tqs);
+
+    int ParseVartype_FuncDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &func_name, AGS::Symbol vartype, bool isPointer, bool isDynamicArray, TypeQualifierSet tqs, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func);
+
+    int ParseVartype_VarDef(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, AGS::Symbol vartype, SymbolType next_type, bool isPointer, bool &another_var_follows);
+
+    // We accepted a variable type such as "int", so what follows is a function or variable definition
+    int ParseVartype0(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &noloopcheck_is_set);
+
+    int ParseCommand_EndOfDoIfElse(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack);
+
+    int ParseReturn(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol name_of_current_func);
+
+    // Evaluate the head of an "if" clause, e.g. "if (i < 0)".
+    int ParseIf(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack);
+
+    // Evaluate the head of a "while" clause, e.g. "while (i < 0)" 
+    int ParseWhile(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack);
+
+    int ParseDo(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack);
+
+    // We're compiling function body code; the code does not start with a keyword or type.
+    // Thus, we should be at the start of an assignment or a funccall. Compile it.
+    int ParseAssignmentOrFunccall(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym);
+
+    int ParseFor_InitClauseVardecl(ccInternalList *targ, ccCompiledScript *scrip, size_t nested_level);
+
+    // The first clause of a for header
+    int ParseFor_InitClause(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol peeksym, size_t nested_level);
+
+    int ParseFor_WhileClause(ccInternalList *targ, ccCompiledScript *scrip);
+
+    int ParseFor_IterateClause(ccInternalList *targ, ccCompiledScript *scrip);
+
+    int ParseFor(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol &cursym, AGS::NestingStack *nesting_stack);
+
+    int ParseSwitch(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack);
+
+    int ParseSwitchLabel(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym, AGS::NestingStack *nesting_stack);
+
+    int ParseBreak(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack);
+
+    int ParseContinue(ccInternalList *targ, ccCompiledScript *scrip, AGS::NestingStack *nesting_stack);
+
+    int ParseCommand(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, AGS::NestingStack *nesting_stack, bool next_is_noloopcheck);
+
+    int Parse_HandleLines(ccInternalList *targ, ccCompiledScript *scrip, int &currentlinewas);
+
+    int Parse_TQCombiError(TypeQualifierSet tqs);
+
+    // Check whether the qualifiers that accumulated for this decl go together
+    int Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type);
+
+    int ParseVartype(ccInternalList *targ, ccCompiledScript *scrip, AGS::Symbol cursym, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &set_nlc_flag);
+
+    void Parse_SkipToEndingBrace(ccInternalList *targ);
+
+    void Parse_StartNewSection(ccCompiledScript *scrip, AGS::Symbol mangled_section_name);
+
+    int Parse_ParseInput(ccInternalList *targ, ccCompiledScript *scrip);
+
+    // Copy all the func headers from the PreAnalyse phase into the "real" symbol table
+    int Parse_FuncHeaders2Sym();
+
+    
+public:
+    // Returns the relative distance in a jump instruction
+    // "here" is the location of the bytecode that will contain
+    // the (relative) destination.It is not the location of the
+    // start of the command but the location of its first parameter
+    inline static AGS::CodeLoc RelativeJumpDist(AGS::CodeLoc here, AGS::CodeLoc dest) { return dest - here - 1; }
+
+    // interpret the float as if it were an int (without converting it really);
+    // return that int
+    static int InterpretFloatAsInt(float floatval);
+
+    Parser(SymbolTable &sym_t);
+
+    int Parse(ccInternalList *targ, ccCompiledScript *scrip);
+
+}; // class Parser
 } // namespace AGS
 
 
 extern int cc_tokenize(
-    const char *inpl,         // preprocessed text to be tokenized
-    ccInternalList *targ,     // store for the tokenized text
-    ccCompiledScript *scrip); // store for the strings in the text
+    const char *inpl,           // preprocessed text to be tokenized
+    ccInternalList *targ,       // store for the tokenized text
+    ccCompiledScript *scrip,    // repository for the strings in the text
+    SymbolTable &sym_t);        // symbol table 
 
 extern int cc_compile(
     const char *inpl,           // preprocessed text to be compiled

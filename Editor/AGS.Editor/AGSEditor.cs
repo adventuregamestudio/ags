@@ -1476,7 +1476,16 @@ namespace AGS.Editor
             Settings.RecentGames.Insert(0, recentGame);
             Settings.Save();
 
-            bool result = (bool)BusyDialog.Show("Please wait while your files are saved...", new BusyDialog.ProcessingHandler(SaveGameFilesProcess), null);
+            bool result;
+            try
+            {
+                result = (bool)BusyDialog.Show("Please wait while your files are saved...", new BusyDialog.ProcessingHandler(SaveGameFilesProcess), null);
+            }
+            catch (Exception ex)
+            {
+                InteractiveTasks.ReportTaskException("An error occurred whilst trying to save your game.", ex);
+                result = false;
+            }
 
 			if (!evArgs.SaveSucceeded)
 			{

@@ -348,7 +348,7 @@ public:
         kTQ_Import = kTQ_ImportStd | kTQ_ImportTry,
     };
 
-    typedef std::map<AGS::Symbol, bool> TGIVM;
+    typedef std::map<AGS::Symbol, bool> TGIVM; // Global Import Variable Mgr
 
     inline static bool FlagIsSet(AGS::Flags fl_set, long flag) { return 0 != (fl_set & flag); }
     inline static void SetFlag(AGS::Flags &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
@@ -364,8 +364,8 @@ private:
     // Only a global import may have a repeated identical definition.
     // Only a global import may be re-defined as a global non-import (identical except for the "import" declarator),
     //    and this may only happen if the options don't forbid this.
-    
     TGIVM _givm; // Global Import Variable Manager
+
     // Track the phase the parser is in.
     ParsingPhase _pp;
 
@@ -383,12 +383,11 @@ private:
     ::ccCompiledScript &_scrip;
 
     // Manage a map of all the functions that have bodies (in the current source).
-    // Nearly all the functions need this directly or indirectly, and so
-    // it is here.
     AGS::FuncCallpointMgr _fcm;
 
 private:
-    void AGS::Parser::DoNullCheckOnStringInAXIfNecessary( int valTypeTo);
+    void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo);
+
     static int AGS::Parser::String2Int(std::string str, int &val, bool send_error);
 
     // The higher the MATHEMATICAL priority of an operator, the MORE binding it is.
@@ -433,32 +432,32 @@ private:
 
     // We're at the end of a block and releasing a standard array of pointers.
     // MAR points to the array start. Release each array element (pointer).
-    int FreePointersOfStdArrayOfPointer( size_t arrsize, bool &clobbers_ax);
+    int FreePointersOfStdArrayOfPointer(size_t arrsize, bool &clobbers_ax);
 
     // We're at the end of a block and releasing all the pointers in a struct.
     // MAR already points to the start of the struct.
-    void FreePointersOfStruct( AGS::Symbol struct_vtype, bool &clobbers_ax);
+    void FreePointersOfStruct(AGS::Symbol struct_vtype, bool &clobbers_ax);
 
     // We're at the end of a block and we're releasing a standard array of struct.
     // MAR points to the start of the array. Release all the pointers in the array.
-    void FreePointersOfStdArrayOfStruct( AGS::Symbol struct_vtype, SymbolTableEntry &entry, bool &clobbers_ax);
+    void FreePointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, SymbolTableEntry &entry, bool &clobbers_ax);
 
     // We're at the end of a block and releasing a standard array. MAR points to the start.
     // Release the pointers that the array contains.
-    void FreePointersOfStdArray( SymbolTableEntry &entry, bool &clobbers_ax);
+    void FreePointersOfStdArray(SymbolTableEntry &entry, bool &clobbers_ax);
 
-    void FreePointersOfLocals0( int from_level, bool &clobbers_ax, bool &clobbers_mar);
+    void FreePointersOfLocals0(int from_level, bool &clobbers_ax, bool &clobbers_mar);
 
     // Free the pointers of any locals in level from_level or higher
-    int FreePointersOfLocals( int from_level, AGS::Symbol name_of_current_func = 0, bool ax_irrelevant = false);
+    int FreePointersOfLocals(int from_level, AGS::Symbol name_of_current_func = 0, bool ax_irrelevant = false);
 
     int RemoveLocalsFromSymtable(int from_level);
 
-    int DealWithEndOfElse( AGS::NestingStack *nesting_stack, bool &else_after_then);
+    int DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_after_then);
 
-    int DealWithEndOfDo( AGS::NestingStack *nesting_stack);
+    int DealWithEndOfDo(AGS::NestingStack *nesting_stack);
 
-    int DealWithEndOfSwitch( AGS::NestingStack *nesting_stack);
+    int DealWithEndOfSwitch(AGS::NestingStack *nesting_stack);
 
     int ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bool isNegative, std::string errorMsg);
 
@@ -485,14 +484,14 @@ private:
     // We accept a param name such as "i" if present
     int ParseParamlist_Param_Name(bool body_follows, AGS::Symbol &param_name);
 
-    void ParseParamlist_Param_AsVar2Sym( AGS::Symbol param_name, AGS::Vartype param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, int param_idx);
+    void ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Vartype param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, int param_idx);
 
     void ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, bool param_has_int_default, int param_int_default);
 
     // process a parameter decl in a function parameter list, something like int foo(INT BAR
-    int ParseParamlist_Param( AGS::Symbol name_of_func, bool body_follows, AGS::Symbol param_type, bool param_is_const, int param_idx);
+    int ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follows, AGS::Symbol param_type, bool param_is_const, int param_idx);
 
-    int ParseFuncdecl_Paramlist( AGS::Symbol funcsym, bool body_follows, int &numparams);
+    int ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows, int &numparams);
 
     void ParseFuncdecl_SetFunctype(SymbolTableEntry &entry, int return_type, bool func_returns_dynpointer, bool func_returns_dynarray, bool func_is_static, bool func_is_protected, int numparams);
 
@@ -502,7 +501,7 @@ private:
     int ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info);
 
     // Enter the function in the imports[] or functions[] array; get its index   
-    int ParseFuncdecl_EnterAsImportOrFunc( AGS::Symbol name_of_func, bool body_follows, bool func_is_import, AGS::CodeLoc &function_soffs, int &function_idx);
+    int ParseFuncdecl_EnterAsImportOrFunc(AGS::Symbol name_of_func, bool body_follows, bool func_is_import, AGS::CodeLoc &function_soffs, int &function_idx);
 
     // We're at something like "int foo(", directly before the "("
     // Get the symbol after the corresponding ")"
@@ -510,7 +509,7 @@ private:
 
     // We're at something like "int foo(", directly before the "("
     // This might or might not be within a struct defn
-    int ParseFuncdecl( AGS::Symbol &name_of_func, int return_type, bool func_returns_dynpointer, bool func_returns_dynarray, TypeQualifierSet tqs, AGS::Symbol &struct_of_func, bool &body_follows);
+    int ParseFuncdecl(AGS::Symbol &name_of_func, int return_type, bool func_returns_dynpointer, bool func_returns_dynarray, TypeQualifierSet tqs, AGS::Symbol &struct_of_func, bool &body_follows);
 
     // return the index of the lowest MATHEMATICAL priority operator in the list,
     // so that either side of it can be evaluated first.
@@ -534,55 +533,55 @@ private:
 
     // If we need a StringStruct but AX contains a string, 
     // then convert AX into a String object and set its type accordingly
-    void ConvertAXStringToStringObject( AGS::Vartype vartype_wanted);
+    void ConvertAXStringToStringObject(AGS::Vartype vartype_wanted);
 
     int GetReadCommandForSize(int the_size);
 
     int GetWriteCommandForSize(int the_size);
 
-    int ParseExpression_NewIsFirst( const AGS::SymbolScript &symlist, size_t symlist_len);
+    int ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len);
 
     // We're parsing an expression that starts with '-' (unary minus)
-    int ParseExpression_UnaryMinusIsFirst( const AGS::SymbolScript &symlist, size_t symlist_len);
+    int ParseExpression_UnaryMinusIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len);
 
     // We're parsing an expression that starts with '!' (boolean NOT)
-    int ParseExpression_NotIsFirst( const AGS::SymbolScript & symlist, size_t symlist_len);
+    int ParseExpression_NotIsFirst(const AGS::SymbolScript & symlist, size_t symlist_len);
 
     // The lowest-binding operator is the first thing in the expression
     // This means that the op must be an unary op.
-    int ParseExpression_OpIsFirst( const AGS::SymbolScript &symlist, size_t symlist_len);
+    int ParseExpression_OpIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len);
 
     // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-    int ParseExpression_OpIsSecondOrLater( size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len);
+    int ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len);
 
-    int ParseExpression_OpenParenthesis( AGS::SymbolScript & symlist, size_t symlist_len);
+    int ParseExpression_OpenParenthesis(AGS::SymbolScript & symlist, size_t symlist_len);
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
-    int AccessData_FunctionCall_ProvideDefaults( int num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import);
+    int AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import);
 
-    int AccessData_FunctionCall_PushParams( const AGS::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import, bool keep_mar);
+    int AccessData_FunctionCall_PushParams(const AGS::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import, bool keep_mar);
 
     // Count parameters, check that all the parameters are non-empty; find closing paren
     int AccessData_FunctionCall_CountAndCheckParm(const AGS::SymbolScript &paramList, size_t paramListLen, AGS::Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args);
 
     // We are processing a function call. General the actual function call
-    void AccessData_GenerateFunctionCall( AGS::Symbol name_of_func, size_t num_args, bool func_is_import);
+    void AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size_t num_args, bool func_is_import);
 
     // We are processing a function call.
     // Get the parameters of the call and push them onto the stack.
     // Return the number of the parameters pushed
     // NOTE: If keep_mar, we must be careful not to clobber the MAR register
-    int AccessData_PushFunctionCallParams( AGS::Symbol name_of_func, bool func_is_import, AGS::SymbolScript &paramList, size_t paramListLen, bool keep_mar, size_t &actual_num_args);
+    int AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, bool func_is_import, AGS::SymbolScript &paramList, size_t paramListLen, bool keep_mar, size_t &actual_num_args);
 
-    int AccessData_FunctionCall( AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &rettype);
+    int AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &rettype);
 
-    int ParseExpression_NoOps( AGS::SymbolScript symlist, size_t symlist_len);
+    int ParseExpression_NoOps(AGS::SymbolScript symlist, size_t symlist_len);
 
-    int ParseExpression_Subexpr( AGS::SymbolScript symlist, size_t symlist_len);
+    int ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symlist_len);
 
     // symlist starts a bracketed expression; parse it
-    int AccessData_ArrayIndexIntoAX( SymbolScript symlist, size_t symlist_len);
+    int AccessData_ArrayIndexIntoAX(SymbolScript symlist, size_t symlist_len);
 
     // We access a variable or a component of a struct in order to read or write it.
     // This is a simple member of the struct.
@@ -592,43 +591,43 @@ private:
     int ConstructAttributeFuncName(AGS::Symbol attribsym, bool writing, bool indexed, AGS::Symbol &func);
 
     // We call the getter or setter of an attribute
-    int AccessData_Attribute( bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+    int AccessData_Attribute(bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
 
     // Location contains a pointer to another address. Get that address.
-    int AccessData_Dereference( ValueLocation &vloc, AGS::MemoryLocation &mloc);
+    int AccessData_Dereference(ValueLocation &vloc, AGS::MemoryLocation &mloc);
 
     int AccessData_ProcessArrayIndexConstant(AGS::Symbol index_symbol, int array_size, size_t element_size, AGS::MemoryLocation &mloc);
 
     // We're processing some struct component or global or local variable.
     // If an array index follows, parse it and shorten symlist accordingly
-    int AccessData_ProcessAnyArrayIndex( ValueLocation vloc_of_array, int array_size, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::MemoryLocation &mloc, AGS::Vartype &vartype);
+    int AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, int array_size, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, AGS::MemoryLocation &mloc, AGS::Vartype &vartype);
 
-    int AccessData_GlobalOrLocalVar( bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &vartype);
+    int AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &vartype);
 
     int AccessData_Static(AGS::SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, AGS::Vartype &vartype);
 
-    int AccessData_LitFloat( bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+    int AccessData_LitFloat(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
 
-    int AccessData_LitOrConst( bool negateLiteral, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+    int AccessData_LitOrConst(bool negateLiteral, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
 
-    int AccessData_Null( bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+    int AccessData_Null(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
 
-    int AccessData_String( bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
+    int AccessData_String(bool negate, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype);
 
     // Negates the value; this clobbers AX and BX
-    void AccessData_Negate( ValueLocation vloc);
+    void AccessData_Negate(ValueLocation vloc);
 
     // We're getting a variable, literal, constant, func call or the first element
     // of a STRUCT.STRUCT.STRUCT... cascade.
     // This moves symlist in all cases except for the cascade to the end of what is parsed,
     // and in case of a cascade, to the end of the first element of the cascade, i.e.,
     // to the position of the '.'. 
-    int AccessData_FirstClause( bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate);
+    int AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::MemoryLocation &mloc, AGS::Vartype &vartype, bool &access_via_this, bool &static_access, bool &need_to_negate);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is vartype.
     // Now we process a component of vartype.
-    int AccessData_SubsequentClause( bool writing, bool access_via_this, bool static_access, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype);
+    int AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype);
 
     // We are in a STRUCT.STRUCT.STRUCT... cascade.
     // Check whether we have passed the last dot
@@ -640,10 +639,10 @@ private:
     // that has not been processed yet
     // NOTE: If this selects an attribute for writing, then the corresponding function will
     // _not_ be called and symlist[0] will be the attribute.
-    int AccessData( bool writing, bool need_to_negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+    int AccessData(bool writing, bool need_to_negate, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // In order to avoid push AX/pop AX, find out common cases that don't clobber AX
-    bool AccessData_MayAccessClobberAX( SymbolScript symlist, size_t symlist_len);
+    bool AccessData_MayAccessClobberAX(SymbolScript symlist, size_t symlist_len);
 
     // Insert Bytecode for:
     // Copy at most OLDSTRING_SIZE-1 bytes from m[MAR...] to m[AX...]
@@ -654,9 +653,9 @@ private:
     // evaluated, and the result of that evaluation is in AX.
     // Store AX into the memory location that corresponds to LHS, or
     // call the attribute function corresponding to LHS.
-    int AccessData_Assign( SymbolScript symlist, size_t symlist_len);
+    int AccessData_Assign(SymbolScript symlist, size_t symlist_len);
 
-    int ReadDataIntoAX( AGS::SymbolScript symlist, size_t symlist_len, bool negate = false);
+    int ReadDataIntoAX(AGS::SymbolScript symlist, size_t symlist_len, bool negate = false);
 
     // Read the symbols of an expression and buffer them into expr_script
     // At end of routine, the cursor will be positioned in such a way
@@ -669,20 +668,20 @@ private:
     int ParseExpression();
 
     // We are parsing the left hand side of a += or similar statement.
-    int ParseAssignment_ReadLHSForModification( ccInternalList const *lhs, ValueLocation &vloc, AGS::Vartype &lhstype);
+    int ParseAssignment_ReadLHSForModification(ccInternalList const *lhs, ValueLocation &vloc, AGS::Vartype &lhstype);
 
     // "var = expression"; lhs is the variable
-    int ParseAssignment_Assign( ccInternalList const *lhs);
+    int ParseAssignment_Assign(ccInternalList const *lhs);
 
     // We compile something like "var += expression"
-    int ParseAssignment_MAssign( AGS::Symbol ass_symbol, ccInternalList const *lhs);
+    int ParseAssignment_MAssign(AGS::Symbol ass_symbol, ccInternalList const *lhs);
 
     // "var++" or "var--"
-    int ParseAssignment_SAssign( AGS::Symbol ass_symbol, ccInternalList const *lhs);
+    int ParseAssignment_SAssign(AGS::Symbol ass_symbol, ccInternalList const *lhs);
 
     // We've read a variable or selector of a struct into symlist[], the last identifying component is in cursym.
     // An assignment symbol is following. Compile the assignment.
-    int ParseAssignment( AGS::Symbol ass_symbol, ccInternalList const *lhs);
+    int ParseAssignment(AGS::Symbol ass_symbol, ccInternalList const *lhs);
 
     int ParseVardecl_InitialValAssignment_Float(bool is_neg, void *& initial_val_ptr);
 
@@ -706,19 +705,19 @@ private:
 
     int ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_initial_assignment);
 
-    int ParseVardecl_GlobalNoImport( AGS::Symbol var_name, const AGS::Vartype vartype, size_t size_of_defn, bool has_initial_assignment, void *initial_val_ptr);
+    int ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Vartype vartype, size_t size_of_defn, bool has_initial_assignment, void *initial_val_ptr);
 
-    int ParseVardecl_Local( AGS::Symbol var_name, size_t size_of_defn, bool has_initial_assignment);
+    int ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, bool has_initial_assignment);
 
-    int ParseVardecl0( AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool is_dynpointer, bool &another_var_follows);
+    int ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool is_dynpointer, bool &another_var_follows);
 
-    int ParseVardecl( AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness is_global, bool is_dynpointer, bool &another_var_follows);
+    int ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness is_global, bool is_dynpointer, bool &another_var_follows);
 
-    void ParseOpenbrace_FuncBody( AGS::Symbol name_of_func, int struct_of_func, bool is_noloopcheck, AGS::NestingStack *nesting_stack);
+    void ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_of_func, bool is_noloopcheck, AGS::NestingStack *nesting_stack);
 
-    int ParseOpenbrace( AGS::NestingStack *nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func, bool is_noloopcheck);
+    int ParseOpenbrace(AGS::NestingStack *nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func, bool is_noloopcheck);
 
-    int ParseClosebrace( AGS::NestingStack *nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func);
+    int ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func);
 
     void ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQualifierSet tqs);
 
@@ -736,33 +735,33 @@ private:
     // check that we haven't extended a struct that already contains a member with the same name
     int ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS::Symbol compo, AGS::Symbol act_struct);
 
-    int ParseStruct_Function( AGS::TypeQualifierSet tqs, AGS::Vartype curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_dynpointer, bool isDynamicArray);
+    int ParseStruct_Function(AGS::TypeQualifierSet tqs, AGS::Vartype curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_dynpointer, bool isDynamicArray);
 
     int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype);
 
-    int ParseStruct_EnterAttributeFunc( SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype);
+    int ParseStruct_EnterAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype);
 
     // We are processing an attribute.
     // This corresponds to a getter func and a setter func, declare one of them
-    int ParseStruct_DeclareAttributeFunc( AGS::Symbol func, bool is_setter, bool is_indexed, AGS::Vartype vartype);
+    int ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_setter, bool is_indexed, AGS::Vartype vartype);
 
     // We're in a struct declaration, parsing a struct attribute
-    int ParseStruct_Attribute( AGS::TypeQualifierSet tqs, AGS::Symbol stname, AGS::Symbol vname);
+    int ParseStruct_Attribute(AGS::TypeQualifierSet tqs, AGS::Symbol stname, AGS::Symbol vname);
 
     // We're inside a struct decl, parsing an array var.
     int ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far);
 
     // We're inside a struct decl, processing a member variable
-    int ParseStruct_VariableOrAttribute( AGS::TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far);
+    int ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far);
 
     // We have accepted something like "struct foo extends bar { const int".
     // We're waiting for the name of the member.
-    int ParseStruct_MemberDefnVarOrFuncOrArray( AGS::Symbol parent, AGS::Symbol stname, AGS::Symbol current_func, TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, size_t &size_so_far);
+    int ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS::Symbol stname, AGS::Symbol current_func, TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, size_t &size_so_far);
 
     int ParseStruct_MemberStmt(AGS::Symbol stname,AGS::Symbol name_of_current_func,AGS::Symbol parent,size_t &size_so_far);
 
     // Handle a "struct" definition clause
-    int ParseStruct( TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func);
+    int ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func);
 
     // We've accepted something like "enum foo { bar"; '=' follows
     int ParseEnum_AssignedValue(int &currentValue);
@@ -794,7 +793,7 @@ private:
     // We accepted a variable type such as "int", so what follows is a function or variable definition
     int ParseVartype0(AGS::Symbol vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &noloopcheck_is_set);
 
-    int ParseCommand_EndOfDoIfElse( AGS::NestingStack *nesting_stack);
+    int ParseCommand_EndOfDoIfElse(AGS::NestingStack *nesting_stack);
 
     int ParseReturn(AGS::Symbol name_of_current_func);
 
@@ -831,7 +830,7 @@ private:
 
     int ParseCommand(AGS::Symbol cursym, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, AGS::NestingStack *nesting_stack, bool next_is_noloopcheck);
 
-    int Parse_HandleLines( int &currentlinewas);
+    int Parse_HandleLines(int &currentlinewas);
 
     int Parse_TQCombiError(TypeQualifierSet tqs);
 

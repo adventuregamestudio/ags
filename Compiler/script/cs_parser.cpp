@@ -2374,7 +2374,7 @@ int AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args, size
     return 0;
 }
 
-void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(int valTypeTo)
+void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 {
 
     if (((_scrip.ax_vartype & (~kVTY_DynPointer)) == sym.getStringStructSym()) &&

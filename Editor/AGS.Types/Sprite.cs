@@ -100,8 +100,9 @@ namespace AGS.Types
             set { _colorDepth = value; }
         }
 
-        [Description("Whether this sprite was imported using its alpha channel")]
-        [Category("Import")]
+        [Description("Whether this sprite has an alpha channel")]
+        [ReadOnly(true)]
+        [Category("Appearance")]
         public bool AlphaChannel
         {
             get { return _alphaChannel; }

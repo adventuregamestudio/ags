@@ -5,15 +5,9 @@ SCOM is a script compiler for the 'C' language.
 BIRD'S EYE OVERVIEW - IMPLEMENTATION
 
 General:
-The origin of this module is C code, so there are lots of functions that haven't been converted
-to classes (yet). These functions have names of the form AaaAaa or AaaAaa_BbbBbb
-where the component parts are already camelcased. This means that function AaaAaa_BbbBbb is a
+Functions have names of the form AaaAaa or AaaAaa_BbbBbb
+where the component parts are camelcased. This means that function AaaAaa_BbbBbb is a
 subfunction of function AaaAaa that is exclusively called by function AaaAaa.
-In this way, we get a neatly grouped list of functions in the overview for the time being,
-until function AaaAaa and its subfunctions have been converted into a proper class.
-
-There shouldn't be any classes in the global namespace, but almost all the functions and
-structs that have C code origin still are.
 
 The Parser does does NOT get the sequence of tokens in a pipe from the Tokenizing step, i.e.,
 it does NOT read the symbols one-by-one. To the contrary, the logic reads back and forth in
@@ -73,7 +67,6 @@ Notes on how nested statements are handled:
 #include "script/script_common.h"
 #include "script/cc_error.h"
 
-#include "cc_variablesymlist.h"
 #include "cc_internallist.h"    // ccInternalList
 #include "cs_parser_common.h"
 #include "cc_symboltable.h"
@@ -588,7 +581,6 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
     return totalsub;
 }
 
-
 // Does vartype v contain releasable pointers?
 // Also determines whether vartype contains standard (non-dynamic) arrays.
 bool AGS::Parser::ContainsReleasablePointers(AGS::Vartype v)
@@ -611,7 +603,6 @@ bool AGS::Parser::ContainsReleasablePointers(AGS::Vartype v)
     }
     return false;
 }
-
 
 // We're at the end of a block and releasing a standard array of pointers.
 // MAR points to the array start. Release each array element (pointer).

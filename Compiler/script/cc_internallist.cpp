@@ -110,3 +110,14 @@ ccInternalList::~ccInternalList() {
 ccInternalList::ccInternalList() {
     init();
 }
+
+bool ccInternalList::reached_eof()
+{
+    if (peeknext() != SCODE_INVALID)
+        return false;
+
+    // We are past the last symbol in the file
+    getnext();
+    currentline = lineAtEnd;
+    return true;
+}

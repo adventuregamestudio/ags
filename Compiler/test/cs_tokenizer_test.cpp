@@ -9,9 +9,9 @@
 #include "script/cs_tokenizer.h"
 
 extern int cc_tokenize(
-    const char * inpl,          // preprocessed text to be tokenized
-    ccInternalList * targ,      // store for the tokenized text
-    ccCompiledScript * scrip,   // store for the strings in the text
+    const char *inpl,          // preprocessed text to be tokenized
+    ccInternalList *targ,      // store for the tokenized text
+    ccCompiledScript *scrip,   // store for the strings in the text
     SymbolTable &sym); 
 
 extern ccCompiledScript *newScriptFixture(); // cs_parser_test.cpp
@@ -37,7 +37,6 @@ TEST(Tokenize, SectionChange)
     sym.reset();
 
     // Basic function of the Tokenizer
-    // Jibbling the struct name with the struct components
     std::string Input = "\
         \n\
         String A = \"__NEWSCRIPTSTART_Foo\"; \n\

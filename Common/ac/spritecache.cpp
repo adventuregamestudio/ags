@@ -803,16 +803,12 @@ HError SpriteCache::InitFile(const char *filnam)
         return HError::None();
     }
 
-    // failed, delete the index file because it's invalid
-    // TODO: refactor loading process and make it NOT delete file running the game!!
-    ::remove(spindexfilename);
-
+    // Failed, index file is invalid; index sprites manually
     return RebuildSpriteIndex(_stream.get(), topmost, vers);
 }
 
 HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers)
 {
-    // no sprite index file, manually index it
     for (sprkey_t i = 0; i <= topmost; ++i)
     {
         _spriteData[i].Offset = in->GetPosition();

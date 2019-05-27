@@ -10,8 +10,8 @@ typedef long Flags; // Collection of bits that are set and reset TODO convert to
 typedef long Vartype; // e.g., "int"
 typedef int Exporttype; // e.g., EXPORT_FUNCTION
 typedef short SType; // e.g. kSYM_Global
-typedef std::int32_t CodeCell; // A Bytecode cell (content) or an opcode
-typedef std::int32_t CodeLoc; // An offset to code[0], may be negative
+typedef int32_t CodeCell; // A Bytecode cell (content) or an opcode
+typedef int32_t CodeLoc; // An offset to code[0], may be negative
 typedef int32_t StringsLoc; // An offset into the strings repository
 typedef int32_t GlobalLoc; // An offset into the global space
 typedef char FixupType; // the type of a fixup

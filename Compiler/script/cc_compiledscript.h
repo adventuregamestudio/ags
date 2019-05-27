@@ -80,6 +80,14 @@ struct ccCompiledScript : public ccScript {
     // write a POP command; track in cur_sp the number of bytes pushed to the stack
     void pop_reg(AGS::CodeCell regg);
 
+    // Returns the relative distance in a jump instruction
+    // "here" is the location of the bytecode that will contain
+    // the (relative) destination.It is not the location of the
+    // start of the command but the location of its first parameter
+    inline static AGS::CodeLoc RelativeJumpDist(AGS::CodeLoc here, AGS::CodeLoc dest) { return dest - here - 1; }
+
+
+
     ccCompiledScript();
     virtual ~ccCompiledScript();
 };

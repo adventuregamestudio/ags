@@ -428,7 +428,7 @@ int AGS::FuncCallpointMgr::SetFuncExitJumppoint(AGS::Symbol func, AGS::CodeLoc d
         if (pl_it->ChunkId == CodeBaseId)
         {
             size_t const here = pl_it->Offset;
-            _scrip.code[here] = Parser::RelativeJumpDist(here, dest);
+            _scrip.code[here] = ccCompiledScript::RelativeJumpDist(here, dest);
             pl_it->ChunkId = PatchedId;
         }
     pl.clear();
@@ -629,7 +629,7 @@ int AGS::Parser::FreePointersOfStdArrayOfPointer(size_t arrsize, bool &clobbers_
     _scrip.write_cmd0(SCMD_MEMZEROPTR);
     _scrip.write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
     _scrip.write_cmd2(SCMD_SUB, SREG_AX, 1);
-    _scrip.write_cmd1(SCMD_JNZ, RelativeJumpDist(_scrip.codesize + 1, loop_start));
+    _scrip.write_cmd1(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
     return 0;
 }
 
@@ -695,7 +695,7 @@ void AGS::Parser::FreePointersOfStdArrayOfStruct(AGS::Symbol struct_vtype, Symbo
     _scrip.pop_reg(SREG_MAR);
     _scrip.write_cmd2(SCMD_ADD, SREG_MAR, entry.ssize);
     _scrip.write_cmd2(SCMD_SUB, SREG_AX, 1);
-    _scrip.write_cmd1(SCMD_JNZ, RelativeJumpDist(_scrip.codesize + 1, loop_start));
+    _scrip.write_cmd1(SCMD_JNZ, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start));
     return;
 }
 
@@ -878,12 +878,12 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
         // The bytecode byte with the relative dest is at code[codesize+1]
         _scrip.write_cmd1(
             SCMD_JMP,
-            RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc()));
+            ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc()));
     }
 
     // Patch the jump out of the construct to jump to here
     _scrip.code[nesting_stack->JumpOutLoc()] =
-        RelativeJumpDist(nesting_stack->JumpOutLoc(), _scrip.codesize);
+        ccCompiledScript::RelativeJumpDist(nesting_stack->JumpOutLoc(), _scrip.codesize);
 
     if (else_after_then)
     {
@@ -960,10 +960,10 @@ int AGS::Parser::DealWithEndOfDo(AGS::NestingStack *nesting_stack)
     // The bytecode byte with the relative dest is at code[codesize+1]
     _scrip.write_cmd1(
         SCMD_JNZ,
-        RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc()));
+        ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc()));
     // Patch the jump out of the loop; it should point to here
     _scrip.code[nesting_stack->JumpOutLoc()] =
-        RelativeJumpDist(nesting_stack->JumpOutLoc(), _scrip.codesize);
+        ccCompiledScript::RelativeJumpDist(nesting_stack->JumpOutLoc(), _scrip.codesize);
 
     // The clause has ended, so pop the level off the stack
     nesting_stack->Pop();
@@ -981,10 +981,10 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
     const AGS::CodeLoc lastcmd_loc = _scrip.codesize - 2;
     const AGS::CodeLoc jumpout_loc = nesting_stack->StartLoc() + 2;
     if (_scrip.code[lastcmd_loc] != SCMD_JMP ||
-        _scrip.code[lastcmd_loc + 1] != RelativeJumpDist(lastcmd_loc + 1, jumpout_loc))
+        _scrip.code[lastcmd_loc + 1] != ccCompiledScript::RelativeJumpDist(lastcmd_loc + 1, jumpout_loc))
     {
         // The bytecode int that contains the relative jump is in codesize+1
-        _scrip.write_cmd1(SCMD_JMP, RelativeJumpDist(_scrip.codesize + 1, jumpout_loc));
+        _scrip.write_cmd1(SCMD_JMP, ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, jumpout_loc));
     }
 
     // We begin the jump table; remember this address
@@ -993,7 +993,7 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
     // Patch the instruction "Jump to the jump table" at the start of the switch
     // so that it points to the correct address, i.e., here
     _scrip.code[nesting_stack->StartLoc() + 1] =
-        RelativeJumpDist(nesting_stack->StartLoc() + 1, jumptable_loc);
+        ccCompiledScript::RelativeJumpDist(nesting_stack->StartLoc() + 1, jumptable_loc);
 
     // Get correct comparison operation: Don't compare strings as pointers but as strings
     int noteq_op = IsAnyTypeOfString(nesting_stack->SwitchExprType()) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
@@ -1011,7 +1011,7 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
         // This command will be written to code[codesize] and code[codesize]+1
         _scrip.write_cmd1(
             SCMD_JZ,
-            RelativeJumpDist(_scrip.codesize + 1, nesting_stack->Chunks().at(index).CodeOffset));
+            ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->Chunks().at(index).CodeOffset));
     }
 
     // Write the default jump if necessary
@@ -1021,13 +1021,13 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
     // Patch the jump to the end of the switch block 
     // to jump to here (for break statements)
     _scrip.code[nesting_stack->StartLoc() + 3] =
-        RelativeJumpDist(nesting_stack->StartLoc() + 3, _scrip.codesize);
+        ccCompiledScript::RelativeJumpDist(nesting_stack->StartLoc() + 3, _scrip.codesize);
 
     // Patch the jump at the end of the switch block
     // (it is directly in front of the jumptable)
     // to jump to here
     _scrip.code[jumptable_loc - 1] =
-        RelativeJumpDist(jumptable_loc - 1, _scrip.codesize);
+        ccCompiledScript::RelativeJumpDist(jumptable_loc - 1, _scrip.codesize);
 
     nesting_stack->Chunks().clear();
     nesting_stack->Pop();
@@ -2283,7 +2283,7 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::Sym
     if (jump_dest_loc_to_patch >= 0)
     {
         _scrip.code[jump_dest_loc_to_patch] =
-            RelativeJumpDist(jump_dest_loc_to_patch, _scrip.codesize);
+            ccCompiledScript::RelativeJumpDist(jump_dest_loc_to_patch, _scrip.codesize);
     }
 
     // Operators like == return a bool (in our case, that's an int);
@@ -3474,10 +3474,10 @@ void AGS::Parser::AccessData_StrCpy()
     AGS::CodeLoc const jumpout2_pos = _scrip.codesize - 1;
     _scrip.write_cmd1(
         SCMD_JMP,
-        RelativeJumpDist(_scrip.codesize + 1, loop_start)); // jumpto LOOP_START
+        ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, loop_start)); // jumpto LOOP_START
     AGS::CodeLoc const loop_end = _scrip.codesize; // Label LOOP_END
-    _scrip.code[jumpout1_pos] = RelativeJumpDist(jumpout1_pos, loop_end);
-    _scrip.code[jumpout2_pos] = RelativeJumpDist(jumpout2_pos, loop_end);
+    _scrip.code[jumpout1_pos] = ccCompiledScript::RelativeJumpDist(jumpout1_pos, loop_end);
+    _scrip.code[jumpout2_pos] = ccCompiledScript::RelativeJumpDist(jumpout2_pos, loop_end);
 }
 
 // We are typically in an assignment LHS = RHS; the RHS has already been
@@ -6091,10 +6091,10 @@ int AGS::Parser::ParseBreak(AGS::NestingStack *nesting_stack)
     // The bytecode byte with the relative dest is at code[codesize+1]
     if (nesting_stack->Type(loop_level) == AGS::NestingStack::kNT_Switch)
         _scrip.write_cmd1(SCMD_JMP,
-            RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc(loop_level) + 2));
+            ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc(loop_level) + 2));
     else
         _scrip.write_cmd1(SCMD_JMP,
-            RelativeJumpDist(_scrip.codesize + 1, nesting_stack->JumpOutLoc(loop_level) - 1));
+            ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->JumpOutLoc(loop_level) - 1));
     return 0;
 }
 
@@ -6145,7 +6145,7 @@ int AGS::Parser::ParseContinue(AGS::NestingStack *nesting_stack)
     // The bytecode int with the relative dest is at code[codesize+1]
     _scrip.write_cmd1(
         SCMD_JMP,
-        RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc(loop_level)));
+        ccCompiledScript::RelativeJumpDist(_scrip.codesize + 1, nesting_stack->StartLoc(loop_level)));
     return 0;
 }
 

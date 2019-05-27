@@ -850,12 +850,6 @@ private:
 
     
 public:
-    // Returns the relative distance in a jump instruction
-    // "here" is the location of the bytecode that will contain
-    // the (relative) destination.It is not the location of the
-    // start of the command but the location of its first parameter
-    inline static AGS::CodeLoc RelativeJumpDist(AGS::CodeLoc here, AGS::CodeLoc dest) { return dest - here - 1; }
-
     // interpret the float as if it were an int (without converting it really);
     // return that int
     static int InterpretFloatAsInt(float floatval);

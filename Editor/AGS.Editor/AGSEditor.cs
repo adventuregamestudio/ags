@@ -10,6 +10,7 @@ using System.Xml;
 using AGS.CScript.Compiler;
 using AGS.Types;
 using AGS.Types.Interfaces;
+using System.Net;
 
 namespace AGS.Editor
 {
@@ -239,6 +240,9 @@ namespace AGS.Editor
 
         public void DoEditorInitialization()
         {
+            // disable SSL v3 (768 = SecurityProtocolType.Tls11, 3072 = SecurityProtocolType.Tls12)
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | (SecurityProtocolType)768 | (SecurityProtocolType)3072;
+
             _game = new Game();
             _sourceControl = new SourceControlProvider();
             _recentGamesList = new RecentGamesList();

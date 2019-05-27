@@ -43,7 +43,10 @@ extern void get_new_size_for_sprite(int, int, int, int &, int &);
 #define END_OF_LIST   -1
 
 const char *spindexid = "SPRINDEX";
-const char *spindexfilename = "sprindex.dat";
+
+// TODO: should not be part of SpriteCache, but rather some asset management class?
+const String SpriteCache::DefaultSpriteFileName = "game28.dta";
+const String SpriteCache::DefaultSpriteIndexName = "ac2game.dta";
 
 
 SpriteInfo::SpriteInfo()
@@ -565,9 +568,9 @@ void SpriteCache::UnCompressSprite(Bitmap *sprite, Stream *in)
     }
 }
 
-int SpriteCache::SaveToFile(const char *filnam, bool compressOutput)
+int SpriteCache::SaveToFile(const char *filename, const char *sprindex_filename, bool compressOutput)
 {
-    Stream *output = Common::File::CreateFile(filnam);
+    Stream *output = Common::File::CreateFile(filename);
     if (output == nullptr)
         return -1;
 
@@ -575,7 +578,7 @@ int SpriteCache::SaveToFile(const char *filnam, bool compressOutput)
     {
         // re-open the file so that it can be seeked
         delete output;
-        output = File::OpenFile(filnam, Common::kFile_Open, Common::kFile_ReadWrite); // CHECKME why mode was "r+" here?
+        output = File::OpenFile(filename, Common::kFile_Open, Common::kFile_ReadWrite); // CHECKME why mode was "r+" here?
         if (output == nullptr)
             return -1;
     }
@@ -708,14 +711,14 @@ int SpriteCache::SaveToFile(const char *filnam, bool compressOutput)
     delete [] memBuffer;
     delete output;
 
-    return SaveSpriteIndex(spindexfilename, spriteFileIDCheck, lastslot, numsprits, spritewidths, spriteheights, spriteoffs);
+    return SaveSpriteIndex(sprindex_filename, spriteFileIDCheck, lastslot, numsprits, spritewidths, spriteheights, spriteoffs);
 }
 
 int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sprkey_t lastslot, sprkey_t numsprits,
                                     const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs)
 {
     // write the sprite index file
-    Stream *spindex_out = File::CreateFile(spindexfilename);
+    Stream *spindex_out = File::CreateFile(filename);
     // write "SPRINDEX" id
     spindex_out->WriteArray(&spindexid[0], strlen(spindexid), 1);
     // write version
@@ -735,16 +738,16 @@ int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sp
     return 0;
 }
 
-HError SpriteCache::InitFile(const char *filnam)
+HError SpriteCache::InitFile(const char *filename, const char *sprindex_filename)
 {
     SpriteFileVersion vers;
     char buff[20];
     soff_t spr_initial_offs = 0;
     int spriteFileID = 0;
 
-    _stream.reset(Common::AssetManager::OpenAsset(filnam));
+    _stream.reset(Common::AssetManager::OpenAsset(filename));
     if (_stream == nullptr)
-        return new Error(String::FromFormat("Failed to open spriteset file '%s'.", filnam));
+        return new Error(String::FromFormat("Failed to open spriteset file '%s'.", filename));
 
     spr_initial_offs = _stream->GetPosition();
 
@@ -797,7 +800,7 @@ HError SpriteCache::InitFile(const char *filnam)
     EnlargeTo(topmost);
 
     // if there is a sprite index file, use it
-    if (LoadSpriteIndexFile(spriteFileID, spr_initial_offs, topmost))
+    if (LoadSpriteIndexFile(sprindex_filename, spriteFileID, spr_initial_offs, topmost))
     {
         // Succeeded
         return HError::None();
@@ -860,9 +863,9 @@ HError SpriteCache::RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost
     return HError::None();
 }
 
-bool SpriteCache::LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost)
+bool SpriteCache::LoadSpriteIndexFile(const char *filename, int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost)
 {
-    Stream *fidx = Common::AssetManager::OpenAsset((char*)spindexfilename);
+    Stream *fidx = Common::AssetManager::OpenAsset(filename);
     if (fidx == nullptr) 
     {
         return false;

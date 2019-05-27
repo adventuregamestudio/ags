@@ -90,6 +90,10 @@ public:
     static const sprkey_t MAX_SPRITE_INDEX = INT32_MAX - 1;
     static const size_t   MAX_SPRITE_SLOTS = INT32_MAX;
 
+    // Standart sprite file and sprite index names
+    static const Common::String DefaultSpriteFileName;
+    static const Common::String DefaultSpriteIndexName;
+
     SpriteCache(std::vector<SpriteInfo> &sprInfos);
     ~SpriteCache();
 
@@ -132,15 +136,16 @@ public:
     void        SetMaxCacheSize(size_t size);
 
     // Loads sprite reference information and inits sprite stream
-    HAGSError   InitFile(const char *filename);
+    HAGSError   InitFile(const char *filename, const char *sprindex_filename);
     // Tells if bitmaps in the file are compressed
     bool        IsFileCompressed() const;
     // Opens file stream
     int         AttachFile(const char *filename);
     // Closes file stream
     void        DetachFile();
-    // Saves all sprites until lastElement (exclusive) to file 
-    int         SaveToFile(const char *filename, bool compressOutput);
+    // Saves all sprites to file
+    // TODO: refactor to be able to save main file and index file separately
+    int         SaveToFile(const char *filename, const char *sprindex_filename, bool compressOutput);
     // Saves sprite index table in a separate file
     int         SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sprkey_t lastslot, sprkey_t numsprits,
         const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs);
@@ -203,7 +208,7 @@ private:
     int _listend;
 
     // Loads sprite index file
-    bool        LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost);
+    bool        LoadSpriteIndexFile(const char *filename, int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost);
     // Rebuilds sprite index from the main sprite file
     HAGSError   RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers);
     // Writes compressed sprite to the stream

@@ -292,7 +292,9 @@ TEST(Compile, EnumNegative) {
     EXPECT_EQ(-1, sym.entries[sym.find("y")].soffs);
     EXPECT_EQ(0, sym.entries[sym.find("z")].soffs);
 
-    EXPECT_EQ((-2147483648), sym.entries[sym.find("intmin")].soffs);
+    // Note: -2147483648 gives an _unsigned_ int, not the lowest possible signed int
+    // so it can't be used. Microsoft recomments using INT_MIN instead.
+    EXPECT_EQ((INT_MIN), sym.entries[sym.find("intmin")].soffs);
     EXPECT_EQ((2147483647), sym.entries[sym.find("intmax")].soffs);
 }
 
@@ -340,7 +342,9 @@ TEST(Compile, DefaultParametersLargeInts) {
     EXPECT_EQ((2147483647), sym.entries[funcidx].funcParamDefaultValues[6]);
 
     EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[7]);
-    EXPECT_EQ((-2147483648), sym.entries[funcidx].funcParamDefaultValues[7]);
+    // NOTE: It's not possible to write the lowest possible signed integer as
+    // -2147483648
+    EXPECT_EQ(INT_MIN, sym.entries[funcidx].funcParamDefaultValues[7]);
 
     EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[8]);
     EXPECT_EQ(-1, sym.entries[funcidx].funcParamDefaultValues[8]);
@@ -1476,7 +1480,7 @@ TEST(Compile, Attributes01) {
         builtin managed struct ViewFrame {              \n\
             float get_Flipped;                          \n\
             readonly import attribute bool Flipped;     \n\
-        };                                              \n\                                                \n\
+        };                                              \n\
         ";
 
     clear_error();

@@ -361,7 +361,7 @@ int AGS::FuncCallpointMgr::UpdateCallListOnYanking(AGS::CodeLoc chunk_start, siz
             PatchInfo &patch_info = pl[pl_idx];
             if (patch_info.ChunkId != CodeBaseId)
                 continue;
-            if (patch_info.Offset < chunk_start || patch_info.Offset >= chunk_end)
+            if (patch_info.Offset < chunk_start || patch_info.Offset >= static_cast<int>(chunk_end))
                 continue; // This address isn't yanked
 
             patch_info.ChunkId = id;
@@ -458,14 +458,14 @@ AGS::FuncCallpointMgr::CallpointInfo::CallpointInfo()
 { }
 
 AGS::ImportMgr::ImportMgr()
-{ 
+{
 }
 
 void AGS::ImportMgr::Init(ccCompiledScript *scrip)
 {
     _importIdx.clear();
     _scrip = scrip;
-    for (size_t import_idx = 0; import_idx < scrip->numimports; import_idx++)
+    for (int import_idx = 0; import_idx < scrip->numimports; import_idx++)
         _importIdx[scrip->imports[import_idx]] = import_idx;
 }
 
@@ -551,7 +551,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
     int totalsub = 0;
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
     {
-        if (_sym.entries[entries_idx].sscope <= from_level)
+        if (_sym.entries[entries_idx].sscope <= static_cast<int>(from_level))
             continue;
         if (_sym.entries[entries_idx].stype != kSYM_LocalVar)
             continue;
@@ -624,7 +624,7 @@ int AGS::Parser::FreePointersOfStdArrayOfPointer(size_t arrsize, bool &clobbers_
 
     clobbers_ax = true;
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, arrsize);
-    
+
     AGS::CodeLoc const loop_start = _scrip.codesize;
     _scrip.write_cmd0(SCMD_MEMZEROPTR);
     _scrip.write_cmd2(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
@@ -799,7 +799,7 @@ int AGS::Parser::FreePointersOfLocals(int from_level, AGS::Symbol name_of_curren
         FreePointersOfLocals0(from_level, dummy_bool, mar_may_be_clobbered);
         bool const no_precautions_were_necessary =
             (codesize_before_freeing == _scrip.codesize);
-        
+
         // Now release the dynamic pointer with a special opcode that prevents 
         // memory de-allocation as long as AX still has this pointer, too
         if (mar_may_be_clobbered)
@@ -824,6 +824,8 @@ int AGS::Parser::FreePointersOfLocals(int from_level, AGS::Symbol name_of_curren
     _scrip.push_reg(SREG_AX);
     FreePointersOfLocals0(from_level, clobbers_ax, dummy_bool);
     _scrip.pop_reg(SREG_AX);
+
+    return 0;
 }
 
 // Remove defns from the _sym table of vars defined on from_level or higher
@@ -1039,7 +1041,7 @@ int AGS::Parser::ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bo
 {
     if (fromSym >= 0)
     {
-        SymbolTableEntry &from_entry = GetSymbolTableEntryAnyPhase(fromSym); 
+        SymbolTableEntry &from_entry = GetSymbolTableEntryAnyPhase(fromSym);
         if (from_entry.stype == kSYM_Constant)
         {
             theValue = from_entry.soffs;
@@ -1181,7 +1183,7 @@ int AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, AGS
     }
 
     name_of_func = MangleStructAndComponent(struct_of_func, name_of_func);
-    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(name_of_func); 
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(name_of_func);
 
     // Don't clobber the flags set in the Pre-Analyze phase
     SetFlag(entry.flags, kSFLG_StructMember, true);
@@ -1577,7 +1579,7 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_
         return -1;
     }
 
-    for (int param_idx = 1; param_idx <= num_args; param_idx++)
+    for (size_t param_idx = 1; param_idx <= num_args; param_idx++)
     {
         if (known_info->funcparamtypes.at(param_idx) != this_entry->funcparamtypes.at(param_idx))
         {
@@ -1646,7 +1648,7 @@ int AGS::Parser::ParseFuncdecl_GetSymbolAfterParmlist(AGS::Symbol &symbol)
 
     AGS::Symbol const stoplist[] = { 0 };
     SkipTo(stoplist, 0); // Skim to matching ')'
- 
+
     if (kSYM_CloseParenthesis != _sym.get_type(_targ.getnext()))
     {
         cc_error("Internal error: Unclosed parameter list of function");
@@ -1708,7 +1710,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, int return_type, bool 
     // A forward decl can be written with the
     // "import" keyword (when allowed in the options). This isn't an import
     // proper, so reset the "import" flag in this case.
-    if (FlagIsSet(tqs, kTQ_Import) && kSYM_Function == entry.stype  && !FlagIsSet(entry.flags, kSFLG_Imported))
+    if (FlagIsSet(tqs, kTQ_Import) && kSYM_Function == entry.stype && !FlagIsSet(entry.flags, kSFLG_Imported))
     {
         if (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
         {
@@ -2040,7 +2042,7 @@ void AGS::Parser::ConvertAXStringToStringObject(AGS::Vartype vartype_wanted)
         ((vartype_wanted & (~kVTY_DynPointer)) == _sym.getStringStructSym()))
     {
         _scrip.write_cmd1(SCMD_CREATESTRING, SREG_AX); // convert AX
-        _scrip.ax_vartype = 
+        _scrip.ax_vartype =
             kVTY_DynPointer | _sym.getStringStructSym(); // set type of AX
     }
 }
@@ -2782,7 +2784,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     AGS::Symbol const struct_of_attribute = vartype & kVTY_FlagMask;
     AGS::Symbol name_of_attribute =
         MangleStructAndComponent(struct_of_attribute, component_of_attribute);
-        
+
     bool const attrib_uses_this =
         !FlagIsSet(_sym.get_flags(name_of_attribute), kSFLG_Static);
     bool const is_indexed =
@@ -2871,7 +2873,7 @@ int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::MemoryLocation
         mloc.MakeMARCurrent(_scrip);
         _scrip.write_cmd0(SCMD_CHECKNULL);
         _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
-    }    
+    }
     return 0;
 }
 
@@ -2915,7 +2917,7 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
         return -99;
     }
     size_t bracketed_expr_length = close_brac_loc + 1 - symlist;
-    
+
     // Must be any sort of array
     bool const is_dynarray = FlagIsSet(vartype, kVTY_DynArray);
     bool const is_array = FlagIsSet(vartype, kVTY_Array);
@@ -2996,7 +2998,7 @@ int AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::
         mloc.SetStart(kSYM_Import, soffs);
     else
         mloc.SetStart(is_global ? kSYM_GlobalVar : kSYM_LocalVar, soffs);
-    
+
     vartype = _sym.get_vartype(varname);
 
     // Process an array index if it follows
@@ -3029,7 +3031,7 @@ int AGS::Parser::AccessData_LitFloat(bool negate, AGS::SymbolScript &symlist, si
         cc_error("Floating point literal '%s' is out of range", instring);
         return -1;
     }
-    float const f = static_cast<float>(d * (negate? -1 : 1));
+    float const f = static_cast<float>(d * (negate ? -1 : 1));
     int const i = InterpretFloatAsInt(f);
 
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, i);
@@ -3156,11 +3158,11 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
             // We _should_ prepend "this." to symlist here but can't do that (easily).
             // So we don't and the '.' that should be prepended doesn't exist.
             // To compensate for that, we back up symlist by one index
-            symlist--; 
+            symlist--;
             symlist_len++;
             return 0;
         }
-        
+
         cc_error("Unexpected '%s'", _sym.get_name_string(symlist[0]).c_str());
         return -1;
     }
@@ -3295,7 +3297,7 @@ int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this,
         if (retval < 0) return retval;
         return AccessData_ProcessAnyArrayIndex(vloc, _sym.entries[component].arrsize, symlist, symlist_len, vloc, mloc, vartype);
     }
-    
+
     return 0; // Can't reach
 }
 
@@ -3343,7 +3345,7 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
     // If we are reading, then all the accesses are for reading.
     // If we are writing, then all the accesses except for the last one
     // are for reading and the last one will be for writing.
-    retval = AccessData_FirstClause((writing && clause_is_last), symlist, symlist_len,  vloc, scope, mloc, vartype, access_via_this, static_access, need_to_negate);
+    retval = AccessData_FirstClause((writing && clause_is_last), symlist, symlist_len, vloc, scope, mloc, vartype, access_via_this, static_access, need_to_negate);
     if (retval < 0) return retval;
 
     AGS::Vartype outer_vartype = 0;
@@ -3461,7 +3463,7 @@ void AGS::Parser::AccessData_StrCpy()
     AGS::CodeLoc const loop_start = _scrip.codesize; // Label LOOP_START
     _scrip.write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_MAR); // AX = m[BX]
     _scrip.write_cmd1(SCMD_MEMREAD, SREG_AX);
-   _scrip.write_cmd2(SCMD_REGTOREG, SREG_CX, SREG_MAR); // m[CX] = AX
+    _scrip.write_cmd2(SCMD_REGTOREG, SREG_CX, SREG_MAR); // m[CX] = AX
     _scrip.write_cmd1(SCMD_MEMWRITE, SREG_AX);
     _scrip.write_cmd1(SCMD_JZ, 0);  // if (AX == 0) jumpto LOOP_END
     AGS::CodeLoc const jumpout1_pos = _scrip.codesize - 1;
@@ -3491,7 +3493,7 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
     int rhsscope = _scrip.ax_val_scope;
     // Save AX unless we are sure that it won't be clobbered
     bool const may_clobber = AccessData_MayAccessClobberAX(symlist, symlist_len);
-    if (may_clobber) 
+    if (may_clobber)
         _scrip.push_reg(SREG_AX);
 
     bool const writing = true;
@@ -3546,7 +3548,7 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
             _sym.get_vartype_name_string(lhsvartype).c_str());
         return -1;
     }
-    
+
     if (FlagIsSet(rhsvartype, kVTY_DynArray | kVTY_DynPointer))
         _scrip.write_cmd1(SCMD_MEMWRITEPTR, SREG_AX);
     else
@@ -3612,7 +3614,7 @@ int AGS::Parser::BufferExpression(ccInternalList &expr_script)
     int nesting_depth = 0;
 
     AGS::Symbol peeksym;
-    while(0 <= (peeksym = _targ.peeknext())) // note assignment in while condition
+    while (0 <= (peeksym = _targ.peeknext())) // note assignment in while condition
     {
         size_t const pos = _targ.pos; // for backing up if necessary
 
@@ -3784,7 +3786,7 @@ int AGS::Parser::ParseAssignment_SAssign(AGS::Symbol ass_symbol, ccInternalList 
         _scrip.write_cmd1(memwrite, SREG_AX);
         return 0;
     }
-    
+
     return ParseAssignment_Assign(lhs);
 }
 
@@ -3945,7 +3947,7 @@ int AGS::Parser::ParseVardecl_ArrayDecl(AGS::Symbol var_name, AGS::Vartype varty
 {
 
     _targ.getnext();  // skip the [
-    
+
     if (_sym.get_type(_targ.peeknext()) == kSYM_CloseBracket)
     {
         if (vartype == _sym.getOldStringSym())
@@ -4108,11 +4110,11 @@ int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Va
 int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, bool has_initial_assignment)
 {
     _sym.entries[var_name].soffs = _scrip.cur_sp;
-    
+
     // Also need a clean slate if the new var contains releasable pointers.
     // Or else the reference counting might get confused by leftovers in the memory
     if (!has_initial_assignment || ContainsReleasablePointers(_sym.get_vartype(var_name)))
-    { 
+    {
         _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
         _scrip.write_cmd1(SCMD_ZEROMEMORY, size_of_defn);
     }
@@ -4133,7 +4135,7 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, b
 
 int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool is_dynpointer, bool &another_var_follows)
 {
-    size_t size_of_defn = (is_dynpointer)? SIZE_OF_DYNPOINTER : _sym.entries[vartype].ssize;
+    size_t size_of_defn = (is_dynpointer) ? SIZE_OF_DYNPOINTER : _sym.entries[vartype].ssize;
     if (_sym.getOldStringSym() == vartype)
         size_of_defn = OLDSTRING_LENGTH;
 
@@ -4169,7 +4171,7 @@ int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, Symbo
     }
     case kGl_Local:
         return ParseVardecl_Local(var_name, size_of_defn, has_initial_assignment);
-    }  
+    }
 }
 
 // wrapper around ParseVardecl0() to prevent memory leakage
@@ -4248,7 +4250,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
         // Allocate 4 unused empty bytes on stack for the "this" pointer
         this_entry.soffs = _scrip.cur_sp;
         _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
-        _scrip.write_cmd2(SCMD_WRITELIT, SIZE_OF_DYNPOINTER, 0); 
+        _scrip.write_cmd2(SCMD_WRITELIT, SIZE_OF_DYNPOINTER, 0);
         _scrip.cur_sp += SIZE_OF_DYNPOINTER;
         _scrip.write_cmd2(SCMD_ADD, SREG_SP, SIZE_OF_DYNPOINTER);
     }
@@ -4344,7 +4346,7 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
             return 0;
         break;
     }
-    
+
     case AGS::NestingStack::kNT_Switch:
         retval = DealWithEndOfSwitch(nesting_stack);
         if (retval < 0) return retval;
@@ -4495,7 +4497,7 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Symbol varty
         cc_error("Struct '%s' can't be a member of itself", _sym.get_name_string(vartype).c_str());
         return -1;
     }
-    
+
     SymbolType const vartype_type = _sym.get_type(vartype);
     if (vartype_type == kSYM_NoType)
     {
@@ -4516,7 +4518,7 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Symbol varty
         cc_error("You can only declare a pointer to a struct that hasn't been completely defined yet");
         return -1;
     }
-    
+
     if (vartype == _sym.getOldStringSym()) // [fw] Where's the problem?
     {
         cc_error("'string' not allowed inside a struct");
@@ -4634,7 +4636,7 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
             p_idx, entry.sname.c_str(), _sym.get_name_string(vartype).c_str());
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -4802,7 +4804,7 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
             SetFlag(entry.flags, kSFLG_Readonly, true);
         if (FlagIsSet(tqs, kTQ_Attribute))
             SetFlag(entry.flags, kSFLG_Attribute, true);
-        
+
         if (FlagIsSet(tqs, kTQ_Static))
             SetFlag(_sym.entries[vname].flags, kSFLG_Static, true);
         if (FlagIsSet(tqs, kTQ_Protected))
@@ -4833,7 +4835,7 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
 int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS::Symbol stname, AGS::Symbol current_func, TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, size_t &size_so_far)
 {
     AGS::Symbol cursym = _targ.getnext(); // normally variable name, array name, or function name, but can be [ too
-    
+
     // Check whether "[]" is behind the type.  "struct foo { int [] bar; }" 
     bool isDynamicArray = false;
     if (_sym.get_type(cursym) == kSYM_OpenBracket && _sym.get_type(_targ.peeknext()) == kSYM_CloseBracket)
@@ -4875,7 +4877,7 @@ int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS:
                 _sym.get_name_string(mangled_name).c_str());
             return -1;
         }
-    
+
         // Mustn't be in any ancester
         int retval = ParseStruct_CheckForCompoInAncester(stname, component, parent);
         if (retval < 0) return retval;
@@ -5220,7 +5222,8 @@ int AGS::Parser::ParseExport()
         // if all functions are being exported anyway, don't bother doing
         // it now
         if ((ccGetOption(SCOPT_EXPORTALL) != 0) && (curtype == kSYM_Function))
-        { }
+        {
+        }
         else if (_scrip.add_new_export(_sym.get_name_string(cursym).c_str(),
             (curtype == kSYM_GlobalVar) ? EXPORT_DATA : EXPORT_FUNCTION,
             _sym.entries[cursym].soffs, _sym.entries[cursym].sscope) == -1)
@@ -5295,7 +5298,7 @@ int AGS::Parser::ParseVartype_GetPointerStatus(AGS::Symbol vartype, bool &isPoin
     if (_targ.peeknext() == _sym.find("*"))
     {
         // only allow pointers to structs
-        
+
         if (!FlagIsSet(entry.flags, kSFLG_StructType))
         {
             cc_error("Cannot create pointer to basic type");
@@ -5411,20 +5414,20 @@ int AGS::Parser::ParseVartype_VarDef(AGS::Symbol &var_name, Globalness is_global
     {
         if (0 != _givm.count(var_name))
         {
-            if(_givm[var_name])
+            if (_givm[var_name])
             {
                 cc_error("'%s' is already defined as a global non-import variable", _sym.get_name_string(var_name).c_str());
                 return -1;
             }
-            else if (kGl_GlobalNoImport == is_global && 0 !=ccGetOption(SCOPT_NOIMPORTOVERRIDE))
+            else if (kGl_GlobalNoImport == is_global && 0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
             {
                 cc_error("'%s' is defined as an import variable; that cannot be overridden here", _sym.get_name_string(var_name).c_str());
                 return -1;
             }
-            
+
         }
         _givm[var_name] = (kGl_GlobalNoImport == is_global);
-            
+
         // Apart from this, we aren't interested in var defns at this stage, so skip this defn
         AGS::Symbol const stoplist[] = { kSYM_Comma, kSYM_Semicolon };
         SkipTo(stoplist, 2);
@@ -5447,7 +5450,7 @@ int AGS::Parser::ParseVartype_VarDef(AGS::Symbol &var_name, Globalness is_global
 }
 
 // We accepted a variable type such as "int", so what follows is a function or variable definition
-int AGS::Parser::ParseVartype0(AGS::Symbol vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func,  bool &noloopcheck_is_set)
+int AGS::Parser::ParseVartype0(AGS::Symbol vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &noloopcheck_is_set)
 {
     if (_targ.reached_eof())
     {
@@ -6396,7 +6399,7 @@ int AGS::Parser::ParseInput()
 
         if (0 == _sym.get_name_string(cursym).compare(0, 18, NEW_SCRIPT_TOKEN_PREFIX))
         {
-            Parse_StartNewSection(cursym);           
+            Parse_StartNewSection(cursym);
             continue;
         }
 

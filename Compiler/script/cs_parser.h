@@ -174,7 +174,7 @@ private:
 
     SymbolTable &_sym;
     ::ccCompiledScript &_scrip;
-    
+
     struct PatchInfo
     {
         int ChunkId;
@@ -195,7 +195,7 @@ private:
 public:
     FuncCallpointMgr(::ccCompiledScript &scrip);
     void Reset();
-    
+
     // Enter a code location where a function is called that hasn't been defined yet.
     int TrackForwardDeclFuncCall(Symbol func, CodeLoc idx);
 
@@ -239,7 +239,7 @@ public:
     ImportMgr();
 
     void Init(::ccCompiledScript *scrip);
-    
+
     int FindOrAdd(std::string s);
 };
 
@@ -268,7 +268,7 @@ public:
     void MakeMARCurrent(ccCompiledScript &scrip);
 
     inline bool NothingDoneYet() { return _Type != kSYM_NoType; };
-    
+
     inline void Reset() { SetStart(kSYM_NoType, 0); };
 };
 
@@ -359,7 +359,7 @@ private:
     // Measurements show that the checks whether imports already exist take up
     // considerable time. The Import Manager speeds this up by caching the lookups.
     ImportMgr _importMgr;
-    
+
     // Manage a list of all global import variables and track whether they are
     // re-defined as non-import later on.
     // Symbol maps to TRUE if it is global import, to FALSE if it is global non-import.
@@ -423,7 +423,7 @@ private:
 
     // Get the type of symb; this will work irrespective of the phase we are in
     inline SymbolType GetSymbolTypeAnyPhase(Symbol symb) { return (symb < 0) ? kSYM_NoType : GetSymbolTableEntryAnyPhase(symb & kVTY_FlagMask).stype; };
-     
+
     // Return number of bytes to remove from stack to unallocate local vars
     // of level from_level or higher
     int StacksizeOfLocals(size_t from_level);
@@ -499,7 +499,7 @@ private:
 
     int ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info);
 
-        // there was a forward declaration -- check that the real declaration matches it
+    // there was a forward declaration -- check that the real declaration matches it
     int ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info);
 
     // Enter the function in the imports[] or functions[] array; get its index   
@@ -760,7 +760,7 @@ private:
     // We're waiting for the name of the member.
     int ParseStruct_MemberDefnVarOrFuncOrArray(Symbol parent, Symbol stname, Symbol current_func, TypeQualifierSet tqs, Vartype curtype, bool type_is_dynpointer, size_t &size_so_far);
 
-    int ParseStruct_MemberStmt(Symbol stname,Symbol name_of_current_func,Symbol parent,size_t &size_so_far);
+    int ParseStruct_MemberStmt(Symbol stname, Symbol name_of_current_func, Symbol parent, size_t &size_so_far);
 
     // Handle a "struct" definition clause
     int ParseStruct(TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol name_of_current_func, Symbol struct_of_current_func);
@@ -850,7 +850,7 @@ private:
     // Copy all the func headers from the PreAnalyse phase into the "real" symbol table
     int Parse_FuncHeaders2Sym();
 
-    
+
 public:
     // interpret the float as if it were an int (without converting it really);
     // return that int

@@ -52,7 +52,6 @@ TEST(Tokenize, SectionChange)
     bool eof_encountered;
     bool error_encountered;
     std::string token_str;
-    int token_type;
 
     // String
     tokenizer.GetNextToken(token, eof_encountered, error_encountered);

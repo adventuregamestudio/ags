@@ -76,7 +76,7 @@ SymbolType SymbolTable::get_type(AGS::Symbol symbol)  const
 {
     symbol &= kVTY_FlagMask;
 
-    if ((symbol < 0) || (symbol >= entries.size()))
+    if ((symbol < 0) || (symbol >=  static_cast<AGS::Symbol>(entries.size())))
         return kSYM_NoType;
 
     return entries[symbol].stype;
@@ -194,7 +194,7 @@ std::string const SymbolTable::get_name_string(AGS::Symbol symbl) const
     int const core_symbl = (symbl & kVTY_FlagMask);
     if (core_symbl < 0)
         return std::string("(end of input)");
-    if (core_symbl >= entries.size())
+    if (core_symbl >= static_cast<int>(entries.size()))
         return std::string("(invalid symbol)");
     
     std::string result = entries[core_symbl].sname;
@@ -213,7 +213,7 @@ std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) con
 {
     AGS::Symbol const core_type = (vartype & kVTY_FlagMask);
 
-    std::string result = (core_type >= 0 && core_type < entries.size()) ? entries[core_type].sname : "UNKNOWNTYPE";
+    std::string result = (core_type >= 0 && core_type < static_cast<int>(entries.size())) ? entries[core_type].sname : "UNKNOWNTYPE";
     if ((vartype & kVTY_DynPointer) &&
         !(vartype & kVTY_DynArray) &&
         !(entries[core_type].flags & kSFLG_Autoptr))

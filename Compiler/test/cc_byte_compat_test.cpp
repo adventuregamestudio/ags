@@ -125,7 +125,7 @@ void WriteOutputCode(std::ofstream &of, ccCompiledScript *scrip)
         return;
 
     of << "intptr_t code[] = {" << std::endl;
-    for (size_t idx = 0; idx < scrip->codesize; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->codesize; idx++)
     {
         of.width(4);
         of << scrip->code[idx] << ", ";
@@ -136,7 +136,7 @@ void WriteOutputCode(std::ofstream &of, ccCompiledScript *scrip)
 
     of << "for (size_t idx = 0; idx < codesize; idx++)" << std::endl;
     of << "{" << std::endl;
-    of << "     if (idx >= scrip->codesize) break;" << std::endl;
+    of << "     if (static_cast<int>(idx) >= scrip->codesize) break;" << std::endl;
     of << "     std::string prefix = \"code[\";" << std::endl;
     of << "     prefix += std::to_string(idx) + \"] == \";" << std::endl;
     of << "     std::string is_val = prefix + std::to_string(code[idx]);" << std::endl;
@@ -155,7 +155,7 @@ void WriteOutputFixups(std::ofstream &of, ccCompiledScript *scrip)
         return;
 
     of << "intptr_t fixups[] = {" << std::endl;
-    for (size_t idx = 0; idx < scrip->numfixups; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numfixups; idx++)
     {
         of.width(4);
         of << scrip->fixups[idx] << ", ";
@@ -166,7 +166,7 @@ void WriteOutputFixups(std::ofstream &of, ccCompiledScript *scrip)
 
     of << "for (size_t idx = 0; idx < numfixups; idx++)" << std::endl;
     of << "{" << std::endl;
-    of << "     if (idx >= scrip->numfixups) break;" << std::endl;
+    of << "     if (static_cast<int>(idx) >= scrip->numfixups) break;" << std::endl;
     of << "     std::string prefix = \"fixups[\";" << std::endl;
     of << "     prefix += std::to_string(idx) + \"] == \";" << std::endl;
     of << "     std::string   is_val = prefix + std::to_string(fixups[idx]);" << std::endl;
@@ -175,7 +175,7 @@ void WriteOutputFixups(std::ofstream &of, ccCompiledScript *scrip)
     of << "}" << std::endl << std::endl;
 
     of << "char fixuptypes[] = {" << std::endl;
-    for (size_t idx = 0; idx < scrip->numfixups; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numfixups; idx++)
     {
         of.width(3);
         of << static_cast<int>(scrip->fixuptypes[idx]) << ", ";
@@ -186,7 +186,7 @@ void WriteOutputFixups(std::ofstream &of, ccCompiledScript *scrip)
 
     of << "for (size_t idx = 0; idx < numfixups; idx++)" << std::endl;
     of << "{" << std::endl;
-    of << "     if (idx >= scrip->numfixups) break;" << std::endl;
+    of << "     if (static_cast<int>(idx) >= scrip->numfixups) break;" << std::endl;
     of << "     std::string prefix = \"fixuptypes[\";" << std::endl;
     of << "     prefix += std::to_string(idx) + \"] == \";" << std::endl;
     of << "     std::string   is_val = prefix + std::to_string(fixuptypes[idx]);" << std::endl;
@@ -201,7 +201,7 @@ void WriteOutputImports(std::ofstream &of, ccCompiledScript *scrip)
     // mustn't be counted. So we can't just believe numimports,
     // and we can't check against scrip->numimports.
     size_t realNumImports = 0;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
         if (0 != strcmp(scrip->imports[idx], ""))
             ++realNumImports;
 
@@ -210,7 +210,7 @@ void WriteOutputImports(std::ofstream &of, ccCompiledScript *scrip)
     of << "std::string imports[] = {" << std::endl;
 
     size_t linelen = 0;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -229,7 +229,7 @@ void WriteOutputImports(std::ofstream &of, ccCompiledScript *scrip)
     of << " \"[[SENTINEL]]\" " << std::endl << "};" << std::endl << std::endl;
 
     of << "int idx2 = -1;" << std::endl;
-    of << "for (size_t idx = 0; idx < scrip->numimports; idx++)" << std::endl;
+    of << "for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)" << std::endl;
     of << "{" << std::endl;
     of << "     if (!strcmp(scrip->imports[idx], \"\"))" << std::endl;
     of << "         continue;" << std::endl;
@@ -256,7 +256,7 @@ void WriteOutputExports(std::ofstream &of, ccCompiledScript *scrip)
     of << "std::string exports[] = {" << std::endl;
 
     size_t linelen = 0;
-    for (size_t idx = 0; idx < scrip->numexports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numexports; idx++)
     {
         std::string item = EscapeString(scrip->exports[idx]);
         item += ",";
@@ -273,7 +273,7 @@ void WriteOutputExports(std::ofstream &of, ccCompiledScript *scrip)
 
     of << "for (size_t idx = 0; idx < numexports; idx++)" << std::endl;
     of << "{" << std::endl;
-    of << "     if (idx >= scrip->numexports) break;" << std::endl;
+    of << "     if (static_cast<int>(idx) >= scrip->numexports) break;" << std::endl;
     of << "     std::string prefix = \"exports[\";" << std::endl;
     of << "     prefix += std::to_string(idx) + \"] == \";" << std::endl;
     of << "     std::string is_val = prefix + exports[idx];" << std::endl;
@@ -284,7 +284,7 @@ void WriteOutputExports(std::ofstream &of, ccCompiledScript *scrip)
 
     of << "int32_t export_addr[] = {" << std::endl;
 
-    for (size_t idx = 0; idx < scrip->numexports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numexports; idx++)
     {
         of.setf(std::ios::hex, std::ios::basefield);
         of.setf(std::ios::showbase);
@@ -309,7 +309,7 @@ void WriteOutputExports(std::ofstream &of, ccCompiledScript *scrip)
 
     of << "for (size_t idx = 0; idx < numexports; idx++)" << std::endl;
     of << "{" << std::endl;
-    of << "     if (idx >= scrip->numexports) break;" << std::endl;
+    of << "     if (static_cast<int>(idx) >= scrip->numexports) break;" << std::endl;
     of << "     std::string prefix = \"export_addr[\";" << std::endl;
     of << "     prefix += std::to_string(idx) + \"] == \";" << std::endl;
     of << "     std::string is_val   = prefix + std::to_string(export_addr[idx]);" << std::endl;
@@ -327,7 +327,7 @@ void WriteOutputStrings(std::ofstream &of, ccCompiledScript *scrip)
         return;
 
     of << "char strings[] = {" << std::endl;
-    for (size_t idx = 0; idx < scrip->stringssize; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->stringssize; idx++)
     {
         std::string out = "";
         if (scrip->strings[idx] == 0)
@@ -340,9 +340,9 @@ void WriteOutputStrings(std::ofstream &of, ccCompiledScript *scrip)
     }
     of << "'\\0'" << std::endl << "};" << std::endl << std::endl;
 
-    of << "for (size_t idx = 0; idx < stringssize; idx++)" << std::endl;
+    of << "for (size_t idx = 0; static_cast<int>(idx) < stringssize; idx++)" << std::endl;
     of << "{" << std::endl;
-    of << "     if (idx >= scrip->stringssize) break;" << std::endl;
+    of << "     if (static_cast<int>(idx) >= scrip->stringssize) break;" << std::endl;
     of << "     std::string prefix = \"strings[\";" << std::endl;
     of << "     prefix += std::to_string(idx) + \"] == \";" << std::endl;
     of << "     std::string is_val = prefix + std::to_string(strings[idx]);" << std::endl;
@@ -428,7 +428,7 @@ TEST(Bytecode, SimpleVoidFunction) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -445,7 +445,7 @@ TEST(Bytecode, SimpleVoidFunction) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -491,7 +491,7 @@ TEST(Bytecode, SimpleIntFunction) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -508,7 +508,7 @@ TEST(Bytecode, SimpleIntFunction) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -557,7 +557,7 @@ TEST(Bytecode, IntFunctionLocalV) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -574,7 +574,7 @@ TEST(Bytecode, IntFunctionLocalV) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -620,7 +620,7 @@ TEST(Bytecode, IntFunctionParam) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -637,7 +637,7 @@ TEST(Bytecode, IntFunctionParam) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -684,7 +684,7 @@ TEST(Bytecode, IntFunctionGlobalV) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -701,7 +701,7 @@ TEST(Bytecode, IntFunctionGlobalV) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -715,7 +715,7 @@ TEST(Bytecode, IntFunctionGlobalV) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -729,7 +729,7 @@ TEST(Bytecode, IntFunctionGlobalV) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -782,7 +782,7 @@ TEST(Bytecode, FloatExpr1) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -799,7 +799,7 @@ TEST(Bytecode, FloatExpr1) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -813,7 +813,7 @@ TEST(Bytecode, FloatExpr1) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -827,7 +827,7 @@ TEST(Bytecode, FloatExpr1) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -912,7 +912,7 @@ TEST(Bytecode, FloatExpr2) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -929,7 +929,7 @@ TEST(Bytecode, FloatExpr2) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -943,7 +943,7 @@ TEST(Bytecode, FloatExpr2) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -957,7 +957,7 @@ TEST(Bytecode, FloatExpr2) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1020,7 +1020,7 @@ TEST(Bytecode, IfThenElse1) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1037,7 +1037,7 @@ TEST(Bytecode, IfThenElse1) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1101,7 +1101,7 @@ TEST(Bytecode, IfThenElse2) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1118,7 +1118,7 @@ TEST(Bytecode, IfThenElse2) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1185,7 +1185,7 @@ TEST(Bytecode, While) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1202,7 +1202,7 @@ TEST(Bytecode, While) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -1216,7 +1216,7 @@ TEST(Bytecode, While) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -1230,7 +1230,7 @@ TEST(Bytecode, While) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1307,7 +1307,7 @@ TEST(Bytecode, DoNCall) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1324,7 +1324,7 @@ TEST(Bytecode, DoNCall) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -1338,7 +1338,7 @@ TEST(Bytecode, DoNCall) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -1352,7 +1352,7 @@ TEST(Bytecode, DoNCall) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1414,7 +1414,7 @@ TEST(Bytecode, DoUnbracedIf) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1431,7 +1431,7 @@ TEST(Bytecode, DoUnbracedIf) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1498,7 +1498,7 @@ TEST(Bytecode, For1) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1515,7 +1515,7 @@ TEST(Bytecode, For1) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -1529,7 +1529,7 @@ TEST(Bytecode, For1) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -1543,7 +1543,7 @@ TEST(Bytecode, For1) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1643,7 +1643,7 @@ TEST(Bytecode, For2) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1660,7 +1660,7 @@ TEST(Bytecode, For2) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1723,7 +1723,7 @@ TEST(Bytecode, For3) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1740,7 +1740,7 @@ TEST(Bytecode, For3) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -1754,7 +1754,7 @@ TEST(Bytecode, For3) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -1768,7 +1768,7 @@ TEST(Bytecode, For3) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1825,7 +1825,7 @@ TEST(Bytecode, For4) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1842,7 +1842,7 @@ TEST(Bytecode, For4) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -1922,7 +1922,7 @@ TEST(Bytecode, For5) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -1939,7 +1939,7 @@ TEST(Bytecode, For5) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -1953,7 +1953,7 @@ TEST(Bytecode, For5) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -1967,7 +1967,7 @@ TEST(Bytecode, For5) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -2046,7 +2046,7 @@ TEST(Bytecode, For6) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -2063,7 +2063,7 @@ TEST(Bytecode, For6) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -2077,7 +2077,7 @@ TEST(Bytecode, For6) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -2091,7 +2091,7 @@ TEST(Bytecode, For6) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -2172,7 +2172,7 @@ TEST(Bytecode, For7) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -2190,7 +2190,7 @@ TEST(Bytecode, For7) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -2205,7 +2205,7 @@ TEST(Bytecode, For7) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -2219,7 +2219,7 @@ TEST(Bytecode, For7) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -2297,7 +2297,7 @@ TEST(Bytecode, IfDoWhile) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -2314,7 +2314,7 @@ TEST(Bytecode, IfDoWhile) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -2388,7 +2388,7 @@ TEST(Bytecode, Switch01) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -2405,7 +2405,7 @@ TEST(Bytecode, Switch01) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -2467,7 +2467,7 @@ TEST(Bytecode, FreeLocalPtr) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -2484,7 +2484,7 @@ TEST(Bytecode, FreeLocalPtr) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -2541,7 +2541,7 @@ TEST(Bytecode, StringOldstyle01) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -2558,7 +2558,7 @@ TEST(Bytecode, StringOldstyle01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -2572,7 +2572,7 @@ TEST(Bytecode, StringOldstyle01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -2586,7 +2586,7 @@ TEST(Bytecode, StringOldstyle01) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -2642,7 +2642,7 @@ TEST(Bytecode, StringOldstyle02) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -2659,7 +2659,7 @@ TEST(Bytecode, StringOldstyle02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -2673,7 +2673,7 @@ TEST(Bytecode, StringOldstyle02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -2687,7 +2687,7 @@ TEST(Bytecode, StringOldstyle02) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -2712,7 +2712,7 @@ TEST(Bytecode, StringOldstyle02) {
 
     for (size_t idx = 0; idx < stringssize; idx++)
     {
-        if (idx >= scrip->stringssize) break;
+        if (static_cast<int>(idx) >= scrip->stringssize) break;
         std::string prefix = "strings[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(strings[idx]);
@@ -2771,7 +2771,7 @@ TEST(Bytecode, Struct01) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -2788,7 +2788,7 @@ TEST(Bytecode, Struct01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -2802,7 +2802,7 @@ TEST(Bytecode, Struct01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -2816,7 +2816,7 @@ TEST(Bytecode, Struct01) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -2888,7 +2888,7 @@ TEST(Bytecode, Struct02) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -2905,7 +2905,7 @@ TEST(Bytecode, Struct02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -2919,7 +2919,7 @@ TEST(Bytecode, Struct02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -2933,7 +2933,7 @@ TEST(Bytecode, Struct02) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3003,7 +3003,7 @@ TEST(Bytecode, Struct03) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3020,7 +3020,7 @@ TEST(Bytecode, Struct03) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -3034,7 +3034,7 @@ TEST(Bytecode, Struct03) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -3048,7 +3048,7 @@ TEST(Bytecode, Struct03) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3124,7 +3124,7 @@ TEST(Bytecode, Struct04) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3141,7 +3141,7 @@ TEST(Bytecode, Struct04) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3199,7 +3199,7 @@ TEST(Bytecode, Struct05) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3216,7 +3216,7 @@ TEST(Bytecode, Struct05) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -3230,7 +3230,7 @@ TEST(Bytecode, Struct05) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -3244,7 +3244,7 @@ TEST(Bytecode, Struct05) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3312,7 +3312,7 @@ TEST(Bytecode, Struct06) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3329,7 +3329,7 @@ TEST(Bytecode, Struct06) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3411,7 +3411,7 @@ TEST(Bytecode, Struct07) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3428,7 +3428,7 @@ TEST(Bytecode, Struct07) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -3442,7 +3442,7 @@ TEST(Bytecode, Struct07) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -3456,7 +3456,7 @@ TEST(Bytecode, Struct07) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3525,7 +3525,7 @@ TEST(Bytecode, Struct08) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3542,7 +3542,7 @@ TEST(Bytecode, Struct08) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3612,7 +3612,7 @@ TEST(Bytecode, Func01) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3629,7 +3629,7 @@ TEST(Bytecode, Func01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -3643,7 +3643,7 @@ TEST(Bytecode, Func01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -3657,7 +3657,7 @@ TEST(Bytecode, Func01) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3727,7 +3727,7 @@ TEST(Bytecode, Func02) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3744,7 +3744,7 @@ TEST(Bytecode, Func02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -3758,7 +3758,7 @@ TEST(Bytecode, Func02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -3772,7 +3772,7 @@ TEST(Bytecode, Func02) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3851,7 +3851,7 @@ TEST(Bytecode, Func03) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3868,7 +3868,7 @@ TEST(Bytecode, Func03) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -3882,7 +3882,7 @@ TEST(Bytecode, Func03) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -3896,7 +3896,7 @@ TEST(Bytecode, Func03) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -3961,7 +3961,7 @@ TEST(Bytecode, Func04) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -3978,7 +3978,7 @@ TEST(Bytecode, Func04) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -3992,7 +3992,7 @@ TEST(Bytecode, Func04) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -4006,7 +4006,7 @@ TEST(Bytecode, Func04) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -4067,7 +4067,7 @@ TEST(Bytecode, Func05) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -4084,7 +4084,7 @@ TEST(Bytecode, Func05) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -4098,7 +4098,7 @@ TEST(Bytecode, Func05) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -4112,7 +4112,7 @@ TEST(Bytecode, Func05) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -4169,7 +4169,7 @@ TEST(Bytecode, Func06) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -4186,7 +4186,7 @@ TEST(Bytecode, Func06) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -4200,7 +4200,7 @@ TEST(Bytecode, Func06) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -4214,7 +4214,7 @@ TEST(Bytecode, Func06) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -4271,7 +4271,7 @@ TEST(Bytecode, Func07) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -4288,7 +4288,7 @@ TEST(Bytecode, Func07) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -4302,7 +4302,7 @@ TEST(Bytecode, Func07) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -4316,7 +4316,7 @@ TEST(Bytecode, Func07) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -4374,7 +4374,7 @@ TEST(Bytecode, Func08) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -4391,7 +4391,7 @@ TEST(Bytecode, Func08) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -4405,7 +4405,7 @@ TEST(Bytecode, Func08) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -4419,7 +4419,7 @@ TEST(Bytecode, Func08) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -4481,7 +4481,7 @@ TEST(Bytecode, Func09) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -4498,7 +4498,7 @@ TEST(Bytecode, Func09) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -4512,7 +4512,7 @@ TEST(Bytecode, Func09) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -4526,7 +4526,7 @@ TEST(Bytecode, Func09) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -4599,7 +4599,7 @@ TEST(Bytecode, Func10) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -4616,7 +4616,7 @@ TEST(Bytecode, Func10) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -4630,7 +4630,7 @@ TEST(Bytecode, Func10) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -4644,7 +4644,7 @@ TEST(Bytecode, Func10) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -4713,7 +4713,7 @@ TEST(Bytecode, Export) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -4730,7 +4730,7 @@ TEST(Bytecode, Export) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -4753,7 +4753,7 @@ TEST(Bytecode, Export) {
 
     for (size_t idx = 0; idx < numexports; idx++)
     {
-        if (idx >= scrip->numexports) break;
+        if (static_cast<int>(idx) >= scrip->numexports) break;
         std::string prefix = "exports[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + exports[idx];
@@ -4768,7 +4768,7 @@ TEST(Bytecode, Export) {
 
     for (size_t idx = 0; idx < numexports; idx++)
     {
-        if (idx >= scrip->numexports) break;
+        if (static_cast<int>(idx) >= scrip->numexports) break;
         std::string prefix = "export_addr[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(export_addr[idx]);
@@ -4830,7 +4830,7 @@ TEST(Bytecode, ArrayOfPointers1) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -4847,7 +4847,7 @@ TEST(Bytecode, ArrayOfPointers1) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -4861,7 +4861,7 @@ TEST(Bytecode, ArrayOfPointers1) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -4875,7 +4875,7 @@ TEST(Bytecode, ArrayOfPointers1) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -4956,7 +4956,7 @@ TEST(Bytecode, ArrayOfPointers2) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -4973,7 +4973,7 @@ TEST(Bytecode, ArrayOfPointers2) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5033,7 +5033,7 @@ TEST(Bytecode, ArrayInStruct) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5050,7 +5050,7 @@ TEST(Bytecode, ArrayInStruct) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5109,7 +5109,7 @@ TEST(Bytecode, Func11) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5126,7 +5126,7 @@ TEST(Bytecode, Func11) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5192,7 +5192,7 @@ TEST(Bytecode, Writeprotected) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5209,7 +5209,7 @@ TEST(Bytecode, Writeprotected) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -5223,7 +5223,7 @@ TEST(Bytecode, Writeprotected) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -5237,7 +5237,7 @@ TEST(Bytecode, Writeprotected) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5297,7 +5297,7 @@ TEST(Bytecode, Protected1) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5314,7 +5314,7 @@ TEST(Bytecode, Protected1) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5387,7 +5387,7 @@ TEST(Bytecode, Static1) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5404,7 +5404,7 @@ TEST(Bytecode, Static1) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -5418,7 +5418,7 @@ TEST(Bytecode, Static1) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -5432,7 +5432,7 @@ TEST(Bytecode, Static1) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5494,7 +5494,7 @@ TEST(Bytecode, Static2) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5511,7 +5511,7 @@ TEST(Bytecode, Static2) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -5525,7 +5525,7 @@ TEST(Bytecode, Static2) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -5539,7 +5539,7 @@ TEST(Bytecode, Static2) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5603,7 +5603,7 @@ TEST(Bytecode, Protected2) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5620,7 +5620,7 @@ TEST(Bytecode, Protected2) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5684,7 +5684,7 @@ TEST(Bytecode, Import) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5701,7 +5701,7 @@ TEST(Bytecode, Import) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -5715,7 +5715,7 @@ TEST(Bytecode, Import) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -5729,7 +5729,7 @@ TEST(Bytecode, Import) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5790,7 +5790,7 @@ TEST(Bytecode, Switch02) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5807,7 +5807,7 @@ TEST(Bytecode, Switch02) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -5889,7 +5889,7 @@ TEST(Bytecode, Attributes01) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -5906,7 +5906,7 @@ TEST(Bytecode, Attributes01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -5920,7 +5920,7 @@ TEST(Bytecode, Attributes01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -5935,7 +5935,7 @@ TEST(Bytecode, Attributes01) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -6028,7 +6028,7 @@ TEST(Bytecode, Attributes02) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -6045,7 +6045,7 @@ TEST(Bytecode, Attributes02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -6059,7 +6059,7 @@ TEST(Bytecode, Attributes02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -6073,7 +6073,7 @@ TEST(Bytecode, Attributes02) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -6142,7 +6142,7 @@ TEST(Bytecode, Attributes03) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -6159,7 +6159,7 @@ TEST(Bytecode, Attributes03) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -6173,7 +6173,7 @@ TEST(Bytecode, Attributes03) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -6187,7 +6187,7 @@ TEST(Bytecode, Attributes03) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -6249,7 +6249,7 @@ TEST(Bytecode, StringStandard01) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -6266,7 +6266,7 @@ TEST(Bytecode, StringStandard01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -6280,7 +6280,7 @@ TEST(Bytecode, StringStandard01) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -6300,7 +6300,7 @@ TEST(Bytecode, StringStandard01) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -6327,7 +6327,7 @@ TEST(Bytecode, StringStandard01) {
 
     for (size_t idx = 0; idx < stringssize; idx++)
     {
-        if (idx >= scrip->stringssize) break;
+        if (static_cast<int>(idx) >= scrip->stringssize) break;
         std::string prefix = "strings[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(strings[idx]);
@@ -6379,7 +6379,7 @@ TEST(Bytecode, StringOldstyle03) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -6396,7 +6396,7 @@ TEST(Bytecode, StringOldstyle03) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -6410,7 +6410,7 @@ TEST(Bytecode, StringOldstyle03) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -6424,7 +6424,7 @@ TEST(Bytecode, StringOldstyle03) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -6450,7 +6450,7 @@ TEST(Bytecode, StringOldstyle03) {
 
     for (size_t idx = 0; idx < stringssize; idx++)
     {
-        if (idx >= scrip->stringssize) break;
+        if (static_cast<int>(idx) >= scrip->stringssize) break;
         std::string prefix = "strings[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(strings[idx]);
@@ -6500,7 +6500,7 @@ TEST(Bytecode, StringOldstyle04) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -6517,7 +6517,7 @@ TEST(Bytecode, StringOldstyle04) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -6531,7 +6531,7 @@ TEST(Bytecode, StringOldstyle04) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -6545,7 +6545,7 @@ TEST(Bytecode, StringOldstyle04) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -6625,7 +6625,7 @@ TEST(Bytecode, StringStandard02) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -6642,7 +6642,7 @@ TEST(Bytecode, StringStandard02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -6656,7 +6656,7 @@ TEST(Bytecode, StringStandard02) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -6677,7 +6677,7 @@ TEST(Bytecode, StringStandard02) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -6703,7 +6703,7 @@ TEST(Bytecode, StringStandard02) {
 
     for (size_t idx = 0; idx < stringssize; idx++)
     {
-        if (idx >= scrip->stringssize) break;
+        if (static_cast<int>(idx) >= scrip->stringssize) break;
         std::string prefix = "strings[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(strings[idx]);
@@ -6772,7 +6772,7 @@ TEST(Bytecode, StringStandardOldstyle) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -6789,7 +6789,7 @@ TEST(Bytecode, StringStandardOldstyle) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -6803,7 +6803,7 @@ TEST(Bytecode, StringStandardOldstyle) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -6823,7 +6823,7 @@ TEST(Bytecode, StringStandardOldstyle) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -6849,7 +6849,7 @@ TEST(Bytecode, StringStandardOldstyle) {
 
     for (size_t idx = 0; idx < stringssize; idx++)
     {
-        if (idx >= scrip->stringssize) break;
+        if (static_cast<int>(idx) >= scrip->stringssize) break;
         std::string prefix = "strings[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(strings[idx]);
@@ -6900,7 +6900,7 @@ TEST(Bytecode, AccessStructAsPointer)
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -6917,7 +6917,7 @@ TEST(Bytecode, AccessStructAsPointer)
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -6931,7 +6931,7 @@ TEST(Bytecode, AccessStructAsPointer)
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -6946,7 +6946,7 @@ TEST(Bytecode, AccessStructAsPointer)
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -7006,7 +7006,7 @@ TEST(Bytecode, Attributes04) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -7023,7 +7023,7 @@ TEST(Bytecode, Attributes04) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -7037,7 +7037,7 @@ TEST(Bytecode, Attributes04) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -7052,7 +7052,7 @@ TEST(Bytecode, Attributes04) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;
@@ -7118,7 +7118,7 @@ TEST(Bytecode, Attributes05) {
 
     for (size_t idx = 0; idx < codesize; idx++)
     {
-        if (idx >= scrip->codesize) break;
+        if (static_cast<int>(idx) >= scrip->codesize) break;
         std::string prefix = "code[";
         prefix += std::to_string(idx) + "] == ";
         std::string is_val = prefix + std::to_string(code[idx]);
@@ -7135,7 +7135,7 @@ TEST(Bytecode, Attributes05) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixups[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixups[idx]);
@@ -7149,7 +7149,7 @@ TEST(Bytecode, Attributes05) {
 
     for (size_t idx = 0; idx < numfixups; idx++)
     {
-        if (idx >= scrip->numfixups) break;
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
         std::string prefix = "fixuptypes[";
         prefix += std::to_string(idx) + "] == ";
         std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
@@ -7163,7 +7163,7 @@ TEST(Bytecode, Attributes05) {
     };
 
     int idx2 = -1;
-    for (size_t idx = 0; idx < scrip->numimports; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
     {
         if (!strcmp(scrip->imports[idx], ""))
             continue;

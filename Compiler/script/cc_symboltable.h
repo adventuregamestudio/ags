@@ -100,7 +100,7 @@ public:
     SymbolType SymbolTable::get_type(AGS::Symbol symb) const;
 
     // the vartype of the symbol, i.e. "int" or "Dynarray *"
-    inline AGS::Vartype SymbolTable::get_vartype(AGS::Symbol symb) { return (symb >= 0 && symb < entries.size()) ? entries[symb].vartype : -1; }
+    inline AGS::Vartype SymbolTable::get_vartype(AGS::Symbol symb) { return (symb >= 0 && symb < static_cast<AGS::Symbol>(entries.size())) ? entries[symb].vartype : -1; }
 
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry

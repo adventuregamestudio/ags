@@ -61,7 +61,7 @@ extern int extract_template_files(const char *templateFileName);
 extern int extract_room_template_files(const char *templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
 extern void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes);
-extern void save_game(bool compressSprites);
+extern void SaveGame(bool compressSprites);
 extern HAGSError reset_sprite_file();
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameUpdated(Game ^game);
@@ -180,7 +180,7 @@ namespace AGS
 
 		void NativeMethods::SaveGame(Game ^game)
 		{
-			save_game(game->Settings->CompressSprites);
+			::SaveGame(game->Settings->CompressSprites);
 		}
 
 		void NativeMethods::GameSettingsChanged(Game ^game)

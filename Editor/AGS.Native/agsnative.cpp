@@ -34,6 +34,8 @@ extern int Scintilla_LinkLexers();
 #include "core/assetmanager.h"
 #include "NativeUtils.h"
 
+using AGS::Types::AGSEditorException;
+
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 namespace AGSProps = AGS::Common::Properties;
@@ -78,7 +80,8 @@ color*palette = NULL;
 GameSetupStruct thisgame;
 SpriteCache spriteset(thisgame.SpriteInfos);
 GUIMain tempgui;
-const char*sprsetname = "acsprset.spr";
+const char *sprsetname = "acsprset.spr";
+const char *sprindexname = "sprindex.dat";
 const char *old_editor_data_file = "editor.dat";
 const char *new_editor_data_file = "game.agf";
 const char *old_editor_main_game_file = "ac2game.dta";
@@ -563,43 +566,6 @@ int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDa
     }
   }
   return 0;
-}
-
-const char* save_sprites(bool compressSprites) 
-{
-  const char *errorMsg = NULL;
-  char backupname[100];
-  sprintf(backupname, "backup_%s", sprsetname);
-
-  if ((spritesModified) || (compressSprites != spriteset.IsFileCompressed()))
-  {
-    spriteset.DetachFile();
-    if (exists(backupname) && (unlink(backupname) != 0)) {
-      errorMsg = "Unable to overwrite the old backup file. Make sure the backup sprite file is not read-only";
-    }
-    else if (rename(sprsetname, backupname)) {
-      errorMsg = "Unable to create the backup sprite file. Make sure the backup sprite file is not read-only";
-    }
-    else if (spriteset.AttachFile(backupname)) {
-      errorMsg = "An error occurred attaching to the backup sprite file. Check write permissions on your game folder";
-    }
-    else if (spriteset.SaveToFile(sprsetname, compressSprites)) {
-      errorMsg = "Unable to save the sprites. An error occurred writing the sprite file.";
-    }
-
-    // reset the sprite cache
-    spriteset.Reset();
-    HAGSError err = spriteset.InitFile(sprsetname);
-    if (!err)
-    {
-      if (errorMsg == NULL)
-        errorMsg = "Unable to re-initialize sprite file after save.";
-    }
-
-    if (errorMsg == NULL)
-      spritesModified = false;
-  }
-  return errorMsg;
 }
 
 void drawBlockDoubleAt (int hdc, Common::Bitmap *todraw ,int x, int y) {
@@ -1213,7 +1179,7 @@ bool initialize_native()
 	new_font();
 
 	spriteset.Reset();
-	HAGSError err = spriteset.InitFile(sprsetname);
+	HAGSError err = spriteset.InitFile(sprsetname, sprindexname);
 	if (!err)
 	  return false;
 	spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set this up in preferences?
@@ -1415,7 +1381,7 @@ bool reload_font(int curFont)
 
 HAGSError reset_sprite_file() {
   spriteset.Reset();
-  HAGSError err = spriteset.InitFile(sprsetname);
+  HAGSError err = spriteset.InitFile(sprsetname, sprindexname);
   if (!err)
     return err;
   spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set in preferences?
@@ -2038,15 +2004,6 @@ void ThrowManagedException(const char *message)
 	throw gcnew AGS::Types::AGSEditorException(gcnew String((const char*)message));
 }
 
-void save_game(bool compressSprites)
-{
-	const char *errorMsg = save_sprites(compressSprites);
-	if (errorMsg != NULL)
-	{
-		throw gcnew AGSEditorException(gcnew String(errorMsg));
-	}
-}
-
 void CreateBuffer(int width, int height)
 {
     auto &drawBuffer = RoomTools->drawBuffer;
@@ -2149,6 +2106,113 @@ void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
             "Sprite file (acsprset.spr) contained less sprites than the game project referenced ({0} sprites were missing). This could happen if it was not saved properly last time. Some sprites could be missing actual images. You may try restoring them by reimporting from the source files.",
             missing_count));
     }
+}
+
+// Attempts to save the current spriteset contents into the temporary file
+// provided by the system API. On success assigns saved_filename.
+void SaveTempSpritefile(bool compressSprites, AGSString &saved_spritefile, AGSString &saved_indexfile)
+{
+    // First save new sprite set into the temporary file
+    String ^temp_spritefile = nullptr;
+    String ^temp_indexfile = nullptr;
+    try
+    {
+        temp_spritefile = IO::Path::GetTempFileName();
+        temp_indexfile = IO::Path::GetTempFileName();
+    }
+    catch (Exception ^e)
+    {
+        throw gcnew AGSEditorException("Unable to create a temporary file to save sprites to.", e);
+    }
+
+    AGSString n_temp_spritefile = ConvertStringToNativeString(temp_spritefile);
+    AGSString n_temp_indexfile = ConvertStringToNativeString(temp_indexfile);
+    if (spriteset.SaveToFile(n_temp_spritefile, n_temp_indexfile, compressSprites))
+        throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
+            Environment::NewLine, temp_spritefile));
+    saved_spritefile = n_temp_spritefile;
+    saved_indexfile = n_temp_indexfile;
+}
+
+// Updates the backup and spritefile, moving it from the temp location.
+void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSString &temp_indexfile)
+{
+    spriteset.DetachFile();
+    // Now when sprites are safe, move last sprite file to backup file
+    String ^sprfilename = gcnew String(sprsetname);
+    String ^backupname = String::Format("backup_{0}", sprfilename);
+    try
+    {
+        if (IO::File::Exists(backupname))
+            IO::File::Delete(backupname);
+        if (IO::File::Exists(sprfilename))
+            IO::File::Move(sprfilename, backupname);
+    }
+    catch (Exception ^e)
+    {// TODO: ignore for now, but proper warning output system in needed here
+    }
+
+    // And then temp file to its final location
+    String ^sprindexfilename = gcnew String(sprindexname);
+    try
+    {
+        if (IO::File::Exists(sprfilename))
+            IO::File::Delete(sprfilename);
+        if (IO::File::Exists(sprindexfilename))
+            IO::File::Delete(sprindexfilename);
+        IO::File::Move(gcnew String(temp_spritefile), sprfilename);
+        IO::File::Move(gcnew String(temp_indexfile), sprindexfilename);
+    }
+    catch (Exception ^e)
+    {
+        throw gcnew AGSEditorException("Unable to replace the previous sprite file in your project folder.", e);
+    }
+}
+
+void SaveNativeSprites(bool compressSprites)
+{
+    if (!spritesModified && (compressSprites == spriteset.IsFileCompressed()))
+        return;
+
+    AGSString saved_spritefile;
+    AGSString saved_indexfile;
+    SaveTempSpritefile(compressSprites, saved_spritefile, saved_indexfile);
+
+    Exception ^main_exception;
+    try
+    {
+        PutNewSpritefileIntoProject(saved_spritefile, saved_indexfile);
+        saved_spritefile = sprsetname;
+        saved_indexfile = sprindexname;
+    }
+    catch (Exception ^e)
+    {
+        main_exception = e;
+    }
+    finally
+    {
+        // Reset the sprite cache to whichever file was successfully saved
+        spriteset.Reset();
+        HAGSError err = spriteset.InitFile(saved_spritefile, saved_indexfile);
+        if (!err)
+        {
+            throw gcnew AGSEditorException(
+                String::Format("Unable to re-initialize sprite file after save.{0}{1}",
+                    Environment::NewLine, gcnew String(err->FullMessage().GetCStr())), main_exception);
+        }
+        else if (err && main_exception != nullptr)
+        {
+            throw gcnew AGSEditorException(
+                String::Format("Unable to save sprites in your project folder. The sprites were saved to a temporary location:{0}{1}",
+                    Environment::NewLine, gcnew String(saved_spritefile)), main_exception);
+        }
+    }
+    spritesModified = false;
+}
+
+void SaveGame(bool compressSprites)
+{
+    SaveNativeSprites(compressSprites);
 }
 
 void SetGameResolution(Game ^game)

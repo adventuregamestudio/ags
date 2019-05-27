@@ -1482,8 +1482,8 @@ namespace AGS.Editor
                 result = (bool)BusyDialog.Show("Please wait while your files are saved...", new BusyDialog.ProcessingHandler(SaveGameFilesProcess), null);
             }
             catch (Exception ex)
-            {
-                InteractiveTasks.ReportTaskException("An error occurred whilst trying to save your game.", ex);
+            { // CHECKME: rethrown exception from other thread duplicates original exception as inner one for some reason
+                InteractiveTasks.ReportTaskException("An error occurred whilst trying to save your game.", ex.InnerException);
                 result = false;
             }
 

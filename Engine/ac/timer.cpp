@@ -15,12 +15,12 @@
 #include "ac/timer.h"
 
 #include "core/platform.h"
-
 #if AGS_PLATFORM_DEBUG && defined (__GNUC__)
 #include <stdio.h>
 #include <execinfo.h>
 #include <unistd.h>
 #endif
+#include <thread>
 #include "platform/base/agsplatformdriver.h"
 
 namespace {
@@ -67,7 +67,8 @@ bool waitingForNextTick() {
         return false;
     }
 
-    platform->YieldCPU();
+    std::this_thread::sleep_for(next_tick_time - now);
+
     return true;
 }
 

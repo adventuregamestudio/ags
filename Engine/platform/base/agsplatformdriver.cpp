@@ -90,7 +90,10 @@ void AGSPlatformDriver::WriteStdOut(const char *fmt, ...) {
 }
 
 void AGSPlatformDriver::YieldCPU() {
-    std::this_thread::yield();
+    // NOTE: this is called yield, but if we actually yield instead of delay,
+    // we get a massive increase in CPU usage.
+    this->Delay(1);
+    //std::this_thread::yield();
 }
 
 void AGSPlatformDriver::InitialiseAbufAtStartup()

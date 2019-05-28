@@ -437,6 +437,16 @@ void engine_init_keyboard()
 #endif
 }
 
+void engine_init_timer()
+{
+#ifdef AGS_TIMING_USE_COUNTER
+    Debug::Printf(kDbgMsg_Init, "Install timer");
+    install_timer();
+#endif
+
+    skipMissedTicks();
+}
+
 bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = nullptr)
 {
     Debug::Printf(kDbgMsg_Init, "Trying to init: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
@@ -1140,10 +1150,7 @@ void engine_setup_scsystem_auxiliary()
 void engine_update_mp3_thread()
 {
     update_mp3_thread();
-    // reduce polling period to encourage more multithreading bugs.
-#if ! AGS_PLATFORM_DEBUG
     platform->Delay(50);
-#endif
 }
 
 void engine_start_multithreaded_audio()
@@ -1401,8 +1408,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     our_eip = -197;
 
-    // Original timer was initialised here.
-    skipMissedTicks();
+    engine_init_timer();
 
     our_eip = -198;
 
@@ -1420,6 +1426,8 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     engine_init_pathfinder();
 
+    LOCK_VARIABLE(timerloop);
+    LOCK_FUNCTION(dj_timer_handler);
     set_game_speed(40);
 
     our_eip=-20;

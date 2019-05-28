@@ -46,6 +46,7 @@ extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color old_palette[256];
+extern volatile int timerloop;
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
@@ -279,18 +280,25 @@ void process_event(EventHappened*evp) {
                 int boxwid = get_fixed_pixel_size(16);
                 int boxhit = data_to_game_coord(data_res.Height / 20);
                 while (boxwid < temp_scr->GetWidth()) {
+                    timerloop = 0;
                     boxwid += get_fixed_pixel_size(16);
                     boxhit += data_to_game_coord(data_res.Height / 20);
                     boxwid = Math::Clamp(boxwid, 0, viewport.GetWidth());
                     boxhit = Math::Clamp(boxhit, 0, viewport.GetHeight());
                     int lxp = viewport.GetWidth() / 2 - boxwid / 2;
                     int lyp = viewport.GetHeight() / 2 - boxhit / 2;
-                    temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp, 
+                    gfxDriver->Vsync();
+                    temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
                     render_to_screen(viewport.Left, viewport.Top);
+#ifdef AGS_TIMING_USE_COUNTER
+                    update_polled_mp3();
+                        while (timerloop == 0) ;
+#else
                     do {
                         update_polled_stuff_if_runtime();
                     } while (waitingForNextTick());
+#endif
                 }
                 gfxDriver->SetMemoryBackBuffer(saved_backbuf, viewport.Left, viewport.Top);
             }
@@ -306,6 +314,7 @@ void process_event(EventHappened*evp) {
             int transparency = 254;
 
             while (transparency > 0) {
+                timerloop=0;
                 // do the crossfade
                 ddb->SetTransparency(transparency);
                 invalidate_screen();
@@ -317,10 +326,15 @@ void process_event(EventHappened*evp) {
                     // draw the old screen on top
                     gfxDriver->DrawSprite(0, 0, ddb);
                 }
-                render_to_screen();
+				render_to_screen();
+#ifdef AGS_TIMING_USE_COUNTER
+                update_polled_stuff_if_runtime();
+                while (timerloop == 0) ;
+#else
                 do {
                     update_polled_stuff_if_runtime();
                 } while (waitingForNextTick());
+#endif
                 transparency -= 16;
             }
             saved_viewport_bitmap->Release();
@@ -338,6 +352,7 @@ void process_event(EventHappened*evp) {
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
 
             for (aa=0;aa<16;aa++) {
+                timerloop=0;
                 // merge the palette while dithering
                 if (game.color_depth == 1) 
                 {
@@ -355,10 +370,15 @@ void process_event(EventHappened*evp) {
                 invalidate_screen();
                 draw_screen_callback();
                 gfxDriver->DrawSprite(0, 0, ddb);
-                render_to_screen();
+				render_to_screen();
+#ifdef AGS_TIMING_USE_COUNTER
+                update_polled_stuff_if_runtime();
+                while (timerloop == 0) ;
+#else
                 do {
                     update_polled_stuff_if_runtime();
                 } while (waitingForNextTick());
+#endif
             }
             saved_viewport_bitmap->Release();
 

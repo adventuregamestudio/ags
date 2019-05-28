@@ -1915,14 +1915,25 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   speed *= 2;  // harmonise speeds with software driver which is faster
   for (int a = 1; a < 255; a += speed)
   {
+    int timerValue = *_loopTimer;
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_render(flipTypeLastTime, false);
 
-    do {
+#ifdef AGS_TIMING_USE_COUNTER
+    do
+    {
+      if (_pollingCallback)
+        _pollingCallback();
+      platform->YieldCPU();
+    }
+    while (timerValue == *_loopTimer);
+#else
+    do
+    {
       if (_pollingCallback)
         _pollingCallback();
     } while (waitingForNextTick());
-
+#endif
   }
 
   if (fadingOut)

@@ -43,6 +43,7 @@ String LinuxOutputDirectory;
 struct AGSLinux : AGSPlatformDriver {
 
   int  CDPlayerCommand(int cmdd, int datt) override;
+  virtual void Delay(int millis);
   void DisplayAlert(const char*, ...) override;
   const char *GetUserSavedgamesDirectory() override;
   const char *GetUserConfigDirectory() override;

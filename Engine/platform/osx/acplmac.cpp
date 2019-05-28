@@ -65,6 +65,7 @@ struct AGSMac : AGSPlatformDriver {
   AGSMac();
 
   virtual int  CDPlayerCommand(int cmdd, int datt) override;
+  virtual void Delay(int millis) override;
   virtual void DisplayAlert(const char*, ...) override;
   virtual unsigned long GetDiskFreeSpaceMB() override;
   virtual const char* GetNoMouseErrorString() override;

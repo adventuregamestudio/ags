@@ -95,6 +95,7 @@ struct AGSWin32 : AGSPlatformDriver {
 
   virtual void AboutToQuitGame();
   virtual int  CDPlayerCommand(int cmdd, int datt);
+  virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual int  GetLastSystemError();
   virtual const char *GetAllUsersDataDirectory();

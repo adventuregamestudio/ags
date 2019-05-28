@@ -700,9 +700,10 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
   if(mode.Vsync)
-    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
   else
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+
   /* If full screen, specify the refresh rate */
   if ((d3dpp.Windowed == FALSE) && (mode.RefreshRate > 0))
     d3dpp.FullScreen_RefreshRateInHz = mode.RefreshRate;

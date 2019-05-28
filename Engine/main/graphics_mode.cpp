@@ -42,6 +42,7 @@ using namespace AGS::Engine;
 extern int proper_exit;
 extern AGSPlatformDriver *platform;
 extern IGraphicsDriver *gfxDriver;
+extern volatile int timerloop;
 
 
 IGfxDriverFactory *GfxFactory = nullptr;
@@ -571,7 +572,7 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     if (dm.RefreshRate >= 50)
         request_refresh_rate(dm.RefreshRate);
 
-    if (!gfxDriver->SetDisplayMode(dm, nullptr))
+    if (!gfxDriver->SetDisplayMode(dm, &timerloop))
     {
         Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", get_allegro_error());
         return false;

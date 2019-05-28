@@ -26,6 +26,7 @@
 #include "media/audio/audio_system.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
+#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 

@@ -826,6 +826,21 @@ int AGSWin32::GetLastSystemError()
   return ::GetLastError();
 }
 
+void AGSWin32::Delay(int millis) 
+{
+  while (millis >= 5)
+  {
+    Sleep(5);
+    millis -= 5;
+    // don't allow it to check for debug messages, since this Delay()
+    // call might be from within a debugger polling loop
+    update_polled_mp3();
+  }
+
+  if (millis > 0)
+    Sleep(millis);
+}
+
 unsigned long AGSWin32::GetDiskFreeSpaceMB() {
   DWORD returnMb = 0;
   BOOL fResult;

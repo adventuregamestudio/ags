@@ -23,7 +23,6 @@
 #include "util/mutex.h"
 #include "util/mutex_lock.h"
 #include "util/thread.h"
-#include "ac/timer.h"
 
 struct SOUNDCLIP;
 
@@ -136,9 +135,8 @@ extern volatile int psp_audio_multithreaded;
 void update_polled_mp3();
 void update_mp3_thread();
 
-extern void cancel_scheduled_music_update();
-extern void schedule_music_update_at(AGS_Clock::time_point);
-extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
+extern volatile int mvolcounter;
+extern int update_music_at;
 
 // crossFading is >0 (channel number of new track), or -1 (old
 // track fading out, no new track)

@@ -17,7 +17,6 @@
 #include "util/stream.h"
 #include "util/textstreamwriter.h"
 #include "util/wgt2allg.h"              // exists()
-#include "platform/base/agsplatformdriver.h"
 
 using AGS::Common::Stream;
 using AGS::Common::TextStreamWriter;

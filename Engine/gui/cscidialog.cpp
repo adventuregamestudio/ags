@@ -32,14 +32,13 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audio_system.h"
-#include "platform/base/agsplatformdriver.h"
-#include "ac/timer.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern char ignore_bounds; // from mousew32
 extern IGraphicsDriver *gfxDriver;
+extern volatile int timerloop; // ac_timer
 extern GameSetup usetup;
 
 //extern void get_save_game_path(int slotNum, char *buffer);
@@ -152,6 +151,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
     prepare_gui_screen(win_x, win_y, win_width, win_height, true);
 
     while (1) {
+        timerloop = 0;
         update_audio_system_on_game_loop();
         refresh_gui_screen();
 
@@ -193,9 +193,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         if (cscim->code > 0)
             break;
 
-        while (waitingForNextTick()) {
-            update_polled_stuff_if_runtime();
-        }
+        while (timerloop == 0) ;
     }
 
     return 0;

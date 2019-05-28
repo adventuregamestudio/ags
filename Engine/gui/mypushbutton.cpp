@@ -22,10 +22,10 @@
 #include "gui/guidialoginternaldefs.h"
 #include "main/game_run.h"
 #include "gfx/bitmap.h"
-#include "platform/base/agsplatformdriver.h"
-#include "ac/timer.h"
 
 using AGS::Common::Bitmap;
+
+extern volatile int timerloop;
 
 extern int windowbackgroundcolor, pushbuttondarkcolor;
 extern int pushbuttonlightcolor;
@@ -75,7 +75,7 @@ int MyPushButton::pressedon(int mousex, int mousey)
 {
     int wasstat;
     while (mbutrelease(LEFT) == 0) {
-
+        timerloop = 0;
         wasstat = state;
         state = mouseisinarea(mousex, mousey);
         // stop mp3 skipping if button held down
@@ -90,9 +90,7 @@ int MyPushButton::pressedon(int mousex, int mousey)
 
         refresh_gui_screen();
 
-        while (waitingForNextTick()) {
-            update_polled_stuff_if_runtime();
-        }
+        while (timerloop == 0) ;
     }
     wasstat = state;
     state = 0;

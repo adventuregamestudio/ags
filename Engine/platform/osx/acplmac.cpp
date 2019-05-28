@@ -23,6 +23,7 @@
 //#include "ac/runtime_defines.h"
 //#include "main/config.h"
 //#include "plugin/agsplugin.h"
+//#include "media/audio/audio_system.h"
 //#include <libcda.h>
 //#include <pwd.h>
 //#include <sys/stat.h>
@@ -102,6 +103,10 @@ void AGSMac::DisplayAlert(const char *text, ...) {
   vsprintf(displbuf, text, ap);
   va_end(ap);
   printf("%s\n", displbuf);
+}
+
+void AGSMac::Delay(int millis) {
+  usleep(millis);
 }
 
 unsigned long AGSMac::GetDiskFreeSpaceMB() {

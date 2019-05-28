@@ -19,8 +19,6 @@
 #include "ac/mouse.h"
 #include "ac/sys_events.h"
 #include "device/mousew32.h"
-#include "platform/base/agsplatformdriver.h"
-#include "ac/timer.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -41,7 +39,7 @@ int mouse_z_was = 0;
 
 int ags_kbhit () {
     int result = keypressed();
-    if ((result) && (AGS_Clock::now() < play.ignore_user_input_until_time))
+    if ((result) && (globalTimerCounter < play.ignore_user_input_until_time))
     {
         // ignoring user input
         ags_getch();
@@ -69,7 +67,7 @@ int ags_mgetbutton() {
         result = mgetbutton();
     }
 
-    if ((result >= 0) && (AGS_Clock::now() < play.ignore_user_input_until_time))
+    if ((result >= 0) && (globalTimerCounter < play.ignore_user_input_until_time))
     {
         // ignoring user input
         result = NONE;
@@ -190,8 +188,6 @@ void ags_clear_input_buffer()
 
 void ags_wait_until_keypress()
 {
-    while (!ags_kbhit()) {
-        platform->YieldCPU();
-    }
+    while (!ags_kbhit());
     ags_getch();
 }

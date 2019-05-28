@@ -616,10 +616,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     guis_need_update = 1;
 
-    // if savegame contained a global time and not an offset, this will be way off.
-    if ((play.ignore_user_input_until_time - AGS_Clock::now()) > std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms)) {
-        play.ignore_user_input_until_time = AGS_Clock::now() + std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms);
-    }
+    play.ignore_user_input_until_time = 0;
     update_polled_stuff_if_runtime();
 
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);

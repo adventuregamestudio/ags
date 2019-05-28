@@ -25,7 +25,6 @@
 #include "game/roomstruct.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
-#include "ac/timer.h"
 
 using namespace AGS::Common;
 
@@ -568,15 +567,18 @@ static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool 
     play.speech_has_voice = true;
     play.speech_voice_blocking = is_blocking;
 
-    cancel_scheduled_music_update();
     play.music_vol_was = play.music_master_volume;
     // Negative value means set exactly; positive means drop that amount
     if (play.speech_music_drop < 0)
         play.music_master_volume = -play.speech_music_drop;
     else
         play.music_master_volume -= play.speech_music_drop;
+
     apply_volume_drop_modifier(true);
     update_music_volume();
+    update_music_at = 0;
+    mvolcounter = 0;
+
     update_ambient_sound_vol();
     return true;
 }
@@ -587,7 +589,8 @@ static void stop_voice_clip_impl()
     play.music_master_volume = play.music_vol_was;
     // update the music in a bit (fixes two speeches follow each other
     // and music going up-then-down)
-    schedule_music_update_at(AGS_Clock::now() + std::chrono::milliseconds(500));
+    update_music_at = 20;
+    mvolcounter = 1;
     stop_and_destroy_channel(SCHAN_SPEECH);
 }
 
@@ -641,6 +644,9 @@ void stop_voice_speech()
 {
     if (!play.speech_has_voice)
         return;
+
+    update_music_at = 20;
+    mvolcounter = 1;
 
     stop_voice_clip_impl();
 

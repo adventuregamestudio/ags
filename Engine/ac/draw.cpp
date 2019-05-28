@@ -60,7 +60,6 @@
 #include "gfx/ali3dexception.h"
 #include "gfx/blender.h"
 #include "media/audio/audio_system.h"
-#include "ac/game.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -2129,29 +2128,14 @@ void draw_fps()
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
-    
+
+    char tbuffer[60];
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
-
-    char base_buffer[60];
-    if (frames_per_second < 1000) {
-        sprintf(base_buffer, "%d", frames_per_second);
-    } else {
-        sprintf(base_buffer, "unlimited");
-    }
-
-    char fps_buffer[60];
-    // Don't display fps if we don't have enough information (because loop count was just reset)
-    if (!std::isnan(fps)) {
-        sprintf(fps_buffer, "FPS: %2.1f / %s", fps, base_buffer);
-    } else {
-        sprintf(fps_buffer, "FPS: --.- / %s", base_buffer);
-    }
-    wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, fps_buffer);
-
-    char loop_buffer[60];
-    sprintf(loop_buffer, "Loop %u", loopcounter);
-    int textw = wgettextwidth(loop_buffer, FONT_SPEECH);
-    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
+    sprintf(tbuffer, "FPS: %d", fps > 0 ? fps : 0);
+    wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, tbuffer);
+    sprintf(tbuffer, "Loop %u", loopcounter);
+    int textw = wgettextwidth(tbuffer, FONT_SPEECH);
+    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, tbuffer);
 
     if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);

@@ -18,18 +18,10 @@
 #ifndef __AGS_EE_AC__TIMER_H
 #define __AGS_EE_AC__TIMER_H
 
-#include <type_traits>
-#include <chrono>
-
-// use high resolution clock only if we know it is monotonic/steady.
-// refer to https://stackoverflow.com/a/38253266/84262
-using AGS_Clock = std::conditional<
-        std::chrono::high_resolution_clock::is_steady,
-        std::chrono::high_resolution_clock, std::chrono::steady_clock
-      >::type;
-
-extern void setTimerFps(int new_fps);
-extern bool waitingForNextTick();  // store last tick time.
-extern void skipMissedTicks();  // if more than N frames, just skip all, start a fresh.
+#if defined(WINDOWS_VERSION)
+void __cdecl dj_timer_handler();
+#else
+extern "C" void dj_timer_handler();
+#endif
 
 #endif // __AGS_EE_AC__TIMER_H

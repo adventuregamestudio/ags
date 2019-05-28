@@ -139,6 +139,13 @@ const char *AGSLinux::GetAppOutputDirectory()
   return LinuxOutputDirectory;
 }
 
+void AGSLinux::Delay(int millis) {
+  struct timespec ts;
+  ts.tv_sec = 0;
+  ts.tv_nsec = millis * 1000000;
+  nanosleep(&ts, NULL);
+}
+
 unsigned long AGSLinux::GetDiskFreeSpaceMB() {
   // placeholder
   return 100;

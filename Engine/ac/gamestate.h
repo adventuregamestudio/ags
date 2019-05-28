@@ -28,7 +28,6 @@
 #include "util/geometry.h"
 #include "util/string_types.h"
 #include "util/string.h"
-#include "ac/timer.h"
 
 // Forward declaration
 namespace AGS { namespace Common {
@@ -210,7 +209,7 @@ struct GameState {
     std::vector<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms;
     int   ignore_user_input_after_text_timeout_ms;
-    AGS_Clock::time_point ignore_user_input_until_time;
+    unsigned long ignore_user_input_until_time;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];
 
     // Dynamic custom property values for characters and items

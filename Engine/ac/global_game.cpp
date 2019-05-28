@@ -12,8 +12,6 @@
 //
 //=============================================================================
 
-#include <cmath>
-
 #include "ac/audiocliptype.h"
 #include "ac/global_game.h"
 #include "ac/common.h"
@@ -82,7 +80,7 @@ extern int getloctype_index;
 extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
-extern float get_current_fps();
+extern int get_current_fps();
 
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION)
 extern int psp_gfx_renderer;
@@ -386,7 +384,7 @@ void SetGameSpeed(int newspd) {
 }
 
 int GetGameSpeed() {
-    return std::lround(get_current_fps()) - play.game_speed_modifier;
+    return get_current_fps() - play.game_speed_modifier;
 }
 
 int SetGameOption (int opt, int setting) {

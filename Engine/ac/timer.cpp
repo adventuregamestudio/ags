@@ -83,7 +83,8 @@ bool waitingForNextTick() {
         return false;
     }
 
-    platform->YieldCPU();
+    std::this_thread::sleep_for(next_tick_time - now);
+
     return true;
 }
 

@@ -82,6 +82,7 @@ extern int getloctype_index;
 extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
+extern float get_current_fps();
 
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION)
 extern int psp_gfx_renderer;

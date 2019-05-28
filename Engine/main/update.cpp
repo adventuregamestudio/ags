@@ -38,7 +38,6 @@
 #include "gfx/graphicsdriver.h"
 #include "media/audio/audio_system.h"
 #include "ac/timer.h"
-#include "main/game_run.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -64,6 +63,7 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_text_overlay;
 extern IGraphicsDriver *gfxDriver;
+extern int get_current_fps();
 
 int do_movelist_move(short*mlnum,int*xx,int*yy) {
   int need_to_fix_sprite=0;

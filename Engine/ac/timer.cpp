@@ -13,10 +13,9 @@
 //=============================================================================
 
 #include <stdio.h>
-#if defined (_DEBUG) && defined (__GNUC__)
 #include <execinfo.h>
 #include <unistd.h>
-#endif
+
 #include "ac/timer.h"
 #include "platform/base/agsplatformdriver.h"
 
@@ -46,7 +45,7 @@ bool waitingForNextTick() {
 
     auto is_lagging = (now - last_tick_time) > (MAXIMUM_FALL_BEHIND*tick_duration);
     if (is_lagging) {
-#if defined (_DEBUG) && defined (__GNUC__)
+#ifdef _DEBUG
         auto missed_ticks = ((now - last_tick_time)/tick_duration);
         printf("Lagging! Missed %lld ticks!\n", (long long)missed_ticks);
         void *array[10];

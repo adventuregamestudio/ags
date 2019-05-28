@@ -30,7 +30,6 @@ void RunGameUntilAborted();
 // Update everything game related
 void UpdateGameOnce(bool checkControls = false, IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 
-float get_current_fps();
 // Runs service key controls, returns false if service key combinations were handled
 // and no more processing required, otherwise returns true and provides current keycode and key shifts.
 bool run_service_key_controls(int &kgn);

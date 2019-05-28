@@ -190,18 +190,20 @@ int cd_player_control(int cmdd, int datt) {
 #endif // AGS_HAS_CD_AUDIO
 
 void AGSPlatformDriver::Delay(int millis) {
-  auto delayUntil = AGS_Clock::now() + std::chrono::milliseconds(millis);
+  auto now = AGS_Clock::now();
+  auto delayUntil = now + std::chrono::milliseconds(millis);
 
   for (;;) {
-    if (AGS_Clock::now() >= delayUntil) { break; }
+    if (now >= delayUntil) { break; }
 
-    auto duration = delayUntil - AGS_Clock::now();
-    if (duration > std::chrono::milliseconds(25)) {
-      duration = std::chrono::milliseconds(25);
+    auto duration = delayUntil - now;
+    if (duration > std::chrono::milliseconds(16)) {
+      duration = std::chrono::milliseconds(16);
     }
     std::this_thread::sleep_for(duration);
+    now = AGS_Clock::now(); // update now
 
-    if (AGS_Clock::now() >= delayUntil) { break; }
+    if (now >= delayUntil) { break; }
 
     // don't allow it to check for debug messages, since this Delay()
     // call might be from within a debugger polling loop

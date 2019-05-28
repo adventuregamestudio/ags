@@ -554,6 +554,7 @@ endif ()
 target_compile_definitions(engine PRIVATE 
     $<$<CONFIG:DEBUG>:SOUND_CACHE_DEBUG>
     $<$<CONFIG:DEBUG>:DEBUG_MANAGED_OBJECTS>
+    AGS_TIMING_USE_COUNTER
 )
 
 if (AGS_BUILD_STR)

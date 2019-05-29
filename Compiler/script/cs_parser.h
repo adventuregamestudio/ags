@@ -631,6 +631,9 @@ private:
     // Now we process a component of vartype.
     int AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype);
 
+    // Find the component of a struct, in the struct or in one of its ancestors
+    Symbol AccessData_FindComponent(Vartype strct, Symbol component);
+
     // We are in a STRUCT.STRUCT.STRUCT... cascade.
     // Check whether we have passed the last dot
     int AccessData_IsClauseLast(SymbolScript symlist, size_t symlist_len, bool &is_last);

@@ -3246,8 +3246,8 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
 // Now we process a component of vartype.
 int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype)
 {
-    AGS::Symbol const component = MangleStructAndComponent(vartype & kVTY_FlagMask, symlist[0]);
-    SymbolType const component_type = _sym.get_type(component);
+    AGS::Symbol const component = AccessData_FindComponent(vartype & kVTY_FlagMask, symlist[0]);
+    SymbolType const component_type = (component) ? _sym.get_type(component) : kSYM_NoType;
 
     if (static_access && !FlagIsSet(_sym.get_flags(component), kSFLG_Static))
     {
@@ -3260,7 +3260,8 @@ int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this,
     {
     default:
         cc_error(
-            "Unexpected '%s'",
+            "Expected a component of '%s', found '%s' instead",
+            _sym.get_vartype_name_string(vartype).c_str(),
             _sym.get_name_string(symlist[0]).c_str());
         return -1;
 
@@ -3299,6 +3300,19 @@ int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this,
     }
 
     return 0; // Can't reach
+}
+
+AGS::Symbol AGS::Parser::AccessData_FindComponent(AGS::Vartype strct, AGS::Symbol component)
+{
+    do
+    {
+        AGS::Symbol ret = MangleStructAndComponent(strct, component);
+        if (kSYM_NoType != _sym.get_type(ret))
+            return ret;
+        strct = _sym.entries[strct].extends;
+    }
+    while (strct > 0);
+    return 0;
 }
 
 // We are in a STRUCT.STRUCT.STRUCT... cascade.

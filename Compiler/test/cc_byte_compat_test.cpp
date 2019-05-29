@@ -3294,7 +3294,7 @@ TEST(Bytecode, Struct06) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("Struct06", scrip);
+    // WriteOutput("Struct06", scrip);
     // hand-checked Bytecode
     const size_t codesize = 60;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -7104,7 +7104,7 @@ TEST(Bytecode, Attributes05) {
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    WriteOutput("Attributes05", scrip);
+    // WriteOutput("Attributes05", scrip);
     // hand-checked Bytecode
     const size_t codesize = 25;
     EXPECT_EQ(codesize, scrip->codesize);

@@ -92,6 +92,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+extern int time_between_timers;
 extern int cur_mode,cur_cursor;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
@@ -325,7 +326,9 @@ void set_debug_mode(bool on)
 
 void set_game_speed(int new_fps) {
     frames_per_second = new_fps;
-    setTimerFps(new_fps);
+    time_between_timers = 1000 / new_fps;
+
+    install_int_ex(dj_timer_handler,MSEC_TO_TIMER(time_between_timers));
 }
 
 extern int cbuttfont;

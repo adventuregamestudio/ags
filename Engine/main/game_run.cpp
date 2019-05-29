@@ -85,6 +85,7 @@ extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 extern int cur_mode,cur_cursor;
+extern volatile int timerloop;
 
 // Checks if user interface should remain disabled for now
 static int ShouldStayInWaitMode();
@@ -719,10 +720,11 @@ void set_loop_counter(unsigned int new_counter) {
 
 void PollUntilNextFrame()
 {
-    if (play.fast_forward) { return; }
-    while (waitingForNextTick()) {
-        // make sure we poll, cos a low framerate (eg 5 fps) could stutter mp3 music
+    // make sure we poll, cos a low framerate (eg 5 fps) could stutter
+    // mp3 music
+    while (timerloop == 0 && play.fast_forward == 0) {
         update_polled_stuff_if_runtime();
+        platform->YieldCPU();
     }
 }
 
@@ -740,6 +742,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     ccNotifyScriptStillAlive ();
     our_eip=1;
+    timerloop=0;
 
     game_loop_check_problems_at_start();
 

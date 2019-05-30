@@ -2753,7 +2753,7 @@ TEST(Bytecode, Struct01) {
 
     // WriteOutput("Struct01", scrip);
     // Hand-checked Bytecode
-    const size_t codesize = 74;
+    const size_t codesize = 82;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -2764,8 +2764,9 @@ TEST(Bytecode, Struct01) {
        2,    0,    7,    3,            2,    1,    4,   31,    // 39
        6,    2,    1,    4,            6,    3,    0,    5,    // 47
       38,   48,   51,    0,           63,    4,    1,    1,    // 55
-       4,    6,    3,   -1,           29,    3,    6,    3,    // 63
-       0,   23,    3,    2,            1,    4,    2,    1,    // 71
+       4,   51,    4,   29,            2,    6,    3,   -1,    // 63
+      29,    3,   30,    2,           45,    2,    6,    3,    // 71
+       0,   23,    3,    2,            1,    4,    2,    1,    // 79
        4,    5,  -999
     };
 
@@ -2783,7 +2784,7 @@ TEST(Bytecode, Struct01) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      28,   33,   64,  -999
+      28,   33,   72,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -4581,7 +4582,7 @@ TEST(Bytecode, Func10) {
 
     // WriteOutput("Func10", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 75;
+    const size_t codesize = 79;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -4589,12 +4590,12 @@ TEST(Bytecode, Func10) {
        1,    4,    6,    3,            5,    2,    1,    4,    // 15
       31,    6,    2,    1,            4,    6,    3,    0,    // 23
        5,   38,   25,   51,            0,   63,    4,    1,    // 31
-       1,    4,    1,    1,            4,    6,    3,    0,    // 39
-      23,    3,   29,    3,            6,    3,    3,   30,    // 47
-       4,   40,    4,    3,            3,    4,    3,   51,    // 55
-       4,    8,    3,   51,            4,    7,    3,    2,    // 63
-       1,    8,   31,    6,            2,    1,    8,    6,    // 71
-       3,    0,    5,  -999
+       1,    4,    1,    1,            4,   51,    8,   45,    // 39
+       2,    6,    3,    0,           23,    3,   29,    3,    // 47
+       6,    3,    3,   30,            4,   40,    4,    3,    // 55
+       3,    4,    3,   51,            4,    8,    3,   51,    // 63
+       4,    7,    3,    2,            1,    8,   31,    6,    // 71
+       2,    1,    8,    6,            3,    0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -4611,7 +4612,7 @@ TEST(Bytecode, Func10) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      39,  -999
+      43,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -4662,6 +4663,7 @@ TEST(Bytecode, Func10) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
+
 
 }
 
@@ -6888,14 +6890,15 @@ TEST(Bytecode, AccessStructAsPointer)
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("AccessStructAsPointer", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 31;
+    const size_t codesize = 34;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    2,            2,   52,   48,    2,    // 7
-       6,    2,    0,    3,            2,    3,   48,    3,    // 15
-      34,    3,   39,    1,            6,    3,    1,   33,    // 23
-       3,   35,    1,    6,            3,    0,    5,  -999
+      29,    2,    6,    2,            0,   48,    3,   34,    // 15
+       3,   30,    2,   45,            2,   39,    1,    6,    // 23
+       3,    1,   33,    3,           35,    1,    6,    3,    // 31
+       0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6912,7 +6915,7 @@ TEST(Bytecode, AccessStructAsPointer)
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       4,   10,   22,  -999
+       4,   12,   25,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -7182,4 +7185,157 @@ TEST(Bytecode, Attributes05) {
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
 
+}
+
+TEST(Bytecode, Struct09) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Should be able to find SetCharacter as a component of
+    // VehicleBase as an extension of Vehicle Cars[5];
+    // should generate call of VehicleBase::SetCharacter()
+
+    char *inpl = "\
+        enum CharacterDirection                                     \n\
+        {                                                           \n\
+            eDirectionUp = 3                                        \n\
+        };                                                          \n\
+                                                                    \n\
+        builtin managed struct Character                            \n\
+        {                                                           \n\
+            readonly import attribute int ID;                       \n\
+        };                                                          \n\
+        import Character character[7];                              \n\
+        import Character cAICar1;                                   \n\
+                                                                    \n\
+        struct VehicleBase                                          \n\
+        {                                                           \n\
+            import void SetCharacter(Character *c,                  \n\
+                                int carSprite,                      \n\
+                                CharacterDirection carSpriteDir,    \n\
+                                int view = 0,                       \n\
+                                int loop = 0,                       \n\
+                                int frame = 0);                     \n\
+        };                                                          \n\
+                                                                    \n\
+        struct Vehicle extends VehicleBase                          \n\
+        {                                                           \n\
+            float bodyMass;                                         \n\
+        };                                                          \n\
+        import Vehicle Cars[6];                                     \n\
+                                                                    \n\
+        int main()                                                  \n\
+        {                                                           \n\
+            int drivers[] = new int[6];                             \n\
+            int i = 5;                                              \n\
+            Cars[i].SetCharacter(                                   \n\
+                character[cAICar1.ID + i],                          \n\
+                7 + drivers[i],                                     \n\
+                eDirectionUp,                                       \n\
+                3 + i, 0, 0);                                       \n\
+        }                                                           \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    // WriteOutput("Struct09", scrip);
+    // hand-checked Bytecode
+    const size_t codesize = 192;
+    EXPECT_EQ(codesize, scrip->codesize);
+
+    intptr_t code[] = {
+      38,    0,   51,    0,           63,    4,    1,    1,    // 7
+       4,    6,    3,    6,           72,    3,    4,    0,    // 15
+      51,    4,   47,    3,            1,    1,    4,    6,    // 23
+       3,    5,   51,    4,            8,    3,   51,    4,    // 31
+       7,    3,   46,    3,            6,    6,    2,    4,    // 39
+      32,    3,    4,   11,            2,    3,   29,    2,    // 47
+       6,    3,    0,   34,            3,    6,    3,    0,    // 55
+      34,    3,    6,    3,            3,   29,    3,   51,    // 63
+      12,    7,    3,   30,            4,   11,    4,    3,    // 71
+       3,    4,    3,   34,            3,    6,    3,    3,    // 79
+      34,    3,    6,    3,            7,   29,    3,   51,    // 87
+      16,   52,   48,    2,           29,    2,   51,   16,    // 95
+       7,    3,   71,    3,           30,    2,   32,    3,    // 103
+       4,   11,    2,    3,            7,    3,   30,    4,    // 111
+      11,    4,    3,    3,            4,    3,   34,    3,    // 119
+       6,    2,    2,   52,           48,    2,   29,    6,    // 127
+      45,    2,   39,    0,            6,    3,    0,   33,    // 135
+       3,   30,    6,   29,            3,   51,   12,    7,    // 143
+       3,   30,    4,   11,            4,    3,    3,    4,    // 151
+       3,   46,    3,    7,            6,    2,    1,   32,    // 159
+       3,    4,   11,    2,            3,   48,    3,   34,    // 167
+       3,   30,    2,   45,            2,   39,    6,    6,    // 175
+       3,    3,   33,    3,           35,    6,   51,    8,    // 183
+      49,    2,    1,    8,            6,    3,    0,    5,    // 191
+     -999
+    };
+
+    for (size_t idx = 0; idx < codesize; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->codesize) break;
+        std::string prefix = "code[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string is_val = prefix + std::to_string(code[idx]);
+        std::string test_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numfixups = 5;
+    EXPECT_EQ(numfixups, scrip->numfixups);
+
+    intptr_t fixups[] = {
+      39,  122,  134,  158,        177,  -999
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixups[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixups[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    char fixuptypes[] = {
+      4,   4,   4,   4,      4,  '\0'
+    };
+
+    for (size_t idx = 0; idx < numfixups; idx++)
+    {
+        if (static_cast<int>(idx) >= scrip->numfixups) break;
+        std::string prefix = "fixuptypes[";
+        prefix += std::to_string(idx) + "] == ";
+        std::string   is_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string test_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const int numimports = 5;
+    std::string imports[] = {
+    "Character::get_ID^0",        "character",   "cAICar1",     "VehicleBase::SetCharacter^6",               // 3
+    "Cars",         "[[SENTINEL]]"
+    };
+
+    int idx2 = -1;
+    for (size_t idx = 0; static_cast<int>(idx) < scrip->numimports; idx++)
+    {
+        if (!strcmp(scrip->imports[idx], ""))
+            continue;
+        idx2++;
+        ASSERT_LT(idx2, numimports);
+        std::string prefix = "imports[";
+        prefix += std::to_string(idx2) + "] == ";
+        std::string is_val = prefix + scrip->imports[idx];
+        std::string test_val = prefix + imports[idx2];
+        ASSERT_EQ(is_val, test_val);
+    }
+
+    const size_t numexports = 0;
+    EXPECT_EQ(numexports, scrip->numexports);
+
+    const size_t stringssize = 0;
+    EXPECT_EQ(stringssize, scrip->stringssize);
 }

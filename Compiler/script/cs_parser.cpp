@@ -4762,7 +4762,7 @@ int AGS::Parser::ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t
         AGS::Vartype vartype = _sym.entries[stname].vartype;
         DeduceDynPointerness(vartype);
 
-        size_t ssize = IsDynpointerVartype(vartype) ? SIZE_OF_DYNPOINTER : _sym.entries[vname].ssize;
+        size_t const ssize = IsDynpointerVartype(vartype) ? SIZE_OF_DYNPOINTER : _sym.entries[vname].ssize;
         size_so_far += array_size * ssize;
         SetFlag(_sym.entries[vname].vartype, kVTY_Array, true);
         if (_sym.get_type(_targ.getnext()) != kSYM_CloseBracket)

@@ -400,6 +400,9 @@ private:
     // (any will do that doesn't cause underflow of the subtraction).
     inline int MathPrio(Symbol op) { return 100 - _sym.entries[op].ssize; };
 
+    // If the vartype implies that it must be a dynpointer, then set it to be dynpointer
+    Vartype DeduceDynPointerness(Vartype vty);
+
     bool IsIdentifier(Symbol symb);
 
     bool IsPrimitiveVartype(Symbol symbl);
@@ -562,7 +565,7 @@ private:
     // Provide defaults for the missing values
     int AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
 
-    int AccessData_FunctionCall_PushParams(const SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import, bool keep_mar);
+    int AccessData_FunctionCall_PushParams(const SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
 
     // Count parameters, check that all the parameters are non-empty; find closing paren
     int AccessData_FunctionCall_CountAndCheckParm(const SymbolScript &paramList, size_t paramListLen, Symbol funcSymbol, size_t &indexOfCloseParen, size_t &num_supplied_args);
@@ -701,7 +704,7 @@ private:
     void ParseVardecl_Var2SymTable(int var_name, Globalness is_global, bool is_dynpointer, int size_of_defn, Vartype vartype);
 
     // we have accepted something like "int a" and we're expecting "["
-    int ParseVardecl_ArrayDecl(Symbol var_name, Vartype vartype, size_t &size_of_defn);
+    int ParseVardecl_Array(Symbol var_name, Vartype vartype, size_t &size_of_defn);
 
     int ParseVardecl_CheckIllegalCombis(Vartype vartype, bool is_dynpointer, Globalness is_global);
 
@@ -733,9 +736,9 @@ private:
     // We have accepted something like "struct foo" and are waiting for "extends"
     int ParseStruct_ExtendsClause(Symbol stname, Symbol &parent, size_t &size_so_far);
 
-    void ParseStruct_MemberQualifiers(Symbol &cursym, TypeQualifierSet &tqs);
+    void ParseStruct_MemberQualifiers(TypeQualifierSet &tqs);
 
-    int ParseStruct_CheckComponentVartype(int stname, Symbol vartype, bool member_is_dynpointer, bool member_is_import);
+    int ParseStruct_CheckComponentVartype(int stname, Symbol vartype, bool member_is_import);
 
     // check that we haven't extended a struct that already contains a member with the same name
     int ParseStruct_CheckForCompoInAncester(Symbol orig, Symbol compo, Symbol act_struct);
@@ -787,13 +790,11 @@ private:
 
     int ParseVartype_CheckForIllegalContext(NestingStack *nesting_stack);
 
-    int ParseVartype_GetPointerStatus(Symbol vartype, bool &isPointer);
-
     int ParseVartype_CheckIllegalCombis(bool is_function, bool is_member_definition, TypeQualifierSet tqs);
 
     int ParseVartype_FuncDef(Symbol &func_name, Symbol vartype, bool isPointer, bool isDynamicArray, TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
-    int ParseVartype_VarDef(Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, Symbol vartype, SymbolType next_type, bool isPointer, bool &another_var_follows);
+    int ParseVartype_VarDecl(Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, Symbol vartype, SymbolType next_type, bool isPointer, bool &another_var_follows);
 
     // We accepted a variable type such as "int", so what follows is a function or variable definition
     int ParseVartype0(Symbol vartype, NestingStack *nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func, bool &noloopcheck_is_set);

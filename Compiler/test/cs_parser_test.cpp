@@ -121,26 +121,6 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
     EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite[]' to 'int[]'", last_seen_cc_error());
 }
 
-TEST(Compile, DynamicTypeReturnNonPointerManaged) {
-    // "DynamicSprite[]" type in the function declaration should cause error on its own, because managed types are
-    // only allowed to be referenced by pointers.
-
-    ccCompiledScript *scrip = newScriptFixture();
-
-    char *inpl = "\
-        managed struct DynamicSprite { };\
-        \
-        DynamicSprite[] Func()\
-        {\
-        }";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_GE(0, compileResult);
-    EXPECT_STREQ("Cannot pass non-pointer struct array", last_seen_cc_error());
-}
-
 TEST(Compile, StructMemberQualifierOrder) {
     ccCompiledScript *scrip = newScriptFixture();
 
@@ -535,6 +515,7 @@ TEST(Compile, FuncDeclWrong2) {
     EXPECT_NE(std::string::npos, res.find("parameter"));
 
 }
+
 
 TEST(Compile, Writeprotected) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -1728,60 +1709,6 @@ TEST(Compile, Attributes06) {
             DialogOptionsRenderingInfo *info;                       \n\
             int DialogOptionYPos[];                                 \n\
             DialogOptionYPos = new int[info.DialogToRender.OptionCount+2];  \n\
-        }                                                           \n\
-    ";
-
-    clear_error();
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-}
-
-TEST(Compile, StructExtend5) {
-    ccCompiledScript *scrip = newScriptFixture();
-
-    // Should be able to find SetCharacter as a component of
-    // VehicleBase as an extension of Vehicle Cars[5];
-    // should generate call of VehicleBase::SetCharacter()
-
-    char *inpl = "\
-        enum CharacterDirection                                     \n\
-        {                                                           \n\
-            eDirectionUp = 3                                        \n\
-        };                                                          \n\
-                                                                    \n\
-        builtin managed struct Character                            \n\
-        {                                                           \n\
-            readonly import attribute int ID;                       \n\
-        };                                                          \n\
-        import Character character[7];                              \n\
-        import Character cAICar1;                                   \n\
-                                                                    \n\
-        struct VehicleBase                                          \n\
-        {                                                           \n\
-            import void SetCharacter(Character *c,                  \n\
-                                int carSprite,                      \n\
-                                CharacterDirection carSpriteDir,    \n\
-                                int view = 0,                       \n\
-                                int loop = 0,                       \n\
-                                int frame = 0);                     \n\
-        };                                                          \n\
-                                                                    \n\
-        struct Vehicle extends VehicleBase                          \n\
-        {                                                           \n\
-            float bodyMass;                                         \n\
-        };                                                          \n\
-        import Vehicle Cars[6];                                     \n\
-                                                                    \n\
-        int main()                                                  \n\
-        {                                                           \n\
-            int drivers[] = new int[6];                             \n\
-            int i = 5;                                              \n\
-            Cars[i].SetCharacter(                                   \n\
-                character[cAICar1.ID + i],                          \n\
-                7 + drivers[i],                                     \n\
-                eDirectionUp,                                       \n\
-                3 + i, 0, 0);                                       \n\
         }                                                           \n\
     ";
 

@@ -83,6 +83,18 @@ enum SpriteIndexFileVersion
 
 typedef int32_t sprkey_t;
 
+// SpriteFileIndex contains sprite file's table of contents
+struct SpriteFileIndex
+{
+    int SpriteFileIDCheck = 0; // tag matching sprite file and index file
+    sprkey_t LastSlot = -1;
+    sprkey_t SpriteCount = 0;
+    std::vector<int16_t> Widths;
+    std::vector<int16_t> Heights;
+    std::vector<soff_t>  Offsets;
+};
+
+
 class SpriteCache
 {
 public:
@@ -143,12 +155,11 @@ public:
     int         AttachFile(const char *filename);
     // Closes file stream
     void        DetachFile();
-    // Saves all sprites to file
-    // TODO: refactor to be able to save main file and index file separately
-    int         SaveToFile(const char *filename, const char *sprindex_filename, bool compressOutput);
+    // Saves all sprites to file; fills in index data for external use
+    // TODO: refactor to be able to save main file and index file separately (separate function for gather data?)
+    int         SaveToFile(const char *filename, bool compressOutput, SpriteFileIndex &index);
     // Saves sprite index table in a separate file
-    int         SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sprkey_t lastslot, sprkey_t numsprits,
-        const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs);
+    int         SaveSpriteIndex(const char *filename, const SpriteFileIndex &index);
 
     // Loads (if it's not in cache yet) and returns bitmap by the sprite index
     Common::Bitmap *operator[] (sprkey_t index);

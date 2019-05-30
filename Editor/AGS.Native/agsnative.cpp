@@ -2127,11 +2127,13 @@ void SaveTempSpritefile(bool compressSprites, AGSString &saved_spritefile, AGSSt
 
     AGSString n_temp_spritefile = ConvertStringToNativeString(temp_spritefile);
     AGSString n_temp_indexfile = ConvertStringToNativeString(temp_indexfile);
-    if (spriteset.SaveToFile(n_temp_spritefile, n_temp_indexfile, compressSprites))
+    SpriteFileIndex index;
+    if (spriteset.SaveToFile(n_temp_spritefile, compressSprites, index) != 0)
         throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
             Environment::NewLine, temp_spritefile));
     saved_spritefile = n_temp_spritefile;
-    saved_indexfile = n_temp_indexfile;
+    if (spriteset.SaveSpriteIndex(n_temp_indexfile, index) == 0)
+        saved_indexfile = n_temp_indexfile;
 }
 
 // Updates the backup and spritefile, moving it from the temp location.

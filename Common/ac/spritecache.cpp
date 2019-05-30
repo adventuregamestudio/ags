@@ -568,7 +568,7 @@ void SpriteCache::UnCompressSprite(Bitmap *sprite, Stream *in)
     }
 }
 
-int SpriteCache::SaveToFile(const char *filename, const char *sprindex_filename, bool compressOutput)
+int SpriteCache::SaveToFile(const char *filename, bool compressOutput, SpriteFileIndex &index)
 {
     Stream *output = Common::File::CreateFile(filename);
     if (output == nullptr)
@@ -711,30 +711,37 @@ int SpriteCache::SaveToFile(const char *filename, const char *sprindex_filename,
     delete [] memBuffer;
     delete output;
 
-    return SaveSpriteIndex(sprindex_filename, spriteFileIDCheck, lastslot, numsprits, spritewidths, spriteheights, spriteoffs);
+    index.SpriteFileIDCheck = spriteFileIDCheck;
+    index.LastSlot = lastslot;
+    index.SpriteCount = numsprits;
+    index.Widths = spritewidths;
+    index.Heights = spriteheights;
+    index.Offsets = spriteoffs;
+    return 0;
 }
 
-int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sprkey_t lastslot, sprkey_t numsprits,
-                                    const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs)
+int SpriteCache::SaveSpriteIndex(const char *filename, const SpriteFileIndex &index)
 {
     // write the sprite index file
-    Stream *spindex_out = File::CreateFile(filename);
+    Stream *out = File::CreateFile(filename);
+    if (!out)
+        return -1;
     // write "SPRINDEX" id
-    spindex_out->WriteArray(&spindexid[0], strlen(spindexid), 1);
+    out->WriteArray(spindexid, strlen(spindexid), 1);
     // write version
-    spindex_out->WriteInt32(kSpridxfVersion_Current);
-    spindex_out->WriteInt32(spriteFileIDCheck);
+    out->WriteInt32(kSpridxfVersion_Current);
+    out->WriteInt32(index.SpriteFileIDCheck);
     // write last sprite number and num sprites, to verify that
     // it matches the spr file
-    spindex_out->WriteInt32(lastslot);
-    spindex_out->WriteInt32(numsprits);
-    if (numsprits > 0)
+    out->WriteInt32(index.LastSlot);
+    out->WriteInt32(index.SpriteCount);
+    if (index.SpriteCount > 0)
     {
-        spindex_out->WriteArrayOfInt16(&spritewidths.front(), numsprits);
-        spindex_out->WriteArrayOfInt16(&spriteheights.front(), numsprits);
-        spindex_out->WriteArrayOfInt64(&spriteoffs.front(), numsprits);
+        out->WriteArrayOfInt16(&index.Widths.front(), index.Widths.size());
+        out->WriteArrayOfInt16(&index.Heights.front(), index.Heights.size());
+        out->WriteArrayOfInt64(&index.Offsets.front(), index.Offsets.size());
     }
-    delete spindex_out;
+    delete out;
     return 0;
 }
 

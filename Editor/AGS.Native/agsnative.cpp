@@ -2160,14 +2160,23 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     {
         if (IO::File::Exists(sprfilename))
             IO::File::Delete(sprfilename);
-        if (IO::File::Exists(sprindexfilename))
-            IO::File::Delete(sprindexfilename);
         IO::File::Move(gcnew String(temp_spritefile), sprfilename);
-        IO::File::Move(gcnew String(temp_indexfile), sprindexfilename);
     }
     catch (Exception ^e)
     {
         throw gcnew AGSEditorException("Unable to replace the previous sprite file in your project folder.", e);
+    }
+
+    // Sprite index is wanted but optional, so react to exceptions separately
+    try
+    {
+        if (IO::File::Exists(sprindexfilename))
+            IO::File::Delete(sprindexfilename);
+        if (!temp_indexfile.IsEmpty())
+            IO::File::Move(gcnew String(temp_indexfile), sprindexfilename);
+    }
+    catch (Exception ^e)
+    {// TODO: ignore for now, but proper warning output system in needed here
     }
 }
 

@@ -116,6 +116,8 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
     {
         // signature not found, check signature at the end of file
         in->Seek(-(soff_t)TailSig.GetLength(), kSeekEnd);
+        // by definition, tail marks the max absolute offset value
+        auto tail_abs_offset = in->GetPosition();
         sig.ReadCount(in, TailSig.GetLength());
         // signature not found, return error code
         if (TailSig.Compare(sig) != 0)
@@ -130,13 +132,21 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
         soff_t abs_offset_32 = in->ReadInt32();
 
         // test for header signature again, with 64-bit and 32-bit offsets if necessary
-        in->Seek(abs_offset, kSeekBegin);
-        sig.ReadCount(in, HeadSig.GetLength());
-        if (HeadSig.Compare(sig) != 0)
+        if (abs_offset > 0 && abs_offset < (tail_abs_offset - HeadSig.GetLength())) 
         {
-            abs_offset = abs_offset_32;
             in->Seek(abs_offset, kSeekBegin);
             sig.ReadCount(in, HeadSig.GetLength());
+        }
+
+        // try again with 32-bit offset
+        if (HeadSig.Compare(sig) != 0) 
+        {
+            abs_offset = abs_offset_32;
+            if (abs_offset > 0 && abs_offset < (tail_abs_offset - HeadSig.GetLength())) 
+            {
+                in->Seek(abs_offset, kSeekBegin);
+                sig.ReadCount(in, HeadSig.GetLength());
+            }
             if (HeadSig.Compare(sig) != 0)
             {
                 // nope, no luck, bad / unknown format

@@ -303,7 +303,7 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
     }
 
     // Game state
-    play.ReadFromSavegame(in.get(), svg_ver);
+    play.ReadFromSavegame(in.get(), svg_ver, r_data);
 
     // Other dynamic values
     r_data.FPS = in->ReadInt32();

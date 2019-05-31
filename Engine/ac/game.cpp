@@ -1144,9 +1144,27 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     r_data.CursorID = in->ReadInt32();
     int camx = in->ReadInt32();
     int camy = in->ReadInt32();
-    play.CreatePrimaryViewportAndCamera();
-    play.GetRoomCamera(0)->SetAt(camx, camy);
     set_loop_counter(in->ReadInt32());
+
+    // Precreate viewport and camera and save data in temp structs
+    play.CreateRoomCamera();
+    play.CreateRoomViewport();
+    const auto &main_view = play.GetMainViewport();
+    RestoredData::CameraData cam_dat;
+    cam_dat.ID = 0;
+    cam_dat.Left = camx;
+    cam_dat.Top = camy;
+    cam_dat.Width = main_view.GetWidth();
+    cam_dat.Height = main_view.GetHeight();
+    r_data.Cameras.push_back(cam_dat);
+    RestoredData::ViewportData view_dat;
+    view_dat.ID = 0;
+    view_dat.Width = main_view.GetWidth();
+    view_dat.Height = main_view.GetHeight();
+    view_dat.Flags = kSvgViewportVisible;
+    view_dat.CamID = 0;
+    r_data.Viewports.push_back(view_dat);
+
     return HSaveError::None();
 }
 
@@ -1232,10 +1250,10 @@ void restore_game_room_state(Stream *in)
     }
 }
 
-void ReadGameState_Aligned(Stream *in)
+void ReadGameState_Aligned(Stream *in, RestoredData &r_data)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    play.ReadFromSavegame(&align_s, kGSSvgVersion_OldFormat);
+    play.ReadFromSavegame(&align_s, kGSSvgVersion_OldFormat, r_data);
 }
 
 void restore_game_play_ex_data(Stream *in)
@@ -1250,14 +1268,14 @@ void restore_game_play_ex_data(Stream *in)
     in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
-void restore_game_play(Stream *in)
+void restore_game_play(Stream *in, RestoredData &r_data)
 {
     int screenfadedout_was = play.screen_is_faded_out;
     int roomchanges_was = play.room_changes;
     // make sure the pointer is preserved
     int *gui_draw_order_was = play.gui_draw_order;
 
-    ReadGameState_Aligned(in);
+    ReadGameState_Aligned(in, r_data);
 
     play.screen_is_faded_out = screenfadedout_was;
     play.room_changes = roomchanges_was;
@@ -1536,7 +1554,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     if (!err)
         return err;
     restore_game_room_state(in);
-    restore_game_play(in);
+    restore_game_play(in, r_data);
     ReadMoveList_Aligned(in);
 
     // save pointer members before reading

@@ -17,8 +17,8 @@
 
 #include <memory>
 #include <vector>
-
 #include "ac/common_defines.h"
+#include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
 
 
@@ -26,6 +26,8 @@ namespace AGS
 {
 namespace Engine
 {
+
+using AGS::Common::Bitmap;
 
 typedef std::shared_ptr<Bitmap> PBitmap;
 

@@ -1973,7 +1973,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
 
         // Types need not be identical here, but check against inherited classes
         int isClass = vartype_is & ~kVTY_DynPointer;
-        while (_sym.entries[isClass].extends > 0)
+        while (_sym.entries[isClass & kVTY_FlagMask].extends > 0)
         {
             isClass = _sym.entries[isClass].extends;
             if ((isClass | kVTY_DynPointer) == vartype_wants_to_be)

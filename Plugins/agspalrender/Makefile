@@ -1,13 +1,17 @@
-CPP=g++
-CPPFLAGS=-fPIC -fvisibility-inlines-hidden -Wall -std=gnu++11
+INCDIR = ../../Engine ../../Common
+CXX=g++
+CXXFLAGS=-fPIC -fvisibility-inlines-hidden -Wall -std=gnu++11 $(addprefix -I,$(INCDIR))
 DEPS=$(wildcard *.h)
 
+all: libagspalrender.so
+
 %.o: %.cpp $(DEPS)
-	$(CPP) -c -o $@ $< $(CPPFLAGS)
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-libagspalrender: ags_palrender.o Raycast.o
-	$(CPP) -shared -o libagspalrender.so ags_palrender.o Raycast.o $(CPPFLAGS)
+libagspalrender.so: ags_palrender.o raycast.o
+	$(CXX) -shared -o libagspalrender.so ags_palrender.o raycast.o $(CXXFLAGS)
 
-.PHONY: clean
 clean:
 	rm -f *.gch *.o *.so
+
+.PHONY: clean

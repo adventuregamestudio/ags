@@ -700,9 +700,10 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
   if(mode.Vsync)
-    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
   else
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+
   /* If full screen, specify the refresh rate */
   if ((d3dpp.Windowed == FALSE) && (mode.RefreshRate > 0))
     d3dpp.FullScreen_RefreshRateInHz = mode.RefreshRate;
@@ -1815,13 +1816,16 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   speed *= 2;  // harmonise speeds with software driver which is faster
   for (int a = 1; a < 255; a += speed)
   {
+    int timerValue = *_loopTimer;
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_renderAndPresent(flipTypeLastTime, false);
-
-    do {
+    do
+    {
       if (_pollingCallback)
         _pollingCallback();
-    } while (waitingForNextTick());
+      platform->YieldCPU();
+    }
+    while (timerValue == *_loopTimer);
   }
 
   if (fadingOut)

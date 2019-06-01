@@ -14,14 +14,30 @@
 
 #include "ac/timer.h"
 
+#include <thread>
 #include "core/platform.h"
-
 #if AGS_PLATFORM_DEBUG && defined (__GNUC__)
 #include <stdio.h>
 #include <execinfo.h>
 #include <unistd.h>
 #endif
 #include "platform/base/agsplatformdriver.h"
+#include "util/wgt2allg.h" // END_OF_FUNCTION macro
+
+volatile int timerloop=0;
+int time_between_timers=25;  // in milliseconds
+
+// our timer, used to keep game running at same speed on all systems
+#if defined(WINDOWS_VERSION)
+void __cdecl dj_timer_handler() {
+#else
+extern "C" void dj_timer_handler() {
+#endif
+    timerloop++;
+}
+END_OF_FUNCTION(dj_timer_handler);
+
+
 
 namespace {
 

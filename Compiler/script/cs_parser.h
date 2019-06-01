@@ -713,7 +713,7 @@ private:
 
     int ParseVardecl_GlobalImport(Symbol var_name, bool has_initial_assignment);
 
-    int ParseVardecl_GlobalNoImport(Symbol var_name, const Vartype vartype, size_t size_of_defn, bool has_initial_assignment, void *initial_val_ptr);
+    int ParseVardecl_GlobalNoImport(Symbol var_name, const Vartype vartype, size_t size_of_defn, bool has_initial_assignment, void *&initial_val_ptr);
 
     int ParseVardecl_Local(Symbol var_name, size_t size_of_defn, bool has_initial_assignment);
 

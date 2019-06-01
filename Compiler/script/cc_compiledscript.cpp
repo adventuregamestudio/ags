@@ -64,7 +64,7 @@ AGS::GlobalLoc ccCompiledScript::add_global(size_t siz, void *vall)
     return offset;
 }
 
-AGS::StringsLoc ccCompiledScript::add_string(std::string const literal)
+AGS::StringsLoc ccCompiledScript::add_string(std::string const &literal)
 {
     // Note: processing  of '\\' and '[' combinations moved to the scanner
     // because the scanner must deal with '\\' anyway.

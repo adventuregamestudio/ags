@@ -436,7 +436,6 @@ int AGS::FuncCallpointMgr::SetFuncExitJumppoint(AGS::Symbol func, AGS::CodeLoc d
     // Exit points of functions are stored under the negative function number
     _funcCallpointMap[-func].Callpoint = dest;
     PatchList &pl = _funcCallpointMap[-func].List;
-    size_t const pl_size = pl.size();
     for (auto pl_it = pl.begin(); pl_it != pl.end(); ++pl_it)
         if (pl_it->ChunkId == CodeBaseId)
         {
@@ -471,6 +470,7 @@ AGS::FuncCallpointMgr::CallpointInfo::CallpointInfo()
 { }
 
 AGS::ImportMgr::ImportMgr()
+    : _scrip(nullptr) 
 {
 }
 
@@ -988,8 +988,6 @@ int AGS::Parser::DealWithEndOfDo(AGS::NestingStack *nesting_stack)
 
 int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
 {
-    const size_t ns_level = nesting_stack->Depth() - 1;
-
     // If there was no terminating break at the last switch-case, 
     // write a jump to the jumpout point to prevent a fallthrough into the jumptable
     const AGS::CodeLoc lastcmd_loc = _scrip.codesize - 2;
@@ -1973,7 +1971,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
 
         // Types need not be identical here, but check against inherited classes
         int isClass = vartype_is & ~kVTY_DynPointer;
-        while (_sym.entries[isClass & kVTY_FlagMask].extends > 0)
+        while (_sym.entries[isClass].extends > 0)
         {
             isClass = _sym.entries[isClass].extends;
             if ((isClass | kVTY_DynPointer) == vartype_wants_to_be)
@@ -2418,7 +2416,7 @@ int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &par
         }
 
         // Compile the parameter
-        if (end_of_this_param - start_of_this_param < 0)
+        if (end_of_this_param < start_of_this_param)
         {
             cc_error("Internal error: parameter length is negative");
             return -99;
@@ -2585,7 +2583,7 @@ int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, boo
     // This will give an error if there aren't enough default parameters
     if (num_supplied_args < num_func_args)
     {
-        int retval = AccessData_FunctionCall_ProvideDefaults(num_func_args, num_supplied_args, name_of_func, func_is_import);
+        retval = AccessData_FunctionCall_ProvideDefaults(num_func_args, num_supplied_args, name_of_func, func_is_import);
         if (retval < 0) return retval;
     }
     if (num_supplied_args > num_func_args && !func_is_varargs)
@@ -2600,7 +2598,7 @@ int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, boo
     {
         if (keep_mar)
             _scrip.push_reg(SREG_MAR);
-        int retval = AccessData_FunctionCall_PushParams(paramList, indexOfClosedParen, num_func_args, num_supplied_args, name_of_func, func_is_import);
+        retval = AccessData_FunctionCall_PushParams(paramList, indexOfClosedParen, num_func_args, num_supplied_args, name_of_func, func_is_import);
         if (retval < 0) return retval;
         if (keep_mar)
             _scrip.pop_reg(SREG_MAR);
@@ -2724,9 +2722,6 @@ int AGS::Parser::AccessData_ArrayIndexIntoAX(SymbolScript symlist, size_t symlis
     int retval = ParseExpression_Subexpr(symlist, symlist_len);
     if (retval < 0) return retval;
 
-    symlist++;
-    symlist_len--;
-
     // array index must be convertible to an int
     return IsVartypeMismatch(_scrip.ax_vartype, _sym.getIntSym(), true);
 }
@@ -2794,7 +2789,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     int retval = ConstructAttributeFuncName(component_of_attribute, is_attribute_set_func, is_indexed, name_of_func);
     if (retval < 0) return retval;
     name_of_func = MangleStructAndComponent(struct_of_attribute, name_of_func);
-    if (retval < 0) return retval;
+    if (name_of_func < 0) return retval;
 
     bool const func_is_import = FlagIsSet(_sym.get_flags(name_of_func), kSYM_Import);
 
@@ -2823,7 +2818,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
         // get it and push it as the first parameter
         if (attrib_uses_this)
             _scrip.push_reg(SREG_MAR); // must not be clobbered
-        int retval = AccessData_ArrayIndexIntoAX(&symlist[1], symlist_len - 2);
+        retval = AccessData_ArrayIndexIntoAX(&symlist[1], symlist_len - 2);
         if (retval < 0) return retval;
         symlist += symlist_len; // Eat the index
         symlist_len = 0; // Eat the index, ct'd
@@ -3380,7 +3375,6 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
         // We accumulate mar_offset at compile time as long as possible to save computing.
         outer_vartype = vartype;
         AGS::Flags const outer_vartype_flags = _sym.get_flags(outer_vartype);
-        bool outer_is_dynarray = false;
 
         if (!FlagIsSet(outer_vartype_flags, kSFLG_StructType))
         {
@@ -3391,10 +3385,9 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
         if (FlagIsSet(vartype, kVTY_DynArray))
         {
             // Dereference the dynarray
-            int retval = AccessData_Dereference(vloc, mloc);
+            retval = AccessData_Dereference(vloc, mloc);
             if (retval < 0) return retval;
             SetFlag(vartype, kVTY_DynArray, false);
-            outer_is_dynarray = true;
         }
 
         // Note: If _both_ kVTY_DynPointer and kVTY_Array is set,
@@ -3402,7 +3395,7 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
         // and this array must NOT be dereferenced.
         if (FlagIsSet(vartype, kVTY_DynPointer) && !FlagIsSet(vartype, kVTY_Array))
         {
-            int retval = AccessData_Dereference(vloc, mloc);
+            retval = AccessData_Dereference(vloc, mloc);
             if (retval < 0) return retval;
             SetFlag(vartype, kVTY_DynPointer, false);
         }
@@ -4103,7 +4096,7 @@ int AGS::Parser::ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_initia
     return 0;
 }
 
-int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Vartype vartype, size_t size_of_defn, bool has_initial_assignment, void *initial_val_ptr)
+int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Vartype vartype, size_t size_of_defn, bool has_initial_assignment, void *&initial_val_ptr)
 {
     if (has_initial_assignment)
     {
@@ -4114,7 +4107,6 @@ int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Va
         _scrip.add_global(
         (_sym.getOldStringSym() == vartype) ? OLDSTRING_LENGTH : size_of_defn,
             initial_val_ptr);
-    if (initial_val_ptr) free(initial_val_ptr);
     if (_sym.entries[var_name].soffs < 0)
         return -1;
     return 0;
@@ -4353,7 +4345,7 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
     case AGS::NestingStack::kNT_BracedThen:
     {
         bool if_turned_into_else;
-        int retval = DealWithEndOfElse(nesting_stack, if_turned_into_else);
+        retval = DealWithEndOfElse(nesting_stack, if_turned_into_else);
         if (retval < 0) return retval;
         if (if_turned_into_else)
             return 0;
@@ -4372,12 +4364,12 @@ int AGS::Parser::ParseClosebrace(AGS::NestingStack *nesting_stack, AGS::Symbol &
     {
         if (nesting_stack->Type() == AGS::NestingStack::kNT_UnbracedDo)
         {
-            int retval = DealWithEndOfDo(nesting_stack);
+            retval = DealWithEndOfDo(nesting_stack);
             if (retval < 0) return retval;
         }
 
         bool if_turned_into_else;
-        int retval = DealWithEndOfElse(nesting_stack, if_turned_into_else);
+        retval = DealWithEndOfElse(nesting_stack, if_turned_into_else);
         if (retval < 0) return retval;
         if (if_turned_into_else)
             break;
@@ -4531,8 +4523,6 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Symbol varty
         cc_error("'string' not allowed inside a struct");
         return -1;
     }
-
-    AGS::Flags const vartype_flags = _sym.get_flags(vartype);
 
     return 0;
 }
@@ -5139,7 +5129,7 @@ int AGS::Parser::ParseEnum0()
         if (type_of_next == kSYM_Assign)
         {
             // the value of this entry is specified explicitly
-            int retval = ParseEnum_AssignedValue(currentValue);
+            retval = ParseEnum_AssignedValue(currentValue);
             if (retval < 0) return retval;
         }
 
@@ -6404,7 +6394,7 @@ int AGS::Parser::ParseInput()
 
         case kSYM_Enum:
         {
-            int retval = Parse_CheckTQ(tqs, kSYM_Export);
+            retval = Parse_CheckTQ(tqs, kSYM_Export);
             if (retval < 0) return retval;
             retval = ParseEnum(name_of_current_func);
             if (retval < 0) return retval;
@@ -6414,7 +6404,7 @@ int AGS::Parser::ParseInput()
 
         case kSYM_Export:
         {
-            int retval = Parse_CheckTQ(tqs, kSYM_Export);
+            retval = Parse_CheckTQ(tqs, kSYM_Export);
             if (retval < 0) return retval;
             retval = ParseExport();
             if (retval < 0) return retval;
@@ -6490,7 +6480,7 @@ int AGS::Parser::ParseInput()
 
         case  kSYM_Struct:
         {
-            int retval = Parse_CheckTQ(tqs, kSYM_Struct);
+            retval = Parse_CheckTQ(tqs, kSYM_Struct);
             if (retval < 0) return retval;
             retval = ParseStruct(tqs, nesting_stack, name_of_current_func, struct_of_current_func);
             if (retval < 0) return retval;
@@ -6503,7 +6493,7 @@ int AGS::Parser::ParseInput()
             if (kSYM_Dot == _sym.get_type(_targ.peeknext()))
                 break; // this is a static struct component function call, so a command
             bool set_nlc_flag = false;
-            int retval = ParseVartype(cursym, tqs, nesting_stack, name_of_current_func, struct_of_current_func, set_nlc_flag);
+            retval = ParseVartype(cursym, tqs, nesting_stack, name_of_current_func, struct_of_current_func, set_nlc_flag);
             if (retval < 0) return retval;
             tqs = 0;
             if (set_nlc_flag)

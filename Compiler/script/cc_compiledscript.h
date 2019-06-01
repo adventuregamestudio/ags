@@ -44,7 +44,7 @@ struct ccCompiledScript : public ccScript {
 
     // Add a string literal to the strings[] repository
     // NOTE: Return is the start of the new string, not an error value.
-    AGS::StringsLoc add_string(std::string const literal);
+    AGS::StringsLoc add_string(std::string const &literal);
 
     // Set a fixup to the code location given. Depending on the fixup type,
     // where can be an offset to the global memory, too.

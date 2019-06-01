@@ -35,6 +35,11 @@ using namespace AGS::Engine;
 #include "libcda.h"
 #endif
 
+// We don't have many places where we delay longer than a frame, but where we
+// do, we should give the audio layer a chance to update.
+// 16 milliseconds is rough period for 60fps
+const auto MaximumDelayBetweenPolling = std::chrono::milliseconds(16);
+
 AGSPlatformDriver* AGSPlatformDriver::instance = nullptr;
 AGSPlatformDriver *platform = nullptr;
 
@@ -196,10 +201,7 @@ void AGSPlatformDriver::Delay(int millis) {
   for (;;) {
     if (now >= delayUntil) { break; }
 
-    auto duration = delayUntil - now;
-    if (duration > std::chrono::milliseconds(16)) {
-      duration = std::chrono::milliseconds(16);
-    }
+    auto duration = std::min<std::chrono::nanoseconds>(delayUntil - now, MaximumDelayBetweenPolling);
     std::this_thread::sleep_for(duration);
     now = AGS_Clock::now(); // update now
 
@@ -208,5 +210,6 @@ void AGSPlatformDriver::Delay(int millis) {
     // don't allow it to check for debug messages, since this Delay()
     // call might be from within a debugger polling loop
     update_polled_mp3();
+    now = AGS_Clock::now(); // update now
   }
 }

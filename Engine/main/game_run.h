@@ -31,8 +31,6 @@ void GameLoopUntilValueIsNegative(const int *value);
 void GameLoopUntilNotMoving(const short *move);
 void GameLoopUntilNoOverlay();
 
-// Polls audio until the end of current game frame
-void PollUntilNextFrame();
 // Run the actual game until it ends, or aborted by player/error; loops GameTick() internally
 void RunGameUntilAborted();
 // Update everything game related

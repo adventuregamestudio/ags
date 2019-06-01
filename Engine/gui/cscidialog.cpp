@@ -192,7 +192,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         if (cscim->code > 0)
             break;
 
-        while (timerloop == 0) ;
+        WaitForNextFrame();
     }
 
     return 0;

@@ -37,7 +37,13 @@ extern "C" void dj_timer_handler() {
 }
 END_OF_FUNCTION(dj_timer_handler);
 
-
+void WaitForNextFrame()
+{
+    while (timerloop == 0) 
+    { 
+        platform->YieldCPU(); 
+    }
+}
 
 namespace {
 

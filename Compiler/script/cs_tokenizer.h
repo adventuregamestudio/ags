@@ -118,10 +118,10 @@ private:
     std::deque<Symbol> _tokenBuffer;
 
     inline Symbol TokenType(Symbol token) { return _symbolTable->get_type(token); }
-    inline std::string TokenName(Symbol token) { return _symbolTable->entries[token].sname; }
-    inline void SetTokenType(Symbol token, SymbolType value) { _symbolTable->entries[token].stype = value; }
-    inline void SetTokenOffsetInStrings(Symbol token, int value) { _symbolTable->entries[token].soffs = value; }
-    inline void SetTokenVartype(Symbol token, Symbol value) { _symbolTable->entries[token].vartype = value; }
+    inline std::string TokenName(Symbol token) { return _symbolTable->entries.at(token).sname; }
+    inline void SetTokenType(Symbol token, SymbolType value) { _symbolTable->entries.at(token).stype = value; }
+    inline void SetTokenOffsetInStrings(Symbol token, int value) { _symbolTable->entries.at(token).soffs = value; }
+    inline void SetTokenVartype(Symbol token, Symbol value) { _symbolTable->entries.at(token).vartype = value; }
 };
 
 } // namespace AGS

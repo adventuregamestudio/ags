@@ -79,7 +79,7 @@ SymbolType SymbolTable::get_type(AGS::Symbol symbol)  const
     if ((symbol < 0) || (symbol >=  static_cast<AGS::Symbol>(entries.size())))
         return kSYM_NoType;
 
-    return entries[symbol].stype;
+    return entries.at(symbol).stype;
 }
 
 void SymbolTable::reset()
@@ -197,7 +197,7 @@ std::string const SymbolTable::get_name_string(AGS::Symbol symbl) const
     if (core_symbl >= static_cast<int>(entries.size()))
         return std::string("(invalid symbol)");
     
-    std::string result = entries[core_symbl].sname;
+    std::string result = entries.at(core_symbl).sname;
 
     if (symbl & kVTY_DynPointer)
         result += "*";
@@ -213,10 +213,10 @@ std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) con
 {
     AGS::Symbol const core_type = (vartype & kVTY_FlagMask);
 
-    std::string result = (core_type >= 0 && core_type < static_cast<int>(entries.size())) ? entries[core_type].sname : "UNKNOWNTYPE";
+    std::string result = (core_type >= 0 && core_type < static_cast<int>(entries.size())) ? entries.at(core_type).sname : "UNKNOWNTYPE";
     if ((vartype & kVTY_DynPointer) &&
         !(vartype & kVTY_DynArray) &&
-        !(entries[core_type].flags & kSFLG_Managed))
+        !(entries.at(core_type).flags & kSFLG_Managed))
         result += "*";
     if (vartype & (kVTY_Array|kVTY_DynArray))
         result += "[]";
@@ -242,7 +242,7 @@ int SymbolTable::add_operator(const char *name, int priority, int vcpucmd)
 {
     AGS::Symbol symbol_idx = add_ex(name, kSYM_Operator, priority);
     if (symbol_idx >= 0)
-        entries[symbol_idx].vartype = vcpucmd;
+        entries.at(symbol_idx).vartype = vcpucmd;
     return symbol_idx;
 }
 

@@ -259,23 +259,23 @@ TEST(Compile, EnumNegative) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // C enums default to 0!
-    EXPECT_EQ(1, sym.entries[sym.find("cat")].soffs);
-    EXPECT_EQ(2, sym.entries[sym.find("dog")].soffs);
-    EXPECT_EQ(3, sym.entries[sym.find("fish")].soffs);
+    EXPECT_EQ(1, sym.entries.at(sym.find("cat")).soffs);
+    EXPECT_EQ(2, sym.entries.at(sym.find("dog")).soffs);
+    EXPECT_EQ(3, sym.entries.at(sym.find("fish")).soffs);
 
-    EXPECT_EQ(100, sym.entries[sym.find("money")].soffs);
-    EXPECT_EQ(101, sym.entries[sym.find("death")].soffs);
-    EXPECT_EQ(102, sym.entries[sym.find("taxes")].soffs);
+    EXPECT_EQ(100, sym.entries.at(sym.find("money")).soffs);
+    EXPECT_EQ(101, sym.entries.at(sym.find("death")).soffs);
+    EXPECT_EQ(102, sym.entries.at(sym.find("taxes")).soffs);
 
-    EXPECT_EQ(-3, sym.entries[sym.find("popularity")].soffs);
-    EXPECT_EQ(-2, sym.entries[sym.find("x")].soffs);
-    EXPECT_EQ(-1, sym.entries[sym.find("y")].soffs);
-    EXPECT_EQ(0, sym.entries[sym.find("z")].soffs);
+    EXPECT_EQ(-3, sym.entries.at(sym.find("popularity")).soffs);
+    EXPECT_EQ(-2, sym.entries.at(sym.find("x")).soffs);
+    EXPECT_EQ(-1, sym.entries.at(sym.find("y")).soffs);
+    EXPECT_EQ(0, sym.entries.at(sym.find("z")).soffs);
 
     // Note: -2147483648 gives an _unsigned_ int, not the lowest possible signed int
     // so it can't be used. Microsoft recomments using INT_MIN instead.
-    EXPECT_EQ((INT_MIN), sym.entries[sym.find("intmin")].soffs);
-    EXPECT_EQ((2147483647), sym.entries[sym.find("intmax")].soffs);
+    EXPECT_EQ((INT_MIN), sym.entries.at(sym.find("intmin")).soffs);
+    EXPECT_EQ((2147483647), sym.entries.at(sym.find("intmax")).soffs);
 }
 
 
@@ -303,34 +303,34 @@ TEST(Compile, DefaultParametersLargeInts) {
     int funcidx;
     funcidx = sym.find("importedfunc");
 
-    EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[1]);
-    EXPECT_EQ(0, sym.entries[funcidx].funcParamDefaultValues[1]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[1]);
+    EXPECT_EQ(0, sym.entries.at(funcidx).funcParamDefaultValues[1]);
 
-    EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[2]);
-    EXPECT_EQ(1, sym.entries[funcidx].funcParamDefaultValues[2]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[2]);
+    EXPECT_EQ(1, sym.entries.at(funcidx).funcParamDefaultValues[2]);
 
-    EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[3]);
-    EXPECT_EQ(2, sym.entries[funcidx].funcParamDefaultValues[3]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[3]);
+    EXPECT_EQ(2, sym.entries.at(funcidx).funcParamDefaultValues[3]);
 
-    EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[4]);
-    EXPECT_EQ(-32000, sym.entries[funcidx].funcParamDefaultValues[4]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[4]);
+    EXPECT_EQ(-32000, sym.entries.at(funcidx).funcParamDefaultValues[4]);
 
-    EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[5]);
-    EXPECT_EQ(32001, sym.entries[funcidx].funcParamDefaultValues[5]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[5]);
+    EXPECT_EQ(32001, sym.entries.at(funcidx).funcParamDefaultValues[5]);
 
-    EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[6]);
-    EXPECT_EQ((2147483647), sym.entries[funcidx].funcParamDefaultValues[6]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[6]);
+    EXPECT_EQ((2147483647), sym.entries.at(funcidx).funcParamDefaultValues[6]);
 
-    EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[7]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[7]);
     // NOTE: It's not possible to write the lowest possible signed integer as
     // -2147483648
-    EXPECT_EQ(INT_MIN, sym.entries[funcidx].funcParamDefaultValues[7]);
+    EXPECT_EQ(INT_MIN, sym.entries.at(funcidx).funcParamDefaultValues[7]);
 
-    EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[8]);
-    EXPECT_EQ(-1, sym.entries[funcidx].funcParamDefaultValues[8]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[8]);
+    EXPECT_EQ(-1, sym.entries.at(funcidx).funcParamDefaultValues[8]);
 
-    EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[9]);
-    EXPECT_EQ(-2, sym.entries[funcidx].funcParamDefaultValues[9]);
+    EXPECT_EQ(true, sym.entries.at(funcidx).funcParamHasDefaultValues[9]);
+    EXPECT_EQ(-2, sym.entries.at(funcidx).funcParamDefaultValues[9]);
 }
 
 TEST(Compile, ImportFunctionReturningDynamicArray) {
@@ -352,7 +352,7 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
 
     ASSERT_TRUE(funcidx != -1);
 
-    EXPECT_EQ(kVTY_DynArray, sym.entries[funcidx].funcparamtypes[0] & kVTY_DynArray);
+    EXPECT_EQ(kVTY_DynArray, sym.entries.at(funcidx).funcparamtypes[0] & kVTY_DynArray);
 }
 
 TEST(Compile, DoubleNegatedConstant) {
@@ -1323,7 +1323,7 @@ TEST(Compile, Import2GlobalAllocation)
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     int idx = sym.find("J");
     ASSERT_LE(0, idx);
-    SymbolTableEntry &entry = sym.entries[idx];
+    SymbolTableEntry &entry = sym.entries.at(idx);
     ASSERT_EQ(4, entry.soffs);
 }
 

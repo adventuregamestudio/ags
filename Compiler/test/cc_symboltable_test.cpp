@@ -111,16 +111,16 @@ TEST(SymbolTable, AddExDefaultValues) {
     int ssize = 2;
     int a_sym = testSym.add_ex("a", stype, ssize);
 
-    ASSERT_TRUE(testSym.entries[a_sym].sname == std::string("a"));
-    ASSERT_TRUE(testSym.entries[a_sym].stype == stype);
-    ASSERT_TRUE(testSym.entries[a_sym].flags == 0);
-    ASSERT_TRUE(testSym.entries[a_sym].vartype == 0);
-    ASSERT_TRUE(testSym.entries[a_sym].soffs == 0);
-    ASSERT_TRUE(testSym.entries[a_sym].ssize == ssize);
-    ASSERT_TRUE(testSym.entries[a_sym].sscope == 0);
-    ASSERT_TRUE(testSym.entries[a_sym].arrsize == 0);
-    ASSERT_TRUE(testSym.entries[a_sym].extends == 0);
-    ASSERT_TRUE(testSym.entries[a_sym].get_num_args() == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).sname == std::string("a"));
+    ASSERT_TRUE(testSym.entries.at(a_sym).stype == stype);
+    ASSERT_TRUE(testSym.entries.at(a_sym).flags == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).vartype == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).soffs == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).ssize == ssize);
+    ASSERT_TRUE(testSym.entries.at(a_sym).sscope == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).arrsize == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).extends == 0);
+    ASSERT_TRUE(testSym.entries.at(a_sym).get_num_args() == 0);
 }
 
 TEST(SymbolTable, AddExAvailableAfterwards) {
@@ -138,39 +138,39 @@ TEST(SymbolTable, EntriesEnsureModifiable) {
 
     // ensure reading and writing to entries actually works!
     int a_sym = testSym.add_ex("x", kSYM_NoType, 0);
-    testSym.entries[a_sym].flags = 10;
-    ASSERT_TRUE(testSym.entries[a_sym].flags == 10);
+    testSym.entries.at(a_sym).flags = 10;
+    ASSERT_TRUE(testSym.entries.at(a_sym).flags == 10);
 }
 
 TEST(SymbolTable, GetNumArgs) {
 	SymbolTable testSym;
 	int sym_01 = testSym.add("yellow");
 
-    testSym.entries[sym_01].sscope = 0;
-    ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 0);
-    testSym.entries[sym_01].sscope = 1;
-    ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 1);
-    testSym.entries[sym_01].sscope = 2;
-    ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 2);
+    testSym.entries.at(sym_01).sscope = 0;
+    ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 0);
+    testSym.entries.at(sym_01).sscope = 1;
+    ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 1);
+    testSym.entries.at(sym_01).sscope = 2;
+    ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 2);
 
-    testSym.entries[sym_01].sscope = 100;
-    ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 0);
-    testSym.entries[sym_01].sscope = 101;
-    ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 1);
-    testSym.entries[sym_01].sscope = 102;
-    ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 2);
+    testSym.entries.at(sym_01).sscope = 100;
+    ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 0);
+    testSym.entries.at(sym_01).sscope = 101;
+    ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 1);
+    testSym.entries.at(sym_01).sscope = 102;
+    ASSERT_TRUE(testSym.entries.at(sym_01).get_num_args() == 2);
 }
 
 TEST(SymbolTable, OperatorToVCPUCmd) {
 	SymbolTable testSym;
 	int sym_01 = testSym.add("grassgreen");
 
-    testSym.entries[sym_01].vartype = 0;
-    ASSERT_TRUE(testSym.entries[sym_01].operatorToVCPUCmd() == 0);
-    testSym.entries[sym_01].vartype = 1;
-    ASSERT_TRUE(testSym.entries[sym_01].operatorToVCPUCmd() == 1);
-    testSym.entries[sym_01].vartype = 10;
-    ASSERT_TRUE(testSym.entries[sym_01].operatorToVCPUCmd() == 10);
-    testSym.entries[sym_01].vartype = 100;
-    ASSERT_TRUE(testSym.entries[sym_01].operatorToVCPUCmd() == 100);
+    testSym.entries.at(sym_01).vartype = 0;
+    ASSERT_TRUE(testSym.entries.at(sym_01).operatorToVCPUCmd() == 0);
+    testSym.entries.at(sym_01).vartype = 1;
+    ASSERT_TRUE(testSym.entries.at(sym_01).operatorToVCPUCmd() == 1);
+    testSym.entries.at(sym_01).vartype = 10;
+    ASSERT_TRUE(testSym.entries.at(sym_01).operatorToVCPUCmd() == 10);
+    testSym.entries.at(sym_01).vartype = 100;
+    ASSERT_TRUE(testSym.entries.at(sym_01).operatorToVCPUCmd() == 100);
 }

@@ -58,19 +58,19 @@ void ccCompileText_KillUnusedImports(ccCompiledScript * compiled_script)
         // Don't mind attributes - they are short cuts for the respective getter
         // and setter funcs. If _those_ are unused, then they will be caught
         // in the same that way normal functions are.
-        if (((sym.entries[entries_idx].flags & kSFLG_Imported) != 0) && ((sym.entries[entries_idx].flags & kSFLG_Accessed) == 0))
+        if (((sym.entries.at(entries_idx).flags & kSFLG_Imported) != 0) && ((sym.entries.at(entries_idx).flags & kSFLG_Accessed) == 0))
             if ((stype == kSYM_Function) || (stype == kSYM_GlobalVar))
-                compiled_script->imports[sym.entries[entries_idx].soffs][0] = '\0';
+                compiled_script->imports[sym.entries.at(entries_idx).soffs][0] = '\0';
 
         if ((sym.get_type(entries_idx) != kSYM_GlobalVar) &&
             (sym.get_type(entries_idx) != kSYM_LocalVar))
             continue;
 
-        if (sym.entries[entries_idx].flags & kSFLG_Imported)
+        if (sym.entries.at(entries_idx).flags & kSFLG_Imported)
             continue;
         if (ccGetOption(SCOPT_SHOWWARNINGS) == 0)
             ;
-        else if ((sym.entries[entries_idx].flags & kSFLG_Accessed) == 0)
+        else if ((sym.entries.at(entries_idx).flags & kSFLG_Accessed) == 0)
             printf("warning: variable '%s' is never used\n", sym.get_name_string(entries_idx).c_str());
     }
 }

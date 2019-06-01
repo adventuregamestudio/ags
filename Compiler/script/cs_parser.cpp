@@ -1973,7 +1973,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         int isClass = vartype_is & ~kVTY_DynPointer;
         while (_sym.entries[isClass].extends > 0)
         {
-            isClass = _sym.entries[isClass].extends;
+            isClass = _sym.entries[isClass & kVTY_FlagMask].extends;
             if ((isClass | kVTY_DynPointer) == vartype_wants_to_be)
                 return false;
         }

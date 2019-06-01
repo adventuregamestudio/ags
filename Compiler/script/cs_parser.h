@@ -101,7 +101,7 @@ public:
     NestingStack();
 
     // Depth of the nesting == index of the innermost nesting level
-    inline size_t Depth() { return _stack.size(); };
+    inline size_t Depth() const { return _stack.size(); };
 
     // Type of the innermost nesting
     inline NestingType Type() { return static_cast<NestingType>(_stack.back().Type); };
@@ -267,7 +267,7 @@ public:
     // Write out the opcodes necessary to bring MAR up-to-date
     void MakeMARCurrent(ccCompiledScript &scrip);
 
-    inline bool NothingDoneYet() { return _Type != kSYM_NoType; };
+    inline bool NothingDoneYet() const { return _Type != kSYM_NoType; };
 
     inline void Reset() { SetStart(kSYM_NoType, 0); };
 };
@@ -398,7 +398,7 @@ private:
     // The higher _sym.entries[op].ssize is, the LESS binding is the operator op.
     // To convert, we must subtract this value from some suitable value 
     // (any will do that doesn't cause underflow of the subtraction).
-    inline int MathPrio(Symbol op) { return 100 - _sym.entries[op].ssize; };
+    inline int MathPrio(Symbol op) const { return 100 - _sym.entries[op].ssize; };
 
     // If the vartype implies that it must be a dynpointer, then set it to be dynpointer
     Vartype DeduceDynPointerness(Vartype vty);

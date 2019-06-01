@@ -570,7 +570,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
             continue;
 
         // caller will sort out stack, so ignore parameters
-        if (FlagIsSet(_sym.entries.at(entries_idx).flags, kSFLG_Parameter))
+        if (FlagIsSet(_sym.get_flags(entries_idx), kSFLG_Parameter))
             continue;
 
         if (FlagIsSet(_sym.get_vartype(entries_idx), kVTY_DynArray))
@@ -581,7 +581,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
 
         // Calculate the size of one var of the given type
         size_t ssize = _sym.entries.at(entries_idx).ssize;
-        if (FlagIsSet(_sym.entries.at(entries_idx).flags, kSFLG_StrBuffer))
+        if (FlagIsSet(_sym.get_flags(entries_idx), kSFLG_StrBuffer))
             ssize += OLDSTRING_LENGTH;
 
         // Calculate the number of vars
@@ -602,7 +602,7 @@ bool AGS::Parser::ContainsReleasablePointers(AGS::Vartype v)
         return true;
 
     AGS::Vartype const coretype = (v & kVTY_FlagMask);
-    if (!FlagIsSet(_sym.entries.at(coretype).flags, kSFLG_StructType))
+    if (!FlagIsSet(_sym.get_flags(coretype), kSFLG_StructType))
         return false; // primitive types can't have pointers
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
     {
@@ -684,7 +684,7 @@ void AGS::Parser::FreePointersOfStruct(AGS::Symbol struct_vtype, bool &clobbers_
             _scrip.push_reg(SREG_MAR);
         if (FlagIsSet(entry.vartype, kVTY_Array))
             FreePointersOfStdArray(entry, clobbers_ax);
-        else if (FlagIsSet(_sym.entries.at(entry.vartype & kVTY_FlagMask).flags, kSFLG_StructType))
+        else if (FlagIsSet(_sym.get_flags(entry.vartype & kVTY_FlagMask), kSFLG_StructType))
             FreePointersOfStruct(entry.vartype & kVTY_FlagMask, clobbers_ax);
         if (compo_list.back() != *compo_it)
             _scrip.pop_reg(SREG_MAR);
@@ -726,7 +726,7 @@ void AGS::Parser::FreePointersOfStdArray(SymbolTableEntry &entry, bool &clobbers
     }
 
     AGS::Symbol const coretype = entry.vartype & kVTY_FlagMask;
-    if (!FlagIsSet(_sym.entries.at(coretype).flags, kSFLG_StructType))
+    if (!FlagIsSet(_sym.get_flags(coretype), kSFLG_StructType))
         return; // nothing to do
 
     FreePointersOfStdArrayOfStruct(coretype, entry, clobbers_ax);
@@ -1125,9 +1125,9 @@ int AGS::Parser::ParseParamlist_Param_DynArrayMarker(AGS::Symbol typeSym, bool i
     if (kPP_PreAnalyze == _pp)
         return 1;
 
-    if (FlagIsSet(_sym.entries.at(typeSym).flags, kSFLG_StructType))
+    if (FlagIsSet(_sym.get_flags(typeSym), kSFLG_StructType))
     {
-        if (!FlagIsSet(_sym.entries.at(typeSym).flags, kSFLG_Managed))
+        if (!FlagIsSet(_sym.get_flags(typeSym), kSFLG_Managed))
         {
             cc_error("Cannot pass non-managed struct array");
             return -1;
@@ -2988,7 +2988,7 @@ int AGS::Parser::AccessData_GlobalOrLocalVar(bool is_global, bool writing, AGS::
         return -1;
     }
 
-    if (FlagIsSet(_sym.entries.at(varname).flags, kSFLG_Imported))
+    if (FlagIsSet(_sym.get_flags(varname), kSFLG_Imported))
         mloc.SetStart(kSYM_Import, soffs);
     else
         mloc.SetStart(is_global ? kSYM_GlobalVar : kSYM_LocalVar, soffs);

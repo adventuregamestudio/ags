@@ -65,7 +65,7 @@
 //  #define below _must_ be changed to a local writable temp dir. 
 // (If you only want to run the tests to see if any tests fail, you do NOT 
 // need that dir and you do NOT need any local files whatsoever.)
-# define LOCAL_PATH "C:\\TEMP\\"
+#define LOCAL_PATH "C:\\TEMP\\"
 
 extern void clear_error();
 extern const char *last_seen_cc_error();

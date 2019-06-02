@@ -92,7 +92,7 @@ int MyPushButton::pressedon(int mousex, int mousey)
 
         refresh_gui_screen();
 
-        while (timerloop == 0) ;
+        WaitForNextFrame();
     }
     wasstat = state;
     state = 0;

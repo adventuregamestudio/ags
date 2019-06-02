@@ -45,8 +45,8 @@ extern void get_new_size_for_sprite(int, int, int, int &, int &);
 const char *spindexid = "SPRINDEX";
 
 // TODO: should not be part of SpriteCache, but rather some asset management class?
-const String SpriteCache::DefaultSpriteFileName = "game28.dta";
-const String SpriteCache::DefaultSpriteIndexName = "ac2game.dta";
+const String SpriteCache::DefaultSpriteFileName = "acsprset.spr";
+const String SpriteCache::DefaultSpriteIndexName = "sprindex.dat";
 
 
 SpriteInfo::SpriteInfo()

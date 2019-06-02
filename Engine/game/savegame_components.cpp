@@ -185,21 +185,6 @@ inline bool AssertGameObjectContent2(HSaveError &err, int new_val, int original_
 }
 
 
-enum GameViewCamFlags
-{
-    kSvgGameAutoRoomView = 0x01
-};
-
-enum CameraSaveFlags
-{
-    kSvgCamPosLocked = 0x01
-};
-
-enum ViewportSaveFlags
-{
-    kSvgViewportVisible = 0x01
-};
-
 void WriteCameraState(const Camera &cam, Stream *out)
 {
     int flags = 0;
@@ -273,40 +258,30 @@ HSaveError WriteGameState(PStream out)
     return HSaveError::None();
 }
 
-void ReadCameraState(/*Camera &cam,*/ RestoredData &r_data, Stream *in)
+void ReadCameraState(RestoredData &r_data, Stream *in)
 {
-    Camera cam;
-    cam.SetID(r_data.Cameras.size());
-    int flags = in->ReadInt32();
-    if ((flags & kSvgCamPosLocked) != 0)
-        cam.Lock();
-    else
-        cam.Release();
-    int left = in->ReadInt32();
-    int top = in->ReadInt32();
-    int width = in->ReadInt32();
-    int height = in->ReadInt32();
-    cam.SetAt(left, top);
-    cam.SetSize(Size(width, height));
+    RestoredData::CameraData cam;
+    cam.ID = r_data.Cameras.size();
+    cam.Flags = in->ReadInt32();
+    cam.Left = in->ReadInt32();
+    cam.Top = in->ReadInt32();
+    cam.Width = in->ReadInt32();
+    cam.Height = in->ReadInt32();
     r_data.Cameras.push_back(cam);
 }
 
-void ReadViewportState(/*Viewport &view,*/ RestoredData &r_data, Stream *in)
+void ReadViewportState(RestoredData &r_data, Stream *in)
 {
-    Viewport view;
-    view.SetID(r_data.Viewports.size());
-    int flags = in->ReadInt32();
-    view.SetVisible((flags & kSvgViewportVisible) != 0);
-    const Rect &rc = view.GetRect();
-    int left = in->ReadInt32();
-    int top = in->ReadInt32();
-    int width = in->ReadInt32();
-    int height = in->ReadInt32();
-    view.SetRect(RectWH(left, top, width, height));
-    view.SetZOrder(in->ReadInt32());
-    int cam_index = in->ReadInt32();
+    RestoredData::ViewportData view;
+    view.ID = r_data.Viewports.size();
+    view.Flags = in->ReadInt32();
+    view.Left = in->ReadInt32();
+    view.Top = in->ReadInt32();
+    view.Width = in->ReadInt32();
+    view.Height = in->ReadInt32();
+    view.ZOrder = in->ReadInt32();
+    view.CamID = in->ReadInt32();
     r_data.Viewports.push_back(view);
-    r_data.ViewCamLinks.push_back(cam_index);
 }
 
 HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
@@ -328,7 +303,7 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
     }
 
     // Game state
-    play.ReadFromSavegame(in.get(), svg_ver);
+    play.ReadFromSavegame(in.get(), svg_ver, r_data);
 
     // Other dynamic values
     r_data.FPS = in->ReadInt32();
@@ -353,7 +328,8 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
         play.SetAutoRoomViewport((viewcam_flags & kSvgGameAutoRoomView) != 0);
         // TODO: we create viewport and camera objects here because they are
         // required for the managed pool deserialization, but read actual
-        // data into temp structs because of issue with load_new_room().
+        // data into temp structs because we need to apply it after active
+        // room is loaded.
         // See comments to RestoredData struct for further details.
         int cam_count = in->ReadInt32();
         for (int i = 0; i < cam_count; ++i)

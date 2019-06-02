@@ -414,7 +414,7 @@ void update_letterbox_mode()
     play.SetUIViewport(new_main_view);
 }
 
-// Automatically resize primary room viewport and camera to match the new room size
+// Automatically reset primary room viewport and camera to match the new room size
 static void adjust_viewport_to_room()
 {
     const Size real_room_sz = Size(data_to_game_coord(thisroom.Width), data_to_game_coord(thisroom.Height));
@@ -422,7 +422,9 @@ static void adjust_viewport_to_room()
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
     play.SetRoomViewport(0, new_room_view);
-    play.GetRoomCamera(0)->SetSize(new_room_view.GetSize());
+    auto cam = play.GetRoomCamera(0);
+    cam->SetSize(new_room_view.GetSize());
+    cam->SetAt(0, 0);
 }
 
 // Run through all viewports and cameras to make sure they can work in new room's bounds
@@ -513,9 +515,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // Update game viewports
     if (game.IsLegacyLetterbox())
         update_letterbox_mode();
-    if (play.IsAutoRoomViewport())
-        adjust_viewport_to_room();
-
     SetMouseBounds(0, 0, 0, 0);
 
     our_eip=203;
@@ -541,9 +540,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     convert_room_background_to_game_res();
     recache_walk_behinds();
     update_polled_stuff_if_runtime();
-
-    update_all_viewcams_with_newroom();
-    init_room_drawdata();
 
     our_eip=205;
     // setup objects
@@ -713,8 +709,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             }
         }
 
-        if (play.IsAutoRoomViewport())
-            play.GetRoomCamera(0)->SetAt(0, 0);
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
         // only stop moving if it's a new room, not a restore game
@@ -863,7 +857,18 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     generate_light_table();
     update_music_volume();
-    play.UpdateRoomCameras();
+
+    // If we are not restoring a save, update cameras to accomodate for this
+    // new room; otherwise this is done later when cameras are recreated.
+    if (forchar != nullptr)
+    {
+        if (play.IsAutoRoomViewport())
+            adjust_viewport_to_room();
+        update_all_viewcams_with_newroom();
+        play.UpdateRoomCameras(); // update auto tracking
+    }
+    init_room_drawdata();
+
     our_eip = 212;
     invalidate_screen();
     for (cc=0;cc<croom->numobj;cc++) {

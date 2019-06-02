@@ -24,12 +24,14 @@
 #include "device/mousew32.h"
 #include "game/customproperties.h"
 #include "game/roomstruct.h"
+#include "game/savegame_internal.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
@@ -446,7 +448,7 @@ bool GameState::ShouldPlayVoiceSpeech() const
         (play.want_speech >= 1) && (!ResPaths.SpeechPak.Name.IsEmpty());
 }
 
-void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)
+void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
     const bool old_save = svg_ver < kGSSvgVersion_Initial;
     score = in->ReadInt32();
@@ -570,9 +572,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     {
         short offsets_locked = in->ReadInt16();
         if (offsets_locked != 0)
-            _roomCameras[0]->Lock();
-        else
-            _roomCameras[0]->Release();
+            r_data.Cameras[0].Flags = kSvgCamPosLocked;
     }
     entered_at_x = in->ReadInt32();
     entered_at_y = in->ReadInt32();

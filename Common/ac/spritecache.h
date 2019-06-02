@@ -83,12 +83,28 @@ enum SpriteIndexFileVersion
 
 typedef int32_t sprkey_t;
 
+// SpriteFileIndex contains sprite file's table of contents
+struct SpriteFileIndex
+{
+    int SpriteFileIDCheck = 0; // tag matching sprite file and index file
+    sprkey_t LastSlot = -1;
+    sprkey_t SpriteCount = 0;
+    std::vector<int16_t> Widths;
+    std::vector<int16_t> Heights;
+    std::vector<soff_t>  Offsets;
+};
+
+
 class SpriteCache
 {
 public:
     static const sprkey_t MIN_SPRITE_INDEX = 1; // 0 is reserved for "empty sprite"
     static const sprkey_t MAX_SPRITE_INDEX = INT32_MAX - 1;
     static const size_t   MAX_SPRITE_SLOTS = INT32_MAX;
+
+    // Standart sprite file and sprite index names
+    static const Common::String DefaultSpriteFileName;
+    static const Common::String DefaultSpriteIndexName;
 
     SpriteCache(std::vector<SpriteInfo> &sprInfos);
     ~SpriteCache();
@@ -124,24 +140,26 @@ public:
     void        Reset();
     // Assigns new sprite for the given index; this sprite won't be auto disposed
     void        SetSprite(sprkey_t index, Common::Bitmap *);
+    // Assigns new sprite for the given index, remapping it to sprite 0
+    void        SetEmptySprite(sprkey_t index);
     // Assigns new bitmap for the *registered* sprite without changing its properties
     void        SubstituteBitmap(sprkey_t index, Common::Bitmap *);
     // Sets max cache size in bytes
     void        SetMaxCacheSize(size_t size);
 
     // Loads sprite reference information and inits sprite stream
-    HAGSError   InitFile(const char *filename);
+    HAGSError   InitFile(const char *filename, const char *sprindex_filename);
     // Tells if bitmaps in the file are compressed
     bool        IsFileCompressed() const;
     // Opens file stream
     int         AttachFile(const char *filename);
     // Closes file stream
     void        DetachFile();
-    // Saves all sprites until lastElement (exclusive) to file 
-    int         SaveToFile(const char *filename, bool compressOutput);
+    // Saves all sprites to file; fills in index data for external use
+    // TODO: refactor to be able to save main file and index file separately (separate function for gather data?)
+    int         SaveToFile(const char *filename, bool compressOutput, SpriteFileIndex &index);
     // Saves sprite index table in a separate file
-    int         SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sprkey_t lastslot, sprkey_t numsprits,
-        const std::vector<int16_t> &spritewidths, const std::vector<int16_t> &spriteheights, const std::vector<soff_t> &spriteoffs);
+    int         SaveSpriteIndex(const char *filename, const SpriteFileIndex &index);
 
     // Loads (if it's not in cache yet) and returns bitmap by the sprite index
     Common::Bitmap *operator[] (sprkey_t index);
@@ -201,7 +219,7 @@ private:
     int _listend;
 
     // Loads sprite index file
-    bool        LoadSpriteIndexFile(int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost);
+    bool        LoadSpriteIndexFile(const char *filename, int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost);
     // Rebuilds sprite index from the main sprite file
     HAGSError   RebuildSpriteIndex(AGS::Common::Stream *in, sprkey_t topmost, SpriteFileVersion vers);
     // Writes compressed sprite to the stream

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Windows.Forms;
 using AGS.Editor.Preferences;
 
 namespace AGS.Editor
@@ -107,6 +108,8 @@ namespace AGS.Editor
                 throw new AGSEditorException("This game cannot be loaded because it is in a folder that has a name longer than 40 characters.");
             }
 
+            List<string> errors = new List<string>();
+
             Directory.SetCurrentDirectory(gameDirectory);
             AddFontIfNotAlreadyThere(0);
             AddFontIfNotAlreadyThere(1);
@@ -141,11 +144,13 @@ namespace AGS.Editor
 
                 Factory.Events.OnGamePostLoad();
 
-                Factory.AGSEditor.RefreshEditorAfterGameLoad(game);
+                Factory.AGSEditor.RefreshEditorAfterGameLoad(game, errors);
                 if (needToSave)
                 {
                     Factory.AGSEditor.SaveGameFiles();
                 }
+
+                Factory.AGSEditor.ReportGameLoad(errors);
                 return true;
             }
 

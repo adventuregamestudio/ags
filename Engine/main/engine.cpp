@@ -856,13 +856,14 @@ int engine_init_sprites()
 {
     Debug::Printf(kDbgMsg_Init, "Initialize sprites");
 
-    HError err = spriteset.InitFile("acsprset.spr");
+    HError err = spriteset.InitFile(SpriteCache::DefaultSpriteFileName, SpriteCache::DefaultSpriteIndexName);
     if (!err) 
     {
         platform->FinishedUsingGraphicsMode();
         allegro_exit();
         proper_exit=1;
-        platform->DisplayAlert("Could not load sprite set file ACSPRSET.SPR\n%s",
+        platform->DisplayAlert("Could not load sprite set file %s\n%s",
+            SpriteCache::DefaultSpriteFileName.GetCStr(),
             err->FullMessage().GetCStr());
         return EXIT_NORMAL;
     }

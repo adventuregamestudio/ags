@@ -14,6 +14,7 @@
 
 #include <stdarg.h>
 #include <stdio.h> // sprintf
+#include "core/platform.h"
 #include "util/textstreamwriter.h"
 #include "util/stream.h"
 
@@ -22,7 +23,7 @@ namespace AGS
 namespace Common
 {
 
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 static const char Endl[2] = {'\r', '\n'};
 #else
 static const char Endl[1] = {'\n'};

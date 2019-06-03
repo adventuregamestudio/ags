@@ -19,10 +19,12 @@
 #define __AGS_CN_AC__GAMESETUPSTRUCT_H
 
 #include <vector>
+#include "ac/audiocliptype.h"
 #include "ac/characterinfo.h" // TODO: constants to separate header
 #include "ac/gamesetupstructbase.h"
 #include "ac/inventoryiteminfo.h"
 #include "ac/mousecursor.h"
+#include "ac/dynobj/scriptaudioclip.h"
 #include "game/customproperties.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
 
@@ -39,8 +41,6 @@ namespace AGS
 //using AGS::Common::Interaction;// CLNUP stuff for old interactions
 using AGS::Common::InteractionScripts;
 using AGS::Common::HGameFileError;
-struct ScriptAudioClip;
-struct AudioClipType;
 struct OldGameSetupStruct;
 
 
@@ -76,10 +76,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     int               roomCount;
     int              *roomNumbers;
     char            **roomNames;
-    int               audioClipCount;
-    ScriptAudioClip  *audioClips;
-    int               audioClipTypeCount;
-    AudioClipType    *audioClipTypes;
+    std::vector<ScriptAudioClip> audioClips;
+    std::vector<AudioClipType> audioClipTypes;
     // A clip to play when player gains score in game
     // TODO: find out why OPT_SCORESOUND option cannot be used to store this in >=3.2 games
     int               scoreClipID;
@@ -145,7 +143,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     HGameFileError read_audio(Common::Stream *in, GameDataVersion data_ver);
     void read_room_names(Common::Stream *in, GameDataVersion data_ver);
 
-    void ReadAudioClips_Aligned(Common::Stream *in);
+    void ReadAudioClips_Aligned(Common::Stream *in, size_t count);
     //--------------------------------------------------------------------
 
     // Functions for reading and writing appropriate data from/to save game

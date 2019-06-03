@@ -2098,8 +2098,8 @@ RuntimeScriptValue Sc_sc_strcat(const RuntimeScriptValue *params, int32_t param_
 // [DEPRECATED]
 RuntimeScriptValue Sc_stricmp(const RuntimeScriptValue *params, int32_t param_count)
 {
-    // Calling C stdlib function stricmp
-    API_SCALL_INT_POBJ2(stricmp, const char, const char);
+    // Calling C stdlib function ags_stricmp
+    API_SCALL_INT_POBJ2(ags_stricmp, const char, const char);
 }
 
 // [DEPRECATED]
@@ -3014,7 +3014,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("StopMusic",                (void*)scr_StopMusic);
     ccAddExternalFunctionForPlugin("StopObjectMoving",         (void*)StopObjectMoving);
     //ccAddExternalFunctionForPlugin("StrCat",                   (void*)_sc_strcat);// [DEPRECATED]
-    //ccAddExternalFunctionForPlugin("StrCaseComp",              (void*)stricmp);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("StrCaseComp",              (void*)ags_stricmp);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("StrComp",                  (void*)strcmp);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("StrContains",              (void*)StrContains);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("StrCopy",                  (void*)_sc_strcpy);// [DEPRECATED]

@@ -180,6 +180,7 @@ public:
     bool IsModeSupported(const DisplayMode &mode) override;
     PGfxFilter GetGraphicsFilter() const override;
     void UnInit();
+    // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
@@ -196,7 +197,6 @@ public:
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void BoxOutEffect(bool blackingOut, int speed, int delay) override;
-    bool PlayVideo(const char *filename, bool useSound, VideoSkipType skipType, bool stretchToFullScreen) override;
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
@@ -214,7 +214,7 @@ public:
 private:
     POGLFilter _filter;
 
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     HDC _hDC;
     HGLRC _hRC;
     HWND _hWnd;
@@ -222,7 +222,7 @@ private:
     GLuint _oldPixelFormat;
     PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
 #endif
-#if defined (LINUX_VERSION)
+#if AGS_PLATFORM_OS_LINUX
     bool _have_window;
     GLXContext _glxContext;
 #endif
@@ -312,9 +312,9 @@ private:
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();
-#if defined (WINDOWS_VERSION) || defined(LINUX_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX
     void CreateDesktopScreen(int width, int height, int depth);
-#elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
+#elif AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
     void UpdateDeviceScreen();
 #endif
     // Unset parameters and release resources related to the display mode

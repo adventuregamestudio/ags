@@ -36,6 +36,7 @@
 #include "ac/roomobject.h"
 #include "script/cc_error.h"
 #include "script/cc_options.h"
+#include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "media/video/video.h"
@@ -441,7 +442,7 @@ int RunTextScript2IParam(ccInstance *sci, const char*tsname, const RuntimeScript
     }
 
     // response to a button click, better update guis
-    if (strnicmp(tsname, "interface_click", 15) == 0)
+    if (ags_strnicmp(tsname, "interface_click", 15) == 0)
         guis_need_update = 1;
 
     return RunScriptFunctionIfExists(sci, tsname, 2, params);
@@ -465,8 +466,12 @@ String GetScriptName(ccInstance *sci)
 
 char bname[MAX_FUNCTION_NAME_LEN+1],bne[MAX_FUNCTION_NAME_LEN+1];
 char* make_ts_func_name(const char*base,int iii,int subd) {
-    snprintf(bname,MAX_FUNCTION_NAME_LEN,base,iii);
-    snprintf(bne,MAX_FUNCTION_NAME_LEN,"%s_%c",bname,subd+'a');
+    int err = snprintf(bname,MAX_FUNCTION_NAME_LEN,base,iii);
+    if (err >= sizeof(bname))
+      debug_script_warn("Function name length limit exceeded: %s (%d)", base, iii);
+    err = snprintf(bne,MAX_FUNCTION_NAME_LEN,"%s_%c",bname,subd+'a');
+    if (err >= sizeof(bne))
+      debug_script_warn("Function name length limit exceeded: %s", bname);
     return &bne[0];
 }
 
@@ -562,13 +567,19 @@ void post_script_cleanup() {
 
 void quit_with_script_error(const char *functionName)
 {
-    quitprintf("%sError running function '%s':\n%s", (ccErrorIsUserError ? "!" : ""), functionName, ccErrorString.GetCStr());
+    // TODO: clean up the error reporting logic. Now engine will append call
+    // stack info in quit_check_for_error_state() but only in case of explicit
+    // script error ("!" type), and not in other case.
+    if (ccErrorIsUserError)
+        quitprintf("!Error running function '%s':\n%s", functionName, ccErrorString.GetCStr());
+    else
+        quitprintf("Error running function '%s':\n%s\n\n%s", functionName, ccErrorString.GetCStr(), get_cur_script(5).GetCStr());
 }
 
 InteractionVariable *FindGraphicalVariable(const char *varName) {
     int ii;
     for (ii = 0; ii < numGlobalVars; ii++) {
-        if (stricmp (globalvars[ii].Name, varName) == 0)
+        if (ags_stricmp (globalvars[ii].Name, varName) == 0)
             return &globalvars[ii];
     }
     return nullptr;
@@ -603,11 +614,11 @@ void run_unhandled_event (int evnt) {
         return;
 
     int evtype=0;
-    if (strnicmp(evblockbasename,"hotspot",7)==0) evtype=1;
-    else if (strnicmp(evblockbasename,"object",6)==0) evtype=2;
-    else if (strnicmp(evblockbasename,"character",9)==0) evtype=3;
-    else if (strnicmp(evblockbasename,"inventory",9)==0) evtype=5;
-    else if (strnicmp(evblockbasename,"region",6)==0)
+    if (ags_strnicmp(evblockbasename,"hotspot",7)==0) evtype=1;
+    else if (ags_strnicmp(evblockbasename,"object",6)==0) evtype=2;
+    else if (ags_strnicmp(evblockbasename,"character",9)==0) evtype=3;
+    else if (ags_strnicmp(evblockbasename,"inventory",9)==0) evtype=5;
+    else if (ags_strnicmp(evblockbasename,"region",6)==0)
         return;  // no unhandled_events for regions
 
     // clicked Hotspot 0, so change the type code

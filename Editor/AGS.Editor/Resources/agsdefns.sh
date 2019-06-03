@@ -1099,7 +1099,7 @@ builtin managed struct Label extends GUIControl {
   /// Gets/sets the colour in which the label text is drawn.
   import attribute int  TextColor;
 #ifdef SCRIPT_API_v350
-  /// Gets/sets list item's text alignment.
+  /// Gets/sets label's text alignment.
   import attribute HorizontalAlignment TextAlignment;
 #endif
 };
@@ -2063,7 +2063,12 @@ builtin struct GameState {
   int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
   int  score_sound;
   int  previous_game_data;
+#ifndef SCRIPT_COMPAT_v341
   readonly int unused__041; // $AUTOCOMPLETEIGNORE$
+#endif
+#ifdef SCRIPT_COMPAT_v341
+  int  replay_hotkey;
+#endif
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;

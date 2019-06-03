@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
@@ -57,19 +58,14 @@ void engine_setup_system_gamesize()
 void engine_init_resolution_settings(const Size game_size)
 {
     Debug::Printf("Initializing resolution settings");
-
-    // Initialize default viewports and room camera
-    Rect viewport = RectWH(game_size);
-    play.SetMainViewport(viewport);
-    play.SetUIViewport(viewport);
-    play.SetRoomViewport(0, viewport);
-    play.GetRoomCamera(0)->SetSize(viewport.GetSize());
-
     usetup.textheight = getfontheight_outlined(0) + 1;
 
     Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
 
+    Rect viewport = RectWH(game_size);
+    play.SetMainViewport(viewport);
+    play.SetUIViewport(viewport);
     engine_setup_system_gamesize();
 }
 
@@ -117,18 +113,6 @@ void engine_pre_gfxsystem_screen_destroy()
 void engine_setup_color_conversions(int coldepth)
 {
     // default shifts for how we store the sprite data1
-#if defined(PSP_VERSION)
-    // PSP: Switch b<>r for 15/16 bit.
-    _rgb_r_shift_32 = 16;
-    _rgb_g_shift_32 = 8;
-    _rgb_b_shift_32 = 0;
-    _rgb_b_shift_16 = 11;
-    _rgb_g_shift_16 = 5;
-    _rgb_r_shift_16 = 0;
-    _rgb_b_shift_15 = 10;
-    _rgb_g_shift_15 = 5;
-    _rgb_r_shift_15 = 0;
-#else
     _rgb_r_shift_32 = 16;
     _rgb_g_shift_32 = 8;
     _rgb_b_shift_32 = 0;
@@ -138,7 +122,7 @@ void engine_setup_color_conversions(int coldepth)
     _rgb_r_shift_15 = 10;
     _rgb_g_shift_15 = 5;
     _rgb_b_shift_15 = 0;
-#endif
+
     // Most cards do 5-6-5 RGB, which is the format the files are saved in
     // Some do 5-6-5 BGR, or  6-5-5 RGB, in which case convert the gfx
     if ((coldepth == 16) && ((_rgb_b_shift_16 != 0) || (_rgb_r_shift_16 != 11)))
@@ -156,7 +140,7 @@ void engine_setup_color_conversions(int coldepth)
         // when we're using 32-bit colour, it converts hi-color images
         // the wrong way round - so fix that
 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION) || defined(MAC_VERSION)
+#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_MACOS
         _rgb_b_shift_16 = 0;
         _rgb_g_shift_16 = 5;
         _rgb_r_shift_16 = 11;
@@ -178,25 +162,15 @@ void engine_setup_color_conversions(int coldepth)
     {
         // ensure that any 32-bit graphics displayed are converted
         // properly to the current depth
-#if defined(PSP_VERSION)
-        _rgb_r_shift_32 = 0;
-        _rgb_g_shift_32 = 8;
-        _rgb_b_shift_32 = 16;
-
-        _rgb_b_shift_15 = 0;
-        _rgb_g_shift_15 = 5;
-        _rgb_r_shift_15 = 10;
-#else
         _rgb_r_shift_32 = 16;
         _rgb_g_shift_32 = 8;
         _rgb_b_shift_32 = 0;
-#endif
     }
     else if (coldepth < 16)
     {
         // ensure that any 32-bit graphics displayed are converted
         // properly to the current depth
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
         _rgb_r_shift_32 = 16;
         _rgb_g_shift_32 = 8;
         _rgb_b_shift_32 = 0;

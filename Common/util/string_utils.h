@@ -18,40 +18,16 @@
 #ifndef __AGS_CN_UTIL__STRINGUTILS_H
 #define __AGS_CN_UTIL__STRINGUTILS_H
 
-#include <stdarg.h>
-#include <string.h>
 #include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#if !defined (WINDOWS_VERSION)
-
-#if !defined (strlwr)
-extern "C" char *strlwr(char *s);
-#endif
-
-#if !defined (strupr)
-extern "C" char *strupr(char *s);
-#endif
-
-#if !defined (stricmp)
-#define stricmp strcasecmp
-#endif
-
-#if !defined (strnicmp)
-#define strnicmp strncasecmp
-#endif
-
-#else
-
-#include "util/c99_snprintf.h"
-
-#if !defined(va_copy) && defined(_MSC_VER)
-#define va_copy(a, b) ((a) = (b))
-#endif
-
-#endif // !WINDOWS_VERSION
+extern "C" char *ags_strlwr(char *s);
+extern "C" char *ags_strupr(char *s);
+extern "C" int ags_stricmp(const char *, const char *);
+extern "C" int ags_strnicmp(const char *, const char *, size_t);
+extern "C" char *ags_strdup(const char *s);
 
 void unescape(char *buffer);
 // Break up the text into lines

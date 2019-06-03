@@ -12,9 +12,9 @@
 //
 //=============================================================================
 
-#ifndef WINDOWS_VERSION
-#error This file should only be included on the Windows build
-#endif
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
 
 // ********* WINDOWS *********
 
@@ -39,6 +39,13 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
+
+#ifndef AGS_NO_VIDEO_PLAYER
+extern void dxmedia_abort_video();
+extern void dxmedia_pause_video();
+extern void dxmedia_resume_video();
+extern char lastError[200];
+#endif
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -84,10 +91,6 @@ String win32OutputDirectory;
 
 const unsigned int win32TimerPeriod = 1;
 
-extern void dxmedia_abort_video();
-extern void dxmedia_pause_video();
-extern void dxmedia_resume_video();
-extern char lastError[200];
 extern SetupReturnValue acwsetup(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &game_data_dir, const char*, const char*);
 
 struct AGSWin32 : AGSPlatformDriver {
@@ -108,7 +111,6 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual bool IsMouseControlSupported(bool windowed) override;
   virtual const char* GetAllegroFailUserHint() override;
   virtual eScriptSystemOSID GetSystemOSID() override;
-  virtual void PlayVideo(const char* name, int skip, int flags) override;
   virtual void PostAllegroInit(bool windowed) override;
   virtual void PostAllegroExit() override;
   virtual SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out) override;
@@ -129,6 +131,11 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void ValidateWindowSize(int &x, int &y, bool borderless) const override;
   virtual bool LockMouseToWindow() override;
   virtual void UnlockMouse() override;
+
+#ifndef AGS_NO_VIDEO_PLAYER
+  virtual void PlayVideo(const char* name, int skip, int flags);
+#endif
+
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -287,7 +294,7 @@ void AGSWin32::add_tasks_for_game(const char *guidAsText, const char *gameEXE, c
   // Remove any existing "Play.lnk" from a previous version
   char shortcutLocation[MAX_PATH];
   sprintf(shortcutLocation, "%s\\Play.lnk", pathBuffer);
-  unlink(shortcutLocation);
+  ::remove(shortcutLocation);
 
   // Generate the shortcut file name (because it can appear on
   // the start menu's Recent area)
@@ -369,7 +376,7 @@ void delete_files_in_directory(const char *directoryName, const char *fileMask)
   al_ffblk dfb;
   int	dun = al_findfirst(srchBuffer, &dfb, FA_SEARCH);
   while (!dun) {
-    unlink(dfb.name);
+    ::remove(dfb.name);
     dun = al_findnext(&dfb);
   }
   al_findclose(&dfb);
@@ -397,7 +404,7 @@ void AGSWin32::update_game_explorer(bool add)
   }
   else 
   {
-    strupr(game.guid);
+    ags_strupr(game.guid);
     WCHAR wstrTemp[MAX_PATH] = {0};
     GUID guid = GUID_NULL;
     MultiByteToWideChar(CP_ACP, 0, game.guid, MAX_GUID_LENGTH, wstrTemp, MAX_GUID_LENGTH);
@@ -725,12 +732,16 @@ void AGSWin32::DisplaySwitchIn() {
 
 void AGSWin32::PauseApplication()
 {
-    dxmedia_pause_video();
+#ifndef AGS_NO_VIDEO_PLAYER
+  dxmedia_pause_video();
+#endif
 }
 
 void AGSWin32::ResumeApplication()
 {
-    dxmedia_resume_video();
+#ifndef AGS_NO_VIDEO_PLAYER
+  dxmedia_resume_video();
+#endif
 }
 
 void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)
@@ -858,6 +869,8 @@ eScriptSystemOSID AGSWin32::GetSystemOSID() {
   return eOS_Win;
 }
 
+#ifndef AGS_NO_VIDEO_PLAYER
+
 void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
   char useloc[250];
@@ -905,9 +918,13 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
   set_palette_range(palette, 0, 255, 0);
 }
 
+#endif
+
 void AGSWin32::AboutToQuitGame() 
 {
+#ifndef AGS_NO_VIDEO_PLAYER
   dxmedia_abort_video();
+#endif
 }
 
 void AGSWin32::PostAllegroExit() {
@@ -1048,3 +1065,6 @@ LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputKeyboard() {
 LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputMouse() {
   return mouse_dinput_device;
 }
+
+
+#endif

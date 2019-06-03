@@ -28,10 +28,6 @@ GameSetupStruct::GameSetupStruct()
     , roomCount(0)
     , roomNumbers(nullptr)
     , roomNames(nullptr)
-    , audioClipCount(0)
-    , audioClips(nullptr)
-    , audioClipTypeCount(0)
-    , audioClipTypes(nullptr)
     , scoreClipID(0)
 {
     memset(invinfo, 0, sizeof(invinfo));
@@ -75,12 +71,8 @@ void GameSetupStruct::Free()
     delete[] roomNumbers;
     roomCount = 0;
 
-    delete[] audioClips;
-    audioClips = nullptr;
-    delete[] audioClipTypes;
-    audioClipTypes = nullptr;
-    audioClipCount = 0;
-    audioClipTypeCount = 0;
+    audioClips.clear();
+    audioClipTypes.clear();
 
     charProps.clear();
     viewNames.clear();
@@ -111,7 +103,7 @@ ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_mu
     else
         clip_name.Format("aSound%d", num);
 
-    for (int i = 0; i < game.audioClipCount; ++i)
+    for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
         if (clip_name.Compare(game.audioClips[i].scriptName) == 0)
             return &game.audioClips[i];
@@ -320,20 +312,18 @@ HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVer
 
 HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver)
 {
-    audioClipTypeCount = in->ReadInt32();
-
-    audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
-    for (int i = 0; i < audioClipTypeCount; ++i)
+    size_t audiotype_count = in->ReadInt32();
+    audioClipTypes.resize(audiotype_count);
+    for (size_t i = 0; i < audiotype_count; ++i)
     {
         audioClipTypes[i].ReadFromFile(in);
     }
 
-    audioClipCount = in->ReadInt32();
-    audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
-    ReadAudioClips_Aligned(in);
-    
-    scoreClipID = in->ReadInt32();
+    size_t audioclip_count = in->ReadInt32();
+    audioClips.resize(audioclip_count);
+    ReadAudioClips_Aligned(in, audioclip_count);
 
+    scoreClipID = in->ReadInt32();
     return HGameFileError::None();
 }
 
@@ -363,10 +353,10 @@ void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
     }
 }
 
-void GameSetupStruct::ReadAudioClips_Aligned(Common::Stream *in)
+void GameSetupStruct::ReadAudioClips_Aligned(Common::Stream *in, size_t count)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < audioClipCount; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
         audioClips[i].ReadFromFile(&align_s);
         align_s.Reset();

@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include "aastr.h"
+#include "core/platform.h"
 #include "ac/common.h"
 #include "util/compress.h"
 #include "ac/view.h"
@@ -65,14 +66,14 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
 #include <sys/stat.h>
 #include <android/log.h>
 
 extern "C" void android_render();
 #endif
 
-#if defined(IOS_VERSION)
+#if AGS_PLATFORM_OS_IOS
 extern "C" void ios_render();
 #endif
 
@@ -363,16 +364,6 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
     return dst;
 }
 
-AGS_INLINE int room_to_mask_coord(int coord)
-{
-    return coord / thisroom.MaskResolution;
-}
-
-AGS_INLINE int mask_to_room_coord(int coord)
-{
-    return coord * thisroom.MaskResolution;
-}
-
 void create_blank_image(int coldepth)
 {
     // this is the first time that we try to use the graphics driver,
@@ -422,8 +413,11 @@ void init_draw_method()
     }
 
     on_mainviewport_changed();
-    on_roomviewport_changed(0);
-    on_camera_size_changed(0);
+
+    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
+        on_roomviewport_changed(i);
+    for (int i = 0; i < play.GetRoomCameraCount(); ++i)
+        on_camera_size_changed(i);
 }
 
 void dispose_draw_method()
@@ -465,7 +459,7 @@ void on_mainviewport_changed()
 // Initialize dirty rect and background buffers for software renderer
 void init_invalid_room_regions(int view_index, const Size &surf_size, const Rect &viewport)
 {
-    if (RoomCameraBuffer.size() <= view_index)
+    if (view_index >= 0 && RoomCameraBuffer.size() <= (size_t)view_index)
     {
         RoomCameraBuffer.resize(view_index + 1);
         RoomCameraFrame.resize(view_index + 1);
@@ -632,10 +626,10 @@ void render_to_screen(int atx, int aty)
         {
             gfxDriver->Render((GlobalFlipType)play.screen_flipped);
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
             if (game.color_depth == 1)
                 android_render();
-#elif defined(IOS_VERSION)
+#elif AGS_PLATFORM_OS_IOS
             if (game.color_depth == 1)
                 ios_render();
 #endif
@@ -1967,7 +1961,7 @@ void draw_fps()
     
     color_t text_color = fpsDisplay->GetCompatibleColor(14);
 
-    char base_buffer[60];
+    char base_buffer[20];
     if (frames_per_second < 1000) {
         sprintf(base_buffer, "%d", frames_per_second);
     } else {
@@ -1977,9 +1971,9 @@ void draw_fps()
     char fps_buffer[60];
     // Don't display fps if we don't have enough information (because loop count was just reset)
     if (!std::isnan(fps)) {
-        sprintf(fps_buffer, "FPS: %2.1f / %s", fps, base_buffer);
+        snprintf(fps_buffer, sizeof(fps_buffer), "FPS: %2.1f / %s", fps, base_buffer);
     } else {
-        sprintf(fps_buffer, "FPS: --.- / %s", base_buffer);
+        snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
     wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, fps_buffer);
 
@@ -2323,6 +2317,9 @@ void construct_virtual_screen(bool fullRedraw)
         return;
 
     our_eip=3;
+
+    // React to changes to viewports and cameras (possibly from script) just before the render
+    play.UpdateViewports();
 
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
     gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes, usetup.Supersampling);

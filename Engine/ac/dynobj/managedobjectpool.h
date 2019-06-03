@@ -26,6 +26,7 @@ using namespace AGS; // FIXME later
 
 struct ManagedObjectPool final {
 private:
+    // TODO: find out if we can make handle size_t
     struct ManagedObject {
         ScriptValueType obj_type;
         int32_t handle;
@@ -45,7 +46,7 @@ private:
 
     int objectCreationCounter;  // used to do garbage collection every so often
 
-    int32_t nextHandle {};
+    int32_t nextHandle {}; // TODO: manage nextHandle's going over INT32_MAX !
     std::queue<int32_t> available_ids;
     std::vector<ManagedObject> objects;
     std::unordered_map<const char *, int32_t> handleByAddress;
@@ -66,7 +67,7 @@ public:
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
     int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object);
-    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot);
+    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int handle);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
     void reset();

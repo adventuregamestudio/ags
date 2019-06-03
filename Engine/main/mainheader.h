@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_MAIN__MAINHEADER_H
 #define __AGS_EE_MAIN__MAINHEADER_H
 
+#include "core/platform.h"
+
 #include "main/maindefines_ex.h"
 
 #include "ac/math.h"
@@ -27,18 +29,14 @@
 #include "gfx/gfxfilter.h"
 #include "util/string_utils.h"
 #include "device/mousew32.h"
-#include "ac/file.h"
 #include "ac/route_finder.h"
 #include "util/misc.h"
 #include "script/cc_error.h"
 
-#if defined (WINDOWS_VERSION)
-#include <process.h>
-#include <shlwapi.h>
-#undef CreateFile  // undef the declaration from winbase.h
-#endif
+// include last since we affect windows includes
+#include "ac/file.h"
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
 #include <sys/stat.h>
 #include <android/log.h>
 

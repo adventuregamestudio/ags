@@ -12,13 +12,14 @@
 //
 //=============================================================================
 
-#if defined(WINDOWS_VERSION)
-#include <io.h>
-#else
-#include <unistd.h> // for unlink()
-#endif
+#include "util/file.h"
+
+#include <stdexcept>
+#include "core/platform.h"
+#include "util/stdio_compat.h"
 #include <errno.h>
 #include "util/filestream.h"
+#include "util/bufferedstream.h"
 
 namespace AGS
 {
@@ -27,10 +28,7 @@ namespace Common
 
 soff_t File::GetFileSize(const String &filename)
 {
-    struct stat_t st;
-    if (stat_fn(filename, &st) == 0)
-        return st.st_size;
-    return -1;
+    return ags_file_size(filename.GetCStr());
 }
 
 bool File::TestReadFile(const String &filename)
@@ -61,7 +59,7 @@ bool File::TestCreateFile(const String &filename)
     if (test_file)
     {
         fclose(test_file);
-        unlink(filename);
+        ::remove(filename);
         return true;
     }
     return false;
@@ -69,10 +67,10 @@ bool File::TestCreateFile(const String &filename)
 
 bool File::DeleteFile(const String &filename)
 {
-    if (unlink(filename) != 0)
+    if (::remove(filename) != 0)
     {
         int err;
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
         _get_errno(&err);
 #else
         err = errno;
@@ -159,11 +157,16 @@ String File::GetCMode(FileOpenMode open_mode, FileWorkMode work_mode)
 
 Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    FileStream *fs = new FileStream(filename, open_mode, work_mode);
-    if (!fs->IsValid())
-    {
-        delete fs;
-        return nullptr;
+    FileStream *fs = nullptr;
+    try {
+        fs = new FileStream(filename, open_mode, work_mode);
+        //fs = new BufferedStream(filename, open_mode, work_mode);
+        if (fs != nullptr && !fs->IsValid()) {
+            delete fs;
+            fs = nullptr;
+        }
+    } catch(std::runtime_error) {
+        fs = nullptr;
     }
     return fs;
 }

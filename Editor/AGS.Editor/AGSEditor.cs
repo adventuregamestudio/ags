@@ -78,8 +78,9 @@ namespace AGS.Editor
          * 17: 3.5.0.4    - Extended sprite source properties
          * 18: 3.5.0.8    - Disallow relative asset resolutions by default, added flag for compatibility;
          *                  Real sprite resolution; Individual font scaling; Default room mask resolution
+         * 19: 3.5.0.11   - Custom Say and Narrate functions for dialog scripts.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 18;
+        public const int    LATEST_XML_VERSION_INDEX = 19;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

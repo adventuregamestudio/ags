@@ -16,7 +16,12 @@
 // Engine initialization
 //
 
+#include "core/platform.h"
+
 #include <errno.h>
+#if AGS_PLATFORM_OS_WINDOWS
+#include <process.h>  // _spawnl
+#endif
 
 #include "main/mainheader.h"
 #include "ac/asset_helper.h"
@@ -76,7 +81,6 @@ extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
-extern char saveGameDirectory[260];
 extern SpriteCache spriteset;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
@@ -148,7 +152,7 @@ void engine_setup_window()
 
 bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
 {
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
     // check if Setup needs to be run instead
     if (justRunSetup)
     {
@@ -469,11 +473,10 @@ std::pair<int, int> autodetect_driver(_DRIVER_INFO *driver_list, int (*detect_au
         if (driver_list[i].autodetect)
         {
             int voices = detect_audio_driver(driver_list[i].id);
-            if (voices == 0)
-                Debug::Printf(kDbgMsg_Warn, "Failed to detect %s driver %s; Error: '%s'.",
-                    type, AlIDToChars(driver_list[i].id).s, get_allegro_error());
-            if (voices > 0)
+            if (voices != 0)
                 return std::make_pair(driver_list[i].id, voices);
+            Debug::Printf(kDbgMsg_Warn, "Failed to detect %s driver %s; Error: '%s'.",
+                    type, AlIDToChars(driver_list[i].id).s, get_allegro_error());
         }
     }
     return std::make_pair(0, 0);
@@ -490,7 +493,7 @@ std::pair<int, int> decide_audiodriver(int try_id, _DRIVER_INFO *driver_list,
     if (try_id > 0)
     {
         int voices = detect_audio_driver(try_id);
-        if (al_drv_id == try_id && voices > 0) // found and detected
+        if (al_drv_id == try_id && voices != 0) // found and detected
             return std::make_pair(try_id, voices);
         if (voices == 0) // found in list but detect failed
             Debug::Printf(kDbgMsg_Error, "Failed to detect %s driver %s; Error: '%s'.", type, AlIDToChars(try_id).s, get_allegro_error());
@@ -574,7 +577,7 @@ void engine_init_audio()
         usetup.mod_player = 0;
     }
 
-#ifdef WINDOWS_VERSION
+#if AGS_PLATFORM_OS_WINDOWS
     if (digi_card == DIGI_DIRECTX(0))
     {
         // DirectX mixer seems to buffer an extra sample itself
@@ -722,9 +725,9 @@ void engine_init_directories()
     }
 }
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
 extern char android_base_directory[256];
-#endif // ANDROID_VERSION
+#endif // AGS_PLATFORM_OS_ANDROID
 
 int check_write_access() {
 
@@ -734,22 +737,22 @@ int check_write_access() {
   our_eip = -1895;
 
   // The Save Game Dir is the only place that we should write to
-  char tempPath[MAX_PATH];
-  sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
+  String svg_dir = get_save_game_directory();
+  String tempPath = String::FromFormat("%s""tmptest.tmp", svg_dir.GetCStr());
   Stream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
       // TODO: move this somewhere else (Android platform driver init?)
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
   {
 	  put_backslash(android_base_directory);
-	  sprintf(tempPath, "%s""tmptest.tmp", android_base_directory);
+      tempPath.Format("%s""tmptest.tmp", android_base_directory);
 	  temp_s = Common::File::CreateFile(tempPath);
 	  if (temp_s == NULL) return 0;
 	  else SetCustomSaveParent(android_base_directory);
   }
 #else
     return 0;
-#endif // ANDROID_VERSION
+#endif // AGS_PLATFORM_OS_ANDROID
 
   our_eip = -1896;
 
@@ -758,7 +761,7 @@ int check_write_access() {
 
   our_eip = -1897;
 
-  if (unlink(tempPath))
+  if (::remove(tempPath))
     return 0;
 
   return 1;
@@ -1014,7 +1017,6 @@ void engine_init_game_settings()
     play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
     play.digital_master_volume = 100;
     play.screen_flipped=0;
-    play.GetRoomCamera(0)->Release();
     play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
     play.sound_volume = 255;
     play.speech_volume = 255;
@@ -1138,7 +1140,7 @@ void engine_update_mp3_thread()
 {
     update_mp3_thread();
     // reduce polling period to encourage more multithreading bugs.
-#ifndef _DEBUG
+#if ! AGS_PLATFORM_DEBUG
     platform->Delay(50);
 #endif
 }
@@ -1174,7 +1176,7 @@ void engine_prepare_to_start_game()
     engine_setup_scsystem_auxiliary();
     engine_start_multithreaded_audio();
 
-#if defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
     if (psp_load_latest_savegame)
         selectLatestSavegame();
 #endif
@@ -1193,7 +1195,7 @@ void allegro_bitmap_test_init()
 // Only allow searching around for game data on desktop systems;
 // otherwise use explicit argument either from program wrapper, command-line
 // or read from default config.
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION) || defined(PSP_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS
     #define AGS_SEARCH_FOR_GAME_ON_LAUNCH
 #endif
 
@@ -1207,14 +1209,14 @@ HError define_gamedata_location_checkall(const String &exe_path)
         // If not a valid path - bail out
         if (!Path::IsFileOrDir(cmdGameDataPath))
             return new Error(String::FromFormat("Defined game location is not a valid path.\nPath: '%s'", cmdGameDataPath.GetCStr()));
+        // Switch working dir to this path to be able to look for config and other assets there
+        Directory::SetCurrentDirectory(Path::GetDirectoryPath(cmdGameDataPath));
         // If it's a file, then keep it and proceed
         if (Path::IsFile(cmdGameDataPath))
         {
             usetup.main_data_filepath = cmdGameDataPath;
             return HError::None();
         }
-        // Otherwise switch working dir to this path and look for config there
-        Directory::SetCurrentDirectory(Path::GetDirectoryPath(cmdGameDataPath));
     }
     // Read game data location from the default config file.
     // This is an optional setting that may instruct which game file to use as a primary asset library.
@@ -1300,7 +1302,7 @@ void engine_read_config(const String &exe_path, ConfigTree &cfg)
     // Disabled on Windows because people were afraid that this config could be mistakenly
     // created by some installer and screw up their games. Until any kind of solution is found.
     String user_global_cfg_file;
-#if !defined (WINDOWS_VERSION)
+#if ! AGS_PLATFORM_OS_WINDOWS
     // Read user global configuration file
     user_global_cfg_file = find_user_global_cfg_file();
     if (Path::ComparePaths(user_global_cfg_file, def_cfg_file) != 0)
@@ -1318,16 +1320,9 @@ void engine_read_config(const String &exe_path, ConfigTree &cfg)
     // NOTE: the variable is historically called "ignore" but we use it in "override" meaning here
     if (psp_ignore_acsetup_cfg_file)
         override_config_ext(cfg);
-
-    // Apply overriding options from command line
-    // TODO: override config tree with all the command-line args.
-    if (disable_log_file)
-        INIwriteint(cfg, "misc", "log", 0);
-    else if (enable_log_file)
-        INIwriteint(cfg, "misc", "log", 1);
 }
 
-bool engine_do_config(const String &exe_path)
+bool engine_do_config(const String &exe_path, const ConfigTree &startup_opts)
 {
     Debug::Printf(kDbgMsg_Init, "Setting up game configuration");
     // Init default options
@@ -1335,6 +1330,10 @@ bool engine_do_config(const String &exe_path)
     ConfigTree cfg;
     // Read configuration files
     engine_read_config(exe_path, cfg);
+    // Merge startup options in
+    for (const auto &sectn : startup_opts)
+        for (const auto &opt : sectn.second)
+            cfg[sectn.first][opt.first] = opt.second;
     // Set up game options from user config
     apply_config(cfg);
     // Fixup configuration if necessary
@@ -1346,7 +1345,7 @@ bool engine_do_config(const String &exe_path)
 // TODO: this function is still a big mess, engine/system-related initialization
 // is mixed with game-related data adjustments. Divide it in parts, move game
 // data init into either InitGameState() or other game method as appropriate.
-int initialize_engine(int argc,char*argv[])
+int initialize_engine(const ConfigTree &startup_opts)
 {
     if (engine_pre_init_callback) {
         engine_pre_init_callback();
@@ -1359,10 +1358,10 @@ int initialize_engine(int argc,char*argv[])
 
     //-----------------------------------------------------
     // Locate game data and assemble game config
-    const String exe_path = argv[0];
+    const String exe_path = global_argv[0];
     if (!engine_init_gamedata(exe_path))
         return EXIT_NORMAL;
-    if (!engine_do_config(exe_path))
+    if (!engine_do_config(exe_path, startup_opts))
         return EXIT_NORMAL;
     engine_setup_allegro();
     engine_force_window();
@@ -1563,52 +1562,6 @@ void engine_shutdown_gfxmode()
 
     engine_pre_gfxsystem_shutdown();
     graphics_mode_shutdown();
-}
-
-
-#ifdef WINDOWS_VERSION
-// in ac_minidump
-extern int CustomExceptionHandler (LPEXCEPTION_POINTERS exinfo);
-extern EXCEPTION_RECORD excinfo;
-extern int miniDumpResultCode;
-#endif
-
-// defined in main/main
-extern char*printfworkingspace;
-
-#ifdef USE_CUSTOM_EXCEPTION_HANDLER
-void DisplayException()
-{
-    String script_callstack = get_cur_script(5);
-    sprintf(printfworkingspace, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
-        "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and post the details on the AGS Technical Forum.\n\n%s\n\n"
-        "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",
-        excinfo.ExceptionCode, (intptr_t)excinfo.ExceptionAddress, our_eip, EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, script_callstack.GetCStr(),
-        (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." :
-        "Unable to create an error dump file.", miniDumpResultCode);
-    MessageBoxA(win_get_window(), printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
-}
-#endif // USE_CUSTOM_EXCEPTION_HANDLER
-
-int initialize_engine_with_exception_handling(int argc,char*argv[])
-{
-#ifdef USE_CUSTOM_EXCEPTION_HANDLER
-    __try 
-    {
-        Debug::Printf(kDbgMsg_Init, "Installing exception handler");
-#endif
-
-        return initialize_engine(argc, argv);
-
-#ifdef USE_CUSTOM_EXCEPTION_HANDLER
-    }
-    __except (CustomExceptionHandler ( GetExceptionInformation() )) 
-    {
-        DisplayException();
-        proper_exit = 1;
-    }
-    return EXIT_CRASH;
-#endif
 }
 
 const char *get_engine_version() {

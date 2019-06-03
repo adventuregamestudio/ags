@@ -50,17 +50,27 @@ RuntimeScriptValue Sc_PluginStub_IntNeg1(const RuntimeScriptValue *params, int32
     return RuntimeScriptValue().SetInt32(-1);
 }
 
+RuntimeScriptValue Sc_PluginStub_NullStr(const RuntimeScriptValue *params, int32_t param_count)
+{
+	return RuntimeScriptValue().SetStringLiteral(NULL);
+}
+
 bool RegisterPluginStubs(const char* name)
 {
   // Stubs for plugin functions.
 
-  if (stricmp(name, "ags_shell") == 0)
+  bool is_agsteam = (ags_stricmp(name, "agsteam") == 0) || (ags_stricmp(name, "agsteam-unified") == 0) ||
+    (ags_stricmp(name, "agsteam-disjoint") == 0);
+  bool is_agsgalaxy = (ags_stricmp(name, "agsgalaxy") == 0) || (ags_stricmp(name, "agsgalaxy-unified") == 0) ||
+    (ags_stricmp(name, "agsgalaxy-disjoint") == 0);
+
+  if (ags_stricmp(name, "ags_shell") == 0)
   {
     // ags_shell.dll
     ccAddExternalStaticFunction("ShellExecute",                 Sc_PluginStub_Void);
     return true;
   }
-  else if (stricmp(name, "ags_snowrain") == 0)
+  else if (ags_stricmp(name, "ags_snowrain") == 0)
   {
     // ags_snowrain.dll
     ccAddExternalStaticFunction("srSetSnowDriftRange",          Sc_PluginStub_Void);
@@ -85,7 +95,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("srSetBaseline",                Sc_PluginStub_Void);
     return true;
   }
-  else if (stricmp(name, "agsjoy") == 0)
+  else if (ags_stricmp(name, "agsjoy") == 0)
   {
     // agsjoy.dll
     ccAddExternalStaticFunction("JoystickCount",                Sc_PluginStub_Int0);
@@ -106,7 +116,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("Joystick::EnableEvents^1",     Sc_PluginStub_Void);
     return true;
   }
-  else if (stricmp(name, "agsblend") == 0)
+  else if (ags_stricmp(name, "agsblend") == 0)
   {
     // agsblend.dll
     ccAddExternalStaticFunction("DrawAlpha",                    Sc_PluginStub_Int0);
@@ -117,7 +127,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("DrawAdd",                      Sc_PluginStub_Int0);
     return true;
   }
-  else if (stricmp(name, "agsflashlight") == 0)
+  else if (ags_stricmp(name, "agsflashlight") == 0)
   {
     // agsflashlight.dll
     ccAddExternalStaticFunction("SetFlashlightTint",            Sc_PluginStub_Void);
@@ -149,7 +159,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("GetFlashlightMask",            Sc_PluginStub_Int0);
     return true;
   }
-  else if (stricmp(name, "agswadjetutil") == 0)
+  else if (ags_stricmp(name, "agswadjetutil") == 0)
   {
     // agswadjetutil.dll
     ccAddExternalStaticFunction("IsOnPhone",                    Sc_PluginStub_Int0);
@@ -158,6 +168,78 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("IosGetAchievementValue",       Sc_PluginStub_IntNeg1);
     ccAddExternalStaticFunction("IosShowAchievements",          Sc_PluginStub_Void);
     ccAddExternalStaticFunction("IosResetAchievements",         Sc_PluginStub_Void);
+    return true;
+  }
+  else if (is_agsteam || is_agsgalaxy)
+  {
+    // agsteam.dll or agsgalaxy.dll
+    ccAddExternalStaticFunction("AGS2Client::IsAchievementAchieved^1", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::SetAchievementAchieved^1", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::ResetAchievement^1", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::GetIntStat^1", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::GetFloatStat^1", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::GetAverageRateStat^1", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::SetIntStat^2", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::SetFloatStat^2", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::UpdateAverageRateStat^3", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::ResetStatsAndAchievements^0", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("AGS2Client::get_Initialized", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::get_CurrentLeaderboardName", Sc_PluginStub_NullStr);
+    ccAddExternalStaticFunction("AGS2Client::RequestLeaderboard^3", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("AGS2Client::UploadScore^1", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::geti_LeaderboardNames", Sc_PluginStub_NullStr);
+    ccAddExternalStaticFunction("AGS2Client::geti_LeaderboardScores", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::get_LeaderboardCount", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("AGS2Client::GetUserName^0", Sc_PluginStub_NullStr);
+    ccAddExternalStaticFunction("AGS2Client::GetCurrentGameLanguage^0", Sc_PluginStub_NullStr);
+    ccAddExternalStaticFunction("AGS2Client::FindLeaderboard^1", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("AGS2Client::Initialize^2", Sc_PluginStub_Int0);
+    if (is_agsteam)
+    {
+      ccAddExternalStaticFunction("AGSteam::IsAchievementAchieved^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::SetAchievementAchieved^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::ResetAchievement^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::GetIntStat^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::GetFloatStat^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::GetAverageRateStat^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::SetIntStat^2", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::SetFloatStat^2", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::UpdateAverageRateStat^3", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::ResetStatsAndAchievements^0", Sc_PluginStub_Void);
+      ccAddExternalStaticFunction("AGSteam::get_Initialized", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::get_CurrentLeaderboardName", Sc_PluginStub_NullStr);
+      ccAddExternalStaticFunction("AGSteam::RequestLeaderboard^3", Sc_PluginStub_Void);
+      ccAddExternalStaticFunction("AGSteam::UploadScore^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::geti_LeaderboardNames", Sc_PluginStub_NullStr);
+      ccAddExternalStaticFunction("AGSteam::geti_LeaderboardScores", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::get_LeaderboardCount", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSteam::GetUserName^0", Sc_PluginStub_NullStr);
+      ccAddExternalStaticFunction("AGSteam::GetCurrentGameLanguage^0", Sc_PluginStub_NullStr);
+      ccAddExternalStaticFunction("AGSteam::FindLeaderboard^1", Sc_PluginStub_Void);
+    }
+    else // agsgalaxy
+    {
+      ccAddExternalStaticFunction("AGSGalaxy::IsAchievementAchieved^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::SetAchievementAchieved^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::ResetAchievement^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::GetIntStat^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::GetFloatStat^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::GetAverageRateStat^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::SetIntStat^2", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::SetFloatStat^2", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::UpdateAverageRateStat^3", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::ResetStatsAndAchievements^0", Sc_PluginStub_Void);
+      ccAddExternalStaticFunction("AGSGalaxy::get_Initialized", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::get_CurrentLeaderboardName", Sc_PluginStub_NullStr);
+      ccAddExternalStaticFunction("AGSGalaxy::RequestLeaderboard^3", Sc_PluginStub_Void);
+      ccAddExternalStaticFunction("AGSGalaxy::UploadScore^1", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::geti_LeaderboardNames", Sc_PluginStub_NullStr);
+      ccAddExternalStaticFunction("AGSGalaxy::geti_LeaderboardScores", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::get_LeaderboardCount", Sc_PluginStub_Int0);
+      ccAddExternalStaticFunction("AGSGalaxy::GetUserName^0", Sc_PluginStub_NullStr);
+      ccAddExternalStaticFunction("AGSGalaxy::GetCurrentGameLanguage^0", Sc_PluginStub_NullStr);
+      ccAddExternalStaticFunction("AGSGalaxy::Initialize^2", Sc_PluginStub_Int0);
+    }
     return true;
   }
 

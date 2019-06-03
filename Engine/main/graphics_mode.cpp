@@ -17,6 +17,7 @@
 //
 
 #include <algorithm>
+#include "core/platform.h"
 #include "ac/draw.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
@@ -32,7 +33,7 @@
 #include "platform/base/agsplatformdriver.h"
 
 // Don't try to figure out the window size on the mac because the port resizes itself.
-#if defined(MAC_VERSION) || defined(ALLEGRO_SDL2) || defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_MACOS || defined(ALLEGRO_SDL2) || AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
 #define USE_SIMPLE_GFX_INIT
 #endif
 
@@ -491,7 +492,11 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     // TODO: make factory & driver IDs case-insensitive!
     StringV ids;
     GetGfxDriverFactoryNames(ids);
-    StringV::iterator it = std::find(ids.begin(), ids.end(), setup.DriverID);
+    StringV::iterator it = ids.begin();
+    for (; it != ids.end(); ++it)
+    {
+        if (it->CompareNoCase(setup.DriverID) == 0) break;
+    }
     if (it != ids.end())
         std::rotate(ids.begin(), it, ids.end());
     else

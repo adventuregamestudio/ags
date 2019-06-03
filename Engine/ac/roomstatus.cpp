@@ -18,9 +18,11 @@
 #include "ac/game_version.h"
 #include "ac/roomstatus.h"
 #include "game/customproperties.h"
+#include "game/savegame_components.h"
 #include "util/alignedstream.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 RoomStatus::RoomStatus()
 {

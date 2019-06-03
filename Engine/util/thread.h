@@ -46,11 +46,8 @@ public:
 } // namespace Engine
 } // namespace AGS
 
-
-#if defined(PSP_VERSION)
-#include "thread_psp.h"
-#elif defined(WII_VERSION)
-#include "thread_wii.h"
+#if 0
+  // insert platforms here
 #else
 #include "thread_std.h"
 #endif

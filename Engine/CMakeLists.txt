@@ -272,7 +272,7 @@ target_sources(engine
     ac/tree_map.h
     ac/viewframe.cpp
     ac/viewframe.h
-    ac/viewport.cpp
+    ac/viewport_script.cpp
     ac/walkablearea.cpp
     ac/walkablearea.h
     ac/walkbehind.cpp
@@ -300,6 +300,7 @@ target_sources(engine
     game/savegame_components.cpp
     game/savegame_components.h
     game/savegame_internal.h
+    game/viewport.cpp
     game/viewport.h
     gfx/ali3dexception.h
     gfx/ali3dogl.cpp
@@ -370,11 +371,11 @@ target_sources(engine
     main/game_start.h
     main/graphics_mode.cpp
     main/graphics_mode.h
+    main/main.cpp
     main/main.h
     main/main_allegro.h
     main/maindefines_ex.h
     main/mainheader.h
-    main/minidump.cpp
     main/quit.cpp
     main/quit.h
     main/update.cpp
@@ -415,7 +416,6 @@ target_sources(engine
     media/video/video.h
     platform/base/agsplatformdriver.cpp
     platform/base/agsplatformdriver.h
-    platform/base/override_defines.h
     platform/util/libc.c
     platform/util/pe.c
     platform/util/pe.h
@@ -474,33 +474,32 @@ target_sources(engine
     ac/dynobj/scriptdict.h
     ac/dynobj/scriptset.cpp
     ac/dynobj/scriptset.h
+
+    platform/windows/acplwin.cpp
+    platform/windows/debug/namedpipesagsdebugger.cpp
+    platform/windows/gfx/ali3dd3d.cpp
+    platform/windows/media/video/acwavi.cpp
+    platform/windows/media/video/acwavi3d.cpp
+    platform/windows/setup/winsetup.cpp
+
+    platform/linux/acpllnx.cpp
+
+    platform/osx/acplmac.cpp
+
+    platform/android/acpland.cpp
+
+    platform/ios/acplios.cpp
+
+
+    platform/windows/win_ex_handling.cpp
+    platform/windows/win_ex_handling.h
+    platform/windows/minidump.cpp
+    platform/windows/winapi_exclusive.h
 )
 
-if(WIN32)
+if(MACOS)
     target_sources(engine PRIVATE 
-        platform/windows/acplwin.cpp
-        platform/windows/debug/namedpipesagsdebugger.cpp
-        platform/windows/debug/namedpipesagsdebugger.h
-        platform/windows/gfx/ali3dd3d.cpp
-        platform/windows/gfx/ali3dd3d.h
-        platform/windows/media/video/acwavi.cpp
-        platform/windows/media/video/acwavi3d.cpp
-        platform/windows/setup/winsetup.cpp
-        platform/windows/setup/winsetup.h
-        util/mutex_windows.h
-        util/library_windows.h
-        util/thread_windows.h
-    )
-elseif(MACOS)
-    #file(GLOB_RECURSE resources .game_files/*)
-    target_sources(engine PRIVATE 
-        platform/osx/acplmac.cpp
         platform/osx/alplmac.mm
-        #${resources}
-    )
-elseif(LINUX)
-    target_sources(engine PRIVATE 
-        platform/linux/acpllnx.cpp
     )
 endif()
 
@@ -544,6 +543,13 @@ if (AGS_BUILTIN_PLUGINS)
     )
 endif()
 
+if (LINUX OR MACOS)
+    target_sources(engine 
+        PRIVATE 
+        platform/linux/binreloc.c
+        platform/linux/binreloc.h
+    )
+endif ()
 
 target_compile_definitions(engine PRIVATE 
     $<$<CONFIG:DEBUG>:SOUND_CACHE_DEBUG>
@@ -563,9 +569,9 @@ target_link_libraries(engine PUBLIC
     Allegro::Allegro 
     AlDumb::AlDumb 
     AlMp3::AlMp3 
-    Apeg::Apeg 
     AlOgg::AlOgg 
     HQ2X::hq2x
+    Cda::Cda
 )
 
 # common has a circular dependency on engine
@@ -573,11 +579,19 @@ target_link_libraries(common PUBLIC engine)
 
 if (WIN32 OR LINUX)
     target_compile_definitions(engine PRIVATE AGS_HAS_CD_AUDIO)
-    target_link_libraries(engine PUBLIC Cda::Cda)
 endif ()
 
+if (AGS_NO_VIDEO_PLAYER)
+    target_compile_definitions(engine PRIVATE AGS_NO_VIDEO_PLAYER)
+else()
+    target_link_libraries(engine PUBLIC Apeg::Apeg)
+    if (WIN32)
+        target_link_libraries(engine PUBLIC amstrmid quartz)
+    endif()
+endif()
+
 if (WIN32)
-    target_link_libraries(engine PUBLIC DirectX::Direct3D9 amstrmid quartz shlwapi winmm)
+    target_link_libraries(engine PUBLIC DirectX::Direct3D9 shlwapi)
 elseif (LINUX)
     target_link_libraries(engine PUBLIC X11::X11)
 endif()
@@ -601,8 +615,7 @@ target_include_directories(ags PRIVATE .)
 
 target_sources(ags
     PRIVATE
-    main/main.cpp
-    main/main.h
+    main/main_allegro.cpp
 )
 
 target_link_libraries(ags PRIVATE engine)
@@ -640,8 +653,7 @@ if (MACOS)
 
     target_sources(ags-app
         PRIVATE
-        main/main.cpp
-        main/main.h
+        main/main_allegro.cpp
     )
 
     target_link_libraries(ags-app PRIVATE engine)

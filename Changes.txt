@@ -22,6 +22,8 @@ Editor:
    Editor finds them in both program folder and AppData.
  - Added "Allow relative asset resolutions" option to "Backwards Compatibility" section.
    Disabled by default, it makes game treat all sprites and rooms resolution as real one.
+ - Added "Custom Say/Narrate function in dialog scripts" options which determine what
+   functions are used when converting character lines in dialog scripts to real script.
  - New revamped sprite import window.
  - Sprites that were created using tiled import can now be properly reimported from source.
  - Added context menu command to open sprite's source file location.
@@ -111,6 +113,7 @@ Engine:
    for plugins unless any plugin hooked for the particular drawing events.
  - Reimplemented FRead and FWrite plugin API functions, should now work in 64-bit mode too.
  - Made fps display more stable and timing correct when framerate is maxed out for test purposes.
+ - Support "--gfxdriver" command line argument that overrides graphics driver in config.
  - Use "digiid" and "midiid" config options to be used on all platforms alike and allow these to
    represent driver ID as a plain string and encoded as an integer value (for compatibility).
  - Completely removed old and unsupported record/replay functionality.
@@ -120,11 +123,14 @@ Engine:
  - Expanded some of the error messages providing more information to end-user and developers.
  - Fixed engine could not locate game data if relative path was passed in command line.
  - Fixed potential bug which could cause DoOnceOnly tokens to be read incorrectly from a savedgame.
+ - Fixed Character.DestinationY telling incorrect values beyond Y = 255.
  - Fixed DynamicSprite.SaveToFile() not appending ".bmp" if no extension was specified.
  - Fixed IsMusicVoxAvailable() not working correctly in old games which use 'music.vox'.
  - Fixed a bug in mp3/ogg decoder where it assumed creating an audiostream succeeded without
    actually testing one.
  - Added Scavenger's palgorithms plugin to the list of builtins, for ports that use ones.
+ - Added stubs for monkey0506's Steam and GoG plugins to let run games on systems that do not have
+   Steam/GoG installed (all related functionality will be disabled though).
 
 Linux:
  - Support for OpenGL renderer.

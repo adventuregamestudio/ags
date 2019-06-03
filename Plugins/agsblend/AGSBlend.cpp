@@ -11,10 +11,12 @@
 
 #pragma region Defines_and_Includes
 
+#include "core/platform.h"
+
 #define MIN_EDITOR_VERSION 1
 #define MIN_ENGINE_VERSION 3
 
-#ifdef WIN32
+#if AGS_PLATFORM_OS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
@@ -40,7 +42,7 @@ typedef unsigned char uint8;
 #define DEFAULT_RGB_B_SHIFT_32  0
 #define DEFAULT_RGB_A_SHIFT_32  24
 
-#if !defined(WINDOWS_VERSION)
+#if !AGS_PLATFORM_OS_WINDOWS
 #define min(x,y) (((x) < (y)) ? (x) : (y))
 #define max(x,y) (((x) > (y)) ? (x) : (y))
 #endif
@@ -77,7 +79,7 @@ typedef unsigned char uint8;
 
 #pragma endregion
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 // The standard Windows DLL entry point
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -872,7 +874,7 @@ int DrawAlpha(int destination, int sprite, int x, int y, int trans)
 }
 
 
-#if defined(WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 
 //==============================================================================
 

@@ -35,9 +35,9 @@ String find_user_cfg_file();
 // Read optional data file name and location from config
 void read_game_data_location(const AGS::Common::ConfigTree &cfg);
 // Apply overriding values from the external config (e.g. for mobile ports)
-void override_config_ext(AGS::Common::ConfigTree &cfg);
+void override_config_ext(ConfigTree &cfg);
 // Setup game using final config tree
-void apply_config(const AGS::Common::ConfigTree &cfg);
+void apply_config(const ConfigTree &cfg);
 // Fixup game setup parameters
 void post_config();
 

@@ -25,6 +25,7 @@
 #include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -45,7 +46,7 @@ int FindGUIID (const char* GUIName) {
             continue;
         if (strcmp(guis[ii].Name, GUIName) == 0)
             return ii;
-        if ((guis[ii].Name[0u] == 'g') && (stricmp(guis[ii].Name.GetCStr() + 1, GUIName) == 0))
+        if ((guis[ii].Name[0u] == 'g') && (ags_stricmp(guis[ii].Name.GetCStr() + 1, GUIName) == 0))
             return ii;
     }
     quit("FindGUIID: No matching GUI found: GUI may have been deleted");

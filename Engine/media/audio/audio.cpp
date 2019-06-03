@@ -14,6 +14,7 @@
 
 #include <cmath>
 
+#include "core/platform.h"
 #include "util/wgt2allg.h"
 #include "media/audio/audio.h"
 #include "ac/audiocliptype.h"
@@ -108,7 +109,7 @@ extern CharacterInfo*playerchar;
 
 extern volatile int switching_away_from_game;
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if ! AGS_PLATFORM_OS_IOS && ! AGS_PLATFORM_OS_ANDROID
 volatile int psp_audio_multithreaded = 0;
 #endif
 
@@ -121,7 +122,7 @@ AGS::Engine::Thread audioThread;
 void calculate_reserved_channel_count()
 {
     int reservedChannels = 0;
-    for (int i = 0; i < game.audioClipTypeCount; i++)
+    for (size_t i = 0; i < game.audioClipTypes.size(); i++)
     {
         reservedChannels += game.audioClipTypes[i].reservedChannels;
     }
@@ -380,7 +381,7 @@ static void apply_volume_drop_to_clip(SOUNDCLIP *clip)
 static void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
 {
     if (play.new_music_queue_size >= MAX_QUEUED_MUSIC) {
-        debug_script_log("Too many queued music, cannot add %s", clip->scriptName);
+        debug_script_log("Too many queued music, cannot add %s", clip->scriptName.GetCStr());
         return;
     }
 
@@ -513,7 +514,7 @@ ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int rep
 
 ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
 {
-    if ((audioClipIndex >= 0) && (audioClipIndex < game.audioClipCount))
+    if ((audioClipIndex >= 0) && ((size_t)audioClipIndex < game.audioClips.size()))
         return AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
     else 
         return nullptr;
@@ -569,7 +570,7 @@ int get_old_style_number_for_sound(int sound_number)
     if (audio_clip_id >= 0)
     {
         int old_style_number = 0;
-        if (sscanf(game.audioClips[audio_clip_id].scriptName, "aSound%d", &old_style_number) == 1)
+        if (sscanf(game.audioClips[audio_clip_id].scriptName.GetCStr(), "aSound%d", &old_style_number) == 1)
             return old_style_number;    
     }
     return 0;

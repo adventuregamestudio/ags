@@ -41,14 +41,10 @@ public:
 } // namespace AGS
 
 
-
-#if defined(PSP_VERSION)
-#include "mutex_psp.h"
-#elif defined(WII_VERSION)
-#include "mutex_wii.h"
+#if 0
+  // insert platforms here
 #else
 #include "mutex_std.h"
 #endif
-
 
 #endif // __AGS_EE_UTIL__MUTEX_H

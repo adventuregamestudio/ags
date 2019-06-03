@@ -12,7 +12,8 @@
 //
 //=============================================================================
 
-#ifdef _DEBUG
+#include "core/platform.h"
+#if AGS_PLATFORM_DEBUG
 
 #include <string.h>
 #include <algorithm>
@@ -24,7 +25,7 @@
 
 using namespace AGS::Common;
 
-#if defined (WINDOWS_VERSION)
+#if AGS_PLATFORM_OS_WINDOWS
 #define ENDL "\r\n"
 #else
 #define ENDL "\n"
@@ -294,4 +295,4 @@ void Test_IniFile()
     File::DeleteFile("test.ini");
 }
 
-#endif // _DEBUG
+#endif // AGS_PLATFORM_DEBUG

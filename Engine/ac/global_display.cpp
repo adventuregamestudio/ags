@@ -31,7 +31,6 @@
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "main/game_run.h"
-#include "util/c99_snprintf.h"
 
 using namespace AGS::Common;
 

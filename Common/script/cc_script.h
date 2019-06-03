@@ -31,7 +31,7 @@ public:
     char *globaldata;
     int32_t globaldatasize;
     int32_t *code;                // executable byte-code, 32-bit per op or arg
-    int32_t codesize;
+    int32_t codesize; // TODO: find out if we can make it size_t
     char *strings;
     int32_t stringssize;
     char *fixuptypes;             // global data/string area/ etc

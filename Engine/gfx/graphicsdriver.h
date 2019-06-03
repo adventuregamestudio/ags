@@ -112,6 +112,7 @@ public:
   // null sprite is encountered. You can use this to hook into the rendering
   // process.
   virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) = 0;
+  // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) = 0;
   // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
   // Engine needs to have game bitmaps brought to the certain range of formats, easing conversion into the video bitmaps.
@@ -160,7 +161,7 @@ public:
   virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
   // Runs box-out animation in a blocking manner.
   virtual void BoxOutEffect(bool blackingOut, int speed, int delay) = 0;
-  virtual bool PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen) = 0;
+  virtual bool PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen) { return false; }
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;

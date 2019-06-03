@@ -135,7 +135,7 @@ void InitAndRegisterAudioObjects()
         ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);
     }
 
-    for (int i = 0; i < game.audioClipCount; ++i)
+    for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
         game.audioClips[i].id = i;
         ccRegisterManagedObject(&game.audioClips[i], &ccDynamicAudioClip);
@@ -319,7 +319,11 @@ HError InitAndRegisterGameEntities()
     InitAndRegisterRegions();
     InitAndRegisterRoomObjects();
 
-    // Primary viewport and camera
+    // Precreate primary viewport and camera
+    auto view = play.CreateRoomViewport();
+    auto cam = play.CreateRoomCamera();
+    view->LinkCamera(cam);
+    cam->LinkToViewport(view);
     play.RegisterRoomViewport(0);
     play.RegisterRoomCamera(0);
 
@@ -384,8 +388,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     if (game.numfonts == 0)
         return new GameInitError(kGameInitErr_NoFonts);
-    if (game.audioClipTypeCount > MAX_AUDIO_TYPES)
-        return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %d, max: %d", game.audioClipTypeCount, MAX_AUDIO_TYPES));
+    if (game.audioClipTypes.size() > MAX_AUDIO_TYPES)
+        return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %u, max: %d", game.audioClipTypes.size(), MAX_AUDIO_TYPES));
 
     //
     // 2. Apply overriding config settings
@@ -416,10 +420,10 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game_paused = 0;  // reset the game paused flag
     ifacepopped = -1;
 
+    String svg_suffix;
     if (game.saveGameFileExtension[0] != 0)
-        saveGameSuffix.Format(".%s", game.saveGameFileExtension);
-    else
-        saveGameSuffix = "";
+        svg_suffix.Format(".%s", game.saveGameFileExtension);
+    set_save_game_suffix(svg_suffix);
 
     play.score_sound = game.scoreClipID;
     play.fade_effect = game.options[OPT_FADETYPE];

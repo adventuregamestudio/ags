@@ -28,4 +28,9 @@ target_sources(almp3
 
 target_link_libraries(almp3 PUBLIC Allegro::Allegro)
 
+# The PSP (and embedded processors in general) only has hardware support for single precision math.
+if (ANDROID OR IOS)
+    target_compile_definitions(almp3 PRIVATE REAL_IS_FLOAT)
+endif()
+
 add_library(AlMp3::AlMp3 ALIAS almp3)

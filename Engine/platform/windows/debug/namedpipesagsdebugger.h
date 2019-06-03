@@ -17,7 +17,7 @@
 
 #include <windows.h>
 #include <io.h>
-#include "debug/debugger.h"
+#include "debug/agseditordebugger.h"
 
 struct NamedPipesAGSDebugger : IAGSEditorDebugger
 {
@@ -30,11 +30,11 @@ private:
 public:
 
     NamedPipesAGSDebugger(const char *instanceToken);
-    virtual bool Initialize();
-    virtual void Shutdown();
-    virtual bool SendMessageToEditor(const char *message);
-    virtual bool IsMessageAvailable();
-    virtual char* GetNextMessage();
+    virtual bool Initialize() override;
+    virtual void Shutdown() override;
+    virtual bool SendMessageToEditor(const char *message) override;
+    virtual bool IsMessageAvailable() override;
+    virtual char* GetNextMessage() override;
 };
 
 #endif // __AC_NAMEDPIPESAGSDEBUGGER_H

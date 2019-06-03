@@ -42,9 +42,6 @@ extern char ignore_bounds; // from mousew32
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
 
-//extern void get_save_game_path(int slotNum, char *buffer);
-//extern char saveGameDirectory[260];
-
 
 //-----------------------------------------------------------------------------
 // DIALOG SYSTEM STUFF below

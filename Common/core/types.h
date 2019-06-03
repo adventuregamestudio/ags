@@ -18,48 +18,32 @@
 #ifndef __AGS_CN_CORE__TYPES_H
 #define __AGS_CN_CORE__TYPES_H
 
-#if defined (_WINDOWS) && !defined (WINDOWS_VERSION)
-#define WINDOWS_VERSION
-#endif
-
-#if defined(WINDOWS_VERSION)
-    // MSVC didn't report correct __cplusplus value until 2017
-    #if !defined(_MSC_VER) || (_MSC_VER < 1900)
-    #error Visual Studio 2015 or later required.
-    #endif
-#else
-    #if __cplusplus < 201103L
-    #error C++11 or later required.
-    #endif
-#endif
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h> // for size_t
 #include <limits.h> // for _WORDSIZE
 
-#include "endianness.h"
-
 #ifndef NULL
 #define NULL nullptr
 #endif
 
-#ifndef FORCEINLINE
-#if defined(_MSC_VER)
-#define FORCEINLINE __forceinline
-#elif defined (__GNUC__)
-#define FORCEINLINE inline __attribute__((__always_inline__))
-#else
-#define FORCEINLINE inline
-#endif
+// Not all compilers have this. Added in clang and gcc followed
+#ifndef __has_attribute
+    #define __has_attribute(x) 0
 #endif
 
-// Detect 64 bit environment
-#ifndef AGS_64BIT
-#if defined (_WIN64) || (__WORDSIZE == 64)
-#define AGS_64BIT
+#ifndef FORCEINLINE
+    #ifdef _MSC_VER
+        #define FORCEINLINE __forceinline
+
+    #elif defined (__GNUC__) || __has_attribute(__always_inline__)
+        #define FORCEINLINE inline __attribute__((__always_inline__))
+
+    #else
+        #define FORCEINLINE inline
+
+    #endif
 #endif
-#endif // AGS_64BIT
 
 // Stream offset type
 typedef int64_t soff_t;

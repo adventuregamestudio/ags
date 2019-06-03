@@ -12,9 +12,9 @@
 //
 //=============================================================================
 
-#if !defined (WINDOWS_VERSION)
-#error This file should only be included on the Windows build
-#endif
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
 
 #include <windows.h>
 #include <commctrl.h>
@@ -1242,3 +1242,5 @@ SetupReturnValue WinSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out,
 
 } // namespace Engine
 } // namespace AGS
+
+#endif // AGS_PLATFORM_OS_WINDOWS

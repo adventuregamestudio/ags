@@ -74,26 +74,6 @@ public:
         return Write(buffer, count);
     }
 
-    // Read array of pointers of build-dependent size
-    inline size_t ReadArrayOfIntPtr(intptr_t *buffer, size_t count)
-    {
-#if defined (AGS_64BIT) || defined (TEST_64BIT)
-        return ReadArrayOfInt64((int64_t*)buffer, count);
-#else
-        return ReadArrayOfInt32((int32_t*)buffer, count);
-#endif
-    }
-
-    // Write array of pointers of build-dependent size
-    inline size_t WriteArrayOfIntPtr(const intptr_t *buffer, size_t count)
-    {
-#if defined (AGS_64BIT) || defined (TEST_64BIT)
-        return WriteArrayOfInt64((const int64_t*)buffer, count);
-#else
-        return WriteArrayOfInt32((const int32_t*)buffer, count);
-#endif
-    }
-
     // Fill the requested number of bytes with particular value
     size_t WriteByteCount(uint8_t b, size_t count);
 };

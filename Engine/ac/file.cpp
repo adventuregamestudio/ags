@@ -17,6 +17,7 @@
 #include "ac/audiocliptype.h"
 #include "ac/file.h"
 #include "ac/common.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_file.h"
@@ -41,7 +42,6 @@ using namespace AGS::Common;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
-extern char saveGameDirectory[260];
 extern AGSPlatformDriver *platform;
 
 extern int MAXSTRLEN;
@@ -73,10 +73,10 @@ int File_Delete(const char *fnmm) {
   if (!ResolveScriptPath(fnmm, false, path, alt_path))
     return 0;
 
-  if (unlink(path) == 0)
+  if (::remove(path) == 0)
       return 1;
   if (errno == ENOENT && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
-      return unlink(alt_path) == 0 ? 1 : 0;
+      return ::remove(alt_path) == 0 ? 1 : 0;
   return 0;
 }
 
@@ -174,7 +174,8 @@ int File_ReadRawInt(sc_File *fil) {
 int File_Seek(sc_File *fil, int offset, int origin)
 {
     Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.Seek");
-    return (int)in->Seek(offset, (StreamSeek)origin);
+    if (!in->Seek(offset, (StreamSeek)origin)) { return -1; }
+    return in->GetPosition();
 }
 
 int File_GetEOF(sc_File *fil) {
@@ -310,7 +311,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
     }
     else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
     {
-        parent_dir = saveGameDirectory;
+        parent_dir = get_save_game_directory();
         child_path = sc_path.Mid(GameSavedgamesDirToken.GetLength());
     }
     else if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)

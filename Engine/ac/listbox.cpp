@@ -15,16 +15,17 @@
 #include <set>
 #include "ac/listbox.h"
 #include "ac/common.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/path_helper.h"
 #include "ac/string.h"
 #include "gui/guimain.h"
+#include "debug/debug_log.h"
 
 using namespace AGS::Common;
 
-extern char saveGameDirectory[260];
 extern GameState play;
 extern GameSetupStruct game;
 
@@ -97,8 +98,8 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
   long filedates[MAXSAVEGAMES];
   char buff[200];
 
-  char searchPath[260];
-  sprintf(searchPath, "%s""agssave.*", saveGameDirectory);
+  String svg_dir = get_save_game_directory();
+  String searchPath = String::FromFormat("%s""agssave.*", svg_dir.GetCStr());
 
   int don = al_findfirst(searchPath, &ffb, FA_SEARCH);
   while (!don) {

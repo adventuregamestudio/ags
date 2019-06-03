@@ -18,10 +18,6 @@
 #ifndef __AGS_CN_DEBUG__ASSERT_H
 #define __AGS_CN_DEBUG__ASSERT_H
 
-#if !defined(_DEBUG) && !defined(NDEBUG)
-#define NDEBUG
-#endif
-
 #include <assert.h>
 
 #endif // __AGS_CN_DEBUG__ASSERT_H

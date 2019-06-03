@@ -30,7 +30,6 @@
 #include "game/roomstruct.h"
 #include "gui/guibutton.h"
 #include "ac/spritecache.h"
-#include "platform/base/override_defines.h"
 #include "gfx/graphicsdriver.h"
 #include "script/runtimescriptvalue.h"
 

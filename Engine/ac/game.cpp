@@ -111,7 +111,7 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_complete_overlay,is_text_overlay;
 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
 extern int psp_gfx_renderer;
 #endif
 
@@ -191,7 +191,7 @@ MoveList *mls = nullptr;
 
 //=============================================================================
 
-char saveGameDirectory[260] = "./";
+String saveGameDirectory = "./";
 // Custom save game parent directory
 String saveGameParent;
 
@@ -213,7 +213,7 @@ int getloctype_index = 0, getloctype_throughgui = 0;
 
 void Game_StopAudio(int audioType)
 {
-    if (((audioType < 0) || (audioType >= game.audioClipTypeCount)) && (audioType != SCR_NO_VALUE))
+    if (((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size())) && (audioType != SCR_NO_VALUE))
         quitprintf("!Game.StopAudio: invalid audio type %d", audioType);
     int aa;
 
@@ -236,7 +236,7 @@ void Game_StopAudio(int audioType)
 
 int Game_IsAudioPlaying(int audioType)
 {
-    if (((audioType < 0) || (audioType >= game.audioClipTypeCount)) && (audioType != SCR_NO_VALUE))
+    if (((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size())) && (audioType != SCR_NO_VALUE))
         quitprintf("!Game.IsAudioPlaying: invalid audio type %d", audioType);
 
     if (play.fast_forward)
@@ -258,7 +258,7 @@ int Game_IsAudioPlaying(int audioType)
 
 void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop)
 {
-    if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
+    if ((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size()))
         quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
 
     Debug::Printf("Game.SetAudioTypeSpeechVolumeDrop: type: %d, drop: %d", audioType, volumeDrop);
@@ -270,7 +270,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 {
     if ((volume < 0) || (volume > 100))
         quitprintf("!Game.SetAudioTypeVolume: volume %d is not between 0..100", volume);
-    if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
+    if ((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size()))
         quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
 
     Debug::Printf("Game.SetAudioTypeVolume: type: %d, volume: %d, change: %d", audioType, volume, changeType);
@@ -349,6 +349,21 @@ void restore_after_dialog() {
 
 
 
+String get_save_game_directory()
+{
+    return saveGameDirectory;
+}
+
+String get_save_game_suffix()
+{
+    return saveGameSuffix;
+}
+
+void set_save_game_suffix(const String &suffix)
+{
+    saveGameSuffix = suffix;
+}
+
 String get_save_game_path(int slotNum) {
     String filename;
     filename.Format(sgnametemplate, slotNum);
@@ -425,31 +440,28 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
         return false;
     newSaveGameDir.AppendChar('/');
 
-    char newFolderTempFile[260];
-    strcpy(newFolderTempFile, newSaveGameDir);
-    strcat(newFolderTempFile, "agstmp.tmp");
+    String newFolderTempFile = String::FromFormat("%s/agstmp.tmp", newSaveGameDir.GetCStr());
     if (!Common::File::TestCreateFile(newFolderTempFile))
         return false;
 
     // copy the Restart Game file, if applicable
-    char restartGamePath[260];
-    sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
+    String restartGamePath = String::FromFormat("%s""agssave.%d%s", saveGameDirectory.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
     Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
     if (restartGameFile != nullptr)
-	{
+    {
         long fileSize = restartGameFile->GetLength();
         char *mbuffer = (char*)malloc(fileSize);
         restartGameFile->Read(mbuffer, fileSize);
         delete restartGameFile;
 
-        sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
+        restartGamePath.Format("%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
         restartGameFile = Common::File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
         delete restartGameFile;
         free(mbuffer);
     }
 
-    strcpy(saveGameDirectory, newSaveGameDir);
+    saveGameDirectory = newSaveGameDir;
     return true;
 }
 
@@ -511,6 +523,8 @@ void free_do_once_tokens()
 // Free all the memory associated with the game
 void unload_game_file()
 {
+    play.FreeViewportsAndCameras();
+
     characterScriptObjNames.clear();
     free(charextra);
     free(mls);
@@ -876,7 +890,7 @@ int Game_ChangeTranslation(const char *newFilename)
 
 ScriptAudioClip *Game_GetAudioClip(int index)
 {
-    if (index < 0 || index >= game.audioClipCount)
+    if (index < 0 || (size_t)index >= game.audioClips.size())
         return nullptr;
     return &game.audioClips[index];
 }
@@ -998,10 +1012,9 @@ void skip_serialized_bitmap(Stream *in)
 long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 {
     long fileSize = 0;
-    char tempFileName[MAX_PATH];
-    sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory);
+    String tempFileName = String::FromFormat("%s""_tmpscht.bmp", saveGameDirectory.GetCStr());
 
-	screenshot->SaveToFile(tempFileName, palette);
+    screenshot->SaveToFile(tempFileName, palette);
 
     update_polled_stuff_if_runtime();
 
@@ -1013,7 +1026,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
         Stream *temp_in = Common::File::OpenFileRead(tempFileName);
         temp_in->Read(buffer, fileSize);
         delete temp_in;
-        unlink(tempFileName);
+        ::remove(tempFileName);
 
         out->Write(buffer, fileSize);
         free(buffer);
@@ -1108,6 +1121,9 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     r_data.CursorID = in->ReadInt32();
     int camx = in->ReadInt32();
     int camy = in->ReadInt32();
+    // Recreate primary viewport and camera
+    play.CreateRoomCamera();
+    play.CreateRoomViewport();
     play.GetRoomCamera(0)->SetAt(camx, camy);
     set_loop_counter(in->ReadInt32());
     return HSaveError::None();
@@ -1203,10 +1219,10 @@ void ReadGameState_Aligned(Stream *in)
 
 void restore_game_play_ex_data(Stream *in)
 {
-    for (int bb = 0; (int)bb < play.do_once_tokens.size(); bb++)
+    for (size_t i = 0; i < play.do_once_tokens.size(); ++i)
     {
         StrUtil::ReadCStr(rbuffer, in, sizeof(rbuffer));
-        play.do_once_tokens[bb] = rbuffer;
+        play.do_once_tokens[i] = rbuffer;
     }
 
     in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
@@ -1304,12 +1320,12 @@ HSaveError restore_game_gui(Stream *in, int numGuisWas)
 
 HSaveError restore_game_audiocliptypes(Stream *in)
 {
-    if (in->ReadInt32() != game.audioClipTypeCount)
+    if (in->ReadInt32() != game.audioClipTypes.size())
     {
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clip Types.");
     }
 
-    for (int i = 0; i < game.audioClipTypeCount; ++i)
+    for (size_t i = 0; i < game.audioClipTypes.size(); ++i)
     {
         game.audioClipTypes[i].ReadFromFile(in);
     }
@@ -1445,7 +1461,7 @@ HSaveError restore_game_views(Stream *in)
 
 HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
 {
-    if (in->ReadInt32() != game.audioClipCount)
+    if (in->ReadInt32() != game.audioClips.size())
     {
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clips.");
     }
@@ -1457,7 +1473,7 @@ HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_dat
         chan_info.ClipID = in->ReadInt32();
         if (chan_info.ClipID >= 0)
         {
-            if (chan_info.ClipID >= game.audioClipCount)
+            if ((size_t)chan_info.ClipID >= game.audioClips.size())
             {
                 return new SavegameError(kSvgErr_GameObjectInitFailed, "Invalid audio clip index.");
             }
@@ -1958,12 +1974,12 @@ void replace_tokens(const char*srcmes,char*destm, int maxlen) {
             if (tokentype==1) {
                 if ((inx<1) | (inx>=game.numinvitems))
                     quit("!Display: invalid inv item specified in @IN@");
-                sprintf(tval,"%d",playerchar->inv[inx]);
+                snprintf(tval,sizeof(tval),"%d",playerchar->inv[inx]);
             }
             else {
                 if ((inx<0) | (inx>=MAXGSVALUES))
                     quit("!Display: invalid global int index speicifed in @GI@");
-                sprintf(tval,"%d",GetGlobalInt(inx));
+                snprintf(tval,sizeof(tval),"%d",GetGlobalInt(inx));
             }
             strcpy(destp,tval);
             indxdest+=strlen(tval);
@@ -2316,7 +2332,7 @@ RuntimeScriptValue Sc_Game_GetViewCount(const RuntimeScriptValue *params, int32_
 
 RuntimeScriptValue Sc_Game_GetAudioClipCount(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARGET_INT(game.audioClipCount);
+    API_VARGET_INT(game.audioClips.size());
 }
 
 RuntimeScriptValue Sc_Game_GetAudioClip(const RuntimeScriptValue *params, int32_t param_count)

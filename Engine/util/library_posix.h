@@ -16,11 +16,12 @@
 #define __AGS_EE_UTIL__LIBRARY_POSIX_H
 
 #include <dlfcn.h>
+#include "core/platform.h"
 #include "util/string.h"
 #include "debug/out.h"
 
 // FIXME: Replace with a unified way to get the directory which contains the engine binary
-#if defined (ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
 extern char android_app_directory[256];
 #else
 extern AGS::Common::String appDirectory;
@@ -46,6 +47,17 @@ public:
     Unload();
   };
 
+  AGS::Common::String BuildFilename(AGS::Common::String libraryName)
+  {
+    return String::FromFormat(
+#if AGS_PLATFORM_OS_MACOS
+        "lib%s.dylib"
+#else
+        "lib%s.so"
+#endif
+        , libraryName.GetCStr());
+  }
+
   AGS::Common::String BuildPath(const char *path, AGS::Common::String libraryName)
   {
     AGS::Common::String platformLibraryName = "";
@@ -54,17 +66,15 @@ public:
       platformLibraryName = path;
       platformLibraryName.Append("/");
     }
-    platformLibraryName.Append("lib");
-    platformLibraryName.Append(libraryName);
-
-#if defined (MAC_VERSION)
-    platformLibraryName.Append(".dylib");
-#else
-    platformLibraryName.Append(".so");
-#endif
+    platformLibraryName.Append(BuildFilename(libraryName));
 
     AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
     return platformLibraryName;
+  }
+
+  AGS::Common::String GetFilenameForLib(AGS::Common::String libraryName) override
+  {
+    return BuildFilename(libraryName);
   }
 
   bool Load(AGS::Common::String libraryName) override
@@ -88,7 +98,7 @@ public:
     {
       // Try the engine directory
 
-#if defined (ANDROID_VERSION)
+#if AGS_PLATFORM_OS_ANDROID
       char buffer[200];
       sprintf(buffer, "%s%s", android_app_directory, "/lib");
       _library = dlopen(BuildPath(buffer, libraryName).GetCStr(), RTLD_LAZY);

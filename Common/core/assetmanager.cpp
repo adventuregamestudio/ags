@@ -196,7 +196,7 @@ AssetError AssetManager::_SetDataFile(const String &data_file)
     {
         return kAssetErrNoLibFile;
     }
-    if (_assetLib.BaseFileName.Compare(data_file) == 0)
+    if (Path::ComparePaths(_assetLib.BaseFilePath, data_file) == 0)
     {
         return kAssetNoError;
     }
@@ -320,9 +320,10 @@ AssetError AssetManager::RegisterAssetLib(const String &data_file, const String 
 
     // set library filename
     _assetLib.LibFileNames[0] = data_file_fixed;
-    // make a backup of the original file name
-    _assetLib.BaseFileName = _assetLib.LibFileNames[0];
+    // make a lowercase backup of the original file name
+    _assetLib.BaseFileName = data_file_fixed;
     _assetLib.BaseFileName.MakeLower();
+    _assetLib.BaseFilePath = Path::MakeAbsolutePath(data_file);
     return kAssetNoError;
 }
 

@@ -45,6 +45,7 @@ typedef std::vector<AssetInfo> AssetVec;
 struct AssetLibInfo
 {
     String BaseFileName;               // library's base (head) filename
+    String BaseFilePath;               // full path to the base filename
     std::vector<String> LibFileNames;  // filename for each library part
 
     // Library contents

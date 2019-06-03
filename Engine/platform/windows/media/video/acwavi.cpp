@@ -18,6 +18,10 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS && ! defined (AGS_NO_VIDEO_PLAYER)
+
 //#define ALLEGRO_STATICLINK  // already defined in project settings
 #include <allegro.h>
 #include <winalleg.h>
@@ -426,3 +430,5 @@ int WINAPI WinMain(
   return 0;
 }
 #endif
+
+#endif // AGS_PLATFORM_OS_WINDOWS

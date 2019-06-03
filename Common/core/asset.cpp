@@ -28,6 +28,7 @@ AssetInfo::AssetInfo()
 void AssetLibInfo::Unload()
 {
     BaseFileName = "";
+    BaseFilePath = "";
     LibFileNames.clear();
     AssetInfos.clear();
 }

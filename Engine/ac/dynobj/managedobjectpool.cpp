@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <vector>
+#include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
 #include "debug/out.h"
@@ -30,7 +31,7 @@ const auto RESERVED_SIZE = 2048;
 int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     if (!o.isUsed()) { return 1; } // already removed
 
-    bool canBeRemovedFromPool = o.callback->Dispose(o.addr, force);
+    bool canBeRemovedFromPool = o.callback->Dispose(o.addr, force) != 0;
     if (!(canBeRemovedFromPool || force)) { return 0; }
 
     auto handle = o.handle;
@@ -45,7 +46,7 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
 }
 
 int32_t ManagedObjectPool::AddRef(int32_t handle) {
-    if (handle >= objects.size()) { return 0; }
+    if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
 
@@ -55,7 +56,7 @@ int32_t ManagedObjectPool::AddRef(int32_t handle) {
 }
 
 int ManagedObjectPool::CheckDispose(int32_t handle) {
-    if (handle >= objects.size()) { return 1; }
+    if (handle < 0 || (size_t)handle >= objects.size()) { return 1; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 1; }
     if (o.refCount >= 1) { return 0; }
@@ -63,7 +64,7 @@ int ManagedObjectPool::CheckDispose(int32_t handle) {
 }
 
 int32_t ManagedObjectPool::SubRef(int32_t handle) {
-    if (handle >= objects.size()) { return 0; }
+    if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
 
@@ -87,7 +88,7 @@ int32_t ManagedObjectPool::AddressToHandle(const char *addr) {
 
 // this function is called often (whenever a pointer is used)
 const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
-    if (handle >= objects.size()) { return nullptr; }
+    if (handle < 0 || (size_t)handle >= objects.size()) { return nullptr; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return nullptr; }
     return o.addr;
@@ -95,7 +96,7 @@ const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
 
 // this function is called often (whenever a pointer is used)
 ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager) {
-    if (handle >= objects.size()) { return kScValUndefined; }
+    if (handle < 0 || (size_t)handle >= objects.size()) { return kScValUndefined; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return kScValUndefined; }
 
@@ -141,7 +142,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
         available_ids.pop();
     } else {
         handle = nextHandle++;
-        if (handle >= objects.size()) {
+        if ((size_t)handle >= objects.size()) {
            objects.resize(objects.size() * 2, ManagedObject());
         }
     }
@@ -158,16 +159,17 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
 }
 
 
-int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot) 
+int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int handle) 
 {
-    if (useSlot >= objects.size()) {
+    if (handle < 0) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
+    if ((size_t)handle >= objects.size()) {
         objects.resize(objects.size() * 2, ManagedObject());
     }
 
-    auto & o = objects[useSlot];
+    auto & o = objects[handle];
     if (o.isUsed()) { cc_error("bad save. used: %d", o.handle); return 0; }
 
-    o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, useSlot, address, callback);
+    o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, handle, address, callback);
 
     handleByAddress.insert({address, o.handle});
     ManagedObjectLog("Allocated unserialized managed object handle=%d, type=%s", o.handle, callback->GetType());
@@ -204,7 +206,7 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
         StrUtil::WriteCStr((char*)o.callback->GetType(), out);
         // now write the object data
         int bytesWritten = o.callback->Serialize(o.addr, &serializeBuffer.front(), serializeBuffer.size());
-        if ((bytesWritten < 0) && ((-bytesWritten) > serializeBuffer.size()))
+        if ((bytesWritten < 0) && ((size_t)(-bytesWritten) > serializeBuffer.size()))
         {
             // buffer not big enough, re-allocate with requested size
             serializeBuffer.resize(-bytesWritten);
@@ -239,7 +241,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
                 for (int i = 1; i < numObjs; i++) {
                     StrUtil::ReadCStr(typeNameBuffer, in, sizeof(typeNameBuffer));
                     if (typeNameBuffer[0] != 0) {
-                        int numBytes = in->ReadInt32();
+                        size_t numBytes = in->ReadInt32();
                         if (numBytes > serializeBuffer.size()) {
                             serializeBuffer.resize(numBytes);
                         }
@@ -264,8 +266,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
                     assert (handle >= 1);
                     StrUtil::ReadCStr(typeNameBuffer, in, sizeof(typeNameBuffer));
                     assert (typeNameBuffer[0] != 0);
-                    int numBytes = in->ReadInt32();
-                    assert (numBytes >= 0);
+                    size_t numBytes = in->ReadInt32();
                     if (numBytes > serializeBuffer.size()) {
                         serializeBuffer.resize(numBytes);
                     }

@@ -27,10 +27,6 @@ using namespace AGS::Common;
 #pragma unmanaged
 #endif
 
-#if defined (WINDOWS_VERSION)
-#include <io.h>
-#endif
-
 int insert(int, int);
 void _delete(int);
 

@@ -20,8 +20,13 @@
 #define __AGS_EE_GFX__ALI3DSW_H
 
 #include <memory>
+
+#include "core/platform.h"
+#define AGS_DDRAW_GAMMA_CONTROL (AGS_PLATFORM_OS_WINDOWS)
+
 #include <allegro.h>
-#if defined (WINDOWS_VERSION)
+
+#if AGS_DDRAW_GAMMA_CONTROL
 #include <winalleg.h>
 #include <ddraw.h>
 #endif
@@ -148,6 +153,7 @@ public:
     IGfxModeList *GetSupportedModeList(int color_depth) override;
     PGfxFilter GetGraphicsFilter() const override;
     void UnInit();
+    // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
@@ -163,7 +169,9 @@ public:
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void FadeIn(int speed, PALETTE pal, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void BoxOutEffect(bool blackingOut, int speed, int delay) override;
+#ifndef AGS_NO_VIDEO_PLAYER
     bool PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen) override;
+#endif
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { }
@@ -213,7 +221,7 @@ private:
     ALSpriteBatches _spriteBatches;
     GFX_MODE_LIST *_gfxModeList;
 
-#ifdef _WIN32
+#if AGS_DDRAW_GAMMA_CONTROL
     IDirectDrawGammaControl* dxGammaControl;
     // The gamma ramp is a lookup table for each possible R, G and B value
     // in 32-bit colour (from 0-255) it maps them to a brightness value

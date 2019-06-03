@@ -40,12 +40,6 @@ GameState::GameState()
 {
     _isAutoRoomViewport = true;
     _mainViewportHasChanged = false;
-
-    // Precreate primary viewport and camera
-    auto view = CreateRoomViewport();
-    auto cam = CreateRoomCamera();
-    view->LinkCamera(cam);
-    cam->LinkToViewport(view);
 }
 
 void GameState::Free()
@@ -277,6 +271,7 @@ PViewport GameState::CreateRoomViewport()
     ScriptViewport *scv = new ScriptViewport(index);
     _roomViewports.push_back(viewport);
     _scViewportRefs.push_back(std::make_pair(scv, 0));
+    _roomViewportsSorted.push_back(viewport);
     _roomViewportZOrderChanged = true;
     return viewport;
 }
@@ -314,7 +309,14 @@ void GameState::DeleteRoomViewport(int index)
         _roomViewports[i]->SetID(i);
         _scViewportRefs[i].first->SetID(i);
     }
-    _roomViewportZOrderChanged = true;
+    for (size_t i = 0; i < _roomViewportsSorted.size(); ++i)
+    {
+        if (_roomViewportsSorted[i]->GetID() == index)
+        {
+            _roomViewportsSorted.erase(_roomViewportsSorted.begin() + i);
+            break;
+        }
+    }
 }
 
 int GameState::GetRoomViewportCount() const

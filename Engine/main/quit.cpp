@@ -16,6 +16,7 @@
 // Quit game procedure
 //
 
+#include "core/platform.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstatus.h"
@@ -202,21 +203,10 @@ void quit_delete_temp_files()
     al_ffblk	dfb;
     int	dun = al_findfirst("~ac*.tmp",&dfb,FA_SEARCH);
     while (!dun) {
-        unlink(dfb.name);
+        ::remove(dfb.name);
         dun = al_findnext(&dfb);
     }
     al_findclose (&dfb);
-}
-
-void free_globals()
-{
-#if defined (WINDOWS_VERSION)
-    if (wArgv)
-    {
-        LocalFree(wArgv);
-        wArgv = NULL;
-    }
-#endif
 }
 
 // TODO: move to test unit
@@ -303,7 +293,6 @@ void quit(const char *quitmsg)
     Debug::Printf(kDbgMsg_Init, "***** ENGINE HAS SHUTDOWN");
 
     shutdown_debug();
-    free_globals();
 
     our_eip = 9904;
     exit(EXIT_NORMAL);

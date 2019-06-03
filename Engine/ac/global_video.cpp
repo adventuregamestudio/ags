@@ -19,10 +19,11 @@
 #include "ac/global_game.h"
 #include "ac/global_video.h"
 #include "ac/path_helper.h"
-#include "debug/agseditordebugger.h"
-#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "media/video/video.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
+#include "util/string_utils.h"
 
 
 void scrPlayVideo(const char* name, int skip, int flags) {
@@ -42,6 +43,9 @@ void scrPlayVideo(const char* name, int skip, int flags) {
     pause_sound_if_necessary_and_play_video(name, skip, flags);
 }
 
+
+#ifndef AGS_NO_VIDEO_PLAYER
+
 void pause_sound_if_necessary_and_play_video(const char *name, int skip, int flags)
 {
     int musplaying = play.cur_music_number, i;
@@ -49,7 +53,7 @@ void pause_sound_if_necessary_and_play_video(const char *name, int skip, int fla
     for (i = 1; i < MAX_SOUND_CHANNELS; i++)
         ambientWas[i] = ambient[i].channel;
 
-    if ((strlen(name) > 3) && (stricmp(&name[strlen(name) - 3], "ogv") == 0))
+    if ((strlen(name) > 3) && (ags_stricmp(&name[strlen(name) - 3], "ogv") == 0))
     {
         play_theora_video(name, skip, flags);
     }
@@ -73,3 +77,9 @@ void pause_sound_if_necessary_and_play_video(const char *name, int skip, int fla
         }
     }
 }
+
+#else
+
+void pause_sound_if_necessary_and_play_video(const char *name, int skip, int flags) {}
+
+#endif

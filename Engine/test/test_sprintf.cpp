@@ -12,7 +12,8 @@
 //
 //=============================================================================
 
-#ifdef _DEBUG
+#include "core/platform.h"
+#if AGS_PLATFORM_DEBUG
 
 #include <string.h>
 #include "ac/game_version.h"
@@ -110,4 +111,4 @@ void Test_ScriptSprintf()
     assert(strcmp(result, "1234567812") == 0);
 }
 
-#endif // _DEBUG
+#endif // AGS_PLATFORM_DEBUG

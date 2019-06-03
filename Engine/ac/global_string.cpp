@@ -51,13 +51,13 @@ void _sc_strcat(char*s1, const char*s2) {
 void _sc_strlower (char *desbuf) {
     VALIDATE_STRING(desbuf);
     check_strlen (desbuf);
-    strlwr (desbuf);
+    ags_strlwr (desbuf);
 }
 
 void _sc_strupper (char *desbuf) {
     VALIDATE_STRING(desbuf);
     check_strlen (desbuf);
-    strupr (desbuf);
+    ags_strupr (desbuf);
 }*/
 
 // CLNUP probably to remove
@@ -66,7 +66,7 @@ return strcmp (get_translation (s1), get_translation(s2));
 }
 
 int _sc_stricmp (char *s1, char *s2) {
-return stricmp (get_translation (s1), get_translation(s2));
+return ags_stricmp (get_translation (s1), get_translation(s2));
 }*/
 
 // CLNUP probably to remove

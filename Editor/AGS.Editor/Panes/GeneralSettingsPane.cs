@@ -131,6 +131,13 @@ namespace AGS.Editor
             {
                 Factory.Events.OnGameSettingsChanged();
             }
+            else if (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_DIALOG_SCRIPT_SAYFN ||
+                e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_DIALOG_SCRIPT_NARRATEFN)
+            {
+                // Force rebuild all dialog scripts
+                foreach (Dialog d in Factory.AGSEditor.CurrentGame.Dialogs)
+                    d.ScriptChangedSinceLastConverted = true;
+            }
         }
 
         private void LoadColorTheme(ColorTheme t)

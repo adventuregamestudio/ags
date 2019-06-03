@@ -131,6 +131,9 @@ void set_debug_mode(bool on);
 void set_game_speed(int new_fps);
 void setup_for_dialog();
 void restore_after_dialog();
+Common::String get_save_game_directory();
+Common::String get_save_game_suffix();
+void set_save_game_suffix(const Common::String &suffix);
 Common::String get_save_game_path(int slotNum);
 void restore_game_dialog();
 void save_game_dialog();
@@ -140,7 +143,6 @@ void unload_game_file();
 void save_game(int slotn, const char*descript);
 bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
 bool read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);
-void save_game_data(Common::Stream *out);
 // Tries to restore saved game and displays an error on failure; if the error occured
 // too late, when the game data was already overwritten, shuts engine down.
 bool try_restore_save(int slot);
@@ -183,7 +185,6 @@ extern int displayed_room;
 extern int frames_per_second;
 extern unsigned int loopcounter;
 extern void set_loop_counter(unsigned int new_counter);
-extern Common::String saveGameSuffix;
 extern int game_paused;
 
 #endif // __AGS_EE_AC__GAME_H

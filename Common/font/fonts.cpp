@@ -101,7 +101,7 @@ IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* ren
 
 bool is_bitmap_font(size_t fontNumber)
 {
-    if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
+    if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer2)
         return false;
     return fonts[fontNumber].Renderer2->IsBitmapFont();
 }

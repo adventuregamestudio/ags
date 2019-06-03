@@ -16,7 +16,9 @@
 //
 //=============================================================================
 
-#if defined(WINDOWS_VERSION)
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
 #include <allegro.h>
 #include <winalleg.h>
 #include <allegro/platform/aintwin.h>
@@ -24,7 +26,7 @@
 #include "glad/glad.h"
 #include "glad/glad_wgl.h"
 
-#elif defined(LINUX_VERSION)
+#elif AGS_PLATFORM_OS_LINUX
 #include <allegro.h>
 #include <xalleg.h>
 #include <X11/Xatom.h>
@@ -32,7 +34,7 @@
 #include "glad/glad.h"
 #include "glad/glad_glx.h"
 
-#elif defined(ANDROID_VERSION)
+#elif AGS_PLATFORM_OS_ANDROID
 
 #include <GLES/gl.h>
 #include <GLES2/gl2.h>
@@ -49,7 +51,7 @@
 #define HWND void*
 #define HINSTANCE void*
 
-#elif defined(IOS_VERSION)
+#elif AGS_PLATFORM_OS_IOS
 
 #include <OpenGLES/ES1/gl.h>
 

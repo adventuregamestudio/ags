@@ -603,9 +603,6 @@ static void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBit
     if (!play.fast_forward) {
         int mwasatx=mousex,mwasaty=mousey;
 
-        // React to changes to viewports and cameras (possibly from script) just before the render
-        play.UpdateViewports();
-
         // Only do this if we are not skipping a cutscene
         render_graphics(extraBitmap, extraX, extraY);
 

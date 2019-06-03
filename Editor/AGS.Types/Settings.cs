@@ -18,6 +18,8 @@ namespace AGS.Types
     [DefaultProperty("DebugMode")]
     public class Settings : ICustomTypeDescriptor
     {
+        // TODO: reimplement the handling of property value changes in the Editor assembly
+        // so that relying on property labels is no longer necessary!
         public const string PROPERTY_GAME_NAME = "Game name";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
@@ -26,7 +28,9 @@ namespace AGS.Types
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
         public const string PROPERTY_RENDERATSCREENRES = "Render sprites at screen resolution";
-		public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
+        public const string PROPERTY_DIALOG_SCRIPT_SAYFN = "Custom Say function in dialog scripts";
+        public const string PROPERTY_DIALOG_SCRIPT_NARRATEFN = "Custom Narrate function in dialog scripts";
+        public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
 
 		private const string DEFAULT_GENRE = "Adventure";
         private const string DEFAULT_VERSION = "1.0.0.0";
@@ -78,6 +82,8 @@ namespace AGS.Types
         private DialogOptionsNumbering _numberDialogOptions = DialogOptionsNumbering.KeyShortcutsOnly;
         private bool _dialogOptionsBackwards = false;
         private SpeechPortraitSide _speechPortraitSide = SpeechPortraitSide.Left;
+        private string _dialogScriptSayFunction;
+        private string _dialogScriptNarrateFunction;
         private int _textWindowGUI = 0;
         private bool _alwaysDisplayTextAsSpeech = false;
         private bool _fontsAreHiRes = false;
@@ -738,6 +744,26 @@ namespace AGS.Types
         {
             get { return _speechPortraitSide; }
             set { _speechPortraitSide = value; }
+        }
+
+        [DisplayName("Custom Say function in dialog scripts")]
+        [Description("Sets which function name to use in place of character.Say when running dialog scripts. Note that it must be an extension function of a Character class. Leave empty to use default (Character.Say).")]
+        [DefaultValue("")]
+        [Category("Dialog")]
+        public string DialogScriptSayFunction
+        {
+            get { return _dialogScriptSayFunction; }
+            set { _dialogScriptSayFunction = value; }
+        }
+
+        [DisplayName("Custom Narrate function in dialog scripts")]
+        [Description("Sets which function name to use in place of narrator's speech when running dialog scripts. Note that it must be either regular function or a static struct function. Leave empty to use default (Display).")]
+        [DefaultValue("")]
+        [Category("Dialog")]
+        public string DialogScriptNarrateFunction
+        {
+            get { return _dialogScriptNarrateFunction; }
+            set { _dialogScriptNarrateFunction = value; }
         }
 
         [DisplayName("Custom text-window GUI")]

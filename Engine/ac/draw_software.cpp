@@ -189,7 +189,7 @@ void init_invalid_regions(int view_index, const Size &surf_size, const Rect &vie
     }
     else
     {
-        if (RoomCamRects.size() <= view_index)
+        if (RoomCamRects.size() <= (size_t)view_index)
         {
             RoomCamRects.resize(view_index + 1);
             RoomCamPositions.resize(view_index + 1);
@@ -342,6 +342,13 @@ void invalidate_rect_ds(DirtyRects &rects, int x1, int y1, int x2, int y2, bool 
         x2 = rects.Screen2DirtySurf.X.ScalePt(x2);
         y1 = rects.Screen2DirtySurf.Y.ScalePt(y1);
         y2 = rects.Screen2DirtySurf.Y.ScalePt(y2);
+    }
+    else
+    {
+        x1 -= rects.Room2Screen.X.GetSrcOffset();
+        y1 -= rects.Room2Screen.Y.GetSrcOffset();
+        x2 -= rects.Room2Screen.X.GetSrcOffset();
+        y2 -= rects.Room2Screen.Y.GetSrcOffset();
     }
 
     invalidate_rect_on_surf(x1, y1, x2, y2, rects);

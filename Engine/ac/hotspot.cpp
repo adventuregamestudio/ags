@@ -14,11 +14,11 @@
 
 #include "ac/dynobj/cc_hotspot.h"
 #include "ac/hotspot.h"
-#include "ac/draw.h"
 #include "ac/gamestate.h"
 #include "ac/global_hotspot.h"
 #include "ac/global_translation.h"
 #include "ac/properties.h"
+#include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "game/roomstruct.h"

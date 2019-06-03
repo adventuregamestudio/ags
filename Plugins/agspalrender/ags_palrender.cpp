@@ -4,7 +4,9 @@
 // Copyright (c) 2002 Chris Jones
 //
 
-#ifdef _WIN32
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
@@ -42,7 +44,7 @@
 // The AGS editor will cause this to get called when the editor first
 // starts up, and when it shuts down at the end.
 
-#ifdef _WIN32
+#if AGS_PLATFORM_OS_WINDOWS
 bool APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
                        LPVOID lpReserved) {
@@ -166,7 +168,7 @@ PALSTRUCT objectivepal[256];
 int bgimgspr;
 
 // ***** DESIGN TIME CALLS *******
-#if defined(WINDOWS_VERSION) && !defined(BUILTIN_PLUGINS)
+#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
 
 IAGSEditor *editor;
 const char *ourScriptHeader =
@@ -446,7 +448,7 @@ void AGS_EditorShutdown () {
   editor->UnregisterScriptHeader (ourScriptHeader);
 }
 
-#ifdef _WIN32
+#if AGS_PLATFORM_OS_WINDOWS
 void AGS_EditorProperties (HWND parent) {
   // User has chosen to view the Properties of the plugin
   // We could load up an options dialog or something here instead
@@ -464,7 +466,7 @@ void AGS_EditorLoadGame (char *buffer, int bufsize) {
   // Nothing to load for this dummy plugin
 }
 
-#endif // #if defined(WINDOWS_VERSION) && !defined(BUILTIN_PLUGINS)
+#endif // #if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
 // ******* END DESIGN TIME  *******
 
 

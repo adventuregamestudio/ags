@@ -251,6 +251,7 @@ public:
     RoomStruct();
     ~RoomStruct();
 
+    // Gets legacy resolution type
     // Releases room resources
     void            Free();
     // Release room messages and scripts correspondingly. These two functions are needed

@@ -12,6 +12,9 @@
 //
 //=============================================================================
 
+#include <ctype.h> // for toupper
+
+#include "core/platform.h"
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
 #include "ac/charactercache.h"
@@ -68,11 +71,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-#if !defined (WINDOWS_VERSION)
-// for toupper
-#include <ctype.h>
-#endif
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -933,25 +931,35 @@ void croom_ptr_clear()
     objs = nullptr;
 }
 
+
+AGS_INLINE int room_to_mask_coord(int coord)
+{
+    return coord / thisroom.MaskResolution;
+}
+
+AGS_INLINE int mask_to_room_coord(int coord)
+{
+    return coord * thisroom.MaskResolution;
+}
+
 void convert_move_path_to_room_resolution(MoveList *ml)
-{ // TODO: refer to room mask own setting here instead
-    if (thisroom.MaskResolution == 1)
+{
+    if (thisroom.MaskResolution <= 1)
         return;
 
-    const int mul = thisroom.MaskResolution;
-    ml->fromx *= mul;
-    ml->fromy *= mul;
-    ml->lastx *= mul;
-    ml->lasty *= mul;
+    ml->fromx = mask_to_room_coord(ml->fromx);
+    ml->fromy = mask_to_room_coord(ml->fromy);
+    ml->lastx = mask_to_room_coord(ml->lastx);
+    ml->lasty = mask_to_room_coord(ml->lasty);
 
     for (int i = 0; i < ml->numstage; i++)
     {
-        short lowPart = (ml->pos[i] & 0x0000ffff) * mul;
-        short highPart = ((ml->pos[i] >> 16) & 0x0000ffff) * mul;
+        uint16_t lowPart = mask_to_room_coord(ml->pos[i] & 0x0000ffff);
+        uint16_t highPart = mask_to_room_coord((ml->pos[i] >> 16) & 0x0000ffff);
         ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
 
-        ml->xpermove[i] *= mul;
-        ml->ypermove[i] *= mul;
+        ml->xpermove[i] = mask_to_room_coord(ml->xpermove[i]);
+        ml->ypermove[i] = mask_to_room_coord(ml->ypermove[i]);
     }
 }
 

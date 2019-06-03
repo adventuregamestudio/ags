@@ -14,6 +14,7 @@
 
 #include <cmath>
 
+#include "core/platform.h"
 #include "ac/audiocliptype.h"
 #include "ac/global_game.h"
 #include "ac/common.h"
@@ -79,11 +80,10 @@ extern RoomStatus*croom;
 extern int gui_disabled_style;
 extern RoomStruct thisroom;
 extern int getloctype_index;
-extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
+#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
 extern int psp_gfx_renderer;
 #endif
 
@@ -122,7 +122,7 @@ void RestoreGameSlot(int slnum) {
 void DeleteSaveSlot (int slnum) {
     String nametouse;
     nametouse = get_save_game_path(slnum);
-    unlink (nametouse);
+    ::remove (nametouse);
     if ((slnum >= 1) && (slnum <= MAXSAVEGAMES)) {
         String thisname;
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
@@ -407,7 +407,7 @@ int SetGameOption (int opt, int setting) {
         }
     }
 
-    if ((opt == OPT_CROSSFADEMUSIC) && (game.audioClipTypeCount > AUDIOTYPE_LEGACY_MUSIC))
+    if ((opt == OPT_CROSSFADEMUSIC) && (game.audioClipTypes.size() > AUDIOTYPE_LEGACY_MUSIC))
     {
         // legacy compatibility -- changing crossfade speed here also
         // updates the new audio clip type style
@@ -737,12 +737,13 @@ int IsKeyPressed (int keycode) {
 }
 
 int SaveScreenShot(const char*namm) {
-    char fileName[MAX_PATH];
+    String fileName;
+    String svg_dir = get_save_game_directory();
 
     if (strchr(namm,'.') == nullptr)
-        sprintf(fileName, "%s%s.bmp", saveGameDirectory, namm);
+        fileName.Format("%s%s.bmp", svg_dir.GetCStr(), namm);
     else
-        sprintf(fileName, "%s%s", saveGameDirectory, namm);
+        fileName.Format("%s%s", svg_dir.GetCStr(), namm);
 
     Bitmap *buffer = CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
     if (!buffer->SaveToFile(fileName, palette) != 0)

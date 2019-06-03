@@ -16,6 +16,12 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
+
+#include "platform/windows/gfx/ali3dd3d.h"
+
 #include <allegro.h>
 #include <allegro/platform/aintwin.h>
 #include "ac/timer.h"
@@ -27,13 +33,14 @@
 #include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
-#include "platform/windows/gfx/ali3dd3d.h"
 #include "util/library.h"
 
-using namespace AGS::Common;
-
+#ifndef AGS_NO_VIDEO_PLAYER
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
+#endif
+
+using namespace AGS::Common;
 
 // Necessary to update textures from 8-bit bitmaps
 extern RGB palette[256];
@@ -843,7 +850,7 @@ void D3DGraphicsDriver::SetupViewport()
   _pixelRenderYOffset = (src_height / disp_height) / 2.0f;
 
   // Clear the screen before setting a viewport.
-  ClearRectangle(0, 0, _mode.Width, _mode.Height, 0);
+  ClearScreenRect(RectWH(0, 0, _mode.Width, _mode.Height), nullptr);
 
   // Set Viewport.
   D3DVIEWPORT9 d3dViewport;
@@ -990,7 +997,9 @@ void D3DGraphicsDriver::UnInit()
   OnUnInit();
   ReleaseDisplayMode();
 
+#ifndef AGS_NO_VIDEO_PLAYER
   dxmedia_shutdown_3d();
+#endif
 
   if (pNativeSurface)
   {
@@ -1030,6 +1039,11 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   // NOTE: this function is practically useless at the moment, because D3D redraws whole game frame each time
   Rect r(x1, y1, x2, y2);
   r = _scaling.ScaleRange(r);
+  ClearScreenRect(r, colorToUse);
+}
+
+void D3DGraphicsDriver::ClearScreenRect(const Rect &r, RGB *colorToUse)
+{
   D3DRECT rectToClear;
   rectToClear.x1 = r.Left;
   rectToClear.y1 = r.Top;
@@ -1038,7 +1052,6 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   DWORD colorDword = 0;
   if (colorToUse != NULL)
     colorDword = D3DCOLOR_XRGB(colorToUse->r, colorToUse->g, colorToUse->b);
-
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
@@ -1895,6 +1908,8 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   this->ClearDrawLists();
 }
 
+#ifndef AGS_NO_VIDEO_PLAYER
+
 bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoSkipType skipType, bool stretchToFullScreen)
 {
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0.5f, 0);
@@ -1902,6 +1917,8 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
   int result = dxmedia_play_video_3d(filename, direct3ddevice, useAVISound, skipType, stretchToFullScreen ? 1 : 0);
   return (result == 0);
 }
+
+#endif
 
 void D3DGraphicsDriver::create_screen_tint_bitmap() 
 {
@@ -2049,3 +2066,5 @@ bool D3DGraphicsFactory::Init()
 } // namespace D3D
 } // namespace Engine
 } // namespace AGS
+
+#endif // AGS_PLATFORM_OS_WINDOWS

@@ -22,10 +22,6 @@
 
 namespace Math = AGS::Common::Math;
 
-#if defined (WINDOWS_VERSION)
-#include "util/c99_snprintf.h"
-#endif
-
 enum FormatParseResult
 {
     kFormatParseNone,

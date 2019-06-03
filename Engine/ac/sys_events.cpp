@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include "core/platform.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -163,7 +164,7 @@ int ags_getch() {
     else
     {
       gott = gott & 0x00ff;
-#if defined(MAC_VERSION)
+#if AGS_PLATFORM_OS_MACOS
       if (scancode==KEY_BACKSPACE) {
         gott = 8; //j backspace on mac
       }

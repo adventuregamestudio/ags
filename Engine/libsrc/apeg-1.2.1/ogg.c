@@ -1,11 +1,8 @@
+#include <stdint.h>
 #include <string.h>
 
 #include "apeg.h"
 #include "mpeg1dec.h"
-
-#if defined (WINDOWS_VERSION)
-#define int64_t __int64
-#endif
 
 #ifndef NO_OGG
 

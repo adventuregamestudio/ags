@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_UTIL__FILE_H
 #define __AGS_CN_UTIL__FILE_H
 
+#include "core/platform.h"
 #include "util/string.h"
 
 namespace AGS

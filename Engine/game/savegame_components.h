@@ -15,23 +15,22 @@
 #ifndef __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
 #define __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
 
-#include <memory>
 #include "game/savegame.h"
-#include "game/savegame_internal.h"
-#include "gfx/bitmap.h"
 #include "util/stream.h"
-#include "util/string.h"
 
 namespace AGS
 {
+
+namespace Common { struct Interaction; }
+
 namespace Engine
 {
 
-using Common::Bitmap;
 using Common::Stream;
-using Common::String;
-
 typedef std::shared_ptr<Stream> PStream;
+
+struct PreservedParams;
+struct RestoredData;
 
 namespace SavegameComponents
 {

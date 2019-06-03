@@ -14,6 +14,10 @@
 
 #include "util/filestream.h"
 
+#include <stdexcept>
+#include "util/stdio_compat.h"
+#include "util/string.h"
+
 namespace AGS
 {
 namespace Common
@@ -71,10 +75,10 @@ soff_t FileStream::GetLength() const
 {
     if (IsValid())
     {
-        soff_t pos = (soff_t)ftell(_file);
-        fseek(_file, 0, SEEK_END);
-        soff_t end = (soff_t)ftell(_file);
-        fseek(_file, pos, SEEK_SET);
+        soff_t pos = (soff_t)ags_ftell(_file);
+        ags_fseek(_file, 0, SEEK_END);
+        soff_t end = (soff_t)ags_ftell(_file);
+        ags_fseek(_file, pos, SEEK_SET);
         return end;
     }
 
@@ -85,7 +89,7 @@ soff_t FileStream::GetPosition() const
 {
     if (IsValid())
     {
-        return (soff_t) ftell(_file);
+        return (soff_t) ags_ftell(_file);
     }
     return -1;
 }
@@ -141,11 +145,11 @@ int32_t FileStream::WriteByte(uint8_t val)
     return -1;
 }
 
-soff_t FileStream::Seek(soff_t offset, StreamSeek origin)
+bool FileStream::Seek(soff_t offset, StreamSeek origin)
 {
     if (!_file)
     {
-        return -1;
+        return false;
     }
 
     int stdclib_origin;
@@ -156,20 +160,20 @@ soff_t FileStream::Seek(soff_t offset, StreamSeek origin)
     case kSeekEnd:      stdclib_origin = SEEK_END; break;
     default:
         // TODO: warning to the log
-        return -1;
+        return false;
     }
 
-    fseek(_file, (file_off_t)offset, stdclib_origin);
-    return GetPosition();
+    return ags_fseek(_file, (file_off_t)offset, stdclib_origin) == 0;
 }
 
 void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
 {
     String mode = File::GetCMode(open_mode, work_mode);
     if (mode.IsEmpty())
-        // TODO: warning to the log
-        return;
+        throw std::runtime_error("Error determining open mode");
     _file = fopen(file_name, mode);
+    if (_file == nullptr)
+        throw std::runtime_error("Error opening file.");
 }
 
 } // namespace Common

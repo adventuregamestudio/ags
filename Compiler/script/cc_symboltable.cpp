@@ -22,9 +22,8 @@ int SymbolTableEntry::get_num_args() {
 
 int symbolTable::get_type(int ii) {
     // just return the real type, regardless of pointerness/constness
-    ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
-
-	if ((ii < 0) || (ii >= entries.size())) { return -1; }
+    ii &= STYPE_MASK;
+	if ((ii < 0) || ((size_t)ii >= entries.size())) { return -1; }
     return entries[ii].stype;
 }
 
@@ -34,7 +33,7 @@ int SymbolTableEntry::is_loadable_variable() {
 
 void SymbolTableEntry::set_propfuncs(int propget, int propset) {
     // TODO check ranges and throw exception
-    soffs = (propget << 16) | propset;
+    soffs = (propget << 16) | (propset & 0xffff);
 }
 int SymbolTableEntry::get_propget() {
     int toret = (soffs >> 16) & 0x00ffff;
@@ -44,7 +43,7 @@ int SymbolTableEntry::get_propget() {
     return toret;
 }
 int SymbolTableEntry::get_propset() {
-    int toret = soffs & 0x00ffff;
+    int toret = soffs & 0xffff;
 	if (toret == 0xffff) {
         return -1;
 	}
@@ -154,28 +153,24 @@ int symbolTable::find(const char*ntf) {
 }
 
 std::string symbolTable::get_friendly_name(int idx) {
-    std::string result;
 
-    idx &= STYPE_MASK;
-    if(idx > -1 && idx < entries.size()) {
-        result = entries[idx].sname;
-
-        if (idx & STYPE_POINTER) {
-            result = result + std::string("*");
-        }
-
-        if (idx & STYPE_DYNARRAY) {
-            result = result + std::string("[]");
-        }
-
-        if (idx & STYPE_CONST) {
-            result = std::string("const ") + result;
-        }
-
+    int actualIdx = idx & STYPE_MASK;
+    if (actualIdx < 0 || (size_t)actualIdx >= entries.size()) {
+        return std::string("(invalid symbol)");
     }
-    else
-        result = std::string("(invalid symbol)");
-
+    
+    std::string result;
+    int mask = idx & (~STYPE_MASK);
+    result = entries[actualIdx].sname;
+    if (mask & STYPE_POINTER) {
+        result = result + std::string("*");
+    }
+    if (mask & STYPE_DYNARRAY) {
+        result = result + std::string("[]");
+    }
+    if (mask & STYPE_CONST) {
+        result = std::string("const ") + result;
+    }
     return result;
 }
 
@@ -203,8 +198,8 @@ const char *symbolTable::get_name(int idx) {
 		return nameGenCache[idx];
 	}
 
-	std::size_t actualIdx = idx & STYPE_MASK;
-	if (actualIdx < 0 || actualIdx >= entries.size()) { return NULL; }
+	int actualIdx = idx & STYPE_MASK;
+	if (actualIdx < 0 || (size_t)actualIdx >= entries.size()) { return NULL; }
 
 	std::string resultString = get_name_string(idx);
 	char *result = (char *)malloc(resultString.length() + 1);

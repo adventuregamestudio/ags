@@ -26,7 +26,7 @@
 #include <sys/stat.h> 
 #include <ctype.h>
 #include <unistd.h>
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 
 
 

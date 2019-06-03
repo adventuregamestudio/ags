@@ -25,7 +25,7 @@
 #include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 

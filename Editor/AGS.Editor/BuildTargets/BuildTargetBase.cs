@@ -56,6 +56,10 @@ namespace AGS.Editor
             }
         }
 
+        public virtual void DeleteMainGameData(string name)
+        {
+        }
+
         public virtual bool IsAvailable
         {
             get

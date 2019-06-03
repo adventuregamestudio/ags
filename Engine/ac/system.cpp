@@ -29,7 +29,7 @@
 #include "main/graphics_mode.h"
 #include "ac/global_debug.h"
 #include "media/audio/audio_system.h"
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Engine;
 

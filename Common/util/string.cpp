@@ -11,15 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "util/math.h"
 #include "util/stream.h"
 #include "util/string.h"
-#include "util/string_utils.h" // ags_stricmp
+#include "util/string_compat.h"
 
 namespace AGS
 {
@@ -407,6 +405,24 @@ String String::Section(char separator, size_t first, size_t last,
         return Mid(slice_from, slice_to - slice_from);
     }
     return String();
+}
+
+std::vector<String> String::Split(char separator) const
+{
+    std::vector<String> result;
+    if (!_meta || !separator)
+        return result;
+    const char *ptr = _meta->CStr;
+    while (*ptr)
+    {
+        const char *found_cstr = strchr(ptr, separator);
+        if (!found_cstr) break;
+        result.push_back(String(ptr, found_cstr - ptr));
+        ptr = found_cstr + 1;
+    }
+    if (*ptr)
+        result.push_back(String(ptr));
+    return result;
 }
 
 void String::Reserve(size_t max_length)

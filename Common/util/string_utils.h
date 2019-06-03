@@ -23,15 +23,7 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-extern "C" char *ags_strlwr(char *s);
-extern "C" char *ags_strupr(char *s);
-extern "C" int ags_stricmp(const char *, const char *);
-extern "C" int ags_strnicmp(const char *, const char *, size_t);
-extern "C" char *ags_strdup(const char *s);
-
 void unescape(char *buffer);
-// Break up the text into lines
-void split_lines(const char *todis, int wii, int fonnt);
 
 //=============================================================================
 

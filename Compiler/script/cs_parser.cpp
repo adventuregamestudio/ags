@@ -300,7 +300,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
     fmem_close(iii);
     targ->write_meta(SMETA_END,0);
     // clear any temporary tpyes set
-    for (int ii = 0; ii < sym.entries.size(); ii++) {
+    for (int ii = 0; (size_t)ii < sym.entries.size(); ii++) {
         if (sym.entries[ii].stype == SYM_TEMPORARYTYPE)
             sym.entries[ii].stype = 0;
     }
@@ -326,7 +326,7 @@ void free_pointer(int spOffset, int zeroCmd, int arraySym, ccCompiledScript *scr
 void free_pointers_from_struct(int structVarSym, ccCompiledScript *scrip) {
     int structType = sym.entries[structVarSym].vartype;
 
-    for (int dd = 0; dd < sym.entries.size(); dd++) {
+    for (int dd = 0; (size_t)dd < sym.entries.size(); dd++) {
         if ((sym.entries[dd].stype == SYM_STRUCTMEMBER) &&
             (sym.entries[dd].extends == structType) &&
             ((sym.entries[dd].flags & SFLG_IMPORTED) == 0) &&
@@ -363,7 +363,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
     if (from_level == 0)
         zeroPtrCmd = SCMD_MEMZEROPTRND;
 
-    for (cc=0;cc<sym.entries.size();cc++) {
+    for (cc=0; (size_t)cc<sym.entries.size();cc++) {
         if ((sym.entries[cc].sscope > from_level) && (sym.entries[cc].stype == SYM_LOCALVAR)) {
             // caller will sort out stack, so ignore parameters
             if ((sym.entries[cc].flags & SFLG_PARAMETER)==0) {
@@ -1341,6 +1341,7 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
         reallywant = fsym;
       }
       else {
+        mustBeStaticMember = 0;
         reallywant = sym.entries[fsym].vartype;
         if (reallywant < 1) {
           cc_error("structure required on left side of '.'");
@@ -1839,7 +1840,7 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   else
     propFunc = sym.entries[propSym].get_propget();
 
-  if (propFunc == 0) {
+  if (propFunc < 0) {
     cc_error("Internal error: property in use but not set");
     return -1;
   }
@@ -3938,7 +3939,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             sprintf(propFuncName, "%s::get%s_%s", sym.get_name(stname), namePrefix, memberPart);
 
                             int propGet = scrip->add_new_import(propFuncName);
-                            int propSet = 0;
+                            int propSet = 0xffff;
                             if (!member_is_readonly) {
                                 // setter only if it's not read-only
                                 sprintf(propFuncName, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);

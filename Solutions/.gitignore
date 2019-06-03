@@ -1,0 +1,10 @@
+# Engine runtime output
+Engine.App/allegro.log
+Engine.App/test.ini
+
+# MSVS solution output and temporary files
+**/Debug
+**/Debug_MD
+**/Release
+**/Release_MD
+**/Release_NoMP3

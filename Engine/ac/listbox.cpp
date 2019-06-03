@@ -67,14 +67,14 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   listbox->Clear();
   guis_need_update = 1;
 
-  String path, alt_path;
-  if (!ResolveScriptPath(filemask, true, path, alt_path))
+  ResolvedPath rp;
+  if (!ResolveScriptPath(filemask, true, rp))
     return;
 
   std::set<String> files;
-  FillDirList(files, path);
-  if (!alt_path.IsEmpty() && alt_path.Compare(path) != 0)
-    FillDirList(files, alt_path);
+  FillDirList(files, rp.FullPath);
+  if (!rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
+    FillDirList(files, rp.AltPath);
 
   for (std::set<String>::const_iterator it = files.begin(); it != files.end(); ++it)
   {

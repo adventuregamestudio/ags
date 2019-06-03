@@ -424,3 +424,118 @@ TEST(Compile, NegationRHSOfExpression) {
     printf("Error: %s\n", last_seen_cc_error());
     ASSERT_EQ(0, compileResult);
 }
+
+TEST(Compile, CheckPropertyHandlersAreInPlace) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct A {\
+            readonly import attribute int x;\
+        };\
+        \
+        managed struct B {\
+            import attribute A *a;\
+        };\
+        \
+        managed struct C {\
+            readonly import attribute B *b;\
+        };";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    printf("Error: %s\n", last_seen_cc_error());
+    ASSERT_EQ(0, compileResult);
+
+    EXPECT_EQ(0, sym.entries[sym.find("A::x")].get_propget());
+    EXPECT_EQ(-1, sym.entries[sym.find("A::x")].get_propset());
+    EXPECT_EQ(1, sym.entries[sym.find("B::a")].get_propget());
+    EXPECT_EQ(2, sym.entries[sym.find("B::a")].get_propset());
+    EXPECT_EQ(3, sym.entries[sym.find("C::b")].get_propget());
+    EXPECT_EQ(-1, sym.entries[sym.find("C::b")].get_propset());
+}
+
+TEST(Compile, AccessMembersInSequence) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct A {\
+            import attribute int X;\
+        };\
+        \
+        managed struct B {\
+            import attribute A *a;\
+        };\
+        \
+        managed struct C {\
+            import attribute B *b;\
+        };\
+        \
+        int get_X(this A*)\
+        {\
+            return 0;\
+        }\
+        \
+        A* get_a(this B*)\
+        {\
+            return null;\
+        }\
+        \
+        B* get_b(this C*)\
+        {\
+            return null;\
+        }\
+        \
+        void Func() {\
+            C *c;\
+            int a = c.b.a.X;\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    printf("Error: %s\n", last_seen_cc_error());
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, AccessNonStaticMemberOfAType) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct A {\
+            import attribute int x;\
+        };\
+        \
+        builtin struct B {\
+            import readonly attribute A *a;\
+        };\
+        \
+        void Func() {\
+            int a = B.a.x;\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("must have an instance of the struct to access a non-static member", last_seen_cc_error());
+}
+
+TEST(Compile, AccessNonStaticMemberOfAStaticMember) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        managed struct A {\
+            import attribute int x;\
+        };\
+        \
+        builtin struct B {\
+            import static readonly attribute A *a;\
+        };\
+        \
+        void Func() {\
+            int a = B.a.x;\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    printf("Error: %s\n", last_seen_cc_error());
+    ASSERT_EQ(0, compileResult);
+}

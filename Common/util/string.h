@@ -39,6 +39,7 @@
 #define __AGS_CN_UTIL__STRING_H
 
 #include <stdarg.h>
+#include <vector>
 #include "core/platform.h"
 #include "core/types.h"
 #include "debug/assert.h"
@@ -209,6 +210,7 @@ public:
     // Extract the range of Xth to Yth fields, separated by the given character
     String  Section(char separator, size_t first, size_t last,
                               bool exclude_first_sep = true, bool exclude_last_sep = true) const;
+    std::vector<String> Split(char separator) const;
 
     //-------------------------------------------------------------------------
     // String modification methods

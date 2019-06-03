@@ -57,7 +57,7 @@ void GUILabel::Draw(Common::Bitmap *ds)
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
     for (int i = 0, at_y = Y;
-        i < numlines && (!limit_by_label_frame || at_y <= Y + Height);
+        i < line_count && (!limit_by_label_frame || at_y <= Y + Height);
         ++i, at_y += linespacing)
     {
         GUI::DrawTextAlignedHor(ds, lines[i], Font, text_color, X, X + Width - 1, at_y,

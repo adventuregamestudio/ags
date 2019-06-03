@@ -19,6 +19,9 @@
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "debug/debug_log.h"
+#include "util/directory.h"
+#include "util/path.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -39,37 +42,54 @@ int32_t FileOpenCMode(const char*fnmm, const char* cmode)
   return FileOpen(fnmm, open_mode, work_mode);
 }
 
-int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+// Find a free file slot to use
+int32_t FindFreeFileSlot()
 {
   int useindx = 0;
-
-  String path, alt_path;
-  if (!ResolveScriptPath(fnmm, (open_mode == Common::kFile_Open && work_mode == Common::kFile_Read),
-      path, alt_path))
-    return 0;
-
-  // find a free file handle to use
-  for (useindx = 0; useindx < num_open_script_files; useindx++) 
+  for (; useindx < num_open_script_files; useindx++) 
   {
     if (valid_handles[useindx].stream == nullptr)
       break;
   }
 
-  Stream *s = File::OpenFile(path, open_mode, work_mode);
-  if (!s && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
-    s = File::OpenFile(alt_path, open_mode, work_mode);
+  if (useindx >= num_open_script_files &&
+      num_open_script_files >= MAX_OPEN_SCRIPT_FILES)
+  {
+    quit("!FileOpen: tried to open more than 10 files simultaneously - close some first");
+    return -1;
+  }
+  return useindx;
+}
+
+int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+{
+  int32_t useindx = FindFreeFileSlot();
+  if (useindx < 0)
+    return 0;
+
+  ResolvedPath rp;
+  if (open_mode == kFile_Open && work_mode == kFile_Read)
+  {
+    if (!ResolveScriptPath(fnmm, true, rp))
+      return 0;
+  }
+  else
+  {
+    if (!ResolveWritePathAndCreateDirs(fnmm, rp))
+      return 0;
+  }
+
+  Stream *s = File::OpenFile(rp.FullPath, open_mode, work_mode);
+  if (!s && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
+    s = File::OpenFile(rp.AltPath, open_mode, work_mode);
 
   valid_handles[useindx].stream = s;
   if (valid_handles[useindx].stream == nullptr)
     return 0;
   valid_handles[useindx].handle = useindx + 1; // make handle indexes 1-based
 
-  if (useindx >= num_open_script_files) 
-  {
-    if (num_open_script_files >= MAX_OPEN_SCRIPT_FILES)
-      quit("!FileOpen: tried to open more than 10 files simultaneously - close some first");
+  if (useindx >= num_open_script_files)
     num_open_script_files++;
-  }
   return valid_handles[useindx].handle;
 }
 

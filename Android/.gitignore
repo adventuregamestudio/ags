@@ -1,0 +1,15 @@
+# Android output and temporary files
+*/*~
+launcher_list/.classpath
+launcher_list/.settings/
+launcher_list/bin/
+launcher_list/gen/
+launcher_list/local.properties
+library/.settings/
+library/bin/
+library/gen/
+library/libs/
+library/obj/
+library/local.properties
+library/.classpath
+nativelibs

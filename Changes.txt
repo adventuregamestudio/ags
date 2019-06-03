@@ -20,6 +20,7 @@ Editor:
  - Added support for custom UI color themes.
  - Game and room templates are now by default saved in AppData/Local/AGS folder.
    Editor finds them in both program folder and AppData.
+ - Added "Game file name" option to let users easily set compiled game file's name.
  - Added "Allow relative asset resolutions" option to "Backwards Compatibility" section.
    Disabled by default, it makes game treat all sprites and rooms resolution as real one.
  - Added "Custom Say/Narrate function in dialog scripts" options which determine what
@@ -68,6 +69,10 @@ Editor:
  - Fixed crash when editor was updating file version in compiled EXE but failed and tried to
    report about that.
 
+Scripting:
+ - Fixed compiler was not allowing to access regular properties after type's static properties
+   in a sequence (for example: DateTime.Now.Hour).
+
 Script API:
  - Introduced new managed struct Point describing (x,y) coordinates.
  - Implemented Dictionary and Set script classes supporting storage and lookup of strings and
@@ -108,6 +113,7 @@ Engine:
  - Implemented support for sprite batch transformations.
  - Implemented custom room viewport and camera.
  - Removed 200 chars limit for DoOnceOnly token length.
+ - Create all subdirectories when writing a file by script command.
  - Reimplemented threaded audio, should now work correctly on all platforms.
  - Improved performance of hardware-accelerated renderers by not preparing a stage bitmap
    for plugins unless any plugin hooked for the particular drawing events.
@@ -136,7 +142,6 @@ Linux:
  - Support for OpenGL renderer.
  - Use same FreeType library sources as Windows version, which suppose to fix TTF font glitches.
  - Re-enabled threaded audio setting.
- - Improved CPU yield function, this supposedly may reduce CPU usage.
 
 Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.

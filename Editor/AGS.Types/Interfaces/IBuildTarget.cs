@@ -43,6 +43,11 @@ namespace AGS.Types
         /// </summary>
         void EnsureStandardSubfoldersExist();
         /// <summary>
+        /// Temporary solution for cleaning old compiled game in
+        /// case game binary name was changed.
+        /// </summary>
+        void DeleteMainGameData(string name);
+        /// <summary>
         /// Attempts to build the target. Compilation errors will
         /// be added to the ERRORS collection. Returns whether or
         /// not the target was successfully built. You should not

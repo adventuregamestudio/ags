@@ -24,6 +24,12 @@ namespace AGS.Editor
             return new string[] { GetCompiledPath() };
         }
 
+        public override void DeleteMainGameData(string name)
+        {
+            string filename = Path.Combine(OutputDirectoryFullPath, name + ".exe");
+            Utilities.DeleteFileIfExists(filename);
+        }
+
         public void CopyPlugins(CompileMessages errors)
         {
             try

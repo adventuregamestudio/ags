@@ -374,20 +374,22 @@ String get_save_game_path(int slotNum) {
 }
 
 // Convert a path possibly containing path tags into acceptable save path
-String MakeSaveGameDir(const char *newFolder)
+bool MakeSaveGameDir(const String &newFolder, ResolvedPath &rp)
 {
+    rp = ResolvedPath();
     // don't allow absolute paths
     if (!is_relative_filename(newFolder))
-        return "";
+        return false;
 
+    String base_dir;
     String newSaveGameDir = FixSlashAfterToken(newFolder);
 
     if (newSaveGameDir.CompareLeft(UserSavedgamesRootToken, UserSavedgamesRootToken.GetLength()) == 0)
     {
         if (saveGameParent.IsEmpty())
         {
-            newSaveGameDir.ReplaceMid(0, UserSavedgamesRootToken.GetLength(),
-                PathOrCurDir(platform->GetUserSavedgamesDirectory()));
+            base_dir = PathOrCurDir(platform->GetUserSavedgamesDirectory());
+            newSaveGameDir.ReplaceMid(0, UserSavedgamesRootToken.GetLength(), base_dir);
         }
         else
         {
@@ -397,6 +399,7 @@ String MakeSaveGameDir(const char *newFolder)
             if (!newSaveGameDir.IsEmpty())
                 newSaveGameDir.PrependChar('/');
             newSaveGameDir.Prepend(saveGameParent);
+            base_dir = saveGameParent;
         }
     }
     else
@@ -404,18 +407,25 @@ String MakeSaveGameDir(const char *newFolder)
         // Convert the path relative to installation folder into path relative to the
         // safe save path with default name
         if (saveGameParent.IsEmpty())
-            newSaveGameDir.Format("%s/%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()),
-                game.saveGameFolderName, newFolder);
+        {
+            base_dir = PathOrCurDir(platform->GetUserSavedgamesDirectory());
+            newSaveGameDir.Format("%s/%s/%s", base_dir.GetCStr(), game.saveGameFolderName, newFolder.GetCStr());
+        }
         else
-            newSaveGameDir.Format("%s/%s", saveGameParent.GetCStr(), newFolder);
+        {
+            base_dir = saveGameParent;
+            newSaveGameDir.Format("%s/%s", saveGameParent.GetCStr(), newFolder.GetCStr());
+        }
         // For games made in the safe-path-aware versions of AGS, report a warning
         if (game.options[OPT_SAFEFILEPATHS])
         {
             debug_script_warn("Attempt to explicitly set savegame location relative to the game installation directory ('%s') denied;\nPath will be remapped to the user documents directory: '%s'",
-                newFolder, newSaveGameDir.GetCStr());
+                newFolder.GetCStr(), newSaveGameDir.GetCStr());
         }
     }
-    return newSaveGameDir;
+    rp.BaseDir = Path::MakeTrailingSlash(base_dir);
+    rp.FullPath = Path::MakeTrailingSlash(newSaveGameDir);
+    return true;
 }
 
 bool SetCustomSaveParent(const String &path)
@@ -432,15 +442,27 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
 {
     if (!newFolder || newFolder[0] == 0)
         newFolder = ".";
-    String newSaveGameDir = explicit_path ? String(newFolder) : MakeSaveGameDir(newFolder);
-    if (newSaveGameDir.IsEmpty())
-        return false;
+    String newSaveGameDir;
+    if (explicit_path)
+    {
+        newSaveGameDir = Path::MakeTrailingSlash(newFolder);
+        if (!Directory::CreateDirectory(newSaveGameDir))
+            return false;
+    }
+    else
+    {
+        ResolvedPath rp;
+        if (!MakeSaveGameDir(newFolder, rp))
+            return false;
+        if (!Directory::CreateAllDirectories(rp.BaseDir, rp.FullPath))
+        {
+            debug_script_warn("SetSaveGameDirectory: failed to create all subdirectories: %s", rp.FullPath.GetCStr());
+            return false;
+        }
+        newSaveGameDir = rp.FullPath;
+    }
 
-    if (!Directory::CreateDirectory(newSaveGameDir))
-        return false;
-    newSaveGameDir.AppendChar('/');
-
-    String newFolderTempFile = String::FromFormat("%s/agstmp.tmp", newSaveGameDir.GetCStr());
+    String newFolderTempFile = String::FromFormat("%s""agstmp.tmp", newSaveGameDir.GetCStr());
     if (!Common::File::TestCreateFile(newFolderTempFile))
         return false;
 

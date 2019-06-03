@@ -1,42 +1,9 @@
-# Android output and temporary files
-Android/*/*~
-Android/launcher_list/.classpath
-Android/launcher_list/.settings/
-Android/launcher_list/bin/
-Android/launcher_list/gen/
-Android/launcher_list/local.properties
-Android/library/.settings/
-Android/library/bin/
-Android/library/gen/
-Android/library/libs/
-Android/library/obj/
-Android/library/local.properties
-Android/library/.classpath
-Android/nativelibs
-
-
-# iOS output and temporary files
-iOS/nativelibs/armv6
-iOS/nativelibs/armv7
-iOS/nativelibs/armv7s
-iOS/nativelibs/arm64
-iOS/nativelibs/i386
-iOS/nativelibs/x86_64
-
-
 # Linux related paths
 .pc
 
-
-# OSX output and temporary files
-OSX/buildlibs/opt/
-OSX/buildlibs/build/
-OSX/include/
-OSX/lib/
-
 ## Xcode Build generated
-build/
-DerivedData/
+**/build
+**/DerivedData
 
 ## Xcode Various settings
 *.pbxuser
@@ -47,7 +14,7 @@ DerivedData/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-xcuserdata/
+**/xcuserdata
 
 ## Xcode Other
 *.moved-aside
@@ -56,51 +23,17 @@ xcuserdata/
 *.xcscmblueprint
 
 
-# Editor output and temporary files
-Editor/AGS.Controls/bin
-Editor/AGS.Controls/obj
-Editor/AGS.CScript.Compiler/bin
-Editor/AGS.CScript.Compiler/obj
-Editor/AGS.Editor/bin
-Editor/AGS.Editor/obj
-Editor/AGS.Native/Debug
-Editor/AGS.Native/Release
-Editor/AGS.Types/bin
-Editor/AGS.Types/obj
-Editor/References/*.dll
-
-
 # Engine output and temporary files
 # for Linux and Windows build
 *.o
 *.d
-common.a
+Engine/common.a
 Engine/ags
 Engine/resource/version.aps
 
 
-# Engine runtime output
-Solutions/Engine.App/allegro.log
-Solutions/Engine.App/test.ini
-
-
 # MSVS solution output and temporary files
-*/.vs/
-Solutions/.build/
-Solutions/.lib/
-Solutions/.test/
-Solutions/Common.Lib/Debug/
-Solutions/Common.Lib/Debug_MD/
-Solutions/Common.Lib/Release
-Solutions/Common.Lib/Release_MD/
-Solutions/Common.Lib/Release_NoMP3/
-Solutions/Compiler.Lib/Debug
-Solutions/Compiler.Lib/Debug_MD/
-Solutions/Compiler.Lib/Release
-Solutions/Compiler.Lib/Release_MD/
-Solutions/Engine.App/Debug/
-Solutions/Engine.App/Release
-Solutions/Engine.App/Release_NoMP3
+**/.vs
 *.csproj.user
 *.ncb
 *.suo
@@ -108,19 +41,12 @@ Solutions/Engine.App/Release_NoMP3
 *.VC.opendb
 *.vcproj.*.user
 *.vcxproj.user
-
-
-# Manual output and temporary files
-Manual/*.htm
-Manual/*.con
-Manual/ags.ref
-Manual/ags.chm
-Manual/ags.chw
-Manual/ags.hhc
-Manual/ags.hhk
-Manual/ags.hhp
-Manual/ags.htx
-Manual/ags-help.chm
+**/Debug
+**/Develop
+**/Release
+**/.build
+**/.lib
+**/.test
 
 
 # Tools output and temporary files
@@ -155,3 +81,7 @@ desktop.ini
 
 # recommended CMake build directory
 build*/**
+
+
+# VSCode project configuration
+**/.vscode

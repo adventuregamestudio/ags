@@ -67,10 +67,10 @@ String GetDirectoryPath(const String &path)
     size_t slash_at = dir.FindCharReverse('/');
     if (slash_at != -1)
     {
-        dir.ClipMid(slash_at);
+        dir.ClipMid(slash_at + 1);
         return dir;
     }
-    return ".";
+    return "./";
 }
 
 bool IsSameOrSubDir(const String &parent, const String &path)
@@ -120,6 +120,15 @@ String MakePathNoSlash(const String &path)
     return dir_path;
 }
 
+String MakeTrailingSlash(const String &path)
+{
+    String dir_path = path;
+    FixupPath(dir_path);
+    if (dir_path.GetLast() != '/')
+        dir_path.AppendChar('/');
+    return dir_path;
+}
+
 String MakeAbsolutePath(const String &path)
 {
     if (path.IsEmpty())
@@ -137,11 +146,26 @@ String MakeAbsolutePath(const String &path)
     //    abs_path = long_path_buffer;
     //}
 #endif
-    char buf[512];
-    canonicalize_filename(buf, abs_path, 512);
+    char buf[MAX_PATH];
+    canonicalize_filename(buf, abs_path, MAX_PATH);
     abs_path = buf;
     FixupPath(abs_path);
     return abs_path;
+}
+
+String MakeRelativePath(const String &base, const String &path)
+{
+    char can_parent[MAX_PATH];
+    char can_path[MAX_PATH];
+    char relative[MAX_PATH];
+    // canonicalize_filename treats "." as "./." (file in working dir)
+    const char *use_parent = base == "." ? "./" : base;
+    const char *use_path = path == "." ? "./" : path;
+    canonicalize_filename(can_parent, use_parent, MAX_PATH);
+    canonicalize_filename(can_path, use_path, MAX_PATH);
+    String rel_path = make_relative_filename(relative, can_parent, can_path, MAX_PATH);
+    FixupPath(rel_path);
+    return rel_path;
 }
 
 String ConcatPaths(const String &parent, const String &child)

@@ -158,6 +158,8 @@ target_sources(common
     util/wgt2allg.h
     util/bufferedstream.cpp
     util/bufferedstream.h
+    util/string_compat.c
+    util/string_compat.h
 )
 
 target_link_libraries(common PUBLIC Allegro::Allegro AlFont::AlFont AAStr::AAStr)

@@ -37,7 +37,7 @@
 #include "plugin/agsplugin.h"
 #include "util/file.h"
 #include "util/stream.h"
-#include "util/string_utils.h"
+#include "util/string_compat.h"
 #include "media/audio/audio_system.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER

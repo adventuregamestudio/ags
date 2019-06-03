@@ -16,7 +16,7 @@
 #include <string.h>
 #include "ac/wordsdictionary.h"
 #include "util/stream.h"
-#include "util/string_utils.h" // ags_stricmp
+#include "util/string_compat.h"
 
 using AGS::Common::Stream;
 

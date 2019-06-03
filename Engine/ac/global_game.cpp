@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include <cmath>
+#include <math.h>
 
 #include "core/platform.h"
 #include "ac/audiocliptype.h"
@@ -389,7 +389,7 @@ void SetGameSpeed(int newspd) {
 }
 
 int GetGameSpeed() {
-    return std::lround(get_current_fps()) - play.game_speed_modifier;
+    return ::lround(get_current_fps()) - play.game_speed_modifier;
 }
 
 int SetGameOption (int opt, int setting) {

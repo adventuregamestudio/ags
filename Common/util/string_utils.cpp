@@ -11,57 +11,14 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <errno.h>
-#include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include "core/platform.h"
-#include "gui/guidefines.h" // MAXLINE
 #include "util/math.h"
 #include "util/string_utils.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
-
-#define STD_BUFFER_SIZE 3000
-
-extern "C" char *ags_strlwr(char *s) {
-    for (auto p = s; *p; p++) {
-        *p = tolower(*p);
-    }
-   return s;
-}
-
-extern "C" char *ags_strupr(char *s) {
-    for (auto p = s; *p; p++) {
-        *p = toupper(*p);
-    }
-    return s;
-}
-
-extern "C" int ags_stricmp(const char *s1, const char *s2) {
-#if AGS_PLATFORM_OS_WINDOWS
-    return stricmp(s1, s2);
-#else
-    return strcasecmp(s1, s2);
-#endif
-}
-
-extern "C" int ags_strnicmp(const char *s1, const char *s2, size_t n) {
-#if AGS_PLATFORM_OS_WINDOWS
-    return strnicmp(s1, s2, n);
-#else
-    return strncasecmp(s1, s2, n);
-#endif
-}
-
-extern "C" char *ags_strdup(const char *s) {
-    char *result = (char *)malloc(strlen(s) + 1);
-    strcpy(result, s);
-    return result;
-}
-
 
 // Turn [ into \n and turn \[ into [
 void unescape(char *buffer) {
@@ -81,85 +38,6 @@ void unescape(char *buffer) {
         else
             memmove(offset - 1, offset, strlen(offset) + 1);
         offset++;
-    }
-}
-
-char lines[MAXLINE][200];
-int  numlines;
-
-// Project-dependent implementation
-extern int wgettextwidth_compensate(const char *tex, int font);
-
-// Break up the text into lines
-void split_lines(const char *todis, int wii, int fonnt) {
-    // v2.56.636: rewrote this function because the old version
-    // was crap and buggy
-    int i = 0;
-    int nextCharWas;
-    int splitAt;
-    char *theline;
-    // make a copy, since we change characters in the original string
-    // and this might be in a read-only bit of memory
-    char textCopyBuffer[STD_BUFFER_SIZE];
-    strcpy(textCopyBuffer, todis);
-    theline = textCopyBuffer;
-    unescape(theline);
-
-    while (1) {
-        splitAt = -1;
-
-        if (theline[i] == 0) {
-            // end of the text, add the last line if necessary
-            if (i > 0) {
-                strcpy(lines[numlines], theline);
-                numlines++;
-            }
-            break;
-        }
-
-        // temporarily terminate the line here and test its width
-        nextCharWas = theline[i + 1];
-        theline[i + 1] = 0;
-
-        // force end of line with the \n character
-        if (theline[i] == '\n')
-            splitAt = i;
-        // otherwise, see if we are too wide
-        else if (wgettextwidth_compensate(theline, fonnt) >= wii) {
-            int endline = i;
-            while ((theline[endline] != ' ') && (endline > 0))
-                endline--;
-
-            // single very wide word, display as much as possible
-            if (endline == 0)
-                endline = i - 1;
-
-            splitAt = endline;
-        }
-
-        // restore the character that was there before
-        theline[i + 1] = nextCharWas;
-
-        if (splitAt >= 0) {
-            // add this line
-            nextCharWas = theline[splitAt];
-            theline[splitAt] = 0;
-            strcpy(lines[numlines], theline);
-            numlines++;
-            theline[splitAt] = nextCharWas;
-            if (numlines >= MAXLINE) {
-                strcat(lines[numlines-1], "...");
-                break;
-            }
-            // the next line starts from here
-            theline += splitAt;
-            // skip the space or new line that caused the line break
-            if ((theline[0] == ' ') || (theline[0] == '\n'))
-                theline++;
-            i = -1;
-        }
-
-        i++;
     }
 }
 

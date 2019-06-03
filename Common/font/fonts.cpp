@@ -20,6 +20,10 @@
 #include "font/ttffontrenderer.h"
 #include "font/wfnfontrenderer.h"
 #include "gfx/bitmap.h"
+#include "gui/guidefines.h" // MAXLINE
+#include "util/string_utils.h"
+
+#define STD_BUFFER_SIZE 3000
 
 using namespace AGS::Common;
 
@@ -182,6 +186,85 @@ bool use_default_linespacing(size_t fontNumber)
     if (fontNumber >= fonts.size())
         return false;
     return fonts[fontNumber].Info.LineSpacing == 0;
+}
+
+char lines[MAXLINE][200];
+int  numlines;
+
+// Project-dependent implementation
+extern int wgettextwidth_compensate(const char *tex, int font);
+
+// Break up the text into lines
+void split_lines(const char *todis, int wii, int fonnt) {
+    // v2.56.636: rewrote this function because the old version
+    // was crap and buggy
+    int i = 0;
+    int nextCharWas;
+    int splitAt;
+    char *theline;
+    // make a copy, since we change characters in the original string
+    // and this might be in a read-only bit of memory
+    char textCopyBuffer[STD_BUFFER_SIZE];
+    strcpy(textCopyBuffer, todis);
+    theline = textCopyBuffer;
+    unescape(theline);
+
+    while (1) {
+        splitAt = -1;
+
+        if (theline[i] == 0) {
+            // end of the text, add the last line if necessary
+            if (i > 0) {
+                strcpy(lines[numlines], theline);
+                numlines++;
+            }
+            break;
+        }
+
+        // temporarily terminate the line here and test its width
+        nextCharWas = theline[i + 1];
+        theline[i + 1] = 0;
+
+        // force end of line with the \n character
+        if (theline[i] == '\n')
+            splitAt = i;
+        // otherwise, see if we are too wide
+        else if (wgettextwidth_compensate(theline, fonnt) >= wii) {
+            int endline = i;
+            while ((theline[endline] != ' ') && (endline > 0))
+                endline--;
+
+            // single very wide word, display as much as possible
+            if (endline == 0)
+                endline = i - 1;
+
+            splitAt = endline;
+        }
+
+        // restore the character that was there before
+        theline[i + 1] = nextCharWas;
+
+        if (splitAt >= 0) {
+            // add this line
+            nextCharWas = theline[splitAt];
+            theline[splitAt] = 0;
+            strcpy(lines[numlines], theline);
+            numlines++;
+            theline[splitAt] = nextCharWas;
+            if (numlines >= MAXLINE) {
+                strcat(lines[numlines - 1], "...");
+                break;
+            }
+            // the next line starts from here
+            theline += splitAt;
+            // skip the space or new line that caused the line break
+            if ((theline[0] == ' ') || (theline[0] == '\n'))
+                theline++;
+            i = -1;
+        }
+
+        i++;
+    }
 }
 
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx)

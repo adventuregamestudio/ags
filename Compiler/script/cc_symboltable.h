@@ -28,8 +28,11 @@ struct SymbolTableEntry {
 
 	int is_loadable_variable();
 
+    // Set indexes of get/set property handlers; 0xffff for no entry
 	void set_propfuncs(int propget, int propset);
+    // Returns an index of get property handler; -1 means no entry
 	int get_propget();
+    // Returns an index of set property handler; -1 means no entry
 	int get_propset();
 
 	int operatorToVCPUCmd();
@@ -53,8 +56,8 @@ struct symbolTable {
     int  add_ex(const char*,int,char);  // adds new symbol of type and size
     int  add(const char*);   // adds new symbol, returns -1 if already exists
 
+    // TODO: why is there "friendly name" and "name", and what's the difference?
     std::string symbolTable::get_friendly_name(int idx);  // inclue ptr
-    std::string symbolTable::get_name_string(int idx);
     const char *get_name(int idx); // gets symbol name of index
 
     int  get_type(int ii);
@@ -68,6 +71,7 @@ private:
     std::vector<char *> symbolTreeNames;
 
     int  add_operator(const char*, int priority, int vcpucmd); // adds new operator
+    std::string symbolTable::get_name_string(int idx);
 };
 
 

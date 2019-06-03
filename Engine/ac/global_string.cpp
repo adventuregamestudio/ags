@@ -19,7 +19,7 @@
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "util/string_utils.h" //strlwr()
+#include "util/string_compat.h"
 
 extern int MAXSTRLEN;
 

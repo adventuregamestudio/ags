@@ -1,0 +1,7 @@
+# iOS output and temporary files
+nativelibs/armv6
+nativelibs/armv7
+nativelibs/armv7s
+nativelibs/arm64
+nativelibs/i386
+nativelibs/x86_64

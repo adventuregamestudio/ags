@@ -111,6 +111,7 @@ void GameSetupStructBase::SetGameResolution(Size game_res)
 
 void GameSetupStructBase::OnResolutionSet()
 {
+    _relativeUIMult = 1; // NOTE: this is remains of old logic, currently unused.
 }
 
 void GameSetupStructBase::ReadFromFile(Stream *in)

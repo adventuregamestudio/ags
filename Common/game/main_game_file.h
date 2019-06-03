@@ -21,8 +21,7 @@
 #ifndef __AGS_CN_GAME__MAINGAMEFILE_H
 #define __AGS_CN_GAME__MAINGAMEFILE_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include <set>
 #include <vector>
 #include "ac/game_version.h"
@@ -70,7 +69,7 @@ String GetMainGameFileErrorText(MainGameFileErrorType err);
 
 typedef TypedCodeError<MainGameFileErrorType, GetMainGameFileErrorText> MainGameFileError;
 typedef ErrorHandle<MainGameFileError> HGameFileError;
-typedef stdtr1compat::shared_ptr<Stream> PStream;
+typedef std::shared_ptr<Stream> PStream;
 
 // MainGameSource defines a successfully opened main game file
 struct MainGameSource

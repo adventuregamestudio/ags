@@ -234,7 +234,7 @@ void AnimateObject(int obn,int loopn,int spdd,int rept, int direction, int block
     CheckViewFrame (objs[obn].view, loopn, objs[obn].frame);
 
     if (blocking)
-        GameLoopUntilEvent(UNTIL_CHARIS0,(long)&objs[obn].cycling);
+        GameLoopUntilValueIsZero(&objs[obn].cycling);
 }
 
 /*

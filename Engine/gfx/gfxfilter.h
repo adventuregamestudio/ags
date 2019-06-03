@@ -19,8 +19,7 @@
 #ifndef __AGS_EE_GFX__GFXFILTER_H
 #define __AGS_EE_GFX__GFXFILTER_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "util/geometry.h"
 #include "util/string.h"
 
@@ -64,7 +63,7 @@ public:
     virtual Rect GetDestination() const = 0;
 };
 
-typedef stdtr1compat::shared_ptr<IGfxFilter> PGfxFilter;
+typedef std::shared_ptr<IGfxFilter> PGfxFilter;
 
 } // namespace Engine
 } // namespace AGS

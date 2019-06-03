@@ -95,6 +95,17 @@ def main():
 
     write_file(path, encoding, data)
 
+    # -----------------------------------------------------------------------------
+
+    path = "../CMakeLists.txt"
+    encoding = "utf-8"
+    data = read_file(path, encoding)
+
+    m = re.search(r'project\s*\(\s*AGS\s+VERSION\s+([\d\.]+)', data, re.MULTILINE)
+    data = replace_group(m, 1, data, ".".join(version.version))
+
+    write_file(path, encoding, data)
+
 
 if __name__ == "__main__":
     main()

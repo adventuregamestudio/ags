@@ -64,7 +64,6 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
 #include "util/math.h"
-#include "ac/dynobj/scriptcamera.h"
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
@@ -98,7 +97,7 @@ extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;
-extern unsigned int loopcounter,lastcounter;
+extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *raw_saved_screen;
@@ -208,13 +207,6 @@ const char* Room_GetMessages(int index) {
     return CreateNewScriptString(buffer);
 }
 
-ScriptCamera* Room_GetCamera()
-{
-    ScriptCamera *camera = new ScriptCamera();
-    ccRegisterManagedObject(camera, camera);
-    return camera;
-}
-
 
 //=============================================================================
 
@@ -271,7 +263,7 @@ void unload_old_room() {
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     play.bg_frame=0;
     play.bg_frame_locked=0;
-    play.ReleaseRoomCamera();
+    play.GetRoomCamera(0)->Release();
     remove_screen_overlay(-1);
     delete raw_saved_screen;
     raw_saved_screen = nullptr;
@@ -364,14 +356,27 @@ void update_letterbox_mode()
     play.SetUIViewport(new_main_view);
 }
 
-void adjust_viewport_to_room()
+// Automatically resize primary room viewport and camera to match the new room size
+static void adjust_viewport_to_room()
 {
     const Size real_room_sz = Size(thisroom.Width, thisroom.Height);
     const Rect main_view = play.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
-    play.SetRoomViewport(new_room_view);
-    play.SetRoomCameraSize(new_room_view.GetSize());
+    play.SetRoomViewport(0, new_room_view);
+    play.GetRoomCamera(0)->SetSize(new_room_view.GetSize());
+}
+
+// Run through all viewports and cameras to make sure they can work in new room's bounds
+static void update_all_viewcams_with_newroom()
+{
+    for (int i = 0; i < play.GetRoomCameraCount(); ++i)
+    {
+        auto cam = play.GetRoomCamera(i);
+        const Rect old_pos = cam->GetRect();
+        cam->SetSize(old_pos.GetSize());
+        cam->SetAt(old_pos.Left, old_pos.Top);
+    }
 }
 
 // forchar = playerchar on NewRoom, or NULL if restore saved game
@@ -383,6 +388,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     int cc;
     done_es_error = 0;
     play.room_changes ++;
+    // TODO: find out why do we need to temporarily lower color depth to 8-bit.
+    // Or do we? There's a serious usability problem in this: if any bitmap is
+    // created meanwhile it will have this color depth by default, which may
+    // lead to unexpected errors.
     set_color_depth(8);
     displayed_room=newnum;
 
@@ -462,6 +471,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     set_color_depth(game.GetColorDepth());
     recache_walk_behinds();
     update_polled_stuff_if_runtime();
+
+    update_all_viewcams_with_newroom();
+    init_room_drawdata();
 
     our_eip=205;
     // setup objects
@@ -598,7 +610,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             }
         }
 
-        play.SetRoomCameraAt(0, 0);
+        if (play.IsAutoRoomViewport())
+            play.GetRoomCamera(0)->SetAt(0, 0);
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
         // only stop moving if it's a new room, not a restore game
@@ -747,7 +760,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     generate_light_table();
     update_music_volume();
-    play.UpdateRoomCamera();
+    play.UpdateRoomCameras();
     our_eip = 212;
     invalidate_screen();
     for (cc=0;cc<croom->numobj;cc++) {
@@ -840,8 +853,6 @@ int find_highest_room_entered() {
     //if (fndas<0) quit("find_highest_room: been in no rooms?");
     return fndas;
 }
-
-extern long t1;  // defined in ac_main
 
 void first_room_initialization() {
     starting_room = displayed_room;
@@ -1052,11 +1063,6 @@ RuntimeScriptValue Sc_RoomProcessClick(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT3(RoomProcessClick);
 }
 
-RuntimeScriptValue Sc_Room_GetCamera(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptCamera, Room_GetCamera);
-}
-
 
 void RegisterRoomAPI()
 {
@@ -1077,7 +1083,6 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::get_RightEdge",                      Sc_Room_GetRightEdge);
     ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
     ccAddExternalStaticFunction("Room::get_Width",                          Sc_Room_GetWidth);
-    ccAddExternalStaticFunction("Room::get_Camera",                         Sc_Room_GetCamera);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

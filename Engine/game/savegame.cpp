@@ -392,6 +392,7 @@ void DoBeforeRestore(PreservedParams &pp)
     }
 
     play.FreeProperties();
+    play.FreeViewportsAndCameras();
 
     delete roominstFork;
     delete roominst;
@@ -407,11 +408,13 @@ void DoBeforeRestore(PreservedParams &pp)
     free_do_once_tokens();
 
     // unregister gui controls from API exports
-    // TODO: find out why are we doing this here? perhaps remove if we do full managed pool reset in DoBeforeRestore
+    // TODO: find out why are we doing this here? is this really necessary?
     for (int i = 0; i < game.numgui; ++i)
     {
         unexport_gui_controls(i);
     }
+    // Clear the managed object pool
+    ccUnregisterAllObjects();
 
     // NOTE: channels are array of MAX_SOUND_CHANNELS+1 size
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
@@ -420,6 +423,29 @@ void DoBeforeRestore(PreservedParams &pp)
     }
 
     clear_music_cache();
+}
+
+void RestoreViewportCameraLinks(const RestoredData &r_data)
+{
+    for (size_t i = 0; i < r_data.ViewCamLinks.size(); ++i)
+    {
+        int cam_index = r_data.ViewCamLinks[i];
+        if (cam_index < 0) continue;
+        auto view = play.GetRoomViewportObj(i);
+        auto cam = play.GetRoomCamera(cam_index);
+        view->LinkCamera(cam);
+        cam->LinkToViewport(view);
+    }
+    play.InvalidateViewportZOrder();
+}
+
+void RestoreViewportsAndCameras(const RestoredData &r_data)
+{
+    for (size_t i = 0; i < r_data.Cameras.size(); ++i)
+        *play.GetRoomCamera(i) = r_data.Cameras[i];
+    for (size_t i = 0; i < r_data.Viewports.size(); ++i)
+        *play.GetRoomViewportObj(i) = r_data.Viewports[i];
+    RestoreViewportCameraLinks(r_data);
 }
 
 // Final processing after successfully restoring from save
@@ -610,6 +636,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     recreate_overlay_ddbs();
 
     guis_need_update = 1;
+
+    RestoreViewportsAndCameras(r_data);
 
     // if savegame contained a global time and not an offset, this will be way off.
     if ((play.ignore_user_input_until_time - AGS_Clock::now()) > std::chrono::milliseconds(play.ignore_user_input_after_text_timeout_ms)) {

@@ -19,8 +19,7 @@
 #ifndef __AGS_EE_GFX__GRAPHICSDRIVER_H
 #define __AGS_EE_GFX__GRAPHICSDRIVER_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
 #include "util/geometry.h"
@@ -31,7 +30,7 @@ namespace AGS
 namespace Common
 {
     class Bitmap;
-    typedef stdtr1compat::shared_ptr<Common::Bitmap> PBitmap;
+    typedef std::shared_ptr<Common::Bitmap> PBitmap;
 }
 
 namespace Engine
@@ -40,7 +39,7 @@ namespace Engine
 // Forward declaration
 class IDriverDependantBitmap;
 class IGfxFilter;
-typedef stdtr1compat::shared_ptr<IGfxFilter> PGfxFilter;
+typedef std::shared_ptr<IGfxFilter> PGfxFilter;
 using Common::PBitmap;
 
 enum TintMethod

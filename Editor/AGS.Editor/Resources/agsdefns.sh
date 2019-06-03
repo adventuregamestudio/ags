@@ -598,10 +598,6 @@ builtin managed struct Room {
   import static bool SetTextProperty(const string property, const string value);
   /// Performs default processing of a mouse click at the specified co-ordinates.
   import static void ProcessClick(int x, int y, CursorMode);
-#ifdef SCRIPT_API_v3507
-  /// Gets the room camera
-  import static readonly attribute Camera *Camera;
-#endif
 };
 
 builtin managed struct Parser {
@@ -2018,6 +2014,14 @@ builtin managed struct Game {
   /// Play speech voice-over in non-blocking mode, optionally apply music and sound volume reduction
   import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
 #endif
+#ifdef SCRIPT_API_v3507
+  /// Gets the primary camera
+  import static readonly attribute Camera *Camera;
+  /// Gets the Camera by index.
+  import static readonly attribute Camera *Cameras[];
+  /// Gets the number of cameras.
+  import static readonly attribute int CameraCount;
+#endif
 };
 
 builtin struct GameState {
@@ -2155,6 +2159,10 @@ builtin managed struct Camera {
   /// Gets/sets whether this camera will follow the player character automatically.
   import attribute bool AutoTracking;
 
+  /// Creates a new Camera.
+  import static Camera *Create();
+  /// Removes an existing camera; note that primary camera will never be removed
+  import void Delete();
   /// Changes camera position in the room and disables automatic tracking of the player character.
   import void SetAt(int x, int y);
   /// Changes camera's capture dimensions in room coordinates.
@@ -2170,11 +2178,19 @@ builtin managed struct Viewport {
   import attribute int Width;
   /// Gets/sets the viewport's height in screen coordinates.
   import attribute int Height;
-  /// Gets the room camera displayed in this viewport.
-  import readonly attribute Camera *Camera;
+  /// Gets/sets the room camera displayed in this viewport.
+  import attribute Camera *Camera;
+  /// Gets/sets whether the viewport is drawn on screen.
+  import attribute bool Visible;
+  /// Gets/sets the Viewport's z-order relative to other viewports.
+  import attribute int ZOrder;
 
+  /// Creates a new Viewport.
+  import static Viewport *Create();
   /// Returns the viewport at the specified screen location.
   import static Viewport *GetAtScreenXY(int x, int y);
+  /// Removes an existing viewport; note that primary viewport will never be removed
+  import void Delete();
   /// Changes viewport's position on the screen
   import void SetPosition(int x, int y, int width, int height);
   /// Returns the point in room corresponding to the given screen coordinates if seen through this viewport.
@@ -2188,12 +2204,16 @@ builtin struct Screen {
   import static readonly attribute int Width;
   /// Gets the height of the game resolution.
   import static readonly attribute int Height;
-  /// Gets/sets whether the viewport should automatically adjust itself and camera to the new room's background size
+  /// Gets/sets whether the viewport should automatically adjust itself and camera to the new room's background size.
   import static attribute bool AutoSizeViewportOnRoomLoad;
-  /// Gets the primary room viewport
+  /// Gets the primary room viewport.
   import static readonly attribute Viewport *Viewport;
+  /// Gets a Viewport by index.
+  import static readonly attribute Viewport *Viewports[];
+  /// Gets the number of viewports.
+  import static readonly attribute int ViewportCount;
 
-  /// Returns the point in room which is displayed at the given screen coordinates
+  /// Returns the point in room which is displayed at the given screen coordinates.
   import static Point *ScreenToRoomPoint(int sx, int sy);
   /// Returns the point on screen corresponding to the given room coordinates relative to the main viewport.
   import static Point *RoomToScreenPoint(int rx, int ry);

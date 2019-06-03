@@ -25,8 +25,7 @@
 #ifndef __AGS_CN_GAME__CUSTOMPROPERTIES_H
 #define __AGS_CN_GAME__CUSTOMPROPERTIES_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(unordered_map)
+#include <unordered_map>
 #include "util/string.h"
 #include "util/string_types.h"
 
@@ -81,7 +80,7 @@ struct PropertyDesc
 
 // NOTE: AGS has case-insensitive property IDs
 // Schema - a map of property descriptions
-typedef stdtr1compat::unordered_map<String, PropertyDesc, HashStrNoCase, StrEqNoCase> PropertySchema;
+typedef std::unordered_map<String, PropertyDesc, HashStrNoCase, StrEqNoCase> PropertySchema;
 
 
 namespace Properties

@@ -18,8 +18,7 @@
 #ifndef __AGS_EE_AC__DRAW_H
 #define __AGS_EE_AC__DRAW_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "core/types.h"
 #include "ac/common_defines.h"
 #include "gfx/gfx_def.h"
@@ -30,7 +29,7 @@ namespace AGS
     namespace Common
     {
         class Bitmap;
-        typedef stdtr1compat::shared_ptr<Common::Bitmap> PBitmap;
+        typedef std::shared_ptr<Common::Bitmap> PBitmap;
     }
     namespace Engine { class IDriverDependantBitmap; }
 }
@@ -61,6 +60,8 @@ int MakeColor(int color_index);
 
 // Initializes drawing methods and optimisation
 void init_draw_method();
+// Initializes drawing resources upon entering new room
+void init_room_drawdata();
 // Disposes resources related to the current drawing methods
 void dispose_draw_method();
 // Disposes any temporary resources on leaving current room
@@ -68,9 +69,9 @@ void dispose_room_drawdata();
 // Updates drawing settings depending on main viewport's size and position on screen
 void on_mainviewport_changed();
 // Updates drawing settings if room viewport's position or size has changed
-void on_roomviewport_changed();
+void on_roomviewport_changed(int index);
 // Updates drawing settings if room camera's size has changed
-void on_camera_size_changed();
+void on_camera_size_changed(int index);
 
 // whether there are currently remnants of a DisplaySpeech
 void mark_screen_dirty();
@@ -78,6 +79,8 @@ bool is_screen_dirty();
 
 // marks whole screen as needing a redraw
 void invalidate_screen();
+// marks all the camera frame as needing a redraw
+void invalidate_camera_frame(int index);
 // marks certain rectangle on screen as needing a redraw
 // in_room flag tells how to interpret the coordinates: as in-room coords or screen viewport coordinates.
 void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room);
@@ -90,6 +93,7 @@ Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitma
 void update_screen();
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
+// Construct game scene, scheduling drawing list for the renderer
 void construct_virtual_screen(bool fullRedraw) ;
 void add_to_sprite_list(Engine::IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
@@ -106,7 +110,6 @@ void draw_screen_callback();
 void write_screen();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);
-void destroy_invalid_regions();
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
 // create the actsps[aa] image with the object drawn correctly
 // returns 1 if nothing at all has changed and actsps is still

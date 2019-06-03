@@ -2,7 +2,6 @@ FetchContent_Declare(
   theora_content
   GIT_REPOSITORY https://github.com/xiph/theora.git
   GIT_TAG        e5d205bfe849f1b41f45b91a0b71a3bdc6cd458f
-  GIT_SHALLOW    yes
 )
 
 FetchContent_GetProperties(theora_content)

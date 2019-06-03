@@ -201,9 +201,7 @@ struct InteractionScripts
     static InteractionScripts *CreateFromStream(Stream *in);
 };
 
-typedef stdtr1compat::shared_ptr<InteractionScripts> PInteractionScripts;
-
-typedef stdtr1compat::shared_ptr<InteractionScripts> PInteractionScripts;
+typedef std::shared_ptr<InteractionScripts> PInteractionScripts;
 
 // CLNUP Legacy deserializer
 void LegacyInteractionReadSkip(Stream *in);

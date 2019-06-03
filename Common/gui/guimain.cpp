@@ -141,7 +141,10 @@ bool GUIMain::IsConcealed() const
 
 bool GUIMain::IsDisplayed() const
 {
-    return IsVisible() && !IsConcealed();
+    if(!IsVisible()) return false;
+    if(IsConcealed()) return false;
+    if(Transparency == 255) return false;
+    return true;
 }
 
 bool GUIMain::IsInteractableAt(int x, int y) const
@@ -433,6 +436,7 @@ void GUIMain::SetTextWindow(bool on)
 void GUIMain::SetTransparencyAsPercentage(int percent)
 {
     Transparency = GfxDef::Trans100ToLegacyTrans255(percent);
+    guis_need_update = 1;
 }
 
 void GUIMain::SetVisible(bool on)

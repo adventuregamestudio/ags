@@ -80,7 +80,7 @@ String GetRuntimeInfo()
         runtimeInfo.Append("[Using translation ");
         runtimeInfo.Append(transFileName);
     }
-    if (opts.mod_player == 0)
+    if (usetup.mod_player == 0)
         runtimeInfo.Append("[(mod/xm player discarded)");
 
     return runtimeInfo;
@@ -105,10 +105,12 @@ void script_debug(int cmdd,int dataa) {
     else if (cmdd==2) 
     {  // show walkable areas from here
         // TODO: support multiple viewports?!
+        const int viewport_index = 0;
+        const int camera_index = 0;
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
-        const Rect &viewport = play.GetRoomViewport();
-        const Rect &camera = play.GetRoomCamera();
+        const Rect &viewport = play.GetRoomViewport(viewport_index);
+        const Rect &camera = play.GetRoomCamera(camera_index)->GetRect();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
         Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);
@@ -165,8 +167,11 @@ void script_debug(int cmdd,int dataa) {
             tempw->DrawLine(Line(srcx, srcy, targetx, targety), MakeColor(i+1));
         }
 
-        const Rect &viewport = play.GetRoomViewport();
-        const Rect &camera = play.GetRoomCamera();
+        // TODO: support multiple viewports?!
+        const int viewport_index = 0;
+        const int camera_index = 0;
+        const Rect &viewport = play.GetRoomViewport(viewport_index);
+        const Rect &camera = play.GetRoomCamera(camera_index)->GetRect();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
         Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
         view_bmp->StretchBlt(tempw, mask_src, RectWH(0, 0, viewport.GetWidth(), viewport.GetHeight()), Common::kBitmap_Transparency);

@@ -105,7 +105,7 @@ void quit_shutdown_audio()
     game.options[OPT_CROSSFADEMUSIC] = 0;
     stopmusic();
 #ifndef PSP_NO_MOD_PLAYBACK
-    if (opts.mod_player)
+    if (usetup.mod_player)
         remove_mod_player();
 #endif
 
@@ -180,7 +180,7 @@ void quit_message_on_exit(const char *qmsg, String &alertis, QuitReason qreason)
         // Display the message (at this point the window still exists)
         sprintf(pexbuf,"%s\n",qmsg);
         alertis.Append(pexbuf);
-        platform->DisplayAlert(alertis);
+        platform->DisplayAlert("%s", alertis.GetCStr());
     }
 }
 

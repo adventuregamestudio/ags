@@ -326,8 +326,7 @@ bool engine_try_init_gamedata(String gamepak_path)
     AssetError err = AssetManager::SetDataFile(gamepak_path);
     if (err != kAssetNoError)
     {
-        String err = String::FromFormat("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", gamepak_path.GetCStr());
-        platform->DisplayAlert(err);
+        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", gamepak_path.GetCStr());
         return false;
     }
     return true;
@@ -434,39 +433,11 @@ void engine_init_keyboard()
 #endif
 }
 
-typedef char AlIDStr[5];
-
-void AlIDToChars(int al_id, AlIDStr &id_str)
-{
-    id_str[0] = (al_id >> 24) & 0xFF;
-    id_str[1] = (al_id >> 16) & 0xFF;
-    id_str[2] = (al_id >> 8) & 0xFF;
-    id_str[3] = (al_id) & 0xFF;
-    id_str[4] = 0;
-}
-
-void AlDigiToChars(int digi_id, AlIDStr &id_str)
-{
-    if (digi_id == DIGI_NONE)
-        strcpy(id_str, "None");
-    else if (digi_id == DIGI_AUTODETECT)
-        strcpy(id_str, "Auto");
-    else
-        AlIDToChars(digi_id, id_str);
-}
-
-void AlMidiToChars(int midi_id, AlIDStr &id_str)
-{
-    if (midi_id == MIDI_NONE)
-        strcpy(id_str, "None");
-    else if (midi_id == MIDI_AUTODETECT)
-        strcpy(id_str, "Auto");
-    else
-        AlIDToChars(midi_id, id_str);
-}
-
 bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = nullptr)
 {
+    Debug::Printf(kDbgMsg_Init, "Trying to init: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
+        AlIDToChars(digi_id).s, digi_id, AlIDToChars(midi_id).s, midi_id);
+
     if (install_sound(digi_id, midi_id, nullptr) == 0)
         return true;
     // Allegro does not let you try digital and MIDI drivers separately,
@@ -490,44 +461,84 @@ bool try_install_sound(int digi_id, int midi_id, String *p_err_msg = nullptr)
     return false;
 }
 
+// Attempts to predict a digital driver Allegro would chose, and get its maximal voices
+std::pair<int, int> autodetect_driver(_DRIVER_INFO *driver_list, int (*detect_audio_driver)(int), const char *type)
+{
+    for (int i = 0; driver_list[i].driver; ++i)
+    {
+        if (driver_list[i].autodetect)
+        {
+            int voices = detect_audio_driver(driver_list[i].id);
+            if (voices == 0)
+                Debug::Printf(kDbgMsg_Warn, "Failed to detect %s driver %s; Error: '%s'.",
+                    type, AlIDToChars(driver_list[i].id).s, get_allegro_error());
+            if (voices > 0)
+                return std::make_pair(driver_list[i].id, voices);
+        }
+    }
+    return std::make_pair(0, 0);
+}
+
+// Decides which audio driver to request from Allegro.
+// Returns a pair of audio card ID and max available voices.
+std::pair<int, int> decide_audiodriver(int try_id, _DRIVER_INFO *driver_list,
+    int(*detect_audio_driver)(int), int &al_drv_id, const char *type)
+{
+    if (try_id == 0) // no driver
+        return std::make_pair(0, 0);
+    al_drv_id = 0; // the driver id will be set by library if one was found
+    if (try_id > 0)
+    {
+        int voices = detect_audio_driver(try_id);
+        if (al_drv_id == try_id && voices > 0) // found and detected
+            return std::make_pair(try_id, voices);
+        if (voices == 0) // found in list but detect failed
+            Debug::Printf(kDbgMsg_Error, "Failed to detect %s driver %s; Error: '%s'.", type, AlIDToChars(try_id).s, get_allegro_error());
+        else // not found at all
+            Debug::Printf(kDbgMsg_Error, "Unknown %s driver: %s, will try to find suitable one.", type, AlIDToChars(try_id).s);
+    }
+    return autodetect_driver(driver_list, detect_audio_driver, type);
+}
+
 void engine_init_audio()
 {
-    if (opts.mod_player)
-        reserve_voices(NUM_DIGI_VOICES, -1);
+    Debug::Printf("Initializing sound drivers");
+    int digi_id = usetup.digicard;
+    int midi_id = usetup.midicard;
+    int digi_voices = -1;
+    int midi_voices = -1;
+    // MOD player would need certain minimal number of voices
+    // TODO: find out if this is still relevant?
+    if (usetup.mod_player)
+        digi_voices = NUM_DIGI_VOICES;
+
+    Debug::Printf(kDbgMsg_Init, "Sound settings: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
+        AlIDToChars(digi_id).s, digi_id, AlIDToChars(midi_id).s, midi_id);
+
+    // First try if drivers are supported, and switch to autodetect if explicit option failed
+    _DRIVER_INFO *digi_drivers = system_driver->digi_drivers ? system_driver->digi_drivers() : _digi_driver_list;
+    std::pair<int, int> digi_drv = decide_audiodriver(digi_id, digi_drivers, detect_digi_driver, digi_card, "digital");
+    _DRIVER_INFO *midi_drivers = system_driver->midi_drivers ? system_driver->midi_drivers() : _midi_driver_list;
+    std::pair<int, int> midi_drv = decide_audiodriver(midi_id, midi_drivers, detect_midi_driver, midi_card, "MIDI");
+
+    // Now, knowing which drivers we suppose to install, decide on which voices we reserve
+    digi_id = digi_drv.first;
+    midi_id = midi_drv.first;
+    const int max_digi_voices = digi_drv.second;
+    const int max_midi_voices = midi_drv.second;
+    if (digi_voices > max_digi_voices)
+        digi_voices = max_digi_voices;
+    // NOTE: we do not specify number of MIDI voices, so don't have to calculate available here
+
+    reserve_voices(digi_voices, midi_voices);
     // maybe this line will solve the sound volume? [??? wth is this]
     set_volume_per_voice(1);
 
-    Debug::Printf("Initialize sound drivers");
-
-    // TODO: apply those options during config reading instead
-    if (!psp_audio_enabled)
-    {
-        usetup.digicard = DIGI_NONE;
-        usetup.midicard = MIDI_NONE;
-    }
-
-    if (!psp_midi_enabled)
-        usetup.midicard = MIDI_NONE;
-
-    AlIDStr digi_id;
-    AlIDStr midi_id;
-    AlDigiToChars(usetup.digicard, digi_id);
-    AlMidiToChars(usetup.midicard, midi_id);
-    Debug::Printf(kDbgMsg_Init, "Sound settings: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
-        digi_id, usetup.digicard, midi_id, usetup.midicard);
-
     String err_msg;
-    bool sound_res = try_install_sound(usetup.digicard, usetup.midicard, &err_msg);
-    if (!sound_res && opts.mod_player)
-    {
-        Debug::Printf("Resetting to default sound parameters and trying again.");
-        reserve_voices(-1, -1); // this resets voice number to defaults
-        opts.mod_player = 0;
-        sound_res = try_install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT);
-    }
+    bool sound_res = try_install_sound(digi_id, midi_id, &err_msg);
     if (!sound_res)
     {
-        Debug::Printf("Everything failed, installing dummy no-sound drivers.");
+        Debug::Printf(kDbgMsg_Error, "Everything failed, disabling sound.");
         reserve_voices(0, 0);
         install_sound(DIGI_NONE, MIDI_NONE, nullptr);
     }
@@ -538,19 +549,17 @@ void engine_init_audio()
     {
         platform->DisplayAlert("Warning: cannot enable %s.\nProblem: %s.\n\nYou may supress this message by disabling %s in the game setup.",
             (digi_failed && midi_failed ? "game audio" : (digi_failed ? "digital audio" : "MIDI audio") ),
-            (err_msg.IsEmpty() ? "No compatible drivers found in the system." : err_msg.GetCStr()),
+            (err_msg.IsEmpty() ? "No compatible drivers found in the system" : err_msg.GetCStr()),
             (digi_failed && midi_failed ? "sound" : (digi_failed ? "digital sound" : "MIDI sound") ));
     }
 
     usetup.digicard = digi_card;
     usetup.midicard = midi_card;
 
-    AlDigiToChars(usetup.digicard, digi_id);
-    AlMidiToChars(usetup.midicard, midi_id);
     Debug::Printf(kDbgMsg_Init, "Installed digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
-        digi_id, usetup.digicard, midi_id, usetup.midicard);
+        AlIDToChars(digi_card).s, digi_card, AlIDToChars(midi_card).s, midi_card);
 
-    if (usetup.digicard == DIGI_NONE)
+    if (digi_card == DIGI_NONE)
     {
         // disable speech and music if no digital sound
         // therefore the MIDI soundtrack will be used if present,
@@ -558,9 +567,15 @@ void engine_init_audio()
         play.want_speech = -2;
         play.separate_music_lib = 0;
     }
+    if (usetup.mod_player && digi_driver->voices < NUM_DIGI_VOICES)
+    {
+        // disable MOD player if there's not enough digital voices
+        // TODO: find out if this is still relevant?
+        usetup.mod_player = 0;
+    }
 
 #ifdef WINDOWS_VERSION
-    if (usetup.digicard == DIGI_DIRECTX(0))
+    if (digi_card == DIGI_DIRECTX(0))
     {
         // DirectX mixer seems to buffer an extra sample itself
         use_extra_sound_offset = 1;
@@ -583,12 +598,11 @@ void engine_init_debug()
 
 void atexit_handler() {
     if (proper_exit==0) {
-        sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
+        platform->DisplayAlert("Error: the program has exited without requesting it.\n"
             "Program pointer: %+03d  (write this number down), ACI version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
             "developers. Otherwise, note down any other information displayed.",
             our_eip, EngineVersion.LongString.GetCStr());
-        platform->DisplayAlert(pexbuf);
     }
 }
 
@@ -779,18 +793,18 @@ void engine_init_modxm_player()
 {
 #ifndef PSP_NO_MOD_PLAYBACK
     if (game.options[OPT_NOMODMUSIC])
-        opts.mod_player = 0;
+        usetup.mod_player = 0;
 
-    if (opts.mod_player) {
+    if (usetup.mod_player) {
         Debug::Printf(kDbgMsg_Init, "Initializing MOD/XM player");
 
         if (init_mod_player(NUM_MOD_DIGI_VOICES) < 0) {
             platform->DisplayAlert("Warning: install_mod: MOD player failed to initialize.");
-            opts.mod_player=0;
+            usetup.mod_player=0;
         }
     }
 #else
-    opts.mod_player = 0;
+    usetup.mod_player = 0;
     Debug::Printf(kDbgMsg_Init, "Compiled without MOD/XM player");
 #endif
 }
@@ -1000,7 +1014,7 @@ void engine_init_game_settings()
     play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
     play.digital_master_volume = 100;
     play.screen_flipped=0;
-    play.ReleaseRoomCamera();
+    play.GetRoomCamera(0)->Release();
     play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
     play.sound_volume = 255;
     play.speech_volume = 255;

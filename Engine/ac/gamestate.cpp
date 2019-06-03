@@ -11,13 +11,15 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include <algorithm>
 #include "ac/draw.h"
 #include "ac/game_version.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/timer.h"
+#include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptsystem.h"
+#include "ac/dynobj/scriptviewport.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
@@ -38,8 +40,12 @@ GameState::GameState()
 {
     _isAutoRoomViewport = true;
     _mainViewportHasChanged = false;
-    _roomViewportHasChanged = false;
-    _cameraHasChanged = false;
+
+    // Precreate primary viewport and camera
+    auto view = CreateRoomViewport();
+    auto cam = CreateRoomCamera();
+    view->LinkCamera(cam);
+    cam->LinkToViewport(view);
 }
 
 void GameState::Free()
@@ -58,182 +64,329 @@ void GameState::SetAutoRoomViewport(bool on)
     _isAutoRoomViewport = on;
 }
 
-Rect FixupViewport(const Rect &viewport, const Rect &parent)
+Rect FixupViewport(const Rect &viewport, const Rect & /* parent */)
 {
     Size real_size = viewport.GetSize().IsNull() ? Size(1, 1) : viewport.GetSize();
-    return ClampToRect(parent, RectWH(viewport.Left, viewport.Top, real_size.Width, real_size.Height));
+    return RectWH(viewport.Left, viewport.Top, real_size.Width, real_size.Height);
 }
 
 void GameState::SetMainViewport(const Rect &viewport)
 {
-    _mainViewport.Position = FixupViewport(viewport, RectWH(game.GetGameRes()));
+    _mainViewport.SetRect(FixupViewport(viewport, RectWH(game.GetGameRes())));
     Mouse::SetGraphicArea();
-    scsystem.viewport_width = _mainViewport.Position.GetWidth();
-    scsystem.viewport_height = _mainViewport.Position.GetHeight();
+    scsystem.viewport_width = _mainViewport.GetRect().GetWidth();
+    scsystem.viewport_height = _mainViewport.GetRect().GetHeight();
     _mainViewportHasChanged = true;
     // Update sub-viewports in case main viewport became smaller
-    SetUIViewport(_uiViewport.Position);
-    SetRoomViewport(_roomViewport.Position);
+    SetUIViewport(_uiViewport.GetRect());
+    for (size_t i = 0; i < _roomViewports.size(); ++i)
+        SetRoomViewport(i, _roomViewports[i]->GetRect());
 }
 
 const Rect &GameState::GetMainViewport() const
 {
-    return _mainViewport.Position;
+    return _mainViewport.GetRect();
 }
 
 const Rect &GameState::GetUIViewport() const
 {
-    return _uiViewport.Position;
+    return _uiViewport.GetRect();
 }
 
-const Rect &GameState::GetRoomViewport() const
+const Rect &GameState::GetRoomViewport(int index) const
 {
-    return _roomViewport.Position;
+    return _roomViewports[index]->GetRect();
+}
+
+PViewport GameState::GetRoomViewportObj(int index) const
+{
+    return _roomViewports[index];
+}
+
+PViewport GameState::GetRoomViewportZOrdered(int index) const
+{
+    return _roomViewportsSorted[index];
+}
+
+PViewport GameState::GetRoomViewportAt(int x, int y) const
+{
+    // We iterate backwards, because in AGS low z-order means bottom
+    for (auto it = _roomViewportsSorted.rbegin(); it != _roomViewportsSorted.rend(); ++it)
+        if ((*it)->IsVisible() && (*it)->GetRect().IsInside(x, y))
+            return *it;
+    return nullptr;
 }
 
 Rect GameState::GetUIViewportAbs() const
 {
-    return Rect::MoveBy(_uiViewport.Position, _mainViewport.Position.Left, _mainViewport.Position.Top);
+    return Rect::MoveBy(_uiViewport.GetRect(), _mainViewport.GetRect().Left, _mainViewport.GetRect().Top);
 }
 
-Rect GameState::GetRoomViewportAbs() const
+Rect GameState::GetRoomViewportAbs(int index) const
 {
-    return Rect::MoveBy(_roomViewport.Position, _mainViewport.Position.Left, _mainViewport.Position.Top);
+    return Rect::MoveBy(_roomViewports[index]->GetRect(), _mainViewport.GetRect().Left, _mainViewport.GetRect().Top);
 }
 
 void GameState::SetUIViewport(const Rect &viewport)
 {
-    _uiViewport.Position = FixupViewport(viewport, RectWH(_mainViewport.Position.GetSize()));
+    _uiViewport.SetRect(FixupViewport(viewport, RectWH(_mainViewport.GetRect().GetSize())));
 }
 
-void GameState::SetRoomViewport(const Rect &viewport)
+void GameState::SetRoomViewport(int index, const Rect &viewport)
 {
-    _roomViewport.Position = FixupViewport(viewport, RectWH(_mainViewport.Position.GetSize()));
-    AdjustRoomToViewport();
-    _roomViewportHasChanged = true;
+    _roomViewports[index]->SetRect(FixupViewport(viewport, RectWH(_mainViewport.GetRect().GetSize())));
+}
+
+static bool ViewportZOrder(const PViewport e1, const PViewport e2)
+{
+    return e1->GetZOrder() < e2->GetZOrder();
 }
 
 void GameState::UpdateViewports()
 {
     if (_mainViewportHasChanged)
+    {
         on_mainviewport_changed();
-    if (_roomViewportHasChanged)
-        on_roomviewport_changed();
-    if (_cameraHasChanged)
-        on_camera_size_changed();
-    _mainViewportHasChanged = false;
-    _roomViewportHasChanged = false;
-    _cameraHasChanged = false;
+        _mainViewportHasChanged = false;
+    }
+    if (_roomViewportZOrderChanged)
+    {
+        auto old_sort = _roomViewportsSorted;
+        _roomViewportsSorted = _roomViewports;
+        std::sort(_roomViewportsSorted.begin(), _roomViewportsSorted.end(), ViewportZOrder);
+        for (size_t i = 0; i < _roomViewportsSorted.size(); ++i)
+        {
+            if (i >= old_sort.size() || _roomViewportsSorted[i] != old_sort[i])
+                _roomViewportsSorted[i]->HasChanged();
+        }
+        _roomViewportZOrderChanged = false;
+    }
+    for (auto vp : _roomViewports)
+    {
+        if (vp->HasChanged())
+        {
+            on_roomviewport_changed(vp->GetID());
+            vp->ClearChangedFlag();
+        }
+    }
+    for (auto cam : _roomCameras)
+    {
+        if (cam->HasChanged())
+        {
+            on_camera_size_changed(cam->GetID());
+            cam->ClearChangedFlag();
+        }
+    }
 }
 
-const Rect &GameState::GetRoomCamera() const
+void GameState::InvalidateViewportZOrder()
 {
-    return _roomCamera.Position;
+    _roomViewportZOrderChanged = true;
 }
 
-const RoomCamera &GameState::GetRoomCameraObj() const
+PCamera GameState::GetRoomCamera(int index) const
 {
-    return _roomCamera;
+    return _roomCameras[index];
 }
 
-void GameState::SetRoomCameraSize(const Size &cam_size)
+void GameState::UpdateRoomCameras()
 {
-    // TODO: currently we don't support having camera larger than room background
-    // (or rather - looking outside of the room background); look into this later
+    for (size_t i = 0; i < _roomCameras.size(); ++i)
+        UpdateRoomCamera(i);
+}
+
+void GameState::UpdateRoomCamera(int index)
+{
+    auto cam = _roomCameras[index];
+    const Rect &rc = cam->GetRect();
     const Size real_room_sz = Size(thisroom.Width, thisroom.Height);
-    Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
-
-    _roomCamera.Position.SetWidth(real_size.Width);
-    _roomCamera.Position.SetHeight(real_size.Height);
-    AdjustRoomToViewport();
-    _cameraHasChanged = true;
-}
-
-void GameState::SetRoomCameraAt(int x, int y)
-{
-    int cw = _roomCamera.Position.GetWidth();
-    int ch = _roomCamera.Position.GetHeight();
-    int room_width = thisroom.Width;
-    int room_height = thisroom.Height;
-    x = Math::Clamp(x, 0, room_width - cw);
-    y = Math::Clamp(y, 0, room_height - ch);
-    _roomCamera.Position.MoveTo(Point(x, y));
-}
-
-bool GameState::IsRoomCameraLocked() const
-{
-    return _roomCamera.Locked;
-}
-
-void GameState::LockRoomCamera()
-{
-    debug_script_log("Room camera locked");
-    _roomCamera.Locked = true;
-}
-
-void GameState::LockRoomCameraAt(int x, int y)
-{
-    debug_script_log("Room camera locked to %d,%d", x, y);
-    SetRoomCameraAt(x, y);
-    _roomCamera.Locked = true;
-}
-
-void GameState::ReleaseRoomCamera()
-{
-    _roomCamera.Locked = false;
-    debug_script_log("Room camera released back to engine control");
-}
-
-void GameState::UpdateRoomCamera()
-{
-    const Rect &camera = _roomCamera.Position;
-    const Size real_room_sz = Size(thisroom.Width, thisroom.Height);
-    if ((real_room_sz.Width > camera.GetWidth()) || (real_room_sz.Height > camera.GetHeight()))
+    if ((real_room_sz.Width > rc.GetWidth()) || (real_room_sz.Height > rc.GetHeight()))
     {
         // TODO: split out into Camera Behavior
-        if (!play.IsRoomCameraLocked())
+        if (!cam->IsLocked())
         {
-            int x = playerchar->x - camera.GetWidth() / 2;
-            int y = playerchar->y - camera.GetHeight() / 2;
-            SetRoomCameraAt(x, y);
+            int x = playerchar->x - rc.GetWidth() / 2;
+            int y = playerchar->y - rc.GetHeight() / 2;
+            cam->SetAt(x, y);
         }
     }
     else
     {
-        SetRoomCameraAt(0, 0);
+        cam->SetAt(0, 0);
     }
-}
-
-void GameState::AdjustRoomToViewport()
-{
-    _roomViewport.Transform.Init(_roomCamera.Position.GetSize(), _roomViewport.Position);
 }
 
 Point GameState::RoomToScreen(int roomx, int roomy)
 {
-    return _roomViewport.Transform.Scale(Point(roomx - _roomCamera.Position.Left, roomy - _roomCamera.Position.Top));
+    return _roomViewports[0]->GetTransform().Scale(Point(roomx - _roomCameras[0]->GetRect().Left, roomy - _roomCameras[0]->GetRect().Top));
 }
 
 int GameState::RoomToScreenX(int roomx)
 {
-    return _roomViewport.Transform.X.ScalePt(roomx - _roomCamera.Position.Left);
+    return _roomViewports[0]->GetTransform().X.ScalePt(roomx - _roomCameras[0]->GetRect().Left);
 }
 
 int GameState::RoomToScreenY(int roomy)
 {
-    return _roomViewport.Transform.Y.ScalePt(roomy - _roomCamera.Position.Top);
+    return _roomViewports[0]->GetTransform().Y.ScalePt(roomy - _roomCameras[0]->GetRect().Top);
 }
 
-VpPoint GameState::ScreenToRoom(int scrx, int scry, bool clip_viewport)
+VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport)
 {
     clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507;
     Point screen_pt(scrx, scry);
-    if (clip_viewport && !_roomViewport.Position.IsInside(screen_pt))
-        return std::make_pair(Point(), -1);
-    Point p = _roomViewport.Transform.UnScale(screen_pt);
-    p.X += _roomCamera.Position.Left;
-    p.Y += _roomCamera.Position.Top;
+    PViewport view;
+    if (view_index < 0)
+    {
+        view = GetRoomViewportAt(scrx, scry);
+        if (!view)
+            return std::make_pair(Point(), -1);
+    }
+    else
+    {
+        view = _roomViewports[view_index];
+        if (clip_viewport && !view->GetRect().IsInside(screen_pt))
+            return std::make_pair(Point(), -1);
+    }
+    
+    Point p = view->GetTransform().UnScale(screen_pt);
+    auto cam = view->GetCamera();
+    p.X += cam->GetRect().Left;
+    p.Y += cam->GetRect().Top;
     return std::make_pair(p, 0);
+}
+
+VpPoint GameState::ScreenToRoom(int scrx, int scry)
+{
+    return ScreenToRoomImpl(scrx, scry, -1, true);
+}
+
+VpPoint GameState::ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport)
+{
+    if ((size_t)view_index >= _roomViewports.size())
+        return VpPoint(Point(), -1);
+    return ScreenToRoomImpl(scrx, scry, view_index, clip_viewport);
+}
+
+PViewport GameState::CreateRoomViewport()
+{
+    int index = (int)_roomViewports.size();
+    PViewport viewport(new Viewport());
+    viewport->SetID(index);
+    viewport->SetRect(_mainViewport.GetRect());
+    ScriptViewport *scv = new ScriptViewport(index);
+    _roomViewports.push_back(viewport);
+    _scViewportRefs.push_back(std::make_pair(scv, 0));
+    _roomViewportZOrderChanged = true;
+    return viewport;
+}
+
+ScriptViewport *GameState::RegisterRoomViewport(int index, int32_t handle)
+{
+    if (index < 0 || (size_t)index >= _roomViewports.size())
+        return nullptr;
+    auto &scobj = _scViewportRefs[index];
+    if (handle == 0)
+    {
+        handle = ccRegisterManagedObject(scobj.first, scobj.first);
+        ccAddObjectReference(handle); // one reference for the GameState
+    }
+    else
+    {
+        ccRegisterUnserializedObject(handle, scobj.first, scobj.first);
+    }
+    scobj.second = handle;
+    return scobj.first;
+}
+
+void GameState::DeleteRoomViewport(int index)
+{
+    // NOTE: viewport 0 can not be deleted
+    if (index <= 0 || (size_t)index >= _roomViewports.size())
+        return;
+    auto scobj = _scViewportRefs[index];
+    scobj.first->Invalidate();
+    ccReleaseObjectReference(scobj.second);
+    _roomViewports.erase(_roomViewports.begin() + index);
+    _scViewportRefs.erase(_scViewportRefs.begin() + index);
+    for (size_t i = index; i < _roomViewports.size(); ++i)
+    {
+        _roomViewports[i]->SetID(i);
+        _scViewportRefs[i].first->SetID(i);
+    }
+    _roomViewportZOrderChanged = true;
+}
+
+int GameState::GetRoomViewportCount() const
+{
+    return (int)_roomViewports.size();
+}
+
+PCamera GameState::CreateRoomCamera()
+{
+    int index = (int)_roomCameras.size();
+    PCamera camera(new Camera());
+    camera->SetID(index);
+    camera->SetAt(0, 0);
+    camera->SetSize(_mainViewport.GetRect().GetSize());
+    ScriptCamera *scam = new ScriptCamera(index);
+    _scCameraRefs.push_back(std::make_pair(scam, 0));
+    _roomCameras.push_back(camera);
+    return camera;
+}
+
+ScriptCamera *GameState::RegisterRoomCamera(int index, int32_t handle)
+{
+    if (index < 0 || (size_t)index >= _roomCameras.size())
+        return nullptr;
+    auto &scobj = _scCameraRefs[index];
+    if (handle == 0)
+    {
+        handle = ccRegisterManagedObject(scobj.first, scobj.first);
+        ccAddObjectReference(handle); // one reference for the GameState
+    }
+    else
+    {
+        ccRegisterUnserializedObject(handle, scobj.first, scobj.first);
+    }
+    scobj.second = handle;
+    return scobj.first;
+}
+
+void GameState::DeleteRoomCamera(int index)
+{
+    // NOTE: camera 0 can not be deleted
+    if (index <= 0 || (size_t)index >= _roomCameras.size())
+        return;
+    auto scobj = _scCameraRefs[index];
+    scobj.first->Invalidate();
+    ccReleaseObjectReference(scobj.second);
+    _roomCameras.erase(_roomCameras.begin() + index);
+    _scCameraRefs.erase(_scCameraRefs.begin() + index);
+    for (size_t i = index; i < _roomCameras.size(); ++i)
+    {
+        _roomCameras[i]->SetID(i);
+        _scCameraRefs[i].first->SetID(i);
+    }
+}
+
+int GameState::GetRoomCameraCount() const
+{
+    return (int)_roomCameras.size();
+}
+
+ScriptViewport *GameState::GetScriptViewport(int index)
+{
+    if (index < 0 || (size_t)index >= _roomViewports.size())
+        return NULL;
+    return _scViewportRefs[index].first;
+}
+
+ScriptCamera *GameState::GetScriptCamera(int index)
+{
+    if (index < 0 || (size_t)index >= _roomCameras.size())
+        return NULL;
+    return _scCameraRefs[index].first;
 }
 
 bool GameState::IsBlockingVoiceSpeech() const
@@ -372,11 +525,14 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     digital_master_volume = in->ReadInt32();
     in->Read(walkable_areas_on, MAX_WALK_AREAS+1);
     screen_flipped = in->ReadInt16();
-    short offsets_locked = in->ReadInt16();
-    if (offsets_locked != 0)
-        LockRoomCamera();
-    else
-        ReleaseRoomCamera();
+    if (svg_ver < kGSSvgVersion_3510)
+    {
+        short offsets_locked = in->ReadInt16();
+        if (offsets_locked != 0)
+            _roomCameras[0]->Lock();
+        else
+            _roomCameras[0]->Release();
+    }
     entered_at_x = in->ReadInt32();
     entered_at_y = in->ReadInt32();
     entered_edge = in->ReadInt32();
@@ -588,7 +744,6 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( digital_master_volume);
     out->Write(walkable_areas_on, MAX_WALK_AREAS+1);
     out->WriteInt16( screen_flipped);
-    out->WriteInt16( IsRoomCameraLocked() ? 1 : 0 );
     out->WriteInt32( entered_at_x);
     out->WriteInt32( entered_at_y);
     out->WriteInt32( entered_edge);
@@ -684,6 +839,25 @@ void GameState::FreeProperties()
         charProps[i].clear();
     for (int i = 0; i < game.numinvitems; ++i)
         invProps[i].clear();
+}
+
+void GameState::FreeViewportsAndCameras()
+{
+    _roomViewports.clear();
+    _roomViewportsSorted.clear();
+    for (auto scobj : _scViewportRefs)
+    {
+        scobj.first->Invalidate();
+        ccReleaseObjectReference(scobj.second);
+    }
+    _scViewportRefs.clear();
+    _roomCameras.clear();
+    for (auto scobj : _scCameraRefs)
+    {
+        scobj.first->Invalidate();
+        ccReleaseObjectReference(scobj.second);
+    }
+    _scCameraRefs.clear();
 }
 
 void GameState::ReadCustomProperties_v340(Common::Stream *in)

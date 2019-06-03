@@ -62,8 +62,8 @@ void engine_init_resolution_settings(const Size game_size)
     Rect viewport = RectWH(game_size);
     play.SetMainViewport(viewport);
     play.SetUIViewport(viewport);
-    play.SetRoomViewport(viewport);
-    play.SetRoomCameraSize(viewport.GetSize());
+    play.SetRoomViewport(0, viewport);
+    play.GetRoomCamera(0)->SetSize(viewport.GetSize());
 
     usetup.textheight = getfontheight_outlined(0) + 1;
 

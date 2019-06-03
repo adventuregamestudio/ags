@@ -37,8 +37,7 @@
 #ifndef __AGS_CN_GAME__ROOMINFO_H
 #define __AGS_CN_GAME__ROOMINFO_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "ac/common_defines.h"
 #include "game/interactions.h"
 #include "util/geometry.h"
@@ -46,7 +45,7 @@
 
 struct ccScript;
 struct SpriteInfo;
-typedef stdtr1compat::shared_ptr<ccScript> PScript;
+typedef std::shared_ptr<ccScript> PScript;
 
 // TODO: move the following enums under AGS::Common namespace
 // later, when more engine source is put in AGS namespace and
@@ -97,7 +96,7 @@ namespace Common
 class Bitmap;
 class Stream;
 
-typedef stdtr1compat::shared_ptr<Bitmap> PBitmap;
+typedef std::shared_ptr<Bitmap> PBitmap;
 
 // Various room options
 struct RoomOptions

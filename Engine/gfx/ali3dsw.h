@@ -19,8 +19,7 @@
 #ifndef __AGS_EE_GFX__ALI3DSW_H
 #define __AGS_EE_GFX__ALI3DSW_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include <allegro.h>
 #if defined (WINDOWS_VERSION)
 #include <winalleg.h>
@@ -181,7 +180,7 @@ public:
         _tint_red = red; _tint_green = green; _tint_blue = blue; }
     ~ALSoftwareGraphicsDriver() override;
 
-    typedef stdtr1compat::shared_ptr<AllegroGfxFilter> PALSWFilter;
+    typedef std::shared_ptr<AllegroGfxFilter> PALSWFilter;
 
     void SetGraphicsFilter(PALSWFilter filter);
 

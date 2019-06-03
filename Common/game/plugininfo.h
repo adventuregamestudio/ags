@@ -19,8 +19,7 @@
 #ifndef __AGS_CN_GAME__PLUGININFO_H
 #define __AGS_CN_GAME__PLUGININFO_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "util/string.h"
 
 // TODO: why 10 MB limit?
@@ -36,7 +35,7 @@ struct PluginInfo
     // (File)name of plugin
     String      Name;
     // Custom data for plugin
-    stdtr1compat::shared_ptr<char> Data;
+    std::shared_ptr<char> Data;
     size_t      DataLen;
 
     PluginInfo() : DataLen(0) {}

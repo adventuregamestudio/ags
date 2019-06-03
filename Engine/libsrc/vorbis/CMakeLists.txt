@@ -61,7 +61,7 @@ add_library(Vorbis::Vorbis ALIAS vorbis)
 
 add_library(vorbisfile)
 
-target_sources(vorbisfile PUBLIC
+target_sources(vorbisfile PRIVATE
     lib/vorbisfile.c
 )
  

@@ -15,8 +15,7 @@
 #ifndef __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
 #define __AGS_EE_GAME__SAVEGAMECOMPONENTS_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "game/savegame.h"
 #include "game/savegame_internal.h"
 #include "gfx/bitmap.h"
@@ -32,7 +31,7 @@ using Common::Bitmap;
 using Common::Stream;
 using Common::String;
 
-typedef stdtr1compat::shared_ptr<Stream> PStream;
+typedef std::shared_ptr<Stream> PStream;
 
 namespace SavegameComponents
 {

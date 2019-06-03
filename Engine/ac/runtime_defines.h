@@ -106,7 +106,6 @@ const int LegacyRoomVolumeFactor            = 30;
 #define FOR_ANIMATION 1
 #define FOR_SCRIPT    2
 #define FOR_EXITLOOP  3
-#define opts usetup
 #define CHMLSOFFS (MAX_ROOM_OBJECTS+1)    // reserve this many movelists for objects & stuff
 #define MAX_SCREEN_OVERLAYS 20
 #define abort_all_conditions restrict_until
@@ -119,14 +118,6 @@ const int LegacyRoomVolumeFactor            = 30;
 #define SKIP_KEYPRESS   2
 #define SKIP_MOUSECLICK 4
 
-#define UNTIL_ANIMEND   1
-#define UNTIL_MOVEEND   2
-#define UNTIL_CHARIS0   3
-#define UNTIL_NOOVERLAY 4
-#define UNTIL_NEGATIVE  5
-#define UNTIL_INTIS0    6
-#define UNTIL_SHORTIS0  7
-#define UNTIL_INTISNEG  8
 #define MANOBJNUM 99
 
 #define STD_BUFFER_SIZE 3000

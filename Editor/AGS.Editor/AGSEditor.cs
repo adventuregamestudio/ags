@@ -1510,9 +1510,6 @@ namespace AGS.Editor
             bool use_default_midi = _game.DefaultSetup.MidiSound == RuntimeAudioDriver.Default;
             NativeProxy.WritePrivateProfileString("sound", "digiid", use_default_digi ? "-1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("sound", "midiid", use_default_midi ? "-1" : "0", configFilePath);
-            // NOTE: the *winindx values are used on Windows for historical reasons; their values are disconnected from the *id
-            NativeProxy.WritePrivateProfileString("sound", "digiwinindx", use_default_digi ? "0" : "2", configFilePath);
-            NativeProxy.WritePrivateProfileString("sound", "midiwinindx", use_default_midi ? "0" : "1", configFilePath);
             NativeProxy.WritePrivateProfileString("sound", "usespeech", _game.DefaultSetup.UseVoicePack ? "1" : "0", configFilePath);
 
             NativeProxy.WritePrivateProfileString("language", "translation", _game.DefaultSetup.Translation, configFilePath);

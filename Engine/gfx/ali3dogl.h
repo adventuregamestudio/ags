@@ -19,8 +19,7 @@
 #ifndef __AGS_EE_GFX__ALI3DOGL_H
 #define __AGS_EE_GFX__ALI3DOGL_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
@@ -205,7 +204,7 @@ public:
     bool HasAcceleratedTransform() override { return true; }
     void SetScreenTint(int red, int green, int blue) override;
 
-    typedef stdtr1compat::shared_ptr<OGLGfxFilter> POGLFilter;
+    typedef std::shared_ptr<OGLGfxFilter> POGLFilter;
 
     void SetGraphicsFilter(POGLFilter filter);
 

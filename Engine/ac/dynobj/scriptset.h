@@ -26,6 +26,7 @@
 
 #include <set>
 #include <unordered_set>
+#include <string.h>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "util/string.h"
 #include "util/string_types.h"

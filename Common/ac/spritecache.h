@@ -35,8 +35,7 @@
 #ifndef __SPRCACHE_H
 #define __SPRCACHE_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include <vector>
 #include "util/error.h"
 

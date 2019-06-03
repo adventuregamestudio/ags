@@ -19,8 +19,7 @@
 #ifndef __CC_SCRIPT_H
 #define __CC_SCRIPT_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include "core/types.h"
 
 namespace AGS { namespace Common { class Stream; } }
@@ -71,6 +70,6 @@ protected:
     void        Free();
 };
 
-typedef stdtr1compat::shared_ptr<ccScript> PScript;
+typedef std::shared_ptr<ccScript> PScript;
 
 #endif // __CC_SCRIPT_H

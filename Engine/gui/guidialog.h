@@ -38,4 +38,7 @@ int  roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**ro
 int  myscimessagebox(const char *lpprompt, char *btn1, char *btn2);
 int  quitdialog();
 
+// last string value in gui dialog.
+char *get_gui_dialog_buffer();
+
 #endif // __AGS_EE_GUI__GUIDIALOG_H

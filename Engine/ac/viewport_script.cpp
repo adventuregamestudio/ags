@@ -32,67 +32,95 @@ using namespace AGS::Common;
 //
 //=============================================================================
 
-int Camera_GetX(ScriptCamera *)
+ScriptCamera* Camera_Create()
 {
-    return play.GetRoomCameraObj().Position.Left;
+    auto cam = play.CreateRoomCamera();
+    if (!cam)
+        return NULL;
+    return play.RegisterRoomCamera(cam->GetID());
 }
 
-void Camera_SetX(ScriptCamera *, int x)
+void Camera_Delete(ScriptCamera *scam)
 {
-    play.LockRoomCameraAt(x, play.GetRoomCameraObj().Position.Top);
+    play.DeleteRoomCamera(scam->GetID());
 }
 
-int Camera_GetY(ScriptCamera *)
+int Camera_GetX(ScriptCamera *scam)
 {
-    return play.GetRoomCameraObj().Position.Top;
+    return play.GetRoomCamera(scam->GetID())->GetRect().Left;
 }
 
-void Camera_SetY(ScriptCamera *, int y)
+void Camera_SetX(ScriptCamera *scam, int x)
 {
-    play.LockRoomCameraAt(play.GetRoomCameraObj().Position.Left, y);
+    auto cam = play.GetRoomCamera(scam->GetID());
+    cam->LockAt(x, cam->GetRect().Top);
 }
 
-int Camera_GetWidth(ScriptCamera *)
+int Camera_GetY(ScriptCamera *scam)
 {
-    return play.GetRoomCameraObj().Position.GetWidth();
+    return play.GetRoomCamera(scam->GetID())->GetRect().Top;
 }
 
-void Camera_SetWidth(ScriptCamera *, int width)
+void Camera_SetY(ScriptCamera *scam, int y)
 {
-    play.SetRoomCameraSize(Size(width, play.GetRoomCamera().GetHeight()));
+    auto cam = play.GetRoomCamera(scam->GetID());
+    cam->LockAt(cam->GetRect().Left, y);
 }
 
-int Camera_GetHeight(ScriptCamera *)
+int Camera_GetWidth(ScriptCamera *scam)
 {
-    return play.GetRoomCameraObj().Position.GetHeight();
+    return play.GetRoomCamera(scam->GetID())->GetRect().GetWidth();
 }
 
-void Camera_SetHeight(ScriptCamera *, int height)
+void Camera_SetWidth(ScriptCamera *scam, int width)
 {
-    play.SetRoomCameraSize(Size(play.GetRoomCamera().GetWidth(), height));
+    auto cam = play.GetRoomCamera(scam->GetID());
+    cam->SetSize(Size(width, cam->GetRect().GetHeight()));
 }
 
-bool Camera_GetAutoTracking(ScriptCamera *)
+int Camera_GetHeight(ScriptCamera *scam)
 {
-    return !play.IsRoomCameraLocked();
+    return play.GetRoomCamera(scam->GetID())->GetRect().GetHeight();
 }
 
-void Camera_SetAutoTracking(ScriptCamera *, bool on)
+void Camera_SetHeight(ScriptCamera *scam, int height)
 {
+    auto cam = play.GetRoomCamera(scam->GetID());
+    cam->SetSize(Size(cam->GetRect().GetWidth(), height));
+}
+
+bool Camera_GetAutoTracking(ScriptCamera *scam)
+{
+    return !play.GetRoomCamera(scam->GetID())->IsLocked();
+}
+
+void Camera_SetAutoTracking(ScriptCamera *scam, bool on)
+{
+    auto cam = play.GetRoomCamera(scam->GetID());
     if (on)
-        play.ReleaseRoomCamera(); 
+        cam->Release();
     else
-        play.LockRoomCamera();
+        cam->Lock();
 }
 
-void Camera_SetAt(ScriptCamera *, int x, int y)
+void Camera_SetAt(ScriptCamera *scam, int x, int y)
 {
-    play.LockRoomCameraAt(x, y);
+    play.GetRoomCamera(scam->GetID())->LockAt(x, y);
 }
 
-void Camera_SetSize(ScriptCamera *, int width, int height)
+void Camera_SetSize(ScriptCamera *scam, int width, int height)
 {
-    play.SetRoomCameraSize(Size(width, height));
+    play.GetRoomCamera(scam->GetID())->SetSize(Size(width, height));
+}
+
+RuntimeScriptValue Sc_Camera_Create(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptCamera, Camera_Create);
+}
+
+RuntimeScriptValue Sc_Camera_Delete(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptCamera, Camera_Delete);
 }
 
 RuntimeScriptValue Sc_Camera_GetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -162,92 +190,155 @@ RuntimeScriptValue Sc_Camera_SetSize(void *self, const RuntimeScriptValue *param
 //
 //=============================================================================
 
-int Viewport_GetX(ScriptViewport *view)
+ScriptViewport* Viewport_Create()
 {
-    return play.GetRoomViewport().Left;
+    auto view = play.CreateRoomViewport();
+    if (!view)
+        return NULL;
+    return play.RegisterRoomViewport(view->GetID());
 }
 
-void Viewport_SetX(ScriptViewport *, int x)
+void Viewport_Delete(ScriptViewport *scv)
 {
-    Rect view = play.GetRoomViewport();
+    play.DeleteRoomViewport(scv->GetID());
+}
+
+int Viewport_GetX(ScriptViewport *scv)
+{
+    return play.GetRoomViewport(scv->GetID()).Left;
+}
+
+void Viewport_SetX(ScriptViewport *scv, int x)
+{
+    Rect view = play.GetRoomViewport(scv->GetID());
     view.MoveToX(x);
-    play.SetRoomViewport(view);
+    play.SetRoomViewport(scv->GetID(), view);
 }
 
-int Viewport_GetY(ScriptViewport *)
+int Viewport_GetY(ScriptViewport *scv)
 {
-    return play.GetRoomViewport().Top;
+    return play.GetRoomViewport(scv->GetID()).Top;
 }
 
-void Viewport_SetY(ScriptViewport *, int y)
+void Viewport_SetY(ScriptViewport *scv, int y)
 {
-    Rect view = play.GetRoomViewport();
+    Rect view = play.GetRoomViewport(scv->GetID());
     view.MoveToY(y);
-    play.SetRoomViewport(view);
+    play.SetRoomViewport(scv->GetID(), view);
 }
 
-int Viewport_GetWidth(ScriptViewport *)
+int Viewport_GetWidth(ScriptViewport *scv)
 {
-    return play.GetRoomViewport().GetWidth();
+    return play.GetRoomViewport(scv->GetID()).GetWidth();
 }
 
-void Viewport_SetWidth(ScriptViewport *, int width)
+void Viewport_SetWidth(ScriptViewport *scv, int width)
 {
-    Rect view = play.GetRoomViewport();
+    Rect view = play.GetRoomViewport(scv->GetID());
     view.SetWidth(width);
-    play.SetRoomViewport(view);
+    play.SetRoomViewport(scv->GetID(), view);
 }
 
-int Viewport_GetHeight(ScriptViewport *)
+int Viewport_GetHeight(ScriptViewport *scv)
 {
-    return play.GetRoomViewport().GetHeight();
+    return play.GetRoomViewport(scv->GetID()).GetHeight();
 }
 
-void Viewport_SetHeight(ScriptViewport *, int height)
+void Viewport_SetHeight(ScriptViewport *scv, int height)
 {
-    Rect view = play.GetRoomViewport();
+    Rect view = play.GetRoomViewport(scv->GetID());
     view.SetHeight(height);
-    play.SetRoomViewport(view);
+    play.SetRoomViewport(scv->GetID(), view);
 }
 
-ScriptCamera* Viewport_GetCamera(ScriptViewport *)
+ScriptCamera* Viewport_GetCamera(ScriptViewport *scv)
 {
-    ScriptCamera *camera = new ScriptCamera();
-    ccRegisterManagedObject(camera, camera);
-    return camera;
+    auto view = play.GetRoomViewportObj(scv->GetID());
+    auto cam = view->GetCamera();
+    if (!cam)
+        return nullptr;
+    return play.GetScriptCamera(cam->GetID());
+}
+
+void Viewport_SetCamera(ScriptViewport *scv, ScriptCamera *scam)
+{
+    auto view = play.GetRoomViewportObj(scv->GetID());
+    auto cam = play.GetRoomCamera(scam->GetID());
+    if (view != nullptr && cam != nullptr)
+    {
+        view->LinkCamera(cam);
+        cam->LinkToViewport(view);
+    }
+}
+
+bool Viewport_GetVisible(ScriptViewport *scv)
+{
+    auto view = play.GetRoomViewportObj(scv->GetID());
+    if (view != nullptr)
+        return view->IsVisible();
+    return false;
+}
+
+void Viewport_SetVisible(ScriptViewport *scv, bool on)
+{
+    auto view = play.GetRoomViewportObj(scv->GetID());
+    if (view != nullptr)
+        view->SetVisible(on);
+}
+
+int Viewport_GetZOrder(ScriptViewport *scv)
+{
+    auto view = play.GetRoomViewportObj(scv->GetID());
+    if (view != nullptr)
+        return view->GetZOrder();
+    return 0;
+}
+
+void Viewport_SetZOrder(ScriptViewport *scv, int zorder)
+{
+    auto view = play.GetRoomViewportObj(scv->GetID());
+    if (view != nullptr)
+        view->SetZOrder(zorder);
 }
 
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
 {
-    const Rect &view = play.GetRoomViewport();
-    if (!view.IsInside(x, y))
+    PViewport view = play.GetRoomViewportAt(x, y);
+    if (!view)
         return nullptr;
-
-    ScriptViewport *viewport = new ScriptViewport();
-    ccRegisterManagedObject(viewport, viewport);
-    return viewport;
+    return play.GetScriptViewport(view->GetID());
 }
 
-void Viewport_SetPosition(ScriptViewport *, int x, int y, int width, int height)
+void Viewport_SetPosition(ScriptViewport *scv, int x, int y, int width, int height)
 {
-    play.SetRoomViewport(RectWH(x, y, width, height));
+    play.SetRoomViewport(scv->GetID(), RectWH(x, y, width, height));
 }
 
-ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *, int scrx, int scry, bool clipViewport)
+ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *scv, int scrx, int scry, bool clipViewport)
 {
-    VpPoint vpt = play.ScreenToRoom(scrx, scry, clipViewport);
+    VpPoint vpt = play.ScreenToRoom(scrx, scry, scv->GetID(), clipViewport);
     if (vpt.second < 0)
         return nullptr;
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
-ScriptUserObject *Viewport_RoomToScreenPoint(ScriptViewport *, int roomx, int roomy, bool clipViewport)
+ScriptUserObject *Viewport_RoomToScreenPoint(ScriptViewport *scv, int roomx, int roomy, bool clipViewport)
 {
-    const Rect &view = play.GetRoomViewport();
+    const Rect &view = play.GetRoomViewport(scv->GetID());
     Point pt = play.RoomToScreen(roomx, roomy);
     if (clipViewport && !view.IsInside(pt.X, pt.Y))
         return nullptr;
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
+}
+
+RuntimeScriptValue Sc_Viewport_Create(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptViewport, Viewport_Create);
+}
+
+RuntimeScriptValue Sc_Viewport_Delete(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptViewport, Viewport_Delete);
 }
 
 RuntimeScriptValue Sc_Viewport_GetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -295,6 +386,31 @@ RuntimeScriptValue Sc_Viewport_GetCamera(void *self, const RuntimeScriptValue *p
     API_OBJCALL_OBJAUTO(ScriptViewport, ScriptCamera, Viewport_GetCamera);
 }
 
+RuntimeScriptValue Sc_Viewport_SetCamera(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptViewport, Viewport_SetCamera, ScriptCamera);
+}
+
+RuntimeScriptValue Sc_Viewport_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptViewport, Viewport_GetVisible);
+}
+
+RuntimeScriptValue Sc_Viewport_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(ScriptViewport, Viewport_SetVisible);
+}
+
+RuntimeScriptValue Sc_Viewport_GetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewport, Viewport_GetZOrder);
+}
+
+RuntimeScriptValue Sc_Viewport_SetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptViewport, Viewport_SetZOrder);
+}
+
 RuntimeScriptValue Sc_Viewport_GetAtScreenXY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT2(ScriptViewport, Viewport_GetAtScreenXY);
@@ -319,6 +435,8 @@ RuntimeScriptValue Sc_Viewport_RoomToScreenPoint(void *self, const RuntimeScript
 
 void RegisterViewportAPI()
 {
+    ccAddExternalStaticFunction("Camera::Create", Sc_Camera_Create);
+    ccAddExternalObjectFunction("Camera::Delete", Sc_Camera_Delete);
     ccAddExternalObjectFunction("Camera::get_X", Sc_Camera_GetX);
     ccAddExternalObjectFunction("Camera::set_X", Sc_Camera_SetX);
     ccAddExternalObjectFunction("Camera::get_Y", Sc_Camera_GetY);
@@ -332,6 +450,8 @@ void RegisterViewportAPI()
     ccAddExternalObjectFunction("Camera::SetAt", Sc_Camera_SetAt);
     ccAddExternalObjectFunction("Camera::SetSize", Sc_Camera_SetSize);
 
+    ccAddExternalStaticFunction("Viewport::Create", Sc_Viewport_Create);
+    ccAddExternalObjectFunction("Viewport::Delete", Sc_Viewport_Delete);
     ccAddExternalObjectFunction("Viewport::get_X", Sc_Viewport_GetX);
     ccAddExternalObjectFunction("Viewport::set_X", Sc_Viewport_SetX);
     ccAddExternalObjectFunction("Viewport::get_Y", Sc_Viewport_GetY);
@@ -341,6 +461,11 @@ void RegisterViewportAPI()
     ccAddExternalObjectFunction("Viewport::get_Height", Sc_Viewport_GetHeight);
     ccAddExternalObjectFunction("Viewport::set_Height", Sc_Viewport_SetHeight);
     ccAddExternalObjectFunction("Viewport::get_Camera", Sc_Viewport_GetCamera);
+    ccAddExternalObjectFunction("Viewport::set_Camera", Sc_Viewport_SetCamera);
+    ccAddExternalObjectFunction("Viewport::get_Visible", Sc_Viewport_GetVisible);
+    ccAddExternalObjectFunction("Viewport::set_Visible", Sc_Viewport_SetVisible);
+    ccAddExternalObjectFunction("Viewport::get_ZOrder", Sc_Viewport_GetZOrder);
+    ccAddExternalObjectFunction("Viewport::set_ZOrder", Sc_Viewport_SetZOrder);
     ccAddExternalObjectFunction("Viewport::GetAtScreenXY", Sc_Viewport_GetAtScreenXY);
     ccAddExternalObjectFunction("Viewport::SetPosition", Sc_Viewport_SetPosition);
     ccAddExternalObjectFunction("Viewport::ScreenToRoomPoint", Sc_Viewport_ScreenToRoomPoint);

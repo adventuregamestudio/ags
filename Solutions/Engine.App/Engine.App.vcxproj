@@ -285,7 +285,7 @@
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
     <ClCompile Include="..\..\Engine\ac\tree_map.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp" />
-    <ClCompile Include="..\..\Engine\ac\viewport.cpp" />
+    <ClCompile Include="..\..\Engine\ac\viewport_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkablearea.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkbehind.cpp" />
     <ClCompile Include="..\..\Engine\debug\consoleoutputtarget.cpp" />
@@ -298,6 +298,7 @@
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
     <ClCompile Include="..\..\Engine\game\savegame.cpp" />
     <ClCompile Include="..\..\Engine\game\savegame_components.cpp" />
+    <ClCompile Include="..\..\Engine\game\viewport.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
     <ClCompile Include="..\..\Engine\gfx\blender.cpp" />

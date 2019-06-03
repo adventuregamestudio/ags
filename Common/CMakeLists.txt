@@ -140,7 +140,6 @@ target_sources(common
     util/proxystream.cpp
     util/proxystream.h
     util/stdio_compat.h
-    util/stdtr1compat.h
     util/stream.cpp
     util/stream.h
     util/string.cpp

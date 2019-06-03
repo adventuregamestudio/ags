@@ -473,7 +473,10 @@ void IAGSEngine::RoomToViewport (int32 *x, int32 *y) {
         *y = scrp.Y;
 }
 void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
-    VpPoint vpt = play.ScreenToRoom(x ? *x : 0, y ? *y : 0, false);
+    // NOTE: This is an old function that did not account for custom/multiple viewports
+    // and does not expect to fail, therefore we always use primary viewport here.
+    // (Not sure if it's good though)
+    VpPoint vpt = play.ScreenToRoom(x ? *x : 0, y ? *y : 0, 0, false);
     if (x)
         *x = vpt.first.X;
     if (y)
@@ -685,7 +688,8 @@ void IAGSEngine::DisableSound() {
     shutdown_sound();
     usetup.digicard = DIGI_NONE;
     usetup.midicard = MIDI_NONE;
-    install_sound(usetup.digicard,usetup.midicard,nullptr);
+    reserve_voices(0, 0);
+    install_sound(DIGI_NONE, MIDI_NONE, nullptr);
 }
 int IAGSEngine::CanRunScriptFunctionNow() {
     if (inside_script)

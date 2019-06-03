@@ -17,14 +17,14 @@
 #include "debug/debug_log.h"
 
 void SetViewport(int offsx, int offsy) {
-    play.LockRoomCameraAt(offsx, offsy);
+    play.GetRoomCamera(0)->LockAt(offsx, offsy);
 }
 void ReleaseViewport() {
-    play.ReleaseRoomCamera();
+    play.GetRoomCamera(0)->Release();
 }
 int GetViewportX () {
-    return play.GetRoomCamera().Left;
+    return play.GetRoomCamera(0)->GetRect().Left;
 }
 int GetViewportY () {
-    return play.GetRoomCamera().Top;
+    return play.GetRoomCamera(0)->GetRect().Top;
 }

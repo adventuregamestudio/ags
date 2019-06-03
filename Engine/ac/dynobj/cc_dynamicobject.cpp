@@ -77,8 +77,6 @@ void ccSerializeAllObjects(Stream *out) {
 
 // un-serialise all objects (will remove all currently registered ones)
 int ccUnserializeAllObjects(Stream *in, ICCObjectReader *callback) {
-    // un-register all existing objects, ready for the un-serialization
-    ccUnregisterAllObjects();
     return pool.ReadFromDisk(in, callback);
 }
 

@@ -61,12 +61,12 @@ const char *AGSPlatformDriver::GetDiskWriteAccessTroubleshootingText()
 }
 
 void AGSPlatformDriver::GetSystemTime(ScriptDateTime *sdt) {
-    struct tm *newtime;
-    time_t long_time;
+    time_t t = time(nullptr);
 
-    time( &long_time );
-    newtime = localtime( &long_time );
+    //note: subject to year 2038 problem due to shoving time_t in an integer
+    sdt->rawUnixTime = static_cast<int>(t);
 
+    struct tm *newtime = localtime(&t);
     sdt->hour = newtime->tm_hour;
     sdt->minute = newtime->tm_min;
     sdt->second = newtime->tm_sec;

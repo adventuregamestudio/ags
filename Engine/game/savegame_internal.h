@@ -15,8 +15,7 @@
 #ifndef __AGS_EE_GAME__SAVEGAMEINTERNAL_H
 #define __AGS_EE_GAME__SAVEGAMEINTERNAL_H
 
-#include "util/stdtr1compat.h"
-#include TR1INCLUDE(memory)
+#include <memory>
 #include <vector>
 
 #include "ac/common_defines.h"
@@ -28,7 +27,7 @@ namespace AGS
 namespace Engine
 {
 
-typedef stdtr1compat::shared_ptr<Bitmap> PBitmap;
+typedef std::shared_ptr<Bitmap> PBitmap;
 
 // PreservedParams keeps old values of particular gameplay
 // parameters that are saved before the save restoration
@@ -56,7 +55,7 @@ struct RestoredData
     // Scripts global data
     struct ScriptData
     {
-        stdtr1compat::shared_ptr<char> Data;
+        std::shared_ptr<char> Data;
         size_t              Len;
 
         ScriptData();
@@ -89,6 +88,16 @@ struct RestoredData
     ChannelInfo             AudioChans[MAX_SOUND_CHANNELS + 1];
     // Ambient sounds
     int                     DoAmbient[MAX_SOUND_CHANNELS];
+    // TODO: this is ugly, but we have to keep this data and apply only after
+    // room gets loaded, otherwise it will override restored settings.
+    // Same may refer to few other settings above.
+    // This could be fixed if we split load_new_room() into 2 functions that
+    // load room data with or without applying additional changes. Since code
+    // is pretty complex there this has to be done with careful research.
+    std::vector<Viewport>   Viewports;
+    std::vector<Camera>     Cameras;
+    // Viewport -> camera links
+    std::vector<int>        ViewCamLinks;
 
     RestoredData();
 };

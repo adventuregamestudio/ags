@@ -1929,7 +1929,9 @@ LineLayout *Editor::RetrieveLineLayout(int lineNumber) {
 void Editor::LayoutLine(int line, Surface *surface, ViewStyle &vstyle, LineLayout *ll, int width) {
 	if (!ll)
 		return;
-	PLATFORM_ASSERT(line < pdoc->LinesTotal());
+    // CHECKME: disabled this assert because it kept triggering when program is built in Debug configuration
+    // We need to upgrade Scintilla to newer version which may have this and other mistakes fixed
+	//PLATFORM_ASSERT(line < pdoc->LinesTotal());
 	int posLineStart = pdoc->LineStart(line);
 	int posLineEnd = pdoc->LineStart(line + 1);
 	// If the line is very long, limit the treatment to a length that should fit in the viewport

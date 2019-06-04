@@ -489,9 +489,9 @@ builtin managed struct Dictionary
   import bool Set(String key, String value);
 
   /// Gets if this dictionary is case-sensitive.
-  import readonly attribute bool CaseSensitive;
-  /// Gets if this dictionary is sorted by keys in alphabetical order.
-  import readonly attribute bool Sorted;
+  import readonly attribute StringCompareStyle CompareStyle;
+  /// Gets the method items are arranged in this dictionary.
+  import readonly attribute SortStyle SortStyle;
   /// Gets the number of key/value pairs currently in the dictionary.
   import readonly attribute int ItemCount;
   /// Creates a dynamic array filled with keys in same order as they are stored in the Dictionary.
@@ -515,9 +515,9 @@ builtin managed struct Set
   import bool Remove(String item);
 
   /// Gets if this set is case-sensitive.
-  import readonly attribute bool CaseSensitive;
-  /// Gets if this set is sorted in alphabetical order.
-  import readonly attribute bool Sorted;
+  import readonly attribute StringCompareStyle CompareStyle;
+  /// Gets the method items are arranged in this set.
+  import readonly attribute SortStyle SortStyle;
   /// Gets the number of items currently in the set.
   import readonly attribute int ItemCount;
   /// Creates a dynamic array filled with items in same order as they are stored in the Set.

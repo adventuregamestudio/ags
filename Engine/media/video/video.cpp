@@ -36,6 +36,10 @@
 #include "media/audio/audio.h"
 #include "util/stream.h"
 
+#if (ALLEGRO_DATE >= 20190303) || defined (WINDOWS_VERSION) || defined (ANDROID_VERSION)
+#define AGS_FLI_FROM_PACK_FILE
+#endif
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -176,7 +180,7 @@ void play_flc_file(int numb,int playflags) {
     // Make only certain versions of the engineuse play_fli_pf from the patched version of Allegro for now.
     // Add more versions as their Allegro lib becomes patched too, or they use newer version of Allegro 4.
     // Ports can still play FLI if separate file is put into game's directory.
-#if defined (WINDOWS_VERSION) || defined (ANDROID_VERSION)
+#if defined (AGS_FLI_FROM_PACK_FILE)
     PACKFILE *pf = PackfileFromAsset(AssetPath("", flicname));
     if (play_fli_pf(pf, (BITMAP*)fli_buffer->GetAllegroBitmap(), fli_callback)==FLI_ERROR)
 #else

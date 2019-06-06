@@ -274,11 +274,11 @@ namespace AGS.Editor
                             UpdateObjectRef(obj, oldID);
                         }
                     }
+                    OnItemsChanged(this, null);
                     _selectedObject = null;
                     Factory.GUIController.SetPropertyGridObject(_room);
                     SetPropertyGridList();
                     _room.Modified = true;
-                    OnItemsChanged(this, null);
                     _panel.Invalidate();
                 }
             }
@@ -295,11 +295,11 @@ namespace AGS.Editor
                 newObj.StartY = SetObjectCoordinate(_menuClickY);
                 _room.Objects.Add(newObj);
                 AddObjectRef(newObj);
+                OnItemsChanged(this, null);
                 SetSelectedObject(newObj);
                 SetPropertyGridList();
                 Factory.GUIController.SetPropertyGridObject(newObj);
                 _room.Modified = true;
-                OnItemsChanged(this, null);
                 _panel.Invalidate();                
             }
             else if (item.Name == MENU_ITEM_OBJECT_COORDS)

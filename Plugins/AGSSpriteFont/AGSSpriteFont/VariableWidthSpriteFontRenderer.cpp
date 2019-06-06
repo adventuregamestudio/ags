@@ -1,114 +1,115 @@
-#include "SpriteFontRenderer.h"
-#include <stdio.h>
-#include <string.h>
+#include "VariableWidthSpriteFontRenderer.h"
+#include <string>
 #include "color.h"
 
-
-
-SpriteFontRenderer::SpriteFontRenderer(IAGSEngine *engine)
+VariableWidthSpriteFontRenderer::VariableWidthSpriteFontRenderer(IAGSEngine *engine)
 {
 	_engine = engine;
 }
 
-
-SpriteFontRenderer::~SpriteFontRenderer(void)
+VariableWidthSpriteFontRenderer::~VariableWidthSpriteFontRenderer(void)
 {
-	int i = 0;
-	for(unsigned int i = 0; i < _fonts.size(); i++)
+}
+
+bool VariableWidthSpriteFontRenderer::SupportsExtendedCharacters(int fontNumber) { return false; }
+
+int VariableWidthSpriteFontRenderer::GetTextWidth(const char *text, int fontNumber)
+{
+	int total = 0;
+	VariableWidthFont *font = getFontFor(fontNumber);
+	for(size_t i = 0; i < strlen(text); i++)
 	{
-		if(_fonts[i] != NULL)
-			delete _fonts[i];
+		if (font->characters.count(text[i]) > 0)
+		{
+			total += font->characters[text[i]].Width;
+			if (text[i] != ' ') total += font->Spacing;
+		}
+	}
+	return total;
+}
+
+int VariableWidthSpriteFontRenderer::GetTextHeight(const char *text, int fontNumber)
+{
+	VariableWidthFont *font = getFontFor(fontNumber);
+	for(size_t i = 0; i < strlen(text); i++)
+	{
+		if (font->characters.count(text[i]) > 0)
+		{
+			return font->characters[text[i]].Height;
+		}
+	}
+	return 0;
+}
+
+void VariableWidthSpriteFontRenderer::SetSpacing(int fontNum, int spacing)
+{
+	VariableWidthFont *font = getFontFor(fontNum);
+	font->Spacing = spacing;
+	
+}
+
+void VariableWidthSpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
+{
+	VariableWidthFont *font = getFontFor(fontNumber);
+	std::string s(text);
+	
+	for(int i = s.length() - 1; i >= 0 ; i--)
+	{
+		if (font->characters.count(s[i]) == 0)
+		{
+			s.erase(i,1);
+		}
 	}
 	
-	_fonts.clear();
+	strcpy(text,s.c_str());
+	
 }
 
-void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth, int charHeight, int charMin, int charMax, bool use32bit)
+void VariableWidthSpriteFontRenderer::SetGlyph(int fontNum, int charNum, int x, int y, int width, int height)
 {
-	SpriteFont *font = getFontFor(fontNum);
-	font->SpriteNumber = sprite;
-	font->Rows = rows;
-	font->Columns = columns;
-	font->MinChar = charMin;
-	font->MaxChar = charMax;
-	font->Use32bit = use32bit;
-	font->CharHeight = charHeight;
-	font->CharWidth = charWidth;
-
+	VariableWidthFont *font = getFontFor(fontNum);
+	font->SetGlyph(charNum, x, y, width, height);
 }
 
-void SpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
+
+void VariableWidthSpriteFontRenderer::SetSprite(int fontNum, int spriteNum)
 {
-	SpriteFont *font = getFontFor(fontNumber);
-	for(unsigned int i = 0; i < strlen(text); i++)
-	{
-		if(text[i] < font->MinChar || text[i] > font->MaxChar) 
-		{
-			if (font->MinChar < 63 || font->MaxChar > 63) text[i] = 63;
-			else text[i] = font->MinChar;
-
-		}
-
-	}
+	VariableWidthFont *font = getFontFor(fontNum);
+	font->SpriteNumber = spriteNum;
 }
 
-bool SpriteFontRenderer::SupportsExtendedCharacters(int fontNumber)
-{
-	return true;
-}
-
-int SpriteFontRenderer::GetTextWidth(const char *text, int fontNumber)
-{
-	SpriteFont *font = getFontFor(fontNumber);
-	int len = strlen(text);
-	return font->CharWidth * len;
-
-}
-
-int SpriteFontRenderer::GetTextHeight(const char *text, int fontNumber)
-{
-	SpriteFont *font = getFontFor(fontNumber);
-	return font->CharHeight;
-}
-
-SpriteFont *SpriteFontRenderer::getFontFor(int fontNum)
-{
-	SpriteFont *font;
-	for (unsigned int i = 0; i < _fonts.size(); i ++)
+VariableWidthFont *VariableWidthSpriteFontRenderer::getFontFor(int fontNum){
+	VariableWidthFont *font;
+	for (size_t i = 0; i < _fonts.size(); i ++)
 	{
 		font = _fonts.at(i);
 		if (font->FontReplaced == fontNum) return font;
 	}
 	//not found
-	font = new SpriteFont();
+	font = new VariableWidthFont;
 	font->FontReplaced = fontNum;
 	_fonts.push_back(font);
 	return font;
 }
 
-
-
-void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
+void VariableWidthSpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-	
-	SpriteFont *font = getFontFor(fontNumber);
-		
-	for(unsigned int i = 0; i < strlen(text); i++)
+	VariableWidthFont *font = getFontFor(fontNumber);
+	int totalWidth = 0;
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		char c = text[i];
-		c -= font->MinChar;
-		int row = c / font->Columns;
-		int column = c % font->Columns;
+				
 		BITMAP *src = _engine->GetSpriteGraphic(font->SpriteNumber);
-		Draw(src, destination, x + (i * font->CharWidth), y, column * font->CharWidth, row * font->CharHeight, font->CharWidth, font->CharHeight, colour); 
+		Draw(src, destination, x + totalWidth, y, font->characters[c].X, font->characters[c].Y, font->characters[c].Width, font->characters[c].Height); 
+		totalWidth += font->characters[c].Width;
+		if (text[i] != ' ') totalWidth += font->Spacing;
 	}
 	
 }
 
 
-
-
-void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height, int colour)
+void VariableWidthSpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height)
 {
 
 	long srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
@@ -135,7 +136,7 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 	int starty = MAX(0, (-1 * desty));
 
 	
-	int srca, srcr, srcg, srcb, desta, destr, destg, destb, finalr, finalg, finalb, finala, col, col_r,col_g,col_b;
+	int srca, srcr, srcg, srcb, desta, destr, destg, destb, finalr, finalg, finalb, finala, col;
 
 	for(int x = startx; x < width; x ++)
 	{
@@ -170,14 +171,11 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 						destg =  getg32(destlongbuffer[destyy][destxx]);
 						destb =  getb32(destlongbuffer[destyy][destxx]);
 						desta =  geta32(destlongbuffer[destyy][destxx]);
-						
-						col_r = getr32(colour);
-						col_g = getr32(colour);
-						col_b = getr32(colour);
+                
 
-						finalr = col_r;//srcr;
-						finalg = col_g;//srcg;
-						finalb = col_b;//srcb;   
+						finalr = srcr;
+						finalg = srcg;
+						finalb = srcb;   
               
                                                                
 						finala = 255-(255-srca)*(255-desta)/255;                                              
@@ -185,7 +183,7 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 						finalg = srca*finalg/finala + desta*destg*(255-srca)/finala/255;
 						finalb = srca*finalb/finala + desta*destb*(255-srca)/finala/255;
 						col = makeacol32(finalr, finalg, finalb, finala);
-						destlongbuffer[destyy][destxx] = colour;
+						destlongbuffer[destyy][destxx] = col;
 					}
 
 				}
@@ -198,3 +196,4 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 	
 
 }
+

@@ -1,5 +1,5 @@
 #pragma once
-#include "plugin/agsplugin.h"
+#include "agsplugin.h"
 #include "VariableWidthFont.h"
 #include <vector>
 class VariableWidthSpriteFontRenderer :
@@ -19,11 +19,12 @@ public:
 	void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height);
 	void SetSprite(int fontNum, int spriteNum);
 	void SetSpacing(int fontNum, int spacing);
+	void SetLineHeightAdjust(int fontNum, int LineHeight, int SpacingHeight, int SpacingOverride);
 
 private:
 	IAGSEngine *_engine;
 	std::vector<VariableWidthFont * > _fonts;
 	VariableWidthFont *getFontFor(int fontNum);
-	void Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height);
+	void Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height, int colour);
 };
 

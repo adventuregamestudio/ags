@@ -6,10 +6,20 @@ VariableWidthFont::VariableWidthFont(void)
 	Spacing = 0;
 	FontReplaced = 0;
 	SpriteNumber = 0;
+	LineHeightAdjust = 0;
+	LineSpacingAdjust = 0;
+	LineSpacingOverride = 0;
 }
 
 
 VariableWidthFont::~VariableWidthFont(void) = default;
+
+void VariableWidthFont::SetLineHeightAdjust(int LineHeight, int SpacingHeight, int SpacingOverride)
+{
+	LineHeightAdjust = LineHeight;
+	LineSpacingAdjust = SpacingHeight;
+	LineSpacingOverride = SpacingOverride;
+}
 
 void VariableWidthFont::SetGlyph(int character, int x, int y, int width, int height)
 {

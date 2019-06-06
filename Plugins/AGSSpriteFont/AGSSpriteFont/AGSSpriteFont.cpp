@@ -22,8 +22,10 @@
 #include <WinBase.h>
 #endif
 
+#if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN
-#include "plugin/agsplugin.h"
+#endif
+#include "agsplugin.h"
 #include "SpriteFontRenderer.h"
 #include "VariableWidthSpriteFont.h"
 
@@ -83,6 +85,9 @@ BOOL APIENTRY DllMain( HANDLE hModule,
   return TRUE;
 }
 #endif
+#if defined(BUILTIN_PLUGINS)
+namespace ags_spritefont {
+#endif
 
 
 //define engine
@@ -119,6 +124,12 @@ void SetSpacing(int fontNum, int spacing)
 	engine->PrintDebugConsole("AGSSpriteFont: SetSpacing");
 	vWidthRenderer->SetSpacing(fontNum, spacing);
 }
+
+void SetLineHeightAdjust(int fontNum, int LineHeight, int SpacingHeight, int SpacingOverride)
+{
+	//OutputDebugString(L"AGSSpriteFont: SetSpacing");
+	vWidthRenderer->SetLineHeightAdjust(fontNum, LineHeight, SpacingHeight, SpacingOverride);
+}
 //==============================================================================
 
 #if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
@@ -131,6 +142,7 @@ const char *ourScriptHeader =
   "import void SetVariableSpriteFont(int fontNum, int sprite);\r\n"
   "import void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height);\r\n"
   "import void SetSpacing(int fontNum, int spacing);\r\n"
+  "import void SetLineHeightAdjust(int fontNum, int LineHeight, int SpacingHeight, int SpacingOverride);\r\n"
   ;
 
 //------------------------------------------------------------------------------
@@ -229,6 +241,7 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 	REGISTER(SetVariableSpriteFont)
 	REGISTER(SetGlyph)
 	REGISTER(SetSpacing)
+	REGISTER(SetLineHeightAdjust)
 }
 
 //------------------------------------------------------------------------------
@@ -238,6 +251,13 @@ void AGS_EngineShutdown()
 	// Called by the game engine just before it exits.
 	// This gives you a chance to free any memory and do any cleanup
 	// that you need to do before the engine shuts down.
+
+	delete fontRenderer;
+	delete vWidthRenderer;
+}
+
+void AGS_EngineInitGfx(const char *driverID, void *data)
+{
 }
 
 //------------------------------------------------------------------------------
@@ -273,7 +293,9 @@ int AGS_EngineOnEvent(int event, int data)                    //*** optional ***
 	// Return 1 to stop event from processing further (when needed)
 	return (0);
 }
-
+#if defined(BUILTIN_PLUGINS)
+}
+#endif
 //------------------------------------------------------------------------------
 /*
 int AGS_EngineDebugHook(const char *scriptName,

@@ -13,6 +13,14 @@ SpriteFontRenderer::SpriteFontRenderer(IAGSEngine *engine)
 
 SpriteFontRenderer::~SpriteFontRenderer(void)
 {
+	int i = 0;
+	for(unsigned int i = 0; i < _fonts.size(); i++)
+	{
+		if(_fonts[i] != NULL)
+			delete _fonts[i];
+	}
+	
+	_fonts.clear();
 }
 
 void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth, int charHeight, int charMin, int charMax, bool use32bit)
@@ -32,7 +40,7 @@ void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int co
 void SpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
 	SpriteFont *font = getFontFor(fontNumber);
-	for(int i = 0; i < strlen(text); i++)
+	for(unsigned int i = 0; i < strlen(text); i++)
 	{
 		if(text[i] < font->MinChar || text[i] > font->MaxChar) 
 		{
@@ -40,13 +48,13 @@ void SpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 			else text[i] = font->MinChar;
 
 		}
-		
+
 	}
 }
 
 bool SpriteFontRenderer::SupportsExtendedCharacters(int fontNumber)
 {
-	return false;
+	return true;
 }
 
 int SpriteFontRenderer::GetTextWidth(const char *text, int fontNumber)
@@ -66,7 +74,7 @@ int SpriteFontRenderer::GetTextHeight(const char *text, int fontNumber)
 SpriteFont *SpriteFontRenderer::getFontFor(int fontNum)
 {
 	SpriteFont *font;
-	for (int i = 0; i < _fonts.size(); i ++)
+	for (unsigned int i = 0; i < _fonts.size(); i ++)
 	{
 		font = _fonts.at(i);
 		if (font->FontReplaced == fontNum) return font;
@@ -84,38 +92,34 @@ void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *de
 {
 	
 	SpriteFont *font = getFontFor(fontNumber);
-	BITMAP *vScreen = _engine->GetVirtualScreen();
-	
-	//_engine->SetVirtualScreen(destination);
-	
-	for(int i = 0; i < strlen(text); i++)
+		
+	for(unsigned int i = 0; i < strlen(text); i++)
 	{
 		char c = text[i];
 		c -= font->MinChar;
 		int row = c / font->Columns;
 		int column = c % font->Columns;
 		BITMAP *src = _engine->GetSpriteGraphic(font->SpriteNumber);
-		Draw(src, destination, x + (i * font->CharWidth), y, column * font->CharWidth, row * font->CharHeight, font->CharWidth, font->CharHeight); 
+		Draw(src, destination, x + (i * font->CharWidth), y, column * font->CharWidth, row * font->CharHeight, font->CharWidth, font->CharHeight, colour); 
 	}
 	
-	//_engine->SetVirtualScreen(vScreen);
 }
 
 
 
 
-void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height)
+void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height, int colour)
 {
 
-	int srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
+	long srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
 
 	unsigned char **srccharbuffer = _engine->GetRawBitmapSurface (src); //8bit
 	unsigned short **srcshortbuffer = (unsigned short**)srccharbuffer; //16bit;
-    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer; //32bit
+    unsigned long **srclongbuffer = (unsigned long**)srccharbuffer; //32bit
 
 	unsigned char **destcharbuffer = _engine->GetRawBitmapSurface (dest); //8bit
 	unsigned short **destshortbuffer = (unsigned short**)destcharbuffer; //16bit;
-    unsigned int **destlongbuffer = (unsigned int**)destcharbuffer; //32bit
+    unsigned long **destlongbuffer = (unsigned long**)destcharbuffer; //32bit
 
 	int transColor = _engine->GetBitmapTransparentColor(src);
 
@@ -131,7 +135,7 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 	int starty = MAX(0, (-1 * desty));
 
 	
-	int srca, srcr, srcg, srcb, desta, destr, destg, destb, finalr, finalg, finalb, finala, col;
+	int srca, srcr, srcg, srcb, desta, destr, destg, destb, finalr, finalg, finalb, finala, col, col_r,col_g,col_b;
 
 	for(int x = startx; x < width; x ++)
 	{
@@ -166,11 +170,14 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 						destg =  getg32(destlongbuffer[destyy][destxx]);
 						destb =  getb32(destlongbuffer[destyy][destxx]);
 						desta =  geta32(destlongbuffer[destyy][destxx]);
-                
+						
+						col_r = getr32(colour);
+						col_g = getr32(colour);
+						col_b = getr32(colour);
 
-						finalr = srcr;
-						finalg = srcg;
-						finalb = srcb;   
+						finalr = col_r;//srcr;
+						finalg = col_g;//srcg;
+						finalb = col_b;//srcb;   
               
                                                                
 						finala = 255-(255-srca)*(255-desta)/255;                                              
@@ -178,7 +185,7 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 						finalg = srca*finalg/finala + desta*destg*(255-srca)/finala/255;
 						finalb = srca*finalb/finala + desta*destb*(255-srca)/finala/255;
 						col = makeacol32(finalr, finalg, finalb, finala);
-						destlongbuffer[destyy][destxx] = col;
+						destlongbuffer[destyy][destxx] = colour;
 					}
 
 				}

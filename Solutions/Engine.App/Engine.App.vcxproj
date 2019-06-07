@@ -47,7 +47,6 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\allegro.props" />
-    <Import Project="..\alfont.props" />
     <Import Project="..\directx.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
@@ -56,7 +55,6 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\allegro.props" />
-    <Import Project="..\alfont.props" />
     <Import Project="..\directx.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
@@ -65,7 +63,6 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\allegro.props" />
-    <Import Project="..\alfont.props" />
     <Import Project="..\directx.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />

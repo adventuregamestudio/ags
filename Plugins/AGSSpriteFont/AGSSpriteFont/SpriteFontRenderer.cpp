@@ -1,6 +1,7 @@
 #include "SpriteFontRenderer.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include "color.h"
 
 
@@ -110,15 +111,17 @@ void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *de
 void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height, int colour)
 {
 
-	long srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
+	int32 srcWidth = 0, srcHeight = 0, destWidth = 0, destHeight = 0, srcColDepth = 0, destColDepth = 0;
 
 	unsigned char **srccharbuffer = _engine->GetRawBitmapSurface (src); //8bit
-	unsigned short **srcshortbuffer = (unsigned short**)srccharbuffer; //16bit;
-    unsigned long **srclongbuffer = (unsigned long**)srccharbuffer; //32bit
+	// this is risky: may lead to crashes or bad performance if data is unaligned
+	uint16_t **srcshortbuffer = (uint16_t**)srccharbuffer; //16bit;
+	uint32_t **srclongbuffer = (uint32_t**)srccharbuffer; //32bit
 
 	unsigned char **destcharbuffer = _engine->GetRawBitmapSurface (dest); //8bit
-	unsigned short **destshortbuffer = (unsigned short**)destcharbuffer; //16bit;
-    unsigned long **destlongbuffer = (unsigned long**)destcharbuffer; //32bit
+	// more unaligned data access risk
+	uint16_t **destshortbuffer = (uint16_t**)destcharbuffer; //16bit;
+	uint32_t **destlongbuffer = (uint32_t**)destcharbuffer; //32bit
 
 	int transColor = _engine->GetBitmapTransparentColor(src);
 
@@ -145,49 +148,45 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 			int srcxx = x + srcx;
 			int destyy = y + desty;
 			int destxx = x + destx;
-				if (destColDepth == 8)
-				{
-					if (srccharbuffer[srcyy][srcxx] != transColor) destcharbuffer[destyy][destxx] = srccharbuffer[srcyy][srcxx];
-				}
-				else if (destColDepth == 16)
-				{
-					if (srcshortbuffer[srcyy][srcxx] != transColor) destshortbuffer[destyy][destxx] = srcshortbuffer[srcyy][srcxx];
-				}
-				else if (destColDepth == 32)
-				{
-					//if (srclongbuffer[srcyy][srcxx] != transColor) destlongbuffer[destyy][destxx] = srclongbuffer[srcyy][srcxx];
-					
-					srca =  (geta32(srclongbuffer[srcyy][srcxx]));
-            
-					if (srca != 0) {
-						   
-						srcr =  getr32(srclongbuffer[srcyy][srcxx]);  
-						srcg =  getg32(srclongbuffer[srcyy][srcxx]);
-						srcb =  getb32(srclongbuffer[srcyy][srcxx]);
-    
-						destr =  getr32(destlongbuffer[destyy][destxx]);
-						destg =  getg32(destlongbuffer[destyy][destxx]);
-						destb =  getb32(destlongbuffer[destyy][destxx]);
-						desta =  geta32(destlongbuffer[destyy][destxx]);
-						
-						col_r = getr32(colour);
-						col_g = getr32(colour);
-						col_b = getr32(colour);
 
-						finalr = col_r;//srcr;
-						finalg = col_g;//srcg;
-						finalb = col_b;//srcb;   
-              
-                                                               
-						finala = 255-(255-srca)*(255-desta)/255;                                              
-						finalr = srca*finalr/finala + desta*destr*(255-srca)/finala/255;
-						finalg = srca*finalg/finala + desta*destg*(255-srca)/finala/255;
-						finalb = srca*finalb/finala + desta*destb*(255-srca)/finala/255;
-						col = makeacol32(finalr, finalg, finalb, finala);
-						destlongbuffer[destyy][destxx] = colour;
-					}
+			if (destColDepth == 8)
+			{
+				if (srccharbuffer[srcyy][srcxx] != transColor) destcharbuffer[destyy][destxx] = srccharbuffer[srcyy][srcxx];
+			}
+			else if (destColDepth == 16)
+			{
+				if (srcshortbuffer[srcyy][srcxx] != transColor) destshortbuffer[destyy][destxx] = srcshortbuffer[srcyy][srcxx];
+			}
+			else if (destColDepth == 32)
+			{
+				//if (srclongbuffer[srcyy][srcxx] != transColor) destlongbuffer[destyy][destxx] = srclongbuffer[srcyy][srcxx];
 
+				srca =  (geta32(srclongbuffer[srcyy][srcxx]));
+
+				if (srca != 0) {
+
+					srcr =  getr32(srclongbuffer[srcyy][srcxx]);
+					srcg =  getg32(srclongbuffer[srcyy][srcxx]);
+					srcb =  getb32(srclongbuffer[srcyy][srcxx]);
+
+					destr =  getr32(destlongbuffer[destyy][destxx]);
+					destg =  getg32(destlongbuffer[destyy][destxx]);
+					destb =  getb32(destlongbuffer[destyy][destxx]);
+					desta =  geta32(destlongbuffer[destyy][destxx]);
+
+					col_r = getr32(colour);
+					col_g = getr32(colour);
+					col_b = getr32(colour);
+
+					finala = 255-(255-srca)*(255-desta)/255;
+					finalr = srca*col_r/finala + desta*destr*(255-srca)/finala/255;
+					finalg = srca*col_g/finala + desta*destg*(255-srca)/finala/255;
+					finalb = srca*col_b/finala + desta*destb*(255-srca)/finala/255;
+					col = makeacol32(finalr, finalg, finalb, finala);
+					destlongbuffer[destyy][destxx] = col;
 				}
+
+			}
 		}
 	}
 	

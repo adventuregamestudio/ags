@@ -13,8 +13,7 @@ SpriteFontRenderer::SpriteFontRenderer(IAGSEngine *engine)
 
 SpriteFontRenderer::~SpriteFontRenderer(void)
 {
-	int i = 0;
-	for(unsigned int i = 0; i < _fonts.size(); i++)
+	for(size_t i = 0; i < _fonts.size(); i++)
 	{
 		if(_fonts[i] != NULL)
 			delete _fonts[i];
@@ -40,7 +39,7 @@ void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int co
 void SpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
 	SpriteFont *font = getFontFor(fontNumber);
-	for(unsigned int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		if(text[i] < font->MinChar || text[i] > font->MaxChar) 
 		{
@@ -60,8 +59,8 @@ bool SpriteFontRenderer::SupportsExtendedCharacters(int fontNumber)
 int SpriteFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
 	SpriteFont *font = getFontFor(fontNumber);
-	int len = strlen(text);
-	return font->CharWidth * len;
+	size_t len = strlen(text);
+	return (int) (font->CharWidth * len);
 
 }
 
@@ -74,7 +73,7 @@ int SpriteFontRenderer::GetTextHeight(const char *text, int fontNumber)
 SpriteFont *SpriteFontRenderer::getFontFor(int fontNum)
 {
 	SpriteFont *font;
-	for (unsigned int i = 0; i < _fonts.size(); i ++)
+	for (size_t i = 0; i < _fonts.size(); i ++)
 	{
 		font = _fonts.at(i);
 		if (font->FontReplaced == fontNum) return font;
@@ -92,8 +91,8 @@ void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *de
 {
 	
 	SpriteFont *font = getFontFor(fontNumber);
-		
-	for(unsigned int i = 0; i < strlen(text); i++)
+	
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		char c = text[i];
 		c -= font->MinChar;

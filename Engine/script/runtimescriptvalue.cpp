@@ -118,7 +118,8 @@ int32_t RuntimeScriptValue::ReadInt32()
 RuntimeScriptValue RuntimeScriptValue::ReadValue()
 {
     RuntimeScriptValue rval;
-    if (this->Type == kScValStackPtr)
+    switch(this->Type) {
+    case kScValStackPtr:
     {
         if (RValue->Type == kScValData)
         {
@@ -129,7 +130,8 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
             rval = *RValue;
         }
     }
-    else if (this->Type == kScValGlobalVar)
+    break;
+    case kScValGlobalVar:
     {
         if (RValue->Type == kScValData)
         {
@@ -140,18 +142,22 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
             rval = *RValue;
         }
     }
-    else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
+    break;
+    case kScValStaticObject: case kScValStaticArray:
     {
         rval.SetInt32(this->StcMgr->ReadInt32(this->Ptr, this->IValue));
     }
-    else if (this->Type == kScValDynamicObject)
+    break;
+    case kScValDynamicObject:
     {
         rval.SetInt32(this->DynMgr->ReadInt32(this->Ptr, this->IValue));
     }
-    else
+    break;
+    default:
     {
         // 64 bit: Memory reads are still 32 bit
         rval.SetInt32(*(int32_t*)this->GetPtrWithOffset());
+    }
     }
     return rval;
 }

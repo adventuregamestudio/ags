@@ -175,8 +175,8 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 					desta =  geta32(destlongbuffer[destyy][destxx]);
 
 					col_r = getr32(colour);
-					col_g = getr32(colour);
-					col_b = getr32(colour);
+					col_g = getg32(colour);
+					col_b = getb32(colour);
 
 					finala = 255-(255-srca)*(255-desta)/255;
 					finalr = srca*col_r/finala + desta*destr*(255-srca)/finala/255;

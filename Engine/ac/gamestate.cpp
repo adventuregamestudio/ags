@@ -229,7 +229,6 @@ int GameState::RoomToScreenY(int roomy)
 
 VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport, bool convert_cam_to_data)
 {
-    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507;
     Point screen_pt(scrx, scry);
     PViewport view;
     if (view_index < 0)
@@ -265,12 +264,16 @@ VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool cli
 
 VpPoint GameState::ScreenToRoom(int scrx, int scry)
 {
-    return ScreenToRoomImpl(scrx, scry, -1, true, false);
+    if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
+        return ScreenToRoomImpl(scrx, scry, -1, true, false);
+    return ScreenToRoomImpl(scrx, scry, 0, false, false);
 }
 
 VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry)
 {
-    return ScreenToRoomImpl(scrx, scry, -1, true, true);
+    if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
+        return ScreenToRoomImpl(scrx, scry, -1, true, true);
+    return ScreenToRoomImpl(scrx, scry, 0, false, true);
 }
 
 VpPoint GameState::ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport)

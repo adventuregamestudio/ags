@@ -216,29 +216,32 @@ void engine_setup_color_conversions(int coldepth)
     _rgb_g_shift_15 = 5;
     _rgb_b_shift_15 = 0;
 
-    if (coldepth > 16)
-    {
-        // when we're using 32-bit colour, it converts hi-color images
-        // the wrong way round - so fix that
+    switch(coldepth) {
+        case 8:
+        case 15:
+            // !WINDOWS is essentially what we had before. I'm not sure if this is meant to include Linux.
+            #if !AGS_PLATFORM_OS_WINDOWS
+            // when we're using 32-bit colour, it converts hi-color images
+            // the wrong way round - so fix that
+            _rgb_r_shift_32 = 0;
+            _rgb_g_shift_32 = 8;
+            _rgb_b_shift_32 = 16;
+            #endif
+            break;
 
-#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
-        _rgb_r_shift_32 = 0;
-        _rgb_g_shift_32 = 8;
-        _rgb_b_shift_32 = 16;
-#endif
-    }
-    else if (coldepth == 16)
-    {
-    }
-    else if (coldepth < 16)
-    {
-        // ensure that any 32-bit graphics displayed are converted
-        // properly to the current depth
-#if !AGS_PLATFORM_OS_WINDOWS
-        _rgb_r_shift_32 = 0;
-        _rgb_g_shift_32 = 8;
-        _rgb_b_shift_32 = 16;
-#endif
+        case 16:
+            break;
+
+        case 24:
+        case 32:
+            #if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
+            // when we're using 32-bit colour, it converts hi-color images
+            // the wrong way round - so fix that
+            _rgb_r_shift_32 = 0;
+            _rgb_g_shift_32 = 8;
+            _rgb_b_shift_32 = 16;
+            #endif
+            break;
     }
 
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256);

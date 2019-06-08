@@ -185,17 +185,26 @@ void engine_pre_gfxsystem_screen_destroy()
 // Setup color conversion parameters
 void engine_setup_color_conversions(int coldepth)
 {
-    // default shifts for how we store the sprite data1
+    // default shifts for how we store the sprite data
+    _rgb_a_shift_32 = 24;
     _rgb_r_shift_32 = 16;
     _rgb_g_shift_32 = 8;
     _rgb_b_shift_32 = 0;
+
+    _rgb_r_shift_24 = 16;
+    _rgb_g_shift_24 = 8;
+    _rgb_b_shift_24 = 0;
+
     _rgb_r_shift_16 = 11;
     _rgb_g_shift_16 = 5;
     _rgb_b_shift_16 = 0;
+
     _rgb_r_shift_15 = 10;
     _rgb_g_shift_15 = 5;
     _rgb_b_shift_15 = 0;
 
+// disabled as the defaults above mean this never triggers
+#if 0
     // Most cards do 5-6-5 RGB, which is the format the files are saved in
     // Some do 5-6-5 BGR, or  6-5-5 RGB, in which case convert the gfx
     if ((coldepth == 16) && ((_rgb_b_shift_16 != 0) || (_rgb_r_shift_16 != 11)))
@@ -208,6 +217,8 @@ void engine_setup_color_conversions(int coldepth)
             _places_g = 3;
         }
     }
+#endif
+
     if (coldepth > 16)
     {
         // when we're using 32-bit colour, it converts hi-color images

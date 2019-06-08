@@ -213,7 +213,7 @@ void engine_setup_color_conversions(int coldepth)
         // when we're using 32-bit colour, it converts hi-color images
         // the wrong way round - so fix that
 
-#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_MACOS
+#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
         _rgb_b_shift_16 = 0;
         _rgb_g_shift_16 = 5;
         _rgb_r_shift_16 = 11;

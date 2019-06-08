@@ -21,21 +21,31 @@
     #define AGS_PLATFORM_OS_PSP     (0)
 #elif defined(__APPLE__)
     #include "TargetConditionals.h"
-    #if TARGET_OS_SIMULATOR
+    #ifndef TARGET_OS_SIMULATOR
+        #define TARGET_OS_SIMULATOR (0)
+    #endif
+    #ifndef TARGET_OS_IOS
+        #define TARGET_OS_IOS (0)
+    #endif
+    #ifndef TARGET_OS_OSX
+        #define TARGET_OS_OSX (0)
+    #endif
+
+    #if TARGET_OS_SIMULATOR || TARGET_IPHONE_SIMULATOR
         #define AGS_PLATFORM_OS_WINDOWS (0)
         #define AGS_PLATFORM_OS_LINUX   (0)
         #define AGS_PLATFORM_OS_MACOS   (0)
         #define AGS_PLATFORM_OS_ANDROID (0)
         #define AGS_PLATFORM_OS_IOS     (1)
         #define AGS_PLATFORM_OS_PSP     (0)
-    #elif TARGET_OS_IOS
+    #elif TARGET_OS_IOS || TARGET_OS_IPHONE
         #define AGS_PLATFORM_OS_WINDOWS (0)
         #define AGS_PLATFORM_OS_LINUX   (0)
         #define AGS_PLATFORM_OS_MACOS   (0)
         #define AGS_PLATFORM_OS_ANDROID (0)
         #define AGS_PLATFORM_OS_IOS     (1)
         #define AGS_PLATFORM_OS_PSP     (0)
-    #elif TARGET_OS_OSX
+    #elif TARGET_OS_OSX || TARGET_OS_MAC
         #define AGS_PLATFORM_OS_WINDOWS (0)
         #define AGS_PLATFORM_OS_LINUX   (0)
         #define AGS_PLATFORM_OS_MACOS   (1)

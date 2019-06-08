@@ -225,47 +225,22 @@ void engine_setup_color_conversions(int coldepth)
         // the wrong way round - so fix that
 
 #if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
-        _rgb_r_shift_16 = 11;
-        _rgb_g_shift_16 = 5;
-        _rgb_b_shift_16 = 0;
-
-        _rgb_r_shift_15 = 10;
-        _rgb_g_shift_15 = 5;
-        _rgb_b_shift_15 = 0;
-
         _rgb_r_shift_32 = 0;
         _rgb_g_shift_32 = 8;
         _rgb_b_shift_32 = 16;
-#else
-        _rgb_r_shift_16 = 11;
-        _rgb_g_shift_16 = 5;
-        _rgb_b_shift_16 = 0;
 #endif
     }
     else if (coldepth == 16)
     {
-        // ensure that any 32-bit graphics displayed are converted
-        // properly to the current depth
-        _rgb_r_shift_32 = 16;
-        _rgb_g_shift_32 = 8;
-        _rgb_b_shift_32 = 0;
     }
     else if (coldepth < 16)
     {
         // ensure that any 32-bit graphics displayed are converted
         // properly to the current depth
-#if AGS_PLATFORM_OS_WINDOWS
-        _rgb_r_shift_32 = 16;
-        _rgb_g_shift_32 = 8;
-        _rgb_b_shift_32 = 0;
-#else
+#if !AGS_PLATFORM_OS_WINDOWS
         _rgb_r_shift_32 = 0;
         _rgb_g_shift_32 = 8;
         _rgb_b_shift_32 = 16;
-
-        _rgb_r_shift_15 = 10;
-        _rgb_g_shift_15 = 5;
-        _rgb_b_shift_15 = 0;
 #endif
     }
 

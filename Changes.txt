@@ -3,6 +3,7 @@ REVISION HISTORY
 VERSION 3.5.0 - Alpha
 
 Common features:
+ - Now using Allegro v4.4.3 library (previously v4.4.2).
  - Support for large files: compiled game, sprite set, room files now may exceed 2 GB.
  - Deprecated relative assets resolutions: now sprites, rooms and fonts are considered to
    match game's resolution by default and not resized, unless running in backwards-compatibility
@@ -34,6 +35,8 @@ Editor:
  - Sprites have "Real" resolution type by default. "Low" and "High resolution" are kept
    for backwards compatibility only. When importing older games resolution type will be
    promoted to "Real" whenever it matches the game.
+ - Adjusted saving sprite file to not cancel completely if only an optional step has failed
+   (such as copying a backup file).
  - New navigation bar in the room editor, which allows to select any room object
    or region for editing, show/hide and lock room objects and regions in any combination.
    These settings are saved in the special roomXXX.crm.user files.
@@ -56,6 +59,7 @@ Editor:
  - Don't display missing games in the "recent games" list.
  - Build autocomplete table a little faster.
  - Corrected .NET version query for the anonymous statistics report.
+ - Disabled screenshot made when sending a crash report, for security reasons.
  - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
@@ -75,8 +79,10 @@ Scripting:
 
 Script API:
  - Introduced new managed struct Point describing (x,y) coordinates.
+ - Introduced StringCompareStyle enum and replaced "caseSensitive" argument in String functions
+   with argument of StringCompareStyle type.
  - Implemented Dictionary and Set script classes supporting storage and lookup of strings and
-   key/value pairs in sorted or unsorted way.
+   key/value pairs in sorted or unsorted way. Added SortStyle enum for use with them.
  - Implemented Viewport and Camera script classes which control how room is displayed on screen.
  - Implemented Screen struct with a number of static functions and properties, which notably
    features references to the existing Viewports. Deprecated System's ScreenWidth, ScreenHeight,
@@ -131,9 +137,18 @@ Engine:
  - Fixed potential bug which could cause DoOnceOnly tokens to be read incorrectly from a savedgame.
  - Fixed Character.DestinationY telling incorrect values beyond Y = 255.
  - Fixed DynamicSprite.SaveToFile() not appending ".bmp" if no extension was specified.
+ - Fixed old walk-behind cut-outs could be displayed on first update in a room if the room's
+   background was modified using raw drawing commands before fade-in. This happened only when
+   running Direct3D or OpenGL renderer. Note that this bug was probably never noticed by players
+   for a certain barely related reason.
  - Fixed IsMusicVoxAvailable() not working correctly in old games which use 'music.vox'.
  - Fixed a bug in mp3/ogg decoder where it assumed creating an audiostream succeeded without
    actually testing one.
+ - Restored support for running games made with experimental 3.3.0 CR version.
+ - Fixed character's blinking frames drawn incorrectly when legacy sprite blending mode was on.
+ - Fixed increased CPU load when displaying built-in dialogs (save, restore etc).
+ - Restored legacy InventoryScreen() behavior which picked sprites 0, 1, 2 for inventory dialog
+   buttons when predefined 2041, 2042 and 2043 were not available.
  - Added Scavenger's palgorithms plugin to the list of builtins, for ports that use ones.
  - Added stubs for monkey0506's Steam and GoG plugins to let run games on systems that do not have
    Steam/GoG installed (all related functionality will be disabled though).
@@ -145,6 +160,7 @@ Linux:
 
 Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.
+ - Engine is marked as a DPI-aware application that supposed to prevent window scaling by system.
 
 
 VERSION 3.4.3 - Patch 1, February 2019

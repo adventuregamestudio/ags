@@ -543,14 +543,6 @@ if (AGS_BUILTIN_PLUGINS)
     )
 endif()
 
-if (LINUX OR MACOS)
-    target_sources(engine 
-        PRIVATE 
-        platform/linux/binreloc.c
-        platform/linux/binreloc.h
-    )
-endif ()
-
 target_compile_definitions(engine PRIVATE 
     $<$<CONFIG:DEBUG>:SOUND_CACHE_DEBUG>
     $<$<CONFIG:DEBUG>:DEBUG_MANAGED_OBJECTS>

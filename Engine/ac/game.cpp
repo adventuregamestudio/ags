@@ -66,6 +66,7 @@
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "game/savegame.h"
+#include "game/savegame_components.h"
 #include "game/savegame_internal.h"
 #include "gui/animatingguibutton.h"
 #include "gfx/bitmap.h"
@@ -1145,29 +1146,8 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     r_data.FPS = in->ReadInt32();
     r_data.CursorMode = in->ReadInt32();
     r_data.CursorID = in->ReadInt32();
-    int camx = in->ReadInt32();
-    int camy = in->ReadInt32();
+    SavegameComponents::ReadLegacyCameraState(in, r_data);
     set_loop_counter(in->ReadInt32());
-
-    // Precreate viewport and camera and save data in temp structs
-    play.CreateRoomCamera();
-    play.CreateRoomViewport();
-    const auto &main_view = play.GetMainViewport();
-    RestoredData::CameraData cam_dat;
-    cam_dat.ID = 0;
-    cam_dat.Left = camx;
-    cam_dat.Top = camy;
-    cam_dat.Width = main_view.GetWidth();
-    cam_dat.Height = main_view.GetHeight();
-    r_data.Cameras.push_back(cam_dat);
-    RestoredData::ViewportData view_dat;
-    view_dat.ID = 0;
-    view_dat.Width = main_view.GetWidth();
-    view_dat.Height = main_view.GetHeight();
-    view_dat.Flags = kSvgViewportVisible;
-    view_dat.CamID = 0;
-    r_data.Viewports.push_back(view_dat);
-
     return HSaveError::None();
 }
 
@@ -1279,6 +1259,7 @@ void restore_game_play(Stream *in, RestoredData &r_data)
     int *gui_draw_order_was = play.gui_draw_order;
 
     ReadGameState_Aligned(in, r_data);
+    r_data.Cameras[0].Flags = r_data.Camera0_Flags;
 
     play.screen_is_faded_out = screenfadedout_was;
     play.room_changes = roomchanges_was;

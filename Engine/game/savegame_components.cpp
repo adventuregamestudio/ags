@@ -258,6 +258,30 @@ HSaveError WriteGameState(PStream out)
     return HSaveError::None();
 }
 
+void ReadLegacyCameraState(Stream *in, RestoredData &r_data)
+{
+    // Precreate viewport and camera and save data in temp structs
+    int camx = in->ReadInt32();
+    int camy = in->ReadInt32();
+    play.CreateRoomCamera();
+    play.CreateRoomViewport();
+    const auto &main_view = play.GetMainViewport();
+    RestoredData::CameraData cam_dat;
+    cam_dat.ID = 0;
+    cam_dat.Left = camx;
+    cam_dat.Top = camy;
+    cam_dat.Width = main_view.GetWidth();
+    cam_dat.Height = main_view.GetHeight();
+    r_data.Cameras.push_back(cam_dat);
+    RestoredData::ViewportData view_dat;
+    view_dat.ID = 0;
+    view_dat.Width = main_view.GetWidth();
+    view_dat.Height = main_view.GetHeight();
+    view_dat.Flags = kSvgViewportVisible;
+    view_dat.CamID = 0;
+    r_data.Viewports.push_back(view_dat);
+}
+
 void ReadCameraState(RestoredData &r_data, Stream *in)
 {
     RestoredData::CameraData cam;
@@ -318,9 +342,8 @@ HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp,
     // Viewports and cameras
     if (svg_ver < kGSSvgVersion_3510)
     {
-        int camx = in->ReadInt32();
-        int camy = in->ReadInt32();
-        play.GetRoomCamera(0)->SetAt(camx, camy);
+        ReadLegacyCameraState(in.get(), r_data);
+        r_data.Cameras[0].Flags = r_data.Camera0_Flags;
     }
     else
     {

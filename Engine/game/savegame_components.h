@@ -45,6 +45,9 @@ namespace SavegameComponents
     HSaveError ReadInteraction272(Interaction &intr, Stream *in);
     void WriteTimesRun272(const Interaction &intr, Stream *out);
     void WriteInteraction272(const Interaction &intr, Stream *out);
+
+    // Precreates primary camera and viewport and reads legacy camera data
+    void ReadLegacyCameraState(Stream *in, RestoredData &r_data);
 }
 
 } // namespace Engine

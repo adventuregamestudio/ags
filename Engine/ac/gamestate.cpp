@@ -572,7 +572,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     {
         short offsets_locked = in->ReadInt16();
         if (offsets_locked != 0)
-            r_data.Cameras[0].Flags = kSvgCamPosLocked;
+            r_data.Camera0_Flags = kSvgCamPosLocked;
     }
     entered_at_x = in->ReadInt32();
     entered_at_y = in->ReadInt32();

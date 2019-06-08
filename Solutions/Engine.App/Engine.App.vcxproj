@@ -47,7 +47,6 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\allegro.props" />
-    <Import Project="..\alfont.props" />
     <Import Project="..\directx.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
@@ -56,7 +55,6 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\allegro.props" />
-    <Import Project="..\alfont.props" />
     <Import Project="..\directx.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
@@ -65,7 +63,6 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\allegro.props" />
-    <Import Project="..\alfont.props" />
     <Import Project="..\directx.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -93,7 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -106,7 +103,7 @@
       <TreatSpecificWarningsAsErrors>4013; 4150; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Common_d.lib;alleg-debug-static-mt.lib;alfont_mt_d.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_d.lib;alleg-debug-static-mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -122,7 +119,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -134,7 +131,7 @@
       <TreatSpecificWarningsAsErrors>4013; 4150; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Common.lib;alleg-static-mt.lib;alfont_mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common.lib;alleg-static-mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -155,7 +152,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -167,7 +164,7 @@
       <TreatSpecificWarningsAsErrors>4013; 4150; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Common.lib;alleg-static-mt.lib;alfont_mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common.lib;alleg-static-mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>

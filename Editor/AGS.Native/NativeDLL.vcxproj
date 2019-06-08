@@ -37,13 +37,11 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Solutions\alfont.props" />
     <Import Project="..\..\Solutions\allegro.props" />
     <Import Project="..\..\Solutions\directx.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Solutions\alfont.props" />
     <Import Project="..\..\Solutions\allegro.props" />
     <Import Project="..\..\Solutions\directx.props" />
   </ImportGroup>
@@ -101,7 +99,7 @@
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md_d.lib;Compiler_md_d.lib;winmm.lib;imm32.lib;shlwapi.lib;alleg-debug-static.lib;alfont_md_d.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md_d.lib;Compiler_md_d.lib;winmm.lib;imm32.lib;shlwapi.lib;alleg-debug-static.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\Debug_MD;$(SolutionDir)\..\Windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile />
@@ -151,7 +149,7 @@
     </ResourceCompile>
     <Link>
       <RegisterOutput>false</RegisterOutput>
-      <AdditionalDependencies>Common_md.lib;Compiler_md.lib;winmm.lib;imm32.lib;shlwapi.lib;alleg-static.lib;alfont_md.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_md.lib;Compiler_md.lib;winmm.lib;imm32.lib;shlwapi.lib;alleg-static.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\Release_MD;$(SolutionDir)\..\Windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile />

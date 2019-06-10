@@ -643,9 +643,21 @@ if (MACOS)
 
     target_include_directories(ags-app PRIVATE .)
 
+    file(GLOB RESOURCE_FILES
+        CONFIGURE_DEPENDS
+        ../OSX/Resources/ags.icns
+        ../OSX/Resources/ac2game.dat
+        ../OSX/Resources/acsetup.cfg
+        ../OSX/Resources/audio.vox
+        ../OSX/Resources/music.vox
+        ../OSX/Resources/speech.vox
+        ../OSX/Resources/*.vox
+    )
+
     target_sources(ags-app
         PRIVATE
         main/main_allegro.cpp
+        ${RESOURCE_FILES}
     )
 
     target_link_libraries(ags-app PRIVATE engine)
@@ -654,9 +666,27 @@ if (MACOS)
         RUNTIME_OUTPUT_NAME AGS
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
         MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER uk.co.adventuregamestudio.AGS
-        #RESOURCE "${resources}"  # *must* be part of target sources too
-        #SET_SOURCE_FILES_PROPERTIES(${Textures} PROPERTIES MACOSX_PACKAGE_LOCATION Resources) 
-        #use MACOSX_PACKAGE_LOCATION for nested
+        RESOURCE "${RESOURCE_FILES}"  # *must* be part of target sources too
+
+        # Below properties will configure the default template MacOSXBundleInfo.plist.in
+        # Refer to https://cmake.org/cmake/help/latest/prop_tgt/MACOSX_BUNDLE_INFO_PLIST.html
+        # if you want to manage a custom plist template file.
+
+        MACOSX_BUNDLE_GUI_IDENTIFIER        # CFBundleIdentifier
+            uk.co.adventuregamestudio.ags
+        MACOSX_BUNDLE_BUNDLE_NAME           # CFBundleName
+            AGS
+        MACOSX_BUNDLE_ICON_FILE             # CFBundleIconFile
+            ags.icns
+        MACOSX_BUNDLE_BUNDLE_VERSION        # CFBundleVersion
+            1.0.0
+        MACOSX_BUNDLE_LONG_VERSION_STRING   # CFBundleLongVersionString
+            1.0.0
+        MACOSX_BUNDLE_SHORT_VERSION_STRING  # CFBundleShortVersionString
+            1.0.0
+        MACOSX_BUNDLE_COPYRIGHT             # NSHumanReadableCopyright
+            "Copyright (C) 1999-2011 Chris Jones and 2011-20xx others"
+        MACOSX_BUNDLE_INFO_STRING           # CFBundleGetInfoString
+            "Created by Adventure Game Studio"
     )
 endif()

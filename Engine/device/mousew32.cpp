@@ -357,9 +357,6 @@ void Mouse::DisableControl()
 {
     ControlEnabled = false;
     ConfineInCtrlRect = false;
-    SpeedVal = 1.f;
-    SpeedUnit = 1.f;
-    Speed = 1.f;
 }
 
 bool Mouse::IsControlEnabled()

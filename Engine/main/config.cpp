@@ -560,15 +560,16 @@ void apply_config(const ConfigTree &cfg)
         if (usetup.mouse_speed <= 0.f)
             usetup.mouse_speed = 1.f;
         const char *mouse_ctrl_options[kNumMouseCtrlOptions] = { "never", "fullscreen", "always" };
-        String mouse_str = INIreadstring(cfg, "mouse", "control", "fullscreen");
+        String mouse_str = INIreadstring(cfg, "mouse", "control_when", "fullscreen");
         for (int i = 0; i < kNumMouseCtrlOptions; ++i)
         {
             if (mouse_str.CompareNoCase(mouse_ctrl_options[i]) == 0)
             {
-                usetup.mouse_control = (MouseControl)i;
+                usetup.mouse_ctrl_when = (MouseControlWhen)i;
                 break;
             }
         }
+        usetup.mouse_ctrl_enabled = INIreadint(cfg, "mouse", "control_enabled", 1) > 0;
         const char *mouse_speed_options[kNumMouseSpeedDefs] = { "absolute", "current_display" };
         mouse_str = INIreadstring(cfg, "mouse", "speed_def", "current_display");
         for (int i = 0; i < kNumMouseSpeedDefs; ++i)

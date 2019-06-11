@@ -20,7 +20,7 @@
 
 
 // Mouse control activation type
-enum MouseControl
+enum MouseControlWhen
 {
     kMouseCtrl_Never,       // never control mouse (track system mouse position)
     kMouseCtrl_Fullscreen,  // control mouse in fullscreen only
@@ -63,7 +63,8 @@ struct GameSetup {
     char  override_multitasking;
     bool  override_upscale;
     float mouse_speed;
-    MouseControl mouse_control;
+    MouseControlWhen mouse_ctrl_when;
+    bool  mouse_ctrl_enabled;
     MouseSpeedDef mouse_speed_def;
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
     int   Supersampling;

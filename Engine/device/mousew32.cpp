@@ -360,8 +360,8 @@ void Mouse::EnableControl(bool confine)
     ConfineInCtrlRect = confine;
     // Whether mouse movement should be controlled by the engine - this is
     // determined based on related config option.
-    bool should_control_mouse = (usetup.mouse_control == kMouseCtrl_Always ||
-        (usetup.mouse_control == kMouseCtrl_Fullscreen && scsystem.windowed == 0));
+    bool should_control_mouse = (usetup.mouse_ctrl_when == kMouseCtrl_Always ||
+        (usetup.mouse_ctrl_when == kMouseCtrl_Fullscreen && scsystem.windowed == 0));
     // Whether mouse movement control is supported by the engine - this is
     // determined on per platform basis. Some builds may not have such
     // capability, e.g. because of how backend library implements mouse utils.

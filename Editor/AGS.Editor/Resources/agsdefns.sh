@@ -795,7 +795,7 @@ struct Mouse {
   import static attribute bool Visible;
 #ifdef SCRIPT_API_v335
   /// Gets/sets whether the user-defined factors are applied to mouse movement
-  readonly import static attribute bool ControlEnabled;
+  import static attribute bool ControlEnabled;
   /// Gets/sets the mouse speed
   import static attribute float Speed;
 #endif

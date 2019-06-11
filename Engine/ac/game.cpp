@@ -939,6 +939,11 @@ ScriptCamera* Game_GetAnyCamera(int index)
     return play.GetScriptCamera(index);
 }
 
+void Game_SimulateKeyPress(int key)
+{
+    simulate_keypress(key);
+}
+
 //=============================================================================
 
 // save game functions
@@ -2394,6 +2399,11 @@ RuntimeScriptValue Sc_Game_GetAnyCamera(const RuntimeScriptValue *params, int32_
     API_SCALL_OBJAUTO_PINT(ScriptCamera, Game_GetAnyCamera);
 }
 
+RuntimeScriptValue Sc_Game_SimulateKeyPress(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SimulateKeyPress);
+}
+
 void RegisterGameAPI()
 {
     ccAddExternalStaticFunction("Game::IsAudioPlaying^1",                       Sc_Game_IsAudioPlaying);
@@ -2446,6 +2456,7 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::geti_AudioClips",                        Sc_Game_GetAudioClip);
     ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
     ccAddExternalStaticFunction("Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip);
+    ccAddExternalStaticFunction("Game::SimulateKeyPress",                       Sc_Game_SimulateKeyPress);
 
     ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);
     ccAddExternalStaticFunction("Game::get_CameraCount",                        Sc_Game_GetCameraCount);

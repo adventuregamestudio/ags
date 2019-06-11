@@ -416,14 +416,14 @@ void engine_init_fonts()
     init_font_renderer();
 }
 
-int engine_init_mouse()
+void engine_init_mouse()
 {
     int res = minstalled();
     if (res < 0)
         Debug::Printf(kDbgMsg_Init, "Initializing mouse: failed");
     else
         Debug::Printf(kDbgMsg_Init, "Initializing mouse: number of buttons reported is %d", res);
-	return RETURN_CONTINUE;
+    Mouse::SetSpeed(usetup.mouse_speed);
 }
 
 int engine_check_memory()
@@ -1397,10 +1397,7 @@ int initialize_engine(int argc,char*argv[])
 
     our_eip = -188;
 
-    res = engine_init_mouse();
-	if (res != RETURN_CONTINUE) {
-        return res;
-    }
+    engine_init_mouse();
 
     our_eip = -187;
 

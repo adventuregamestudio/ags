@@ -408,7 +408,6 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
                 Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width,
                                               (float)cur_desktop.Height / (float)init_desktop.Height));
         }
-        Mouse::SetSpeed(usetup.mouse_speed);
     }
     Debug::Printf(kDbgMsg_Init, "Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
         Mouse::GetSpeedUnit(), Mouse::GetSpeed());

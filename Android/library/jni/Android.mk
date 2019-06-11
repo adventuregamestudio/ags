@@ -12,12 +12,17 @@ platform/android/acpland.cpp \
 platform/util/libc.c
 
 include ../../Engine/Makefile-objs
+include ../../Engine/Makefile-defs.freetype
 
 LOCAL_MODULE    := agsengine
-LOCAL_SRC_FILES := $(BASE) $(BASE_PLATFORM) $(COMMON) $(COMMON_PLATFORM) $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(AL_MIDI_PATCH)
-LOCAL_CFLAGS    := -g -ffast-math -fsigned-char -Wall -Wfatal-errors -Wno-deprecated-declarations -Wno-psabi -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses -Wno-logical-not-parentheses -Wno-unknown-pragmas -Wno-unknown-warning-option -DAGS_INVERTED_COLOR_ORDER -DALLEGRO_STATICLINK -DANDROID_VERSION -DDISABLE_MPEG_AUDIO -DUSE_TREMOR -I$(ADDITIONAL_LIBRARY_PATH)/include -I$(ADDITIONAL_LIBRARY_PATH)/include/freetype2 -I$(AGS_ENGINE_PATH) -I$(AGS_COMMON_PATH) -I$(AGS_COMMON_PATH)/libinclude
+LOCAL_SRC_FILES := $(BASE) $(BASE_PLATFORM) $(COMMON) $(COMMON_PLATFORM) $(FREETYPE) $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(AL_MIDI_PATCH)
+LOCAL_CFLAGS    := -g -ffast-math -fsigned-char -Wall -Wfatal-errors -Wno-deprecated-declarations -Wno-psabi -Wno-logical-op-parentheses -Wno-bitwise-op-parentheses -Wno-logical-not-parentheses -Wno-unknown-pragmas -Wno-unknown-warning-option -DAGS_INVERTED_COLOR_ORDER -DALLEGRO_STATICLINK -DANDROID_VERSION -DDISABLE_MPEG_AUDIO -DUSE_TREMOR -I$(ADDITIONAL_LIBRARY_PATH)/include -I$(AGS_ENGINE_PATH) -I$(AGS_COMMON_PATH) -I$(AGS_COMMON_PATH)/libinclude -I$(AGS_COMMON_PATH)/libsrc/alfont-2.0.9
+# TODO: find a way to reuse FT_CFLAGS from Makefile-defs.freetype
+LOCAL_CFLAGS    += -I$(AGS_COMMON_PATH)/libsrc/freetype-2.1.3/include
 LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) $(AGS_DEFAULT_CXXFLAGS)
-LOCAL_LDLIBS    := -Wl,-Bstatic -lalleg -lfreetype -lvorbisidec -ltheora -logg -laldmb -ldumb -lstdc++ -Wl,-Bdynamic -lc -ldl -lm -lz -llog -lGLESv1_CM -lGLESv2
+LOCAL_LDLIBS    := -Wl,-Bstatic
+LOCAL_LDLIBS    += $(FT_LDFLAGS)
+LOCAL_LDLIBS    += -lalleg -lvorbisidec -ltheora -logg -laldmb -ldumb -lstdc++ -Wl,-Bdynamic -lc -ldl -lm -lz -llog -lGLESv1_CM -lGLESv2
 LOCAL_LDFLAGS   := -Wl,-L$(ADDITIONAL_LIBRARY_PATH)/lib,--allow-multiple-definition
 LOCAL_ARM_MODE  := arm
 

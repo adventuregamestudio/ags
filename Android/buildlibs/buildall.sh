@@ -18,7 +18,6 @@ do
 	mkdir -p ../nativelibs/$arch
 	pushd $arch
 	chmod +x *.sh
-	./freetype.sh  
 	./lua.sh	
 	./ogg.sh	
 	./tremor.sh  # ("vorbis") requires ogg

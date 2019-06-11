@@ -240,6 +240,15 @@ namespace AGS.Editor
                 game.WorkspaceState.SetLastBuildGameFiles(buildNames);
             }
 
+            if (xmlVersionIndex < 20)
+            {
+                // Set the alpha channel requests for re-import based on the presence of an alpha channel
+                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
+                {
+                    sprite.ImportAlphaChannel = sprite.AlphaChannel;
+                }
+            }
+
             game.SetScriptAPIForOldProject();
         }
 

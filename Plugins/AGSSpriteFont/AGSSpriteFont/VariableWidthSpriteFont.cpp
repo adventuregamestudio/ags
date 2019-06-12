@@ -180,15 +180,15 @@ void VariableWidthSpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx,
 			int srcxx = x + srcx;
 			int destyy = y + desty;
 			int destxx = x + destx;
-				if (false)//destColDepth == 8)
+				if (destColDepth == 8)
 				{
 					if (srccharbuffer[srcyy][srcxx] != transColor) destcharbuffer[destyy][destxx] = srccharbuffer[srcyy][srcxx];
 				}
-				else if (false)//destColDepth == 16)
+				else if (destColDepth == 16)
 				{
 					if (srcshortbuffer[srcyy][srcxx] != transColor) destshortbuffer[destyy][destxx] = srcshortbuffer[srcyy][srcxx];
 				}
-				else if (true)//destColDepth == 32)
+				else if (destColDepth == 32)
 				{
 					//if (srclongbuffer[srcyy][srcxx] != transColor) destlongbuffer[destyy][destxx] = srclongbuffer[srcyy][srcxx];
 					

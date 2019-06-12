@@ -7,7 +7,7 @@ class SpriteFontRenderer :
 {
 public:
 	SpriteFontRenderer(IAGSEngine *engine);
-	~SpriteFontRenderer(void);
+	virtual ~SpriteFontRenderer(void);
 	bool LoadFromDisk(int fontNumber, int fontSize) override { return true; }
 	void FreeMemory(int fontNumber) override { }
 	bool SupportsExtendedCharacters(int fontNumber) override;

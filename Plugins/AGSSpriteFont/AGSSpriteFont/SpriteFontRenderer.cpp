@@ -139,6 +139,10 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 
 	int srca, srcr, srcg, srcb, desta, destr, destg, destb, finalr, finalg, finalb, finala, col, col_r,col_g,col_b;
 
+	col_r = getr32(colour);
+	col_g = getg32(colour);
+	col_b = getb32(colour);
+
 	for(int x = startx; x < width; x ++)
 	{
 
@@ -174,9 +178,9 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 						destb =  getb32(destlongbuffer[destyy][destxx]);
 						desta =  geta32(destlongbuffer[destyy][destxx]);
 
-						col_r = getr32(colour);
-						col_g = getg32(colour);
-						col_b = getb32(colour);
+						finalr = (col_r * srcr) / 255;
+						finalg = (col_g * srcg) / 255;
+						finalb = (col_b * srcb) / 255;
 
 						finala = 255-(255-srca)*(255-desta)/255;
 						finalr = srca*col_r/finala + desta*destr*(255-srca)/finala/255;

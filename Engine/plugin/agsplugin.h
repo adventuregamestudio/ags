@@ -273,11 +273,17 @@ public:
   // serialize the object into BUFFER (which is BUFSIZE bytes)
   // return number of bytes used
   virtual int Serialize(const char *address, char *buffer, int bufsize) = 0;
+protected:
+  IAGSScriptManagedObject() {};
+  ~IAGSScriptManagedObject() {};
 };
 
 class IAGSManagedObjectReader {
 public:
   virtual void Unserialize(int key, const char *serializedData, int dataSize) = 0;
+protected:
+  IAGSManagedObjectReader() {};
+  ~IAGSManagedObjectReader() {};
 };
 
 class IAGSFontRenderer {
@@ -290,6 +296,9 @@ public:
   virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) = 0;
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
+protected:
+  IAGSFontRenderer() {};
+  ~IAGSFontRenderer() {};
 };
 
 // The plugin-to-engine interface

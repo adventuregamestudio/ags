@@ -19,7 +19,7 @@ SpriteFontRenderer::~SpriteFontRenderer(void)
 		if(_fonts[i] != NULL)
 			delete _fonts[i];
 	}
-	
+
 	_fonts.clear();
 }
 
@@ -42,7 +42,7 @@ void SpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 	SpriteFont *font = getFontFor(fontNumber);
 	for(size_t i = 0; i < strlen(text); i++)
 	{
-		if(text[i] < font->MinChar || text[i] > font->MaxChar) 
+		if(text[i] < font->MinChar || text[i] > font->MaxChar)
 		{
 			if (font->MinChar < 63 || font->MaxChar > 63) text[i] = 63;
 			else text[i] = font->MinChar;
@@ -90,9 +90,9 @@ SpriteFont *SpriteFontRenderer::getFontFor(int fontNum)
 
 void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-	
+
 	SpriteFont *font = getFontFor(fontNumber);
-	
+
 	for(size_t i = 0; i < strlen(text); i++)
 	{
 		char c = text[i];
@@ -100,9 +100,9 @@ void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *de
 		int row = c / font->Columns;
 		int column = c % font->Columns;
 		BITMAP *src = _engine->GetSpriteGraphic(font->SpriteNumber);
-		Draw(src, destination, x + (i * font->CharWidth), y, column * font->CharWidth, row * font->CharHeight, font->CharWidth, font->CharHeight, colour); 
+		Draw(src, destination, x + (i * font->CharWidth), y, column * font->CharWidth, row * font->CharHeight, font->CharWidth, font->CharHeight, colour);
 	}
-	
+
 }
 
 
@@ -127,7 +127,7 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 
 	_engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, &srcColDepth);
 	_engine->GetBitmapDimensions(dest, &destWidth, &destHeight, &destColDepth);
-	
+
 	if (srcy + height > srcHeight || srcx + width > srcWidth || srcx < 0 || srcy < 0) return;
 
 	if (width + destx > destWidth) width = destWidth - destx;
@@ -136,12 +136,12 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 	int startx = MAX(0, (-1 * destx));
 	int starty = MAX(0, (-1 * desty));
 
-	
+
 	int srca, srcr, srcg, srcb, desta, destr, destg, destb, finalr, finalg, finalb, finala, col, col_r,col_g,col_b;
 
 	for(int x = startx; x < width; x ++)
 	{
-		
+
 		for(int y = starty; y <  height; y ++)
 		{
 			int srcyy = y + srcy;
@@ -189,10 +189,10 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 			}
 		}
 	}
-	
+
 	_engine->ReleaseBitmapSurface(src);
 	_engine->ReleaseBitmapSurface(dest);
 
-	
+
 
 }

@@ -350,7 +350,6 @@ void engine_init_mouse()
         Debug::Printf(kDbgMsg_Init, "Initializing mouse: failed");
     else
         Debug::Printf(kDbgMsg_Init, "Initializing mouse: number of buttons reported is %d", res);
-    Mouse::EnableControl(true); // TODO: separate option
     Mouse::SetSpeed(usetup.mouse_speed);
 }
 

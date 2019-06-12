@@ -38,9 +38,7 @@
 #define FALSE 0
 #endif
 
-#include "ac/gamesetup.h"
 #include "ac/gamestate.h"
-#include "ac/dynobj/scriptsystem.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
@@ -72,7 +70,6 @@ extern char alpha_blend_cursor ;
 Bitmap *mousecurs[MAXCURSORS];
 extern color palette[256];
 extern volatile bool switched_away;
-extern ScriptSystem scsystem;
 
 namespace Mouse
 {
@@ -81,11 +78,7 @@ namespace Mouse
 
     // Screen rectangle, in which the mouse movement is controlled by engine
     Rect  ControlRect;
-    // Whether mouse control is enabled right now.
-    // It is derived from user's request and engine's ability to manipulate
-    // mouse cursor in the current display mode.
-    bool  ControlActive = false;
-    // Mouse control request provided by user
+    // Mouse control enabled flag
     bool  ControlEnabled = false;
     // Flag that tells whether the mouse must be forced to stay inside control rect
     bool  ConfineInCtrlRect = false;
@@ -126,7 +119,7 @@ void mgetgraphpos()
         return;
     }
 
-    if (!switched_away && Mouse::ControlActive)
+    if (!switched_away && Mouse::ControlEnabled)
     {
         // Control mouse movement by querying mouse mickeys (movement deltas)
         // and applying them to saved mouse coordinates.
@@ -358,27 +351,12 @@ void Mouse::EnableControl(bool confine)
 {
     ControlEnabled = true;
     ConfineInCtrlRect = confine;
-    // Whether mouse movement should be controlled by the engine - this is
-    // determined based on related config option.
-    bool should_control_mouse = (usetup.mouse_ctrl_when == kMouseCtrl_Always ||
-        (usetup.mouse_ctrl_when == kMouseCtrl_Fullscreen && scsystem.windowed == 0));
-    // Whether mouse movement control is supported by the engine - this is
-    // determined on per platform basis. Some builds may not have such
-    // capability, e.g. because of how backend library implements mouse utils.
-    bool can_control_mouse = platform->IsMouseControlSupported(scsystem.windowed != 0);
-    ControlActive = ControlEnabled && should_control_mouse && can_control_mouse;
 }
 
 void Mouse::DisableControl()
 {
-    ControlActive = false;
     ControlEnabled = false;
     ConfineInCtrlRect = false;
-}
-
-bool Mouse::IsControlActive()
-{
-    return ControlActive;
 }
 
 bool Mouse::IsControlEnabled()

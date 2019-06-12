@@ -57,9 +57,7 @@ namespace Mouse
     void EnableControl(bool confine);
     // Disable mouse movement control
     void DisableControl();
-    // Tell if the mouse movement control is actually active
-    bool IsControlActive();
-    // Tell if the mouse movement control is requested by user
+    // Tell if the mouse movement control is enabled
     bool IsControlEnabled();
     // Set base speed factor, which would serve as a mouse speed unit
     void SetSpeedUnit(float f);

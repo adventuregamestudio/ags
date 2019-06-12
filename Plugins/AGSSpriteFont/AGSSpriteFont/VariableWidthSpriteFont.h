@@ -1,5 +1,5 @@
 #pragma once
-#include "agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "VariableWidthFont.h"
 #include <vector>
 class VariableWidthSpriteFontRenderer :

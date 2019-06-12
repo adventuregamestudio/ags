@@ -25,7 +25,7 @@
 #if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN
 #endif
-#include "agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "SpriteFontRenderer.h"
 #include "VariableWidthSpriteFont.h"
 

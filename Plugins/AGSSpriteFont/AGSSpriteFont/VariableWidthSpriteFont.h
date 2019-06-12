@@ -7,7 +7,7 @@ class VariableWidthSpriteFontRenderer :
 {
 public:
 	VariableWidthSpriteFontRenderer(IAGSEngine *engine);
-	virtual ~VariableWidthSpriteFontRenderer(void);
+	~VariableWidthSpriteFontRenderer(void);
 	bool LoadFromDisk(int fontNumber, int fontSize) override { return true; }
 	void FreeMemory(int fontNumber) override { }
 	bool SupportsExtendedCharacters(int fontNumber) override;

@@ -112,56 +112,6 @@ int32_t RuntimeScriptValue::ReadInt32()
     return *((int32_t*)this->GetPtrWithOffset());
 }
 
-// FIXME: find out all certain cases when we are reading a pointer and store it
-// as 32-bit value here. There should be a solution to distinct these cases and
-// store value differently, otherwise it won't work for 64-bit build.
-RuntimeScriptValue RuntimeScriptValue::ReadValue()
-{
-    RuntimeScriptValue rval;
-    switch(this->Type) {
-    case kScValStackPtr:
-    {
-        if (RValue->Type == kScValData)
-        {
-            rval.SetInt32(*(int32_t*)(RValue->GetPtrWithOffset() + this->IValue));
-        }
-        else
-        {
-            rval = *RValue;
-        }
-    }
-    break;
-    case kScValGlobalVar:
-    {
-        if (RValue->Type == kScValData)
-        {
-            rval.SetInt32(Memory::ReadInt32LE(RValue->GetPtrWithOffset() + this->IValue));
-        }
-        else
-        {
-            rval = *RValue;
-        }
-    }
-    break;
-    case kScValStaticObject: case kScValStaticArray:
-    {
-        rval.SetInt32(this->StcMgr->ReadInt32(this->Ptr, this->IValue));
-    }
-    break;
-    case kScValDynamicObject:
-    {
-        rval.SetInt32(this->DynMgr->ReadInt32(this->Ptr, this->IValue));
-    }
-    break;
-    default:
-    {
-        // 64 bit: Memory reads are still 32 bit
-        rval.SetInt32(*(int32_t*)this->GetPtrWithOffset());
-    }
-    }
-    return rval;
-}
-
 bool RuntimeScriptValue::WriteByte(uint8_t val)
 {
     if (this->Type == kScValStackPtr || this->Type == kScValGlobalVar)

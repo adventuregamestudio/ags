@@ -20,6 +20,7 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/mouse.h"
 #include "ac/runtime_defines.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptsystem.h"
@@ -280,28 +281,18 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
 {
     // Assign mouse control parameters.
     //
-    // Whether mouse movement should be controlled by the engine - this is
-    // determined based on related config option.
-    const bool should_control_mouse = usetup.mouse_control == kMouseCtrl_Always ||
-        (usetup.mouse_control == kMouseCtrl_Fullscreen && !dm.Windowed);
-    // Whether mouse movement control is supported by the engine - this is
-    // determined on per platform basis. Some builds may not have such
-    // capability, e.g. because of how backend library implements mouse utils.
-    const bool can_control_mouse = platform->IsMouseControlSupported(dm.Windowed);
-    // The resulting choice is made based on two aforementioned factors.
-    const bool control_sens = should_control_mouse && can_control_mouse;
-    if (control_sens)
+    // NOTE that we setup speed and other related properties regardless of
+    // whether mouse control was requested because it may be enabled later.
+    Mouse::SetSpeedUnit(1.f);
+    if (usetup.mouse_speed_def == kMouseSpeed_CurrentDisplay)
     {
-        Mouse::EnableControl(!dm.Windowed);
-        Mouse::SetSpeedUnit(1.f);
-        if (usetup.mouse_speed_def == kMouseSpeed_CurrentDisplay)
-        {
-            Size cur_desktop;
-            if (get_desktop_resolution(&cur_desktop.Width, &cur_desktop.Height) == 0)
-                Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width,
-                                              (float)cur_desktop.Height / (float)init_desktop.Height));
-        }
+        Size cur_desktop;
+        if (get_desktop_resolution(&cur_desktop.Width, &cur_desktop.Height) == 0)
+            Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width,
+            (float)cur_desktop.Height / (float)init_desktop.Height));
     }
+
+    Mouse_EnableControl(usetup.mouse_ctrl_enabled);
     Debug::Printf(kDbgMsg_Init, "Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
         Mouse::GetSpeedUnit(), Mouse::GetSpeed());
 

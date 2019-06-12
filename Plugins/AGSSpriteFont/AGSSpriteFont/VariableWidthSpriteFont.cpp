@@ -1,6 +1,7 @@
 #include "VariableWidthSpriteFont.h"
 #include <string>
 #include <string.h>
+#include <stdint.h>
 #include "color.h"
 
 
@@ -22,7 +23,7 @@ int VariableWidthSpriteFontRenderer::GetTextWidth(const char *text, int fontNumb
 {
 	int total = 0;
 	VariableWidthFont *font = getFontFor(fontNumber);
-	for(int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		if (font->characters.count(text[i]) > 0)
 		{
@@ -80,7 +81,7 @@ void VariableWidthSpriteFontRenderer::EnsureTextValidForFont(char *text, int fon
 	VariableWidthFont *font = getFontFor(fontNumber);
 	std::string s(text);
 	
-	for(int i = s.length() - 1; i >= 0 ; i--)
+	for(size_t i = s.length() - 1; i >= 0 ; i--)
 	{
 		if (font->characters.count(s[i]) == 0)
 		{
@@ -106,7 +107,7 @@ void VariableWidthSpriteFontRenderer::SetSprite(int fontNum, int spriteNum)
 
 VariableWidthFont *VariableWidthSpriteFontRenderer::getFontFor(int fontNum){
 	VariableWidthFont *font;
-	for (int i = 0; i < _fonts.size(); i ++)
+	for (size_t i = 0; i < _fonts.size(); i ++)
 	{
 		font = _fonts.at(i);
 		if (font->FontReplaced == fontNum) return font;
@@ -122,7 +123,7 @@ void VariableWidthSpriteFontRenderer::RenderText(const char *text, int fontNumbe
 {
 	VariableWidthFont *font = getFontFor(fontNumber);
 	int totalWidth = 0;
-	for(int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		char c = text[i];
 				
@@ -138,15 +139,17 @@ void VariableWidthSpriteFontRenderer::RenderText(const char *text, int fontNumbe
 void VariableWidthSpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height, int colour)
 {
 
-	long srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
+	int32 srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
 
 	unsigned char **srccharbuffer = _engine->GetRawBitmapSurface (src); //8bit
-	unsigned short **srcshortbuffer = (unsigned short**)srccharbuffer; //16bit;
-    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer; //32bit
+	// this is risky: may lead to crashes or bad performance if data is unaligned
+	uint16_t **srcshortbuffer = (uint16_t**)srccharbuffer; //16bit;
+	uint32_t **srclongbuffer = (uint32_t**)srccharbuffer; //32bit
 
 	unsigned char **destcharbuffer = _engine->GetRawBitmapSurface (dest); //8bit
-	unsigned short **destshortbuffer = (unsigned short**)destcharbuffer; //16bit;
-    unsigned int **destlongbuffer = (unsigned int**)destcharbuffer; //32bit
+	// more unaligned data access risk
+	uint16_t **destshortbuffer = (uint16_t**)destcharbuffer; //16bit;
+	uint32_t **destlongbuffer = (uint32_t**)destcharbuffer; //32bit
 
 	int transColor = _engine->GetBitmapTransparentColor(src);
 

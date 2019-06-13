@@ -81,7 +81,7 @@ void VariableWidthSpriteFontRenderer::EnsureTextValidForFont(char *text, int fon
 	VariableWidthFont *font = getFontFor(fontNumber);
 	std::string s(text);
 	
-	for(size_t i = s.length() - 1; i-- > 0;)
+	for(size_t i = s.length(); i-- > 0;)
 	{
 		if (font->characters.count(s[i]) == 0)
 		{

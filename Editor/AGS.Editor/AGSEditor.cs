@@ -112,8 +112,6 @@ namespace AGS.Editor
         public const string SETUP_PROGRAM_SOURCE_FILE = "setup.dat";
         public const string COMPILED_SETUP_FILE_NAME = "winsetup.exe";
 		public const string GAME_EXPLORER_THUMBNAIL_FILE_NAME = "GameExplorer.png";
-		private const long MINIMUM_BYTES_FREE_TO_SAVE = 15000000;
-		private const long MINIMUM_BYTES_FREE_TO_COMPILE = 50000000;
 
         private Game _game;
         private string _editorExePath;
@@ -1162,11 +1160,6 @@ namespace AGS.Editor
                     errors.Add(new CompileError("Audio file missing for " + clip.ScriptName + ": " + clip.CacheFileName));
                 }
             }
-
-			if (!IsEnoughSpaceFreeOnDisk(MINIMUM_BYTES_FREE_TO_COMPILE))
-			{
-				errors.Add(new CompileError("There is not enough space on the disk."));
-			}
         }
 
 		private void EnsureViewHasAtLeast4LoopsAndAFrameInLeftRightLoops(AGS.Types.View view)
@@ -1213,28 +1206,6 @@ namespace AGS.Editor
 					}
 				}
 			}
-		}
-
-		private bool IsEnoughSpaceFreeOnDisk(long spaceRequired)
-		{
-			string gameRoot = Path.GetPathRoot(_game.DirectoryPath).ToUpper();
-            if (gameRoot.StartsWith(@"\\"))
-            {                
-                // network share, we can't check free space
-                return true;
-            }
-			foreach (DriveInfo drive in DriveInfo.GetDrives())
-			{
-				if (drive.RootDirectory.Name.ToUpper() == gameRoot)
-				{
-					if (drive.AvailableFreeSpace < spaceRequired)
-					{
-						return false;
-					}
-					return true;
-				}
-			}
-			throw new AGSEditorException("Unable to find drive for game path: " + _game.DirectoryPath);
 		}
 
 		public bool NeedsRebuildForDebugMode()
@@ -1460,11 +1431,6 @@ namespace AGS.Editor
             {
                 return false;
             }
-			if (!IsEnoughSpaceFreeOnDisk(MINIMUM_BYTES_FREE_TO_SAVE))
-			{
-				Factory.GUIController.ShowMessage("The disk is full. Please clear some space then try again", MessageBoxIcon.Warning);
-				return false;
-			}
 
             // Make sure the game's name in the Recent list is updated, in
             // case the user has just changed it

@@ -42,7 +42,7 @@ namespace AGS.Editor
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
         //public const string DEBUG_EXE_FILE_NAME = "_debug.exe";
         public const string GAME_FILE_NAME = "Game.agf";
-		public const string BACKUP_GAME_FILE_NAME = "Game.agf.bak";
+		public const string BACKUP_EXTENSION = "bak";
         public const string OLD_GAME_FILE_NAME = "ac2game.dta";
         public const string TEMPLATES_DIRECTORY_NAME = "Templates";
         public const string AGS_REGISTRY_KEY = @"SOFTWARE\Adventure Game Studio\AGS Editor";
@@ -1553,26 +1553,6 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.DefaultSetup.TitleText, configFilePath);
         }
 
-		private void BackupCurrentGameFile()
-		{
-			try
-			{
-				if (File.Exists(BACKUP_GAME_FILE_NAME))
-				{
-					File.Delete(BACKUP_GAME_FILE_NAME);
-				}
-
-				if (File.Exists(GAME_FILE_NAME))
-				{
-					File.Copy(GAME_FILE_NAME, BACKUP_GAME_FILE_NAME);
-				}
-			}
-			catch (Exception ex)
-			{
-				Factory.GUIController.ShowMessage("Error creating backup of game file: " + ex.Message, MessageBoxIcon.Warning);
-			}
-		}
-
         private void SaveUserDataFile()
         {
             StringWriter sw = new StringWriter();
@@ -1634,8 +1614,6 @@ namespace AGS.Editor
             writer.WriteEndElement();
             writer.Flush();
 
-			BackupCurrentGameFile();
-
             string gameXml = sw.ToString();
             writer.Close();
 
@@ -1656,18 +1634,50 @@ namespace AGS.Editor
 
         private bool WriteMainGameFile(string fileContents)
         {
+            string tempFile = Path.GetTempFileName();
+
+            using (StreamWriter fileOutput = new StreamWriter(tempFile, false, Encoding.Default))
+            {
+                try
+                {
+                    fileOutput.Write(fileContents);
+                    fileOutput.Flush();
+                }
+                catch (Exception ex)
+                {
+                    Factory.GUIController.ShowMessage($"Unable to save new game data to '{tempFile}'. The error was: {ex.Message}", MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
+            string gameFile = Utilities.ResolveSourcePath(GAME_FILE_NAME);
+            string backupFile = $"{gameFile}.{BACKUP_EXTENSION}";
+
             try
             {
-                StreamWriter fileOutput = new StreamWriter(GAME_FILE_NAME, false, Encoding.Default);
-                fileOutput.Write(fileContents);
-                fileOutput.Close();
-                return true;
+                if (File.Exists(gameFile))
+                {
+                    File.Delete(backupFile);
+                    File.Move(gameFile, backupFile);
+                }
             }
-            catch (UnauthorizedAccessException e)
+            catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("Unable to save the game file. Make sure the file " + GAME_FILE_NAME + " is not set as read-only. The error was: " + e.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowMessage($"Unable to create the backup file '{backupFile}'. The error was: {ex.Message}", MessageBoxIcon.Warning);
                 return false;
             }
+
+            try
+            {
+                File.Move(tempFile, gameFile);
+            }
+            catch (Exception ex)
+            {
+                Factory.GUIController.ShowMessage($"Unable to create the game file '{gameFile}'. The error was: {ex.Message}", MessageBoxIcon.Warning);
+                return false;
+            }
+
+            return true;
         }
 
         private void DeleteObsoleteFilesFrom272()

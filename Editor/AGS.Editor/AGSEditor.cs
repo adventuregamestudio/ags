@@ -80,6 +80,7 @@ namespace AGS.Editor
          * 18: 3.5.0.8    - Disallow relative asset resolutions by default, added flag for compatibility;
          *                  Real sprite resolution; Individual font scaling; Default room mask resolution
          * 19: 3.5.0.11   - Custom Say and Narrate functions for dialog scripts. GameFileName.
+         * 20: 3.5.0.14   - Sprite.ImportAlphaChannel.
         */
         public const int    LATEST_XML_VERSION_INDEX = 20;
         /*

@@ -42,7 +42,7 @@ namespace AGS.Editor
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
         //public const string DEBUG_EXE_FILE_NAME = "_debug.exe";
         public const string GAME_FILE_NAME = "Game.agf";
-		public const string BACKUP_GAME_FILE_NAME = "Game.agf.bak";
+		public const string BACKUP_EXTENSION = "bak";
         public const string OLD_GAME_FILE_NAME = "ac2game.dta";
         public const string TEMPLATES_DIRECTORY_NAME = "Templates";
         public const string AGS_REGISTRY_KEY = @"SOFTWARE\Adventure Game Studio\AGS Editor";
@@ -112,8 +112,6 @@ namespace AGS.Editor
         public const string SETUP_PROGRAM_SOURCE_FILE = "setup.dat";
         public const string COMPILED_SETUP_FILE_NAME = "winsetup.exe";
 		public const string GAME_EXPLORER_THUMBNAIL_FILE_NAME = "GameExplorer.png";
-		private const long MINIMUM_BYTES_FREE_TO_SAVE = 15000000;
-		private const long MINIMUM_BYTES_FREE_TO_COMPILE = 50000000;
 
         private Game _game;
         private string _editorExePath;
@@ -1162,11 +1160,6 @@ namespace AGS.Editor
                     errors.Add(new CompileError("Audio file missing for " + clip.ScriptName + ": " + clip.CacheFileName));
                 }
             }
-
-			if (!IsEnoughSpaceFreeOnDisk(MINIMUM_BYTES_FREE_TO_COMPILE))
-			{
-				errors.Add(new CompileError("There is not enough space on the disk."));
-			}
         }
 
 		private void EnsureViewHasAtLeast4LoopsAndAFrameInLeftRightLoops(AGS.Types.View view)
@@ -1213,28 +1206,6 @@ namespace AGS.Editor
 					}
 				}
 			}
-		}
-
-		private bool IsEnoughSpaceFreeOnDisk(long spaceRequired)
-		{
-			string gameRoot = Path.GetPathRoot(_game.DirectoryPath).ToUpper();
-            if (gameRoot.StartsWith(@"\\"))
-            {                
-                // network share, we can't check free space
-                return true;
-            }
-			foreach (DriveInfo drive in DriveInfo.GetDrives())
-			{
-				if (drive.RootDirectory.Name.ToUpper() == gameRoot)
-				{
-					if (drive.AvailableFreeSpace < spaceRequired)
-					{
-						return false;
-					}
-					return true;
-				}
-			}
-			throw new AGSEditorException("Unable to find drive for game path: " + _game.DirectoryPath);
 		}
 
 		public bool NeedsRebuildForDebugMode()
@@ -1460,11 +1431,6 @@ namespace AGS.Editor
             {
                 return false;
             }
-			if (!IsEnoughSpaceFreeOnDisk(MINIMUM_BYTES_FREE_TO_SAVE))
-			{
-				Factory.GUIController.ShowMessage("The disk is full. Please clear some space then try again", MessageBoxIcon.Warning);
-				return false;
-			}
 
             // Make sure the game's name in the Recent list is updated, in
             // case the user has just changed it
@@ -1587,26 +1553,6 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.DefaultSetup.TitleText, configFilePath);
         }
 
-		private void BackupCurrentGameFile()
-		{
-			try
-			{
-				if (File.Exists(BACKUP_GAME_FILE_NAME))
-				{
-					File.Delete(BACKUP_GAME_FILE_NAME);
-				}
-
-				if (File.Exists(GAME_FILE_NAME))
-				{
-					File.Copy(GAME_FILE_NAME, BACKUP_GAME_FILE_NAME);
-				}
-			}
-			catch (Exception ex)
-			{
-				Factory.GUIController.ShowMessage("Error creating backup of game file: " + ex.Message, MessageBoxIcon.Warning);
-			}
-		}
-
         private void SaveUserDataFile()
         {
             StringWriter sw = new StringWriter();
@@ -1668,8 +1614,6 @@ namespace AGS.Editor
             writer.WriteEndElement();
             writer.Flush();
 
-			BackupCurrentGameFile();
-
             string gameXml = sw.ToString();
             writer.Close();
 
@@ -1690,18 +1634,50 @@ namespace AGS.Editor
 
         private bool WriteMainGameFile(string fileContents)
         {
+            string tempFile = Path.GetTempFileName();
+
+            using (StreamWriter fileOutput = new StreamWriter(tempFile, false, Encoding.Default))
+            {
+                try
+                {
+                    fileOutput.Write(fileContents);
+                    fileOutput.Flush();
+                }
+                catch (Exception ex)
+                {
+                    Factory.GUIController.ShowMessage($"Unable to save new game data to '{tempFile}'. The error was: {ex.Message}", MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
+            string gameFile = Utilities.ResolveSourcePath(GAME_FILE_NAME);
+            string backupFile = $"{gameFile}.{BACKUP_EXTENSION}";
+
             try
             {
-                StreamWriter fileOutput = new StreamWriter(GAME_FILE_NAME, false, Encoding.Default);
-                fileOutput.Write(fileContents);
-                fileOutput.Close();
-                return true;
+                if (File.Exists(gameFile))
+                {
+                    File.Delete(backupFile);
+                    File.Move(gameFile, backupFile);
+                }
             }
-            catch (UnauthorizedAccessException e)
+            catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("Unable to save the game file. Make sure the file " + GAME_FILE_NAME + " is not set as read-only. The error was: " + e.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowMessage($"Unable to create the backup file '{backupFile}'. The error was: {ex.Message}", MessageBoxIcon.Warning);
                 return false;
             }
+
+            try
+            {
+                File.Move(tempFile, gameFile);
+            }
+            catch (Exception ex)
+            {
+                Factory.GUIController.ShowMessage($"Unable to create the game file '{gameFile}'. The error was: {ex.Message}", MessageBoxIcon.Warning);
+                return false;
+            }
+
+            return true;
         }
 
         private void DeleteObsoleteFilesFrom272()

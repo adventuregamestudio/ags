@@ -613,13 +613,6 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy,
    const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
    if (speed <= 0) speed = 16;
 
-   if ((offx != 0) || (offy != 0))
-   {
-     bmp_orig = BitmapHelper::CreateBitmap(vs->GetWidth(), vs->GetHeight(), col_depth);
-     bmp_orig->Fill(0);
-     bmp_orig->Blit(vs, 0, 0, offx, offy, vs->GetWidth(), vs->GetHeight());
-   }
-
    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
 
    for (int a = 0; a < 256; a+=speed)
@@ -647,35 +640,31 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy,
 
 void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
+    Bitmap *bmp_orig = vs;
     const int col_depth = vs->GetColorDepth();
     const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
     if (speed <= 0) speed = 16;
 
-    Bitmap *bmp_orig = BitmapHelper::CreateBitmap(vs->GetWidth(), vs->GetHeight(), col_depth);
+    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
+    for (int a = 255 - speed; a > 0; a -= speed)
     {
-        _filter->GetCopyOfScreenIntoBitmap(bmp_orig, false);
-        Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
+        int timerValue = *_loopTimer;
+        bmp_buff->Fill(clearColor);
+        set_trans_blender(0, 0, 0, a);
+        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+        this->Vsync();
+        _filter->RenderScreen(bmp_buff, 0, 0);
+        do
         {
-            for (int a = 255-speed; a > 0; a-=speed)
-            {
-                int timerValue = *_loopTimer;
-                bmp_buff->Fill(clearColor);
-                set_trans_blender(0,0,0,a);
-                bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
-                this->Vsync();
-                _filter->RenderScreen(bmp_buff, 0, 0);
-                do
-                {
-                  if (_pollingCallback)
-                    _pollingCallback();
-                  platform->Delay(1);
-                }
-                while (timerValue == *_loopTimer);
-            }
-            delete bmp_buff;
-        }
-        delete bmp_orig;
+            if (_pollingCallback)
+                _pollingCallback();
+            platform->Delay(1);
+        } while (timerValue == *_loopTimer);
     }
+    delete bmp_buff;
+
+    if (bmp_orig != vs)
+        delete bmp_orig;
 
     vs->Clear(clearColor);
 	_filter->RenderScreen(vs, offx, offy);

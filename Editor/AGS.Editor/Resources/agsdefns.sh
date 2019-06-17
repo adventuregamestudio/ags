@@ -415,6 +415,20 @@ enum CharacterDirection {
 };
 #endif
 
+#ifdef SCRIPT_API_v350
+enum StringCompareStyle
+{
+  eCaseInsensitive = 0,
+  eCaseSensitive = 1
+};
+
+enum SortStyle
+{
+  eNonSorted = 0,
+  eSorted = 1
+};
+#endif
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -424,29 +438,41 @@ internalstring autoptr builtin managed struct String {
   import String  Append(const string appendText);
   /// Returns a new string that has the extra character appended.
   import String  AppendChar(char extraChar);
-  /// Compares this string to the other string.
-  import int     CompareTo(const string otherString, bool caseSensitive = false);
   import int     Contains(const string needle);   // $AUTOCOMPLETEIGNORE$
   /// Creates a copy of the string.
   import String  Copy();
-  /// Checks whether this string ends with the specified text.
-  import bool    EndsWith(const string endsWithText, bool caseSensitive = false);
   /// Returns the index of the first occurrence of the needle in this string.
   import int     IndexOf(const string needle);
   /// Returns a lower-cased version of this string.
   import String  LowerCase();
-  /// Returns a copy of this string with all occurrences of LookForText replaced with ReplaceWithText
-  import String  Replace(const string lookForText, const string replaceWithText, bool caseSensitive = false);
   /// Returns a new string, with the specified character changed.
   import String  ReplaceCharAt(int index, char newChar);
-  /// Checks whether this string starts with the specified text.
-  import bool    StartsWith(const string startsWithText, bool caseSensitive = false);
   /// Returns a portion of the string.
   import String  Substring(int index, int length);
   /// Truncates the string down to the specified length by removing characters from the end.
   import String  Truncate(int length);
   /// Returns an upper-cased version of this string.
   import String  UpperCase();
+#ifdef SCRIPT_API_v350
+  /// Compares this string to the other string.
+  import int     CompareTo(const string otherString, StringCompareStyle style = eCaseInsensitive);
+  /// Checks whether this string ends with the specified text.
+  import bool    EndsWith(const string endsWithText, StringCompareStyle style = eCaseInsensitive);
+  /// Returns a copy of this string with all occurrences of LookForText replaced with ReplaceWithText
+  import String  Replace(const string lookForText, const string replaceWithText, StringCompareStyle style = eCaseInsensitive);
+  /// Checks whether this string starts with the specified text.
+  import bool    StartsWith(const string startsWithText, StringCompareStyle style = eCaseInsensitive);
+#endif
+#ifndef SCRIPT_API_v350
+  /// Compares this string to the other string.
+  import int     CompareTo(const string otherString, bool caseSensitive = false);
+  /// Checks whether this string ends with the specified text.
+  import bool    EndsWith(const string endsWithText, bool caseSensitive = false);
+  /// Returns a copy of this string with all occurrences of LookForText replaced with ReplaceWithText
+  import String  Replace(const string lookForText, const string replaceWithText, bool caseSensitive = false);
+  /// Checks whether this string starts with the specified text.
+  import bool    StartsWith(const string startsWithText, bool caseSensitive = false);
+#endif
   /// Converts the string to a float.
   readonly import attribute float AsFloat;
   /// Converts the string to an integer.
@@ -461,7 +487,7 @@ internalstring autoptr builtin managed struct String {
 builtin managed struct Dictionary
 {
   /// Creates a new empty Dictionary of the given properties.
-  import static Dictionary* Create(bool sorted = false, bool caseSensitive = false); // $AUTOCOMPLETESTATICONLY$
+  import static Dictionary* Create(SortStyle sortStyle = eNonSorted, StringCompareStyle compareStyle = eCaseInsensitive); // $AUTOCOMPLETESTATICONLY$
 
   /// Removes all items from the dictionary.
   import void Clear();
@@ -475,9 +501,9 @@ builtin managed struct Dictionary
   import bool Set(String key, String value);
 
   /// Gets if this dictionary is case-sensitive.
-  import readonly attribute bool CaseSensitive;
-  /// Gets if this dictionary is sorted by keys in alphabetical order.
-  import readonly attribute bool Sorted;
+  import readonly attribute StringCompareStyle CompareStyle;
+  /// Gets the method items are arranged in this dictionary.
+  import readonly attribute SortStyle SortStyle;
   /// Gets the number of key/value pairs currently in the dictionary.
   import readonly attribute int ItemCount;
   /// Creates a dynamic array filled with keys in same order as they are stored in the Dictionary.
@@ -489,7 +515,7 @@ builtin managed struct Dictionary
 builtin managed struct Set
 {
   /// Creates a new empty Set of the given properties.
-  import static Set* Create(bool sorted = false, bool caseSensitive = false); // $AUTOCOMPLETESTATICONLY$
+  import static Set* Create(SortStyle sortStyle = eNonSorted, StringCompareStyle compareStyle = eCaseInsensitive); // $AUTOCOMPLETESTATICONLY$
 
   /// Adds item to the set, fails if such item was already existing.
   import bool Add(String item);
@@ -501,9 +527,9 @@ builtin managed struct Set
   import bool Remove(String item);
 
   /// Gets if this set is case-sensitive.
-  import readonly attribute bool CaseSensitive;
-  /// Gets if this set is sorted in alphabetical order.
-  import readonly attribute bool Sorted;
+  import readonly attribute StringCompareStyle CompareStyle;
+  /// Gets the method items are arranged in this set.
+  import readonly attribute SortStyle SortStyle;
   /// Gets the number of items currently in the set.
   import readonly attribute int ItemCount;
   /// Creates a dynamic array filled with items in same order as they are stored in the Set.
@@ -769,7 +795,7 @@ struct Mouse {
   import static attribute bool Visible;
 #ifdef SCRIPT_API_v335
   /// Gets/sets whether the user-defined factors are applied to mouse movement
-  readonly import static attribute bool ControlEnabled;
+  import static attribute bool ControlEnabled;
   /// Gets/sets the mouse speed
   import static attribute float Speed;
 #endif
@@ -2586,6 +2612,8 @@ builtin managed struct Game {
 #ifdef SCRIPT_API_v350
   /// Play speech voice-over in non-blocking mode, optionally apply music and sound volume reduction
   import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
+  /// Simulate a keypress on the keyboard.
+  import static void   SimulateKeyPress(eKeyCode key);
 #endif
 #ifdef SCRIPT_API_v3507
   /// Gets the primary camera

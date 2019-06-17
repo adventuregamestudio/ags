@@ -29,7 +29,7 @@ FREETYPE_SRCS := \
 	src/autohint/autohint.c \
 	src/gzip/ftgzip.c
 
-FREETYPE_SRCDIR := ../Engine/libsrc/freetype-2.1.3
+FREETYPE_SRCDIR := ../Common/libsrc/freetype-2.1.3
 FREETYPE := $(foreach file,$(FREETYPE_SRCS),$(FREETYPE_SRCDIR)/$(file))
 FREETYPE_OBJS := $(FREETYPE:.c=.o)
 FREETYPE_INC := $(FREETYPE_SRCDIR)/include

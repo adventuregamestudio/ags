@@ -26,6 +26,25 @@ namespace AGS.Editor
             _tasks.TestGameFinished += new Tasks.TestGameFinishedHandler(Tasks_TestGameFinished);
         }
 
+        public static void ReportTaskException(string errorMsg, Exception ex)
+        {
+            string messageDetails = string.Empty;
+            if ((!(ex is AGS.Types.InvalidDataException)) &&
+                (!(ex is AGS.Types.AGSEditorException)))
+            {
+                messageDetails = "Error details: " + ex.ToString();
+            }
+            else if (ex is AGS.Types.AGSEditorException && ex.InnerException != null)
+            {
+                messageDetails = "Error details: ";
+                for (Exception ie = ex.InnerException; ie != null; ie = ie.InnerException)
+                    messageDetails += ie.Message + Environment.NewLine + Environment.NewLine;
+            }
+            Factory.GUIController.ShowMessage(errorMsg + " The error was:" + Environment.NewLine + Environment.NewLine + ex.Message +
+                Environment.NewLine + Environment.NewLine + "If you cannot resolve the error, please post on the AGS Technical Forum for assistance." +
+                Environment.NewLine + Environment.NewLine + messageDetails, MessageBoxIcon.Warning);
+        }
+
         public bool BrowseForAndLoadGame()
         {
             bool loadedSuccessfully = false;
@@ -70,13 +89,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                string messageDetails = string.Empty;
-                if ((!(ex is AGS.Types.InvalidDataException)) &&
-                    (!(ex is AGS.Types.AGSEditorException)))
-                {
-                    messageDetails = "\r\n\r\nError details: " + ex.ToString();
-                }
-                Factory.GUIController.ShowMessage("An error occurred whilst trying to load your game. The error was: " + Environment.NewLine + Environment.NewLine + ex.Message + "\r\n\r\nIf you cannot resolve the error, please post on the AGS Technical Forum for assistance." + messageDetails, MessageBoxIcon.Warning);
+                ReportTaskException("An error occurred whilst trying to load your game.", ex);
                 return false;
             }
         }

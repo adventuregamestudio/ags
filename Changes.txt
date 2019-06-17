@@ -3,6 +3,7 @@ REVISION HISTORY
 VERSION 3.5.0 - Alpha
 
 Common features:
+ - Now using Allegro v4.4.3 library (previously v4.4.2).
  - Support for large files: compiled game, sprite set, room files now may exceed 2 GB.
  - Deprecated relative assets resolutions: now sprites, rooms and fonts are considered to
    match game's resolution by default and not resized, unless running in backwards-compatibility
@@ -11,13 +12,15 @@ Common features:
  - Removed fonts count limit.
  - Raised imported sprites count limit to 90000 and removed total sprite count limit
    (this means you may have around 2 billions of dynamic sprites).
- - Removed length limit on the Button and TextBox text.
+ - Removed length limit on the Button and TextBox text (was 50 and 200 respectively).
+ - Removed limit on ListBox item count (was 200).
 
 Editor:
  - Editor requires .NET Framework 4.5 to run. Dropped Windows XP support.
  - Editor preferences are now stored using .NET configuration model, instead of the
    Windows registry.
  - Added support for custom UI color themes.
+ - Added "Window" - "Layout" submenu with commands for saving and loading panel layout.
  - Game and room templates are now by default saved in AppData/Local/AGS folder.
    Editor finds them in both program folder and AppData.
  - Added "Game file name" option to let users easily set compiled game file's name.
@@ -56,6 +59,10 @@ Editor:
  - Don't display missing games in the "recent games" list.
  - Build autocomplete table a little faster.
  - Corrected .NET version query for the anonymous statistics report.
+ - Disabled screenshot made when sending a crash report, for security reasons.
+ - Fixed crash and corruption of project data when writing to full disk.
+ - Fixed saving sprite file to not cancel completely if only an optional step has failed
+   (such as copying a backup file).
  - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
@@ -75,8 +82,10 @@ Scripting:
 
 Script API:
  - Introduced new managed struct Point describing (x,y) coordinates.
+ - Introduced StringCompareStyle enum and replaced "caseSensitive" argument in String functions
+   with argument of StringCompareStyle type.
  - Implemented Dictionary and Set script classes supporting storage and lookup of strings and
-   key/value pairs in sorted or unsorted way.
+   key/value pairs in sorted or unsorted way. Added SortStyle enum for use with them.
  - Implemented Viewport and Camera script classes which control how room is displayed on screen.
  - Implemented Screen struct with a number of static functions and properties, which notably
    features references to the existing Viewports. Deprecated System's ScreenWidth, ScreenHeight,
@@ -102,6 +111,8 @@ Script API:
  - Added TextBox.ShowBorder.
  - Added Game.PlayVoiceClip() for playing non-blocking voice.
  - Added SkipCutscene() and eSkipScriptOnly cutscene mode.
+ - Allowed to change Mouse.ControlEnabled property value at runtime.
+ - Added Game.SimulateKeyPress().
  - Deprecated DrawingSurface.UseHighResCoordinates. Also, assigning it will be ignored if game's
    "Allow relative asset resolutions" option is disabled.
 
@@ -113,7 +124,8 @@ Engine:
  - Implemented support for sprite batch transformations.
  - Implemented custom room viewport and camera.
  - Removed 200 chars limit for DoOnceOnly token length.
- - Create all subdirectories when writing a file by script command.
+ - Try to create all subdirectories when calling File.Open() for writing,
+   DynamicSprite.SaveToFile() and Game.SetSaveGameDirectory().
  - Reimplemented threaded audio, should now work correctly on all platforms.
  - Improved performance of hardware-accelerated renderers by not preparing a stage bitmap
    for plugins unless any plugin hooked for the particular drawing events.
@@ -131,12 +143,23 @@ Engine:
  - Fixed potential bug which could cause DoOnceOnly tokens to be read incorrectly from a savedgame.
  - Fixed Character.DestinationY telling incorrect values beyond Y = 255.
  - Fixed DynamicSprite.SaveToFile() not appending ".bmp" if no extension was specified.
+ - Fixed old walk-behind cut-outs could be displayed on first update in a room if the room's
+   background was modified using raw drawing commands before fade-in. This happened only when
+   running Direct3D or OpenGL renderer. Note that this bug was probably never noticed by players
+   for a certain barely related reason.
  - Fixed IsMusicVoxAvailable() not working correctly in old games which use 'music.vox'.
  - Fixed a bug in mp3/ogg decoder where it assumed creating an audiostream succeeded without
    actually testing one.
+ - Restored support for running games made with experimental 3.3.0 CR version.
+ - Fixed character's blinking frames drawn incorrectly when legacy sprite blending mode was on.
+ - Fixed increased CPU load when displaying built-in dialogs (save, restore etc).
+ - Restored legacy InventoryScreen() behavior which picked sprites 0, 1, 2 for inventory dialog
+   buttons when predefined 2041, 2042 and 2043 were not available.
  - Added Scavenger's palgorithms plugin to the list of builtins, for ports that use ones.
  - Added stubs for monkey0506's Steam and GoG plugins to let run games on systems that do not have
    Steam/GoG installed (all related functionality will be disabled though).
+ - Added stubs for SpriteFont plugin.
+ - Added missing stubs for agswadjetutil plugin.
 
 Linux:
  - Support for OpenGL renderer.
@@ -145,6 +168,7 @@ Linux:
 
 Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.
+ - Engine is marked as a DPI-aware application that supposed to prevent window scaling by system.
 
 
 VERSION 3.4.3 - Patch 1, February 2019

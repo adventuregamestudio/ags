@@ -16,6 +16,7 @@
 //
 //=============================================================================
 #include "ac/common.h" // quit
+#include "ac/string.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/scriptdict.h"
@@ -85,7 +86,7 @@ bool Dict_Contains(ScriptDictBase *dic, const char *key)
 
 const char *Dict_Get(ScriptDictBase *dic, const char *key)
 {
-    return dic->Get(key);
+    return CreateNewScriptString(dic->Get(key));
 }
 
 bool Dict_Remove(ScriptDictBase *dic, const char *key)
@@ -98,14 +99,14 @@ bool Dict_Set(ScriptDictBase *dic, const char *key, const char *value)
     return dic->Set(key, value);
 }
 
-bool Dict_GetCaseSensitive(ScriptDictBase *dic)
+int Dict_GetCompareStyle(ScriptDictBase *dic)
 {
-    return dic->IsCaseSensitive();
+    return dic->IsCaseSensitive() ? 1 : 0;
 }
 
-bool Dict_GetSorted(ScriptDictBase *dic)
+int Dict_GetSortStyle(ScriptDictBase *dic)
 {
-    return dic->IsSorted();
+    return dic->IsSorted() ? 1 : 0;
 }
 
 int Dict_GetItemCount(ScriptDictBase *dic)
@@ -159,14 +160,14 @@ RuntimeScriptValue Sc_Dict_Set(void *self, const RuntimeScriptValue *params, int
     API_OBJCALL_BOOL_POBJ2(ScriptDictBase, Dict_Set, const char, const char);
 }
 
-RuntimeScriptValue Sc_Dict_GetCaseSensitive(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Dict_GetCompareStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(ScriptDictBase, Dict_GetCaseSensitive);
+    API_OBJCALL_INT(ScriptDictBase, Dict_GetCompareStyle);
 }
 
-RuntimeScriptValue Sc_Dict_GetSorted(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Dict_GetSortStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(ScriptDictBase, Dict_GetSorted);
+    API_OBJCALL_INT(ScriptDictBase, Dict_GetSortStyle);
 }
 
 RuntimeScriptValue Sc_Dict_GetItemCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -250,14 +251,14 @@ bool Set_Remove(ScriptSetBase *set, const char *item)
     return set->Remove(item);
 }
 
-bool Set_GetCaseSensitive(ScriptSetBase *set)
+int Set_GetCompareStyle(ScriptSetBase *set)
 {
-    return set->IsCaseSensitive();
+    return set->IsCaseSensitive() ? 1 : 0;
 }
 
-bool Set_GetSorted(ScriptSetBase *set)
+int Set_GetSortStyle(ScriptSetBase *set)
 {
-    return set->IsSorted();
+    return set->IsSorted() ? 1 : 0;
 }
 
 int Set_GetItemCount(ScriptSetBase *set)
@@ -298,14 +299,14 @@ RuntimeScriptValue Sc_Set_Remove(void *self, const RuntimeScriptValue *params, i
     API_OBJCALL_BOOL_POBJ(ScriptSetBase, Set_Remove, const char);
 }
 
-RuntimeScriptValue Sc_Set_GetCaseSensitive(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Set_GetCompareStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(ScriptSetBase, Set_GetCaseSensitive);
+    API_OBJCALL_INT(ScriptSetBase, Set_GetCompareStyle);
 }
 
-RuntimeScriptValue Sc_Set_GetSorted(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Set_GetSortStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(ScriptSetBase, Set_GetSorted);
+    API_OBJCALL_INT(ScriptSetBase, Set_GetSortStyle);
 }
 
 RuntimeScriptValue Sc_Set_GetItemCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -328,8 +329,8 @@ void RegisterContainerAPI()
     ccAddExternalObjectFunction("Dictionary::Get", Sc_Dict_Get);
     ccAddExternalObjectFunction("Dictionary::Remove", Sc_Dict_Remove);
     ccAddExternalObjectFunction("Dictionary::Set", Sc_Dict_Set);
-    ccAddExternalObjectFunction("Dictionary::get_CaseSensitive", Sc_Dict_GetCaseSensitive);
-    ccAddExternalObjectFunction("Dictionary::get_Sorted", Sc_Dict_GetSorted);
+    ccAddExternalObjectFunction("Dictionary::get_CompareStyle", Sc_Dict_GetCompareStyle);
+    ccAddExternalObjectFunction("Dictionary::get_SortStyle", Sc_Dict_GetSortStyle);
     ccAddExternalObjectFunction("Dictionary::get_ItemCount", Sc_Dict_GetItemCount);
     ccAddExternalObjectFunction("Dictionary::GetKeysAsArray", Sc_Dict_GetKeysAsArray);
     ccAddExternalObjectFunction("Dictionary::GetValuesAsArray", Sc_Dict_GetValuesAsArray);
@@ -339,8 +340,8 @@ void RegisterContainerAPI()
     ccAddExternalObjectFunction("Set::Clear", Sc_Set_Clear);
     ccAddExternalObjectFunction("Set::Contains", Sc_Set_Contains);
     ccAddExternalObjectFunction("Set::Remove", Sc_Set_Remove);
-    ccAddExternalObjectFunction("Set::get_CaseSensitive", Sc_Set_GetCaseSensitive);
-    ccAddExternalObjectFunction("Set::get_Sorted", Sc_Set_GetSorted);
+    ccAddExternalObjectFunction("Set::get_CompareStyle", Sc_Set_GetCompareStyle);
+    ccAddExternalObjectFunction("Set::get_SortStyle", Sc_Set_GetSortStyle);
     ccAddExternalObjectFunction("Set::get_ItemCount", Sc_Set_GetItemCount);
     ccAddExternalObjectFunction("Set::GetItemsAsArray", Sc_Set_GetItemAsArray);
 }

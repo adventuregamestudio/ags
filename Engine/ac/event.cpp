@@ -252,9 +252,6 @@ void process_event(EventHappened*evp) {
             set_palette_range(palette, 0, 255, 0);
         else if (theTransition == FADE_NORMAL)
         {
-            if (gfxDriver->UsesMemoryBackBuffer())
-                gfxDriver->RenderToBackBuffer();
-
             my_fade_in(palette,5);
         }
         else if (theTransition == FADE_BOXOUT) 

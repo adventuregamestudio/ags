@@ -223,6 +223,7 @@ namespace AGS.Editor.Utils
             sprite.Frame = frame;
             sprite.OffsetX = offsetX;
             sprite.OffsetY = offsetY;
+            sprite.ImportAlphaChannel = alpha;
         }
 
         public static void ReplaceSprite(Sprite sprite, Bitmap bmp, bool alpha, bool remapColours, bool useRoomBackground,
@@ -283,6 +284,7 @@ namespace AGS.Editor.Utils
             sprite.Frame = frame;
             sprite.OffsetX = offsetX;
             sprite.OffsetY = offsetY;
+            sprite.ImportAlphaChannel = alpha;
 
             folder.Sprites.Add(sprite);
         }

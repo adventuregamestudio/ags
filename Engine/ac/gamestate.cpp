@@ -24,12 +24,14 @@
 #include "device/mousew32.h"
 #include "game/customproperties.h"
 #include "game/roomstruct.h"
+#include "game/savegame_internal.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
@@ -227,7 +229,6 @@ int GameState::RoomToScreenY(int roomy)
 
 VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport, bool convert_cam_to_data)
 {
-    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507;
     Point screen_pt(scrx, scry);
     PViewport view;
     if (view_index < 0)
@@ -263,12 +264,16 @@ VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool cli
 
 VpPoint GameState::ScreenToRoom(int scrx, int scry)
 {
-    return ScreenToRoomImpl(scrx, scry, -1, true, false);
+    if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
+        return ScreenToRoomImpl(scrx, scry, -1, true, false);
+    return ScreenToRoomImpl(scrx, scry, 0, false, false);
 }
 
 VpPoint GameState::ScreenToRoomDivDown(int scrx, int scry)
 {
-    return ScreenToRoomImpl(scrx, scry, -1, true, true);
+    if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
+        return ScreenToRoomImpl(scrx, scry, -1, true, true);
+    return ScreenToRoomImpl(scrx, scry, 0, false, true);
 }
 
 VpPoint GameState::ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport)
@@ -446,7 +451,7 @@ bool GameState::ShouldPlayVoiceSpeech() const
         (play.want_speech >= 1) && (!ResPaths.SpeechPak.Name.IsEmpty());
 }
 
-void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)
+void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
     const bool old_save = svg_ver < kGSSvgVersion_Initial;
     score = in->ReadInt32();
@@ -570,9 +575,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     {
         short offsets_locked = in->ReadInt16();
         if (offsets_locked != 0)
-            _roomCameras[0]->Lock();
-        else
-            _roomCameras[0]->Release();
+            r_data.Camera0_Flags = kSvgCamPosLocked;
     }
     entered_at_x = in->ReadInt32();
     entered_at_y = in->ReadInt32();

@@ -307,6 +307,27 @@ int IsModeEnabled(int which) {
         (game.mcurs[which].flags & MCF_DISABLED) == 0;
 }
 
+void Mouse_EnableControl(bool on)
+{
+    usetup.mouse_ctrl_enabled = on; // remember setting in config
+
+    bool is_windowed = scsystem.windowed != 0;
+    // Whether mouse movement should be controlled by the engine - this is
+    // determined based on related config option.
+    bool should_control_mouse = usetup.mouse_ctrl_when == kMouseCtrl_Always ||
+        (usetup.mouse_ctrl_when == kMouseCtrl_Fullscreen && !is_windowed);
+    // Whether mouse movement control is supported by the engine - this is
+    // determined on per platform basis. Some builds may not have such
+    // capability, e.g. because of how backend library implements mouse utils.
+    bool can_control_mouse = platform->IsMouseControlSupported(is_windowed);
+    // The resulting choice is made based on two aforementioned factors.
+    on &= should_control_mouse && can_control_mouse;
+    if (on)
+        Mouse::EnableControl(!is_windowed);
+    else
+        Mouse::DisableControl();
+}
+
 //=============================================================================
 
 int GetMouseCursor() {
@@ -561,6 +582,12 @@ RuntimeScriptValue Sc_Mouse_GetControlEnabled(const RuntimeScriptValue *params, 
     API_SCALL_BOOL(Mouse::IsControlEnabled);
 }
 
+RuntimeScriptValue Sc_Mouse_SetControlEnabled(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Mouse_EnableControl);
+}
+
+
 RuntimeScriptValue Sc_Mouse_GetSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_FLOAT(Mouse::GetSpeed);
@@ -593,6 +620,7 @@ void RegisterMouseAPI()
     ccAddExternalStaticFunction("Mouse::UseDefaultGraphic^0",       Sc_set_default_cursor);
     ccAddExternalStaticFunction("Mouse::UseModeGraphic^1",          Sc_set_mouse_cursor);
     ccAddExternalStaticFunction("Mouse::get_ControlEnabled",        Sc_Mouse_GetControlEnabled);
+    ccAddExternalStaticFunction("Mouse::set_ControlEnabled",        Sc_Mouse_SetControlEnabled);
     ccAddExternalStaticFunction("Mouse::get_Mode",                  Sc_GetCursorMode);
     ccAddExternalStaticFunction("Mouse::set_Mode",                  Sc_set_cursor_mode);
     ccAddExternalStaticFunction("Mouse::get_Speed",                 Sc_Mouse_GetSpeed);

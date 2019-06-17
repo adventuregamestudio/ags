@@ -181,7 +181,7 @@ namespace AGS.Editor
             SpriteImportMethod = replace.TransparentColour;
             SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
             SelectionSize = new Size(replace.Width, replace.Height);
-            UseAlphaChannel = replace.AlphaChannel;
+            UseAlphaChannel = replace.ImportAlphaChannel;
             RemapToGamePalette = replace.RemapToGamePalette;
             UseBackgroundSlots = replace.RemapToRoomPalette;
 
@@ -216,7 +216,7 @@ namespace AGS.Editor
             SpriteImportMethod = replace.TransparentColour;
             SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
             SelectionSize = new Size(replace.Width, replace.Height);
-            UseAlphaChannel = replace.AlphaChannel;
+            UseAlphaChannel = replace.ImportAlphaChannel;
             RemapToGamePalette = replace.RemapToGamePalette;
             UseBackgroundSlots = replace.RemapToRoomPalette;
 

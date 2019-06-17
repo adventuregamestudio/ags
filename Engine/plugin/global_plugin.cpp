@@ -168,6 +168,19 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("IosGetAchievementValue",       Sc_PluginStub_IntNeg1);
     ccAddExternalStaticFunction("IosShowAchievements",          Sc_PluginStub_Void);
     ccAddExternalStaticFunction("IosResetAchievements",         Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("MobileGetAchievement",         Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("MobileSetAchievement",         Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("MobileShowAchievements",       Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("MobileResetAchievements",      Sc_PluginStub_Void);
+    return true;
+  }
+  else if (ags_stricmp(name, "agsspritefont") == 0)
+  {
+    ccAddExternalStaticFunction("SetSpriteFont",                Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("SetVariableSpriteFont",        Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("SetGlyph",                     Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("SetSpacing",                   Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("SetLineHeightAdjust",          Sc_PluginStub_Void);
     return true;
   }
   else if (is_agsteam || is_agsgalaxy)

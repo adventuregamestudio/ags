@@ -1990,17 +1990,15 @@ void prepare_room_sprites()
         {
             update_polled_stuff_if_runtime();
             roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
-
-            if ((walkBehindMethod == DrawAsSeparateSprite) && (walkBehindsCachedForBgNum != play.bg_frame))
-            {
-                update_walk_behind_images();
-            }
         }
         else if (current_background_is_dirty)
         {
             update_polled_stuff_if_runtime();
             gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false);
-            current_background_is_dirty = false;
+        }
+        if (current_background_is_dirty || walkBehindsCachedForBgNum != play.bg_frame)
+        {
+            current_background_is_dirty = false; // Note this is only place where this flag is checked
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
                 update_walk_behind_images();

@@ -18,7 +18,8 @@
 
 #include "apeg.h"
 #include "core/platform.h"
-#define AGS_FLI_FROM_PACK_FILE (AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_MACOS)
+#define AGS_FLI_FROM_PACK_FILE ((ALLEGRO_DATE >= 20190303) || \
+                                AGS_PLATFORM_OS_WINDOWS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_MACOS)
 
 #include "debug/debug_log.h"
 #include "debug/out.h"

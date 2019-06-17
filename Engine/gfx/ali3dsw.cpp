@@ -606,28 +606,16 @@ bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bo
 
 	Author: Matthew Leverton
 **/
-void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
-   Bitmap *bmp_buff;
-   Bitmap *bmp_orig = currentVirtScreen;
-   const int col_depth = currentVirtScreen->GetColorDepth();
-
-   int _global_x_offset = _virtualScrOff.X + _globalViewOff.X;
-   int _global_y_offset = _virtualScrOff.Y + _globalViewOff.Y;
-   if ((_global_y_offset != 0) || (_global_x_offset != 0))
-   {
-     bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), col_depth);
-     bmp_orig->Fill(0);
-     bmp_orig->Blit(currentVirtScreen, 0, 0, _global_x_offset, _global_y_offset, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
-   }
-
-   bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
+   Bitmap *bmp_orig = vs;
+   const int col_depth = bmp_orig->GetColorDepth();
    const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
-
-   int a;
    if (speed <= 0) speed = 16;
 
-   for (a = 0; a < 256; a+=speed)
+   Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
+
+   for (int a = 0; a < 256; a+=speed)
    {
        bmp_buff->Fill(clearColor);
        set_trans_blender(0,0,0,a);
@@ -642,51 +630,41 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
        while (waitingForNextTick());
    }
    delete bmp_buff;
+   if (bmp_orig != vs)
+       delete bmp_orig;
 
-   _filter->RenderScreen(currentVirtScreen, _global_x_offset, _global_y_offset);
-
-   if ((_global_y_offset != 0) || (_global_x_offset != 0))
-     delete bmp_orig;
+   _filter->RenderScreen(vs, offx, offy);
 }
 
-void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
-    Bitmap *bmp_orig, *bmp_buff;
-
-    const int col_depth = virtualScreen->GetColorDepth();
+    Bitmap *bmp_orig = vs;
+    const int col_depth = vs->GetColorDepth();
     const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
+    if (speed <= 0) speed = 16;
 
-    if ((bmp_orig = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), col_depth)))
+    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
+    for (int a = 255 - speed; a > 0; a -= speed)
     {
-        if ((bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth)))
+        bmp_buff->Fill(clearColor);
+        set_trans_blender(0, 0, 0, a);
+        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+        this->Vsync();
+        _filter->RenderScreen(bmp_buff, 0, 0);
+        do
         {
-            int a;
-            _filter->GetCopyOfScreenIntoBitmap(bmp_orig, false);
-            if (speed <= 0) speed = 16;
-			
-            for (a = 255-speed; a > 0; a-=speed)
-            {
-                bmp_buff->Fill(clearColor);
-                set_trans_blender(0,0,0,a);
-                bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
-                this->Vsync();
-                _filter->RenderScreen(bmp_buff, 0, 0);
-                do
-                {
-                  if (_pollingCallback)
-                    _pollingCallback();
-                }
-                while (waitingForNextTick());
-            }
-            delete bmp_buff;
-        }
-        delete bmp_orig;
+          if (_pollingCallback)
+            _pollingCallback();
+          platform->Delay(1);
+        } while (waitingForNextTick());
     }
+    delete bmp_buff;
 
-    virtualScreen->Clear(clearColor);
-    int _global_x_offset = _virtualScrOff.X + _globalViewOff.X;
-    int _global_y_offset = _virtualScrOff.Y + _globalViewOff.Y;
-	_filter->RenderScreen(virtualScreen, _global_x_offset, _global_y_offset);
+    if (bmp_orig != vs)
+        delete bmp_orig;
+
+    vs->Clear(clearColor);
+	_filter->RenderScreen(vs, offx, offy);
 }
 /** END FADE.C **/
 
@@ -732,20 +710,27 @@ void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targe
 
   if (_mode.ColorDepth > 8) 
   {
-    highcolor_fade_out(speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    int offx = _virtualScrOff.X + _globalViewOff.X;
+    int offy = _virtualScrOff.Y + _globalViewOff.Y;
+    highcolor_fade_out(virtualScreen, offx, offy, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
-  else __fade_out_range(speed, 0, 255, targetColourRed, targetColourGreen, targetColourBlue);
-
+  else
+  {
+    __fade_out_range(speed, 0, 255, targetColourRed, targetColourGreen, targetColourBlue);
+  }
 }
 
 void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
-  if (_mode.ColorDepth > 8) {
-
-    highcolor_fade_in(virtualScreen, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+  if (_mode.ColorDepth > 8)
+  {
+    int offx = _virtualScrOff.X + _globalViewOff.X;
+    int offy = _virtualScrOff.Y + _globalViewOff.Y;
+    highcolor_fade_in(virtualScreen, offx, offy, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
-  else {
-	  initialize_fade_256(targetColourRed, targetColourGreen, targetColourBlue);
-	  __fade_from_range(faded_out_palette, p, speed, 0,255);
+  else
+  {
+	initialize_fade_256(targetColourRed, targetColourGreen, targetColourBlue);
+	__fade_from_range(faded_out_palette, p, speed, 0,255);
   }
 }
 

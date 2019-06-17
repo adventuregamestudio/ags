@@ -40,11 +40,9 @@ void cc_error(const char *descr, ...)
         descr++;
     }
 
-    char displbuf[1000];
     va_list ap;
-
     va_start(ap, descr);
-    vsprintf(displbuf, descr, ap);
+    String displbuf = String::FromFormatV(descr, ap);
     va_end(ap);
 
     if (currentline > 0)

@@ -66,6 +66,7 @@
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "game/savegame.h"
+#include "game/savegame_components.h"
 #include "game/savegame_internal.h"
 #include "gui/animatingguibutton.h"
 #include "gfx/bitmap.h"
@@ -935,6 +936,11 @@ ScriptCamera* Game_GetAnyCamera(int index)
     return play.GetScriptCamera(index);
 }
 
+void Game_SimulateKeyPress(int key)
+{
+    simulate_keypress(key);
+}
+
 //=============================================================================
 
 // save game functions
@@ -1142,10 +1148,7 @@ HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     r_data.FPS = in->ReadInt32();
     r_data.CursorMode = in->ReadInt32();
     r_data.CursorID = in->ReadInt32();
-    int camx = in->ReadInt32();
-    int camy = in->ReadInt32();
-    play.CreatePrimaryViewportAndCamera();
-    play.GetRoomCamera(0)->SetAt(camx, camy);
+    SavegameComponents::ReadLegacyCameraState(in, r_data);
     set_loop_counter(in->ReadInt32());
     return HSaveError::None();
 }
@@ -1232,10 +1235,10 @@ void restore_game_room_state(Stream *in)
     }
 }
 
-void ReadGameState_Aligned(Stream *in)
+void ReadGameState_Aligned(Stream *in, RestoredData &r_data)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    play.ReadFromSavegame(&align_s, kGSSvgVersion_OldFormat);
+    play.ReadFromSavegame(&align_s, kGSSvgVersion_OldFormat, r_data);
 }
 
 void restore_game_play_ex_data(Stream *in)
@@ -1250,14 +1253,15 @@ void restore_game_play_ex_data(Stream *in)
     in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
-void restore_game_play(Stream *in)
+void restore_game_play(Stream *in, RestoredData &r_data)
 {
     int screenfadedout_was = play.screen_is_faded_out;
     int roomchanges_was = play.room_changes;
     // make sure the pointer is preserved
     int *gui_draw_order_was = play.gui_draw_order;
 
-    ReadGameState_Aligned(in);
+    ReadGameState_Aligned(in, r_data);
+    r_data.Cameras[0].Flags = r_data.Camera0_Flags;
 
     play.screen_is_faded_out = screenfadedout_was;
     play.room_changes = roomchanges_was;
@@ -1536,7 +1540,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     if (!err)
         return err;
     restore_game_room_state(in);
-    restore_game_play(in);
+    restore_game_play(in, r_data);
     ReadMoveList_Aligned(in);
 
     // save pointer members before reading
@@ -2392,6 +2396,11 @@ RuntimeScriptValue Sc_Game_GetAnyCamera(const RuntimeScriptValue *params, int32_
     API_SCALL_OBJAUTO_PINT(ScriptCamera, Game_GetAnyCamera);
 }
 
+RuntimeScriptValue Sc_Game_SimulateKeyPress(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SimulateKeyPress);
+}
+
 void RegisterGameAPI()
 {
     ccAddExternalStaticFunction("Game::IsAudioPlaying^1",                       Sc_Game_IsAudioPlaying);
@@ -2444,6 +2453,7 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::geti_AudioClips",                        Sc_Game_GetAudioClip);
     ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
     ccAddExternalStaticFunction("Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip);
+    ccAddExternalStaticFunction("Game::SimulateKeyPress",                       Sc_Game_SimulateKeyPress);
 
     ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);
     ccAddExternalStaticFunction("Game::get_CameraCount",                        Sc_Game_GetCameraCount);

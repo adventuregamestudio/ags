@@ -715,9 +715,12 @@ int SpriteCache::SaveSpriteIndex(const char *filename, int spriteFileIDCheck, sp
     // it matches the spr file
     spindex_out->WriteInt32(lastslot);
     spindex_out->WriteInt32(numsprits);
-    spindex_out->WriteArrayOfInt16(&spritewidths[0], numsprits);
-    spindex_out->WriteArrayOfInt16(&spriteheights[0], numsprits);
-    spindex_out->WriteArrayOfInt64(&spriteoffs[0], numsprits);
+    if (numsprits > 0)
+    {
+        spindex_out->WriteArrayOfInt16(&spritewidths.front(), numsprits);
+        spindex_out->WriteArrayOfInt16(&spriteheights.front(), numsprits);
+        spindex_out->WriteArrayOfInt64(&spriteoffs.front(), numsprits);
+    }
     delete spindex_out;
     return 0;
 }

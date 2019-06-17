@@ -12,6 +12,7 @@ using AGS.Types;
 using AGS.Types.Interfaces;
 using AGS.Editor.Preferences;
 using AGS.Editor.Utils;
+using System.Net;
 
 namespace AGS.Editor
 {
@@ -257,6 +258,9 @@ namespace AGS.Editor
 
         public void DoEditorInitialization()
         {
+            // disable SSL v3
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+
             try
             {
                 Directory.CreateDirectory(UserTemplatesDirectory);

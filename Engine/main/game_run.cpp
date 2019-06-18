@@ -717,15 +717,6 @@ void set_loop_counter(unsigned int new_counter) {
     fps = std::numeric_limits<float>::quiet_NaN();
 }
 
-void PollUntilNextFrame()
-{
-    if (play.fast_forward) { return; }
-    while (waitingForNextTick()) {
-        // make sure we poll, cos a low framerate (eg 5 fps) could stutter mp3 music
-        update_polled_stuff_if_runtime();
-    }
-}
-
 void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
 
     int res;
@@ -801,7 +792,9 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_update_fps();
 
-    PollUntilNextFrame();
+    update_polled_stuff_if_runtime();
+
+    WaitForNextFrame();
 }
 
 static void UpdateMouseOverLocation()

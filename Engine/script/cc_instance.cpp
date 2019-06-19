@@ -1851,16 +1851,6 @@ bool ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
 
 void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
 {
-    if (!rval.IsValid())
-    {
-        cc_error("internal error: undefined value pushed to stack");
-        return;
-    }
-    if (registers[SREG_SP].RValue->IsValid())
-    {
-        cc_error("internal error: valid data beyond stack ptr");
-        return;
-    }
     // Write value to the stack tail and advance stack ptr
     registers[SREG_SP].WriteValue(rval);
     registers[SREG_SP].RValue++;

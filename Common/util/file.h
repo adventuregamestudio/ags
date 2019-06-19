@@ -61,23 +61,16 @@ namespace File
     // Gets C-style file mode from FileOpenMode and FileWorkMode
     String      GetCMode(FileOpenMode open_mode, FileWorkMode work_mode);
 
-    Stream      *OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+    AGS::Common::Stream *OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+
     // Convenience helpers
     // Create a totally new file, overwrite existing one
-    inline Stream *CreateFile(const String &filename)
-    {
-        return OpenFile(filename, kFile_CreateAlways, kFile_Write);
-    }
+    AGS::Common::Stream *CreateFile(const String &filename);
     // Open existing file for reading
-    inline Stream *OpenFileRead(const String &filename)
-    {
-        return OpenFile(filename, kFile_Open, kFile_Read);
-    }
+    AGS::Common::Stream *OpenFileRead(const String &filename);
     // Open existing file for writing (append) or create if it does not exist
-    inline Stream *OpenFileWrite(const String &filename)
-    {
-        return OpenFile(filename, kFile_Create, kFile_Write);
-    }
+    AGS::Common::Stream *OpenFileWrite(const String &filename);
+    
 } // namespace File
 
 } // namespace Common

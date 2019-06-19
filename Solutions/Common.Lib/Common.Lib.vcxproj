@@ -291,13 +291,9 @@
     <ClCompile Include="..\..\Common\script\cc_error.cpp" />
     <ClCompile Include="..\..\Common\script\cc_options.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
-    <ClCompile Include="..\..\Common\util\alignedstream.cpp" />
-    <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\compress.cpp" />
-    <ClCompile Include="..\..\Common\util\datastream.cpp" />
     <ClCompile Include="..\..\Common\util\directory.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
-    <ClCompile Include="..\..\Common\util\filestream.cpp" />
     <ClCompile Include="..\..\Common\util\geometry.cpp" />
     <ClCompile Include="..\..\Common\util\inifile.cpp" />
     <ClCompile Include="..\..\Common\util\ini_util.cpp" />
@@ -305,7 +301,6 @@
     <ClCompile Include="..\..\Common\util\misc.cpp" />
     <ClCompile Include="..\..\Common\util\mutifilelib.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />
-    <ClCompile Include="..\..\Common\util\proxystream.cpp" />
     <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
@@ -373,14 +368,11 @@
     <ClInclude Include="..\..\Common\script\cc_options.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />
     <ClInclude Include="..\..\Common\script\script_common.h" />
-    <ClInclude Include="..\..\Common\util\alignedstream.h" />
     <ClInclude Include="..\..\Common\util\bbop.h" />
     <ClInclude Include="..\..\Common\util\compress.h" />
-    <ClInclude Include="..\..\Common\util\datastream.h" />
     <ClInclude Include="..\..\Common\util\directory.h" />
     <ClInclude Include="..\..\Common\util\error.h" />
     <ClInclude Include="..\..\Common\util\file.h" />
-    <ClInclude Include="..\..\Common\util\filestream.h" />
     <ClInclude Include="..\..\Common\util\geometry.h" />
     <ClInclude Include="..\..\Common\util\inifile.h" />
     <ClInclude Include="..\..\Common\util\ini_util.h" />
@@ -390,7 +382,6 @@
     <ClInclude Include="..\..\Common\util\misc.h" />
     <ClInclude Include="..\..\Common\util\multifilelib.h" />
     <ClInclude Include="..\..\Common\util\path.h" />
-    <ClInclude Include="..\..\Common\util\proxystream.h" />
     <ClInclude Include="..\..\Common\util\stdio_compat.h" />
     <ClInclude Include="..\..\Common\util\stream.h" />
     <ClInclude Include="..\..\Common\util\string.h" />

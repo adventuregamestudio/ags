@@ -43,7 +43,7 @@ TextStreamWriter::~TextStreamWriter()
 
 bool TextStreamWriter::IsValid() const
 {
-    return _stream && _stream->CanWrite();
+    return _stream;
 }
 
 const Stream *TextStreamWriter::GetStream() const

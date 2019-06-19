@@ -18,8 +18,7 @@
 #include "core/platform.h"
 #include "util/stdio_compat.h"
 #include <errno.h>
-#include "util/filestream.h"
-#include "util/bufferedstream.h"
+#include "util/stream.h"
 
 namespace AGS
 {
@@ -155,21 +154,41 @@ String File::GetCMode(FileOpenMode open_mode, FileWorkMode work_mode)
     return mode;
 }
 
-Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
+AGS::Common::Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    FileStream *fs = nullptr;
     try {
-        fs = new FileStream(filename, open_mode, work_mode);
-        //fs = new BufferedStream(filename, open_mode, work_mode);
-        if (fs != nullptr && !fs->IsValid()) {
-            delete fs;
-            fs = nullptr;
+        if (work_mode == kFile_Read) {
+            auto fs = std::make_unique<FileStream>(filename, open_mode, work_mode);
+            auto bs = std::make_unique<BufferedStream>(std::move(fs));
+            return new DataStream(std::move(bs));
+        } else {
+            auto fs = std::make_unique<FileStream>(filename, open_mode, work_mode);
+            return new DataStream(std::move(fs));
         }
-    } catch(std::runtime_error) {
-        fs = nullptr;
+    } catch(StreamError) {
+        return nullptr;
     }
-    return fs;
 }
+
+// Convenience helpers
+// Create a totally new file, overwrite existing one
+AGS::Common::Stream *File::CreateFile(const String &filename)
+{
+    return OpenFile(filename, kFile_CreateAlways, kFile_Write);
+}
+
+// Open existing file for reading
+AGS::Common::Stream *File::OpenFileRead(const String &filename)
+{
+    return OpenFile(filename, kFile_Open, kFile_Read);
+}
+
+// Open existing file for writing (append) or create if it does not exist
+AGS::Common::Stream *File::OpenFileWrite(const String &filename)
+{
+    return OpenFile(filename, kFile_Create, kFile_Write);
+}
+
 
 } // namespace Common
 } // namespace AGS

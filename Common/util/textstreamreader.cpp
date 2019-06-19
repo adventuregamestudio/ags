@@ -34,7 +34,7 @@ TextStreamReader::~TextStreamReader()
 
 bool TextStreamReader::IsValid() const
 {
-    return _stream && _stream->CanRead();
+    return _stream;
 }
 
 const Stream *TextStreamReader::GetStream() const

@@ -158,22 +158,13 @@
     <ClCompile Include="..\..\Common\gui\guitextbox.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\alignedstream.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\compress.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\util\datastream.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\directory.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\file.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\util\filestream.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\geometry.cpp">
@@ -195,9 +186,6 @@
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\path.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\util\proxystream.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\stream.cpp">
@@ -273,9 +261,6 @@
       <Filter>Library Sources\aastr</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\stdio_compat.c">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\string_compat.c">
@@ -454,25 +439,16 @@
     <ClInclude Include="..\..\Common\gui\guitextbox.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\util\alignedstream.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\util\bbop.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\compress.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\util\datastream.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\util\directory.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\file.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\util\filestream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\geometry.h">
@@ -500,9 +476,6 @@
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\path.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\util\proxystream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\stream.h">

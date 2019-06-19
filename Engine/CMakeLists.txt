@@ -4,7 +4,7 @@
 add_library(engine)
 
 set_target_properties(engine PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 14
     CXX_EXTENSIONS NO
 )
 
@@ -599,7 +599,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/.. PREFIX "Source Files" FILES ${E
 add_executable(ags)
 
 set_target_properties(ags PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 14
     CXX_EXTENSIONS NO
 )
 
@@ -637,7 +637,7 @@ if (MACOS)
     add_executable(ags-app)
 
     set_target_properties(ags-app PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 14
         CXX_EXTENSIONS NO
     )
 

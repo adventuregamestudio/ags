@@ -1,7 +1,7 @@
 add_library(hq2x)
 
 set_target_properties(hq2x PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 14
     CXX_EXTENSIONS NO
 )
 

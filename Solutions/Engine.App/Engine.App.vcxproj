@@ -101,6 +101,7 @@
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatSpecificWarningsAsErrors>4013; 4150; 4477</TreatSpecificWarningsAsErrors>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Common_d.lib;alleg-debug-static-mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -129,6 +130,7 @@
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatSpecificWarningsAsErrors>4013; 4150; 4477</TreatSpecificWarningsAsErrors>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Common.lib;alleg-static-mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -162,6 +164,7 @@
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatSpecificWarningsAsErrors>4013; 4150; 4477</TreatSpecificWarningsAsErrors>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Common.lib;alleg-static-mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>

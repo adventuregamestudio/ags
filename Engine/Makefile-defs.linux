@@ -17,7 +17,7 @@ CFLAGS := -O2 -g \
     -D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
     $(FT_CFLAGS) $(CFLAGS)
 
-CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
+CXXFLAGS := -std=c++14 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 
 LIBS := -Wl,-Bdynamic
 LIBS += $(FT_LDFLAGS)

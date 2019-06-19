@@ -18,7 +18,7 @@ ifdef BUILD_STR
   CFLAGS += -DBUILD_STR=\"$(BUILD_STR)\"
 endif
 
-CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
+CXXFLAGS := -std=c++14 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 
 MMFLAGS := $(MMFLAGS)
 

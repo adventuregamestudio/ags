@@ -4,7 +4,7 @@ include(CheckFseeko)
 add_library(common)
 
 set_target_properties(common PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 14
     CXX_EXTENSIONS NO
 )
 

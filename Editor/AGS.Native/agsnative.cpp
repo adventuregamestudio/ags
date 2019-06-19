@@ -8,6 +8,7 @@ extern int Scintilla_LinkLexers();
 #include "agsnative.h"
 #include "util/wgt2allg.h"
 #include <winalleg.h>
+#undef CreateFile
 #include "util/misc.h"
 #include "ac/spritecache.h"
 #include "ac/actiontype.h"

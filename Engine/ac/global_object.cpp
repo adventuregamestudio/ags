@@ -380,6 +380,8 @@ void SetObjectClickable (int cha, int clik) {
 void SetObjectIgnoreWalkbehinds (int cha, int clik) {
     if (!is_valid_object(cha))
         quit("!SetObjectIgnoreWalkbehinds: Invalid object specified");
+    if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v350)
+        debug_script_warn("IgnoreWalkbehinds is not recommended for use, consider other solutions");
     objs[cha].flags&=~OBJF_NOWALKBEHINDS;
     if (clik)
         objs[cha].flags|=OBJF_NOWALKBEHINDS;

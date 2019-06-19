@@ -38,7 +38,6 @@
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 #include "core/assetmanager.h"
-#include "util/alignedstream.h"
 #include "ac/gamesetup.h"
 #include "game/main_game_file.h"
 #include "game/game_init.h"

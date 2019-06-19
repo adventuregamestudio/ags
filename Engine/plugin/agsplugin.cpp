@@ -62,7 +62,6 @@
 #include "main/graphics_mode.h"
 #include "gfx/gfx_util.h"
 #include "util/memory.h"
-#include "util/filestream.h"
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;

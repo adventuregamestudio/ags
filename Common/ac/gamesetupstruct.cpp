@@ -18,7 +18,7 @@
 #include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "game/interactions.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 

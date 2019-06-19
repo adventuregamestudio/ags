@@ -17,7 +17,7 @@
 
 #include <string.h>
 #include "debug/assert.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 #include "util/file.h"
 
 using namespace AGS::Common;

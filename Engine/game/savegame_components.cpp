@@ -48,7 +48,7 @@
 #include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
 #include "script/script.h"
-#include "util/filestream.h" // TODO: needed only because plugins expect file handle
+#include "util/stream.h" // TODO: needed only because plugins expect file handle
 #include "media/audio/audio_system.h"
 
 using namespace Common;

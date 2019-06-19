@@ -14,7 +14,7 @@
 
 #include <string.h>
 #include "ac/view.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;

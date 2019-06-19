@@ -83,9 +83,8 @@
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "util/alignedstream.h"
+#include "util/stream.h" // TODO: needed only because plugins expect file handle
 #include "util/directory.h"
-#include "util/filestream.h" // TODO: needed only because plugins expect file handle
 #include "util/path.h"
 #include "util/string_utils.h"
 

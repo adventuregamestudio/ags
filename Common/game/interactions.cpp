@@ -15,7 +15,7 @@
 #include <string.h>
 #include "ac/common.h" // quit
 #include "game/interactions.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 #include "util/math.h"
 
 using namespace AGS::Common;

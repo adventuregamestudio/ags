@@ -48,9 +48,8 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_error.h"
-#include "util/alignedstream.h"
-#include "util/file.h"
 #include "util/stream.h"
+#include "util/file.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
 

@@ -29,8 +29,7 @@ extern int Scintilla_LinkLexers();
 #include "util/compress.h"
 #include "util/string_types.h"
 #include "util/string_utils.h"    // fputstring, etc
-#include "util/alignedstream.h"
-#include "util/filestream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "NativeUtils.h"

@@ -15,6 +15,7 @@
 #include "util/stream.h"
 
 #include <cerrno>
+#include <cstring>
 #include <cstdio>
 #include <algorithm>
 #include "util/stdio_compat.h"

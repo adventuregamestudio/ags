@@ -1,4 +1,4 @@
-INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins /sw/include /sw/lib/freetype2/include /sw/lib/freetype2/include/freetype2
+INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins /sw/include /sw/lib/freetype2/include /sw/lib/freetype2/include/freetype2 ../Engine/libsrc/glad/include
 LIBDIR = /sw/lib /sw/lib/freetype2/lib
 CFLAGS = -m32 -O2 -g -Wfatal-errors -DNDEBUG -DALLEGRO_NO_FIX_ALIASES -DAGS_RUNTIME_PATCH_ALLEGRO -DALLEGRO_STATICLINK -DMAC_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT
 CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
@@ -20,3 +20,4 @@ platform/util/libc.c \
 platform/util/pe.c
 
 CDA = 
+GLAD := libsrc/glad/src/glad.c

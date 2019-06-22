@@ -216,7 +216,10 @@ private:
     GLuint _oldPixelFormat;
     PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
 #endif
-    Version _oglVersion;
+#if defined (LINUX_VERSION)
+    bool _have_window;
+    GLXContext _glxContext;
+#endif
     bool _firstTimeInit;
     int _tint_red, _tint_green, _tint_blue;
     // Position of backbuffer texture in world space
@@ -281,8 +284,6 @@ private:
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
     void SetupDefaultVertices();
-    // Test if swap interval (used for vsync) is supported
-    void TestVSync();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
     // Test if supersampling should be allowed with the current setup
@@ -298,7 +299,7 @@ private:
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();
-#if defined (WINDOWS_VERSION)
+#if defined (WINDOWS_VERSION) || defined(LINUX_VERSION)
     void CreateDesktopScreen(int width, int height, int depth);
 #elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
     void UpdateDeviceScreen();

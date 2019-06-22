@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include"
+				AdditionalIncludeDirectories="..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Engine\libsrc\glad\include;..\..\Plugins;..\..\Windows\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include"
+				AdditionalIncludeDirectories="..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Engine\libsrc\glad\include;..\..\Plugins;..\..\Windows\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_FIX_ALIASES;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -203,7 +203,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include"
+				AdditionalIncludeDirectories="..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Engine\libsrc\glad\include;..\..\Plugins;..\..\Windows\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_FIX_ALIASES;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -2565,6 +2565,18 @@
 				>
 				<File
 					RelativePath="..\..\Engine\libsrc\libcda-0.5\windows.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="glad"
+				>
+				<File
+					RelativePath="..\..\Engine\libsrc\glad\src\glad.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\libsrc\glad\src\glad_wgl.c"
 					>
 				</File>
 			</Filter>

@@ -84,7 +84,7 @@ void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound)
     if (clip == NULL)
       quitprintf("!SetFrameSound: audio clip aSound%d not found", newSound);
 
-    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id + (is_old_audio_system() ? 0x10000000 : 0);
+    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id + (game.IsLegacyAudioSystem() ? 0x10000000 : 0);
   }
 }
 
@@ -121,7 +121,7 @@ void precache_view(int view)
 // to play a sound or whatever
 void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
     ScriptAudioChannel *channel = NULL;
-    if (is_old_audio_system())
+    if (game.IsLegacyAudioSystem())
     {
         if (views[view].loops[loop].frames[frame].sound > 0)
         {
@@ -154,7 +154,9 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha_blend)
 {
-    if (alpha_blend && (loaded_game_file_version >= kGameVersion_330))
+    // NOTE: DrawViewFrame supports alpha blending only since OPT_SPRITEALPHA;
+    // this is why there's no sense in blending if it's not set (will do no good anyway).
+    if (alpha_blend && game.options[OPT_SPRITEALPHA] == kSpriteAlphaRender_Proper)
     {
         Bitmap *vf_bmp = spriteset[vframe->pic];
         Bitmap *src = vf_bmp;

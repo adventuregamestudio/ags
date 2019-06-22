@@ -19,9 +19,11 @@
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 
 #include "ac/characterinfo.h"       // OldCharacterInfo, CharacterInfo
+#include "ac/game_version.h"
 #include "ac/wordsdictionary.h"  // WordsDictionary
 #include "ac/gamestructdefines.h"
 #include "script/cc_script.h"           // ccScript
+#include "util/string.h"
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 // Forward declaration
@@ -87,6 +89,17 @@ struct GameSetupStructBase {
         if (default_resolution == kGameResolution_Custom)
             return (size.Width * size.Height) > (320 * 240);
         return ::IsHiRes(default_resolution);
+    }
+
+    // Test if the game is built around old audio system
+    inline bool IsLegacyAudioSystem() const
+    {
+        return loaded_game_file_version < kGameVersion_320;
+    }
+    // Returns the expected filename of a digital audio package
+    inline AGS::Common::String GetAudioVOXName() const
+    {
+        return IsLegacyAudioSystem() ? "music.vox" : "audio.vox";
     }
 
 private:

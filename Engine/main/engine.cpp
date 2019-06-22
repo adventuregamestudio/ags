@@ -416,14 +416,14 @@ void engine_init_fonts()
     init_font_renderer();
 }
 
-int engine_init_mouse()
+void engine_init_mouse()
 {
     int res = minstalled();
     if (res < 0)
         Debug::Printf(kDbgMsg_Init, "Initializing mouse: failed");
     else
         Debug::Printf(kDbgMsg_Init, "Initializing mouse: number of buttons reported is %d", res);
-	return RETURN_CONTINUE;
+    Mouse::SetSpeed(usetup.mouse_speed);
 }
 
 int engine_check_memory()
@@ -498,27 +498,25 @@ void engine_init_speech()
     }
 }
 
-int engine_init_music()
+void engine_init_digital_audio()
 {
     play.separate_music_lib = 0;
-
-    music_file = "audio.vox";
+    music_file = game.GetAudioVOXName();
     String music_filepath = find_assetlib(music_file);
-    if (!music_filepath.IsEmpty()) {
-
-        Debug::Printf("Initializing audio vox");
-
-        //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
-        if (Common::AssetManager::SetDataFile(music_filepath)!=Common::kAssetNoError) {
-            platform->DisplayAlert("Unable to initialize music library - check for corruption and that\nit belongs to this game.\n");
-            return EXIT_NORMAL;
+    if (!music_filepath.IsEmpty())
+    {
+        if (AssetManager::SetDataFile(music_filepath) == kAssetNoError)
+        {
+            AssetManager::SetDataFile(game_file_name);
+            Debug::Printf(kDbgMsg_Init, "%s found and initialized.", music_file.GetCStr());
+            play.separate_music_lib = 1;
         }
-        Common::AssetManager::SetDataFile(game_file_name);
-        Debug::Printf(kDbgMsg_Init, "Audio vox found and initialized.");
-        play.separate_music_lib = 1;
+        else
+        {
+            platform->DisplayAlert("Unable to initialize digital audio pack '%s', file could be corrupt or of unsupported format.",
+                music_file.GetCStr());
+        }
     }
-
-    return RETURN_CONTINUE;
 }
 
 void engine_init_keyboard()
@@ -1399,10 +1397,7 @@ int initialize_engine(int argc,char*argv[])
 
     our_eip = -188;
 
-    res = engine_init_mouse();
-	if (res != RETURN_CONTINUE) {
-        return res;
-    }
+    engine_init_mouse();
 
     our_eip = -187;
 
@@ -1421,10 +1416,7 @@ int initialize_engine(int argc,char*argv[])
 
     our_eip = -185;
     
-    res = engine_init_music();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
+    engine_init_digital_audio();
 
     our_eip = -184;
 

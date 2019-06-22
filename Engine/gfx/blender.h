@@ -19,19 +19,6 @@
 #ifndef __AC_BLENDER_H
 #define __AC_BLENDER_H
 
-enum GameSpriteAlphaRenderingStyle
-{
-    kSpriteAlphaRender_Classic = 0,
-    kSpriteAlphaRender_Improved
-};
-
-enum GameGuiAlphaRenderingStyle
-{
-    kGuiAlphaRender_Classic = 0,
-    kGuiAlphaRender_AdditiveAlpha,
-    kGuiAlphaRender_Improved
-};
-
 //
 // Allegro's standard alpha blenders result in:
 // - src and dst RGB are combined proportionally to src alpha

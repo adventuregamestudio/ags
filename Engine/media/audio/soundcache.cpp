@@ -61,7 +61,7 @@ void sound_cache_free(char* buffer, bool is_wave)
     AGS::Engine::MutexLock _lock(_sound_cache_mutex);
 
 #ifdef SOUND_CACHE_DEBUG
-    Debug::Printf("sound_cache_free(%d %d)\n", (unsigned int)buffer, (unsigned int)is_wave);
+    Debug::Printf("sound_cache_free(%p %d)\n", buffer, (unsigned int)is_wave);
 #endif
     int i;
     for (i = 0; i < psp_audio_cachesize; i++)
@@ -98,7 +98,7 @@ char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
 	AGS::Engine::MutexLock _lock(_sound_cache_mutex);
 
 #ifdef SOUND_CACHE_DEBUG
-    Debug::Printf("get_cached_sound(%s %d)\n", filename, (unsigned int)is_wave);
+    Debug::Printf("get_cached_sound(%s %d)\n", asset_name.first.GetCStr(), (unsigned int)is_wave);
 #endif
 
     *size = 0;

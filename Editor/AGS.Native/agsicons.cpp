@@ -4,6 +4,7 @@ using namespace System;
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "util/string.h"
 
 extern void warningBox(const char *fmt, ...);
 
@@ -193,7 +194,6 @@ void ReplaceIconFromFile(const char *iconName, const char *exeName) {
   return;
 }
 
-char errorMsgBuffer[1000];
 void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType)
 {
   HANDLE hUpdate = BeginUpdateResource(exeName, FALSE);
@@ -205,13 +205,15 @@ void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const u
   int retcode = UpdateResource(hUpdate, resourceType, resourceName,
                     MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_UK),
                     (void*)data, dataLength);
-  const char *errorMsg = NULL;
+  AGS::Common::String errorMsg;
 
   if (retcode == 0) 
   {
     DWORD errorCode = GetLastError();
-    sprintf(errorMsgBuffer, "Unable to replace resource: UpdateResource RT_RCDATA for %s failed: %08X", resourceName, errorCode);
-    errorMsg = errorMsgBuffer;
+    if (IS_INTRESOURCE(resourceName))
+        errorMsg.Format("Unable to replace resource: UpdateResource RT_RCDATA for %08X failed: %08X", (WORD)(resourceName), errorCode);
+    else
+        errorMsg.Format("Unable to replace resource: UpdateResource RT_RCDATA for %s failed: %08X", resourceName, errorCode);
   }
 
   if (EndUpdateResource(hUpdate, FALSE) == 0) 
@@ -219,12 +221,14 @@ void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const u
     DWORD errorCode = GetLastError();
     if (errorMsg == NULL) 
     {
-      sprintf(errorMsgBuffer, "Unable to replace resource: EndUpdateResource for %s failed: %08X", resourceName, errorCode);
-      errorMsg = errorMsgBuffer;
+      if (IS_INTRESOURCE(resourceName))
+          errorMsg.Format("Unable to replace resource: EndUpdateResource for %08X failed: %08X", (WORD)(resourceName), errorCode);
+      else
+          errorMsg.Format("Unable to replace resource: EndUpdateResource for %s failed: %08X", resourceName, errorCode);
     }
   }
 
-  if (errorMsg != NULL)
+  if (!errorMsg.IsEmpty())
   {
 	  throw gcnew AGSEditorException(gcnew String(errorMsg));
   }

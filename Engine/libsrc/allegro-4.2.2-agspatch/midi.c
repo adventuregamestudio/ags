@@ -1,5 +1,5 @@
 //
-// Unfortunately, as of now Allegro 4 does not have a variant of MIDI
+// Allegro 4.4.2 and earlier do not have a variant of MIDI
 // constructor that takes PACKFILE stream as parameter. Hence our own
 // version. This should be removed when either Allegro 4 gets patched
 // or we switch to another backend library.
@@ -8,6 +8,9 @@
 //
 
 #include <allegro.h>
+
+#if (ALLEGRO_DATE < 20190303)
+
 #include <allegro/internal/aintern.h>
 
 /* load_midi_pf:
@@ -96,3 +99,5 @@ MIDI *load_midi_pf(PACKFILE *fp)
    destroy_midi(midi);
    return NULL;
 }
+
+#endif // (ALLEGRO_DATE < 20190303)

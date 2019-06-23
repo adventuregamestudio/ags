@@ -54,7 +54,7 @@ namespace AGS
 			Game^ ImportOldGameFile(String^ fileName);
 			void ImportSCIFont(String ^fileName, int fontSlot);
       void ReloadTTFFont(int fontSlot);
-            void OnGameFontUpdated(Game^ game, int fontSlot);
+            void OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate);
 			Dictionary<int,Sprite^>^ LoadAllSpriteDimensions();
 			void LoadNewSpriteFile();
 			Room^ LoadRoomFile(UnloadedRoom ^roomToLoad);

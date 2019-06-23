@@ -64,8 +64,8 @@ extern void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRe
 extern void SaveGame(bool compressSprites);
 extern HAGSError reset_sprite_file();
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
-extern void GameUpdated(Game ^game);
-extern void GameFontUpdated(Game ^game, int fontNumber);
+extern void GameUpdated(Game ^game, bool forceUpdate);
+extern void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 extern void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors);
 extern void draw_room_background(void *roomptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency);
 extern void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
@@ -159,7 +159,7 @@ namespace AGS
 		void NativeMethods::NewGameLoaded(Game ^game, List<String^> ^errors)
 		{
 			this->PaletteColoursUpdated(game);
-			GameUpdated(game);
+			GameUpdated(game, true);
 			UpdateNativeSpritesToGame(game, errors);
 		}
 
@@ -185,7 +185,7 @@ namespace AGS
 
 		void NativeMethods::GameSettingsChanged(Game ^game)
 		{
-			GameUpdated(game);
+			GameUpdated(game, false);
 		}
 
 		void NativeMethods::DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl)
@@ -245,9 +245,9 @@ namespace AGS
       }
     }
 
-    void NativeMethods::OnGameFontUpdated(Game^ game, int fontSlot)
+    void NativeMethods::OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate)
     {
-        GameFontUpdated(game, fontSlot);
+        GameFontUpdated(game, fontSlot, forceUpdate);
     }
 
         AGS::Types::SpriteInfo^ NativeMethods::GetSpriteInfo(int spriteSlot)

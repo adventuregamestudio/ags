@@ -2236,9 +2236,9 @@ void SetGameResolution(Game ^game)
         thisgame.SetDefaultResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
 }
 
-void GameFontUpdated(Game ^game, int fontNumber);
+void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 
-void GameUpdated(Game ^game) {
+void GameUpdated(Game ^game, bool forceUpdate) {
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
   thisgame.color_depth = (int)game->Settings->ColorDepth;
@@ -2268,11 +2268,11 @@ void GameUpdated(Game ^game) {
   thisgame.fonts.resize(thisgame.numfonts);
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
-      GameFontUpdated(game, i);
+      GameFontUpdated(game, i, forceUpdate);
   }
 }
 
-void GameFontUpdated(Game ^game, int fontNumber)
+void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
 {
     FontInfo &font_info = thisgame.fonts[fontNumber];
     AGS::Types::Font ^font = game->Fonts[fontNumber];
@@ -2286,7 +2286,8 @@ void GameFontUpdated(Game ^game, int fontNumber)
     font_info.LineSpacing = font->LineSpacing;
     set_fontinfo(fontNumber, font_info);
 
-    if (font_info.SizePt != old_sizept ||
+    if (forceUpdate ||
+        font_info.SizePt != old_sizept ||
         font_info.SizeMultiplier != old_scaling)
     {
         reload_font(fontNumber);

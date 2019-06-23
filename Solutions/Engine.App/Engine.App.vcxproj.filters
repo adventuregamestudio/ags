@@ -1023,6 +1023,9 @@
     <ClCompile Include="..\..\Engine\platform\windows\win_ex_handling.cpp">
       <Filter>Source Files\platform\windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\keycode.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">

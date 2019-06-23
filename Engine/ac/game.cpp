@@ -942,7 +942,8 @@ ScriptCamera* Game_GetAnyCamera(int index)
 
 void Game_SimulateKeyPress(int key)
 {
-    int platformKey = PlatformKeyFromAgsKey(key);
+    int platformKey = GetKeyForKeyPressCb(key);
+    platformKey = PlatformKeyFromAgsKey(platformKey);
     if (platformKey >= 0) {
         simulate_keypress(platformKey);
     }

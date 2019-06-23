@@ -370,153 +370,190 @@ bool run_service_key_controls(int &kgn)
 // Runs default keyboard handling
 static void check_keyboard_controls()
 {
+    const auto key_backspace = 8;
+    const auto key_return = 13;
+    const auto key_ctrl_b = 2;
+    const auto key_ctrl_d = 4;
+    const auto key_ctrl_e = 5;
+    const auto key_ctrl_v = 22;
+    const auto key_alt_v = 322;
+    const auto key_f9 = 367;
+
     int kgn;
+
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
-    if (!run_service_key_controls(kgn))
+    if (!run_service_key_controls(kgn)) {
         return;
-    // Now check for in-game controls
-    {
-        //    if (kgn==367) restart_game();
-        //    if (kgn==2) Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed);
-        //    if (kgn==2) CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear");
-        //    if (kgn==2) { Display("Crashing"); strcpy(NULL, NULL); }
-        //    if (kgn == 2) FaceLocation (game.playercharacter, playerchar->x + 1, playerchar->y);
-        //if (kgn == 2) SetCharacterIdle (game.playercharacter, 5, 0);
-        //if (kgn == 2) Display("Some for?ign text");
-        //if (kgn == 2) do_conversation(5);
-
-        check_skip_cutscene_keypress (kgn);
-
-        if (play.fast_forward) { }
-        else if (pl_run_plugin_hooks(AGSE_KEYPRESS, kgn)) {
-            // plugin took the keypress
-            debug_script_log("Keypress code %d taken by plugin", kgn);
-        }
-        else if ((kgn == '`') && (play.debug_mode > 0)) {
-            // debug console
-            display_console = !display_console;
-        }
-        else if ((is_text_overlay > 0) &&
-            (play.cant_skip_speech & SKIP_KEYPRESS) &&
-            (kgn != 434)) {
-                // 434 = F12, allow through for screenshot of text
-                // (though atm with one script at a time that won't work)
-                // only allow a key to remove the overlay if the icon bar isn't up
-                if (IsGamePaused() == 0) {
-                    // check if it requires a specific keypress
-                    if ((play.skip_speech_specific_key > 0) &&
-                        (kgn != play.skip_speech_specific_key)) { }
-                    else
-                        remove_screen_overlay(OVER_TEXTMSG);
-                }
-        }
-        else if ((play.wait_counter > 0) && (play.key_skip_wait > 0)) {
-            play.wait_counter = -1;
-            debug_script_log("Keypress code %d ignored - in Wait", kgn);
-        }
-        else if ((kgn == 5) && (display_fps == 2)) {
-            // if --fps paramter is used, Ctrl+E will max out frame rate
-            SetGameSpeed(1000);
-            display_fps = 2;
-        }
-        else if ((kgn == 4) && (play.debug_mode > 0)) {
-            // ctrl+D - show info
-            char infobuf[900];
-            int ff;
-            // MACPORT FIX 9/6/5: added last %s
-            sprintf(infobuf,"In room %d %s[Player at %d, %d (view %d, loop %d, frame %d)%s%s%s",
-                displayed_room, (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x,playerchar->y,
-                playerchar->view + 1, playerchar->loop,playerchar->frame,
-                (IsGamePaused() == 0) ? "" : "[Game paused.",
-                (play.ground_level_areas_disabled == 0) ? "" : "[Ground areas disabled.",
-                (IsInterfaceEnabled() == 0) ? "[Game in Wait state" : "");
-            for (ff=0;ff<croom->numobj;ff++) {
-                if (ff >= 8) break; // buffer not big enough for more than 7
-                sprintf(&infobuf[strlen(infobuf)],
-                    "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
-                    ff, objs[ff].x, objs[ff].y,
-                    (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Width : 0,
-                    (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Height : 0,
-                    objs[ff].on,
-                    (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
-                    objs[ff].num, objs[ff].transparent,
-                    ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1 );
-            }
-            Display(infobuf);
-            int chd = game.playercharacter;
-            char bigbuffer[STD_BUFFER_SIZE] = "CHARACTERS IN THIS ROOM:[";
-            for (ff = 0; ff < game.numcharacters; ff++) {
-                if (game.chars[ff].room != displayed_room) continue;
-                if (strlen(bigbuffer) > 430) {
-                    strcat(bigbuffer, "and more...");
-                    Display(bigbuffer);
-                    strcpy(bigbuffer, "CHARACTERS IN THIS ROOM (cont'd):[");
-                }
-                chd = ff;
-                sprintf(&bigbuffer[strlen(bigbuffer)], 
-                    "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%d anim:%d follow:%d flags:%X wait:%d zoom:%d)[",
-                    game.chars[chd].scrname, game.chars[chd].view+1, game.chars[chd].loop, game.chars[chd].frame,
-                    game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
-                    game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
-                    game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
-                    game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
-            }
-            Display(bigbuffer);
-
-        }
-        /*    else if (kgn == 21) {
-        play.debug_mode++;
-        script_debug(5,0);
-        play.debug_mode--;
-        }*/
-        else if ((kgn == 22 + AGS_EXT_KEY_SHIFT && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) ) &&
-            (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0))
-        {
-            // make sure we can't interrupt a Wait()
-            // and desync the music to cutscene
-            play.debug_mode++;
-            script_debug (1,0);
-            play.debug_mode--;
-        }
-        else if (inside_script) {
-            // Don't queue up another keypress if it can't be run instantly
-            debug_script_log("Keypress %d ignored (game blocked)", kgn);
-        }
-        else {
-            int keywasprocessed = 0;
-            // determine if a GUI Text Box should steal the click
-            // it should do if a displayable character (32-255) is
-            // pressed, but exclude control characters (<32) and
-            // extended keys (eg. up/down arrow; 256+)
-            if ( ((kgn >= 32) && (kgn != '[') && (kgn < 256)) || (kgn == 13) || (kgn == 8) ) {
-                int uu,ww;
-                for (uu=0;uu<game.numgui;uu++) {
-                    if (!guis[uu].IsDisplayed()) continue;
-                    for (ww=0;ww<guis[uu].GetControlCount();ww++) {
-                        // not a text box, ignore it
-                        if (guis[uu].GetControlType(ww) != kGUITextBox)
-                            continue;
-                        GUITextBox*guitex=(GUITextBox*)guis[uu].GetControl(ww);
-                        // if the text box is disabled, it cannot except keypresses
-                        if ((!guitex->IsEnabled()) || (!guitex->IsVisible()))
-                            continue;
-                        guitex->OnKeyPress(kgn);
-                        if (guitex->IsActivated) {
-                            guitex->IsActivated = false;
-                            setevent(EV_IFACECLICK, uu, ww, 1);
-                        }
-                        keywasprocessed = 1;
-                    }
-                }
-            }
-            if (!keywasprocessed) {
-                kgn = GetKeyForKeyPressCb(kgn);
-                debug_script_log("Running on_key_press keycode %d", kgn);
-                setevent(EV_TEXTSCRIPT,TS_KEYPRESS,kgn);
-            }
-        }
-        //    RunTextScriptIParam(gameinst,"on_key_press",kgn);
     }
+
+    // Now check for in-game controls
+
+    // if (kgn == key_f9) { restart_game(); return; }
+    // if (kgn == key_ctrl_b) { Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed); return; }
+    // if (kgn == key_ctrl_b) { CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear"); return; }
+    // if (kgn == key_ctrl_b) { Display("Crashing"); strcpy(NULL, NULL); return; }
+    // if (kgn == key_ctrl_b) { FaceLocation (game.playercharacter, playerchar->x + 1, playerchar->y); return; }
+    // if (kgn == key_ctrl_b) { SetCharacterIdle (game.playercharacter, 5, 0); return; }
+    // if (kgn == key_ctrl_b) { Display("Some for?ign text"); return; }
+    // if (kgn == key_ctrl_b) { do_conversation(5); return; }
+
+    check_skip_cutscene_keypress (kgn);
+
+    if (play.fast_forward) { 
+        return; 
+    }
+
+    if (pl_run_plugin_hooks(AGSE_KEYPRESS, kgn)) {
+        // plugin took the keypress
+        debug_script_log("Keypress code %d taken by plugin", kgn);
+        return;
+    }
+
+    // debug console
+    if ((kgn == '`') && (play.debug_mode > 0)) {
+        display_console = !display_console;
+        return;
+    }
+
+    // skip speech if desired by Speech.SkipStyle
+    if ((is_text_overlay > 0) && (play.cant_skip_speech & SKIP_KEYPRESS)) {
+        // only allow a key to remove the overlay if the icon bar isn't up
+        if (IsGamePaused() == 0) {
+            // check if it requires a specific keypress
+            if ((play.skip_speech_specific_key > 0) &&
+                (kgn != play.skip_speech_specific_key)) { }
+            else
+                remove_screen_overlay(OVER_TEXTMSG);
+        }
+
+        return;
+    }
+
+    if ((play.wait_counter > 0) && (play.key_skip_wait > 0)) {
+        play.wait_counter = -1;
+        debug_script_log("Keypress code %d ignored - in Wait", kgn);
+        return;
+    }
+
+    if ((kgn == key_ctrl_e) && (display_fps == 2)) {
+        // if --fps paramter is used, Ctrl+E will max out frame rate
+        SetGameSpeed(1000);
+        display_fps = 2;
+        return;
+    }
+
+    if ((kgn == key_ctrl_d) && (play.debug_mode > 0)) {
+        // ctrl+D - show info
+        char infobuf[900];
+        int ff;
+        // MACPORT FIX 9/6/5: added last %s
+        sprintf(infobuf,"In room %d %s[Player at %d, %d (view %d, loop %d, frame %d)%s%s%s",
+            displayed_room, (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x,playerchar->y,
+            playerchar->view + 1, playerchar->loop,playerchar->frame,
+            (IsGamePaused() == 0) ? "" : "[Game paused.",
+            (play.ground_level_areas_disabled == 0) ? "" : "[Ground areas disabled.",
+            (IsInterfaceEnabled() == 0) ? "[Game in Wait state" : "");
+        for (ff=0;ff<croom->numobj;ff++) {
+            if (ff >= 8) break; // buffer not big enough for more than 7
+            sprintf(&infobuf[strlen(infobuf)],
+                "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
+                ff, objs[ff].x, objs[ff].y,
+                (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Width : 0,
+                (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Height : 0,
+                objs[ff].on,
+                (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
+                objs[ff].num, objs[ff].transparent,
+                ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1 );
+        }
+        Display(infobuf);
+        int chd = game.playercharacter;
+        char bigbuffer[STD_BUFFER_SIZE] = "CHARACTERS IN THIS ROOM:[";
+        for (ff = 0; ff < game.numcharacters; ff++) {
+            if (game.chars[ff].room != displayed_room) continue;
+            if (strlen(bigbuffer) > 430) {
+                strcat(bigbuffer, "and more...");
+                Display(bigbuffer);
+                strcpy(bigbuffer, "CHARACTERS IN THIS ROOM (cont'd):[");
+            }
+            chd = ff;
+            sprintf(&bigbuffer[strlen(bigbuffer)], 
+                "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%d anim:%d follow:%d flags:%X wait:%d zoom:%d)[",
+                game.chars[chd].scrname, game.chars[chd].view+1, game.chars[chd].loop, game.chars[chd].frame,
+                game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
+                game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
+                game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
+                game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
+        }
+        Display(bigbuffer);
+
+        return;
+    }
+
+    // if (kgn == key_ctrl_u) {
+    //     play.debug_mode++;
+    //     script_debug(5,0);
+    //     play.debug_mode--;
+    //     return;
+    // }
+
+    if ((kgn == key_alt_v) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+        // make sure we can't interrupt a Wait()
+        // and desync the music to cutscene
+        play.debug_mode++;
+        script_debug (1,0);
+        play.debug_mode--;
+
+        return;
+    }
+
+    if (inside_script) {
+        // Don't queue up another keypress if it can't be run instantly
+        debug_script_log("Keypress %d ignored (game blocked)", kgn);
+        return;
+    }
+
+    int keywasprocessed = 0;
+
+    // determine if a GUI Text Box should steal the click
+    // it should do if a displayable character (32-255) is
+    // pressed, but exclude control characters (<32) and
+    // extended keys (eg. up/down arrow; 256+)
+    if ( ((kgn >= 32) && (kgn <= 255) && (kgn != '[')) || (kgn == key_return) || (kgn == key_backspace) ) {
+        for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
+            auto &gui = guis[guiIndex];
+
+            if (!gui.IsDisplayed()) continue;
+
+            for (int controlIndex = 0; controlIndex < gui.GetControlCount(); controlIndex++) {
+                // not a text box, ignore it
+                if (gui.GetControlType(controlIndex) != kGUITextBox) { continue; }
+
+                auto guitex = dynamic_cast<GUITextBox*>(gui.GetControl(controlIndex));
+                if (guitex == nullptr) { continue; }
+
+                // if the text box is disabled, it cannot accept keypresses
+                if (!guitex->IsEnabled()) { continue; }
+                if (!guitex->IsVisible()) { continue; }
+
+                keywasprocessed = 1;
+
+                guitex->OnKeyPress(kgn);
+
+                if (guitex->IsActivated) {
+                    guitex->IsActivated = false;
+                    setevent(EV_IFACECLICK, guiIndex, controlIndex, 1);
+                }
+            }
+        }
+    }
+
+    if (!keywasprocessed) {
+        kgn = GetKeyForKeyPressCb(kgn);
+        debug_script_log("Running on_key_press keycode %d", kgn);
+        setevent(EV_TEXTSCRIPT,TS_KEYPRESS,kgn);
+    }
+
+    // RunTextScriptIParam(gameinst,"on_key_press",kgn);
 }
 
 // check_controls: checks mouse & keyboard interface

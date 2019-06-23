@@ -155,7 +155,12 @@ enum eAGSKeyCode
     eAGSKeyCodeInsert = AGS_EXT_KEY_SHIFT + 82,
     eAGSKeyCodeDelete = AGS_EXT_KEY_SHIFT + 83,
 
-    eAGSKeyCodeAltTab = AGS_EXT_KEY_SHIFT + 99
+    eAGSKeyCodeAltTab = AGS_EXT_KEY_SHIFT + 99,
+
+    // These are only used by debugging and abort keys.
+    // They're based on allegro4 codes so I won't expand here.
+    eAGSKeyCodeAltV = 322,
+    eAGSKeyCodeAltX = 324
 };
 
 #define AGS_KEYCODE_INSERT (eAGSKeyCodeInsert)

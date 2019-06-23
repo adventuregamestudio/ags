@@ -90,9 +90,7 @@ int MyPushButton::pressedon(int mousex, int mousey)
 
         refresh_gui_screen();
 
-        while (waitingForNextTick()) {
-            update_polled_stuff_if_runtime();
-        }
+        WaitForNextFrame();
     }
     wasstat = state;
     state = 0;

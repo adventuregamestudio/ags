@@ -1044,7 +1044,14 @@ bool DialogOptions::Run()
             return true; // continue running loop
         }
       }
-      PollUntilNextFrame();
+
+      update_polled_stuff_if_runtime();
+
+      if (play.fast_forward == 0)
+      {
+          WaitForNextFrame();
+      }
+
       return true; // continue running loop
 }
 

@@ -190,9 +190,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         if (cscim->code > 0)
             break;
 
-        while (waitingForNextTick()) {
-            update_polled_stuff_if_runtime();
-        }
+        WaitForNextFrame();
     }
 
     return 0;

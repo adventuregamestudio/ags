@@ -28,6 +28,8 @@ using AGS_Clock = std::conditional<
         std::chrono::high_resolution_clock, std::chrono::steady_clock
       >::type;
 
+extern void WaitForNextFrame();
+
 extern void setTimerFps(int new_fps);
 extern bool waitingForNextTick();  // store last tick time.
 extern void skipMissedTicks();  // if more than N frames, just skip all, start a fresh.

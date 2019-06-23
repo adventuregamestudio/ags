@@ -282,12 +282,12 @@ void process_event(EventHappened*evp) {
                     boxhit = Math::Clamp(boxhit, 0, viewport.GetHeight());
                     int lxp = viewport.GetWidth() / 2 - boxwid / 2;
                     int lyp = viewport.GetHeight() / 2 - boxhit / 2;
+                    gfxDriver->Vsync();
                     temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp, 
                         boxwid, boxhit);
                     render_to_screen(viewport.Left, viewport.Top);
-                    do {
-                        update_polled_stuff_if_runtime();
-                    } while (waitingForNextTick());
+                    update_polled_mp3();
+                    WaitForNextFrame();
                 }
                 gfxDriver->SetMemoryBackBuffer(saved_backbuf, viewport.Left, viewport.Top);
             }
@@ -315,9 +315,8 @@ void process_event(EventHappened*evp) {
                     gfxDriver->DrawSprite(0, 0, ddb);
                 }
                 render_to_screen();
-                do {
-                    update_polled_stuff_if_runtime();
-                } while (waitingForNextTick());
+                update_polled_stuff_if_runtime();
+                WaitForNextFrame();
                 transparency -= 16;
             }
             saved_viewport_bitmap->Release();
@@ -353,9 +352,8 @@ void process_event(EventHappened*evp) {
                 draw_screen_callback();
                 gfxDriver->DrawSprite(0, 0, ddb);
                 render_to_screen();
-                do {
-                    update_polled_stuff_if_runtime();
-                } while (waitingForNextTick());
+                update_polled_stuff_if_runtime();
+                WaitForNextFrame();
             }
             saved_viewport_bitmap->Release();
 

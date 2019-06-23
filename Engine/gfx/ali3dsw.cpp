@@ -622,12 +622,9 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy,
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
        this->Vsync();
        _filter->RenderScreen(bmp_buff, 0, 0);
-       do
-       {
-         if (_pollingCallback)
-           _pollingCallback();
-       }
-       while (waitingForNextTick());
+       if (_pollingCallback)
+         _pollingCallback();
+       WaitForNextFrame();
    }
    delete bmp_buff;
    if (bmp_orig != vs)
@@ -651,12 +648,9 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, int offx, int offy
         bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
         this->Vsync();
         _filter->RenderScreen(bmp_buff, 0, 0);
-        do
-        {
-          if (_pollingCallback)
-            _pollingCallback();
-          platform->Delay(1);
-        } while (waitingForNextTick());
+        if (_pollingCallback)
+          _pollingCallback();
+        WaitForNextFrame();
     }
     delete bmp_buff;
 

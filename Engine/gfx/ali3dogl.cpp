@@ -1918,11 +1918,9 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
     d3db->SetTransparency(fadingOut ? a : (255 - a));
     this->_render(flipTypeLastTime, false);
 
-    do {
-      if (_pollingCallback)
-        _pollingCallback();
-    } while (waitingForNextTick());
-
+    if (_pollingCallback)
+      _pollingCallback();
+    WaitForNextFrame();
   }
 
   if (fadingOut)

@@ -252,11 +252,48 @@ namespace AGS.Editor
             if (xmlVersionIndex < 21)
             {
                 // Assign audio clip ids to match and solidify their current position in AudioClips array.
-                int id = 0;
-                Dictionary<string, string> audioCache = new Dictionary<string, string>();
+                int clipId = 0;
+                Dictionary<int, int> audioIndexToID = new Dictionary<int, int>();
                 foreach (AudioClip clip in game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
                 {
-                    clip.ID = id++;
+                    clip.ID = clipId++;
+                    audioIndexToID.Add(clip.Index, clip.ID);
+                }
+
+                // Remap old cache indexes to new IDs
+                if (game.Settings.PlaySoundOnScore == 0)
+                {
+                    game.Settings.PlaySoundOnScore = -1;
+                }
+                else
+                {
+                    int id;
+                    if (audioIndexToID.TryGetValue(game.Settings.PlaySoundOnScore, out id))
+                        game.Settings.PlaySoundOnScore = id;
+                    else
+                        game.Settings.PlaySoundOnScore = -1;
+                }
+
+                foreach (Types.View view in game.RootViewFolder.AllItemsFlat)
+                {
+                    foreach (Types.ViewLoop loop in view.Loops)
+                    {
+                        foreach (Types.ViewFrame frame in loop.Frames)
+                        {
+                            if (frame.Sound == 0)
+                            {
+                                frame.Sound = -1;
+                            }
+                            else
+                            {
+                                int id;
+                                if (audioIndexToID.TryGetValue(frame.Sound, out id))
+                                    frame.Sound = id;
+                                else
+                                    frame.Sound = -1;
+                            }
+                        }
+                    }
                 }
             }
 

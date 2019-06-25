@@ -181,7 +181,7 @@ namespace AGS.Types
 
         public int CompareTo(AudioClip other)
         {
-            return _typeID.CompareTo(other._typeID);
+            return ID.CompareTo(other.ID);
         }
 
         #endregion

@@ -367,11 +367,11 @@ namespace AGS.Editor.Components
                 AudioClip clip = _agsEditor.CurrentGame.FindAudioClipForOldSoundNumber(allAudio, _agsEditor.CurrentGame.Settings.PlaySoundOnScore);
                 if (clip != null)
                 {
-                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = clip.Index;
+                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = clip.ID;
                 }
                 else
                 {
-                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = 0;
+                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = -1;
                 }
             }
         }
@@ -389,11 +389,11 @@ namespace AGS.Editor.Components
                             AudioClip clip = _agsEditor.CurrentGame.FindAudioClipForOldSoundNumber(allAudio, frame.Sound);
                             if (clip != null)
                             {
-                                frame.Sound = clip.Index;
+                                frame.Sound = clip.ID;
                             }
                             else
                             {
-                                frame.Sound = 0;
+                                frame.Sound = -1;
                             }
                         }
                     }
@@ -553,8 +553,6 @@ namespace AGS.Editor.Components
                     Utilities.CopyFileAndSetDestinationWritable(filesToCopy[i].SourceFileName, fileNamesToUpdate[i]);
                 }
             }
-
-            _agsEditor.CurrentGame.UpdateCachedAudioClipList();
         }
 
         private void ProjectTree_OnAfterLabelEdit(string commandID, ProjectTreeItem treeItem)

@@ -2048,6 +2048,10 @@ builtin managed struct AudioClip {
   readonly import attribute bool IsAvailable;
   /// Gets the type of audio that this clip contains.
   readonly import attribute AudioType Type;
+#ifdef SCRIPT_API_v350
+  /// Gets the clip's ID number.
+  readonly import attribute int ID;
+#endif
 };
 
 builtin struct System {

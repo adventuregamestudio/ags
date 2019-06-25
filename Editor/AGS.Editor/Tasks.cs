@@ -249,6 +249,17 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 21)
+            {
+                // Assign audio clip ids to match and solidify their current position in AudioClips array.
+                int id = 0;
+                Dictionary<string, string> audioCache = new Dictionary<string, string>();
+                foreach (AudioClip clip in game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
+                {
+                    clip.ID = id++;
+                }
+            }
+
             game.SetScriptAPIForOldProject();
         }
 

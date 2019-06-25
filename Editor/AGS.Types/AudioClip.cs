@@ -11,6 +11,7 @@ namespace AGS.Types
         private const string COMPILED_AUDIO_FILENAME_PREFIX = "au";
         public const string AUDIO_CACHE_DIRECTORY = "AudioCache";
 
+        private int _id;
         private string _sourceFileName;
         private string _scriptName;
         private int _index;
@@ -47,6 +48,15 @@ namespace AGS.Types
             get { return string.Format("{0}{1:X6}{2}", COMPILED_AUDIO_FILENAME_PREFIX, _index, Path.GetExtension(_sourceFileName)); }
         }
 
+        [DisplayName("ID")]
+        [Description("The ID number of the clip")]
+        [ReadOnly(true)]
+        public int ID
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+
         [ReadOnly(true)]
         [Description("The file from which this audio clip was imported")]
         public string SourceFileName
@@ -62,6 +72,7 @@ namespace AGS.Types
             set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
+        // NOTE: this index remains only as a connection to the AudioCache
         [Browsable(false)]
         public int Index
         {

@@ -24,8 +24,17 @@
 // Detect endianess on Linux
 // The logic is inverted on purpose so that it assumes
 // little endian if the defines have not been set
+#if defined(__BYTE_ORDER)
 #if !(__BYTE_ORDER == __LITTLE_ENDIAN)
 #define AGS_BIG_ENDIAN
+#endif
+#endif
+
+// gcc predefiend macros
+#if defined(__BYTE_ORDER__)
+#if !(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#define AGS_BIG_ENDIAN
+#endif
 #endif
 
 // Detect endianess on Mac

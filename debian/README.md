@@ -21,12 +21,15 @@ Debian/Ubuntu package installation
 ----------------------------------
     sudo apt-get install git debhelper build-essential pkg-config libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
 
-Download and build
-------------------
+Download
+--------
 Download the source with git and change into the **ags** directory:
 
-    git clone git://github.com/adventuregamestudio/ags.git
+    git clone --recursive git://github.com/adventuregamestudio/ags.git
     cd ags
+
+Build (with make)
+-----------------
 
 Compile the engine:
 
@@ -36,6 +39,26 @@ The **ags** executable can now be found in the **Engine** folder and
 can be installed with
 
     sudo make --directory=Engine install
+
+Build (with CMake/make)
+-----------------------
+
+An alternative build system is CMake. Please refer to CMAKE.md in the project root directory for details.
+
+Please be aware that a newer version of CMake is probably required. (see CMAKE.md)
+
+In summary, to build, you will need to start in the project root directory.
+
+    cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+    cd build
+    ccmake . # optional: use if you wish to adjust build options
+    make -j $(nproc --all)  # adjust for number of cpus
+
+NOTE: the default generator provides Makefiles but you can optionally use tools like Ninja
+NOTE2: build type options include Debug, Release, RelWithDebugInfo
+
+Cmake only needs to be run once. Afterwards you can use `make` and only call `ccmake .` if options need changing.
+
 
 # Building a Debian/Ubuntu package of AGS
 Building a package is the preferred way to install software on

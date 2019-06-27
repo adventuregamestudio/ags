@@ -21,6 +21,7 @@
 #include "util/mutex.h"
 #include "util/mutex_lock.h"
 #include "util/string.h"
+#include "debug/debugmanager.h"
 
 using namespace Common;
 

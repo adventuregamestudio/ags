@@ -203,6 +203,7 @@ target_sources(engine
     ac/inventoryitem.h
     ac/invwindow.cpp
     ac/invwindow.h
+    ac/keycode.cpp
     ac/keycode.h
     ac/label.cpp
     ac/label.h

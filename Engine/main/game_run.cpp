@@ -56,6 +56,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/timer.h"
+#include "ac/keycode.h"
 
 using namespace AGS::Common;
 
@@ -370,15 +371,6 @@ bool run_service_key_controls(int &kgn)
 // Runs default keyboard handling
 static void check_keyboard_controls()
 {
-    const auto key_backspace = 8;
-    const auto key_return = 13;
-    const auto key_ctrl_b = 2;
-    const auto key_ctrl_d = 4;
-    const auto key_ctrl_e = 5;
-    const auto key_ctrl_v = 22;
-    const auto key_alt_v = 322;
-    const auto key_f9 = 367;
-
     int kgn;
 
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
@@ -388,14 +380,14 @@ static void check_keyboard_controls()
 
     // Now check for in-game controls
 
-    // if (kgn == key_f9) { restart_game(); return; }
-    // if (kgn == key_ctrl_b) { Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed); return; }
-    // if (kgn == key_ctrl_b) { CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear"); return; }
-    // if (kgn == key_ctrl_b) { Display("Crashing"); strcpy(NULL, NULL); return; }
-    // if (kgn == key_ctrl_b) { FaceLocation (game.playercharacter, playerchar->x + 1, playerchar->y); return; }
-    // if (kgn == key_ctrl_b) { SetCharacterIdle (game.playercharacter, 5, 0); return; }
-    // if (kgn == key_ctrl_b) { Display("Some for?ign text"); return; }
-    // if (kgn == key_ctrl_b) { do_conversation(5); return; }
+    // if (kgn == eAGSKeyCodeF9) { restart_game(); return; }
+    // if (kgn == eAGSKeyCodeCtrlB) { Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed); return; }
+    // if (kgn == eAGSKeyCodeCtrlB) { CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear"); return; }
+    // if (kgn == eAGSKeyCodeCtrlB) { Display("Crashing"); strcpy(NULL, NULL); return; }
+    // if (kgn == eAGSKeyCodeCtrlB) { FaceLocation (game.playercharacter, playerchar->x + 1, playerchar->y); return; }
+    // if (kgn == eAGSKeyCodeCtrlB) { SetCharacterIdle (game.playercharacter, 5, 0); return; }
+    // if (kgn == eAGSKeyCodeCtrlB) { Display("Some for?ign text"); return; }
+    // if (kgn == eAGSKeyCodeCtrlB) { do_conversation(5); return; }
 
     check_skip_cutscene_keypress (kgn);
 
@@ -435,14 +427,14 @@ static void check_keyboard_controls()
         return;
     }
 
-    if ((kgn == key_ctrl_e) && (display_fps == 2)) {
+    if ((kgn == eAGSKeyCodeCtrlE) && (display_fps == 2)) {
         // if --fps paramter is used, Ctrl+E will max out frame rate
         SetGameSpeed(1000);
         display_fps = 2;
         return;
     }
 
-    if ((kgn == key_ctrl_d) && (play.debug_mode > 0)) {
+    if ((kgn == eAGSKeyCodeCtrlD) && (play.debug_mode > 0)) {
         // ctrl+D - show info
         char infobuf[900];
         int ff;
@@ -496,7 +488,7 @@ static void check_keyboard_controls()
     //     return;
     // }
 
-    if ((kgn == key_alt_v) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+    if ((kgn == eAGSKeyCodeAltV) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
         play.debug_mode++;
@@ -518,7 +510,7 @@ static void check_keyboard_controls()
     // it should do if a displayable character (32-255) is
     // pressed, but exclude control characters (<32) and
     // extended keys (eg. up/down arrow; 256+)
-    if ( ((kgn >= 32) && (kgn <= 255) && (kgn != '[')) || (kgn == key_return) || (kgn == key_backspace) ) {
+    if ( ((kgn >= 32) && (kgn <= 255) && (kgn != '[')) || (kgn == eAGSKeyCodeReturn) || (kgn == eAGSKeyCodeBackspace) ) {
         for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
             auto &gui = guis[guiIndex];
 

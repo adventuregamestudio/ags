@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.13..3.14)
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/CMake/c_flag_overrides.cmake)
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_CURRENT_SOURCE_DIR}/CMake/cxx_flag_overrides.cmake)
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    set (CMAKE_SYSTEM_VERSION "8.1" CACHE INTERNAL "Force 8.1 SDK, to keep it compatible with win7" FORCE) 
+endif()
 
 project(AGS
     VERSION 3.4.4.0

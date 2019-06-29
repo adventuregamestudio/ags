@@ -50,5 +50,7 @@ struct InbuiltPluginDetails {
 
 // Register a builtin plugin.
 int pl_register_builtin_plugin(InbuiltPluginDetails const &details);
+void pl_set_file_handle(long data, AGS::Common::Stream *stream);
+void pl_clear_file_handle();
 
 #endif // __AGS_EE_PLUGIN__PLUGINENGINE_H

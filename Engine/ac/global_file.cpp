@@ -107,7 +107,7 @@ int FileIsEOF (int32_t handle) {
     return 1;
 
   // TODO: stream errors
-  if (ferror (((Common::FileStream*)stream)->GetHandle()))
+  if (stream->HasErrors())
     return 1;
 
   if (stream->GetPosition () >= stream->GetLength())
@@ -118,7 +118,7 @@ int FileIsError(int32_t handle) {
   Stream *stream = get_valid_file_stream_from_handle(handle,"FileIsError");
 
   // TODO: stream errors
-  if (ferror(((Common::FileStream*)stream)->GetHandle()))
+  if (stream->HasErrors())
     return 1;
 
   return 0;

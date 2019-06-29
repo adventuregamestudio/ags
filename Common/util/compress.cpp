@@ -204,8 +204,7 @@ int cunpackbitl(unsigned char *line, int size, Stream *in)
 
   while (n < size) {
     int ix = in->ReadByte();     // get index byte
-    // TODO: revise when new error handling system is implemented
-    if (ferror(((Common::FileStream*)in)->GetHandle()))
+    if (in->HasErrors())
       break;
 
     char cx = ix;
@@ -234,8 +233,7 @@ int cunpackbitl(unsigned char *line, int size, Stream *in)
     }
   }
 
-  // TODO: revise when new error handling system is implemented
-  return ferror(((Common::FileStream*)in)->GetHandle());
+  return in->HasErrors() ? -1 : 0;
 }
 
 int cunpackbitl16(unsigned short *line, int size, Stream *in)
@@ -244,8 +242,7 @@ int cunpackbitl16(unsigned short *line, int size, Stream *in)
 
   while (n < size) {
     int ix = in->ReadByte();     // get index byte
-    // TODO: revise when new error handling system is implemented
-    if (ferror(((Common::FileStream*)in)->GetHandle()))
+    if (in->HasErrors())
       break;
 
     char cx = ix;
@@ -274,8 +271,7 @@ int cunpackbitl16(unsigned short *line, int size, Stream *in)
     }
   }
 
-  // TODO: revise when new error handling system is implemented
-  return ferror(((Common::FileStream*)in)->GetHandle());
+  return in->HasErrors() ? -1 : 0;
 }
 
 int cunpackbitl32(unsigned int *line, int size, Stream *in)
@@ -284,8 +280,7 @@ int cunpackbitl32(unsigned int *line, int size, Stream *in)
 
   while (n < size) {
     int ix = in->ReadByte();     // get index byte
-    // TODO: revise when new error handling system is implemented
-    if (ferror(((Common::FileStream*)in)->GetHandle()))
+    if (in->HasErrors())
       break;
 
     char cx = ix;
@@ -314,8 +309,7 @@ int cunpackbitl32(unsigned int *line, int size, Stream *in)
     }
   }
 
-  // TODO: revise when new error handling system is implemented
-  return ferror(((Common::FileStream*)in)->GetHandle());
+  return in->HasErrors() ? -1 : 0;
 }
 
 //=============================================================================

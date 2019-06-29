@@ -71,6 +71,7 @@ using namespace AGS::Engine;
 #include "../Plugins/agsblend/agsblend.h"
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
 #include "../Plugins/ags_parallax/ags_parallax.h"
+#include "../Plugins/agspalrender/agspalrender.h"
 #if defined(IOS_VERSION)
 #include "../Plugins/agstouch/agstouch.h"
 #endif // IOS_VERSION
@@ -296,13 +297,41 @@ void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, 
     if (coldepth != NULL)
         coldepth[0] = bitmap_color_depth(bmp);
 }
-// [IKM] Interesting, why does AGS need those two functions?
-// Can it be that it was planned to change implementation in the future?
-int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
-    return fread (buffer, 1, len, (FILE*)handle);
+
+// On save/restore, the Engine will provide the plugin with a handle. Because we only ever save to one file at a time,
+// we can reuse the same handle.
+
+static long pl_file_handle = -1;
+static Stream *pl_file_stream = NULL;
+
+void pl_set_file_handle(long data, Stream *stream) {
+    pl_file_handle = data;
+    pl_file_stream = stream;
 }
+
+void pl_clear_file_handle() {
+    pl_file_handle = -1;
+    pl_file_stream = NULL;
+}
+
+int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
+    if (handle != pl_file_handle) {
+        quitprintf("IAGSEngine::FRead: invalid file handle: %d", handle);
+    }
+    if (!pl_file_stream) {
+        quit("IAGSEngine::FRead: file stream not set");
+    }
+    return pl_file_stream->Read(buffer, len);
+}
+
 int IAGSEngine::FWrite (void *buffer, int32 len, int32 handle) {
-    return fwrite (buffer, 1, len, (FILE*)handle);
+    if (handle != pl_file_handle) {
+        quitprintf("IAGSEngine::FWrite: invalid file handle: %d", handle);
+    }
+    if (!pl_file_stream) {
+        quit("IAGSEngine::FWrite: file stream not set");
+    }
+    return pl_file_stream->Write(buffer, len);
 }
 void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int32 color, const char*text) {
     // TODO: use generic function from the engine instead of having copy&pasted code here
@@ -878,6 +907,17 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->onEvent = ags_parallax::AGS_EngineOnEvent;
         apl->debugHook = ags_parallax::AGS_EngineDebugHook;
         apl->initGfxHook = ags_parallax::AGS_EngineInitGfx;
+        apl->available = true;
+        apl->builtin = true;
+        return true;
+    }
+    else if (stricmp(apl->filename, "agspalrender") == 0)
+    {
+        apl->engineStartup = agspalrender::AGS_EngineStartup;
+        apl->engineShutdown = agspalrender::AGS_EngineShutdown;
+        apl->onEvent = agspalrender::AGS_EngineOnEvent;
+        apl->debugHook = agspalrender::AGS_EngineDebugHook;
+        apl->initGfxHook = agspalrender::AGS_EngineInitGfx;
         apl->available = true;
         apl->builtin = true;
         return true;

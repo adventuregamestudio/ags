@@ -22,6 +22,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
+#include "core/types.h"
 
 extern GameState play;
 extern AGSPlatformDriver *platform;
@@ -34,6 +35,7 @@ const char *get_translation (const char *text) {
 
     source_text_length = GetTextDisplayLength(text);
 
+#ifndef AGS_64BIT
     // check if a plugin wants to translate it - if so, return that
     char *plResult = (char*)pl_run_plugin_hooks(AGSE_TRANSLATETEXT, (long)text);
     if (plResult) {
@@ -44,6 +46,7 @@ const char *get_translation (const char *text) {
 
         return plResult;
     }
+#endif
 
     if (transtree != NULL) {
         // translate the text using the translation file

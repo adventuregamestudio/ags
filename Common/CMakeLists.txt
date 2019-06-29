@@ -164,7 +164,7 @@ target_sources(common
 target_link_libraries(common PUBLIC Allegro::Allegro AlFont::AlFont AAStr::AAStr)
 
 if (WIN32) 
-    target_compile_definitions(common PUBLIC WINDOWS_VERSION)
+    target_compile_definitions(common PUBLIC WINDOWS_VERSION VS2005) # VS2005 required for skipping VC6 workaround
 elseif (LINUX)
     target_compile_definitions(common PUBLIC LINUX_VERSION)
 elseif (MACOS)

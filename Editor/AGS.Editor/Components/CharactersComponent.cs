@@ -16,6 +16,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_IMPORT = "ImportCharacter";
         private const string COMMAND_DELETE_ITEM = "DeleteCharacter";
         private const string COMMAND_EXPORT = "ExportCharacter";
+        private const string COMMAND_CHANGE_ID = "ChangeCharacterID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "CharactersIcon";
         
@@ -90,6 +91,23 @@ namespace AGS.Editor.Components
                     DeleteSingleItem(_itemRightClicked);
                 }
             }
+            else if (controlID == COMMAND_CHANGE_ID)
+            {
+                int oldNumber = _itemRightClicked.ID;
+                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("Character", oldNumber, 0, _items.Count - 1);
+                if (newNumber < 0)
+                    return;
+                foreach (var obj in _items)
+                {
+                    if (obj.Value.ID == newNumber)
+                    {
+                        obj.Value.ID = oldNumber;
+                        break;
+                    }
+                }
+                _itemRightClicked.ID = newNumber;
+                OnItemIDChanged(_itemRightClicked);
+            }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
                      (controlID != TOP_LEVEL_COMMAND_ID))
             {
@@ -134,6 +152,18 @@ namespace AGS.Editor.Components
 			_guiController.AddOrShowPane(document);
 		}
 
+        private void OnItemIDChanged(Character item)
+        {
+            // Refresh tree, property grid and open windows
+            RePopulateTreeView();
+            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
+
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                doc.Name = ((CharacterEditor)doc.Control).ItemToEdit.WindowTitle;
+            }
+        }
+
         public override void PropertyChanged(string propertyName, object oldValue)
         {
             Character itemBeingEdited = ((CharacterEditor)_guiController.ActivePane.Control).ItemToEdit;
@@ -152,14 +182,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    // Refresh tree, property grid and open windows
-                    RePopulateTreeView();
-                    _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(itemBeingEdited));
-
-                    foreach (ContentDocument doc in _documents.Values)
-                    {
-                        doc.Name = ((CharacterEditor)doc.Control).ItemToEdit.WindowTitle;
-                    }
+                    OnItemIDChanged(itemBeingEdited);
                 }
             }
             else if (propertyName == Character.PROPERTY_NAME_STARTINGROOM)
@@ -180,6 +203,7 @@ namespace AGS.Editor.Components
             {
                 int charID = Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.RootCharacterFolder.FindCharacterByID(charID, true);
+                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change character ID", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this character", null));
                 menu.Add(new MenuCommand(COMMAND_EXPORT, "Export character...", null));
                 menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.ScriptName, null));

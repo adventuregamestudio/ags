@@ -743,6 +743,14 @@ namespace AGS.Editor
 			}
         }
 
+        public int ShowChangeObjectIDDialog(string objectType, int oldValue, int minValue, int maxValue)
+        {
+            return NumberEntryWithInfoDialog.Show(string.Format("Change {0} ID", objectType),
+                string.Format("Enter the new ID in the box below ({0}-{1}):", minValue, maxValue),
+                "WARNING: Changing the game item's ID is a specialized operation, for advanced users only. It is meant for rearranging item order inside their list. Thus changing IDs works as swapping position of two item.\n\nPlease note that this will affect any script that refers to items by their number rather than script name.",
+                oldValue, minValue, maxValue);
+        }
+
         public void Initialize(AGSEditor agsEditor)
         {
             if (_mainForm == null)

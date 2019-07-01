@@ -14,6 +14,7 @@ namespace AGS.Editor.Components
         private const string DIALOGS_COMMAND_ID = "Dialogs";
         private const string COMMAND_NEW_ITEM = "NewDialog";
         private const string COMMAND_DELETE_ITEM = "DeleteDialog";
+        private const string COMMAND_CHANGE_ID = "ChangeDialogID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "DialogsIcon";
         
@@ -71,6 +72,23 @@ namespace AGS.Editor.Components
                     DeleteSingleItem(_itemRightClicked);
                 }
             }
+            else if (controlID == COMMAND_CHANGE_ID)
+            {
+                int oldNumber = _itemRightClicked.ID;
+                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("Dialog", oldNumber, 0, _items.Count - 1);
+                if (newNumber < 0)
+                    return;
+                foreach (var obj in _items)
+                {
+                    if (obj.Value.ID == newNumber)
+                    {
+                        obj.Value.ID = oldNumber;
+                        break;
+                    }
+                }
+                _itemRightClicked.ID = newNumber;
+                OnItemIDChanged(_itemRightClicked);
+            }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
                 FindAllUsages findAllUsages = new FindAllUsages(null, null, null, _agsEditor);
@@ -109,6 +127,24 @@ namespace AGS.Editor.Components
             DeleteDialog(item);
         }
 
+        private void OnItemIDChanged(Dialog item)
+        {
+            // Refresh tree, property grid and open windows
+            RePopulateTreeView();
+            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
+
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                doc.Name = ((DialogEditor)doc.Control).ItemToEdit.WindowTitle;
+            }
+
+            // Force re-build of dialog scripts since names/ids have changed
+            foreach (Dialog dlg in _agsEditor.CurrentGame.RootDialogFolder.AllItemsFlat)
+            {
+                dlg.CachedConvertedScript = null;
+            }
+        }
+
         public override void PropertyChanged(string propertyName, object oldValue)
         {
             Dialog itemBeingEdited = ((DialogEditor)_guiController.ActivePane.Control).ItemToEdit;
@@ -122,20 +158,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    // Refresh tree, property grid and open windows
-                    RePopulateTreeView();
-                    _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(itemBeingEdited));
-
-                    foreach (ContentDocument doc in _documents.Values)
-                    {
-                        doc.Name = ((DialogEditor)doc.Control).ItemToEdit.WindowTitle;
-                    }
-
-                    // Force re-build of dialog scripts since names have changed
-                    foreach (Dialog item in _agsEditor.CurrentGame.RootDialogFolder.AllItemsFlat)
-                    {
-                        item.CachedConvertedScript = null;
-                    }
+                    OnItemIDChanged(itemBeingEdited);
                 }
             }
             if (propertyName == "UniformMovementSpeed")
@@ -164,6 +187,7 @@ namespace AGS.Editor.Components
             {
                 int dialogID = Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogID, true);
+                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change dialog ID", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this dialog", null));
                 menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.Name, null));
             }

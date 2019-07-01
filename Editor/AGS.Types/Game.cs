@@ -453,6 +453,18 @@ namespace AGS.Types
             return FindHighestViewNumber(_views.RootFolder) + 1;
         }
 
+        /// <summary>
+		/// Returns specific View ID and allocates it as in use
+		/// </summary>
+        public int GetAndAllocateViewID(int id)
+        {
+            if (_deletedViewIDs.ContainsKey(id))
+            {
+                _deletedViewIDs.Remove(id);
+            }
+            return id;
+        }
+
         private int FindHighestViewNumber(ViewFolder folder)
         {
             int highest = 0;

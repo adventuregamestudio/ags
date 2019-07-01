@@ -32,10 +32,10 @@ namespace AGS.Types
             }
 
             _possibleValues.Clear();
-            _possibleValues.Add(0, "(None)");
+            _possibleValues.Add(-1, "(None)");
             foreach (AudioClip type in _AudioClips)
             {
-                _possibleValues.Add(type.Index, type.ScriptName);
+                _possibleValues.Add(type.ID, type.ScriptName);
             }
         }
     }

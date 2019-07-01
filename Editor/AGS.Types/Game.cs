@@ -60,8 +60,6 @@ namespace AGS.Types
         private LipSync _lipSync;
         private CustomPropertySchema _propertySchema;
         private GlobalVariables _globalVariables;
-        private IList<AudioClip> _cachedAudioClipListForCompile;
-        private Dictionary<int, int> _cachedAudioClipIndexMapping;
 		private string _directoryPath;
 		private bool _roomsAddedOrRemoved = false;
 		private Dictionary<int, object> _deletedViewIDs;
@@ -284,9 +282,9 @@ namespace AGS.Types
             set { _scriptsToCompile = value; }
         }
 
-        public IList<AudioClip> CachedAudioClipListForCompile
+        public IList<AudioClip> AudioClips
         {
-            get { return _cachedAudioClipListForCompile; }
+            get { return _audioClips; }
         }
 
         public GlobalVariables GlobalVariables
@@ -1024,28 +1022,6 @@ namespace AGS.Types
                 }
             }
             return scripts;
-        }
-
-        public void UpdateCachedAudioClipList()
-        {
-            _cachedAudioClipListForCompile = _audioClips.RootFolder.GetAllAudioClipsFromAllSubFolders();
-            _cachedAudioClipIndexMapping = new Dictionary<int, int>();
-            for (int i = 0; i < _cachedAudioClipListForCompile.Count; i++)
-            {
-                _cachedAudioClipIndexMapping.Add(_cachedAudioClipListForCompile[i].Index, i);
-            }
-        }
-
-        public int GetAudioArrayIndexFromAudioClipIndex(int audioClipIndex)
-        {
-            if (audioClipIndex > 0)
-            {
-                if (_cachedAudioClipIndexMapping.ContainsKey(audioClipIndex))
-                {
-                    return _cachedAudioClipIndexMapping[audioClipIndex];
-                }
-            }
-            return -1;
         }
 
         public byte[] GetPaletteAsRawPAL()

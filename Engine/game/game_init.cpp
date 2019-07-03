@@ -141,6 +141,9 @@ void InitAndRegisterAudioObjects()
 
     for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
+        // Note that as of 3.5.0 data format the clip IDs are still restricted
+        // to actual item index in array, so we don't make any difference
+        // between game versions, for now.
         game.audioClips[i].id = i;
         ccRegisterManagedObject(&game.audioClips[i], &ccDynamicAudioClip);
         ccAddExternalDynamicObject(game.audioClips[i].scriptName, &game.audioClips[i], &ccDynamicAudioClip);

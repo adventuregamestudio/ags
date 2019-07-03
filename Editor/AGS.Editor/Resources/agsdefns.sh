@@ -2048,6 +2048,10 @@ builtin managed struct AudioClip {
   readonly import attribute bool IsAvailable;
   /// Gets the type of audio that this clip contains.
   readonly import attribute AudioType Type;
+#ifdef SCRIPT_API_v350
+  /// Gets the clip's ID number.
+  readonly import attribute int ID;
+#endif
 };
 
 builtin struct System {
@@ -2180,8 +2184,10 @@ builtin managed struct Object {
   readonly import attribute int ID;
   /// Gets/sets whether the object ignores walkable area scaling.
   import attribute bool IgnoreScaling;
+#ifdef SCRIPT_COMPAT_v340
   /// Gets/sets whether the object ignores walk-behind areas.
   import attribute bool IgnoreWalkbehinds;
+#endif
   /// Gets the current loop number during an animation.
   readonly import attribute int  Loop;
   /// Gets whether the object is currently moving.
@@ -2385,8 +2391,10 @@ builtin managed struct Character {
   /// Gets/sets whether the character ignores region tints and lighting.
   import attribute bool IgnoreLighting;
   import attribute bool IgnoreScaling;       // obsolete. $AUTOCOMPLETEIGNORE$
+#ifdef SCRIPT_COMPAT_v340
   /// Gets/sets whether the character ignores walk-behind areas and is always placed on top.
   import attribute bool IgnoreWalkbehinds; 
+#endif
   /// Accesses the number of each inventory item that the character currently has.
   import attribute int  InventoryQuantity[];
   /// Gets/sets the character's current loop number within its current view.

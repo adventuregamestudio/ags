@@ -1346,7 +1346,8 @@ int Character_GetIgnoreWalkbehinds(CharacterInfo *chaa) {
 }
 
 void Character_SetIgnoreWalkbehinds(CharacterInfo *chaa, int yesorno) {
-
+    if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v350)
+        debug_script_warn("IgnoreWalkbehinds is not recommended for use, consider other solutions");
     chaa->flags &= ~CHF_NOWALKBEHINDS;
     if (yesorno)
         chaa->flags |= CHF_NOWALKBEHINDS;

@@ -304,6 +304,7 @@ namespace AGS.Editor.Components
             {
                 string newScriptName = EnsureScriptNameIsUnique(Path.GetFileNameWithoutExtension(sourceFileName));
                 AudioClip newClip = new AudioClip(newScriptName, _agsEditor.CurrentGame.GetNextAudioIndex());
+                newClip.ID = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount();
                 newClip.SourceFileName = Utilities.GetRelativeToProjectPath(sourceFileName);
                 newClip.FileType = _fileTypeMappings[fileExtension];
                 newClip.FileLastModifiedDate = File.GetLastWriteTimeUtc(sourceFileName);
@@ -366,11 +367,11 @@ namespace AGS.Editor.Components
                 AudioClip clip = _agsEditor.CurrentGame.FindAudioClipForOldSoundNumber(allAudio, _agsEditor.CurrentGame.Settings.PlaySoundOnScore);
                 if (clip != null)
                 {
-                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = clip.Index;
+                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = clip.ID;
                 }
                 else
                 {
-                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = 0;
+                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = -1;
                 }
             }
         }
@@ -388,11 +389,11 @@ namespace AGS.Editor.Components
                             AudioClip clip = _agsEditor.CurrentGame.FindAudioClipForOldSoundNumber(allAudio, frame.Sound);
                             if (clip != null)
                             {
-                                frame.Sound = clip.Index;
+                                frame.Sound = clip.ID;
                             }
                             else
                             {
-                                frame.Sound = 0;
+                                frame.Sound = -1;
                             }
                         }
                     }
@@ -552,8 +553,6 @@ namespace AGS.Editor.Components
                     Utilities.CopyFileAndSetDestinationWritable(filesToCopy[i].SourceFileName, fileNamesToUpdate[i]);
                 }
             }
-
-            _agsEditor.CurrentGame.UpdateCachedAudioClipList();
         }
 
         private void ProjectTree_OnAfterLabelEdit(string commandID, ProjectTreeItem treeItem)
@@ -651,7 +650,8 @@ namespace AGS.Editor.Components
         protected override ProjectTreeItem CreateTreeItemForItem(AudioClip item)
         {
             string nodeID = GetNodeIDForAudioClip(item);
-            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, nodeID, item.ScriptName, GetIconKeyForAudioClip(item));
+            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, nodeID,
+                item.ID.ToString() + ": " + item.ScriptName, GetIconKeyForAudioClip(item));
             treeItem.AllowLabelEdit = true;
             treeItem.LabelTextProperty = item.GetType().GetProperty("ScriptName");
             treeItem.LabelTextDescriptionProperty = item.GetType().GetProperty("ScriptName");
@@ -709,8 +709,22 @@ namespace AGS.Editor.Components
 
         protected override void DeleteResourcesUsedByItem(AudioClip item)
         {
-            DeleteResourcesForAudioClip(item);
-            AudioClipTypeConverter.SetAudioClipList(_agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders());                    
+            DeleteAudioClip(item);
+        }
+
+        private void DeleteAudioClip(AudioClip clip)
+        {
+            int removingID = clip.ID;
+            foreach (AudioClip item in _agsEditor.CurrentGame.RootAudioClipFolder.AllItemsFlat)
+            {
+                if (item.ID > removingID)
+                {
+                    item.ID--;
+                }
+            }
+
+            DeleteResourcesForAudioClip(clip);
+            AudioClipTypeConverter.SetAudioClipList(_agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders());
         }
 
         private void DeleteResourcesForAudioClip(AudioClip clipToDelete)

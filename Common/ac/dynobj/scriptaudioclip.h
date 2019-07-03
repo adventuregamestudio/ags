@@ -35,7 +35,7 @@ enum AudioFileType {
 #define SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH    30
 #define SCRIPTAUDIOCLIP_FILENAMELENGTH      15
 struct ScriptAudioClip {
-    int id;  // not used by editor, set in engine only
+    int id;
     Common::String scriptName;
     Common::String fileName;
     char bundlingType;

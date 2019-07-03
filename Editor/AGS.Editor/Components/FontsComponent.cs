@@ -136,7 +136,7 @@ namespace AGS.Editor.Components
             }
             else
             {
-                Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID);
+                Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID, false);
                 if (propertyName == "SizeMultiplier")
                     editor.OnFontUpdated();
             }

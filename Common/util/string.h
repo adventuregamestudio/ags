@@ -210,6 +210,9 @@ public:
     // Extract the range of Xth to Yth fields, separated by the given character
     String  Section(char separator, size_t first, size_t last,
                               bool exclude_first_sep = true, bool exclude_last_sep = true) const;
+    // Splits the string into segments divided by the instances of a given character,
+    // including empty segments e.g. if separators follow each other;
+    // returns at least one segment (equal to full string if no separator was found)
     std::vector<String> Split(char separator) const;
 
     //-------------------------------------------------------------------------

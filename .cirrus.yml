@@ -1,0 +1,33 @@
+build_linux_task:
+  container:
+    dockerfile: ci/linux/Dockerfile
+    docker_arguments:
+      matrix:
+        - FROM_DEBIAN: debian:jessie
+        - FROM_DEBIAN: i386/debian:jessie
+  env:
+    matrix:
+      - BUILD_SYSTEM: cmake
+        BUILD_TYPE: release
+      - BUILD_SYSTEM: cmake
+        BUILD_TYPE: debug
+      - BUILD_SYSTEM: debian
+      - BUILD_SYSTEM: make
+  build_script: |
+    case $BUILD_SYSTEM in
+      cmake)
+        filename=ags_$BUILD_TYPE_$(dpkg --print-architecture)
+        mkdir build_$filename && cd build_$filename
+        cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make
+        ;;
+      debian)
+        fakeroot debian/rules binary
+        ;;
+      make)
+        make --directory=Engine
+        ;;
+      *)
+        echo "Invalid build system"
+        exit 1
+        ;;
+    esac

@@ -31,3 +31,21 @@ build_linux_task:
         exit 1
         ;;
     esac
+
+build_macos_task:
+  osx_instance:
+    matrix:
+      - image: mojave-xcode-10.2
+      - image: high-sierra-xcode-9.4.1
+  env:
+    matrix:
+      - BUILD_TYPE: debug
+      - BUILD_TYPE: release
+  install_cmake_script: |
+    export HOMEBREW_NO_INSTALL_CLEANUP=1
+    brew update
+    brew ls --versions cmake && brew upgrade cmake || brew install cmake
+  build_script: |
+    filename=ags_$BUILD_TYPE
+    mkdir build_$filename && cd build_$filename
+    cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make

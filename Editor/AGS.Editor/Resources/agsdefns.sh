@@ -15,29 +15,6 @@
 // macro defined the deprecated API contents that were still active in
 // corresponding version are kept enabled; otherwise these are disabled.
 
-// Configure STRICT macros: if STRICT compilation mode is enabled
-// setup separate STRICT* modes for thos non-object-oriented API parts
-// that became obsoleted in corresponding version of API.
-// Take compatibility level into consideration here: if the compatibility
-// level is low enough then do NOT declare STRICT* macro.
-#ifdef STRICT
-  #ifdef SCRIPT_API_v330
-    #ifndef SCRIPT_COMPAT_v321
-      #define STRICT_IN_v330
-    #endif
-  #endif
-  #ifdef SCRIPT_API_v340
-    #ifndef SCRIPT_COMPAT_v335
-      #define STRICT_IN_v340
-    #endif
-  #endif
-  #ifdef SCRIPT_API_v3507
-    #ifndef SCRIPT_COMPAT_v350
-      #define STRICT_IN_v3507
-    #endif
-  #endif
-#endif
-
 #define function int  // $AUTOCOMPLETEIGNORE$
 // CursorMode isn't actually defined yet, but int will do
 #define CursorMode int
@@ -677,7 +654,7 @@ import void DisplayMessageBar(int y, int textColor, int backColor, const string 
 import void ResetRoom(int roomNumber);
 /// Checks whether the player has been in the specified room yet.
 import int  HasPlayerBeenInRoom(int roomNumber);
-#ifndef STRICT_IN_v340
+#ifdef SCRIPT_COMPAT_v335
 /// Performs default processing of a mouse click at the specified co-ordinates.
 import void ProcessClick(int x, int y, CursorMode);
 #endif
@@ -731,11 +708,11 @@ import int  GetWalkableAreaAtRoom(int roomX, int roomY);
 #endif
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
-#ifndef STRICT_IN_v340
+#ifdef SCRIPT_COMPAT_v335
 /// Gets the specified Custom Property for the current room.
 import int  GetRoomProperty(const string property);
 #endif
-#ifndef STRICT_IN_v3507
+#ifdef SCRIPT_COMPAT_v350
 /// Locks the viewport to stop the screen scrolling automatically.
 import void SetViewport(int x, int y);
 /// Allows AGS to scroll the screen automatically to follow the player character.
@@ -1114,7 +1091,7 @@ import void StopDialog();
 /// Determines whether two objects or characters are overlapping each other.
 import int  AreThingsOverlapping(int thing1, int thing2);
 
-#ifndef STRICT_IN_v330
+#ifdef SCRIPT_COMPAT_v321
 /// Sets whether voice and/or text are used in the game.
 import void SetVoiceMode(eVoiceMode);
 /// Sets how the player can skip speech lines.
@@ -2696,10 +2673,10 @@ builtin struct GameState {
   int  narrator_speech;
   int  ambient_sounds_persist;
   int  lipsync_speed;
-#ifdef STRICT_IN_v330
+#ifndef SCRIPT_COMPAT_v321
   int  reserved__4;   // $AUTOCOMPLETEIGNORE$
 #endif
-#ifndef STRICT_IN_v330
+#ifdef SCRIPT_COMPAT_v321
   int  close_mouth_end_speech_time;
 #endif
   int  disable_antialiasing;
@@ -2717,18 +2694,18 @@ builtin struct GameState {
   int  screenshot_width;
   int  screenshot_height;
   int  top_bar_font;
-#ifdef STRICT_IN_v330
+#ifndef SCRIPT_COMPAT_v321
   int  reserved__2;   // $AUTOCOMPLETEIGNORE$
 #endif
-#ifndef STRICT_IN_v330
+#ifdef SCRIPT_COMPAT_v321
   int  speech_text_align;
 #endif
   int  auto_use_walkto_points;
   int  inventory_greys_out;
-#ifdef STRICT_IN_v330
+#ifndef SCRIPT_COMPAT_v321
   int  reserved__3;   // $AUTOCOMPLETEIGNORE$
 #endif
-#ifndef STRICT_IN_v330
+#ifdef SCRIPT_COMPAT_v321
   int  skip_speech_specific_key;
 #endif
   int  abort_key;

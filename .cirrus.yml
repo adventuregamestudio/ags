@@ -1,3 +1,24 @@
+build_windows_task:
+  windows_container:
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+  env:
+    matrix:
+      - ALLEGRO_RELEASE: v4.4.2-ags-14
+        BUILD_CONFIG: Release
+      - ALLEGRO_RELEASE: v4.4.2-ags-14
+        BUILD_CONFIG: Debug
+    AGS_DIRECTX_LIB: C:\Lib\DirectX
+    AGS_LIBOGG_LIB: C:\Lib\Xiph
+    AGS_LIBTHEORA_LIB: C:\Lib\Xiph
+    AGS_LIBVORBIS_LIB: C:\Lib\Xiph
+  build_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    set "AGS_ALLEGRO_INCLUDE=C:\Source\Allegro\%ALLEGRO_RELEASE%\include;C:\Source\Allegro\%ALLEGRO_RELEASE%\build\VS2015\include" &&
+    set "AGS_ALLEGRO_LIB=C:\Lib\Allegro\%ALLEGRO_RELEASE%" &&
+    cd Solutions &&
+    msbuild Engine.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
+
 build_linux_task:
   container:
     dockerfile: ci/linux/Dockerfile
@@ -50,3 +71,26 @@ build_macos_task:
     filename=ags_$BUILD_TYPE
     mkdir build_$filename && cd build_$filename
     /Applications/CMake.app/Contents/bin/cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make
+
+build_editor_task:
+  windows_container:
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+  env:
+    matrix:
+      - BUILD_CONFIG: Release
+      - BUILD_CONFIG: Debug
+    ALLEGRO_RELEASE: v4.4.2-ags-14
+    AGS_DIRECTX_LIB: C:\Lib\DirectX
+  nuget_packages_cache:
+    folder: Solutions\packages
+    populate_script: nuget restore Solutions\AGS.Editor.Full.sln
+  build_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    set "AGS_ALLEGRO_INCLUDE=C:\Source\Allegro\%ALLEGRO_RELEASE%\include;C:\Source\Allegro\%ALLEGRO_RELEASE%\build\VS2015\include" &&
+    set "AGS_ALLEGRO_LIB=C:\Lib\Allegro\%ALLEGRO_RELEASE%" &&
+    set "LIB=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\LIB;C:\Program Files (x86)\Windows Kits\10\lib\10.0.10240.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\8.1\lib\winv6.3\um\x86;C:\Program Files (x86)\Windows Kits\8.0\Lib\Win8\um\x86;" &&
+    set "UseEnv=true" &&
+    copy C:\Lib\irrKlang\*.dll Editor\References\ &&
+    cd Solutions &&
+    msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform="Mixed Platforms" /maxcpucount /nologo

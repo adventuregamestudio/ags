@@ -520,7 +520,7 @@ static void check_keyboard_controls()
                 // not a text box, ignore it
                 if (gui.GetControlType(controlIndex) != kGUITextBox) { continue; }
 
-                auto guitex = dynamic_cast<GUITextBox*>(gui.GetControl(controlIndex));
+                auto *guitex = static_cast<GUITextBox*>(gui.GetControl(controlIndex));
                 if (guitex == nullptr) { continue; }
 
                 // if the text box is disabled, it cannot accept keypresses

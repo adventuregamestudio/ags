@@ -28,6 +28,7 @@
 //#include <pwd.h>
 //#include <sys/stat.h>
 #include "platform/base/agsplatformdriver.h"
+#include <unistd.h>
 #include "util/directory.h"
 #include "ac/common.h"
 
@@ -51,6 +52,12 @@ int psp_video_framedrop = 0;
 int psp_gfx_smooth_sprites = 0;
 
 char psp_game_file_name[256];
+
+int psp_gfx_renderer = 0;
+int psp_gfx_scaling = 1;
+int psp_gfx_smoothing = 0;
+int psp_gfx_super_sampling = 1;
+
 static char libraryApplicationSupport[PATH_MAX];
 static char commonDataPath[PATH_MAX];
 

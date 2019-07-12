@@ -14,6 +14,7 @@ namespace AGS.Editor.Components
         private const string INVENTORY_COMMAND_ID = "Inventory";
         private const string COMMAND_NEW_ITEM = "NewInventory";
         private const string COMMAND_DELETE_ITEM = "DeleteInventory";
+        private const string COMMAND_CHANGE_ID = "ChangeInventoryID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "InventorysIcon";
         
@@ -58,6 +59,23 @@ namespace AGS.Editor.Components
                 {
                     DeleteSingleItem(_itemRightClicked);                    
                 }
+            }
+            else if (controlID == COMMAND_CHANGE_ID)
+            {
+                int oldNumber = _itemRightClicked.ID;
+                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("Inventory", oldNumber, 1, _items.Count);
+                if (newNumber < 0)
+                    return;
+                foreach (var obj in _items)
+                {
+                    if (obj.Value.ID == newNumber)
+                    {
+                        obj.Value.ID = oldNumber;
+                        break;
+                    }
+                }
+                _itemRightClicked.ID = newNumber;
+                OnItemIDChanged(_itemRightClicked);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
@@ -111,6 +129,18 @@ namespace AGS.Editor.Components
             _guiController.AddOrShowPane(document);
 		}
 
+        private void OnItemIDChanged(InventoryItem item)
+        {
+            // Refresh tree, property grid and open windows
+            RePopulateTreeView();
+            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
+
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                doc.Name = ((InventoryEditor)doc.Control).ItemToEdit.WindowTitle;
+            }
+        }
+
         public override void PropertyChanged(string propertyName, object oldValue)
         {
             if (propertyName == "Name")
@@ -124,13 +154,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    RePopulateTreeView();
-                    _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(itemToChange));
-
-                    foreach (ContentDocument doc in _documents.Values)
-                    {
-                        doc.Name = ((InventoryEditor)doc.Control).ItemToEdit.WindowTitle;
-                    }
+                    OnItemIDChanged(itemToChange);
                 }
             }
         }
@@ -153,6 +177,7 @@ namespace AGS.Editor.Components
             {
                 int invID = Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.RootInventoryItemFolder.FindInventoryItemByID(invID, true);
+                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change inventory ID", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this item", null));
                 menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.Name, null));
             }

@@ -14,6 +14,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_NEW_VIEW = "NewView";
         private const string COMMAND_RENAME = "RenameView";
 		private const string COMMAND_DELETE = "DeleteView";
+        private const string COMMAND_CHANGE_ID = "ChangeViewID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "ViewsIcon";
         
@@ -56,6 +57,25 @@ namespace AGS.Editor.Components
                     }
 				}
 			}
+            else if (controlID == COMMAND_CHANGE_ID)
+            {
+                View viewClicked = _items[_rightClickedID];
+                int oldNumber = viewClicked.ID;
+                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("View", oldNumber, 1, _items.Count);
+                if (newNumber < 0)
+                    return;
+                foreach (var obj in _items)
+                {
+                    if (obj.Value.ID == newNumber)
+                    {
+                        obj.Value.ID = oldNumber;
+                        break;
+                    }
+                }
+                _agsEditor.CurrentGame.GetAndAllocateViewID(newNumber);
+                viewClicked.ID = newNumber;
+                OnItemIDChanged(viewClicked);
+            }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
                 FindAllUsages findAllUsages = new FindAllUsages(null, null, null, _agsEditor);
@@ -162,6 +182,12 @@ namespace AGS.Editor.Components
             }
         }
 
+        private void OnItemIDChanged(View item)
+        {
+            RePopulateTreeView(GetNodeIDForView(item));
+            UpdateOpenWindowTitles();
+        }
+
         public override void PropertyChanged(string propertyName, object oldValue)
         {
             if (propertyName == "Name")
@@ -174,8 +200,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    RePopulateTreeView(GetNodeIDForView(itemBeingEdited));
-                    UpdateOpenWindowTitles();
+                    OnItemIDChanged(itemBeingEdited);
                 }
             }
         }
@@ -187,6 +212,7 @@ namespace AGS.Editor.Components
             if ((controlID.StartsWith(ITEM_COMMAND_PREFIX)) &&
                 (!IsFolderNode(controlID)))
             {
+                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change View ID", null));
                 menu.Add(new MenuCommand(COMMAND_RENAME, "Rename", null));
 				menu.Add(new MenuCommand(COMMAND_DELETE, "Delete", null));
                 View view = _items[_rightClickedID];

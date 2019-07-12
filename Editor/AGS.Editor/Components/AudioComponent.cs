@@ -12,6 +12,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_PROPERTIES = "PropertiesAudioClip";
         private const string COMMAND_RENAME = "RenameAudioClip";
         private const string COMMAND_DELETE = "DeleteAudioClip";
+        private const string COMMAND_CHANGE_ID = "ChangeAudioID";
         private const string SPEECH_NODE_ID = "DummySpeechNode";
         private const string AUDIO_TYPES_FOLDER_NODE_ID = "AudioTypesFolderNode";
         private const string NODE_ID_PREFIX_CLIP_TYPE = "AudioClipType";
@@ -101,6 +102,24 @@ namespace AGS.Editor.Components
                 {
                     DeleteSingleItem(clipToDelete);                    
                 }
+            }
+            else if (controlID == COMMAND_CHANGE_ID)
+            {
+                AudioClip clipClicked = _items[_rightClickedID];
+                int oldNumber = clipClicked.ID;
+                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("AudioClip", oldNumber, 0, _items.Count - 1);
+                if (newNumber < 0)
+                    return;
+                foreach (var obj in _items)
+                {
+                    if (obj.Value.ID == newNumber)
+                    {
+                        obj.Value.ID = oldNumber;
+                        break;
+                    }
+                }
+                clipClicked.ID = newNumber;
+                OnItemIDChanged(clipClicked);
             }
             else if (controlID == SPEECH_NODE_ID)
             {
@@ -584,6 +603,11 @@ namespace AGS.Editor.Components
             return _iconMappings[clip.FileType];
         }
 
+        private void OnItemIDChanged(AudioClip item)
+        {
+            RePopulateTreeView();
+        }
+
         public override void PropertyChanged(string propertyName, object oldValue)
         {
             if (propertyName == "ScriptName")
@@ -634,6 +658,7 @@ namespace AGS.Editor.Components
             }
             else if (!IsFolderNode(controlID))
             {
+                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change Clip ID", null));
                 menu.Add(new MenuCommand(COMMAND_RENAME, "Rename", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE, "Delete", null));
                 menu.Add(MenuCommand.Separator);

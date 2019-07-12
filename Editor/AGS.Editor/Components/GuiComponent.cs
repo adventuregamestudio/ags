@@ -21,6 +21,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_IMPORT_GUI = "ImportGUI";
         private const string COMMAND_DELETE_GUI = "DeleteGUI";
         private const string COMMAND_EXPORT_GUI = "ExportGUI";
+        private const string COMMAND_CHANGE_ID = "ChangeGUIID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "GUIsIcon";
         
@@ -119,6 +120,23 @@ namespace AGS.Editor.Components
                     DeleteSingleItem(_guiRightClicked);
                 }
             }
+            else if (controlID == COMMAND_CHANGE_ID)
+            {
+                int oldNumber = _guiRightClicked.ID;
+                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("GUI", oldNumber, 0, _items.Count - 1);
+                if (newNumber < 0)
+                    return;
+                foreach (var obj in _items)
+                {
+                    if (obj.Value.ID == newNumber)
+                    {
+                        obj.Value.ID = oldNumber;
+                        break;
+                    }
+                }
+                _guiRightClicked.ID = newNumber;
+                OnItemIDChanged(_guiRightClicked);
+            }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
                      (controlID != TOP_LEVEL_COMMAND_ID))
             {
@@ -174,17 +192,27 @@ namespace AGS.Editor.Components
             _guiController.AddOrShowPane(document);
 		}
 
+        private void OnItemIDChanged(GUI item)
+        {
+            // Refresh tree, property grid and open windows
+            RePopulateTreeView();
+            _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(item));
+
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                doc.Name = ((GUIEditor)doc.Control).GuiToEdit.WindowTitle;
+            }
+        }
+
         public override void PropertyChanged(string propertyName, object oldValue)
         {
             GUIEditor editor = (GUIEditor)_guiController.ActivePane.Control;
+            GUI itemBeingEdited = editor.GuiToEdit;
             _guiEditor_OnControlsChanged(editor.GuiToEdit);
 
 			if (propertyName == "Name")
 			{
-				foreach (ContentDocument doc in _documents.Values)
-				{
-					doc.Name = ((GUIEditor)doc.Control).GuiToEdit.WindowTitle;
-				}
+                OnItemIDChanged(itemBeingEdited);
 			}
         }
 
@@ -209,6 +237,7 @@ namespace AGS.Editor.Components
                 int guiID = Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length));
                 GUI gui = _agsEditor.CurrentGame.RootGUIFolder.FindGUIByID(guiID, true);
                 _guiRightClicked = gui;
+                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change GUI ID", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE_GUI, "Delete " + gui.Name, null));
                 menu.Add(new MenuCommand(COMMAND_EXPORT_GUI, "Export GUI...", null));
                 menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + gui.Name, null));

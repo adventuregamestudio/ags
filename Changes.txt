@@ -16,6 +16,7 @@ Engine:
  - Fixed character's blinking frames drawn incorrectly when legacy sprite blending mode was on.
  - Restored legacy InventoryScreen() behavior which picked sprites 0, 1, 2 for inventory dialog
    buttons when predefined 2041, 2042 and 2043 were not available.
+ - Fixed negative "cachemax" value in config could lock the engine at startup.
  - Added Scavenger's palgorithms plugin to the list of builtins, for ports that use ones.
  - Added stubs for monkey0506's Steam and GoG plugins to let run games on systems that do not have
    Steam/GoG installed (all related functionality will be disabled though).

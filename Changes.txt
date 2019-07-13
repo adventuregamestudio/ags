@@ -1,5 +1,31 @@
 REVISION HISTORY
 ================
+VERSION 3.4.4, July 2019
+
+Editor:
+ - Disabled screenshot made when sending a crash report, for security reasons.
+ - Fixed Audio folders were displaying internal "AllItemsFlat" property on property grid.
+ - Fixed crash when editor was updating file version in compiled EXE but failed and tried to
+   report about that.
+
+Engine:
+ - Fixed Character.DestinationY telling incorrect values beyond Y = 255.
+ - Fixed DynamicSprite.SaveToFile() not appending ".bmp" if no extension was specified.
+ - Fixed IsMusicVoxAvailable() not working correctly in old games which use 'music.vox'.
+ - Restored support for running games made with experimental 3.3.0 CR version.
+ - Fixed character's blinking frames drawn incorrectly when legacy sprite blending mode was on.
+ - Restored legacy InventoryScreen() behavior which picked sprites 0, 1, 2 for inventory dialog
+   buttons when predefined 2041, 2042 and 2043 were not available.
+ - Added Scavenger's palgorithms plugin to the list of builtins, for ports that use ones.
+ - Added stubs for monkey0506's Steam and GoG plugins to let run games on systems that do not have
+   Steam/GoG installed (all related functionality will be disabled though).
+ - Added stubs for SpriteFont plugin.
+ - Added missing stubs for agswadjetutil plugin.
+
+Linux:
+ - Support for OpenGL renderer.
+
+
 VERSION 3.4.3 - Patch 1, February 2019
 
 Engine:

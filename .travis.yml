@@ -14,8 +14,8 @@ cache:
     - /var/cache/pbuilder
 
 before_script:
-  - pbuilder-dist jessie i386 --security-only create
-  - pbuilder-dist jessie amd64 --security-only create
+  - pbuilder-dist jessie i386 --security-only create --debootstrapopts --no-check-gpg
+  - pbuilder-dist jessie amd64 --security-only create --debootstrapopts --no-check-gpg
 
 script:
   - ./debian/make_ags+libraries.sh

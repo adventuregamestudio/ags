@@ -121,7 +121,7 @@ void SpriteCache::Init()
 {
     _cacheSize = 0;
     _lockedSize = 0;
-    _maxCacheSize = DEFAULTCACHESIZE;
+    _maxCacheSize = (size_t)DEFAULTCACHESIZE_KB * 1024;
     _liststart = -1;
     _listend = -1;
     _lastLoad = -2;

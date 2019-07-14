@@ -55,9 +55,9 @@ struct SpriteInfo;
 
 // Max size of the sprite cache, in bytes
 #if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
-#define DEFAULTCACHESIZE 32 * 1024 * 1024
+#define DEFAULTCACHESIZE_KB (32 * 1024)
 #else
-#define DEFAULTCACHESIZE 128 * 1024 * 1024
+#define DEFAULTCACHESIZE_KB (128 * 1024)
 #endif
 
 // TODO: research old version differences

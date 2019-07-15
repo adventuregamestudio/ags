@@ -131,6 +131,8 @@ struct ALSpriteBatch
     std::vector<ALDrawListEntry> List;
     // Intermediate surface which will be drawn upon and transformed if necessary
     std::shared_ptr<Bitmap>      Surface;
+    // Whether surface is a virtual screen's region
+    bool                         IsVirtualScreen;
     // Tells whether the surface is treated as opaque or transparent
     bool                         Opaque;
 };

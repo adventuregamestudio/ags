@@ -396,22 +396,26 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     {
         batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
         batch.Opaque = true;
+        batch.IsVirtualScreen = false;
     }
     else if (desc.Viewport.IsEmpty() || !virtualScreen)
     {
         batch.Surface.reset();
         batch.Opaque = false;
+        batch.IsVirtualScreen = false;
     }
     else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
     {
         Rect rc = RectWH(desc.Viewport.Left - _virtualScrOff.X, desc.Viewport.Top - _virtualScrOff.Y, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
         batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
         batch.Opaque = true;
+        batch.IsVirtualScreen = true;
     }
     else if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
     {
         batch.Surface.reset(new Bitmap(src_w, src_h));
         batch.Opaque = false;
+        batch.IsVirtualScreen = false;
     }
 }
 
@@ -455,9 +459,9 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
                 surface->ClearTransparent();
             _stageVirtualScreen = surface;
             RenderSpriteBatch(batch, surface, transform.X, transform.Y);
-            // TODO: extract this to the generic software blit-with-transform function
-            virtualScreen->StretchBlt(surface, RectWH(view_offx, view_offy, viewport.GetWidth(), viewport.GetHeight()),
-                batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
+            if (!batch.IsVirtualScreen)
+                virtualScreen->StretchBlt(surface, RectWH(view_offx, view_offy, viewport.GetWidth(), viewport.GetHeight()),
+                    batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
         }
         else
         {

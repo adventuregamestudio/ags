@@ -585,7 +585,8 @@ void sync_roomview(PViewport view)
     // We use intermediate bitmap to render camera/viewport pair in software mode under two conditions:
     // * camera size and viewport size are different
     // * viewport is located outside of the virtual screen (even if partially)
-    if (cam_sz == view_sz && IsRectInsideRect(RectWH(gfxDriver->GetMemoryBackBuffer()->GetSize()), view->GetRect()))
+    Bitmap *vscreen = gfxDriver->GetMemoryBackBuffer();
+    if (cam_sz == view_sz && IsRectInsideRect(RectWH(vscreen->GetSize()), view->GetRect()))
     { // note we keep the buffer allocated in case it will become useful later
         RoomCameraFrame[view_index].reset();
     }
@@ -599,7 +600,7 @@ void sync_roomview(PViewport view)
             int room_width = data_to_game_coord(thisroom.Width);
             int room_height = data_to_game_coord(thisroom.Height);
             Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(room_width, room_height));
-            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height, thisroom.BackgroundBPP * 8));
+            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height, vscreen->GetColorDepth()));
         }
 
         if (!camera_frame || camera_frame->GetSize() != cam_sz)

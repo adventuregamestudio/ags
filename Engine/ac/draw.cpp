@@ -570,6 +570,7 @@ void init_invalid_room_regions(int view_index, const Size &surf_size, const Rect
 }
 
 // Syncs room viewport and camera in case anything has changed
+// TODO: for future optimization - separate between updating position and size
 void sync_roomview(PViewport view)
 {
     auto cam = view->GetCamera();
@@ -581,14 +582,17 @@ void sync_roomview(PViewport view)
     const Size &cam_sz = cam->GetRect().GetSize();
     init_invalid_room_regions(view_index, cam_sz, view->GetRect());
 
-    PBitmap &camera_frame = RoomCameraFrame[view_index];
-    PBitmap &camera_buffer = RoomCameraBuffer[view_index];
-    if (cam_sz == view_sz)
+    // We use intermediate bitmap to render camera/viewport pair in software mode under two conditions:
+    // * camera size and viewport size are different
+    // * viewport is located outside of the virtual screen (even if partially)
+    if (cam_sz == view_sz && IsRectInsideRect(RectWH(gfxDriver->GetMemoryBackBuffer()->GetSize()), view->GetRect()))
     { // note we keep the buffer allocated in case it will become useful later
-        camera_frame.reset();
+        RoomCameraFrame[view_index].reset();
     }
     else
     {
+        PBitmap &camera_frame = RoomCameraFrame[view_index];
+        PBitmap &camera_buffer = RoomCameraBuffer[view_index];
         if (!camera_buffer || camera_buffer->GetWidth() < cam_sz.Width || camera_buffer->GetHeight() < cam_sz.Height)
         {
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
@@ -2054,8 +2058,12 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
     const int view_index = view->GetID();
     Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
     const bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
-    Bitmap *roomcam_surface = translate_only ? ds : RoomCameraFrame[view_index].get();
-    const bool no_transform = !translate_only; // this is correct, we do non-transform paint, and only scale/rotate later
+    // If we must do other transform than simply scale, then we do NON-transform paint on separate bitmap,
+    // and only scale/rotate later;
+    // Also, we must not clamp surface size to virtual screen because plugins may want to also use viewport bitmap,
+    // therefore we only draw directly on virtual screen if viewport fully lies within.
+    const bool draw_to_camsurf = !translate_only || !IsRectInsideRect(RectWH(ds->GetSize()), view->GetRect());
+    Bitmap *roomcam_surface = draw_to_camsurf ? RoomCameraFrame[view_index].get() : ds;
     {
         // For software renderer: copy dirty rects onto the virtual screen.
         // TODO: that would be SUPER NICE to reorganize the code and move this operation into SoftwareGraphicDriver somehow.
@@ -2068,7 +2076,7 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), no_transform);
+        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), draw_to_camsurf);
     }
 
     return RoomCameraFrame[view_index];

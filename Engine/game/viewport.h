@@ -58,7 +58,7 @@ public:
     // Returns Room camera position and size inside the room (in room coordinates)
     const Rect &GetRect() const;
     // Sets explicit room camera's orthographic size
-    void SetSize(const Size &cam_size);
+    void SetSize(const Size sz);
     // Puts room camera to the new location in the room
     void SetAt(int x, int y);
     // Tells if camera is currently locked at custom position
@@ -109,8 +109,12 @@ public:
     inline const Rect &GetRect() const { return _position; }
     // Returns viewport's room-to-screen transformation
     inline const AGS::Engine::PlaneScaling &GetTransform() const { return _transform; }
-    // Set viewport's position on screen
+    // Set viewport's rectangle on screen
     void SetRect(const Rect &rc);
+    // Sets viewport size
+    void SetSize(const Size sz);
+    // Sets viewport's position on screen
+    void SetAt(int x, int y);
 
     // Tells whether viewport content is rendered on screen
     bool IsVisible() const { return _visible; }

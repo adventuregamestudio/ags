@@ -614,14 +614,14 @@ void init_room_drawdata()
 {
     // Make sure all frame buffers are created for software drawing
     for (int i = 0; i < play.GetRoomViewportCount(); ++i)
-        sync_roomview(play.GetRoomViewportObj(i));
+        sync_roomview(play.GetRoomViewport(i));
 }
 
 void on_roomviewport_changed(int index)
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
-        sync_roomview(play.GetRoomViewportObj(index));
+        sync_roomview(play.GetRoomViewport(index));
         invalidate_screen();
         // TODO: don't have to do this all the time, perhaps do "dirty rect" method
         // and only clear previous viewport location?

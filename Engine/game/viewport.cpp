@@ -33,7 +33,7 @@ const Rect &Camera::GetRect() const
 }
 
 // Sets explicit room camera's orthographic size
-void Camera::SetSize(const Size &cam_size)
+void Camera::SetSize(const Size cam_size)
 {
     // TODO: currently we don't support having camera larger than room background
     // (or rather - looking outside of the room background); look into this later
@@ -132,7 +132,25 @@ void Viewport::SetID(int id)
 
 void Viewport::SetRect(const Rect &rc)
 {
-    _position = rc;
+    // TODO: consider allowing size 0,0, in which case viewport is considered not visible
+    Size fix_size = rc.GetSize().IsNull() ? Size(1, 1) : rc.GetSize();
+    _position = RectWH(rc.Left, rc.Top, fix_size.Width, fix_size.Height);
+    AdjustTransformation();
+    _hasChanged = true;
+}
+
+void Viewport::SetSize(const Size sz)
+{
+    // TODO: consider allowing size 0,0, in which case viewport is considered not visible
+    Size fix_size = sz.IsNull() ? Size(1, 1) : sz;
+    _position = RectWH(_position.Left, _position.Top, fix_size.Width, fix_size.Height);
+    AdjustTransformation();
+    _hasChanged = true;
+}
+
+void Viewport::SetAt(int x, int y)
+{
+    _position.MoveTo(Point(x, y));
     AdjustTransformation();
     _hasChanged = true;
 }

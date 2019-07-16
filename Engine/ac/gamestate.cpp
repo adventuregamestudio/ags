@@ -60,23 +60,13 @@ void GameState::SetAutoRoomViewport(bool on)
     _isAutoRoomViewport = on;
 }
 
-Rect FixupViewport(const Rect &viewport, const Rect & /* parent */)
-{
-    Size real_size = viewport.GetSize().IsNull() ? Size(1, 1) : viewport.GetSize();
-    return RectWH(viewport.Left, viewport.Top, real_size.Width, real_size.Height);
-}
-
 void GameState::SetMainViewport(const Rect &viewport)
 {
-    _mainViewport.SetRect(FixupViewport(viewport, RectWH(game.GetGameRes())));
+    _mainViewport.SetSize(game.GetGameRes());
     Mouse::SetGraphicArea();
     scsystem.viewport_width = game_to_data_coord(_mainViewport.GetRect().GetWidth());
     scsystem.viewport_height = game_to_data_coord(_mainViewport.GetRect().GetHeight());
     _mainViewportHasChanged = true;
-    // Update sub-viewports in case main viewport became smaller
-    SetUIViewport(_uiViewport.GetRect());
-    for (size_t i = 0; i < _roomViewports.size(); ++i)
-        SetRoomViewport(i, _roomViewports[i]->GetRect());
 }
 
 const Rect &GameState::GetMainViewport() const
@@ -89,12 +79,7 @@ const Rect &GameState::GetUIViewport() const
     return _uiViewport.GetRect();
 }
 
-const Rect &GameState::GetRoomViewport(int index) const
-{
-    return _roomViewports[index]->GetRect();
-}
-
-PViewport GameState::GetRoomViewportObj(int index) const
+PViewport GameState::GetRoomViewport(int index) const
 {
     return _roomViewports[index];
 }
@@ -125,12 +110,7 @@ Rect GameState::GetRoomViewportAbs(int index) const
 
 void GameState::SetUIViewport(const Rect &viewport)
 {
-    _uiViewport.SetRect(FixupViewport(viewport, RectWH(_mainViewport.GetRect().GetSize())));
-}
-
-void GameState::SetRoomViewport(int index, const Rect &viewport)
-{
-    _roomViewports[index]->SetRect(FixupViewport(viewport, RectWH(_mainViewport.GetRect().GetSize())));
+    _uiViewport.SetRect(viewport);
 }
 
 static bool ViewportZOrder(const PViewport e1, const PViewport e2)

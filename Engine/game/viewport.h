@@ -77,10 +77,15 @@ public:
     // Get the array of linked viewport references
     const std::vector<ViewportRef> &GetLinkedViewports() const;
 
-    // Tells if this camera has changed recently
-    inline bool HasChanged() const { return _hasChanged; }
-    // Clears the changed flag
-    inline void ClearChangedFlag() { _hasChanged = false; }
+    // Tell if this camera has changed recently
+    inline bool HasChangedPosition() const { return _hasChangedPosition; }
+    inline bool HasChangedSize() const { return _hasChangedSize; }
+    // Clears the changed flags
+    void ClearChangedFlags()
+    {
+        _hasChangedPosition = false;
+        _hasChangedSize = false;
+    }
 
 private:
     int _id = -1;
@@ -90,8 +95,9 @@ private:
     bool _locked = false;
     // Linked viewport refs, used to notify viewports of camera changes
     std::vector<ViewportRef> _viewportRefs;
-    // Flag that tells whether this camera has changed recently
-    bool _hasChanged = false;;
+    // Flags that tell whether this camera's position on screen has changed recently
+    bool _hasChangedPosition = false;
+    bool _hasChangedSize = false;
 };
 
 
@@ -133,10 +139,18 @@ public:
     // pass nullptr to leave viewport without a camera link
     void LinkCamera(PCamera cam);
 
-    // Tells if this viewport has changed recently
-    inline bool HasChanged() const { return _hasChanged; }
-    // Clears the changed flag
-    inline void ClearChangedFlag() { _hasChanged = false; }
+    // Following functions tell if this viewport has changed recently
+    inline bool HasChangedPosition() const { return _hasChangedPosition; }
+    inline bool HasChangedSize() const { return _hasChangedSize; }
+    inline bool HasChangedVisible() const { return _hasChangedVisible; }
+    inline void SetChangedVisible() { _hasChangedVisible = true; }
+    // Clears the changed flags
+    inline void ClearChangedFlags()
+    {
+        _hasChangedPosition = false;
+        _hasChangedSize = false;
+        _hasChangedVisible = false;
+    }
 
 private:
     int _id = -1;
@@ -151,8 +165,11 @@ private:
     CameraRef _camera;
     bool _visible = true;
     int _zorder = 0;
-    // Flag that tells whether this viewport has changed recently
-    bool _hasChanged = false;;
+    // Flags that tell whether this viewport's position on screen has changed recently
+    bool _hasChangedPosition = false;
+    bool _hasChangedOffscreen = false;
+    bool _hasChangedSize = false;
+    bool _hasChangedVisible = false;
 };
 
 #endif // __AGS_EE_AC__VIEWPORT_H

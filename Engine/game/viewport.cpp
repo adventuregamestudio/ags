@@ -48,7 +48,7 @@ void Camera::SetSize(const Size cam_size)
         if (locked_vp)
             locked_vp->AdjustTransformation();
     }
-    _hasChanged = true;
+    _hasChangedSize = true;
 }
 
 // Puts room camera to the new location in the room
@@ -61,6 +61,7 @@ void Camera::SetAt(int x, int y)
     x = Math::Clamp(x, 0, room_width - cw);
     y = Math::Clamp(y, 0, room_height - ch);
     _position.MoveTo(Point(x, y));
+    _hasChangedPosition = true;
 }
 
 // Tells if camera is currently locked at custom position
@@ -136,7 +137,8 @@ void Viewport::SetRect(const Rect &rc)
     Size fix_size = rc.GetSize().IsNull() ? Size(1, 1) : rc.GetSize();
     _position = RectWH(rc.Left, rc.Top, fix_size.Width, fix_size.Height);
     AdjustTransformation();
-    _hasChanged = true;
+    _hasChangedPosition = true;
+    _hasChangedSize = true;
 }
 
 void Viewport::SetSize(const Size sz)
@@ -145,26 +147,26 @@ void Viewport::SetSize(const Size sz)
     Size fix_size = sz.IsNull() ? Size(1, 1) : sz;
     _position = RectWH(_position.Left, _position.Top, fix_size.Width, fix_size.Height);
     AdjustTransformation();
-    _hasChanged = true;
+    _hasChangedSize = true;
 }
 
 void Viewport::SetAt(int x, int y)
 {
     _position.MoveTo(Point(x, y));
     AdjustTransformation();
-    _hasChanged = true;
+    _hasChangedPosition = true;
 }
 
 void Viewport::SetVisible(bool on)
 {
     _visible = on;
-    _hasChanged = true;
+    _hasChangedVisible = true;
 }
 
 void Viewport::SetZOrder(int zorder)
 {
     _zorder = zorder;
-    _hasChanged = true;
+    _hasChangedVisible = true;
     play.InvalidateViewportZOrder();
 }
 

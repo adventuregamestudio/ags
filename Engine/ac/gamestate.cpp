@@ -133,24 +133,24 @@ void GameState::UpdateViewports()
         for (size_t i = 0; i < _roomViewportsSorted.size(); ++i)
         {
             if (i >= old_sort.size() || _roomViewportsSorted[i] != old_sort[i])
-                _roomViewportsSorted[i]->HasChanged();
+                _roomViewportsSorted[i]->SetChangedVisible();
         }
         _roomViewportZOrderChanged = false;
     }
     for (auto vp : _roomViewports)
     {
-        if (vp->HasChanged())
+        if (vp->HasChangedSize() || vp->HasChangedPosition() || vp->HasChangedVisible())
         {
-            on_roomviewport_changed(vp->GetID());
-            vp->ClearChangedFlag();
+            on_roomviewport_changed(vp.get());
+            vp->ClearChangedFlags();
         }
     }
     for (auto cam : _roomCameras)
     {
-        if (cam->HasChanged())
+        if (cam->HasChangedSize() || cam->HasChangedPosition())
         {
-            on_camera_size_changed(cam->GetID());
-            cam->ClearChangedFlag();
+            on_roomcamera_changed(cam.get());
+            cam->ClearChangedFlags();
         }
     }
 }
@@ -297,6 +297,7 @@ PViewport GameState::CreateRoomViewport()
     _scViewportRefs.push_back(std::make_pair(scv, 0));
     _roomViewportsSorted.push_back(viewport);
     _roomViewportZOrderChanged = true;
+    on_roomviewport_created(index);
     return viewport;
 }
 

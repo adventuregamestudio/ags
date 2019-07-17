@@ -149,6 +149,7 @@ IDriverDependantBitmap* roomBackgroundBmp = nullptr;
 // For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
 std::vector<PBitmap> RoomCameraBuffer;  // this is the actual bitmap
 std::vector<PBitmap> RoomCameraFrame;   // this is either same bitmap reference or sub-bitmap
+std::vector<bool> RoomViewportOffscreen; // whether room viewport was offscreen
 
 
 std::vector<SpriteListEntry> sprlist;
@@ -515,11 +516,8 @@ void init_draw_method()
     }
 
     on_mainviewport_changed();
-
-    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
-        on_roomviewport_changed(i);
-    for (int i = 0; i < play.GetRoomCameraCount(); ++i)
-        on_camera_size_changed(i);
+    init_room_drawdata();
+    gfxDriver->GetMemoryBackBuffer()->Clear();
 }
 
 void dispose_draw_method()
@@ -533,6 +531,7 @@ void dispose_room_drawdata()
 {
     RoomCameraBuffer.clear();
     RoomCameraFrame.clear();
+    RoomViewportOffscreen.clear();
     dispose_invalid_regions(true);
 }
 
@@ -558,35 +557,19 @@ void on_mainviewport_changed()
     }
 }
 
-// Initialize dirty rect and background buffers for software renderer
-void init_invalid_room_regions(int view_index, const Size &surf_size, const Rect &viewport)
+// Allocates a bitmap for rendering camera/viewport pair (software render mode)
+void prepare_roomview_frame(Viewport *view, Camera *cam)
 {
-    if (view_index >= 0 && RoomCameraBuffer.size() <= (size_t)view_index)
-    {
-        RoomCameraBuffer.resize(view_index + 1);
-        RoomCameraFrame.resize(view_index + 1);
-    }
-    init_invalid_regions(view_index, surf_size, viewport);
-}
-
-// Syncs room viewport and camera in case anything has changed
-// TODO: for future optimization - separate between updating position and size
-void sync_roomview(PViewport view)
-{
-    auto cam = view->GetCamera();
-    if (!cam)
-        return;
-
     const int view_index = view->GetID();
-    const Size &view_sz = view->GetRect().GetSize();
-    const Size &cam_sz = cam->GetRect().GetSize();
-    init_invalid_room_regions(view_index, cam_sz, view->GetRect());
-
+    const Size view_sz = view->GetRect().GetSize();
+    const Size cam_sz = cam->GetRect().GetSize();
     // We use intermediate bitmap to render camera/viewport pair in software mode under two conditions:
-    // * camera size and viewport size are different
-    // * viewport is located outside of the virtual screen (even if partially)
-    Bitmap *vscreen = gfxDriver->GetMemoryBackBuffer();
-    if (cam_sz == view_sz && IsRectInsideRect(RectWH(vscreen->GetSize()), view->GetRect()))
+    // * camera size and viewport size are different (this may be suboptimal to paint dirty rects stretched,
+    //   and also Allegro backend cannot stretch background of different colour depth).
+    // * viewport is located outside of the virtual screen (even if partially): subbitmaps cannot contain
+    //   regions outside of master bitmap, and we must not clamp surface size to virtual screen because
+    //   plugins may want to also use viewport bitmap, therefore it should retain full size.
+    if (cam_sz == view_sz && !RoomViewportOffscreen[view_index])
     { // note we keep the buffer allocated in case it will become useful later
         RoomCameraFrame[view_index].reset();
     }
@@ -600,7 +583,7 @@ void sync_roomview(PViewport view)
             int room_width = data_to_game_coord(thisroom.Width);
             int room_height = data_to_game_coord(thisroom.Height);
             Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(room_width, room_height));
-            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height, vscreen->GetColorDepth()));
+            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height, gfxDriver->GetMemoryBackBuffer()->GetColorDepth()));
         }
 
         if (!camera_frame || camera_frame->GetSize() != cam_sz)
@@ -610,39 +593,75 @@ void sync_roomview(PViewport view)
     }
 }
 
+// Syncs room viewport and camera in case either size has changed
+void sync_roomview(Viewport *view)
+{
+    auto cam = view->GetCamera();
+    if (!cam)
+        return;
+    init_invalid_regions(view->GetID(), cam->GetRect().GetSize(), view->GetRect());
+    prepare_roomview_frame(view, cam.get());
+}
+
 void init_room_drawdata()
 {
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return;
     // Make sure all frame buffers are created for software drawing
+    int view_count = play.GetRoomViewportCount();
+    RoomCameraBuffer.resize(view_count);
+    RoomCameraFrame.resize(view_count);
+    RoomViewportOffscreen.resize(view_count);
     for (int i = 0; i < play.GetRoomViewportCount(); ++i)
-        sync_roomview(play.GetRoomViewport(i));
+        sync_roomview(play.GetRoomViewport(i).get());
 }
 
-void on_roomviewport_changed(int index)
+void on_roomviewport_created(int index)
 {
-    if (!gfxDriver->RequiresFullRedrawEachFrame())
-    {
-        sync_roomview(play.GetRoomViewport(index));
-        invalidate_screen();
-        // TODO: don't have to do this all the time, perhaps do "dirty rect" method
-        // and only clear previous viewport location?
-        gfxDriver->GetMemoryBackBuffer()->Clear();
-    }
+    if (!gfxDriver || gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    if ((size_t)index < RoomCameraBuffer.size())
+        return;
+    RoomCameraBuffer.resize(index + 1);
+    RoomCameraFrame.resize(index + 1);
+    RoomViewportOffscreen.resize(index + 1);
 }
 
-void on_camera_size_changed(int index)
+void on_roomviewport_changed(Viewport *view)
 {
-    if (!gfxDriver->RequiresFullRedrawEachFrame())
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    if (!view->IsVisible() || view->GetCamera() == nullptr)
+        return;
+    const bool off = !IsRectInsideRect(RectWH(gfxDriver->GetMemoryBackBuffer()->GetSize()), view->GetRect());
+    const bool off_changed = off != RoomViewportOffscreen[view->GetID()];
+    RoomViewportOffscreen[view->GetID()] = off;
+    if (view->HasChangedSize())
+        sync_roomview(view);
+    else if (off_changed)
+        prepare_roomview_frame(view, view->GetCamera().get());
+    // TODO: don't have to do this all the time, perhaps do "dirty rect" method
+    // and only clear previous viewport location?
+    invalidate_screen();
+    gfxDriver->GetMemoryBackBuffer()->Clear();
+}
+
+void on_roomcamera_changed(Camera *cam)
+{
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    if (cam->HasChangedSize())
     {
-        auto cam = play.GetRoomCamera(index);
         auto viewrefs = cam->GetLinkedViewports();
         for (auto vr : viewrefs)
         {
             PViewport vp = vr.lock();
             if (vp)
-                sync_roomview(vp);
+                sync_roomview(vp.get());
         }
-        invalidate_screen();
     }
+    // TODO: only invalidate what this particular camera sees
+    invalidate_screen();
 }
 
 void mark_screen_dirty()
@@ -2058,12 +2077,9 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
     // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
     const int view_index = view->GetID();
     Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
-    const bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
-    // If we must do other transform than simply scale, then we do NON-transform paint on separate bitmap,
-    // and only scale/rotate later;
-    // Also, we must not clamp surface size to virtual screen because plugins may want to also use viewport bitmap,
-    // therefore we only draw directly on virtual screen if viewport fully lies within.
-    const bool draw_to_camsurf = !translate_only || !IsRectInsideRect(RectWH(ds->GetSize()), view->GetRect());
+    // If separate bitmap was prepared for this view/camera pair then use it, draw untransformed
+    // and blit transformed whole surface later.
+    const bool draw_to_camsurf = RoomCameraFrame[view_index] != nullptr;
     Bitmap *roomcam_surface = draw_to_camsurf ? RoomCameraFrame[view_index].get() : ds;
     {
         // For software renderer: copy dirty rects onto the virtual screen.

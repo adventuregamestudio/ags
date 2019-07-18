@@ -142,15 +142,19 @@ int wasShakingScreen = 0;
 
 // Room background sprite
 IDriverDependantBitmap* roomBackgroundBmp = nullptr;
-// Intermediate bitmap for the software drawing method.
-// We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
-// and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
-// to the virtual screen.
-// For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
-std::vector<PBitmap> RoomCameraBuffer;  // this is the actual bitmap
-std::vector<PBitmap> RoomCameraFrame;   // this is either same bitmap reference or sub-bitmap
-std::vector<bool> RoomViewportOffscreen; // whether room viewport was offscreen
-
+// Buffer and info flags for viewport/camera pairs rendering in software mode
+struct RoomCameraDrawData
+{
+    // Intermediate bitmap for the software drawing method.
+    // We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
+    // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
+    // to the virtual screen.
+    // For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
+    PBitmap Buffer;      // this is the actual bitmap
+    PBitmap Frame;    // this is either same bitmap reference or sub-bitmap of virtual screen
+    bool    IsOffscreen; // whether room viewport was offscreen (cannot use sub-bitmap)
+};
+std::vector<RoomCameraDrawData> CameraDrawData;
 
 std::vector<SpriteListEntry> sprlist;
 std::vector<SpriteListEntry> thingsToDrawList;
@@ -529,9 +533,7 @@ void dispose_draw_method()
 
 void dispose_room_drawdata()
 {
-    RoomCameraBuffer.clear();
-    RoomCameraFrame.clear();
-    RoomViewportOffscreen.clear();
+    CameraDrawData.clear();
     dispose_invalid_regions(true);
 }
 
@@ -569,14 +571,14 @@ void prepare_roomview_frame(Viewport *view, Camera *cam)
     // * viewport is located outside of the virtual screen (even if partially): subbitmaps cannot contain
     //   regions outside of master bitmap, and we must not clamp surface size to virtual screen because
     //   plugins may want to also use viewport bitmap, therefore it should retain full size.
-    if (cam_sz == view_sz && !RoomViewportOffscreen[view_index])
+    if (cam_sz == view_sz && !CameraDrawData[view_index].IsOffscreen)
     { // note we keep the buffer allocated in case it will become useful later
-        RoomCameraFrame[view_index].reset();
+        CameraDrawData[view_index].Frame.reset();
     }
     else
     {
-        PBitmap &camera_frame = RoomCameraFrame[view_index];
-        PBitmap &camera_buffer = RoomCameraBuffer[view_index];
+        PBitmap &camera_frame = CameraDrawData[view_index].Frame;
+        PBitmap &camera_buffer = CameraDrawData[view_index].Buffer;
         if (!camera_buffer || camera_buffer->GetWidth() < cam_sz.Width || camera_buffer->GetHeight() < cam_sz.Height)
         {
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
@@ -609,9 +611,7 @@ void init_room_drawdata()
         return;
     // Make sure all frame buffers are created for software drawing
     int view_count = play.GetRoomViewportCount();
-    RoomCameraBuffer.resize(view_count);
-    RoomCameraFrame.resize(view_count);
-    RoomViewportOffscreen.resize(view_count);
+    CameraDrawData.resize(view_count);
     for (int i = 0; i < play.GetRoomViewportCount(); ++i)
         sync_roomview(play.GetRoomViewport(i).get());
 }
@@ -620,11 +620,9 @@ void on_roomviewport_created(int index)
 {
     if (!gfxDriver || gfxDriver->RequiresFullRedrawEachFrame())
         return;
-    if ((size_t)index < RoomCameraBuffer.size())
+    if ((size_t)index < CameraDrawData.size())
         return;
-    RoomCameraBuffer.resize(index + 1);
-    RoomCameraFrame.resize(index + 1);
-    RoomViewportOffscreen.resize(index + 1);
+    CameraDrawData.resize(index + 1);
 }
 
 void on_roomviewport_changed(Viewport *view)
@@ -634,8 +632,8 @@ void on_roomviewport_changed(Viewport *view)
     if (!view->IsVisible() || view->GetCamera() == nullptr)
         return;
     const bool off = !IsRectInsideRect(RectWH(gfxDriver->GetMemoryBackBuffer()->GetSize()), view->GetRect());
-    const bool off_changed = off != RoomViewportOffscreen[view->GetID()];
-    RoomViewportOffscreen[view->GetID()] = off;
+    const bool off_changed = off != CameraDrawData[view->GetID()].IsOffscreen;
+    CameraDrawData[view->GetID()].IsOffscreen = off;
     if (view->HasChangedSize())
         sync_roomview(view);
     else if (off_changed)
@@ -2079,8 +2077,8 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
     Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
     // If separate bitmap was prepared for this view/camera pair then use it, draw untransformed
     // and blit transformed whole surface later.
-    const bool draw_to_camsurf = RoomCameraFrame[view_index] != nullptr;
-    Bitmap *roomcam_surface = draw_to_camsurf ? RoomCameraFrame[view_index].get() : ds;
+    const bool draw_to_camsurf = CameraDrawData[view_index].Frame != nullptr;
+    Bitmap *roomcam_surface = draw_to_camsurf ? CameraDrawData[view_index].Frame.get() : ds;
     {
         // For software renderer: copy dirty rects onto the virtual screen.
         // TODO: that would be SUPER NICE to reorganize the code and move this operation into SoftwareGraphicDriver somehow.
@@ -2096,7 +2094,7 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
         update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), draw_to_camsurf);
     }
 
-    return RoomCameraFrame[view_index];
+    return CameraDrawData[view_index].Frame;
 }
 
 

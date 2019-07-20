@@ -796,18 +796,6 @@ int ccInstance::Run(int32_t curpc)
               pc += arg1.IValue;
           break;
       case SCMD_PUSHREG:
-          // Script code analysis shows that statistically there's a moderate
-          // chance (10-30% depending on game) that a PUSHREG instruction will be
-          // immediately followed by POPREG.
-          // This runtime fixup serves the purpose of slightly increasing
-          // execution speed by skipping two stack operations.
-          // Practically, this is identical to REGTOREG instruction.
-          if (codeInst->code[pc + 2] == SCMD_POPREG)
-          {
-              registers[codeInst->code[pc + 3]] = reg1;
-              pc += 2;
-              break;
-          }
           // Push reg[arg1] value to the stack
           ASSERT_STACK_SPACE_AVAILABLE(1);
           PushValueToStack(reg1);

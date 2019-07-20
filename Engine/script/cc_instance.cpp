@@ -33,6 +33,7 @@
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
+#include "ac/dynobj/cc_dynamicobject_addr_and_manager.h"
 #include "util/memory.h"
 #include "util/string_utils.h" // linux strnicmp definition
 

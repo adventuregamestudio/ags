@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__VIEWFRAME_H
 #define __AGS_EE_AC__VIEWFRAME_H
 
+#include "ac/runtime_defines.h"
 #include "ac/view.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptviewframe.h"

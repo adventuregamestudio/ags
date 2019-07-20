@@ -20,6 +20,7 @@
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/characterinfo.h"
+#include "script/runtimescriptvalue.h"
 #include "game/roomstruct.h"
 
 ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber);

@@ -85,3 +85,8 @@ build*/**
 
 # VSCode project configuration
 **/.vscode
+
+
+# Windows installer
+Windows/Installer/Output/
+Windows/Installer/Source/

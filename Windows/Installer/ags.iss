@@ -172,7 +172,7 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   case PageID of
   // skip demo game's install path page, if the component was not selected
-  DemoGameDirPage.ID: Result := not IsComponentSelected('demogame');
+  DemoGameDirPage.ID: Result := not WizardIsComponentSelected('demogame');
   else Result := False;
   end;
 end;

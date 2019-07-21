@@ -1,6 +1,6 @@
 
 #define AgsName "Adventure Game Studio"
-#define AgsUrl "http://www.adventuregamestudio.co.uk/"
+#define AgsUrl "https://www.adventuregamestudio.co.uk/"
 #define VcRedistInstaller "vcredist_x86-9.0.30729.6161.exe"
 ; requires following macros to be passed by command line:
 ;   AgsVersion - 4 digit version number

@@ -67,7 +67,6 @@ Name: "linux"; Description: "{cm:ComponentLinuxBuild}"; Types: full custom
 [Tasks]
 Name: "vcredist"; Description: "{cm:InstallVCRedist}"; GroupDescription: "{cm:InstallOptions}"; Check: VCRedistNeedsInstall;
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:InstallOptions}"
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:InstallOptions}"; Flags: unchecked;
 Name: "associate"; Description: "{cm:AssociateFiles}"; GroupDescription: "{cm:InstallOptions}"
 
 
@@ -126,7 +125,6 @@ Name: "{group}\{cm:UninstallProgram,Adventure Game Studio}"; Filename: "{uninsta
 Name: "{group}\Visit the AGS Website"; Filename: "{app}\URLs\AGS Website.url"; Comment: "See the latest AGS-related news. Find games to play."
 Name: "{group}\Visit the AGS Forums"; Filename: "{app}\URLs\AGS Forums.url"; Comment: "Join the madness! Come on down and party on the forums."
 Name: "{commondesktop}\AGS {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\AGS {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: quicklaunchicon
 
 
 [Registry]

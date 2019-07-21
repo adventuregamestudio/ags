@@ -20,6 +20,11 @@ Function GetRootDir
     return GetParentDir $PSScriptRoot 2
 }
 
+Function GetChangesPath
+{
+    return Join-Path (GetRootDir) "changes.txt"
+}
+
 Function GetJsonPath
 {
     return Join-Path (GetRootDir) "version.json"
@@ -32,7 +37,7 @@ Function GetSourceDir
 
 Function GetEditorPath
 {
-    return Join-Path (GetSourceDir) "AGSEditor.exe"
+    return Join-Path (Join-Path (GetSourceDir) "Editor") "AGSEditor.exe"
 }
 
 Function GetEditorVersion
@@ -78,6 +83,9 @@ Function GetBuildArgs
 }
 
 $ErrorActionPreference = "Stop"
+
+New-Item -ItemType Directory -Path (Join-Path (GetSourceDir) "Docs") -Force |
+    % { Copy-Item (GetChangesPath) $_.FullName }
 
 Exit (Start-Process -FilePath $IsccPath `
     -ArgumentList (,"ags.iss" + (GetBuildArgs)) `

@@ -76,15 +76,45 @@ Name: "{app}\Templates";
 
 
 [Files]
-Source: "Source\engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
-Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\Linux\*"; DestDir: "{app}\Linux"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: linux
-Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion; Components: main
-Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+; Engine files
+Source: "Source\Engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
+; Editor files
+Source: "Source\Editor\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\acsprset.spr"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.Controls.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.CScript.Compiler.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.Types.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.Types.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGSEditor.exe.config"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\ikpMP3.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\irrKlang.NET4.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Magick.NET-Q8-x86.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Magick.NET-Q8-x86.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Magick.NET-Q8-x86.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Newtonsoft.Json.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\WeifenLuo.WinFormsUI.Docking.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+; Documentation
+Source: "Source\Docs\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Docs\changes.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+; Licenses
+Source: "Source\Licenses\*"; DestDir: "{app}\Licenses"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+; URLs
+Source: "Source\URLs\*"; DestDir: "{app}\URLs"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+; Templates
 Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+; Linux build components
+Source: "Source\Linux\ags32"; DestDir: "{app}\Linux"; Flags: ignoreversion; Components: linux
+Source: "Source\Linux\ags64"; DestDir: "{app}\Linux"; Flags: ignoreversion; Components: linux
+Source: "Source\Linux\lib32\*"; DestDir: "{app}\Linux\lib32"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: linux
+Source: "Source\Linux\lib64\*"; DestDir: "{app}\Linux\lib64"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: linux
+Source: "Source\Linux\licenses\*"; DestDir: "{app}\Linux\licenses"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: linux
+; Demo game
 ; Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: demogame
-Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Tasks: vcredist
+; Visual C++ runtime
+Source: "Source\Redist\{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Tasks: vcredist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 
@@ -93,8 +123,8 @@ Name: "{group}\AGS Editor"; Filename: "{app}\AGSEditor.exe"; Comment: "What are 
 ; Name: "{group}\Demo Game"; Filename: "{code:GetDemoGameDir}\game.agf"; Comment: "Here's one we made earlier! If you want a sneak peak at a working game, check it out."; Components: demogame
 Name: "{group}\AGS Manual"; Filename: "{app}\ags-help.chm"; Comment: "Online help, tutorials and reference. THIS IS YOUR BIBLE NOW!"
 Name: "{group}\{cm:UninstallProgram,Adventure Game Studio}"; Filename: "{uninstallexe}"; Comment: ":~(  Ah well, nothing lasts forever. Turn off the light on your way out."
-Name: "{group}\Visit the AGS Website"; Filename: "{app}\Docs\AGS Website.url"; Comment: "See the latest AGS-related news. Find games to play."
-Name: "{group}\Visit the AGS Forums"; Filename: "{app}\Docs\AGS Forums.url"; Comment: "Join the madness! Come on down and party on the forums."
+Name: "{group}\Visit the AGS Website"; Filename: "{app}\URLs\AGS Website.url"; Comment: "See the latest AGS-related news. Find games to play."
+Name: "{group}\Visit the AGS Forums"; Filename: "{app}\URLs\AGS Forums.url"; Comment: "Join the madness! Come on down and party on the forums."
 Name: "{commondesktop}\AGS {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\AGS {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: quicklaunchicon
 

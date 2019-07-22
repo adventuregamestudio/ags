@@ -2,6 +2,7 @@
 #define AgsName "Adventure Game Studio"
 #define AgsUrl "https://www.adventuregamestudio.co.uk/"
 #define VcRedistInstaller "vc_redist.x86.exe"
+#define VcRedistName "Microsoft Visual C++ 2015 Redistributable (x86)"
 
 ; requires following macros to be passed by command line:
 ;   AgsVersion - 4 digit version number
@@ -52,7 +53,7 @@ ComponentEngineDefault=Runtime engine for MS Windows
 ComponentLinuxBuild=Linux build component
 ; ComponentDemoGame=Demo Game
 InstallOptions=Install options
-InstallVCRedist=Install Microsoft Visual C++ 2015 Redistributable (x86)
+InstallVCRedist=Install {#VcRedistName}
 CreateDesktopIcon=Create a &desktop icon
 AssociateFiles=Associate AGF files with the editor
 
@@ -136,7 +137,7 @@ Root: HKCR; Subkey: "AGSGameSource\shell\open\command"; ValueType: string; Value
 
 
 [Run]
-Filename: "{tmp}\{#VcRedistInstaller}"; Parameters: "/quiet /norestart"; Flags: skipifdoesntexist; Tasks: vcredist
+Filename: "{tmp}\{#VcRedistInstaller}"; StatusMsg: "Installing {#VcRedistName}..."; Parameters: "/quiet /norestart"; Flags: skipifdoesntexist; Tasks: vcredist
 Filename: "{app}\AGSEditor.exe"; Description: "{cm:LaunchProgram,Adventure Game Studio}"; Flags: nowait postinstall skipifsilent;
 
 

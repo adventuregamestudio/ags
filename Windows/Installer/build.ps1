@@ -35,6 +35,11 @@ Function GetSourceDir
     return Join-Path -Path $PSScriptRoot -ChildPath "Source" 
 }
 
+Function GetChecksumsPath
+{
+    return Join-Path -Path $PSScriptRoot -ChildPath "checksums.sha256"
+}
+
 Function GetEditorPath
 {
     return Join-Path (Join-Path (GetSourceDir) "Editor") "AGSEditor.exe"
@@ -54,7 +59,7 @@ Filter CheckJson
 
     if ($_.version -ne (GetEditorVersion))
     {
-        Throw "Version mismatch: Editor build needs to be version {0}" -f $_.version
+        Write-Error ("Version mismatch: Editor build needs to be version {0}" -f $_.version)
     }
 
     $_
@@ -82,10 +87,21 @@ Function GetBuildArgs
         RenameProperties | PropertiesAsStrings
 }
 
+Function VerifyFile([string]$hash, [string]$path)
+{
+    Get-FileHash (Resolve-Path (Join-Path $PSScriptRoot $path)) -Algorithm SHA256 |
+        % { if ($_.Hash -ne $hash) { Write-Error ("{0}: FAILED" -f $path) }
+            else { Write-Host ("{0}: OK" -f $path) } }
+}
+
 $ErrorActionPreference = "Stop"
 
 New-Item -ItemType Directory -Path (Join-Path (GetSourceDir) "Docs") -Force |
     % { Copy-Item (GetChangesPath) $_.FullName }
+
+Get-Content (GetChecksumsPath) |
+    % { Select-Object -InputObject ($_ -Split "  ", 2, "SimpleMatch") |
+        % { VerifyFile $_[0] $_[1] } }
 
 Exit (Start-Process -FilePath $IsccPath `
     -ArgumentList (,"ags.iss" + (GetBuildArgs)) `

@@ -223,7 +223,7 @@ begin
   if NOT DotNet45Installed then
   begin
     MsgBox(NEED_DOT_NET_ERROR_MESSAGE, mbInformation, MB_OK);
-    ShellExec('', DOT_NET_INSTALL_URL, '', '', SW_SHOW, ewNoWait, ErrorCode);
+    ShellExecAsOriginalUser('', DOT_NET_INSTALL_URL, '', '', SW_SHOW, ewNoWait, ErrorCode);
     Result := False;
   end
   else begin

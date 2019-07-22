@@ -11,10 +11,10 @@
 
 #if "" == AgsSpVersion
 #define AgsVerNameStr AgsName + ' ' + AgsFriendlyVersion
-#define AgsOutputFile 'AGS-' + AgsFriendlyVersion
+#define AgsOutputFile 'AGS-' + AgsFullVersion
 #else
 #define AgsVerNameStr AgsName + ' ' + AgsFriendlyVersion + ' ' + AgsSpVersion
-#define AgsOutputFile 'AGS-' + AgsFriendlyVersion + '-' + AgsSpVersion
+#define AgsOutputFile 'AGS-' + AgsFullVersion + '-' + AgsSpVersion
 #endif 
 
 [Setup]

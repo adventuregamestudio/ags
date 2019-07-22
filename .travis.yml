@@ -10,10 +10,6 @@ addons:
       - pbuilder
       - ubuntu-dev-tools
 
-cache:
-  directories:
-    - /var/cache/pbuilder
-
 before_script:
   - pbuilder-dist jessie i386 --security-only create --debootstrapopts --no-check-gpg
   - pbuilder-dist jessie amd64 --security-only create --debootstrapopts --no-check-gpg

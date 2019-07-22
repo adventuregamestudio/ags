@@ -1,7 +1,8 @@
 
 #define AgsName "Adventure Game Studio"
 #define AgsUrl "https://www.adventuregamestudio.co.uk/"
-#define VcRedistInstaller "vcredist_x86-9.0.30729.6161.exe"
+#define VcRedistInstaller "vc_redist.x86.exe"
+
 ; requires following macros to be passed by command line:
 ;   AgsVersion - 4 digit version number
 ;   AgsFriendlyVersion - 3 digit 'user-friendly' version number
@@ -51,7 +52,7 @@ ComponentEngineDefault=Runtime engine for MS Windows
 ComponentLinuxBuild=Linux build component
 ; ComponentDemoGame=Demo Game
 InstallOptions=Install options
-InstallVCRedist=Install Visual C++ Redistributable 2008 SP1
+InstallVCRedist=Install Microsoft Visual C++ 2015 Redistributable (x86)
 CreateDesktopIcon=Create a &desktop icon
 AssociateFiles=Associate AGF files with the editor
 
@@ -65,7 +66,7 @@ Name: "linux"; Description: "{cm:ComponentLinuxBuild}"; Types: full custom
 
 
 [Tasks]
-Name: "vcredist"; Description: "{cm:InstallVCRedist}"; GroupDescription: "{cm:InstallOptions}"; Check: VCRedistNeedsInstall;
+Name: "vcredist"; Description: "{cm:InstallVCRedist}"; GroupDescription: "{cm:InstallOptions}"; Check: NOT VCRedistInstalled;
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:InstallOptions}"
 Name: "associate"; Description: "{cm:AssociateFiles}"; GroupDescription: "{cm:InstallOptions}"
 
@@ -135,9 +136,7 @@ Root: HKCR; Subkey: "AGSGameSource\shell\open\command"; ValueType: string; Value
 
 
 [Run]
-; "How to perform a silent install of the Visual C++ 2008 redistributable packages"
-;   http://blogs.msdn.com/b/astebner/archive/2010/10/18/9513328.aspx
-Filename: "{tmp}\{#VcRedistInstaller}"; Parameters: "/qb"; Flags: skipifdoesntexist; Tasks: vcredist
+Filename: "{tmp}\{#VcRedistInstaller}"; Parameters: "/quiet /norestart"; Flags: skipifdoesntexist; Tasks: vcredist
 Filename: "{app}\AGSEditor.exe"; Description: "{cm:LaunchProgram,Adventure Game Studio}"; Flags: nowait postinstall skipifsilent;
 
 
@@ -183,64 +182,45 @@ end;
 
 
 [Code]
-
-// Based on code from "How to make vcredist_x86 reinstall only if not yet installed?"
-//  http://stackoverflow.com/questions/11137424/how-to-make-vcredist-x86-reinstall-only-if-not-yet-installed
-// "How to detect the presence of the Visual C++ 9.0 runtime redistributable package"
-//  http://blogs.msdn.com/b/astebner/archive/2009/01/29/9384143.aspx
-
-#IFDEF UNICODE
-  #DEFINE AW "W"
-#ELSE
-  #DEFINE AW "A"
-#ENDIF
-
-type
-  INSTALLSTATE = Longint;
-
 const
-  INSTALLSTATE_INVALIDARG = -2;  // An invalid parameter was passed to the function.
-  INSTALLSTATE_UNKNOWN = -1;     // The product is neither advertised or installed.
-  INSTALLSTATE_ADVERTISED = 1;   // The product is advertised but not installed.
-  INSTALLSTATE_ABSENT = 2;       // The product is installed for a different user.
-  INSTALLSTATE_DEFAULT = 5;      // The product is installed for the current user.
+  // Visual C++ runtime
+  // https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
+  VCPP_REDIST_MAJOR_VERSION = 14.0;
+  VCPP_REDIST_BUILD_VERSION = 24215;
 
-  VC_2008_SP1_MFC_SEC_UPD_REDIST_X86 = '{9BE518E6-ECC6-35A9-88E4-87755C07200F}';
-  VC_2008_SP1_MFC_SEC_UPD_REDIST_X64 = '{5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4}';
-  VC_2008_SP1_MFC_SEC_UPD_REDIST_IA64 = '{515643D1-4E9E-342F-A75A-D1F16448DC04}';
+  // .NET Framework 4.5 or newer
+  // in theory this is only needed for OS versions older than Windows 8
+  DOT_NET_45_RELEASE_VERSION = 378389;
+  NEED_DOT_NET_ERROR_MESSAGE = 'AGS needs the Microsoft .NET Framework 4.5 or later to be installed on this computer. Press OK to visit the Microsoft website and download this, then run Setup again.';
+  DOT_NET_INSTALL_URL = 'https://dotnet.microsoft.com/download/dotnet-framework';
 
-  DOT_NET_REGISTRY_KEY = 'Software\Microsoft\.NETFramework\policy\v2.0';
-
-  // NEED_DOT_NET_ERROR_MESSAGE = 'AGS needs the Microsoft .NET Framework 2.0 or later to be installed on this computer. Press OK to visit the Microsoft website and download this, then run Setup again.';
-  NEED_DOT_NET_ERROR_MESSAGE = 'AGS needs the Microsoft .NET Framework 2.0 or later to be installed on this computer. Enable Microsoft .NET Framework in Windows Features then run Setup again. Press OK to visit the Microsoft website with instructions.';
-
-  // DOT_NET_INSTALL_URL = 'http://www.microsoft.com/downloads/details.aspx?FamilyID=0856EACB-4362-4B0D-8EDD-AAB15C5E04F5&displaylang=en';
-  DOT_NET_INSTALL_URL = 'http://windows.microsoft.com/en-us/windows/turn-windows-features-on-off';
-
+function VCRedistInstalled: Boolean;
 var
-  ErrorCode: Integer;
-
-function MsiQueryProductState(szProduct: string): INSTALLSTATE;
-  external 'MsiQueryProductState{#AW}@msi.dll stdcall';
-
-function VCVersionInstalled(const ProductID: string): Boolean;
+  bld: Cardinal;
 begin
-  Result := MsiQueryProductState(ProductID) = INSTALLSTATE_DEFAULT;
+  Result := (RegQueryDWordValue(
+    HKLM,
+    Format('SOFTWARE\Microsoft\VisualStudio\%.1f\VC\Runtimes\X86', [VCPP_REDIST_MAJOR_VERSION]),
+    'Bld',
+    bld)) AND (bld >= VCPP_REDIST_BUILD_VERSION);
 end;
 
-function VCRedistNeedsInstall: Boolean;
+function DotNet45Installed: Boolean;
+var
+  version: Cardinal;
 begin
-  // Here the Result must be True when you need to install your VCRedist
-  // or False when you don't need to.
-  // The following won't install your VC redist only when the Visual C++
-  // 2008 SP1 Redist (x86) is installed for the current user
-  Result := not VCVersionInstalled(VC_2008_SP1_MFC_SEC_UPD_REDIST_X86);
+  Result := (RegQueryDWordValue(
+    HKLM,
+    'Software\Microsoft\NET Framework Setup\NDP\v4\Full',
+    'Release',
+    version)) AND (version >= DOT_NET_45_RELEASE_VERSION);
 end;
-
 
 function InitializeSetup(): Boolean;
+var
+  ErrorCode: Integer;
 begin
-  if not RegKeyExists(HKLM, DOT_NET_REGISTRY_KEY) then
+  if NOT DotNet45Installed then
   begin
     MsgBox(NEED_DOT_NET_ERROR_MESSAGE, mbInformation, MB_OK);
     ShellExec('', DOT_NET_INSTALL_URL, '', '', SW_SHOW, ewNoWait, ErrorCode);

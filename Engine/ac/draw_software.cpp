@@ -20,6 +20,9 @@
 //
 // TODO: would that give any benefit to reorganize the code and move dirty
 // rectangles into SoftwareGraphicDriver?
+// Alternatively: we could pass dirty rects struct pointer and room background
+// DDB when calling BeginSpriteBatch(). Driver itself could be calling
+// update_invalid_region(). That will keep gfx driver's changes to minimum.
 //
 // NOTE: this code, including structs and functions, has underwent several
 // iterations of changes. Originally it was meant to perform full transform

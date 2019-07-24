@@ -137,14 +137,19 @@ void GameState::UpdateViewports()
         }
         _roomViewportZOrderChanged = false;
     }
-    for (auto vp : _roomViewports)
+    size_t vp_changed = -1;
+    for (size_t i = _roomViewportsSorted.size(); i-- > 0;)
     {
+        auto vp = _roomViewportsSorted[i];
         if (vp->HasChangedSize() || vp->HasChangedPosition() || vp->HasChangedVisible())
         {
+            vp_changed = i;
             on_roomviewport_changed(vp.get());
             vp->ClearChangedFlags();
         }
     }
+    if (vp_changed != -1)
+        detect_roomviewport_overlaps(vp_changed);
     for (auto cam : _roomCameras)
     {
         if (cam->HasChangedSize() || cam->HasChangedPosition())

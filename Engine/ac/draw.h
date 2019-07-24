@@ -75,6 +75,8 @@ void on_mainviewport_changed();
 void on_roomviewport_created(int index);
 // Updates drawing settings if room viewport's position or size has changed
 void on_roomviewport_changed(Viewport *view);
+// Detects overlapping viewports, starting from the given index in z-sorted array
+void detect_roomviewport_overlaps(size_t z_index);
 // Updates drawing settings if room camera's size has changed
 void on_roomcamera_changed(Camera *cam);
 

@@ -151,8 +151,9 @@ struct RoomCameraDrawData
     // to the virtual screen.
     // For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
     PBitmap Buffer;      // this is the actual bitmap
-    PBitmap Frame;    // this is either same bitmap reference or sub-bitmap of virtual screen
+    PBitmap Frame;       // this is either same bitmap reference or sub-bitmap of virtual screen
     bool    IsOffscreen; // whether room viewport was offscreen (cannot use sub-bitmap)
+    bool    IsOverlap;   // whether room viewport overlaps any others (marking dirty rects is complicated)
 };
 std::vector<RoomCameraDrawData> CameraDrawData;
 
@@ -642,6 +643,35 @@ void on_roomviewport_changed(Viewport *view)
     // and only clear previous viewport location?
     invalidate_screen();
     gfxDriver->GetMemoryBackBuffer()->Clear();
+}
+
+void detect_roomviewport_overlaps(size_t z_index)
+{
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    // Find out if we overlap or are overlapped by anything;
+    const auto &viewports = play.GetRoomViewportsZOrdered();
+    for (; z_index < viewports.size(); ++z_index)
+    {
+        auto this_view = viewports[z_index];
+        const int this_id = this_view->GetID();
+        bool is_overlap = false;
+        if (!this_view->IsVisible()) continue;
+        for (size_t z_index2 = 0; z_index2 < z_index; ++z_index)
+        {
+            if (!viewports[z_index2]->IsVisible()) continue;
+            if (AreRectsIntersecting(this_view->GetRect(), viewports[z_index2]->GetRect()))
+            {
+                is_overlap = true;
+                break;
+            }
+        }
+        if (CameraDrawData[this_id].IsOverlap != is_overlap)
+        {
+            CameraDrawData[this_id].IsOverlap = is_overlap;
+            prepare_roomview_frame(this_view.get());
+        }
+    }
 }
 
 void on_roomcamera_changed(Camera *cam)
@@ -2005,22 +2035,23 @@ void prepare_characters_for_drawing() {
 // Compiles a list of room sprites (characters, objects, background)
 void prepare_room_sprites()
 {
-    // Background sprite for the non-software renderer
+    // Background sprite is required for the non-software renderers always,
+    // and for software renderer in case there are overlapping viewports.
+    // Note that software DDB is just a tiny wrapper around bitmap, so overhead is negligible.
+    if (roomBackgroundBmp == nullptr)
+    {
+        update_polled_stuff_if_runtime();
+        roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
+    }
+    else if (current_background_is_dirty)
+    {
+        update_polled_stuff_if_runtime();
+        gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false);
+    }
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
-        if (roomBackgroundBmp == nullptr)
-        {
-            update_polled_stuff_if_runtime();
-            roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
-        }
-        else if (current_background_is_dirty)
-        {
-            update_polled_stuff_if_runtime();
-            gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false);
-        }
         if (current_background_is_dirty || walkBehindsCachedForBgNum != play.bg_frame)
         {
-            current_background_is_dirty = false; // Note this is only place where this flag is checked
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
                 update_walk_behind_images();
@@ -2028,6 +2059,7 @@ void prepare_room_sprites()
         }
         add_thing_to_draw(roomBackgroundBmp, 0, 0, 0, false);
     }
+    current_background_is_dirty = false; // Note this is only place where this flag is checked
 
     clear_sprite_list();
 
@@ -2062,9 +2094,6 @@ void draw_preroom_background()
 // whatsoever.
 PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
 {
-    if (gfxDriver->RequiresFullRedrawEachFrame())
-        return nullptr;
-
     our_eip = 31;
 
     // For the sake of software renderer, if there is any kind of camera transform required
@@ -2439,8 +2468,31 @@ static void construct_room_view()
             (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),
             (float)view_rc.GetHeight() / (float)cam_rc.GetHeight(),
             0.f);
-        PBitmap bg_surface = draw_room_background(viewport, room_trans);
-        gfxDriver->BeginSpriteBatch(view_rc, room_trans, bg_surface);
+        if (gfxDriver->RequiresFullRedrawEachFrame())
+        { // we draw everything as a sprite stack
+            gfxDriver->BeginSpriteBatch(view_rc, room_trans, nullptr);
+        }
+        else
+        {
+            if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
+            { // room background is prepended to the sprite stack
+              // TODO: here's why we have blit whole piece of background now:
+              // if we draw directly to the virtual screen overlapping another
+              // viewport, then we'd have to also mark and repaint every our
+              // region located directly over their dirty regions. That would
+              // require to update regions up the stack, converting their
+              // coordinates (cam1 -> screen -> cam2).
+              // It's not clear whether this is worth the effort, but if it is,
+              // then we'd need to optimise view/cam data first.
+                gfxDriver->BeginSpriteBatch(view_rc, room_trans, nullptr);
+                gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
+            }
+            else
+            { // room background is drawn by dirty rects system
+                PBitmap bg_surface = draw_room_background(viewport, room_trans);
+                gfxDriver->BeginSpriteBatch(view_rc, room_trans, bg_surface);
+            }
+        }
         put_sprite_list_on_screen(true);
     }
 

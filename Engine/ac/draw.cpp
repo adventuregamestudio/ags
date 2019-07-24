@@ -560,25 +560,26 @@ void on_mainviewport_changed()
 }
 
 // Allocates a bitmap for rendering camera/viewport pair (software render mode)
-void prepare_roomview_frame(Viewport *view, Camera *cam)
+void prepare_roomview_frame(Viewport *view)
 {
     const int view_index = view->GetID();
     const Size view_sz = view->GetRect().GetSize();
-    const Size cam_sz = cam->GetRect().GetSize();
-    // We use intermediate bitmap to render camera/viewport pair in software mode under two conditions:
+    const Size cam_sz = view->GetCamera()->GetRect().GetSize();
+    RoomCameraDrawData &draw_dat = CameraDrawData[view_index];
+    // We use intermediate bitmap to render camera/viewport pair in software mode under these conditions:
     // * camera size and viewport size are different (this may be suboptimal to paint dirty rects stretched,
     //   and also Allegro backend cannot stretch background of different colour depth).
     // * viewport is located outside of the virtual screen (even if partially): subbitmaps cannot contain
     //   regions outside of master bitmap, and we must not clamp surface size to virtual screen because
     //   plugins may want to also use viewport bitmap, therefore it should retain full size.
-    if (cam_sz == view_sz && !CameraDrawData[view_index].IsOffscreen)
+    if (cam_sz == view_sz && !draw_dat.IsOffscreen)
     { // note we keep the buffer allocated in case it will become useful later
-        CameraDrawData[view_index].Frame.reset();
+        draw_dat.Frame.reset();
     }
     else
     {
-        PBitmap &camera_frame = CameraDrawData[view_index].Frame;
-        PBitmap &camera_buffer = CameraDrawData[view_index].Buffer;
+        PBitmap &camera_frame = draw_dat.Frame;
+        PBitmap &camera_buffer = draw_dat.Buffer;
         if (!camera_buffer || camera_buffer->GetWidth() < cam_sz.Width || camera_buffer->GetHeight() < cam_sz.Height)
         {
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
@@ -598,11 +599,10 @@ void prepare_roomview_frame(Viewport *view, Camera *cam)
 // Syncs room viewport and camera in case either size has changed
 void sync_roomview(Viewport *view)
 {
-    auto cam = view->GetCamera();
-    if (!cam)
+    if (view->GetCamera() == nullptr)
         return;
-    init_invalid_regions(view->GetID(), cam->GetRect().GetSize(), view->GetRect());
-    prepare_roomview_frame(view, cam.get());
+    init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(), view->GetRect());
+    prepare_roomview_frame(view);
 }
 
 void init_room_drawdata()
@@ -637,7 +637,7 @@ void on_roomviewport_changed(Viewport *view)
     if (view->HasChangedSize())
         sync_roomview(view);
     else if (off_changed)
-        prepare_roomview_frame(view, view->GetCamera().get());
+        prepare_roomview_frame(view);
     // TODO: don't have to do this all the time, perhaps do "dirty rect" method
     // and only clear previous viewport location?
     invalidate_screen();
@@ -2426,9 +2426,8 @@ static void construct_room_view()
     // reset the Baselines Changed flag now that we've drawn stuff
     walk_behind_baselines_changed = 0;
 
-    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
+    for (const auto &viewport : play.GetRoomViewportsZOrdered())
     {
-        auto viewport = play.GetRoomViewportZOrdered(i);
         if (!viewport->IsVisible())
             continue;
         auto camera = viewport->GetCamera();

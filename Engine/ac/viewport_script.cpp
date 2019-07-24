@@ -303,6 +303,7 @@ int Viewport_GetZOrder(ScriptViewport *scv)
 void Viewport_SetZOrder(ScriptViewport *scv, int zorder)
 {
     play.GetRoomViewport(scv->GetID())->SetZOrder(zorder);
+    play.InvalidateViewportZOrder();
 }
 
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)

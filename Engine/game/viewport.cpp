@@ -167,7 +167,6 @@ void Viewport::SetZOrder(int zorder)
 {
     _zorder = zorder;
     _hasChangedVisible = true;
-    play.InvalidateViewportZOrder();
 }
 
 void Viewport::AdjustTransformation()

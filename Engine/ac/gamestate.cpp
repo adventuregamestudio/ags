@@ -84,9 +84,9 @@ PViewport GameState::GetRoomViewport(int index) const
     return _roomViewports[index];
 }
 
-PViewport GameState::GetRoomViewportZOrdered(int index) const
+const std::vector<PViewport> &GameState::GetRoomViewportsZOrdered() const
 {
-    return _roomViewportsSorted[index];
+    return _roomViewportsSorted;
 }
 
 PViewport GameState::GetRoomViewportAt(int x, int y) const

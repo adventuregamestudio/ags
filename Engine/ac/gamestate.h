@@ -255,7 +255,7 @@ struct GameState {
     // Returns Room viewport object by it's main index
     PViewport  GetRoomViewport(int index) const;
     // Returns Room viewport object by index in z-order
-    PViewport  GetRoomViewportZOrdered(int index) const;
+    const std::vector<PViewport> &GetRoomViewportsZOrdered() const;
     // Finds room viewport at the given screen coordinates; returns nullptr if non found
     PViewport  GetRoomViewportAt(int x, int y) const;
     // Returns UI viewport position in absolute coordinates (with main viewport offset)

@@ -4525,6 +4525,8 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Symbol varty
         return -1;
     }
 
+    AGS::Flags const vartype_flags = _sym.get_flags(vartype);
+
     return 0;
 }
 

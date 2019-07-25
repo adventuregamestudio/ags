@@ -202,6 +202,15 @@ void init_invalid_regions(int view_index, const Size &surf_size, const Rect &vie
     }
 }
 
+void delete_invalid_regions(int view_index)
+{
+    if (view_index >= 0)
+    {
+        RoomCamRects.erase(RoomCamRects.begin() + view_index);
+        RoomCamPositions.erase(RoomCamPositions.begin() + view_index);
+    }
+}
+
 void set_invalidrects_cameraoffs(int view_index, int x, int y)
 {
     if (view_index < 0)

@@ -347,6 +347,7 @@ void GameState::DeleteRoomViewport(int index)
             break;
         }
     }
+    on_roomviewport_deleted(index);
 }
 
 int GameState::GetRoomViewportCount() const

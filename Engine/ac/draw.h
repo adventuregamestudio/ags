@@ -73,6 +73,8 @@ void dispose_room_drawdata();
 void on_mainviewport_changed();
 // Notifies that a new room viewport was created
 void on_roomviewport_created(int index);
+// Notifies that a new room viewport was deleted
+void on_roomviewport_deleted(int index);
 // Updates drawing settings if room viewport's position or size has changed
 void on_roomviewport_changed(Viewport *view);
 // Detects overlapping viewports, starting from the given index in z-sorted array

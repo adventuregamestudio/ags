@@ -626,6 +626,12 @@ void on_roomviewport_created(int index)
     CameraDrawData.resize(index + 1);
 }
 
+void on_roomviewport_deleted(int index)
+{
+    CameraDrawData.erase(CameraDrawData.begin() + index);
+    delete_invalid_regions(index);
+}
+
 void on_roomviewport_changed(Viewport *view)
 {
     if (gfxDriver->RequiresFullRedrawEachFrame())

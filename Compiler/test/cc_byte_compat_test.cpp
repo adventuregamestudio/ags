@@ -6888,7 +6888,7 @@ TEST(Bytecode, AccessStructAsPointer)
     int compileResult = cc_compile(inpl, scrip);
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    // WriteOutput("AccessStructAsPointer", scrip);
+    WriteOutput("AccessStructAsPointer", scrip);
     // hand-checked Bytecode
     const size_t codesize = 34;
     EXPECT_EQ(codesize, scrip->codesize);
@@ -7338,4 +7338,32 @@ TEST(Bytecode, Struct09) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, Struct10) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // When accessing a component of an import variable,
+    // the import variable must be read first so that the fixup can be
+    // applied. Only then may the offset be added to it.
+
+    char *inpl = "\
+        import struct Struct                                 \n\
+        {                                                    \n\
+            int fluff;                                       \n\
+            int k;                                           \n\
+        } ss;                                                \n\
+                                                             \n\
+        int main()                                           \n\
+        {                                                    \n\
+            return ss.k;                                     \n\
+        }                                                    \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("Struct10", scrip);
+    // hand-checked Bytecode
 }

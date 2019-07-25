@@ -115,6 +115,36 @@ ccScript *ccCompileText(const char *texo, const char *scriptName)
 
     ccCompileText_KillUnusedImports(compiled_script);
 
+    // Sanity check for IMPORT fixups
+    for (int fixup_idx = 0; fixup_idx < compiled_script->numfixups; fixup_idx++)
+    {
+        if (FIXUP_IMPORT != compiled_script->fixuptypes[fixup_idx])
+            continue;
+        int const code_idx = compiled_script->fixups[fixup_idx];
+        if (code_idx < 0 || code_idx >= compiled_script->codesize)
+        {
+            cc_error(
+                "Internal error: Fixup #%d references non-existent code line #%d",
+                fixup_idx,
+                code_idx);
+            compiled_script->shutdown();
+            delete compiled_script;
+            return NULL;
+        }
+        int const cv = compiled_script->code[code_idx];
+        if (cv < 0 || cv >= compiled_script->numimports ||
+            '\0' == compiled_script->imports[cv][0])
+        {
+            cc_error(
+                "Internal error: Fixup #%d references non-existent import #%d",
+                fixup_idx,
+                cv);
+            compiled_script->shutdown();
+            delete compiled_script;
+            return NULL;
+        }
+    }
+       
     if (ccGetOption(SCOPT_EXPORTALL))
     {
         // export all functions

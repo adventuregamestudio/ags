@@ -510,17 +510,17 @@ void AGS::MemoryLocation::MakeMARCurrent(ccCompiledScript &scrip)
         break;
 
     case kSYM_GlobalVar:
-        scrip.write_cmd2(
-            SCMD_LITTOREG,
-            SREG_MAR, _StartOffs + _ComponentOffs);
+        scrip.write_cmd2(SCMD_LITTOREG, SREG_MAR, _StartOffs + _ComponentOffs);
         scrip.fixup_previous(Parser::kFx_GlobalData);
         break;
 
     case kSYM_Import:
-        scrip.write_cmd2(
-            SCMD_LITTOREG,
-            SREG_MAR, _StartOffs + _ComponentOffs);
+        // Have to convert the import number into a code offset first.
+        // Can only then add the offset to it.
+        scrip.write_cmd2(SCMD_LITTOREG, SREG_MAR, _StartOffs);
         scrip.fixup_previous(Parser::kFx_Import);
+        if (_ComponentOffs != 0)
+            scrip.write_cmd2(SCMD_ADD, SREG_MAR, _ComponentOffs);
         break;
 
     case kSYM_LocalVar:
@@ -2658,7 +2658,7 @@ int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolSc
         _scrip.pop_reg(SREG_OP);
 
     // Note that this function has been accessed at least once
-    SetFlag(_sym.entries.at(name_of_func).flags, kSFLG_Accessed, true);
+    MarkAcessed(name_of_func);
     return 0;
 }
 
@@ -2846,8 +2846,8 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
         (is_attribute_set_func) ? _sym.getVoidSym() : _sym.get_vartype(name_of_attribute);
 
     // Attribute has been accessed
-    SetFlag(_sym.entries.at(name_of_attribute).flags, kSFLG_Accessed, true);
-    SetFlag(_sym.entries.at(name_of_func).flags, kSFLG_Accessed, true);
+    MarkAcessed(name_of_attribute);
+    MarkAcessed(name_of_func);
     return 0;
 }
 
@@ -3186,6 +3186,7 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
         vloc = kVL_mar_pointsto_value;
         bool const is_global = true;
         need_to_negate = input_negate;
+        MarkAcessed(symlist[0]);
         return AccessData_GlobalOrLocalVar(is_global, writing, symlist, symlist_len, mloc, vartype);
     }
 
@@ -4252,7 +4253,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
         this_entry.vartype = struct_of_func;
         this_entry.sscope = nesting_stack->Depth() - 1;
         this_entry.flags = kSFLG_Readonly | kSFLG_Accessed;
-        // Allocate 4 unused empty bytes on stack for the "this" pointer
+        // Allocate unused space on stack for the "this" pointer
         this_entry.soffs = _scrip.cur_sp;
         _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
         _scrip.write_cmd2(SCMD_WRITELIT, SIZE_OF_DYNPOINTER, 0);

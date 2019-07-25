@@ -427,6 +427,9 @@ private:
     // Get the type of symb; this will work irrespective of the phase we are in
     inline SymbolType GetSymbolTypeAnyPhase(Symbol symb) { return (symb < 0) ? kSYM_NoType : GetSymbolTableEntryAnyPhase(symb & kVTY_FlagMask).stype; };
 
+    // Mark the symbol as "accessed" in the symbol table
+    inline void MarkAcessed(Symbol symb) { _sym.entries.at(symb).flags |= kSFLG_Accessed; };
+
     // Return number of bytes to remove from stack to unallocate local vars
     // of level from_level or higher
     int StacksizeOfLocals(size_t from_level);

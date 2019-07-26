@@ -522,7 +522,8 @@ void init_draw_method()
 
     on_mainviewport_changed();
     init_room_drawdata();
-    gfxDriver->GetMemoryBackBuffer()->Clear();
+    if (gfxDriver->UsesMemoryBackBuffer())
+        gfxDriver->GetMemoryBackBuffer()->Clear();
 }
 
 void dispose_draw_method()

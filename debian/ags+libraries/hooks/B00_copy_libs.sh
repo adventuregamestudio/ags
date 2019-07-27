@@ -20,7 +20,6 @@ BIT=32
     liballeg.so.4.4 \
     libaldmb.so.1 \
     libdumb.so.1 \
-    libfreetype.so.6 \
     libogg.so.0 \
     libtheora.so.0 \
     libvorbis.so.0 \
@@ -35,7 +34,6 @@ BIT=32
 for package in \
   liballegro4.4 \
   libdumb1 \
-  libfreetype6 \
   libogg0 \
   libtheora0 \
   libvorbis0a; do

@@ -66,8 +66,9 @@ void current_fade_out_effect () {
     // was a temporary transition selected? if so, use it
     if (play.next_screen_transition >= 0)
         theTransition = play.next_screen_transition;
+    const bool ignore_transition = play.screen_tint >= 0;
 
-    if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0)) {
+    if ((theTransition == FADE_INSTANT) || ignore_transition) {
         if (!play.keep_screen_during_instant_transition)
             set_palette_range(black_palette, 0, 255, 0);
     }

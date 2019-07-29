@@ -1786,7 +1786,6 @@ TEST(Bytecode, For3) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
-
 }
 
 TEST(Bytecode, For4) {
@@ -2725,7 +2724,7 @@ TEST(Bytecode, Struct01) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-        struct Struct               \n\
+    struct Struct                   \n\
     {                               \n\
         float Float;                \n\
         import int[] Func(int i);   \n\
@@ -2761,7 +2760,7 @@ TEST(Bytecode, Struct01) {
        1,    4,    6,    3,            0,    3,    6,    2,    // 15
       52,    8,    3,    6,            3,    5,   72,    3,    // 23
        4,    0,    6,    2,            0,   47,    3,    6,    // 31
-       2,    0,    7,    3,            2,    1,    4,   31,    // 39
+       2,    0,   48,    3,            2,    1,    4,   31,    // 39
        6,    2,    1,    4,            6,    3,    0,    5,    // 47
       38,   48,   51,    0,           63,    4,    1,    1,    // 55
        4,   51,    4,   29,            2,    6,    3,   -1,    // 63
@@ -2835,7 +2834,6 @@ TEST(Bytecode, Struct01) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
-
 }
 
 TEST(Bytecode, Struct02) {
@@ -3595,20 +3593,19 @@ TEST(Bytecode, Func01) {
 
     // WriteOutput("Func01", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 72;
+    const size_t codesize = 68;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   51,    0,           63,    4,    1,    1,    // 7
        4,   51,    0,   63,            4,    1,    1,    4,    // 15
-       1,    1,    4,   51,            8,   48,    3,   34,    // 23
-       3,   51,   12,   48,            3,   34,    3,   39,    // 31
-       2,    6,    3,    0,           33,    3,   35,    2,    // 39
-      51,    4,    8,    3,           51,    4,    7,    3,    // 47
-      51,   12,   49,   51,            8,   49,    2,    1,    // 55
-      12,   31,   12,   51,           12,   49,   51,    8,    // 63
-      49,    2,    1,   12,            6,    3,    0,    5,    // 71
-     -999
+       1,    1,    4,   51,            8,   34,    2,   51,    // 23
+      12,   34,    2,   39,            2,    6,    3,    0,    // 31
+      33,    3,   35,    2,           51,    4,    8,    3,    // 39
+      51,    4,    7,    3,           51,   12,   49,   51,    // 47
+       8,   49,    2,    1,           12,   31,   12,   51,    // 55
+      12,   49,   51,    8,           49,    2,    1,   12,    // 63
+       6,    3,    0,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -3625,7 +3622,7 @@ TEST(Bytecode, Func01) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      35,  -999
+      31,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -3676,7 +3673,6 @@ TEST(Bytecode, Func01) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
-
 }
 
 TEST(Bytecode, Func02) {
@@ -3710,20 +3706,19 @@ TEST(Bytecode, Func02) {
 
     // WriteOutput("Func02", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 72;
+    const size_t codesize = 68;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   51,    0,           63,    4,    1,    1,    // 7
        4,   51,    0,   63,            4,    1,    1,    4,    // 15
-       1,    1,    4,   51,            8,   48,    3,   34,    // 23
-       3,   51,   12,   48,            3,   34,    3,   39,    // 31
-       2,    6,    3,    0,           33,    3,   35,    2,    // 39
-      51,    4,    8,    3,           51,    4,    7,    3,    // 47
-      51,   12,   49,   51,            8,   49,    2,    1,    // 55
-      12,   31,   12,   51,           12,   49,   51,    8,    // 63
-      49,    2,    1,   12,            6,    3,    0,    5,    // 71
-     -999
+       1,    1,    4,   51,            8,   34,    2,   51,    // 23
+      12,   34,    2,   39,            2,    6,    3,    0,    // 31
+      33,    3,   35,    2,           51,    4,    8,    3,    // 39
+      51,    4,    7,    3,           51,   12,   49,   51,    // 47
+       8,   49,    2,    1,           12,   31,   12,   51,    // 55
+      12,   49,   51,    8,           49,    2,    1,   12,    // 63
+       6,    3,    0,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -3740,7 +3735,7 @@ TEST(Bytecode, Func02) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      35,  -999
+      31,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -3791,7 +3786,6 @@ TEST(Bytecode, Func02) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
-
 }
 
 TEST(Bytecode, Func03) {
@@ -3830,7 +3824,7 @@ TEST(Bytecode, Func03) {
 
     // WriteOutput("Func03", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 106;
+    const size_t codesize = 102;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -3841,13 +3835,12 @@ TEST(Bytecode, Func03) {
        3,    0,    5,   38,           35,   51,    0,   63,    // 39
        4,    1,    1,    4,           51,    0,   63,    4,    // 47
        1,    1,    4,    1,            1,    4,   51,    8,    // 55
-      48,    3,   29,    3,           51,   16,   48,    3,    // 63
-      29,    3,    6,    3,            0,   23,    3,    2,    // 71
-       1,    8,   51,    4,            8,    3,   51,    4,    // 79
-       7,    3,   51,   12,           49,   51,    8,   49,    // 87
-       2,    1,   12,   31,           12,   51,   12,   49,    // 95
-      51,    8,   49,    2,            1,   12,    6,    3,    // 103
-       0,    5,  -999
+      29,    2,   51,   16,           29,    2,    6,    3,    // 63
+       0,   23,    3,    2,            1,    8,   51,    4,    // 71
+       8,    3,   51,    4,            7,    3,   51,   12,    // 79
+      49,   51,    8,   49,            2,    1,   12,   31,    // 87
+      12,   51,   12,   49,           51,    8,   49,    2,    // 95
+       1,   12,    6,    3,            0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -3864,7 +3857,7 @@ TEST(Bytecode, Func03) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      68,  -999
+      64,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -3915,7 +3908,6 @@ TEST(Bytecode, Func03) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
-
 }
 
 TEST(Bytecode, Func04) {
@@ -4895,7 +4887,6 @@ TEST(Bytecode, ArrayOfPointers1) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
-
 }
 
 
@@ -6327,7 +6318,7 @@ TEST(Bytecode, StringStandard01) {
     'e',    0,  '\0'
     };
 
-    for (size_t idx = 0; idx < stringssize; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < stringssize; idx++)
     {
         if (static_cast<int>(idx) >= scrip->stringssize) break;
         std::string prefix = "strings[";
@@ -6703,7 +6694,7 @@ TEST(Bytecode, StringStandard02) {
     'e',  'l',  'l',  'o',          '!',    0,  '\0'
     };
 
-    for (size_t idx = 0; idx < stringssize; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < stringssize; idx++)
     {
         if (static_cast<int>(idx) >= scrip->stringssize) break;
         std::string prefix = "strings[";
@@ -6712,7 +6703,6 @@ TEST(Bytecode, StringStandard02) {
         std::string test_val = prefix + std::to_string(scrip->strings[idx]);
         ASSERT_EQ(is_val, test_val);
     }
-
 }
 
 TEST(Bytecode, StringStandardOldstyle) {
@@ -6751,25 +6741,25 @@ TEST(Bytecode, StringStandardOldstyle) {
 
     // WriteOutput("StringStandardOldstyle", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 117;
+    const size_t codesize = 119;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    2,            0,    7,    3,   64,    // 7
        3,   31,    3,    6,            3,    0,    5,   38,    // 15
       15,   51,    8,    7,            3,   50,    3,   51,    // 23
-       8,   48,    3,   29,            3,   51,    4,   50,    // 31
-       3,   51,   12,   49,           51,    4,   48,    3,    // 39
-      69,   30,    4,   31,            6,   51,    8,   49,    // 47
-       6,    3,    0,    5,           38,   52,    6,    3,    // 55
-       6,   64,    3,   29,            3,    6,    3,   15,    // 63
-      23,    3,    2,    1,            4,    6,    3,    0,    // 71
-       5,   38,   73,   51,            0,   63,    4,    1,    // 79
-       1,    4,    6,    3,            6,   51,    4,   64,    // 87
-       3,   47,    3,   51,            4,   48,    3,   67,    // 95
-       3,   29,    3,    6,            3,   52,   23,    3,    // 103
-       2,    1,    4,   51,            4,   49,    2,    1,    // 111
-       4,    6,    3,    0,            5,  -999
+       8,    3,    2,    3,           29,    3,   51,    4,    // 31
+      50,    3,   51,   12,           49,   51,    4,   48,    // 39
+       3,   69,   30,    4,           31,    6,   51,    8,    // 47
+      49,    6,    3,    0,            5,   38,   53,    6,    // 55
+       3,    6,   64,    3,           29,    3,    6,    3,    // 63
+      15,   23,    3,    2,            1,    4,    6,    3,    // 71
+       0,    5,   38,   74,           51,    0,   63,    4,    // 79
+       1,    1,    4,    6,            3,    6,   51,    4,    // 87
+      64,    3,   47,    3,           51,    4,    3,    2,    // 95
+       3,   67,    3,   29,            3,    6,    3,   53,    // 103
+      23,    3,    2,    1,            4,   51,    4,   49,    // 111
+       2,    1,    4,    6,            3,    0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6786,7 +6776,7 @@ TEST(Bytecode, StringStandardOldstyle) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       4,   56,   63,   84,        101,  -999
+       4,   57,   64,   85,        103,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -6849,7 +6839,7 @@ TEST(Bytecode, StringStandardOldstyle) {
     'l',  'l',  'o',    0,          '\0'
     };
 
-    for (size_t idx = 0; idx < stringssize; idx++)
+    for (size_t idx = 0; static_cast<int>(idx) < stringssize; idx++)
     {
         if (static_cast<int>(idx) >= scrip->stringssize) break;
         std::string prefix = "strings[";
@@ -6864,8 +6854,7 @@ TEST(Bytecode, AccessStructAsPointer)
 {
     ccCompiledScript *scrip = newScriptFixture();
 
-    // You may put a managed struct without using a * provided a struct * is expected
-    // The * will be implied
+    // You may put a managed struct without using a *. The * will be implied
 
     char *inpl = "\
         builtin managed struct Object {                 \n\
@@ -6890,15 +6879,15 @@ TEST(Bytecode, AccessStructAsPointer)
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("AccessStructAsPointer", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 34;
+    const size_t codesize = 32;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    2,            2,   52,   48,    2,    // 7
-      29,    2,    6,    2,            0,   48,    3,   34,    // 15
-       3,   30,    2,   45,            2,   39,    1,    6,    // 23
-       3,    1,   33,    3,           35,    1,    6,    3,    // 31
-       0,    5,  -999
+      29,    2,    6,    2,            0,   34,    2,   30,    // 15
+       2,   45,    2,   39,            1,    6,    3,    1,    // 23
+      33,    3,   35,    1,            6,    3,    0,    5,    // 31
+     -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6915,7 +6904,7 @@ TEST(Bytecode, AccessStructAsPointer)
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       4,   12,   25,  -999
+       4,   12,   23,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -6967,7 +6956,6 @@ TEST(Bytecode, AccessStructAsPointer)
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
-
 }
 
 TEST(Bytecode, Attributes04) {
@@ -7241,7 +7229,7 @@ TEST(Bytecode, Struct09) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Struct09", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 192;
+    const size_t codesize = 190;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -7265,11 +7253,10 @@ TEST(Bytecode, Struct09) {
        3,   30,    6,   29,            3,   51,   12,    7,    // 143
        3,   30,    4,   11,            4,    3,    3,    4,    // 151
        3,   46,    3,    7,            6,    2,    1,   32,    // 159
-       3,    4,   11,    2,            3,   48,    3,   34,    // 167
-       3,   30,    2,   45,            2,   39,    6,    6,    // 175
-       3,    3,   33,    3,           35,    6,   51,    8,    // 183
-      49,    2,    1,    8,            6,    3,    0,    5,    // 191
-     -999
+       3,    4,   11,    2,            3,   34,    2,   30,    // 167
+       2,   45,    2,   39,            6,    6,    3,    3,    // 175
+      33,    3,   35,    6,           51,    8,   49,    2,    // 183
+       1,    8,    6,    3,            0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -7286,7 +7273,7 @@ TEST(Bytecode, Struct09) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      39,  122,  134,  158,        177,  -999
+      39,  122,  134,  158,        175,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -7440,4 +7427,99 @@ TEST(Bytecode, Struct10) {
 
     const size_t stringssize = 0;
     EXPECT_EQ(stringssize, scrip->stringssize);
+}
+
+TEST(Bytecode, Pointers01) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Pointers in assignments and comparisons
+
+    char *inpl = "\
+        import void Display(const string message, ...); \n\
+        managed struct Struct                           \n\
+        {                                               \n\
+            float Float;                                \n\
+            protected int Int;                          \n\
+        };                                              \n\
+        Struct *arr[50];                                \n\
+        int room_AfterFadeIn()                          \n\
+        {                                               \n\
+            arr[10] = null;                             \n\
+            if (arr[10] == null)                        \n\
+                Display(\"All Done\");                  \n\
+            else                                        \n\
+                Display(\"ERROR\");                     \n\
+        }                                               \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("Pointers01", scrip);
+}
+
+TEST(Bytecode, DynArrayOfPrimitives) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Dynamic arrays of primitives are allowed.
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            short PrmArray[] = new short[10];   \n\
+            PrmArray[7] = 0;                    \n\
+            PrmArray[3] = PrmArray[7];          \n\
+        }                                       \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("DynArrayOfPrimitives", scrip);
+}
+
+TEST(Bytecode, _TEST_) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Pointers in assignments and comparisons
+
+    char *inpl = "\
+        builtin managed struct Object {     \n\
+        };                                  \n\
+        builtin managed struct Character    \n\
+        {                                   \n\
+            import int FaceObject(Object*, int BlockingStyle = 919);    \n\
+        };                                  \n\
+        import readonly Character *player;  \n\
+        import Object oTestObject;          \n\
+                                            \n\
+        int room_AfterFadeIn()              \n\
+        {                                   \n\
+            player.FaceObject(oTestObject); \n\
+        }                                   \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    WriteOutput("_TEST_", scrip);
+}
+
+TEST(_TestIt, _TestIt) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    std::string infilename = "_1564154997_16.asc";
+    std::string inpath = "C:/TEMP/" + infilename;
+    std::ifstream t(inpath);
+    std::string input((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+
+    clear_error();
+
+    int compileResult = cc_compile(input.c_str(), scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    std::string outfilename = infilename + "R";
+    WriteOutput((char *)outfilename.c_str(), scrip);
 }

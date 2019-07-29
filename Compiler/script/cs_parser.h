@@ -325,13 +325,6 @@ public:
         kGl_GlobalImport = 2,     // Global, imported
     };
 
-    enum Importness
-    {
-        kIm_NoImport = 0,
-        kIm_ImportType1 = 1,
-        kIm_ImportType2 = 2,
-    };
-
     enum TypeQualifier
     {
         kTQ_Attribute = 1 << 0,
@@ -547,22 +540,28 @@ private:
 
     int GetWriteCommandForSize(int the_size);
 
-    int ParseExpression_NewIsFirst(const SymbolScript &symlist, size_t symlist_len);
+    // Handle the cases where a value is a whole array or dynarray or struct
+    int HandleStructOrArrayResult(AGS::Vartype vartype);
+
+    // If the result isn't in AX, move it there. Dereferences a pointer
+    int ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
+
+    int ParseExpression_NewIsFirst(const SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // We're parsing an expression that starts with '-' (unary minus)
-    int ParseExpression_UnaryMinusIsFirst(const SymbolScript &symlist, size_t symlist_len);
+    int ParseExpression_UnaryMinusIsFirst(const SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // We're parsing an expression that starts with '!' (boolean NOT)
-    int ParseExpression_NotIsFirst(const SymbolScript & symlist, size_t symlist_len);
+    int ParseExpression_NotIsFirst(const SymbolScript & symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // The lowest-binding operator is the first thing in the expression
     // This means that the op must be an unary op.
-    int ParseExpression_OpIsFirst(const SymbolScript &symlist, size_t symlist_len);
+    int ParseExpression_OpIsFirst(const SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-    int ParseExpression_OpIsSecondOrLater(size_t op_idx, const SymbolScript &symlist, size_t symlist_len);
+    int ParseExpression_OpIsSecondOrLater(size_t op_idx, const SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
-    int ParseExpression_OpenParenthesis(SymbolScript & symlist, size_t symlist_len);
+    int ParseExpression_OpenParenthesis(SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
@@ -584,9 +583,10 @@ private:
 
     int AccessData_FunctionCall(Symbol name_of_func, SymbolScript &symlist, size_t &symlist_len, MemoryLocation &mloc, Vartype &rettype);
 
-    int ParseExpression_NoOps(SymbolScript symlist, size_t symlist_len);
+    int ParseExpression_NoOps(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
-    int ParseExpression_Subexpr(SymbolScript symlist, size_t symlist_len);
+    // Parse an expression; if RETURN_PTR, will return a pointer, else dereference it.
+    int ParseExpression_Subexpr(SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // symlist starts a bracketed expression; parse it
     int AccessData_ArrayIndexIntoAX(SymbolScript symlist, size_t symlist_len);
@@ -645,7 +645,7 @@ private:
     int AccessData_IsClauseLast(SymbolScript symlist, size_t symlist_len, bool &is_last);
 
     // Access a variable, constant, literal, func call, struct.component.component cascade, etc.
-    // Result is in AX or m[MAR], dependent on vloc. Type is in vartype.
+    // Result is in AX or m[MAR], dependent on vloc. Variable type is in vartype.
     // At end of function, symlist and symlist_len will point to the part of the symbol string
     // that has not been processed yet
     // NOTE: If this selects an attribute for writing, then the corresponding function will
@@ -665,8 +665,6 @@ private:
     // Store AX into the memory location that corresponds to LHS, or
     // call the attribute function corresponding to LHS.
     int AccessData_Assign(SymbolScript symlist, size_t symlist_len);
-
-    int ReadDataIntoAX(SymbolScript symlist, size_t symlist_len, bool negate = false);
 
     // Read the symbols of an expression and buffer them into expr_script
     // At end of routine, the cursor will be positioned in such a way

@@ -959,7 +959,7 @@ int AGS::Parser::DealWithEndOfDo(AGS::NestingStack *nesting_stack)
 
     int retval = ParseExpression();
     if (retval < 0) return retval;
-    if (_sym.get_type(_targ.getnext()) != kSYM_CloseParenthesis)
+   if (_sym.get_type(_targ.getnext()) != kSYM_CloseParenthesis)
     {
         cc_error("Expected ')'");
         return -1;
@@ -1070,7 +1070,8 @@ int AGS::Parser::ParseLiteralOrConstvalue(AGS::Symbol fromSym, int &theValue, bo
         }
     }
 
-    cc_error(errorMsg.c_str());
+    if (!errorMsg.empty())
+        cc_error(errorMsg.c_str());
     return -1;
 }
 
@@ -2067,7 +2068,59 @@ int AGS::Parser::GetWriteCommandForSize(int the_size)
     }
 }
 
-int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len)
+int AGS::Parser::HandleStructOrArrayResult(AGS::Vartype vartype)
+{
+    if (FlagIsSet(vartype, kVTY_Array))
+    {
+        cc_error("Cannot access array as a whole (did you forget to add \"[0]\"?)");
+        return -1;
+    }
+
+    if (FlagIsSet(_sym.get_flags(vartype), kSFLG_Managed) &&
+        !IsDynpointerVartype(vartype))
+    {
+        // Assume a pointer to the struct is being requested
+        SetFlag(vartype, kVTY_DynPointer, true);
+    }
+
+    if (FlagIsSet(_sym.get_flags(vartype & kVTY_FlagMask), kSFLG_StructType) &&
+        !IsDynpointerVartype(vartype))
+    {
+        cc_error("Cannot access non-managed struct as a whole");
+        return -1;
+    }
+}
+
+int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    if (kVL_mar_pointsto_value != vloc)
+        return 0; // So it's already in AX 
+
+    _scrip.ax_vartype = vartype;
+    _scrip.ax_val_scope = scope;
+
+    // Get the result into AX
+    if (_sym.getOldStringSym() == (vartype & kVTY_Const))
+    {
+        // AX must point to the first character
+        _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
+        return 0;
+    }
+
+    // Read the value from memory
+    // Note:  Moving from m[mar] to AX doesn't mean dereferencing: The type 
+    // remains the same. But whenever an address is marked as dynpointer 
+    // or dynarray, its values must be retrieved with SCMD_MEMREADPTR.
+    if (IsDynpointerVartype(vartype))
+        _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_AX);
+    else
+        _scrip.write_cmd1(
+            GetReadCommandForSize(_sym.entries.at(vartype & kVTY_FlagMask).ssize),
+            SREG_AX);
+    return 0;
+}
+
+int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (symlist_len < 2 || _sym.get_type(symlist[1]) != kSYM_Vartype)
     {
@@ -2085,7 +2138,9 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
         }
         const size_t size = _sym.entries.at(symlist[1]).ssize;
         _scrip.write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
-        _scrip.ax_vartype = symlist[1] | kVTY_DynPointer;
+        _scrip.ax_val_scope = scope = kSYM_GlobalVar;
+        _scrip.ax_vartype = vartype = symlist[1] | kVTY_DynPointer;
+        vloc = kVL_ax_is_value;
         return 0;
     }
 
@@ -2096,14 +2151,8 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
 
         // Expression for length of array begins after "[", ends before "]"
         // So expression_length = whole_length - 3 - 1
-        int retval = ParseExpression_Subexpr(&symlist[3], symlist_len - 4);
+        int retval = AccessData_ArrayIndexIntoAX(&symlist[3], symlist_len - 4);
         if (retval < 0) return retval;
-
-        if (_sym.getIntSym() != _scrip.ax_vartype)
-        {
-            cc_error("Array size must be an int");
-            return -1;
-        }
 
         bool isManagedType = false;
         int size = _sym.entries.at(arrayType).ssize;
@@ -2119,11 +2168,14 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
         }
 
         _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
-        _scrip.ax_vartype = arrayType | kVTY_DynArray;
+        vartype = arrayType | kVTY_DynArray;
 
         if (isManagedType)
-            _scrip.ax_vartype |= kVTY_DynPointer;
+            vartype |= kVTY_DynPointer;
 
+        _scrip.ax_vartype = vartype;
+        _scrip.ax_val_scope = scope = kSYM_GlobalVar;
+        vloc = kVL_ax_is_value;
         return 0;
     }
 
@@ -2132,7 +2184,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
 }
 
 // We're parsing an expression that starts with '-' (unary minus)
-int AGS::Parser::ParseExpression_UnaryMinusIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len)
+int AGS::Parser::ParseExpression_UnaryMinusIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (symlist_len < 2)
     {
@@ -2140,7 +2192,9 @@ int AGS::Parser::ParseExpression_UnaryMinusIsFirst(const AGS::SymbolScript &syml
         return -1;
     }
     // parse the rest of the expression into AX
-    int retval = ParseExpression_Subexpr(&symlist[1], symlist_len - 1);
+    int retval = ParseExpression_Subexpr(&symlist[1], symlist_len - 1, vloc, scope, vartype);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype);
     if (retval < 0) return retval;
 
     // now, subtract the result from 0 (which negates it)
@@ -2151,21 +2205,23 @@ int AGS::Parser::ParseExpression_UnaryMinusIsFirst(const AGS::SymbolScript &syml
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_BX, 0);
     _scrip.write_cmd2(cpuOp, SREG_BX, SREG_AX);
     _scrip.write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_AX);
+    vloc = kVL_ax_is_value;
     return 0;
 }
 
 // We're parsing an expression that starts with '!' (boolean NOT)
-int AGS::Parser::ParseExpression_NotIsFirst(const AGS::SymbolScript & symlist, size_t symlist_len)
+int AGS::Parser::ParseExpression_NotIsFirst(const AGS::SymbolScript & symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
-
     if (symlist_len < 2)
     {
         cc_error("Parse error at '!'");
         return -1;
     }
 
-    // parse the rest of the expression into AX
-    int retval = ParseExpression_Subexpr(&symlist[1], symlist_len - 1);
+    // parse the rest of the expression
+    int retval = ParseExpression_Subexpr(&symlist[1], symlist_len - 1, vloc, scope, vartype);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype);
     if (retval < 0) return retval;
 
     // negate the result
@@ -2175,30 +2231,32 @@ int AGS::Parser::ParseExpression_NotIsFirst(const AGS::SymbolScript & symlist, s
     if (retval < 0) return retval;
 
     // now, NOT the result
-    _scrip.write_cmd1(SCMD_NOTREG, SREG_AX);
+    _scrip.write_cmd1(cpuOp, SREG_AX);
+    vloc = kVL_ax_is_value;
     return 0;
 }
 
 // The lowest-binding operator is the first thing in the expression
 // This means that the op must be an unary op.
-int AGS::Parser::ParseExpression_OpIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len)
+int AGS::Parser::ParseExpression_OpIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (kSYM_New == _sym.get_type(symlist[0]))
     {
         // we're parsing something like "new foo"
-        return ParseExpression_NewIsFirst(symlist, symlist_len);
+        return ParseExpression_NewIsFirst(symlist, symlist_len, vloc, scope, vartype);
     }
 
-    if (_sym.entries.at(symlist[0]).operatorToVCPUCmd() == SCMD_SUBREG)
+    int const cmd = _sym.entries.at(symlist[0]).operatorToVCPUCmd();
+    if (cmd == SCMD_SUBREG)
     {
         // we're parsing something like "- foo"
-        return ParseExpression_UnaryMinusIsFirst(symlist, symlist_len);
+        return ParseExpression_UnaryMinusIsFirst(symlist, symlist_len, vloc, scope, vartype);
     }
 
-    if (_sym.entries.at(symlist[0]).operatorToVCPUCmd() == SCMD_NOTREG)
+    if (cmd == SCMD_NOTREG)
     {
         // we're parsing something like "! foo"
-        return ParseExpression_NotIsFirst(symlist, symlist_len);
+        return ParseExpression_NotIsFirst(symlist, symlist_len, vloc, scope, vartype);
     }
 
     // All the other operators need a non-empty left hand side
@@ -2207,9 +2265,8 @@ int AGS::Parser::ParseExpression_OpIsFirst(const AGS::SymbolScript &symlist, siz
 }
 
 // The lowest-binding operator has a left-hand and a right-hand side, e.g. "foo + bar"
-int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len)
+int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
-
     int vcpuOperator = _sym.entries.at(symlist[op_idx]).operatorToVCPUCmd();
 
     if (vcpuOperator == SCMD_NOTREG)
@@ -2229,10 +2286,13 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::Sym
         vcpuOperator = _sym.entries.at(symlist[op_idx]).operatorToVCPUCmd();
     }
 
-    // process the left hand side and save result onto stack
+    // process the left hand side
     // This will be in vain if we find out later on that there isn't any right hand side,
     // but doing the left hand side first means that any errors will be generated from left to right
-    int retval = ParseExpression_Subexpr(&symlist[0], op_idx);
+    AGS::Vartype vartype_lhs = 0;
+    int retval = ParseExpression_Subexpr(&symlist[0], op_idx, vloc, scope, vartype_lhs);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype_lhs);
     if (retval < 0) return retval;
 
     if (op_idx + 1 >= symlist_len)
@@ -2264,23 +2324,24 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::Sym
         jump_dest_loc_to_patch = _scrip.codesize - 1;
     }
 
-    int vartype_leftsize = _scrip.ax_vartype;
-
     _scrip.push_reg(SREG_AX);
-    retval = ParseExpression_Subexpr(&symlist[op_idx + 1], symlist_len - (op_idx + 1));
+    retval = ParseExpression_Subexpr(&symlist[op_idx + 1], symlist_len - (op_idx + 1), vloc, scope, vartype);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype);
     if (retval < 0) return retval;
     _scrip.pop_reg(SREG_BX); // <-- note, we pop to BX although we have pushed AX
     // now the result of the left side is in BX, of the right side is in AX
 
     // Check whether the left side type and right side type match either way
-    retval = IsVartypeMismatch(_scrip.ax_vartype, vartype_leftsize, false);
+    retval = IsVartypeMismatch(vartype_lhs, vartype, false);
     if (retval < 0) return retval;
 
-    retval = GetOperatorValidForVartype(_scrip.ax_vartype, vartype_leftsize, vcpuOperator);
+    retval = GetOperatorValidForVartype(vartype_lhs, vartype, vcpuOperator);
     if (retval < 0) return retval;
 
     _scrip.write_cmd2(vcpuOperator, SREG_BX, SREG_AX);
     _scrip.write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_AX);
+    vloc = kVL_ax_is_value;
 
     if (jump_dest_loc_to_patch >= 0)
     {
@@ -2291,12 +2352,11 @@ int AGS::Parser::ParseExpression_OpIsSecondOrLater(size_t op_idx, const AGS::Sym
     // Operators like == return a bool (in our case, that's an int);
     // other operators like + return the type that they're operating on
     if (IsBooleanVCPUOperator(vcpuOperator))
-        _scrip.ax_vartype = _sym.getIntSym();
-
+        _scrip.ax_vartype = vartype = _sym.getIntSym();
     return 0;
 }
 
-int AGS::Parser::ParseExpression_OpenParenthesis(AGS::SymbolScript & symlist, size_t symlist_len)
+int AGS::Parser::ParseExpression_OpenParenthesis(AGS::SymbolScript & symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     int matching_paren_idx = -1;
     size_t paren_nesting_depth = 1; // we've already read a '('
@@ -2336,7 +2396,7 @@ int AGS::Parser::ParseExpression_OpenParenthesis(AGS::SymbolScript & symlist, si
     }
 
     // Recursively compile the subexpression
-    int retval = ParseExpression_Subexpr(&symlist[1], matching_paren_idx - 1);
+    int retval = ParseExpression_Subexpr(&symlist[1], matching_paren_idx - 1, vloc, scope, vartype);
     if (retval < 0) return retval;
 
     symlist += matching_paren_idx + 1;
@@ -2351,7 +2411,6 @@ int AGS::Parser::ParseExpression_OpenParenthesis(AGS::SymbolScript & symlist, si
     }
     return 0;
 }
-
 
 // We're in the parameter list of a function call, and we have less parameters than declared.
 // Provide defaults for the missing values
@@ -2414,24 +2473,49 @@ int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &par
             if (paramListIdx == 0)
                 break; // Don't put this into the for header!
         }
-
-        // Compile the parameter
+        
         if (end_of_this_param < start_of_this_param)
         {
             cc_error("Internal error: parameter length is negative");
             return -99;
         }
 
-        int retval = ParseExpression_Subexpr(&paramList[start_of_this_param], end_of_this_param - start_of_this_param);
+        // Compile the parameter
+        ValueLocation vloc;
+        int scope;
+        AGS::Vartype vartype;
+
+        int retval = ParseExpression_Subexpr(&paramList[start_of_this_param], end_of_this_param - start_of_this_param, vloc, scope, vartype);
         if (retval < 0) return retval;
 
+        int register_to_push = SREG_AX;
+        if (IsDynpointerVartype(vartype))
+        {
+            // Special logic: Dynamic pointer parameters aren't pushed onto the stack.
+            // Instead, the memory address of a variable must be pushed that is equal to the pointer.
+            if (kVL_mar_pointsto_value != vloc)
+            {
+                // This means trouble. We _need_ that variable here.
+                // TODO But the old compiler didn't mind and pushed on anyway.
+            }
+            else
+            {
+                register_to_push = SREG_MAR;
+            }
+        }
+        else
+        {
+            retval = ResultToAX(vloc, scope, vartype);
+            if (retval < 0) return retval;
+        }
+            
         if (param_num <= num_func_args) // we know what type to expect
         {
             // If we need a string object ptr but AX contains a normal string, convert AX
             int parameterType = _sym.entries.at(funcSymbol).funcparamtypes[param_num];
             ConvertAXStringToStringObject(parameterType);
 
-            if (IsVartypeMismatch(_scrip.ax_vartype, parameterType, true))
+            if (IsVartypeMismatch(vartype, parameterType, true))
                 return -1;
 
             // If we need a normal string but AX contains a string object ptr, 
@@ -2440,12 +2524,11 @@ int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &par
         }
 
         if (func_is_import)
-            _scrip.write_cmd1(SCMD_PUSHREAL, SREG_AX);
+            _scrip.write_cmd1(SCMD_PUSHREAL, register_to_push);
         else
-            _scrip.push_reg(SREG_AX);
+            _scrip.push_reg(register_to_push);
 
         end_of_this_param = start_of_this_param - 1;
-
     }
     while (end_of_this_param > 0);
 
@@ -2662,23 +2745,26 @@ int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolSc
     return 0;
 }
 
-int AGS::Parser::ParseExpression_NoOps(AGS::SymbolScript symlist, size_t symlist_len)
+int AGS::Parser::ParseExpression_NoOps(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (kSYM_OpenParenthesis == _sym.get_type(symlist[0]))
-        return ParseExpression_OpenParenthesis(symlist, symlist_len);
+        return ParseExpression_OpenParenthesis(symlist, symlist_len, vloc, scope, vartype);
 
     if (kSYM_Operator != _sym.get_type(symlist[0]))
-        return ReadDataIntoAX(symlist, symlist_len);
+        return AccessData(false, false, symlist, symlist_len, vloc, scope, vartype);
 
     // The operator at the beginning must be a unary minus
     if (SCMD_SUBREG == _sym.entries.at(symlist[0]).operatorToVCPUCmd())
-        return ReadDataIntoAX(&symlist[1], symlist_len - 1, true);
-
+    {
+        size_t len_minus_1 = symlist_len - 1;
+        SymbolScript symlist1 = symlist + 1;
+        return AccessData(false, true, symlist1, len_minus_1, vloc, scope, vartype);
+    }
     cc_error("Parse error: Unexpected '%s'", _sym.get_name_string(symlist[0]).c_str());
     return -1;
 }
 
-int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symlist_len)
+int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
 {
     if (symlist_len == 0)
     {
@@ -2704,26 +2790,29 @@ int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symli
             lowest_op_idx++;
     }
 
+    int retval = 0;
     if (lowest_op_idx == 0)
-        return ParseExpression_OpIsFirst(symlist, symlist_len);
-
-    if (lowest_op_idx > 0)
-        return ParseExpression_OpIsSecondOrLater(static_cast<size_t>(lowest_op_idx), symlist, symlist_len);
-
-    // There is no operator in the expression -- therefore, there will
-    // just be a variable name or function call or a parenthesized expression
-
-    return ParseExpression_NoOps(symlist, symlist_len);
+        retval = ParseExpression_OpIsFirst(symlist, symlist_len, vloc, scope, vartype);
+    else if (lowest_op_idx > 0)
+        retval = ParseExpression_OpIsSecondOrLater(static_cast<size_t>(lowest_op_idx), symlist, symlist_len, vloc, scope, vartype);
+    else 
+        retval = ParseExpression_NoOps(symlist, symlist_len, vloc, scope, vartype);
+    if (retval < 0) return retval;
+    return HandleStructOrArrayResult(vartype);
 }
 
 // symlist starts a bracketed expression; parse it
 int AGS::Parser::AccessData_ArrayIndexIntoAX(SymbolScript symlist, size_t symlist_len)
 {
-    int retval = ParseExpression_Subexpr(symlist, symlist_len);
+    ValueLocation vloc;
+    int scope;
+    AGS::Vartype vartype;
+    int retval = ParseExpression_Subexpr(symlist, symlist_len, vloc, scope, vartype);
+    if (retval < 0) return retval;
+    retval = ResultToAX(vloc, scope, vartype);
     if (retval < 0) return retval;
 
-    // array index must be convertible to an int
-    return IsVartypeMismatch(_scrip.ax_vartype, _sym.getIntSym(), true);
+    return IsVartypeMismatch(vartype, _sym.getIntSym(), true);
 }
 
 // We access a variable or a component of a struct in order to read or write it.
@@ -2797,13 +2886,23 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
         _scrip.push_reg(SREG_OP); // is the current this ptr, must be restored after call
 
     size_t num_of_args = 0;
+    bool setter_has_dyn_vartype = false;
     if (is_attribute_set_func)
     {
-        // The value to be set is in the AX register; push it as the last parameter
+        if(IsDynpointerVartype(_sym.get_vartype(name_of_attribute)))
+        {
+            setter_has_dyn_vartype = true;
+            // We must pass a memory address that contains the dynptr. So create this.
+            _scrip.write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
+            _scrip.write_cmd2(SCMD_ADD, SREG_SP, SIZE_OF_DYNPOINTER);
+            _scrip.write_cmd1(SCMD_MEMINITPTR, SREG_AX);
+            _scrip.cur_sp += SIZE_OF_DYNPOINTER;
+        }
+        int const reg_to_push = setter_has_dyn_vartype ? SREG_MAR : SREG_AX;
         if (func_is_import)
-            _scrip.write_cmd1(SCMD_PUSHREAL, SREG_AX);
+            _scrip.write_cmd1(SCMD_PUSHREAL, reg_to_push);
         else
-            _scrip.push_reg(SREG_AX);
+            _scrip.push_reg(reg_to_push);
         ++num_of_args;
     }
 
@@ -2837,6 +2936,14 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
 
     // Generate the function call proper
     AccessData_GenerateFunctionCall(name_of_func, num_of_args, func_is_import);
+    if (setter_has_dyn_vartype)
+    {
+        // Pop and release the pointer
+        _scrip.cur_sp -= SIZE_OF_DYNPOINTER;
+        _scrip.write_cmd2(SCMD_SUB, SREG_SP, SIZE_OF_DYNPOINTER);
+        _scrip.write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
+        _scrip.write_cmd0(SCMD_MEMZEROPTR);
+    }
     if (attrib_uses_this)
         _scrip.pop_reg(SREG_OP); // restore old this ptr after the func call
 
@@ -3565,54 +3672,6 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
     return 0;
 }
 
-int AGS::Parser::ReadDataIntoAX(AGS::SymbolScript symlist, size_t symlist_len, bool negate)
-{
-    ValueLocation vloc;
-    int scope;
-    AGS::Vartype vartype;
-    int retval = AccessData(false, negate, symlist, symlist_len, vloc, scope, vartype);
-    if (retval < 0) return retval;
-    if (kVL_mar_pointsto_value != vloc)
-        return 0; // So it's already in AX 
-
-    if (FlagIsSet(vartype, kVTY_Array))
-    {
-        cc_error("Cannot access array as a whole (did you forget to add \"[0]\"?)");
-        return -1;
-    }
-
-    if (FlagIsSet(_sym.get_flags(vartype & kVTY_FlagMask), kSFLG_StructType) && !IsDynpointerVartype(vartype))
-    {
-        if (!FlagIsSet(_sym.get_flags(vartype), kSFLG_Managed))
-        {
-            cc_error("Cannot access non-managed struct as a whole");
-            return -1;
-        }
-        // Assume a pointer to the struct is being requested
-        SetFlag(vartype, kVTY_DynPointer, true);
-        _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
-    }
-
-    _scrip.ax_vartype = vartype;
-    _scrip.ax_val_scope = scope;
-
-    // Get the result into AX
-    if (_sym.getOldStringSym() == (vartype & kVTY_Const))
-    {
-        // AX points to the first character
-        _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
-        return 0;
-    }
-
-    if (FlagIsSet(vartype, kVTY_DynPointer))
-        _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_AX);
-    else
-        _scrip.write_cmd1(
-            GetReadCommandForSize(_sym.entries.at(vartype & kVTY_FlagMask).ssize),
-            SREG_AX);
-    return 0;
-}
-
 // Read the symbols of an expression and buffer them into expr_script
 // At end of routine, the cursor will be positioned in such a way
 // that _targ.getnext() will get the symbol after the expression
@@ -3700,8 +3759,15 @@ int AGS::Parser::ParseExpression()
     int retval = BufferExpression(expr_script);
     if (retval < 0) return retval;
 
+    ValueLocation vloc;
+    int scope;
+    AGS::Vartype vartype;
+
     // we now have the expression in expr_script, parse it
-    return ParseExpression_Subexpr(expr_script.script, expr_script.length);
+    retval = ParseExpression_Subexpr(expr_script.script, expr_script.length, vloc, scope, vartype);
+    if (retval < 0) return retval;
+
+    return ResultToAX(vloc, scope, vartype);
 }
 
 // We are parsing the left hand side of a += or similar statement.
@@ -4233,12 +4299,13 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
         if (!IsDynpointerVartype(param_vartype))
             continue;
 
-        // pointers are passed in on the stack with the real
-        // memory address -- convert this to the mem handle
-        // since params are pushed backwards, this works
-        // the +1 is to deal with the return address
-        _scrip.write_cmd1(SCMD_LOADSPOFFS, 4 * (pa + 1));
-        _scrip.write_cmd1(SCMD_MEMREAD, SREG_AX);
+        // For each parameter that is a dynpointer, an address is
+        // pushed where the dynpointer is stored, i.e. a value MAR (!!!)
+        // where m[MAR] (!!!) contains the dynpointer. We need to 
+        // convert this to the dynpointer itself.
+        _scrip.write_cmd1(SCMD_LOADSPOFFS, 4 * (pa + 1)); // Set MAR to the pertinent memory address        
+        _scrip.write_cmd1(SCMD_MEMREAD, SREG_AX); // Read the address that is stored there
+        // Create a pointer points to the same object as m[AX] and store it in m[MAR]
         _scrip.write_cmd1(SCMD_MEMINITPTR, SREG_AX);
     }
 
@@ -4524,9 +4591,6 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Symbol varty
         cc_error("'string' not allowed inside a struct");
         return -1;
     }
-
-    AGS::Flags const vartype_flags = _sym.get_flags(vartype);
-
     return 0;
 }
 
@@ -5707,7 +5771,12 @@ int AGS::Parser::ParseAssignmentOrFunccall(AGS::Symbol cursym)
             _targ.getnext();
             return ParseAssignment(nextsym, &expr_script);
         }
-        return ParseExpression_Subexpr(expr_script.script, expr_script.length);
+        ValueLocation vloc;
+        int scope;
+        AGS::Vartype vartype;
+        retval =  ParseExpression_Subexpr(expr_script.script, expr_script.length, vloc, scope, vartype);
+        if (retval < 0) return retval;
+        return ResultToAX(vloc, scope, vartype);
     }
     cc_error("Unexpected symbol '%s'", _sym.get_name_string(nextsym).c_str());
     return -1;
@@ -5972,7 +6041,6 @@ int AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::NestingStack *nesting
         // Push the switch variable onto the stack
         _scrip.push_reg(SREG_BX);
 
-        // get an expression
         int retval = ParseExpression();
         if (retval < 0) return retval;  // case n: label expression, result is in AX
 

@@ -2551,18 +2551,19 @@ void construct_virtual_screen(bool fullRedraw)
         play.UpdateRoomCameras();
 
     // Stage 1: room viewports
-    if (displayed_room >= 0 && play.screen_is_faded_out == 0 && is_complete_overlay == 0)
+    if (play.screen_is_faded_out == 0 && is_complete_overlay == 0)
     {
-        construct_room_view();
-        update_polled_mp3();
-    }
-    else if (!gfxDriver->RequiresFullRedrawEachFrame())
-    {
-        // if the driver is not going to redraw the screen,
-        // black it out so we don't get cursor trails
-        // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
-        Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
-        ds->Fill(0);
+        if (displayed_room >= 0)
+        {
+            construct_room_view();
+            update_polled_mp3();
+        }
+        else if (!gfxDriver->RequiresFullRedrawEachFrame())
+        {
+            // black it out so we don't get cursor trails
+            // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
+            gfxDriver->GetMemoryBackBuffer()->Fill(0);
+        }
     }
 
     our_eip=4;

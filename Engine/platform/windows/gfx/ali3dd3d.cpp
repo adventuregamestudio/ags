@@ -264,14 +264,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   direct3d = d3d;
   direct3ddevice = NULL;
   vertexbuffer = NULL;
-  _tint_red = 0;
-  _tint_green = 0;
-  _tint_blue = 0;
-  _screenTintLayer = NULL;
-  _screenTintLayerDDB = NULL;
-  _screenTintSprite.skip = true;
-  _screenTintSprite.x = 0;
-  _screenTintSprite.y = 0;
   pixelShader = NULL;
   _legacyPixelShader = false;
   set_up_default_vertices();
@@ -359,20 +351,10 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
     return;
 
   OnModeReleased();
-
   ClearDrawLists();
   ClearDrawBackups();
   flipTypeLastTime = kFlip_None;
-
-  if (_screenTintLayerDDB != NULL) 
-  {
-    this->DestroyDDB(_screenTintLayerDDB);
-    _screenTintLayerDDB = NULL;
-    _screenTintSprite.bitmap = NULL;
-  }
-  delete _screenTintLayer;
-  _screenTintLayer = NULL;
-
+  DestroyFxPool();
   DestroyAllStageScreens();
 
   gfx_driver = NULL;
@@ -874,9 +856,6 @@ void D3DGraphicsDriver::SetGraphicsFilter(PD3DFilter filter)
 {
   _filter = filter;
   OnSetFilter();
-  // Creating ddbs references filter properties at some point,
-  // so we have to redo this part of initialization here.
-  create_screen_tint_bitmap();
 }
 
 void D3DGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -908,7 +887,6 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   OnModeSet(mode);
   InitializeD3DState();
   CreateVirtualScreen();
-  create_screen_tint_bitmap();
   return true;
 }
 
@@ -1400,6 +1378,7 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     flipTypeLastTime = flip;
     ClearDrawLists();
   }
+  ResetFxPool();
 }
 
 void D3DGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
@@ -1439,10 +1418,6 @@ void D3DGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
 
     _stageVirtualScreen = GetStageScreen(0);
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-    if (!_screenTintSprite.skip)
-    {
-        this->_renderSprite(&_screenTintSprite, _spriteBatches[_actSpriteBatch].Matrix, false, false);
-    }
 }
 
 void D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, GlobalFlipType flip)
@@ -1836,6 +1811,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
   this->DestroyDDB(d3db);
   this->ClearDrawLists();
+  ResetFxPool();
 }
 
 void D3DGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) 
@@ -1910,6 +1886,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 
   this->DestroyDDB(d3db);
   this->ClearDrawLists();
+  ResetFxPool();
 }
 
 #ifndef AGS_NO_VIDEO_PLAYER
@@ -1924,32 +1901,15 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 #endif
 
-void D3DGraphicsDriver::create_screen_tint_bitmap() 
-{
-  // Some work on textures depends on current scaling filter, sadly
-  // TODO: find out if there is a workaround for that
-  if (!IsModeSet() || !_filter)
-    return;
-
-  _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_mode.ColorDepth);
-  _screenTintLayerDDB = (D3DBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
-  _screenTintSprite.bitmap = _screenTintLayerDDB;
-}
-
 void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 { 
-  if ((red != _tint_red) || (green != _tint_green) || (blue != _tint_blue))
+  if (red != 0 || green != 0 || blue != 0)
   {
-    _tint_red = red; 
-    _tint_green = green; 
-    _tint_blue = blue;
-
-    _screenTintLayer->Clear(makecol_depth(_screenTintLayer->GetColorDepth(), red, green, blue));
-    this->UpdateDDBFromBitmap(_screenTintLayerDDB, _screenTintLayer, false);
-    _screenTintLayerDDB->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
-    _screenTintLayerDDB->SetTransparency(128);
-
-    _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));
+    D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
+    ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
+        _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
+    ddb->SetTransparency(128);
+    _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry(ddb));
   }
 }
 

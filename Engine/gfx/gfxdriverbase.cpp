@@ -143,6 +143,7 @@ void GraphicsDriverBase::OnSetFilter()
 VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
     : _stageVirtualScreenDDB(nullptr)
     , _stageScreenDirty(false)
+    , _fxIndex(0)
 {
     // Only to have something meaningful as default
     _vmem_a_shift_32 = 24;
@@ -227,6 +228,44 @@ bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
         return true;
     }
     return false;
+}
+
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
+{
+    if (_fxIndex == _fxPool.size()) _fxPool.push_back(ScreenFx());
+    ScreenFx &fx = _fxPool[_fxIndex];
+    if (fx.DDB == nullptr)
+    {
+        fx.Raw = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
+        fx.DDB = CreateDDBFromBitmap(fx.Raw, false, false);
+    }
+    if (r != fx.Red || g != fx.Green || b != fx.Blue)
+    {
+        fx.Raw->Clear(makecol_depth(fx.Raw->GetColorDepth(), r, g, b));
+        this->UpdateDDBFromBitmap(fx.DDB, fx.Raw, false);
+        fx.Red = r;
+        fx.Green = g;
+        fx.Blue = b;
+    }
+    _fxIndex++;
+    return fx.DDB;
+}
+
+void VideoMemoryGraphicsDriver::ResetFxPool()
+{
+    _fxIndex = 0;
+}
+
+void VideoMemoryGraphicsDriver::DestroyFxPool()
+{
+    for (auto fx : _fxPool)
+    {
+        if (fx.DDB)
+            DestroyDDB(fx.DDB);
+        delete fx.Raw;
+    }
+    _fxPool.clear();
+    _fxIndex = 0;
 }
 
 

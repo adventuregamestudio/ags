@@ -227,7 +227,6 @@ private:
     GLXContext _glxContext;
 #endif
     bool _firstTimeInit;
-    int _tint_red, _tint_green, _tint_blue;
     // Position of backbuffer texture in world space
     GLfloat _backbuffer_vertices[8];
     // Relative position of source image on the backbuffer texture,
@@ -250,11 +249,6 @@ private:
     };
     ShaderProgram _tintShader;
     ShaderProgram _lightShader;
-
-    // TODO: find a way to have this tint sprite in the normal sprite list (or use shader instead!)
-    Bitmap *_screenTintLayer;
-    OGLBitmap* _screenTintLayerDDB;
-    OGLDrawListEntry _screenTintSprite;
 
     int device_screen_physical_width;
     int device_screen_physical_height;
@@ -323,7 +317,6 @@ private:
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void create_screen_tint_bitmap();
     void _renderSprite(const OGLDrawListEntry *entry, const GLMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates

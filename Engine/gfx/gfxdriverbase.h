@@ -193,6 +193,13 @@ protected:
     // and false if this entry should be skipped.
     bool DoNullSpriteCallback(int x, int y);
 
+    // Prepare and get fx item from the pool
+    IDriverDependantBitmap *MakeFx(int r, int g, int b);
+    // Resets fx pool counter
+    void ResetFxPool();
+    // Disposes all items in the fx pool
+    void DestroyFxPool();
+
     // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
     void BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
                             char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
@@ -214,6 +221,18 @@ private:
     // Flag which indicates whether stage screen was drawn upon during engine
     // callback and has to be inserted into sprite stack.
     bool _stageScreenDirty;
+
+    // Fx quads pool (for screen overlay effects)
+    struct ScreenFx
+    {
+        Bitmap *Raw = nullptr;
+        IDriverDependantBitmap *DDB = nullptr;
+        int Red = 0;
+        int Green = 0;
+        int Blue = 0;
+    };
+    std::vector<ScreenFx> _fxPool;
+    size_t _fxIndex; // next free pool item
 };
 
 } // namespace Engine

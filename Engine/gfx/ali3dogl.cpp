@@ -209,14 +209,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _firstTimeInit = false;
   _backbuffer = 0;
   _fbo = 0;
-  _tint_red = 0;
-  _tint_green = 0;
-  _tint_blue = 0;
-  _screenTintLayer = nullptr;
-  _screenTintLayerDDB = nullptr;
-  _screenTintSprite.skip = true;
-  _screenTintSprite.x = 0;
-  _screenTintSprite.y = 0;
   _legacyPixelShader = false;
   flipTypeLastTime = kFlip_None;
   _can_render_to_texture = false;
@@ -329,9 +321,6 @@ void OGLGraphicsDriver::SetGraphicsFilter(POGLFilter filter)
 {
   _filter = filter;
   OnSetFilter();
-  // Creating ddbs references filter properties at some point,
-  // so we have to redo this part of initialization here.
-  create_screen_tint_bitmap();
 }
 
 void OGLGraphicsDriver::SetTintMethod(TintMethod method)
@@ -983,7 +972,6 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   final_mode.Height = device_screen_physical_height;
   OnModeSet(final_mode);
 
-  create_screen_tint_bitmap();
   // If we already have a native size set, then update virtual screen and setup backbuffer texture immediately
   CreateVirtualScreen();
   SetupBackbufferTexture();
@@ -1050,16 +1038,7 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   ClearDrawBackups();
   flipTypeLastTime = kFlip_None;
   DeleteBackbufferTexture();
-
-  if (_screenTintLayerDDB != nullptr) 
-  {
-    this->DestroyDDB(_screenTintLayerDDB);
-    _screenTintLayerDDB = nullptr;
-    _screenTintSprite.bitmap = nullptr;
-  }
-  delete _screenTintLayer;
-  _screenTintLayer = nullptr;
-
+  DestroyFxPool();
   DestroyAllStageScreens();
 
   gfx_driver = nullptr;
@@ -1474,6 +1453,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     flipTypeLastTime = flip;
     ClearDrawLists();
   }
+  ResetFxPool();
 }
 
 void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
@@ -1506,10 +1486,6 @@ void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
 
     _stageVirtualScreen = GetStageScreen(0);
     glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
-    if (!_screenTintSprite.skip)
-    {
-        this->_renderSprite(&_screenTintSprite, _spriteBatches[_actSpriteBatch].Matrix, false, false);
-    }
     if (_do_render_to_texture)
         glDisable(GL_SCISSOR_TEST);
 }
@@ -1938,6 +1914,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
   this->DestroyDDB(d3db);
   this->ClearDrawLists();
+  ResetFxPool();
 }
 
 void OGLGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) 
@@ -2011,34 +1988,18 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 
   this->DestroyDDB(d3db);
   this->ClearDrawLists();
-}
-
-void OGLGraphicsDriver::create_screen_tint_bitmap() 
-{
-  // Some work on textures depends on current scaling filter, sadly
-  // TODO: find out if there is a workaround for that
-  if (!IsModeSet() || !_filter)
-    return;
-  
-  _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
-  _screenTintLayerDDB = (OGLBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
-  _screenTintSprite.bitmap = _screenTintLayerDDB;
+  ResetFxPool();
 }
 
 void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 { 
-  if ((red != _tint_red) || (green != _tint_green) || (blue != _tint_blue))
+  if (red != 0 || green != 0 || blue != 0)
   {
-    _tint_red = red; 
-    _tint_green = green; 
-    _tint_blue = blue;
-
-    _screenTintLayer->Clear(makecol_depth(_screenTintLayer->GetColorDepth(), red, green, blue));
-    this->UpdateDDBFromBitmap(_screenTintLayerDDB, _screenTintLayer, false);
-    _screenTintLayerDDB->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
-    _screenTintLayerDDB->SetTransparency(128);
-
-    _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));
+    OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
+    ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
+        _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
+    ddb->SetTransparency(128);
+    _spriteBatches[_actSpriteBatch].List.push_back(OGLDrawListEntry(ddb));
   }
 }
 

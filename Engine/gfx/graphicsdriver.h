@@ -127,6 +127,8 @@ public:
   virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = nullptr) = 0;
   // Adds sprite to the active batch
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
+  // Adds fade overlay fx to the active batch
+  virtual void SetScreenFade(int red, int green, int blue) = 0;
   // Adds tint overlay fx to the active batch
   // TODO: redesign this to allow various post-fx per sprite batch?
   virtual void SetScreenTint(int red, int green, int blue) = 0;

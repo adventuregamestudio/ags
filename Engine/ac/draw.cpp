@@ -838,11 +838,6 @@ void write_screen() {
         }
     }
 
-    if (play.screen_tint < 1)
-        gfxDriver->SetScreenTint(0, 0, 0);
-    else
-        gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
-
     render_to_screen(0, at_yp);
 }
 
@@ -2514,6 +2509,9 @@ static void construct_ui_view()
     draw_gui_and_overlays();
     put_sprite_list_on_screen(false);
     clear_draw_list();
+
+    if (play.screen_tint >= 1)
+        gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
 }
 
 // Schedule misc rendering
@@ -2542,7 +2540,7 @@ void construct_virtual_screen(bool fullRedraw)
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 
     // Possible reasons to invalidate whole screen for the software renderer
-    if (fullRedraw || play.screen_tint >= 0)
+    if (fullRedraw || play.screen_tint > 0)
         invalidate_screen();
 
     // TODO: move to game update! don't call update during rendering pass!
@@ -2572,6 +2570,12 @@ void construct_virtual_screen(bool fullRedraw)
     if (play.screen_is_faded_out == 0)
     {
         construct_ui_view();
+    }
+    else if (gfxDriver->RequiresFullRedrawEachFrame())
+    {
+        const Rect &main_viewport = play.GetMainViewport();
+        gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
+        gfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
     }
 
     // Stage 3: auxiliary info

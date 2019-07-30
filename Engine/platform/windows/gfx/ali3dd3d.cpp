@@ -1901,16 +1901,23 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 #endif
 
+void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)
+{
+    D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
+    ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
+        _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
+    ddb->SetTransparency(0);
+    _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry(ddb));
+}
+
 void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 { 
-  if (red != 0 || green != 0 || blue != 0)
-  {
+    if (red == 0 && green == 0 && blue == 0) return;
     D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetTransparency(128);
     _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry(ddb));
-  }
 }
 
 

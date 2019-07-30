@@ -235,7 +235,7 @@ void process_event(EventHappened*evp) {
         if (play.fast_forward)
             return;
 
-        const bool ignore_transition = (play.screen_tint >= 0);
+        const bool ignore_transition = (play.screen_tint > 0);
         if (((theTransition == FADE_CROSSFADE) || (theTransition == FADE_DISSOLVE)) &&
             (saved_viewport_bitmap == nullptr) && !ignore_transition)
         {

@@ -202,6 +202,7 @@ public:
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
     bool RequiresFullRedrawEachFrame() override { return true; }
     bool HasAcceleratedTransform() override { return true; }
+    void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
 
     typedef std::shared_ptr<OGLGfxFilter> POGLFilter;

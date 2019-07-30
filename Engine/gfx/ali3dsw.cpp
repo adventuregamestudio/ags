@@ -430,6 +430,11 @@ void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* 
     _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
 }
 
+void ALSoftwareGraphicsDriver::SetScreenFade(int red, int green, int blue)
+{
+    // TODO: was not necessary atm
+}
+
 void ALSoftwareGraphicsDriver::SetScreenTint(int red, int green, int blue)
 {
     _tint_red = red; _tint_green = green; _tint_blue = blue;

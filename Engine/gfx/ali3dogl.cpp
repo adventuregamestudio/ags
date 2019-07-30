@@ -1991,16 +1991,23 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   ResetFxPool();
 }
 
+void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)
+{
+    OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
+    ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
+        _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
+    ddb->SetTransparency(0);
+    _spriteBatches[_actSpriteBatch].List.push_back(OGLDrawListEntry(ddb));
+}
+
 void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 { 
-  if (red != 0 || green != 0 || blue != 0)
-  {
+    if (red == 0 && green == 0 && blue == 0) return;
     OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetTransparency(128);
     _spriteBatches[_actSpriteBatch].List.push_back(OGLDrawListEntry(ddb));
-  }
 }
 
 

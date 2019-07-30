@@ -1046,6 +1046,9 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
     return;
 
   OnModeReleased();
+  ClearDrawLists();
+  ClearDrawBackups();
+  flipTypeLastTime = kFlip_None;
   DeleteBackbufferTexture();
 
   if (_screenTintLayerDDB != nullptr) 
@@ -1582,8 +1585,7 @@ void OGLGraphicsDriver::ClearDrawBackups()
 
 void OGLGraphicsDriver::BackupDrawLists()
 {
-    _backupBatchDescs.clear();
-    _backupBatches.clear();
+    ClearDrawBackups();
     for (size_t i = 0; i <= _actSpriteBatch; ++i)
     {
         _backupBatchDescs.push_back(_spriteBatchDesc[i]);

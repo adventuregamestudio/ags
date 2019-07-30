@@ -163,6 +163,7 @@ public:
     void DestroyDDB(IDriverDependantBitmap* bitmap) override;
 
     void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
+    void SetScreenTint(int red, int green, int blue) override;
 
     void RenderToBackBuffer() override;
     void Render() override;
@@ -186,8 +187,6 @@ public:
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy) override;
     Bitmap *GetStageBackBuffer() override;
-    void SetScreenTint(int red, int green, int blue) override { 
-        _tint_red = red; _tint_green = green; _tint_blue = blue; }
     ~ALSoftwareGraphicsDriver() override;
 
     typedef std::shared_ptr<AllegroGfxFilter> PALSWFilter;
@@ -217,7 +216,7 @@ private:
     // actual virtual screen or separate bitmap of different size that is
     // blitted to virtual screen at the stage finalization.
     Bitmap *_stageVirtualScreen;
-    Bitmap *_spareTintingScreen;
+    //Bitmap *_spareTintingScreen;
     int _tint_red, _tint_green, _tint_blue;
 
     ALSpriteBatches _spriteBatches;

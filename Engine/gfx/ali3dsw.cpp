@@ -77,7 +77,7 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
   _tint_green = 0;
   _tint_blue = 0;
   _autoVsync = false;
-  _spareTintingScreen = nullptr;
+  //_spareTintingScreen = nullptr;
   _gfxModeList = nullptr;
 #if AGS_DDRAW_GAMMA_CONTROL
   dxGammaControl = nullptr;
@@ -430,6 +430,15 @@ void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* 
     _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
 }
 
+void ALSoftwareGraphicsDriver::SetScreenTint(int red, int green, int blue)
+{
+    _tint_red = red; _tint_green = green; _tint_blue = blue;
+    if (((_tint_red > 0) || (_tint_green > 0) || (_tint_blue > 0)) && (_mode.ColorDepth > 8))
+    {
+      _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)0x1, 0, 0));
+    }
+}
+
 void ALSoftwareGraphicsDriver::RenderToBackBuffer()
 {
     // Render all the sprite batches with necessary transformations
@@ -486,6 +495,13 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
 
       continue;
     }
+    else if (drawlist[i].bitmap == (ALSoftwareBitmap*)0x1)
+    {
+      // draw screen tint fx
+      set_trans_blender(_tint_red, _tint_green, _tint_blue, 0);
+      surface->LitBlendBlt(surface, 0, 0, 128);
+      continue;
+    }
 
     ALSoftwareBitmap* bitmap = drawlist[i].bitmap;
     int drawAtX = drawlist[i].x + surf_offx;
@@ -518,13 +534,7 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
           bitmap->_transparency ? bitmap->_transparency : 255);
     }
   }
-
-  if (((_tint_red > 0) || (_tint_green > 0) || (_tint_blue > 0))
-      && (_mode.ColorDepth > 8)) {
-    // Common::gl_ScreenBmp tint
-    // This slows down the game no end, only experimental ATM
-    set_trans_blender(_tint_red, _tint_green, _tint_blue, 0);
-    surface->LitBlendBlt(surface, 0, 0, 128);
+    // NOTE: following is experimental tint code (currently unused)
 /*  This alternate method gives the correct (D3D-style) result, but is just too slow!
     if ((_spareTintingScreen != NULL) &&
         ((_spareTintingScreen->GetWidth() != surface->GetWidth()) || (_spareTintingScreen->GetHeight() != surface->GetHeight())))
@@ -538,7 +548,6 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
     }
     tint_image(surface, _spareTintingScreen, _tint_red, _tint_green, _tint_blue, 100, 255);
     Blit(_spareTintingScreen, surface, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
-  }
 }
 
 void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)

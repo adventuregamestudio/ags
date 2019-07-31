@@ -663,7 +663,7 @@ void save_config_file()
     // Other game options that could be changed at runtime
     if (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
         cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", usetup.RenderAtScreenRes ? 1 : 0);
-    cfg["mouse"]["control_enabled"] = String::FromFormat("%d", Mouse::IsControlEnabled() ? 1 : 0);
+    cfg["mouse"]["control_enabled"] = String::FromFormat("%d", usetup.mouse_ctrl_enabled ? 1 : 0);
     cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
     bool is_available = GetTranslationName(buffer) != 0 || !buffer[0];
     if (is_available)

@@ -44,6 +44,8 @@ build_linux_task:
         cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make
         ;;
       debian)
+        version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+        sed -i -s "s/ags \(.*\)(.*)/ags \($version\)\1/" debian/changelog
         fakeroot debian/rules binary
         mv ../ags*.deb .
         case $arch in

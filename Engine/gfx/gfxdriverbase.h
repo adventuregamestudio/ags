@@ -227,9 +227,9 @@ private:
     {
         Bitmap *Raw = nullptr;
         IDriverDependantBitmap *DDB = nullptr;
-        int Red = 0;
-        int Green = 0;
-        int Blue = 0;
+        int Red = -1;
+        int Green = -1;
+        int Blue = -1;
     };
     std::vector<ScreenFx> _fxPool;
     size_t _fxIndex; // next free pool item

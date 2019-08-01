@@ -55,6 +55,10 @@ namespace StrUtil
     // def_val on failure
     ConversionError StringToInt(const String &s, int &val, int def_val);
 
+    // Creates a new string compliant to JSON key/value format;
+    // assumes that **EVERY** special symbol in the source string must be escaped
+    String          JsonEscape(const char *cstr);
+
     // Serialize and unserialize unterminated string prefixed with 32-bit length;
     // length is presented as 32-bit integer integer
     String          ReadString(Stream *in);

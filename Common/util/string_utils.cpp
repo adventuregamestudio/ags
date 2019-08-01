@@ -86,6 +86,26 @@ StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def
     return StrUtil::kNoError;
 }
 
+String StrUtil::JsonEscape(const char *cstr)
+{
+    String s;
+    for (; *cstr; ++cstr)
+    {
+        switch (*cstr)
+        {
+        case '\b': s.Append("\\b"); break;
+        case '\f': s.Append("\\f"); break;
+        case '\n': s.Append("\\n"); break;
+        case '\r': s.Append("\\r"); break;
+        case '\t': s.Append("\\t"); break;
+        case '"': s.Append("\\\""); break;
+        case '\\': s.Append("\\\\"); break;
+        default: s.AppendChar(*cstr);
+        }
+    }
+    return s;
+}
+
 String StrUtil::ReadString(Stream *in)
 {
     size_t len = in->ReadInt32();

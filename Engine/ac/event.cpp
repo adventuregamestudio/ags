@@ -275,12 +275,14 @@ void process_event(EventHappened*evp) {
                 temp_scr->Clear();
                 render_to_screen();
 
-                int boxwid = get_fixed_pixel_size(16);
-                int boxhit = data_to_game_coord(data_res.Height / 20);
-                while (boxwid < temp_scr->GetWidth()) {
+                const int speed = get_fixed_pixel_size(16);
+                const int yspeed = viewport.GetHeight() / (viewport.GetWidth() / speed);
+                int boxwid = speed, boxhit = yspeed;
+                while (boxwid < temp_scr->GetWidth())
+                {
                     timerloop = 0;
-                    boxwid += get_fixed_pixel_size(16);
-                    boxhit += data_to_game_coord(data_res.Height / 20);
+                    boxwid += speed;
+                    boxhit += yspeed;
                     boxwid = Math::Clamp(boxwid, 0, viewport.GetWidth());
                     boxhit = Math::Clamp(boxhit, 0, viewport.GetHeight());
                     int lxp = viewport.GetWidth() / 2 - boxwid / 2;

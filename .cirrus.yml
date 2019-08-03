@@ -125,3 +125,47 @@ build_editor_task:
     msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform="Mixed Platforms" /maxcpucount /nologo"
   binaries_artifacts:
     path: Solutions/.build/*/*
+
+linux_packaging_task:
+  depends_on:
+    - build_linux
+  freebsd_instance:
+    image: freebsd-12-0-release-amd64
+  env:
+    ALLEGRO_RELEASE: v4.4.3-ags-1
+  package_script: |
+    tmp=/tmp/bundle$$
+    mkdir -p $tmp/data
+    echo Getting Debian packages
+    url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/build_linux/debian_packages.zip"
+    curl -fLsS "$url" | tar -f - -xvzC $tmp -s '|.*dbg.*||p'
+    for arch in i386 amd64
+    do
+      echo Extracting engine for $arch
+      case $arch in
+        amd64)
+          bit=64
+          ;;
+        i386)
+          bit=32
+          ;;
+      esac
+      ar -p $tmp/ags*$arch.deb data.tar.xz | unxz | tar -f - -xvC $tmp/data -s "|.*/ags|ags$bit|p" usr/bin/ags
+      echo Downloading files for $arch
+      url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/build_linux/debian_files/data_$arch.tar.gz"
+      curl -fLsS "$url" | tar -f - -xvzC $tmp/data
+      echo Downloading Allegro $ALLEGRO_RELEASE $arch
+      mkdir $tmp/allegro_${ALLEGRO_RELEASE}_$arch
+      url="https://github.com/morganwillcock/lib-allegro/releases/download/$ALLEGRO_RELEASE/lib-allegro_release_$arch.tar.gz"
+      curl -fLsS "$url" | tar -f - -xvzC $tmp/allegro_${ALLEGRO_RELEASE}_$arch --strip-components 1 -s '|pkgconfig/.*||' lib
+      find $tmp/allegro_${ALLEGRO_RELEASE}_$arch \( -name "alleg-*" -or -name "liballeg.so.?.?" \) \
+        -exec cp -v "{}" $tmp/data/lib$bit/ \;
+      echo alleg-sdl2digi.so >> $tmp/data/lib$bit/modules.lst
+    done
+    cp -v debian/copyright $tmp/data/licenses/ags-copyright
+    cp -v debian/ags+libraries/startgame $tmp/
+    awk 'BEGIN { RS="" } !/make_ags/ { if (NR>1) print RS; print }' debian/ags+libraries/README > $tmp/README
+    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    tar -f ags_linux_$version.tar.gz -cvzC $tmp data startgame README
+  binaries_artifacts:
+    path: ags_linux_*.tar.gz

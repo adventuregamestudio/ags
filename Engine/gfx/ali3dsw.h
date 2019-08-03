@@ -70,7 +70,7 @@ public:
     int _colDepth;
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
-    bool _opaque;
+    bool _opaque; // no mask color
     bool _hasAlpha;
     int _transparency;
 

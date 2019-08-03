@@ -47,7 +47,8 @@ namespace GfxUtil
         Common::BlendMode blend_mode, bool dst_has_alpha = true, bool src_has_alpha = true, int blend_alpha = 0xFF);
 
     // Draws a bitmap over another one with given alpha level (0 - 255),
-    // ignoring image's alpha channel, even if there's one;
+    // takes account of the bitmap's mask color,
+    // ignores image's alpha channel, even if there's one;
     // does proper conversion depending on respected color depths.
     void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha = 0xFF);
 } // namespace GfxUtil

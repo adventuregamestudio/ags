@@ -339,11 +339,9 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
       if (src_depth == 8)
       {
         unsigned char* srcData = (unsigned char*)&scanline_at[(x + tile->x) * sizeof(char)];
-        if (*srcData == MASK_COLOR_8) 
+        if (*srcData == MASK_COLOR_8)
         {
-          if (target->_opaque)  // set to black if opaque
-            memPtrLong[x] = 0xFF000000;
-          else if (!usingLinearFiltering)
+          if (!usingLinearFiltering)
             memPtrLong[x] = 0;
           // set to transparent, but use the colour from the neighbouring 
           // pixel to stop the linear filter doing black outlines
@@ -382,9 +380,7 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
         unsigned short* srcData = (unsigned short*)&scanline_at[(x + tile->x) * sizeof(short)];
         if (*srcData == MASK_COLOR_16) 
         {
-          if (target->_opaque)  // set to black if opaque
-            memPtrLong[x] = 0xFF000000;
-          else if (!usingLinearFiltering)
+          if (!usingLinearFiltering)
             memPtrLong[x] = 0;
           // set to transparent, but use the colour from the neighbouring 
           // pixel to stop the linear filter doing black outlines
@@ -424,9 +420,7 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
         unsigned int* srcData = (unsigned int*)&scanline_at[(x + tile->x) * sizeof(int)];
         if (*srcData == MASK_COLOR_32)
         {
-          if (target->_opaque)  // set to black if opaque
-            memPtrLong[x] = 0xFF000000;
-          else if (!usingLinearFiltering)
+          if (!usingLinearFiltering)
             memPtrLong[x] = 0;
           // set to transparent, but use the colour from the neighbouring 
           // pixel to stop the linear filter doing black outlines
@@ -463,6 +457,42 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
             lastPixelWasTransparent = false;
           }
         }
+      }
+    }
+
+    dst_ptr += dst_pitch;
+  }
+}
+
+void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
+    char *dst_ptr, const int dst_pitch)
+{
+  const int src_depth = bitmap->GetColorDepth();
+  for (int y = 0; y < tile->height; y++)
+  {
+    const uint8_t *scanline_at = bitmap->GetScanLine(y + tile->y);
+    unsigned int* memPtrLong = (unsigned int*)dst_ptr;
+
+    for (int x = 0; x < tile->width; x++)
+    {
+      if (src_depth == 8)
+      {
+        unsigned char* srcData = (unsigned char*)&scanline_at[(x + tile->x) * sizeof(char)];
+        memPtrLong[x] = VMEMCOLOR_RGBA(algetr8(*srcData), algetg8(*srcData), algetb8(*srcData), 0xFF);
+      }
+      else if (src_depth == 16)
+      {
+        unsigned short* srcData = (unsigned short*)&scanline_at[(x + tile->x) * sizeof(short)];
+        memPtrLong[x] = VMEMCOLOR_RGBA(algetr16(*srcData), algetg16(*srcData), algetb16(*srcData), 0xFF);
+      }
+      else if (src_depth == 32)
+      {
+        unsigned int* memPtrLong = (unsigned int*)dst_ptr;
+        unsigned int* srcData = (unsigned int*)&scanline_at[(x + tile->x) * sizeof(int)];
+        if (has_alpha)
+          memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData), algeta32(*srcData));
+        else
+          memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData), 0xFF);
       }
     }
 

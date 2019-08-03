@@ -164,7 +164,7 @@ public:
 
     int _width, _height;
     int _colDepth;
-    bool _opaque;
+    bool _opaque; // no mask color
 };
 
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
@@ -203,6 +203,9 @@ protected:
     // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
     void BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
                             char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
+    // Same but optimized for opaque source bitmaps which ignore transparent "mask color"
+    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
+        char *dst_ptr, const int dst_pitch);
 
     // Stage virtual screen is used to let plugins draw custom graphics
     // in between render stages (between room and GUI, after GUI, and so on)

@@ -512,19 +512,18 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
     int drawAtX = drawlist[i].x + surf_offx;
     int drawAtY = drawlist[i].y + surf_offy;
 
-    if ((bitmap->_opaque) && (bitmap->_bmp == surface))
-    { }
+    if (bitmap->_transparency >= 255); // fully transparent, do nothing
+    if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_transparency == 0));
     else if (bitmap->_opaque)
     {
         surface->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
-    }
-    else if (bitmap->_transparency >= 255)
-    {
-      // fully transparent... invisible, do nothing
+        // TODO: we need to also support non-masked translucent blend, but...
+        // Allegro 4 **does not have such function ready** :( (only masked blends, where it skips magenta pixels);
+        // I am leaving this problem for the future, as coincidentally software mode does not need this atm.
     }
     else if (bitmap->_hasAlpha)
     {
-      if (bitmap->_transparency == 0) // this means opaque
+      if (bitmap->_transparency == 0) // no global transparency, simple alpha blend
         set_alpha_blender();
       else
         // here _transparency is used as alpha (between 1 and 254)

@@ -1782,7 +1782,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
-  IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
+  IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);
   delete blackSquare;
 
   BeginSpriteBatch(_srcRect, SpriteTransform());
@@ -1838,7 +1838,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear();
-  IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
+  IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);
   delete blackSquare;
 
   BeginSpriteBatch(_srcRect, SpriteTransform());

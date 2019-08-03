@@ -237,7 +237,7 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
     if (fx.DDB == nullptr)
     {
         fx.Raw = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
-        fx.DDB = CreateDDBFromBitmap(fx.Raw, false, false);
+        fx.DDB = CreateDDBFromBitmap(fx.Raw, false, true);
     }
     if (r != fx.Red || g != fx.Green || b != fx.Blue)
     {

@@ -52,7 +52,7 @@ RUN curl -OJ https://download.microsoft.com/download/3/3/f/33f1af6e-c61b-4f14-a0
   del %TEMP%\dxsdk_aug2007.exe dxsdk_aug2007.exe
 
 ARG ALLEGRO_REPO=morganwillcock/lib-allegro
-ARG ALLEGRO_RELEASES="v4.4.2-ags-13 v4.4.2-ags-14"
+ARG ALLEGRO_RELEASES="v4.4.3-ags-1 v4.4.3-ags-2"
 RUN for %a in (%ALLEGRO_RELEASES%) do \
   mkdir Source\Allegro\%a && \
   curl -fLSs "https://github.com/%ALLEGRO_REPO%/archive/%a.tar.gz" | tar -f - -xvzC Source\Allegro\%a --strip-components 1 && \

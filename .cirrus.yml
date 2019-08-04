@@ -6,7 +6,7 @@ build_windows_task:
     matrix:
       - BUILD_CONFIG: Release
       - BUILD_CONFIG: Debug
-    ALLEGRO_RELEASE: v4.4.2-ags-14
+    ALLEGRO_RELEASE: v4.4.3-ags-2
     AGS_DIRECTX_LIB: C:\Lib\DirectX
     AGS_LIBOGG_LIB: C:\Lib\Xiph
     AGS_LIBTHEORA_LIB: C:\Lib\Xiph
@@ -108,7 +108,7 @@ build_editor_task:
     matrix:
       - BUILD_CONFIG: Release
       - BUILD_CONFIG: Debug
-    ALLEGRO_RELEASE: v4.4.2-ags-14
+    ALLEGRO_RELEASE: v4.4.3-ags-2
     AGS_DIRECTX_LIB: C:\Lib\DirectX
   nuget_packages_cache:
     folder: Solutions\packages
@@ -132,7 +132,7 @@ linux_packaging_task:
   freebsd_instance:
     image: freebsd-12-0-release-amd64
   env:
-    ALLEGRO_RELEASE: v4.4.3-ags-1
+    ALLEGRO_RELEASE: v4.4.3-ags-2
   package_script: |
     tmp=/tmp/bundle$$
     mkdir -p $tmp/data

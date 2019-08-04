@@ -1059,8 +1059,7 @@ bool DialogOptions::Run()
 void DialogOptions::Close()
 {
   ags_clear_input_buffer();
-  //leave_real_screen();
-  construct_virtual_screen(true);
+  invalidate_screen();
 
   if (parserActivated) 
   {

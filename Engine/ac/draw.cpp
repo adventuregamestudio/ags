@@ -845,8 +845,7 @@ void write_screen() {
 
 void draw_screen_callback()
 {
-    construct_virtual_screen(false);
-
+    construct_game_scene();
     render_black_borders(play.GetMainViewport().Left, play.GetMainViewport().Top);
 }
 
@@ -2522,7 +2521,7 @@ static void construct_misc_view()
     draw_misc_info();
 }
 
-void construct_virtual_screen(bool fullRedraw) 
+void construct_game_scene(bool full_redraw)
 {
     gfxDriver->ClearDrawLists();
 
@@ -2540,7 +2539,7 @@ void construct_virtual_screen(bool fullRedraw)
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 
     // Possible reasons to invalidate whole screen for the software renderer
-    if (fullRedraw || play.screen_tint > 0)
+    if (full_redraw || play.screen_tint > 0)
         invalidate_screen();
 
     // TODO: move to game update! don't call update during rendering pass!
@@ -2580,21 +2579,12 @@ void construct_virtual_screen(bool fullRedraw)
 
     // Stage 3: auxiliary info
     construct_misc_view();
-
-    if (fullRedraw)
-    {
-        // ensure the virtual screen is reconstructed
-        // in case we want to take any screenshots before
-        // the next game loop
-        if (gfxDriver->UsesMemoryBackBuffer())
-            gfxDriver->RenderToBackBuffer();
-    }
 }
 
 // Draw everything 
 void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
 
-    construct_virtual_screen(false);
+    construct_game_scene(false);
     our_eip=5;
 
     if (extraBitmap != nullptr) {

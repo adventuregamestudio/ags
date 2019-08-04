@@ -268,7 +268,8 @@ void process_event(EventHappened*evp) {
                 // We put temporary bitmap as a new backbuffer for the transition period, and
                 // will be drawing saved image of the game over to that backbuffer, simulating "box-out".
                 set_palette_range(palette, 0, 255, 0);
-                construct_virtual_screen(true);
+                construct_game_scene(true);
+                gfxDriver->RenderToBackBuffer();
                 Bitmap *saved_backbuf = gfxDriver->GetMemoryBackBuffer();
                 Bitmap *temp_scr = new Bitmap(saved_backbuf->GetWidth(), saved_backbuf->GetHeight(), saved_backbuf->GetColorDepth());
                 gfxDriver->SetMemoryBackBuffer(temp_scr);

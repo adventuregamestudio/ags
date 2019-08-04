@@ -325,8 +325,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_DISABLE);
         remove_screen_overlay(OVER_TEXTMSG);
-
-        construct_virtual_screen(true);
+        invalidate_screen();
     }
     else {
         // if the speech does not time out, but we are skipping a cutscene,

@@ -778,8 +778,7 @@ void render_to_screen(int atx, int aty)
     if(pl_any_want_hook(AGSE_FINALSCREENDRAW))
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
 
-    // only vsync in full screen mode, it makes things worse
-    // in a window
+    // only vsync in full screen mode, it makes things worse in a window
     gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (!scsystem.windowed));
 
     bool succeeded = false;
@@ -813,35 +812,6 @@ void clear_letterbox_borders()
     gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
     gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
 }
-
-// writes the virtual screen to the screen, converting colours if
-// necessary
-void write_screen() {
-
-    if (play.fast_forward)
-        return;
-
-    int at_yp = 0;
-
-    if (play.shakesc_length > 0) {
-        wasShakingScreen = 1;
-        if ( (loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2) )
-            at_yp = data_to_game_coord(play.shakesc_amount);
-        invalidate_screen();
-    }
-    else if (wasShakingScreen) {
-        wasShakingScreen = 0;
-
-        if (!gfxDriver->RequiresFullRedrawEachFrame())
-        {
-            clear_letterbox_borders();
-        }
-    }
-
-    render_to_screen(0, at_yp);
-}
-
-
 
 void draw_screen_callback()
 {
@@ -2342,112 +2312,6 @@ void GfxDriverOnInitCallback(void *data)
     pl_run_plugin_init_gfx_hooks(gfxDriver->GetDriverID(), data);
 }
 
-
-
-
-// update_screen: copies the contents of the virtual screen to the actual
-// screen, and draws the mouse cursor on.
-void update_screen() {
-    // cos hi-color doesn't fade in, don't draw it the first time
-    if ((in_new_room > 0) & (game.color_depth > 1))
-        return;
-
-    if(pl_any_want_hook(AGSE_POSTSCREENDRAW))
-        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
-
-    // update animating mouse cursor
-    if (game.mcurs[cur_cursor].view>=0) {
-        ags_domouse(DOMOUSE_NOCURSOR);
-        // only on mousemove, and it's not moving
-        if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE)!=0) &&
-            (mousex==lastmx) && (mousey==lastmy)) ;
-        // only on hotspot, and it's not on one
-        else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT)!=0) &&
-            (GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey)) == 0))
-            set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
-        else if (mouse_delay>0) mouse_delay--;
-        else {
-            int viewnum=game.mcurs[cur_cursor].view;
-            int loopnum=0;
-            if (loopnum >= views[viewnum].numLoops)
-                quitprintf("An animating mouse cursor is using view %d which has no loops", viewnum + 1);
-            if (views[viewnum].loops[loopnum].numFrames < 1)
-                quitprintf("An animating mouse cursor is using view %d which has no frames in loop %d", viewnum + 1, loopnum);
-
-            mouse_frame++;
-            if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
-                mouse_frame=0;
-            set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
-            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + 5;
-            CheckViewFrame (viewnum, loopnum, mouse_frame);
-        }
-        lastmx=mousex; lastmy=mousey;
-    }
-
-    // draw the debug console, if appropriate
-    if ((play.debug_mode > 0) && (display_console != 0)) 
-    {
-        //int otextc = ds->GetTextColor();
-        int ypp = 1;
-        int txtspacing= getfontspacing_outlined(0);
-        int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
-
-        const Rect &viewport = play.GetMainViewport();
-        if (debugConsoleBuffer == nullptr)
-        {
-            debugConsoleBuffer = BitmapHelper::CreateBitmap(viewport.GetWidth(), barheight,game.GetColorDepth());
-            debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
-        }
-
-        color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);
-        debugConsoleBuffer->FillRect(Rect (0, 0, viewport.GetWidth() - 1, barheight), draw_color);
-        color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
-        for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
-            wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
-            ypp += txtspacing;
-        }
-
-        if (debugConsole == nullptr)
-            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
-        else
-            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
-
-        gfxDriver->DrawSprite(0, 0, debugConsole);
-        invalidate_sprite(0, 0, debugConsole, false);
-    }
-
-    ags_domouse(DOMOUSE_NOCURSOR);
-
-    if (!play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
-    {
-        gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
-        invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
-    }
-
-    /*
-    ags_domouse(DOMOUSE_ENABLE);
-    // if the cursor is hidden, remove it again. However, it needs
-    // to go on-off in order to update the stored mouse coordinates
-    if (play.mouse_cursor_hidden)
-    ags_domouse(DOMOUSE_DISABLE);*/
-
-    write_screen();
-
-    if (!play.screen_is_faded_out) {
-        // always update the palette, regardless of whether the plugin
-        // vetos the screen update
-        if (bg_just_changed) {
-            setpal ();
-            bg_just_changed = 0;
-        }
-    }
-
-    //if (!play.mouse_cursor_hidden)
-    //    ags_domouse(DOMOUSE_DISABLE);
-
-    screen_is_dirty = false;
-}
-
 // Schedule room rendering: background, objects, characters
 static void construct_room_view()
 {
@@ -2581,8 +2445,92 @@ void construct_game_scene(bool full_redraw)
     construct_misc_view();
 }
 
+void construct_game_screen_overlay()
+{
+    if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
+        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
+
+    // TODO: find out if it's okay to move cursor animation and state update
+    // to the update loop instead of doing it in the drawing routine
+
+    // update animating mouse cursor
+    if (game.mcurs[cur_cursor].view >= 0) {
+        ags_domouse(DOMOUSE_NOCURSOR);
+        // only on mousemove, and it's not moving
+        if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
+            (mousex == lastmx) && (mousey == lastmy));
+        // only on hotspot, and it's not on one
+        else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT) != 0) &&
+            (GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey)) == 0))
+            set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
+        else if (mouse_delay>0) mouse_delay--;
+        else {
+            int viewnum = game.mcurs[cur_cursor].view;
+            int loopnum = 0;
+            if (loopnum >= views[viewnum].numLoops)
+                quitprintf("An animating mouse cursor is using view %d which has no loops", viewnum + 1);
+            if (views[viewnum].loops[loopnum].numFrames < 1)
+                quitprintf("An animating mouse cursor is using view %d which has no frames in loop %d", viewnum + 1, loopnum);
+
+            mouse_frame++;
+            if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
+                mouse_frame = 0;
+            set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
+            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + 5;
+            CheckViewFrame(viewnum, loopnum, mouse_frame);
+        }
+        lastmx = mousex; lastmy = mousey;
+    }
+
+    ags_domouse(DOMOUSE_NOCURSOR);
+
+    if (!play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
+    {
+        gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
+        invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
+    }
+}
+
+void construct_engine_overlay()
+{
+    // draw the debug console, if appropriate
+    if ((play.debug_mode > 0) && (display_console != 0))
+    {
+        //int otextc = ds->GetTextColor();
+        int ypp = 1;
+        int txtspacing = getfontspacing_outlined(0);
+        int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
+
+        const Rect &viewport = play.GetMainViewport();
+        if (debugConsoleBuffer == nullptr)
+        {
+            debugConsoleBuffer = BitmapHelper::CreateBitmap(viewport.GetWidth(), barheight, game.GetColorDepth());
+            debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
+        }
+
+        color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);
+        debugConsoleBuffer->FillRect(Rect(0, 0, viewport.GetWidth() - 1, barheight), draw_color);
+        color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
+        for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
+            wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
+            ypp += txtspacing;
+        }
+
+        if (debugConsole == nullptr)
+            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
+        else
+            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
+
+        gfxDriver->DrawSprite(0, 0, debugConsole);
+        invalidate_sprite(0, 0, debugConsole, false);
+    }
+}
+
 // Draw everything 
 void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
+
+    if (play.fast_forward)
+        return;
 
     construct_game_scene(false);
     our_eip=5;
@@ -2592,5 +2540,34 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
     }
 
-    update_screen();
+    construct_game_screen_overlay();
+    construct_engine_overlay();
+
+    int at_yp = 0;
+    if (play.shakesc_length > 0) {
+        wasShakingScreen = 1;
+        if ((loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2))
+            at_yp = data_to_game_coord(play.shakesc_amount);
+        invalidate_screen();
+    }
+    else if (wasShakingScreen) {
+        wasShakingScreen = 0;
+
+        if (!gfxDriver->RequiresFullRedrawEachFrame())
+        {
+            clear_letterbox_borders();
+        }
+    }
+    render_to_screen(0, at_yp);
+
+    if (!play.screen_is_faded_out) {
+        // always update the palette, regardless of whether the plugin
+        // vetos the screen update
+        if (bg_just_changed) {
+            setpal();
+            bg_just_changed = 0;
+        }
+    }
+
+    screen_is_dirty = false;
 }

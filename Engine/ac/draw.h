@@ -99,11 +99,14 @@ void invalidate_cached_walkbehinds();
 // Avoid freeing and reallocating the memory if possible
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
 Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *bimp, Common::Bitmap *source, bool hasAlpha = false, bool opaque = false);
-void update_screen();
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 // Construct game scene, scheduling drawing list for the renderer
 void construct_game_scene(bool full_redraw = false);
+// Construct final game screen elements; updates and draws mouse cursor
+void construct_game_screen_overlay();
+// Construct engine overlay with debugging tools (fps, console)
+void construct_engine_overlay();
 void add_to_sprite_list(Engine::IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
 void draw_sprite_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Common::Bitmap *image, bool src_has_alpha,
@@ -115,7 +118,6 @@ void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_al
 // Render game on screen with the given custom offset
 void render_to_screen(int atx = 0, int aty = 0);
 void draw_screen_callback();
-void write_screen();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);

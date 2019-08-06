@@ -17,6 +17,11 @@ build_windows_task:
     set "AGS_ALLEGRO_LIB=C:\Lib\Allegro\%ALLEGRO_RELEASE%" &&
     cd Solutions &&
     msbuild Engine.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
+  engine_pdb_artifacts:
+    path: Solutions/.build/*/*.pdb
+  delete_engine_pdb_script: >
+    cd Solutions/.build &&
+    del /s *.pdb *.map *.ilk *.iobj *.ipdb
   binaries_artifacts:
     path: Solutions/.build/*/*
 
@@ -123,6 +128,13 @@ build_editor_task:
     cd Solutions &&
     cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\8.0\Lib\Win8\um\x86;!LIB!" &&
     msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform="Mixed Platforms" /maxcpucount /nologo"
+  ags_editor_pdb_artifacts:
+    path: Solutions/.build/*/*.pdb
+  ags_native_pdb_artifacts:
+    path: Editor/AGS.Native/*/AGS.Native.pdb
+  delete_editor_pdb_script: >
+    cd Solutions/.build &&
+    del /s *.pdb
   binaries_artifacts:
     path: Solutions/.build/*/*
 

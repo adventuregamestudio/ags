@@ -37,7 +37,7 @@ TEST(SymbolTable, GetNameFlags) {
     EXPECT_STREQ("foo[]", testSym.get_name(foo_sym | kVTY_DynArray));
 
    // pointer
-    EXPECT_STREQ("foo*", testSym.get_name(foo_sym | kVTY_DynPointer));
+    EXPECT_STREQ("foo*", testSym.get_name(foo_sym | kVTY_Managed));
 
 
     int bar_sym = testSym.add_ex("bar", kSYM_NoType, 0);
@@ -46,10 +46,10 @@ TEST(SymbolTable, GetNameFlags) {
     EXPECT_STREQ("const bar[]", testSym.get_name(bar_sym | kVTY_Const | kVTY_DynArray));
 
     // const pointer
-    EXPECT_STREQ("const bar*", testSym.get_name(bar_sym | kVTY_Const | kVTY_DynPointer));
+    EXPECT_STREQ("const bar*", testSym.get_name(bar_sym | kVTY_Const | kVTY_Managed));
 
     // const dynarray/pointer
-    EXPECT_STREQ("const bar*[]", testSym.get_name(bar_sym | kVTY_Const | kVTY_DynArray | kVTY_DynPointer));
+    EXPECT_STREQ("const bar*[]", testSym.get_name(bar_sym | kVTY_Const | kVTY_DynArray | kVTY_Managed));
 }
 
 
@@ -71,10 +71,10 @@ TEST(SymbolTable, GetNameNonExistentFlags) {
     EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_DynArray));
 
     // dynarray + pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_DynArray | kVTY_DynPointer));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_DynArray | kVTY_Managed));
 
     // pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_DynPointer));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Managed));
 
     // combinations
     // -------------------
@@ -83,10 +83,10 @@ TEST(SymbolTable, GetNameNonExistentFlags) {
     EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_DynArray));
 
     // const pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_DynPointer));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_Managed));
 
     // const dynarray/pointer
-    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_DynArray | kVTY_DynPointer));
+    EXPECT_STREQ("(invalid symbol)", testSym.get_name(no_exist_sym | kVTY_Const | kVTY_DynArray | kVTY_Managed));
 }
 
 TEST(SymbolTable, AddExAlreadyExists) {

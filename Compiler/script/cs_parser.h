@@ -393,16 +393,21 @@ private:
     // (any will do that doesn't cause underflow of the subtraction).
     inline int MathPrio(Symbol op) const { return 100 - _sym.entries.at(op).ssize; };
 
-    // If the vartype implies that it must be a dynpointer, then set it to be dynpointer
-    Vartype DeduceDynPointerness(Vartype vty);
-
     bool IsIdentifier(Symbol symb);
 
     bool IsPrimitiveVartype(Symbol symbl);
 
     bool Parser::IsAnyTypeOfString(Vartype symtype);
 
-    bool Parser::IsDynpointerVartype(Vartype vartype);
+    bool IsOldstring(Vartype vartype);
+
+    bool Parser::IsManagedVartype(Vartype vartype);
+
+    inline Symbol Vartype2Symbol(Vartype vartype) { return vartype & kVTY_FlagMask; };
+
+    size_t Vartype2Size(Vartype vartype);
+
+    void SetManagedInVartype(Vartype &vartype);
 
     // Combine the arguments to stname::component, get the symbol for that
     Symbol MangleStructAndComponent(Symbol stname, Symbol component);
@@ -469,7 +474,7 @@ private:
     // process a dynamic array declaration, when present
     // We have accepted something like "int foo" and we might expect a trailing "[]" here
     // Return values:  0 -- not an array, 1 -- an array, -1 -- error occurred
-    int ParseParamlist_Param_DynArrayMarker(Symbol typeSym, bool isPointer);
+    int ParseDynArrayMarkerIfPresent(Vartype &vartype);
 
     // Copy so that the forward decl can be compared afterwards to the real one     
     int CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &known_info);
@@ -479,22 +484,23 @@ private:
     // We'll accept something like "this Character *"
     int ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &name_of_func, Symbol &struct_of_func);
 
-    int ParseParamlist_ParamType(Symbol param_vartype, bool &param_is_ptr);
+    // In a parameter list, process the vartype of a parameter declaration
+    int ParseParamlist_ParamType(Vartype &vartype);
 
     // We're accepting a parameter list. We've accepted something like "int".
     // We accept a param name such as "i" if present
     int ParseParamlist_Param_Name(bool body_follows, Symbol &param_name);
 
-    void ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, int param_idx);
+    void ParseParamlist_Param_AsVar2Sym(Symbol param_name, Vartype param_type, bool param_is_const, int param_idx);
 
-    void ParseParamlist_Param_Add2Func(Symbol name_of_func, int param_idx, Symbol param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, bool param_has_int_default, int param_int_default);
+    void ParseParamlist_Param_Add2Func(Symbol name_of_func, int param_idx, Symbol param_type, bool param_is_const, bool param_has_int_default, int param_int_default);
 
     // process a parameter decl in a function parameter list, something like int foo(INT BAR
-    int ParseParamlist_Param(Symbol name_of_func, bool body_follows, Symbol param_type, bool param_is_const, int param_idx);
+    int ParseParamlist_Param(Symbol name_of_func, bool body_follows, Vartype vartype, bool param_is_const, int param_idx);
 
     int ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows, int &numparams);
 
-    void ParseFuncdecl_SetFunctype(SymbolTableEntry &entry, int return_type, bool func_returns_dynpointer, bool func_returns_dynarray, bool func_is_static, bool func_is_protected, int numparams);
+    void ParseFuncdecl_SetFunctype(SymbolTableEntry &entry, Vartype return_type, bool func_is_static, bool func_is_protected, int numparams);
 
     int ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info);
 
@@ -510,14 +516,12 @@ private:
 
     // We're at something like "int foo(", directly before the "("
     // This might or might not be within a struct defn
-    int ParseFuncdecl(Symbol &name_of_func, int return_type, bool func_returns_dynpointer, bool func_returns_dynarray, TypeQualifierSet tqs, Symbol &struct_of_func, bool &body_follows);
+    int ParseFuncdecl(Symbol &name_of_func, Vartype return_vartype, TypeQualifierSet tqs, Symbol &struct_of_func, bool &body_follows);
 
     // return the index of the lowest MATHEMATICAL priority operator in the list,
     // so that either side of it can be evaluated first.
     // returns -1 if no operator was found
     int IndexOfLowestBondingOperator(SymbolScript slist, size_t slist_len);
-
-    bool IsOldstring(Vartype vartype);
 
     // Change the generic operator vcpuOp to the one that is correct for the vartypes
     // Also check whether the operator can handle the types at all
@@ -534,7 +538,7 @@ private:
 
     // If we need a StringStruct but AX contains a string, 
     // then convert AX into a String object and set its type accordingly
-    void ConvertAXStringToStringObject(Vartype vartype_wanted);
+    void ConvertAXStringToStringObject(Vartype wanted_vartype);
 
     int GetReadCommandForSize(int the_size);
 
@@ -702,12 +706,12 @@ private:
     int ParseVardecl_InitialValAssignment(Symbol varname, void *&initial_val_ptr);
 
     // Move variable information into the symbol table
-    void ParseVardecl_Var2SymTable(int var_name, Globalness is_global, bool is_dynpointer, int size_of_defn, Vartype vartype);
+    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, Globalness is_global, size_t size_of_defn, size_t arrsize);
 
     // we have accepted something like "int a" and we're expecting "["
-    int ParseVardecl_Array(Symbol var_name, Vartype vartype, size_t &size_of_defn);
+    int ParseVardecl_Array(Symbol var_name, Vartype &vartype, size_t &size_of_defn, size_t &arrsize);
 
-    int ParseVardecl_CheckIllegalCombis(Vartype vartype, bool is_dynpointer, Globalness is_global);
+    int ParseVardecl_CheckIllegalCombis(Vartype vartype, Globalness is_global);
 
     // there was a forward declaration -- check that the real declaration matches it
     int ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info);
@@ -718,9 +722,9 @@ private:
 
     int ParseVardecl_Local(Symbol var_name, size_t size_of_defn, bool has_initial_assignment);
 
-    int ParseVardecl0(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool is_dynpointer, bool &another_var_follows);
+    int ParseVardecl0(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows);
 
-    int ParseVardecl(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness is_global, bool is_dynpointer, bool &another_var_follows);
+    int ParseVardecl(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness is_global, bool &another_var_follows);
 
     void ParseOpenbrace_FuncBody(Symbol name_of_func, int struct_of_func, bool is_noloopcheck, NestingStack *nesting_stack);
 
@@ -739,12 +743,12 @@ private:
 
     void ParseStruct_MemberQualifiers(TypeQualifierSet &tqs);
 
-    int ParseStruct_CheckComponentVartype(int stname, Symbol vartype, bool member_is_import);
+    int ParseStruct_CheckComponentVartype(int stname, Vartype vartype, bool member_is_import);
 
     // check that we haven't extended a struct that already contains a member with the same name
     int ParseStruct_CheckForCompoInAncester(Symbol orig, Symbol compo, Symbol act_struct);
 
-    int ParseStruct_Function(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname, Symbol name_of_current_func, bool type_is_dynpointer, bool isDynamicArray);
+    int ParseStruct_Function(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname, Symbol name_of_current_func);
 
     int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, Vartype vartype);
 
@@ -761,11 +765,13 @@ private:
     int ParseStruct_Array(Symbol stname, Symbol vname, size_t &size_so_far);
 
     // We're inside a struct decl, processing a member variable
-    int ParseStruct_VariableOrAttribute(TypeQualifierSet tqs, Vartype curtype, bool type_is_dynpointer, Symbol stname, Symbol vname, size_t &size_so_far);
+    int ParseStruct_VariableOrAttribute(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname, size_t &size_so_far);
 
     // We have accepted something like "struct foo extends bar { const int".
     // We're waiting for the name of the member.
-    int ParseStruct_MemberDefnVarOrFuncOrArray(Symbol parent, Symbol stname, Symbol current_func, TypeQualifierSet tqs, Vartype curtype, bool type_is_dynpointer, size_t &size_so_far);
+    int ParseStruct_MemberDefnVarOrFuncOrArray(Symbol parent, Symbol stname, Symbol current_func, TypeQualifierSet tqs, Vartype vartype, size_t &size_so_far);
+
+    int EatPointerSymbolIfPresent(Vartype vartype);
 
     int ParseStruct_MemberStmt(Symbol stname, Symbol name_of_current_func, Symbol parent, size_t &size_so_far);
 
@@ -791,14 +797,16 @@ private:
 
     int ParseVartype_CheckForIllegalContext(NestingStack *nesting_stack);
 
-    int ParseVartype_CheckIllegalCombis(bool is_function, bool is_member_definition, TypeQualifierSet tqs);
+    int ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet tqs);
 
-    int ParseVartype_FuncDef(Symbol &func_name, Symbol vartype, bool isPointer, bool isDynamicArray, TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+    int ParseVartype_FuncDef(Symbol &func_name, Vartype vartype, TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
-    int ParseVartype_VarDecl(Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, Symbol vartype, SymbolType next_type, bool isPointer, bool &another_var_follows);
+    int ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness is_global, bool & another_var_follows);
+
+    int ParseVartype_VarDecl(Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, Vartype vartype, SymbolType next_type, bool &another_var_follows);
 
     // We accepted a variable type such as "int", so what follows is a function or variable definition
-    int ParseVartype0(Symbol vartype, NestingStack *nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func, bool &noloopcheck_is_set);
+    int ParseVartype0(Vartype vartype, NestingStack *nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func, bool &noloopcheck_is_set);
 
     int ParseCommand_EndOfDoIfElse(NestingStack *nesting_stack);
 

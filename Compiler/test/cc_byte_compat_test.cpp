@@ -6741,25 +6741,25 @@ TEST(Bytecode, StringStandardOldstyle) {
 
     // WriteOutput("StringStandardOldstyle", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 119;
+    const size_t codesize = 113;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    2,            0,    7,    3,   64,    // 7
        3,   31,    3,    6,            3,    0,    5,   38,    // 15
       15,   51,    8,    7,            3,   50,    3,   51,    // 23
-       8,    3,    2,    3,           29,    3,   51,    4,    // 31
-      50,    3,   51,   12,           49,   51,    4,   48,    // 39
-       3,   69,   30,    4,           31,    6,   51,    8,    // 47
-      49,    6,    3,    0,            5,   38,   53,    6,    // 55
-       3,    6,   64,    3,           29,    3,    6,    3,    // 63
-      15,   23,    3,    2,            1,    4,    6,    3,    // 71
-       0,    5,   38,   74,           51,    0,   63,    4,    // 79
-       1,    1,    4,    6,            3,    6,   51,    4,    // 87
-      64,    3,   47,    3,           51,    4,    3,    2,    // 95
-       3,   67,    3,   29,            3,    6,    3,   53,    // 103
-      23,    3,    2,    1,            4,   51,    4,   49,    // 111
-       2,    1,    4,    6,            3,    0,    5,  -999
+       8,   48,    3,   29,            3,   51,    4,   50,    // 31
+       3,   51,   12,   49,           51,    4,   48,    3,    // 39
+      69,   30,    4,   31,            6,   51,    8,   49,    // 47
+       6,    3,    0,    5,           38,   52,    6,    3,    // 55
+       6,   64,    3,   29,            3,    6,    3,   15,    // 63
+      23,    3,    2,    1,            4,    6,    3,    0,    // 71
+       5,   38,   73,   51,            0,   63,    4,    1,    // 79
+       1,    4,    6,    3,            6,   51,    4,   64,    // 87
+       3,   47,    3,   51,            4,   29,    2,    6,    // 95
+       3,   52,   23,    3,            2,    1,    4,   51,    // 103
+       4,   49,    2,    1,            4,    6,    3,    0,    // 111
+       5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -6776,7 +6776,7 @@ TEST(Bytecode, StringStandardOldstyle) {
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-       4,   57,   64,   85,        103,  -999
+       4,   56,   63,   84,         97,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -7480,46 +7480,26 @@ TEST(Bytecode, DynArrayOfPrimitives) {
     WriteOutput("DynArrayOfPrimitives", scrip);
 }
 
-TEST(Bytecode, _TEST_) {
+
+TEST(Bytecode, FloatExpr3) {
     ccCompiledScript *scrip = newScriptFixture();
 
-    // Pointers in assignments and comparisons
+    // Dynamic arrays of primitives are allowed.
 
     char *inpl = "\
-        builtin managed struct Object {     \n\
-        };                                  \n\
-        builtin managed struct Character    \n\
-        {                                   \n\
-            import int FaceObject(Object*, int BlockingStyle = 919);    \n\
-        };                                  \n\
-        import readonly Character *player;  \n\
-        import Object oTestObject;          \n\
-                                            \n\
-        int room_AfterFadeIn()              \n\
-        {                                   \n\
-            player.FaceObject(oTestObject); \n\
-        }                                   \n\
+        float Foo()             \n\
+        {                       \n\
+            int f = 3;          \n\
+            int g = 5;          \n\
+            int z = f + g;       \n\
+            z = f + 11;         \n\
+            z = 11 + f;         \n\
+        }                       \n\
     ";
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("_TEST_", scrip);
-}
-
-TEST(_TestIt, _TestIt) {
-    ccCompiledScript *scrip = newScriptFixture();
-
-    std::string infilename = "_1564154997_16.asc";
-    std::string inpath = "C:/TEMP/" + infilename;
-    std::ifstream t(inpath);
-    std::string input((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-
-    clear_error();
-
-    int compileResult = cc_compile(input.c_str(), scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string outfilename = infilename + "R";
-    WriteOutput((char *)outfilename.c_str(), scrip);
+    WriteOutput("FloatExpr3", scrip);
 }

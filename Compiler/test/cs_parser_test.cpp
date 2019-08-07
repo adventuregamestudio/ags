@@ -345,7 +345,7 @@ TEST(Compile, ImportFunctionReturningDynamicArray) {
 
     clear_error();
     int compileResult = cc_compile(inpl, scrip);
-    ASSERT_EQ(0, compileResult);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     int funcidx;
     funcidx = sym.find("A::MyFunc");
@@ -1524,11 +1524,11 @@ TEST(Compile, StructPtrFunc) {
     // so ought to be let through.
 
     char *inpl = "\
-        managed struct ManagedStruct {                  \n\
-            ManagedStruct *Func();                      \n\
-        };                                              \n\
-        ManagedStruct *ManagedStruct::Func()            \n\
-        {}                                              \n\
+        managed struct MS {     \n\
+            MS *Func();         \n\
+        };                      \n\
+        MS *MS::Func()          \n\
+        {}                      \n\
         ";
 
     clear_error();
@@ -1710,6 +1710,56 @@ TEST(Compile, Attributes06) {
             int DialogOptionYPos[];                                 \n\
             DialogOptionYPos = new int[info.DialogToRender.OptionCount+2];  \n\
         }                                                           \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST(Compile, Decl) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Should complain about not being: , or ; or =
+
+    char *inpl = "\
+        int main()          \n\
+        {                   \n\
+            int Sum +=4;    \n\
+        }                   \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    std::string lsce = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : lsce.c_str());
+    ASSERT_NE(std::string::npos, lsce.find_first_of(','));
+    ASSERT_NE(std::string::npos, lsce.find_first_of(';'));
+    ASSERT_NE(std::string::npos, lsce.find_first_of('='));
+}
+
+TEST(Compile, DynamicArrayCompare)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // May compare DynArrays for equality.
+    // The pointers, not the array components are compared.
+    // May have a '*' after a struct defn.
+        
+    char *inpl = "\
+        managed struct Struct               \n\
+        {                                   \n\
+        } *Arr1[];                          \n\
+        Struct Arr2[];                      \n\
+        int room_AfterFadeIn()              \n\
+        {                                   \n\
+            int Compare1 = (Arr1 != null);  \n\
+            int Compare2 =                  \n\
+                (Arr1 == new Struct[10]);   \n\
+            int Compare3 = (Arr1 == Arr2);  \n\
+        }                                   \n\
     ";
 
     clear_error();

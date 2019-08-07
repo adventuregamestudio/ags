@@ -82,19 +82,6 @@ extern int currentline;
 
 char ccCopyright[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2019 others";
 
-AGS::Vartype AGS::Parser::DeduceDynPointerness(AGS::Vartype vty)
-{
-    if (FlagIsSet(vty, kVTY_Array)) return vty;  // can't be DynPointer
-    if (FlagIsSet(vty, kVTY_DynArray | kVTY_DynPointer)) return vty; // must be DynPointer
-    
-    AGS::Flags const flags = GetSymbolTableEntryAnyPhase(vty & kVTY_FlagMask).flags;
-
-    // Note: Don't bother with Autoptr, it doesn't signify more than Managed does
-    if (FlagIsSet(flags, kSFLG_Managed))
-        SetFlag(vty, kVTY_DynPointer, true);
-    return vty;
-}
-
 bool AGS::Parser::IsIdentifier(AGS::Symbol symb)
 {
     if (symb <= _sym.getLastPredefSym() || symb > static_cast<int>(_sym.entries.size()))
@@ -156,7 +143,7 @@ bool AGS::Parser::IsAnyTypeOfString(AGS::Vartype symtype)
     if (_sym.getOldStringSym() == (symtype & ~kVTY_Const))
         return true;
     if (0 != symtype &&
-        _sym.getStringStructSym() == (symtype & ~kVTY_DynPointer & ~kVTY_Const))
+        _sym.getStringStructSym() == (symtype & ~kVTY_Managed & ~kVTY_Const))
         return true;
     return false;
 }
@@ -544,11 +531,29 @@ AGS::Parser::Parser(SymbolTable &symt, ::ccInternalList &targ, ::ccCompiledScrip
     _sym1.clear();
 }
 
-bool AGS::Parser::IsDynpointerVartype(AGS::Vartype vartype)
+bool AGS::Parser::IsManagedVartype(AGS::Vartype vartype)
 {
     return
         FlagIsSet(vartype, kVTY_DynArray) ||
-        (FlagIsSet(vartype, kVTY_DynPointer) && !FlagIsSet(vartype, kVTY_Array));
+        (FlagIsSet(vartype, kVTY_Managed) && !FlagIsSet(vartype, kVTY_Array));
+}
+
+size_t AGS::Parser::Vartype2Size(AGS::Vartype vartype)
+{
+    if (_sym.getOldStringSym() == vartype)
+        return OLDSTRING_LENGTH;
+    if (IsManagedVartype(vartype))
+        return SIZE_OF_DYNPOINTER;
+    // TODO: This won't work with static arrays yet
+    return(GetSymbolTableEntryAnyPhase(Vartype2Symbol(vartype)).ssize);
+}
+
+void AGS::Parser::SetManagedInVartype(Vartype &vartype)
+{
+    if (FlagIsSet(
+            GetSymbolTableEntryAnyPhase(Vartype2Symbol(vartype)).flags,
+            kSFLG_Managed))
+        SetFlag(vartype, kVTY_Managed, true);
 }
 
 // true if the symbol is "int" and the like.
@@ -580,7 +585,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
         }
 
         // Calculate the size of one var of the given type
-        size_t ssize = _sym.entries.at(entries_idx).ssize;
+        size_t ssize = _sym[entries_idx].ssize;
         if (FlagIsSet(_sym.get_flags(entries_idx), kSFLG_StrBuffer))
             ssize += OLDSTRING_LENGTH;
 
@@ -598,10 +603,10 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
 // Also determines whether vartype contains standard (non-dynamic) arrays.
 bool AGS::Parser::ContainsReleasablePointers(AGS::Vartype v)
 {
-    if (FlagIsSet(v, kVTY_DynArray) || FlagIsSet(v, kVTY_DynPointer))
+    if (FlagIsSet(v, kVTY_Managed))
         return true;
 
-    AGS::Vartype const coretype = (v & kVTY_FlagMask);
+    AGS::Vartype const coretype = Vartype2Symbol(v);
     if (!FlagIsSet(_sym.get_flags(coretype), kSFLG_StructType))
         return false; // primitive types can't have pointers
     for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
@@ -674,7 +679,7 @@ void AGS::Parser::FreePointersOfStruct(AGS::Symbol struct_vtype, bool &clobbers_
             _scrip.write_cmd2(SCMD_ADD, SREG_MAR, diff);
         offset_so_far = entry.soffs;
 
-        if (IsDynpointerVartype(entry.vartype))
+        if (IsManagedVartype(entry.vartype))
         {
             _scrip.write_cmd0(SCMD_MEMZEROPTR);
             continue;
@@ -684,8 +689,8 @@ void AGS::Parser::FreePointersOfStruct(AGS::Symbol struct_vtype, bool &clobbers_
             _scrip.push_reg(SREG_MAR);
         if (FlagIsSet(entry.vartype, kVTY_Array))
             FreePointersOfStdArray(entry, clobbers_ax);
-        else if (FlagIsSet(_sym.get_flags(entry.vartype & kVTY_FlagMask), kSFLG_StructType))
-            FreePointersOfStruct(entry.vartype & kVTY_FlagMask, clobbers_ax);
+        else if (FlagIsSet(_sym.get_flags(Vartype2Symbol(entry.vartype)), kSFLG_StructType))
+            FreePointersOfStruct(Vartype2Symbol(entry.vartype), clobbers_ax);
         if (compo_list.back() != *compo_it)
             _scrip.pop_reg(SREG_MAR);
     }
@@ -719,13 +724,13 @@ void AGS::Parser::FreePointersOfStdArray(SymbolTableEntry &entry, bool &clobbers
     if (entry.arrsize < 1)
         return;
 
-    if (FlagIsSet(entry.vartype, kVTY_DynPointer) || FlagIsSet(entry.vartype, kVTY_DynArray))
+    if (FlagIsSet(entry.vartype, kVTY_Managed))
     {
         FreePointersOfStdArrayOfPointer(entry.arrsize, clobbers_ax);
         return;
     }
 
-    AGS::Symbol const coretype = entry.vartype & kVTY_FlagMask;
+    AGS::Symbol const coretype = Vartype2Symbol(entry.vartype);
     if (!FlagIsSet(_sym.get_flags(coretype), kSFLG_StructType))
         return; // nothing to do
 
@@ -760,7 +765,7 @@ void AGS::Parser::FreePointersOfLocals0(int from_level, bool &clobbers_ax, bool 
 
         clobbers_mar = true;
         int const sp_offset = _scrip.cur_sp - entry.soffs;
-        if (IsDynpointerVartype(entry.vartype))
+        if (IsManagedVartype(entry.vartype))
         {
             // Simply release the pointer
             _scrip.write_cmd1(SCMD_LOADSPOFFS, sp_offset);
@@ -773,8 +778,8 @@ void AGS::Parser::FreePointersOfLocals0(int from_level, bool &clobbers_ax, bool 
 
         if (FlagIsSet(entry.vartype, kVTY_Array))
             FreePointersOfStdArray(entry, clobbers_ax);
-        else if (FlagIsSet(_sym.get_flags(entry.vartype), kSFLG_StructType))
-            FreePointersOfStruct(entry.vartype & kVTY_FlagMask, clobbers_ax);
+        else if (FlagIsSet(_sym.get_flags(Vartype2Symbol(entry.vartype)), kSFLG_StructType))
+            FreePointersOfStruct(Vartype2Symbol(entry.vartype), clobbers_ax);
     }
 }
 
@@ -791,8 +796,8 @@ int AGS::Parser::FreePointersOfLocals(int from_level, AGS::Symbol name_of_curren
     // We're ending the current function; AX is containing the result of the func call.
     AGS::Vartype const func_return_type = _sym.entries.at(name_of_current_func).funcparamtypes.at(0);
     bool const function_returns_void = _sym.getVoidSym() == func_return_type;
-    bool const function_returns_dynpointer = FlagIsSet(func_return_type, kVTY_DynPointer | kVTY_DynArray);
-    if (function_returns_dynpointer && !ax_irrelevant)
+
+    if (FlagIsSet(func_return_type, kVTY_Managed) && !ax_irrelevant)
     {
         // The return value AX might point to a local dynamic object. So if we
         // now free the dynamic references and we don't take precautions,
@@ -1106,40 +1111,20 @@ int AGS::Parser::ParseParamlist_Param_DefaultValue(bool &has_default_int, int &d
     return 0;
 }
 
-
-// process a dynamic array declaration, when present
-// We have accepted something like "int foo" and we might expect a trailing "[]" here
-// Return values:  0 -- not an array, 1 -- an array, -1 -- error occurred
-int AGS::Parser::ParseParamlist_Param_DynArrayMarker(AGS::Symbol typeSym, bool isPointer)
+int AGS::Parser::ParseDynArrayMarkerIfPresent(AGS::Vartype &vartype)
 {
     if (_sym.get_type(_targ.peeknext()) != kSYM_OpenBracket)
         return 0;
 
-    // Gobble the '[', expect and gobble ']'
-    _targ.getnext();
+    _targ.getnext(); // Eat '['
     if (_sym.get_type(_targ.getnext()) != kSYM_CloseBracket)
     {
         cc_error("Fixed array size cannot be used here (use '[]' instead)");
         return -1;
     }
-
-    if (kPP_PreAnalyze == _pp)
-        return 1;
-
-    if (FlagIsSet(_sym.get_flags(typeSym), kSFLG_StructType))
-    {
-        if (!FlagIsSet(_sym.get_flags(typeSym), kSFLG_Managed))
-        {
-            cc_error("Cannot pass non-managed struct array");
-            return -1;
-        }
-        if (!isPointer)
-        {
-            cc_error("Cannot pass non-pointer struct array");
-            return -1;
-        }
-    }
-    return 1;
+    SetFlag(vartype, kVTY_Managed, true);
+    SetFlag(vartype, kVTY_DynArray, true);
+    return 0;
 }
 
 // Copy so that the forward decl can be compared afterwards to the real one     
@@ -1154,7 +1139,7 @@ int AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &kno
     // If the return type is unset, deduce it
     if (0 == known_info.ssize && known_info.funcparamtypes.size() > 1)
     {
-        AGS::Symbol const rettype = known_info.funcparamtypes.at(0) & ~(kVTY_DynPointer | kVTY_DynArray);
+        AGS::Symbol const rettype = known_info.funcparamtypes.at(0) & ~(kVTY_Managed | kVTY_DynArray);
         known_info.ssize = _sym.entries.at(rettype).ssize;
     }
 
@@ -1212,7 +1197,7 @@ int AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, AGS
         (_sym.get_type(_targ.peeknext()) != kSYM_CloseParenthesis))
     {
         if (_targ.getnext() == _sym.getPointerSym())
-            cc_error("Static extender function cannot be pointer");
+            cc_error("Must not use '*' for defining static extender function");
         else
             cc_error("Parameter name cannot be defined for extender type");
         return -1;
@@ -1225,31 +1210,20 @@ int AGS::Parser::ParseFuncdecl_ExtenderPreparations(bool is_static_extender, AGS
 }
 
 
-int AGS::Parser::ParseParamlist_ParamType(AGS::Symbol param_vartype, bool &param_is_ptr)
+int AGS::Parser::ParseParamlist_ParamType(AGS::Vartype &vartype)
 {
-    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(param_vartype);
-    param_is_ptr = FlagIsSet(entry.flags, kSFLG_Managed);
-    if (_sym.getPointerSym() == _targ.peeknext())
-    {
-        if (!param_is_ptr)
-        {
-            cc_error(
-                "'*' should follow a managed struct type, not %s",
-                sym.get_vartype_name_string(param_vartype).c_str());
-            return -1;
-        }
-        _targ.getnext(); // Eat '*'
-    }
-    if (kPP_PreAnalyze == _pp)
-        return 0;
-
-    // Safety checks on the parameter type
-    if (_sym.getVoidSym() == param_vartype)
+    if (_sym.getVoidSym() == vartype)
     {
         cc_error("A function parameter must not have the type 'void'");
         return -1;
     }
-    if (FlagIsSet(_sym.get_flags(param_vartype), kSFLG_StructType) && (!param_is_ptr))
+    SetManagedInVartype(vartype);
+    int retval = EatPointerSymbolIfPresent(vartype);
+    if (retval < 0) return retval;
+
+    if (kPP_Main == _pp &&
+        !FlagIsSet(vartype, kVTY_Managed) &&
+        FlagIsSet(_sym.get_flags(Vartype2Symbol(vartype)), kSFLG_StructType))
     {
         cc_error("A non-managed struct cannot be passed as parameter");
         return -1;
@@ -1294,17 +1268,13 @@ int AGS::Parser::ParseParamlist_Param_Name(bool body_follows, AGS::Symbol &param
 }
 
 
-void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Vartype param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, int param_idx)
+void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Vartype param_type, bool param_is_const, int param_idx)
 {
     SymbolTableEntry &param_entry = _sym.entries.at(param_name);
     param_entry.stype = kSYM_LocalVar;
     param_entry.extends = false;
     param_entry.arrsize = 1;
     param_entry.vartype = param_type;
-    if (param_is_dynarray)
-        SetFlag(param_entry.vartype, kVTY_DynArray, true);
-    if (param_is_ptr)
-        SetFlag(param_entry.vartype, kVTY_DynPointer, true);
     size_t const param_size = 4; // We can only deal with parameters of size 4
     param_entry.ssize = param_size;
     param_entry.sscope = 1;
@@ -1320,7 +1290,7 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     param_entry.soffs = _scrip.cur_sp - (param_idx + 1) * 4;
 }
 
-void AGS::Parser::ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_type, bool param_is_ptr, bool param_is_const, bool param_is_dynarray, bool param_has_int_default, int param_int_default)
+void AGS::Parser::ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_type, bool param_is_const, bool param_has_int_default, int param_int_default)
 {
     SymbolTableEntry &func_entry = GetSymbolTableEntryAnyPhase(name_of_func);
     size_t const minsize = param_idx + 1;
@@ -1332,12 +1302,8 @@ void AGS::Parser::ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int pa
     }
 
     func_entry.funcparamtypes[param_idx] = param_type;
-    if (param_is_ptr)
-        func_entry.funcparamtypes[param_idx] |= kVTY_DynPointer;
     if (param_is_const)
         func_entry.funcparamtypes[param_idx] |= kVTY_Const;
-    if (param_is_dynarray)
-        func_entry.funcparamtypes[param_idx] |= kVTY_DynArray;
 
     if (param_has_int_default)
     {
@@ -1347,11 +1313,9 @@ void AGS::Parser::ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int pa
 }
 
 // process a parameter decl in a function parameter list, something like int foo(INT BAR
-int AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follows, AGS::Symbol param_type, bool param_is_const, int param_idx)
+int AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follows, AGS::Vartype vartype, bool param_is_const, int param_idx)
 {
-    // Parse complete parameter type
-    bool param_is_ptr = false;
-    int retval = ParseParamlist_ParamType(param_type, param_is_ptr);
+    int retval = ParseParamlist_ParamType(vartype);
     if (retval < 0) return retval;
 
     // Parameter name (when present and meaningful) 
@@ -1360,9 +1324,8 @@ int AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follow
     if (retval < 0) return retval;
 
     // Dynamic array signifier (when present)
-    retval = ParseParamlist_Param_DynArrayMarker(param_type, param_is_ptr);
+    retval = ParseDynArrayMarkerIfPresent(vartype);
     if (retval < 0) return retval;
-    bool param_is_dynarray = (retval == 1);
 
     // Default clause (when present)
     bool param_has_int_default = false;
@@ -1371,14 +1334,14 @@ int AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follow
     if (retval < 0) return retval;
 
     // Augment the function type in the symbol table  
-    ParseParamlist_Param_Add2Func(name_of_func, param_idx, param_type, param_is_ptr, param_is_const, param_is_dynarray, param_has_int_default, param_int_default);
+    ParseParamlist_Param_Add2Func(name_of_func, param_idx, vartype, param_is_const, param_has_int_default, param_int_default);
 
     if (kPP_Main != _pp || !body_follows)
         return 0;
 
     // All function parameters correspond to local variables.
     // A body will follow, so we need to enter this parameter as a variable into the symbol table
-    ParseParamlist_Param_AsVar2Sym(param_name, param_type, param_is_ptr, param_is_const, param_is_dynarray, param_idx);
+    ParseParamlist_Param_AsVar2Sym(param_name, vartype, param_is_const, param_idx);
 
     return 0;
 }
@@ -1447,20 +1410,13 @@ int AGS::Parser::ParseFuncdecl_Paramlist(AGS::Symbol funcsym, bool body_follows,
     return -1;
 }
 
-void AGS::Parser::ParseFuncdecl_SetFunctype(SymbolTableEntry &entry, int return_type, bool func_returns_dynpointer, bool func_returns_dynarray, bool func_is_static, bool func_is_protected, int numparams)
+void AGS::Parser::ParseFuncdecl_SetFunctype(SymbolTableEntry &entry, Vartype return_vartype, bool func_is_static, bool func_is_protected, int numparams)
 {
     entry.stype = kSYM_Function;
-    SymbolTableEntry &ret_type_entry = GetSymbolTableEntryAnyPhase(return_type & kVTY_FlagMask);
-    entry.ssize = ret_type_entry.ssize;
-    if (func_returns_dynpointer)
-        entry.ssize = SIZE_OF_DYNPOINTER;
+    entry.ssize = Vartype2Size(return_vartype);
     entry.sscope = numparams - 1;
 
-    entry.funcparamtypes[0] = return_type;
-    if (func_returns_dynpointer)
-        entry.funcparamtypes[0] |= kVTY_DynPointer;
-    if (func_returns_dynarray)
-        entry.funcparamtypes[0] |= kVTY_DynArray;
+    entry.funcparamtypes[0] = return_vartype;
     if (func_is_static)
         SetFlag(entry.flags, kSFLG_Static, true);
     if (func_is_protected)
@@ -1663,7 +1619,7 @@ int AGS::Parser::ParseFuncdecl_GetSymbolAfterParmlist(AGS::Symbol &symbol)
 
 // We're at something like "int foo(", directly before the "("
 // This might or might not be within a struct defn
-int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, int return_type, bool func_returns_dynpointer, bool func_returns_dynarray, TypeQualifierSet tqs, AGS::Symbol &struct_of_func, bool &body_follows)
+int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_vartype, TypeQualifierSet tqs, AGS::Symbol &struct_of_func, bool &body_follows)
 {
     _targ.getnext(); // Eat '('
     {
@@ -1690,10 +1646,10 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, int return_type, bool 
         return -1;
     }
 
-    if ((!func_returns_dynpointer) && (!func_returns_dynarray) &&
-        FlagIsSet(entry.flags, kSFLG_StructType))
+    if (!IsManagedVartype(return_vartype) &&
+        FlagIsSet(_sym.get_flags(Vartype2Symbol(return_vartype)), kSFLG_StructType))
     {
-        cc_error("Cannot return entire struct from function");
+        cc_error("Can only return a managed struct from function");
         return -1;
     }
 
@@ -1732,7 +1688,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, int return_type, bool 
     if (retval < 0) return retval;
 
     // Type the function in the symbol table
-    ParseFuncdecl_SetFunctype(entry, return_type, func_returns_dynpointer, func_returns_dynarray, FlagIsSet(tqs, kTQ_Static), FlagIsSet(tqs, kTQ_Protected), numparams);
+    ParseFuncdecl_SetFunctype(entry, return_vartype, FlagIsSet(tqs, kTQ_Static), FlagIsSet(tqs, kTQ_Protected), numparams);
 
     // Check whether this declaration is compatible with known info; 
     retval = ParseFuncdecl_CheckThatKnownInfoMatches(&entry, body_follows, &known_info);
@@ -1872,7 +1828,7 @@ int AGS::Parser::GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype typ
 
     if (iatos1 || iatos2)
     {
-        if (_sym.getNullSym() == (type1 & ~kVTY_DynPointer) || _sym.getNullSym() == (type2 & ~kVTY_DynPointer))
+        if (_sym.getNullSym() == (type1 & ~kVTY_Managed) || _sym.getNullSym() == (type2 & ~kVTY_Managed))
             return 0;
 
         if (iatos1 != iatos2)
@@ -1890,22 +1846,21 @@ int AGS::Parser::GetOperatorValidForVartype(AGS::Vartype type1, AGS::Vartype typ
         }
     }
 
-    if (FlagIsSet(type1, kVTY_DynPointer | kVTY_DynArray) &&
-        FlagIsSet(type2, kVTY_DynPointer | kVTY_DynArray))
+    if (FlagIsSet(type1, kVTY_Managed) &&
+        FlagIsSet(type2, kVTY_Managed))
     {
         switch (vcpuOp)
         {
         default:
-            cc_error("The operator cannot be applied to pointers or dynamic arrays");
+            cc_error("The operator cannot be applied to managed types");
             return -1;
         case SCMD_ISEQUAL:  return 0;
         case SCMD_NOTEQUAL: return 0;
         }
     }
 
-    // Other combinations of pointers and/or dynamic arrays won't mingle
-    if ((type1 & (kVTY_DynPointer | kVTY_DynArray)) != 0 ||
-        (type2 & (kVTY_DynPointer | kVTY_DynArray)) != 0)
+    // Other combinations of managed types won't mingle
+    if (FlagIsSet(type1, kVTY_Managed) || FlagIsSet(type2, kVTY_Managed))
     {
         cc_error("The operator cannot be applied to values of these types");
         return -1;
@@ -1930,7 +1885,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         return true;
 
     // can convert String* to const string
-    if ((vartype_is == (kVTY_DynPointer | _sym.getStringStructSym())) &&
+    if ((vartype_is == (kVTY_Managed | _sym.getStringStructSym())) &&
         (vartype_wants_to_be == (kVTY_Const | _sym.getOldStringSym())))
     {
         return false;
@@ -1940,12 +1895,12 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     if (IsOldstring(vartype_is))
         return false;
 
-    // Can convert from NULL to pointer
-    if ((vartype_is == (kVTY_DynPointer | _sym.getNullSym())) && ((vartype_wants_to_be & kVTY_DynArray) != 0))
+    // Can convert from NULL to managed type
+    if ((vartype_is == (kVTY_Managed | _sym.getNullSym())) && FlagIsSet(vartype_wants_to_be, kVTY_Managed))
         return false;
 
     // Cannot convert non-dynarray to dynarray or vice versa
-    if ((vartype_is & kVTY_DynArray) != (vartype_wants_to_be & kVTY_DynArray))
+    if (FlagIsSet(vartype_is, kVTY_DynArray) != FlagIsSet(vartype_wants_to_be, kVTY_DynArray))
         return true;
 
     // From here on, don't mind constness or dynarray-ness
@@ -1956,34 +1911,34 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     if ((vartype_is == _sym.getFloatSym()) != (vartype_wants_to_be == _sym.getFloatSym()))
         return true;
 
-    // Checks to do if at least one is a pointer
-    if ((vartype_is & kVTY_DynPointer) || (vartype_wants_to_be & kVTY_DynPointer))
+    // Checks to do if at least one is managed
+    if ((vartype_is & kVTY_Managed) || (vartype_wants_to_be & kVTY_Managed))
     {
         // null can be cast to any pointer type
-        if (vartype_is == (kVTY_DynPointer | _sym.getNullSym()))
+        if (vartype_is == (kVTY_Managed | _sym.getNullSym()))
         {
-            if (vartype_wants_to_be & kVTY_DynPointer)
+            if (vartype_wants_to_be & kVTY_Managed)
                 return false;
         }
 
-        // BOTH sides must be pointers
-        if ((vartype_is & kVTY_DynPointer) != (vartype_wants_to_be & kVTY_DynPointer))
+        // BOTH sides must be managed
+        if ((vartype_is & kVTY_Managed) != (vartype_wants_to_be & kVTY_Managed))
             return true;
 
         // Types need not be identical here, but check against inherited classes
-        int isClass = vartype_is & ~kVTY_DynPointer;
+        int isClass = vartype_is & ~kVTY_Managed;
         while (_sym.entries.at(isClass).extends > 0)
         {
-            isClass = _sym.entries.at(isClass & kVTY_FlagMask).extends;
-            if ((isClass | kVTY_DynPointer) == vartype_wants_to_be)
+            isClass = _sym.entries.at(Vartype2Symbol(isClass)).extends;
+            if ((isClass | kVTY_Managed) == vartype_wants_to_be)
                 return false;
         }
         return true;
     }
 
     // Checks to do if at least one is a struct
-    bool typeIsIsStruct = (FlagIsSet(_sym.get_flags(vartype_is), kSFLG_StructType));
-    bool typeWantsToBeIsStruct = (FlagIsSet(_sym.get_flags(vartype_wants_to_be), kSFLG_StructType));
+    bool typeIsIsStruct = (FlagIsSet(_sym.get_flags(Vartype2Symbol(vartype_is)), kSFLG_StructType));
+    bool typeWantsToBeIsStruct = (FlagIsSet(_sym.get_flags(Vartype2Symbol(vartype_wants_to_be)), kSFLG_StructType));
     if (typeIsIsStruct || typeWantsToBeIsStruct)
     {
         // The types must match exactly
@@ -2035,16 +1990,16 @@ bool AGS::Parser::IsBooleanVCPUOperator(int scmdtype)
     return false;
 }
 
-// If we need a StringStruct but AX contains a string, 
+// If we need a String but AX contains a string, 
 // then convert AX into a String object and set its type accordingly
-void AGS::Parser::ConvertAXStringToStringObject(AGS::Vartype vartype_wanted)
+void AGS::Parser::ConvertAXStringToStringObject(AGS::Vartype wanted_vartype)
 {
     if (((_scrip.ax_vartype & (~kVTY_Const)) == _sym.getOldStringSym()) &&
-        ((vartype_wanted & (~kVTY_DynPointer)) == _sym.getStringStructSym()))
+        ((wanted_vartype & (~kVTY_Managed)) == _sym.getStringStructSym()))
     {
         _scrip.write_cmd1(SCMD_CREATESTRING, SREG_AX); // convert AX
         _scrip.ax_vartype =
-            kVTY_DynPointer | _sym.getStringStructSym(); // set type of AX
+            kVTY_Managed | _sym.getStringStructSym(); // set type of AX
     }
 }
 
@@ -2077,14 +2032,14 @@ int AGS::Parser::HandleStructOrArrayResult(AGS::Vartype vartype)
     }
 
     if (FlagIsSet(_sym.get_flags(vartype), kSFLG_Managed) &&
-        !IsDynpointerVartype(vartype))
+        !IsManagedVartype(vartype))
     {
         // Assume a pointer to the struct is being requested
-        SetFlag(vartype, kVTY_DynPointer, true);
+        SetFlag(vartype, kVTY_Managed, true);
     }
 
-    if (FlagIsSet(_sym.get_flags(vartype & kVTY_FlagMask), kSFLG_StructType) &&
-        !IsDynpointerVartype(vartype))
+    if (FlagIsSet(_sym.get_flags(Vartype2Symbol(vartype)), kSFLG_StructType) &&
+        !IsManagedVartype(vartype))
     {
         cc_error("Cannot access non-managed struct as a whole");
         return -1;
@@ -2109,13 +2064,13 @@ int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &varty
 
     // Read the value from memory
     // Note:  Moving from m[mar] to AX doesn't mean dereferencing: The type 
-    // remains the same. But whenever an address is marked as dynpointer 
-    // or dynarray, its values must be retrieved with SCMD_MEMREADPTR.
-    if (IsDynpointerVartype(vartype))
+    // remains the same. But whenever an address is marked as managed,
+    // its values must be retrieved with SCMD_MEMREADPTR.
+    if (IsManagedVartype(vartype))
         _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_AX);
     else
         _scrip.write_cmd1(
-            GetReadCommandForSize(_sym.entries.at(vartype & kVTY_FlagMask).ssize),
+            GetReadCommandForSize(_sym.entries.at(Vartype2Symbol(vartype)).ssize),
             SREG_AX);
     return 0;
 }
@@ -2128,53 +2083,49 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
         return -1;
     }
 
-    // "new TYPE", nothing following
-    if (symlist_len <= 3)
+    Vartype const new_vartype = symlist[1];
+    vartype = new_vartype;
+    SetFlag(vartype, kVTY_Managed, true);
+
+    bool const is_primitive = IsPrimitiveVartype(new_vartype);
+    
+    if (!is_primitive && !IsManagedVartype(vartype))
     {
-        if (FlagIsSet(_sym.get_flags(symlist[1]), kSFLG_Builtin))
+        cc_error("Can only use primitive or managed types with 'new'");
+        return -1;
+    }
+        
+    if (symlist_len <= 3) // "new TYPE", nothing following
+    {
+        if (FlagIsSet(_sym.get_flags(new_vartype), kSFLG_Builtin))
         {
-            cc_error("Built-in type '%s' cannot be instantiated directly", _sym.get_name_string(symlist[1]).c_str());
+            cc_error(
+                "Built-in type '%s' cannot be instantiated directly",
+                sym.get_name_string(new_vartype).c_str());
             return -1;
         }
-        const size_t size = _sym.entries.at(symlist[1]).ssize;
+
+        const size_t size = _sym.entries.at(new_vartype).ssize;
         _scrip.write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
         _scrip.ax_val_scope = scope = kSYM_GlobalVar;
-        _scrip.ax_vartype = vartype = symlist[1] | kVTY_DynPointer;
+        _scrip.ax_vartype = vartype;
         vloc = kVL_ax_is_value;
         return 0;
     }
 
-    // "new TYPE[EXPR]", nothing following
     if (kSYM_OpenBracket == _sym.get_type(symlist[2]) && kSYM_CloseBracket == _sym.get_type(symlist[symlist_len - 1]))
     {
-        AGS::Symbol arrayType = symlist[1];
-
         // Expression for length of array begins after "[", ends before "]"
         // So expression_length = whole_length - 3 - 1
         int retval = AccessData_ArrayIndexIntoAX(&symlist[3], symlist_len - 4);
         if (retval < 0) return retval;
 
-        bool isManagedType = false;
-        int size = _sym.entries.at(arrayType).ssize;
-        if (FlagIsSet(_sym.get_flags(arrayType), kSFLG_Managed))
-        {
-            isManagedType = true;
-            size = SIZE_OF_DYNPOINTER;
-        }
-        else if (FlagIsSet(_sym.get_flags(arrayType), kSFLG_StructType))
-        {
-            cc_error("Cannot create a dynamic array of an unmanaged struct");
-            return -1;
-        }
+        int const size = Vartype2Size(new_vartype);
+        _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, size, !is_primitive);
+        SetFlag(vartype, kVTY_DynArray, true);
 
-        _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
-        vartype = arrayType | kVTY_DynArray;
-
-        if (isManagedType)
-            vartype |= kVTY_DynPointer;
-
-        _scrip.ax_vartype = vartype;
         _scrip.ax_val_scope = scope = kSYM_GlobalVar;
+        _scrip.ax_vartype = vartype;
         vloc = kVL_ax_is_value;
         return 0;
     }
@@ -2438,7 +2389,7 @@ int AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args, size
 void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 {
 
-    if (((_scrip.ax_vartype & (~kVTY_DynPointer)) == sym.getStringStructSym()) &&
+    if (((_scrip.ax_vartype & (~kVTY_Managed)) == sym.getStringStructSym()) &&
         ((valTypeTo & (~kVTY_Const)) == sym.getOldStringSym()))
     {
         _scrip.write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
@@ -2474,7 +2425,7 @@ int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &par
                 break; // Don't put this into the for header!
         }
         
-        if (end_of_this_param < start_of_this_param)
+        if (end_of_this_param < static_cast<int>(start_of_this_param))
         {
             cc_error("Internal error: parameter length is negative");
             return -99;
@@ -2489,7 +2440,7 @@ int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &par
         if (retval < 0) return retval;
 
         int register_to_push = SREG_AX;
-        if (IsDynpointerVartype(vartype))
+        if (IsManagedVartype(vartype))
         {
             // Special logic: Dynamic pointer parameters aren't pushed onto the stack.
             // Instead, the memory address of a variable must be pushed that is equal to the pointer.
@@ -2509,18 +2460,18 @@ int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &par
             if (retval < 0) return retval;
         }
             
-        if (param_num <= num_func_args) // we know what type to expect
+        if (param_num <= num_func_args && SREG_AX == register_to_push) // we know what type to expect
         {
             // If we need a string object ptr but AX contains a normal string, convert AX
-            int parameterType = _sym.entries.at(funcSymbol).funcparamtypes[param_num];
-            ConvertAXStringToStringObject(parameterType);
-
-            if (IsVartypeMismatch(vartype, parameterType, true))
-                return -1;
-
+            Vartype const param_vartype = _sym.entries.at(funcSymbol).funcparamtypes[param_num];
+            ConvertAXStringToStringObject(param_vartype);
+            vartype = _scrip.ax_vartype;
             // If we need a normal string but AX contains a string object ptr, 
             // check that this ptr isn't null
-            DoNullCheckOnStringInAXIfNecessary(parameterType);
+            DoNullCheckOnStringInAXIfNecessary(param_vartype);
+
+            if (IsVartypeMismatch(vartype, param_vartype, true))
+                return -1;
         }
 
         if (func_is_import)
@@ -2864,7 +2815,7 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     AGS::Symbol const component_of_attribute = symlist[0];
     symlist++;  // eat component
     symlist_len--; // eat component ct'd.
-    AGS::Symbol const struct_of_attribute = vartype & kVTY_FlagMask;
+    AGS::Symbol const struct_of_attribute = Vartype2Symbol(vartype);
     AGS::Symbol name_of_attribute =
         MangleStructAndComponent(struct_of_attribute, component_of_attribute);
 
@@ -2889,10 +2840,10 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     bool setter_has_dyn_vartype = false;
     if (is_attribute_set_func)
     {
-        if(IsDynpointerVartype(_sym.get_vartype(name_of_attribute)))
+        if(IsManagedVartype(_sym.get_vartype(name_of_attribute)))
         {
             setter_has_dyn_vartype = true;
-            // We must pass a memory address that contains the dynptr. So create this.
+            // We must pass a memory address that contains the dynpointer. So create this.
             _scrip.write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
             _scrip.write_cmd2(SCMD_ADD, SREG_SP, SIZE_OF_DYNPOINTER);
             _scrip.write_cmd1(SCMD_MEMINITPTR, SREG_AX);
@@ -3022,17 +2973,18 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
     // Must be any sort of array
     bool const is_dynarray = FlagIsSet(vartype, kVTY_DynArray);
     bool const is_array = FlagIsSet(vartype, kVTY_Array);
-    AGS::Vartype const core_vartype = vartype & kVTY_FlagMask;
     if (!is_dynarray && !is_array)
     {
         cc_error("Array index is only legal after an array");
         return -1;
     }
 
-    size_t const element_coresize = _sym.entries.at(core_vartype).ssize;
-    AGS::Vartype const element_type = vartype & ~kVTY_Array & ~kVTY_DynArray;
-    size_t const element_size = FlagIsSet(element_type, kVTY_DynPointer) ? SIZE_OF_DYNPOINTER : element_coresize;
-    vartype = element_type;
+    AGS::Vartype element_vartype =
+        is_dynarray ?
+        vartype & ~(kVTY_DynArray | kVTY_Managed) : vartype & ~kVTY_Array;
+    SetManagedInVartype(element_vartype);
+    size_t const element_size = Vartype2Size(element_vartype);
+    vartype = element_vartype;
 
     if (is_dynarray)
         AccessData_Dereference(vloc, mloc);
@@ -3167,7 +3119,7 @@ int AGS::Parser::AccessData_Null(bool negate, AGS::SymbolScript &symlist, size_t
     }
 
     _scrip.write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
-    _scrip.ax_vartype = vartype = _sym.getNullSym() | kVTY_DynPointer;
+    _scrip.ax_vartype = vartype = _sym.getNullSym() | kVTY_Managed;
     _scrip.ax_val_scope = kSYM_GlobalVar;
     symlist++;
     symlist_len--;
@@ -3348,7 +3300,7 @@ int AGS::Parser::AccessData_FirstClause(bool writing, AGS::SymbolScript &symlist
 // Now we process a component of vartype.
 int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, AGS::SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, AGS::Vartype &vartype)
 {
-    AGS::Symbol const component = AccessData_FindComponent(vartype & kVTY_FlagMask, symlist[0]);
+    AGS::Symbol const component = AccessData_FindComponent(Vartype2Symbol(vartype), symlist[0]);
     SymbolType const component_type = (component) ? _sym.get_type(component) : kSYM_NoType;
 
     if (static_access && !FlagIsSet(_sym.get_flags(component), kSFLG_Static))
@@ -3498,14 +3450,11 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
             SetFlag(vartype, kVTY_DynArray, false);
         }
 
-        // Note: If _both_ kVTY_DynPointer and kVTY_Array is set,
-        // then this is an array of pointers instead of a pointer
-        // and this array must NOT be dereferenced.
-        if (FlagIsSet(vartype, kVTY_DynPointer) && !FlagIsSet(vartype, kVTY_Array))
+        if (IsManagedVartype(vartype))
         {
             retval = AccessData_Dereference(vloc, mloc);
             if (retval < 0) return retval;
-            SetFlag(vartype, kVTY_DynPointer, false);
+            SetFlag(vartype, kVTY_Managed, false);
         }
 
         retval = AccessData_IsClauseLast(symlist, symlist_len, clause_is_last);
@@ -3619,7 +3568,7 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
     if (retval < 0) return retval;
     if (kVL_ax_is_value == vloc)
     {
-        if (!IsDynpointerVartype(lhsvartype))
+        if (!IsManagedVartype(lhsvartype))
         {
             cc_error("Cannot modify this value");
             return -1;
@@ -3663,11 +3612,11 @@ int AGS::Parser::AccessData_Assign(SymbolScript symlist, size_t symlist_len)
         return -1;
     }
 
-    if (IsDynpointerVartype(rhsvartype))
+    if (IsManagedVartype(rhsvartype))
         _scrip.write_cmd1(SCMD_MEMWRITEPTR, SREG_AX);
     else
         _scrip.write_cmd1(
-            GetWriteCommandForSize(_sym.entries.at(lhsvartype & kVTY_FlagMask).ssize),
+            GetWriteCommandForSize(_sym.entries.at(Vartype2Symbol(lhsvartype)).ssize),
             SREG_AX);
     return 0;
 }
@@ -3965,19 +3914,12 @@ int AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, void *&i
     initial_val_ptr = nullptr;
     _targ.getnext(); // Eat '='
 
-    if (FlagIsSet(_sym.get_flags(varname), kVTY_DynPointer))
+    if (FlagIsSet(_sym.get_flags(varname), kVTY_Managed))
     {
         // TODO Initialize String
-        cc_error("Cannot assign an initial value to a global pointer");
+        cc_error("Cannot assign an initial value to a managed type or String");
         return -1;
     }
-
-    if (FlagIsSet(_sym.get_flags(varname), kVTY_DynArray))
-    {
-        cc_error("Cannot assign an initial value to a dynamic array");
-        return -1;
-    }
-
 
     if (FlagIsSet(_sym.get_flags(varname), kSFLG_StructType))
     {
@@ -4003,20 +3945,18 @@ int AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, void *&i
 }
 
 // Move variable information into the symbol table
-void AGS::Parser::ParseVardecl_Var2SymTable(int var_name, Globalness is_global, bool is_dynpointer, int size_of_defn, AGS::Vartype vartype)
+void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartype, Globalness is_global, size_t size_of_defn, size_t arrsize)
 {
     SymbolTableEntry &entry = _sym.entries.at(var_name);
     entry.extends = 0;
     entry.stype = (is_global == kGl_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
     entry.ssize = size_of_defn;
-    entry.arrsize = 0;
+    entry.arrsize = arrsize;
     entry.vartype = vartype;
-    if (is_dynpointer)
-        SetFlag(entry.vartype, kVTY_DynPointer, true);
 }
 
 // we have accepted something like "int a" and we're expecting "["
-int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype vartype, size_t &size_of_defn)
+int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype, size_t &size_of_defn, size_t &arrsize)
 {
 
     _targ.getnext();  // skip the [
@@ -4030,27 +3970,27 @@ int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype vartype, 
         }
         // this means var_name does not contain the first element of the array,
         // but points to it, instead.
-        SetFlag(_sym.entries.at(var_name).vartype, kVTY_DynArray, true);
+        SetFlag(vartype, kVTY_Managed, true);
+        SetFlag(vartype, kVTY_DynArray, true);
         size_of_defn = SIZE_OF_DYNPOINTER;
-        _sym.entries.at(var_name).arrsize = 0;
+        arrsize = 0;
     }
     else
     {
-        SetFlag(_sym.entries.at(var_name).vartype, kVTY_Array, true);
-        int array_size;
         AGS::Symbol nextt = _targ.getnext();
 
-        int retval = ParseLiteralOrConstvalue(nextt, array_size, false, "Array size must be constant value");
+        int arrsize_as_int;
+        int retval = ParseLiteralOrConstvalue(nextt, arrsize_as_int, false, "Array size must be constant value");
         if (retval < 0) return retval;
 
-        if (array_size < 1)
+        if (arrsize_as_int < 1)
         {
             cc_error("Array size must be >= 1");
             return -1;
         }
 
-        size_of_defn = size_of_defn * array_size;
-        _sym.entries.at(var_name).arrsize = array_size;
+        arrsize = arrsize_as_int;
+        SetFlag(vartype, kVTY_Array, true);
     }
 
     if (_sym.get_type(_targ.getnext()) != kSYM_CloseBracket)
@@ -4062,7 +4002,7 @@ int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype vartype, 
     return 0;
 }
 
-int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, bool is_dynpointer, Globalness is_global)
+int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Globalness is_global)
 {
     if (vartype == _sym.getOldStringSym() && ccGetOption(SCOPT_OLDSTRINGS) == 0)
     {
@@ -4077,25 +4017,9 @@ int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, bool is_d
         return -1;
     }
 
-
-    if (FlagIsSet(_sym.get_flags(vartype), kSFLG_Managed) && (!is_dynpointer) && (is_global != kGl_GlobalImport))
-    {
-        // managed structs must be allocated via ccRegisterObject,
-        // and cannot be declared normally in the script (unless imported)
-        cc_error("Cannot declare local instance of managed type");
-        return -1;
-    }
-
     if (vartype == _sym.getVoidSym())
     {
         cc_error("'void' not a valid variable type");
-        return -1;
-    }
-
-    if (is_dynpointer && !FlagIsSet(_sym.get_flags(vartype), kSFLG_Managed))
-    {
-        // can only point to managed structs
-        cc_error("Cannot declare pointer to non-managed type");
         return -1;
     }
 
@@ -4163,7 +4087,7 @@ int AGS::Parser::ParseVardecl_GlobalImport(AGS::Symbol var_name, bool has_initia
     return 0;
 }
 
-int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Vartype vartype, size_t size_of_defn, bool has_initial_assignment, void *&initial_val_ptr)
+int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Vartype vartype, size_t total_size, bool has_initial_assignment, void *&initial_val_ptr)
 {
     if (has_initial_assignment)
     {
@@ -4172,7 +4096,7 @@ int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Va
     }
     _sym.entries.at(var_name).soffs =
         _scrip.add_global(
-        (_sym.getOldStringSym() == vartype) ? OLDSTRING_LENGTH : size_of_defn,
+        (_sym.getOldStringSym() == vartype) ? OLDSTRING_LENGTH : total_size,
             initial_val_ptr);
     if (_sym.entries.at(var_name).soffs < 0)
         return -1;
@@ -4205,23 +4129,22 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, b
     return ParseAssignment_Assign(&lhs);
 }
 
-int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool is_dynpointer, bool &another_var_follows)
+int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows)
 {
-    size_t size_of_defn = (is_dynpointer) ? SIZE_OF_DYNPOINTER : _sym.entries.at(vartype).ssize;
-    if (_sym.getOldStringSym() == vartype)
-        size_of_defn = OLDSTRING_LENGTH;
-
-    // Enter the variable into the symbol table
-    ParseVardecl_Var2SymTable(var_name, globalness, is_dynpointer, size_of_defn, vartype);
+    size_t size_of_defn = Vartype2Size(vartype);
+    size_t arrsize = 0;
 
     if (kSYM_OpenBracket == next_type)
     {
-        // Parse the bracketed expression; determine whether it is dynamic; if not, determine the size
-        int retval = ParseVardecl_Array(var_name, vartype, size_of_defn);
+        int retval = ParseVardecl_Array(var_name, vartype, size_of_defn, arrsize);
         if (retval < 0) return retval;
-
         next_type = _sym.get_type(_targ.peeknext());
     }
+
+    // Enter the variable into the symbol table
+    ParseVardecl_Var2SymTable(var_name, vartype, globalness, size_of_defn, arrsize);
+
+    size_t const totalsize = (arrsize > 0) ? size_of_defn * arrsize : size_of_defn;
 
     bool const has_initial_assignment = (kSYM_Assign == next_type);
 
@@ -4237,26 +4160,26 @@ int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, Symbo
     case kGl_GlobalNoImport:
     {
         void *initial_val_ptr = nullptr;
-        int retval = ParseVardecl_GlobalNoImport(var_name, vartype, size_of_defn, has_initial_assignment, initial_val_ptr);
+        int retval = ParseVardecl_GlobalNoImport(var_name, vartype, totalsize, has_initial_assignment, initial_val_ptr);
         if (initial_val_ptr) free(initial_val_ptr);
         return retval;
     }
     case kGl_Local:
-        return ParseVardecl_Local(var_name, size_of_defn, has_initial_assignment);
+        return ParseVardecl_Local(var_name, totalsize, has_initial_assignment);
     }
 }
 
 // wrapper around ParseVardecl0() 
-int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness is_global, bool is_dynpointer, bool &another_var_follows)
+int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness is_global, bool &another_var_follows)
 {
-    int retval = ParseVardecl_CheckIllegalCombis(vartype, is_dynpointer, is_global);
+    int retval = ParseVardecl_CheckIllegalCombis(vartype, is_global);
     if (retval < 0) return retval;
 
     SymbolTableEntry known_info;
     if (_sym.get_type(var_name) != 0)
         CopyKnownSymInfo(_sym.entries.at(var_name), known_info);
 
-    retval = ParseVardecl0(var_name, vartype, next_type, is_global, is_dynpointer, another_var_follows);
+    retval = ParseVardecl0(var_name, vartype, next_type, is_global, another_var_follows);
     if (retval < 0) return retval;
 
     retval = ParseVardecl_CheckThatKnownInfoMatches(&_sym.entries.at(var_name), &known_info);
@@ -4279,7 +4202,7 @@ int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, Symbol
     if (next_type == kSYM_Semicolon)
         return 0;
 
-    cc_error("Expected ',' or ';' instead of '%s'", _sym.get_name_string(_targ.peeknext()).c_str());
+    cc_error("Expected ',' or ';' or '=' instead of '%s'", _sym.get_name_string(_targ.peeknext()).c_str());
     return -1;
 }
 
@@ -4296,16 +4219,15 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
     for (size_t pa = 1; pa <= num_args; pa++)
     {
         AGS::Vartype const param_vartype = _sym.entries.at(name_of_func).funcparamtypes[pa];
-        if (!IsDynpointerVartype(param_vartype))
+        if (!IsManagedVartype(param_vartype))
             continue;
 
-        // For each parameter that is a dynpointer, an address is
-        // pushed where the dynpointer is stored, i.e. a value MAR (!!!)
-        // where m[MAR] (!!!) contains the dynpointer. We need to 
-        // convert this to the dynpointer itself.
+        // For each managed parameter, an address is pushed where the parameter 
+        // is stored, i.e. a value MAR (!!!)  where m[MAR] (!!!) contains the value. 
+        // We need to convert this to the value itself.
         _scrip.write_cmd1(SCMD_LOADSPOFFS, 4 * (pa + 1)); // Set MAR to the pertinent memory address        
         _scrip.write_cmd1(SCMD_MEMREAD, SREG_AX); // Read the address that is stored there
-        // Create a pointer points to the same object as m[AX] and store it in m[MAR]
+        // Create a dynpointer that points to the same object as m[AX] and store it in m[MAR]
         _scrip.write_cmd1(SCMD_MEMINITPTR, SREG_AX);
     }
 
@@ -4316,7 +4238,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
         // Declare the "this" pointer (allocated memory for it will never be used)
         this_entry.stype = kSYM_LocalVar;
         this_entry.ssize = SIZE_OF_DYNPOINTER;
-        // Don't declare this as a kVTY_DynPointer to prevent it being dereferenced twice
+        // Don't declare this as managed to prevent it from being dereferenced twice
         this_entry.vartype = struct_of_func;
         this_entry.sscope = nesting_stack->Depth() - 1;
         this_entry.flags = kSFLG_Readonly | kSFLG_Accessed;
@@ -4561,9 +4483,9 @@ void AGS::Parser::ParseStruct_MemberQualifiers(TypeQualifierSet &tqs)
     return;
 }
 
-int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Symbol vartype, bool member_is_import)
+int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Vartype vartype, bool member_is_import)
 {
-    if ((vartype & kVTY_FlagMask) == stname && !IsDynpointerVartype(vartype))
+    if (Vartype2Symbol(vartype) == stname && !IsManagedVartype(vartype))
     {
         // cannot do "struct A { A a; }", this struct would be infinitely large
         cc_error("Struct '%s' can't be a member of itself", _sym.get_name_string(vartype).c_str());
@@ -4614,7 +4536,7 @@ int AGS::Parser::ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS::Symb
     return ParseStruct_CheckForCompoInAncester(orig, compo, _sym.entries.at(act_struct).extends);
 }
 
-int AGS::Parser::ParseStruct_Function(AGS::TypeQualifierSet tqs, AGS::Vartype curtype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func, bool type_is_dynpointer, bool isDynamicArray)
+int AGS::Parser::ParseStruct_Function(AGS::TypeQualifierSet tqs, AGS::Vartype vartype, AGS::Symbol stname, AGS::Symbol vname, AGS::Symbol name_of_current_func)
 {
     if (FlagIsSet(tqs, kTQ_Writeprotected))
     {
@@ -4623,7 +4545,7 @@ int AGS::Parser::ParseStruct_Function(AGS::TypeQualifierSet tqs, AGS::Vartype cu
     }
 
     bool body_follows;
-    int retval = ParseFuncdecl(vname, curtype, type_is_dynpointer, isDynamicArray, tqs, stname, body_follows);
+    int retval = ParseFuncdecl(vname, vartype, tqs, stname, body_follows);
     if (retval < 0) return retval;
     if (body_follows)
     {
@@ -4698,7 +4620,7 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(SymbolTableEntry &entry, bool is
 
     AGS::Vartype const retvartype = entry.funcparamtypes[0] =
         is_setter ? _sym.getVoidSym() : vartype;
-    entry.ssize = _sym.entries.at(retvartype & kVTY_FlagMask).ssize;
+    entry.ssize = _sym.entries.at(Vartype2Symbol(retvartype)).ssize;
     entry.sscope = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
 
     entry.funcparamtypes.resize(entry.sscope + 1);
@@ -4789,8 +4711,7 @@ int AGS::Parser::ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t
         _targ.getnext(); // Eat ']'
         return 0;
     }
-
-    int array_size;
+    SymbolTableEntry &vname_entry = _sym.entries.at(vname);
 
     AGS::Symbol const nextt = _targ.getnext();
     if (_sym.get_type(nextt) == kSYM_CloseBracket)
@@ -4801,64 +4722,55 @@ int AGS::Parser::ParseStruct_Array(AGS::Symbol stname, AGS::Symbol vname, size_t
             return -1;
         }
         SetFlag(_sym.entries.at(stname).flags, kSFLG_HasDynArray, true);
-        SetFlag(_sym.entries.at(vname).vartype, kVTY_DynArray, true);
-        array_size = 0;
+        SetFlag(vname_entry.vartype, kVTY_DynArray, true);
         size_so_far += SIZE_OF_DYNPOINTER;
+        return 0;
     }
-    else
+
+    int array_size = 0;
+    if (ParseLiteralOrConstvalue(nextt, array_size, false, "Array size must be constant value") < 0)
+        return -1;
+    if (array_size < 1)
     {
-        if (ParseLiteralOrConstvalue(nextt, array_size, false, "Array size must be constant value") < 0)
-            return -1;
-
-        if (array_size < 1)
-        {
-            cc_error("Array size cannot be less than 1");
-            return -1;
-        }
-
-        AGS::Vartype vartype = _sym.entries.at(stname).vartype;
-        DeduceDynPointerness(vartype);
-
-        size_t const ssize = IsDynpointerVartype(vartype) ? SIZE_OF_DYNPOINTER : _sym.entries.at(vname).ssize;
-        size_so_far += array_size * ssize;
-        SetFlag(_sym.entries.at(vname).vartype, kVTY_Array, true);
-        if (_sym.get_type(_targ.getnext()) != kSYM_CloseBracket)
-        {
-            cc_error("Expected ']'");
-            return -1;
-        }
+        cc_error("Array size cannot be less than 1");
+        return -1;
     }
-    _sym.entries.at(vname).arrsize = array_size;
+
+    vname_entry.arrsize = array_size;
+    SetFlag(vname_entry.vartype, kVTY_Array, true);
+    Vartype entry_vartype = vname_entry.vartype;
+    SetManagedInVartype(entry_vartype);
+    size_so_far += array_size * Vartype2Size(entry_vartype);
+
+    if (_sym.get_type(_targ.getnext()) != kSYM_CloseBracket)
+    {
+        cc_error("Expected ']'");
+        return -1;
+    }
     return 0;
 }
 
 // We're inside a struct decl, processing a member variable
-int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far)
+int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS::Vartype vartype, AGS::Symbol stname, AGS::Symbol vname, size_t &size_so_far)
 {
     if (kPP_Main == _pp)
     {
         SymbolTableEntry &entry = _sym.entries.at(vname);
         entry.stype = kSYM_StructComponent;
         entry.extends = stname;  // save which struct it belongs to
-        entry.ssize = IsDynpointerVartype(curtype) ? SIZE_OF_DYNPOINTER : _sym.entries.at(curtype).ssize;
+        entry.ssize = Vartype2Size(vartype);
         entry.soffs = size_so_far;
-        entry.vartype = curtype;
-        if (type_is_dynpointer)
-        {
-            SetFlag(entry.vartype, kVTY_DynPointer, true);
-            _sym.entries.at(vname).ssize = 4;
-        }
+        entry.vartype = vartype;
         if (FlagIsSet(tqs, kTQ_Readonly))
             SetFlag(entry.flags, kSFLG_Readonly, true);
         if (FlagIsSet(tqs, kTQ_Attribute))
             SetFlag(entry.flags, kSFLG_Attribute, true);
-
         if (FlagIsSet(tqs, kTQ_Static))
-            SetFlag(_sym.entries.at(vname).flags, kSFLG_Static, true);
+            SetFlag(entry.flags, kSFLG_Static, true);
         if (FlagIsSet(tqs, kTQ_Protected))
-            SetFlag(_sym.entries.at(vname).flags, kSFLG_Protected, true);
+            SetFlag(entry.flags, kSFLG_Protected, true);
         if (FlagIsSet(tqs, kTQ_Writeprotected))
-            SetFlag(_sym.entries.at(vname).flags, kSFLG_WriteProtected, true);
+            SetFlag(entry.flags, kSFLG_WriteProtected, true);
     }
 
     if (FlagIsSet(tqs, kTQ_Attribute))
@@ -4880,39 +4792,32 @@ int AGS::Parser::ParseStruct_VariableOrAttribute(AGS::TypeQualifierSet tqs, AGS:
 
 // We have accepted something like "struct foo extends bar { const int".
 // We're waiting for the name of the member.
-int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS::Symbol stname, AGS::Symbol current_func, TypeQualifierSet tqs, AGS::Vartype curtype, bool type_is_dynpointer, size_t &size_so_far)
+int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS::Symbol stname, AGS::Symbol current_func, TypeQualifierSet tqs, AGS::Vartype vartype, size_t &size_so_far)
 {
-    AGS::Symbol cursym = _targ.getnext(); // normally variable name, array name, or function name, but can be [ too
+    int retval = ParseDynArrayMarkerIfPresent(vartype);
+    if (retval < 0) return retval;
 
-    // Check whether "[]" is behind the type.  "struct foo { int [] bar; }" 
-    bool isDynamicArray = false;
-    if (_sym.get_type(cursym) == kSYM_OpenBracket && _sym.get_type(_targ.peeknext()) == kSYM_CloseBracket)
-    {
-        isDynamicArray = true;
-        if (kSYM_CloseBracket != _sym.get_type(_targ.getnext()))
-        {
-            cc_error("Can only use '[]' directly after a type");
-            return -1;
-        }
-        cursym = _targ.getnext();
-    }
-
-    AGS::Symbol const component = cursym;
+    AGS::Symbol const component = _targ.getnext();
     AGS::Symbol const mangled_name = MangleStructAndComponent(stname, component);
     if (kSYM_Vartype == _sym.get_type(component) && IsPrimitiveVartype(component))
     {
-        cc_error("Can't use primitive type '%s' as a struct component");
+        cc_error("Can't use primitive type '%s' as a struct component name");
         return -1;
     }
 
     bool const is_function = _sym.get_type(_targ.peeknext()) == kSYM_OpenParenthesis;
+    if (!is_function && FlagIsSet(vartype, kVTY_DynArray)) // e.g., int [] Foo;
+    {
+        cc_error("Expected '('");
+        return -1;
+    }
 
-    if (type_is_dynpointer &&
+    if (IsManagedVartype(vartype) &&
         FlagIsSet(_sym.get_flags(stname), kSFLG_Managed) &&
         !FlagIsSet(tqs, kTQ_Attribute) &&
         !is_function)
     {
-        cc_error("Member variable of a managed struct cannot be a pointer");
+        cc_error("Member variable of a managed struct cannot be managed");
         return -1;
     }
 
@@ -4942,17 +4847,25 @@ int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS:
             cc_error("Cannot declare struct member function inside a function body");
             return -1;
         }
-        return ParseStruct_Function(tqs, curtype, stname, mangled_name, current_func, type_is_dynpointer, isDynamicArray);
+        return ParseStruct_Function(tqs, vartype, stname, mangled_name, current_func);
     }
 
-    if (isDynamicArray)
+    return ParseStruct_VariableOrAttribute(tqs, vartype, stname, mangled_name, size_so_far);
+}
+
+int AGS::Parser::EatPointerSymbolIfPresent(Vartype vartype)
+{
+    if (_sym.getPointerSym() != _targ.peeknext())
+        return 0;
+
+    if (kPP_PreAnalyze == _pp || IsManagedVartype(vartype))
     {
-        // "int []" etc. only allowed as a function return declaration
-        cc_error("Expected '('");
-        return -1;
+        _targ.getnext(); // Eat '*'
+        return 0;
     }
 
-    return ParseStruct_VariableOrAttribute(tqs, curtype, type_is_dynpointer, stname, mangled_name, size_so_far);
+    cc_error("Cannot use '*' for a non-managed type");
+    return -1;
 }
 
 int AGS::Parser::ParseStruct_MemberStmt(AGS::Symbol stname, AGS::Symbol name_of_current_func, AGS::Symbol parent, size_t &size_so_far)
@@ -4969,17 +4882,9 @@ int AGS::Parser::ParseStruct_MemberStmt(AGS::Symbol stname, AGS::Symbol name_of_
 
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(vartype);
     if (FlagIsSet(entry.flags, kSFLG_Managed))
-        SetFlag(vartype, kVTY_DynPointer, true);
-    if (_sym.getPointerSym() == _targ.peeknext())
-    {
-        if (!FlagIsSet(vartype, kVTY_DynPointer))
-        {
-            cc_error("Cannot use * for a non-managed type");
-            return -1;
-        }
-        _targ.getnext(); // Eat '*'
-    }
-    
+        SetFlag(vartype, kVTY_Managed, true);
+    int retval = EatPointerSymbolIfPresent(vartype);
+    if (retval < 0) return retval;
     
     // Certain types of members are not allowed in structs; check this
     if (kPP_Main == _pp)
@@ -4991,7 +4896,7 @@ int AGS::Parser::ParseStruct_MemberStmt(AGS::Symbol stname, AGS::Symbol name_of_
     // run through all variables declared on this member defn.
     while (true)
     {
-        int retval = ParseStruct_MemberDefnVarOrFuncOrArray(parent, stname, name_of_current_func, tqs, vartype, IsDynpointerVartype(vartype), size_so_far);
+        int retval = ParseStruct_MemberDefnVarOrFuncOrArray(parent, stname, name_of_current_func, tqs, vartype, size_so_far);
         if (retval < 0) return retval;
 
         if (_sym.get_type(_targ.peeknext()) == kSYM_Comma)
@@ -5086,18 +4991,15 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
 
     _targ.getnext(); // Eat '}'
 
-    SymbolType const type_of_next = _sym.get_type(_targ.peeknext());
+    Symbol const nextsym = _targ.peeknext();
+    SymbolType const type_of_next = _sym.get_type(nextsym);
     if (kSYM_Semicolon == type_of_next)
     {
         _targ.getnext(); // Eat ';'
         return 0;
     }
-    if (0 != type_of_next)
-    {
-        cc_error("Expected ';' or a variable name (did you forget ';' after the last struct definition?)");
-        return -1;
-    }
 
+    // Assume that this is a declaration
     bool dummy;
     return ParseVartype0(stname, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, dummy);
 }
@@ -5306,6 +5208,16 @@ int AGS::Parser::ParseVartype_GetVarName(AGS::Symbol &varname, AGS::Symbol &stru
     struct_of_member_fct = 0;
 
     varname = _targ.getnext();
+    SymbolType const vartype = _sym.get_type(varname);
+    if (kSYM_NoType != vartype &&
+        kSYM_Function != vartype &&
+        kSYM_Vartype != vartype &&
+        kSYM_GlobalVar != vartype &&
+        kSYM_LocalVar != vartype)
+    {
+        cc_error("Unexpected '%s'", sym.get_name_string(varname).c_str());
+        return -1;
+    }
 
     if (_sym.get_type(_targ.peeknext()) != kSYM_MemberAccess)
         return 0; // done
@@ -5343,9 +5255,9 @@ int AGS::Parser::ParseVartype_CheckForIllegalContext(AGS::NestingStack *nesting_
     return 0;
 }
 
-int AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, bool is_member_definition, TypeQualifierSet tqs)
+int AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, AGS::TypeQualifierSet tqs)
 {
-    if (FlagIsSet(tqs, kTQ_Static) && (!is_function || !is_member_definition))
+    if (FlagIsSet(tqs, kTQ_Static) & !is_function)
     {
         cc_error("'static' only applies to member functions");
         return -1;
@@ -5384,13 +5296,12 @@ int AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, bool is_membe
     return 0;
 }
 
-int AGS::Parser::ParseVartype_FuncDef(AGS::Symbol &func_name, AGS::Symbol vartype, bool isPointer, bool isDynamicArray, TypeQualifierSet tqs, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
+int AGS::Parser::ParseVartype_FuncDef(AGS::Symbol &func_name, AGS::Vartype vartype, TypeQualifierSet tqs, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
     bool body_follows;
 
     // In the case of extender functions, this will alter func_name
-    int retval = ParseFuncdecl(func_name, vartype, isPointer, isDynamicArray,
-        tqs, struct_of_current_func, body_follows);
+    int retval = ParseFuncdecl(func_name, vartype, tqs, struct_of_current_func, body_follows);
     if (retval < 0) return retval;
 
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(func_name);
@@ -5430,38 +5341,39 @@ int AGS::Parser::ParseVartype_FuncDef(AGS::Symbol &func_name, AGS::Symbol vartyp
     return 0;
 }
 
+int AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness is_global, bool &another_var_follows)
+{
+    if (0 != _givm.count(var_name))
+    {
+        if (_givm[var_name])
+        {
+            cc_error("'%s' is already defined as a global non-import variable", _sym.get_name_string(var_name).c_str());
+            return -1;
+        }
+        else if (kGl_GlobalNoImport == is_global && 0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
+        {
+            cc_error("'%s' is defined as an import variable; that cannot be overridden here", _sym.get_name_string(var_name).c_str());
+            return -1;
+        }
+    }
+    _givm[var_name] = (kGl_GlobalNoImport == is_global);
 
-int AGS::Parser::ParseVartype_VarDecl(AGS::Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, AGS::Symbol vartype, SymbolType next_type, bool isPointer, bool &another_var_follows)
+    // Apart from this, we aren't interested in var defns at this stage, so skip this defn
+    AGS::Symbol const stoplist[] = { kSYM_Comma, kSYM_Semicolon };
+    SkipTo(stoplist, 2);
+    another_var_follows = false;
+    if (kSYM_Comma == _sym.get_type(_targ.peeknext()))
+    {
+        another_var_follows = true;
+        _targ.getnext(); // Eat ','
+    }
+    return 0;
+}
+
+int AGS::Parser::ParseVartype_VarDecl(AGS::Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, AGS::Vartype vartype, SymbolType next_type, bool &another_var_follows)
 {
     if (kPP_PreAnalyze == _pp)
-    {
-        if (0 != _givm.count(var_name))
-        {
-            if (_givm[var_name])
-            {
-                cc_error("'%s' is already defined as a global non-import variable", _sym.get_name_string(var_name).c_str());
-                return -1;
-            }
-            else if (kGl_GlobalNoImport == is_global && 0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
-            {
-                cc_error("'%s' is defined as an import variable; that cannot be overridden here", _sym.get_name_string(var_name).c_str());
-                return -1;
-            }
-
-        }
-        _givm[var_name] = (kGl_GlobalNoImport == is_global);
-
-        // Apart from this, we aren't interested in var defns at this stage, so skip this defn
-        AGS::Symbol const stoplist[] = { kSYM_Comma, kSYM_Semicolon };
-        SkipTo(stoplist, 2);
-        another_var_follows = false;
-        if (kSYM_Comma == _sym.get_type(_targ.peeknext()))
-        {
-            another_var_follows = true;
-            _targ.getnext(); // Eat ','
-        }
-        return 0;
-    }
+        return ParseVartype_VarDecl_PreAnalyze(var_name, is_global, another_var_follows);
 
     if (is_global == kGl_Local)
         _sym.entries.at(var_name).sscope = nested_level;
@@ -5469,11 +5381,11 @@ int AGS::Parser::ParseVartype_VarDecl(AGS::Symbol &var_name, Globalness is_globa
         SetFlag(_sym.entries.at(var_name).flags, kSFLG_Readonly, true);
 
     // parse the definition
-    return ParseVardecl(var_name, vartype, next_type, is_global, isPointer, another_var_follows);
+    return ParseVardecl(var_name, vartype, next_type, is_global, another_var_follows);
 }
 
 // We accepted a variable type such as "int", so what follows is a function or variable definition
-int AGS::Parser::ParseVartype0(AGS::Symbol vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &noloopcheck_is_set)
+int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &noloopcheck_is_set)
 {
     if (_targ.reached_eof())
     {
@@ -5485,16 +5397,20 @@ int AGS::Parser::ParseVartype0(AGS::Symbol vartype, AGS::NestingStack *nesting_s
     int retval = ParseVartype_CheckForIllegalContext(nesting_stack);
     if (retval < 0) return retval;
 
-    if (_targ.peeknext() == _sym.getPointerSym())
-        _targ.getnext(); // Eat '*'
-    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(vartype);
-    bool isPointer = FlagIsSet(entry.flags, kSFLG_Managed);
+    SetManagedInVartype(vartype);
+    // Obscure special case
+    if (IsPrimitiveVartype(vartype) && _sym.getPointerSym() == _targ.peeknext())
+        SetFlag(vartype, kVTY_Managed, true);
 
-    // Look for "[]"; if present, gobble it and call this a dynamic array.
+    retval = EatPointerSymbolIfPresent(vartype);
+    if (retval < 0) return retval;
+
+    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(Vartype2Symbol(vartype));
+    bool is_managed = FlagIsSet(entry.flags, kSFLG_Managed);
+
     // "int [] func(...)"
-    int dynArrayStatus = ParseParamlist_Param_DynArrayMarker(vartype, isPointer);
-    if (dynArrayStatus < 0) return dynArrayStatus;
-    bool isDynamicArray = (dynArrayStatus > 0);
+    retval = ParseDynArrayMarkerIfPresent(vartype);
+    if (retval < 0) return retval;
 
     // Look for "noloopcheck"; if present, gobble it and set the indicator
     // "TYPE noloopcheck foo(...)"
@@ -5531,15 +5447,14 @@ int AGS::Parser::ParseVartype0(AGS::Symbol vartype, AGS::NestingStack *nesting_s
         }
 
         // Check whether var or func is being defined
-        SymbolType next_type = _sym.get_type(_targ.peeknext());
-        bool is_function = (kSYM_OpenParenthesis == _sym.get_type(_targ.peeknext()));
-        bool is_member_definition = (struct_of_current_func > 0);
+        SymbolType const next_type = _sym.get_type(_targ.peeknext());
+        bool const is_function = (kSYM_OpenParenthesis == next_type);
 
         // certains modifiers, such as "static" only go with certain kinds of definitions.
-        retval = ParseVartype_CheckIllegalCombis(is_function, is_member_definition, tqs);
+        retval = ParseVartype_CheckIllegalCombis(is_function, tqs);
         if (retval < 0) return retval;
 
-        if (is_function) // function defn
+        if (is_function)
         {
             if ((name_of_current_func >= 0) || (nesting_stack->Depth() > 1))
             {
@@ -5547,10 +5462,17 @@ int AGS::Parser::ParseVartype0(AGS::Symbol vartype, AGS::NestingStack *nesting_s
                 return -1;
             }
 
-            return ParseVartype_FuncDef(var_or_func_name, vartype, isPointer, isDynamicArray, tqs, struct_of_current_func, name_of_current_func);
+            return ParseVartype_FuncDef(var_or_func_name, vartype, tqs, struct_of_current_func, name_of_current_func);
         }
 
-        retval = ParseVartype_VarDecl(var_or_func_name, is_global, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), vartype, next_type, isPointer, another_ident_follows);
+        if (FlagIsSet(vartype, kVTY_DynArray)) // e.g., int [] Foo;
+        {
+            cc_error("Expected '('");
+            return -1;
+        }
+
+
+        retval = ParseVartype_VarDecl(var_or_func_name, is_global, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), vartype, next_type, another_ident_follows);
         if (retval < 0) return retval;
     }
     while (another_ident_follows);
@@ -5784,20 +5706,11 @@ int AGS::Parser::ParseAssignmentOrFunccall(AGS::Symbol cursym)
 
 int AGS::Parser::ParseFor_InitClauseVardecl(size_t nested_level)
 {
-    AGS::Symbol const vartype = _targ.getnext();
-    AGS::Flags const vartype_flags = _sym.get_flags(vartype);
-    bool const isPointer = FlagIsSet(vartype_flags, kSFLG_Managed);
+    AGS::Vartype vartype = _targ.getnext();
+    SetManagedInVartype(vartype);
 
-    if (_sym.getPointerSym() == _targ.peeknext())
-    {
-        // only allow pointers to structs
-        if (!isPointer)
-        {
-            cc_error("'*' may only be used for managed structs");
-            return -1;
-        }
-        _targ.getnext();
-    }
+    int retval = EatPointerSymbolIfPresent(vartype);
+    if (retval < 0) return retval;
 
     if (_sym.get_type(_targ.peeknext()) == kSYM_NoLoopCheck)
     {
@@ -5825,8 +5738,7 @@ int AGS::Parser::ParseFor_InitClauseVardecl(size_t nested_level)
         _sym.entries.at(varname).sscope = static_cast<short>(nested_level);
 
         // parse the declaration
-        int varsize = _sym.entries.at(vartype).ssize;
-        int retval = ParseVardecl(varname, vartype, next_type, kGl_Local, isPointer, another_var_follows);
+        int retval = ParseVardecl(varname, vartype, next_type, kGl_Local, another_var_follows);
         if (retval < 0) return retval;
     }
     while (another_var_follows);
@@ -6368,7 +6280,9 @@ int AGS::Parser::ParseVartype(AGS::Symbol cursym, TypeQualifierSet tqs, AGS::Nes
     // func or variable definition
     int retval = Parse_CheckTQ(tqs, kSYM_Vartype);
     if (retval < 0) return retval;
-    return ParseVartype0(cursym, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, set_nlc_flag);
+    Vartype vartype = cursym;
+    SetManagedInVartype(vartype);
+    return ParseVartype0(vartype, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, set_nlc_flag);
 }
 
 void AGS::Parser::Parse_SkipToEndingBrace()

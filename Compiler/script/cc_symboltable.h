@@ -12,7 +12,7 @@ enum VartypeFlag : AGS::Vartype
     kVTY_Array = (0x10000000 << 0),
     kVTY_Const = (0x10000000 << 1),
     kVTY_DynArray = (0x10000000 << 2),
-    kVTY_DynPointer = (0x10000000 << 3),
+    kVTY_Managed = (0x10000000 << 3),
     kVTY_FlagMask = (0x0FFFFFFF),
 };
 
@@ -59,6 +59,7 @@ private:
 
 public:
     std::vector<SymbolTableEntry> entries;
+    inline SymbolTableEntry &operator[](AGS::Symbol sym) { return entries.at(sym); };
 
     SymbolTable();
     void reset();
@@ -104,7 +105,7 @@ public:
 
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry
-    inline AGS::Flags SymbolTable::get_flags(AGS::Vartype vt) const { size_t idx = vt & kVTY_FlagMask; return (idx < entries.size()) ? entries.at(idx).flags : 0; }
+    inline AGS::Flags SymbolTable::get_flags(AGS::Symbol vt) const { size_t idx = vt & kVTY_FlagMask; return (idx < entries.size()) ? entries.at(idx).flags : 0; }
     // return the printable name of the vartype
     std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const;
    

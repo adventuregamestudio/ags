@@ -39,6 +39,8 @@ build_linux_task:
       - BUILD_SYSTEM: cmake
         BUILD_TYPE: debug
       - BUILD_SYSTEM: debian
+        RPATH_PREFIX: lib
+      - BUILD_SYSTEM: debian
       - BUILD_SYSTEM: make
   build_script: |
     arch=$(dpkg --print-architecture)
@@ -51,8 +53,6 @@ build_linux_task:
       debian)
         version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
         sed -i -s "s/ags \(.*\)(.*)/ags \($version\)\1/" debian/changelog
-        fakeroot debian/rules binary
-        mv ../ags*.deb .
         case $arch in
           amd64)
             bit=64
@@ -65,8 +65,15 @@ build_linux_task:
             exit 1
             ;;
         esac
-        sed -E "/^BI(NDMOUNT|T)=/d" debian/ags+libraries/hooks/B00_copy_libs.sh | BIT=$bit BINDMOUNT=$(pwd) sh
-        cd data && tar -cvzf ../data_$arch.tar.gz *
+        if [ -n "$RPATH_PREFIX" ]; then
+          DEB_BUILD_OPTIONS="rpath=$RPATH_PREFIX$bit" fakeroot debian/rules binary
+          sed -E "/^BI(NDMOUNT|T)=/d" debian/ags+libraries/hooks/B00_copy_libs.sh | BIT=$bit BINDMOUNT=$(pwd) sh
+          ar -p ../ags_${version}_$arch.deb data.tar.xz | unxz | tar -f - -xvC data --transform "s/.*ags/ags$bit/" ./usr/bin/ags
+          cd data && tar -cvzf ../data_$arch.tar.gz *
+        else
+          fakeroot debian/rules binary
+          mv ../ags_${version}_$arch.deb .
+        fi
         ;;
       make)
         make --directory=Engine
@@ -148,12 +155,8 @@ linux_packaging_task:
   package_script: |
     tmp=/tmp/bundle$$
     mkdir -p $tmp/data
-    echo Getting Debian packages
-    url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/build_linux/debian_packages.zip"
-    curl -fLsS "$url" | tar -f - -xvzC $tmp -s '|.*dbg.*||p'
     for arch in i386 amd64
     do
-      echo Extracting engine for $arch
       case $arch in
         amd64)
           bit=64
@@ -162,7 +165,6 @@ linux_packaging_task:
           bit=32
           ;;
       esac
-      ar -p $tmp/ags*$arch.deb data.tar.xz | unxz | tar -f - -xvC $tmp/data -s "|.*/ags|ags$bit|p" usr/bin/ags
       echo Downloading files for $arch
       url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/build_linux/debian_files/data_$arch.tar.gz"
       curl -fLsS "$url" | tar -f - -xvzC $tmp/data

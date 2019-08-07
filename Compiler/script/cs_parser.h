@@ -388,10 +388,10 @@ private:
     // The higher the MATHEMATICAL priority of an operator, the MORE binding it is.
     // For example, "*" has a higher mathematical priority than "-".
     // In contrast to this, "size" gives the priority in the INVERSE way: 
-    // The higher _sym.entries.at(op).ssize is, the LESS binding is the operator op.
+    // The higher _sym[op].ssize is, the LESS binding is the operator op.
     // To convert, we must subtract this value from some suitable value 
     // (any will do that doesn't cause underflow of the subtraction).
-    inline int MathPrio(Symbol op) const { return 100 - _sym.entries.at(op).ssize; };
+    inline int MathPrio(Symbol op) const { return 100 - _sym[op].ssize; };
 
     bool IsIdentifier(Symbol symb);
 
@@ -412,6 +412,8 @@ private:
     // Combine the arguments to stname::component, get the symbol for that
     Symbol MangleStructAndComponent(Symbol stname, Symbol component);
 
+    // Eat symbols until either reaching an unopened close symbol or a symbol in the stop list.
+    // Don't eat the symbol that stopped the scan.
     int Parser::SkipTo(const Symbol stoplist[], size_t stoplist_len);
 
     int SkipToScript0(Symbol *end_sym_ptr, const Symbol stoplist[], size_t stoplist_len, Symbol *&act_sym_ptr);
@@ -420,13 +422,13 @@ private:
     int SkipToScript(const Symbol stoplist[], size_t stoplist_len, SymbolScript &symlist, size_t &symlist_len);
 
     // Reference to the symbol table that works irrespective of the phase we are in
-    inline SymbolTableEntry &GetSymbolTableEntryAnyPhase(Symbol symb) { return (kPP_Main == _pp) ? sym.entries.at(symb) : _sym1[symb]; }
+    inline SymbolTableEntry &GetSymbolTableEntryAnyPhase(Symbol symb) { return (kPP_Main == _pp) ? _sym[symb] : _sym1[symb]; }
 
     // Get the type of symb; this will work irrespective of the phase we are in
     inline SymbolType GetSymbolTypeAnyPhase(Symbol symb) { return (symb < 0) ? kSYM_NoType : GetSymbolTableEntryAnyPhase(symb & kVTY_FlagMask).stype; };
 
     // Mark the symbol as "accessed" in the symbol table
-    inline void MarkAcessed(Symbol symb) { _sym.entries.at(symb).flags |= kSFLG_Accessed; };
+    inline void MarkAcessed(Symbol symb) { SetFlag(_sym[symb].flags, kSFLG_Accessed, true); };
 
     // Return number of bytes to remove from stack to unallocate local vars
     // of level from_level or higher

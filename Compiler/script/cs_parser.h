@@ -320,9 +320,9 @@ public:
 
     enum Globalness
     {
-        kGl_Local = 0,            // Local
-        kGl_GlobalNoImport = 1,   // Global, not imported
-        kGl_GlobalImport = 2,     // Global, imported
+        kGl_Local = 0,            
+        kGl_GlobalNoImport = 1,   
+        kGl_GlobalImport = 2,     
     };
 
     enum TypeQualifier

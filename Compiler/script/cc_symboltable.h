@@ -26,6 +26,8 @@ struct SymbolTableEntry {
     int sscope; // or num arguments for function
     int arrsize; // num of elements in a standard (non-dynamic) array
     AGS::Vartype extends; // parent struct (for structs) / owning struct (for members)
+    int decl_secid, decl_line; // where this was declared
+
     // functions only, save types of return value and all parameters
     std::vector<AGS::Vartype> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
@@ -44,6 +46,20 @@ struct SymbolTableEntry {
 
 struct SymbolTable {
 private:
+    // maps sections to IDs to save space;
+    class SectionMap
+    {
+    private:
+        std::string _cacheSec;
+        int _cacheId;
+        std::vector <std::string> _section;
+    public:
+        int section2id(std::string sec);
+        std::string const id2section(int id) const;
+        void init();
+        SectionMap() { init(); };
+    } _sectionMap;
+
     // index for predefined symbols
     AGS::Symbol _charSym;      // the symbol that corresponds to "char"
     AGS::Symbol _floatSym;     // the symbol that corresponds to "float"
@@ -106,9 +122,14 @@ public:
     // the flags of a vartype, as given by the symbol table entry to its core type
     // -or- the flags of a symbol, as given by its symbol table entry
     inline AGS::Flags SymbolTable::get_flags(AGS::Symbol vt) const { size_t idx = vt & kVTY_FlagMask; return (idx < entries.size()) ? entries.at(idx).flags : 0; }
+
     // return the printable name of the vartype
     std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const;
-   
+
+    // Set/get section and line where the item is declared
+    void set_declared(int idx, std::string section, int line);
+    inline int get_declared_line(int idx) { return (*this)[idx].decl_line; };
+    inline std::string const get_declared_section(int idx) const{ return _sectionMap.id2section(entries.at(idx).decl_secid); };
 };
 
 

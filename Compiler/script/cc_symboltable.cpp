@@ -5,6 +5,33 @@
 #include "cc_symboltable.h"
 #include "script/script_common.h"      // macro definitions
 
+int SymbolTable::SectionMap::section2id(std::string sec)
+{
+    if (sec == _cacheSec)
+        return _cacheId;
+    _cacheSec = sec;
+    size_t const section_size = _section.size();
+    for (size_t section_idx = 0; section_idx < section_size; section_idx++)
+        if (_section[section_idx] == sec)
+            return ((_cacheId = section_idx));
+    _section.push_back(sec);
+    return ((_cacheId = section_size));
+}
+
+std::string const SymbolTable::SectionMap::id2section(int id) const
+{
+    return
+        (id >= 0 && id < _section.size()) ?
+        _section[id] : "";
+}
+
+void SymbolTable::SectionMap::init()
+{
+    _cacheSec = "";
+    _cacheId = -1;
+    _section.clear();
+}
+
 SymbolTableEntry::SymbolTableEntry()
     : sname("")
     , stype(kSYM_NoType)
@@ -15,6 +42,8 @@ SymbolTableEntry::SymbolTableEntry()
     , sscope(0)
     , arrsize(0)
     , extends(0)
+    , decl_secid(0)
+    , decl_line(0)
     , funcparamtypes (std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , funcParamDefaultValues(std::vector<int>(1))
     , funcParamHasDefaultValues(std::vector<bool>(1))
@@ -30,6 +59,8 @@ SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, char size
     , sscope(0)
     , arrsize(0)
     , extends(0)
+    , decl_secid(0)
+    , decl_line(0)
     , funcparamtypes(std::vector<AGS::Vartype>(1)) // Function must have at least the return param
     , funcParamDefaultValues(std::vector<int>(1))
     , funcParamHasDefaultValues(std::vector<bool>(1))
@@ -37,7 +68,6 @@ SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, char size
 
 int SymbolTableEntry::operatorToVCPUCmd()
 {
-    //return ssize + 8;
     return vartype;
 }
 
@@ -52,6 +82,8 @@ int SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
     dest.sscope = this->sscope;
     dest.arrsize = this->arrsize;
     dest.extends = this->extends;
+    dest.decl_secid = this->decl_secid;
+    dest.decl_line = this->decl_line;
     dest.funcparamtypes = this->funcparamtypes;
     dest.funcParamDefaultValues = this->funcParamDefaultValues;
     dest.funcParamHasDefaultValues = this->funcParamHasDefaultValues;
@@ -224,6 +256,12 @@ std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) con
         result = "const " + result;
 
     return result;
+}
+
+void SymbolTable::set_declared(int idx, std::string section, int line)
+{
+    (*this)[idx].decl_secid = _sectionMap.section2id(section);
+    (*this)[idx].decl_line = line;
 }
 
 AGS::Symbol SymbolTable::add_ex(char const *name, SymbolType stype, int ssize)

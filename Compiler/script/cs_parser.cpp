@@ -51,6 +51,49 @@ Notes on how nested statements are handled:
     When handling nested constructs, the parser sometimes generates and emits some code,
     then rips it out of the codebase and stores it internally, then later on, retrieves
     it and emits it into the codebase again.
+
+Pointers and managed structs:
+    Bytecode: Any address that should hold a pointer must be manipulated using the
+    SCMD_...PTR form of the commands and released by overwriting it with SCMD_MEMZEROPTR.
+
+    Pointers are exclusively used for managed memory. If managed structs are manipulated,
+    pointers MUST ALWAYS be used; for un-managed structs, pointers MAY NEVER be used. Blocks
+    of primitive vartypes can be allocated as managed memory, in which case pointers MUST be
+    used. That means that the compiler can deduce in about 99 % of the cases whether
+    a pointer is used by looking at the managed keyword alone.
+
+Classic arrays and Dynarrays:
+    A variable type (vartype) consists of the symbol table index of the core type to which
+    flags are added.
+    A DynArray is always managed, so always also has the Managed flag.
+    A Dynarray of primitives (e.g., int[]) is represented in memory as a pointer to a memory
+    block that comprises all the elements, one after the other.
+    [*]->[][]...[]
+    A Dynarray of structs must be a dynarray of managed structs, so there is no additional
+    indication that the structs are managed. It is represented in memory as a pointer to a
+    block of pointers, each of which points to one element.
+    [*]->[*][*]...[*]
+          |  |     |
+          V  V ... V
+         [] [] ... []
+    In contrast to a dynamic array, a classic array is never managed.
+    A classic array of primitives (e.g., int[12]) or of non-managed structs is represented
+    in memory as a block of those elements.
+    [][]...[]
+    A classic array of managed structs has both the Array and the Managed flag set. In this
+    case, the Managed tag refers to the core type, i.e., it's a classic array of pointers,
+    each of which points to a memory block that contains one element.
+    [*][*]...[*]
+     |  |     |
+     V  V ... V
+    [] [] ... []
+
+Oldstyle strings, string literals, string buffers:
+    If a "string" is declared, 200 bytes of memory are reserved on the stack (local) or in
+    global memory (global). This is called a "string buffer". Whenever oldstyle strings or
+    literal strings are used, they are referred to by the address of their first byte.
+    The only way of modifying a string buffer is by functions. The compiler doesn't
+    attempt in any way to prevent buffer underruns or overruns.  
 */
 
 

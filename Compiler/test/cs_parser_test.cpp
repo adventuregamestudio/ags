@@ -1767,3 +1767,29 @@ TEST(Compile, DynamicArrayCompare)
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+
+TEST(Compile, DoubleLocalDecl)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Even within { ... } a local definition must not re-define another
+    // local definition
+
+    char *inpl = "\
+        int room_AfterFadeIn()                          \n\
+        {                                               \n\
+            int Bang = 24;                              \n\
+            for (int Loop = 0; Loop < 10; Loop += 3)    \n\
+            {                                           \n\
+                int Bang = Loop - 4;                    \n\
+            }                                           \n\
+        }                                               \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_NE(compileResult, 0);
+    std::string lsce = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, lsce.find("Bang"));
+}

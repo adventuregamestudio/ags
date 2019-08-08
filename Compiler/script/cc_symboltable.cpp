@@ -5,7 +5,7 @@
 #include "cc_symboltable.h"
 #include "script/script_common.h"      // macro definitions
 
-int SymbolTable::SectionMap::section2id(std::string sec)
+int SymbolTable::SectionMap::section2id(std::string const &sec)
 {
     if (sec == _cacheSec)
         return _cacheId;
@@ -21,7 +21,7 @@ int SymbolTable::SectionMap::section2id(std::string sec)
 std::string const SymbolTable::SectionMap::id2section(int id) const
 {
     return
-        (id >= 0 && id < _section.size()) ?
+        (id >= 0 && static_cast<size_t>(id) < _section.size()) ?
         _section[id] : "";
 }
 
@@ -258,7 +258,7 @@ std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) con
     return result;
 }
 
-void SymbolTable::set_declared(int idx, std::string section, int line)
+void SymbolTable::set_declared(int idx, std::string const &section, int line)
 {
     (*this)[idx].decl_secid = _sectionMap.section2id(section);
     (*this)[idx].decl_line = line;

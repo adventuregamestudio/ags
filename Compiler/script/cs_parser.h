@@ -383,6 +383,11 @@ private:
 private:
     void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
 
+    // Augment the message with a "See ..." indication
+    std::string ReferenceMsg(std::string const &msg, std::string const &section, int line);
+
+    std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol sym);
+
     static int String2Int(std::string str, int &val, bool send_error);
 
     // The higher the MATHEMATICAL priority of an operator, the MORE binding it is.

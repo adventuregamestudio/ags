@@ -54,7 +54,7 @@ private:
         int _cacheId;
         std::vector <std::string> _section;
     public:
-        int section2id(std::string sec);
+        int section2id(std::string const &sec);
         std::string const id2section(int id) const;
         void init();
         SectionMap() { init(); };
@@ -127,9 +127,13 @@ public:
     std::string const SymbolTable::get_vartype_name_string(AGS::Vartype vartype) const;
 
     // Set/get section and line where the item is declared
-    void set_declared(int idx, std::string section, int line);
+    void set_declared(int idx, std::string const &section, int line);
     inline int get_declared_line(int idx) { return (*this)[idx].decl_line; };
     inline std::string const get_declared_section(int idx) const{ return _sectionMap.id2section(entries.at(idx).decl_secid); };
+
+    // Unfortunately, a bit of a kludge. Expose the section to id mapping
+    inline int section2id(std::string const &section) { return _sectionMap.section2id(section); };
+    inline std::string const id2section(int id) { return _sectionMap.id2section(id); };
 };
 
 

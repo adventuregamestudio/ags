@@ -1248,10 +1248,13 @@ int AGS::Parser::ParseParamlist_Param_Name(bool body_follows, AGS::Symbol &param
         return 0;
     }
 
-    if (_sym.get_type(_targ.peeknext()) == kSYM_GlobalVar)
+    AGS::Symbol const nextsym = _targ.peeknext();
+    if (_sym.get_type(nextsym) == kSYM_GlobalVar)
     {
         // This is a definition -- so the parameter name must not be a global variable
-        cc_error("The name '%s' is already used for a global variable", _sym.get_name_string(_targ.peeknext()).c_str());
+        std::string msg =
+            ReferenceMsgSym("The name '%s' is already used for a global variable", nextsym);
+        cc_error(msg.c_str(), _sym.get_name_string(_targ.peeknext()).c_str());
         return -1;
     }
 
@@ -1288,6 +1291,7 @@ void AGS::Parser::ParseParamlist_Param_AsVar2Sym(AGS::Symbol param_name, AGS::Va
     // stack has the first parameter. The +1 is because the
     // call will push the return address onto the stack as well
     param_entry.soffs = _scrip.cur_sp - (param_idx + 1) * 4;
+    _sym.set_declared(param_name, ccCurScriptName, currentline);
 }
 
 void AGS::Parser::ParseParamlist_Param_Add2Func(AGS::Symbol name_of_func, int param_idx, AGS::Symbol param_type, bool param_is_const, bool param_has_int_default, int param_int_default)
@@ -1323,11 +1327,9 @@ int AGS::Parser::ParseParamlist_Param(AGS::Symbol name_of_func, bool body_follow
     retval = ParseParamlist_Param_Name(body_follows, param_name);
     if (retval < 0) return retval;
 
-    // Dynamic array signifier (when present)
     retval = ParseDynArrayMarkerIfPresent(vartype);
     if (retval < 0) return retval;
 
-    // Default clause (when present)
     bool param_has_int_default = false;
     int param_int_default;
     retval = ParseParamlist_Param_DefaultValue(param_has_int_default, param_int_default);
@@ -1469,6 +1471,10 @@ int AGS::Parser::ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry *this
             errstr2.replace(errstr2.find("<2>"), 3, "has the default "
                 + std::to_string(known_info->funcParamDefaultValues[param_idx]));
         errstr1 += errstr2;
+        errstr1 = ReferenceMsg(
+            errstr1,
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
         cc_error(errstr1.c_str());
         return -1;
     }
@@ -1483,8 +1489,12 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_
 
     if (known_info->stype != this_entry->stype)
     {
-        cc_error(
+        std::string msg = ReferenceMsg(
             "Type of function is declared as %s here, as %s elsewhere",
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(
+            msg.c_str(),
             _sym.get_name_string(this_entry->stype).c_str(),
             _sym.get_name_string(known_info->stype).c_str());
         return -1;
@@ -1492,46 +1502,57 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_
 
     if ((known_info->flags & ~kSFLG_Imported) != (this_entry->flags & ~kSFLG_Imported))
     {
-        cc_error("Qualifiers of function do not match prototype");
+        std::string msg = ReferenceMsg(
+            "Qualifiers of function do not match prototype",
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(msg.c_str());
         return -1;
     }
 
     if (FlagIsSet(this_entry->vartype, kVTY_Array) && (known_info->arrsize != this_entry->arrsize))
     {
-        cc_error(
+        std::string msg = ReferenceMsg(
             "Function is declared to return an array size %d here, %d elsewhere",
-            this_entry->arrsize, known_info->arrsize);
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(msg.c_str(), this_entry->arrsize, known_info->arrsize);
         return -1;
     }
 
     if (known_info->sscope != this_entry->sscope)
     {
-        cc_error("Function is declared with %d parameters here, with %d parameters elswehere", this_entry->sscope, known_info->sscope);
+        std::string msg = ReferenceMsg(
+            "Function is declared with %d parameters here, with %d parameters elswehere",
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(msg.c_str(), this_entry->sscope, known_info->sscope);
         return -1;
     }
 
     if (known_info->funcparamtypes.at(0) != this_entry->funcparamtypes.at(0))
     {
-        cc_error(
+        std::string msg = ReferenceMsg(
             "Return type is declared as %s here, as %s elsewhere",
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(
+            msg.c_str(),
             _sym.get_vartype_name_string(this_entry->funcparamtypes.at(0)).c_str(),
             _sym.get_vartype_name_string(known_info->funcparamtypes.at(0)).c_str());
 
-        return -1;
-    }
-    if (known_info->ssize != this_entry->ssize)
-    {
-        cc_error(
-            "Size of return value is %d here, %d declared elsewhere",
-            this_entry->ssize, known_info->ssize);
         return -1;
     }
 
     size_t const num_args = this_entry->get_num_args();
     if (num_args != known_info->get_num_args())
     {
-        cc_error(
+        std::string msg = ReferenceMsg(
             "Function has %d explicit arguments here, %d elsewhere",
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(
+            msg.c_str(),
             this_entry->get_num_args(), known_info->get_num_args());
         return -1;
     }
@@ -1540,8 +1561,12 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_
     {
         if (known_info->funcparamtypes.at(param_idx) != this_entry->funcparamtypes.at(param_idx))
         {
-            cc_error(
+            std::string msg = ReferenceMsg(
                 "Type of parameter no. %d is %s here, %s in a declaration elsewhere",
+                _sym.id2section(known_info->decl_secid),
+                known_info->decl_line);
+            cc_error(
+                msg.c_str(),
                 param_idx,
                 _sym.get_name_string(this_entry->funcparamtypes.at(param_idx)).c_str(),
                 _sym.get_name_string(known_info->funcparamtypes.at(param_idx)).c_str());
@@ -1642,7 +1667,11 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(name_of_func);
     if (kSYM_Function != entry.stype && kSYM_NoType != entry.stype)
     {
-        cc_error("'%s' is already defined", _sym.get_name_string(name_of_func).c_str());
+        std::string msg = ReferenceMsg(
+            "'%s' is already defined",
+            _sym.id2section(entry.decl_secid),
+            entry.decl_line);
+        cc_error(msg.c_str(), _sym.get_name_string(name_of_func).c_str());
         return -1;
     }
 
@@ -1659,7 +1688,9 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
 
         if (_fcm.HasFuncCallpoint(name_of_func))
         {
-            cc_error("This function has already been defined with body");
+            std::string msg =
+                ReferenceMsgSym("This function has already been defined with body", name_of_func);
+            cc_error(msg.c_str());
             return -1;
         }
     }
@@ -1682,17 +1713,18 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     int retval = CopyKnownSymInfo(entry, known_info);
     if (retval < 0) return retval;
 
-    // process parameter list, get number of parameters
     int numparams = 1; // Counts the number of parameters including the ret parameter, so start at 1
     retval = ParseFuncdecl_Paramlist(name_of_func, body_follows, numparams);
     if (retval < 0) return retval;
 
-    // Type the function in the symbol table
     ParseFuncdecl_SetFunctype(entry, return_vartype, FlagIsSet(tqs, kTQ_Static), FlagIsSet(tqs, kTQ_Protected), numparams);
 
-    // Check whether this declaration is compatible with known info; 
     retval = ParseFuncdecl_CheckThatKnownInfoMatches(&entry, body_follows, &known_info);
     if (retval < 0) return retval;
+
+    // This must happen in both phases, so can't use _sym.set_declared()
+    entry.decl_secid = _sym.section2id(ccCurScriptName);
+    entry.decl_line = currentline;
 
     if (kPP_Main == _pp)
     {
@@ -1710,6 +1742,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
         return 0;
 
     // Imported functions
+
     SetFlag(entry.flags, kSFLG_Imported, true);
 
     if (kPP_PreAnalyze == _pp)
@@ -1720,9 +1753,8 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
 
     if (struct_of_func > 0)
     {
-        // Append the number of parameters to the name of the import
         char appendage[10];
-        sprintf(appendage, "^%d", entry.sscope);
+        sprintf(appendage, "^%d", entry.sscope); // num of parameters
         strcat(_scrip.imports[entry.soffs], appendage);
     }
 
@@ -2394,6 +2426,28 @@ void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
     {
         _scrip.write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
     }
+}
+
+std::string AGS::Parser::ReferenceMsg(std::string const &msg, std::string const &section, int line)
+{
+    if (line <= 0 || (!section.empty() && section[0] == '_'))
+        return msg;
+
+    std::string tpl = ". See line <2>";
+    if (section.compare(ccCurScriptName) != 0)
+    {
+        tpl = ". See <1> line <2>";
+        tpl.replace(tpl.find("<1>"), 3, section);
+    }
+    return msg + tpl.replace(tpl.find("<2>"), 3, std::to_string(line));
+}
+
+std::string AGS::Parser::ReferenceMsgSym(std::string const &msg, AGS::Symbol symb)
+{
+    return ReferenceMsg(
+        msg,
+        _sym.get_declared_section(symb),
+        _sym.get_declared_line(symb));
 }
 
 int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &paramList, size_t closedParenIdx, size_t num_func_args, size_t num_supplied_args, AGS::Symbol funcSymbol, bool func_is_import)
@@ -3953,6 +4007,7 @@ void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartyp
     entry.ssize = size_of_defn;
     entry.arrsize = arrsize;
     entry.vartype = vartype;
+    _sym.set_declared(var_name, ccCurScriptName, currentline);
 }
 
 // we have accepted something like "int a" and we're expecting "["
@@ -4034,8 +4089,12 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
 
     if (known_info->stype != this_entry->stype)
     {
-        cc_error(
+        std::string msg = ReferenceMsg(
             "Type of this variable is declared as %s here, as %s elsewhere",
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(
+            msg.c_str(),
             _sym.get_name_string(this_entry->stype).c_str(),
             _sym.get_name_string(known_info->stype).c_str());
         return -1;
@@ -4043,22 +4102,34 @@ int AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_e
 
     if ((known_info->flags & ~kSFLG_Imported) != (this_entry->flags & ~kSFLG_Imported))
     {
-        cc_error("Qualifiers of this variable do not match prototype");
+        std::string msg = ReferenceMsg(
+            "Qualifiers of this variable do not match prototype",
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(msg.c_str());
         return -1;
     }
 
     if (FlagIsSet(this_entry->vartype, kVTY_Array) && (known_info->arrsize != this_entry->arrsize))
     {
-        cc_error(
+        std::string msg = ReferenceMsg(
             "Variable is declared as an array of size %d here, of size %d elsewhere",
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(
+            msg.c_str(),
             this_entry->arrsize, known_info->arrsize);
         return -1;
     }
 
     if (known_info->ssize != this_entry->ssize)
     {
-        cc_error(
+        std::string msg = ReferenceMsg(
             "Size of this variable is %d here, %d declared elsewhere",
+            _sym.id2section(known_info->decl_secid),
+            known_info->decl_line);
+        cc_error(
+            msg.c_str(),
             this_entry->ssize, known_info->ssize);
         return -1;
     }
@@ -4174,6 +4245,14 @@ int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, Symbol
 {
     int retval = ParseVardecl_CheckIllegalCombis(vartype, is_global);
     if (retval < 0) return retval;
+
+    if (kGl_Local == is_global && _sym[var_name].stype != 0)
+    {
+        std::string msg = ReferenceMsgSym(
+            "Variable %s has already been declared", var_name);
+        cc_error(msg.c_str(), _sym.get_name_string(var_name).c_str());
+        return -1;
+    }
 
     SymbolTableEntry known_info;
     if (_sym.get_type(var_name) != 0)
@@ -4384,6 +4463,8 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(AGS::Symbol stname, TypeQuali
 
     if (FlagIsSet(tqs, kTQ_Autoptr))
         SetFlag(entry.flags, kSFLG_Autoptr, true);
+    if (kPP_Main == _pp)
+        _sym.set_declared(stname, ccCurScriptName, currentline);
 }
 
 
@@ -4502,8 +4583,11 @@ int AGS::Parser::ParseStruct_CheckComponentVartype(int stname, AGS::Vartype vart
     }
     if (kSYM_Vartype != vartype_type && kSYM_UndefinedStruct != vartype_type)
     {
-        cc_error(
+        std::string msg = ReferenceMsgSym(
             "'%s' should be a typename but is already in use differently",
+            Vartype2Symbol(vartype));
+        cc_error(
+            msg.c_str(),
             _sym.get_vartype_name_string(vartype).c_str());
         return -1;
     }
@@ -4524,12 +4608,14 @@ int AGS::Parser::ParseStruct_CheckForCompoInAncester(AGS::Symbol orig, AGS::Symb
     AGS::Symbol const member = MangleStructAndComponent(act_struct, compo);
     if (kSYM_NoType != _sym.get_type(member))
     {
+        std::string msg = ReferenceMsgSym(
+            "The struct '%s' extends '%s', and '%s' is already defined",
+            member);
         cc_error(
-            "The struct '%s' extends '%s', and '%s::%s' is already defined",
+            msg.c_str(),
             _sym.get_name_string(orig).c_str(),
             _sym.get_name_string(act_struct).c_str(),
-            _sym.get_name_string(act_struct).c_str(),
-            _sym.get_name_string(compo).c_str());
+            _sym.get_name_string(member).c_str());
         return -1;
     }
 
@@ -4643,9 +4729,10 @@ int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_sett
     SymbolTableEntry &entry = _sym[func];
     if (kSYM_Function != entry.stype && kSYM_NoType != entry.stype)
     {
-        cc_error(
+        std::string msg = ReferenceMsgSym(
             "Attribute uses '%s' as a function, this clashes with a declaration elsewhere",
-            entry.sname.c_str());
+            func);
+        cc_error(msg.c_str(), entry.sname.c_str());
         return -1;
     }
 
@@ -4825,20 +4912,26 @@ int AGS::Parser::ParseStruct_MemberDefnVarOrFuncOrArray(AGS::Symbol parent, AGS:
     {
         if (_sym.get_type(mangled_name) != 0)
         {
+            std::string msg = ReferenceMsgSym(
+                "'%s' is already defined", mangled_name);
             cc_error(
-                "'%s' is already defined",
+                msg.c_str(),
                 _sym.get_name_string(mangled_name).c_str());
             return -1;
         }
 
         // Mustn't be in any ancester
-        int retval = ParseStruct_CheckForCompoInAncester(stname, component, parent);
+        retval = ParseStruct_CheckForCompoInAncester(stname, component, parent);
         if (retval < 0) return retval;
     }
 
-    // All struct members get this flag, even functions
+    
     if (kPP_Main == _pp)
+    {
+        // All struct members get this flag, even functions
         SetFlag(_sym[mangled_name].flags, kSFLG_StructMember, true);
+        _sym.set_declared(mangled_name, ccCurScriptName, currentline);
+    }
 
     if (is_function)
     {
@@ -4886,17 +4979,17 @@ int AGS::Parser::ParseStruct_MemberStmt(AGS::Symbol stname, AGS::Symbol name_of_
     int retval = EatPointerSymbolIfPresent(vartype);
     if (retval < 0) return retval;
 
-    // Certain types of members are not allowed in structs; check this
     if (kPP_Main == _pp)
     {
-        int retval = ParseStruct_CheckComponentVartype(stname, vartype, FlagIsSet(tqs, kTQ_Import));
+        // Certain types of members are not allowed in structs; check this
+        retval = ParseStruct_CheckComponentVartype(stname, vartype, FlagIsSet(tqs, kTQ_Import));
         if (retval < 0) return retval;
     }
 
     // run through all variables declared on this member defn.
     while (true)
     {
-        int retval = ParseStruct_MemberDefnVarOrFuncOrArray(parent, stname, name_of_current_func, tqs, vartype, size_so_far);
+        retval = ParseStruct_MemberDefnVarOrFuncOrArray(parent, stname, name_of_current_func, tqs, vartype, size_so_far);
         if (retval < 0) return retval;
 
         if (_sym.get_type(_targ.peeknext()) == kSYM_Comma)
@@ -4947,7 +5040,6 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
     // If the struct extends another struct, the token of the other struct's name
     AGS::Symbol parent = 0;
 
-    // optional "extends" clause
     if (_sym.get_type(_targ.peeknext()) == kSYM_Extends)
         ParseStruct_ExtendsClause(stname, parent, size_so_far);
 
@@ -4967,14 +5059,13 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
         return 0;
     }
 
-    // So we are in the declaration of the components
     if (_sym.get_type(_targ.getnext()) != kSYM_OpenBrace)
     {
         cc_error("Expected '{'");
         return -1;
     }
 
-    // Process every member of the struct in turn
+    // Declaration of the components
     while (_sym.get_type(_targ.peeknext()) != kSYM_CloseBrace)
     {
         int retval = ParseStruct_MemberStmt(stname, name_of_current_func, parent, size_so_far);
@@ -5033,6 +5124,8 @@ void AGS::Parser::ParseEnum_Item2Symtable(AGS::Symbol enum_name, AGS::Symbol ite
     entry.flags = kSFLG_Readonly;
     // soffs is unused for a constant, so in a gratuitous hack we use it to store the enum's value
     entry.soffs = currentValue;
+    if (kPP_Main == _pp)
+        _sym.set_declared(item_name, ccCurScriptName, currentline);
 }
 
 int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
@@ -5041,7 +5134,11 @@ int AGS::Parser::ParseEnum_Name2Symtable(AGS::Symbol enumName)
 
     if (0 != entry.stype)
     {
-        cc_error("'%s' is already defined", _sym.get_name_string(enumName).c_str());
+        std::string msg = ReferenceMsg(
+            "'%s' is already defined",
+            _sym.id2section(entry.decl_secid),
+            entry.decl_line);
+        cc_error(msg.c_str(), _sym.get_name_string(enumName).c_str());
         return -1;
     }
 
@@ -5074,15 +5171,20 @@ int AGS::Parser::ParseEnum0()
         if (_sym.get_type(item_name) == kSYM_CloseBrace)
             break; // item list empty or ends with trailing ','
 
-        if (_sym.get_type(item_name) == kSYM_Const)  // will only test properly in main phase, but that's OK
+        if (kPP_Main == _pp)
         {
-            cc_error("'%s' is already defined as a constant or enum value", _sym.get_name_string(item_name).c_str());
-            return -1;
-        }
-        if (_sym.get_type(item_name) != 0)  // will only test properly in main phase, but that's OK
-        {
-            cc_error("Expected '}' or an unused identifier, found '%s' instead", _sym.get_name_string(item_name).c_str());
-            return -1;
+            if (_sym.get_type(item_name) == kSYM_Const) 
+            {
+                std::string msg =
+                    ReferenceMsgSym("'%s' is already defined as a constant or enum value", item_name);
+                cc_error(msg.c_str(), _sym.get_name_string(item_name).c_str());
+                return -1;
+            }
+            if (_sym.get_type(item_name) != 0) 
+            {
+                cc_error("Expected '}' or an unused identifier, found '%s' instead", _sym.get_name_string(item_name).c_str());
+                return -1;
+            }
         }
 
         // increment the value of the enum entry
@@ -5257,7 +5359,7 @@ int AGS::Parser::ParseVartype_CheckForIllegalContext(AGS::NestingStack *nesting_
 
 int AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, AGS::TypeQualifierSet tqs)
 {
-    if (FlagIsSet(tqs, kTQ_Static) & !is_function)
+    if (FlagIsSet(tqs, kTQ_Static) && !is_function)
     {
         cc_error("'static' only applies to member functions");
         return -1;
@@ -5406,7 +5508,6 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
     if (retval < 0) return retval;
 
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(Vartype2Symbol(vartype));
-    bool is_managed = FlagIsSet(entry.flags, kSFLG_Managed);
 
     // "int [] func(...)"
     retval = ParseDynArrayMarkerIfPresent(vartype);
@@ -5442,7 +5543,9 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
 
         if (kSYM_Vartype == _sym.get_type(var_or_func_name) || IsPrimitiveVartype(var_or_func_name))
         {
-            cc_error("'%s' is already in use as a type name", _sym.get_name_string(var_or_func_name).c_str());
+            std::string msg =
+                ReferenceMsgSym("'%s' is already in use as a type name", var_or_func_name);
+            cc_error(msg.c_str(), _sym.get_name_string(var_or_func_name).c_str());
             return -1;
         }
 
@@ -5724,7 +5827,9 @@ int AGS::Parser::ParseFor_InitClauseVardecl(size_t nested_level)
         AGS::Symbol varname = _targ.getnext();
         if (_sym.get_type(varname) != 0)
         {
-            cc_error("Variable '%s' is already defined", _sym.get_name_string(varname).c_str());
+            std::string msg =
+                ReferenceMsgSym("Variable '%s' is already defined", varname);
+            cc_error(msg.c_str(), _sym.get_name_string(varname).c_str());
             return -1;
         }
 
@@ -5736,9 +5841,7 @@ int AGS::Parser::ParseFor_InitClauseVardecl(size_t nested_level)
         }
 
         _sym[varname].sscope = static_cast<short>(nested_level);
-
-        // parse the declaration
-        int retval = ParseVardecl(varname, vartype, next_type, kGl_Local, another_var_follows);
+        retval = ParseVardecl(varname, vartype, next_type, kGl_Local, another_var_follows);
         if (retval < 0) return retval;
     }
     while (another_var_follows);

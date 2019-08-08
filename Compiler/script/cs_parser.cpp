@@ -2107,28 +2107,28 @@ int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &varty
     return 0;
 }
 
-int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+int AGS::Parser::ParseExpression_CheckArgOfNew(const AGS::SymbolScript &symlist, size_t symlist_len)
 {
-    if (symlist_len < 2 || _sym.get_type(symlist[1]) != kSYM_Vartype)
+    if (symlist_len >= 2)
     {
-        cc_error("Expected a type after 'new'");
-        return -1;
-    }
+        Vartype const new_vartype = symlist[1];
+        if (_sym.get_type(new_vartype) == kSYM_Vartype)
+            return 0;
 
-    Vartype const new_vartype = symlist[1];
-    vartype = new_vartype;
-    SetFlag(vartype, kVTY_Managed, true);
+        if (_sym.get_type(new_vartype) == kSYM_UndefinedStruct)
+        {
+            cc_error(
+                "The struct %s hasn't been completely defined yet",
+                _sym.get_name_string(new_vartype).c_str());
+            return -1;
+        }
 
-    bool const is_primitive = IsPrimitiveVartype(new_vartype);
+        if (!IsPrimitiveVartype(new_vartype) && !IsManagedVartype(new_vartype))
+        {
+            cc_error("Can only use primitive or managed types with 'new'");
+            return -1;
+        }
 
-    if (!is_primitive && !IsManagedVartype(vartype))
-    {
-        cc_error("Can only use primitive or managed types with 'new'");
-        return -1;
-    }
-
-    if (symlist_len <= 3) // "new TYPE", nothing following
-    {
         if (FlagIsSet(_sym.get_flags(new_vartype), kSFLG_Builtin))
         {
             cc_error(
@@ -2137,6 +2137,23 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
             return -1;
         }
 
+        return 0;
+    }
+   
+    cc_error("Expected a type after 'new'");
+    return -1;
+}
+
+int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
+{
+    int retval = ParseExpression_CheckArgOfNew(symlist, symlist_len);
+    if (retval < 0) return retval;
+
+    Vartype const new_vartype = vartype = symlist[1];
+    SetFlag(vartype, kVTY_Managed, true);
+
+    if (symlist_len <= 3) // "new VARTYPE", nothing following
+    {
         const size_t size = _sym[new_vartype].ssize;
         _scrip.write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
         _scrip.ax_val_scope = scope = kSYM_GlobalVar;
@@ -2145,6 +2162,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
         return 0;
     }
 
+    // new VARTYPE[...]
     if (kSYM_OpenBracket == _sym.get_type(symlist[2]) && kSYM_CloseBracket == _sym.get_type(symlist[symlist_len - 1]))
     {
         // Expression for length of array begins after "[", ends before "]"
@@ -2153,7 +2171,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
         if (retval < 0) return retval;
 
         int const size = Vartype2Size(new_vartype);
-        _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, size, !is_primitive);
+        _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, size, !IsPrimitiveVartype(new_vartype));
         SetFlag(vartype, kVTY_DynArray, true);
 
         _scrip.ax_val_scope = scope = kSYM_GlobalVar;
@@ -3710,7 +3728,8 @@ int AGS::Parser::BufferExpression(ccInternalList &expr_script)
                 // This is only allowed if a type follows
                 _targ.getnext(); // Eat 'new'
                 AGS::Symbol nextnextsym = _targ.getnext();
-                if (kSYM_Vartype == _sym.get_type(nextnextsym))
+                SymbolType const nextnexttype = _sym.get_type(nextnextsym);
+                if (kSYM_Vartype == nextnexttype || kSYM_UndefinedStruct == nextnexttype)
                 {
                     expr_script.write(peeksym);
                     expr_script.write(nextnextsym);
@@ -6405,8 +6424,6 @@ void AGS::Parser::Parse_StartNewSection(AGS::Symbol mangled_section_name)
     _ScriptNameBuffer.pop_back(); // strip closing speech mark
     ccCurScriptName = _ScriptNameBuffer.c_str();
     currentline = 0;
-    // The Pre-Compile phase shouldn't generate any code,
-    // so only do it in the Main phase
     if (kPP_Main == _pp)
         _scrip.start_new_section(_ScriptNameBuffer.c_str());
 }
@@ -6653,7 +6670,6 @@ int AGS::Parser::Parse()
 // Scan inpl into scan tokens, write line number opcodes, build a symbol table
 int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip, SymbolTable &symt)
 {
-
     AGS::Scanner scanner(inpl, 1, targ);
     AGS::Tokenizer tokenizer(&scanner, targ, &symt, scrip);
 
@@ -6686,7 +6702,6 @@ int cc_tokenize(const char *inpl, ccInternalList *targ, ccCompiledScript *scrip,
 int cc_compile(const char *inpl, ccCompiledScript *scrip)
 {
     ccInternalList targ;
-
 
     // Scan & tokenize the program code.
     int retval = cc_tokenize(inpl, &targ, scrip, sym);

@@ -1768,7 +1768,6 @@ TEST(Compile, DynamicArrayCompare)
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
-
 TEST(Compile, DoubleLocalDecl)
 {
     ccCompiledScript *scrip = newScriptFixture();
@@ -1785,6 +1784,27 @@ TEST(Compile, DoubleLocalDecl)
                 int Bang = Loop - 4;                    \n\
             }                                           \n\
         }                                               \n\
+    ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_NE(compileResult, 0);
+    std::string lsce = last_seen_cc_error();
+    ASSERT_NE(std::string::npos, lsce.find("Bang"));
+}
+
+TEST(Compile, NewForwardDeclStruct)
+{
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // "new" on a forward-declared struct mustn't work
+
+    char *inpl = "\
+        managed struct Bang;        \n\
+        int main()                  \n\
+        {                           \n\
+            Bang sptr = new Bang;   \n\
+        }                           \n\
     ";
 
     clear_error();

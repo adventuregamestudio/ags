@@ -557,6 +557,9 @@ private:
     // If the result isn't in AX, move it there. Dereferences a pointer
     int ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
+    // Checks on the type following "new"
+    int ParseExpression_CheckArgOfNew(const AGS::SymbolScript & symlist, size_t symlist_len);
+
     int ParseExpression_NewIsFirst(const SymbolScript &symlist, size_t symlist_len, ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
 
     // We're parsing an expression that starts with '-' (unary minus)

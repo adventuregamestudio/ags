@@ -2510,29 +2510,10 @@ int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &par
 
         int retval = ParseExpression_Subexpr(&paramList[start_of_this_param], end_of_this_param - start_of_this_param, vloc, scope, vartype);
         if (retval < 0) return retval;
+        retval = ResultToAX(vloc, scope, vartype);
+        if (retval < 0) return retval;
 
-        int register_to_push = SREG_AX;
-        if (IsManagedVartype(vartype))
-        {
-            // Special logic: Dynamic pointer parameters aren't pushed onto the stack.
-            // Instead, the memory address of a variable must be pushed that is equal to the pointer.
-            if (kVL_mar_pointsto_value != vloc)
-            {
-                // This means trouble. We _need_ that variable here.
-                // TODO But the old compiler didn't mind and pushed on anyway.
-            }
-            else
-            {
-                register_to_push = SREG_MAR;
-            }
-        }
-        else
-        {
-            retval = ResultToAX(vloc, scope, vartype);
-            if (retval < 0) return retval;
-        }
-
-        if (param_num <= num_func_args && SREG_AX == register_to_push) // we know what type to expect
+        if (param_num <= num_func_args) // we know what type to expect
         {
             // If we need a string object ptr but AX contains a normal string, convert AX
             Vartype const param_vartype = _sym[funcSymbol].funcparamtypes[param_num];
@@ -2546,10 +2527,18 @@ int AGS::Parser::AccessData_FunctionCall_PushParams(const AGS::SymbolScript &par
                 return -1;
         }
 
+        // Note: We push the parameters, which is tantamount to writing them
+        // into memory with SCMD_MEMWRITE. The called function will use them
+        // as local variables. However, if a parameter is managed, then its 
+        // memory must be written with SCMD_MEMWRITEPTR, not SCMD_MEMWRITE 
+        // as we do here. So to compensate, the called function will have to 
+        // read each pointer variable with SCMD_MEMREAD and then write it
+        // back with SCMD_MEMWRITEPTR.
+
         if (func_is_import)
-            _scrip.write_cmd1(SCMD_PUSHREAL, register_to_push);
+            _scrip.write_cmd1(SCMD_PUSHREAL, SREG_AX);
         else
-            _scrip.push_reg(register_to_push);
+            _scrip.push_reg(SREG_AX);
 
         end_of_this_param = start_of_this_param - 1;
     }

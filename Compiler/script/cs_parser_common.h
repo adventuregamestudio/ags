@@ -18,7 +18,7 @@ typedef char FixupType; // the type of a fixup
 } // namespace AGS
 
 constexpr char const *NEW_SCRIPT_TOKEN_PREFIX = "\"__NEWSCRIPTSTART_";
-constexpr size_t OLDSTRING_LENGTH = 200;   // how big to make oldstyle string buffers
+constexpr size_t STRINGBUFFER_LENGTH = 200;   // how big to make string buffers
 
 constexpr size_t MAX_FUNCTION_PARAMETERS = 15;
 constexpr size_t VARARGS_INDICATOR = 100;

@@ -585,7 +585,7 @@ bool AGS::Parser::IsManagedVartype(AGS::Vartype vartype)
 size_t AGS::Parser::Vartype2Size(AGS::Vartype vartype)
 {
     if (_sym.getOldStringSym() == vartype)
-        return OLDSTRING_LENGTH;
+        return STRINGBUFFER_LENGTH;
     if (IsManagedVartype(vartype))
         return SIZE_OF_DYNPOINTER;
     // TODO: This won't work with static arrays yet
@@ -631,7 +631,7 @@ int AGS::Parser::StacksizeOfLocals(size_t from_level)
         // Calculate the size of one var of the given type
         size_t ssize = _sym[entries_idx].ssize;
         if (FlagIsSet(_sym.get_flags(entries_idx), kSFLG_StrBuffer))
-            ssize += OLDSTRING_LENGTH;
+            ssize += STRINGBUFFER_LENGTH;
 
         // Calculate the number of vars
         size_t number = 1;
@@ -3626,13 +3626,13 @@ bool AGS::Parser::AccessData_MayAccessClobberAX(SymbolScript symlist, size_t sym
 }
 
 // Insert Bytecode for:
-// Copy at most OLDSTRING_SIZE-1 bytes from m[MAR...] to m[AX...]
+// Copy at most OLDSTRING_LENGTH-1 bytes from m[MAR...] to m[AX...]
 // Stop when encountering a 0
 void AGS::Parser::AccessData_StrCpy()
 {
     _scrip.write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_CX); // CX = dest
     _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_BX); // BX = src
-    _scrip.write_cmd2(SCMD_LITTOREG, SREG_DX, OLDSTRING_LENGTH - 1); // DX = count
+    _scrip.write_cmd2(SCMD_LITTOREG, SREG_DX, STRINGBUFFER_LENGTH - 1); // DX = count
     AGS::CodeLoc const loop_start = _scrip.codesize; // Label LOOP_START
     _scrip.write_cmd2(SCMD_REGTOREG, SREG_BX, SREG_MAR); // AX = m[BX]
     _scrip.write_cmd1(SCMD_MEMREAD, SREG_AX);
@@ -3980,14 +3980,14 @@ int AGS::Parser::ParseVardecl_InitialValAssignment_OldString(void *&initial_val_
         return -1;
     }
     std::string literal = _sym.get_name_string(literal_sym);
-    if (literal.length() >= OLDSTRING_LENGTH)
+    if (literal.length() >= STRINGBUFFER_LENGTH)
     {
         cc_error(
             "Initializer string is too long (max. chars allowed: %d",
-            OLDSTRING_LENGTH - 1);
+            STRINGBUFFER_LENGTH - 1);
         return -1;
     }
-    initial_val_ptr = malloc(OLDSTRING_LENGTH);
+    initial_val_ptr = malloc(STRINGBUFFER_LENGTH);
     if (!initial_val_ptr)
     {
         cc_error("Out of memory");
@@ -3995,7 +3995,7 @@ int AGS::Parser::ParseVardecl_InitialValAssignment_OldString(void *&initial_val_
     }
     std::strncpy(
         static_cast<char *>(initial_val_ptr), literal.c_str(),
-        OLDSTRING_LENGTH);
+        STRINGBUFFER_LENGTH);
     return 0;
 }
 
@@ -4224,7 +4224,7 @@ int AGS::Parser::ParseVardecl_GlobalNoImport(AGS::Symbol var_name, const AGS::Va
     }
     _sym[var_name].soffs =
         _scrip.add_global(
-        (_sym.getOldStringSym() == vartype) ? OLDSTRING_LENGTH : total_size,
+        (_sym.getOldStringSym() == vartype) ? STRINGBUFFER_LENGTH : total_size,
             initial_val_ptr);
     if (_sym[var_name].soffs < 0)
         return -1;

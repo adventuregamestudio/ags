@@ -380,6 +380,9 @@ private:
     // Manage a map of all the functions that have bodies (in the current source).
     FuncCallpointMgr _fcm;
 
+    // Manage a map of all imported functions where the import comes after the function
+    FuncCallpointMgr _fim; // i for import
+
 private:
     void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
 

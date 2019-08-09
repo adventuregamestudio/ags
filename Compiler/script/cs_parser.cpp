@@ -565,6 +565,7 @@ void AGS::MemoryLocation::MakeMARCurrent(ccCompiledScript &scrip)
 
 AGS::Parser::Parser(SymbolTable &symt, ::ccInternalList &targ, ::ccCompiledScript &scrip)
     : _fcm(scrip)
+    , _fim(scrip)
     , _scrip(scrip)
     , _sym(symt)
     , _targ(targ)
@@ -933,6 +934,7 @@ int AGS::Parser::DealWithEndOfElse(AGS::NestingStack *nesting_stack, bool &else_
             AGS::CodeLoc const write_start = _scrip.codesize;
             nesting_stack->WriteChunk(_scrip, 0, id);
             _fcm.UpdateCallListOnWriting(write_start, id);
+            _fim.UpdateCallListOnWriting(write_start, id);
             nesting_stack->Chunks().clear();
         }
 
@@ -1066,6 +1068,7 @@ int AGS::Parser::DealWithEndOfSwitch(AGS::NestingStack *nesting_stack)
         // Put the result of the expression into AX
         nesting_stack->WriteChunk(_scrip, index, id);
         _fcm.UpdateCallListOnWriting(codesize, id);
+        _fim.UpdateCallListOnWriting(codesize, id);
         // Do the comparison
         _scrip.write_cmd2(noteq_op, SREG_AX, SREG_BX);
         // This command will be written to code[codesize] and code[codesize]+1
@@ -1801,6 +1804,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
         strcat(_scrip.imports[entry.soffs], appendage);
     }
 
+    _fim.SetFuncCallpoint(name_of_func, entry.soffs);
     return 0;
 }
 
@@ -2678,6 +2682,8 @@ void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size
 
     if (func_is_import)
     {
+        if (_importMgr.FindOrAdd(_sym.get_name_string(name_of_func)))
+            _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
         _scrip.fixup_previous(kFx_Import);
         _scrip.write_cmd1(SCMD_CALLEXT, SREG_AX); // do the call
         // At runtime, we will arrive here when the function call has returned
@@ -6016,6 +6022,7 @@ int AGS::Parser::ParseFor(AGS::Symbol &cursym, AGS::NestingStack *nesting_stack)
     size_t const yank_size = _scrip.codesize - iterate_clause_loc;
     nesting_stack->YankChunk(_scrip, iterate_clause_loc, pre_fixup_count, id);
     _fcm.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
+    _fim.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
 
     // Code for "If the expression we just evaluated is false, jump over the loop body."
     // the 0 will be fixed to a proper offset later
@@ -6129,6 +6136,7 @@ int AGS::Parser::ParseSwitchLabel(AGS::Symbol cursym, AGS::NestingStack *nesting
         size_t const yank_size = _scrip.codesize - start_of_code_loc;
         nesting_stack->YankChunk(_scrip, start_of_code_loc, numfixups_at_start_of_code, id);
         _fcm.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
+        _fim.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
     }
 
     // expect and gobble the ':'
@@ -6219,6 +6227,7 @@ int AGS::Parser::ParseContinue(AGS::NestingStack *nesting_stack)
         AGS::CodeLoc const write_start = _scrip.codesize;
         nesting_stack->WriteChunk(_scrip, loop_level, 0, id);
         _fcm.UpdateCallListOnWriting(write_start, id);
+        _fim.UpdateCallListOnWriting(write_start, id);
     }
     _scrip.flush_line_numbers();
 
@@ -6697,6 +6706,7 @@ int AGS::Parser::Parse()
     if (retval < 0) return retval;
 
     return _fcm.CheckForUnresolvedFuncs();
+    return _fim.CheckForUnresolvedFuncs();
 }
 
 // Scan inpl into scan tokens, write line number opcodes, build a symbol table

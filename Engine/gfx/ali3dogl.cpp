@@ -1468,7 +1468,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
 
     for (size_t i = 0; i <= _actSpriteBatch; ++i)
     {
-        const Rect &viewport = _spriteBatchDesc[i].Viewport;
+        const Rect &viewport = _spriteBatches[i].Viewport;
         const OGLSpriteBatch &batch = _spriteBatches[i];
         if (!viewport.IsEmpty())
         {
@@ -1522,16 +1522,37 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
     _spriteBatches[index].List.clear();
+
+    Rect orig_viewport = desc.Viewport;
+    Rect node_viewport = desc.Viewport;
     // Combine both world transform and viewport transform into one matrix for faster perfomance
     // NOTE: in OpenGL order of transformation is REVERSE to the order of commands!
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    // NOTE: last step is translate to viewport position; remove this if this
+    // Global node transformation (flip and offset)
+    int node_tx = desc.Offset.X, node_ty = desc.Offset.Y;
+    float node_sx = 1.f, node_sy = 1.f;
+    if ((desc.Flip == kFlip_Vertical) || (desc.Flip == kFlip_Both))
+    {
+        int left = _srcRect.GetWidth() - (orig_viewport.Right + 1);
+        node_viewport.MoveToX(left);
+        node_sx = -1.f;
+    }
+    if ((desc.Flip == kFlip_Horizontal) || (desc.Flip == kFlip_Both))
+    {
+        int top = _srcRect.GetHeight() - (orig_viewport.Bottom + 1);
+        node_viewport.MoveToY(top);
+        node_sy = -1.f;
+    }
+    _spriteBatches[index].Viewport = Rect::MoveBy(node_viewport, node_tx, node_ty);
+    glTranslatef(node_tx, -(node_ty), 0.0f);
+    glScalef(node_sx, node_sy, 1.f);
+    // NOTE: before node, translate to viewport position; remove this if this
     // is changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    glTranslatef((float)(desc.Viewport.Left - scaled_offx), (float)-(desc.Viewport.Top - scaled_offy), 0.0f);
+    glTranslatef((float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f);
     // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
     // the camera's transformation is essentially reverse world transformation. And the operations
     // are inverse: Translate-Rotate-Scale (here they are double inverse because OpenGL).
@@ -1542,8 +1563,8 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     glLoadIdentity();
 
     // create stage screen for plugin raw drawing
-    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
-    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    int src_w = orig_viewport.GetWidth() / desc.Transform.ScaleX;
+    int src_h = orig_viewport.GetHeight() / desc.Transform.ScaleY;
     CreateStageScreen(index, Size(src_w, src_h));
 }
 
@@ -1997,8 +2018,8 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
     OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
-    ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
-        _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
+    ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
+        _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetTransparency(0);
     _spriteBatches[_actSpriteBatch].List.push_back(OGLDrawListEntry(ddb));
 }
@@ -2007,8 +2028,8 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 { 
     if (red == 0 && green == 0 && blue == 0) return;
     OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
-    ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
-        _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
+    ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
+        _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetTransparency(128);
     _spriteBatches[_actSpriteBatch].List.push_back(OGLDrawListEntry(ddb));
 }

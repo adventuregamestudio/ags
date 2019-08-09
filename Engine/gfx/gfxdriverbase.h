@@ -38,13 +38,20 @@ struct SpriteBatchDesc
     Rect                     Viewport;
     // Optional model transformation, to be applied to each sprite
     SpriteTransform          Transform;
+    // Global node offset applied to the whole batch as the last transform
+    Point                    Offset;
+    // Global node flip applied to the whole batch as the last transform
+    GlobalFlipType           Flip;
     // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
     PBitmap                  Surface;
 
-    SpriteBatchDesc() {}
-    SpriteBatchDesc(const Rect viewport, const SpriteTransform &transform, PBitmap surface)
+    SpriteBatchDesc() : Flip(kFlip_None) {}
+    SpriteBatchDesc(const Rect viewport, const SpriteTransform &transform, const Point offset = Point(),
+            GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr)
         : Viewport(viewport)
         , Transform(transform)
+        , Offset(offset)
+        , Flip(flip)
         , Surface(surface)
     {
     }
@@ -93,7 +100,8 @@ public:
     Rect        GetRenderDestination() const override;
     void        SetNativeRenderOffset(int x, int y) override;
 
-    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = nullptr) override;
+    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
+                    const Point offset = Point(), GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr) override;
     void        ClearDrawLists() override;
 
     void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) override { _pollingCallback = callback; }

@@ -159,6 +159,8 @@ struct D3DSpriteBatch
 {
     // List of sprites to render
     std::vector<D3DDrawListEntry> List;
+    // Clipping viewport
+    Rect Viewport;
     // Transformation matrix, built from the batch description
     D3DMATRIX Matrix;
 };

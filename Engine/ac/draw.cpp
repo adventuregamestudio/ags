@@ -2335,7 +2335,7 @@ static void construct_room_view()
             0.f);
         if (gfxDriver->RequiresFullRedrawEachFrame())
         { // we draw everything as a sprite stack
-            gfxDriver->BeginSpriteBatch(view_rc, room_trans, nullptr);
+            gfxDriver->BeginSpriteBatch(view_rc, room_trans);
         }
         else
         {
@@ -2349,13 +2349,13 @@ static void construct_room_view()
               // coordinates (cam1 -> screen -> cam2).
               // It's not clear whether this is worth the effort, but if it is,
               // then we'd need to optimise view/cam data first.
-                gfxDriver->BeginSpriteBatch(view_rc, room_trans, nullptr);
+                gfxDriver->BeginSpriteBatch(view_rc, room_trans);
                 gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
             }
             else
             { // room background is drawn by dirty rects system
                 PBitmap bg_surface = draw_room_background(viewport, room_trans);
-                gfxDriver->BeginSpriteBatch(view_rc, room_trans, bg_surface);
+                gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(), kFlip_None, bg_surface);
             }
         }
         put_sprite_list_on_screen(true);

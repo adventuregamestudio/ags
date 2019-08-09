@@ -1386,7 +1386,7 @@ void D3DGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
     // Render all the sprite batches with necessary transformations
     for (size_t i = 0; i <= _actSpriteBatch; ++i)
     {
-        const Rect &viewport = _spriteBatchDesc[i].Viewport;
+        const Rect &viewport = _spriteBatches[i].Viewport;
         const D3DSpriteBatch &batch = _spriteBatches[i];
         if (!viewport.IsEmpty())
         {
@@ -1452,25 +1452,48 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
     _spriteBatches[index].List.clear();
+
+    Rect viewport = desc.Viewport;
     // Combine both world transform and viewport transform into one matrix for faster perfomance
-    D3DMATRIX matRoomToViewport, matViewport;
+    D3DMATRIX matRoomToViewport, matViewport, matViewportFinal;
     // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
     // the camera's transformation is essentially reverse world transformation. And the operations
     // are inverse: Translate-Rotate-Scale
     MatrixTransformInverse2D(matRoomToViewport,
         desc.Transform.X, -(desc.Transform.Y),
         desc.Transform.ScaleX, desc.Transform.ScaleY, desc.Transform.Rotate);
-    // Last step is translate to viewport position; remove this if this is
+    // Next step is translate to viewport position; remove this if this is
     // changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    MatrixTranslate(matViewport, desc.Viewport.Left - scaled_offx, -(desc.Viewport.Top - scaled_offy), 0.f);
-    MatrixMultiply(_spriteBatches[index].Matrix, matRoomToViewport, matViewport);
+    MatrixTranslate(matViewport, viewport.Left - scaled_offx, -(viewport.Top - scaled_offy), 0.f);
+    MatrixMultiply(matViewportFinal, matRoomToViewport, matViewport);
+
+    // Then apply global node transformation (flip and offset)
+    int node_tx = desc.Offset.X, node_ty = desc.Offset.Y;
+    float node_sx = 1.f, node_sy = 1.f;
+    if ((desc.Flip == kFlip_Vertical) || (desc.Flip == kFlip_Both))
+    {
+        int left = _srcRect.GetWidth() - (viewport.Right + 1);
+        viewport.MoveToX(left);
+        node_sx = -1.f;
+    }
+    if ((desc.Flip == kFlip_Horizontal) || (desc.Flip == kFlip_Both))
+    {
+        int top = _srcRect.GetHeight() - (viewport.Bottom + 1);
+        viewport.MoveToY(top);
+        node_sy = -1.f;
+    }
+    viewport = Rect::MoveBy(viewport, node_tx, node_ty);
+    D3DMATRIX matFlip;
+    MatrixTransform2D(matFlip, node_tx, -(node_ty), node_sx, node_sy, 0.f);
+    MatrixMultiply(_spriteBatches[index].Matrix, matViewportFinal, matFlip);
+    _spriteBatches[index].Viewport = viewport;
 
     // create stage screen for plugin raw drawing
-    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
-    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    int src_w = viewport.GetWidth() / desc.Transform.ScaleX;
+    int src_h = viewport.GetHeight() / desc.Transform.ScaleY;
     CreateStageScreen(index, Size(src_w, src_h));
 }
 
@@ -1907,8 +1930,8 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
     D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
-    ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
-        _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
+    ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
+        _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetTransparency(0);
     _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry(ddb));
 }
@@ -1917,8 +1940,8 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 { 
     if (red == 0 && green == 0 && blue == 0) return;
     D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
-    ddb->SetStretch(_spriteBatchDesc[_actSpriteBatch].Viewport.GetWidth(),
-        _spriteBatchDesc[_actSpriteBatch].Viewport.GetHeight(), false);
+    ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
+        _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetTransparency(128);
     _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry(ddb));
 }

@@ -130,6 +130,8 @@ struct OGLSpriteBatch
 {
     // List of sprites to render
     std::vector<OGLDrawListEntry> List;
+    // Clipping viewport
+    Rect Viewport;
     // Transformation matrix, built from the batch description
     GLMATRIX Matrix;
 };

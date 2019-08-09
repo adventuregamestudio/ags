@@ -184,6 +184,9 @@ end;
 
 [Code]
 const
+  // Platform check
+  PLATFORM_CHECK_ERROR_MESSAGE = 'This program is only supported on Windows Vista or newer.';
+
   // Visual C++ runtime
   // https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
   VCPP_REDIST_MAJOR_VERSION = 14.0;
@@ -217,10 +220,29 @@ begin
     version)) AND (version >= DOT_NET_45_RELEASE_VERSION);
 end;
 
+function IsWindowsVersionOrNewer(Major, Minor: Integer): Boolean;
+var
+  Version: TWindowsVersion;
+begin
+  GetWindowsVersionEx(Version);
+  Result :=
+    (Version.Major > Major) OR
+    ((Version.Major = Major) AND (Version.Minor >= Minor));
+end;
+
+function IsWindowsVistaOrNewer: Boolean;
+begin
+  Result := IsWindowsVersionOrNewer(6, 0);
+end;
+
 function InitializeSetup(): Boolean;
 var
   ErrorCode: Integer;
 begin
+  if (NOT IsWindowsVistaOrNewer) AND (NOT WizardSilent) then
+  begin
+    MsgBox(PLATFORM_CHECK_ERROR_MESSAGE, mbCriticalError, MB_OK);
+  end;
   if NOT DotNet45Installed then
   begin
     if NOT WizardSilent then

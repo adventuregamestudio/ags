@@ -38,7 +38,6 @@ extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color palette[256];
 extern unsigned int loopcounter;
-extern int wasShakingScreen;
 
 void FlipScreen(int amount) {
     if ((amount<0) | (amount>3)) quit("!FlipScreen: invalid argument (0-3)");
@@ -51,19 +50,21 @@ void ShakeScreen(int severe) {
     if (play.fast_forward)
         return;
 
-    int hh;
-    //Bitmap *oldsc=abuf; // CHECKME!!!
     severe = data_to_game_coord(severe);
 
-    wasShakingScreen = 1;
+    // TODO: support shaking room viewport separately
+    // TODO: rely on game speed setting? and/or provide frequency and duration args
+    // TODO: unify blocking and non-blocking shake update
+
+    play.shakesc_length = 10;
+    play.shakesc_delay = 2;
+    play.shakesc_amount = severe;
+    play.mouse_cursor_hidden++;
+
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
-        play.shakesc_length = 10;
-        play.shakesc_delay = 2;
-        play.shakesc_amount = severe;
-        play.mouse_cursor_hidden++;
-
-        for (hh = 0; hh < 40; hh++) {
+        for (int hh = 0; hh < 40; hh++)
+        {
             loopcounter++;
             platform->Delay(50);
 
@@ -71,37 +72,35 @@ void ShakeScreen(int severe) {
 
             update_polled_stuff_if_runtime();
         }
-
-        play.mouse_cursor_hidden--;
-        clear_letterbox_borders();
-        play.shakesc_length = 0;
     }
     else
     {
-        // TODO: support shaking room viewport separately
-        Bitmap *tty = CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
-        for (hh=0;hh<40;hh++) {
+        // Optimized variant for software render: create game scene once and shake it
+        construct_game_scene();
+        gfxDriver->RenderToBackBuffer();
+        for (int hh = 0; hh < 40; hh++)
+        {
             platform->Delay(50);
-
-            if (hh % 2 == 0) 
-                render_to_screen();
-            else
-                render_to_screen(0, severe);
-
+            const int yoff = hh % 2 == 0 ? 0 : severe;
+            play.shake_screen_yoff = yoff;
+            render_to_screen();
             update_polled_stuff_if_runtime();
         }
         clear_letterbox_borders();
         render_to_screen();
-        delete tty;
     }
-    wasShakingScreen = 0;
 
-    //abuf=oldsc;// CHECKME!!!
+    play.mouse_cursor_hidden--;
+    play.shakesc_length = 0;
+    play.shakesc_delay = 0;
+    play.shakesc_amount = 0;
 }
 
 void ShakeScreenBackground (int delay, int amount, int length) {
     if (delay < 2) 
         quit("!ShakeScreenBackground: invalid delay parameter");
+
+    amount = data_to_game_coord(amount);
 
     if (amount < play.shakesc_amount)
     {

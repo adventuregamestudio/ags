@@ -1146,10 +1146,10 @@ void OGLGraphicsDriver::RenderToBackBuffer()
 
 void OGLGraphicsDriver::Render()
 {
-  Render(kFlip_None);
+  Render(0, 0, kFlip_None);
 }
 
-void OGLGraphicsDriver::Render(GlobalFlipType /*flip*/)
+void OGLGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GlobalFlipType /*flip*/)
 {
   _render(true);
 }
@@ -1245,8 +1245,8 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
   float height = bmpToDraw->GetHeightToRender();
   float xProportion = (float)width / (float)bmpToDraw->_width;
   float yProportion = (float)height / (float)bmpToDraw->_height;
-  int drawAtX = drawListEntry->x + _globalViewOff.X;
-  int drawAtY = drawListEntry->y + _globalViewOff.Y;
+  int drawAtX = drawListEntry->x;
+  int drawAtY = drawListEntry->y;
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {
@@ -1882,8 +1882,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
   BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
-  // NOTE: what happens here is that we are trying to prevent global offset to be applied to this sprite :/
-  this->DrawSprite(-_globalViewOff.X, -_globalViewOff.Y, d3db);
+  this->DrawSprite(0, 0, d3db);
 
   if (speed <= 0) speed = 16;
   speed *= 2;  // harmonise speeds with software driver which is faster

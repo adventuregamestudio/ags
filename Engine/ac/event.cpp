@@ -291,7 +291,7 @@ void process_event(EventHappened*evp) {
                     gfxDriver->Vsync();
                     temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
-                    render_to_screen(viewport.Left, viewport.Top);
+                    render_to_screen();
 
                     update_polled_mp3();
 

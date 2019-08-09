@@ -98,7 +98,6 @@ public:
     DisplayMode GetDisplayMode() const override;
     Size        GetNativeSize() const override;
     Rect        GetRenderDestination() const override;
-    void        SetNativeRenderOffset(int x, int y) override;
 
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
                     const Point offset = Point(), GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr) override;
@@ -138,7 +137,6 @@ protected:
     Rect                _dstRect;       // rendering destination rect
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
     PlaneScaling        _scaling;       // native -> render dest coordinate transformation
-    Point               _globalViewOff; // extra offset to every sprite draw on screen with DrawSprite
     volatile int *      _loopTimer;
 
     // Callbacks

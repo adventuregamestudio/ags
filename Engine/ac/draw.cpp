@@ -138,7 +138,6 @@ CachedActSpsData* actspswbcache;
 bool current_background_is_dirty = false;
 
 Bitmap *sub_vscreen = nullptr;
-int wasShakingScreen = 0;
 
 // Room background sprite
 IDriverDependantBitmap* roomBackgroundBmp = nullptr;
@@ -743,37 +742,35 @@ void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text
     invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + getfontheight_outlined(font) + get_fixed_pixel_size(1), false);
 }
 
-void render_black_borders(int atx, int aty)
+// Renders black borders for the legacy boxed game mode,
+// where whole game screen changes size between large and small rooms
+void render_black_borders()
 {
     const Rect &viewport = play.GetMainViewport();
     if (!gfxDriver->UsesMemoryBackBuffer())
     {
-        if (aty > 0)
+        if (viewport.Top > 0)
         {
             // letterbox borders
-            blankImage->SetStretch(game.GetGameRes().Width, aty, false);
-            gfxDriver->DrawSprite(-atx, -aty, blankImage);
-            gfxDriver->DrawSprite(0, viewport.GetHeight(), blankImage);
+            blankImage->SetStretch(game.GetGameRes().Width, viewport.Top, false);
+            gfxDriver->DrawSprite(0, 0, blankImage);
+            gfxDriver->DrawSprite(0, viewport.Bottom + 1, blankImage);
         }
-        if (atx > 0)
+        if (viewport.Left > 0)
         {
             // sidebar borders for widescreen
-            blankSidebarImage->SetStretch(atx, viewport.GetHeight(), false);
-            gfxDriver->DrawSprite(-atx, 0, blankSidebarImage);
-            gfxDriver->DrawSprite(viewport.GetWidth(), 0, blankSidebarImage);
+            blankSidebarImage->SetStretch(viewport.Left, viewport.GetHeight(), false);
+            gfxDriver->DrawSprite(0, 0, blankSidebarImage);
+            gfxDriver->DrawSprite(viewport.Right + 1, 0, blankSidebarImage);
         }
     }
 }
 
 
-void render_to_screen(int atx, int aty)
+void render_to_screen()
 {
-    gfxDriver->SetNativeRenderOffset(atx, aty);
     const Rect &viewport = play.GetMainViewport();
-    // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
-    if (aty > 0 && wasShakingScreen && gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, aty, nullptr);
-    render_black_borders(atx, aty);
+    render_black_borders();
 
     if(pl_any_want_hook(AGSE_FINALSCREENDRAW))
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
@@ -786,7 +783,10 @@ void render_to_screen(int atx, int aty)
     {
         try
         {
-            gfxDriver->Render((GlobalFlipType)play.screen_flipped);
+            // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
+            if (play.shake_screen_yoff > 0 && !gfxDriver->RequiresFullRedrawEachFrame())
+                gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
+            gfxDriver->Render(0, play.shake_screen_yoff, (GlobalFlipType)play.screen_flipped);
 
 #if AGS_PLATFORM_OS_ANDROID
             if (game.color_depth == 1)
@@ -816,7 +816,7 @@ void clear_letterbox_borders()
 void draw_screen_callback()
 {
     construct_game_scene();
-    render_black_borders(play.GetMainViewport().Left, play.GetMainViewport().Top);
+    render_black_borders();
 }
 
 
@@ -2335,7 +2335,7 @@ static void construct_room_view()
             0.f);
         if (gfxDriver->RequiresFullRedrawEachFrame())
         { // we draw everything as a sprite stack
-            gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(), (GlobalFlipType)play.screen_flipped);
+            gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
         }
         else
         {
@@ -2368,7 +2368,7 @@ static void construct_room_view()
 static void construct_ui_view()
 {
     const Rect &ui_viewport = play.GetUIViewportAbs();
-    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform(), Point(), (GlobalFlipType)play.screen_flipped);
+    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
     draw_gui_and_overlays();
     put_sprite_list_on_screen(false);
     clear_draw_list();
@@ -2403,7 +2403,7 @@ void construct_game_scene(bool full_redraw)
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 
     // Possible reasons to invalidate whole screen for the software renderer
-    if (full_redraw || play.screen_tint > 0)
+    if (full_redraw || play.screen_tint > 0 || play.shakesc_length > 0)
         invalidate_screen();
 
     // TODO: move to game update! don't call update during rendering pass!
@@ -2526,39 +2526,35 @@ void construct_engine_overlay()
     }
 }
 
+static void update_shakescreen()
+{
+    // TODO: unify blocking and non-blocking shake update
+    play.shake_screen_yoff = 0;
+    if (play.shakesc_length > 0)
+    {
+        if ((loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2))
+            play.shake_screen_yoff = play.shakesc_amount;
+    }
+}
+
 // Draw everything 
 void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
 
     if (play.fast_forward)
         return;
 
+    // TODO: find out if it's okay to move shake to update function
+    update_shakescreen();
+
     construct_game_scene(false);
     our_eip=5;
-
     if (extraBitmap != nullptr) {
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
     }
-
     construct_game_screen_overlay();
     construct_engine_overlay();
-
-    int at_yp = 0;
-    if (play.shakesc_length > 0) {
-        wasShakingScreen = 1;
-        if ((loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2))
-            at_yp = data_to_game_coord(play.shakesc_amount);
-        invalidate_screen();
-    }
-    else if (wasShakingScreen) {
-        wasShakingScreen = 0;
-
-        if (!gfxDriver->RequiresFullRedrawEachFrame())
-        {
-            clear_letterbox_borders();
-        }
-    }
-    render_to_screen(0, at_yp);
+    render_to_screen();
 
     if (!play.screen_is_faded_out) {
         // always update the palette, regardless of whether the plugin

@@ -554,7 +554,7 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
     Blit(_spareTintingScreen, surface, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
 }
 
-void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
+void ALSoftwareGraphicsDriver::Render(int xoff, int yoff, GlobalFlipType flip)
 {
   RenderToBackBuffer();
 
@@ -562,14 +562,14 @@ void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
     this->Vsync();
 
   if (flip == kFlip_None)
-    _filter->RenderScreen(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y);
+    _filter->RenderScreen(virtualScreen, _virtualScrOff.X + xoff, _virtualScrOff.Y + yoff);
   else
-    _filter->RenderScreenFlipped(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y, flip);
+    _filter->RenderScreenFlipped(virtualScreen, _virtualScrOff.X + xoff, _virtualScrOff.Y + yoff, flip);
 }
 
 void ALSoftwareGraphicsDriver::Render()
 {
-  Render(kFlip_None);
+  Render(0, 0, kFlip_None);
 }
 
 void ALSoftwareGraphicsDriver::Vsync()
@@ -730,9 +730,7 @@ void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targe
 
   if (_mode.ColorDepth > 8) 
   {
-    int offx = _virtualScrOff.X + _globalViewOff.X;
-    int offy = _virtualScrOff.Y + _globalViewOff.Y;
-    highcolor_fade_out(virtualScreen, offx, offy, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_out(virtualScreen, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {
@@ -743,9 +741,7 @@ void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targe
 void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
   if (_mode.ColorDepth > 8)
   {
-    int offx = _virtualScrOff.X + _globalViewOff.X;
-    int offy = _virtualScrOff.Y + _globalViewOff.Y;
-    highcolor_fade_in(virtualScreen, offx, offy, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_in(virtualScreen, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {

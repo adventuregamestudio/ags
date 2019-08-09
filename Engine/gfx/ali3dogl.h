@@ -191,7 +191,7 @@ public:
     void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
     void RenderToBackBuffer() override;
     void Render() override;
-    void Render(GlobalFlipType flip) override;
+    void Render(int xoff, int yoff, GlobalFlipType flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     void EnableVsyncBeforeRender(bool enabled) override { }
     void Vsync() override;

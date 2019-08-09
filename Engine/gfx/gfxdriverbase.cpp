@@ -69,11 +69,6 @@ Rect GraphicsDriverBase::GetRenderDestination() const
     return _dstRect;
 }
 
-void GraphicsDriverBase::SetNativeRenderOffset(int x, int y)
-{
-    _globalViewOff = Point(x, y);
-}
-
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
     const Point offset, GlobalFlipType flip, PBitmap surface)
 {

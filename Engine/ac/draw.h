@@ -115,8 +115,8 @@ void draw_sprite_slot_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int x
                                     Common::BlendMode blend_mode = Common::kBlendMode_Alpha, int alpha = 0xFF);
 void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode);
 void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
-// Render game on screen with the given custom offset
-void render_to_screen(int atx = 0, int aty = 0);
+// Render game on screen
+void render_to_screen();
 void draw_screen_callback();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);

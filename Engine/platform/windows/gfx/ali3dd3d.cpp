@@ -1097,10 +1097,10 @@ void D3DGraphicsDriver::RenderToBackBuffer()
 
 void D3DGraphicsDriver::Render()
 {
-  Render(kFlip_None);
+  Render(0, 0, kFlip_None);
 }
 
-void D3DGraphicsDriver::Render(GlobalFlipType /*flip*/)
+void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GlobalFlipType /*flip*/)
 {
   if (wnd_call_proc(wnd_reset_device))
   {
@@ -1228,8 +1228,8 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
   float height = bmpToDraw->GetHeightToRender();
   float xProportion = width / (float)bmpToDraw->_width;
   float yProportion = height / (float)bmpToDraw->_height;
-  float drawAtX = drawListEntry->x + _globalViewOff.X;
-  float drawAtY = drawListEntry->y + _globalViewOff.Y;
+  float drawAtX = drawListEntry->x;
+  float drawAtY = drawListEntry->y;
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {
@@ -1783,8 +1783,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
   BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
-  // NOTE: what happens here is that we are trying to prevent global offset to be applied to this sprite :/
-  this->DrawSprite(-_globalViewOff.X, -_globalViewOff.Y, d3db);
+  this->DrawSprite(0, 0, d3db);
 
   if (speed <= 0) speed = 16;
   speed *= 2;  // harmonise speeds with software driver which is faster
@@ -1839,8 +1838,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 
   BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
-  // NOTE: what happens here is that we are trying to prevent global offset to be applied to this sprite :/
-  this->DrawSprite(-_globalViewOff.X, -_globalViewOff.Y, d3db);
+  this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
   {
     // when fading in, draw four black boxes, one

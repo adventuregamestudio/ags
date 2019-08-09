@@ -236,6 +236,8 @@ struct GameState {
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
 
+    int shake_screen_yoff; // y offset of the shaking screen
+
 
     GameState();
     // Free game resources

@@ -276,7 +276,6 @@ private:
     Size _backTextureSize;
 
     OGLSpriteBatches _spriteBatches;
-    GlobalFlipType flipTypeLastTime;
     // TODO: these draw list backups are needed only for the fade-in/out effects
     // find out if it's possible to reimplement these effects in main drawing routine.
     SpriteBatchDescs _backupBatchDescs;
@@ -320,7 +319,7 @@ private:
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void _renderSprite(const OGLDrawListEntry *entry, const GLMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip);
+    void _renderSprite(const OGLDrawListEntry *entry, const GLMATRIX &matGlobal);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
     Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
@@ -331,9 +330,9 @@ private:
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
-    void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
-    void RenderSpriteBatches(GlobalFlipType flip);
-    void RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFlipType flip);
+    void _render(bool clearDrawListAfterwards);
+    void RenderSpriteBatches();
+    void RenderSpriteBatch(const OGLSpriteBatch &batch);
     void _reDrawLastFrame();
 };
 

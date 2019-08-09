@@ -2335,7 +2335,7 @@ static void construct_room_view()
             0.f);
         if (gfxDriver->RequiresFullRedrawEachFrame())
         { // we draw everything as a sprite stack
-            gfxDriver->BeginSpriteBatch(view_rc, room_trans);
+            gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(), (GlobalFlipType)play.screen_flipped);
         }
         else
         {
@@ -2368,7 +2368,7 @@ static void construct_room_view()
 static void construct_ui_view()
 {
     const Rect &ui_viewport = play.GetUIViewportAbs();
-    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform());
+    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform(), Point(), (GlobalFlipType)play.screen_flipped);
     draw_gui_and_overlays();
     put_sprite_list_on_screen(false);
     clear_draw_list();

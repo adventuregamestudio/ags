@@ -245,7 +245,6 @@ private:
     bool _renderSprAtScreenRes;
 
     D3DSpriteBatches _spriteBatches;
-    GlobalFlipType flipTypeLastTime;
     // TODO: these draw list backups are needed only for the fade-in/out effects
     // find out if it's possible to reimplement these effects in main drawing routine.
     SpriteBatchDescs _backupBatchDescs;
@@ -275,12 +274,12 @@ private:
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
-    void _renderAndPresent(GlobalFlipType flip, bool clearDrawListAfterwards);
-    void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
+    void _renderAndPresent(bool clearDrawListAfterwards);
+    void _render(bool clearDrawListAfterwards);
     void _reDrawLastFrame();
-    void RenderSpriteBatches(GlobalFlipType flip);
-    void RenderSpriteBatch(const D3DSpriteBatch &batch, GlobalFlipType flip);
-    void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip);
+    void RenderSpriteBatches();
+    void RenderSpriteBatch(const D3DSpriteBatch &batch);
+    void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal);
 };
 
 

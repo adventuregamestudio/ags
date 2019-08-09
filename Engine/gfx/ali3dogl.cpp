@@ -210,7 +210,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _backbuffer = 0;
   _fbo = 0;
   _legacyPixelShader = false;
-  flipTypeLastTime = kFlip_None;
   _can_render_to_texture = false;
   _do_render_to_texture = false;
   _super_sampling = 1;
@@ -1036,7 +1035,6 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   OnModeReleased();
   ClearDrawLists();
   ClearDrawBackups();
-  flipTypeLastTime = kFlip_None;
   DeleteBackbufferTexture();
   DestroyFxPool();
   DestroyAllStageScreens();
@@ -1151,9 +1149,9 @@ void OGLGraphicsDriver::Render()
   Render(kFlip_None);
 }
 
-void OGLGraphicsDriver::Render(GlobalFlipType flip)
+void OGLGraphicsDriver::Render(GlobalFlipType /*flip*/)
 {
-  _render(flip, true);
+  _render(true);
 }
 
 void OGLGraphicsDriver::_reDrawLastFrame()
@@ -1161,7 +1159,7 @@ void OGLGraphicsDriver::_reDrawLastFrame()
     RestoreDrawLists();
 }
 
-void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, const GLMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip)
+void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, const GLMATRIX &matGlobal)
 {
   OGLBitmap *bmpToDraw = drawListEntry->bitmap;
 
@@ -1247,8 +1245,6 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
   float height = bmpToDraw->GetHeightToRender();
   float xProportion = (float)width / (float)bmpToDraw->_width;
   float yProportion = (float)height / (float)bmpToDraw->_height;
-
-  bool flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
   int drawAtX = drawListEntry->x + _globalViewOff.X;
   int drawAtY = drawListEntry->y + _globalViewOff.Y;
 
@@ -1258,45 +1254,25 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
     height = bmpToDraw->_tiles[ti].height * yProportion;
     float xOffs;
     float yOffs = bmpToDraw->_tiles[ti].y * yProportion;
-    if (flipLeftToRight != globalLeftRightFlip)
-    {
+    if (bmpToDraw->_flipped)
       xOffs = (bmpToDraw->_width - (bmpToDraw->_tiles[ti].x + bmpToDraw->_tiles[ti].width)) * xProportion;
-    }
     else
-    {
       xOffs = bmpToDraw->_tiles[ti].x * xProportion;
-    }
     int thisX = drawAtX + xOffs;
     int thisY = drawAtY + yOffs;
-
-    if (globalLeftRightFlip)
-    {
-      thisX = (_srcRect.GetWidth() - thisX) - width;
-    }
-    if (globalTopBottomFlip) 
-    {
-      thisY = (_srcRect.GetHeight() - thisY) - height;
-    }
-
     thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
     thisY = (_srcRect.GetHeight() / 2) - thisY;
-
 
     //Setup translation and scaling matrices
     float widthToScale = (float)width;
     float heightToScale = (float)height;
-    if (flipLeftToRight)
+    if (bmpToDraw->_flipped)
     {
       // The usual transform changes 0..1 into 0..width
       // So first negate it (which changes 0..w into -w..0)
       widthToScale = -widthToScale;
       // and now shift it over to make it 0..w again
       thisX += width;
-    }
-    if (globalTopBottomFlip) 
-    {
-      heightToScale = -heightToScale;
-      thisY -= height;
     }
 
     glMatrixMode(GL_MODELVIEW);
@@ -1355,7 +1331,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
   glUseProgram(0);
 }
 
-void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
+void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
 {
 #if AGS_PLATFORM_OS_IOS
   ios_select_buffer();
@@ -1403,7 +1379,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glLoadIdentity();
   }
 
-  RenderSpriteBatches(flip);
+  RenderSpriteBatches();
 
   if (_do_render_to_texture)
   {
@@ -1450,13 +1426,12 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   if (clearDrawListAfterwards)
   {
     BackupDrawLists();
-    flipTypeLastTime = flip;
     ClearDrawLists();
   }
   ResetFxPool();
 }
 
-void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
+void OGLGraphicsDriver::RenderSpriteBatches()
 {
     // Render all the sprite batches with necessary transformations
     Rect main_viewport = _do_render_to_texture ? _srcRect : _viewportRect;
@@ -1481,7 +1456,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
             glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
         }
         _stageVirtualScreen = GetStageScreen(i);
-        RenderSpriteBatch(batch, flip);
+        RenderSpriteBatch(batch);
     }
 
     _stageVirtualScreen = GetStageScreen(0);
@@ -1490,11 +1465,8 @@ void OGLGraphicsDriver::RenderSpriteBatches(GlobalFlipType flip)
         glDisable(GL_SCISSOR_TEST);
 }
 
-void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFlipType flip)
+void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch)
 {
-  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
-  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
-
   OGLDrawListEntry stageEntry; // raw-draw plugin support
 
   const std::vector<OGLDrawListEntry> &listToDraw = batch.List;
@@ -1513,7 +1485,7 @@ void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFli
       sprite = &stageEntry;
     }
 
-    this->_renderSprite(sprite, batch.Matrix, globalLeftRightFlip, globalTopBottomFlip);
+    this->_renderSprite(sprite, batch.Matrix);
   }
 }
 
@@ -1919,7 +1891,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   {
     int timerValue = *_loopTimer;
     d3db->SetTransparency(fadingOut ? a : (255 - a));
-    this->_render(flipTypeLastTime, false);
+    this->_render(false);
 
     do
     {
@@ -1933,7 +1905,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   if (fadingOut)
   {
     d3db->SetTransparency(0);
-    this->_render(flipTypeLastTime, false);
+    this->_render(false);
   }
 
   this->DestroyDDB(d3db);
@@ -2003,7 +1975,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
       d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
     }
     
-    this->_render(flipTypeLastTime, false);
+    this->_render(false);
 
     if (_pollingCallback)
       _pollingCallback();

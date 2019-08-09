@@ -769,11 +769,14 @@ void render_black_borders()
 
 void render_to_screen()
 {
-    const Rect &viewport = play.GetMainViewport();
-    render_black_borders();
-
-    if(pl_any_want_hook(AGSE_FINALSCREENDRAW))
+    // Stage: final plugin callback (still drawn on game screen
+    if (pl_any_want_hook(AGSE_FINALSCREENDRAW))
+    {
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
+    }
+    // Stage: engine overlay
+    construct_engine_overlay();
 
     // only vsync in full screen mode, it makes things worse in a window
     gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (!scsystem.windowed));
@@ -784,6 +787,7 @@ void render_to_screen()
         try
         {
             // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
+            const Rect &viewport = play.GetMainViewport();
             if (play.shake_screen_yoff > 0 && !gfxDriver->RequiresFullRedrawEachFrame())
                 gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
             gfxDriver->Render(0, play.shake_screen_yoff, (GlobalFlipType)play.screen_flipped);
@@ -2143,7 +2147,8 @@ void draw_fps()
 }
 
 // Draw GUI and overlays of all kinds, anything outside the room space
-void draw_gui_and_overlays() {
+void draw_gui_and_overlays()
+{
     int gg;
 
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
@@ -2289,14 +2294,6 @@ void put_sprite_list_on_screen(bool in_room)
     our_eip = 1100;
 }
 
-void draw_misc_info()
-{
-    if (display_fps)
-        draw_fps();
-
-    our_eip = 1101;
-}
-
 bool GfxDriverNullSpriteCallback(int x, int y)
 {
     if (displayed_room < 0)
@@ -2367,22 +2364,10 @@ static void construct_room_view()
 // Schedule ui rendering
 static void construct_ui_view()
 {
-    const Rect &ui_viewport = play.GetUIViewportAbs();
-    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+    gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
     draw_gui_and_overlays();
     put_sprite_list_on_screen(false);
     clear_draw_list();
-
-    if (play.screen_tint >= 1)
-        gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
-}
-
-// Schedule misc rendering
-static void construct_misc_view()
-{
-    const Rect &main_viewport = play.GetMainViewport();
-    gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
-    draw_misc_info();
 }
 
 void construct_game_scene(bool full_redraw)
@@ -2411,7 +2396,7 @@ void construct_game_scene(bool full_redraw)
     if (displayed_room >= 0)
         play.UpdateRoomCameras();
 
-    // Stage 1: room viewports
+    // Stage: room viewports
     if (play.screen_is_faded_out == 0 && is_complete_overlay == 0)
     {
         if (displayed_room >= 0)
@@ -2429,24 +2414,16 @@ void construct_game_scene(bool full_redraw)
 
     our_eip=4;
 
-    // Stage 2: UI overlay
+    // Stage: UI overlay
     if (play.screen_is_faded_out == 0)
     {
         construct_ui_view();
     }
-    else if (gfxDriver->RequiresFullRedrawEachFrame())
-    {
-        const Rect &main_viewport = play.GetMainViewport();
-        gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
-        gfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
-    }
-
-    // Stage 3: auxiliary info
-    construct_misc_view();
 }
 
 void construct_game_screen_overlay()
 {
+    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
     if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
         gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
 
@@ -2484,15 +2461,35 @@ void construct_game_screen_overlay()
 
     ags_domouse(DOMOUSE_NOCURSOR);
 
+    // Stage: mouse cursor
     if (!play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
     {
         gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
         invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
     }
+
+    if (play.screen_is_faded_out == 0)
+    {
+        // Stage: screen fx
+        if (play.screen_tint >= 1)
+            gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
+        // Stage: legacy letterbox mode borders
+        render_black_borders();
+    }
+
+    if (play.screen_is_faded_out != 0 && gfxDriver->RequiresFullRedrawEachFrame())
+    {
+        const Rect &main_viewport = play.GetMainViewport();
+        gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
+        gfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+    }
 }
 
 void construct_engine_overlay()
 {
+    const Rect &viewport = play.GetMainViewport();
+    gfxDriver->BeginSpriteBatch(viewport, SpriteTransform());
+
     // draw the debug console, if appropriate
     if ((play.debug_mode > 0) && (display_console != 0))
     {
@@ -2501,7 +2498,6 @@ void construct_engine_overlay()
         int txtspacing = getfontspacing_outlined(0);
         int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
 
-        const Rect &viewport = play.GetMainViewport();
         if (debugConsoleBuffer == nullptr)
         {
             debugConsoleBuffer = BitmapHelper::CreateBitmap(viewport.GetWidth(), barheight, game.GetColorDepth());
@@ -2524,6 +2520,9 @@ void construct_engine_overlay()
         gfxDriver->DrawSprite(0, 0, debugConsole);
         invalidate_sprite(0, 0, debugConsole, false);
     }
+
+    if (display_fps)
+        draw_fps();
 }
 
 static void update_shakescreen()
@@ -2553,7 +2552,6 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
     }
     construct_game_screen_overlay();
-    construct_engine_overlay();
     render_to_screen();
 
     if (!play.screen_is_faded_out) {

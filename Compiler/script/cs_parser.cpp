@@ -2711,8 +2711,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size
 // We are processing a function call.
 // Get the parameters of the call and push them onto the stack.
 // Return the number of the parameters pushed
-// NOTE: If keep_mar, we must be careful not to clobber the MAR register
-int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, bool func_is_import, AGS::SymbolScript &paramList, size_t paramListLen, bool keep_mar, size_t &actual_num_args)
+int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, bool func_is_import, AGS::SymbolScript &paramList, size_t paramListLen, size_t &actual_num_args)
 {
     // Expected number of arguments, or expected minimal number of arguments
     size_t const num_func_args = _sym[name_of_func].get_num_args();
@@ -2740,12 +2739,8 @@ int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, boo
     // Push the explicit arguments of the function
     if (num_supplied_args > 0)
     {
-        if (keep_mar)
-            _scrip.push_reg(SREG_MAR);
         retval = AccessData_FunctionCall_PushParams(paramList, indexOfClosedParen, num_func_args, num_supplied_args, name_of_func, func_is_import);
         if (retval < 0) return retval;
-        if (keep_mar)
-            _scrip.pop_reg(SREG_MAR);
     }
 
     actual_num_args = std::max(num_supplied_args, num_func_args);
@@ -2754,8 +2749,6 @@ int AGS::Parser::AccessData_PushFunctionCallParams(AGS::Symbol name_of_func, boo
 
 int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolScript &symlist, size_t &symlist_len, AGS::MemoryLocation &mloc, AGS::Vartype &rettype)
 {
-    bool const func_is_import = FlagIsSet(_sym.get_flags(name_of_func), kSFLG_Imported);
-
     if (_sym.get_type(symlist[1]) != kSYM_OpenParenthesis)
     {
         cc_error("Expected '('");
@@ -2765,31 +2758,43 @@ int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolSc
     AGS::SymbolScript paramList = symlist + 1;
     size_t paramListLen = symlist_len - 1;
 
-    // Find out whether the function uses "this" (non-static method)
+    bool const func_is_import = FlagIsSet(_sym.get_flags(name_of_func), kSFLG_Imported);
+    // If function uses normal stack, we need to do stack calculations to get at certain elements
+    bool const func_uses_normal_stack = !func_is_import;
     bool func_uses_this = false;
     if (std::string::npos != _sym.get_name_string(name_of_func).find("::"))
         func_uses_this = !FlagIsSet(_sym.get_flags(name_of_func), kSFLG_Static);
 
     if (func_uses_this)
     {
-        // Get address of outer into MAR; this is the object that the func will use
-        mloc.MakeMARCurrent(_scrip);
         if (0 != _sym.get_vartype(_sym.getThisSym()))
             _scrip.push_reg(SREG_OP); // Save OP since we must restore it after the func call
+
+        // Get address of outer into MAR; that's what the func will use as its "this"
+        mloc.MakeMARCurrent(_scrip);
+        _scrip.push_reg(SREG_MAR);
     }
 
-    // Process parameter list of call; get the number of parameters used
     size_t num_args = 0;
-    int retval = AccessData_PushFunctionCallParams(name_of_func, func_is_import, paramList, paramListLen, func_uses_this, num_args);
+    int retval = AccessData_PushFunctionCallParams(name_of_func, func_is_import, paramList, paramListLen, num_args);
     if (retval < 0) return retval;
 
     if (func_uses_this)
     {
-        // write the address of the function's "this" object to the OP reg
+        if (0 == num_args)
+        {   // Undo unneeded PUSH
+            _scrip.cur_sp -= 4;
+            _scrip.codesize -= 2; 
+        }
+        else
+        {
+            _scrip.write_cmd1(
+                SCMD_LOADSPOFFS,
+                (func_uses_normal_stack ? num_args : 0) * 4 + 4);
+        }
         _scrip.write_cmd1(SCMD_CALLOBJ, SREG_MAR);
     }
 
-    // Generate the function call proper
     AccessData_GenerateFunctionCall(name_of_func, num_args, func_is_import);
 
     // function return type
@@ -2798,10 +2803,14 @@ int AGS::Parser::AccessData_FunctionCall(AGS::Symbol name_of_func, AGS::SymbolSc
 
     // At runtime, we have returned from the func call,
     // so we must continue with the object pointer that was in use before the call
-    if (func_uses_this && 0 != _sym.get_vartype(_sym.getThisSym()))
-        _scrip.pop_reg(SREG_OP);
+    if (func_uses_this)
+    {
+        if (0 < num_args)
+            _scrip.pop_reg(SREG_MAR);
+        if (0 != _sym.get_vartype(_sym.getThisSym()))
+            _scrip.pop_reg(SREG_OP);
+    }
 
-    // Note that this function has been accessed at least once
     MarkAcessed(name_of_func);
     return 0;
 }

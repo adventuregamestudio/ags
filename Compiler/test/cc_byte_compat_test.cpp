@@ -2724,26 +2724,27 @@ TEST(Bytecode, Struct01) {
     ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
-    struct Struct                   \n\
-    {                               \n\
-        float Float;                \n\
-        import int[] Func(int i);   \n\
-    };                              \n\
-                                    \n\
-    int Ret[];                      \n\
-                                    \n\
-    int[] Struct::Func(int i)       \n\
-    {                               \n\
-        this.Float = 0.0;           \n\
-        Ret = new int[5];           \n\
-        return Ret;                 \n\
-    }                               \n\
-                                    \n\
-    void main()                     \n\
-    {                               \n\
-        Struct S;                   \n\
-        S.Func(-1);                 \n\
-    }                               \n\
+    	struct Struct                       \n\
+		{                                   \n\
+			float Float;                    \n\
+			import int[] Func(int i);       \n\
+		};                                  \n\
+											\n\
+		int[] Struct::Func(int i)           \n\
+		{                                   \n\
+			int Ret[];                      \n\
+			this.Float = 0.0;               \n\
+			Ret = new int[5];               \n\
+			Ret[3] = 77;                    \n\
+			return Ret;                     \n\
+		}                                   \n\
+											\n\
+		void main()                         \n\
+		{                                   \n\
+			Struct S;                       \n\
+			int I[] = S.Func(-1);           \n\
+			int J = I[3];                   \n\
+		}                                   \n\
     ";
 
     clear_error();
@@ -2752,21 +2753,33 @@ TEST(Bytecode, Struct01) {
 
     // WriteOutput("Struct01", scrip);
     // Hand-checked Bytecode
-    const size_t codesize = 82;
+    const size_t codesize = 180;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,   51,    0,            4,    4,    0,    1,    // 7
-       1,    4,    6,    3,            0,    3,    6,    2,    // 15
-      52,    8,    3,    6,            3,    5,   72,    3,    // 23
-       4,    0,    6,    2,            0,   47,    3,    6,    // 31
-       2,    0,   48,    3,            2,    1,    4,   31,    // 39
-       6,    2,    1,    4,            6,    3,    0,    5,    // 47
-      38,   48,   51,    0,           63,    4,    1,    1,    // 55
-       4,   51,    4,   29,            2,    6,    3,   -1,    // 63
-      29,    3,   30,    2,           45,    2,    6,    3,    // 71
-       0,   23,    3,    2,            1,    4,    2,    1,    // 79
-       4,    5,  -999
+       1,    4,   51,    0,           63,    4,    1,    1,    // 15
+       4,    6,    3,    0,            3,    6,    2,   52,    // 23
+       8,    3,    6,    3,            5,   72,    3,    4,    // 31
+       0,   51,    4,   47,            3,    6,    3,   77,    // 39
+      29,    3,   51,    8,           52,   48,    2,   29,    // 47
+       2,    6,    3,    3,           71,    3,   30,    2,    // 55
+      32,    3,    4,   11,            2,    3,   30,    3,    // 63
+       8,    3,   51,    4,           48,    3,   29,    3,    // 71
+      51,    4,   50,    3,           51,    8,   49,   51,    // 79
+       4,   48,    3,   69,           30,    4,    2,    1,    // 87
+       8,   31,    9,   51,            4,   49,    2,    1,    // 95
+       8,    6,    3,    0,            5,   38,  101,   51,    // 103
+       0,   63,    4,    1,            1,    4,   51,    0,    // 111
+      63,    4,    1,    1,            4,   51,    8,   29,    // 119
+       2,    6,    3,   -1,           29,    3,   51,    8,    // 127
+      45,    2,    6,    3,            0,   23,    3,    2,    // 135
+       1,    4,   30,    2,           51,    4,   47,    3,    // 143
+       1,    1,    4,   51,            8,   52,   48,    2,    // 151
+      29,    2,    6,    3,            3,   71,    3,   30,    // 159
+       2,   32,    3,    4,           11,    2,    3,    7,    // 167
+       3,   51,    4,    8,            3,   51,    8,   49,    // 175
+       2,    1,   12,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -2779,11 +2792,11 @@ TEST(Bytecode, Struct01) {
         ASSERT_EQ(is_val, test_val);
     }
 
-    const size_t numfixups = 3;
+    const size_t numfixups = 1;
     EXPECT_EQ(numfixups, scrip->numfixups);
 
     intptr_t fixups[] = {
-      28,   33,   72,  -999
+     132,  -999
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -2797,7 +2810,7 @@ TEST(Bytecode, Struct01) {
     }
 
     char fixuptypes[] = {
-      1,   1,   2,  '\0'
+      2,  '\0'
     };
 
     for (size_t idx = 0; idx < numfixups; idx++)
@@ -6882,15 +6895,15 @@ TEST(Bytecode, AccessStructAsPointer)
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("AccessStructAsPointer", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 34;
+    const size_t codesize = 36;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
       38,    0,    6,    2,            2,   52,   48,    2,    // 7
       29,    2,    6,    2,            0,   48,    3,   34,    // 15
-       3,   30,    2,   45,            2,   39,    1,    6,    // 23
-       3,    1,   33,    3,           35,    1,    6,    3,    // 31
-       0,    5,  -999
+       3,   51,    4,   45,            2,   39,    1,    6,    // 23
+       3,    1,   33,    3,           35,    1,   30,    2,    // 31
+       6,    3,    0,    5,          -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)
@@ -7232,7 +7245,7 @@ TEST(Bytecode, Struct09) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // WriteOutput("Struct09", scrip);
     // hand-checked Bytecode
-    const size_t codesize = 192;
+    const size_t codesize = 194;
     EXPECT_EQ(codesize, scrip->codesize);
 
     intptr_t code[] = {
@@ -7257,10 +7270,10 @@ TEST(Bytecode, Struct09) {
        3,   30,    4,   11,            4,    3,    3,    4,    // 151
        3,   46,    3,    7,            6,    2,    1,   32,    // 159
        3,    4,   11,    2,            3,   48,    3,   34,    // 167
-       3,   30,    2,   45,            2,   39,    6,    6,    // 175
-       3,    3,   33,    3,           35,    6,   51,    8,    // 183
-      49,    2,    1,    8,            6,    3,    0,    5,    // 191
-     -999
+       3,   51,    4,   45,            2,   39,    6,    6,    // 175
+       3,    3,   33,    3,           35,    6,   30,    2,    // 183
+      51,    8,   49,    2,            1,    8,    6,    3,    // 191
+       0,    5,  -999
     };
 
     for (size_t idx = 0; idx < codesize; idx++)

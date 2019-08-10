@@ -269,6 +269,7 @@ void process_event(EventHappened*evp) {
                 // will be drawing saved image of the game over to that backbuffer, simulating "box-out".
                 set_palette_range(palette, 0, 255, 0);
                 construct_game_scene(true);
+                construct_game_screen_overlay(false);
                 gfxDriver->RenderToBackBuffer();
                 Bitmap *saved_backbuf = gfxDriver->GetMemoryBackBuffer();
                 Bitmap *temp_scr = new Bitmap(saved_backbuf->GetWidth(), saved_backbuf->GetHeight(), saved_backbuf->GetColorDepth());
@@ -315,7 +316,8 @@ void process_event(EventHappened*evp) {
                 // do the crossfade
                 ddb->SetTransparency(transparency);
                 invalidate_screen();
-                draw_screen_callback();
+                construct_game_scene(true);
+                construct_game_screen_overlay(false);
 
                 if (transparency > 16)
                 {
@@ -344,7 +346,6 @@ void process_event(EventHappened*evp) {
             color interpal[256];
 
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
-
             for (aa=0;aa<16;aa++) {
                 timerloop=0;
                 // merge the palette while dithering
@@ -361,8 +362,8 @@ void process_event(EventHappened*evp) {
                     }
                 }
                 gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap, false);
-                invalidate_screen();
-                draw_screen_callback();
+                construct_game_scene(true);
+                construct_game_screen_overlay(false);
                 gfxDriver->DrawSprite(0, 0, ddb);
 				render_to_screen();
 
@@ -370,7 +371,6 @@ void process_event(EventHappened*evp) {
 
                 WaitForNextFrame();
             }
-            saved_viewport_bitmap->Release();
 
             delete saved_viewport_bitmap;
             saved_viewport_bitmap = nullptr;

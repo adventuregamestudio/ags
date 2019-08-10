@@ -623,7 +623,7 @@ bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bo
 
 	Author: Matthew Leverton
 **/
-void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
    Bitmap *bmp_orig = vs;
    const int col_depth = bmp_orig->GetColorDepth();
@@ -631,13 +631,18 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy,
    if (speed <= 0) speed = 16;
 
    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
-
+   SetMemoryBackBuffer(bmp_buff, 0, 0);
    for (int a = 0; a < 256; a+=speed)
    {
        int timerValue = *_loopTimer;
        bmp_buff->Fill(clearColor);
        set_trans_blender(0,0,0,a);
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+       if (draw_callback)
+       {
+           draw_callback();
+           RenderToBackBuffer();
+       }
        this->Vsync();
        _filter->RenderScreen(bmp_buff, 0, 0);
        do
@@ -649,13 +654,17 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy,
        while (timerValue == *_loopTimer);
    }
    delete bmp_buff;
-   if (bmp_orig != vs)
-       delete bmp_orig;
 
+   SetMemoryBackBuffer(vs, offx, offy);
+   if (draw_callback)
+   {
+       draw_callback();
+       RenderToBackBuffer();
+   }
    _filter->RenderScreen(vs, offx, offy);
 }
 
-void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
     Bitmap *bmp_orig = vs;
     const int col_depth = vs->GetColorDepth();
@@ -663,12 +672,18 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, int offx, int offy
     if (speed <= 0) speed = 16;
 
     Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
+    SetMemoryBackBuffer(bmp_buff, 0, 0);
     for (int a = 255 - speed; a > 0; a -= speed)
     {
         int timerValue = *_loopTimer;
         bmp_buff->Fill(clearColor);
         set_trans_blender(0, 0, 0, a);
         bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+        if (draw_callback)
+        {
+            draw_callback();
+            RenderToBackBuffer();
+        }
         this->Vsync();
         _filter->RenderScreen(bmp_buff, 0, 0);
         do
@@ -680,10 +695,13 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, int offx, int offy
     }
     delete bmp_buff;
 
-    if (bmp_orig != vs)
-        delete bmp_orig;
-
+    SetMemoryBackBuffer(vs, offx, offy);
     vs->Clear(clearColor);
+    if (draw_callback)
+    {
+        draw_callback();
+        RenderToBackBuffer();
+    }
 	_filter->RenderScreen(vs, offx, offy);
 }
 /** END FADE.C **/
@@ -728,9 +746,14 @@ void ALSoftwareGraphicsDriver::__fade_out_range(int speed, int from, int to, int
 
 void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) {
 
+  if (_drawScreenCallback)
+  {
+    _drawScreenCallback();
+    RenderToBackBuffer();
+  }
   if (_mode.ColorDepth > 8) 
   {
-    highcolor_fade_out(virtualScreen, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_out(virtualScreen, _drawPostScreenCallback, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {
@@ -739,9 +762,14 @@ void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targe
 }
 
 void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
+  if (_drawScreenCallback)
+  {
+    _drawScreenCallback();
+    RenderToBackBuffer();
+  }
   if (_mode.ColorDepth > 8)
   {
-    highcolor_fade_in(virtualScreen, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_in(virtualScreen, _drawPostScreenCallback, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {
@@ -752,25 +780,43 @@ void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed,
 
 void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 {
+  if (_drawScreenCallback)
+  {
+    _drawScreenCallback();
+    RenderToBackBuffer();
+  }
   if (blackingOut)
   {
     int yspeed = _srcRect.GetHeight() / (_srcRect.GetWidth() / speed);
     int boxwid = speed, boxhit = yspeed;
+    Bitmap *bmp_orig = virtualScreen;
+    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), bmp_orig->GetColorDepth());
+    Point orig_off = _virtualScrOff;
+    SetMemoryBackBuffer(bmp_buff, 0, 0);
 
     while (boxwid < _srcRect.GetWidth()) {
       boxwid += speed;
       boxhit += yspeed;
-      this->Vsync();
       int vcentre = _srcRect.GetHeight() / 2;
-      this->ClearRectangle(_srcRect.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
-          _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2, nullptr);
+      bmp_orig->FillRect(Rect(_srcRect.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
+          _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2), 0);
+      bmp_buff->Fill(0);
+      bmp_buff->Blit(bmp_orig);
+      if (_drawPostScreenCallback)
+      {
+          _drawPostScreenCallback();
+          RenderToBackBuffer();
+      }
+      this->Vsync();
+      _filter->RenderScreen(bmp_buff, 0, 0);
     
       if (_pollingCallback)
         _pollingCallback();
 
       platform->Delay(delay);
     }
-    this->ClearRectangle(0, 0, _srcRect.GetWidth() - 1, _srcRect.GetHeight() - 1, nullptr);
+    delete bmp_buff;
+    SetMemoryBackBuffer(bmp_orig, orig_off.X, orig_off.Y);
   }
   else
   {

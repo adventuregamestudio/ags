@@ -148,7 +148,7 @@ void engine_init_resolution_settings(const Size game_size)
 void engine_post_gfxmode_driver_setup()
 {
     gfxDriver->SetCallbackForPolling(update_polled_stuff_if_runtime);
-    gfxDriver->SetCallbackToDrawScreen(draw_screen_callback);
+    gfxDriver->SetCallbackToDrawScreen(draw_game_screen_callback, construct_engine_overlay);
     gfxDriver->SetCallbackForNullSprite(GfxDriverNullSpriteCallback);
 }
 
@@ -156,7 +156,7 @@ void engine_post_gfxmode_driver_setup()
 void engine_pre_gfxmode_driver_cleanup()
 {
     gfxDriver->SetCallbackForPolling(nullptr);
-    gfxDriver->SetCallbackToDrawScreen(nullptr);
+    gfxDriver->SetCallbackToDrawScreen(nullptr, nullptr);
     gfxDriver->SetCallbackForNullSprite(nullptr);
     gfxDriver->SetMemoryBackBuffer(nullptr);
 }

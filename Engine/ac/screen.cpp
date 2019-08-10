@@ -47,14 +47,6 @@ void my_fade_in(PALETTE p, int speed) {
         }
     }
 
-    // For software renderer we must reconstruct full game view on virtual screen,
-    // because it could have been filled with blackness since the last fade-out.
-    if (gfxDriver->UsesMemoryBackBuffer())
-    {
-        construct_game_scene(true);
-        gfxDriver->RenderToBackBuffer();
-    }
-
     gfxDriver->FadeIn(speed, p, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
 }
 
@@ -113,7 +105,6 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
         delete saved_viewport_bitmap;
         saved_viewport_bitmap = clippedBuffer;
     }
-    saved_viewport_bitmap->Acquire();
     IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap, false);
     return ddb;
 }

@@ -1868,21 +1868,18 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
 void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
-  if (fadingOut)
-  {
-    this->_reDrawLastFrame();
-  }
-  else if (_drawScreenCallback != nullptr)
+  // Construct scene in order: game screen, fade fx, post game overlay
+  if (_drawScreenCallback != nullptr)
     _drawScreenCallback();
-  
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);
   delete blackSquare;
-
   BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
+  if (_drawPostScreenCallback != NULL)
+      _drawPostScreenCallback();
 
   if (speed <= 0) speed = 16;
   speed *= 2;  // harmonise speeds with software driver which is faster
@@ -1924,19 +1921,15 @@ void OGLGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int ta
 
 void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 {
-  if (blackingOut)
-  {
-    this->_reDrawLastFrame();
-  }
-  else if (_drawScreenCallback != nullptr)
+  // Construct scene in order: game screen, fade fx, post game overlay
+  if (_drawScreenCallback != nullptr)
     _drawScreenCallback();
-  
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear();
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);
   delete blackSquare;
-
   BeginSpriteBatch(_srcRect, SpriteTransform());
+  size_t fx_batch = _actSpriteBatch;
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
@@ -1947,6 +1940,8 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     this->DrawSprite(0, 0, d3db);
     this->DrawSprite(0, 0, d3db);
   }
+  if (_drawPostScreenCallback != NULL)
+    _drawPostScreenCallback();
 
   int yspeed = _srcRect.GetHeight() / (_srcRect.GetWidth() / speed);
   int boxWidth = speed;
@@ -1956,7 +1951,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   {
     boxWidth += speed;
     boxHeight += yspeed;
-    OGLSpriteBatch &batch = _spriteBatches.back();
+    OGLSpriteBatch &batch = _spriteBatches[fx_batch];
     std::vector<OGLDrawListEntry> &drawList = batch.List;
     size_t last = drawList.size() - 1;
     if (blackingOut)

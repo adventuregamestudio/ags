@@ -104,7 +104,7 @@ void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int 
 // Construct game scene, scheduling drawing list for the renderer
 void construct_game_scene(bool full_redraw = false);
 // Construct final game screen elements; updates and draws mouse cursor
-void construct_game_screen_overlay();
+void construct_game_screen_overlay(bool draw_mouse = true);
 // Construct engine overlay with debugging tools (fps, console)
 void construct_engine_overlay();
 void add_to_sprite_list(Engine::IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
@@ -117,7 +117,8 @@ void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, 
 void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
 // Render game on screen
 void render_to_screen();
-void draw_screen_callback();
+// Callbacks for the graphics driver
+void draw_game_screen_callback();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);

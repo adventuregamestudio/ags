@@ -105,7 +105,8 @@ public:
   virtual Size GetNativeSize() const = 0;
   virtual Rect GetRenderDestination() const = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
-  virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;
+  // TODO: get rid of draw screen callback at some point when all fade functions are more or less grouped in one
+  virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback, GFXDRV_CLIENTCALLBACK post_callback) = 0;
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) = 0;
   virtual void SetCallbackOnSurfaceUpdate(GFXDRV_CLIENTCALLBACKSURFACEUPDATE) = 0;
   // The NullSprite callback is called in the main render loop when a

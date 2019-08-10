@@ -817,10 +817,10 @@ void clear_letterbox_borders()
     gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
 }
 
-void draw_screen_callback()
+void draw_game_screen_callback()
 {
-    construct_game_scene();
-    render_black_borders();
+    construct_game_scene(true);
+    construct_game_screen_overlay(false);
 }
 
 
@@ -2421,7 +2421,7 @@ void construct_game_scene(bool full_redraw)
     }
 }
 
-void construct_game_screen_overlay()
+void construct_game_screen_overlay(bool draw_mouse)
 {
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
     if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
@@ -2429,7 +2429,6 @@ void construct_game_screen_overlay()
 
     // TODO: find out if it's okay to move cursor animation and state update
     // to the update loop instead of doing it in the drawing routine
-
     // update animating mouse cursor
     if (game.mcurs[cur_cursor].view >= 0) {
         ags_domouse(DOMOUSE_NOCURSOR);
@@ -2462,7 +2461,7 @@ void construct_game_screen_overlay()
     ags_domouse(DOMOUSE_NOCURSOR);
 
     // Stage: mouse cursor
-    if (!play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
+    if (draw_mouse && !play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
     {
         gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
         invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
@@ -2547,11 +2546,13 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
 
     construct_game_scene(false);
     our_eip=5;
-    if (extraBitmap != nullptr) {
+    // NOTE: extraBitmap will always be drawn with the UI render stage
+    if (extraBitmap != nullptr)
+    {
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
     }
-    construct_game_screen_overlay();
+    construct_game_screen_overlay(true);
     render_to_screen();
 
     if (!play.screen_is_faded_out) {

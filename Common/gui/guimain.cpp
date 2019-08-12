@@ -249,6 +249,9 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
     SET_EIP(379)
 
+    if (all_buttons_disabled && gui_disabled_style == GUIDIS_BLACKOUT)
+        return; // don't draw GUI controls
+
     for (size_t ctrl_index = 0; ctrl_index < _controls.size(); ++ctrl_index)
     {
         set_eip_guiobj(_ctrlDrawOrder[ctrl_index]);
@@ -317,7 +320,7 @@ void GUIMain::Poll()
             if (MouseOverCtrl >= 0)
                 _controls[MouseOverCtrl]->OnMouseLeave();
 
-            if (ctrl_index >= 0 && !_controls[ctrl_index]->IsEnabled())
+            if (ctrl_index >= 0 && !IsGUIEnabled(_controls[ctrl_index]))
                 // the control is disabled - ignore it
                 MouseOverCtrl = -1;
             else if (ctrl_index >= 0 && !_controls[ctrl_index]->IsClickable())
@@ -485,7 +488,7 @@ void GUIMain::OnMouseButtonDown()
         return;
 
     // don't activate disabled buttons
-    if (!_controls[MouseOverCtrl]->IsEnabled() || !_controls[MouseOverCtrl]->IsVisible() ||
+    if (!IsGUIEnabled(_controls[MouseOverCtrl]) || !_controls[MouseOverCtrl]->IsVisible() ||
         !_controls[MouseOverCtrl]->IsClickable())
     return;
 

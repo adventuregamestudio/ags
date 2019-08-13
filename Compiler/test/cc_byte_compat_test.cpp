@@ -76,8 +76,6 @@ extern char g_Input_Bool[], g_Input_String[];
 
 std::string Esc(const char ch)
 {
-    static const char *tohex = "0123456789abcdef";
-
     if (ch >= ' ' && ch <= 126)
     {
         return std::string(1, ch);
@@ -87,6 +85,7 @@ std::string Esc(const char ch)
     {
     default:
     {
+        static const char *tohex = "0123456789abcdef";
         std::string ret = "\\x";
         ret.push_back(tohex[ch / 16]);
         ret.push_back(tohex[ch % 16]);

@@ -2217,7 +2217,7 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
 
         // Expression for length of array begins after "[", ends before "]"
         // So expression_length = whole_length - 3 - 1
-        int retval = AccessData_ArrayIndexIntoAX(&symlist[3], symlist_len - 4);
+        retval = AccessData_ArrayIndexIntoAX(&symlist[3], symlist_len - 4);
         if (retval < 0) return retval;
 
         _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
@@ -6716,7 +6716,8 @@ int AGS::Parser::Parse()
     retval = ParseInput();
     if (retval < 0) return retval;
 
-    return _fcm.CheckForUnresolvedFuncs();
+    retval = _fcm.CheckForUnresolvedFuncs();
+    if (retval < 0) return retval;
     return _fim.CheckForUnresolvedFuncs();
 }
 

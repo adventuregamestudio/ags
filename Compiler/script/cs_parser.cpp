@@ -2212,15 +2212,17 @@ int AGS::Parser::ParseExpression_NewIsFirst(const AGS::SymbolScript &symlist, si
     // new VARTYPE[...]
     if (kSYM_OpenBracket == _sym.get_type(symlist[2]) && kSYM_CloseBracket == _sym.get_type(symlist[symlist_len - 1]))
     {
+        bool const is_managed = !IsPrimitiveVartype(new_vartype);
+        int const element_size = Vartype2Size(new_vartype);
+
         // Expression for length of array begins after "[", ends before "]"
         // So expression_length = whole_length - 3 - 1
         int retval = AccessData_ArrayIndexIntoAX(&symlist[3], symlist_len - 4);
         if (retval < 0) return retval;
 
-        int const size = Vartype2Size(new_vartype);
-        _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, size, !IsPrimitiveVartype(new_vartype));
+        _scrip.write_cmd3(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
+        
         SetFlag(vartype, kVTY_DynArray, true);
-
         _scrip.ax_val_scope = scope = kSYM_GlobalVar;
         _scrip.ax_vartype = vartype;
         vloc = kVL_ax_is_value;
@@ -3042,8 +3044,10 @@ int AGS::Parser::AccessData_Dereference(ValueLocation &vloc, AGS::MemoryLocation
     else
     {
         mloc.MakeMARCurrent(_scrip);
-        _scrip.write_cmd0(SCMD_CHECKNULL);
+        // Note: We need to check here whether m[MAR] == 0, but CHECKNULL
+        // checks whether MAR == 0. So we need to do MAR := m[MAR] first.
         _scrip.write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
+        _scrip.write_cmd0(SCMD_CHECKNULL);
     }
     return 0;
 }
@@ -3131,20 +3135,25 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
 
     int retval = AccessData_ArrayIndexIntoAX(symlist + 1, bracketed_expr_length - 2);
     if (retval < 0) return retval;
-    if (is_dynarray)
-        _scrip.write_cmd1(SCMD_DYNAMICBOUNDS, SREG_AX);
-    else if (array_size > 0)
-        _scrip.write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, array_size);
-    else // it's a static array, and we don't know the size
-        ;   // don't check the bounds
 
     if (mar_pushed)
         _scrip.pop_reg(SREG_MAR);
-
     mloc.MakeMARCurrent(_scrip);
 
+    // Note: SCMD_DYNAMICBOUNDS checks that the register is between  0 and
+    // the length of the memory chunk in bytes (NOT the number of elements
+    // in the array!). SCMD_CHECKBOUNDS checks that the register is
+    // between 0 and the number given in the command. So to keep them in
+    // parallel, the check must be done in both cases on the length of
+    // the memory chunk that makes up the array, and the number given in
+    // the CHECKBOUNDS command must be this length of the memory chunk.
+    // If array_size == 0, we don't know the array size and can't check.
     if (element_size != 1)
         _scrip.write_cmd2(SCMD_MUL, SREG_AX, element_size); // Multiply offset with length of one array entry
+    if (is_dynarray)
+        _scrip.write_cmd1(SCMD_DYNAMICBOUNDS, SREG_AX);
+    else if (array_size > 0)
+        _scrip.write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, array_size * element_size);
     _scrip.write_cmd2(SCMD_ADDREG, SREG_MAR, SREG_AX); // Add offset
 
     symlist = close_brac_loc + 1;
@@ -3561,14 +3570,7 @@ int AGS::Parser::AccessData(bool writing, bool need_to_negate, AGS::SymbolScript
             return -1;
         }
 
-        if (FlagIsSet(vartype, kVTY_DynArray))
-        {
-            // Dereference the dynarray
-            retval = AccessData_Dereference(vloc, mloc);
-            if (retval < 0) return retval;
-            SetFlag(vartype, kVTY_DynArray, false);
-        }
-
+        // Note: A DynArray can't be directly in front of a '.' (need a [...] first)
         if (IsManagedVartype(vartype))
         {
             retval = AccessData_Dereference(vloc, mloc);

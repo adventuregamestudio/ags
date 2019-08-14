@@ -631,7 +631,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback
    if (speed <= 0) speed = 16;
 
    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
-   SetMemoryBackBuffer(bmp_buff, 0, 0);
+   SetMemoryBackBuffer(bmp_buff, offx, offy);
    for (int a = 0; a < 256; a+=speed)
    {
        int timerValue = *_loopTimer;
@@ -644,7 +644,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback
            RenderToBackBuffer();
        }
        this->Vsync();
-       _filter->RenderScreen(bmp_buff, 0, 0);
+       _filter->RenderScreen(bmp_buff, offx, offy);
        do
        {
          if (_pollingCallback)
@@ -672,7 +672,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callbac
     if (speed <= 0) speed = 16;
 
     Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
-    SetMemoryBackBuffer(bmp_buff, 0, 0);
+    SetMemoryBackBuffer(bmp_buff, offx, offy);
     for (int a = 255 - speed; a > 0; a -= speed)
     {
         int timerValue = *_loopTimer;
@@ -685,7 +685,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callbac
             RenderToBackBuffer();
         }
         this->Vsync();
-        _filter->RenderScreen(bmp_buff, 0, 0);
+        _filter->RenderScreen(bmp_buff, offx, offy);
         do
         {
             if (_pollingCallback)

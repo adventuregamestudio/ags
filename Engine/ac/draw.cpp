@@ -746,9 +746,11 @@ void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text
 // where whole game screen changes size between large and small rooms
 void render_black_borders()
 {
-    const Rect &viewport = play.GetMainViewport();
-    if (!gfxDriver->UsesMemoryBackBuffer())
+    if (gfxDriver->UsesMemoryBackBuffer())
+        return;
     {
+        gfxDriver->BeginSpriteBatch(RectWH(game.GetGameRes()), SpriteTransform());
+        const Rect &viewport = play.GetMainViewport();
         if (viewport.Top > 0)
         {
             // letterbox borders
@@ -2102,15 +2104,13 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
 }
 
 
-void draw_fps()
+void draw_fps(const Rect &viewport)
 {
     static IDriverDependantBitmap* ddb = nullptr;
     static Bitmap *fpsDisplay = nullptr;
-
-    const Rect &ui_view = play.GetUIViewport();
     if (fpsDisplay == nullptr)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(ui_view.GetWidth(), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), game.GetColorDepth());
+        fpsDisplay = BitmapHelper::CreateBitmap(viewport.GetWidth(), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), game.GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
@@ -2135,13 +2135,13 @@ void draw_fps()
 
     char loop_buffer[60];
     sprintf(loop_buffer, "Loop %u", loopcounter);
-    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
+    wouttext_outline(fpsDisplay, viewport.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
 
     if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
     else
         ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
-    int yp = ui_view.GetHeight() - fpsDisplay->GetHeight();
+    int yp = viewport.GetHeight() - fpsDisplay->GetHeight();
     gfxDriver->DrawSprite(1, yp, ddb);
     invalidate_sprite(1, yp, ddb, false);
 }
@@ -2486,7 +2486,7 @@ void construct_game_screen_overlay(bool draw_mouse)
 
 void construct_engine_overlay()
 {
-    const Rect &viewport = play.GetMainViewport();
+    const Rect &viewport = RectWH(game.GetGameRes());
     gfxDriver->BeginSpriteBatch(viewport, SpriteTransform());
 
     // draw the debug console, if appropriate
@@ -2521,7 +2521,7 @@ void construct_engine_overlay()
     }
 
     if (display_fps)
-        draw_fps();
+        draw_fps(viewport);
 }
 
 static void update_shakescreen()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Design;
+using System.Linq;
 using System.Reflection;
 
 namespace AGS.Types
@@ -33,9 +34,12 @@ namespace AGS.Types
 
             _possibleValues.Clear();
             _possibleValues.Add(-1, "(None)");
-            foreach (AudioClip type in _AudioClips)
+
+            // sort on the script name rather than use the default enumeration order, which
+            // comes from the ordering of items in the audio folder hierarchy (volatile)
+            foreach (AudioClip clip in _AudioClips.OrderBy(a => a.ScriptName))
             {
-                _possibleValues.Add(type.ID, type.ScriptName);
+                _possibleValues.Add(clip.ID, clip.ScriptName);
             }
         }
     }

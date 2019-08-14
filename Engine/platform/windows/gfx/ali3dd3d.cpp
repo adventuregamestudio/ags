@@ -1770,7 +1770,14 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
   // Construct scene in order: game screen, fade fx, post game overlay
-  if (_drawScreenCallback != NULL)
+  // NOTE: please keep in mind: redrawing last saved frame here instead of constructing new one
+  // is done because of backwards-compatibility issue: originally AGS faded out using frame
+  // drawn before the script that triggers blocking fade (e.g. instigated by ChangeRoom).
+  // Unfortunately some existing games were changing looks of the screen during same function,
+  // but these were not supposed to get on screen until before fade-in.
+  if (fadingOut)
+    this->_reDrawLastFrame();
+  else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
@@ -1822,7 +1829,9 @@ void D3DGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int ta
 void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 {
   // Construct scene in order: game screen, fade fx, post game overlay
-  if (_drawScreenCallback != NULL)
+  if (blackingOut)
+     this->_reDrawLastFrame();
+  else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear();

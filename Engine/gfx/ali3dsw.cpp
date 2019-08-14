@@ -745,12 +745,6 @@ void ALSoftwareGraphicsDriver::__fade_out_range(int speed, int from, int to, int
 }
 
 void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) {
-
-  if (_drawScreenCallback)
-  {
-    _drawScreenCallback();
-    RenderToBackBuffer();
-  }
   if (_mode.ColorDepth > 8) 
   {
     highcolor_fade_out(virtualScreen, _drawPostScreenCallback, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
@@ -780,11 +774,6 @@ void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed,
 
 void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 {
-  if (_drawScreenCallback)
-  {
-    _drawScreenCallback();
-    RenderToBackBuffer();
-  }
   if (blackingOut)
   {
     int yspeed = _srcRect.GetHeight() / (_srcRect.GetWidth() / speed);

@@ -349,9 +349,10 @@ namespace AGS.Editor
 			if (_lastSelectedObject != null)
 			{
 				Sprite chosenSprite = SpriteChooser.ShowSpriteChooser(_lastSelectedObject.Image);
-				if (chosenSprite != null)
+				if (chosenSprite != null && chosenSprite.Number != _lastSelectedObject.Image)
 				{
 					_lastSelectedObject.Image = chosenSprite.Number;
+					_room.Modified = true;
 				}
                 return true;
 			}

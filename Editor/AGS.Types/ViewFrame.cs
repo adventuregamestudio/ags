@@ -12,7 +12,7 @@ namespace AGS.Types
         private int _id;
         private int _image = 0;
         private bool _flipped = false;
-        private int _sound = 0;
+        private int _sound = -1;
         private int _speed = 0;
 
         public ViewFrame()
@@ -61,6 +61,7 @@ namespace AGS.Types
         [Description("Sound to be played when the frame becomes visible")]
         [Category("Design")]
         [TypeConverter(typeof(AudioClipTypeConverter))]
+        [DefaultValue(-1)]
         public int Sound
         {
             get { return _sound; }

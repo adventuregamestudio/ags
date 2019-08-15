@@ -1,7 +1,9 @@
 
 #define AgsName "Adventure Game Studio"
-#define AgsUrl "http://www.adventuregamestudio.co.uk/"
-#define VcRedistInstaller "vcredist_x86-9.0.30729.6161.exe"
+#define AgsUrl "https://www.adventuregamestudio.co.uk/"
+#define VcRedistInstaller "vc_redist.x86.exe"
+#define VcRedistName "Microsoft Visual C++ 2015 Redistributable (x86)"
+
 ; requires following macros to be passed by command line:
 ;   AgsVersion - 4 digit version number
 ;   AgsFriendlyVersion - 3 digit 'user-friendly' version number
@@ -9,10 +11,10 @@
 
 #if "" == AgsSpVersion
 #define AgsVerNameStr AgsName + ' ' + AgsFriendlyVersion
-#define AgsOutputFile 'AGS-' + AgsFriendlyVersion
+#define AgsOutputFile 'AGS-' + AgsFullVersion
 #else
 #define AgsVerNameStr AgsName + ' ' + AgsFriendlyVersion + ' ' + AgsSpVersion
-#define AgsOutputFile 'AGS-' + AgsFriendlyVersion + '-' + AgsSpVersion
+#define AgsOutputFile 'AGS-' + AgsFullVersion + '-' + AgsSpVersion
 #endif 
 
 [Setup]
@@ -27,7 +29,7 @@ AppPublisher=AGS Project Team
 AppPublisherURL={#AgsUrl}
 AppSupportURL={#AgsUrl}
 AppUpdatesURL={#AgsUrl}
-DefaultDirName={pf}\{#AgsName} {#AgsFriendlyVersion}
+DefaultDirName={commonpf32}\{#AgsName} {#AgsFriendlyVersion}
 DefaultGroupName={#AgsVerNameStr}
 AllowNoIcons=yes
 LicenseFile=License.txt
@@ -51,7 +53,7 @@ ComponentEngineDefault=Runtime engine for MS Windows
 ComponentLinuxBuild=Linux build component
 ; ComponentDemoGame=Demo Game
 InstallOptions=Install options
-InstallVCRedist=Install Visual C++ Redistributable 2008 SP1
+InstallVCRedist=Install {#VcRedistName}
 CreateDesktopIcon=Create a &desktop icon
 AssociateFiles=Associate AGF files with the editor
 
@@ -65,9 +67,8 @@ Name: "linux"; Description: "{cm:ComponentLinuxBuild}"; Types: full custom
 
 
 [Tasks]
-Name: "vcredist"; Description: "{cm:InstallVCRedist}"; GroupDescription: "{cm:InstallOptions}"; Check: VCRedistNeedsInstall;
+Name: "vcredist"; Description: "{cm:InstallVCRedist}"; GroupDescription: "{cm:InstallOptions}"; Check: NOT VCRedistInstalled;
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:InstallOptions}"
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:InstallOptions}"; Flags: unchecked;
 Name: "associate"; Description: "{cm:AssociateFiles}"; GroupDescription: "{cm:InstallOptions}"
 
 
@@ -76,15 +77,45 @@ Name: "{app}\Templates";
 
 
 [Files]
-Source: "Source\engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
-Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\Linux\*"; DestDir: "{app}\Linux"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: linux
-Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion; Components: main
-Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+; Engine files
+Source: "Source\Engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
+; Editor files
+Source: "Source\Editor\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\acsprset.spr"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.Controls.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.CScript.Compiler.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.Types.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGS.Types.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\AGSEditor.exe.config"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\ikpMP3.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\irrKlang.NET4.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Magick.NET-Q8-x86.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Magick.NET-Q8-x86.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Magick.NET-Q8-x86.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\Newtonsoft.Json.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\WeifenLuo.WinFormsUI.Docking.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+; Documentation
+Source: "Source\Docs\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Docs\changes.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+; Licenses
+Source: "Source\Licenses\*"; DestDir: "{app}\Licenses"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+; URLs
+Source: "Source\URLs\*"; DestDir: "{app}\URLs"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+; Templates
 Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+; Linux build components
+Source: "Source\Linux\ags32"; DestDir: "{app}\Linux"; Flags: ignoreversion; Components: linux
+Source: "Source\Linux\ags64"; DestDir: "{app}\Linux"; Flags: ignoreversion; Components: linux
+Source: "Source\Linux\lib32\*"; DestDir: "{app}\Linux\lib32"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: linux
+Source: "Source\Linux\lib64\*"; DestDir: "{app}\Linux\lib64"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: linux
+Source: "Source\Linux\licenses\*"; DestDir: "{app}\Linux\licenses"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: linux
+; Demo game
 ; Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: demogame
-Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Tasks: vcredist
+; Visual C++ runtime
+Source: "Source\Redist\{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Tasks: vcredist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 
@@ -93,10 +124,9 @@ Name: "{group}\AGS Editor"; Filename: "{app}\AGSEditor.exe"; Comment: "What are 
 ; Name: "{group}\Demo Game"; Filename: "{code:GetDemoGameDir}\game.agf"; Comment: "Here's one we made earlier! If you want a sneak peak at a working game, check it out."; Components: demogame
 Name: "{group}\AGS Manual"; Filename: "{app}\ags-help.chm"; Comment: "Online help, tutorials and reference. THIS IS YOUR BIBLE NOW!"
 Name: "{group}\{cm:UninstallProgram,Adventure Game Studio}"; Filename: "{uninstallexe}"; Comment: ":~(  Ah well, nothing lasts forever. Turn off the light on your way out."
-Name: "{group}\Visit the AGS Website"; Filename: "{app}\Docs\AGS Website.url"; Comment: "See the latest AGS-related news. Find games to play."
-Name: "{group}\Visit the AGS Forums"; Filename: "{app}\Docs\AGS Forums.url"; Comment: "Join the madness! Come on down and party on the forums."
+Name: "{group}\Visit the AGS Website"; Filename: "{app}\URLs\AGS Website.url"; Comment: "See the latest AGS-related news. Find games to play."
+Name: "{group}\Visit the AGS Forums"; Filename: "{app}\URLs\AGS Forums.url"; Comment: "Join the madness! Come on down and party on the forums."
 Name: "{commondesktop}\AGS {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\AGS {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: quicklaunchicon
 
 
 [Registry]
@@ -107,9 +137,7 @@ Root: HKCR; Subkey: "AGSGameSource\shell\open\command"; ValueType: string; Value
 
 
 [Run]
-; "How to perform a silent install of the Visual C++ 2008 redistributable packages"
-;   http://blogs.msdn.com/b/astebner/archive/2010/10/18/9513328.aspx
-Filename: "{tmp}\{#VcRedistInstaller}"; Parameters: "/qb"; Flags: skipifdoesntexist; Tasks: vcredist
+Filename: "{tmp}\{#VcRedistInstaller}"; StatusMsg: "Installing {#VcRedistName}..."; Parameters: "/quiet /norestart"; Flags: skipifdoesntexist; Tasks: vcredist
 Filename: "{app}\AGSEditor.exe"; Description: "{cm:LaunchProgram,Adventure Game Studio}"; Flags: nowait postinstall skipifsilent;
 
 
@@ -142,7 +170,7 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   case PageID of
   // skip demo game's install path page, if the component was not selected
-  DemoGameDirPage.ID: Result := not IsComponentSelected('demogame');
+  DemoGameDirPage.ID: Result := not WizardIsComponentSelected('demogame');
   else Result := False;
   end;
 end;
@@ -155,67 +183,73 @@ end;
 
 
 [Code]
-
-// Based on code from "How to make vcredist_x86 reinstall only if not yet installed?"
-//  http://stackoverflow.com/questions/11137424/how-to-make-vcredist-x86-reinstall-only-if-not-yet-installed
-// "How to detect the presence of the Visual C++ 9.0 runtime redistributable package"
-//  http://blogs.msdn.com/b/astebner/archive/2009/01/29/9384143.aspx
-
-#IFDEF UNICODE
-  #DEFINE AW "W"
-#ELSE
-  #DEFINE AW "A"
-#ENDIF
-
-type
-  INSTALLSTATE = Longint;
-
 const
-  INSTALLSTATE_INVALIDARG = -2;  // An invalid parameter was passed to the function.
-  INSTALLSTATE_UNKNOWN = -1;     // The product is neither advertised or installed.
-  INSTALLSTATE_ADVERTISED = 1;   // The product is advertised but not installed.
-  INSTALLSTATE_ABSENT = 2;       // The product is installed for a different user.
-  INSTALLSTATE_DEFAULT = 5;      // The product is installed for the current user.
+  // Platform check
+  PLATFORM_CHECK_ERROR_MESSAGE = 'This program is only supported on Windows Vista or newer.';
 
-  VC_2008_SP1_MFC_SEC_UPD_REDIST_X86 = '{9BE518E6-ECC6-35A9-88E4-87755C07200F}';
-  VC_2008_SP1_MFC_SEC_UPD_REDIST_X64 = '{5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4}';
-  VC_2008_SP1_MFC_SEC_UPD_REDIST_IA64 = '{515643D1-4E9E-342F-A75A-D1F16448DC04}';
+  // Visual C++ runtime
+  // https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
+  VCPP_REDIST_MAJOR_VERSION = 14.0;
+  VCPP_REDIST_BUILD_VERSION = 24215;
 
-  DOT_NET_REGISTRY_KEY = 'Software\Microsoft\.NETFramework\policy\v2.0';
+  // .NET Framework 4.5 or newer
+  // in theory this is only needed for OS versions older than Windows 8
+  DOT_NET_45_RELEASE_VERSION = 378389;
+  NEED_DOT_NET_ERROR_MESSAGE = 'AGS needs the Microsoft .NET Framework 4.5 or later to be installed on this computer. Press OK to visit the Microsoft website and download this, then run Setup again.';
+  DOT_NET_INSTALL_URL = 'https://dotnet.microsoft.com/download/dotnet-framework';
 
-  // NEED_DOT_NET_ERROR_MESSAGE = 'AGS needs the Microsoft .NET Framework 2.0 or later to be installed on this computer. Press OK to visit the Microsoft website and download this, then run Setup again.';
-  NEED_DOT_NET_ERROR_MESSAGE = 'AGS needs the Microsoft .NET Framework 2.0 or later to be installed on this computer. Enable Microsoft .NET Framework in Windows Features then run Setup again. Press OK to visit the Microsoft website with instructions.';
-
-  // DOT_NET_INSTALL_URL = 'http://www.microsoft.com/downloads/details.aspx?FamilyID=0856EACB-4362-4B0D-8EDD-AAB15C5E04F5&displaylang=en';
-  DOT_NET_INSTALL_URL = 'http://windows.microsoft.com/en-us/windows/turn-windows-features-on-off';
-
+function VCRedistInstalled: Boolean;
 var
-  ErrorCode: Integer;
-
-function MsiQueryProductState(szProduct: string): INSTALLSTATE;
-  external 'MsiQueryProductState{#AW}@msi.dll stdcall';
-
-function VCVersionInstalled(const ProductID: string): Boolean;
+  bld: Cardinal;
 begin
-  Result := MsiQueryProductState(ProductID) = INSTALLSTATE_DEFAULT;
+  Result := (RegQueryDWordValue(
+    HKLM,
+    Format('SOFTWARE\Microsoft\VisualStudio\%.1f\VC\Runtimes\X86', [VCPP_REDIST_MAJOR_VERSION]),
+    'Bld',
+    bld)) AND (bld >= VCPP_REDIST_BUILD_VERSION);
 end;
 
-function VCRedistNeedsInstall: Boolean;
+function DotNet45Installed: Boolean;
+var
+  version: Cardinal;
 begin
-  // Here the Result must be True when you need to install your VCRedist
-  // or False when you don't need to.
-  // The following won't install your VC redist only when the Visual C++
-  // 2008 SP1 Redist (x86) is installed for the current user
-  Result := not VCVersionInstalled(VC_2008_SP1_MFC_SEC_UPD_REDIST_X86);
+  Result := (RegQueryDWordValue(
+    HKLM,
+    'Software\Microsoft\NET Framework Setup\NDP\v4\Full',
+    'Release',
+    version)) AND (version >= DOT_NET_45_RELEASE_VERSION);
 end;
 
+function IsWindowsVersionOrNewer(Major, Minor: Integer): Boolean;
+var
+  Version: TWindowsVersion;
+begin
+  GetWindowsVersionEx(Version);
+  Result :=
+    (Version.Major > Major) OR
+    ((Version.Major = Major) AND (Version.Minor >= Minor));
+end;
+
+function IsWindowsVistaOrNewer: Boolean;
+begin
+  Result := IsWindowsVersionOrNewer(6, 0);
+end;
 
 function InitializeSetup(): Boolean;
+var
+  ErrorCode: Integer;
 begin
-  if not RegKeyExists(HKLM, DOT_NET_REGISTRY_KEY) then
+  if (NOT IsWindowsVistaOrNewer) AND (NOT WizardSilent) then
   begin
-    MsgBox(NEED_DOT_NET_ERROR_MESSAGE, mbInformation, MB_OK);
-    ShellExec('', DOT_NET_INSTALL_URL, '', '', SW_SHOW, ewNoWait, ErrorCode);
+    MsgBox(PLATFORM_CHECK_ERROR_MESSAGE, mbCriticalError, MB_OK);
+  end;
+  if NOT DotNet45Installed then
+  begin
+    if NOT WizardSilent then
+    begin
+      MsgBox(NEED_DOT_NET_ERROR_MESSAGE, mbInformation, MB_OK);
+      ShellExecAsOriginalUser('', DOT_NET_INSTALL_URL, '', '', SW_SHOW, ewNoWait, ErrorCode);
+    end;
     Result := False;
   end
   else begin

@@ -7,7 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("OutlineStyle")]
-    public class Font
+    public class Font : ICustomTypeDescriptor
     {
         private int _id;
         private string _name;
@@ -19,13 +19,15 @@ namespace AGS.Types
         private int _sizeMultiplier = 1;
         private int _verticalOffset;
         private int _lineSpacing;
+        private int _autoOutlineThickness = 0;
+        private FontAutoOutlineStyle _autoOutlineStyle = FontAutoOutlineStyle.Rounded;
 
         public Font()
         {
-            _outlineStyle = FontOutlineStyle.None;
-            _outlineFont = 0;
             _name = string.Empty;
             _pointSize = 0;
+            _outlineFont = 0;
+            _outlineStyle = FontOutlineStyle.None;
             _fontHeight = 0;
             _lineSpacing = 0;
         }
@@ -101,7 +103,7 @@ namespace AGS.Types
             get { return "Font: " + this.Name; }
         }
 
-        [Description("Font to use as an outline for this one (only if FontOutlineStyle is OutlineFont)")]
+        [Description("Font to use as an outline for this one")]
         [Category("Appearance")]
         public int OutlineFont
         {
@@ -111,10 +113,27 @@ namespace AGS.Types
 
         [Description("Whether this font should be drawn with an outline")]
         [Category("Appearance")]
+        [RefreshProperties(RefreshProperties.All)]
         public FontOutlineStyle OutlineStyle
         {
             get { return _outlineStyle; }
             set { _outlineStyle = value; }
+        }
+
+        [Description("Thickness of the automatic outline (0 = default)")]
+        [Category("Appearance")]
+        public int AutoOutlineThickness
+        {
+            get { return _autoOutlineThickness; }
+            set { _autoOutlineThickness = value; }
+        }
+
+        [Description("Style of the automatic outline")]
+        [Category("Appearance")]
+        public FontAutoOutlineStyle AutoOutlineStyle
+        {
+            get { return _autoOutlineStyle; }
+            set { _autoOutlineStyle = value; }
         }
 
 		[Description("The file path that this font was imported from")]
@@ -178,5 +197,84 @@ namespace AGS.Types
             SerializeUtils.SerializeToXML(this, writer);
         }
 
+        #region ICustomTypeDescriptor Members
+        public AttributeCollection GetAttributes()
+        {
+            return TypeDescriptor.GetAttributes(this, true);
+        }
+
+        public string GetClassName()
+        {
+            return TypeDescriptor.GetClassName(this, true);
+        }
+
+        public string GetComponentName()
+        {
+            return TypeDescriptor.GetComponentName(this, true);
+        }
+
+        public TypeConverter GetConverter()
+        {
+            return TypeDescriptor.GetConverter(this, true);
+        }
+
+        public EventDescriptor GetDefaultEvent()
+        {
+            return TypeDescriptor.GetDefaultEvent(this, true);
+        }
+
+        public PropertyDescriptor GetDefaultProperty()
+        {
+            return TypeDescriptor.GetDefaultProperty(this, true);
+        }
+
+        public object GetEditor(Type editorBaseType)
+        {
+            return TypeDescriptor.GetEditor(this, editorBaseType, true);
+        }
+
+        public EventDescriptorCollection GetEvents()
+        {
+            return TypeDescriptor.GetEvents(this, true);
+        }
+
+        public EventDescriptorCollection GetEvents(Attribute[] attributes)
+        {
+            return TypeDescriptor.GetEvents(this, attributes, true);
+        }
+
+        public PropertyDescriptorCollection GetProperties()
+        {
+            return TypeDescriptor.GetProperties(this, true);
+        }
+
+        public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
+        {
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, attributes, true);
+            List<PropertyDescriptor> wantedProperties = new List<PropertyDescriptor>();
+            foreach (PropertyDescriptor property in properties)
+            {
+                if (property.Name == "AutoOutlineStyle" ||
+                    property.Name == "AutoOutlineThickness")
+                {
+                    if (_outlineStyle != FontOutlineStyle.Automatic)
+                        continue;
+                }
+                else if (property.Name == "OutlineFont")
+                {
+                    if (_outlineStyle != FontOutlineStyle.UseOutlineFont)
+                        continue;
+                }
+
+                wantedProperties.Add(property);
+            }
+            return new PropertyDescriptorCollection(wantedProperties.ToArray());
+        }
+
+        public object GetPropertyOwner(PropertyDescriptor pd)
+        {
+            return this;
+        }
+        #endregion
     }
 }

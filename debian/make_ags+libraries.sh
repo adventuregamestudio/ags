@@ -60,7 +60,7 @@ debuild -us -uc -d -S
 
 # Build ags binary package in i386 chroot, also use a hook script to copy libraries and licenses
 # from the chroot to a folder that is mounted into the chroot via --bindmounts.
-DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib32" pbuilder-dist jessie i386 build \
+DEB_BUILD_OPTIONS="rpath=lib32" pbuilder-dist jessie i386 build \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
   --bindmounts "$BASEPATH/ags+libraries" \
@@ -74,7 +74,7 @@ rm -rf $BASEPATH/ags+libraries/ags_* $BASEPATH/ags+libraries/ags-dbg_* $BASEPATH
 
 # Repeat for amd64.
 sed -i -r "5s/.*/BIT=64/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
-DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib64" pbuilder-dist jessie amd64 build \
+DEB_BUILD_OPTIONS="rpath=lib64" pbuilder-dist jessie amd64 build \
   --buildresult $BASEPATH/ags+libraries \
   --hookdir $BASEPATH/debian/ags+libraries/hooks \
   --bindmounts "$BASEPATH/ags+libraries" \

@@ -549,10 +549,9 @@ void apply_config(const ConfigTree &cfg)
 
         usetup.translation = INIreadstring(cfg, "language", "translation");
 
-        // TODO: move to config overrides (replace values during config load)
-
-        // the config file specifies cache size in KB, here we convert it to bytes
-        spriteset.SetMaxCacheSize(INIreadint (cfg, "misc", "cachemax", DEFAULTCACHESIZE / 1024) * 1024);
+        int cache_size_kb = INIreadint(cfg, "misc", "cachemax", DEFAULTCACHESIZE_KB);
+        if (cache_size_kb > 0)
+            spriteset.SetMaxCacheSize((size_t)cache_size_kb * 1024);
 
         usetup.mouse_auto_lock = INIreadint(cfg, "mouse", "auto_lock") > 0;
 
@@ -664,7 +663,7 @@ void save_config_file()
     // Other game options that could be changed at runtime
     if (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
         cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", usetup.RenderAtScreenRes ? 1 : 0);
-    cfg["mouse"]["control_enabled"] = String::FromFormat("%d", Mouse::IsControlEnabled() ? 1 : 0);
+    cfg["mouse"]["control_enabled"] = String::FromFormat("%d", usetup.mouse_ctrl_enabled ? 1 : 0);
     cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
     bool is_available = GetTranslationName(buffer) != 0 || !buffer[0];
     if (is_available)

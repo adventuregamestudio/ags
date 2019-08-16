@@ -21,6 +21,7 @@
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/draw.h"
 #include "ac/gamestate.h"
+#include "debug/debug_log.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
@@ -47,12 +48,14 @@ void Camera_Delete(ScriptCamera *scam)
 
 int Camera_GetX(ScriptCamera *scam)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.X: trying to use deleted camera"); return 0; }
     int x = play.GetRoomCamera(scam->GetID())->GetRect().Left;
     return game_to_data_coord(x);
 }
 
 void Camera_SetX(ScriptCamera *scam, int x)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.X: trying to use deleted camera"); return; }
     x = data_to_game_coord(x);
     auto cam = play.GetRoomCamera(scam->GetID());
     cam->LockAt(x, cam->GetRect().Top);
@@ -60,12 +63,14 @@ void Camera_SetX(ScriptCamera *scam, int x)
 
 int Camera_GetY(ScriptCamera *scam)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Y: trying to use deleted camera"); return 0; }
     int y = play.GetRoomCamera(scam->GetID())->GetRect().Top;
     return game_to_data_coord(y);
 }
 
 void Camera_SetY(ScriptCamera *scam, int y)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Y: trying to use deleted camera"); return; }
     y = data_to_game_coord(y);
     auto cam = play.GetRoomCamera(scam->GetID());
     cam->LockAt(cam->GetRect().Left, y);
@@ -73,12 +78,14 @@ void Camera_SetY(ScriptCamera *scam, int y)
 
 int Camera_GetWidth(ScriptCamera *scam)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Width: trying to use deleted camera"); return 0; }
     int width = play.GetRoomCamera(scam->GetID())->GetRect().GetWidth();
     return game_to_data_coord(width);
 }
 
 void Camera_SetWidth(ScriptCamera *scam, int width)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Width: trying to use deleted camera"); return; }
     width = data_to_game_coord(width);
     auto cam = play.GetRoomCamera(scam->GetID());
     cam->SetSize(Size(width, cam->GetRect().GetHeight()));
@@ -86,12 +93,14 @@ void Camera_SetWidth(ScriptCamera *scam, int width)
 
 int Camera_GetHeight(ScriptCamera *scam)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Height: trying to use deleted camera"); return 0; }
     int height = play.GetRoomCamera(scam->GetID())->GetRect().GetHeight();
     return game_to_data_coord(height);
 }
 
 void Camera_SetHeight(ScriptCamera *scam, int height)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Height: trying to use deleted camera"); return; }
     height = data_to_game_coord(height);
     auto cam = play.GetRoomCamera(scam->GetID());
     cam->SetSize(Size(cam->GetRect().GetWidth(), height));
@@ -99,11 +108,13 @@ void Camera_SetHeight(ScriptCamera *scam, int height)
 
 bool Camera_GetAutoTracking(ScriptCamera *scam)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.AutoTracking: trying to use deleted camera"); return false; }
     return !play.GetRoomCamera(scam->GetID())->IsLocked();
 }
 
 void Camera_SetAutoTracking(ScriptCamera *scam, bool on)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.AutoTracking: trying to use deleted camera"); return; }
     auto cam = play.GetRoomCamera(scam->GetID());
     if (on)
         cam->Release();
@@ -113,12 +124,14 @@ void Camera_SetAutoTracking(ScriptCamera *scam, bool on)
 
 void Camera_SetAt(ScriptCamera *scam, int x, int y)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.SetAt: trying to use deleted camera"); return; }
     data_to_game_coords(&x, &y);
     play.GetRoomCamera(scam->GetID())->LockAt(x, y);
 }
 
 void Camera_SetSize(ScriptCamera *scam, int width, int height)
 {
+    if (scam->GetID() < 0) { debug_script_warn("Camera.SetSize: trying to use deleted camera"); return; }
     data_to_game_coords(&width, &height);
     play.GetRoomCamera(scam->GetID())->SetSize(Size(width, height));
 }
@@ -215,63 +228,68 @@ void Viewport_Delete(ScriptViewport *scv)
 
 int Viewport_GetX(ScriptViewport *scv)
 {
-    int x = play.GetRoomViewport(scv->GetID()).Left;
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.X: trying to use deleted viewport"); return 0; }
+    int x = play.GetRoomViewport(scv->GetID())->GetRect().Left;
     return game_to_data_coord(x);
 }
 
 void Viewport_SetX(ScriptViewport *scv, int x)
 {
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.X: trying to use deleted viewport"); return; }
     x = data_to_game_coord(x);
-    Rect view = play.GetRoomViewport(scv->GetID());
-    view.MoveToX(x);
-    play.SetRoomViewport(scv->GetID(), view);
+    auto view = play.GetRoomViewport(scv->GetID());
+    view->SetAt(x, view->GetRect().Top);
 }
 
 int Viewport_GetY(ScriptViewport *scv)
 {
-    int y = play.GetRoomViewport(scv->GetID()).Top;
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Y: trying to use deleted viewport"); return 0; }
+    int y = play.GetRoomViewport(scv->GetID())->GetRect().Top;
     return game_to_data_coord(y);
 }
 
 void Viewport_SetY(ScriptViewport *scv, int y)
 {
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Y: trying to use deleted viewport"); return; }
     y = data_to_game_coord(y);
-    Rect view = play.GetRoomViewport(scv->GetID());
-    view.MoveToY(y);
-    play.SetRoomViewport(scv->GetID(), view);
+    auto view = play.GetRoomViewport(scv->GetID());
+    view->SetAt(view->GetRect().Left, y);
 }
 
 int Viewport_GetWidth(ScriptViewport *scv)
 {
-    int width = play.GetRoomViewport(scv->GetID()).GetWidth();
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Width: trying to use deleted viewport"); return 0; }
+    int width = play.GetRoomViewport(scv->GetID())->GetRect().GetWidth();
     return game_to_data_coord(width);
 }
 
 void Viewport_SetWidth(ScriptViewport *scv, int width)
 {
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Width: trying to use deleted viewport"); return; }
     width = data_to_game_coord(width);
-    Rect view = play.GetRoomViewport(scv->GetID());
-    view.SetWidth(width);
-    play.SetRoomViewport(scv->GetID(), view);
+    auto view = play.GetRoomViewport(scv->GetID());
+    view->SetSize(Size(width, view->GetRect().GetHeight()));
 }
 
 int Viewport_GetHeight(ScriptViewport *scv)
 {
-    int height = play.GetRoomViewport(scv->GetID()).GetHeight();
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Height: trying to use deleted viewport"); return 0; }
+    int height = play.GetRoomViewport(scv->GetID())->GetRect().GetHeight();
     return game_to_data_coord(height);
 }
 
 void Viewport_SetHeight(ScriptViewport *scv, int height)
 {
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Height: trying to use deleted viewport"); return; }
     height = data_to_game_coord(height);
-    Rect view = play.GetRoomViewport(scv->GetID());
-    view.SetHeight(height);
-    play.SetRoomViewport(scv->GetID(), view);
+    auto view = play.GetRoomViewport(scv->GetID());
+    view->SetSize(Size(view->GetRect().GetWidth(), height));
 }
 
 ScriptCamera* Viewport_GetCamera(ScriptViewport *scv)
 {
-    auto view = play.GetRoomViewportObj(scv->GetID());
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Camera: trying to use deleted viewport"); return nullptr; }
+    auto view = play.GetRoomViewport(scv->GetID());
     auto cam = view->GetCamera();
     if (!cam)
         return nullptr;
@@ -280,7 +298,8 @@ ScriptCamera* Viewport_GetCamera(ScriptViewport *scv)
 
 void Viewport_SetCamera(ScriptViewport *scv, ScriptCamera *scam)
 {
-    auto view = play.GetRoomViewportObj(scv->GetID());
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Camera: trying to use deleted viewport"); return; }
+    auto view = play.GetRoomViewport(scv->GetID());
     auto cam = play.GetRoomCamera(scam->GetID());
     if (view != nullptr && cam != nullptr)
     {
@@ -291,32 +310,27 @@ void Viewport_SetCamera(ScriptViewport *scv, ScriptCamera *scam)
 
 bool Viewport_GetVisible(ScriptViewport *scv)
 {
-    auto view = play.GetRoomViewportObj(scv->GetID());
-    if (view != nullptr)
-        return view->IsVisible();
-    return false;
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Visible: trying to use deleted viewport"); return false; }
+    return play.GetRoomViewport(scv->GetID())->IsVisible();
 }
 
 void Viewport_SetVisible(ScriptViewport *scv, bool on)
 {
-    auto view = play.GetRoomViewportObj(scv->GetID());
-    if (view != nullptr)
-        view->SetVisible(on);
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.Visible: trying to use deleted viewport"); return; }
+    play.GetRoomViewport(scv->GetID())->SetVisible(on);
 }
 
 int Viewport_GetZOrder(ScriptViewport *scv)
 {
-    auto view = play.GetRoomViewportObj(scv->GetID());
-    if (view != nullptr)
-        return view->GetZOrder();
-    return 0;
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.ZOrder: trying to use deleted viewport"); return 0; }
+    return play.GetRoomViewport(scv->GetID())->GetZOrder();
 }
 
 void Viewport_SetZOrder(ScriptViewport *scv, int zorder)
 {
-    auto view = play.GetRoomViewportObj(scv->GetID());
-    if (view != nullptr)
-        view->SetZOrder(zorder);
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.ZOrder: trying to use deleted viewport"); return; }
+    play.GetRoomViewport(scv->GetID())->SetZOrder(zorder);
+    play.InvalidateViewportZOrder();
 }
 
 ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
@@ -330,13 +344,15 @@ ScriptViewport* Viewport_GetAtScreenXY(int x, int y)
 
 void Viewport_SetPosition(ScriptViewport *scv, int x, int y, int width, int height)
 {
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.SetPosition: trying to use deleted viewport"); return; }
     data_to_game_coords(&x, &y);
     data_to_game_coords(&width, &height);
-    play.SetRoomViewport(scv->GetID(), RectWH(x, y, width, height));
+    play.GetRoomViewport(scv->GetID())->SetRect(RectWH(x, y, width, height));
 }
 
 ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *scv, int scrx, int scry, bool clipViewport)
 {
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.ScreenToRoomPoint: trying to use deleted viewport"); return nullptr; }
     data_to_game_coords(&scrx, &scry);
 
     VpPoint vpt = play.ScreenToRoom(scrx, scry, scv->GetID(), clipViewport);
@@ -349,11 +365,10 @@ ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *scv, int scrx, int 
 
 ScriptUserObject *Viewport_RoomToScreenPoint(ScriptViewport *scv, int roomx, int roomy, bool clipViewport)
 {
+    if (scv->GetID() < 0) { debug_script_warn("Viewport.RoomToScreenPoint: trying to use deleted viewport"); return nullptr; }
     data_to_game_coords(&roomx, &roomy);
-
-    const Rect &view = play.GetRoomViewport(scv->GetID());
     Point pt = play.RoomToScreen(roomx, roomy);
-    if (clipViewport && !view.IsInside(pt.X, pt.Y))
+    if (clipViewport && !play.GetRoomViewport(scv->GetID())->GetRect().IsInside(pt.X, pt.Y))
         return nullptr;
 
     game_to_data_coords(pt.X, pt.Y);

@@ -253,7 +253,7 @@ HSaveError WriteGameState(PStream out)
         WriteCameraState(*play.GetRoomCamera(i), out.get());
     out->WriteInt32(play.GetRoomViewportCount());
     for (int i = 0; i < play.GetRoomViewportCount(); ++i)
-        WriteViewportState(*play.GetRoomViewportObj(i), out.get());
+        WriteViewportState(*play.GetRoomViewport(i), out.get());
 
     return HSaveError::None();
 }

@@ -162,7 +162,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(TargetPath) $(SolutionDir)..\Editor\References</Command>
+      <Command>copy "$(TargetPath)" "$(SolutionDir)..\Editor\References"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

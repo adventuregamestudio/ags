@@ -58,6 +58,9 @@ struct CachedActSpsData {
 // Converts AGS color index to the actual bitmap color using game's color depth
 int MakeColor(int color_index);
 
+class Viewport;
+class Camera;
+
 // Initializes drawing methods and optimisation
 void init_draw_method();
 // Initializes drawing resources upon entering new room
@@ -68,10 +71,16 @@ void dispose_draw_method();
 void dispose_room_drawdata();
 // Updates drawing settings depending on main viewport's size and position on screen
 void on_mainviewport_changed();
+// Notifies that a new room viewport was created
+void on_roomviewport_created(int index);
+// Notifies that a new room viewport was deleted
+void on_roomviewport_deleted(int index);
 // Updates drawing settings if room viewport's position or size has changed
-void on_roomviewport_changed(int index);
+void on_roomviewport_changed(Viewport *view);
+// Detects overlapping viewports, starting from the given index in z-sorted array
+void detect_roomviewport_overlaps(size_t z_index);
 // Updates drawing settings if room camera's size has changed
-void on_camera_size_changed(int index);
+void on_roomcamera_changed(Camera *cam);
 
 // whether there are currently remnants of a DisplaySpeech
 void mark_screen_dirty();
@@ -90,11 +99,14 @@ void invalidate_cached_walkbehinds();
 // Avoid freeing and reallocating the memory if possible
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
 Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *bimp, Common::Bitmap *source, bool hasAlpha = false, bool opaque = false);
-void update_screen();
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 // Construct game scene, scheduling drawing list for the renderer
-void construct_virtual_screen(bool fullRedraw) ;
+void construct_game_scene(bool full_redraw = false);
+// Construct final game screen elements; updates and draws mouse cursor
+void construct_game_screen_overlay(bool draw_mouse = true);
+// Construct engine overlay with debugging tools (fps, console)
+void construct_engine_overlay();
 void add_to_sprite_list(Engine::IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
 void draw_sprite_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Common::Bitmap *image, bool src_has_alpha,
@@ -103,10 +115,10 @@ void draw_sprite_slot_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int x
                                     Common::BlendMode blend_mode = Common::kBlendMode_Alpha, int alpha = 0xFF);
 void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode);
 void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
-// Render game on screen with the given custom offset
-void render_to_screen(int atx = 0, int aty = 0);
-void draw_screen_callback();
-void write_screen();
+// Render game on screen
+void render_to_screen();
+// Callbacks for the graphics driver
+void draw_game_screen_callback();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);

@@ -70,7 +70,7 @@ public:
     int _colDepth;
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
-    bool _opaque;
+    bool _opaque; // no mask color
     bool _hasAlpha;
     int _transparency;
 
@@ -131,6 +131,8 @@ struct ALSpriteBatch
     std::vector<ALDrawListEntry> List;
     // Intermediate surface which will be drawn upon and transformed if necessary
     std::shared_ptr<Bitmap>      Surface;
+    // Whether surface is a virtual screen's region
+    bool                         IsVirtualScreen;
     // Tells whether the surface is treated as opaque or transparent
     bool                         Opaque;
 };
@@ -161,10 +163,12 @@ public:
     void DestroyDDB(IDriverDependantBitmap* bitmap) override;
 
     void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
+    void SetScreenFade(int red, int green, int blue) override;
+    void SetScreenTint(int red, int green, int blue) override;
 
     void RenderToBackBuffer() override;
     void Render() override;
-    void Render(GlobalFlipType flip) override;
+    void Render(int xoff, int yoff, GlobalFlipType flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void FadeIn(int speed, PALETTE pal, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
@@ -184,8 +188,6 @@ public:
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy) override;
     Bitmap *GetStageBackBuffer() override;
-    void SetScreenTint(int red, int green, int blue) override { 
-        _tint_red = red; _tint_green = green; _tint_blue = blue; }
     ~ALSoftwareGraphicsDriver() override;
 
     typedef std::shared_ptr<AllegroGfxFilter> PALSWFilter;
@@ -215,7 +217,7 @@ private:
     // actual virtual screen or separate bitmap of different size that is
     // blitted to virtual screen at the stage finalization.
     Bitmap *_stageVirtualScreen;
-    Bitmap *_spareTintingScreen;
+    //Bitmap *_spareTintingScreen;
     int _tint_red, _tint_green, _tint_blue;
 
     ALSpriteBatches _spriteBatches;
@@ -242,8 +244,8 @@ private:
     // Renders single sprite batch on the precreated surface
     void RenderSpriteBatch(const ALSpriteBatch &batch, Common::Bitmap *surface, int surf_offx, int surf_offy);
 
-    void highcolor_fade_in(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void highcolor_fade_out(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
+    void highcolor_fade_in(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
+    void highcolor_fade_out(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void __fade_from_range(PALETTE source, PALETTE dest, int speed, int from, int to) ;
     void __fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) ;
     int  GetAllegroGfxDriverID(bool windowed);

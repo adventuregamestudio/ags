@@ -62,8 +62,7 @@ bool GUIObject::IsDeleted() const
 
 bool GUIObject::IsEnabled() const
 {
-    // TODO: a global variable should not be checked by control
-    return !((Flags & kGUICtrl_Enabled) == 0 || all_buttons_disabled);
+    return (Flags & kGUICtrl_Enabled) != 0;
 }
 
 bool GUIObject::IsOverControl(int x, int y, int leeway) const

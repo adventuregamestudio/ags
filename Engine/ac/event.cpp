@@ -234,8 +234,9 @@ void process_event(EventHappened*evp) {
         if (play.fast_forward)
             return;
 
+        const bool ignore_transition = (play.screen_tint > 0);
         if (((theTransition == FADE_CROSSFADE) || (theTransition == FADE_DISSOLVE)) &&
-            (saved_viewport_bitmap == nullptr)) 
+            (saved_viewport_bitmap == nullptr) && !ignore_transition)
         {
             // transition type was not crossfade/dissolve when the screen faded out,
             // but it is now when the screen fades in (Eg. a save game was restored
@@ -248,7 +249,7 @@ void process_event(EventHappened*evp) {
         const Size &data_res = game.GetDataRes();
         const Rect &viewport = play.GetMainViewport();
 
-        if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
+        if ((theTransition == FADE_INSTANT) || ignore_transition)
             set_palette_range(palette, 0, 255, 0);
         else if (theTransition == FADE_NORMAL)
         {
@@ -266,6 +267,8 @@ void process_event(EventHappened*evp) {
                 // We put temporary bitmap as a new backbuffer for the transition period, and
                 // will be drawing saved image of the game over to that backbuffer, simulating "box-out".
                 set_palette_range(palette, 0, 255, 0);
+                construct_game_scene(true);
+                construct_game_screen_overlay(false);
                 gfxDriver->RenderToBackBuffer();
                 Bitmap *saved_backbuf = gfxDriver->GetMemoryBackBuffer();
                 Bitmap *temp_scr = new Bitmap(saved_backbuf->GetWidth(), saved_backbuf->GetHeight(), saved_backbuf->GetColorDepth());
@@ -273,11 +276,13 @@ void process_event(EventHappened*evp) {
                 temp_scr->Clear();
                 render_to_screen();
 
-                int boxwid = get_fixed_pixel_size(16);
-                int boxhit = data_to_game_coord(data_res.Height / 20);
-                while (boxwid < temp_scr->GetWidth()) {
-                    boxwid += get_fixed_pixel_size(16);
-                    boxhit += data_to_game_coord(data_res.Height / 20);
+                const int speed = get_fixed_pixel_size(16);
+                const int yspeed = viewport.GetHeight() / (viewport.GetWidth() / speed);
+                int boxwid = speed, boxhit = yspeed;
+                while (boxwid < temp_scr->GetWidth())
+                {
+                    boxwid += speed;
+                    boxhit += yspeed;
                     boxwid = Math::Clamp(boxwid, 0, viewport.GetWidth());
                     boxhit = Math::Clamp(boxhit, 0, viewport.GetHeight());
                     int lxp = viewport.GetWidth() / 2 - boxwid / 2;
@@ -285,7 +290,7 @@ void process_event(EventHappened*evp) {
                     gfxDriver->Vsync();
                     temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp, 
                         boxwid, boxhit);
-                    render_to_screen(viewport.Left, viewport.Top);
+                    render_to_screen();
                     update_polled_mp3();
                     WaitForNextFrame();
                 }
@@ -306,7 +311,8 @@ void process_event(EventHappened*evp) {
                 // do the crossfade
                 ddb->SetTransparency(transparency);
                 invalidate_screen();
-                draw_screen_callback();
+                construct_game_scene(true);
+                construct_game_screen_overlay(false);
 
                 if (transparency > 16)
                 {
@@ -332,7 +338,6 @@ void process_event(EventHappened*evp) {
             color interpal[256];
 
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
-
             for (aa=0;aa<16;aa++) {
                 // merge the palette while dithering
                 if (game.color_depth == 1) 
@@ -348,14 +353,13 @@ void process_event(EventHappened*evp) {
                     }
                 }
                 gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap, false);
-                invalidate_screen();
-                draw_screen_callback();
+                construct_game_scene(true);
+                construct_game_screen_overlay(false);
                 gfxDriver->DrawSprite(0, 0, ddb);
                 render_to_screen();
                 update_polled_stuff_if_runtime();
                 WaitForNextFrame();
             }
-            saved_viewport_bitmap->Release();
 
             delete saved_viewport_bitmap;
             saved_viewport_bitmap = nullptr;

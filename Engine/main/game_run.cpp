@@ -509,7 +509,8 @@ static void check_keyboard_controls()
     // it should do if a displayable character (32-255) is
     // pressed, but exclude control characters (<32) and
     // extended keys (eg. up/down arrow; 256+)
-    if ( ((kgn >= 32) && (kgn <= 255) && (kgn != '[')) || (kgn == eAGSKeyCodeReturn) || (kgn == eAGSKeyCodeBackspace) ) {
+    if ( (((kgn >= 32) && (kgn <= 255) && (kgn != '[')) || (kgn == eAGSKeyCodeReturn) || (kgn == eAGSKeyCodeBackspace))
+        && !all_buttons_disabled) {
         for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
             auto &gui = guis[guiIndex];
 
@@ -519,7 +520,7 @@ static void check_keyboard_controls()
                 // not a text box, ignore it
                 if (gui.GetControlType(controlIndex) != kGUITextBox) { continue; }
 
-                auto guitex = dynamic_cast<GUITextBox*>(gui.GetControl(controlIndex));
+                auto *guitex = static_cast<GUITextBox*>(gui.GetControl(controlIndex));
                 if (guitex == nullptr) { continue; }
 
                 // if the text box is disabled, it cannot accept keypresses

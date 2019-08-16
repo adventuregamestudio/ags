@@ -486,8 +486,7 @@ void InventoryScreen::Close()
 {
     clear_gui_screen();
     set_default_cursor();
-    //ags_domouse(DOMOUSE_DISABLE);
-    construct_virtual_screen(true);
+    invalidate_screen();
     in_inv_screen--;
 }
 

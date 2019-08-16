@@ -26,8 +26,8 @@ namespace Engine
 enum GlobalFlipType
 {
     kFlip_None,
-    kFlip_Horizontal,
-    kFlip_Vertical,
+    kFlip_Horizontal, // this means - mirror over horizontal middle line
+    kFlip_Vertical,   // this means - mirror over vertical middle line
     kFlip_Both
 };
 

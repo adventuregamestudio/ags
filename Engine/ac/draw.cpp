@@ -138,18 +138,23 @@ CachedActSpsData* actspswbcache;
 bool current_background_is_dirty = false;
 
 Bitmap *sub_vscreen = nullptr;
-int wasShakingScreen = 0;
 
 // Room background sprite
 IDriverDependantBitmap* roomBackgroundBmp = nullptr;
-// Intermediate bitmap for the software drawing method.
-// We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
-// and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
-// to the virtual screen.
-// For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
-std::vector<PBitmap> RoomCameraBuffer;  // this is the actual bitmap
-std::vector<PBitmap> RoomCameraFrame;   // this is either same bitmap reference or sub-bitmap
-
+// Buffer and info flags for viewport/camera pairs rendering in software mode
+struct RoomCameraDrawData
+{
+    // Intermediate bitmap for the software drawing method.
+    // We use this bitmap in case room camera has scaling enabled, we draw dirty room rects on it,
+    // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
+    // to the virtual screen.
+    // For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
+    PBitmap Buffer;      // this is the actual bitmap
+    PBitmap Frame;       // this is either same bitmap reference or sub-bitmap of virtual screen
+    bool    IsOffscreen; // whether room viewport was offscreen (cannot use sub-bitmap)
+    bool    IsOverlap;   // whether room viewport overlaps any others (marking dirty rects is complicated)
+};
+std::vector<RoomCameraDrawData> CameraDrawData;
 
 std::vector<SpriteListEntry> sprlist;
 std::vector<SpriteListEntry> thingsToDrawList;
@@ -515,11 +520,9 @@ void init_draw_method()
     }
 
     on_mainviewport_changed();
-
-    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
-        on_roomviewport_changed(i);
-    for (int i = 0; i < play.GetRoomCameraCount(); ++i)
-        on_camera_size_changed(i);
+    init_room_drawdata();
+    if (gfxDriver->UsesMemoryBackBuffer())
+        gfxDriver->GetMemoryBackBuffer()->Clear();
 }
 
 void dispose_draw_method()
@@ -531,8 +534,7 @@ void dispose_draw_method()
 
 void dispose_room_drawdata()
 {
-    RoomCameraBuffer.clear();
-    RoomCameraFrame.clear();
+    CameraDrawData.clear();
     dispose_invalid_regions(true);
 }
 
@@ -558,44 +560,34 @@ void on_mainviewport_changed()
     }
 }
 
-// Initialize dirty rect and background buffers for software renderer
-void init_invalid_room_regions(int view_index, const Size &surf_size, const Rect &viewport)
+// Allocates a bitmap for rendering camera/viewport pair (software render mode)
+void prepare_roomview_frame(Viewport *view)
 {
-    if (view_index >= 0 && RoomCameraBuffer.size() <= (size_t)view_index)
-    {
-        RoomCameraBuffer.resize(view_index + 1);
-        RoomCameraFrame.resize(view_index + 1);
-    }
-    init_invalid_regions(view_index, surf_size, viewport);
-}
-
-// Syncs room viewport and camera in case anything has changed
-void sync_roomview(PViewport view)
-{
-    auto cam = view->GetCamera();
-    if (!cam)
-        return;
-
     const int view_index = view->GetID();
-    const Size &view_sz = view->GetRect().GetSize();
-    const Size &cam_sz = cam->GetRect().GetSize();
-    init_invalid_room_regions(view_index, cam_sz, view->GetRect());
-
-    PBitmap &camera_frame = RoomCameraFrame[view_index];
-    PBitmap &camera_buffer = RoomCameraBuffer[view_index];
-    if (cam_sz == view_sz)
+    const Size view_sz = view->GetRect().GetSize();
+    const Size cam_sz = view->GetCamera()->GetRect().GetSize();
+    RoomCameraDrawData &draw_dat = CameraDrawData[view_index];
+    // We use intermediate bitmap to render camera/viewport pair in software mode under these conditions:
+    // * camera size and viewport size are different (this may be suboptimal to paint dirty rects stretched,
+    //   and also Allegro backend cannot stretch background of different colour depth).
+    // * viewport is located outside of the virtual screen (even if partially): subbitmaps cannot contain
+    //   regions outside of master bitmap, and we must not clamp surface size to virtual screen because
+    //   plugins may want to also use viewport bitmap, therefore it should retain full size.
+    if (cam_sz == view_sz && !draw_dat.IsOffscreen)
     { // note we keep the buffer allocated in case it will become useful later
-        camera_frame.reset();
+        draw_dat.Frame.reset();
     }
     else
     {
+        PBitmap &camera_frame = draw_dat.Frame;
+        PBitmap &camera_buffer = draw_dat.Buffer;
         if (!camera_buffer || camera_buffer->GetWidth() < cam_sz.Width || camera_buffer->GetHeight() < cam_sz.Height)
         {
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
             int room_width = data_to_game_coord(thisroom.Width);
             int room_height = data_to_game_coord(thisroom.Height);
             Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(room_width, room_height));
-            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height, thisroom.BackgroundBPP * 8));
+            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height, gfxDriver->GetMemoryBackBuffer()->GetColorDepth()));
         }
 
         if (!camera_frame || camera_frame->GetSize() != cam_sz)
@@ -605,39 +597,105 @@ void sync_roomview(PViewport view)
     }
 }
 
-void init_room_drawdata()
+// Syncs room viewport and camera in case either size has changed
+void sync_roomview(Viewport *view)
 {
-    // Make sure all frame buffers are created for software drawing
-    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
-        sync_roomview(play.GetRoomViewportObj(i));
+    if (view->GetCamera() == nullptr)
+        return;
+    init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(), view->GetRect());
+    prepare_roomview_frame(view);
 }
 
-void on_roomviewport_changed(int index)
+void init_room_drawdata()
 {
-    if (!gfxDriver->RequiresFullRedrawEachFrame())
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    // Make sure all frame buffers are created for software drawing
+    int view_count = play.GetRoomViewportCount();
+    CameraDrawData.resize(view_count);
+    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
+        sync_roomview(play.GetRoomViewport(i).get());
+}
+
+void on_roomviewport_created(int index)
+{
+    if (!gfxDriver || gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    if ((size_t)index < CameraDrawData.size())
+        return;
+    CameraDrawData.resize(index + 1);
+}
+
+void on_roomviewport_deleted(int index)
+{
+    CameraDrawData.erase(CameraDrawData.begin() + index);
+    delete_invalid_regions(index);
+}
+
+void on_roomviewport_changed(Viewport *view)
+{
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    if (!view->IsVisible() || view->GetCamera() == nullptr)
+        return;
+    const bool off = !IsRectInsideRect(RectWH(gfxDriver->GetMemoryBackBuffer()->GetSize()), view->GetRect());
+    const bool off_changed = off != CameraDrawData[view->GetID()].IsOffscreen;
+    CameraDrawData[view->GetID()].IsOffscreen = off;
+    if (view->HasChangedSize())
+        sync_roomview(view);
+    else if (off_changed)
+        prepare_roomview_frame(view);
+    // TODO: don't have to do this all the time, perhaps do "dirty rect" method
+    // and only clear previous viewport location?
+    invalidate_screen();
+    gfxDriver->GetMemoryBackBuffer()->Clear();
+}
+
+void detect_roomviewport_overlaps(size_t z_index)
+{
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    // Find out if we overlap or are overlapped by anything;
+    const auto &viewports = play.GetRoomViewportsZOrdered();
+    for (; z_index < viewports.size(); ++z_index)
     {
-        sync_roomview(play.GetRoomViewportObj(index));
-        invalidate_screen();
-        // TODO: don't have to do this all the time, perhaps do "dirty rect" method
-        // and only clear previous viewport location?
-        gfxDriver->GetMemoryBackBuffer()->Clear();
+        auto this_view = viewports[z_index];
+        const int this_id = this_view->GetID();
+        bool is_overlap = false;
+        if (!this_view->IsVisible()) continue;
+        for (size_t z_index2 = 0; z_index2 < z_index; ++z_index)
+        {
+            if (!viewports[z_index2]->IsVisible()) continue;
+            if (AreRectsIntersecting(this_view->GetRect(), viewports[z_index2]->GetRect()))
+            {
+                is_overlap = true;
+                break;
+            }
+        }
+        if (CameraDrawData[this_id].IsOverlap != is_overlap)
+        {
+            CameraDrawData[this_id].IsOverlap = is_overlap;
+            prepare_roomview_frame(this_view.get());
+        }
     }
 }
 
-void on_camera_size_changed(int index)
+void on_roomcamera_changed(Camera *cam)
 {
-    if (!gfxDriver->RequiresFullRedrawEachFrame())
+    if (gfxDriver->RequiresFullRedrawEachFrame())
+        return;
+    if (cam->HasChangedSize())
     {
-        auto cam = play.GetRoomCamera(index);
         auto viewrefs = cam->GetLinkedViewports();
         for (auto vr : viewrefs)
         {
             PViewport vp = vr.lock();
             if (vp)
-                sync_roomview(vp);
+                sync_roomview(vp.get());
         }
-        invalidate_screen();
     }
+    // TODO: only invalidate what this particular camera sees
+    invalidate_screen();
 }
 
 void mark_screen_dirty()
@@ -684,43 +742,45 @@ void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text
     invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + getfontheight_outlined(font) + get_fixed_pixel_size(1), false);
 }
 
-void render_black_borders(int atx, int aty)
+// Renders black borders for the legacy boxed game mode,
+// where whole game screen changes size between large and small rooms
+void render_black_borders()
 {
-    const Rect &viewport = play.GetMainViewport();
-    if (!gfxDriver->UsesMemoryBackBuffer())
+    if (gfxDriver->UsesMemoryBackBuffer())
+        return;
     {
-        if (aty > 0)
+        gfxDriver->BeginSpriteBatch(RectWH(game.GetGameRes()), SpriteTransform());
+        const Rect &viewport = play.GetMainViewport();
+        if (viewport.Top > 0)
         {
             // letterbox borders
-            blankImage->SetStretch(game.GetGameRes().Width, aty, false);
-            gfxDriver->DrawSprite(-atx, -aty, blankImage);
-            gfxDriver->DrawSprite(0, viewport.GetHeight(), blankImage);
+            blankImage->SetStretch(game.GetGameRes().Width, viewport.Top, false);
+            gfxDriver->DrawSprite(0, 0, blankImage);
+            gfxDriver->DrawSprite(0, viewport.Bottom + 1, blankImage);
         }
-        if (atx > 0)
+        if (viewport.Left > 0)
         {
             // sidebar borders for widescreen
-            blankSidebarImage->SetStretch(atx, viewport.GetHeight(), false);
-            gfxDriver->DrawSprite(-atx, 0, blankSidebarImage);
-            gfxDriver->DrawSprite(viewport.GetWidth(), 0, blankSidebarImage);
+            blankSidebarImage->SetStretch(viewport.Left, viewport.GetHeight(), false);
+            gfxDriver->DrawSprite(0, 0, blankSidebarImage);
+            gfxDriver->DrawSprite(viewport.Right + 1, 0, blankSidebarImage);
         }
     }
 }
 
 
-void render_to_screen(int atx, int aty)
+void render_to_screen()
 {
-    gfxDriver->SetNativeRenderOffset(atx, aty);
-    const Rect &viewport = play.GetMainViewport();
-    // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
-    if (aty > 0 && wasShakingScreen && gfxDriver->UsesMemoryBackBuffer())
-        gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, aty, nullptr);
-    render_black_borders(atx, aty);
-
-    if(pl_any_want_hook(AGSE_FINALSCREENDRAW))
+    // Stage: final plugin callback (still drawn on game screen
+    if (pl_any_want_hook(AGSE_FINALSCREENDRAW))
+    {
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
+    }
+    // Stage: engine overlay
+    construct_engine_overlay();
 
-    // only vsync in full screen mode, it makes things worse
-    // in a window
+    // only vsync in full screen mode, it makes things worse in a window
     gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (!scsystem.windowed));
 
     bool succeeded = false;
@@ -728,7 +788,11 @@ void render_to_screen(int atx, int aty)
     {
         try
         {
-            gfxDriver->Render((GlobalFlipType)play.screen_flipped);
+            // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
+            const Rect &viewport = play.GetMainViewport();
+            if (play.shake_screen_yoff > 0 && !gfxDriver->RequiresFullRedrawEachFrame())
+                gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
+            gfxDriver->Render(0, play.shake_screen_yoff, (GlobalFlipType)play.screen_flipped);
 
 #if AGS_PLATFORM_OS_ANDROID
             if (game.color_depth == 1)
@@ -755,45 +819,10 @@ void clear_letterbox_borders()
     gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
 }
 
-// writes the virtual screen to the screen, converting colours if
-// necessary
-void write_screen() {
-
-    if (play.fast_forward)
-        return;
-
-    int at_yp = 0;
-
-    if (play.shakesc_length > 0) {
-        wasShakingScreen = 1;
-        if ( (loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2) )
-            at_yp = data_to_game_coord(play.shakesc_amount);
-        invalidate_screen();
-    }
-    else if (wasShakingScreen) {
-        wasShakingScreen = 0;
-
-        if (!gfxDriver->RequiresFullRedrawEachFrame())
-        {
-            clear_letterbox_borders();
-        }
-    }
-
-    if (play.screen_tint < 1)
-        gfxDriver->SetScreenTint(0, 0, 0);
-    else
-        gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
-
-    render_to_screen(0, at_yp);
-}
-
-
-
-void draw_screen_callback()
+void draw_game_screen_callback()
 {
-    construct_virtual_screen(false);
-
-    render_black_borders(play.GetMainViewport().Left, play.GetMainViewport().Top);
+    construct_game_scene(true);
+    construct_game_screen_overlay(false);
 }
 
 
@@ -1983,22 +2012,23 @@ void prepare_characters_for_drawing() {
 // Compiles a list of room sprites (characters, objects, background)
 void prepare_room_sprites()
 {
-    // Background sprite for the non-software renderer
+    // Background sprite is required for the non-software renderers always,
+    // and for software renderer in case there are overlapping viewports.
+    // Note that software DDB is just a tiny wrapper around bitmap, so overhead is negligible.
+    if (roomBackgroundBmp == nullptr)
+    {
+        update_polled_stuff_if_runtime();
+        roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
+    }
+    else if (current_background_is_dirty)
+    {
+        update_polled_stuff_if_runtime();
+        gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false);
+    }
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
-        if (roomBackgroundBmp == nullptr)
-        {
-            update_polled_stuff_if_runtime();
-            roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
-        }
-        else if (current_background_is_dirty)
-        {
-            update_polled_stuff_if_runtime();
-            gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false);
-        }
         if (current_background_is_dirty || walkBehindsCachedForBgNum != play.bg_frame)
         {
-            current_background_is_dirty = false; // Note this is only place where this flag is checked
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
                 update_walk_behind_images();
@@ -2006,6 +2036,7 @@ void prepare_room_sprites()
         }
         add_thing_to_draw(roomBackgroundBmp, 0, 0, 0, false);
     }
+    current_background_is_dirty = false; // Note this is only place where this flag is checked
 
     clear_sprite_list();
 
@@ -2040,9 +2071,6 @@ void draw_preroom_background()
 // whatsoever.
 PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
 {
-    if (gfxDriver->RequiresFullRedrawEachFrame())
-        return nullptr;
-
     our_eip = 31;
 
     // For the sake of software renderer, if there is any kind of camera transform required
@@ -2053,9 +2081,10 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
     // Also see comment to ALSoftwareGraphicsDriver::RenderToBackBuffer().
     const int view_index = view->GetID();
     Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
-    const bool translate_only = (room_trans.ScaleX == 1.f && room_trans.ScaleY == 1.f);
-    Bitmap *roomcam_surface = translate_only ? ds : RoomCameraFrame[view_index].get();
-    const bool no_transform = !translate_only; // this is correct, we do non-transform paint, and only scale/rotate later
+    // If separate bitmap was prepared for this view/camera pair then use it, draw untransformed
+    // and blit transformed whole surface later.
+    const bool draw_to_camsurf = CameraDrawData[view_index].Frame != nullptr;
+    Bitmap *roomcam_surface = draw_to_camsurf ? CameraDrawData[view_index].Frame.get() : ds;
     {
         // For software renderer: copy dirty rects onto the virtual screen.
         // TODO: that would be SUPER NICE to reorganize the code and move this operation into SoftwareGraphicDriver somehow.
@@ -2068,22 +2097,20 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), no_transform);
+        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), draw_to_camsurf);
     }
 
-    return RoomCameraFrame[view_index];
+    return CameraDrawData[view_index].Frame;
 }
 
 
-void draw_fps()
+void draw_fps(const Rect &viewport)
 {
     static IDriverDependantBitmap* ddb = nullptr;
     static Bitmap *fpsDisplay = nullptr;
-
-    const Rect &ui_view = play.GetUIViewport();
     if (fpsDisplay == nullptr)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(ui_view.GetWidth(), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), game.GetColorDepth());
+        fpsDisplay = BitmapHelper::CreateBitmap(viewport.GetWidth(), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), game.GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
@@ -2108,19 +2135,20 @@ void draw_fps()
 
     char loop_buffer[60];
     sprintf(loop_buffer, "Loop %u", loopcounter);
-    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
+    wouttext_outline(fpsDisplay, viewport.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
 
     if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
     else
         ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
-    int yp = ui_view.GetHeight() - fpsDisplay->GetHeight();
+    int yp = viewport.GetHeight() - fpsDisplay->GetHeight();
     gfxDriver->DrawSprite(1, yp, ddb);
     invalidate_sprite(1, yp, ddb, false);
 }
 
 // Draw GUI and overlays of all kinds, anything outside the room space
-void draw_gui_and_overlays() {
+void draw_gui_and_overlays()
+{
     int gg;
 
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
@@ -2266,14 +2294,6 @@ void put_sprite_list_on_screen(bool in_room)
     our_eip = 1100;
 }
 
-void draw_misc_info()
-{
-    if (display_fps)
-        draw_fps();
-
-    our_eip = 1101;
-}
-
 bool GfxDriverNullSpriteCallback(int x, int y)
 {
     if (displayed_room < 0)
@@ -2289,112 +2309,6 @@ void GfxDriverOnInitCallback(void *data)
     pl_run_plugin_init_gfx_hooks(gfxDriver->GetDriverID(), data);
 }
 
-
-
-
-// update_screen: copies the contents of the virtual screen to the actual
-// screen, and draws the mouse cursor on.
-void update_screen() {
-    // cos hi-color doesn't fade in, don't draw it the first time
-    if ((in_new_room > 0) & (game.color_depth > 1))
-        return;
-
-    if(pl_any_want_hook(AGSE_POSTSCREENDRAW))
-        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
-
-    // update animating mouse cursor
-    if (game.mcurs[cur_cursor].view>=0) {
-        ags_domouse(DOMOUSE_NOCURSOR);
-        // only on mousemove, and it's not moving
-        if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE)!=0) &&
-            (mousex==lastmx) && (mousey==lastmy)) ;
-        // only on hotspot, and it's not on one
-        else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT)!=0) &&
-            (GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey)) == 0))
-            set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
-        else if (mouse_delay>0) mouse_delay--;
-        else {
-            int viewnum=game.mcurs[cur_cursor].view;
-            int loopnum=0;
-            if (loopnum >= views[viewnum].numLoops)
-                quitprintf("An animating mouse cursor is using view %d which has no loops", viewnum + 1);
-            if (views[viewnum].loops[loopnum].numFrames < 1)
-                quitprintf("An animating mouse cursor is using view %d which has no frames in loop %d", viewnum + 1, loopnum);
-
-            mouse_frame++;
-            if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
-                mouse_frame=0;
-            set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
-            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + 5;
-            CheckViewFrame (viewnum, loopnum, mouse_frame);
-        }
-        lastmx=mousex; lastmy=mousey;
-    }
-
-    // draw the debug console, if appropriate
-    if ((play.debug_mode > 0) && (display_console != 0)) 
-    {
-        //int otextc = ds->GetTextColor();
-        int ypp = 1;
-        int txtspacing= getfontspacing_outlined(0);
-        int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
-
-        const Rect &viewport = play.GetMainViewport();
-        if (debugConsoleBuffer == nullptr)
-        {
-            debugConsoleBuffer = BitmapHelper::CreateBitmap(viewport.GetWidth(), barheight,game.GetColorDepth());
-            debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
-        }
-
-        color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);
-        debugConsoleBuffer->FillRect(Rect (0, 0, viewport.GetWidth() - 1, barheight), draw_color);
-        color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
-        for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
-            wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
-            ypp += txtspacing;
-        }
-
-        if (debugConsole == nullptr)
-            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
-        else
-            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
-
-        gfxDriver->DrawSprite(0, 0, debugConsole);
-        invalidate_sprite(0, 0, debugConsole, false);
-    }
-
-    ags_domouse(DOMOUSE_NOCURSOR);
-
-    if (!play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
-    {
-        gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
-        invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
-    }
-
-    /*
-    ags_domouse(DOMOUSE_ENABLE);
-    // if the cursor is hidden, remove it again. However, it needs
-    // to go on-off in order to update the stored mouse coordinates
-    if (play.mouse_cursor_hidden)
-    ags_domouse(DOMOUSE_DISABLE);*/
-
-    write_screen();
-
-    if (!play.screen_is_faded_out) {
-        // always update the palette, regardless of whether the plugin
-        // vetos the screen update
-        if (bg_just_changed) {
-            setpal ();
-            bg_just_changed = 0;
-        }
-    }
-
-    //if (!play.mouse_cursor_hidden)
-    //    ags_domouse(DOMOUSE_DISABLE);
-
-    screen_is_dirty = false;
-}
-
 // Schedule room rendering: background, objects, characters
 static void construct_room_view()
 {
@@ -2403,9 +2317,8 @@ static void construct_room_view()
     // reset the Baselines Changed flag now that we've drawn stuff
     walk_behind_baselines_changed = 0;
 
-    for (int i = 0; i < play.GetRoomViewportCount(); ++i)
+    for (const auto &viewport : play.GetRoomViewportsZOrdered())
     {
-        auto viewport = play.GetRoomViewportZOrdered(i);
         if (!viewport->IsVisible())
             continue;
         auto camera = viewport->GetCamera();
@@ -2417,8 +2330,31 @@ static void construct_room_view()
             (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),
             (float)view_rc.GetHeight() / (float)cam_rc.GetHeight(),
             0.f);
-        PBitmap bg_surface = draw_room_background(viewport, room_trans);
-        gfxDriver->BeginSpriteBatch(view_rc, room_trans, bg_surface);
+        if (gfxDriver->RequiresFullRedrawEachFrame())
+        { // we draw everything as a sprite stack
+            gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+        }
+        else
+        {
+            if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
+            { // room background is prepended to the sprite stack
+              // TODO: here's why we have blit whole piece of background now:
+              // if we draw directly to the virtual screen overlapping another
+              // viewport, then we'd have to also mark and repaint every our
+              // region located directly over their dirty regions. That would
+              // require to update regions up the stack, converting their
+              // coordinates (cam1 -> screen -> cam2).
+              // It's not clear whether this is worth the effort, but if it is,
+              // then we'd need to optimise view/cam data first.
+                gfxDriver->BeginSpriteBatch(view_rc, room_trans);
+                gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
+            }
+            else
+            { // room background is drawn by dirty rects system
+                PBitmap bg_surface = draw_room_background(viewport, room_trans);
+                gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(), kFlip_None, bg_surface);
+            }
+        }
         put_sprite_list_on_screen(true);
     }
 
@@ -2428,22 +2364,13 @@ static void construct_room_view()
 // Schedule ui rendering
 static void construct_ui_view()
 {
-    const Rect &ui_viewport = play.GetUIViewportAbs();
-    gfxDriver->BeginSpriteBatch(ui_viewport, SpriteTransform());
+    gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
     draw_gui_and_overlays();
     put_sprite_list_on_screen(false);
     clear_draw_list();
 }
 
-// Schedule misc rendering
-static void construct_misc_view()
-{
-    const Rect &main_viewport = play.GetMainViewport();
-    gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
-    draw_misc_info();
-}
-
-void construct_virtual_screen(bool fullRedraw) 
+void construct_game_scene(bool full_redraw)
 {
     gfxDriver->ClearDrawLists();
 
@@ -2461,7 +2388,7 @@ void construct_virtual_screen(bool fullRedraw)
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 
     // Possible reasons to invalidate whole screen for the software renderer
-    if (fullRedraw || play.screen_tint >= 0)
+    if (full_redraw || play.screen_tint > 0 || play.shakesc_length > 0)
         invalidate_screen();
 
     // TODO: move to game update! don't call update during rendering pass!
@@ -2469,52 +2396,178 @@ void construct_virtual_screen(bool fullRedraw)
     if (displayed_room >= 0)
         play.UpdateRoomCameras();
 
-    // Stage 1: room viewports
-    if (displayed_room >= 0 && play.screen_is_faded_out == 0 && is_complete_overlay == 0)
+    // Stage: room viewports
+    if (play.screen_is_faded_out == 0 && is_complete_overlay == 0)
     {
-        construct_room_view();
-        update_polled_mp3();
-    }
-    else if (!gfxDriver->RequiresFullRedrawEachFrame())
-    {
-        // if the driver is not going to redraw the screen,
-        // black it out so we don't get cursor trails
-        // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
-        Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
-        ds->Fill(0);
+        if (displayed_room >= 0)
+        {
+            construct_room_view();
+            update_polled_mp3();
+        }
+        else if (!gfxDriver->RequiresFullRedrawEachFrame())
+        {
+            // black it out so we don't get cursor trails
+            // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
+            gfxDriver->GetMemoryBackBuffer()->Fill(0);
+        }
     }
 
     our_eip=4;
 
-    // Stage 2: UI overlay
+    // Stage: UI overlay
     if (play.screen_is_faded_out == 0)
     {
         construct_ui_view();
     }
+}
 
-    // Stage 3: auxiliary info
-    construct_misc_view();
+void construct_game_screen_overlay(bool draw_mouse)
+{
+    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+    if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
+        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
 
-    if (fullRedraw)
+    // TODO: find out if it's okay to move cursor animation and state update
+    // to the update loop instead of doing it in the drawing routine
+    // update animating mouse cursor
+    if (game.mcurs[cur_cursor].view >= 0) {
+        ags_domouse(DOMOUSE_NOCURSOR);
+        // only on mousemove, and it's not moving
+        if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
+            (mousex == lastmx) && (mousey == lastmy));
+        // only on hotspot, and it's not on one
+        else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT) != 0) &&
+            (GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey)) == 0))
+            set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
+        else if (mouse_delay>0) mouse_delay--;
+        else {
+            int viewnum = game.mcurs[cur_cursor].view;
+            int loopnum = 0;
+            if (loopnum >= views[viewnum].numLoops)
+                quitprintf("An animating mouse cursor is using view %d which has no loops", viewnum + 1);
+            if (views[viewnum].loops[loopnum].numFrames < 1)
+                quitprintf("An animating mouse cursor is using view %d which has no frames in loop %d", viewnum + 1, loopnum);
+
+            mouse_frame++;
+            if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
+                mouse_frame = 0;
+            set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
+            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + 5;
+            CheckViewFrame(viewnum, loopnum, mouse_frame);
+        }
+        lastmx = mousex; lastmy = mousey;
+    }
+
+    ags_domouse(DOMOUSE_NOCURSOR);
+
+    // Stage: mouse cursor
+    if (draw_mouse && !play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
     {
-        // ensure the virtual screen is reconstructed
-        // in case we want to take any screenshots before
-        // the next game loop
-        if (gfxDriver->UsesMemoryBackBuffer())
-            gfxDriver->RenderToBackBuffer();
+        gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
+        invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
+    }
+
+    if (play.screen_is_faded_out == 0)
+    {
+        // Stage: screen fx
+        if (play.screen_tint >= 1)
+            gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
+        // Stage: legacy letterbox mode borders
+        render_black_borders();
+    }
+
+    if (play.screen_is_faded_out != 0 && gfxDriver->RequiresFullRedrawEachFrame())
+    {
+        const Rect &main_viewport = play.GetMainViewport();
+        gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
+        gfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+    }
+}
+
+void construct_engine_overlay()
+{
+    const Rect &viewport = RectWH(game.GetGameRes());
+    gfxDriver->BeginSpriteBatch(viewport, SpriteTransform());
+
+    // draw the debug console, if appropriate
+    if ((play.debug_mode > 0) && (display_console != 0))
+    {
+        //int otextc = ds->GetTextColor();
+        int ypp = 1;
+        int txtspacing = getfontspacing_outlined(0);
+        int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
+
+        if (debugConsoleBuffer == nullptr)
+        {
+            debugConsoleBuffer = BitmapHelper::CreateBitmap(viewport.GetWidth(), barheight, game.GetColorDepth());
+            debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
+        }
+
+        color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);
+        debugConsoleBuffer->FillRect(Rect(0, 0, viewport.GetWidth() - 1, barheight), draw_color);
+        color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
+        for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
+            wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
+            ypp += txtspacing;
+        }
+
+        if (debugConsole == nullptr)
+            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
+        else
+            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
+
+        gfxDriver->DrawSprite(0, 0, debugConsole);
+        invalidate_sprite(0, 0, debugConsole, false);
+    }
+
+    if (display_fps)
+        draw_fps(viewport);
+}
+
+static void update_shakescreen()
+{
+    // TODO: unify blocking and non-blocking shake update
+    play.shake_screen_yoff = 0;
+    if (play.shakesc_length > 0)
+    {
+        if ((loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2))
+            play.shake_screen_yoff = play.shakesc_amount;
     }
 }
 
 // Draw everything 
-void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
+void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
+{
+    // Don't render if skipping cutscene
+    if (play.fast_forward)
+        return;
+    // Don't render if we've just entered new room and are before fade-in
+    // TODO: find out why this is not skipped for 8-bit games
+    if ((in_new_room > 0) & (game.color_depth > 1))
+        return;
 
-    construct_virtual_screen(false);
+    // TODO: find out if it's okay to move shake to update function
+    update_shakescreen();
+
+    construct_game_scene(false);
     our_eip=5;
-
-    if (extraBitmap != nullptr) {
+    // NOTE: extraBitmap will always be drawn with the UI render stage
+    if (extraBitmap != nullptr)
+    {
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
     }
+    construct_game_screen_overlay(true);
+    render_to_screen();
 
-    update_screen();
+    if (!play.screen_is_faded_out) {
+        // always update the palette, regardless of whether the plugin
+        // vetos the screen update
+        if (bg_just_changed) {
+            setpal();
+            bg_just_changed = 0;
+        }
+    }
+
+    screen_is_dirty = false;
 }

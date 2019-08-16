@@ -23,6 +23,8 @@ Editor:
  - Added "Window" - "Layout" submenu with commands for saving and loading panel layout.
  - Game and room templates are now by default saved in AppData/Local/AGS folder.
    Editor finds them in both program folder and AppData.
+ - Allow to change IDs of most of the game items in the project tree by swapping two
+   existing items. This is done by calling a context menu and choosing "Change ID".
  - Added "Game file name" option to let users easily set compiled game file's name.
  - Added "Allow relative asset resolutions" option to "Backwards Compatibility" section.
    Disabled by default, it makes game treat all sprites and rooms resolution as real one.
@@ -59,22 +61,18 @@ Editor:
  - Don't display missing games in the "recent games" list.
  - Build autocomplete table a little faster.
  - Corrected .NET version query for the anonymous statistics report.
- - Disabled screenshot made when sending a crash report, for security reasons.
  - Fixed crash and corruption of project data when writing to full disk.
  - Fixed saving sprite file to not cancel completely if only an optional step has failed
    (such as copying a backup file).
  - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
- - Fixed Audio folders were displaying internal "AllItemsFlat" property on property grid.
  - Fixed MIDI audio preview was resetting all instruments to default (piano) after pausing
    and resuming playback.
  - Fixed MIDI audio preview had wrong control states set when pausing a playback.
  - Fixed script compiler could leave extra padding inside the compiled scripts filled with
    random garbage if script strings contained escaped sequences like "\n" (this was not good
    for source control).
- - Fixed crash when editor was updating file version in compiled EXE but failed and tried to
-   report about that.
 
 Scripting:
  - Fixed compiler was not allowing to access regular properties after type's static properties
@@ -109,10 +107,12 @@ Script API:
    TextColor.
  - Replaced ListBox.HideBorder and HideArrows with ShowBorder and ShowArrows.
  - Added TextBox.ShowBorder.
+ - Added AudioClip.ID which corresponds to clip's position in Game.AudioClips array.
  - Added Game.PlayVoiceClip() for playing non-blocking voice.
  - Added SkipCutscene() and eSkipScriptOnly cutscene mode.
  - Allowed to change Mouse.ControlEnabled property value at runtime.
  - Added Game.SimulateKeyPress().
+ - Deprecated Character.IgnoreWalkbehinds and Object.IgnoreWalkbehinds.
  - Deprecated DrawingSurface.UseHighResCoordinates. Also, assigning it will be ignored if game's
    "Allow relative asset resolutions" option is disabled.
 
@@ -127,10 +127,11 @@ Engine:
  - Try to create all subdirectories when calling File.Open() for writing,
    DynamicSprite.SaveToFile() and Game.SetSaveGameDirectory().
  - Reimplemented threaded audio, should now work correctly on all platforms.
+ - Made debug overlay (console and fps counter) display above any game effects (tint, fade, etc)
+ - Made fps display more stable and timing correct when framerate is maxed out for test purposes.
  - Improved performance of hardware-accelerated renderers by not preparing a stage bitmap
    for plugins unless any plugin hooked for the particular drawing events.
  - Reimplemented FRead and FWrite plugin API functions, should now work in 64-bit mode too.
- - Made fps display more stable and timing correct when framerate is maxed out for test purposes.
  - Support "--gfxdriver" command line argument that overrides graphics driver in config.
  - Use "digiid" and "midiid" config options to be used on all platforms alike and allow these to
    represent driver ID as a plain string and encoded as an integer value (for compatibility).
@@ -141,20 +142,42 @@ Engine:
  - Expanded some of the error messages providing more information to end-user and developers.
  - Fixed engine could not locate game data if relative path was passed in command line.
  - Fixed potential bug which could cause DoOnceOnly tokens to be read incorrectly from a savedgame.
- - Fixed Character.DestinationY telling incorrect values beyond Y = 255.
- - Fixed DynamicSprite.SaveToFile() not appending ".bmp" if no extension was specified.
  - Fixed old walk-behind cut-outs could be displayed on first update in a room if the room's
    background was modified using raw drawing commands before fade-in. This happened only when
    running Direct3D or OpenGL renderer. Note that this bug was probably never noticed by players
    for a certain barely related reason.
- - Fixed IsMusicVoxAvailable() not working correctly in old games which use 'music.vox'.
+ - Fixed BlackBox-in transition done by software renderer could have wrong aspect ratio.
+ - Fixed Direct3D and OpenGL displayed pink (255, 0, 255) fade as transparent.
  - Fixed a bug in mp3/ogg decoder where it assumed creating an audiostream succeeded without
    actually testing one.
+ - Fixed increased CPU load when displaying built-in dialogs (save, restore etc).
+
+Linux:
+ - Use same FreeType library sources as Windows version, which suppose to fix TTF font glitches.
+ - Re-enabled threaded audio setting.
+
+Windows:
+ - Windows version of AGS is now built with MSVS 2015 and higher.
+ - Engine is marked as a DPI-aware application that supposed to prevent window scaling by system.
+
+
+VERSION 3.4.4, July 2019
+
+Editor:
+ - Disabled screenshot made when sending a crash report, for security reasons.
+ - Fixed Audio folders were displaying internal "AllItemsFlat" property on property grid.
+ - Fixed crash when editor was updating file version in compiled EXE but failed and tried to
+   report about that.
+
+Engine:
+ - Fixed Character.DestinationY telling incorrect values beyond Y = 255.
+ - Fixed DynamicSprite.SaveToFile() not appending ".bmp" if no extension was specified.
+ - Fixed IsMusicVoxAvailable() not working correctly in old games which use 'music.vox'.
  - Restored support for running games made with experimental 3.3.0 CR version.
  - Fixed character's blinking frames drawn incorrectly when legacy sprite blending mode was on.
- - Fixed increased CPU load when displaying built-in dialogs (save, restore etc).
  - Restored legacy InventoryScreen() behavior which picked sprites 0, 1, 2 for inventory dialog
    buttons when predefined 2041, 2042 and 2043 were not available.
+ - Fixed negative "cachemax" value in config could lock the engine at startup.
  - Added Scavenger's palgorithms plugin to the list of builtins, for ports that use ones.
  - Added stubs for monkey0506's Steam and GoG plugins to let run games on systems that do not have
    Steam/GoG installed (all related functionality will be disabled though).
@@ -163,12 +186,6 @@ Engine:
 
 Linux:
  - Support for OpenGL renderer.
- - Use same FreeType library sources as Windows version, which suppose to fix TTF font glitches.
- - Re-enabled threaded audio setting.
-
-Windows:
- - Windows version of AGS is now built with MSVS 2015 and higher.
- - Engine is marked as a DPI-aware application that supposed to prevent window scaling by system.
 
 
 VERSION 3.4.3 - Patch 1, February 2019

@@ -105,7 +105,8 @@ public:
   virtual Size GetNativeSize() const = 0;
   virtual Rect GetRenderDestination() const = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
-  virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;
+  // TODO: get rid of draw screen callback at some point when all fade functions are more or less grouped in one
+  virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback, GFXDRV_CLIENTCALLBACK post_callback) = 0;
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) = 0;
   virtual void SetCallbackOnSurfaceUpdate(GFXDRV_CLIENTCALLBACKSURFACEUPDATE) = 0;
   // The NullSprite callback is called in the main render loop when a
@@ -124,21 +125,23 @@ public:
   // Prepares next sprite batch, a list of sprites with defined viewport and optional
   // global model transformation; all subsequent calls to DrawSprite will be adding
   // sprites to this batch's list.
-  virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = nullptr) = 0;
+  virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
+      const Point offset = Point(), GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr) = 0;
   // Adds sprite to the active batch
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
+  // Adds fade overlay fx to the active batch
+  virtual void SetScreenFade(int red, int green, int blue) = 0;
+  // Adds tint overlay fx to the active batch
+  // TODO: redesign this to allow various post-fx per sprite batch?
+  virtual void SetScreenTint(int red, int green, int blue) = 0;
   // Clears all sprite batches, resets batch counter
   virtual void ClearDrawLists() = 0;
-
-  virtual void SetScreenTint(int red, int green, int blue) = 0;
-  // Defines the rendering offset of the every game sprite (in native coordinates).
-  // TODO: should be replaced by defining translation for the sprite batch
-  // (but translate transform does not work correctly enough at the moment and never truly used)
-  // NOTE: currently this method is only used by ShakeScreen.
-  virtual void SetNativeRenderOffset(int x, int y) = 0;
   virtual void RenderToBackBuffer() = 0;
   virtual void Render() = 0;
-  virtual void Render(GlobalFlipType flip) = 0;
+  // Renders with additional final offset and flip
+  // TODO: leftover from old code, solely for software renderer; remove when
+  // software mode either discarded or scene node graph properly implemented.
+  virtual void Render(int xoff, int yoff, GlobalFlipType flip) = 0;
   // Copies contents of the game screen into bitmap using simple blit or pixel copy.
   // Bitmap must be of supported size and pixel format. If it's not the method will
   // fail and optionally write wanted destination format into 'want_fmt' pointer.

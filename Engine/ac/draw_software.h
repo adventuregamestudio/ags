@@ -26,6 +26,8 @@
 // Inits dirty rects array for the given room camera/viewport pair
 // View_index indicates the room viewport (>= 0) or the main viewport (-1)
 void init_invalid_regions(int view_index, const Size &surf_size, const Rect &viewport);
+// Deletes dirty rects for particular index
+void delete_invalid_regions(int view_index);
 // Disposes dirty rects arrays
 void dispose_invalid_regions(bool room_only);
 // Update the coordinate transformation for the particular dirty rects object

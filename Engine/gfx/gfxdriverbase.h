@@ -38,13 +38,20 @@ struct SpriteBatchDesc
     Rect                     Viewport;
     // Optional model transformation, to be applied to each sprite
     SpriteTransform          Transform;
+    // Global node offset applied to the whole batch as the last transform
+    Point                    Offset;
+    // Global node flip applied to the whole batch as the last transform
+    GlobalFlipType           Flip;
     // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
     PBitmap                  Surface;
 
-    SpriteBatchDesc() {}
-    SpriteBatchDesc(const Rect viewport, const SpriteTransform &transform, PBitmap surface)
+    SpriteBatchDesc() : Flip(kFlip_None) {}
+    SpriteBatchDesc(const Rect viewport, const SpriteTransform &transform, const Point offset = Point(),
+            GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr)
         : Viewport(viewport)
         , Transform(transform)
+        , Offset(offset)
+        , Flip(flip)
         , Surface(surface)
     {
     }
@@ -91,13 +98,14 @@ public:
     DisplayMode GetDisplayMode() const override;
     Size        GetNativeSize() const override;
     Rect        GetRenderDestination() const override;
-    void        SetNativeRenderOffset(int x, int y) override;
 
-    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, PBitmap surface = nullptr) override;
+    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
+                    const Point offset = Point(), GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr) override;
     void        ClearDrawLists() override;
 
     void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) override { _pollingCallback = callback; }
-    void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) override { _drawScreenCallback = callback; }
+    void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback, GFXDRV_CLIENTCALLBACK post_callback) override
+                { _drawScreenCallback = callback; _drawPostScreenCallback = post_callback; }
     void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) override { _initGfxCallback = callback; }
     void        SetCallbackOnSurfaceUpdate(GFXDRV_CLIENTCALLBACKSURFACEUPDATE callback) override { _initSurfaceUpdateCallback = callback; }
     void        SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) override { _nullSpriteCallback = callback; }
@@ -130,11 +138,11 @@ protected:
     Rect                _dstRect;       // rendering destination rect
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
     PlaneScaling        _scaling;       // native -> render dest coordinate transformation
-    Point               _globalViewOff; // extra offset to every sprite draw on screen with DrawSprite
 
     // Callbacks
     GFXDRV_CLIENTCALLBACK _pollingCallback;
     GFXDRV_CLIENTCALLBACK _drawScreenCallback;
+    GFXDRV_CLIENTCALLBACK _drawPostScreenCallback;
     GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
     GFXDRV_CLIENTCALLBACKSURFACEUPDATE _initSurfaceUpdateCallback;
@@ -163,7 +171,7 @@ public:
 
     int _width, _height;
     int _colDepth;
-    bool _opaque;
+    bool _opaque; // no mask color
 };
 
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
@@ -192,9 +200,19 @@ protected:
     // and false if this entry should be skipped.
     bool DoNullSpriteCallback(int x, int y);
 
+    // Prepare and get fx item from the pool
+    IDriverDependantBitmap *MakeFx(int r, int g, int b);
+    // Resets fx pool counter
+    void ResetFxPool();
+    // Disposes all items in the fx pool
+    void DestroyFxPool();
+
     // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
     void BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
                             char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
+    // Same but optimized for opaque source bitmaps which ignore transparent "mask color"
+    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile, const VideoMemDDB *target,
+        char *dst_ptr, const int dst_pitch);
 
     // Stage virtual screen is used to let plugins draw custom graphics
     // in between render stages (between room and GUI, after GUI, and so on)
@@ -213,6 +231,18 @@ private:
     // Flag which indicates whether stage screen was drawn upon during engine
     // callback and has to be inserted into sprite stack.
     bool _stageScreenDirty;
+
+    // Fx quads pool (for screen overlay effects)
+    struct ScreenFx
+    {
+        Bitmap *Raw = nullptr;
+        IDriverDependantBitmap *DDB = nullptr;
+        int Red = -1;
+        int Green = -1;
+        int Blue = -1;
+    };
+    std::vector<ScreenFx> _fxPool;
+    size_t _fxIndex; // next free pool item
 };
 
 } // namespace Engine

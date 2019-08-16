@@ -421,7 +421,7 @@ static void adjust_viewport_to_room()
     const Rect main_view = play.GetMainViewport();
     Rect new_room_view = RectWH(Size::Clamp(real_room_sz, Size(1, 1), main_view.GetSize()));
 
-    play.SetRoomViewport(0, new_room_view);
+    play.GetRoomViewport(0)->SetRect(new_room_view);
     auto cam = play.GetRoomCamera(0);
     cam->SetSize(new_room_view.GetSize());
     cam->SetAt(0, 0);

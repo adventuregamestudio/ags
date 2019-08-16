@@ -1413,6 +1413,8 @@ namespace AGS.Editor
 
                 writer.Write(game.Fonts[i].VerticalOffset);
                 writer.Write(game.Fonts[i].LineSpacing);
+				writer.Write(game.Fonts[i].AutoOutlineThickness);
+				writer.Write((int) game.Fonts[i].AutoOutlineStyle);
             }
             int topmostSprite;
             byte[] spriteFlags = new byte[NativeConstants.MAX_STATIC_SPRITES];

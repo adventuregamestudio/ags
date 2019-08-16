@@ -216,7 +216,6 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             }
             else {
                 text_color = text_window_ds->GetCompatibleColor(asspch);
-                //wouttext_outline(ttxp,ttyp,usingfont,lines[ee]);
                 wouttext_aligned(text_window_ds, ttxleft, ttyp, wii, usingfont, text_color, lines[ee], play.speech_text_align);
             }
         }
@@ -452,39 +451,112 @@ bool ShouldAntiAliasText() {
     return (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx) {
-    
-    color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
-    if (get_font_outline(usingfont) >= 0) {
-        // MACPORT FIX 9/6/5: cast
-        wouttextxy(ds, xxp, yyp, (int)get_font_outline(usingfont), outline_color, texx);
-    }
-    else if (get_font_outline(usingfont) == FONT_OUTLINE_AUTO) {
-        int outlineDist = 1;
+// Make semi-transparent bits much more opaque
+void wouttextxy_AutoOutline_Semitransparent2Opaque(AGS::Common::Bitmap *map)
+{
+    if (map->GetColorDepth() < 32)
+        return; // such maps don't feature partial transparency
+    size_t const width = map->GetWidth();
+    size_t const height = map->GetHeight();
 
-        if (is_bitmap_font(usingfont) && get_font_scaling_mul(usingfont) > 1) {
-            // if it's a scaled up bitmap font, move the outline out more
-            outlineDist = get_fixed_pixel_size(1);
+    for (size_t y = 0; y < height; y++)
+    {
+        int32 *sc_line = reinterpret_cast<int32 *>(map->GetScanLineForWriting(y));
+        for (size_t x = 0; x < width; x++)
+        {
+            int32 &px = sc_line[x];
+            int const transparency = geta(px);
+            if (0 < transparency && transparency < 255)
+                px = makeacol32(
+                    getr32(px), 
+                    getg32(px), 
+                    getb32(px), 
+                    std::min(85 + transparency * 2, 255));
         }
-
-        // move the text over so that it's still within the bounding rect
-        xxp += outlineDist;
-        yyp += outlineDist;
-
-        wouttextxy(ds, xxp - outlineDist, yyp, usingfont, outline_color, texx);
-        wouttextxy(ds, xxp + outlineDist, yyp, usingfont, outline_color, texx);
-        wouttextxy(ds, xxp, yyp + outlineDist, usingfont, outline_color, texx);
-        wouttextxy(ds, xxp, yyp - outlineDist, usingfont, outline_color, texx);
-        wouttextxy(ds, xxp - outlineDist, yyp - outlineDist, usingfont, outline_color, texx);
-        wouttextxy(ds, xxp - outlineDist, yyp + outlineDist, usingfont, outline_color, texx);
-        wouttextxy(ds, xxp + outlineDist, yyp + outlineDist, usingfont, outline_color, texx);
-        wouttextxy(ds, xxp + outlineDist, yyp - outlineDist, usingfont, outline_color, texx);
     }
-
-    wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
 }
 
-void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align) {
+// Draw outline that is calculated from the text font, not derived from an outline font
+void wouttextxy_AutoOutline(AGS::Common::Bitmap *ds, size_t font, int32_t color, const char *texx, int &xxp, int &yyp)
+{
+    int thickness = game.fonts.at(font).AutoOutlineThickness;
+    auto style = game.fonts.at(font).AutoOutlineStyle;
+    if (0 == thickness)
+    {
+        // Thickness that corresponds to 1 game pixel
+        thickness =
+            (is_bitmap_font(font) && get_font_scaling_mul(font) > 1) ?
+            get_fixed_pixel_size(1) : 1;
+        style = FontInfo::kSquared;
+    }
+    if (thickness <= 0)
+        return; 
+
+    size_t const t_width = wgettextwidth(texx, font);
+    size_t const t_height = wgettextheight(texx, font);
+    AGS::Common::Bitmap *outline_stencil =
+        AGS::Common::BitmapHelper::CreateTransparentBitmap(t_width, t_height + 2 * thickness, ds->GetColorDepth());
+    AGS::Common::Bitmap *texx_stencil =
+        AGS::Common::BitmapHelper::CreateTransparentBitmap(t_width, t_height, ds->GetColorDepth());
+    if (!outline_stencil || !texx_stencil)
+        return;
+    wouttextxy(texx_stencil, 0, 0, font, color, texx);
+    wouttextxy_AutoOutline_Semitransparent2Opaque(texx_stencil);
+    
+    // move start of text so that the outline doesn't drop off the bitmap
+    xxp += thickness;
+    int const outline_y = yyp;
+    yyp += thickness;
+    
+    int largest_y_diff_reached_so_far = -1; 
+    for (int x_diff = thickness; x_diff >= 0; x_diff--)
+    {
+        // Integer arithmetics: In the following, we use terms k*(k + 1) to account for rounding.
+        //     (k + 0.5)^2 == k*k + 2*k*0.5 + 0.5^2 == k*k + k + 0.25 ==approx. k*(k + 1)
+        int y_term_limit = thickness * (thickness + 1);
+        if (FontInfo::kRounded == style)
+            y_term_limit -= x_diff * x_diff;
+
+        // extend the outline stencil to the top and bottom
+        for (int y_diff = largest_y_diff_reached_so_far + 1; 
+            y_diff <= thickness && y_diff * y_diff  <= y_term_limit; 
+            y_diff++)
+        {
+            outline_stencil->Blit(texx_stencil, 0, thickness - y_diff, AGS::Common::kBitmap_Transparency);
+            if (y_diff > 0)
+                outline_stencil->Blit(texx_stencil, 0, thickness + y_diff, AGS::Common::kBitmap_Transparency);
+            largest_y_diff_reached_so_far = y_diff;
+        }
+
+        // stamp the outline stencil to the left and right of the text
+        ds->Blit(outline_stencil, xxp - x_diff, outline_y, AGS::Common::kBitmap_Transparency);
+        if (x_diff > 0)
+            ds->Blit(outline_stencil, xxp + x_diff, outline_y, AGS::Common::kBitmap_Transparency);
+    }
+ 
+    delete texx_stencil;
+    delete outline_stencil;
+}
+
+// Draw an outline if requested, then draw the text on top 
+void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int font, color_t text_color, const char *texx) 
+{    
+    size_t const text_font = static_cast<size_t>(font);
+    // Draw outline (a backdrop) if requested
+    color_t const outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
+    int const outline_font = get_font_outline(font);
+    if (outline_font >= 0)
+        wouttextxy(ds, xxp, yyp, static_cast<size_t>(outline_font), outline_color, texx);
+    else if (outline_font == FONT_OUTLINE_AUTO)
+        wouttextxy_AutoOutline(ds, text_font, outline_color, texx, xxp, yyp);
+    else
+        ; // no outline
+
+    // Draw text on top
+    wouttextxy(ds, xxp, yyp, text_font, text_color, texx);
+}
+
+void wouttext_aligned(Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align) {
 
     if (align & kMAlignHCenter)
         usexp = usexp + (oriwid / 2) - (wgettextwidth_compensate(text, usingfont) / 2);

@@ -225,6 +225,12 @@ struct SpriteInfo
 // multiple lines, and similar cases.
 struct FontInfo
 {
+    enum AutoOutlineStyleT : int
+    {
+        kRounded = 0,
+        kSquared = 1,
+    };
+
     // General font's loading and rendering flags
     uint32_t      Flags;
     // Font size, in points (basically means pixels in AGS)
@@ -237,6 +243,10 @@ struct FontInfo
     int           YOffset;
     // custom line spacing between two lines of text (0 = use font height)
     int           LineSpacing;
+    // When automatic outlining, thickness of the outline (0 = use legacy thickness)
+    int           AutoOutlineThickness;
+    // When automatic outlining, style of the outline
+    AutoOutlineStyleT AutoOutlineStyle;
 
     FontInfo();
 };

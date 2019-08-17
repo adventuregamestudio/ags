@@ -183,3 +183,55 @@ linux_packaging_task:
     tar -f ags_linux_$version.tar.gz -cvzC $tmp data startgame README
   binaries_artifacts:
     path: ags_linux_*.tar.gz
+
+editor_packaging_task:
+  depends_on:
+    - build_editor
+    - build_windows
+    - linux_packaging
+  windows_container:
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+  env:
+    MANUAL_RELEASE: 0.3.3
+    TEMPLATES_URL: https://codeload.github.com/adventuregamestudio/ags-templates/zip/master
+    VCREDIST_URL: https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
+  get_vcredist_script: >
+    mkdir Windows\Installer\Source\Redist &&
+    curl -fLSso Windows\Installer\Source\Redist\vc_redist.x86.exe %VCREDIST_URL%
+  get_editor_script: >
+    mkdir Windows\Installer\Source\Editor &&
+    curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_editor/binaries.zip" |
+    tar -f - -xvzC Windows\Installer\Source\Editor --strip-components 3 Solutions/.build/Release
+  get_windows_engine_script: >
+    mkdir Windows\Installer\Source\Engine &&
+    curl -fLSso Windows\Installer\Source\Engine\acwin.exe
+    "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_windows/binaries/Solutions/.build/Release/acwin.exe"
+  get_manual_script: >
+    mkdir Windows\Installer\Source\Docs &&
+    curl -fLSso Windows\Installer\Source\Docs\ags-help.chm
+    "https://github.com/adventuregamestudio/ags-manual/releases/download/%MANUAL_RELEASE%/ags-help.chm"
+  get_templates_script: >
+    mkdir Windows\Installer\Source\Templates &&
+    curl -fLSs %TEMPLATES_URL% |
+    tar -f - -xvzC Windows\Installer\Source\Templates --strip-components 2
+  get_linux_bundle_script: >
+    mkdir Windows\Installer\Source\Linux &&
+    call Script\setvar.cmd ACI_VERSION_STR &&
+    cmd /v:on /c "curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/linux_packaging/binaries/ags_linux_!ACI_VERSION_STR!.tar.gz" |
+    tar -f - -xvC Windows\Installer\Source\Linux --strip-components 1"
+  make_installer_script: >
+    powershell Windows\Installer\build.ps1 -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+  installer_artifacts:
+    path: Windows\Installer\Output\*.exe
+  make_archive_script: >
+    move Windows\Installer\Source\Docs\* Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Engine\* Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Licenses Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Linux Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Templates Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\URLs Windows\Installer\Source\Editor\ &&
+    call Script\setvar.cmd ACI_VERSION_STR &&
+    cmd /v:on /c tar -f AGS-!ACI_VERSION_STR!.zip -acv --strip-components 4 Windows\Installer\Source\Editor
+  archive_artifacts:
+    path: AGS-*.zip

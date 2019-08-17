@@ -47,6 +47,8 @@
 #include "ac/timer.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::BitmapHelper::CreateTransparentBitmap;
+
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameState play;
@@ -446,7 +448,7 @@ bool ShouldAntiAliasText() {
 }
 
 // Make semi-transparent bits much more opaque
-void wouttextxy_AutoOutline_Semitransparent2Opaque(AGS::Common::Bitmap *map)
+void wouttextxy_AutoOutline_Semitransparent2Opaque(Bitmap *map)
 {
     if (map->GetColorDepth() < 32)
         return; // such maps don't feature partial transparency
@@ -471,8 +473,10 @@ void wouttextxy_AutoOutline_Semitransparent2Opaque(AGS::Common::Bitmap *map)
 }
 
 // Draw outline that is calculated from the text font, not derived from an outline font
-void wouttextxy_AutoOutline(AGS::Common::Bitmap *ds, size_t font, int32_t color, const char *texx, int &xxp, int &yyp)
+void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *texx, int &xxp, int &yyp)
 {
+    using AGS::Common::kBitmap_Transparency;
+
     int thickness = game.fonts.at(font).AutoOutlineThickness;
     auto style = game.fonts.at(font).AutoOutlineStyle;
     if (0 == thickness)
@@ -488,10 +492,10 @@ void wouttextxy_AutoOutline(AGS::Common::Bitmap *ds, size_t font, int32_t color,
 
     size_t const t_width = wgettextwidth(texx, font);
     size_t const t_height = wgettextheight(texx, font);
-    AGS::Common::Bitmap *outline_stencil =
-        AGS::Common::BitmapHelper::CreateTransparentBitmap(t_width, t_height + 2 * thickness, ds->GetColorDepth());
-    AGS::Common::Bitmap *texx_stencil =
-        AGS::Common::BitmapHelper::CreateTransparentBitmap(t_width, t_height, ds->GetColorDepth());
+    Bitmap *outline_stencil =
+        CreateTransparentBitmap(t_width, t_height + 2 * thickness, ds->GetColorDepth());
+    Bitmap *texx_stencil =
+        CreateTransparentBitmap(t_width, t_height, ds->GetColorDepth());
     if (!outline_stencil || !texx_stencil)
         return;
     wouttextxy(texx_stencil, 0, 0, font, color, texx);
@@ -516,16 +520,16 @@ void wouttextxy_AutoOutline(AGS::Common::Bitmap *ds, size_t font, int32_t color,
             y_diff <= thickness && y_diff * y_diff  <= y_term_limit; 
             y_diff++)
         {
-            outline_stencil->Blit(texx_stencil, 0, thickness - y_diff, AGS::Common::kBitmap_Transparency);
+            outline_stencil->Blit(texx_stencil, 0, thickness - y_diff, kBitmap_Transparency);
             if (y_diff > 0)
-                outline_stencil->Blit(texx_stencil, 0, thickness + y_diff, AGS::Common::kBitmap_Transparency);
+                outline_stencil->Blit(texx_stencil, 0, thickness + y_diff, kBitmap_Transparency);
             largest_y_diff_reached_so_far = y_diff;
         }
 
         // stamp the outline stencil to the left and right of the text
-        ds->Blit(outline_stencil, xxp - x_diff, outline_y, AGS::Common::kBitmap_Transparency);
+        ds->Blit(outline_stencil, xxp - x_diff, outline_y, kBitmap_Transparency);
         if (x_diff > 0)
-            ds->Blit(outline_stencil, xxp + x_diff, outline_y, AGS::Common::kBitmap_Transparency);
+            ds->Blit(outline_stencil, xxp + x_diff, outline_y, kBitmap_Transparency);
     }
  
     delete texx_stencil;

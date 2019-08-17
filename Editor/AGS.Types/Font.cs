@@ -8,27 +8,27 @@ namespace AGS.Types
 {
     [DefaultProperty("OutlineStyle")]
     public class Font : ICustomTypeDescriptor
-	{
+    {
         private int _id;
         private string _name;
         private int _pointSize;
         private int _fontHeight;
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
-		private string _sourceFilename = string.Empty;
+        private string _sourceFilename = string.Empty;
         private int _sizeMultiplier = 1;
         private int _verticalOffset;
         private int _lineSpacing;
-		private int _autoOutlineThickness = 0; 
-		private FontAutoOutlineStyle _autoOutlineStyle = FontAutoOutlineStyle.Rounded;
+        private int _autoOutlineThickness = 0; 
+        private FontAutoOutlineStyle _autoOutlineStyle = FontAutoOutlineStyle.Rounded;
 
         public Font()
         {
             _name = string.Empty;
             _pointSize = 0;
-			_outlineFont = 0; 
-			_outlineStyle = FontOutlineStyle.None;
-			_fontHeight = 0;
+            _outlineFont = 0; 
+            _outlineStyle = FontOutlineStyle.None;
+            _fontHeight = 0;
             _lineSpacing = 0;
         }
 
@@ -75,27 +75,27 @@ namespace AGS.Types
             set { _name = value; }
         }
 
-		[Description("The name with which the script will access this font")]
-		[Category("Design")]
-		public string ScriptID
-		{
-			get
-			{
-				if (Name.Length < 1)
-				{
-					return string.Empty;
-				}
-				string scriptName = "eFont" + Name;
-				for (int i = 0; i < scriptName.Length; i++)
-				{
-					if (!Char.IsLetterOrDigit(scriptName[i]))
-					{
-						scriptName = scriptName.Replace(scriptName[i].ToString(), string.Empty);
-					}
-				}
-				return scriptName;
-			}
-		}
+        [Description("The name with which the script will access this font")]
+        [Category("Design")]
+        public string ScriptID
+        {
+            get
+            {
+                if (Name.Length < 1)
+                {
+                    return string.Empty;
+                }
+                string scriptName = "eFont" + Name;
+                for (int i = 0; i < scriptName.Length; i++)
+                {
+                    if (!Char.IsLetterOrDigit(scriptName[i]))
+                    {
+                        scriptName = scriptName.Replace(scriptName[i].ToString(), string.Empty);
+                    }
+                }
+                return scriptName;
+            }
+        }
 
         [Browsable(false)]
         public string WindowTitle
@@ -113,37 +113,37 @@ namespace AGS.Types
 
         [Description("Whether this font should be drawn with an outline")]
         [Category("Appearance")]
-		[RefreshProperties(RefreshProperties.All)]
-		public FontOutlineStyle OutlineStyle
+        [RefreshProperties(RefreshProperties.All)]
+        public FontOutlineStyle OutlineStyle
         {
             get { return _outlineStyle; }
             set { _outlineStyle = value; }
         }
 
-		[Description("Thickness of the automatic outline (0 = default)")]
-		[Category("Appearance")]
-		public int AutoOutlineThickness
-		{
-			get { return _autoOutlineThickness; }
-			set { _autoOutlineThickness = value; }
-		}
+        [Description("Thickness of the automatic outline (0 = default)")]
+        [Category("Appearance")]
+        public int AutoOutlineThickness
+        {
+            get { return _autoOutlineThickness; }
+            set { _autoOutlineThickness = value; }
+        }
 
-		[Description("Style of the automatic outline")]
-		[Category("Appearance")]
-		public FontAutoOutlineStyle AutoOutlineStyle
-		{
-			get { return _autoOutlineStyle; }
-			set { _autoOutlineStyle = value; }
-		}
+        [Description("Style of the automatic outline")]
+        [Category("Appearance")]
+        public FontAutoOutlineStyle AutoOutlineStyle
+        {
+            get { return _autoOutlineStyle; }
+            set { _autoOutlineStyle = value; }
+        }
 
-		[Description("The file path that this font was imported from")]
-		[Category("Design")]
-		[ReadOnly(true)]
-		public string SourceFilename
-		{
-			get { return _sourceFilename; }
-			set { _sourceFilename = value; }
-		}
+        [Description("The file path that this font was imported from")]
+        [Category("Design")]
+        [ReadOnly(true)]
+        public string SourceFilename
+        {
+            get { return _sourceFilename; }
+            set { _sourceFilename = value; }
+        }
 
         [Description("Font's size multiplier; primarily for bitmap fonts that don't scale on their own")]
         [Category("Appearance")]
@@ -175,17 +175,17 @@ namespace AGS.Types
             set { _lineSpacing = value; }
         }
 
-		[Browsable(false)]
-		public string WFNFileName
-		{
-			get { return "agsfnt" + _id + ".wfn"; }
-		}
+        [Browsable(false)]
+        public string WFNFileName
+        {
+            get { return "agsfnt" + _id + ".wfn"; }
+        }
 
-		[Browsable(false)]
-		public string TTFFileName
-		{
-			get { return "agsfnt" + _id + ".ttf"; }
-		}
+        [Browsable(false)]
+        public string TTFFileName
+        {
+            get { return "agsfnt" + _id + ".ttf"; }
+        }
 
         public Font(XmlNode node)
         {
@@ -197,84 +197,84 @@ namespace AGS.Types
             SerializeUtils.SerializeToXML(this, writer);
         }
 
-		#region ICustomTypeDescriptor Members
-		public AttributeCollection GetAttributes()
-		{
-			return TypeDescriptor.GetAttributes(this, true);
-		}
+        #region ICustomTypeDescriptor Members
+        public AttributeCollection GetAttributes()
+        {
+            return TypeDescriptor.GetAttributes(this, true);
+        }
 
-		public string GetClassName()
-		{
-			return TypeDescriptor.GetClassName(this, true);
-		}
+        public string GetClassName()
+        {
+            return TypeDescriptor.GetClassName(this, true);
+        }
 
-		public string GetComponentName()
-		{
-			return TypeDescriptor.GetComponentName(this, true);
-		}
+        public string GetComponentName()
+        {
+            return TypeDescriptor.GetComponentName(this, true);
+        }
 
-		public TypeConverter GetConverter()
-		{
-			return TypeDescriptor.GetConverter(this, true);
-		}
+        public TypeConverter GetConverter()
+        {
+            return TypeDescriptor.GetConverter(this, true);
+        }
 
-		public EventDescriptor GetDefaultEvent()
-		{
-			return TypeDescriptor.GetDefaultEvent(this, true);
-		}
+        public EventDescriptor GetDefaultEvent()
+        {
+            return TypeDescriptor.GetDefaultEvent(this, true);
+        }
 
-		public PropertyDescriptor GetDefaultProperty()
-		{
-			return TypeDescriptor.GetDefaultProperty(this, true);
-		}
+        public PropertyDescriptor GetDefaultProperty()
+        {
+            return TypeDescriptor.GetDefaultProperty(this, true);
+        }
 
-		public object GetEditor(Type editorBaseType)
-		{
-			return TypeDescriptor.GetEditor(this, editorBaseType, true);
-		}
+        public object GetEditor(Type editorBaseType)
+        {
+            return TypeDescriptor.GetEditor(this, editorBaseType, true);
+        }
 
-		public EventDescriptorCollection GetEvents()
-		{
-			return TypeDescriptor.GetEvents(this, true);
-		}
+        public EventDescriptorCollection GetEvents()
+        {
+            return TypeDescriptor.GetEvents(this, true);
+        }
 
-		public EventDescriptorCollection GetEvents(Attribute[] attributes)
-		{
-			return TypeDescriptor.GetEvents(this, attributes, true);
-		}
+        public EventDescriptorCollection GetEvents(Attribute[] attributes)
+        {
+            return TypeDescriptor.GetEvents(this, attributes, true);
+        }
 
-		public PropertyDescriptorCollection GetProperties()
-		{
-			return TypeDescriptor.GetProperties(this, true);
-		}
+        public PropertyDescriptorCollection GetProperties()
+        {
+            return TypeDescriptor.GetProperties(this, true);
+        }
 
-		public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
-		{
-			PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, attributes, true);
-			List<PropertyDescriptor> wantedProperties = new List<PropertyDescriptor>();
-			foreach (PropertyDescriptor property in properties)
-			{
-				if (property.Name == "AutoOutlineStyle" ||
-					property.Name == "AutoOutlineThickness")
-				{
-					if (_outlineStyle != FontOutlineStyle.Automatic)
-						continue;
-				}
-				else if (property.Name == "OutlineFont")
-				{
-					if (_outlineStyle != FontOutlineStyle.UseOutlineFont)
-						continue;
-				}
+        public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
+        {
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, attributes, true);
+            List<PropertyDescriptor> wantedProperties = new List<PropertyDescriptor>();
+            foreach (PropertyDescriptor property in properties)
+            {
+                if (property.Name == "AutoOutlineStyle" ||
+                    property.Name == "AutoOutlineThickness")
+                {
+                    if (_outlineStyle != FontOutlineStyle.Automatic)
+                        continue;
+                }
+                else if (property.Name == "OutlineFont")
+                {
+                    if (_outlineStyle != FontOutlineStyle.UseOutlineFont)
+                        continue;
+                }
 
-				wantedProperties.Add(property);
-			}
-			return new PropertyDescriptorCollection(wantedProperties.ToArray());
-		}
+                wantedProperties.Add(property);
+            }
+            return new PropertyDescriptorCollection(wantedProperties.ToArray());
+        }
 
-		public object GetPropertyOwner(PropertyDescriptor pd)
-		{
-			return this;
-		}
-		#endregion
-	}
+        public object GetPropertyOwner(PropertyDescriptor pd)
+        {
+            return this;
+        }
+        #endregion
+    }
 }

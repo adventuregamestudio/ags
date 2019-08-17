@@ -147,7 +147,7 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
             {
                 fonts[i].AutoOutlineThickness = in->ReadInt32();
                 fonts[i].AutoOutlineStyle = 
-                    static_cast<FontInfo::AutoOutlineStyleT>(in->ReadInt32());
+                    static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
             }
         }
     }

@@ -225,7 +225,7 @@ struct SpriteInfo
 // multiple lines, and similar cases.
 struct FontInfo
 {
-    enum AutoOutlineStyleT : int
+    enum AutoOutlineStyle : int
     {
         kRounded = 0,
         kSquared = 1,
@@ -246,7 +246,7 @@ struct FontInfo
     // When automatic outlining, thickness of the outline (0 = use legacy thickness)
     int           AutoOutlineThickness;
     // When automatic outlining, style of the outline
-    AutoOutlineStyleT AutoOutlineStyle;
+    AutoOutlineStyle AutoOutlineStyle;
 
     FontInfo();
 };

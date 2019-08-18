@@ -92,6 +92,7 @@ build_linux_task:
     path: data_*.tar.gz
 
 build_macos_task:
+  only_if: $CIRRUS_RELEASE == ''
   osx_instance:
     matrix:
       - image: mojave-xcode-10.2
@@ -235,3 +236,46 @@ editor_packaging_task:
     cmd /v:on /c tar -f AGS-!ACI_VERSION_STR!.zip -acv --strip-components 4 Windows\Installer\Source\Editor
   archive_artifacts:
     path: AGS-*.zip
+
+upload_release_task:
+  only_if: $CIRRUS_RELEASE != ''
+  depends_on:
+    - build_linux
+    - editor_packaging
+    - linux_packaging
+  freebsd_instance:
+    image: freebsd-12-0-release-amd64
+  env:
+    GITHUB_TOKEN: ENCRYPTED[42b9b95198604f4f3f6744593d617b72e030396166a841123fd68c83bc3d7bd5b16a854ad0f0f11ce2b5249b88057980]
+  download_script: |
+    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    mkdir pdb && \
+    mkdir github_release && \
+    for download in "build_windows/engine_pdb.zip" \
+      "build_editor/ags_editor_pdb.zip" \
+      "build_editor/ags_native_pdb.zip"
+    do
+      curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/$download" | tar -f - -xvzC pdb -s "!.*/Debug/.*!!p" -s "!.*/!!p"
+    done && \
+    tar -f github_release/AGS-${version}-pdb.zip -acv --strip-components 1 pdb && \
+    cd github_release && \
+    for download in "linux_packaging/binaries/ags_linux_$version.tar.gz" \
+      "editor_packaging/installer/Windows/Installer/Output/AGS-$version.exe" \
+      "editor_packaging/archive/AGS-$version.zip" \
+      "build_linux/debian_packages/ags_${version}_i386.deb" \
+      "build_linux/debian_packages/ags_${version}_amd64.deb"
+    do
+      url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/$download"
+      echo "Downloading $url"
+      curl -fLOJ "$url"
+    done
+  release_script: |
+    for fpath in $(find github_release -type f)
+    do
+      echo "Uploading $fpath"
+      curl -X POST \
+        --data-binary @$fpath \
+        --header "Authorization: token $GITHUB_TOKEN" \
+        --header "Content-Type: application/octet-stream" \
+        "https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_RELEASE/assets?name=${fpath##*/}"
+    done

@@ -268,6 +268,10 @@ upload_release_task:
       echo "Downloading $url"
       curl -fLOJ "$url"
     done
+  checksums_script: |
+    cd github_release && \
+    sha256 -r * | sed -E "s/[[:blank:]]+/  /" > /tmp/checksums.sha256 && \
+    mv /tmp/checksums.sha256 .
   release_script: |
     for fpath in $(find github_release -type f)
     do

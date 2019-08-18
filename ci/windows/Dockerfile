@@ -21,10 +21,6 @@ RUN cinst innosetup --version %INNO_SETUP_VERSION% -y
 ARG CMAKE_VERSION=3.14.5
 RUN cinst cmake --version %CMAKE_VERSION% --installargs ADD_CMAKE_TO_PATH=System -y
 
-ARG PYTHON3_VERSION=3.7.4
-RUN cinst python3 --version %PYTHON3_VERSION% -y
-RUN python -m pip install --upgrade pip
-
 RUN pushd %TEMP% && \
   git clone https://github.com/Microsoft/vcpkg.git && \
   pushd vcpkg && \
@@ -38,18 +34,22 @@ RUN pushd %TEMP% && \
   copy %TEMP%\vcpkg\installed\x86-windows-static\lib\vorbis.lib Lib\Xiph\libvorbis_static.lib && \
   copy %TEMP%\vcpkg\installed\x86-windows-static\lib\vorbisfile.lib Lib\Xiph\libvorbisfile_static.lib
 
-ARG 7ZIP_VERSION=19.0
-RUN cinst 7zip --version %7ZIP_VERSION% -y
-
 ARG IRRKLANG_VERSION=1.6.0
-RUN curl -OJ http://www.ambiera.at/downloads/irrKlang-32bit-%IRRKLANG_VERSION%.zip && \
-  7z e irrKlang-32bit-%IRRKLANG_VERSION%.zip -oLib\irrKlang irrKlang-%IRRKLANG_VERSION%\bin\dotnet-4\*.dll -r && \
-  del irrKlang-32bit-%IRRKLANG_VERSION%.zip
+RUN curl -fLSs http://www.ambiera.at/downloads/irrKlang-32bit-%IRRKLANG_VERSION%.zip | tar -f - -xvzC %TEMP% irrKlang-%IRRKLANG_VERSION%/bin/dotnet-4/*.dll && \
+  mkdir Lib\irrKlang && \
+  move %TEMP%\irrKlang-%IRRKLANG_VERSION%\bin\dotnet-4\*.dll Lib\irrKlang\ && \
+  rd /s /q %TEMP%\irrKlang-%IRRKLANG_VERSION%
 
-RUN curl -OJ https://download.microsoft.com/download/3/3/f/33f1af6e-c61b-4f14-a0de-3e9096ed4b3a/dxsdk_aug2007.exe && \
-  7z e -o%TEMP% dxsdk_aug2007.exe && \
-  7z e -oLib\DirectX %TEMP%\dxsdk_aug2007.exe Lib\x86\*.lib -r && \
-  del %TEMP%\dxsdk_aug2007.exe dxsdk_aug2007.exe
+RUN curl -fLSs https://download.microsoft.com/download/3/3/f/33f1af6e-c61b-4f14-a0de-3e9096ed4b3a/dxsdk_aug2007.exe | tar -f - -xvzC %TEMP% && \
+  tar -f %TEMP%\dxsdk_aug2007.exe -xvzC %TEMP% Lib/x86/*.lib && \
+  mkdir Lib\DirectX && \
+  move %TEMP%\Lib\x86\*.lib Lib\DirectX\ && \
+  del %TEMP%\dxsdk_aug2007.exe && \
+  rd /s /q %TEMP%\Lib
+
+RUN mkdir Redist && \
+  cd Redist && \
+  curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
 
 ARG ALLEGRO_REPO=morganwillcock/lib-allegro
 ARG ALLEGRO_RELEASES="v4.4.3-ags-1 v4.4.3-ags-2"

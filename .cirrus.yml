@@ -196,10 +196,9 @@ editor_packaging_task:
   env:
     MANUAL_RELEASE: 0.3.3
     TEMPLATES_URL: https://codeload.github.com/adventuregamestudio/ags-templates/zip/master
-    VCREDIST_URL: https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
   get_vcredist_script: >
     mkdir Windows\Installer\Source\Redist &&
-    curl -fLSso Windows\Installer\Source\Redist\vc_redist.x86.exe %VCREDIST_URL%
+    copy %SYSTEMDRIVE%\Redist\vc_redist.x86.exe Windows\Installer\Source\Redist\
   get_editor_script: >
     mkdir Windows\Installer\Source\Editor &&
     curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_editor/binaries.zip" |

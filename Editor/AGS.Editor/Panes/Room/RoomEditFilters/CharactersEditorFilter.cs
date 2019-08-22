@@ -302,9 +302,15 @@ namespace AGS.Editor
         public void UpdateCharactersRoom(Character character, int oldRoom)
         {
             if (character.StartingRoom == _room.Number)
+            {
                 AddCharacterRef(character);
+            }
             else if (oldRoom == _room.Number && character.StartingRoom != _room.Number)
+            {
                 RemoveCharacterRef(character);
+                if (_selectedCharacter == character)
+                    _selectedCharacter = null;
+            }
         }
 
         private void SetPropertyGridList()
@@ -323,8 +329,12 @@ namespace AGS.Editor
         {
             if (newPropertyObject is Character)
             {
-                SetSelectedCharacter((Character)newPropertyObject);                 
-                _panel.Invalidate();
+                Character c = (Character)newPropertyObject;
+                if (c.StartingRoom == _room.Number)
+                {
+                    SetSelectedCharacter(c);
+                    _panel.Invalidate();
+                }
             }
             else if (newPropertyObject is Room)
             {

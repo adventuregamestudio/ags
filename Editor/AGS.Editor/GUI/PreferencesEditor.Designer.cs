@@ -237,10 +237,10 @@ namespace AGS.Editor
             this.label8.Location = new System.Drawing.Point(8, 17);
             this.label8.MaximumSize = new System.Drawing.Size(350, 0);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(340, 26);
+            this.label8.Size = new System.Drawing.Size(345, 26);
             this.label8.TabIndex = 2;
-            this.label8.Text = "Changing these settings require you to restart the editor for them to take effect" +
-    ".";
+            this.label8.Text = "Changing these settings requires you to restart the editor for them to take effec" +
+    "t.";
             // 
             // label2
             // 

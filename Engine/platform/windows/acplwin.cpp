@@ -119,6 +119,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
+  virtual void WriteStdErr(const char *fmt, ...);
   virtual void DisplaySwitchOut();
   virtual void DisplaySwitchIn();
   virtual void PauseApplication();
@@ -977,6 +978,26 @@ void AGSWin32::WriteStdOut(const char *fmt, ...) {
   {
     vprintf(fmt, ap);
     printf("\n");
+  }
+  va_end(ap);
+}
+
+void AGSWin32::WriteStdErr(const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  if (_isDebuggerPresent)
+  {
+    // Add "AGS:" prefix when outputting to debugger, to make it clear that this
+    // is a text from the program log
+    char buf[STD_BUFFER_SIZE] = "AGS ERR: ";
+    vsnprintf(buf + 9, STD_BUFFER_SIZE - 9, fmt, ap);
+    OutputDebugString(buf);
+    OutputDebugString("\n");
+  }
+  else
+  {
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
   }
   va_end(ap);
 }

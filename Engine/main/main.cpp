@@ -418,6 +418,8 @@ int ags_entry_point(int argc, char *argv[]) {
         return EXIT_NORMAL;
     }
 
+    if (!justTellInfo)
+        platform->SetGUIMode(true);
     init_debug(justTellInfo);
     Debug::Printf(kDbgMsg_Init, get_engine_string());
 

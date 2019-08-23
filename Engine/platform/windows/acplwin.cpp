@@ -830,7 +830,12 @@ void AGSWin32::DisplayAlert(const char *text, ...) {
   va_start(ap, text);
   vsprintf(displbuf, text, ap);
   va_end(ap);
-  MessageBox(win_get_window(), displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
+  if (_guiMode)
+    MessageBox(win_get_window(), displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
+  else if (_logToStdErr)
+    AGSWin32::WriteStdErr("%s", displbuf);
+  else
+    AGSWin32::WriteStdOut("%s", displbuf);
 }
 
 int AGSWin32::GetLastSystemError()

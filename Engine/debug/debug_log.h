@@ -21,7 +21,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/ini_util.h"
 
-void init_debug();
+void init_debug(bool stderr_only);
 void apply_debug_config(const AGS::Common::ConfigTree &cfg);
 void shutdown_debug();
 

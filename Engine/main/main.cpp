@@ -428,7 +428,7 @@ int ags_entry_point(int argc, char *argv[]) {
         return 0;
     }
 
-    init_debug();
+    init_debug(justTellInfo);
     Debug::Printf(kDbgMsg_Init, get_engine_string());
 
     main_set_gamedir(argc, argv);    

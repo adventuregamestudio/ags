@@ -1355,23 +1355,25 @@ bool engine_do_config(const String &exe_path, const ConfigTree &startup_opts)
 extern std::set<String> tellInfoKeys;
 inline static void json_make_block(String &full, const char *name, const char *block, const char *indent = "")
 {
-    if (full.GetLength() > 0 && full.GetLast() == '}')
-        full.AppendChar(',');
-    full.Append(String::FromFormat("%s\"%s\":%s{%s%s}", indent, name, indent, block, indent));
+    if (full.GetLength() > 0 && full.GetLast() != '\n' && full.GetLast() != '{')
+        full.Append(",\n");
+    full.Append(String::FromFormat("%s\"%s\": %s{\n%s\n%s}", indent, name, indent, block, indent));
 }
 
 inline static void json_make_entry(String &full, const char *key, const char *value, const char *indent = "")
 {
-    if (full.GetLength() > 0 && full.GetLast() != '{')
-        full.AppendChar(',');
-    full.Append(String::FromFormat("%s\"%s\":\"%s\"", indent, key, value));
+    if (full.GetLength() > 0 && full.GetLast() != '\n' && full.GetLast() != '{')
+        full.Append(",\n");
+    full.Append(String::FromFormat("%s\"%s\": \"%s\"", indent, key, value));
 }
 
 static void engine_print_info(const String &exe_path)
 {
     const auto &keys = tellInfoKeys;
     const bool all = keys.count("all") > 0;
-    String full = "{";
+    String full = "{\n";
+    const char *tab1 = "\t";
+    const char *tab2 = "\t\t";
     if (all || keys.count("config-meta"))
     {
         String name = StrUtil::JsonEscape(game.gamename);
@@ -1379,12 +1381,14 @@ static void engine_print_info(const String &exe_path)
         String gl_cfg_file = StrUtil::JsonEscape(find_user_global_cfg_file());
         String user_cfg_file = StrUtil::JsonEscape(find_user_cfg_file());
         String s;
-        json_make_entry(s, "gamename", name.GetCStr());
-        json_make_entry(s, "defaultconfig", def_cfg_file.GetCStr());
-        json_make_entry(s, "globalconfig", gl_cfg_file.GetCStr());
-        json_make_entry(s, "userconfig", user_cfg_file.GetCStr());
-        json_make_block(full, "config-meta", s.GetCStr());
+        json_make_entry(s, "gamename", name.GetCStr(), tab2);
+        json_make_entry(s, "defaultconfig", def_cfg_file.GetCStr(), tab2);
+        json_make_entry(s, "globalconfig", gl_cfg_file.GetCStr(), tab2);
+        json_make_entry(s, "userconfig", user_cfg_file.GetCStr(), tab2);
+        json_make_block(full, "config-meta", s.GetCStr(), tab1);
     }
+    if (full.GetLength() > 2)
+        full.AppendChar('\n');
     full.AppendChar('}');
     platform->WriteStdOut("%s", full.GetCStr());
 }

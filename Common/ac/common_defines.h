@@ -17,8 +17,9 @@
 
 #include "core/platform.h"
 
-#define EXIT_NORMAL 91
-#define EXIT_CRASH  92
+#define EXIT_NORMAL 0
+#define EXIT_ERROR  1
+#define EXIT_CRASH  2
 
 
 #if defined (OBSOLETE)

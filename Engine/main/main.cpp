@@ -138,7 +138,7 @@ AGS::Common::Version SavedgameLowestBackwardCompatVersion;
 // Lowest engine version, which would accept current savedgames
 AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
-void main_init()
+void main_init(int argc, char*argv[])
 {
     EngineVersion = Version(ACI_VERSION_STR " " SPECIAL_VERSION);
 #if defined (BUILD_STR)
@@ -150,6 +150,9 @@ void main_init()
     Common::AssetManager::CreateInstance();
     main_pre_init();
     main_create_platform_driver();
+
+    global_argv = argv;
+    global_argc = argc;
 }
 
 String get_engine_string()
@@ -162,13 +165,6 @@ String get_engine_string()
 #else
         "ACI version %s\n", EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr());
 #endif
-}
-
-int main_preprocess_cmdline(int argc,char*argv[])
-{
-    global_argv = argv;
-    global_argc = argc;
-    return RETURN_CONTINUE;
 }
 
 extern char return_to_roomedit[30];
@@ -221,10 +217,13 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         if (ags_stricmp(arg,"--help") == 0 || ags_stricmp(arg,"/?") == 0 || ags_stricmp(arg,"-?") == 0)
         {
             justDisplayHelp = true;
-            return RETURN_CONTINUE;
+            return 0;
         }
-        if (ags_stricmp(arg,"-v") == 0 || ags_stricmp(arg,"--version") == 0)
+        if (ags_stricmp(arg, "-v") == 0 || ags_stricmp(arg, "--version") == 0)
+        {
             justDisplayVersion = true;
+            return 0;
+        }
         else if (ags_stricmp(arg,"-updatereg") == 0)
             debug_flags |= DBG_REGONLY;
 #if AGS_PLATFORM_DEBUG
@@ -336,8 +335,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 
     if (tellInfoKeys.size() > 0)
         justTellInfo = true;
-
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 void main_set_gamedir(int argc, char*argv[])
@@ -396,14 +394,7 @@ int ags_entry_point(int argc, char *argv[]) {
 #if AGS_PLATFORM_DEBUG
     Test_DoAllTests();
 #endif
-    
-    int res;
-    main_init();
-    
-    res = main_preprocess_cmdline(argc, argv);
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
+    main_init(argc, argv);
 
 #if AGS_PLATFORM_OS_WINDOWS
     setup_malloc_handling();
@@ -411,21 +402,20 @@ int ags_entry_point(int argc, char *argv[]) {
     debug_flags=0;
 
     ConfigTree startup_opts;
-    res = main_process_cmdline(startup_opts, argc, argv);
-    if (res != RETURN_CONTINUE) {
+    int res = main_process_cmdline(startup_opts, argc, argv);
+    if (res != 0)
         return res;
-    }
 
     if (justDisplayVersion)
     {
         platform->WriteStdOut(get_engine_string());
-        return 0;
+        return EXIT_NORMAL;
     }
 
     if (justDisplayHelp)
     {
         main_print_help();
-        return 0;
+        return EXIT_NORMAL;
     }
 
     init_debug(justTellInfo);
@@ -435,7 +425,7 @@ int ags_entry_point(int argc, char *argv[]) {
 
     // Update shell associations and exit
     if (debug_flags & DBG_REGONLY)
-        exit(0);
+        exit(EXIT_NORMAL);
 
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     if (usetup.disable_exception_handling)

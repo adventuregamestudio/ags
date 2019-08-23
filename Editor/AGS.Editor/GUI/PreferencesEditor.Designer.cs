@@ -98,7 +98,7 @@ namespace AGS.Editor
             // 
             this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Location = new System.Drawing.Point(12, 526);
+            this.btnOK.Location = new System.Drawing.Point(12, 525);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(98, 27);
             this.btnOK.TabIndex = 0;
@@ -110,7 +110,7 @@ namespace AGS.Editor
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(116, 526);
+            this.btnCancel.Location = new System.Drawing.Point(116, 525);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(100, 27);
             this.btnCancel.TabIndex = 1;
@@ -381,7 +381,7 @@ namespace AGS.Editor
             this.groupBox4.Controls.Add(this.label6);
             this.groupBox4.Controls.Add(this.radFolderPath);
             this.groupBox4.Controls.Add(this.radGamePath);
-            this.groupBox4.Location = new System.Drawing.Point(383, 347);
+            this.groupBox4.Location = new System.Drawing.Point(378, 346);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(361, 90);
             this.groupBox4.TabIndex = 5;
@@ -715,7 +715,7 @@ namespace AGS.Editor
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(754, 561);
+            this.ClientSize = new System.Drawing.Size(747, 560);
             this.Controls.Add(this.groupBox9);
             this.Controls.Add(this.groupBox8);
             this.Controls.Add(this.groupBox7);

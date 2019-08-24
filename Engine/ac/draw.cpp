@@ -2106,11 +2106,13 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
 
 void draw_fps(const Rect &viewport)
 {
+    // TODO: make allocated "fps struct" instead of using static vars!!
     static IDriverDependantBitmap* ddb = nullptr;
     static Bitmap *fpsDisplay = nullptr;
+    const int font = FONT_NORMAL;
     if (fpsDisplay == nullptr)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(viewport.GetWidth(), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), game.GetColorDepth());
+        fpsDisplay = BitmapHelper::CreateBitmap(viewport.GetWidth(), (getfontheight_outlined(font) + get_fixed_pixel_size(5)), game.GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
@@ -2131,11 +2133,11 @@ void draw_fps(const Rect &viewport)
     } else {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
-    wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, fps_buffer);
+    wouttext_outline(fpsDisplay, 1, 1, font, text_color, fps_buffer);
 
     char loop_buffer[60];
     sprintf(loop_buffer, "Loop %u", loopcounter);
-    wouttext_outline(fpsDisplay, viewport.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
+    wouttext_outline(fpsDisplay, viewport.GetWidth() / 2, 1, font, text_color, loop_buffer);
 
     if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
@@ -2492,10 +2494,10 @@ void construct_engine_overlay()
     // draw the debug console, if appropriate
     if ((play.debug_mode > 0) && (display_console != 0))
     {
-        //int otextc = ds->GetTextColor();
+        const int font = FONT_NORMAL;
         int ypp = 1;
-        int txtspacing = getfontspacing_outlined(0);
-        int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
+        int txtspacing = getfontspacing_outlined(font);
+        int barheight = getheightoflines(font, DEBUG_CONSOLE_NUMLINES - 1) + 4;
 
         if (debugConsoleBuffer == nullptr)
         {
@@ -2507,7 +2509,7 @@ void construct_engine_overlay()
         debugConsoleBuffer->FillRect(Rect(0, 0, viewport.GetWidth() - 1, barheight), draw_color);
         color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
         for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
-            wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
+            wouttextxy(debugConsoleBuffer, 1, ypp, font, text_color, debug_line[jj]);
             ypp += txtspacing;
         }
 

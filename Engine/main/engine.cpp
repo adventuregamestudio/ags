@@ -1351,6 +1351,11 @@ bool engine_do_config(const String &exe_path, const ConfigTree &startup_opts)
 // --tell command support: printing JSON with engine/game info by request
 //
 extern std::set<String> tellInfoKeys;
+static bool print_info_needs_game(const std::set<String> &keys)
+{
+    return keys.count("all") > 0 || keys.count("config-meta") > 0;
+}
+
 inline static void json_make_block(String &full, const char *name, const char *block, const char *indent = "")
 {
     if (full.GetLength() > 0 && full.GetLast() != '\n' && full.GetLast() != '{')
@@ -1365,9 +1370,8 @@ inline static void json_make_entry(String &full, const char *key, const char *va
     full.Append(String::FromFormat("%s\"%s\": \"%s\"", indent, key, value));
 }
 
-static void engine_print_info(const String &exe_path)
+static void engine_print_info(const std::set<String> &keys, const String &exe_path)
 {
-    const auto &keys = tellInfoKeys;
     const bool all = keys.count("all") > 0;
     String full = "{\n";
     const char *tab1 = "\t";
@@ -1412,13 +1416,21 @@ int initialize_engine(const ConfigTree &startup_opts)
     //-----------------------------------------------------
     // Locate game data and assemble game config
     const String exe_path = global_argv[0];
-    if (!engine_init_gamedata(exe_path))
-        return EXIT_ERROR;
-    if (justTellInfo)
+    if (justTellInfo && !print_info_needs_game(tellInfoKeys))
     {
-        engine_print_info(exe_path);
+        engine_print_info(tellInfoKeys, exe_path);
         return EXIT_NORMAL;
     }
+
+    if (!engine_init_gamedata(exe_path))
+        return EXIT_ERROR;
+
+    if (justTellInfo)
+    {
+        engine_print_info(tellInfoKeys, exe_path);
+        return EXIT_NORMAL;
+    }
+
     if (!engine_do_config(exe_path, startup_opts))
         return EXIT_ERROR;
     engine_setup_allegro();

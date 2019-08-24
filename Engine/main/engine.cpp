@@ -1372,6 +1372,10 @@ static void engine_print_info(const String &exe_path)
     String full = "{\n";
     const char *tab1 = "\t";
     const char *tab2 = "\t\t";
+    {
+        json_make_entry(full, "enginename", get_engine_name(), tab1);
+        json_make_entry(full, "engineversion", get_engine_version(), tab1);
+    }
     if (all || keys.count("config-meta"))
     {
         String name = StrUtil::JsonEscape(game.gamename);
@@ -1612,6 +1616,11 @@ void engine_shutdown_gfxmode()
 
     engine_pre_gfxsystem_shutdown();
     graphics_mode_shutdown();
+}
+
+const char *get_engine_name()
+{
+    return "Adventure Game Studio run-time engine";
 }
 
 const char *get_engine_version() {

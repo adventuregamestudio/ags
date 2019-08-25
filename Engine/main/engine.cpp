@@ -1350,6 +1350,48 @@ void engine_set_config(const ConfigTree cfg)
     post_config();
 }
 
+//
+// --tell command support: printing engine/game info by request
+//
+extern std::set<String> tellInfoKeys;
+static bool print_info_needs_game(const std::set<String> &keys)
+{
+    return keys.count("all") > 0 || keys.count("config") > 0 || keys.count("configpath") > 0;
+}
+
+static void engine_print_info(const std::set<String> &keys, const String &exe_path, ConfigTree *user_cfg)
+{
+    const bool all = keys.count("all") > 0;
+    ConfigTree data;
+    if (all || keys.count("engine") > 0)
+    {
+        data["engine"]["name"] = get_engine_name();
+        data["engine"]["version"] = get_engine_version();
+    }
+    if (all || keys.count("configpath") > 0)
+    {
+        String def_cfg_file = find_default_cfg_file(exe_path);
+        String gl_cfg_file = find_user_global_cfg_file();
+        String user_cfg_file = find_user_cfg_file();
+        data["config-path"]["gamename"] = game.gamename;
+        data["config-path"]["default"] = def_cfg_file;
+        data["config-path"]["global"] = gl_cfg_file;
+        data["config-path"]["user"] = user_cfg_file;
+    }
+    if ((all || keys.count("config") > 0) && user_cfg)
+    {
+        for (const auto &sectn : *user_cfg)
+        {
+            String cfg_sectn = String::FromFormat("config@%s", sectn.first.GetCStr());
+            for (const auto &opt : sectn.second)
+                data[cfg_sectn][opt.first] = opt.second;
+        }
+    }
+    String full;
+    IniUtil::WriteToString(full, data);
+    platform->WriteStdOut("%s", full.GetCStr());
+}
+
 // TODO: this function is still a big mess, engine/system-related initialization
 // is mixed with game-related data adjustments. Divide it in parts, move game
 // data init into either InitGameState() or other game method as appropriate.
@@ -1367,10 +1409,21 @@ int initialize_engine(const ConfigTree &startup_opts)
     //-----------------------------------------------------
     // Locate game data and assemble game config
     const String exe_path = global_argv[0];
+    if (justTellInfo && !print_info_needs_game(tellInfoKeys))
+    {
+        engine_print_info(tellInfoKeys, exe_path, nullptr);
+        return EXIT_NORMAL;
+    }
+
     if (!engine_init_gamedata(exe_path))
         return EXIT_ERROR;
     ConfigTree cfg;
     engine_prepare_config(cfg, exe_path, startup_opts);
+    if (justTellInfo)
+    {
+        engine_print_info(tellInfoKeys, exe_path, &cfg);
+        return EXIT_NORMAL;
+    }
     // Test if need to run built-in setup program (where available)
     if (justRunSetup)
     {
@@ -1575,6 +1628,11 @@ void engine_shutdown_gfxmode()
 
     engine_pre_gfxsystem_shutdown();
     graphics_mode_shutdown();
+}
+
+const char *get_engine_name()
+{
+    return "Adventure Game Studio run-time engine";
 }
 
 const char *get_engine_version() {

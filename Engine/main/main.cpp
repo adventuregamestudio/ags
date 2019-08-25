@@ -25,6 +25,7 @@
 #include "core/platform.h"
 #define AGS_PLATFORM_DEFINES_PSP_VARS (AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID)
 
+#include <set>
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -82,6 +83,8 @@ bool justDisplayVersion = false;
 bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
+bool justTellInfo = false;
+std::set<String> tellInfoKeys;
 const char *loadSaveGameOnStartup = nullptr;
 
 #if ! AGS_PLATFORM_DEFINES_PSP_VARS
@@ -274,6 +277,12 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             play.takeover_from[49] = 0;
             ee += 2;
         }
+        else if (ags_strnicmp(arg, "--tell", 6) == 0) {
+            if (arg[6] == 0)
+                tellInfoKeys.insert(String("all"));
+            else if (arg[6] == '-' && arg[7] != 0)
+                tellInfoKeys.insert(String(arg + 7));
+        }
         //
         // Config overrides
         //
@@ -323,6 +332,9 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         // assign standard path for mobile/consoles (defined in their own platform implementation)
         cmdGameDataPath = psp_game_file_name;
     }
+
+    if (tellInfoKeys.size() > 0)
+        justTellInfo = true;
 
     return 0;
 }
@@ -407,7 +419,9 @@ int ags_entry_point(int argc, char *argv[]) {
         return EXIT_NORMAL;
     }
 
-    init_debug(false);
+    if (!justTellInfo)
+        platform->SetGUIMode(true);
+    init_debug(justTellInfo);
     Debug::Printf(kDbgMsg_Init, get_engine_string());
 
     main_set_gamedir(argc, argv);    

@@ -96,6 +96,23 @@ void IniUtil::Write(const String &file, const ConfigTree &tree)
     writer.ReleaseStream();
 }
 
+void IniUtil::WriteToString(String &s, const ConfigTree &tree)
+{
+    for (ConfigNode it_sec = tree.begin(); it_sec != tree.end(); ++it_sec)
+    {
+        const String &sec_key = it_sec->first;
+        const StringOrderMap &sec_tree = it_sec->second;
+        if (!sec_tree.size())
+            continue; // skip empty sections
+        // write section name
+        if (!sec_key.IsEmpty())
+            s.Append(String::FromFormat("[%s]\n", sec_key.GetCStr()));
+        // write all items
+        for (StrStrOIter keyval = sec_tree.begin(); keyval != sec_tree.end(); ++keyval)
+            s.Append(String::FromFormat("%s = %s\n", keyval->first.GetCStr(), keyval->second.GetCStr()));
+    }
+}
+
 bool IniUtil::Merge(const String &file, const ConfigTree &tree)
 {
     // Read ini content

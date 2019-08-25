@@ -44,6 +44,7 @@ extern int force_window;
 extern int override_start_room;
 extern bool justRegisterGame;
 extern bool justUnRegisterGame;
+extern bool justTellInfo;
 extern const char *loadSaveGameOnStartup;
 
 extern int psp_video_framedrop;

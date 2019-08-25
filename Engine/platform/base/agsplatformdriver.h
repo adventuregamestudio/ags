@@ -131,6 +131,9 @@ struct AGSPlatformDriver
     static AGSPlatformDriver *GetDriver();
     // Set whether PrintMessage should output to stdout or stderr
     static void SetOutputToErr(bool on) { _logToStdErr = on; }
+    // Set whether DisplayAlert is allowed to show modal GUIs on some systems;
+    // it will print to either stdout or stderr otherwise, depending on above flag
+    static void SetGUIMode(bool on) { _guiMode = on; }
 
     //-----------------------------------------------
     // IOutputHandler implementation
@@ -145,6 +148,9 @@ protected:
     // with both going through PlatformDriver need to figure a better
     // design first.
     static bool _logToStdErr;
+    // Defines whether engine is allowed to display important warnings
+    // and errors by showing a message box kind of GUI.
+    static bool _guiMode;
 
 private:
     static AGSPlatformDriver *instance;

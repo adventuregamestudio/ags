@@ -42,6 +42,7 @@ const auto MaximumDelayBetweenPolling = std::chrono::milliseconds(16);
 
 AGSPlatformDriver* AGSPlatformDriver::instance = nullptr;
 bool AGSPlatformDriver::_logToStdErr = false;
+bool AGSPlatformDriver::_guiMode = false;
 AGSPlatformDriver *platform = nullptr;
 
 // ******** DEFAULT IMPLEMENTATIONS *******

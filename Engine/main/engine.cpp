@@ -646,7 +646,6 @@ void engine_pre_init_gfx()
 int engine_load_game_data()
 {
     Debug::Printf("Load game data");
-
     our_eip=-17;
     HError err = load_game_file();
     if (!err)
@@ -654,10 +653,9 @@ int engine_load_game_data()
         proper_exit=1;
         platform->FinishedUsingGraphicsMode();
         display_game_file_error(err);
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
     }
-
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 int engine_check_register_game()
@@ -676,7 +674,7 @@ int engine_check_register_game()
         return EXIT_NORMAL;
     }
 
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 void engine_init_title()
@@ -781,10 +779,10 @@ int engine_check_disk_space()
     if (check_write_access()==0) {
         platform->DisplayAlert("Unable to write in the savegame directory.\n%s", platform->GetDiskWriteAccessTroubleshootingText());
         proper_exit = 1;
-        return EXIT_NORMAL; 
+        return EXIT_ERROR; 
     }
 
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 int engine_check_font_was_loaded()
@@ -793,10 +791,10 @@ int engine_check_font_was_loaded()
     {
         platform->DisplayAlert("No game fonts found. At least one font is required to run the game.");
         proper_exit = 1;
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
     }
 
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 void engine_init_modxm_player()
@@ -866,10 +864,10 @@ int engine_init_sprites()
         platform->DisplayAlert("Could not load sprite set file %s\n%s",
             SpriteCache::DefaultSpriteFileName.GetCStr(),
             err->FullMessage().GetCStr());
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
     }
 
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 void engine_init_game_settings()
@@ -1361,15 +1359,15 @@ int initialize_engine(const ConfigTree &startup_opts)
     //-----------------------------------------------------
     // Install backend
     if (!engine_init_allegro())
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
 
     //-----------------------------------------------------
     // Locate game data and assemble game config
     const String exe_path = global_argv[0];
     if (!engine_init_gamedata(exe_path))
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
     if (!engine_do_config(exe_path, startup_opts))
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
     engine_setup_allegro();
     engine_force_window();
 
@@ -1433,31 +1431,27 @@ int initialize_engine(const ConfigTree &startup_opts)
     our_eip=-19;
 
     int res = engine_load_game_data();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
     
     res = engine_check_register_game();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
 
     engine_init_title();
 
     our_eip = -189;
 
     res = engine_check_disk_space();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
 
     // Make sure that at least one font was loaded in the process of loading
     // the game data.
     // TODO: Fold this check into engine_load_game_data()
     res = engine_check_font_was_loaded();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
 
     our_eip = -179;
 
@@ -1467,7 +1461,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     // Attempt to initialize graphics mode
     if (!engine_try_set_gfxmode_any(usetup.Screen))
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
 
     SetMultitasking(0);
 
@@ -1478,9 +1472,8 @@ int initialize_engine(const ConfigTree &startup_opts)
     show_preload();
 
     res = engine_init_sprites();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
 
     engine_init_game_settings();
 
@@ -1491,7 +1484,7 @@ int initialize_engine(const ConfigTree &startup_opts)
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 
     quit("|bye!");
-    return 0;
+    return EXIT_NORMAL;
 }
 
 bool engine_try_set_gfxmode_any(const ScreenSetup &setup)

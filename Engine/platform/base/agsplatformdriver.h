@@ -92,6 +92,9 @@ struct AGSPlatformDriver
     // Formats message and writes to standard platform's output;
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdOut(const char *fmt, ...);
+    // Formats message and writes to platform's error output;
+    // Always adds trailing '\n' after formatted string
+    virtual void WriteStdErr(const char *fmt, ...);
     virtual void YieldCPU();
     // Called when the game window is being switch out from
     virtual void DisplaySwitchOut();
@@ -126,12 +129,22 @@ struct AGSPlatformDriver
     virtual void UnlockMouse();
 
     static AGSPlatformDriver *GetDriver();
+    // Set whether PrintMessage should output to stdout or stderr
+    static void SetOutputToErr(bool on) { _logToStdErr = on; }
 
     //-----------------------------------------------
     // IOutputHandler implementation
     //-----------------------------------------------
     // Writes to the standard platform's output, prepending "AGS: " prefix to the message
     void PrintMessage(const AGS::Common::DebugMessage &msg) override;
+
+protected:
+    // TODO: this is a quick solution for IOutputHandler implementation
+    // logging either to stdout or stderr. Normally there should be
+    // separate implementation, one for each kind of output, but
+    // with both going through PlatformDriver need to figure a better
+    // design first.
+    static bool _logToStdErr;
 
 private:
     static AGSPlatformDriver *instance;

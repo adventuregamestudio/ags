@@ -55,6 +55,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
+  virtual void WriteStdErr(const char *fmt, ...);
 };
 
 
@@ -714,6 +715,19 @@ void AGSAndroid::SetGameWindowIcon() {
 void AGSAndroid::WriteStdOut(const char *fmt, ...)
 {
   // TODO: this check should probably be done once when setting up output targets for logging
+  if (psp_debug_write_to_logcat)
+  {
+    va_list args;
+    va_start(args, fmt);
+    __android_log_vprint(ANDROID_LOG_DEBUG, "AGSNative", fmt, args);
+    // NOTE: __android_log_* functions add trailing '\n'
+    va_end(args);
+  }
+}
+
+void AGSAndroid::WriteStdErr(const char *fmt, ...)
+{
+  // TODO: find out if Android needs separate implementation for stderr
   if (psp_debug_write_to_logcat)
   {
     va_list args;

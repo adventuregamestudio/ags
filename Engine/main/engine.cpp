@@ -150,31 +150,21 @@ void engine_setup_window()
     platform->SetGameWindowIcon();
 }
 
-bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
+// Starts up setup application, if capable.
+// Returns TRUE if should continue running the game, otherwise FALSE.
+bool engine_run_setup(const String &exe_path, ConfigTree &cfg, int &app_res)
 {
+    app_res = EXIT_NORMAL;
 #if AGS_PLATFORM_OS_WINDOWS
-    // check if Setup needs to be run instead
-    if (justRunSetup)
     {
             String cfg_file = find_user_cfg_file();
             if (cfg_file.IsEmpty())
+            {
+                app_res = EXIT_ERROR;
                 return false;
+            }
 
             Debug::Printf(kDbgMsg_Init, "Running Setup");
-
-            // Add information about game resolution and let setup application
-            // display some properties to the user
-            INIwriteint(cfg, "misc", "defaultres", game.GetResolutionType());
-            INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
-            INIwriteint(cfg, "misc", "game_width", game.GetDefaultRes().Width);
-            INIwriteint(cfg, "misc", "game_height", game.GetDefaultRes().Height);
-            INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
-            if (game.options[OPT_RENDERATSCREENRES] != kRenderAtScreenRes_UserDefined)
-            {
-                // force enabled/disabled
-                INIwriteint(cfg, "graphics", "render_at_screenres", game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled);
-                INIwriteint(cfg, "disabled", "render_at_screenres", 1);
-            }
 
             ConfigTree cfg_out;
             SetupReturnValue res = platform->RunSetup(cfg, cfg_out);
@@ -199,7 +189,6 @@ bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
             _spawnl (_P_OVERLAY, exe_path, quotedpath, NULL);
     }
 #endif
-
     return true;
 }
 
@@ -1327,24 +1316,38 @@ void engine_read_config(const String &exe_path, ConfigTree &cfg)
         override_config_ext(cfg);
 }
 
-bool engine_do_config(const String &exe_path, const ConfigTree &startup_opts)
+// Gathers settings from all available sources into single ConfigTree
+void engine_prepare_config(ConfigTree &cfg, const String &exe_path, const ConfigTree &startup_opts)
 {
     Debug::Printf(kDbgMsg_Init, "Setting up game configuration");
-    // Init default options
-    config_defaults();
-    ConfigTree cfg;
     // Read configuration files
     engine_read_config(exe_path, cfg);
     // Merge startup options in
     for (const auto &sectn : startup_opts)
         for (const auto &opt : sectn.second)
             cfg[sectn.first][opt.first] = opt.second;
-    // Set up game options from user config
+
+    // Add "meta" config settings to let setup application(s)
+    // display correct properties to the user
+    INIwriteint(cfg, "misc", "defaultres", game.GetResolutionType());
+    INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
+    INIwriteint(cfg, "misc", "game_width", game.GetDefaultRes().Width);
+    INIwriteint(cfg, "misc", "game_height", game.GetDefaultRes().Height);
+    INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
+    if (game.options[OPT_RENDERATSCREENRES] != kRenderAtScreenRes_UserDefined)
+    {
+        // force enabled/disabled
+        INIwriteint(cfg, "graphics", "render_at_screenres", game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled);
+        INIwriteint(cfg, "disabled", "render_at_screenres", 1);
+    }
+}
+
+// Applies configuration to the running game
+void engine_set_config(const ConfigTree cfg)
+{
+    config_defaults();
     apply_config(cfg);
-    // Fixup configuration if necessary
     post_config();
-    // Test if need to run built-in setup program (where available)
-    return engine_check_run_setup(exe_path, cfg);
 }
 
 // TODO: this function is still a big mess, engine/system-related initialization
@@ -1366,8 +1369,17 @@ int initialize_engine(const ConfigTree &startup_opts)
     const String exe_path = global_argv[0];
     if (!engine_init_gamedata(exe_path))
         return EXIT_ERROR;
-    if (!engine_do_config(exe_path, startup_opts))
-        return EXIT_ERROR;
+    ConfigTree cfg;
+    engine_prepare_config(cfg, exe_path, startup_opts);
+    // Test if need to run built-in setup program (where available)
+    if (justRunSetup)
+    {
+        int res;
+        if (!engine_run_setup(exe_path, cfg, res))
+            return res;
+    }
+    // Set up game options from user config
+    engine_set_config(cfg);
     engine_setup_allegro();
     engine_force_window();
 

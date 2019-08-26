@@ -194,8 +194,7 @@ editor_packaging_task:
     dockerfile: ci/windows/Dockerfile
     os_version: 2019
   env:
-    MANUAL_RELEASE: 0.3.3
-    TEMPLATES_URL: https://codeload.github.com/adventuregamestudio/ags-templates/zip/master
+    TEMPLATES_REPOSITORY: adventuregamestudio/ags-templates
   get_vcredist_script: >
     mkdir Windows\Installer\Source\Redist &&
     copy %SYSTEMDRIVE%\Redist\vc_redist.x86.exe Windows\Installer\Source\Redist\
@@ -209,11 +208,11 @@ editor_packaging_task:
     "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_windows/binaries/Solutions/.build/Release/acwin.exe"
   get_manual_script: >
     mkdir Windows\Installer\Source\Docs &&
-    curl -fLSso Windows\Installer\Source\Docs\ags-help.chm
-    "https://github.com/adventuregamestudio/ags-manual/releases/download/%MANUAL_RELEASE%/ags-help.chm"
+    cd Windows\Installer\Source\Docs &&
+    call %CIRRUS_WORKING_DIR%\Script\get_manual.cmd
   get_templates_script: >
     mkdir Windows\Installer\Source\Templates &&
-    curl -fLSs %TEMPLATES_URL% |
+    curl -fLSs https://github.com/%TEMPLATES_REPOSITORY%/tarball/master |
     tar -f - -xvzC Windows\Installer\Source\Templates --strip-components 2
   get_linux_bundle_script: >
     mkdir Windows\Installer\Source\Linux &&

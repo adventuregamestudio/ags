@@ -186,7 +186,7 @@ public:
     bool HasAcceleratedTransform() override { return false; }
     bool UsesMemoryBackBuffer() override { return true; }
     Bitmap *GetMemoryBackBuffer() override;
-    void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy) override;
+    void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer() override;
     ~ALSoftwareGraphicsDriver() override;
 
@@ -206,13 +206,6 @@ private:
     // Current virtual screen bitmap; may be provided either by graphics
     // filter or by external user. It should not be disposed by the renderer.
     Bitmap *virtualScreen;
-    // Extra offset for the custom virtual screen.
-    // NOTE: the big issue with software renderer is that it handles main viewport changes
-    // differently from the hardware-accelerated ones. While D3D and OGL renderers
-    // work with the full game frame and offset sprites by the viewport's top-left,
-    // software renderer has to work with "virtual screen" bitmap of the main viewport's size,
-    // which means that it has to treat 0,0 as a viewport's top-left and not game frame's top-left.
-    Point   _virtualScrOff;
     // Stage screen meant for particular rendering stages, may be referencing
     // actual virtual screen or separate bitmap of different size that is
     // blitted to virtual screen at the stage finalization.

@@ -166,7 +166,7 @@ Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
     return nullptr;
 }
 
-void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
+void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
 { // do nothing, video-memory drivers don't use main back buffer, only stage bitmaps they pass to plugins
 }
 

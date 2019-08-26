@@ -137,8 +137,6 @@ CachedActSpsData* actspswbcache;
 
 bool current_background_is_dirty = false;
 
-Bitmap *sub_vscreen = nullptr;
-
 // Room background sprite
 IDriverDependantBitmap* roomBackgroundBmp = nullptr;
 // Buffer and info flags for viewport/camera pairs rendering in software mode
@@ -540,18 +538,6 @@ void dispose_room_drawdata()
 
 void on_mainviewport_changed()
 {
-    if (gfxDriver->UsesMemoryBackBuffer())
-    {
-        const Rect &main_view = play.GetMainViewport();
-        gfxDriver->SetMemoryBackBuffer(nullptr); // make it restore original virtual screen
-        if (main_view.GetSize() != game.GetGameRes())
-        {
-            delete sub_vscreen;
-            sub_vscreen = BitmapHelper::CreateSubBitmap(gfxDriver->GetMemoryBackBuffer(), main_view);
-            gfxDriver->SetMemoryBackBuffer(sub_vscreen, main_view.Left, main_view.Top);
-        }
-    }
-
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
         init_invalid_regions(-1, play.GetMainViewport().GetSize(), RectWH(play.GetMainViewport().GetSize()));
@@ -602,7 +588,7 @@ void sync_roomview(Viewport *view)
 {
     if (view->GetCamera() == nullptr)
         return;
-    init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(), view->GetRect());
+    init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(), play.GetRoomViewportAbs(view->GetID()));
     prepare_roomview_frame(view);
 }
 

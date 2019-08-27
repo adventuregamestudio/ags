@@ -323,15 +323,18 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
 
         // For games which were made without having safe paths in mind,
         // provide two paths: a path to the local directory and a path to
-        // AppData directory.
+        // safe writeable directory (aka user path).
         // This is done in case game writes a file by local path, and would
-        // like to read it back later. Since AppData path has higher priority,
-        // game will first check the AppData location and find a previously
+        // like to read it back later. Since user path has higher priority,
+        // game will first check the user location and find a previously
         // written file.
         // If no file was written yet, but game is trying to read a pre-created
         // file in the installation directory, then such file will be found
         // following the 'alt_path'.
-        parent_dir = MakeAppDataPath();
+        if (usetup.remap_installdir_to_shared)
+            parent_dir = MakeAppDataPath();
+        else
+            parent_dir = get_save_game_directory();
         // Set alternate non-remapped "unsafe" path for read-only operations
         if (read_only)
             alt_path = String::FromFormat("%s/%s", get_install_dir().GetCStr(), sc_path.GetCStr());

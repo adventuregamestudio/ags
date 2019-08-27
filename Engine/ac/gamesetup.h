@@ -61,6 +61,7 @@ struct GameSetup {
     String install_voice_dir; // optional custom install voice-over dir path
     String user_data_dir; // directory to write savedgames and user files to
     String shared_data_dir; // directory to write shared game files to
+    bool remap_installdir_to_shared; // remap writing in installdir to user or common path
     String translation;
     bool  mouse_auto_lock;
     int   override_script_os;

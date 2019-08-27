@@ -600,6 +600,8 @@ void apply_config(const ConfigTree &cfg)
             usetup.override_script_os = eOS_Mac;
         }
         usetup.override_upscale = INIreadint(cfg, "override", "upscale") > 0;
+        if (INIreadstring(cfg, "override", "remap_installdir", "savegamedir").Compare("appdatadir") == 0)
+            usetup.remap_installdir_to_shared = true;
     }
 
     // Apply logging configuration

@@ -25,6 +25,7 @@ GameSetup::GameSetup()
     enable_antialiasing = false;
     disable_exception_handling = false;
     mouse_auto_lock = false;
+    remap_installdir_to_shared = false;
     override_script_os = -1;
     override_multitasking = -1;
     override_upscale = false;

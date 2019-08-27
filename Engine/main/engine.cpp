@@ -54,6 +54,7 @@
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/gfxdriverfactory.h"
 #include "gfx/ddb.h"
 #include "main/config.h"
 #include "main/game_file.h"
@@ -1367,6 +1368,15 @@ static void engine_print_info(const std::set<String> &keys, const String &exe_pa
     {
         data["engine"]["name"] = get_engine_name();
         data["engine"]["version"] = get_engine_version();
+    }
+    if (all || keys.count("graphicdriver") > 0)
+    {
+        StringV drv;
+        AGS::Engine::GetGfxDriverFactoryNames(drv);
+        for (size_t i = 0; i < drv.size(); ++i)
+        {
+            data["graphicdriver"][String::FromFormat("%u", i)] = drv[i];
+        }
     }
     if (all || keys.count("configpath") > 0)
     {

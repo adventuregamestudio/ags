@@ -317,10 +317,14 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         parent_dir = MakeAppDataPath();
         child_path = sc_path.Mid(GameDataDirToken.GetLength());
     }
+    else if(game.options[OPT_SAFEFILEPATHS] > 1)
+    {
+        debug_script_warn("Attempt to access file '%s' denied (path token not specified)", sc_path.GetCStr());
+        return false;
+    }
     else
     {
         child_path = sc_path;
-
         // For games which were made without having safe paths in mind,
         // provide two paths: a path to the local directory and a path to
         // safe writeable directory (aka user path).
@@ -338,14 +342,8 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         // Set alternate non-remapped "unsafe" path for read-only operations
         if (read_only)
             alt_path = String::FromFormat("%s/%s", get_install_dir().GetCStr(), sc_path.GetCStr());
-
-        // For games made in the safe-path-aware versions of AGS, report a warning
-        // if the unsafe path is used for write operation
-        if (!read_only && game.options[OPT_SAFEFILEPATHS])
-        {
-            debug_script_warn("Attempt to access file '%s' denied (cannot write to game installation directory);\nPath will be remapped to the app data directory: '%s'",
-                sc_path.GetCStr(), parent_dir.GetCStr());
-        }
+        debug_script_warn("Attempt to access file '%s' denied (cannot write to game installation directory);\nPath will be remapped to the app data directory: '%s'",
+            sc_path.GetCStr(), parent_dir.GetCStr());
     }
 
     if (child_path[0u] == '\\' || child_path[0u] == '/')

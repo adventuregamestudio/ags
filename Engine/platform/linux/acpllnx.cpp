@@ -38,12 +38,14 @@ using AGS::Common::String;
 // Allegro 4.4 source under "src/x/xwin.c".
 #include "icon.xpm"
 void* allegro_icon = icon_xpm;
-String LinuxOutputDirectory;
+String CommonDataDirectory;
+String UserDataDirectory;
 
 struct AGSLinux : AGSPlatformDriver {
 
   int  CDPlayerCommand(int cmdd, int datt) override;
   void DisplayAlert(const char*, ...) override;
+  const char *GetAllUsersDataDirectory() override;
   const char *GetUserSavedgamesDirectory() override;
   const char *GetUserConfigDirectory() override;
   const char *GetUserGlobalConfigDirectory() override;
@@ -96,30 +98,32 @@ size_t BuildXDGPath(char *destPath, size_t destSize)
     if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
       return 0;
   }
-  l += snprintf(destPath + l, destSize - l, "/ags");
-  if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
-    return 0;
   return l;
 }
 
-void DetermineAppOutputDirectory()
+void DetermineDataDirectories()
 {
-  if (!LinuxOutputDirectory.IsEmpty())
-  {
+  if (!UserDataDirectory.IsEmpty())
     return;
-  }
-
   char xdg_path[256];
-  if (BuildXDGPath(xdg_path, sizeof(xdg_path)) > 0)
-    LinuxOutputDirectory = xdg_path;
-  else
-    LinuxOutputDirectory = "/tmp";
+  if (BuildXDGPath(xdg_path, sizeof(xdg_path)) == 0)
+    sprintf(xdg_path, "%s", "/tmp");
+  UserDataDirectory.Format("%s/ags", xdg_path);
+  mkdir(UserDataDirectory.GetCStr(), 0755);
+  CommonDataDirectory.Format("%s/ags-common", xdg_path);
+  mkdir(CommonDataDirectory.GetCStr(), 0755);
+}
+
+const char *AGSLinux::GetAllUsersDataDirectory()
+{
+  DetermineDataDirectories();
+  return CommonDataDirectory;
 }
 
 const char *AGSLinux::GetUserSavedgamesDirectory()
 {
-  DetermineAppOutputDirectory();
-  return LinuxOutputDirectory;
+  DetermineDataDirectories();
+  return UserDataDirectory;
 }
 
 const char *AGSLinux::GetUserConfigDirectory()
@@ -134,8 +138,8 @@ const char *AGSLinux::GetUserGlobalConfigDirectory()
 
 const char *AGSLinux::GetAppOutputDirectory()
 {
-  DetermineAppOutputDirectory();
-  return LinuxOutputDirectory;
+  DetermineDataDirectories();
+  return UserDataDirectory;
 }
 
 unsigned long AGSLinux::GetDiskFreeSpaceMB() {

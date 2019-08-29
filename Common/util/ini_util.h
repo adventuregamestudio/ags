@@ -44,6 +44,10 @@ namespace IniUtil
     // The first level values are treated as a global section items.
     // The sub-nodes beyond 2nd level are ignored completely.
     void Write(const String &file, const ConfigTree &tree);
+    // Serialize given tree to the string in INI text format.
+    // TODO: implement proper memory/string stream compatible with base Stream
+    // class and merge this with Write function.
+    void WriteToString(String &s, const ConfigTree &tree);
     // Parse the contents of given source stream as INI format and merge
     // with values of the given tree while doing only minimal replaces;
     // write the result into destination stream.

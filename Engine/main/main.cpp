@@ -195,6 +195,13 @@ void main_print_help() {
 #if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
+           "  --tell                       Print various information concerning engine\n"
+           "                                 and the game; for selected output use:\n"
+           "  --tell-config                Print contents of game config\n"
+           "  --tell-configpath            Print paths to available config files\n"
+           "  --tell-engine                Print engine name and version\n"
+           "  --tell-graphicdriver         Print list of supported graphic drivers\n"
+           "\n"
            "  --version                    Print engine's version and stop\n"
            "  --windowed                   Force display mode to windowed\n"
            "\n"

@@ -1357,7 +1357,8 @@ void engine_set_config(const ConfigTree cfg)
 extern std::set<String> tellInfoKeys;
 static bool print_info_needs_game(const std::set<String> &keys)
 {
-    return keys.count("all") > 0 || keys.count("config") > 0 || keys.count("configpath") > 0;
+    return keys.count("all") > 0 || keys.count("config") > 0 || keys.count("configpath") > 0 ||
+        keys.count("data") > 0;
 }
 
 static void engine_print_info(const std::set<String> &keys, const String &exe_path, ConfigTree *user_cfg)
@@ -1383,7 +1384,6 @@ static void engine_print_info(const std::set<String> &keys, const String &exe_pa
         String def_cfg_file = find_default_cfg_file(exe_path);
         String gl_cfg_file = find_user_global_cfg_file();
         String user_cfg_file = find_user_cfg_file();
-        data["config-path"]["gamename"] = game.gamename;
         data["config-path"]["default"] = def_cfg_file;
         data["config-path"]["global"] = gl_cfg_file;
         data["config-path"]["user"] = user_cfg_file;
@@ -1396,6 +1396,13 @@ static void engine_print_info(const std::set<String> &keys, const String &exe_pa
             for (const auto &opt : sectn.second)
                 data[cfg_sectn][opt.first] = opt.second;
         }
+    }
+    if (all || keys.count("data") > 0)
+    {
+        data["data"]["gamename"] = game.gamename;
+        data["data"]["version"] = String::FromFormat("%d", loaded_game_file_version);
+        data["data"]["compiledwith"] = game.compiled_with;
+        data["data"]["basepack"] = usetup.main_data_filepath;
     }
     String full;
     IniUtil::WriteToString(full, data);

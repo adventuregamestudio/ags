@@ -130,6 +130,7 @@ HError preload_game_data()
         return (HError)err;
     // Read only the particular data we need for preliminary game analysis
     PreReadSaveFileInfo(src.InputStream.get(), src.DataVersion);
+    game.compiled_with = src.CompiledWith;
     FixupSaveDirectory(game);
     return HError::None();
 }

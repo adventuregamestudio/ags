@@ -199,6 +199,7 @@ void main_print_help() {
            "                                 and the game; for selected output use:\n"
            "  --tell-config                Print contents of game config\n"
            "  --tell-configpath            Print paths to available config files\n"
+           "  --tell-data                  Print information on game data and its location\n"
            "  --tell-engine                Print engine name and version\n"
            "  --tell-graphicdriver         Print list of supported graphic drivers\n"
            "\n"

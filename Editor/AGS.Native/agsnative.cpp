@@ -2244,6 +2244,7 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
+  thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 

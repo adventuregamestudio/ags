@@ -16,28 +16,36 @@ namespace AGS.Editor
             InitializeComponent();
 
             splashPage.ConstructSimple();
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"AGS Editor .NET (Build {Types.Version.AGS_EDITOR_VERSION})");
 
-            txtInfo.Text = "AGS Editor .NET (Build " + AGS.Types.Version.AGS_EDITOR_VERSION + ")";
-            if (AGS.Types.Version.IS_BETA_VERSION)
+            if (Types.Version.IS_BETA_VERSION)
             {
-                txtInfo.Text += " ** BETA VERSION **";
+                sb.AppendLine(" ** BETA VERSION **");
             }
-            txtInfo.Text += Environment.NewLine +
-				"v" + AGS.Types.Version.AGS_EDITOR_FRIENDLY_VERSION + ", " + AGS.Types.Version.AGS_EDITOR_DATE +
-                Environment.NewLine +
-                AGS.Types.Version.AGS_EDITOR_COPYRIGHT + Environment.NewLine +
-				"Scintilla (c) 1998-2003 Neil Hodgson, all rights reserved" +
-				Environment.NewLine +
-                "DockPanel Suite (c) 2007 Weifen Luo" +
-                Environment.NewLine +
-				"See the DOCS folder for copyrights of used libraries." +
-				Environment.NewLine + 
-				"System: " + GetOperatingSystemName() + 
-				Environment.NewLine;
+            else
+            {
+                sb.AppendLine();
+            }
 
+            sb.AppendLine($"v{Types.Version.AGS_EDITOR_FRIENDLY_VERSION}, {Types.Version.AGS_EDITOR_DATE}");
+            sb.AppendLine(Types.Version.AGS_EDITOR_COPYRIGHT);
+            sb.AppendLine("Scintilla (c) 1998-2003 Neil Hodgson, all rights reserved");
+            sb.AppendLine("DockPanel Suite (c) 2007 Weifen Luo");
+            sb.AppendLine("See the DOCS folder for copyrights of used libraries.");
+            sb.AppendLine("System: " + GetOperatingSystemName());
+
+            // pickup extra information which might be set (i.e. loaded plug-ins)
 			GetAboutDialogTextEventArgs evArgs = new GetAboutDialogTextEventArgs(string.Empty);
 			Factory.Events.OnGetAboutDialogText(evArgs);
-			txtInfo.Text += evArgs.Text;
+
+            // ...value is either completely empty or already includes a newline
+            if (!string.IsNullOrWhiteSpace(evArgs.Text))
+            {
+                sb.Append(evArgs.Text);
+            }
+
+            txtInfo.Text = sb.ToString().TrimEnd();
         }
 
         private string GetOperatingSystemName()

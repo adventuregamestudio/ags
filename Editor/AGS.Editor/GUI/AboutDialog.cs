@@ -30,9 +30,12 @@ namespace AGS.Editor
 
             sb.AppendLine($"v{Types.Version.AGS_EDITOR_FRIENDLY_VERSION}, {Types.Version.AGS_EDITOR_DATE}");
             sb.AppendLine(Types.Version.AGS_EDITOR_COPYRIGHT);
-            sb.AppendLine("Scintilla (c) 1998-2003 Neil Hodgson, all rights reserved");
-            sb.AppendLine("DockPanel Suite (c) 2007 Weifen Luo");
-            sb.AppendLine("See the DOCS folder for copyrights of used libraries.");
+            sb.AppendLine("See the Licenses folder for copyrights of used libraries.");
+            sb.AppendLine("DockPanel Suite © 2007 Weifen Luo");
+            sb.AppendLine("irrKlang © 2001-2018 Nikolaus Gebhardt / Ambiera");
+            sb.AppendLine("Magick.NET © 2013-2019 Dirk Lemstra");
+            sb.AppendLine("Newtonsoft JSON.NET © 2007 James Newton-King");
+            sb.AppendLine("Scintilla © 1998-2003 Neil Hodgson");
             sb.AppendLine("System: " + GetOperatingSystemName());
 
             // pickup extra information which might be set (i.e. loaded plug-ins)

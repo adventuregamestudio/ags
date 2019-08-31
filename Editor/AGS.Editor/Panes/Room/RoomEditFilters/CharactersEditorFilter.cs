@@ -22,6 +22,7 @@ namespace AGS.Editor
         private Game _game = null;
         private Room _room;
         private Panel _panel;
+        RoomSettingsEditor _editor;
         private Character _selectedCharacter = null;
         private bool _movingCharacterWithMouse = false;
         private int _menuClickX = 0;
@@ -30,11 +31,12 @@ namespace AGS.Editor
 
         public Character SelectedCharacter { get { return _selectedCharacter; } }
 
-        public CharactersEditorFilter(Panel displayPanel, Room room, Game game)
+        public CharactersEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room, Game game)
         {
             _room = room;
             _panel = displayPanel;
             _game = game;
+            _editor = editor;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             RoomItemRefs = new SortedDictionary<string, Character>();
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
@@ -325,6 +327,25 @@ namespace AGS.Editor
             Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
         }
 
+        // Refreshes property grid list explicitly for this room editor's content document;
+        // this is done to work around regular update system which assumes editor to be
+        // an active pane, which is not necessarily the case (this could be background operation).
+        // NOTE: this is done exclusively for Character Filter, because it's the only one
+        // that shares objects with other panes (Character Editor pane).
+        private void SetPropertyGridListExplicit()
+        {
+            object selObject = _editor.ContentDocument.SelectedPropertyGridObject;
+            Dictionary<string, object> list = new Dictionary<string, object>();
+            list.Add(_room.PropertyGridTitle, _room);
+            foreach (var item in RoomItemRefs)
+            {
+                list.Add(item.Value.PropertyGridTitle, item.Value);
+            }
+            _editor.ContentDocument.PropertyGridObjectList = list;
+            if (!list.ContainsValue(selObject))
+                _editor.ContentDocument.SelectedPropertyGridObject = _room;
+        }
+
         private void GUIController_OnPropertyObjectChanged(object newPropertyObject)
         {
             if (newPropertyObject is Character)
@@ -514,6 +535,7 @@ namespace AGS.Editor
             UpdateCharactersRoom(e.Character, e.PreviousRoom);
             OnItemsChanged(this, null);
             Invalidate();
+            SetPropertyGridListExplicit();
         }
 
         private void AddCharacterRef(Character c)

@@ -17,12 +17,12 @@ namespace AGS.Editor
         private GlobalVariable _variable;
         private Game _game;
 
-        public GlobalVariableDialog(GlobalVariable variable, Game game)
+        public GlobalVariableDialog(GlobalVariable variable, Game game, IEnumerable<APITypeDef> apiTypes)
         {
             InitializeComponent();
             _variable = variable;
             _game = game;
-            PopulateTypeList();
+            PopulateTypeList(apiTypes);
             txtName.Text = variable.Name ?? string.Empty;
             txtDefaultValue.Text = variable.DefaultValue ?? string.Empty;
 
@@ -38,25 +38,30 @@ namespace AGS.Editor
             Utilities.CheckLabelWidthsOnForm(this);
         }
 
-        private void PopulateTypeList()
+        private void PopulateTypeList(IEnumerable<APITypeDef> apiTypes)
         {
             cmbType.Items.Clear();
             cmbType.Items.Add(new GlobalVariableType("int", @"^\-?[0-9]+$"));
             cmbType.Items.Add(new GlobalVariableType("String", @"^.*$"));
             cmbType.Items.Add(new GlobalVariableType("float", @"^\-?[0-9]+(\.[0-9]+)?$"));
             cmbType.Items.Add(new GlobalVariableType("bool", @"^true$|^false$"));
-            cmbType.Items.Add(new GlobalVariableType("GUI*", null));
-            cmbType.Items.Add(new GlobalVariableType("AudioChannel*", null));
-            cmbType.Items.Add(new GlobalVariableType("Character*", null));
-            cmbType.Items.Add(new GlobalVariableType("DynamicSprite*", null));
-            cmbType.Items.Add(new GlobalVariableType("Overlay*", null));
-            cmbType.Items.Add(new GlobalVariableType("ViewFrame*", null));
+            if (apiTypes != null)
+            {
+                foreach (var def in apiTypes)
+                {
+                    if (!def.Managed || def.String) continue;
+                    if (def.Autoptr)
+                        cmbType.Items.Add(new GlobalVariableType(def.Name, null));
+                    else
+                        cmbType.Items.Add(new GlobalVariableType(string.Format("{0}*", def.Name), null));
+                }
+            }
             cmbType.SelectedIndex = 0;
         }
 
-        public static DialogResult Show(GlobalVariable variable, Game game)
+        public static DialogResult Show(GlobalVariable variable, Game game, IEnumerable<APITypeDef> apiTypes)
         {
-            GlobalVariableDialog dialog = new GlobalVariableDialog(variable, game);
+            GlobalVariableDialog dialog = new GlobalVariableDialog(variable, game, apiTypes);
             DialogResult result = dialog.ShowDialog();
             dialog.Dispose();
             return result;
@@ -129,6 +134,5 @@ namespace AGS.Editor
                 return TypeName;
             }
         }
-
     }
 }

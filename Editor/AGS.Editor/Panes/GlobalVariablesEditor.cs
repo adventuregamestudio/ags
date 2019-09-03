@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Data;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -24,6 +25,7 @@ namespace AGS.Editor
 
         private GlobalVariables _variables;
         private Game _game;
+        private SortedSet<APITypeDef> _apiTypes = new SortedSet<APITypeDef>();
 
         public GlobalVariablesEditor(Game game)
         {
@@ -39,6 +41,12 @@ namespace AGS.Editor
                 lvwWords.Items.Add(CreateListItemFromVariable(variable));
             }
             lvwWords.Sort();
+
+            try
+            {
+                PopulateScriptTypeList();
+            }
+            catch (Exception) { }
         }
 
         public void SelectGlobalVariable(string variableName)
@@ -66,7 +74,27 @@ namespace AGS.Editor
                 UpdateListItemFromVariableObject(lvwWords.SelectedItems[0]);
             }
         }
-        
+
+        private void PopulateScriptTypeList()
+        {
+            _apiTypes.Clear();
+            string api = Resources.ResourceManager.GetResourceAsString("agsdefns.sh");
+            var regex = new Regex(@"\b(?:(internalstring|autoptr|builtin|managed)\s+)+struct\s+(\w+)", RegexOptions.Compiled);
+            for (Match m = regex.Match(api); m.Success; m = m.NextMatch())
+            {
+                bool is_string = false;
+                bool is_managed = false;
+                bool is_autoptr = false;
+                foreach (Capture c in m.Groups[1].Captures)
+                {
+                    is_string |= c.Value == "internalstring";
+                    is_managed |= c.Value == "managed";
+                    is_autoptr |= c.Value == "autoptr";
+                }
+                _apiTypes.Add(new APITypeDef(m.Groups[2].Captures[0].Value, is_autoptr, is_managed, is_string));
+            }
+        }
+
         private ListViewItem CreateListItemFromVariable(GlobalVariable variable)
         {
             ListViewItem newItem = new ListViewItem(new string[] { variable.Name, variable.Type, variable.DefaultValue });
@@ -116,7 +144,7 @@ namespace AGS.Editor
             else if (item.Name == MENU_ITEM_ADD_WORD)
             {
                 GlobalVariable variable = new GlobalVariable();
-                if (GlobalVariableDialog.Show(variable, _game) == DialogResult.OK)
+                if (GlobalVariableDialog.Show(variable, _game, _apiTypes) == DialogResult.OK)
                 {
                     AddNewVariableToList(variable);
                 }
@@ -135,7 +163,7 @@ namespace AGS.Editor
         private void EditSelectedVariable(GlobalVariable variable)
         {
             string nameWas = variable.Name;
-            if (GlobalVariableDialog.Show(variable, _game) == DialogResult.OK)
+            if (GlobalVariableDialog.Show(variable, _game, _apiTypes) == DialogResult.OK)
             {
                 if (variable.Name != nameWas)
                 {

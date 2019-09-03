@@ -45,8 +45,8 @@ int StrContains (const char *s1, const char *s2);
 
 const char* CreateNewScriptString(const char *fromText, bool reAllocate = true);
 DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate = true);
-void reverse_text(char *text);
-void break_up_text_into_lines(int wii,int fonnt, const char*todis);
+class SplitLines;
+int break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines = -1);
 void check_strlen(char*ptt);
 void my_strncpy(char *dest, const char *src, int len);
 

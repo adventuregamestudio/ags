@@ -188,14 +188,12 @@ bool use_default_linespacing(size_t fontNumber)
     return fonts[fontNumber].Info.LineSpacing == 0;
 }
 
-char lines[MAXLINE][200];
-int  numlines;
-
 // Project-dependent implementation
 extern int wgettextwidth_compensate(const char *tex, int font);
 
+namespace AGS { namespace Common { SplitLines Lines; } }
 // Break up the text into lines
-void split_lines(const char *todis, int wii, int fonnt) {
+void split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
     // v2.56.636: rewrote this function because the old version
     // was crap and buggy
     int i = 0;
@@ -209,14 +207,15 @@ void split_lines(const char *todis, int wii, int fonnt) {
     theline = textCopyBuffer;
     unescape(theline);
 
+    lines.Reset();
+
     while (1) {
         splitAt = -1;
 
         if (theline[i] == 0) {
             // end of the text, add the last line if necessary
             if (i > 0) {
-                strcpy(lines[numlines], theline);
-                numlines++;
+                lines.Add(theline);
             }
             break;
         }
@@ -248,11 +247,10 @@ void split_lines(const char *todis, int wii, int fonnt) {
             // add this line
             nextCharWas = theline[splitAt];
             theline[splitAt] = 0;
-            strcpy(lines[numlines], theline);
-            numlines++;
+            lines.Add(theline);
             theline[splitAt] = nextCharWas;
-            if (numlines >= MAXLINE) {
-                strcat(lines[numlines - 1], "...");
+            if (lines.Count() >= max_lines) {
+                lines[lines.Count() - 1].Append("...");
                 break;
             }
             // the next line starts from here

@@ -20,8 +20,6 @@
 #define TEXTWINDOW_PADDING_DEFAULT  3
 //#define MAX_OBJ_EACH_TYPE 251
 
-#define MAXLINE 50
-
 // TODO: find out more about gui version history
 //=============================================================================
 // GUI Version history

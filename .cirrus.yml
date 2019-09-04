@@ -6,7 +6,7 @@ build_windows_task:
     matrix:
       - BUILD_CONFIG: Release
       - BUILD_CONFIG: Debug
-    ALLEGRO_RELEASE: v4.4.3-ags-2
+    ALLEGRO_RELEASE: v4.4.3.1-agspatch-2
     AGS_DIRECTX_LIB: C:\Lib\DirectX
     AGS_LIBOGG_LIB: C:\Lib\Xiph
     AGS_LIBTHEORA_LIB: C:\Lib\Xiph
@@ -121,7 +121,7 @@ build_editor_task:
     matrix:
       - BUILD_CONFIG: Release
       - BUILD_CONFIG: Debug
-    ALLEGRO_RELEASE: v4.4.3-ags-2
+    ALLEGRO_RELEASE: v4.4.3.1-agspatch-2
     AGS_DIRECTX_LIB: C:\Lib\DirectX
   nuget_packages_cache:
     folder: Solutions\packages
@@ -152,7 +152,7 @@ linux_packaging_task:
   freebsd_instance:
     image: freebsd-12-0-release-amd64
   env:
-    ALLEGRO_RELEASE: v4.4.3-ags-2
+    ALLEGRO_RELEASE: v4.4.3.1-agspatch-2
   package_script: |
     tmp=/tmp/bundle$$
     mkdir -p $tmp/data
@@ -171,7 +171,7 @@ linux_packaging_task:
       curl -fLsS "$url" | tar -f - -xvzC $tmp/data
       echo Downloading Allegro $ALLEGRO_RELEASE $arch
       mkdir $tmp/allegro_${ALLEGRO_RELEASE}_$arch
-      url="https://github.com/morganwillcock/lib-allegro/releases/download/$ALLEGRO_RELEASE/lib-allegro_release_$arch.tar.gz"
+      url="https://github.com/adventuregamestudio/lib-allegro/releases/download/$ALLEGRO_RELEASE/lib-allegro_release_$arch.tar.gz"
       curl -fLsS "$url" | tar -f - -xvzC $tmp/allegro_${ALLEGRO_RELEASE}_$arch --strip-components 1 -s '|pkgconfig/.*||' lib
       find $tmp/allegro_${ALLEGRO_RELEASE}_$arch \( -name "alleg-*" -or -name "liballeg.so.?.?" \) \
         -exec cp -v "{}" $tmp/data/lib$bit/ \;

@@ -75,7 +75,7 @@ namespace AGS.Editor
             SetZoomSliderToMultiplier(_room.Width <= 320 ? 2 : 1);
 
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
-            _characterLayer = new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame);
+            _characterLayer = new CharactersEditorFilter(bufferedPanel1, this, _room, Factory.AGSEditor.CurrentGame);
             _layers.Add(_characterLayer);
             _layers.Add(new ObjectsEditorFilter(bufferedPanel1, _room));
             _layers.Add(new HotspotsEditorFilter(bufferedPanel1, _room));

@@ -388,6 +388,7 @@
     <EmbeddedResource Include="Resources\AGSFNT1.WFN" />
     <EmbeddedResource Include="Resources\AGSFNT2.WFN" />
     <Compile Include="Resources\ResourceManager.cs" />
+    <Compile Include="TextProcessing\APITypeDef.cs" />
     <Compile Include="Utils\AlternateStreams.cs" />
     <Compile Include="Utils\SourceControlProvider.cs" />
     <Compile Include="GUI\TabbedDocumentManager.cs">

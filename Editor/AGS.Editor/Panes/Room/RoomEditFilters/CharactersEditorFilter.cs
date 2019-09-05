@@ -50,18 +50,14 @@ namespace AGS.Editor
             }
         }
 
-        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
-        {
-            _selectedCharacter = null;
-        }
-
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             int xClick = state.WindowXToRoom(e.X);
             int yClick = state.WindowYToRoom(e.Y);
             Character character = GetCharacter(xClick, yClick, state);
             if (character != null) SelectCharacter(character, xClick, yClick, state);
-            
+            else _selectedCharacter = null;
+
             if (_selectedCharacter != null)
             {
                 Factory.GUIController.SetPropertyGridObject(_selectedCharacter);

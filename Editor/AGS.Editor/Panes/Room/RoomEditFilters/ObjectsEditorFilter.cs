@@ -176,11 +176,6 @@ namespace AGS.Editor
             }
         }
 
-        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state)
-        {
-            _selectedObject = null;
-        }
-
         public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             int x = state.WindowXToRoom(e.X);
@@ -202,6 +197,11 @@ namespace AGS.Editor
                     _mouseOffsetY = y - obj.StartY;
                 }
             }
+            else
+            {
+                _selectedObject = null;
+            }
+
             if (_selectedObject == null)
             {                
                 if (e.Button == MouseButtons.Right)

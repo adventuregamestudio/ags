@@ -232,16 +232,6 @@ namespace AGS.Editor
             return _room.MaskResolution;
         }
 
-        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
-        {
-            if (!IsFilterOn())
-            {
-                DeselectArea();
-                _drawingWithArea = 0;
-                _drawMode = AreaDrawMode.Select;
-            }
-        }
-
         public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             if (e.Button == MouseButtons.Middle)
@@ -291,9 +281,17 @@ namespace AGS.Editor
             else if (drawMode == AreaDrawMode.Select)
             {
                 int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);                                
-                if (area != 0 && !IsLocked(area))
+                if (area != 0)
                 {
-                    SelectedArea = area;
+                    if (!IsLocked(area))
+                    {
+                        SelectedArea = area;
+                        SelectedAreaChanged(_selectedArea);
+                    }
+                }
+                else
+                {
+                    DeselectArea();
                     SelectedAreaChanged(_selectedArea);
                 }
             }
@@ -648,6 +646,7 @@ namespace AGS.Editor
         protected void DeselectArea()
         {
             _selectedArea = 0;
+            _drawingWithArea = 0;
         }
 
         protected string GetItemID(int id)

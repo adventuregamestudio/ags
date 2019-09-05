@@ -551,16 +551,8 @@ namespace AGS.Editor
 
         private void bufferedPanel1_MouseDown(object sender, MouseEventArgs e)
         {
-            foreach (IRoomEditorFilter layer in _layers)
-            {
-                if (IsLocked(layer)) continue;
-                layer.MouseDownAlways(e, _state);
-            }
-            foreach (IRoomEditorFilter layer in _layers)
-            {
-                if (IsLocked(layer)) continue;
-                if (layer.MouseDown(e, _state)) break;
-            }
+            if (_layer != null && !IsLocked(_layer))
+                _layer.MouseDown(e, _state);
             _mouseIsDown = true;
 		}
 
@@ -568,11 +560,8 @@ namespace AGS.Editor
         {
             if (_mouseIsDown)
             {
-                foreach (IRoomEditorFilter layer in _layers)
-                {
-                    if (IsLocked(layer)) continue;
-                    if (layer.MouseUp(e, _state)) break;
-                }
+                if (_layer != null && !IsLocked(_layer))
+                    _layer.MouseUp(e, _state);
                 Factory.GUIController.RefreshPropertyGrid();
                 bufferedPanel1.Invalidate();
                 _mouseIsDown = false;
@@ -586,12 +575,9 @@ namespace AGS.Editor
 		}
 
 		private void bufferedPanel1_DoubleClick(object sender, EventArgs e)
-		{            
-            foreach (IRoomEditorFilter layer in _layers)
-            {
-                if (IsLocked(layer)) continue;
-                if (layer.DoubleClick(_state)) break;
-            }
+		{
+            if (_layer != null && !IsLocked(_layer))
+                _layer.DoubleClick(_state);
 			Factory.GUIController.RefreshPropertyGrid();
 			bufferedPanel1.Invalidate();
 		}
@@ -621,15 +607,13 @@ namespace AGS.Editor
             lblMousePos.Text = "Mouse Position: " + xPosText + ", " + yPosText;
 
             SelectCursor(e.X, e.Y, _state);
-            foreach (IRoomEditorFilter layer in _layers)
+            if (_layer != null && !IsLocked(_layer))
             {
-                if (IsLocked(layer)) continue;
-                if (layer.MouseMove(e.X, e.Y, _state))
+                if (_layer.MouseMove(e.X, e.Y, _state))
                 {
-                    bufferedPanel1.Invalidate();                    
-                    break;
+                    bufferedPanel1.Invalidate();
                 }
-            }            
+            }
         }
 
         private void SelectCursor(int x, int y, RoomEditorState state)

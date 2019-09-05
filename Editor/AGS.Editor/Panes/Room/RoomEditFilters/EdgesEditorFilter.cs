@@ -122,11 +122,6 @@ namespace AGS.Editor
                 DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.BottomEdgeY), scale);
         }
 
-        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state)
-        {
-            _selectedEdge = SelectedEdge.None;
-        }
-
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             _mouseDown = true;
@@ -137,6 +132,7 @@ namespace AGS.Editor
             else if (IsCursorOnVerticalEdge(x, _room.RightEdgeX, SelectedEdge.Right) && SetSelectedEdge(SelectedEdge.Right)) {}            
             else if (IsCursorOnHorizontalEdge(y, _room.TopEdgeY, SelectedEdge.Top) && SetSelectedEdge(SelectedEdge.Top)) {}
             else if (IsCursorOnHorizontalEdge(y, _room.BottomEdgeY, SelectedEdge.Bottom) && SetSelectedEdge(SelectedEdge.Bottom)) {}                        
+            else _selectedEdge = SelectedEdge.None;
 
             _lastSelectedEdge = _selectedEdge;
             return _selectedEdge != SelectedEdge.None;

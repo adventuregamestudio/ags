@@ -70,8 +70,6 @@ namespace AGS.Editor
         {
         }
 
-        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) { }
-
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             return false;

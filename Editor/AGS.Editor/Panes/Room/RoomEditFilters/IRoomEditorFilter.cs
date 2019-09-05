@@ -44,14 +44,28 @@ namespace AGS.Editor
         SortedDictionary<string, DesignTimeProperties> DesignItems { get; }
         void PaintToHDC(IntPtr hDC, RoomEditorState state);
         void Paint(Graphics graphics, RoomEditorState state);
-        void MouseDownAlways(MouseEventArgs e, RoomEditorState state);
+        /// <summary>
+        /// Notifies mouse down event. Returns whether event is handled by this filter.
+        /// </summary>
         bool MouseDown(MouseEventArgs e, RoomEditorState state);
+        /// <summary>
+        /// Notifies mouse up event. Returns whether event is handled by this filter.
+        /// </summary>
         bool MouseUp(MouseEventArgs e, RoomEditorState state);
+        /// <summary>
+        /// Notifies double click event. Returns whether event is handled by this filter.
+        /// </summary>
         bool DoubleClick(RoomEditorState state);
+        /// <summary>
+        /// Notifies mouse move event. Returns whether event is handled by this filter.
+        /// </summary>
         bool MouseMove(int x, int y, RoomEditorState state);
         void FilterOn();
         void FilterOff();
         void CommandClick(string command);
+        /// <summary>
+        /// Notifies key press event. Returns whether event is handled by this filter.
+        /// </summary>
         bool KeyPressed(Keys keyData);
         /// <summary>
         /// Gets a human-readable area name.

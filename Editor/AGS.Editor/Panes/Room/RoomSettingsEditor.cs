@@ -755,7 +755,7 @@ namespace AGS.Editor
             {
                 return false;
             }
-            if (_layer != null && _layer.KeyPressed(keyData))
+            if (_layer != null && !IsLocked(_layer) && _layer.KeyPressed(keyData))
             {
                 bufferedPanel1.Invalidate();
                 Factory.GUIController.RefreshPropertyGrid();

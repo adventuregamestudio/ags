@@ -87,6 +87,9 @@ public:
         _pool[_count++].SetString(cstr);
     }
 
+    // An auxiliary line processing buffer
+    std::vector<char> LineBuf;
+
 private:
     std::vector<Common::String> _pool;
     size_t _count; // actual number of lines in use

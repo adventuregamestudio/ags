@@ -15,7 +15,7 @@ namespace AGS.Editor
 		private Panel _panel;
         private Room _room;
 
-		public EmptyEditorFilter(Panel displayPanel, Room room)
+        public EmptyEditorFilter(Panel displayPanel, Room room)
         {
 			_panel = displayPanel;
             _room = room;
@@ -36,6 +36,7 @@ namespace AGS.Editor
         public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
+        public bool Enabled { get { return false; } }
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged { add { } remove { } }

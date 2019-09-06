@@ -43,6 +43,7 @@ namespace AGS.Editor
         protected Room _room;
         protected Panel _panel;        
 		protected ToolTip _tooltip;
+        private bool _isOn = false;
         private int _selectedArea = 1;
 		private int _drawingWithArea;
         private bool _mouseDown = false;
@@ -146,15 +147,11 @@ namespace AGS.Editor
         public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
+        public bool Enabled { get { return _isOn; } }
 
         protected virtual void FilterActivated()
 		{
 		}
-
-        protected bool IsFilterOn()
-        {
-            return Factory.GUIController.ActivePane.ToolbarCommands == _toolbarIcons;
-        }
 
         public void Invalidate() { _panel.Invalidate(); }
 
@@ -169,6 +166,9 @@ namespace AGS.Editor
         /// </summary>
         public virtual void Paint(Graphics graphics, RoomEditorState state)
         {
+            if (!Enabled)
+                return;
+
             int roomPixel = state.RoomSizeToWindow(1);
             int halfRoomPixel = roomPixel / 2;
             if ((_mouseDown) && (_drawMode == AreaDrawMode.Line))
@@ -242,7 +242,7 @@ namespace AGS.Editor
             int x = state.WindowXToRoom(e.X);
             int y = state.WindowYToRoom(e.Y);
 
-            AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;
+            AreaDrawMode drawMode = Enabled ? _drawMode : AreaDrawMode.Select;
 
             if (IsLocked(_selectedArea) && drawMode != AreaDrawMode.Select) return false;
 
@@ -306,7 +306,7 @@ namespace AGS.Editor
         public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _mouseDown = false;
-            AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;
+            AreaDrawMode drawMode = Enabled ? _drawMode : AreaDrawMode.Select;
 
             if (IsLocked(_selectedArea) && drawMode != AreaDrawMode.Select) return false;
 
@@ -368,7 +368,7 @@ namespace AGS.Editor
             _currentMouseX = state.WindowXToRoom(x);
             _currentMouseY = state.WindowYToRoom(y);
 
-            AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;            
+            AreaDrawMode drawMode = Enabled ? _drawMode : AreaDrawMode.Select;            
 
             if (_mouseDown)
             {
@@ -575,7 +575,8 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
             
 			FilterActivated();
-            _shouldSetDrawModeOnMouseUp = true;            
+            _shouldSetDrawModeOnMouseUp = true;
+            _isOn = true;
         }
 
         public void FilterOff()
@@ -592,6 +593,7 @@ namespace AGS.Editor
                 Factory.GUIController.ActivePane.ToolbarCommands = null;
             }
             Factory.ToolBarManager.RefreshCurrentPane();
+            _isOn = false;
         }
 
         public void Dispose()

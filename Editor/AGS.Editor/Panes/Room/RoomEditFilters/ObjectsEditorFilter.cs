@@ -15,7 +15,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_OBJECT_COORDS = "ObjectCoordinates";
         protected Room _room;
         protected Panel _panel;
-
+        private bool _isOn;
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         private RoomObject _selectedObject;
 		private RoomObject _lastSelectedObject;
@@ -49,6 +49,7 @@ namespace AGS.Editor
         public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
+        public bool Enabled { get { return _isOn; } }
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
         /// <summary>
@@ -133,11 +134,9 @@ namespace AGS.Editor
 
         public virtual void Paint(Graphics graphics, RoomEditorState state)
         {
-            int xPos;
-            int yPos;
-
-            if (_selectedObject == null)
+            if (!Enabled || _selectedObject == null)
                 return;
+
             DesignTimeProperties design = DesignItems[GetItemID(_selectedObject)];
             if (!design.Visible)
                 return;
@@ -145,9 +144,9 @@ namespace AGS.Editor
             int width, height;
             Utilities.GetSizeSpriteWillBeRenderedInGame(_selectedObject.Image, out width, out height);
             width = state.RoomSizeToWindow(width);
-			height = state.RoomSizeToWindow(height);
-			xPos = state.RoomXToWindow(_selectedObject.StartX);
-			yPos = state.RoomYToWindow(_selectedObject.StartY) - height;
+            height = state.RoomSizeToWindow(height);
+            int xPos = state.RoomXToWindow(_selectedObject.StartX);
+            int yPos = state.RoomYToWindow(_selectedObject.StartY) - height;
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
             graphics.DrawRectangle(pen, xPos, yPos, width, height);
@@ -414,11 +413,13 @@ namespace AGS.Editor
         {
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
+            _isOn = true;
         }
 
         public void FilterOff()
         {
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
+            _isOn = false;
         }
 
         public void Dispose()

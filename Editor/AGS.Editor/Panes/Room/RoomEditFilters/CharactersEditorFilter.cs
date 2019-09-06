@@ -23,6 +23,7 @@ namespace AGS.Editor
         private Room _room;
         private Panel _panel;
         RoomSettingsEditor _editor;
+        private bool _isOn = false;
         private Character _selectedCharacter = null;
         private bool _movingCharacterWithMouse = false;
         private int _menuClickX = 0;
@@ -216,10 +217,12 @@ namespace AGS.Editor
 
         public void Paint(Graphics graphics, RoomEditorState state)
         {
+            if (!Enabled || _selectedCharacter == null)
+                return;
+
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
-
-            if (_selectedCharacter != null)
+            
             {
                 Rectangle rect = GetCharacterRect(_selectedCharacter, state);
                 graphics.DrawRectangle(pen, rect);
@@ -290,11 +293,13 @@ namespace AGS.Editor
         {
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
+            _isOn = true;
         }
 
         public void FilterOff()
         {
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
+            _isOn = false;
         }
 
         public void UpdateCharactersRoom(Character character, int oldRoom)
@@ -372,6 +377,7 @@ namespace AGS.Editor
         public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
+        public bool Enabled { get { return _isOn; } }
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
         /// <summary>

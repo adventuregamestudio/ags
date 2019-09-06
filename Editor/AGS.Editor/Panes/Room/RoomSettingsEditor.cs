@@ -292,11 +292,11 @@ namespace AGS.Editor
                 int drawOffsX = _state.RoomXToWindow(0);
                 int drawOffsY = _state.RoomYToWindow(0);
                 IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
-				lock (_room)
+                lock (_room)
 				{
 					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, _state.Scale * scaleFactor,
                         maskFilter == null ? RoomAreaMaskType.None : maskFilter.MaskToDraw, 
-                        maskFilter == null ? 0 : maskFilter.SelectedArea, sldTransparency.Value);
+                        (maskFilter == null || !maskFilter.Enabled) ? 0 : maskFilter.SelectedArea, sldTransparency.Value);
 				}
                 foreach (IRoomEditorFilter layer in _layers)
                 {                    

@@ -25,9 +25,13 @@ namespace AGS.Editor
         bool SupportVisibleItems { get; }
 
         /// <summary>
-        /// Tells that the design-time properties of the layer or items were modified.
+        /// Gets/sets whether the design-time properties of the layer or items were modified.
         /// </summary>
         bool Modified { get; set; }
+        /// <summary>
+        /// Tells whether filter is currently on (enabled for editing)
+        /// </summary>
+        bool Enabled { get; }
 
         /// <summary>
         /// Gets/sets if this layer is visible.
@@ -42,7 +46,15 @@ namespace AGS.Editor
         /// The dictionary that maps an object ID to its design-time properties.
         /// </summary>
         SortedDictionary<string, DesignTimeProperties> DesignItems { get; }
+        /// <summary>
+        /// Paint filter contents using native C++ functionality.
+        /// </summary>
         void PaintToHDC(IntPtr hDC, RoomEditorState state);
+        /// <summary>
+        /// Paint filter contents using .NET functionality.
+        /// </summary>
+        /// <param name="graphics"></param>
+        /// <param name="state"></param>
         void Paint(Graphics graphics, RoomEditorState state);
         /// <summary>
         /// Notifies mouse down event. Returns whether event is handled by this filter.

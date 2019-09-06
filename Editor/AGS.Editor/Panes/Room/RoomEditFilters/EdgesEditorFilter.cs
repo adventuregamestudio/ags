@@ -19,6 +19,7 @@ namespace AGS.Editor
         }
 
         private Room _room;
+        private bool _isOn = false;
         private SelectedEdge _selectedEdge = SelectedEdge.None;
         private SelectedEdge _lastSelectedEdge = SelectedEdge.None;
         private Panel _panel;
@@ -55,6 +56,7 @@ namespace AGS.Editor
         public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
+        public bool Enabled { get { return _isOn; } }
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -166,7 +168,7 @@ namespace AGS.Editor
 
         public void FilterOn()
         {
-
+            _isOn = true;
         }
 
         public void FilterOff()
@@ -175,6 +177,7 @@ namespace AGS.Editor
             {
                 _tooltip.Hide(_panel);
             }
+            _isOn = false;
         }
 
 		public string HelpKeyword

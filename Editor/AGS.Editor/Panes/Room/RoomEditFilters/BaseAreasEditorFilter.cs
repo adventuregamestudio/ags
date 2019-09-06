@@ -623,21 +623,9 @@ namespace AGS.Editor
 
         public virtual Cursor GetCursor(int x, int y, RoomEditorState state)
         {
-            if (_drawMode != AreaDrawMode.Select)
-            {
-                return Cursors.Cross;
-            }
-            if (state.CurrentCursor == null)
-            {
-                x = state.WindowXToRoom(x);
-                y = state.WindowYToRoom(y);
-                int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);
-                if (area != 0 && !IsLocked(area))
-                {
-                    return _selectCursor;
-                }
-            }
-            return null;
+            if (_drawMode == AreaDrawMode.Select)
+                return _selectCursor;
+            return Cursors.Cross;
         }
 
         public bool AllowClicksInterception()

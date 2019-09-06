@@ -618,21 +618,7 @@ namespace AGS.Editor
 
         private void SelectCursor(int x, int y, RoomEditorState state)
         {
-            state.CurrentCursor = Cursors.Default;            
-            if (_layer != null) state.CurrentCursor = _layer.GetCursor(x, y, state);
-            else state.CurrentCursor = null;   
-            if (state.CurrentCursor != null)
-            {
-                bufferedPanel1.Cursor = state.CurrentCursor;
-                return;
-            }            
-            for (int layerIndex = _layers.Count - 1; layerIndex >= 0; layerIndex--)
-            {
-                IRoomEditorFilter layer = _layers[layerIndex];
-                if (IsLocked(layer)) continue;
-                Cursor tmpCursor = layer.GetCursor(x, y, state);
-                if (tmpCursor != null) state.CurrentCursor = tmpCursor;
-            }            
+            state.CurrentCursor = _layer != null ? _layer.GetCursor(x, y, state) : Cursors.Default;
             bufferedPanel1.Cursor = state.CurrentCursor ?? Cursors.Default;
         }
 

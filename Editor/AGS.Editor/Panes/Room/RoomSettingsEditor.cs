@@ -292,11 +292,11 @@ namespace AGS.Editor
                 int drawOffsX = _state.RoomXToWindow(0);
                 int drawOffsY = _state.RoomYToWindow(0);
                 IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
-				lock (_room)
+                lock (_room)
 				{
 					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, _state.Scale * scaleFactor,
                         maskFilter == null ? RoomAreaMaskType.None : maskFilter.MaskToDraw, 
-                        maskFilter == null ? 0 : maskFilter.SelectedArea, sldTransparency.Value);
+                        (maskFilter == null || !maskFilter.Enabled) ? 0 : maskFilter.SelectedArea, sldTransparency.Value);
 				}
                 foreach (IRoomEditorFilter layer in _layers)
                 {                    
@@ -551,16 +551,8 @@ namespace AGS.Editor
 
         private void bufferedPanel1_MouseDown(object sender, MouseEventArgs e)
         {
-            foreach (IRoomEditorFilter layer in _layers)
-            {
-                if (IsLocked(layer)) continue;
-                layer.MouseDownAlways(e, _state);
-            }
-            foreach (IRoomEditorFilter layer in _layers)
-            {
-                if (IsLocked(layer)) continue;
-                if (layer.MouseDown(e, _state)) break;
-            }
+            if (_layer != null && !IsLocked(_layer))
+                _layer.MouseDown(e, _state);
             _mouseIsDown = true;
 		}
 
@@ -568,11 +560,8 @@ namespace AGS.Editor
         {
             if (_mouseIsDown)
             {
-                foreach (IRoomEditorFilter layer in _layers)
-                {
-                    if (IsLocked(layer)) continue;
-                    if (layer.MouseUp(e, _state)) break;
-                }
+                if (_layer != null && !IsLocked(_layer))
+                    _layer.MouseUp(e, _state);
                 Factory.GUIController.RefreshPropertyGrid();
                 bufferedPanel1.Invalidate();
                 _mouseIsDown = false;
@@ -586,12 +575,9 @@ namespace AGS.Editor
 		}
 
 		private void bufferedPanel1_DoubleClick(object sender, EventArgs e)
-		{            
-            foreach (IRoomEditorFilter layer in _layers)
-            {
-                if (IsLocked(layer)) continue;
-                if (layer.DoubleClick(_state)) break;
-            }
+		{
+            if (_layer != null && !IsLocked(_layer))
+                _layer.DoubleClick(_state);
 			Factory.GUIController.RefreshPropertyGrid();
 			bufferedPanel1.Invalidate();
 		}
@@ -621,34 +607,18 @@ namespace AGS.Editor
             lblMousePos.Text = "Mouse Position: " + xPosText + ", " + yPosText;
 
             SelectCursor(e.X, e.Y, _state);
-            foreach (IRoomEditorFilter layer in _layers)
+            if (_layer != null && !IsLocked(_layer))
             {
-                if (IsLocked(layer)) continue;
-                if (layer.MouseMove(e.X, e.Y, _state))
+                if (_layer.MouseMove(e.X, e.Y, _state))
                 {
-                    bufferedPanel1.Invalidate();                    
-                    break;
+                    bufferedPanel1.Invalidate();
                 }
-            }            
+            }
         }
 
         private void SelectCursor(int x, int y, RoomEditorState state)
         {
-            state.CurrentCursor = Cursors.Default;            
-            if (_layer != null) state.CurrentCursor = _layer.GetCursor(x, y, state);
-            else state.CurrentCursor = null;   
-            if (state.CurrentCursor != null)
-            {
-                bufferedPanel1.Cursor = state.CurrentCursor;
-                return;
-            }            
-            for (int layerIndex = _layers.Count - 1; layerIndex >= 0; layerIndex--)
-            {
-                IRoomEditorFilter layer = _layers[layerIndex];
-                if (IsLocked(layer)) continue;
-                Cursor tmpCursor = layer.GetCursor(x, y, state);
-                if (tmpCursor != null) state.CurrentCursor = tmpCursor;
-            }            
+            state.CurrentCursor = _layer != null ? _layer.GetCursor(x, y, state) : Cursors.Default;
             bufferedPanel1.Cursor = state.CurrentCursor ?? Cursors.Default;
         }
 
@@ -771,7 +741,7 @@ namespace AGS.Editor
             {
                 return false;
             }
-            if (_layer != null && _layer.KeyPressed(keyData))
+            if (_layer != null && !IsLocked(_layer) && _layer.KeyPressed(keyData))
             {
                 bufferedPanel1.Invalidate();
                 Factory.GUIController.RefreshPropertyGrid();

@@ -25,9 +25,13 @@ namespace AGS.Editor
         bool SupportVisibleItems { get; }
 
         /// <summary>
-        /// Tells that the design-time properties of the layer or items were modified.
+        /// Gets/sets whether the design-time properties of the layer or items were modified.
         /// </summary>
         bool Modified { get; set; }
+        /// <summary>
+        /// Tells whether filter is currently on (enabled for editing)
+        /// </summary>
+        bool Enabled { get; }
 
         /// <summary>
         /// Gets/sets if this layer is visible.
@@ -42,16 +46,38 @@ namespace AGS.Editor
         /// The dictionary that maps an object ID to its design-time properties.
         /// </summary>
         SortedDictionary<string, DesignTimeProperties> DesignItems { get; }
+        /// <summary>
+        /// Paint filter contents using native C++ functionality.
+        /// </summary>
         void PaintToHDC(IntPtr hDC, RoomEditorState state);
+        /// <summary>
+        /// Paint filter contents using .NET functionality.
+        /// </summary>
+        /// <param name="graphics"></param>
+        /// <param name="state"></param>
         void Paint(Graphics graphics, RoomEditorState state);
-        void MouseDownAlways(MouseEventArgs e, RoomEditorState state);
+        /// <summary>
+        /// Notifies mouse down event. Returns whether event is handled by this filter.
+        /// </summary>
         bool MouseDown(MouseEventArgs e, RoomEditorState state);
+        /// <summary>
+        /// Notifies mouse up event. Returns whether event is handled by this filter.
+        /// </summary>
         bool MouseUp(MouseEventArgs e, RoomEditorState state);
+        /// <summary>
+        /// Notifies double click event. Returns whether event is handled by this filter.
+        /// </summary>
         bool DoubleClick(RoomEditorState state);
+        /// <summary>
+        /// Notifies mouse move event. Returns whether event is handled by this filter.
+        /// </summary>
         bool MouseMove(int x, int y, RoomEditorState state);
         void FilterOn();
         void FilterOff();
         void CommandClick(string command);
+        /// <summary>
+        /// Notifies key press event. Returns whether event is handled by this filter.
+        /// </summary>
         bool KeyPressed(Keys keyData);
         /// <summary>
         /// Gets a human-readable area name.

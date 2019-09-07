@@ -19,6 +19,7 @@ namespace AGS.Editor
         }
 
         private Room _room;
+        private bool _isOn = false;
         private SelectedEdge _selectedEdge = SelectedEdge.None;
         private SelectedEdge _lastSelectedEdge = SelectedEdge.None;
         private Panel _panel;
@@ -55,6 +56,7 @@ namespace AGS.Editor
         public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
+        public bool Enabled { get { return _isOn; } }
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
@@ -122,11 +124,6 @@ namespace AGS.Editor
                 DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.BottomEdgeY), scale);
         }
 
-        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state)
-        {
-            _selectedEdge = SelectedEdge.None;
-        }
-
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             _mouseDown = true;
@@ -137,6 +134,7 @@ namespace AGS.Editor
             else if (IsCursorOnVerticalEdge(x, _room.RightEdgeX, SelectedEdge.Right) && SetSelectedEdge(SelectedEdge.Right)) {}            
             else if (IsCursorOnHorizontalEdge(y, _room.TopEdgeY, SelectedEdge.Top) && SetSelectedEdge(SelectedEdge.Top)) {}
             else if (IsCursorOnHorizontalEdge(y, _room.BottomEdgeY, SelectedEdge.Bottom) && SetSelectedEdge(SelectedEdge.Bottom)) {}                        
+            else _selectedEdge = SelectedEdge.None;
 
             _lastSelectedEdge = _selectedEdge;
             return _selectedEdge != SelectedEdge.None;
@@ -170,7 +168,7 @@ namespace AGS.Editor
 
         public void FilterOn()
         {
-
+            _isOn = true;
         }
 
         public void FilterOff()
@@ -179,6 +177,7 @@ namespace AGS.Editor
             {
                 _tooltip.Hide(_panel);
             }
+            _isOn = false;
         }
 
 		public string HelpKeyword

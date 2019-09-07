@@ -2,6 +2,7 @@ using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Text;
 using System.Windows.Forms;
 
@@ -74,16 +75,32 @@ namespace AGS.Editor
 			get { return false; }
 		}
 
-        private void DrawDoubleWidthVerticalLine(Graphics graphics, int x, float scale)
+        private void DrawEdge(Graphics graphics, int position, float scale, SelectedEdge edge)
         {
-            graphics.DrawLine(Pens.Yellow, x, 0, x, _room.Height * scale);
-            graphics.DrawLine(Pens.Yellow, x + 1, 0, x + 1, _room.Height * scale);
-        }
+            PointF location = new PointF();
+            SizeF size = new SizeF();
 
-        private void DrawDoubleHeightHorizontalLine(Graphics graphics, int y, float scale)
-        {
-            graphics.DrawLine(Pens.Yellow, 0, y, _room.Width * scale, y);
-            graphics.DrawLine(Pens.Yellow, 0, y + 1, _room.Width * scale, y + 1);
+            switch(edge)
+            {
+                case SelectedEdge.Left:
+                case SelectedEdge.Right:
+                    location.X = position;
+                    location.Y = 0;
+                    size.Width = scale;
+                    size.Height = _room.Height * scale;
+                    break;
+                case SelectedEdge.Top:
+                case SelectedEdge.Bottom:
+                    location.X = 0;
+                    location.Y = position;
+                    size.Width = _room.Width * scale;
+                    size.Height = scale;
+                    break;
+            }
+
+            RectangleF rect = new RectangleF(location, size);
+            Brush brush = new HatchBrush(HatchStyle.Percent50, Color.Yellow, Color.Transparent);
+            graphics.FillRectangle(brush, rect);
         }
 
         public void Invalidate() { _panel.Invalidate(); }
@@ -110,16 +127,14 @@ namespace AGS.Editor
 
         public void Paint(Graphics graphics, RoomEditorState state)
         {
-            float scale = state.Scale;
-
-            if (DesignItems[GetItemID(SelectedEdge.Left)].Visible) 
-                DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.LeftEdgeX), scale);
+            if (DesignItems[GetItemID(SelectedEdge.Left)].Visible)
+                DrawEdge(graphics, state.RoomXToWindow(_room.LeftEdgeX), state.Scale, SelectedEdge.Left);
             if (DesignItems[GetItemID(SelectedEdge.Right)].Visible)
-                DrawDoubleWidthVerticalLine(graphics, state.RoomXToWindow(_room.RightEdgeX), scale);
+                DrawEdge(graphics, state.RoomXToWindow(_room.RightEdgeX), state.Scale, SelectedEdge.Right);
             if (DesignItems[GetItemID(SelectedEdge.Top)].Visible)
-                DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.TopEdgeY), scale);
+                DrawEdge(graphics, state.RoomYToWindow(_room.TopEdgeY), state.Scale, SelectedEdge.Top);
             if (DesignItems[GetItemID(SelectedEdge.Bottom)].Visible)
-                DrawDoubleHeightHorizontalLine(graphics, state.RoomYToWindow(_room.BottomEdgeY), scale);
+                DrawEdge(graphics, state.RoomYToWindow(_room.BottomEdgeY), state.Scale, SelectedEdge.Bottom);
         }
 
         public void MouseDownAlways(MouseEventArgs e, RoomEditorState state)

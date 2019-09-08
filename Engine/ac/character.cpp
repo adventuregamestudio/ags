@@ -59,6 +59,7 @@
 #include "script/script_runtime.h"
 #include "gfx/gfx_def.h"
 #include "media/audio/audio_system.h"
+#include "ac/movelist.h"
 
 using namespace AGS::Common;
 
@@ -1046,7 +1047,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     Character_StopMoving(chaa);
     int movetox = xx, movetoy = yy;
 
-    wallscreen = prepare_walkable_areas(chaa->index_id);
+    set_wallscreen(prepare_walkable_areas(chaa->index_id));
 
     int fromXLowres = room_to_mask_coord(chaa->x);
     int fromYLowres = room_to_mask_coord(chaa->y);
@@ -1054,6 +1055,8 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     int toYLowres = room_to_mask_coord(yy);
 
     if (!can_see_from(fromXLowres, fromYLowres, toXLowres, toYLowres)) {
+        int lastcx, lastcy;
+        get_lastcpos(lastcx, lastcy);
         movetox = mask_to_room_coord(lastcx);
         movetoy = mask_to_room_coord(lastcy);
     }

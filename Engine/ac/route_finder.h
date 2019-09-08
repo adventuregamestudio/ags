@@ -12,8 +12,8 @@
 //
 //=============================================================================
 
-#ifndef __AC_ROUTE_FINDER_IMPL
-#define __AC_ROUTE_FINDER_IMPL
+#ifndef __AC_ROUTEFND_H
+#define __AC_ROUTEFND_H
 
 #include "ac/game_version.h"
 
@@ -21,11 +21,7 @@
 namespace AGS { namespace Common { class Bitmap; }}
 struct MoveList;
 
-namespace AGS {
-namespace Engine {
-namespace RouteFinder {
-
-void init_pathfinder();
+void init_pathfinder(GameDataVersion game_file_version);
 
 void set_wallscreen(AGS::Common::Bitmap *wallscreen);
 
@@ -37,8 +33,4 @@ void set_route_move_speed(int speed_x, int speed_y);
 int find_route(short srcx, short srcy, short xx, short yy, AGS::Common::Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0);
 void calculate_move_stage(MoveList * mlsp, int aaa);
 
-} // namespace RouteFinder
-} // namespace Engine
-} // namespace AGS
-
-#endif // __AC_ROUTE_FINDER_IMPL
+#endif // __AC_ROUTEFND_H

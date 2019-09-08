@@ -16,48 +16,49 @@
 //
 //=============================================================================
 
-#include "ac/route_finder.h"
+#include "ac/route_finder_impl.h"
+
+#include <string.h>
+#include <math.h>
+
 #include "ac/common.h"   // quit()
 #include "ac/movelist.h"     // MoveList
 #include "ac/common_defines.h"
-#include <string.h>
-#include <math.h>
 #include "gfx/bitmap.h"
+#include "debug/out.h"
 
 #include "route_finder_jps.inl"
 
+extern MoveList *mls;
+
 using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+
+// #define DEBUG_PATHFINDER
+
+namespace AGS {
+namespace Engine {
+namespace RouteFinder {
 
 #define MAKE_INTCOORD(x,y) (((unsigned short)x << 16) | ((unsigned short)y))
 
-const int MAXNAVPOINTS = MAXNEEDSTAGES;
-int navpoints[MAXNAVPOINTS];
-int num_navpoints;
-
-fixed move_speed_x, move_speed_y;
-
-extern void Display(const char *, ...);
-extern void update_polled_stuff_if_runtime();
-
-extern MoveList *mls;
-
-Navigation nav;
+static const int MAXNAVPOINTS = MAXNEEDSTAGES;
+static int navpoints[MAXNAVPOINTS];
+static int num_navpoints;
+static fixed move_speed_x, move_speed_y;
+static Navigation nav;
+static Bitmap *wallscreen;
+static int lastcx, lastcy;
 
 void init_pathfinder()
 {
 }
 
-Bitmap *wallscreen;
-const char *movelibcopyright = "PathFinder library v3.1 (c) 1998, 1999, 2001, 2002 Chris Jones.";
-int lastcx, lastcy;
+void set_wallscreen(Bitmap *wallscreen_) 
+{
+  wallscreen = wallscreen_;
+}
 
-// check the copyright message is intact
-#ifdef _MSC_VER
-extern void winalert(char *, ...);
-#endif
-
-void sync_nav_wallscreen()
+static void sync_nav_wallscreen()
 {
   // FIXME: this is dumb, but...
   nav.Resize(wallscreen->GetWidth(), wallscreen->GetHeight());
@@ -79,8 +80,14 @@ int can_see_from(int x1, int y1, int x2, int y2)
   return !nav.TraceLine(x1, y1, x2, y2, lastcx, lastcy);
 }
 
+void get_lastcpos(int &lastcx_, int &lastcy_) 
+{
+  lastcx_ = lastcx;
+  lastcy_ = lastcy;
+}
+
 // new routing using JPS
-int find_route_jps(int fromx, int fromy, int destx, int desty)
+static int find_route_jps(int fromx, int fromy, int destx, int desty)
 {
   sync_nav_wallscreen();
 
@@ -232,12 +239,16 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
 
   assert(num_navpoints <= MAXNAVPOINTS);
 
-//    Display("Route from %d,%d to %d,%d - %d stages", srcx,srcy,xx,yy,num_navpoints);
+#ifdef DEBUG_PATHFINDER
+  AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stages", srcx,srcy,xx,yy,num_navpoints);
+#endif
 
   int mlist = movlst;
   mls[mlist].numstage = num_navpoints;
   memcpy(&mls[mlist].pos[0], &navpoints[0], sizeof(int) * num_navpoints);
-//    fprintf(stderr,"stages: %d\n",num_navpoints);
+#ifdef DEBUG_PATHFINDER
+  AGS::Common::Debug::Printf("stages: %d\n",num_navpoints);
+#endif
 
   for (i=0; i<num_navpoints-1; i++)
     calculate_move_stage(&mls[mlist], i);
@@ -251,3 +262,8 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   mls[mlist].lasty = -1;
   return mlist;
 }
+
+
+} // namespace RouteFinder
+} // namespace Engine
+} // namespace AGS

@@ -17,34 +17,45 @@
 //
 //=============================================================================
 
-#include "ac/route_finder.h"
-#include "ac/common.h"   // quit()
-#include "ac/movelist.h"     // MoveList
-#include "ac/point.h"
-#include "ac/common_defines.h"
+#include "ac/route_finder_impl_legacy.h"
+
 #include <string.h>
 #include <math.h>
+
+#include "ac/common.h"   // quit()
+#include "ac/common_defines.h"
+#include "game/roomstruct.h"
+#include "ac/movelist.h"     // MoveList
 #include "gfx/bitmap.h"
+#include "debug/out.h"
+
+extern void update_polled_stuff_if_runtime();
+
+extern MoveList *mls;
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
+// #define DEBUG_PATHFINDER
+
+#ifdef DEBUG_PATHFINDER
+// extern Bitmap *mousecurs[10];
+#endif
+
+namespace AGS {
+namespace Engine {
+namespace RouteFinderLegacy {
+
 #define MANOBJNUM 99
 
 #define MAXPATHBACK 1000
-int *pathbackx, *pathbacky;
-int waspossible = 1;
-int suggestx, suggesty;
-fixed move_speed_x, move_speed_y;
-
-extern void Display(const char *, ...);
-extern void update_polled_stuff_if_runtime();
-
-extern MoveList *mls;
-extern "C"
-{
-  int _stklen = 2048000;
-}
+static int *pathbackx;
+static int *pathbacky;
+static int waspossible = 1;
+static int suggestx;
+static int suggesty;
+static fixed move_speed_x;
+static fixed move_speed_y;
 
 void init_pathfinder()
 {
@@ -52,14 +63,18 @@ void init_pathfinder()
   pathbacky = (int *)malloc(sizeof(int) * MAXPATHBACK);
 }
 
-Bitmap *wallscreen;
-//#define DEBUG_PATHFINDER
-char *movelibcopyright = "PathFinder library v3.1 (c) 1998, 1999, 2001, 2002 Chris Jones.";
-int line_failed = 0;
-int lastcx, lastcy;
+static Bitmap *wallscreen;
+
+void set_wallscreen(Bitmap *wallscreen_) 
+{
+  wallscreen = wallscreen_;
+}
+
+static int line_failed = 0;
+static int lastcx, lastcy;
 
 // TODO: find a way to reimpl this with Bitmap
-void line_callback(BITMAP *bmpp, int x, int y, int d)
+static void line_callback(BITMAP *bmpp, int x, int y, int d)
 {
 /*  if ((x>=320) | (y>=200) | (x<0) | (y<0)) line_failed=1;
   else */ if (getpixel(bmpp, x, y) < 1)
@@ -70,10 +85,7 @@ void line_callback(BITMAP *bmpp, int x, int y, int d)
   }
 }
 
-// check the copyright message is intact
-#ifdef _MSC_VER
-extern void winalert(char *, ...);
-#endif
+
 
 int can_see_from(int x1, int y1, int x2, int y2)
 {
@@ -91,6 +103,12 @@ int can_see_from(int x1, int y1, int x2, int y2)
 
   return 0;
 }
+
+void get_lastcpos(int &lastcx_, int &lastcy_) {
+  lastcx_ = lastcx;
+  lastcy_ = lastcy;
+}
+
 
 int find_nearest_walkable_area(Bitmap *tempw, int fromX, int fromY, int toX, int toY, int destX, int destY, int granularity)
 {
@@ -127,8 +145,8 @@ int find_nearest_walkable_area(Bitmap *tempw, int fromX, int fromY, int toX, int
 }
 
 #define MAX_GRANULARITY 3
-int walk_area_granularity[MAX_WALK_AREAS + 1];
-int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
+static int walk_area_granularity[MAX_WALK_AREAS + 1];
+static int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
 {
   wallscreen = wss;
   suggestx = -1;
@@ -207,9 +225,9 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
     else
       walk_area_granularity[dd] = MAX_GRANULARITY;
 
-    /*char toprnt[200];
-       sprintf(toprnt,"area %d: Gran %d", dd, walk_area_granularity[dd]);
-       winalert(toprnt); */
+#ifdef DEBUG_PATHFINDER
+    AGS::Common::Debug::Printf("area %d: Gran %d", dd, walk_area_granularity[dd]);
+#endif
   }
   walk_area_granularity[0] = MAX_GRANULARITY;
 
@@ -235,21 +253,21 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   return 1;
 }
 
-extern Bitmap *mousecurs[10];
-int leftorright = 0;
-int nesting = 0;
-int pathbackstage = 0;
-int finalpartx = 0, finalparty = 0;
-short **beenhere = NULL;     //[200][320];
-int beenhere_array_size = 0;
-const int BEENHERE_SIZE = 2;
+static int leftorright = 0;
+static int nesting = 0;
+static int pathbackstage = 0;
+static int finalpartx = 0;
+static int finalparty = 0;
+static short **beenhere = NULL;     //[200][320];
+static int beenhere_array_size = 0;
+static const int BEENHERE_SIZE = 2;
 
 #define DIR_LEFT  0
 #define DIR_RIGHT 2
 #define DIR_UP    1
 #define DIR_DOWN  3
 
-int try_this_square(int srcx, int srcy, int tox, int toy)
+static int try_this_square(int srcx, int srcy, int tox, int toy)
 {
   if (beenhere[srcy][srcx] & 0x80)
     return 0;
@@ -268,7 +286,7 @@ int try_this_square(int srcx, int srcy, int tox, int toy)
   }
 
 #ifdef DEBUG_PATHFINDER
-  wputblock(lastcx, lastcy, mousecurs[C_CROSS], 1);
+  // wputblock(lastcx, lastcy, mousecurs[C_CROSS], 1);
 #endif
 
   int trydir = DIR_UP;
@@ -298,7 +316,9 @@ try_again:
 
   iterations++;
   if (iterations > 5) {
-//    fprintf(stderr,"not found: %d,%d  beenhere 0x%X\n",srcx,srcy,beenhere[srcy][srcx]);
+#ifdef DEBUG_PATHFINDER
+    AGS::Common::Debug::Printf("not found: %d,%d  beenhere 0x%X\n",srcx,srcy,beenhere[srcy][srcx]);
+#endif
     nesting--;
     return 0;
   }
@@ -359,7 +379,7 @@ try_again:
 
 // Round down the supplied co-ordinates to the area granularity,
 // and move a bit if this causes them to become non-walkable
-void round_down_coords(int &tmpx, int &tmpy)
+static void round_down_coords(int &tmpx, int &tmpy)
 {
   int startgran = walk_area_granularity[wallscreen->GetPixel(tmpx, tmpy)];
   tmpy = tmpy - tmpy % startgran;
@@ -382,7 +402,7 @@ void round_down_coords(int &tmpx, int &tmpy)
   }
 }
 
-int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
+static int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
 {
   int i, j;
 
@@ -562,7 +582,7 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
   return 1;
 }
 
-int __find_route(int srcx, int srcy, short *tox, short *toy, int noredx)
+static int __find_route(int srcx, int srcy, short *tox, short *toy, int noredx)
 {
   if ((noredx == 0) && (wallscreen->GetPixel(tox[0], toy[0]) == 0))
     return 0; // clicked on a wall
@@ -683,15 +703,15 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
     }
   }
 
-  fixed angl = fatan(fdiv(ydist, xdist));
+  fixed angl = fixatan(fixdiv(ydist, xdist));
 
   // now, since new opp=hyp*sin, work out the Y step size
   //fixed newymove = useMoveSpeed * fsin(angl);
-  fixed newymove = fixmul(useMoveSpeed, fsin(angl));
+  fixed newymove = fixmul(useMoveSpeed, fixsin(angl));
 
   // since adj=hyp*cos, work out X step size
   //fixed newxmove = useMoveSpeed * fcos(angl);
-  fixed newxmove = fixmul(useMoveSpeed, fcos(angl));
+  fixed newxmove = fixmul(useMoveSpeed, fixcos(angl));
 
   if (destx < ourx)
     newxmove = -newxmove;
@@ -702,9 +722,9 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
   mlsp->ypermove[aaa] = newymove;
 
 #ifdef DEBUG_PATHFINDER
-  Display("stage %d from %d,%d to %d,%d Xpermove:%X Ypm:%X", aaa, ourx, oury, destx, desty, newxmove, newymove);
-  wtextcolor(14);
-  wgtprintf((reallyneed[aaa] >> 16) & 0x000ffff, reallyneed[aaa] & 0x000ffff, cbuttfont, "%d", aaa);
+  AGS::Common::Debug::Printf("stage %d from %d,%d to %d,%d Xpermove:%X Ypm:%X", aaa, ourx, oury, destx, desty, newxmove, newymove);
+  // wtextcolor(14);
+  // wgtprintf((reallyneed[aaa] >> 16) & 0x000ffff, reallyneed[aaa] & 0x000ffff, cbuttfont, "%d", aaa);
 #endif
 }
 
@@ -714,7 +734,7 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
 #ifdef DEBUG_PATHFINDER
-  __wnormscreen();
+  // __wnormscreen();
 #endif
   wallscreen = onscreen;
   leftorright = 0;
@@ -766,7 +786,9 @@ stage_again:
     aaa = 1;
     // find the furthest point that can be seen from this stage
     for (aaa = pathbackstage - 1; aaa >= 0; aaa--) {
-//      fprintf(stderr,"stage %2d: %2d,%2d\n",aaa,pathbackx[aaa],pathbacky[aaa]);
+#ifdef DEBUG_PATHFINDER
+      AGS::Common::Debug::Printf("stage %2d: %2d,%2d\n",aaa,pathbackx[aaa],pathbacky[aaa]);
+#endif
       if (can_see_from(srcx, srcy, pathbackx[aaa], pathbacky[aaa])) {
         nearestpos = MAKE_INTCOORD(pathbackx[aaa], pathbacky[aaa]);
         nearestindx = aaa;
@@ -788,7 +810,9 @@ stage_again:
         quit("too many stages for auto-walk");
       srcx = (nearestpos >> 16) & 0x000ffff;
       srcy = nearestpos & 0x000ffff;
-//      Display("Added: %d, %d pbs:%d",srcx,srcy,pathbackstage);
+#ifdef DEBUG_PATHFINDER
+     AGS::Common::Debug::Printf("Added: %d, %d pbs:%d",srcx,srcy,pathbackstage);
+#endif
       lastpbs = pathbackstage;
       pathbackstage = nearestindx;
       goto stage_again;
@@ -808,12 +832,15 @@ stage_again:
     if ((numstages == 1) && (xx == orisrcx) && (yy == orisrcy)) {
       return 0;
     }
-    //Display("Route from %d,%d to %d,%d - %d stage, %d stages", orisrcx,orisrcy,xx,yy,pathbackstage,numstages);
-
+#ifdef DEBUG_PATHFINDER
+    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stage, %d stages", orisrcx,orisrcy,xx,yy,pathbackstage,numstages);
+#endif
     int mlist = movlst;
     mls[mlist].numstage = numstages;
     memcpy(&mls[mlist].pos[0], &reallyneed[0], sizeof(int) * numstages);
-//    fprintf(stderr,"stages: %d\n",numstages);
+#ifdef DEBUG_PATHFINDER
+    AGS::Common::Debug::Printf("stages: %d\n",numstages);
+#endif
 
     for (aaa = 0; aaa < numstages - 1; aaa++) {
       calculate_move_stage(&mls[mlist], aaa);
@@ -827,7 +854,7 @@ stage_again:
     mls[mlist].lastx = -1;
     mls[mlist].lasty = -1;
 #ifdef DEBUG_PATHFINDER
-    getch();
+    // getch();
 #endif
     return mlist;
   } else {
@@ -835,6 +862,11 @@ stage_again:
   }
 
 #ifdef DEBUG_PATHFINDER
-  __unnormscreen();
+  // __unnormscreen();
 #endif
 }
+
+
+} // namespace RouteFinderLegacy
+} // namespace Engine
+} // namespace AGS

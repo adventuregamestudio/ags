@@ -104,6 +104,8 @@ static void line_callback(BITMAP *bmpp, int x, int y, int d)
 
 int can_see_from(int x1, int y1, int x2, int y2)
 {
+  assert(wallscreen != nullptr);
+
   line_failed = 0;
   lastcx = x1;
   lastcy = y1;
@@ -127,6 +129,8 @@ void get_lastcpos(int &lastcx_, int &lastcy_) {
 
 int find_nearest_walkable_area(Bitmap *tempw, int fromX, int fromY, int toX, int toY, int destX, int destY, int granularity)
 {
+  assert(tempw != nullptr);
+
   int ex, ey, nearest = 99999, thisis, nearx, neary;
   if (fromX < 0) fromX = 0;
   if (fromY < 0) fromY = 0;
@@ -167,7 +171,7 @@ static int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss
   suggestx = -1;
 
   // ensure it's a memory bitmap, so we can use direct access to line[] array
-  if ((wss == NULL) || (!wss->IsMemoryBitmap()) || (wss->GetColorDepth() != 8))
+  if ((wss == nullptr) || (!wss->IsMemoryBitmap()) || (wss->GetColorDepth() != 8))
     quit("is_route_possible: invalid walkable areas bitmap supplied");
 
   if (wallscreen->GetPixel(fromx, fromy) < 1)
@@ -175,7 +179,7 @@ static int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss
 
   Bitmap *tempw = BitmapHelper::CreateBitmapCopy(wallscreen, 8);
 
-  if (tempw == NULL)
+  if (tempw == nullptr)
     quit("no memory for route calculation");
   if (!tempw->IsMemoryBitmap())
     quit("tempw is not memory bitmap");
@@ -273,7 +277,7 @@ static int nesting = 0;
 static int pathbackstage = 0;
 static int finalpartx = 0;
 static int finalparty = 0;
-static short **beenhere = NULL;     //[200][320];
+static short **beenhere = nullptr;     //[200][320];
 static int beenhere_array_size = 0;
 static const int BEENHERE_SIZE = 2;
 
@@ -286,6 +290,7 @@ static int try_this_square(int srcx, int srcy, int tox, int toy)
 {
   assert(pathbackx != nullptr);
   assert(pathbacky != nullptr);
+  assert(beenhere != nullptr);
 
   if (beenhere[srcy][srcx] & 0x80)
     return 0;
@@ -399,6 +404,8 @@ try_again:
 // and move a bit if this causes them to become non-walkable
 static void round_down_coords(int &tmpx, int &tmpy)
 {
+  assert(wallscreen != nullptr);
+
   int startgran = walk_area_granularity[wallscreen->GetPixel(tmpx, tmpy)];
   tmpy = tmpy - tmpy % startgran;
 
@@ -424,8 +431,10 @@ static int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
 {
   int i, j;
 
+  assert(wallscreen != nullptr);
   assert(pathbackx != nullptr);
   assert(pathbacky != nullptr);
+  assert(beenhere != nullptr);
 
   // This algorithm doesn't behave differently the second time, so ignore
   if (leftorright == 1)
@@ -605,6 +614,11 @@ static int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
 
 static int __find_route(int srcx, int srcy, short *tox, short *toy, int noredx)
 {
+  assert(wallscreen != nullptr);
+  assert(beenhere != nullptr);
+  assert(tox != nullptr);
+  assert(toy != nullptr);
+
   if ((noredx == 0) && (wallscreen->GetPixel(tox[0], toy[0]) == 0))
     return 0; // clicked on a wall
 
@@ -670,6 +684,8 @@ void set_route_move_speed(int speed_x, int speed_y)
 // movelist
 void calculate_move_stage(MoveList * mlsp, int aaa)
 {
+  assert(mlsp != nullptr);
+  
   // work out the x & y per move. First, opp/adj=tan, so work out the angle
   if (mlsp->pos[aaa] == mlsp->pos[aaa + 1]) {
     mlsp->xpermove[aaa] = 0;
@@ -754,9 +770,11 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 
 int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
+  assert(onscreen != nullptr);
+  assert(mls != nullptr);
   assert(pathbackx != nullptr);
   assert(pathbacky != nullptr);
-  
+
 #ifdef DEBUG_PATHFINDER
   // __wnormscreen();
 #endif
@@ -769,7 +787,7 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
     beenhere = (short**)realloc(beenhere, sizeof(short*) * wallscreen->GetHeight());
     beenhere_array_size = wallscreen->GetHeight();
 
-    if (beenhere == NULL)
+    if (beenhere == nullptr)
       quit("insufficient memory to allocate pathfinder beenhere buffer");
   }
 

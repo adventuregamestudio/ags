@@ -621,9 +621,7 @@ void engine_init_rand()
 
 void engine_init_pathfinder()
 {
-    Debug::Printf(kDbgMsg_Init, "Initialize path finder library");
-
-    init_pathfinder();
+    init_pathfinder(loaded_game_file_version);
 }
 
 void engine_pre_init_gfx()

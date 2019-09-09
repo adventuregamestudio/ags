@@ -53,6 +53,10 @@ void init_pathfinder()
 {
 }
 
+void shutdown_pathfinder()
+{
+}
+
 void set_wallscreen(Bitmap *wallscreen_) 
 {
   wallscreen = wallscreen_;

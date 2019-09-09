@@ -22,6 +22,7 @@ namespace AGS { namespace Common { class Bitmap; }}
 struct MoveList;
 
 void init_pathfinder(GameDataVersion game_file_version);
+void shutdown_pathfinder();
 
 void set_wallscreen(AGS::Common::Bitmap *wallscreen);
 

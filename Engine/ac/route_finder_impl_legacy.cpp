@@ -49,8 +49,8 @@ namespace RouteFinderLegacy {
 #define MANOBJNUM 99
 
 #define MAXPATHBACK 1000
-static int *pathbackx;
-static int *pathbacky;
+static int *pathbackx = nullptr;
+static int *pathbacky = nullptr;
 static int waspossible = 1;
 static int suggestx;
 static int suggesty;
@@ -61,6 +61,21 @@ void init_pathfinder()
 {
   pathbackx = (int *)malloc(sizeof(int) * MAXPATHBACK);
   pathbacky = (int *)malloc(sizeof(int) * MAXPATHBACK);
+}
+
+void shutdown_pathfinder()
+{
+  if (pathbackx != nullptr) 
+  {
+    free(pathbackx);
+  }
+  if (pathbacky != nullptr) 
+  {
+    free(pathbacky);
+  }
+
+  pathbackx = nullptr;
+  pathbacky = nullptr;
 }
 
 static Bitmap *wallscreen;
@@ -269,6 +284,9 @@ static const int BEENHERE_SIZE = 2;
 
 static int try_this_square(int srcx, int srcy, int tox, int toy)
 {
+  assert(pathbackx != nullptr);
+  assert(pathbacky != nullptr);
+
   if (beenhere[srcy][srcx] & 0x80)
     return 0;
 
@@ -405,6 +423,9 @@ static void round_down_coords(int &tmpx, int &tmpy)
 static int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
 {
   int i, j;
+
+  assert(pathbackx != nullptr);
+  assert(pathbacky != nullptr);
 
   // This algorithm doesn't behave differently the second time, so ignore
   if (leftorright == 1)
@@ -733,6 +754,9 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 
 int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
+  assert(pathbackx != nullptr);
+  assert(pathbacky != nullptr);
+  
 #ifdef DEBUG_PATHFINDER
   // __wnormscreen();
 #endif

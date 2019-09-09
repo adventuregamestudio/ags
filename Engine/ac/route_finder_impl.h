@@ -26,6 +26,7 @@ namespace Engine {
 namespace RouteFinder {
 
 void init_pathfinder();
+void shutdown_pathfinder();
 
 void set_wallscreen(AGS::Common::Bitmap *wallscreen);
 

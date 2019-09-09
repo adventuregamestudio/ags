@@ -25,6 +25,7 @@ class IRouteFinder
 {
     public:
     virtual void init_pathfinder() = 0;
+    virtual void shutdown_pathfinder() = 0;
     virtual void set_wallscreen(Bitmap *wallscreen) = 0;
     virtual int can_see_from(int x1, int y1, int x2, int y2) = 0;
     virtual void get_lastcpos(int &lastcx, int &lastcy) = 0;
@@ -39,6 +40,10 @@ class AGSRouteFinder : public IRouteFinder
     void init_pathfinder() override
     { 
         AGS::Engine::RouteFinder::init_pathfinder(); 
+    }
+    void shutdown_pathfinder() override
+    { 
+        AGS::Engine::RouteFinder::shutdown_pathfinder(); 
     }
     void set_wallscreen(Bitmap *wallscreen) override
     { 
@@ -72,6 +77,10 @@ class AGSLegacyRouteFinder : public IRouteFinder
     void init_pathfinder() override
     { 
         AGS::Engine::RouteFinderLegacy::init_pathfinder(); 
+    }
+    void shutdown_pathfinder() override
+    { 
+        AGS::Engine::RouteFinderLegacy::shutdown_pathfinder(); 
     }
     void set_wallscreen(Bitmap *wallscreen) override
     { 
@@ -115,6 +124,11 @@ void init_pathfinder(GameDataVersion game_file_version)
     }
 
     route_finder_impl->init_pathfinder();
+}
+
+void shutdown_pathfinder()
+{
+    route_finder_impl->shutdown_pathfinder();
 }
 
 void set_wallscreen(Bitmap *wallscreen)

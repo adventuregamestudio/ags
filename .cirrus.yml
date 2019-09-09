@@ -244,7 +244,7 @@ upload_release_task:
   freebsd_instance:
     image: freebsd-12-0-release-amd64
   env:
-    GITHUB_TOKEN: ENCRYPTED[42b9b95198604f4f3f6744593d617b72e030396166a841123fd68c83bc3d7bd5b16a854ad0f0f11ce2b5249b88057980]
+    GITHUB_TOKEN: ENCRYPTED[f94b2c269006d530d3e6f5f2be0962ba3eeb0d5f43630ad8172b9ef9c405611e54ae5a2b6efc7c53db68176168f0c83d]
   download_script: |
     version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
     mkdir pdb && \

@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.5.0 - Alpha
+VERSION 3.5.0 - Beta
 
 Common features:
  - Now using Allegro v4.4.3 library (previously v4.4.2).
@@ -54,8 +54,13 @@ Editor:
  - "Import over font" command now supports importing WFN fonts too.
  - Removed "Fonts designed for high resolution" option from General Settings. Instead added
    individual SizeMultiplier property to Fonts.
+ - Alphabetically sort audio clips in the drop lists.
  - Display audio clip length on the preview pane without starting playback.
- - Added "Always"choice to "Popup message on compile" preference. Successful compilation
+ - Sync variable type selector in Global Variables pane with the actual list of supported
+   script types.
+ - In preferences added an option telling whether to automatically reload scripts changed
+   externally.
+ - Added "Always" choice to "Popup message on compile" preference. Successful compilation
    popup will only be displayed if "Always" choice is selected.
  - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
  - Don't display missing games in the "recent games" list.
@@ -64,12 +69,19 @@ Editor:
  - Fixed crash and corruption of project data when writing to full disk.
  - Fixed saving sprite file to not cancel completely if only an optional step has failed
    (such as copying a backup file).
+ - Fixed changing character's starting room did not update list of characters on property
+   pane of a room editor until user switches editing mode or reloads the room.
+ - Fixed room editor kept displaying selection box over character after its starting room
+   has changed.
+ - Fixed room editor not suggesting user to save the room after changing object's sprite
+   by double-clicking on it.
  - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
  - Fixed MIDI audio preview was resetting all instruments to default (piano) after pausing
    and resuming playback.
  - Fixed MIDI audio preview had wrong control states set when pausing a playback.
+ - Fixed autocomplete not showing up correctly if user has multiple monitors.
  - Fixed script compiler could leave extra padding inside the compiled scripts filled with
    random garbage if script strings contained escaped sequences like "\n" (this was not good
    for source control).
@@ -123,16 +135,19 @@ Engine:
    The engine is still capable of loading older saves, temporarily.
  - Implemented support for sprite batch transformations.
  - Implemented custom room viewport and camera.
+ - Removed limits on built-in text wrapping (was 50 lines of 200 chars max each).
  - Removed 200 chars limit for DoOnceOnly token length.
  - Try to create all subdirectories when calling File.Open() for writing,
    DynamicSprite.SaveToFile() and Game.SetSaveGameDirectory().
  - Reimplemented threaded audio, should now work correctly on all platforms.
  - Made debug overlay (console and fps counter) display above any game effects (tint, fade, etc)
  - Made fps display more stable and timing correct when framerate is maxed out for test purposes.
+ - Print debug overlay text using Game.NormalFont (was hard-coded to default speech font).
  - Improved performance of hardware-accelerated renderers by not preparing a stage bitmap
    for plugins unless any plugin hooked for the particular drawing events.
  - Reimplemented FRead and FWrite plugin API functions, should now work in 64-bit mode too.
  - Support "--gfxdriver" command line argument that overrides graphics driver in config.
+ - Implemented "--tell" set of commands that print certain engine and/or game data to stdout.
  - Use "digiid" and "midiid" config options to be used on all platforms alike and allow these to
    represent driver ID as a plain string and encoded as an integer value (for compatibility).
  - Completely removed old and unsupported record/replay functionality.
@@ -155,6 +170,8 @@ Engine:
 Linux:
  - Use same FreeType library sources as Windows version, which suppose to fix TTF font glitches.
  - Re-enabled threaded audio setting.
+ - $APPDATADIR$ script paths are now mapped to "$XDG_DATA_HOME/ags-common", making sure it is a
+   writeable location.
 
 Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.

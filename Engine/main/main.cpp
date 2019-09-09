@@ -400,7 +400,7 @@ const char *set_allegro_error(const char *format, ...)
 
 int ags_entry_point(int argc, char *argv[]) { 
 
-#if AGS_RUN_TESTS
+#ifdef AGS_RUN_TESTS
     Test_DoAllTests();
 #endif
     main_init(argc, argv);

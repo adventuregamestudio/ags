@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "core/platform.h"
-#if AGS_RUN_TESTS
+#ifdef AGS_RUN_TESTS
 
 void Test_DoAllTests();
 // Math tests

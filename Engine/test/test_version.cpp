@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "core/platform.h"
-#if AGS_PLATFORM_DEBUG
+#if AGS_RUN_TESTS
 
 #include <string.h>
 #include "debug/assert.h"
@@ -108,4 +108,4 @@ void Test_Version()
     assert(strcmp(test_ver9.ShortString.GetCStr(), "3.3") == 0);
 }
 
-#endif // AGS_PLATFORM_DEBUG
+#endif // AGS_RUN_TESTS

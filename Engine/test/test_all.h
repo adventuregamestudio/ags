@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "core/platform.h"
-#if AGS_PLATFORM_DEBUG
+#if AGS_RUN_TESTS
 
 void Test_DoAllTests();
 // Math tests
@@ -31,4 +31,4 @@ void Test_String();
 void Test_Path();
 void Test_Version();
 
-#endif // AGS_PLATFORM_DEBUG
+#endif // AGS_RUN_TESTS

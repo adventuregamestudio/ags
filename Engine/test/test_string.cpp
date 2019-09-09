@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "core/platform.h"
-#if AGS_PLATFORM_DEBUG
+#if AGS_RUN_TESTS
 
 #include <string.h>
 #include <vector>
@@ -486,4 +486,4 @@ void Test_String()
     }
 }
 
-#endif // AGS_PLATFORM_DEBUG
+#endif // AGS_RUN_TESTS

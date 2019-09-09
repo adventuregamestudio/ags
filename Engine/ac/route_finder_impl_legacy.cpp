@@ -63,21 +63,6 @@ void init_pathfinder()
   pathbacky = (int *)malloc(sizeof(int) * MAXPATHBACK);
 }
 
-void shutdown_pathfinder()
-{
-  if (pathbackx != nullptr) 
-  {
-    free(pathbackx);
-  }
-  if (pathbacky != nullptr) 
-  {
-    free(pathbacky);
-  }
-
-  pathbackx = nullptr;
-  pathbacky = nullptr;
-}
-
 static Bitmap *wallscreen;
 
 void set_wallscreen(Bitmap *wallscreen_) 
@@ -789,6 +774,11 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
 
     if (beenhere == nullptr)
       quit("insufficient memory to allocate pathfinder beenhere buffer");
+
+    for (aaa = 0; aaa < wallscreen->GetHeight(); aaa++)
+    {
+      beenhere[aaa] = nullptr;
+    }
   }
 
   int orisrcx = srcx, orisrcy = srcy;
@@ -812,6 +802,11 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
         pathbackstage = -1;
     }
     free(beenhere[0]);
+
+    for (aaa = 0; aaa < wallscreen->GetHeight(); aaa++)
+    {
+      beenhere[aaa] = nullptr;
+    }
   }
 
   if (pathbackstage >= 0) {
@@ -907,6 +902,32 @@ stage_again:
   // __unnormscreen();
 #endif
 }
+
+void shutdown_pathfinder()
+{
+  if (pathbackx != nullptr) 
+  {
+    free(pathbackx);
+  }
+  if (pathbacky != nullptr) 
+  {
+    free(pathbacky);
+  }
+  if (beenhere != nullptr) 
+  {
+    if (beenhere[0] != nullptr) 
+    {
+      free(beenhere[0]);
+    }
+    free(beenhere);
+  }
+
+  pathbackx = nullptr;
+  pathbacky = nullptr;
+  beenhere = nullptr;
+  beenhere_array_size = 0;
+}
+
 
 
 } // namespace RouteFinderLegacy

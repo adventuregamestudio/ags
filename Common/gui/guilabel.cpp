@@ -50,17 +50,18 @@ void GUILabel::Draw(Common::Bitmap *ds)
     // TODO: need to find a way to cache text prior to drawing;
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
-    const int line_count = SplitLinesForDrawing();
+    SplitLinesForDrawing(Lines);
 
     color_t text_color = ds->GetCompatibleColor(TextColor);
     const int linespacing = getfontlinespacing(Font) + 1;
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
-    for (int i = 0, at_y = Y;
-        i < line_count && (!limit_by_label_frame || at_y <= Y + Height);
+    int at_y = Y;
+    for (size_t i = 0;
+        i < Lines.Count() && (!limit_by_label_frame || at_y <= Y + Height);
         ++i, at_y += linespacing)
     {
-        GUI::DrawTextAlignedHor(ds, lines[i], Font, text_color, X, X + Width - 1, at_y,
+        GUI::DrawTextAlignedHor(ds, Lines[i], Font, text_color, X, X + Width - 1, at_y,
             (FrameAlignment)TextAlignment);
     }
 }

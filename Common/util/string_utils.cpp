@@ -20,29 +20,6 @@
 
 using namespace AGS::Common;
 
-// Turn [ into \n and turn \[ into [
-void unescape(char *buffer) {
-    char *offset;
-    // Handle the special case of the first char
-    if(buffer[0] == '[')
-    {
-        buffer[0] = '\n';
-        offset = buffer + 1;
-    }
-    else
-        offset = buffer;
-    // Replace all other occurrences as they're found
-    while((offset = strchr(offset, '[')) != nullptr) {
-        if(offset[-1] != '\\')
-            offset[0] = '\n';
-        else
-            memmove(offset - 1, offset, strlen(offset) + 1);
-        offset++;
-    }
-}
-
-//=============================================================================
-
 String cbuf_to_string_and_free(char *char_buf)
 {
     String s = char_buf;

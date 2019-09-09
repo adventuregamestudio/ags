@@ -23,8 +23,6 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-void unescape(char *buffer);
-
 //=============================================================================
 
 // Converts char* to string and frees original malloc-ed array;

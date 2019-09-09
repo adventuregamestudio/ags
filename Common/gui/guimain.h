@@ -210,8 +210,6 @@ namespace GUI
 extern std::vector<Common::GUIMain> guis;
 extern int all_buttons_disabled, gui_inv_pic;
 extern int gui_disabled_style;
-extern char lines[MAXLINE][200];
-extern int  numlines;
 
 extern int mousex, mousey;
 

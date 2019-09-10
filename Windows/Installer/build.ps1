@@ -22,7 +22,7 @@ Function GetRootDir
 
 Function GetChangesPath
 {
-    return Join-Path (GetRootDir) "changes.txt"
+    return Join-Path (GetRootDir) "Changes.txt"
 }
 
 Function GetJsonPath

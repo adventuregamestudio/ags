@@ -140,9 +140,9 @@ build_editor_task:
     path: Solutions/.build/*/*.pdb
   ags_native_pdb_artifacts:
     path: Editor/AGS.Native/*/AGS.Native.pdb
-  delete_editor_pdb_script: >
+  delete_editor_pdb_and_xml_script: >
     cd Solutions/.build &&
-    del /s *.pdb
+    del /s *.pdb *.xml
   binaries_artifacts:
     path: Solutions/.build/*/*
 

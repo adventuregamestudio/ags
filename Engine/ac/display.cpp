@@ -479,6 +479,14 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
 
     int thickness = game.fonts.at(font).AutoOutlineThickness;
     auto style = game.fonts.at(font).AutoOutlineStyle;
+    if (0 == thickness)
+    {
+        // Thickness that corresponds to 1 game pixel
+        thickness =
+            (is_bitmap_font(font) && get_font_scaling_mul(font) > 1) ?
+            get_fixed_pixel_size(1) : 1;
+        style = FontInfo::kSquared;
+    }
     if (thickness <= 0)
         return; 
 

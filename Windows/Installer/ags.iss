@@ -86,20 +86,17 @@ Source: "Source\Editor\AGS.Controls.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Source\Editor\AGS.CScript.Compiler.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\AGS.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\AGS.Types.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\Editor\AGS.Types.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\AGSEditor.exe.config"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\ikpMP3.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\irrKlang.NET4.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\Magick.NET-Q8-x86.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\Magick.NET-Q8-x86.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\Editor\Magick.NET-Q8-x86.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\Editor\Newtonsoft.Json.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\WeifenLuo.WinFormsUI.Docking.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 ; Documentation
 Source: "Source\Docs\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
-Source: "Source\Docs\changes.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Docs\Changes.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 ; Licenses
 Source: "Source\Licenses\*"; DestDir: "{app}\Licenses"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 ; URLs

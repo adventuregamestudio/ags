@@ -512,6 +512,11 @@ void AGS::ImportMgr::Init(ccCompiledScript *scrip)
         _importIdx[scrip->imports[import_idx]] = import_idx;
 }
 
+bool AGS::ImportMgr::IsDeclaredImport(std::string s)
+{
+    return (_importIdx.end() != _importIdx.find(s));
+}
+
 int AGS::ImportMgr::FindOrAdd(std::string s)
 {
     auto it = _importIdx.find(s);
@@ -2684,7 +2689,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(AGS::Symbol name_of_func, size
 
     if (func_is_import)
     {
-        if (_importMgr.FindOrAdd(_sym.get_name_string(name_of_func)))
+        if (!_importMgr.IsDeclaredImport(_sym.get_name_string(name_of_func)))
             _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1);
         _scrip.fixup_previous(kFx_Import);
         _scrip.write_cmd1(SCMD_CALLEXT, SREG_AX); // do the call
@@ -6757,6 +6762,13 @@ int cc_compile(const char *inpl, ccCompiledScript *scrip)
 {
     ccInternalList targ;
 
+    static int count;	// TODO delete
+    std::string fname;	// TODO delete
+    fname = "C:/temp/_" + std::to_string(std::time(nullptr)) + "_" + std::to_string(++count) + ".asc"; // TODO delete
+    std::ofstream ofs;	// TODO delete
+    ofs.open(fname, std::ofstream::binary);
+    ofs << inpl;	// TODO delete
+    ofs.close();	// TODO delete
     // Scan & tokenize the program code.
     int retval = cc_tokenize(inpl, &targ, scrip, sym);
     if (retval < 0) return retval;

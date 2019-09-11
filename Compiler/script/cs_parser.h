@@ -240,6 +240,11 @@ public:
 
     void Init(::ccCompiledScript *scrip);
 
+    // Whether s is in the import table already (doesn't add)
+    bool IsDeclaredImport(std::string s);
+
+    // Finds s in the import table; adds it if not found;
+    // returns the index of s in the table.
     int FindOrAdd(std::string s);
 };
 

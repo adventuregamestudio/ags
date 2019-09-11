@@ -1813,3 +1813,29 @@ TEST(Compile, NewForwardDeclStruct)
     std::string lsce = last_seen_cc_error();
     ASSERT_NE(std::string::npos, lsce.find("Bang"));
 }
+
+TEST(Compile, Attributes07) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Reading an import static attribute should not trigger
+    //  a Not Declared error since it is declared.
+
+    char *inpl = "\
+		enum bool { false = 0, true };                              \n\
+		builtin managed struct Game {                               \n\
+			readonly import static attribute bool Foo;              \n\
+			readonly import static attribute bool SkippingCutscene; \n\
+		};                                                          \n\
+		int room_RepExec()                                          \n\
+		{                                                           \n\
+			int i = 0;                                              \n\
+            if (Game.SkippingCutscene)                              \n\
+                i = 1;                                              \n\
+		}                                                           \n\
+	";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

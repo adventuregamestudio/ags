@@ -390,8 +390,8 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     ALSpriteBatch &batch = _spriteBatches[index];
     batch.List.clear();
     // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
-    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
-    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    const int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
+    const int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
     if (desc.Surface != nullptr)
     {
         batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
@@ -406,8 +406,11 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     }
     else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
     {
-        Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
-        batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
+        if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+        {
+            Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
+            batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
+        }
         batch.Opaque = true;
         batch.IsVirtualScreen = true;
     }
@@ -593,6 +596,13 @@ void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
     virtualScreen = _origVirtualScreen;
   }
   _stageVirtualScreen = virtualScreen;
+
+  // Reset old virtual screen's subbitmaps
+  for (auto batch : _spriteBatches)
+  {
+    if (batch.IsVirtualScreen)
+      batch.Surface.reset();
+  }
 }
 
 Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer()

@@ -392,18 +392,21 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
     const int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
     const int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    // Surface was prepared externally (common for room cameras)
     if (desc.Surface != nullptr)
     {
         batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
         batch.Opaque = true;
         batch.IsVirtualScreen = false;
     }
+    // In case something was not initialized
     else if (desc.Viewport.IsEmpty() || !virtualScreen)
     {
         batch.Surface.reset();
         batch.Opaque = false;
         batch.IsVirtualScreen = false;
     }
+    // Drawing directly on a viewport without transformation (other than offset)
     else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
     {
         if (!batch.Surface || !batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
@@ -414,7 +417,8 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
         batch.Opaque = true;
         batch.IsVirtualScreen = true;
     }
-    else if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+    // No surface prepared and has transformation other than offset
+    else if (!batch.Surface || batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
     {
         batch.Surface.reset(new Bitmap(src_w, src_h));
         batch.Opaque = false;

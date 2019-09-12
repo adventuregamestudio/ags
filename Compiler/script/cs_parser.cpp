@@ -4072,11 +4072,11 @@ int AGS::Parser::ParseVardecl_InitialValAssignment(AGS::Symbol varname, void *&i
 }
 
 // Move variable information into the symbol table
-void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartype, Globalness is_global, size_t size_of_defn, size_t arrsize)
+void AGS::Parser::ParseVardecl_Var2SymTable(Symbol var_name, AGS::Vartype vartype, Globalness globalness, size_t size_of_defn, size_t arrsize)
 {
     SymbolTableEntry &entry = _sym[var_name];
     entry.extends = 0;
-    entry.stype = (is_global == kGl_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
+    entry.stype = (globalness == kGl_Local) ? kSYM_LocalVar : kSYM_GlobalVar;
     entry.ssize = size_of_defn;
     entry.arrsize = arrsize;
     entry.vartype = vartype;
@@ -4130,7 +4130,7 @@ int AGS::Parser::ParseVardecl_Array(AGS::Symbol var_name, AGS::Vartype &vartype,
     return 0;
 }
 
-int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Globalness is_global)
+int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Globalness globalness)
 {
     if (vartype == _sym.getOldStringSym() && ccGetOption(SCOPT_OLDSTRINGS) == 0)
     {
@@ -4138,7 +4138,7 @@ int AGS::Parser::ParseVardecl_CheckIllegalCombis(AGS::Vartype vartype, Globalnes
         return -1;
     }
 
-    if (vartype == _sym.getOldStringSym() && is_global == kGl_GlobalImport)
+    if (vartype == _sym.getOldStringSym() && kGl_GlobalImport == globalness)
     {
         // cannot import, because string is really char *, and the pointer won't resolve properly
         cc_error("Cannot import string; use char[] instead");
@@ -4294,10 +4294,6 @@ int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, Symbo
 
     switch (globalness)
     {
-    default: // can't happen
-        cc_error("Internal error: Wrong value of globalness");
-        return -99;
-
     case kGl_GlobalImport:
         return ParseVardecl_GlobalImport(var_name, has_initial_assignment);
 
@@ -4311,15 +4307,18 @@ int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, Symbo
     case kGl_Local:
         return ParseVardecl_Local(var_name, totalsize, has_initial_assignment);
     }
+
+    cc_error("Internal error: Wrong value of globalness");
+    return -99;
 }
 
 // wrapper around ParseVardecl0() 
-int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness is_global, bool &another_var_follows)
+int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows)
 {
-    int retval = ParseVardecl_CheckIllegalCombis(vartype, is_global);
+    int retval = ParseVardecl_CheckIllegalCombis(vartype, globalness);
     if (retval < 0) return retval;
 
-    if (kGl_Local == is_global && _sym[var_name].stype != 0)
+    if (kGl_Local == globalness && _sym[var_name].stype != 0)
     {
         std::string msg = ReferenceMsgSym(
             "Variable %s has already been declared", var_name);
@@ -4331,7 +4330,7 @@ int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, Symbol
     if (_sym.get_type(var_name) != 0)
         CopyKnownSymInfo(_sym[var_name], known_info);
 
-    retval = ParseVardecl0(var_name, vartype, next_type, is_global, another_var_follows);
+    retval = ParseVardecl0(var_name, vartype, next_type, globalness, another_var_follows);
     if (retval < 0) return retval;
 
     retval = ParseVardecl_CheckThatKnownInfoMatches(&_sym[var_name], &known_info);
@@ -5516,7 +5515,7 @@ int AGS::Parser::ParseVartype_FuncDef(AGS::Symbol &func_name, AGS::Vartype varty
     return 0;
 }
 
-int AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness is_global, bool &another_var_follows)
+int AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness globalness, bool &another_var_follows)
 {
     if (0 != _givm.count(var_name))
     {
@@ -5525,13 +5524,13 @@ int AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalnes
             cc_error("'%s' is already defined as a global non-import variable", _sym.get_name_string(var_name).c_str());
             return -1;
         }
-        else if (kGl_GlobalNoImport == is_global && 0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
+        else if (kGl_GlobalNoImport == globalness && 0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE))
         {
             cc_error("'%s' is defined as an import variable; that cannot be overridden here", _sym.get_name_string(var_name).c_str());
             return -1;
         }
     }
-    _givm[var_name] = (kGl_GlobalNoImport == is_global);
+    _givm[var_name] = (kGl_GlobalNoImport == globalness);
 
     // Apart from this, we aren't interested in var defns at this stage, so skip this defn
     AGS::Symbol const stoplist[] = { kSYM_Comma, kSYM_Semicolon };
@@ -5545,18 +5544,18 @@ int AGS::Parser::ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalnes
     return 0;
 }
 
-int AGS::Parser::ParseVartype_VarDecl(AGS::Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, AGS::Vartype vartype, SymbolType next_type, bool &another_var_follows)
+int AGS::Parser::ParseVartype_VarDecl(AGS::Symbol &var_name, Globalness globalness, int nested_level, bool is_readonly, AGS::Vartype vartype, SymbolType next_type, bool &another_var_follows)
 {
     if (kPP_PreAnalyze == _pp)
-        return ParseVartype_VarDecl_PreAnalyze(var_name, is_global, another_var_follows);
+        return ParseVartype_VarDecl_PreAnalyze(var_name, globalness, another_var_follows);
 
-    if (is_global == kGl_Local)
+    if (kGl_Local == globalness)
         _sym[var_name].sscope = nested_level;
     if (is_readonly)
         SetFlag(_sym[var_name].flags, kSFLG_Readonly, true);
 
     // parse the definition
-    return ParseVardecl(var_name, vartype, next_type, is_global, another_var_follows);
+    return ParseVardecl(var_name, vartype, next_type, globalness, another_var_follows);
 }
 
 // We accepted a variable type such as "int", so what follows is a function or variable definition
@@ -5595,9 +5594,9 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
         noloopcheck_is_set = true;
     }
 
-    Globalness is_global = kGl_Local;
+    Globalness globalness = kGl_Local;
     if (name_of_current_func <= 0)
-        is_global = FlagIsSet(tqs, kTQ_Import) ? kGl_GlobalImport : kGl_GlobalNoImport;
+        globalness = FlagIsSet(tqs, kTQ_Import) ? kGl_GlobalImport : kGl_GlobalNoImport;
 
     bool another_ident_follows = false; // will become true when we gobble a "," after a var defn
     // We've accepted a type expression and are now reading vars or one func that should have this type.
@@ -5648,7 +5647,7 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
         }
 
 
-        retval = ParseVartype_VarDecl(var_or_func_name, is_global, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), vartype, next_type, another_ident_follows);
+        retval = ParseVartype_VarDecl(var_or_func_name, globalness, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), vartype, next_type, another_ident_follows);
         if (retval < 0) return retval;
     }
     while (another_ident_follows);

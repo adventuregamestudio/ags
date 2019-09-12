@@ -723,12 +723,12 @@ private:
     int ParseVardecl_InitialValAssignment(Symbol varname, void *&initial_val_ptr);
 
     // Move variable information into the symbol table
-    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, Globalness is_global, size_t size_of_defn, size_t arrsize);
+    void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype, Globalness globalness, size_t size_of_defn, size_t arrsize);
 
     // we have accepted something like "int a" and we're expecting "["
     int ParseVardecl_Array(Symbol var_name, Vartype &vartype, size_t &size_of_defn, size_t &arrsize);
 
-    int ParseVardecl_CheckIllegalCombis(Vartype vartype, Globalness is_global);
+    int ParseVardecl_CheckIllegalCombis(Vartype vartype, Globalness globalness);
 
     // there was a forward declaration -- check that the real declaration matches it
     int ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info);
@@ -741,7 +741,7 @@ private:
 
     int ParseVardecl0(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows);
 
-    int ParseVardecl(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness is_global, bool &another_var_follows);
+    int ParseVardecl(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows);
 
     void ParseOpenbrace_FuncBody(Symbol name_of_func, int struct_of_func, bool is_noloopcheck, NestingStack *nesting_stack);
 
@@ -818,9 +818,9 @@ private:
 
     int ParseVartype_FuncDef(Symbol &func_name, Vartype vartype, TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
-    int ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness is_global, bool & another_var_follows);
+    int ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness globalness, bool & another_var_follows);
 
-    int ParseVartype_VarDecl(Symbol &var_name, Globalness is_global, int nested_level, bool is_readonly, Vartype vartype, SymbolType next_type, bool &another_var_follows);
+    int ParseVartype_VarDecl(Symbol &var_name, Globalness globalness, int nested_level, bool is_readonly, Vartype vartype, SymbolType next_type, bool &another_var_follows);
 
     // We accepted a variable type such as "int", so what follows is a function or variable definition
     int ParseVartype0(Vartype vartype, NestingStack *nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func, bool &noloopcheck_is_set);

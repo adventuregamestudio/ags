@@ -138,7 +138,16 @@ x86 and mips.
 
 There are two parts to the Java app, one is the engine library in `<SOURCE>/Android/library` and the other one is the launcher app. The default launcher which displays a list of games from the SD-card is in `<SOURCE>/Android/launcher_list`.
 
-You must have installed Android SDK for **Android 4.1** (api level 16); this may be done through Android Studio's SDK manager.
+You must have installed Android SDK with platform support for **Android 4.1** (api level 16); this may be done through Android Studio's SDK manager.
+
+Alternatively, if you do not want to install full Android Studio IDE, you may download only command-line SDK tools. In that case you will have to use following command to download and install necessary components:
+
+    $ cd <SDK>/tools/bin
+    $ ./sdkmanager "build-tools;x.x.x" "platform-tools" "platforms;android-16"
+
+In the above <SDK> is where you've unpacked SDK "tools", and `x.x.x` in `build-tools;x.x.x` is the version of build tools you'd prefer, commonly the latest one. To see the list of available components do e.g. -
+
+    $ ./sdkmanager --list | grep build-tools
 
 The easiest way to build the app is to create an Android project in Eclipse. Choose the "create from existing source" option and point Eclipse to the launcher directory.
 
@@ -146,7 +155,8 @@ To build from the command line, you can use Apache Ant (should have it installed
 See [this stackoverflow.com question](https://stackoverflow.com/questions/42912824/the-ant-folder-is-suddenly-missing-from-android-sdk-did-google-remove-it) for the reference.
 The download link for Linux: https://dl.google.com/android/repository/tools_r25.2.5-linux.zip
 
-Unpack this archive into SDK/tools, *skipping* existing files.
+This archive contains "tools" directory which should be merged with the directory of same name inside SDK, *skipping* existing files.
+
 Now you are ready to run the ant script, e.g. (assuming the SDK is installed in /opt):
 
     $ export ANDROID_HOME=/opt/android-sdk-linux

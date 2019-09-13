@@ -4251,26 +4251,35 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, b
 {
     _sym[var_name].soffs = _scrip.cur_sp;
 
-    // Also need a clean slate if the new var contains releasable pointers.
-    // Or else the reference counting might get confused by leftovers in the memory
-    if (!has_initial_assignment || ContainsReleasablePointers(_sym.get_vartype(var_name)))
+    bool const is_managed = FlagIsSet(_sym.get_vartype(var_name), kVTY_Managed);
+    if (has_initial_assignment)
     {
+        // "readonly" vars can't be assigned to, so don't use standard assignment function here.
+        _targ.getnext(); // Eat '='
+        int retval = ParseExpression(); 
+        if (retval < 0) return retval;
+
+        if (SIZE_OF_INT == size_of_defn && !is_managed)
+        {
+            // This PUSH moves the result of the initializing expression into the
+            // new variable and reserves space for this variable on the stack.
+            _scrip.push_reg(SREG_AX);
+            return 0;
+        }
         _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
-        _scrip.write_cmd1(SCMD_ZEROMEMORY, size_of_defn);
+        _scrip.write_cmd1(
+            is_managed? SCMD_MEMINITPTR : GetWriteCommandForSize(size_of_defn),
+            SREG_AX);
+        _scrip.write_cmd2(SCMD_ADD, SREG_SP, size_of_defn);
+        _scrip.cur_sp += size_of_defn;
+        return 0;
     }
+
+    // Initialize the variable with binary zeroes.
+    _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
+    _scrip.write_cmd1(SCMD_ZEROMEMORY, size_of_defn);
     _scrip.write_cmd2(SCMD_ADD, SREG_SP, size_of_defn);
     _scrip.cur_sp += size_of_defn;
-
-    if (!has_initial_assignment)
-        return 0;
-    // For initializing, use the standard assign function 
-    // that will work even when the assignment is, e.g., by attribute
-    ccInternalList lhs;
-    lhs.init();
-    lhs.write(var_name);
-    lhs.startread();
-    _targ.getnext(); // Eat "="
-    return ParseAssignment_Assign(&lhs);
 }
 
 int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows)
@@ -6761,13 +6770,6 @@ int cc_compile(const char *inpl, ccCompiledScript *scrip)
 {
     ccInternalList targ;
 
-    static int count;	// TODO delete
-    std::string fname;	// TODO delete
-    fname = "C:/temp/_" + std::to_string(std::time(nullptr)) + "_" + std::to_string(++count) + ".asc"; // TODO delete
-    std::ofstream ofs;	// TODO delete
-    ofs.open(fname, std::ofstream::binary);
-    ofs << inpl;	// TODO delete
-    ofs.close();	// TODO delete
     // Scan & tokenize the program code.
     int retval = cc_tokenize(inpl, &targ, scrip, sym);
     if (retval < 0) return retval;

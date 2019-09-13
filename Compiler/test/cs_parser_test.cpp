@@ -1839,3 +1839,21 @@ TEST(Compile, Attributes07) {
 
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
+
+TEST(Compile, Readonly01) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    // Declaring a readonly variable with initialization is okay.
+
+    char *inpl = "\
+		int room_RepExec()                  \n\
+        {                                   \n\
+            readonly int Constant = 835;    \n\
+		}                                   \n\
+	";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

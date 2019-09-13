@@ -145,7 +145,7 @@ Alternatively, if you do not want to install full Android Studio IDE, you may do
     $ cd <SDK>/tools/bin
     $ ./sdkmanager "build-tools;x.x.x" "platform-tools" "platforms;android-16"
 
-In the above <SDK> is where you've unpacked SDK "tools", and `x.x.x` in `build-tools;x.x.x` is the version of build tools you'd prefer, commonly the latest one. To see the list of available components do e.g. -
+In the above `<SDK>` is where you've unpacked SDK "tools", and `x.x.x` in `build-tools;x.x.x` is the version of build tools you'd prefer, commonly the latest one. To see the list of available components do e.g. -
 
     $ ./sdkmanager --list | grep build-tools
 

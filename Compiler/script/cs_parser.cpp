@@ -1965,7 +1965,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         return false;
 
     // cannot convert const to non-const
-    if (((vartype_is & kVTY_Const) != 0) && ((vartype_wants_to_be & kVTY_Const) == 0))
+    if (FlagIsSet(vartype_is, kVTY_Const)  && !FlagIsSet(vartype_wants_to_be, kVTY_Const))
         return true;
 
     // can convert String* to const string
@@ -1979,13 +1979,11 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
     if (IsOldstring(vartype_is))
         return false;
 
-    // Can convert from NULL to managed type
-    if ((vartype_is == (kVTY_Managed | _sym.getNullSym())) && FlagIsSet(vartype_wants_to_be, kVTY_Managed))
-        return false;
+    Vartype const null_vartype = (kVTY_Managed | _sym.getNullSym());
 
     // Cannot convert non-dynarray to dynarray or vice versa
     if (FlagIsSet(vartype_is, kVTY_DynArray) != FlagIsSet(vartype_wants_to_be, kVTY_DynArray))
-        return true;
+        return !(null_vartype == vartype_is && FlagIsSet(vartype_wants_to_be, kVTY_DynArray));
 
     // From here on, don't mind constness or dynarray-ness
     vartype_is &= ~(kVTY_Const | kVTY_DynArray);
@@ -1996,12 +1994,12 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         return true;
 
     // Checks to do if at least one is managed
-    if ((vartype_is & kVTY_Managed) || (vartype_wants_to_be & kVTY_Managed))
+    if (FlagIsSet(vartype_is, kVTY_Managed) || FlagIsSet(vartype_wants_to_be, kVTY_Managed))
     {
         // null can be cast to any pointer type
-        if (vartype_is == (kVTY_Managed | _sym.getNullSym()))
+        if (vartype_is == null_vartype)
         {
-            if (vartype_wants_to_be & kVTY_Managed)
+            if (FlagIsSet(vartype_wants_to_be, kVTY_Managed))
                 return false;
         }
 
@@ -2009,30 +2007,27 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(AGS::Vartype vartype_is, AGS::Vartype
         if ((vartype_is & kVTY_Managed) != (vartype_wants_to_be & kVTY_Managed))
             return true;
 
-        // Types need not be identical here, but check against inherited classes
-        int isClass = vartype_is & ~kVTY_Managed;
-        while (_sym[isClass].extends > 0)
+        // Vartypes need not be identical here: check against extensions
+        Symbol const target_struct = vartype_wants_to_be & ~kVTY_Managed;
+        Symbol act_struct = vartype_is & ~kVTY_Managed;
+        while (act_struct != target_struct)
         {
-            isClass = _sym[Vartype2Symbol(isClass)].extends;
-            if ((isClass | kVTY_Managed) == vartype_wants_to_be)
-                return false;
+            act_struct = _sym[Vartype2Symbol(act_struct)].extends;
+            if (act_struct == 0)
+                return true;
         }
-        return true;
-    }
-
-    // Checks to do if at least one is a struct
-    bool typeIsIsStruct = (FlagIsSet(_sym.get_flags(Vartype2Symbol(vartype_is)), kSFLG_StructType));
-    bool typeWantsToBeIsStruct = (FlagIsSet(_sym.get_flags(Vartype2Symbol(vartype_wants_to_be)), kSFLG_StructType));
-    if (typeIsIsStruct || typeWantsToBeIsStruct)
-    {
-        // The types must match exactly
-        if (vartype_is != vartype_wants_to_be)
-            return true;
-
         return false;
     }
 
-    return false;
+    // Checks to do if at least one is a struct
+    bool const vartype_is_is_struct =
+        FlagIsSet(_sym.get_flags(Vartype2Symbol(vartype_is)), kSFLG_StructType);
+    bool const vartype_wants_to_be_is_struct =
+        FlagIsSet(_sym.get_flags(Vartype2Symbol(vartype_wants_to_be)), kSFLG_StructType);
+    if (vartype_is_is_struct || vartype_wants_to_be_is_struct)
+        return (vartype_is != vartype_wants_to_be);
+
+     return false;
 }
 
 // Check whether there is a type mismatch; if so, give an error
@@ -2107,7 +2102,7 @@ int AGS::Parser::GetWriteCommandForSize(int the_size)
     }
 }
 
-int AGS::Parser::HandleStructOrArrayResult(AGS::Vartype vartype)
+int AGS::Parser::HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Parser::ValueLocation &vloc)
 {
     if (FlagIsSet(vartype, kVTY_Array))
     {
@@ -2115,19 +2110,26 @@ int AGS::Parser::HandleStructOrArrayResult(AGS::Vartype vartype)
         return -1;
     }
 
-    if (FlagIsSet(_sym.get_flags(vartype), kSFLG_Managed) &&
-        !IsManagedVartype(vartype))
-    {
-        // Assume a pointer to the struct is being requested
-        SetFlag(vartype, kVTY_Managed, true);
-    }
+    Flags const flags = _sym.get_flags(Vartype2Symbol(vartype));
 
-    if (FlagIsSet(_sym.get_flags(Vartype2Symbol(vartype)), kSFLG_StructType) &&
+    if (FlagIsSet(flags, kSFLG_StructType) &&
         !IsManagedVartype(vartype))
     {
+        if (FlagIsSet(flags, kSFLG_Managed))
+        {
+            // Interpret the memory address as the result
+            SetFlag(vartype, kVTY_Managed, true);
+            _scrip.write_cmd2(SCMD_REGTOREG, SREG_MAR, SREG_AX);
+            vloc = kVL_ax_is_value;
+            _scrip.ax_vartype = vartype;
+            return 0;
+        }
+
         cc_error("Cannot access non-managed struct as a whole");
         return -1;
     }
+
+    return 0;
 }
 
 int AGS::Parser::ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype)
@@ -2875,7 +2877,7 @@ int AGS::Parser::ParseExpression_Subexpr(AGS::SymbolScript symlist, size_t symli
     else
         retval = ParseExpression_NoOps(symlist, symlist_len, vloc, scope, vartype);
     if (retval < 0) return retval;
-    return HandleStructOrArrayResult(vartype);
+    return HandleStructOrArrayResult(vartype, vloc);
 }
 
 // symlist starts a bracketed expression; parse it
@@ -3098,7 +3100,6 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
     }
     size_t bracketed_expr_length = close_brac_loc + 1 - symlist;
 
-    // Must be any sort of array
     bool const is_dynarray = FlagIsSet(vartype, kVTY_DynArray);
     bool const is_array = FlagIsSet(vartype, kVTY_Array);
     if (!is_dynarray && !is_array)
@@ -3110,7 +3111,9 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
     AGS::Vartype element_vartype =
         is_dynarray ?
         vartype & ~(kVTY_DynArray | kVTY_Managed) : vartype & ~kVTY_Array;
-    SetManagedInVartype(element_vartype);
+    if (is_dynarray)
+        SetManagedInVartype(element_vartype);
+    
     size_t const element_size = Vartype2Size(element_vartype);
     vartype = element_vartype;
 
@@ -3119,7 +3122,7 @@ int AGS::Parser::AccessData_ProcessAnyArrayIndex(ValueLocation vloc_of_array, in
 
     // Ideally, we would calculate compile time constants here. For now, only
     // process the special case [INT] where INT is a non-negative integer or constant.
-    if (1 == bracketed_expr_length &&
+    if (3 == bracketed_expr_length &&
         (kSYM_LiteralInt == _sym.get_type(symlist[1]) || kSYM_Const == _sym.get_type(symlist[1])))
     {
         int retval = AccessData_ProcessArrayIndexConstant(symlist[1], array_size, element_size, mloc);
@@ -4251,35 +4254,40 @@ int AGS::Parser::ParseVardecl_Local(AGS::Symbol var_name, size_t size_of_defn, b
 {
     _sym[var_name].soffs = _scrip.cur_sp;
 
-    bool const is_managed = FlagIsSet(_sym.get_vartype(var_name), kVTY_Managed);
-    if (has_initial_assignment)
+    if (!has_initial_assignment)
     {
-        // "readonly" vars can't be assigned to, so don't use standard assignment function here.
-        _targ.getnext(); // Eat '='
-        int retval = ParseExpression(); 
-        if (retval < 0) return retval;
-
-        if (SIZE_OF_INT == size_of_defn && !is_managed)
-        {
-            // This PUSH moves the result of the initializing expression into the
-            // new variable and reserves space for this variable on the stack.
-            _scrip.push_reg(SREG_AX);
-            return 0;
-        }
+        // Initialize the variable with binary zeroes.
         _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
-        _scrip.write_cmd1(
-            is_managed? SCMD_MEMINITPTR : GetWriteCommandForSize(size_of_defn),
-            SREG_AX);
+        _scrip.write_cmd1(SCMD_ZEROMEMORY, size_of_defn);
         _scrip.write_cmd2(SCMD_ADD, SREG_SP, size_of_defn);
         _scrip.cur_sp += size_of_defn;
         return 0;
     }
 
-    // Initialize the variable with binary zeroes.
+    // "readonly" vars can't be assigned to, so don't use standard assignment function here.
+    _targ.getnext(); // Eat '='
+    int retval = ParseExpression(); 
+    if (retval < 0) return retval;
+
+    Vartype const vartype = _sym.get_vartype(var_name);
+    bool const is_managed = FlagIsSet(vartype, kVTY_Managed);
+    
+    if (SIZE_OF_INT == size_of_defn && !is_managed)
+    {
+        // This PUSH moves the result of the initializing expression into the
+        // new variable and reserves space for this variable on the stack.
+        _scrip.push_reg(SREG_AX);
+        return 0;
+    }
+
+    ConvertAXStringToStringObject(vartype);
     _scrip.write_cmd1(SCMD_LOADSPOFFS, 0);
-    _scrip.write_cmd1(SCMD_ZEROMEMORY, size_of_defn);
+    _scrip.write_cmd1(
+        is_managed? SCMD_MEMINITPTR : GetWriteCommandForSize(size_of_defn),
+        SREG_AX);
     _scrip.write_cmd2(SCMD_ADD, SREG_SP, size_of_defn);
     _scrip.cur_sp += size_of_defn;
+    return 0;
 }
 
 int AGS::Parser::ParseVardecl0(AGS::Symbol var_name, AGS::Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows)
@@ -4366,12 +4374,16 @@ int AGS::Parser::ParseVardecl(AGS::Symbol var_name, AGS::Vartype vartype, Symbol
     return -1;
 }
 
-void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_of_func, bool is_noloopcheck, AGS::NestingStack *nesting_stack)
+void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_of_func, AGS::NestingStack *nesting_stack)
 {
     // write base address of function for any relocation needed later
     _scrip.write_cmd1(SCMD_THISBASE, _scrip.codesize);
-    if (is_noloopcheck)
+    SymbolTableEntry &entry = _sym[name_of_func];
+    if (FlagIsSet(entry.flags, kSFLG_NoLoopCheck))
+    {
         _scrip.write_cmd0(SCMD_LOOPCHECKOFF);
+        SetFlag(entry.flags, kSFLG_NoLoopCheck, false);
+    }
 
     // loop through all parameters
     // the first entry is the return address, so skip that
@@ -4411,7 +4423,7 @@ void AGS::Parser::ParseOpenbrace_FuncBody(AGS::Symbol name_of_func, int struct_o
     }
 }
 
-int AGS::Parser::ParseOpenbrace(AGS::NestingStack *nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func, bool is_noloopcheck)
+int AGS::Parser::ParseOpenbrace(AGS::NestingStack *nesting_stack, AGS::Symbol name_of_current_func, AGS::Symbol struct_of_current_func)
 {
     if (nesting_stack->IsUnbraced())
     {
@@ -4427,7 +4439,7 @@ int AGS::Parser::ParseOpenbrace(AGS::NestingStack *nesting_stack, AGS::Symbol na
     {
         // In this case, the braces are around a function body
         nesting_stack->SetType(AGS::NestingStack::kNT_Function);
-        ParseOpenbrace_FuncBody(name_of_current_func, struct_of_current_func, is_noloopcheck, nesting_stack);
+        ParseOpenbrace_FuncBody(name_of_current_func, struct_of_current_func, nesting_stack);
     }
 
     return 0;
@@ -5173,7 +5185,7 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
 
     // Assume that this is a declaration
     bool dummy;
-    return ParseVartype0(stname, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, dummy);
+    return ParseVartype0(stname, &nesting_stack, tqs, name_of_current_func, struct_of_current_func);
 }
 
 // We've accepted something like "enum foo { bar"; '=' follows
@@ -5452,12 +5464,6 @@ int AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, AGS::TypeQual
         return -1;
     }
 
-    if (FlagIsSet(tqs, kTQ_Noloopcheck) && !is_function)
-    {
-        cc_error("'noloopcheck' only valid with functions");
-        return -1;
-    }
-
     if (FlagIsSet(tqs, kTQ_Readonly) && is_function)
     {
         cc_error("Readonly cannot be applied to a function");
@@ -5470,16 +5476,10 @@ int AGS::Parser::ParseVartype_CheckIllegalCombis(bool is_function, AGS::TypeQual
         return -1;
     }
 
-    if (is_function && FlagIsSet(tqs, kTQ_Noloopcheck) && FlagIsSet(tqs, kTQ_Import))
-    {
-        cc_error("'noloopcheck' cannot be applied to imported functions");
-        return -1;
-    }
-
     return 0;
 }
 
-int AGS::Parser::ParseVartype_FuncDef(AGS::Symbol &func_name, AGS::Vartype vartype, TypeQualifierSet tqs, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
+int AGS::Parser::ParseVartype_FuncDef(AGS::Symbol &func_name, AGS::Vartype vartype, TypeQualifierSet tqs, bool no_loop_check, AGS::Symbol &struct_of_current_func, AGS::Symbol &name_of_current_func)
 {
     bool body_follows;
 
@@ -5511,6 +5511,12 @@ int AGS::Parser::ParseVartype_FuncDef(AGS::Symbol &func_name, AGS::Vartype varty
 
     if (!body_follows)
     {
+        if (no_loop_check)
+        {
+            cc_error("Can only use 'noloopcheck' when function body follows definition");
+            return -1;
+        }
+
         if (kSYM_Semicolon != _sym.get_type(_targ.getnext()))
         {
             cc_error("Expected ';'");
@@ -5519,6 +5525,8 @@ int AGS::Parser::ParseVartype_FuncDef(AGS::Symbol &func_name, AGS::Vartype varty
         return 0;
     }
 
+    if (no_loop_check)
+        SetFlag(entry.flags, kSFLG_NoLoopCheck, true);
     // We've started a function, remember what it is.
     name_of_current_func = func_name;
     return 0;
@@ -5568,7 +5576,7 @@ int AGS::Parser::ParseVartype_VarDecl(AGS::Symbol &var_name, Globalness globalne
 }
 
 // We accepted a variable type such as "int", so what follows is a function or variable definition
-int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &noloopcheck_is_set)
+int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_stack, TypeQualifierSet tqs, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func)
 {
     if (_targ.reached_eof())
     {
@@ -5580,15 +5588,21 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
     int retval = ParseVartype_CheckForIllegalContext(nesting_stack);
     if (retval < 0) return retval;
 
-    SetManagedInVartype(vartype);
-    // Obscure special case
-    if (IsPrimitiveVartype(vartype) && _sym.getPointerSym() == _targ.peeknext())
-        SetFlag(vartype, kVTY_Managed, true);
+    SymbolTableEntry &vartype_entry = GetSymbolTableEntryAnyPhase(Vartype2Symbol(vartype));
 
-    retval = EatPointerSymbolIfPresent(vartype);
-    if (retval < 0) return retval;
-
-    SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(Vartype2Symbol(vartype));
+    if (_sym.getPointerSym() == _targ.peeknext())
+    {
+        if (IsPrimitiveVartype(vartype) || FlagIsSet(vartype_entry.flags, kSFLG_Managed))
+        {
+            SetFlag(vartype, kVTY_Managed, true);
+            _targ.getnext(); // Eat '*'
+        }
+        else
+        {
+            cc_error("Can only use '*' for a managed type or a primitive here");
+            return -1;
+        }
+    }
 
     // "int [] func(...)"
     retval = ParseDynArrayMarkerIfPresent(vartype);
@@ -5596,12 +5610,9 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
 
     // Look for "noloopcheck"; if present, gobble it and set the indicator
     // "TYPE noloopcheck foo(...)"
-    noloopcheck_is_set = false;
-    if (kSYM_NoLoopCheck == _sym.get_type(_targ.peeknext()))
-    {
-        _targ.getnext();
-        noloopcheck_is_set = true;
-    }
+    bool const no_loop_check = (kSYM_NoLoopCheck == _sym.get_type(_targ.peeknext()));
+    if (no_loop_check)
+         _targ.getnext();
 
     Globalness globalness = kGl_Local;
     if (name_of_current_func <= 0)
@@ -5645,17 +5656,20 @@ int AGS::Parser::ParseVartype0(AGS::Vartype vartype, AGS::NestingStack *nesting_
                 cc_error("Nested functions not supported (you may have forgotten a closing brace)");
                 return -1;
             }
-
-            return ParseVartype_FuncDef(var_or_func_name, vartype, tqs, struct_of_current_func, name_of_current_func);
+            SetManagedInVartype(vartype);
+            return ParseVartype_FuncDef(var_or_func_name, vartype, tqs, no_loop_check, struct_of_current_func, name_of_current_func);
         }
 
-        if (FlagIsSet(vartype, kVTY_DynArray)) // e.g., int [] Foo;
+        if (FlagIsSet(vartype, kVTY_DynArray) || no_loop_check) // e.g., int [] Zonk;
         {
             cc_error("Expected '('");
             return -1;
         }
 
-
+        // A variable with a managed type is automatically pointered. 
+        // However, special exception for global import builtin variables
+        if (kGl_GlobalImport != globalness || !FlagIsSet(vartype_entry.flags, kSFLG_Builtin))
+            SetManagedInVartype(vartype);
         retval = ParseVartype_VarDecl(var_or_func_name, globalness, nesting_stack->Depth() - 1, FlagIsSet(tqs, kTQ_Readonly), vartype, next_type, another_ident_follows);
         if (retval < 0) return retval;
     }
@@ -6268,7 +6282,7 @@ int AGS::Parser::ParseContinue(AGS::NestingStack *nesting_stack)
     return 0;
 }
 
-int AGS::Parser::ParseCommand(AGS::Symbol cursym, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, AGS::NestingStack *nesting_stack, bool next_is_noloopcheck)
+int AGS::Parser::ParseCommand(AGS::Symbol cursym, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, AGS::NestingStack *nesting_stack)
 {
     int retval;
 
@@ -6319,7 +6333,7 @@ int AGS::Parser::ParseCommand(AGS::Symbol cursym, AGS::Symbol &name_of_current_f
         return ParseIf(cursym, nesting_stack);
 
     case kSYM_OpenBrace:
-        return ParseOpenbrace(nesting_stack, name_of_current_func, struct_of_current_func, next_is_noloopcheck);
+        return ParseOpenbrace(nesting_stack, name_of_current_func, struct_of_current_func);
 
     case kSYM_Return:
         retval = ParseReturn(name_of_current_func);
@@ -6358,16 +6372,15 @@ int AGS::Parser::Parse_TQCombiError(TypeQualifierSet tqs)
 {
     std::map<TypeQualifier, std::string> const tq2String =
     {
-        {kTQ_Autoptr, "autoptr"},
-        {kTQ_Const, "const"},
-        {kTQ_ImportStd, "import"},
-        {kTQ_ImportTry, "_tryimport"},
-        {kTQ_Noloopcheck, "noloopcheck"},
-        {kTQ_Managed, "managed"},
-        {kTQ_Protected, "protected"},
-        {kTQ_Readonly, "readonly"},
-        {kTQ_Static, "static"},
-        {kTQ_Stringstruct, "stringstruct"},
+        { kTQ_Autoptr, "autoptr" },
+        { kTQ_Const, "const" },
+        { kTQ_ImportStd, "import" },
+        { kTQ_ImportTry, "_tryimport" },
+        { kTQ_Managed, "managed" },
+        { kTQ_Protected, "protected" },
+        { kTQ_Readonly, "readonly" },
+        { kTQ_Static, "static" },
+        { kTQ_Stringstruct, "stringstruct" },
     };
     std::string kw2 = "[sentinel]", kw1;
     for (auto tq_it = tq2String.begin(); tq_it != tq2String.end(); ++tq_it)
@@ -6462,14 +6475,13 @@ int AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, AGS::Symbol decl_type)
     return 0;
 }
 
-int AGS::Parser::ParseVartype(AGS::Symbol cursym, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func, bool &set_nlc_flag)
+int AGS::Parser::ParseVartype(AGS::Symbol cursym, TypeQualifierSet tqs, AGS::NestingStack &nesting_stack, AGS::Symbol &name_of_current_func, AGS::Symbol &struct_of_current_func)
 {
     // func or variable definition
     int retval = Parse_CheckTQ(tqs, kSYM_Vartype);
     if (retval < 0) return retval;
-    Vartype vartype = cursym;
-    SetManagedInVartype(vartype);
-    return ParseVartype0(vartype, &nesting_stack, tqs, name_of_current_func, struct_of_current_func, set_nlc_flag);
+    Vartype const vartype = cursym;
+    return ParseVartype0(vartype, &nesting_stack, tqs, name_of_current_func, struct_of_current_func);
 }
 
 void AGS::Parser::Parse_SkipToEndingBrace()
@@ -6543,9 +6555,6 @@ int AGS::Parser::ParseInput()
 
         case kSYM_AutoPtr:
         {
-            // [fw] AFAICS, "autoptr" doesn't serve any useful purpose. All the things
-            // that "autoptr" signals are also signalled by "managed"; and you mustn't
-            // declare "autoptr" without "managed".
             SetFlag(tqs, kTQ_Autoptr, true);
             continue;
         }
@@ -6662,12 +6671,9 @@ int AGS::Parser::ParseInput()
         {
             if (kSYM_Dot == _sym.get_type(_targ.peeknext()))
                 break; // this is a static struct component function call, so a command
-            bool set_nlc_flag = false;
-            retval = ParseVartype(cursym, tqs, nesting_stack, name_of_current_func, struct_of_current_func, set_nlc_flag);
+            retval = ParseVartype(cursym, tqs, nesting_stack, name_of_current_func, struct_of_current_func);
             if (retval < 0) return retval;
             tqs = 0;
-            if (set_nlc_flag)
-                SetFlag(tqs, kTQ_Noloopcheck, true);
             continue;
         }
 
@@ -6680,7 +6686,7 @@ int AGS::Parser::ParseInput()
             return -1;
         }
 
-        retval = ParseCommand(cursym, name_of_current_func, struct_of_current_func, &nesting_stack, FlagIsSet(tqs, kTQ_Noloopcheck));
+        retval = ParseCommand(cursym, name_of_current_func, struct_of_current_func, &nesting_stack);
         if (retval < 0) return retval;
         tqs = 0;
     } // while (!targ.reached_eof())

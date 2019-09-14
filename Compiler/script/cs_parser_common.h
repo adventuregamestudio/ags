@@ -98,15 +98,16 @@ enum SymbolTableFlag : AGS::Flags
     // arrays within arrays (e.g.something[2].something[3].something = 17) 
     kSFLG_HasDynArray = 1 << 4,
     kSFLG_Imported = 1 << 5, // this is an import variable
-    kSFLG_Managed = 1 << 6, // managed struct (kSYM_Vartype)
-    kSFLG_Parameter = 1 << 7,
-    kSFLG_Protected = 1 << 8, // protected member func/var
-    kSFLG_Readonly = 1 << 9, // user cannot change
-    kSFLG_Static = 1 << 10, // static member func/var
-    kSFLG_StrBuffer = 1 << 11, // was allocated a string buffer
-    kSFLG_StructMember = 1 << 12, // set for member vars & funcs
-    kSFLG_StructType = 1 << 13, // is a struct type (type will be kSYM_Vartype)
-    kSFLG_WriteProtected = 1 << 14,  // only the this pointer can write the var
+    kSFLG_NoLoopCheck = 1 << 6, // A function that does not check for long-running loops
+    kSFLG_Managed = 1 << 7, // managed struct (kSYM_Vartype)
+    kSFLG_Parameter = 1 << 8,
+    kSFLG_Protected = 1 << 9, // protected member func/var
+    kSFLG_Readonly = 1 << 10, // user cannot change
+    kSFLG_Static = 1 << 11, // static member func/var
+    kSFLG_StrBuffer = 1 << 12, // was allocated a string buffer
+    kSFLG_StructMember = 1 << 13, // set for member vars & funcs
+    kSFLG_StructType = 1 << 14, // is a struct type (type will be kSYM_Vartype)
+    kSFLG_WriteProtected = 1 << 15,  // only the this pointer can write the var
 };
 
 constexpr size_t SIZE_OF_DYNPOINTER = 4;

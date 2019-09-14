@@ -338,13 +338,12 @@ public:
         kTQ_Const = 1 << 3,
         kTQ_ImportStd = 1 << 4,
         kTQ_ImportTry = 1 << 5,
-        kTQ_Noloopcheck = 1 << 6,
-        kTQ_Managed = 1 << 7,
-        kTQ_Protected = 1 << 8,
-        kTQ_Readonly = 1 << 9,
-        kTQ_Static = 1 << 10,
-        kTQ_Stringstruct = 1 << 11,
-        kTQ_Writeprotected = 1 << 12,
+        kTQ_Managed = 1 << 6,
+        kTQ_Protected = 1 << 7,
+        kTQ_Readonly = 1 << 8,
+        kTQ_Static = 1 << 9,
+        kTQ_Stringstruct = 1 << 10,
+        kTQ_Writeprotected = 1 << 11,
         kTQ_Import = kTQ_ImportStd | kTQ_ImportTry,
     };
 
@@ -560,7 +559,7 @@ private:
     int GetWriteCommandForSize(int the_size);
 
     // Handle the cases where a value is a whole array or dynarray or struct
-    int HandleStructOrArrayResult(AGS::Vartype vartype);
+    int HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Parser::ValueLocation &vloc);
 
     // If the result isn't in AX, move it there. Dereferences a pointer
     int ResultToAX(ValueLocation &vloc, int &scope, AGS::Vartype &vartype);
@@ -743,9 +742,9 @@ private:
 
     int ParseVardecl(Symbol var_name, Vartype vartype, SymbolType next_type, Globalness globalness, bool &another_var_follows);
 
-    void ParseOpenbrace_FuncBody(Symbol name_of_func, int struct_of_func, bool is_noloopcheck, NestingStack *nesting_stack);
+    void ParseOpenbrace_FuncBody(Symbol name_of_func, int struct_of_func, NestingStack *nesting_stack);
 
-    int ParseOpenbrace(NestingStack *nesting_stack, Symbol name_of_current_func, Symbol struct_of_current_func, bool is_noloopcheck);
+    int ParseOpenbrace(NestingStack *nesting_stack, Symbol name_of_current_func, Symbol struct_of_current_func);
 
     int ParseClosebrace(NestingStack *nesting_stack, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
@@ -816,14 +815,14 @@ private:
 
     int ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet tqs);
 
-    int ParseVartype_FuncDef(Symbol &func_name, Vartype vartype, TypeQualifierSet tqs, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+    int ParseVartype_FuncDef(Symbol &func_name, Vartype vartype, TypeQualifierSet tqs, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     int ParseVartype_VarDecl_PreAnalyze(AGS::Symbol var_name, Globalness globalness, bool & another_var_follows);
 
     int ParseVartype_VarDecl(Symbol &var_name, Globalness globalness, int nested_level, bool is_readonly, Vartype vartype, SymbolType next_type, bool &another_var_follows);
 
     // We accepted a variable type such as "int", so what follows is a function or variable definition
-    int ParseVartype0(Vartype vartype, NestingStack *nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func, bool &noloopcheck_is_set);
+    int ParseVartype0(Vartype vartype, NestingStack *nesting_stack, TypeQualifierSet tqs, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
     int ParseCommand_EndOfDoIfElse(NestingStack *nesting_stack);
 
@@ -860,7 +859,7 @@ private:
 
     int ParseContinue(NestingStack *nesting_stack);
 
-    int ParseCommand(Symbol cursym, Symbol &name_of_current_func, Symbol &struct_of_current_func, NestingStack *nesting_stack, bool next_is_noloopcheck);
+    int ParseCommand(Symbol cursym, Symbol &name_of_current_func, Symbol &struct_of_current_func, NestingStack *nesting_stack);
 
     int Parse_HandleLines(int &currentlinewas);
 
@@ -869,7 +868,7 @@ private:
     // Check whether the qualifiers that accumulated for this decl go together
     int Parse_CheckTQ(TypeQualifierSet tqs, Symbol decl_type);
 
-    int ParseVartype(Symbol cursym, TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol &name_of_current_func, Symbol &struct_of_current_func, bool &set_nlc_flag);
+    int ParseVartype(Symbol cursym, TypeQualifierSet tqs, NestingStack &nesting_stack, Symbol &name_of_current_func, Symbol &struct_of_current_func);
 
     void Parse_SkipToEndingBrace();
 

@@ -36,6 +36,8 @@ namespace AGS.Editor
             this.label1 = new System.Windows.Forms.Label();
             this.cmbTestGameStyle = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.lblReloadScriptOnExternalChange = new System.Windows.Forms.Label();
+            this.cmbScriptReloadOnExternalChange = new System.Windows.Forms.ComboBox();
             this.udTabWidth = new System.Windows.Forms.NumericUpDown();
             this.cmbIndentStyle = new System.Windows.Forms.ComboBox();
             this.label10 = new System.Windows.Forms.Label();
@@ -81,8 +83,6 @@ namespace AGS.Editor
             this.chkBackupReminders = new System.Windows.Forms.CheckBox();
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.chkRemapBgImport = new System.Windows.Forms.CheckBox();
-            this.cmbScriptReloadOnExternalChange = new System.Windows.Forms.ComboBox();
-            this.lblReloadScriptOnExternalChange = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udTabWidth)).BeginInit();
@@ -190,6 +190,28 @@ namespace AGS.Editor
             this.groupBox2.TabIndex = 3;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Script editor";
+            // 
+            // lblReloadScriptOnExternalChange
+            // 
+            this.lblReloadScriptOnExternalChange.Location = new System.Drawing.Point(11, 21);
+            this.lblReloadScriptOnExternalChange.Name = "lblReloadScriptOnExternalChange";
+            this.lblReloadScriptOnExternalChange.Size = new System.Drawing.Size(337, 36);
+            this.lblReloadScriptOnExternalChange.TabIndex = 11;
+            this.lblReloadScriptOnExternalChange.Text = "If a script file is open for editing and is modified by another program, how shou" +
+    "ld this be handled?";
+            // 
+            // cmbScriptReloadOnExternalChange
+            // 
+            this.cmbScriptReloadOnExternalChange.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbScriptReloadOnExternalChange.FormattingEnabled = true;
+            this.cmbScriptReloadOnExternalChange.Items.AddRange(new object[] {
+            "Always ask what to do",
+            "Always reload the file",
+            "Never reload the file"});
+            this.cmbScriptReloadOnExternalChange.Location = new System.Drawing.Point(12, 57);
+            this.cmbScriptReloadOnExternalChange.Name = "cmbScriptReloadOnExternalChange";
+            this.cmbScriptReloadOnExternalChange.Size = new System.Drawing.Size(178, 21);
+            this.cmbScriptReloadOnExternalChange.TabIndex = 10;
             // 
             // udTabWidth
             // 
@@ -609,12 +631,13 @@ namespace AGS.Editor
             // 
             this.groupBox7.Controls.Add(this.lnkUsageInfo);
             this.groupBox7.Controls.Add(this.chkUsageInfo);
-            this.groupBox7.Location = new System.Drawing.Point(7, 331);
+            this.groupBox7.Location = new System.Drawing.Point(7, 448);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.Size = new System.Drawing.Size(365, 68);
             this.groupBox7.TabIndex = 8;
             this.groupBox7.TabStop = false;
             this.groupBox7.Text = "Usage statistics";
+            this.groupBox7.Visible = false;
             // 
             // lnkUsageInfo
             // 
@@ -642,7 +665,7 @@ namespace AGS.Editor
             this.groupBox8.Controls.Add(this.udBackupInterval);
             this.groupBox8.Controls.Add(this.label14);
             this.groupBox8.Controls.Add(this.chkBackupReminders);
-            this.groupBox8.Location = new System.Drawing.Point(7, 405);
+            this.groupBox8.Location = new System.Drawing.Point(7, 331);
             this.groupBox8.Name = "groupBox8";
             this.groupBox8.Size = new System.Drawing.Size(365, 52);
             this.groupBox8.TabIndex = 9;
@@ -696,7 +719,7 @@ namespace AGS.Editor
             // groupBox9
             // 
             this.groupBox9.Controls.Add(this.chkRemapBgImport);
-            this.groupBox9.Location = new System.Drawing.Point(7, 462);
+            this.groupBox9.Location = new System.Drawing.Point(7, 388);
             this.groupBox9.Name = "groupBox9";
             this.groupBox9.Size = new System.Drawing.Size(365, 54);
             this.groupBox9.TabIndex = 10;
@@ -712,28 +735,6 @@ namespace AGS.Editor
             this.chkRemapBgImport.Text = "Remap palette of room backgrounds into allocated background palette slots (8-bit " +
     "games only)";
             this.chkRemapBgImport.UseVisualStyleBackColor = true;
-            // 
-            // cmbScriptReloadOnExternalChange
-            // 
-            this.cmbScriptReloadOnExternalChange.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbScriptReloadOnExternalChange.FormattingEnabled = true;
-            this.cmbScriptReloadOnExternalChange.Items.AddRange(new object[] {
-            "Always ask what to do",
-            "Always reload the file",
-            "Never reload the file"});
-            this.cmbScriptReloadOnExternalChange.Location = new System.Drawing.Point(12, 57);
-            this.cmbScriptReloadOnExternalChange.Name = "cmbScriptReloadOnExternalChange";
-            this.cmbScriptReloadOnExternalChange.Size = new System.Drawing.Size(178, 21);
-            this.cmbScriptReloadOnExternalChange.TabIndex = 10;
-            // 
-            // lblReloadScriptOnExternalChange
-            // 
-            this.lblReloadScriptOnExternalChange.Location = new System.Drawing.Point(11, 21);
-            this.lblReloadScriptOnExternalChange.Name = "lblReloadScriptOnExternalChange";
-            this.lblReloadScriptOnExternalChange.Size = new System.Drawing.Size(337, 36);
-            this.lblReloadScriptOnExternalChange.TabIndex = 11;
-            this.lblReloadScriptOnExternalChange.Text = "If a script file is open for editing and is modified by another program, how shou" +
-    "ld this be handled?";
             // 
             // PreferencesEditor
             // 

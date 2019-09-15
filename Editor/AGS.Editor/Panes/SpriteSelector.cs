@@ -726,7 +726,7 @@ namespace AGS.Editor
                     List<int> spriteNumbers = new List<int>();
                     foreach (ListViewItem selectedItem in spriteList.SelectedItems)
                     {
-                        spriteNumbers.Add(Convert.ToInt32(selectedItem.Name.ToString()));
+                        spriteNumbers.Add(Convert.ToInt32(selectedItem.Text.ToString()));
                     }
                     AssignSpritesToView(spriteNumbers, dialog);
                 }

@@ -26,7 +26,6 @@ namespace AGS.Editor
                 "libaldmb.so.1",
                 "liballeg.so.4.4",
                 "libdumb.so.1",
-                "libfreetype.so.6",
                 "libogg.so.0",
                 "libtheora.so.0",
                 "libvorbis.so.0",
@@ -38,7 +37,6 @@ namespace AGS.Editor
                 "ags-copyright",
                 "liballegro4.4-copyright",
                 "libdumb1-copyright",
-                "libfreetype6-copyright",
                 "libogg0-copyright",
                 "libtheora0-copyright",
                 "libvorbis0a-copyright"

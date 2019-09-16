@@ -2074,7 +2074,7 @@ void UpdateNativeSprites(SpriteFolder ^folder, size_t &missing_count)
         if (!spriteset.DoesSpriteExist(sprite->Number))
         {
             missing_count++;
-            spriteset.SetEmptySprite(sprite->Number);
+            spriteset.SetEmptySprite(sprite->Number, true); // mark as an asset to prevent disposal on reload
         }
 
         int flags = 0;

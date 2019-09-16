@@ -168,13 +168,15 @@ void SpriteCache::SetSprite(sprkey_t index, Bitmap *sprite)
 #endif
 }
 
-void SpriteCache::SetEmptySprite(sprkey_t index)
+void SpriteCache::SetEmptySprite(sprkey_t index, bool as_asset)
 {
     if (index < 0 || EnlargeTo(index) != index)
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetEmptySprite: unable to use index %d", index);
         return;
     }
+    if (as_asset)
+        _spriteData[index].Flags = SPRCACHEFLAG_ISASSET;
     RemapSpriteToSprite0(index);
 }
 

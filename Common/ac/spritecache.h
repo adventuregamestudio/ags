@@ -140,8 +140,9 @@ public:
     void        Reset();
     // Assigns new sprite for the given index; this sprite won't be auto disposed
     void        SetSprite(sprkey_t index, Common::Bitmap *);
-    // Assigns new sprite for the given index, remapping it to sprite 0
-    void        SetEmptySprite(sprkey_t index);
+    // Assigns new sprite for the given index, remapping it to sprite 0;
+    // optionally marks it as an asset placeholder
+    void        SetEmptySprite(sprkey_t index, bool as_asset);
     // Assigns new bitmap for the *registered* sprite without changing its properties
     void        SubstituteBitmap(sprkey_t index, Common::Bitmap *);
     // Sets max cache size in bytes

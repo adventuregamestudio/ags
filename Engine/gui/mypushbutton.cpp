@@ -93,7 +93,7 @@ int MyPushButton::pressedon()
 
         refresh_gui_screen();
 
-        while (timerloop == 0) ;
+        WaitForNextFrame();
     }
     wasstat = state;
     state = 0;

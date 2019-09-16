@@ -188,7 +188,7 @@ int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
             break;
 
         update_polled_audio_and_crossfade();
-        while (timerloop == 0) ;
+        WaitForNextFrame();
     }
 
     clear_gui_screen();

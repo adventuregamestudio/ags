@@ -25,8 +25,8 @@ using namespace AGS::Engine; // FIXME later
 void GameLoopUntilEvent(int untilwhat,long daaa);
 // Increases game frame count; used for recording/replay only
 void NextIteration();
-// Polls audio until the end of current game frame
-void PollUntilNextFrame();
+// Yields CPU until next game frame
+void WaitForNextFrame();
 // Run the actual game until it ends, or aborted by player/error; loops GameTick() internally
 void RunGameUntilAborted();
 // Update everything game related

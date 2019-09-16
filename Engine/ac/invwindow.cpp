@@ -471,7 +471,8 @@ bool InventoryScreen::Run()
             //domouse(1);
         }
         wasonitem=isonitem;
-        PollUntilNextFrame();
+        update_polled_stuff_if_runtime();
+        WaitForNextFrame();
 
     return true; // continue inventory screen loop
 }

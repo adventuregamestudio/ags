@@ -26,6 +26,7 @@
 #include "ac/roomstruct.h"
 #include "ac/screen.h"
 #include "script/cc_error.h"
+#include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
@@ -285,7 +286,7 @@ void process_event(EventHappened*evp) {
                         boxwid, boxhit);
                     render_to_screen(screen_bmp, 0, 0);
                     update_mp3();
-                        while (timerloop == 0) ;
+                    WaitForNextFrame();
                 }
                 gfxDriver->SetMemoryBackBuffer(virtual_screen);
             }
@@ -315,7 +316,7 @@ void process_event(EventHappened*evp) {
                 }
 				render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
-                while (timerloop == 0) ;
+                WaitForNextFrame();
                 transparency -= 16;
             }
             temp_virtual->Release();
@@ -353,7 +354,7 @@ void process_event(EventHappened*evp) {
                 gfxDriver->DrawSprite(0, -(temp_virtual->GetHeight() - virtual_screen->GetHeight()), ddb);
 				render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
-                while (timerloop == 0) ;
+                WaitForNextFrame();
             }
             temp_virtual->Release();
 

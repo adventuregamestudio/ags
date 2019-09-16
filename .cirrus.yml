@@ -209,7 +209,7 @@ editor_packaging_task:
   get_manual_script: >
     mkdir Windows\Installer\Source\Docs &&
     cd Windows\Installer\Source\Docs &&
-    call %CIRRUS_WORKING_DIR%\Script\get_manual.cmd
+    curl -fLOJ https://github.com/adventuregamestudio/ags-manual/releases/latest/download/ags-help.chm
   get_templates_script: >
     mkdir Windows\Installer\Source\Templates &&
     curl -fLSs https://github.com/%TEMPLATES_REPOSITORY%/tarball/master |

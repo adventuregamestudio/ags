@@ -166,6 +166,9 @@ public:
 
 private:
     void        Init();
+    // Gets the index of a sprite which data is used for the given slot;
+    // in case of remapped sprite this will return the one given sprite is remapped to
+    sprkey_t    GetDataIndex(sprkey_t index);
     // Load sprite from game resource
     size_t      LoadSprite(sprkey_t index);
     // Seek stream to sprite

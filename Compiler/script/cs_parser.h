@@ -528,6 +528,9 @@ private:
     // Get the symbol after the corresponding ")"
     int ParseFuncdecl_GetSymbolAfterParmlist(Symbol &symbol);
 
+    // We're in a func decl. Check whether it is valid here.
+    int ParseFuncdecl_CheckValidHere(AGS::Symbol name_of_func, SymbolTableEntry &entry, Vartype return_vartype, bool body_follows);
+
     // We're at something like "int foo(", directly before the "("
     // This might or might not be within a struct defn
     int ParseFuncdecl(Symbol &name_of_func, Vartype return_vartype, TypeQualifierSet tqs, Symbol &struct_of_func, bool &body_follows);
@@ -657,7 +660,12 @@ private:
     // Now we process a component of vartype.
     int AccessData_SubsequentClause(bool writing, bool access_via_this, bool static_access, SymbolScript &symlist, size_t &symlist_len, ValueLocation &vloc, int &scope, MemoryLocation &mloc, Vartype &vartype);
 
-    // Find the component of a struct, in the struct or in one of its ancestors
+    // Find the component of a struct (in the struct or in the ancestors of the struct)
+    // and return the struct that the component is defined in
+    AGS::Symbol AccessData_FindStructOfComponent(AGS::Vartype strct, AGS::Symbol component);
+
+    // Find the component of a struct (in the struct or in the ancestors of the struct)
+    // and return the "real" component name
     Symbol AccessData_FindComponent(Vartype strct, Symbol component);
 
     // We are in a STRUCT.STRUCT.STRUCT... cascade.
@@ -768,11 +776,11 @@ private:
 
     int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, Vartype vartype);
 
-    int ParseStruct_EnterAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, Vartype vartype);
+    int ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed, bool is_static, Vartype vartype, SymbolTableEntry &entry);
 
     // We are processing an attribute.
     // This corresponds to a getter func and a setter func, declare one of them
-    int ParseStruct_DeclareAttributeFunc(Symbol func, bool is_setter, bool is_indexed, Vartype vartype);
+    int ParseStruct_DeclareAttributeFunc(Symbol func, bool is_setter, bool is_indexed, bool is_static, Vartype vartype);
 
     // We're in a struct declaration, parsing a struct attribute
     int ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname, Symbol vname);

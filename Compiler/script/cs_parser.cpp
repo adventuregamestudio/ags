@@ -1693,6 +1693,38 @@ int AGS::Parser::ParseFuncdecl_GetSymbolAfterParmlist(AGS::Symbol &symbol)
     return 0;
 }
 
+int AGS::Parser::ParseFuncdecl_CheckValidHere(AGS::Symbol name_of_func, SymbolTableEntry &entry, AGS::Vartype return_vartype, bool body_follows)
+{
+    if (kSYM_Function != entry.stype && kSYM_NoType != entry.stype)
+    {
+        std::string msg = ReferenceMsg(
+            "'%s' is already defined",
+            _sym.id2section(entry.decl_secid),
+            entry.decl_line);
+        cc_error(msg.c_str(), _sym.get_name_string(name_of_func).c_str());
+        return -1;
+    }
+
+    if (!IsManagedVartype(return_vartype) &&
+        FlagIsSet(_sym.get_flags(Vartype2Symbol(return_vartype)), kSFLG_StructType))
+    {
+        cc_error("Can only return a managed struct from function");
+        return -1;
+    }
+
+    if (body_follows && kPP_Main == _pp)
+    {
+        if (_fcm.HasFuncCallpoint(name_of_func))
+        {
+            std::string msg =
+                ReferenceMsgSym("This function has already been defined with body", name_of_func);
+            cc_error(msg.c_str());
+            return -1;
+        }
+    }
+
+}
+
 // We're at something like "int foo(", directly before the "("
 // This might or might not be within a struct defn
 int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_vartype, TypeQualifierSet tqs, AGS::Symbol &struct_of_func, bool &body_follows)
@@ -1716,36 +1748,9 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     }
 
     SymbolTableEntry &entry = GetSymbolTableEntryAnyPhase(name_of_func);
-    if (kSYM_Function != entry.stype && kSYM_NoType != entry.stype)
-    {
-        std::string msg = ReferenceMsg(
-            "'%s' is already defined",
-            _sym.id2section(entry.decl_secid),
-            entry.decl_line);
-        cc_error(msg.c_str(), _sym.get_name_string(name_of_func).c_str());
-        return -1;
-    }
-
-    if (!IsManagedVartype(return_vartype) &&
-        FlagIsSet(_sym.get_flags(Vartype2Symbol(return_vartype)), kSFLG_StructType))
-    {
-        cc_error("Can only return a managed struct from function");
-        return -1;
-    }
-
-    if (body_follows && kPP_Main == _pp)
-    {
-        _scrip.cur_sp += 4;  // the return address will be pushed
-
-        if (_fcm.HasFuncCallpoint(name_of_func))
-        {
-            std::string msg =
-                ReferenceMsgSym("This function has already been defined with body", name_of_func);
-            cc_error(msg.c_str());
-            return -1;
-        }
-    }
-
+    int retval = ParseFuncdecl_CheckValidHere(name_of_func, entry, return_vartype, body_follows);
+    if (retval < 0) return retval;
+    
     // A forward decl can be written with the
     // "import" keyword (when allowed in the options). This isn't an import
     // proper, so reset the "import" flag in this case.
@@ -1759,9 +1764,12 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
         SetFlag(tqs, kTQ_Import, false);
     }
 
+    if (body_follows && kPP_Main == _pp)
+        _scrip.cur_sp += 4;  // the return address will be pushed
+
     // Copy all known info about the function so that we can check whether this declaration is compatible
     SymbolTableEntry known_info;
-    int retval = CopyKnownSymInfo(entry, known_info);
+    retval = CopyKnownSymInfo(entry, known_info);
     if (retval < 0) return retval;
 
     int numparams = 1; // Counts the number of parameters including the ret parameter, so start at 1
@@ -2940,23 +2948,39 @@ int AGS::Parser::ConstructAttributeFuncName(AGS::Symbol attribsym, bool writing,
 // We call the getter or setter of an attribute
 int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &symlist, size_t &symlist_len, AGS::Vartype &vartype)
 {
-    AGS::Symbol const component_of_attribute = symlist[0];
+    AGS::Symbol const component = symlist[0];
     symlist++;  // eat component
     symlist_len--; // eat component ct'd.
-    AGS::Symbol const struct_of_attribute = Vartype2Symbol(vartype);
-    AGS::Symbol name_of_attribute =
-        MangleStructAndComponent(struct_of_attribute, component_of_attribute);
+    AGS::Symbol const struct_of_component =
+        AccessData_FindStructOfComponent(Vartype2Symbol(vartype), component);
+    if (0 == struct_of_component)
+    {
+        cc_error(
+            "Struct '%s' does not have an attribute named '%s'",
+            _sym.get_name_string(Vartype2Symbol(vartype)).c_str(),
+            _sym.get_name_string(component).c_str());
+        return -1;
+    }
+    AGS::Symbol const name_of_attribute = MangleStructAndComponent(struct_of_component, component);
 
     bool const attrib_uses_this =
         !FlagIsSet(_sym.get_flags(name_of_attribute), kSFLG_Static);
-    bool const is_indexed =
+    bool const call_is_indexed =
         (symlist_len > 0 && kSYM_OpenBracket == _sym.get_type(symlist[0]));
+    bool const attrib_is_indexed =
+        FlagIsSet(_sym.get_vartype(name_of_attribute), kVTY_DynArray|kVTY_Array);
+
+    if (call_is_indexed != attrib_is_indexed)
+    {
+        cc_error(call_is_indexed ? "Unexpected '['" : "'[' expected but not found");
+        return -1;
+    }
 
     // Get the appropriate access function (as a symbol)
     AGS::Symbol name_of_func = -1;
-    int retval = ConstructAttributeFuncName(component_of_attribute, is_attribute_set_func, is_indexed, name_of_func);
+    int retval = ConstructAttributeFuncName(component, is_attribute_set_func, attrib_is_indexed, name_of_func);
     if (retval < 0) return retval;
-    name_of_func = MangleStructAndComponent(struct_of_attribute, name_of_func);
+    name_of_func = MangleStructAndComponent(struct_of_component, name_of_func);
     if (name_of_func < 0) return retval;
 
     bool const func_is_import = FlagIsSet(_sym.get_flags(name_of_func), kSYM_Import);
@@ -2965,35 +2989,18 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
         _scrip.push_reg(SREG_OP); // is the current this ptr, must be restored after call
 
     size_t num_of_args = 0;
-    bool setter_has_dyn_vartype = false;
     if (is_attribute_set_func)
     {
-        if (IsManagedVartype(_sym.get_vartype(name_of_attribute)))
-        {
-            setter_has_dyn_vartype = true;
-            // We must pass a memory address that contains the dynpointer. So create this.
-            _scrip.write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
-            _scrip.write_cmd2(SCMD_ADD, SREG_SP, SIZE_OF_DYNPOINTER);
-            _scrip.write_cmd1(SCMD_MEMINITPTR, SREG_AX);
-            _scrip.cur_sp += SIZE_OF_DYNPOINTER;
-        }
-        int const reg_to_push = setter_has_dyn_vartype ? SREG_MAR : SREG_AX;
         if (func_is_import)
-            _scrip.write_cmd1(SCMD_PUSHREAL, reg_to_push);
+            _scrip.write_cmd1(SCMD_PUSHREAL, SREG_AX);
         else
-            _scrip.push_reg(reg_to_push);
+            _scrip.push_reg(SREG_AX);
         ++num_of_args;
     }
 
-    if (is_indexed)
+    if (call_is_indexed)
     {
-        if (kSYM_CloseBracket != _sym.get_type(symlist[symlist_len - 1]))
-        {
-            cc_error("Internal error: '[' has no matching ']");
-            return -99;
-        }
-        // The index to be set is in the [...] clause;
-        // get it and push it as the first parameter
+        // The index to be set is in the [...] clause; push it as the first parameter
         if (attrib_uses_this)
             _scrip.push_reg(SREG_MAR); // must not be clobbered
         retval = AccessData_ArrayIndexIntoAX(&symlist[1], symlist_len - 2);
@@ -3013,25 +3020,15 @@ int AGS::Parser::AccessData_Attribute(bool is_attribute_set_func, SymbolScript &
     if (attrib_uses_this)
         _scrip.write_cmd1(SCMD_CALLOBJ, SREG_MAR); // make MAR the new this ptr
 
-    // Generate the function call proper
     AccessData_GenerateFunctionCall(name_of_func, num_of_args, func_is_import);
-    if (setter_has_dyn_vartype)
-    {
-        // Pop and release the pointer
-        _scrip.cur_sp -= SIZE_OF_DYNPOINTER;
-        _scrip.write_cmd2(SCMD_SUB, SREG_SP, SIZE_OF_DYNPOINTER);
-        _scrip.write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
-        _scrip.write_cmd0(SCMD_MEMZEROPTR);
-    }
+    
     if (attrib_uses_this)
         _scrip.pop_reg(SREG_OP); // restore old this ptr after the func call
 
     // attribute return type
     _scrip.ax_val_scope = kSYM_LocalVar;
-    _scrip.ax_vartype = vartype =
-        (is_attribute_set_func) ? _sym.getVoidSym() : _sym.get_vartype(name_of_attribute);
+    _scrip.ax_vartype = vartype = _sym.get_vartype(name_of_func);
 
-    // Attribute has been accessed
     MarkAcessed(name_of_attribute);
     MarkAcessed(name_of_func);
     return 0;
@@ -3457,9 +3454,10 @@ int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this,
 
     case kSYM_Attribute:
     {
+        mloc.MakeMARCurrent(_scrip); // make MAR point to the struct of the attribute
         if (writing)
         {
-            // We cannot process this here so return to the assignment that
+            // We cannot process the attribute here so return to the assignment that
             // this attribute was originally called from
             vartype = _sym.get_vartype(component);
             vloc = kVL_attribute;
@@ -3490,6 +3488,19 @@ int AGS::Parser::AccessData_SubsequentClause(bool writing, bool access_via_this,
     }
 
     return 0; // Can't reach
+}
+
+AGS::Symbol AGS::Parser::AccessData_FindStructOfComponent(AGS::Vartype strct, AGS::Symbol component)
+{
+    do
+    {
+        AGS::Symbol symb = MangleStructAndComponent(strct, component);
+        if (kSYM_NoType != _sym.get_type(symb))
+            return strct;
+        strct = _sym[strct].extends;
+    }
+    while (strct > 0);
+    return 0;
 }
 
 AGS::Symbol AGS::Parser::AccessData_FindComponent(AGS::Vartype strct, AGS::Symbol component)
@@ -4785,10 +4796,12 @@ int AGS::Parser::ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is
     return 0;
 }
 
-int AGS::Parser::ParseStruct_EnterAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, AGS::Vartype vartype)
+int AGS::Parser::ParseStruct_EnterAttributeFunc(bool is_setter, bool is_indexed, bool is_static, AGS::Vartype vartype, SymbolTableEntry &entry)
 {
     entry.stype = kSYM_Function;
     SetFlag(entry.flags, kSFLG_Imported, true);
+    if (is_static)
+        SetFlag(entry.flags, kSFLG_Static, true);
     entry.soffs = _importMgr.FindOrAdd(entry.sname);
     char  *num_param_suffix;
     if (is_setter)
@@ -4797,7 +4810,7 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(SymbolTableEntry &entry, bool is
         num_param_suffix = (is_indexed ? "^1" : "^0");
     strcat(_scrip.imports[entry.soffs], num_param_suffix);
 
-    AGS::Vartype const retvartype = entry.funcparamtypes[0] =
+    AGS::Vartype const retvartype = entry.funcparamtypes[0] = entry.vartype = 
         is_setter ? _sym.getVoidSym() : vartype;
     entry.ssize = _sym[Vartype2Symbol(retvartype)].ssize;
     entry.sscope = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
@@ -4811,13 +4824,12 @@ int AGS::Parser::ParseStruct_EnterAttributeFunc(SymbolTableEntry &entry, bool is
         entry.funcparamtypes[p_idx] = vartype;
     entry.funcParamHasDefaultValues.assign(entry.funcparamtypes.size(), false);
     entry.funcParamDefaultValues.assign(entry.funcparamtypes.size(), 0);
-
     return 0;
 }
 
 // We are processing an attribute.
 // This corresponds to a getter func and a setter func, declare one of them
-int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_setter, bool is_indexed, AGS::Vartype vartype)
+int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_setter, bool is_indexed, bool is_static, AGS::Vartype vartype)
 {
     SymbolTableEntry &entry = _sym[func];
     if (kSYM_Function != entry.stype && kSYM_NoType != entry.stype)
@@ -4832,17 +4844,19 @@ int AGS::Parser::ParseStruct_DeclareAttributeFunc(AGS::Symbol func, bool is_sett
     if (kSYM_Function == entry.stype) // func has already been declared
         return ParseStruct_CheckAttributeFunc(entry, is_setter, is_indexed, vartype);
 
-    return ParseStruct_EnterAttributeFunc(entry, is_setter, is_indexed, vartype);
+    int retval = ParseStruct_EnterAttributeFunc(is_setter, is_indexed, is_static, vartype, entry);
+    if (retval < 0) return retval;
+    return _fim.SetFuncCallpoint(func, entry.soffs);
 }
 
 // We're in a struct declaration, parsing a struct attribute
 int AGS::Parser::ParseStruct_Attribute(AGS::TypeQualifierSet tqs, AGS::Symbol stname, AGS::Symbol vname)
 {
-    bool attribute_is_indexed = false;
+    bool attrib_is_indexed = false;
 
     if (kSYM_OpenBracket == _sym.get_type(_targ.peeknext()))
     {
-        attribute_is_indexed = true;
+        attrib_is_indexed = true;
         _targ.getnext();
         if (kSYM_CloseBracket != _sym.get_type(_targ.getnext()))
         {
@@ -4853,8 +4867,12 @@ int AGS::Parser::ParseStruct_Attribute(AGS::TypeQualifierSet tqs, AGS::Symbol st
     if (kPP_PreAnalyze == _pp)
         return 0;
 
+    bool attrib_is_static = FlagIsSet(tqs, kTQ_Static);
+
+    Vartype const coretype = _sym[vname].vartype;
+
     _sym[vname].stype = kSYM_Attribute;
-    if (attribute_is_indexed)
+    if (attrib_is_indexed)
     {
         SetFlag(_sym[vname].vartype, kVTY_Array, true);
         _sym[vname].arrsize = 0;
@@ -4863,9 +4881,9 @@ int AGS::Parser::ParseStruct_Attribute(AGS::TypeQualifierSet tqs, AGS::Symbol st
     // Declare attribute get func, e.g. get_ATTRIB()
     AGS::Symbol attrib_func = -1;
     bool func_is_setter = false;
-    int retval = ConstructAttributeFuncName(vname, func_is_setter, attribute_is_indexed, attrib_func);
+    int retval = ConstructAttributeFuncName(vname, func_is_setter, attrib_is_indexed, attrib_func);
     if (retval < 0) return retval;
-    retval = ParseStruct_DeclareAttributeFunc(MangleStructAndComponent(stname, attrib_func), func_is_setter, attribute_is_indexed, _sym.get_vartype(vname));
+    retval = ParseStruct_DeclareAttributeFunc(MangleStructAndComponent(stname, attrib_func), func_is_setter, attrib_is_indexed, attrib_is_static, coretype);
     if (retval < 0) return retval;
 
     if (FlagIsSet(tqs, kTQ_Readonly))
@@ -4873,9 +4891,9 @@ int AGS::Parser::ParseStruct_Attribute(AGS::TypeQualifierSet tqs, AGS::Symbol st
 
     // Declare attribute set func, e.g. set_ATTRIB(value)
     func_is_setter = true;
-    retval = ConstructAttributeFuncName(vname, func_is_setter, attribute_is_indexed, attrib_func);
+    retval = ConstructAttributeFuncName(vname, func_is_setter, attrib_is_indexed, attrib_func);
     if (retval < 0) return retval;
-    return ParseStruct_DeclareAttributeFunc(MangleStructAndComponent(stname, attrib_func), func_is_setter, attribute_is_indexed, _sym.get_vartype(vname));
+    return ParseStruct_DeclareAttributeFunc(MangleStructAndComponent(stname, attrib_func), func_is_setter, attrib_is_indexed, attrib_is_static, coretype);
 }
 
 // We're inside a struct decl, parsing an array var.

@@ -30,11 +30,6 @@ void AGS::Scanner::SetLineno(std::size_t lineno)
     _lineno = lineno;
 }
 
-std::size_t AGS::Scanner::GetLineno()
-{
-    return _lineno;
-}
-
 void AGS::Scanner::SetTokenList(ccInternalList *token_list)
 {
     _tokenList = token_list;
@@ -130,12 +125,6 @@ void AGS::Scanner::GetNextSymstring(std::string &symstring, ScanType &scan_type,
     return;
 }
 
-const std::string AGS::Scanner::GetLastError()
-{
-    return this->_lastError;
-}
-
-
 void AGS::Scanner::SkipWhitespace(bool &eof_encountered, bool &error_encountered)
 {
     while (true)
@@ -214,7 +203,6 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
 void AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encountered, bool &error_encountered)
 {
     symstring = "";
-    int lit_char;
 
     do // exactly 1 time
     {
@@ -222,7 +210,7 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, bool &eof_encountered, 
         _inputStream.get(); // Eat '\''
 
         // The character inside
-        lit_char = _inputStream.get();
+        int lit_char = _inputStream.get();
         eof_encountered = _inputStream.eof();
         if (eof_encountered)
         {
@@ -381,7 +369,7 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, bool &eof_encountered
 
         if (ch == '\\')
         {
-            int ch = _inputStream.get();
+            ch = _inputStream.get();
             eof_encountered = _inputStream.eof(); // This is an error, too
             error_encountered = _inputStream.fail();
             if (eof_encountered || error_encountered || ch == '\n' || ch == '\r')

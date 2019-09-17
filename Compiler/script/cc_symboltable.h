@@ -39,7 +39,7 @@ struct SymbolTableEntry {
     inline int get_num_args() const { return sscope % 100; }
     inline bool is_varargs() const { return (sscope >= 100); }
 
-    int operatorToVCPUCmd();
+    inline int operatorToVCPUCmd() const { return this->vartype; }
 
     int CopyTo(SymbolTableEntry &dest);
 };
@@ -67,9 +67,9 @@ private:
     AGS::Symbol _nullSym;      // the symbol that corresponds to "null"
     AGS::Symbol _pointerSym;   // the symbol that corresponds to "*"
     AGS::Symbol _stringSym;    // the symbol that corresponds to "string"
+    AGS::Symbol _stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
     AGS::Symbol _thisSym;      // the symbol that corresponds to "this"
     AGS::Symbol _voidSym;      // the symbol that corresponds to "void"
-    AGS::Symbol _stringStructSym;    // the symbol that corresponds to "String" or whatever the stringstruct is
     AGS::Symbol _lastPredefSym;      // last predefined symbol
     std::unordered_map<std::string, int> _findCache;
 
@@ -108,7 +108,7 @@ public:
     inline AGS::Symbol find_or_add(char const *name) { AGS::Symbol ret = find(name); return (ret >= 0) ? ret : add(name); }
 
     // return name as char *, statically allocated
-    inline char const *SymbolTable::get_name(AGS::Symbol sym) { static std::string str; str = get_name_string(sym); return str.c_str(); }
+    inline char const *SymbolTable::get_name(AGS::Symbol sym) const { static std::string str; str = get_name_string(sym); return str.c_str(); }
 
     // return the name to the symbol including "const" qualifier, including "*" or "[]"
     std::string const SymbolTable::get_name_string(AGS::Symbol sym) const;
@@ -129,11 +129,11 @@ public:
     // Set/get section and line where the item is declared
     void set_declared(int idx, std::string const &section, int line);
     inline int get_declared_line(int idx) { return (*this)[idx].decl_line; };
-    inline std::string const get_declared_section(int idx) const{ return _sectionMap.id2section(entries.at(idx).decl_secid); };
+    inline std::string const get_declared_section(int idx) const { return _sectionMap.id2section(entries.at(idx).decl_secid); };
 
     // Unfortunately, a bit of a kludge. Expose the section to id mapping
     inline int section2id(std::string const &section) { return _sectionMap.section2id(section); };
-    inline std::string const id2section(int id) { return _sectionMap.id2section(id); };
+    inline std::string const id2section(int id) const { return _sectionMap.id2section(id); };
 };
 
 

@@ -580,7 +580,7 @@ AGS::Parser::Parser(SymbolTable &symt, ::ccInternalList &targ, ::ccCompiledScrip
     _sym1.clear();
 }
 
-bool AGS::Parser::IsManagedVartype(AGS::Vartype vartype)
+bool AGS::Parser::IsManagedVartype(AGS::Vartype vartype) 
 {
     return
         FlagIsSet(vartype, kVTY_DynArray) ||
@@ -603,12 +603,6 @@ void AGS::Parser::SetManagedInVartype(Vartype &vartype)
         GetSymbolTableEntryAnyPhase(Vartype2Symbol(vartype)).flags,
         kSFLG_Managed))
         SetFlag(vartype, kVTY_Managed, true);
-}
-
-// true if the symbol is "int" and the like.
-bool AGS::Parser::IsPrimitiveVartype(AGS::Symbol symbl)
-{
-    return (symbl > 0 && symbl <= _sym.getVoidSym());
 }
 
 // Return number of bytes to remove from stack to unallocate local vars
@@ -5202,7 +5196,6 @@ int AGS::Parser::ParseStruct(TypeQualifierSet tqs, AGS::NestingStack &nesting_st
     }
 
     // Assume that this is a declaration
-    bool dummy;
     return ParseVartype0(stname, &nesting_stack, tqs, name_of_current_func, struct_of_current_func);
 }
 

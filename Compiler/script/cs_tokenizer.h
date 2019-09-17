@@ -51,10 +51,10 @@ public:
         bool &error_encountered);   // Is true if the scanner should reset the line numbering
 
     // If Tokenizer couldn't tokenize a symstring, explain why
-    inline const std::string GetLastError() { return _lastError; }
+    inline const std::string GetLastError() const { return _lastError; }
 
     // Get current line
-    inline int GetLineno() { return (!_scanner)? -1 : _scanner->GetLineno(); }
+    inline int GetLineno() const { return (_scanner)? _scanner->GetLineno() : -1; }
 
 
 protected:
@@ -85,7 +85,7 @@ private:
         void PopAndCheck(std::string const &closer, int lineno, bool &error_encountered);
 
         // Get the last error encountered.
-        std::string GetLastError();
+        std::string GetLastError() const { return _lastError; };
 
         // Reset the matcher.
         void Reset();
@@ -104,21 +104,20 @@ private:
 
 private:
     Scanner *_scanner;
-    struct ::ccInternalList *_tokenList;
-    struct ::SymbolTable *_symbolTable;
     struct ::ccCompiledScript *_stringCollector;
+    struct ::SymbolTable *_symbolTable;
+    struct ::ccInternalList *_tokenList;
 
     std::string _lastError;
     OpenCloseMatcher _ocMatcher;
 
     Modes _currentMode;
-    bool _inTypeSubmode;
     int _braceNestingDepthInStructDecl; // only used in StructDeclMode
     int _structBeingDeclared;
     std::deque<Symbol> _tokenBuffer;
 
-    inline Symbol TokenType(Symbol token) { return _symbolTable->get_type(token); }
-    inline std::string TokenName(Symbol token) { return _symbolTable->entries.at(token).sname; }
+    inline Symbol TokenType(Symbol token) const { return _symbolTable->get_type(token); }
+    inline const std::string TokenName(Symbol token) const { return _symbolTable->entries.at(token).sname; }
     inline void SetTokenType(Symbol token, SymbolType value) { _symbolTable->entries.at(token).stype = value; }
     inline void SetTokenOffsetInStrings(Symbol token, int value) { _symbolTable->entries.at(token).soffs = value; }
     inline void SetTokenVartype(Symbol token, Symbol value) { _symbolTable->entries.at(token).vartype = value; }

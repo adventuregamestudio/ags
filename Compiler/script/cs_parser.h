@@ -391,7 +391,7 @@ private:
     void DoNullCheckOnStringInAXIfNecessary(Vartype valTypeTo);
 
     // Augment the message with a "See ..." indication
-    std::string ReferenceMsg(std::string const &msg, std::string const &section, int line);
+    static std::string ReferenceMsg(std::string const &msg, std::string const &section, int line);
 
     std::string ReferenceMsgSym(std::string const &msg, AGS::Symbol sym);
 
@@ -407,15 +407,15 @@ private:
 
     bool IsIdentifier(Symbol symb);
 
-    bool IsPrimitiveVartype(Symbol symbl);
+    bool IsPrimitiveVartype(Symbol symbl) const { return (symbl > 0 && symbl <= _sym.getVoidSym()); };
 
     bool Parser::IsAnyTypeOfString(Vartype symtype);
 
     bool IsOldstring(Vartype vartype);
 
-    bool Parser::IsManagedVartype(Vartype vartype);
+    static bool Parser::IsManagedVartype(Vartype vartype);
 
-    inline Symbol Vartype2Symbol(Vartype vartype) { return vartype & kVTY_FlagMask; };
+    inline static Symbol Vartype2Symbol(Vartype vartype) { return vartype & kVTY_FlagMask; };
 
     size_t Vartype2Size(Vartype vartype);
 
@@ -514,7 +514,7 @@ private:
 
     int ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows, int &numparams);
 
-    void ParseFuncdecl_SetFunctype(SymbolTableEntry &entry, Vartype return_type, bool func_is_static, bool func_is_protected, int numparams);
+    void ParseFuncdecl_SetFunctype(SymbolTableEntry &entry, Vartype return_vartype, bool func_is_static, bool func_is_protected, int numparams);
 
     int ParseFuncdecl_CheckThatFDM_CheckDefaults(SymbolTableEntry *this_entry, bool body_follows, SymbolTableEntry *known_info);
 
@@ -557,9 +557,9 @@ private:
     // then convert AX into a String object and set its type accordingly
     void ConvertAXStringToStringObject(Vartype wanted_vartype);
 
-    int GetReadCommandForSize(int the_size);
+    static int GetReadCommandForSize(int the_size);
 
-    int GetWriteCommandForSize(int the_size);
+    static int GetWriteCommandForSize(int the_size);
 
     // Handle the cases where a value is a whole array or dynarray or struct
     int HandleStructOrArrayResult(AGS::Vartype &vartype, AGS::Parser::ValueLocation &vloc);
@@ -772,7 +772,7 @@ private:
     // check that we haven't extended a struct that already contains a member with the same name
     int ParseStruct_CheckForCompoInAncester(Symbol orig, Symbol compo, Symbol act_struct);
 
-    int ParseStruct_Function(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname, Symbol name_of_current_func);
+    int ParseStruct_Function(TypeQualifierSet tqs, Vartype vartype, Symbol stname, Symbol vname, Symbol name_of_current_func);
 
     int ParseStruct_CheckAttributeFunc(SymbolTableEntry &entry, bool is_setter, bool is_indexed, Vartype vartype);
 
@@ -904,9 +904,9 @@ public:
 
 extern int cc_tokenize(
     const char *inpl,           // preprocessed text to be tokenized
-    ccInternalList *targ,      // store for the tokenized text
+    ccInternalList *targ,       // store for the tokenized text
     ccCompiledScript *scrip,    // repository for the strings in the text
-    SymbolTable &sym_t);        // symbol table 
+    SymbolTable &symt);         // symbol table 
 
 extern int cc_compile(
     const char *inpl,           // preprocessed text to be compiled

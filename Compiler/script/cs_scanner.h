@@ -31,26 +31,26 @@ public:
 
     // ctors
     Scanner();
-    Scanner(std::string const & Input, std::size_t Lineno, struct ::ccInternalList * TokenList);
+    Scanner(std::string const &input, std::size_t lineno, struct ::ccInternalList *token_list);
 
     // setters and getters
-    void SetInput(const std::string & Input);
-    void SetLineno(std::size_t Lineno);
-    std::size_t GetLineno();
-    void SetTokenList(struct ::ccInternalList *TokenList);
+    void SetInput(const std::string &input);
+    void SetLineno(std::size_t lineno);
+    inline size_t GetLineno() const { return _lineno; };
+    void SetTokenList(struct ::ccInternalList *token_list);
 
     // If the input couldn't be scanned, this will explain the problem
-    const std::string GetLastError();
+    inline const std::string GetLastError() const { return this->_lastError; };
 
     // Get the next symstring from the input.
     void GetNextSymstring(std::string &symstring, ScanType &scan_type, bool &eof_encountered, bool &error_encountered);
 
 protected:
     // Don't use std::isdigit et al. here because those are locale dependent and we don't want that.
-    inline bool isdigit(int ch) { return (ch >= '0' && ch <= '9'); }
-    inline bool isupper(int ch) { return (ch >= 'A' && ch <= 'Z'); }
-    inline bool islower(int ch) { return (ch >= 'a' && ch <= 'z'); }
-    inline bool isspace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
+    inline static bool isdigit(int ch) { return (ch >= '0' && ch <= '9'); }
+    inline static bool isupper(int ch) { return (ch >= 'A' && ch <= 'Z'); }
+    inline static bool islower(int ch) { return (ch >= 'a' && ch <= 'z'); }
+    inline static bool isspace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
 
     inline void WriteNewLinenoMeta(int ln) { const Symbol smeta_linenum = (Symbol)1; _tokenList->write_meta(smeta_linenum, ln); }
 

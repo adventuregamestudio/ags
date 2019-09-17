@@ -66,11 +66,6 @@ SymbolTableEntry::SymbolTableEntry(const char *name, SymbolType stype, char size
     , funcParamHasDefaultValues(std::vector<bool>(1))
 { }
 
-int SymbolTableEntry::operatorToVCPUCmd()
-{
-    return vartype;
-}
-
 int SymbolTableEntry::CopyTo(SymbolTableEntry &dest)
 {
     dest.sname = this->sname;
@@ -97,8 +92,9 @@ SymbolTable::SymbolTable()
     , _nullSym(0)
     , _pointerSym(0)
     , _stringSym(0)
-    , _voidSym(0)
     , _stringStructSym(0)
+    , _thisSym(0)
+    , _voidSym(0)
     , _lastPredefSym(0)
 {
     _findCache.clear();
@@ -275,9 +271,9 @@ AGS::Symbol SymbolTable::add_ex(char const *name, SymbolType stype, int ssize)
     return idx_of_new_entry;
 }
 
-int SymbolTable::add_operator(const char *name, int priority, int vcpucmd)
+int SymbolTable::add_operator(const char *opname, int priority, int vcpucmd)
 {
-    AGS::Symbol symbol_idx = add_ex(name, kSYM_Operator, priority);
+    AGS::Symbol symbol_idx = add_ex(opname, kSYM_Operator, priority);
     if (symbol_idx >= 0)
         entries.at(symbol_idx).vartype = vcpucmd;
     return symbol_idx;

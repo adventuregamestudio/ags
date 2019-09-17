@@ -19,7 +19,7 @@
 // add a script that will be compiled as a header into every compilation
 // 'name' is the name of the header, used in error reports
 // (only the pointer is stored so don't free the memory)
-extern int ccAddDefaultHeader(char *script, char *name);
+extern int ccAddDefaultHeader(char *hd_content, char *hd_name);
 // don't compile any headers into the compilation
 extern void ccRemoveDefaultHeaders(void);
 

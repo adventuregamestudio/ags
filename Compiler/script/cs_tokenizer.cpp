@@ -7,20 +7,19 @@
 #include "cs_tokenizer.h"
 
 AGS::Tokenizer::Tokenizer()
-    :
-    _scanner(0),
-    _tokenList(0),
-    _symbolTable(0),
-    _stringCollector(0)
+    : _scanner(0)
+    , _stringCollector(0)
+    , _symbolTable(0)
+    , _tokenList(0)
 {
     Reset();
 }
 
 AGS::Tokenizer::Tokenizer(AGS::Scanner *scanner, ::ccInternalList *token_list, ::SymbolTable *symbol_table, ::ccCompiledScript *string_collector)
     : _scanner(scanner)
-    , _tokenList(token_list)
-    , _symbolTable(symbol_table)
     , _stringCollector(string_collector)
+    , _symbolTable(symbol_table)
+    , _tokenList(token_list)
 {
     Reset();
 }
@@ -204,12 +203,6 @@ void AGS::Tokenizer::OpenCloseMatcher::Reset()
 {
     _lastError = "";
     _openInfoStack.resize(0);
-}
-
-
-std::string AGS::Tokenizer::OpenCloseMatcher::GetLastError()
-{
-    return _lastError;
 }
 
 

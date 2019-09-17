@@ -135,7 +135,7 @@ int ccCompiledScript::add_new_export(std::string const &name, AGS::Exporttype et
     if (etype == EXPORT_FUNCTION)
     {
         char tempAddition[20];
-        sprintf(tempAddition, "$%d", num_of_args);
+        sprintf(tempAddition, "$%u", num_of_args);
         strcat(newName, tempAddition);
     }
     // Check if it's already exported

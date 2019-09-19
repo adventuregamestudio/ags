@@ -1485,12 +1485,14 @@ enum EventType {
   eEventRestoreGame = 9
 };
 
+#ifdef SCRIPT_API_v350
 enum GUIPopupStyle {
   eGUIPopupNormal = 0,
   eGUIPopupMouseYPos = 1,
   eGUIPopupModal = 2,
   eGUIPopupPersistent = 3
 };
+#endif
 
 // forward-declare these so that they can be returned by GUIControl class
 builtin managed struct GUI;

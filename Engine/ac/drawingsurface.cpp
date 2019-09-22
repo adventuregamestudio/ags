@@ -346,7 +346,8 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
     sds->PointToGameResolution(&xx, &yy);
     sds->SizeToGameResolution(&wid);
 
-    break_up_text_into_lines(msg, Lines, wid, font);
+    if (break_up_text_into_lines(msg, Lines, wid, font) == 0)
+        return;
 
     Bitmap *ds = sds->StartDrawing();
     color_t text_color = sds->currentColour;

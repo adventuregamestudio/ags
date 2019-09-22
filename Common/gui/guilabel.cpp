@@ -50,7 +50,8 @@ void GUILabel::Draw(Common::Bitmap *ds)
     // TODO: need to find a way to cache text prior to drawing;
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
-    SplitLinesForDrawing(Lines);
+    if (SplitLinesForDrawing(Lines) == 0)
+        return;
 
     color_t text_color = ds->GetCompatibleColor(TextColor);
     const int linespacing = getfontlinespacing(Font) + 1;

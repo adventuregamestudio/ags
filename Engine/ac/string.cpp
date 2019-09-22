@@ -236,7 +236,7 @@ DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate)
     return DynObjectRef(handle, obj_ptr);
 }
 
-int break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
+size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
     if (fonnt == -1)
         fonnt = play.normal_font;
 

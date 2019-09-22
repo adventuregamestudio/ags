@@ -340,7 +340,8 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
     // TODO: use generic function from the engine instead of having copy&pasted code here
     int linespacing = getfontspacing_outlined(font);
 
-    break_up_text_into_lines(text, Lines, wid, font);
+    if (break_up_text_into_lines(text, Lines, wid, font) == 0)
+        return;
 
     Bitmap *ds = gfxDriver->GetStageBackBuffer();
     if (!ds)

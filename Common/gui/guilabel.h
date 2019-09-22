@@ -52,7 +52,7 @@ public:
 
 private:
     void PrepareTextToDraw();
-    void SplitLinesForDrawing(SplitLines &lines);
+    size_t SplitLinesForDrawing(SplitLines &lines);
 
     // prepared text buffer/cache
     String _textToDraw;

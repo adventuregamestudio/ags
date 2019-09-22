@@ -226,7 +226,7 @@ void unescape_script_string(const char *cstr, std::vector<char> &out)
 }
 
 // Break up the text into lines
-void split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
+size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
     // NOTE: following hack accomodates for the legacy math mistake in split_lines.
     // It's hard to tell how cruicial it is for the game looks, so research may be needed.
     // TODO: IMHO this should rely not on game format, but script API level, because it
@@ -302,6 +302,7 @@ void split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_
 
         i++;
     }
+    return lines.Count();
 }
 
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx)

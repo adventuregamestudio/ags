@@ -177,7 +177,8 @@ int GetTextHeight(const char *text, int fontnum, int width) {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetTextHeight: invalid font number.");
 
-  break_up_text_into_lines(text, Lines, data_to_game_coord(width), fontnum);
+  if (break_up_text_into_lines(text, Lines, data_to_game_coord(width), fontnum) == 0)
+    return 0;
   return game_to_data_coord(getheightoflines(fontnum, Lines.Count()));
 }
 

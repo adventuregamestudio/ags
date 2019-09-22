@@ -43,7 +43,8 @@ void MyLabel::draw(Bitmap *ds)
     char *teptr = &text[0];
     color_t text_color = ds->GetCompatibleColor(0);
 
-    break_up_text_into_lines(teptr, Lines, wid, acdialog_font);
+    if (break_up_text_into_lines(teptr, Lines, wid, acdialog_font) == 0)
+        return;
     for (size_t ee = 0; ee < Lines.Count(); ee++) {
         wouttext_outline(ds, x, cyp, acdialog_font, text_color, Lines[ee]);
         cyp += TEXT_HT;

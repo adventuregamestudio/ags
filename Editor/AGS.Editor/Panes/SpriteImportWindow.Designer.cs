@@ -105,7 +105,7 @@ namespace AGS.Editor
             this.chkUseAlphaChannel.Location = new System.Drawing.Point(6, 20);
             this.chkUseAlphaChannel.Name = "chkUseAlphaChannel";
             this.chkUseAlphaChannel.Size = new System.Drawing.Size(189, 17);
-            this.chkUseAlphaChannel.TabIndex = 12;
+            this.chkUseAlphaChannel.TabIndex = 3;
             this.chkUseAlphaChannel.Text = "Import alpha channel (if available)";
             this.chkUseAlphaChannel.UseVisualStyleBackColor = true;
             // 
@@ -115,7 +115,7 @@ namespace AGS.Editor
             this.chkRoomBackground.Location = new System.Drawing.Point(6, 66);
             this.chkRoomBackground.Name = "chkRoomBackground";
             this.chkRoomBackground.Size = new System.Drawing.Size(215, 17);
-            this.chkRoomBackground.TabIndex = 4;
+            this.chkRoomBackground.TabIndex = 5;
             this.chkRoomBackground.Text = "Use room background (8-bit game only)";
             this.chkRoomBackground.UseVisualStyleBackColor = true;
             // 
@@ -127,7 +127,7 @@ namespace AGS.Editor
             this.chkRemapCols.Location = new System.Drawing.Point(6, 43);
             this.chkRemapCols.Name = "chkRemapCols";
             this.chkRemapCols.Size = new System.Drawing.Size(183, 17);
-            this.chkRemapCols.TabIndex = 3;
+            this.chkRemapCols.TabIndex = 4;
             this.chkRemapCols.Text = "Remap palette (8-bit image only)";
             this.chkRemapCols.UseVisualStyleBackColor = true;
             // 
@@ -148,7 +148,7 @@ namespace AGS.Editor
             this.groupTransColour.Location = new System.Drawing.Point(12, 108);
             this.groupTransColour.Name = "groupTransColour";
             this.groupTransColour.Size = new System.Drawing.Size(224, 192);
-            this.groupTransColour.TabIndex = 14;
+            this.groupTransColour.TabIndex = 6;
             this.groupTransColour.TabStop = false;
             this.groupTransColour.Text = "Transparent colour";
             // 
@@ -158,7 +158,7 @@ namespace AGS.Editor
             this.panelBottomRight.Location = new System.Drawing.Point(136, 158);
             this.panelBottomRight.Name = "panelBottomRight";
             this.panelBottomRight.Size = new System.Drawing.Size(78, 17);
-            this.panelBottomRight.TabIndex = 21;
+            this.panelBottomRight.TabIndex = 12;
             // 
             // panelBottomLeft
             // 
@@ -166,7 +166,7 @@ namespace AGS.Editor
             this.panelBottomLeft.Location = new System.Drawing.Point(136, 112);
             this.panelBottomLeft.Name = "panelBottomLeft";
             this.panelBottomLeft.Size = new System.Drawing.Size(78, 17);
-            this.panelBottomLeft.TabIndex = 21;
+            this.panelBottomLeft.TabIndex = 10;
             // 
             // panelIndex0
             // 
@@ -174,7 +174,7 @@ namespace AGS.Editor
             this.panelIndex0.Location = new System.Drawing.Point(136, 66);
             this.panelIndex0.Name = "panelIndex0";
             this.panelIndex0.Size = new System.Drawing.Size(78, 17);
-            this.panelIndex0.TabIndex = 21;
+            this.panelIndex0.TabIndex = 8;
             // 
             // panelTopLeft
             // 
@@ -182,7 +182,7 @@ namespace AGS.Editor
             this.panelTopLeft.Location = new System.Drawing.Point(136, 89);
             this.panelTopLeft.Name = "panelTopLeft";
             this.panelTopLeft.Size = new System.Drawing.Size(78, 17);
-            this.panelTopLeft.TabIndex = 20;
+            this.panelTopLeft.TabIndex = 9;
             // 
             // radTransColourNone
             // 
@@ -190,7 +190,7 @@ namespace AGS.Editor
             this.radTransColourNone.Location = new System.Drawing.Point(6, 43);
             this.radTransColourNone.Name = "radTransColourNone";
             this.radTransColourNone.Size = new System.Drawing.Size(105, 17);
-            this.radTransColourNone.TabIndex = 19;
+            this.radTransColourNone.TabIndex = 7;
             this.radTransColourNone.Text = "No transparency";
             this.radTransColourNone.UseVisualStyleBackColor = true;
             // 
@@ -201,7 +201,7 @@ namespace AGS.Editor
             this.radTransColourLeaveAsIs.Location = new System.Drawing.Point(6, 20);
             this.radTransColourLeaveAsIs.Name = "radTransColourLeaveAsIs";
             this.radTransColourLeaveAsIs.Size = new System.Drawing.Size(79, 17);
-            this.radTransColourLeaveAsIs.TabIndex = 18;
+            this.radTransColourLeaveAsIs.TabIndex = 6;
             this.radTransColourLeaveAsIs.TabStop = true;
             this.radTransColourLeaveAsIs.Text = "Leave as-is";
             this.radTransColourLeaveAsIs.UseVisualStyleBackColor = true;
@@ -212,7 +212,7 @@ namespace AGS.Editor
             this.radTransColourBottomRightPixel.Location = new System.Drawing.Point(5, 158);
             this.radTransColourBottomRightPixel.Name = "radTransColourBottomRightPixel";
             this.radTransColourBottomRightPixel.Size = new System.Drawing.Size(110, 17);
-            this.radTransColourBottomRightPixel.TabIndex = 17;
+            this.radTransColourBottomRightPixel.TabIndex = 12;
             this.radTransColourBottomRightPixel.Text = "Bottom-right pixel";
             this.radTransColourBottomRightPixel.UseVisualStyleBackColor = true;
             // 
@@ -222,7 +222,7 @@ namespace AGS.Editor
             this.radTransColourTopRightPixel.Location = new System.Drawing.Point(5, 135);
             this.radTransColourTopRightPixel.Name = "radTransColourTopRightPixel";
             this.radTransColourTopRightPixel.Size = new System.Drawing.Size(94, 17);
-            this.radTransColourTopRightPixel.TabIndex = 16;
+            this.radTransColourTopRightPixel.TabIndex = 11;
             this.radTransColourTopRightPixel.Text = "Top-right pixel";
             this.radTransColourTopRightPixel.UseVisualStyleBackColor = true;
             // 
@@ -232,7 +232,7 @@ namespace AGS.Editor
             this.radTransColourBottomLeftPixel.Location = new System.Drawing.Point(5, 112);
             this.radTransColourBottomLeftPixel.Name = "radTransColourBottomLeftPixel";
             this.radTransColourBottomLeftPixel.Size = new System.Drawing.Size(104, 17);
-            this.radTransColourBottomLeftPixel.TabIndex = 15;
+            this.radTransColourBottomLeftPixel.TabIndex = 10;
             this.radTransColourBottomLeftPixel.Text = "Bottom-left pixel";
             this.radTransColourBottomLeftPixel.UseVisualStyleBackColor = true;
             // 
@@ -242,7 +242,7 @@ namespace AGS.Editor
             this.radTransColourTopLeftPixel.Location = new System.Drawing.Point(5, 89);
             this.radTransColourTopLeftPixel.Name = "radTransColourTopLeftPixel";
             this.radTransColourTopLeftPixel.Size = new System.Drawing.Size(88, 17);
-            this.radTransColourTopLeftPixel.TabIndex = 14;
+            this.radTransColourTopLeftPixel.TabIndex = 9;
             this.radTransColourTopLeftPixel.Text = "Top-left pixel";
             this.radTransColourTopLeftPixel.UseVisualStyleBackColor = true;
             // 
@@ -252,7 +252,7 @@ namespace AGS.Editor
             this.radTransColourIndex0.Location = new System.Drawing.Point(5, 66);
             this.radTransColourIndex0.Name = "radTransColourIndex0";
             this.radTransColourIndex0.Size = new System.Drawing.Size(97, 17);
-            this.radTransColourIndex0.TabIndex = 13;
+            this.radTransColourIndex0.TabIndex = 8;
             this.radTransColourIndex0.Text = "Palette index 0";
             this.radTransColourIndex0.UseVisualStyleBackColor = true;
             // 
@@ -261,7 +261,7 @@ namespace AGS.Editor
             this.btnClose.Location = new System.Drawing.Point(12, 569);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(70, 30);
-            this.btnClose.TabIndex = 6;
+            this.btnClose.TabIndex = 23;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
@@ -271,7 +271,7 @@ namespace AGS.Editor
             this.btnImport.Location = new System.Drawing.Point(89, 569);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(70, 30);
-            this.btnImport.TabIndex = 11;
+            this.btnImport.TabIndex = 0;
             this.btnImport.Text = "Import";
             this.btnImport.UseVisualStyleBackColor = true;
             this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
@@ -282,7 +282,7 @@ namespace AGS.Editor
             this.chkTiled.Location = new System.Drawing.Point(63, 20);
             this.chkTiled.Name = "chkTiled";
             this.chkTiled.Size = new System.Drawing.Size(111, 17);
-            this.chkTiled.TabIndex = 9;
+            this.chkTiled.TabIndex = 13;
             this.chkTiled.Text = "Tiled sprite import";
             this.chkTiled.UseVisualStyleBackColor = true;
             this.chkTiled.CheckedChanged += new System.EventHandler(this.chkTiled_CheckedChanged);
@@ -294,7 +294,7 @@ namespace AGS.Editor
             this.cmbFilenames.Location = new System.Drawing.Point(12, 519);
             this.cmbFilenames.Name = "cmbFilenames";
             this.cmbFilenames.Size = new System.Drawing.Size(224, 21);
-            this.cmbFilenames.TabIndex = 6;
+            this.cmbFilenames.TabIndex = 22;
             this.cmbFilenames.SelectedIndexChanged += new System.EventHandler(this.cmbFilenames_SelectedIndexChanged);
             // 
             // lblImageDescription
@@ -303,7 +303,7 @@ namespace AGS.Editor
             this.lblImageDescription.Location = new System.Drawing.Point(13, 547);
             this.lblImageDescription.Name = "lblImageDescription";
             this.lblImageDescription.Size = new System.Drawing.Size(69, 13);
-            this.lblImageDescription.TabIndex = 7;
+            this.lblImageDescription.TabIndex = 23;
             this.lblImageDescription.Text = "image details";
             // 
             // zoomSlider
@@ -316,7 +316,7 @@ namespace AGS.Editor
             this.zoomSlider.Minimum = 1;
             this.zoomSlider.Name = "zoomSlider";
             this.zoomSlider.Size = new System.Drawing.Size(567, 45);
-            this.zoomSlider.TabIndex = 4;
+            this.zoomSlider.TabIndex = 2;
             this.zoomSlider.Value = 1;
             this.zoomSlider.Scroll += new System.EventHandler(this.zoomSlider_Scroll);
             // 
@@ -326,7 +326,7 @@ namespace AGS.Editor
             this.lblZoom.Location = new System.Drawing.Point(242, 47);
             this.lblZoom.Name = "lblZoom";
             this.lblZoom.Size = new System.Drawing.Size(55, 13);
-            this.lblZoom.TabIndex = 5;
+            this.lblZoom.TabIndex = 24;
             this.lblZoom.Text = "Zoom: x 1";
             // 
             // groupSelection
@@ -350,7 +350,7 @@ namespace AGS.Editor
             this.groupSelection.Location = new System.Drawing.Point(12, 306);
             this.groupSelection.Name = "groupSelection";
             this.groupSelection.Size = new System.Drawing.Size(224, 207);
-            this.groupSelection.TabIndex = 15;
+            this.groupSelection.TabIndex = 13;
             this.groupSelection.TabStop = false;
             this.groupSelection.Text = "Selection";
             // 
@@ -365,7 +365,7 @@ namespace AGS.Editor
             this.cmbTileDirection.Location = new System.Drawing.Point(63, 43);
             this.cmbTileDirection.Name = "cmbTileDirection";
             this.cmbTileDirection.Size = new System.Drawing.Size(152, 21);
-            this.cmbTileDirection.TabIndex = 18;
+            this.cmbTileDirection.TabIndex = 14;
             this.cmbTileDirection.SelectedIndexChanged += new System.EventHandler(this.cmbTileDirection_SelectedIndexChanged);
             // 
             // numMaxTiles
@@ -384,7 +384,7 @@ namespace AGS.Editor
             0});
             this.numMaxTiles.Name = "numMaxTiles";
             this.numMaxTiles.Size = new System.Drawing.Size(63, 21);
-            this.numMaxTiles.TabIndex = 16;
+            this.numMaxTiles.TabIndex = 15;
             this.numMaxTiles.Value = new decimal(new int[] {
             1,
             0,
@@ -399,7 +399,7 @@ namespace AGS.Editor
             this.lblY.Location = new System.Drawing.Point(151, 102);
             this.lblY.Name = "lblY";
             this.lblY.Size = new System.Drawing.Size(13, 13);
-            this.lblY.TabIndex = 24;
+            this.lblY.TabIndex = 16;
             this.lblY.Text = "Y";
             // 
             // lblMaxTiles
@@ -408,7 +408,7 @@ namespace AGS.Editor
             this.lblMaxTiles.Location = new System.Drawing.Point(63, 76);
             this.lblMaxTiles.Name = "lblMaxTiles";
             this.lblMaxTiles.Size = new System.Drawing.Size(79, 13);
-            this.lblMaxTiles.TabIndex = 17;
+            this.lblMaxTiles.TabIndex = 15;
             this.lblMaxTiles.Text = "Number of tiles";
             // 
             // lblX
@@ -417,7 +417,7 @@ namespace AGS.Editor
             this.lblX.Location = new System.Drawing.Point(63, 102);
             this.lblX.Name = "lblX";
             this.lblX.Size = new System.Drawing.Size(13, 13);
-            this.lblX.TabIndex = 23;
+            this.lblX.TabIndex = 16;
             this.lblX.Text = "X";
             // 
             // lblTileDirection
@@ -426,7 +426,7 @@ namespace AGS.Editor
             this.lblTileDirection.Location = new System.Drawing.Point(10, 46);
             this.lblTileDirection.Name = "lblTileDirection";
             this.lblTileDirection.Size = new System.Drawing.Size(49, 13);
-            this.lblTileDirection.TabIndex = 19;
+            this.lblTileDirection.TabIndex = 14;
             this.lblTileDirection.Text = "Direction";
             // 
             // lblMargin
@@ -435,7 +435,7 @@ namespace AGS.Editor
             this.lblMargin.Location = new System.Drawing.Point(18, 178);
             this.lblMargin.Name = "lblMargin";
             this.lblMargin.Size = new System.Drawing.Size(39, 13);
-            this.lblMargin.TabIndex = 22;
+            this.lblMargin.TabIndex = 20;
             this.lblMargin.Text = "Margin";
             // 
             // numMarginX
@@ -449,7 +449,7 @@ namespace AGS.Editor
             0});
             this.numMarginX.Name = "numMarginX";
             this.numMarginX.Size = new System.Drawing.Size(62, 21);
-            this.numMarginX.TabIndex = 21;
+            this.numMarginX.TabIndex = 20;
             this.numMarginX.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
             this.numMarginX.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
             // 
@@ -464,7 +464,7 @@ namespace AGS.Editor
             0});
             this.numMarginY.Name = "numMarginY";
             this.numMarginY.Size = new System.Drawing.Size(62, 21);
-            this.numMarginY.TabIndex = 20;
+            this.numMarginY.TabIndex = 21;
             this.numMarginY.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
             this.numMarginY.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
             // 
@@ -474,7 +474,7 @@ namespace AGS.Editor
             this.lblSize.Location = new System.Drawing.Point(31, 150);
             this.lblSize.Name = "lblSize";
             this.lblSize.Size = new System.Drawing.Size(26, 13);
-            this.lblSize.TabIndex = 15;
+            this.lblSize.TabIndex = 18;
             this.lblSize.Text = "Size";
             // 
             // lblOffset
@@ -483,7 +483,7 @@ namespace AGS.Editor
             this.lblOffset.Location = new System.Drawing.Point(20, 123);
             this.lblOffset.Name = "lblOffset";
             this.lblOffset.Size = new System.Drawing.Size(38, 13);
-            this.lblOffset.TabIndex = 14;
+            this.lblOffset.TabIndex = 16;
             this.lblOffset.Text = "Offset";
             // 
             // numSizeY
@@ -497,7 +497,7 @@ namespace AGS.Editor
             0});
             this.numSizeY.Name = "numSizeY";
             this.numSizeY.Size = new System.Drawing.Size(62, 21);
-            this.numSizeY.TabIndex = 13;
+            this.numSizeY.TabIndex = 19;
             this.numSizeY.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
             this.numSizeY.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
             // 
@@ -512,7 +512,7 @@ namespace AGS.Editor
             0});
             this.numSizeX.Name = "numSizeX";
             this.numSizeX.Size = new System.Drawing.Size(62, 21);
-            this.numSizeX.TabIndex = 12;
+            this.numSizeX.TabIndex = 18;
             this.numSizeX.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
             this.numSizeX.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
             // 
@@ -527,7 +527,7 @@ namespace AGS.Editor
             0});
             this.numOffsetX.Name = "numOffsetX";
             this.numOffsetX.Size = new System.Drawing.Size(62, 21);
-            this.numOffsetX.TabIndex = 11;
+            this.numOffsetX.TabIndex = 16;
             this.numOffsetX.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
             this.numOffsetX.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
             // 
@@ -542,7 +542,7 @@ namespace AGS.Editor
             0});
             this.numOffsetY.Name = "numOffsetY";
             this.numOffsetY.Size = new System.Drawing.Size(62, 21);
-            this.numOffsetY.TabIndex = 10;
+            this.numOffsetY.TabIndex = 17;
             this.numOffsetY.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
             this.numOffsetY.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
             // 
@@ -556,7 +556,7 @@ namespace AGS.Editor
             this.previewPanel.Location = new System.Drawing.Point(245, 66);
             this.previewPanel.Name = "previewPanel";
             this.previewPanel.Size = new System.Drawing.Size(570, 533);
-            this.previewPanel.TabIndex = 0;
+            this.previewPanel.TabIndex = 25;
             this.previewPanel.Scroll += new System.Windows.Forms.ScrollEventHandler(this.previewPanel_Scroll);
             this.previewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.previewPanel_Paint);
             this.previewPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseDown);
@@ -568,7 +568,7 @@ namespace AGS.Editor
             this.btnImportAll.Location = new System.Drawing.Point(166, 569);
             this.btnImportAll.Name = "btnImportAll";
             this.btnImportAll.Size = new System.Drawing.Size(70, 30);
-            this.btnImportAll.TabIndex = 16;
+            this.btnImportAll.TabIndex = 1;
             this.btnImportAll.Text = "Import All";
             this.btnImportAll.UseVisualStyleBackColor = true;
             this.btnImportAll.Click += new System.EventHandler(this.btnImportAll_Click);
@@ -579,7 +579,7 @@ namespace AGS.Editor
             this.panelTopRight.Location = new System.Drawing.Point(136, 135);
             this.panelTopRight.Name = "panelTopRight";
             this.panelTopRight.Size = new System.Drawing.Size(78, 17);
-            this.panelTopRight.TabIndex = 21;
+            this.panelTopRight.TabIndex = 11;
             // 
             // SpriteImportWindow
             // 

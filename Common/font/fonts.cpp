@@ -278,6 +278,11 @@ void split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_
         theline[i + 1] = nextCharWas;
 
         if (splitAt != -1) {
+            if (splitAt == 0) {
+              // cannot split with current width restriction
+              lines.Reset();
+              break;
+            }
             // add this line
             nextCharWas = theline[splitAt];
             theline[splitAt] = 0;

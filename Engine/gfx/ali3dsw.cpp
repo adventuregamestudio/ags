@@ -306,6 +306,7 @@ bool ALSoftwareGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 
 void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
 {
+  if (!_filter) return;
   int color = 0;
   if (colorToUse != nullptr) 
     color = makecol_depth(_mode.ColorDepth, colorToUse->r, colorToUse->g, colorToUse->b);

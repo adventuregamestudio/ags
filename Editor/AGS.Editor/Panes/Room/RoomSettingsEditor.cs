@@ -28,6 +28,7 @@ namespace AGS.Editor
         private Room _room;
         private IRoomEditorFilter _layer;
         private RoomEditNode _layersRoot;
+        private IRoomEditorFilter _emptyLayer;
         private List<IRoomEditorFilter> _layers = new List<IRoomEditorFilter>();
         private CharactersEditorFilter _characterLayer; // need to store the reference for special processing
         private bool _editorConstructed = false;
@@ -74,6 +75,7 @@ namespace AGS.Editor
             // TODO: choose default zoom based on the room size vs window size?
             SetZoomSliderToMultiplier(_room.Width <= 320 ? 2 : 1);
 
+            _emptyLayer = new EmptyEditorFilter(bufferedPanel1, _room);
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
             _characterLayer = new CharactersEditorFilter(bufferedPanel1, this, _room, Factory.AGSEditor.CurrentGame);
             _layers.Add(_characterLayer);
@@ -198,9 +200,9 @@ namespace AGS.Editor
         private void layer_OnSelectedItemChanged(object sender, SelectedRoomItemEventArgs e)
         {
             IRoomEditorFilter layer = sender as IRoomEditorFilter;
-            if (layer == null) return;
+            if (layer == null) { SelectLayer(null); return; }
             IAddressNode node = _editAddressBar.RootNode.GetChild(GetLayerItemUniqueID(layer, e.Item), true);
-            if (node == null) return;
+            if (node == null) { SelectLayer(null); return; }
             _editAddressBar.CurrentNode = node;
             SelectLayer(layer);
             //selecting hotspot from designer Panel, then cant Draw more hotspots...
@@ -627,17 +629,18 @@ namespace AGS.Editor
             if (_layersRoot.UniqueID.Equals(e.OUniqueID))
             {
                 Factory.GUIController.SetPropertyGridObject(_room);
+                SelectLayer(null);
                 return;
             }
 
             RoomEditNode node = _layersRoot.GetChild(e.OUniqueID, true) as RoomEditNode;
-            if (node == null) return;
+            if (node == null) { SelectLayer(null); return; }
             RoomEditNode layerNode = node;
             while (layerNode != null && layerNode.Layer == null)
             {
                 layerNode = layerNode.Parent as RoomEditNode;
             }
-            if (layerNode == null) return;
+            if (layerNode == null) { SelectLayer(null); return; }
 
             layerNode.IsVisible = true;
             SelectLayer(layerNode.Layer);
@@ -656,7 +659,7 @@ namespace AGS.Editor
             if (layer == _layer) return;
 
             if (_layer != null) _layer.FilterOff();
-            _layer = layer;
+            _layer = layer ?? _emptyLayer;
 
             SetDefaultPropertyGridList();
             Factory.GUIController.SetPropertyGridObject(_room);

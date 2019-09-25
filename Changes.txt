@@ -1,5 +1,11 @@
 REVISION HISTORY
 ================
+VERSION 3.4.4 - Patch 1, September 2019
+
+Engine:
+ - Fixed increased CPU load when displaying built-in dialogs (save, restore etc).
+
+
 VERSION 3.4.4, July 2019
 
 Editor:

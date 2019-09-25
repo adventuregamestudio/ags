@@ -17,6 +17,7 @@ namespace AGS.Editor
     public partial class RoomSettingsEditor : EditorContentPanel
     {
         private const int SCROLLBAR_WIDTH_BUFFER = 40;
+        private const string MENU_ITEM_COPY_COORDS = "CopyCoordinatesToClipboard";
 
         // NOTE: the reason we need to pass editor reference to the SaveRoom hander is that
         // currently design-time properties of room items are stored inside editor filter classes.
@@ -34,6 +35,8 @@ namespace AGS.Editor
         private bool _editorConstructed = false;
         private int _lastX, _lastY;
         private bool _mouseIsDown = false;
+        private int _menuClickX;
+        private int _menuClickY;
 
         private int ZOOM_STEP_VALUE = 25;
         private int ZOOM_MAX_VALUE = 600;
@@ -562,8 +565,18 @@ namespace AGS.Editor
         {
             if (_mouseIsDown)
             {
+                bool handled = false;
                 if (_layer != null && !IsLocked(_layer))
-                    _layer.MouseUp(e, _state);
+                {
+                    handled = _layer.MouseUp(e, _state);
+                }
+                if (!handled)
+                {
+                    if (e.Button == MouseButtons.Middle)
+                    {
+                        ShowCoordMenu(e);
+                    }
+                }
                 Factory.GUIController.RefreshPropertyGrid();
                 bufferedPanel1.Invalidate();
                 _mouseIsDown = false;
@@ -756,7 +769,28 @@ namespace AGS.Editor
 			return returnHandled;
 		}
 
-		protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)
+        private void ShowCoordMenu(MouseEventArgs e)
+        {
+            EventHandler onClick = new EventHandler(CoordMenuEventHandler);
+            ContextMenuStrip menu = new ContextMenuStrip();
+            menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
+
+            _menuClickX = _state.WindowXToRoom(e.X);
+            _menuClickY = _state.WindowYToRoom(e.Y);
+
+            menu.Show(bufferedPanel1, e.X, e.Y);
+        }
+
+        private void CoordMenuEventHandler(object sender, EventArgs e)
+        {
+            int tempx = _menuClickX;
+            int tempy = _menuClickY;
+            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref tempx, ref tempy);
+            string textToCopy = tempx.ToString() + ", " + tempy.ToString();
+            Utilities.CopyTextToClipboard(textToCopy);
+        }
+
+        protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)
         {
             if ((canCancel) && (_room.Modified || DesignModified))
             {

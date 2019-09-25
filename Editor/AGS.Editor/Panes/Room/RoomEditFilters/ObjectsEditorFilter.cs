@@ -11,7 +11,6 @@ namespace AGS.Editor
     {
         private const string MENU_ITEM_DELETE = "DeleteObject";
         private const string MENU_ITEM_NEW = "NewObject";
-        private const string MENU_ITEM_COPY_COORDS = "CopyCoordinates";
         private const string MENU_ITEM_OBJECT_COORDS = "ObjectCoordinates";
         protected Room _room;
         protected Panel _panel;
@@ -233,27 +232,6 @@ namespace AGS.Editor
                 (y >= obj.StartY - height) && (y < obj.StartY));
         }
 
-        private void CoordMenuEventHandler(object sender, EventArgs e)
-        {
-            int tempx = _menuClickX;
-            int tempy = _menuClickY;
-            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref tempx, ref tempy);
-            string textToCopy = tempx.ToString() + ", " + tempy.ToString();
-            Utilities.CopyTextToClipboard(textToCopy);
-        }
-
-        private void ShowCoordMenu(MouseEventArgs e, RoomEditorState state)
-        {
-            EventHandler onClick = new EventHandler(CoordMenuEventHandler);
-            ContextMenuStrip menu = new ContextMenuStrip();
-            menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
-
-            _menuClickX = state.WindowXToRoom(e.X);
-            _menuClickY = state.WindowYToRoom(e.Y);
-
-            menu.Show(_panel, e.X, e.Y);
-        }
-
         private void ContextMenuEventHandler(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
@@ -335,11 +313,6 @@ namespace AGS.Editor
         {
             _movingObjectWithMouse = false;
 			_lastSelectedObject = _selectedObject;
-
-            if (e.Button == MouseButtons.Middle)
-            {
-                ShowCoordMenu(e, state);
-            }
             return false;
         }
 

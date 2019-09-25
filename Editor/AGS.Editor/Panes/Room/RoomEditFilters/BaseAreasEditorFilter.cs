@@ -23,10 +23,8 @@ namespace AGS.Editor
 
         protected const int TOOLBAR_INDEX_UNDO = 5;
 		protected const int TOOLBAR_INDEX_GREY_OUT_MASKS = 8;
-        
-        private const string MENU_ITEM_COPY_COORDS = "CopyCoordinates";
-        private const string ERASER = "Eraser";
-        private int _menuClickX, _menuClickY;        
+
+        private const string ERASER = "Eraser";      
 
 		private readonly Brush[] _brushesForAreas = new Brush[]{Brushes.Black, Brushes.DarkBlue,
 			Brushes.DarkGreen, Brushes.DarkCyan, Brushes.DarkRed, Brushes.DarkMagenta, 
@@ -315,10 +313,6 @@ namespace AGS.Editor
                 _shouldSetDrawModeOnMouseUp = false;
                 SetDrawMode();
             }
-            if (e.Button == MouseButtons.Middle)
-            {
-                ShowCoordMenu(e, state);
-            }
             else if (drawMode == AreaDrawMode.Line)
             {
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
@@ -341,27 +335,6 @@ namespace AGS.Editor
 		{
             return false;
 		}
-
-        private void CoordMenuEventHandler(object sender, EventArgs e)
-        {
-            int tempx = _menuClickX;
-            int tempy = _menuClickY;
-            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref tempx, ref tempy);
-            string textToCopy = tempx.ToString() + ", " + tempy.ToString();
-            Utilities.CopyTextToClipboard(textToCopy);
-        }
-
-        private void ShowCoordMenu(MouseEventArgs e, RoomEditorState state)
-        {
-            EventHandler onClick = new EventHandler(CoordMenuEventHandler);
-            ContextMenuStrip menu = new ContextMenuStrip();
-            menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
-
-            _menuClickX = state.WindowXToRoom(e.X);
-            _menuClickY = state.WindowYToRoom(e.Y);
-
-            menu.Show(_panel, e.X, e.Y);
-        }
 
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {

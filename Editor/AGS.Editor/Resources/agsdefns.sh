@@ -2234,8 +2234,14 @@ builtin managed struct Character {
   import function AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
   /// Manually adds a waypoint to the character's movement path.
   import function AddWaypoint(int x, int y);
+#ifdef SCRIPT_API_v3507
+  /// Animates the character using its current locked view.
+  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards, int frame=0);
+#endif
+#ifndef SCRIPT_API_v3507
   /// Animates the character using its current locked view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
+#endif
 #ifdef SCRIPT_API_v340
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
   import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);

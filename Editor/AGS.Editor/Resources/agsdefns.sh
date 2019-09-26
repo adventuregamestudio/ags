@@ -2113,8 +2113,14 @@ enum WalkWhere {
 };
 
 builtin managed struct Object {
+#ifdef SCRIPT_API_v3507
+  /// Animates the object using its current view.
+  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards, int frame=0);
+#endif
+#ifndef SCRIPT_API_v3507
   /// Animates the object using its current view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
+#endif
   /// Gets the object that is on the screen at the specified co-ordinates.
   import static Object* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #ifndef STRICT_STRINGS

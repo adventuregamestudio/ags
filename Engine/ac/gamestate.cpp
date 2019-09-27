@@ -876,14 +876,14 @@ void GameState::FreeViewportsAndCameras()
 {
     _roomViewports.clear();
     _roomViewportsSorted.clear();
-    for (auto scobj : _scViewportRefs)
+    for (auto &scobj : _scViewportRefs)
     {
         scobj.first->Invalidate();
         ccReleaseObjectReference(scobj.second);
     }
     _scViewportRefs.clear();
     _roomCameras.clear();
-    for (auto scobj : _scCameraRefs)
+    for (auto &scobj : _scCameraRefs)
     {
         scobj.first->Invalidate();
         ccReleaseObjectReference(scobj.second);

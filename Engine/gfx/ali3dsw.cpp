@@ -603,7 +603,7 @@ void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
   _stageVirtualScreen = virtualScreen;
 
   // Reset old virtual screen's subbitmaps
-  for (auto batch : _spriteBatches)
+  for (auto &batch : _spriteBatches)
   {
     if (batch.IsVirtualScreen)
       batch.Surface.reset();

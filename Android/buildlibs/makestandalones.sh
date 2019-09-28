@@ -12,14 +12,14 @@ if [[ -z "$NDK_HOME" ]]; then
 fi
 
 # android-14 is the minimum we can go with current Android SDK
-PLATFORM=android-14
+PLATFORM=android-21
 
 # standalone toolchains cannot share same directory
 export NDK_STANDALONE=$NDK_HOME/platforms/$PLATFORM
 
 # if you don't pass force, the directory is not rewritten
 # verbose is needed to see why making the toolchain fails
-for arch in arm x86 mips
+for arch in arm arm64 x86 x86_64 mips
 do
     INSTALL_DIR=$NDK_STANDALONE/$arch
     mkdir -p $INSTALL_DIR

@@ -186,7 +186,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
 
 }
 
-void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction) {
+void Character_AnimateFrom(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction, int sframe) {
 
     if (direction == FORWARDS)
         direction = 0;
@@ -195,12 +195,16 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int
     else
         quit("!Character.Animate: Invalid DIRECTION parameter");
 
-    animate_character(chaa, loop, delay, repeat, 0, direction);
+    animate_character(chaa, loop, delay, repeat, 0, direction, sframe);
 
     if ((blocking == BLOCKING) || (blocking == 1))
         GameLoopUntilValueIsZero(&chaa->animating);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Animate: Invalid BLOCKING parameter");
+}
+
+void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction) {
+    Character_AnimateFrom(chaa, loop, delay, repeat, blocking, direction, 0);
 }
 
 void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos) 
@@ -2115,13 +2119,13 @@ void setup_player_character(int charid) {
     }
 }
 
-void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction) {
+void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction, int sframe) {
 
     if ((chap->view < 0) || (chap->view > game.numviews)) {
         quitprintf("!AnimateCharacter: you need to set the view number first\n"
             "(trying to animate '%s' using loop %d. View is currently %d).",chap->name,loopn,chap->view+1);
     }
-    debug_script_log("%s: Start anim view %d loop %d, spd %d, repeat %d", chap->scrname, chap->view+1, loopn, sppd, rept);
+    debug_script_log("%s: Start anim view %d loop %d, spd %d, repeat %d, frame: %d", chap->scrname, chap->view+1, loopn, sppd, rept, sframe);
     if ((chap->idleleft < 0) && (noidleoverride == 0)) {
         // if idle view in progress for the character (and this is not the
         // "start idle animation" animate_character call), stop the idle anim
@@ -2130,6 +2134,8 @@ void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noi
     }
     if ((loopn < 0) || (loopn >= views[chap->view].numLoops))
         quit("!AnimateCharacter: invalid loop number specified");
+    if ((sframe < 0) || (sframe >= views[chap->view].loops[loopn].numFrames))
+        quit("!AnimateCharacter: invalid starting frame number specified");
     Character_StopMoving(chap);
     chap->animating=1;
     if (rept) chap->animating |= CHANIM_REPEAT;
@@ -2137,12 +2143,13 @@ void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noi
 
     chap->animating|=((sppd << 8) & 0xff00);
     chap->loop=loopn;
-
+    // reverse animation starts at the *previous frame*
     if (direction) {
-        chap->frame = views[chap->view].loops[loopn].numFrames - 1;
+        sframe--;
+        if (sframe < 0)
+            sframe = views[chap->view].loops[loopn].numFrames - (-sframe);
     }
-    else
-        chap->frame=0;
+    chap->frame = sframe;
 
     chap->wait = sppd + views[chap->view].loops[loopn].frames[chap->frame].speed;
     CheckViewFrameForCharacter(chap);
@@ -2932,6 +2939,11 @@ RuntimeScriptValue Sc_Character_AddWaypoint(void *self, const RuntimeScriptValue
 RuntimeScriptValue Sc_Character_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT5(CharacterInfo, Character_Animate);
+}
+
+RuntimeScriptValue Sc_Character_AnimateFrom(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT6(CharacterInfo, Character_AnimateFrom);
 }
 
 // void | CharacterInfo *chaa, int room, int x, int y
@@ -3772,6 +3784,7 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalObjectFunction("Character::AddInventory^2",            Sc_Character_AddInventory);
 	ccAddExternalObjectFunction("Character::AddWaypoint^2",             Sc_Character_AddWaypoint);
 	ccAddExternalObjectFunction("Character::Animate^5",                 Sc_Character_Animate);
+    ccAddExternalObjectFunction("Character::Animate^6",                 Sc_Character_AnimateFrom);
 	ccAddExternalObjectFunction("Character::ChangeRoom^3",              Sc_Character_ChangeRoom);
     ccAddExternalObjectFunction("Character::ChangeRoom^4",              Sc_Character_ChangeRoomSetLoop);
 	ccAddExternalObjectFunction("Character::ChangeRoomAutoPosition^2",  Sc_Character_ChangeRoomAutoPosition);

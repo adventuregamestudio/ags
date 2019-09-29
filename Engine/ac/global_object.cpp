@@ -204,7 +204,7 @@ int GetObjectBaseline(int obn) {
     return objs[obn].baseline;
 }
 
-void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blocking) {
+void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking, int sframe) {
     if (obn>=MANOBJNUM) {
         scAnimateCharacter(obn - 100,loopn,spdd,rept);
         return;
@@ -213,8 +213,10 @@ void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blo
         quit("!AnimateObject: invalid object number specified");
     if (objs[obn].view < 0)
         quit("!AnimateObject: object has not been assigned a view");
-    if (loopn >= views[objs[obn].view].numLoops)
+    if (loopn < 0 || loopn >= views[objs[obn].view].numLoops)
         quit("!AnimateObject: invalid loop number specified");
+    if (sframe < 0 || sframe >= views[objs[obn].view].loops[loopn].numFrames)
+        quit("!AnimateObject: invalid starting frame number specified");
     if ((direction < 0) || (direction > 1))
         quit("!AnimateObjectEx: invalid direction");
     if ((rept < 0) || (rept > 2))
@@ -222,15 +224,17 @@ void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blo
     if (views[objs[obn].view].loops[loopn].numFrames < 1)
         quit("!AnimateObject: no frames in the specified view loop");
 
-    debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d", obn, objs[obn].view+1, loopn, spdd, rept);
+    debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d", obn, objs[obn].view+1, loopn, spdd, rept, sframe);
 
     objs[obn].cycling = rept+1 + (direction * 10);
     objs[obn].loop=loopn;
-    if (direction == 0)
-        objs[obn].frame = 0;
-    else {
-        objs[obn].frame = views[objs[obn].view].loops[loopn].numFrames - 1;
+    // reverse animation starts at the *previous frame*
+    if (direction) {
+        sframe--;
+        if (sframe < 0)
+            sframe = views[objs[obn].view].loops[loopn].numFrames - (-sframe);
     }
+    objs[obn].frame = sframe;
 
     objs[obn].overall_speed=spdd;
     objs[obn].wait = spdd+views[objs[obn].view].loops[loopn].frames[objs[obn].frame].speed;
@@ -241,9 +245,12 @@ void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blo
         GameLoopUntilValueIsZero(&objs[obn].cycling);
 }
 
+void AnimateObjectEx(int obn, int loopn, int spdd, int rept, int direction, int blocking) {
+    AnimateObjectImpl(obn, loopn, spdd, rept, direction, blocking, 0);
+}
 
 void AnimateObject(int obn,int loopn,int spdd,int rept) {
-    AnimateObjectEx (obn, loopn, spdd, rept, 0, 0);
+    AnimateObjectImpl(obn, loopn, spdd, rept, 0, 0, 0);
 }
 
 void MergeObject(int obn) {

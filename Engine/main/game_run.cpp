@@ -352,12 +352,14 @@ bool run_service_key_controls(int &kgn)
         return false;
 
     int keycode = ags_getch();
+    // NS: I'm still not sure why we read a second key. 
+    // Perhaps it's of a time when we read the keyboard one byte at a time?
     if (keycode == 0)
         keycode = ags_getch() + AGS_EXT_KEY_SHIFT;
 
     // LAlt or RAlt + Enter
     // NOTE: for some reason LAlt + Enter produces same code as F9
-    if (act_shifts == KB_ALT_FLAG && ((keycode == 367 && !key[KEY_F9]) || keycode == 13))
+    if (act_shifts == KB_ALT_FLAG && ((keycode == eAGSKeyCodeF9 && !key[KEY_F9]) || keycode == eAGSKeyCodeReturn))
     {
         engine_try_switch_windowed_gfxmode();
         return false;

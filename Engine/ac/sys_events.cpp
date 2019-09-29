@@ -119,46 +119,53 @@ int ags_getch() {
     }*/
 
     if ((gott & 0x00ff) == EXTENDED_KEY_CODE) {
-        gott = scancode + AGS_EXT_KEY_SHIFT;
 
-        // convert Allegro KEY_* numbers to scan codes
-        // (for backwards compatibility we can't just use the
-        // KEY_* constants now, it's too late)
-        if ((gott>=347) & (gott<=356)) gott+=12;
-        // F11-F12
-        else if ((gott==357) || (gott==358)) gott+=76;
-        // insert / numpad insert
-        else if ((scancode == KEY_0_PAD) || (scancode == KEY_INSERT))
-            gott = AGS_KEYCODE_INSERT;
-        // delete / numpad delete
-        else if ((scancode == KEY_DEL_PAD) || (scancode == KEY_DEL))
-            gott = AGS_KEYCODE_DELETE;
-        // Home
-        else if (gott == 378) gott = 371;
-        // End
-        else if (gott == 379) gott = 379;
-        // PgUp
-        else if (gott == 380) gott = 373;
-        // PgDn
-        else if (gott == 381) gott = 381;
-        // left arrow
-        else if (gott==382) gott=375;
-        // right arrow
-        else if (gott==383) gott=377;
-        // up arrow
-        else if (gott==384) gott=372;
-        // down arrow
-        else if (gott==385) gott=380;
-        // numeric keypad
-        else if (gott==338) gott=379;
-        else if (gott==339) gott=380;
-        else if (gott==340) gott=381;
-        else if (gott==341) gott=375;
-        else if (gott==342) gott=376;
-        else if (gott==343) gott=377;
-        else if (gott==344) gott=371;
-        else if (gott==345) gott=372;
-        else if (gott==346) gott=373;
+        // I believe we rely on a lot of keys being converted to ASCII, which is why
+        // the complete scan code list is not here.
+
+        switch(scancode) 
+        {
+            case __allegro_KEY_F1 : gott = eAGSKeyCodeF1 ; break;
+            case __allegro_KEY_F2 : gott = eAGSKeyCodeF2 ; break;
+            case __allegro_KEY_F3 : gott = eAGSKeyCodeF3 ; break;
+            case __allegro_KEY_F4 : gott = eAGSKeyCodeF4 ; break;
+            case __allegro_KEY_F5 : gott = eAGSKeyCodeF5 ; break;
+            case __allegro_KEY_F6 : gott = eAGSKeyCodeF6 ; break;
+            case __allegro_KEY_F7 : gott = eAGSKeyCodeF7 ; break;
+            case __allegro_KEY_F8 : gott = eAGSKeyCodeF8 ; break;
+            case __allegro_KEY_F9 : gott = eAGSKeyCodeF9 ; break;
+            case __allegro_KEY_F10 : gott = eAGSKeyCodeF10 ; break;
+            case __allegro_KEY_F11 : gott = eAGSKeyCodeF11 ; break;
+            case __allegro_KEY_F12 : gott = eAGSKeyCodeF12 ; break;
+
+            case __allegro_KEY_INSERT : gott = eAGSKeyCodeInsert ; break;
+            case __allegro_KEY_DEL : gott = eAGSKeyCodeDelete ; break;
+            case __allegro_KEY_HOME : gott = eAGSKeyCodeHome ; break;
+            case __allegro_KEY_END : gott = eAGSKeyCodeEnd ; break;
+            case __allegro_KEY_PGUP : gott = eAGSKeyCodePageUp ; break;
+            case __allegro_KEY_PGDN : gott = eAGSKeyCodePageDown ; break;
+            case __allegro_KEY_LEFT : gott = eAGSKeyCodeLeftArrow ; break;
+            case __allegro_KEY_RIGHT : gott = eAGSKeyCodeRightArrow ; break;
+            case __allegro_KEY_UP : gott = eAGSKeyCodeUpArrow ; break;
+            case __allegro_KEY_DOWN : gott = eAGSKeyCodeDownArrow ; break;
+
+            case __allegro_KEY_0_PAD : gott = eAGSKeyCodeInsert ; break;
+            case __allegro_KEY_1_PAD : gott = eAGSKeyCodeEnd ; break;
+            case __allegro_KEY_2_PAD : gott = eAGSKeyCodeDownArrow ; break;
+            case __allegro_KEY_3_PAD : gott = eAGSKeyCodePageDown ; break;
+            case __allegro_KEY_4_PAD : gott = eAGSKeyCodeLeftArrow ; break;
+            case __allegro_KEY_5_PAD : gott = eAGSKeyCodeNumPad5 ; break;
+            case __allegro_KEY_6_PAD : gott = eAGSKeyCodeRightArrow ; break;
+            case __allegro_KEY_7_PAD : gott = eAGSKeyCodeHome ; break;
+            case __allegro_KEY_8_PAD : gott = eAGSKeyCodeUpArrow ; break;
+            case __allegro_KEY_9_PAD : gott = eAGSKeyCodePageUp ; break;
+            case __allegro_KEY_DEL_PAD : gott = eAGSKeyCodeDelete ; break;
+
+            default: 
+                // no meaningful mappings
+                // this is how we accidentally got the alt-key mappings
+                gott = scancode + AGS_EXT_KEY_SHIFT;
+        }
     }
     else
     {

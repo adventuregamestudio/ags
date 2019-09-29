@@ -469,13 +469,13 @@ builtin managed struct Dictionary
   /// Removes all items from the dictionary.
   import void Clear();
   /// Tells if given key is in the dictionary.
-  import bool Contains(String key);
+  import bool Contains(const string key);
   /// Gets value by the key; returns null if such key does not exist.
-  import String Get(String key);
+  import String Get(const string key);
   /// Removes key/value pair from the dictionary, fails if there was no such key.
-  import bool Remove(String key);
+  import bool Remove(const string key);
   /// Assigns a value to the given key, adds this key if it did not exist yet.
-  import bool Set(String key, String value);
+  import bool Set(const string key, const string value);
 
   /// Gets if this dictionary is case-sensitive.
   import readonly attribute StringCompareStyle CompareStyle;
@@ -495,13 +495,13 @@ builtin managed struct Set
   import static Set* Create(SortStyle sortStyle = eNonSorted, StringCompareStyle compareStyle = eCaseInsensitive); // $AUTOCOMPLETESTATICONLY$
 
   /// Adds item to the set, fails if such item was already existing.
-  import bool Add(String item);
+  import bool Add(const string item);
   /// Removes all items from the set.
   import void Clear();
   /// Tells if given item is in the set.
-  import bool Contains(String item);
+  import bool Contains(const string item);
   /// Removes item from the set, fails if there was no such item.
-  import bool Remove(String item);
+  import bool Remove(const string item);
 
   /// Gets if this set is case-sensitive.
   import readonly attribute StringCompareStyle CompareStyle;

@@ -99,14 +99,17 @@ int ags_check_mouse_wheel () {
 }
 
 int ags_getch() {
-    int gott=readkey();
-    int scancode = ((gott >> 8) & 0x00ff);
+    const int read_key_value = readkey();
+    int gott = read_key_value;
+    const int scancode = ((gott >> 8) & 0x00ff);
+    const int ascii = (gott & 0x00ff);
 
-    if (gott == READKEY_CODE_ALT_TAB)
-    {
-        // Alt+Tab, it gets stuck down unless we do this
-        return AGS_KEYCODE_ALT_TAB;
-    }
+    bool is_extended = (ascii == EXTENDED_KEY_CODE);
+    // On macos, the extended keycode is the ascii character '?' or '\0' if alt-key
+    // so check it's not actually the character '?'
+    #if AGS_PLATFORM_OS_MACOS && ! AGS_PLATFORM_OS_IOS
+    is_extended = is_extended || ((ascii == EXTENDED_KEY_CODE_MACOS) && (scancode != __allegro_KEY_SLASH));
+    #endif
 
     /*  char message[200];
     sprintf(message, "Scancode: %04X", gott);
@@ -118,7 +121,19 @@ int ags_getch() {
     gott = (gott & 0xff00) | EXTENDED_KEY_CODE;
     }*/
 
-    if ((gott & 0x00ff) == EXTENDED_KEY_CODE) {
+    if (gott == READKEY_CODE_ALT_TAB)
+    {
+        // Alt+Tab, it gets stuck down unless we do this
+        gott = AGS_KEYCODE_ALT_TAB;
+    }
+    #if AGS_PLATFORM_OS_MACOS
+    else if (scancode == __allegro_KEY_BACKSPACE) 
+    {
+        gott = eAGSKeyCodeBackspace;
+    }
+    #endif
+    else if (is_extended) 
+    {
 
         // I believe we rely on a lot of keys being converted to ASCII, which is why
         // the complete scan code list is not here.
@@ -169,12 +184,8 @@ int ags_getch() {
     }
     else
     {
-      gott = gott & 0x00ff;
-#if AGS_PLATFORM_OS_MACOS
-      if (scancode==KEY_BACKSPACE) {
-        gott = 8; //j backspace on mac
-      }
-#endif
+        // this includes ascii characters and ctrl-A-Z
+        gott = ascii;
     }
 
     // Alt+X, abort (but only once game is loaded)

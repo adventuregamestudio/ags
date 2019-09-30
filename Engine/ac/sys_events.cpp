@@ -51,7 +51,11 @@ int ags_kbhit () {
 }
 
 int ags_iskeypressed (int keycode) {
-    return key[keycode];
+    if (keycode >= 0 && keycode < __allegro_KEY_MAX)
+    {
+        return key[keycode];
+    }
+    return 0;
 }
 
 int ags_misbuttondown (int but) {

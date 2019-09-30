@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.5.0 - Beta
+VERSION 3.5.0 - RC
 
 Common features:
  - Now using Allegro v4.4.3 library (previously v4.4.2).
@@ -65,6 +65,7 @@ Editor:
  - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
  - Don't display missing games in the "recent games" list.
  - Build autocomplete table a little faster.
+ - Disabled sending crash reports and anonymous statistics, because of the AGS server issues.
  - Corrected .NET version query for the anonymous statistics report.
  - Fixed crash and corruption of project data when writing to full disk.
  - Fixed saving sprite file to not cancel completely if only an optional step has failed
@@ -124,6 +125,8 @@ Script API:
  - Added SkipCutscene() and eSkipScriptOnly cutscene mode.
  - Allowed to change Mouse.ControlEnabled property value at runtime.
  - Added Game.SimulateKeyPress().
+ - Added optional "frame" parameter to Character.Animate and Object.Animate, letting you begin
+   animation from any frame in the loop.
  - Deprecated Character.IgnoreWalkbehinds and Object.IgnoreWalkbehinds.
  - Deprecated DrawingSurface.UseHighResCoordinates. Also, assigning it will be ignored if game's
    "Allow relative asset resolutions" option is disabled.
@@ -163,9 +166,10 @@ Engine:
    for a certain barely related reason.
  - Fixed BlackBox-in transition done by software renderer could have wrong aspect ratio.
  - Fixed Direct3D and OpenGL displayed pink (255, 0, 255) fade as transparent.
+ - Fixed potential crash that could happen when switching between fullscreen and windowed mode,
+   or switching back into game window (only observed on Linux for some reason).
  - Fixed a bug in mp3/ogg decoder where it assumed creating an audiostream succeeded without
    actually testing one.
- - Fixed increased CPU load when displaying built-in dialogs (save, restore etc).
 
 Linux:
  - Use same FreeType library sources as Windows version, which suppose to fix TTF font glitches.
@@ -176,6 +180,12 @@ Linux:
 Windows:
  - Windows version of AGS is now built with MSVS 2015 and higher.
  - Engine is marked as a DPI-aware application that supposed to prevent window scaling by system.
+
+
+VERSION 3.4.4 - Patch 1, September 2019
+
+Engine:
+ - Fixed increased CPU load when displaying built-in dialogs (save, restore etc).
 
 
 VERSION 3.4.4, July 2019

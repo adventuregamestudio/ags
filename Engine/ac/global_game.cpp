@@ -615,14 +615,19 @@ int IsKeyPressed (int keycode) {
         case eAGSKeyCodeComma: return ags_iskeypressed(__allegro_KEY_COMMA); break;
         case eAGSKeyCodePeriod: return ags_iskeypressed(__allegro_KEY_STOP); break;
         case eAGSKeyCodeForwardSlash: return ags_iskeypressed(__allegro_KEY_SLASH) || ags_iskeypressed(__allegro_KEY_SLASH_PAD); break;
-        case eAGSKeyCodeBackSlash: return ags_iskeypressed(__allegro_KEY_BACKSLASH); break;
+        case eAGSKeyCodeBackSlash: return ags_iskeypressed(__allegro_KEY_BACKSLASH) || ags_iskeypressed(__allegro_KEY_BACKSLASH2); break;
         case eAGSKeyCodeSemiColon: return ags_iskeypressed(__allegro_KEY_SEMICOLON); break;
-        case eAGSKeyCodeEquals: return ags_iskeypressed(__allegro_KEY_EQUALS); break;
+        case eAGSKeyCodeEquals: return ags_iskeypressed(__allegro_KEY_EQUALS) || ags_iskeypressed(__allegro_KEY_EQUALS_PAD); break;
         case eAGSKeyCodeOpenBracket: return ags_iskeypressed(__allegro_KEY_OPENBRACE); break;
         case eAGSKeyCodeCloseBracket: return ags_iskeypressed(__allegro_KEY_CLOSEBRACE); break;
         // NOTE: we're treating EQUALS like PLUS, even though it is only available shifted.
         case eAGSKeyCodePlus: return ags_iskeypressed(__allegro_KEY_EQUALS) || ags_iskeypressed(__allegro_KEY_PLUS_PAD); break;
         case eAGSKeyCodeHyphen: return ags_iskeypressed(__allegro_KEY_MINUS) || ags_iskeypressed(__allegro_KEY_MINUS_PAD); break;
+
+        // non-shifted versions of keys
+        case eAGSKeyCodeColon: return ags_iskeypressed(__allegro_KEY_COLON) || ags_iskeypressed(__allegro_KEY_COLON2); break;
+        case eAGSKeyCodeAsterisk: return ags_iskeypressed(__allegro_KEY_ASTERISK); break;
+        case eAGSKeyCodeAt: return ags_iskeypressed(__allegro_KEY_AT); break;
 
         case eAGSKeyCode0: return ags_iskeypressed(__allegro_KEY_0); break;
         case eAGSKeyCode1: return ags_iskeypressed(__allegro_KEY_1); break;

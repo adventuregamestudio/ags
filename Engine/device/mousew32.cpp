@@ -47,7 +47,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/math.h"
 #if AGS_SIMULATE_RIGHT_CLICK
-#include "ac/global_game.h" // j for IsKeyPressed
+#include "ac/sys_events.h" // j for ags_iskeypressed
 #endif
 
 using namespace AGS::Common;
@@ -263,7 +263,7 @@ int mgetbutton()
     toret = LEFT;
 #if AGS_SIMULATE_RIGHT_CLICK
     // j Ctrl-left click should be right-click
-    if (IsKeyPressed(405) || IsKeyPressed(406))
+    if (ags_iskeypressed(__allegro_KEY_LCONTROL) || ags_iskeypressed(__allegro_KEY_RCONTROL))
     {
       toret = RIGHT;
     }

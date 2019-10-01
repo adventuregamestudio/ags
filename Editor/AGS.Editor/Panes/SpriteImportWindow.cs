@@ -100,7 +100,7 @@ namespace AGS.Editor
 
             set
             {
-                switch(SpriteImportMethod)
+                switch(value)
                 {
                     case SpriteImportTransparency.PaletteIndex0:
                         radTransColourIndex0.Checked = true;

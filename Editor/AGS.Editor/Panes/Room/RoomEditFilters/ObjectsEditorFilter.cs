@@ -176,6 +176,8 @@ namespace AGS.Editor
 
         public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
+            if (e.Button == MouseButtons.Middle) return false;
+
             int x = state.WindowXToRoom(e.X);
             int y = state.WindowYToRoom(e.Y);
             RoomObject obj = GetObject(x, y);
@@ -312,7 +314,7 @@ namespace AGS.Editor
         public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _movingObjectWithMouse = false;
-			_lastSelectedObject = _selectedObject;
+            _lastSelectedObject = _selectedObject;
             return false;
         }
 

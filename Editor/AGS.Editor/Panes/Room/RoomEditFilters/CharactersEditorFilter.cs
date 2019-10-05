@@ -52,6 +52,8 @@ namespace AGS.Editor
 
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
+            if (e.Button == MouseButtons.Middle) return false;
+
             int xClick = state.WindowXToRoom(e.X);
             int yClick = state.WindowYToRoom(e.Y);
             Character character = GetCharacter(xClick, yClick, state);
@@ -166,13 +168,14 @@ namespace AGS.Editor
         public bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _movingCharacterWithMouse = false;
+            if (e.Button == MouseButtons.Middle) return false;
 
             if (e.Button == MouseButtons.Right)
             {
                 ShowCharCoordMenu(e, state);
+                return true;
             }
-            else return false;
-            return true;
+            return false;
         }
 
         public void Invalidate() { _panel.Invalidate(); }

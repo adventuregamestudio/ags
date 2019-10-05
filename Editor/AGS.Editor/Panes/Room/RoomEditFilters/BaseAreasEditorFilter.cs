@@ -232,10 +232,7 @@ namespace AGS.Editor
 
         public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
-            if (e.Button == MouseButtons.Middle)
-            {
-                return false;
-            }
+            if (e.Button == MouseButtons.Middle) return false;
             
             int x = state.WindowXToRoom(e.X);
             int y = state.WindowYToRoom(e.Y);
@@ -304,6 +301,8 @@ namespace AGS.Editor
         public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _mouseDown = false;
+            if (e.Button == MouseButtons.Middle) return false;
+
             AreaDrawMode drawMode = Enabled ? _drawMode : AreaDrawMode.Select;
 
             if (IsLocked(_selectedArea) && drawMode != AreaDrawMode.Select) return false;

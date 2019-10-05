@@ -141,6 +141,8 @@ namespace AGS.Editor
 
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
+            if (e.Button == MouseButtons.Middle) return false;
+
             _mouseDown = true;
             int x = state.WindowXToRoom(e.X);
             int y = state.WindowYToRoom(e.Y);

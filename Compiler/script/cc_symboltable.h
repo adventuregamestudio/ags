@@ -16,28 +16,39 @@ enum VartypeFlag : AGS::Vartype
     kVTY_FlagMask = (0x0FFFFFFF),
 };
 
+namespace AGS
+{
+
+} // namespace AGS
+
+
 struct SymbolTableEntry {
     std::string sname;
     SymbolType stype; // e.g., kSYM_GlobalVar
+    int decl_secid, decl_line; // where this was declared
     AGS::Flags flags;
     AGS::Vartype vartype; // may contain typeflags
-    AGS::CodeLoc soffs;
-    int ssize; // or return type size for function
-    int sscope; // or num arguments for function
-    int arrsize; // num of elements in a standard (non-dynamic) array
-    AGS::Vartype extends; // parent struct (for structs) / owning struct (for members)
-    int decl_secid, decl_line; // where this was declared
+    AGS::CodeLoc soffs; // multiple use
 
-    // functions only, save types of return value and all parameters
+    // Variables only
+    int ssize;      // Size in bytes
+    int sscope;     // for funcs, number of arguments + (is_variadic? 100 : 0)
+
+    // static arrays only
+    int arrsize; // num of elements per dimension
+
+    // structs only
+    AGS::Vartype extends; // parent struct (for structs) / owning struct (for members)
+
+    // functions only
     std::vector<AGS::Vartype> funcparamtypes;
     std::vector<int> funcParamDefaultValues;
     std::vector<bool> funcParamHasDefaultValues;
+    inline int get_num_args() const { return sscope % 100; }
+    inline bool is_varargs() const { return (sscope >= 100); }
 
     SymbolTableEntry();
     SymbolTableEntry(const char *name, SymbolType stype, char ssize);
-
-    inline int get_num_args() const { return sscope % 100; }
-    inline bool is_varargs() const { return (sscope >= 100); }
 
     inline int operatorToVCPUCmd() const { return this->vartype; }
 

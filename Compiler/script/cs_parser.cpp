@@ -1189,10 +1189,11 @@ int AGS::Parser::CopyKnownSymInfo(SymbolTableEntry &entry, SymbolTableEntry &kno
     }
 
     // Kill the defaults so we can check whether this defn replicates them exactly.
-    entry.funcParamHasDefaultValues.assign(entry.sscope + 1, false);
+    size_t const num_of_args = entry.get_num_args();
+    entry.funcParamHasDefaultValues.assign(num_of_args + 1, false);
     // -77 is an arbitrary value that is easy to spot in the debugger; 
     // don't use for anything in code
-    entry.funcParamDefaultValues.assign(entry.sscope + 1, -77);
+    entry.funcParamDefaultValues.assign(num_of_args + 1, -77);
     return 0;
 }
 
@@ -1565,13 +1566,13 @@ int AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_
         return -1;
     }
 
-    if (known_info->sscope != this_entry->sscope)
+    if (known_info->get_num_args() != this_entry->get_num_args())
     {
         std::string msg = ReferenceMsg(
             "Function is declared with %d parameters here, with %d parameters elswehere",
             _sym.id2section(known_info->decl_secid),
             known_info->decl_line);
-        cc_error(msg.c_str(), this_entry->sscope, known_info->sscope);
+        cc_error(msg.c_str(), this_entry->get_num_args(), known_info->get_num_args());
         return -1;
     }
 
@@ -1807,7 +1808,7 @@ int AGS::Parser::ParseFuncdecl(AGS::Symbol &name_of_func, AGS::Vartype return_va
     if (struct_of_func > 0)
     {
         char appendage[10];
-        sprintf(appendage, "^%d", entry.sscope); // num of parameters
+        sprintf(appendage, "^%d", entry.sscope); // num of parameters + (is_variadic)? 100 : 0
         strcat(_scrip.imports[entry.soffs], appendage);
     }
 
@@ -2189,7 +2190,7 @@ int AGS::Parser::ParseExpression_CheckArgOfNew(const AGS::SymbolScript &symlist,
         {
             cc_error(
                 "Built-in type '%s' cannot be instantiated directly",
-                sym.get_name_string(new_vartype).c_str());
+                _sym.get_name_string(new_vartype).c_str());
             return -1;
         }
 
@@ -2497,8 +2498,8 @@ int AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args, size
 void AGS::Parser::DoNullCheckOnStringInAXIfNecessary(AGS::Vartype valTypeTo)
 {
 
-    if (((_scrip.ax_vartype & (~kVTY_Managed)) == sym.getStringStructSym()) &&
-        ((valTypeTo & (~kVTY_Const)) == sym.getOldStringSym()))
+    if (((_scrip.ax_vartype & (~kVTY_Managed)) == _sym.getStringStructSym()) &&
+        ((valTypeTo & (~kVTY_Const)) == _sym.getOldStringSym()))
     {
         _scrip.write_cmd1(SCMD_CHECKNULLREG, SREG_AX);
     }
@@ -5421,7 +5422,7 @@ int AGS::Parser::ParseVartype_GetVarName(AGS::Symbol &varname, AGS::Symbol &stru
         kSYM_GlobalVar != vartype &&
         kSYM_LocalVar != vartype)
     {
-        cc_error("Unexpected '%s'", sym.get_name_string(varname).c_str());
+        cc_error("Unexpected '%s'", _sym.get_name_string(varname).c_str());
         return -1;
     }
 

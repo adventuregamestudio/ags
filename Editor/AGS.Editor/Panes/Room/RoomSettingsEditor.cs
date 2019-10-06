@@ -48,6 +48,11 @@ namespace AGS.Editor
         public IEnumerable<IRoomEditorFilter> Layers { get { return _layers; } }
 
         /// <summary>
+        /// Selected navbar's node.
+        /// </summary>
+        public IAddressNode CurrentNode { get { return _editAddressBar.CurrentNode; } }
+
+        /// <summary>
         /// Tells if the design-time properties of the room were modified since last save.
         /// </summary>
         public bool DesignModified
@@ -149,6 +154,42 @@ namespace AGS.Editor
             _editAddressBar.InitializeRoot(_layersRoot);
 
             SelectOldNode(currentNode);
+        }
+
+        /// <summary>
+        /// Attempts to select room node following the given path item by item.
+        /// Path elements are compared with RoomItemID or UniqueID if former is not set.
+        /// </summary>
+        public bool TrySelectNodeUsingDesignIDPath(string[] path)
+        {
+            if (path.Length < 1) return false;
+            if (path[0].CompareTo(_layersRoot.UniqueID) != 0) return false;
+            IAddressNode node = _layersRoot;
+            for (int i = 1; i < path.Length; ++i)
+            {
+                foreach (IAddressNode child in node.Children)
+                {
+                    var roomNode = child as RoomEditNode;
+                    if (roomNode != null && !string.IsNullOrEmpty(roomNode.RoomItemID))
+                    {
+                        if (roomNode.RoomItemID.CompareTo(path[i]) == 0)
+                        {
+                            node = roomNode;
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (child.UniqueID.ToString().CompareTo(path[i]) == 0)
+                        {
+                            node = child;
+                            continue;
+                        }
+                    }
+                }
+            }
+            _editAddressBar.CurrentNode = node;
+            return true;
         }
         
         private void SelectOldNode(IAddressNode currentNode)
@@ -657,13 +698,7 @@ namespace AGS.Editor
 
             layerNode.IsVisible = true;
             SelectLayer(layerNode.Layer);
-
-            // only select the item if the room editor is the active tab; this could
-            // be a refresh from another tab e.g. changing a character's starting room
-            if (Factory.GUIController.ActivePane.Control == this)
-            {
-                layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
-            }
+            layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
         }
 
         private void SelectLayer(IRoomEditorFilter layer)

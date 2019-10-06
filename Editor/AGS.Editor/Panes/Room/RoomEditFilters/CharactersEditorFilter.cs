@@ -514,7 +514,8 @@ namespace AGS.Editor
             UpdateCharactersRoom(e.Character, e.PreviousRoom);
             OnItemsChanged(this, null);
             Invalidate();
-            SetPropertyGridListExplicit();
+            if (Enabled)
+                SetPropertyGridListExplicit();
         }
 
         private void AddCharacterRef(Character c)

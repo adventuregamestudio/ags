@@ -483,6 +483,29 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Sets property list for the given ContentDocument, and displays it in the
+        /// property grid if the given document is an active pane
+        /// (otherwise just assign them to the given document).
+        /// Optionally provides default object: that object will be selected if
+        /// previously selected object is no longer available in the new list.
+        /// </summary>
+        public void SetPropertyGridObjectList(Dictionary<string, object> propertyObjects, ContentDocument doc, object defObject)
+        {
+            if (_mainForm.ActivePane == doc)
+            {
+                _mainForm.ActivePane.PropertyGridObjectList = propertyObjects;
+                _mainForm.RefreshPropertyGridForDocument(_mainForm.ActivePane);
+            }
+            else
+            {
+                object selObject = doc.SelectedPropertyGridObject;
+                doc.PropertyGridObjectList = propertyObjects;
+                if (!propertyObjects.ContainsValue(selObject))
+                    doc.SelectedPropertyGridObject = defObject;
+            }
+        }
+
         public object GetPropertyGridObject()
         {
             if (_mainForm.ActivePane == null) return null;
@@ -496,6 +519,25 @@ namespace AGS.Editor
                 _mainForm.ActivePane.SelectedPropertyGridObject = objectToSetPropertiesOn;
                 _mainForm.ActivePane.SelectedPropertyGridObjects = null;
                 _mainForm.RefreshPropertyGridForDocument(_mainForm.ActivePane);
+            }
+        }
+
+        /// <summary>
+        /// Set selected property object for the given ContentDocument, and displays it in the
+        /// property grid if the given document is an active pane
+        /// (otherwise just assign them to the given document).
+        /// </summary>
+        public void SetPropertyGridObject(object objectToSetPropertiesOn, ContentDocument doc)
+        {
+            if (_mainForm.ActivePane == doc)
+            {
+                _mainForm.ActivePane.SelectedPropertyGridObject = objectToSetPropertiesOn;
+                _mainForm.ActivePane.SelectedPropertyGridObjects = null;
+                _mainForm.RefreshPropertyGridForDocument(_mainForm.ActivePane);
+            }
+            else
+            {
+                doc.SelectedPropertyGridObject = objectToSetPropertiesOn;
             }
         }
 

@@ -82,11 +82,11 @@ namespace AGS.Editor
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
             _characterLayer = new CharactersEditorFilter(bufferedPanel1, this, _room, Factory.AGSEditor.CurrentGame);
             _layers.Add(_characterLayer);
-            _layers.Add(new ObjectsEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new HotspotsEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new WalkBehindsEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new RegionsEditorFilter(bufferedPanel1, _room));
+            _layers.Add(new ObjectsEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new HotspotsEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new WalkBehindsEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new RegionsEditorFilter(bufferedPanel1, this, _room));
 
             foreach (IRoomEditorFilter layer in _layers)
             {
@@ -641,7 +641,7 @@ namespace AGS.Editor
         {
             if (_layersRoot.UniqueID.Equals(e.OUniqueID))
             {
-                Factory.GUIController.SetPropertyGridObject(_room);
+                SetPropertyGridObject(_room);
                 SelectLayer(null);
                 return;
             }
@@ -675,7 +675,7 @@ namespace AGS.Editor
             _layer = layer ?? _emptyLayer;
 
             SetDefaultPropertyGridList();
-            Factory.GUIController.SetPropertyGridObject(_room);
+            SetPropertyGridObject(_room);
             lblTransparency.Visible = _layer.ShowTransparencySlider;
             sldTransparency.Visible = _layer.ShowTransparencySlider;
             chkCharacterOffset.Visible = _layer is CharactersEditorFilter;
@@ -689,9 +689,25 @@ namespace AGS.Editor
 		
         private void SetDefaultPropertyGridList()
         {
-            Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
-            defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
-            Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
+            Dictionary<string, object> list = new Dictionary<string, object>();
+            list.Add(_room.PropertyGridTitle, _room);
+            if (Factory.GUIController.ActivePane == this.ContentDocument)
+            {
+                Factory.GUIController.SetPropertyGridObjectList(list);
+            }
+            else
+            {
+                this.ContentDocument.PropertyGridObjectList = list;
+                this.ContentDocument.SelectedPropertyGridObject = _room;
+            }
+        }
+
+        private void SetPropertyGridObject(object obj)
+        {
+            if (Factory.GUIController.ActivePane == this.ContentDocument)
+                Factory.GUIController.SetPropertyGridObject(obj);
+            else
+                this.ContentDocument.SelectedPropertyGridObject = obj;
         }
 
 		protected override string OnGetHelpKeyword()

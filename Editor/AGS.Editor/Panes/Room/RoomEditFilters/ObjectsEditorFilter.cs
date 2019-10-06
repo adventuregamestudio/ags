@@ -14,6 +14,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_OBJECT_COORDS = "ObjectCoordinates";
         protected Room _room;
         protected Panel _panel;
+        protected RoomSettingsEditor _editor;
         private bool _isOn;
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         private RoomObject _selectedObject;
@@ -25,10 +26,11 @@ namespace AGS.Editor
         private int _menuClickX, _menuClickY;
         private List<RoomObject> _objectBaselines = new List<RoomObject>();
 
-        public ObjectsEditorFilter(Panel displayPanel, Room room)
+        public ObjectsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
         {
             _room = room;
             _panel = displayPanel;
+            _editor = editor;
             _selectedObject = null;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             RoomItemRefs = new SortedDictionary<string, RoomObject>();
@@ -435,13 +437,13 @@ namespace AGS.Editor
                 if (RoomItemRefs.TryGetValue(id, out obj))
                 {
                     _selectedObject = obj;
-                    Factory.GUIController.SetPropertyGridObject(obj);                    
+                    SetPropertyGridObject(obj);                    
                     return;
                 }
             }
 
             _selectedObject = null;
-            Factory.GUIController.SetPropertyGridObject(_room);            
+            SetPropertyGridObject(_room);            
         }
 
         public Cursor GetCursor(int x, int y, RoomEditorState state)
@@ -469,14 +471,18 @@ namespace AGS.Editor
 
         private void SetPropertyGridList()
         {
-            Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
-            defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
+            Dictionary<string, object> list = new Dictionary<string, object>();
+            list.Add(_room.PropertyGridTitle, _room);
             foreach (RoomObject obj in _room.Objects)
             {
-                defaultPropertyObjectList.Add(obj.PropertyGridTitle, obj);
+                list.Add(obj.PropertyGridTitle, obj);
             }
+            Factory.GUIController.SetPropertyGridObjectList(list, _editor.ContentDocument, _room);
+        }
 
-            Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
+        protected void SetPropertyGridObject(object obj)
+        {
+            Factory.GUIController.SetPropertyGridObject(obj, _editor.ContentDocument);
         }
 
         private void GUIController_OnPropertyObjectChanged(object newPropertyObject)

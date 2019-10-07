@@ -316,8 +316,8 @@ make_release_task:
     for download in "linux_packaging/binaries/ags_${version}_linux.tar.gz" \
       "editor_packaging/archive/AGS-$version.zip" \
       "pdb_packaging/archive/AGS-${version}-pdb.zip" \
-      "build_linux/debian_packages/ags_${version}_i386.deb" \
-      "build_linux/debian_packages/ags_${version}_amd64.deb" \
+      "build_linux_debian/debian_packages/ags_${version}_i386.deb" \
+      "build_linux_debian/debian_packages/ags_${version}_amd64.deb" \
       "build_android/binaries/Android/launcher_list/bin/AGS-${version}-debug.apk"
     do
       url="$baseurl/$download"

@@ -520,8 +520,8 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
     int drawAtX = drawlist[i].x + surf_offx;
     int drawAtY = drawlist[i].y + surf_offy;
 
-    if (bitmap->_transparency >= 255); // fully transparent, do nothing
-    if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_transparency == 0));
+    if (bitmap->_transparency >= 255) {} // fully transparent, do nothing
+    else if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_transparency == 0)) {}
     else if (bitmap->_opaque)
     {
         surface->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());

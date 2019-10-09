@@ -2074,7 +2074,7 @@ void UpdateNativeSprites(SpriteFolder ^folder, size_t &missing_count)
         if (!spriteset.DoesSpriteExist(sprite->Number))
         {
             missing_count++;
-            spriteset.SetEmptySprite(sprite->Number);
+            spriteset.SetEmptySprite(sprite->Number, true); // mark as an asset to prevent disposal on reload
         }
 
         int flags = 0;
@@ -2244,6 +2244,7 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
+  thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
@@ -2739,6 +2740,12 @@ System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber)
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
   return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
+}
+
+void AdjustRoomResolution(Room ^room)
+{
+    RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
+    AGS::Common::UpscaleRoomBackground(roomptr, thisgame.IsLegacyHiRes());
 }
 
 void FixRoomMasks(Room ^room)

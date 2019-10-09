@@ -25,6 +25,7 @@
 #include "core/platform.h"
 #define AGS_PLATFORM_DEFINES_PSP_VARS (AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID)
 
+#include <set>
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -82,6 +83,8 @@ bool justDisplayVersion = false;
 bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
+bool justTellInfo = false;
+std::set<String> tellInfoKeys;
 const char *loadSaveGameOnStartup = nullptr;
 
 #if ! AGS_PLATFORM_DEFINES_PSP_VARS
@@ -135,7 +138,7 @@ AGS::Common::Version SavedgameLowestBackwardCompatVersion;
 // Lowest engine version, which would accept current savedgames
 AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
-void main_init()
+void main_init(int argc, char*argv[])
 {
     EngineVersion = Version(ACI_VERSION_STR " " SPECIAL_VERSION);
 #if defined (BUILD_STR)
@@ -147,6 +150,9 @@ void main_init()
     Common::AssetManager::CreateInstance();
     main_pre_init();
     main_create_platform_driver();
+
+    global_argv = argv;
+    global_argc = argc;
 }
 
 String get_engine_string()
@@ -159,13 +165,6 @@ String get_engine_string()
 #else
         "ACI version %s\n", EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr());
 #endif
-}
-
-int main_preprocess_cmdline(int argc,char*argv[])
-{
-    global_argv = argv;
-    global_argc = argc;
-    return RETURN_CONTINUE;
 }
 
 extern char return_to_roomedit[30];
@@ -196,6 +195,14 @@ void main_print_help() {
 #if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
+           "  --tell                       Print various information concerning engine\n"
+           "                                 and the game; for selected output use:\n"
+           "  --tell-config                Print contents of game config\n"
+           "  --tell-configpath            Print paths to available config files\n"
+           "  --tell-data                  Print information on game data and its location\n"
+           "  --tell-engine                Print engine name and version\n"
+           "  --tell-graphicdriver         Print list of supported graphic drivers\n"
+           "\n"
            "  --version                    Print engine's version and stop\n"
            "  --windowed                   Force display mode to windowed\n"
            "\n"
@@ -218,10 +225,13 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         if (ags_stricmp(arg,"--help") == 0 || ags_stricmp(arg,"/?") == 0 || ags_stricmp(arg,"-?") == 0)
         {
             justDisplayHelp = true;
-            return RETURN_CONTINUE;
+            return 0;
         }
-        if (ags_stricmp(arg,"-v") == 0 || ags_stricmp(arg,"--version") == 0)
+        if (ags_stricmp(arg, "-v") == 0 || ags_stricmp(arg, "--version") == 0)
+        {
             justDisplayVersion = true;
+            return 0;
+        }
         else if (ags_stricmp(arg,"-updatereg") == 0)
             debug_flags |= DBG_REGONLY;
 #if AGS_PLATFORM_DEBUG
@@ -275,6 +285,12 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             play.takeover_from[49] = 0;
             ee += 2;
         }
+        else if (ags_strnicmp(arg, "--tell", 6) == 0) {
+            if (arg[6] == 0)
+                tellInfoKeys.insert(String("all"));
+            else if (arg[6] == '-' && arg[7] != 0)
+                tellInfoKeys.insert(String(arg + 7));
+        }
         //
         // Config overrides
         //
@@ -325,7 +341,10 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         cmdGameDataPath = psp_game_file_name;
     }
 
-    return RETURN_CONTINUE;
+    if (tellInfoKeys.size() > 0)
+        justTellInfo = true;
+
+    return 0;
 }
 
 void main_set_gamedir(int argc, char*argv[])
@@ -381,17 +400,10 @@ const char *set_allegro_error(const char *format, ...)
 
 int ags_entry_point(int argc, char *argv[]) { 
 
-#if AGS_PLATFORM_DEBUG
+#ifdef AGS_RUN_TESTS
     Test_DoAllTests();
 #endif
-    
-    int res;
-    main_init();
-    
-    res = main_preprocess_cmdline(argc, argv);
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
+    main_init(argc, argv);
 
 #if AGS_PLATFORM_OS_WINDOWS
     setup_malloc_handling();
@@ -399,31 +411,32 @@ int ags_entry_point(int argc, char *argv[]) {
     debug_flags=0;
 
     ConfigTree startup_opts;
-    res = main_process_cmdline(startup_opts, argc, argv);
-    if (res != RETURN_CONTINUE) {
+    int res = main_process_cmdline(startup_opts, argc, argv);
+    if (res != 0)
         return res;
-    }
 
     if (justDisplayVersion)
     {
         platform->WriteStdOut(get_engine_string());
-        return 0;
+        return EXIT_NORMAL;
     }
 
     if (justDisplayHelp)
     {
         main_print_help();
-        return 0;
+        return EXIT_NORMAL;
     }
 
-    init_debug();
+    if (!justTellInfo)
+        platform->SetGUIMode(true);
+    init_debug(justTellInfo);
     Debug::Printf(kDbgMsg_Init, get_engine_string());
 
     main_set_gamedir(argc, argv);    
 
     // Update shell associations and exit
     if (debug_flags & DBG_REGONLY)
-        exit(0);
+        exit(EXIT_NORMAL);
 
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     if (usetup.disable_exception_handling)

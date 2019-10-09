@@ -15,7 +15,9 @@
 #ifndef __AC_FONT_H
 #define __AC_FONT_H
 
+#include <vector>
 #include "core/types.h"
+#include "util/string.h"
 
 // TODO: we need to make some kind of TextManager class of this module
 
@@ -57,8 +59,6 @@ int  get_font_outline(size_t font_number);
 void set_font_outline(size_t font_number, int outline_type);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
 int getfontlinespacing(size_t fontNumber);
-// Break up the text into lines restricted by the given width
-void split_lines(const char *texx, int width, int fontNumber);
 // Print text on a surface using a given font
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
 // Assigns FontInfo to the font
@@ -67,5 +67,38 @@ void set_fontinfo(size_t fontNumber, const FontInfo &finfo);
 bool wloadfont_size(size_t fontNumber, const FontInfo &font_info);
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...);
 void wfreefont(size_t fontNumber);
+
+// SplitLines class represents a list of lines and is meant to reduce
+// subsequent memory (de)allocations if used often during game loops
+// and drawing. For that reason it is not equivalent to std::vector,
+// but keeps constructed String buffers intact for most time.
+// TODO: implement proper strings pool.
+class SplitLines
+{
+public:
+    inline size_t Count() const { return _count; }
+    inline const Common::String &operator[](size_t i) const { return _pool[i]; }
+    inline Common::String &operator[](size_t i) { return _pool[i]; }
+    inline void Clear() { _pool.clear(); _count = 0; }
+    inline void Reset() { _count = 0; }
+    inline void Add(const char *cstr)
+    {
+        if (_pool.size() == _count) _pool.resize(_count + 1);
+        _pool[_count++].SetString(cstr);
+    }
+
+    // An auxiliary line processing buffer
+    std::vector<char> LineBuf;
+
+private:
+    std::vector<Common::String> _pool;
+    size_t _count; // actual number of lines in use
+};
+
+// Break up the text into lines restricted by the given width;
+// returns number of lines, or 0 if text cannot be split well to fit in this width
+size_t split_lines(const char *texx, SplitLines &lines, int width, int fontNumber, size_t max_lines = -1);
+
+namespace AGS { namespace Common { extern SplitLines Lines; } }
 
 #endif // __AC_FONT_H

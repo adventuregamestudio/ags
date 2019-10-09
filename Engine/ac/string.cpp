@@ -25,8 +25,6 @@
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
 
-extern char lines[MAXLINE][200];
-extern int  numlines;
 extern GameSetupStruct game;
 extern GameState play;
 extern int longestline;
@@ -238,21 +236,7 @@ DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate)
     return DynObjectRef(handle, obj_ptr);
 }
 
-void reverse_text(char *text) {
-    int length = strlen(text);
-    int index = length / 2;
-    int xedni;
-    char swap;
-    while(index > 0) {
-        xedni = length - index;
-        index--;
-        swap = text[xedni];
-        text[xedni] = text[index];
-        text[index] = swap;
-    }
-}
-
-void break_up_text_into_lines(int wii,int fonnt, const char*todis) {
+size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
     if (fonnt == -1)
         fonnt = play.normal_font;
 
@@ -261,33 +245,33 @@ void break_up_text_into_lines(int wii,int fonnt, const char*todis) {
         while ((todis[0]!=' ') & (todis[0]!=0)) todis++;
         if (todis[0]==' ') todis++;
     }
-    numlines=0;
+    lines.Reset();
     longestline=0;
 
     // Don't attempt to display anything if the width is tiny
     if (wii < 3)
-        return;
+        return 0;
 
-    int rr;
     int line_length;
 
-    split_lines(todis, wii, fonnt);
+    split_lines(todis, lines, wii, fonnt, max_lines);
 
     // Right-to-left just means reverse the text then
     // write it as normal
     if (game.options[OPT_RIGHTLEFTWRITE])
-        for (rr = 0; rr < numlines; rr++) {
-            reverse_text(lines[rr]);
+        for (size_t rr = 0; rr < lines.Count(); rr++) {
+            lines[rr].Reverse();
             line_length = wgettextwidth_compensate(lines[rr], fonnt);
             if (line_length > longestline)
                 longestline = line_length;
         }
     else
-        for (rr = 0; rr < numlines; rr++) {
+        for (size_t rr = 0; rr < lines.Count(); rr++) {
             line_length = wgettextwidth_compensate(lines[rr], fonnt);
             if (line_length > longestline)
                 longestline = line_length;
         }
+    return lines.Count();
 }
 
 int MAXSTRLEN = MAX_MAXSTRLEN;

@@ -138,7 +138,10 @@ namespace AGS.Editor
             _componentController.AddComponent(new SpeechComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new SourceControlComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new WelcomeComponent(_guiController, _agsEditor));
-            _componentController.AddComponent(new StatisticsSenderComponent(_guiController, _agsEditor));
+            //
+            // Disabled until proper server is found to store these stats
+            // _componentController.AddComponent(new StatisticsSenderComponent(_guiController, _agsEditor));
+            //
         }
 
         public void StartGUI(string[] commandLineArguments)

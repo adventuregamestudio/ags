@@ -15,17 +15,23 @@
 #ifndef __AC_ROUTEFND_H
 #define __AC_ROUTEFND_H
 
-#include "ac/movelist.h"
+#include "ac/game_version.h"
 
-void calculate_move_stage(MoveList * mlsp, int aaa);
+// Forward declaration
+namespace AGS { namespace Common { class Bitmap; }}
+struct MoveList;
+
+void init_pathfinder(GameDataVersion game_file_version);
+void shutdown_pathfinder();
+
+void set_wallscreen(AGS::Common::Bitmap *wallscreen);
+
 int can_see_from(int x1, int y1, int x2, int y2);
+void get_lastcpos(int &lastcx, int &lastcy);
 
-void init_pathfinder();
 void set_route_move_speed(int speed_x, int speed_y);
-int find_route(short srcx, short srcy, short xx, short yy, Common::Bitmap *onscreen, int movlst, int nocross =
-               0, int ignore_walls = 0);
 
-extern Common::Bitmap *wallscreen;
-extern int lastcx, lastcy;
+int find_route(short srcx, short srcy, short xx, short yy, AGS::Common::Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0);
+void calculate_move_stage(MoveList * mlsp, int aaa);
 
 #endif // __AC_ROUTEFND_H

@@ -866,9 +866,9 @@ void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)
 
 void GameState::FreeProperties()
 {
-    for (auto p : charProps)
+    for (auto &p : charProps)
         p.clear();
-    for (auto p : invProps)
+    for (auto &p : invProps)
         p.clear();
 }
 
@@ -876,14 +876,14 @@ void GameState::FreeViewportsAndCameras()
 {
     _roomViewports.clear();
     _roomViewportsSorted.clear();
-    for (auto scobj : _scViewportRefs)
+    for (auto &scobj : _scViewportRefs)
     {
         scobj.first->Invalidate();
         ccReleaseObjectReference(scobj.second);
     }
     _scViewportRefs.clear();
     _roomCameras.clear();
-    for (auto scobj : _scCameraRefs)
+    for (auto &scobj : _scCameraRefs)
     {
         scobj.first->Invalidate();
         ccReleaseObjectReference(scobj.second);

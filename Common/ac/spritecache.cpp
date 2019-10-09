@@ -168,13 +168,15 @@ void SpriteCache::SetSprite(sprkey_t index, Bitmap *sprite)
 #endif
 }
 
-void SpriteCache::SetEmptySprite(sprkey_t index)
+void SpriteCache::SetEmptySprite(sprkey_t index, bool as_asset)
 {
     if (index < 0 || EnlargeTo(index) != index)
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetEmptySprite: unable to use index %d", index);
         return;
     }
+    if (as_asset)
+        _spriteData[index].Flags = SPRCACHEFLAG_ISASSET;
     RemapSpriteToSprite0(index);
 }
 
@@ -408,6 +410,11 @@ void SpriteCache::Precache(sprkey_t index)
 #endif
 }
 
+sprkey_t SpriteCache::GetDataIndex(sprkey_t index)
+{
+    return (_spriteData[index].Flags & SPRCACHEFLAG_REMAPPED) == 0 ? index : 0;
+}
+
 void SpriteCache::SeekToSprite(sprkey_t index)
 {
     // If we didn't just load the previous sprite, seek to it
@@ -433,7 +440,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     if (index < 0 || (size_t)index >= _spriteData.size())
         quit("sprite cache array index out of bounds");
 
-    sprkey_t load_index = (_spriteData[index].Flags & SPRCACHEFLAG_REMAPPED) == 0 ? index : 0;
+    sprkey_t load_index = GetDataIndex(index);
     SeekToSprite(load_index);
 
     int coldep = _stream->ReadInt16();
@@ -659,8 +666,9 @@ int SpriteCache::SaveToFile(const char *filename, bool compressOutput, SpriteFil
         }
 
         // not in memory -- seek to it in the source file
-        SeekToSprite(i);
-        _lastLoad = i;
+        sprkey_t load_index = GetDataIndex(i);
+        SeekToSprite(load_index);
+        _lastLoad = load_index;
 
         short colDepth = _stream->ReadInt16();
         output->WriteInt16(colDepth);

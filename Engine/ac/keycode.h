@@ -20,11 +20,8 @@
 
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_MACOS && ! AGS_PLATFORM_OS_IOS
-#define EXTENDED_KEY_CODE 0x3f
-#else
-#define EXTENDED_KEY_CODE 0
-#endif
+#define EXTENDED_KEY_CODE ('\0')
+#define EXTENDED_KEY_CODE_MACOS ('?')
 
 #define AGS_EXT_KEY_SHIFT  300
 

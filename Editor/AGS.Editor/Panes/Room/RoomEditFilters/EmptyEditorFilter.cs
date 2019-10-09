@@ -9,13 +9,10 @@ namespace AGS.Editor
 {
     public class EmptyEditorFilter : IRoomEditorFilter
     {
-		private const string MENU_ITEM_COPY_COORDS = "CopyCoordinatesToClipboard";
-
-		private int _menuClickX, _menuClickY;
 		private Panel _panel;
         private Room _room;
 
-		public EmptyEditorFilter(Panel displayPanel, Room room)
+        public EmptyEditorFilter(Panel displayPanel, Room room)
         {
 			_panel = displayPanel;
             _room = room;
@@ -36,6 +33,7 @@ namespace AGS.Editor
         public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
+        public bool Enabled { get { return false; } }
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged { add { } remove { } }
@@ -70,8 +68,6 @@ namespace AGS.Editor
         {
         }
 
-        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) { }
-
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             return false;
@@ -79,35 +75,12 @@ namespace AGS.Editor
 
         public bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
-			if (e.Button == MouseButtons.Middle)
-			{
-				ShowCoordMenu(e, state);
-                return true;
-			}
             return false;
         }
 
 		public bool DoubleClick(RoomEditorState state)
 		{
             return false;
-		}
-
-		private void CoordMenuEventHandler(object sender, EventArgs e)
-		{
-			string textToCopy = _menuClickX.ToString() + ", " + _menuClickY.ToString();
-            Utilities.CopyTextToClipboard(textToCopy);
-		}
-
-		private void ShowCoordMenu(MouseEventArgs e, RoomEditorState state)
-		{
-			EventHandler onClick = new EventHandler(CoordMenuEventHandler);
-			ContextMenuStrip menu = new ContextMenuStrip();
-			menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
-
-			_menuClickX = state.WindowXToRoom(e.X);
-			_menuClickY = state.WindowYToRoom(e.Y);
-            RoomEditorState.AdjustCoordsToMatchEngine(_room, ref _menuClickX, ref _menuClickY);
-            menu.Show(_panel, e.X, e.Y);
 		}
 
         public bool MouseMove(int x, int y, RoomEditorState state)

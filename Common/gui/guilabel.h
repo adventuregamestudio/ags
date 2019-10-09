@@ -19,6 +19,8 @@
 #include "gui/guiobject.h"
 #include "util/string.h"
 
+class SplitLines;
+
 namespace AGS
 {
 namespace Common
@@ -50,7 +52,7 @@ public:
 
 private:
     void PrepareTextToDraw();
-    int  SplitLinesForDrawing();
+    size_t SplitLinesForDrawing(SplitLines &lines);
 
     // prepared text buffer/cache
     String _textToDraw;

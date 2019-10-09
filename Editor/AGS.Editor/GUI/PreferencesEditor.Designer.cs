@@ -33,9 +33,11 @@ namespace AGS.Editor
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
-            this.cmbTestGameStyle = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.cmbTestGameStyle = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.lblReloadScriptOnExternalChange = new System.Windows.Forms.Label();
+            this.cmbScriptReloadOnExternalChange = new System.Windows.Forms.ComboBox();
             this.udTabWidth = new System.Windows.Forms.NumericUpDown();
             this.cmbIndentStyle = new System.Windows.Forms.ComboBox();
             this.label10 = new System.Windows.Forms.Label();
@@ -98,7 +100,7 @@ namespace AGS.Editor
             // 
             this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Location = new System.Drawing.Point(12, 526);
+            this.btnOK.Location = new System.Drawing.Point(12, 529);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(98, 27);
             this.btnOK.TabIndex = 0;
@@ -110,7 +112,7 @@ namespace AGS.Editor
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(116, 526);
+            this.btnCancel.Location = new System.Drawing.Point(116, 529);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(100, 27);
             this.btnCancel.TabIndex = 1;
@@ -121,11 +123,11 @@ namespace AGS.Editor
             // 
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Controls.Add(this.cmbTestGameStyle);
             this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Controls.Add(this.cmbTestGameStyle);
             this.groupBox1.Location = new System.Drawing.Point(7, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(365, 107);
+            this.groupBox1.Size = new System.Drawing.Size(365, 113);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Test game style";
@@ -133,7 +135,7 @@ namespace AGS.Editor
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 79);
+            this.label4.Location = new System.Drawing.Point(12, 52);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(166, 13);
             this.label4.TabIndex = 3;
@@ -143,25 +145,12 @@ namespace AGS.Editor
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(11, 46);
+            this.label3.Location = new System.Drawing.Point(11, 78);
             this.label3.MaximumSize = new System.Drawing.Size(350, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(344, 26);
             this.label3.TabIndex = 2;
             this.label3.Text = "NOTE: When using the F5 (Run) option, the game will always run in a window.";
-            // 
-            // cmbTestGameStyle
-            // 
-            this.cmbTestGameStyle.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbTestGameStyle.FormattingEnabled = true;
-            this.cmbTestGameStyle.Items.AddRange(new object[] {
-            "Use game setup configuration",
-            "Always run full screen",
-            "Always run in a window"});
-            this.cmbTestGameStyle.Location = new System.Drawing.Point(184, 76);
-            this.cmbTestGameStyle.Name = "cmbTestGameStyle";
-            this.cmbTestGameStyle.Size = new System.Drawing.Size(171, 21);
-            this.cmbTestGameStyle.TabIndex = 1;
             // 
             // label1
             // 
@@ -173,23 +162,60 @@ namespace AGS.Editor
             this.label1.TabIndex = 0;
             this.label1.Text = "Would you like the game to run in a window or full-screen when you test it?";
             // 
+            // cmbTestGameStyle
+            // 
+            this.cmbTestGameStyle.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbTestGameStyle.FormattingEnabled = true;
+            this.cmbTestGameStyle.Items.AddRange(new object[] {
+            "Use game setup configuration",
+            "Always run full screen",
+            "Always run in a window"});
+            this.cmbTestGameStyle.Location = new System.Drawing.Point(184, 49);
+            this.cmbTestGameStyle.Name = "cmbTestGameStyle";
+            this.cmbTestGameStyle.Size = new System.Drawing.Size(171, 21);
+            this.cmbTestGameStyle.TabIndex = 1;
+            // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.lblReloadScriptOnExternalChange);
+            this.groupBox2.Controls.Add(this.cmbScriptReloadOnExternalChange);
             this.groupBox2.Controls.Add(this.udTabWidth);
             this.groupBox2.Controls.Add(this.cmbIndentStyle);
             this.groupBox2.Controls.Add(this.label10);
             this.groupBox2.Controls.Add(this.label8);
             this.groupBox2.Controls.Add(this.label2);
-            this.groupBox2.Location = new System.Drawing.Point(378, 3);
+            this.groupBox2.Location = new System.Drawing.Point(378, 2);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(361, 107);
+            this.groupBox2.Size = new System.Drawing.Size(361, 182);
             this.groupBox2.TabIndex = 3;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Script editor";
             // 
+            // lblReloadScriptOnExternalChange
+            // 
+            this.lblReloadScriptOnExternalChange.Location = new System.Drawing.Point(11, 21);
+            this.lblReloadScriptOnExternalChange.Name = "lblReloadScriptOnExternalChange";
+            this.lblReloadScriptOnExternalChange.Size = new System.Drawing.Size(337, 36);
+            this.lblReloadScriptOnExternalChange.TabIndex = 11;
+            this.lblReloadScriptOnExternalChange.Text = "If a script file is open for editing and is modified by another program, how shou" +
+    "ld this be handled?";
+            // 
+            // cmbScriptReloadOnExternalChange
+            // 
+            this.cmbScriptReloadOnExternalChange.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbScriptReloadOnExternalChange.FormattingEnabled = true;
+            this.cmbScriptReloadOnExternalChange.Items.AddRange(new object[] {
+            "Always ask what to do",
+            "Always reload the file",
+            "Never reload the file"});
+            this.cmbScriptReloadOnExternalChange.Location = new System.Drawing.Point(12, 57);
+            this.cmbScriptReloadOnExternalChange.Name = "cmbScriptReloadOnExternalChange";
+            this.cmbScriptReloadOnExternalChange.Size = new System.Drawing.Size(178, 21);
+            this.cmbScriptReloadOnExternalChange.TabIndex = 10;
+            // 
             // udTabWidth
             // 
-            this.udTabWidth.Location = new System.Drawing.Point(72, 48);
+            this.udTabWidth.Location = new System.Drawing.Point(72, 123);
             this.udTabWidth.Maximum = new decimal(new int[] {
             10,
             0,
@@ -217,7 +243,7 @@ namespace AGS.Editor
             this.cmbIndentStyle.Items.AddRange(new object[] {
             "Use spaces",
             "Use tabs"});
-            this.cmbIndentStyle.Location = new System.Drawing.Point(72, 74);
+            this.cmbIndentStyle.Location = new System.Drawing.Point(72, 149);
             this.cmbIndentStyle.Name = "cmbIndentStyle";
             this.cmbIndentStyle.Size = new System.Drawing.Size(178, 21);
             this.cmbIndentStyle.TabIndex = 8;
@@ -225,7 +251,7 @@ namespace AGS.Editor
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(9, 77);
+            this.label10.Location = new System.Drawing.Point(9, 152);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(43, 13);
             this.label10.TabIndex = 7;
@@ -234,18 +260,18 @@ namespace AGS.Editor
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(8, 17);
+            this.label8.Location = new System.Drawing.Point(8, 88);
             this.label8.MaximumSize = new System.Drawing.Size(350, 0);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(340, 26);
+            this.label8.Size = new System.Drawing.Size(339, 26);
             this.label8.TabIndex = 2;
-            this.label8.Text = "Changing these settings require you to restart the editor for them to take effect" +
-    ".";
+            this.label8.Text = "Changing the following settings requires you to restart the editor for them to ta" +
+    "ke effect.";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(8, 54);
+            this.label2.Location = new System.Drawing.Point(8, 127);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(58, 13);
             this.label2.TabIndex = 0;
@@ -263,16 +289,16 @@ namespace AGS.Editor
             this.groupBox3.Controls.Add(this.label9);
             this.groupBox3.Controls.Add(this.cmbEditorStartup);
             this.groupBox3.Controls.Add(this.label5);
-            this.groupBox3.Location = new System.Drawing.Point(7, 116);
+            this.groupBox3.Location = new System.Drawing.Point(7, 122);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(365, 215);
+            this.groupBox3.Size = new System.Drawing.Size(365, 204);
             this.groupBox3.TabIndex = 4;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Editor appearance";
             // 
             // btnImportColorTheme
             // 
-            this.btnImportColorTheme.Location = new System.Drawing.Point(152, 101);
+            this.btnImportColorTheme.Location = new System.Drawing.Point(152, 97);
             this.btnImportColorTheme.Name = "btnImportColorTheme";
             this.btnImportColorTheme.Size = new System.Drawing.Size(203, 23);
             this.btnImportColorTheme.TabIndex = 12;
@@ -283,7 +309,7 @@ namespace AGS.Editor
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(11, 78);
+            this.label7.Location = new System.Drawing.Point(11, 74);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(71, 13);
             this.label7.TabIndex = 11;
@@ -293,7 +319,7 @@ namespace AGS.Editor
             // 
             this.cmbColorTheme.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbColorTheme.FormattingEnabled = true;
-            this.cmbColorTheme.Location = new System.Drawing.Point(152, 75);
+            this.cmbColorTheme.Location = new System.Drawing.Point(152, 71);
             this.cmbColorTheme.Name = "cmbColorTheme";
             this.cmbColorTheme.Size = new System.Drawing.Size(203, 21);
             this.cmbColorTheme.TabIndex = 10;
@@ -302,7 +328,7 @@ namespace AGS.Editor
             // chkPromptDialogOnTabsClose
             // 
             this.chkPromptDialogOnTabsClose.AutoSize = true;
-            this.chkPromptDialogOnTabsClose.Location = new System.Drawing.Point(14, 192);
+            this.chkPromptDialogOnTabsClose.Location = new System.Drawing.Point(14, 177);
             this.chkPromptDialogOnTabsClose.Name = "chkPromptDialogOnTabsClose";
             this.chkPromptDialogOnTabsClose.Size = new System.Drawing.Size(204, 17);
             this.chkPromptDialogOnTabsClose.TabIndex = 9;
@@ -312,7 +338,7 @@ namespace AGS.Editor
             // chkKeepHelpOnTop
             // 
             this.chkKeepHelpOnTop.AutoSize = true;
-            this.chkKeepHelpOnTop.Location = new System.Drawing.Point(14, 169);
+            this.chkKeepHelpOnTop.Location = new System.Drawing.Point(14, 154);
             this.chkKeepHelpOnTop.Name = "chkKeepHelpOnTop";
             this.chkKeepHelpOnTop.Size = new System.Drawing.Size(230, 17);
             this.chkKeepHelpOnTop.TabIndex = 8;
@@ -322,7 +348,7 @@ namespace AGS.Editor
             // chkAlwaysShowViewPreview
             // 
             this.chkAlwaysShowViewPreview.AutoSize = true;
-            this.chkAlwaysShowViewPreview.Location = new System.Drawing.Point(14, 146);
+            this.chkAlwaysShowViewPreview.Location = new System.Drawing.Point(14, 131);
             this.chkAlwaysShowViewPreview.Name = "chkAlwaysShowViewPreview";
             this.chkAlwaysShowViewPreview.Size = new System.Drawing.Size(242, 17);
             this.chkAlwaysShowViewPreview.TabIndex = 7;
@@ -338,7 +364,7 @@ namespace AGS.Editor
             "When there are warnings or errors",
             "When there are errors",
             "Never"});
-            this.cmbMessageOnCompile.Location = new System.Drawing.Point(152, 50);
+            this.cmbMessageOnCompile.Location = new System.Drawing.Point(152, 46);
             this.cmbMessageOnCompile.Name = "cmbMessageOnCompile";
             this.cmbMessageOnCompile.Size = new System.Drawing.Size(203, 21);
             this.cmbMessageOnCompile.TabIndex = 6;
@@ -346,7 +372,7 @@ namespace AGS.Editor
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(12, 53);
+            this.label9.Location = new System.Drawing.Point(12, 49);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(139, 13);
             this.label9.TabIndex = 5;
@@ -360,7 +386,7 @@ namespace AGS.Editor
             "Show Start Page",
             "Show Game Settings",
             "No panes open"});
-            this.cmbEditorStartup.Location = new System.Drawing.Point(152, 24);
+            this.cmbEditorStartup.Location = new System.Drawing.Point(152, 20);
             this.cmbEditorStartup.Name = "cmbEditorStartup";
             this.cmbEditorStartup.Size = new System.Drawing.Size(203, 21);
             this.cmbEditorStartup.TabIndex = 2;
@@ -368,7 +394,7 @@ namespace AGS.Editor
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 27);
+            this.label5.Location = new System.Drawing.Point(12, 23);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(135, 13);
             this.label5.TabIndex = 0;
@@ -381,9 +407,9 @@ namespace AGS.Editor
             this.groupBox4.Controls.Add(this.label6);
             this.groupBox4.Controls.Add(this.radFolderPath);
             this.groupBox4.Controls.Add(this.radGamePath);
-            this.groupBox4.Location = new System.Drawing.Point(383, 347);
+            this.groupBox4.Location = new System.Drawing.Point(378, 424);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(361, 90);
+            this.groupBox4.Size = new System.Drawing.Size(361, 92);
             this.groupBox4.TabIndex = 5;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Import directory";
@@ -449,9 +475,9 @@ namespace AGS.Editor
             this.groupBox5.Controls.Add(this.label11);
             this.groupBox5.Controls.Add(this.radPaintProgram);
             this.groupBox5.Controls.Add(this.radDefaultPaintProgram);
-            this.groupBox5.Location = new System.Drawing.Point(378, 116);
+            this.groupBox5.Location = new System.Drawing.Point(378, 190);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(361, 128);
+            this.groupBox5.Size = new System.Drawing.Size(361, 130);
             this.groupBox5.TabIndex = 6;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Sprite editor";
@@ -542,9 +568,9 @@ namespace AGS.Editor
             this.groupBox6.Controls.Add(this.label13);
             this.groupBox6.Controls.Add(this.radNewGameSpecificPath);
             this.groupBox6.Controls.Add(this.radNewGameMyDocs);
-            this.groupBox6.Location = new System.Drawing.Point(378, 250);
+            this.groupBox6.Location = new System.Drawing.Point(378, 326);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(361, 90);
+            this.groupBox6.Size = new System.Drawing.Size(361, 92);
             this.groupBox6.TabIndex = 7;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "New game directory";
@@ -605,17 +631,18 @@ namespace AGS.Editor
             // 
             this.groupBox7.Controls.Add(this.lnkUsageInfo);
             this.groupBox7.Controls.Add(this.chkUsageInfo);
-            this.groupBox7.Location = new System.Drawing.Point(7, 335);
+            this.groupBox7.Location = new System.Drawing.Point(7, 448);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.Size = new System.Drawing.Size(365, 68);
             this.groupBox7.TabIndex = 8;
             this.groupBox7.TabStop = false;
             this.groupBox7.Text = "Usage statistics";
+            this.groupBox7.Visible = false;
             // 
             // lnkUsageInfo
             // 
             this.lnkUsageInfo.AutoSize = true;
-            this.lnkUsageInfo.Location = new System.Drawing.Point(12, 43);
+            this.lnkUsageInfo.Location = new System.Drawing.Point(12, 42);
             this.lnkUsageInfo.Name = "lnkUsageInfo";
             this.lnkUsageInfo.Size = new System.Drawing.Size(197, 13);
             this.lnkUsageInfo.TabIndex = 9;
@@ -638,9 +665,9 @@ namespace AGS.Editor
             this.groupBox8.Controls.Add(this.udBackupInterval);
             this.groupBox8.Controls.Add(this.label14);
             this.groupBox8.Controls.Add(this.chkBackupReminders);
-            this.groupBox8.Location = new System.Drawing.Point(7, 409);
+            this.groupBox8.Location = new System.Drawing.Point(7, 331);
             this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Size = new System.Drawing.Size(365, 53);
+            this.groupBox8.Size = new System.Drawing.Size(365, 52);
             this.groupBox8.TabIndex = 9;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Backup reminders";
@@ -674,9 +701,9 @@ namespace AGS.Editor
             this.label14.Location = new System.Drawing.Point(117, 21);
             this.label14.MaximumSize = new System.Drawing.Size(230, 50);
             this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(228, 26);
+            this.label14.Size = new System.Drawing.Size(185, 13);
             this.label14.TabIndex = 9;
-            this.label14.Text = "days, pop up a message reminding me to back up my game";
+            this.label14.Text = "days, remind me to back up my game";
             // 
             // chkBackupReminders
             // 
@@ -692,7 +719,7 @@ namespace AGS.Editor
             // groupBox9
             // 
             this.groupBox9.Controls.Add(this.chkRemapBgImport);
-            this.groupBox9.Location = new System.Drawing.Point(7, 466);
+            this.groupBox9.Location = new System.Drawing.Point(7, 388);
             this.groupBox9.Name = "groupBox9";
             this.groupBox9.Size = new System.Drawing.Size(365, 54);
             this.groupBox9.TabIndex = 10;
@@ -715,7 +742,7 @@ namespace AGS.Editor
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(754, 561);
+            this.ClientSize = new System.Drawing.Size(747, 572);
             this.Controls.Add(this.groupBox9);
             this.Controls.Add(this.groupBox8);
             this.Controls.Add(this.groupBox7);
@@ -812,5 +839,7 @@ namespace AGS.Editor
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ComboBox cmbColorTheme;
         private System.Windows.Forms.Button btnImportColorTheme;
+        private System.Windows.Forms.ComboBox cmbScriptReloadOnExternalChange;
+        private System.Windows.Forms.Label lblReloadScriptOnExternalChange;
     }
 }

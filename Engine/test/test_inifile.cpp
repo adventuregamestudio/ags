@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "core/platform.h"
-#if AGS_PLATFORM_DEBUG
+#ifdef AGS_RUN_TESTS
 
 #include <string.h>
 #include <algorithm>
@@ -295,4 +295,4 @@ void Test_IniFile()
     File::DeleteFile("test.ini");
 }
 
-#endif // AGS_PLATFORM_DEBUG
+#endif // AGS_RUN_TESTS

@@ -100,7 +100,7 @@ namespace AGS.Editor
 
             set
             {
-                switch(SpriteImportMethod)
+                switch(value)
                 {
                     case SpriteImportTransparency.PaletteIndex0:
                         radTransColourIndex0.Checked = true;
@@ -131,7 +131,7 @@ namespace AGS.Editor
         {
             InitializeComponent();
 
-            // take some defailts from Editor prederences
+            // take some defaults from Editor preferences
             SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
 
             // import, not replace
@@ -158,7 +158,7 @@ namespace AGS.Editor
         {
             InitializeComponent();
 
-            // take some defailts from Editor prederences
+            // take some defaults from Editor preferences
             SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
 
             // import, not replace

@@ -100,7 +100,8 @@ enum MessageType
     // Convenient aliases
     kDbgMsg_Default             = kDbgMsg_Debug,
     kDbgMsgSet_NoDebug          = 0x001D,
-    kDbgMsgSet_Errors           = 0x0019,
+    kDbgMsgSet_Errors           = 0x0018,
+    kDbgMsgSet_InitAndErrors    = 0x0019,
     // Output everything
     kDbgMsgSet_All              = 0xFFFF
 };

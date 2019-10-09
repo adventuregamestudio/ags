@@ -469,13 +469,13 @@ builtin managed struct Dictionary
   /// Removes all items from the dictionary.
   import void Clear();
   /// Tells if given key is in the dictionary.
-  import bool Contains(String key);
+  import bool Contains(const string key);
   /// Gets value by the key; returns null if such key does not exist.
-  import String Get(String key);
+  import String Get(const string key);
   /// Removes key/value pair from the dictionary, fails if there was no such key.
-  import bool Remove(String key);
+  import bool Remove(const string key);
   /// Assigns a value to the given key, adds this key if it did not exist yet.
-  import bool Set(String key, String value);
+  import bool Set(const string key, const string value);
 
   /// Gets if this dictionary is case-sensitive.
   import readonly attribute StringCompareStyle CompareStyle;
@@ -495,13 +495,13 @@ builtin managed struct Set
   import static Set* Create(SortStyle sortStyle = eNonSorted, StringCompareStyle compareStyle = eCaseInsensitive); // $AUTOCOMPLETESTATICONLY$
 
   /// Adds item to the set, fails if such item was already existing.
-  import bool Add(String item);
+  import bool Add(const string item);
   /// Removes all items from the set.
   import void Clear();
   /// Tells if given item is in the set.
-  import bool Contains(String item);
+  import bool Contains(const string item);
   /// Removes item from the set, fails if there was no such item.
-  import bool Remove(String item);
+  import bool Remove(const string item);
 
   /// Gets if this set is case-sensitive.
   import readonly attribute StringCompareStyle CompareStyle;
@@ -587,7 +587,7 @@ builtin managed struct Camera;
 builtin managed struct Viewport;
 #endif
 
-builtin managed struct Room {
+builtin struct Room {
   /// Gets a custom text property associated with this room.
   import static String GetTextProperty(const string property);
   /// Gets a drawing surface that allows you to manipulate the room background.
@@ -624,7 +624,7 @@ builtin managed struct Room {
 #endif
 };
 
-builtin managed struct Parser {
+builtin struct Parser {
   /// Returns the parser dictionary word ID for the specified word
   import static int    FindWordID(const string wordToFind);
   /// Stores the supplied user text for later use with Said
@@ -1485,12 +1485,14 @@ enum EventType {
   eEventRestoreGame = 9
 };
 
+#ifdef SCRIPT_API_v350
 enum GUIPopupStyle {
   eGUIPopupNormal = 0,
   eGUIPopupMouseYPos = 1,
   eGUIPopupModal = 2,
   eGUIPopupPersistent = 3
 };
+#endif
 
 // forward-declare these so that they can be returned by GUIControl class
 builtin managed struct GUI;
@@ -2111,8 +2113,14 @@ enum WalkWhere {
 };
 
 builtin managed struct Object {
+#ifdef SCRIPT_API_v3507
+  /// Animates the object using its current view.
+  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards, int frame=0);
+#endif
+#ifndef SCRIPT_API_v3507
   /// Animates the object using its current view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
+#endif
   /// Gets the object that is on the screen at the specified co-ordinates.
   import static Object* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #ifndef STRICT_STRINGS
@@ -2232,8 +2240,14 @@ builtin managed struct Character {
   import function AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
   /// Manually adds a waypoint to the character's movement path.
   import function AddWaypoint(int x, int y);
+#ifdef SCRIPT_API_v3507
+  /// Animates the character using its current locked view.
+  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards, int frame=0);
+#endif
+#ifndef SCRIPT_API_v3507
   /// Animates the character using its current locked view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
+#endif
 #ifdef SCRIPT_API_v340
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
   import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);
@@ -2505,7 +2519,7 @@ builtin managed struct Character {
 #endif
   };
 
-builtin managed struct Game {
+builtin struct Game {
   /// Changes the active translation.
   import static bool   ChangeTranslation(const string newTranslationFileName);
   /// Returns true the first time this command is called with this token.

@@ -285,6 +285,8 @@
     <ClCompile Include="..\..\Engine\ac\overlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\parser.cpp" />
     <ClCompile Include="..\..\Engine\ac\properties.cpp" />
+    <ClCompile Include="..\..\Engine\ac\route_finder_impl.cpp" />
+    <ClCompile Include="..\..\Engine\ac\route_finder_impl_legacy.cpp" />
     <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp" />
     <ClCompile Include="..\..\Engine\ac\sys_events.cpp" />
     <ClCompile Include="..\..\Engine\ac\region.cpp" />
@@ -617,6 +619,8 @@
     <ClInclude Include="..\..\Engine\ac\parser.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />
     <ClInclude Include="..\..\Engine\ac\properties.h" />
+    <ClInclude Include="..\..\Engine\ac\route_finder_impl.h" />
+    <ClInclude Include="..\..\Engine\ac\route_finder_impl_legacy.h" />
     <ClInclude Include="..\..\Engine\ac\sys_events.h" />
     <ClInclude Include="..\..\Engine\ac\region.h" />
     <ClInclude Include="..\..\Engine\ac\richgamemedia.h" />

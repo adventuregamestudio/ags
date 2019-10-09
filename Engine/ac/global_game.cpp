@@ -604,134 +604,137 @@ int IsKeyPressed (int keycode) {
 #ifdef ALLEGRO_KEYBOARD_HANDLER
     if (keyboard_needs_poll())
         poll_keyboard();
-    if (keycode >= AGS_EXT_KEY_SHIFT) {
-        // function keys are 12 lower in allegro 4
-        if ((keycode>=359) & (keycode<=368)) keycode-=12;
-        // F11-F12
-        else if ((keycode==433) || (keycode==434)) keycode-=76;
-        // left arrow
-        else if (keycode==375) keycode=382;
-        // right arrow
-        else if (keycode==377) keycode=383;
-        // up arrow
-        else if (keycode==372) keycode=384;
-        // down arrow
-        else if (keycode==380) keycode=385;
-        // numeric keypad
-        else if (keycode==379) keycode=338;
-        else if (keycode==380) keycode=339;
-        else if (keycode==381) keycode=340;
-        else if (keycode==375) keycode=341;
-        else if (keycode==376) keycode=342;
-        else if (keycode==377) keycode=343;
-        else if (keycode==371) keycode=344;
-        else if (keycode==372) keycode=345;
-        else if (keycode==373) keycode=346;
-        // insert
-        else if (keycode == AGS_KEYCODE_INSERT) keycode = KEY_INSERT + AGS_EXT_KEY_SHIFT;
-        // delete
-        else if (keycode == AGS_KEYCODE_DELETE) keycode = KEY_DEL + AGS_EXT_KEY_SHIFT;
 
-        // deal with shift/ctrl/alt
-        if (keycode == 403) keycode = KEY_LSHIFT;
-        else if (keycode == 404) keycode = KEY_RSHIFT;
-        else if (keycode == 405) keycode = KEY_LCONTROL;
-        else if (keycode == 406) keycode = KEY_RCONTROL;
-        else if (keycode == 407) keycode = KEY_ALT;
-        else keycode -= AGS_EXT_KEY_SHIFT;
+    switch(keycode) {
+        case eAGSKeyCodeBackspace: return ags_iskeypressed(__allegro_KEY_BACKSPACE); break;
+        case eAGSKeyCodeTab: return ags_iskeypressed(__allegro_KEY_TAB); break;
+        case eAGSKeyCodeReturn: return ags_iskeypressed(__allegro_KEY_ENTER) || ags_iskeypressed(__allegro_KEY_ENTER_PAD); break;
+        case eAGSKeyCodeEscape: return ags_iskeypressed(__allegro_KEY_ESC); break;
+        case eAGSKeyCodeSpace: return ags_iskeypressed(__allegro_KEY_SPACE); break;
+        case eAGSKeyCodeSingleQuote: return ags_iskeypressed(__allegro_KEY_QUOTE); break;
+        case eAGSKeyCodeComma: return ags_iskeypressed(__allegro_KEY_COMMA); break;
+        case eAGSKeyCodePeriod: return ags_iskeypressed(__allegro_KEY_STOP); break;
+        case eAGSKeyCodeForwardSlash: return ags_iskeypressed(__allegro_KEY_SLASH) || ags_iskeypressed(__allegro_KEY_SLASH_PAD); break;
+        case eAGSKeyCodeBackSlash: return ags_iskeypressed(__allegro_KEY_BACKSLASH) || ags_iskeypressed(__allegro_KEY_BACKSLASH2); break;
+        case eAGSKeyCodeSemiColon: return ags_iskeypressed(__allegro_KEY_SEMICOLON); break;
+        case eAGSKeyCodeEquals: return ags_iskeypressed(__allegro_KEY_EQUALS) || ags_iskeypressed(__allegro_KEY_EQUALS_PAD); break;
+        case eAGSKeyCodeOpenBracket: return ags_iskeypressed(__allegro_KEY_OPENBRACE); break;
+        case eAGSKeyCodeCloseBracket: return ags_iskeypressed(__allegro_KEY_CLOSEBRACE); break;
+        // NOTE: we're treating EQUALS like PLUS, even though it is only available shifted.
+        case eAGSKeyCodePlus: return ags_iskeypressed(__allegro_KEY_EQUALS) || ags_iskeypressed(__allegro_KEY_PLUS_PAD); break;
+        case eAGSKeyCodeHyphen: return ags_iskeypressed(__allegro_KEY_MINUS) || ags_iskeypressed(__allegro_KEY_MINUS_PAD); break;
 
-        if (ags_iskeypressed(keycode))
-            return 1;
-        // deal with numeric pad keys having different codes to arrow keys
-        if ((keycode == KEY_LEFT) && (ags_iskeypressed(KEY_4_PAD) != 0))
-            return 1;
-        if ((keycode == KEY_RIGHT) && (ags_iskeypressed(KEY_6_PAD) != 0))
-            return 1;
-        if ((keycode == KEY_UP) && (ags_iskeypressed(KEY_8_PAD) != 0))
-            return 1;
-        if ((keycode == KEY_DOWN) && (ags_iskeypressed(KEY_2_PAD) != 0))
-            return 1;
-        // PgDn/PgUp are equivalent to 3 and 9 on numeric pad
-        if ((keycode == KEY_9_PAD) && (ags_iskeypressed(KEY_PGUP) != 0))
-            return 1;
-        if ((keycode == KEY_3_PAD) && (ags_iskeypressed(KEY_PGDN) != 0))
-            return 1;
-        // Home/End are equivalent to 7 and 1
-        if ((keycode == KEY_7_PAD) && (ags_iskeypressed(KEY_HOME) != 0))
-            return 1;
-        if ((keycode == KEY_1_PAD) && (ags_iskeypressed(KEY_END) != 0))
-            return 1;
-        // insert/delete have numpad equivalents
-        if ((keycode == KEY_INSERT) && (ags_iskeypressed(KEY_0_PAD) != 0))
-            return 1;
-        if ((keycode == KEY_DEL) && (ags_iskeypressed(KEY_DEL_PAD) != 0))
-            return 1;
+        // non-shifted versions of keys
+        case eAGSKeyCodeColon: return ags_iskeypressed(__allegro_KEY_COLON) || ags_iskeypressed(__allegro_KEY_COLON2); break;
+        case eAGSKeyCodeAsterisk: return ags_iskeypressed(__allegro_KEY_ASTERISK); break;
+        case eAGSKeyCodeAt: return ags_iskeypressed(__allegro_KEY_AT); break;
 
-        return 0;
-    }
-    // convert ascii to scancode
-    else if ((keycode >= 'A') && (keycode <= 'Z'))
-    {
-        keycode = platform->ConvertKeycodeToScanCode(keycode);
-    }
-    else if ((keycode >= '0') && (keycode <= '9'))
-        keycode -= ('0' - KEY_0);
-    else if (keycode == 8)
-        keycode = KEY_BACKSPACE;
-    else if (keycode == 9)
-        keycode = KEY_TAB;
-    else if (keycode == 13) {
-        // check both the main return key and the numeric pad enter
-        if (ags_iskeypressed(KEY_ENTER))
-            return 1;
-        keycode = KEY_ENTER_PAD;
-    }
-    else if (keycode == ' ')
-        keycode = KEY_SPACE;
-    else if (keycode == 27)
-        keycode = KEY_ESC;
-    else if (keycode == '-') {
-        // check both the main - key and the numeric pad
-        if (ags_iskeypressed(KEY_MINUS))
-            return 1;
-        keycode = KEY_MINUS_PAD;
-    }
-    else if (keycode == '+') {
-        // check both the main + key and the numeric pad
-        if (ags_iskeypressed(KEY_EQUALS))
-            return 1;
-        keycode = KEY_PLUS_PAD;
-    }
-    else if (keycode == '/') {
-        // check both the main / key and the numeric pad
-        if (ags_iskeypressed(KEY_SLASH))
-            return 1;
-        keycode = KEY_SLASH_PAD;
-    }
-    else if (keycode == '=')
-        keycode = KEY_EQUALS;
-    else if (keycode == '[')
-        keycode = KEY_OPENBRACE;
-    else if (keycode == ']')
-        keycode = KEY_CLOSEBRACE;
-    else if (keycode == '\\')
-        keycode = KEY_BACKSLASH;
-    else if (keycode == ';')
-        keycode = KEY_SEMICOLON;
-    else if (keycode == '\'')
-        keycode = KEY_QUOTE;
-    else if (keycode == ',')
-        keycode = KEY_COMMA;
-    else if (keycode == '.')
-        keycode = KEY_STOP;
-    else {
-        debug_script_log("IsKeyPressed: unsupported keycode %d", keycode);
-        return 0;
-    }
+        case eAGSKeyCode0: return ags_iskeypressed(__allegro_KEY_0); break;
+        case eAGSKeyCode1: return ags_iskeypressed(__allegro_KEY_1); break;
+        case eAGSKeyCode2: return ags_iskeypressed(__allegro_KEY_2); break;
+        case eAGSKeyCode3: return ags_iskeypressed(__allegro_KEY_3); break;
+        case eAGSKeyCode4: return ags_iskeypressed(__allegro_KEY_4); break;
+        case eAGSKeyCode5: return ags_iskeypressed(__allegro_KEY_5); break;
+        case eAGSKeyCode6: return ags_iskeypressed(__allegro_KEY_6); break;
+        case eAGSKeyCode7: return ags_iskeypressed(__allegro_KEY_7); break;
+        case eAGSKeyCode8: return ags_iskeypressed(__allegro_KEY_8); break;
+        case eAGSKeyCode9: return ags_iskeypressed(__allegro_KEY_9); break;
 
-    if (ags_iskeypressed(keycode))
-        return 1;
-    return 0;
+        case eAGSKeyCodeA: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('A')); break;
+        case eAGSKeyCodeB: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('B')); break;
+        case eAGSKeyCodeC: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('C')); break;
+        case eAGSKeyCodeD: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('D')); break;
+        case eAGSKeyCodeE: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('E')); break;
+        case eAGSKeyCodeF: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('F')); break;
+        case eAGSKeyCodeG: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('G')); break;
+        case eAGSKeyCodeH: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('H')); break;
+        case eAGSKeyCodeI: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('I')); break;
+        case eAGSKeyCodeJ: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('J')); break;
+        case eAGSKeyCodeK: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('K')); break;
+        case eAGSKeyCodeL: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('L')); break;
+        case eAGSKeyCodeM: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('M')); break;
+        case eAGSKeyCodeN: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('N')); break;
+        case eAGSKeyCodeO: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('O')); break;
+        case eAGSKeyCodeP: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('P')); break;
+        case eAGSKeyCodeQ: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('Q')); break;
+        case eAGSKeyCodeR: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('R')); break;
+        case eAGSKeyCodeS: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('S')); break;
+        case eAGSKeyCodeT: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('T')); break;
+        case eAGSKeyCodeU: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('U')); break;
+        case eAGSKeyCodeV: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('V')); break;
+        case eAGSKeyCodeW: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('W')); break;
+        case eAGSKeyCodeX: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('X')); break;
+        case eAGSKeyCodeY: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('Y')); break;
+        case eAGSKeyCodeZ: return ags_iskeypressed(platform->ConvertKeycodeToScanCode('Z')); break;
+
+        case eAGSKeyCodeF1: return ags_iskeypressed(__allegro_KEY_F1); break;
+        case eAGSKeyCodeF2: return ags_iskeypressed(__allegro_KEY_F2); break;
+        case eAGSKeyCodeF3: return ags_iskeypressed(__allegro_KEY_F3); break;
+        case eAGSKeyCodeF4: return ags_iskeypressed(__allegro_KEY_F4); break;
+        case eAGSKeyCodeF5: return ags_iskeypressed(__allegro_KEY_F5); break;
+        case eAGSKeyCodeF6: return ags_iskeypressed(__allegro_KEY_F6); break;
+        case eAGSKeyCodeF7: return ags_iskeypressed(__allegro_KEY_F7); break;
+        case eAGSKeyCodeF8: return ags_iskeypressed(__allegro_KEY_F8); break;
+        case eAGSKeyCodeF9: return ags_iskeypressed(__allegro_KEY_F9); break;
+        case eAGSKeyCodeF10: return ags_iskeypressed(__allegro_KEY_F10); break;
+        case eAGSKeyCodeF11: return ags_iskeypressed(__allegro_KEY_F11); break;
+        case eAGSKeyCodeF12: return ags_iskeypressed(__allegro_KEY_F12); break;
+
+        case eAGSKeyCodeHome: return ags_iskeypressed(__allegro_KEY_HOME) || ags_iskeypressed(__allegro_KEY_7_PAD); break;
+        case eAGSKeyCodeUpArrow: return ags_iskeypressed(__allegro_KEY_UP) || ags_iskeypressed(__allegro_KEY_8_PAD); break;
+        case eAGSKeyCodePageUp: return ags_iskeypressed(__allegro_KEY_PGUP) || ags_iskeypressed(__allegro_KEY_9_PAD); break;
+        case eAGSKeyCodeLeftArrow: return ags_iskeypressed(__allegro_KEY_LEFT) || ags_iskeypressed(__allegro_KEY_4_PAD); break;
+        case eAGSKeyCodeNumPad5: return ags_iskeypressed(__allegro_KEY_5_PAD); break;
+        case eAGSKeyCodeRightArrow: return ags_iskeypressed(__allegro_KEY_RIGHT) || ags_iskeypressed(__allegro_KEY_6_PAD); break;
+        case eAGSKeyCodeEnd: return ags_iskeypressed(__allegro_KEY_END) || ags_iskeypressed(__allegro_KEY_1_PAD); break;
+        case eAGSKeyCodeDownArrow: return ags_iskeypressed(__allegro_KEY_DOWN) || ags_iskeypressed(__allegro_KEY_2_PAD); break;
+        case eAGSKeyCodePageDown: return ags_iskeypressed(__allegro_KEY_PGDN) || ags_iskeypressed(__allegro_KEY_3_PAD); break;
+        case eAGSKeyCodeInsert: return ags_iskeypressed(__allegro_KEY_INSERT) || ags_iskeypressed(__allegro_KEY_0_PAD); break;
+        case eAGSKeyCodeDelete: return ags_iskeypressed(__allegro_KEY_DEL) || ags_iskeypressed(__allegro_KEY_DEL_PAD); break;
+
+        // These keys are not defined in the eAGSKey enum but are in the manual
+        // https://adventuregamestudio.github.io/ags-manual/ASCIIcodes.html
+
+        case 403: return ags_iskeypressed(__allegro_KEY_LSHIFT); break;
+        case 404: return ags_iskeypressed(__allegro_KEY_RSHIFT); break;
+        case 405: return ags_iskeypressed(__allegro_KEY_LCONTROL); break;
+        case 406: return ags_iskeypressed(__allegro_KEY_RCONTROL); break;
+        case 407: return ags_iskeypressed(__allegro_KEY_ALT); break;
+
+        // (noted here for interest)
+        // The following are the AGS_EXT_KEY_SHIFT, derived from applying arithmetic to the original keycodes.
+        // These do not have a corresponding ags key enum, do not appear in the manual and may not be accessible because of OS contraints.
+
+        case 392: return ags_iskeypressed(__allegro_KEY_PRTSCR); break;
+        case 393: return ags_iskeypressed(__allegro_KEY_PAUSE); break;
+        case 394: return ags_iskeypressed(__allegro_KEY_ABNT_C1); break;  // The ABNT_C1 (Brazilian) key
+        case 395: return ags_iskeypressed(__allegro_KEY_YEN); break;
+        case 396: return ags_iskeypressed(__allegro_KEY_KANA); break;
+        case 397: return ags_iskeypressed(__allegro_KEY_CONVERT); break;
+        case 398: return ags_iskeypressed(__allegro_KEY_NOCONVERT); break;
+        case 400: return ags_iskeypressed(__allegro_KEY_CIRCUMFLEX); break;
+        case 402: return ags_iskeypressed(__allegro_KEY_KANJI); break;
+        case 420: return ags_iskeypressed(__allegro_KEY_ALTGR); break;
+        case 421: return ags_iskeypressed(__allegro_KEY_LWIN); break;
+        case 422: return ags_iskeypressed(__allegro_KEY_RWIN); break;
+        case 423: return ags_iskeypressed(__allegro_KEY_MENU); break;
+        case 424: return ags_iskeypressed(__allegro_KEY_SCRLOCK); break;
+        case 425: return ags_iskeypressed(__allegro_KEY_NUMLOCK); break;
+        case 426: return ags_iskeypressed(__allegro_KEY_CAPSLOCK); break;
+
+        // Allegro4 keys that were never supported:
+        // __allegro_KEY_COMMAND
+        // __allegro_KEY_TILDE
+        // __allegro_KEY_BACKQUOTE
+
+        default:
+            // Remaining Allegro4 keycodes are offset by AGS_EXT_KEY_SHIFT
+            if (keycode >= AGS_EXT_KEY_SHIFT) {
+                if (ags_iskeypressed(keycode - AGS_EXT_KEY_SHIFT)) { return 1; }
+            }
+            debug_script_log("IsKeyPressed: unsupported keycode %d", keycode);
+            return 0;
+    }
 #else
     // old allegro version
     quit("allegro keyboard handler not in use??");

@@ -172,9 +172,4 @@ Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool has_alpha);
 // of the requested width and height and game's native color depth.
 Common::Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res = false);
 
-
-// Subsection of a virtual screen, used by the Software renderer
-// when the room size is smaller than the game's size.
-extern Common::Bitmap *sub_vscreen;
-
 #endif // __AGS_EE_AC__DRAW_H

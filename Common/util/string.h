@@ -274,6 +274,8 @@ public:
     // Replaces particular substring with another substring; new substring
     // may have different length
     void    ReplaceMid(size_t from, size_t count, const char *cstr);
+    // Reverses the string
+    void    Reverse();
     // Overwrite the Nth character of the string; does not change string's length
     void    SetAt(size_t index, char c);
     // Makes a new string by copying up to N chars from C-string

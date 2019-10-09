@@ -185,7 +185,7 @@ public:
 
     bool UsesMemoryBackBuffer() override;
     Bitmap *GetMemoryBackBuffer() override;
-    void SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy) override;
+    void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap* GetStageBackBuffer() override;
 
 protected:

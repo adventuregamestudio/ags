@@ -171,10 +171,10 @@ public:
   // Returns the virtual screen. Will return NULL if renderer does not support memory backbuffer.
   // In normal case you should use GetStageBackBuffer() instead.
   virtual Common::Bitmap* GetMemoryBackBuffer() = 0;
-  // Sets custom backbuffer bitmap to render to, optionally configure offsets at which this screen has to be blitted
-  // to the final render surface. Passing NULL pointer will tell renderer to switch back to its original virtual screen.
+  // Sets custom backbuffer bitmap to render to.
+  // Passing NULL pointer will tell renderer to switch back to its original virtual screen.
   // Note that only software renderer supports this.
-  virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer, int offx = 0, int offy = 0) = 0;
+  virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer) = 0;
   // Returns memory backbuffer for the current rendering stage (or base virtual screen if called outside of render pass).
   // All renderers should support this.
   virtual Common::Bitmap* GetStageBackBuffer() = 0;

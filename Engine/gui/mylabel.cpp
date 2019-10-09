@@ -21,12 +21,9 @@
 #include "gui/mylabel.h"
 #include "gui/guidialoginternaldefs.h"
 
-using Common::Bitmap;
+using namespace Common;
 
 extern GameSetup usetup;
-// ac_guimain
-extern int numlines;
-extern char lines[MAXLINE][200];
 
 extern int acdialog_font;
 
@@ -46,9 +43,10 @@ void MyLabel::draw(Bitmap *ds)
     char *teptr = &text[0];
     color_t text_color = ds->GetCompatibleColor(0);
 
-    break_up_text_into_lines(wid, acdialog_font, teptr);
-    for (int ee = 0; ee < numlines; ee++) {
-        wouttext_outline(ds, x, cyp, acdialog_font, text_color, lines[ee]);
+    if (break_up_text_into_lines(teptr, Lines, wid, acdialog_font) == 0)
+        return;
+    for (size_t ee = 0; ee < Lines.Count(); ee++) {
+        wouttext_outline(ds, x, cyp, acdialog_font, text_color, Lines[ee]);
         cyp += TEXT_HT;
     }
 }

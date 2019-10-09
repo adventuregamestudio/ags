@@ -16,6 +16,7 @@
 
 #include "util/ini_util.h"
 
+const char *get_engine_name();
 const char *get_engine_version();
 void        show_preload();
 void        engine_init_game_settings();

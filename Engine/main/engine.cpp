@@ -54,6 +54,7 @@
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/gfxdriverfactory.h"
 #include "gfx/ddb.h"
 #include "main/config.h"
 #include "main/game_file.h"
@@ -150,31 +151,21 @@ void engine_setup_window()
     platform->SetGameWindowIcon();
 }
 
-bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
+// Starts up setup application, if capable.
+// Returns TRUE if should continue running the game, otherwise FALSE.
+bool engine_run_setup(const String &exe_path, ConfigTree &cfg, int &app_res)
 {
+    app_res = EXIT_NORMAL;
 #if AGS_PLATFORM_OS_WINDOWS
-    // check if Setup needs to be run instead
-    if (justRunSetup)
     {
             String cfg_file = find_user_cfg_file();
             if (cfg_file.IsEmpty())
+            {
+                app_res = EXIT_ERROR;
                 return false;
+            }
 
             Debug::Printf(kDbgMsg_Init, "Running Setup");
-
-            // Add information about game resolution and let setup application
-            // display some properties to the user
-            INIwriteint(cfg, "misc", "defaultres", game.GetResolutionType());
-            INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
-            INIwriteint(cfg, "misc", "game_width", game.GetDefaultRes().Width);
-            INIwriteint(cfg, "misc", "game_height", game.GetDefaultRes().Height);
-            INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
-            if (game.options[OPT_RENDERATSCREENRES] != kRenderAtScreenRes_UserDefined)
-            {
-                // force enabled/disabled
-                INIwriteint(cfg, "graphics", "render_at_screenres", game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled);
-                INIwriteint(cfg, "disabled", "render_at_screenres", 1);
-            }
 
             ConfigTree cfg_out;
             SetupReturnValue res = platform->RunSetup(cfg, cfg_out);
@@ -199,7 +190,6 @@ bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
             _spawnl (_P_OVERLAY, exe_path, quotedpath, NULL);
     }
 #endif
-
     return true;
 }
 
@@ -632,9 +622,7 @@ void engine_init_rand()
 
 void engine_init_pathfinder()
 {
-    Debug::Printf(kDbgMsg_Init, "Initialize path finder library");
-
-    init_pathfinder();
+    init_pathfinder(loaded_game_file_version);
 }
 
 void engine_pre_init_gfx()
@@ -647,7 +635,6 @@ void engine_pre_init_gfx()
 int engine_load_game_data()
 {
     Debug::Printf("Load game data");
-
     our_eip=-17;
     HError err = load_game_file();
     if (!err)
@@ -655,10 +642,9 @@ int engine_load_game_data()
         proper_exit=1;
         platform->FinishedUsingGraphicsMode();
         display_game_file_error(err);
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
     }
-
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 int engine_check_register_game()
@@ -677,7 +663,7 @@ int engine_check_register_game()
         return EXIT_NORMAL;
     }
 
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 void engine_init_title()
@@ -782,10 +768,10 @@ int engine_check_disk_space()
     if (check_write_access()==0) {
         platform->DisplayAlert("Unable to write in the savegame directory.\n%s", platform->GetDiskWriteAccessTroubleshootingText());
         proper_exit = 1;
-        return EXIT_NORMAL; 
+        return EXIT_ERROR; 
     }
 
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 int engine_check_font_was_loaded()
@@ -794,10 +780,10 @@ int engine_check_font_was_loaded()
     {
         platform->DisplayAlert("No game fonts found. At least one font is required to run the game.");
         proper_exit = 1;
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
     }
 
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 void engine_init_modxm_player()
@@ -867,10 +853,10 @@ int engine_init_sprites()
         platform->DisplayAlert("Could not load sprite set file %s\n%s",
             SpriteCache::DefaultSpriteFileName.GetCStr(),
             err->FullMessage().GetCStr());
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
     }
 
-    return RETURN_CONTINUE;
+    return 0;
 }
 
 void engine_init_game_settings()
@@ -1330,24 +1316,96 @@ void engine_read_config(const String &exe_path, ConfigTree &cfg)
         override_config_ext(cfg);
 }
 
-bool engine_do_config(const String &exe_path, const ConfigTree &startup_opts)
+// Gathers settings from all available sources into single ConfigTree
+void engine_prepare_config(ConfigTree &cfg, const String &exe_path, const ConfigTree &startup_opts)
 {
     Debug::Printf(kDbgMsg_Init, "Setting up game configuration");
-    // Init default options
-    config_defaults();
-    ConfigTree cfg;
     // Read configuration files
     engine_read_config(exe_path, cfg);
     // Merge startup options in
     for (const auto &sectn : startup_opts)
         for (const auto &opt : sectn.second)
             cfg[sectn.first][opt.first] = opt.second;
-    // Set up game options from user config
+
+    // Add "meta" config settings to let setup application(s)
+    // display correct properties to the user
+    INIwriteint(cfg, "misc", "defaultres", game.GetResolutionType());
+    INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
+    INIwriteint(cfg, "misc", "game_width", game.GetDefaultRes().Width);
+    INIwriteint(cfg, "misc", "game_height", game.GetDefaultRes().Height);
+    INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
+    if (game.options[OPT_RENDERATSCREENRES] != kRenderAtScreenRes_UserDefined)
+    {
+        // force enabled/disabled
+        INIwriteint(cfg, "graphics", "render_at_screenres", game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled);
+        INIwriteint(cfg, "disabled", "render_at_screenres", 1);
+    }
+}
+
+// Applies configuration to the running game
+void engine_set_config(const ConfigTree cfg)
+{
+    config_defaults();
     apply_config(cfg);
-    // Fixup configuration if necessary
     post_config();
-    // Test if need to run built-in setup program (where available)
-    return engine_check_run_setup(exe_path, cfg);
+}
+
+//
+// --tell command support: printing engine/game info by request
+//
+extern std::set<String> tellInfoKeys;
+static bool print_info_needs_game(const std::set<String> &keys)
+{
+    return keys.count("all") > 0 || keys.count("config") > 0 || keys.count("configpath") > 0 ||
+        keys.count("data") > 0;
+}
+
+static void engine_print_info(const std::set<String> &keys, const String &exe_path, ConfigTree *user_cfg)
+{
+    const bool all = keys.count("all") > 0;
+    ConfigTree data;
+    if (all || keys.count("engine") > 0)
+    {
+        data["engine"]["name"] = get_engine_name();
+        data["engine"]["version"] = get_engine_version();
+    }
+    if (all || keys.count("graphicdriver") > 0)
+    {
+        StringV drv;
+        AGS::Engine::GetGfxDriverFactoryNames(drv);
+        for (size_t i = 0; i < drv.size(); ++i)
+        {
+            data["graphicdriver"][String::FromFormat("%u", i)] = drv[i];
+        }
+    }
+    if (all || keys.count("configpath") > 0)
+    {
+        String def_cfg_file = find_default_cfg_file(exe_path);
+        String gl_cfg_file = find_user_global_cfg_file();
+        String user_cfg_file = find_user_cfg_file();
+        data["config-path"]["default"] = def_cfg_file;
+        data["config-path"]["global"] = gl_cfg_file;
+        data["config-path"]["user"] = user_cfg_file;
+    }
+    if ((all || keys.count("config") > 0) && user_cfg)
+    {
+        for (const auto &sectn : *user_cfg)
+        {
+            String cfg_sectn = String::FromFormat("config@%s", sectn.first.GetCStr());
+            for (const auto &opt : sectn.second)
+                data[cfg_sectn][opt.first] = opt.second;
+        }
+    }
+    if (all || keys.count("data") > 0)
+    {
+        data["data"]["gamename"] = game.gamename;
+        data["data"]["version"] = String::FromFormat("%d", loaded_game_file_version);
+        data["data"]["compiledwith"] = game.compiled_with;
+        data["data"]["basepack"] = usetup.main_data_filepath;
+    }
+    String full;
+    IniUtil::WriteToString(full, data);
+    platform->WriteStdOut("%s", full.GetCStr());
 }
 
 // TODO: this function is still a big mess, engine/system-related initialization
@@ -1362,15 +1420,35 @@ int initialize_engine(const ConfigTree &startup_opts)
     //-----------------------------------------------------
     // Install backend
     if (!engine_init_allegro())
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
 
     //-----------------------------------------------------
     // Locate game data and assemble game config
     const String exe_path = global_argv[0];
+    if (justTellInfo && !print_info_needs_game(tellInfoKeys))
+    {
+        engine_print_info(tellInfoKeys, exe_path, nullptr);
+        return EXIT_NORMAL;
+    }
+
     if (!engine_init_gamedata(exe_path))
+        return EXIT_ERROR;
+    ConfigTree cfg;
+    engine_prepare_config(cfg, exe_path, startup_opts);
+    if (justTellInfo)
+    {
+        engine_print_info(tellInfoKeys, exe_path, &cfg);
         return EXIT_NORMAL;
-    if (!engine_do_config(exe_path, startup_opts))
-        return EXIT_NORMAL;
+    }
+    // Test if need to run built-in setup program (where available)
+    if (justRunSetup)
+    {
+        int res;
+        if (!engine_run_setup(exe_path, cfg, res))
+            return res;
+    }
+    // Set up game options from user config
+    engine_set_config(cfg);
     engine_setup_allegro();
     engine_force_window();
 
@@ -1432,31 +1510,27 @@ int initialize_engine(const ConfigTree &startup_opts)
     our_eip=-19;
 
     int res = engine_load_game_data();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
     
     res = engine_check_register_game();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
 
     engine_init_title();
 
     our_eip = -189;
 
     res = engine_check_disk_space();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
 
     // Make sure that at least one font was loaded in the process of loading
     // the game data.
     // TODO: Fold this check into engine_load_game_data()
     res = engine_check_font_was_loaded();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
 
     our_eip = -179;
 
@@ -1466,7 +1540,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     // Attempt to initialize graphics mode
     if (!engine_try_set_gfxmode_any(usetup.Screen))
-        return EXIT_NORMAL;
+        return EXIT_ERROR;
 
     SetMultitasking(0);
 
@@ -1477,9 +1551,8 @@ int initialize_engine(const ConfigTree &startup_opts)
     show_preload();
 
     res = engine_init_sprites();
-    if (res != RETURN_CONTINUE) {
+    if (res != 0)
         return res;
-    }
 
     engine_init_game_settings();
 
@@ -1490,7 +1563,7 @@ int initialize_engine(const ConfigTree &startup_opts)
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 
     quit("|bye!");
-    return 0;
+    return EXIT_NORMAL;
 }
 
 bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
@@ -1569,6 +1642,11 @@ void engine_shutdown_gfxmode()
 
     engine_pre_gfxsystem_shutdown();
     graphics_mode_shutdown();
+}
+
+const char *get_engine_name()
+{
+    return "Adventure Game Studio run-time engine";
 }
 
 const char *get_engine_version() {

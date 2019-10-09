@@ -1,71 +1,477 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: AGS
 Source: https://github.com/adventuregamestudio/ags
 
 Files: *
-Copyright: Copyright (C) 1999-2012 by the following:
- Chris Jones
- Steve McCrea
- Tzach Shabtay
- Bernhard Rosenkraenzer
- Jochen Schleu
- Ivan Mogilko
- Janet Gilbert
-License: Artistic-2.0
-
-Files: Common/util/misc.*
-Copyright: Copyright (C) 1999-2012 by the following:
- Chris Jones
- Steve McCrea
- Tzach Shabtay
- Bernhard Rosenkraenzer
- Jochen Schleu
- Ivan Mogilko
- Janet Gilbert
- Shawn R. Walker
+Copyright: 1995-2011, Chris Jones
+           2011-2019, various contributors
 License: Artistic-2.0 or BSD-3-clause
 
 Files: debian/*
-Copyright: 2012 Tobias Hansen <tobias.han@gmx.de>
+Copyright: 2012, Tobias Hansen <tobias.han@gmx.de>
 License: BSD-3-clause
 
-Files: Common/libsrc/aastr-0.1.1/*
-       Common/libinclude/aastr.h
-Copyright: Copyright (C) 1998, 1999  Michael Bukin
-License: giftware
-
-Files: Engine/libsrc/alfont-2.0.9/*
-       Common/libinclude/alfont*.h
-Copyright: AllegroFont (c) 2001, 2002 Javier Gonzalez
-           Doug Eleveld
-           2004 Chernsha
-License: FTL
-
-Files: Engine/libsrc/almp3*/*              
-       Common/libinclude/almp3*.h
-Copyright: copyright (c) 1995,1996,1997 by Michael Hipp.
-           Allegro MP3 is copyright (c) 2001, 2002 Javier Gonz lez
-License: LGPL-2.1
-
-Files: Engine/libsrc/alogg/*
-       Common/libinclude/alogg*.h
-Copyright: Allegro OGG is copyright (c) 2002 Javier Gonz lez
-License: BSD-3-clause
-
-Files: Engine/libsrc/apeg-1.2.1/*
-       Common/libinclude/apeg.h
+Files: Common/libinclude/apeg.h
+       Engine/libsrc/apeg-1.2.1/*
 Copyright: Chris Robinson
 License: APEG
 
+Files: Common/libinclude/libcda.h
+       Engine/libsrc/libcda-0.5/*
+Copyright: 2001, Peter Wang and contributing authors
+License: Zlib
+
+Files: Common/libinclude/almp3.h
+       Common/libinclude/almp3dll.h
+       Engine/libsrc/almp3-2.0.5/*
+       Engine/libsrc/almp3/*
+Copyright: 2001-2002, Javier González
+License: LGPL-2.1
+
+Files: Common/libinclude/alogg.h
+       Common/libinclude/aloggdll.h
+       Engine/libsrc/alogg/*
+Copyright: 2002, Javier González
+License: BSD-3-clause
+
+Files: Common/libinclude/aastr.h
+       Common/libsrc/aastr-0.1.1/*
+Copyright: 1998-1999, Michael Bukin
+License: giftware
+
+Files: Common/libinclude/ogg/Makefile.in
+       Common/libinclude/theora/Makefile.in
+       Common/libinclude/vorbis/Makefile.in
+Copyright: 1994-2006, Free Software Foundation, Inc
+License: FSFULLR
+
+Files: Common/libsrc/freetype-2.1.3/Makefile
+       Common/libsrc/freetype-2.1.3/builds/amiga/src/*
+       Common/libsrc/freetype-2.1.3/builds/ansi/*
+       Common/libsrc/freetype-2.1.3/builds/beos/*
+       Common/libsrc/freetype-2.1.3/builds/compiler/*
+       Common/libsrc/freetype-2.1.3/builds/detect.mk
+       Common/libsrc/freetype-2.1.3/builds/dos/*
+       Common/libsrc/freetype-2.1.3/builds/freetype.mk
+       Common/libsrc/freetype-2.1.3/builds/link_dos.mk
+       Common/libsrc/freetype-2.1.3/builds/link_std.mk
+       Common/libsrc/freetype-2.1.3/builds/modules.mk
+       Common/libsrc/freetype-2.1.3/builds/os2/*
+       Common/libsrc/freetype-2.1.3/builds/toplevel.mk
+       Common/libsrc/freetype-2.1.3/builds/unix/detect.mk
+       Common/libsrc/freetype-2.1.3/builds/unix/ft2unix.h
+       Common/libsrc/freetype-2.1.3/builds/unix/ftconfig.in
+       Common/libsrc/freetype-2.1.3/builds/unix/ftsystem.c
+       Common/libsrc/freetype-2.1.3/builds/unix/install.mk
+       Common/libsrc/freetype-2.1.3/builds/unix/unix-def.in
+       Common/libsrc/freetype-2.1.3/builds/unix/unix-dev.mk
+       Common/libsrc/freetype-2.1.3/builds/unix/unix-lcc.mk
+       Common/libsrc/freetype-2.1.3/builds/unix/unix.mk
+       Common/libsrc/freetype-2.1.3/builds/unix/unixddef.mk
+       Common/libsrc/freetype-2.1.3/builds/vms/*
+       Common/libsrc/freetype-2.1.3/builds/win32/detect.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/ftdebug.c
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-bcc.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-bccd.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-dev.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-gcc.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-icc.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-intl.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-lcc.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-mingw32.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-vcc.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/w32-wat.mk
+       Common/libsrc/freetype-2.1.3/builds/win32/win32-def.mk
+       Common/libsrc/freetype-2.1.3/config.mk
+       Common/libsrc/freetype-2.1.3/descrip.mms
+       Common/libsrc/freetype-2.1.3/docs/FTL.txt
+       Common/libsrc/freetype-2.1.3/include/freetype/cache/*
+       Common/libsrc/freetype-2.1.3/include/freetype/config/ftconfig.h
+       Common/libsrc/freetype-2.1.3/include/freetype/config/ftheader.h
+       Common/libsrc/freetype-2.1.3/include/freetype/config/ftoption.h
+       Common/libsrc/freetype-2.1.3/include/freetype/config/ftstdlib.h
+       Common/libsrc/freetype-2.1.3/include/freetype/freetype.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftbbox.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftbdf.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftcache.h
+       Common/libsrc/freetype-2.1.3/include/freetype/fterrdef.h
+       Common/libsrc/freetype-2.1.3/include/freetype/fterrors.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftglyph.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftgzip.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftimage.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftincrem.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftlist.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftmac.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftmm.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftmoderr.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftmodule.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftoutln.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftpfr.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftrender.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftsizes.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftsnames.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftsynth.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftsystem.h
+       Common/libsrc/freetype-2.1.3/include/freetype/fttrigon.h
+       Common/libsrc/freetype-2.1.3/include/freetype/fttypes.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ftxf86.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/autohint.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/cfftypes.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/fnttypes.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/ftcalc.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/ftdebug.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/ftdriver.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/ftgloadr.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/fthash.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/ftmemory.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/ftobjs.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/ftstream.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/fttrace.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/internal.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/psaux.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/pshints.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/psnames.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/sfnt.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/t1types.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/t42types.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/tttypes.h
+       Common/libsrc/freetype-2.1.3/include/freetype/t1tables.h
+       Common/libsrc/freetype-2.1.3/include/freetype/ttnameid.h
+       Common/libsrc/freetype-2.1.3/include/freetype/tttables.h
+       Common/libsrc/freetype-2.1.3/include/freetype/tttags.h
+       Common/libsrc/freetype-2.1.3/include/ft2build.h
+       Common/libsrc/freetype-2.1.3/src/autohint/aherrors.h
+       Common/libsrc/freetype-2.1.3/src/autohint/mather.py
+       Common/libsrc/freetype-2.1.3/src/base/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/base/ftapi.c
+       Common/libsrc/freetype-2.1.3/src/base/ftbase.c
+       Common/libsrc/freetype-2.1.3/src/base/ftbbox.c
+       Common/libsrc/freetype-2.1.3/src/base/ftbdf.c
+       Common/libsrc/freetype-2.1.3/src/base/ftcalc.c
+       Common/libsrc/freetype-2.1.3/src/base/ftdbgmem.c
+       Common/libsrc/freetype-2.1.3/src/base/ftdebug.c
+       Common/libsrc/freetype-2.1.3/src/base/ftgloadr.c
+       Common/libsrc/freetype-2.1.3/src/base/ftglyph.c
+       Common/libsrc/freetype-2.1.3/src/base/ftinit.c
+       Common/libsrc/freetype-2.1.3/src/base/ftlist.c
+       Common/libsrc/freetype-2.1.3/src/base/ftmac.c
+       Common/libsrc/freetype-2.1.3/src/base/ftmm.c
+       Common/libsrc/freetype-2.1.3/src/base/ftnames.c
+       Common/libsrc/freetype-2.1.3/src/base/ftobjs.c
+       Common/libsrc/freetype-2.1.3/src/base/ftoutln.c
+       Common/libsrc/freetype-2.1.3/src/base/ftpfr.c
+       Common/libsrc/freetype-2.1.3/src/base/ftstream.c
+       Common/libsrc/freetype-2.1.3/src/base/ftsynth.c
+       Common/libsrc/freetype-2.1.3/src/base/ftsystem.c
+       Common/libsrc/freetype-2.1.3/src/base/fttrigon.c
+       Common/libsrc/freetype-2.1.3/src/base/fttype1.c
+       Common/libsrc/freetype-2.1.3/src/base/ftutil.c
+       Common/libsrc/freetype-2.1.3/src/base/ftxf86.c
+       Common/libsrc/freetype-2.1.3/src/base/rules.mk
+       Common/libsrc/freetype-2.1.3/src/bdf/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/cache/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/cache/ftcache.c
+       Common/libsrc/freetype-2.1.3/src/cache/ftccache.c
+       Common/libsrc/freetype-2.1.3/src/cache/ftccache.i
+       Common/libsrc/freetype-2.1.3/src/cache/ftccmap.c
+       Common/libsrc/freetype-2.1.3/src/cache/ftcerror.h
+       Common/libsrc/freetype-2.1.3/src/cache/ftcglyph.c
+       Common/libsrc/freetype-2.1.3/src/cache/ftcimage.c
+       Common/libsrc/freetype-2.1.3/src/cache/ftcmanag.c
+       Common/libsrc/freetype-2.1.3/src/cache/ftcsbits.c
+       Common/libsrc/freetype-2.1.3/src/cache/ftlru.c
+       Common/libsrc/freetype-2.1.3/src/cache/rules.mk
+       Common/libsrc/freetype-2.1.3/src/cff/cff.c
+       Common/libsrc/freetype-2.1.3/src/cff/cffcmap.c
+       Common/libsrc/freetype-2.1.3/src/cff/cffcmap.h
+       Common/libsrc/freetype-2.1.3/src/cff/cffdrivr.c
+       Common/libsrc/freetype-2.1.3/src/cff/cffdrivr.h
+       Common/libsrc/freetype-2.1.3/src/cff/cfferrs.h
+       Common/libsrc/freetype-2.1.3/src/cff/cffgload.c
+       Common/libsrc/freetype-2.1.3/src/cff/cffgload.h
+       Common/libsrc/freetype-2.1.3/src/cff/cffload.c
+       Common/libsrc/freetype-2.1.3/src/cff/cffload.h
+       Common/libsrc/freetype-2.1.3/src/cff/cffobjs.c
+       Common/libsrc/freetype-2.1.3/src/cff/cffobjs.h
+       Common/libsrc/freetype-2.1.3/src/cff/cffparse.c
+       Common/libsrc/freetype-2.1.3/src/cff/cffparse.h
+       Common/libsrc/freetype-2.1.3/src/cff/cfftoken.h
+       Common/libsrc/freetype-2.1.3/src/cff/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/cff/module.mk
+       Common/libsrc/freetype-2.1.3/src/cff/rules.mk
+       Common/libsrc/freetype-2.1.3/src/cid/ciderrs.h
+       Common/libsrc/freetype-2.1.3/src/cid/cidgload.c
+       Common/libsrc/freetype-2.1.3/src/cid/cidgload.h
+       Common/libsrc/freetype-2.1.3/src/cid/cidload.c
+       Common/libsrc/freetype-2.1.3/src/cid/cidload.h
+       Common/libsrc/freetype-2.1.3/src/cid/cidobjs.c
+       Common/libsrc/freetype-2.1.3/src/cid/cidobjs.h
+       Common/libsrc/freetype-2.1.3/src/cid/cidparse.c
+       Common/libsrc/freetype-2.1.3/src/cid/cidparse.h
+       Common/libsrc/freetype-2.1.3/src/cid/cidriver.c
+       Common/libsrc/freetype-2.1.3/src/cid/cidriver.h
+       Common/libsrc/freetype-2.1.3/src/cid/cidtoken.h
+       Common/libsrc/freetype-2.1.3/src/cid/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/cid/module.mk
+       Common/libsrc/freetype-2.1.3/src/cid/rules.mk
+       Common/libsrc/freetype-2.1.3/src/cid/type1cid.c
+       Common/libsrc/freetype-2.1.3/src/gzip/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/gzip/ftgzip.c
+       Common/libsrc/freetype-2.1.3/src/gzip/rules.mk
+       Common/libsrc/freetype-2.1.3/src/otlayout/otlcommn.c
+       Common/libsrc/freetype-2.1.3/src/otlayout/otlcommn.h
+       Common/libsrc/freetype-2.1.3/src/pcf/pcferror.h
+       Common/libsrc/freetype-2.1.3/src/pfr/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/pfr/module.mk
+       Common/libsrc/freetype-2.1.3/src/pfr/pfr.c
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrcmap.c
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrcmap.h
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrdrivr.c
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrdrivr.h
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrerror.h
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrgload.c
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrgload.h
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrload.c
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrload.h
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrobjs.c
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrobjs.h
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrsbit.c
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrsbit.h
+       Common/libsrc/freetype-2.1.3/src/pfr/pfrtypes.h
+       Common/libsrc/freetype-2.1.3/src/pfr/rules.mk
+       Common/libsrc/freetype-2.1.3/src/psaux/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/psaux/module.mk
+       Common/libsrc/freetype-2.1.3/src/psaux/psaux.c
+       Common/libsrc/freetype-2.1.3/src/psaux/psauxerr.h
+       Common/libsrc/freetype-2.1.3/src/psaux/psauxmod.c
+       Common/libsrc/freetype-2.1.3/src/psaux/psauxmod.h
+       Common/libsrc/freetype-2.1.3/src/psaux/psobjs.c
+       Common/libsrc/freetype-2.1.3/src/psaux/psobjs.h
+       Common/libsrc/freetype-2.1.3/src/psaux/rules.mk
+       Common/libsrc/freetype-2.1.3/src/psaux/t1cmap.c
+       Common/libsrc/freetype-2.1.3/src/psaux/t1cmap.h
+       Common/libsrc/freetype-2.1.3/src/psaux/t1decode.c
+       Common/libsrc/freetype-2.1.3/src/psaux/t1decode.h
+       Common/libsrc/freetype-2.1.3/src/pshinter/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/pshinter/module.mk
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshalgo.h
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshalgo1.c
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshalgo1.h
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshalgo2.c
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshalgo2.h
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshalgo3.c
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshalgo3.h
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshglob.c
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshglob.h
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshinter.c
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshmod.c
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshmod.h
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshrec.c
+       Common/libsrc/freetype-2.1.3/src/pshinter/pshrec.h
+       Common/libsrc/freetype-2.1.3/src/pshinter/rules.mk
+       Common/libsrc/freetype-2.1.3/src/psnames/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/psnames/module.mk
+       Common/libsrc/freetype-2.1.3/src/psnames/psmodule.c
+       Common/libsrc/freetype-2.1.3/src/psnames/psmodule.h
+       Common/libsrc/freetype-2.1.3/src/psnames/psnamerr.h
+       Common/libsrc/freetype-2.1.3/src/psnames/psnames.c
+       Common/libsrc/freetype-2.1.3/src/psnames/pstables.h
+       Common/libsrc/freetype-2.1.3/src/psnames/rules.mk
+       Common/libsrc/freetype-2.1.3/src/raster/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/raster/ftraster.c
+       Common/libsrc/freetype-2.1.3/src/raster/ftraster.h
+       Common/libsrc/freetype-2.1.3/src/raster/ftrend1.c
+       Common/libsrc/freetype-2.1.3/src/raster/ftrend1.h
+       Common/libsrc/freetype-2.1.3/src/raster/module.mk
+       Common/libsrc/freetype-2.1.3/src/raster/raster.c
+       Common/libsrc/freetype-2.1.3/src/raster/rasterrs.h
+       Common/libsrc/freetype-2.1.3/src/raster/rules.mk
+       Common/libsrc/freetype-2.1.3/src/sfnt/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/sfnt/module.mk
+       Common/libsrc/freetype-2.1.3/src/sfnt/rules.mk
+       Common/libsrc/freetype-2.1.3/src/sfnt/sfdriver.c
+       Common/libsrc/freetype-2.1.3/src/sfnt/sfdriver.h
+       Common/libsrc/freetype-2.1.3/src/sfnt/sferrors.h
+       Common/libsrc/freetype-2.1.3/src/sfnt/sfnt.c
+       Common/libsrc/freetype-2.1.3/src/sfnt/sfobjs.c
+       Common/libsrc/freetype-2.1.3/src/sfnt/sfobjs.h
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttcmap.c
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttcmap.h
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttcmap0.c
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttcmap0.h
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttload.c
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttload.h
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttpost.c
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttpost.h
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttsbit.c
+       Common/libsrc/freetype-2.1.3/src/sfnt/ttsbit.h
+       Common/libsrc/freetype-2.1.3/src/smooth/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/smooth/ftgrays.c
+       Common/libsrc/freetype-2.1.3/src/smooth/ftgrays.h
+       Common/libsrc/freetype-2.1.3/src/smooth/ftsmerrs.h
+       Common/libsrc/freetype-2.1.3/src/smooth/ftsmooth.c
+       Common/libsrc/freetype-2.1.3/src/smooth/ftsmooth.h
+       Common/libsrc/freetype-2.1.3/src/smooth/module.mk
+       Common/libsrc/freetype-2.1.3/src/smooth/rules.mk
+       Common/libsrc/freetype-2.1.3/src/smooth/smooth.c
+       Common/libsrc/freetype-2.1.3/src/tools/glnames.py
+       Common/libsrc/freetype-2.1.3/src/truetype/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/truetype/module.mk
+       Common/libsrc/freetype-2.1.3/src/truetype/rules.mk
+       Common/libsrc/freetype-2.1.3/src/truetype/truetype.c
+       Common/libsrc/freetype-2.1.3/src/truetype/ttdriver.c
+       Common/libsrc/freetype-2.1.3/src/truetype/ttdriver.h
+       Common/libsrc/freetype-2.1.3/src/truetype/tterrors.h
+       Common/libsrc/freetype-2.1.3/src/truetype/ttgload.c
+       Common/libsrc/freetype-2.1.3/src/truetype/ttgload.h
+       Common/libsrc/freetype-2.1.3/src/truetype/ttinterp.c
+       Common/libsrc/freetype-2.1.3/src/truetype/ttinterp.h
+       Common/libsrc/freetype-2.1.3/src/truetype/ttobjs.c
+       Common/libsrc/freetype-2.1.3/src/truetype/ttobjs.h
+       Common/libsrc/freetype-2.1.3/src/truetype/ttpload.c
+       Common/libsrc/freetype-2.1.3/src/truetype/ttpload.h
+       Common/libsrc/freetype-2.1.3/src/type1/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/type1/module.mk
+       Common/libsrc/freetype-2.1.3/src/type1/rules.mk
+       Common/libsrc/freetype-2.1.3/src/type1/t1afm.c
+       Common/libsrc/freetype-2.1.3/src/type1/t1afm.h
+       Common/libsrc/freetype-2.1.3/src/type1/t1driver.c
+       Common/libsrc/freetype-2.1.3/src/type1/t1driver.h
+       Common/libsrc/freetype-2.1.3/src/type1/t1errors.h
+       Common/libsrc/freetype-2.1.3/src/type1/t1gload.c
+       Common/libsrc/freetype-2.1.3/src/type1/t1gload.h
+       Common/libsrc/freetype-2.1.3/src/type1/t1load.c
+       Common/libsrc/freetype-2.1.3/src/type1/t1load.h
+       Common/libsrc/freetype-2.1.3/src/type1/t1objs.c
+       Common/libsrc/freetype-2.1.3/src/type1/t1objs.h
+       Common/libsrc/freetype-2.1.3/src/type1/t1parse.c
+       Common/libsrc/freetype-2.1.3/src/type1/t1parse.h
+       Common/libsrc/freetype-2.1.3/src/type1/t1tokens.h
+       Common/libsrc/freetype-2.1.3/src/type1/type1.c
+       Common/libsrc/freetype-2.1.3/src/type42/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/type42/module.mk
+       Common/libsrc/freetype-2.1.3/src/type42/rules.mk
+       Common/libsrc/freetype-2.1.3/src/type42/t42drivr.c
+       Common/libsrc/freetype-2.1.3/src/type42/t42drivr.h
+       Common/libsrc/freetype-2.1.3/src/type42/t42error.h
+       Common/libsrc/freetype-2.1.3/src/type42/t42objs.c
+       Common/libsrc/freetype-2.1.3/src/type42/t42objs.h
+       Common/libsrc/freetype-2.1.3/src/type42/t42parse.c
+       Common/libsrc/freetype-2.1.3/src/type42/t42parse.h
+       Common/libsrc/freetype-2.1.3/src/type42/type42.c
+       Common/libsrc/freetype-2.1.3/src/winfonts/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/winfonts/fnterrs.h
+       Common/libsrc/freetype-2.1.3/src/winfonts/module.mk
+       Common/libsrc/freetype-2.1.3/src/winfonts/rules.mk
+       Common/libsrc/freetype-2.1.3/src/winfonts/winfnt.c
+       Common/libsrc/freetype-2.1.3/src/winfonts/winfnt.h
+Copyright: 1996-2002, The FreeType Project
+License: FTL
+
+Files: Common/libsrc/freetype-2.1.3/builds/unix/aclocal.m4
+       Common/libsrc/freetype-2.1.3/builds/unix/config.guess
+       Common/libsrc/freetype-2.1.3/builds/unix/config.sub
+       Common/libsrc/freetype-2.1.3/builds/unix/ltmain.sh
+Copyright: 1992-2002, Free Software Foundation, Inc
+License: GPL-2+ with AutoConf exception
+
+Files: Common/libsrc/freetype-2.1.3/builds/unix/configure
+Copyright: 1992-2002, Free Software Foundation, Inc
+License: FSFUL
+
+Files: Common/libsrc/freetype-2.1.3/builds/unix/install-sh
+Copyright: 1991, the Massachusetts Institute of Technology
+License: MIT/X11
+
+Files: Common/libsrc/freetype-2.1.3/src/gzip/adler32.c
+       Common/libsrc/freetype-2.1.3/src/gzip/infblock.c
+       Common/libsrc/freetype-2.1.3/src/gzip/infblock.h
+       Common/libsrc/freetype-2.1.3/src/gzip/infcodes.c
+       Common/libsrc/freetype-2.1.3/src/gzip/infcodes.h
+       Common/libsrc/freetype-2.1.3/src/gzip/inflate.c
+       Common/libsrc/freetype-2.1.3/src/gzip/inftrees.c
+       Common/libsrc/freetype-2.1.3/src/gzip/inftrees.h
+       Common/libsrc/freetype-2.1.3/src/gzip/infutil.c
+       Common/libsrc/freetype-2.1.3/src/gzip/infutil.h
+       Common/libsrc/freetype-2.1.3/src/gzip/zconf.h
+       Common/libsrc/freetype-2.1.3/src/gzip/zlib.h
+       Common/libsrc/freetype-2.1.3/src/gzip/zutil.c
+       Common/libsrc/freetype-2.1.3/src/gzip/zutil.h
+Copyright: 1995-2002, Jean-loup Gailly and Mark Adler
+License: Zlib
+
+Files: Common/libsrc/freetype-2.1.3/include/freetype/internal/bdftypes.h
+       Common/libsrc/freetype-2.1.3/include/freetype/internal/pcftypes.h
+       Common/libsrc/freetype-2.1.3/src/bdf/README
+       Common/libsrc/freetype-2.1.3/src/bdf/bdf.c
+       Common/libsrc/freetype-2.1.3/src/bdf/bdf.h
+       Common/libsrc/freetype-2.1.3/src/bdf/bdfdrivr.c
+       Common/libsrc/freetype-2.1.3/src/bdf/bdfdrivr.h
+       Common/libsrc/freetype-2.1.3/src/bdf/bdferror.h
+       Common/libsrc/freetype-2.1.3/src/bdf/bdflib.c
+       Common/libsrc/freetype-2.1.3/src/bdf/module.mk
+       Common/libsrc/freetype-2.1.3/src/bdf/rules.mk
+       Common/libsrc/freetype-2.1.3/src/pcf/descrip.mms
+       Common/libsrc/freetype-2.1.3/src/pcf/module.mk
+       Common/libsrc/freetype-2.1.3/src/pcf/pcf.c
+       Common/libsrc/freetype-2.1.3/src/pcf/pcf.h
+       Common/libsrc/freetype-2.1.3/src/pcf/pcfdriver.c
+       Common/libsrc/freetype-2.1.3/src/pcf/pcfdriver.h
+       Common/libsrc/freetype-2.1.3/src/pcf/pcfread.c
+       Common/libsrc/freetype-2.1.3/src/pcf/pcfutil.h
+       Common/libsrc/freetype-2.1.3/src/pcf/readme
+       Common/libsrc/freetype-2.1.3/src/pcf/rules.mk
+Copyright: 2000, Computing Research Labs, New Mexico State University
+           2000-2002, Francesco Zappa Nardelli
+License: Expat
+
+Files: Common/util/misc.cpp
+       Common/util/misc.h
+Copyright: 1995-2011, Chris Jones
+           2011-2019, various contributors
+           2003, Shawn R. Walker
+License: BSD-2-clause
+
+Files: Engine/libsrc/glad/include/KHR/*
+Copyright: 2008-2018, The Khronos Group Inc
+License: Expat
+
 Files: Engine/libsrc/hq2x/*
-       Common/libinclude/
-Copyright: Copyright (C) 2003 MaxSt ( maxst@hiend3d.com )
+Copyright: 2003, MaxSt <maxst@hiend3d.com>
 License: LGPL-2.1+
 
-Files: Engine/libsrc/libcda-0.5/*
-       Common/libinclude/libcda.h
-Copyright: Copyright (C) 2001 Peter Wang and contributing authors.
-License: Zlib
+Files: Plugins/agsblend/*
+Copyright: 2011, Steven Poulton
+License: AGSBLEND
+
+Files: Plugins/agspalrender/raycast.cpp
+Copyright: 2004-2007, Lode Vandevenne
+License: BSD-2-clause
+
+Files: Plugins/AGSSpriteFont/*
+Copyright: Steven Poulton
+License: CC0
+
+License: AGSBLEND
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to
+ deal in the Software without restriction, including without limitation the
+ rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ .
+ Credit is given to the original author.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
 
 License: APEG
  This add-on library is provided as-is for use by the general
@@ -258,6 +664,28 @@ License: Artistic-2.0
  INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE
  OF THE PACKAGE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+ Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ .
+ Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 License: BSD-3-clause
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are
@@ -286,13 +714,158 @@ License: BSD-3-clause
  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
+License: CC0
+ CC0 1.0 Universal
+ .
+ Statement of Purpose
+ .
+ The laws of most jurisdictions throughout the world automatically confer
+ exclusive Copyright and Related Rights (defined below) upon the creator and
+ subsequent owner(s) (each and all, an "owner") of an original work of
+ authorship and/or a database (each, a "Work").
+ .
+ Certain owners wish to permanently relinquish those rights to a Work for the
+ purpose of contributing to a commons of creative, cultural and scientific
+ works ("Commons") that the public can reliably and without fear of later
+ claims of infringement build upon, modify, incorporate in other works, reuse
+ and redistribute as freely as possible in any form whatsoever and for any
+ purposes, including without limitation commercial purposes. These owners may
+ contribute to the Commons to promote the ideal of a free culture and the
+ further production of creative, cultural and scientific works, or to gain
+ reputation or greater distribution for their Work in part through the use and
+ efforts of others.
+ .
+ For these and/or other purposes and motivations, and without any expectation
+ of additional consideration or compensation, the person associating CC0 with a
+ Work (the "Affirmer"), to the extent that he or she is an owner of Copyright
+ and Related Rights in the Work, voluntarily elects to apply CC0 to the Work
+ and publicly distribute the Work under its terms, with knowledge of his or her
+ Copyright and Related Rights in the Work and the meaning and intended legal
+ effect of CC0 on those rights.
+ .
+ 1. Copyright and Related Rights. A Work made available under CC0 may be
+ protected by copyright and related or neighboring rights ("Copyright and
+ Related Rights"). Copyright and Related Rights include, but are not limited
+ to, the following:
+ .
+  i. the right to reproduce, adapt, distribute, perform, display, communicate,
+  and translate a Work;
+ .
+  ii. moral rights retained by the original author(s) and/or performer(s);
+ .
+  iii. publicity and privacy rights pertaining to a person's image or likeness
+  depicted in a Work;
+ .
+  iv. rights protecting against unfair competition in regards to a Work,
+  subject to the limitations in paragraph 4(a), below;
+ .
+  v. rights protecting the extraction, dissemination, use and reuse of data in
+  a Work;
+ .
+  vi. database rights (such as those arising under Directive 96/9/EC of the
+  European Parliament and of the Council of 11 March 1996 on the legal
+  protection of databases, and under any national implementation thereof,
+  including any amended or successor version of such directive); and
+ .
+  vii. other similar, equivalent or corresponding rights throughout the world
+  based on applicable law or treaty, and any national implementations thereof.
+ .
+ 2. Waiver. To the greatest extent permitted by, but not in contravention of,
+ applicable law, Affirmer hereby overtly, fully, permanently, irrevocably and
+ unconditionally waives, abandons, and surrenders all of Affirmer's Copyright
+ and Related Rights and associated claims and causes of action, whether now
+ known or unknown (including existing as well as future claims and causes of
+ action), in the Work (i) in all territories worldwide, (ii) for the maximum
+ duration provided by applicable law or treaty (including future time
+ extensions), (iii) in any current or future medium and for any number of
+ copies, and (iv) for any purpose whatsoever, including without limitation
+ commercial, advertising or promotional purposes (the "Waiver"). Affirmer makes
+ the Waiver for the benefit of each member of the public at large and to the
+ detriment of Affirmer's heirs and successors, fully intending that such Waiver
+ shall not be subject to revocation, rescission, cancellation, termination, or
+ any other legal or equitable action to disrupt the quiet enjoyment of the Work
+ by the public as contemplated by Affirmer's express Statement of Purpose.
+ .
+ 3. Public License Fallback. Should any part of the Waiver for any reason be
+ judged legally invalid or ineffective under applicable law, then the Waiver
+ shall be preserved to the maximum extent permitted taking into account
+ Affirmer's express Statement of Purpose. In addition, to the extent the Waiver
+ is so judged Affirmer hereby grants to each affected person a royalty-free,
+ non transferable, non sublicensable, non exclusive, irrevocable and
+ unconditional license to exercise Affirmer's Copyright and Related Rights in
+ the Work (i) in all territories worldwide, (ii) for the maximum duration
+ provided by applicable law or treaty (including future time extensions), (iii)
+ in any current or future medium and for any number of copies, and (iv) for any
+ purpose whatsoever, including without limitation commercial, advertising or
+ promotional purposes (the "License"). The License shall be deemed effective as
+ of the date CC0 was applied by Affirmer to the Work. Should any part of the
+ License for any reason be judged legally invalid or ineffective under
+ applicable law, such partial invalidity or ineffectiveness shall not
+ invalidate the remainder of the License, and in such case Affirmer hereby
+ affirms that he or she will not (i) exercise any of his or her remaining
+ Copyright and Related Rights in the Work or (ii) assert any associated claims
+ and causes of action with respect to the Work, in either case contrary to
+ Affirmer's express Statement of Purpose.
+ .
+ 4. Limitations and Disclaimers.
+ .
+  a. No trademark or patent rights held by Affirmer are waived, abandoned,
+  surrendered, licensed or otherwise affected by this document.
+ .
+  b. Affirmer offers the Work as-is and makes no representations or warranties
+  of any kind concerning the Work, express, implied, statutory or otherwise,
+  including without limitation warranties of title, merchantability, fitness
+  for a particular purpose, non infringement, or the absence of latent or
+  other defects, accuracy, or the present or absence of errors, whether or not
+  discoverable, all to the greatest extent permissible under applicable law.
+ .
+  c. Affirmer disclaims responsibility for clearing rights of other persons
+  that may apply to the Work or any use thereof, including without limitation
+  any person's Copyright and Related Rights in the Work. Further, Affirmer
+  disclaims responsibility for obtaining any necessary consents, permissions
+  or other rights required for any use of the Work.
+ .
+  d. Affirmer understands and acknowledges that Creative Commons is not a
+  party to this document and has no duty or obligation with respect to this
+  CC0 or use of the Work.
+ .
+ For more information, please see
+ <http://creativecommons.org/publicdomain/zero/1.0/>
+
+License: Expat
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to
+ deal in the Software without restriction, including without limitation the
+ rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+License: FSFUL
+ This configure script is free software; the Free Software Foundation
+ gives unlimited permission to copy, distribute and modify it.
+
+License: FSFULLR
+ This file is free software; the Free Software Foundation gives
+ unlimited permission to copy and/or distribute it, with or without
+ modifications, as long as this notice is preserved.
+
 License: FTL
                     The FreeType Project LICENSE
                     ----------------------------
  .
-                            2000-Feb-08
+                            2006-Jan-27
  .
-                       Copyright 1996-2000 by
+                    Copyright 1996-2002, 2006 by
           David Turner, Robert Wilhelm, and Werner Lemberg
  .
  .
@@ -330,6 +903,19 @@ License: FTL
   software, with  or without modifications,  in commercial products.
   We  disclaim  all warranties  covering  The  FreeType Project  and
   assume no liability related to The FreeType Project.
+ .
+ .
+  Finally,  many  people  asked  us  for  a  preferred  form  for  a
+  credit/disclaimer to use in compliance with this license.  We thus
+  encourage you to use the following text:
+ .
+   """
+    Portions of this software are copyright © <year> The FreeType
+    Project (www.freetype.org).  All rights reserved.
+   """
+ .
+  Please replace <year> with the value from the FreeType version you
+  actually use.
  .
  .
  Legal Terms
@@ -382,12 +968,12 @@ License: FTL
   authorize others  to exercise  some or all  of the  rights granted
   herein, subject to the following conditions:
  .
-    o Redistribution  of source code  must retain this  license file
-      (`LICENSE.TXT') unaltered; any additions, deletions or changes
-      to   the  original   files  must   be  clearly   indicated  in
-      accompanying  documentation.   The  copyright notices  of  the
-      unaltered, original  files must be preserved in  all copies of
-      source files.
+    o Redistribution of  source code  must retain this  license file
+      (`FTL.TXT') unaltered; any  additions, deletions or changes to
+      the original  files must be clearly  indicated in accompanying
+      documentation.   The  copyright   notices  of  the  unaltered,
+      original  files must  be  preserved in  all  copies of  source
+      files.
  .
     o Redistribution in binary form must provide a  disclaimer  that
       states  that  the software is based in part of the work of the
@@ -425,29 +1011,21 @@ License: FTL
  .
   There are two mailing lists related to FreeType:
  .
-    o freetype@freetype.org
+    o freetype@nongnu.org
  .
       Discusses general use and applications of FreeType, as well as
       future and  wanted additions to the  library and distribution.
       If  you are looking  for support,  start in  this list  if you
       haven't found anything to help you in the documentation.
  .
-    o devel@freetype.org
+    o freetype-devel@nongnu.org
  .
       Discusses bugs,  as well  as engine internals,  design issues,
       specific licenses, porting, etc.
  .
-    o http://www.freetype.org
+  Our home page can be found at
  .
-      Holds the current  FreeType web page, which will  allow you to
-      download  our  latest  development  version  and  read  online
-      documentation.
- .
-  You can also contact us individually at:
- .
-    David Turner      <david.turner@freetype.org>
-    Robert Wilhelm    <robert.wilhelm@freetype.org>
-    Werner Lemberg    <werner.lemberg@freetype.org>
+    https://www.freetype.org
 
 License: giftware
  This file is gift-ware.  This file is given to you freely
@@ -458,6 +1036,26 @@ License: giftware
  I do not accept any responsibility for any effects, adverse or
  otherwise, that this code may have on just about anything that
  you can think of.  Use it at your own risk.
+
+License: GPL-2+ with AutoConf exception
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ .
+ As a special exception to the GNU General Public License, if you
+ distribute this file as part of a program that contains a
+ configuration script generated by Autoconf, you may include it under
+ the same distribution terms that you use for the rest of that program.
 
 License: LGPL-2.1
  This module is free software; you can redistribute it and/or
@@ -488,6 +1086,17 @@ License: LGPL-2.1+
  You should have received a copy of the GNU Lesser General Public
  License along with this package; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+License: MIT/X11
+ Permission to use, copy, modify, distribute, and sell this software and its
+ documentation for any purpose is hereby granted without fee, provided that
+ the above copyright notice appear in all copies and that both that
+ copyright notice and this permission notice appear in supporting
+ documentation, and that the name of M.I.T. not be used in advertising or
+ publicity pertaining to distribution of the software without specific,
+ written prior permission.  M.I.T. makes no representations about the
+ suitability of this software for any purpose.  It is provided "as is"
+ without express or implied warranty.
 
 License: Zlib
  This software is provided 'as-is', without any express or implied

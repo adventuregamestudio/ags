@@ -19,6 +19,7 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game title";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
+        public const string PROPERTY_ALLOWRELATIVEASSETS = "Allow relative asset resolutions";
         public const string PROPERTY_LEGACY_HIRES_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";

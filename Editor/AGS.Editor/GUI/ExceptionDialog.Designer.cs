@@ -28,7 +28,6 @@ namespace AGS.Editor
 		/// </summary>
 		private void InitializeComponent()
 		{
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ExceptionDialog));
             this.errorIcon = new System.Windows.Forms.PictureBox();
             this.lblError = new System.Windows.Forms.Label();
             this.txtErrorDetails = new System.Windows.Forms.TextBox();
@@ -53,9 +52,10 @@ namespace AGS.Editor
             this.lblError.Location = new System.Drawing.Point(81, 22);
             this.lblError.MaximumSize = new System.Drawing.Size(400, 0);
             this.lblError.Name = "lblError";
-            this.lblError.Size = new System.Drawing.Size(396, 39);
+            this.lblError.Size = new System.Drawing.Size(396, 26);
             this.lblError.TabIndex = 1;
-            this.lblError.Text = resources.GetString("lblError.Text");
+            this.lblError.Text = "A problem has occurred, and AGS does not know how to deal with it. Please help us" +
+    " to improve AGS by posting error information on the AGS Technical Forum.";
             // 
             // txtErrorDetails
             // 
@@ -86,6 +86,7 @@ namespace AGS.Editor
             this.btnSendErrorReport.TabIndex = 4;
             this.btnSendErrorReport.Text = "Send Error Report";
             this.btnSendErrorReport.UseVisualStyleBackColor = true;
+            this.btnSendErrorReport.Visible = false;
             this.btnSendErrorReport.Click += new System.EventHandler(this.btnSendErrorReport_Click);
             // 
             // lblReportSucceeded
@@ -97,7 +98,7 @@ namespace AGS.Editor
             this.lblReportSucceeded.Size = new System.Drawing.Size(342, 26);
             this.lblReportSucceeded.TabIndex = 5;
             this.lblReportSucceeded.Text = "Your error report has been accepted. If you are experiencing regular errors, plea" +
-                "se post on the AGS Technical Forum for help.";
+    "se post on the AGS Technical Forum for help.";
             this.lblReportSucceeded.Visible = false;
             // 
             // ExceptionDialog

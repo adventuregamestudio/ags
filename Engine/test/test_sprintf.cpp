@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "core/platform.h"
-#if AGS_PLATFORM_DEBUG
+#ifdef AGS_RUN_TESTS
 
 #include <string.h>
 #include "ac/game_version.h"
@@ -124,4 +124,4 @@ void Test_ScriptSprintf()
     loaded_game_file_version = kGameVersion_Undefined;
 }
 
-#endif // AGS_PLATFORM_DEBUG
+#endif // AGS_RUN_TESTS

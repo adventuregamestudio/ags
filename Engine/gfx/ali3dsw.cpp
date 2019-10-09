@@ -306,6 +306,7 @@ bool ALSoftwareGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 
 void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
 {
+  if (!_filter) return;
   int color = 0;
   if (colorToUse != nullptr) 
     color = makecol_depth(_mode.ColorDepth, colorToUse->r, colorToUse->g, colorToUse->b);
@@ -390,28 +391,35 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     ALSpriteBatch &batch = _spriteBatches[index];
     batch.List.clear();
     // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
-    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
-    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    const int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
+    const int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    // Surface was prepared externally (common for room cameras)
     if (desc.Surface != nullptr)
     {
         batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
         batch.Opaque = true;
         batch.IsVirtualScreen = false;
     }
+    // In case something was not initialized
     else if (desc.Viewport.IsEmpty() || !virtualScreen)
     {
         batch.Surface.reset();
         batch.Opaque = false;
         batch.IsVirtualScreen = false;
     }
+    // Drawing directly on a viewport without transformation (other than offset)
     else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
     {
-        Rect rc = RectWH(desc.Viewport.Left - _virtualScrOff.X, desc.Viewport.Top - _virtualScrOff.Y, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
-        batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
+        if (!batch.Surface || !batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+        {
+            Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
+            batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
+        }
         batch.Opaque = true;
         batch.IsVirtualScreen = true;
     }
-    else if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+    // No surface prepared and has transformation other than offset
+    else if (!batch.Surface || batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
     {
         batch.Surface.reset(new Bitmap(src_w, src_h));
         batch.Opaque = false;
@@ -463,10 +471,10 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         const SpriteTransform &transform = _spriteBatchDesc[i].Transform;
         const ALSpriteBatch &batch = _spriteBatches[i];
 
-        virtualScreen->SetClip(Rect::MoveBy(viewport, -_virtualScrOff.X, -_virtualScrOff.Y));
+        virtualScreen->SetClip(viewport);
         Bitmap *surface = batch.Surface.get();
-        int view_offx = viewport.Left - _virtualScrOff.X;
-        int view_offy = viewport.Top - _virtualScrOff.Y;
+        const int view_offx = viewport.Left;
+        const int view_offy = viewport.Top;
         if (surface)
         {
             if (!batch.Opaque)
@@ -512,8 +520,8 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
     int drawAtX = drawlist[i].x + surf_offx;
     int drawAtY = drawlist[i].y + surf_offy;
 
-    if (bitmap->_transparency >= 255); // fully transparent, do nothing
-    if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_transparency == 0));
+    if (bitmap->_transparency >= 255) {} // fully transparent, do nothing
+    else if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_transparency == 0)) {}
     else if (bitmap->_opaque)
     {
         surface->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
@@ -562,9 +570,9 @@ void ALSoftwareGraphicsDriver::Render(int xoff, int yoff, GlobalFlipType flip)
     this->Vsync();
 
   if (flip == kFlip_None)
-    _filter->RenderScreen(virtualScreen, _virtualScrOff.X + xoff, _virtualScrOff.Y + yoff);
+    _filter->RenderScreen(virtualScreen, xoff, yoff);
   else
-    _filter->RenderScreenFlipped(virtualScreen, _virtualScrOff.X + xoff, _virtualScrOff.Y + yoff, flip);
+    _filter->RenderScreenFlipped(virtualScreen, xoff, yoff, flip);
 }
 
 void ALSoftwareGraphicsDriver::Render()
@@ -582,19 +590,24 @@ Bitmap *ALSoftwareGraphicsDriver::GetMemoryBackBuffer()
   return virtualScreen;
 }
 
-void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer, int offx, int offy)
+void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
 {
   if (backBuffer)
   {
     virtualScreen = backBuffer;
-    _virtualScrOff = Point(offx, offy);
   }
   else
   {
     virtualScreen = _origVirtualScreen;
-    _virtualScrOff = Point();
   }
   _stageVirtualScreen = virtualScreen;
+
+  // Reset old virtual screen's subbitmaps
+  for (auto &batch : _spriteBatches)
+  {
+    if (batch.IsVirtualScreen)
+      batch.Surface.reset();
+  }
 }
 
 Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer()
@@ -631,7 +644,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback
    if (speed <= 0) speed = 16;
 
    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
-   SetMemoryBackBuffer(bmp_buff, offx, offy);
+   SetMemoryBackBuffer(bmp_buff);
    for (int a = 0; a < 256; a+=speed)
    {
        bmp_buff->Fill(clearColor);
@@ -650,7 +663,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback
    }
    delete bmp_buff;
 
-   SetMemoryBackBuffer(vs, offx, offy);
+   SetMemoryBackBuffer(vs);
    if (draw_callback)
    {
        draw_callback();
@@ -667,7 +680,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callbac
     if (speed <= 0) speed = 16;
 
     Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
-    SetMemoryBackBuffer(bmp_buff, offx, offy);
+    SetMemoryBackBuffer(bmp_buff);
     for (int a = 255 - speed; a > 0; a -= speed)
     {
         bmp_buff->Fill(clearColor);
@@ -686,7 +699,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callbac
     }
     delete bmp_buff;
 
-    SetMemoryBackBuffer(vs, offx, offy);
+    SetMemoryBackBuffer(vs);
     vs->Clear(clearColor);
     if (draw_callback)
     {
@@ -738,7 +751,7 @@ void ALSoftwareGraphicsDriver::__fade_out_range(int speed, int from, int to, int
 void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) {
   if (_mode.ColorDepth > 8) 
   {
-    highcolor_fade_out(virtualScreen, _drawPostScreenCallback, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_out(virtualScreen, _drawPostScreenCallback, 0, 0, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {
@@ -754,7 +767,7 @@ void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed,
   }
   if (_mode.ColorDepth > 8)
   {
-    highcolor_fade_in(virtualScreen, _drawPostScreenCallback, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_in(virtualScreen, _drawPostScreenCallback, 0, 0, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {
@@ -771,8 +784,7 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
     int boxwid = speed, boxhit = yspeed;
     Bitmap *bmp_orig = virtualScreen;
     Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), bmp_orig->GetColorDepth());
-    Point orig_off = _virtualScrOff;
-    SetMemoryBackBuffer(bmp_buff, 0, 0);
+    SetMemoryBackBuffer(bmp_buff);
 
     while (boxwid < _srcRect.GetWidth()) {
       boxwid += speed;
@@ -796,7 +808,7 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
       platform->Delay(delay);
     }
     delete bmp_buff;
-    SetMemoryBackBuffer(bmp_orig, orig_off.X, orig_off.Y);
+    SetMemoryBackBuffer(bmp_orig);
   }
   else
   {

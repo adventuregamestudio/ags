@@ -143,7 +143,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
     } else {
         handle = nextHandle++;
         if ((size_t)handle >= objects.size()) {
-           objects.resize(objects.size() * 2, ManagedObject());
+           objects.resize(handle + 1024, ManagedObject());
         }
     }
 
@@ -163,7 +163,7 @@ int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObje
 {
     if (handle < 0) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
     if ((size_t)handle >= objects.size()) {
-        objects.resize(objects.size() * 2, ManagedObject());
+        objects.resize(handle + 1024, ManagedObject());
     }
 
     auto & o = objects[handle];

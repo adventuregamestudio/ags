@@ -78,7 +78,8 @@
 #define OPT_SCRIPTCOMPATLEV 44 // level of API compatibility (ScriptAPIVersion) used to compile game script
 #define OPT_RENDERATSCREENRES 45 // use the legacy D3D scaling that scales sprites at the (final) screen resolution
 #define OPT_RELATIVEASSETRES 46 // relative asset resolution mode (where sprites are resized to match game type)
-#define OPT_HIGHESTOPTION   OPT_RELATIVEASSETRES
+#define OPT_WALKSPEEDABSOLUTE 47 // if movement speeds are independent of walkable mask resolution
+#define OPT_HIGHESTOPTION   OPT_WALKSPEEDABSOLUTE
 #define OPT_NOMODMUSIC      98
 #define OPT_LIPSYNCTEXT     99
 #define PORTRAIT_LEFT       0

@@ -76,7 +76,7 @@
 #define OPT_DIALOGOPTIONSAPI 42 // version of dialog options API (-1 for pre-3.4.0 API)
 #define OPT_BASESCRIPTAPI   43 // version of the Script API (ScriptAPIVersion) used to compile game script
 #define OPT_SCRIPTCOMPATLEV 44 // level of API compatibility (ScriptAPIVersion) used to compile game script
-#define OPT_RENDERATSCREENRES 45 // use the legacy D3D scaling that scales sprites at the (final) screen resolution
+#define OPT_RENDERATSCREENRES 45 // scale sprites at the (final) screen resolution
 #define OPT_RELATIVEASSETRES 46 // relative asset resolution mode (where sprites are resized to match game type)
 #define OPT_HIGHESTOPTION   OPT_RELATIVEASSETRES
 #define OPT_NOMODMUSIC      98

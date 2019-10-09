@@ -26,6 +26,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/system.h"
+#include "ac/view.h"
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
@@ -43,6 +44,7 @@ using namespace AGS::Common;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern RoomStatus*croom;
 extern RoomObject*objs;
+extern ViewStruct*views;
 extern RoomStruct thisroom;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern MoveList *mls;
@@ -85,6 +87,16 @@ void Object_RemoveTint(ScriptObject *objj) {
 }
 
 void Object_SetView(ScriptObject *objj, int view, int loop, int frame) {
+    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
+    { // Previous version of SetView had negative loop and frame mean "use latest values"
+        auto &obj = objs[objj->id];
+        if (loop < 0) loop = obj.loop;
+        if (frame < 0) frame = obj.frame;
+        const int vidx = view - 1;
+        if (vidx < 0 || vidx >= game.numviews) quit("!Object_SetView: invalid view number used");
+        loop = Math::Clamp(loop, 0, (int)views[vidx].numLoops - 1);
+        frame = Math::Clamp(frame, 0, (int)views[vidx].loops[loop].numFrames - 1);
+    }
     SetObjectFrame(objj->id, view, loop, frame);
 }
 

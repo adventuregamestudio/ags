@@ -2180,8 +2180,14 @@ builtin managed struct Object {
   import function RunInteraction(CursorMode);
   /// Instantly moves the object to have its bottom-left at the new co-ordinates.
   import function SetPosition(int x, int y);
+#ifdef SCRIPT_API_v360
+  /// Sets the object to use the specified view, ahead of doing an animation.
+  import function SetView(int view, int loop=0, int frame=0);
+#endif
+#ifndef SCRIPT_API_v360
   /// Sets the object to use the specified view, ahead of doing an animation.
   import function SetView(int view, int loop=-1, int frame=-1);
+#endif
   /// Stops any currently running animation on the object.
   import function StopAnimating();
   /// Stops any currently running move on the object.

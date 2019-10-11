@@ -42,17 +42,17 @@ void ResetConfiguration();
 
 struct AGSAndroid : AGSPlatformDriver
 {
-  virtual void Delay(int millis) override;
-  virtual void DisplayAlert(const char*, ...) override;
-  virtual const char *GetAppOutputDirectory() override;
-  virtual unsigned long GetDiskFreeSpaceMB() override;
-  virtual const char* GetNoMouseErrorString() override;
-  virtual bool IsBackendResponsibleForMouseScaling() override { return true; }
-  virtual eScriptSystemOSID GetSystemOSID() override;
-  virtual void PostAllegroExit() override;
-  virtual void SetGameWindowIcon() override;
-  virtual void WriteStdOut(const char *fmt, ...) override;
-  virtual void WriteStdErr(const char *fmt, ...);
+  void Delay(int millis) override;
+  void DisplayAlert(const char*, ...) override;
+  const char *GetAppOutputDirectory() override;
+  unsigned long GetDiskFreeSpaceMB() override;
+  const char* GetNoMouseErrorString() override;
+  bool IsBackendResponsibleForMouseScaling() override { return true; }
+  eScriptSystemOSID GetSystemOSID() override;
+  void PostAllegroExit() override;
+  void SetGameWindowIcon() override;
+  void WriteStdOut(const char *fmt, ...) override;
+  void WriteStdErr(const char *fmt, ...) override;
 };
 
 

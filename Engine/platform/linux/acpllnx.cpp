@@ -43,23 +43,22 @@ String UserDataDirectory;
 
 struct AGSLinux : AGSPlatformDriver
 {
-  virtual void Delay(int millis) override;
-  virtual void DisplayAlert(const char*, ...) override;
-  virtual const char *GetAllUsersDataDirectory() override;
-  virtual const char *GetUserSavedgamesDirectory() override;
-  virtual const char *GetUserConfigDirectory() override;
-  virtual const char *GetUserGlobalConfigDirectory() override;
-  virtual const char *GetAppOutputDirectory() override;
-  virtual unsigned long GetDiskFreeSpaceMB() override;
-  virtual const char* GetNoMouseErrorString() override;
-  virtual bool IsMouseControlSupported(bool windowed) override;
-  virtual const char* GetAllegroFailUserHint() override;
-  virtual eScriptSystemOSID GetSystemOSID() override;
-  virtual void PlayVideo(const char* name, int skip, int flags) override;
-  virtual void PostAllegroExit() override;
-  virtual void SetGameWindowIcon() override;
-  virtual bool LockMouseToWindow() override;
-  virtual void UnlockMouse() override;
+  void DisplayAlert(const char*, ...) override;
+  const char *GetAllUsersDataDirectory() override;
+  const char *GetUserSavedgamesDirectory() override;
+  const char *GetUserConfigDirectory() override;
+  const char *GetUserGlobalConfigDirectory() override;
+  const char *GetAppOutputDirectory() override;
+  unsigned long GetDiskFreeSpaceMB() override;
+  const char* GetNoMouseErrorString() override;
+  bool IsMouseControlSupported(bool windowed) override;
+  const char* GetAllegroFailUserHint() override;
+  eScriptSystemOSID GetSystemOSID() override;
+  void PostAllegroExit() override;
+  void SetGameWindowIcon() override;
+  bool LockMouseToWindow() override;
+  void UnlockMouse() override;
+  void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms) override;
 };
 
 

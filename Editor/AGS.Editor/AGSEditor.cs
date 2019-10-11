@@ -12,6 +12,7 @@ using AGS.Types;
 using AGS.Types.Interfaces;
 using AGS.Editor.Preferences;
 using AGS.Editor.Utils;
+using System.Net;
 
 namespace AGS.Editor
 {
@@ -257,6 +258,9 @@ namespace AGS.Editor
 
         public void DoEditorInitialization()
         {
+            // disable SSL v3
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+
             try
             {
                 Directory.CreateDirectory(UserTemplatesDirectory);
@@ -275,7 +279,22 @@ namespace AGS.Editor
             _builtInScriptHeader = new Script(BUILT_IN_HEADER_FILE_NAME, Resources.ResourceManager.GetResourceAsString("agsdefns.sh"), true);
             AutoComplete.ConstructCache(_builtInScriptHeader);
 
-            Factory.NativeProxy.NewGameLoaded(Factory.AGSEditor.CurrentGame);
+            List<string> errors = new List<string>();
+            Factory.NativeProxy.NewGameLoaded(Factory.AGSEditor.CurrentGame, errors);
+            ReportGameLoad(errors);
+        }
+
+        public void ReportGameLoad(List<string> errors)
+        {
+            if (errors.Count == 1)
+            {
+                Factory.GUIController.ShowMessage(errors[0], MessageBoxIcon.Warning);
+            }
+            else if (errors.Count > 1)
+            {
+                Factory.GUIController.ShowOutputPanel(errors.ToArray(), "SpriteIcon");
+                Factory.GUIController.ShowMessage("Game was loaded, but there were errors", MessageBoxIcon.Warning);
+            }
         }
 
         public void Dispose()
@@ -765,13 +784,13 @@ namespace AGS.Editor
             Factory.Events.OnGameLoad(doc.DocumentElement);
         }
 
-        public void RefreshEditorAfterGameLoad(Game newGame)
+        public void RefreshEditorAfterGameLoad(Game newGame, List<string> errors)
         {
             _game = newGame;
 
             Factory.Events.OnRefreshAllComponentsFromGame();
             Factory.GUIController.GameNameUpdated();
-            Factory.NativeProxy.NewGameLoaded(Factory.AGSEditor.CurrentGame);
+            Factory.NativeProxy.NewGameLoaded(Factory.AGSEditor.CurrentGame, errors);
 
             RegenerateScriptHeader(null);
             
@@ -1453,7 +1472,16 @@ namespace AGS.Editor
             Settings.RecentGames.Insert(0, recentGame);
             Settings.Save();
 
-            bool result = (bool)BusyDialog.Show("Please wait while your files are saved...", new BusyDialog.ProcessingHandler(SaveGameFilesProcess), null);
+            bool result;
+            try
+            {
+                result = (bool)BusyDialog.Show("Please wait while your files are saved...", new BusyDialog.ProcessingHandler(SaveGameFilesProcess), null);
+            }
+            catch (Exception ex)
+            { // CHECKME: rethrown exception from other thread duplicates original exception as inner one for some reason
+                InteractiveTasks.ReportTaskException("An error occurred whilst trying to save your game.", ex.InnerException);
+                result = false;
+            }
 
 			if (!evArgs.SaveSucceeded)
 			{

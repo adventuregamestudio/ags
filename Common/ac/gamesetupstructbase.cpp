@@ -146,7 +146,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     GameResolutionType resolution_type = (GameResolutionType)in->ReadInt32();
     // CLNUP get rid of resolution_type
     Size game_size;
-    if (resolution_type == kGameResolution_Custom && loaded_game_file_version >= kGameVersion_331)
+    if (resolution_type == kGameResolution_Custom && loaded_game_file_version >= kGameVersion_330)
     {
         game_size.Width = in->ReadInt32();
         game_size.Height = in->ReadInt32();

@@ -30,10 +30,15 @@
 #include "ac/timer.h"
 
 // Forward declaration
-namespace AGS { namespace Common {
-    class Bitmap; class Stream;
-    typedef std::shared_ptr<Bitmap> PBitmap;
-} }
+namespace AGS
+{
+    namespace Common
+    {
+        class Bitmap; class Stream;
+        typedef std::shared_ptr<Bitmap> PBitmap;
+    }
+    namespace Engine { struct RestoredData; }
+}
 using namespace AGS; // FIXME later
 struct ScriptViewport;
 struct ScriptCamera;
@@ -288,6 +293,8 @@ struct GameState {
     // which means that they would fail if coordinates lie outside.
     VpPoint ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport);
 
+    // Makes sure primary viewport and camera are created and linked together
+    void CreatePrimaryViewportAndCamera();
     // Creates new room viewport
     PViewport CreateRoomViewport();
     // Register camera in the managed system; optionally links to existing handle
@@ -327,7 +334,7 @@ struct GameState {
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
     void ReadCustomProperties_v340(Common::Stream *in);
     void WriteCustomProperties_v340(Common::Stream *out) const;
-    void ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver);
+    void ReadFromSavegame(Common::Stream *in,  GameStateSvgVersion svg_ver, AGS::Engine::RestoredData &r_data);
     void WriteForSavegame(Common::Stream *out) const;
     void FreeProperties();
     void FreeViewportsAndCameras();

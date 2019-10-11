@@ -40,7 +40,7 @@ int LoadImageFile(const char *filename)
     if (!loadedFile)
         return 0;
 
-    int gotSlot = spriteset.AddNewSprite();
+    int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return 0;
 

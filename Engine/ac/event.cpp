@@ -46,6 +46,7 @@ extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color old_palette[256];
+extern volatile int timerloop;
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
@@ -113,9 +114,9 @@ void run_room_event(int id) {
 
 void run_event_block_inv(int invNum, int event) {
     evblockbasename="inventory%d";
-    if (game.invScripts != nullptr)
+    if (loaded_game_file_version > kGameVersion_272)
     {
-        run_interaction_script(game.invScripts[invNum], event);
+        run_interaction_script(game.invScripts[invNum].get(), event);
     }
 }
 
@@ -226,9 +227,9 @@ void process_event(EventHappened*evp) {
             theTransition = FADE_NORMAL;
         }
 
-		const Rect &viewport = play.GetMainViewport();
+	    const Rect &viewport = play.GetMainViewport();
         // CLNUP: this is remains of legacy code refactoring, cleanup later
-        const Size &native_size = viewport.GetSize();
+        const Size &data_res = viewport.GetSize();
 
         if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
             set_palette_range(palette, 0, 255, 0);
@@ -259,20 +260,23 @@ void process_event(EventHappened*evp) {
                 render_to_screen();
 
                 int boxwid = 16;
-                int boxhit = native_size.Height / 20;
+                int boxhit = data_res.Height / 20;
                 while (boxwid < temp_scr->GetWidth()) {
+                    timerloop = 0;
                     boxwid += 16;
-                    boxhit += native_size.Height / 20;
+                    boxhit += data_res.Height / 20;
                     boxwid = Math::Clamp(boxwid, 0, viewport.GetWidth());
                     boxhit = Math::Clamp(boxhit, 0, viewport.GetHeight());
                     int lxp = viewport.GetWidth() / 2 - boxwid / 2;
                     int lyp = viewport.GetHeight() / 2 - boxhit / 2;
-                    temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp, 
+                    gfxDriver->Vsync();
+                    temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
                     render_to_screen(viewport.Left, viewport.Top);
-                    do {
-                        update_polled_stuff_if_runtime();
-                    } while (waitingForNextTick());
+
+                    update_polled_mp3();
+
+                    WaitForNextFrame();
                 }
                 gfxDriver->SetMemoryBackBuffer(saved_backbuf, viewport.Left, viewport.Top);
             }
@@ -288,6 +292,7 @@ void process_event(EventHappened*evp) {
             int transparency = 254;
 
             while (transparency > 0) {
+                timerloop=0;
                 // do the crossfade
                 ddb->SetTransparency(transparency);
                 invalidate_screen();
@@ -299,10 +304,12 @@ void process_event(EventHappened*evp) {
                     // draw the old screen on top
                     gfxDriver->DrawSprite(0, 0, ddb);
                 }
-                render_to_screen();
-                do {
-                    update_polled_stuff_if_runtime();
-                } while (waitingForNextTick());
+				render_to_screen();
+
+                update_polled_stuff_if_runtime();
+
+                WaitForNextFrame();
+
                 transparency -= 16;
             }
             saved_viewport_bitmap->Release();
@@ -320,6 +327,7 @@ void process_event(EventHappened*evp) {
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
 
             for (aa=0;aa<16;aa++) {
+                timerloop=0;
                 // merge the palette while dithering
                 if (game.color_depth == 1) 
                 {
@@ -337,10 +345,11 @@ void process_event(EventHappened*evp) {
                 invalidate_screen();
                 draw_screen_callback();
                 gfxDriver->DrawSprite(0, 0, ddb);
-                render_to_screen();
-                do {
-                    update_polled_stuff_if_runtime();
-                } while (waitingForNextTick());
+				render_to_screen();
+
+                update_polled_stuff_if_runtime();
+
+                WaitForNextFrame();
             }
             saved_viewport_bitmap->Release();
 

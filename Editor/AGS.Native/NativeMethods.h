@@ -25,7 +25,7 @@ namespace AGS
 			NativeMethods(String ^version);
 
 			void Initialize();
-			void NewGameLoaded(Game^ game);
+			void NewGameLoaded(Game^ game, List<String^> ^errors);
 			void SaveGame(Game^ game);
 			void GameSettingsChanged(Game^ game);
 			void PaletteColoursUpdated(Game ^game);

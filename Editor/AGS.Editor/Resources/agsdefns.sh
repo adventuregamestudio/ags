@@ -398,6 +398,20 @@ enum CharacterDirection {
   eDirectionNone = SCR_NO_VALUE
 };
 
+#ifdef SCRIPT_API_v350
+enum StringCompareStyle
+{
+  eCaseInsensitive = 0,
+  eCaseSensitive = 1
+};
+
+enum SortStyle
+{
+  eNonSorted = 0,
+  eSorted = 1
+};
+#endif
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -408,22 +422,22 @@ internalstring autoptr builtin managed struct String {
   /// Returns a new string that has the extra character appended.
   import String  AppendChar(char extraChar);
   /// Compares this string to the other string.
-  import int     CompareTo(const string otherString, bool caseSensitive = false);
+  import int     CompareTo(const string otherString, StringCompareStyle style = eCaseInsensitive);
   import int     Contains(const string needle);   // $AUTOCOMPLETEIGNORE$
   /// Creates a copy of the string.
   import String  Copy();
   /// Checks whether this string ends with the specified text.
-  import bool    EndsWith(const string endsWithText, bool caseSensitive = false);
+  import bool    EndsWith(const string endsWithText, StringCompareStyle style = eCaseInsensitive);
   /// Returns the index of the first occurrence of the needle in this string.
   import int     IndexOf(const string needle);
   /// Returns a lower-cased version of this string.
   import String  LowerCase();
   /// Returns a copy of this string with all occurrences of LookForText replaced with ReplaceWithText
-  import String  Replace(const string lookForText, const string replaceWithText, bool caseSensitive = false);
+  import String  Replace(const string lookForText, const string replaceWithText, StringCompareStyle style = eCaseInsensitive);
   /// Returns a new string, with the specified character changed.
   import String  ReplaceCharAt(int index, char newChar);
   /// Checks whether this string starts with the specified text.
-  import bool    StartsWith(const string startsWithText, bool caseSensitive = false);
+  import bool    StartsWith(const string startsWithText, StringCompareStyle style = eCaseInsensitive);
   /// Returns a portion of the string.
   import String  Substring(int index, int length);
   /// Truncates the string down to the specified length by removing characters from the end.
@@ -444,7 +458,7 @@ internalstring autoptr builtin managed struct String {
 builtin managed struct Dictionary
 {
   /// Creates a new empty Dictionary of the given properties.
-  import static Dictionary* Create(bool sorted = false, bool caseSensitive = false); // $AUTOCOMPLETESTATICONLY$
+  import static Dictionary* Create(SortStyle sortStyle = eNonSorted, StringCompareStyle compareStyle = eCaseInsensitive); // $AUTOCOMPLETESTATICONLY$
 
   /// Removes all items from the dictionary.
   import void Clear();
@@ -458,9 +472,9 @@ builtin managed struct Dictionary
   import bool Set(String key, String value);
 
   /// Gets if this dictionary is case-sensitive.
-  import readonly attribute bool CaseSensitive;
-  /// Gets if this dictionary is sorted by keys in alphabetical order.
-  import readonly attribute bool Sorted;
+  import readonly attribute StringCompareStyle CompareStyle;
+  /// Gets the method items are arranged in this dictionary.
+  import readonly attribute SortStyle SortStyle;
   /// Gets the number of key/value pairs currently in the dictionary.
   import readonly attribute int ItemCount;
   /// Creates a dynamic array filled with keys in same order as they are stored in the Dictionary.
@@ -472,7 +486,7 @@ builtin managed struct Dictionary
 builtin managed struct Set
 {
   /// Creates a new empty Set of the given properties.
-  import static Set* Create(bool sorted = false, bool caseSensitive = false); // $AUTOCOMPLETESTATICONLY$
+  import static Set* Create(SortStyle sortStyle = eNonSorted, StringCompareStyle compareStyle = eCaseInsensitive); // $AUTOCOMPLETESTATICONLY$
 
   /// Adds item to the set, fails if such item was already existing.
   import bool Add(String item);
@@ -484,9 +498,9 @@ builtin managed struct Set
   import bool Remove(String item);
 
   /// Gets if this set is case-sensitive.
-  import readonly attribute bool CaseSensitive;
-  /// Gets if this set is sorted in alphabetical order.
-  import readonly attribute bool Sorted;
+  import readonly attribute StringCompareStyle CompareStyle;
+  /// Gets the method items are arranged in this set.
+  import readonly attribute SortStyle SortStyle;
   /// Gets the number of items currently in the set.
   import readonly attribute int ItemCount;
   /// Creates a dynamic array filled with items in same order as they are stored in the Set.

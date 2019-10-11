@@ -31,6 +31,11 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+// We don't have many places where we delay longer than a frame, but where we
+// do, we should give the audio layer a chance to update.
+// 16 milliseconds is rough period for 60fps
+const auto MaximumDelayBetweenPolling = std::chrono::milliseconds(16);
+
 AGSPlatformDriver* AGSPlatformDriver::instance = nullptr;
 AGSPlatformDriver *platform = nullptr;
 
@@ -86,7 +91,10 @@ void AGSPlatformDriver::WriteStdOut(const char *fmt, ...) {
 }
 
 void AGSPlatformDriver::YieldCPU() {
-    std::this_thread::yield();
+    // NOTE: this is called yield, but if we actually yield instead of delay,
+    // we get a massive increase in CPU usage.
+    this->Delay(1);
+    //std::this_thread::yield();
 }
 
 void AGSPlatformDriver::InitialiseAbufAtStartup()
@@ -132,21 +140,21 @@ void AGSPlatformDriver::PrintMessage(const Common::DebugMessage &msg)
 
 
 void AGSPlatformDriver::Delay(int millis) {
-  auto delayUntil = AGS_Clock::now() + std::chrono::milliseconds(millis);
+  auto now = AGS_Clock::now();
+  auto delayUntil = now + std::chrono::milliseconds(millis);
 
   for (;;) {
-    if (AGS_Clock::now() >= delayUntil) { break; }
+    if (now >= delayUntil) { break; }
 
-    auto duration = delayUntil - AGS_Clock::now();
-    if (duration > std::chrono::milliseconds(25)) {
-      duration = std::chrono::milliseconds(25);
-    }
+    auto duration = std::min<std::chrono::nanoseconds>(delayUntil - now, MaximumDelayBetweenPolling);
     std::this_thread::sleep_for(duration);
+    now = AGS_Clock::now(); // update now
 
-    if (AGS_Clock::now() >= delayUntil) { break; }
+    if (now >= delayUntil) { break; }
 
     // don't allow it to check for debug messages, since this Delay()
     // call might be from within a debugger polling loop
     update_polled_mp3();
+    now = AGS_Clock::now(); // update now
   }
 }

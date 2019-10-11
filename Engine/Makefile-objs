@@ -59,7 +59,7 @@ PLUGINS = ../Plugins/AGSflashlight/agsflashlight.cpp ../Plugins/agsblend/AGSBlen
 
 HQ2X3X = libsrc/hq2x/hq2x3x.cpp
 
-ALFONT = libsrc/alfont-2.0.9/alfont.c
+ALFONT = ../Common/libsrc/alfont-2.0.9/alfont.c
 
 ALMP3 = libsrc/almp3/almp3.c libsrc/almp3-2.0.5/decoder/common.c libsrc/almp3-2.0.5/decoder/dct64_i386.c libsrc/almp3-2.0.5/decoder/decode_i386.c libsrc/almp3-2.0.5/decoder/interface.c libsrc/almp3-2.0.5/decoder/layer2.c libsrc/almp3-2.0.5/decoder/layer3.c libsrc/almp3-2.0.5/decoder/tabinit.c
 

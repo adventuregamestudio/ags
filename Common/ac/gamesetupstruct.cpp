@@ -23,8 +23,6 @@ using namespace AGS::Common;
 
 GameSetupStruct::GameSetupStruct()
     : filever(0)
-    , charScripts(nullptr)
-    , invScripts(nullptr)
     , roomCount(0)
     , roomNumbers(nullptr)
     , roomNames(nullptr)
@@ -47,22 +45,9 @@ void GameSetupStruct::Free()
 {
     GameSetupStructBase::Free();
 
-    if (charScripts)
-    {
-        for (int i = 0; i < numcharacters; ++i)
-            delete charScripts[i];
-        delete[] charScripts;
-        charScripts = nullptr;
-    }
+    charScripts.clear();
     numcharacters = 0;
-
-    if (invScripts)
-    {
-        for (int i = 1; i < numinvitems; i++)
-            delete invScripts[i];
-        delete invScripts;
-        invScripts = nullptr;
-    }
+    invScripts.clear();
     numinvitems = 0;
 
     for (int i = 0; i < roomCount; i++)
@@ -186,16 +171,13 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
 {
     numGlobalVars = 0;
 
-    int bb;
-
-    charScripts = new InteractionScripts*[numcharacters];
-    invScripts = new InteractionScripts*[numinvitems];
-    for (bb = 0; bb < numcharacters; bb++) {
-        charScripts[bb] = InteractionScripts::CreateFromStream(in);
-    }
-    for (bb = 1; bb < numinvitems; bb++) {
-        invScripts[bb] = InteractionScripts::CreateFromStream(in);
-    }
+        charScripts.resize(numcharacters);
+        invScripts.resize(numinvitems);
+        for (size_t i = 0; i < (size_t)numcharacters; ++i)
+            charScripts[i].reset(InteractionScripts::CreateFromStream(in));
+        // NOTE: new inventory items' events are loaded starting from 1 for some reason
+        for (size_t i = 1; i < (size_t)numinvitems; ++i)
+            invScripts[i].reset(InteractionScripts::CreateFromStream(in));
 
 }
 

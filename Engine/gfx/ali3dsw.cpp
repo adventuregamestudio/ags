@@ -629,6 +629,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
 
    for (a = 0; a < 256; a+=speed)
    {
+       int timerValue = *_loopTimer;
        bmp_buff->Fill(clearColor);
        set_trans_blender(0,0,0,a);
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
@@ -638,8 +639,9 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
        {
          if (_pollingCallback)
            _pollingCallback();
+         platform->Delay(1);
        }
-       while (waitingForNextTick());
+       while (timerValue == *_loopTimer);
    }
    delete bmp_buff;
 
@@ -666,6 +668,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
 			
             for (a = 255-speed; a > 0; a-=speed)
             {
+                int timerValue = *_loopTimer;
                 bmp_buff->Fill(clearColor);
                 set_trans_blender(0,0,0,a);
                 bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
@@ -675,8 +678,9 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
                 {
                   if (_pollingCallback)
                     _pollingCallback();
+                  platform->Delay(1);
                 }
-                while (waitingForNextTick());
+                while (timerValue == *_loopTimer);
             }
             delete bmp_buff;
         }

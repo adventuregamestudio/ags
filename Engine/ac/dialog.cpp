@@ -60,6 +60,7 @@ extern ccInstance *dialogScriptsInst;
 extern int in_new_room;
 extern CharacterInfo*playerchar;
 extern SpriteCache spriteset;
+extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
 extern IGraphicsDriver *gfxDriver;
@@ -740,6 +741,7 @@ bool DialogOptions::Run()
       }
       else
       {
+        timerloop = 0;
         update_audio_system_on_game_loop();
         render_graphics(ddb, dirtyx, dirtyy);
       }
@@ -924,7 +926,13 @@ bool DialogOptions::Run()
             return true; // continue running loop
         }
       }
-      PollUntilNextFrame();
+
+      update_polled_stuff_if_runtime();
+
+      if (play.fast_forward == 0)
+      {
+          WaitForNextFrame();
+      }
       return true; // continue running loop
 }
 

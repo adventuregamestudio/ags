@@ -17,8 +17,8 @@
 
 #include <memory>
 #include <vector>
-
 #include "ac/common_defines.h"
+#include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
 
 
@@ -26,6 +26,8 @@ namespace AGS
 {
 namespace Engine
 {
+
+using AGS::Common::Bitmap;
 
 typedef std::shared_ptr<Bitmap> PBitmap;
 
@@ -43,6 +45,21 @@ struct PreservedParams
     std::vector<int> ScMdDataSize;
 
     PreservedParams();
+};
+
+enum GameViewCamFlags
+{
+    kSvgGameAutoRoomView = 0x01
+};
+
+enum CameraSaveFlags
+{
+    kSvgCamPosLocked = 0x01
+};
+
+enum ViewportSaveFlags
+{
+    kSvgViewportVisible = 0x01
 };
 
 // RestoredData keeps certain temporary data to help with
@@ -88,16 +105,31 @@ struct RestoredData
     ChannelInfo             AudioChans[MAX_SOUND_CHANNELS + 1];
     // Ambient sounds
     int                     DoAmbient[MAX_SOUND_CHANNELS];
-    // TODO: this is ugly, but we have to keep this data and apply only after
-    // room gets loaded, otherwise it will override restored settings.
-    // Same may refer to few other settings above.
-    // This could be fixed if we split load_new_room() into 2 functions that
-    // load room data with or without applying additional changes. Since code
-    // is pretty complex there this has to be done with careful research.
-    std::vector<Viewport>   Viewports;
-    std::vector<Camera>     Cameras;
-    // Viewport -> camera links
-    std::vector<int>        ViewCamLinks;
+    // Viewport and camera data, has to be preserved and applied only after
+    // room gets loaded, because we must clamp these to room parameters.
+    struct ViewportData
+    {
+        int ID = -1;
+        int Flags = 0;
+        int Left = 0;
+        int Top = 0;
+        int Width = 0;
+        int Height = 0;
+        int ZOrder = 0;
+        int CamID = -1;
+    };
+    struct CameraData
+    {
+        int ID = -1;
+        int Flags = 0;
+        int Left = 0;
+        int Top = 0;
+        int Width = 0;
+        int Height = 0;
+    };
+    std::vector<ViewportData> Viewports;
+    std::vector<CameraData> Cameras;
+    int32_t Camera0_Flags = 0; // flags for primary camera, when data is read in legacy order
 
     RestoredData();
 };

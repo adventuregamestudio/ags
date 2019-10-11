@@ -461,7 +461,7 @@ void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
     // NOTE: This is an old function that did not account for custom/multiple viewports
     // and does not expect to fail, therefore we always use primary viewport here.
     // (Not sure if it's good though)
-    VpPoint vpt = play.ScreenToRoom(x ? *x : 0, y ? *y : 0, 0, false);
+    VpPoint vpt = play.ScreenToRoom(x ? *x : 0, y ? *y : 0);
     if (x)
         *x = vpt.first.X;
     if (y)
@@ -643,7 +643,7 @@ int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
     // TODO: why is this implemented right here, should not an existing
     // script handling implementation be called instead?
 
-    int gotSlot = spriteset.AddNewSprite();
+    int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return 0;
 

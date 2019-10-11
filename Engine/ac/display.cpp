@@ -56,6 +56,7 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern AGSPlatformDriver *platform;
 extern int loops_per_character;
 extern SpriteCache spriteset;
+extern volatile int timerloop;
 
 int display_message_aschar=0;
 
@@ -264,6 +265,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
         while (1) {
+            timerloop = 0;
             /*      if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_UPDATE);
             write_screen();*/
@@ -286,7 +288,14 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 if (skip_setting & SKIP_KEYPRESS)
                     break;
             }
-            PollUntilNextFrame();
+
+            update_polled_stuff_if_runtime();
+
+            if (play.fast_forward == 0)
+            {
+                WaitForNextFrame();
+            }
+
             countdown--;
 
             if (play.speech_has_voice) {

@@ -24,12 +24,14 @@
 #include "device/mousew32.h"
 #include "game/customproperties.h"
 #include "game/roomstruct.h"
+#include "game/savegame_internal.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
@@ -227,7 +229,6 @@ int GameState::RoomToScreenY(int roomy)
 
 VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport)
 {
-    clip_viewport &= game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507;
     Point screen_pt(scrx, scry);
     PViewport view;
     if (view_index < 0)
@@ -243,8 +244,11 @@ VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool cli
             return std::make_pair(Point(), -1);
     }
     
-    Point p = view->GetTransform().UnScale(screen_pt);
     auto cam = view->GetCamera();
+    if (!cam)
+        return std::make_pair(Point(), -1);
+
+    Point p = view->GetTransform().UnScale(screen_pt);
     p.X += cam->GetRect().Left;
     p.Y += cam->GetRect().Top;
     return std::make_pair(p, 0);
@@ -252,7 +256,9 @@ VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool cli
 
 VpPoint GameState::ScreenToRoom(int scrx, int scry)
 {
-    return ScreenToRoomImpl(scrx, scry, -1, true);
+    if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
+        return ScreenToRoomImpl(scrx, scry, -1, true);
+    return ScreenToRoomImpl(scrx, scry, 0, false);
 }
 
 VpPoint GameState::ScreenToRoom(int scrx, int scry, int view_index, bool clip_viewport)
@@ -260,6 +266,22 @@ VpPoint GameState::ScreenToRoom(int scrx, int scry, int view_index, bool clip_vi
     if ((size_t)view_index >= _roomViewports.size())
         return VpPoint(Point(), -1);
     return ScreenToRoomImpl(scrx, scry, view_index, clip_viewport);
+}
+
+void GameState::CreatePrimaryViewportAndCamera()
+{
+    if (_roomViewports.size() == 0)
+    {
+        play.CreateRoomViewport();
+        play.RegisterRoomViewport(0);
+    }
+    if (_roomCameras.size() == 0)
+    {
+        play.CreateRoomCamera();
+        play.RegisterRoomCamera(0);
+    }
+    _roomViewports[0]->LinkCamera(_roomCameras[0]);
+    _roomCameras[0]->LinkToViewport(_roomViewports[0]);
 }
 
 PViewport GameState::CreateRoomViewport()
@@ -407,7 +429,7 @@ bool GameState::ShouldPlayVoiceSpeech() const
         (play.want_speech >= 1) && (!ResPaths.SpeechPak.Name.IsEmpty());
 }
 
-void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver)
+void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
     const bool old_save = svg_ver < kGSSvgVersion_Initial;
     score = in->ReadInt32();
@@ -531,9 +553,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     {
         short offsets_locked = in->ReadInt16();
         if (offsets_locked != 0)
-            _roomCameras[0]->Lock();
-        else
-            _roomCameras[0]->Release();
+            r_data.Camera0_Flags = kSvgCamPosLocked;
     }
     entered_at_x = in->ReadInt32();
     entered_at_y = in->ReadInt32();
@@ -837,10 +857,10 @@ void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)
 
 void GameState::FreeProperties()
 {
-    for (int i = 0; i < game.numcharacters; ++i)
-        charProps[i].clear();
-    for (int i = 0; i < game.numinvitems; ++i)
-        invProps[i].clear();
+    for (auto p : charProps)
+        p.clear();
+    for (auto p : invProps)
+        p.clear();
 }
 
 void GameState::FreeViewportsAndCameras()

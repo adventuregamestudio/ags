@@ -3,7 +3,7 @@ USE_MIDI_PATCH = 1
 
 include Makefile-defs.freetype
 
-INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins ../Engine/libsrc/glad/include
+INCDIR = ../Engine ../Common ../Common/libinclude ../Common/libsrc/alfont-2.0.9 ../Plugins ../Engine/libsrc/glad/include
 LIBDIR =
 
 CFLAGS := -O2 -g \

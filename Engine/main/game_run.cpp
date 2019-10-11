@@ -85,6 +85,7 @@ extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 extern int cur_mode,cur_cursor;
+extern volatile int timerloop;
 
 // Checks if user interface should remain disabled for now
 static int ShouldStayInWaitMode();
@@ -717,15 +718,6 @@ void set_loop_counter(unsigned int new_counter) {
     fps = std::numeric_limits<float>::quiet_NaN();
 }
 
-void PollUntilNextFrame()
-{
-    if (play.fast_forward) { return; }
-    while (waitingForNextTick()) {
-        // make sure we poll, cos a low framerate (eg 5 fps) could stutter mp3 music
-        update_polled_stuff_if_runtime();
-    }
-}
-
 void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
 
     int res;
@@ -740,6 +732,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     ccNotifyScriptStillAlive ();
     our_eip=1;
+    timerloop=0;
 
     game_loop_check_problems_at_start();
 
@@ -801,7 +794,9 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_update_fps();
 
-    PollUntilNextFrame();
+    update_polled_stuff_if_runtime();
+
+    WaitForNextFrame();
 }
 
 static void UpdateMouseOverLocation()

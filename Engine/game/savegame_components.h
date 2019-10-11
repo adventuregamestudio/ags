@@ -38,6 +38,9 @@ namespace SavegameComponents
     HSaveError    ReadAll(PStream in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
     // Writes a full list of common components to the stream
     HSaveError    WriteAllCommon(PStream out);
+
+    // Precreates primary camera and viewport and reads legacy camera data
+    void ReadLegacyCameraState(Stream *in, RestoredData &r_data);
 }
 
 } // namespace Engine

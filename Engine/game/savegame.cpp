@@ -424,27 +424,36 @@ void DoBeforeRestore(PreservedParams &pp)
     clear_music_cache();
 }
 
-void RestoreViewportCameraLinks(const RestoredData &r_data)
+void RestoreViewportsAndCameras(const RestoredData &r_data)
 {
-    for (size_t i = 0; i < r_data.ViewCamLinks.size(); ++i)
+    for (size_t i = 0; i < r_data.Cameras.size(); ++i)
     {
-        int cam_index = r_data.ViewCamLinks[i];
-        if (cam_index < 0) continue;
+        const auto &cam_dat = r_data.Cameras[i];
+        auto cam = play.GetRoomCamera(i);
+        cam->SetID(cam_dat.ID);
+        if ((cam_dat.Flags & kSvgCamPosLocked) != 0)
+            cam->Lock();
+        else
+            cam->Release();
+        cam->SetAt(cam_dat.Left, cam_dat.Top);
+        cam->SetSize(Size(cam_dat.Width, cam_dat.Height));
+    }
+    for (size_t i = 0; i < r_data.Viewports.size(); ++i)
+    {
+        const auto &view_dat = r_data.Viewports[i];
         auto view = play.GetRoomViewportObj(i);
+        view->SetID(view_dat.ID);
+        view->SetVisible((view_dat.Flags & kSvgViewportVisible) != 0);
+        view->SetRect(RectWH(view_dat.Left, view_dat.Top, view_dat.Width, view_dat.Height));
+        view->SetZOrder(view_dat.ZOrder);
+        // Restore camera link
+        int cam_index = view_dat.CamID;
+        if (cam_index < 0) continue;
         auto cam = play.GetRoomCamera(cam_index);
         view->LinkCamera(cam);
         cam->LinkToViewport(view);
     }
     play.InvalidateViewportZOrder();
-}
-
-void RestoreViewportsAndCameras(const RestoredData &r_data)
-{
-    for (size_t i = 0; i < r_data.Cameras.size(); ++i)
-        *play.GetRoomCamera(i) = r_data.Cameras[i];
-    for (size_t i = 0; i < r_data.Viewports.size(); ++i)
-        *play.GetRoomViewportObj(i) = r_data.Viewports[i];
-    RestoreViewportCameraLinks(r_data);
 }
 
 // Final processing after successfully restoring from save

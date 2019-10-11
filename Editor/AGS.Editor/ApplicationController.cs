@@ -177,7 +177,7 @@ namespace AGS.Editor
         {
             try
             {
-                Bitmap screenShot = CaptureScreenshot();
+                Bitmap screenShot = null; // disable CaptureScreenshot();
                 ExceptionDialog dialog = new ExceptionDialog(ex, screenShot);
                 dialog.ShowDialog();
                 dialog.Dispose();

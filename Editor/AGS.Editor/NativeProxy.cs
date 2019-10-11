@@ -57,9 +57,9 @@ namespace AGS.Editor
             _native.Initialize();
         }
 
-        public void NewGameLoaded(Game game)
+        public void NewGameLoaded(Game game, List<string> errors)
         {
-            _native.NewGameLoaded(game);
+            _native.NewGameLoaded(game, errors);
         }
 
         public void GameSettingsChanged(Game game)

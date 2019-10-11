@@ -67,6 +67,7 @@
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "game/savegame.h"
+#include "game/savegame_components.h"
 #include "game/savegame_internal.h"
 #include "gui/animatingguibutton.h"
 #include "gfx/bitmap.h"
@@ -93,6 +94,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+extern int time_between_timers;
 extern int cur_mode,cur_cursor;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
@@ -326,7 +328,9 @@ void set_debug_mode(bool on)
 
 void set_game_speed(int new_fps) {
     frames_per_second = new_fps;
-    setTimerFps(new_fps);
+    time_between_timers = 1000 / new_fps;
+
+    install_int_ex(dj_timer_handler,MSEC_TO_TIMER(time_between_timers));
 }
 
 extern int cbuttfont;
@@ -1134,19 +1138,12 @@ void save_game(int slotn, const char*descript) {
         delete screenShot;
 }
 
-char rbuffer[200];
-
 HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
 {
     r_data.FPS = in->ReadInt32();
     r_data.CursorMode = in->ReadInt32();
     r_data.CursorID = in->ReadInt32();
-    int camx = in->ReadInt32();
-    int camy = in->ReadInt32();
-    // Recreate primary viewport and camera
-    play.CreateRoomCamera();
-    play.CreateRoomViewport();
-    play.GetRoomCamera(0)->SetAt(camx, camy);
+    SavegameComponents::ReadLegacyCameraState(in, r_data);
     set_loop_counter(in->ReadInt32());
     return HSaveError::None();
 }
@@ -1155,7 +1152,7 @@ void restore_game_spriteset(Stream *in)
 {
     // ensure the sprite set is at least as large as it was
     // when the game was saved
-    spriteset.EnlargeTo(in->ReadInt32());
+    spriteset.EnlargeTo(in->ReadInt32() - 1); // they saved top_index + 1
     // get serialized dynamic sprites
     int sprnum = in->ReadInt32();
     while (sprnum) {
@@ -1233,14 +1230,15 @@ void restore_game_room_state(Stream *in)
     }
 }
 
-void ReadGameState_Aligned(Stream *in)
+void ReadGameState_Aligned(Stream *in, RestoredData &r_data)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    play.ReadFromSavegame(&align_s, kGSSvgVersion_OldFormat);
+    play.ReadFromSavegame(&align_s, kGSSvgVersion_OldFormat, r_data);
 }
 
 void restore_game_play_ex_data(Stream *in)
 {
+    char rbuffer[200];
     for (size_t i = 0; i < play.do_once_tokens.size(); ++i)
     {
         StrUtil::ReadCStr(rbuffer, in, sizeof(rbuffer));
@@ -1250,14 +1248,15 @@ void restore_game_play_ex_data(Stream *in)
     in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
-void restore_game_play(Stream *in)
+void restore_game_play(Stream *in, RestoredData &r_data)
 {
     int screenfadedout_was = play.screen_is_faded_out;
     int roomchanges_was = play.room_changes;
     // make sure the pointer is preserved
     int *gui_draw_order_was = play.gui_draw_order;
 
-    ReadGameState_Aligned(in);
+    ReadGameState_Aligned(in, r_data);
+    r_data.Cameras[0].Flags = r_data.Camera0_Flags;
 
     play.screen_is_faded_out = screenfadedout_was;
     play.room_changes = roomchanges_was;
@@ -1535,7 +1534,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     if (!err)
         return err;
     restore_game_room_state(in);
-    restore_game_play(in);
+    restore_game_play(in, r_data);
     ReadMoveList_Aligned(in);
 
     // save pointer members before reading
@@ -1664,7 +1663,7 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
 
     if (desc.UserImage.get())
     {
-        int slot = spriteset.AddNewSprite();
+        int slot = spriteset.GetFreeIndex();
         if (slot > 0)
         {
             // add it into the sprite set

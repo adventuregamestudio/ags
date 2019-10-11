@@ -18,6 +18,12 @@
 #ifndef __AGS_EE_AC__TIMER_H
 #define __AGS_EE_AC__TIMER_H
 
+#if defined(WINDOWS_VERSION)
+void __cdecl dj_timer_handler();
+#else
+extern "C" void dj_timer_handler();
+#endif
+
 #include <type_traits>
 #include <chrono>
 
@@ -27,6 +33,8 @@ using AGS_Clock = std::conditional<
         std::chrono::high_resolution_clock::is_steady,
         std::chrono::high_resolution_clock, std::chrono::steady_clock
       >::type;
+
+extern void WaitForNextFrame();
 
 extern void setTimerFps(int new_fps);
 extern bool waitingForNextTick();  // store last tick time.

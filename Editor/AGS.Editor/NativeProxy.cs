@@ -272,11 +272,6 @@ namespace AGS.Editor
             return _native.GetBitmapForBackground(room, backgroundNumber);
         }
 
-        public void AdjustRoomResolution(Room room)
-        {
-            _native.AdjustRoomResolution(room);
-        }
-
         public void AdjustRoomMaskResolution(Room room)
         {
             _native.AdjustRoomMaskResolution(room);

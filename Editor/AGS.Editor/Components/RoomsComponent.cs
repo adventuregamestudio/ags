@@ -800,7 +800,6 @@ namespace AGS.Editor.Components
             _loadedRoom.Modified = ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
             _loadedRoom.Modified |= AddPlayMusicCommandToPlayerEntersRoomScript(_loadedRoom, errors);
-            _loadedRoom.Modified |= AdjustRoomResolution(_loadedRoom);
             _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
 			if (_loadedRoom.Script.Modified)
 			{
@@ -854,25 +853,6 @@ namespace AGS.Editor.Components
             }
 
             return scriptModified;
-        }
-
-        private bool AdjustRoomResolution(Room room)
-        {
-            if (room.Resolution != RoomResolution.Real)
-            {
-                // NOTE: following was the legacy logic:
-                // * room scaling was only done for room saved BEFORE format v29 (kRoomVersion_303b).
-                //   this was probably format when the scaling rules changed. After that AGS stopped
-                //   supporting lowres rooms in hires games (until 3.5.0, but this is different).
-                // * if room is "low-res" but game is "high-res" (e.g. 320x200 room in 640x400 game),
-                //   then room should be displayed x2 upscaled (both background and objects);
-                // * opposite was ignored, because 640x400 room in 320x200 game would make a
-                //   scrolling room instead.
-                _nativeProxy.AdjustRoomResolution(room);
-                room.Resolution = RoomResolution.Real;
-                return true;
-            }
-            return false;
         }
 
         private bool ApplyDefaultMaskResolution(Room room)

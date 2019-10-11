@@ -2676,12 +2676,6 @@ System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber)
   return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
 }
 
-void AdjustRoomResolution(Room ^room)
-{
-    RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
-    AGS::Common::UpscaleRoomBackground(roomptr, thisgame.IsLegacyHiRes());
-}
-
 void FixRoomMasks(Room ^room)
 {
     RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;

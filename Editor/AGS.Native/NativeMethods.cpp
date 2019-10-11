@@ -76,7 +76,6 @@ extern void DrawSpriteToBuffer(int sprNum, int x, int y, float scale);
 extern void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color);
-extern void AdjustRoomResolution(Room ^room);
 extern void FixRoomMasks(Room ^room);
 extern void copy_walkable_to_regions(void *roomptr);
 extern int get_mask_pixel(void *roomptr, int maskType, int x, int y);
@@ -471,11 +470,6 @@ namespace AGS
 		{
 			return getBackgroundAsBitmap(room, backgroundNumber);
 		}
-
-        void NativeMethods::AdjustRoomResolution(Room ^room)
-        {
-            ::AdjustRoomResolution(room);
-        }
 
         void NativeMethods::AdjustRoomMaskResolution(Room ^room)
         {

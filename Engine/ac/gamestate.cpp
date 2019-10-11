@@ -60,23 +60,13 @@ void GameState::SetAutoRoomViewport(bool on)
     _isAutoRoomViewport = on;
 }
 
-Rect FixupViewport(const Rect &viewport, const Rect & /* parent */)
-{
-    Size real_size = viewport.GetSize().IsNull() ? Size(1, 1) : viewport.GetSize();
-    return RectWH(viewport.Left, viewport.Top, real_size.Width, real_size.Height);
-}
-
 void GameState::SetMainViewport(const Rect &viewport)
 {
-    _mainViewport.SetRect(FixupViewport(viewport, RectWH(game.GetGameRes())));
+    _mainViewport.SetRect(viewport);
     Mouse::SetGraphicArea();
     scsystem.viewport_width = _mainViewport.GetRect().GetWidth();
     scsystem.viewport_height = _mainViewport.GetRect().GetHeight();
     _mainViewportHasChanged = true;
-    // Update sub-viewports in case main viewport became smaller
-    SetUIViewport(_uiViewport.GetRect());
-    for (size_t i = 0; i < _roomViewports.size(); ++i)
-        SetRoomViewport(i, _roomViewports[i]->GetRect());
 }
 
 const Rect &GameState::GetMainViewport() const
@@ -89,19 +79,14 @@ const Rect &GameState::GetUIViewport() const
     return _uiViewport.GetRect();
 }
 
-const Rect &GameState::GetRoomViewport(int index) const
-{
-    return _roomViewports[index]->GetRect();
-}
-
-PViewport GameState::GetRoomViewportObj(int index) const
+PViewport GameState::GetRoomViewport(int index) const
 {
     return _roomViewports[index];
 }
 
-PViewport GameState::GetRoomViewportZOrdered(int index) const
+const std::vector<PViewport> &GameState::GetRoomViewportsZOrdered() const
 {
-    return _roomViewportsSorted[index];
+    return _roomViewportsSorted;
 }
 
 PViewport GameState::GetRoomViewportAt(int x, int y) const
@@ -125,12 +110,7 @@ Rect GameState::GetRoomViewportAbs(int index) const
 
 void GameState::SetUIViewport(const Rect &viewport)
 {
-    _uiViewport.SetRect(FixupViewport(viewport, RectWH(_mainViewport.GetRect().GetSize())));
-}
-
-void GameState::SetRoomViewport(int index, const Rect &viewport)
-{
-    _roomViewports[index]->SetRect(FixupViewport(viewport, RectWH(_mainViewport.GetRect().GetSize())));
+    _uiViewport.SetRect(viewport);
 }
 
 static bool ViewportZOrder(const PViewport e1, const PViewport e2)
@@ -153,24 +133,29 @@ void GameState::UpdateViewports()
         for (size_t i = 0; i < _roomViewportsSorted.size(); ++i)
         {
             if (i >= old_sort.size() || _roomViewportsSorted[i] != old_sort[i])
-                _roomViewportsSorted[i]->HasChanged();
+                _roomViewportsSorted[i]->SetChangedVisible();
         }
         _roomViewportZOrderChanged = false;
     }
-    for (auto vp : _roomViewports)
+    size_t vp_changed = -1;
+    for (size_t i = _roomViewportsSorted.size(); i-- > 0;)
     {
-        if (vp->HasChanged())
+        auto vp = _roomViewportsSorted[i];
+        if (vp->HasChangedSize() || vp->HasChangedPosition() || vp->HasChangedVisible())
         {
-            on_roomviewport_changed(vp->GetID());
-            vp->ClearChangedFlag();
+            vp_changed = i;
+            on_roomviewport_changed(vp.get());
+            vp->ClearChangedFlags();
         }
     }
+    if (vp_changed != -1)
+        detect_roomviewport_overlaps(vp_changed);
     for (auto cam : _roomCameras)
     {
-        if (cam->HasChanged())
+        if (cam->HasChangedSize() || cam->HasChangedPosition())
         {
-            on_camera_size_changed(cam->GetID());
-            cam->ClearChangedFlag();
+            on_roomcamera_changed(cam.get());
+            cam->ClearChangedFlags();
         }
     }
 }
@@ -295,6 +280,7 @@ PViewport GameState::CreateRoomViewport()
     _scViewportRefs.push_back(std::make_pair(scv, 0));
     _roomViewportsSorted.push_back(viewport);
     _roomViewportZOrderChanged = true;
+    on_roomviewport_created(index);
     return viewport;
 }
 
@@ -339,6 +325,7 @@ void GameState::DeleteRoomViewport(int index)
             break;
         }
     }
+    on_roomviewport_deleted(index);
 }
 
 int GameState::GetRoomViewportCount() const

@@ -24,14 +24,19 @@ extern GameSetupStruct game;
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern CCAudioChannel ccDynamicAudio;
 
+int AudioClip_GetID(ScriptAudioClip *clip)
+{
+    return clip->id;
+}
+
 int AudioClip_GetFileType(ScriptAudioClip *clip)
 {
-    return game.audioClips[clip->id].fileType;
+    return clip->fileType;
 }
 
 int AudioClip_GetType(ScriptAudioClip *clip)
 {
-    return game.audioClips[clip->id].type;
+    return clip->type;
 }
 int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
 {
@@ -78,6 +83,11 @@ ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, in
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
+
+RuntimeScriptValue Sc_AudioClip_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetID);
+}
 
 // int | ScriptAudioClip *clip
 RuntimeScriptValue Sc_AudioClip_GetFileType(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -127,6 +137,7 @@ void RegisterAudioClipAPI()
     ccAddExternalObjectFunction("AudioClip::PlayFrom^3",        Sc_AudioClip_PlayFrom);
     ccAddExternalObjectFunction("AudioClip::PlayQueued^2",      Sc_AudioClip_PlayQueued);
     ccAddExternalObjectFunction("AudioClip::Stop^0",            Sc_AudioClip_Stop);
+    ccAddExternalObjectFunction("AudioClip::get_ID",            Sc_AudioClip_GetID);
     ccAddExternalObjectFunction("AudioClip::get_FileType",      Sc_AudioClip_GetFileType);
     ccAddExternalObjectFunction("AudioClip::get_IsAvailable",   Sc_AudioClip_GetIsAvailable);
     ccAddExternalObjectFunction("AudioClip::get_Type",          Sc_AudioClip_GetType);

@@ -159,6 +159,8 @@ struct D3DSpriteBatch
 {
     // List of sprites to render
     std::vector<D3DDrawListEntry> List;
+    // Clipping viewport
+    Rect Viewport;
     // Transformation matrix, built from the batch description
     D3DMATRIX Matrix;
 };
@@ -185,9 +187,11 @@ public:
     void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDB(IDriverDependantBitmap* bitmap) override;
     void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
+    void SetScreenFade(int red, int green, int blue) override;
+    void SetScreenTint(int red, int green, int blue) override;
     void RenderToBackBuffer() override;
     void Render() override;
-    void Render(GlobalFlipType flip) override;
+    void Render(int xoff, int yoff, GlobalFlipType flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     void EnableVsyncBeforeRender(bool enabled) override { }
     void Vsync() override;
@@ -203,7 +207,6 @@ public:
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
     bool RequiresFullRedrawEachFrame() override { return true; }
     bool HasAcceleratedTransform() override { return true; }
-    void SetScreenTint(int red, int green, int blue) override;
 
     typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
 
@@ -232,7 +235,6 @@ private:
     IDirect3DSurface9 *pNativeSurface;
     RECT viewport_rect;
     UINT availableVideoMemory;
-    int _tint_red, _tint_green, _tint_blue;
     CUSTOMVERTEX defaultVertices[4];
     String previousError;
     IDirect3DPixelShader9* pixelShader;
@@ -242,13 +244,7 @@ private:
     float _pixelRenderYOffset;
     bool _renderSprAtScreenRes;
 
-    // TODO: find a way to have this tint sprite in the normal sprite list (or use shader instead!)
-    Bitmap *_screenTintLayer;
-    D3DBitmap* _screenTintLayerDDB;
-    D3DDrawListEntry _screenTintSprite;
-
     D3DSpriteBatches _spriteBatches;
-    GlobalFlipType flipTypeLastTime;
     // TODO: these draw list backups are needed only for the fade-in/out effects
     // find out if it's possible to reimplement these effects in main drawing routine.
     SpriteBatchDescs _backupBatchDescs;
@@ -272,19 +268,18 @@ private:
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
-    void create_screen_tint_bitmap();
     // Backup all draw lists in the temp storage
     void BackupDrawLists();
     // Restore draw lists from the temp storage
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
-    void _renderAndPresent(GlobalFlipType flip, bool clearDrawListAfterwards);
-    void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
+    void _renderAndPresent(bool clearDrawListAfterwards);
+    void _render(bool clearDrawListAfterwards);
     void _reDrawLastFrame();
-    void RenderSpriteBatches(GlobalFlipType flip);
-    void RenderSpriteBatch(const D3DSpriteBatch &batch, GlobalFlipType flip);
-    void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip);
+    void RenderSpriteBatches();
+    void RenderSpriteBatch(const D3DSpriteBatch &batch);
+    void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal);
 };
 
 

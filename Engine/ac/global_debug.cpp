@@ -109,7 +109,7 @@ void script_debug(int cmdd,int dataa) {
         const int camera_index = 0;
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
-        const Rect &viewport = play.GetRoomViewport(viewport_index);
+        const Rect &viewport = play.GetRoomViewport(viewport_index)->GetRect();
         const Rect &camera = play.GetRoomCamera(camera_index)->GetRect();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
         Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);
@@ -170,7 +170,7 @@ void script_debug(int cmdd,int dataa) {
         // TODO: support multiple viewports?!
         const int viewport_index = 0;
         const int camera_index = 0;
-        const Rect &viewport = play.GetRoomViewport(viewport_index);
+        const Rect &viewport = play.GetRoomViewport(viewport_index)->GetRect();
         const Rect &camera = play.GetRoomCamera(camera_index)->GetRect();
         Bitmap *view_bmp = BitmapHelper::CreateBitmap(viewport.GetWidth(), viewport.GetHeight());
         Rect mask_src = Rect(camera.Left / thisroom.MaskResolution, camera.Top / thisroom.MaskResolution, camera.Right / thisroom.MaskResolution, camera.Bottom / thisroom.MaskResolution);

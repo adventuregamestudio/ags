@@ -15,31 +15,8 @@
 // macro defined the deprecated API contents that were still active in
 // corresponding version are kept enabled; otherwise these are disabled.
 
-// Configure STRICT macros: if STRICT compilation mode is enabled
-// setup separate STRICT* modes for thos non-object-oriented API parts
-// that became obsoleted in corresponding version of API.
-// Take compatibility level into consideration here: if the compatibility
-// level is low enough then do NOT declare STRICT* macro.
-#ifdef STRICT
 /*
-  #ifdef SCRIPT_API_v330
-    #ifndef SCRIPT_COMPAT_v321
-      #define STRICT_IN_v330
-    #endif
-  #endif
-  #ifdef SCRIPT_API_v340
-    #ifndef SCRIPT_COMPAT_v335
-      #define STRICT_IN_v340
-    #endif
-  #endif
 */
-  #ifdef SCRIPT_API_v3507
-    #ifndef SCRIPT_COMPAT_v350
-      #define STRICT_IN_v3507
-    #endif
-  #endif
-#endif
-
 #define function int  // $AUTOCOMPLETEIGNORE$
 // CursorMode isn't actually defined yet, but int will do
 #define CursorMode int
@@ -706,7 +683,7 @@ import int  GetWalkableAreaAtRoom(int roomX, int roomY);
 #endif
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
-#ifndef STRICT_IN_v3507
+#ifdef SCRIPT_COMPAT_v350
 /// Locks the viewport to stop the screen scrolling automatically.
 import void SetViewport(int x, int y);
 /// Allows AGS to scroll the screen automatically to follow the player character.
@@ -793,12 +770,14 @@ import void StopDialog();
 /// Determines whether two objects or characters are overlapping each other.
 import int  AreThingsOverlapping(int thing1, int thing2);
 
+#ifdef SCRIPT_COMPAT_v321
 /// Sets whether voice and/or text are used in the game.
 import void SetVoiceMode(eVoiceMode);
 /// Sets how the player can skip speech lines.
 import void SetSkipSpeech(int skipFlag);
 /// Changes the style in which speech is displayed.
 import void SetSpeechStyle(eSpeechStyle);
+#endif
 
 /// Starts a timer, which will expire after the specified number of game loops.
 import void SetTimer(int timerID, int timeout);
@@ -1553,6 +1532,10 @@ builtin managed struct AudioClip {
   readonly import attribute bool IsAvailable;
   /// Gets the type of audio that this clip contains.
   readonly import attribute AudioType Type;
+#ifdef SCRIPT_API_v350
+  /// Gets the clip's ID number.
+  readonly import attribute int ID;
+#endif
 };
 
 builtin struct System {
@@ -1674,8 +1657,10 @@ builtin managed struct Object {
   readonly import attribute int ID;
   /// Gets/sets whether the object ignores walkable area scaling.
   import attribute bool IgnoreScaling;
+#ifdef SCRIPT_COMPAT_v340
   /// Gets/sets whether the object ignores walk-behind areas.
   import attribute bool IgnoreWalkbehinds;
+#endif
   /// Gets the current loop number during an animation.
   readonly import attribute int  Loop;
   /// Gets whether the object is currently moving.
@@ -1846,8 +1831,10 @@ builtin managed struct Character {
   /// Gets/sets whether the character ignores region tints and lighting.
   import attribute bool IgnoreLighting;
   import attribute bool IgnoreScaling;       // obsolete. $AUTOCOMPLETEIGNORE$
+#ifdef SCRIPT_COMPAT_v340
   /// Gets/sets whether the character ignores walk-behind areas and is always placed on top.
   import attribute bool IgnoreWalkbehinds; 
+#endif
   /// Accesses the number of each inventory item that the character currently has.
   import attribute int  InventoryQuantity[];
   /// Gets/sets the character's current loop number within its current view.
@@ -2118,8 +2105,14 @@ builtin struct GameState {
   int  screenshot_width;
   int  screenshot_height;
   int  top_bar_font;
+#ifndef SCRIPT_COMPAT_v321
+  int  reserved__2;   // $AUTOCOMPLETEIGNORE$
+#endif
   int  auto_use_walkto_points;
   int  inventory_greys_out;
+#ifndef SCRIPT_COMPAT_v321
+  int  reserved__3;   // $AUTOCOMPLETEIGNORE$
+#endif
   int  abort_key;
   readonly int fade_color_red;
   readonly int fade_color_green;

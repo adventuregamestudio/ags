@@ -233,6 +233,8 @@ struct GameState {
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state;
 
+    int shake_screen_yoff; // y offset of the shaking screen
+
 
     GameState();
     // Free game resources
@@ -249,12 +251,10 @@ struct GameState {
     const Rect &GetMainViewport() const;
     // Returns UI viewport position on screen, this is the GUI layer
     const Rect &GetUIViewport() const;
-    // Returns Room viewport position, which works as a "window" into the room
-    const Rect &GetRoomViewport(int index) const;
     // Returns Room viewport object by it's main index
-    PViewport  GetRoomViewportObj(int index) const;
+    PViewport  GetRoomViewport(int index) const;
     // Returns Room viewport object by index in z-order
-    PViewport  GetRoomViewportZOrdered(int index) const;
+    const std::vector<PViewport> &GetRoomViewportsZOrdered() const;
     // Finds room viewport at the given screen coordinates; returns nullptr if non found
     PViewport  GetRoomViewportAt(int x, int y) const;
     // Returns UI viewport position in absolute coordinates (with main viewport offset)
@@ -268,8 +268,6 @@ struct GameState {
     void SetMainViewport(const Rect &viewport);
     // UI viewport is a formal dummy viewport for GUI and Overlays (like speech).
     void SetUIViewport(const Rect &viewport);
-    // Room viewport defines location of a room view inside the main viewport.
-    void SetRoomViewport(int index, const Rect &viewport);
     // Applies all the pending changes to viewports and cameras;
     // NOTE: this function may be slow, thus recommended to be called only once
     // and during the main game update.

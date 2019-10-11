@@ -12,6 +12,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_PROPERTIES = "PropertiesAudioClip";
         private const string COMMAND_RENAME = "RenameAudioClip";
         private const string COMMAND_DELETE = "DeleteAudioClip";
+        private const string COMMAND_CHANGE_ID = "ChangeAudioID";
         private const string SPEECH_NODE_ID = "DummySpeechNode";
         private const string AUDIO_TYPES_FOLDER_NODE_ID = "AudioTypesFolderNode";
         private const string NODE_ID_PREFIX_CLIP_TYPE = "AudioClipType";
@@ -101,6 +102,24 @@ namespace AGS.Editor.Components
                 {
                     DeleteSingleItem(clipToDelete);                    
                 }
+            }
+            else if (controlID == COMMAND_CHANGE_ID)
+            {
+                AudioClip clipClicked = _items[_rightClickedID];
+                int oldNumber = clipClicked.ID;
+                int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("AudioClip", oldNumber, 0, _items.Count - 1);
+                if (newNumber < 0)
+                    return;
+                foreach (var obj in _items)
+                {
+                    if (obj.Value.ID == newNumber)
+                    {
+                        obj.Value.ID = oldNumber;
+                        break;
+                    }
+                }
+                clipClicked.ID = newNumber;
+                OnItemIDChanged(clipClicked);
             }
             else if (controlID == SPEECH_NODE_ID)
             {
@@ -304,6 +323,7 @@ namespace AGS.Editor.Components
             {
                 string newScriptName = EnsureScriptNameIsUnique(Path.GetFileNameWithoutExtension(sourceFileName));
                 AudioClip newClip = new AudioClip(newScriptName, _agsEditor.CurrentGame.GetNextAudioIndex());
+                newClip.ID = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount();
                 newClip.SourceFileName = Utilities.GetRelativeToProjectPath(sourceFileName);
                 newClip.FileType = _fileTypeMappings[fileExtension];
                 newClip.FileLastModifiedDate = File.GetLastWriteTimeUtc(sourceFileName);
@@ -366,11 +386,11 @@ namespace AGS.Editor.Components
                 AudioClip clip = _agsEditor.CurrentGame.FindAudioClipForOldSoundNumber(allAudio, _agsEditor.CurrentGame.Settings.PlaySoundOnScore);
                 if (clip != null)
                 {
-                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = clip.Index;
+                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = clip.ID;
                 }
                 else
                 {
-                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = 0;
+                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = -1;
                 }
             }
         }
@@ -388,11 +408,11 @@ namespace AGS.Editor.Components
                             AudioClip clip = _agsEditor.CurrentGame.FindAudioClipForOldSoundNumber(allAudio, frame.Sound);
                             if (clip != null)
                             {
-                                frame.Sound = clip.Index;
+                                frame.Sound = clip.ID;
                             }
                             else
                             {
-                                frame.Sound = 0;
+                                frame.Sound = -1;
                             }
                         }
                     }
@@ -552,8 +572,6 @@ namespace AGS.Editor.Components
                     Utilities.CopyFileAndSetDestinationWritable(filesToCopy[i].SourceFileName, fileNamesToUpdate[i]);
                 }
             }
-
-            _agsEditor.CurrentGame.UpdateCachedAudioClipList();
         }
 
         private void ProjectTree_OnAfterLabelEdit(string commandID, ProjectTreeItem treeItem)
@@ -583,6 +601,11 @@ namespace AGS.Editor.Components
         private string GetIconKeyForAudioClip(AudioClip clip)
         {
             return _iconMappings[clip.FileType];
+        }
+
+        private void OnItemIDChanged(AudioClip item)
+        {
+            RePopulateTreeView();
         }
 
         public override void PropertyChanged(string propertyName, object oldValue)
@@ -635,6 +658,7 @@ namespace AGS.Editor.Components
             }
             else if (!IsFolderNode(controlID))
             {
+                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change Clip ID", null));
                 menu.Add(new MenuCommand(COMMAND_RENAME, "Rename", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE, "Delete", null));
                 menu.Add(MenuCommand.Separator);
@@ -651,7 +675,8 @@ namespace AGS.Editor.Components
         protected override ProjectTreeItem CreateTreeItemForItem(AudioClip item)
         {
             string nodeID = GetNodeIDForAudioClip(item);
-            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, nodeID, item.ScriptName, GetIconKeyForAudioClip(item));
+            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, nodeID,
+                item.ID.ToString() + ": " + item.ScriptName, GetIconKeyForAudioClip(item));
             treeItem.AllowLabelEdit = true;
             treeItem.LabelTextProperty = item.GetType().GetProperty("ScriptName");
             treeItem.LabelTextDescriptionProperty = item.GetType().GetProperty("ScriptName");
@@ -709,8 +734,22 @@ namespace AGS.Editor.Components
 
         protected override void DeleteResourcesUsedByItem(AudioClip item)
         {
-            DeleteResourcesForAudioClip(item);
-            AudioClipTypeConverter.SetAudioClipList(_agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders());                    
+            DeleteAudioClip(item);
+        }
+
+        private void DeleteAudioClip(AudioClip clip)
+        {
+            int removingID = clip.ID;
+            foreach (AudioClip item in _agsEditor.CurrentGame.RootAudioClipFolder.AllItemsFlat)
+            {
+                if (item.ID > removingID)
+                {
+                    item.ID--;
+                }
+            }
+
+            DeleteResourcesForAudioClip(clip);
+            AudioClipTypeConverter.SetAudioClipList(_agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders());
         }
 
         private void DeleteResourcesForAudioClip(AudioClip clipToDelete)

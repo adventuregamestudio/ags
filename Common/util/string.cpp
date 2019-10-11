@@ -420,8 +420,7 @@ std::vector<String> String::Split(char separator) const
         result.push_back(String(ptr, found_cstr - ptr));
         ptr = found_cstr + 1;
     }
-    if (*ptr)
-        result.push_back(String(ptr));
+    result.push_back(String(ptr));
     return result;
 }
 

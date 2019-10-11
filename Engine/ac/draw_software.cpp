@@ -20,6 +20,9 @@
 //
 // TODO: would that give any benefit to reorganize the code and move dirty
 // rectangles into SoftwareGraphicDriver?
+// Alternatively: we could pass dirty rects struct pointer and room background
+// DDB when calling BeginSpriteBatch(). Driver itself could be calling
+// update_invalid_region(). That will keep gfx driver's changes to minimum.
 //
 // NOTE: this code, including structs and functions, has underwent several
 // iterations of changes. Originally it was meant to perform full transform
@@ -196,6 +199,15 @@ void init_invalid_regions(int view_index, const Size &surf_size, const Rect &vie
         }
         RoomCamRects[view_index].Init(surf_size, viewport);
         RoomCamPositions[view_index] = std::make_pair(-1000, -1000);
+    }
+}
+
+void delete_invalid_regions(int view_index)
+{
+    if (view_index >= 0)
+    {
+        RoomCamRects.erase(RoomCamRects.begin() + view_index);
+        RoomCamPositions.erase(RoomCamPositions.begin() + view_index);
     }
 }
 

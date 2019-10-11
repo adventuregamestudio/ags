@@ -47,11 +47,6 @@ void my_fade_in(PALETTE p, int speed) {
         }
     }
 
-    // For software renderer we must reconstruct full game view on virtual screen,
-    // because it could have been filled with blackness since the last fade-out.
-    if (gfxDriver->UsesMemoryBackBuffer())
-        construct_virtual_screen(true);
-
     gfxDriver->FadeIn(speed, p, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
 }
 
@@ -66,8 +61,9 @@ void current_fade_out_effect () {
     // was a temporary transition selected? if so, use it
     if (play.next_screen_transition >= 0)
         theTransition = play.next_screen_transition;
+    const bool ignore_transition = play.screen_tint > 0;
 
-    if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0)) {
+    if ((theTransition == FADE_INSTANT) || ignore_transition) {
         if (!play.keep_screen_during_instant_transition)
             set_palette_range(black_palette, 0, 255, 0);
     }
@@ -109,7 +105,6 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
         delete saved_viewport_bitmap;
         saved_viewport_bitmap = clippedBuffer;
     }
-    saved_viewport_bitmap->Acquire();
     IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap, false);
     return ddb;
 }

@@ -266,9 +266,6 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
         while (1) {
             timerloop = 0;
-            /*      if (!play.mouse_cursor_hidden)
-            ags_domouse(DOMOUSE_UPDATE);
-            write_screen();*/
 
             update_audio_system_on_game_loop();
             render_graphics();
@@ -321,8 +318,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         if (!play.mouse_cursor_hidden)
             ags_domouse(DOMOUSE_DISABLE);
         remove_screen_overlay(OVER_TEXTMSG);
-
-        construct_virtual_screen(true);
+        invalidate_screen();
     }
     else {
         // if the speech does not time out, but we are skipping a cutscene,

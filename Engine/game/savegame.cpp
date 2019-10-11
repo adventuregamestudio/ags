@@ -441,7 +441,7 @@ void RestoreViewportsAndCameras(const RestoredData &r_data)
     for (size_t i = 0; i < r_data.Viewports.size(); ++i)
     {
         const auto &view_dat = r_data.Viewports[i];
-        auto view = play.GetRoomViewportObj(i);
+        auto view = play.GetRoomViewport(i);
         view->SetID(view_dat.ID);
         view->SetVisible((view_dat.Flags & kSvgViewportVisible) != 0);
         view->SetRect(RectWH(view_dat.Left, view_dat.Top, view_dat.Width, view_dat.Height));

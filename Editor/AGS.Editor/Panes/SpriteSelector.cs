@@ -704,39 +704,7 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_CHANGE_SPRITE_NUMBER)
             {
-                if (Factory.GUIController.ShowQuestion("Changing the sprite slot number is a specialized operation, for advanced users only.\n\nOnly re-number this sprite if you are ABSOLUTELY SURE it is not used AT ALL in your game. Any parts of your game that do use this sprite will cause the editor and engine to crash if you go ahead. Are you sure?") == DialogResult.Yes)
-                {
-                    string usage = SpriteTools.GetSpriteUsageReport(_spriteNumberOnMenuActivation, Factory.AGSEditor.CurrentGame);
-                    if (usage != null)
-                    {
-                        Factory.GUIController.ShowMessage("Cannot change the sprite number because it is in use:" + Environment.NewLine + usage, MessageBoxIcon.Warning);
-                        return;
-                    }
-
-                    Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
-                    int newNumber = NumberEntryDialog.Show("Change Sprite Number", "Enter the new sprite number in the box below:", sprite.Number, 0, NativeConstants.MAX_STATIC_SPRITES - 1);
-                    if (newNumber == -1)
-                    {
-                        // Dialog cancelled
-                    }
-                    else if (Factory.NativeProxy.DoesSpriteExist(newNumber))
-                    {
-                        Factory.GUIController.ShowMessage("The destination sprite number " + newNumber + " already exists.", MessageBoxIcon.Stop);
-                    }
-                    else
-                    {
-                        try
-                        {
-                            Factory.NativeProxy.ChangeSpriteNumber(sprite, newNumber);
-                            RefreshSpriteDisplay();
-                            SelectSprite(sprite);
-                        }
-                        catch (AGSEditorException ex)
-                        {
-                            Factory.GUIController.ShowMessage("Unable to change the sprite number: " + ex.Message, MessageBoxIcon.Warning);
-                        }
-                    }
-                }
+                ChangeSpriteNumber(_spriteNumberOnMenuActivation);
             }
             else if (item.Name == MENU_ITEM_SHOW_USAGE)
             {
@@ -1254,6 +1222,41 @@ namespace AGS.Editor
         public Sprite FindSpriteByNumber(int spriteNum)
         {
             return _currentFolder.FindSpriteByID(spriteNum, false);
+        }
+
+        private void ChangeSpriteNumber(int spriteNum)
+        {
+            string usage = SpriteTools.GetSpriteUsageReport(spriteNum, Factory.AGSEditor.CurrentGame);
+            if (usage != null)
+            {
+                Factory.GUIController.ShowMessage("Cannot change the sprite number because it is in use:" + Environment.NewLine + usage, MessageBoxIcon.Warning);
+                return;
+            }
+
+            Sprite sprite = FindSpriteByNumber(spriteNum);
+            int newNumber = NumberEntryWithInfoDialog.Show("Change Sprite Number",
+                String.Format("Enter the new sprite number in the box below ({0}-{1}):", 0, NativeConstants.MAX_STATIC_SPRITES - 1),
+                "WARNING: Changing the sprite slot number is a specialized operation, for advanced users only.\n\nOnly re - number this sprite if you are ABSOLUTELY SURE it is not used AT ALL in your game. Any parts of your game that do use this sprite will cause the editor and engine to crash if you go ahead.",
+                sprite.Number, 0, NativeConstants.MAX_STATIC_SPRITES - 1);
+            if (newNumber < 0)
+                return;
+            if (Factory.NativeProxy.DoesSpriteExist(newNumber))
+            {
+                Factory.GUIController.ShowMessage("The destination sprite number " + newNumber + " already exists.", MessageBoxIcon.Stop);
+            }
+            else
+            {
+                try
+                {
+                    Factory.NativeProxy.ChangeSpriteNumber(sprite, newNumber);
+                    RefreshSpriteDisplay();
+                    SelectSprite(sprite);
+                }
+                catch (AGSEditorException ex)
+                {
+                    Factory.GUIController.ShowMessage("Unable to change the sprite number: " + ex.Message, MessageBoxIcon.Warning);
+                }
+            }
         }
 
         private void spriteList_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)

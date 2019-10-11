@@ -77,7 +77,7 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
   _tint_green = 0;
   _tint_blue = 0;
   _autoVsync = false;
-  _spareTintingScreen = nullptr;
+  //_spareTintingScreen = nullptr;
   _gfxModeList = nullptr;
 #if AGS_DDRAW_GAMMA_CONTROL
   dxGammaControl = nullptr;
@@ -396,22 +396,26 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     {
         batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
         batch.Opaque = true;
+        batch.IsVirtualScreen = false;
     }
     else if (desc.Viewport.IsEmpty() || !virtualScreen)
     {
         batch.Surface.reset();
         batch.Opaque = false;
+        batch.IsVirtualScreen = false;
     }
     else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
     {
         Rect rc = RectWH(desc.Viewport.Left - _virtualScrOff.X, desc.Viewport.Top - _virtualScrOff.Y, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
         batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
         batch.Opaque = true;
+        batch.IsVirtualScreen = true;
     }
     else if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
     {
         batch.Surface.reset(new Bitmap(src_w, src_h));
         batch.Opaque = false;
+        batch.IsVirtualScreen = false;
     }
 }
 
@@ -424,6 +428,20 @@ void ALSoftwareGraphicsDriver::ResetAllBatches()
 void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 {
     _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
+}
+
+void ALSoftwareGraphicsDriver::SetScreenFade(int red, int green, int blue)
+{
+    // TODO: was not necessary atm
+}
+
+void ALSoftwareGraphicsDriver::SetScreenTint(int red, int green, int blue)
+{
+    _tint_red = red; _tint_green = green; _tint_blue = blue;
+    if (((_tint_red > 0) || (_tint_green > 0) || (_tint_blue > 0)) && (_mode.ColorDepth > 8))
+    {
+      _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)0x1, 0, 0));
+    }
 }
 
 void ALSoftwareGraphicsDriver::RenderToBackBuffer()
@@ -455,9 +473,9 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
                 surface->ClearTransparent();
             _stageVirtualScreen = surface;
             RenderSpriteBatch(batch, surface, transform.X, transform.Y);
-            // TODO: extract this to the generic software blit-with-transform function
-            virtualScreen->StretchBlt(surface, RectWH(view_offx, view_offy, viewport.GetWidth(), viewport.GetHeight()),
-                batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
+            if (!batch.IsVirtualScreen)
+                virtualScreen->StretchBlt(surface, RectWH(view_offx, view_offy, viewport.GetWidth(), viewport.GetHeight()),
+                    batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
         }
         else
         {
@@ -482,24 +500,30 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
 
       continue;
     }
+    else if (drawlist[i].bitmap == (ALSoftwareBitmap*)0x1)
+    {
+      // draw screen tint fx
+      set_trans_blender(_tint_red, _tint_green, _tint_blue, 0);
+      surface->LitBlendBlt(surface, 0, 0, 128);
+      continue;
+    }
 
     ALSoftwareBitmap* bitmap = drawlist[i].bitmap;
     int drawAtX = drawlist[i].x + surf_offx;
     int drawAtY = drawlist[i].y + surf_offy;
 
-    if ((bitmap->_opaque) && (bitmap->_bmp == surface))
-    { }
+    if (bitmap->_transparency >= 255); // fully transparent, do nothing
+    if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_transparency == 0));
     else if (bitmap->_opaque)
     {
         surface->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
-    }
-    else if (bitmap->_transparency >= 255)
-    {
-      // fully transparent... invisible, do nothing
+        // TODO: we need to also support non-masked translucent blend, but...
+        // Allegro 4 **does not have such function ready** :( (only masked blends, where it skips magenta pixels);
+        // I am leaving this problem for the future, as coincidentally software mode does not need this atm.
     }
     else if (bitmap->_hasAlpha)
     {
-      if (bitmap->_transparency == 0) // this means opaque
+      if (bitmap->_transparency == 0) // no global transparency, simple alpha blend
         set_alpha_blender();
       else
         // here _transparency is used as alpha (between 1 and 254)
@@ -514,13 +538,7 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
           bitmap->_transparency ? bitmap->_transparency : 255);
     }
   }
-
-  if (((_tint_red > 0) || (_tint_green > 0) || (_tint_blue > 0))
-      && (_mode.ColorDepth > 8)) {
-    // Common::gl_ScreenBmp tint
-    // This slows down the game no end, only experimental ATM
-    set_trans_blender(_tint_red, _tint_green, _tint_blue, 0);
-    surface->LitBlendBlt(surface, 0, 0, 128);
+    // NOTE: following is experimental tint code (currently unused)
 /*  This alternate method gives the correct (D3D-style) result, but is just too slow!
     if ((_spareTintingScreen != NULL) &&
         ((_spareTintingScreen->GetWidth() != surface->GetWidth()) || (_spareTintingScreen->GetHeight() != surface->GetHeight())))
@@ -534,10 +552,9 @@ void ALSoftwareGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Com
     }
     tint_image(surface, _spareTintingScreen, _tint_red, _tint_green, _tint_blue, 100, 255);
     Blit(_spareTintingScreen, surface, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
-  }
 }
 
-void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
+void ALSoftwareGraphicsDriver::Render(int xoff, int yoff, GlobalFlipType flip)
 {
   RenderToBackBuffer();
 
@@ -545,14 +562,14 @@ void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
     this->Vsync();
 
   if (flip == kFlip_None)
-    _filter->RenderScreen(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y);
+    _filter->RenderScreen(virtualScreen, _virtualScrOff.X + xoff, _virtualScrOff.Y + yoff);
   else
-    _filter->RenderScreenFlipped(virtualScreen, _virtualScrOff.X + _globalViewOff.X, _virtualScrOff.Y + _globalViewOff.Y, flip);
+    _filter->RenderScreenFlipped(virtualScreen, _virtualScrOff.X + xoff, _virtualScrOff.Y + yoff, flip);
 }
 
 void ALSoftwareGraphicsDriver::Render()
 {
-  Render(kFlip_None);
+  Render(0, 0, kFlip_None);
 }
 
 void ALSoftwareGraphicsDriver::Vsync()
@@ -606,7 +623,7 @@ bool ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bo
 
 	Author: Matthew Leverton
 **/
-void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
    Bitmap *bmp_orig = vs;
    const int col_depth = bmp_orig->GetColorDepth();
@@ -614,13 +631,18 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy,
    if (speed <= 0) speed = 16;
 
    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
-
+   SetMemoryBackBuffer(bmp_buff, 0, 0);
    for (int a = 0; a < 256; a+=speed)
    {
        int timerValue = *_loopTimer;
        bmp_buff->Fill(clearColor);
        set_trans_blender(0,0,0,a);
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+       if (draw_callback)
+       {
+           draw_callback();
+           RenderToBackBuffer();
+       }
        this->Vsync();
        _filter->RenderScreen(bmp_buff, 0, 0);
        do
@@ -632,13 +654,17 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *vs, int offx, int offy,
        while (timerValue == *_loopTimer);
    }
    delete bmp_buff;
-   if (bmp_orig != vs)
-       delete bmp_orig;
 
+   SetMemoryBackBuffer(vs, offx, offy);
+   if (draw_callback)
+   {
+       draw_callback();
+       RenderToBackBuffer();
+   }
    _filter->RenderScreen(vs, offx, offy);
 }
 
-void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
     Bitmap *bmp_orig = vs;
     const int col_depth = vs->GetColorDepth();
@@ -646,12 +672,18 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, int offx, int offy
     if (speed <= 0) speed = 16;
 
     Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
+    SetMemoryBackBuffer(bmp_buff, 0, 0);
     for (int a = 255 - speed; a > 0; a -= speed)
     {
         int timerValue = *_loopTimer;
         bmp_buff->Fill(clearColor);
         set_trans_blender(0, 0, 0, a);
         bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+        if (draw_callback)
+        {
+            draw_callback();
+            RenderToBackBuffer();
+        }
         this->Vsync();
         _filter->RenderScreen(bmp_buff, 0, 0);
         do
@@ -663,10 +695,13 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(Bitmap *vs, int offx, int offy
     }
     delete bmp_buff;
 
-    if (bmp_orig != vs)
-        delete bmp_orig;
-
+    SetMemoryBackBuffer(vs, offx, offy);
     vs->Clear(clearColor);
+    if (draw_callback)
+    {
+        draw_callback();
+        RenderToBackBuffer();
+    }
 	_filter->RenderScreen(vs, offx, offy);
 }
 /** END FADE.C **/
@@ -711,11 +746,14 @@ void ALSoftwareGraphicsDriver::__fade_out_range(int speed, int from, int to, int
 
 void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) {
 
+  if (_drawScreenCallback)
+  {
+    _drawScreenCallback();
+    RenderToBackBuffer();
+  }
   if (_mode.ColorDepth > 8) 
   {
-    int offx = _virtualScrOff.X + _globalViewOff.X;
-    int offy = _virtualScrOff.Y + _globalViewOff.Y;
-    highcolor_fade_out(virtualScreen, offx, offy, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_out(virtualScreen, _drawPostScreenCallback, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {
@@ -724,11 +762,14 @@ void ALSoftwareGraphicsDriver::FadeOut(int speed, int targetColourRed, int targe
 }
 
 void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
+  if (_drawScreenCallback)
+  {
+    _drawScreenCallback();
+    RenderToBackBuffer();
+  }
   if (_mode.ColorDepth > 8)
   {
-    int offx = _virtualScrOff.X + _globalViewOff.X;
-    int offy = _virtualScrOff.Y + _globalViewOff.Y;
-    highcolor_fade_in(virtualScreen, offx, offy, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_in(virtualScreen, _drawPostScreenCallback, _virtualScrOff.X, _virtualScrOff.Y, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {
@@ -739,25 +780,43 @@ void ALSoftwareGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed,
 
 void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 {
+  if (_drawScreenCallback)
+  {
+    _drawScreenCallback();
+    RenderToBackBuffer();
+  }
   if (blackingOut)
   {
     int yspeed = _srcRect.GetHeight() / (_srcRect.GetWidth() / speed);
     int boxwid = speed, boxhit = yspeed;
+    Bitmap *bmp_orig = virtualScreen;
+    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), bmp_orig->GetColorDepth());
+    Point orig_off = _virtualScrOff;
+    SetMemoryBackBuffer(bmp_buff, 0, 0);
 
     while (boxwid < _srcRect.GetWidth()) {
       boxwid += speed;
       boxhit += yspeed;
-      this->Vsync();
       int vcentre = _srcRect.GetHeight() / 2;
-      this->ClearRectangle(_srcRect.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
-          _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2, nullptr);
+      bmp_orig->FillRect(Rect(_srcRect.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
+          _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2), 0);
+      bmp_buff->Fill(0);
+      bmp_buff->Blit(bmp_orig);
+      if (_drawPostScreenCallback)
+      {
+          _drawPostScreenCallback();
+          RenderToBackBuffer();
+      }
+      this->Vsync();
+      _filter->RenderScreen(bmp_buff, 0, 0);
     
       if (_pollingCallback)
         _pollingCallback();
 
       platform->Delay(delay);
     }
-    this->ClearRectangle(0, 0, _srcRect.GetWidth() - 1, _srcRect.GetHeight() - 1, nullptr);
+    delete bmp_buff;
+    SetMemoryBackBuffer(bmp_orig, orig_off.X, orig_off.Y);
   }
   else
   {

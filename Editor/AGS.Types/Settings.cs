@@ -1018,6 +1018,7 @@ namespace AGS.Types
             set { _binaryFilesInSourceControl = value; }
         }
 
+        // NOTE: this index only purpose remains to connect clips to audio cache
         [Browsable(false)]
         public int AudioIndexer
         {

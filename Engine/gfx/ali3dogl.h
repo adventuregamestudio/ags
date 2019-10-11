@@ -130,6 +130,8 @@ struct OGLSpriteBatch
 {
     // List of sprites to render
     std::vector<OGLDrawListEntry> List;
+    // Clipping viewport
+    Rect Viewport;
     // Transformation matrix, built from the batch description
     GLMATRIX Matrix;
 };
@@ -189,7 +191,7 @@ public:
     void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
     void RenderToBackBuffer() override;
     void Render() override;
-    void Render(GlobalFlipType flip) override;
+    void Render(int xoff, int yoff, GlobalFlipType flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     void EnableVsyncBeforeRender(bool enabled) override { }
     void Vsync() override;
@@ -202,6 +204,7 @@ public:
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
     bool RequiresFullRedrawEachFrame() override { return true; }
     bool HasAcceleratedTransform() override { return true; }
+    void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
 
     typedef std::shared_ptr<OGLGfxFilter> POGLFilter;
@@ -227,7 +230,6 @@ private:
     GLXContext _glxContext;
 #endif
     bool _firstTimeInit;
-    int _tint_red, _tint_green, _tint_blue;
     // Position of backbuffer texture in world space
     GLfloat _backbuffer_vertices[8];
     // Relative position of source image on the backbuffer texture,
@@ -250,11 +252,6 @@ private:
     };
     ShaderProgram _tintShader;
     ShaderProgram _lightShader;
-
-    // TODO: find a way to have this tint sprite in the normal sprite list (or use shader instead!)
-    Bitmap *_screenTintLayer;
-    OGLBitmap* _screenTintLayerDDB;
-    OGLDrawListEntry _screenTintSprite;
 
     int device_screen_physical_width;
     int device_screen_physical_height;
@@ -279,7 +276,6 @@ private:
     Size _backTextureSize;
 
     OGLSpriteBatches _spriteBatches;
-    GlobalFlipType flipTypeLastTime;
     // TODO: these draw list backups are needed only for the fade-in/out effects
     // find out if it's possible to reimplement these effects in main drawing routine.
     SpriteBatchDescs _backupBatchDescs;
@@ -323,8 +319,7 @@ private:
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void create_screen_tint_bitmap();
-    void _renderSprite(const OGLDrawListEntry *entry, const GLMATRIX &matGlobal, bool globalLeftRightFlip, bool globalTopBottomFlip);
+    void _renderSprite(const OGLDrawListEntry *entry, const GLMATRIX &matGlobal);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
     Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
@@ -335,9 +330,9 @@ private:
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
-    void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
-    void RenderSpriteBatches(GlobalFlipType flip);
-    void RenderSpriteBatch(const OGLSpriteBatch &batch, GlobalFlipType flip);
+    void _render(bool clearDrawListAfterwards);
+    void RenderSpriteBatches();
+    void RenderSpriteBatch(const OGLSpriteBatch &batch);
     void _reDrawLastFrame();
 };
 

@@ -254,7 +254,7 @@ void VideoMemoryGraphicsDriver::ResetFxPool()
 
 void VideoMemoryGraphicsDriver::DestroyFxPool()
 {
-    for (auto fx : _fxPool)
+    for (auto &fx : _fxPool)
     {
         if (fx.DDB)
             DestroyDDB(fx.DDB);

@@ -250,6 +250,7 @@ namespace AGS.Editor
                     clip.ID = clipId++;
                     audioIndexToID.Add(clip.Index, clip.ID);
                 }
+                game.RootAudioClipFolder.Sort(true);
 
                 // Remap old cache indexes to new IDs
                 if (game.Settings.PlaySoundOnScore == 0)

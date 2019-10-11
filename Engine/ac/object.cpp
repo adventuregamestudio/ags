@@ -106,7 +106,7 @@ int Object_GetBaseline(ScriptObject *objj) {
     return GetObjectBaseline(objj->id);
 }
 
-void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction) {
+void Object_AnimateFrom(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction, int sframe) {
     if (direction == FORWARDS)
         direction = 0;
     else if (direction == BACKWARDS)
@@ -121,7 +121,11 @@ void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blo
     else
         quit("!Object.Animate: Invalid BLOCKING parameter");
 
-    AnimateObject(objj->id, loop, delay, repeat, direction, blocking);
+    AnimateObjectImpl(objj->id, loop, delay, repeat, direction, blocking, sframe);
+}
+
+void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction) {
+    Object_AnimateFrom(objj, loop, delay, repeat, blocking, direction, 0);
 }
 
 void Object_StopAnimating(ScriptObject *objj) {
@@ -534,6 +538,11 @@ RuntimeScriptValue Sc_Object_Animate(void *self, const RuntimeScriptValue *param
     API_OBJCALL_VOID_PINT5(ScriptObject, Object_Animate);
 }
 
+RuntimeScriptValue Sc_Object_AnimateFrom(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT6(ScriptObject, Object_AnimateFrom);
+}
+
 // int (ScriptObject *objj, ScriptObject *obj2)
 RuntimeScriptValue Sc_Object_IsCollidingWithObject(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -880,6 +889,7 @@ RuntimeScriptValue Sc_Object_SetY(void *self, const RuntimeScriptValue *params, 
 void RegisterObjectAPI()
 {
     ccAddExternalObjectFunction("Object::Animate^5",                Sc_Object_Animate);
+    ccAddExternalObjectFunction("Object::Animate^6",                Sc_Object_AnimateFrom);
     ccAddExternalObjectFunction("Object::IsCollidingWithObject^1",  Sc_Object_IsCollidingWithObject);
     ccAddExternalObjectFunction("Object::GetName^1",                Sc_Object_GetName);
     ccAddExternalObjectFunction("Object::GetProperty^1",            Sc_Object_GetProperty);

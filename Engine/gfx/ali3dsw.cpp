@@ -306,6 +306,7 @@ bool ALSoftwareGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 
 void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
 {
+  if (!_filter) return;
   int color = 0;
   if (colorToUse != nullptr) 
     color = makecol_depth(_mode.ColorDepth, colorToUse->r, colorToUse->g, colorToUse->b);
@@ -390,28 +391,35 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     ALSpriteBatch &batch = _spriteBatches[index];
     batch.List.clear();
     // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
-    int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
-    int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    const int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
+    const int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
+    // Surface was prepared externally (common for room cameras)
     if (desc.Surface != nullptr)
     {
         batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
         batch.Opaque = true;
         batch.IsVirtualScreen = false;
     }
+    // In case something was not initialized
     else if (desc.Viewport.IsEmpty() || !virtualScreen)
     {
         batch.Surface.reset();
         batch.Opaque = false;
         batch.IsVirtualScreen = false;
     }
+    // Drawing directly on a viewport without transformation (other than offset)
     else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f)
     {
-        Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
-        batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
+        if (!batch.Surface || !batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+        {
+            Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
+            batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
+        }
         batch.Opaque = true;
         batch.IsVirtualScreen = true;
     }
-    else if (!batch.Surface || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+    // No surface prepared and has transformation other than offset
+    else if (!batch.Surface || batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
     {
         batch.Surface.reset(new Bitmap(src_w, src_h));
         batch.Opaque = false;
@@ -593,6 +601,13 @@ void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
     virtualScreen = _origVirtualScreen;
   }
   _stageVirtualScreen = virtualScreen;
+
+  // Reset old virtual screen's subbitmaps
+  for (auto &batch : _spriteBatches)
+  {
+    if (batch.IsVirtualScreen)
+      batch.Surface.reset();
+  }
 }
 
 Bitmap *ALSoftwareGraphicsDriver::GetStageBackBuffer()

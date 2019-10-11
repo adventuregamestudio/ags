@@ -7,8 +7,9 @@ namespace AGS.Editor
 {
     public class InteractiveTasks
     {
-        private const int ENGINE_EXIT_CODE_NORMAL = 91;
-        private const int ENGINE_EXIT_CODE_CRASH = 92;
+        private const int ENGINE_EXIT_CODE_NORMAL = 0;
+        private const int ENGINE_EXIT_CODE_CRASH  = 92;
+        private const int ENGINE_EXIT_CODE_ERROR  = 93;
 
         private delegate void TestGameFinishedDelegate(int exitCode);
         public delegate void TestGameFinishedHandler();
@@ -141,7 +142,7 @@ namespace AGS.Editor
             {
                 // TODO: Check warnings.log and display
             }
-            else if (exitCode == ENGINE_EXIT_CODE_CRASH)
+            else if (exitCode == ENGINE_EXIT_CODE_CRASH || exitCode == ENGINE_EXIT_CODE_ERROR)
             {
             }
             else

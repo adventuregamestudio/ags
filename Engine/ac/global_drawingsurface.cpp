@@ -166,7 +166,8 @@ void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
     // it's probably too late but check anyway
     if (strlen(displbuf) > 2899)
         quit("!RawPrintMessageWrapped: message too long");
-    break_up_text_into_lines(displbuf, Lines, wid, font);
+    if (break_up_text_into_lines(displbuf, Lines, wid, font) == 0)
+        return;
 
     RAW_START();
     color_t text_color = play.raw_color;

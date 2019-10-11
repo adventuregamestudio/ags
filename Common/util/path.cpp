@@ -97,11 +97,9 @@ bool IsSameOrSubDir(const String &parent, const String &path)
 
 void FixupPath(String &path)
 {
-    if (path.IsEmpty())
-    {
-        return;
-    }
-    path.Replace('\\', '/');
+#if AGS_PLATFORM_OS_WINDOWS
+    path.Replace('\\', '/'); // bring Windows path separators to uniform style
+#endif
 }
 
 String MakePathNoSlash(const String &path)

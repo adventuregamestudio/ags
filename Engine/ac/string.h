@@ -46,7 +46,10 @@ int StrContains (const char *s1, const char *s2);
 const char* CreateNewScriptString(const char *fromText, bool reAllocate = true);
 DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate = true);
 class SplitLines;
-int break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines = -1);
+// Break up the text into lines restricted by the given width;
+// returns number of lines, or 0 if text cannot be split well to fit in this width.
+// Does additional processing, like removal of voice-over tags and text reversal if right-to-left text display is on.
+size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines = -1);
 void check_strlen(char*ptt);
 void my_strncpy(char *dest, const char *src, int len);
 

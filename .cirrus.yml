@@ -113,6 +113,32 @@ build_macos_task:
   binaries_artifacts:
     path: build_*/ags
 
+build_android_task:
+  container:
+    dockerfile: ci/android/Dockerfile
+    docker_arguments:
+      FROM_DEBIAN: debian:buster
+      AGS_BRANCH: release-3.5.0
+  git_submodules_script: git submodule update --init --recursive
+  symlink_nativelibs_script: ln -s /opt/nativelibs Android/nativelibs
+  build_library_script: |
+    export PATH=$PATH:$(echo /opt/android-ndk-*)
+    cd Android/library && ndk-build
+  build_launcher_script: |
+    export ANDROID_HOME=/opt/android-sdk
+    export JAVA_HOME=$(echo /opt/jdk*)
+    export PATH=$PATH:$JAVA_HOME/bin
+    ant=$(echo /opt/apache-ant-*/bin/ant)
+    cd Android/launcher_list && $ant debug && $ant release
+  rename_apks_script: |
+    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    cd Android/launcher_list/bin
+    for apk in $(find -maxdepth 1 -name "*.apk" -type f); do
+      mv -v $apk ${apk%%-*}-${version}-${apk#*-}
+    done
+  binaries_artifacts:
+    path: Android/launcher_list/bin/AGS-*.apk
+
 build_editor_task:
   windows_container:
     dockerfile: ci/windows/Dockerfile
@@ -140,9 +166,9 @@ build_editor_task:
     path: Solutions/.build/*/*.pdb
   ags_native_pdb_artifacts:
     path: Editor/AGS.Native/*/AGS.Native.pdb
-  delete_editor_pdb_script: >
+  delete_editor_pdb_and_xml_script: >
     cd Solutions/.build &&
-    del /s *.pdb
+    del /s *.pdb *.xml
   binaries_artifacts:
     path: Solutions/.build/*/*
 
@@ -209,7 +235,7 @@ editor_packaging_task:
   get_manual_script: >
     mkdir Windows\Installer\Source\Docs &&
     cd Windows\Installer\Source\Docs &&
-    call %CIRRUS_WORKING_DIR%\Script\get_manual.cmd
+    curl -fLOJ https://github.com/adventuregamestudio/ags-manual/releases/latest/download/ags-help.chm
   get_templates_script: >
     mkdir Windows\Installer\Source\Templates &&
     curl -fLSs https://github.com/%TEMPLATES_REPOSITORY%/tarball/master |
@@ -238,6 +264,7 @@ editor_packaging_task:
 upload_release_task:
   only_if: $CIRRUS_RELEASE != ''
   depends_on:
+    - build_android
     - build_linux
     - editor_packaging
     - linux_packaging
@@ -261,7 +288,8 @@ upload_release_task:
       "editor_packaging/installer/Windows/Installer/Output/AGS-$version.exe" \
       "editor_packaging/archive/AGS-$version.zip" \
       "build_linux/debian_packages/ags_${version}_i386.deb" \
-      "build_linux/debian_packages/ags_${version}_amd64.deb"
+      "build_linux/debian_packages/ags_${version}_amd64.deb" \
+      "build_android/binaries/Android/launcher_list/bin/AGS-${version}-debug.apk"
     do
       url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/$download"
       echo "Downloading $url"

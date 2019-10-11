@@ -41,6 +41,7 @@ int  GetObjectBaseline(int obn);
 //void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blocking);
 //void AnimateObject(int obn,int loopn,int spdd,int rept);
 void AnimateObject(int obn, int loopn, int spdd, int rept, int direction=0, int blocking=0);
+void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking, int sframe);
 void MergeObject(int obn);
 void StopObjectMoving(int objj);
 void ObjectOff(int obn);

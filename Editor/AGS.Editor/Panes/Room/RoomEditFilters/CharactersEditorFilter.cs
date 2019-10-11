@@ -15,7 +15,6 @@ namespace AGS.Editor
     /// </summary>
     public class CharactersEditorFilter : IRoomEditorFilter
     {
-        private const string MENU_ITEM_COPY_COORDS = "CopyCoordinatesToClipboard";
         private const string MENU_ITEM_COPY_CHAR_COORDS = "CopyCharacterCoordinatesToClipboard";
 
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
@@ -140,26 +139,6 @@ namespace AGS.Editor
             return true;
         }
 
-        private void CoordMenuEventHandler(object sender, EventArgs e)
-        {
-            int tempx = _menuClickX;
-            int tempy = _menuClickY;
-            string textToCopy = tempx.ToString() + ", " + tempy.ToString();
-            Utilities.CopyTextToClipboard(textToCopy);
-        }
-
-        private void ShowCoordMenu(MouseEventArgs e, RoomEditorState state)
-        {
-            EventHandler onClick = new EventHandler(CoordMenuEventHandler);
-            ContextMenuStrip menu = new ContextMenuStrip();
-            menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
-
-            _menuClickX = state.WindowXToRoom(e.X);
-            _menuClickY = state.WindowYToRoom(e.Y);
-
-            menu.Show(_panel, e.X, e.Y);
-        }
-
         private void CharCoordMenuEventHandler(object sender, EventArgs e)
         {
             int tempx = _selectedCharacter.StartX;
@@ -187,11 +166,7 @@ namespace AGS.Editor
         {
             _movingCharacterWithMouse = false;
 
-            if (e.Button == MouseButtons.Middle)
-            {
-                ShowCoordMenu(e, state);
-            }
-            else if (e.Button == MouseButtons.Right)
+            if (e.Button == MouseButtons.Right)
             {
                 ShowCharCoordMenu(e, state);
             }

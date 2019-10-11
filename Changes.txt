@@ -12,13 +12,15 @@ Common features:
  - Removed fonts count limit.
  - Raised imported sprites count limit to 90000 and removed total sprite count limit
    (this means you may have around 2 billions of dynamic sprites).
- - Removed length limit on the Button and TextBox text.
+ - Removed length limit on the Button and TextBox text (was 50 and 200 respectively).
+ - Removed limit on ListBox item count (was 200).
 
 Editor:
  - Editor requires .NET Framework 4.5 to run. Dropped Windows XP support.
  - Editor preferences are now stored using .NET configuration model, instead of the
    Windows registry.
  - Added support for custom UI color themes.
+ - Added "Window" - "Layout" submenu with commands for saving and loading panel layout.
  - Game and room templates are now by default saved in AppData/Local/AGS folder.
    Editor finds them in both program folder and AppData.
  - Added "Game file name" option to let users easily set compiled game file's name.
@@ -35,8 +37,6 @@ Editor:
  - Sprites have "Real" resolution type by default. "Low" and "High resolution" are kept
    for backwards compatibility only. When importing older games resolution type will be
    promoted to "Real" whenever it matches the game.
- - Adjusted saving sprite file to not cancel completely if only an optional step has failed
-   (such as copying a backup file).
  - New navigation bar in the room editor, which allows to select any room object
    or region for editing, show/hide and lock room objects and regions in any combination.
    These settings are saved in the special roomXXX.crm.user files.
@@ -60,6 +60,9 @@ Editor:
  - Build autocomplete table a little faster.
  - Corrected .NET version query for the anonymous statistics report.
  - Disabled screenshot made when sending a crash report, for security reasons.
+ - Fixed crash and corruption of project data when writing to full disk.
+ - Fixed saving sprite file to not cancel completely if only an optional step has failed
+   (such as copying a backup file).
  - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
  - Fixed view loops displayed with offset if the view panel area was scrolled
    horizontally prior to their creation.
@@ -108,6 +111,8 @@ Script API:
  - Added TextBox.ShowBorder.
  - Added Game.PlayVoiceClip() for playing non-blocking voice.
  - Added SkipCutscene() and eSkipScriptOnly cutscene mode.
+ - Allowed to change Mouse.ControlEnabled property value at runtime.
+ - Added Game.SimulateKeyPress().
  - Deprecated DrawingSurface.UseHighResCoordinates. Also, assigning it will be ignored if game's
    "Allow relative asset resolutions" option is disabled.
 
@@ -119,7 +124,8 @@ Engine:
  - Implemented support for sprite batch transformations.
  - Implemented custom room viewport and camera.
  - Removed 200 chars limit for DoOnceOnly token length.
- - Create all subdirectories when writing a file by script command.
+ - Try to create all subdirectories when calling File.Open() for writing,
+   DynamicSprite.SaveToFile() and Game.SetSaveGameDirectory().
  - Reimplemented threaded audio, should now work correctly on all platforms.
  - Improved performance of hardware-accelerated renderers by not preparing a stage bitmap
    for plugins unless any plugin hooked for the particular drawing events.
@@ -152,6 +158,8 @@ Engine:
  - Added Scavenger's palgorithms plugin to the list of builtins, for ports that use ones.
  - Added stubs for monkey0506's Steam and GoG plugins to let run games on systems that do not have
    Steam/GoG installed (all related functionality will be disabled though).
+ - Added stubs for SpriteFont plugin.
+ - Added missing stubs for agswadjetutil plugin.
 
 Linux:
  - Support for OpenGL renderer.

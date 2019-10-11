@@ -242,8 +242,8 @@ private:
     // Renders single sprite batch on the precreated surface
     void RenderSpriteBatch(const ALSpriteBatch &batch, Common::Bitmap *surface, int surf_offx, int surf_offy);
 
-    void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
+    void highcolor_fade_in(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
+    void highcolor_fade_out(Bitmap *vs, int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void __fade_from_range(PALETTE source, PALETTE dest, int speed, int from, int to) ;
     void __fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) ;
     int  GetAllegroGfxDriverID(bool windowed);

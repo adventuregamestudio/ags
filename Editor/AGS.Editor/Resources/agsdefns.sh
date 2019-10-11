@@ -421,29 +421,41 @@ internalstring autoptr builtin managed struct String {
   import String  Append(const string appendText);
   /// Returns a new string that has the extra character appended.
   import String  AppendChar(char extraChar);
-  /// Compares this string to the other string.
-  import int     CompareTo(const string otherString, StringCompareStyle style = eCaseInsensitive);
   import int     Contains(const string needle);   // $AUTOCOMPLETEIGNORE$
   /// Creates a copy of the string.
   import String  Copy();
-  /// Checks whether this string ends with the specified text.
-  import bool    EndsWith(const string endsWithText, StringCompareStyle style = eCaseInsensitive);
   /// Returns the index of the first occurrence of the needle in this string.
   import int     IndexOf(const string needle);
   /// Returns a lower-cased version of this string.
   import String  LowerCase();
-  /// Returns a copy of this string with all occurrences of LookForText replaced with ReplaceWithText
-  import String  Replace(const string lookForText, const string replaceWithText, StringCompareStyle style = eCaseInsensitive);
   /// Returns a new string, with the specified character changed.
   import String  ReplaceCharAt(int index, char newChar);
-  /// Checks whether this string starts with the specified text.
-  import bool    StartsWith(const string startsWithText, StringCompareStyle style = eCaseInsensitive);
   /// Returns a portion of the string.
   import String  Substring(int index, int length);
   /// Truncates the string down to the specified length by removing characters from the end.
   import String  Truncate(int length);
   /// Returns an upper-cased version of this string.
   import String  UpperCase();
+#ifdef SCRIPT_API_v350
+  /// Compares this string to the other string.
+  import int     CompareTo(const string otherString, StringCompareStyle style = eCaseInsensitive);
+  /// Checks whether this string ends with the specified text.
+  import bool    EndsWith(const string endsWithText, StringCompareStyle style = eCaseInsensitive);
+  /// Returns a copy of this string with all occurrences of LookForText replaced with ReplaceWithText
+  import String  Replace(const string lookForText, const string replaceWithText, StringCompareStyle style = eCaseInsensitive);
+  /// Checks whether this string starts with the specified text.
+  import bool    StartsWith(const string startsWithText, StringCompareStyle style = eCaseInsensitive);
+#endif
+#ifndef SCRIPT_API_v350
+  /// Compares this string to the other string.
+  import int     CompareTo(const string otherString, bool caseSensitive = false);
+  /// Checks whether this string ends with the specified text.
+  import bool    EndsWith(const string endsWithText, bool caseSensitive = false);
+  /// Returns a copy of this string with all occurrences of LookForText replaced with ReplaceWithText
+  import String  Replace(const string lookForText, const string replaceWithText, bool caseSensitive = false);
+  /// Checks whether this string starts with the specified text.
+  import bool    StartsWith(const string startsWithText, bool caseSensitive = false);
+#endif
   /// Converts the string to a float.
   readonly import attribute float AsFloat;
   /// Converts the string to an integer.
@@ -751,7 +763,7 @@ struct Mouse {
   /// Gets/sets whether the mouse cursor is visible.
   import static attribute bool Visible;
   /// Gets/sets whether the user-defined factors are applied to mouse movement
-  readonly import static attribute bool ControlEnabled;
+  import static attribute bool ControlEnabled;
   /// Gets/sets the mouse speed
   import static attribute float Speed;
   /// Fires mouse click event at current mouse position.
@@ -2027,6 +2039,8 @@ builtin managed struct Game {
 #ifdef SCRIPT_API_v350
   /// Play speech voice-over in non-blocking mode, optionally apply music and sound volume reduction
   import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
+  /// Simulate a keypress on the keyboard.
+  import static void   SimulateKeyPress(eKeyCode key);
 #endif
 #ifdef SCRIPT_API_v3507
   /// Gets the primary camera

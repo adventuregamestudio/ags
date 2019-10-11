@@ -827,7 +827,9 @@ namespace AGS.Editor
                         spritesheet = null;
                     }
 
-                    SpriteTools.ReplaceSprite(spr, spr.SourceFile, spr.Frame, spr.AlphaChannel, spr.RemapToGamePalette, spr.RemapToRoomPalette, spr.TransparentColour, spritesheet);
+                    // take the alpha channel preference from the specified import option
+                    // (instead of using whether the old sprite has an alpha channel)
+                    SpriteTools.ReplaceSprite(spr, spr.SourceFile, spr.Frame, spr.ImportAlphaChannel, spr.RemapToGamePalette, spr.RemapToRoomPalette, spr.TransparentColour, spritesheet);
                 }
                 catch (Exception ex)
                 {

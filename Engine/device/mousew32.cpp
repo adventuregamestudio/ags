@@ -357,9 +357,6 @@ void Mouse::DisableControl()
 {
     ControlEnabled = false;
     ConfineInCtrlRect = false;
-    SpeedVal = 1.f;
-    SpeedUnit = 1.f;
-    Speed = 1.f;
 }
 
 bool Mouse::IsControlEnabled()
@@ -369,8 +366,6 @@ bool Mouse::IsControlEnabled()
 
 void Mouse::SetSpeedUnit(float f)
 {
-    if (!ControlEnabled)
-        return;
     SpeedUnit = f;
     Speed = SpeedVal / SpeedUnit;
 }
@@ -382,8 +377,6 @@ float Mouse::GetSpeedUnit()
 
 void Mouse::SetSpeed(float speed)
 {
-    if (!ControlEnabled)
-        return;
     SpeedVal = Math::Max(0.f, speed);
     Speed = SpeedUnit * SpeedVal;
 }

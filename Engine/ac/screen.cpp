@@ -47,6 +47,11 @@ void my_fade_in(PALETTE p, int speed) {
         }
     }
 
+    // For software renderer we must reconstruct full game view on virtual screen,
+    // because it could have been filled with blackness since the last fade-out.
+    if (gfxDriver->UsesMemoryBackBuffer())
+        construct_virtual_screen(true);
+
     gfxDriver->FadeIn(speed, p, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
 }
 

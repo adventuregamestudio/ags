@@ -155,7 +155,7 @@ private:
         }
     }
 
-    void UnserializeContainer(const char *serializedData)
+    void UnserializeContainer(const char *serializedData) override
     {
         size_t item_count = (size_t)UnserializeInt();
         for (size_t i = 0; i < item_count; ++i)

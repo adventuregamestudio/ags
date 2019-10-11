@@ -20,7 +20,7 @@
 
 
 // Mouse control activation type
-enum MouseControl
+enum MouseControlWhen
 {
     kMouseCtrl_Never,       // never control mouse (track system mouse position)
     kMouseCtrl_Fullscreen,  // control mouse in fullscreen only
@@ -38,9 +38,13 @@ enum MouseSpeedDef
 
 using AGS::Common::String;
 
-// TODO: work further on remove the uses of this struct from the engine
-// and restrict it to only config/init stage. Apply its values to
+// TODO: reconsider the purpose of this struct.
+// Earlier I was trying to remove the uses of this struct from the engine
+// and restrict it to only config/init stage, while applying its values to
 // respective game/engine subcomponents at init stage.
+// However, it did not work well at all times, and consequently I thought
+// that engine may use a "config" object or combo of objects to store
+// current user config, which may also be changed from script, and saved.
 struct GameSetup {
     int digicard;
     int midicard;
@@ -63,7 +67,8 @@ struct GameSetup {
     char  override_multitasking;
     bool  override_upscale;
     float mouse_speed;
-    MouseControl mouse_control;
+    MouseControlWhen mouse_ctrl_when;
+    bool  mouse_ctrl_enabled;
     MouseSpeedDef mouse_speed_def;
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
     int   Supersampling;

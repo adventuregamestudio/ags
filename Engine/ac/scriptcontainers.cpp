@@ -16,6 +16,7 @@
 //
 //=============================================================================
 #include "ac/common.h" // quit
+#include "ac/string.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/scriptdict.h"
@@ -85,7 +86,7 @@ bool Dict_Contains(ScriptDictBase *dic, const char *key)
 
 const char *Dict_Get(ScriptDictBase *dic, const char *key)
 {
-    return dic->Get(key);
+    return CreateNewScriptString(dic->Get(key));
 }
 
 bool Dict_Remove(ScriptDictBase *dic, const char *key)

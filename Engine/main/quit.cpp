@@ -271,6 +271,8 @@ void quit(const char *quitmsg)
 
     our_eip = 9908;
 
+    shutdown_pathfinder();
+
     engine_shutdown_gfxmode();
 
     quit_message_on_exit(qmsg, alertis, qreason);

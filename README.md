@@ -1,5 +1,7 @@
 # Adventure Game Studio
 
+[![Build Status](https://api.cirrus-ci.com/github/adventuregamestudio/ags.svg?branch=release-3.5.0)](https://cirrus-ci.com/github/adventuregamestudio/ags)
+
 Adventure Game Studio (AGS) - is the IDE and the engine meant for creating and running videogames of adventure (aka "quest") genre. It has potential, although limited, support for other genres as well.
 
 Originally created by Chris Jones back in 1999, AGS was opensourced in 2011 and since continued to be developed by contributors.

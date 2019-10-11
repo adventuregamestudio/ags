@@ -335,6 +335,9 @@ public:
 
 // Loads new room data into the given RoomStruct object
 void load_room(const char *filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos);
+// Checks if it's necessary and upscales low-res room backgrounds and masks for the high resolution game
+// NOTE: it does not upscale object coordinates, because that is usually done when the room is loaded
+void UpscaleRoomBackground(RoomStruct *room, bool game_is_hires);
 // Ensures that all existing room masks match room background size and
 // MaskResolution property, resizes mask bitmaps if necessary.
 void FixRoomMasks(RoomStruct *room);

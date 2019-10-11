@@ -118,18 +118,16 @@ void GUILabel::PrepareTextToDraw()
     replace_macro_tokens(Flags & kGUICtrl_Translated ? String(get_translation(Text)) : Text, _textToDraw);
 }
 
-int GUILabel::SplitLinesForDrawing()
+void GUILabel::SplitLinesForDrawing(SplitLines &lines)
 {
-    // Use the engine's word wrap tool, to have hebrew-style writing
-    // and other features
-    break_up_text_into_lines(Width, Font, _textToDraw);
-    return numlines;
+    // Use the engine's word wrap tool, to have hebrew-style writing and other features
+    break_up_text_into_lines(_textToDraw, lines, Width, Font);
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
 {
     wouttext_outline(ds, X + 1 + 1, Y + 1 + 1, Font, text_color, Text);
-    if (IsEnabled())
+    if (IsGUIEnabled(this))
     {
         // draw a cursor
         int draw_at_x = wgettextwidth(Text, Font) + X + 3;

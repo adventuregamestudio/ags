@@ -25,6 +25,14 @@ namespace AGS.Editor.Preferences
     }
 
     [Flags]
+    public enum ReloadScriptOnExternalChange
+    {
+        Prompt = 0,
+        Always = 1,
+        Never = 2
+    }
+
+    [Flags]
     public enum SpriteImportMethod
     {
         Pixel0 = 0,
@@ -301,6 +309,20 @@ namespace AGS.Editor.Preferences
             set
             {
                 this["MessageBoxOnCompile"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("Prompt")]
+        public ReloadScriptOnExternalChange ReloadScriptOnExternalChange
+        {
+            get
+            {
+                return (ReloadScriptOnExternalChange)(this["ReloadScriptOnExternalChange"]);
+            }
+            set
+            {
+                this["ReloadScriptOnExternalChange"] = value;
             }
         }
 

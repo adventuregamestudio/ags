@@ -568,7 +568,7 @@ builtin managed struct Camera;
 builtin managed struct Viewport;
 #endif
 
-builtin managed struct Room {
+builtin struct Room {
   /// Gets a custom text property associated with this room.
   import static String GetTextProperty(const string property);
   /// Gets a drawing surface that allows you to manipulate the room background.
@@ -603,7 +603,7 @@ builtin managed struct Room {
   import static void ProcessClick(int x, int y, CursorMode);
 };
 
-builtin managed struct Parser {
+builtin struct Parser {
   /// Returns the parser dictionary word ID for the specified word
   import static int    FindWordID(const string wordToFind);
   /// Stores the supplied user text for later use with Said
@@ -1934,7 +1934,7 @@ builtin managed struct Character {
   char  on;  // $AUTOCOMPLETEIGNORE$
   };
 
-builtin managed struct Game {
+builtin struct Game {
   /// Changes the active translation.
   import static bool   ChangeTranslation(const string newTranslationFileName);
   /// Returns true the first time this command is called with this token.

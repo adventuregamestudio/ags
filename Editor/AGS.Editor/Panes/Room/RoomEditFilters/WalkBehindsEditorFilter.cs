@@ -33,7 +33,10 @@ namespace AGS.Editor
 
         public override void Paint(Graphics graphics, RoomEditorState state)
 		{
-			int lineYPos = GetCurrentAreaBaselineScreenY(state);
+            if (!Enabled)
+                return;
+
+            int lineYPos = GetCurrentAreaBaselineScreenY(state);
 			Pen pen = (Pen)GetPenForArea(SelectedArea).Clone();
 			pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
 
@@ -101,7 +104,7 @@ namespace AGS.Editor
                 _draggingBaseline = false;
                 return true;
             }
-            else if (!IsFilterOn()) return base.MouseUp(e, state);
+            else if (!Enabled) return base.MouseUp(e, state);
             else
             {
                 bool handledMouseUp = base.MouseUp(e, state);

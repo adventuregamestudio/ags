@@ -62,6 +62,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     // TODO: why we do not use this in the engine instead of
     // loaded_game_file_version?
     int               filever;  // just used by editor
+    Common::String    compiled_with; // version of AGS this data was created by
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50];
     AGS::Common::PropertySchema propSchema;
     std::vector<AGS::Common::StringIMap> charProps;

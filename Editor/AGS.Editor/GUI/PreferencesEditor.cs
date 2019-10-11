@@ -47,6 +47,7 @@ namespace AGS.Editor
             chkRemapBgImport.Checked = Factory.AGSEditor.Settings.RemapPalettizedBackgrounds;
             chkKeepHelpOnTop.Checked = Factory.AGSEditor.Settings.KeepHelpOnTop;
             chkPromptDialogOnTabsClose.Checked = Factory.AGSEditor.Settings.DialogOnMultipleTabsClose;
+            cmbScriptReloadOnExternalChange.SelectedIndex = (int)Factory.AGSEditor.Settings.ReloadScriptOnExternalChange;
             Utilities.CheckLabelWidthsOnForm(this);
 		}
 
@@ -84,6 +85,7 @@ namespace AGS.Editor
             Factory.AGSEditor.Settings.RemapPalettizedBackgrounds = chkRemapBgImport.Checked;
             Factory.AGSEditor.Settings.KeepHelpOnTop = chkKeepHelpOnTop.Checked;
             Factory.AGSEditor.Settings.DialogOnMultipleTabsClose = chkPromptDialogOnTabsClose.Checked;
+            Factory.AGSEditor.Settings.ReloadScriptOnExternalChange = (ReloadScriptOnExternalChange)cmbScriptReloadOnExternalChange.SelectedIndex;
 
             if ((ColorTheme)cmbColorTheme.SelectedItem != Factory.GUIController.ColorThemes.Current)
             {

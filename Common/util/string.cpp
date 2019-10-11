@@ -704,6 +704,17 @@ void String::ReplaceMid(size_t from, size_t count, const char *cstr)
     _meta->Length += length - count;
 }
 
+void String::Reverse()
+{
+    if (!_meta || GetLength() <= 1)
+        return;
+    for (char *fw = _meta->CStr, *bw = _meta->CStr + _meta->Length - 1;
+        *fw; ++fw, --bw)
+    {
+        std::swap(*fw, *bw);
+    }
+}
+
 void String::SetAt(size_t index, char c)
 {
     if (_meta && index < GetLength() && c)

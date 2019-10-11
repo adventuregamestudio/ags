@@ -23,6 +23,7 @@
 #include "ac/mouse.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
 #include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
@@ -176,9 +177,8 @@ int GetTextHeight(const char *text, int fontnum, int width) {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetTextHeight: invalid font number.");
 
-  break_up_text_into_lines(width, fontnum, text);
-
-  return getheightoflines(fontnum, numlines);
+  break_up_text_into_lines(text, Lines, width, fontnum);
+  return getheightoflines(fontnum, Lines.Count());
 }
 
 int GetFontHeight(int fontnum)

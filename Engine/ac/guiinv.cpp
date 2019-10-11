@@ -44,7 +44,8 @@ int GUIInvWindow::GetCharacterId() const
 
 void GUIInvWindow::Draw(Bitmap *ds)
 {
-    if ((!IsEnabled()) && (gui_disabled_style == GUIDIS_BLACKOUT))
+    const bool enabled = IsGUIEnabled(this);
+    if (!enabled && (gui_disabled_style == GUIDIS_BLACKOUT))
         return;
 
     // backwards compatibility
@@ -80,7 +81,7 @@ void GUIInvWindow::Draw(Bitmap *ds)
         }
     }
 
-    if (!IsEnabled() &&
+    if (!enabled &&
         gui_disabled_style == GUIDIS_GREYOUT && 
         play.inventory_greys_out == 1)
     {

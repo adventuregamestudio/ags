@@ -191,11 +191,23 @@ namespace AGS.Editor
         private void PromptUserThatFileHasChangedExternally()
         {
             _fileChangedExternally = false;
-            if (Factory.GUIController.ShowQuestion("The file '" + _script.FileName + "' has been modified externally. Do you want to reload it?", MessageBoxIcon.Question) == DialogResult.Yes)
+
+            switch(Factory.AGSEditor.Settings.ReloadScriptOnExternalChange)
             {
-                _script.LoadFromDisk();
-                scintilla.SetText(_script.Text);
-                _editorTextModifiedSinceLastCopy = false;
+                case Preferences.ReloadScriptOnExternalChange.Never:
+                    break;
+                case Preferences.ReloadScriptOnExternalChange.Prompt:
+                    string question = $"The file '{_script.FileName}' has been modified externally. Do you want to reload it?";
+                    if (Factory.GUIController.ShowQuestion(question, MessageBoxIcon.Question) != DialogResult.Yes)
+                    {
+                        break;
+                    }
+                    goto case Preferences.ReloadScriptOnExternalChange.Always;
+                case Preferences.ReloadScriptOnExternalChange.Always:
+                    _script.LoadFromDisk();
+                    scintilla.SetText(_script.Text);
+                    _editorTextModifiedSinceLastCopy = false;
+                    break;
             }
         }
 

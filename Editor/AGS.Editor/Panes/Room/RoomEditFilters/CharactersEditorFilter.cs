@@ -22,6 +22,8 @@ namespace AGS.Editor
         private Game _game = null;
         private Room _room;
         private Panel _panel;
+        RoomSettingsEditor _editor;
+        private bool _isOn = false;
         private Character _selectedCharacter = null;
         private bool _movingCharacterWithMouse = false;
         private int _menuClickX = 0;
@@ -30,11 +32,12 @@ namespace AGS.Editor
 
         public Character SelectedCharacter { get { return _selectedCharacter; } }
 
-        public CharactersEditorFilter(Panel displayPanel, Room room, Game game)
+        public CharactersEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room, Game game)
         {
             _room = room;
             _panel = displayPanel;
             _game = game;
+            _editor = editor;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             RoomItemRefs = new SortedDictionary<string, Character>();
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
@@ -48,18 +51,14 @@ namespace AGS.Editor
             }
         }
 
-        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
-        {
-            _selectedCharacter = null;
-        }
-
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             int xClick = state.WindowXToRoom(e.X);
             int yClick = state.WindowYToRoom(e.Y);
             Character character = GetCharacter(xClick, yClick, state);
             if (character != null) SelectCharacter(character, xClick, yClick, state);
-            
+            else _selectedCharacter = null;
+
             if (_selectedCharacter != null)
             {
                 Factory.GUIController.SetPropertyGridObject(_selectedCharacter);
@@ -216,10 +215,12 @@ namespace AGS.Editor
 
         public void Paint(Graphics graphics, RoomEditorState state)
         {
+            if (!Enabled || _selectedCharacter == null)
+                return;
+
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
-
-            if (_selectedCharacter != null)
+            
             {
                 Rectangle rect = GetCharacterRect(_selectedCharacter, state);
                 graphics.DrawRectangle(pen, rect);
@@ -290,19 +291,27 @@ namespace AGS.Editor
         {
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
+            _isOn = true;
         }
 
         public void FilterOff()
         {
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
+            _isOn = false;
         }
 
         public void UpdateCharactersRoom(Character character, int oldRoom)
         {
             if (character.StartingRoom == _room.Number)
+            {
                 AddCharacterRef(character);
+            }
             else if (oldRoom == _room.Number && character.StartingRoom != _room.Number)
+            {
                 RemoveCharacterRef(character);
+                if (_selectedCharacter == character)
+                    _selectedCharacter = null;
+            }
         }
 
         private void SetPropertyGridList()
@@ -317,12 +326,35 @@ namespace AGS.Editor
             Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
         }
 
+        // Refreshes property grid list explicitly for this room editor's content document;
+        // this is done to work around regular update system which assumes editor to be
+        // an active pane, which is not necessarily the case (this could be background operation).
+        // NOTE: this is done exclusively for Character Filter, because it's the only one
+        // that shares objects with other panes (Character Editor pane).
+        private void SetPropertyGridListExplicit()
+        {
+            object selObject = _editor.ContentDocument.SelectedPropertyGridObject;
+            Dictionary<string, object> list = new Dictionary<string, object>();
+            list.Add(_room.PropertyGridTitle, _room);
+            foreach (var item in RoomItemRefs)
+            {
+                list.Add(item.Value.PropertyGridTitle, item.Value);
+            }
+            _editor.ContentDocument.PropertyGridObjectList = list;
+            if (!list.ContainsValue(selObject))
+                _editor.ContentDocument.SelectedPropertyGridObject = _room;
+        }
+
         private void GUIController_OnPropertyObjectChanged(object newPropertyObject)
         {
             if (newPropertyObject is Character)
             {
-                SetSelectedCharacter((Character)newPropertyObject);                 
-                _panel.Invalidate();
+                Character c = (Character)newPropertyObject;
+                if (c.StartingRoom == _room.Number)
+                {
+                    SetSelectedCharacter(c);
+                    _panel.Invalidate();
+                }
             }
             else if (newPropertyObject is Room)
             {
@@ -343,6 +375,7 @@ namespace AGS.Editor
         public bool Modified { get; set; }
         public bool Visible { get; set; }
         public bool Locked { get; set; }
+        public bool Enabled { get { return _isOn; } }
 
         public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
         /// <summary>
@@ -502,6 +535,7 @@ namespace AGS.Editor
             UpdateCharactersRoom(e.Character, e.PreviousRoom);
             OnItemsChanged(this, null);
             Invalidate();
+            SetPropertyGridListExplicit();
         }
 
         private void AddCharacterRef(Character c)

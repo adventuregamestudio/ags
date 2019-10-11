@@ -105,8 +105,6 @@ void engine_pre_gfxmode_screen_cleanup()
 // Release virtual screen
 void engine_pre_gfxsystem_screen_destroy()
 {
-    delete sub_vscreen;
-    sub_vscreen = nullptr;
 }
 
 // Setup color conversion parameters

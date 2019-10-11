@@ -44,6 +44,7 @@ namespace AGS.Types
             IEditorComponent owner, string iconKey)
 		{
 			_control = control;
+            _control.ContentDocument = this;
 			_name = name;
 			_owner = owner;
             _iconKey = iconKey;

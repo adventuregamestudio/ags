@@ -7,7 +7,8 @@ namespace AGS.Types
 {
 	public class EditorContentPanel : UserControl, IDisposable, IDockingContent
 	{
-        IDockingContainer _dockingContainer;        
+        IDockingContainer _dockingContainer;
+        ContentDocument _contentDocument;
 
         public EditorContentPanel()
 			: base()
@@ -18,6 +19,12 @@ namespace AGS.Types
         {
             get { return _dockingContainer; }
             set { _dockingContainer = value; }
+        }
+
+        public ContentDocument ContentDocument
+        {
+            get { return _contentDocument; }
+            set { _contentDocument = value; }
         }
 
         public void CommandClick(string command)

@@ -137,8 +137,6 @@ CachedActSpsData* actspswbcache;
 
 bool current_background_is_dirty = false;
 
-Bitmap *sub_vscreen = nullptr;
-
 // Room background sprite
 IDriverDependantBitmap* roomBackgroundBmp = nullptr;
 // Buffer and info flags for viewport/camera pairs rendering in software mode
@@ -438,18 +436,6 @@ void dispose_room_drawdata()
 
 void on_mainviewport_changed()
 {
-    if (gfxDriver->UsesMemoryBackBuffer())
-    {
-        const Rect &main_view = play.GetMainViewport();
-        gfxDriver->SetMemoryBackBuffer(nullptr); // make it restore original virtual screen
-        if (main_view.GetSize() != game.GetGameRes())
-        {
-            delete sub_vscreen;
-            sub_vscreen = BitmapHelper::CreateSubBitmap(gfxDriver->GetMemoryBackBuffer(), main_view);
-            gfxDriver->SetMemoryBackBuffer(sub_vscreen, main_view.Left, main_view.Top);
-        }
-    }
-
     if (!gfxDriver->RequiresFullRedrawEachFrame())
     {
         init_invalid_regions(-1, play.GetMainViewport().GetSize(), RectWH(play.GetMainViewport().GetSize()));
@@ -498,7 +484,7 @@ void sync_roomview(Viewport *view)
 {
     if (view->GetCamera() == nullptr)
         return;
-    init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(), view->GetRect());
+    init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(), play.GetRoomViewportAbs(view->GetID()));
     prepare_roomview_frame(view);
 }
 
@@ -642,9 +628,11 @@ void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text
 // where whole game screen changes size between large and small rooms
 void render_black_borders()
 {
-    const Rect &viewport = play.GetMainViewport();
-    if (!gfxDriver->UsesMemoryBackBuffer())
+    if (gfxDriver->UsesMemoryBackBuffer())
+        return;
     {
+        gfxDriver->BeginSpriteBatch(RectWH(game.GetGameRes()), SpriteTransform());
+        const Rect &viewport = play.GetMainViewport();
         if (viewport.Top > 0)
         {
             // letterbox borders
@@ -1971,15 +1959,15 @@ PBitmap draw_room_background(PViewport view, const SpriteTransform &room_trans)
 }
 
 
-void draw_fps()
+void draw_fps(const Rect &viewport)
 {
+    // TODO: make allocated "fps struct" instead of using static vars!!
     static IDriverDependantBitmap* ddb = nullptr;
     static Bitmap *fpsDisplay = nullptr;
-
-    const Rect &ui_view = play.GetUIViewport();
+    const int font = FONT_NORMAL;
     if (fpsDisplay == nullptr)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(ui_view.GetWidth(), (getfontheight_outlined(FONT_SPEECH) + 5), game.GetColorDepth());
+        fpsDisplay = BitmapHelper::CreateBitmap(viewport.GetWidth(), (getfontheight_outlined(font) + 5), game.GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
@@ -2000,17 +1988,17 @@ void draw_fps()
     } else {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
-    wouttext_outline(fpsDisplay, 1, 1, FONT_SPEECH, text_color, fps_buffer);
+    wouttext_outline(fpsDisplay, 1, 1, font, text_color, fps_buffer);
 
     char loop_buffer[60];
     sprintf(loop_buffer, "Loop %u", loopcounter);
-    wouttext_outline(fpsDisplay, ui_view.GetWidth() / 2, 1, FONT_SPEECH, text_color, loop_buffer);
+    wouttext_outline(fpsDisplay, viewport.GetWidth() / 2, 1, font, text_color, loop_buffer);
 
     if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
     else
         ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
-    int yp = ui_view.GetHeight() - fpsDisplay->GetHeight();
+    int yp = viewport.GetHeight() - fpsDisplay->GetHeight();
     gfxDriver->DrawSprite(1, yp, ddb);
     invalidate_sprite(1, yp, ddb, false);
 }
@@ -2349,16 +2337,16 @@ void construct_game_screen_overlay(bool draw_mouse)
 
 void construct_engine_overlay()
 {
-    const Rect &viewport = play.GetMainViewport();
+    const Rect &viewport = RectWH(game.GetGameRes());
     gfxDriver->BeginSpriteBatch(viewport, SpriteTransform());
 
     // draw the debug console, if appropriate
     if ((play.debug_mode > 0) && (display_console != 0))
     {
-        //int otextc = ds->GetTextColor();
+        const int font = FONT_NORMAL;
         int ypp = 1;
-        int txtspacing = getfontspacing_outlined(0);
-        int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
+        int txtspacing = getfontspacing_outlined(font);
+        int barheight = getheightoflines(font, DEBUG_CONSOLE_NUMLINES - 1) + 4;
 
         if (debugConsoleBuffer == nullptr)
         {
@@ -2370,7 +2358,7 @@ void construct_engine_overlay()
         debugConsoleBuffer->FillRect(Rect(0, 0, viewport.GetWidth() - 1, barheight), draw_color);
         color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
         for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
-            wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
+            wouttextxy(debugConsoleBuffer, 1, ypp, font, text_color, debug_line[jj]);
             ypp += txtspacing;
         }
 
@@ -2384,7 +2372,7 @@ void construct_engine_overlay()
     }
 
     if (display_fps)
-        draw_fps();
+        draw_fps(viewport);
 }
 
 static void update_shakescreen()
@@ -2399,9 +2387,14 @@ static void update_shakescreen()
 }
 
 // Draw everything 
-void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
-
+void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
+{
+    // Don't render if skipping cutscene
     if (play.fast_forward)
+        return;
+    // Don't render if we've just entered new room and are before fade-in
+    // TODO: find out why this is not skipped for 8-bit games
+    if ((in_new_room > 0) & (game.color_depth > 1))
         return;
 
     // TODO: find out if it's okay to move shake to update function

@@ -296,25 +296,25 @@ void DrawingSurface_DrawStringWrapped_Old(ScriptDrawingSurface *sds, int xx, int
 void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg) {
     int linespacing = getfontspacing_outlined(font);
 
-    break_up_text_into_lines(wid, font, (char*)msg);
+    break_up_text_into_lines(msg, Lines, wid, font);
 
     Bitmap *ds = sds->StartDrawing();
     color_t text_color = sds->currentColour;
 
-    for (int i = 0; i < numlines; i++)
+    for (size_t i = 0; i < Lines.Count(); i++)
     {
         int drawAtX = xx;
 
         if (alignment & kMAlignHCenter)
         {
-            drawAtX = xx + ((wid / 2) - wgettextwidth(lines[i], font) / 2);
+            drawAtX = xx + ((wid / 2) - wgettextwidth(Lines[i], font) / 2);
         }
         else if (alignment & kMAlignRight)
         {
-            drawAtX = (xx + wid) - wgettextwidth(lines[i], font);
+            drawAtX = (xx + wid) - wgettextwidth(Lines[i], font);
         }
 
-        wouttext_outline(ds, drawAtX, yy + linespacing*i, font, text_color, lines[i]);
+        wouttext_outline(ds, drawAtX, yy + linespacing*i, font, text_color, Lines[i]);
     }
 
     sds->FinishedDrawing();

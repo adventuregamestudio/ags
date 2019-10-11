@@ -280,7 +280,7 @@ void process_event(EventHappened*evp) {
 
                     WaitForNextFrame();
                 }
-                gfxDriver->SetMemoryBackBuffer(saved_backbuf, viewport.Left, viewport.Top);
+                gfxDriver->SetMemoryBackBuffer(saved_backbuf);
             }
             play.screen_is_faded_out = 0;
         }

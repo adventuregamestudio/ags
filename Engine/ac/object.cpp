@@ -35,6 +35,7 @@
 #include "gfx/gfx_def.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_object.h"
+#include "ac/movelist.h"
 
 using namespace AGS::Common;
 

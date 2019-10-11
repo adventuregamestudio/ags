@@ -250,6 +250,15 @@ PBitmap FixBitmap(PBitmap bmp, int width, int height)
     return bmp;
 }
 
+void UpscaleRoomBackground(RoomStruct *room, bool game_is_hires)
+{
+    if (room->DataVersion >= kRoomVersion_303b || !game_is_hires)
+        return;
+    for (size_t i = 0; i < room->BgFrameCount; ++i)
+        room->BgFrames[i].Graphic = FixBitmap(room->BgFrames[i].Graphic, room->Width, room->Height);
+    FixRoomMasks(room);
+}
+
 void FixRoomMasks(RoomStruct *room)
 {
     if (room->MaskResolution <= 0)

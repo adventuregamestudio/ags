@@ -99,8 +99,6 @@ extern ccInstance *gameinst, *roominst;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern MoveList *mls;
-extern int numlines;
-extern char lines[MAXLINE][200];
 extern color palette[256];
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
@@ -345,14 +343,14 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
     // TODO: use generic function from the engine instead of having copy&pasted code here
     int linespacing = getfontspacing_outlined(font);
 
-    break_up_text_into_lines (wid, font, (char*)text);
+    break_up_text_into_lines(text, Lines, wid, font);
 
     Bitmap *ds = gfxDriver->GetStageBackBuffer();
     if (!ds)
         return;
     color_t text_color = ds->GetCompatibleColor(color);
-    for (int i = 0; i < numlines; i++)
-        draw_and_invalidate_text(ds, xx, yy + linespacing*i, font, text_color, lines[i]);
+    for (size_t i = 0; i < Lines.Count(); i++)
+        draw_and_invalidate_text(ds, xx, yy + linespacing*i, font, text_color, Lines[i]);
 }
 
 Bitmap glVirtualScreenWrap;

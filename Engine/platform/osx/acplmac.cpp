@@ -71,7 +71,10 @@ void AGSMac::DisplayAlert(const char *text, ...) {
   va_start(ap, text);
   vsprintf(displbuf, text, ap);
   va_end(ap);
-  printf("%s\n", displbuf);
+  if (_logToStdErr)
+    fprintf(stderr, "%s\n", displbuf);
+  else
+    fprintf(stdout, "%s\n", displbuf);
 }
 
 unsigned long AGSMac::GetDiskFreeSpaceMB() {

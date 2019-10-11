@@ -1,5 +1,4 @@
 Following assemblies must be in this directory for the Editor to build and run:
 
 1. AGS.Native.dll - this library is built as a part of AGS.Editor.Full solution in this very repository.
-2. WeifenLuo.WinFormsUI.Docking.dll - a part of DockPanel Suite, get one from http://dockpanelsuite.com/
-3. irrKlang.NET4.0.dll and ikpMP3.dll - a part of irrKlang 1.6 (32-bit), get package at https://www.ambiera.com/irrklang/downloads.html
+2. irrKlang.NET4.0.dll and ikpMP3.dll - a part of irrKlang 1.6 (32-bit), get package at https://www.ambiera.com/irrklang/downloads.html

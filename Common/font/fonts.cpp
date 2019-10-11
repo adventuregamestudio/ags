@@ -188,35 +188,68 @@ bool use_default_linespacing(size_t fontNumber)
     return fonts[fontNumber].Info.LineSpacing == 0;
 }
 
-char lines[MAXLINE][200];
-int  numlines;
-
 // Project-dependent implementation
 extern int wgettextwidth_compensate(const char *tex, int font);
 
-// Break up the text into lines
-void split_lines(const char *todis, int wii, int fonnt) {
-    // v2.56.636: rewrote this function because the old version
-    // was crap and buggy
-    int i = 0;
-    int nextCharWas;
-    int splitAt;
-    char *theline;
-    // make a copy, since we change characters in the original string
-    // and this might be in a read-only bit of memory
-    char textCopyBuffer[STD_BUFFER_SIZE];
-    strcpy(textCopyBuffer, todis);
-    theline = textCopyBuffer;
-    unescape(theline);
+namespace AGS { namespace Common { SplitLines Lines; } }
 
+// Replaces AGS-specific linebreak tags with common '\n'
+void unescape_script_string(const char *cstr, std::vector<char> &out)
+{
+    out.clear();
+    // Handle the special case of the first char
+    if (cstr[0] == '[')
+    {
+        out.push_back('\n');
+        cstr++;
+    }
+    // Replace all other occurrences as they're found
+    const char *off;
+    for (off = cstr; *off; ++off)
+    {
+        if (*off != '[') continue;
+        if (*(off - 1) == '\\')
+        {
+            // convert \[ into [
+            out.insert(out.end(), cstr, off - 1);
+            out.push_back('[');
+        }
+        else
+        {
+            // convert [ into \n
+            out.insert(out.end(), cstr, off);
+            out.push_back('\n');
+        }
+        cstr = off + 1;
+    }
+    out.insert(out.end(), cstr, off + 1);
+}
+
+// Break up the text into lines
+void split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
+    // NOTE: following hack accomodates for the legacy math mistake in split_lines.
+    // It's hard to tell how cruicial it is for the game looks, so research may be needed.
+    // TODO: IMHO this should rely not on game format, but script API level, because it
+    // defines necessary adjustments to game scripts. If you want to fix this, find a way to
+    // pass this flag here all the way from game.options[OPT_BASESCRIPTAPI] (or game format).
+    //
+    // if (game.options[OPT_BASESCRIPTAPI] < $Your current version$)
+    wii -= 1;
+
+    lines.Reset();
+    unescape_script_string(todis, lines.LineBuf);
+    char *theline = &lines.LineBuf.front();
+
+    size_t i = 0;
+    size_t splitAt;
+    char nextCharWas;
     while (1) {
         splitAt = -1;
 
         if (theline[i] == 0) {
             // end of the text, add the last line if necessary
             if (i > 0) {
-                strcpy(lines[numlines], theline);
-                numlines++;
+                lines.Add(theline);
             }
             break;
         }
@@ -229,7 +262,7 @@ void split_lines(const char *todis, int wii, int fonnt) {
         if (theline[i] == '\n')
             splitAt = i;
         // otherwise, see if we are too wide
-        else if (wgettextwidth_compensate(theline, fonnt) >= wii) {
+        else if (wgettextwidth_compensate(theline, fonnt) > wii) {
             int endline = i;
             while ((theline[endline] != ' ') && (endline > 0))
                 endline--;
@@ -244,15 +277,14 @@ void split_lines(const char *todis, int wii, int fonnt) {
         // restore the character that was there before
         theline[i + 1] = nextCharWas;
 
-        if (splitAt >= 0) {
+        if (splitAt != -1) {
             // add this line
             nextCharWas = theline[splitAt];
             theline[splitAt] = 0;
-            strcpy(lines[numlines], theline);
-            numlines++;
+            lines.Add(theline);
             theline[splitAt] = nextCharWas;
-            if (numlines >= MAXLINE) {
-                strcat(lines[numlines - 1], "...");
+            if (lines.Count() >= max_lines) {
+                lines[lines.Count() - 1].Append("...");
                 break;
             }
             // the next line starts from here

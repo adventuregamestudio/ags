@@ -23,6 +23,7 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game title";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
+        public const string PROPERTY_ALLOWRELATIVEASSETS = "Allow relative asset resolutions";
         public const string PROPERTY_LEGACY_HIRES_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
@@ -71,7 +72,7 @@ namespace AGS.Types
         private bool _enforceNewStrings = true;
         private bool _enforceNewAudio = true;
         private bool _oldCustomDlgOptsAPI = false;
-        private int _playSoundOnScore = 0;
+        private int _playSoundOnScore = -1;
         private CrossfadeSpeed _crossfadeMusic = CrossfadeSpeed.No;
         private int _dialogOptionsGUI = 0;
         private int _dialogOptionsGap = 0;
@@ -619,7 +620,7 @@ namespace AGS.Types
 
         [DisplayName("Play sound when the player gets points")]
         [Description("This sound number will be played whenever the player scores points (0 to disable)")]
-        [DefaultValue(0)]
+        [DefaultValue(-1)]
         [Category("Sound")]
         [TypeConverter(typeof(AudioClipTypeConverter))]
         public int PlaySoundOnScore

@@ -46,8 +46,7 @@
 #include "media/audio/audio_system.h"
 #include "ac/timer.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 extern GameState play;
 extern GameSetupStruct game;
@@ -91,10 +90,10 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     int paddingDoubledScaled = padding * 2; // Just in case screen size does is not neatly divisible by 320x200
 
     ensure_text_valid_for_font(todis, usingfont);
-    break_up_text_into_lines(wii-2*padding,usingfont,todis);
+    break_up_text_into_lines(todis, Lines, wii-2*padding, usingfont);
     disp.lineheight = getfontheight_outlined(usingfont);
     disp.linespacing= getfontspacing_outlined(usingfont);
-    disp.fulltxtheight = getheightoflines(usingfont, numlines);
+    disp.fulltxtheight = getheightoflines(usingfont, Lines.Count());
 
     // if it's a normal message box and the game was being skipped,
     // ensure that the screen is up to date before the message box
@@ -159,7 +158,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     }
     else if (xx<0) xx= ui_view.GetWidth()/2-wii/2;
 
-    int ee, extraHeight = paddingDoubledScaled;
+    int extraHeight = paddingDoubledScaled;
     color_t text_color = MakeColor(15);
     if (blocking < 2)
         remove_screen_overlay(OVER_TEXTMSG);
@@ -196,7 +195,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         else if ((ShouldAntiAliasText()) && (game.GetColorDepth() >= 24))
             alphaChannel = true;
 
-        for (ee=0;ee<numlines;ee++) {
+        for (size_t ee=0;ee<Lines.Count();ee++) {
             //int ttxp=wii/2 - wgettextwidth_compensate(lines[ee], usingfont)/2;
             int ttyp=ttxtop+ee*disp.linespacing;
             // asspch < 0 means that it's inside a text box so don't
@@ -208,12 +207,12 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 else
                     text_color = text_window_ds->GetCompatibleColor(-asspch);
 
-                wouttext_aligned(text_window_ds, ttxleft, ttyp, oriwid, usingfont, text_color, lines[ee], play.text_align);
+                wouttext_aligned(text_window_ds, ttxleft, ttyp, oriwid, usingfont, text_color, Lines[ee], play.text_align);
             }
             else {
                 text_color = text_window_ds->GetCompatibleColor(asspch);
                 //wouttext_outline(ttxp,ttyp,usingfont,lines[ee]);
-                wouttext_aligned(text_window_ds, ttxleft, ttyp, wii, usingfont, text_color, lines[ee], play.speech_text_align);
+                wouttext_aligned(text_window_ds, ttxleft, ttyp, wii, usingfont, text_color, Lines[ee], play.speech_text_align);
             }
         }
     }
@@ -229,8 +228,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
-        for (ee=0;ee<numlines;ee++)
-            wouttext_aligned (text_window_ds, xoffs, yoffs + ee * disp.linespacing, oriwid, usingfont, text_color, lines[ee], play.text_align);
+        for (size_t ee=0;ee<Lines.Count();ee++)
+            wouttext_aligned (text_window_ds, xoffs, yoffs + ee * disp.linespacing, oriwid, usingfont, text_color, Lines[ee], play.text_align);
     }
 
     int ovrtype = OVER_TEXTMSG;

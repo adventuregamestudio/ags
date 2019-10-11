@@ -1,0 +1,283 @@
+build_windows_task:
+  windows_container:
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+  env:
+    matrix:
+      - BUILD_CONFIG: Release
+      - BUILD_CONFIG: Debug
+    ALLEGRO_RELEASE: v4.4.3.1-agspatch-2
+    AGS_DIRECTX_LIB: C:\Lib\DirectX
+    AGS_LIBOGG_LIB: C:\Lib\Xiph
+    AGS_LIBTHEORA_LIB: C:\Lib\Xiph
+    AGS_LIBVORBIS_LIB: C:\Lib\Xiph
+  build_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    set "AGS_ALLEGRO_INCLUDE=C:\Source\Allegro\%ALLEGRO_RELEASE%\include;C:\Source\Allegro\%ALLEGRO_RELEASE%\build\VS2015\include" &&
+    set "AGS_ALLEGRO_LIB=C:\Lib\Allegro\%ALLEGRO_RELEASE%" &&
+    cd Solutions &&
+    msbuild Engine.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
+  engine_pdb_artifacts:
+    path: Solutions/.build/*/*.pdb
+  delete_engine_pdb_script: >
+    cd Solutions/.build &&
+    del /s *.pdb *.map *.ilk *.iobj *.ipdb
+  binaries_artifacts:
+    path: Solutions/.build/*/*
+
+build_linux_task:
+  container:
+    dockerfile: ci/linux/Dockerfile
+    docker_arguments:
+      matrix:
+        - FROM_DEBIAN: debian:jessie
+        - FROM_DEBIAN: i386/debian:jessie
+  env:
+    matrix:
+      - BUILD_SYSTEM: cmake
+        BUILD_TYPE: release
+      - BUILD_SYSTEM: cmake
+        BUILD_TYPE: debug
+      - BUILD_SYSTEM: debian
+        RPATH_PREFIX: lib
+      - BUILD_SYSTEM: debian
+      - BUILD_SYSTEM: make
+  build_script: |
+    arch=$(dpkg --print-architecture)
+    case $BUILD_SYSTEM in
+      cmake)
+        filename=${BUILD_TYPE}_$arch
+        mkdir build_$filename && cd build_$filename
+        cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make
+        ;;
+      debian)
+        version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+        sed -i -s "s/ags \(.*\)(.*)/ags \($version\)\1/" debian/changelog
+        case $arch in
+          amd64)
+            bit=64
+            ;;
+          i386)
+            bit=32
+            ;;
+          *)
+            echo "Unknown architecture"
+            exit 1
+            ;;
+        esac
+        if [ -n "$RPATH_PREFIX" ]; then
+          DEB_BUILD_OPTIONS="rpath=$RPATH_PREFIX$bit" fakeroot debian/rules binary
+          sed -E "/^BI(NDMOUNT|T)=/d" debian/ags+libraries/hooks/B00_copy_libs.sh | BIT=$bit BINDMOUNT=$(pwd) sh
+          ar -p ../ags_${version}_$arch.deb data.tar.xz | unxz | tar -f - -xvC data --transform "s/.*ags/ags$bit/" ./usr/bin/ags
+          cd data && tar -cvzf ../data_$arch.tar.gz *
+        else
+          fakeroot debian/rules binary
+          mv ../ags_${version}_$arch.deb .
+        fi
+        ;;
+      make)
+        make --directory=Engine
+        mkdir build_$arch && mv Engine/ags build_$arch/
+        ;;
+      *)
+        echo "Invalid build system"
+        exit 1
+        ;;
+    esac
+  binaries_artifacts:
+    path: build_*/ags
+  debian_packages_artifacts:
+    path: ags*.deb
+  debian_files_artifacts:
+    path: data_*.tar.gz
+
+build_macos_task:
+  only_if: $CIRRUS_RELEASE == ''
+  osx_instance:
+    matrix:
+      - image: mojave-xcode-10.2
+      - image: high-sierra-xcode-9.4.1
+  env:
+    matrix:
+      - BUILD_TYPE: debug
+      - BUILD_TYPE: release
+    CMAKE_VERSION: 3.14.5
+  install_cmake_script: |
+    url="https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-Darwin-x86_64.tar.gz"
+    echo "Downloading CMake from $url"
+    curl -fLSs "$url" | bsdtar -f - -xvzC /Applications --strip-components 1
+  build_script: |
+    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
+    mkdir build_${xcode}_$BUILD_TYPE && cd build_${xcode}_$BUILD_TYPE
+    /Applications/CMake.app/Contents/bin/cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && make
+  binaries_artifacts:
+    path: build_*/ags
+
+build_editor_task:
+  windows_container:
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+  env:
+    matrix:
+      - BUILD_CONFIG: Release
+      - BUILD_CONFIG: Debug
+    ALLEGRO_RELEASE: v4.4.3.1-agspatch-2
+    AGS_DIRECTX_LIB: C:\Lib\DirectX
+  nuget_packages_cache:
+    folder: Solutions\packages
+    fingerprint_script: type Editor\AGS.Editor\packages.config
+    populate_script: nuget restore Solutions\AGS.Editor.Full.sln
+  build_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    set "AGS_ALLEGRO_INCLUDE=C:\Source\Allegro\%ALLEGRO_RELEASE%\include;C:\Source\Allegro\%ALLEGRO_RELEASE%\build\VS2015\include" &&
+    set "AGS_ALLEGRO_LIB=C:\Lib\Allegro\%ALLEGRO_RELEASE%" &&
+    set "UseEnv=true" &&
+    copy C:\Lib\irrKlang\*.dll Editor\References\ &&
+    cd Solutions &&
+    cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\8.0\Lib\Win8\um\x86;!LIB!" &&
+    msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform="Mixed Platforms" /maxcpucount /nologo"
+  ags_editor_pdb_artifacts:
+    path: Solutions/.build/*/*.pdb
+  ags_native_pdb_artifacts:
+    path: Editor/AGS.Native/*/AGS.Native.pdb
+  delete_editor_pdb_script: >
+    cd Solutions/.build &&
+    del /s *.pdb
+  binaries_artifacts:
+    path: Solutions/.build/*/*
+
+linux_packaging_task:
+  depends_on:
+    - build_linux
+  freebsd_instance:
+    image: freebsd-12-0-release-amd64
+  env:
+    ALLEGRO_RELEASE: v4.4.3.1-agspatch-2
+  package_script: |
+    tmp=/tmp/bundle$$
+    mkdir -p $tmp/data
+    for arch in i386 amd64
+    do
+      case $arch in
+        amd64)
+          bit=64
+          ;;
+        i386)
+          bit=32
+          ;;
+      esac
+      echo Downloading files for $arch
+      url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/build_linux/debian_files/data_$arch.tar.gz"
+      curl -fLsS "$url" | tar -f - -xvzC $tmp/data
+      echo Downloading Allegro $ALLEGRO_RELEASE $arch
+      mkdir $tmp/allegro_${ALLEGRO_RELEASE}_$arch
+      url="https://github.com/adventuregamestudio/lib-allegro/releases/download/$ALLEGRO_RELEASE/lib-allegro_release_$arch.tar.gz"
+      curl -fLsS "$url" | tar -f - -xvzC $tmp/allegro_${ALLEGRO_RELEASE}_$arch --strip-components 1 -s '|pkgconfig/.*||' lib
+      find $tmp/allegro_${ALLEGRO_RELEASE}_$arch \( -name "alleg-*" -or -name "liballeg.so.?.?" \) \
+        -exec cp -v "{}" $tmp/data/lib$bit/ \;
+      echo alleg-sdl2digi.so >> $tmp/data/lib$bit/modules.lst
+    done
+    cp -v debian/copyright $tmp/data/licenses/ags-copyright
+    cp -v debian/ags+libraries/startgame $tmp/
+    awk 'BEGIN { RS="" } !/make_ags/ { if (NR>1) print RS; print }' debian/ags+libraries/README > $tmp/README
+    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    tar -f ags_linux_$version.tar.gz -cvzC $tmp data startgame README
+  binaries_artifacts:
+    path: ags_linux_*.tar.gz
+
+editor_packaging_task:
+  depends_on:
+    - build_editor
+    - build_windows
+    - linux_packaging
+  windows_container:
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+  env:
+    TEMPLATES_REPOSITORY: adventuregamestudio/ags-templates
+  get_vcredist_script: >
+    mkdir Windows\Installer\Source\Redist &&
+    copy %SYSTEMDRIVE%\Redist\vc_redist.x86.exe Windows\Installer\Source\Redist\
+  get_editor_script: >
+    mkdir Windows\Installer\Source\Editor &&
+    curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_editor/binaries.zip" |
+    tar -f - -xvzC Windows\Installer\Source\Editor --strip-components 3 Solutions/.build/Release
+  get_windows_engine_script: >
+    mkdir Windows\Installer\Source\Engine &&
+    curl -fLSso Windows\Installer\Source\Engine\acwin.exe
+    "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/build_windows/binaries/Solutions/.build/Release/acwin.exe"
+  get_manual_script: >
+    mkdir Windows\Installer\Source\Docs &&
+    cd Windows\Installer\Source\Docs &&
+    call %CIRRUS_WORKING_DIR%\Script\get_manual.cmd
+  get_templates_script: >
+    mkdir Windows\Installer\Source\Templates &&
+    curl -fLSs https://github.com/%TEMPLATES_REPOSITORY%/tarball/master |
+    tar -f - -xvzC Windows\Installer\Source\Templates --strip-components 2
+  get_linux_bundle_script: >
+    mkdir Windows\Installer\Source\Linux &&
+    call Script\setvar.cmd ACI_VERSION_STR &&
+    cmd /v:on /c "curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/%CIRRUS_BUILD_ID%/linux_packaging/binaries/ags_linux_!ACI_VERSION_STR!.tar.gz" |
+    tar -f - -xvC Windows\Installer\Source\Linux --strip-components 1"
+  make_installer_script: >
+    powershell Windows\Installer\build.ps1 -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+  installer_artifacts:
+    path: Windows\Installer\Output\*.exe
+  make_archive_script: >
+    move Windows\Installer\Source\Docs\* Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Engine\* Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Licenses Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Linux Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\Templates Windows\Installer\Source\Editor\ &&
+    move Windows\Installer\Source\URLs Windows\Installer\Source\Editor\ &&
+    call Script\setvar.cmd ACI_VERSION_STR &&
+    cmd /v:on /c tar -f AGS-!ACI_VERSION_STR!.zip -acv --strip-components 4 Windows\Installer\Source\Editor
+  archive_artifacts:
+    path: AGS-*.zip
+
+upload_release_task:
+  only_if: $CIRRUS_RELEASE != ''
+  depends_on:
+    - build_linux
+    - editor_packaging
+    - linux_packaging
+  freebsd_instance:
+    image: freebsd-12-0-release-amd64
+  env:
+    GITHUB_TOKEN: ENCRYPTED[f94b2c269006d530d3e6f5f2be0962ba3eeb0d5f43630ad8172b9ef9c405611e54ae5a2b6efc7c53db68176168f0c83d]
+  download_script: |
+    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    mkdir pdb && \
+    mkdir github_release && \
+    for download in "build_windows/engine_pdb.zip" \
+      "build_editor/ags_editor_pdb.zip" \
+      "build_editor/ags_native_pdb.zip"
+    do
+      curl -fLSs "https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/$download" | tar -f - -xvzC pdb -s "!.*/Debug/.*!!p" -s "!.*/!!p"
+    done && \
+    tar -f github_release/AGS-${version}-pdb.zip -acv --strip-components 1 pdb && \
+    cd github_release && \
+    for download in "linux_packaging/binaries/ags_linux_$version.tar.gz" \
+      "editor_packaging/installer/Windows/Installer/Output/AGS-$version.exe" \
+      "editor_packaging/archive/AGS-$version.zip" \
+      "build_linux/debian_packages/ags_${version}_i386.deb" \
+      "build_linux/debian_packages/ags_${version}_amd64.deb"
+    do
+      url="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID/$download"
+      echo "Downloading $url"
+      curl -fLOJ "$url"
+    done
+  checksums_script: |
+    cd github_release && \
+    sha256 -r * | sed -E "s/[[:blank:]]+/  /" > /tmp/checksums.sha256 && \
+    mv /tmp/checksums.sha256 .
+  release_script: |
+    for fpath in $(find github_release -type f)
+    do
+      echo "Uploading $fpath"
+      curl -X POST \
+        --data-binary @$fpath \
+        --header "Authorization: token $GITHUB_TOKEN" \
+        --header "Content-Type: application/octet-stream" \
+        "https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_RELEASE/assets?name=${fpath##*/}"
+    done

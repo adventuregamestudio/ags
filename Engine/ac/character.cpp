@@ -59,6 +59,7 @@
 #include "script/script_runtime.h"
 #include "gfx/gfx_def.h"
 #include "media/audio/audio_system.h"
+#include "ac/movelist.h"
 
 using namespace AGS::Common;
 
@@ -1022,7 +1023,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     Character_StopMoving(chaa);
     int movetox = xx, movetoy = yy;
 
-    wallscreen = prepare_walkable_areas(chaa->index_id);
+    set_wallscreen(prepare_walkable_areas(chaa->index_id));
 
     // TODO: hide these conversions, maybe make can_see_from() function do them internally in and out?
     int fromX = room_to_mask_coord(chaa->x);
@@ -1031,6 +1032,8 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     int toY = room_to_mask_coord(yy);
 
     if (!can_see_from(fromX, fromY, toX, toY)) {
+        int lastcx, lastcy;
+        get_lastcpos(lastcx, lastcy);
         movetox = mask_to_room_coord(lastcx);
         movetoy = mask_to_room_coord(lastcy);
     }

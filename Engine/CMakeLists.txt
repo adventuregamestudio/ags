@@ -238,6 +238,10 @@ target_sources(engine
     ac/roomstatus.h
     ac/route_finder.cpp
     ac/route_finder.h
+    ac/route_finder_impl.cpp
+    ac/route_finder_impl.h
+    ac/route_finder_impl_legacy.cpp
+    ac/route_finder_impl_legacy.h
     ac/runtime_defines.h
     ac/screen.cpp
     ac/screen.h

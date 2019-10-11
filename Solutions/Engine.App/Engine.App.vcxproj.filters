@@ -1032,6 +1032,12 @@
     <ClCompile Include="..\..\Engine\ac\keycode.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\route_finder_impl.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\route_finder_impl_legacy.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1903,6 +1909,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\win_ex_handling.h">
       <Filter>Header Files\platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\route_finder_impl.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\route_finder_impl_legacy.h">
+      <Filter>Header Files\ac</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

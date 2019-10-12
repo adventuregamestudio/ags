@@ -366,8 +366,8 @@ namespace AGS.Types
         }
 
         [DisplayName("Scale movement speed with room's mask resolution")]
-        [Description("Character walking and object movement speeds will scale inversely in proportion to the current room's Mask Resolution, for example having 1:2 mask resolution will multiply speed by 2." +
-            "\nNOTE: this is a backward compatible setting that should not be enabled without real need.")]
+        [Description("Character walking and object movement speeds will scale inversely in proportion to the current room's Mask Resolution, for example having 1:2 mask resolution will multiply speed by 2. " +
+            "This is a backward compatible setting that should not be enabled without real need.")]
         [Category("Character movement")]
         [DefaultValue(false)]
         public bool ScaleMovementSpeedWithMaskResolution

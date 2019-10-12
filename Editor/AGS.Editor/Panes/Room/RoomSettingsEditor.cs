@@ -48,6 +48,11 @@ namespace AGS.Editor
         public IEnumerable<IRoomEditorFilter> Layers { get { return _layers; } }
 
         /// <summary>
+        /// Selected navbar's node.
+        /// </summary>
+        public IAddressNode CurrentNode { get { return _editAddressBar.CurrentNode; } }
+
+        /// <summary>
         /// Tells if the design-time properties of the room were modified since last save.
         /// </summary>
         public bool DesignModified
@@ -82,11 +87,11 @@ namespace AGS.Editor
             _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
             _characterLayer = new CharactersEditorFilter(bufferedPanel1, this, _room, Factory.AGSEditor.CurrentGame);
             _layers.Add(_characterLayer);
-            _layers.Add(new ObjectsEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new HotspotsEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new WalkBehindsEditorFilter(bufferedPanel1, _room));
-            _layers.Add(new RegionsEditorFilter(bufferedPanel1, _room));
+            _layers.Add(new ObjectsEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new HotspotsEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new WalkBehindsEditorFilter(bufferedPanel1, this, _room));
+            _layers.Add(new RegionsEditorFilter(bufferedPanel1, this, _room));
 
             foreach (IRoomEditorFilter layer in _layers)
             {
@@ -149,6 +154,42 @@ namespace AGS.Editor
             _editAddressBar.InitializeRoot(_layersRoot);
 
             SelectOldNode(currentNode);
+        }
+
+        /// <summary>
+        /// Attempts to select room node following the given path item by item.
+        /// Path elements are compared with RoomItemID or UniqueID if former is not set.
+        /// </summary>
+        public bool TrySelectNodeUsingDesignIDPath(string[] path)
+        {
+            if (path.Length < 1) return false;
+            if (path[0].CompareTo(_layersRoot.UniqueID) != 0) return false;
+            IAddressNode node = _layersRoot;
+            for (int i = 1; i < path.Length; ++i)
+            {
+                foreach (IAddressNode child in node.Children)
+                {
+                    var roomNode = child as RoomEditNode;
+                    if (roomNode != null && !string.IsNullOrEmpty(roomNode.RoomItemID))
+                    {
+                        if (roomNode.RoomItemID.CompareTo(path[i]) == 0)
+                        {
+                            node = roomNode;
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (child.UniqueID.ToString().CompareTo(path[i]) == 0)
+                        {
+                            node = child;
+                            continue;
+                        }
+                    }
+                }
+            }
+            _editAddressBar.CurrentNode = node;
+            return true;
         }
         
         private void SelectOldNode(IAddressNode currentNode)
@@ -641,7 +682,7 @@ namespace AGS.Editor
         {
             if (_layersRoot.UniqueID.Equals(e.OUniqueID))
             {
-                Factory.GUIController.SetPropertyGridObject(_room);
+                SetPropertyGridObject(_room);
                 SelectLayer(null);
                 return;
             }
@@ -657,13 +698,7 @@ namespace AGS.Editor
 
             layerNode.IsVisible = true;
             SelectLayer(layerNode.Layer);
-
-            // only select the item if the room editor is the active tab; this could
-            // be a refresh from another tab e.g. changing a character's starting room
-            if (Factory.GUIController.ActivePane.Control == this)
-            {
-                layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
-            }
+            layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
         }
 
         private void SelectLayer(IRoomEditorFilter layer)
@@ -675,7 +710,7 @@ namespace AGS.Editor
             _layer = layer ?? _emptyLayer;
 
             SetDefaultPropertyGridList();
-            Factory.GUIController.SetPropertyGridObject(_room);
+            SetPropertyGridObject(_room);
             lblTransparency.Visible = _layer.ShowTransparencySlider;
             sldTransparency.Visible = _layer.ShowTransparencySlider;
             chkCharacterOffset.Visible = _layer is CharactersEditorFilter;
@@ -689,9 +724,25 @@ namespace AGS.Editor
 		
         private void SetDefaultPropertyGridList()
         {
-            Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
-            defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
-            Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
+            Dictionary<string, object> list = new Dictionary<string, object>();
+            list.Add(_room.PropertyGridTitle, _room);
+            if (Factory.GUIController.ActivePane == this.ContentDocument)
+            {
+                Factory.GUIController.SetPropertyGridObjectList(list);
+            }
+            else
+            {
+                this.ContentDocument.PropertyGridObjectList = list;
+                this.ContentDocument.SelectedPropertyGridObject = _room;
+            }
+        }
+
+        private void SetPropertyGridObject(object obj)
+        {
+            if (Factory.GUIController.ActivePane == this.ContentDocument)
+                Factory.GUIController.SetPropertyGridObject(obj);
+            else
+                this.ContentDocument.SelectedPropertyGridObject = obj;
         }
 
 		protected override string OnGetHelpKeyword()

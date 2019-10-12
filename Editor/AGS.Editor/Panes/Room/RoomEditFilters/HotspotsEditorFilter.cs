@@ -10,7 +10,8 @@ namespace AGS.Editor
 {
     public class HotspotsEditorFilter : BaseAreasEditorFilter
     {
-        public HotspotsEditorFilter(Panel displayPanel, Room room) : base(displayPanel, room)
+        public HotspotsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
+            : base(displayPanel, editor, room)
         {
         }
 
@@ -29,7 +30,7 @@ namespace AGS.Editor
 
         protected override void SelectedAreaChanged(int areaNumber)
         {
-            Factory.GUIController.SetPropertyGridObject(_room.Hotspots[areaNumber]);
+            SetPropertyGridObject(_room.Hotspots[areaNumber]);
         }
 
         public override void Paint(Graphics graphics, RoomEditorState state)
@@ -64,16 +65,15 @@ namespace AGS.Editor
             return items;
         }
 
-        protected override void SetPropertyGridList()
+        protected override Dictionary<string, object> GetPropertyGridList()
         {
-            Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
-            defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
+            var list = new Dictionary<string, object>();
+            list.Add(_room.PropertyGridTitle, _room);
             foreach (RoomHotspot hotspot in _room.Hotspots)
             {
-                defaultPropertyObjectList.Add(hotspot.PropertyGridTitle, hotspot);
+                list.Add(hotspot.PropertyGridTitle, hotspot);
             }
-
-            Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
+            return list;
         }
 
         protected override void GUIController_OnPropertyObjectChanged(object newPropertyObject)

@@ -48,6 +48,7 @@ Editor:
    the precision of Hotspot, Regions and Walkable Areas relative to room background.
  - Added "Default room mask resolution" to General Settings, which value will be applied
    to any room opened for editing in this game for the first time.
+ - Added "Scale movement speed with room's mask resolution" to General Settings.
  - Removed Locked property from the Room Object, objects are now locked by the navbar.
  - Split GUI's Visibility property into PopupStyle and Visible properties.
  - Added Clickable, Enabled and Visible properties to GUI Controls.

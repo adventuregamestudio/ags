@@ -298,6 +298,11 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 22)
+            {
+                game.Settings.ScaleMovementSpeedWithMaskResolution = true;
+            }
+
             game.SetScriptAPIForOldProject();
         }
 

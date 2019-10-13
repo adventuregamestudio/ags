@@ -238,11 +238,11 @@ namespace AGS
 			}
 		}
 
-    void NativeMethods::ReloadTTFFont(int fontSlot)
+    void NativeMethods::ReloadFont(int fontSlot)
     {
       if (!reload_font(fontSlot))
       {
-        throw gcnew AGSEditorException("Unable to load the TTF font file. The renderer was unable to load the font.");
+        throw gcnew AGSEditorException(String::Format("Unable to load font {0}. No supported font renderer was able to load the font.", fontSlot));
       }
     }
 

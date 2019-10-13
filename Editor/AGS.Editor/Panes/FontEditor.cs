@@ -82,7 +82,7 @@ namespace AGS.Editor
                     {
                         Factory.AGSEditor.DeleteFileOnDiskAndSourceControl(newWFNName);
                     }
-                    Factory.NativeProxy.ReloadTTFFont(_item.ID);
+                    Factory.NativeProxy.ReloadFont(_item.ID);
                     _item.PointSize = fontSize;
                     _item.SizeMultiplier = 1;
                     _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
@@ -112,7 +112,7 @@ namespace AGS.Editor
                 {
                     Factory.NativeProxy.ImportSCIFont(fileName, _item.ID);
                 }
-
+                Factory.NativeProxy.ReloadFont(_item.ID);
                 _item.PointSize = 0;
                 _item.SizeMultiplier = 1;
                 _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);

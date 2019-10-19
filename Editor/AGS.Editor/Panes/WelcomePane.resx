@@ -118,14 +118,14 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="lblUpgradingInfo3.Text" xml:space="preserve">
-    <value>Some of the new features in AGS 3.4 include:
-* Custom game resolutions: give your game any size and aspect ratio you want
-* Optionally prepare a game distributive for common Linux systems.
-* WFN (bitmap) fonts now support 256 characters.
-* User-defined managed types can be declared in script and passed around with the use of pointers.
-* Custom properties values can be modified at runtime with SetProperty and SetTextProperty functions.
-* Give characters and objects individual lighting with SetLightLevel function.
-* Improved dialog options rendering: script mouse and/or keyboard controlled dialog options to match your desire.
+    <value>Some of the new features in AGS 3.5 include:
+* A new Viewport and Camera system that lets you scale and translate your player's view of a room
+* An updated room editor with multilayer editing modes
+* Rooms can now be smaller than the game's resolution
+* An improved sprite importer allows source image reloading from spritesheets
+* Support for packed sprite files which are larger than 2GB in size
+* New script types Dictionary and Set
+* Updated game templates
 * And loads more!
 </value>
   </data>

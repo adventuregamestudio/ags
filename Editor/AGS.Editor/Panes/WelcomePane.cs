@@ -26,7 +26,6 @@ namespace AGS.Editor
             "Use the 'F' key to quickly flip frames in the view editor.",
             "Characters can talk and move between different rooms; objects cannot.",
             "You can select multiple sprites and move/delete them all in one go.",
-            "You can add a <a href=\"help:Custom icon\">custom icon</a> for your game and setup files.",
             "Use the <a href=\"help:Character.ActiveInventory\">player.ActiveInventory property</a> to find out which item the player used in Use Inventory events.",
             "If your room background is continually flashing, make sure you didn't accidentally import a second background." };
 

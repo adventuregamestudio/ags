@@ -20,7 +20,7 @@ namespace AGS.Editor
             "Use the drop-down list at the top of the script editor to easily navigate through the script.",
             "The <a href=\"help:Global variables\">Global Variables</a> pane allows you to easily create variables that are shared between all your scripts.",
             "Alpha-channel sprites allow you to have much smoother edges, but only work in 32-bit colour games.",
-            "The <a href=\"http://www.adventuregamestudio.co.uk/forum\">AGS Forums</a> has several script modules and plugins that you can download to easily implement features in your game.",
+            "The <a href=\"http://www.adventuregamestudio.co.uk/forums/\">AGS Forums</a> has several script modules and plugins that you can download to easily implement features in your game.",
             "The <a href=\"http://www.adventuregamestudio.co.uk/wiki/\">AGS Wiki</a> has lots of scripting tips. Why not contribute some yourself?",
             "To contribute to AGS development, check out <a href=\"https://github.com/adventuregamestudio\">AGS on GitHub.</a>",
             "Use the 'F' key to quickly flip frames in the view editor.",

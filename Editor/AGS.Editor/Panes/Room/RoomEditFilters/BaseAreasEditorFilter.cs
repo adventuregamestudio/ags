@@ -528,7 +528,7 @@ namespace AGS.Editor
         public void FilterOn()
         {
             SetPropertyGridList();
-            Factory.GUIController.ActivePane.ToolbarCommands = _toolbarIcons;
+            _editor.ContentDocument.ToolbarCommands = _toolbarIcons;
             bool hasSelectedCommand = false;
             foreach (MenuCommand menuCommand in _toolbarIcons)
             {
@@ -562,10 +562,7 @@ namespace AGS.Editor
 
             _mouseDown = false;
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
-            if (Factory.GUIController.ActivePane != null)
-            {
-                Factory.GUIController.ActivePane.ToolbarCommands = null;
-            }
+            _editor.ContentDocument.ToolbarCommands = null;
             Factory.ToolBarManager.RefreshCurrentPane();
             _isOn = false;
         }

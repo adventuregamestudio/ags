@@ -2,12 +2,6 @@ CC = gcc
 CFLAGS = -Wall -O3
 AR = ar
 
-ifdef DJDIR
-	# djgpp.
-	OBJS = djgpp.o
-	EXE = .exe
-	LIBS =
-else
 ifdef windir			# (ugh)
 	# mingw32.
 	OBJS = windows.o
@@ -18,7 +12,6 @@ else
 	OBJS = linux.o
 	EXE = 
 	LIBS =
-endif
 endif
 
 LIBCDA = libcda.a

@@ -1,5 +1,10 @@
 REVISION HISTORY
 ================
+VERSION 3.4.4 - Patch 2, October 2019
+
+Removed unused non-free code from libcda library source.
+
+
 VERSION 3.4.4 - Patch 1, September 2019
 
 Engine:

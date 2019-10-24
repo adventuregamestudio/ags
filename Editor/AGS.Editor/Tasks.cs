@@ -303,6 +303,16 @@ namespace AGS.Editor
                 game.Settings.ScaleMovementSpeedWithMaskResolution = true;
             }
 
+            if (xmlVersionIndex < 23)
+            {
+                // Set the import dimensions based on existing sprite dimensions
+                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
+                {
+                    sprite.ImportWidth = sprite.Width;
+                    sprite.ImportHeight = sprite.Height;
+                }
+            }
+
             game.SetScriptAPIForOldProject();
         }
 

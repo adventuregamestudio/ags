@@ -734,7 +734,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 
 void D3DGraphicsDriver::InitializeD3DState()
 {
-  direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(30, 0, 0, 255), 0.5f, 0);
+  direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0.5f, 0);
 
   // set the render flags.
   direct3ddevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
@@ -834,15 +834,14 @@ void D3DGraphicsDriver::SetupViewport()
   ClearScreenRect(RectWH(0, 0, _mode.Width, _mode.Height), nullptr);
 
   // Set Viewport.
-  D3DVIEWPORT9 d3dViewport;
-  ZeroMemory(&d3dViewport, sizeof(D3DVIEWPORT9));
-  d3dViewport.X = _dstRect.Left;
-  d3dViewport.Y = _dstRect.Top;
-  d3dViewport.Width = _dstRect.GetWidth();
-  d3dViewport.Height = _dstRect.GetHeight();
-  d3dViewport.MinZ = 0.0f;
-  d3dViewport.MaxZ = 1.0f;
-  direct3ddevice->SetViewport(&d3dViewport);
+  ZeroMemory(&_d3dViewport, sizeof(D3DVIEWPORT9));
+  _d3dViewport.X = _dstRect.Left;
+  _d3dViewport.Y = _dstRect.Top;
+  _d3dViewport.Width = _dstRect.GetWidth();
+  _d3dViewport.Height = _dstRect.GetHeight();
+  _d3dViewport.MinZ = 0.0f;
+  _d3dViewport.MaxZ = 1.0f;
+  direct3ddevice->SetViewport(&_d3dViewport);
 
   viewport_rect.left   = _dstRect.Left;
   viewport_rect.right  = _dstRect.Right + 1;
@@ -1302,22 +1301,19 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
 {
   IDirect3DSurface9 *pBackBuffer = NULL;
 
-  D3DVIEWPORT9 pViewport;
+  if (direct3ddevice->GetRenderTarget(0, &pBackBuffer) != D3D_OK) {
+    throw Ali3DException("IDirect3DSurface9::GetRenderTarget failed");
+  }
+  direct3ddevice->ColorFill(pBackBuffer, nullptr, D3DCOLOR_RGBA(0, 0, 0, 255));
 
   if (!_renderSprAtScreenRes) {
-    direct3ddevice->GetViewport(&pViewport);
-
-    if (direct3ddevice->GetRenderTarget(0, &pBackBuffer) != D3D_OK)
-    {
-      throw Ali3DException("IDirect3DSurface9::GetRenderTarget failed");
-    }
     if (direct3ddevice->SetRenderTarget(0, pNativeSurface) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
   }
 
-  direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 128), 0.5f, 0);
+  direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0.5f, 0);
   if (direct3ddevice->BeginScene() != D3D_OK)
     throw Ali3DException("IDirect3DDevice9::BeginScene failed");
 
@@ -1343,12 +1339,10 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
     {
       throw Ali3DException("IDirect3DSurface9::StretchRect failed");
     }
-    direct3ddevice->SetViewport(&pViewport);
+    direct3ddevice->SetViewport(&_d3dViewport);
   }
 
-  if (!_renderSprAtScreenRes) {
-    pBackBuffer->Release();
-  }
+  pBackBuffer->Release();
 
   if (clearDrawListAfterwards)
   {

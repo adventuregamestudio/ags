@@ -250,6 +250,8 @@ private:
     SpriteBatchDescs _backupBatchDescs;
     D3DSpriteBatches _backupBatches;
 
+    D3DVIEWPORT9 _d3dViewport;
+
     // Called after new mode was successfully initialized
     void OnModeSet(const DisplayMode &mode) override;
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;

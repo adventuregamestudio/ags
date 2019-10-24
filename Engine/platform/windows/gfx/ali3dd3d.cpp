@@ -1335,10 +1335,53 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
     _filter->SetSamplerStateForStandardSprite(direct3ddevice);
     D3DTEXTUREFILTERTYPE filterType;
     direct3ddevice->GetSamplerState(0, D3DSAMP_MAGFILTER, (DWORD*)&filterType);
-    if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, filterType) != D3D_OK)
+    
+    const int pixelSize = viewport_rect.right / _srcRect.GetWidth();
+
+    if (pixelSize == 1) {
+        // since the pixel size is 1 the distortion will not happen
+        if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, filterType) != D3D_OK)
+        {
+            throw Ali3DException("IDirect3DSurface9::StretchRect failed");
+        }
+    } 
+    else // TODO find a way to make this workaround unnecessary
     {
-      throw Ali3DException("IDirect3DSurface9::StretchRect failed");
+        // Bug: StretchRect makes the last right and bottom pixel one single pixel, always, no matter how big you stretch (reason uknown)
+        // HACK: we draw the surface in four parts to ensure the last row and column have the proper size
+        const int hackOffset = pixelSize - 1;
+        const int src_width = _srcRect.GetWidth();
+        const int src_height = _srcRect.GetHeight();
+
+        const RECT rectsHack[4][2] = {
+            {   // main area
+                // RECT {left, top, right, bottom}
+                { 0, 0, src_width, src_height }, // src
+                { viewport_rect.left, viewport_rect.top, viewport_rect.right - pixelSize + 1, viewport_rect.bottom - pixelSize + 1 } // dest
+            },
+            {   // right edge
+                { src_width - 1, 0, src_width, src_height },
+                { viewport_rect.right - hackOffset, viewport_rect.top, viewport_rect.right, viewport_rect.bottom - hackOffset }
+            },
+            {   // bottom edge
+                { 0, src_height - 1, src_width, src_height },
+                { viewport_rect.left, viewport_rect.bottom - hackOffset, viewport_rect.right - hackOffset, viewport_rect.bottom }
+            },
+            {   // bottom right corner
+                { src_width - 1, src_height - 1, src_width, src_height },
+                { viewport_rect.right - hackOffset, viewport_rect.bottom - hackOffset, viewport_rect.right, viewport_rect.bottom }
+            }
+        };
+
+        for (int i = 0; i < 4; ++i) {
+            if (direct3ddevice->StretchRect(pNativeSurface, &rectsHack[i][0], pBackBuffer, &rectsHack[i][1], filterType) != D3D_OK)
+            {
+                throw Ali3DException("IDirect3DSurface9::StretchRect failed");
+            }
+        }
+        // HACK - END
     }
+
     direct3ddevice->SetViewport(&_d3dViewport);
   }
 

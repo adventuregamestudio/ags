@@ -10,6 +10,12 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what the bug is.
 
+**AGS Version**
+Include version of AGS used. If compiled from source, please include a changeset.
+
+**Game**
+If applicable, link or attach an example game (with optional source) to demonstrate the issue.
+
 **To Reproduce**
 Steps to reproduce the behavior:
 1. Walk to '...'
@@ -22,9 +28,6 @@ A clear and concise description of what you expected to happen.
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
-
-**Game**
-If applicable, link or attach an example game (with optional source) to demonstrate the issue.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. Windows, Linux, macOS]

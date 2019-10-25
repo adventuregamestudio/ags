@@ -273,6 +273,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _pixelRenderXOffset = 0;
   _pixelRenderYOffset = 0;
   _renderSprAtScreenRes = false;
+  _needStretchRectHack = false;
 
   // Shifts comply to D3DFMT_A8R8G8B8
   _vmem_a_shift_32 = 24;
@@ -794,6 +795,9 @@ void D3DGraphicsDriver::InitializeD3DState()
 
   // If we already have a render frame configured, then setup viewport immediately
   SetupViewport();
+
+  // Test for StrechRect bug and enable hack
+  _testStretchRectBug();
 }
 
 void D3DGraphicsDriver::SetupViewport()
@@ -1288,7 +1292,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       throw Ali3DException("IDirect3DDevice9::DrawPrimitive failed");
     }
 
-  }
+  } 
 }
 
 void D3DGraphicsDriver::_renderAndPresent(bool clearDrawListAfterwards)
@@ -1338,7 +1342,7 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
     
     const int pixelSize = viewport_rect.right / _srcRect.GetWidth();
 
-    if (pixelSize == 1) {
+    if (!_needStretchRectHack || pixelSize == 1) {
         // since the pixel size is 1 the distortion will not happen
         if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, filterType) != D3D_OK)
         {
@@ -1393,6 +1397,68 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
     ClearDrawLists();
   }
   ResetFxPool();
+}
+
+// TODO remove if we no longer need the hack
+void D3DGraphicsDriver::_testStretchRectBug()
+{
+    IDirect3DSurface9 *src;
+    IDirect3DSurface9 *dest;
+
+    // create temporary surfaces
+    if (direct3ddevice->CreateRenderTarget(
+        8,
+        8,
+        color_depth_to_d3d_format(_mode.ColorDepth, false),
+        D3DMULTISAMPLE_NONE,
+        0,
+        true,
+        &src,
+        NULL) != D3D_OK)
+    {
+        throw Ali3DException("CreateRenderTarget failed");
+    }
+    if (direct3ddevice->CreateRenderTarget(
+        32,
+        32,
+        color_depth_to_d3d_format(_mode.ColorDepth, false),
+        D3DMULTISAMPLE_NONE,
+        0,
+        true,
+        &dest,
+        NULL) != D3D_OK)
+    {
+        throw Ali3DException("CreateRenderTarget failed");
+    }
+
+    // init surfaces
+    direct3ddevice->ColorFill(src, NULL, D3DCOLOR_RGBA(0, 0, 0, 255));
+    direct3ddevice->ColorFill(dest, NULL, D3DCOLOR_RGBA(0, 0, 0, 255));
+
+    // draw text pixel in the corner where the distortion can be easily tested
+    const RECT testPixel = { 7, 7, 8, 8 }; 
+    direct3ddevice->ColorFill(src, &testPixel, D3DCOLOR_RGBA(0, 0, 255, 255));
+    
+    // perform the stretch, expected behavior would be a 4x4 blue pixel in the corner
+    if (direct3ddevice->StretchRect(src, NULL, dest, NULL, D3DTEXF_NONE) != D3D_OK)
+    {
+        throw Ali3DException("StretchRect failed");
+    }
+
+    // lock surface and perform pixel comparison
+    D3DLOCKED_RECT lockedRect;
+    if (dest->LockRect(&lockedRect, NULL, D3DLOCK_READONLY) != D3D_OK)
+    {
+        throw Ali3DException("IDirect3DSurface9::LockRect failed");
+    }
+    unsigned char *pixels = (unsigned char*)lockedRect.pBits;
+    uint32_t pixel = (uint32_t) pixels[lockedRect.Pitch * 30 + 4 * 30]; // this pixel is supposed to be blue like {31,31}
+    
+    _needStretchRectHack = pixel != 0x000000FF;
+
+    dest->UnlockRect();
+    dest->Release();
+    src->Release();
 }
 
 void D3DGraphicsDriver::RenderSpriteBatches()

@@ -252,6 +252,8 @@ private:
 
     D3DVIEWPORT9 _d3dViewport;
 
+    bool _needStretchRectHack;
+
     // Called after new mode was successfully initialized
     void OnModeSet(const DisplayMode &mode) override;
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
@@ -282,6 +284,8 @@ private:
     void RenderSpriteBatches();
     void RenderSpriteBatch(const D3DSpriteBatch &batch);
     void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal);
+
+    void _testStretchRectBug();
 };
 
 

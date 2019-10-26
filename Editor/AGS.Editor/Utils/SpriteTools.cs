@@ -223,6 +223,8 @@ namespace AGS.Editor.Utils
             sprite.Frame = frame;
             sprite.OffsetX = offsetX;
             sprite.OffsetY = offsetY;
+            sprite.ImportWidth = sprite.Width;
+            sprite.ImportHeight = sprite.Height;
             sprite.ImportAlphaChannel = alpha;
         }
 
@@ -284,6 +286,8 @@ namespace AGS.Editor.Utils
             sprite.Frame = frame;
             sprite.OffsetX = offsetX;
             sprite.OffsetY = offsetY;
+            sprite.ImportWidth = sprite.Width;
+            sprite.ImportHeight = sprite.Height;
             sprite.ImportAlphaChannel = alpha;
 
             folder.Sprites.Add(sprite);

@@ -24,6 +24,8 @@ namespace AGS.Types
         private SpriteImportTransparency _tranparentColour = SpriteImportTransparency.LeaveAsIs;
         private int _offsetX;
         private int _offsetY;
+        private int _importWidth;
+        private int _importHeight;
         private bool _remapToGamePalette;
         private bool _remapToRoomPalette;
         private bool _importAlphaChannel;
@@ -158,6 +160,22 @@ namespace AGS.Types
             set { _offsetY = value; }
         }
 
+        [Description("The width of the import")]
+        [Category("Import")]
+        public int ImportWidth
+        {
+            get { return _importWidth; }
+            set { _importWidth = value; }
+        }
+
+        [Description("The height of the import")]
+        [Category("Import")]
+        public int ImportHeight
+        {
+            get { return _importHeight; }
+            set { _importHeight = value; }
+        }
+
         [Description("The frame number of a multi-frame image within the source file")]
         [Category("Import")]
         public int Frame
@@ -229,6 +247,17 @@ namespace AGS.Types
 
                 try
                 {
+                    _importWidth = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "ImportWidth"));
+                    _importHeight = Convert.ToInt32(SerializeUtils.GetElementString(sourceNode, "ImportHeight"));
+                }
+                catch (InvalidDataException)
+                {
+                    _importWidth = _width;
+                    _importHeight = _height;
+                }
+
+                try
+                {
                     _importAlphaChannel = Convert.ToBoolean(SerializeUtils.GetElementString(sourceNode, "ImportAlphaChannel"));
                 }
                 catch (InvalidDataException)
@@ -257,6 +286,8 @@ namespace AGS.Types
             writer.WriteElementString("FileName", _sourceFile);
             writer.WriteElementString("OffsetX", _offsetX.ToString());
             writer.WriteElementString("OffsetY", _offsetY.ToString());
+            writer.WriteElementString("ImportHeight", _importHeight.ToString());
+            writer.WriteElementString("ImportWidth", _importWidth.ToString());
             writer.WriteElementString("Frame", _frame.ToString());
             writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
             writer.WriteElementString("RemapToRoomPalette", _remapToRoomPalette.ToString());

@@ -53,6 +53,7 @@ namespace AGS.Types
         private int _splitResources = 0;
         private bool _turnBeforeWalking = true;
         private bool _turnBeforeFacing = true;
+        private bool _scaleMovementSpeedWithMaskRes = false;
         private bool _mouseWheelEnabled = true;
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
@@ -362,6 +363,17 @@ namespace AGS.Types
         {
             get { return _turnBeforeWalking; }
             set { _turnBeforeWalking = value; }
+        }
+
+        [DisplayName("Scale movement speed with room's mask resolution")]
+        [Description("Character walking and object movement speeds will scale inversely in proportion to the current room's Mask Resolution, for example having 1:2 mask resolution will multiply speed by 2. " +
+            "This is a backward compatible setting that should not be enabled without real need.")]
+        [Category("Character movement")]
+        [DefaultValue(false)]
+        public bool ScaleMovementSpeedWithMaskResolution
+        {
+            get { return _scaleMovementSpeedWithMaskRes; }
+            set { _scaleMovementSpeedWithMaskRes = value; }
         }
 
         [DisplayName("Split resource files into X MB-sized chunks")]

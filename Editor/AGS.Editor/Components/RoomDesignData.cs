@@ -29,13 +29,15 @@ namespace AGS.Editor.Components
     {
         private const string XML_DATA_ROOT_NODE = "AGSRoomUserData";
         private const string XML_ROOM_NODE = "Room";
+        private const string XML_ROOM_SELECTION = "SelectedItem";
+        private const string XML_SELITEM_ATTRIB_PATH = "BreadcrumbPath";
         private const string XML_ROOM_LAYERS_NODE = "Layers";
         private const string XML_LAYER_ELEM_VISIBLE = "Visible";
         private const string XML_LAYER_ELEM_LOCKED = "Locked";
         private const string XML_LAYER_ITEMS_NODE = "Items";
         private const string XML_LAYER_ITEM_NODE = "Item";
         private const string XML_ITEM_ATTRIB_ID = "ID";
-        private const int CURRENT_DATA_VERSION_INDEX = 1;
+        private const int CURRENT_DATA_VERSION_INDEX = 2;
 
         /// <summary>
         /// Load a previously saved design-time user data for the current room.
@@ -99,6 +101,15 @@ namespace AGS.Editor.Components
             node = node.SelectSingleNode(XML_ROOM_NODE);
             if (node == null)
                 return;
+            XmlNode selectedObject = node.SelectSingleNode(XML_ROOM_SELECTION);
+            if (selectedObject != null && selectedObject.Attributes[XML_SELITEM_ATTRIB_PATH] != null)
+            {
+                string selpath = selectedObject.Attributes[XML_SELITEM_ATTRIB_PATH].InnerText;
+                if (!string.IsNullOrEmpty(selpath))
+                {
+                    editor.TrySelectNodeUsingDesignIDPath(selpath.Split('/'));
+                }
+            }
             node = node.SelectSingleNode(XML_ROOM_LAYERS_NODE);
             if (node == null)
                 return;
@@ -185,6 +196,19 @@ namespace AGS.Editor.Components
             // We do not have a distinct class which would only describe necessary fields,
             // so we do this part by hand for now, trying to be compliant with SerializeUtils.
             writer.WriteStartElement(XML_ROOM_NODE);
+
+            var node = editor.CurrentNode as AGS.Editor.Panes.Room.RoomEditNode;
+            string nodepath = "";
+            while (node != null)
+            {
+                string id = string.IsNullOrEmpty(node.RoomItemID) ? node.UniqueID.ToString() : node.RoomItemID;
+                nodepath = id + (string.IsNullOrEmpty(nodepath) ? "" : ("/" + nodepath));
+                node = node.Parent as AGS.Editor.Panes.Room.RoomEditNode;
+            }
+            writer.WriteStartElement(XML_ROOM_SELECTION);
+            writer.WriteAttributeString(XML_SELITEM_ATTRIB_PATH, nodepath);
+            writer.WriteEndElement(); // Layer node
+
             writer.WriteStartElement(XML_ROOM_LAYERS_NODE);
             foreach (IRoomEditorFilter layer in editor.Layers)
             {

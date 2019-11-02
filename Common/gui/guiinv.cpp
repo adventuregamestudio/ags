@@ -123,7 +123,12 @@ void GUIInvWindow::WriteToSavegame(Stream *out) const
 
 void GUIInvWindow::CalculateNumCells()
 {
-    if (loaded_game_file_version >= kGameVersion_270)
+    if (ItemWidth <= 0 || ItemHeight <= 0)
+    {
+        ColCount = 0;
+        RowCount = 0;
+    }
+    else if (loaded_game_file_version >= kGameVersion_270)
     {
         ColCount = Width / data_to_game_coord(ItemWidth);
         RowCount = Height / data_to_game_coord(ItemHeight);

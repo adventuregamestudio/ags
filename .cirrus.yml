@@ -146,8 +146,13 @@ build_android_task:
     for apk in $(find -maxdepth 1 -name "*.apk" -type f); do
       mv -v $apk ${apk%%-*}-${version}-${apk#*-}
     done
-  binaries_artifacts:
+  apks_artifacts:
     path: Android/launcher_list/bin/AGS-*.apk
+  create_libs_archive_script: |
+    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    bsdtar -f AGS-${version}-android-libs.zip -acv --strip-components 3 Android/library/libs
+  libs_artifacts:
+    path: AGS-*-android-libs.zip
 
 build_editor_task:
   windows_container:
@@ -258,8 +263,8 @@ editor_packaging_task:
     move Windows\Installer\Source\Linux Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\Templates Windows\Installer\Source\Editor\ &&
     move Windows\Installer\Source\URLs Windows\Installer\Source\Editor\ &&
-    call Script\setvar.cmd ACI_VERSION_STR &&
-    cmd /v:on /c tar -f AGS-!ACI_VERSION_STR!.zip -acv --strip-components 4 Windows\Installer\Source\Editor
+    for %%f in (Windows\Installer\Output\*.exe) do
+    tar -f %%~nf.zip -acv --strip-components 4 Windows\Installer\Source\Editor
   archive_artifacts:
     path: AGS-*.zip
 
@@ -313,18 +318,19 @@ make_release_task:
     baseurl="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID"
     mkdir -p /tmp/github_release && \
     cd /tmp/github_release && \
-    for download in "linux_packaging/binaries/ags_${version}_linux.tar.gz" \
-      "editor_packaging/archive/AGS-$version.zip" \
+    curl -fLSs "$baseurl/editor_packaging/installer.zip" | bsdtar -f - -xv --strip-components 3 && \
+    for download in "editor_packaging/archive/$(basename AGS-*.exe .exe).zip" \
+      "linux_packaging/binaries/ags_${version}_linux.tar.gz" \
       "pdb_packaging/archive/AGS-${version}-pdb.zip" \
       "build_linux_debian/debian_packages/ags_${version}_i386.deb" \
       "build_linux_debian/debian_packages/ags_${version}_amd64.deb" \
-      "build_android/binaries/Android/launcher_list/bin/AGS-${version}-debug.apk"
+      "build_android/apks/Android/launcher_list/bin/AGS-${version}-debug.apk" \
+      "build_android/libs/AGS-${version}-android-libs.zip"
     do
       url="$baseurl/$download"
       echo "Downloading $url"
       curl -fLOJ "$url"
-    done && \
-    curl -fLSs "$baseurl/editor_packaging/installer.zip" | bsdtar -f - -xv --strip-components 3
+    done
   create_checksums_script: >
     cd /tmp/github_release &&
     sha256 -r * | sed -E "s/[[:blank:]]+/  /" | tee /tmp/checksums.sha256 &&

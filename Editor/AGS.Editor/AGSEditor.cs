@@ -82,8 +82,9 @@ namespace AGS.Editor
          * 19: 3.5.0.11   - Custom Say and Narrate functions for dialog scripts. GameFileName.
          * 20: 3.5.0.14   - Sprite.ImportAlphaChannel.
          * 21: 3.5.0.15   - AudioClip ID.
+         * 22: 3.5.0.18   - Settings.ScaleMovementSpeedWithMaskResolution.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 21;
+        public const int    LATEST_XML_VERSION_INDEX = 23;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

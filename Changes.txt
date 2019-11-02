@@ -48,6 +48,7 @@ Editor:
    the precision of Hotspot, Regions and Walkable Areas relative to room background.
  - Added "Default room mask resolution" to General Settings, which value will be applied
    to any room opened for editing in this game for the first time.
+ - Added "Scale movement speed with room's mask resolution" to General Settings.
  - Removed Locked property from the Room Object, objects are now locked by the navbar.
  - Split GUI's Visibility property into PopupStyle and Visible properties.
  - Added Clickable, Enabled and Visible properties to GUI Controls.
@@ -160,12 +161,16 @@ Engine:
  - Expanded some of the error messages providing more information to end-user and developers.
  - Fixed engine could not locate game data if relative path was passed in command line.
  - Fixed potential bug which could cause DoOnceOnly tokens to be read incorrectly from a savedgame.
+ - Fixed engine crashing with "division by zero" error if user set InventoryWindow's ItemWidth or
+   ItemHeight to 0.
  - Fixed old walk-behind cut-outs could be displayed on first update in a room if the room's
    background was modified using raw drawing commands before fade-in. This happened only when
    running Direct3D or OpenGL renderer. Note that this bug was probably never noticed by players
    for a certain barely related reason.
  - Fixed BlackBox-in transition done by software renderer could have wrong aspect ratio.
  - Fixed Direct3D and OpenGL displayed pink (255, 0, 255) fade as transparent.
+ - Fixed Direct3D was not clearing black borders in fullscreen, which could cause graphical
+   artifacts remaining after the Steam overlay, for example.
  - Fixed potential crash that could happen when switching between fullscreen and windowed mode,
    or switching back into game window (only observed on Linux for some reason).
  - Fixed a bug in mp3/ogg decoder where it assumed creating an audiostream succeeded without

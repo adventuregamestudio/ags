@@ -313,7 +313,10 @@ namespace AGS.Editor
                 }
             }
 
-            game.SetScriptAPIForOldProject();
+            System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
+            System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
+            if (projectVersion < editorVersion)
+                game.SetScriptAPIForOldProject();
         }
 
         private string RemoveAllLeadingSpacesFromLines(string script)

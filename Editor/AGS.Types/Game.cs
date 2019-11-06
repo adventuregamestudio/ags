@@ -1090,12 +1090,17 @@ namespace AGS.Types
             }
             else
             {
-                if (projectVersion < firstCompatibleVersion)
+                // We adjust compatibility setting in two situations:
+                // 1) project is older than the compatibility setting itself
+                // 2) compatibility setting was not explicitly defined
+                if (projectVersion < firstCompatibleVersion ||
+                    _settings.ScriptCompatLevel == ScriptAPIVersion.Highest)
                 {
                     // Devise the API version from enum values Description attribute
                     // and find the first version equal or higher than project's one.
                     Type t = typeof(ScriptAPIVersion);
                     string[] names = Enum.GetNames(t);
+                    string last_name = names[0];
                     foreach (string n in names)
                     {
                         FieldInfo fi = t.GetField(n);
@@ -1104,13 +1109,16 @@ namespace AGS.Types
                           typeof(DescriptionAttribute), false);
                         if (attributes.Length == 0)
                             continue;
-                        System.Version v = new System.Version(attributes[0].Description);
-                        if (projectVersion <= v)
-                        {
-                            _settings.ScriptCompatLevel = (ScriptAPIVersion)Enum.Parse(t, n);
+                        // TODO: find another way to parse enum constant, don't rely on human-targeted description (another attribute?)
+                        string desc = attributes[0].Description.Split(' ')[0];
+                        System.Version v = new System.Version(desc);
+                        if (projectVersion < v)
                             break;
-                        }
+                        last_name = n;
+                        if (projectVersion == v)
+                            break;
                     }
+                    _settings.ScriptCompatLevel = (ScriptAPIVersion)Enum.Parse(t, last_name);
                 }
                 if (projectVersion < firstVersionWithHighestConst && _settings.ScriptAPIVersion == ScriptAPIVersion.v340)
                 {

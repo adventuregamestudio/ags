@@ -976,9 +976,20 @@ namespace AGS.Editor
                 }
             }
 
+            string newGamePath;
+
+            if (String.IsNullOrWhiteSpace(Factory.AGSEditor.Settings.NewGamePath))
+            {
+                newGamePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
+            else
+            {
+                newGamePath = Factory.AGSEditor.Settings.NewGamePath;
+            }
+
             List<WizardPage> pages = new List<WizardPage>();
             StartNewGameWizardPage templateSelectPage = new StartNewGameWizardPage(templates);
-            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(Factory.AGSEditor.Settings.NewGamePath);
+            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(newGamePath);
             pages.Add(templateSelectPage);
             pages.Add(gameNameSelectPage);
             

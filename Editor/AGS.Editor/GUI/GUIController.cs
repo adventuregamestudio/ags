@@ -976,9 +976,20 @@ namespace AGS.Editor
                 }
             }
 
+            string newGamePath;
+
+            if (String.IsNullOrWhiteSpace(Factory.AGSEditor.Settings.NewGamePath))
+            {
+                newGamePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
+            else
+            {
+                newGamePath = Factory.AGSEditor.Settings.NewGamePath;
+            }
+
             List<WizardPage> pages = new List<WizardPage>();
             StartNewGameWizardPage templateSelectPage = new StartNewGameWizardPage(templates);
-            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(Factory.AGSEditor.Settings.NewGamePath);
+            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(newGamePath);
             pages.Add(templateSelectPage);
             pages.Add(gameNameSelectPage);
             
@@ -987,27 +998,29 @@ namespace AGS.Editor
 
             if (result == DialogResult.OK)
             {
-                createdSuccessfully = CreateNewGame(gameNameSelectPage.GetFullPath(), gameNameSelectPage.NewGameName, templateSelectPage.SelectedTemplate);
+                createdSuccessfully = CreateNewGame(gameNameSelectPage.GetFullPath(), gameNameSelectPage.FileName,
+                    gameNameSelectPage.NewGameName, templateSelectPage.SelectedTemplate);
             }
 
             dialog.Dispose();
             return createdSuccessfully;
         }
 
-        private bool CreateNewGame(string newGameDirectory, string newGameName, GameTemplate createFromTemplate)
+        private bool CreateNewGame(string newGamePath, string newFileName, string newGameName, GameTemplate createFromTemplate)
         {
             bool createdSuccessfully = false;
             try
             {
                 string templateFileName = Path.Combine(_agsEditor.EditorDirectory, createFromTemplate.FileName);
-                _agsEditor.Tasks.CreateNewGameFromTemplate(templateFileName, newGameDirectory);
-                string newGameFileName = Path.Combine(newGameDirectory, AGSEditor.GAME_FILE_NAME);
+                _agsEditor.Tasks.CreateNewGameFromTemplate(templateFileName, newGamePath);
+                string newGameFileName = Path.Combine(newGamePath, AGSEditor.GAME_FILE_NAME);
                 if (!File.Exists(newGameFileName))
                 {
-                    newGameFileName = Path.Combine(newGameDirectory, AGSEditor.OLD_GAME_FILE_NAME);
+                    newGameFileName = Path.Combine(newGamePath, AGSEditor.OLD_GAME_FILE_NAME);
                 }
                 if (_agsEditor.Tasks.LoadGameFromDisk(newGameFileName, false))
                 {
+                    _agsEditor.CurrentGame.Settings.GameFileName = newFileName;
                     _agsEditor.CurrentGame.Settings.GameName = newGameName;
                     _agsEditor.CurrentGame.Settings.SaveGameFolderName = newGameName;
                     _agsEditor.CurrentGame.Settings.GenerateNewGameID();
@@ -1045,9 +1058,9 @@ namespace AGS.Editor
             if (!createdSuccessfully)
             {
                 Directory.SetCurrentDirectory(_agsEditor.EditorDirectory);
-                if (Directory.Exists(newGameDirectory))
+                if (Directory.Exists(newGamePath))
                 {
-                    Directory.Delete(newGameDirectory, true);
+                    Directory.Delete(newGamePath, true);
                 }
             }
 
